@@ -49,11 +49,26 @@
 
 
 @interface InPort : Port
+{
+  id _packet_invocation;
+}
 
 + newForReceiving;
 + newForReceivingFromRegisteredName: (id <String>)name;
 
-/* Get a packet from the net and return it.  If no packet is received 
+/* Register/Unregister this port for input handling through RunLoop 
+   RUN_LOOP in mode MODE. */
+- (void) addToRunLoop: run_loop forMode: (id <String>)mode;
+- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode;
+
+/* When a RunLoop is handling this InPort, and a new incoming
+   packet arrives, INVOCATION will be invoked with the new packet
+   as an argument.  The INVOCATION is responsible for releasing
+   the packet. */
+- (void) setPacketInvocation: (id <Invoking>)invocation;
+
+/* An alternative to the above way for receiving packets from this port.
+   Get a packet from the net and return it.  If no packet is received 
    within MILLISECONDS, then return nil.  The caller is responsible 
    for releasing the packet. */
 - receivePacketWithTimeout: (int)milliseconds;
