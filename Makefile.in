@@ -348,6 +348,7 @@ config.guess config.nested.c config.nextcc.h config.nextrt.m \
 mkinstalldirs install-sh \
 version.texi \
 libobjects.info libobjects.texi \
+objective-c.info objective-c.texi \
 texinfo.tex \
 gcc-class.patch gcc-string.patch \
 gcc-dynamic.patch NSBundle.README \
@@ -375,6 +376,7 @@ CREDITS MACHINES \
 Makefile.in configure.in objects/config.h.in objects/stdobjects.h.in \
 config.nested.c config.nextcc.h config.nextrt.m \
 libobjects.texi \
+objective-c.texi \
 $(GNU_MFILES) \
 $(GNU_CFILES) \
 $(GNU_HEADERS) \
@@ -479,7 +481,7 @@ version.texi: Makefile.in
 		echo '@set OBJECTS_FTP_DIRECTORY' $(OBJECTS_FTP_DIRECTORY) \
 		>> $(srcdir)/version.texi; fi
 
-info: libobjects.info TODO INSTALL NEWS README ANNOUNCE
+info: libobjects.info TODO INSTALL NEWS README ANNOUNCE objective-c.info
 dvi: libobjects.dvi
 libobjects.dvi: libobjects.texi version.texi
 	@echo Sorry, libobjects/texinfo.tex still needs work.
@@ -487,6 +489,8 @@ libobjects.dvi: libobjects.texi version.texi
 
 libobjects.info: libobjects.texi todo.texi version.texi
 	$(MAKEINFO) $(srcdir)/libobjects.texi
+objective-c.info: objective-c.texi
+	$(MAKEINFO) $(srcdir)/objective-c.texi
 TODO: todo.texi version.texi
 	$(MAKEINFO) -o TODO -D TODO_ONLY \
 	--no-header --no-split $(srcdir)/todo.texi
