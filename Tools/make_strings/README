@@ -1,0 +1,31 @@
+make_strings
+============
+copyright 2002 Alexander Malmberg <alexander@malmberg.org>
+
+If you are a translator, you're probably looking for Using.txt .
+
+Description
+-----------
+
+make_strings parses Objective-C files and builds lists of localizable
+strings. It then creates new .strings files or merges the strings with
+existing .strings files. It's fairly intelligent when matching old
+and new strings, and produces .strings files that are (supposed to be)
+easy for a translator to work with.
+
+Instructions on how to use it when translating can be found in Using.txt .
+
+
+Installing
+----------
+
+make_strings requires gnustep-make and gnustep-base.
+
+Running:
+	make
+
+should compile, and:
+	make install
+
+should install it.
+

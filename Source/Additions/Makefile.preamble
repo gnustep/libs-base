@@ -42,7 +42,11 @@
 ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall
 
 # Additional flags to pass to the Objective-C compiler
-ADDITIONAL_OBJCFLAGS =
+#ADDITIONAL_OBJCFLAGS = 
+
+ifeq ($(GNUSTEP_TARGET_OS),mingw32)
+  ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
+endif
 
 # Additional flags to pass to the C compiler
 ADDITIONAL_CFLAGS = 

@@ -1,3 +1,11 @@
+2002-04-22  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/make_strings: New tool from Alexander Malmberg
+	<alexander@malmberg.org>
+
+	* Source/Additional/Makefile.preamble (ADDITIONAL_OBJCFLAGS):
+	Add for building DLL on mingw32
+
 2002-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSURL.m: ([-absoluteString]) anonymous bugfix applied.
@@ -28,7 +36,7 @@
 
 	* Documentation/coding-standards.texi: Remove info dir tag.
 	* Documentation/gnustep-base.texi: Idem.
-	* Resources/Languages/Slovak: New file.
+	* Resources/Languages/Slovak: New file (from Stefan Urbanek).
 
 Thu Apr 18 11:10:04 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 

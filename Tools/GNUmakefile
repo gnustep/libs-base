@@ -46,6 +46,8 @@ CTOOL_NAME = gdomap
 
 TEST_TOOL_NAME = locale_alias
 
+SUBPROJECTS = make_strings
+
 # The source files to be compiled
 autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
 cvtenc_OBJC_FILES = cvtenc.m
@@ -91,6 +93,7 @@ include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/tool.make
 include $(GNUSTEP_MAKEFILES)/ctool.make
+include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 ifeq ($(doc),yes)
 include $(GNUSTEP_MAKEFILES)/documentation.make
