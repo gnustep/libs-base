@@ -24,7 +24,9 @@
 #include        "AGSIndex.h"
 #include 	"gnustep/base/GNUstep.h"
 #include "gnustep/base/GSCategories.h"
+#ifdef NeXT_Foundation_LIBRARY
 #include "gnustep/base/GSCompatibility.h"
+#endif
 
 static int      XML_ELEMENT_NODE;
 static int      XML_TEXT_NODE;
