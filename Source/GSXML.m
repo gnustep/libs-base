@@ -28,6 +28,8 @@
 
 #include <config.h>
 
+#ifdef	HAVE_LIBXML
+
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSValue.h>
@@ -2134,3 +2136,64 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     }
 }
 @end
+
+#else
+
+#include	<Foundation/NSObjCRuntime.h>
+#include	<Foundation/NSCoder.h>
+
+/*
+ * Build dummy implementations of the classes if libxml is not available
+ */
+@interface GSXMLDummy : NSObject
+@end
+@interface GSXMLAttribute : GSXMLDummy
+@end
+@interface GSXMLDocument : GSXMLDummy
+@end
+@interface GSXMLHandler : GSXMLDummy
+@end
+@interface GSXMLNamespace : GSXMLDummy
+@end
+@interface GSXMLNode : GSXMLDummy
+@end
+@interface GSSAXHandler : GSXMLDummy
+@end
+
+@implementation GSXMLDummy
++ (id) allocWithZone: (NSZone*)z
+{
+  NSLog(@"Not built with libxml ... %@ unusable in %@",
+    NSStringFromClass(self), NSStringFromSelector(_cmd));
+  return nil;
+}
+- (id) init
+{
+  NSLog(@"Not built with libxml ... %@ unusable in %@",
+    NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+  RELEASE(self);
+  return nil;
+}
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Not built with libxml ... %@ unusable in %@",
+    NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+  RELEASE(self);
+  return nil;
+}
+@end
+@implementation GSXMLAttribute
+@end
+@implementation GSXMLDocument
+@end
+@implementation GSXMLHandler
+@end
+@implementation GSXMLNamespace
+@end
+@implementation GSXMLNode
+@end
+@implementation GSSAXHandler
+@end
+
+#endif
+

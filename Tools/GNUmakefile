@@ -47,7 +47,7 @@ CTOOL_NAME = gdomap
 TEST_TOOL_NAME = locale_alias
 
 # The source files to be compiled
-autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m
+autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
 gsdoc_OBJC_FILES = gsdoc.m

@@ -35,7 +35,7 @@
   [super dealloc];
 }
 
-- (NSDictionary*) info
+- (NSMutableDictionary*) info
 {
   return info;
 }

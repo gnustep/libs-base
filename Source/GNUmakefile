@@ -169,6 +169,7 @@ GSMime.m \
 GSSet.m \
 GSString.m \
 GSValue.m \
+GSXML.m \
 NSAttributedString.m \
 NSArchiver.m \
 NSArray.m \
@@ -246,10 +247,6 @@ NSZone.m \
 externs.m \
 objc-load.m
 
-ifeq ($(HAVE_LIBXML),1)
-BASE_MFILES += GSXML.m
-endif
-
 ifeq ($(WITH_FFI),libffi)
 GNU_MFILES += cifframe.m
 BASE_MFILES += GSFFIInvocation.m
@@ -282,6 +279,7 @@ tzfile.h
 FOUNDATION_HEADERS = \
 Foundation.h \
 GSMime.h \
+GSXML.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
@@ -350,10 +348,6 @@ NSZone.h \
 objc-load.h \
 NSURL.h \
 NSURLHandle.h
-
-ifeq ($(HAVE_LIBXML),1)
-FOUNDATION_HEADERS += GSXML.h
-endif
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \

@@ -57,7 +57,7 @@
   NSCharacterSet	*spacenl;	// Blanks excluding newline
 }
 
-- (NSDictionary*) info;
+- (NSMutableDictionary*) info;
 - (id) init;	/** <init> Simple initialiser */
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;

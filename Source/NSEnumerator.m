@@ -28,16 +28,26 @@
 
 @implementation NSEnumerator
 
-- (NSArray *)allObjects
+- (NSArray*) allObjects
 {
-  NSMutableArray *array;
-  id obj;
+  NSMutableArray	*array;
+  id			obj;
+  SEL			nsel;
+  IMP			nimp;
+  SEL			asel;
+  IMP			aimp;
 
-  array = [NSMutableArray arrayWithCapacity:10];
+  array = [NSMutableArray arrayWithCapacity: 10];
 
-  while((obj = [self nextObject]))
-    [array addObject:obj];
+  nsel = @selector(nextObject);
+  nimp = [self methodForSelector: nsel];
+  asel = @selector(addObject:);
+  aimp = [array methodForSelector: asel];
 
+  while ((obj = (*nimp)(self, nsel)) != nil)
+    {
+      (*aimp)(array, asel, obj);
+    }
   return array;
 }
 
