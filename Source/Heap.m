@@ -76,7 +76,7 @@
   _contents_array[0] = _contents_array[_count-1];
   decrementCount(self);
   [self heapifyFromIndex:0];
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
 
 - addElement: (elt)newElement
@@ -84,6 +84,7 @@
   int i;
 
   incrementCount(self);
+  RETAIN_ELT(newElement);
   for (i = _count-1; 
        i > 0 
        && COMPARE_ELEMENTS(_contents_array[HEAP_PARENT(i)], newElement) < 0;
