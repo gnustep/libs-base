@@ -2,7 +2,7 @@
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: April 1995
+   Created: September 1995
 
    This file is part of the GNU Objective C Class Library.
 
