@@ -195,7 +195,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 
   if (buf != 0 && length > 0)
     {
-      string = [NSString_class stringWithCString: buf length: length];
+      string = UTF8StrLen(buf, length);
       xmlFree(buf);
     }
   return string;
@@ -206,7 +206,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  */
 - (NSString*) encoding
 {
-  return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->encoding];
+  return UTF8Str(((xmlDocPtr)(lib))->encoding);
 }
 
 - (unsigned) hash
@@ -253,7 +253,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  */
 - (id) initWithVersion: (NSString*)version
 {
-  void	*data = xmlNewDoc([version lossyCString]);
+  void	*data = xmlNewDoc([version UTF8String]);
 
   if (data == 0)
     {
@@ -305,8 +305,8 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 			     content: (NSString*)content
 {
   return [GSXMLNode nodeFrom:
-    xmlNewDocNode(lib, [ns lib], [name lossyCString],
-    [content lossyCString])];
+    xmlNewDocNode(lib, [ns lib], [name UTF8String],
+    [content UTF8String])];
 }
 
 /**
@@ -336,7 +336,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  */
 - (NSString*) version
 {
-  return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->version];
+  return UTF8Str(((xmlDocPtr)(lib))->version);
 }
 
 /**
@@ -539,8 +539,8 @@ static NSMapTable	*nsNames = 0;
 
   if (node != nil)
     {
-      data = xmlNewNs((xmlNodePtr)[node lib], [href lossyCString],
-	[prefix lossyCString]);
+      data = xmlNewNs((xmlNodePtr)[node lib], [href UTF8String],
+	[prefix UTF8String]);
       if (data == NULL)
         {
           NSLog(@"Can't create GSXMLNamespace object");
@@ -551,7 +551,7 @@ static NSMapTable	*nsNames = 0;
     }
   else
     {
-      data = xmlNewNs(NULL, [href lossyCString], [prefix lossyCString]);
+      data = xmlNewNs(NULL, [href UTF8String], [prefix UTF8String]);
       if (data == NULL)
         {
           NSLog(@"Can't create GSXMLNamespace object");
@@ -634,7 +634,7 @@ static NSMapTable	*nsNames = 0;
 @implementation GSXMLNamespace (GSPrivate)
 - (void) _native: (BOOL)value
 {
-  NSAssert(native != value, NSInternalInconsistencyException);
+  /*NSAssert(native != value, NSInternalInconsistencyException);*/
   native = value;
 }
 @end
@@ -883,11 +883,11 @@ static NSMapTable	*nodeNames = 0;
       if (ns != nil)
         {
           [ns _native: NO];
-          lib = xmlNewNode((xmlNsPtr)[ns lib], [name lossyCString]);
+          lib = xmlNewNode((xmlNsPtr)[ns lib], [name UTF8String]);
         }
       else
         {
-          lib = xmlNewNode(NULL, [name lossyCString]);
+          lib = xmlNewNode(NULL, [name UTF8String]);
         }
       if (lib == NULL)
         {
@@ -956,7 +956,25 @@ static NSMapTable	*nodeNames = 0;
 			      content: (NSString*)content
 {
   return [GSXMLNode nodeFrom:
-    xmlNewChild(lib, [ns lib], [name lossyCString], [content lossyCString])];
+    xmlNewTextChild(lib, [ns lib], [name UTF8String], [content UTF8String])];
+}
+
+/**
+ * Creation of a new text element, added at the end of
+ * parent children list.
+ * <example>
+ * d = [GSXMLDocument documentWithVersion: @"1.0"];
+ *
+ * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+ * [[d root] setProp: @"version" value: @"0.9"];
+ * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+ * [n1 makeText: @" this is a text "];
+ * </example>
+ */
+- (GSXMLNode*) makeText: (NSString*)content
+{
+  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
+    xmlNewText([content UTF8String]))];
 }
 
 /**
@@ -974,7 +992,7 @@ static NSMapTable	*nodeNames = 0;
 - (GSXMLNode*) makeComment: (NSString*)content
 {
   return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
-    xmlNewComment([content lossyCString]))];
+    xmlNewComment([content UTF8String]))];
 }
 
 /**
@@ -993,8 +1011,8 @@ static NSMapTable	*nodeNames = 0;
 - (GSXMLNode*) makePI: (NSString*)name content: (NSString*)content
 {
   return [GSXMLNode nodeFrom:
-    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name lossyCString],
-    [content lossyCString]))];
+    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name UTF8String],
+    [content UTF8String]))];
 }
 
 /**
@@ -1224,7 +1242,7 @@ static NSMapTable	*nodeNames = 0;
 - (GSXMLAttribute*) setProp: (NSString*)name value: (NSString*)value
 {
   return [GSXMLAttribute attributeFrom:
-    xmlSetProp(lib, [name lossyCString], [value lossyCString])];
+    xmlSetProp(lib, [name UTF8String], [value UTF8String])];
 }
 
 /**
@@ -1254,7 +1272,7 @@ static NSMapTable	*nodeNames = 0;
 @implementation GSXMLNode (GSPrivate)
 - (void) _native: (BOOL)value
 {
-  NSAssert(native != value, NSInternalInconsistencyException);
+  /*NSAssert(native != value, NSInternalInconsistencyException);*/
   native = value;
 }
 @end
@@ -1383,8 +1401,8 @@ static NSMapTable	*attrNames = 0;
 	       name: (NSString*)name
 	      value: (NSString*)value
 {
-  void	*data = (void*)xmlNewProp((xmlNodePtr)[node lib], [name lossyCString],
-      [value lossyCString]);
+  void	*data = (void*)xmlNewProp((xmlNodePtr)[node lib], [name UTF8String],
+      [value UTF8String]);
 
   self = [self initFrom: data];
   if (self != nil)
@@ -1407,7 +1425,7 @@ static NSMapTable	*attrNames = 0;
  */
 - (NSString*) name
 {
-  return[NSString_class stringWithCString: ((xmlAttrPtr)(lib))->name];
+  return UTF8Str(((xmlAttrPtr)(lib))->name);
 }
 
 /**
@@ -2082,7 +2100,7 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       /*
        * Put saxHandler address in _private member, so we can retrieve
-       * the GSXMLHandler to use in our SAX C Functions.
+       * the GSSAXHandler to use in our SAX C Functions.
        */
       ((xmlParserCtxtPtr)lib)->_private = saxHandler;
     }
@@ -2118,7 +2136,7 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       /*
        * Put saxHandler address in _private member, so we can retrieve
-       * the GSXMLHandler to use in our SAX C Functions.
+       * the GSSAXHandler to use in our SAX C Functions.
        */
       ((htmlParserCtxtPtr)lib)->_private = saxHandler;
     }
@@ -2459,8 +2477,8 @@ startElementFunction(void *ctx, const char *name, const char **atts)
     {
       for (i = 0; (atts[i] != NULL); i++)
 	{
-	  key = [NSString_class stringWithCString: atts[i++]];
-	  obj = [NSString_class stringWithCString: atts[i]];
+	  key = UTF8Str(atts[i++]);
+	  obj = UTF8Str(atts[i]);
 	  [dict setObject: obj forKey: key];
 	}
     }
@@ -2984,6 +3002,14 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 @end
 
+/*
+ * need this to make the linker happy on Windows
+ */
+@interface GSXMLDummy : NSObject
+@end
+@implementation GSXMLDummy
+@end
+
 #else
 
 #include	<Foundation/NSObjCRuntime.h>
@@ -2997,8 +3023,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @interface GSXMLAttribute : GSXMLDummy
 @end
 @interface GSXMLDocument : GSXMLDummy
-@end
-@interface GSXMLHandler : GSXMLDummy
 @end
 @interface GSXMLNamespace : GSXMLDummy
 @end
@@ -3040,8 +3064,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @implementation GSXMLAttribute
 @end
 @implementation GSXMLDocument
-@end
-@implementation GSXMLHandler
 @end
 @implementation GSXMLNamespace
 @end
