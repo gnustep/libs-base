@@ -1,3 +1,8 @@
+2002-10-01  Adam Fedor  <fedor@gnu.org>
+
+	* config/pathxml.m4: Filter -L/usr/lib out of XML_LIBS.
+	* configure: Regenerate.
+
 2002-10-01 02:21  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSUserDefaults.m (-synchronize): Handle lockDate being nil.

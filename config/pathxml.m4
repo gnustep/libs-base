@@ -35,6 +35,9 @@ AC_ARG_ENABLE(xmltest,
       sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
     xml_config_micro_version=`$XML_CONFIG $xml_config_args --version | \
       sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    # Strip '-L/usr/lib' off since this is always in the link path.
+    XML_LIBS=`echo $XML_LIBS | sed -e 's|-L/usr/lib||'`
+
     if test "x$enable_xmltest" = "xyes" ; then
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
