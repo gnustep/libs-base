@@ -890,10 +890,8 @@ typedef struct {
 }
 
 /**
- * After initial skipping (if any), this method scans for
- * <em>aString</em> and places the string ound in <em>stringValue</em>
- * if that is not null.
- * <br/>
+ * After initial skipping (if any), this method scans for string
+ * and places the characters found in value if that is not null.<br/>
  * Returns YES if anything is scanned, NO otherwise.
  */
 - (BOOL) scanString: (NSString *)string intoString: (NSString **)value
@@ -921,13 +919,20 @@ typedef struct {
 }
 
 /**
- *  After initial skipping (if any), this method scans characters until
- *  it finds <em>aString</em>.  The scanned characters are placed in
- *  <em>stringValue</em> if that is not null.  If <em>aString</em> is
- *  not found, all the characters up to the end of the scanned string
- *  will be returned.
- *  <br/>
- *  Returns YES if anything is scanned, NO otherwise.
+ * <p>After initial skipping (if any), this method scans characters until
+ * it finds string.  The scanned characters are placed in
+ * value if that is not null.  If string is not found, all the characters
+ * up to the end of the scanned string will be returned.
+ * </p>
+ * Returns YES if anything is scanned, NO otherwise.<br />
+ * <p>NB. If the current scanner location points to a copy of string, or
+ * points to skippable characters immediately before a copy of string
+ * then this method returns NO since it finds no characters to store
+ * in value before it finds string.
+ * </p>
+ * <p>To count the occurrances of string, this should be used in
+ * conjunction with the -scanString:intoString: method.
+ * </p>
  */
 - (BOOL) scanUpToString: (NSString *)string 
 	     intoString: (NSString **)value
