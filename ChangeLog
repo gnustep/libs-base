@@ -1,3 +1,7 @@
+2003-07-06  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add -R flags for netbsdelf
+
 2003-07-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Fix bug in linking to category methods from index.
