@@ -22,25 +22,15 @@
 #  Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 #
 
-# Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
-
-GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES = ../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
-# The tools to be compiled
+# The tools to be created
 TEST_TOOL_NAME = \
 	dictionary
 
-# The Objective-C source files to be compiled
+# The Objective-C source files to be compiled to create each tool
 dictionary_OBJC_FILES = dictionary.m
-
-SRCS = $(TEST_TOOL_NAME:=.m)
-
-HDRS =
-
-DIST_FILES = $(SRCS) $(HDRS) GNUmakefile Makefile.postamble Makefile.preamble \
-custom-zone.m
 
 include Makefile.preamble
 
