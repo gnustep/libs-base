@@ -32,10 +32,10 @@
 
 static SEL	eqSel;
 
-@class	NSGArrayEnumerator;
-@class	NSGArrayEnumeratorReverse;
+@class	GSArrayEnumerator;
+@class	GSArrayEnumeratorReverse;
 
-@interface NSGArray : NSArray
+@interface GSArray : NSArray
 {
 @public
   id		*_contents_array;
@@ -43,12 +43,12 @@ static SEL	eqSel;
 }
 @end
 
-@interface NSGInlineArray : NSGArray
+@interface GSInlineArray : GSArray
 {
 }
 @end
 
-@interface NSGMutableArray : NSMutableArray
+@interface GSMutableArray : NSMutableArray
 {
 @public
   id		*_contents_array;
@@ -58,23 +58,25 @@ static SEL	eqSel;
 }
 @end
 
-@class NSArrayNonCore;
+@interface GSPlaceholderArray : NSArray
+{
+}
+@end
 
-@implementation NSGArray
+@implementation GSArray
 
 + (void) initialize
 {
-  if (self == [NSGArray class])
+  if (self == [GSArray class])
     {
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
-      behavior_class_add_class(self, [NSArrayNonCore class]);
     }
 }
 
 + (id) allocWithZone: (NSZone*)zone
 {
-  NSGArray	*array = NSAllocateObject(self, 0, zone);
+  GSArray	*array = NSAllocateObject(self, 0, zone);
 
   return array;
 }
@@ -277,7 +279,7 @@ static SEL	eqSel;
 
 @end
 
-@implementation	NSGInlineArray
+@implementation	GSInlineArray
 - (void) dealloc
 {
   if (_contents_array)
@@ -316,17 +318,14 @@ static SEL	eqSel;
 }
 @end
 
-@class NSMutableArrayNonCore;
-
-@implementation NSGMutableArray
+@implementation GSMutableArray
 
 + (void) initialize
 {
-  if (self == [NSGMutableArray class])
+  if (self == [GSMutableArray class])
     {
       [self setVersion: 1];
-      behavior_class_add_class(self, [NSMutableArrayNonCore class]);
-      behavior_class_add_class(self, [NSGArray class]);
+      behavior_class_add_class(self, [GSArray class]);
     }
 }
 
@@ -661,13 +660,13 @@ static SEL	eqSel;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return AUTORELEASE([[NSGArrayEnumerator allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[GSArrayEnumerator allocWithZone: NSDefaultMallocZone()]
     initWithArray: self]);
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return AUTORELEASE([[NSGArrayEnumeratorReverse allocWithZone:
+  return AUTORELEASE([[GSArrayEnumeratorReverse allocWithZone:
     NSDefaultMallocZone()] initWithArray: self]);
 }
 
@@ -675,17 +674,17 @@ static SEL	eqSel;
 
 
 
-@interface NSGArrayEnumerator : NSEnumerator
+@interface GSArrayEnumerator : NSEnumerator
 {
-  NSGArray	*array;
+  GSArray	*array;
   unsigned	pos;
 }
-- (id) initWithArray: (NSGArray*)anArray;
+- (id) initWithArray: (GSArray*)anArray;
 @end
 
-@implementation NSGArrayEnumerator
+@implementation GSArrayEnumerator
 
-- (id) initWithArray: (NSGArray*)anArray
+- (id) initWithArray: (GSArray*)anArray
 {
   [super init];
   array = anArray;
@@ -709,12 +708,12 @@ static SEL	eqSel;
 
 @end
 
-@interface NSGArrayEnumeratorReverse : NSGArrayEnumerator
+@interface GSArrayEnumeratorReverse : GSArrayEnumerator
 @end
 
-@implementation NSGArrayEnumeratorReverse
+@implementation GSArrayEnumeratorReverse
 
-- (id) initWithArray: (NSGArray*)anArray
+- (id) initWithArray: (GSArray*)anArray
 {
   [super initWithArray: anArray];
   pos = array->_count;
@@ -729,7 +728,7 @@ static SEL	eqSel;
 }
 @end
 
-@implementation	NSGArray (GNUstep)
+@implementation	GSArray (GNUstep)
 /*
  *	The comparator function takes two items as arguments, the first is the
  *	item to be added, the second is the item already in the array.
@@ -844,6 +843,88 @@ static SEL	eqSel;
       index++;
     }
   return index;
+}
+@end
+
+@implementation	GSPlaceholderArray
+
+static Class	GSInlineArrayClass;
+
++ (void) initialize
+{
+  GSInlineArrayClass = [GSInlineArray class];
+}
+
+- (id) autorelease
+{
+  NSWarnLog(@"-autorelease sent to uninitialised array");
+  return self;		// placeholders never get released.
+}
+
+- (id) objectAtIndex: (unsigned)index
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"attempt to use uninitialised array"];
+  return 0;
+}
+
+- (void) dealloc
+{
+  return;		// placeholders never get deallocated.
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  GSInlineArray	*a;
+  unsigned	c;
+
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
+  a = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*c,
+    GSObjCZone(self));
+  a->_contents_array = (id*)&a[1];
+  if (c > 0)
+    {
+#if	!GS_WITH_GC
+      unsigned	i;
+#endif
+
+      [aCoder decodeArrayOfObjCType: @encode(id)
+			      count: c
+				 at: a->_contents_array];
+#if	!GS_WITH_GC
+      for (i = 0; i < c; i++)
+	{
+	  a->_contents_array[i] = RETAIN(a->_contents_array[i]);
+	  a->_count = i;
+	}
+#endif
+    }
+  a->_count = c;
+  return a;
+}
+
+- (id) initWithObjects: (id*)objects count: (unsigned)count
+{
+  self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count,
+    GSObjCZone(self));
+  return [self initWithObjects: objects count: count];
+}
+
+- (unsigned) count
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"attempt to use uninitialised array"];
+  return 0;
+}
+
+- (void) release
+{
+  return;		// placeholders never get released.
+}
+
+- (id) retain
+{
+  return self;		// placeholders never get retained.
 }
 @end
 

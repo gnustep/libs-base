@@ -1,3 +1,15 @@
+2001-01-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSGArray.h: removed
+	* Headers/Foundation/NSArray.h: merge core/non-core classes.
+	* Source/GNUmakefile: replace NSGArray with GSArray.
+	* Source/NSGArray.m: converted to GSArray.m
+	* Source/NSArray.m: simplified by merging core/non-core classes.
+	Use placeholder class when allocating constant arrays.
+	* Source/GSArray.m: simplified version of GSArray.m
+	Added GSPlaceholderArray.
+	* Source/NSSerializer.m: use GSInlineArray where possible.
+
 2001-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gsdoc.gsdoc: Tidied and fixed a few typos/spelling errors.

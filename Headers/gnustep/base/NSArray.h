@@ -30,13 +30,6 @@
 @class NSString;
 
 @interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
-- (id) initWithObjects: (id*) objects count: (unsigned) count;
-- (unsigned) count;
-- (id) objectAtIndex: (unsigned)index;
-@end
-
-
-@interface NSArray (NonCore)
 
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
@@ -44,21 +37,24 @@
 + (id) arrayWithObject: (id)anObject;
 + (id) arrayWithObjects: (id)firstObj, ...;
 + (id) arrayWithObjects: (id*)objects count: (unsigned)count;
+
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
-- (id) initWithArray: (NSArray*)array;
-- (id) initWithContentsOfFile: (NSString*)file;
-- (id) initWithObjects: firstObj, ...;
-- (id) initWithObjects: (id*)objects count: (unsigned)count;
-
 - (BOOL) containsObject: anObject;
+- (unsigned) count;						// Primitive
 - (void) getObjects: (id*)objs;
 - (void) getObjects: (id*)objs range: (NSRange)aRange;
 - (unsigned) indexOfObject: (id)anObject;
 - (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
+- (id) initWithArray: (NSArray*)array;
+- (id) initWithContentsOfFile: (NSString*)file;
+- (id) initWithObjects: firstObj, ...;
+- (id) initWithObjects: (id*)objects count: (unsigned)count;	// Primitive
+
 - (id) lastObject;
+- (id) objectAtIndex: (unsigned)index;				// Primitive
 
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
@@ -98,19 +94,16 @@
 
 
 @interface NSMutableArray : NSArray
-- (id) initWithCapacity: (unsigned)numItems;
-- (void) addObject: (id)anObject;
-- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject;
-- (void) insertObject: (id)anObject atIndex: (unsigned)index;
-- (void) removeObjectAtIndex: (unsigned)index;
-@end
-
-@interface NSMutableArray (NonCore)
 
 + (id) arrayWithCapacity: (unsigned)numItems;
-+ (id) initWithCapacity: (unsigned)numItems;
 
+- (void) addObject: (id)anObject;				// Primitive
 - (void) addObjectsFromArray: (NSArray*)otherArray;
+- (id) initWithCapacity: (unsigned)numItems;			// Primitive
+- (void) insertObject: (id)anObject atIndex: (unsigned)index;	// Primitive
+- (void) removeObjectAtIndex: (unsigned)index;			// Primitive
+- (void) replaceObjectAtIndex: (unsigned)index
+		   withObject: (id)anObject;			// Primitive
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray;
 - (void) replaceObjectsInRange: (NSRange)aRange

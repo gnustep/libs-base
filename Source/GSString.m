@@ -278,8 +278,10 @@ setup()
 {
   setup();
 }
+
 - (id) autorelease
 {
+  NSWarnLog(@"-autorelease sent to uninitialised string");
   return self;		// placeholders never get released.
 }
 
