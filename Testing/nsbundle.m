@@ -32,6 +32,7 @@ main(int argc, char *argv[], char **env)
 #endif
     arp = [NSAutoreleasePool new];
     
+    setbuf(stdout, 0);
     printf("  GNUstep bundle directory is %s\n", [[[NSBundle gnustepBundle] bundlePath] cString]);
 
     path = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
