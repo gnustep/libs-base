@@ -1,8 +1,8 @@
-/* This tool converts a serialised proerty list to a text representation.
-   Copyright (C) 1999 Free Software Foundation, Inc.
+/* This tool converts a file containing a string to a C String encoding.
+   Copyright (C) 2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Created: may 1999
+   Created: April 2002
 
    This file is part of the GNUstep Project
 
@@ -40,13 +40,13 @@ main(int argc, char** argv, char **env)
   unsigned		i;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
-      NSLog(@"pldes: unable to get process information!\n");
+      NSLog(@"defaults: unable to get process information!\n");
       [pool release];
       exit(0);
     }
@@ -55,42 +55,79 @@ main(int argc, char** argv, char **env)
 
   if ([args count] <= 1)
     {
-      NSLog(@"No file names given to deserialize.");
+      NSLog(@"No file names given to convert.");
     }
   else
     {
-      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
-      NSDictionary	*locale = [defs dictionaryRepresentation];
+      NSString		*n;
+      NSStringEncoding	enc = 0;
+
+      n = [[NSUserDefaults standardUserDefaults] stringForKey: @"Encoding"];
+      if (n == nil)
+	{
+	  enc = [NSString defaultCStringEncoding];
+	}
+      else
+	{
+	  NSStringEncoding	*e;
+	  NSMutableString	*names;
+
+	  names = [NSMutableString stringWithCapacity: 1024];
+	  e = [NSString availableStringEncodings];
+	  while (*e != 0)
+	    {
+	      NSString	*name = [NSString localizedNameOfStringEncoding: *e];
+
+	      [names appendFormat: @"  %@\n", name];
+	      if ([n isEqual: name] == YES)
+		{
+		  enc = *e;
+		  break;
+		}
+	      e++;
+	    }
+	  if (enc == 0)
+	    {
+	      NSLog(@"defaults: unable to find encoding '%@'!\n"
+		@"Known encoding names are -\n%@", n, names);
+	      [pool release];
+	      exit(0);
+	    }
+	}
 
       for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
 
+	  if ([file isEqual: @"-Encoding"] == YES)
+	    {
+	      i++;
+	      continue;
+	    }
 	  NS_DURING
 	    {
 	      NSData	*myData;
 	      NSString	*myString;
-	      id	result;
 
-	      myData = [NSData dataWithContentsOfFile: file];
-	      result = [NSDeserializer deserializePropertyListFromData: myData
-						     mutableContainers: NO];
-	      if (result == nil)
-		NSLog(@"Loading '%@' - nil property list", file);
+	      myString = [NSString stringWithContentsOfFile: file];
+	      myData = [myString dataUsingEncoding: enc
+			      allowLossyConversion: NO];
+	      if (myData == nil)
+		{
+		  NSLog(@"Encoding conversion failed.", file);
+		}
 	      else
 		{
 		  NSFileHandle	*out;
 
-		  myString = [result descriptionWithLocale: locale indent: 0];
 		  out = [NSFileHandle fileHandleWithStandardOutput];
-		  myData = [myString dataUsingEncoding: NSASCIIStringEncoding];
 		  [out writeData: myData];
 		  [out synchronizeFile];
 		}
 	    }
 	  NS_HANDLER
 	    {
-	      NSLog(@"Loading '%@' - %@", file, [localException reason]);
+	      NSLog(@"Converting '%@' - %@", file, [localException reason]);
 	    }
 	  NS_ENDHANDLER
 	}

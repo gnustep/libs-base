@@ -85,12 +85,12 @@ static void GSMakeZombie(NSObject *o)
   ((id)o)->class_pointer = zombieClass;
   if (NSDeallocateZombies == NO)
     {
-      if (allocationLock == 0)
+      if (allocationLock != 0)
 	{
 	  objc_mutex_lock(allocationLock);
 	}
       NSMapInsert(zombieMap, (void*)o, (void*)c);
-      if (allocationLock == 0)
+      if (allocationLock != 0)
 	{
 	  objc_mutex_unlock(allocationLock);
 	}
@@ -103,12 +103,12 @@ static void GSLogZombie(id o, SEL sel)
 
   if (NSDeallocateZombies == NO)
     {
-      if (allocationLock == 0)
+      if (allocationLock != 0)
 	{
 	  objc_mutex_lock(allocationLock);
 	}
       c = NSMapGet(zombieMap, (void*)o);
-      if (allocationLock == 0)
+      if (allocationLock != 0)
 	{
 	  objc_mutex_unlock(allocationLock);
 	}

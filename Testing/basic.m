@@ -7,7 +7,11 @@ int main ()
 {
   id	pool = [NSAutoreleasePool new];
   id	o = [NSObject new];
+  NSArray	*a = [NSArray arrayWithObjects: @"a", @"b", nil];
+
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
+
+  NSLog(@"Value for foo is %@", [a valueForKey: @"foo"]);
 
   [o release];
   o = [NSString stringWithFormat: @"/proc/%d/status", getpid()];

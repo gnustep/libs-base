@@ -46,7 +46,7 @@ main(int argc, char** argv, char **env)
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
-      NSLog(@"defaults: unable to get process information!\n");
+      NSLog(@"plser: unable to get process information!\n");
       [pool release];
       exit(0);
     }
