@@ -1,3 +1,9 @@
+2001-02-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m: Tidy, defined __USE_GNU to get YESSTR and NOSTR
+	on later versions of glibc.
+	* Source/NSString.m: Log more info when parsing a property list fails.
+
 2001-02-13  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 0.9.1
@@ -11,8 +17,8 @@
                 -GSXMLNode name
                 -GSXMLNode ns
                 -GSXMLNode nsDef
-	* NSString.m: handle NULL bytes in -initWithUTF8String: (Treat it as zero 
-		length string and NSDebugMLog a warning).
+	* NSString.m: handle NULL bytes in -initWithUTF8String:
+	(Treat it as zero length string and NSDebugMLog a warning).
 
 2001-02-09  Jonathan Gapen  <jagapen@home.com>
 
