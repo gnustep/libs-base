@@ -13,10 +13,72 @@
 <h2><a name="cont-0">Base</a></h2>
 <p>
 
-	The GNUstep base library is a free software package compatible with
-        the OpenStep Foundation Kit (tm).
+	The GNUstep base library is a free software package implementing
+        the API of the OpenStep Foundation Kit (tm), including later
+	additions.
       </p>
-<h3><a name="cont-1">The classes</a></h3>
+<h3><a name="cont-1">Compatibility</a></h3>
+<p>
+
+	  GNUstep is generally compatible with the OpenStep specification and
+	  with recent developments of the MacOS (cocoa) API.  Where MacOS
+	  deviates from the OpenStep API, GNUstep generally attempts to
+	  support both versions.  In some cases the newer MacOS APIs are
+	  incompatible with OpenStep, and GNUstep usually supports the richer
+	  version.
+	</p>
+<p>
+
+	  In order to deal with compatiblity issues, GNUstep uses two
+	  mechanisms - it provides conditionally compiled sections of
+	  the library header files, so that software can be built that
+	  will conform strictly to a particular API, and it provides
+	  user default settings to control the behavior of the library
+	  at runtime.
+	</p>
+<h4><a name="cont-2">Conditional compilation</a></h4>
+<p>
+
+	    Adding an option to a makefile to define one of the following
+	    preprocessor constants will modify the API visible to software
+	    being compiled -
+	  </p>
+<dl>
+<dt>NO_GNUSTEP
+<dd>
+	      GNUstep specific extensions to the OpenStep and MacOS cocoa
+	      APIs are excluded from the headers.
+	    
+<dt>STRICT_MACOS_X
+<dd>
+	      Only methods and classes that are part of the MacOS cocoa
+	      API are made available in the headers.
+	    
+<dt>STRICT_OPENSTEP
+<dd>
+	      Only methods and classes that are part of the OpenStep
+	      specification are made available in the headers.
+	    
+</dl>
+<h4><a name="cont-3">User defaults</a></h4>
+<p>
+
+	    Setting the user default <code>GSMacOSXCompatible</code> to
+	    <code>YES</code> will cause MacOS compatible behavior to be
+	    the default at runtime.  This default may however be overridden
+	    to provide more fine grained control of system behavior.
+	  </p>
+<dl>
+<dt>GSMacOSXCompatibleGeometry
+<dd>
+	      Specifies whether the functions for producing strings describing
+	      geometrical structures (NSStringFromPoint(), NSStringFromSize(),
+	      and NSStringFromRect()) should produce strings conforming to the
+	      OpenStep specification or to MacOS-X behavior.  The functions
+	      for parsing those strings should cope with both cases anyway.
+	    
+</dl>
+<h3><a name="cont-4">The classes</a></h3>
 <ul>
 <li><a href="NSArchiver.html">NSArchiver</a>
 <li><a href="NSArray.html">NSArray</a>
