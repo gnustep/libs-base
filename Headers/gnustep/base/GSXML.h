@@ -203,6 +203,8 @@
 {
   void		*lib;	// xmlSAXHandlerPtr
   GSXMLParser	*parser;
+@protected
+  BOOL		isHtmlHandler;
 }
 + (GSSAXHandler*) handler;
 - (void*) lib;

@@ -22,11 +22,11 @@
 
 <!--
   plist is an XML language - Typical usage:
-  <?xml version="1.0" encoding=\"UTF-8\"?>
-  <!DOCTYPE plist PUBLIC "-//GNUstep//DTD plist 0.9//EN"
-	"http://www.gnustep.org/plist-0_9.xml">
-  <plist>
-  </plist>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//GNUstep//DTD plist 0.9//EN"
+      "http://www.gnustep.org/plist-0_9.xml">
+<plist>
+</plist>
 -->
 
 <!ENTITY % item "(array | data | date | dict | false | integer | real | string | true)">
