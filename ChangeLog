@@ -1,3 +1,8 @@
+2003-06-25  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdnc.1.gz: New file (from Martin Brecher).
+	* Tools/GNUmakefile (MAN1_PAGES): Install it
+
 2003-06-24  David Ayers  <d.ayers@inode.at>
 
 	* Source/GSFFCallInvocation.m
