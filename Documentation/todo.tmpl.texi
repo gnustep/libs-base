@@ -26,8 +26,9 @@ an exception. [4, exceptions, threads] (980220)
 
 @item Fix all the places marked FIXME or xxx. [3-9] (980629)
 
-@item Write a real testsuite for gstep-base and possibly other
-libraries, perhaps using guile. [5, Guile, gstep-guile] (980629)
+@item Write tests for various classes using the testsuite build
+by Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}. Contact
+him for details. [3, guile] (980629)
 
 @item Change all the assert()'s (especially in the archiving code) to
 NSAssert()'s.  This will help make D.O. servers more safe from bad

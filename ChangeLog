@@ -1,3 +1,8 @@
+Fri Jul 10 21:43:30 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/include/GapArrayPrivate.h (gapMoveGaptTo): Change - to +.
+	* docs/todo.tmpl.texi: Updates
+
 Fri Jun 25 20:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/TcpPort.m: Improved debug code and added method to turn it on -
