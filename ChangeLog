@@ -1,5 +1,17 @@
 2002-10-21  Adam Fedor  <fedor@gnu.org>
 
+	* Headers/gnustep/unicode/thai.h: New file.
+	* Headers/gnustep/base/NSString.h (_NSStringEncoding): Add
+	NSISOThaiStringEncoding.
+	* Source/NSString.m (-dataUsingEncoding:allowLossyConversion:): 
+	Handle it.
+	* Source/Unicode.m (struct _strenc_ str_encoding_table[]): Idem. 
+	(GSEncodingForRegistry): Idem.
+	(GSToUnicode, GSFromUnicode): Idem.
+	(Patches, modified, from Banlu Kemiyatorn <id@project-ile.net>).
+
+2002-10-21  Adam Fedor  <fedor@gnu.org>
+
 	* Source/GSLocale.m (GSLanguageFromLocale): Implement regardless
 	of HAVE_LOCALE_H.
 

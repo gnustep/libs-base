@@ -1,3 +1,3 @@
 {
-    th_TH = NSThaiStringEncoding;
+    th_TH = NSISOThaiStringEncoding;
 }
