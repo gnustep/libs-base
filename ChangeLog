@@ -1,3 +1,8 @@
+2001-12-07  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSDebug.h: Add NSDebugLog functions
+	when GSWARN is defined (not DEBUG).
+
 2001-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Understand GSHTPPropertyBodyKey so we
