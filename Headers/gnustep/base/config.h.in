@@ -36,11 +36,11 @@
 /* Define if you have the register_printf_function function.  */
 #undef HAVE_REGISTER_PRINTF_FUNCTION
 
-/* Define if you have the statvfs function.  */
-#undef HAVE_STATVFS
-
 /* Define if you have the shmctl function.  */
 #undef HAVE_SHMCTL
+
+/* Define if you have the statvfs function.  */
+#undef HAVE_STATVFS
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
@@ -89,9 +89,3 @@
 
 /* Define if you have the <values.h> header file.  */
 #undef HAVE_VALUES_H
-
-/* Define if you have the nsl library (-lnsl).  */
-#undef HAVE_LIBNSL
-
-/* Define if you have the socket library (-lsocket).  */
-#undef HAVE_LIBSOCKET
