@@ -3481,8 +3481,39 @@ static NSCharacterSet	*tokenSet = nil;
 - (NSString*) contentSubtype
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  NSString	*val = nil;
 
-  return [hdr objectForKey: @"Subtype"];
+  if (hdr != nil)
+    {
+      val = [hdr objectForKey: @"Subtype"];
+      if (val == nil)
+	{
+	  val = [hdr value];
+	  if (val != nil)
+	    {
+	      NSRange	r;
+
+	      r = [val rangeOfString: @"/"];
+	      if (r.length > 0)
+		{
+		  val = [val substringFromIndex: r.location + 1];
+		  r = [val rangeOfString: @"/"];
+		  if (r.length > 0)
+		    {
+		      val = [val substringToIndex: r.location];
+		    }
+		  val = [val stringByTrimmingSpaces];
+		  [hdr setObject: val forKey: @"Subtype"];
+		}
+	      else
+		{
+		  val = nil;
+		}
+	    }
+	}
+    }
+
+  return val;
 }
 
 /**
@@ -3491,8 +3522,30 @@ static NSCharacterSet	*tokenSet = nil;
 - (NSString*) contentType
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  NSString	*val = nil;
 
-  return [hdr objectForKey: @"Type"];
+  if (hdr != nil)
+    {
+      val = [hdr objectForKey: @"Type"];
+      if (val == nil)
+	{
+	  val = [hdr value];
+	  if (val != nil)
+	    {
+	      NSRange	r;
+
+	      r = [val rangeOfString: @"/"];
+	      if (r.length > 0)
+		{
+		  val = [val substringToIndex: r.location];
+		  val = [val stringByTrimmingSpaces];
+		}
+	      [hdr setObject: val forKey: @"Type"];
+	    }
+	}
+    }
+
+  return val;
 }
 
 /**

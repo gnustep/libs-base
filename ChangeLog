@@ -12,7 +12,8 @@
 	* Source/NSArray.m: Fix memory leak initialising from coder.
 	* Source/NSCountedSet.m: ditto
 	* Source/NSSet.m: ditto
-	Memory leak fixes adapted from patch by <Roland.Schwingel@onevision.de>
+	* Source/NSDebug.m: Hook to change allocation checking functions.
+	Memory fixes adapted from patch by <Roland.Schwingel@onevision.de>
 
 2003-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 

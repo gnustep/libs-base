@@ -45,6 +45,7 @@
  *      GSDebugAllocationClassList()
  *	GSDebugAllocationList()
  *	GSDebugAllocationListAll()
+ * GSSetDebugAllocationFunctions()
  *
  * When the previous functions have allowed you to find a memory leak,
  * and you know that you are leaking objects of class XXX, but you are
@@ -154,6 +155,14 @@ GS_EXPORT NSString*	GSDebugFunctionMsg(const char *func, const char *file,
  */
 GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
+
+/**
+ * This functions allows to set own function backcalls for debugging allocation
+ * of objects. Useful if you intend to write your own objectalloc.
+ */
+GS_EXPORT void  GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
+                                              void (*newRemoveObjectFunc)(Class c, id o));
+
 #endif
 
 /**
