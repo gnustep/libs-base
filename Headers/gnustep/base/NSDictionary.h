@@ -31,13 +31,13 @@
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
-+ (id) dictionaryWithDictionary: (NSDictionary*)aDict;
++ (id) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
 + (id) dictionaryWithObject: (id)object forKey: (id)key;
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + (id) dictionaryWithObjects: (id*)objects
 		     forKeys: (id*)keys
 		       count: (unsigned)count;
-+ (id) dictionaryWithObjectsAndKeys: (id)object, ...;
++ (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
 - (NSArray*) allKeys;
 - (NSArray*) allKeysForObject: (id)anObject;
@@ -51,10 +51,9 @@
 
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) initWithDictionary: (NSDictionary*)otherDictionary;
-- (id) initWithDictionary: (NSDictionary*)otherDictionary
-		copyItems: (BOOL)shouldCopy;
+- (id) initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-- (id) initWithObjectsAndKeys: (id)object, ...;
+- (id) initWithObjectsAndKeys: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
 		 count: (unsigned)count;			// Primitive
@@ -64,11 +63,11 @@
 - (NSArray*) keysSortedByValueUsingSelector: (SEL)comp;
 - (NSEnumerator*) objectEnumerator;				// Primitive
 - (id) objectForKey: (id)aKey;					// Primitive
-- (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)anObject;
+- (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker;
 
-- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxilliaryFile;
+- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #ifndef	STRICT_OPENSTEP
-- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile;
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 #endif
 @end
 

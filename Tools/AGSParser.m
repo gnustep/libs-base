@@ -176,12 +176,14 @@
 {
   CREATE_AUTORELEASE_POOL(arp);
   static NSSet		*qualifiers = nil;
+  static NSSet		*keep = nil;
   NSString		*baseType = nil;
   NSString		*declName = nil;
   NSMutableArray	*a1;
   NSMutableArray	*a2;
   NSString		*s;
   BOOL			isTypedef = NO;
+  BOOL			needScalarType = NO;
 
   if (qualifiers == nil)
     {
@@ -200,6 +202,15 @@
 	@"volatile",
 	nil];
       RETAIN(qualifiers);
+      keep = [NSSet setWithObjects:
+	@"const",
+	@"long",
+	@"short",
+	@"signed",
+	@"unsigned",
+	@"volatile",
+	nil];
+      RETAIN(keep);
     }
 
   a1 = [NSMutableArray array];
@@ -228,19 +239,15 @@
 	    {
 	      isTypedef = YES;
 	    }
-	  [a1 addObject: s];
+	  if ([keep member: s] != nil)
+	    {
+	      [a1 addObject: s];
+	      if ([s isEqual: @"const"] == NO && [s isEqual: @"volatile"] == NO)
+		{
+		  needScalarType = YES;
+		}
+	    }
 	}
-    }
-
-  baseType = s;
-  if (baseType == nil)
-    {
-      /*
-       * If there is no identifier here, the line must have been
-       * something like 'unsigned *length' so we must set the default
-       * base type of 'int'
-       */
-      baseType = @"int";
     }
 
   /**
@@ -253,6 +260,7 @@
     || [s isEqualToString: @"union"] == YES
     || [s isEqualToString: @"enum"] == YES)
     {
+      baseType = s;
       s = [self parseIdentifier];
       if (s == nil)
 	{
@@ -266,20 +274,44 @@
 	{
 	  [self skipBlock];
 	}
+      s = nil;
+    }
+  else
+    {
+      baseType = s;
+      if (baseType == nil)
+	{
+	  /*
+	   * If there is no identifier here, the line must have been
+	   * something like 'unsigned *length' so we must set the default
+	   * base type of 'int'
+	   */
+	  baseType = @"int";
+	}
+      else if (needScalarType == YES
+	&& [s isEqualToString: @"char"] == NO
+	&& [s isEqualToString: @"int"] == NO)
+	{
+	  /*
+	   * If we had something like 'unsigned' in the qualifiers, we must
+	   * have a 'char' or an 'int', and if we didn't find one we should
+	   * insert one and use what we found as the variable name.
+	   */
+	  baseType = @"int";
+	}
+      else
+	{
+	  s = nil;	// s used as baseType
+	}
     }
 
-  declName = [self parseDeclaratorInto: a2];
-  if (declName == nil)
+  if (s == nil)
     {
-      /*
-       * If there is no identifier here, the line must have been
-       * something like 'unsigned length' and we assumed that 'length'
-       * was the base type rather than the declared name.
-       * The fix is to set the base type to be 'int' and use the value
-       * we had as the declaration name.
-       */
-      declName = baseType;
-      baseType = @"int";
+      declName = [self parseDeclaratorInto: a2];
+    }
+  else
+    {
+      declName = s;
     }
 
   [a1 addObject: baseType];
@@ -332,6 +364,7 @@
       else
 	{
 	  [self log: @"unexpected char (%c) parsing declaration", buffer[pos]];
+	  [self skipStatement];
 	  goto fail;
 	}
 
@@ -466,9 +499,9 @@ fail:
 	    /*
 	     * Must be some sort of declaration ...
 	     */
-	    // pos--;
-	    // [self parseDeclIsSource: isSource];
-	    [self skipStatementLine];
+	    pos--;
+	    [self parseDeclIsSource: isSource];
+	    // [self skipStatementLine];
 	    break;
         }
     }
@@ -1223,6 +1256,7 @@ fail:
 	    if ((token = [self parseIdentifier]) == nil)
 	      {
 		[self log: @"method list with error after '@'"];
+		[self skipStatementLine];
 		return nil;
 	      }
 	    if ([token isEqual: @"end"] == YES)
@@ -1236,12 +1270,11 @@ fail:
 		 * normal C statement, it ends with a semicolon.
 		 */
 		[self skipStatementLine];
-		return nil;
 	      }
 	    else
 	      {
 		[self log: @"@method list with unknown directive '%@'", token];
-		return nil;
+		[self skipStatementLine];
 	      }
 	    break;
 
@@ -1258,7 +1291,16 @@ fail:
 	    /*
 	     * Some statement other than a method ... skip and delete comments.
 	     */
-	    [self skipStatementLine];
+	    if (flag == YES)
+	      {
+		[self log: @"interface with bogus line ... we expect methods"];
+		[self skipStatementLine];
+	      }
+	    else
+	      {
+		pos--;
+		[self parseDeclIsSource: YES];
+	      }
 	    break;
 	}
     }
