@@ -24,6 +24,7 @@ int main()
       withString:@"changed"];
   print_string(s2);
 
+#if 0
   /* An example of treating a string like a Collection:  
      Increment each char. */
   {
@@ -37,6 +38,7 @@ int main()
     [s2 withElementsCall:rot13];
     print_string(s3);
   }
-  
+#endif  
+
   exit(0);
 }
