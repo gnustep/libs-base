@@ -1,4 +1,6 @@
-                /* definition section */
+/* proplist.l - for parsing NSString property lists -*- c -*- */
+
+/* definition section */
 
         /* literal block */
 %{
