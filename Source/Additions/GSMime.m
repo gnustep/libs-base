@@ -2385,9 +2385,9 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  lineEnd = input++;
 	  if (input < dataEnd && c == '\r' && bytes[input] == '\n')
 	    {
-	      input++;
+	      c = bytes[input++];
 	    }
-	  if (input < dataEnd)
+	  if (input < dataEnd || (c == '\n' && lineEnd == lineStart))
 	    {
 	      unsigned	length = lineEnd - lineStart;
 
