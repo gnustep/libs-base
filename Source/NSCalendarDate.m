@@ -1783,7 +1783,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		      months = [locale objectForKey: NSShortMonthNameArray];
 		    else
 		      months = [locale objectForKey: NSMonthNameArray];
-		    if (info->md >= [months count])
+		    if (info->md > [months count])
 		      {
 			mtag = NO;
 		      }

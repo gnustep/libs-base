@@ -1,3 +1,9 @@
+2004-12-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix off-by-one bug resulting in printout
+	for december being numeric with '%b' format.
+	Reported by Ludovic
+
 2004-11-30  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GSFileHandle.m (-setNonBlocking:): Set the isNonBlocking
