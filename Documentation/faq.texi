@@ -1,25 +1,24 @@
 @ifset FAQ_ONLY
 @chapter Frequently Asked Questions with Answers
-@c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
+@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
 @include version.texi
 @end ifset
 
 @enumerate
 
-
 @item Why not separate the GNU classes from the NS* foundation
 classes?
 
 They are intimately intertwinned---not in a messy way, but for good
 reasons.  ...explain more detail...
 
-
+
 @item I'm trying to compile an Objective C program on Linux, and it's not
 working.
 
 Link with @samp{-lieee}.
 
-
+
 @item What are the differences and improvements of the GNU base classes
 over the NS* foundation classes?
 

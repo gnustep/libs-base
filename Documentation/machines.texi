@@ -1,7 +1,7 @@
-@c set the vars OBJECTS_VERSION and OBJECTS_GCC_VERSION
+@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
 @include version.texi
 
-The library requires gcc @value{OBJECTS_GCC_VERSION} or higher.  The
+The library requires gcc @value{GNUSTEP_BASE_GCC_VERSION} or higher.  The
 library does not work with the NEXTSTEP 3.2 compiler because that
 version of NeXT's cc cannot handle nested functions.  Until a later
 release from NeXT, NEXTSTEP users will have to install gcc.  See the

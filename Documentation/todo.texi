@@ -42,7 +42,7 @@ Library can just use @samp{register_printf_function}.
 sort of way that Smalltalk does.  Talk to me.  mccallum@@gnu.ai.mit.edu.
 
 @item See
-http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers.html for
+http://www.cs.rochester.edu/u/mccallum/libgnustep-base/volunteers.html for
 a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @end itemize
@@ -115,7 +115,7 @@ completely reimplemented.  ...and a lot more...
 Fix all the subclassResponsibility comments in objects/*.h
 
 @item
-I will finish libobjects documentation.
+I will finish gnustep-base documentation.
 
 @end itemize
 
@@ -145,7 +145,7 @@ even get called.  <<ObjC insiders: This is a less well-expressed
 version of what we've just been discussing in email.>>
 
 @item
-I created libobjects.texi by copying libg++.texi.  Some of the text
+I created libgnustep-base.texi by copying libg++.texi.  Some of the text
 is taken verbatim.  Is this a problem?
 
 @item
@@ -216,7 +216,7 @@ I'm sure that there're other things to do, but these are the ones I know now:
 @item Correct:
 @itemize +
 @item (@file{src/array.m}) @samp{objects_array_dealloc}
-@item (@file{src/cbs-int.m}) @samp{_OBJECTS_NOT_AN_INT_MARKER}
+@item (@file{src/cbs-int.m}) @samp{_GNUSTEP_BASE_NOT_AN_INT_MARKER}
 @end itemize
 
 @item Improve the error handling of:
@@ -233,11 +233,11 @@ I'm sure that there're other things to do, but these are the ones I know now:
 @itemize @bullet
 @item Strengthen my resolve on the correctness of:
 @itemize +
-@item (@file{src/cbs-char-p.m}) @samp{_OBJECTS_NOT_A_CHAR_P_MARKER}
-@item (@file{src/cbs-id.m}) @samp{_OBJECTS_NOT_AN_ID_MARKER}
-@item (@file{src/cbs-int-p.m}) @samp{_OBJECTS_NOT_AN_INT_P_MARKER}
+@item (@file{src/cbs-char-p.m}) @samp{_GNUSTEP_BASE_NOT_A_CHAR_P_MARKER}
+@item (@file{src/cbs-id.m}) @samp{_GNUSTEP_BASE_NOT_AN_ID_MARKER}
+@item (@file{src/cbs-int-p.m}) @samp{_GNUSTEP_BASE_NOT_AN_INT_P_MARKER}
 @item (@file{src/cbs-int-p.m}) @samp{objects_int_p_is_equal}
-@item (@file{src/cbs-void-p.m}) @samp{_OBJECTS_NOT_A_VOID_P_MARKER}
+@item (@file{src/cbs-void-p.m}) @samp{_GNUSTEP_BASE_NOT_A_VOID_P_MARKER}
 @item (@file{src/hash.m}) @samp{objects_hash_rightsize}
 @item (@file{src/hash.m}) @samp{objects_hash_all_elements}
 @item (@file{src/map.m}) @samp{objects_map_rightsize}

@@ -1,6 +1,6 @@
 @chapter GNU Objective-C Class Library README
 
-@c set the vars OBJECTS_VERSION and GCC_VERSION
+@c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
 @include version.texi
 
 Here is some introductory info to get you started:
@@ -17,76 +17,23 @@ The file @samp{INSTALL} gives instructions for installing the library.
 @section Preparing to write code
 
 Preliminary documentation is available via @samp{texinfo} in the files
-@samp{libobjects.info} and @samp{libobjects.texi}.  The info file was
-created from the texi file using an modified version of @samp{makeinfo}
-available by anonymous ftp from @samp{iesd.auc.dk:pub/ObjC}.
+@samp{gnustep-base.info} and @samp{gnustep-base.texi}.  Because texinfo
+doesn't yet handle @code{@@deftypemethod}, this documentation cannot yet
+be compiled into more readable forms.
 
 The documentation isn't much to speak of so far.  Better documentation
 will be forthcoming, but the library needs to settle first.  For now I
-recommend skipping libobjects.info and reading the header files instead.
-The headers for the GNU classes are in @file{./objects}; the headers for
-the NeXT-compatible classes are in @file{./objc} and
-@file{./Foundation}.
+recommend skipping @file{gnustep-base.info} and reading the header files
+instead.  The headers for the classes are in @file{./src/include} and
+@file{./src/objc}.
 
-The overview of classes below should help you see the big picture as you
-read the source.
-
-
-@section The Class Heirarchy
-
-Here is the class inheritance heirarchy.  All protocols end with
-"ing"; all collection protocols end with "Collecting".  All collection
-abtract superclasses (classes which are not usable without
-subclassing) end with "Collection";
-
-@example
-NSObject
-  Collection <Collecting>
-    Set
-      Bag
-    KeyedCollection <KeyedCollecting>
-      Dictionary
-        MappedCollector
-        IndexedCollection <IndexedCollecting>
-          Array
-            Stack
-            GapArray
-            CircularArray
-              Queue
-            Heap
-          LinkedList
-          BinaryTree
-          RBTree
-          EltNodeCollector
-          String
-  LinkedListNode
-    LinkedListEltNode
-  BinaryTreeNode
-    BinaryTreeEltNode
-    RBTreeNode
-      RBTreeEltNode
-  Stream
-    StdioStream
-    MemoryStream
-  Coder
-    TextCoder
-    BinaryCoder
-      ConnectedCoder
-  RetainingNotifier
-    Port
-      SocketPort
-    Connection
-  Magnitude
-    Time
-  Random
-  RNGBerkeley <RandomGenerating>
-  RNGAdditiveCongruential <RandomGenerating>
-DelegatePool
-Proxy
-@end example
-
+The Gnustep FAQ also contains much useful information, including an
+outline of the class heirarchy.  The FAQ can be found in
+@file{./doc/Gnustep-FAQ}.
 
 @section Overview of the classes
+
+[This section needs updating -mccallum Apr 17 1996.]
 
 The GNU classes included in this version of the library fall into six
 categories: collections, strings, magnitudes, streams, coders and
@@ -170,7 +117,7 @@ To begin using distributed objects, you only need to know about
 daunting, but actually, a lot can be done with just a few key methods:
 
 @smallexample
-- (Connection*) newRegisteringAtName: (const char*)name
+- (Connection*) newRegisteringAtName: name
     withRootObject: anObj;
       For registering your server object with the network.
 
@@ -179,67 +126,12 @@ daunting, but actually, a lot can be done with just a few key methods:
       method, so that your server can start handling requests from
       clients. 
 
-- (Proxy*) rootProxyAtName: (const char*)name 
-    onHost: (const char*)host;
+- (Proxy*) rootProxyAtName: name 
+    onHost: host;
       For connecting to a remote server.  You get a proxy object for 
       the remote server object, which, for messaging purposes, you 
       can treat as if it were local.
 @end smallexample
-
-Here is a partial list of what the current distributed objects system
-can do:
-@smallexample
-- It can pass and return all simple C types, including char*, float 
-  and double, both by value and by reference.
-- It can pass structures by value and by reference, return 
-  structures by reference.  The structures can contain arrays.
-- It obeys all the type qualifiers: oneway, in, out, inout, const.
-- It can pass and return objects, either bycopy or with proxies.
-  An object encoded multiple times in a single message is properly
-  decoded on the other side.
-- Proxies to remote objects are automatically created as they are
-  returned.  Proxies passed back where they came from are decoded
-  as the correct local object.
-- It can wait for an incoming message and timeout after a 
-  specified period.
-- A server can handle multiple clients.
-- The server will ask its delegate before making new connections.
-- The server can make call-back requests of the client, and keep 
-  it all straight even when the server has multiple clients.
-- A client will automatically form a connection to another client 
-  if an object from the other client is vended to it. (i.e. Always 
-  make a direct connection rather than forwarding messages twice, 
-  once into the server, from there out to the other client.)
-- The server will clean up its connection to a client if the client 
-  says goodbye (i.e. if the client connection is freed).
-- When the connection is being freed it will send a invalidation 
-  notification message to those objects that have registered for
-  such notification.
-- Servers and clients can be on different machines of different
-  architectures; byte-order and all other architecture-dependent
-  nits are taken care of for you.  You can have SPARC, i386, m68k, 
-  and MIPS machines all distributed-object'ing away together in
-  one big web of client-server connections!
-@end smallexample
-
-Here is a partial list of what the current distributed objects system
-does *not* do: 
-@smallexample
-- Run multi-threaded.
-- Detect port deaths (due to remote application crash, for example) 
-  and do something graceful.
-- Send exceptions in the server back to the client.
-- Send messages with vararg arguments.
-- Return structures by value.
-- Use Mach ports, pass Mach ports, pass Mach virtual memory.
-- Send messages more reliably than UDP.  It does detect reply
-  timeouts and message-out-of-order conditions, but it's reaction 
-  is simply to abort.
-- Claim to be thoroughly tested.
-@end smallexample
-
-@end itemize
-
 
 @section Where else to look
 
@@ -270,9 +162,8 @@ distributed object version of ``Hello, world''.
 complex demonstration of distributed objects, with multiple clients,
 connection delegates, and invalidation notification.
 
-@item @samp{port-server.m} and @samp{port-client.m} show a simple use of
-Port objects.  Be warned, however, the interface to Port objects will
-likely change in the near future.
+@item @samp{tcpport-server.m} and @samp{tcpport-client.m} show a simple
+use of TcpPort objects.
 
 @end itemize
 
@@ -298,7 +189,7 @@ Give me feedback!  Tell me what you like; tell me what you think
 could be better.  Send me bug reports.
 
 @item
-Donate classes.  If you write classes that fit in the libobjects
+Donate classes.  If you write classes that fit in the libgnustep-base
 framework, I'd be happy to include them.
 
 @end itemize
