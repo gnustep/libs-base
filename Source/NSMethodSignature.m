@@ -126,6 +126,41 @@
   [super dealloc];
 }
 
+- (BOOL)isEqual:(id)other
+{
+  BOOL isEqual = YES;
+  if (other == nil)
+    {
+      return NO;
+    }
+  if (((NSMethodSignature *)other)->isa != isa)
+    {
+      return NO;
+    }
+  isEqual = ([self numberOfArguments] == [other numberOfArguments] 
+    && [self frameLength] == [other frameLength] 
+    && *[self methodReturnType] == *[other methodReturnType] 
+    && [self isOneway] == [other isOneway]);
+  if(isEqual == NO)
+    {
+      return NO;
+    }
+  else
+    {
+      int i, n;
+      n = [self numberOfArguments];
+      for(i = 0; i < n; i++)
+        {
+          if ( (*[self getArgumentTypeAtIndex:i] 
+		== *[other getArgumentTypeAtIndex:i]) == NO)
+            {
+              return NO;
+            }
+        }
+    }
+  return isEqual;
+}
+
 @end
 
 @implementation NSMethodSignature(GNU)
