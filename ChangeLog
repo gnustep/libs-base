@@ -1,3 +1,15 @@
+2003-10-22  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSConcreteNumber.h: Moved here from
+	Headers/Foundation/NSConcreteNumber.h.  
+	* Source/GNUmakefile: Make NSConcreteNumber.h private.  
+	* Source/NSConcreteNumber.m: Include NSConcreteNumber.h from new
+	location.  
+	* Source/NSNumber.m: Ditto.
+	* Source/NSURL.m: Include NSValue.h in favor of private
+	NSConcreteNumber.h.  
+	* Source/NSURLHandle.m: Do not include NSConcreteNumber.h.
+
 2003-10-21  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.postamble (libgnustep-base.def): Generate at
