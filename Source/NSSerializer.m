@@ -29,10 +29,6 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 
-@class	NSGData;
-@class	NSGMutableData;
-@class	NSHData;
-@class	NSHMutableData;
 @class	NSGMutableCString;
 @class	NSGCString;
 #ifdef	UNICODE
@@ -94,16 +90,12 @@ typedef	enum {
     assert(objPtr != 0);
     assert(type == @encode(id));
     object = *objPtr;
-    if ([object isKindOfClass: [NSMutableData class]] ||
-        [object isKindOfClass: [NSHMutableData class]] ||
-        [object isKindOfClass: [NSGMutableData class]]) {
+    if ([object isKindOfClass: [NSMutableData class]]) {
 	[data serializeInt: ST_MDATA];
 	[data serializeInt: [object length]];
 	[data appendBytes: [object bytes] length: [object length]];
     }
-    else if ([object isKindOfClass: [NSData class]] ||
-        [object isKindOfClass: [NSHData class]] ||
-        [object isKindOfClass: [NSGData class]]) {
+    else if ([object isKindOfClass: [NSData class]]) {
 	[data serializeInt: ST_DATA];
 	[data serializeInt: [object length]];
 	[data appendBytes: [object bytes] length: [object length]];

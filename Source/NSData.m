@@ -63,8 +63,6 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSGData.h>
-#include <Foundation/NSHData.h>
 #include <Foundation/NSDebug.h>
 #include <string.h>		/* for memset() */
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
