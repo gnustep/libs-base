@@ -2540,18 +2540,48 @@ handle_printf_atsign (FILE *stream,
   return substring;
 }
 
-/* Returns a new string with the path extension removed from the receiver.
-   See pathExtension for a definition of the path extension */
+/*
+ * Returns a new string with the path extension removed from the receiver.
+ * Strips any trailing path separators before checking for the extension
+ * separator.
+ */
 - (NSString*) stringByDeletingPathExtension
 {
-  NSRange range;
-  NSString *substring;
+  NSRange	range;
+  NSRange	r0;
+  NSRange	r1;
+  NSString	*substring;
+  unsigned	length = [self length];
 
-  range = [self rangeOfString: [self pathExtension] options: NSBackwardsSearch];
-  if (range.length != 0)
-    substring = [self substringToIndex: range.location-1];
-  else
-    substring = AUTORELEASE([self copy]);
+  /*
+   * Skip past any trailing path separators... but not a leading one.
+   */
+  while (length > 1 && pathSepMember([self characterAtIndex: length-1]) == YES)
+    {
+      length--;
+    }
+  range = NSMakeRange(0, length);
+  /*
+   * Locate path extension.
+   */
+  r0 = [self rangeOfString: @"."
+		   options: NSBackwardsSearch
+		     range: range];
+  /*
+   * Locate a path separator.
+   */
+  r1 = [self rangeOfCharacterFromSet: pathSeps()
+			     options: NSBackwardsSearch
+			       range: range];
+  /*
+   * Assuming the extension separator was found in the last path
+   * component, set the length of the substring we want.
+   */
+  if (r0.length > 0 && (r1.length == 0 || r1.location < r0.location))
+    {
+      length = r0.location;
+    }
+  substring = [self substringToIndex: length];
   return substring;
 }
 
@@ -2958,13 +2988,25 @@ handle_printf_atsign (FILE *stream,
     {
       int	i;
 
-      /* If the path began with a '/' then the first path component must
+      /*
+       * If the path began with a '/' then the first path component must
        * be a '/' rather than an empty string so that our output could be
        * fed into [+pathWithComponents: ]
        */
       if ([[a objectAtIndex: 0] length] == 0)
 	{
 	  [a replaceObjectAtIndex: 0 withObject: pathSepString];
+	}
+      /*
+       * Similarly if the path ended with a path separator (other than the
+       * leading one).
+       */
+      if ([[a objectAtIndex: [a count]-1] length] == 0)
+	{
+	  if ([self length] > 1)
+	    {
+	      [a replaceObjectAtIndex: [a count]-1 withObject: pathSepString];
+	    }
 	}
       /* Any empty path components  must be removed. */
       for (i = [a count] - 1; i > 0; i--)
