@@ -136,6 +136,7 @@ KeyedCollection.m \
 LinkedList.m \
 LinkedListNode.m \
 Lock.m \
+MachPort.m \
 Magnitude.m \
 MallocAddress.m \
 MappedCollector.m \
@@ -265,6 +266,7 @@ objects/LinkedList.h \
 objects/LinkedListNode.h \
 objects/Lock.h \
 objects/Locking.h \
+objects/MachPort.h \
 objects/Magnitude.h \
 objects/MallocAddress.h \
 objects/MappedCollector.h \
