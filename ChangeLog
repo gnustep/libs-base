@@ -1,3 +1,7 @@
+2002-03-18  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (gdomap_log): Write to stdout if prio=LOG_INFO.
+
 2002-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Some boundary error fixes by Alexander Malmberg.

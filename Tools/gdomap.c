@@ -257,7 +257,7 @@ gdomap_log (int prio)
     {
       syslog (log_priority | prio, ebuf);
     }
-  else if (prio == 0)
+  else if (prio == LOG_INFO)
     {
       write (0, ebuf, strlen (ebuf));
       write (0, "\n", 1);
