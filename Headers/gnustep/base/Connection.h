@@ -72,7 +72,7 @@
 
 + removeObject: anObj;
 + unregisterForInvalidationNotification: anObj;
-/* Use these when you're free'ing an object that may have been vended
+/* Use these when you're release'ing an object that may have been vended
    or registered for invalidation notification */
 
 + (Connection*) newWithRootObject: anObj;
