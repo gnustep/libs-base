@@ -1,3 +1,13 @@
+2002-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: support for merging types and functions etc.
+	* Tools/AGSIndex.m: ditto
+	* Tools/AGSOutput.h: ditto
+	* Tools/AGSOutput.m: ditto
+	* Tools/autogsdoc.m: ditto
+	Put stuff in place for merging info
+	revert key-value coding changes.
+
 Mon Feb 11 15:11:31 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/GSString.m (NSImmutableString): Implemented copy,

@@ -373,7 +373,7 @@ static NSMutableSet	*textNodes = nil;
 		  NSArray	*catNames;
 
 		  /*
-		   * For a clss, we want to list methods in any associated
+		   * For a class, we want to list methods in any associated
 		   * categories as well as those of the class itsself.
 		   */
 		  catNames = [[[refs objectForKey: @"categories"]
@@ -1324,6 +1324,7 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  NSString	*type = [prop objectForKey: @"type"];
 	  NSString	*r = [prop objectForKey: @"id"];
+	  GSXMLNode	*tmp = [node children];
 	  NSString	*s;
 
 	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
@@ -1338,13 +1339,27 @@ static NSMutableSet	*textNodes = nil;
 	  if (s == nil)
 	    {
 	      NSLog(@"ref '%@' not found for %@", r, type);
-	      [self outputText: [node children] to: buf];
+	      if (tmp == nil)
+		{
+		  [buf appendString: r];
+		}
+	      else
+		{
+		  [self outputText: tmp to: buf];
+		}
 	      [buf appendString: @"\n"];
 	    }
 	  else
 	    {
 	      [buf appendString: s];
-	      [self outputText: [node children] to: buf];
+	      if (tmp == nil)
+		{
+		  [buf appendString: r];
+		}
+	      else
+		{
+		  [self outputText: tmp to: buf];
+		}
 	      [buf appendString: @"</a>\n"];
 	    }
 	}
@@ -1940,7 +1955,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
       while (node != nil)
 	{
-	  if([[node name] isEqual: @"method"] == YES)
+	  if ([[node name] isEqual: @"method"] == YES)
 	    {
 	      [self outputNode: node to: buf];
 	    }

@@ -516,11 +516,8 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     }
   else
     {
-      NSString	*tmp = ref;
-
-      ref = u;
-      u = tmp;
-      // type ... unit ... ref ... file
+      u = ref;
+      ref = unit;
     }
 
   t = [refs objectForKey: type];
