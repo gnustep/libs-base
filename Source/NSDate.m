@@ -82,6 +82,12 @@
 
 @implementation NSDate
 
+- (id) copyWithZone: (NSZone*)zone
+{
+  return [[[NSConcreteDate class] allocWithZone:zone]
+	  initWithTimeIntervalSinceReferenceDate:timeSinceReference];
+}
+
 // Getting current time
 
 + (NSTimeInterval) timeIntervalSinceReferenceDate
@@ -178,13 +184,15 @@
 }
 
 // Converting to NSCalendar
-#if 0
+
 - (NSCalendarDate *) dateWithCalendarFormat: (NSString*)formatString
 				   timeZone: (NSTimeZone*)timeZone
 {
   // Not done yet,  NSCalendarDate doesn't exist yet!
+  [self notImplemented:_cmd];
+  return nil;
 }
-#endif
+
 
 // Representing dates
 
@@ -202,13 +210,15 @@
   strftime(buf, 64, "%Y-%m-%d %H:%M:%S", theTime);
   return [NSString stringWithCString: buf];
 }
-#if 0
+
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
 {
   // Not done yet, no NSCalendarDate or NSTimeZone...
+  [self notImplemented:_cmd];
+  return nil;
 }
-#endif
+
 
 // Adding and getting intervals
 
