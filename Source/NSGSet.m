@@ -25,7 +25,6 @@
 #include <config.h>
 #include <Foundation/NSSet.h>
 #include <base/behavior.h>
-#include <base/fast.x>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
@@ -250,7 +249,7 @@ static Class	mutableSetClass;
     return NO;
 
   // Loop for all members in otherSet
-  c = GSObjCClassOfObject(otherSet);
+  c = GSObjCClass(otherSet);
   if (c == setClass || c == mutableSetClass)
     {
       GSIMapNode	node = ((NSGSet*)otherSet)->map.firstNode;
@@ -320,7 +319,7 @@ static Class	mutableSetClass;
     }
   else
     {
-      Class	c = GSObjCClassOfObject(other);
+      Class	c = GSObjCClass(other);
 
       if (c == setClass || c == mutableSetClass)
 	{

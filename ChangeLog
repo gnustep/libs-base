@@ -1,5 +1,14 @@
 2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Loads of files modified, fast.x removed.
+	Found it unexpectedly easy to tidy up so that all functions for
+	accessing the runtime are now in NSObjCRuntime.h.
+	Now all :-) we need are Apple runtime implementations, configuration
+	auto-detect for the apple runtime, and loads of updating of any
+	bits of code that call the runtime directly.
+
+2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/NSGString.h:
 	* Headers/gnustep/base/NSGCString.h:
 	* Source/NSGString.m:

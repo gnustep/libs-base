@@ -24,7 +24,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/fast.x>
 #include <Foundation/DistributedObjects.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSPort.h>
@@ -743,7 +742,7 @@ enum
 
 - (IMP) methodForSelector: (SEL)aSelector
 {
-  return get_imp(GSObjCClassOfObject((id)self), aSelector);
+  return get_imp(GSObjCClass((id)self), aSelector);
 }
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector

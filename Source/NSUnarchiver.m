@@ -23,11 +23,10 @@
 
 #include <config.h>
 #include <string.h>
-#include <objc/objc-api.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSByteOrder.h>
-#include <Foundation/NSObjCRuntime.h>
 
 /*
  *	Setup for inline operation of arrays.
@@ -47,8 +46,6 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
-
-#include <base/fast.x>
 
 static const char*
 typeToName1(char type)
@@ -1149,7 +1146,7 @@ static Class NSDataMallocClass;
 
       TEST_RELEASE(data);
       data = RETAIN(anObject);
-      c = GSObjCClassOfObject(data);
+      c = GSObjCClass(data);
       if (src != self)
 	{
 	  src = data;

@@ -29,7 +29,6 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
-#include <base/fast.x>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 4 cooresponding to each value type */
@@ -82,8 +81,8 @@
 
 - (BOOL) isEqual: (id)other
 {
-  if (other != nil
-    && fastInstanceIsKindOfClass(other, GSObjCClassOfObject(self)))
+  if (other != nil && GSObjCIsInstance(other) == YES
+    && GSObjCIsKindOf(GSObjCClass(other), GSObjCClass(self)))
     {
       return [self isEqualToValue: other];
     }
@@ -94,8 +93,8 @@
 {
   typedef __typeof__(data) _dt;
 
-  if (aValue != nil
-    && fastInstanceIsKindOfClass(aValue, GSObjCClassOfObject(self)))
+  if (aValue != nil && GSObjCIsInstance(aValue) == YES
+    && GSObjCIsKindOf(GSObjCClass(aValue), GSObjCClass(self)))
     {
       _dt	val = [aValue TYPE_METHOD];
 #if TYPE_ORDER == 0

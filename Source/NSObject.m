@@ -26,7 +26,6 @@
 #include <stdarg.h>
 #include <Foundation/NSObject.h>
 #include <objc/Protocol.h>
-#include <objc/objc-api.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
@@ -42,8 +41,6 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <limits.h>
-
-#include <base/fast.x>
 
 extern BOOL __objc_responds_to(id, SEL);
 
@@ -330,7 +327,7 @@ NSExtraRefCount (id anObject)
 #include	<gc_typed.h>
 
 inline NSZone *
-fastZone(NSObject *object)
+GSObjCZone(NSObject *object)
 {
   return 0;
 }
@@ -363,7 +360,8 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
       if (gc_type == 0)
 	{
 	  new = NSZoneMalloc(zone, size);
-	  NSLog(@"No garbage collection information for '%s'", aClass->name);
+	  NSLog(@"No garbage collection information for '%s'",
+	    GSObjCName(aClass));
 	}
       else if ([aClass requiresTypedMemory])
 	{
@@ -407,9 +405,9 @@ NSDeallocateObject(NSObject *anObject)
 #if defined(CACHE_ZONE)
 
 inline NSZone *
-fastZone(NSObject *object)
+GSObjCZone(NSObject *object)
 {
-  if (GSObjCClassOfObject(object) == NXConstantStringClass)
+  if (GSObjCClass(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
@@ -417,9 +415,9 @@ fastZone(NSObject *object)
 #else	/* defined(CACHE_ZONE)	*/
 
 inline NSZone *
-fastZone(NSObject *object)
+GSObjCZone(NSObject *object)
 {
-  if (GSObjCClassOfObject(object) == NXConstantStringClass)
+  if (GSObjCClass(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(&((obj)object)[-1]);
 }
@@ -464,7 +462,7 @@ NSDeallocateObject(NSObject *anObject)
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
       obj	o = &((obj)anObject)[-1];
-      NSZone	*z = fastZone(anObject);
+      NSZone	*z = GSObjCZone(anObject);
 
 #ifndef	NDEBUG
       GSDebugAllocationRemove(((id)anObject)->class_pointer);
@@ -478,9 +476,9 @@ NSDeallocateObject(NSObject *anObject)
 #else
 
 inline NSZone *
-fastZone(NSObject *object)
+GSObjCZone(NSObject *object)
 {
-  if (GSObjCClassOfObject(object) == NXConstantStringClass)
+  if (GSObjCClass(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(object);
 }
@@ -530,7 +528,7 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
   return YES;
 #else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
-	  || fastZone(anObject) == requestedZone);
+	  || GSObjCZone(anObject) == requestedZone);
 #endif
 }
 
@@ -738,12 +736,12 @@ static BOOL deallocNotifications = NO;
 - (IMP) methodForSelector: (SEL)aSelector
 {
   /*
-   *	If 'self' is an instance, GSObjCClassOfObject() will get the class,
+   *	If 'self' is an instance, GSObjCClass() will get the class,
    *	and get_imp() will get the instance method.
-   *	If 'self' is a class, GSObjCClassOfObject() will get the meta-class,
+   *	If 'self' is a class, GSObjCClass() will get the meta-class,
    *	and get_imp() will get the class method.
    */
-  return get_imp(GSObjCClassOfObject(self), aSelector);
+  return get_imp(GSObjCClass(self), aSelector);
 }
 
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
@@ -761,9 +759,9 @@ static BOOL deallocNotifications = NO;
     {
       struct objc_method *mth;
 
-      mth = (object_is_instance(self)
-	? class_get_instance_method(self->isa, aSelector)
-	: class_get_class_method(self->isa, aSelector));
+      mth = (GSObjCIsInstance(self)
+	? class_get_instance_method(GSObjCClass(self), aSelector)
+	: class_get_class_method(GSObjCClass(self), aSelector));
       if (mth == 0)
 	{
 	  return nil;
@@ -894,7 +892,7 @@ static BOOL deallocNotifications = NO;
        * use get_imp() because NSDistantObject doesn't implement
        * methodForSelector:
        */
-      proxyImp = get_imp(GSObjCClassOfObject((id)proxyClass),
+      proxyImp = get_imp(GSObjCClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 
@@ -970,26 +968,19 @@ static BOOL deallocNotifications = NO;
 
 - (BOOL) isKindOfClass: (Class)aClass
 {
-  Class class;
+  Class class = GSObjCClass(self);
 
-  for (class = self->isa; 
-       class != Nil;
-       class = class_get_super_class (class))
-    {
-      if (class == aClass)
-	return YES;
-    }
-  return NO;
+  return GSObjCIsKindOf(class, aClass);
 }
 
 + (BOOL) isMemberOfClass: (Class)aClass
 {
-  return self == aClass;
+  return (self == aClass) ? YES : NO;
 }
 
 - (BOOL) isMemberOfClass: (Class)aClass
 {
-  return self->isa==aClass;
+  return (GSObjCClass(self) == aClass) ? YES : NO;
 }
 
 - (BOOL) isProxy
@@ -1008,7 +999,7 @@ static BOOL deallocNotifications = NO;
       return nil;
     }
     
-  msg = get_imp(GSObjCClassOfObject(self), aSelector);
+  msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1029,7 +1020,7 @@ static BOOL deallocNotifications = NO;
       return nil;
     }
     
-  msg = get_imp(GSObjCClassOfObject(self), aSelector);
+  msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1053,7 +1044,7 @@ static BOOL deallocNotifications = NO;
       return nil;
     }
   
-  msg = get_imp(GSObjCClassOfObject(self), aSelector);
+  msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1095,10 +1086,10 @@ static BOOL deallocNotifications = NO;
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
 #if 0
-  if (fastIsInstance(self))
-    return (class_get_instance_method(GSObjCClassOfObject(self), aSelector)!=METHOD_NULL);
+  if (GSObjCIsInstance(self))
+    return (class_get_instance_method(GSObjCClass(self), aSelector)!=METHOD_NULL);
   else
-    return (class_get_class_method(GSObjCClassOfObject(self), aSelector)!=METHOD_NULL);
+    return (class_get_class_method(GSObjCClass(self), aSelector)!=METHOD_NULL);
 #else
   return __objc_responds_to(self, aSelector);
 #endif
@@ -1138,7 +1129,7 @@ static BOOL deallocNotifications = NO;
 
 - (NSZone*) zone
 {
-  return fastZone(self);
+  return GSObjCZone(self);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -1181,7 +1172,7 @@ static BOOL deallocNotifications = NO;
   va_list ap;
 
   sprintf(fmt, FMT, object_get_class_name(self),
-                    object_is_instance(self)?"instance":"class",
+                    GSObjCIsInstance(self)?"instance":"class",
                     (aString!=NULL)?aString:"");
   va_start(ap, aString);
   /* xxx What should `code' argument be?  Current 0. */
@@ -1344,13 +1335,13 @@ static BOOL deallocNotifications = NO;
 
 - (BOOL) isInstance
 {
-  return object_is_instance(self);
+  return GSObjCIsInstance(self);
 }
 
 - (BOOL) isMemberOfClassNamed: (const char*)aClassName
 {
   return ((aClassName!=NULL)
-          &&!strcmp(class_get_class_name(self->isa), aClassName));
+          &&!strcmp(GSObjCName(GSObjCClass(self)), aClassName));
 }
 
 + (struct objc_method_description *) descriptionForInstanceMethod: (SEL)aSel
@@ -1362,14 +1353,14 @@ static BOOL deallocNotifications = NO;
 - (struct objc_method_description *) descriptionForMethod: (SEL)aSel
 {
   return ((struct objc_method_description *)
-           (object_is_instance(self)
-            ?class_get_instance_method(self->isa, aSel)
-            :class_get_class_method(self->isa, aSel)));
+           (GSObjCIsInstance(self)
+            ?class_get_instance_method(GSObjCClass(self), aSel)
+            :class_get_class_method(GSObjCClass(self), aSel)));
 }
 
 - (Class) transmuteClassTo: (Class)aClassObject
 {
-  if (object_is_instance(self))
+  if (GSObjCIsInstance(self) == YES)
     if (class_is_class(aClassObject))
       if (class_get_instance_size(aClassObject)==class_get_instance_size(isa))
         if ([self isKindOfClass:aClassObject])

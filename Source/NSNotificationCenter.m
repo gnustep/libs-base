@@ -30,7 +30,6 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
-#include <base/fast.x>
 
 typedef struct {
   @defs(NSNotification)

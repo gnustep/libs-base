@@ -40,8 +40,6 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSDebug.h>
 
-#include <base/fast.x>
-
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
 

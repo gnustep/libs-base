@@ -22,7 +22,6 @@
 */ 
 
 #include <config.h>
-#include <base/fast.x>
 #include <base/Unicode.h>
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSException.h>
@@ -127,7 +126,7 @@ typedef struct {
       aString = @"";
     }
 
-  c = GSObjCClassOfObject(aString);
+  c = GSObjCClass(aString);
   if (c == GSUString_class)
     {
       _isUnicode = YES;

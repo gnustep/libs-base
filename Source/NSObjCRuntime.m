@@ -23,7 +23,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/fast.x>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <mframe.h>
@@ -32,7 +31,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithCString: (char*)sel_get_name(aSelector)];
+    return [NSString stringWithCString: GSObjCSelectorName(aSelector)];
   return nil;
 }
 
@@ -56,7 +55,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithCString: (char*)fastClassName(aClass)];
+    return [NSString stringWithCString: (char*)GSObjCName(aClass)];
   return nil;
 }
 

@@ -26,7 +26,6 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
-#include <base/fast.x>
 #include <config.h>
 #include <mframe.h>
 

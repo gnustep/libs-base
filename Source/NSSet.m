@@ -23,7 +23,6 @@
 
 #include <config.h>
 #include <base/behavior.h>
-#include <base/fast.x>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSCoder.h>
@@ -123,7 +122,7 @@ static Class NSMutableSet_concrete_class;
   unsigned	count;
   Class		c;
 
-  c = GSObjCClassOfObject(self);
+  c = GSObjCClass(self);
   if (c == NSSet_abstract_class)
     {
       RELEASE(self);

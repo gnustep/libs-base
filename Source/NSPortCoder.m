@@ -31,8 +31,8 @@
 
 #include <config.h>
 #include <string.h>
-#include <objc/objc-api.h>
 
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSByteOrder.h>
@@ -42,8 +42,6 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSString.h>
-
-#include <base/fast.x>
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -1229,7 +1227,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    }
 
 	  obj = [anObject replacementObjectForPortCoder: self];
-	  if (fastIsInstance(obj) == NO)
+	  if (GSObjCIsInstance(obj) == NO)
 	    {
 	      /*
 	       *	If the object we have been given is actually a class,
@@ -1456,9 +1454,9 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = fastClassVersion(c);
+		int		tmp = GSObjCVersion(c);
 		unsigned	version = tmp;
-		Class		s = fastSuper(c);
+		Class		s = GSObjCSuper(c);
 
 		if (tmp < 0)
 		  {

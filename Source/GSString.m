@@ -47,7 +47,6 @@
 #include <base/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include <base/fast.x>
 #include <base/Unicode.h>
 
 /*
@@ -357,14 +356,14 @@ compare_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
-  if (fastIsInstance(aString) == NO)
+  if (GSObjCIsInstance(aString) == NO)
     return strCompCsNs((id)self, aString, mask, aRange);
 
-  c = GSObjCClassOfObject(aString);
-  if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+  c = GSObjCClass(aString);
+  if (GSObjCIsKindOf(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
-  else if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+  else if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompCsCs((id)self, aString, mask, aRange);
@@ -379,14 +378,14 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
-  if (fastIsInstance(aString) == NO)
+  if (GSObjCIsInstance(aString) == NO)
     return strCompUsNs((id)self, aString, mask, aRange);
 
-  c = GSObjCClassOfObject(aString);
-  if (fastClassIsKindOfClass(c, GSUStringClass)
+  c = GSObjCClass(aString);
+  if (GSObjCIsKindOf(c, GSUStringClass)
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
-  else if (fastClassIsKindOfClass(c, GSCStringClass)
+  else if (GSObjCIsKindOf(c, GSCStringClass)
     || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompUsCs((id)self, aString, mask, aRange);
@@ -767,11 +766,11 @@ isEqual_c(ivars self, id anObject)
     {
       return NO;
     }
-  if (fastIsInstance(anObject) == NO)
+  if (GSObjCIsInstance(anObject) == NO)
     {
       return NO;
     }
-  c = fastClassOfInstance(anObject);
+  c = GSObjCClass(anObject);
   if (c == NXConstantStringClass)
     {
       ivars	other = (ivars)anObject;
@@ -781,7 +780,7 @@ isEqual_c(ivars self, id anObject)
 	return YES;
       return NO;
     }
-  else if (fastClassIsKindOfClass(c, GSStringClass) == YES)
+  else if (GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       ivars	other = (ivars)anObject;
       NSRange	r = {0, self->_count};
@@ -811,7 +810,7 @@ isEqual_c(ivars self, id anObject)
 	}
       return NO;
     }
-  else if (fastClassIsKindOfClass(c, NSStringClass))
+  else if (GSObjCIsKindOf(c, NSStringClass))
     {
       return (*equalImp)((id)self, equalSel, anObject);
     }
@@ -834,11 +833,11 @@ isEqual_u(ivars self, id anObject)
     {
       return NO;
     }
-  if (fastIsInstance(anObject) == NO)
+  if (GSObjCIsInstance(anObject) == NO)
     {
       return NO;
     }
-  c = fastClassOfInstance(anObject);
+  c = GSObjCClass(anObject);
   if (c == NXConstantStringClass)
     {
       ivars	other = (ivars)anObject;
@@ -848,7 +847,7 @@ isEqual_u(ivars self, id anObject)
 	return YES;
       return NO;
     }
-  else if (fastClassIsKindOfClass(c, GSStringClass) == YES)
+  else if (GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       ivars	other = (ivars)anObject;
       NSRange	r = {0, self->_count};
@@ -878,7 +877,7 @@ isEqual_u(ivars self, id anObject)
 	}
       return NO;
     }
-  else if (fastClassIsKindOfClass(c, NSStringClass))
+  else if (GSObjCIsKindOf(c, NSStringClass))
     {
       return (*equalImp)((id)self, equalSel, anObject);
     }
@@ -951,7 +950,7 @@ makeHole(ivars self, int index, int size)
 #if	GS_WITH_GC
 	      self->_zone = GSAtomicMallocZone();
 #else
-	      self->_zone = fastZone((NSObject*)self);
+	      self->_zone = GSObjCZone((NSObject*)self);
 #endif
 	    }
 	  if (self->_flags.wide == 1)
@@ -1055,14 +1054,14 @@ rangeOfString_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-  if (fastIsInstance(aString) == NO)
+  if (GSObjCIsInstance(aString) == NO)
     return strRangeCsNs((id)self, aString, mask, aRange);
 
-  c = GSObjCClassOfObject(aString);
-  if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+  c = GSObjCClass(aString);
+  if (GSObjCIsKindOf(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
-  else if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+  else if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeCsCs((id)self, aString, mask, aRange);
@@ -1077,14 +1076,14 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-  if (fastIsInstance(aString) == NO)
+  if (GSObjCIsInstance(aString) == NO)
     return strRangeUsNs((id)self, aString, mask, aRange);
 
-  c = GSObjCClassOfObject(aString);
-  if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+  c = GSObjCClass(aString);
+  if (GSObjCIsKindOf(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
-  else if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+  else if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeUsCs((id)self, aString, mask, aRange);
@@ -1138,7 +1137,7 @@ transmute(ivars self, NSString *aString)
 {
   ivars	other;
   BOOL	transmute;
-  Class	c = GSObjCClassOfObject(aString);	// NB aString must not be nil
+  Class	c = GSObjCClass(aString);	// NB aString must not be nil
 
   other = (ivars)aString;
   transmute = YES;
@@ -2063,7 +2062,7 @@ transmute(ivars self, NSString *aString)
 #if	GS_WITH_GC
   _zone = GSAtomicMallocZone();
 #else
-  _zone = fastZone(self);
+  _zone = GSObjCZone(self);
 #endif
   _contents.c = NSZoneMalloc(_zone, capacity + 1);
   _flags.wide = 0;
@@ -2206,7 +2205,7 @@ transmute(ivars self, NSString *aString)
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException
 		format: @"replace characters with nil string"];
-  if (fastIsInstance(aString) == NO)
+  if (GSObjCIsInstance(aString) == NO)
     [NSException raise: NSInvalidArgumentException
 		format: @"replace characters with non-string"];
 
@@ -2543,13 +2542,13 @@ transmute(ivars self, NSString *aString)
     {
       return NO;
     }
-  if (fastIsInstance(anObject) == NO)
+  if (GSObjCIsInstance(anObject) == NO)
     {
       return NO;
     }
-  c = fastClassOfInstance(anObject);
+  c = GSObjCClass(anObject);
 
-  if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+  if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
@@ -2561,14 +2560,14 @@ transmute(ivars self, NSString *aString)
 	return NO;
       return YES;
     }
-  else if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+  else if (GSObjCIsKindOf(c, GSUStringClass) == YES
     || c == GSMStringClass)
     {
       if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
 	return YES;
       return NO;
     }
-  else if (fastClassIsKindOfClass(c, NSStringClass))
+  else if (GSObjCIsKindOf(c, NSStringClass))
     {
       return (*equalImp)(self, equalSel, anObject);
     }
@@ -2590,13 +2589,13 @@ transmute(ivars self, NSString *aString)
     {
       return NO;
     }
-  if (fastIsInstance(anObject) == NO)
+  if (GSObjCIsInstance(anObject) == NO)
     {
       return NO;
     }
-  c = fastClassOfInstance(anObject);
+  c = GSObjCClass(anObject);
 
-  if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+  if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
@@ -2608,14 +2607,14 @@ transmute(ivars self, NSString *aString)
 	return NO;
       return YES;
     }
-  else if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+  else if (GSObjCIsKindOf(c, GSUStringClass) == YES
     || c == GSMStringClass)
     {
       if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
 	return YES;
       return NO;
     }
-  else if (fastClassIsKindOfClass(c, NSStringClass))
+  else if (GSObjCIsKindOf(c, NSStringClass))
     {
       return (*equalImp)(self, equalSel, anObject);
     }

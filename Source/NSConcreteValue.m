@@ -30,7 +30,6 @@
 #include <Foundation/NSZone.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
-#include <base/fast.x>
 
 /* This is the real, general purpose value object.  I've implemented all the
    methods here (like pointValue) even though most likely, other concrete
@@ -64,10 +63,10 @@
       return nil;
     }
 
-  data = (void *)NSZoneMalloc(fastZone(self), size);
+  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
   memcpy(data, value, size);
 
-  objctype = (char *)NSZoneMalloc(fastZone(self), strlen(type)+1);
+  objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
   strcpy(objctype, type);
   return self;
 }
@@ -75,9 +74,9 @@
 - (void) dealloc
 {
   if (objctype)
-    NSZoneFree(fastZone(self), objctype);
+    NSZoneFree(GSObjCZone(self), objctype);
   if (data)
-    NSZoneFree(fastZone(self), data);
+    NSZoneFree(GSObjCZone(self), data);
   [super dealloc];
 }
 
@@ -105,7 +104,9 @@
 
 - (BOOL) isEqualToValue: (NSValue*)aValue
 {
-  if (GSObjCClassOfObject(aValue) != GSObjCClassOfObject(self))
+  if (aValue == nil)
+    return NO;
+  if (GSObjCClass(aValue) != GSObjCClass(self))
     return NO;
   if (strcmp(objctype, ((NSConcreteValue*)aValue)->objctype) != 0)
     return NO;
@@ -178,10 +179,10 @@
   unsigned	size;
 
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-  objctype = (void *)NSZoneMalloc(fastZone(self), size);
+  objctype = (void *)NSZoneMalloc(GSObjCZone(self), size);
   [coder decodeArrayOfObjCType: @encode(char) count: size at: objctype];
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-  data = (void *)NSZoneMalloc(fastZone(self), size);
+  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
   [coder decodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
 
   return self;

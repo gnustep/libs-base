@@ -23,11 +23,12 @@
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObjCRuntime.h>
+typedef struct _NSZone NSZone;
+
+#include	<Foundation/NSObjCRuntime.h>
 
 @class NSString;
 
-typedef struct _NSZone NSZone;
 
 /* The members are the same as the structure mstats which is in the
    GNU C library. */
