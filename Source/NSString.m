@@ -331,7 +331,7 @@ handle_printf_atsign (FILE *stream,
        strings, placed in a non-writable section of the executable, and 
        writing to them will cause a segfault.) */ 
     char format_cp_copy[format_len+1];
-    char *atsign_pos;
+    char *atsign_pos;	     /* points to a location inside format_cp_copy */
     char *format_to_go = format_cp_copy;
     strcpy (format_cp_copy, format_cp);
     /* Loop once for each `%@' in the format string. */
@@ -345,13 +345,11 @@ handle_printf_atsign (FILE *stream,
 	/* Temporarily terminate the string before the `%@'. */
 	*atsign_pos = '\0';
 	/* Print the part before the '%@' */
-	printed_len = vsprintf (buf, format_cp_copy, arg_list);
+	printed_len += vsprintf (buf+printed_len, format_to_go, arg_list);
 	/* Get a C-string (char*) from the String object, and print it. */
 	cstring = [(id) va_arg (arg_list, id) cStringNoCopy];
 	strcat (buf+printed_len, cstring);
 	printed_len += strlen (cstring);
-	/* Put back the `%' we removed when we terminated mid-string. */
-	*atsign_pos = '%';
 	/* Skip over this `%@', and look for another one. */
 	format_to_go = atsign_pos + 2;
       }
