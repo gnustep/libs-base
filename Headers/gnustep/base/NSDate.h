@@ -28,6 +28,7 @@ typedef double NSTimeInterval;
 
 @class NSArray;
 @class NSCalendarDate;
+@class NSData;
 @class NSDictionary;
 @class NSString;
 @class NSTimeZone;
@@ -136,8 +137,13 @@ NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 #endif
 
 #ifndef	STRICT_OPENSTEP
++ (void) resetSystemTimeZone;
++ (NSTimeZone*) systemTimeZone;
++ (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data;
 - (NSString*) abbreviation;
 - (NSString*) abbreviationForDate: (NSDate*)aDate;
+- (id) initWithName: (NSString*)name;
+- (id) initWithName: (NSString*)name data: (NSData*)data;
 - (BOOL) isDaylightSavingTime;
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate;
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone;
@@ -147,12 +153,17 @@ NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 #endif
 
 #ifndef	STRICT_MACOS_X
-+ (NSTimeZoneDetail*) defaultTimeZone;
-+ (NSTimeZoneDetail*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date;
 - (NSString*) timeZoneName;
 #endif
 
+/*
+ * The next two methods are a problem ... they are present in both
+ * OpenStep and MacOS-X, but return different types!
+ * We resort to the MaxOS-X version.
+ */
++ (NSTimeZone*) defaultTimeZone;
++ (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
 @end
 
 #ifndef	STRICT_MACOS_X
