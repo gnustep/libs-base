@@ -270,6 +270,10 @@
   return [str writeToFile: name atomically: YES];
 }
 
+/**
+ * Uses -split: and -reformat:withIndent:to:
+ * and has fun with YES, NO, and nil
+ */
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str
 {
   NSArray	*args = [d objectForKey: @"Args"];
@@ -595,7 +599,7 @@
 	      [buf appendString: @" "];
 	    }
 	  [buf appendString: str];
-	  addSpace = ([str hasPrefix: @"<"] == YES) ? NO : YES;
+	  addSpace = ([str hasPrefix: @"</"] == YES) ? NO : YES;
 	  for (j = i + 1; size <= 70 && j < [a count]; j++)
 	    {
 	      NSString	*t = [a objectAtIndex: j];
@@ -608,14 +612,19 @@
 		      break;	// End of element reached.
 		    }
 		  nest--;
+		  addSpace = YES;
 		}
 	      else if ([t hasPrefix: @"<"] == YES)
 		{
-		  addSpace = NO;
 		  if ([t hasSuffix: @"/>"] == NO)
 		    {
+		      if (addSpace == YES)
+			{
+			  size++;
+			}
 		      nest++;
 		    }
+		  addSpace = NO;
 		}
 	      else
 		{
@@ -645,15 +654,20 @@
 			  break;	// End of element reached.
 			}
 		      nest--;
+		      addSpace = YES;
 		    }
 		  else if ([t hasPrefix: @"<"] == YES)
 		    {
-		      [buf appendString: t];
-		      addSpace = NO;
 		      if ([t hasSuffix: @"/>"] == NO)
 			{
+			  if (addSpace == YES)
+			    {
+			      [buf appendString: @" "];
+			    }
 			  nest++;
 			}
+		      [buf appendString: t];
+		      addSpace = NO;
 		    }
 		  else
 		    {
@@ -694,14 +708,19 @@
 		      break;	// End of element reached.
 		    }
 		  nest--;
+		  addSpace = YES;
 		}
 	      else if ([t hasPrefix: @"<"] == YES)
 		{
-		  addSpace = NO;
 		  if ([t hasSuffix: @"/>"] == NO)
 		    {
+		      if (addSpace == YES)
+			{
+			  size++;
+			}
 		      nest++;
 		    }
+		  addSpace = NO;
 		}
 	      else
 		{
@@ -726,9 +745,17 @@
 		  if ([t hasPrefix: @"</"] == YES)
 		    {
 		      [buf appendString: t];
+		      addSpace = YES;
 		    }
 		  else if ([t hasPrefix: @"<"] == YES)
 		    {
+		      if ([t hasSuffix: @"/>"] == NO)
+			{
+			  if (addSpace == YES)
+			    {
+			      [buf appendString: @" "];
+			    }
+			}
 		      [buf appendString: t];
 		      addSpace = NO;
 		    }
@@ -889,6 +916,44 @@
       tmp = [NSString stringWithCharacters: buf length: ptr - buf];
       [a addObject: tmp];
     }
+
+  for (l = 0; l < [a count]; l++)
+    {
+      NSString	*tmp = [a objectAtIndex: l];
+
+      /*
+       * Ensure that well known constants are rendered as 'code'
+       */
+      if ([tmp isEqual: @"YES"]
+	|| [tmp isEqual: @"NO"]
+	|| [tmp isEqual: @"nil"])
+	{
+	  if (l == 0 || [[a objectAtIndex: l - 1] isEqual: @"<code>"] == NO)
+	    {
+	      [a insertObject: @"</code>" atIndex: l + 1];
+	      [a insertObject: @"<code>" atIndex: l];
+	      l += 2;
+	    }
+	}
+
+      /*
+       * Ensure that methods are rendered as references.
+       */
+      if ([tmp length] > 1 && ([tmp hasPrefix: @"-"] || [tmp hasPrefix: @"+"]))
+	{
+	  if (l == 0 || [[a objectAtIndex: l - 1] hasPrefix: @"<ref"] == NO)
+	    {
+	      NSString	*ref;
+
+	      ref = [NSString stringWithFormat:
+		@"<ref type=\"method\" id=\"%@\">", tmp];
+	      [a insertObject: @"</ref>" atIndex: l + 1];
+	      [a insertObject: ref atIndex: l];
+	      l += 2;
+	    }
+	}
+    }
+
   return a;
 }
 
