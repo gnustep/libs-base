@@ -274,6 +274,30 @@
   va_end(ap);
 }
 
+// Managing Zones
+
+- (NSZone*) objectZone
+{
+  return NSDefaultMallocZone();
+}
+
+- (void) setObjectZone: (NSZone*)zone
+{
+  ;
+}
+
+
+// Getting a Version
+
+- (unsigned int) systemVersion
+{
+  return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
+    + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
+}
+
+@end
+
+@implementation NSCoder (GNUstep)
 - (void) decodeArrayOfObjCType: (const char*)type
 		         count: (unsigned)count
 			    at: (void*)buf
@@ -355,26 +379,4 @@
 {
   [self encodeValueOfObjCType: @encode(id) at: anObject withName: name];
 }
-
-// Managing Zones
-
-- (NSZone*) objectZone
-{
-  return NSDefaultMallocZone();
-}
-
-- (void) setObjectZone: (NSZone*)zone
-{
-  ;
-}
-
-
-// Getting a Version
-
-- (unsigned int) systemVersion
-{
-  return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
-    + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
-}
-
 @end

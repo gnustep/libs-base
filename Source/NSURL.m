@@ -4,6 +4,9 @@
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 	Jan 1999
    
+   Rewrite by: 	Richard Frith-Macdonald <rfm@gnu.org>
+   Date: 	Jun 2002
+
    This file is part of the GNUstep Library.
    
    This library is free software; you can redistribute it and/or
@@ -924,8 +927,22 @@ static void unescape(const char *from, char * to)
 }
 
 /**
- * Loads resource data for the specified clientl, providing the client
- * with notifications of the loading progress.
+ * Loads resource data for the specified client.
+ * <p>
+ *   If shouldUseCache is YES then an attempt
+ *   will be made to locate a cached NSURLHandle to provide the
+ *   resource data, otherwise a new handle will be created and
+ *   cached.
+ * </p>
+ * <p>
+ *   If the handle does not have the data available, it will be
+ *   asked to load the data in the background by calling its
+ *   loadInBackground  method.
+ * </p>
+ * <p>
+ *   The specified client (if non-nil) will be set up to receive
+ *   notifications of the progress of the background load process.
+ * </p>
  */
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
@@ -944,7 +961,7 @@ static void unescape(const char *from, char * to)
 	}
       NSMapInsert((NSMapTable*)_clients, (void*)handle, (void*)client);
       [clientsLock unlock];
-      [handle addClient: client];
+      [handle addClient: self];
     }
 
   /*
@@ -964,7 +981,7 @@ static void unescape(const char *from, char * to)
 
   if (client != nil)
     {
-      [handle removeClient: client];
+      [handle removeClient: self];
       [clientsLock lock];
       NSMapRemove((NSMapTable*)_clients, (void*)handle);
       [clientsLock unlock];
@@ -1326,6 +1343,11 @@ static void unescape(const char *from, char * to)
 
 
 
+/**
+ * An informal protocol to which clients may conform if they wish to be
+ * notified of the progress in loading a URL for them.  The default
+ * implementations of these methods do nothing.
+ */
 @implementation NSObject (NSURLClient)
 
 - (void) URL: (NSURL*)sender

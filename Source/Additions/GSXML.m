@@ -2575,8 +2575,8 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  * An attribute definition has been parsed.
  */
 - (void) attributeDecl: (NSString*)nameElement
-	 nameAttribute: (NSString*)name
-	    entityType: (int)type
+		  name: (NSString*)name
+		  type: (int)type
 	  typeDefValue: (int)defType
 	  defaultValue: (NSString*)value
 {
@@ -2594,8 +2594,8 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  * What to do when an unparsed entity declaration is parsed.
  */
 - (void) unparsedEntityDecl: (NSString*)name
-	       publicEntity: (NSString*)publicId
-	       systemEntity: (NSString*)systemId
+		     public: (NSString*)publicId
+		     system: (NSString*)systemId
 	       notationName: (NSString*)notation
 {
 }

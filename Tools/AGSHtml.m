@@ -1674,7 +1674,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else
 	{
 	  NSLog(@"Non-block element '%@' in block ...", n);
-	  return node;
+	  return nil;
 	}
     }
 

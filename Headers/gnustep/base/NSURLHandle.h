@@ -26,6 +26,8 @@
 
 #include <Foundation/NSObject.h>
 
+#ifndef	STRICT_OPENSTEP
+
 @class NSData;
 @class NSString;
 @class NSMutableArray;
@@ -33,16 +35,16 @@
 @class NSURLHandle;
 @class NSURL;
 
-GS_EXPORT NSString *NSHTTPPropertyStatusCodeKey;
-GS_EXPORT NSString *NSHTTPPropertyStatusReasonKey;
-GS_EXPORT NSString *NSHTTPPropertyServerHTTPVersionKey;
-GS_EXPORT NSString *NSHTTPPropertyRedirectionHeadersKey;
-GS_EXPORT NSString *NSHTTPPropertyErrorPageDataKey;
+GS_EXPORT NSString * const NSHTTPPropertyStatusCodeKey;
+GS_EXPORT NSString * const NSHTTPPropertyStatusReasonKey;
+GS_EXPORT NSString * const NSHTTPPropertyServerHTTPVersionKey;
+GS_EXPORT NSString * const NSHTTPPropertyRedirectionHeadersKey;
+GS_EXPORT NSString * const NSHTTPPropertyErrorPageDataKey;
 
 #ifndef	NO_GNUSTEP
-GS_EXPORT NSString *GSHTTPPropertyMethodKey;
-GS_EXPORT NSString *GSHTTPPropertyProxyHostKey;
-GS_EXPORT NSString *GSHTTPPropertyProxyPortKey;
+GS_EXPORT NSString * const GSHTTPPropertyMethodKey;
+GS_EXPORT NSString * const GSHTTPPropertyProxyHostKey;
+GS_EXPORT NSString * const GSHTTPPropertyProxyPortKey;
 #endif
 
 typedef enum
@@ -53,20 +55,45 @@ typedef enum
   NSURLHandleLoadFailed
 } NSURLHandleStatus;
 
-//=============================================================================
+/**
+ * A protocol to which clients of a handle must conform in order to
+ * rfeceive notification of events on the handle.
+ */
 @protocol NSURLHandleClient
+/**
+ * Sent by the NSURLHandle object when some data becomes available
+ * from the handle.  Note that this does not mean that all data has become
+ * available, only that a chunk of data has arrived.
+ */
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDataDidBecomeAvailable: (NSData*)newData;
 
-- (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender;
-- (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
-- (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender;
-
+/**
+ * Sent by the NSURLHandle object on resource load failure.
+ * Supplies a human readable failure reason.
+ */
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason;
+
+/**
+ * Sent by the NSURLHandle object when it begins loading
+ * resource data.
+ */
+- (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender;
+
+/**
+ * Sent by the NSURLHandle object when resource loading is canceled
+ * by programmatic request (rather than by failure).
+ */
+- (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender;
+
+/**
+ * Sent by the NSURLHandle object when it completes loading
+ * resource data.
+ */
+- (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
 @end
 
-//=============================================================================
 @interface NSURLHandle: NSObject
 {
   id			_data;
@@ -105,5 +132,7 @@ typedef enum
 
 
 @end
+
+#endif
 
 #endif

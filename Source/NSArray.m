@@ -70,6 +70,9 @@ static NSLock			*placeholderLock;
 @end
 
 
+/**
+ * A simple, low overhead, ordered container for objects.
+ */
 @implementation NSArray
 
 static SEL	addSel;
@@ -159,6 +162,9 @@ static SEL	rlSel;
     }
 }
 
+/**
+ * Returns an empty autoreleased array.
+ */
 + (id) array
 {
   id	o;
@@ -168,6 +174,10 @@ static SEL	rlSel;
   return AUTORELEASE(o);
 }
 
+/**
+ * Returns a new autoreleased NSArray instance containing all the objects from
+ * array, in the same order as the original.
+ */
 + (id) arrayWithArray: (NSArray*)array
 {
   id	o;
@@ -177,6 +187,12 @@ static SEL	rlSel;
   return AUTORELEASE(o);
 }
 
+/**
+ * Returns an autoreleased array based upon the file.
+ * This may be in property list format or in XML format
+ * (if XML is available on your system).
+ * This method returns nil if file does not represent an array.
+ */
 + (id) arrayWithContentsOfFile: (NSString*)file
 {
   id	o;
@@ -186,6 +202,9 @@ static SEL	rlSel;
   return AUTORELEASE(o);
 }
 
+/**
+ * Returns an autoreleased array containing anObject.
+ */
 + (id) arrayWithObject: (id)anObject
 {
   id	o;
@@ -195,22 +214,34 @@ static SEL	rlSel;
   return AUTORELEASE(o);
 }
 
+/**
+ * Returns an autoreleased array containing the list
+ * of objects, preserving order.
+ */
 + (id) arrayWithObjects: firstObject, ...
 {
   va_list ap;
   va_start(ap, firstObject);
   self = [[self allocWithZone: NSDefaultMallocZone()]
-    _initWithObjects: firstObject rest: ap];
+  _initWithObjects: firstObject rest: ap];
   va_end(ap);
   return AUTORELEASE(self);
 }
 
+/**
+ * Returns an autoreleased array containing the specified
+ * objects, preserving order.
+ */
 + (id) arrayWithObjects: (id*)objects count: (unsigned)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objects count: count]);
 }
 
+/**
+ * Returns an autoreleased array formed from the contents of
+ * the receiver and adding anObject as the last item.
+ */
 - (NSArray*) arrayByAddingObject: (id)anObject
 {
   id na;
@@ -234,6 +265,10 @@ static SEL	rlSel;
   return AUTORELEASE(na);
 }
 
+/**
+ * Returns a new array which is the concatenation of self and
+ * otherArray (in this precise order).
+ */
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
 {
   id		na;
@@ -251,12 +286,19 @@ static SEL	rlSel;
   return na;
 }
 
+/**
+ * Returns the abstract class ... arrays are coded as abstract arrays
+ */
 - (Class) classForCoder
 {
   return NSArrayClass;
 }
 
-- (BOOL) containsObject: anObject
+/**
+ * Returns YES if anObject belongs to self. No otherwise.<br />
+ * The -isEqual: method of anObject is used to test for equality.
+ */
+- (BOOL) containsObject: (id)anObject
 {
   return ([self indexOfObject: anObject] != NSNotFound);
 }
@@ -266,6 +308,9 @@ static SEL	rlSel;
   return RETAIN(self);
 }
 
+/** <override-subclass />
+ * Returns the number of elements contained in the receiver.
+ */
 - (unsigned) count
 {
   [self subclassResponsibility: _cmd];
@@ -290,6 +335,10 @@ static SEL	rlSel;
     }
 }
 
+/**
+ * Copies the objects from the receiver to aBuffer, which must be
+ * an area of memory large enough to hold them.
+ */
 - (void) getObjects: (id*)aBuffer
 {
   unsigned i, c = [self count];
@@ -299,6 +348,10 @@ static SEL	rlSel;
     aBuffer[i] = (*get)(self, oaiSel, i);
 }
 
+/**
+ * Copies the objects from the range aRange of the receiver to aBuffer,
+ * which must be an area of memory large enough to hold them.
+ */
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange
 {
   unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
@@ -310,12 +363,19 @@ static SEL	rlSel;
     aBuffer[j++] = (*get)(self, oaiSel, i);
 }
 
+/**
+ * Returns the ame value as -count
+ */
 - (unsigned) hash
 {
   return [self count];
 }
 
-- (unsigned) indexOfObjectIdenticalTo: anObject
+/**
+ * Returns the index of the specified object in the receiver, or
+ * NSNotFound if the object is not present.
+ */
+- (unsigned) indexOfObjectIdenticalTo: (id)anObject
 {
   unsigned c = [self count];
 
@@ -331,6 +391,10 @@ static SEL	rlSel;
   return NSNotFound;
 }
 
+/**
+ * Returns the index of the specified object in the range of the receiver,
+ * or NSNotFound if the object is not present.
+ */
 - (unsigned) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
@@ -344,7 +408,11 @@ static SEL	rlSel;
   return NSNotFound;
 }
 
-/* Inefficient, should be overridden. */
+/**
+ * Returns the index of the first object found in the receiver
+ * which is equal to anObject (using anObject's -isEqual: method).
+ * Returns NSNotFound on failure.
+ */
 - (unsigned) indexOfObject: (id)anObject
 {
   unsigned	c = [self count];
@@ -363,7 +431,11 @@ static SEL	rlSel;
   return NSNotFound;
 }
 
-/* Inefficient, should be overridden. */
+/**
+ * Returns the index of the first object found in aRange of receiver
+ * which is equal to anObject (using anObject's -isEqual: method).
+ * Returns NSNotFound on failure.
+ */
 - (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
@@ -386,6 +458,10 @@ static SEL	rlSel;
   return [self initWithObjects: (id*)0 count: 0];
 }
 
+/**
+ * Initialize the array with the content of anArray. The order is preserved.
+ * <br />May change the value of self before returning it.
+ */
 - (id) initWithArray: (NSArray*)array
 {
   unsigned c;
@@ -400,6 +476,10 @@ static SEL	rlSel;
   return self;
 }
 
+/**
+ * Initialize the array by decoding from an archive.
+ * <br />May change the value of self before returning it.
+ */
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned    count;
@@ -467,7 +547,10 @@ static SEL	rlSel;
   return nil;
 }
 
-/* This is the designated initializer for NSArray. */
+/** <init />
+ * Initialize the array with count objects.
+ * <br />May change the value of self before returning it.
+ */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
   [self subclassResponsibility: _cmd];
@@ -521,6 +604,10 @@ static SEL	rlSel;
   return( self );
 }
 
+/**
+ * Initialize the array the list of objects.
+ * <br />May change the value of self before returning it.
+ */
 - (id) initWithObjects: firstObject, ...
 {
   va_list ap;
@@ -530,12 +617,20 @@ static SEL	rlSel;
   return self;
 }
 
+/**
+ * Returns an NSMutableArray instance containing the same objects as
+ * the receiver.
+ */
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
   return [[GSMutableArrayClass allocWithZone: zone] 
     initWithArray: self];
 }
 
+/** <override-subclass />
+ * Returns the object at the specified index.
+ * Raises an exception of the index is beyond the array.
+ */
 - (id) objectAtIndex: (unsigned)index
 {
   [self subclassResponsibility: _cmd];
@@ -551,6 +646,9 @@ static SEL	rlSel;
   return NO;
 }
 
+/**
+ * Returns YES if the receiver is equal to otherArray, NO otherwise.
+ */
 - (BOOL) isEqualToArray: (NSArray*)otherArray
 {
   unsigned i, c;
@@ -572,6 +670,9 @@ static SEL	rlSel;
   return YES;
 }
 
+/**
+ * Returns the last object in the receiver, or nil if the receiver is empty.
+ */
 - (id) lastObject
 {
   unsigned count = [self count];
@@ -580,6 +681,10 @@ static SEL	rlSel;
   return [self objectAtIndex: count-1];
 }
 
+/**
+ * Makes each object in the array perform aSelector.<br />
+ * This is done sequentially from the last to the first object.
+ */
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
   unsigned i = [self count];
@@ -593,12 +698,19 @@ static SEL	rlSel;
     }
 }
 
+/**
+ * Obsolete version of -makeObjectsPerformSelector:
+ */
 - (void) makeObjectsPerform: (SEL)aSelector
 {
    [self makeObjectsPerformSelector: aSelector];
 }
 
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id) arg
+/**
+ * Makes each object in the array perform aSelector with arg.<br />
+ * This is done sequentially from the last to the first object.
+ */
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)arg
 {
   unsigned i = [self count];
 
@@ -611,6 +723,9 @@ static SEL	rlSel;
     }
 }
 
+/**
+ * Obsolete version of -makeObjectsPerformSelector:withObject:
+ */
 - (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument
 {
    [self makeObjectsPerformSelector: aSelector withObject: argument];
@@ -621,11 +736,19 @@ static int compare(id elem1, id elem2, void* context)
   return (int)[elem1 performSelector: (SEL)context withObject: elem2];
 }
 
+/**
+ * Returns an autoreleased array in which the objects are ordered
+ * according to a sort with comparator.
+ */
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator
 {
   return [self sortedArrayUsingFunction: compare context: (void *)comparator];
 }
 
+/**
+ * Returns an autoreleased array in which the objects are ordered
+ * according to a sort with comparator.
+ */
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
    context: (void*)context
 {
@@ -718,6 +841,12 @@ static int compare(id elem1, id elem2, void* context)
   return na;
 }
 
+/**
+ * Returns an enumerator describing the array sequentially 
+ * from the first to the last element.<br/>
+ * If you use a mutable subclass of NSArray, 
+ * you should not modify the array during enumeration.
+ */
 - (NSEnumerator*) objectEnumerator
 {
   id	e;
@@ -727,6 +856,12 @@ static int compare(id elem1, id elem2, void* context)
   return AUTORELEASE(e);
 }
 
+/**
+ * Returns an enumerator describing the array sequentially 
+ * from the last to the first element.<br/>
+ * If you use a mutable subclass of NSArray, 
+ * you should not modify the array during enumeration.
+ */
 - (NSEnumerator*) reverseObjectEnumerator
 {
   id	e;

@@ -1,4 +1,4 @@
-/* Interface for NSFileHandle for GNUStep
+/** Interface for NSFileHandle for GNUStep
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -19,6 +19,9 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+    AutogsdocSource: NSFileHandle.m
+    AutogsdocSource: NSPipe.m
    */
 
 #ifndef __NSFileHandle_h_GNUSTEP_BASE_INCLUDE
@@ -84,20 +87,20 @@
 
 // Notification names.
 
-GS_EXPORT NSString*	NSFileHandleConnectionAcceptedNotification;
-GS_EXPORT NSString*	NSFileHandleDataAvailableNotification;
-GS_EXPORT NSString*	NSFileHandleReadCompletionNotification;
-GS_EXPORT NSString*	NSFileHandleReadToEndOfFileCompletionNotification;
+GS_EXPORT NSString * const NSFileHandleConnectionAcceptedNotification;
+GS_EXPORT NSString * const NSFileHandleDataAvailableNotification;
+GS_EXPORT NSString * const NSFileHandleReadCompletionNotification;
+GS_EXPORT NSString * const NSFileHandleReadToEndOfFileCompletionNotification;
 
 // Keys for accessing userInfo dictionary in notification handlers.
 
-GS_EXPORT NSString*	NSFileHandleNotificationDataItem;
-GS_EXPORT NSString*	NSFileHandleNotificationFileHandleItem;
-GS_EXPORT NSString*	NSFileHandleNotificationMonitorModes;
+GS_EXPORT NSString * const NSFileHandleNotificationDataItem;
+GS_EXPORT NSString * const NSFileHandleNotificationFileHandleItem;
+GS_EXPORT NSString * const NSFileHandleNotificationMonitorModes;
 
 // Exceptions
 
-GS_EXPORT NSString*	NSFileHandleOperationException;
+GS_EXPORT NSString * const NSFileHandleOperationException;
 
 @interface NSPipe : NSObject
 {
@@ -159,11 +162,11 @@ GS_EXPORT NSString*	NSFileHandleOperationException;
 
 // GNUstep Notification names.
 
-GS_EXPORT NSString*	GSFileHandleConnectCompletionNotification;
-GS_EXPORT NSString*	GSFileHandleWriteCompletionNotification;
+GS_EXPORT NSString * const GSFileHandleConnectCompletionNotification;
+GS_EXPORT NSString * const GSFileHandleWriteCompletionNotification;
 
 // Message describing error in async accept,read,write operation.
-GS_EXPORT NSString*	GSFileHandleNotificationError;
+GS_EXPORT NSString * const GSFileHandleNotificationError;
 #endif
 
 #endif /* __NSFileHandle_h_GNUSTEP_BASE_INCLUDE */

@@ -1902,6 +1902,17 @@ fail:
   methods = [self parseMethodsAreDeclarations: YES];
   if (methods != nil && [methods count] > 0)
     {
+      NSEnumerator		*e = [methods objectEnumerator];
+      NSMutableDictionary	*m;
+
+      /*
+       * Mark methods as implemented because protocol methods have no
+       * implementation separate from their declaration.
+       */
+      while ((m = [e nextObject]) != nil)
+      	{
+	  [m setObject: @"YES" forKey: @"Implemented"];
+	}
       [dict setObject: methods forKey: @"Methods"];
     }
 
@@ -1914,6 +1925,10 @@ fail:
       [info setObject: d forKey: @"Protocols"];
       RELEASE(d);
     }
+  /*
+   * A protocol has no separate implementation, so mark it as implemented.
+   */
+  [dict setObject: @"YES" forKey: @"Implemented"];
   [d setObject: dict forKey: unitName];
 
   // [self log: @"Found protocol %@", dict];
@@ -2594,15 +2609,15 @@ fail:
 		      line = [comment substringWithRange: r];
 		      line = [line stringByTrimmingSpaces];
 		
+		      if (haveSource == NO)
+			{
+			  haveSource = YES;
+			  [source removeAllObjects]; // remove default.
+			}
 		      if ([line length] > 0
 			&& [source containsObject: line] == NO)
 			{
-			  if (haveSource == NO)
-			    {
-			      [source removeAllObjects]; // remove default.
-			    }
 			  [source addObject: line];
-			  haveSource = YES;
 			}
 		      i = NSMaxRange(r);
 		      r = NSMakeRange(i, commentLength - i);

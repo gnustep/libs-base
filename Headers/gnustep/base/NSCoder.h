@@ -101,8 +101,8 @@
 			    at: (const void*)buf
 		      withName: (id)name;
 - (void) encodeIndent;
-- (void) encodeObject: (id)anObject
-	     withName: (id)name;
+- (void) encodeObjectAt: (id*)anObject
+	       withName: (id)name;
 - (void) encodeValueOfCType: (const char*)type
 			 at: (const void*)buf
 		   withName: (id)name;

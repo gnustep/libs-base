@@ -1,7 +1,8 @@
-/* Interface for NSArchiver for GNUStep
+/** Interface for NSArchiver for GNUStep
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
+   Rewrite by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: March 1995
    
    This file is part of the GNUstep Base Library.
@@ -19,6 +20,11 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   AutogsdocSource: NSArchiver.m
+
+   AutogsdocSource: NSUnarchiver.m
+
    */ 
 
 #ifndef __NSArchiver_h_GNUSTEP_BASE_INCLUDE
@@ -161,16 +167,16 @@
 }
 
 /* Initializing an unarchiver */
-- (id) initForReadingWithData: (NSData*)data;
+- (id) initForReadingWithData: (NSData*)anObject;
 
 /* Decoding objects */
-+ (id) unarchiveObjectWithData: (NSData*)data;
++ (id) unarchiveObjectWithData: (NSData*)anObject;
 + (id) unarchiveObjectWithFile: (NSString*)path;
 
 /* Managing */
 - (BOOL) isAtEnd;
 - (NSZone*) objectZone;
-- (void) setObjectZone: (NSZone*)zone;
+- (void) setObjectZone: (NSZone*)aZone;
 - (unsigned int) systemVersion;
 
 /* Substituting Classes */
@@ -190,53 +196,16 @@
 #ifndef	NO_GNUSTEP
 @interface	NSUnarchiver (GNUstep)
 
-/*
- *	Re-using the unarchiver - the 'resetUnarchiverWithdata:atIndex:'
- *	method lets you re-use the archive to decode a new data object
- *	or, in conjunction with the 'cursor' method (which reports the
- *	current decoding position in the archive), decode a second
- *	archive that exists in the data object after the first one.
- */
 - (unsigned) cursor;
-- (void) resetUnarchiverWithData: (NSData*)data
+- (void) resetUnarchiverWithData: (NSData*)anObject
 			 atIndex: (unsigned)pos;
 
-/*
- *	Subclassing with different input format.
- *	NSUnarchiver normally reads directly from an NSData object using
- *	the methods -
- *		[-deserializeTypeTagAtCursor:]
- *		    to decode type tags for data items, the tag is the
- *		    first byte of the character encoding string for the
- *		    data type (as provided by '@encode(xxx)'), possibly
- *		    with the top bit set to indicate that what follows is
- *		    a crossreference to an item already encoded.
- *		[-deserializeCrossRefAtCursor:],
- *		    to decode a crossreference number either to identify the
- *		    following item, or to refer to a previously encoded item.
- *		    Objects, Classes, Selectors, CStrings and Pointer items
- *		    have crossreference encoding, other types do not.
- *		[-deserializeData:ofObjCType:atCursor:context:]
- *		    to decode all other information.
- *
- *	And uses other NSData methods to read the archive header information
- *	from within the method:
- *		[-deserializeHeaderAt:version:classes:objects:pointers:]
- *		    to read a fixed size header including archiver version
- *		    (obtained by [self systemVersion]) and crossreference
- *		    table sizes.
- *
- *	To subclass NSUnarchiver, you must implement your own versions of the
- *	four methods above, and override the 'directDataAccess' method to
- *	return NO so that the archiver knows to use your serialization
- *	methods rather than those in the NSData object.
- */
 - (BOOL) directDataAccess;
-- (void) deserializeHeaderAt: (unsigned*)cursor
-		     version: (unsigned*)systemVersion
-		     classes: (unsigned*)classCount
-		     objects: (unsigned*)objectCount
-		    pointers: (unsigned*)pointerCount;
+- (void) deserializeHeaderAt: (unsigned*)pos
+		     version: (unsigned*)v
+		     classes: (unsigned*)c
+		     objects: (unsigned*)o
+		    pointers: (unsigned*)p;
 @end
 #endif
 

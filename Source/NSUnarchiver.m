@@ -292,6 +292,55 @@ mapClassName(NSUnarchiverObjectInfo *info)
 @implementation	NSUnarchiverObjectInfo
 @end
 
+/**
+ * This class reconstructs objects from an archive.<br />
+ * <strong>Re-using the archiver</strong><br />
+ * <p>
+ *   The -resetUnarchiverWithdata:atIndex: method lets you re-use
+ *   the archive to decode a new data object or, in conjunction
+ *   with the 'cursor' method (which reports the current decoding
+ *   position in the archive), decode a second archive that exists
+ *   in the data object after the first one.
+ * </p>
+ * <strong>Subclassing with different input format.</strong><br />
+ * NSUnarchiver normally reads directly from an NSData object using
+ * the methods -
+ * <deflist>
+ *   <term>[-deserializeTypeTagAtCursor:]</term>
+ *   <desc>
+ *     to decode type tags for data items, the tag is the
+ *     first byte of the character encoding string for the
+ *     data type (as provided by '@encode(xxx)'), possibly
+ *     with the top bit set to indicate that what follows is
+ *     a crossreference to an item already encoded.
+ *   </desc>
+ *   <term>[-deserializeCrossRefAtCursor:]</term>
+ *   <desc>
+ *     to decode a crossreference number either to identify the
+ *     following item, or to refer to a previously encoded item.
+ *     Objects, Classes, Selectors, CStrings and Pointer items
+ *     have crossreference encoding, other types do not.
+ *   </desc>
+ *   <term>[-deserializeData:ofObjCType:atCursor:context:]</term>
+ *   <desc>
+ *     to decode all other information.
+ *   </desc>
+ * </deflist>
+ * <p>
+ *   And uses other NSData methods to read the archive header information
+ *   from within the method:
+ *   [-deserializeHeaderAt:version:classes:objects:pointers:]
+ *   to read a fixed size header including archiver version
+ *   (obtained by [self systemVersion]) and crossreference
+ *   table sizes.
+ * </p>
+ * <p>
+ *   To subclass NSUnarchiver, you must implement your own versions of the
+ *   four methods above, and override the 'directDataAccess' method to
+ *   return NO so that the archiver knows to use your serialization
+ *   methods rather than those in the NSData object.
+ * </p>
+ */
 @implementation NSUnarchiver
 
 @class NSDataMalloc;

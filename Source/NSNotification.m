@@ -29,19 +29,23 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
 
-@implementation NSNotification
-
-/* This is the designated initializer. */
+@implementation NSNotification (GNUstep)
+/* <init />
+ * Initialise a newly created notification.
+ */
 - (id) initWithName: (NSString*)name
 	     object: (id)object
 	   userInfo: (NSDictionary*)info
 {
-  [super init];
-  _name = [name copyWithZone: NSDefaultMallocZone()];
+  _name = [name copyWithZone: GSObjCZone(self)];
   _object = TEST_RETAIN(object);
   _info = TEST_RETAIN(info);
   return self;
 }
+
+@end
+
+@implementation NSNotification
 
 - (void) dealloc
 {

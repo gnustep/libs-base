@@ -2,7 +2,7 @@
    Copyright (C) 1999 Free Software Foundation, Inc.
    
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
-   Date: 		Jan 1999
+   Date:	Jan 1999
    
    This file is part of the GNUstep Library.
    
@@ -25,6 +25,8 @@
 #define _NSURL_h__
 
 #include <Foundation/NSURLHandle.h>
+
+#ifndef	STRICT_OPENSTEP
 
 @class NSNumber;
 
@@ -89,5 +91,7 @@ GS_EXPORT NSString* NSURLFileScheme;
 - (void) URL: (NSURL*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
+
+#endif
 
 #endif //_NSUrl_h__

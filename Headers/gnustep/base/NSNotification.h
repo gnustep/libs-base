@@ -1,7 +1,8 @@
-/* Interface for NSNotification and NSNotificationCenter for GNUstep
+/** Interface for NSNotification and NSNotificationCenter for GNUstep
    Copyright (C) 1996,1999 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
+   Rewrite by:  Richard Frith-Macdonald <rfm@gnu.org>
    Created: March 1996
 
    This file is part of the GNUstep Base Library.
@@ -19,6 +20,9 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+  AutogsdocSource: NSNotification.m
+  AutogsdocSource: NSNotificationCenter.m
 */
 
 #ifndef __NSNotification_h_GNUSTEP_BASE_INCLUDE
@@ -64,7 +68,7 @@
 + (NSNotificationCenter*) defaultCenter;
 
 - (void) addObserver: (id)observer
-            selector: (SEL)sel
+            selector: (SEL)selector
                 name: (NSString*)name
               object: (id)object;
 
@@ -86,7 +90,7 @@
 @interface NSNotification (GNUstep)
 - (id) initWithName: (NSString*)name
 	     object: (id)object
-	   userInfo: (NSDictionary*)user_info;
+	   userInfo: (NSDictionary*)info;
 @end
 
 @interface NSNotificationCenter (GNUstep)

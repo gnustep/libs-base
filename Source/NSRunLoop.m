@@ -58,6 +58,8 @@
 #include <string.h>		/* for memset() */
 
 
+NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
+
 static NSDate	*theFuture = nil;
 
 extern BOOL	GSCheckTasks();
@@ -344,7 +346,7 @@ wRetain(NSMapTable* t, const void* w)
   (*wRetImp)((id)w, wRetSel);
 }
 
-const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
+static const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
 {
   wRetain,
   wRelease,
@@ -366,7 +368,7 @@ aRelease(NSMapTable* t, const void* a)
   NSZoneFree(((GSIArray)a)->zone, (void*)a);
 }
 
-const NSMapTableValueCallBacks ArrayMapValueCallBacks = 
+static const NSMapTableValueCallBacks ArrayMapValueCallBacks = 
 {
   aRetain,
   aRelease,

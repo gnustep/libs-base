@@ -89,17 +89,4 @@
 #endif
 @end
 
-#ifndef NO_GNUSTEP
-
-#include <Foundation/NSDictionary.h>
-
-@interface NSMutableDictionary (GNU)
-+ (unsigned) defaultCapacity;
-- (id) initWithType: (const char*)contentEncoding
-	    keyType: (const char*)keyEncoding
-	   capacity: (unsigned)aCapacity;
-@end
-
-#endif /* NO_GNUSTEP*/
-
 #endif
