@@ -31,9 +31,9 @@ Tue Apr 16 17:29:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
  	to an NSMutableArray.
 
 	* src/objects/objc-malloc.h: Only declare "id
- 	MemoryExchaustedException" #ifdef __OBJC__.  This allows
- 	<objects/objc-malloc.h> to be include in non-ObjC files, i.e. C
- 	files.
+	MemoryExchaustedException" #ifdef __OBJC__.  This allows
+	<objects/objc-malloc.h> to be included in non-ObjC files, i.e. C
+	files.
 
 	* src/NSZone.m: Include <objects/stdobjects.h> first.
 
@@ -50,7 +50,7 @@ Tue Apr 16 17:29:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* src/Makefile.in (GNU_MFILES): Re-added Time.m.
 	(o_vscanf$(OEXT), o_vscanf_pic$(OEXT)): New rules that turn off
-	warnings for o_vscanf.c, it generates a bunch of unimportant ones.
+	warnings for o_vscanf.c; it generates a bunch of unimportant ones.
 
 	* src/Time.m ([Time +initialize]): Comment out day/month name
  	handling that depends on old Collection heirarchy.
