@@ -199,6 +199,8 @@ NSData.m \
 NSDate.m \
 NSDateFormatter.m \
 NSDebug.m \
+NSDecimal.m \
+NSDecimalNumber.m \
 NSDictionary.m \
 NSDistantObject.m \
 NSDistributedLock.m \
