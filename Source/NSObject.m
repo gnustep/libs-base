@@ -1918,13 +1918,21 @@ _fastMallocBuffer(unsigned size)
  * Stuff for compatibility with 'Object' derived classes.
  */
 @interface	Object (NSObjectCompat)
++ (NSString*) description;
 + (void) release;
 + (id) retain;
+- (NSString*) className;
+- (NSString*) description;
 - (void) release;
+- (BOOL) respondsToSelector: (SEL)aSel;
 - (id) retain;
 @end
 
 @implementation	Object (NSObjectCompat)
++ (NSString*) description
+{
+  return NSStringFromClass(self);
+}
 + (void) release
 {
   return;
@@ -1933,9 +1941,23 @@ _fastMallocBuffer(unsigned size)
 {
   return self;
 }
+- (NSString*) className
+{
+  return NSStringFromClass([self class]);
+}
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"<%s: %lx>",
+    object_get_class_name(self), (unsigned long)self];
+}
 - (void) release
 {
   return;
+}
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  /* Object implements -respondsTo: */
+  return [self respondsTo: aSelector];
 }
 - (id) retain
 {
