@@ -1,3 +1,8 @@
+2002-08-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Get libxml to put filename in error
+	messages when it is available.
+
 2002-08-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Rewritten the way that iconv is used to decide
