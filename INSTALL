@@ -95,11 +95,11 @@ gcc 3.0 the required hooks were not in the standard library). You can
 get this library from <ftp://www.gnustep.org/pub/gnustep/libs>.
 
    Support for the libffi library has also been added, although it is
-still experimental. Current versions of libffi are only distributed
-with gcc version 3.x, although it is not installed by default. To
-install it, after you have built gcc, go to the libffi build directory
-and type 'make install'. To enable this in the gnustep-base library,
-use the configure option `--enable-libffi'.
+not as well tested as ffcall. Current versions of libffi are only
+distributed with gcc version 3.x, although it is not installed by
+default. To install it, after you have built gcc, go to the libffi
+build directory and type 'make install'. To enable this in the
+gnustep-base library, use the configure option `--enable-libffi'.
 
 OpenSSL
 -------

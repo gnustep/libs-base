@@ -1,7 +1,19 @@
 News
 ****
 
-The currently released version of the library is `1.3.3'.
+The currently released version of the library is `1.3.4'.
+
+Noteworthy changes in version `1.3.4'
+=====================================
+
+   This is a first pre-release version for 1.4.
+
+   This version also fixes a potentially destructive bug in gdomap. All
+users are urged to upgrade to this version as soon as possible.
+
+   * gdomap - don't write pidfile until after setuid away from root
+
+   * New combined Unix/Windows version of NSFileHandle
 
 Noteworthy changes in version `1.3.3'
 =====================================

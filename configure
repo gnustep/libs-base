@@ -10989,13 +10989,6 @@ if test "${enable_libffi+set}" = set; then
 else
   enable_libffi=no
 fi;
-if test $enable_libffi = yes; then
-  echo "WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "The libffi library is not fully supported in GNUstep"
-  echo "please use ffcall instead, unless you would like to help."
-  echo "debug it. Use with caution."
-  echo "WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-fi
 
 # Check whether --enable-ffcall or --disable-ffcall was given.
 if test "${enable_ffcall+set}" = set; then
@@ -11431,8 +11424,8 @@ else
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <xmlversion.h>
-#include <parser.h>
+#include <libxml/xmlversion.h>
+#include <libxml/parser.h>
 
 int
 main()

@@ -841,13 +841,6 @@ AC_MSG_RESULT($enable_fake_main)
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
   enable_libffi=no)
-if test $enable_libffi = yes; then
-  echo "WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "The libffi library is not fully supported in GNUstep"
-  echo "please use ffcall instead, unless you would like to help."
-  echo "debug it. Use with caution."
-  echo "WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-fi
 
 AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,

@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.3.3, is now available.
+The GNUstep Base Library, version 1.3.4, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -19,31 +19,22 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.3.3'
+Noteworthy changes in version `1.3.4'
 =====================================
 
-   Note there are interface and binary changes in this release that
-require you to recompile all applications and tools that use
-gnustep-base.
+   This is a first pre-release version for 1.4.
 
-   * Rewrite of NSURL (NOTE: Requires recompilation of all apps!)
+   This version also fixes a potentially destructive bug in gdomap. All
+users are urged to upgrade to this version as soon as possible.
 
-   * NSMapTable fix (also requires recompilation).
+   * gdomap - don't write pidfile until after setuid away from root
 
-   * Hack to avoid bug in gcc 3.1
-
-   * MacOSX compatibility changes: -dealloc, NSLog
-
-   * Add NSZombie class.
-
-   * GC improvements
-
-   * Support for system-wide .GNUsteprc
+   * New combined Unix/Windows version of NSFileHandle
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.3.3.tar.gz distribution file has been placed on
+   The gnustep-base-1.3.4.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    The library requires gcc 2.8.0 or higher.  See the `GNUstep-HOWTO'
