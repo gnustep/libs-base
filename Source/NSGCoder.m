@@ -21,12 +21,12 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <foundation/NSConcreteArray.h>
+#include <foundation/NSGCoder.h>
 #include <objects/NSCoder.h>
 #include <objects/behavior.h>
 #include <objects/Coder.h>
 
-@implementation NSGNUCoder
+@implementation NSGCoder
 
 + (void) initialize
 {
@@ -51,29 +51,32 @@
 - (void) encodeValueOfObjCType: (const char*)type
    at: (const void*)address;
 {
-  [self notImplemented:_cmd];
+  [self encodeValueOfType:type at:address 
+	withName:NULL];
 }
 
 - (void) encodeObject: (id)anObject;
 {
   [self encodeObject:anObject
-	withName:""];
+	withName:NULL];
 }
 
 - (void) encodeConditionalObject: (id)anObject;
 {
   [self encodeObjectReference:anObject
-	withName:""];
+	withName:NULL];
 }
 
 - (void) encodeBycopyObject: (id)anObject;
 {
-  [self encodeObject:anObject];
+  [self encodeObjectBycopy:anObject 
+	withName:NULL];
 }
 
 - (void) encodeRootObject: (id)rootObject;
 {
-  [self encodeObject];
+  [self encodeRootObject:rootObject 
+	withName:NULL];
 }
 
 
@@ -82,13 +85,18 @@
 - (void) decodeValueOfObjCType: (const char*)type
    at: (void*)address
 {
-  [self notImplemented:_cmd];
+  [self decodeValueOfType:type at:address 
+	withName:NULL];
 }
 
 - (id) decodeObject;
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id o;
+  /* xxx Warning!!! this won't work with encoded object references! 
+     We need to fix this! (But how?) */
+  [self decodeObjectAt:&o 
+	withName:NULL];
+  return o;
 }
 
 // Managing Zones
