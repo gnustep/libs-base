@@ -11,16 +11,16 @@
 
 #include <Foundation/Foundation.h>
 
-@class	GSTelnetHandle;
-extern NSString * const GSTelnetNotification;
-extern NSString * const GSTelnetErrorKey;
-extern NSString * const GSTelnetTextKey;
+GS_EXPORT NSString * const GSTelnetNotification;
+GS_EXPORT NSString * const GSTelnetErrorKey;
+GS_EXPORT NSString * const GSTelnetTextKey;
+@class GSTelnetHandle;
 
 @interface Call : NSObject
 {
   NSFileHandle		*ichan;
   NSFileHandle		*ochan;
-  GSTelnetHandle	*remote;
+  id			remote;
   NSMutableData		*buf;
 }
 - (void) didRead: (NSNotification*)notification;
