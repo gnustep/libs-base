@@ -327,8 +327,10 @@ wordData(NSString *word)
 }
 
 /**
+ * Coding contexts are objects used by the parser to store the state of
+ * decoding incoming data while it is being incrementally parsed.<br />
  * The most rudimentary context ... this is used for decoding plain
- * text and binary dat (ie data which is not really decoded at all)
+ * text and binary data (ie data which is not really decoded at all)
  * and all other decoding work is done by a subclass.
  */
 @implementation	GSMimeCodingContext
@@ -349,6 +351,21 @@ wordData(NSString *word)
 }
 
 /**
+ * Decode length bytes of data from sData and append the results to dData.<br />
+ * Return YES on succes, NO if there is an error.
+ */
+- (BOOL) decodeData: (const void*)sData
+	     length: (unsigned)length
+	   intoData: (NSMutableData*)dData
+{
+  unsigned	size = [dData length];
+
+  [dData setLength: size + length];
+  memcpy([dData mutableBytes] + size, sData, length);
+  return YES;
+}
+
+/**
  * Sets the current value of the 'atEnd' flag.
  */
 - (void) setAtEnd: (BOOL)flag
@@ -365,6 +382,96 @@ wordData(NSString *word)
 }
 @end
 @implementation	GSMimeBase64DecoderContext
+- (BOOL) decodeData: (const void*)sData
+	     length: (unsigned)length
+	   intoData: (NSMutableData*)dData
+{
+  unsigned	size = [dData length];
+  unsigned char	*src = (unsigned char*)sData;
+  unsigned char	*end = src + length;
+  unsigned char	*beg;
+  unsigned char	*dst;
+
+  /*
+   * Expand destination data buffer to have capacity to handle info.
+   */
+  [dData setLength: size + (3 * (end + 8 - src))/4];
+  dst = (unsigned char*)[dData mutableBytes];
+  beg = dst;
+
+  /*
+   * Now decode data into buffer, keeping count and temporary
+   * data in context.
+   */
+  while (src < end)
+    {
+      int	cc = *src++;
+
+      if (isupper(cc))
+	{
+	  cc -= 'A';
+	}
+      else if (islower(cc))
+	{
+	  cc = cc - 'a' + 26;
+	}
+      else if (isdigit(cc))
+	{
+	  cc = cc - '0' + 52;
+	}
+      else if (cc == '+')
+	{
+	  cc = 62;
+	}
+      else if (cc == '/')
+	{
+	  cc = 63;
+	}
+      else if  (cc == '=')
+	{
+	  [self setAtEnd: YES];
+	  cc = -1;
+	}
+      else if (cc == '-')
+	{
+	  [self setAtEnd: YES];
+	  break;
+	}
+      else
+	{
+	  cc = -1;		/* ignore */
+	}
+
+      if (cc >= 0)
+	{
+	  buf[pos++] = cc;
+	  if (pos == 4)
+	    {
+	      pos = 0;
+	      decodebase64(dst, buf);
+	      dst += 3;
+	    }
+	}
+    }
+
+  /*
+   * Odd characters at end of decoded data need to be added separately.
+   */
+  if ([self atEnd] == YES && pos > 0)
+    {
+      unsigned	len = pos - 1;;
+
+      while (pos < 4)
+	{
+	  buf[pos++] = '\0';
+	}
+      pos = 0;
+      decodebase64(dst, buf);
+      size += len;
+    }
+  [dData setLength: size + dst - beg];
+  return YES;
+}
 @end
 
 @interface	GSMimeQuotedDecoderContext : GSMimeCodingContext
@@ -375,6 +482,62 @@ wordData(NSString *word)
 }
 @end
 @implementation	GSMimeQuotedDecoderContext
+- (BOOL) decodeData: (const void*)sData
+	     length: (unsigned)length
+	   intoData: (NSMutableData*)dData
+{
+  unsigned	size = [dData length];
+  unsigned char	*src = (unsigned char*)sData;
+  unsigned char	*end = src + length;
+  unsigned char	*beg;
+  unsigned char	*dst;
+
+  /*
+   * Expand destination data buffer to have capacity to handle info.
+   */
+  [dData setLength: size + (end - src)];
+  dst = (unsigned char*)[dData mutableBytes];
+  beg = dst;
+
+  while (src < end)
+    {
+      if (pos > 0)
+	{
+	  if ((*src == '\n') || (*src == '\r'))
+	    {
+	      pos = 0;
+	    }
+	  else
+	    {
+	      buf[pos++] = *src;
+	      if (pos == 3)
+		{
+		  int	c;
+		  int	val;
+
+		  pos = 0;
+		  c = buf[1];
+		  val = isdigit(c) ? (c - '0') : (c - 55);
+		  val *= 0x10;
+		  c = buf[2];
+		  val += isdigit(c) ? (c - '0') : (c - 55);
+		  *dst++ = val;
+		}
+	    }
+	}
+      else if (*src == '=')
+	{
+	  buf[pos++] = '=';
+	}
+      else
+	{
+	  *dst++ = *src;
+	}
+      src++;
+    }
+  [dData setLength: size + dst - beg];
+  return YES;
+}
 @end
 
 @interface	GSMimeChunkedDecoderContext : GSMimeCodingContext
@@ -429,14 +592,14 @@ wordData(NSString *word)
  * </p>
  * <p>
  *   You supply the document to be parsed as one or more data
- *   items passed to the <code>Parse:</code> method, and (if
- *   the method always returns <code>YES</code>, you give it
- *   a final <code>nil</code> argument to mark the end of the
+ *   items passed to the -parse: method, and (if
+ *   the method always returns YES, you give it
+ *   a final nil argument to mark the end of the
  *   document.
  * </p>
  * <p>
  *   On completion of parsing a valid document, the
- *   <code>document</code> method returns the resulting parsed document.
+ *   -document method returns the resulting parsed document.
  * </p>
  */
 @implementation	GSMimeParser
@@ -487,6 +650,9 @@ wordData(NSString *word)
  *   <item>8bit (no coding actually performed)</item>
  *   <item>chunked (for HTTP/1.1)</item>
  * </list>
+ * To add new coding schemes to the parser, you need to ovrride
+ * this method to return a new coding context for your scheme
+ * when the info argument indicates that this is appropriate.
  */
 - (GSMimeCodingContext*) contextFor: (GSMimeHeader*)info
 {
@@ -575,8 +741,10 @@ wordData(NSString *word)
  *   object.
  * </p>
  * <p>
- *   You may override this method in order to implement
- *   additional coding schemes.
+ *   You may override this method in order to implement additional
+ *   coding schemes, but usually it should be enough for you to
+ *   implement a custom GSMimeCodingContext subclass fotr this method
+ *   to use.
  * </p>
  */
 - (BOOL) decodeData: (NSData*)sData
@@ -584,13 +752,8 @@ wordData(NSString *word)
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)con
 {
-  unsigned		size = [dData length];
   unsigned		len = [sData length];
-  unsigned char		*beg;
-  unsigned char		*dst;
-  const char		*src;
-  const char		*end;
-  Class			ccls;
+  BOOL			result = YES;
 
   if (dData == nil || [con isKindOfClass: [GSMimeCodingContext class]] == NO)
     {
@@ -601,156 +764,29 @@ wordData(NSString *word)
   GS_RANGE_CHECK(aRange, len);
 
   /*
-   * Get pointers into source data buffer.
+   * Chunked decoding is relatively complex ... it makes sense to do it
+   * here, in order to make use of parser facilities, rather than having
+   * the decoding context do the work.  In this case the context is used
+   * solely to store state information.
    */
-  src = (const char *)[sData bytes];
-  src += aRange.location;
-  end = src + aRange.length;
-  
-  ccls = [con class];
-  if (ccls == [GSMimeBase64DecoderContext class])
-    {
-      GSMimeBase64DecoderContext	*ctxt;
-
-      ctxt = (GSMimeBase64DecoderContext*)con;
-
-      /*
-       * Expand destination data buffer to have capacity to handle info.
-       */
-      [dData setLength: size + (3 * (end + 8 - src))/4];
-      dst = (unsigned char*)[dData mutableBytes];
-      beg = dst;
-
-      /*
-       * Now decode data into buffer, keeping count and temporary
-       * data in context.
-       */
-      while (src < end)
-	{
-	  int	cc = *src++;
-
-	  if (isupper(cc))
-	    {
-	      cc -= 'A';
-	    }
-	  else if (islower(cc))
-	    {
-	      cc = cc - 'a' + 26;
-	    }
-	  else if (isdigit(cc))
-	    {
-	      cc = cc - '0' + 52;
-	    }
-	  else if (cc == '+')
-	    {
-	      cc = 62;
-	    }
-	  else if (cc == '/')
-	    {
-	      cc = 63;
-	    }
-	  else if  (cc == '=')
-	    {
-	      [ctxt setAtEnd: YES];
-	      cc = -1;
-	    }
-	  else if (cc == '-')
-	    {
-	      [ctxt setAtEnd: YES];
-	      break;
-	    }
-	  else
-	    {
-	      cc = -1;		/* ignore */
-	    }
-
-	  if (cc >= 0)
-	    {
-	      ctxt->buf[ctxt->pos++] = cc;
-	      if (ctxt->pos == 4)
-		{
-		  ctxt->pos = 0;
-		  decodebase64(dst, ctxt->buf);
-		  dst += 3;
-		}
-	    }
-	}
-
-      /*
-       * Odd characters at end of decoded data need to be added separately.
-       */
-      if ([ctxt atEnd] == YES && ctxt->pos > 0)
-	{
-	  unsigned	len = ctxt->pos - 1;;
-
-	  while (ctxt->pos < 4)
-	    {
-	      ctxt->buf[ctxt->pos++] = '\0';
-	    }
-	  ctxt->pos = 0;
-	  decodebase64(dst, ctxt->buf);
-	  size += len;
-	}
-      [dData setLength: size + dst - beg];
-    }
-  else if (ccls == [GSMimeQuotedDecoderContext class])
-    {
-      GSMimeQuotedDecoderContext	*ctxt;
-
-      ctxt = (GSMimeQuotedDecoderContext*)con;
-
-      /*
-       * Expand destination data buffer to have capacity to handle info.
-       */
-      [dData setLength: size + (end - src)];
-      dst = (unsigned char*)[dData mutableBytes];
-      beg = dst;
-
-      while (src < end)
-	{
-	  if (ctxt->pos > 0)
-	    {
-	      if ((*src == '\n') || (*src == '\r'))
-		{
-		  ctxt->pos = 0;
-		}
-	      else
-		{
-		  ctxt->buf[ctxt->pos++] = *src;
-		  if (ctxt->pos == 3)
-		    {
-		      int	c;
-		      int	val;
-
-		      ctxt->pos = 0;
-		      c = ctxt->buf[1];
-		      val = isdigit(c) ? (c - '0') : (c - 55);
-		      val *= 0x10;
-		      c = ctxt->buf[2];
-		      val += isdigit(c) ? (c - '0') : (c - 55);
-		      *dst++ = val;
-		    }
-		}
-	    }
-	  else if (*src == '=')
-	    {
-	      ctxt->buf[ctxt->pos++] = '=';
-	    }
-	  else
-	    {
-	      *dst++ = *src;
-	    }
-	  src++;
-	}
-      [dData setLength: size + dst - beg];
-    }
-  else if (ccls == [GSMimeChunkedDecoderContext class])
+  if ([con class] == [GSMimeChunkedDecoderContext class])
     {
       GSMimeChunkedDecoderContext	*ctxt;
-      const char			*footers = src;
+      unsigned			size = [dData length];
+      unsigned char		*beg;
+      unsigned char		*dst;
+      const char		*src;
+      const char		*end;
+      const char		*footers = src;
 
       ctxt = (GSMimeChunkedDecoderContext*)con;
 
+      /*
+       * Get pointers into source data buffer.
+       */
+      src = (const char *)[sData bytes];
+      src += aRange.location;
+      end = src + aRange.length;
       beg = 0;
       /*
        * Make sure buffer is big enough, and set up output pointers.
@@ -949,12 +985,9 @@ wordData(NSString *word)
     }
   else
     {
-      /*
-       * Assume binary (no) decoding required.
-       */
-      [dData setLength: size + (end - src)];
-      dst = (unsigned char*)[dData mutableBytes];
-      memcpy(&dst[size], src, (end - src));
+      result = [con decodeData: [sData bytes] + aRange.location
+			length: aRange.length
+		      intoData: dData];
     }
 
   /*
@@ -965,7 +998,7 @@ wordData(NSString *word)
       [con setAtEnd: YES];
     }
 
-  return YES;
+  return result;
 }
 
 - (NSString*) description
@@ -2553,6 +2586,16 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Convenience method calling -initWithName:value:parameters: with the
+ * supplied argument and nil parameters.
+ */
+- (id) initWithName: (NSString*)n
+	      value: (NSString*)v
+{
+  return [self initWithName: n value: v parameters: nil];
+}
+
+/**
  * <init />
  * Initialise a GSMimeHeader supplying a name, a value and a dictionary
  * of any parameters occurring after the value.
@@ -2585,6 +2628,9 @@ static NSCharacterSet	*tokenSet = nil;
   return [objects objectForKey: k];
 }
 
+/**
+ * Returns a dictionary of all the additional objects for the header.
+ */
 - (NSDictionary*) objects
 {
   return AUTORELEASE([objects copy]);
@@ -2607,7 +2653,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Returns the parameters of this header ... a dictionary whose keys
- * are all lowercase strings, and whosre value is a string which may
+ * are all lowercase strings, and whose values are strings which may
  * contain mixed case.
  */
 - (NSDictionary*) parameters
@@ -2723,7 +2769,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Method to store specific information for particular types of
- * header.
+ * header.  This is used for non-standard parts of headers.
  */
 - (void) setObject: (id)o forKey: (NSString*)k
 {
@@ -3856,6 +3902,18 @@ static NSCharacterSet	*tokenSet = nil;
 		  format: @"[%@ -%@:] passed bad content",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
+}
+
+/**
+ * Convenience method calling -setContent:type:name: to set document
+ * content and type without specifying a name ... useful for top-level
+ * documents rather than parts within a daocument (parts should really
+ * be named).
+ */
+- (void) setContent: (id)newContent
+	       type: (NSString*)type
+{
+  [self setContent: newContent type: type name: nil];
 }
 
 /**
