@@ -1,3 +1,8 @@
+2004-04-15 15:10  Alexander Malmberg <alexander@malmberg.org>
+
+	* Tools/Makefile.postamble: Remove attempt to create
+	$(doctemplatesdir).
+
 2004-04-15 14:39  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSString.m (-stringByResolvingSymlinksInPath): Use
