@@ -1,3 +1,8 @@
+2000-07-16  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/GNUmakefile (gdomap): Make as a C-tool rather than an
+	Objective-C program (no need for libobjc).
+
 2000-07-07  Jonathan Gapen <jagapen@home.com>
 
 	* Source/NSString.m: (-initWithFormat:), (-initWithFormat:locale:),
