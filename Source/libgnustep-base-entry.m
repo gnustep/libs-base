@@ -48,17 +48,10 @@ gnustep_base_socket_init()
   /* Start of sockets so we can get host name and other info */
   static WSADATA wsaData;
   if (WSAStartup(MAKEWORD(2,0), &wsaData))
-    NSLog(@"Error: Could not startup Windows Sockets.\n");
+    {
+      NSLog(@"Error: Could not startup Windows Sockets.\n");
+    }
 }
-
-LONG APIENTRY
-gnustep_base_socket_handler(HWND hWnd, UINT message,
-			    UINT wParam, LONG lParam);
-
-//
-// Global variables for socket handler
-//
-HWND gnustep_base_wnd;
 
 //
 // DLL entry function for GNUstep Base Library
@@ -71,8 +64,6 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
     {
     case DLL_PROCESS_ATTACH:
       {
-	WNDCLASS wc;
-
 #ifdef __MS_WIN32__
 	/* Initialize the Microsoft C stdio DLL */
 	_CRT_INIT(hInst, ul_reason_for_call, lpReserved);
@@ -81,28 +72,11 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
 
 	// Initialize Windows Sockets
 	gnustep_base_socket_init();
-
-	// Register a window class for the socket handler
-	wc.lpszClassName = "GnustepBaseSocketHandler";
-	wc.lpfnWndProc = gnustep_base_socket_handler;
-	wc.hInstance = hInst;
-	wc.hCursor = NULL;
-	wc.hIcon = NULL;
-	wc.hbrBackground = NULL;
-	wc.lpszMenuName = NULL;
-	wc.style = 0;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-
-	if (!RegisterClass(&wc))
-	  NSLog(@"Error: Could not register WIN32 socket handler class.\n");
-
 	break;
       }
 
     case DLL_PROCESS_DETACH:
       {
-	DestroyWindow(gnustep_base_wnd);
 	break;
       }
 
@@ -123,56 +97,6 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
     }
 
   return TRUE;
-}
-
-//
-// The window procedure for handling sockets
-//
-LONG APIENTRY
-gnustep_base_socket_handler(HWND hWnd, UINT message,
-			    UINT wParam, LONG lParam)
-{
-  WORD wEvent, wError;
-
-  // If not a socket message then call the default window procedure
-  if (message != GNUSTEP_BASE_SOCKET_MESSAGE)
-    return DefWindowProc(hWnd, message, wParam, lParam);
-
-  // Check for an error code
-  wError = WSAGETSELECTERROR(lParam);
-  if (wError != 0)
-    {
-      NSLog(@"Error: received socket error code %d\n", wError);
-      return 0;
-    }
-
-  // Get the event
-  wEvent = WSAGETSELECTEVENT(lParam);
-  switch (wEvent)
-    {
-    case FD_READ:
-      NSLog(@"Got an FD_READ\n");
-      break;
-    case FD_WRITE:
-      NSLog(@"Got an FD_WRITE\n");
-      break;
-    case FD_OOB:
-      NSLog(@"Got an FD_OOB\n");
-      break;
-    case FD_ACCEPT:
-      NSLog(@"Got an FD_ACCEPT\n");
-      break;
-    case FD_CONNECT:
-      NSLog(@"Got an FD_CONNECT\n");
-      break;
-    case FD_CLOSE:
-      NSLog(@"Got an FD_CLOSE\n");
-      break;
-    default:
-    	break;
-    }
-
-  return 0;
 }
 
 /*
