@@ -1,5 +1,5 @@
 /* Implementation for Objective-C String object
-   Copyright (C) 1993,1994,1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -62,21 +62,14 @@
 /* For now, this is the designated initializer for this class */
 - initWithCString: (const char*)aCharPtr range: (IndexRange)aRange
 {
-  [self notImplemented:_cmd];
-  return self;
-}
-
-/* Empty copy must empty an allocCopy'ed version of self */
-- emptyCopy
-{
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
 /* This override in mutable string classes */
 - empty
 {
-  [self shouldNotImplement:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
