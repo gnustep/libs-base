@@ -33,7 +33,7 @@
 }
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;
-- (void) mergeRefs: (NSDictionary*)more;
+- (void) mergeRefs: (NSDictionary*)more override: (BOOL)flag;
 - (NSMutableDictionary*) refs;
 - (void) setDirectory: (NSString*)path;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;

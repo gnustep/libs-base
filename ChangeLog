@@ -1,5 +1,7 @@
 2001-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSIndex.h: improve merge control
+	* Tools/AGSIndex.m: ditto
 	* Tools/AGSHtml.h: new methods for cleaner indexing.
 	* Tools/AGSHtml.m: new methods for cleaner indexing.
 	* Tools/AGSParser.m: minor bugfixes.

@@ -28,7 +28,7 @@ static int      XML_ELEMENT_NODE;
 static int      XML_TEXT_NODE;
 
 static void
-mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
+mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 {
   static NSMutableArray	*stack = nil;
   NSEnumerator	*e = [src keyEnumerator];
@@ -64,20 +64,35 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
 	}
       if (d != nil)
 	{
-	  if ([d isKindOfClass: [s class]] == NO)
+	  if ([d isKindOfClass: [NSString class]] == YES)
 	    {
-	      NSLog(@"Class missmatch in merge for %@", stack);
-	    }
-	  else if ([d isKindOfClass: [NSString class]] == YES)
-	    {
-	      if ([d isEqual: s] == NO)
+	      if ([s isKindOfClass: [NSString class]] == NO)
 		{
-		  NSLog(@"String missmatch in merge for %@", stack);
+		  NSLog(@"Class missmatch in merge for %@.", stack);
+		}
+	      else if ([d isEqual: s] == NO)
+		{
+		  if (override == YES)
+		    {
+		      [dst setObject: s forKey: k];
+		    }
+		  else
+		    {
+		      NSLog(@"String missmatch in merge for %@. S:%@, D:%@",
+			stack, s, d);
+		    }
 		}
 	    }
 	  else if ([d isKindOfClass: [NSDictionary class]] == YES)
 	    {
-	      mergeDictionaries(d, s);
+	      if ([s isKindOfClass: [NSDictionary class]] == NO)
+		{
+		  NSLog(@"Class missmatch in merge for %@.", stack);
+		}
+	      else
+		{
+		  mergeDictionaries(d, s, override);
+		}
 	    }
 	}
       [stack removeLastObject];
@@ -329,9 +344,14 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     }
 }
 
-- (void) mergeRefs: (NSDictionary*)more
+/**
+ * Merge a dictionary containing references into the current
+ * index.   The flag may be used to specify that references
+ * being merged in should override any pre-existing values.
+ */ 
+- (void) mergeRefs: (NSDictionary*)more override: (BOOL)flag
 {
-  mergeDictionaries(refs, more);
+  mergeDictionaries(refs, more, flag);
 }
 
 - (NSMutableDictionary*) refs
