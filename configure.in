@@ -589,6 +589,21 @@ AC_CHECK_FUNCS(usleep)
 AC_CHECK_FUNCS(strerror)
 
 #--------------------------------------------------------------------
+# This type needed by GSFormat
+#--------------------------------------------------------------------
+AC_MSG_CHECKING([whether stdint.h defines uintmax_t])
+AC_TRY_COMPILE([#include <stdint.h>
+		f() { int i = sizeof(uintmax_t); }],
+	       uintmax_t=1, uintmax_t=0, 
+               uintmax_t=1)
+if test $uintmax_t = 1; then
+	AC_MSG_RESULT([found])
+    AC_DEFINE(HAVE_UINTMAX_T)
+else
+	AC_MSG_RESULT([not found])
+fi
+
+#--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
 AC_CHECK_FUNC(register_printf_function, register_printf=1, 

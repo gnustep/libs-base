@@ -45,6 +45,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <base/GSFormat.h>
 #include <base/behavior.h>
 #include <limits.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
@@ -2131,6 +2132,51 @@ transmute(ivars self, NSString *aString)
 + (void) initialize
 {
   setup();
+}
+
+- (void) appendFormat: (NSString*)format, ...
+{
+  va_list	ap;
+
+  va_start(ap, format);
+  /*
+   * If this is a unicode string, we can write the formatted data directly
+   * into its buffer.
+   */
+  if (_flags.wide == 1)
+    {
+      FormatBuf_t	f;
+      unichar		*fmt;
+      size_t		len;
+
+      len = [format length];
+      fmt = objc_malloc((len+1)*sizeof(unichar));
+      [format getCharacters: fmt];
+      fmt[len] = '\0';
+      f.z = _zone;
+      f.buf = _contents.u;
+      f.len = _count;
+      f.size = _capacity;
+      GSFormat(&f, fmt, ap, nil);
+      _contents.u = f.buf;
+      _count = f.len;
+      _capacity = f.size;
+      _flags.hash = 0;
+      objc_free(fmt);
+    }
+  else
+    {
+      NSRange	aRange;
+      NSString	*t;
+
+      t = (NSString*)NSAllocateObject(NSStringClass, 0, NSDefaultMallocZone());
+      t = [t initWithFormat: format arguments: ap];
+      aRange.location = _count;
+      aRange.length = 0;
+      [self replaceCharactersInRange: aRange withString: t];
+      RELEASE(t);
+    }
+  va_end(ap);
 }
 
 - (BOOL) boolValue

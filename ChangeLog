@@ -1,3 +1,14 @@
+2001-02-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Integrated patch for unicode support for ([-initWithFormat:]) by
+	Kai Henningsen.  Modified to support efficient append with format
+	to a unicode string.
+	* configure.in: Test for data type used by GSFormat
+	* Headers/gnustep/base/GSFormat.h: file declaring GSFormat info.
+	* Source/GSFormat.m: Source for format support.
+	* Source/NSString.m: Use GSFormat() to implement ([-initWithFormat:])
+	* Source/GSString.m: use GSFormat() to implement ([-appendFormat:])
+
 2001-01-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: pass dates over DO bycopy unless explicitly byref.

@@ -149,6 +149,7 @@ GSArray.m \
 GSAttributedString.m \
 GSCountedSet.m \
 GSDictionary.m \
+GSFormat.m \
 GSHTTPURLHandle.m \
 GSMime.m \
 GSSet.m \
