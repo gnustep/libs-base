@@ -1,3 +1,9 @@
+Fri Oct 17 14:15:33 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Makefile.postamble (.PHONY): Unused target removed.
+	* Makefile.postamble: Use ECHO_NOTHING, ECHO_CREATING, END_ECHO.
+	(after-distclean): Clean everything in a single command.
+	
 Fri Oct 17 14:04:27 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Makefile.postamble (regenerate, stamp-regenerate): Do-nothing
