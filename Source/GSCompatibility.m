@@ -26,6 +26,8 @@
 
 #include "GSPrivate.h"
 
+@class	GSMutableString;
+
 #ifndef HAVE_RINT
 #include <math.h>
 static double rint(double a)
@@ -112,28 +114,144 @@ encodeBase64(NSData *source)
     initWithCStringNoCopy: dBuf length: destlen-1 freeWhenDone: YES];
 }
 
-static NSCharacterSet *quotables = nil;
+static NSCharacterSet *xmlQuotables = nil;
+static NSCharacterSet *plQuotables = nil;
+static NSCharacterSet *oldPlQuotables = nil;
+static unsigned const char *plQuotablesBitmapRep = NULL;
+#define GS_IS_QUOTABLE(X) IS_BIT_SET(plQuotablesBitmapRep[(X)/8], (X) % 8)
 
-static void setupQuotables(void)
+static inline void Append(NSString *src, GSMutableString *dst)
 {
-  if (quotables == nil)
-    {
-      NSMutableCharacterSet	*s;
+  [(NSMutableString*)dst appendString: src];
+}
 
-      s = [[NSCharacterSet characterSetWithCharactersInString:
-	@"&<>'\\\""] mutableCopy];
-      [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
-      [s removeCharactersInRange: NSMakeRange(0x0009, 0x0002)];
-      [s removeCharactersInRange: NSMakeRange(0x000D, 0x0001)];
-      [s addCharactersInRange: NSMakeRange(0xD800, 0x07FF)];
-      [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
-      quotables = [s copy];
-      RELEASE(s);
+static void
+PString(NSString *obj, GSMutableString *output)
+{
+  unsigned	length;
+
+  if ((length = [obj length]) == 0)
+    {
+      Append(@"\"\"", output);
+      return;
+    }
+
+  if ([obj rangeOfCharacterFromSet: oldPlQuotables].length > 0
+    || [obj characterAtIndex: 0] == '/')
+    {
+      unichar	tmp[length <= 1024 ? length : 0];
+      unichar	*ustring;
+      unichar	*from;
+      unichar	*end;
+      int	len = 0;
+
+      if (length <= 1024)
+	{
+	  ustring = tmp;
+	}
+      else
+	{
+	  ustring = NSZoneMalloc(NSDefaultMallocZone(), length*sizeof(unichar));
+	}
+      end = &ustring[length];
+      [obj getCharacters: ustring];
+      for (from = ustring; from < end; from++)
+	{
+	  switch (*from)
+	    {
+	      case '\a':
+	      case '\b':
+	      case '\t':
+	      case '\r':
+	      case '\n':
+	      case '\v':
+	      case '\f':
+	      case '\\':
+	      case '\'' :
+	      case '"' :
+		len += 2;
+		break;
+
+	      default:
+		if (*from < 128)
+		  {
+		    if (isprint(*from) || *from == ' ')
+		      {
+			len++;
+		      }
+		    else
+		      {
+			len += 4;
+		      }
+		  }
+		else
+		  {
+		    len += 6;
+		  }
+		break;
+	    }
+	}
+
+	{
+	  char	buf[len+3];
+	  char	*ptr = buf;
+
+	  *ptr++ = '"';
+	  for (from = ustring; from < end; from++)
+	    {
+	      switch (*from)
+		{
+		  case '\a': 	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		  case '\b': 	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		  case '\t': 	*ptr++ = '\\'; *ptr++ = 't';  break;
+		  case '\r': 	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		  case '\n': 	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		  case '\v': 	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		  case '\f': 	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		  case '\\': 	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		  case '\'': 	*ptr++ = '\\'; *ptr++ = '\''; break;
+		  case '"' : 	*ptr++ = '\\'; *ptr++ = '"';  break;
+
+		  default:
+		    if (*from < 128)
+		      {
+			if (isprint(*from) || *from == ' ')
+			  {
+			    *ptr++ = *from;
+			  }
+			else
+			  {
+			    sprintf(ptr, "\\%03o", *(unsigned char*)from);
+			    ptr = &ptr[4];
+			  }
+		      }
+		    else
+		      {
+			sprintf(ptr, "\\u%04x", *from);
+			ptr = &ptr[6];
+		      }
+		    break;
+		}
+	    }
+	  *ptr++ = '"';
+	  *ptr = '\0';
+	  obj = [[NSString alloc] initWithCString: buf];
+	  Append(obj, output);
+	  RELEASE(obj);
+	}
+      if (length > 1024)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), ustring);
+	}
+    }
+  else
+    {
+      Append(obj, output);
     }
 }
 
-static NSString*
-XMLString(NSString* obj)
+static void
+XString(NSString* obj, GSMutableString *output)
 {
   static char	*hexdigits = "0123456789ABCDEF";
   unsigned	end;
@@ -141,15 +259,10 @@ XMLString(NSString* obj)
   end = [obj length];
   if (end == 0)
     {
-      return obj;
+      return;
     }
 
-  if (quotables == nil)
-    {
-      setupQuotables();
-    }
-
-  if ([obj rangeOfCharacterFromSet: quotables].length > 0)
+  if ([obj rangeOfCharacterFromSet: xmlQuotables].length > 0)
     {
       unichar	*base;
       unichar	*map;
@@ -294,43 +407,68 @@ XMLString(NSString* obj)
 	    }
 	}
       NSZoneFree(NSDefaultMallocZone(), base);
-      return [NSString stringWithCharacters: map length: len];
+      obj = [[NSString alloc] initWithCharacters: map length: len];
+      Append(obj, output);
+      RELEASE(obj);
     }
   else
     {
-      return obj;
+      Append(obj, output);
     }
 }
 
 static NSString	*indentStrings[] = {
   @"",
+  @"  ",
   @"    ",
+  @"      ",
   @"\t",
+  @"\t  ",
   @"\t    ",
+  @"\t      ",
   @"\t\t",
+  @"\t\t  ",
   @"\t\t    ",
+  @"\t\t      ",
   @"\t\t\t",
+  @"\t\t\t  ",
   @"\t\t\t    ",
+  @"\t\t\t      ",
   @"\t\t\t\t",
+  @"\t\t\t\t  ",
   @"\t\t\t\t    ",
+  @"\t\t\t\t      ",
   @"\t\t\t\t\t",
+  @"\t\t\t\t\t  ",
   @"\t\t\t\t\t    ",
+  @"\t\t\t\t\t      ",
   @"\t\t\t\t\t\t"
 };
 
+/**
+ * obj is the object to be written out<br />
+ * loc is the locale for formatting (or nil to indicate no formatting)<br />
+ * lev is the level of indentation to use<br />
+ * step is the indentation step (0 == 0, 1 = 2, 2 = 4, 3 = 8)<br />
+ * x is a flag to indicate xml property list format<br />
+ * dest is the output buffer.
+ */
 static void
-XMLPlObject(NSMutableString *dest, id obj, NSDictionary *loc, unsigned lev)
+OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
+  BOOL x, GSMutableString *dest)
 {
-  if (lev >= sizeof(indentStrings) / sizeof(*indentStrings))
-    lev = sizeof(indentStrings) / sizeof(*indentStrings) - 1;
-
-  [dest appendString: indentStrings[lev]];
-
   if ([obj isKindOfClass: [NSString class]])
     {
-      [dest appendString: @"<string>"];
-      [dest appendString: XMLString(obj)];
-      [dest appendString: @"</string>\n"];
+      if (x == YES)
+	{
+	  Append(@"<string>", dest);
+	  XString(obj, dest);
+	  Append(@"</string>\n", dest);
+	}
+      else
+	{
+	  PString(obj, dest);
+	}
     }
   else if ([obj isKindOfClass: [NSNumber class]])
     {
@@ -338,98 +476,463 @@ XMLPlObject(NSMutableString *dest, id obj, NSDictionary *loc, unsigned lev)
 
       if (val == 1.0)
 	{
-	  [dest appendString: @"<true/>\n"];
+	  if (x)
+	    {
+	      Append(@"<true/>\n", dest);
+	    }
+	  else
+	    {
+	      Append(@"YES", dest);
+	    }
 	}
       else if (val == 0.0)
 	{
-	  [dest appendString: @"<false/>\n"];
+	  if (x)
+	    {
+	      Append(@"<false/>\n", dest);
+	    }
+	  else
+	    {
+	      Append(@"NO", dest);
+	    }
 	}
       else if (rint(val) == val)
 	{
-	  [dest appendString: @"<integer>"];
-	  [dest appendString: [obj stringValue]];
-	  [dest appendString: @"</integer>\n"];
+	  if (x == YES)
+	    {
+	      Append(@"<integer>", dest);
+	      XString([obj stringValue], dest);
+	      Append(@"</integer>\n", dest);
+	    }
+	  else
+	    {
+	      PString([obj stringValue], dest);
+	    }
 	}
       else
 	{
-	  [dest appendString: @"<real>"];
-	  [dest appendString: [obj stringValue]];
-	  [dest appendString: @"</real>\n"];
+	  if (x == YES)
+	    {
+	      Append(@"<real>", dest);
+	      XString([obj stringValue], dest);
+	      Append(@"</real>\n", dest);
+	    }
+	  else
+	    {
+	      PString([obj stringValue], dest);
+	    }
 	}
     }
   else if ([obj isKindOfClass: [NSData class]])
     {
-      [dest appendString: @"<data>"];
-      [dest appendString: encodeBase64(obj)];
-      [dest appendString: @"</data>\n"];
+      if (x == YES)
+	{
+	  Append(@"<data>", dest);
+	  Append(encodeBase64(obj), dest);
+	  Append(@"</data>\n", dest);
+	}
+      else
+	{
+	  NSString	*str;
+	  const char	*src;
+	  char		*dst;
+	  int		length;
+	  int		i;
+	  int		j;
+	  NSZone	*z = NSDefaultMallocZone();
+
+	  src = [obj bytes];
+	  length = [obj length];
+	  #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
+
+	  dst = (char*) NSZoneMalloc(z, 2*length+length/4+3);
+	  dst[0] = '<';
+	  for (i = 0, j = 1; i < length; i++, j++)
+	    {
+	      dst[j++] = num2char((src[i]>>4) & 0x0f);
+	      dst[j] = num2char(src[i] & 0x0f);
+	      if ((i&0x3) == 3 && i != length-1)
+		{
+		  /* if we've just finished a 32-bit int, print a space */
+		  dst[++j] = ' ';
+		}
+	    }
+	  dst[j++] = '>';
+	  dst[j] = '\0';
+	  str = [[NSString allocWithZone: z] initWithCStringNoCopy: dst
+							    length: j
+						      freeWhenDone: YES];
+	  Append(str, dest);
+	  RELEASE(str);
+	}
     }
   else if ([obj isKindOfClass: [NSDate class]])
     {
-      [dest appendString: @"<date>"];
-      [dest appendString:
-	[obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"]];
-      [dest appendString: @"</date>\n"];
+      if (x == YES)
+	{
+	  Append(@"<date>", dest);
+	  Append([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"],
+	    dest);
+	  Append(@"</date>\n", dest);
+	}
+      else
+	{
+	  PString([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"],
+	    dest);
+	}
     }
   else if ([obj isKindOfClass: [NSArray class]])
     {
-      NSEnumerator	*e;
+      NSString	*iBaseString;
+      NSString	*iSizeString;
+      unsigned	level = lev;
 
-      [dest appendString: @"<array>\n"];
-      e = [obj objectEnumerator];
-      while ((obj = [e nextObject]))
-        {
-          XMLPlObject(dest, obj, loc, lev + 1);
-        }
-      [dest appendString: indentStrings[lev]];
-      [dest appendString: @"</array>\n"];
+      if (level*step < sizeof(indentStrings)/sizeof(id))
+	{
+	  iBaseString = indentStrings[level*step];
+	}
+      else
+	{
+	  iBaseString
+	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+      level++;
+      if (level*step < sizeof(indentStrings)/sizeof(id))
+	{
+	  iSizeString = indentStrings[level*step];
+	}
+      else
+	{
+	  iSizeString
+	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+
+      if (x == YES)
+	{
+	  NSEnumerator	*e;
+
+	  Append(@"<array>", dest);
+	  e = [obj objectEnumerator];
+	  while ((obj = [e nextObject]))
+	    {
+	      Append(iSizeString, dest);
+	      OAppend(obj, loc, level, step, YES, dest);
+	    }
+	  Append(iBaseString, dest);
+	  Append(@"</array>\n", dest);
+	}
+      else
+	{
+	  unsigned		count = [obj count];
+	  unsigned		last = count - 1;
+	  NSString		*plists[count];
+	  unsigned		i;
+
+	  [obj getObjects: plists];
+
+	  if (loc == nil)
+	    {
+	      Append(@"(", dest);
+	      for (i = 0; i < count; i++)
+		{
+		  id	item = plists[i];
+
+		  OAppend(item, nil, 0, step, NO, dest);
+		  if (i != last)
+		    {
+		      Append(@", ", dest);
+		    }
+		}
+	      Append(@")", dest);
+	    }
+	  else
+	    {
+	      Append(@"(\n", dest);
+	      for (i = 0; i < count; i++)
+		{
+		  id	item = plists[i];
+
+		  Append(iSizeString, dest);
+		  OAppend(item, loc, level, step, NO, dest);
+		  if (i == last)
+		    {
+		      Append(@"\n", dest);
+		    }
+		  else
+		    {
+		      Append(@",\n", dest);
+		    }
+		}
+	      Append(iBaseString, dest);
+	      Append(@")", dest);
+	    }
+	}
     }
   else if ([obj isKindOfClass: [NSDictionary class]])
     {
-      NSEnumerator	*e;
-      id		key;
-      unsigned		nxt = lev + 1;
+      NSString	*iBaseString;
+      NSString	*iSizeString;
+      unsigned	level = lev;
 
-      if (lev >= sizeof(indentStrings) / sizeof(*indentStrings))
-	lev = sizeof(indentStrings) / sizeof(*indentStrings) - 1;
+      if (level*step < sizeof(indentStrings)/sizeof(id))
+	{
+	  iBaseString = indentStrings[level*step];
+	}
+      else
+	{
+	  iBaseString
+	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+      level++;
+      if (level*step < sizeof(indentStrings)/sizeof(id))
+	{
+	  iSizeString = indentStrings[level*step];
+	}
+      else
+	{
+	  iSizeString
+	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
 
-      [dest appendString: @"<dict>\n"];
-      e = [obj keyEnumerator];
-      while ((key = [e nextObject]))
-        {
-	  id	val;
+      if (x == YES)
+	{
+	  NSEnumerator	*e;
+	  id		key;
 
-          val = [obj objectForKey: key];
-	  [dest appendString: indentStrings[nxt]];
-	  [dest appendString: @"<key>"];
-	  [dest appendString: XMLString(key)];
-	  [dest appendString: @"</key>\n"];
-          XMLPlObject(dest, val, loc, nxt);
-        }
-      [dest appendString: indentStrings[lev]];
-      [dest appendString: @"</dict>\n"];
+	  Append(@"<dict>\n", dest);
+	  e = [obj keyEnumerator];
+	  while ((key = [e nextObject]))
+	    {
+	      id	val;
+
+	      val = [obj objectForKey: key];
+	      Append(iSizeString, dest);
+	      Append(@"<key>", dest);
+	      XString(key, dest);
+	      Append(@"</key>\n", dest);
+	      OAppend(val, loc, level, step, YES, dest);
+	    }
+	  Append(iBaseString, dest);
+	  Append(@"</dict>\n", dest);
+	}
+      else
+	{
+	  SEL		objSel = @selector(objectForKey:);
+	  IMP		myObj = [obj methodForSelector: objSel];
+	  unsigned	i;
+	  NSArray	*keyArray = [obj allKeys];
+	  unsigned	numKeys = [keyArray count];
+	  NSString	*plists[numKeys];
+	  NSString	*keys[numKeys];
+
+	  [keyArray getObjects: keys];
+
+	  if (loc == nil)
+	    {
+	      for (i = 0; i < numKeys; i++)
+		{
+		  plists[i] = (*myObj)(obj, objSel, keys[i]);
+		}
+
+	      Append(@"{", dest);
+	      for (i = 0; i < numKeys; i++)
+		{
+		  OAppend(keys[i], nil, 0, step, NO, dest);
+		  Append(@" = ", dest);
+		  OAppend(plists[i], nil, 0, step, NO, dest);
+		  Append(@"; ", dest);
+		}
+	      Append(@"}", dest);
+	    }
+	  else
+	    {
+	      BOOL	canCompare = YES;
+	      Class	lastClass = 0;
+
+	      for (i = 0; i < numKeys; i++)
+		{
+		  if (GSObjCClass(keys[i]) == lastClass)
+		    continue;
+		  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+		    {
+		      canCompare = NO;
+		      break;
+		    }
+		  lastClass = GSObjCClass(keys[i]);
+		}
+
+	      if (canCompare == YES)
+		{
+		  #define STRIDE_FACTOR 3
+		  unsigned	c,d, stride;
+		  BOOL		found;
+		  NSComparisonResult	(*comp)(id, SEL, id) = 0;
+		  int		count = numKeys;
+		  #ifdef	GSWARN
+		  BOOL		badComparison = NO;
+		  #endif
+
+		  stride = 1;
+		  while (stride <= count)
+		    {
+		      stride = stride * STRIDE_FACTOR + 1;
+		    }
+		  lastClass = 0;
+		  while (stride > (STRIDE_FACTOR - 1))
+		    {
+		      // loop to sort for each value of stride
+		      stride = stride / STRIDE_FACTOR;
+		      for (c = stride; c < count; c++)
+			{
+			  found = NO;
+			  if (stride > c)
+			    {
+			      break;
+			    }
+			  d = c - stride;
+			  while (!found)
+			    {
+			      id			a = keys[d + stride];
+			      id			b = keys[d];
+			      Class			x;
+			      NSComparisonResult	r;
+
+			      x = GSObjCClass(a);
+			      if (x != lastClass)
+				{
+				  lastClass = x;
+				  comp = (NSComparisonResult (*)(id, SEL, id))
+				    [a methodForSelector: @selector(compare:)];
+				}
+			      r = (*comp)(a, @selector(compare:), b);
+			      if (r < 0)
+				{
+				  #ifdef	GSWARN
+				  if (r != NSOrderedAscending)
+				    {
+				      badComparison = YES;
+				    }
+				  #endif
+				  keys[d + stride] = b;
+				  keys[d] = a;
+				  if (stride > d)
+				    {
+				      break;
+				    }
+				  d -= stride;
+				}
+			      else
+				{
+				  #ifdef	GSWARN
+				  if (r != NSOrderedDescending
+				    && r != NSOrderedSame)
+				    {
+				      badComparison = YES;
+				    }
+				  #endif
+				  found = YES;
+				}
+			    }
+			}
+		    }
+		  #ifdef	GSWARN
+		  if (badComparison == YES)
+		    {
+		      NSWarnFLog(@"Detected bad return value from comparison");
+		    }
+		  #endif
+		}
+
+	      for (i = 0; i < numKeys; i++)
+		{
+		  plists[i] = (*myObj)(obj, objSel, keys[i]);
+		}
+
+	      Append(@"{\n", dest);
+	      for (i = 0; i < numKeys; i++)
+		{
+		  Append(iSizeString, dest);
+		  OAppend(keys[i], loc, level, step, NO, dest);
+		  Append(@" = ", dest);
+		  OAppend(plists[i], loc, level, step, NO, dest);
+		  Append(@";\n", dest);
+		}
+	      Append(iBaseString, dest);
+	      Append(@"}", dest);
+	    }
+	}
     }
   else
     {
       NSLog(@"Non-property-list class encoded as string");
-      [dest appendString: @"<string>"];
-      [dest appendString: [obj description]];
-      [dest appendString: @"</string>\n"];
+      Append(@"<string>", dest);
+      Append([obj description], dest);
+      Append(@"</string>\n", dest);
     }
 }
 
-NSString*
-GSXMLPlMake(id obj, NSDictionary *loc)
+void
+GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml, unsigned step, id *str)
 {
-  NSMutableString	*dest;
+  GSMutableString	*dest;
 
-  dest = [NSMutableString stringWithCString:
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
-    "PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
-    "\"http://www.gnustep.org/plist-0_9.xml\">\n"
-    "<plist version=\"0.9\">\n"];
+  if (plQuotablesBitmapRep == NULL)
+    {
+      NSMutableCharacterSet	*s;
+      NSData			*bitmap;
 
-  XMLPlObject(dest, obj, loc, 0);
-  [dest appendString: @"</plist>"];
-  return dest;
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	@"abcdefghijklmnopqrstuvwxyz!#$%&*+-./:?@|~_^"]
+	mutableCopy];
+      [s invert];
+      plQuotables = [s copy];
+      RELEASE(s);
+      bitmap = RETAIN([plQuotables bitmapRepresentation]);
+      plQuotablesBitmapRep = [bitmap bytes];
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	@"abcdefghijklmnopqrstuvwxyz$./_"]
+	mutableCopy];
+      [s invert];
+      oldPlQuotables = [s copy];
+      RELEASE(s);
+
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"&<>'\\\""] mutableCopy];
+      [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
+      [s removeCharactersInRange: NSMakeRange(0x0009, 0x0002)];
+      [s removeCharactersInRange: NSMakeRange(0x000D, 0x0001)];
+      [s addCharactersInRange: NSMakeRange(0xD800, 0x07FF)];
+      [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
+      xmlQuotables = [s copy];
+      RELEASE(s);
+    }
+
+  if (*str == nil)
+    {
+      *str = AUTORELEASE([GSMutableString new]);
+    }
+  else if (GSObjCClass(*str) != [GSMutableString class])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Illegal object (%@) at argument 0", *str];
+    }
+  dest = *str;
+  
+  if (xml == YES)
+    {
+      Append([NSMutableString stringWithCString:
+	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
+	"PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
+	"\"http://www.gnustep.org/plist-0_9.xml\">\n"
+	"<plist version=\"0.9\">\n"], dest);
+    }
+
+  OAppend(obj, loc, 0, step > 3 ? 3 : step, xml, dest);
+  if (xml == YES)
+    {
+      Append(@"</plist>", dest);
+    }
 }
 

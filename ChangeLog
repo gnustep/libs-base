@@ -1,3 +1,17 @@
+2002-11-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSObject.h: Removed GNUstep plist extensions.
+	* Source/NSObject.m: ditto.
+	* Source/GSCompatibility.m: Implement new plist generator.
+	* Source/NSArray.m: Use new plist code
+	* Source/NSData.m: ditto
+	* Source/NSDictionary.m: ditto
+	* Source/NSString.m: ditto
+	Remove GNUstep property list extensions from the api ... make more
+	like MacOS and OpenStep spec by having a central mechanism for
+	generating property lists rather than spreading the code across the
+	plist classes.
+
 2002-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: use NSString implementation of
