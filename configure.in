@@ -183,7 +183,7 @@ OBJC_SYS_DYNAMIC_FLAGS()
 # Determine the target platform 
 #--------------------------------------------------------------------
 if test "x$target" = "xNONE"; then
-  PLATFORM_OS=`config.guess`
+  PLATFORM_OS=`$srcdir/config.guess`
 else
   PLATFORM_OS="$target"
 fi

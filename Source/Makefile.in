@@ -676,10 +676,10 @@ include/o_map.h: include/o_map_bas.h include/o_map_cbs.h include/o_hash.h
 Makefile: $(srcdir)/Makefile.in ../config.status
 	cd ..; $(SHELL) config.status
 ../config.status:
-	cd ..; $(SHELL) configure --no-create
-include/config.h.in: $(srcdir)/../configure.in $(srcdir)/../acconfig.h
-	cd ..; $(SHELL) autoheader
-include/config.h: include/config.h.in
+	cd ..; $(SHELL) $(srcdir)/configure --no-create
+$(srcdir)/include/config.h.in: $(srcdir)/../configure.in $(srcdir)/../acconfig.h
+	cd $(srcdir)/..; $(SHELL) autoheader
+include/config.h: $(srcdir)/include/config.h.in
 
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)

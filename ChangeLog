@@ -1,5 +1,9 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* src/Makefile.in (UNICODE_HEADERS): New variable.
+	(DIST_FILES): Add UNICODE_HEADERS.
+	(copy-dist): Create directory for unicode.
+
 	* examples/Makefile.in (RCS_FILES): Added custom-zone.m.
 	* examples/custom-zone.m: New file.
 
@@ -17,6 +21,18 @@ Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
  	Use NSBundle's pathForResource:ofType:inDirectory method properly.
   	(Reported by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>.)
+
+Sun Mar 23 19:55:19 1997  Mark Kettenis  <kettenis@phys.uva.nl>
+
+	* src/Makefile.in: Update config.h.in in $(srcdir)/src/include.
+	* configure.in: Look for config.guess in $(srcdir).
+
+Sat Mar 22 18:25:43 1997  Mark Kettenis  <kettenis@phys.uva.nl>
+
+	* src/NSDate.m ([NSDate +timeIntervalSinceReferenceDate]): Don't
+	use struct timezone.
+	([NSDate -timeIntervalSince1970]): New method.
+	([NSDate -isEqual:]): Correct bug if other specifies a later date.
 
 Sun Mar 23 22:14:21 1997  Stevo Crvenkovski  <stevoc@lotus.mpt.com.mk>
 
