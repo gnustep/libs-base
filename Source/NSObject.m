@@ -44,7 +44,6 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <limits.h>
 
-#define	REFCNT_LOCAL	0
 
 
 #ifndef NeXT_RUNTIME
