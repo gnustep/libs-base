@@ -121,7 +121,7 @@ static SEL	eqSel;
 	      _count = i;
 	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil"];
+			  format: @"Tried to add nil to array"];
 	    }
 	}
       _count = count;
@@ -311,7 +311,7 @@ static SEL	eqSel;
 	      _count = i;
 	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil"];
+			  format: @"Tried to add nil to array"];
 	    }
 	}
       _count = count;
@@ -378,7 +378,7 @@ static SEL	eqSel;
 	      _count = i;
 	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil"];
+			  format: @"Tried to add nil to array"];
 	    }
 	}
       _count = count;
@@ -393,7 +393,7 @@ static SEL	eqSel;
   if (!anObject)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to insert nil"];
+		  format: @"Tried to insert nil to array"];
     }
   if (index > _count)
     {
@@ -434,7 +434,7 @@ static SEL	eqSel;
   if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to add nil"];
+		  format: @"Tried to add nil to array"];
     }
   if (_count >= _capacity)
     {
