@@ -128,6 +128,9 @@ static NSArray* _gnu_arguments = nil;
 // Dictionary of environment vars and their values
 static NSMutableDictionary* _gnu_environment = nil;
 
+// Array of debug levels set.
+static NSMutableArray* _debug_array = nil;
+
 /*************************************************************************
  *** Implementing the Libobjects main function
  *************************************************************************/
@@ -143,9 +146,18 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   /* Copy the argument list */
   {
     id obj_argv[argc];
+    int added = 0;
+
+    _debug_array = [[NSMutableArray alloc] init];
     for (i = 1; i < argc; i++) 
-      obj_argv[i-1] = [NSString stringWithCString:argv[i]];
-    _gnu_arguments = [[NSArray alloc] initWithObjects:obj_argv count:argc-1];
+      {
+	NSString	*str = [NSString stringWithCString:argv[i]];
+	if ([str hasPrefix: @"--GNU-Debug="])
+	  [_debug_array addObject: [str substringFromIndex: 12]];
+	else
+          obj_argv[added++] = str;
+      }
+    _gnu_arguments = [[NSArray alloc] initWithObjects:obj_argv count:added];
   }
 	
   /* Copy the evironment list */
@@ -345,6 +357,11 @@ int main(int argc, char *argv[], char *env[])
 - (NSArray *)arguments
 {
   return _gnu_arguments;
+}
+
+- (NSMutableArray*) debugArray
+{
+  return _debug_array;
 }
 
 - (NSDictionary *)environment

@@ -1,4 +1,4 @@
-Fri Aug  4 09:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Aug  4 10:55:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/GNUmakefile: Removed NSAllocateObject.m and
 	NSDeallocateObject.m (contents merged into NSObject.m).
@@ -7,6 +7,14 @@ Fri Aug  4 09:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	modified to cache an objects zone with it - in order to maintain
 	(or better) current performance when we get the NSZone code fixed
 	to work with malloced memory.
+	* src/include/NSObjCRuntime.h: Removed NSDebugLog()
+	* src/include/NSDebug.h: Added new version of NSDebugLog()
+	* src/include/NSProcessInfo.h: Added [-debugArray] method.
+	* src/NSProcessInfo.m: Added [-debugArray] method and modified to
+	parse arguments list and remove debug options, putting them in a
+	mutable array (returned by [-debugArray]).
+	* src/externs.m: Removed NSDebugLogging.
+	* src/NSBundle.m: Modified to use new version of NSDebugLog().
 
 Thu Aug  3 15:35:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
