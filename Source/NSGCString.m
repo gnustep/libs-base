@@ -27,6 +27,7 @@
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/MallocAddress.h>
+#include <Foundation/NSValue.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 @implementation NSGCString
@@ -43,11 +44,15 @@
   return self;
 }
 
-- (void) dealloc
+- (void) _collectionReleaseContents
+{
+  return;
+}
+
+- (void) _collectionDealloc
 {
   if (_free_contents)
       OBJC_FREE(_contents_chars);
-  [super dealloc];
 }
 
 - (Class) classForConnectedCoder: aRmc
@@ -124,12 +129,10 @@
 
 // FOR IndexedCollection SUPPORT;
 
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
-  elt ret_elt;
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  ret_elt.char_u = _contents_chars[index];
-  return ret_elt;
+  return [NSNumber numberWithChar: _contents_chars[index]];
 }
 
 @end
@@ -246,11 +249,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 /* xxx This should be made to return void, but we need to change
    IndexedCollecting and its conformers */
-- removeRange: (IndexRange)range
+- (void) removeRange: (IndexRange)range
 {
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
 				    range.location, range.length);
-  return self;
 }
 
 - (void) encodeWithCoder: aCoder
@@ -292,7 +294,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return _contents_chars[index];
 }
 
-- insertElement: (elt)newElement atIndex: (unsigned)index
+
+// FOR IndexedCollection and OrderedCollection SUPPORT;
+
+- (void) insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   // one for the next char, one for the '\0';
@@ -302,28 +307,15 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       OBJC_REALLOC(_contents_chars, char, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
-  _contents_chars[index] = newElement.char_u;
+  _contents_chars[index] = [newObject charValue];
   _contents_chars[_count] = '\0';
-  return self;
 }
 
-- (elt) removeElementAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (unsigned)index
 {
-  elt ret;
-
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  ret = _contents_chars[index];
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[_count] = '\0';
-  return ret;
-}
-
-- (elt) elementAtIndex: (unsigned)index
-{
-  elt ret_elt;
-  CHECK_INDEX_RANGE_ERROR(index, _count);
-  ret_elt.char_u = _contents_chars[index];
-  return ret_elt;
 }
 
 @end
