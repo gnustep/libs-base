@@ -62,7 +62,8 @@ static Dictionary* mallocAddresses;
 
 - (void) dealloc
 {
-  [mallocAddresses removeElementAtKey:address];
+  if ([[self class] objectForAddress:address])
+    [mallocAddresses removeElementAtKey:address];
   OBJC_FREE(address);
   [super dealloc];
 }
