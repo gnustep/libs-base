@@ -33,6 +33,117 @@
   [super dealloc];
 }
 
+static BOOL snuggleEnd(NSString *t)
+{
+  static NSCharacterSet	*set = nil;
+
+  if ([t hasPrefix: @"</"] == YES)
+    {
+      return YES;
+    }
+  if (set == nil)
+    {
+      set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;"];
+      RETAIN(set);
+    }
+  return [set characterIsMember: [t characterAtIndex: 0]];
+}
+
+static BOOL snuggleStart(NSString *t)
+{
+  static NSCharacterSet	*set = nil;
+
+  if (set == nil)
+    {
+      set = [NSCharacterSet characterSetWithCharactersInString: @"[{("];
+      RETAIN(set);
+    }
+  return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
+}
+
+- (unsigned) fitWords: (NSArray*)a
+		 from: (unsigned)start
+		   to: (unsigned)end
+	      maxSize: (unsigned)limit
+	       output: (NSMutableString*)buf
+{
+  unsigned	size = 0;
+  unsigned	nest = 0;
+  unsigned	i;
+  int		lastOk = -1;
+  BOOL		addSpace = NO;
+
+  for (i = start; size < limit && i < end; i++)
+    {
+      NSString	*t = [a objectAtIndex: i];
+
+      if (nest == 0 && [t hasPrefix: @"</"] == YES)
+	{
+	  break;	// End of element reached.
+	}
+
+      /*
+       * Check sizing and output this word if necessary.
+       */
+      if (addSpace == YES && snuggleEnd(t) == NO)
+	{
+	  size++;
+	  if (buf != nil)
+	    {
+	      [buf appendString: @" "];
+	    }
+	}
+      size += [t length];
+      if (buf != nil)
+	{
+	  [buf appendString: t];
+	}
+
+      /*
+       * Determine nesting level changes produced by this word, and
+       * whether we need a space before the next word.
+       */
+      if ([t hasPrefix: @"</"] == YES)
+	{
+	  nest--;
+	  addSpace = YES;
+	}
+      else if ([t hasPrefix: @"<"] == YES)
+	{
+	  if ([t hasSuffix: @"/>"] == YES)
+	    {
+	      addSpace = YES;
+	    }
+	  else
+	    {
+	      nest++;
+	      addSpace = NO;
+	    }
+	}
+      else
+	{
+	  if (snuggleStart(t) == NO)
+	    {
+	      addSpace = YES;
+	    }
+	  else
+	    {
+	      addSpace = NO;
+	    }
+	}
+
+      /*
+       * Record whether the word we just checked was at nesting level 0
+       * and had not exceeded the line length limit.
+       */
+      if (nest == 0 && size <= limit)
+	{
+	  lastOk = i;
+	}
+    }
+  return lastOk + 1;
+}
+
 - (id) init
 {
   NSMutableCharacterSet	*m;
@@ -272,7 +383,7 @@
 
 /**
  * Uses -split: and -reformat:withIndent:to:
- * and has fun with YES, NO, and nil
+ * and has fun with YES, NO, and nil.
  */
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str
 {
@@ -588,188 +699,36 @@
 	  [buf appendString: str];
 	  [buf appendString: @"\n"];
 	}
-      else if ([str hasPrefix: @"<"] == YES && [str hasSuffix: @"/>"] == NO)
+      else
 	{
-	  unsigned	size = ind + [str length];
-	  unsigned	nest = 0;
-	  BOOL		addSpace;
+	  unsigned	size = 70 - ind - [str length];
+	  unsigned	end;
 
 	  for (j = 0; j < ind; j++)
 	    {
 	      [buf appendString: @" "];
 	    }
-	  [buf appendString: str];
-	  addSpace = ([str hasPrefix: @"</"] == YES) ? NO : YES;
-	  for (j = i + 1; size <= 70 && j < [a count]; j++)
+	  end = [self fitWords: a
+			  from: i
+			    to: [a count]
+		       maxSize: size
+			output: nil];
+	  if (end <= i)
 	    {
-	      NSString	*t = [a objectAtIndex: j];
-
-	      size += [t length];
-	      if ([t hasPrefix: @"</"] == YES)
+	      [buf appendString: str];
+	      if ([str hasPrefix: @"<"] == YES && [str hasSuffix: @" />"] == NO)
 		{
-		  if (nest == 0)
-		    {
-		      break;	// End of element reached.
-		    }
-		  nest--;
-		  addSpace = YES;
+		  ind += 2;
 		}
-	      else if ([t hasPrefix: @"<"] == YES)
-		{
-		  if ([t hasSuffix: @"/>"] == NO)
-		    {
-		      if (addSpace == YES)
-			{
-			  size++;
-			}
-		      nest++;
-		    }
-		  addSpace = NO;
-		}
-	      else
-		{
-		  if (addSpace == YES)
-		    {
-		      size++;
-		    }
-		  addSpace = YES;
-		}
-	    }
-	  if (size > 70)
-	    {
-	      ind += 2;
 	    }
 	  else
 	    {
-	      addSpace = ([str hasPrefix: @"<"] == YES) ? NO : YES;
-	      for (j = i + 1; j < [a count]; j++)
-		{
-		  NSString	*t = [a objectAtIndex: j];
-
-		  if ([t hasPrefix: @"</"] == YES)
-		    {
-		      [buf appendString: t];
-		      if (nest == 0)
-			{
-			  break;	// End of element reached.
-			}
-		      nest--;
-		      addSpace = YES;
-		    }
-		  else if ([t hasPrefix: @"<"] == YES)
-		    {
-		      if ([t hasSuffix: @"/>"] == NO)
-			{
-			  if (addSpace == YES)
-			    {
-			      [buf appendString: @" "];
-			    }
-			  nest++;
-			}
-		      [buf appendString: t];
-		      addSpace = NO;
-		    }
-		  else
-		    {
-		      if (addSpace == YES)
-			{
-			  [buf appendString: @" "];
-			}
-		      [buf appendString: t];
-		      addSpace = YES;
-		    }
-		}
-	      i = j;
-	    }
-	  [buf appendString: @"\n"];
-	}
-      else
-	{
-	  unsigned	size = ind + [str length];
-	  unsigned	nest = 0;
-	  unsigned	lastOk = i;
-	  BOOL		addSpace;
-
-	  for (j = 0; j < ind; j++)
-	    {
-	      [buf appendString: @" "];
-	    }
-	  [buf appendString: str];
-	  addSpace = ([str hasPrefix: @"<"] == YES) ? NO : YES;
-	  for (j = i + 1; size <= 70 && j < [a count]; j++)
-	    {
-	      NSString	*t = [a objectAtIndex: j];
-
-	      size += [t length];
-	      if ([t hasPrefix: @"</"] == YES)
-		{
-		  if (nest == 0)
-		    {
-		      break;	// End of element reached.
-		    }
-		  nest--;
-		  addSpace = YES;
-		}
-	      else if ([t hasPrefix: @"<"] == YES)
-		{
-		  if ([t hasSuffix: @"/>"] == NO)
-		    {
-		      if (addSpace == YES)
-			{
-			  size++;
-			}
-		      nest++;
-		    }
-		  addSpace = NO;
-		}
-	      else
-		{
-		  if (addSpace == YES)
-		    {
-		      size++;
-		    }
-		  addSpace = YES;
-		}
-	      if (nest == 0 && size <= 70)
-		{
-		  lastOk = j;
-		}
-	    }
-	  if (lastOk > i)
-	    {
-	      addSpace = ([str hasPrefix: @"<"] == YES) ? NO : YES;
-	      for (j = i + 1; j <= lastOk; j++)
-		{
-		  NSString	*t = [a objectAtIndex: j];
-
-		  if ([t hasPrefix: @"</"] == YES)
-		    {
-		      [buf appendString: t];
-		      addSpace = YES;
-		    }
-		  else if ([t hasPrefix: @"<"] == YES)
-		    {
-		      if ([t hasSuffix: @"/>"] == NO)
-			{
-			  if (addSpace == YES)
-			    {
-			      [buf appendString: @" "];
-			    }
-			}
-		      [buf appendString: t];
-		      addSpace = NO;
-		    }
-		  else
-		    {
-		      if (addSpace == YES)
-			{
-			  [buf appendString: @" "];
-			}
-		      [buf appendString: t];
-		      addSpace = YES;
-		    }
-		}
-	      i = lastOk;
+	      [self fitWords: a
+			from: i
+			  to: end
+		     maxSize: size
+		      output: buf];
+	      i = end - 1;
 	    }
 	  [buf appendString: @"\n"];
 	}
