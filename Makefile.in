@@ -69,7 +69,7 @@ OBJECTS_FTP_MACHINE = alpha.gnu.ai.mit.edu
 OBJECTS_FTP_DIRECTORY = pub/gnu
 
 NEXT_NEXT_INCLUDES = -I/usr/include
-OBJECTS_NEXT_INCLUDES = -I$(srcdir)/objects/next-include
+OBJECTS_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
 ALL_INCLUDE_FLAGS = -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
@@ -143,6 +143,7 @@ eltfuncs.m
 NeXT_MFILES = \
 HashTable.m \
 List.m \
+NSObject.m \
 NXStringTable.m \
 Storage.m
 
@@ -242,11 +243,11 @@ objects/objects.h \
 objects/stdobjects.h 
 
 NeXT_HEADERS = \
-objects/next-include/objc/HashTable.h \
-objects/next-include/objc/List.h \
-objects/next-include/objc/NXStringTable.h \
-objects/next-include/objc/Storage.h \
-objects/next-include/objc/zone.h
+objc/HashTable.h \
+objc/List.h \
+objc/NXStringTable.h \
+objc/Storage.h \
+objc/zone.h
 
 INSTALL_HEADERS = @INSTALL_HEADERS@
 INSTALL_OBJS = @INSTALL_OBJS@
@@ -287,9 +288,8 @@ install: installdirs all
 installdirs:
 	$(srcdir)/mkinstalldirs $(libdir) $(infodir) \
 	 $(includedir)/objects \
-	 $(includedir)/objects/next-include \
-	 $(includedir)/objects/next-include/objc \
-	 $(includedir)/objects/next-include/foundation
+	 $(includedir)/objc \
+	 $(includedir)/foundation
 
 uninstall:
 	rm -f $(libdir)/libobjects.a
@@ -378,9 +378,8 @@ mostlyclean:
 	rm -f  core \
 	*~ \
 	objects/*~ \
-	objects/next-include/*~ \
-	objects/next-include/foundation/*~ \
-	objects/next-include/objc/*~
+	foundation/*~ \
+	objc/*~
 
 clean: mostlyclean
 	rm -f libobjects.a *.o
@@ -402,9 +401,8 @@ dist: $(DIST_FILES)
 	rm -rf `cat .fname`
 	mkdir `cat .fname`
 	mkdir `cat .fname`/objects
-	mkdir `cat .fname`/objects/next-include
-	mkdir `cat .fname`/objects/next-include/objc
-	mkdir `cat .fname`/objects/next-include/foundation
+	mkdir `cat .fname`/objc
+	mkdir `cat .fname`/foundation
 	# previously did this: -ln (DIST_FILES) `cat .fname`
 	for file in $(DIST_FILES); do \
 	  ln $$file `cat .fname`/$$file ; \
