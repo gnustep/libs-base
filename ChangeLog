@@ -1,3 +1,13 @@
+2001-02-09  Jonathan Gapen  <jagapen@home.com>
+
+	More FreeBSD build fixes:
+	* acconfig.h: Add recent definitions.
+	* configure.in: Add test for wchar.h header.
+	* configure: Regenerate.
+	* Headers/gnustep/base/config.h.in: Regenerate.
+	* Source/GSFormat.m: Typedef wint_t if wchar.h not available.
+	* Source/NSTask.m: Change #if TIOCNOTTY to #ifdef TIOCNOTTY.
+
 2001-02-08  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* INSTALL: Updated installation instructions.

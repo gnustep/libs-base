@@ -57,6 +57,9 @@
 /* Define if libxml available */
 #undef HAVE_LIBXML
 
+#undef HAVE_PTS_STREAM_MODULES
+#undef HAVE_UINTMAX_T
+
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 
@@ -165,8 +168,20 @@
 /* Define if you have the <langinfo.h> header file.  */
 #undef HAVE_LANGINFO_H
 
+/* Define if you have the <libc.h> header file.  */
+#undef HAVE_LIBC_H
+
+/* Define if you have the <libguile.h> header file.  */
+#undef HAVE_LIBGUILE_H
+
+/* Define if you have the <limits.h> header file.  */
+#undef HAVE_LIMITS_H
+
 /* Define if you have the <locale.h> header file.  */
 #undef HAVE_LOCALE_H
+
+/* Define if you have the <malloc.h> header file.  */
+#undef HAVE_MALLOC_H
 
 /* Define if you have the <memory.h> header file.  */
 #undef HAVE_MEMORY_H
@@ -186,11 +201,23 @@
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
 
+/* Define if you have the <signal.h> header file.  */
+#undef HAVE_SIGNAL_H
+
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H
 
 /* Define if you have the <sys/dir.h> header file.  */
 #undef HAVE_SYS_DIR_H
+
+/* Define if you have the <sys/fcntl.h> header file.  */
+#undef HAVE_SYS_FCNTL_H
+
+/* Define if you have the <sys/file.h> header file.  */
+#undef HAVE_SYS_FILE_H
+
+/* Define if you have the <sys/ioctl.h> header file.  */
+#undef HAVE_SYS_IOCTL_H
 
 /* Define if you have the <sys/mount.h> header file.  */
 #undef HAVE_SYS_MOUNT_H
@@ -213,6 +240,9 @@
 /* Define if you have the <sys/statvfs.h> header file.  */
 #undef HAVE_SYS_STATVFS_H
 
+/* Define if you have the <sys/stropts.h> header file.  */
+#undef HAVE_SYS_STROPTS_H
+
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
 
@@ -228,42 +258,20 @@
 /* Define if you have the <ucbinclude/sys/resource.h> header file.  */
 #undef HAVE_UCBINCLUDE_SYS_RESOURCE_H
 
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the <utime.h> header file.  */
+#undef HAVE_UTIME_H
+
 /* Define if you have the <values.h> header file.  */
 #undef HAVE_VALUES_H
+
+/* Define if you have the <wchar.h> header file.  */
+#undef HAVE_WCHAR_H
 
 /* Define if you have the <windows.h> header file.  */
 #undef HAVE_WINDOWS_H
 
 /* Define if you have the iconv library (-liconv).  */
 #undef HAVE_LIBICONV
-
-/* Define if you have sysv style pseudo-terminals.  */
-#undef HAVE_GRANTPT
-
-/* Define if you need sysv stream modules.  */
-#undef HAVE_PTS_STREAM_MODULES
-
-/* Define if you have the setsid function.  */
-#undef HAVE_SETSID
-
-/* Define if you have the waitpid function.  */
-#undef HAVE_WAITPID
-
-/* Define if you have the <signal.h> header file.  */
-#undef HAVE_SIGNAL_H
-
-/* Define if you have the <sys/file.h> header file.  */
-#undef HAVE_SYS_FILE_H
-
-/* Define if you have the <sys/fcntl.h> header file.  */
-#undef HAVE_SYS_FCNTL_H
-
-/* Define if you have the <sys/ioctl.h> header file.  */
-#undef HAVE_SYS_IOCTL_H
-
-/* Define if you have the <sys/wait.h> header file.  */
-#undef HAVE_SYS_WAIT_H
-
-/* Define if you have the <sys/stropts.h> header file.  */
-#undef HAVE_SYS_STROPTS_H
-

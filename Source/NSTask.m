@@ -43,6 +43,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef __FreeBSD__
+#include <fcntl.h>
+#endif
 #ifndef __MINGW__
 #include <sys/signal.h>
 #include <sys/param.h>
@@ -947,7 +950,7 @@ GSCheckTasks()
 #if	HAVE_SETSID
 	  i = setsid();
 #endif
-#if	TIOCNOTTY
+#ifdef	TIOCNOTTY
 	  i = open("/dev/tty", O_RDWR);
 	  if (i >= 0)
 	    {

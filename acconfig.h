@@ -148,3 +148,8 @@
 /* Define if libxml available */
 #undef HAVE_LIBXML
 
+#undef HAVE_PTS_STREAM_MODULES
+#undef HAVE_UINTMAX_T
+
+/* Define if wchar.h header available */
+#undef HAVE_WCHAR_H

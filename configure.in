@@ -614,6 +614,8 @@ else
 	AC_MSG_RESULT([not found])
 fi
 
+AC_CHECK_HEADERS(wchar.h)
+
 #--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
