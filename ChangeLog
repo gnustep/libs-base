@@ -1,3 +1,17 @@
+Tue Feb 26 18:01:26 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSBundle.m: Removed all _releasedBundles machinery.
+	Removed custom implementation of -release.  Retain a bundle after
+	we load it.  This fixes -bundleForClass: and simplifies
+	considerably the code.
+
+	* Source/NSBundle.m: Whenever possible, use [self method] rather
+	than [NSBundle method] to invoke a class method for efficiency.
+
+	* Source/NSBundle.m (objc_executable_location): Return
+	_executable_location directly - using mainBundle is unsafe since
+	it might be nil.
+	
 Tue Feb 26 17:35:03 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSBundle.m (_bundle_load_callback): Completely ignore
