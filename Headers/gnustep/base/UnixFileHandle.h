@@ -29,64 +29,76 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSRunLoop.h>
 
+#include <GSConfig.h>
+
+#if	HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 @interface UnixFileHandle : NSFileHandle <RunLoopEvents, GCFinalization>
 {
-    int				descriptor;
-    BOOL			closeOnDealloc;
-    BOOL			isStandardFile;
-    BOOL			isNullDevice;
-    BOOL			isNonBlocking;
-    BOOL			wasNonBlocking;
-    BOOL			acceptOK;
-    BOOL			connectOK;
-    BOOL			readOK;
-    BOOL			writeOK;
-    NSMutableDictionary		*readInfo;
-    int				readPos;
-    NSMutableArray		*writeInfo;
-    int				writePos;
-    NSString			*address;
-    NSString			*service;
-    NSString			*protocol;
+  int			descriptor;
+  BOOL			closeOnDealloc;
+  BOOL			isStandardFile;
+  BOOL			isNullDevice;
+  BOOL			isNonBlocking;
+  BOOL			wasNonBlocking;
+  BOOL			acceptOK;
+  BOOL			connectOK;
+  BOOL			readOK;
+  BOOL			writeOK;
+  NSMutableDictionary	*readInfo;
+  int			readPos;
+  NSMutableArray	*writeInfo;
+  int			writePos;
+  NSString		*address;
+  NSString		*service;
+  NSString		*protocol;
+#if	HAVE_ZLIB
+  gzFile		gzDescriptor;
+#endif
 }
 
-- (id)initAsClientAtAddress:address
-		    service:service
-		   protocol:protocol;
-- (id)initAsClientInBackgroundAtAddress:address
-				service:service
-			       protocol:protocol
-			       forModes:modes;
-- (id)initAsServerAtAddress:address
-		    service:service
-		   protocol:protocol;
-- (id)initForReadingAtPath:(NSString*)path;
-- (id)initForWritingAtPath:(NSString*)path;
-- (id)initForUpdatingAtPath:(NSString*)path;
-- (id)initWithStandardError;
-- (id)initWithStandardInput;
-- (id)initWithStandardOutput;
-- (id)initWithNullDevice;
+- (id) initAsClientAtAddress: (NSString*)address
+		     service: (NSString*)service
+		    protocol: (NSString*)protocol;
+- (id) initAsClientInBackgroundAtAddress: (NSString*)address
+				 service: (NSString*)service
+				protocol: (NSString*)protocol
+				forModes: (NSArray*)modes;
+- (id) initAsServerAtAddress: (NSString*)address
+		     service: (NSString*)service
+		    protocol: (NSString*)protocol;
+- (id) initForReadingAtPath: (NSString*)path;
+- (id) initForWritingAtPath: (NSString*)path;
+- (id) initForUpdatingAtPath: (NSString*)path;
+- (id) initWithStandardError;
+- (id) initWithStandardInput;
+- (id) initWithStandardOutput;
+- (id) initWithNullDevice;
 
-- (void)checkAccept;
-- (void)checkConnect;
-- (void)checkRead;
-- (void)checkWrite;
+- (void) checkAccept;
+- (void) checkConnect;
+- (void) checkRead;
+- (void) checkWrite;
 
-- (void)ignoreReadDescriptor;
-- (void)ignoreWriteDescriptor;
-- (void)setNonBlocking:(BOOL)flag;
-- (void)postReadNotification;
-- (void)postWriteNotification;
-- (void)receivedEvent: (void*)data
-		 type: (RunLoopEventType)type
-	        extra: (void*)extra
-	      forMode: (NSString*)mode;
-- (NSDate*)timedOutEvent: (void*)data
+- (void) ignoreReadDescriptor;
+- (void) ignoreWriteDescriptor;
+- (void) setNonBlocking: (BOOL)flag;
+- (void) postReadNotification;
+- (void) postWriteNotification;
+- (void) receivedEvent: (void*)data
+		  type: (RunLoopEventType)type
+	         extra: (void*)extra
+	       forMode: (NSString*)mode;
+- (NSDate*) timedOutEvent: (void*)data
 		    type: (RunLoopEventType)type
 		 forMode: (NSString*)mode;
-- (void)watchReadDescriptorForModes:(NSArray*)modes;
-- (void)watchWriteDescriptor;
+#ifndef	NO_GNUSTEP
+- (BOOL) useCompression;
+#endif
+- (void) watchReadDescriptorForModes: (NSArray*)modes;
+- (void) watchWriteDescriptor;
 
 @end
 

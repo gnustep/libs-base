@@ -552,9 +552,20 @@ AC_CHECK_FUNCS(shmctl)
 AC_CHECK_FUNCS(mmap)
 
 #--------------------------------------------------------------------
-# This function needed by UnixFileHandle.m
+# These used by UnixFileHandle.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(inet_aton)
+HAVE_ZLIB=0
+AC_CHECK_HEADERS(zlib.h)
+if test $ac_cv_header_zlib_h = yes; then
+  AC_CHECK_LIB(z, gzopen, zlib_ok=yes, zlib_ok=no)
+  if test "$zlib_ok" = yes; then
+    base_libs="$LIBS"
+    LIBS="$LIBS -lz"
+    HAVE_ZLIB=1
+  fi
+fi
+AC_SUBST(HAVE_ZLIB)
 
 #--------------------------------------------------------------------
 # These functions needed by NSTask.m

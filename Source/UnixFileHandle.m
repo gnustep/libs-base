@@ -215,6 +215,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
+#if	HAVE_ZLIB
+  /*
+   * The gzDescriptor should always be closed when we have done with it.
+   */
+  if (gzDescriptor != 0)
+    {
+      gzclose(gzDescriptor);
+    }
+#endif
   if (descriptor != -1)
     {
       [self setNonBlocking: wasNonBlocking];
@@ -686,10 +695,22 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkRead];
   if (isNonBlocking == YES)
-    [self setNonBlocking: NO];
+    {
+      [self setNonBlocking: NO];
+    }
   d = [NSMutableData dataWithCapacity: 0];
   if (isStandardFile)
     {
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  while ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
+	    {
+	      [d appendBytes: buf length: len];
+	    }
+	}
+      else
+#endif
       while ((len = read(descriptor, buf, sizeof(buf))) > 0)
         {
 	  [d appendBytes: buf length: len];
@@ -697,6 +718,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  if ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
+	    {
+	      [d appendBytes: buf length: len];
+	    }
+	}
+      else
+#endif
       if ((len = read(descriptor, buf, sizeof(buf))) > 0)
 	{
 	  [d appendBytes: buf length: len];
@@ -721,6 +752,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
   d = [NSMutableData dataWithCapacity: 0];
+#if	HAVE_ZLIB
+  if (gzDescriptor != 0)
+    {
+      while ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
+	{
+	  [d appendBytes: buf length: len];
+	}
+    }
+  else
+#endif
   while ((len = read(descriptor, buf, sizeof(buf))) > 0)
     {
       [d appendBytes: buf length: len];
@@ -748,7 +789,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       buf = NSZoneMalloc(NSDefaultMallocZone(), len);
       d = [NSMutableData dataWithBytesNoCopy: buf length: len];
-      if ((got = read(descriptor, [d mutableBytes], len)) < 0)
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  got = gzread(gzDescriptor, [d mutableBytes], len);
+	}
+      else
+#endif
+      got = read(descriptor, [d mutableBytes], len);
+      if (got < 0)
 	{
 	  [NSException raise: NSFileHandleOperationException
 		      format: @"unable to read from descriptor - %s",
@@ -765,6 +814,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
 
+#if	HAVE_ZLIB
+	  if (gzDescriptor != 0)
+	    {
+	      got = gzread(gzDescriptor, buf, chunk);
+	    }
+	  else
+#endif
 	  got = read(descriptor, buf, chunk);
 	  if (got > 0)
 	    {
@@ -803,6 +859,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  toWrite = NETBUF_SIZE;
 	}
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  rval = gzwrite(gzDescriptor, (char*)ptr+pos, toWrite);
+	}
+      else
+#endif
       rval = write(descriptor, (char*)ptr+pos, toWrite);
       if (rval < 0)
 	{
@@ -905,7 +968,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   off_t	result = -1;
 
   if (isStandardFile && descriptor >= 0)
-    result = lseek(descriptor, 0, SEEK_CUR);
+    {
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  result = gzseek(gzDescriptor, 0, SEEK_CUR);
+	}
+      else
+#endif
+      result = lseek(descriptor, 0, SEEK_CUR);
+    }
   if (result < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -920,7 +992,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   off_t	result = -1;
 
   if (isStandardFile && descriptor >= 0)
-    result = lseek(descriptor, 0, SEEK_END);
+    {
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  result = gzseek(gzDescriptor, 0, SEEK_END);
+	}
+      else
+#endif
+      result = lseek(descriptor, 0, SEEK_END);
+    }
   if (result < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -935,7 +1016,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   off_t	result = -1;
 
   if (isStandardFile && descriptor >= 0)
-    result = lseek(descriptor, (off_t)pos, SEEK_SET);
+    {
+#if	HAVE_ZLIB
+      if (gzDescriptor != 0)
+	{
+	  result = gzseek(gzDescriptor, (off_t)pos, SEEK_SET);
+	}
+      else
+#endif
+      result = lseek(descriptor, (off_t)pos, SEEK_SET);
+    }
   if (result < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -957,6 +1047,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreWriteDescriptor];
 
   [self setNonBlocking: wasNonBlocking];
+#if	HAVE_ZLIB
+  if (gzDescriptor != 0)
+    {
+      gzclose(gzDescriptor);
+      gzDescriptor = 0;
+    }
+#endif
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
@@ -1094,7 +1191,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   modes = nil;
 
   if (readInfo)
-    modes = (NSArray*)[readInfo objectForKey: NSFileHandleNotificationMonitorModes];
+    {
+      modes = (NSArray*)[readInfo objectForKey:
+	NSFileHandleNotificationMonitorModes];
+    }
 
   if (modes && [modes count])
     {
@@ -1277,6 +1377,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
 	  length = [item length];
 
+#if	HAVE_ZLIB
+	  if (gzDescriptor != 0)
+	    {
+	      received = gzread(gzDescriptor, buf, sizeof(buf));
+	    }
+	  else
+#endif
 	  received = read(descriptor, buf, sizeof(buf));
 	  if (received == 0)
 	    { // Read up to end of file.
@@ -1324,6 +1431,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    {
 	      int	written;
 
+#if	HAVE_ZLIB
+	      if (gzDescriptor != 0)
+		{
+		  written = gzwrite(gzDescriptor, (char*)ptr+writePos,
+		    length-writePos);
+		}
+	      else
+#endif
 	      written = write(descriptor, (char*)ptr+writePos, length-writePos);
 	      if (written <= 0)
 		{
@@ -1433,6 +1548,45 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return service;
 }
 
+- (BOOL) useCompression
+{
+#if	HAVE_ZLIB
+  int	d;
+
+  if (gzDescriptor != 0)
+    {
+      return YES;	// Already open
+    }
+  if (descriptor < 0)
+    {
+      return NO;	// No descriptor available.
+    }
+  if (readOK == YES && writeOK == YES)
+    {
+      return NO;	// Can't both read and write.
+    }
+  d = dup(descriptor);
+  if (d < 0)
+    {
+      return NO;	// No descriptor available.
+    }
+  if (readOK == YES)
+    {
+      gzDescriptor = gzdopen(d, "rb");
+    }
+  else
+    {
+      gzDescriptor = gzdopen(d, "wb");
+    }
+  if (gzDescriptor == 0)
+    {
+      close(d);
+      return NO;	// Open attempt failed.
+    }
+  return YES;
+#endif
+  return NO;
+}
 @end
 
 

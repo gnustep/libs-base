@@ -133,6 +133,7 @@ GS_EXPORT NSString*	NSFileHandleOperationException;
 - (NSString*) socketAddress;
 - (NSString*) socketService;
 - (NSString*) socketProtocol;
+- (BOOL) useCompression;
 - (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes;
 - (void) writeInBackgroundAndNotify: (NSData*)item;
 - (BOOL) writeInProgress;
