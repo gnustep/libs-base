@@ -24,6 +24,12 @@ gracefully handled.
 @item NSUserDefaults has been implemented, thanks to Georg Tuparev
 <tuparev@@NMR.EMBL-Heidelberg.DE>.
 
+@item NSScanner has been implemented, thanks to Eric Norum
+<Eric.Norum@@usask.ca>.
+
+@item NSCharacterSet has a new caching scheme, and is now faster than
+NeXT's implementation.
+
 @item Preliminary thread-safety work has been done.  NSObject and
 NSAutoreleasePool should be thread-safe.
 
