@@ -4576,7 +4576,7 @@ printf(
       if (getuid () == 0)
 #endif
 	{
-	  int	desc = open(pidfile, O_EXCL|O_CREAT, 0644);
+	  int	desc = open(pidfile, O_EXCL|O_CREAT|O_WRONLY, 0644);
 	  fptr = fdopen(desc, "w");
 
 	  if (fptr == 0)
