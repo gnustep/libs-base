@@ -1,3 +1,8 @@
+Thu Dec  3 11:00:46 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* aclocal.m4: Add OBJC_CON_AUTOLOAD and OBJC_SYS_AUTOLOAD
+ 	requirements to OBJC_SYS_DYNAMIC_LINKER test.
+
 Wed Dec  2 16:11:05 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/NSDictionary.m (-fileGroupOwnerAccountName): New method.
