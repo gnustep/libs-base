@@ -1839,13 +1839,13 @@ static NSFileManager* defaultManager = nil;
 - (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path
 {
 #ifdef HAVE_READLINK
-  char  lpath[PATH_MAX];
+  char  buf[PATH_MAX];
   const char* lpath = [self fileSystemRepresentationWithPath: path];
-  int   llen = readlink(lpath, lpath, PATH_MAX-1);
+  int   llen = readlink(lpath, buf, PATH_MAX-1);
 
   if (llen > 0)
     {
-      return [self stringWithFileSystemRepresentation: lpath length: llen];
+      return [self stringWithFileSystemRepresentation: buf length: llen];
     }
   else
     {
