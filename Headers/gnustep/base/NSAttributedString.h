@@ -3,7 +3,7 @@
 
    String class with attributes
 
-   Copyright (C) 1997,1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,1999 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
    Date: November 1997
@@ -55,29 +55,34 @@
 
 @interface NSAttributedString : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
-  
 }
 
 //Creating an NSAttributedString
-- (id)initWithString:(NSString *)aString;
-- (id)initWithAttributedString:(NSAttributedString *)attributedString;
-- (id)initWithString:(NSString *)aString attributes:(NSDictionary *)attributes;
+- (id) initWithString: (NSString*)aString;
+- (id) initWithAttributedString: (NSAttributedString*)attributedString;
+- (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes;
 
 //Retrieving character information
-- (unsigned int)length;
-- (NSString *)string;//Primitive method!
+- (unsigned) length;
+- (NSString*) string;					//Primitive method!
 
 //Retrieving attribute information
-- (NSDictionary *)attributesAtIndex:(unsigned int)index effectiveRange:(NSRange *)aRange;//Primitive method!
-- (NSDictionary *)attributesAtIndex:(unsigned int)index longestEffectiveRange:(NSRange *)aRange inRange:(NSRange)rangeLimit;
-- (id)attribute:(NSString *)attributeName atIndex:(unsigned int)index effectiveRange:(NSRange *)aRange;
-- (id)attribute:(NSString *)attributeName atIndex:(unsigned int)index longestEffectiveRange:(NSRange *)aRange inRange:(NSRange)rangeLimit;
+- (NSDictionary*) attributesAtIndex: (unsigned)index
+		     effectiveRange: (NSRange*)aRange;	//Primitive method!
+- (NSDictionary*) attributesAtIndex: (unsigned)index
+	      longestEffectiveRange: (NSRange*)aRange
+			    inRange: (NSRange)rangeLimit;
+- (id) attribute: (NSString*)attributeName
+	 atIndex: (unsigned)index
+  effectiveRange: (NSRange*)aRange;
+- (id) attribute: (NSString*)attributeName atIndex: (unsigned)index
+  longestEffectiveRange: (NSRange*)aRange inRange: (NSRange)rangeLimit;
 
 //Comparing attributed strings
-- (BOOL)isEqualToAttributedString:(NSAttributedString *)otherString;
+- (BOOL) isEqualToAttributedString: (NSAttributedString*)otherString;
 
 //Extracting a substring
-- (NSAttributedString *)attributedSubstringFromRange:(NSRange)aRange;
+- (NSAttributedString*) attributedSubstringFromRange: (NSRange)aRange;
 
 @end //NSAttributedString
 
@@ -87,27 +92,31 @@
 }
 
 //Retrieving character information
-- (NSMutableString *)mutableString;
+- (NSMutableString*) mutableString;
 
 //Changing characters
-- (void)deleteCharactersInRange:(NSRange)aRange;
+- (void) deleteCharactersInRange: (NSRange)aRange;
 
 //Changing attributes
-- (void)setAttributes:(NSDictionary *)attributes range:(NSRange)aRange;//Primitive method!
-- (void)addAttribute:(NSString *)name value:(id)value range:(NSRange)aRange;
-- (void)addAttributes:(NSDictionary *)attributes range:(NSRange)aRange;
-- (void)removeAttribute:(NSString *)name range:(NSRange)aRange;
+- (void) setAttributes: (NSDictionary*)attributes
+		 range: (NSRange)aRange;		//Primitive method!
+- (void) addAttribute: (NSString*)name value: (id)value range: (NSRange)aRange;
+- (void) addAttributes: (NSDictionary*)attributes range: (NSRange)aRange;
+- (void) removeAttribute: (NSString*)name range: (NSRange)aRange;
 
 //Changing characters and attributes
-- (void)appendAttributedString:(NSAttributedString *)attributedString;
-- (void)insertAttributedString:(NSAttributedString *)attributedString atIndex:(unsigned int)index;
-- (void)replaceCharactersInRange:(NSRange)aRange withAttributedString:(NSAttributedString *)attributedString;
-- (void)replaceCharactersInRange:(NSRange)aRange withString:(NSString *)aString;//Primitive method!
-- (void)setAttributedString:(NSAttributedString *)attributedString;
+- (void) appendAttributedString: (NSAttributedString*)attributedString;
+- (void) insertAttributedString: (NSAttributedString*)attributedString
+			atIndex: (unsigned)index;
+- (void) replaceCharactersInRange: (NSRange)aRange
+	     withAttributedString: (NSAttributedString*)attributedString;
+- (void) replaceCharactersInRange: (NSRange)aRange
+		       withString: (NSString*)aString;	//Primitive method!
+- (void) setAttributedString: (NSAttributedString*)attributedString;
 
 //Grouping changes
-- (void)beginEditing;
-- (void)endEditing;
+- (void) beginEditing;
+- (void) endEditing;
 
 @end //NSMutableAttributedString
 

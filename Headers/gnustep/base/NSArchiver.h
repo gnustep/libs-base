@@ -30,31 +30,31 @@
 
 @interface NSArchiver : NSCoder
 {
-  NSMutableData	*data;		/* Data to write into.		*/
-  id		dst;		/* Serialization destination.	*/
-  IMP		serImp;		/* Method to serialize with.	*/
-  IMP		tagImp;		/* Serialize a type tag.	*/
-  IMP		xRefImp;	/* Serialize a crossref.	*/
-  IMP		eObjImp;	/* Method to encode an id.	*/
-  IMP		eValImp;	/* Method to encode others.	*/
+  NSMutableData	*_data;		/* Data to write into.		*/
+  id		_dst;		/* Serialization destination.	*/
+  IMP		_serImp;		/* Method to serialize with.	*/
+  IMP		_tagImp;		/* Serialize a type tag.	*/
+  IMP		_xRefImp;	/* Serialize a crossref.	*/
+  IMP		_eObjImp;	/* Method to encode an id.	*/
+  IMP		_eValImp;	/* Method to encode others.	*/
 #ifndef	_IN_NSARCHIVER_M
 #define	GSIMapTable	void*
 #endif
-  GSIMapTable	clsMap;		/* Class cross references.	*/
-  GSIMapTable	cIdMap;		/* Conditionally coded.		*/
-  GSIMapTable	uIdMap;		/* Unconditionally coded.	*/
-  GSIMapTable	ptrMap;		/* Constant pointers.		*/
-  GSIMapTable	namMap;		/* Mappings for class names.	*/
-  GSIMapTable	repMap;		/* Mappings for objects.	*/
+  GSIMapTable	_clsMap;		/* Class cross references.	*/
+  GSIMapTable	_cIdMap;		/* Conditionally coded.		*/
+  GSIMapTable	_uIdMap;		/* Unconditionally coded.	*/
+  GSIMapTable	_ptrMap;		/* Constant pointers.		*/
+  GSIMapTable	_namMap;		/* Mappings for class names.	*/
+  GSIMapTable	_repMap;		/* Mappings for objects.	*/
 #ifndef	_IN_NSARCHIVER_M
 #undef	GSIMapTable
 #endif
-  unsigned	xRefC;		/* Counter for cross-reference.	*/
-  unsigned	xRefO;		/* Counter for cross-reference.	*/
-  unsigned	xRefP;		/* Counter for cross-reference.	*/
-  unsigned	startPos;	/* Where in data we started.	*/
-  BOOL		isEncodingRootObject;
-  BOOL		isInPreparatoryPass;
+  unsigned	_xRefC;		/* Counter for cross-reference.	*/
+  unsigned	_xRefO;		/* Counter for cross-reference.	*/
+  unsigned	_xRefP;		/* Counter for cross-reference.	*/
+  unsigned	_startPos;	/* Where in data we started.	*/
+  BOOL		_encodingRoot;
+  BOOL		_initialPass;
 }
 
 /* Initializing an archiver */

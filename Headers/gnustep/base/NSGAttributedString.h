@@ -52,8 +52,8 @@
 
 @interface NSGAttributedString : NSAttributedString
 {
-  NSString		*textChars;
-  NSMutableArray	*infoArray;
+  NSString		*_textChars;
+  NSMutableArray	*_infoArray;
 }
 
 - (id) initWithString: (NSString*)aString
@@ -66,8 +66,8 @@
 
 @interface NSGMutableAttributedString : NSMutableAttributedString
 {
-  NSMutableString	*textChars;
-  NSMutableArray	*infoArray;
+  NSMutableString	*_textChars;
+  NSMutableArray	*_infoArray;
 }
 
 - (id) initWithString: (NSString*)aString

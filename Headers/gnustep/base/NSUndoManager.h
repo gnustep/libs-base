@@ -42,18 +42,18 @@ extern NSString	*NSUndoManagerWillUndoChangeNotification;
 @interface NSUndoManager: NSObject
 {
 @private
-    NSMutableArray	*redoStack;
-    NSMutableArray	*undoStack;
-    NSString		*actionName;
-    id			group;
-    id			nextTarget;
-    NSArray		*modes;
-    BOOL		isRedoing;
-    BOOL		isUndoing;
-    BOOL		groupsByEvent;
-    BOOL		registeredUndo;
-    unsigned		disableCount;
-    unsigned		levelsOfUndo;
+    NSMutableArray	*_redoStack;
+    NSMutableArray	*_undoStack;
+    NSString		*_actionName;
+    id			_group;
+    id			_nextTarget;
+    NSArray		*_modes;
+    BOOL		_isRedoing;
+    BOOL		_isUndoing;
+    BOOL		_groupsByEvent;
+    BOOL		_registeredUndo;
+    unsigned		_disableCount;
+    unsigned		_levelsOfUndo;
 }
 
 - (void) beginUndoGrouping;

@@ -43,9 +43,9 @@ extern NSString	*NSLocalNotificationCenterType;
 
 @interface	NSDistributedNotificationCenter : NSObject
 {
-  NSRecursiveLock *centerLock;	/* For thread safety.		*/
-  id		remote;		/* Proxy for center.		*/
-  BOOL		suspended;	/* Is delivery suspended?	*/
+  NSRecursiveLock *_centerLock;	/* For thread safety.		*/
+  id		_remote;		/* Proxy for center.		*/
+  BOOL		_suspended;	/* Is delivery suspended?	*/
 }
 + (id) defaultCenter;
 + (id) notificationCenterForType: (NSString*)type;

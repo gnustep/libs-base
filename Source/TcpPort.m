@@ -1080,7 +1080,7 @@ static NSMapTable* port_number_2_port;
      don't create a new one, just return the old one. */
   if ((p = (id) NSMapGet (port_number_2_port, (void*)((int)n))))
     {
-      NSAssert(p->is_valid, NSInternalInconsistencyException);
+      NSAssert(p->_is_valid, NSInternalInconsistencyException);
       return [p retain];
     }
 
@@ -1283,7 +1283,7 @@ static NSMapTable* port_number_2_port;
 
 - (struct sockaddr_in*) _listeningSockaddr
 {
-  NSAssert(is_valid, NSInternalInconsistencyException);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
   return &_listening_address;
 }
 
@@ -1520,7 +1520,7 @@ static NSMapTable* port_number_2_port;
 {
   int s = [p _port_socket];
 
-  NSAssert(is_valid, NSInternalInconsistencyException);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
   /* Make sure it hasn't already been added. */
   NSAssert(!NSMapGet (_client_sock_2_out_port, (void*)s), NSInternalInconsistencyException);
 
@@ -1534,7 +1534,7 @@ static NSMapTable* port_number_2_port;
   id packet;
   int s = [p _port_socket];
 
-  NSAssert(is_valid, NSInternalInconsistencyException);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
   if (debug_tcp_port)
     NSLog(@"%s: Closed connection from\n %@\n",
 	     object_get_class_name (self), [p description]);
@@ -1572,7 +1572,7 @@ static NSMapTable* port_number_2_port;
 
 - (void) invalidate
 {
-  if (is_valid)
+  if (_is_valid)
     {
       NSMapEnumerator me = NSEnumerateMapTable (_client_sock_2_out_port);
       int count = NSCountMapTable (_client_sock_2_out_port);
@@ -1644,7 +1644,7 @@ static NSMapTable* port_number_2_port;
   return [NSString
 	   stringWithFormat: @"%s%c0x%x port %hd socket %d",
 	   object_get_class_name (self),
-	   is_valid ? ' ' : '-',
+	   _is_valid ? ' ' : '-',
 	   (unsigned)self,
 	   GSSwapBigI16ToHost(_listening_address.sin_port),
 	   _port_socket];
@@ -1668,7 +1668,7 @@ static NSMapTable* port_number_2_port;
 
 - (void) encodeWithCoder: aCoder
 {
-  NSAssert(is_valid, NSInternalInconsistencyException);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
   /* We are actually encoding a "send right" (ala Mach), 
      not a receive right.  
      These values must match those expected by [TcpOutPort +newWithCoder] */
@@ -1770,7 +1770,7 @@ static NSMapTable *out_port_bag = NULL;
 	    /* Assume that sin_family is equal.  Using memcmp() doesn't
 	       work because sin_zero's may differ. */
 	    {
-	      NSAssert(p->is_valid, NSInternalInconsistencyException);
+	      NSAssert(p->_is_valid, NSInternalInconsistencyException);
 	      return [p retain];
 	    }
 	}
@@ -1835,7 +1835,7 @@ static NSMapTable *out_port_bag = NULL;
 	}
       if (p)
 	{
-	  NSAssert(p->is_valid, NSInternalInconsistencyException);
+	  NSAssert(p->_is_valid, NSInternalInconsistencyException);
 	  return [p retain];
 	}
     }
@@ -2016,7 +2016,7 @@ static NSMapTable *out_port_bag = NULL;
 {
   id reply_port = [packet replyInPort];
 
-  NSAssert(is_valid, NSInternalInconsistencyException);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
 
   /* If the socket of this TcpOutPort isn't already being polled
      for incoming data by a TcpInPort, and if the packet's REPLY_PORT
@@ -2070,7 +2070,7 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) invalidate
 {
-  if (is_valid)
+  if (_is_valid)
     {
       id	port = _polling_in_port;
 
@@ -2145,7 +2145,7 @@ static NSMapTable *out_port_bag = NULL;
   return [NSString 
 	   stringWithFormat: @"%s%c0x%x host %s port %hd socket %d",
 	   object_get_class_name (self),
-	   is_valid ? ' ' : '-',
+	   _is_valid ? ' ' : '-',
 	   (unsigned)self,
 	   inet_ntoa (_remote_in_port_address.sin_addr),
 	   GSSwapBigI16ToHost(_remote_in_port_address.sin_port),
@@ -2154,7 +2154,7 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) encodeWithCoder: aCoder
 {
-  NSAssert(is_valid, NSInternalInconsistencyException);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
   NSAssert(!_polling_in_port 
 	  || (GSSwapBigI16ToHost(_remote_in_port_address.sin_port)
       != [_polling_in_port portNumber]), NSInternalInconsistencyException);

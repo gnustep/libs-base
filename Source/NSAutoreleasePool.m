@@ -127,7 +127,7 @@ static IMP	initImp;
 {
   if (!_released_head)
     {
-      addImp = (void (*)(id, SEL, id))
+      _addImp = (void (*)(id, SEL, id))
 	[self methodForSelector: @selector(addObject:)];
       /* Allocate the array that will be the new head of the list of arrays. */
       _released = (struct autorelease_array_list*)
@@ -229,7 +229,7 @@ static IMP	initImp;
   NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
 
   if (pool)
-    (*pool->addImp)(pool, @selector(addObject:), anObj);
+    (*pool->_addImp)(pool, @selector(addObject:), anObj);
   else
     {
       NSAutoreleasePool	*arp = [NSAutoreleasePool new];

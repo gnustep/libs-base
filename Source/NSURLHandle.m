@@ -1,4 +1,4 @@
-/* NSURLHandle.h - Class NSURLHandle
+/* NSURLHandle.m - Class NSURLHandle
    Copyright (C) 1999 Free Software Foundation, Inc.
    
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>

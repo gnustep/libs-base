@@ -1,5 +1,5 @@
 /* Interface for NSDictionary for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+  */ 
 
 #ifndef _NSDictionary_h_GNUSTEP_BASE_INCLUDE
 #define _NSDictionary_h_GNUSTEP_BASE_INCLUDE
@@ -29,40 +29,41 @@
 @class NSArray, NSString, NSEnumerator;
 
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
-- initWithObjects: (id*)objects
-	  forKeys: (id*)keys
-	    count: (unsigned)count;
+- (id) initWithObjects: (id*)objects
+	       forKeys: (id*)keys
+		 count: (unsigned)count;
 - (unsigned) count;
-- objectForKey: (id)aKey;
+- (id) objectForKey: (id)aKey;
 - (NSEnumerator*) keyEnumerator;
 - (NSEnumerator*) objectEnumerator;
 @end
 
 @interface NSDictionary (NonCore)
 
-+ allocWithZone: (NSZone*)zone;
-+ dictionary;
-+ dictionaryWithContentsOfFile:(NSString *)path;
-+ dictionaryWithDictionary: (NSDictionary*)aDict;
-+ dictionaryWithObject: (id)object forKey: (id)key;
-+ dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-+ dictionaryWithObjects: (id*)objects forKeys: (id*)keys
-		  count: (unsigned)count;
-+ dictionaryWithObjectsAndKeys: (id)object, ...;
-- initWithContentsOfFile: (NSString*)path;
-- initWithDictionary: (NSDictionary*)otherDictionary;
-- initWithDictionary: (NSDictionary*)otherDictionary
-	   copyItems: (BOOL)shouldCopy;
-- initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-- initWithObjectsAndKeys: (id)object, ...;
++ (id) allocWithZone: (NSZone*)zone;
++ (id) dictionary;
++ (id) dictionaryWithContentsOfFile: (NSString*)path;
++ (id) dictionaryWithDictionary: (NSDictionary*)aDict;
++ (id) dictionaryWithObject: (id)object forKey: (id)key;
++ (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
++ (id) dictionaryWithObjects: (id*)objects
+		     forKeys: (id*)keys
+		       count: (unsigned)count;
++ (id) dictionaryWithObjectsAndKeys: (id)object, ...;
+- (id) initWithContentsOfFile: (NSString*)path;
+- (id) initWithDictionary: (NSDictionary*)otherDictionary;
+- (id) initWithDictionary: (NSDictionary*)otherDictionary
+		copyItems: (BOOL)shouldCopy;
+- (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
+- (id) initWithObjectsAndKeys: (id)object, ...;
 
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 
 - (NSArray*) allKeys;
-- (NSArray*) allKeysForObject: anObject;
+- (NSArray*) allKeysForObject: (id)anObject;
 - (NSArray*) allValues;
 - (NSArray*) keysSortedByValueUsingSelector: (SEL)comp;
-- (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)abObject;
+- (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)anObject;
 
 - (NSString*) description;
 - (NSString*) descriptionInStringsFileFormat;
@@ -72,20 +73,20 @@
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 
-/* Accessing file attributes is a catagory declared in NSFileManager.h */
+/* Accessing file attributes is a catagory declared in NSFileManager.h*/
 
 @end
 
 @interface NSMutableDictionary: NSDictionary
-- initWithCapacity: (unsigned)numItems;
-- (void) setObject:anObject forKey:(id)aKey;
-- (void) removeObjectForKey:(id)aKey;
+- (id) initWithCapacity: (unsigned)numItems;
+- (void) setObject: (id)anObject forKey: (id)aKey;
+- (void) removeObjectForKey: (id)aKey;
 @end
 
 @interface NSMutableDictionary (NonCore)
 
-+ allocWithZone: (NSZone*)zone;
-+ dictionaryWithCapacity: (unsigned)numItems;
++ (id) allocWithZone: (NSZone*)zone;
++ (id) dictionaryWithCapacity: (unsigned)numItems;
 
 - (void) removeAllObjects;
 - (void) removeObjectsForKeys: (NSArray*)keyArray;
@@ -99,17 +100,17 @@
 #include <base/KeyedCollecting.h>
 #include <Foundation/NSDictionary.h>
 
-/* Eventually we'll make a Constant version of this protocol. */
+/* Eventually we'll make a Constant version of this protocol.*/
 @interface NSDictionary (GNU) <KeyedCollecting>
 @end
 
 @interface NSMutableDictionary (GNU)
 + (unsigned) defaultCapacity;
-- initWithType: (const char *)contentEncoding
-    keyType: (const char *)keyEncoding
-    capacity: (unsigned)aCapacity;
+- (id) initWithType: (const char*)contentEncoding
+	    keyType: (const char*)keyEncoding
+	   capacity: (unsigned)aCapacity;
 @end
 
-#endif /* NO_GNUSTEP */
+#endif /* NO_GNUSTEP*/
 
 #endif

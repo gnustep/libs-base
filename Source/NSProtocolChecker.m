@@ -56,7 +56,7 @@
 		  userInfo: nil]
       raise];
       
-  [anInvocation invokeWithTarget: myTarget];
+  [anInvocation invokeWithTarget: _myTarget];
   
   length = [[anInvocation methodSignature] methodReturnLength];
   buffer = (void *)malloc(length);
@@ -66,7 +66,7 @@
 		  [[anInvocation methodSignatureForSelector: 
 				  @selector(init: )] methodReturnType]) )
     {
-      if (((id)buffer) == myTarget)
+      if (((id)buffer) == _myTarget)
    	{
 	  ((id)buffer) = self;
 	  [anInvocation setReturnValue: buffer];
@@ -79,8 +79,8 @@
 
 - (id) init
 {
-  myProtocol = nil;
-  myTarget = nil;
+  _myProtocol = nil;
+  _myTarget = nil;
   
   return self;
 }
@@ -96,9 +96,9 @@
 {
   [super init];
   
-  myProtocol = aProtocol;
+  _myProtocol = aProtocol;
   
-  ASSIGN(myTarget, anObject);
+  ASSIGN(_myTarget, anObject);
   
   return self;
 }
@@ -109,7 +109,7 @@
 
 - (struct objc_method_description *)methodDescriptionForSelector: (SEL)aSelector
 {
-  return [myProtocol descriptionForInstanceMethod: aSelector];
+  return [_myProtocol descriptionForInstanceMethod: aSelector];
 }
 
 // Returns the protocol object the checker uses to verify whether a
@@ -118,20 +118,20 @@
 
 - (Protocol *)protocol
 {
-  if (nil == myProtocol)
+  if (nil == _myProtocol)
     [[NSException exceptionWithName: NSInvalidArgumentException
 		  reason: @"No protocol specified"
 		  userInfo: nil]
       raise];
   
-  return myProtocol;
+  return _myProtocol;
 }
 
 // Returns the target of the NSProtocolChecker.
 
 - (NSObject *)target
 {
-  return myTarget;
+  return _myTarget;
 }
 
 @end

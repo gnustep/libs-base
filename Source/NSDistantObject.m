@@ -25,6 +25,7 @@
 #include <config.h>
 #include <Foundation/DistributedObjects.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSPort.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSException.h>
 

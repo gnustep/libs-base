@@ -77,69 +77,69 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
     {
       NSZone		*zone = [self zone];
 
-      data = RETAIN(anObject);
+      _data = RETAIN(anObject);
       if ([self directDataAccess] == YES)
         {
-	  dst = data;
+	  _dst = _data;
 	}
       else
 	{
-	  dst = self;
+	  _dst = self;
 	}
-      serImp = [dst methodForSelector: serSel];
-      tagImp = [dst methodForSelector: tagSel];
-      xRefImp = [dst methodForSelector: xRefSel];
-      eObjImp = [self methodForSelector: eObjSel];
-      eValImp = [self methodForSelector: eValSel];
+      _serImp = [_dst methodForSelector: serSel];
+      _tagImp = [_dst methodForSelector: tagSel];
+      _xRefImp = [_dst methodForSelector: xRefSel];
+      _eObjImp = [self methodForSelector: eObjSel];
+      _eValImp = [self methodForSelector: eValSel];
 
       [self resetArchiver];
 
       /*
        *	Set up map tables.
        */
-      clsMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*6);
-      cIdMap = &clsMap[1];
-      uIdMap = &clsMap[2];
-      ptrMap = &clsMap[3];
-      namMap = &clsMap[4];
-      repMap = &clsMap[5];
-      GSIMapInitWithZoneAndCapacity(clsMap, zone, 100);
-      GSIMapInitWithZoneAndCapacity(cIdMap, zone, 10);
-      GSIMapInitWithZoneAndCapacity(uIdMap, zone, 200);
-      GSIMapInitWithZoneAndCapacity(ptrMap, zone, 100);
-      GSIMapInitWithZoneAndCapacity(namMap, zone, 1);
-      GSIMapInitWithZoneAndCapacity(repMap, zone, 1);
+      _clsMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*6);
+      _cIdMap = &_clsMap[1];
+      _uIdMap = &_clsMap[2];
+      _ptrMap = &_clsMap[3];
+      _namMap = &_clsMap[4];
+      _repMap = &_clsMap[5];
+      GSIMapInitWithZoneAndCapacity(_clsMap, zone, 100);
+      GSIMapInitWithZoneAndCapacity(_cIdMap, zone, 10);
+      GSIMapInitWithZoneAndCapacity(_uIdMap, zone, 200);
+      GSIMapInitWithZoneAndCapacity(_ptrMap, zone, 100);
+      GSIMapInitWithZoneAndCapacity(_namMap, zone, 1);
+      GSIMapInitWithZoneAndCapacity(_repMap, zone, 1);
     }
   return self;
 }
 
 - (void) dealloc
 {
-  RELEASE(data);
-  if (clsMap)
+  RELEASE(_data);
+  if (_clsMap)
     {
-      GSIMapEmptyMap(clsMap);
-      if (cIdMap)
+      GSIMapEmptyMap(_clsMap);
+      if (_cIdMap)
 	{
-	  GSIMapEmptyMap(cIdMap);
+	  GSIMapEmptyMap(_cIdMap);
 	}
-      if (uIdMap)
+      if (_uIdMap)
 	{
-	  GSIMapEmptyMap(uIdMap);
+	  GSIMapEmptyMap(_uIdMap);
 	}
-      if (ptrMap)
+      if (_ptrMap)
 	{
-	  GSIMapEmptyMap(ptrMap);
+	  GSIMapEmptyMap(_ptrMap);
 	}
-      if (namMap)
+      if (_namMap)
 	{
-	  GSIMapEmptyMap(namMap);
+	  GSIMapEmptyMap(_namMap);
 	}
-      if (repMap)
+      if (_repMap)
 	{
-	  GSIMapEmptyMap(repMap);
+	  GSIMapEmptyMap(_repMap);
 	}
-      NSZoneFree(clsMap->zone, (void*)clsMap);
+      NSZoneFree(_clsMap->zone, (void*)_clsMap);
     }
   return [super dealloc];
 }
@@ -163,7 +163,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       NS_DURING
 	{
 	  [archiver encodeRootObject: rootObject];
-	  d = AUTORELEASE([archiver->data copy]);
+	  d = AUTORELEASE([archiver->_data copy]);
 	}
       NS_HANDLER
 	{
@@ -220,26 +220,26 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
    */
   if (info == _GSC_NONE)
     {
-      if (isInPreparatoryPass == NO)
+      if (_initialPass == NO)
 	{
-	  (*tagImp)(dst, tagSel, _GSC_ARY_B);
-	  (*serImp)(dst, serSel, &count, @encode(unsigned), nil);
+	  (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
+	  (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
 	}
       for (i = 0; i < count; i++)
 	{
-	  (*eValImp)(self, eValSel, type, (char*)buf + offset);
+	  (*_eValImp)(self, eValSel, type, (char*)buf + offset);
 	  offset += size;
 	}
     }
-  else if (isInPreparatoryPass == NO)
+  else if (_initialPass == NO)
     {
-      (*tagImp)(dst, tagSel, _GSC_ARY_B);
-      (*serImp)(dst, serSel, &count, @encode(unsigned), nil);
+      (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
+      (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
 
-      (*tagImp)(dst, tagSel, info);
+      (*_tagImp)(_dst, tagSel, info);
       for (i = 0; i < count; i++)
 	{
-	  (*serImp)(dst, serSel, (char*)buf + offset, type, nil);
+	  (*_serImp)(_dst, serSel, (char*)buf + offset, type, nil);
 	  offset += size;
 	}
     }
@@ -251,7 +251,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
   switch (*type)
     {
       case _C_ID:
-	(*eObjImp)(self, eObjSel, *(void**)buf);
+	(*_eObjImp)(self, eObjSel, *(void**)buf);
 	return;
 
       case _C_ARY_B:
@@ -271,16 +271,16 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	{
 	  int	offset = 0;
 
-	  if (isInPreparatoryPass == NO)
+	  if (_initialPass == NO)
 	    {
-	      (*tagImp)(dst, tagSel, _GSC_STRUCT_B);
+	      (*_tagImp)(_dst, tagSel, _GSC_STRUCT_B);
 	    }
 
 	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
 
 	  for (;;)
 	    {
-	      (*eValImp)(self, eValSel, type, (char*)buf + offset);
+	      (*_eValImp)(self, eValSel, type, (char*)buf + offset);
 	      offset += objc_sizeof_type(type);
 	      type = objc_skip_typespec(type);
 	      if (*type == _C_STRUCT_E)
@@ -304,20 +304,20 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       case _C_PTR:
 	if (*(void**)buf == 0)
 	  {
-	    if (isInPreparatoryPass == NO)
+	    if (_initialPass == NO)
 	      {
 		/*
 		 *	Special case - a nul pointer gets an xref of zero
 		 */
-		(*tagImp)(dst, tagSel, _GSC_PTR | _GSC_XREF | _GSC_X_0);
+		(*_tagImp)(_dst, tagSel, _GSC_PTR | _GSC_XREF | _GSC_X_0);
 	      }
 	  }
 	else
 	  {
 	    GSIMapNode	node;
 
-	    node = GSIMapNodeForKey(ptrMap, (GSIMapKey)*(void**)buf);
-	    if (isInPreparatoryPass == YES)
+	    node = GSIMapNodeForKey(_ptrMap, (GSIMapKey)*(void**)buf);
+	    if (_initialPass == YES)
 	      {
 		/*
 		 *	First pass - add pointer to map and encode item pointed
@@ -325,11 +325,11 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		 */
 		if (node == 0)
 		  {
-		    GSIMapAddPair(ptrMap,
+		    GSIMapAddPair(_ptrMap,
 			(GSIMapKey)*(void**)buf, (GSIMapVal)0);
 		    type++;
 		    buf = *(char**)buf;
-		    (*eValImp)(self, eValSel, type, buf);
+		    (*_eValImp)(self, eValSel, type, buf);
 		  }
 	      }
 	    else if (node == 0 || node->value.uint == 0)
@@ -339,30 +339,30 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		 */
 		if (node == 0)
 		  {
-		    node = GSIMapAddPair(ptrMap,
-			(GSIMapKey)*(void**)buf, (GSIMapVal)++xRefP);
+		    node = GSIMapAddPair(_ptrMap,
+			(GSIMapKey)*(void**)buf, (GSIMapVal)++_xRefP);
 		  }
 		else
 		  {
-		    node->value.uint = ++xRefP;
+		    node->value.uint = ++_xRefP;
 		  }
-		(*xRefImp)(dst, xRefSel, _GSC_PTR, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_PTR, node->value.uint);
 		type++;
 		buf = *(char**)buf;
-		(*eValImp)(self, eValSel, type, buf);
+		(*_eValImp)(self, eValSel, type, buf);
 	      }
 	    else
 	      {
 		/*
 		 *	Second pass, write a cross-reference number.
 		 */
-		(*xRefImp)(dst, xRefSel, _GSC_PTR|_GSC_XREF, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_PTR|_GSC_XREF, node->value.uint);
 	      }
 	  }
 	return;
 
       default:	/* Types that can be ignored in first pass.	*/
-	if (isInPreparatoryPass)
+	if (_initialPass)
 	  {
 	    return;	
 	  }
@@ -377,7 +377,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Special case - a nul pointer gets an xref of zero
 	     */
-	    (*tagImp)(dst, tagSel, _GSC_CLASS | _GSC_XREF | _GSC_X_0);
+	    (*_tagImp)(_dst, tagSel, _GSC_CLASS | _GSC_XREF | _GSC_X_0);
 	  }
 	else
 	  {
@@ -385,11 +385,11 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    GSIMapNode	node;
 	    BOOL	done = NO;
 
-	    node = GSIMapNodeForKey(clsMap, (GSIMapKey)(void*)c);
+	    node = GSIMapNodeForKey(_clsMap, (GSIMapKey)(void*)c);
 	    
 	    if (node != 0)
 	      {
-		(*xRefImp)(dst, xRefSel, _GSC_CLASS | _GSC_XREF,
+		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS | _GSC_XREF,
 		  node->value.uint);
 		return;
 	      }
@@ -404,17 +404,17 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		    [NSException raise: NSInternalInconsistencyException
 				format: @"negative class version"];
 		  }
-		node = GSIMapAddPair(clsMap,
-			(GSIMapKey)(void*)c, (GSIMapVal)++xRefC);
+		node = GSIMapAddPair(_clsMap,
+			(GSIMapKey)(void*)c, (GSIMapVal)++_xRefC);
 		/*
 		 *	Encode tag and crossref number.
 		 */
-		(*xRefImp)(dst, xRefSel, _GSC_CLASS, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS, node->value.uint);
 		/*
 		 *	Encode class, and version.
 		 */
-		(*serImp)(dst, serSel, &c, @encode(Class), nil);
-		(*serImp)(dst, serSel, &version, @encode(unsigned), nil);
+		(*_serImp)(_dst, serSel, &c, @encode(Class), nil);
+		(*_serImp)(_dst, serSel, &version, @encode(unsigned), nil);
 		/*
 		 *	If we have a super class that has not been encoded,
 		 *	we must loop round to encode it here so that its
@@ -423,7 +423,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		 *	[super initWithCoder:ccc]
 		 */
 		if (s == c || s == 0 ||
-			GSIMapNodeForKey(clsMap, (GSIMapKey)(void*)s) != 0)
+			GSIMapNodeForKey(_clsMap, (GSIMapKey)(void*)s) != 0)
 		  {
 		    done = YES;
 		  }
@@ -435,7 +435,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Encode an empty tag to terminate the list of classes.
 	     */
-	    (*tagImp)(dst, tagSel, _GSC_NONE);
+	    (*_tagImp)(_dst, tagSel, _GSC_NONE);
 	  }
 	return;
 
@@ -445,26 +445,26 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Special case - a nul pointer gets an xref of zero
 	     */
-	    (*tagImp)(dst, tagSel, _GSC_SEL | _GSC_XREF | _GSC_X_0);
+	    (*_tagImp)(_dst, tagSel, _GSC_SEL | _GSC_XREF | _GSC_X_0);
 	  }
 	else
 	  {
 	    SEL		s = *(SEL*)buf;
-	    GSIMapNode	node = GSIMapNodeForKey(ptrMap, (GSIMapKey)(void*)s);
+	    GSIMapNode	node = GSIMapNodeForKey(_ptrMap, (GSIMapKey)(void*)s);
 
 	    if (node == 0)
 	      {
-		node = GSIMapAddPair(ptrMap,
-			(GSIMapKey)(void*)s, (GSIMapVal)++xRefP);
-		(*xRefImp)(dst, xRefSel, _GSC_SEL, node->value.uint);
+		node = GSIMapAddPair(_ptrMap,
+			(GSIMapKey)(void*)s, (GSIMapVal)++_xRefP);
+		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.uint);
 		/*
 		 *	Encode selector.
 		 */
-		(*serImp)(dst, serSel, buf, @encode(SEL), nil);
+		(*_serImp)(_dst, serSel, buf, @encode(SEL), nil);
 	      }
 	    else
 	      {
-		(*xRefImp)(dst, xRefSel, _GSC_SEL|_GSC_XREF, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_SEL|_GSC_XREF, node->value.uint);
 	      }
 	  }
 	return;
@@ -475,88 +475,88 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Special case - a nul pointer gets an xref of zero
 	     */
-	    (*tagImp)(dst, tagSel, _GSC_CHARPTR | _GSC_XREF | _GSC_X_0);
+	    (*_tagImp)(_dst, tagSel, _GSC_CHARPTR | _GSC_XREF | _GSC_X_0);
 	  }
 	else
 	  {
 	    GSIMapNode	node;
 
-	    node = GSIMapNodeForKey(ptrMap, (GSIMapKey)*(char**)buf);
+	    node = GSIMapNodeForKey(_ptrMap, (GSIMapKey)*(char**)buf);
 	    if (node == 0)
 	      {
-		node = GSIMapAddPair(ptrMap,
-			(GSIMapKey)*(char**)buf, (GSIMapVal)++xRefP);
-		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR, node->value.uint);
-		(*serImp)(dst, serSel, buf, type, nil);
+		node = GSIMapAddPair(_ptrMap,
+			(GSIMapKey)*(char**)buf, (GSIMapVal)++_xRefP);
+		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR, node->value.uint);
+		(*_serImp)(_dst, serSel, buf, type, nil);
 	      }
 	    else
 	      {
-		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR|_GSC_XREF,
+		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR|_GSC_XREF,
 		  node->value.uint);
 	      }
 	  }
 	return;
 
       case _C_CHR:
-	(*tagImp)(dst, tagSel, _GSC_CHR);
-	(*serImp)(dst, serSel, (void*)buf, @encode(char), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_CHR);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(char), nil);
 	return;
 
       case _C_UCHR:
-	(*tagImp)(dst, tagSel, _GSC_UCHR);
-	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned char), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_UCHR);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned char), nil);
 	return;
 
       case _C_SHT:
-	(*tagImp)(dst, tagSel, _GSC_SHT | _GSC_S_SHT);
-	(*serImp)(dst, serSel, (void*)buf, @encode(short), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_SHT | _GSC_S_SHT);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(short), nil);
 	return;
 
       case _C_USHT:
-	(*tagImp)(dst, tagSel, _GSC_USHT | _GSC_S_SHT);
-	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned short), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_USHT | _GSC_S_SHT);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned short), nil);
 	return;
 
       case _C_INT:
-	(*tagImp)(dst, tagSel, _GSC_INT | _GSC_S_INT);
-	(*serImp)(dst, serSel, (void*)buf, @encode(int), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_INT | _GSC_S_INT);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(int), nil);
 	return;
 
       case _C_UINT:
-	(*tagImp)(dst, tagSel, _GSC_UINT | _GSC_S_INT);
-	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned int), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_UINT | _GSC_S_INT);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned int), nil);
 	return;
 
       case _C_LNG:
-	(*tagImp)(dst, tagSel, _GSC_LNG | _GSC_S_LNG);
-	(*serImp)(dst, serSel, (void*)buf, @encode(long), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_LNG | _GSC_S_LNG);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(long), nil);
 	return;
 
       case _C_ULNG:
-	(*tagImp)(dst, tagSel, _GSC_ULNG | _GSC_S_LNG);
-	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned long), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_ULNG | _GSC_S_LNG);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned long), nil);
 	return;
 
 #ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
-	(*tagImp)(dst, tagSel, _GSC_LNG_LNG | _GSC_S_LNG_LNG);
-	(*serImp)(dst, serSel, (void*)buf, @encode(long long), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_LNG_LNG | _GSC_S_LNG_LNG);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(long long), nil);
 	return;
 
       case _C_ULNG_LNG:
-	(*tagImp)(dst, tagSel, _GSC_ULNG_LNG | _GSC_S_LNG_LNG);
-	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned long long), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_ULNG_LNG | _GSC_S_LNG_LNG);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned long long), nil);
 	return;
 
 #endif
       case _C_FLT:
-	(*tagImp)(dst, tagSel, _GSC_FLT);
-	(*serImp)(dst, serSel, (void*)buf, @encode(float), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_FLT);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(float), nil);
 	return;
 
       case _C_DBL:
-	(*tagImp)(dst, tagSel, _GSC_DBL);
-	(*serImp)(dst, serSel, (void*)buf, @encode(double), nil);
+	(*_tagImp)(_dst, tagSel, _GSC_DBL);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(double), nil);
 	return;
 
       case _C_VOID:
@@ -571,48 +571,48 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 - (void) encodeRootObject: (id)rootObject
 {
-  if (isEncodingRootObject)
+  if (_encodingRoot)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"encoding root object more than once"];
     }
 
-  isEncodingRootObject = YES;
+  _encodingRoot = YES;
 
   /*
    *	First pass - find conditional objects.
    */
-  isInPreparatoryPass = YES;
-  (*eObjImp)(self, eObjSel, rootObject);
+  _initialPass = YES;
+  (*_eObjImp)(self, eObjSel, rootObject);
 
   /*
    *	Second pass - write archive.
    */
-  isInPreparatoryPass = NO;
-  (*eObjImp)(self, eObjSel, rootObject);
+  _initialPass = NO;
+  (*_eObjImp)(self, eObjSel, rootObject);
 
   /*
    *	Write sizes of crossref arrays to head of archive.
    */
-  [self serializeHeaderAt: startPos
+  [self serializeHeaderAt: _startPos
 		  version: [self systemVersion]
-		  classes: clsMap->nodeCount
-		  objects: uIdMap->nodeCount
-		 pointers: ptrMap->nodeCount];
+		  classes: _clsMap->nodeCount
+		  objects: _uIdMap->nodeCount
+		 pointers: _ptrMap->nodeCount];
 
-  isEncodingRootObject = NO;
+  _encodingRoot = NO;
 }
 
 - (void) encodeConditionalObject: (id)anObject
 {
-  if (isEncodingRootObject == NO)
+  if (_encodingRoot == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"conditionally encoding without root object"];
       return;
     }
 
-  if (isInPreparatoryPass)
+  if (_initialPass)
     {
       GSIMapNode	node;
 
@@ -628,7 +628,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
        *	If we have already conditionally encoded this object, we can
        *	ignore it this time.
        */
-      node = GSIMapNodeForKey(cIdMap, (GSIMapKey)anObject);
+      node = GSIMapNodeForKey(_cIdMap, (GSIMapKey)anObject);
       if (node != 0)
 	{
 	  return;
@@ -638,39 +638,39 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
        *	If we have unconditionally encoded this object, we can ignore
        *	it now.
        */
-      node = GSIMapNodeForKey(uIdMap, (GSIMapKey)anObject);
+      node = GSIMapNodeForKey(_uIdMap, (GSIMapKey)anObject);
       if (node != 0)
 	{
 	  return;
 	}
 
-      GSIMapAddPair(cIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
+      GSIMapAddPair(_cIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
     }
   else if (anObject == nil)
     {
-      (*eObjImp)(self, eObjSel, nil);
+      (*_eObjImp)(self, eObjSel, nil);
     }
   else
     {
       GSIMapNode	node;
 
-      if (repMap->nodeCount)
+      if (_repMap->nodeCount)
 	{
-	  node = GSIMapNodeForKey(repMap, (GSIMapKey)anObject);
+	  node = GSIMapNodeForKey(_repMap, (GSIMapKey)anObject);
 	  if (node)
 	    {
 	      anObject = (id)node->value.ptr;
 	    }
 	}
 
-      node = GSIMapNodeForKey(cIdMap, (GSIMapKey)anObject);
+      node = GSIMapNodeForKey(_cIdMap, (GSIMapKey)anObject);
       if (node != 0)
 	{
-	  (*eObjImp)(self, eObjSel, nil);
+	  (*_eObjImp)(self, eObjSel, nil);
 	}
       else
 	{
-	  (*eObjImp)(self, eObjSel, anObject);
+	  (*_eObjImp)(self, eObjSel, anObject);
 	}
     }
 }
@@ -679,7 +679,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 {
   unsigned	l = [anObject length];
 
-  (*eValImp)(self, eValSel, @encode(unsigned int), &l);
+  (*_eValImp)(self, eValSel, @encode(unsigned int), &l);
   if (l)
     {
       const void	*b = [anObject bytes];
@@ -690,7 +690,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
        * actual data - at present we have '0' meaning raw data.  In the
        * future we might want zipped data for instance.
        */
-      (*eValImp)(self, eValSel, @encode(unsigned char), &c);
+      (*_eValImp)(self, eValSel, @encode(unsigned char), &c);
       [self encodeArrayOfObjCType: @encode(unsigned char)
 			    count: l
 			       at: b];
@@ -701,12 +701,12 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 {
   if (anObject == nil)
     {
-      if (isInPreparatoryPass == NO)
+      if (_initialPass == NO)
 	{
 	  /*
 	   *	Special case - encode a nil pointer as a crossref of zero.
 	   */
-	  (*tagImp)(dst, tagSel, _GSC_ID | _GSC_XREF, _GSC_X_0);
+	  (*_tagImp)(_dst, tagSel, _GSC_ID | _GSC_XREF, _GSC_X_0);
 	}
     }
   else if (fastIsInstance(anObject) == NO)
@@ -715,7 +715,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
        *	If the object we have been given is actually a class,
        *	we encode it as a class instead.
        */
-      (*eValImp)(self, eValSel, @encode(Class), &anObject);
+      (*_eValImp)(self, eValSel, @encode(Class), &anObject);
     }
   else
     {
@@ -724,7 +724,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       /*
        *	Substitute replacement object if required.
        */
-      node = GSIMapNodeForKey(repMap, (GSIMapKey)anObject);
+      node = GSIMapNodeForKey(_repMap, (GSIMapKey)anObject);
       if (node)
 	{
 	  anObject = (id)node->value.ptr;
@@ -733,9 +733,9 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       /*
        *	See if the object has already been encoded.
        */
-      node = GSIMapNodeForKey(uIdMap, (GSIMapKey)anObject);
+      node = GSIMapNodeForKey(_uIdMap, (GSIMapKey)anObject);
 
-      if (isInPreparatoryPass)
+      if (_initialPass)
 	{
 	  if (node == 0)
 	    {
@@ -743,8 +743,8 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	       *	Remove object from map of conditionally encoded objects
 	       *	and add it to the map of unconditionay encoded ones.
 	       */
-	      GSIMapRemoveKey(cIdMap, (GSIMapKey)anObject);
-	      GSIMapAddPair(uIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
+	      GSIMapRemoveKey(_cIdMap, (GSIMapKey)anObject);
+	      GSIMapAddPair(_uIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
 	      [anObject encodeWithCoder: self];
 	    }
 	  return;
@@ -757,53 +757,53 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 	  if (node == 0)
 	    {
-	      node = GSIMapAddPair(uIdMap,
-			(GSIMapKey)anObject, (GSIMapVal)++xRefO);
+	      node = GSIMapAddPair(_uIdMap,
+			(GSIMapKey)anObject, (GSIMapVal)++_xRefO);
 	    }
 	  else
 	    {
-	      node->value.uint = ++xRefO;
+	      node->value.uint = ++_xRefO;
 	    }
 
 	  obj = [anObject replacementObjectForArchiver: self];
 	  cls = [anObject classForArchiver];
 
-	  (*xRefImp)(dst, xRefSel, _GSC_ID, node->value.uint);
-	  if (namMap->nodeCount)
+	  (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
+	  if (_namMap->nodeCount)
 	    {
 	      GSIMapNode	node;
 
-	      node = GSIMapNodeForKey(namMap, (GSIMapKey)cls);
+	      node = GSIMapNodeForKey(_namMap, (GSIMapKey)cls);
 
 	      if (node)
 		{
 		  cls = (Class)node->value.ptr;
 		}
 	    }
-	  (*eValImp)(self, eValSel, @encode(Class), &cls);
+	  (*_eValImp)(self, eValSel, @encode(Class), &cls);
 	  [obj encodeWithCoder: self];
 	}
-      else if(!isInPreparatoryPass)
+      else if(!_initialPass)
 	{
-	  (*xRefImp)(dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
+	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
 	}
     }
 }
 
 - (NSMutableData*) archiverData
 {
-  return data;
+  return _data;
 }
 
-- (NSString*) classNameEncodedForTrueClassName:(NSString*)trueName
+- (NSString*) classNameEncodedForTrueClassName: (NSString*)trueName
 {
-  if (namMap->nodeCount)
+  if (_namMap->nodeCount)
     {
       GSIMapNode	node;
       Class		c;
 
       c = objc_get_class([trueName cString]);
-      node = GSIMapNodeForKey(namMap, (GSIMapKey)c);
+      node = GSIMapNodeForKey(_namMap, (GSIMapKey)c);
       if (node)
 	{
 	  c = (Class)node->value.ptr;
@@ -832,10 +832,10 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Can't find class '%@'.", inArchiveName];
     }
-  node = GSIMapNodeForKey(namMap, (GSIMapKey)tc);
+  node = GSIMapNodeForKey(_namMap, (GSIMapKey)tc);
   if (node == 0)
     {
-      GSIMapAddPair(namMap, (GSIMapKey)(void*)tc, (GSIMapVal)(void*)ic);
+      GSIMapAddPair(_namMap, (GSIMapKey)(void*)tc, (GSIMapVal)(void*)ic);
     }
   else
     {
@@ -858,10 +858,10 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       [NSException raise: NSInternalInconsistencyException
 		  format: @"attempt to remap object to nil"];
     }
-  node = GSIMapNodeForKey(namMap, (GSIMapKey)object);
+  node = GSIMapNodeForKey(_namMap, (GSIMapKey)object);
   if (node == 0)
     {
-      GSIMapAddPair(namMap, (GSIMapKey)object, (GSIMapVal)newObject);
+      GSIMapAddPair(_namMap, (GSIMapKey)object, (GSIMapVal)newObject);
     }
   else
     {
@@ -882,41 +882,41 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 - (void) resetArchiver
 {
-  if (clsMap)
+  if (_clsMap)
     {
-      GSIMapCleanMap(clsMap);
-      if (cIdMap)
+      GSIMapCleanMap(_clsMap);
+      if (_cIdMap)
 	{
-	  GSIMapCleanMap(cIdMap);
+	  GSIMapCleanMap(_cIdMap);
 	}
-      if (uIdMap)
+      if (_uIdMap)
 	{
-	  GSIMapCleanMap(uIdMap);
+	  GSIMapCleanMap(_uIdMap);
 	}
-      if (ptrMap)
+      if (_ptrMap)
 	{
-	  GSIMapCleanMap(ptrMap);
+	  GSIMapCleanMap(_ptrMap);
 	}
-      if (namMap)
+      if (_namMap)
 	{
-	  GSIMapCleanMap(namMap);
+	  GSIMapCleanMap(_namMap);
 	}
-      if (repMap)
+      if (_repMap)
 	{
-	  GSIMapCleanMap(repMap);
+	  GSIMapCleanMap(_repMap);
 	}
     }
-  isEncodingRootObject = NO;
-  isInPreparatoryPass = NO;
-  xRefC = 0;
-  xRefO = 0;
-  xRefP = 0;
+  _encodingRoot = NO;
+  _initialPass = NO;
+  _xRefC = 0;
+  _xRefO = 0;
+  _xRefP = 0;
 
   /*
    *	Write dummy header
    */
-  startPos = [data length];
-  [self serializeHeaderAt: startPos
+  _startPos = [_data length];
+  [self serializeHeaderAt: _startPos
 		  version: 0
 		  classes: 0
 		  objects: 0
@@ -936,18 +936,18 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 {
   unsigned	headerLength = strlen(PREFIX)+36;
   char		header[headerLength+1];
-  unsigned	dataLength = [data length];
+  unsigned	dataLength = [_data length];
 
   sprintf(header, "%s%08x:%08x:%08x:%08x:", PREFIX, v, cc, oc, pc);
 
   if (locationInData + headerLength <= dataLength)
     {
-      [data replaceBytesInRange: NSMakeRange(locationInData, headerLength)
+      [_data replaceBytesInRange: NSMakeRange(locationInData, headerLength)
 		      withBytes: header];
     }
   else if (locationInData == dataLength)
     {
-      [data appendBytes: header length: headerLength];
+      [_data appendBytes: header length: headerLength];
     }
   else
     {
@@ -963,7 +963,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 			    at: (const void*)buf
 		      withName: (id)name
 {
-  (*eObjImp)(self, eObjSel, name);
+  (*_eObjImp)(self, eObjSel, name);
   [self encodeArrayOfObjCType: type count: count at: buf];
 }
 
@@ -975,23 +975,23 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 			 at: (const void*)buf
 		   withName: (id)name
 {
-  (*eObjImp)(self, eObjSel, name);
-  (*eValImp)(self, eValSel, type, buf);
+  (*_eObjImp)(self, eObjSel, name);
+  (*_eValImp)(self, eValSel, type, buf);
 }
 
 - (void) encodeValueOfObjCType: (const char*) type
 			    at: (const void*)buf
 		      withName: (id)name
 {
-  (*eObjImp)(self, eObjSel, name);
-  (*eValImp)(self, eValSel, type, buf);
+  (*_eObjImp)(self, eObjSel, name);
+  (*_eValImp)(self, eValSel, type, buf);
 }
 
 - (void) encodeObject: (id)anObject
 	     withName: (id)name
 {
-  (*eObjImp)(self, eObjSel, name);
-  (*eObjImp)(self, eObjSel, anObject);
+  (*_eObjImp)(self, eObjSel, name);
+  (*_eObjImp)(self, eObjSel, anObject);
 }
 @end
 

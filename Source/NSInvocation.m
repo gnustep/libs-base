@@ -32,49 +32,50 @@
 
 @implementation NSInvocation
 
-+ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)signature
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)_signature
 {
-  return AUTORELEASE([[NSInvocation alloc] initWithMethodSignature: signature]);
+  return AUTORELEASE([[NSInvocation alloc]
+    initWithMethodSignature: _signature]);
 }
 
 - (void) dealloc
 {
-  if (argsRetained)
+  if (_argsRetained)
     {
-      RELEASE(target);
-      argsRetained = NO;
-      if (argframe && sig)
+      RELEASE(_target);
+      _argsRetained = NO;
+      if (_argframe && _sig)
 	{
 	  int	i;
 
-	  for (i = 3; i <= numArgs; i++)
+	  for (i = 3; i <= _numArgs; i++)
 	    {
-	      if (*info[i].type == _C_CHARPTR)
+	      if (*_info[i].type == _C_CHARPTR)
 		{
 		  char	*str;
 
-		  mframe_get_arg(argframe, &info[i], &str);
+		  mframe_get_arg(_argframe, &_info[i], &str);
 		  objc_free(str);
 		}
-	      else if (*info[i].type == _C_ID)
+	      else if (*_info[i].type == _C_ID)
 		{
 		  id	obj;
 
-		  mframe_get_arg(argframe, &info[i], &obj);
+		  mframe_get_arg(_argframe, &_info[i], &obj);
 		  RELEASE(obj);
 		}
 	    }
 	}
     }
-  if (argframe)
+  if (_argframe)
     {
-      mframe_destroy_argframe([sig methodType], argframe);
+      mframe_destroy_argframe([_sig methodType], _argframe);
     }
-  if (retval)
+  if (_retval)
     {
-      objc_free(retval);
+      objc_free(_retval);
     }
-  RELEASE(sig);
+  RELEASE(_sig);
   [super dealloc];
 }
 
@@ -85,23 +86,23 @@
 - (void) getArgument: (void*)buffer
 	     atIndex: (int)index
 {
-  if ((unsigned)index >= numArgs)
+  if ((unsigned)index >= _numArgs)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"bad invocation argument index"];
     }
   if (index == 0)
     {
-      *(id*)buffer = target;
+      *(id*)buffer = _target;
     }
   else if (index == 1)
     {
-      *(SEL*)buffer = selector;
+      *(SEL*)buffer = _selector;
     }
   else
     {
-      index++;	/* Allow offset for return type info.	*/
-      mframe_get_arg(argframe, &info[index], buffer);
+      index++;	/* Allow offset for return type _info.	*/
+      mframe_get_arg(_argframe, &_info[index], buffer);
     }		
 }
 
@@ -109,34 +110,34 @@
 {
   const char	*type;
 
-  if (validReturn == NO)
+  if (_validReturn == NO)
     {
       [NSException raise: NSGenericException
 		  format: @"getReturnValue with no value set"];
     }
 
-  type = [sig methodReturnType];
+  type = [_sig methodReturnType];
 
-  if (*info[0].type != _C_VOID)
+  if (*_info[0].type != _C_VOID)
     {
-      int	length = info[0].size;
+      int	length = _info[0].size;
 #if WORDS_BIGENDIAN
       if (length < sizeof(void*))
 	length = sizeof(void*);
 #endif
-      memcpy(buffer, retval, length);
+      memcpy(buffer, _retval, length);
     }
 }
 
 - (SEL) selector
 {
-  return selector;
+  return _selector;
 }
 
 - (void) setArgument: (void*)buffer
 	     atIndex: (int)index
 {
-  if ((unsigned)index >= numArgs)
+  if ((unsigned)index >= _numArgs)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"bad invocation argument index"];
@@ -151,17 +152,17 @@
     }
   else
     {
-      int		i = index+1;	/* Allow for return type in 'info' */
-      const char	*type = info[i].type;
+      int		i = index+1;	/* Allow for return type in '_info' */
+      const char	*type = _info[i].type;
 
-      if (argsRetained && (*type == _C_ID || *type == _C_CHARPTR))
+      if (_argsRetained && (*type == _C_ID || *type == _C_CHARPTR))
 	{
 	  if (*type == _C_ID)
 	    {
 	      id	old;
 
-	      mframe_get_arg(argframe, &info[i], &old);
-	      mframe_set_arg(argframe, &info[i], buffer);
+	      mframe_get_arg(_argframe, &_info[i], &old);
+	      mframe_set_arg(_argframe, &_info[i], buffer);
 	      RETAIN(*(id*)buffer);
 	      if (old != nil)
 		{
@@ -173,17 +174,17 @@
 	      char	*oldstr;
 	      char	*newstr = *(char**)buffer;
 
-	      mframe_get_arg(argframe, &info[i], &oldstr);
+	      mframe_get_arg(_argframe, &_info[i], &oldstr);
 	      if (newstr == 0)
 		{
-		  mframe_set_arg(argframe, &info[i], buffer);
+		  mframe_set_arg(_argframe, &_info[i], buffer);
 		}
 	      else
 		{
 		  char	*tmp = objc_malloc(strlen(newstr)+1);
 
 		  strcpy(tmp, newstr);
-		  mframe_set_arg(argframe, &info[i], tmp);
+		  mframe_set_arg(_argframe, &_info[i], tmp);
 		}
 	      if (oldstr != 0)
 		{
@@ -193,7 +194,7 @@
 	}
       else
 	{
-	  mframe_set_arg(argframe, &info[i], buffer);
+	  mframe_set_arg(_argframe, &_info[i], buffer);
 	}
     }		
 }
@@ -202,38 +203,38 @@
 {
   const char	*type;
 
-  type = info[0].type;
+  type = _info[0].type;
 
   if (*type != _C_VOID)
     {
-      int	length = info[0].size;
+      int	length = _info[0].size;
 
 #if WORDS_BIGENDIAN
       if (length < sizeof(void*))
 	length = sizeof(void*);
 #endif
-      memcpy(retval, buffer, length);
+      memcpy(_retval, buffer, length);
     }
-  validReturn = YES;
+  _validReturn = YES;
 }
 
 - (void) setSelector: (SEL)aSelector
 {
-  selector = aSelector;
+  _selector = aSelector;
 }
 
 - (void) setTarget: (id)anObject
 {
-  if (argsRetained)
+  if (_argsRetained)
     {
-      ASSIGN(target, anObject);
+      ASSIGN(_target, anObject);
     }
-  target = anObject;
+  _target = anObject;
 }
 
 - (id) target
 {
-  return target;
+  return _target;
 }
 
 /*
@@ -242,12 +243,12 @@
 
 - (BOOL) argumentsRetained
 {
-  return argsRetained;
+  return _argsRetained;
 }
 
-- (void)retainArguments
+- (void) retainArguments
 {
-  if (argsRetained)
+  if (_argsRetained)
     {
       return;
     }
@@ -255,21 +256,21 @@
     {
       int	i;
 
-      argsRetained = YES;
-      RETAIN(target);
-      if (argframe == 0)
+      _argsRetained = YES;
+      RETAIN(_target);
+      if (_argframe == 0)
 	{
 	  return;
 	}
-      for (i = 3; i <= numArgs; i++)
+      for (i = 3; i <= _numArgs; i++)
 	{
-	  if (*info[i].type == _C_ID || *info[i].type == _C_CHARPTR)
+	  if (*_info[i].type == _C_ID || *_info[i].type == _C_CHARPTR)
 	    {
-	      if (*info[i].type == _C_ID)
+	      if (*_info[i].type == _C_ID)
 		{
 		  id	old;
 
-		  mframe_get_arg(argframe, &info[i], &old);
+		  mframe_get_arg(_argframe, &_info[i], &old);
 		  if (old != nil)
 		    {
 		      RETAIN(old);
@@ -279,13 +280,13 @@
 		{
 		  char	*str;
 
-		  mframe_get_arg(argframe, &info[i], &str);
+		  mframe_get_arg(_argframe, &_info[i], &str);
 		  if (str != 0)
 		    {
 		      char	*tmp = objc_malloc(strlen(str)+1);
 
 		      strcpy(tmp, str);
-		      mframe_set_arg(argframe, &info[i], &tmp);
+		      mframe_set_arg(_argframe, &_info[i], &tmp);
 		    }
 		}
 	    }
@@ -299,10 +300,10 @@
 
 - (void) invoke
 {
-  [self invokeWithTarget: target];
+  [self invokeWithTarget: _target];
 }
 
-- (void) invokeWithTarget:(id)anObject
+- (void) invokeWithTarget: (id)anObject
 {
   id		old_target;
   retval_t	returned;
@@ -314,57 +315,57 @@
    */
   if (anObject == nil)
     {
-      memset(retval, '\0', info[0].size);	/* Clear return value */
+      memset(_retval, '\0', _info[0].size);	/* Clear return value */
       return;
     }
 
-  NSAssert(selector != 0, @"you must set the selector before invoking");
+  NSAssert(_selector != 0, @"you must set the selector before invoking");
 
   /*
    *	Temporarily set new target and copy it (and the selector) into the
-   *	argframe.
+   *	_argframe.
    */
-  old_target = RETAIN(target);
+  old_target = RETAIN(_target);
   [self setTarget: anObject];
 
-  mframe_set_arg(argframe, &info[1], &target);
+  mframe_set_arg(_argframe, &_info[1], &_target);
 
-  mframe_set_arg(argframe, &info[2], &selector);
+  mframe_set_arg(_argframe, &_info[2], &_selector);
 
-  imp = method_get_imp(object_is_instance(target) ?
+  imp = method_get_imp(object_is_instance(_target) ?
 	      class_get_instance_method(
-		    ((struct objc_class*)target)->class_pointer, selector)
+		    ((struct objc_class*)_target)->class_pointer, _selector)
 	    : class_get_class_method(
-		    ((struct objc_class*)target)->class_pointer, selector));
+		    ((struct objc_class*)_target)->class_pointer, _selector));
   /*
    *	If fast lookup failed, we may be forwarding or something ...
    */
   if (imp == 0)
-    imp = objc_msg_lookup(target, selector);
+    imp = objc_msg_lookup(_target, _selector);
 
   [self setTarget: old_target];
   RELEASE(old_target);
 
-  stack_argsize = [sig frameLength];
+  stack_argsize = [_sig frameLength];
 
-  returned = __builtin_apply((void(*)(void))imp, argframe, stack_argsize);
-  if (info[0].size)
+  returned = __builtin_apply((void(*)(void))imp, _argframe, stack_argsize);
+  if (_info[0].size)
     {
-      mframe_decode_return(info[0].type, retval, returned);
+      mframe_decode_return(_info[0].type, _retval, returned);
     }
-  validReturn = YES;
+  _validReturn = YES;
 }
 
 /*
- *      Getting the method signature.
+ *      Getting the method _signature.
  */
 
 - (NSMethodSignature*) methodSignature
 {
-  return sig;
+  return _sig;
 }
 
-- (NSString*)description
+- (NSString*) description
 {
   /*
    *	Don't use -[NSString stringWithFormat:] method because it can cause
@@ -375,8 +376,8 @@
   sprintf (buffer, "<%s %p selector: %s target: %s>", \
                 (char*)object_get_class_name(self), \
                 self, \
-                selector ? [NSStringFromSelector(selector) cString] : "nil", \
-                target ? [NSStringFromClass([target class]) cString] : "nil" \
+                _selector ? [NSStringFromSelector(_selector) cString] : "nil", \
+                _target ? [NSStringFromClass([_target class]) cString] : "nil" \
                 );
 
   return [NSString stringWithCString:buffer];
@@ -384,23 +385,23 @@
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  const char	*types = [sig methodType];
+  const char	*types = [_sig methodType];
   int		i;
 
   [aCoder encodeValueOfObjCType: @encode(char*)
 			     at: &types];
 
-  [aCoder encodeObject: target];
+  [aCoder encodeObject: _target];
 
-  [aCoder encodeValueOfObjCType: info[2].type
-			     at: &selector];
+  [aCoder encodeValueOfObjCType: _info[2].type
+			     at: &_selector];
 
-  for (i = 3; i <= numArgs; i++)
+  for (i = 3; i <= _numArgs; i++)
     {
-      const char	*type = info[i].type;
+      const char	*type = _info[i].type;
       void		*datum;
 
-      datum = mframe_arg_addr(argframe, &info[i]);
+      datum = mframe_arg_addr(_argframe, &_info[i]);
 
       if (*type == _C_ID)
 	{
@@ -417,12 +418,12 @@
 	  [aCoder encodeValueOfObjCType: type at: datum];
 	}
     }
-  if (*info[0].type != _C_VOID)
+  if (*_info[0].type != _C_VOID)
     {
-      [aCoder encodeValueOfObjCType: @encode(BOOL) at: &validReturn];
-      if (validReturn)
+      [aCoder encodeValueOfObjCType: @encode(BOOL) at: &_validReturn];
+      if (_validReturn)
 	{
-	  [aCoder encodeValueOfObjCType: info[0].type at: retval];
+	  [aCoder encodeValueOfObjCType: _info[0].type at: _retval];
 	}
     }
 }
@@ -438,32 +439,32 @@
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
   self = [self initWithMethodSignature: newSig];
  
-  [aCoder decodeValueOfObjCType: @encode(id) at: &target];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
 
-  [aCoder decodeValueOfObjCType: @encode(SEL) at: &selector];
+  [aCoder decodeValueOfObjCType: @encode(SEL) at: &_selector];
 
-  for (i = 3; i <= numArgs; i++)
+  for (i = 3; i <= _numArgs; i++)
     {
-      datum = mframe_arg_addr(argframe, &info[i]);
+      datum = mframe_arg_addr(_argframe, &_info[i]);
 #if     MFRAME_STRUCT_BYREF
       {
-        const char      *t = info[i].type;
+        const char      *t = _info[i].type;
         if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
           {
-	    *(void**)datum = _fastMallocBuffer(info[i].size);
+	    *(void**)datum = _fastMallocBuffer(_info[i].size);
             datum = *(void**)datum;
           }
       }
 #endif
-      [aCoder decodeValueOfObjCType: info[i].type at: datum];
+      [aCoder decodeValueOfObjCType: _info[i].type at: datum];
     }
-  argsRetained = YES;
-  if (*info[0].type != _C_VOID)
+  _argsRetained = YES;
+  if (*_info[0].type != _C_VOID)
     {
-      [aCoder decodeValueOfObjCType: @encode(BOOL) at: &validReturn];
-      if (validReturn)
+      [aCoder decodeValueOfObjCType: @encode(BOOL) at: &_validReturn];
+      if (_validReturn)
 	{
-	  [aCoder decodeValueOfObjCType: info[0].type at: retval];
+	  [aCoder decodeValueOfObjCType: _info[0].type at: _retval];
 	}
     }
   return self;
@@ -475,7 +476,7 @@
 
 @implementation NSInvocation (GNUstep)
 
-- initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
+- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
   const char		*types;
   NSMethodSignature	*newSig;
@@ -497,16 +498,16 @@
     {
       [self setSelector: aSelector];
       /*
-       *	Copy the argframe we were given.
+       *	Copy the _argframe we were given.
        */
       if (frame)
 	{
 	  int	i;
 
-	  mframe_get_arg(frame, &info[1], &target);
-	  for (i = 1; i <= numArgs; i++)
+	  mframe_get_arg(frame, &_info[1], &_target);
+	  for (i = 1; i <= _numArgs; i++)
 	    {
-	      mframe_cpy_arg(argframe, frame, &info[i]);
+	      mframe_cpy_arg(_argframe, frame, &_info[i]);
 	    }
 	}
     }
@@ -514,27 +515,27 @@
 }
 
 /*
- *	This is the designated initialiser.
+ *	This is the de_signated initialiser.
  */
-- initWithMethodSignature: (NSMethodSignature*)aSignature
+- (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
-  sig = RETAIN(aSignature);
-  numArgs = [aSignature numberOfArguments];
-  info = [aSignature methodInfo];
-  argframe = mframe_create_argframe([sig methodType], &retval);
-  if (retval == 0 && info[0].size > 0)
+  _sig = RETAIN(aSignature);
+  _numArgs = [aSignature numberOfArguments];
+  _info = [aSignature methodInfo];
+  _argframe = mframe_create_argframe([_sig methodType], &_retval);
+  if (_retval == 0 && _info[0].size > 0)
     {
-      retval = objc_malloc(info[0].size);
+      _retval = objc_malloc(_info[0].size);
     }
   return self;
 }
 
-- initWithSelector: (SEL)aSelector
+- (id) initWithSelector: (SEL)aSelector
 {
   return [self initWithArgframe: 0 selector: aSelector];
 }
 
-- initWithTarget: anObject selector: (SEL)aSelector, ...
+- (id) initWithTarget: anObject selector: (SEL)aSelector, ...
 {
   va_list	ap;
 
@@ -545,27 +546,27 @@
 
       [self setTarget: anObject];
       va_start (ap, aSelector);
-      for (i = 3; i <= numArgs; i++)
+      for (i = 3; i <= _numArgs; i++)
 	{
-	  const char	*type = info[i].type;
-	  unsigned	size = info[i].size;
+	  const char	*type = _info[i].type;
+	  unsigned	size = _info[i].size;
 	  void		*datum;
 
-	  datum = mframe_arg_addr(argframe, &info[i]);
+	  datum = mframe_arg_addr(_argframe, &_info[i]);
 
 #define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break
 	  switch (*type)
 	    {
 	      case _C_ID:
 		*(id*)datum = va_arg (ap, id);
-		if (argsRetained)
+		if (_argsRetained)
 		  {
 		    RETAIN(*(id*)datum);
 		  }
 		break;
 	      case _C_CHARPTR:
 		*(char**)datum = va_arg (ap, char*);
-		if (argsRetained)
+		if (_argsRetained)
 		  {
 		    char	*old = *(char**)datum;
 
@@ -612,7 +613,7 @@
 
 - (void*) returnFrame: (arglist_t)argFrame
 {
-  return mframe_handle_return(info[0].type, retval, argFrame);
+  return mframe_handle_return(_info[0].type, _retval, argFrame);
 }
 @end
 

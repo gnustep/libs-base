@@ -30,8 +30,8 @@
 
 @interface NSProtocolChecker : NSObject
 {
-  Protocol *myProtocol;
-  NSObject *myTarget;
+  Protocol *_myProtocol;
+  NSObject *_myTarget;
 }
 
 // Creating a checker

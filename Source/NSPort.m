@@ -54,7 +54,7 @@ NSString *NSPortTimeoutException
 
 - (id) delegate
 {
-  return delegate;
+  return _delegate;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -87,7 +87,7 @@ NSString *NSPortTimeoutException
 - (void) invalidate
 {
   [[NSPortNameServer defaultPortNameServer] removePort: self];
-  is_valid = NO;
+  _is_valid = NO;
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification
 		  object: self];
@@ -95,7 +95,7 @@ NSString *NSPortTimeoutException
 
 - (BOOL) isValid
 {
-  return is_valid;
+  return _is_valid;
 }
 
 - (int) machPort
@@ -106,7 +106,7 @@ NSString *NSPortTimeoutException
 
 - (void) release
 {
-  if (is_valid && [self retainCount] == 1)
+  if (_is_valid && [self retainCount] == 1)
     {
       NSAutoreleasePool	*arp;
 
@@ -126,11 +126,11 @@ NSString *NSPortTimeoutException
   [super release];
 }
 
-- (void) setDelegate: anObject
+- (void) setDelegate: (id) anObject
 {
   NSAssert([anObject respondsToSelector: @selector(handlePortMessage:)],
 	NSInvalidArgumentException);
-  delegate = anObject;
+  _delegate = anObject;
 }
 
 - (void) addConnection: (NSConnection*)aConnection

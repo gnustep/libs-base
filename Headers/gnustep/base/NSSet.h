@@ -30,11 +30,11 @@
 
 @interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
-+ set;
-+ setWithArray: (NSArray*)array;
-+ setWithObject: anObject;
-+ setWithObjects: anObject, ...;
-+ setWithSet: (NSSet*)aSet;
++ (id) set;
++ (id) setWithArray: (NSArray*)array;
++ (id) setWithObject: (id)anObject;
++ (id) setWithObjects: (id)anObject, ...;
++ (id) setWithSet: (NSSet*)aSet;
 
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count;
@@ -46,16 +46,16 @@
 
 @interface NSSet (NonCore)
 
-- initWithArray: (NSArray*)array;
-- initWithObjects: (id)objects, ...;
-- initWithSet: (NSSet*)otherSet;
-- initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
+- (id) initWithArray: (NSArray*)array;
+- (id) initWithObjects: (id)objects, ...;
+- (id) initWithSet: (NSSet*)otherSet;
+- (id) initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
 
 - (NSArray*) allObjects;
-- anyObject;
-- (BOOL) containsObject: anObject;
+- (id) anyObject;
+- (BOOL) containsObject: (id)anObject;
 - (void) makeObjectsPerform: (SEL)aSelector;
-- (void) makeObjectsPerform: (SEL)aSelector withObject:argument;
+- (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
 
 
 - (BOOL) intersectsSet: (NSSet*)other;
@@ -68,9 +68,9 @@
 
 @interface NSMutableSet: NSSet
 
-+ setWithCapacity: (unsigned)numItems;
++ (id) setWithCapacity: (unsigned)numItems;
 
-- initWithCapacity: (unsigned)numItems;
+- (id) initWithCapacity: (unsigned)numItems;
 - (void) addObject: (id)anObject;
 - (void) removeObject: (id)anObject;
 

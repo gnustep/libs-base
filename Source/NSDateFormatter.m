@@ -32,7 +32,7 @@
 
 - (BOOL) allowsNaturalLanguage
 {
-  return allowsNaturalLanguage;
+  return _allowsNaturalLanguage;
 }
 
 - (NSAttributedString*) attributedStringForObjectValue: (id)anObject
@@ -45,18 +45,18 @@
 {
   NSDateFormatter	*other = (id)NSCopyObject(self, 0, zone);
 
-  RETAIN(other->dateFormat);
+  RETAIN(other->_dateFormat);
   return other;
 }
 
 - (NSString*) dateFormat
 {
-  return dateFormat;
+  return _dateFormat;
 }
 
 - (void) dealloc
 {
-  RELEASE(dateFormat);
+  RELEASE(_dateFormat);
   [super dealloc];
 }
 
@@ -67,7 +67,7 @@
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValuesOfObjCTypes: "@C", &dateFormat, &allowsNaturalLanguage];
+  [aCoder encodeValuesOfObjCTypes: "@C", &_dateFormat, &_allowsNaturalLanguage];
 }
 
 - (BOOL) getObjectValue: (id*)anObject
@@ -76,10 +76,10 @@
 {
   NSCalendarDate	*d;
 
-  d = [NSCalendarDate dateWithString: string calendarFormat: dateFormat];
+  d = [NSCalendarDate dateWithString: string calendarFormat: _dateFormat];
   if (d == nil)
     {
-      if (allowsNaturalLanguage)
+      if (_allowsNaturalLanguage)
 	{
 	  d = [NSCalendarDate dateWithNaturalLanguageString: string];
 	}
@@ -95,15 +95,15 @@
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [aCoder decodeValuesOfObjCTypes: "@C", &dateFormat, &allowsNaturalLanguage];
+  [aCoder decodeValuesOfObjCTypes: "@C", &_dateFormat, &_allowsNaturalLanguage];
   return self;
 }
 
 - (id) initWithDateFormat: (NSString *)format
      allowNaturalLanguage: (BOOL)flag
 {
-  dateFormat = [format copy];
-  allowsNaturalLanguage = flag;
+  _dateFormat = [format copy];
+  _allowsNaturalLanguage = flag;
   return self;
 }
 
@@ -122,7 +122,7 @@
     {
       return nil;
     }
-  return [anObject descriptionWithCalendarFormat: dateFormat
+  return [anObject descriptionWithCalendarFormat: _dateFormat
 					timeZone: [NSTimeZone defaultTimeZone]
 					  locale: nil];
 }

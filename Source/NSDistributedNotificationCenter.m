@@ -99,18 +99,18 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 
 - (void) dealloc
 {
-  if ([[remote connectionForProxy] isValid])
+  if ([[_remote connectionForProxy] isValid])
     {
-      [remote unregisterClient: (id<GDNCClient>)self];
+      [_remote unregisterClient: (id<GDNCClient>)self];
     }
-  RELEASE(remote);
+  RELEASE(_remote);
   [super dealloc];
 }
 
 - (id) init
 {
-  NSAssert(centerLock == nil, NSInternalInconsistencyException);
-  centerLock = [NSRecursiveLock new];
+  NSAssert(_centerLock == nil, NSInternalInconsistencyException);
+  _centerLock = [NSRecursiveLock new];
   return self;
 }
 
@@ -159,11 +159,11 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 		  format: @"notification name and object both nil"];
     }
 
-  [centerLock lock];
+  [_centerLock lock];
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)remote addObserver: (unsigned long)anObserver
+      [(id<GDNCProtocol>)_remote addObserver: (unsigned long)anObserver
 				   selector: NSStringFromSelector(aSelector)
 				       name: notificationName
 				     object: anObject
@@ -172,11 +172,11 @@ static NSDistributedNotificationCenter	*defCenter = nil;
     }
   NS_HANDLER
     {
-      [centerLock unlock];
+      [_centerLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [centerLock unlock];
+  [_centerLock unlock];
 }
 
 - (void) postNotification: (NSNotification*)notification
@@ -223,14 +223,14 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 		  format: @"invalid notification object"];
     }
 
-  [centerLock lock];
+  [_centerLock lock];
   NS_DURING
     {
       NSData	*d;
 
       [self _connect];
       d = [NSArchiver archivedDataWithRootObject: userInfo];
-      [(id<GDNCProtocol>)remote postNotificationName: notificationName
+      [(id<GDNCProtocol>)_remote postNotificationName: notificationName
 					      object: anObject
 					    userInfo: d
 				  deliverImmediately: deliverImmediately
@@ -238,11 +238,11 @@ static NSDistributedNotificationCenter	*defCenter = nil;
     }
   NS_HANDLER
     {
-      [centerLock unlock];
+      [_centerLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [centerLock unlock];
+  [_centerLock unlock];
 }
 
 - (void) removeObserver: (id)anObserver
@@ -261,45 +261,45 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 		  format: @"invalid notification object"];
     }
 
-  [centerLock lock];
+  [_centerLock lock];
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)remote removeObserver: (unsigned long)anObserver
+      [(id<GDNCProtocol>)_remote removeObserver: (unsigned long)anObserver
 					  name: notificationName
 					object: anObject
 					   for: (id<GDNCClient>)self];
     }
   NS_HANDLER
     {
-      [centerLock unlock];
+      [_centerLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [centerLock unlock];
+  [_centerLock unlock];
 }
 
 - (void) setSuspended: (BOOL)flag
 {
-  [centerLock lock];
+  [_centerLock lock];
   NS_DURING
     {
       [self _connect];
-      suspended = flag;
-      [(id<GDNCProtocol>)remote setSuspended: flag for: (id<GDNCClient>)self];
+      _suspended = flag;
+      [(id<GDNCProtocol>)_remote setSuspended: flag for: (id<GDNCClient>)self];
     }
   NS_HANDLER
     {
-      [centerLock unlock];
+      [_centerLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [centerLock unlock];
+  [_centerLock unlock];
 }
 
 - (BOOL) suspended
 {
-  return suspended;
+  return _suspended;
 }
 
 @end
@@ -308,20 +308,20 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 
 - (void) _connect
 {
-  if (remote == nil)
+  if (_remote == nil)
     {
       /*
        *	Connect to the NSDistributedNotificationCenter for this host.
        */
-      remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
+      _remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
 		GDNC_SERVICE host: @""]);
 
-      if (remote != nil)
+      if (_remote != nil)
 	{
-	  NSConnection	*c = [remote connectionForProxy];
+	  NSConnection	*c = [_remote connectionForProxy];
 	  Protocol	*p = @protocol(GDNCProtocol);
 
-	  [remote setProtocolForProxy: p];
+	  [_remote setProtocolForProxy: p];
 
 	  /*
 	   *	Ask to be told if the copnnection goes away.
@@ -331,7 +331,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	       selector: @selector(_invalidated:)
 		   name: NSConnectionDidDieNotification
 		 object: c];
-	  [remote registerClient: (id<GDNCClient>)self];
+	  [_remote registerClient: (id<GDNCClient>)self];
 	}
       else
 	{
@@ -381,10 +381,10 @@ NSLog(@"Connection to GDNC server established.\n");
     removeObserver: self
 	      name: NSConnectionDidDieNotification
 	    object: connection];
-  NSAssert(connection == [remote connectionForProxy],
+  NSAssert(connection == [_remote connectionForProxy],
 		 NSInternalInconsistencyException);
-  RELEASE(remote);
-  remote = nil;
+  RELEASE(_remote);
+  _remote = nil;
 }
 
 - (void) postNotificationName: (NSString*)name

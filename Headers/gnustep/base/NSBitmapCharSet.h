@@ -38,19 +38,19 @@
 
 @interface NSBitmapCharSet : NSCharacterSet
 {
-    char data[BITMAP_SIZE];
+  char _data[BITMAP_SIZE];
 }
 
-- initWithBitmap:(NSData *)bitmap;
+- (id) initWithBitmap: (NSData*)bitmap;
 
 @end
 
 @interface NSMutableBitmapCharSet : NSMutableCharacterSet
 {
-    char data[BITMAP_SIZE];
+  char _data[BITMAP_SIZE];
 }
 
-- initWithBitmap:(NSData *)bitmap;
+- (id) initWithBitmap: (NSData*)bitmap;
 
 @end
 

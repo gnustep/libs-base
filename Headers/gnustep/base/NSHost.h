@@ -30,9 +30,8 @@
 @interface NSHost : NSObject
 {
   @private
-  NSMutableArray *names;
-  NSMutableArray *addresses;
-  void *reserved;
+  NSMutableArray *_names;
+  NSMutableArray *_addresses;
 }
 
 /*

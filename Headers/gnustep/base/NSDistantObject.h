@@ -32,10 +32,10 @@
 @interface NSDistantObject : NSProxy <NSCoding>
 {
 @private
-    NSConnection	*_connection;
-    id			_object;
-    unsigned		_handle;
-    Protocol		*_protocol;
+  NSConnection	*_connection;
+  id		_object;
+  unsigned	_handle;
+  Protocol	*_protocol;
 }
 
 + (NSDistantObject*) proxyWithLocal: (id)anObject
@@ -49,8 +49,10 @@
 			  connection: (NSConnection*)aConnection;
 
 - (NSConnection*) connectionForProxy;
-- (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
-- (id) initWithTarget: (unsigned)anObject connection: (NSConnection*)aConnection;
+- (id) initWithLocal: (id)anObject
+	  connection: (NSConnection*)aConnection;
+- (id) initWithTarget: (unsigned)anObject
+	   connection: (NSConnection*)aConnection;
 - (void) setProtocolForProxy: (Protocol*)aProtocol;
 
 @end

@@ -30,15 +30,15 @@
 
 @interface NSInvocation : NSObject
 {
-    NSMethodSignature	*sig;
-    arglist_t		argframe;
-    void		*retval;
-    id			target;
-    SEL			selector;
-    int			numArgs;
-    NSArgumentInfo	*info;
-    BOOL		argsRetained;
-    BOOL		validReturn;
+  NSMethodSignature	*_sig;
+  arglist_t		_argframe;
+  void			*_retval;
+  id			_target;
+  SEL			_selector;
+  int			_numArgs;
+  NSArgumentInfo	*_info;
+  BOOL			_argsRetained;
+  BOOL			_validReturn;
 }
 
 /*
@@ -85,7 +85,7 @@
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
 - (id) initWithSelector: (SEL)aSelector;
 - (id) initWithTarget: target selector: (SEL)aSelector, ...;
-- (void*)returnFrame: (arglist_t)argFrame;
+- (void*) returnFrame: (arglist_t)argFrame;
 @end
 #endif
 

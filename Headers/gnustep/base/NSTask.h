@@ -33,19 +33,19 @@
 
 @interface NSTask : NSObject <GCFinalization>
 {
-  NSString	*currentDirectoryPath;
-  NSString	*launchPath;
-  NSArray	*arguments;
-  NSDictionary	*environment;
-  id		standardError;
-  id		standardInput;
-  id		standardOutput;
-  int		taskId;
-  int		terminationStatus;
-  BOOL		hasLaunched;
-  BOOL		hasTerminated;
-  BOOL		hasCollected;
-  BOOL		hasNotified;
+  NSString	*_currentDirectoryPath;
+  NSString	*_launchPath;
+  NSArray	*_arguments;
+  NSDictionary	*_environment;
+  id		_standardError;
+  id		_standardInput;
+  id		_standardOutput;
+  int		_taskId;
+  int		_terminationStatus;
+  BOOL		_hasLaunched;
+  BOOL		_hasTerminated;
+  BOOL		_hasCollected;
+  BOOL		_hasNotified;
 }
 
 + (NSTask*) launchedTaskWithLaunchPath: (NSString*)path

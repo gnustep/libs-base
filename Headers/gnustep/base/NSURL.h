@@ -34,9 +34,9 @@ extern NSString* NSURLFileScheme; //file
 //============================================================================
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {
-  NSString	*urlString;
-  NSURL		*baseURL;
-  void		*clients;
+  NSString	*_urlString;
+  NSURL		*_baseURL;
+  void		*_clients;
 }
         
 + (id) fileURLWithPath: (NSString*)path;
@@ -44,18 +44,18 @@ extern NSString* NSURLFileScheme; //file
 + (id) URLWithString: (NSString*)URLString
        relativeToURL: (NSURL*)baseURL;
 
-- (id) initWithScheme: (NSString*)_scheme
-		 host: (NSString*)_host
-		 path: (NSString*)_path;
+- (id) initWithScheme: (NSString*)scheme
+		 host: (NSString*)host
+		 path: (NSString*)path;
 
 //Non Standard Function
-- (id) initWithScheme: (NSString*)_scheme
-		 host: (NSString*)_host
-		 port: (NSNumber*)_port
-		 path: (NSString*)_path;
+- (id) initWithScheme: (NSString*)scheme
+		 host: (NSString*)host
+		 port: (NSNumber*)port
+		 path: (NSString*)path;
 
-//Do a initWithScheme: NSFileScheme host: nil path: _path
-- (id) initFileURLWithPath: (NSString*)_path;
+//Do a initWithScheme: NSFileScheme host: nil path: path
+- (id) initFileURLWithPath: (NSString*)path;
 
 // urlString is escaped
 - (id) initWithString: (NSString*)URLString;
@@ -91,7 +91,7 @@ extern NSString* NSURLFileScheme; //file
 
 //FIXME: delete these fn when NSURL will be validated
 + (void) test;
-+ (void) testPrint: (NSURL*)_url;
++ (void) testPrint: (NSURL*)url;
 
 @end
 

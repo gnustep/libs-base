@@ -1,3 +1,76 @@
+Thu Sep 16  8:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Changes to minimise naming conflicts by making sure that all ivars
+	of public classes are prefixed with a underscore.
+	* Headers/Foundation/NSArchiver.h: prefix ivars with underscore and tidy
+	* Headers/Foundation/NSArray.h: ditto
+	* Headers/Foundation/NSAttributedString.h: ditto
+	* Headers/Foundation/NSAutoreleasePool.h: ditto
+	* Headers/Foundation/NSBitmapCharSet.h: ditto
+	* Headers/Foundation/NSBundle.h: ditto
+	* Headers/Foundation/NSCharacterSet.h: ditto
+	* Headers/Foundation/NSCoder.h: ditto
+	* Headers/Foundation/NSData.h: ditto
+	* Headers/Foundation/NSDate.h: ditto
+	* Headers/Foundation/NSDateFormatter.h: ditto
+	* Headers/Foundation/NSDictionary.h: ditto
+	* Headers/Foundation/NSDistantObject.h: ditto
+	* Headers/Foundation/NSDistributedLock.h: ditto
+	* Headers/Foundation/NSDistributedNotificationCenter.h: ditto
+	* Headers/Foundation/NSException.h: ditto
+	* Headers/Foundation/NSFileHandle.h: ditto
+	* Headers/Foundation/NSFileManager.h: ditto
+	* Headers/Foundation/NSGAttributedString.h: ditto
+	* Headers/Foundation/NSHost.h: ditto
+	* Headers/Foundation/NSInvocation.h: ditto
+	* Headers/Foundation/NSLock.h: ditto
+	* Headers/Foundation/NSMethodSignature.h: ditto
+	* Headers/Foundation/NSNotification.h: ditto
+	* Headers/Foundation/NSNotificationQueue.h: ditto
+	* Headers/Foundation/NSPort.h: ditto
+	* Headers/Foundation/NSPortMessage.h: ditto
+	* Headers/Foundation/NSPortNameServer.h: ditto
+	* Headers/Foundation/NSProtocolChecker.h: ditto
+	* Headers/Foundation/NSScanner.h: ditto
+	* Headers/Foundation/NSSet.h: ditto
+	* Headers/Foundation/NSTask.h: ditto
+	* Headers/Foundation/NSURL.h: ditto
+	* Headers/Foundation/NSURLHandle.h: ditto
+	* Headers/Foundation/NSUndoManager.h: ditto
+	* Headers/Foundation/NSUserDefaults.h: ditto
+	* Source/NSArchiver.m: ditto
+	* Source/NSAutoreleasePool.m: ditto
+	* Source/NSBitmapCharSet.m: ditto
+	* Source/NSCalendarDate.m: ditto
+	* Source/NSDate.m: ditto
+	* Source/NSDateFormatter.m: ditto
+	* Source/NSDistantObject.m: ditto
+	* Source/NSDistributedLock.m: ditto
+	* Source/NSDistributedNotificationCenter.m: ditto
+	* Source/NSException.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSGAttributedString.m: ditto
+	* Source/NSGSet.m: ditto
+	* Source/NSHost.m: ditto
+	* Source/NSInvocation.m: ditto
+	* Source/NSLock.m: ditto
+	* Source/NSMethodSignature.m: ditto
+	* Source/NSNotificationCenter.m: ditto
+	* Source/NSNotificationQueue.m: ditto
+	* Source/NSPort.m: ditto
+	* Source/NSPortMessage.m: ditto
+	* Source/NSPortNameServer.m: ditto
+	* Source/NSProtocolChecker.m: ditto
+	* Source/NSScanner.m: ditto
+	* Source/NSTask.m: ditto
+	* Source/NSURL.m: ditto
+	* Source/NSURLHandle.m: ditto
+	* Source/NSUndoManager.m: ditto
+	* Source/NSUserDefaults.m: ditto
+	* Source/Port.m: ditto
+	* Source/TcpPort.m: ditto
+	* Source/UdpPort.m: ditto
+
 Tue Sep 14 20:44:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: Huge amounts of optimisation.

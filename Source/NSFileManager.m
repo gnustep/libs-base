@@ -196,7 +196,7 @@ static NSFileManager* defaultManager = nil;
 
 - (void) dealloc
 {
-  TEST_RELEASE(lastError);
+  TEST_RELEASE(_lastError);
   [super dealloc];
 }
 
@@ -221,7 +221,7 @@ static NSFileManager* defaultManager = nil;
 
   ok = CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
   if (ok == NO)
-    ASSIGN(lastError, @"Could not create directory");
+    ASSIGN(_lastError, @"Could not create directory");
   return ok;
 #else
   const char	*cpath;
@@ -246,13 +246,13 @@ static NSFileManager* defaultManager = nil;
   len = strlen(cpath);
   if (len > PATH_MAX) // name too long
     {
-      ASSIGN(lastError, @"Could not create directory - name too long");
+      ASSIGN(_lastError, @"Could not create directory - name too long");
       return NO;
     }
     
   if (strcmp(cpath, "/") == 0 || len == 0) // cannot use "/" or ""
     {
-      ASSIGN(lastError, @"Could not create directory - no name given");
+      ASSIGN(_lastError, @"Could not create directory - no name given");
       return NO;
     }
     
@@ -279,7 +279,7 @@ static NSFileManager* defaultManager = nil;
 	{
 	  if (cur == len)
 	    {
-	      ASSIGN(lastError, @"Could not create directory - already exists");
+	      ASSIGN(_lastError, @"Could not create directory - already exists");
 	      return NO;
 	    }
 	}
@@ -292,7 +292,7 @@ static NSFileManager* defaultManager = nil;
 
 	      s = [NSString stringWithFormat: @"Could not create '%s' - '%s'",
 		dirpath, strerror(errno)];
-	      ASSIGN(lastError, s);
+	      ASSIGN(_lastError, s);
 	      return NO;
 	    }
 	  // if last directory and attributes then change
@@ -380,7 +380,7 @@ static NSFileManager* defaultManager = nil;
 	      NSDictionary* errorInfo
 		  = [NSDictionary dictionaryWithObjectsAndKeys: 
 		      destination, @"Path",
-		      lastError, @"Error",
+		      _lastError, @"Error",
 		      nil];
 	      return [handler fileManager: self
 			      shouldProceedAfterError: errorInfo];
@@ -932,7 +932,7 @@ static NSFileManager* defaultManager = nil;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileOwnerAccountNumber to '%@'", num];
-	  ASSIGN(lastError, str);
+	  ASSIGN(_lastError, str);
 	}
     }
   else
@@ -954,7 +954,7 @@ static NSFileManager* defaultManager = nil;
 	      allOk = NO;
 	      str = [NSString stringWithFormat:
 		@"Unable to change NSFileOwnerAccountName to '%@'", str];
-	      ASSIGN(lastError, str);
+	      ASSIGN(_lastError, str);
 	    }
 	}
     }
@@ -967,7 +967,7 @@ static NSFileManager* defaultManager = nil;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountNumber to '%@'", num];
-	  ASSIGN(lastError, str);
+	  ASSIGN(_lastError, str);
 	}
     }
   else if ((str=[attributes objectForKey: NSFileGroupOwnerAccountName]) != nil)
@@ -987,7 +987,7 @@ static NSFileManager* defaultManager = nil;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountName to '%@'", str];
-	  ASSIGN(lastError, str);
+	  ASSIGN(_lastError, str);
 	}
     }
 #endif	/* __WIN32__ */
@@ -1000,7 +1000,7 @@ static NSFileManager* defaultManager = nil;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFilePosixPermissions to '%o'", [num intValue]];
-	  ASSIGN(lastError, str);
+	  ASSIGN(_lastError, str);
 	}
     }
     
@@ -1034,7 +1034,7 @@ static NSFileManager* defaultManager = nil;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileModificationDate to '%@'", date];
-	  ASSIGN(lastError, str);
+	  ASSIGN(_lastError, str);
 	}
     }
     
@@ -1186,7 +1186,7 @@ static NSFileManager* defaultManager = nil;
 
 /* 
   recurses into directory `path' 
-	- pushes relative path (relative to root of search) on pathStack
+	- pushes relative path (relative to root of search) on _pathStack
 	- pushes system dir enumerator on enumPath 
 */
 - (void) recurseIntoDirectory: (NSString*)path relativeName: (NSString*)name
@@ -1201,8 +1201,8 @@ static NSFileManager* defaultManager = nil;
     
   if (dir)
     {
-      [pathStack addObject: name];
-      [enumStack addObject: [NSValue valueWithPointer: dir]];
+      [_pathStack addObject: name];
+      [_enumStack addObject: [NSValue valueWithPointer: dir]];
     }
   else
     NSLog(@"Failed to recurse into directory '%@' - %s",
@@ -1211,18 +1211,18 @@ static NSFileManager* defaultManager = nil;
 
 /*
   backtracks enumeration to the previous dir
-  	- pops current dir relative path from pathStack
-	- pops system dir enumerator from enumStack
+  	- pops current dir relative path from _pathStack
+	- pops system dir enumerator from _enumStack
 	- sets currentFile* to nil
 */
 - (void) backtrack
 {
-  closedir((DIR*)[[enumStack lastObject] pointerValue]);
-  [enumStack removeLastObject];
-  [pathStack removeLastObject];
-  DESTROY(currentFileName);
-  DESTROY(currentFilePath);
-  DESTROY(fileAttributes);
+  closedir((DIR*)[[_enumStack lastObject] pointerValue]);
+  [_enumStack removeLastObject];
+  [_pathStack removeLastObject];
+  DESTROY(_currentFileName);
+  DESTROY(_currentFilePath);
+  DESTROY(_fileAttributes);
 }
 
 /*
@@ -1244,13 +1244,13 @@ static NSFileManager* defaultManager = nil;
   struct stat		statbuf;
   const char*		cpath;
     
-  DESTROY(currentFileName);
-  DESTROY(currentFilePath);
-  DESTROY(fileAttributes);
+  DESTROY(_currentFileName);
+  DESTROY(_currentFilePath);
+  DESTROY(_fileAttributes);
     
-  while ([pathStack count])
+  while ([_pathStack count])
     {
-      dir = (DIR*)[[enumStack lastObject] pointerValue];
+      dir = (DIR*)[[_enumStack lastObject] pointerValue];
       dirbuf = readdir(dir);
       if (dirbuf)
 	{
@@ -1259,20 +1259,20 @@ static NSFileManager* defaultManager = nil;
 	    strcmp(dirbuf->d_name, "..") == 0)
 	    continue;
 	  // Name of current file
-	  currentFileName = [manager
+	  _currentFileName = [manager
 		   stringWithFileSystemRepresentation: dirbuf->d_name
 		   length: strlen(dirbuf->d_name)];
-	  currentFileName = RETAIN([[pathStack lastObject]
-		stringByAppendingPathComponent: currentFileName]);
+	  _currentFileName = RETAIN([[_pathStack lastObject]
+		stringByAppendingPathComponent: _currentFileName]);
 	  // Full path of current file
-	  currentFilePath = RETAIN([topPath
-		stringByAppendingPathComponent: currentFileName]);
+	  _currentFilePath = RETAIN([_topPath
+		stringByAppendingPathComponent: _currentFileName]);
 	  // Check if directory
-	  cpath = [manager fileSystemRepresentationWithPath: currentFilePath];
-  	  if (flags.isRecursive == YES)
+	  cpath = [manager fileSystemRepresentationWithPath: _currentFilePath];
+  	  if (_flags.isRecursive == YES)
 	    {
 	      // Do not follow links
-	      if (!flags.isFollowing)
+	      if (!_flags.isFollowing)
 		{
 		  if (lstat(cpath, &statbuf) != 0)
 		    break;
@@ -1287,8 +1287,8 @@ static NSFileManager* defaultManager = nil;
 		}
 	      if (S_IFDIR == (S_IFMT & statbuf.st_mode))
 		{
-		  [self recurseIntoDirectory: currentFilePath 
-				relativeName: currentFileName];
+		  [self recurseIntoDirectory: _currentFilePath 
+				relativeName: _currentFileName];
 		}
 	    }
 	  break;	// Got a file name - break out of loop
@@ -1307,12 +1307,12 @@ static NSFileManager* defaultManager = nil;
 	      followSymlinks: (BOOL)follow
 		 prefixFiles: (BOOL)prefix
 {
-  pathStack = [NSMutableArray new];
-  enumStack = [NSMutableArray new];
-  flags.isRecursive = recurse;
-  flags.isFollowing = follow;
+  _pathStack = [NSMutableArray new];
+  _enumStack = [NSMutableArray new];
+  _flags.isRecursive = recurse;
+  _flags.isFollowing = follow;
   
-  topPath = RETAIN(path);
+  _topPath = RETAIN(path);
   [self recurseIntoDirectory: path relativeName: @""];
 
   return self;
@@ -1320,16 +1320,16 @@ static NSFileManager* defaultManager = nil;
 
 - (void) dealloc
 {
-  while ([pathStack count])
+  while ([_pathStack count])
     [self backtrack];
     
-  RELEASE(pathStack);
-  RELEASE(enumStack);
-  RELEASE(topPath);
-  TEST_RELEASE(currentFileName);
-  TEST_RELEASE(currentFilePath);
-  TEST_RELEASE(fileAttributes);
-  TEST_RELEASE(directoryAttributes);
+  RELEASE(_pathStack);
+  RELEASE(_enumStack);
+  RELEASE(_topPath);
+  TEST_RELEASE(_currentFileName);
+  TEST_RELEASE(_currentFilePath);
+  TEST_RELEASE(_fileAttributes);
+  TEST_RELEASE(_directoryAttributes);
   [super dealloc];
 }
 
@@ -1337,33 +1337,33 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*) directoryAttributes
 {
-  if (directoryAttributes == nil)
+  if (_directoryAttributes == nil)
     {
-      directoryAttributes = [[NSFileManager defaultManager]
-	fileAttributesAtPath: topPath
-		traverseLink: flags.isFollowing];
-      RETAIN(directoryAttributes);
+      _directoryAttributes = [[NSFileManager defaultManager]
+	fileAttributesAtPath: _topPath
+		traverseLink: _flags.isFollowing];
+      RETAIN(_directoryAttributes);
     }
-  return directoryAttributes;
+  return _directoryAttributes;
 }
 
 - (NSDictionary*) fileAttributes
 {
-  if (fileAttributes == nil)
+  if (_fileAttributes == nil)
     {
-      fileAttributes = [[NSFileManager defaultManager]
-	fileAttributesAtPath: currentFilePath
-		traverseLink: flags.isFollowing];
-      RETAIN(fileAttributes);
+      _fileAttributes = [[NSFileManager defaultManager]
+	fileAttributesAtPath: _currentFilePath
+		traverseLink: _flags.isFollowing];
+      RETAIN(_fileAttributes);
     }
-  return fileAttributes;
+  return _fileAttributes;
 }
 
 // Skipping subdirectories
 
 - (void) skipDescendents
 {
-  if ([pathStack count])
+  if ([_pathStack count])
     [self backtrack];
 }
 
@@ -1372,7 +1372,7 @@ static NSFileManager* defaultManager = nil;
 - (id) nextObject
 {
   [self findNextFile];
-  return currentFileName;
+  return _currentFileName;
 }
 
 @end /* NSDirectoryEnumerator */
@@ -1381,8 +1381,8 @@ static NSFileManager* defaultManager = nil;
 - (NSDictionary*) _attributesForCopy
 {
   return [[NSFileManager defaultManager]
-    _attributesAtPath: currentFilePath
-	 traverseLink: flags.isFollowing
+    _attributesAtPath: _currentFilePath
+	 traverseLink: _flags.isFollowing
 	      forCopy: YES];
 }
 @end
@@ -1578,7 +1578,7 @@ static NSFileManager* defaultManager = nil;
 
 		  errorInfo = [NSDictionary dictionaryWithObjectsAndKeys: 
 		    destinationFile, @"Path",
-		    lastError, @"Error", nil];
+		    _lastError, @"Error", nil];
 		  if (![handler fileManager: self
 		    shouldProceedAfterError: errorInfo])
 		    return NO;
@@ -1629,7 +1629,7 @@ static NSFileManager* defaultManager = nil;
 
 	  s = [NSString stringWithFormat: @"cannot copy file type '%@'",
 	    fileType];
-	  ASSIGN(lastError, s);
+	  ASSIGN(_lastError, s);
 	  NSLog(@"%@: %@", sourceFile, s);
 	  continue;
 	}

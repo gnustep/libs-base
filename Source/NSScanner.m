@@ -48,14 +48,14 @@ static SEL		memSel = @selector(characterIsMember:);
  */
 typedef struct {
   @defs(NSGString)
-} *stringAccess;
+} *stringDefs;
 typedef struct {
   @defs(NSGCString)
-} *cStringAccess;
-#define	myLength()	(((stringAccess)string)->_count)
-#define	myUnicode(I)	(((stringAccess)string)->_contents_chars[I])
-#define	myChar(I)	chartouni((((cStringAccess)string)->_contents_chars[I]))
-#define	myCharacter(I)	(isUnicode ? myUnicode(I) : myChar(I))
+} *cStringDefs;
+#define	myLength()	(((stringDefs)_string)->_count)
+#define	myUnicode(I)	(((stringDefs)_string)->_contents_chars[I])
+#define	myChar(I)	chartouni((((cStringDefs)_string)->_contents_chars[I]))
+#define	myCharacter(I)	(_isUnicode ? myUnicode(I) : myChar(I))
 
 /*
  * Scan characters to be skipped.
@@ -64,10 +64,10 @@ typedef struct {
  * For internal use only.
  */
 #define	skipToNextField()	({ \
-  while (scanLocation < myLength() \
-    && (*skipImp)(charactersToBeSkipped, memSel, myUnicode(scanLocation))) \
-    scanLocation++; \
-  (scanLocation >= myLength()) ? NO : YES; \
+  while (_scanLocation < myLength() \
+    && (*_skipImp)(_charactersToBeSkipped, memSel, myUnicode(_scanLocation))) \
+    _scanLocation++; \
+  (_scanLocation >= myLength()) ? NO : YES; \
 })
 
 + (void) initialize
@@ -116,18 +116,18 @@ typedef struct {
    */
   if (fastClass(aString) == NSGString_class)
     {
-      isUnicode = YES;
-      string = RETAIN(aString);
+      _isUnicode = YES;
+      _string = RETAIN(aString);
     }
   else if (fastClass(aString) == NSGCString_class)
     {
-      isUnicode = NO;
-      string = RETAIN(aString);
+      _isUnicode = NO;
+      _string = RETAIN(aString);
     }
   else if ([aString isKindOfClass: NSString_class])
     {
-      isUnicode = YES;
-      string = [[NSGString_class alloc] initWithString: aString];
+      _isUnicode = YES;
+      _string = [[NSGString_class alloc] initWithString: aString];
     }
   else
     {
@@ -136,7 +136,7 @@ typedef struct {
 		  format: @"Scanner initialised with something not a string"];
     }
   [self setCharactersToBeSkipped: defaultSkipSet];
-  decimal = '.';
+  _decimal = '.';
   return self;
 }
 
@@ -145,9 +145,9 @@ typedef struct {
  */
 - (void) dealloc
 {
-  RELEASE(string);
-  TEST_RELEASE(locale);
-  RELEASE(charactersToBeSkipped);
+  RELEASE(_string);
+  TEST_RELEASE(_locale);
+  RELEASE(_charactersToBeSkipped);
   [super dealloc];
 }
 
@@ -158,14 +158,14 @@ typedef struct {
  */
 - (BOOL) isAtEnd
 {
-  unsigned int	save_scanLocation;
+  unsigned int	save__scanLocation;
   BOOL		ret;
 
-  if (scanLocation >= myLength())
+  if (_scanLocation >= myLength())
     return YES;
-  save_scanLocation = scanLocation;
+  save__scanLocation = _scanLocation;
   ret = !skipToNextField();
-  scanLocation = save_scanLocation;
+  _scanLocation = save__scanLocation;
   return ret;
 }
 
@@ -191,24 +191,24 @@ typedef struct {
   BOOL got_digits = NO;
 
   /* Check for sign */
-  if (scanLocation < myLength())
+  if (_scanLocation < myLength())
     {
-      switch (myCharacter(scanLocation))
+      switch (myCharacter(_scanLocation))
 	{
 	  case '+': 
-	    scanLocation++;
+	    _scanLocation++;
 	    break;
 	  case '-': 
 	    negative = YES;
-	    scanLocation++;
+	    _scanLocation++;
 	    break;
 	}
     }
 
   /* Process digits */
-  while (scanLocation < myLength())
+  while (_scanLocation < myLength())
     {
-      unichar digit = myCharacter(scanLocation);
+      unichar digit = myCharacter(_scanLocation);
 
       if ((digit < '0') || (digit > '9'))
 	break;
@@ -219,7 +219,7 @@ typedef struct {
 	  else
 	    num = num * 10 + (digit - '0');
 	}
-      scanLocation++;
+      _scanLocation++;
       got_digits = YES;
     }
 
@@ -244,11 +244,11 @@ typedef struct {
  */
 - (BOOL) scanInt: (int*)value
 {
-  unsigned int saveScanLocation = scanLocation;
+  unsigned int saveScanLocation = _scanLocation;
 
   if (skipToNextField() && [self _scanInt: value])
     return YES;
-  scanLocation = saveScanLocation;
+  _scanLocation = saveScanLocation;
   return NO;
 }
 
@@ -263,16 +263,16 @@ typedef struct {
   unsigned int	num = 0;
   unsigned int	numLimit, digitLimit, digitValue;
   BOOL		overflow = NO;
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
 
   /* Set limits */
   numLimit = UINT_MAX / radix;
   digitLimit = UINT_MAX % radix;
 
   /* Process digits */
-  while (scanLocation < myLength())
+  while (_scanLocation < myLength())
     {
-      unichar digit = myCharacter(scanLocation);
+      unichar digit = myCharacter(_scanLocation);
 
       switch (digit)
 	{
@@ -312,14 +312,14 @@ typedef struct {
 	  else
 	    num = num * radix + digitValue;
 	}
-      scanLocation++;
+      _scanLocation++;
       gotDigits = YES;
     }
 
   /* Save result */
   if (!gotDigits)
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
   if (value)
@@ -339,29 +339,29 @@ typedef struct {
 {
   int		radix;
   BOOL		gotDigits = NO;
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
   if (!skipToNextField())
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
 
   /* Check radix */
   radix = 10;
-  if ((scanLocation < myLength()) && (myCharacter(scanLocation) == '0'))
+  if ((_scanLocation < myLength()) && (myCharacter(_scanLocation) == '0'))
     {
       radix = 8;
-      scanLocation++;
+      _scanLocation++;
       gotDigits = YES;
-      if (scanLocation < myLength())
+      if (_scanLocation < myLength())
 	{
-	  switch (myCharacter(scanLocation))
+	  switch (myCharacter(_scanLocation))
 	    {
 	      case 'x': 
 	      case 'X': 
-		scanLocation++;
+		_scanLocation++;
 		radix = 16;
 		gotDigits = NO;
 		break;
@@ -370,7 +370,7 @@ typedef struct {
     }
   if ( [self scanUnsignedInt_: value radix: radix gotDigits: gotDigits])
     return YES;
-  scanLocation = saveScanLocation;
+  _scanLocation = saveScanLocation;
   return NO;
 }
 
@@ -379,17 +379,17 @@ typedef struct {
  */
 - (BOOL) scanHexInt: (unsigned int *)value
 {
-  unsigned int saveScanLocation = scanLocation;
+  unsigned int saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
   if (!skipToNextField())
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
   if ([self scanUnsignedInt_: value radix: 16 gotDigits: NO])
     return YES;
-  scanLocation = saveScanLocation;
+  _scanLocation = saveScanLocation;
   return NO;
 }
 
@@ -405,34 +405,34 @@ typedef struct {
   BOOL				negative = NO;
   BOOL				overflow = NO;
   BOOL				got_digits = NO;
-  unsigned int			saveScanLocation = scanLocation;
+  unsigned int			saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
   if (!skipToNextField())
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
 
   /* Check for sign */
-  if (scanLocation < myLength())
+  if (_scanLocation < myLength())
     {
-      switch (myCharacter(scanLocation))
+      switch (myCharacter(_scanLocation))
 	{
 	  case '+': 
-	    scanLocation++;
+	    _scanLocation++;
 	    break;
 	  case '-': 
 	    negative = YES;
-	    scanLocation++;
+	    _scanLocation++;
 	    break;
 	}
     }
 
     /* Process digits */
-  while (scanLocation < myLength())
+  while (_scanLocation < myLength())
     {
-      unichar digit = myCharacter(scanLocation);
+      unichar digit = myCharacter(_scanLocation);
 
       if ((digit < '0') || (digit > '9'))
 	break;
@@ -442,14 +442,14 @@ typedef struct {
 	else
 	  num = num * 10 + (digit - '0');
       }
-      scanLocation++;
+      _scanLocation++;
       got_digits = YES;
     }
 
     /* Save result */
   if (!got_digits)
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
   if (value)
@@ -503,34 +503,34 @@ typedef struct {
   BOOL		negative = NO;
   BOOL		got_dot = NO;
   BOOL		got_digit = NO;
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
   if (!skipToNextField())
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
 
   /* Check for sign */
-  if (scanLocation < myLength())
+  if (_scanLocation < myLength())
     {
-      switch (myCharacter(scanLocation))
+      switch (myCharacter(_scanLocation))
 	{
 	  case '+': 
-	    scanLocation++;
+	    _scanLocation++;
 	    break;
 	  case '-': 
 	    negative = YES;
-	    scanLocation++;
+	    _scanLocation++;
 	    break;
 	}
     }
 
     /* Process number */
-  while (scanLocation < myLength())
+  while (_scanLocation < myLength())
     {
-      c = myCharacter(scanLocation);
+      c = myCharacter(_scanLocation);
       if ((c >= '0') && (c <= '9'))
 	{
 	  /* Ensure that the number being accumulated will not overflow. */
@@ -548,7 +548,7 @@ typedef struct {
 	  if (got_dot)
 	    --exponent;
         }
-      else if (!got_dot && (c == decimal))
+      else if (!got_dot && (c == _decimal))
 	{
 	  /* Note that we have found the decimal point. */
 	  got_dot = YES;
@@ -558,20 +558,20 @@ typedef struct {
 	  /* Any other character terminates the number. */
 	  break;
         }
-      scanLocation++;
+      _scanLocation++;
     }
   if (!got_digit)
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
 
   /* Check for trailing exponent */
-  if ((scanLocation < myLength()) && ((c == 'e') || (c == 'E')))
+  if ((_scanLocation < myLength()) && ((c == 'e') || (c == 'E')))
     {
       int expval;
 
-      scanLocation++;
+      _scanLocation++;
       if ([self _scanInt: &expval])
 	{
       /* Check for exponent overflow */
@@ -589,10 +589,10 @@ typedef struct {
 	{
 #ifdef _ACCEPT_BAD_EXPONENTS_
 	  /* Numbers like 1.23eFOO are accepted (as 1.23). */
-	  scanLocation = expScanLocation;
+	  _scanLocation = expScanLocation;
 #else
 	  /* Numbers like 1.23eFOO are rejected. */
-	  scanLocation = saveScanLocation;
+	  _scanLocation = saveScanLocation;
 	  return NO;
 #endif
 	}
@@ -640,52 +640,52 @@ typedef struct {
 - (BOOL) scanCharactersFromSet: (NSCharacterSet *)aSet 
 		    intoString: (NSString **)value;
 {
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
 
   if (skipToNextField())
     {
       unsigned int	start;
       BOOL		(*memImp)(NSCharacterSet*, SEL, unichar);
 
-      if (aSet == charactersToBeSkipped)
-	memImp = skipImp;
+      if (aSet == _charactersToBeSkipped)
+	memImp = _skipImp;
       else
 	memImp = (BOOL (*)(NSCharacterSet*, SEL, unichar))
 	  [aSet methodForSelector: memSel];
 
-      start = scanLocation;
-      if (isUnicode)
+      start = _scanLocation;
+      if (_isUnicode)
 	{
-	  while (scanLocation < myLength())
+	  while (_scanLocation < myLength())
 	    {
-	      if ((*memImp)(aSet, memSel, myUnicode(scanLocation)) == NO)
+	      if ((*memImp)(aSet, memSel, myUnicode(_scanLocation)) == NO)
 		break;
-	      scanLocation++;
+	      _scanLocation++;
 	    }
 	}
       else
 	{
-	  while (scanLocation < myLength())
+	  while (_scanLocation < myLength())
 	    {
-	      if ((*memImp)(aSet, memSel, myChar(scanLocation)) == NO)
+	      if ((*memImp)(aSet, memSel, myChar(_scanLocation)) == NO)
 		break;
-	      scanLocation++;
+	      _scanLocation++;
 	    }
 	}
-      if (scanLocation != start)
+      if (_scanLocation != start)
 	{
 	  if (value != 0)
 	    {
 	      NSRange	range;
 
 	      range.location = start;
-	      range.length = scanLocation - start;
-	      *value = [string substringFromRange: range];
+	      range.length = _scanLocation - start;
+	      *value = [_string substringFromRange: range];
 	    }
 	  return YES;
 	}
     }
-  scanLocation = saveScanLocation;
+  _scanLocation = saveScanLocation;
   return NO;
 }
 
@@ -699,42 +699,42 @@ typedef struct {
 - (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)set 
 		        intoString: (NSString **)value;
 {
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
   unsigned int	start;
   BOOL		(*memImp)(NSCharacterSet*, SEL, unichar);
 
   if (!skipToNextField())
     return NO;
 
-  if (set == charactersToBeSkipped)
-    memImp = skipImp;
+  if (set == _charactersToBeSkipped)
+    memImp = _skipImp;
   else
     memImp = (BOOL (*)(NSCharacterSet*, SEL, unichar))
       [set methodForSelector: memSel];
 
-  start = scanLocation;
-  if (isUnicode)
+  start = _scanLocation;
+  if (_isUnicode)
     {
-      while (scanLocation < myLength())
+      while (_scanLocation < myLength())
 	{
-	  if ((*memImp)(set, memSel, myUnicode(scanLocation)) == YES)
+	  if ((*memImp)(set, memSel, myUnicode(_scanLocation)) == YES)
 	    break;
-	  scanLocation++;
+	  _scanLocation++;
 	}
     }
   else
     {
-      while (scanLocation < myLength())
+      while (_scanLocation < myLength())
 	{
-	  if ((*memImp)(set, memSel, myChar(scanLocation)) == YES)
+	  if ((*memImp)(set, memSel, myChar(_scanLocation)) == YES)
 	    break;
-	  scanLocation++;
+	  _scanLocation++;
 	}
     }
 
-  if (scanLocation == start)
+  if (_scanLocation == start)
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
   if (value)
@@ -742,8 +742,8 @@ typedef struct {
       NSRange	range;
 
       range.location = start;
-      range.length = scanLocation - start;
-      *value = [string substringFromRange: range];
+      range.length = _scanLocation - start;
+      *value = [_string substringFromRange: range];
     }
   return YES;
 }
@@ -759,24 +759,24 @@ typedef struct {
 - (BOOL) scanString: (NSString *)aString intoString: (NSString **)value;
 {
   NSRange	range;
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
     
   skipToNextField();
-  range.location = scanLocation;
+  range.location = _scanLocation;
   range.length = [aString length];
   if (range.location + range.length > myLength())
     return NO;
-  range = [string rangeOfString: aString
-			options: caseSensitive ? 0 : NSCaseInsensitiveSearch
+  range = [_string rangeOfString: aString
+			options: _caseSensitive ? 0 : NSCaseInsensitiveSearch
 			  range: range];
   if (range.length == 0)
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
   if (value)
-    *value = [string substringFromRange: range];
-  scanLocation += range.length;
+    *value = [_string substringFromRange: range];
+  _scanLocation += range.length;
   return YES;
 }
 
@@ -792,24 +792,24 @@ typedef struct {
 {
   NSRange	range;
   NSRange	found;
-  unsigned int	saveScanLocation = scanLocation;
+  unsigned int	saveScanLocation = _scanLocation;
     
   skipToNextField();
-  range.location = scanLocation;
-  range.length = myLength() - scanLocation;
-  found = [string rangeOfString: aString
-			options: caseSensitive ? 0 : NSCaseInsensitiveSearch
-			  range: range];
+  range.location = _scanLocation;
+  range.length = myLength() - _scanLocation;
+  found = [_string rangeOfString: aString
+			 options: _caseSensitive ? 0 : NSCaseInsensitiveSearch
+			   range: range];
   if (found.length)
-    range.length = found.location - scanLocation;
+    range.length = found.location - _scanLocation;
   if (range.length == 0)
     {
-      scanLocation = saveScanLocation;
+      _scanLocation = saveScanLocation;
       return NO;
     }
   if (value)
-    *value = [string substringFromRange: range];
-  scanLocation += range.length;
+    *value = [_string substringFromRange: range];
+  _scanLocation += range.length;
   return YES;
 }
 
@@ -818,7 +818,7 @@ typedef struct {
  */
 - (NSString *) string
 {
-  return string;
+  return _string;
 }
 
 /*
@@ -827,7 +827,7 @@ typedef struct {
  */
 - (unsigned) scanLocation
 {
-  return scanLocation;
+  return _scanLocation;
 }
 
 /*
@@ -836,8 +836,8 @@ typedef struct {
  */
 - (void) setScanLocation: (unsigned int)anIndex
 {
-  if (scanLocation <= myLength())
-    scanLocation = anIndex;
+  if (_scanLocation <= myLength())
+    _scanLocation = anIndex;
   else
     [NSException raise: NSRangeException
 		format: @"Attempt to set scan location beyond end of string"];
@@ -849,7 +849,7 @@ typedef struct {
  */
 - (BOOL) caseSensitive
 {
-  return caseSensitive;
+  return _caseSensitive;
 }
 
 /*
@@ -859,7 +859,7 @@ typedef struct {
  */
 - (void) setCaseSensitive: (BOOL)flag
 {
-  caseSensitive = flag;
+  _caseSensitive = flag;
 }
 
 /*
@@ -868,7 +868,7 @@ typedef struct {
  */
 - (NSCharacterSet *) charactersToBeSkipped
 {
-  return charactersToBeSkipped;
+  return _charactersToBeSkipped;
 }
 
 /*
@@ -877,9 +877,9 @@ typedef struct {
  */
 - (void) setCharactersToBeSkipped: (NSCharacterSet *)aSet
 {
-  ASSIGNCOPY(charactersToBeSkipped, aSet);
-  skipImp = (BOOL (*)(NSCharacterSet*, SEL, unichar))
-    [charactersToBeSkipped methodForSelector: memSel];
+  ASSIGNCOPY(_charactersToBeSkipped, aSet);
+  _skipImp = (BOOL (*)(NSCharacterSet*, SEL, unichar))
+    [_charactersToBeSkipped methodForSelector: memSel];
 }
 
 /*
@@ -888,7 +888,7 @@ typedef struct {
  */
 - (NSDictionary *) locale
 {
-  return locale;
+  return _locale;
 }
 
 /*
@@ -897,23 +897,23 @@ typedef struct {
  */
 - (void) setLocale: (NSDictionary *)localeDictionary
 {
-  ASSIGN(locale, localeDictionary);
+  ASSIGN(_locale, localeDictionary);
   /*
    * Get decimal point character from locale if necessary.
    */
-  if (locale == nil)
+  if (_locale == nil)
     {
-      decimal = '.';
+      _decimal = '.';
     }
   else
     {
       NSString	*pointString;
 
-      pointString = [locale objectForKey: NSDecimalSeparator];
+      pointString = [_locale objectForKey: NSDecimalSeparator];
       if ([pointString length] > 0)
-	decimal = [pointString characterAtIndex: 0];
+	_decimal = [pointString characterAtIndex: 0];
       else
-	decimal = '.';
+	_decimal = '.';
     }
 }
 
@@ -924,11 +924,11 @@ typedef struct {
 {
   NSScanner	*n = [[self class] allocWithZone: zone];
 
-  [n initWithString: string];
-  [n setCharactersToBeSkipped: charactersToBeSkipped];
-  [n setLocale: locale];
-  [n setScanLocation: scanLocation];
-  [n setCaseSensitive: caseSensitive];
+  [n initWithString: _string];
+  [n setCharactersToBeSkipped: _charactersToBeSkipped];
+  [n setLocale: _locale];
+  [n setScanLocation: _scanLocation];
+  [n setCaseSensitive: _caseSensitive];
   return n;
 }
 

@@ -34,90 +34,96 @@
 #include <Foundation/NSObject.h>
 #include <objc/thr.h>
 
-//
-// NSLocking protocol
-//
+/*
+ * NSLocking protocol
+ */
 @protocol NSLocking
 
-- (void)lock;
-- (void)unlock;
+- (void) lock;
+- (void) unlock;
 
 @end
 
-//
-// NSLock class
-// Simplest lock for protecting critical sections of code
-//
+/*
+ * NSLock class
+ * Simplest lock for protecting critical sections of code
+ */
 @interface NSLock : NSObject <NSLocking>
 {
 @private
-   objc_mutex_t mutex;
+  objc_mutex_t	_mutex;
 }
 
-- (BOOL)tryLock;
-- (BOOL)lockBeforeDate:(NSDate *)limit;
+- (BOOL) tryLock;
+- (BOOL) lockBeforeDate: (NSDate*)limit;
 
-// NSLocking protocol
-- (void)lock;
-- (void)unlock;
+- (void) lock;
+- (void) unlock;
 
 @end
 
-//
-// NSConditionLock
-// Allows locking and unlocking to be based upon a condition
-//
+/*
+ * NSConditionLock
+ * Allows locking and unlocking to be based upon a condition
+ */
 @interface NSConditionLock : NSObject <NSLocking>
 {
 @private
-   objc_condition_t condition;
-   objc_mutex_t mutex;
-   int condition_value;
+  objc_condition_t	_condition;
+  objc_mutex_t		_mutex;
+  int			_condition_value;
 }
 
-// Initialize lock with condition
-- (id)initWithCondition:(int)value;
+/*
+ * Initialize lock with condition
+ */
+- (id) initWithCondition: (int)value;
 
-// Return the current condition of the lock
-- (int)condition;
+/*
+ * Return the current condition of the lock
+ */
+- (int) condition;
 
-// Acquiring and release the lock
-- (void)lockWhenCondition:(int)value;
-- (void)unlockWithCondition:(int)value;
-- (BOOL)tryLock;
-- (BOOL)tryLockWhenCondition:(int)value;
-// Acquiring the lock with a date condition
-- (BOOL)lockBeforeDate:(NSDate *)limit;
-- (BOOL)lockWhenCondition:(int)condition
-               beforeDate:(NSDate *)limit;
+/*
+ * Acquiring and release the lock
+ */
+- (void) lockWhenCondition: (int)value;
+- (void) unlockWithCondition: (int)value;
+- (BOOL) tryLock;
+- (BOOL) tryLockWhenCondition: (int)value;
 
-// NSLocking protocol
-- (void)lock;
-- (void)unlock;
+/*
+ * Acquiring the lock with a date condition
+ */
+- (BOOL) lockBeforeDate: (NSDate*)limit;
+- (BOOL) lockWhenCondition: (int)condition
+                beforeDate: (NSDate*)limit;
+
+- (void) lock;
+- (void) unlock;
 
 @end
 
-//
-// NSRecursiveLock
-// Allows the lock to be recursively acquired by the same thread
-//
-// If the same thread locks the mutex (n) times then that same 
-// thread must also unlock it (n) times before another thread 
-// can acquire the lock.
-//
+/*
+ * NSRecursiveLock
+ * Allows the lock to be recursively acquired by the same thread
+ *
+ * If the same thread locks the mutex (n) times then that same 
+ * thread must also unlock it (n) times before another thread 
+ * can acquire the lock.
+ */
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 @private
-   objc_mutex_t mutex;
+  objc_mutex_t	_mutex;
 }
 
-- (BOOL)tryLock;
-- (BOOL)lockBeforeDate:(NSDate *)limit;
+- (BOOL) tryLock;
+- (BOOL) lockBeforeDate: (NSDate*)limit;
 
-// NSLocking protocol
-- (void)lock;
-- (void)unlock;
+- (void) lock;
+- (void) unlock;
 
 @end
 
-#endif /* _GNUstep_H_NSLock */
+#endif /* _GNUstep_H_NSLock*/

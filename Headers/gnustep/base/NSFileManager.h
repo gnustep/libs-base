@@ -44,7 +44,7 @@
 
 @interface NSFileManager : NSObject
 {
-  NSString	*lastError;
+  NSString	*_lastError;
 }
 
 // Getting the default manager
@@ -120,17 +120,17 @@
 
 @interface NSDirectoryEnumerator : NSEnumerator
 {
-  NSMutableArray	*enumStack;
-  NSMutableArray	*pathStack;
-  NSString		*currentFileName;
-  NSString		*currentFilePath;
-  NSString		*topPath;
-  NSDictionary		*directoryAttributes;
-  NSDictionary		*fileAttributes;
+  NSMutableArray	*_enumStack;
+  NSMutableArray	*_pathStack;
+  NSString		*_currentFileName;
+  NSString		*_currentFilePath;
+  NSString		*_topPath;
+  NSDictionary		*_directoryAttributes;
+  NSDictionary		*_fileAttributes;
   struct {
       BOOL		isRecursive: 1;
       BOOL		isFollowing: 1;
-   } flags;
+   } _flags;
 }
 
 // Initializing

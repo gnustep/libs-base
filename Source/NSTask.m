@@ -125,20 +125,20 @@ static void handleSignal(int sig)
 - (void) gcFinalize
 {
   [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)taskId);
+  NSMapRemove(activeTasks, (void*)_taskId);
   [tasksLock unlock];
 }
 
 - (void) dealloc
 {
   [self gcFinalize];
-  RELEASE(arguments);
-  RELEASE(environment);
-  RELEASE(launchPath);
-  RELEASE(currentDirectoryPath);
-  RELEASE(standardError);
-  RELEASE(standardInput);
-  RELEASE(standardOutput);
+  RELEASE(_arguments);
+  RELEASE(_environment);
+  RELEASE(_launchPath);
+  RELEASE(_currentDirectoryPath);
+  RELEASE(_standardError);
+  RELEASE(_standardInput);
+  RELEASE(_standardOutput);
   [super dealloc];
 }
 
@@ -149,58 +149,58 @@ static void handleSignal(int sig)
 
 - (NSArray*) arguments
 {
-  return arguments;
+  return _arguments;
 }
 
 - (NSString*) currentDirectoryPath
 {
-  if (currentDirectoryPath == nil)
+  if (_currentDirectoryPath == nil)
     {
       [self setCurrentDirectoryPath:
 		[[NSFileManager defaultManager] currentDirectoryPath]];
     }
-  return currentDirectoryPath;
+  return _currentDirectoryPath;
 }
 
 - (NSDictionary*) environment
 {
-  if (environment == nil)
+  if (_environment == nil)
     {
       [self setEnvironment: [[NSProcessInfo processInfo] environment]];
     }
-  return environment;
+  return _environment;
 }
 
 - (NSString*) launchPath
 {
-  return launchPath;
+  return _launchPath;
 }
 
 - (id) standardError
 {
-  if (standardError == nil)
+  if (_standardError == nil)
     {
       [self setStandardError: [NSFileHandle fileHandleWithStandardError]];
     }
-  return standardError;
+  return _standardError;
 }
 
 - (id) standardInput
 {
-  if (standardInput == nil)
+  if (_standardInput == nil)
     {
       [self setStandardInput: [NSFileHandle fileHandleWithStandardInput]];
     }
-  return standardInput;
+  return _standardInput;
 }
 
 - (id) standardOutput
 {
-  if (standardOutput == nil)
+  if (_standardOutput == nil)
     {
       [self setStandardOutput: [NSFileHandle fileHandleWithStandardOutput]];
     }
-  return standardOutput;
+  return _standardOutput;
 }
 
 /*
@@ -209,78 +209,78 @@ static void handleSignal(int sig)
 
 - (void) setArguments: (NSArray*)args
 {
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(arguments, args);
+  ASSIGN(_arguments, args);
 }
 
 - (void) setCurrentDirectoryPath: (NSString*)path
 {
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(currentDirectoryPath, path);
+  ASSIGN(_currentDirectoryPath, path);
 }
 
 - (void) setEnvironment: (NSDictionary*)env
 {
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(environment, env);
+  ASSIGN(_environment, env);
 }
 
 - (void) setLaunchPath: (NSString*)path
 {
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(launchPath, path);
+  ASSIGN(_launchPath, path);
 }
 
 - (void) setStandardError: (id)hdl
 {
   NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
 	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(standardError, hdl);
+  ASSIGN(_standardError, hdl);
 }
 
 - (void) setStandardInput: (NSFileHandle*)hdl
 {
   NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
 	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(standardInput, hdl);
+  ASSIGN(_standardInput, hdl);
 }
 
 - (void) setStandardOutput: (NSFileHandle*)hdl
 {
   NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
 	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  ASSIGN(standardOutput, hdl);
+  ASSIGN(_standardOutput, hdl);
 }
 
 /*
@@ -289,15 +289,15 @@ static void handleSignal(int sig)
 
 - (BOOL) isRunning
 {
-  if (hasLaunched == NO)
+  if (_hasLaunched == NO)
     {
       return NO;
     }
-  if (hasCollected == NO)
+  if (_hasCollected == NO)
     {
       [self _collectChild];
     }
-  if (hasTerminated == YES)
+  if (_hasTerminated == YES)
     {
       return NO;
     }
@@ -306,21 +306,21 @@ static void handleSignal(int sig)
 
 - (int) terminationStatus
 {
-  if (hasLaunched == NO)
+  if (_hasLaunched == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-  if (hasCollected == NO)
+  if (_hasCollected == NO)
     {
       [self _collectChild];
     }
-  if (hasTerminated == NO)
+  if (_hasTerminated == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet terminated"];
     }
-  return terminationStatus;
+  return _terminationStatus;
 }
 
 /*
@@ -361,12 +361,12 @@ extern char *objc_find_executable(const char *name);
   id		hdl;
   int		i;
 
-  if (hasLaunched)
+  if (_hasLaunched)
     {
       return;
     }
 
-  if (launchPath == nil)
+  if (_launchPath == nil)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - no launch path set"];
@@ -379,8 +379,8 @@ extern char *objc_find_executable(const char *name);
    *	Third choice - base_path/prog.
    *	Otherwise - try using PATH environment variable if possible.
    */
-  prog = [launchPath lastPathComponent];
-  base_path = [launchPath stringByDeletingLastPathComponent];
+  prog = [_launchPath lastPathComponent];
+  base_path = [_launchPath stringByDeletingLastPathComponent];
   if ([[base_path lastPathComponent] isEqualToString: libs] == YES)
     base_path = [base_path stringByDeletingLastPathComponent];
   if ([[base_path lastPathComponent] isEqualToString: arch] == YES)
@@ -560,12 +560,12 @@ extern char *objc_find_executable(const char *name);
     }
   else
     {
-      taskId = pid;
-      hasLaunched = YES;
-      ASSIGN(launchPath, lpath);	// Actual path used.
+      _taskId = pid;
+      _hasLaunched = YES;
+      ASSIGN(_launchPath, lpath);	// Actual path used.
 
       [tasksLock lock];
-      NSMapInsert(activeTasks, (void*)taskId, (void*)self);
+      NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
       [tasksLock unlock];
 
       /*
@@ -582,21 +582,21 @@ extern char *objc_find_executable(const char *name);
 
 - (void) terminate
 {
-  if (hasLaunched == NO)
+  if (_hasLaunched == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-  if (hasTerminated)
+  if (_hasTerminated)
     {
       return;
     }
 
-  hasTerminated = YES;
+  _hasTerminated = YES;
 #ifdef	HAVE_KILLPG
-  killpg(taskId, SIGTERM);
+  killpg(_taskId, SIGTERM);
 #else
-  kill(-taskId, SIGTERM);
+  kill(-_taskId, SIGTERM);
 #endif
 }
 
@@ -621,49 +621,49 @@ extern char *objc_find_executable(const char *name);
 
 - (void) _collectChild
 {
-  if (hasCollected == NO)
+  if (_hasCollected == NO)
     {
       int       result;
 
       errno = 0;
-      result = waitpid(taskId, &terminationStatus, WNOHANG);
+      result = waitpid(_taskId, &_terminationStatus, WNOHANG);
       if (result < 0)
         {
           NSLog(@"waitpid %d, result %d, error %s",
-                taskId, result, strerror(errno));
+                _taskId, result, strerror(errno));
           [self _terminatedChild: -1];
         }
-      else if (result == taskId || (result == 0 && errno == 0))
+      else if (result == _taskId || (result == 0 && errno == 0))
 	{
-	  if (WIFEXITED(terminationStatus))
+	  if (WIFEXITED(_terminationStatus))
 	    {
 #ifdef  WAITDEBUG
               NSLog(@"waitpid %d, termination status = %d",
-                        taskId, terminationStatus);
+                        _taskId, _terminationStatus);
 #endif
-              [self _terminatedChild: WEXITSTATUS(terminationStatus)];
+              [self _terminatedChild: WEXITSTATUS(_terminationStatus)];
 	    }
 #ifdef  WAITDEBUG
           else
             NSLog(@"waitpid %d, event status = %d",
-                        taskId, terminationStatus);
+                        _taskId, _terminationStatus);
 #endif
 	}
 #ifdef  WAITDEBUG
       else
         NSLog(@"waitpid %d, result %d, error %s",
-                taskId, result, strerror(errno));
+                _taskId, result, strerror(errno));
 #endif
     }
 }
 
 - (void) _sendNotification
 {
-  if (hasNotified == NO)
+  if (_hasNotified == NO)
     {
       NSNotification	*n;
 
-      hasNotified = YES;
+      _hasNotified = YES;
       n = [NSNotification notificationWithName: NSTaskDidTerminateNotification
 					object: self
 				      userInfo: nil];
@@ -678,12 +678,12 @@ extern char *objc_find_executable(const char *name);
 - (void) _terminatedChild: (int)status
 {
   [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)taskId);
+  NSMapRemove(activeTasks, (void*)_taskId);
   [tasksLock unlock];
-  terminationStatus = status;
-  hasCollected = YES;
-  hasTerminated = YES;
-  if (hasNotified == NO)
+  _terminationStatus = status;
+  _hasCollected = YES;
+  _hasTerminated = YES;
+  if (_hasNotified == NO)
     {
       [self _sendNotification];
     }

@@ -43,18 +43,18 @@
   NSFileManager	*fileManager;
 
   fileManager = [NSFileManager defaultManager];
-  if ([fileManager removeFileAtPath: lockPath handler: nil] == NO)
+  if ([fileManager removeFileAtPath: _lockPath handler: nil] == NO)
     [NSException raise: NSGenericException 
 		format: @"Failed to remove lock directory '%@' - %s",
-		lockPath, strerror(errno)];
-  RELEASE(lockTime);
-  lockTime = nil;
+		_lockPath, strerror(errno)];
+  RELEASE(_lockTime);
+  _lockTime = nil;
 }
 
 - (void) dealloc
 {
-  RELEASE(lockPath);
-  RELEASE(lockTime);
+  RELEASE(_lockPath);
+  RELEASE(_lockTime);
   [super dealloc];
 }
 
@@ -64,34 +64,34 @@
   NSString	*lockDir;
   BOOL		isDirectory;
 
-  lockPath = [aPath copy];
-  lockTime = nil;
+  _lockPath = [aPath copy];
+  _lockTime = nil;
 
   fileManager = [NSFileManager defaultManager];
-  lockDir = [lockPath stringByDeletingLastPathComponent];
+  lockDir = [_lockPath stringByDeletingLastPathComponent];
   if ([fileManager fileExistsAtPath: lockDir isDirectory: &isDirectory] == NO)
     {
-      NSLog(@"part of the path to the lock file '%@' is missing\n", lockPath);
+      NSLog(@"part of the path to the lock file '%@' is missing\n", _lockPath);
       RELEASE(self);
       return nil;
     }
   if (isDirectory == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is not a directory\n",
-		lockPath);
+		_lockPath);
       RELEASE(self);
       return nil;
     }
   if ([fileManager isWritableFileAtPath: lockDir] == NO)
     {
-      NSLog(@"parent directory of lock file '%@' is not writable\n", lockPath);
+      NSLog(@"parent directory of lock file '%@' is not writable\n", _lockPath);
       RELEASE(self);
       return nil;
     }
   if ([fileManager isExecutableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not accessible\n",
-		lockPath);
+		_lockPath);
       RELEASE(self);
       return nil;
     }
@@ -104,7 +104,7 @@
   NSDictionary	*attributes;
 
   fileManager = [NSFileManager defaultManager];
-  attributes = [fileManager fileAttributesAtPath: lockPath traverseLink: YES];
+  attributes = [fileManager fileAttributesAtPath: _lockPath traverseLink: YES];
   return [attributes objectForKey: NSFileModificationDate];
 }
 
@@ -120,7 +120,7 @@
   [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
 		      forKey: NSFilePosixPermissions];
 	
-  locked = [fileManager createDirectoryAtPath: lockPath
+  locked = [fileManager createDirectoryAtPath: _lockPath
 				   attributes: attributesToSet];
   if (locked == NO)
     {
@@ -132,30 +132,30 @@
        * then either the other process has removed it's lock (and we can retry)
        * or we have a severe problem!
        */
-      if ([fileManager fileExistsAtPath: lockPath isDirectory: &dir] == NO)
+      if ([fileManager fileExistsAtPath: _lockPath isDirectory: &dir] == NO)
 	{
-	  locked = [fileManager createDirectoryAtPath: lockPath
+	  locked = [fileManager createDirectoryAtPath: _lockPath
 					   attributes: attributesToSet];
 	  if (locked == NO)
 	    {
 	      NSLog(@"Failed to create lock directory '%@' - %s",
-		    lockPath, strerror(errno));
+		    _lockPath, strerror(errno));
 	    }
 	}
     }
 
   if (locked == NO)
     {
-      RELEASE(lockTime);
-      lockTime = nil;
+      RELEASE(_lockTime);
+      _lockTime = nil;
       return NO;
     }
   else
     {
-      attributes = [fileManager fileAttributesAtPath: lockPath
+      attributes = [fileManager fileAttributesAtPath: _lockPath
 					traverseLink: YES];
-      RELEASE(lockTime);
-      lockTime = RETAIN([attributes objectForKey: NSFileModificationDate]);
+      RELEASE(_lockTime);
+      _lockTime = RETAIN([attributes objectForKey: NSFileModificationDate]);
       return YES;
     }
 }
@@ -165,7 +165,7 @@
   NSFileManager	*fileManager;
   NSDictionary	*attributes;
 
-  if (lockTime == nil)
+  if (_lockTime == nil)
     [NSException raise: NSGenericException format: @"not locked by us"];
 
   /*
@@ -174,19 +174,19 @@
    *	testing and removing, but we do the bset we can.
    */
   fileManager = [NSFileManager defaultManager];
-  attributes = [fileManager fileAttributesAtPath: lockPath traverseLink: YES];
-  if ([lockTime isEqual: [attributes objectForKey: NSFileModificationDate]])
+  attributes = [fileManager fileAttributesAtPath: _lockPath traverseLink: YES];
+  if ([_lockTime isEqual: [attributes objectForKey: NSFileModificationDate]])
     {
-      if ([fileManager removeFileAtPath: lockPath handler: nil] == NO)
+      if ([fileManager removeFileAtPath: _lockPath handler: nil] == NO)
         [NSException raise: NSGenericException
 		    format: @"Failed to remove lock directory '%@' - %s",
-			lockPath, strerror(errno)];
+			_lockPath, strerror(errno)];
     }
   else
-    NSLog(@"lock '%@' already broken and in use again\n", lockPath);
+    NSLog(@"lock '%@' already broken and in use again\n", _lockPath);
 
-  RELEASE(lockTime);
-  lockTime = nil;
+  RELEASE(_lockTime);
+  _lockTime = nil;
 }
 
 @end

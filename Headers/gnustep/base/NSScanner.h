@@ -35,14 +35,14 @@
 @interface NSScanner : NSObject <NSCopying>
 {
 @private
-  NSString		*string;
-  NSCharacterSet	*charactersToBeSkipped;
-  BOOL			(*skipImp)(NSCharacterSet*, SEL, unichar);
-  NSDictionary		*locale;
-  unsigned int		scanLocation;
-  unichar		decimal;
-  BOOL			caseSensitive;
-  BOOL			isUnicode;
+  NSString		*_string;
+  NSCharacterSet	*_charactersToBeSkipped;
+  BOOL			(*_skipImp)(NSCharacterSet*, SEL, unichar);
+  NSDictionary		*_locale;
+  unsigned int		_scanLocation;
+  unichar		_decimal;
+  BOOL			_caseSensitive;
+  BOOL			_isUnicode;
 }
 
 /*

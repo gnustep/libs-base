@@ -62,7 +62,7 @@
 
 @implementation NSGSetEnumerator
 
-- initWithSet: (NSSet*)d
+- (id) initWithSet: (NSSet*)d
 {
   [super init];
   set = (NSGSet*)RETAIN(d);
@@ -70,7 +70,7 @@
   return self;
 }
 
-- nextObject
+- (id) nextObject
 {
   GSIMapNode old = node;
 

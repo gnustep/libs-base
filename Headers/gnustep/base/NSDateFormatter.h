@@ -31,8 +31,8 @@
 
 @interface NSDateFormatter : NSFormatter <NSCoding, NSCopying>
 {
-  NSString	*dateFormat;
-  BOOL		allowsNaturalLanguage;
+  NSString	*_dateFormat;
+  BOOL		_allowsNaturalLanguage;
 }
 
 /* Initializing an NSDateFormatter */

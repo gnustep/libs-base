@@ -32,53 +32,53 @@
 
 // Allocating and Initializing a FileHandle Object
 
-+ (id)fileHandleForReadingAtPath:(NSString*)path;
-+ (id)fileHandleForWritingAtPath:(NSString*)path;
-+ (id)fileHandleForUpdatingAtPath:(NSString*)path;
-+ (id)fileHandleWithStandardError;
-+ (id)fileHandleWithStandardInput;
-+ (id)fileHandleWithStandardOutput;
-+ (id)fileHandleWithNullDevice;
++ (id) fileHandleForReadingAtPath: (NSString*)path;
++ (id) fileHandleForWritingAtPath: (NSString*)path;
++ (id) fileHandleForUpdatingAtPath: (NSString*)path;
++ (id) fileHandleWithStandardError;
++ (id) fileHandleWithStandardInput;
++ (id) fileHandleWithStandardOutput;
++ (id) fileHandleWithNullDevice;
 
-- (id)initWithFileDescriptor:(int)desc;
-- (id)initWithFileDescriptor:(int)desc closeOnDealloc:(BOOL)flag;
-- (id)initWithNativeHandle:(void*)hdl;
-- (id)initWithNativeHandle:(void*)hdl closeOnDealloc:(BOOL)flag;
+- (id) initWithFileDescriptor: (int)desc;
+- (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag;
+- (id) initWithNativeHandle: (void*)hdl;
+- (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag;
 
 // Returning file handles
 
-- (int)fileDescriptor;
-- (void*)nativeHandle;
+- (int) fileDescriptor;
+- (void*) nativeHandle;
 
 // Synchronous I/O operations
 
-- (NSData*)availableData;
-- (NSData*)readDataToEndOfFile;
-- (NSData*)readDataOfLength:(unsigned int)len;
-- (void)writeData:(NSData*)item;
+- (NSData*) availableData;
+- (NSData*) readDataToEndOfFile;
+- (NSData*) readDataOfLength: (unsigned int)len;
+- (void) writeData: (NSData*)item;
 
 // Asynchronous I/O operations
 
-- (void)acceptConnectionInBackgroundAndNotifyForModes:(NSArray*)modes;
-- (void)acceptConnectionInBackgroundAndNotify;
-- (void)readInBackgroundAndNotifyForModes:(NSArray*)modes;
-- (void)readInBackgroundAndNotify;
-- (void)readToEndOfFileInBackgroundAndNotifyForModes:(NSArray*)modes;
-- (void)readToEndOfFileInBackgroundAndNotify;
-- (void)waitForDataInBackgroundAndNotifyForModes:(NSArray*)modes;
-- (void)waitForDataInBackgroundAndNotify;
+- (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) acceptConnectionInBackgroundAndNotify;
+- (void) readInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) readInBackgroundAndNotify;
+- (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) readToEndOfFileInBackgroundAndNotify;
+- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) waitForDataInBackgroundAndNotify;
 
 // Seeking within a file
 
-- (unsigned long long)offsetInFile;
-- (unsigned long long)seekToEndOfFile;
-- (void)seekToFileOffset:(unsigned long long)pos;
+- (unsigned long long) offsetInFile;
+- (unsigned long long) seekToEndOfFile;
+- (void) seekToFileOffset: (unsigned long long)pos;
 
 // Operations on file
 
-- (void)closeFile;
-- (void)synchronizeFile;
-- (void)truncateFileAtOffset:(unsigned long long)pos;
+- (void) closeFile;
+- (void) synchronizeFile;
+- (void) truncateFileAtOffset: (unsigned long long)pos;
 
 @end
 
@@ -104,35 +104,35 @@ extern NSString*	NSFileHandleOperationException;
    NSFileHandle*	readHandle;
    NSFileHandle*	writeHandle;
 }
-+ (id)pipe;
-- (NSFileHandle*)fileHandleForReading;
-- (NSFileHandle*)fileHandleForWriting;
++ (id) pipe;
+- (NSFileHandle*) fileHandleForReading;
+- (NSFileHandle*) fileHandleForWriting;
 @end
 
 
 // GNUstep class extensions
 
 @interface NSFileHandle (GNUstepExtensions)
-+ (id)fileHandleAsServerAtAddress:(NSString*)address
-			  service:(NSString*)service
-			 protocol:(NSString*)protocol;
-+ (id)fileHandleAsClientAtAddress:(NSString*)address
-			  service:(NSString*)service
-			 protocol:(NSString*)protocol;
-+ (id)fileHandleAsClientInBackgroundAtAddress:(NSString*)address
-				      service:(NSString*)service
-				     protocol:(NSString*)protocol;
-+ (id)fileHandleAsClientInBackgroundAtAddress:(NSString*)address
-				      service:(NSString*)service
-				     protocol:(NSString*)protocol
-				     forModes:(NSArray*)modes;
-- (BOOL)readInProgress;
-- (NSString*)socketAddress;
-- (NSString*)socketService;
-- (NSString*)socketProtocol;
-- (void)writeInBackgroundAndNotify:(NSData*)item forModes:(NSArray*)modes;
-- (void)writeInBackgroundAndNotify:(NSData*)item;
-- (BOOL)writeInProgress;
++ (id) fileHandleAsServerAtAddress: (NSString*)address
+			   service: (NSString*)service
+			  protocol: (NSString*)protocol;
++ (id) fileHandleAsClientAtAddress: (NSString*)address
+			   service: (NSString*)service
+			  protocol: (NSString*)protocol;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
+				       service: (NSString*)service
+				      protocol: (NSString*)protocol;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
+				       service: (NSString*)service
+				      protocol: (NSString*)protocol
+				      forModes: (NSArray*)modes;
+- (BOOL) readInProgress;
+- (NSString*) socketAddress;
+- (NSString*) socketService;
+- (NSString*) socketProtocol;
+- (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes;
+- (void) writeInBackgroundAndNotify: (NSData*)item;
+- (BOOL) writeInProgress;
 @end
 
 // GNUstep Notification names.
