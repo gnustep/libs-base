@@ -31,6 +31,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSUserDefaults.h>
 
@@ -290,4 +291,123 @@ NSOpenStepRootDirectory(void)
   return root;
 }
 
+NSArray *
+NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
+                                    NSSearchPathDomainMask domainMask,
+                                    BOOL expandTilde)
+{
+  NSDictionary *env;
+  NSString *gnustep_user_root;
+  NSString *gnustep_local_root;
+  NSString *gnustep_network_root;
+  NSString *gnustep_system_root;
+  NSString *appsDir = @"Apps";
+  NSString *libraryDir = @"Library";
+  NSString *docDir = @"Documentation";
+  NSMutableArray *paths = [NSMutableArray new];
+  NSString *path;
+  NSFileManager *fm;
+  int i;
 
+  env = [[NSProcessInfo processInfo] environment];
+  gnustep_user_root = [env objectForKey:@"GNUSTEP_USER_ROOT"];
+  gnustep_local_root = [env objectForKey:@"GNUSTEP_LOCAL_ROOT"];
+  gnustep_network_root = [env objectForKey:@"GNUSTEP_NETWORK_ROOT"];
+  gnustep_system_root = [env objectForKey:@"GNUSTEP_SYSTEM_ROOT"];
+
+  if (directoryKey == NSApplicationDirectory
+        || directoryKey == NSAllApplicationsDirectory)
+    {
+      if (domainMask & NSUserDomainMask)
+        [paths addObject:
+             [gnustep_user_root stringByAppendingPathComponent: appsDir]];
+      if (domainMask & NSLocalDomainMask)
+        [paths addObject:
+             [gnustep_local_root stringByAppendingPathComponent: appsDir]];
+      if (domainMask & NSNetworkDomainMask)
+        [paths addObject:
+             [gnustep_network_root stringByAppendingPathComponent: appsDir]];
+      if (domainMask & NSSystemDomainMask)
+        [paths addObject:
+             [gnustep_system_root stringByAppendingPathComponent: appsDir]];
+    }
+/*
+  if (directoryKey == NSDemoApplicationDirectory
+        || directoryKey == NSAllApplicationsDirectory);
+  if (directoryKey == NSDeveloperApplicationDirectory
+        || directoryKey == NSAllApplicationsDirectory);
+  if (directoryKey == NSAdminApplicationDirectory
+        || directoryKey == NSAllApplicationsDirectory);
+*/
+  if (directoryKey == NSLibraryDirectory
+        || directoryKey == NSAllLibrariesDirectory)
+    {
+      if (domainMask & NSUserDomainMask)
+        [paths addObject:
+             [gnustep_user_root stringByAppendingPathComponent: libraryDir]];
+      if (domainMask & NSLocalDomainMask)
+        [paths addObject:
+             [gnustep_local_root stringByAppendingPathComponent: libraryDir]];
+      if (domainMask & NSNetworkDomainMask)
+        [paths addObject:
+             [gnustep_network_root stringByAppendingPathComponent: libraryDir]];
+      if (domainMask & NSSystemDomainMask)
+        [paths addObject:
+             [gnustep_system_root stringByAppendingPathComponent: libraryDir]];
+    }
+  if (directoryKey == NSDeveloperDirectory
+        || directoryKey == NSAllLibrariesDirectory)
+    {
+      // GNUstep doesn't have a 'Developer' subdirectory (yet?)
+      if (domainMask & NSUserDomainMask)
+        [paths addObject: gnustep_user_root];
+      if (domainMask & NSLocalDomainMask)
+        [paths addObject: gnustep_local_root];
+      if (domainMask & NSNetworkDomainMask)
+        [paths addObject: gnustep_network_root];
+      if (domainMask & NSSystemDomainMask)
+        [paths addObject: gnustep_system_root];
+    }
+  if (directoryKey == NSUserDirectory)
+    {
+      if (domainMask & NSUserDomainMask)
+        [paths addObject: NSHomeDirectory()];
+    }
+  if (directoryKey == NSDocumentationDirectory)
+    {
+      if (domainMask & NSUserDomainMask)
+        [paths addObject:
+             [gnustep_user_root stringByAppendingPathComponent: docDir]];
+      if (domainMask & NSLocalDomainMask)
+        [paths addObject:
+             [gnustep_local_root stringByAppendingPathComponent: docDir]];
+      if (domainMask & NSNetworkDomainMask)
+        [paths addObject:
+             [gnustep_network_root stringByAppendingPathComponent: docDir]];
+      if (domainMask & NSSystemDomainMask)
+        [paths addObject:
+             [gnustep_system_root stringByAppendingPathComponent: docDir]];
+    }
+
+  fm = [NSFileManager defaultManager];
+  for (i = 0; i < [paths count]; i++)
+    {
+      path = [paths objectAtIndex: i];
+      // remove bad paths
+      if (![fm fileExistsAtPath: path])
+        {
+          [paths removeObject: path];
+          i--;  // mutable arrays move objects up a slot when you remove one
+        }
+      // this may look like a performance hit at first glance, but if these
+      // string methods don't alter the string, they return the receiver
+      else if (expandTilde)
+        [paths replaceObjectAtIndex: i
+                         withObject: [path stringByExpandingTildeInPath]];
+      else
+        [paths replaceObjectAtIndex: i
+                      withObject: [path stringByAbbreviatingWithTildeInPath]];
+    }
+
+  return paths;
+}
