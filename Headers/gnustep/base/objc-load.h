@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <objc/objc-api.h>
 
-extern char *objc_executable_location();
-
 extern long objc_load_module(
 	const char *filename,
 	FILE *errorStream,

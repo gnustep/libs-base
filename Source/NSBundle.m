@@ -33,6 +33,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSProcessInfo.h>
 
 /* Deal with strchr: */
 #if STDC_HEADERS || HAVE_STRING_H
@@ -84,6 +85,17 @@ static NSArray   *_languages = nil;
 static int _loadingBundlePos = -1;
 
 static BOOL _stripAfterLoading;
+
+/* Declaration from find_exec.c */
+extern char *objc_find_executable(const char *name);
+
+/* This function is provided for objc-load.c, although I'm not sure it
+   really needs it (So far only needed if using GNU dld library) */
+const char *
+objc_executable_location( void )
+{
+  return [[[NSBundle mainBundle] bundlePath] cString];
+}
 
 /* Get the object file that should be located in the bundle of the same name */
 static NSString *
@@ -185,7 +197,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 			addObject:(id)theClass];
 }
 
-
 @implementation NSBundle
 
 + (NSBundle *)mainBundle
@@ -195,9 +206,11 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	char *output;
 	NSString *path;
 
-	path = [NSString stringWithCString:objc_executable_location()];
-	assert(path);
-	assert([path length]);
+	path = [[NSProcessInfo processInfo] processName];
+	output = objc_find_executable([path cString]);
+	assert(output);
+	path = [NSString stringWithCString: output];
+	OBJC_FREE(output);
 
 	/* Strip off the name of the program */
 #if 0

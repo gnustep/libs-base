@@ -43,13 +43,11 @@ extern void __objc_install_premature_dtable(Class);
 extern void sarray_free(struct sarray*);
 extern struct sarray *__objc_uninstalled_dtable;
 
-extern char *objc_find_executable(const char *name);
+/* Declaration from NSBundle.m */
+const char *objc_executable_location( void );
 
 /* This is the GNU name for the CTOR list */
 #define CTOR_LIST       "___CTOR_LIST__"
-
-/* External variables needed to find the path to the executable program.  */
-extern char     **NSArgv;
 
 /* dynamic_loaded is YES if the dynamic loader was sucessfully initialized. */
 static BOOL	dynamic_loaded;
@@ -81,12 +79,6 @@ objc_check_undefineds(FILE *errorStream)
     return 0;
 }
 
-char *
-objc_executable_location()
-{
-    return objc_find_executable(NSArgv[0]);
-}
-
 /* Invalidate the dtable so it will be rebuild when a message is sent to
    the object */
 static void
@@ -106,7 +98,7 @@ objc_invalidate_dtable(Class class)
 static int 
 objc_initialize_loading(FILE *errorStream)
 {
-    char *path;
+    const char *path;
 
     dynamic_loaded = NO;
     path   = objc_executable_location();
@@ -119,7 +111,6 @@ objc_initialize_loading(FILE *errorStream)
 	return 1;
     } else
 	dynamic_loaded = YES;
-    free(path);
 
     return 0;
 }
