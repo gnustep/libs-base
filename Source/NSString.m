@@ -4910,15 +4910,15 @@ GSPropertyList(NSString *string)
 		      format: @"not a property list - failed to parse as XML"];
 	  return nil;
 	}
-      if (![[[[parser doc] root] name] isEqualToString: @"plist"])
+      if (![[[[parser document] root] name] isEqualToString: @"plist"])
 	{
 	  [NSException raise: NSGenericException
 		      format: @"not a property list - because name node is %@",
-	    [[[parser doc] root] name]];
+	    [[[parser document] root] name]];
 	  return nil;
 	}
-      pl = AUTORELEASE(RETAIN(nodeToObject([[[parser doc] root] children])));
-      return pl;
+      pl = RETAIN(nodeToObject([[[parser document] root] children]));
+      return AUTORELEASE(pl);
     }
 #endif
   d = [string dataUsingEncoding: NSUnicodeStringEncoding];
