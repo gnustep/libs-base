@@ -618,6 +618,14 @@ NSString * const NSFileHandleOperationException
 }
 
 /**
+ * Establishes an SSL connection from the system that the handle is talking to.
+ */
+- (BOOL) sslAccept
+{
+  return NO;
+}
+
+/**
  * Establishes an SSL connection to the system that the handle is talking to.
  */
 - (BOOL) sslConnect

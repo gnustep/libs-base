@@ -48,6 +48,8 @@
      while it is an Objective-C reserved keyword. */
   #define id id_x_
   #include <openssl/ssl.h>
+  #include <openssl/rand.h>
+  #include <openssl/err.h>
   #undef id
 
 #include <GSConfig.h>
@@ -81,12 +83,53 @@
 #endif
 #include <errno.h>
 
+static NSString*
+sslError(int err, int e)
+{
+  NSString	*str;
+
+  SSL_load_error_strings();
+
+  switch (err)
+    {
+      case SSL_ERROR_NONE:
+	str = @"No error: really helpful";
+	break;
+      case SSL_ERROR_ZERO_RETURN:
+	str = @"Zero Return error";
+	break;
+      case SSL_ERROR_WANT_READ:
+	str = @"Want Read Error";
+	break;
+      case SSL_ERROR_WANT_WRITE:
+	str = @"Want Write Error";
+	break;
+      case SSL_ERROR_WANT_X509_LOOKUP:
+	str = @"Want X509 Lookup Error";
+	break;
+      case SSL_ERROR_SYSCALL:
+	str = [NSString stringWithFormat: @"Syscall error %d - %s",
+	  e, GSLastErrorStr(e)];
+	break;
+      case SSL_ERROR_SSL:
+	str = @"SSL Error: really helpful";
+	break;
+      default:
+	str = @"Standard system error: really helpful";
+	break;
+    }
+  return str;
+}
+
+
 @interface	GSSSLHandle : GSFileHandle <GCFinalization>
 {
   SSL_CTX	*ctx;
   SSL		*ssl;
   BOOL		connected;
 }
+
+- (BOOL) sslAccept;
 - (BOOL) sslConnect;
 - (void) sslDisconnect;
 - (void) sslSetCertificate: (NSString*)certFile
@@ -100,6 +143,18 @@
   if (self == [GSSSLHandle class])
     {
       SSL_library_init();
+
+      /*
+       * If there is no /dev/urandom for ssl to use, we must seed the
+       * random number generator ourselves.
+       */
+      if (![[NSFileManager defaultManager] fileExistsAtPath: @"/dev/urandom"])
+	{
+	  const char	*inf;
+
+	  inf = [[[NSProcessInfo processInfo] globallyUniqueString] UTF8String];
+	  RAND_seed(inf, strlen(inf));
+	}
     }
 }
 
@@ -122,6 +177,89 @@
       return SSL_read(ssl, buf, len);
     }
   return [super read: buf length: len];
+}
+
+- (BOOL) sslAccept
+{
+  int		ret;
+  int		err;
+  NSRunLoop	*loop;
+
+  if (connected == YES)
+    {
+      return YES;	/* Already connected.	*/
+    }
+  if (isStandardFile == YES)
+    {
+      NSLog(@"Attempt to make ssl connection to a standard file");
+      return NO;
+    }
+
+  /*
+   * Ensure we have a context and handle to connect with.
+   */
+  if (ctx == 0)
+    {
+      ctx = SSL_CTX_new(SSLv23_server_method());
+    }
+  if (ssl == 0)
+    {
+      ssl = SSL_new(ctx);
+    }
+
+  loop = [NSRunLoop currentRunLoop];
+  ret = SSL_set_fd(ssl, descriptor);
+  if (ret == 1)
+    {
+      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      ret = SSL_accept(ssl);
+    }
+  if (ret != 1)
+    {
+      int		e = errno;
+      NSDate		*final;
+      NSDate		*when;
+      NSTimeInterval	last = 0.0;
+      NSTimeInterval	limit = 0.1;
+
+      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 20.0];
+      when = [NSDate alloc];
+
+      err = SSL_get_error(ssl, ret);
+      while ((err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
+	&& [final timeIntervalSinceNow] > 0.0)
+	{
+	  NSTimeInterval	tmp = limit;
+
+	  limit += last;
+	  last = tmp;
+	  when = [when initWithTimeIntervalSinceNow: limit];
+	  [loop runUntilDate: when];
+	  ret = SSL_accept(ssl);
+	  if (ret != 1)
+	    {
+	      e = errno;
+	      err = SSL_get_error(ssl, ret);
+	    }
+	  else
+	    {
+	      err = SSL_ERROR_NONE;
+	    }
+	}
+      RELEASE(when);
+      RELEASE(final);
+      if (err != SSL_ERROR_NONE)
+	{
+	  NSString	*str = sslError(err, e);
+
+	  NSLog(@"unable to accept SSL connection from %@:%@ - %@",
+	    address, service, str);
+ERR_print_errors_fp(stderr);
+	  return NO;
+	}
+    }
+  connected = YES;
+  return YES;
 }
 
 - (BOOL) sslConnect
@@ -152,10 +290,13 @@
       ssl = SSL_new(ctx);
     }
 
-  ret = SSL_set_fd(ssl, descriptor);
   loop = [NSRunLoop currentRunLoop];
-  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
-  ret = SSL_connect(ssl);
+  ret = SSL_set_fd(ssl, descriptor);
+  if (ret == 1)
+    {
+      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      ret = SSL_connect(ssl);
+    }
   if (ret != 1)
     {
       int		e = errno;
@@ -192,38 +333,11 @@
       RELEASE(final);
       if (err != SSL_ERROR_NONE)
 	{
-	  NSString	*str;
+	  NSString	*str = sslError(err, e);
 
-	  switch (err)
-	    {
-	      case SSL_ERROR_NONE:
-		str = @"No error: really helpful";
-		break;
-	      case SSL_ERROR_ZERO_RETURN:
-		str = @"Zero Return error";
-		break;
-	      case SSL_ERROR_WANT_READ:
-		str = @"Want Read Error";
-		break;
-	      case SSL_ERROR_WANT_WRITE:
-		str = @"Want Write Error";
-		break;
-	      case SSL_ERROR_WANT_X509_LOOKUP:
-		str = @"Want X509 Lookup Error";
-		break;
-	      case SSL_ERROR_SYSCALL:
-		str = [NSString stringWithFormat: @"Syscall error %d - %s",
-		  e, GSLastErrorStr(e)];
-		break;
-	      case SSL_ERROR_SSL:
-		str = @"SSL Error: really helpful";
-		break;
-	      default:
-		str = @"Standard system error: really helpful";
-		break;
-	    }
 	  NSLog(@"unable to make SSL connection to %@:%@ - %@",
 	    address, service, str);
+ERR_print_errors_fp(stderr);
 	  return NO;
 	}
     }
@@ -255,6 +369,8 @@
 		privateKey: (NSString*)privateKey
 		 PEMpasswd: (NSString*)PEMpasswd
 {
+  int	ret;
+
   if (isStandardFile == YES)
     {
       NSLog(@"Attempt to set ssl certificate for a standard file");
@@ -265,19 +381,32 @@
    */
   if (ctx == 0)
     {
-      ctx = SSL_CTX_new(SSLv23_client_method());
+      ctx = SSL_CTX_new(SSLv23_method());
     }
   if ([PEMpasswd length] > 0)
     {
-      SSL_CTX_set_default_passwd_cb_userdata(ctx, (char*)[PEMpasswd cString]);
+      SSL_CTX_set_default_passwd_cb_userdata(ctx,
+	(char*)[PEMpasswd UTF8String]);
     }
   if ([certFile length] > 0)
     {
-      SSL_CTX_use_certificate_file(ctx, [certFile cString], X509_FILETYPE_PEM);
+      ret = SSL_CTX_use_certificate_file(ctx, [certFile UTF8String],
+	X509_FILETYPE_PEM);
+      if (ret != 1)
+	{
+	  NSLog(@"Failed to set certificate file to %@ - %@",
+	    certFile, sslError(ERR_get_error(), errno));
+	}
     }
   if ([privateKey length] > 0)
     {
-      SSL_CTX_use_PrivateKey_file(ctx, [privateKey cString], X509_FILETYPE_PEM);
+      ret = SSL_CTX_use_PrivateKey_file(ctx, [privateKey UTF8String],
+	X509_FILETYPE_PEM);
+      if (ret != 1)
+	{
+	  NSLog(@"Failed to set private key file to %@ - %@",
+	    privateKey, sslError(ERR_get_error(), errno));
+	}
     }
 }
 
