@@ -563,6 +563,14 @@
 {
   unsigned char tag;
   unsigned fref = 0;
+  id dummy_object;
+
+  /* Sometimes the user wants to decode an object, but doesn't care to
+     have a pointer to it, (LinkedList elements, for example).  In
+     this case, the user can pass in NULL for anObjPtr, and all will
+     be safe. */
+  if (!anObjPtr)
+    anObjPtr = &dummy_object;
 
   [self decodeName:name];
   [self decodeIndent];
@@ -577,8 +585,6 @@
       break;
     case CODER_OBJECT_FORWARD_REFERENCE:
       {
-	unsigned fref;
-
 	if (!DOING_ROOT_OBJECT)
 	  [NSException 
 	    raise: NSGenericException
@@ -587,16 +593,13 @@
 	[self decodeValueOfCType: @encode(unsigned)
 	      at: &fref 
 	      withName: NULL];
+	/* The user doesn't need the object pointer anyway, don't record
+	   it in the table. */
+	if (anObjPtr == &dummy_object)
+	  break;
 	[self _coderAssociateForwardReference: fref
 	      withObjectAddress: anObjPtr];
 	break;
-      }
-    case CODER_OBJECT_FORWARD_SATISFIER:
-      {
-	[self decodeValueOfCType: @encode(unsigned)
-	      at: &fref 
-	      withName: NULL];
-	/* NOTE: no "break" here; falling through. */
       }
     case CODER_OBJECT:
       {
@@ -628,6 +631,9 @@
 	/* xxx Should I sent -awakeUsingCoder: here instead of above? */
 
 	/* If this was a CODER_OBJECT_FORWARD_SATISFIER, then remember it. */
+	[self decodeValueOfCType: @encode(unsigned)
+	      at: &fref 
+	      withName: NULL];
 	if (fref)
 	  [self _coderSatisfyForwardReference: fref withObject: *anObjPtr];
 
