@@ -1,3 +1,7 @@
+Sat Oct 25 18:47:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Judicious addition on spaces to fix test arguments.
+
 Sat Oct 25 06:54:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: ([setCalendarFormat:]),([setTimeZone:])

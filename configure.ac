@@ -902,14 +902,14 @@ fi
 
 AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
 AC_CHECK_HEADERS(callback.h, have_ffcall=yes, have_ffcall=no)
-if test $have_ffcall=no; then
+if test $have_ffcall = no; then
   enable_ffcall=no
   # If we don't have ffcall but do have libffi, use libffi
-  if test $have_libffi=yes; then
+  if test $have_libffi = yes; then
     enable_libffi=yes
   fi
 fi
-if test $have_libffi=no; then
+if test $have_libffi = no; then
   enable_libffi=no
 fi
 
