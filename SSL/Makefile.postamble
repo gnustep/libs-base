@@ -89,10 +89,3 @@ $(GNUSTEP_TARGET_DIR)/config.h: ../config.status
 	-mv config.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/config.h
 
-TAGS: $(DIST_FILES)
-	etags $(DIST_FILES)
-
-regenerate: $(DIST_FILES)
-	mv AUTHORS ..
-
-FORCE:
