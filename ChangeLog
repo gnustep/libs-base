@@ -1,3 +1,8 @@
+2001-04-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: NSTemporaryDirectory() rewrite for improved
+	security and reliability.  Expect MINGW update soon.
+
 2001-04-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: Tidied some stuff to conform to coding standards.

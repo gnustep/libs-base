@@ -263,30 +263,95 @@ NSStandardLibraryPaths(void)
 NSString *
 NSTemporaryDirectory(void)
 {
-  NSFileManager *manager;
-  NSString *tempDirName, *baseTempDirName;
+  NSFileManager	*manager;
+  NSString	*tempDirName;
+  NSString	*baseTempDirName = nil;
+  NSDictionary	*attr;
+  int		perm;
+  BOOL		flag;
 #if	defined(__WIN32__)
   char buffer[1024];
+
   if (GetTempPath(1024, buffer))
-    baseTempDirName = [NSString stringWithCString: buffer];
-  else 
-    baseTempDirName = @"C:\\";
-#else
-  baseTempDirName = @"/tmp";
+    {
+      baseTempDirName = [NSString stringWithCString: buffer];
+    }
 #endif
 
-  tempDirName = [baseTempDirName stringByAppendingPathComponent: NSUserName()];
-  manager = [NSFileManager defaultManager];
-  if ([manager fileExistsAtPath: tempDirName] == NO)
+  /*
+   * If the user has supplied a directory name in the TEMP or TMP
+   * environment variable, attempt to use that unless we already
+   * have a tem porary directory specified.
+   */
+  if (baseTempDirName == nil)
     {
-      NSDictionary *attr;
+      NSDictionary	*env = [[NSProcessInfo processInfo] environment];
 
-      attr = [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: 0700]
-					 forKey: NSFilePosixPermissions];
-      if ([manager createDirectoryAtPath: tempDirName attributes: attr] == NO)
-	tempDirName = baseTempDirName;
+      baseTempDirName = [env objectForKey: @"TEMP"];
+      if (baseTempDirName == nil)
+	{
+	  baseTempDirName = [env objectForKey: @"TMP"];
+	  if (baseTempDirName == nil)
+	    {
+#if	defined(__WIN32__)
+	      baseTempDirName = @"C:\\";
+#else
+	      baseTempDirName = @"/tmp";
+#endif
+	    }
+	}
     }
 
+  /*
+   * Check that the base directory exists ... if it doesn't we can't
+   * go any further.
+   */
+  tempDirName = baseTempDirName;
+  manager = [NSFileManager defaultManager];
+  if ([manager fileExistsAtPath: tempDirName isDirectory: &flag] == NO
+    || flag == NO)
+    {
+      NSLog(@"Temporary directory (%@) does not seem to exist", tempDirName);
+      return nil;
+    }
+
+  /*
+   * Check that the directory owner (presumably us) has access to it,
+   * and nobody else.  If other people have access, try to create a
+   * secure subdirectory.
+   */
+  attr = [manager fileAttributesAtPath: tempDirName traverseLink: YES];
+  perm = [[attr objectForKey: NSFilePosixPermissions] intValue];
+  perm = perm & 0777;
+  if (perm != 0700 && perm != 0600)
+    {
+      /*
+      NSLog(@"Temporary directory (%@) may be insecure ... attempting to "
+	@"add secure subdirectory", tempDirName);
+      */
+
+      tempDirName
+	= [baseTempDirName stringByAppendingPathComponent: NSUserName()];
+      if ([manager fileExistsAtPath: tempDirName] == NO)
+	{
+	  NSNumber	*p = [NSNumber numberWithInt: 0700];
+
+	  attr = [NSDictionary dictionaryWithObject: p
+					     forKey: NSFilePosixPermissions];
+	  if ([manager createDirectoryAtPath: tempDirName
+				  attributes: attr] == NO)
+	    {
+	      tempDirName = baseTempDirName;
+	      NSLog(@"Temporary directory (%@) may be insecure", tempDirName);
+	    }
+	}
+    }
+
+  if ([manager isWritableFileAtPath: tempDirName] == NO)
+    {
+      NSLog(@"Temporary directory (%@) is not writable", tempDirName);
+      return nil;
+    }
   return tempDirName;
 }
 
