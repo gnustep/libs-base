@@ -115,19 +115,15 @@ NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 @interface NSTimeZone : NSObject
 
 //Creating and Initializing an NSTimeZone
-+ (NSTimeZoneDetail*) defaultTimeZone;
 + (NSTimeZone*) localTimeZone;
 + (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds;
-+ (NSTimeZoneDetail*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
 + (NSTimeZone*) timeZoneWithName: (NSString*)aTimeZoneName;
-- (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date;
 
 //Managing Time Zones
 + (void) setDefaultTimeZone: (NSTimeZone*)aTimeZone;
 
 // Getting Time Zone Information
 + (NSDictionary*) abbreviationDictionary;
-- (NSString*) timeZoneName;
 
 //Getting Arrays of Time Zones
 + (NSArray*) timeZoneArray;
@@ -139,25 +135,40 @@ NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 + (NSDictionary*) abbreviationMap;
 #endif
 
+#ifndef	STRICT_OPENSTEP
+- (NSString*) abbreviation;
+- (NSString*) abbreviationForDate: (NSDate*)aDate;
+- (BOOL) isDaylightSavingTime;
+- (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate;
+- (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone;
+- (NSString*) name;
+- (int) secondsFromGMT;
+- (int) secondsFromGMTForDate: (NSDate*)aDate;
+#endif
+
+#ifndef	STRICT_MACOS_X
++ (NSTimeZoneDetail*) defaultTimeZone;
++ (NSTimeZoneDetail*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
+- (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date;
+- (NSString*) timeZoneName;
+#endif
+
 @end
 
-
+#ifndef	STRICT_MACOS_X
 @interface NSTimeZoneDetail : NSTimeZone
-
-//Querying an NSTimeZoneDetail
 - (BOOL) isDaylightSavingTimeZone;
 - (NSString*) timeZoneAbbreviation;
 - (int) timeZoneSecondsFromGMT;
-
 @end
+#endif
 
 
 @interface NSCalendarDate : NSDate
-
 {
   NSTimeInterval	_seconds_since_ref;
   NSString		*_calendar_format;
-  NSTimeZoneDetail	*_time_zone;
+  NSTimeZone		*_time_zone;
 }
 
 // Getting an NSCalendar Date
@@ -222,7 +233,12 @@ NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 
 // Getting and Setting Time Zones
 - (void) setTimeZone: (NSTimeZone*)aTimeZone;
+#ifndef	STRICT_OPENSTEP
+- (NSTimeZone*) timeZone;
+#endif
+#ifndef	STRICT_MACOS_X
 - (NSTimeZoneDetail*) timeZoneDetail;
+#endif
 
 @end
 

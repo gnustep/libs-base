@@ -931,19 +931,28 @@ static inline int getDigits(const char *from, char *to, int limit)
 	     second: (unsigned int)second
 	   timeZone: (NSTimeZone *)aTimeZone
 {
-  int	c;
-  NSTimeInterval s;
+  int			c;
+  NSDate		*d;
+  NSTimeInterval	s;
+  NSTimeInterval	oldOffset;
 
   // Calculate date as GMT
   s = GSTime(day, month, year, hour, minute, second, 0);
 
   // Assign time zone detail
-  _time_zone = RETAIN([aTimeZone
-		timeZoneDetailForDate:
-		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]]);
+  if (aTimeZone == nil)
+    {
+      _time_zone = RETAIN([NSTimeZone localTimeZone]);
+    }
+  else
+    {
+      _time_zone = RETAIN(aTimeZone);
+    }
+  d = [NSDate dateWithTimeIntervalSinceReferenceDate: s];
 
   // Adjust date so it is correct for time zone.
-  s -= [_time_zone timeZoneSecondsFromGMT];
+  oldOffset = [_time_zone secondsFromGMTForDate: d];
+  s -= oldOffset;
   self = [self initWithTimeIntervalSinceReferenceDate: s];
 
   /* Now permit up to five cycles of adjustment to allow for daylight savings.
@@ -953,26 +962,19 @@ static inline int getDigits(const char *from, char *to, int limit)
   for (c = 0; c < 5 && self != nil; c++)
     {
       int	y, m, d, h, mm, ss;
-      NSTimeZoneDetail	*z;
+      NSTimeInterval	newOffset;
 
       [self getYear: &y month: &m day: &d hour: &h minute: &mm second: &ss];
       if (y==year && m==month && d==day && h==hour && mm==minute && ss==second)
 	return self;
 
-      /* Has the time-zone detail changed?  If so - adjust time for it,
+      /* Has the time-zone offset changed?  If so - adjust time for it,
 	 other wise -  try to adjust to the correct time. */
-      z = [aTimeZone
-		timeZoneDetailForDate:
-		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]];
-      if (z != _time_zone)
+      newOffset = [_time_zone secondsFromGMTForDate: self];
+      if (newOffset != oldOffset)
 	{
-	  NSTimeInterval	oldOffset;
-	  NSTimeInterval	newOffset;
-
-	  oldOffset = [_time_zone timeZoneSecondsFromGMT];
-	  ASSIGN(_time_zone, z);
-	  newOffset = [_time_zone timeZoneSecondsFromGMT];
 	  s += newOffset - oldOffset;
+	  oldOffset = newOffset;
 	}
       else
 	{
@@ -1011,11 +1013,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
   _seconds_since_ref = seconds;
-  if (!_calendar_format)
+  if (_calendar_format == nil)
     _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
-  if (!_time_zone)
-    _time_zone = RETAIN([[NSTimeZone localTimeZone]
-      timeZoneDetailForDate: self]);
+  if (_time_zone == nil)
+    _time_zone = RETAIN([NSTimeZone localTimeZone]);
   return self;
 }
 
@@ -1036,7 +1037,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   // Calculate hour, minute, and seconds
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
   b = a / 3600;
   *hour = (int)b;
   h = *hour;
@@ -1056,7 +1057,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int r;
 
   // Get reference date in terms of days
-  a = (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]) / 86400.0;
+  a = (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]) / 86400.0;
   // Offset by Gregorian reference
   a += GREGORIAN_REFERENCE;
   r = (int)a;
@@ -1107,7 +1108,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   double a, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
   a = a / 3600;
   h = (int)a;
 
@@ -1125,7 +1126,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   double a, b, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -1152,7 +1153,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   double a, b, c, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -1328,7 +1329,8 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	    case 'F': 	// milliseconds
 	      s = ([self dayOfCommonEra] - GREGORIAN_REFERENCE) * 86400.0;
-	      s -= (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]);
+	      s -= (_seconds_since_ref
+		+ [_time_zone secondsFromGMTForDate: self]);
 	      s = abs(s);
 	      s -= floor(s);
 	      ++i;
@@ -1429,13 +1431,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 	    case 'Z':
 	      ++i;
 	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
-			  [[_time_zone timeZoneAbbreviation] cString]));
+			  [[_time_zone abbreviationForDate: self] cString]));
 	      j += k;
 	      break;
 
 	    case 'z':
 	      ++i;
-	      z = [_time_zone timeZoneSecondsFromGMT];
+	      z = [_time_zone secondsFromGMTForDate: self];
 	      if (z < 0) {
 		z = -z;
 		z /= 60;
@@ -1511,14 +1513,18 @@ static inline int getDigits(const char *from, char *to, int limit)
 // Getting and Setting Time Zones
 - (void) setTimeZone: (NSTimeZone *)aTimeZone
 {
-  NSTimeZoneDetail	*detail = [aTimeZone timeZoneDetailForDate: self];
+  ASSIGN(_time_zone, aTimeZone);
+}
 
-  ASSIGN(_time_zone, detail);
+- (NSTimeZone*) timeZone
+{
+  return _time_zone;
 }
 
 - (NSTimeZoneDetail*) timeZoneDetail
 {
-  return _time_zone;
+  NSTimeZoneDetail	*detail = [_time_zone timeZoneDetailForDate: self];
+  return detail;
 }
 
 @end
