@@ -552,12 +552,19 @@ static SEL	rlSel;
       [aCoder decodeArrayOfObjCType: @encode(id)
                               count: count
                                  at: contents];
-      return [self initWithObjects: contents count: count];
+      self = [self initWithObjects: contents count: count];
+#if GS_WITH_GC == 0
+      while (count-- > 0)
+	{
+	  [contents[count] release];
+	}
+#endif
     }
   else
     {
-      return [self initWithObjects: 0 count: 0];
+      self = [self initWithObjects: 0 count: 0];
     }
+  return self;
 }
 
 /**
