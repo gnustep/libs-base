@@ -1,3 +1,9 @@
+2003-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m:
+	([years:months:days:hours:minutes:seconds:sinceDate:]) fix to return
+	all positive values for a difference from a date in the past.
+
 2003-09-07  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (+_addFrameworkFromClass:): Check

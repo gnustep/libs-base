@@ -2154,7 +2154,14 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 /**
  * Returns the number of years, months, days, hours, minutes, and seconds
- * between the receiver and the given date.
+ * between the receiver and the given date.<br />
+ * If date is in the future of the receiver, the returned values will
+ * be negative (or zero), otherwise they are all positive.<br />
+ * If any of the pointers to return value in is null, the corresponding
+ * value will not be returned, and other return values will be adjusted
+ * accordingly. eg. If a difference of 1 hour was to be returned but
+ * hours is null, then the value returned in minutes will be increased
+ * by 60.
  */
 - (void) years: (int*)years
 	months: (int*)months
@@ -2212,29 +2219,58 @@ static inline int getDigits(const char *from, char *to, int limit)
   GSBreakTime(end->_seconds_since_ref + offset(end->_time_zone, end),
     &eyear, &emonth, &eday, &ehour, &eminute, &esecond, &mil);
 
+  if (esecond < ssecond)
+    {
+      eminute -= 1;
+      esecond += 60;
+    }
+  if (eminute < sminute)
+    {
+      ehour -= 1;
+      eminute += 60;
+    }
+  if (ehour < shour)
+    {
+      eday -= 1;
+      ehour += 24;
+    }
+  if (eday < sday)
+    {
+      emonth -= 1;
+      if (emonth >= 0)
+	{
+	  eday += [end lastDayOfGregorianMonth: emonth year: eyear];
+	}
+      else
+	{
+	  eday += 31;
+	}
+    }
+  if (emonth < smonth)
+    {
+      eyear -= 1;
+      emonth += 12;
+    }
+
   /* Calculate year difference and leave any remaining months in 'extra' */
   diff = eyear - syear;
   extra = 0;
-  if (emonth < smonth)
+  if (years != 0)
     {
-      diff--;
-      extra += 12;
+      *years = sign*diff;
     }
-  if (years)
-    *years = sign*diff;
   else
-    extra += diff*12;
+    {
+      extra += diff*12;
+    }
 
   /* Calculate month difference and leave any remaining days in 'extra' */
   diff = emonth - smonth + extra;
   extra = 0;
-  if (eday < sday)
+  if (months != 0)
     {
-      diff--;
-      extra = [end lastDayOfGregorianMonth: smonth year: syear];
+      *months = sign*diff;
     }
-  if (months)
-    *months = sign*diff;
   else
     {
       while (diff--)
@@ -2254,45 +2290,44 @@ static inline int getDigits(const char *from, char *to, int limit)
   /* Calculate day difference and leave any remaining hours in 'extra' */
   diff = eday - sday + extra;
   extra = 0;
-  if (ehour < shour)
+  if (days != 0)
     {
-      diff--;
-      extra = 24;
+      *days = sign*diff;
     }
-  if (days)
-    *days = sign*diff;
   else
-    extra += diff*24;
+    {
+      extra += diff*24;
+    }
 
   /* Calculate hour difference and leave any remaining minutes in 'extra' */
   diff = ehour - shour + extra;
   extra = 0;
-  if (eminute < sminute)
+  if (hours != 0)
     {
-      diff--;
-      extra = 60;
+      *hours = sign*diff;
     }
-  if (hours)
-    *hours = sign*diff;
   else
-    extra += diff*60;
+    {
+      extra += diff*60;
+    }
 
   /* Calculate minute difference and leave any remaining seconds in 'extra' */
   diff = eminute - sminute + extra;
   extra = 0;
-  if (esecond < ssecond)
+  if (minutes != 0)
     {
-      diff--;
-      extra = 60;
+      *minutes = sign*diff;
     }
-  if (minutes)
-    *minutes = sign*diff;
   else
-    extra += diff*60;
+    {
+      extra += diff*60;
+    }
 
   diff = esecond - ssecond + extra;
-  if (seconds)
-    *seconds = sign*diff;
+  if (seconds != 0)
+    {
+      *seconds = sign*diff;
+    }
 
   RELEASE(tmp);
 }
