@@ -1,3 +1,9 @@
+2002-11-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fix for getting integer, float and bool
+	values when they are stored as NSNumbers (problem reported by
+	Ludovic Marcotte).  Also optimise a little.
+
 2002-11-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Port pipe to mingw.
