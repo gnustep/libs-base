@@ -1,3 +1,10 @@
+Wed Oct 15 12:10:35 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Tools/GNUmakefile: Removed HEADERS, SOURCES, DIST_FILES
+	variables.
+	* Tools/Makefile.postamble: Removed regenerate, copy-dist and
+	documentation rules.
+	
 Wed Oct 15 11:48:42 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Testing/GNUmakefile: Removed HDRS, SRCS, DIST_FILES,
