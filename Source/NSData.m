@@ -41,7 +41,7 @@
 + (id) dataWithBytes: (const void*)bytes
    length: (unsigned int)length
 {
-  return [[[NSGNUData alloc] initWithBytes:bytes length:length] 
+  return [[[NSGData alloc] initWithBytes:bytes length:length] 
 	  autorelease];
 }
 
@@ -116,7 +116,7 @@
 - (NSString*) description
 {
   /* xxx worry about escaping, NSString does that? */
-  return [NSString stringWithBytes:[self bytes] length:[self length]];
+  return [NSString stringWithCString:[self bytes] length:[self length]];
 }
 
 - (void)getBytes: (void*)buffer
