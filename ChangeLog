@@ -1,3 +1,9 @@
+2004-07-21  David Ayers  <d.ayers@inode.at>
+
+	* Source/Additions/GSObjCRuntime.m
+	(gs_revert_selector_names_in_list): New function.
+	(GSRemoveMethodList): Also revert selectors for first list.
+	
 2004-07-20  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Tools/autogsdoc.m: Add 'Protocols' index to upper left index panel

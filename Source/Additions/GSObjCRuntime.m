@@ -1021,6 +1021,22 @@ GSAddMethodList(Class class,
   class_add_method_list(class, list);
 }
 
+GS_STATIC_INLINE void
+gs_revert_selector_names_in_list(GSMethodList list)
+{
+  int i;
+  const char *name;
+
+  for (i = 0; i < list->method_count; i++)
+    {
+      name  = GSNameFromSelector(list->method_list[i].method_name);
+      if (name)
+	{
+	  list->method_list[i].method_name = (SEL)name;
+	}
+    }
+}
+
 /* See header for documentation. */
 void
 GSRemoveMethodList(Class class,
@@ -1044,6 +1060,14 @@ GSRemoveMethodList(Class class,
     {
       class->methods = list->method_next;
       list->method_next = 0;
+
+      /*
+	The list has become "free standing".
+	Replace all selector references with selector names
+	so the runtime can convert them again
+	it the list gets reinserted.
+      */
+      gs_revert_selector_names_in_list(list);
     }
   else
     {
@@ -1054,7 +1078,6 @@ GSRemoveMethodList(Class class,
         {
           if (current_list->method_next == list)
             {
-              int i;
               current_list->method_next = list->method_next;
               list->method_next = 0;
 
@@ -1064,13 +1087,7 @@ GSRemoveMethodList(Class class,
                  so the runtime can convert them again
                  it the list gets reinserted.
 	      */
-              for (i = 0; i < list->method_count; i++)
-                {
-                  const char *name;
-
-                  name  = GSNameFromSelector(list->method_list[i].method_name);
-                  list->method_list[i].method_name = (SEL)name;
-                }
+	      gs_revert_selector_names_in_list(list);
             }
         }
     }
