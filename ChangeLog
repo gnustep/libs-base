@@ -1,3 +1,7 @@
+1999-04-06  Adam Fedor  <fedor@gnu.org>
+
+	* NSCharacterSets/punctuationCharSet.dat: New file
+
 Mopn Apr 5  7:33:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRange.m: Moved most functions into header file, while
