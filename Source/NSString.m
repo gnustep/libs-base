@@ -1076,8 +1076,10 @@ handle_printf_atsign (FILE *stream,
       unsigned	count;
       const unsigned char *b;
 
-      if (len < 2)
-	return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+      if (len < 1  ||  (len < 2 && encoding == NSUnicodeStringEncoding))
+	{
+	  return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+	}
 
       b = [data bytes];
       u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*(len+1));
@@ -3171,6 +3173,7 @@ handle_printf_atsign (FILE *stream,
   unsigned	count;
 
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+
   if (count > 0)
     {
       NSStringEncoding	enc;
