@@ -84,9 +84,9 @@ static NSPortNameServer	*defaultServer = nil;
   if (self == [NSPortNameServer class])
     {
       [gnustep_global_lock lock];
-      serverLock = [NSRecursiveLock new];
-      if (modes == nil)
+      if (serverLock == nil)
 	{
+          serverLock = [NSRecursiveLock new];
 	  modes = [[NSArray alloc] initWithObjects: &mode count: 1];
 	} 
       [gnustep_global_lock unlock];
