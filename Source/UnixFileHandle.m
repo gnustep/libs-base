@@ -898,19 +898,37 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     [NSException raise: NSFileHandleOperationException
 		format: @"attempt to close closed file"];
 
-  [self ignoreReadDescriptor];
-  [self ignoreWriteDescriptor];
-
-  [readInfo release];
-  readInfo = nil;
-  [writeInfo removeAllObjects];
-
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
   connectOK = NO;
   readOK = NO;
   writeOK = NO;
+
+  /*
+   *    Clear any pending operations on the file handle, sending
+   *    notifications if necessary.
+   */
+  if (readInfo)
+    {
+      [readInfo setObject: @"File handle closed locally"
+                   forKey: GSFileHandleNotificationError];
+      [self postReadNotification];
+    }
+  else
+    [self ignoreReadDescriptor];
+
+  if ([writeInfo count])
+    {
+      NSMutableDictionary       *info = [writeInfo objectAtIndex: 0];
+
+      [info setObject: @"File handle closed locally"
+               forKey: GSFileHandleNotificationError];
+      [self postWriteNotification];
+      [writeInfo removeAllObjects];
+    }
+  else
+    [self ignoreWriteDescriptor];
 }
 
 - (void)synchronizeFile
@@ -991,7 +1009,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		postingStyle: NSPostASAP
 		coalesceMask: NSNotificationNoCoalescing
 		forModes: modes];
-  [self watchWriteDescriptor];	/* In case of queued writes.	*/
+  if ((writeOK || connectOK) && [writeInfo count] > 0)
+    [self watchWriteDescriptor];	/* In case of queued writes.	*/
 }
 
 - (BOOL)readInProgress

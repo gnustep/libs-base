@@ -67,6 +67,7 @@ static void handleSignal(int sig)
           if (WIFEXITED(status))
             {
               NSTask    *t;
+
               [tasksLock lock];
               t = (NSTask*)NSMapGet(activeTasks, (void*)result);
               [tasksLock unlock];
@@ -93,7 +94,7 @@ static void handleSignal(int sig)
         }
       [gnustep_global_lock unlock];
 
-      signal(SIGCHLD, SIG_IGN);
+      signal(SIGCHLD, handleSignal);
     }
 }
 
@@ -507,11 +508,6 @@ static void handleSignal(int sig)
 #else
   kill(-taskId, SIGTERM);
 #endif
-
-  if (hasNotified == NO)
-    {
-      [self _sendNotification];
-    }
 }
 
 - (void) waitUntilExit
