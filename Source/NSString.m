@@ -37,6 +37,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
@@ -133,7 +134,8 @@ handle_printf_atsign (FILE *stream,
       if (register_printf_function ('@', 
 				    (printf_function)handle_printf_atsign, 
 				    NULL))
-	[self error: "register printf handling of %%@ failed"];
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
     }
 }

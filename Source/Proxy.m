@@ -97,7 +97,8 @@ static id tmp_kludge_protocol = nil;
 
 - notImplemented: (SEL)aSel
 {
-  [Object error:"Proxy notImplemented %s", sel_get_name(aSel)];
+  [NSException raise: NSGenericException
+	       format: @"Proxy notImplemented %s", sel_get_name(aSel)];
   return self;
 }
 
@@ -349,7 +350,9 @@ enum
 		     connection: proxy_connection];
       }
     default:
-      [self error: "Bad proxy tag"];
+      /* xxx This should be something different than NSGenericException. */
+      [NSException raise: NSGenericException
+		   format: @"Bad proxy tag"];
     }
   /* Not reached. */
   return nil;
