@@ -345,7 +345,6 @@ mframe_dissect_call (arglist_t argframe, const char *type,
      pass-by-reference parameters.  The ENCODER function should place
      the value at memory location DATA wherever the user wants to
      record the ARGNUM'th return value.
-
 */
 
 void
@@ -773,7 +772,11 @@ mframe_do_call (const char *encoded_types,
    functions after this one.  The memory for the retframe is
    alloca()'ed, not malloc()'ed, and therefore is on the stack and can
    be tromped-on by future function calls.
-   */
+
+   The callback function is finally called with the 'type' set to a nul pointer
+   to tell it that the return value and all return parameters have been
+   dealt with.  This permits the function to do any tidying up necessary.
+*/
 
 retval_t 
 mframe_build_return (arglist_t argframe, 
@@ -942,6 +945,7 @@ mframe_build_return (arglist_t argframe,
 		}
 	    }
 	}
+	(*decoder) (0, 0, 0, 0);	/* Tell it we have finished.	*/
     }
   else	/* matches `if (out_parameters)' */
     {
