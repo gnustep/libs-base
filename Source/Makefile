@@ -37,7 +37,7 @@ LIBRARY_NAME=libgnustep-base
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_SYSTEM_ROOT) \
-	-DPLATFORM_OS=\"@PLATFORM_OS@\" \
+	-DPLATFORM_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
 
@@ -471,17 +471,17 @@ dynamic-load.h \
 include/preface.h
 
 # The C source files to be compiled
-C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) $(NEXTSTEP_DERIVED_CFILES) \
+libgnustep-base_C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) $(NEXTSTEP_DERIVED_CFILES) \
 	$(BASE_CFILES)
 
 # The Objective-C source files to be compiled
-OBJC_FILES = $(GNU_MFILES) $(NEXTSTEP_MFILES) $(BASE_MFILES) \
+libgnustep-base_OBJC_FILES = $(GNU_MFILES) $(NEXTSTEP_MFILES) $(BASE_MFILES) \
 	$(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
-HEADER_FILES_DIR = .
-HEADER_FILES_INSTALL_DIR = /gnustep/base
+libgnustep-base_HEADER_FILES_DIR = .
+libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep/base
 
-HEADER_FILES = $(NEXTSTEP_HEADERS) $(BASE_HEADERS)
+libgnustep-base_HEADER_FILES = $(NEXTSTEP_HEADERS) $(BASE_HEADERS)
 
 -include Makefile.preamble
 

@@ -54,7 +54,6 @@ oldclient \
 oldserver \
 invocation \
 diningPhilosophers \
-nsattributedstring \
 nsmaptable \
 nshashtable \
 tcpport-server \

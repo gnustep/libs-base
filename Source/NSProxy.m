@@ -26,6 +26,7 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
+#include "limits.h"
 
 #include <objc/objc-api.h>
 
