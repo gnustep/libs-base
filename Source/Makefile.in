@@ -107,7 +107,6 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 
 # GNU Class source files
 #RetainingNotifier.m \
-#Time.m \
 
 GNU_MFILES = \
 Archiver.m \
@@ -164,6 +163,7 @@ Stream.m \
 String.m \
 TcpPort.m \
 TextCStream.m \
+Time.m \
 UdpPort.m \
 array.m \
 array-bas.m \
@@ -579,7 +579,11 @@ objects/stdobjects.h: objects/stdobjects.h.in ../Version
 	> $@
 stdobjects$(OEXT): objects/stdobjects.h
 
-# The Xs and Ys...Don't mess with these without thinking first.
+# Turn off warnings for o_vscanf.c, it generates a bunch of unimportant ones.
+o_vscanf$(OEXT): o_vscanf.c
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
+o_vscanf_pic$(OEXT): o_vscanf.c
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
 objects/%-bas.h: objects/x-bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
