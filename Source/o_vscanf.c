@@ -92,10 +92,8 @@ int
 o_vscanf (void *stream, 
 		int (*inchar_func)(void*), 
 		void (*unchar_func)(void*,int),
-		const char *format, va_list argptr)
+		const char *format, va_list arg)
 {
-  va_list arg = (va_list) argptr;
-
   register CONST char *f = format;
   register char fc;		/* Current character of the format.  */
   register size_t done = 0;	/* Assignments done.  */

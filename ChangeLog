@@ -1,3 +1,8 @@
+Mon Jan  4  9:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * src/o_vscanf.c: Don't make local copy of va_list parameter by
+        assignment - doesn't work on machines where a va_list is an array.
+
 Sat Jan  2 12:48:51 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* configure.in: Configure subdir src/mframe properly using
