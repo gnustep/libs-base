@@ -336,29 +336,47 @@ with "Collection"; all protocols end with "ing"; all collection
 protocols end with "Collecting".
 
 @smallexample
-   Collection <Collecting>
-       Set
-           Bag
-       KeyedCollection <KeyedCollecting>
-           Dictionary
-           MappedCollector
-           IndexedCollection <IndexedCollecting>
-               Array
-                   Stack
-                   GapArray
-                   CircularArray
-                       Queue
-                   Heap
-               LinkedList
-               BinaryTree
-               RBTree
-               EltNodeCollector
-               String
-    DelegateList
-
-    HashTable
-    List
-    Storage
+        Collection <Collecting>
+            Set
+                Bag
+            KeyedCollection <KeyedCollecting>
+                Dictionary
+                MappedCollector
+                IndexedCollection <IndexedCollecting>
+                    Array
+                        Stack
+                        GapArray
+                        CircularArray
+                            Queue
+                        Heap
+                    LinkedList
+                    BinaryTree
+                    RBTree
+                    EltNodeCollector
+                    String
+         DelegatePool
+         LinkedListNode
+             LinkedListEltNode
+         BinaryTreeNode
+             BinaryTreeEltNode
+         RBTreeNode
+             RBTreeEltNode
+         Stream
+             StdioStream
+             MemoryStream
+         Coder
+             TextCoder
+             BinaryCoder
+                 ConnectedCoder
+         Port <Coding>
+             SocketPort
+         Connection
+         Proxy <Coding>
+         Magnitude
+             Time
+         Random
+         RNGBerkeley <RandomGenerating>
+         RNGAdditiveCongruential <RandomGenerating>
 @end smallexample
 
 <<This section unfinished.>>
