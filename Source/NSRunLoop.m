@@ -430,7 +430,7 @@ static NSComparisonResult aSort(FastArrayItem i0, FastArrayItem i1)
   else if ([obj respondsToSelector: @selector(delegate)])
     {
       obj = [obj delegate];
-      if ([obj respondsToSelector: @selector(limitDateForMode:)])
+      if (obj != nil && [obj respondsToSelector: @selector(limitDateForMode:)])
 	{
 	  NSDate	*d = [obj limitDateForMode: mode];
 
@@ -874,7 +874,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      else if ([obj respondsToSelector: @selector(delegate)])
 		{
 		  obj = [obj delegate];
-		  if ([obj respondsToSelector: 
+		  if (obj != nil && [obj respondsToSelector: 
 			    @selector(timedOutEvent:type:forMode:)])
 		    {
 		      nxt = [obj timedOutEvent: min_watcher->data

@@ -1259,9 +1259,11 @@ static NSFileManager* defaultManager = nil;
     
   RELEASE(pathStack);
   RELEASE(enumStack);
-  RELEASE(currentFileName);
-  RELEASE(currentFilePath);
   RELEASE(topPath);
+  if (currentFileName)
+    RELEASE(currentFileName);
+  if (currentFilePath)
+    RELEASE(currentFilePath);
   [super dealloc];
 }
 

@@ -482,11 +482,17 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 - (void) dealloc
 {
-  NSMapRemove(_bundles, _path);
-  RELEASE(_bundleClasses);
-  RELEASE(_infoDict);
-  RELEASE(_localizations);
-  RELEASE(_path);
+  if (_path)
+    {
+      NSMapRemove(_bundles, _path);
+      RELEASE(_path);
+    }
+  if (_bundleClasses)
+    RELEASE(_bundleClasses);
+  if (_infoDict)
+    RELEASE(_infoDict);
+  if (_localizations)
+    RELEASE(_localizations);
   [super dealloc];
 }
 
