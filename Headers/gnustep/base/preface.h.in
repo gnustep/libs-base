@@ -58,7 +58,7 @@
 #endif
 
 #include <Foundation/NSObject.h>
-#include <objects/objc-malloc.h>
+#include <gnustep/base/objc-malloc.h>
 @class String;
 
 /* The following group of lines are maintained by the libobjects Makefile */

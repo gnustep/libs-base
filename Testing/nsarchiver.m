@@ -61,7 +61,7 @@ int main()
 
 #else
 
-#include <gnustep/base/objects.h>
+#include <gnustep/base/all.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSAutoreleasePool.h>
 

@@ -1,4 +1,4 @@
-#include <gnustep/base/objects.h>
+#include <gnustep/base/all.h>
 
 #if (sun && __svr4__) || defined(__hpux) || defined(_SEQUENT_)
 long lrand48();

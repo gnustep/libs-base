@@ -1,7 +1,7 @@
 #ifndef _server_h
 #define _server_h
 
-#include <gnustep/base/stdobjects.h>
+#include <gnustep/base/stdall.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Array.h>
 
