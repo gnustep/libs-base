@@ -29,7 +29,8 @@
    */ 
 
 #include "config.h"
-#include <base/preface.h>
+#include <gnustep/base/preface.h>
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSEnumerator.h>
@@ -38,7 +39,10 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
-#include <base/GSObjCRuntime.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
+#include <gnustep/base/GSObjCRuntime.h>
 #include <string.h>
 
 /**  Deprecated ... use GSObjCFindVariable() */
@@ -632,8 +636,12 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 
 
 
+#ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSKeyValueCoding.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 /**  Deprecated ... use GSObjCGetValue() */
 id

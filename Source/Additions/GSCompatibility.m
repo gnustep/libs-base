@@ -25,6 +25,7 @@
 #include "config.h"
 #include <objc/objc-class.h>
 #include "GSCompatibility.h"
+#include "GSCategories.h"
 
 /* FIXME: Need to initialize this */
 NSRecursiveLock *gnustep_global_lock = NULL;
@@ -107,7 +108,7 @@ GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
 
 @end
 
-@implementation NSProcessInfo(GNUStepGlue)
+@implementation NSProcessInfo(GSCompatibility)
 
 static NSMutableSet	*_debug_set = nil;
 
@@ -157,7 +158,7 @@ BOOL GSDebugSet(NSString *level)
 
 @end
 
-@implementation NSString(GNUStepGlue)
+@implementation NSString(GSCompatibility)
 
 // From GNUStep
 /**
@@ -180,7 +181,7 @@ BOOL GSDebugSet(NSString *level)
 
 @end
 
-@implementation NSInvocation(GNUStepGlue)
+@implementation NSInvocation(GSCompatibility)
 - (retval_t) returnFrame:(arglist_t)args
 {
 #warning (stephane@sente.ch) Not implemented
@@ -195,11 +196,10 @@ BOOL GSDebugSet(NSString *level)
 
 @end
 
-@implementation NSObject(GNUStepGlue)
+@implementation NSObject(GSCompatibility)
 
 + (id) notImplemented:(SEL)selector
 {
-#warning (stephane@sente.ch) Not implemented
     [NSException raise: NSGenericException
                 format: @"method %s not implemented in %s(class)",
 selector ? sel_get_name(selector) : "(null)",
@@ -214,4 +214,3 @@ selector ? sel_get_name(selector) : "(null)",
 }
 
 @end
-

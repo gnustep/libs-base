@@ -28,10 +28,14 @@
 */
 
 #include "config.h"
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSThread.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 #include <gnustep/base/GCObject.h>
 #include "GSCompatibility.h"

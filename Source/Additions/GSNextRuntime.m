@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include <stdio.h>
-#include <base/preface.h>
+#include <gnustep/base/preface.h>
 #ifndef ROUND
 #define ROUND(V, A) \
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
@@ -113,7 +113,17 @@ objc_sizeof_type(const char* type)
       while (*type != _C_STRUCT_E)
 	{
 	  align = objc_alignof_type (type);       /* padd to alignment */
+#if 0
 	  acc_size = ROUND (acc_size, align);
+#else
+//      acc_size = ({int __v=(acc_size); int __a=(align); __a*((__v+__a-1)/__a); });
+      {
+          int	__v = acc_size;
+          int	__a = align;
+
+          acc_size = __a * ((__v + __a - 1) / __a);
+      }
+#endif
 	  acc_size += objc_sizeof_type (type);   /* add component size */
 	  type = objc_skip_typespec (type);	         /* skip component */
 	}
@@ -243,7 +253,15 @@ objc_aligned_size (const char* type)
 {
   int size = objc_sizeof_type (type);
   int align = objc_alignof_type (type);
+#if 0
   return ROUND (size, align);
+#else
+//  return ({int __v=(size); int __a=(align); __a*((__v+__a-1)/__a); });
+  int	__v = size;
+  int	__a = align;
+
+  return __a * ((__v + __a - 1) / __a);
+#endif
 }
 
 /*
@@ -257,7 +275,15 @@ objc_promoted_size (const char* type)
   int size = objc_sizeof_type (type);
   int wordsize = sizeof (void*);
 
+#if 0
   return ROUND (size, wordsize);
+#else
+//  return ({int __v=(size); int __a=(wordsize); __a*((__v+__a-1)/__a); });
+  int	__v = size;
+  int	__a = wordsize;
+
+  return __a * ((__v + __a - 1) / __a);
+#endif
 }
 
 /*

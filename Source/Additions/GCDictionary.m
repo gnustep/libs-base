@@ -24,8 +24,12 @@
 */
 
 #include "config.h"
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 #include <gnustep/base/GSObjCRuntime.h>
 #include <gnustep/base/GCObject.h>

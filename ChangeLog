@@ -1,3 +1,18 @@
+2003-02-02  Stephane Corthesy <stephane@sente.ch>
+	    Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/GSObjCRuntime.h (GS_STATIC_INLINE): Rename
+	from FOUNDATION_STATIC_INLINE
+	* Headers/gnustep/base/GCObject.h, GSXML.h: include 
+	Foundation/Foundation.h	on MacOSX.
+	* Source/Additions/GCArray.m, GCDictionary.m, GCObject.m: Idem.
+	* Source/Additions/GSCompatibility.[hm]: Change category names to
+	GSCompatibility.
+	* Source/Additions/GSNextRuntime.m (ROUND): Expand inline due to
+	gcc 3.1 compile problems.
+	* Source/Additions/Unicode.m: Don't define GetEncodingName on MacOSX
+	Added #ifdef HAVE_ICONV around definition of iconv_stringforencoding().
+
 2003-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Fix error in check for legality of
