@@ -66,19 +66,21 @@ typedef struct _NSZone {
  * getpagesize.h of the Emacs source code
  */
 #ifndef vm_page_size
-#include <unistd.h>
-#ifdef _SC_PAGESIZE
-#define vm_page_size sysconf(_SC_PAGESIZE)
-#else
-#ifdef _SC_PAGE_SIZE
-#define vm_page_size sysconf(_SC_PAGE_SIZE)
-#else
-#ifndef HAVE_LIBC_H
-int getpagesize(void);
-#endif /* not HAVE_LIBC_H */
-#define vm_page_size getpagesize()
-#endif /* _SC_PAGE_SIZE */
-#endif /* _SC_PAGESIZE */
+# include <unistd.h>
+# ifdef _SC_PAGESIZE
+#  define vm_page_size sysconf(_SC_PAGESIZE)
+# else
+#  ifdef _SC_PAGE_SIZE
+#   define vm_page_size sysconf(_SC_PAGE_SIZE)
+#  else
+/* #   ifndef HAVE_LIBC_H */
+/* suggested change by Gregor Hoffleit <flight@mathi.uni-heidelberg.DE> */
+#   if !defined(HAVE_LIBC_H) && !defined(linux)
+     int getpagesize(void);
+#   endif /* not HAVE_LIBC_H */
+#   define vm_page_size getpagesize()
+#  endif /* _SC_PAGE_SIZE */
+# endif /* _SC_PAGESIZE */
 #endif /* vm_page_size */
 
 #define NS_NOZONE  ((NSZone *)0)
