@@ -1,3 +1,8 @@
+2001-02-17  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/GNUmakefile (PACKAGE_NAME): Fixed typo - was gnutep-base
+	rather than gnustep-base.
+
 2001-02-20  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/GSXML.m|.h ([GSXMLAttribute -ns]): get attribute namespace.
