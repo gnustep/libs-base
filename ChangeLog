@@ -1,3 +1,9 @@
+2001-04-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: Tidied some stuff to conform to coding standards.
+	Added FIXME where unsure of code.  Tidied code to get name of user.
+	* configure.in: Added checks for a few functions needed to get user.
+
 2001-03-37  Jonathan Gapen  <jagapen@home.com>
 
 	* Source/NSString.m: New private function to compute the scalar value
