@@ -310,6 +310,7 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
 GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
 GS_EXPORT NSString *GSEncodingName(NSStringEncoding availableEncodingValue);
 
+GS_EXPORT NSThread *GSCurrentThread(void);
 GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary(void);
 
 GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, 

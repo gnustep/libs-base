@@ -38,6 +38,11 @@ NSString *GSEncodingName(NSStringEncoding availableEncodingValue)
   return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
 }
 
+NSThread *GSCurrentThread()
+{
+  return [NSThread currentThread];
+}
+
 NSMutableDictionary *GSCurrentThreadDictionary()
 {
   return [[NSThread currentThread] threadDictionary];
