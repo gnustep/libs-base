@@ -1253,7 +1253,7 @@ main(int argc, char **argv, char **env)
 			file, gDate, hDate);
 		    }
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: YES];
+		  [parser substituteEntities: NO];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
 		  if ([parser parse] == NO)
