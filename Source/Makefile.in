@@ -273,7 +273,6 @@ NSAllocateObject.m \
 NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
-NSArrayEnumerator.m \
 NSAutoreleasePool.m \
 NSBitmapCharSet.m \
 NSBundle.m \
@@ -335,7 +334,6 @@ GNUSTEP_OBJS = \
 GNUSTEP_HEADERS = \
 Foundation/NSArchiver.h \
 Foundation/NSArray.h \
-Foundation/NSArrayEnumerator.h \
 Foundation/NSAutoreleasePool.h \
 Foundation/NSBitmapCharSet.h \
 Foundation/NSBundle.h \
