@@ -1,3 +1,4 @@
+#define	STRICT_OPENSTEP	1
 #include	<Foundation/Foundation.h>
 
 id	myServer;
