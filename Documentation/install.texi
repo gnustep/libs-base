@@ -31,7 +31,7 @@ linking (thanks to Adam Fedor <fedor@@boulder.colorado.edu>).
 cd gcc-2.6.3/objc
 patch < ../../libobjects-@value{OBJECTS_VERSION}/gcc-class.patch
 cd ..
-patch -p1 < ../../libobjects-@value{OBJECTS_VERSION}/gcc-string.patch
+patch -p1 < ../libobjects-@value{OBJECTS_VERSION}/gcc-string.patch
 cd objc
 patch < ../../libobjects-@value{OBJECTS_VERSION}/gcc-dynamic.patch
 @end example
