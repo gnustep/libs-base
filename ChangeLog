@@ -1,3 +1,13 @@
+2001-07-16  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: New definitions for sel
+	functions, rearrange some things.
+	* Headers/gnustep/base/objc-load.h: Change category type for 
+	compatibility with NeXT.
+	* Source/objc-load.m: Likewise.
+
+	* Source/GSCompatibility.m (+defaultsChanged:): Typo in method name.
+
 2001-07-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Finish off and enable XML property list code

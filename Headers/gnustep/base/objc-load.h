@@ -21,24 +21,24 @@
 extern long objc_load_module(
 	const char *filename,
 	FILE *errorStream,
-	void (*loadCallback)(Class, Category*),
+	void (*loadCallback)(Class, struct objc_category *),
         void **header,
         char *debugFilename);
 
 extern long objc_unload_module(
 	FILE *errorStream,
-	void (*unloadCallback)(Class, Category*));
+	void (*unloadCallback)(Class, struct objc_category *));
 
 extern long objc_load_modules(
 	char *files[],
 	FILE *errorStream,
-        void (*callback)(Class,Category*),
+        void (*callback)(Class,struct objc_category *),
         void **header,
         char *debugFilename);
 
 extern long objc_unload_modules(
 	FILE *errorStream,
-	void (*unloadCallback)(Class, Category*));
+	void (*unloadCallback)(Class, struct objc_category *));
 
 extern NSString *objc_get_symbol_path(
 	Class theClass,

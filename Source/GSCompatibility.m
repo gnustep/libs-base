@@ -76,7 +76,7 @@ static BOOL	MacOSXCompatiblePropertyLists = NO;
       def = [defaults objectForKey: @"NSWriteOldStylePropertyLists"];
       if (def != nil && [def isKindOfClass: sClass] == YES)
 	{
-	  if ([def boolBalue] == YES)
+	  if ([def boolValue] == YES)
 	    {
 	      MacOSXCompatiblePropertyLists = NO;
 	    }

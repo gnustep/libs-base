@@ -43,26 +43,27 @@ typedef void(*apply_t)(void);   /* function pointer */
 #define class_pointer isa
 typedef struct objc_super Super;
 
-#define class_create_instance(CLASS) class_createInstance(CLASS, 0)
-
-#define sel_get_name		sel_getName
-#define sel_get_uid		sel_getUid
-#define sel_eq(s1, s2) 		(s1 == s2)
-
-/* FIXME: Any equivalent for this ? */
-#define sel_get_type(SELECTOR) \
-     (NULL)
-     
+#define class_create_instance(CLASS)	class_createInstance(CLASS, 0)
 #define class_get_instance_method	class_getInstanceMethod
 #define class_get_class_method 		class_getClassMethod
 #define class_add_method_list		class_addMethods
+#define class_get_version		class_getVersion
 #define method_get_sizeof_arguments	method_getSizeOfArguments
 #define objc_lookup_class		objc_lookUpClass
-#define sel_get_any_uid			sel_getUid
 #define objc_get_class			objc_getClass
-#define class_get_version		class_getVersion
+
 #define sel_register_name		sel_registerName
 #define sel_is_mapped			sel_isMapped
+#define sel_get_name			sel_getName
+#define sel_get_any_uid			sel_getUid
+#define sel_get_uid			sel_getUid
+#define sel_eq(s1, s2) 			(s1 == s2)
+
+/* There's no support for typed sels in NeXT. These may not work */
+#define sel_get_typed_uid(_s, _t)	sel_getUid(_s)
+#define sel_get_any_typed_uid		sel_getUid
+#define sel_register_typed_name(_s, _t)	sel_registerName(_s)
+#define sel_get_type(_s)		(NULL)
 
 #define class_get_class_name(CLASSPOINTER) \
      (((struct objc_class*)(CLASSPOINTER))->name)
@@ -70,6 +71,8 @@ typedef struct objc_super Super;
     (((struct objc_class*)(OBJECT))->isa)
 #define class_get_super_class(CLASSPOINTER) \
     (((struct objc_class*)(CLASSPOINTER))->super_class)
+#define object_get_super_class(OBJ) \
+    (((struct objc_class*)(object_get_class(OBJECT)))->super_class)
 #define object_get_class_name(OBJECT) \
      (((struct objc_class*)(object_get_class(OBJECT)))->name)
 
@@ -122,6 +125,12 @@ static inline IMP
 method_get_imp(Method method)
 {
   return (method!=0)?method->method_imp:(IMP)0;
+}
+
+static inline IMP
+get_imp(Class class, SEL aSel)
+{
+  return method_get_imp(class_getInstanceMethod(class, aSel));
 }
 
 static inline BOOL
