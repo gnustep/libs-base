@@ -24,6 +24,8 @@
 #ifndef __NSDistributedNotificationCenter_h_GNUSTEP_BASE_INCLUDE
 #define __NSDistributedNotificationCenter_h_GNUSTEP_BASE_INCLUDE
 
+#ifndef	STRICT_OPENSTEP
+
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSLock.h>
 
@@ -74,5 +76,6 @@ extern NSString	*NSLocalNotificationCenterType;
 
 @end
 
+#endif
 #endif
 
