@@ -106,8 +106,6 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 		$(ALL_CFLAGS) -o $@ $<
 
 # GNU Class source files
-#ConnectedCoder.m \
-#Connection.m \
 #RetainingNotifier.m \
 #Time.m \
 
@@ -120,8 +118,10 @@ BinaryTree.m \
 BinaryTreeNode.m \
 CircularArray.m \
 Collection.m \
+ConnectedCoder.m \
 CString.m \
 Coder.m \
+Connection.m \
 ConstantString.m \
 CStream.m \
 Decoder.m \
@@ -444,11 +444,10 @@ Foundation/NSGArray.h \
 Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
-Foundation/NSHashTable.h \
-Foundation/NSLock.h \
 Foundation/NSGSet.h \
 Foundation/NSHashTable.h \
 Foundation/NSInvocation.h \
+Foundation/NSLock.h \
 Foundation/NSMapTable.h \
 Foundation/NSMethodSignature.h \
 Foundation/NSNotification.h \
