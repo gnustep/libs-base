@@ -19,7 +19,6 @@
 #include <objc/objc-api.h>
 #include <objects/objc-load.h>
 #include <foundation/NSBundle.h>
-#include "NSObjectPrivate.h"
 #include <foundation/NSException.h>
 #include <foundation/NSString.h>
 #include <foundation/NSArray.h>
