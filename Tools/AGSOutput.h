@@ -32,6 +32,7 @@
   NSCharacterSet	*spaces;	// All blank characters
   NSCharacterSet	*spacenl;	// Blanks excluding newline
   NSArray		*args;		// Not retained.
+  NSMutableArray	*informalProtocols; // built up as discovered
   BOOL			verbose;
   BOOL			warn;
 }
@@ -62,5 +63,6 @@
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf;
 - (NSArray*) split: (NSString*)str;
+- (NSArray*) informalProtocols;
 @end
 #endif
