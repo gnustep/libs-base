@@ -1,5 +1,8 @@
 2000-09-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Makefile.postamble (header-links): Restore functionality on unix
+	lost in last change, also (for MINGW) copy header files to the
+	Source/Foundation directory in addition to Headers/Foundation.
 	* Source/NSConnection.m: Address problems reported by georg@ist.org ...
 	([-connectionWithRegisteredName:host:usingNameServer:]) avoid returning
 	local server connection - create new connection to it if necessary.
