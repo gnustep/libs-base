@@ -70,6 +70,7 @@
  * Scanning a string
  */
 - (BOOL)scanInt:(int *)value;
+- (BOOL)scanRadixUnsignedInt:(unsigned int *)value;
 - (BOOL)scanLongLong:(long long *)value;
 - (BOOL)scanFloat:(float *)value;
 - (BOOL)scanDouble:(double *)value;
