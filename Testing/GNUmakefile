@@ -63,6 +63,7 @@ CHECKABLE_TOOLS = \
 		nstask \
 		nstimer \
 		nstimezone \
+		nsxmlparser \
 		release \
 		string \
 		thread \
@@ -119,6 +120,7 @@ nsset_OBJC_FILES = nsset.m
 nstask_OBJC_FILES = nstask.m
 nstimer_OBJC_FILES = nstimer.m
 nstimezone_OBJC_FILES = nstimezone.m
+nsxmlparser_OBJC_FILES = nsxmlparser.m
 prepend_OBJC_FILES = prepend.m
 release_OBJC_FILES = release.m
 string_OBJC_FILES = string.m

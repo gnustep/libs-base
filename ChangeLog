@@ -1,3 +1,17 @@
+2004-10-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/Foundation.h: include NSXMLParser
+	* Headers/Foundation/NSXMLParser.h: MacOS compatibility class
+	* Source/DocMakefile: Add NSXMLParser
+	* Source/GNUmakefile: Add NSXMLParser
+	* Source/NSXMLParser.m: Wrap some GSXML functionality for compatibility.
+	* Testing/GNUmakefile: Add nsxmlparser
+	* Testing/nsxmlparser.m: Trivial/basic test for parser
+	Committed the work I did back in May as there have been several
+	expressions of interest.  I haven't had time to do work on this
+	and consider the code pre-alpha.  Reaching full MacOS-X compatibility
+	may require minor extension to GSXML.
+
 2004-10-17  Matt Rice <ratmice@yahoo.com
 
 	* Source/objc-load.m (objc_load_module): resolve class links under GNU

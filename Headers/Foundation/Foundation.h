@@ -92,6 +92,7 @@
 #include <Foundation/NSUndoManager.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSXMLParser.h>
 #include <Foundation/NSZone.h>
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */

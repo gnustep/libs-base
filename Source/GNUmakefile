@@ -223,6 +223,7 @@ NSURLHandle.m \
 NSUser.m \
 NSUserDefaults.m \
 NSValue.m \
+NSXMLParser.m \
 NSZone.m \
 externs.m \
 objc-load.m
@@ -333,6 +334,7 @@ NSUndoManager.h \
 NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
+NSXMLParser.h \
 NSZone.h
 
 UNICODE_HEADERS = \
