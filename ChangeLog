@@ -1,3 +1,8 @@
+2004-02-11 17:47  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSCountedSet.m (-initWithCoder:): Release objects outside
+	the -addObject: loop to keep the retain count correct.
+
 2004-02-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Expect to read content data after headers

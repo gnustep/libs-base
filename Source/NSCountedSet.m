@@ -140,8 +140,8 @@ static Class NSCountedSet_concrete_class;
 	while (j-- > 1)
 	  {
 	    (*addImp)(self, @selector(addObject:), objs[i]);
-	    RELEASE(objs[i]);
 	  }
+	RELEASE(objs[i]);
       }
   }
   return self;
