@@ -4178,6 +4178,7 @@ static NSCharacterSet	*tokenSet = nil;
       NSScanner		*scanner = [NSScanner scannerWithString: type];
 
       hdr = AUTORELEASE([GSMimeHeader new]);
+      [hdr setName: @"content-type"];
       if ([p scanHeaderBody: scanner into: hdr] == NO)
 	{
 	  [NSException raise: NSInvalidArgumentException
