@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective C memory stream
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -99,12 +99,12 @@ static BOOL debug_memory_stream = YES;
   return [self initWithSize: DEFAULT_MEMORY_STREAM_SIZE];
 }
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: anEncoder
 {
   [self notImplemented:_cmd];
 }
 
-+ newWithCoder: (Coder*)aDecoder
++ newWithCoder: aDecoder
 {
   [self notImplemented:_cmd];
   return self;

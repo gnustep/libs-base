@@ -55,13 +55,13 @@
 	  withName:"Concrete String content_chars"];
 }
 
-+ newWithCoder: aCoder
+- initWithCoder: aCoder
 {
-  NSCString *n = [super newWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(char*) at:&(n->_contents_chars)
+  [super initWithCoder:aCoder];
+  [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
-  n->_count = strlen(n->_contents_chars);
-  return n;
+  _count = strlen(_contents_chars);
+  return self;
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */
@@ -245,18 +245,17 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
 	  withName:"String content_chars"];
 }
 
-+ newWithCoder: aCoder
+- initWithCoder: aCoder
 {
-  NSMutableCString *n;
   unsigned cap;
   
   [aCoder decodeValueOfType:@encode(unsigned) at:&cap withName:NULL];
-  n = [[NSMutableCString alloc] initWithCapacity:cap];
-  [aCoder decodeValueOfType:@encode(char*) at:&(n->_contents_chars)
+  [self initWithCapacity:cap];
+  [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
-  n->_count = strlen(n->_contents_chars);
-  n->_capacity = cap;
-  return n;
+  _count = strlen(_contents_chars);
+  _capacity = cap;
+  return self;
 }
 
 /* For IndexedCollecting protocol */

@@ -1,5 +1,5 @@
 /* Implementation for Objective-C BinaryTreeNode object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -38,21 +38,21 @@
   return self;
 }
 
-- (void) encodeWithCoder: (Coder*)aCoder
+- (void) encodeWithCoder: aCoder
 {
-  [super encodeWithCoder:aCoder];
+  [super encodeWithCoder:(id)aCoder];
   [aCoder encodeObjectReference:_right withName:"Right BinaryTree Node"];
   [aCoder encodeObjectReference:_left withName:"Left BinaryTree Node"];
   [aCoder encodeObjectReference:_parent withName:"Parent BinaryTree Node"];
 }
 
-+ newWithCoder: (Coder*)aCoder
+- initWithCoder: aCoder
 {
-  BinaryTreeNode *n = [super newWithCoder:aCoder];
-  [aCoder decodeObjectAt:&(n->_right) withName:NULL];
-  [aCoder decodeObjectAt:&(n->_left) withName:NULL];
-  [aCoder decodeObjectAt:&(n->_parent) withName:NULL];
-  return n;
+  [super initWithCoder:aCoder];
+  [aCoder decodeObjectAt:&_right withName:NULL];
+  [aCoder decodeObjectAt:&_left withName:NULL];
+  [aCoder decodeObjectAt:&_parent withName:NULL];
+  return self;
 }
 
 - leftNode

@@ -1,5 +1,5 @@
 /* Implementation for Objective-C LinkedListNode object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -39,19 +39,19 @@
   return self;
 }
 
-- (void) encodeWithCoder: (Coder*)aCoder
+- (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
   [aCoder encodeObjectReference:_next withName:"Next LinkedList Node"];
   [aCoder encodeObjectReference:_prev withName:"Prev LinkedList Node"];
 }
 
-+ newWithCoder: (Coder*)aCoder
+- initWithCoder: aCoder
 {
-  LinkedListNode *n = [super newWithCoder:aCoder];
-  [aCoder decodeObjectAt:&(n->_next) withName:NULL];
-  [aCoder decodeObjectAt:&(n->_prev) withName:NULL];
-  return n;
+  [super initWithCoder:aCoder];
+  [aCoder decodeObjectAt:&_next withName:NULL];
+  [aCoder decodeObjectAt:&_prev withName:NULL];
+  return self;
 }
 
 - (id <LinkedListComprising>) nextLink

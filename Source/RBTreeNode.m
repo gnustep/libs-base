@@ -1,5 +1,5 @@
 /* Implementation for Objective-C RBTreeNode objects
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -38,17 +38,17 @@
   return self;
 }
 
-- (void) encodeWithCoder: (Coder*)aCoder
+- (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
   [aCoder encodeValueOfType:@encode(BOOL) at:&_red withName:"RBTreeNode isRed"];
 }
 
-+ newWithCoder: (Coder*)aCoder
+- initWithCoder: aCoder
 {
-  RBTreeNode *n = [super newWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(BOOL) at:&(n->_red) withName:NULL];
-  return n;
+  [self initWithCoder:aCoder];
+  [aCoder decodeValueOfType:@encode(BOOL) at:&_red withName:NULL];
+  return self;
 }
 
 - write: (TypedStream*)aStream

@@ -1,5 +1,5 @@
 /* Implementation for Objective-C EltNodeCollector collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -91,7 +91,7 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) _encodeCollectionWithCoder: (Coder*)aCoder
+- (void) _encodeCollectionWithCoder: aCoder
 {
   const char *encoding = [self contentType];
 
@@ -102,17 +102,16 @@
 	  withName:"EltNodeCollector Content Node Class"];
 }
 
-+ _newCollectionWithCoder: (Coder*) aCoder
+- _initCollectionWithCoder: aCoder
 {
-  EltNodeCollector *n;
   char *encoding;
 
-  n = [super _newCollectionWithCoder:aCoder];
+  [super _initCollectionWithCoder:aCoder];
   [aCoder decodeValueOfType:@encode(char*) at:&encoding withName:NULL];
-  n->_comparison_function = elt_get_comparison_function(encoding);
-  [aCoder decodeValueOfType:"#" at:&(n->_node_class) withName:NULL];
-  n->_contents_collector = nil;
-  return n;
+  _comparison_function = elt_get_comparison_function(encoding);
+  [aCoder decodeValueOfType:"#" at:&_node_class withName:NULL];
+  _contents_collector = nil;
+  return self;
 }
 
 - (void) _encodeContentsWithCoder: (Coder*)aCoder

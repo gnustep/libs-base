@@ -1,5 +1,5 @@
 /* Implementation additive congruential pseudo-random num generating
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -45,12 +45,12 @@
   return self;
 }
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: anEncoder
 {
   [self notImplemented:_cmd];
 }
 
-+ newWithCoder: (Coder*)aDecoder
+- initWithCoder: aDecoder
 {
   [self notImplemented:_cmd];
   return self;

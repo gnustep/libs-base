@@ -1,5 +1,5 @@
 /* Implementation for Objective-C MappedCollector collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -42,12 +42,12 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: anEncoder
 {
   [self notImplemented:_cmd];
 }
 
-+ newWithCoder: (Coder*)aDecoder
++ newWithCoder: aDecoder
 {
   [self notImplemented:_cmd];
   return self;
