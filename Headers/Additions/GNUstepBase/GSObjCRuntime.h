@@ -55,6 +55,12 @@ extern "C" {
 
 #endif
 
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#define GS_ATTRIB_DEPRECATED __attribute__ ((deprecated))
+#else
+#define GS_ATTRIB_DEPRECATED
+#endif
+
 @class	NSArray;
 @class	NSDictionary;
 @class	NSObject;
@@ -676,32 +682,32 @@ GS_EXPORT BOOL
 GSFindInstanceVariable(id obj, const char *name,
 		       const char **type,
 		       unsigned int *size, 
-		       int *offset) __attribute__ ((deprecated));
+		       int *offset) GS_ATTRIB_DEPRECATED;
 
 GS_EXPORT void
 GSGetVariable(id obj, int offset, unsigned int size,
-	      void *data) __attribute__ ((deprecated));
+	      void *data) GS_ATTRIB_DEPRECATED;
 
 GS_EXPORT void
 GSSetVariable(id obj, int offset, unsigned int size,
-	      const void *data) __attribute__ ((deprecated));
+	      const void *data) GS_ATTRIB_DEPRECATED;
 
 GS_EXPORT id
 GSGetValue(NSObject *self, NSString *key, SEL sel,
 	   const char *type,
 	   unsigned size,
-	   int offset) __attribute__ ((deprecated));
+	   int offset) GS_ATTRIB_DEPRECATED;
 
 GS_EXPORT void
 GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	   const char *type,
 	   unsigned size,
-	   int offset) __attribute__ ((deprecated));
+	   int offset) GS_ATTRIB_DEPRECATED;
 
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCName(Class cls) __attribute__ ((deprecated));
+GSObjCName(Class cls) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE const char*
 GSObjCName(Class cls)
 {
@@ -711,7 +717,7 @@ GSObjCName(Class cls)
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCSelectorName(SEL sel) __attribute__ ((deprecated));
+GSObjCSelectorName(SEL sel) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE const char*
 GSObjCSelectorName(SEL sel)
 {
@@ -723,7 +729,7 @@ GSObjCSelectorName(SEL sel)
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCSelectorTypes(SEL sel) __attribute__ ((deprecated));
+GSObjCSelectorTypes(SEL sel) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE const char*
 GSObjCSelectorTypes(SEL sel)
 {
@@ -731,7 +737,7 @@ GSObjCSelectorTypes(SEL sel)
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetInstanceMethod(Class cls, SEL sel) __attribute__ ((deprecated));
+GSGetInstanceMethod(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetInstanceMethod(Class cls, SEL sel)
 {
@@ -739,7 +745,7 @@ GSGetInstanceMethod(Class cls, SEL sel)
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetClassMethod(Class cls, SEL sel) __attribute__ ((deprecated));
+GSGetClassMethod(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetClassMethod(Class cls, SEL sel)
 {
@@ -748,7 +754,7 @@ GSGetClassMethod(Class cls, SEL sel)
 
 GS_STATIC_INLINE GSMethod
 GSGetInstanceMethodNotInherited(Class cls, 
-				SEL sel) __attribute__ ((deprecated));
+				SEL sel) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetInstanceMethodNotInherited(Class cls, SEL sel)
 {
@@ -756,7 +762,7 @@ GSGetInstanceMethodNotInherited(Class cls, SEL sel)
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetClassMethodNotInherited(Class cls, SEL sel) __attribute__ ((deprecated));
+GSGetClassMethodNotInherited(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetClassMethodNotInherited(Class cls, SEL sel)
 {
