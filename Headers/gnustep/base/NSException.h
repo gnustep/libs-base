@@ -32,9 +32,9 @@
 
 @interface NSException : NSObject <NSCoding, NSCopying>
 {    
-  NSString *e_name;
-  NSString *e_reason;
-  NSDictionary *e_info;
+  NSString *_e_name;
+  NSString *_e_reason;
+  NSDictionary *_e_info;
 }
 
 + (NSException *)exceptionWithName:(NSString *)name

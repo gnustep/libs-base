@@ -30,11 +30,11 @@
 
 @interface	NSPortNameServer : NSObject
 {
-  NSFileHandle	*handle;	/* File handle to talk to gdomap.	*/
-  NSMutableData	*data;		/* Where to accumulated incoming data.	*/
-  unsigned	expecting;	/* Length of data we want.		*/
-  NSMapTable	*portMap;	/* Registered ports information.	*/
-  NSMapTable	*nameMap;	/* Registered names information.	*/
+  NSFileHandle	*_handle;	/* File handle to talk to gdomap.	*/
+  NSMutableData	*_data;		/* Where to accumulated incoming data.	*/
+  unsigned	_expecting;	/* Length of data we want.		*/
+  NSMapTable	*_portMap;	/* Registered ports information.	*/
+  NSMapTable	*_nameMap;	/* Registered names information.	*/
 }
 + (id) defaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;

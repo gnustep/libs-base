@@ -74,10 +74,10 @@ struct _NSNotificationQueueList;
 
 @interface NSNotificationQueue : NSObject
 {
-  NSNotificationCenter			*center;
-  struct _NSNotificationQueueList	*asapQueue;
-  struct _NSNotificationQueueList	*idleQueue;
-  NSZone				*zone;
+  NSNotificationCenter			*_center;
+  struct _NSNotificationQueueList	*_asapQueue;
+  struct _NSNotificationQueueList	*_idleQueue;
+  NSZone				*_zone;
 }
 
 /* Creating Notification Queues */
@@ -87,16 +87,16 @@ struct _NSNotificationQueueList;
 
 /* Inserting and Removing Notifications From a Queue */
 
-- (void) dequeueNotificationsMatching:(NSNotification*)notification
-			 coalesceMask:(unsigned int)coalesceMask;
+- (void) dequeueNotificationsMatching: (NSNotification*)notification
+			 coalesceMask: (unsigned int)coalesceMask;
 
-- (void) enqueueNotification:(NSNotification*)notification
-	        postingStyle:(NSPostingStyle)postingStyle;
+- (void) enqueueNotification: (NSNotification*)notification
+	        postingStyle: (NSPostingStyle)postingStyle;
 
-- (void) enqueueNotification:(NSNotification*)notification
-	        postingStyle:(NSPostingStyle)postingStyle
-	        coalesceMask:(unsigned int)coalesceMask
-		    forModes:(NSArray*)modes;
+- (void) enqueueNotification: (NSNotification*)notification
+	        postingStyle: (NSPostingStyle)postingStyle
+	        coalesceMask: (unsigned int)coalesceMask
+		    forModes: (NSArray*)modes;
 
 @end
 

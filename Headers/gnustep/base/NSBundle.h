@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+  */ 
 
 #ifndef __NSBundle_h_GNUSTEP_BASE_INCLUDE
 #define __NSBundle_h_GNUSTEP_BASE_INCLUDE
@@ -47,40 +47,40 @@ extern NSString* NSLoadedClasses;
   unsigned	_version;
 }
 
-+ (NSArray *) allBundles;
-+ (NSArray *) allFrameworks;
-+ (NSBundle *) mainBundle;
-+ (NSBundle *) bundleForClass: (Class)aClass;
-+ (NSBundle *) bundleWithPath: (NSString *)path;
-+ (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath;
-+ (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath
-                withVersion: (int)version;
-- initWithPath: (NSString *)path;
-- (NSString *) bundlePath;
-- (Class) classNamed: (NSString *)className;
++ (NSArray*) allBundles;
++ (NSArray*) allFrameworks;
++ (NSBundle*) mainBundle;
++ (NSBundle*) bundleForClass: (Class)aClass;
++ (NSBundle*) bundleWithPath: (NSString*)path;
++ (NSString*) pathForResource: (NSString*)name
+		       ofType: (NSString*)ext	
+		  inDirectory: (NSString*)bundlePath;
++ (NSString*) pathForResource: (NSString*)name
+		       ofType: (NSString*)ext	
+		  inDirectory: (NSString*)bundlePath
+		  withVersion: (int)version;
+- (id) initWithPath: (NSString*)path;
+- (NSString*) bundlePath;
+- (Class) classNamed: (NSString*)className;
 - (Class) principalClass;
 
-- (NSArray *) pathsForResourcesOfType: (NSString *)extension
-		inDirectory: (NSString *)bundlePath;
-- (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath;
-- (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext;
-- (NSString *) localizedStringForKey: (NSString *)key	
-		value: (NSString *)value
-		table: (NSString *)tableName;
-- (NSString *) resourcePath;
+- (NSArray*) pathsForResourcesOfType: (NSString*)extension
+			 inDirectory: (NSString*)bundlePath;
+- (NSString*) pathForResource: (NSString*)name
+		       ofType: (NSString*)ext	
+		  inDirectory: (NSString*)bundlePath;
+- (NSString*) pathForResource: (NSString*)name
+		       ofType: (NSString*)ext;
+- (NSString*) localizedStringForKey: (NSString*)key	
+			      value: (NSString*)value
+			      table: (NSString*)tableName;
+- (NSString*) resourcePath;
 
 - (unsigned) bundleVersion;
 - (void) setBundleVersion: (unsigned)version;
 
 #ifndef STRICT_OPENSTEP
-- (NSDictionary *) infoDictionary;
+- (NSDictionary*) infoDictionary;
 - (BOOL) load;
 #endif
 
@@ -94,9 +94,9 @@ extern NSString* NSLoadedClasses;
 + (NSString*) _gnustep_target_os;
 + (NSString*) _library_combo;
 + (NSBundle*) gnustepBundle;
-+ (NSString *) pathForGNUstepResource: (NSString *)name
-			       ofType: (NSString *)ext	
-			  inDirectory: (NSString *)bundlePath;
++ (NSString*) pathForGNUstepResource: (NSString*)name
+			      ofType: (NSString*)ext	
+			 inDirectory: (NSString*)bundlePath;
 
 @end
 #define GSLocalizedString(key, comment) \

@@ -32,7 +32,7 @@
 
 - (void) dealloc
 {
-  RELEASE(components);
+  RELEASE(_components);
   [super dealloc];
 }
 
@@ -57,11 +57,11 @@
   self = [super init];
   if (self)
     {
-      components = [[NSMutableArray allocWithZone: [self zone]]
+      _components = [[NSMutableArray allocWithZone: [self zone]]
 				 initWithCapacity: [items count] + 2];
-      [components addObject: aPort];
-      [components addObject: anotherPort];
-      [components addObjectsFromArray: items];
+      [_components addObject: aPort];
+      [_components addObject: anotherPort];
+      [_components addObjectsFromArray: items];
     }
   return self;
 }
@@ -71,24 +71,24 @@
   NSAssert([aComponent isKindOfClass: [NSData class]]
 	|| [aComponent isKindOfClass: [NSPort class]],
 	NSInvalidArgumentException);
-  [components addObject: aComponent];
+  [_components addObject: aComponent];
 }
 
 - (NSArray*) components
 {
-  NSRange	r = NSMakeRange(2, [components count]-2);
+  NSRange	r = NSMakeRange(2, [_components count]-2);
 
-  return [components subarrayWithRange: r];
+  return [_components subarrayWithRange: r];
 }
 
 - (unsigned) msgid
 {
-  return msgid;
+  return _msgid;
 }
 
 - (NSPort*) receivePort
 {
-  return [components objectAtIndex: 1];
+  return [_components objectAtIndex: 1];
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
@@ -103,12 +103,12 @@
 
 - (NSPort*) sendPort
 {
-  return [components objectAtIndex: 0];
+  return [_components objectAtIndex: 0];
 }
 
 - (void) setMsgid: (unsigned)anId
 {
-  msgid = anId;
+  _msgid = anId;
 }
 @end
 

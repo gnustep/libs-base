@@ -82,16 +82,16 @@ struct autorelease_array_list
   /* The total number of objects autoreleased in this pool. */
   unsigned _released_count;
   /* The method to add an object to this pool */
-  void 	(*addImp)(id, SEL, id);
+  void 	(*_addImp)(id, SEL, id);
 }
 
-+ (void)addObject: anObject;
-- (void)addObject: anObject;
++ (void) addObject: (id)anObject;
+- (void) addObject: (id)anObject;
 
 #ifndef	NO_GNUSTEP
 + (void) enableRelease: (BOOL)enable;
 + (void) setPoolCountThreshhold: (unsigned)c;
-+ (unsigned) autoreleaseCountForObject: anObject;
++ (unsigned) autoreleaseCountForObject: (id)anObject;
 + (void) _endThread; /* Don't call this directly - NSThread uses it. */
 /*
  * The next two methods have no effect unless you define COUNT_ALL to be

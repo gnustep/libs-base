@@ -192,7 +192,7 @@ typedef struct NCTbl {
   short		cacheIndex;
 } NCTable;
 
-#define	TABLE		((NCTable*)table)
+#define	TABLE		((NCTable*)_table)
 #define	WILDCARD	(TABLE->wildcard)
 #define	NAMELESS	(TABLE->nameless)
 #define	NAMED		(TABLE->named)

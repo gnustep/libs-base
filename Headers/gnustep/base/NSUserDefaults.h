@@ -110,17 +110,17 @@ extern NSString* const NSDateTimeOrdering;
 @interface NSUserDefaults:  NSObject
 {
 @private
-  NSMutableArray	*searchList;    // Current search list;
-  NSMutableDictionary	*persDomains;   // Contains persistent defaults info;
-  NSMutableDictionary	*tempDomains;   // Contains volatile defaults info;
-  NSMutableArray	*changedDomains; /* ..after first time that persistent 
+  NSMutableArray	*_searchList;    // Current search list;
+  NSMutableDictionary	*_persDomains;   // Contains persistent defaults info;
+  NSMutableDictionary	*_tempDomains;   // Contains volatile defaults info;
+  NSMutableArray	*_changedDomains; /* ..after first time that persistent 
 					    user defaults are changed */
-  NSDictionary		*dictionaryRep;	// Cached dictionary representation
-  NSMutableString	*defaultsDatabase;
-  NSMutableString	*defaultsDatabaseLockName;
-  NSDistributedLock	*defaultsDatabaseLock;
-  NSDate		*lastSync;
-  NSTimer		*tickingTimer;   // for synchronization
+  NSDictionary		*_dictionaryRep; // Cached dictionary representation
+  NSMutableString	*_defaultsDatabase;
+  NSMutableString	*_defaultsDatabaseLockName;
+  NSDistributedLock	*_defaultsDatabaseLock;
+  NSDate		*_lastSync;
+  NSTimer		*_tickingTimer;   // for synchronization
 }
 
 /* Getting the Shared Instance */

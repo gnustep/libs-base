@@ -129,23 +129,23 @@
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &seconds_since_ref];
-  [coder encodeObject: calendar_format];
-  [coder encodeObject: time_zone];
+  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
+  [coder encodeObject: _calendar_format];
+  [coder encodeObject: _time_zone];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &seconds_since_ref];
-  [coder decodeValueOfObjCType: @encode(id) at: &calendar_format];
-  [coder decodeValueOfObjCType: @encode(id) at: &time_zone];
+  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
+  [coder decodeValueOfObjCType: @encode(id) at: &_calendar_format];
+  [coder decodeValueOfObjCType: @encode(id) at: &_time_zone];
   return self;
 }
 
 - (void) dealloc
 {
-  RELEASE(calendar_format);
-  RELEASE(time_zone);
+  RELEASE(_calendar_format);
+  RELEASE(_time_zone);
   [super dealloc];
 }
 
@@ -490,12 +490,12 @@
   s += second;
 
   // Assign time zone detail
-  time_zone = RETAIN([aTimeZone
+  _time_zone = RETAIN([aTimeZone
 		timeZoneDetailForDate:
 		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]]);
 
   // Adjust date so it is correct for time zone.
-  s -= [time_zone timeZoneSecondsFromGMT];
+  s -= [_time_zone timeZoneSecondsFromGMT];
   self = [self initWithTimeIntervalSinceReferenceDate: s];
 
   /* Now permit up to five cycles of adjustment to allow for daylight savings.
@@ -516,14 +516,14 @@
       z = [aTimeZone
 		timeZoneDetailForDate:
 		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]];
-      if (z != time_zone)
+      if (z != _time_zone)
 	{
 	  NSTimeInterval	oldOffset;
 	  NSTimeInterval	newOffset;
 
-	  oldOffset = [time_zone timeZoneSecondsFromGMT];
-	  ASSIGN(time_zone, z);
-	  newOffset = [time_zone timeZoneSecondsFromGMT];
+	  oldOffset = [_time_zone timeZoneSecondsFromGMT];
+	  ASSIGN(_time_zone, z);
+	  newOffset = [_time_zone timeZoneSecondsFromGMT];
 	  s += newOffset - oldOffset;
 	}
       else
@@ -562,11 +562,11 @@
 // Default initializer
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
-  seconds_since_ref = seconds;
-  if (!calendar_format)
-    calendar_format = @"%Y-%m-%d %H:%M:%S %z";
-  if (!time_zone)
-    time_zone = RETAIN([[NSTimeZone localTimeZone]
+  _seconds_since_ref = seconds;
+  if (!_calendar_format)
+    _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+  if (!_time_zone)
+    _time_zone = RETAIN([[NSTimeZone localTimeZone]
       timeZoneDetailForDate: self]);
   return self;
 }
@@ -588,7 +588,7 @@
   // Calculate hour, minute, and seconds
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
   b = a / 3600;
   *hour = (int)b;
   h = *hour;
@@ -608,7 +608,7 @@
   int r;
 
   // Get reference date in terms of days
-  a = (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]) / 86400.0;
+  a = (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]) / 86400.0;
   // Offset by Gregorian reference
   a += GREGORIAN_REFERENCE;
   r = (int)a;
@@ -659,7 +659,7 @@
   double a, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
   a = a / 3600;
   h = (int)a;
 
@@ -677,7 +677,7 @@
   double a, b, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -704,7 +704,7 @@
   double a, b, c, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
+  a = abs(d - (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -724,7 +724,7 @@
   int a;
 
   // Get reference date in terms of days
-  a = (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]) / 86400;
+  a = (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]) / 86400;
   // Offset by Gregorian reference
   a += GREGORIAN_REFERENCE;
   [self gregorianDateFromAbsolute: a day: &d month: &m year: &y];
@@ -751,7 +751,7 @@
 // Getting String Descriptions of Dates
 - (NSString*) description
 {
-  return [self descriptionWithCalendarFormat: calendar_format locale: nil];
+  return [self descriptionWithCalendarFormat: _calendar_format locale: nil];
 }
 
 - (NSString*) descriptionWithCalendarFormat: (NSString *)format
@@ -884,7 +884,7 @@
 
 	    case 'F': 	// milliseconds
 	      s = ([self dayOfCommonEra] - GREGORIAN_REFERENCE) * 86400.0;
-	      s -= (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]);
+	      s -= (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]);
 	      s = abs(s);
 	      s -= floor(s);
 	      ++i;
@@ -985,13 +985,13 @@
 	    case 'Z':
 	      ++i;
 	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
-			  [[time_zone timeZoneAbbreviation] cString]));
+			  [[_time_zone timeZoneAbbreviation] cString]));
 	      j += k;
 	      break;
 
 	    case 'z':
 	      ++i;
-	      z = [time_zone timeZoneSecondsFromGMT];
+	      z = [_time_zone timeZoneSecondsFromGMT];
 	      if (z < 0) {
 		z = -z;
 		z /= 60;
@@ -1040,8 +1040,8 @@
 
       if (newDate)
 	{
-	  newDate->calendar_format = [calendar_format copyWithZone: zone];
-	  newDate->time_zone = RETAIN(time_zone);
+	  newDate->_calendar_format = [_calendar_format copyWithZone: zone];
+	  newDate->_time_zone = RETAIN(_time_zone);
 	}
     }
   return newDate;
@@ -1049,19 +1049,19 @@
 
 - (NSString*) descriptionWithLocale: (NSDictionary *)locale
 {
-  return [self descriptionWithCalendarFormat: calendar_format locale: locale];
+  return [self descriptionWithCalendarFormat: _calendar_format locale: locale];
 }
 
 // Getting and Setting Calendar Formats
 - (NSString*) calendarFormat
 {
-  return calendar_format;
+  return _calendar_format;
 }
 
 - (void) setCalendarFormat: (NSString *)format
 {
-  RELEASE(calendar_format);
-  calendar_format = [format copyWithZone: [self zone]];
+  RELEASE(_calendar_format);
+  _calendar_format = [format copyWithZone: [self zone]];
 }
 
 // Getting and Setting Time Zones
@@ -1069,12 +1069,12 @@
 {
   NSTimeZoneDetail	*detail = [aTimeZone timeZoneDetailForDate: self];
 
-  ASSIGN(time_zone, detail);
+  ASSIGN(_time_zone, detail);
 }
 
 - (NSTimeZoneDetail*) timeZoneDetail
 {
-  return time_zone;
+  return _time_zone;
 }
 
 @end

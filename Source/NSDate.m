@@ -102,7 +102,7 @@ otherTime(NSDate* other)
   Class	c = fastClass(other);
 
   if (c == concreteClass || c == calendarClass)
-    return ((NSGDate*)other)->seconds_since_ref;
+    return ((NSGDate*)other)->_seconds_since_ref;
   else
     return [other timeIntervalSinceReferenceDate];
 }
@@ -1097,18 +1097,18 @@ GSTimeNow()
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &seconds_since_ref];
+  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &seconds_since_ref];
+  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
   return self;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  seconds_since_ref = secs;
+  _seconds_since_ref = secs;
   return self;
 }
 
@@ -1119,37 +1119,37 @@ GSTimeNow()
 {
   /* xxx We need to check for overflow? */
   return [concreteClass dateWithTimeIntervalSinceReferenceDate:
-		       seconds_since_ref + seconds];
+		       _seconds_since_ref + seconds];
 }
 
 - (NSTimeInterval) timeIntervalSince1970
 {
-  return seconds_since_ref - UNIX_REFERENCE_INTERVAL;
+  return _seconds_since_ref - UNIX_REFERENCE_INTERVAL;
 }
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
-  return seconds_since_ref - otherTime(otherDate);
+  return _seconds_since_ref - otherTime(otherDate);
 }
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return seconds_since_ref - GSTimeNow();
+  return _seconds_since_ref - GSTimeNow();
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  return seconds_since_ref;
+  return _seconds_since_ref;
 }
 
 // Comparing dates
 
 - (NSComparisonResult) compare: (NSDate*)otherDate
 {
-  if (seconds_since_ref > otherTime(otherDate))
+  if (_seconds_since_ref > otherTime(otherDate))
     return NSOrderedDescending;
 
-  if (seconds_since_ref < otherTime(otherDate))
+  if (_seconds_since_ref < otherTime(otherDate))
     return NSOrderedAscending;
 
   return NSOrderedSame;
@@ -1157,7 +1157,7 @@ GSTimeNow()
 
 - (NSDate*) earlierDate: (NSDate*)otherDate
 {
-  if (seconds_since_ref > otherTime(otherDate))
+  if (_seconds_since_ref > otherTime(otherDate))
     return otherDate;
   return self;
 }
@@ -1165,21 +1165,21 @@ GSTimeNow()
 - (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: abstractClass]
-      && 1.0 > ABS(seconds_since_ref - otherTime(other)))
+      && 1.0 > ABS(_seconds_since_ref - otherTime(other)))
     return YES;
   return NO;
 }
 
 - (BOOL) isEqualToDate: (NSDate*)other
 {
-  if (1.0 > ABS(seconds_since_ref - otherTime(other)))
+  if (1.0 > ABS(_seconds_since_ref - otherTime(other)))
     return YES;
   return NO;
 }
 
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
-  if (seconds_since_ref < otherTime(otherDate))
+  if (_seconds_since_ref < otherTime(otherDate))
     return otherDate;
   return self;
 }
@@ -1278,7 +1278,7 @@ GSTimeNow()
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  seconds_since_ref = DISTANT_PAST;
+  _seconds_since_ref = DISTANT_PAST;
   return self;
 }
 
@@ -1300,7 +1300,7 @@ GSTimeNow()
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  seconds_since_ref = DISTANT_FUTURE;
+  _seconds_since_ref = DISTANT_FUTURE;
   return self;
 }
 

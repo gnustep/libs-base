@@ -58,7 +58,7 @@
 
 @interface NSNotificationCenter : NSObject <GCFinalization>
 {
-  void		*table;
+  void	*_table;
 }
 
 + (NSNotificationCenter*) defaultCenter;

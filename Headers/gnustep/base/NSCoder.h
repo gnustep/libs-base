@@ -41,8 +41,8 @@
 // Encoding Data
 
 - (void) encodeArrayOfObjCType: (const char*)type
-   count: (unsigned)count
-   at: (const void*)array;
+			 count: (unsigned)count
+			    at: (const void*)array;
 - (void) encodeBycopyObject: (id)anObject;
 - (void) encodeByrefObject: (id)anObject;
 - (void) encodeBytes: (void*)addr length: (unsigned)l;
@@ -55,7 +55,7 @@
 - (void) encodeRootObject: (id)rootObject;
 - (void) encodeSize: (NSSize)size;
 - (void) encodeValueOfObjCType: (const char*)type
-   at: (const void*)address;
+			    at: (const void*)address;
 - (void) encodeValuesOfObjCTypes: (const char*)types,...;
 
 // Decoding Data
@@ -71,7 +71,7 @@
 - (NSRect) decodeRect;
 - (NSSize) decodeSize;
 - (void) decodeValueOfObjCType: (const char*)type
-   at: (void*)address;
+			    at: (void*)address;
 - (void) decodeValuesOfObjCTypes: (const char*)types,...;
 
 // Managing Zones

@@ -297,42 +297,42 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   [super init];
 	
   // Find the user's home folder and build the paths (executed only once)
-  if (!defaultsDatabase)
+  if (!_defaultsDatabase)
     {
       if (path != nil && [path isEqual: @""] == NO)
-        defaultsDatabase = (NSMutableString*)[path mutableCopy];
+        _defaultsDatabase = (NSMutableString*)[path mutableCopy];
       else
 	{
-	  defaultsDatabase =
+	  _defaultsDatabase =
 	    (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
 			  GNU_UserDefaultsDatabase];
-	  RETAIN(defaultsDatabase);
+	  RETAIN(_defaultsDatabase);
 	}
 
-      if ([[defaultsDatabase lastPathComponent] isEqual: 
+      if ([[_defaultsDatabase lastPathComponent] isEqual: 
 	[GNU_UserDefaultsDatabase lastPathComponent]] == YES)
-	defaultsDatabaseLockName =
+	_defaultsDatabaseLockName =
 	  (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
-			  [defaultsDatabase stringByDeletingLastPathComponent],
+			  [_defaultsDatabase stringByDeletingLastPathComponent],
 			  [GNU_UserDefaultsDatabaseLock lastPathComponent]];
       else
-        defaultsDatabaseLockName =
+        _defaultsDatabaseLockName =
 	  (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
 			  GNU_UserDefaultsDatabaseLock];
-      RETAIN(defaultsDatabaseLockName);
-      defaultsDatabaseLock =
-	RETAIN([NSDistributedLock lockWithPath: defaultsDatabaseLockName]);
+      RETAIN(_defaultsDatabaseLockName);
+      _defaultsDatabaseLock =
+	RETAIN([NSDistributedLock lockWithPath: _defaultsDatabaseLockName]);
   }
   if (processName == nil)
     processName = RETAIN([[NSProcessInfo processInfo] processName]);
 
   // Create an empty search list
-  searchList = [[NSMutableArray alloc] initWithCapacity: 10];
+  _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
 	
-  // Initialize persDomains from the archived user defaults (persistent)
-  persDomains = [[NSMutableDictionary alloc] initWithCapacity: 10];
+  // Initialize _persDomains from the archived user defaults (persistent)
+  _persDomains = [[NSMutableDictionary alloc] initWithCapacity: 10];
   if ([self synchronize] == NO)
     {
       NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
@@ -355,26 +355,26 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     }
 	
   // Check and if not existent add the Application and the Global domains
-  if (![persDomains objectForKey: processName])
+  if (![_persDomains objectForKey: processName])
     {
-      [persDomains setObject: 
+      [_persDomains setObject: 
 		     [NSMutableDictionary 
 		       dictionaryWithCapacity: 10] forKey: processName];
       [self __changePersistentDomain: processName];
     }
-  if (![persDomains objectForKey: NSGlobalDomain])
+  if (![_persDomains objectForKey: NSGlobalDomain])
     {
-      [persDomains setObject: 
+      [_persDomains setObject: 
 		   [NSMutableDictionary 
 		     dictionaryWithCapacity: 10] forKey: NSGlobalDomain];
       [self __changePersistentDomain: NSGlobalDomain];
     }
 	
   // Create volatile defaults and add the Argument and the Registration domains
-  tempDomains = [[NSMutableDictionary alloc] initWithCapacity: 10];
-  [tempDomains setObject: [self __createArgumentDictionary] 
+  _tempDomains = [[NSMutableDictionary alloc] initWithCapacity: 10];
+  [_tempDomains setObject: [self __createArgumentDictionary] 
 	       forKey: NSArgumentDomain];
-  [tempDomains setObject: 
+  [_tempDomains setObject: 
 		 [NSMutableDictionary
 		   dictionaryWithCapacity: 10] forKey: NSRegistrationDomain];
 	
@@ -383,14 +383,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 - (void)dealloc
 {
-  if (tickingTimer)
-    [tickingTimer invalidate];
-  RELEASE(lastSync);
-  RELEASE(searchList);
-  RELEASE(persDomains);
-  RELEASE(tempDomains);
-  RELEASE(changedDomains);
-  RELEASE(dictionaryRep);
+  if (_tickingTimer)
+    [_tickingTimer invalidate];
+  RELEASE(_lastSync);
+  RELEASE(_searchList);
+  RELEASE(_persDomains);
+  RELEASE(_tempDomains);
+  RELEASE(_changedDomains);
+  RELEASE(_dictionaryRep);
   [super dealloc];
 }
 
@@ -464,7 +464,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 - (id)objectForKey: (NSString *)defaultName
 {
-  NSEnumerator *enumerator = [searchList objectEnumerator];
+  NSEnumerator *enumerator = [_searchList objectEnumerator];
   id object = nil;
   id dN;
 	
@@ -472,10 +472,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       id dict;
       
-      dict = [persDomains objectForKey: dN];
+      dict = [_persDomains objectForKey: dN];
       if (dict && (object = [dict objectForKey: defaultName]))
 	break;
-      dict = [tempDomains objectForKey: dN];
+      dict = [_tempDomains objectForKey: dN];
       if (dict && (object = [dict objectForKey: defaultName]))
 	break;
     }
@@ -485,11 +485,11 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 - (void)removeObjectForKey: (NSString *)defaultName
 {
-  id obj = [[persDomains objectForKey: processName] objectForKey: defaultName];
+  id obj = [[_persDomains objectForKey: processName] objectForKey: defaultName];
 	
   if (obj)
     {
-      id	obj = [persDomains objectForKey: processName];
+      id	obj = [_persDomains objectForKey: processName];
       NSMutableDictionary *dict;
 
       if ([obj isKindOfClass: [NSMutableDictionary class]] == YES)
@@ -499,7 +499,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       else
 	{
 	  dict = [obj mutableCopy];
-	  [persDomains setObject: dict forKey: processName];
+	  [_persDomains setObject: dict forKey: processName];
 	}
       [dict removeObjectForKey: defaultName];
       [self __changePersistentDomain: processName];
@@ -535,7 +535,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 {
   if (value && defaultName && ([defaultName length] > 0))
     {
-      id	obj = [persDomains objectForKey: processName];
+      id	obj = [_persDomains objectForKey: processName];
       NSMutableDictionary *dict;
 
       if ([obj isKindOfClass: [NSMutableDictionary class]] == YES)
@@ -545,7 +545,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       else
 	{
 	  dict = [obj mutableCopy];
-	  [persDomains setObject: dict forKey: processName];
+	  [_persDomains setObject: dict forKey: processName];
 	}
       [dict setObject: value forKey: defaultName];
       [self __changePersistentDomain: processName];
@@ -584,14 +584,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
  *************************************************************************/
 - (NSMutableArray *)searchList
 {
-  return searchList;
+  return _searchList;
 }
 
 - (void)setSearchList: (NSArray*)newList
 {
-  DESTROY(dictionaryRep);
-  RELEASE(searchList);
-  searchList = [newList mutableCopy];
+  DESTROY(_dictionaryRep);
+  RELEASE(_searchList);
+  _searchList = [newList mutableCopy];
 }
 
 /*************************************************************************
@@ -599,19 +599,19 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
  *************************************************************************/
 - (NSDictionary *)persistentDomainForName: (NSString *)domainName
 {
-  return [[persDomains objectForKey: domainName] copy];
+  return [[_persDomains objectForKey: domainName] copy];
 }
 
 - (NSArray *)persistentDomainNames
 {
-  return [persDomains allKeys];
+  return [_persDomains allKeys];
 }
 
 - (void)removePersistentDomainForName: (NSString *)domainName
 {
-  if ([persDomains objectForKey: domainName])
+  if ([_persDomains objectForKey: domainName])
     {
-      [persDomains removeObjectForKey: domainName];
+      [_persDomains removeObjectForKey: domainName];
       [self __changePersistentDomain: domainName];
     }
   return;
@@ -620,7 +620,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 - (void)setPersistentDomain: (NSDictionary *)domain 
 		    forName: (NSString *)domainName
 {
-  id dict = [tempDomains objectForKey: domainName];
+  id dict = [_tempDomains objectForKey: domainName];
 	
   if (dict)
     {
@@ -629,7 +629,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 		   domainName];
       return;
     }
-  [persDomains setObject: domain forKey: domainName];
+  [_persDomains setObject: domain forKey: domainName];
   [self __changePersistentDomain: domainName];
   return;
 }
@@ -641,9 +641,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSDictionary		*attr;
   NSDate		*mod;
 
-  if (tickingTimer == nil)
+  if (_tickingTimer == nil)
     {
-      tickingTimer = [NSTimer scheduledTimerWithTimeInterval: 30
+      _tickingTimer = [NSTimer scheduledTimerWithTimeInterval: 30
 	       target: self
 	       selector: @selector(__timerTicked:)
 	       userInfo: nil
@@ -654,22 +654,22 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
    *	If we haven't changed anything, we only need to synchronise if
    *	the on-disk database has been changed by someone else.
    */
-  if (changedDomains == NO)
+  if (_changedDomains == NO)
     {
       BOOL		wantRead = NO;
 
-      if (lastSync == nil)
+      if (_lastSync == nil)
 	wantRead = YES;
       else
 	{
-	  attr = [mgr fileAttributesAtPath: defaultsDatabase
+	  attr = [mgr fileAttributesAtPath: _defaultsDatabase
 			      traverseLink: YES];
 	  if (attr == nil)
 	    wantRead = YES;
 	  else
 	    {
 	      mod = [attr objectForKey: NSFileModificationDate];
-	      if ([lastSync earlierDate: mod] != lastSync)
+	      if ([_lastSync earlierDate: mod] != _lastSync)
 		wantRead = YES;
 	    }
 	}
@@ -680,12 +680,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   /*
    * Get file lock - break any lock that is more than five minute old.
    */
-  if ([defaultsDatabaseLock tryLock] == NO)
+  if ([_defaultsDatabaseLock tryLock] == NO)
     {
-      if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
+      if ([[_defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
 	{
-	  [defaultsDatabaseLock breakLock];
-	  if ([defaultsDatabaseLock tryLock] == NO)
+	  [_defaultsDatabaseLock breakLock];
+	  if ([_defaultsDatabaseLock tryLock] == NO)
 	    {
 	      return NO;
 	    }
@@ -696,23 +696,23 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	}
     }
 	
-  DESTROY(dictionaryRep);
+  DESTROY(_dictionaryRep);
 
   // Read the persistent data from the stored database
-  if ([mgr fileExistsAtPath: defaultsDatabase])
+  if ([mgr fileExistsAtPath: _defaultsDatabase])
     {
       newDict = [[NSMutableDictionary allocWithZone: [self zone]]
-        initWithContentsOfFile: defaultsDatabase];
+        initWithContentsOfFile: _defaultsDatabase];
     }
   else
     {
       attr = [NSDictionary dictionaryWithObjectsAndKeys: 
 		NSUserName(), NSFileOwnerAccountName, nil];
-      NSLog(@"Creating defaults database file %@", defaultsDatabase);
-      [mgr createFileAtPath: defaultsDatabase
+      NSLog(@"Creating defaults database file %@", _defaultsDatabase);
+      [mgr createFileAtPath: _defaultsDatabase
 		   contents: nil
 		 attributes: attr];
-      [[NSDictionary dictionary] writeToFile: defaultsDatabase atomically: YES];
+      [[NSDictionary dictionary] writeToFile: _defaultsDatabase atomically: YES];
     }
 
   if (!newDict)
@@ -721,14 +721,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 		  initWithCapacity: 1];
     }
 
-  if (changedDomains)
+  if (_changedDomains)
     {           // Synchronize both dictionaries
-      NSEnumerator *enumerator = [changedDomains objectEnumerator];
+      NSEnumerator *enumerator = [_changedDomains objectEnumerator];
       id obj, dict;
 		
       while ((obj = [enumerator nextObject]))
 	{
-	  dict = [persDomains objectForKey: obj];
+	  dict = [_persDomains objectForKey: obj];
 	  if (dict)       // Domain was added or changet
 	    {
 	      [newDict setObject: dict forKey: obj];
@@ -738,31 +738,31 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	      [newDict removeObjectForKey: obj];
 	    }
 	}
-      RELEASE(persDomains);
-      persDomains = newDict;
+      RELEASE(_persDomains);
+      _persDomains = newDict;
       // Save the changes
-      if (![persDomains writeToFile: defaultsDatabase atomically: YES])
+      if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
 	{
-	  [defaultsDatabaseLock unlock];
+	  [_defaultsDatabaseLock unlock];
 	  return NO;
 	}
-      attr = [mgr fileAttributesAtPath: defaultsDatabase
+      attr = [mgr fileAttributesAtPath: _defaultsDatabase
 			  traverseLink: YES];
       mod = [attr objectForKey: NSFileModificationDate];
-      ASSIGN(lastSync, mod);
-      [defaultsDatabaseLock unlock];	// release file lock
+      ASSIGN(_lastSync, mod);
+      [_defaultsDatabaseLock unlock];	// release file lock
     }
   else
     {
-      attr = [mgr fileAttributesAtPath: defaultsDatabase
+      attr = [mgr fileAttributesAtPath: _defaultsDatabase
 			  traverseLink: YES];
       mod = [attr objectForKey: NSFileModificationDate];
-      ASSIGN(lastSync, mod);
-      [defaultsDatabaseLock unlock];	// release file lock
-      if ([persDomains isEqual: newDict] == NO)
+      ASSIGN(_lastSync, mod);
+      [_defaultsDatabaseLock unlock];	// release file lock
+      if ([_persDomains isEqual: newDict] == NO)
 	{
-	  RELEASE(persDomains);
-	  persDomains = newDict;
+	  RELEASE(_persDomains);
+	  _persDomains = newDict;
 	  [[NSNotificationCenter defaultCenter] 
 	    postNotificationName: NSUserDefaultsDidChangeNotification
 			  object: nil];
@@ -782,14 +782,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
  *************************************************************************/
 - (void)removeVolatileDomainForName: (NSString *)domainName
 {
-  DESTROY(dictionaryRep);
-  [tempDomains removeObjectForKey: domainName];
+  DESTROY(_dictionaryRep);
+  [_tempDomains removeObjectForKey: domainName];
 }
 
 - (void)setVolatileDomain: (NSDictionary *)domain 
 		  forName: (NSString *)domainName
 {
-  id dict = [persDomains objectForKey: domainName];
+  id dict = [_persDomains objectForKey: domainName];
 	
   if (dict)
     {
@@ -798,19 +798,19 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 		   domainName];
       return;
     }
-  DESTROY(dictionaryRep);
-  [tempDomains setObject: domain forKey: domainName];
+  DESTROY(_dictionaryRep);
+  [_tempDomains setObject: domain forKey: domainName];
   return;
 }
 
 - (NSDictionary *)volatileDomainForName: (NSString *)domainName
 {
-  return [tempDomains objectForKey: domainName];
+  return [_tempDomains objectForKey: domainName];
 }
 
 - (NSArray *)volatileDomainNames
 {
-  return [tempDomains allKeys];
+  return [_tempDomains allKeys];
 }
 
 /*************************************************************************
@@ -818,38 +818,38 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
  *************************************************************************/
 - (NSDictionary *) dictionaryRepresentation
 {
-  if (dictionaryRep == nil)
+  if (_dictionaryRep == nil)
     {
       NSEnumerator		*enumerator;
       NSMutableDictionary	*dictRep;
       id obj;
       id dict;
 	
-      enumerator = [searchList reverseObjectEnumerator];
+      enumerator = [_searchList reverseObjectEnumerator];
       dictRep = [NSMutableDictionary allocWithZone: NSDefaultMallocZone()];
       dictRep = [dictRep initWithCapacity: 512];
       while ((obj = [enumerator nextObject]))
 	{
-	  if ( (dict = [persDomains objectForKey: obj])
-	       || (dict = [tempDomains objectForKey: obj]) )
+	  if ( (dict = [_persDomains objectForKey: obj])
+	       || (dict = [_tempDomains objectForKey: obj]) )
 	    [dictRep addEntriesFromDictionary: dict];
 	}
-      dictionaryRep = [dictRep copy];
+      _dictionaryRep = [dictRep copy];
       RELEASE(dictRep);
     }
-  return dictionaryRep;
+  return _dictionaryRep;
 }
 
 - (void) registerDefaults: (NSDictionary*)newVals
 {
   NSMutableDictionary	*regDefs;
 
-  regDefs = [tempDomains objectForKey: NSRegistrationDomain];
+  regDefs = [_tempDomains objectForKey: NSRegistrationDomain];
   if (regDefs == nil)
     {
       regDefs = [NSMutableDictionary dictionaryWithCapacity: [newVals count]];
     }
-  DESTROY(dictionaryRep);
+  DESTROY(_dictionaryRep);
   [regDefs addEntriesFromDictionary: newVals];
 }
 
@@ -865,22 +865,22 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   // Note: The search list should exist!
 	
   // 1. NSArgumentDomain
-  [searchList addObject: NSArgumentDomain];
+  [_searchList addObject: NSArgumentDomain];
 	
   // 2. Application
-  [searchList addObject: processName];
+  [_searchList addObject: processName];
 
   // 3. User's preferred languages
   while ((object = [enumerator nextObject]))
     {
-      [searchList addObject: object];
+      [_searchList addObject: object];
     }
 	
   // 4. NSGlobalDomain
-  [searchList addObject: NSGlobalDomain];
+  [_searchList addObject: NSGlobalDomain];
 	
   // 5. NSRegistrationDomain
-  [searchList addObject: NSRegistrationDomain];
+  [_searchList addObject: NSRegistrationDomain];
 	
   return;
 }
@@ -888,7 +888,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 - (NSDictionary *)__createArgumentDictionary
 {
   NSArray *args = [[NSProcessInfo processInfo] arguments];
-  //$$$	NSArray *args = searchList;  // $$$
+  //$$$	NSArray *args = _searchList;  // $$$
   NSEnumerator *enumerator = [args objectEnumerator];
   NSMutableDictionary *argDict =
     [NSMutableDictionary dictionaryWithCapacity: 2];
@@ -946,28 +946,28 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSEnumerator *enumerator = nil;
   id obj;
 
-  DESTROY(dictionaryRep);
-  if (!changedDomains)
+  DESTROY(_dictionaryRep);
+  if (!_changedDomains)
     {
-      changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
+      _changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
       [[NSNotificationCenter defaultCenter] 
 	postNotificationName: NSUserDefaultsDidChangeNotification object: nil];
     }
 	
-  enumerator = [changedDomains objectEnumerator];
+  enumerator = [_changedDomains objectEnumerator];
   while ((obj = [enumerator nextObject]))
     {
       if ([obj isEqualToString: domainName])
 	return;
     }
-  [changedDomains addObject: domainName];
+  [_changedDomains addObject: domainName];
   return;
 }
 
 - (void) __timerTicked: (NSTimer*)tim
 {
-  if (tim == tickingTimer)
-    tickingTimer = nil;
+  if (tim == _tickingTimer)
+    _tickingTimer = nil;
 
   [self synchronize];
 }

@@ -33,7 +33,7 @@
 - init
 {
   [super init];
-  is_valid = YES;
+  _is_valid = YES;
   return self;
 }
 

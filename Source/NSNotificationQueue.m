@@ -232,12 +232,12 @@ static void
 remove_from_queue(
     NSNotificationQueueList* queue,
     NSNotificationQueueRegistration* item,
-    NSZone* zone)
+    NSZone* _zone)
 {
   remove_from_queue_no_release(queue, item);
   RELEASE(item->notification);
   RELEASE(item->modes);
-  NSZoneFree(zone, item);
+  NSZoneFree(_zone, item);
 }
 
 static void
@@ -245,10 +245,10 @@ add_to_queue(
     NSNotificationQueueList* queue,
     NSNotification* notification,
     NSArray* modes,
-    NSZone* zone)
+    NSZone* _zone)
 {
   NSNotificationQueueRegistration* item =
-	  NSZoneCalloc(zone, 1, sizeof(NSNotificationQueueRegistration));
+	  NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueRegistration));
       
   item->notification = RETAIN(notification);
   item->name = [notification name];
@@ -297,12 +297,12 @@ add_to_queue(
 
 - (id) initWithNotificationCenter: (NSNotificationCenter*)notificationCenter
 {
-  zone = [self zone];
+  _zone = [self zone];
 
   // init queue
-  center = RETAIN(notificationCenter);
-  asapQueue = NSZoneCalloc(zone, 1, sizeof(NSNotificationQueueList));
-  idleQueue = NSZoneCalloc(zone, 1, sizeof(NSNotificationQueueList));
+  _center = RETAIN(notificationCenter);
+  _asapQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
+  _idleQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
 
   // insert in global queue list
   [NotificationQueueList registerQueue: self];
@@ -318,15 +318,15 @@ add_to_queue(
   [NotificationQueueList unregisterQueue: self];
 
   // release self
-  for (item = asapQueue->head; item; item=item->prev)
-    remove_from_queue(asapQueue, item, zone);
-  NSZoneFree(zone, asapQueue);
+  for (item = _asapQueue->head; item; item=item->prev)
+    remove_from_queue(_asapQueue, item, _zone);
+  NSZoneFree(_zone, _asapQueue);
 
-  for (item = idleQueue->head; item; item=item->prev)
-    remove_from_queue(idleQueue, item, zone);
-  NSZoneFree(zone, idleQueue);
+  for (item = _idleQueue->head; item; item=item->prev)
+    remove_from_queue(_idleQueue, item, _zone);
+  NSZoneFree(_zone, _idleQueue);
 
-  RELEASE(center);
+  RELEASE(_center);
   [super dealloc];
 }
 
@@ -341,37 +341,37 @@ add_to_queue(
   id object = [notification object];
 
   // find in ASAP notification in queue
-  for (item = asapQueue->tail; item; item=next)
+  for (item = _asapQueue->tail; item; item=next)
     {
       next = item->next;
       if ((coalesceMask & NSNotificationCoalescingOnName)
 	&& [name isEqual: item->name])
 	{
-	  remove_from_queue(asapQueue, item, zone);
+	  remove_from_queue(_asapQueue, item, _zone);
 	  continue;
 	}
       if ((coalesceMask & NSNotificationCoalescingOnSender)
 	&& (object == item->object))
 	{
-	  remove_from_queue(asapQueue, item, zone);
+	  remove_from_queue(_asapQueue, item, _zone);
 	  continue;
 	}
     }
 
   // find in idle notification in queue
-  for (item = idleQueue->tail; item; item=next)
+  for (item = _idleQueue->tail; item; item=next)
     {
       next = item->next;
       if ((coalesceMask & NSNotificationCoalescingOnName)
 	&& [name isEqual: item->name])
 	{
-	  remove_from_queue(asapQueue, item, zone);
+	  remove_from_queue(_asapQueue, item, _zone);
 	  continue;
 	}
       if ((coalesceMask & NSNotificationCoalescingOnSender)
 	&& (object == item->object))
 	{
-	  remove_from_queue(asapQueue, item, zone);
+	  remove_from_queue(_asapQueue, item, _zone);
 	  continue;
 	}
     }
@@ -386,7 +386,7 @@ add_to_queue(
   if (mode == nil || modes == nil
     || [modes indexOfObject: mode] != NSNotFound)
     {
-      [center postNotification: notification];
+      [_center postNotification: notification];
     }
 }
 
@@ -415,10 +415,10 @@ add_to_queue(
 	[self postNotification: notification forModes: modes];
 	break;
       case NSPostASAP: 
-	add_to_queue(asapQueue, notification, modes, zone);
+	add_to_queue(_asapQueue, notification, modes, _zone);
 	break;
       case NSPostWhenIdle: 
-	add_to_queue(idleQueue, notification, modes, zone);
+	add_to_queue(_idleQueue, notification, modes, _zone);
 	break;
     }
 }
@@ -432,7 +432,7 @@ add_to_queue(
 
 static inline void notifyASAP(NSNotificationQueue *q)
 {
-  NSNotificationQueueList	*list = ((accessQueue)q)->asapQueue;
+  NSNotificationQueueList	*list = ((accessQueue)q)->_asapQueue;
 
   /*
    *	post all ASAP notifications in queue
@@ -447,7 +447,7 @@ static inline void notifyASAP(NSNotificationQueue *q)
       [q postNotification: notification forModes: modes];
       RELEASE(notification);
       RELEASE(modes);
-      NSZoneFree(((accessQueue)q)->zone, item);
+      NSZoneFree(((accessQueue)q)->_zone, item);
     }
 }
 
@@ -463,7 +463,7 @@ GSNotifyASAP()
 
 static inline void notifyIdle(NSNotificationQueue *q)
 {
-  NSNotificationQueueList	*list = ((accessQueue)q)->idleQueue;
+  NSNotificationQueueList	*list = ((accessQueue)q)->_idleQueue;
 
   /*
    *	post next IDLE notification in queue
@@ -478,7 +478,7 @@ static inline void notifyIdle(NSNotificationQueue *q)
       [q postNotification: notification forModes: modes];
       RELEASE(notification);
       RELEASE(modes);
-      NSZoneFree(((accessQueue)q)->zone, item);
+      NSZoneFree(((accessQueue)q)->_zone, item);
     }
   /*
    *	Post all ASAP notifications.
@@ -502,7 +502,7 @@ GSNotifyMore()
   NotificationQueueList	*item;
 
   for (item = currentList(); item; item = item->next)
-    if (item->queue && ((accessQueue)item->queue)->idleQueue->head)
+    if (item->queue && ((accessQueue)item->queue)->_idleQueue->head)
       return YES;
   return NO;
 }

@@ -31,46 +31,46 @@
 @class NSString;
 
 @interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
-- initWithObjects: (id*) objects count: (unsigned) count;
+- (id) initWithObjects: (id*) objects count: (unsigned) count;
 - (unsigned) count;
-- objectAtIndex: (unsigned)index;
+- (id) objectAtIndex: (unsigned)index;
 @end
 
 
 @interface NSArray (NonCore)
 
-+ array;
-+ arrayWithArray: (NSArray*)array;
-+ arrayWithContentsOfFile: (NSString*)file;
-+ arrayWithObject: anObject;
-+ arrayWithObjects: firstObj, ...;
-+ arrayWithObjects: (id*)objects count: (unsigned)count;
-- (NSArray*) arrayByAddingObject: anObject;
++ (id) array;
++ (id) arrayWithArray: (NSArray*)array;
++ (id) arrayWithContentsOfFile: (NSString*)file;
++ (id) arrayWithObject: (id)anObject;
++ (id) arrayWithObjects: (id)firstObj, ...;
++ (id) arrayWithObjects: (id*)objects count: (unsigned)count;
+- (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
-- initWithArray: (NSArray*)array;
-- initWithContentsOfFile: (NSString*)file;
-- initWithObjects: firstObj, ...;
-- inttWithObjects: (id*)objects count: (unsigned)count;
+- (id) initWithArray: (NSArray*)array;
+- (id) initWithContentsOfFile: (NSString*)file;
+- (id) initWithObjects: firstObj, ...;
+- (id) initWithObjects: (id*)objects count: (unsigned)count;
 
 - (BOOL) containsObject: anObject;
 - (void) getObjects: (id*)objs;
 - (void) getObjects: (id*)objs range: (NSRange)aRange;
-- (unsigned) indexOfObject: anObject;
-- (unsigned) indexOfObject: anObject inRange: (NSRange)aRange;
-- (unsigned) indexOfObjectIdenticalTo: anObject;
-- (unsigned) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange;
-- lastObject;
+- (unsigned) indexOfObject: (id)anObject;
+- (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange;
+- (unsigned) indexOfObjectIdenticalTo: (id)anObject;
+- (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
+- (id) lastObject;
 
-- firstObjectCommonWithArray: (NSArray*) otherArray;
+- (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
 
 #ifndef	STRICT_MACOS_X
-- (void) makeObjectsPerform: (SEL) aSelector;
-- (void) makeObjectsPerform: (SEL)aSelector withObject: argument;
+- (void) makeObjectsPerform: (SEL)aSelector;
+- (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
 #endif
 #ifndef	STRICT_OPENSTEP
-- (void) makeObjectsPerformSelector: (SEL) aSelector;
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument;
+- (void) makeObjectsPerformSelector: (SEL)aSelector;
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument;
 #endif
 
 - (NSData*) sortedArrayHint;
@@ -85,7 +85,7 @@
 - (NSString*) componentsJoinedByString: (NSString*)separator;
 - (NSArray*) pathsMatchingExtensions: (NSArray*)extensions;
 
-- (NSEnumerator*)  objectEnumerator;
+- (NSEnumerator*) objectEnumerator;
 - (NSEnumerator*) reverseObjectEnumerator;
 
 - (NSString*) description;
@@ -100,16 +100,16 @@
 
 @interface NSMutableArray : NSArray
 - (id) initWithCapacity: (unsigned)numItems;
-- (void) addObject: anObject;
-- (void) replaceObjectAtIndex: (unsigned)index withObject: anObject;
-- (void) insertObject: anObject atIndex: (unsigned)index;
+- (void) addObject: (id)anObject;
+- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject;
+- (void) insertObject: (id)anObject atIndex: (unsigned)index;
 - (void) removeObjectAtIndex: (unsigned)index;
 @end
 
 @interface NSMutableArray (NonCore)
 
-+ arrayWithCapacity: (unsigned)numItems;
-+ initWithCapacity: (unsigned)numItems;
++ (id) arrayWithCapacity: (unsigned)numItems;
++ (id) initWithCapacity: (unsigned)numItems;
 
 - (void) addObjectsFromArray: (NSArray*)otherArray;
 - (void) replaceObjectsInRange: (NSRange)aRange
@@ -121,10 +121,10 @@
 
 - (void) removeAllObjects;
 - (void) removeLastObject;
-- (void) removeObject: anObject;
-- (void) removeObject: anObject inRange: (NSRange)aRange;
-- (void) removeObjectIdenticalTo: anObject;
-- (void) removeObjectIdenticalTo: anObject inRange: (NSRange)aRange;
+- (void) removeObject: (id)anObject;
+- (void) removeObject: (id)anObject inRange: (NSRange)aRange;
+- (void) removeObjectIdenticalTo: (id)anObject;
+- (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (void) removeObjectsInArray: (NSArray*)otherArray;
 - (void) removeObjectsInRange: (NSRange)aRange;
 - (void) removeObjectsFromIndices: (unsigned*)indices 

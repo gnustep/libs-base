@@ -30,17 +30,17 @@
 
 @interface NSDistributedLock : NSObject
 {
-    NSString	*lockPath;
-    NSDate	*lockTime;
+  NSString	*_lockPath;
+  NSDate	*_lockTime;
 }
 
-+ (NSDistributedLock*)lockWithPath: (NSString*)aPath;
-- (NSDistributedLock*)initWithPath: (NSString*)aPath;
++ (NSDistributedLock*) lockWithPath: (NSString*)aPath;
+- (NSDistributedLock*) initWithPath: (NSString*)aPath;
 
-- (void)breakLock;
-- (NSDate*)lockDate;
-- (BOOL)tryLock;
-- (void)unlock;
+- (void) breakLock;
+- (NSDate*) lockDate;
+- (BOOL) tryLock;
+- (void) unlock;
 
 
 @end

@@ -57,22 +57,22 @@ typedef enum
 //=============================================================================
 @interface NSURLHandle: NSObject
 {
-  NSMutableArray	*clients;
-  id			data; 
-  NSURLHandleStatus	status;
+  NSMutableArray	*_clients;
+  id			_data; 
+  NSURLHandleStatus	_status;
 }
 
-+ (void) registerURLHandleClass: (Class)_urlHandleSubclass;
-+ (Class) URLHandleClassForURL: (NSURL*)_url;
++ (void) registerURLHandleClass: (Class)urlHandleSubclass;
++ (Class) URLHandleClassForURL: (NSURL*)url;
 
-- (id) initWithURL: (NSURL*)_url
-	    cached: (BOOL)_cached;
+- (id) initWithURL: (NSURL*)url
+	    cached: (BOOL)cached;
 
 - (NSURLHandleStatus) status;
 - (NSString*) failureReason;
 
-- (void) addClient: (id <NSURLHandleClient>)_client;
-- (void) removeClient: (id <NSURLHandleClient>)_client;
+- (void) addClient: (id <NSURLHandleClient>)client;
+- (void) removeClient: (id <NSURLHandleClient>)client;
 
 - (void) loadInBackground;
 - (void) cancelLoadInBackground;
@@ -84,11 +84,11 @@ typedef enum
 
 - (void) backgroundLoadDidFailWithReason: (NSString*)reason;
 - (void) didLoadBytes: (NSData*)newData
-	 loadComplete: (BOOL)_loadComplete;
+	 loadComplete: (BOOL)loadComplete;
 
 
-+ (BOOL) canInitWithURL: (NSURL*)_url;
-+ (NSURLHandle*) cachedHandleForURL: (NSURL*)_url;
++ (BOOL) canInitWithURL: (NSURL*)url;
++ (NSURLHandle*) cachedHandleForURL: (NSURL*)url;
 
 - (id) propertyForKey: (NSString*)propertyKey;
 - (id) propertyForKeyIfAvailable: (NSString*)propertyKey;

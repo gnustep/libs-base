@@ -50,13 +50,13 @@ typedef struct	{
 
 @interface NSMethodSignature : NSObject
 {
-    const char		*methodTypes;
-    unsigned		argFrameLength;
-    unsigned		numArgs;
+  const char		*_methodTypes;
+  unsigned		_argFrameLength;
+  unsigned		_numArgs;
 #ifdef	STRICT_MACOS_X
-    void		*dummy;
+  void			*_dummy;
 #else
-    NSArgumentInfo	*info;
+  NSArgumentInfo	*_info;
 #endif
 }
 

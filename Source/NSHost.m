@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+  */ 
 
 #include <config.h>
 #include <base/preface.h>
@@ -30,7 +30,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
 #include <netdb.h>
-/* #include <libc.h> */
+/* #include <libc.h>*/
 
 #if	defined(__WIN32__) && !defined(__CYGWIN__)
 #include <Windows32/Sockets.h>
@@ -40,21 +40,21 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif /* __WIN32__ */
+#endif /* __WIN32__*/
 
-static NSLock *_hostCacheLock = nil;
+static NSLock*_hostCacheLock = nil;
 static BOOL _hostCacheEnabled = NO;
-static NSMutableDictionary *_hostCache = nil;
+static NSMutableDictionary*_hostCache = nil;
 
 @interface NSHost (Private)
-+ (NSHost *)_hostWithHostEntry: (struct hostent *)entry;
-+ (NSHost *)_hostWithHostEntry: (struct hostent *)entry name: name;
-- _initWithHostEntry: (struct hostent *)entry name: name;
++ (NSHost*) _hostWithHostEntry: (struct hostent*)entry;
++ (NSHost*) _hostWithHostEntry: (struct hostent*)entry name: name;
+- (id) _initWithHostEntry: (struct hostent*)entry name: name;
 @end
 
 @implementation NSHost (Private)
 
-+ (NSHost *)_hostWithHostEntry: (struct hostent *)entry
++ (NSHost*) _hostWithHostEntry: (struct hostent*)entry
 {
   if (!entry)
     return nil;
@@ -63,9 +63,9 @@ static NSMutableDictionary *_hostCache = nil;
 		       name: [NSString stringWithCString: entry->h_name]];
 }
 
-+ (NSHost *)_hostWithHostEntry: (struct hostent *)entry name: name
++ (NSHost*) _hostWithHostEntry: (struct hostent*)entry name: name
 {
-  NSHost *res = nil;
+  NSHost*res = nil;
 		
   [_hostCacheLock lock];
   if (_hostCacheEnabled == YES)
@@ -79,43 +79,43 @@ static NSMutableDictionary *_hostCache = nil;
 		       _initWithHostEntry: entry name: name]);
 }
 
-- _initWithHostEntry: (struct hostent *)entry name: name
+- (id) _initWithHostEntry: (struct hostent*)entry name: name
 {
   int i;
-  char *ptr;
+  char*ptr;
   struct in_addr in;
-  NSString *h_name;
+  NSString*h_name;
 	
   [super init];
 	
-  if (entry == (struct hostent *)NULL)
+  if (entry == (struct hostent*)NULL)
     {
       return nil;
     }
 		
-  names = RETAIN([NSMutableArray array]);
-  addresses = RETAIN([NSMutableArray array]);
+  _names = RETAIN([NSMutableArray array]);
+  _addresses = RETAIN([NSMutableArray array]);
 	
-  [names addObject: name];
+  [_names addObject: name];
   h_name = [NSString stringWithCString: entry->h_name];
 	
   if (![h_name isEqual: name])
     {
-      [names addObject: h_name];
+      [_names addObject: h_name];
     }
 	
   for (i = 0, ptr = entry->h_aliases[0]; ptr != NULL; i++,  
 	 ptr = entry->h_aliases[i])
     {
-      [names addObject: [NSString stringWithCString: ptr]];
+      [_names addObject: [NSString stringWithCString: ptr]];
     }
 
   for (i = 0, ptr = entry->h_addr_list[0]; ptr != NULL; i++,  
 	 ptr = entry->h_addr_list[i])
     {
-      memcpy((void *)&in.s_addr, (const void *)ptr,  
+      memcpy((void*)&in.s_addr, (const void*)ptr,  
 	      entry->h_length);
-      [addresses addObject: [NSString  
+      [_addresses addObject: [NSString  
 			     stringWithCString: (char*)inet_ntoa(in)]];
     }
 
@@ -133,22 +133,26 @@ static NSMutableDictionary *_hostCache = nil;
 
 @implementation NSHost
 
-- init
+- (id) init
 {
+  [self dealloc];
   return nil;
 }
 
-+ (void)initialize
++ (void) initialize
 {
-  _hostCacheLock = [[NSConditionLock alloc] init];
-  _hostCache = [NSMutableDictionary new];
+  if (self == [NSHost class])
+    {
+      _hostCacheLock = [[NSConditionLock alloc] init];
+      _hostCache = [NSMutableDictionary new];
+    }
 }
 
-+ (NSHost *)currentHost
++ (NSHost*) currentHost
 {
   char name[MAXHOSTNAMELEN];
   int res;
-  struct hostent *h;
+  struct hostent*h;
 	
   res = gethostname(name, sizeof(name));
   if (res < 0)
@@ -168,9 +172,9 @@ static NSMutableDictionary *_hostCache = nil;
 					   stringWithCString: name]];
 }
 
-+ (NSHost *)hostWithName: (NSString *)name
++ (NSHost*) hostWithName: (NSString*)name
 {
-  struct hostent *h;
+  struct hostent*h;
 
   if (name == nil)
     {
@@ -178,15 +182,15 @@ static NSMutableDictionary *_hostCache = nil;
       return nil;
     }
 	
-  h = gethostbyname((char *)[name cString]);
+  h = gethostbyname((char*)[name cString]);
 	
   return [self _hostWithHostEntry: h name: name];
 	
 }
 
-+ (NSHost *)hostWithAddress: (NSString *)address
++ (NSHost*) hostWithAddress: (NSString*)address
 {
-  struct hostent *h;
+  struct hostent*h;
   struct in_addr hostaddr;
 	
   if (address == nil)
@@ -195,24 +199,24 @@ static NSMutableDictionary *_hostCache = nil;
       return nil;
     }
 	
-  hostaddr.s_addr = inet_addr((char *)[address cString]);
+  hostaddr.s_addr = inet_addr((char*)[address cString]);
   if (hostaddr.s_addr == -1)
     {
       return nil;
     }
 		
-  h = gethostbyaddr((char *)&hostaddr, sizeof(hostaddr), AF_INET);
+  h = gethostbyaddr((char*)&hostaddr, sizeof(hostaddr), AF_INET);
   return [self _hostWithHostEntry: h];
 }
 
-+ (void)setHostCacheEnabled: (BOOL)flag
++ (void) setHostCacheEnabled: (BOOL)flag
 {
   [_hostCacheLock lock];
   _hostCacheEnabled = flag;
   [_hostCacheLock unlock];
 }
 
-+ (BOOL)isHostCacheEnabled;
++ (BOOL) isHostCacheEnabled;
 {
   BOOL res;
 	
@@ -223,19 +227,20 @@ static NSMutableDictionary *_hostCache = nil;
   return res;
 }
 
-+ (void)flushHostCache
++ (void) flushHostCache
 {
   [_hostCacheLock lock];
   [_hostCache removeAllObjects];
   [_hostCacheLock unlock];
 }
 
-/* Methods for encoding/decoding */
+/* Methods for encoding/decoding*/
 - (Class) classForPortCoder
 {
   return [self class];
 }
-- replacementObjectForPortCoder: (NSPortCoder*)aCoder
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
     return self;
 }
@@ -246,17 +251,17 @@ static NSMutableDictionary *_hostCache = nil;
 }
 
 #if 1
-/*	GNUstep specific method for more efficient decoding. */
+/*	GNUstep specific method for more efficient decoding.*/
 + (id) newWithCoder: (NSCoder*)aCoder
 {
     NSString	*address = [aCoder decodeObject];
     return [NSHost hostWithAddress: address];
 }
 #else
-/*	OpenStep methods for decoding (not used) */
+/*	OpenStep methods for decoding (not used)*/
 - (id) awakeAfterUsingCoder: (NSCoder*)aCoder
 {
-    return [NSHost hostWithAddress: [addresses objectAtIndex: 0]];
+    return [NSHost hostWithAddress: [_addresses objectAtIndex: 0]];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -265,21 +270,21 @@ static NSMutableDictionary *_hostCache = nil;
 
     [super initWithCoder: aCoder];
     address = [aCoder decodeObject];
-    addresses = [NSArray arrayWithObject: address];
+    _addresses = [NSArray arrayWithObject: address];
     return self;
 }
 #endif
 
 /*
- *	The OpenStep spec says that [-hash] must be the same for any two
- *	objects that [-isEqual: ] returns YES for.  We have a problem in
- *	that [-isEqualToHost: ] is specified to return YES if any name or
- *	address part of two hosts is the same.  That means we can't
- *	reasonably calculate a hash since two hosts with radically
- *	different ivar contents may be 'equal'.  The best I can think of
- *	is for all hosts to hash to the same value - which makes it very
- *	inefficient to store them in a set, dictionary, map or hash table.
- */
+*	The OpenStep spec says that [-hash] must be the same for any two
+*	objects that [-isEqual: ] returns YES for.  We have a problem in
+*	that [-isEqualToHost: ] is specified to return YES if any name or
+*	address part of two hosts is the same.  That means we can't
+*	reasonably calculate a hash since two hosts with radically
+*	different ivar contents may be 'equal'.  The best I can think of
+*	is for all hosts to hash to the same value - which makes it very
+*	inefficient to store them in a set, dictionary, map or hash table.
+*/
 - (unsigned) hash
 {
   return 1;
@@ -294,7 +299,7 @@ static NSMutableDictionary *_hostCache = nil;
   return NO;
 }
 
-- (BOOL)isEqualToHost: (NSHost *)aHost
+- (BOOL) isEqualToHost: (NSHost*)aHost
 {
   NSArray*	a;
   int		i;
@@ -304,49 +309,47 @@ static NSMutableDictionary *_hostCache = nil;
 
   a = [aHost addresses];
   for (i = 0; i < [a count]; i++)
-    if ([addresses containsObject: [a objectAtIndex: i]])
+    if ([_addresses containsObject: [a objectAtIndex: i]])
       return YES;
 
   a = [aHost names];
   for (i = 0; i < [a count]; i++)
-    if ([addresses containsObject: [a objectAtIndex: i]])
+    if ([_addresses containsObject: [a objectAtIndex: i]])
       return YES;
 
   return NO;
 }
 
-- (NSString *)name
+- (NSString*) name
 {
-  return [names objectAtIndex: 0];
+  return [_names objectAtIndex: 0];
 }
 
-- (NSArray *)names
+- (NSArray*) names
 {
-  return names;
+  return _names;
 }
 
-- (NSString *)address
+- (NSString*) address
 {
-  return [addresses objectAtIndex: 0];
+  return [_addresses objectAtIndex: 0];
 }
 
-- (NSArray *)addresses
+- (NSArray*) addresses
 {
-  return addresses;
+  return _addresses;
 }
 
-- (NSString *)description
+- (NSString*) description
 {
-  return [NSString stringWithFormat: @"Host %@ (%@ %@)", [self  
-							  name],
-		   [[self names] description], [[self addresses]  
-						 description]];
+  return [NSString stringWithFormat: @"Host %@ (%@ %@)",
+    [self name], [[self names] description], [[self addresses] description]];
 }
 
 - (void) dealloc
 {
-  RELEASE(names);
-  RELEASE(addresses);
+  RELEASE(_names);
+  RELEASE(_addresses);
   [super dealloc];
 }
 

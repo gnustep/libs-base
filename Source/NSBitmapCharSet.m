@@ -28,41 +28,41 @@
 
 @implementation NSBitmapCharSet
 
-- init
+- (id) init
 {
-  return [self initWithBitmap:NULL];
+  return [self initWithBitmap: NULL];
 }
 
 /* Designated initializer */
-- initWithBitmap:(NSData *)bitmap
+- (id) initWithBitmap: (NSData*)bitmap
 {
   [super init];
-  [bitmap getBytes:data length:BITMAP_SIZE];
+  [bitmap getBytes: _data length: BITMAP_SIZE];
   return self;
 }
 
-- (NSData *)bitmapRepresentation
+- (NSData*) bitmapRepresentation
 {
-  return [NSData dataWithBytes:data length:BITMAP_SIZE];
+  return [NSData dataWithBytes: _data length: BITMAP_SIZE];
 }
 
-- (BOOL)characterIsMember:(unichar)aCharacter
+- (BOOL) characterIsMember: (unichar)aCharacter
 {
-  return ISSET(data[aCharacter/8], aCharacter % 8);
+  return ISSET(_data[aCharacter/8], aCharacter % 8);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    [aCoder encodeObject: [self bitmapRepresentation]];
+  [aCoder encodeObject: [self bitmapRepresentation]];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    NSData	*rep;
+  NSData	*rep;
 
-    rep = [aCoder decodeObject];
-    self = [self initWithBitmap: rep];
-    return self;
+  rep = [aCoder decodeObject];
+  self = [self initWithBitmap: rep];
+  return self;
 }
 
 @end
@@ -71,46 +71,46 @@
 
 - init
 {
-  return [self initWithBitmap:NULL];
+  return [self initWithBitmap: NULL];
 }
 
 /* Designated initializer */
-- initWithBitmap:(NSData *)bitmap
+- (id) initWithBitmap: (NSData*)bitmap
 {
   [super init];
   if (bitmap)
-      [bitmap getBytes:data length:BITMAP_SIZE];
+    [bitmap getBytes: _data length: BITMAP_SIZE];
   return self;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    [aCoder encodeObject: [self bitmapRepresentation]];
+  [aCoder encodeObject: [self bitmapRepresentation]];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    NSMutableData	*rep;
+  NSMutableData	*rep;
 
-    rep = [aCoder decodeObject];
-    self = [self initWithBitmap: rep];
-    return self;
+  rep = [aCoder decodeObject];
+  self = [self initWithBitmap: rep];
+  return self;
 }
 
 /* Need to implement the next two methods just like NSBitmapCharSet */
-- (NSData *)bitmapRepresentation
+- (NSData*) bitmapRepresentation
 {
-  return [NSData dataWithBytes:data length:BITMAP_SIZE];
+  return [NSData dataWithBytes: _data length: BITMAP_SIZE];
 }
 
-- (BOOL)characterIsMember:(unichar)aCharacter
+- (BOOL) characterIsMember: (unichar)aCharacter
 {
-  return ISSET(data[aCharacter/8], aCharacter % 8);
+  return ISSET(_data[aCharacter/8], aCharacter % 8);
 }
 
-- (void)addCharactersInRange:(NSRange)aRange
+- (void) addCharactersInRange: (NSRange)aRange
 {
-  int i;
+  unsigned i;
 
   if (NSMaxRange(aRange) > UNICODE_SIZE)
     {
@@ -119,13 +119,13 @@
       /* NOT REACHED */
     }
 
-  for (i=aRange.location; i < NSMaxRange(aRange); i++)
-      SETBIT(data[i/8], i % 8);
+  for (i = aRange.location; i < NSMaxRange(aRange); i++)
+    SETBIT(_data[i/8], i % 8);
 }
 
-- (void)addCharactersInString:(NSString *)aString
+- (void) addCharactersInString: (NSString*)aString
 {
-  int   i, length;
+  unsigned   length;
 
   if (!aString)
     {
@@ -135,36 +135,46 @@
     }
 
   length = [aString length];
-  for (i=0; i < length; i++)
+  if (length > 0)
     {
-      unichar letter = [aString characterAtIndex:i];
-      SETBIT(data[letter/8], letter % 8);
+      unsigned	i;
+      unichar	(*get)(id, SEL, unsigned);
+
+      get = (unichar (*)(id, SEL, unsigned))
+	[aString methodForSelector: @selector(characterAtIndex:)];
+      for (i = 0; i < length; i++)
+	{
+	  unichar	letter;
+
+	  letter = (*get)(aString, @selector(characterAtIndex:), i);
+	  SETBIT(_data[letter/8], letter % 8);
+	}
     }
 }
 
-- (void) formUnionWithCharacterSet: (NSCharacterSet *)otherSet
+- (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
 {
-  int i;
-  const char *other_bytes;
+  unsigned	i;
+  const char	*other_bytes;
 
   other_bytes = [[otherSet bitmapRepresentation] bytes];
   for (i = 0; i < BITMAP_SIZE; i++)
-    data[i] = (data[i] | other_bytes[i]);
+    _data[i] = (_data[i] | other_bytes[i]);
 }
 
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet *)otherSet
 {
-  int i;
-  const char *other_bytes;
+  unsigned	i;
+  const char	*other_bytes;
 
   other_bytes = [[otherSet bitmapRepresentation] bytes];
   for (i = 0; i < BITMAP_SIZE; i++)
-    data[i] = (data[i] & other_bytes[i]);
+    _data[i] = (_data[i] & other_bytes[i]);
 }
 
-- (void)removeCharactersInRange:(NSRange)aRange
+- (void) removeCharactersInRange: (NSRange)aRange
 {
-  int i;
+  unsigned	i;
 
   if (NSMaxRange(aRange) > UNICODE_SIZE)
     {
@@ -173,13 +183,13 @@
       /* NOT REACHED */
     }
 
-  for (i=aRange.location; i < NSMaxRange(aRange); i++)
-      CLRBIT(data[i/8], i % 8);
+  for (i = aRange.location; i < NSMaxRange(aRange); i++)
+      CLRBIT(_data[i/8], i % 8);
 }
 
-- (void)removeCharactersInString:(NSString *)aString
+- (void) removeCharactersInString: (NSString*)aString
 {
-  int   i, length;
+  unsigned	length;
 
   if (!aString)
     {
@@ -189,19 +199,30 @@
     }
 
   length = [aString length];
-  for (i=0; i < length; i++)
+  if (length > 0)
     {
-      unichar letter = [aString characterAtIndex:i];
-      CLRBIT(data[letter/8], letter % 8);
+      unsigned	i;
+      unichar	(*get)(id, SEL, unsigned);
+
+      get = (unichar (*)(id, SEL, unsigned))
+	[aString methodForSelector: @selector(characterAtIndex:)];
+
+      for (i = 0; i < length; i++)
+	{
+	  unichar	letter;
+
+	  letter = (*get)(aString, @selector(characterAtIndex:), i);
+	  CLRBIT(_data[letter/8], letter % 8);
+	}
     }
 }
 
-- (void)invert
+- (void) invert
 {
-  int i;
+  unsigned	i;
 
-  for (i=0; i < BITMAP_SIZE; i++)
-      data[i] = ~data[i];
+  for (i = 0; i < BITMAP_SIZE; i++)
+    _data[i] = ~_data[i];
 }
 
 @end

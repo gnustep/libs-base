@@ -32,61 +32,61 @@
 
 // Allocating and Initializing a Data Object
 
-+ (id)data;
-+ (id)dataWithBytes: (const void*)bytes
-	     length: (unsigned int)length;
-+ (id)dataWithBytesNoCopy: (void*)bytes
-   		   length: (unsigned int)length;
-+ (id)dataWithContentsOfFile: (NSString*)path;
-+ (id)dataWithContentsOfMappedFile: (NSString*)path;
-+ (id)dataWithData: (NSData*)data;
-- (id)initWithBytes: (const void*)bytes
-   	     length: (unsigned int)length;
-- (id)initWithBytesNoCopy: (void*)bytes
-                   length: (unsigned int)length;
-- (id)initWithContentsOfFile: (NSString*)path;
-- (id)initWithContentsOfMappedFile: (NSString*)path;
-- (id)initWithData: (NSData*)data;
++ (id) data;
++ (id) dataWithBytes: (const void*)bytes
+	      length: (unsigned int)length;
++ (id) dataWithBytesNoCopy: (void*)bytes
+		    length: (unsigned int)length;
++ (id) dataWithContentsOfFile: (NSString*)path;
++ (id) dataWithContentsOfMappedFile: (NSString*)path;
++ (id) dataWithData: (NSData*)data;
+- (id) initWithBytes: (const void*)bytes
+	      length: (unsigned int)length;
+- (id) initWithBytesNoCopy: (void*)bytes
+		    length: (unsigned int)length;
+- (id) initWithContentsOfFile: (NSString*)path;
+- (id) initWithContentsOfMappedFile: (NSString*)path;
+- (id) initWithData: (NSData*)data;
 
 // Accessing Data 
 
-- (const void*)bytes;
-- (NSString*)description;
-- (void)getBytes: (void*)buffer;
-- (void)getBytes: (void*)buffer
-          length: (unsigned int)length;
-- (void)getBytes: (void*)buffer
-           range: (NSRange)aRange;
-- (NSData*)subdataWithRange: (NSRange)aRange;
+- (const void*) bytes;
+- (NSString*) description;
+- (void) getBytes: (void*)buffer;
+- (void) getBytes: (void*)buffer
+	   length: (unsigned int)length;
+- (void) getBytes: (void*)buffer
+	    range: (NSRange)aRange;
+- (NSData*) subdataWithRange: (NSRange)aRange;
 
 // Querying a Data Object
 
-- (BOOL)isEqualToData: (NSData*)other;
-- (unsigned int)length;
+- (BOOL) isEqualToData: (NSData*)other;
+- (unsigned int) length;
 
 // Storing Data
 
-- (BOOL)writeToFile: (NSString*)path
-         atomically: (BOOL)useAuxiliaryFile;
+- (BOOL) writeToFile: (NSString*)path
+	  atomically: (BOOL)useAuxiliaryFile;
 
 // Deserializing Data
 
-- (unsigned int)deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor;
-- (void)deserializeBytes: (void*)buffer
-                  length: (unsigned int)bytes
-                atCursor: (unsigned int*)cursor;
-- (void)deserializeDataAt: (void*)data
-               ofObjCType: (const char*)type
-                 atCursor: (unsigned int*)cursor
-                  context: (id <NSObjCTypeSerializationCallBack>)callback;
-- (int)deserializeIntAtCursor: (unsigned int*)cursor;
-- (int)deserializeIntAtIndex: (unsigned int)location;
-- (void)deserializeInts: (int*)intBuffer
-                  count: (unsigned int)numInts
-               atCursor: (unsigned int*)cursor;
-- (void)deserializeInts: (int*)intBuffer
-                  count: (unsigned int)numInts
-                atIndex: (unsigned int)index;
+- (unsigned int) deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor;
+- (void) deserializeBytes: (void*)buffer
+		   length: (unsigned int)bytes
+		 atCursor: (unsigned int*)cursor;
+- (void) deserializeDataAt: (void*)data
+		ofObjCType: (const char*)type
+		  atCursor: (unsigned int*)cursor
+		   context: (id <NSObjCTypeSerializationCallBack>)callback;
+- (int) deserializeIntAtCursor: (unsigned int*)cursor;
+- (int) deserializeIntAtIndex: (unsigned int)location;
+- (void) deserializeInts: (int*)intBuffer
+		   count: (unsigned int)numInts
+		atCursor: (unsigned int*)cursor;
+- (void) deserializeInts: (int*)intBuffer
+		   count: (unsigned int)numInts
+		 atIndex: (unsigned int)index;
 
 @end
 

@@ -36,8 +36,8 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
-  BOOL	is_valid;
-  id	delegate;
+  BOOL	_is_valid;
+  id	_delegate;
 }
 
 + (NSPort*) port;

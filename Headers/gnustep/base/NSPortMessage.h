@@ -29,8 +29,8 @@
 
 @interface	NSPortMessage : NSObject
 {
-  unsigned		msgid;
-  NSMutableArray	*components;
+  unsigned		_msgid;
+  NSMutableArray	*_components;
 }
 - (id) initWithMachMessage: (void*)buffer;
 - (id) initWithSendPort: (NSPort*)aPort

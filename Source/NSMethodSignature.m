@@ -36,79 +36,86 @@
 
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
 {
-    NSMethodSignature *newMs = [[NSMethodSignature alloc] autorelease];
+  NSMethodSignature *newMs = [[NSMethodSignature alloc] autorelease];
 
-    newMs->methodTypes = mframe_build_signature(t, &newMs->argFrameLength,
-		&newMs->numArgs, 0); 
+  newMs->_methodTypes = mframe_build_signature(t, &newMs->_argFrameLength,
+    &newMs->_numArgs, 0); 
 
-    return newMs;
+  return newMs;
 }
 
 - (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index
 {
-    if (index >= numArgs) {
-	[NSException raise: NSInvalidArgumentException
-		    format: @"Index too high."];
+  if (index >= _numArgs)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Index too high."];
     }
-    if (info == 0) {
-	[self methodInfo];
+  if (_info == 0)
+    {
+      [self methodInfo];
     }
-    return info[index+1];
+  return _info[index+1];
 }
 
 - (unsigned) frameLength
 {
-    return argFrameLength;
+  return _argFrameLength;
 }
 
 - (const char*) getArgumentTypeAtIndex: (unsigned)index
 {
-    if (index >= numArgs) {
-	[NSException raise: NSInvalidArgumentException
-		    format: @"Index too high."];
+  if (index >= _numArgs)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Index too high."];
     }
-    if (info == 0) {
-	[self methodInfo];
+  if (_info == 0)
+    {
+      [self methodInfo];
     }
-    return info[index+1].type;
+  return _info[index+1].type;
 }
 
 - (BOOL) isOneway
 {
-    if (info == 0) {
-	[self methodInfo];
+  if (_info == 0)
+    {
+      [self methodInfo];
     }
-    return (info[0].qual & _F_ONEWAY) ? YES : NO;
+  return (_info[0].qual & _F_ONEWAY) ? YES : NO;
 }
 
 - (unsigned) methodReturnLength
 {
-    if (info == 0) {
-	[self methodInfo];
+  if (_info == 0)
+    {
+      [self methodInfo];
     }
-    return info[0].size;
+  return _info[0].size;
 }
 
 - (const char*) methodReturnType
 {
-    if (info == 0) {
-	[self methodInfo];
+  if (_info == 0)
+    {
+      [self methodInfo];
     }
-    return info[0].type;
+  return _info[0].type;
 }
 
 - (unsigned) numberOfArguments
 {
-    return numArgs;
+  return _numArgs;
 }
 
 - (void) dealloc
 {
-    if (methodTypes)
-	objc_free((void*)methodTypes);
-    if (info)
-	objc_free((void*)info);
-    [super dealloc];
+  if (_methodTypes)
+    objc_free((void*)_methodTypes);
+  if (_info)
+    objc_free((void*)_info);
+  [super dealloc];
 }
 
 @end
@@ -116,20 +123,22 @@
 @implementation NSMethodSignature(GNU)
 - (NSArgumentInfo*) methodInfo
 {
-    if (info == 0) {
-	const char	*types = methodTypes;
-	int		i;
+  if (_info == 0)
+    {
+      const char	*types = _methodTypes;
+      int		i;
 
-	info = objc_malloc(sizeof(NSArgumentInfo)*(numArgs+1));
-	for (i = 0; i <= numArgs; i++) {
-	    types = mframe_next_arg(types, &info[i]);
+      _info = objc_malloc(sizeof(NSArgumentInfo)*(_numArgs+1));
+      for (i = 0; i <= _numArgs; i++)
+	{
+	  types = mframe_next_arg(types, &_info[i]);
 	}
     }
-    return info;
+  return _info;
 }
 
 - (const char*) methodType
 {
-    return methodTypes;
+  return _methodTypes;
 }
 @end

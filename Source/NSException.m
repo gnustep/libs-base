@@ -79,17 +79,17 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 	     reason: (NSString *)reason
 	   userInfo: (NSDictionary *)userInfo
 {
-  ASSIGN(e_name, name);
-  ASSIGN(e_reason, reason);
-  ASSIGN(e_info, userInfo);
+  ASSIGN(_e_name, name);
+  ASSIGN(_e_reason, reason);
+  ASSIGN(_e_info, userInfo);
   return self;
 }
 
 - (void)dealloc
 {
-  DESTROY(e_name);
-  DESTROY(e_reason);
-  DESTROY(e_info);
+  DESTROY(_e_name);
+  DESTROY(_e_reason);
+  DESTROY(_e_info);
   [super dealloc];
 }
 
@@ -118,17 +118,17 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (NSString *) name
 {
-  return e_name;
+  return _e_name;
 }
 
 - (NSString *) reason
 {
-  return e_reason;
+  return _e_reason;
 }
 
 - (NSDictionary *) userInfo
 {
-  return e_info;
+  return _e_info;
 }
 
 - (Class) classForPortCoder
@@ -143,24 +143,24 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValueOfObjCType: @encode(id) at: &e_name];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &e_reason];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &e_info];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_e_name];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_e_reason];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_e_info];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  [aDecoder decodeValueOfObjCType: @encode(id) at: &e_name];
-  [aDecoder decodeValueOfObjCType: @encode(id) at: &e_reason];
-  [aDecoder decodeValueOfObjCType: @encode(id) at: &e_info];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_name];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_reason];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_info];
   return self;
 }
 
 - (id) deepen
 {
-  e_name = [e_name copyWithZone: [self zone]];
-  e_reason = [e_reason copyWithZone: [self zone]];
-  e_info = [e_info copyWithZone: [self zone]];
+  _e_name = [_e_name copyWithZone: [self zone]];
+  _e_reason = [_e_reason copyWithZone: [self zone]];
+  _e_info = [_e_info copyWithZone: [self zone]];
   return self;
 }
 
@@ -174,12 +174,12 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (NSString*) description
 {
-  if (e_info)
+  if (_e_info)
     return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@ INFO:%@",
-	[super description], e_name, e_reason, e_info];
+	[super description], _e_name, _e_reason, _e_info];
   else
     return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
-	[super description], e_name, e_reason];
+	[super description], _e_name, _e_reason];
 }
 
 @end

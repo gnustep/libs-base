@@ -130,10 +130,10 @@ static SEL	remSel = @selector(removeObjectAtIndex:);
 static void	(*remImp)() = 0;
 
 #define	NEWINFO(Z,O,L)	((*infImp)(infCls, infSel, (Z), (O), (L)))
-#define	ADDOBJECT(O)	((*addImp)(infoArray, addSel, (O)))
-#define	INSOBJECT(O,I)	((*insImp)(infoArray, insSel, (O), (I)))
-#define	OBJECTAT(I)	((*oatImp)(infoArray, oatSel, (I)))
-#define	REMOVEAT(I)	((*remImp)(infoArray, remSel, (I)))
+#define	ADDOBJECT(O)	((*addImp)(_infoArray, addSel, (O)))
+#define	INSOBJECT(O,I)	((*insImp)(_infoArray, insSel, (O), (I)))
+#define	OBJECTAT(I)	((*oatImp)(_infoArray, oatSel, (I)))
+#define	REMOVEAT(I)	((*remImp)(_infoArray, remSel, (I)))
 
 static void _setup()
 {
@@ -155,9 +155,9 @@ static void
 _setAttributesFrom(
   NSAttributedString *attributedString,
   NSRange aRange,
-  NSMutableArray *infoArray)
+  NSMutableArray *_infoArray)
 {
-  NSZone	*z = fastZone(infoArray);
+  NSZone	*z = fastZone(_infoArray);
   NSRange	range;
   NSDictionary	*attr;
   GSAttrInfo	*info;
@@ -166,7 +166,7 @@ _setAttributesFrom(
   /*
    * remove any old attributes of the string.
    */
-  [infoArray removeAllObjects];
+  [_infoArray removeAllObjects];
 
   if (aRange.length <= 0)
     return;
@@ -192,7 +192,7 @@ _attributesAtIndexEffectiveRange(
   unsigned int index,
   NSRange *aRange,
   unsigned int tmpLength,
-  NSMutableArray *infoArray,
+  NSMutableArray *_infoArray,
   unsigned int *foundIndex)
 {
   unsigned	low, high, used, cnt, nextLoc;
@@ -205,7 +205,7 @@ _attributesAtIndexEffectiveRange(
 			  @"_attributesAtIndexEffectiveRange()"];
     }
   
-  used = (*cntImp)(infoArray, cntSel);
+  used = (*cntImp)(_infoArray, cntSel);
 
   /*
    * Binary search for efficiency in huge attributed strings
@@ -274,15 +274,15 @@ _attributesAtIndexEffectiveRange(
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [super encodeWithCoder: aCoder];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &textChars];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &infoArray];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_textChars];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_infoArray];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   self = [super initWithCoder: aCoder];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &textChars];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &infoArray];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_textChars];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_infoArray];
   return self;
 }
 
@@ -291,13 +291,13 @@ _attributesAtIndexEffectiveRange(
 {
   NSZone	*z = fastZone(self);
 
-  infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
+  _infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
 
       aString = [as string];
-      _setAttributesFrom(as, NSMakeRange(0, [aString length]), infoArray);
+      _setAttributesFrom(as, NSMakeRange(0, [aString length]), _infoArray);
     }
   else
     {
@@ -308,28 +308,28 @@ _attributesAtIndexEffectiveRange(
       RELEASE(info);
     }
   if (aString == nil)
-    textChars = @"";
+    _textChars = @"";
   else
-    textChars = [aString copyWithZone: z];
+    _textChars = [aString copyWithZone: z];
   return self;
 }
 
 - (NSString*) string
 {
-  return textChars;
+  return _textChars;
 }
 
 - (NSDictionary*) attributesAtIndex: (unsigned)index
 		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
-    index, aRange, [textChars length], infoArray, NULL);
+    index, aRange, [_textChars length], _infoArray, NULL);
 }
 
 - (void) dealloc
 {
-  RELEASE(textChars);
-  RELEASE(infoArray);
+  RELEASE(_textChars);
+  RELEASE(_infoArray);
   [super dealloc];
 }
 
@@ -356,15 +356,15 @@ _attributesAtIndexEffectiveRange(
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [super encodeWithCoder: aCoder];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &textChars];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &infoArray];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_textChars];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_infoArray];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   self = [super initWithCoder: aCoder];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &textChars];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &infoArray];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_textChars];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_infoArray];
   return self;
 }
 
@@ -373,13 +373,13 @@ _attributesAtIndexEffectiveRange(
 {
   NSZone	*z = fastZone(self);
 
-  infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
+  _infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
 
       aString = [as string];
-      _setAttributesFrom(as, NSMakeRange(0, [aString length]), infoArray);
+      _setAttributesFrom(as, NSMakeRange(0, [aString length]), _infoArray);
     }
   else
     {
@@ -390,22 +390,22 @@ _attributesAtIndexEffectiveRange(
       RELEASE(info);
     }
   if (aString == nil)
-    textChars = [[NSGMutableString allocWithZone: z] init];
+    _textChars = [[NSGMutableString allocWithZone: z] init];
   else
-    textChars = [aString mutableCopyWithZone: z];
+    _textChars = [aString mutableCopyWithZone: z];
   return self;
 }
 
 - (NSString*) string
 {
-  return textChars;
+  return _textChars;
 }
 
 - (NSDictionary*) attributesAtIndex: (unsigned)index
 		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
-    index, aRange, [textChars length], infoArray, NULL);
+    index, aRange, [_textChars length], _infoArray, NULL);
 }
 
 - (void) setAttributes: (NSDictionary*)attributes
@@ -420,13 +420,13 @@ _attributesAtIndexEffectiveRange(
 
   if (!attributes)
     attributes = [NSDictionary dictionary];
-  tmpLength = [textChars length];
+  tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
-  arraySize = (*cntImp)(infoArray, cntSel);
+  arraySize = (*cntImp)(_infoArray, cntSel);
   if (NSMaxRange(range) < tmpLength)
     {
       attrs = _attributesAtIndexEffectiveRange(
-	NSMaxRange(range), &effectiveRange, tmpLength, infoArray, &arrayIndex);
+	NSMaxRange(range), &effectiveRange, tmpLength, _infoArray, &arrayIndex);
 
       afterRangeLoc = NSMaxRange(range);
       if (effectiveRange.location > range.location)
@@ -503,13 +503,13 @@ _attributesAtIndexEffectiveRange(
 
   if (!aString)
     aString = @"";
-  tmpLength = [textChars length];
+  tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
-  arraySize = (*cntImp)(infoArray, cntSel);
+  arraySize = (*cntImp)(_infoArray, cntSel);
   if (NSMaxRange(range) < tmpLength)
     {
       attrs = _attributesAtIndexEffectiveRange(
-	NSMaxRange(range), &effectiveRange, tmpLength, infoArray, &arrayIndex);
+	NSMaxRange(range), &effectiveRange, tmpLength, _infoArray, &arrayIndex);
       
       moveLocations = [aString length] - range.length;
       afterRangeLoc = NSMaxRange(range) + moveLocations;
@@ -537,7 +537,7 @@ _attributesAtIndexEffectiveRange(
 	  NSRange	r = NSMakeRange(arrayIndex + 1, l);
 	  GSAttrInfo	*objs[l];
 	 
-	  [infoArray getObjects: objs range: r];
+	  [_infoArray getObjects: objs range: r];
 	  for (cnt = 0; cnt < l; cnt++)
 	    {
 	      objs[cnt]->loc += moveLocations;
@@ -558,13 +558,13 @@ _attributesAtIndexEffectiveRange(
       REMOVEAT(arrayIndex);
       arrayIndex--;
     }
-  [textChars replaceCharactersInRange: range withString: aString];
+  [_textChars replaceCharactersInRange: range withString: aString];
 }
 
 - (void) dealloc
 {
-  RELEASE(textChars);
-  RELEASE(infoArray);
+  RELEASE(_textChars);
+  RELEASE(_infoArray);
   [super dealloc];
 }
 

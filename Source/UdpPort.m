@@ -263,7 +263,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
 - (void) invalidate
 {
-  if (is_valid)
+  if (_is_valid)
     {
       close (_port_socket);
       [super invalidate];
