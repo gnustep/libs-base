@@ -109,12 +109,12 @@ GSDebugAllocationAdd(Class c)
     {
       int	i;
 
-      if (uniqueLock != nil)
-	[uniqueLock lock];
       for (i = 0; i < num_classes; i++)
 	{
 	  if (the_table[i].class == c)
 	    {
+	      if (uniqueLock != nil)
+		[uniqueLock lock];
 	      the_table[i].count++;
 	      the_table[i].total++;
 	      if (uniqueLock != nil)
@@ -122,6 +122,8 @@ GSDebugAllocationAdd(Class c)
 	      return;
 	    }
 	}
+      if (uniqueLock != nil)
+	[uniqueLock lock];
       if (num_classes >= table_size)
 	{
 	  int		more = table_size + 128;
