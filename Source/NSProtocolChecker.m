@@ -160,11 +160,6 @@
   return self;
 }
 
-- (IMP) methodForSelector: (SEL)aSelector
-{
-  return get_imp(GSObjCClass((id)self), aSelector);
-}
-
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
   const char		*types;

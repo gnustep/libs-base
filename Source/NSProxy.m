@@ -121,6 +121,11 @@ extern BOOL __objc_responds_to(id, SEL);
   /* Do nothing	*/
 }
 
+- (IMP) methodForSelector: (SEL)aSelector
+{
+  return get_imp(GSObjCClass((id)self), aSelector);
+}
+
 /**
  * Returns the method signature for the specified selector.
  */
