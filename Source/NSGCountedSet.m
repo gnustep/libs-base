@@ -1,7 +1,7 @@
 /* Concrete implementation of NSSet based on GNU Set class
    Copyright (C) 1998 Free Software Foundation, Inc.
    
-   Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>
+   Written by:  Richard frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
    
    This file is part of the GNUstep Base Library.
@@ -33,8 +33,10 @@
 
 #define	FAST_MAP_RETAIN_VAL(X)	X
 #define	FAST_MAP_RELEASE_VAL(X)	
+#define FAST_MAP_KTYPES	GSUNION_OBJ
+#define FAST_MAP_VTYPES	GSUNION_INT
 
-#include "FastMap.x"
+#include <base/FastMap.x>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
@@ -75,7 +77,7 @@
       return nil;
     }
   node = node->nextInMap;
-  return old->key.o;
+  return old->key.obj;
 }
 
 - (void) dealloc
@@ -118,8 +120,8 @@
 
   while (node != 0)
     {
-      (*imp1)(aCoder, sel1, node->key.o);
-      (*imp2)(aCoder, sel2, type, &node->value.I);
+      (*imp1)(aCoder, sel1, node->key.obj);
+      (*imp2)(aCoder, sel2, type, &node->value.uint);
       node = node->nextInMap;
     }
 }
@@ -141,7 +143,7 @@
     {
       (*imp)(aCoder, sel, otype, &value);
       (*imp)(aCoder, sel, utype, &valcnt);
-      FastMapAddPairNoRetain(&map, (FastMapItem)value, (FastMapItem)valcnt);
+      FastMapAddPairNoRetain(&map, (FastMapKey)value, (FastMapVal)valcnt);
     }
 
   return self;
@@ -172,14 +174,14 @@
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init counted set with nil value"];
 	}
-      node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+      node = FastMapNodeForKey(&map, (FastMapKey)objs[i]);
       if (node == 0)
 	{
-	  FastMapAddPair(&map,(FastMapItem)objs[i],(FastMapItem)(unsigned)1);
+	  FastMapAddPair(&map,(FastMapKey)objs[i],(FastMapVal)(unsigned)1);
         }
       else
 	{
-	  node->value.I++;
+	  node->value.uint++;
 	}
     }
   return self;
@@ -195,14 +197,14 @@
 		  format: @"Tried to nil value to counted set"];
     }
 
-  node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+  node = FastMapNodeForKey(&map, (FastMapKey)anObject);
   if (node == 0)
     {
-      FastMapAddPair(&map,(FastMapItem)anObject,(FastMapItem)(unsigned)1);
+      FastMapAddPair(&map,(FastMapKey)anObject,(FastMapVal)(unsigned)1);
     }
   else
     {
-      node->value.I++;
+      node->value.uint++;
     }
 }
 
@@ -215,11 +217,11 @@
 {
   if (anObject)
     {
-      FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+      FastMapNode node = FastMapNodeForKey(&map, (FastMapKey)anObject);
 
       if (node)
 	{
-	  return node->value.I;
+	  return node->value.uint;
 	}
     }
   return 0;
@@ -234,11 +236,11 @@
 {
   if (anObject)
     {
-      FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+      FastMapNode node = FastMapNodeForKey(&map, (FastMapKey)anObject);
 
       if (node)
 	{
-	  return node->key.o;
+	  return node->key.obj;
 	}
     }
   return nil;
@@ -255,15 +257,15 @@
     {
       FastMapBucket       bucket;
 
-      bucket = FastMapBucketForKey(&map, (FastMapItem)anObject);
+      bucket = FastMapBucketForKey(&map, (FastMapKey)anObject);
       if (bucket)
 	{
 	  FastMapNode     node;
 
-	  node = FastMapNodeForKeyInBucket(bucket, (FastMapItem)anObject);
+	  node = FastMapNodeForKeyInBucket(bucket, (FastMapKey)anObject);
 	  if (node)
 	    {
-	      if (--node->value.I == 0)
+	      if (--node->value.uint == 0)
 		{
 		  FastMapRemoveNodeFromMap(&map, bucket, node);
 		  FastMapFreeNode(&map, node);
