@@ -894,7 +894,15 @@ static void unescape(const char *from, char * to)
 		}
 	    }
 
-	  if (base != 0
+	  if (buf->isFile == YES)
+	    {
+	      buf->user = 0;
+	      buf->password = 0;
+	      buf->host = "localhost";
+	      buf->port = 0;
+	      buf->isGeneric = YES;
+	    }
+	  else if (base != 0
 	    && buf->user == 0 && buf->password == 0
 	    && buf->host == 0 && buf->port == 0)
 	    {
@@ -1203,7 +1211,7 @@ static void unescape(const char *from, char * to)
   /*
    * If this scheme is from a URL without generic format, there is no path.
    */
-  if (myData->isGeneric == YES || myData->isFile == YES)
+  if (myData->isGeneric == YES)
     {
       unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
 	+ strlen(myData->path) + 3;

@@ -9,7 +9,7 @@ static void test1(void)
     NSURL *baseURL = [NSURL fileURLWithPath:@"/usr/local/bin"];
     NSURL *url = [NSURL URLWithString:@"filename" relativeToURL:baseURL];
     NSString *result = [url absoluteString];
-    NSString *expected = @"file:/usr/local/bin/filename";
+    NSString *expected = @"file://localhost/usr/local/bin/filename";
 
     if ([result isEqualToString:expected])
         NSLog(@"test 1 ok");
