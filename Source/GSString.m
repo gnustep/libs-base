@@ -1665,11 +1665,15 @@ transmute(ivars self, NSString *aString)
 	   */
 	  transmute = NO;
 	}
-      else if ([aString canBeConvertedToEncoding: intEnc] == YES)
+      else if (intEnc == defEnc
+	&& [aString canBeConvertedToEncoding: intEnc] == YES)
 	{
 	  /*
 	   * The other string can be converted to the internal 8-bit encoding,
-	   * so we don't need to transmute, but we can *not* use its ivars.
+	   * via the cString method, so we don't need to transmute, but we
+	   * can *not* use its ivars.
+	   * NB. If 'intEnc != defEnc' the cString method of the other string
+	   * will not return data in the internal encoding.
 	   */
 	  transmute = NO;
 	  other = 0;

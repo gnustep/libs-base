@@ -56,16 +56,6 @@
  */
 #include        "../Tools/gdomap.h"
 
-/*
- *	Macros to build text to start name server and to give an error
- *	message about it - they include installation path information.
- */
-#define MAKE_GDOMAP_CMD   [[GSSystemRootDirectory() \
-  stringByAppendingPathComponent: @"Tools"] \
-  stringByAppendingPathComponent: @"gdomap"]
-#define MAKE_GDOMAP_ERR   [NSString stringWithFormat: \
-  @"check that %@/Tools/gdomap is running", GSSystemRootDirectory()]
-
 #define stringify_it(X) #X
 #define	make_gdomap_port(X)	stringify_it(X)
 
@@ -187,15 +177,23 @@ typedef enum {
        * Remove our file handle, then either retry or fail.
        */
       [self close];
-      if (state == GSPC_LOPEN)
+      if (launchCmd == nil)
+	{
+	  launchCmd = RETAIN([[NSSearchPathForDirectoriesInDomains(
+	    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
+	    stringByAppendingPathComponent: @"gdomap"]);
+	}
+      if (state == GSPC_LOPEN && launchCmd != nil)
 	{
 	  NSRunLoop	*loop = [NSRunLoop currentRunLoop];
 	  NSTimer	*timer;
 
 	  NSLog(@"NSPortNameServer attempting to start gdomap on local host\n"
 @"This will take a few seconds.\n"
+@"Trying to launch gdomap from %@ or a machine/operating-system subdirectory.\n"
 @"It is recommended that you start up gdomap at login time or (better) when\n"
-@"your computer is started instead."); 
+@"your computer is started instead.",
+[launchCmd stringByDeletingLastPathComponent]); 
 	  [NSTask launchedTaskWithLaunchPath: launchCmd arguments: nil];
 	  timer = [NSTimer timerWithTimeInterval: 5.0
 				      invocation: nil
@@ -548,7 +546,6 @@ typedef enum {
       serverPort = RETAIN([NSString stringWithCString:
 	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
-      launchCmd = RETAIN(MAKE_GDOMAP_CMD);
       portClass = [GSTcpPort class];
     }
 }

@@ -1,3 +1,16 @@
+2002-04-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortNameServer.m: Improved warnings about launching
+	gdomap.
+	* Source/NSDistributedNotification.m: Improved warnings about
+	launching gdnc.
+	* Source/NSException.m: Log uncaught exceptions using NSLog()
+	* Source/GSString.m: Applied fix by Malexander Malmberg for
+	transmuting strings where the default encoding is not the same as
+	the internal 8-bit encoding.
+	* Source/Unicode.m: Logic fix for selecting strict conversion from
+	unicode by Alexander Malmberg.
+
 2002-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: New method ([-nextElement]) to traverse

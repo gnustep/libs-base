@@ -1963,7 +1963,7 @@ bases:
 #endif
 
 tables:
-	if (strict == YES)
+	if (strict == NO)
 	  {
 	    while (spos < slen)
 	      {
