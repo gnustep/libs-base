@@ -1922,13 +1922,26 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   unsigned	size;
   unsigned	off;
   NSString	*name;
+  NSString	*cap;
 
   if ([[self class] useStoredAccessor] == NO)
     {
       return [self valueForKey: aKey];
     }
 
-  name = [NSString stringWithFormat: @"_get%@", [aKey capitalizedString]];
+  size = [aKey length];
+  if (size < 1)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"storedValueForKey: ... empty key"];
+    }
+  cap = [[aKey substringToIndex: 1] uppercaseString];
+  if (size > 1)
+    {
+      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
+    }
+
+  name = [NSString stringWithFormat: @"_get%@", cap];
   sel = NSSelectorFromString(name);
   if (sel == 0 || [self respondsToSelector: sel] == NO)
     {
@@ -1952,8 +1965,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	}
       if (type == NULL)
 	{
-	  name = [NSString stringWithFormat: @"get%@",
-	    [aKey capitalizedString]];
+	  name = [NSString stringWithFormat: @"get%@", cap];
 	  sel = NSSelectorFromString(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
@@ -1985,7 +1997,18 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
       return;
     }
 
-  cap = [aKey capitalizedString];
+  size = [aKey length];
+  if (size < 1)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"takeStoredValue:forKey: ... empty key"];
+    }
+  cap = [[aKey substringToIndex: 1] uppercaseString];
+  if (size > 1)
+    {
+      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
+    }
+
   name = [NSString stringWithFormat: @"_set%@:", cap];
   type = NULL;
   sel = NSSelectorFromString(name);
@@ -2024,7 +2047,18 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   NSString	*cap;
   NSString	*name;
 
-  cap = [aKey capitalizedString];
+  size = [aKey length];
+  if (size < 1)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"takeValue:forKey: ... empty key"];
+    }
+  cap = [[aKey substringToIndex: 1] uppercaseString];
+  if (size > 1)
+    {
+      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
+    }
+
   name = [NSString stringWithFormat: @"set%@:", cap];
   type = NULL;
   sel = NSSelectorFromString(name);
@@ -2094,12 +2128,25 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 - (id) valueForKey: (NSString*)aKey
 {
   SEL		sel = 0;
+  NSString	*cap;
   NSString	*name = nil;
   const char	*type = NULL;
   unsigned	size;
   unsigned	off;
 
-  name = [NSString stringWithFormat: @"get%@", [aKey capitalizedString]];
+  size = [aKey length];
+  if (size < 1)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"valueForKey: ... empty key"];
+    }
+  cap = [[aKey substringToIndex: 1] uppercaseString];
+  if (size > 1)
+    {
+      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
+    }
+
+  name = [@"get" stringByAppendingString: cap];
   sel = NSSelectorFromString(name);
   if (sel == 0 || [self respondsToSelector: sel] == NO)
     {
@@ -2107,8 +2154,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
       sel = NSSelectorFromString(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
-	  name = [NSString stringWithFormat: @"_get%@",
-	    [aKey capitalizedString]];
+	  name = [@"_get" stringByAppendingString: cap];
 	  sel = NSSelectorFromString(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {

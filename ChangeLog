@@ -1,3 +1,8 @@
+2001-04-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fixes for string capitalisation in
+	key-value methods.
+
 2001-04-23  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Simplify NeXT checks.
