@@ -2324,7 +2324,7 @@ static BOOL	multi_threaded = NO;
   NSPortCoder		*rmc;
   GSIMapNode		node;
   NSDate		*timeout_date = nil;
-  NSTimeInterval	delay_interval = 0.001;
+  NSTimeInterval	delay_interval = 0.0001;
   NSDate		*delay_date = nil;
   NSRunLoop		*runLoop = [runLoopClass currentRunLoop];
 
