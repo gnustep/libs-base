@@ -95,7 +95,6 @@
 static Class	NSDataClass;
 static Class	NSStringClass;
 static Class	NSMutableStringClass;
-static Class	NSConstantStringClass;
 
 static Class	GSStringClass;
 static Class	GSMutableStringClass;
@@ -462,16 +461,17 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Return the class used to dtore constant strings (those ascii strings
- * placed in ythe source code using the @"this is a string" syntax.
+ * Return the class used to store constant strings (those ascii strings
+ * placed in the source code using the @"this is a string" syntax).<br />
+ * Use this method to obtain the constant string class rather than
+ * using the obsolete name <em>NXConstantString</em> in your code ...
+ * with more recent compiler versions the name of this class is variable
+ * (and will automatically be changed by GNUstep to avoid conflicts
+ * with the default implementation in the Objective-C runtime library).
  */
 + (Class) constantStringClass
 {
-  if (NSConstantStringClass == 0)
-    {
-      NSConstantStringClass = [NXConstantString class];
-    }
-  return NSConstantStringClass;
+  return [NXConstantString class];
 }
 
 // Creating Temporary Strings
