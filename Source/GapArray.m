@@ -157,7 +157,7 @@
   elt ret;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  RETAIN_ELT(newElement)
+  RETAIN_ELT(newElement);
   ret = _contents_array[GAP_TO_BASIC(index)];
   _contents_array[GAP_TO_BASIC(index)] = newElement;
   return AUTORELEASE_ELT(ret);
