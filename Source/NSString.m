@@ -561,7 +561,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringToIndex: (unsigned int)index
 {
-  return [self substringFromRange:((NSRange){0,index+1})];;
+  return [self substringFromRange:((NSRange){0,index})];;
 }
 
 
@@ -1192,7 +1192,7 @@ handle_printf_atsign (FILE *stream,
       if (range.location == 0)
 	  substring = [NSString new];
       else
-	  substring = [[self substringToIndex:range.location-1] 
+	  substring = [[self substringToIndex:range.location] 
 				lastPathComponent];
     }
   else
@@ -1266,7 +1266,7 @@ handle_printf_atsign (FILE *stream,
   range = [self rangeOfString:[self lastPathComponent] 
 			options:NSBackwardsSearch];
   if (range.length != 0)
-      substring = [self substringToIndex:range.location-2];
+      substring = [self substringToIndex:range.location-1];
   else
       substring = self;
   return substring;
@@ -1281,7 +1281,7 @@ handle_printf_atsign (FILE *stream,
 
   range = [self rangeOfString:[self pathExtension] options:NSBackwardsSearch];
   if (range.length != 0)
-      substring = [self substringToIndex:range.location-2];
+      substring = [self substringToIndex:range.location-1];
   else
       substring = self;
   return substring;
