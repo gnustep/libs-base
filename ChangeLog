@@ -1,3 +1,8 @@
+2003-07-15  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSConnection.m: When creating new connection with registered
+	name on host, ensure that send and receive ports are of same class.
+
 2003-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: Use loopback network
