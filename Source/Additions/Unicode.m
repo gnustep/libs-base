@@ -1268,19 +1268,11 @@ tables:
 	  inbytesleft = slen;
 	  outbuf = (char*)ptr;
 	  outbytesleft = bsize * sizeof(unichar);
-	  while (done == NO)
+	  do
 	    {
-	      if (dpos >= bsize)
-		{
-		  unsigned	old = bsize;
-
-		  GROW();
-		  outbuf = (char*)&ptr[dpos];
-		  outbytesleft += (bsize - old) * sizeof(unichar);
-		}
 	      if (inbytesleft == 0)
 		{
-		  done = YES;	// Flush iconv, then terminate.
+		  done = YES;	// Flush iconv
 		  rval = iconv(cd, 0, 0, &outbuf, &outbytesleft);
 		}
 	      else
@@ -1305,7 +1297,7 @@ tables:
 		      break;
 		    }
 		}
-	    }
+	    } while (!done || rval != 0);
 	  // close the converter
 	  iconv_close(cd);
 	}
@@ -1537,7 +1529,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   unsigned	ltsize = 0;
   BOOL		swapped = NO;
   BOOL		result = YES;
-  
+
   if (options & GSUniBOM)
     {
       if (slen == 0)
@@ -1858,19 +1850,11 @@ tables:
 	  inbytesleft = slen * sizeof(unichar);
 	  outbuf = (char*)ptr;
 	  outbytesleft = bsize;
-	  while (done == NO)
+	  do
 	    {
-	      if (dpos >= bsize)
-		{
-		  unsigned	old = bsize;
-
-		  GROW();
-		  outbuf = (char*)&ptr[dpos];
-		  outbytesleft += (bsize - old);
-		}
 	      if (inbytesleft == 0)
 		{
-		  done = YES; // Flush buffer, then terminate.
+		  done = YES; // Flush buffer
 		  rval = iconv(cd, 0, 0, &outbuf, &outbytesleft);
 		}
 	      else
@@ -1927,11 +1911,11 @@ tables:
 		      break;
 		    }
 		}
-	    }
+	    } while (!done || rval != 0);
 	  // close the converter
 	  iconv_close(cd);
 	}
-#else 
+#else
 	result = NO;
 	break;
 #endif 
