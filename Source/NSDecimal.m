@@ -36,26 +36,56 @@
   cases. 
   THIS IS TESTED AND WORKING.
 
-  The second implemenation requieres the GMP library, the GNU math package,
+  The second implemenation requires the GMP library, the GNU math package,
   to do the hard work. This is very fast and accurate. But as GMP is not 
   available on all computers this has to be switched on at compile time.
   THIS IS STILL NOT IMPLEMENTED.
+
+  The data structure used for NSDecimals is a bit strange. It also does not
+  correspond to the description in the OpenStep specification. But this is
+  not consistent, so a decission had to be made.
+  The mantissa part (I know D. Knuth does not like this term, but it is used 
+  in the specification so we stay with it) consists of up to 38 digits, this 
+  are stored as an integer (in decimal representation or limps depending on the
+  HAVE_GMP flag). And the exponent is stored in a signed character. As a result
+  the numbers that can be represented are the ranges from -9(38 times)*10**127
+  to  -1*10**-128, the number 0 and 1*10**-128 to 9(38 times)*10**127.
+  This means we have more big numbers than one would expect (almost up to 10**165)
+  but small numbers can only be represented with limited exactness (one digit
+  for -128, two for -127 and so on). 
+  I think this is as close as possible to the specification, but other 
+  interpretations are also valid. (Changing the exponent either absolut 
+  [eg minus 38] or relative to the number of digits in the mantissa [minus length].)
+  
  */
 
 #ifdef HAVE_GMP
 
 // Define GSDecimal as using a character vector
 typedef struct {
-  char	exponent;	/* Signed exponent - -128 to 127	*/
+  signed char	exponent;	/* Signed exponent - -128 to 127	*/
   BOOL	isNegative;	/* Is this negative?			*/
   BOOL	validNumber;	/* Is this a valid number?		*/
-  char	length;		/* digits in mantissa.			*/
-  char  cMantissa[NSDecimalMaxDigit];
+  unsigned char	length;		/* digits in mantissa.			*/
+  unsigned char  cMantissa[2*NSDecimalMaxDigit]; /* Make this big enought for multiplication */
 } GSDecimal;
 
+static NSDecimal zero = {0, NO, YES, 0, {0}};
+static NSDecimal one = {0, NO, YES, 1, {1}};
+
+#define NSDECIMAL_IS_ZERO(num) (0 == num->size) 
+#define GSDECIMAL_IS_ZERO(num) (0 == num->length) 
+
 #else
+
 // Make GSDecimal a synonym of NSDecimal
 typedef NSDecimal GSDecimal;
+
+static NSDecimal zero = {0, NO, YES, 0, {0}};
+static NSDecimal one = {0, NO, YES, 1, {1}};
+
+#define NSDECIMAL_IS_ZERO(num) (0 == num->length) 
+#define GSDECIMAL_IS_ZERO(num) (0 == num->length) 
 
 #endif
 
@@ -71,26 +101,9 @@ GSDecimalCompact(GSDecimal *number)
 {
   int i, j;
 
+  //NSLog(@"Compact start %@ ", NSDecimalString(number, nil)); 
   if (!number->validNumber)
     return;
-
-  // Cut off trailing 0's
-  for (i = number->length-1; i >= 0; i--)
-    {
-      if (number->cMantissa[i] == 0)
-        {
-	  if (number->exponent == 127)
-	    {
-	      // Overflow in compacting!!
-	      // Leave the remaining 0s there.
-	      break;
-	    }
-	  number->length--;
-	  number->exponent++;
-	}
-      else
-	break;
-    }
 
   // Cut off leading 0's
   for (i = 0; i < number->length; i++)
@@ -107,11 +120,30 @@ GSDecimalCompact(GSDecimal *number)
       number->length -= i;
     }
 
-  if (!number->length)
+  // Cut off trailing 0's
+  for (i = number->length-1; i >= 0; i--)
+    {
+      if (0 == number->cMantissa[i])
+        {
+	  if (127 == number->exponent)
+	    {
+	      // Overflow in compacting!!
+	      // Leave the remaining 0s there.
+	      break;
+	    }
+	  number->length--;
+	  number->exponent++;
+	}
+      else
+	break;
+    }
+
+  if (GSDECIMAL_IS_ZERO(number))
     {
       number->exponent = 0;
       number->isNegative = NO;
     }
+  //NSLog(@"Compact end %@ ", NSDecimalString(number, nil)); 
 }
 
 static NSComparisonResult
@@ -171,21 +203,24 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
   if (leftOperand->length > rightOperand->length)
     {
       if (rightOperand->isNegative)
-	return NSOrderedDescending;
-      else
 	return NSOrderedAscending;
+      else
+	return NSOrderedDescending;
     }
 
   if (leftOperand->length < rightOperand->length)
     {
       if (rightOperand->isNegative)
-	return NSOrderedAscending;
-      else
 	return NSOrderedDescending;
+      else
+	return NSOrderedAscending;
     }
 
   return NSOrderedSame;
 }
+
+static NSComparisonResult
+NSSimpleCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand);
 
 void
 GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
@@ -194,7 +229,7 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
   // last valid digit in number
   int l = scale + result->exponent + result->length;
 
-  if (scale == NSDecimalNoScale)
+  if (NSDecimalNoScale == scale)
       return;
 
   if (!result->validNumber)
@@ -238,7 +273,7 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 	      up = NO;
 	    else 
 	      {
-		if (l == 0)
+		if (0 == l)
 		  c = 0;
 		else
 		  c = result->cMantissa[l-1];
@@ -262,11 +297,11 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 	    result->cMantissa[i] = 0;
 	  }
 	// Final overflow?
-	if (i == -1)
+	if (-1 == i)
 	  {
 	    // As all digits are zeros, just change the first
 	    result->cMantissa[0] = 1;
-	    if (result->exponent == 127)
+	    if (127 == result->exponent)
 	      {
 		// Overflow in rounding!!
 		// Add one zero add the end. There must be space as
@@ -286,16 +321,10 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 NSCalculationError
 GSDecimalNormalize(GSDecimal *n1, GSDecimal *n2, NSRoundingMode mode)
 {
+  // Both are valid numbers and the exponents are not equal
   int e1 = n1->exponent;
   int e2 = n2->exponent;
   int i, l;
-
-  if (!n1->validNumber || !n2->validNumber)
-    return NSCalculationNoError;
-
-  // Do they have the same exponent already?
-  if (e1 == e2)
-    return NSCalculationNoError;
 
   // make sure n2 has the bigger exponent
   if (e1 > e2)
@@ -321,7 +350,7 @@ GSDecimalNormalize(GSDecimal *n1, GSDecimal *n2, NSRoundingMode mode)
   
   if (l != e2 - e1)
     {
-      // Round of some digit from n1 to increase exponent
+      // Round of some digits from n1 to increase exponent
       GSDecimalRound(n1, -n2->exponent, mode);
       if (n1->exponent != n2->exponent)
 	{
@@ -340,151 +369,36 @@ GSDecimalNormalize(GSDecimal *n1, GSDecimal *n2, NSRoundingMode mode)
   return NSCalculationNoError;
 }
 
-#ifdef HAVE_GMP
-
-static void CharvecToDecimal(GSDecimal *m, NSDecimal *n)
-{
-  // Convert form a GSDecimal to a NSDecimal  
-  n->exponent = m->exponent;
-  n->isNegative = m->isNegative;
-  n->validNumber = m->validNumber;
-
-  n->size = mpn_set_str(n->mantissa, m->cMantissa, m->length, 10);
-}
-
-static void DecimalToCharvec(NSDecimal *n, GSDecimal *m)
-{
-  // Convert form a NSDecimal to a GSDecimal  
-  m->exponent = n->exponent;
-  m->isNegative = n->isNegative;
-  m->validNumber = n->validNumber;
-
-  m->lenght = mpn_get_str(m->cMantissa, 10, n->mantissa, n->size);
-}
-
-void
-NSDecimalCompact(NSDecimal *number)
-{
-  GSDecimal m;
-
-  DecimalToCharvec(number, &m);
-  GSDecimalCompact(&m);
-  CharvecToDecimal(&m, number);
-}
-
-NSComparisonResult
-NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
-{
-  GSDecimal m1;
-  GSDecimal m2;
-
-  DecimalToCharvec(leftOperand, &m1);
-  DecimalToCharvec(rightOperand, &m2);
-  return GSDecimalCompare(&m1, &m2);
-}
-
-void
-NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, 
-	       NSRoundingMode mode)
-{
-  GSDecimal m;
-
-  DecimalToCharvec(number, &m);
-  GSDecimalRound(&m, scale, mode);
-  CharvecToDecimal(&m, result);
-}
-
-NSCalculationError
-NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
-{
-  NSCalculationError error;
-  GSDecimal m1;
-  GSDecimal m2;
-
-  DecimalToCharvec(n1, &m1);
-  DecimalToCharvec(n2, &m2);
-  error = GSDecimalNormalize(&m1, &m2, mode);
-  CharvecToDecimal(&m1, n1);
-  CharvecToDecimal(&m2, n2);
-}
+static NSCalculationError
+GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
+	    NSRoundingMode mode);
 
 NSCalculationError
 NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
 	     NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
+  NSCalculationError error1;
   NSDecimal n1;
   NSDecimal n2;
-  NSDecimal n3;
-  mp_limb_t carry;
-
-  NSDecimalCopy(&n1, left);
-  NSDecimalCopy(&n2, right);
-  error = NSDecimalNormalize(&n1, &n2, mode);
-  
-  if (n1.size >= n2.size)
-    {
-      carry = mpn_add(n3.lMantissa, n1.lMantissa, n1.size, n2.lMantissa, n2.size); 
-      n3.size = n1.size;
-    }
-  else
-    {
-      carry = mpn_add(n3.lMantissa, n2.lMantissa, n2.size, n1.lMantissa, n1.size); 
-      n3.size = n2.size;
-    }
-  //FIXME: check carry
-  
-  return error;
-}
-
-#else
-
-// First implementations of the functions defined in NSDecimal.h
-static NSDecimal zero = {0, NO, YES, 0, {0}};
-
-void
-NSDecimalCompact(NSDecimal *number)
-{
-  GSDecimalCompact(number); 
-}
-
-NSComparisonResult
-NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
-{
-  return GSDecimalCompare(leftOperand, rightOperand);
-}
-
-void
-NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, 
-	       NSRoundingMode mode)
-{
-  NSDecimalCopy(result, number);
-  
-  GSDecimalRound(result, scale, mode); 
-}
-
-NSCalculationError
-NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
-{
-  return GSDecimalNormalize(n1, n2, mode);
-}
-
-NSCalculationError
-NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
-	     NSRoundingMode mode)
-{
-  NSCalculationError error = NSCalculationNoError;
-  int i, j, l, d;
-  int carry = 0;
-  NSDecimal n1;
-  NSDecimal n2;
-  NSDecimal *n;
-  BOOL neg;
+  NSComparisonResult comp;
 
   if (!left->validNumber || !right->validNumber)
     {
       result->validNumber = NO;
-      return NSCalculationNoError;
+      return error;
+    }
+
+  // check for zero
+  if (NSDECIMAL_IS_ZERO(left))
+    {
+      NSDecimalCopy(result, right);
+      return error;
+    }
+  if (NSDECIMAL_IS_ZERO(right))
+    {
+      NSDecimalCopy(result, left);
+      return error;
     }
 
   // For different signs use subtraction
@@ -504,129 +418,86 @@ NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	}
     }
 
-  if (!left->length)
-    {
-      NSDecimalCopy(result, right);
-      return error;
-    }
-  if (!right->length)
-    {
-      NSDecimalCopy(result, left);
-      return error;
-    }
   NSDecimalCopy(&n1, left); 
   NSDecimalCopy(&n2, right); 
   error = NSDecimalNormalize(&n1, &n2, mode);
-
-  if (!n1.length)
+  comp = NSSimpleCompare(&n1, &n2);
+/*
+  NSLog(@"Add left %@ right %@", NSDecimalString(left, nil), 
+	NSDecimalString(right, nil));
+  NSLog(@"Add n1 %@ n2 %@ comp %d", NSDecimalString(&n1, nil), 
+	NSDecimalString(&n2, nil), comp);
+*/
+  // both negative, make positive
+  if (left->isNegative)
     {
-      NSDecimalCopy(result, right);
-      return error;
-    }
-  if (!n2.length)
-    {
-      NSDecimalCopy(result, left);
-      return error;
-    }
-
-  j = n1.length - n2.length;
-  if (j >= 0)
-    {
-      // Use sign from input as n1 might be zero
-      neg = left->isNegative;
-      NSDecimalCopy(result, &n1); 
-      result->isNegative = neg; 
-      n = &n2;
-      l = n2.length;
+      n1.isNegative = NO;
+      n2.isNegative = NO;
+      // SimpleCompare does not look at sign
+      if (NSOrderedDescending == comp)
+        {
+	  error1 = GSSimpleAdd(result, &n1, &n2, mode);
+	}
+      else
+        {
+	  error1 = GSSimpleAdd(result, &n2, &n1, mode);
+	}
+      result->isNegative = YES;
+      if (NSCalculationUnderflow == error1)
+	error1 = NSCalculationOverflow;
+      else if (NSCalculationUnderflow == error1)
+	error1 = NSCalculationUnderflow;
     }
   else
     {
-      // Use sign from input as n2 might be zero
-      neg = left->isNegative;
-      NSDecimalCopy(result, &n2); 
-      result->isNegative = neg; 
-      n = &n1;
-      l = n1.length;
-      j = -j; 
-    }
-
-  // Add all the digits
-  for (i = l-1; i >= 0; i--)
-    {
-      d = n->cMantissa[i] + result->cMantissa[i + j] + carry;
-      if (d >= 10)
+      if (NSOrderedAscending == comp)
         {
-	  d = d % 10;
-	  carry = 1;
+	  error1 = GSSimpleAdd(result, &n2, &n1, mode);
 	}
       else
-	carry = 0;
-
-      result->cMantissa[i + j] = d;
-    }
-
-  if (carry)
-    {
-      for (i = j-1; i >= 0; i--)
-	{
-	  if (result->cMantissa[i] != 9)
-	    {
-	      result->cMantissa[i]++;
-	      carry = 0;
-	      break;
-	    }
-	  result->cMantissa[i] = 0;
-	}
-
-      if (carry)
-	{
-	  // The number must be shifted to the right
-	  if (result->length == NSDecimalMaxDigit) 
-	    {
-	      NSDecimalRound(result, result, 
-			     NSDecimalMaxDigit - 1 - result->exponent, 
-			     mode);
-	    }
-
-	  if (result->exponent == 127)
-	    {
-	      result->validNumber = NO;
-	      if (result->isNegative)
-		return NSCalculationUnderflow;
-	      else
-		return NSCalculationOverflow;
-	    } 
-
-	  for (i = result->length-1; i >= 0; i--)
-	    {
-	      result->cMantissa[i+1] = result->cMantissa[i];
-	    }
-	  result->cMantissa[0] = 1;
-	  result->length++;
+        {
+	  error1 = GSSimpleAdd(result, &n1, &n2, mode);
 	}
     }
 
   NSDecimalCompact(result);
 
-  return error;
+  if (NSCalculationNoError == error1)
+    return error;
+  else
+    return error1;
 }
+
+static NSCalculationError
+GSSimpleSubtract(NSDecimal *result, const NSDecimal *left, 
+		 const NSDecimal *right, NSRoundingMode mode);
 
 NSCalculationError
 NSDecimalSubtract(NSDecimal *result, const NSDecimal *left, 
 		  const NSDecimal *right, NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
-  int i, j, l, d;
-  int carry = 0;
+  NSCalculationError error1;
   NSDecimal n1;
   NSDecimal n2;
-  NSDecimal *n;
   NSComparisonResult comp;
 
   if (!left->validNumber || !right->validNumber)
     {
       result->validNumber = NO;
-      return NSCalculationNoError;
+      return error;
+    }
+
+  if (NSDECIMAL_IS_ZERO(right))
+    {
+      NSDecimalCopy(result, left);
+      return error;
+    }
+  if (NSDECIMAL_IS_ZERO(left))
+    {
+      NSDecimalCopy(result, right);
+      result->isNegative = !result->isNegative;
+      return error;
     }
 
   // For different signs use addition
@@ -636,9 +507,13 @@ NSDecimalSubtract(NSDecimal *result, const NSDecimal *left,
         {
 	  NSDecimalCopy(&n1, left);
 	  n1.isNegative = NO;
-	  error = NSDecimalAdd(result, &n1, right, mode);
+	  error1 = NSDecimalAdd(result, &n1, right, mode);
 	  result->isNegative = YES;
-	  return error;
+	  if (NSCalculationUnderflow == error1)
+	    error1 = NSCalculationOverflow;
+	  else if (NSCalculationUnderflow == error1)
+	    error1 = NSCalculationUnderflow;
+	  return error1;
 	}
       else
         {
@@ -648,123 +523,88 @@ NSDecimalSubtract(NSDecimal *result, const NSDecimal *left,
 	}
     }
 
-  // both negative, make positive and change order
-  if (left->isNegative)
-    {
-      NSDecimalCopy(&n1, left);
-      n1.isNegative = NO;
-      NSDecimalCopy(&n2, right);
-      n2.isNegative = NO;
-      return NSDecimalSubtract(result, &n2, &n1, mode);
-    }
+  NSDecimalCopy(&n1, left); 
+  NSDecimalCopy(&n2, right); 
+  error = NSDecimalNormalize(&n1, &n2, mode);
 
   comp = NSDecimalCompare(left, right);
-  if (comp == NSOrderedSame)
+/*
+  NSLog(@"Sub left %@ right %@", NSDecimalString(left, nil), 
+	NSDecimalString(right, nil));
+  NSLog(@"Sub n1 %@ n2 %@ comp %d", NSDecimalString(&n1, nil), 
+	NSDecimalString(&n2, nil), comp);
+*/
+
+  if (NSOrderedSame == comp)
     { 
       NSDecimalCopy(result, &zero);
       return NSCalculationNoError;
     }
 
-  if (comp == NSOrderedAscending)
+  // both negative, make positive and change order
+  if (left->isNegative)
     {
-      error = NSDecimalSubtract(result, right, left, mode);
-      result->isNegative = YES;
-      return error;
-    }
-
-  if (!right->length)
-    {
-      NSDecimalCopy(result, left);
-      return error;
-    }
-
-  // Now left is the bigger number
-  NSDecimalCopy(&n1, left); 
-  NSDecimalCopy(&n2, right); 
-  error = NSDecimalNormalize(&n1, &n2, mode);
-
-  if (!n2.length)
-    {
-      NSDecimalCopy(result, left);
-      return error;
-    }
-
-  j = n1.length - n2.length;
-  if (j >= 0)
-    {
-      NSDecimalCopy(result, &n1); 
-      n = &n2;
-      l = n2.length;
+      n1.isNegative = NO;
+      n2.isNegative = NO;
+      if (NSOrderedAscending == comp)
+        {
+	  error1 = GSSimpleSubtract(result, &n1, &n2, mode);
+	  result->isNegative = YES;
+	}
+      else
+        {
+	  error1 = GSSimpleSubtract(result, &n2, &n1, mode);
+	}
     }
   else
     {
-      NSLog(@"Wrong order in subtract");
-      NSLog(@"The left is %@, %@", NSDecimalString(left, nil), NSDecimalString(&n1, nil));
-      NSLog(@"The right is %@, %@", NSDecimalString(right, nil), NSDecimalString(&n2, nil));
-      NSDecimalCopy(result, &n2); 
-      n = &n1;
-      l = n1.length;
-      j = -j; 
-    }
-
-  // Now subtract all digits
-  for (i = l-1; i >= 0; i--)
-    {
-      d = result->cMantissa[i + j] - n->cMantissa[i] - carry;
-      if (d < 0)
+      if (NSOrderedAscending == comp)
         {
-	  d = d + 10;
-	  carry = 1;
+	  error1 = GSSimpleSubtract(result, &n2, &n1, mode);
+	  result->isNegative = YES;
 	}
       else
-	carry = 0;
-
-      result->cMantissa[i + j] = d;
-    }
-
-  if (carry)
-    {
-      for (i = j-1; i >= 0; i--)
-	{
-	  if (result->cMantissa[i] != 0)
-	    {
-	      result->cMantissa[i]--;
-	      carry = 0;
-	      break;
-	    }
-	  result->cMantissa[i] = 9;
-	}
-
-      if (carry)
-	{
-	  NSLog(@"Impossible error in substraction");
+        {
+	  error1 = GSSimpleSubtract(result, &n1, &n2, mode);
 	}
     }
 
   NSDecimalCompact(result);
 
-  return error;
+  if (NSCalculationNoError == error1)
+    return error;
+  else
+    return error1;
 }
 
+static NSCalculationError
+GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r, 
+		 NSRoundingMode mode);
+
 NSCalculationError
-NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRoundingMode mode)
+NSDecimalMultiply(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
+		  NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
-  int i, j, d, e;
-  int carry = 0;
   NSDecimal n1;
   NSDecimal n2;
-  NSDecimal n;
-  int exp;
-  BOOL neg = l->isNegative != r->isNegative;
+  int exp = left->exponent + right->exponent;
+  BOOL neg = left->isNegative != right->isNegative;
+  NSComparisonResult comp;
 
-  if (!l->validNumber || !r->validNumber)
+  if (!left->validNumber || !right->validNumber)
     {
       result->validNumber = NO;
       return error;
     }
 
-  exp = l->exponent + r->exponent;
+  // check for zero
+  if (NSDECIMAL_IS_ZERO(left) || NSDECIMAL_IS_ZERO(right))
+    {
+      NSDecimalCopy(result, &zero);
+      return error;
+    }
+
   if (exp > 127)
     {
       result->validNumber = NO;
@@ -773,51 +613,25 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSR
       else
 	return NSCalculationOverflow;
     }
+
+  NSDecimalCopy(&n1, left);
+  NSDecimalCopy(&n2, right);
+  n1.exponent = 0;
+  n2.exponent = 0;
+  n1.isNegative = NO;
+  n2.isNegative = NO;
+  comp = NSSimpleCompare(&n1, &n2);
+
+  if (NSOrderedDescending == comp)
+    {
+      error = GSSimpleMultiply(result, &n1, &n2, mode);
+    }
   else
     {
-      NSDecimalCopy(&n1, l);
-      NSDecimalCopy(&n2, r);
+      error = GSSimpleMultiply(result, &n2, &n1, mode);
     }
 
-  NSDecimalCopy(result, &zero);
-  n.validNumber = YES;
-  n.isNegative = NO;
-
-  // if l->length = 38 round one off
-  if (n1.length == NSDecimalMaxDigit)
-    {
-      NSDecimalRound(&n1, &n1, -1-n1.exponent, mode);
-      // This might changed more than one
-      exp = n1.exponent + n2.exponent;
-    }
-
-  // Do every digit of the second number
-  for (i = 0; i < n2.length; i++)
-    {
-      n.length = n1.length+1;
-      n.exponent = n2.length - i - 1;
-      carry = 0;
-      d = n2.cMantissa[i];
-
-      for (j = n1.length-1; j >= 0; j--)
-        {
-	  e = n1.cMantissa[j] * d + carry;
-
-	  if (e >= 10)
-	    {
-	      carry = e / 10;
-	      e = e % 10;
-	    }
-	  else
-	    carry = 0;
-	  // This is one off to allow final carry
-	  n.cMantissa[j+1] = e;
-	}
-      n.cMantissa[0] = carry;
-      NSDecimalCompact(&n);
-      error = NSDecimalAdd(result, result, &n, mode);
-    }
-
+  NSDecimalCompact(result);
   if (result->exponent + exp > 127)
     {
       result->validNumber = NO;
@@ -826,13 +640,13 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSR
       else
 	return NSCalculationOverflow;
     }
-  else if (result->exponent + exp < -127)
+  else if (result->exponent + exp < -128)
     {
       // We must cut off some digits
-      NSDecimalRound(result, result, exp+127, mode);
+      NSDecimalRound(result, result, exp+128, mode);
       error = NSCalculationLossOfPrecision;
 
-      if (result->exponent + exp < -127)
+      if (result->exponent + exp < -128)
         {
 	  NSDecimalCopy(result, &zero);
 	  return error;
@@ -841,21 +655,21 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSR
 
   result->exponent += exp;
   result->isNegative = neg;
-  NSDecimalCompact(result);
 
   return error;
 }
 
 NSCalculationError
+GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, 
+	       NSRoundingMode mode);
+
+NSCalculationError
 NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
-  int k, m;
-  int used; // How many digits of l have been used?
   NSDecimal n1;
   NSDecimal n2;
-  NSDecimal n3;
-  int exp;
+  int exp = l->exponent - r->exponent;
   BOOL neg = l->isNegative != r->isNegative;
 
   if (!l->validNumber || !r->validNumber)
@@ -865,75 +679,28 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRou
     }
 
   // Check for zero
-  if (!r->length)
+  if (NSDECIMAL_IS_ZERO(r))
     {
       result->validNumber = NO;
       return NSCalculationDivideByZero;
     }
+  if (NSDECIMAL_IS_ZERO(l))
+    {
+      NSDecimalCopy(result, &zero);
+      return error;
+    }
 
   // Should also check for one
 
-  exp = l->exponent - r->exponent;
-  NSDecimalCopy(&n1, &zero);
+  NSDecimalCopy(&n1, l);
+  n1.exponent = 0;
+  n1.isNegative = NO;
   NSDecimalCopy(&n2, r);
   n2.exponent = 0;
   n2.isNegative = NO;
-  NSDecimalCopy(&n3, l);
-  NSDecimalCopy(result, &zero);
-  m = n2.length;
-  k = 0;
-  used = 0;
 
-  while ((k < n3.length ) || (n1.length))
-    {
-      while (NSDecimalCompare(&n1, &n2) == NSOrderedAscending)
-        {
-	  if (k == NSDecimalMaxDigit-1)
-	    break;
-	  if (n1.exponent)
-	    {
-              // Put back removed zeros
-	      n1.cMantissa[(int)n1.length] = 0;
-	      n1.length++;
-	      n1.exponent--;
-	    }
-	  else
-	    {
-	      if (used < n3.length)
-	        {
-		  // Fill up with own digits
-		  n1.cMantissa[(int)n1.length] = n3.cMantissa[used];
-		  used++;
-		}
-	      else
-	        {
-		  if (exp == -127)
-		    {
-		      // use this as a end flag
-		      k = NSDecimalMaxDigit-1;
-		      break;
-		    }
-		  // Borrow one digit
-		  n1.cMantissa[(int)n1.length] = 0;
-		  exp--;
-		}
-	      n1.length++;
-	      k++;
-	      result->cMantissa[k-1] = 0; 
-	      result->length++;
-	    }
-	}
-
-      if (k == NSDecimalMaxDigit-1)
-        {
-	  error = NSCalculationLossOfPrecision;
-	  break;
-	}
-
-      error = NSDecimalSubtract(&n1, &n1, &n2, mode);
-      result->cMantissa[k-1]++; 
-      NSDecimalCompact(&n1);
-    }
+  error = GSSimpleDivide(result, &n1, &n2, mode);
+  NSDecimalCompact(result);
 
   if (result->exponent + exp > 127)
     {
@@ -943,19 +710,25 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRou
       else
 	return NSCalculationOverflow;
     }
-  else if (result->exponent + exp < -127)
+  else if (result->exponent + exp < -128)
     {
-      NSDecimalCopy(result, &zero);
-      return NSCalculationLossOfPrecision;
+      // We must cut off some digits
+      NSDecimalRound(result, result, exp+128, mode);
+      error = NSCalculationLossOfPrecision;
+
+      if (result->exponent + exp < -128)
+        {
+	  NSDecimalCopy(result, &zero);
+	  return error;
+        }
     }
 
   result->exponent += exp;
   result->isNegative = neg;
-  NSDecimalCompact(result);
 
   return error;
 }
-    
+
 NSCalculationError
 NSDecimalPower(NSDecimal *result, const NSDecimal *l, unsigned power, NSRoundingMode mode)
 {
@@ -966,9 +739,10 @@ NSDecimalPower(NSDecimal *result, const NSDecimal *l, unsigned power, NSRounding
 
   NSDecimalCopy(&n1, l);
   n1.isNegative = NO;
-  NSDecimalCopy(result, &zero);
-  result->length = 1;
-  result->cMantissa[0] = 1;
+  NSDecimalCopy(result, &one);
+//  NSDecimalCopy(result, &zero);
+//  result->length = 1;
+//  result->cMantissa[0] = 1;
 
   while (e)
     {
@@ -998,7 +772,7 @@ NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power,
       result->validNumber = NO;
       return NSCalculationOverflow;
     }
-  if (p < -127)  
+  if (p < -128)  
     {
       result->validNumber = NO;
       return NSCalculationUnderflow;
@@ -1008,7 +782,7 @@ NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power,
 }
 
 NSString*
-NSDecimalString(const NSDecimal *number, NSDictionary *locale)
+GSDecimalString(const GSDecimal *number, NSDictionary *locale)
 {
   int i;
   int d;
@@ -1020,7 +794,7 @@ NSDecimalString(const NSDecimal *number, NSDictionary *locale)
   if (!number->validNumber)
     return @"NaN";
 
-  if ((locale == nil) || 
+  if ((nil == locale) || 
       (sep = [locale objectForKey: NSDecimalSeparator]) == nil)
     sep = @".";
 
@@ -1076,7 +850,7 @@ NSDecimalString(const NSDecimal *number, NSDictionary *locale)
       // Scientific format
       for (i = 0; i < number->length; i++)
         {
-	  if (i == 1)
+	  if (1 == i)
 	    [string appendString: sep];
 	  d = number->cMantissa[i];
 	  s = [NSString stringWithFormat: @"%d", d];
@@ -1096,29 +870,32 @@ NSDecimalString(const NSDecimal *number, NSDictionary *locale)
 // independent for NSDecimals internal representation
 
 // Give back the biggest NSDecimal
-GS_EXPORT void
+void
 NSDecimalMax(NSDecimal *result)
 {
+  // FIXME: this is too small
   NSDecimalFromComponents(result, 9, 127, NO);
 }
 
 // Give back the smallest NSDecimal
-GS_EXPORT void
+void
 NSDecimalMin(NSDecimal *result)
 {
-  // FIXME: Should this be the smallest possible or the smallest positive number
+  // This is the smallest possible not the smallest positive number
+  // FIXME: this is too big
   NSDecimalFromComponents(result, 9, 127, YES);
 }
 
 // Give back the value of a NSDecimal as a double
-GS_EXPORT double
-NSDecimalDouble(NSDecimal *number)
+double
+GSDecimalDouble(GSDecimal *number)
 {
   double d = 0.0;
   int i;
 
   if (!number->validNumber)
-    return d;
+    // Somehow I dont have NAN defined on my machine
+    return 0.0;
 
   // Sum up the digits
   for (i = 0; i < number->length; i++)
@@ -1137,12 +914,13 @@ NSDecimalDouble(NSDecimal *number)
   return d;
 }
 
+
 // Create a NSDecimal with a cMantissa, exponent and a negative flag
-GS_EXPORT void
-NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa, 
-		      short exponent, BOOL negative)
+void
+GSDecimalFromComponents(GSDecimal *result, unsigned long long mantissa, 
+			short exponent, BOOL negative)
 {
-  char digit;
+  unsigned char digit;
   int i, j;
   result->isNegative = negative;
   result->exponent = exponent;
@@ -1166,12 +944,12 @@ NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa,
 
   result->length = i;
 
-  NSDecimalCompact(result);
+  GSDecimalCompact(result);
 }
 
 // Create a NSDecimal from a string using the local
-GS_EXPORT void
-NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
+void
+GSDecimalFromString(GSDecimal *result, NSString *numberValue, 
 		    NSDictionary *locale)
 {
   NSRange found;
@@ -1179,14 +957,23 @@ NSDecimalFromString(NSDecimal *result, NSString *numberValue,
   const char *s;
   int i;
 
-  if (sep == nil)
+  if (nil == sep)
     sep = @".";
 
-  NSDecimalCopy(result, &zero);
+  result->isNegative = NO;
+  result->exponent = 0;
+  result->validNumber = YES;
+  result->length = 0;
+
   found = [numberValue rangeOfString: sep];
   if (found.length)
     {
       s = [[numberValue substringToIndex: found.location] cString];
+      if ('-' == *s)
+        {
+	  result->isNegative = YES;
+	  s++;
+	}
       while ((*s) && (!isdigit(*s))) s++;
       i = 0;
       while ((*s) && (isdigit(*s)))
@@ -1207,6 +994,11 @@ NSDecimalFromString(NSDecimal *result, NSString *numberValue,
   else
     {
       s = [numberValue cString];
+      if ('-' == *s)
+        {
+	  result->isNegative = YES;
+	  s++;
+	}
       while ((*s) && (!isdigit(*s))) s++;
       i = 0;
       while ((*s) && (isdigit(*s)))
@@ -1226,7 +1018,610 @@ NSDecimalFromString(NSDecimal *result, NSString *numberValue,
   if (!result->length)
     result->validNumber = NO;
 
-  NSDecimalCompact(result);
+  GSDecimalCompact(result);
 }
 
-#endif
+#ifdef HAVE_GMP
+
+static void CharvecToDecimal(const GSDecimal *m, NSDecimal *n)
+{
+  // Convert from a GSDecimal to a NSDecimal  
+  n->exponent = m->exponent;
+  n->isNegative = m->isNegative;
+  n->validNumber = m->validNumber;
+
+  if (0 == m->length)
+    n->size = 0;
+  else
+    {
+      n->size = mpn_set_str(n->lMantissa, m->cMantissa, m->length, 10);
+    }
+}
+
+static void DecimalToCharvec(const NSDecimal *n, GSDecimal *m)
+{
+  // Convert from a NSDecimal to a GSDecimal  
+  m->exponent = n->exponent;
+  m->isNegative = n->isNegative;
+  m->validNumber = n->validNumber;
+
+  if (0 == n->size)
+    {
+      m->length = 0;
+    }
+  else 
+    {
+      NSDecimal n1;
+      
+      NSDecimalCopy(&n1, n);
+      m->length = mpn_get_str(m->cMantissa, 10, n1.lMantissa, n->size);
+      // Do a compact only if the first digit is zero
+      if (0 == m->cMantissa[0])
+	GSDecimalCompact(m);
+    }
+}
+
+void
+NSDecimalCompact(NSDecimal *number)
+{
+  GSDecimal m;
+
+  DecimalToCharvec(number, &m);
+  GSDecimalCompact(&m);
+  // FIXME: Here we need a check if the string fits into a GSDecimal,
+  // if not we must round some limbs off.
+  if (NSDecimalMaxDigit < m.length)
+    GSDecimalRound(&m, NSDecimalMaxDigit - m.exponent, NSRoundPlain);
+  CharvecToDecimal(&m, number);
+}
+
+NSComparisonResult
+NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
+{
+  GSDecimal m1;
+  GSDecimal m2;
+
+  DecimalToCharvec(leftOperand, &m1);
+  DecimalToCharvec(rightOperand, &m2);
+  return GSDecimalCompare(&m1, &m2);
+}
+
+static NSComparisonResult
+NSSimpleCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
+{
+  // This only checks the size of the operands. 
+  if (leftOperand->size == rightOperand->size)
+    return NSOrderedSame;
+  else if (leftOperand->size > rightOperand->size)
+    return NSOrderedDescending;
+  else
+    return NSOrderedAscending;
+}
+
+void
+NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, 
+	       NSRoundingMode mode)
+{
+  GSDecimal m;
+
+  DecimalToCharvec(number, &m);
+  GSDecimalRound(&m, scale, mode);
+  CharvecToDecimal(&m, result);
+}
+
+NSCalculationError
+NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
+{
+  NSCalculationError error;
+  GSDecimal m1;
+  GSDecimal m2;
+
+  if (!n1->validNumber || !n2->validNumber)
+    return NSCalculationNoError;
+
+  // Do they have the same exponent already?
+  if (n1->exponent == n2->exponent)
+    return NSCalculationNoError;
+
+  DecimalToCharvec(n1, &m1);
+  DecimalToCharvec(n2, &m2);
+/*
+  NSLog(@"Normalize n1 %@ n2 %@", NSDecimalString(n1, nil), 
+	NSDecimalString(n2, nil));
+  NSLog(@"Normalize m1 %@ m2 %@", GSDecimalString(&m1, nil), 
+	GSDecimalString(&m2, nil));
+*/
+  error = GSDecimalNormalize(&m1, &m2, mode);
+  CharvecToDecimal(&m1, n1);
+  CharvecToDecimal(&m2, n2);
+/*
+  NSLog(@"Normalized m1 %@ m2 %@", GSDecimalString(&m1, nil), 
+	GSDecimalString(&m2, nil));
+  NSLog(@"Normalized n1 %@ n2 %@", NSDecimalString(n1, nil), 
+	NSDecimalString(n2, nil));
+*/
+}
+
+NSCalculationError
+GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
+	     NSRoundingMode mode)
+{
+  NSCalculationError error = NSCalculationNoError;
+  mp_limb_t carry;
+
+  NSDecimalCopy(result, left); 
+  if (0 == right->size)
+    return error;
+
+  carry = mpn_add(result->lMantissa, left->lMantissa, left->size, 
+		  right->lMantissa, right->size); 
+  result->size = left->size;
+
+  // check carry 
+  if (carry)
+   {
+     result->lMantissa[result->size] = carry;
+     result->size++;  
+   }
+
+  return error;
+}
+
+static NSCalculationError
+GSSimpleSubtract(NSDecimal *result, const NSDecimal *left, 
+		 const NSDecimal *right, NSRoundingMode mode)
+{
+  NSCalculationError error = NSCalculationNoError;
+  mp_limb_t borrow;
+/*
+  NSLog(@"SimpleSub left %@ right %@ size %d", NSDecimalString(left, nil), 
+	NSDecimalString(right, nil), right->size);
+*/
+  NSDecimalCopy(result, left); 
+  if (0 == right->size)
+    return error;
+
+  borrow = mpn_sub(result->lMantissa, left->lMantissa, left->size, 
+		  right->lMantissa, right->size); 
+  result->size = left->size;
+
+  // check borrow
+  if (borrow)
+    NSLog(@"Impossible error in substraction");
+      
+  return error;
+}
+
+static NSCalculationError
+GSSimpleMultiply(NSDecimal *result, NSDecimal *left, NSDecimal *right, NSRoundingMode mode)
+{
+  NSCalculationError error = NSCalculationNoError;
+  mp_limb_t limb;
+/*
+  NSLog(@"SimpleMul left %@ right %@ size %d", NSDecimalString(left, nil), 
+	NSDecimalString(right, nil), right->size);
+*/
+  NSDecimalCopy(result, &zero); 
+  // FIXME: Make sure result is big enougth
+  limb = mpn_mul(result->lMantissa, left->lMantissa, left->size, 
+			 right->lMantissa, right->size); 
+
+  if (limb)
+    {
+      result->size = left->size + right->size;
+    }
+  else
+    {
+      //NSLog(@"Limb not set");
+      result->size = left->size + right->size - 1;
+    }
+//  NSLog(@"SimpleMul result %@", NSDecimalString(result, nil)); 
+
+  return error;
+}
+
+NSCalculationError
+GSSimpleDivide(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
+	       NSRoundingMode mode)
+{
+  NSCalculationError error = NSCalculationNoError;
+  mp_limb_t limb;
+  mp_size_t x = 38 + right->size - left->size;
+  NSDecimal n;
+      
+  NSDecimalCopy(&n, left);
+
+  // FIXME: I don't understand how to do this
+  limb = mpn_divrem (result->lMantissa, x, n.lMantissa, left->size,
+		     right->lMantissa, right->size); 
+
+  return error;
+}
+
+NSString*
+NSDecimalString(const NSDecimal *number, NSDictionary *locale)
+{
+  GSDecimal n;
+
+  DecimalToCharvec(number, &n);
+  return GSDecimalString(&n, locale);
+}
+
+double
+NSDecimalDouble(NSDecimal *number)
+{
+  GSDecimal n;
+
+  DecimalToCharvec(number, &n);
+  return GSDecimalDouble(&n);
+}
+
+void
+NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa, 
+			short exponent, BOOL negative)
+{
+  GSDecimal n;
+  //GSDecimal n1;
+
+  GSDecimalFromComponents(&n, mantissa, exponent, negative);
+  CharvecToDecimal(&n, result);
+  //NSLog(@"GSDecimal 1: %@", GSDecimalString(&n, nil));
+  //NSLog(@"NSDecimal 1: %@", NSDecimalString(result, nil));
+  //DecimalToCharvec(result, &n1);
+  //NSLog(@"GSDecimal 2: %@", GSDecimalString(&n1, nil));
+  //NSLog(@"NSDecimal 2: %@", NSDecimalString(result, nil));
+}
+
+void
+NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
+		    NSDictionary *locale)
+{
+  GSDecimal n;
+
+  GSDecimalFromString(&n, numberValue, locale);
+  CharvecToDecimal(&n, result);
+}
+
+#else
+
+// First implementations of the functions defined in NSDecimal.h
+
+void
+NSDecimalCompact(NSDecimal *number)
+{
+  GSDecimalCompact(number); 
+}
+
+NSComparisonResult
+NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
+{
+  return GSDecimalCompare(leftOperand, rightOperand);
+}
+
+void
+NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, 
+	       NSRoundingMode mode)
+{
+  NSDecimalCopy(result, number);
+  
+  GSDecimalRound(result, scale, mode); 
+}
+
+NSCalculationError
+NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
+{
+  if (!n1->validNumber || !n2->validNumber)
+    return NSCalculationNoError;
+
+  // Do they have the same exponent already?
+  if (n1->exponent == n2->exponent)
+    return NSCalculationNoError;
+
+  return GSDecimalNormalize(n1, n2, mode);
+}
+
+static NSComparisonResult
+NSSimpleCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
+{
+  // This only checks the length of the operands. 
+  if (leftOperand->length == rightOperand->length)
+    return NSOrderedSame;
+  else if (leftOperand->length > rightOperand->length)
+    return NSOrderedDescending;
+  else
+    return NSOrderedAscending;
+}
+
+static NSCalculationError
+GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
+	    NSRoundingMode mode)
+{
+  // left and right are both valid and positive, non-zero. The have been normalized and 
+  // left is bigger than right. result, left and right all point to different entities.
+  // Result will not be compacted.
+  NSCalculationError error = NSCalculationNoError;
+  int i, j, l, d;
+  int carry = 0;
+
+  NSDecimalCopy(result, left); 
+  j = left->length - right->length;
+  l = right->length;
+
+  // Add all the digits
+  for (i = l-1; i >= 0; i--)
+    {
+      d = right->cMantissa[i] + result->cMantissa[i + j] + carry;
+      if (d >= 10)
+        {
+	  d = d % 10;
+	  carry = 1;
+	}
+      else
+	carry = 0;
+
+      result->cMantissa[i + j] = d;
+    }
+
+  if (carry)
+    {
+      for (i = j-1; i >= 0; i--)
+	{
+	  if (result->cMantissa[i] != 9)
+	    {
+	      result->cMantissa[i]++;
+	      carry = 0;
+	      break;
+	    }
+	  result->cMantissa[i] = 0;
+	}
+
+      if (carry)
+	{
+	  // The number must be shifted to the right
+	  if (NSDecimalMaxDigit == result->length) 
+	    {
+	      NSDecimalRound(result, result, 
+			     NSDecimalMaxDigit - 1 - result->exponent, 
+			     mode);
+	    }
+
+	  if (127 == result->exponent)
+	    {
+	      result->validNumber = NO;
+	      error = NSCalculationOverflow;
+	    } 
+
+	  for (i = result->length-1; i >= 0; i--)
+	    {
+	      result->cMantissa[i+1] = result->cMantissa[i];
+	    }
+	  result->cMantissa[0] = 1;
+	  result->length++;
+	}
+    } 
+
+  return error;
+}
+
+static NSCalculationError
+GSSimpleSubtract(NSDecimal *result, const NSDecimal *left, 
+		 const NSDecimal *right, NSRoundingMode mode)
+{
+  // left and right are both valid and positive, non-zero. The have been normalized and 
+  // left is bigger than right. result, left and right all point to different entities.
+  // Result will not be compacted.
+  NSCalculationError error = NSCalculationNoError;
+  int i, j, l, d;
+  int borrow = 0;
+
+  j = left->length - right->length;
+  NSDecimalCopy(result, left); 
+  l = right->length;
+
+  // Now subtract all digits
+  for (i = l-1; i >= 0; i--)
+    {
+      d = result->cMantissa[i + j] - right->cMantissa[i] - borrow;
+      if (d < 0)
+        {
+	  d = d + 10;
+	  borrow = 1;
+	}
+      else
+	borrow = 0;
+
+      result->cMantissa[i + j] = d;
+    }
+
+  if (borrow)
+    {
+      for (i = j-1; i >= 0; i--)
+	{
+	  if (result->cMantissa[i] != 0)
+	    {
+	      result->cMantissa[i]--;
+	      break;
+	    }
+	  result->cMantissa[i] = 9;
+	}
+
+      if (-1 == i)
+	{
+	  NSLog(@"Impossible error in substraction left: %@, right: %@", 
+		NSDecimalString(left, nil), NSDecimalString(right, nil));
+	}
+    }
+
+  return error;
+}
+
+static NSCalculationError
+GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r, NSRoundingMode mode)
+{
+  NSCalculationError error = NSCalculationNoError;
+  NSCalculationError error1;
+  int i, j, d, e;
+  int carry = 0;
+  NSDecimal n;
+  int exp = 0;
+
+  NSDecimalCopy(result, &zero);
+  n.validNumber = YES;
+  n.isNegative = NO;
+
+  // if l->length = 38 round one off
+  if (NSDecimalMaxDigit == l->length)
+    {
+      exp = -l->exponent;
+      NSDecimalRound(l, l, -1-l->exponent, mode);
+      // This might changed more than one
+      exp += l->exponent;
+    }
+
+  // Do every digit of the second number
+  for (i = 0; i < r->length; i++)
+    {
+      n.length = l->length+1;
+      n.exponent = r->length - i - 1;
+      carry = 0;
+      d = r->cMantissa[i];
+
+      if (0 == d)
+	continue;
+
+      for (j = l->length-1; j >= 0; j--)
+        {
+	  e = l->cMantissa[j] * d + carry;
+
+	  if (e >= 10)
+	    {
+	      carry = e / 10;
+	      e = e % 10;
+	    }
+	  else
+	    carry = 0;
+	  // This is one off to allow final carry
+	  n.cMantissa[j+1] = e;
+	}
+      n.cMantissa[0] = carry;
+      NSDecimalCompact(&n);
+      error1 = NSDecimalAdd(result, result, &n, mode);
+      if (NSCalculationNoError != error1)
+	error = error1;
+    }
+
+  if (result->exponent + exp > 127)
+    {
+      // This should almost never happen
+      result->validNumber = NO;
+      return NSCalculationOverflow;
+    }
+  result->exponent += exp;
+  return error;
+}
+
+NSCalculationError
+GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, 
+	       NSRoundingMode mode)
+{
+  NSCalculationError error = NSCalculationNoError;
+  NSCalculationError error1;
+  int k;
+  int used; // How many digits of l have been used?
+  NSDecimal n1;
+
+  NSDecimalCopy(&n1, &zero);
+  NSDecimalCopy(result, &zero);
+  k = 0;
+  used = 0;
+
+  while ((k < l->length ) || (n1.length))
+    {
+      while (NSOrderedAscending == NSDecimalCompare(&n1, r))
+        {
+	  if (NSDecimalMaxDigit-1 == k)
+	    break;
+	  if (n1.exponent)
+	    {
+              // Put back zeros removed by compacting
+	      n1.cMantissa[(int)n1.length] = 0;
+	      n1.length++;
+	      n1.exponent--;
+	    }
+	  else
+	    {
+	      if (used < l->length)
+	        {
+		  // Fill up with own digits
+		  if (n1.length || l->cMantissa[used])
+		    {
+		      // only add 0 if there is already something
+		      n1.cMantissa[(int)n1.length] = l->cMantissa[used];
+		      n1.length++;
+		    }
+		  used++;
+		}
+	      else
+	        {
+		  if (-128 == result->exponent)
+		    {
+		      // use this as an end flag
+		      k = NSDecimalMaxDigit-1;
+		      break;
+		    }
+		  // Borrow one digit
+		  n1.cMantissa[(int)n1.length] = 0;
+		  n1.length++;
+		  result->exponent--;
+		}
+	      k++;
+	      result->cMantissa[k-1] = 0; 
+	      result->length++;
+	    }
+	}
+
+      if (NSDecimalMaxDigit-1 == k)
+        {
+	  error = NSCalculationLossOfPrecision;
+	  break;
+	}
+
+      error1 = NSDecimalSubtract(&n1, &n1, r, mode);
+      if (NSCalculationNoError != error1)
+	error = error1;
+      result->cMantissa[k-1]++; 
+    }
+
+  return error;
+}
+
+NSString*
+NSDecimalString(const NSDecimal *number, NSDictionary *locale)
+{
+  return GSDecimalString(number, locale);
+}
+
+// GNUstep extensions to make the implementation of NSDecimalNumber totaly 
+// independent for NSDecimals internal representation
+
+double
+NSDecimalDouble(NSDecimal *number)
+{
+  return GSDecimalDouble(number);
+}
+
+void
+NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa, 
+		      short exponent, BOOL negative)
+{
+  GSDecimalFromComponents(result, mantissa, exponent, negative);
+}
+
+void
+NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
+		    NSDictionary *locale)
+{
+  GSDecimalFromString(result, numberValue, locale);
+}
+
+#endif 
