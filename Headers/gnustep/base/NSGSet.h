@@ -1,5 +1,5 @@
 /* Interface to concrete implementation of NSSet based on GNU Array
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: April 1995
@@ -31,34 +31,12 @@
 #include <objects/elt.h>
 
 @interface NSGSet : NSSet
-{
-  /* For now, these must match the instance variables in objects/Set.h.
-     This will change. */
-  coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
-  int (*_comparison_function)(elt,elt);
-}
-
 @end
 
 @interface NSGMutableSet : NSMutableSet
-{
-  /* For now, these must match the instance variables in objects/Set.h.
-     This will change. */
-  coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
-  int (*_comparison_function)(elt,elt);
-}
-
 @end
 
 @interface NSGCountedSet : NSCountedSet
-{
-  /* For now, these must match the instance variables in objects/Bag.h.
-     This will change. */
-  coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
-  int (*_comparison_function)(elt,elt);
-  unsigned int count;
-}
-
 @end
 
 
