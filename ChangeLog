@@ -1,3 +1,12 @@
+2002-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: Some boundary error fixes by Alexander Malmberg.
+	Fixes to encoding table initialisation.
+	* Source/NSString.m:Fix error in encoding type for initialising from
+	data.  By Alexander Malmberg.
+	* Source/GSString.m: Correct string length when transmuting an 8-bit
+	string to a 16-bit string - by Alexander Malmberg.
+
 2002-03-17  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
 
 	* Source/GSAttributedString.m 
