@@ -385,12 +385,12 @@
        *	(should normally only be 1) - then the connection.
        */
       table = NSMapGet(connections, connection);
-      if (table)
+      NSMapRemove(connections, connection);
+      if (table != 0)
 	{
 	  [self removeObserversForClients: table];
 	  NSFreeMapTable(table);
 	}
-      NSMapRemove(connections, connection);
     }
   return nil;
 }
