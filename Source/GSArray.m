@@ -331,6 +331,56 @@ static SEL	eqSel;
     }
 }
 
+- (void) addObject: (id)anObject
+{
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to add nil to array"];
+    }
+  if (_count >= _capacity)
+    {
+      id	*ptr;
+      size_t	size = (_capacity + _grow_factor)*sizeof(id);
+
+      ptr = NSZoneRealloc([self zone], _contents_array, size);
+      if (ptr == 0)
+	{
+	  [NSException raise: NSMallocException
+		      format: @"Unable to grow"];
+	}
+      _contents_array = ptr;
+      _capacity += _grow_factor;
+      _grow_factor = _capacity/2;
+    }
+  _contents_array[_count] = RETAIN(anObject);
+  _count++;	/* Do this AFTER we have retained the object.	*/
+}
+
+- (void) exchangeObjectAtIndex: (unsigned int)i1 
+             withObjectAtIndex: (unsigned int)i2
+{
+  if (i1 >= _count)
+    {
+      [NSException raise: NSRangeException format:
+	@"in %@:, index %d is out of range",
+	NSStringFromSelector(_cmd), i1];
+    }
+  if (i2 >= _count)
+    {
+      [NSException raise: NSRangeException format:
+	@"in %@:, index %d is out of range",
+	NSStringFromSelector(_cmd), i1];
+    }
+  if (i1 != i2)
+    {
+      id	tmp = _contents_array[i1];
+
+      _contents_array[i1] = _contents_array[i2];
+      _contents_array[i2] = tmp;
+    }
+}
+
 - (id) initWithCapacity: (unsigned)cap
 {
   if (cap == 0)
@@ -427,32 +477,6 @@ static SEL	eqSel;
   _contents_array[index] = nil;
   _count++;
   _contents_array[index] = RETAIN(anObject);
-}
-
-- (void) addObject: (id)anObject
-{
-  if (anObject == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to add nil to array"];
-    }
-  if (_count >= _capacity)
-    {
-      id	*ptr;
-      size_t	size = (_capacity + _grow_factor)*sizeof(id);
-
-      ptr = NSZoneRealloc([self zone], _contents_array, size);
-      if (ptr == 0)
-	{
-	  [NSException raise: NSMallocException
-		      format: @"Unable to grow"];
-	}
-      _contents_array = ptr;
-      _capacity += _grow_factor;
-      _grow_factor = _capacity/2;
-    }
-  _contents_array[_count] = RETAIN(anObject);
-  _count++;	/* Do this AFTER we have retained the object.	*/
 }
 
 - (void) removeLastObject

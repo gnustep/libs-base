@@ -1172,23 +1172,53 @@ static NSString	*indentStrings[] = {
   return newArray;
 }
 
-/* This is the desgnated initializer for NSMutableArray */
+/** <init />
+ * Initialise the array with the specified capacity ... this
+ * should ensure that the array can have numItems added efficiently.
+ */
 - (id) initWithCapacity: (unsigned)numItems
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (void) addObject: anObject
+/** <override-subclass />
+ * Adds an object at the end of the array.
+ */
+- (void) addObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
+/**
+ * Swaps the positions of two objects in the array.  Raises an exception
+ * if either array index is out of bounds.
+ */
+- (void) exchangeObjectAtIndex: (unsigned int)i1 
+             withObjectAtIndex: (unsigned int)i2
+{
+  id	tmp = [self objectAtIndex: i1];
+
+  RETAIN(tmp);
+  [self replaceObjectAtIndex: i1 withObject: [self objectAtIndex: i2]];
+  [self replaceObjectAtIndex: i2 withObject: tmp];
+  RELEASE(tmp);
+}
+
+/** <override-subclass />
+ * Places an object into the receiver at the specified location.<br />
+ * Raises an exception if given an array index which is too large.<br />
+ * The object is retained by the array.
+ */
+- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Replaces objects in the receiver with those from anArray.<br />
+ * Raises an exception if given a range extending beyond the array.<br />
+ */
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray
 {
@@ -1203,6 +1233,10 @@ static NSString	*indentStrings[] = {
     [self insertObject: o atIndex: aRange.location];
 }
 
+/**
+ * Replaces objects in the receiver with some of those from anArray.<br />
+ * Raises an exception if given a range extending beyond the array.<br />
+ */
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray
 			 range: (NSRange)anotherRange
@@ -1211,11 +1245,20 @@ static NSString	*indentStrings[] = {
 	 withObjectsFromArray: [anArray subarrayWithRange: anotherRange]];
 }
 
+/** <override-subclass />
+ * Inserts an object into the receiver at the specified location.<br />
+ * Raises an exception if given an array index which is too large.<br />
+ * The object is retained by the array.
+ */
 - (void) insertObject: anObject atIndex: (unsigned)index
 {
   [self subclassResponsibility: _cmd];
 }
 
+/** <override-subclass />
+ * Removes an object from the receiver at the specified location.<br />
+ * Raises an exception if given an array index which is too large.<br />
+ */
 - (void) removeObjectAtIndex: (unsigned)index
 {
   [self subclassResponsibility: _cmd];
@@ -1227,7 +1270,7 @@ static NSString	*indentStrings[] = {
     initWithCapacity: numItems]);
 }
 
-/* Override our superclass's designated initializer to go our's */
+/** <init /> Override our superclass's designated initializer to go our's */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
   self = [self initWithCapacity: count];
