@@ -126,7 +126,7 @@
 {
   while ([self skipWhiteSpace] < length)
     {
-      while (buffer[pos] == '*')
+      while (pos < length && buffer[pos] == '*')
 	{
 	  [a addObject: @"*"];
 	  pos++;
@@ -206,7 +206,15 @@
   a2 = [NSMutableArray array];
   while ((s = [self parseIdentifier]) != nil)
     {
-      if ([s isEqualToString: @"GS_EXTERN"] == YES)
+      if ([s isEqualToString: @"static"] == YES)
+	{
+	  /*
+	   * We don't want to document static declarations.
+	   */
+	  [self skipStatementLine];
+	  goto fail;
+	}
+      if ([s isEqualToString: @"GS_EXPORT"] == YES)
 	{
 	  s = @"extern";
 	}
@@ -279,14 +287,18 @@
 
   if ([self skipWhiteSpace] < length)
     {
-      if (buffer[pos] == ';')
+      if (buffer[pos] == '[')
 	{
-	  [self skipStatement];
-	}
-      else if (buffer[pos] == '[')
-	{
-	  [self log: @"ignoring array variable ... not supported yet"];
-	  [self skipStatement];
+	  while (buffer[pos] == '[')
+	    {
+	      unsigned	old = pos;
+
+	      if ([self skipArray] == old)
+		{
+		  break;
+		}
+	      [a1 addObject: @"[]"];
+	    }
 	}
       else if (buffer[pos] == '(')
 	{
@@ -296,6 +308,14 @@
 	  RELEASE(arp);
 	  return nil;
 	}
+    }
+
+  if ([self skipWhiteSpace] < length)
+    {
+      if (buffer[pos] == ';')
+	{
+	  [self skipStatement];
+	}
       else if (buffer[pos] == ',')
 	{
 	  [self log: @"ignoring multiple comma separated declarations"];
@@ -304,6 +324,10 @@
       else if (buffer[pos] == '=')
 	{
 	  [self skipStatement];
+	}
+      else if (buffer[pos] == '{')
+	{
+	  [self skipBlock];
 	}
       else
 	{
@@ -440,8 +464,10 @@ fail:
 
 	  default:
 	    /*
-	     * Must be some sort of statement ... skip and ignore comments.
+	     * Must be some sort of declaration ...
 	     */
+	    // pos--;
+	    // [self parseDeclIsSource: isSource];
 	    [self skipStatementLine];
 	    break;
         }
@@ -1649,6 +1675,42 @@ fail:
   RELEASE(arp);
   AUTORELEASE(lines);
   AUTORELEASE(data);
+}
+
+/**
+ * Skip until we encounter an ']' marking the end of an array.
+ * Expect the current character position to be pointing to the
+ * '[' at the start of an array.
+ */
+- (unsigned) skipArray
+{
+  pos++;
+  while ([self skipWhiteSpace] < length)
+    {
+      unichar	c = buffer[pos++];
+
+      switch (c)
+	{
+	  case '#':		// preprocessor directive.
+	    [self skipPreprocessor];
+	    break;
+
+	  case '\'':
+	  case '"':
+	    pos--;
+	    [self skipLiteral];
+	    break;
+
+	  case '[':
+	    pos--;
+	    [self skipArray];
+	    break;
+
+	  case ']':
+	    return pos;
+        }
+    }
+  return pos;
 }
 
 /**

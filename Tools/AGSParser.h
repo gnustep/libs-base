@@ -89,6 +89,7 @@
 - (void) setGenerateStandards: (BOOL)flag;
 - (void) setStandards: (NSMutableDictionary*)dict;
 - (void) setupBuffer;
+- (unsigned) skipArray;
 - (unsigned) skipBlock;
 - (unsigned) skipComment;
 - (unsigned) skipLiteral;
