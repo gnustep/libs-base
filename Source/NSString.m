@@ -23,14 +23,11 @@
 
 /* Caveats:
 
-   Many method unimplemented.
-
    Only supports C Strings.  Some implementations will need to be 
    changed when we get other string backing classes.
 
    Does not support all justification directives for `%@' in format strings 
    on non-GNU-libc systems.
-
 */
 
 #include <gnustep/base/preface.h>
@@ -41,9 +38,9 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSUserDefaults.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/behavior.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -189,7 +186,7 @@ handle_printf_atsign (FILE *stream,
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  return NSAllocateObject ([self _concreteClass], 0, z);
 }
 
 // Creating Temporary Strings
@@ -408,7 +405,7 @@ handle_printf_atsign (FILE *stream,
 /* xxx Change this when we have non-CString classes */
 - (id) initWithString: (NSString*)string
 {
-  return [self initWithCString:[string _cStringContents]];
+  return [self initWithCString:[string cStringNoCopy]];
 }
 
 
@@ -428,7 +425,7 @@ handle_printf_atsign (FILE *stream,
 {
   /* xxx raise NSException instead of assert. */
   assert(index < [self cStringLength]);
-  return (unichar) [self _cStringContents][index];
+  return (unichar) [self cStringNoCopy][index];
 }
 
 /* Inefficient.  Should be overridden */
@@ -468,8 +465,8 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned len = [self cStringLength];
   char *s = alloca(len + [aString cStringLength] + 1);
-  s = strcpy(s, [self _cStringContents]);
-  strcpy(s + len, [aString _cStringContents]);
+  s = strcpy(s, [self cStringNoCopy]);
+  strcpy(s + len, [aString cStringNoCopy]);
   return [NSString stringWithCString:s];
 }
 
@@ -733,8 +730,8 @@ handle_printf_atsign (FILE *stream,
   /* xxx only handles C-string encoding */
 
   int i, start, end, increment;
-  const char *s1 = [self _cStringContents];
-  const char *s2 = [aString _cStringContents];
+  const char *s1 = [self cStringNoCopy];
+  const char *s2 = [aString cStringNoCopy];
 
   if (mask & NSBackwardsSearch) 
     {
@@ -789,7 +786,7 @@ handle_printf_atsign (FILE *stream,
   unsigned ret = 0;
   unsigned ctr = 0;
   unsigned char_count = 0;
-  const char *s = [self _cStringContents];
+  const char *s = [self cStringNoCopy];
 
   while (*s && char_count++ < NSHashStringLength)
     {
@@ -808,7 +805,7 @@ handle_printf_atsign (FILE *stream,
 
 - (BOOL) isEqualToString: (NSString*)aString
 {
-  return ! strcmp([self _cStringContents], [aString _cStringContents]);
+  return ! strcmp([self cStringNoCopy], [aString cStringNoCopy]);
 }
 
 
@@ -899,8 +896,21 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) commonPrefixWithString: (NSString*)aString
    options: (unsigned int)mask
 {
-  [self notImplemented:_cmd];
-  return self;
+  /* xxx only works with CStrings */
+  int prefix_len = 0;
+  const char *s1 = [self cStringNoCopy];
+  const char *s2 = [aString cStringNoCopy];
+
+  while (*s1 && *s2 
+	 && ((*s1 == *s2)
+	     || ((mask & NSCaseInsensitiveSearch) 
+		 && (tolower (*s1) == tolower (*s2)))))
+	     
+    {
+      s1++;
+      s2++;
+    }
+  return [NSString stringWithCString: s1 length: prefix_len];
 }
 
 
@@ -908,20 +918,59 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) capitalizedString
 {
-  [self notImplemented:_cmd];
-  return self;
+  /* xxx only works with CStrings */
+  char *s;
+  BOOL just_saw_space = YES;
+
+  for (s = strdup ([self cStringNoCopy]); *s; s++)
+    {
+      if (just_saw_space && islower(*s))
+	{
+	  *s = toupper (*s);
+	  just_saw_space = NO;
+	}
+      else if (isspace (*s))
+	just_saw_space = YES;
+    }
+  
+  return [[[NSString alloc] initWithCStringNoCopy: s 
+			    length: strlen (s) 
+			    freeWhenDone: YES]
+	   autorelease];
 }
 
 - (NSString*) lowercaseString
 {
-  [self notImplemented:_cmd];
-  return self;
+  /* xxx only works with CStrings */
+  char *s;
+
+  for (s = strdup ([self cStringNoCopy]); *s; s++)
+    {
+      if (isupper(*s))
+	*s = tolower (*s);
+    }
+  
+  return [[[NSString alloc] initWithCStringNoCopy: s 
+			    length: strlen (s) 
+			    freeWhenDone: YES]
+	   autorelease];
 }
 
 - (NSString*) uppercaseString
 {
-  [self notImplemented:_cmd];
-  return self;
+  /* xxx only works with CStrings */
+  char *s;
+
+  for (s = strdup ([self cStringNoCopy]); *s; s++)
+    {
+      if (islower(*s))
+	*s = toupper (*s);
+    }
+  
+  return [[[NSString alloc] initWithCStringNoCopy: s 
+			    length: strlen (s) 
+			    freeWhenDone: YES]
+	   autorelease];
 }
 
 
@@ -981,7 +1030,7 @@ handle_printf_atsign (FILE *stream,
 	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
-  memcpy(buffer, [self _cStringContents] + aRange.location, len);
+  memcpy(buffer, [self cStringNoCopy] + aRange.location, len);
 }
 
 
@@ -989,17 +1038,17 @@ handle_printf_atsign (FILE *stream,
 
 - (double) doubleValue
 {
-  return atof([self _cStringContents]);
+  return atof([self cStringNoCopy]);
 }
 
 - (float) floatValue
 {
-  return (float) atof([self _cStringContents]);
+  return (float) atof([self cStringNoCopy]);
 }
 
 - (int) intValue
 {
-  return atoi([self _cStringContents]);
+  return atoi([self cStringNoCopy]);
 }
 
 
@@ -1126,12 +1175,6 @@ handle_printf_atsign (FILE *stream,
   return substring;
 }
 
-- (NSString*) stringByAbbreviatingWithTildeInPath
-{
-  [self notImplemented:_cmd];
-  return self;
-}
-
 /* Returns a new string with the path component given in aString
    appended to the receiver.  Assumes that aString is NOT prefixed by
    a '/'.  Checks the receiver to see if the last letter is a '/', if it
@@ -1201,8 +1244,50 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByExpandingTildeInPath
 {
-  [self notImplemented:_cmd];
-  return self;
+  /* xxx only works with CStrings */
+  const char *s = [self cStringNoCopy];
+  NSString *homedir;
+  NSRange first_slash_range;
+
+  if (s[0] != '~')
+    return [self copy];
+
+  first_slash_range = [self rangeOfString: @"/"];
+
+  if (first_slash_range.location != 1)
+    {
+      /* It is of the form `~username/blah/...' */
+      int uname_len;
+      NSString *uname;
+
+      if (first_slash_range.length != 0)
+	uname_len = first_slash_range.length - 1;
+      else
+	/* It is actually of the form `~username' */
+	uname_len = [self length] - 1;
+      uname = [self substringFromRange: ((NSRange){1, uname_len})];
+      homedir = NSHomeDirectoryForUser (uname);
+    }
+  else
+    {
+      /* It is of the form `~/blah/...' */
+      homedir = NSHomeDirectory ();
+    }
+  
+  return [NSString stringWithFormat: @"%@%@", 
+		   homedir, 
+		   [self substringFromIndex: first_slash_range.location]];
+}
+
+- (NSString*) stringByAbbreviatingWithTildeInPath
+{
+  NSString *homedir = NSHomeDirectory ();
+
+  if (![self hasPrefix: homedir])
+    return [self copy];
+
+  return [NSString stringWithFormat: @"~/%@",
+		   [self substringFromIndex: [homedir length] + 1]];
 }
 
 - (NSString*) stringByResolvingSymlinksInPath
@@ -1213,8 +1298,40 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByStandardizingPath
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSMutableString *s;
+  NSRange r;
+
+  /* Expand `~' in the path */
+  s = [[self stringByExpandingTildeInPath] mutableCopy];
+
+  /* Remove `/private' */
+  if ([s hasPrefix: @"/private"])
+    [s deleteCharactersInRange: ((NSRange){0,7})];
+
+  /* Condense `//' */
+  while ((r = [s rangeOfString: @"//"]).length)
+    [s deleteCharactersInRange: r];
+
+  /* Condense `/./' */
+  while ((r = [s rangeOfString: @"/./"]).length)
+    {
+      r.length--;
+      [s deleteCharactersInRange: r];
+    }
+
+  /* Condense `/../' */
+  while ((r = [s rangeOfString: @"/../"]).length)
+    {
+      NSRange r2 = {0, r.length-1};
+      r = [s rangeOfString: @"/" 
+	     options: NSBackwardsSearch
+	     range: r2];
+      r.length += 4;		/* Add the `/../' */
+      [s deleteCharactersInRange: r];
+    }
+
+  /* xxx Should we not return a mutable string? */
+  return s;
 }
 
 /* NSCopying Protocol */
@@ -1251,36 +1368,15 @@ handle_printf_atsign (FILE *stream,
   return [super initWithCoder:aDecoder];
 }
 
-- cStringNoCopy
+- (const char *) cStringNoCopy
 {
   [self subclassResponsibility: _cmd];
-  return nil;
-}
-
-@end
-
-@implementation NSString (NSCStringAccess)
-- (const char *) _cStringContents
-{
-  [self subclassResponsibility:_cmd];
   return NULL;
 }
-@end
-
-/* We don't actually implement (GNU) Category, in order to avoid warning
-   about "unimplemented methods"; they come from the behavior. */
-@implementation NSString (GNUCollection)
-
-- objectAtIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, [self cStringLength]);
-  return [NSNumber numberWithChar: [self _cStringContents][index]];
-}
-
-/* The rest are handled by the class_add_behavior() call in +initialize. */
 
 @end
 
+
 @implementation NSMutableString
 
 + allocWithZone: (NSZone*)z
@@ -1387,7 +1483,7 @@ handle_printf_atsign (FILE *stream,
 /* xxx Change this when we have non-CString classes */
 - (void) setString: (NSString*)aString
 {
-  const char *s = [aString _cStringContents];
+  const char *s = [aString cStringNoCopy];
   [self setCString:s length:strlen(s)];
 }
 
