@@ -1,3 +1,7 @@
+2000-11-06  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation: Move tmpl.texi files to texi and update GNUmakefile
+
 Mon Nov  6 16:55:26 2000  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Documentation/GNUmakefile: Install ANNOUNCE, NEWS, INSTALL,

@@ -71,27 +71,26 @@
 # Things to do after checking
 # after-check::
 
-version.tmpl.texi: ../Version
-	rm -f version.tmpl.texi
+version.texi: ../Version
+	rm -f version.texi
 	echo '@set GNUSTEP-BASE-VERSION' $(GNUSTEP_BASE_VERSION) \
-		> version.tmpl.texi
+		> version.texi
 	echo '@set GCC-VERSION $(GCC_VERSION)' \
-		>> version.tmpl.texi
+		>> version.texi
 	if [ $(GNUSTEP_BASE_FTP_MACHINE) ]; then \
 	  echo '@set GNUSTEP-BASE-FTP-MACHINE $(GNUSTEP_BASE_FTP_MACHINE)' \
-		>> version.tmpl.texi; fi
+		>> version.texi; fi
 	if [ $(GNUSTEP_BASE_FTP_DIRECTORY) ]; then \
 	  echo '@set GNUSTEP-BASE-FTP-DIRECTORY $(GNUSTEP_BASE_FTP_DIRECTORY)' \
-		>> version.tmpl.texi; fi
+		>> version.texi; fi
 	if [ $(GNUSTEP_BASE_SNAP_FTP_MACHINE) ]; then \
 	  echo '@set GNUSTEP-BASE-SNAP-FTP-MACHINE \
 		$(GNUSTEP_BASE_SNAP_FTP_MACHINE)' \
-		>> version.tmpl.texi; fi
+		>> version.texi; fi
 	if [ $(GNUSTEP_BASE_SNAP_FTP_DIRECTORY) ]; then \
 	  echo '@set GNUSTEP-BASE-SNAP-FTP-DIRECTORY \
 		$(GNUSTEP_BASE_SNAP_FTP_DIRECTORY)' \
-		>> version.tmpl.texi; fi
-	cp version.tmpl.texi version.texi
+		>> version.texi; fi
 
 regenerate: $(DOCUMENT_TEXT_NAME)
 	mv $(TOP_DOC_FILES) ..

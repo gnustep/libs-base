@@ -1,5 +1,5 @@
 @ifclear GSTEP-BASE-MAIN
-@include version.tmpl.texi
+@include version.texi
 @end ifclear
 
 @chapter News
