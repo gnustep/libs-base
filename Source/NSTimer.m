@@ -188,7 +188,19 @@ static Class	NSDate_class;
 
 - (NSComparisonResult) compare: (NSTimer*)anotherTimer
 {
-  return [_date compare: anotherTimer->_date];
+  if (anotherTimer == self)
+    {
+      return NSOrderedSame;
+    }
+  else if (anotherTimer == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
+  else
+    {
+      return [_date compare: anotherTimer->_date];
+    }
 }
 
 @end

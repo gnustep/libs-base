@@ -2159,23 +2159,35 @@ static Class	doubleNumberClass;
 
 - (NSComparisonResult) compare: (NSNumber*)other
 {
-  double	otherValue;
-  double	myValue;
-
-  myValue = [self doubleValue];
-  otherValue = [other doubleValue];
-  
-  if (myValue == otherValue)
+  if (other == self)
     {
       return NSOrderedSame;
     }
-  else if (myValue < otherValue)
+  else if (other == nil)
     {
-      return  NSOrderedAscending;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
     }
   else
     {
-      return NSOrderedDescending;
+      double	otherValue;
+      double	myValue;
+
+      myValue = [self doubleValue];
+      otherValue = [other doubleValue];
+
+      if (myValue == otherValue)
+	{
+	  return NSOrderedSame;
+	}
+      else if (myValue < otherValue)
+	{
+	  return  NSOrderedAscending;
+	}
+      else
+	{
+	  return NSOrderedDescending;
+	}
     }
 }
 
@@ -2203,18 +2215,24 @@ static Class	doubleNumberClass;
   return hash;
 }
 
-- (BOOL) isEqual: o
+- (BOOL) isEqual: (id)o
 {
   if (o == self)
     {
       return YES;
     }
-  if (o != nil && fastIsInstance(o)
-    && fastInstanceIsKindOfClass(o, abstractClass))
+  else if (o == nil)
+    {
+      return NO;
+    }
+  else if (fastIsInstance(o) && fastInstanceIsKindOfClass(o, abstractClass))
     {
       return [self isEqualToNumber: (NSNumber*)o];
     }
-  return [super isEqual: o];
+  else
+    {
+      return [super isEqual: o];
+    }
 }
 
 - (BOOL) isEqualToNumber: (NSNumber*)o
@@ -2223,7 +2241,11 @@ static Class	doubleNumberClass;
     {
       return YES;
     }
-  if ([self compare: o] == NSOrderedSame)
+  else if (o == nil)
+    {
+      return NO;
+    }
+  else if ([self compare: o] == NSOrderedSame)
     {
       return YES;
     }

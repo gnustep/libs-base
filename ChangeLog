@@ -7,6 +7,11 @@
 	* Source/Unicode.m: Remove uslen() function - unused and unsafe.
 	Tidied code and optimised a little.
 	* Source/Foundation/Unicode.h: Remove uslen()
+	* Source/NSNumber.m: Check for nul argument to [-compare:]
+	* Source/NSDate.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSConcreteNumber.m: ditto
+	* Source/NSTimer.m: ditto
 
 2000-07-30  Richard Frith-Macdonald <rfm@gnu.org>
 
