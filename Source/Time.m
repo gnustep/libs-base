@@ -37,6 +37,33 @@
 /* There are several places where I need to deal with tz more intelligently */
 /* I should allow customization of a strftime() format string for printing. */
 
+#ifdef _SEQUENT_
+/* Sequent does not provide us with gettimeofday(). */
+int gettimeofday(tvp, tzp)
+  struct timeval *tvp;
+  struct timezone *tzp;
+{
+  /* struct timespec is struct timeval with nanosecond resolution */
+  /* requires <sys/timers.h> */
+  static struct timespec tsp;
+
+  getclock(TIMEOFDAY, &tsp);
+  tvp->tv_sec = tsp.tv_sec;
+  tvp->tv_usec = (time_t)(tsp.tv_nsec/1000);
+
+  if (tzp) {
+    /* set external variables timezone (seconds between timezone */
+    /* and UTC), altzone (seconds between alternate timezone and */
+    /* UTC), and daylight (non-zero if alternate timezone) based */
+    /* on TZ environment variable */
+    /* requires <time.h> */
+    tzset();
+    tzp->tz_minuteswest = (int)(timezone/60);
+    tzp->tz_dsttime = daylight;
+  }
+}
+#endif /* _SEQUENT_ */
+
 /* tmp for passing to gettimeofday() */
 static struct timeval _Time_tv;
 static struct timezone _Time_tz;
