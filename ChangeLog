@@ -1,3 +1,7 @@
+2001-02-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m: Removed YESSTR and NOSTR support for simplicity.
+
 2001-02-24  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Resources/Languages/French: New file (contributed by Frederic De

@@ -30,12 +30,6 @@
 
 #include <locale.h>
 #ifdef HAVE_LANGINFO_H
-/*
- * Define _GNU_SOURCE to get YESSTR and NOSTR in glibc-2.2.2
- */
-#ifndef	_GNU_SOURCE
-#define	_GNU_SOURCE
-#endif
 #include <langinfo.h>
 #endif
 #include <Foundation/NSUserDefaults.h>
@@ -159,17 +153,6 @@ GSDomainFromDefaultLocale(void)
 	       forKey: NSInternationalCurrencyString];
     }
   /* FIXME: Get currency format from localeconv */
-
-
-  /* Miscellaneous */
-  if (nl_langinfo(YESSTR))
-    {
-      [dict setObject: GSLanginfo(YESSTR) forKey: @"NSYesStr"];
-    }
-  if (nl_langinfo(NOSTR))
-    {
-      [dict setObject: GSLanginfo(NOSTR) forKey: @"NSNoStr"];
-    }
 
   str1 = [NSString stringWithCString: setlocale(LC_ALL, NULL)];
   [dict setObject: str1	forKey: NSLocale];
