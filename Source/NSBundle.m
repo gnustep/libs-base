@@ -1,5 +1,5 @@
 /* Implementation of NSBundle class
-   Copyright (C) 1993,1994,1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: May 1993
@@ -229,7 +229,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	OBJC_FREE(output);
 #endif
 
-/* Construct a path from the directory, language, name and extension.  Used by 
+/* Construct a path from the directory, language, name and extension.  
+   Used by  */
 
 #ifdef DEBUG
 	fprintf(stderr, "Debug (NSBundle): Found main in %s\n", 
