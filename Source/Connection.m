@@ -114,7 +114,7 @@ static int messagesReceivedCount;
 
 @implementation Connection
 
-+ initialize
++ (void) initialize
 {
   connectionArray = [[Array alloc] init];
   connectionArrayGate = [Lock new];
@@ -130,7 +130,6 @@ static int messagesReceivedCount;
   defaultCoderClass = [ConnectedCoder class];
   default_in_timeout = CONNECTION_DEFAULT_TIMEOUT;
   default_out_timeout = CONNECTION_DEFAULT_TIMEOUT;
-  return self;
 }
 
 + setDefaultPortClass: aClass
@@ -460,24 +459,24 @@ static int messagesReceivedCount;
   return newConn;
 }
 
-+ (Proxy*) rootProxyAtName: (String*)n;f
++ (Proxy*) rootProxyAtName: (String*)n
 {
-  return [self rootProxyAtName:n onHost:""];
+  return [self rootProxyAtName:n onHost:@""];
 }
 
-+ (Proxy*) rootProxyAtName: (String*)n onHost: (String*)h;
++ (Proxy*) rootProxyAtName: (String*)n onHost: (String*)h
 {
   id p = [default_port_class newPortFromRegisterWithName:n onHost:h];
   return [self rootProxyAtPort:p];
 }
 
-+ (Proxy*) rootProxyAtPort: (Port*)anOutPort;
++ (Proxy*) rootProxyAtPort: (Port*)anOutPort
 {
   id newInPort = [default_port_class newPort];
   return [self rootProxyAtPort: anOutPort withInPort:newInPort];
 }
 
-+ (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort;
++ (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort
 {
   Connection *newConn = [self newForInPort:anInPort
 				outPort:anOutPort
