@@ -1,3 +1,8 @@
+2004-04-08  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/autogsdoc.m (main): Move var decl to begginning of block
+	to avoid gcc < 3.0 compiler errors (Fix #8418).
+
 2004-04-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Modified to operate on a read-only
