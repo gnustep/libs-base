@@ -274,6 +274,11 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  * NSNotificationQueue class implementation
  */
 
+@interface NSNotificationQueue (Private)
+- (void) _postNotification: (NSNotification*)notification
+		  forModes: (NSArray*)modes;
+@end
+
 @implementation NSNotificationQueue
 
 + (NSNotificationQueue*) defaultQueue
@@ -432,19 +437,6 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
     }
 }
 
-- (void) postNotification: (NSNotification*)notification
-		 forModes: (NSArray*)modes
-{
-  NSString	*mode = [[NSRunLoop currentRunLoop] currentMode];
-
-  // check to see if run loop is in a valid mode
-  if (mode == nil || modes == nil
-    || [modes indexOfObject: mode] != NSNotFound)
-    {
-      [_center postNotification: notification];
-    }
-}
-
 - (void) enqueueNotification: (NSNotification*)notification
 		postingStyle: (NSPostingStyle)postingStyle	
 {
@@ -468,7 +460,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   switch (postingStyle)
     {
       case NSPostNow: 
-	[self postNotification: notification forModes: modes];
+	[self _postNotification: notification forModes: modes];
 	break;
       case NSPostASAP: 
 	add_to_queue(_asapQueue, notification, modes, _zone);
@@ -476,6 +468,23 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       case NSPostWhenIdle: 
 	add_to_queue(_idleQueue, notification, modes, _zone);
 	break;
+    }
+}
+
+@end
+
+@implementation NSNotificationQueue (Private)
+
+- (void) _postNotification: (NSNotification*)notification
+		  forModes: (NSArray*)modes
+{
+  NSString	*mode = [[NSRunLoop currentRunLoop] currentMode];
+
+  // check to see if run loop is in a valid mode
+  if (mode == nil || modes == nil
+    || [modes indexOfObject: mode] != NSNotFound)
+    {
+      [_center postNotification: notification];
     }
 }
 
@@ -500,7 +509,7 @@ static inline void notifyASAP(NSNotificationQueue *q)
       NSArray				*modes = item->modes;
 
       remove_from_queue_no_release(list, item);
-      [q postNotification: notification forModes: modes];
+      [q _postNotification: notification forModes: modes];
       RELEASE(notification);
       RELEASE(modes);
       NSZoneFree(((accessQueue)q)->_zone, item);
@@ -535,7 +544,7 @@ static inline void notifyIdle(NSNotificationQueue *q)
       NSArray				*modes = item->modes;
 
       remove_from_queue_no_release(list, item);
-      [q postNotification: notification forModes: modes];
+      [q _postNotification: notification forModes: modes];
       RELEASE(notification);
       RELEASE(modes);
       NSZoneFree(((accessQueue)q)->_zone, item);

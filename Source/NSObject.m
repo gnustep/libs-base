@@ -70,8 +70,6 @@ static Class	NSConstantStringClass;
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
 
-static BOOL deallocNotifications = NO;
-
 /*
  * allocationLock is needed when running multi-threaded for retain/release
  * to work reliably.
@@ -836,7 +834,17 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Deallocates the receiver by calling NSDeallocateObject()
+ * Deallocates the receiver by calling NSDeallocateObject() with self
+ * as the argument.<br />
+ * You should normally call the superclass implementation of this method
+ * when you override it in a subclass, or the memory occupied by your
+ * object will not be released.<br />
+ * If you have allocated the memory using a non-standard mechanism, you
+ * will not call the superclass (NSObject) implementation of the method
+ * as you will need to handle the deallocation specially.<br />
+ * In some circumstances, an object may wish to prevent itsself from
+ * being deallocated, it can do this simply be refraining from calling
+ * the superclass implementation.
  */
 - (void) dealloc
 {
@@ -1343,18 +1351,14 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Decrements the retain count for the receiver unless it is 1, in which
- * case the dealloc method is called instead.<br />
+ * Decrements the retain count for the receiver if greater than zeron,
+ * otherwise calls the dealloc method instead.<br />
  * The default implementation calls the NSDecrementExtraRefCountWasZero()
  * function to test the extra reference count for the receiver (and
  * decrement it if non-zero) - if the extra reference count is zero then
  * the retain count is one, and the dealloc method is called.<br />
  * In GNUstep, the [NSObject+enableDoubleReleaseCheck:] method may be used
- * to turn on checking for ratain/release errors in this method.<br />
- * GNUstep also supports deallocation notifications ... if this feature is
- * turned on (See [NSObject-setDeallocNotificationsActive:]) then the
- * [NSObject-_dealloc] method is called to notify the objct that it is
- * about to be deallocated.
+ * to turn on checking for ratain/release errors in this method.
  */
 - (oneway void) release
 {
@@ -1371,10 +1375,7 @@ static BOOL double_release_check_enabled = NO;
 
   if (NSDecrementExtraRefCountWasZero(self))
     {
-      if (deallocNotifications == NO || [self _dealloc] == YES)
-	{
-	  [self dealloc];
-	}
+      [self dealloc];
     }
 #endif
 }
@@ -1754,26 +1755,6 @@ static BOOL double_release_check_enabled = NO;
 {
   [output appendString:
     [(id)self descriptionWithLocale: aLocale indent: level]];
-}
-
-/**
- * Returns a flag to say whether dealloc notifications should be done.<br />
- * See the -setDeallocNotificationsActive: method.
- */
-- (BOOL) deallocNotificationsActive
-{
-  return deallocNotifications;
-}
-
-/**
- * Sets a flag to indicate whether dealloc notifications should be done.<br />
- * If this flag is set, when an object is to be deallocated the -_dealloc
- * method will be called first to notify the object that it is about to be
- * deallocated.
- */
-- (void) setDeallocNotificationsActive: (BOOL)flag
-{
-  deallocNotifications = flag;
 }
 
 - (BOOL) _dealloc
