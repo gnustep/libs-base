@@ -1,7 +1,7 @@
 /* Zone memory management. -*- Mode: ObjC -*-
    Copyright (C) 1997 Free Software Foundation, Inc.
 
-   Written by: Yoo C. Chung <wacko@power1.snu.ac.kr>
+   Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: January 1997
 
    This file is part of the GNUstep Base Library.
@@ -39,7 +39,8 @@
    - The default zone uses objc_malloc() and friends.  We assume that
    they're thread safe and that they return NULL if we're out of
    memory (they currently don't, unfortunately, so this is a FIXME).
-   We also need to prepend a zone pointer.
+   We also need to prepend a zone pointer.  And because of this, we
+   need to waste even more space to satisfy alignment requirements.
    
    - For freeable zones, a small linear buffer is used for
    deallocating and allocating.  Anything that can't go into the
@@ -232,32 +233,39 @@ roundupto (size_t n, size_t base)
 static void*
 default_malloc (NSZone *zone, size_t size)
 {
-  NSZone **mem;
+  void *mem;
+  NSZone **zoneptr;
 
-  mem = objc_malloc(ZPTRSZ+size);
+  mem = objc_malloc(ALIGN+size);
   if (mem == NULL)
     [NSException raise: NSMallocException
                  format: @"Default zone has run out of memory"];
-  *mem = zone;
-  return mem+1;
+  zoneptr = mem+(ALIGN-ZPTRSZ);
+  *zoneptr = zone;
+  return mem+ALIGN;
 }
 
 static void*
 default_realloc (NSZone *zone, void *ptr, size_t size)
 {
-  NSZone **mem = ptr-ZPTRSZ;
+  void **mem = ptr-ALIGN;
 
-  mem = objc_realloc(mem, size+ZPTRSZ);
-  if ((size != 0) && (mem == NULL))
+  if (size == 0)
+    {
+      objc_free(mem);
+      return NULL;
+    }
+  mem = objc_realloc(mem, size+ALIGN);
+  if (mem == NULL)
     [NSException raise: NSMallocException
                  format: @"Default zone has run out of memory"];
-  return mem+1;
+  return mem+ALIGN;
 }
 
 static void
 default_free (NSZone *zone, void *ptr)
 {
-  objc_free(ptr-ZPTRSZ);
+  objc_free(ptr-ALIGN);
 }
 
 static void

@@ -1,7 +1,7 @@
 /* Zone memory management. -*- Mode: ObjC -*-
    Copyright (C) 1997 Free Software Foundation, Inc.
 
-   Written by: Yoo C. Chung <wacko@power1.snu.ac.kr>
+   Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: January 1997
 
    This file is part of the GNUstep Base Library.
