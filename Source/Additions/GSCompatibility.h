@@ -28,12 +28,91 @@
 #ifdef NeXT_Foundation_LIBRARY
 #include <string.h>
 #include <Foundation/Foundation.h>
-#include "gnustep/base/preface.h"
-#include "gnustep/base/GSObjCRuntime.h"
-#include "gnustep/base/GNUstep.h"
+#include <CoreFoundation/CFString.h>
+#include <gnustep/base/preface.h>
+#include <gnustep/base/GSObjCRuntime.h>
+#include <gnustep/base/GNUstep.h>
 
-#define NSDebugMLLog(a, args...)
+@class NSMutableSet;
 
+// Following are also defined in gnustep-base/Headers/gnustep/base/NSObject.h
+#define IF_NO_GC(x)	\
+    x
+
+// Following are also defined in gnustep-base/Headers/gnustep/base/NSDebug.h
+#ifdef DEBUG
+#define NSDebugLLog(level, format, args...) \
+    do { if (GSDebugSet(level) == YES) \
+        NSLog(format , ## args); } while (0)
+
+#define NSDebugLog(format, args...) \
+    do { if (GSDebugSet(@"dflt") == YES) \
+        NSLog(format , ## args); } while (0)
+
+#define NSDebugFLLog(level, format, args...) \
+    do { if (GSDebugSet(level) == YES) { \
+        NSString *fmt = GSDebugFunctionMsg( \
+        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+        NSLog(fmt , ## args); }} while (0)
+
+#define NSDebugFLog(format, args...) \
+    do { if (GSDebugSet(@"dflt") == YES) { \
+        NSString *fmt = GSDebugFunctionMsg( \
+        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+        NSLog(fmt , ## args); }} while (0)
+
+#define NSDebugMLLog(level, format, args...) \
+    do { if (GSDebugSet(level) == YES) { \
+        NSString *fmt = GSDebugMethodMsg( \
+        self, _cmd, __FILE__, __LINE__, format); \
+        NSLog(fmt , ## args); }} while (0)
+
+#define NSDebugMLog(format, args...) \
+    do { if (GSDebugSet(@"dflt") == YES) { \
+        NSString *fmt = GSDebugMethodMsg( \
+        self, _cmd, __FILE__, __LINE__, format); \
+        NSLog(fmt , ## args); }} while (0)
+
+#else
+#define NSDebugLLog(level, format, args...)
+#define NSDebugLog(format, args...)
+#define NSDebugFLLog(level, format, args...)
+#define NSDebugFLog(format, args...)
+#define NSDebugMLLog(level, format, args...)
+#define NSDebugMLog(format, args...)
+#endif /* DEBUG */
+
+#ifdef GSWARN
+#define NSWarnLog(format, args...) \
+    do { if (GSDebugSet(@"NoWarn") == NO) { \
+        NSLog(format , ## args); }} while (0)
+
+#define NSWarnFLog(format, args...) \
+    do { if (GSDebugSet(@"NoWarn") == NO) { \
+        NSString *fmt = GSDebugFunctionMsg( \
+        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+        NSLog(fmt , ## args); }} while (0)
+
+#define NSWarnMLog(format, args...) \
+    do { if (GSDebugSet(@"NoWarn") == NO) { \
+        NSString *fmt = GSDebugMethodMsg( \
+        self, _cmd, __FILE__, __LINE__, format); \
+        NSLog(fmt , ## args); }} while (0)
+#else
+#define NSWarnLog(format, args...)
+#define NSWarnFLog(format, args...)
+#define NSWarnMLog(format, args...)
+#endif /* GSWARN */
+
+#define GS_RANGE_CHECK(RANGE, SIZE) \
+  if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
+    [NSException raise: NSRangeException \
+                format: @"in %s, range { %u, %u } extends beyond size (%u)", \
+                  sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
+
+GS_EXPORT NSRecursiveLock *gnustep_global_lock;
+
+/* Taken from gnustep-base/Headers/gnustep/base/NSString.h */
 typedef enum _NSGNUstepStringEncoding
 {
 /* NB. Must not have an encoding with value zero - so we can use zero to
@@ -64,19 +143,36 @@ typedef enum _NSGNUstepStringEncoding
   NSBIG5StringEncoding			// Traditional chinese
 } NSGNUstepStringEncoding;
 
-NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
+@interface NSObject(GNUStepGlue)
++ (id) notImplemented:(SEL)selector;
+- (BOOL) isInstance;
+@end
 
-#define GS_RANGE_CHECK(RANGE, SIZE) \
-  if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
-    [NSException raise: NSRangeException \
-                format: @"in %s, range { %u, %u } extends beyond size (%u)", \
-                  sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
+// Used only in EOFault.m, -[EOFault forward::], for Object compatibility
+@interface NSInvocation(GNUStepGlue)
+- (retval_t) returnFrame:(arglist_t)args;
+- (id) initWithArgframe:(arglist_t)args selector:(SEL)selector;
+@end
 
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
+GS_EXPORT NSArray *NSStandardLibraryPaths();
+GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
+
+@interface NSString(GNUStepGlue)
+- (BOOL) boolValue;
+@end
+
+GS_EXPORT BOOL GSDebugSet(NSString *level);
+@interface NSProcessInfo(GNUStepGlue)
+- (NSMutableSet *) debugSet;
+@end
+
+GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt);
+GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt);
 
 @interface NSArray (GSCompatibility)
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
 @end
+
 
 #endif /* NexT_FOUNDATION_LIB */
 

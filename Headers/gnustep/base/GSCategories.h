@@ -28,13 +28,15 @@
 
 #ifndef	NO_GNUSTEP
 
+#ifdef NeXT_Foundation_LIBRARY
+#include <Foundation/Foundation.h>
+#endif
+
 @interface NSCalendarDate (GSCategories)
 
 - (int) weekOfYear;
 
 @end
-
-
 
 @interface NSData (GSCategories)
 
@@ -43,6 +45,28 @@
 - (NSData*) md5Digest;
 
 @end
+
+@interface NSString (GSCategories)
+- (NSString*) stringByDeletingPrefix: (NSString*)prefix;
+- (NSString*) stringByDeletingSuffix: (NSString*)suffix;
+@end
+
+@interface NSMutableString (GSCategories)
+- (void) deleteSuffix: (NSString*)suffix;
+- (void) deletePrefix: (NSString*)prefix;
+@end
+
+/* This is also defined in NSObject.h, but added here for use with the
+   additions library */
+#ifndef NSOBJECT_GSCATEGORIES_INTERFACE
+@interface NSObject (GSCategories)
+- notImplemented:(SEL)aSel;
+- (id) subclassResponsibility: (SEL)aSel;
+- (id) shouldNotImplement: (SEL)aSel;
+
+- (NSComparisonResult) compare: (id)anObject;
+@end
+#endif
 
 #endif	/* NO_GNUSTEP */
 #endif	/* INCLUDED_GS_CATEGORIES_H */

@@ -22,7 +22,9 @@
 
 */
 #include "config.h"
-#include	<Foundation/Foundation.h>
+#include <string.h>
+#include <Foundation/Foundation.h>
+#include <gnustep/base/GSCategories.h>
 #include "GSCompatibility.h"
 
 /**

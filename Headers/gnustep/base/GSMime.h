@@ -28,7 +28,11 @@
 #ifndef __GSMIME_H__
 #define __GSMIME_H__
 
+#ifdef NeXT_Foundation_LIBRARY
+#include <Foundation/Foundation.h>
+#else
 #include	<Foundation/NSObject.h>
+#endif
 
 @class	NSArray;
 @class	NSMutableArray;
