@@ -27,11 +27,13 @@
 #include	<Foundation/NSProcessInfo.h>
 #include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSDebug.h>
+#include	<Foundation/NSAutoreleasePool.h>
 
 
 int
 main(int argc, char** argv)
 {
+    NSAutoreleasePool	*pool = [NSAutoreleasePool new];
     NSUserDefaults	*defs;
     NSProcessInfo	*proc;
     NSArray		*args;
@@ -47,6 +49,7 @@ main(int argc, char** argv)
     proc = [NSProcessInfo processInfo];
     if (proc == nil) {
 	NSLog(@"defaults: unable to get process information!\n");
+	[pool release];
 	exit(0);
     }
 
@@ -103,6 +106,7 @@ main(int argc, char** argv)
 	    printf(
 "defaults help\n"
 "    list options fo the defaults command.\n\n");
+	    [pool release];
 	    exit(0);
 	}
 	else if ([[args objectAtIndex: i] isEqual: @"plist"]) {
@@ -154,6 +158,7 @@ property list which is set as the value of a default.\n\n");
 "    );\n"
 "    Checksum = <01014b5b 123a8b20>\n"
 "}'\n\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -161,6 +166,7 @@ property list which is set as the value of a default.\n\n");
     i = 0;
     if ([args count] <= i) {
 	NSLog(@"defaults: too few arguments supplied!\n");
+	[pool release];
 	exit(0);
     }
     if ([[args objectAtIndex: i] isEqual: @"-u"]) {
@@ -169,6 +175,7 @@ property list which is set as the value of a default.\n\n");
 	}
 	else {
 	    NSLog(@"defaults: no name supplied for -u option!\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -180,6 +187,7 @@ property list which is set as the value of a default.\n\n");
     }
     if (defs == nil) {
 	NSLog(@"defaults: unable to access defaults database!\n");
+	[pool release];
 	exit(0);
     }
     /* We don't want this tool in the defaults database - so remove it. */
@@ -187,6 +195,7 @@ property list which is set as the value of a default.\n\n");
 
     if ([args count] <= i) {
 	NSLog(@"defaults: too few arguments supplied!\n");
+	[pool release];
 	exit(0);
     }
 
@@ -207,6 +216,7 @@ property list which is set as the value of a default.\n\n");
 	else {
 	    if ([args count] == ++i) {
 		NSLog(@"defaults: too few arguments supplied!\n");
+		[pool release];
 		exit(0);
 	    }
 	    owner = nil;
@@ -305,12 +315,14 @@ property list which is set as the value of a default.\n\n");
 		}
 		if (*start == '\0') {
 		    printf("defaults write: invalid input - nul domain name\n");
+		    [pool release];
 		    exit(0);
 		}
 		for (str = start; *str; str++) {
 		    if (isspace(*str)) {
 			printf("defaults write: invalid input - "
 				"space in domain name.\n");
+			[pool release];
 			exit(0);
 		    }
 		}
@@ -333,12 +345,14 @@ property list which is set as the value of a default.\n\n");
 		if (*start == '\0') {
 		    printf("defaults write: invalid input - "
 			"nul default name.\n");
+		    [pool release];
 		    exit(0);
 		}
 		for (str = start; *str; str++) {
 		    if (isspace(*str)) {
 			printf("defaults write: invalid input - "
 				"space in default name.\n");
+			[pool release];
 			exit(0);
 		    }
 		}
@@ -368,12 +382,14 @@ property list which is set as the value of a default.\n\n");
 				else {
 				    printf("defaults write: fatal error - "
 					    "out of memory.\n");
+				    [pool release];
 				    exit(0);
 				}
 			    }
 			    if (fgets(ptr, BUFSIZ, stdin) == 0) {
 				printf("defaults write: invalid input - "
 					"no final quote.\n");
+				[pool release];
 				exit(0);
 			    }
 			}
@@ -399,6 +415,7 @@ property list which is set as the value of a default.\n\n");
 		if (*start == '\0') {
 		    printf("defaults write: invalid input - "
 			    "empty property list\n");
+		    [pool release];
 		    exit(0);
 		}
 
@@ -413,6 +430,7 @@ property list which is set as the value of a default.\n\n");
 		    if (tmp == nil) {
 			printf("defaults write: invalid input - "
 				    "bad property list\n");
+			[pool release];
 			exit(0);
 		    }
 		    else {
@@ -432,6 +450,7 @@ property list which is set as the value of a default.\n\n");
 	    owner = [args objectAtIndex: i++];
 	    if ([args count] <= i) {
 		NSLog(@"defaults: no dictionary or key for write!\n");
+		[pool release];
 		exit(0);
 	    }
 	    name = [args objectAtIndex: i++];
@@ -447,6 +466,7 @@ property list which is set as the value of a default.\n\n");
 		    if (obj == nil) {
 			printf("defaults write: invalid input - "
 				    "bad property list\n");
+			[pool release];
 			exit(0);
 		    }
 		}
@@ -466,6 +486,7 @@ property list which is set as the value of a default.\n\n");
 		if (domain == nil ||
 			[domain isKindOfClass: [NSDictionary class]] == NO) {
 		    NSLog(@"defaults write: domain is not a dictionary!\n");
+		    [pool release];
 		    exit(0);
 		}
 	    }
@@ -497,6 +518,7 @@ property list which is set as the value of a default.\n\n");
 		}
 		if (*start == '\0') {
 		    printf("defaults delete: invalid input\n");
+		    [pool release];
 		    exit(0);
 		}
 		owner = [NSString stringWithCString: start];
@@ -513,6 +535,7 @@ property list which is set as the value of a default.\n\n");
 		}
 		if (*start == '\0') {
 		    printf("defaults delete: invalid input\n");
+		    [pool release];
 		    exit(0);
 		}
 		name = [NSString stringWithCString: start];
@@ -566,6 +589,7 @@ property list which is set as the value of a default.\n\n");
     else if ([[args objectAtIndex: i] isEqual: @"find"]) {
 	if ([args count] == ++i) {
 	    NSLog(@"defaults: no arguments for find!\n");
+	    [pool release];
 	    exit(0);
 	}
 	name = [args objectAtIndex: i];
@@ -612,9 +636,9 @@ property list which is set as the value of a default.\n\n");
     }
     else {
 	NSLog(@"defaults: unknown option supplied!\n");
-	exit(0);
     }
 
+    [pool release];
     exit(0);
 }
 
