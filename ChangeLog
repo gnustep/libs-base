@@ -1,3 +1,20 @@
+2004-07-01  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Foundation/NSMethodSignature.h
+	(_internalMethodTypes): New instance variable.
+	* Source/NSMethodSignature.m: ([+signatureWithObjCTypes]): Store
+	the runtime signature separately from the mframe signature.
+	Document.
+	([-dealloc]): Free new instance variable.
+	([-methodInfo]): Use _internalMethodTypes to build argument
+	information.
+
+	* Source/GSFFCallInvocation.m (GSInvocationCallback)
+	* Source/GSFFIInvocation.m (GSInvocationCallback): Use the
+	selector registered in the runtime for the receiver instead of the
+	constructed selector from the stack to avoid mismatches in the
+	runtime.
+
 2004-06-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Added MacOS-X compatibility methods ..

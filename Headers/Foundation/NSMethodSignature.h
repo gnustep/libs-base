@@ -76,11 +76,12 @@ typedef struct	{
   const char		*_methodTypes;
   unsigned		_argFrameLength;
   unsigned		_numArgs;
-#ifdef	STRICT_MACOS_X
+#ifdef STRICT_MACOS_X
   void			*_dummy;
 #else
   NSArgumentInfo	*_info;
 #endif
+  const char		*_internalMethodTypes;
 }
 
 /**
