@@ -1,3 +1,7 @@
+2001-06-07  Adam Fedor  <fedor@gnu.org>
+
+	* aclocal.m4: Add special case for cygwin in CON_AUTOLOAD.
+
 2001-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSAttributedString.m: When caching attribute dictionaries
