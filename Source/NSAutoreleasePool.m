@@ -327,14 +327,35 @@ static IMP	initImp;
 
 - (void) dealloc
 {
+  struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+
+  /*
+   * Remove self from the linked list of pools in use.
+   * Do this *first* so that any object which does an autorelease while
+   * being released does not cause an object to be added to this pool!
+   */
+  if (tv->current_pool == self)
+    {
+      tv->current_pool = _parent;
+      if (_parent != nil)
+	{
+	  _parent->_child = nil;
+	}
+    }
+
   //  fprintf (stderr, "Deallocating an NSAutoreleasePool\n");
   /* If there are NSAutoreleasePool below us in the stack of
      NSAutoreleasePools, then deallocate them also.  The (only) way we
      could get in this situation (in correctly written programs, that
      don't release NSAutoreleasePools in weird ways), is if an
      exception threw us up the stack. */
-  if (_child)
-    [_child dealloc];
+  if (_child != nil)
+    {
+      NSAutoreleasePool *child = _child;
+
+      _child = nil;
+      [child dealloc];
+    }
 
   /* Make debugging easier by checking to see if the user already
      dealloced the object before trying to release it.  Also, take the
@@ -366,7 +387,14 @@ static IMP	initImp;
 	    if (classes[hash] != c)
 	      {
 		classes[hash] = c;
-		imps[hash] = [c methodForSelector: releaseSel];
+		if (GSObjCIsInstance(anObject))
+		  {
+		    imps[hash] = [c instanceMethodForSelector: releaseSel];
+		  }
+		else
+		  {
+		    imps[hash] = [c methodForSelector: releaseSel];
+		  }
 	      }
 	    (imps[hash])(anObject, releaseSel);
 	  }
@@ -375,20 +403,8 @@ static IMP	initImp;
       }
   }
 
-  {
-    struct autorelease_thread_vars *tv;
-    NSAutoreleasePool **cp;
-
-    /* Uninstall ourselves as the current pool; install our parent pool. */
-    tv = ARP_THREAD_VARS;
-    cp = &(tv->current_pool);
-    *cp = _parent;
-    if (*cp)
-      (*cp)->_child = nil;
-
-    /* Don't deallocate ourself, just save us for later use. */
-    push_pool_to_cache (tv, self);
-  }
+  /* Don't deallocate ourself, just save us for later use. */
+  push_pool_to_cache (tv, self);
 }
 
 - (void) emptyPool

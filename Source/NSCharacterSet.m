@@ -106,15 +106,6 @@ static Class abstractClass = nil;
   cache_lock = [GSLazyLock new];
 }
 
-/* Provide a default object for allocation */
-+ (id) allocWithZone: (NSZone*)zone
-{
-  if (self == abstractClass)
-    return NSAllocateObject([NSBitmapCharSet self], 0, zone);
-  else
-    return NSAllocateObject(self, 0, zone);
-}
-
 /**
  * Creat and cache (or retrieve from cache) a characterset
  * using static bitmap data.
@@ -356,7 +347,7 @@ static Class abstractClass = nil;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  if ([self class] == [NSCharacterSet class])
+  if ([self class] == abstractClass)
     {
       int	index;
 
@@ -365,7 +356,10 @@ static Class abstractClass = nil;
        */
       DESTROY(self);
       [aCoder decodeValueOfObjCType: @encode(int) at: &index];
-      self = RETAIN([NSCharacterSet _staticSet: 0 number: index]);
+      self = RETAIN([abstractClass _staticSet: 0 number: index]);
+    }
+  else
+    {
     }
   return self;
 }
@@ -374,7 +368,7 @@ static Class abstractClass = nil;
 {
   if (anObject == self)
     return YES;
-  if ([anObject isKindOfClass: [NSCharacterSet class]])
+  if ([anObject isKindOfClass: abstractClass])
     {
       unsigned	i;
 
@@ -446,6 +440,71 @@ static Class abstractClass = nil;
 + (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[NSMutableBitmapCharSet alloc] initWithBitmap: data]);
+}
+
++ (NSCharacterSet*) alphanumericCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) controlCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) decimalDigitCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) decomposableCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) illegalCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) letterCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) lowercaseLetterCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) nonBaseCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) punctuationCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) symbolAndOperatorCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) uppercaseLetterCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) whitespaceAndNewlineCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) whitespaceCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
 /* Mutable subclasses must implement ALL of these methods. */

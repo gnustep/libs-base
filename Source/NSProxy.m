@@ -102,6 +102,17 @@ extern BOOL __objc_responds_to(id, SEL);
   return [NSString stringWithFormat: @"<%s>", GSClassNameFromObject(self)];
 }
 
++ (IMP) instanceMethodForSelector: (SEL)aSelector
+{
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+  /*
+   *	Since 'self' is an class, get_imp() will get the instance method.
+   */
+  return get_imp((Class)self, aSelector);
+}
+
 /**
  * Returns NO ... the NSProxy class cannot be an instance of any class.
  */
@@ -128,6 +139,10 @@ extern BOOL __objc_responds_to(id, SEL);
 
 - (IMP) methodForSelector: (SEL)aSelector
 {
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   return get_imp(GSObjCClass((id)self), aSelector);
 }
 
