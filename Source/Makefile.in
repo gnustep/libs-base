@@ -284,6 +284,7 @@ NSCharacterSet.m \
 NSCoder.m \
 NSCopyObject.m \
 NSConcreteValue.m \
+NSCountedSet.m \
 NSData.m \
 NSDate.m \
 NSDeallocateObject.m \
@@ -294,6 +295,7 @@ NSGeometry.m \
 NSGArchiver.m \
 NSGArray.m \
 NSGCoder.m \
+NSGCountedSet.m \
 NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
