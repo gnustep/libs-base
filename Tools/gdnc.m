@@ -18,7 +18,7 @@
 
    */
 
-#include "config.h"
+#include	"config.h"
 #include	<Foundation/Foundation.h>
 
 #include        <stdio.h>
@@ -27,6 +27,39 @@
 #ifdef __MINGW__
 #include	"process.h"
 #endif
+
+#include        <signal.h>
+
+#ifndef NSIG
+#define NSIG    32
+#endif
+
+static void
+ihandler(int sig)
+{
+  int       count;
+
+  /*
+   * Reset signals to avoid recursive call of handler.
+   */
+  for (count = 0; count < NSIG; count++)
+    {
+      signal((int)count, SIG_DFL);
+    }
+  /*
+   * If asked to terminate, do so cleanly.
+   */
+  if (sig == SIGTERM)
+    {
+      exit(EXIT_FAILURE);
+    }
+  /*
+   * Terminate with an abort ... should give us a core dump so we can
+   * debug and find out why this happened.
+   */
+  abort();
+}
+
 
 #include	"gdnc.h"
 
@@ -860,11 +893,25 @@ main(int argc, char** argv, char** env)
 #if GS_WITH_GC == 0
     CREATE_AUTORELEASE_POOL(pool);
 #endif
-    NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+    NSUserDefaults	*defs;
+    int			sym;
+
+    for (sym = 0; sym < NSIG; sym++)
+      {
+	signal(sym, ihandler);
+      }
+#ifndef __MINGW__
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
+#endif
+    signal(SIGTERM, ihandler);
 
     /*
      * Make gdnc logging go to syslog unless overridden by user.
      */
+    defs = [NSUserDefaults standardUserDefaults];
     [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
       @"YES", @"GSLogSyslog", nil]];
 
