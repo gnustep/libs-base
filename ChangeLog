@@ -14,7 +14,8 @@
 	to NSISOCyrillicStringEncoding, and likewise for Greek, Arabic, and
 	Hebrew, to avoid ambiguity.  Add enum values for all remaining
 	ISO-8859 character sets, plus UTF-7.
-	* Source/NSString.m: Update pursuant to above changes.
+	* Source/GSXML.m: Update pursuant to above changes.
+	* Source/NSString.m: Ditto.
 	* Source/Unicode.m: Ditto.
 
 2001-03-11  Adam Fedor  <fedor@gnu.org>
