@@ -1,3 +1,8 @@
+2002-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: When reading .GNUsteprc, if a per user version is
+	not available, use the one in the configured system root directory.
+
 2002-02-28  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: Add objc-runtime.h
