@@ -1,3 +1,8 @@
+2001-05-26  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSDebug.m (_NSPrintForDebugger): new function to support print
+	object (po) cmd of gdb.
+
 2001-05-25  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Use -lobjc with NeXT_RUNTIME.

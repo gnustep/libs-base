@@ -760,3 +760,11 @@ void *NSReturnAddress(int offset)
 
    return NULL;
 }
+
+const char *_NSPrintForDebugger(id object)
+{
+  if (object && [object respondsToSelector: @selector(description)])
+    return [[object description] cString];
+
+  return NULL;
+}
