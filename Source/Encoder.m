@@ -660,8 +660,7 @@ my_object_is_class(id object)
 	      /* xxx This code used to be below at the place marked `1234' */
 	      /* Remove it from the forward reference table, since we'll never
 		 have another forward reference for this object. */
-	      if (fref)
-		[self _coderRemoveForwardReferenceForObject: anObj];
+	      [self _coderRemoveForwardReferenceForObject: anObj];
 	    }
 	  else
 	    {
