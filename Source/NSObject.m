@@ -37,36 +37,6 @@
 extern void (*_objc_error)(id object, const char *format, va_list);
 extern int errno;
 
-NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
-{
-  id new = nil;
-  int size = aClass->instance_size + extraBytes;
-  if (CLS_ISCLASS(aClass))
-    new = (*objc_malloc) (size);
-  if (new != nil)
-    {
-      memset (new, 0, size);
-      new->class_pointer = aClass;
-    }
-  return new;
-}
-
-void NSDeallocateObject(NSObject *anObject)
-{
-  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
-    (*objc_free) (anObject);
-  return;
-}
-
-NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
-{
-  id copy = NSAllocateObject(((id)anObject)->class_pointer, extraBytes, zone);
-  memcpy(copy, anObject, 
-	 ((id)anObject)->class_pointer->instance_size + extraBytes);
-  return copy;
-}
-
-
 /* Reference count management */
 
 /* Doesn't handle multi-threaded stuff.
