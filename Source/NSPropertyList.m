@@ -2,6 +2,7 @@
    Copyright (C) 2003,2004 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
+   		Fred Kiefer <FredKiefer@gmx.de>
    
    This file is part of the GNUstep Base Library.
    
@@ -28,6 +29,7 @@
 
 #include "Foundation/NSArray.h"
 #include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSByteOrder.h"
 #include "Foundation/NSCalendarDate.h"
 #include "Foundation/NSCharacterSet.h"
 #include "Foundation/NSData.h"
@@ -46,6 +48,24 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @class	GSMutableString;
 @class	GSMutableArray;
 @class	GSMutableDictionary;
+
+@interface GSBinaryPLParser : NSObject
+{
+  NSPropertyListMutabilityOptions	mutability;
+  const unsigned char	*_bytes;
+  NSData		*data;
+  unsigned		size;		// Number of bytes per table entry
+  unsigned		table_start;	// Start address of object table
+  unsigned		table_len;	// Length of object table
+  NSMutableArray	*_objects;	// All decoded objects.
+}
+
+- (id) initWithData: (NSData*)plData
+	 mutability: (NSPropertyListMutabilityOptions)m;
+- (id) rootObject;
+- (id) objectAtIndex: (unsigned)index;
+
+@end
 
 
 /*
@@ -2238,3 +2258,487 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   return AUTORELEASE(string);
 }
 @end
+
+
+
+
+
+@implementation GSBinaryPLParser
+
+- (void) dealloc
+{
+  DESTROY(data);
+  DESTROY(_objects);
+  [super dealloc];
+}
+
+- (id) initWithData: (NSData*)plData
+	 mutability: (NSPropertyListMutabilityOptions)m;
+{
+  unsigned	length;
+
+  length = [plData length];
+  if (length < 32)
+    {
+      DESTROY(self);
+    }
+  else
+    {
+      unsigned char	postfix[32];
+
+      // FIXME: Get more of the details
+      [data getBytes: postfix range: NSMakeRange(length-32, 32)];
+      size = postfix[6];
+      if (size < 1 || size > 2)
+	{
+	  DESTROY(self);	// Bad format
+	}
+      else if ((table_start = 256*postfix[30] + postfix[31]) > length - 32)
+	{
+	  DESTROY(self);	// Bad format
+	}
+      else
+	{
+	  table_len = length - table_start - 32;
+	  _objects = [NSMutableArray new];
+	  ASSIGN(data, plData);
+	  _bytes = (const unsigned char*)[data bytes];
+	  mutability = m;
+	}
+    }
+
+  return self;
+}
+
+- (unsigned) offsetForIndex: (unsigned)index
+{
+  if (index > table_len)
+    {
+      [NSException raise: NSRangeException
+		   format: @"Object table index out of bounds %d.", index];
+    }
+
+  if (size == 1)
+    {
+      unsigned char offset;
+	
+      [data getBytes: &offset range: NSMakeRange(table_start + index, 1)];
+
+      return offset;
+    }
+  else if (size == 2)
+    {
+      unsigned short offset;
+	
+      [data getBytes: &offset range: NSMakeRange(table_start + 2*index, 2)];
+
+      return NSSwapBigShortToHost(offset);
+    }
+  else
+    {
+      [NSException raise: NSGenericException
+		   format: @"Unknown table size %d", size];
+    }
+  return 0;
+}
+
+- (unsigned) readObjectIndexAt: (unsigned*)counter
+{
+  if (size == 1)
+    {
+      unsigned char oid;
+
+      [data getBytes: &oid range: NSMakeRange(*counter,1)];
+      *counter += 1;  
+      return oid;
+    }
+  else if (size == 2)
+    {
+      unsigned short oid;
+
+      [data getBytes: &oid range: NSMakeRange(*counter,sizeof(short))];
+      *counter += sizeof(short);  
+
+      return NSSwapBigShortToHost(oid);
+    }
+  else
+    {
+      [NSException raise: NSGenericException
+		   format: @"Unkown table size %d", size];
+    }
+  return 0;
+}
+
+- (unsigned) readCountAt: (unsigned*) counter
+{
+  unsigned char c;
+
+  [data getBytes: &c range: NSMakeRange(*counter,1)];
+  *counter += 1;
+
+  if (c == 0x10)
+    {
+      unsigned char count;
+
+      [data getBytes: &count range: NSMakeRange(*counter,1)];
+      *counter += 1;
+      return count;
+    }
+  else if (c == 0x11)
+    {
+      unsigned short count;
+
+      [data getBytes: &count range: NSMakeRange(*counter,2)];
+      *counter += 2;
+      return NSSwapBigShortToHost(count);
+    }
+  else
+    {
+      //FIXME
+      [NSException raise: NSGenericException
+		   format: @"Unkown coutn type %d", c];
+    }
+
+  return 0;
+}
+
+- (id) rootObject
+{
+  return [self objectAtIndex: 0];
+}
+
+- (id) objectAtIndex: (unsigned)index
+{
+  unsigned char	next;
+  unsigned	counter = [self offsetForIndex: index];
+  id		result = nil;
+
+  [data getBytes: &next range: NSMakeRange(counter,1)];
+  //NSLog(@"read object %d at index %d type %d", index, counter, next);
+  counter += 1;
+
+  if (next == 0x08)
+    {
+      // NO
+      result = [NSNumber numberWithBool: NO];
+    }
+  else if (next == 0x09)
+    {
+      // YES
+      result = [NSNumber numberWithBool: YES];
+    }
+  else if ((next >= 0x10) && (next < 0x1F))
+    {
+      // integer number
+      unsigned		len = next - 0x10 + 1;
+      int		num = 0;
+      unsigned		i;
+      unsigned char	buffer[16];
+
+      [data getBytes: buffer range: NSMakeRange(counter, len)];
+      for (i = 0; i < len; i++)
+        {
+	  num = num*256 + buffer[counter + i];
+	}
+      result = [NSNumber numberWithInt: num];
+    }
+  else if (next == 0x22)
+    {
+      // float number
+      float in;
+
+      [data getBytes: &in range: NSMakeRange(counter, sizeof(float))];
+      result = [NSNumber numberWithFloat: NSSwapBigFloatToHost(in)];
+    }
+  else if (next == 0x23)
+    {
+      // double number
+      double in;
+
+      [data getBytes: &in range: NSMakeRange(counter, sizeof(double))];
+      result = [NSNumber numberWithFloat: NSSwapBigDoubleToHost(in)];
+    }
+  else if (next == 0x33)
+    {
+      double in;
+      // Date
+      NSDate *date;
+      [data getBytes: &in range: NSMakeRange(counter, sizeof(double))];
+      date = [NSDate dateWithTimeIntervalSinceReferenceDate:
+	NSSwapBigDoubleToHost(in)];
+      result = date;
+    }
+  else if ((next >= 0x40) && (next < 0x4F))
+    {
+      // short data
+      unsigned len = next - 0x40;
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves)
+	{
+	  result = [NSMutableData dataWithBytes: _bytes + counter
+					 length: len];
+	}
+      else
+	{
+	  result = [data subdataWithRange: NSMakeRange(counter, len)];
+	}
+    }
+  else if (next == 0x4F)
+    {
+      // long data
+      unsigned len;
+
+      len = [self readCountAt: &counter];
+      if (mutability == NSPropertyListMutableContainersAndLeaves)
+	{
+	  result = [NSMutableData dataWithBytes: _bytes + counter
+					 length: len];
+	}
+      else
+	{
+	  result = [data subdataWithRange: NSMakeRange(counter, len)];
+	}
+    }
+  else if ((next >= 0x50) && (next < 0x5F))
+    {
+      // Short string
+      unsigned len = next - 0x50;
+      unsigned char buffer[len];
+
+      [data getBytes: buffer range: NSMakeRange(counter, len)];
+      if (mutability == NSPropertyListMutableContainersAndLeaves)
+	{
+	  result = [NSMutableString stringWithCString: buffer length: len];
+	}
+      else
+	{
+	  result = [NSString stringWithCString: buffer length: len];
+	}
+    }
+  else if (next == 0x5F)
+    {
+      // long string
+      unsigned len;
+      char *buffer;
+
+      len = [self readCountAt: &counter];
+      buffer = malloc(len+1);
+      [data getBytes: buffer range: NSMakeRange(counter, len)];
+      buffer[len] = '\0';
+      if (mutability == NSPropertyListMutableContainersAndLeaves)
+	{
+	  result = [NSMutableString stringWithUTF8String: buffer];
+	}
+      else
+	{
+	  result = [NSString stringWithUTF8String: buffer];
+	}
+      free(buffer);
+    }
+  else if ((next >= 0x60) && (next < 0x6F))
+    {
+      // Short unicode string
+      unsigned	len = next - 0x60;
+      unsigned 	i;
+      unichar	buffer[len];
+
+      [data getBytes: buffer 
+	       range: NSMakeRange(counter, sizeof(unichar)*len)];
+
+      for (i = 0; i < len; i++)
+        {
+	  buffer[i] = NSSwapBigShortToHost(buffer[i]);
+	}
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves)
+	{
+	  result = [NSMutableString stringWithCharacters: buffer length: len];
+	}
+      else
+	{
+	  result = [NSString stringWithCharacters: buffer length: len];
+	}
+    }
+  else if (next == 0x6F)
+    {
+      // long unicode string
+      unsigned	len;
+      unsigned	i;
+      unichar	*buffer;
+
+      len = [self readCountAt: &counter];
+      buffer = malloc(sizeof(unichar)*len);
+      [data getBytes: buffer range: NSMakeRange(counter, sizeof(unichar)*len)];
+
+      for (i = 0; i < len; i++)
+        {
+	  buffer[i] = NSSwapBigShortToHost(buffer[i]);
+	}
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves)
+	{
+	  result = [NSMutableString stringWithCharacters: buffer length: len];
+	}
+      else
+	{
+	  result = [NSString stringWithCharacters: buffer length: len];
+	}
+      free(buffer);
+    }
+  else if (next == 0x80)
+    {
+      unsigned char	index;
+
+      [data getBytes: &index range: NSMakeRange(counter,1)];
+      result = [_objects objectAtIndex: index];
+    }
+  else if (next == 0x81)
+    {
+      unsigned short	index;
+
+      [data getBytes: &index range: NSMakeRange(counter,2)];
+      index = NSSwapBigShortToHost(index);
+      result = [_objects objectAtIndex: index];
+    }
+  else if ((next >= 0xA0) && (next < 0xAF))
+    {
+      // short array
+      unsigned	len = next - 0xA0;
+      unsigned	i;
+      id	objects[len];
+
+      for (i = 0; i < len; i++)
+        {
+	  int oid = [self readObjectIndexAt: &counter];
+
+	  objects[i] = [self objectAtIndex: oid];
+	}
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves
+	|| mutability == NSPropertyListMutableContainers)
+	{
+	  result = [NSMutableArray arrayWithObjects: objects count: len];
+	}
+      else
+	{
+	  result = [NSArray arrayWithObjects: objects count: len];
+	}
+    }
+  else if (next == 0xAF)
+    {
+      // big array
+      unsigned	len;
+      unsigned	i;
+      id	*objects;
+
+      len = [self readCountAt: &counter];
+      objects = malloc(sizeof(id) * len);
+
+      for (i = 0; i < len; i++)
+        {
+	  int oid = [self readObjectIndexAt: &counter];
+
+	  objects[i] = [self objectAtIndex: oid];
+	}
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves
+	|| mutability == NSPropertyListMutableContainers)
+	{
+	  result =[NSMutableArray arrayWithObjects: objects count: len];
+	}
+      else
+	{
+	  result =[NSArray arrayWithObjects: objects count: len];
+	}
+      free(objects);
+    }
+  else if ((next >= 0xD0) && (next < 0xDF))
+    {
+      // dictionary
+      unsigned	len = next - 0xD0;
+      unsigned	i;
+      id	keys[len];
+      id	values[len];
+
+      for (i = 0; i < len; i++)
+        {
+	  int oid = [self readObjectIndexAt: &counter];
+
+	  keys[i] = [self objectAtIndex: oid];
+	}
+
+      for (i = 0; i < len; i++)
+        {
+	  int oid = [self readObjectIndexAt: &counter];
+
+	  values[i] = [self objectAtIndex: oid];
+	}
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves
+	|| mutability == NSPropertyListMutableContainers)
+	{
+	  result = [NSMutableDictionary dictionaryWithObjects: values 
+						      forKeys: keys 
+							count: len];
+	}
+      else
+	{
+	  result = [NSDictionary dictionaryWithObjects: values 
+					       forKeys: keys 
+						 count: len];
+	}
+    }
+  else if (next == 0xDF)
+    {
+      // big dictionary
+      unsigned	len;
+      unsigned	i;
+      id	*keys;
+      id	*values;
+
+      len = [self readCountAt: &counter];
+      keys = malloc(sizeof(id)*len);
+      values = malloc(sizeof(id)*len);
+      for (i = 0; i < len; i++)
+        {
+	  int oid = [self readObjectIndexAt: &counter];
+
+	  keys[i] = [self objectAtIndex: oid];
+	}
+
+      for (i = 0; i < len; i++)
+        {
+	  int oid = [self readObjectIndexAt: &counter];
+
+	  values[i] = [self objectAtIndex: oid];
+	}
+
+      if (mutability == NSPropertyListMutableContainersAndLeaves
+	|| mutability == NSPropertyListMutableContainers)
+	{
+	  result = [NSMutableDictionary dictionaryWithObjects: values 
+						      forKeys: keys 
+							count: len];
+	}
+      else
+	{
+	  result = [NSDictionary dictionaryWithObjects: values 
+					       forKeys: keys 
+						 count: len];
+	}
+      free(values);
+      free(keys);
+    }
+  else
+    {
+      [NSException raise: NSGenericException
+		   format: @"Unknown control byte = %d", next];
+    }
+
+  [_objects addObject: result];
+  return result;
+}
+
+@end
+
+
