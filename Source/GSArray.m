@@ -137,6 +137,11 @@ static Class	GSInlineArrayClass;
   NSDeallocateObject(self);
 }
 
+- (id) init
+{
+  return [self initWithObjects: 0 count: 0];
+}
+
 /* This is the designated initializer for NSArray. */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
@@ -213,11 +218,6 @@ static Class	GSInlineArrayClass;
 	}
     }
   return self;
-}
-
-- (id) init
-{
-  return [self initWithObjects: 0 count: 0];
 }
 
 - (unsigned) count
@@ -377,6 +377,10 @@ static Class	GSInlineArrayClass;
     }
   NSDeallocateObject(self);
 }
+- (id) init
+{
+  return [self initWithObjects: 0 count: 0];
+}
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
   _contents_array = (id*)&self[1];
@@ -466,6 +470,11 @@ static Class	GSInlineArrayClass;
       _contents_array[i1] = _contents_array[i2];
       _contents_array[i2] = tmp;
     }
+}
+
+- (id) init
+{
+  return [self initWithCapacity: 0];
 }
 
 - (id) initWithCapacity: (unsigned)cap
@@ -1014,6 +1023,11 @@ static Class	GSInlineArrayClass;
 - (void) dealloc
 {
   return;		// placeholders never get deallocated.
+}
+
+- (id) init
+{
+  return [self initWithObjects: 0 count: 0];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
