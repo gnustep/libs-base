@@ -684,7 +684,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString		*shost = nil;
   NSString		*sport = nil;
 
-  if (beenHere == NO);
+  if (beenHere == NO)
     {
       NSUserDefaults	*defs;
 
