@@ -33,7 +33,7 @@
 
 // Archiving Data
 
-+ (NSData*) archivedDataWithRootObject: (id)rootObject
++ (NSData*) archivedDataWithRootObject: (id)rootObject;
 + (BOOL) archiveRootObject: (id)rootObject toFile: (NSString*)path;
 
 // Getting data from the archiver
@@ -44,7 +44,7 @@
 
 + (NSString*) classNameEncodedForTrueClassName: (NSString*)trueName;
 - (void) enocdeClassName: (NSString*)trueName
-   intoClassName: (NSSTring*)inArchiveName;
+   intoClassName: (NSString*)inArchiveName;
 
 @end
 
