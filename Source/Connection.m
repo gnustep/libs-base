@@ -592,7 +592,7 @@ static int messages_received_count;
 	    if (ip) {
 	      /* this must be here to avoid trashing alloca'ed retframe */
 	      [ip dismiss]; 	
-	      ip = nil;
+	      ip = (id)-1;
 	    }
 	    return;
 	  }
@@ -614,6 +614,7 @@ static int messages_received_count;
 		  [ip decodeObjectAt: &exc
 		      withName: NULL];
 		  [ip dismiss];
+		  ip = (id)-1;
 		  /* xxx Is there anything else to clean up in
 		     dissect_method_return()? */
 		  [exc raise];
@@ -630,8 +631,12 @@ static int messages_received_count;
 
       retframe = mframe_build_return (argframe, type, out_parameters,
 				      decoder);
-      /* Make sure we processed all arguments, and dismissed the IP. */
-      assert (ip == (id)-1);
+      /* Make sure we processed all arguments, and dismissed the IP. 
+         IP is always set to -1 after being dismissed; the only places
+	 this is done is in this function DECODER().  IP will be nil
+	 if mframe_build_return() never called DECODER(), i.e. when 
+	 we are just returning (void).*/
+      assert (ip == (id)-1 || ip == nil);
       return retframe;
     }
   }
