@@ -1365,15 +1365,15 @@ transmute(ivars self, NSString *aString)
        * string whose ivars we can access directly.
        */
       transmute = NO;
-      if ((c != GSMutableStringClass || other->_flags.wide != 1)
-	&& c != GSUnicodeStringClass)
+      if (GSObjCIsKindOf(c, GSUnicodeStringClass) == NO
+	&& (c != GSMutableStringClass || other->_flags.wide != 1))
 	{
 	  other = 0;
 	}
     }
   else
     {
-      if (c == GSCStringClass || c == NXConstantStringClass
+      if (GSObjCIsKindOf(c, GSCStringClass) || c == NXConstantStringClass
 	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
 	  /*
@@ -1393,7 +1393,7 @@ transmute(ivars self, NSString *aString)
 	  other = 0;
 	}
       else if ((c == GSMutableStringClass && other->_flags.wide == 1)
-	|| c == GSUnicodeStringClass)
+	|| GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
 	{
 	  /*
 	   * This is a C string, and the other string can not be converted
