@@ -21,8 +21,57 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#include <objects/stdobjects.h>
 #include <Foundation/NSConcreteValue.h>
 #include <Foundation/NSCoder.h>
+
+/* NSValueDecoder is a Class whose only purpose is to decode coded NSValue
+   objects.  The only method(s) that should ever be called are +newWithCoder:
+   or -initWithCoder:.  Should disallow any other method calls... */
+@interface NSValueDecoder : NSValue
+{
+}
+
+@end
+
+@implementation NSValueDecoder
+
+- initValue:(const void *)value
+      withObjCType:(const char *)type
+{
+    [self shouldNotImplement:_cmd];
+}
+
++ (id) newWithCoder: (NSCoder *)coder
+{
+    char *type;
+    void *data;
+    id   new_value;
+
+    [coder decodeValueOfObjCType:@encode(char *) at:&type];
+    [coder decodeValueOfObjCType:type at:&data];
+    /* Call NSNumber's implementation of this method, because NSValueDecoder
+       also stores NSNumber types */
+    new_value = [[NSNumber valueClassWithObjCType:type] 
+	allocWithZone:[coder objectZone]];
+    [new_value initValue:data withObjCType:type];
+    OBJC_FREE(data);
+    OBJC_FREE(type);
+    return new_value;
+}
+
+/* Are you convinced that +newWithCoder is a better idea?  Otherwise we
+   have to release ourselves and return a new instance of the correct
+   object. We hope that the calling method knows this and has nested the
+   alloc and init calls or knows that the object has been replaced. */
+- (id) initWithCoder: (NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    [self autorelease];
+    return [NSValueDecoder newWithCoder:coder];
+}
+
+@end
 
 @implementation NSValue
 
@@ -111,50 +160,50 @@
 /* All the rest of these methods must be implemented by a subclass */
 - (void)getValue:(void *)value
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
 }
 
 - (const char *)objCType
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
  
 // FIXME: Is this an error or an exception???
 - (id)nonretainedObjectValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
  
 - (void *)pointerValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 } 
 
 - (NSRect)rectValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return NSMakeRect(0,0,0,0);
 }
  
 - (NSSize)sizeValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return NSMakeSize(0,0);
 }
  
 - (NSPoint)pointValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return NSMakePoint(0,0);
 }
 
 // NSCoding (done by subclasses)
 - classForCoder
 {
-    return [self class];
+    return [NSValueDecoder class];
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder

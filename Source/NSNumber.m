@@ -168,100 +168,95 @@
 /* All the rest of these methods must be implemented by a subclass */
 - (BOOL)boolValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (char)charValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (double)doubleValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (float)floatValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (int)intValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (long long)longLongValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (long)longValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (short)shortValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (NSString *)stringValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (unsigned char)unsignedCharValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (unsigned int)unsignedIntValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (unsigned long long)unsignedLongLongValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (unsigned long)unsignedLongValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (unsigned short)unsignedShortValue
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 - (NSComparisonResult)compare:(NSNumber *)otherNumber
 {
-    [self doesNotRecognizeSelector:_cmd];
+    [self subclassResponsibility:_cmd];
     return 0;
 }
 
 // NSCoding (done by subclasses)
-- classForCoder
-{
-    return [self class];
-}
-
 - (void)encodeWithCoder:(NSCoder *)coder
 {
     [super encodeWithCoder:coder];
@@ -269,7 +264,8 @@
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-    self =  [super initWithCoder:coder];
+    [NSException raise:NSInconsistentArchiveException
+	format:@"Cannot unarchive from NSNumber class - Need NSValueDecoder."];
     return self;
 }
 

@@ -141,18 +141,19 @@
 // NSCoding
 - (void)encodeWithCoder:(NSCoder *)coder
 {
+    const char *type;
     [super encodeWithCoder:coder];
     // FIXME: Do we need to check for encoding void, void * or will
     // NSCoder do this for us?
-    [coder encodeObject:objctype];
-    [coder encodeValueOfObjCType:[objctype cString] at:&data];
+    type = [objctype cString];
+    [coder encodeValueOfObjCType:@encode(char *) at:&type];
+    [coder encodeValueOfObjCType:type at:&data];
 }
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-    self = [super initWithCoder:coder];
-    objctype = [[coder decodeObject] retain];
-    [coder decodeValueOfObjCType:[objctype cString] at:&data];
+    [NSException raise:NSInconsistentArchiveException
+	format:@"Cannot unarchive class - Need NSValueDecoder."];
     return self;
 }
 

@@ -98,11 +98,11 @@ static BOOL debug_textcoder = NO;
 	      indentation, "", name, (unsigned)*(unsigned char*)d];
       break;
     case _C_FLT:
-      [stream writeFormat:"%*s<%s> (float) = %f\n",
+      [stream writeFormat:"%*s<%s> (float) = %g\n",
 	      indentation, "", name, *(float*)d];
       break;
     case _C_DBL:
-      [stream writeFormat:"%*s<%s> (double) = %f\n",
+      [stream writeFormat:"%*s<%s> (double) = %g\n",
 	      indentation, "", name, *(double*)d];
       break;
     case _C_CHARPTR:
@@ -198,7 +198,7 @@ if (debug_textcoder) \
       DECODE_DEBUG(float, f);
       break;
     case _C_DBL:
-      if ([stream readFormat:DECODER_FORMAT(double,f),
+      if ([stream readFormat:DECODER_FORMAT(double,lf),
 	      &tmpname, (double*)d] != 2)
 	DECODE_ERROR(double);
       DECODE_DEBUG(double, f);

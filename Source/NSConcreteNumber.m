@@ -195,14 +195,18 @@
 // NSCoding
 - (void)encodeWithCoder:(NSCoder *)coder
 {
+    const char *type;
     [super encodeWithCoder:coder];
-    [coder encodeValueOfObjCType:[self objCType] at:&data];
+    type = [self objCType];
+    [coder encodeValueOfObjCType:@encode(char *) at:&type];
+    [coder encodeValueOfObjCType:type at:&data];
 }
 
 - (id)initWithCoder:(NSCoder *)coder
 {
+    // This should raise an exception - Use NSValueDecoder to decode NSNumber
     self = [super initWithCoder:coder];
-    [coder decodeValueOfObjCType:[self objCType] at:&data];
+    //[coder decodeValueOfObjCType:[self objCType] at:&data];
     return self;
 }
 

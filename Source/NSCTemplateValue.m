@@ -90,14 +90,17 @@
 // NSCoding
 - (void)encodeWithCoder:(NSCoder *)coder
 {
+    const char *type;
     [super encodeWithCoder:coder];
-    [coder encodeValueOfObjCType:[self objCType] at:&data];
+    type = [self objCType];
+    [coder encodeValueOfObjCType:@encode(char *) at:&type];
+    [coder encodeValueOfObjCType:type at:&data];
 }
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-    self = [super initWithCoder:coder];
-    [coder decodeValueOfObjCType:[self objCType] at:&data];
+    [NSException raise:NSInconsistentArchiveException
+	format:@"Cannot unarchive class - Need NSValueDecoder."];
     return self;
 }
 
