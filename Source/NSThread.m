@@ -69,11 +69,13 @@
 - (void) sendThreadMethod
 {
   /*
-   * We are running in the new thread - so an autorelease puts us in the
-   * pool for the thread.  If the thread object calls [NSThread exit] the
-   * pool will be released, otherwise, we call it ourself.
+   * We are running in the new thread - so we store ourself in the thread
+   * dictionary and release ourself - thus, when the thread exits, we will
+   * be deallocated cleanly.
    */
-  AUTORELEASE(self);
+  [[[NSThread currentThread] threadDictionary] setObject: self
+						  forKey: @"GSThreadLauncher"];
+  RELEASE(self);
   [target performSelector: sel withObject: arg];
   [NSThread exit];
 }
