@@ -45,6 +45,7 @@ typedef	enum {
   GSMimeEncodingSevenBit,
   GSMimeEncodingEightBit,
   GSMimeEncodingBinary,
+  GSMimeEncodingChunked,		// HTTP/1.1 chunked transfer
   GSMimeEncodingUnknown
 } GSMimeEncoding;
 
@@ -54,10 +55,10 @@ typedef	enum {
 @interface	GSMimeEncodingContext : NSObject
 {
 @public
-  unsigned char		buf[4];
-  unsigned		pos;
-  BOOL			atEnd;
-  GSMimeEncoding	type;	/* The content encoding type to be used	*/
+  GSMimeEncoding	type;	/* The encoding type to be used.	*/
+  unsigned char		buf[8];	/* Temporary data storage area.		*/
+  int			pos;	/* Context position count.		*/
+  BOOL			atEnd;	/* Flag to say that data has ended.	*/
 }
 @end
 
