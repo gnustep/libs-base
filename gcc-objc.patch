@@ -1,0 +1,4040 @@
+diff -rc2P objc/Makefile objc-threaded/Makefile
+*** objc/Makefile	Sat Jan 20 21:09:37 1996
+--- objc-threaded/Makefile	Fri Jan 26 14:39:17 1996
+***************
+*** 57,61 ****
+  
+  OBJC_O = hash.o sarray.o class.o sendmsg.o init.o archive.o encoding.o \
+!          selector.o objects.o misc.o NXConstStr.o Object.o Protocol.o
+  
+  libobjc.a: $(OBJC_O)
+--- 57,61 ----
+  
+  OBJC_O = hash.o sarray.o class.o sendmsg.o init.o archive.o encoding.o \
+!          selector.o objects.o misc.o NXConstStr.o Object.o Protocol.o thread.o
+  
+  libobjc.a: $(OBJC_O)
+***************
+*** 64,70 ****
+  # ranlib is run in the parent directory's makefile.
+  
+! OBJC_H = hash.h list.h sarray.h objc.h \
+           objc-api.h \
+! 	 NXConstStr.h Object.h Protocol.h encoding.h typedstream.h
+  
+  # copy objc headers to installation include directory
+--- 64,70 ----
+  # ranlib is run in the parent directory's makefile.
+  
+! OBJC_H = hash.h objc-list.h sarray.h objc.h \
+           objc-api.h \
+! 	 NXConstStr.h Object.h Protocol.h encoding.h typedstream.h thread.h
+  
+  # copy objc headers to installation include directory
+***************
+*** 99,100 ****
+--- 99,102 ----
+  Object.o: Object.m
+  Protocol.o: Protocol.m
++ thread.o: thread.c thread-solaris.c thread-irix.c thread-win32.c thread-single.c
++ 
+diff -rc2P objc/README.threads objc-threaded/README.threads
+*** objc/README.threads	Wed Dec 31 19:00:00 1969
+--- objc-threaded/README.threads	Sun Jan 21 21:28:14 1996
+***************
+*** 0 ****
+--- 1,52 ----
++ ==============================================================================
++ README - Wed Nov 29 15:16:24 EST 1995
++ ------------------------------------------------------------------------------
++ 
++ Limited documentation is available in the THREADS file.
++ 
++ A simple multiple threaded test program is available in thread-test/.
++ 
++ This version has been tested on Sun Solaris, SGI Irix, and Windows NT.
++ It should also work on any single threaded system.
++ 
++ Thanks go to the following people for help test and debug the library:
++ 
++ 	Scott Christley, scottc@ocbi.com
++ 	Andrew McCallum, mccallum@cs.rochester.edu
++ 
++ galen
++ gchunt@cs.rochester.edu
++ 
++ Any questions, bug reports, etc should be directed to:
++ 
++ Scott Christley, scottc@ocbi.com
++ 
++ Please do not bug Galen with email as he no longer supports the code.
++ 
++ ==============================================================================
++ Changes from prior releases (in revered chronological order):
++ ------------------------------------------------------------------------------
++ 
++ * Fixed bug in copy part of sarray_realloc.  I had an < which should
++   have been <=. (Bug report from Scott).
++ 
++ ------------------------------------------------------------------------------
++ 
++ * Support for DEC OSF/1 is definitely broken.  My programs always
++   seg-fault when I link with libpthreads.a.
++ 
++ * Thread id's are no longer int's, but are instead of type
++   _objc_thread_t which is typedef'ed from a void *.  An invalid thread
++   id is denoted by NULL and not -1 as before.
++ 
++ ------------------------------------------------------------------------------
++ 
++ * Renamed thread-winnt.c to thread-win32.c to better reflect support
++   for the API on both Windows NT and Windows 95 platforms.  
++   (Who knows, maybe even Win32s :-).
++ 
++ * Fixed bugs in Win32 support as per report from Scott Christley.
++ 
++ * Fixed bug in sarray_get as per report from Scott Christley.
++ 
++ 	
+diff -rc2P objc/THREADS objc-threaded/THREADS
+*** objc/THREADS	Wed Dec 31 19:00:00 1969
+--- objc-threaded/THREADS	Sun Jan 21 21:34:30 1996
+***************
+*** 0 ****
+--- 1,206 ----
++ This file describes in little detail the modifications to the
++ Objective-C runtime needed to make it thread safe. 
++ 
++ First off, kudos to Galen Hunt who is the author of this great work.
++ 
++ If you have an comments or just want to know where to
++ send me money to express your undying graditude for threading the
++ Objective-C runtime you can reach Galen at:
++ 
++ 	gchunt@cs.rochester.edu
++ 
++ Any questions, comments, bug reports, etc. should send email either to the
++ GCC bug account or to:
++ 
++ 	Scott Christley <scottc@ocbi.com>
++ 
++ ******************************************************************************
++ * Simple test program:
++ 
++ A simple test program can be found in the thread-test directory.
++ 
++ ******************************************************************************
++ * Sarray Threading:
++ 
++ The most critical component of the Objective-C runtime is the sparse array
++ structure (sarray).  Sarrays store object selectors and implementations.  
++ Following in the tradition of the Objective-C runtime, my threading
++ support assumes that fast message dispatching is far more important
++ than *ANY* and *ALL* other operations.  The message dispatching thus
++ uses *NO* locks on any kind.  In fact, if you look in sarray.h, you
++ will notice that the message dispatching has not been modified.
++ Instead, I have modified the sarray management functions so that all
++ updates to the sarray data structure can be made in parallel will
++ message dispatching.  
++ 
++ To support concurrent message dispatching, no dynamically allocated
++ sarray data structures are freed while more than one thread is
++ operational.  Sarray data structures that are no longer in use are
++ kept in a linked list of garbage and are released whenever the program
++ is operating with a single thread.  The programmer can also flush the 
++ garbage list by calling sarray_remove_garbage when the programmer can
++ ensure that no message dispatching is taking place concurrently.  The
++ amount of un-reclaimed sarray garbage should normally be extremely
++ small in a real program as sarray structures are freed only when using
++ the "poseAs" functionality and early in program initialization, which
++ normally occurs while the program is single threaded.
++ 
++ ******************************************************************************
++ * Static Variables:
++ 
++ The following variables are either statically or globally defined. This list 
++ does not include variables which are internal to implementation dependent 
++ versions of thread-*.c.
++ 
++ The following threading designations are used:
++ 	SAFE   : Implicitly thread safe.
++ 	SINGLE : Must only be used in single thread mode.
++ 	MUTEX  : Protected by single global mutex objc_runtime_mutex.
++ 	UNUSED : Not used in the runtime.
++ 
++ Variable Name:			Usage:  Defined:	Also used in:
++ ===========================	======	============	=====================
++ __objc_class_hash		MUTEX	class.c
++ __objc_class_links_resolved	UNUSED	class.c		runtime.h
++ __objc_class_number		MUTEX	class.c
++ __objc_dangling_categories	UNUSED	init.c
++ __objc_module_list		MUTEX	init.c
++ __objc_selector_array		MUTEX	selector.c
++ __objc_selector_hash		MUTEX	selector.c
++ __objc_selector_max_index	MUTEX	selector.c	sendmsg.c runtime.h
++ __objc_selector_names		MUTEX	selector.c
++ __objc_thread_exit_status	SAFE	thread.c
++ __objc_uninstalled_dtable	MUTEX	sendmsg.c	selector.c
++ _objc_load_callback		SAFE	init.c		objc-api.h
++ _objc_lookup_class		SAFE	class.c		objc-api.h
++ _objc_object_alloc		SINGLE	objects.c	objc-api.h
++ _objc_object_copy		SINGLE	objects.c	objc-api.h
++ _objc_object_dispose		SINGLE	objects.c	objc-api.h
++ frwd_sel			SAFE2	sendmsg.c
++ idxsize				MUTEX	sarray.c	sendmsg.c sarray.h
++ initialize_sel			SAFE2	sendmsg.c
++ narrays				MUTEX	sarray.c	sendmsg.c sarray.h
++ nbuckets			MUTEX	sarray.c	sendmsg.c sarray.h
++ nindices			MUTEX	sarray.c	sarray.h
++ previous_constructors		SAFE1	init.c
++ proto_class			SAFE1	init.c
++ unclaimed_categories		MUTEX	init.c
++ unclaimed_proto_list		MUTEX	init.c
++ uninitialized_statics		MUTEX	init.c
++ 
++ Notes:
++ 1) Initialized once in unithread mode.
++ 2) Initialized value will always be same, guaranteed by lock on selector 
++    hash table.
++ 
++ ******************************************************************************
++ * Linking:
++ 
++ On Solaris, you must link with -lthread to include the system
++ thread library.  We use its low level thread and mutex implementations.
++ 
++ On OSF/1, you must link with -lpthreads to include the pthreads library.
++ 
++ On WIN32, thread support is built-in to the WIN32 API; refer to your
++ compiler documentation for the appropriate library.
++ 
++ ******************************************************************************
++ * Threads:
++ 
++ The thread system attempts to create multiple threads using whatever
++ operating system or library thread support is available.  It does
++ assume that all system functions are thread safe.  Notably this means
++ that the system implementation of malloc and free must be thread safe.
++ If a system has multiple processors, the threads are configured for
++ full parallel processing.
++ 
++ __objc_init_thread_system(void), int
++ 	Initialize the thread subsystem.  Call once by __objc_exec_class.
++ 
++ __objc_fini_thread_system(void), int
++ 	Closes the thread subsystem.
++ 
++ objc_thread_detach(SEL selector, id object, id argument), int
++ 	Creates and detaches a new thread.  The new thread starts by
++ 	sending the given selector with a single argument to the
++ 	given object.
++ 
++ objc_thread_set_priority(int priority), int
++ 	Sets a threads relative priority within the program.  Valid
++ 	options are:
++ 	
++ 	OBJC_THREAD_INTERACTIVE_PRIORITY
++ 	OBJC_THREAD_BACKGROUND_PRIORITY
++ 	OBJC_THREAD_LOW_PRIORITY
++ 
++ objc_thread_get_priority(void), int
++ 	Query a threads priority.
++ 
++ objc_thread_yield(void), void
++ 	Yields processor to another thread with equal or higher
++ 	priority.  It is up to the system scheduler to determine if
++ 	the processor is taken or not.
++ 
++ objc_thread_exit(void), int
++ 	Terminates a thread.  If this is the last thread executing
++ 	then the program will terminate.
++ 
++ objc_thread_id(void), int
++ 	Returns the current thread's id.
++ 
++ objc_thread_set_data(void *value), int
++ 	Set a pointer to the thread's local storage.  Local storage is
++ 	thread specific.
++ 
++ objc_thread_get_data(void), void *
++ 	Returns the pointer to the thread's local storage.
++ 
++ ******************************************************************************
++ * Mutexs:
++ 
++ Mutexs can be locked recursively.  Each mutex locked mutex remembers
++ its owner (by thread id) and how many times it has been locked.  The
++ last unlock on a mutex removes the system lock and allows other
++ threads to access the mutex.
++ 
++ objc_mutex_allocate(void), Mutex_t
++ 	Allocates a new mutex.  Mutex is initially unlocked.
++ 
++ objc_mutex_deallocate(Mutex_t mutex), int
++ 	Free a mutex.  Before freeing the mutex, makes sure that no
++ 	one else is using it.
++ 
++ objc_mutex_lock(Mutex_t mutex), int
++ 	Locks a mutex.  As mentioned earlier, the same thread may call
++ 	this routine repeatedly.
++ 	
++ objc_mutex_trylock(Mutex_t mutex), int
++ 	Attempts to lock a mutex.  Returns -1 if failed.  If lock on
++ 	mutex can be acquired then function operates exactly as
++ 	objc_mutex_lock.
++ 
++ objc_mutex_unlock(Mutex_t mutex), int
++ 	Unlocks the mutex by one level.  Other threads may not acquire
++ 	the mutex until this thread has released all locks on it.
++ 
++ ******************************************************************************
++ * Sample run of thread-test/checks/test01.m
++ 
++ << program started >>				-- Program started
++ __objc_exec_class(Object.m)			-- Initialize once 
++ __objc_init_mutex_system
++ __objc_init_thread_system
++ __objc_init_selector_tables()  
++ __objc_init_class_tables()  
++ __objc_init_dispatch_tables() 
++ __objc_exec_class(Protocol.m)			-- Called repeatedly
++ __objc_init_protocols(0x000746d4) 		-- Called repeatedly
++ class_add_method_list(0x74718, 0x74208) 	-- Called repeatedly
++ << main called >>				-- Main called
++ __objc_init_install_dtable(0x6d980, 0x6d5c0)    -- Called repeatedly
++ << delegatePool filled, count=10 >>		-- Code in secondary function
++ __objc_init_install_dtable(0x76268, 0x70614)    -- Called repeatedly
++ Array: count=1					-- More secondary code.
++ EltNodeCollector: count=1
++ << end of program >>				-- End of program
++ 
+diff -rc2P objc/class.c objc-threaded/class.c
+*** objc/class.c	Sat Jan 20 21:09:37 1996
+--- objc-threaded/class.c	Fri Jan 26 14:41:59 1996
+***************
+*** 28,41 ****
+  
+  /* The table of classname->class.  Used for objc_lookup_class and friends */
+! static cache_ptr __objc_class_hash = 0;
+  
+  /* This is a hook which is called by objc_get_class and 
+     objc_lookup_class if the runtime is not able to find the class.
+     This may e.g. try to load in the class using dynamic loading */
+! Class (*_objc_lookup_class)(const char* name) = 0;
+  
+  
+  /* True when class links has been resolved */     
+! BOOL __objc_class_links_resolved = NO;
+  
+  
+--- 28,41 ----
+  
+  /* The table of classname->class.  Used for objc_lookup_class and friends */
+! static cache_ptr __objc_class_hash = 0;                 /* !T:MUTEX */
+  
+  /* This is a hook which is called by objc_get_class and 
+     objc_lookup_class if the runtime is not able to find the class.
+     This may e.g. try to load in the class using dynamic loading */
+! Class (*_objc_lookup_class)(const char* name) = 0;      /* !T:SAFE */
+  
+  
+  /* True when class links has been resolved */     
+! BOOL __objc_class_links_resolved = NO;                  /* !T:UNUSED */
+  
+  
+***************
+*** 50,57 ****
+--- 50,61 ----
+      return;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    __objc_class_hash
+      =  hash_new (CLASS_HASH_SIZE,
+  		 (hash_func_type) hash_string,
+  		 (compare_func_type) compare_strings);
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }  
+  
+***************
+*** 63,66 ****
+--- 67,72 ----
+    Class h_class;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    /* make sure the table is there */
+    assert(__objc_class_hash);
+***************
+*** 83,86 ****
+--- 89,94 ----
+        hash_add (&__objc_class_hash, class->name, class);
+      }
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }
+  
+***************
+*** 92,95 ****
+--- 100,105 ----
+    Class class;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    /* Make sure the class hash table exists.  */
+    assert (__objc_class_hash);
+***************
+*** 97,100 ****
+--- 107,112 ----
+    class = hash_value_for_key (__objc_class_hash, name);
+  
++   objc_mutex_unlock(__objc_runtime_mutex);
++ 
+    if (class)
+      return class;
+***************
+*** 114,117 ****
+--- 126,131 ----
+    Class class;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    /* Make sure the class hash table exists.  */
+    assert (__objc_class_hash);
+***************
+*** 119,122 ****
+--- 133,138 ----
+    class = hash_value_for_key (__objc_class_hash, name);
+  
++   objc_mutex_unlock(__objc_runtime_mutex);
++ 
+    if (class)
+      return class;
+***************
+*** 150,153 ****
+--- 166,171 ----
+  objc_next_class(void **enum_state)
+  {
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    /* make sure the table is there */
+    assert(__objc_class_hash);
+***************
+*** 155,158 ****
+--- 173,179 ----
+    *(node_ptr*)enum_state = 
+      hash_next(__objc_class_hash, *(node_ptr*)enum_state);
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
++ 
+    if (*(node_ptr*)enum_state)
+      return (*(node_ptr*)enum_state)->value;
+***************
+*** 170,173 ****
+--- 191,196 ----
+    assert(object_class);
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    /* Assign subclass links */
+    for (node = hash_next (__objc_class_hash, NULL); node;
+***************
+*** 235,238 ****
+--- 258,263 ----
+          }
+      }
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }
+  
+***************
+*** 308,311 ****
+--- 333,338 ----
+       superclass into impostor. */
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    for (node = hash_next (__objc_class_hash, NULL); node;
+         node = hash_next (__objc_class_hash, node))
+***************
+*** 317,320 ****
+--- 344,349 ----
+  	}
+      }      
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  
+    /* next, we update the dispatch tables... */
+diff -rc2P objc/init.c objc-threaded/init.c
+*** objc/init.c	Sat Jan 20 21:09:37 1996
+--- objc-threaded/init.c	Fri Jan 26 14:43:19 1996
+***************
+*** 32,42 ****
+  
+  /* This list contains all modules currently loaded into the runtime */
+! static struct objc_list* __objc_module_list = 0;
+  
+  /* This list contains all proto_list's not yet assigned class links */
+! static struct objc_list* unclaimed_proto_list = 0;
+  
+  /* List of unresolved static instances.  */
+! static struct objc_list *uninitialized_statics;
+  
+  /* Check compiler vs runtime version */
+--- 32,48 ----
+  
+  /* This list contains all modules currently loaded into the runtime */
+! static struct objc_list* __objc_module_list = 0; 	/* !T:MUTEX */
+  
+  /* This list contains all proto_list's not yet assigned class links */
+! static struct objc_list* unclaimed_proto_list = 0; 	/* !T:MUTEX */
+  
+  /* List of unresolved static instances.  */
+! static struct objc_list *uninitialized_statics = 0; 	/* !T:MUTEX */
+! 
+! /* Global runtime "write" mutex. */
+! _objc_mutex_t __objc_runtime_mutex;
+! 
+! /* Number of threads that are alive. */
+! int __objc_runtime_threads_alive = 1;			/* !T:MUTEX */
+  
+  /* Check compiler vs runtime version */
+***************
+*** 53,60 ****
+     dynamic loader determine the classes that have been loaded when
+     an object file is dynamically linked in */
+! void (*_objc_load_callback)(Class class, Category* category) = 0;
+  
+  /* Is all categories/classes resolved? */
+! BOOL __objc_dangling_categories = NO;
+  
+  extern SEL
+--- 59,66 ----
+     dynamic loader determine the classes that have been loaded when
+     an object file is dynamically linked in */
+! void (*_objc_load_callback)(Class class, Category* category) = 0; /* !T:SAFE */
+  
+  /* Is all categories/classes resolved? */
+! BOOL __objc_dangling_categories = NO;           /* !T:UNUSED */
+  
+  extern SEL
+***************
+*** 70,73 ****
+--- 76,81 ----
+    struct objc_static_instances **statics_in_module;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    while (*cell)
+      {
+***************
+*** 115,118 ****
+--- 123,128 ----
+  	cell = &(*cell)->tail;
+      }
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  } /* objc_init_statics */
+  
+***************
+*** 151,154 ****
+--- 161,169 ----
+    if (!previous_constructors)
+      {
++ 	/* Initialize thread-safe system */
++       __objc_init_thread_system();
++       __objc_runtime_threads_alive = 1;
++       __objc_runtime_mutex = objc_mutex_allocate();
++ 
+        __objc_init_selector_tables();
+        __objc_init_class_tables();
+***************
+*** 158,161 ****
+--- 173,177 ----
+  
+    /* Save the module pointer for later processing. (not currently used) */
++   objc_mutex_lock(__objc_runtime_mutex);
+    __objc_module_list = list_cons(module, __objc_module_list);
+  
+***************
+*** 288,291 ****
+--- 304,308 ----
+      }
+  
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }
+  
+***************
+*** 316,319 ****
+--- 333,338 ----
+      return;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    if (!proto_class)
+      proto_class = objc_lookup_class("Protocol");
+***************
+*** 349,352 ****
+--- 368,373 ----
+  	}
+      }
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }
+  
+Only in objc: list.h
+diff -rc2P objc/makefile.dos objc-threaded/makefile.dos
+*** objc/makefile.dos	Sat Jan 20 21:09:38 1996
+--- objc-threaded/makefile.dos	Sat Jan 20 22:13:18 1996
+***************
+*** 38,42 ****
+  
+  OBJC_O = hash.o sarray.o class.o sendmsg.o init.o archive.o \
+!          selector.o objects.o misc.o object.o protocol.o encoding.o
+  
+  libobjc.a: $(OBJC_O)
+--- 38,42 ----
+  
+  OBJC_O = hash.o sarray.o class.o sendmsg.o init.o archive.o \
+!          selector.o objects.o misc.o object.o protocol.o encoding.o thread.o
+  
+  libobjc.a: $(OBJC_O)
+***************
+*** 45,52 ****
+  	ranlib libobjc.a
+  
+! OBJC_H = hash.h list.h sarray.h objc.h \
+           objc-api.h \
+  	 object.h protocol.h mutex.h \
+! 	 typedstream.h
+  
+  mostlyclean:
+--- 45,52 ----
+  	ranlib libobjc.a
+  
+! OBJC_H = hash.h objc-list.h sarray.h objc.h \
+           objc-api.h \
+  	 object.h protocol.h mutex.h \
+! 	 typedstream.h thread.h
+  
+  mostlyclean:
+diff -rc2P objc/objc-api.h objc-threaded/objc-api.h
+*** objc/objc-api.h	Sat Jan 20 21:09:38 1996
+--- objc-threaded/objc-api.h	Fri Jan 26 14:44:31 1996
+***************
+*** 30,33 ****
+--- 30,34 ----
+  #include "objc/objc.h"
+  #include "objc/hash.h"
++ #include "objc/thread.h"
+  #include <stdio.h>
+  
+diff -rc2P objc/objc-list.h objc-threaded/objc-list.h
+*** objc/objc-list.h	Wed Dec 31 19:00:00 1969
+--- objc-threaded/objc-list.h	Thu Jun 15 08:40:27 1995
+***************
+*** 0 ****
+--- 1,150 ----
++ /* Generic single linked list to keep various information 
++    Copyright (C) 1993, 1994 Free Software Foundation, Inc.
++ 
++ Author: Kresten Krab Thorup
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify
++ it under the terms of the GNU General Public License as published by
++ the Free Software Foundation; either version 2, or (at your option)
++ any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful,
++ but WITHOUT ANY WARRANTY; without even the implied warranty of
++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ GNU General Public License for more details.
++ 
++ You should have received a copy of the GNU General Public License
++ along with GNU CC; see the file COPYING.  If not, write to
++ the Free Software Foundation, 59 Temple Place - Suite 330,
++ Boston, MA 02111-1307, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ #ifndef __GNU_OBJC_LIST_H
++ #define __GNU_OBJC_LIST_H
++ void * __objc_xrealloc (void *optr, size_t size);
++ void * __objc_xmalloc (size_t size);
++ 
++ struct objc_list {
++   void *head;
++   struct objc_list *tail;
++ };
++ 
++ /* Return a cons cell produced from (head . tail) */
++ 
++ static inline struct objc_list* 
++ list_cons(void* head, struct objc_list* tail)
++ {
++   struct objc_list* cell;
++ 
++   cell = (struct objc_list*)__objc_xmalloc(sizeof(struct objc_list));
++   cell->head = head;
++   cell->tail = tail;
++   return cell;
++ }
++ 
++ /* Return the length of a list, list_length(NULL) returns zero */
++ 
++ static inline int
++ list_length(struct objc_list* list)
++ {
++   int i = 0;
++   while(list)
++     {
++       i += 1;
++       list = list->tail;
++     }
++   return i;
++ }
++ 
++ /* Return the Nth element of LIST, where N count from zero.  If N 
++    larger than the list length, NULL is returned  */
++ 
++ static inline void*
++ list_nth(int index, struct objc_list* list)
++ {
++   while(index-- != 0)
++     {
++       if(list->tail)
++ 	list = list->tail;
++       else
++ 	return 0;
++     }
++   return list->head;
++ }
++ 
++ /* Remove the element at the head by replacing it by its successor */
++ 
++ static inline void
++ list_remove_head(struct objc_list** list)
++ {
++   if ((*list)->tail)
++     {
++       struct objc_list* tail = (*list)->tail; /* fetch next */
++       *(*list) = *tail;		/* copy next to list head */
++       free(tail);			/* free next */
++     }
++   else				/* only one element in list */
++     {
++       free (*list);
++       (*list) = 0;
++     }
++ }
++ 
++ 
++ /* Remove the element with `car' set to ELEMENT */
++ 
++ static inline void
++ list_remove_elem(struct objc_list** list, void* elem)
++ {
++   while (*list) {
++     if ((*list)->head == elem)
++       list_remove_head(list);
++     list = &((*list)->tail);
++   }
++ }
++ 
++ /* Map FUNCTION over all elements in LIST */
++ 
++ static inline void
++ list_mapcar(struct objc_list* list, void(*function)(void*))
++ {
++   while(list)
++     {
++       (*function)(list->head);
++       list = list->tail;
++     }
++ }
++ 
++ /* Return element that has ELEM as car */
++ 
++ static inline struct objc_list**
++ list_find(struct objc_list** list, void* elem)
++ {
++   while(*list)
++     {
++     if ((*list)->head == elem)
++       return list;
++     list = &((*list)->tail);
++     }
++   return NULL;
++ }
++ 
++ /* Free list (backwards recursive) */
++ 
++ static void
++ list_free(struct objc_list* list)
++ {
++   if(list)
++     {
++       list_free(list->tail);
++       free(list);
++     }
++ }
++ #endif __GNU_OBJC_LIST_H
+diff -rc2P objc/objects.c objc-threaded/objects.c
+*** objc/objects.c	Sat Jan 20 21:09:38 1996
+--- objc-threaded/objects.c	Sun Jan 21 16:46:14 1996
+***************
+*** 32,38 ****
+  id __objc_object_copy(id);
+  
+! id (*_objc_object_alloc)(Class)   = __objc_object_alloc;
+! id (*_objc_object_dispose)(id)    = __objc_object_dispose;
+! id (*_objc_object_copy)(id)       = __objc_object_copy;
+  
+  id
+--- 32,38 ----
+  id __objc_object_copy(id);
+  
+! id (*_objc_object_alloc)(Class)   = __objc_object_alloc;   /* !T:SINGLE */ 
+! id (*_objc_object_dispose)(id)    = __objc_object_dispose; /* !T:SINGLE */
+! id (*_objc_object_copy)(id)       = __objc_object_copy;    /* !T:SINGLE */
+  
+  id
+diff -rc2P objc/runtime.h objc-threaded/runtime.h
+*** objc/runtime.h	Sat Jan 20 21:09:38 1996
+--- objc-threaded/runtime.h	Fri Jan 26 14:46:27 1996
+***************
+*** 38,43 ****
+  #include "objc/objc-api.h"	/* runtime api functions */
+  
+  #include "objc/hash.h"		/* hash structures */
+! #include "objc/list.h"		/* linear lists */
+  
+  extern void __objc_add_class_to_hash(Class);   /* (objc-class.c) */
+--- 38,45 ----
+  #include "objc/objc-api.h"	/* runtime api functions */
+  
++ #include "objc/thread.h"  	/* thread and mutex support */
++ 
+  #include "objc/hash.h"		/* hash structures */
+! #include "objc/objc-list.h"		/* linear lists */
+  
+  extern void __objc_add_class_to_hash(Class);   /* (objc-class.c) */
+***************
+*** 49,52 ****
+--- 51,58 ----
+  extern void __objc_register_selectors_from_class(Class); /* (objc-sel.c) */
+  extern void __objc_update_dispatch_table_for_class (Class);/* (objc-msg.c) */
++ 
++ extern int  __objc_init_thread_system(void);    /* thread.c                 */
++ extern int  __objc_fini_thread_system(void);    /* thread.c                 */
++ 
+  extern void class_add_method_list(Class, MethodList_t);
+  
+***************
+*** 59,62 ****
+--- 65,74 ----
+  /* Number of selectors stored in each of the selector  tables */
+  extern int __objc_selector_max_index;
++ 
++ /* Mutex locking __objc_selector_max_index and its arrays. */
++ extern _objc_mutex_t __objc_runtime_mutex;
++ 
++ /* Number of threads which are alive. */
++ extern int __objc_runtime_threads_alive;
+  
+  #ifdef DEBUG
+diff -rc2P objc/sarray.c objc-threaded/sarray.c
+*** objc/sarray.c	Sat Jan 20 21:09:38 1996
+--- objc-threaded/sarray.c	Fri Jan 26 14:52:16 1996
+***************
+*** 26,36 ****
+  
+  #include "objc/sarray.h"
+  #include <stdio.h>
+  #include "assert.h"
+  
+! int nbuckets = 0;
+! int nindices = 0;
+! int narrays = 0;
+! int idxsize = 0;
+  
+  #ifdef OBJC_SPARSE2
+--- 26,39 ----
+  
+  #include "objc/sarray.h"
++ #include "objc/runtime.h"
+  #include <stdio.h>
+  #include "assert.h"
+  
+! int nbuckets = 0;					/* !T:MUTEX */
+! int nindices = 0;					/* !T:MUTEX */
+! int narrays = 0;					/* !T:MUTEX */
+! int idxsize = 0;					/* !T:MUTEX */
+! 
+! static void *	first_free_data = NULL;			/* !T:MUTEX */
+  
+  #ifdef OBJC_SPARSE2
+***************
+*** 47,50 ****
+--- 50,98 ----
+  #endif
+  
++ /* This function removes any structures left over from free operations
++    that were not safe in a multi-threaded environment. */
++ void
++ sarray_remove_garbage(void)
++ {
++   void **vp;
++   void *np;
++   
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
++   vp = first_free_data;
++   first_free_data = NULL;
++ 
++   while (vp) {
++     np = *vp;
++     free(vp);
++     vp = np;
++   }
++   
++   objc_mutex_unlock(__objc_runtime_mutex);
++ }
++ 
++ /* Free a block of dynamically allocated memory.  If we are in multi-threaded
++    mode, it is ok to free it.  If not, we add it to the garbage heap to be
++    freed later. */
++ 
++ static void
++ sarray_free_garbage(void *vp)
++ {
++   objc_mutex_lock(__objc_runtime_mutex);
++   
++   if (__objc_runtime_threads_alive == 1) {
++     free(vp);
++     if (first_free_data)
++       sarray_remove_garbage();
++   }
++   else {
++     *(void **)vp = first_free_data;
++     first_free_data = vp;
++   }
++       
++   objc_mutex_unlock(__objc_runtime_mutex);
++ }
++ 
++ /* sarray_at_put : copies data in such a way as to be thread reader safe. */
+  void
+  sarray_at_put(struct sarray* array, sidx index, void* element)
+***************
+*** 52,57 ****
+--- 100,107 ----
+  #ifdef OBJC_SPARSE3
+    struct sindex** the_index;
++   struct sindex*  new_index;
+  #endif
+    struct sbucket** the_bucket;
++   struct sbucket*  new_bucket;
+  #ifdef OBJC_SPARSE3
+    size_t ioffset;
+***************
+*** 97,116 ****
+  
+      /* The index was previously empty, allocate a new */
+!     *the_index = (struct sindex*)__objc_xmalloc(sizeof(struct sindex));
+!     memcpy(*the_index, array->empty_index, sizeof(struct sindex));
+!     (*the_index)->version = array->version;
+      the_bucket = &((*the_index)->buckets[boffset]);
+-     nindices += 1;
+      
+!   } else if ((*the_index)->version != array->version) {
+  
+      /* This index must be lazy copied */
+      struct sindex* old_index = *the_index;
+!     *the_index = (struct sindex*)__objc_xmalloc(sizeof(struct sindex));
+!     memcpy( *the_index,old_index, sizeof(struct sindex));
+!     (*the_index)->version = array->version;
+      the_bucket = &((*the_index)->buckets[boffset]);
+-     nindices += 1;
+      
+    }
+  
+--- 147,168 ----
+  
+      /* The index was previously empty, allocate a new */
+!     new_index = (struct sindex*)__objc_xmalloc(sizeof(struct sindex));
+!     memcpy(new_index, array->empty_index, sizeof(struct sindex));
+!     new_index->version.version = array->version.version;
+!     *the_index = new_index;                     /* Prepared for install. */
+      the_bucket = &((*the_index)->buckets[boffset]);
+      
+!     nindices += 1;
+!   } else if ((*the_index)->version.version != array->version.version) {
+  
+      /* This index must be lazy copied */
+      struct sindex* old_index = *the_index;
+!     new_index = (struct sindex*)__objc_xmalloc(sizeof(struct sindex));
+!     memcpy( new_index, old_index, sizeof(struct sindex));
+!     new_index->version.version = array->version.version;
+!     *the_index = new_index;                     /* Prepared for install. */
+      the_bucket = &((*the_index)->buckets[boffset]);
+      
++     nindices += 1;
+    }
+  
+***************
+*** 123,138 ****
+      /* The bucket was previously empty (or something like that), */
+      /* allocate a new.  This is the effect of `lazy' allocation */  
+!     *the_bucket = (struct sbucket*)__objc_xmalloc(sizeof(struct sbucket));
+!     memcpy((void *) *the_bucket, (const void*)array->empty_bucket, sizeof(struct sbucket));
+!     (*the_bucket)->version = array->version;
+      nbuckets += 1;
+  
+!   } else if ((*the_bucket)->version != array->version) {
+  
+      /* Perform lazy copy. */
+      struct sbucket* old_bucket = *the_bucket;
+!     *the_bucket = (struct sbucket*)__objc_xmalloc(sizeof(struct sbucket));
+!     memcpy( *the_bucket,old_bucket, sizeof(struct sbucket));
+!     (*the_bucket)->version = array->version;
+      nbuckets += 1;
+  
+--- 175,194 ----
+      /* The bucket was previously empty (or something like that), */
+      /* allocate a new.  This is the effect of `lazy' allocation */  
+!     new_bucket = (struct sbucket*)__objc_xmalloc(sizeof(struct sbucket));
+!     memcpy((void *) new_bucket, (const void*)array->empty_bucket, sizeof(struct sbucket));
+!     new_bucket->version.version = array->version.version;
+!     *the_bucket = new_bucket;                   /* Prepared for install. */
+!     
+      nbuckets += 1;
+  
+!   } else if ((*the_bucket)->version.version != array->version.version) {
+  
+      /* Perform lazy copy. */
+      struct sbucket* old_bucket = *the_bucket;
+!     new_bucket = (struct sbucket*)__objc_xmalloc(sizeof(struct sbucket));
+!     memcpy( new_bucket, old_bucket, sizeof(struct sbucket));
+!     new_bucket->version.version = array->version.version;
+!     *the_bucket = new_bucket;                   /* Prepared for install. */
+!     
+      nbuckets += 1;
+  
+***************
+*** 152,162 ****
+  sarray_new (int size, void* default_element)
+  {
+  #ifdef OBJC_SPARSE3
+    size_t num_indices = ((size-1)/(INDEX_CAPACITY))+1;
+  #else /* OBJC_SPARSE2 */
+    size_t num_indices = ((size-1)/BUCKET_SIZE)+1;
+  #endif
+    int counter;
+-   struct sarray* arr;
+  
+    assert(size > 0);
+--- 208,220 ----
+  sarray_new (int size, void* default_element)
+  {
++   struct sarray* arr;
+  #ifdef OBJC_SPARSE3
+    size_t num_indices = ((size-1)/(INDEX_CAPACITY))+1;
++   struct sindex ** new_indices;
+  #else /* OBJC_SPARSE2 */
+    size_t num_indices = ((size-1)/BUCKET_SIZE)+1;
++   struct sbucket ** new_buckets;
+  #endif
+    int counter;
+  
+    assert(size > 0);
+***************
+*** 164,185 ****
+    /* Allocate core array */
+    arr = (struct sarray*) __objc_xmalloc(sizeof(struct sarray));
+!   arr->version = 0;
+!   narrays  += 1;
+    
+    /* Initialize members */
+  #ifdef OBJC_SPARSE3
+    arr->capacity = num_indices*INDEX_CAPACITY;
+!   arr->indices = (struct sindex**) 
+      __objc_xmalloc(sizeof(struct sindex*)*num_indices);
+-   idxsize  += num_indices;
+  
+    arr->empty_index = (struct sindex*) __objc_xmalloc(sizeof(struct sindex));
+!   arr->empty_index->version = 0;
+    nindices += 1;
+  
+  #else /* OBJC_SPARSE2 */
+    arr->capacity = num_indices*BUCKET_SIZE;
+!   arr->buckets = (struct sbucket**) 
+      __objc_xmalloc(sizeof(struct sbucket*)*num_indices);
+    idxsize  += num_indices;
+  
+--- 222,246 ----
+    /* Allocate core array */
+    arr = (struct sarray*) __objc_xmalloc(sizeof(struct sarray));
+!   arr->version.version = 0;
+    
+    /* Initialize members */
+  #ifdef OBJC_SPARSE3
+    arr->capacity = num_indices*INDEX_CAPACITY;
+!   new_indices = (struct sindex**) 
+      __objc_xmalloc(sizeof(struct sindex*)*num_indices);
+  
+    arr->empty_index = (struct sindex*) __objc_xmalloc(sizeof(struct sindex));
+!   arr->empty_index->version.version = 0;
+!   
+!   narrays  += 1;
+!   idxsize  += num_indices;
+    nindices += 1;
+  
+  #else /* OBJC_SPARSE2 */
+    arr->capacity = num_indices*BUCKET_SIZE;
+!   new_buckets = (struct sbucket**) 
+      __objc_xmalloc(sizeof(struct sbucket*)*num_indices);
++   
++   narrays  += 1;
+    idxsize  += num_indices;
+  
+***************
+*** 187,191 ****
+  
+    arr->empty_bucket = (struct sbucket*) __objc_xmalloc(sizeof(struct sbucket));
+!   arr->empty_bucket->version = 0;
+    nbuckets += 1;
+  
+--- 248,253 ----
+  
+    arr->empty_bucket = (struct sbucket*) __objc_xmalloc(sizeof(struct sbucket));
+!   arr->empty_bucket->version.version = 0;
+!   
+    nbuckets += 1;
+  
+***************
+*** 201,218 ****
+  
+    for (counter=0; counter<num_indices; counter++)
+!     arr->indices[counter] = arr->empty_index;
+  
+  #else /* OBJC_SPARSE2 */
+  
+    for (counter=0; counter<num_indices; counter++)
+!     arr->buckets[counter] = arr->empty_bucket;
+  
+  #endif
+! 
+    return arr;
+  }
+  
+  
+! /* Reallocate the sparse array to hold `newsize' entries */
+  
+  void 
+--- 263,288 ----
+  
+    for (counter=0; counter<num_indices; counter++)
+!     new_indices[counter] = arr->empty_index;
+  
+  #else /* OBJC_SPARSE2 */
+  
+    for (counter=0; counter<num_indices; counter++)
+!     new_buckets[counter] = arr->empty_bucket;
+  
+  #endif
+!   
+! #ifdef OBJC_SPARSE3
+!   arr->indices = new_indices;
+! #else /* OBJC_SPARSE2 */
+!   arr->buckets = new_buckets;
+! #endif
+!   
+    return arr;
+  }
+  
+  
+! /* Reallocate the sparse array to hold `newsize' entries
+!    Note: We really allocate and then free.  We have to do this to ensure that
+!    any concurrent readers notice the update. */
+  
+  void 
+***************
+*** 224,227 ****
+--- 294,300 ----
+    size_t rounded_size = (new_max_index+1)*INDEX_CAPACITY;
+  
++   struct sindex ** new_indices;
++   struct sindex ** old_indices;
++   
+  #else /* OBJC_SPARSE2 */
+    size_t old_max_index = (array->capacity-1)/BUCKET_SIZE;
+***************
+*** 229,232 ****
+--- 302,308 ----
+    size_t rounded_size = (new_max_index+1)*BUCKET_SIZE;
+  
++   struct sbucket ** new_buckets;
++   struct sbucket ** old_buckets;
++   
+  #endif
+  
+***************
+*** 236,320 ****
+  
+    /* The size is the same, just ignore the request */
+!   if(rounded_size == array->capacity)
+      return;
+  
+    assert(array->ref_count == 1);	/* stop if lazy copied... */
+  
+!   if(rounded_size < array->capacity) 
+      {
+-       /* update capacity */
+-       array->capacity = rounded_size;
+  
+-       /* free buckets above new_max_index */
+-       for(counter = old_max_index; counter > new_max_index; counter-- ) {
+  #ifdef OBJC_SPARSE3
+! 	struct sindex* idx = array->indices[counter];
+! 	if((idx != array->empty_index) && (idx->version == array->version)) {
+! 	  int c2; 
+! 	  for(c2=0; c2<INDEX_SIZE; c2++) {
+! 	    struct sbucket* bkt = idx->buckets[c2];
+! 	    if((bkt != array->empty_bucket) && (bkt->version == array->version))
+! 	      {
+! 		free(bkt);
+! 		nbuckets -= 1;
+! 	      }
+! 	  }
+! 	  free(idx);
+! 	  nindices -= 1;
+! 	}
+  #else /* OBJC_SPARSE2 */
+! 	struct sbucket* bkt = array->buckets[counter];
+! 	if ((bkt != array->empty_bucket) && (bkt->version == array->version))
+! 	  {
+! 	    free(bkt);
+! 	    nbuckets -= 1;
+! 	  }
+  #endif
+!       }
+! 	  
+! #ifdef OBJC_SPARSE3
+!       /* realloc to free the space above new_max_index */
+!       array->indices = (struct sindex**)
+! 	__objc_xrealloc(array->indices, 
+! 			(new_max_index+1)*sizeof(struct sindex*));
+! #else /* OBJC_SPARSE2 */
+!       array->buckets = (struct sbucket**)
+! 	__objc_xrealloc(array->buckets, 
+! 			(new_max_index+1)*sizeof(struct sbucket*));
+! #endif      
+!       idxsize -= (old_max_index-new_max_index);
+! 
+!       return;
+!     }
+! 
+!   /* We are asked to extend the array -- reallocate the bucket table, */
+!   /* and insert empty_bucket in newly allocated places. */
+!   if(rounded_size > array->capacity) 
+!     {
+        /* update capacity */
+        array->capacity = rounded_size;
+  
+  #ifdef OBJC_SPARSE3
+!       /* realloc to make room in table above old_max_index */
+!       array->indices = (struct sindex**)
+! 	__objc_xrealloc(array->indices, 
+! 			(new_max_index+1)*sizeof(struct sindex*));
+  
+        /* reset entries above old_max_index to empty_bucket */
+        for(counter = old_max_index+1; counter <= new_max_index; counter++)
+! 	array->indices[counter] = array->empty_index;
+! 
+  #else /* OBJC_SPARSE2 */
+- 
+-       /* realloc to make room in table above old_max_index */
+-       array->buckets = (struct sbucket**)
+- 	__objc_xrealloc(array->buckets, 
+- 			(new_max_index+1)*sizeof(struct sbucket*));
+- 
+        /* reset entries above old_max_index to empty_bucket */
+        for(counter = old_max_index+1; counter <= new_max_index; counter++)
+! 	array->buckets[counter] = array->empty_bucket;
+  
+  #endif
+        idxsize += (new_max_index-old_max_index);
+        return;
+--- 312,381 ----
+  
+    /* The size is the same, just ignore the request */
+!   if(rounded_size <= array->capacity)
+      return;
+  
+    assert(array->ref_count == 1);	/* stop if lazy copied... */
+  
+!   /* We are asked to extend the array -- allocate new bucket table, */
+!   /* and insert empty_bucket in newly allocated places. */
+!   if(rounded_size > array->capacity) 
+      {
+  
+  #ifdef OBJC_SPARSE3
+!       new_max_index += 4;
+!       rounded_size = (new_max_index+1)*INDEX_CAPACITY;
+!       
+  #else /* OBJC_SPARSE2 */
+!       new_max_index += 4;
+!       rounded_size = (new_max_index+1)*BUCKET_SIZE;
+  #endif
+!       
+        /* update capacity */
+        array->capacity = rounded_size;
+  
+  #ifdef OBJC_SPARSE3
+!       /* alloc to force re-read by any concurrent readers. */
+!       old_indices = array->indices;
+!       new_indices = (struct sindex**)
+! 	__objc_xmalloc((new_max_index+1)*sizeof(struct sindex*));
+! #else /* OBJC_SPARSE2 */
+!       old_buckets = array->buckets;
+!       new_buckets = (struct sbucket**)
+! 	__objc_xmalloc((new_max_index+1)*sizeof(struct sbucket*));
+! #endif
+  
++       /* copy buckets below old_max_index (they are still valid) */
++       for(counter = 0; counter <= old_max_index; counter++ ) {
++ #ifdef OBJC_SPARSE3
++ 	new_indices[counter] = old_indices[counter];
++ #else /* OBJC_SPARSE2 */
++ 	new_buckets[counter] = old_buckets[counter];
++ #endif
++       }
++ 
++ #ifdef OBJC_SPARSE3
+        /* reset entries above old_max_index to empty_bucket */
+        for(counter = old_max_index+1; counter <= new_max_index; counter++)
+! 	new_indices[counter] = array->empty_index;
+  #else /* OBJC_SPARSE2 */
+        /* reset entries above old_max_index to empty_bucket */
+        for(counter = old_max_index+1; counter <= new_max_index; counter++)
+! 	new_buckets[counter] = array->empty_bucket;
+! #endif
+!       
+! #ifdef OBJC_SPARSE3
+!       /* install the new indices */
+!       array->indices = new_indices;
+! #else /* OBJC_SPARSE2 */
+!       array->buckets = new_buckets;
+! #endif
+  
++ #ifdef OBJC_SPARSE3
++       /* free the old indices */
++       sarray_free_garbage(old_indices);
++ #else /* OBJC_SPARSE2 */
++       sarray_free_garbage(old_buckets);
+  #endif
++       
+        idxsize += (new_max_index-old_max_index);
+        return;
+***************
+*** 327,334 ****
+--- 388,398 ----
+  void 
+  sarray_free(struct sarray* array) {
++ 
+  #ifdef OBJC_SPARSE3
+    size_t old_max_index = (array->capacity-1)/INDEX_CAPACITY;
++   struct sindex ** old_indices;
+  #else
+    size_t old_max_index = (array->capacity-1)/BUCKET_SIZE;
++   struct sbucket ** old_buckets;
+  #endif
+    int counter = 0;
+***************
+*** 339,342 ****
+--- 403,412 ----
+      return;
+  
++ #ifdef OBJC_SPARSE3
++   old_indices = array->indices;
++ #else
++   old_buckets = array->buckets;
++ #endif
++   
+    if((array->is_copy_of) && ((array->is_copy_of->ref_count - 1) == 0))
+      sarray_free(array->is_copy_of);
+***************
+*** 345,367 ****
+    for(counter = 0; counter <= old_max_index; counter++ ) {
+  #ifdef OBJC_SPARSE3
+!     struct sindex* idx = array->indices[counter];
+!     if((idx != array->empty_index) && (idx->version == array->version)) {
+        int c2; 
+        for(c2=0; c2<INDEX_SIZE; c2++) {
+  	struct sbucket* bkt = idx->buckets[c2];
+! 	if((bkt != array->empty_bucket) && (bkt->version == array->version))
+  	  {
+! 	    free(bkt);
+  	    nbuckets -= 1;
+  	  }
+        }
+!       free(idx);
+        nindices -= 1;
+      }
+  #else /* OBJC_SPARSE2 */
+      struct sbucket* bkt = array->buckets[counter];
+!     if ((bkt != array->empty_bucket) && (bkt->version == array->version))
+        {
+! 	free(bkt);
+  	nbuckets -= 1;
+        }
+--- 415,440 ----
+    for(counter = 0; counter <= old_max_index; counter++ ) {
+  #ifdef OBJC_SPARSE3
+!     struct sindex* idx = old_indices[counter];
+!     if((idx != array->empty_index) &&
+!        (idx->version.version == array->version.version)) {
+        int c2; 
+        for(c2=0; c2<INDEX_SIZE; c2++) {
+  	struct sbucket* bkt = idx->buckets[c2];
+! 	if((bkt != array->empty_bucket) &&
+! 	   (bkt->version.version == array->version.version))
+  	  {
+! 	    sarray_free_garbage(bkt);
+  	    nbuckets -= 1;
+  	  }
+        }
+!       sarray_free_garbage(idx);
+        nindices -= 1;
+      }
+  #else /* OBJC_SPARSE2 */
+      struct sbucket* bkt = array->buckets[counter];
+!     if ((bkt != array->empty_bucket) &&
+! 	(bkt->version.version == array->version.version))
+        {
+! 	sarray_free_garbage(bkt);
+  	nbuckets -= 1;
+        }
+***************
+*** 371,376 ****
+  #ifdef OBJC_SPARSE3  
+    /* free empty_index */
+!   if(array->empty_index->version == array->version) {
+!     free(array->empty_index);
+      nindices -= 1;
+    }
+--- 444,449 ----
+  #ifdef OBJC_SPARSE3  
+    /* free empty_index */
+!   if(array->empty_index->version.version == array->version.version) {
+!     sarray_free_garbage(array->empty_index);
+      nindices -= 1;
+    }
+***************
+*** 378,401 ****
+  
+    /* free empty_bucket */
+!   if(array->empty_bucket->version == array->version) {
+!     free(array->empty_bucket);
+      nbuckets -= 1;
+    }
+  
+  #ifdef OBJC_SPARSE3
+    /* free bucket table */
+!   free(array->indices);
+!   idxsize -= (old_max_index+1);
+  
+  #else
+    /* free bucket table */
+!   free(array->buckets);
+!   idxsize -= (old_max_index+1);
+  
+  #endif
+! 
+    /* free array */
+!   free(array);
+!   narrays -= 1;
+  }
+  
+--- 451,473 ----
+  
+    /* free empty_bucket */
+!   if(array->empty_bucket->version.version == array->version.version) {
+!     sarray_free_garbage(array->empty_bucket);
+      nbuckets -= 1;
+    }
++   idxsize -= (old_max_index+1);
++   narrays -= 1;
+  
+  #ifdef OBJC_SPARSE3
+    /* free bucket table */
+!   sarray_free_garbage(array->indices);
+  
+  #else
+    /* free bucket table */
+!   sarray_free_garbage(array->buckets);
+  
+  #endif
+!   
+    /* free array */
+!   sarray_free_garbage(array);
+  }
+  
+***************
+*** 406,441 ****
+  sarray_lazy_copy(struct sarray* oarr)
+  {
+  #ifdef OBJC_SPARSE3
+    size_t num_indices = ((oarr->capacity-1)/INDEX_CAPACITY)+1;
+  #else /* OBJC_SPARSE2 */
+    size_t num_indices = ((oarr->capacity-1)/BUCKET_SIZE)+1;
+  #endif
+-   struct sarray* arr;
+  
+    /* Allocate core array */
+!   arr = (struct sarray*) __objc_xmalloc(sizeof(struct sarray));
+!   memcpy( arr,oarr, sizeof(struct sarray));
+!   arr->version = oarr->version + 1;
+!   arr->is_copy_of = oarr;
+!   oarr->ref_count += 1;
+    arr->ref_count = 1;
+    
+  #ifdef OBJC_SPARSE3
+    /* Copy bucket table */
+!   arr->indices = (struct sindex**) 
+      __objc_xmalloc(sizeof(struct sindex*)*num_indices);
+!   memcpy( arr->indices,oarr->indices, 
+  	sizeof(struct sindex*)*num_indices);
+  #else 
+    /* Copy bucket table */
+!   arr->buckets = (struct sbucket**) 
+      __objc_xmalloc(sizeof(struct sbucket*)*num_indices);
+!   memcpy( arr->buckets,oarr->buckets, 
+  	sizeof(struct sbucket*)*num_indices);
+  #endif
+  
+    idxsize += num_indices;
+    narrays += 1;
+! 
+    return arr;
+  }
+--- 478,522 ----
+  sarray_lazy_copy(struct sarray* oarr)
+  {
++   struct sarray* arr;
++ 
+  #ifdef OBJC_SPARSE3
+    size_t num_indices = ((oarr->capacity-1)/INDEX_CAPACITY)+1;
++   struct sindex ** new_indices;
+  #else /* OBJC_SPARSE2 */
+    size_t num_indices = ((oarr->capacity-1)/BUCKET_SIZE)+1;
++   struct sbucket ** new_buckets;
+  #endif
+  
+    /* Allocate core array */
+!   arr = (struct sarray*) __objc_xmalloc(sizeof(struct sarray)); /* !!! */
+!   arr->version.version = oarr->version.version + 1;
+! #ifdef OBJC_SPARSE3
+!   arr->empty_index = oarr->empty_index;
+! #endif
+!   arr->empty_bucket = oarr->empty_bucket;
+    arr->ref_count = 1;
++   oarr->ref_count += 1;
++   arr->is_copy_of = oarr;
++   arr->capacity = oarr->capacity;
+    
+  #ifdef OBJC_SPARSE3
+    /* Copy bucket table */
+!   new_indices = (struct sindex**) 
+      __objc_xmalloc(sizeof(struct sindex*)*num_indices);
+!   memcpy( new_indices,oarr->indices, 
+  	sizeof(struct sindex*)*num_indices);
++   arr->indices = new_indices;
+  #else 
+    /* Copy bucket table */
+!   new_buckets = (struct sbucket**) 
+      __objc_xmalloc(sizeof(struct sbucket*)*num_indices);
+!   memcpy( new_buckets,oarr->buckets, 
+  	sizeof(struct sbucket*)*num_indices);
++   arr->buckets = new_buckets;
+  #endif
+  
+    idxsize += num_indices;
+    narrays += 1;
+!   
+    return arr;
+  }
+diff -rc2P objc/sarray.h objc-threaded/sarray.h
+*** objc/sarray.h	Sat Jan 20 21:09:38 1996
+--- objc-threaded/sarray.h	Fri Jan 26 14:50:39 1996
+***************
+*** 43,46 ****
+--- 43,48 ----
+  #include <stddef.h>
+  
++ #include "objc/thread.h"
++ 
+  extern int nbuckets;		/* for stats */
+  extern int nindices;
+***************
+*** 112,118 ****
+  void * __objc_xmalloc (size_t size);
+  
+  struct sbucket {
+    void* elems[BUCKET_SIZE];	/* elements stored in array */
+!   short version;			/* used for copy-on-write */
+  };
+  
+--- 114,125 ----
+  void * __objc_xmalloc (size_t size);
+  
++ union sversion {
++   int	version;
++   void *next_free;
++ };
++ 
+  struct sbucket {
+    void* elems[BUCKET_SIZE];	/* elements stored in array */
+!   union sversion	version;		/* used for copy-on-write */
+  };
+  
+***************
+*** 121,125 ****
+  struct sindex {
+    struct sbucket* buckets[INDEX_SIZE];
+!   short version;
+  };
+  
+--- 128,132 ----
+  struct sindex {
+    struct sbucket* buckets[INDEX_SIZE];
+!   union sversion	version;		/* used for copy-on-write */
+  };
+  
+***************
+*** 134,138 ****
+  #endif  /* OBJC_SPARSE2 */
+    struct sbucket* empty_bucket;
+!   short version;
+    short ref_count;
+    struct sarray* is_copy_of;
+--- 141,145 ----
+  #endif  /* OBJC_SPARSE2 */
+    struct sbucket* empty_bucket;
+!   union sversion	version;		/* used for copy-on-write */
+    short ref_count;
+    struct sarray* is_copy_of;
+***************
+*** 143,150 ****
+  void sarray_free(struct sarray*);
+  struct sarray* sarray_lazy_copy(struct sarray*);
+- struct sarray* sarray_hard_copy(struct sarray*); /* ... like the name? */
+  void sarray_realloc(struct sarray*, int new_size);
+  void sarray_at_put(struct sarray*, sidx index, void* elem);
+  void sarray_at_put_safe(struct sarray*, sidx index, void* elem);
+  
+  
+--- 150,159 ----
+  void sarray_free(struct sarray*);
+  struct sarray* sarray_lazy_copy(struct sarray*);
+  void sarray_realloc(struct sarray*, int new_size);
+  void sarray_at_put(struct sarray*, sidx index, void* elem);
+  void sarray_at_put_safe(struct sarray*, sidx index, void* elem);
++ 
++ struct sarray* sarray_hard_copy(struct sarray*); /* ... like the name? */
++ void sarray_remove_garbage(void);
+  
+  
+diff -rc2P objc/selector.c objc-threaded/selector.c
+*** objc/selector.c	Sat Jan 20 21:09:38 1996
+--- objc-threaded/selector.c	Fri Jan 26 14:49:35 1996
+***************
+*** 32,43 ****
+  
+  /* Tables mapping selector names to uid and opposite */
+! static struct sarray* __objc_selector_array = 0; /* uid -> sel */
+! static struct sarray* __objc_selector_names = 0; /* uid -> name */
+! static cache_ptr      __objc_selector_hash  = 0; /* name -> uid */
+  
+  static void register_selectors_from_list(MethodList_t);
+  
+  /* Number of selectors stored in each of the above tables */
+! int __objc_selector_max_index = 0;
+  
+  void __objc_init_selector_tables()
+--- 32,43 ----
+  
+  /* Tables mapping selector names to uid and opposite */
+! static struct sarray* __objc_selector_array = 0; /* uid -> sel  !T:MUTEX */
+! static struct sarray* __objc_selector_names = 0; /* uid -> name !T:MUTEX */
+! static cache_ptr      __objc_selector_hash  = 0; /* name -> uid !T:MUTEX */
+  
+  static void register_selectors_from_list(MethodList_t);
+  
+  /* Number of selectors stored in each of the above tables */
+! int __objc_selector_max_index = 0;              /* !T:MUTEX */
+  
+  void __objc_init_selector_tables()
+***************
+*** 123,129 ****
+    sidx i;
+  
+    i = (sidx) hash_value_for_key (__objc_selector_hash, name);
+    if (i == 0)
+!     return 0;
+  
+    for (l = (struct objc_list*)sarray_get (__objc_selector_array, i);
+--- 123,134 ----
+    sidx i;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    i = (sidx) hash_value_for_key (__objc_selector_hash, name);
+    if (i == 0)
+!     {
+!       objc_mutex_unlock(__objc_runtime_mutex);
+!       return 0;
+!     }
+  
+    for (l = (struct objc_list*)sarray_get (__objc_selector_array, i);
+***************
+*** 135,138 ****
+--- 140,144 ----
+  	  if (s->sel_types == types)
+  	    {
++ 	      objc_mutex_unlock(__objc_runtime_mutex);
+  	      return s;
+  	    }
+***************
+*** 140,147 ****
+--- 146,155 ----
+        else if (sel_types_match (s->sel_types, types))
+  	{
++ 	  objc_mutex_unlock(__objc_runtime_mutex);
+  	  return s;
+  	}
+      }
+  
++   objc_mutex_unlock(__objc_runtime_mutex);
+    return 0;
+  }
+***************
+*** 155,161 ****
+    SEL s;
+  
+    i = (sidx) hash_value_for_key (__objc_selector_hash, name);
+    if (i == 0)
+!     return 0;
+  
+    for (l = (struct objc_list*)sarray_get (__objc_selector_array, i);
+--- 163,174 ----
+    SEL s;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    i = (sidx) hash_value_for_key (__objc_selector_hash, name);
+    if (i == 0)
+!     {
+!       objc_mutex_unlock(__objc_runtime_mutex);
+!       return 0;
+!     }
+  
+    for (l = (struct objc_list*)sarray_get (__objc_selector_array, i);
+***************
+*** 164,170 ****
+        s = (SEL) l->head;
+        if (s->sel_types)
+! 	return s;
+      }
+  
+    return s;
+  }
+--- 177,187 ----
+        s = (SEL) l->head;
+        if (s->sel_types)
+! 	{
+! 	    objc_mutex_unlock(__objc_runtime_mutex);
+! 	    return s;
+! 	}
+      }
+  
++   objc_mutex_unlock(__objc_runtime_mutex);
+    return s;
+  }
+***************
+*** 177,185 ****
+    sidx i;
+  
+    i = (sidx) hash_value_for_key (__objc_selector_hash, name);
+    if (soffset_decode (i) == 0)
+!     return 0;
+  
+    l = (struct objc_list*)sarray_get (__objc_selector_array, i);
+    if (l == 0)
+      return 0;
+--- 194,209 ----
+    sidx i;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    i = (sidx) hash_value_for_key (__objc_selector_hash, name);
+    if (soffset_decode (i) == 0)
+!     {
+!       objc_mutex_unlock(__objc_runtime_mutex);
+!       return 0;
+!     }
+  
+    l = (struct objc_list*)sarray_get (__objc_selector_array, i);
++   objc_mutex_unlock(__objc_runtime_mutex);
++ 
+    if (l == 0)
+      return 0;
+***************
+*** 200,208 ****
+  sel_get_name (SEL selector)
+  {
+    if ((soffset_decode((sidx)selector->sel_id) > 0)
+        && (soffset_decode((sidx)selector->sel_id) <= __objc_selector_max_index))
+!     return sarray_get (__objc_selector_names, (sidx) selector->sel_id);
+    else
+!     return 0;
+  }
+  
+--- 224,237 ----
+  sel_get_name (SEL selector)
+  {
++   const char *ret;
++ 
++   objc_mutex_lock(__objc_runtime_mutex);
+    if ((soffset_decode((sidx)selector->sel_id) > 0)
+        && (soffset_decode((sidx)selector->sel_id) <= __objc_selector_max_index))
+!     ret = sarray_get (__objc_selector_names, (sidx) selector->sel_id);
+    else
+!     ret = 0;
+!   objc_mutex_unlock(__objc_runtime_mutex);
+!   return ret;
+  }
+  
+***************
+*** 228,232 ****
+  
+  /* Store the passed selector name in the selector record and return its
+!    selector value (value returned by sel_get_uid). */
+  SEL
+  __sel_register_typed_name (const char *name, const char *types, 
+--- 257,262 ----
+  
+  /* Store the passed selector name in the selector record and return its
+!    selector value (value returned by sel_get_uid).
+!    Assumes that the calling function has locked down __objc_runtime_mutex. */
+  SEL
+  __sel_register_typed_name (const char *name, const char *types, 
+***************
+*** 311,315 ****
+  sel_register_name (const char *name)
+  {
+!   return __sel_register_typed_name (name, 0, 0);
+  }
+  
+--- 341,351 ----
+  sel_register_name (const char *name)
+  {
+!   SEL ret;
+!     
+!   objc_mutex_lock(__objc_runtime_mutex);
+!   ret = __sel_register_typed_name (name, 0, 0);
+!   objc_mutex_unlock(__objc_runtime_mutex);
+!   
+!   return ret;
+  }
+  
+***************
+*** 317,321 ****
+  sel_register_typed_name (const char *name, const char *type)
+  {
+!   return __sel_register_typed_name (name, type, 0);
+  }
+  
+--- 353,363 ----
+  sel_register_typed_name (const char *name, const char *type)
+  {
+!   SEL ret;
+!     
+!   objc_mutex_lock(__objc_runtime_mutex);
+!   ret = __sel_register_typed_name (name, type, 0);
+!   objc_mutex_unlock(__objc_runtime_mutex);
+!   
+!   return ret;
+  }
+  
+diff -rc2P objc/sendmsg.c objc-threaded/sendmsg.c
+*** objc/sendmsg.c	Sat Jan 20 21:09:38 1996
+--- objc-threaded/sendmsg.c	Fri Jan 26 15:09:21 1996
+***************
+*** 41,45 ****
+  
+  /* The uninstalled dispatch table */
+! struct sarray* __objc_uninstalled_dtable = 0;
+  
+  /* Send +initialize to class */
+--- 41,45 ----
+  
+  /* The uninstalled dispatch table */
+! struct sarray* __objc_uninstalled_dtable = 0;   /* !T:MUTEX */
+  
+  /* Send +initialize to class */
+***************
+*** 77,81 ****
+--- 77,83 ----
+    if(res == __objc_init_install_dtable)
+      {
++       objc_mutex_lock(__objc_runtime_mutex);
+        __objc_install_dispatch_table_for_class (class);
++       objc_mutex_unlock(__objc_runtime_mutex);
+        res = sarray_get (class->dtable, (size_t) sel->sel_id);
+      }
+***************
+*** 97,101 ****
+--- 99,105 ----
+    if(res == __objc_init_install_dtable)
+      {
++       objc_mutex_lock(__objc_runtime_mutex);
+        __objc_install_dispatch_table_for_class (object->class_pointer);
++       objc_mutex_unlock(__objc_runtime_mutex);
+        res = sarray_get (object->class_pointer->dtable, (size_t) sel->sel_id);
+      }
+***************
+*** 173,176 ****
+--- 177,182 ----
+      goto already_initialized;
+  
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    if(CLS_ISCLASS(receiver->class_pointer))
+      {
+***************
+*** 199,202 ****
+--- 205,209 ----
+  	CLS_SETINITIALIZED((Class)receiver);
+      }
++   objc_mutex_unlock(__objc_runtime_mutex);
+  
+  already_initialized:
+***************
+*** 270,273 ****
+--- 277,281 ----
+  }  
+  
++ /* Assumes that __objc_runtime_mutex is locked down. */
+  static void
+  __objc_install_dispatch_table_for_class (Class class)
+***************
+*** 290,294 ****
+--- 298,304 ----
+    if (super == 0)
+      {
++       objc_mutex_lock(__objc_runtime_mutex);
+        class->dtable = sarray_new (__objc_selector_max_index, 0);
++       objc_mutex_unlock(__objc_runtime_mutex);
+      }
+    else
+***************
+*** 312,315 ****
+--- 322,326 ----
+  {
+    Class next;
++   struct sarray *arr;
+  
+    /* not yet installed -- skip it */
+***************
+*** 317,322 ****
+      return;
+  
+!   sarray_free (class->dtable);	/* release memory */
+    __objc_install_premature_dtable (class); /* someone might require it... */
+    __objc_install_dispatch_table_for_class (class); /* could have been lazy... */
+  
+--- 328,337 ----
+      return;
+  
+!   objc_mutex_lock(__objc_runtime_mutex);
+! 
+!   arr = class->dtable;
+    __objc_install_premature_dtable (class); /* someone might require it... */
++   sarray_free (arr);			   /* release memory */
++ 
+    __objc_install_dispatch_table_for_class (class); /* could have been lazy... */
+  
+***************
+*** 325,328 ****
+--- 340,344 ----
+        __objc_update_dispatch_table_for_class (next);
+  
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }
+  
+***************
+*** 330,334 ****
+  /* This function adds a method list to a class.  This function is
+     typically called by another function specific to the run-time.  As
+!    such this function does not worry about thread safe issued.
+  
+     This one is only called for categories. Class objects have their
+--- 346,350 ----
+  /* This function adds a method list to a class.  This function is
+     typically called by another function specific to the run-time.  As
+!    such this function does not worry about thread safe issues.
+  
+     This one is only called for categories. Class objects have their
+***************
+*** 339,343 ****
+  {
+    int i;
+!   static SEL initialize_sel = 0;
+    if (!initialize_sel)
+      initialize_sel = sel_register_name ("initialize");
+--- 355,360 ----
+  {
+    int i;
+!   static SEL initialize_sel = 0;                /* !T:SAFE2 */
+! 
+    if (!initialize_sel)
+      initialize_sel = sel_register_name ("initialize");
+***************
+*** 483,487 ****
+  {
+    IMP imp;
+!   static SEL frwd_sel = 0;
+    SEL err_sel;
+  
+--- 500,504 ----
+  {
+    IMP imp;
+!   static SEL frwd_sel = 0;                      /* !T:SAFE2 */
+    SEL err_sel;
+  
+***************
+*** 535,538 ****
+--- 552,558 ----
+  {
+    int total = 0;
++ 
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
+    printf("memory usage: (%s)\n",
+  #ifdef OBJC_SPARSE2
+***************
+*** 553,556 ****
+--- 573,578 ----
+    printf("total: %d bytes\n", total);
+    printf("===================================\n");
++ 
++   objc_mutex_unlock(__objc_runtime_mutex);
+  }
+  
+diff -rc2P objc/thread-decosf1.c objc-threaded/thread-decosf1.c
+*** objc/thread-decosf1.c	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-decosf1.c	Sun Jan 21 19:36:27 1996
+***************
+*** 0 ****
+--- 1,325 ----
++ /* GNU Objective C Runtime Thread Interface
++    Copyright (C) 1995 Free Software Foundation, Inc.
++ 
++ Author: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is included into thread.c
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify it under the
++    terms of the GNU General Public License as published by the Free Software
++    Foundation; either version 2, or (at your option) any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful, but WITHOUT ANY
++    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
++    details.
++ 
++ You should have received a copy of the GNU General Public License along with
++    GNU CC; see the file COPYING.  If not, write to the Free Software
++    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ #include <pthread.h>
++ 
++ /********
++  *  This structure represents a single mutual exclusion lock.  Lock semantics
++  *  are detailed with the subsequent functions.  We use whatever lock is
++  *  provided by the system.  We augment it with depth and current owner id
++  *  fields to implement and re-entrant lock.
++  */
++ struct _objc_mutex 
++ {
++     volatile _objc_thread_t     owner;          /* Id of thread that owns.  */
++     volatile int                depth;          /* # of acquires.           */
++     pthread_mutex_t             lock;           /* pthread mutex.           */
++ };
++ 
++ /*****************************************************************************
++  *  Static variables.
++  */
++ static pthread_key_t    __objc_thread_data_key; /* Data key for thread data.*/
++ 
++ 
++ /********
++  *  Initialize the threads subsystem.  Returns 0 if successful, or -1 if no
++  *  thread support is available.
++  */
++ int
++ __objc_init_thread_system(void)
++ {
++     printf("__objc_init_thread_system\n");
++     
++     if (pthread_keycreate(&__objc_thread_data_key, NULL) == 0)
++         return 0;                               /* Yes, return success.     */
++     
++     return -1;                                  /* Failed.                  */
++ }
++ 
++ int
++ __objc_fini_thread_system(void)
++ {
++   return 0;
++ }
++ 
++ /********
++  *  Create a new thread of execution and return its id.  Return NULL if fails.
++  *  The new thread starts in "func" with the given argument.
++  */
++ _objc_thread_t
++ objc_thread_create(void (*func)(void *arg), void *arg)
++ {
++     _objc_thread_t      thread_id = NULL;       /* Detached thread id.      */
++     pthread_t           new_thread_handle;      /* DCE thread handle.       */
++ 
++     objc_mutex_lock(__objc_runtime_mutex);
++     
++     if (pthread_create(&new_thread_handle, pthread_attr_default,
++                        (void *)func, arg) == 0) {
++         thread_id = *(_objc_thread_t *)&new_thread_handle; /* ??? May not work! (64bit)*/
++         pthread_detach(&new_thread_handle);     /* Fully detach thread.     */
++ 	__objc_runtime_threads_alive++;
++     }
++     
++     objc_mutex_unlock(__objc_runtime_mutex);
++     return thread_id;
++ }
++ 
++ /********
++  *  Set the current thread's priority.
++  */
++ int
++ objc_thread_set_priority(int priority)
++ {
++     int         sys_priority = 0;
++ 
++     switch (priority) {
++     case OBJC_THREAD_INTERACTIVE_PRIORITY:
++         sys_priority = (PRI_FG_MIN_NP + PRI_FG_MAX_NP) / 2;
++         break;
++     default:
++     case OBJC_THREAD_BACKGROUND_PRIORITY:
++         sys_priority = (PRI_BG_MIN_NP + PRI_BG_MAX_NP) / 2;
++         break;
++     case OBJC_THREAD_LOW_PRIORITY:
++         sys_priority = (PRI_BG_MIN_NP + PRI_BG_MAX_NP) / 2;
++         break;
++     }
++     
++     if (pthread_setprio(pthread_self(), sys_priority) >= 0)
++         return 0;                               /* Changed priority. End.   */
++     
++     return -1;                                  /* Failed.                  */
++ }
++ 
++ /********
++  *  Return the current thread's priority.
++  */
++ int
++ objc_thread_get_priority(void)
++ {
++     int         sys_priority;                   /* DCE thread priority.     */
++     
++     if ((sys_priority = pthread_getprio(pthread_self())) >= 0) {
++         if (sys_priority >= PRI_FG_MIN_NP && sys_priority <= PRI_FG_MAX_NP)
++             return OBJC_THREAD_INTERACTIVE_PRIORITY;
++         if (sys_priority >= PRI_BG_MIN_NP && sys_priority <= PRI_BG_MAX_NP)
++             return OBJC_THREAD_BACKGROUND_PRIORITY;
++         return OBJC_THREAD_LOW_PRIORITY;
++     }
++     return -1;                                  /* Couldn't get priority.   */
++ }
++ 
++ /********
++  *  Yield our process time to another thread.  Any BUSY waiting that is done
++  *  by a thread should use this function to make sure that other threads can
++  *  make progress even on a lazy uniprocessor system.
++  */
++ void
++ objc_thread_yield(void)
++ {
++     pthread_yield();                            /* Yield to equal thread.   */
++ }
++ 
++ /********
++  *  Terminate the current tread.  Doesn't return anything.  Doesn't return.
++  *  Actually, if it failed returns -1.
++  */
++ int
++ objc_thread_exit(void)
++ {
++   objc_mutex_lock(__objc_runtime_mutex);
++   __objc_runtime_threads_alive--;
++   objc_mutex_unlock(__objc_runtime_mutex);
++       
++   pthread_exit(&__objc_thread_exit_status);     /* Terminate thread.        */
++   return -1;
++ }
++ 
++ /********
++  *  Returns an integer value which uniquely describes a thread.  Must not be
++  *  -1 which is reserved as a marker for "no thread".
++  */
++ int
++ objc_thread_id(void)
++ {
++   pthread_t self = pthread_self();
++ 
++   return *(int *)&self;                        /* Return thread handle.    */
++ }
++ 
++ /********
++  *  Sets the thread's local storage pointer.  Returns 0 if successful or -1
++  *  if failed.
++  */
++ int
++ objc_thread_set_data(void *value)
++ {
++     if (pthread_setspecific(__objc_thread_data_key, (void *)value) == 0)
++         return 0;                           	/* Return thread data.      */
++     return -1;
++ }
++ 
++ /********
++  *  Returns the thread's local storage pointer.  Returns NULL on failure.
++  */
++ void *
++ objc_thread_get_data(void)
++ {
++     void *      value = NULL;
++     
++     if (pthread_getspecific(__objc_thread_data_key, (void *)&value) == 0)
++         return value;                           /* Return thread data.      */
++     
++     return NULL;
++ }
++ 
++ /********
++  *  Allocate a mutex.  Return the mutex pointer if successful or NULL if
++  *  the allocation fails for any reason.
++  */
++ _objc_mutex_t
++ objc_mutex_allocate(void)
++ {
++     _objc_mutex_t mutex;
++     int         err = 0;
++     
++     if (!(mutex = (_objc_mutex_t)__objc_xmalloc(sizeof(struct _objc_mutex))))
++         return NULL;                            /* Abort if malloc failed.  */
++     
++     err = pthread_mutex_init(&mutex->lock, pthread_mutexattr_default);
++     
++     if (err != 0) {                             /* System init failed?      */
++         free(mutex);                            /* Yes, free local memory.  */
++         return NULL;                            /* Abort.                   */
++     }
++     mutex->owner = -1;                          /* No owner.                */
++     mutex->depth = 0;                           /* No locks.                */
++     return mutex;                               /* Return mutex handle.     */
++ }
++ 
++ /********
++  *  Deallocate a mutex.  Note that this includes an implicit mutex_lock to
++  *  insure that no one else is using the lock.  It is legal to deallocate
++  *  a lock if we have a lock on it, but illegal to deallotcate a lock held
++  *  by anyone else.
++  *  Returns the number of locks on the thread.  (1 for deallocate).
++  */
++ int
++ objc_mutex_deallocate(_objc_mutex_t mutex)
++ {
++     int         depth;                          /* # of locks on mutex.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     depth = objc_mutex_lock(mutex);             /* Must have lock.          */
++     
++     pthread_mutex_unlock(&mutex->lock);         /* Must unlock system mutex.*/
++     pthread_mutex_destroy(&mutex->lock);        /* Free system mutex.       */
++     
++     free(mutex);                                /* Free memory.             */
++     return depth;                               /* Return last depth.       */
++ }
++ 
++ /********
++  *  Grab a lock on a mutex.  If this thread already has a lock on this mutex
++  *  then we increment the lock count.  If another thread has a lock on the 
++  *  mutex we block and wait for the thread to release the lock.
++  *  Returns the lock count on the mutex held by this thread.
++  */
++ int
++ objc_mutex_lock(_objc_mutex_t mutex)
++ {
++     int         thread_id;                      /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++ 
++     if (pthread_mutex_lock(&mutex->lock) != 0)  /* Lock DCE system mutex.   */
++         return -1;                              /* Failed, abort.           */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Try to grab a lock on a mutex.  If this thread already has a lock on
++  *  this mutex then we increment the lock count and return it.  If another
++  *  thread has a lock on the mutex returns -1.
++  */
++ int
++ objc_mutex_trylock(_objc_mutex_t mutex)
++ {
++     int         thread_id;                      /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++     
++     if (pthread_mutex_trylock(&mutex->lock) != 1) /* Lock DCE system mutex. */
++         return -1;                              /* Failed, abort.           */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Decrements the lock count on this mutex by one.  If the lock count reaches
++  *  zero, release the lock on the mutex.  Returns the lock count on the mutex.
++  *  It is an error to attempt to unlock a mutex which this thread doesn't hold
++  *  in which case return -1 and the mutex is unaffected.
++  *  Will also return -1 if the mutex free fails.
++  */
++ int
++ objc_mutex_unlock(_objc_mutex_t mutex)
++ {
++     int         thread_id;                      /* Cache our thread id.     */
++     
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner != thread_id)              /* Does some else own lock? */
++         return -1;                              /* Yes, abort.              */
++     if (mutex->depth > 1)                       /* Released last lock?      */
++         return --mutex->depth;                  /* No, Decrement depth, end.*/
++     mutex->depth = 0;                           /* Yes, reset depth to 0.   */
++     mutex->owner = -1;                          /* Set owner to "no thread".*/
++     
++     if (pthread_mutex_unlock(&mutex->lock) != 0)  /* Unlock system mutex.   */
++         return -1;                              /* Failed, abort.           */
++     
++     return 0;                                   /* No, return success.      */
++ }
++ 
++ /* End of File */
+diff -rc2P objc/thread-irix.c objc-threaded/thread-irix.c
+*** objc/thread-irix.c	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-irix.c	Sun Jan 21 19:36:27 1996
+***************
+*** 0 ****
+--- 1,314 ----
++ /* GNU Objective C Runtime Thread Interface - SGI IRIX Implementation
++    Copyright (C) 1995 Free Software Foundation, Inc.
++ 
++ Author: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is included into thread.c
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify it under the
++    terms of the GNU General Public License as published by the Free Software
++    Foundation; either version 2, or (at your option) any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful, but WITHOUT ANY
++    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
++    details.
++ 
++ You should have received a copy of the GNU General Public License along with
++    GNU CC; see the file COPYING.  If not, write to the Free Software
++    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ #include <stdlib.h>
++ #include <sys/types.h>
++ #include <sys/sysmp.h>
++ #include <sys/prctl.h>
++ #include <ulocks.h>
++ 
++ /********
++  *  This structure represents a single mutual exclusion lock.  Lock semantics
++  *  are detailed with the subsequent functions.  We use whatever lock is
++  *  provided by the system.  We augment it with depth and current owner id
++  *  fields to implement and re-entrant lock.
++  */
++ struct _objc_mutex 
++ {
++     volatile _objc_thread_t     owner;          /* Id of thread that owns.  */
++     volatile int                depth;          /* # of acquires.           */
++     ulock_t                     lock;           /* Irix lock.               */
++ };
++ 
++ /*****************************************************************************
++  *  Static variables.
++  */
++ static void *  __objc_shared_arena_handle = NULL; /* Storage arena locks.   */
++ 
++ /********
++  *  Initialize the threads subsystem.  Returns 0 if successful, or -1 if no
++  *  thread support is available.
++  */
++ int
++ __objc_init_thread_system(void)
++ {
++     char        arena_name[64];                 /* Name of IRIX arena.      */
++ 
++     DEBUG_PRINTF("__objc_init_thread_system\n");
++     sprintf(arena_name, "/usr/tmp/objc_%05u", (unsigned)getpid());
++     usconfig(CONF_INITUSERS, 256);              /* Up to 256 threads.       */
++     usconfig(CONF_ARENATYPE, US_SHAREDONLY);    /* Arena only for threads.  */
++     if (!(__objc_shared_arena_handle = usinit(arena_name))) /* Init Failed? */ 
++         return -1;                              /* Yes, return error code.  */
++     
++     return 0;
++ }
++ 
++ int
++ __objc_fini_thread_system(void)
++ {
++   return 0;
++ }
++ 
++ /********
++  *  Create a new thread of execution and return its id.  Return NULL if fails.
++  *  The new thread starts in "func" with the given argument.
++  */
++ _objc_thread_t
++ objc_thread_create(void (*func)(void *arg), void *arg)
++ {
++     _objc_thread_t      thread_id = NULL;
++     int                 sys_id;
++     
++     objc_mutex_lock(__objc_runtime_mutex);
++     if ((sys_id = sproc((void *)func, PR_SALL, arg)) >= 0) {
++         thread_id = (_objc_thread_t)sys_id;
++         __objc_runtime_threads_alive++;
++     }
++     objc_mutex_unlock(__objc_runtime_mutex);
++ 
++     return thread_id;
++ }
++ 
++ /********
++  *  Set the current thread's priority.
++  */
++ int
++ objc_thread_set_priority(int priority)
++ {
++     int         sys_priority = 0;
++ 
++     switch (priority) {
++     case OBJC_THREAD_INTERACTIVE_PRIORITY:
++         break;
++     default:
++     case OBJC_THREAD_BACKGROUND_PRIORITY:
++         break;
++     case OBJC_THREAD_LOW_PRIORITY:
++         break;
++     }
++     return -1;                                  /* Failed.                  */
++ }
++ 
++ /********
++  *  Return the current thread's priority.
++  */
++ int
++ objc_thread_get_priority(void)
++ {
++     return -1;                                  /* Couldn't get priority.   */
++ }
++ 
++ /********
++  *  Yield our process time to another thread.  Any BUSY waiting that is done
++  *  by a thread should use this function to make sure that other threads can
++  *  make progress even on a lazy uniprocessor system.
++  */
++ void
++ objc_thread_yield(void)
++ {
++     sginap(0);                                  /* Yield to equal process.  */
++ }
++ 
++ /********
++  *  Terminate the current tread.  Doesn't return anything.  Doesn't return.
++  *  Actually, if it failed returns -1.
++  */
++ int
++ objc_thread_exit(void)
++ {
++     objc_mutex_lock(__objc_runtime_mutex);
++     __objc_runtime_threads_alive--;
++     objc_mutex_unlock(__objc_runtime_mutex);
++ 
++     exit(__objc_thread_exit_status);            /* IRIX only has exit.      */
++     return -1;
++ }
++ 
++ /********
++  *  Returns an integer value which uniquely describes a thread.  Must not be
++  *  NULL which is reserved as a marker for "no thread".
++  */
++ _objc_thread_t
++ objc_thread_id(void)
++ {
++     return (_objc_thread_t)get_pid();           /* Threads are processes.   */
++ }
++ 
++ /********
++  *  Sets the thread's local storage pointer.  Returns 0 if successful or -1
++  *  if failed.
++  */
++ int
++ objc_thread_set_data(void *value)
++ {
++     *((void **)&PRDA->usr_prda) = value;        /* Set thread data ptr.     */
++     return 0;
++ }
++ 
++ /********
++  *  Returns the thread's local storage pointer.  Returns NULL on failure.
++  */
++ void *
++ objc_thread_get_data(void)
++ {
++     return *((void **)&PRDA->usr_prda);         /* Return thread data ptr.  */
++ }
++ 
++ /********
++  *  Allocate a mutex.
++  *  Return the mutex pointer if successful or NULL if the allocation failed
++  *  for any reason.
++  */
++ _objc_mutex_t
++ objc_mutex_allocate(void)
++ {
++     _objc_mutex_t       mutex;
++     int                 err = 0;
++     
++     if (!(mutex = (_objc_mutex_t)__objc_xmalloc(sizeof(struct _objc_mutex))))
++         return NULL;                            /* Abort if malloc failed.  */
++     
++     if (!(mutex->lock = usnewlock(__objc_shared_arena_handle)))
++         err = -1;
++     
++     if (err != 0) {                             /* System init failed?      */
++         free(mutex);                            /* Yes, free local memory.  */
++         return NULL;                            /* Abort.                   */
++     }
++     mutex->owner = NULL;                        /* No owner.                */
++     mutex->depth = 0;                           /* No locks.                */
++     return mutex;                               /* Return mutex handle.     */
++ }
++ 
++ /********
++  *  Deallocate a mutex.  Note that this includes an implicit mutex_lock to
++  *  insure that no one else is using the lock.  It is legal to deallocate
++  *  a lock if we have a lock on it, but illegal to deallotcate a lock held
++  *  by anyone else.
++  *  Returns the number of locks on the thread.  (1 for deallocate).
++  */
++ int
++ objc_mutex_deallocate(_objc_mutex_t mutex)
++ {
++     int         depth;                          /* # of locks on mutex.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     depth = objc_mutex_lock(mutex);             /* Must have lock.          */
++     
++     usfreelock(mutex->lock, __objc_shared_arena_handle); /* Free IRIX lock. */
++     
++     free(mutex);                                /* Free memory.             */
++     return depth;                               /* Return last depth.       */
++ }
++ 
++ /********
++  *  Grab a lock on a mutex.  If this thread already has a lock on this mutex
++  *  then we increment the lock count.  If another thread has a lock on the 
++  *  mutex we block and wait for the thread to release the lock.
++  *  Returns the lock count on the mutex held by this thread.
++  */
++ int
++ objc_mutex_lock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id) {            /* Already own lock?        */
++         DEBUG_PRINTF("lock owned by: %d:%d\n", mutex->owner, mutex->depth);
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++     }
++     
++     DEBUG_PRINTF("lock owned by: %d:%d (attempt by %d)\n",
++                  mutex->owner, mutex->depth, thread_id);
++ 
++     if (ussetlock(mutex->lock) == 0)            /* Did lock acquire fail?   */
++         return -1;                              /* Yes, abort.              */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Try to grab a lock on a mutex.  If this thread already has a lock on
++  *  this mutex then we increment the lock count and return it.  If another
++  *  thread has a lock on the mutex returns -1.
++  */
++ int
++ objc_mutex_trylock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++     
++     if (ustestlock(mutex->lock) == 0)           /* Did lock acquire fail?   */
++         return -1;                              /* Yes, abort.              */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Decrements the lock count on this mutex by one.  If the lock count reaches
++  *  zero, release the lock on the mutex.  Returns the lock count on the mutex.
++  *  It is an error to attempt to unlock a mutex which this thread doesn't hold
++  *  in which case return -1 and the mutex is unaffected.
++  *  Will also return -1 if the mutex free fails.
++  */
++ 
++ int
++ objc_mutex_unlock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t     thread_id;               /* Cache our thread id.     */
++     
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner != thread_id)              /* Does some else own lock? */
++         return -1;                              /* Yes, abort.              */
++ 
++     DEBUG_PRINTF("unlock by: %d:%d\n", mutex->owner, mutex->depth - 1);
++     
++     if (mutex->depth > 1)                       /* Released last lock?      */
++         return --mutex->depth;                  /* No, Decrement depth, end.*/
++     mutex->depth = 0;                           /* Yes, reset depth to 0.   */
++     mutex->owner = NULL;                        /* Set owner to "no thread".*/
++     
++     usunsetlock(mutex->lock);                   /* Free lock.               */
++     
++     return 0;                                   /* No, return success.      */
++ }
++ 
++ /* End of File */
+diff -rc2P objc/thread-single.c objc-threaded/thread-single.c
+*** objc/thread-single.c	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-single.c	Sun Jan 21 19:36:27 1996
+***************
+*** 0 ****
+--- 1,239 ----
++ /* GNU Objective C Runtime Thread Implementation
++    Copyright (C) 1995 Free Software Foundation, Inc.
++ 
++ Author: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is included into thread.c
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify it under the
++    terms of the GNU General Public License as published by the Free Software
++    Foundation; either version 2, or (at your option) any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful, but WITHOUT ANY
++    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
++    details.
++ 
++ You should have received a copy of the GNU General Public License along with
++    GNU CC; see the file COPYING.  If not, write to the Free Software
++    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ /********
++  *  This structure represents a single mutual exclusion lock.  Lock semantics
++  *  are detailed with the subsequent functions.  We use whatever lock is
++  *  provided by the system.  We augment it with depth and current owner id
++  *  fields to implement and re-entrant lock.
++  */
++ struct _objc_mutex 
++ {
++     volatile _objc_thread_t     owner;          /* Id of thread that owns.  */
++     volatile int                depth;          /* # of acquires.           */
++ };
++ 
++ /********
++  *  Initialize the threads subsystem.  Returns 0 if successful, or -1 if no
++  *  thread support is available.
++  */
++ int
++ __objc_init_thread_system(void)
++ {
++   DEBUG_PRINTF("__objc_init_thread_system\n");
++   return -1;                                  	/* Failed.                  */
++ }
++ 
++ /********
++  *  Create a new thread of execution and return its id.  Return NULL if fails.
++  *  The new thread starts in "func" with the given argument.
++  */
++ _objc_thread_t
++ objc_thread_create(void (*func)(void *arg), void *arg)
++ {
++   return NULL;				   	/* We can't start threads.  */
++ }
++ 
++ /********
++  *  Set the current thread's priority.
++  */
++ int
++ objc_thread_set_priority(int priority)
++ {
++   return -1;                                   	/* Failed.                  */
++ }
++ 
++ /********
++  *  Return the current thread's priority.
++  */
++ int
++ objc_thread_get_priority(void)
++ {
++   return OBJC_THREAD_INTERACTIVE_PRIORITY;      /* Highest priority.        */
++ }
++ 
++ /********
++  *  Yield our process time to another thread.  Any BUSY waiting that is done
++  *  by a thread should use this function to make sure that other threads can
++  *  make progress even on a lazy uniprocessor system.
++  */
++ void
++ objc_thread_yield(void)
++ {
++   return;
++ }
++ 
++ /********
++  *  Terminate the current tread.  Doesn't return anything.  Doesn't return.
++  *  Actually, if it failed returns -1.
++  */
++ int
++ objc_thread_exit(void)
++ {
++   exit(__objc_thread_exit_status);
++   return -1;
++ }
++ 
++ /********
++  *  Returns an integer value which uniquely describes a thread.  Must not be
++  *  NULL which is reserved as a marker for "no thread".
++  */
++ _objc_thread_t
++ objc_thread_id(void)
++ {
++   return (_objc_thread_t)1;                     /* No thread support, use 1.*/
++ }
++ 
++ /********
++  *  Sets the thread's local storage pointer.  Returns 0 if successful or -1
++  *  if failed.
++  */
++ 
++ static void *thread_local_storage = NULL;
++ 
++ int
++ objc_thread_set_data(void *value)
++ {
++   thread_local_storage = value;
++   return 0;
++ }
++ 
++ /********
++  *  Returns the thread's local storage pointer.  Returns NULL on failure.
++  */
++ void *
++ objc_thread_get_data(void)
++ {
++   return thread_local_storage;
++ }
++ 
++ /********
++  *  Allocate a mutex.  Return the mutex pointer if successful or NULL if the
++  *  allocation failed for any reason.
++  */
++ _objc_mutex_t
++ objc_mutex_allocate(void)
++ {
++     _objc_mutex_t mutex;
++     
++     if (!(mutex = (_objc_mutex_t)__objc_xmalloc(sizeof(struct _objc_mutex))))
++         return NULL;                            /* Abort if malloc failed.  */
++     
++     mutex->owner = NULL;                        /* No owner.                */
++     mutex->depth = 0;                           /* No locks.                */
++     return mutex;                               /* Return mutex handle.     */
++ }
++ 
++ /********
++  *  Deallocate a mutex.  Note that this includes an implicit mutex_lock to
++  *  insure that no one else is using the lock.  It is legal to deallocate
++  *  a lock if we have a lock on it, but illegal to deallocate a lock held
++  *  by anyone else.
++  *  Returns the number of locks on the thread.  (1 for deallocate).
++  */
++ int
++ objc_mutex_deallocate(_objc_mutex_t mutex)
++ {
++     int         depth;                          /* # of locks on mutex.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     depth = objc_mutex_lock(mutex);             /* Must have lock.          */
++     
++     free(mutex);                                /* Free memory.             */
++     return depth;                               /* Return last depth.       */
++ }
++ 
++ /********
++  *  Grab a lock on a mutex.  If this thread already has a lock on this mutex
++  *  then we increment the lock count.  If another thread has a lock on the 
++  *  mutex we block and wait for the thread to release the lock.
++  *  Returns the lock count on the mutex held by this thread.
++  */
++ int
++ objc_mutex_lock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++ 
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++ 
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Try to grab a lock on a mutex.  If this thread already has a lock on
++  *  this mutex then we increment the lock count and return it.  If another
++  *  thread has a lock on the mutex returns -1.
++  */
++ int
++ objc_mutex_trylock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Decrements the lock count on this mutex by one.  If the lock count reaches
++  *  zero, release the lock on the mutex.  Returns the lock count on the mutex.
++  *  It is an error to attempt to unlock a mutex which this thread doesn't hold
++  *  in which case return -1 and the mutex is unaffected.
++  *  Will also return -1 if the mutex free fails.
++  */
++ int
++ objc_mutex_unlock(_objc_mutex_t mutex)
++ {
++     int         thread_id;                      /* Cache our thread id.     */
++     
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner != thread_id)              /* Does some else own lock? */
++         return -1;                              /* Yes, abort.              */
++     if (mutex->depth > 1)                       /* Released last lock?      */
++         return --mutex->depth;                  /* No, Decrement depth, end.*/
++     mutex->depth = 0;                           /* Yes, reset depth to 0.   */
++     mutex->owner = NULL;                        /* Set owner to "no thread".*/
++     
++     return 0;                                   /* No, return success.      */
++ }
++ 
++ /* End of File */
+diff -rc2P objc/thread-solaris.c objc-threaded/thread-solaris.c
+*** objc/thread-solaris.c	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-solaris.c	Sun Jan 21 19:36:27 1996
+***************
+*** 0 ****
+--- 1,328 ----
++ /* GNU Objective C Runtime Thread Interface
++    Copyright (C) 1995 Free Software Foundation, Inc.
++ 
++ Author: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is included into thread.c
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify it under the
++    terms of the GNU General Public License as published by the Free Software
++    Foundation; either version 2, or (at your option) any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful, but WITHOUT ANY
++    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
++    details.
++ 
++ You should have received a copy of the GNU General Public License along with
++    GNU CC; see the file COPYING.  If not, write to the Free Software
++    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ #include "runtime.h"
++ 
++ #include <thread.h>
++ #include <synch.h>
++ #include <errno.h>
++ 
++ /********
++  *  This structure represents a single mutual exclusion lock.  Lock semantics
++  *  are detailed with the subsequent functions.  We use whatever lock is
++  *  provided by the system.  We augment it with depth and current owner id
++  *  fields to implement and re-entrant lock.
++  */
++ struct _objc_mutex 
++ {
++     volatile _objc_thread_t     owner;          /* Id of thread that owns.  */
++     volatile int                depth;          /* # of acquires.           */
++     mutex_t                     lock;           /* System mutex.            */
++ };
++ 
++ /*****************************************************************************
++  *  Static variables.
++  */
++ static thread_key_t     __objc_thread_data_key; /* Data key for thread data.*/
++ 
++ /********
++  *  Initialize the threads subsystem.  Returns 0 if successful, or -1 if no
++  *  thread support is available.
++  */
++ int
++ __objc_init_thread_system(void)
++ {
++     DEBUG_PRINTF("__objc_init_thread_system\n");
++ 
++     if (thr_keycreate(&__objc_thread_data_key, NULL) == 0)
++         return 0;                               /* Yes, return success.     */
++     
++     return -1;                                  /* Failed.                  */
++ }
++ 
++ int
++ __objc_fini_thread_system(void)
++ {
++   return 0;
++ }
++ 
++ /********
++  *  Create a new thread of execution and return its id.  Return -1 if fails.
++  *  The new thread starts in "func" with the given argument.
++  */
++ _objc_thread_t
++ objc_thread_create(void (*func)(void *arg), void *arg)
++ {
++   _objc_thread_t        thread_id = NULL;       /* Detached thread id.      */
++   thread_t              new_thread_id = 0;      /* Solaris thread id type.  */
++   int                   errn;
++ 
++   objc_mutex_lock(__objc_runtime_mutex);
++ 
++   if (thr_create(NULL, 0, (void *)func, arg,
++                  THR_DETACHED | THR_NEW_LWP,
++                  &new_thread_id) == 0) {    	/* Created new thread?      */
++     thread_id = (_objc_thread_t)new_thread_id;  /* Yes, remember its id.    */
++     __objc_runtime_threads_alive++;
++   }
++   
++   objc_mutex_unlock(__objc_runtime_mutex);
++     
++   return thread_id;
++ }
++ 
++ /********
++  *  Set the current thread's priority.
++  */
++ int
++ objc_thread_set_priority(int priority)
++ {
++     int         sys_priority = 0;
++ 
++     switch (priority) {
++     case OBJC_THREAD_INTERACTIVE_PRIORITY:
++         sys_priority = 300;
++         break;
++     default:
++     case OBJC_THREAD_BACKGROUND_PRIORITY:
++         sys_priority = 200;
++         break;
++     case OBJC_THREAD_LOW_PRIORITY:
++         sys_priority = 1000;
++         break;
++     }
++     
++     if (thr_setprio(thr_self(), sys_priority) == 0)
++         return 0;                               /* Changed priority. End.   */
++     
++     return -1;                                  /* Failed.                  */
++ }
++ 
++ /********
++  *  Return the current thread's priority.
++  */
++ int
++ objc_thread_get_priority(void)
++ {
++     int         sys_priority;                   /* Solaris thread priority. */
++                                                    
++     if (thr_getprio(thr_self(), &sys_priority) == 0) {
++         if (sys_priority >= 250)
++             return OBJC_THREAD_INTERACTIVE_PRIORITY;
++         else if (sys_priority >= 150)
++             return OBJC_THREAD_BACKGROUND_PRIORITY;
++         return OBJC_THREAD_LOW_PRIORITY;
++     }
++     
++     return -1;                                  /* Couldn't get priority.   */
++ }
++ 
++ /********
++  *  Yield our process time to another thread.  Any BUSY waiting that is done
++  *  by a thread should use this function to make sure that other threads can
++  *  make progress even on a lazy uniprocessor system.
++  */
++ void
++ objc_thread_yield(void)
++ {
++     thr_yield();                                /* Yield to equal thread.   */
++ }
++ 
++ /********
++  *  Terminate the current tread.  Doesn't return anything.  Doesn't return.
++  *  Actually, if it failed returns -1.
++  */
++ int
++ objc_thread_exit(void)
++ {
++   objc_mutex_lock(__objc_runtime_mutex);
++   __objc_runtime_threads_alive++;
++   objc_mutex_unlock(__objc_runtime_mutex);
++   
++   thr_exit(&__objc_thread_exit_status);         /* Terminate thread.        */
++   return -1;
++ }
++ 
++ /********
++  *  Returns an integer value which uniquely describes a thread.  Must not be
++  *  NULL which is reserved as a marker for "no thread".
++  */
++ _objc_thread_t
++ objc_thread_id(void)
++ {
++     return (_objc_thread_t)thr_self();
++ }
++ 
++ /********
++  *  Sets the thread's local storage pointer.  Returns 0 if successful or -1
++  *  if failed.
++  */
++ int
++ objc_thread_set_data(void *value)
++ {
++     if (thr_setspecific(__objc_thread_data_key, value) == 0)
++         return 0;
++     return -1;
++ }
++ 
++ /********
++  *  Returns the thread's local storage pointer.  Returns NULL on failure.
++  */
++ void *
++ objc_thread_get_data(void)
++ {
++     void *      value = NULL;
++     
++     if (thr_getspecific(__objc_thread_data_key, &value) == 0)
++         return value;                           /* Return thread data.      */
++     
++     return NULL;
++ }
++ 
++ /********
++  *  Allocate a mutex.  Return the mutex pointer if successful or NULL if
++  *  the allocation fails for any reason.
++  */
++ _objc_mutex_t
++ objc_mutex_allocate(void)
++ {
++     struct _objc_mutex *mutex;
++     int         err = 0;
++     
++     if (!(mutex = (_objc_mutex_t)__objc_xmalloc(sizeof(struct _objc_mutex))))
++         return NULL;                            /* Abort if malloc failed.  */
++     
++     err = mutex_init(&mutex->lock, USYNC_THREAD, 0);
++     
++     if (err != 0) {                             /* System init failed?      */
++         free(mutex);                            /* Yes, free local memory.  */
++         return NULL;                            /* Abort.                   */
++     }
++     mutex->owner = NULL;                        /* No owner.                */
++     mutex->depth = 0;                           /* No locks.                */
++     return mutex;                               /* Return mutex handle.     */
++ }
++ 
++ /********
++  *  Deallocate a mutex.  Note that this includes an implicit mutex_lock to
++  *  insure that no one else is using the lock.  It is legal to deallocate
++  *  a lock if we have a lock on it, but illegal to deallotcate a lock held
++  *  by anyone else.
++  *  Returns the number of locks on the thread.  (1 for deallocate).
++  */
++ int
++ objc_mutex_deallocate(_objc_mutex_t mutex)
++ {
++     int         depth;                          /* # of locks on mutex.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     depth = objc_mutex_lock(mutex);             /* Must have lock.          */
++     
++     mutex_destroy(&mutex->lock);                /* System deallocate.       */
++     
++     free(mutex);                                /* Free memory.             */
++     return depth;                               /* Return last depth.       */
++ }
++ 
++ /********
++  *  Grab a lock on a mutex.  If this thread already has a lock on this mutex
++  *  then we increment the lock count.  If another thread has a lock on the 
++  *  mutex we block and wait for the thread to release the lock.
++  *  Returns the lock count on the mutex held by this thread.
++  */
++ int
++ objc_mutex_lock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++ 
++     if (mutex_lock(&mutex->lock) != 0)          /* Did lock acquire fail?   */
++         return -1;                              /* Yes, abort.              */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Try to grab a lock on a mutex.  If this thread already has a lock on
++  *  this mutex then we increment the lock count and return it.  If another
++  *  thread has a lock on the mutex returns -1.
++  */
++ int
++ objc_mutex_trylock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++     
++     if (mutex_trylock(&mutex->lock) != 0)       /* Did lock acquire fail?   */
++         return -1;                              /* Yes, abort.              */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return mutex->depth = 1;                    /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Decrements the lock count on this mutex by one.  If the lock count reaches
++  *  zero, release the lock on the mutex.  Returns the lock count on the mutex.
++  *  It is an error to attempt to unlock a mutex which this thread doesn't hold
++  *  in which case return -1 and the mutex is unaffected.
++  *  Will also return -1 if the mutex free fails.
++  */
++ int
++ objc_mutex_unlock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++     
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner != thread_id)              /* Does some else own lock? */
++         return -1;                              /* Yes, abort.              */
++     if (mutex->depth > 1)                       /* Released last lock?      */
++         return --mutex->depth;                  /* No, Decrement depth, end.*/
++     mutex->depth = 0;                           /* Yes, reset depth to 0.   */
++     mutex->owner = NULL;                        /* Set owner to "no thread".*/
++     
++     if (mutex_unlock(&mutex->lock) != 0)        /* Did lock release fail?   */
++         return -1;                              /* Yes, return error value. */
++     
++     return 0;                                   /* No, return success.      */
++ }
++ 
++ /* End of File */
+diff -rc2P objc/thread-test/Makefile objc-threaded/thread-test/Makefile
+*** objc/thread-test/Makefile	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-test/Makefile	Sun Jan 21 20:06:00 1996
+***************
+*** 0 ****
+--- 1,45 ----
++ ##############################################################################
++ #
++ #
++ #
++ 
++ all: test1
++ 
++ ########
++ # Solaris:
++ #
++ # test1 : test1.o ../libobjc-thread.a
++ # 	gcc -g -o test1 test1.o ../libobjc-thread.a -lthread
++ 
++ ########
++ # Linux:
++ #
++ # test1 : test1.o ../libobjc-thread.a
++ # 	gcc -g -o test1 test1.o ../libobjc-thread.a -lieee
++ 
++ ########
++ # Others:
++ #
++ test1 : test1.o ../libobjc-thread.a
++ 	gcc -g -o test1 test1.o ../libobjc-thread.a
++ 
++ test1.o : test1.m
++ 	gcc -DOBJC_THREAD_SAFE -g -I../.. -o test1.o -c test1.m
++ 
++ ########
++ 
++ clean:
++ 	rm -f *.o test1
++ 
++ test: test1
++ 	time test1
++ #
++ 
++ 
++ 
++ 
++ 
++ 
++ 
++ 
++ 
+diff -rc2P objc/thread-test/test1.m objc-threaded/thread-test/test1.m
+*** objc/thread-test/test1.m	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-test/test1.m	Sun Jan 21 19:46:28 1996
+***************
+*** 0 ****
+--- 1,160 ----
++ //
++ 
++ #include <stdio.h>
++ #include <stdarg.h>
++ #include <objc/Object.h>
++ #include <objc/thread.h>
++ 
++ //////////////////////////////////////////////////////////////////////////////
++ 
++ @interface NSLocking : Object
++ {
++     _objc_mutex_t       mutex;
++ }
++ 
++ - init;
++ - free;
++ - (void)lock;
++ - (void)unlock;
++ 
++ @end
++ 
++ @implementation NSLocking
++ 
++ - init
++ {
++     [super init];
++     
++     mutex = objc_mutex_allocate();
++     return self;
++ }
++ 
++ - free
++ {
++     objc_mutex_deallocate(mutex);
++     return [super free];
++ }
++ 
++ - (void)lock
++ {
++     objc_mutex_lock(mutex);
++ }
++ 
++ - (void)unlock
++ {
++     objc_mutex_lock(mutex);
++ }
++ 
++ @end
++ 
++ //////////////////////////////////////////////////////////////////////////////
++ 
++ @interface Fruit : Object
++ {
++     int         m_refs;
++     const char *m_name;
++     volatile int m_done;
++ }
++ 
++ /* Obtaining attributes intrinsic to the protocol */
++ 
++ - init;
++ - free;
++ - (const char *)name;
++ - set_name: (const char *)name;
++ - loop: (void *)arg;
++ - (int)bogus: (int)n;
++ - wait;
++ 
++ 
++ @end
++ 
++ @implementation Fruit
++ 
++ - init
++ {
++     [super init];
++     m_refs = 1;
++     m_name = "<no name>";
++     m_done = 0;
++     return self;
++ }
++ 
++ - free
++ {
++     printf("[%s free, refs: %d]\n", m_name, m_refs);
++     return [super free];
++ }
++ 
++ - (const char *)name
++ {
++     return m_name;
++ }
++ 
++ - set_name: (const char *)name
++ {
++     m_name = name;
++     return self;
++ }
++ 
++ - loop: (void *)arg
++ {
++     int i;
++     
++     printf("%s loop start\n", m_name);
++     fflush(stdout);
++     for (i = 0; i < 100000;) {
++         i = [self bogus: i];
++         if (i % 10000 == 1)
++             printf("%s loop: %d\n", m_name, i);
++     }
++     printf("%s loop done\n", m_name);
++     m_done = 1;
++ 
++     return self;
++ }
++ 
++ - (int)bogus: (int)n
++ {
++     return n + 1;
++ }
++ 
++ - wait
++ {
++     while (!m_done)
++         ;
++     
++     return self;
++ }
++ 
++ @end
++ 
++ 
++ int main(int argc, char **argv)
++ {
++     id f1, f2, f3;
++     id      (*imp)(id,SEL,id);
++ 
++     printf("Main:\n");
++     
++     f1 = [[Fruit new] set_name: "f1"];
++     f2 = [[Fruit new] set_name: "f2"];
++     f3 = [[Fruit new] set_name: "f3"];
++ 
++     printf("Inside the main body.\n");
++     objc_thread_detach(@selector(loop:), f1, NULL);
++     objc_thread_detach(@selector(loop:), f2, NULL);
++ 
++     [f3 loop: NULL];
++     
++     [f1 wait];
++     [f2 wait];
++ 
++     [f1 free];
++     [f2 free];
++     [f3 free];
++     
++     printf("Done:\n");
++     
++     return 0;
++ }
+diff -rc2P objc/thread-win32.c objc-threaded/thread-win32.c
+*** objc/thread-win32.c	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread-win32.c	Mon Jan 22 11:55:50 1996
+***************
+*** 0 ****
+--- 1,333 ----
++ /* GNU Objective C Runtime Thread Interface - Win32 Implementation
++    Copyright (C) 1995 Free Software Foundation, Inc.
++ 
++ Author: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is included into thread.c
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify it under the
++    terms of the GNU General Public License as published by the Free Software
++    Foundation; either version 2, or (at your option) any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful, but WITHOUT ANY
++    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
++    details.
++ 
++ You should have received a copy of the GNU General Public License along with
++    GNU CC; see the file COPYING.  If not, write to the Free Software
++    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ #include <windows.h>
++ 
++ /********
++  *  This structure represents a single mutual exclusion lock.  Lock semantics
++  *  are detailed with the subsequent functions.  We use whatever lock is
++  *  provided by the system.  We augment it with depth and current owner id
++  *  fields to implement and re-entrant lock.
++  */
++ struct _objc_mutex 
++ {
++   volatile _objc_thread_t       owner;        	/* Id of thread that owns.  */
++   volatile int                  depth;          /* # of acquires.           */
++   HANDLE                        handle;         /* Win32 mutex HANDLE.      */
++ };
++ 
++ /*****************************************************************************
++  *  Static variables.
++  */
++ static DWORD	__objc_data_tls = (DWORD)-1;	/* Win32 Thread Local Index.*/
++ 
++ /********
++  *  Initialize the threads subsystem.  Returns 0 if successful, or -1 if no
++  *  thread support is available.
++  */
++ int
++ __objc_init_thread_system(void)
++ {
++   DEBUG_PRINTF("__objc_init_thread_system\n");
++ 
++   if ((__objc_data_tls = TlsAlloc()) != (DWORD)-1)
++     return 0;                               	/* Yes, return success.     */
++     
++   return -1;                                  	/* Failed.                  */
++ }
++ 
++ int
++ __objc_fini_thread_system(void)
++ {
++   if (__objc_data_tls != (DWORD)-1) {
++     TlsFree(__objc_data_tls);
++     return 0;
++   }
++   return -1;
++ }
++ 
++ /********
++  *  Create a new thread of execution and return its id.  Return NULL if fails.
++  *  The new thread starts in "func" with the given argument.
++  */
++ _objc_thread_t
++ objc_thread_create(void (*func)(void *arg), void *arg)
++ {
++   DWORD        	thread_id = 0;                  /* Detached thread id.      */
++   HANDLE	win32_handle;			/* Win32 thread handle.     */
++ 
++   objc_mutex_lock(__objc_runtime_mutex);
++   
++   if ((win32_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)func,
++                                    arg, 0, &thread_id))) {
++       __objc_runtime_threads_alive++;
++   }
++   else
++       thread_id = 0;
++   
++   objc_mutex_unlock(__objc_runtime_mutex);
++   
++   return (_objc_thread_t)thread_id;
++ }
++ 
++ /********
++  *  Set the current thread's priority.
++  */
++ int
++ objc_thread_set_priority(int priority)
++ {
++   int         	sys_priority = 0;
++ 
++   switch (priority) {
++   case OBJC_THREAD_INTERACTIVE_PRIORITY:
++     sys_priority = THREAD_PRIORITY_NORMAL;
++     break;
++   default:
++   case OBJC_THREAD_BACKGROUND_PRIORITY:
++     sys_priority = THREAD_PRIORITY_BELOW_NORMAL;
++     break;
++   case OBJC_THREAD_LOW_PRIORITY:
++     sys_priority = THREAD_PRIORITY_LOWEST;
++     break;
++   }
++   if (SetThreadPriority(GetCurrentThread(), sys_priority))
++     return 0;                                  	/* Changed priority. End.   */
++     
++   return -1;                                  	/* Failed.                  */
++ }
++ 
++ /********
++  *  Return the current thread's priority.
++  */
++ int
++ objc_thread_get_priority(void)
++ {
++   int         	sys_priority;
++ 
++   sys_priority = GetThreadPriority(GetCurrentThread());
++   
++   switch (sys_priority) {
++   case THREAD_PRIORITY_HIGHEST:
++   case THREAD_PRIORITY_TIME_CRITICAL:
++   case THREAD_PRIORITY_ABOVE_NORMAL:
++   case THREAD_PRIORITY_NORMAL:
++     return OBJC_THREAD_INTERACTIVE_PRIORITY;
++ 
++   default:
++   case THREAD_PRIORITY_BELOW_NORMAL:
++     return OBJC_THREAD_BACKGROUND_PRIORITY;
++     
++   case THREAD_PRIORITY_IDLE:
++   case THREAD_PRIORITY_LOWEST:
++     return OBJC_THREAD_LOW_PRIORITY;
++   }
++   return -1;                                  	/* Couldn't get priority.   */
++ }
++ 
++ /********
++  *  Yield our process time to another thread.  Any BUSY waiting that is done
++  *  by a thread should use this function to make sure that other threads can
++  *  make progress even on a lazy uniprocessor system.
++  */
++ void
++ objc_thread_yield(void)
++ {
++   Sleep(0);	                            	/* Yield to equal thread.   */
++ }
++ 
++ /********
++  *  Terminate the current tread.  Doesn't return anything.  Doesn't return.
++  *  Actually, if it failed returns -1.
++  */
++ int
++ objc_thread_exit(void)
++ {
++   objc_mutex_lock(__objc_runtime_mutex);
++   __objc_runtime_threads_alive--;
++   objc_mutex_unlock(__objc_runtime_mutex);
++   
++   ExitThread(__objc_thread_exit_status);   	/* Terminate thread.        */
++   return -1;
++ }
++ 
++ /********
++  *  Returns an integer value which uniquely describes a thread.  Must not be
++  *  -1 which is reserved as a marker for "no thread".
++  */
++ _objc_thread_t
++ objc_thread_id(void)
++ {
++   return (_objc_thread_t)GetCurrentThreadId();  /* Return thread id.        */
++ }
++ 
++ /********
++  *  Sets the thread's local storage pointer.  Returns 0 if successful or -1
++  *  if failed.
++  */
++ int
++ objc_thread_set_data(void *value)
++ {
++   if (TlsSetValue(__objc_data_tls, value))
++     return 0;                           	/* Return thread data.      */
++   return -1;
++ }
++ 
++ /********
++  *  Returns the thread's local storage pointer.  Returns NULL on failure.
++  */
++ void *
++ objc_thread_get_data(void)
++ {
++   return TlsGetValue(__objc_data_tls);          /* Return thread data.      */
++ }
++ 
++ /********
++  *  Allocate a mutex.  Return the mutex pointer if successful or NULL if
++  *  the allocation fails for any reason.
++  */
++ _objc_mutex_t
++ objc_mutex_allocate(void)
++ {
++     _objc_mutex_t mutex;
++     int         err = 0;
++ 
++     if (!(mutex = (_objc_mutex_t)__objc_xmalloc(sizeof(struct _objc_mutex))))
++         return NULL;                            /* Abort if malloc failed.  */
++ 
++     if ((mutex->handle = CreateMutex(NULL, 0, NULL)) == NULL) {
++         free(mutex);                            /* Failed, free memory.     */
++         return NULL;                            /* Abort.                   */
++     }
++     mutex->owner = NULL;                        /* No owner.                */
++     mutex->depth = 0;                           /* No locks.                */
++     return mutex;                               /* Return mutex handle.     */
++ }
++ 
++ /********
++  *  Deallocate a mutex.  Note that this includes an implicit mutex_lock to
++  *  insure that no one else is using the lock.  It is legal to deallocate
++  *  a lock if we have a lock on it, but illegal to deallotcate a lock held
++  *  by anyone else.
++  *  Returns the number of locks on the thread.  (1 for deallocate).
++  */
++ int
++ objc_mutex_deallocate(_objc_mutex_t mutex)
++ {
++     int         depth;                          /* # of locks on mutex.     */
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     depth = objc_mutex_lock(mutex);             /* Must have lock.          */
++ 
++     CloseHandle(mutex->handle);			/* Close Win32 handle.      */
++     
++     free(mutex);                                /* Free memory.             */
++     return depth;                               /* Return last depth.       */
++ }
++ 
++ /********
++  *  Grab a lock on a mutex.  If this thread already has a lock on this mutex
++  *  then we increment the lock count.  If another thread has a lock on the 
++  *  mutex we block and wait for the thread to release the lock.
++  *  Returns the lock count on the mutex held by this thread.
++  */
++ int
++ objc_mutex_lock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++     int                 status;
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++ 
++     status = WaitForSingleObject(mutex->handle, INFINITE);
++     if (status != WAIT_OBJECT_0 && status != WAIT_ABANDONED)
++         return -1;                              /* Failed, abort.           */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++ 
++     return ++mutex->depth;                      /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Try to grab a lock on a mutex.  If this thread already has a lock on
++  *  this mutex then we increment the lock count and return it.  If another
++  *  thread has a lock on the mutex returns -1.
++  */
++ int
++ objc_mutex_trylock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++     DWORD               status;                 /* Return status from Win32.*/
++ 
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner == thread_id)              /* Already own lock?        */
++         return ++mutex->depth;                  /* Yes, increment depth.    */
++ 
++     status = WaitForSingleObject(mutex->handle, 0);
++     if (status != WAIT_OBJECT_0 && status != WAIT_ABANDONED)
++         return -1;                              /* Failed, abort.           */
++     
++     mutex->owner = thread_id;                   /* Mark thread as owner.    */
++     return ++mutex->depth;                      /* Increment depth to end.  */
++ }
++ 
++ /********
++  *  Decrements the lock count on this mutex by one.  If the lock count reaches
++  *  zero, release the lock on the mutex.  Returns the lock count on the mutex.
++  *  It is an error to attempt to unlock a mutex which this thread doesn't hold
++  *  in which case return -1 and the mutex is unaffected.
++  *  Will also return -1 if the mutex free fails.
++  */
++ int
++ objc_mutex_unlock(_objc_mutex_t mutex)
++ {
++     _objc_thread_t      thread_id;              /* Cache our thread id.     */
++     
++     if (!mutex)                                 /* Is argument bad?         */
++         return -1;                              /* Yes, abort.              */
++     thread_id = objc_thread_id();               /* Get this thread's id.    */
++     if (mutex->owner != thread_id)              /* Does some else own lock? */
++         return -1;                              /* Yes, abort.              */
++     if (mutex->depth > 1)                       /* Released last lock?      */
++         return --mutex->depth;                  /* No, Decrement depth, end.*/
++     mutex->depth = 0;                           /* Yes, reset depth to 0.   */
++     mutex->owner = NULL;                        /* Set owner to "no thread".*/
++     
++     if (ReleaseMutex(mutex->handle) == 0)
++         return -1;                              /* Failed, abort.           */
++     
++     return 0;                                   /* No, return success.      */
++ }
++ 
++ /* End of File */
+diff -rc2P objc/thread.c objc-threaded/thread.c
+*** objc/thread.c	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread.c	Fri Jan 26 14:40:09 1996
+***************
+*** 0 ****
+--- 1,132 ----
++ /* GNU Objective C Runtime Thread Interface
++    Copyright (C) 1995 Free Software Foundation, Inc.
++ 
++ Author: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify it under the
++    terms of the GNU General Public License as published by the Free Software
++    Foundation; either version 2, or (at your option) any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful, but WITHOUT ANY
++    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
++    details.
++ 
++ You should have received a copy of the GNU General Public License along with
++    GNU CC; see the file COPYING.  If not, write to the Free Software
++    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files compiled with
++    GCC to produce an executable, this does not cause the resulting executable
++    to be covered by the GNU General Public License. This exception does not
++    however invalidate any other reasons why the executable file might be
++    covered by the GNU General Public License.  */
++ 
++ #include <stdlib.h>
++ #include "runtime.h"
++ 
++ /*****************************************************************************
++  *  Universal static variables:
++  */
++ int     __objc_thread_exit_status = 0;          /* Global exit status.      */
++ 
++ /*****************************************************************************
++  *  Universal Functionality
++  */
++ 
++ /********
++  *  First function called in a thread, starts everything else.
++  */
++ struct __objc_thread_start_state
++ {
++     SEL         selector;
++     id          object;
++     id          argument;
++ };
++ 
++ static volatile void
++ __objc_thread_detach_function(struct __objc_thread_start_state *istate)
++ {
++     if (istate) {                               /* Is state valid?          */
++         id      (*imp)(id,SEL,id);
++         SEL     selector = istate->selector;
++         id      object   = istate->object;
++         id      argument = istate->argument;
++ 
++         free(istate);
++ 
++         if ((imp = (id(*)(id, SEL, id))objc_msg_lookup(object, selector))) {
++             (*imp)(object, selector, argument);
++         }
++         else
++             fprintf(stderr, "__objc_thread_start called with bad selector.\n");
++     }
++     else {
++         fprintf(stderr, "__objc_thread_start called with NULL state.\n");
++     }
++     objc_thread_exit();
++ }
++ 
++ /********
++  *  Detach a new thread of execution and return its id.  Returns NULL if fails.
++  *  Thread is started by sending message with selector to object.  Message
++  *  takes a single argument.
++  */
++ _objc_thread_t
++ objc_thread_detach(SEL selector, id object, id argument)
++ {
++   struct __objc_thread_start_state *istate;   /* Initialial thread state. */
++   _objc_thread_t        thread_id = NULL;     /* Detached thread id.      */
++ 
++   if (!(istate = (struct __objc_thread_start_state *)
++ 	__objc_xmalloc(sizeof(*istate))))     /* Can we allocate state?   */
++     return NULL;                              /* No, abort.               */
++ 
++   istate->selector = selector;                /* Initialize the thread's  */
++   istate->object = object;                    /*   state structure.       */
++   istate->argument = argument;
++ 
++   if ((thread_id = objc_thread_create((void *)__objc_thread_detach_function,
++                                       istate)) == NULL) {
++     free(istate);                           /* Release state if failed.   */
++     return thread_id;
++   }
++   return thread_id;
++ }
++ 
++ #undef objc_mutex_lock()
++ #undef objc_mutex_unlock()
++ 
++ int
++ objc_mutex_unlock_x(_objc_mutex_t mutex, const char *f, int l)
++ {
++     printf("%16.16s#%4d < unlock", f, l);
++     return objc_mutex_unlock(mutex);
++ }
++ 
++ int
++ objc_mutex_lock_x(_objc_mutex_t mutex, const char *f, int l)
++ {
++     printf("%16.16s#%4d < lock", f, l);
++     return objc_mutex_lock(mutex);
++ }
++ 
++ /*****************************************************************************
++  *  Implementation specific functionality:
++  */
++ 
++ #if defined(__sparc__) && defined(__svr4__)     /* Solaris only code.       */
++ #include "thread-solaris.c"
++ #elif defined(__sgi__) && defined(__mips__)     /* IRIX only code.          */
++ #include "thread-irix.c"
++ #elif defined(__alpha__) && defined(__osf__)    /* Alpha OSF/1 only code.   */
++ #include "thread-decosf1.c"
++ #elif defined(__WIN32__)
++ #include "thread-win32.c"
++ #else						/* Single threaded code.    */
++ #include "thread-single.c"
++ #endif
++ 
++ /* End of File */
+diff -rc2P objc/thread.h objc-threaded/thread.h
+*** objc/thread.h	Wed Dec 31 19:00:00 1969
+--- objc-threaded/thread.h	Sun Jan 21 19:37:01 1996
+***************
+*** 0 ****
+--- 1,68 ----
++ /* Thread and mutex controls for Objective C.
++    Copyright (C) 1993 Free Software Foundation, Inc.
++ 
++ AUTHOR: Galen C. Hunt (gchunt@cs.rochester.edu)
++ 
++ This file is part of GNU CC.
++ 
++ GNU CC is free software; you can redistribute it and/or modify
++ it under the terms of the GNU General Public License as published by
++ the Free Software Foundation; either version 2, or (at your option)
++ any later version.
++ 
++ GNU CC is distributed in the hope that it will be useful,
++ but WITHOUT ANY WARRANTY; without even the implied warranty of
++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ GNU General Public License for more details.
++ 
++ You should have received a copy of the GNU General Public License
++ along with GNU CC; see the file COPYING.  If not, write to
++ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
++ 
++ /* As a special exception, if you link this library with files
++    compiled with GCC to produce an executable, this does not cause
++    the resulting executable to be covered by the GNU General Public License.
++    This exception does not however invalidate any other reasons why
++    the executable file might be covered by the GNU General Public License.  */
++ 
++ 
++ #ifndef __thread_INCLUDE_GNU
++ #define __thread_INCLUDE_GNU
++ 
++ #include "objc/objc.h"
++ 
++ /********
++  *  Thread safe implementation types and functions.  
++  */
++ 
++ #define OBJC_THREAD_INTERACTIVE_PRIORITY        2
++ #define OBJC_THREAD_BACKGROUND_PRIORITY         1
++ #define OBJC_THREAD_LOW_PRIORITY                0
++ 
++ typedef struct _objc_mutex *_objc_mutex_t;
++ typedef void * _objc_thread_t;
++ 
++ _objc_mutex_t objc_mutex_allocate(void);
++ int     objc_mutex_deallocate(_objc_mutex_t mutex);
++ int     objc_mutex_lock(_objc_mutex_t mutex);
++ int     objc_mutex_unlock(_objc_mutex_t mutex);
++ int     objc_mutex_trylock(_objc_mutex_t mutex);
++ 
++ _objc_thread_t objc_thread_create(void (*func)(void *arg), void *arg);
++ void    objc_thread_yield(void);
++ int     objc_thread_exit(void);
++ int     objc_thread_set_priority(int priority);
++ int     objc_thread_get_priority(void);
++ void *  objc_thread_get_data(void);
++ int     objc_thread_set_data(void *value);
++ _objc_thread_t objc_thread_id(void);
++ 
++ _objc_thread_t objc_thread_detach(SEL selector, id object, id argument);
++ int     objc_mutex_lock_x(_objc_mutex_t mutex, const char *f, int l);
++ int     objc_mutex_unlock_x(_objc_mutex_t mutex, const char *f, int l);
++ 
++ /* For debugging of locks, uncomment these two macros: */
++ /* #define objc_mutex_lock(x)      objc_mutex_lock_x(x, __FILE__, __LINE__) */
++ /* #define objc_mutex_unlock(x)    objc_mutex_unlock_x(x, __FILE__, __LINE__)*/
++ 
++ #endif /* not __thread_INCLUDE_GNU */
