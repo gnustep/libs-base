@@ -14,6 +14,7 @@
 int main()
 {
     NSPoint p;
+    NSRange range;
     NSRect rect;
     NSValue *v1, *v2;
     NSNumber *nc, *ns, *n1, *n2, *n3, *n4, *n5;
@@ -78,6 +79,12 @@ printf("nc compare:ns is %d\n", [nc compare:ns]);
     v1 = [NSValue valueWithNonretainedObject:v2];
     [[v1 nonretainedObjectValue] getValue:&p];
     printf("point is %f %f\n", p.x, p.y);
+    range = NSMakeRange(1, 103);
+    range = NSIntersectionRange(range, NSMakeRange(2, 73));
+    v1 = [NSValue valueWithRange:range];
+    printf("Encoding for range is %s\n", [v1 objCType]);
+    range = [v1 rangeValue];
+    printf("Range is %u %u\n", range.location, range.length);
 
     printf("Try getting a null NSValue, should get a NSLog error message:\n");
     v2 = [NSValue value:NULL withObjCType:@encode(int)];

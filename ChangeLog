@@ -2,6 +2,18 @@
 
 	* Source/GSXML.m: ([-GSXMLDocument setRoot:]) set root node to be
 	owned by libxml, so we don't free it's memory ourselves.
+	* Headers/gnustep/base/NSValue.h: Added range methods.
+	* Source/GNUmakefile: Rename value files to GS prefix and remove
+	concrete value header.
+	* Source/Makefile.postamble: Build GS value files. rather than NS
+	* Source/NSValue.m: Added range meethods and updated for change to
+	naming conventions.
+	* Testing/values.m: Added range check
+	* Source/GSTemplateValue.m: Renamed for consistency.
+	* Source/GSValue.m: ditto
+	* Headers/gnustep/base/NSConcreteValue.h: private info removed
+	* Source/NSCTemplateValue.m: Renamed for consistency
+	* Source/NSConcreteValue.m: ditto
 
 2001-01-10 Nicola Pero  <n.pero@mi.flashnet.it>
 

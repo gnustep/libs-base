@@ -152,6 +152,7 @@ GSHTTPURLHandle.m \
 GSMime.m \
 GSSet.m \
 GSString.m \
+GSValue.m \
 NSAttributedString.m \
 NSArchiver.m \
 NSArray.m \
@@ -165,7 +166,6 @@ NSCharacterSet.m \
 NSClassDescription.m \
 NSCoder.m \
 NSCopyObject.m \
-NSConcreteValue.m \
 NSCountedSet.m \
 NSConnection.m \
 NSData.m \
@@ -244,8 +244,8 @@ BASE_MFILES += GSFFCallInvocation.m
 endif
 
 NSVALUE_MFILES = \
-	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
-	NSValue4.m
+	GSValue0.m GSValue1.m GSValue2.m GSValue3.m \
+	GSValue4.m GSValue5.m
 NSNUMBER_MFILES = \
 	NSNumber0.m NSNumber1.m NSNumber2.m NSNumber3.m \
 	NSNumber4.m NSNumber5.m NSNumber6.m NSNumber7.m \
@@ -254,7 +254,7 @@ NSNUMBER_MFILES = \
 
 BASE_OTHER_SRCFILES = \
 NSConcreteNumber.m \
-NSCTemplateValue.m \
+GSTemplateValue.m \
 dld-load.h \
 hpux-load.h \
 null-load.h \
@@ -278,7 +278,6 @@ NSCharacterSet.h \
 NSClassDescription.h \
 NSCoder.h \
 NSConcreteNumber.h \
-NSConcreteValue.h \
 NSConnection.h \
 NSData.h \
 NSDate.h \

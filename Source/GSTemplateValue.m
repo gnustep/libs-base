@@ -1,5 +1,5 @@
-# line 1 "NSCTemplateValue.m"	/* So gdb knows which file we are in */
-/* NSCTemplateValue - Object encapsulation for C types.
+# line 1 "GSTemplateValue.m"	/* So gdb knows which file we are in */
+/* GSTemplateValue - Object encapsulation for C types.
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -23,38 +23,73 @@
 */
 
 #include <config.h>
-#include <Foundation/NSConcreteValue.h>
+#include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
 
+
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 4 cooresponding to each value type */
 #if TYPE_ORDER == 0
-#  define NSCTemplateValue	NSNonretainedObjectValue
+@interface GSNonretainedObjectValue : NSValue
+{
+  id data;
+}
+@end
+#  define GSTemplateValue	GSNonretainedObjectValue
 #  define TYPE_METHOD	nonretainedObjectValue
 #  define TYPE_NAME	id
 #elif TYPE_ORDER == 1
-#  define NSCTemplateValue	NSPointValue
+@interface GSPointValue : NSValue
+{
+  NSPoint data;
+}
+@end
+#  define GSTemplateValue	GSPointValue
 #  define TYPE_METHOD	pointValue
 #  define TYPE_NAME	NSPoint
 #elif TYPE_ORDER == 2
-#  define NSCTemplateValue	NSPointerValue
+@interface GSPointerValue : NSValue
+{
+  void *data;
+}
+@end
+#  define GSTemplateValue	GSPointerValue
 #  define TYPE_METHOD	pointerValue
 #  define TYPE_NAME	void *
 #elif TYPE_ORDER == 3
-#  define NSCTemplateValue	NSRectValue
+#  define GSTemplateValue	GSRangeValue
+@interface GSRangeValue : NSValue
+{
+  NSRange data;
+}
+@end
+#  define TYPE_METHOD	rangeValue
+#  define TYPE_NAME	NSRange
+#elif TYPE_ORDER == 4
+@interface GSRectValue : NSValue
+{
+  NSRect data;
+}
+@end
+#  define GSTemplateValue	GSRectValue
 #  define TYPE_METHOD	rectValue
 #  define TYPE_NAME	NSRect
-#elif TYPE_ORDER == 4
-#  define NSCTemplateValue	NSSizeValue
+#elif TYPE_ORDER == 5
+@interface GSSizeValue : NSValue
+{
+  NSSize data;
+}
+@end
+#  define GSTemplateValue	GSSizeValue
 #  define TYPE_METHOD	sizeValue
 #  define TYPE_NAME	NSSize
 #endif
 
-@implementation NSCTemplateValue
+@implementation GSTemplateValue
 
 // Allocating and Initializing 
 
@@ -110,13 +145,19 @@
       else
 	return NO;
 #elif TYPE_ORDER == 3
+      if (data.location == val.location
+	&& data.length == val.length)
+	return YES;
+      else
+	return NO;
+#elif TYPE_ORDER == 4
       if (data.origin.x == val.origin.x && data.origin.y == val.origin.y
 	&& data.size.width == val.size.width
 	&& data.size.height == val.size.height)
 	return YES;
       else
 	return NO;
-#elif TYPE_ORDER == 4
+#elif TYPE_ORDER == 5
       if (data.width == val.width && data.height == val.height)
 	return YES;
       else
@@ -145,6 +186,8 @@
 #elif TYPE_ORDER == 2
   return (unsigned)(gsaddr)data;
 #elif TYPE_ORDER == 3
+  return (data.length ^ data.location);
+#elif TYPE_ORDER == 4
   union {
     double d;
     unsigned char c[sizeof(double)];
@@ -156,7 +199,7 @@
   for (i = 0; i < sizeof(double); i++)
     hash += val.c[i];
   return hash;
-#elif TYPE_ORDER == 4
+#elif TYPE_ORDER == 5
   union {
     double d;
     unsigned char c[sizeof(double)];
@@ -191,8 +234,10 @@
 #elif TYPE_ORDER == 2
   return [NSString stringWithFormat: @"{pointer = %p;}", data];
 #elif TYPE_ORDER == 3
-  return NSStringFromRect(data);
+  return NSStringFromRange(data);
 #elif TYPE_ORDER == 4
+  return NSStringFromRect(data);
+#elif TYPE_ORDER == 5
   return NSStringFromSize(data);
 #endif
 }
