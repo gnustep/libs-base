@@ -193,6 +193,20 @@
 	  autorelease];
 }
 
++ stringWithCStringNoCopy: (const char*)aCharPtr
+	     freeWhenDone: (BOOL) f
+{
+  return [[[CString alloc] 
+	    initWithCStringNoCopy:aCharPtr
+	    freeWhenDone: f]
+	  autorelease];
+}
+
++ stringWithCStringNoCopy: (const char*)aCharPtr
+{
+  return [self stringWithCStringNoCopy:aCharPtr
+	       freeWhenDone: YES];
+}
 
 - stringByAppendingFormat: (id <String>)aString, ...
 {
