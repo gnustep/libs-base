@@ -111,14 +111,15 @@ char *NXscan_string;
 
 - readFromFile:(const char *)fileName
 {
+    id	 returnVal;
     FILE *stream;
     if ((stream = fopen(fileName, "r")) == NULL) {
 	perror("Error (NXStringTable)");
 	return nil;
     }
-    [self readFromStream:stream];
+    returnVal = [self readFromStream:stream];
     fclose(stream);
-    return self;
+    return returnVal;
 }
 
 - writeToStream:(FILE *)stream
