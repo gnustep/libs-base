@@ -1058,7 +1058,7 @@ static void
 clear_chan(int desc)
 {
 #ifdef __MINGW__
-  if (desc >= 0)
+  if (desc != INVALID_SOCKET)
 #else
   if (desc >= 0 && desc < FD_SETSIZE)
 #endif
@@ -1208,10 +1208,10 @@ init_iface()
 
   for (i = 0; i < nNumInterfaces; i++)
     {
-      u_long		nFlags = InterfaceList[i].iiFlags;
+      u_long	nFlags = InterfaceList[i].iiFlags;
 
       if (nFlags & IFF_UP)
-        {  /* interface is up */
+	{
 	  int	broadcast = 0;
 	  int	pointopoint = 0;
 	  int	loopback = 0;
@@ -1228,10 +1228,33 @@ init_iface()
 	    {
 	      loopback = 1;
 	    }
-	  addr[interfaces] = ((struct sockaddr_in*)&(InterfaceList[i].iiAddress))->sin_addr;
-	  mask[interfaces] = ((struct sockaddr_in*)&(InterfaceList[i].iiNetmask))->sin_addr;
-	  bcst[interfaces] = ((struct sockaddr_in*)&(InterfaceList[i].iiBroadcastAddress))->sin_addr;
+	  addr[interfaces] = ((struct sockaddr_in*)
+	    &(InterfaceList[i].iiAddress))->sin_addr;
+	  mask[interfaces] = ((struct sockaddr_in*)
+	    &(InterfaceList[i].iiNetmask))->sin_addr;
+	  bcst[interfaces] = ((struct sockaddr_in*)
+	    &(InterfaceList[i].iiBroadcastAddress))->sin_addr;
 	  bcok[interfaces] = (broadcast | pointopoint);
+
+	  if (addr[interfaces].s_addr == 0)
+	    {
+	      mask[interfaces].s_addr = htonl(0x8f000001);
+	      fprintf(stderr, "Bad iface addr (0.0.0.0) guess (127.0.0.1)\n",
+		inet_ntoa(addr[interfaces]));
+	    }
+	  if (mask[interfaces].s_addr == 0)
+	    {
+	      mask[interfaces].s_addr = htonl(0xffffff00);
+	      fprintf(stderr, "Bad iface mask (0.0.0.0) guess (%s)\n",
+		inet_ntoa(mask[interfaces]));
+	    }
+	  if (bcst[interfaces].s_addr == 0)
+	    {
+	      u_long	l = ntohl(addr[interfaces].s_addr);
+	      bcst[interfaces].s_addr = htonl(l & 0xffffff00);
+	      fprintf(stderr, "Bad iface bcst (0.0.0.0) guess (%s)\n",
+		inet_ntoa(bcst[interfaces]));
+	    }
 	  interfaces++;
 	}
     }
@@ -1294,11 +1317,7 @@ init_iface()
 "gdomap to manually set the interface addresses and masks to be used.\n");
 	  log(LOG_INFO);
 	}
-#ifdef __MINGW__
-      closesocket(desc);
-#else
       close(desc);
-#endif
       exit(1);
     }
   /*
@@ -1366,11 +1385,7 @@ init_iface()
 "system is buggy, and you need to use the '-a' command line flag for\n"
 "gdomap to manually set the interface addresses and masks to be used.");
 	          log(LOG_INFO);
-#ifdef __MINGW__
-		  closesocket(desc);
-#else
 		  close(desc);
-#endif
 	          exit(1);
 	        }
 	      addr[interfaces] =
@@ -1434,18 +1449,17 @@ init_iface()
 	    }
 	}
     }
-#ifdef __MINGW__
-  closesocket(desc);
-#else
   close(desc);
-#endif /* __MINGW__ */
-#else
-  sprintf(ebuf, "I can't find the SIOCGIFCONF ioctl on this platform - "
-    "use the '-a' flag to load interface details from a file instead.");
-  log(LOG_CRIT);
-  exit(1);
-#endif
-#endif
+#endif	/* SIOCGIFCONF */
+#endif	/* MINGW */
+
+  if (interfaces == 0)
+    {
+      sprintf(ebuf, "I can't find any network interfaces on this platform - "
+	"use the '-a' flag to load interface details from a file instead.");
+      log(LOG_CRIT);
+      exit(1);
+    }
 }
 
 /*
@@ -3510,7 +3524,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   *p = 0;
   if (desc < 0)
     {
-	return 1;	/* Couldn't create socket.	*/
+      return 1;	/* Couldn't create socket.	*/
     }
 
 #ifdef __MINGW__
@@ -3547,7 +3561,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) != 0)
     {
 #ifdef __MINGW__
-      if (WSAGetLastError() == WSAEINPROGRESS)
+      if (WSAGetLastError() == WSAEWOULDBLOCK)
 #else
       if (errno == EINPROGRESS)
 #endif
@@ -3843,9 +3857,9 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       struct in_addr*	b;
 
       /*
-       *	A host name of '*' is a special case which should do lookup on
-       *	all machines on the local network until one is found which has 
-       *	the specified server on it.
+       * A host name of '*' is a special case which should do lookup on
+       * all machines on the local network until one is found which has 
+       * the specified server on it.
        */
       rval = tryHost(GDO_SERVERS, 0, 0, ptype, &sin, &num, (uptr*)&b);
       if (rval != 0 && host == local_hostname)
@@ -3875,7 +3889,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 		    {
 		      memset((char*)&addr[found], '\0', sizeof(*addr));
 		      memcpy(&addr[found].sin_addr, &sin.sin_addr,
-				sizeof(sin.sin_addr));
+			sizeof(sin.sin_addr));
 		      addr[found].sin_family = AF_INET;
 		      addr[found].sin_port = htons(port);
 		      found++;
