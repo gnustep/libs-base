@@ -28,11 +28,10 @@
 
 @implementation IndexedCollection
 
-+ initialize
++ (void) initialize
 {
   if (self == [IndexedCollection class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 /* This is the designated initializer of this class */
@@ -173,7 +172,7 @@
     {
       /* Can I assume that all Collections will inherit from Object? */
       if ([aCollection 
-	   respondsTo:@selector(withElementsInReverseCall:)])
+	   respondsToSelector:@selector(withElementsInReverseCall:)])
 	[(id)aCollection withElementsInReverseCall:doIt];
       else
 	[aCollection withElementsCall:doIt];
@@ -197,7 +196,8 @@
     [self safeWithElementsInReverseCall:doIt];
   else
     {
-      if ([aCollection respondsTo:@selector(withElemetnsInReverseCall:)])
+      if ([aCollection respondsToSelector:
+		       @selector(withElemetnsInReverseCall:)])
 	[(id)aCollection withElementsInReverseCall:doIt];
       else
 	[aCollection withElementsCall:doIt];
@@ -681,7 +681,7 @@
   for (i = aRange.start; i < aRange.end && i < myCount; i++)
     [tmpColl addElement:[self elementAtIndex:i]];
   [tmpColl withElementsCall:aFunc];
-  [tmpColl free];
+  [tmpColl release];
   return self;
 }
 
@@ -822,7 +822,7 @@
 {
   id tmp = [[Array alloc] initWithContentsOf:self];
   [tmp withElementsInReverseCall:aFunc whileTrue:flag];
-  [tmp free];
+  [tmp release];
   return self;
 }
 

@@ -36,12 +36,6 @@
 
 @implementation RetainingNotifier
 
-+ initialize
-{
-  /* What goes here? */
-  return self;
-}
-
 - init
 {
   retain_count = 0;
@@ -53,10 +47,9 @@
 
 - (void) dealloc
 {
-  [refGate free];
+  [refGate release];
   [notificationList free];
-  [super free];
-  return;
+  [super dealloc];
 }
 
 - (oneway void) release
@@ -78,12 +71,6 @@
   retain_count++;
   [refGate unlock];
   return self;
-}
-
-- free
-{
-  [self release];
-  return nil;
 }
 
 - (unsigned) retainCount

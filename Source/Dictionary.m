@@ -28,11 +28,10 @@
 
 @implementation Dictionary
 
-+ initialize
++ (void) initialize
 {
   if (self == [Dictionary class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 // MANAGING CAPACITY;
@@ -143,22 +142,10 @@
 	       capacity:aCapacity];
 }
 
-- free
+- (void) dealloc
 {
   coll_hash_delete(_contents_hash);
-  return [super free];
-}
-
-- freeObjects
-{
-  if (CONTAINS_OBJECTS)
-    {
-      [self makeObjectsPerform:@selector(free)];
-      [self empty];
-    }
-  else
-    [self empty];
-  return self;
+  [super dealloc];
 }
 
 /* This must work without sending any messages to content objects */
