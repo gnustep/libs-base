@@ -39,6 +39,8 @@
 
 @implementation NSDictionary 
 
+@class	NSGMutableCString;
+
 @class	NSGDictionary;
 @class	NSGMutableDictionary;
 
@@ -503,10 +505,11 @@ compareIt(id o1, id o2, void* context)
 
 - (NSString*) descriptionInStringsFileFormat
 {
-  NSMutableString	*result = [NSMutableString stringWithCapacity: 1024];
+  NSMutableString	*result;
   NSEnumerator		*enumerator;
   id                    key;
 
+  result = [[[NSGMutableCString alloc] initWithCapacity: 1024] autorelease];
   enumerator = [self keyEnumerator];
   while ((key = [enumerator nextObject]) != nil)
     {
@@ -536,7 +539,8 @@ compareIt(id o1, id o2, void* context)
 {
   NSMutableString	*result;
 
-  result = [NSMutableString stringWithCapacity: 20*[self count]];
+  result = [[[NSGMutableCString alloc] initWithCapacity: 20*[self count]]
+    autorelease];
   [self descriptionWithLocale: locale
 		       indent: level
 			   to: (id<GNUDescriptionDestination>)result];

@@ -24,7 +24,6 @@
 #include <config.h>
 #include <base/preface.h>
 #include <base/fast.x>
-#include <mframe.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
@@ -32,10 +31,10 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSProxy.h>
 
-@class	NSGCString;
-@class	NSGString;
-@class	NSGArray;
-@class	NSGMutableArray;
+#include <base/NSGArray.h>
+#include <base/NSGCString.h>
+#include <base/NSGString.h>
+
 @class	NSGDictionary;
 @class	NSGMutableDictionary;
 @class	NSDataMalloc;
@@ -81,6 +80,14 @@ static char	st_marray = (char)ST_MARRAY;
 static char	st_dict = (char)ST_DICT;
 static char	st_mdict = (char)ST_MDICT;
 static char	st_data = (char)ST_DATA;
+
+typedef struct {
+  @defs(NSGArray)
+} NSGArrayStruct;
+
+typedef struct {
+  @defs(NSGMutableArray)
+} NSGMutableArrayStruct;
 
 
 
@@ -339,11 +346,13 @@ static BOOL	shouldBeCompact = NO;
 /*
  *	Variables to cache class information.
  */
-static Class	GArrayClass = 0;
-static Class	GMutableArrayClass = 0;
-static Class	GDataClass = 0;
-static Class	GDictionaryClass = 0;
-static Class	GMutableDictionaryClass = 0;
+static Class	IACls = 0;	/* Immutable Array	*/
+static Class	MACls = 0;	/* Mutable Array	*/
+static Class	DCls = 0;	/* Data			*/
+static Class	IDCls = 0;	/* Immutable Dictionary	*/
+static Class	MDCls = 0;	/* Mutable Dictionary	*/
+static Class	USCls = 0;	/* Unicode String	*/
+static Class	CSCls = 0;	/* C String 		*/
 
 typedef struct {
   NSData	*data;
@@ -355,8 +364,22 @@ typedef struct {
   FastArray_t	array;
 } _NSDeserializerInfo;
 
-static SEL	debSel = @selector(deserializeBytes:length:atCursor:);
-static SEL	deiSel = @selector(deserializeIntAtCursor:);
+static SEL debSel = @selector(deserializeBytes:length:atCursor:);
+static SEL deiSel = @selector(deserializeIntAtCursor:);
+static SEL csInitSel = @selector(initWithCStringNoCopy:length:fromZone:);
+static SEL usInitSel = @selector(initWithCharactersNoCopy:length:fromZone:);
+static SEL dInitSel = @selector(initWithBytesNoCopy:length:fromZone:);
+static SEL iaInitSel = @selector(initWithObjects:count:);
+static SEL maInitSel = @selector(initWithObjects:count:);
+static SEL idInitSel = @selector(initWithObjects:forKeys:count:);
+static SEL mdInitSel = @selector(initWithObjects:forKeys:count:);
+static IMP csInitImp;
+static IMP usInitImp;
+static IMP dInitImp;
+static IMP iaInitImp;
+static IMP maInitImp;
+static IMP idInitImp;
+static IMP mdInitImp;
 
 static void
 initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
@@ -400,10 +423,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  char		*b = objc_malloc(size);
 	
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
-	  s = [_fastCls._NSGCString allocWithZone: NSDefaultMallocZone()];
-	  s = [s initWithCStringNoCopy: b
-				length: size-1
-			      fromZone: NSDefaultMallocZone()];
+	  s = (NSGCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
+	  s = (*csInitImp)(s, csInitSel, b, size-1, NSDefaultMallocZone());
 	  if (info->didUnique)
 	    FastArrayAddItem(&info->array, (FastArrayItem)s);
 	  return s;
@@ -415,10 +436,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  unichar	*b = objc_malloc(size*2);
 	
 	  (*info->debImp)(info->data, debSel, b, size*2, info->cursor);
-	  s = [_fastCls._NSGString allocWithZone: NSDefaultMallocZone()];
-	  s = [s initWithCharactersNoCopy: b
-				   length: size
-			         fromZone: NSDefaultMallocZone()];
+	  s = (NSGString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
+	  s = (*usInitImp)(s, usInitSel, b, size, NSDefaultMallocZone());
 	  if (info->didUnique)
 	    FastArrayAddItem(&info->array, (FastArrayItem)s);
 	  return s;
@@ -427,9 +446,9 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_ARRAY:
       case ST_MARRAY:
 	{
-	  id	objects[size];
-	  id	a;
-	  int	i;
+	  id		objects[size];
+	  id		a;
+	  unsigned	i;
 
 	  for (i = 0; i < size; i++)
 	    {
@@ -440,24 +459,24 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 		    {
 		      [objects[--i] release];
 		    }
+		  objc_free(objects);
 		  return nil;
 		}
 	    }
 	  if (code == ST_MARRAY || info->mutable)
 	    {
-	      a = [GMutableArrayClass allocWithZone: NSDefaultMallocZone()];
-	      a = [a initWithObjects: objects
-			       count: size];
+	      a = NSAllocateObject(MACls, 0, NSDefaultMallocZone());
+	      a = (*maInitImp)(a, maInitSel, objects, size);
 	    }
 	  else
 	    {
-	      a = [GArrayClass allocWithZone: NSDefaultMallocZone()];
-	      a = [a initWithObjects: objects
-			       count: size];
+	      a = NSAllocateObject(IACls, 0, NSDefaultMallocZone());
+	      a = (*iaInitImp)(a, iaInitSel, objects, size);
 	    }
-	  while (i > 0)
+
+	  for (i = 0; i < size; i++)
 	    {
-	      [objects[--i] release];
+	      [objects[i] release];
 	    }
 	  return a;
 	}
@@ -496,21 +515,17 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	    }
 	  if (code == ST_MDICT || info->mutable)
 	    {
-	      d=[GMutableDictionaryClass allocWithZone: NSDefaultMallocZone()];
-	      d = [d initWithObjects: objects
-			     forKeys: keys
-			       count: size];
+	      d = NSAllocateObject(MDCls, 0, NSDefaultMallocZone());
+	      d = (*mdInitImp)(d, mdInitSel, objects, keys, size);
 	    }
 	  else
 	    {
-	      d = [GDictionaryClass allocWithZone: NSDefaultMallocZone()];
-	      d = [d initWithObjects: objects
-			     forKeys: keys
-			       count: size];
+	      d = NSAllocateObject(IDCls, 0, NSDefaultMallocZone());
+	      d = (*idInitImp)(d, idInitSel, objects, keys, size);
 	    }
-	  while (i > 0)
+	  for (i = 0; i < size; i++)
 	    {
-	      [keys[--i] release];
+	      [keys[i] release];
 	      [objects[i] release];
 	    }
 	  return d;
@@ -522,10 +537,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  void		*b = objc_malloc(size);
 	
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
-	  d = [GDataClass allocWithZone: NSDefaultMallocZone()];
-	  d = [d initWithBytesNoCopy: b
-			      length: size
-			    fromZone: NSDefaultMallocZone()];
+	  d = (NSData*)NSAllocateObject(DCls, 0, NSDefaultMallocZone());
+	  d = (*dInitImp)(d, dInitSel, b, size, NSDefaultMallocZone());
 	  return d;
 	}
 
@@ -605,11 +618,20 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 {
   if (self == [NSDeserializer class])
     {
-      GArrayClass = [NSGArray class];
-      GMutableArrayClass = [NSGMutableArray class];
-      GDataClass = [NSDataMalloc class];
-      GDictionaryClass = [NSGDictionary class];
-      GMutableDictionaryClass = [NSGMutableDictionary class];
+      IACls = [NSGArray class];
+      MACls = [NSGMutableArray class];
+      DCls = [NSDataMalloc class];
+      IDCls = [NSGDictionary class];
+      MDCls = [NSGMutableDictionary class];
+      USCls = [NSGString class];
+      CSCls = [NSGCString class];
+      csInitImp = [CSCls instanceMethodForSelector: csInitSel];
+      usInitImp = [USCls instanceMethodForSelector: usInitSel];
+      dInitImp = [DCls instanceMethodForSelector: dInitSel];
+      iaInitImp = [IACls instanceMethodForSelector: iaInitSel];
+      maInitImp = [MACls instanceMethodForSelector: maInitSel];
+      idInitImp = [IDCls instanceMethodForSelector: idInitSel];
+      mdInitImp = [MDCls instanceMethodForSelector: mdInitSel];
     }
 }
 
