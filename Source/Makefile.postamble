@@ -256,7 +256,7 @@ $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
 # by hand when new classes get added. Then mv libgnustep-base.def.new to
 # libgnustep-base.def
 #
-libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o
+libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o Additions/$(GNUSTEP_OBJ_DIR)/*o
 	rm -f $@
 	rm -f _tmp.def
 	cat win32-def.top > $@

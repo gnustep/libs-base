@@ -103,7 +103,7 @@ endif
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-GNU_MFILES += WindowsFileHandle.m libgnustep-base-entry.m
+GNU_MFILES += GSFileHandle.m libgnustep-base-entry.m
 else
 GNU_MFILES += UnixFileHandle.m 
 endif

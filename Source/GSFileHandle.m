@@ -1,5 +1,5 @@
-/** Implementation for UnixFileHandle for GNUStep
-   Copyright (C) 1997-1999 Free Software Foundation, Inc.
+/** Implementation for GSFileHandle for GNUStep
+   Copyright (C) 1997-2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1997, 2002
@@ -30,7 +30,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSFileHandle.h>
-#include <Foundation/UnixFileHandle.h>
+#include <Foundation/GSFileHandle.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSNotification.h>
@@ -99,14 +99,14 @@
 // Maximum data in single I/O operation
 #define	NETBUF_SIZE	4096
 
-static UnixFileHandle*	fh_stdin = nil;
-static UnixFileHandle*	fh_stdout = nil;
-static UnixFileHandle*	fh_stderr = nil;
+static GSFileHandle*	fh_stdin = nil;
+static GSFileHandle*	fh_stdout = nil;
+static GSFileHandle*	fh_stderr = nil;
 
 // Key to info dictionary for operation mode.
 static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
-@implementation UnixFileHandle
+@implementation GSFileHandle
 
 static BOOL
 getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
@@ -194,7 +194,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 + (void) initialize
 {
-  if (self == [UnixFileHandle class])
+  if (self == [GSFileHandle class])
     {
 #if	!defined(__MINGW__)
       /*
@@ -256,7 +256,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-// Initializing a UnixFileHandle Object
+// Initializing a GSFileHandle Object
 
 - (id) init
 {
@@ -1021,7 +1021,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
 #if defined(__MINGW__)
       struct _stat sbuf;
@@ -1036,37 +1036,34 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (fstat(desc, &sbuf) < 0)
 #endif
 	{
-          NSLog(@"unable to get status of descriptor - %s",
-	    GSLastErrorStr(errno));
-	  RELEASE(self);
-	  return nil;
-	}
-      if (S_ISREG(sbuf.st_mode))
-	{
-	  isStandardFile = YES;
+          NSLog(@"unable to get status of descriptor %d - %s",
+	    desc, GSLastErrorStr(errno));
 	}
       else
 	{
-	  isStandardFile = NO;
+	  if (S_ISREG(sbuf.st_mode))
+	    {
+	      isStandardFile = YES;
+	    }
+	  else
+	    {
+	      isStandardFile = NO;
+	    }
 	}
 
 #if defined(__MINGW__)
       if (isStandardFile == NO)
 	{
-	  unsigned long dummy = 0;
+	  unsigned long nbio = 0;
 
 	  /*
 	   * This is probably a socket ... try
 	   * using a socket specific call and see if that fails.
 	   */
-	  if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
+	  if (ioctlsocket(desc, FIONBIO, &nbio) == 0)
 	    {
-	      NSLog(@"unable to get status/type of descriptor - %s",
-		GSLastErrorStr(errno));
-	      [self release];
-	      return nil;
+	      wasNonBlocking = (nbio == 0) ? NO : YES;
 	    }
-	  wasNonBlocking = (dummy == 0) ? NO : YES;
 	}
 #else
       if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
@@ -1960,12 +1957,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  else
 	    { // Accept attempt completed.
-	      UnixFileHandle		*h;
+	      GSFileHandle		*h;
 	      struct sockaddr_in	sin;
 	      int			size = sizeof(sin);
 
-	      h = [[UnixFileHandle alloc] initWithFileDescriptor: desc
-						  closeOnDealloc: YES];
+	      h = [[GSFileHandle alloc] initWithFileDescriptor: desc
+						closeOnDealloc: YES];
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
 	      [h setAddr: &sin];
 	      [readInfo setObject: h
@@ -2196,8 +2193,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  if (fcntl(descriptor, F_SETFL, e) < 0)
 	    {
-	      NSLog(@"unable to set non-blocking mode - %s",
-		GSLastErrorStr(errno));
+	      NSLog(@"unable to set non-blocking mode for %d - %s",
+		descriptor, GSLastErrorStr(errno));
 	    }
 	  else
 	    {
@@ -2206,7 +2203,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 	{
-	  NSLog(@"unable to get non-blocking mode - %s", GSLastErrorStr(errno));
+	  NSLog(@"unable to get non-blocking mode for %d - %s",
+	    descriptor, GSLastErrorStr(errno));
 	}
 #endif
     }

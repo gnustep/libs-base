@@ -33,7 +33,7 @@
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSBundle.h>
 #ifdef __MINGW__
-#include <Foundation/WindowsFileHandle.h>
+#include <Foundation/GSFileHandle.h>
 #else
 #include <Foundation/UnixFileHandle.h>
 #endif
@@ -62,7 +62,7 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSFileHandle_abstract_class = self;
 #ifdef __MINGW__
-      NSFileHandle_concrete_class = [WindowsFileHandle class];
+      NSFileHandle_concrete_class = [GSFileHandle class];
 #else
       NSFileHandle_concrete_class = [UnixFileHandle class];
 #endif
