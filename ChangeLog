@@ -1,3 +1,16 @@
+2002-12-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	*  Source/GSEQ.h: Optimisations for normalising sequences, especially
+	where they contain latin1 characters.
+	* Source/Additions/GCDictionary.m: Update map tables for macosx
+	* Source/NSMapTable.m: Update for macosx compatibility, add some
+	documentation and move stuff from externs.m
+	* Source/NSHashTable.m: Update for macosx compatibility, add some
+	documentation and move stuff from externs.m
+	* Source/externs.m: Remove map and hash table stuff
+	* Headers/gnustep/base/NSMapTable.h: Update for macosx compatibility.
+	* Headers/gnustep/base/NSHashTable.h: Ditto
+
 2002-12-30  Adam Fedor  <fedor@gnu.org>
 
 	* SSL/GNUmakefile: Don't compile if base=no

@@ -41,8 +41,9 @@
 typedef void* NSHashTable;
 
 /**
- * Type for enumerating.
- * NB. layout *must* correspond to that used by the GSIMap code.
+ * Type for enumerating.<br />
+ * NB. Implementation detail ... in GNUstep the layout <strong>must</strong>
+ * correspond to that used by the GSIMap macros.
  */
 typedef struct { void *map; void *node; size_t bucket; } NSHashEnumerator;
 
@@ -62,143 +63,70 @@ typedef struct _NSHashTableCallBacks
 
   /** release() ... Releasing function called when a data element is
    * removed from the table. <br />*/
-  void (*release)(NSHashTable *, const void *);
+  void (*release)(NSHashTable *, void *);
 
   /** describe() ... Description function. <br />*/
   NSString *(*describe)(NSHashTable *, const void *);
 } NSHashTableCallBacks;
 
-/* For sets of pointer-sized or smaller quantities. */
 GS_EXPORT const NSHashTableCallBacks NSIntHashCallBacks;
-
-/* For sets of pointers hashed by address. */
 GS_EXPORT const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
-
-/* For sets of objects without retaining and releasing. */
 GS_EXPORT const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks;
-
-/* For sets of objects; similar to NSSet. */
 GS_EXPORT const NSHashTableCallBacks NSObjectHashCallBacks;
-
-/* For sets of pointers with transfer of ownership upon insertion. */
 GS_EXPORT const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
-
-/* For sets of pointers to structs when the first field of the
- * struct is the size of an int. */
 GS_EXPORT const NSHashTableCallBacks NSPointerToStructHashCallBacks;
 
-/** Creating an NSHashTable... **/
-
-/* Returns a (pointer to) an NSHashTable space for which is allocated
- * in the default zone.  If CAPACITY is small or 0, then the returned
- * table has a reasonable (but still small) capacity. */
 GS_EXPORT NSHashTable *
 NSCreateHashTable(NSHashTableCallBacks callBacks,
                   unsigned int capacity);
 
-/* Just like 'NSCreateHashTable()', but the returned hash table is created
- * in the memory zone ZONE, rather than in the default zone.  (Of course,
- * if you send 0 for ZONE, then the hash table will be created in the
- * default zone.) */
 GS_EXPORT NSHashTable *
 NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
                           unsigned int capacity,
                           NSZone *zone);
 
-/* Returns a hash table, space for which is allocated in ZONE, which
- * has (newly retained) copies of TABLE's keys and values.  As always,
- * if ZONE is 0, then the returned hash table is allocated in the
- * default zone. */
 GS_EXPORT NSHashTable *
 NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone);
 
-/** Freeing an NSHashTable... **/
-
-/* Releases all the keys and values of TABLE (using the callbacks
- * specified at the time of TABLE's creation), and then proceeds
- * to deallocate the space allocated for TABLE itself. */
 GS_EXPORT void
 NSFreeHashTable(NSHashTable *table);
 
-/* Releases every element of TABLE, while preserving
- * TABLE's "capacity". */
 GS_EXPORT void
 NSResetHashTable(NSHashTable *table);
 
-/** Comparing two NSHashTables... **/
-
-/* Returns 'YES' if and only if every element of TABLE1 is an element
- * of TABLE2, and vice versa. */
 GS_EXPORT BOOL
 NSCompareHashTables(NSHashTable *table1, NSHashTable *table2);
 
-/** Getting the number of items in an NSHashTable... **/
-
-/* Returns the total number of elements in TABLE. */
 GS_EXPORT unsigned int
 NSCountHashTable(NSHashTable *table);
 
-/** Retrieving items from an NSHashTable... **/
-
-/* Returns the element of TABLE equal to POINTER, if POINTER is a
- * member of TABLE.  If not, then 0 (the only completely
- * forbidden element) is returned. */
 GS_EXPORT void *
 NSHashGet(NSHashTable *table, const void *element);
 
-/* Returns an NSArray which contains all of the elements of TABLE.
- * WARNING: Call this function only when the elements of TABLE
- * are objects. */
 GS_EXPORT NSArray *
 NSAllHashTableObjects(NSHashTable *table);
 
 GS_EXPORT void
 NSEndHashTableEnumeration(NSHashEnumerator *enumerator);
 
-/* Returns an NSHashEnumerator structure (a pointer to) which
- * can be passed repeatedly to the function 'NSNextHashEnumeratorItem()'
- * to enumerate the elements of TABLE. */
 GS_EXPORT NSHashEnumerator
 NSEnumerateHashTable(NSHashTable *table);
 
-/* Return 0 if ENUMERATOR has completed its enumeration of
- * its hash table's elements.  If not, then the next element is
- * returned. */
 GS_EXPORT void *
 NSNextHashEnumeratorItem(NSHashEnumerator *enumerator);
 
-/** Adding an item to an NSHashTable... **/
-
-/* Inserts the item POINTER into the hash table TABLE.
- * If POINTER is already an element of TABLE, then its previously
- * incarnation is released from TABLE, and POINTER is put in its place.
- * Raises an NSInvalidArgumentException if POINTER is 0. */
 GS_EXPORT void
 NSHashInsert(NSHashTable *table, const void *element);
 
-/* Just like 'NSHashInsert()', with one exception: If POINTER is already
- * in TABLE, then an NSInvalidArgumentException is raised. */
 GS_EXPORT void
 NSHashInsertKnownAbsent(NSHashTable *table, const void *element);
 
-/* If POINTER is already in TABLE, the pre-existing item is returned.
- * Otherwise, 0 is returned, and this is just like 'NSHashInsert()'. */
 GS_EXPORT void *
 NSHashInsertIfAbsent(NSHashTable *table, const void *element);
 
-/** Removing an item from an NSHashTable... **/
-
-/* Releases POINTER from TABLE.  It is not
- * an error if POINTER is not already in TABLE. */
 GS_EXPORT void
 NSHashRemove(NSHashTable *table, const void *element);
 
-/** Getting an NSString representation of an NSHashTable... **/
-
-/* Returns an NSString which describes TABLE.  The returned string
- * is produced by iterating over the elements of TABLE,
- * appending the string "X;\n", where X is the description of
- * the element (obtained from the callbacks, of course). */
 GS_EXPORT NSString *
 NSStringFromHashTable(NSHashTable *table);
 

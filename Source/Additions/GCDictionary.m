@@ -131,14 +131,14 @@ static const NSMapTableKeyCallBacks GCInfoMapKeyCallBacks = {
   (unsigned(*)(NSMapTable *, const void *))_GCHashObject,
   (BOOL(*)(NSMapTable *, const void *, const void *))_GCCompareObjects,
   (void (*)(NSMapTable *, const void *))_GCRetainObjects,
-  (void (*)(NSMapTable *, const void *))_GCReleaseObjects,
+  (void (*)(NSMapTable *, void *))_GCReleaseObjects,
   (NSString *(*)(NSMapTable *, const void *))_GCDescribeObjects,
   (const void *)NULL
 }; 
 
 static const NSMapTableValueCallBacks GCInfoValueCallBacks = {
   (void (*)(NSMapTable *, const void *))_GCRetainObjects,
-  (void (*)(NSMapTable *, const void *))_GCReleaseObjects,
+  (void (*)(NSMapTable *, void *))_GCReleaseObjects,
   (NSString *(*)(NSMapTable *, const void *))_GCDescribeObjects
 }; 
 

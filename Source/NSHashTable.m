@@ -182,7 +182,9 @@ NSCountHashTable(NSHashTable *table)
 
 /**
  * Create a new hash table by calling NSCreateHashTableWithZone() using
- * NSDefaultMallocZone().
+ * NSDefaultMallocZone().<br />
+ * If capacity is small or 0, then the returned
+ * table has a reasonable (but still small) capacity. 
  */
 NSHashTable *
 NSCreateHashTable(
@@ -261,7 +263,9 @@ NSEnumerateHashTable(NSHashTable *table)
 }
 
 /**
- * Destroy the hash table and relase its contents.
+ * Releases all the keys and values of table (using the callbacks
+ * specified at the time of table's creation), and then proceeds
+ * to deallocate the space allocated for table itself.
  */
 void
 NSFreeHashTable(NSHashTable *table)
@@ -449,7 +453,7 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 }
 
 /**
- * Empty the hash table, but preserve its capacity.
+ * Empty the hash table (releasing all elements), but preserve its capacity.
  */
 void
 NSResetHashTable(NSHashTable *table)
@@ -498,4 +502,74 @@ NSStringFromHashTable(NSHashTable *table)
     }
   return string;
 }
+
+
+
+/* These are to increase readabilty locally. */
+typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
+typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
+typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
+typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
+typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
+
+/** For sets of pointer-sized or smaller quantities. */
+const NSHashTableCallBacks NSIntHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_int_hash,
+  (NSHT_isEqual_func_t) _NS_int_is_equal,
+  (NSHT_retain_func_t) _NS_int_retain,
+  (NSHT_release_func_t) _NS_int_release,
+  (NSHT_describe_func_t) _NS_int_describe
+};
+
+/** For sets of pointers hashed by address. */
+const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks = 
+{
+  (NSHT_hash_func_t) _NS_non_owned_void_p_hash,
+  (NSHT_isEqual_func_t) _NS_non_owned_void_p_is_equal,
+  (NSHT_retain_func_t) _NS_non_owned_void_p_retain,
+  (NSHT_release_func_t) _NS_non_owned_void_p_release,
+  (NSHT_describe_func_t) _NS_non_owned_void_p_describe
+};
+
+/** For sets of objects without retaining and releasing. */
+const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks = 
+{
+  (NSHT_hash_func_t) _NS_non_retained_id_hash,
+  (NSHT_isEqual_func_t) _NS_non_retained_id_is_equal,
+  (NSHT_retain_func_t) _NS_non_retained_id_retain,
+  (NSHT_release_func_t) _NS_non_retained_id_release,
+  (NSHT_describe_func_t) _NS_non_retained_id_describe
+};
+
+/** For sets of objects; similar to [NSSet]. */
+const NSHashTableCallBacks NSObjectHashCallBacks = 
+{
+  (NSHT_hash_func_t) _NS_id_hash,
+  (NSHT_isEqual_func_t) _NS_id_is_equal,
+  (NSHT_retain_func_t) _NS_id_retain,
+  (NSHT_release_func_t) _NS_id_release,
+  (NSHT_describe_func_t) _NS_id_describe
+};
+
+/** For sets of pointers with transfer of ownership upon insertion. */
+const NSHashTableCallBacks NSOwnedPointerHashCallBacks = 
+{
+  (NSHT_hash_func_t) _NS_owned_void_p_hash,
+  (NSHT_isEqual_func_t) _NS_owned_void_p_is_equal,
+  (NSHT_retain_func_t) _NS_owned_void_p_retain,
+  (NSHT_release_func_t) _NS_owned_void_p_release,
+  (NSHT_describe_func_t) _NS_owned_void_p_describe
+};
+
+/** For sets of pointers to structs when the first field of the
+ * struct is the size of an int. */
+const NSHashTableCallBacks NSPointerToStructHashCallBacks = 
+{
+  (NSHT_hash_func_t) _NS_int_p_hash,
+  (NSHT_isEqual_func_t) _NS_int_p_is_equal,
+  (NSHT_retain_func_t) _NS_int_p_retain,
+  (NSHT_release_func_t) _NS_int_p_release,
+  (NSHT_describe_func_t) _NS_int_p_describe
+};
 

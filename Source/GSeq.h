@@ -32,8 +32,7 @@
  *	The second part of the file contains inline function definitions that
  *	are designed to be modified depending on the defined macros at the
  *	point where they are included.  This is meant to be included multiple
- *	times so the same code can be used for NSString, NSGString, and
- *	NSGCString objects.
+ *	times so the same code can be used for NSString, and subclasses.
  */
 
 #ifndef __GSeq_h_GNUSTEP_BASE_INCLUDE
@@ -73,86 +72,126 @@ typedef	GSeqStruct	*GSeq;
     GSeqStruct	SEQ = { BUF, LEN, LEN * MAXDEC, 0 }
 
 /*
- *	A function to normalize a unicode character sequence.
+ * A function to normalize a unicode character sequence ... produces a
+ * sequence containing composed characters in a well defined order and
+ * with a nul terminator as well as a character count.
  */
 static inline void GSeq_normalize(GSeq seq)
 {
   unsigned	count = seq->count;
-  unichar	*source = seq->chars;
 
   if (count)
     {
+      unichar	*source = seq->chars;
       unichar	target[count*MAXDEC+1];
-      BOOL	notdone = YES;
+      unsigned	base = 0;
 
-      while (notdone)
+      /*
+       * Pre-scan ... anything with a code under 0x00C0 is not a decomposable
+       * character, so we don't need to expand it.
+       * If there are no decomposable characters or composed sequences, the
+       * sequence is already normalised and we don't need to make any changes.
+       */
+      while (base < count)
 	{
-	  unichar	*spoint = source;
-	  unichar	*tpoint = target;
-
-	  source[count] = (unichar)(0);
-	  notdone = NO;
-	  do
+	  if (source[base] >= 0x00C0)
 	    {
-	      unichar	*dpoint = uni_is_decomp(*spoint);
+	      break;
+	    }
+	  base++;
+	}
+      source[count] = (unichar)(0);
+      if (base < count)
+	{
 
-	      if (!dpoint)
+	  /*
+	   * Now expand decomposable characters into the long format.
+	   * Use the 'base' value to avoid re-checking characters which have
+	   * already been expanded.
+	   */
+	  while (base < count)
+	    {
+	      unichar	*spoint = &source[base];
+	      unichar	*tpoint = &target[base];
+	      unsigned	newbase = 0;
+
+	      do
 		{
-		  *tpoint++ = *spoint;
+		  unichar	*dpoint = uni_is_decomp(*spoint);
+
+		  if (!dpoint)
+		    {
+		      *tpoint++ = *spoint;
+		    }
+		  else
+		    {
+		      while (*dpoint)
+			{
+			  *tpoint++ = *dpoint++;
+			}
+		      if (newbase <= 0)
+			{
+			  newbase = (spoint - source) + 1;
+			}
+		    }
+		}
+	      while (*spoint++);
+
+	      count = tpoint - target;
+	      memcpy(&source[base], &target[base], 2*(count - base));
+	      source[count] = (unichar)(0);
+	      if (newbase > 0)
+		{
+		  base = newbase;
 		}
 	      else
 		{
-		  while (*dpoint)
-		    {
-		      *tpoint++ = *dpoint++;
-		    }
-		  notdone = YES;
+		  base = count;
 		}
 	    }
-	  while (*spoint++);
+	  seq->count = count;
 
-	  count = tpoint - target;
-	  memcpy(source, target, 2*count);
-	}
-
-      seq->count = count;
-      if (count > 1)
-	{
-	  notdone = YES;
-
-	  while (notdone)
+	  /*
+	   * Now standardise ordering of all composed character sequences.
+	   */
+	  if (count > 1)
 	    {
-	      unichar	*first = seq->chars;
-	      unichar	*second = first + 1;
-	      unsigned	i;
+	      BOOL	notdone = YES;
 
-	      notdone = NO;
-	      for (i = 1; i < count; i++)
+	      while (notdone)
 		{
-		  if (uni_cop(*second))
+		  unichar	*first = seq->chars;
+		  unichar	*second = first + 1;
+		  unsigned	i;
+
+		  notdone = NO;
+		  for (i = 1; i < count; i++)
 		    {
-		      if (uni_cop(*first) > uni_cop(*second))
+		      if (uni_cop(*second))
 			{
-			  unichar	tmp = *first;
-
-			  *first = *second;
-			  *second = tmp;
-			  notdone = YES;
-			}
-		      else if (uni_cop(*first) == uni_cop(*second))
-			{
-			  if (*first > *second)
+			  if (uni_cop(*first) > uni_cop(*second))
 			    {
-			       unichar	tmp = *first;
+			      unichar	tmp = *first;
 
-			       *first = *second;
-			       *second = tmp;
-			       notdone = YES;
+			      *first = *second;
+			      *second = tmp;
+			      notdone = YES;
+			    }
+			  else if (uni_cop(*first) == uni_cop(*second))
+			    {
+			      if (*first > *second)
+				{
+				   unichar	tmp = *first;
+
+				   *first = *second;
+				   *second = tmp;
+				   notdone = YES;
+				}
 			    }
 			}
+		      first++;
+		      second++;
 		    }
-		  first++;
-		  second++;
 		}
 	    }
 	}
