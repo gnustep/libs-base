@@ -34,6 +34,7 @@ include ../config.mak
 
 # The tools to be compiled
 TEST_TOOL_NAME = \
+benchmark \
 test01 \
 test02 \
 heap \
@@ -83,10 +84,10 @@ create-abbrevs \
 create-regions 
 
 # The tool Objective-C source files to be compiled
+benchmark_OBJC_FILES = benchmark.m
 test01_OBJC_FILES = test01.m
 test02_OBJC_FILES = test02.m
 heap_OBJC_FILES = heap.m
-nxst_OBJC_FILES = nxst.m
 randoms_OBJC_FILES = randoms.m
 prepend_OBJC_FILES = prepend.m
 pipes_OBJC_FILES = pipes.m
