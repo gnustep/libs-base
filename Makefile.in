@@ -119,6 +119,7 @@ LinkedListEltNode.m \
 LinkedListNode.m \
 Lock.m \
 Magnitude.m \
+MallocAddress.m \
 MappedCollector.m \
 MemoryStream.m \
 MutableCString.m \
@@ -157,6 +158,7 @@ GNUSTEP_MFILES = \
 NSAllocateObject.m \
 NSAutoreleasePool.m \
 NSCopyObject.m \
+NSCString.m \
 NSDeallocateObject.m \
 NSObject.m \
 NSString.m
@@ -230,6 +232,7 @@ objects/LinkedListNode.h \
 objects/Lock.h \
 objects/Locking.h \
 objects/Magnitude.h \
+objects/MallocAddress.h \
 objects/MappedCollector.h \
 objects/MemoryStream.h \
 objects/Ordering.h \
@@ -277,6 +280,7 @@ objc/README
 
 GNUSTEP_HEADERS = \
 foundation/NSAutoreleasePool.h \
+foundation/NSCString.h \
 foundation/NSInvocation.h \
 foundation/NSMethodSignature.h \
 foundation/NSObjCRuntime.h \
@@ -359,32 +363,32 @@ NXStringTable_scan.o: NXStringTable_scan.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w NXStringTable_scan.c
 
 objects/stdobjects.h: Makefile.in
-	rm -f tmp-stdobjects.h
-	mv stdobjects.h tmp-stdobjects.h
+	rm -f objects/tmp-stdobjects.h
+	mv objects/stdobjects.h objects/tmp-stdobjects.h
 	sed -e \
 	's/#define OBJECTS_VERSION .*/#define OBJECTS_VERSION $(OBJECTS_VERSION)/'\
-		< objects/tmp-stdobjects.h > stdobjects.h
-	rm -f tmp-stdobjects.h
-	mv stdobjects.h tmp-stdobjects.h
+		< objects/tmp-stdobjects.h > objects/stdobjects.h
+	rm -f objects/tmp-stdobjects.h
+	mv objects/stdobjects.h objects/tmp-stdobjects.h
 	sed -e \
 	's/#define OBJECTS_MAJOR_VERSION .*/#define OBJECTS_MAJOR_VERSION $(OBJECTS_MAJOR_VERSION)/'\
-		< objects/tmp-stdobjects.h > stdobjects.h
-	rm -f tmp-stdobjects.h
-	mv stdobjects.h tmp-stdobjects.h
+		< objects/tmp-stdobjects.h > objects/stdobjects.h
+	rm -f objects/tmp-stdobjects.h
+	mv objects/stdobjects.h objects/tmp-stdobjects.h
 	sed -e \
 	's/#define OBJECTS_MINOR_VERSION .*/#define OBJECTS_MINOR_VERSION $(OBJECTS_MINOR_VERSION)/'\
-		< objects/tmp-stdobjects.h > stdobjects.h
-	rm -f tmp-stdobjects.h
-	mv stdobjects.h tmp-stdobjects.h
+		< objects/tmp-stdobjects.h > objects/stdobjects.h
+	rm -f objects/tmp-stdobjects.h
+	mv objects/stdobjects.h objects/tmp-stdobjects.h
 	sed -e \
 	's/#define OBJECTS_SUBMINOR_VERSION .*/#define OBJECTS_SUBMINOR_VERSION $(OBJECTS_SUBMINOR_VERSION)/'\
-		< objects/tmp-stdobjects.h > stdobjects.h
+		< objects/tmp-stdobjects.h > objects/stdobjects.h
 	rm -f tmp-stdobjects.h
-	mv stdobjects.h tmp-stdobjects.h
+	mv objects/stdobjects.h objects/tmp-stdobjects.h
 	sed -e \
 	's/#define OBJECTS_GCC_VERSION .*/#define OBJECTS_GCC_VERSION $(OBJECTS_GCC_VERSION)/'\
-		< objects/tmp-stdobjects.h > stdobjects.h
-	rm -f tmp-stdobjects.h
+		< objects/tmp-stdobjects.h > objects/stdobjects.h
+	rm -f objects/tmp-stdobjects.h
 
 stdobjects.m: objects/stdobjects.h
 
