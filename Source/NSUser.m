@@ -164,11 +164,16 @@ NSString *NSTemporaryDirectory(void)
 
 NSString *NSOpenStepRootDirectory(void)
 {
+  NSString* root = [[[NSProcessInfo processInfo] environment]
+		     objectForKey:@"GNUSTEP_SYSTEM_ROOT"];
+
+  if (!root)
 #ifdef WIN32
-  return @"C:\\";
+    root = @"C:\\";
 #else
-  return @"/";
+    root = @"/";
 #endif
+  return root;
 }
 
 
