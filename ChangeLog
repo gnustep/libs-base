@@ -1,3 +1,9 @@
+2003-06-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSProcessInfo.m (+load): use the KVM library where
+	available when procfs doesn't work (FreeBSD, others?) (patch from
+	Pete French <pete@twisted.org.uk>).
+
 2003-06-21  David Ayers  <d.ayers@inode.at>
 
 	* Headers/gnustep/base/objc-gnu2next.h: Remove simple mappings for
