@@ -1,5 +1,5 @@
 /* Implementation of Objective-C Time object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -77,7 +77,7 @@ id monthNames;
 {
   if (self == [Time class])
     {
-      [self setVersion:0];	/* beta release */
+#if 0
       /* We should substitute this with a way to make internationalization
 	 more easy. */
       /* Should these indeces start at 1?  I think that would be ugly. */
@@ -103,6 +103,7 @@ id monthNames;
       [monthNames putElement:"October" atKey:9];
       [monthNames putElement:"November" atKey:10];
       [monthNames putElement:"December" atKey:11];
+#endif
     }
 }
 
@@ -175,22 +176,26 @@ id monthNames;
 
 + (unsigned) indexOfDayName: (const char *)dayName
 {
-  return [dayNames keyElementOfElement:(char *)dayName].unsigned_int_u;
+  [self notImplemented: _cmd];
+  return 0;
 }
 
 + (const char *) nameOfDayIndex: (unsigned)dayIndex
 {
-  return [dayNames elementAtKey:dayIndex].char_ptr_u;
+  [self notImplemented: _cmd];
+  return "";
 }
 
 + (unsigned) indexOfMonthName: (const char *)monthName
 {
-  return [monthNames keyElementOfElement:(char *)monthName].unsigned_int_u;
+  [self notImplemented: _cmd];
+  return 0;
 }
 
 + (const char *) nameOfMonthIndex: (unsigned)monthIndex
 {
-  return [monthNames elementAtKey:monthIndex].char_ptr_u;
+  [self notImplemented: _cmd];
+  return "";
 }
 
 + (unsigned) daysInMonthIndex: (unsigned)monthIndex forYear: (unsigned)year
