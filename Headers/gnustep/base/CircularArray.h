@@ -24,8 +24,8 @@
 #ifndef __CircularArray_h_INCLUDE_GNU
 #define __CircularArray_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/Array.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Array.h>
 
 @interface CircularArray : Array
 {

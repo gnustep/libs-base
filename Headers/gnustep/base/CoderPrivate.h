@@ -24,9 +24,9 @@
 #ifndef __CoderPrivate_h_OBJECTS_INCLUDE
 #define __CoderPrivate_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Coder.h>
-#include <objects/CStreaming.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/CStreaming.h>
 
 enum {
   CODER_OBJECT_NIL = 0, 

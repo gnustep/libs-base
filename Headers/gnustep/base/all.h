@@ -24,51 +24,51 @@
 #ifndef __objects_h_OBJECTS_INCLUDE
 #define __objects_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 /* Collection objects */
-#include <objects/Set.h>
-#include <objects/Bag.h>
-#include <objects/Dictionary.h>
-#include <objects/Array.h>
-#include <objects/Stack.h>
-#include <objects/Queue.h>
-#include <objects/GapArray.h>
-#include <objects/CircularArray.h>
-#include <objects/DelegatePool.h>
-#include <objects/MappedCollector.h>
-#include <objects/Heap.h>
-#include <objects/LinkedList.h>
-#include <objects/LinkedListNode.h>
-#include <objects/BinaryTree.h>
-#include <objects/BinaryTreeNode.h>
-#include <objects/RBTree.h>
-#include <objects/RBTreeNode.h>
-#include <objects/SplayTree.h>
+#include <gnustep/base/Set.h>
+#include <gnustep/base/Bag.h>
+#include <gnustep/base/Dictionary.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/Stack.h>
+#include <gnustep/base/Queue.h>
+#include <gnustep/base/GapArray.h>
+#include <gnustep/base/CircularArray.h>
+#include <gnustep/base/DelegatePool.h>
+#include <gnustep/base/MappedCollector.h>
+#include <gnustep/base/Heap.h>
+#include <gnustep/base/LinkedList.h>
+#include <gnustep/base/LinkedListNode.h>
+#include <gnustep/base/BinaryTree.h>
+#include <gnustep/base/BinaryTreeNode.h>
+#include <gnustep/base/RBTree.h>
+#include <gnustep/base/RBTreeNode.h>
+#include <gnustep/base/SplayTree.h>
 
 /* Magnitude objects */
-#include <objects/Magnitude.h>
-#include <objects/Random.h>
-#include <objects/Time.h>
+#include <gnustep/base/Magnitude.h>
+#include <gnustep/base/Random.h>
+#include <gnustep/base/Time.h>
 
 /* Stream objects */
-#include <objects/Stream.h>
-#include <objects/StdioStream.h>
-#include <objects/MemoryStream.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/StdioStream.h>
+#include <gnustep/base/MemoryStream.h>
 
 /* Coder objects */
-#include <objects/Coder.h>
-#include <objects/BinaryCStream.h>
-#include <objects/TextCStream.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/BinaryCStream.h>
+#include <gnustep/base/TextCStream.h>
 
 /* Port objects */
-#include <objects/Port.h>
+#include <gnustep/base/Port.h>
 
 /* Remote messaging support objects */
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
-#include <objects/ConnectedCoder.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Proxy.h>
+#include <gnustep/base/ConnectedCoder.h>
 
-#include <objects/Invocation.h>
+#include <gnustep/base/Invocation.h>
 
 #endif /* __objects_h_OBJECTS_INCLUDE */

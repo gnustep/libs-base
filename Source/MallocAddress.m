@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/MallocAddress.h>
-#include <objects/Dictionary.h>
+#include <gnustep/base/MallocAddress.h>
+#include <gnustep/base/Dictionary.h>
 #include <Foundation/NSMapTable.h>
 
 static NSMapTable* mallocAddresses;

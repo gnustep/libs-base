@@ -35,8 +35,8 @@
 #ifndef __IndexedCollecting_h_OBJECTS_INCLUDE
 #define __IndexedCollecting_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Collecting.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Collecting.h>
 
 typedef struct _IndexRange { 
   unsigned location;

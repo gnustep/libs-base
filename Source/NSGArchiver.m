@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSGArchiver.h>
-#include <objects/Archiver.h>
-#include <objects/behavior.h>
+#include <gnustep/base/Archiver.h>
+#include <gnustep/base/behavior.h>
 
 @implementation NSGArchiver
 

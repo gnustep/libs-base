@@ -21,13 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/Collection.h>
-#include <objects/CollectionPrivate.h>
+#include <gnustep/base/Collection.h>
+#include <gnustep/base/CollectionPrivate.h>
 #include <stdarg.h>
-#include <objects/Bag.h>		/* for -contentsEqual: */
-#include <objects/Array.h>		/* for -safeWithElementsCall: */
-#include <objects/Coder.h>
-#include <objects/NSString.h>
+#include <gnustep/base/Bag.h>		/* for -contentsEqual: */
+#include <gnustep/base/Array.h>		/* for -safeWithElementsCall: */
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/NSString.h>
 
 @implementation Enumerator
 

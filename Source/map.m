@@ -25,9 +25,9 @@
 /**** Included Headers *******************************************************/
 
 #include <Foundation/NSZone.h>
-#include <objects/callbacks.h>
-#include <objects/hash.h>
-#include <objects/map.h>
+#include <gnustep/base/callbacks.h>
+#include <gnustep/base/hash.h>
+#include <gnustep/base/map.h>
 
 /**** Function Implementations ***********************************************/
 

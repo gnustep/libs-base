@@ -24,10 +24,10 @@
 #ifndef __Notification_h_OBJECTS_INCLUDE
 #define __Notification_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/NSString.h>
-#include <objects/KeyedCollecting.h>
-#include <objects/NotificationDispatcher.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/KeyedCollecting.h>
+#include <gnustep/base/NotificationDispatcher.h>
 
 @protocol Notifying
 - (id <String>) name;

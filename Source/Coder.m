@@ -21,22 +21,22 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Coder.h>
-#include <objects/CoderPrivate.h>
-#include <objects/MemoryStream.h>
-#include <objects/Coding.h>
-#include <objects/Dictionary.h>
-#include <objects/Stack.h>
-#include <objects/Set.h>
-#include <objects/NSString.h>
-#include <objects/Streaming.h>
-#include <objects/Stream.h>
-#include <objects/CStreaming.h>
-#include <objects/CStream.h>
-#include <objects/TextCStream.h>
-#include <objects/BinaryCStream.h>
-#include <objects/StdioStream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/CoderPrivate.h>
+#include <gnustep/base/MemoryStream.h>
+#include <gnustep/base/Coding.h>
+#include <gnustep/base/Dictionary.h>
+#include <gnustep/base/Stack.h>
+#include <gnustep/base/Set.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/Streaming.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/CStreaming.h>
+#include <gnustep/base/CStream.h>
+#include <gnustep/base/TextCStream.h>
+#include <gnustep/base/BinaryCStream.h>
+#include <gnustep/base/StdioStream.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSData.h>

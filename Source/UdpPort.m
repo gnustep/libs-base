@@ -23,13 +23,13 @@
 
 /* xxx I should also look into SOCK_RDM and SOCK_SEQPACKET. */
 
-#include <objects/UdpPort.h>
-#include <objects/Lock.h>
-#include <objects/Connection.h>
-#include <objects/Coder.h>
-#include <objects/Array.h>
-#include <objects/ConnectedCoder.h>
-#include <objects/String.h>
+#include <gnustep/base/UdpPort.h>
+#include <gnustep/base/Lock.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/ConnectedCoder.h>
+#include <gnustep/base/String.h>
 #include <assert.h>
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #if _AIX

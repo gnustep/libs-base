@@ -27,7 +27,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
-#include <objects/Coder.h>
+#include <gnustep/base/Coder.h>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 12 cooresponding to each number type */

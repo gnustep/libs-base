@@ -24,9 +24,9 @@
 #ifndef __IndexedCollection_h_INCLUDE_GNU
 #define __IndexedCollection_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/KeyedCollection.h>
-#include <objects/IndexedCollecting.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/KeyedCollection.h>
+#include <gnustep/base/IndexedCollecting.h>
 
 @interface ConstantIndexedCollection : ConstantCollection 
 @end

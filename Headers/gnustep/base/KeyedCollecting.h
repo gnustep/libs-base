@@ -33,8 +33,8 @@
 #ifndef __KeyedCollecting_h_OBJECTS_INCLUDE
 #define __KeyedCollecting_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Collecting.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Collecting.h>
 
 @protocol ConstantKeyedCollecting <ConstantCollecting>
 

@@ -24,7 +24,7 @@
 #ifndef __MallocAddress_h_OBJECTS_INCLUDE
 #define __MallocAddress_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 @interface MallocAddress : NSObject
 {

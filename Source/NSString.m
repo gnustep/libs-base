@@ -32,17 +32,17 @@
 
 */
 
-#include <objects/stdobjects.h>
-#include <objects/Coding.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coding.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
-#include <objects/IndexedCollection.h>
-#include <objects/IndexedCollectionPrivate.h>
-#include <objects/String.h>
-#include <objects/behavior.h>
+#include <gnustep/base/IndexedCollection.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <gnustep/base/String.h>
+#include <gnustep/base/behavior.h>
 #include <limits.h>
 
 @implementation NSString

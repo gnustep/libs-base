@@ -24,9 +24,9 @@
 #ifndef __NSGArchiver_h_OBJECTS_INCLUDE
 #define __NSGArchiver_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSArchiver.h>
-#include <objects/Coding.h>
+#include <gnustep/base/Coding.h>
 
 @interface NSGArchiver : NSArchiver
 @end

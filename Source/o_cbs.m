@@ -25,7 +25,7 @@
 /**** Included Headers *******************************************************/
 
 #include <Foundation/NSString.h>
-#include <objects/callbacks.h>
+#include <gnustep/base/callbacks.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

@@ -24,8 +24,8 @@
 #ifndef __SocketPort_h_INCLUDE_GNU
 #define __SocketPort_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/Port.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Port.h>
 
 #include <sys/types.h>
 

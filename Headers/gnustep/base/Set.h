@@ -24,8 +24,8 @@
 #ifndef __Set_h_OBJECTS_INCLUDE
 #define __Set_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Collection.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Collection.h>
 #include <Foundation/NSHashTable.h>
 
 @interface Set : Collection

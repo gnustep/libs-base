@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/RBTree.h>
-#include <objects/IndexedCollectionPrivate.h>
-#include <objects/RBTreeNode.h>
+#include <gnustep/base/RBTree.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <gnustep/base/RBTreeNode.h>
 
 #define NODE_IS_RED(NODE) ([NODE isRed])
 #define NODE_IS_BLACK(NODE) (![NODE isRed])

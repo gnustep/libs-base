@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/RNGAdditiveCongruential.h>
-#include <objects/objc-malloc.h>
-#include <objects/Coder.h>
+#include <gnustep/base/RNGAdditiveCongruential.h>
+#include <gnustep/base/objc-malloc.h>
+#include <gnustep/base/Coder.h>
 #include <limits.h>
 
 /* Additive Congruential Method,

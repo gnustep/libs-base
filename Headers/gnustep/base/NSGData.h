@@ -24,14 +24,14 @@
 #ifndef __NSGData_h_OBJECTS_INCLUDE
 #define __NSGData_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSData.h>
-#include <objects/MemoryStream.h>
+#include <gnustep/base/MemoryStream.h>
 
 @interface NSGData : NSData
 {
   /* For now, these must match the instance variables in 
-     objects/MemoryStream.h.
+     gnustep/base/MemoryStream.h.
      This will change. */
   int type;
   char *buffer;
@@ -49,7 +49,7 @@
 @interface NSGMutableData : NSMutableData
 {
   /* For now, these must match the instance variables in 
-     objects/MemoryStream.h.
+     gnustep/base/MemoryStream.h.
      This will change. */
   int type;
   char *buffer;

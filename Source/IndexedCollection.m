@@ -21,12 +21,12 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/IndexedCollection.h>
-#include <objects/IndexedCollectionPrivate.h>
+#include <gnustep/base/IndexedCollection.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
 #include <stdio.h>
-#include <objects/Array.h>
-#include <objects/NSString.h>
-#include <objects/behavior.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/behavior.h>
 
 @implementation ReverseEnumerator
 

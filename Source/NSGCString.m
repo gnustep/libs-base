@@ -21,14 +21,14 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSString.h>
-#include <objects/NSString.h>
-#include <objects/IndexedCollection.h>
-#include <objects/IndexedCollectionPrivate.h>
-#include <objects/MallocAddress.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/IndexedCollection.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSValue.h>
-#include <objects/behavior.h>
+#include <gnustep/base/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 @implementation NSGCString

@@ -48,8 +48,8 @@
 
    */
 
-#include <objects/stdobjects.h>
-#include <objects/behavior.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/behavior.h>
 #include <assert.h>
 #include <Foundation/NSException.h>
 

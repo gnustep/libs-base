@@ -26,7 +26,7 @@
 #ifndef __objc_gnu2next_h_INCLUDE_GNU
 #define __objc_gnu2next_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 #if NeXT_runtime
 
@@ -151,7 +151,7 @@ object_is_meta_class(id object)
 /* The following from GNU's objc/list.h */
 
 #include <stdio.h>
-#include <objects/objc-malloc.h>
+#include <gnustep/base/objc-malloc.h>
 
 struct objc_list {
   void *head;

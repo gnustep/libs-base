@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/OrderedCollection.h>
+#include <gnustep/base/OrderedCollection.h>
 #include <stdio.h>
-#include <objects/Array.h>
-#include <objects/NSString.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/NSString.h>
 
 
 @implementation OrderedCollection

@@ -26,8 +26,8 @@
 #ifndef __GapArrayPrivate_h_INCLUDE_GNU
 #define __GapArrayPrivate_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/ArrayPrivate.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/ArrayPrivate.h>
 #include <assert.h>
 
 #define GAP_TO_BASIC(INDEX)              \

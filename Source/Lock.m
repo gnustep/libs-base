@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/Lock.h>
+#include <gnustep/base/Lock.h>
 
 /* It doesn't make sense to implement this until
    we get a thread-safe runtime. */

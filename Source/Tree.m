@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/Tree.h>
-#include <objects/IndexedCollectionPrivate.h>
-#include <objects/TreeNode.h>
+#include <gnustep/base/Tree.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <gnustep/base/TreeNode.h>
 
 /* sentinal */
 static id nilTreeNode;

@@ -22,9 +22,9 @@
    */
 
 #include <Foundation/NSGSet.h>
-#include <objects/NSSet.h>
-#include <objects/behavior.h>
-#include <objects/Set.h>
+#include <gnustep/base/NSSet.h>
+#include <gnustep/base/behavior.h>
+#include <gnustep/base/Set.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 

@@ -24,8 +24,8 @@
 /* This class could be improved by somehow making is a subclass of
    IndexedCollection, but not OrderedCollection. */
 
-#include <objects/Heap.h>
-#include <objects/ArrayPrivate.h>
+#include <gnustep/base/Heap.h>
+#include <gnustep/base/ArrayPrivate.h>
 
 #define HEAP_PARENT(i) (i/2)
 #define HEAP_LEFT(i) (2 * i)

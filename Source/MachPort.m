@@ -25,10 +25,10 @@
 
 #if __mach__
 
-#include <objects/MachPort.h>
-#include <objects/Connection.h>
-#include <objects/Lock.h>
-#include <objects/Set.h>
+#include <gnustep/base/MachPort.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Lock.h>
+#include <gnustep/base/Set.h>
 
 #include <mach/cthreads.h>
 #include <mach/notify.h>

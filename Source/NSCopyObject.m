@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
 {

@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <objects/objc-malloc.h>
-#include <objects/Array.h>
+#include <gnustep/base/objc-malloc.h>
+#include <gnustep/base/Array.h>
 #include <Foundation/NSException.h>
 #include <limits.h>
 

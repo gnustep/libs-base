@@ -21,11 +21,11 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/CStream.h>
-#include <objects/NSString.h>
-#include <objects/StdioStream.h>
-#include <objects/CoderPrivate.h> /* for SIGNATURE_FORMAT_STRING */
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/CStream.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/StdioStream.h>
+#include <gnustep/base/CoderPrivate.h> /* for SIGNATURE_FORMAT_STRING */
 #include <Foundation/NSException.h>
 #include <assert.h>
 

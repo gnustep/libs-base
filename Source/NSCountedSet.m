@@ -25,7 +25,7 @@
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
-#include <objects/NSString.h>
+#include <gnustep/base/NSString.h>
 #include <assert.h>
 
 @implementation NSCountedSet 
@@ -108,7 +108,7 @@ static Class NSCountedSet_concrete_class;
   while ((o = [e nextObject]))
     [(NSCountedSet*)c addObject:o]; 
   /* Cast to avoid type warning.  
-     I'll fix the type in objects/Collecting.h eventually. */
+     I'll fix the type in gnustep/base/Collecting.h eventually. */
   return o;
 }
 

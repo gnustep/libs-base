@@ -21,11 +21,11 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/ObjectRetaining.h>
-#include <objects/collhash.h>
-#include <objects/eltfuncs.h>
-#include <objects/objc-malloc.h>
-#include <objects/AutoreleasePool.h>
+#include <gnustep/base/ObjectRetaining.h>
+#include <gnustep/base/collhash.h>
+#include <gnustep/base/eltfuncs.h>
+#include <gnustep/base/objc-malloc.h>
+#include <gnustep/base/AutoreleasePool.h>
 #include <limits.h>
 
 /* Doesn't handle multi-threaded stuff.

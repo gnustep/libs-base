@@ -21,11 +21,11 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSMethodSignature.h>
-#include <objects/Invocation.h>
-#include <objects/behavior.h>
+#include <gnustep/base/Invocation.h>
+#include <gnustep/base/behavior.h>
 
 @implementation NSInvocation
 

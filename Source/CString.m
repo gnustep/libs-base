@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/String.h>
-#include <objects/IndexedCollection.h>
-#include <objects/IndexedCollectionPrivate.h>
+#include <gnustep/base/String.h>
+#include <gnustep/base/IndexedCollection.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 

@@ -26,7 +26,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSZone.h>
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 /* This is the real, general purpose value object.  I've implemented all the
    methods here (like pointValue) even though most likely, other concrete

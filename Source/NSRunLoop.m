@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSRunLoop.h>
-#include <objects/RunLoop.h>
-#include <objects/Connection.h>
+#include <gnustep/base/RunLoop.h>
+#include <gnustep/base/Connection.h>
 
 @implementation NSRunLoop
 

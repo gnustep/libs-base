@@ -24,8 +24,8 @@
 #ifndef __Lock_h_OBJECTS_INCLUDE
 #define __Lock_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Locking.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Locking.h>
 
 @interface Lock : NSObject <Locking>
 {

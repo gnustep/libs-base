@@ -21,13 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSGArray.h>
 #include <Foundation/NSArray.h>
-#include <objects/NSArray.h>
-#include <objects/behavior.h>
-#include <objects/Array.h>
-#include <objects/ArrayPrivate.h>
+#include <gnustep/base/NSArray.h>
+#include <gnustep/base/behavior.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/ArrayPrivate.h>
 #include <Foundation/NSException.h>
 
 @implementation NSGArray

@@ -24,7 +24,7 @@
 #ifndef __SmallInt_h_INCLUDE_GNU
 #define __SmallInt_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 #define IS_SMALLINT(OBJ) (((void*)OBJ) & 0x1)
 #define ID2INT(OBJ) ((IS_SMALLINT(OBJ)) ? (((int)OBJ) >> 1):[OBJ intValue])

@@ -23,7 +23,7 @@
 
 #include <remote/NXConnection.h>
 #include <remote/NXProxy.h>
-#include <objects/ConnectedCoder.h>
+#include <gnustep/base/ConnectedCoder.h>
 #include <assert.h>
 
 static Class NXConnectionProxyClass;

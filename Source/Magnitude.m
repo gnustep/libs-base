@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Magnitude.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Magnitude.h>
 
 /* These methods accesses no instance variables.  It is exactly the kind
    of thing that should be a "behavior" associated with a protocol.

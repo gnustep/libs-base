@@ -23,12 +23,12 @@
 
 /* The implementation for NotificationDispatcher. */
 
-#include <objects/stdobjects.h>
-#include <objects/NotificationQueue.h>
-#include <objects/Notification.h>
-#include <objects/LinkedListNode.h>
-#include <objects/Array.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/NotificationQueue.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/LinkedListNode.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSException.h>
 
 @implementation NotificationQueue

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/SocketPort.h>
+#include <gnustep/base/SocketPort.h>
 
 #ifndef WIN32
 #include <netdb.h>
@@ -29,12 +29,12 @@
 #endif /* !WIN32 */
 
 #include <objc/hash.h>
-#include <objects/Lock.h>
+#include <gnustep/base/Lock.h>
 #include <objc/List.h>
-#include <objects/Connection.h>
-#include <objects/Coder.h>
-#include <objects/ConnectedCoder.h>
-#include <objects/String.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/ConnectedCoder.h>
+#include <gnustep/base/String.h>
 #include <assert.h>
 
 #if _AIX

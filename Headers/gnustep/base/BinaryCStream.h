@@ -24,9 +24,9 @@
 #ifndef __BinaryCStream_h_OBJECTS_INCLUDE
 #define __BinaryCStream_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Stream.h>
-#include <objects/CStream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/CStream.h>
 
 @interface BinaryCStream : CStream
 

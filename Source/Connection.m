@@ -32,18 +32,18 @@
 /* RMC == Remote Method Coder, or Remote Method Call.
    It's an instance of ConnectedEncoder or ConnectedDecoder. */
 
-#include <objects/stdobjects.h>
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
-#include <objects/ConnectedCoder.h>
-#include <objects/TcpPort.h>
-#include <objects/Array.h>
-#include <objects/Dictionary.h>
-#include <objects/Queue.h>
-#include <objects/mframe.h>
-#include <objects/Notification.h>
-#include <objects/RunLoop.h>
-#include <objects/MallocAddress.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Proxy.h>
+#include <gnustep/base/ConnectedCoder.h>
+#include <gnustep/base/TcpPort.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/Dictionary.h>
+#include <gnustep/base/Queue.h>
+#include <gnustep/base/mframe.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/RunLoop.h>
+#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>

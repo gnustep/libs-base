@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/TreeNode.h>
-#include <objects/Array.h>
+#include <gnustep/base/TreeNode.h>
+#include <gnustep/base/Array.h>
 
 @implementation TreeNode
 

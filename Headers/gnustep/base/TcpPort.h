@@ -24,9 +24,9 @@
 #ifndef __TcpPort_h__OBJECTS_INCLUDE
 #define __TcpPort_h__OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Port.h>
-#include <objects/RunLoop.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Port.h>
+#include <gnustep/base/RunLoop.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>

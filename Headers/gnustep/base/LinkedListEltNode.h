@@ -24,12 +24,12 @@
 #ifndef __LinkedListEltNode_h_INCLUDE_GNU
 #define __LinkedListEltNode_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/LinkedListNode.h>
-#include <objects/EltNodeCollector.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/LinkedListNode.h>
+#include <gnustep/base/EltNodeCollector.h>
 
 @interface LinkedListEltNode : LinkedListNode
-#include <objects/EltNode-h>
+#include <gnustep/base/EltNode-h>
 @end
 
 #endif /* __LinkedListEltNode_h_INCLUDE_GNU */

@@ -24,7 +24,7 @@
 #ifndef __CollectionPrivate_h_INCLUDE_GNU
 #define __CollectionPrivate_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 @interface ConstantCollection (ArchivingHelpers)
 /* These methods should never be called except in order, and inside 

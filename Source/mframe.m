@@ -29,10 +29,10 @@
 */
 
 
-#include <objects/stdobjects.h>
-#include <objects/objc-malloc.h>
-#include <objects/mframe.h>
-#include <objects/MallocAddress.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/objc-malloc.h>
+#include <gnustep/base/mframe.h>
+#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSException.h>
 #include <stdlib.h>
 #include <assert.h>

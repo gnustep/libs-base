@@ -24,9 +24,9 @@
 #ifndef __CStream_h_OBJECTS_INCLUDE
 #define __CStream_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Stream.h>
-#include <objects/CStreaming.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/CStreaming.h>
 
 @interface CStream : Stream <CStreaming>
 {

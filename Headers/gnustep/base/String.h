@@ -29,9 +29,9 @@
    Perhaps I'll just get rid of the GNU String objects and just
    transfer this functionality into NSSTring and friends. */
 
-#include <objects/stdobjects.h>
-#include <objects/IndexedCollection.h>
-#include <objects/ValueHolding.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/IndexedCollection.h>
+#include <gnustep/base/ValueHolding.h>
 #include <Foundation/NSString.h>
 #include <stdarg.h>
 

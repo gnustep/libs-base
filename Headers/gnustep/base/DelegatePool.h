@@ -28,8 +28,8 @@
 #ifndef __DelegatePool_h_OBJECTS_INCLUDE
 #define __DelegatePool_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Array.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Array.h>
 
 /* Available sending behaviors */
 enum DelegatePoolSendBehavior {SEND_TO_ALL = 0, 

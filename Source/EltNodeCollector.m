@@ -29,10 +29,10 @@
 
 /* I should override a few more methods to increase efficiency. */
 
-#include <objects/EltNodeCollector.h>
-#include <objects/IndexedCollectionPrivate.h>
-#include <objects/LinkedListEltNode.h>
-#include <objects/Coder.h>
+#include <gnustep/base/EltNodeCollector.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <gnustep/base/LinkedListEltNode.h>
+#include <gnustep/base/Coder.h>
 
 #define DEFAULT_ELT_NODE_CLASS LinkedListEltNode
 #define DEFAULT_NODE_COLLECTOR_CLASS LinkedList

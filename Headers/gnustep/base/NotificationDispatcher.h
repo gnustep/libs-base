@@ -56,11 +56,11 @@
 
    */
 
-#include <objects/stdobjects.h>
-#include <objects/LinkedList.h>
-#include <objects/Array.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/LinkedList.h>
+#include <gnustep/base/Array.h>
 #include <Foundation/NSMapTable.h>
-#include <objects/NSString.h>
+#include <gnustep/base/NSString.h>
 
 @interface NotificationDispatcher : NSObject
 {

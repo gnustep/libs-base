@@ -28,8 +28,8 @@
 /**** Included Headers *******************************************************/
 
 #include <Foundation/NSZone.h>
-#include <objects/callbacks.h>
-#include <objects/hash.h>
+#include <gnustep/base/callbacks.h>
+#include <gnustep/base/hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -118,8 +118,8 @@ struct _objects_map_enumerator
 /* All the structures (hashes, maps, lists, and arrays) have
  * the same basic ideas behind them. */
 
-#include <objects/map-bas.h>
-#include <objects/map-cbs.h>
+#include <gnustep/base/map-bas.h>
+#include <gnustep/base/map-cbs.h>
 
 /** Callbacks... **/
 

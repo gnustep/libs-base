@@ -24,10 +24,10 @@
 #ifndef __IndexedCollectionPrivate_h_INCLUDE_GNU
 #define __IndexedCollectionPrivate_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/CollectionPrivate.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/CollectionPrivate.h>
 #include <Foundation/NSException.h>
-#include <objects/NSString.h>
+#include <gnustep/base/NSString.h>
 
 /* To be used inside a method for making sure that index
    is not above range.

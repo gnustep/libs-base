@@ -21,12 +21,12 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Coder.h>
-#include <objects/CoderPrivate.h>
-#include <objects/MemoryStream.h>
-#include <objects/StdioStream.h>
-#include <objects/BinaryCStream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/CoderPrivate.h>
+#include <gnustep/base/MemoryStream.h>
+#include <gnustep/base/StdioStream.h>
+#include <gnustep/base/BinaryCStream.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSException.h>
 

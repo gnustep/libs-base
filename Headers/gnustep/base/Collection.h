@@ -28,11 +28,11 @@
 #ifndef __Collection_h_INCLUDE_GNU
 #define __Collection_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSObject.h>
-#include <objects/Collecting.h>
-#include <objects/stdobjects.h>
-#include <objects/Coding.h>
+#include <gnustep/base/Collecting.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coding.h>
 
 @interface ConstantCollection : NSObject <ConstantCollecting>
 - printForDebugger;  /* This method will disappear later. */

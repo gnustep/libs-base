@@ -23,12 +23,12 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <objects/stdobjects.h>
-#include <objects/Proxy.h>
-#include <objects/Connection.h>
-#include <objects/Port.h>
-#include <objects/TcpPort.h>
-#include <objects/ConnectedCoder.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Proxy.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Port.h>
+#include <gnustep/base/TcpPort.h>
+#include <gnustep/base/ConnectedCoder.h>
 #include <Foundation/NSException.h>
 #include <assert.h>
 

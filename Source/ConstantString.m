@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/String.h>
-#include <objects/IndexedCollectionPrivate.h>
+#include <gnustep/base/String.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
 
 @implementation ConstantString
 

@@ -21,13 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Coder.h>
-#include <objects/CoderPrivate.h>
-#include <objects/CStream.h>
-#include <objects/Stream.h>
-#include <objects/StdioStream.h>
-#include <objects/Array.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/CoderPrivate.h>
+#include <gnustep/base/CStream.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/StdioStream.h>
+#include <gnustep/base/Array.h>
 #include <Foundation/NSException.h>
 
 #define debug_coder 0

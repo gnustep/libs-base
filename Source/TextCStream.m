@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/TextCStream.h>
-#include <objects/NSString.h>
-#include <objects/StdioStream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/TextCStream.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/StdioStream.h>
 #include <Foundation/NSException.h>
 
 #define DEFAULT_FORMAT_VERSION 0

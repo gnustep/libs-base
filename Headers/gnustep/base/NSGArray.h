@@ -24,9 +24,9 @@
 #ifndef __NSGArray_h_OBJECTS_INCLUDE
 #define __NSGArray_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSArray.h>
-#include <objects/Array.h>
+#include <gnustep/base/Array.h>
 
 @interface NSGArray : NSArray
 {

@@ -27,11 +27,11 @@
    I don't think GNU needs this restriction with its corresponding
    NotificationDistributor class. */
 
-#include <objects/NotificationDispatcher.h>
-#include <objects/Notification.h>
-#include <objects/LinkedListNode.h>
-#include <objects/Array.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/NotificationDispatcher.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/LinkedListNode.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSException.h>
 
 

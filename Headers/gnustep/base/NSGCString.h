@@ -24,7 +24,7 @@
 #ifndef __NSGCString_h_OBJECTS_INCLUDE
 #define __NSGCString_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSString.h>
 
 /* NSGCString and NSGMutableCString must have the same initial ivar layout

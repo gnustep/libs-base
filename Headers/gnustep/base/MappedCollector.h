@@ -24,8 +24,8 @@
 #ifndef __MappedCollector_h_INCLUDE_GNU
 #define __MappedCollector_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/KeyedCollection.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/KeyedCollection.h>
 
 @interface MappedCollector : KeyedCollection
 {

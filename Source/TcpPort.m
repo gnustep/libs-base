@@ -31,12 +31,12 @@
    All the abort()'s should be Exceptions.
    */
 
-#include <objects/stdobjects.h>
-#include <objects/TcpPort.h>
-#include <objects/Array.h>
-#include <objects/Notification.h>
-#include <objects/RunLoop.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/TcpPort.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/RunLoop.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSDate.h>
 #include <stdio.h>
 #include <stdlib.h>
