@@ -1,3 +1,22 @@
+Thu May 21 09:38:14 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/NSUser.m (NSUserName): Use getpwuid for BSD machines (patch
+	provided by Stefanos Kiakas <stefanos@ringworld.uniscape.com>).
+
+Wed May 20 15:26:50 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/GNUmakefile: Added NSUndoManager.[hm]
+
+        * src/Invocation.m: ([-_initArgframeFrom:withType:retainArgs:]) fixed
+	memory leak due to failing to set 'args_retained' flag.
+
+	* src/NSObject.m: ([-forward::]) modified to call (forwardInvocation:)
+	method so we can conform to OpenStep spec.
+
+	* src/NSUndoManager.m: Implementation of new class.
+
+	* src/include/NSUndoManager.h: Interface for new class.
+
 Wed May 13 13:18:35 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSArray.m ([NSArray -initWithContentsOfFile:]): Move

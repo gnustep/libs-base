@@ -46,7 +46,7 @@ NSUserName ()
     return [NSString stringWithCString: buf];
   else
     return [NSString stringWithCString: ""];
-#elif __SOLARIS__
+#elif __SOLARIS__ || defined(BSD)
   int uid = geteuid(); // get the effective user id
   struct passwd *pwent = getpwuid (uid);
   NSString* name = [NSString stringWithCString: pwent->pw_name];
