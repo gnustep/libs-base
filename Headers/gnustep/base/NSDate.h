@@ -1,5 +1,8 @@
 /* Interface for NSDate for GNUStep
-   Copyright (C) 1994 NeXT Computer, Inc.
+   Copyright (C) 1995 Free Software Foundation, Inc.
+
+   Written by: Jeremy Bettis <jeremy@hksys.com>
+   Date: March 1995
 
    This file is part of the GNU Objective C Class Library.
 

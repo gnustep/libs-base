@@ -1,5 +1,8 @@
 /* Interface for NSGeometry routines for GNUStep
-   Copyright (C) 1994 NeXT Computer, Inc.
+   Copyright (C) 1995 Free Software Foundation, Inc.
+
+   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Date: 1995
    
    This file is part of the GNU Objective C Class Library.
 

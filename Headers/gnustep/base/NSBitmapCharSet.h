@@ -1,6 +1,9 @@
 /* Interface for NSBitmapCharSet for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
-   
+
+   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Date: 1995
+
    This file is part of the GNU Objective C Class Library.
 
    This library is free software; you can redistribute it and/or
