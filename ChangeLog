@@ -1,3 +1,32 @@
+Mon Jun 21  9:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Mostly updates of range checking code and change of FastArray and
+	FastMap to use the prefix GSI (GnuStepInline) rather than Fast -
+	less likely to conflict with other names.
+	* Source/include/NSRange.h: Added GS_RANGE_CHECK() macro for consistent
+	range checking.
+	* Source/include/FastArray.x: Renamed to GSIArray.h
+	* Source/include/FastMap.x: Renamed to GSIMap.h
+	* Source/include/NSArchiver.h: Changed Fast to GSI
+	* Source/NSString.m: Use GS_RANGE_CHECK()
+	* Source/NSGString.m: ditto
+	* Source/NSGCString.m: ditto
+	* Source/NSAttributedString.m: ditto
+	* Source/NSGAttributedString.m: ditto
+	* Source/NSData.m: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSGArray.m: ditto
+	* Source/GNUmakefile: Renamed Fast... to GSI...
+	* Source/Makefile.postamble: Renamed Fast... to GSI...
+	* Source/NSArchiver.m: ditto
+	* Source/NSGCountedSet.m: ditto
+	* Source/NSGDictionary.m: ditto
+	* Source/NSGSet.m: ditto
+	* Source/NSNotificationCenter.m: ditto
+	* Source/NSRunLoop.m: ditto
+	* Source/NSSerializer.m: ditto
+	* Source/NSUnarchiver.m: ditto
+
 Fri Jun 18  8:36:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSFileManager.m: Fix lookup of fileGroupOwnerAccountName
