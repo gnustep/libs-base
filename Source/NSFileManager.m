@@ -1188,13 +1188,18 @@ static NSFileManager* defaultManager = nil;
 
 /**
  * Returns YES if a file (or directory etc) exists at the specified path.<br />
- * If the isDirectory argument is not a nul pointer, stores a flag in the
- * location it points to, to indicate whether the file is a directory or not.
+ * If the isDirectory argument is not a nul pointer, stores a flag
+ * in the location it points to, indicating whether the file is a
+ * directory or not.<br />
  */
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
 {
   const char* cpath = [self fileSystemRepresentationWithPath: path];
 
+  if (isDirectory != 0)
+    {
+      *isDirectory = NO;
+    }
   if (cpath == 0 || *cpath == '\0')
     {
       return NO;
