@@ -612,8 +612,14 @@ failure:
 	}
       case _C_CHARPTR:
 	{
-	  int length = [self deserializeIntAtCursor: cursor];
+	  gss32 length;
 
+	  [self deserializeBytes: &length
+			  length: sizeof(length)
+			atCursor: cursor];
+#ifndef	GS_WORDS_BIGENDIAN
+	  length = GSSwapI32(length);
+#endif
 	  if (length == -1)
 	    {
 	      *(const char**)data = NULL;
@@ -779,12 +785,14 @@ failure:
 	}
       case _C_CLASS:
 	{
-	  unsigned ni;
+	  gsu16 ni;
 
 	  [self deserializeBytes: &ni
-			  length: sizeof(unsigned)
+			  length: sizeof(ni)
 			atCursor: cursor];
-	  ni = NSSwapBigIntToHost(ni);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(ni);
+#endif
 	  if (ni == 0)
 	    {
 	      *(Class*)data = 0;
@@ -810,17 +818,21 @@ failure:
 	}
       case _C_SEL:
 	{
-	  unsigned        ln;
-	  unsigned        lt;
+	  gsu16	ln;
+	  gsu16	lt;
 
 	  [self deserializeBytes: &ln
-			  length: sizeof(unsigned)
+			  length: sizeof(ln)
 			atCursor: cursor];
-	  ln = NSSwapBigIntToHost(ln);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ln = GSSwapI16(ln);
+#endif
 	  [self deserializeBytes: &lt
-			  length: sizeof(unsigned)
+			  length: sizeof(lt)
 			atCursor: cursor];
-	  lt = NSSwapBigIntToHost(lt);
+#ifndef	GS_WORDS_BIGENDIAN
+	  lt = GSSwapI16(lt);
+#endif
 	  if (ln == 0)
 	    {
 	      *(SEL*)data = 0;
@@ -1213,180 +1225,226 @@ failure:
 
 - (void)serializeAlignedBytesLength: (unsigned)length
 {
-    [self serializeInt: length];
+  [self serializeInt: length];
 }
 
 - (void)serializeDataAt: (const void*)data
 	     ofObjCType: (const char*)type
 	        context: (id <NSObjCTypeSerializationCallBack>)callback
 {
-    if (!data || !type)
+  if (!data || !type)
+    return;
+
+  switch (*type)
+    {
+      case _C_ID:
+	[callback serializeObjectAt: (id*)data
+			 ofObjCType: type
+			   intoData: self];
 	return;
 
-    switch (*type) {
-        case _C_ID:
-	    [callback serializeObjectAt: (id*)data
-			ofObjCType: type
-			intoData: self];
-	    return;
+      case _C_CHARPTR:
+	{
+	  unsigned	len;
+	  gss32		ni;
 
-        case _C_CHARPTR: {
-	    int len;
-
-	    if (!*(void**)data) {
-		[self serializeInt: -1];
-		return;
+	  if (!*(void**)data)
+	    {
+	      ni = -1;
+#ifndef	GS_WORDS_BIGENDIAN
+	      ni = GSSwapI32(ni);
+#endif
+	      [self appendBytes: (void*)&ni length: sizeof(ni)];
+	      return;
 	    }
-	    len = strlen(*(void**)data);
-	    [self serializeInt: len];
-	    [self appendBytes: *(void**)data length: len];
-	    return;
+	  len = strlen(*(void**)data);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI32(len);
+#else
+	  ni = len;
+#endif
+	  [self appendBytes: (void*)&ni length: sizeof(ni)];
+	  [self appendBytes: *(void**)data length: len];
+	  return;
 	}
-        case _C_ARY_B: {
-	    unsigned	offset = 0;
-	    unsigned	size;
-	    unsigned	count = atoi(++type);
-	    unsigned	i;
+      case _C_ARY_B:
+	{
+	  unsigned	offset = 0;
+	  unsigned	size;
+	  unsigned	count = atoi(++type);
+	  unsigned	i;
 
-            while (isdigit(*type)) {
-		type++;
+	  while (isdigit(*type))
+	    {
+	      type++;
 	    }
-	    size = objc_sizeof_type(type);
+	  size = objc_sizeof_type(type);
 
-	    for (i = 0; i < count; i++) {
-		[self serializeDataAt: (char*)data + offset
-			   ofObjCType: type
-			      context: callback];
-		offset += size;
+	  for (i = 0; i < count; i++)
+	    {
+	      [self serializeDataAt: (char*)data + offset
+			 ofObjCType: type
+			    context: callback];
+	      offset += size;
 	    }
-	    return;
+	  return;
         }
-        case _C_STRUCT_B: {
-            int offset = 0;
-            int align, rem;
+      case _C_STRUCT_B:
+	{
+	  int offset = 0;
+	  int align, rem;
 
-            while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-            for (;;) {
-                [self serializeDataAt: ((char*)data) + offset
-			ofObjCType: type
-			context: callback];
-                offset += objc_sizeof_type(type);
-                type = objc_skip_typespec(type);
-                if (*type != _C_STRUCT_E) {
-                    align = objc_alignof_type(type);
-                    if ((rem = offset % align))
-                        offset += align - rem;
+	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+	  for (;;)
+	    {
+	      [self serializeDataAt: ((char*)data) + offset
+			 ofObjCType: type
+			    context: callback];
+	      offset += objc_sizeof_type(type);
+	      type = objc_skip_typespec(type);
+	      if (*type != _C_STRUCT_E)
+		{
+		  align = objc_alignof_type(type);
+		  if ((rem = offset % align))
+		    offset += align - rem;
                 }
-                else break;
+	      else break;
             }
-            return;
+	  return;
         }
-	case _C_PTR:
-	    [self serializeDataAt: *(char**)data
-		       ofObjCType: ++type
-			  context: callback];
-	    return;
-        case _C_CHR:
-	case _C_UCHR:
-	    [self appendBytes: data length: sizeof(unsigned char)];
-	    return;
-	case _C_SHT:
-	case _C_USHT: {
-	    unsigned short ns = NSSwapHostShortToBig(*(unsigned short*)data);
-	    [self appendBytes: &ns length: sizeof(unsigned short)];
-	    return;
+      case _C_PTR:
+	[self serializeDataAt: *(char**)data
+		   ofObjCType: ++type
+		      context: callback];
+	return;
+      case _C_CHR:
+      case _C_UCHR:
+	[self appendBytes: data length: sizeof(unsigned char)];
+	return;
+      case _C_SHT:
+      case _C_USHT:
+	{
+	  unsigned short ns = NSSwapHostShortToBig(*(unsigned short*)data);
+	  [self appendBytes: &ns length: sizeof(unsigned short)];
+	  return;
 	}
-	case _C_INT:
-	case _C_UINT: {
-	    unsigned ni = NSSwapHostIntToBig(*(unsigned int*)data);
-	    [self appendBytes: &ni length: sizeof(unsigned)];
-	    return;
+      case _C_INT:
+      case _C_UINT:
+	{
+	  unsigned ni = NSSwapHostIntToBig(*(unsigned int*)data);
+	  [self appendBytes: &ni length: sizeof(unsigned)];
+	  return;
 	}
-	case _C_LNG:
-	case _C_ULNG: {
-	    unsigned long nl = NSSwapHostLongToBig(*(unsigned long*)data);
-	    [self appendBytes: &nl length: sizeof(unsigned long)];
-	    return;
+      case _C_LNG:
+      case _C_ULNG:
+	{
+	  unsigned long nl = NSSwapHostLongToBig(*(unsigned long*)data);
+	  [self appendBytes: &nl length: sizeof(unsigned long)];
+	  return;
 	}
 #ifdef	_C_LNG_LNG
-	case _C_LNG_LNG:
-	case _C_ULNG_LNG: {
-	    unsigned long long nl;
+      case _C_LNG_LNG:
+      case _C_ULNG_LNG:
+	{
+	  unsigned long long nl;
 
-	    nl = NSSwapHostLongLongToBig(*(unsigned long long*)data);
-	    [self appendBytes: &nl length: sizeof(unsigned long long)];
-	    return;
+	  nl = NSSwapHostLongLongToBig(*(unsigned long long*)data);
+	  [self appendBytes: &nl length: sizeof(unsigned long long)];
+	  return;
 	}
 #endif
-	case _C_FLT: {
-	    NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
-	    [self appendBytes: &nf length: sizeof(NSSwappedFloat)];
-	    return;
-	}
-	case _C_DBL: {
-	    NSSwappedDouble nd = NSSwapHostDoubleToBig(*(double*)data);
-	    [self appendBytes: &nd length: sizeof(NSSwappedDouble)];
-	    return;
-	}
-	case _C_CLASS: {
-            const char  *name = *(Class*)data?fastClassName(*(Class*)data):"";
-            unsigned    ln = strlen(name);
-	    unsigned	ni;
+      case _C_FLT:
+	{
+	  NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
 
-	    ni = NSSwapHostIntToBig(ln);
-	    [self appendBytes: &ni length: sizeof(unsigned)];
-	    if (ln) {
-		[self appendBytes: name length: ln];
-	    }
-	    return;
+	  [self appendBytes: &nf length: sizeof(NSSwappedFloat)];
+	  return;
 	}
-	case _C_SEL: {
-            const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
-            unsigned    ln = strlen(name);
-            const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
-            unsigned    lt = strlen(types);
-	    unsigned	ni;
+      case _C_DBL:
+	{
+	  NSSwappedDouble nd = NSSwapHostDoubleToBig(*(double*)data);
 
-	    ni = NSSwapHostIntToBig(ln);
-	    [self appendBytes: &ni length: sizeof(unsigned)];
-	    ni = NSSwapHostIntToBig(lt);
-	    [self appendBytes: &ni length: sizeof(unsigned)];
-	    if (ln) {
-		[self appendBytes: name length: ln];
-	    }
-	    if (lt) {
-		[self appendBytes: types length: lt];
-	    }
-	    return;
+	  [self appendBytes: &nd length: sizeof(NSSwappedDouble)];
+	  return;
 	}
-	default:
-	    [NSException raise: NSGenericException
-                format: @"Unknown type to serialize - '%s'", type];
+      case _C_CLASS:
+	{
+	  const char  *name = *(Class*)data?fastClassName(*(Class*)data):"";
+	  gsu16	ln = (gsu16)strlen(name);
+	  gsu16	ni;
+
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(ln);
+#else
+	  ni = ln;
+#endif
+	  [self appendBytes: &ni length: sizeof(ni)];
+	  if (ln)
+	    {
+	      [self appendBytes: name length: ln];
+	    }
+	  return;
+	}
+      case _C_SEL:
+	{
+	  const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
+	  gsu16	ln = (gsu16)strlen(name);
+	  const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
+	  gsu16	lt = (gsu16)strlen(types);
+	  gsu16	ni;
+
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(ln);
+#else
+	  ni = ln;
+#endif
+	  [self appendBytes: &ni length: sizeof(ni)];
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(lt);
+#else
+	  ni = lt;
+#endif
+	  [self appendBytes: &ni length: sizeof(ni)];
+	  if (ln)
+	    {
+	      [self appendBytes: name length: ln];
+	    }
+	  if (lt)
+	    {
+	      [self appendBytes: types length: lt];
+	    }
+	  return;
+	}
+      default:
+	[NSException raise: NSGenericException
+		    format: @"Unknown type to serialize - '%s'", type];
     }
 }
 
 - (void)serializeInt: (int)value
 {
-    unsigned ni = NSSwapHostIntToBig(value);
-    [self appendBytes: &ni length: sizeof(unsigned)];
+  unsigned ni = NSSwapHostIntToBig(value);
+  [self appendBytes: &ni length: sizeof(unsigned)];
 }
 
 - (void)serializeInt: (int)value atIndex: (unsigned)index
 {
-    unsigned ni = NSSwapHostIntToBig(value);
-    NSRange range = { index, sizeof(int) };
-    [self replaceBytesInRange: range withBytes: &ni];
+  unsigned ni = NSSwapHostIntToBig(value);
+  NSRange range = { index, sizeof(int) };
+
+  [self replaceBytesInRange: range withBytes: &ni];
 }
 
 - (void) serializeInts: (int*)intBuffer
 		 count: (unsigned)numInts
 {
-    unsigned	i;
-    SEL		sel = @selector(serializeInt:);
-    IMP		imp = [self methodForSelector: sel];
+  unsigned	i;
+  SEL		sel = @selector(serializeInt:);
+  IMP		imp = [self methodForSelector: sel];
 
-    for (i = 0; i < numInts; i++) {
-	(*imp)(self, sel, intBuffer[i]);
+  for (i = 0; i < numInts; i++)
+    {
+      (*imp)(self, sel, intBuffer[i]);
     }
 }
 
@@ -1394,12 +1452,13 @@ failure:
 		 count: (unsigned)numInts
 	       atIndex: (unsigned)index
 {
-    unsigned	i;
-    SEL		sel = @selector(serializeInt:atIndex:);
-    IMP		imp = [self methodForSelector: sel];
+  unsigned	i;
+  SEL		sel = @selector(serializeInt:atIndex:);
+  IMP		imp = [self methodForSelector: sel];
 
-    for (i = 0; i < numInts; i++) {
-	(*imp)(self, sel, intBuffer[i], index++);
+  for (i = 0; i < numInts; i++)
+    {
+      (*imp)(self, sel, intBuffer[i], index++);
     }
 }
 
@@ -1628,216 +1687,262 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		 atCursor: (unsigned*)cursor
 		  context: (id <NSObjCTypeSerializationCallBack>)callback
 {
-    if (data == 0 || type == 0) {
-	if (data == 0) {
-            NSLog(@"attempt to deserialize to a nul pointer");
+  if (data == 0 || type == 0)
+    {
+      if (data == 0)
+	{
+	  NSLog(@"attempt to deserialize to a nul pointer");
 	}
-	if (type == 0) {
+      if (type == 0)
+	{
             NSLog(@"attempt to deserialize with a nul type encoding");
 	}
-	return;
+      return;
     }
 
-    switch (*type) {
-	case _C_ID: {
-	    [callback deserializeObjectAt: data ofObjCType: type
-		    fromData: self atCursor: cursor];
-	    return;
-	}
-	case _C_CHARPTR: {
-	    int len = [self deserializeIntAtCursor: cursor];
-
-	    if (len == -1) {
-		*(const char**)data = NULL;
-		return;
-	    }
-	    else {
-		NSZone	*z = [self zone];
-
-		*(char**)data = (char*)NSZoneMalloc(z, len+1);
-		[[[dataMalloc allocWithZone: z]
-			     initWithBytesNoCopy: *(void**)data
-					  length: len+1
-				        fromZone: z] autorelease];
-	    }
-	    getBytes(*(void**)data, bytes, len, length, cursor);
-	    (*(char**)data)[len] = '\0';
-	    return;
-	}
-	case _C_ARY_B: {
-	    unsigned	offset = 0;
-	    unsigned	size;
-	    unsigned	count = atoi(++type);
-	    unsigned	i;
-
-            while (isdigit(*type)) {
-		type++;
-	    }
-	    size = objc_sizeof_type(type);
-
-	    for (i = 0; i < count; i++) {
-		[self deserializeDataAt: (char*)data + offset
+  switch (*type)
+    {
+      case _C_ID:
+	{
+	  [callback deserializeObjectAt: data
 			     ofObjCType: type
-			       atCursor: cursor
-				context: callback];
-		offset += size;
-	    }
-	    return;
+			       fromData: self
+			       atCursor: cursor];
+	  return;
 	}
-	case _C_STRUCT_B: {
-	    int offset = 0;
+      case _C_CHARPTR:
+	{
+	  gss32 len;
 
-	    while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	    for (;;) {
-		[self deserializeDataAt: ((char*)data) + offset
-			     ofObjCType: type
-			       atCursor: cursor
-				context: callback];
-		offset += objc_sizeof_type(type);
-		type = objc_skip_typespec(type);
-		if (*type != _C_STRUCT_E) {
-		    int	align = objc_alignof_type(type);
-		    int	rem = offset % align;
+	  [self deserializeBytes: &len
+			  length: sizeof(len)
+			atCursor: cursor];
+#ifndef	GS_WORDS_BIGENDIAN
+	  len = GSSwapI32(len);
+#endif
+	  if (len == -1)
+	    {
+	      *(const char**)data = NULL;
+	      return;
+	    }
+	  else
+	    {
+	      NSZone	*z = [self zone];
 
-		    if (rem != 0) {
-			offset += align - rem;
+	      *(char**)data = (char*)NSZoneMalloc(z, len+1);
+	      [[[dataMalloc allocWithZone: z]
+			   initWithBytesNoCopy: *(void**)data
+					length: len+1
+				      fromZone: z] autorelease];
+	    }
+	  getBytes(*(void**)data, bytes, len, length, cursor);
+	  (*(char**)data)[len] = '\0';
+	  return;
+	}
+      case _C_ARY_B:
+	{
+	  unsigned	offset = 0;
+	  unsigned	size;
+	  unsigned	count = atoi(++type);
+	  unsigned	i;
+
+	  while (isdigit(*type))
+	    {
+	      type++;
+	    }
+	  size = objc_sizeof_type(type);
+
+	  for (i = 0; i < count; i++)
+	    {
+	      [self deserializeDataAt: (char*)data + offset
+			   ofObjCType: type
+			     atCursor: cursor
+			      context: callback];
+	      offset += size;
+	    }
+	  return;
+	}
+      case _C_STRUCT_B:
+	{
+	  int	offset = 0;
+
+	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+	  for (;;)
+	    {
+	      [self deserializeDataAt: ((char*)data) + offset
+			   ofObjCType: type
+			     atCursor: cursor
+			      context: callback];
+	      offset += objc_sizeof_type(type);
+	      type = objc_skip_typespec(type);
+	      if (*type != _C_STRUCT_E)
+		{
+		  int	align = objc_alignof_type(type);
+		  int	rem = offset % align;
+
+		  if (rem != 0)
+		    {
+		      offset += align - rem;
 		    }
 		}
-		else break;
+	      else break;
 	    }
-	    return;
+	  return;
         }
-        case _C_PTR: {
-	    unsigned len = objc_sizeof_type(++type);
-	    NSZone *z = [self zone];
+      case _C_PTR:
+	{
+	  unsigned	len = objc_sizeof_type(++type);
+	  NSZone	*z = [self zone];
 
-	    *(char**)data = (char*)NSZoneMalloc(z, len);
-	    [[[dataMalloc allocWithZone: z]
+	  *(char**)data = (char*)NSZoneMalloc(z, len);
+	  [[[dataMalloc allocWithZone: z]
 			 initWithBytesNoCopy: *(void**)data
 				      length: len
 				    fromZone: z] autorelease];
-	    [self deserializeDataAt: *(char**)data
-		         ofObjCType: type
-			   atCursor: cursor
-			    context: callback];
-	    return;
+	  [self deserializeDataAt: *(char**)data
+		       ofObjCType: type
+			 atCursor: cursor
+			  context: callback];
+	  return;
         }
-	case _C_CHR:
-	case _C_UCHR: {
-	    getBytes(data, bytes, sizeof(unsigned char),
-			length, cursor);
-	    return;
+      case _C_CHR:
+      case _C_UCHR:
+	{
+	  getBytes(data, bytes, sizeof(unsigned char), length, cursor);
+	  return;
 	}
-        case _C_SHT:
-	case _C_USHT: {
-	    unsigned short ns;
+      case _C_SHT:
+      case _C_USHT:
+	{
+	  unsigned short ns;
 
-	    getBytes((void*)&ns, bytes, sizeof(ns), length, cursor);
-	    *(unsigned short*)data = NSSwapBigShortToHost(ns);
-	    return;
+	  getBytes((void*)&ns, bytes, sizeof(ns), length, cursor);
+	  *(unsigned short*)data = NSSwapBigShortToHost(ns);
+	  return;
 	}
-        case _C_INT:
-	case _C_UINT: {
-	    unsigned ni;
+      case _C_INT:
+      case _C_UINT:
+	{
+	  unsigned ni;
 
-	    getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
-	    *(unsigned*)data = NSSwapBigIntToHost(ni);
-	    return;
+	  getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
+	  *(unsigned*)data = NSSwapBigIntToHost(ni);
+	  return;
 	}
-        case _C_LNG:
-	case _C_ULNG: {
-	    unsigned long nl;
+      case _C_LNG:
+      case _C_ULNG:
+	{
+	  unsigned long nl;
 
-	    getBytes((void*)&nl, bytes, sizeof(nl), length, cursor);
-	    *(unsigned long*)data = NSSwapBigLongToHost(nl);
-	    return;
+	  getBytes((void*)&nl, bytes, sizeof(nl), length, cursor);
+	  *(unsigned long*)data = NSSwapBigLongToHost(nl);
+	  return;
 	}
 #ifdef	_C_LNG_LNG
-        case _C_LNG_LNG:
-	case _C_ULNG_LNG: {
-	    unsigned long long nl;
+      case _C_LNG_LNG:
+      case _C_ULNG_LNG:
+	{
+	  unsigned long long nl;
 
-	    getBytes((void*)&nl, bytes, sizeof(nl), length, cursor);
-	    *(unsigned long long*)data = NSSwapBigLongLongToHost(nl);
-	    return;
+	  getBytes((void*)&nl, bytes, sizeof(nl), length, cursor);
+	  *(unsigned long long*)data = NSSwapBigLongLongToHost(nl);
+	  return;
 	}
 #endif
-        case _C_FLT: {
-	    NSSwappedFloat nf;
+      case _C_FLT:
+	{
+	  NSSwappedFloat nf;
 
-	    getBytes((void*)&nf, bytes, sizeof(nf), length, cursor);
-	    *(float*)data = NSSwapBigFloatToHost(nf);
-	    return;
+	  getBytes((void*)&nf, bytes, sizeof(nf), length, cursor);
+	  *(float*)data = NSSwapBigFloatToHost(nf);
+	  return;
 	}
-        case _C_DBL: {
-	    NSSwappedDouble nd;
+      case _C_DBL:
+	{
+	  NSSwappedDouble nd;
 
-	    getBytes((void*)&nd, bytes, sizeof(nd), length, cursor);
-	    *(double*)data = NSSwapBigDoubleToHost(nd);
-	    return;
+	  getBytes((void*)&nd, bytes, sizeof(nd), length, cursor);
+	  *(double*)data = NSSwapBigDoubleToHost(nd);
+	  return;
 	}
-	case _C_CLASS: {
-	    unsigned ni;
+      case _C_CLASS:
+	{
+	  gsu16	ni;
 
-	    getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
-	    ni = NSSwapBigIntToHost(ni);
-	    if (ni == 0) {
-		*(Class*)data = 0;
+	  getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(ni);
+#endif
+	  if (ni == 0)
+	    {
+	      *(Class*)data = 0;
 	    }
-	    else {
-		char	name[ni+1];
-		Class	c;
+	  else
+	    {
+	      char	name[ni+1];
+	      Class	c;
 
-		getBytes((void*)name, bytes, ni, length, cursor);
-		name[ni] = '\0';
-		c = objc_get_class(name);
-		if (c == 0) {
-		    [NSException raise: NSInternalInconsistencyException
-				format: @"can't find class - %s", name];
+	      getBytes((void*)name, bytes, ni, length, cursor);
+	      name[ni] = '\0';
+	      c = objc_get_class(name);
+	      if (c == 0)
+		{
+		  [NSException raise: NSInternalInconsistencyException
+			      format: @"can't find class - %s", name];
 		}
-		*(Class*)data = c;
+	      *(Class*)data = c;
 	    }
-	    return;
+	  return;
 	}
-	case _C_SEL: {
-	    unsigned        ln;
-	    unsigned        lt;
+      case _C_SEL:
+	{
+	  gsu16	ln;
+	  gsu16	lt;
 
-	    getBytes((void*)&ln, bytes, sizeof(ln), length, cursor);
-	    ln = NSSwapBigIntToHost(ln);
-	    getBytes((void*)&lt, bytes, sizeof(lt), length, cursor);
-	    lt = NSSwapBigIntToHost(lt);
-	    if (ln == 0) {
-		*(SEL*)data = 0;
+	  getBytes((void*)&ln, bytes, sizeof(ln), length, cursor);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ln = GSSwapI16(ln);
+#endif
+	  getBytes((void*)&lt, bytes, sizeof(lt), length, cursor);
+#ifndef	GS_WORDS_BIGENDIAN
+	  lt = GSSwapI16(lt);
+#endif
+	  if (ln == 0)
+	    {
+	      *(SEL*)data = 0;
 	    }
-	    else {
-		char	name[ln+1];
-		char	types[lt+1];
-		SEL	sel;
+	  else
+	    {
+	      char	name[ln+1];
+	      char	types[lt+1];
+	      SEL	sel;
 
-		getBytes((void*)name, bytes, ln, length, cursor);
-		name[ln] = '\0';
-		getBytes((void*)types, bytes, lt, length, cursor);
-		types[lt] = '\0';
+	      getBytes((void*)name, bytes, ln, length, cursor);
+	      name[ln] = '\0';
+	      getBytes((void*)types, bytes, lt, length, cursor);
+	      types[lt] = '\0';
 
-		if (lt) {
-                    sel = sel_get_typed_uid(name, types);
+	      if (lt)
+		{
+		  sel = sel_get_typed_uid(name, types);
 		}
-		else {
-		    sel = sel_get_any_typed_uid(name);
+	      else
+		{
+		  sel = sel_get_any_typed_uid(name);
 		}
-		if (sel == 0) {
-		    [NSException raise: NSInternalInconsistencyException
-				format: @"can't find sel with name '%s' "
-					    @"and types '%s'", name, types];
+	      if (sel == 0)
+		{
+		  [NSException raise: NSInternalInconsistencyException
+			      format: @"can't find sel with name '%s' "
+					  @"and types '%s'", name, types];
 		}
-		*(SEL*)data = sel;
+	      *(SEL*)data = sel;
 	    }
-	    return;
+	  return;
 	}
-        default:
-	    [NSException raise: NSGenericException
-                format: @"Unknown type to deserialize - '%s'", type];
+      default:
+	[NSException raise: NSGenericException
+		    format: @"Unknown type to deserialize - '%s'", type];
     }
 }
 
@@ -2505,192 +2610,241 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      ofObjCType: (const char*)type
 		 context: (id <NSObjCTypeSerializationCallBack>)callback
 {
-    if (data == 0 || type == 0) {
-	if (data == 0) {
-            NSLog(@"attempt to serialize from a nul pointer");
+  if (data == 0 || type == 0)
+    {
+      if (data == 0)
+	{
+	  NSLog(@"attempt to serialize from a nul pointer");
 	}
-	if (type == 0) {
-            NSLog(@"attempt to serialize with a nul type encoding");
+      if (type == 0)
+	{
+	  NSLog(@"attempt to serialize with a nul type encoding");
 	}
-	return;
+      return;
     }
-    switch (*type) {
-        case _C_ID:
-	    [callback serializeObjectAt: (id*)data
-			ofObjCType: type
-			intoData: self];
-	    return;
+  switch (*type)
+    {
+      case _C_ID:
+	[callback serializeObjectAt: (id*)data
+			 ofObjCType: type
+			   intoData: self];
+	return;
 
-        case _C_CHARPTR: {
-	    unsigned len;
-	    unsigned ni;
-	    unsigned minimum;
+      case _C_CHARPTR:
+	{
+	  unsigned	len;
+	  gss32		ni;
+	  unsigned	minimum;
 
-	    if (!*(void**)data) {
-		[self serializeInt: -1];
-		return;
+	  if (!*(void**)data)
+	    {
+	      ni = -1;
+#ifndef	GS_WORDS_BIGENDIAN
+	      ni = GSSwapI32(ni);
+#endif
+	      [self appendBytes: (void*)&len length: sizeof(len)];
+	      return;
 	    }
-	    len = strlen(*(void**)data);
-	    ni = NSSwapHostIntToBig(len);
-	    minimum = length + len + sizeof(unsigned);
-	    if (minimum > capacity) {
-		[self _grow: minimum];
+	  len = strlen(*(void**)data);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI32(len);
+#else
+	  ni = len;
+#endif
+	  minimum = length + len + sizeof(ni);
+	  if (minimum > capacity)
+	    {
+	      [self _grow: minimum];
 	    }
-	    memcpy(bytes+length, &ni, sizeof(unsigned));
-	    length += sizeof(unsigned);
-	    if (len) {
-		memcpy(bytes+length, *(void**)data, len);
-		length += len;
+	  memcpy(bytes+length, &ni, sizeof(ni));
+	  length += sizeof(ni);
+	  if (len)
+	    {
+	      memcpy(bytes+length, *(void**)data, len);
+	      length += len;
 	    }
-	    return;
+	  return;
 	}
-        case _C_ARY_B: {
-	    unsigned	offset = 0;
-	    unsigned	size;
-	    unsigned	count = atoi(++type);
-	    unsigned	i;
-	    unsigned	minimum;
+      case _C_ARY_B:
+	{
+	  unsigned	offset = 0;
+	  unsigned	size;
+	  unsigned	count = atoi(++type);
+	  unsigned	i;
+	  unsigned	minimum;
 
-            while (isdigit(*type)) {
-		type++;
+	  while (isdigit(*type))
+	    {
+	      type++;
 	    }
-	    size = objc_sizeof_type(type);
+	  size = objc_sizeof_type(type);
 
-	    /*
-	     *	Serialized objects are going to take up at least as much
-	     *	space as the originals, so we can calculate a minimum space
-	     *	we are going to need and make sure our buffer is big enough.
-	     */
-	    minimum = length + size*count;
-	    if (minimum > capacity) {
-		[self _grow: minimum];
+	  /*
+	   *	Serialized objects are going to take up at least as much
+	   *	space as the originals, so we can calculate a minimum space
+	   *	we are going to need and make sure our buffer is big enough.
+	   */
+	  minimum = length + size*count;
+	  if (minimum > capacity)
+	    {
+	      [self _grow: minimum];
 	    }
 
-	    for (i = 0; i < count; i++) {
-		[self serializeDataAt: (char*)data + offset
-			   ofObjCType: type
-			      context: callback];
-		offset += size;
+	  for (i = 0; i < count; i++)
+	    {
+	      [self serializeDataAt: (char*)data + offset
+			 ofObjCType: type
+			    context: callback];
+	      offset += size;
 	    }
-	    return;
-        }
-        case _C_STRUCT_B: {
-            int offset = 0;
+	  return;
+	}
+      case _C_STRUCT_B:
+	{
+	  int offset = 0;
 
-            while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-            for (;;) {
-                [self serializeDataAt: ((char*)data) + offset
-			   ofObjCType: type
-			      context: callback];
-                offset += objc_sizeof_type(type);
-                type = objc_skip_typespec(type);
-                if (*type != _C_STRUCT_E) {
-                    unsigned	align = objc_alignof_type(type);
-		    unsigned	rem = offset % align;
+	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+	  for (;;)
+	    {
+	      [self serializeDataAt: ((char*)data) + offset
+			 ofObjCType: type
+			    context: callback];
+	      offset += objc_sizeof_type(type);
+	      type = objc_skip_typespec(type);
+	      if (*type != _C_STRUCT_E)
+		{
+		  unsigned	align = objc_alignof_type(type);
+		  unsigned	rem = offset % align;
 
-                    if (rem != 0) {
-                        offset += align - rem;
+		  if (rem != 0)
+		    {
+		      offset += align - rem;
 		    }
-                }
-                else break;
-            }
-            return;
-        }
-	case _C_PTR:
-	    [self serializeDataAt: *(char**)data
-		       ofObjCType: ++type
-			  context: callback];
-	    return;
-        case _C_CHR:
-	case _C_UCHR:
-	    (*appendImp)(self, appendSel, data, sizeof(unsigned char));
-	    return;
-	case _C_SHT:
-	case _C_USHT: {
-	    unsigned short ns = NSSwapHostShortToBig(*(unsigned short*)data);
-	    (*appendImp)(self, appendSel, &ns, sizeof(unsigned short));
-	    return;
+		}
+	      else break;
+	    }
+	  return;
 	}
-	case _C_INT:
-	case _C_UINT: {
-	    unsigned ni = NSSwapHostIntToBig(*(unsigned int*)data);
-	    (*appendImp)(self, appendSel, &ni, sizeof(unsigned));
-	    return;
+      case _C_PTR:
+	[self serializeDataAt: *(char**)data
+		   ofObjCType: ++type
+		      context: callback];
+	return;
+      case _C_CHR:
+      case _C_UCHR:
+	(*appendImp)(self, appendSel, data, sizeof(unsigned char));
+	return;
+      case _C_SHT:
+      case _C_USHT:
+	{
+	  unsigned short ns = NSSwapHostShortToBig(*(unsigned short*)data);
+	  (*appendImp)(self, appendSel, &ns, sizeof(unsigned short));
+	  return;
 	}
-	case _C_LNG:
-	case _C_ULNG: {
-	    unsigned long nl = NSSwapHostLongToBig(*(unsigned long*)data);
-	    (*appendImp)(self, appendSel, &nl, sizeof(unsigned long));
-	    return;
+      case _C_INT:
+      case _C_UINT:
+	{
+	  unsigned ni = NSSwapHostIntToBig(*(unsigned int*)data);
+	  (*appendImp)(self, appendSel, &ni, sizeof(unsigned));
+	  return;
+	}
+      case _C_LNG:
+      case _C_ULNG:
+	{
+	  unsigned long nl = NSSwapHostLongToBig(*(unsigned long*)data);
+	  (*appendImp)(self, appendSel, &nl, sizeof(unsigned long));
+	  return;
 	}
 #ifdef	_C_LNG_LNG
-	case _C_LNG_LNG:
-	case _C_ULNG_LNG: {
-	    unsigned long long nl;
+      case _C_LNG_LNG:
+      case _C_ULNG_LNG:
+	{
+	  unsigned long long nl;
 
-	    nl = NSSwapHostLongLongToBig(*(unsigned long long*)data);
-	    (*appendImp)(self, appendSel, &nl, sizeof(unsigned long long));
-	    return;
+	  nl = NSSwapHostLongLongToBig(*(unsigned long long*)data);
+	  (*appendImp)(self, appendSel, &nl, sizeof(unsigned long long));
+	  return;
 	}
 #endif
-	case _C_FLT: {
-	    NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
-	    (*appendImp)(self, appendSel, &nf, sizeof(NSSwappedFloat));
-	    return;
+      case _C_FLT:
+	{
+	  NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
+	  (*appendImp)(self, appendSel, &nf, sizeof(NSSwappedFloat));
+	  return;
 	}
-	case _C_DBL: {
-	    NSSwappedDouble nd = NSSwapHostDoubleToBig(*(double*)data);
-	    (*appendImp)(self, appendSel, &nd, sizeof(NSSwappedDouble));
-	    return;
+      case _C_DBL:
+	{
+	  NSSwappedDouble nd = NSSwapHostDoubleToBig(*(double*)data);
+	  (*appendImp)(self, appendSel, &nd, sizeof(NSSwappedDouble));
+	  return;
 	}
-	case _C_CLASS: {
-            const char  *name = *(Class*)data?fastClassName(*(Class*)data):"";
-            unsigned    ln = strlen(name);
-	    unsigned	minimum = length + ln + sizeof(unsigned);
-	    unsigned	ni;
+      case _C_CLASS:
+	{
+	  const char  *name = *(Class*)data?fastClassName(*(Class*)data):"";
+	  gsu16	ln = (gsu16)strlen(name);
+	  gsu16	minimum = length + ln + sizeof(gsu16);
+	  gsu16	ni;
 
-	    if (minimum > capacity) {
-		[self _grow: minimum];
+	  if (minimum > capacity)
+	    {
+	      [self _grow: minimum];
 	    }
-	    ni = NSSwapHostIntToBig(ln);
-	    memcpy(bytes+length, &ni, sizeof(unsigned));
-	    length += sizeof(unsigned);
-	    if (ln) {
-		memcpy(bytes+length, name, ln);
-		length += ln;
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(ln);
+#else
+	  ni = ln;
+#endif
+	  memcpy(bytes+length, &ni, sizeof(ni));
+	  length += sizeof(ni);
+	  if (ln)
+	    {
+	      memcpy(bytes+length, name, ln);
+	      length += ln;
 	    }
-	    return;
+	  return;
 	}
-	case _C_SEL: {
-            const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
-            unsigned    ln = strlen(name);
-            const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
-            unsigned    lt = strlen(types);
-	    unsigned	minimum = length + ln + lt + 2*sizeof(unsigned);
-	    unsigned	ni;
+      case _C_SEL:
+	{
+	  const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
+	  gsu16	ln = (gsu16)strlen(name);
+	  const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
+	  gsu16	lt = (gsu16)strlen(types);
+	  gsu16	minimum = length + ln + lt + 2*sizeof(gsu16);
+	  gsu16	ni;
 
-	    if (minimum > capacity) {
-		[self _grow: minimum];
+	  if (minimum > capacity)
+	    {
+	      [self _grow: minimum];
 	    }
-	    ni = NSSwapHostIntToBig(ln);
-	    memcpy(bytes+length, &ni, sizeof(unsigned));
-	    length += sizeof(unsigned);
-	    ni = NSSwapHostIntToBig(lt);
-	    memcpy(bytes+length, &ni, sizeof(unsigned));
-	    length += sizeof(unsigned);
-	    if (ln) {
-		memcpy(bytes+length, name, ln);
-		length += ln;
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(ln);
+#else
+	  ni = ln;
+#endif
+	  memcpy(bytes+length, &ni, sizeof(ni));
+	  length += sizeof(ni);
+#ifndef	GS_WORDS_BIGENDIAN
+	  ni = GSSwapI16(lt);
+#else
+	  ni = lt;
+#endif
+	  memcpy(bytes+length, &ni, sizeof(ni));
+	  length += sizeof(ni);
+	  if (ln)
+	    {
+	      memcpy(bytes+length, name, ln);
+	      length += ln;
 	    }
-	    if (lt) {
-		memcpy(bytes+length, types, lt);
-		length += lt;
+	  if (lt)
+	    {
+	      memcpy(bytes+length, types, lt);
+	      length += lt;
 	    }
-	    return;
+	  return;
 	}
-	default:
-	    [NSException raise: NSGenericException
-                format: @"Unknown type to serialize - '%s'", type];
+      default:
+	[NSException raise: NSGenericException
+		    format: @"Unknown type to serialize - '%s'", type];
     }
 }
 
