@@ -63,7 +63,6 @@ typedef struct objc_super Super;
 
 #define class_create_instance(CLASS)	class_createInstance(CLASS, 0)
 #define class_get_instance_method	class_getInstanceMethod
-#define class_get_class_method 		class_getClassMethod
 #define class_add_method_list		class_addMethods
 #define class_set_version		class_setVersion
 #define class_get_version		class_getVersion
@@ -78,6 +77,8 @@ typedef struct objc_super Super;
 #define sel_get_any_uid			sel_getUid
 #define sel_get_uid			sel_getUid
 #define sel_eq(s1, s2) 			(s1 == s2)
+
+#define __objc_update_dispatch_table_for_class  _objc_flush_caches
 
 /* There's no support for typed sels in NeXT. These may not work */
 #define sel_get_typed_uid(_s, _t)	sel_getUid(_s)
@@ -245,7 +246,6 @@ objc_error_handler objc_set_error_handler(objc_error_handler func);
  */
 #define class_createInstance(CLASS, X)	class_create_instance(CLASS)
 #define class_getInstanceMethod		class_get_instance_method
-#define class_getClassMethod		class_get_class_method 
 #define class_addMethods		class_add_method_list
 #define class_setVersion		class_set_version
 #define class_getVersion		class_get_version
@@ -259,6 +259,11 @@ objc_error_handler objc_set_error_handler(objc_error_handler func);
 #define sel_getName			sel_get_name
 #define sel_getUid			sel_get_any_uid
 
+#define _objc_flush_caches              __objc_update_dispatch_table_for_class
+
+#define class_getClassMethod(CLASS, SEL)	\
+  class_get_class_method((CLASS)->class_pointer, (SEL))
+ 
 #define	class_nextMethodList(aClass,anIterator) ({\
   if (*(anIterator) == 0) \
     *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \

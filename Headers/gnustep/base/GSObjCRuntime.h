@@ -1,5 +1,5 @@
 /** Interface to ObjC runtime for GNUStep
-   Copyright (C) 1995, 1997, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 2000, 2002, 2003 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -112,6 +112,14 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	       const char *type, unsigned size, int offset);
 
 #include <gnustep/base/objc-gnu2next.h>
+
+/*
+ * This section includes runtime functions
+ * to query and manipulate the ObjC runtime structures.
+ * These functions take care to not use ObjC code so
+ * that they can safely be used in +(void)load implementations
+ * where applicable.
+ */
 
 #define GS_STATIC_INLINE static inline
 
@@ -263,6 +271,102 @@ GSTypesFromSelector(SEL this)
 }
 
 
+/*
+ * Unfortunately the definition of the symbol 'Method'
+ * is incompatible between the GNU and NeXT/Apple runtimes.
+ * We introduce GSMethod to allow portability.
+ */
+typedef struct objc_method *GSMethod;
+
+/**
+ * Returns the pointer to the instance method structure
+ * for the selector in the specified class.  This function searches
+ * the specified class and its superclasses.<br/>
+ * To obtain the implementation pointer IMP use returnValue->method_imp
+ * which should be safe across all runtimes.<br/>
+ * It should be safe to use this function in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_STATIC_INLINE GSMethod
+GSGetInstanceMethod(Class class, SEL sel)
+{
+  return class_get_instance_method(class, sel);
+}
+
+/**
+ * Returns the pointer to the instance method structure
+ * for the selector in the specified class.  This function searches
+ * the specified class and its superclasses.<br/>
+ * To obtain the implementation pointer IMP use returnValue->method_imp
+ * which should be safe across all runtimes.<br/>
+ * It should be safe to use this function in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_STATIC_INLINE GSMethod
+GSGetClassMethod(Class class, SEL sel)
+{
+  /*
+    We do not rely on the mapping supplied in objc_gnu2next.h
+    because we want to be explicit about the fact 
+    that the expected parameters are different.
+    Therefor we refrain from simply using class_getClassMethod().
+  */
+#ifdef NeXT_RUNTIME
+  return class_getClassMethod(class, sel);
+#else
+  return class_get_class_method(class->class_pointer, sel);
+#endif
+}
+
+/**
+ * Returns the pointer to the instance method structure
+ * for the selector in the specified class.  This function only searches
+ * the specified class and not its superclasses.<br/>
+ * To obtain the implementation pointer IMP use returnValue->method_imp
+ * which should be safe across all runtimes.<br/>
+ * It should be safe to use this function in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_EXPORT GSMethod
+GSGetInstanceMethodNotInherited(Class class, SEL sel);
+
+/**
+ * Returns the pointer to the class method structure
+ * for the selector in the specified class.  This function only searches
+ * the specified class and not its superclasses.<br/>
+ * To obtain the implementation pointer IMP use returnValue->method_imp
+ * which should be safe across all runtimes.<br/>
+ * It should be safe to use this function in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_EXPORT GSMethod
+GSGetClassMethodNotInherited(Class class, SEL sel);
+
+/**
+ * Flushes the cached method dispatch table for the class.
+ * Call this function after any manipulations in the method structures.<br/>
+ * It should be safe to use this function in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_STATIC_INLINE void
+GSFlushMethodCacheForClass (Class class)
+{
+  extern void __objc_update_dispatch_table_for_class (Class);
+  __objc_update_dispatch_table_for_class (class);
+}
+
+
+
 GS_STATIC_INLINE Class
 GSObjCSuper(Class this)
 {
@@ -300,9 +404,7 @@ GSLastErrorStr(long error_id);
 
 
 #ifndef NO_DEPRECATED
-/*
- * The next five are old (deprecated) names for the same thing.
- */
+
 GS_EXPORT BOOL
 GSFindInstanceVariable(id obj, const char *name,
 		       const char **type, unsigned int *size, int *offset);

@@ -1,3 +1,25 @@
+2003-06-21  David Ayers  <d.ayers@inode.at>
+
+	* Headers/gnustep/base/objc-gnu2next.h: Remove simple mappings for
+	class_get_class_method they cannot work due to different
+	parameter expectations.  Added mapping from NeXT->GNU runtime. 
+	The other way does not work.  Added simple mapping for internal
+	flush function __objc_update_dispatch_table_for_class and
+	_objc_flush_caches.
+
+	* Headers/gnustep/base/GSObjCRuntime.h/m:
+	Added typedef for GSMethod.
+	(GSGetInstanceMethod): New function.
+	(GSGetClassMethod): Ditto.
+	(GSGetInstanceMethodNotInherited): Ditto.
+	(GSGetClassMethodNotInherited): Ditto.
+	(GSFlushMethodCacheForClass): Ditto.
+	(flush_method_cache_for_class): Removed function which is replaced
+	by GSFlushMethodCacheForClass.
+	(GSObjCGetMethod): Removed function which is replaced by
+	GSGetInstanceMethod and GSGetClassMethod.
+	(GSObjCReplaceMethod): Removed function.
+
 2003-06-21  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check for libkvm.
