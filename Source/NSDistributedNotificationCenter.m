@@ -43,16 +43,6 @@
 #include	"../Tools/gdnc.h"
 
 /*
- *      Macros to build text to start name server and to give an error
- *      message about it - they include installation path information.
- */
-#define MAKE_GDNC_CMD      [GSSystemRootDirectory() \
-			      stringByAppendingPathComponent: @"Tools/gdnc"]
-#define MAKE_GDNC_ERR      [NSString stringWithFormat: \
-				     @"check that %@/Tools/gdnc is running", \
-				     GSSystemRootDirectory()]
-
-/*
  *	Global variables for distributed notification center types.
  */
 NSString	*NSLocalNotificationCenterType =
@@ -393,32 +383,32 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	}
       else
 	{
-	  static BOOL recursion = NO;
+	  static BOOL		recursion = NO;
+	  static NSString	*cmd = nil;
+	  static NSArray	*args = nil;
 
 	  if (recursion == NO)
 	    {
-	      static NSString	*cmd = nil;
-              static NSArray    *args = nil;
-
-              NSLog(@"\nI couldn't contact the notification server for %@ -\n"
-@"so I'm attempting to to start one - which will take a few seconds.\n"
-@"It is recommended that you start the notification server (gdnc) either at\n"
-@"login or (better) when your computer is started up.\n", description);
-
 	      if (cmd == nil)
 		{
-#if 1
                   cmd = RETAIN([[NSSearchPathForDirectoriesInDomains(
                     GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
                     stringByAppendingPathComponent: @"gdnc"]);
-#else
-		  cmd = MAKE_GDNC_CMD;
-#endif
-                  if ([host length] > 0)
-                    {
-                      args = [[NSArray alloc] initWithObjects:
-                        @"-NSHost", host, nil];
-                    }
+		}
+	    }
+	  if (recursion == NO && cmd != nil)
+	    {
+	      NSLog(@"\nI couldn't contact the notification server for %@ -\n"
+@"so I'm attempting to to start one - which will take a few seconds.\n"
+@"Trying to launch gdnc from %@ or a machine/operating-system subdirectory.\n"
+@"It is recommended that you start the notification server (gdnc) either at\n"
+@"login or (better) when your computer is started up.\n", description,
+[cmd stringByDeletingLastPathComponent]);
+
+	      if ([host length] > 0)
+		{
+		  args = [[NSArray alloc] initWithObjects:
+		    @"-NSHost", host, nil];
 		}
 
 	      [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
@@ -435,8 +425,8 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	    { 
 	      recursion = NO;
 	      [NSException raise: NSInternalInconsistencyException
-			  format: @"unable to contact GDNC server - %@",
-			   MAKE_GDNC_ERR];
+			  format: @"unable to contact GDNC server -\n"
+		@"please check that the gdnc process is running."];
 	    }
 	}
     }

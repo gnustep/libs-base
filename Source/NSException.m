@@ -39,6 +39,8 @@
 static void
 _preventRecursion (NSException *exception)
 {
+  fprintf(stderr, "recursion encountered handling uncaught exception\n");
+  fflush(stderr);	/* NEEDED UNDER MINGW */
 }
 
 static void
@@ -47,13 +49,14 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   BOOL		a;
 
   _NSUncaughtExceptionHandler = _preventRecursion;
-  fprintf(stderr, "Uncaught exception %s, reason: %s\n",
+#if 0
+  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
     	[[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
-/* FIXME: need to implement this:
-  NSLogError("Uncaught exception %@, reason: %@",
-    	[exception name], [exception reason]);
-*/
+#else
+  NSLog("Uncaught exception %@, reason: %@",
+    [exception name], [exception reason]);
+#endif
 
 #ifdef	DEBUG
   a = YES;		// abort() by default.
