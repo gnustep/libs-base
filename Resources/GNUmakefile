@@ -38,6 +38,7 @@ Languages/Dutch \
 Languages/English \
 Languages/French  \
 Languages/German  \
+Languages/Hungarian  \
 Languages/Italian \
 Languages/Russian \
 Languages/TraditionalChinese \

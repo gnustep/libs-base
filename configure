@@ -6831,7 +6831,7 @@ fi
 fi
 
 
-if test $ac_cv_lib_dl_dladdr = yes; then
+if test x"$ac_cv_lib_dl_dladdr" = xyes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_DLADDR 1
