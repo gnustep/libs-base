@@ -345,11 +345,7 @@ $(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
 $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
 $(GNU_OTHER_SRCFILES) $(NEXTSTEP_OTHER_SRCFILES) $(GNUSTEP_OTHER_SRCFILES)
 
-all: one-time libobjects.a
-
-one-time:
-	rm -f dynamic-load.h
-	$(LN_S) $(DYNAMIC_LINKER)-load.h dynamic-load.h
+all: libobjects.a
 
 libobjects.a: $(INSTALL_OBJS)
 	$(AR) $(ARFLAGS) libobjects.a $(INSTALL_OBJS)
@@ -407,6 +403,12 @@ NXStringTable_scan.c: NXStringTable_scan.l
 # turn off warnings while compiling NXStringTable_scan.c
 NXStringTable_scan.o: NXStringTable_scan.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w NXStringTable_scan.c
+
+objc-load.o: dynamic-load.h
+
+dynamic-load.h: Makefile
+	rm -f dynamic-load.h
+	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
 
 objects/stdobjects.h: Makefile.in
 	rm -f objects/tmp-stdobjects.h
