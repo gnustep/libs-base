@@ -1,8 +1,11 @@
 /** Time zone management. -*- Mode: ObjC -*-
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997-2002 Free Software Foundation, Inc.
   
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: June 1997
+  
+   Rewritw large chunks by: Richard Frith-Macdonald <rfm@gnu.org>
+   Date: September 2002
   
      This file is part of the GNUstep Base Library.
   
