@@ -1,7 +1,7 @@
 /* Concrete implementation of NSSet based on GNU Set class
    Copyright (C) 1998 Free Software Foundation, Inc.
    
-   Written by:  Richard frith-Macdonald <richard@brainstorm.co.uk>
+   Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>
    Created: October 1998
    
    This file is part of the GNUstep Base Library.
@@ -117,7 +117,7 @@
             [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
                                             withName: @"Set value"];
 	    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-						  at: &node->value.u
+						  at: &node->value.I
 					    withName: @"Set value count"];
             node = node->nextInMap;
         }
@@ -127,7 +127,7 @@
             [(id<Encoding>)aCoder encodeObject: node->key.o
                                       withName: @"Set content"];
 	    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-						  at: &node->value.u
+						  at: &node->value.I
 					    withName: @"Set value count"];
             node = node->nextInMap;
         }
@@ -183,7 +183,7 @@
             FastMapAddPair(&map,(FastMapItem)objs[i],(FastMapItem)(unsigned)1);
         }
 	else {
-	    node->value.u++;
+	    node->value.I++;
 	}
     }
     return self;
@@ -203,7 +203,7 @@
         FastMapAddPair(&map,(FastMapItem)anObject,(FastMapItem)(unsigned)1);
     }
     else {
-	node->value.u++;
+	node->value.I++;
     }
 }
 
@@ -218,7 +218,7 @@
 	FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
 
 	if (node) {
-	    return node->value.u;
+	    return node->value.I;
 	}
     }
     return 0;
@@ -252,7 +252,7 @@
 
 	    node = FastMapNodeForKeyInBucket(bucket, (FastMapItem)anObject);
 	    if (node) {
-		if (--node->value.u == 0) {
+		if (--node->value.I == 0) {
 		    FastMapRemoveNodeFromMap(&map, bucket, node);
 		    FastMapFreeNode(&map, node);
 		}
