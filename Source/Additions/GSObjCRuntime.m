@@ -682,8 +682,12 @@ GSCGetInstanceVariableDefinition(Class class, const char *name)
 {
   struct objc_ivar_list *list;
   int i;
+
+  if (class == 0)
+    return 0;
+
   list = class->ivars;
-  for (i = 0; i < list->ivar_count; i++)
+  for (i = 0; (list != 0) && i < list->ivar_count; i++)
     {
       if (strcmp (list->ivar_list[i].ivar_name, name) == 0)
 	return &(list->ivar_list[i]);
