@@ -1,3 +1,8 @@
+2003-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Fix memory leak when making absolute
+	timezone for offset 0.
+
 2003-02-11  Tom Koelman <tkoelman@xs4all.nl>
 
 	* Source/NSTask.m: Make arguments into windows quoted strings for

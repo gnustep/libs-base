@@ -121,7 +121,6 @@ GSIArray.h \
 GSIMap.h \
 Unicode.h \
 behavior.h \
-numbers.h \
 objc-gnu2next.h \
 preface.h
 
