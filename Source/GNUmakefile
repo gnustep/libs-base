@@ -151,8 +151,8 @@ o_vscanf.c
 GNU_OTHER_SRCFILES = \
 o_x_bas.m.in \
 o_x_cbs.m.in \
-include/o_x_bas.h.in \
-include/o_x_cbs.h.in \
+Foundation/o_x_bas.h.in \
+Foundation/o_x_cbs.h.in \
 md5.h \
 win32-entry.m \
 win32-def.top \
@@ -445,25 +445,13 @@ unicode/nextstep.h
 HEADERS_INSTALL = $(GNU_HEADERS) \
                   $(BASE_HEADERS)
 
-DIST_FILES = \
-        GNUmakefile Makefile.preamble Makefile.postamble AUTHORS \
-        include/config.h.in include/preface.h.in include/GSConfig.h.in \
-	include/config-win32.h \
-        $(GNU_MFILES) \
-        $(GNU_CFILES) \
-        $(GNU_OTHER_SRCFILES) \
-        $(BASE_MFILES) \
-        $(BASE_CFILES) \
-        $(BASE_OTHER_SRCFILES) \
-	$(UNICODE_HEADERS)
-
 GENERATED_HFILES = \
 dynamic-load.h \
-include/preface.h \
-include/o_array.h \
-include/o_hash.h \
-include/o_list.h \
-include/o_map.h \
+Foundation/preface.h \
+Foundation/o_array.h \
+Foundation/o_hash.h \
+Foundation/o_list.h \
+Foundation/o_map.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
@@ -475,7 +463,7 @@ libgnustep-base_C_FILES = $(GNU_CFILES) $(BASE_CFILES)
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
-libgnustep-base_HEADER_FILES_DIR = .
+libgnustep-base_HEADER_FILES_DIR = ../Headers
 libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep
 
 libgnustep-base_HEADER_FILES = $(BASE_HEADERS)
