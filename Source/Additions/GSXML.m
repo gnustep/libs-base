@@ -1665,17 +1665,14 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
        withContentsOfFile: (NSString*)path
 {
-  self = [self initWithSAXHandler: handler];
-  if (self != nil)
+  if (path == nil || [path isKindOfClass: [NSString class]] == NO)
     {
-      if (path == nil || [path isKindOfClass: [NSString class]] == NO)
-        {
-          NSLog(@"Bad file path passed to initialize GSXMLParser");
-	  RELEASE(self);
-	  return nil;
-        }
-      src = [path copy];
+      NSLog(@"Bad file path passed to initialize GSXMLParser");
+      RELEASE(self);
+      return nil;
     }
+  src = [path copy];
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -1693,17 +1690,14 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 	withContentsOfURL: (NSURL*)url
 {
-  self = [self initWithSAXHandler: handler];
-  if (self != nil)
+  if (url == nil || [url isKindOfClass: [NSURL class]] == NO)
     {
-      if (url == nil || [url isKindOfClass: [NSURL class]] == NO)
-        {
-          NSLog(@"Bad NSURL passed to initialize GSXMLParser");
-	  RELEASE(self);
-	  return nil;
-        }
-      src = [url copy];
+      NSLog(@"Bad NSURL passed to initialize GSXMLParser");
+      RELEASE(self);
+      return nil;
     }
+  src = [url copy];
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -1721,17 +1715,14 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 		 withData: (NSData*)data
 {
-  self = [self initWithSAXHandler: handler];
-  if (self != nil)
+  if (data == nil || [data isKindOfClass: [NSData class]] == NO)
     {
-      if (data == nil || [data isKindOfClass: [NSData class]] == NO)
-        {
-          NSLog(@"Bad NSData passed to initialize GSXMLParser");
-	  RELEASE(self);
-	  return nil;
-        }
-      src = [data copy];
+      NSLog(@"Bad NSData passed to initialize GSXMLParser");
+      RELEASE(self);
+      return nil;
     }
+  src = [data copy];
+  self = [self initWithSAXHandler: handler];
   return self;
 }
 
@@ -1910,7 +1901,21 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) _initLibXML
 {
-  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, ".");
+  const char	*file;
+
+  if ([src isKindOfClass: [NSString class]])
+    {
+      file = [src lossyCString];
+    }
+  else if ([src isKindOfClass: [NSURL class]])
+    {
+      file = [[src absoluteString] lossyCString];
+    }
+  else
+    {
+      file = ".";
+    }
+  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, file);
   if (lib == NULL)
     {
       NSLog(@"Failed to create libxml parser context");
