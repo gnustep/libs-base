@@ -1,3 +1,141 @@
+Tue Jan 23 11:54:54 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSString.m: This new code, #if
+ 	HAVE_REGISTER_PRINTF_FUNCTION, a function defined by GNU libc.
+	(handle_printf_atsign): New function to handle %@ in printf strings.
+	([NSString +initialize]): Register the new printf-handler function.
+
+	* src/objects/Coding.h: Use new-style method name
+ 	"..ValueOfObjCType", instead of "..ValueOfType".  Use (id
+ 	<String>) instead of (char *) where appropriate.
+	(Encoding -initEncodingOnStream:): Method removed.
+	(Encoding -initEncoding): Method removed.
+	(Encoding -encodeValueOfSimpleType:at:withName:): Method removed.
+	(Decoding -initDecodingOnStream:): Method removed.
+	(Decoding -initDecoding): Method removed.
+	(Decoding -decodeValueOfSimpleType:at:withName:): Method removed.
+	(CommonCoding +defaultFormatVersion): New method.
+
+	* src/Stream.m ([Stream -rewindStream]): Move method lower in
+ 	file, to avoid undeclared error.  (This is related to creation of
+ 	SeekableStream protocol.)
+
+	* src/objects/Streaming.h (Streaming): Include NSObject protocol
+ 	in Streaming protocol, so we can use NSObject methods on arguments
+ 	passed with <Streaming> type.
+
+	* src/StdioStream.m: Use (id <String>) instead of (char *) where
+ 	appropriate.
+	([StdioStream +streamWithFilename:fmode:]): New method.
+	* src/objects/StdioStream.h: Declare new methods.
+
+	* src/NSCoder.m ([NSCoder -encodeObject:]): Base on
+ 	-encodeValueOfObjCType, not -encodeValuesOfObjCTypes.
+
+	* src/Coder.m: Now uses a CStream instance for low-level encoding
+ 	of variables of C type.  Include many more files.  Use new-style
+ 	method name "..ValueOfObjCType", instead of "..ValueOfType".  Use
+ 	(id <String>) instead of (char *) where appropriate.
+	(DEFAULT_FORMAT_VERSION): Renamed from CODER_FORMAT_VERSION.
+	(default_stream_class): Renamed from defaultStreamClass;
+	(default_cstream_class): New static variable.
+	([Coder +initialize]): Initialize above two variables.
+	([Coder +setDefaultCStreamClass:]): New method.
+	([Coder +defaultCStreamClass]): New method.
+	([Coder +setDefaultStreamClass:]): New method.
+	([Coder +defaultStreamClass]): New method.
+	([Coder +defaultFormatVersion]): New method.
+	([Coder -writeSignature]): New method, replaces -encodeSignature.
+	([Coder +readSignatureFromCStream:getClassname:formatVersion:]):
+	New method, replaces decodeSignature.
+	([Coder -_initWithCStream:formatVersion:isDecoding:f]): New method,
+	replaces _initWithStream:isDecoding.
+	([Coder +coderReadingFromStream:stream]): New method.
+	([Coder +coderReadingFromFile:filename]): New method.
+	([Coder -initForReadingFromStream:formatVersion:]): New method.
+	([Coder -initForWritingToStream:sformatVersion:version]): New method.
+	([Coder +decodeObjectFromStream:]): New method.
+	([Coder +decodeObjectFromFile:filename]): New method.
+	([Coder -initEncodingOnStream:]): Method removed.
+	([Coder -initDecodingOnStream:]): Method removed.
+	([Coder -initEncoding:]): Method removed.
+	([Coder -initDecoding:]): Method removed.
+	([Coder -encodeBytes:count:withName:]): Now unimplemented.
+	([Coder -decodeBytes:count:withName:name]): Likewise.
+	([Coder -decodeValueOfCType:at:withName:]): New method.
+	([Coder -encodeValueOfCType:at:withName:]): New method.
+	([Coder -encodeValueOfObjCType:at:withName:name]): Now longer handles
+	arrays and structs; those are now handled in a CStream method.
+	([Coder -decodeValueOfObjCType:at:withName:]): Likewise.
+	([Coder -encodeValueOfSimpleType:at:withName:]): Method removed.
+	([Coder -decodeValueOfSimpleType:at:withName:]): Method removed.
+	([Coder -encodeIndent]): Call cstream to handle this, instead of doing
+	nothing.
+	([Coder -encodeUnindent]): Likewise.
+	([Coder -decodeIndent]): Likewise.
+	([Coder -decodeUnindent]): Likewise.
+	([Coder -encodeName:]): Likewise.
+	([Coder -decodeName:]): Likewise.
+	([Coder -formatVersion]): Method renamed from coderFormatVersion.
+
+	* src/objects/Coder.h: Declare new methods.
+	(cstream): New ivar, replacing "stream".
+	(classname_map): New ivar, but not yet used properly.
+	(concrete_format_version): ivar removed, this is now in the CStream
+	classes.
+
+	* src/CString.m: Use new-style method name "..ValueOfObjCType",
+ 	instead of "..ValueOfType".
+	([CString -initWithCStringNoCopy:freeWhenDone:]): Cast away const
+	type.
+
+	* src/Stream.m ([Stream -writeLine:]): Replace with more efficient
+ 	implementation from MemoryStream class.
+	* src/MemoryStream.m: Use (id <String>) instead of (char *) where
+ 	appropriate.
+	([MemoryStream -writeLine:]): Remove method.
+
+	* src/objects/Collection.h: Don't include <objects/Coder.h>; this
+ 	helps prevent circular dependances in include files.
+
+	* src/NSGCString.m ([NSGCString -cStringNoCopy]): New method.
+	* src/CString.m ([CString -cStringNoCopy]): New method.
+	* src/String.m: Use -subclassReponsibility instead of
+ 	-notImplemented in proper places.
+	([String -cStringNoCopy]): New method.
+	* src/objects/String.h: Declare new method.
+
+	* src/Stream.m: Use string object types instead of C-string types
+ 	in method arguments.  Use -subclassReponsibility instead of
+ 	-notImplemented.
+	* src/objects/Streaming.h (Streaming): Use string object types
+ 	instead of C-string types in method arguments.
+
+	* src/CString.m ([CString -initWithCStringNoCopy:freeWhenDone:]):
+ 	New method.
+	* src/String.m ([String +stringWithCStringNoCopy:freeWhenDone:f]):
+ 	New method.
+	([String +stringWithCStringNoCopy:]): New method.
+	* src/objects/String.h: Declare new methods.
+
+	* src/Coder.m: Don't use ivar interconnected_stack_height.
+	(DOING_ROOT_OBJECT): New macro, defined based on
+	interconnected_stack_height.
+	* src/objects/Coder.h (Coder): Get rid of unnecessary ivar
+ 	doing_root_object; we can get the same information from ivar
+ 	interconnected_stack_height.
+
+Mon Jan 22 21:32:25 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSCoder.m ([NSCoder -encodeObject:]): Implemented.
+	([NSCoder -decodeObject]): Implemented.
+	([NSCoder -encodeValueOfObjCType:at:]): Use -subclassResponsibility,
+	not -notImplemented.
+	([NSCoder -decodeValueOfObjCType:at:]): Likewise.
+	([NSCoder -encodeDataObject:]): Likewise.
+	([NSCoder -decodeDataObject]): Likewise.
+	([NSCoder -versionForClassName:]): Likewise.
+
 Mon Jan 22 11:08:55 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* Version (OBJECTS_SUBMINOR_VERSION): libobjects version 0.1.19.
