@@ -1,5 +1,11 @@
 2000-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Foundation/NSDebug.h: removed GS_IMPORT
+	* Source/Foundation/NSObjCRuntime.h: ditto
+	* Source/Foundation/GSConfig.h.in: ditto
+
+2000-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSString.m: implement -cStringLength correctly in terms of
 	other methods of the abstract class, rather than making the subclass
 	do it.  Cache [-characterAtIndex:] implementation for speed

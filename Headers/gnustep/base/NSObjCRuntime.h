@@ -34,7 +34,6 @@
 #else
 #  define GS_EXPORT extern
 #endif
-#define GS_IMPORT extern
 #define GS_DECLARE
 
 @class	NSString;

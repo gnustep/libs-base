@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <Foundation/NSObject.h>
 
-GS_IMPORT int	errno;
+extern int	errno;
 
 
 /*
