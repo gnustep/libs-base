@@ -415,7 +415,8 @@ Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
 Base_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
-	-Standards YES
+	-Standards YES \
+	-Up Base
 
 -include Makefile.preamble
 

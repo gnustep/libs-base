@@ -67,6 +67,7 @@ HTMLLinker_OBJC_FILES = HTMLLinker.m
 DOCUMENT_NAME = autogsdoc
 
 # Documentation rules for autogsdoc
+autogsdoc_AGSDOC_FLAGS = -Up autogsdoc
 autogsdoc_AGSDOC_FILES = autogsdoc.m \
 	AGSParser.h AGSOutput.h AGSIndex.h AGSHtml.h
 autogsdoc_DOC_INSTALL_DIR = Developer/Tools

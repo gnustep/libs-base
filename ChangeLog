@@ -1,3 +1,11 @@
+2002-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/autogsdoc.m: Rearrange code somewhat and remove auto
+	generation of index and 'up' links ... now requires an explicit
+	-Up if you want one.
+	* Tools/GNUmakefile: Add -Up for documentation generation
+	* Source/GNUmakefile: ditto
+
 Fri Jan  4 11:42:23 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/HTMLLinker.m: Implemented -FixupAllLinks, -PathMappings,
