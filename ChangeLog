@@ -1,3 +1,12 @@
+2002-10-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSData.m (readContentsOfFile): Change NSDebugLog(s) to
+	NSWarnLog or NSLog.
+	(-writeToFile:atomically:): Idem.
+	([NSDataMappedFile -initWithContentsOfMappedFile:]): Idem.
+	* Source/NSDictionary.m ([NSDictionary -initWithContentsOfFile:]):
+	Release ourselves and return nil if file cannot be read.
+
 2002-10-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: ([-runMode:beforeDate:]) permit the use of a
