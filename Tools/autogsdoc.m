@@ -58,7 +58,12 @@
       making the assumption that each .h file processed uses a .m file
       of the same name.  You may supply multiple <code>AutogsdocSource</code>:
       lines where a header file declares items which are defined in
-      multiple source files.
+      multiple source files.<br />
+      If a file name is absolute, it is used just as supplied.<br />
+      If on the other hand, it is a relative path, the software looks for
+      the source file first relative to the direcotory in which autogsdoc
+      is running and then, if not found there, relative to the directory
+      in which the header file is located.
     </item>
     <item><strong>&lt;abstract&gt;</strong>
       An abstract of the content of the document ... placed in the head

@@ -787,11 +787,31 @@ fail:
   [source removeAllObjects];
   if (isSource == NO)
     {
+      NSFileManager	*mgr = [NSFileManager defaultManager];
+      NSString		*path;
+
       [info setObject: fileName forKey: @"Header"];
       [source removeAllObjects];
-      [source addObject:
-	[[[fileName lastPathComponent] stringByDeletingPathExtension]
-	  stringByAppendingPathExtension: @"m"]];
+
+      /**
+       * We initially assume that the location of a source file is the
+       * same as the header, but if there is no file at that location,
+       * we expect the source to be in the current directory instead.
+       */
+      path = [fileName stringByDeletingPathExtension];
+      path = [path stringByAppendingPathExtension: @"m"];
+      if ([mgr isReadableFileAtPath: path] == NO)
+	{
+	  path = [path lastPathComponent];
+	  if ([mgr isReadableFileAtPath: path] == NO)
+	    {
+	      path = nil;	// No default source file found.
+	    }
+	}
+      if (path != nil)
+	{
+	  [source addObject: path];
+	}
     }
   unitName = nil;
   itemName = nil;
@@ -2617,7 +2637,51 @@ fail:
 		      if ([line length] > 0
 			&& [source containsObject: line] == NO)
 			{
-			  [source addObject: line];
+			  NSFileManager	*mgr;
+
+			  /*
+			   * See if the path given exists, and add it to
+			   * the list of source files parsed for this
+			   * header.
+			   */
+			  mgr = [NSFileManager defaultManager];
+			  if ([mgr isReadableFileAtPath: line] == NO)
+			    {
+			      if ([line isAbsolutePath] == YES)
+				{
+				  [self log: @"AutogsdocSource: %@ not found!",
+				    line];
+				  line = nil;
+				}
+			      else
+				{
+				  NSString	*p;
+
+				  /*
+				   * Try forming a path relative to the
+				   * header file if the source file was not
+				   * found in the specified location.
+				   */
+				  p = [info objectForKey: @"Header"];
+				  p = [p stringByDeletingLastPathComponent];
+				  p = [p stringByAppendingPathComponent: line];
+				  if ([mgr isReadableFileAtPath: p] == NO)
+				    {
+				      [self log: @"AutogsdocSource: %@ not "
+					@"found (tried %@ too)!",
+					line, p];
+				      line = nil;
+				    }
+				  else
+				    {
+				      line = p;
+				    }
+				}
+			    }
+			  if (line != nil)
+			    {
+			      [source addObject: line];
+			    }
 			}
 		      i = NSMaxRange(r);
 		      r = NSMakeRange(i, commentLength - i);
