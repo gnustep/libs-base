@@ -1,4 +1,90 @@
+Wed Jan 31 22:29:57 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Makefile.in (DIST_FILES): Add file STATUS.
+
+	* src/Coder.m ([Coder -_coderCreateReferenceForObject:]):
+ 	Beginning with this method, put in, but comment out, initial notes
+ 	for ideas about "tag-less" coder streams; this will allow for
+ 	smaller archives.
+
+Sat Jan 27 20:58:23 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* examples/textcoding.m (main): Use new Archiver and Unarchiver
+ 	classes, use new method names.
+
+	* src/objects/Coding.h (CommonCoding -closeCoding): Renamed from
+ 	-coderCoder, so it is not so exclusively associated with the
+ 	Coding class, but also all subclasses that implement a *Coding
+ 	protocol.
+	* src/Coder.m ([Coder -closeCoding]): Method renamed from
+ 	-closeCoder.
+	([Coder +encodeRootObject:withName:toStream:]): Make -closeCoding name
+	change.
+
+	* src/Coder.m ([Coder +newReadingFromStream:]): Renamed from
+ 	coderReadingFromStream:, because, for subclasses of Coder, it's
+ 	silly to have different names for this method.  Don't autorelease
+ 	returned object (I also find this more helpful).  All callers
+ 	changed.
+	([Coder +newReadingFromFile:]): Likewise.
+	* src/objects/Coder.h: Rename methods.
+	* src/ConnectedCoder.m ([ConnectedCoder
+ 	+newDecodingWithConnection:timeout:]): Rename
+ 	coderReadingFromStream to newReadingFromStream, and don't retain.
+
+	* src/Archiver.m: New file.
+	* src/objects/Archiver.h: New file.
+	* src/Makefile.in (GNU_MFILES): Add Archiver.m.
+	(GNU_HEADERS): Add objects/Archiver.h.
+
 Fri Jan 26 10:48:30 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): libobjects version 0.2.0.
+	(OBJECTS_MINOR_VERSION): Version 2.
+
+	* src/Makefile.in (GNU_HEADERS): Added CStreaming.h.
+
+	* src/objects/objects.h: Include BinaryCStream.h and
+ 	TextCStream.h, not the old *Coder.h versions.
+
+	* src/objects/ConnectedCoder.h (Coder): Make subclass of Coder,
+ 	not BinaryCoder.
+
+	* src/TextCStream.m ([TextCStream
+ 	-encodeValueOfCType:at:withName:]): Remove the asserts that
+ 	prohibited structs and arrays.
+	([TextCStream -decodeValueOfCType:at:withName:]): Likewise.
+	* src/BinaryCStream.m: Include the code for handling structs and
+ 	arrays.
+
+	* src/objects/Streaming.h: Include <objects/NSString.h> instead of
+ 	<objects/String.h>.
+
+	Update checks and examples
+	* checks/server.m: Make it work with the new coding scheme.
+	* checks/client.m: Likewise.
+	* checks/pipes.m (main): Use NSString in -initWithPipeFrom
+ 	argument.
+	* checks/Makefile.in (SRCS): Remove test08.m, it was for old-style
+ 	archiving.
+	* examples/textcoding.m (main): Use new coding scheme and @""
+ 	strings properly.
+	* examples/stdio-stream.m (main): Likewise.
+
+	* src/ConnectedCoder.m ([ConnectedCoder
+ 	+newDecodingWithConnection:timeout:]): Use
+ 	+coderReadingFromStream, not the deprecated
+ 	-initReadingFromStream.
+
+	* src/BinaryCStream.m ([BinaryCStream -decodeName:]): Check for
+ 	NULL name.
+
+	* src/Connection.m: encodeObjectBycopy -> encodeBycopyObject (to
+ 	better match NeXT).
+	* src/Proxy.m: Likewise.
+
+	* src/Coder.m ([Coder +initialize]): Make BinaryCStream the
+ 	default, not TextCStream.
 
 	* src/Coder.m ([Coder -encodeTag:]): Let the cstream handle it, 
 	if it can.
