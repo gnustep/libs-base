@@ -23,9 +23,9 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILE_DIR = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
+GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
-include $(GNUSTEP_MAKEFILE_DIR)/common.make
+include $(GNUSTEP_MAKEFILES)/common.make
 
 # The application to be compiled
 TOOL_NAME = defaults dread dwrite dremove
@@ -47,7 +47,7 @@ $(SOURCES) $(HEADERS)
 
 -include Makefile.preamble
 
-include $(GNUSTEP_MAKEFILE_DIR)/objc.make
-include $(GNUSTEP_MAKEFILE_DIR)/tool.make
+include $(GNUSTEP_MAKEFILES)/objc.make
+include $(GNUSTEP_MAKEFILES)/tool.make
 
 -include Makefile.postamble
