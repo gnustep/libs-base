@@ -23,6 +23,7 @@
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSPathUtilities.h>
 #include <stdlib.h>		// for getenv()
 #ifndef __WIN32__
 #include <unistd.h>		// for getlogin()
