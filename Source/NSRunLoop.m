@@ -49,12 +49,8 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_POLL_H
+#ifdef HAVE_POLL_F
 #include <poll.h>
-#endif
-/* Some systems (e.g. MacOSX) just emulate poll and prefer select */
-#ifdef _POLL_EMUL_H_
-#undef HAVE_POLL
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -705,7 +701,7 @@ extern IMP	wRetImp;
       _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-#ifdef	HAVE_POLL
+#ifdef	HAVE_POLL_F
       _extra = objc_malloc(sizeof(pollextra));
       memset(_extra, '\0', sizeof(pollextra));
 #endif
@@ -721,7 +717,7 @@ extern IMP	wRetImp;
 
 - (void) gcFinalize
 {
-#ifdef	HAVE_POLL
+#ifdef	HAVE_POLL_F
   if (_extra != 0)
     {
       pollextra	*e = (pollextra*)_extra;

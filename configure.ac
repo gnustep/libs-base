@@ -568,7 +568,19 @@ AC_CHECK_FUNCS(syslog)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(poll.h)
 AC_CHECK_FUNCS(poll)
-
+have_poll=no
+if test $ac_cv_header_poll_h = yes; then
+  have_poll=yes
+  AC_MSG_CHECKING(for poll emulation)
+  AC_EGREP_CPP(emulating_poll, [#include "config/config.poll.c"], 
+  	have_poll=no,)
+  if test $have_poll = yes; then
+    AC_MSG_RESULT(no)
+    AC_DEFINE(HAVE_POLL_F,1, [ Define if poll is NOT emulated via select])
+  else
+    AC_MSG_RESULT(yes)
+  fi
+fi
 
 #--------------------------------------------------------------------
 # Check for pthread.h (only when building on Darwin machines)

@@ -21,7 +21,7 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#ifdef HAVE_POLL_H
+#ifdef HAVE_POLL_F
 #include <poll.h>
 #endif
 #ifdef HAVE_UNISTD_H
@@ -80,7 +80,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       NSFreeMapTable(_wfdMap);
     }
-#ifdef	HAVE_POLL
+#ifdef	HAVE_POLL_F
   if (pollfds != 0)
     {
       objc_free(pollfds);
@@ -164,7 +164,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   return self;
 }
 
-#ifdef	HAVE_POLL
+#ifdef	HAVE_POLL_F
 
 static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 {

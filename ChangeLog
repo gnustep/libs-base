@@ -1,3 +1,9 @@
+2005-02-23  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add test to check for poll emulation
+	* Source/NSRunLoop.h: Don't use poll if we're just emulating.
+	* Source/unix/GSRunLoopCtxt.m: Idem.
+
 2005-02-23 14:00 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSFileHandle.h: Add windows event
