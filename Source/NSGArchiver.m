@@ -42,7 +42,7 @@
 /* This is the designated initializer */
 - (id) initForWritingWithMutableData: (NSMutableData*)mdata
 {
-  [self initEncodingOnStream:mdata];
+  //[self initEncodingOnStream:mdata];
   return self;
 }
 @end
