@@ -159,6 +159,8 @@ nsbundle: nsbundle.o $(srcdir)/../src/libobjects.a
 	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
 nsdictionary: nsdictionary.o $(srcdir)/../src/libobjects.a
 	$(LINK_CMD)
+nsprocessinfo: nsprocessinfo.o $(srcdir)/../src/libobjects.a
+	$(LINK_CMD)
 
 #nsarchiving: nsarray.o $(srcdir)/../src/libobjects.a
 #	$(LINK_CMD)
