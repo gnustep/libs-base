@@ -390,12 +390,12 @@ static IMP	initImp;
   return self;
 }
 
-+ (void) _endThread
++ (void) _endThread: (NSThread*)thread
 {
   struct autorelease_thread_vars *tv;
   id	pool;
 
-  tv = ARP_THREAD_VARS;
+  tv = &(GSCurrentThread()->_autorelease_vars);
   while (tv->current_pool)
     {
       [tv->current_pool release];

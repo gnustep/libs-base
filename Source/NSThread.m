@@ -227,14 +227,11 @@ gnustep_base_thread_callback()
       RELEASE(n);
 
       /*
-       * Release anything in our autorelease pools
-       */
-      [NSAutoreleasePool _endThread];
-
-      /*
        * destroy the thread object.
        */
       DESTROY(t);
+
+      objc_thread_set_data (NULL);
 
       /*
        * Tell the runtime to exit the thread
@@ -332,9 +329,12 @@ gnustep_base_thread_callback()
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Deallocating an active thread without [+exit]!"];
     }
+  _deallocating = YES;
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
+  [NSAutoreleasePool _endThread: self];
+
   NSDeallocateObject(self);
 }
 
@@ -395,7 +395,7 @@ gnustep_base_thread_callback()
  */
 - (NSMutableDictionary*) threadDictionary
 {
-  if (_thread_dictionary == nil)
+  if (_thread_dictionary == nil && _deallocating == NO)
     {
       _thread_dictionary = [NSMutableDictionary new];
     }
@@ -450,14 +450,12 @@ gnustep_base_thread_callback()
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
       thread->_active = NO;
-      /*
-       * Release anything in our autorelease pools
-       */
-      [NSAutoreleasePool _endThread];
+
       /*
        * destroy the thread object.
        */
       DESTROY (thread);
+
       objc_thread_set_data (NULL);
 
       /*

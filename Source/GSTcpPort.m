@@ -1552,6 +1552,7 @@ static Class		tcpPortClass;
 
 - (void) gcFinalize
 {
+  NSDebugMLLog(@"NSPort", @"GSTcpPort 0x%x finalized", self);
   [self invalidate];
 }
 
