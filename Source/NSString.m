@@ -1044,7 +1044,7 @@ handle_printf_atsign (FILE *stream,
     {
       unichar	*s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
 
-      [string getCharacters: s];
+      [string getCharacters: s range: ((NSRange){0, length})];
       self = [self initWithCharactersNoCopy: s
 				     length: length
 			       freeWhenDone: YES];
@@ -1185,7 +1185,7 @@ handle_printf_atsign (FILE *stream,
     {
       fmt = objc_malloc((len+1)*sizeof(unichar));
     }
-  [format getCharacters: fmt];
+  [format getCharacters: fmt range: ((NSRange){0, len})];
   fmt[len] = '\0';
 
   /*
@@ -1697,8 +1697,8 @@ handle_printf_atsign (FILE *stream,
   unichar	*s = NSZoneMalloc(z, (len+otherLength)*sizeof(unichar));
   NSString	*tmp;
 
-  [self getCharacters: s];
-  [aString getCharacters: s + len];
+  [self getCharacters: s range: ((NSRange){0, len})];
+  [aString getCharacters: s + len range: ((NSRange){0, otherLength})];
   tmp = [[NSStringClass allocWithZone: z] initWithCharactersNoCopy: s
     length: len + otherLength freeWhenDone: YES];
   return AUTORELEASE(tmp);
@@ -2183,17 +2183,19 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSLiteralSearch)
     {
       int prefix_len = 0;
+      unsigned	length = [self length];
+      unsigned	aLength = [aString length];
       unichar *u,*w;
-      unichar a1[[self length]+1];
+      unichar a1[length+1];
       unichar *s1 = a1;
-      unichar a2[[aString length]+1];
+      unichar a2[aLength+1];
       unichar *s2 = a2;
 
       u = s1;
-      [self getCharacters: s1];
-      s1[[self length]] = (unichar)0;
-      [aString getCharacters: s2];
-      s2[[aString length]] = (unichar)0;
+      [self getCharacters: s1 range: ((NSRange){0, length})];
+      s1[length] = (unichar)0;
+      [aString getCharacters: s2 range: ((NSRange){0, aLength})];
+      s2[aLength] = (unichar)0;
       u = s1;
       w = s2;
 
@@ -2499,7 +2501,7 @@ handle_printf_atsign (FILE *stream,
     setupWhitespace();
 
   s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
-  [self getCharacters: s];
+  [self getCharacters: s range: ((NSRange){0, len})];
   while (count < len)
     {
       if (GS_IS_WHITESPACE(s[count]))
@@ -2541,21 +2543,32 @@ handle_printf_atsign (FILE *stream,
  */
 - (NSString*) lowercaseString
 {
+  static NSCharacterSet	*uc = nil;
   unichar	*s;
   unsigned	count;
+  NSRange	start;
   unsigned	len = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   if (len == 0)
     {
       return self;
     }
-
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
-  for (count = 0; count < len; count++)
+  if (uc == nil)
     {
-      s[count] = uni_tolower((*caiImp)(self, caiSel, count));
+      uc = RETAIN([NSCharacterSet uppercaseLetterCharacterSet]);
+    }
+  start = [self rangeOfCharacterFromSet: uc
+				options: NSLiteralSearch
+				  range: ((NSRange){0, len})];
+  if (start.length == 0)
+    {
+      return self;
+    }
+  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  [self getCharacters: s range: ((NSRange){0, len})];
+  for (count = start.location; count < len; count++)
+    {
+      s[count] = uni_tolower(s[count]);
     }
   return AUTORELEASE([[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
@@ -2567,20 +2580,32 @@ handle_printf_atsign (FILE *stream,
  */
 - (NSString*) uppercaseString
 {
+  static NSCharacterSet	*lc = nil;
   unichar	*s;
   unsigned	count;
+  NSRange	start;
   unsigned	len = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   if (len == 0)
     {
       return self;
     }
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
-  for (count = 0; count < len; count++)
+  if (lc == nil)
     {
-      s[count] = uni_toupper((*caiImp)(self, caiSel, count));
+      lc = RETAIN([NSCharacterSet lowercaseLetterCharacterSet]);
+    }
+  start = [self rangeOfCharacterFromSet: lc
+				options: NSLiteralSearch
+				  range: ((NSRange){0, len})];
+  if (start.length == 0)
+    {
+      return self;
+    }
+  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  [self getCharacters: s range: ((NSRange){0, len})];
+  for (count = start.location; count < len; count++)
+    {
+      s[count] = uni_toupper(s[count]);
     }
   return AUTORELEASE([[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
@@ -3038,7 +3063,7 @@ handle_printf_atsign (FILE *stream,
       buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(unichar)*(len+1));
       buff[0] = byteOrderMark;
-      [self getCharacters: &buff[1]];
+      [self getCharacters: &buff[1] range: ((NSRange){0, len})];
       return [NSDataClass dataWithBytesNoCopy: buff
 					length: sizeof(unichar)*(len+1)];
     }
@@ -3049,7 +3074,7 @@ handle_printf_atsign (FILE *stream,
       unichar		*u;
 
       u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), len*sizeof(unichar));
-      [self getCharacters: u];
+      [self getCharacters: u range: ((NSRange){0, len})];
       if (GSFromUnicode(&b, &l, u, len, encoding, NSDefaultMallocZone(),
 	(flag == NO) ? GSUniStrict : 0)
 	== NO)
@@ -3222,7 +3247,8 @@ handle_printf_atsign (FILE *stream,
       NSRange	range;
 
       range = [self rangeOfCharacterFromSet: pathSeps()
-				    options: NSBackwardsSearch];
+				    options: NSBackwardsSearch
+				      range: ((NSRange){0, l})];
       if (range.length == 0)
 	{
 	  substring = self;		// No '/' in self
@@ -3321,7 +3347,7 @@ handle_printf_atsign (FILE *stream,
   unsigned	aLength = [aString length];
   unichar	buf[length+aLength+1];
 
-  [self getCharacters: buf];
+  [self getCharacters: buf range: ((NSRange){0, length})];
   while (length > 1 && pathSepMember(buf[length-1]) == YES)
     {
       length--;
@@ -3332,7 +3358,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  buf[length++] = '/';
 	}
-      [aString getCharacters: &buf[length]];
+      [aString getCharacters: &buf[length] range: ((NSRange){0, aLength})];
     }
   length += aLength;
   while (length > 1 && pathSepMember(buf[length-1]) == YES)
@@ -3519,7 +3545,9 @@ handle_printf_atsign (FILE *stream,
       return self;
     }
 
-  first_slash_range = [self rangeOfCharacterFromSet: pathSeps()];
+  first_slash_range = [self rangeOfCharacterFromSet: pathSeps()
+					    options: NSLiteralSearch
+					      range: ((NSRange){0, length})];
 
   if (first_slash_range.location != 1)
     {
@@ -4421,7 +4449,7 @@ handle_printf_atsign (FILE *stream,
 	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
 
 	  chars = NSZoneMalloc(NSDefaultMallocZone(), count*sizeof(unichar));
-	  [self getCharacters: chars];
+	  [self getCharacters: chars range: ((NSRange){0, count})];
 	  [aCoder encodeArrayOfObjCType: @encode(unichar)
 				  count: count
 				     at: chars];
