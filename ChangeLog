@@ -1,3 +1,12 @@
+2004-01-08 Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/Additions/GSMiume.m: Fix bad use of NSString as C-string
+
+2004-01-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: minor cleanups to use gnucoding conventions for
+	whitespace and little performance tweak (cache NSNull instance).
+
 2004-01-08 01:48  Alexander Malmberg <alexander@malmberg.org>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h
