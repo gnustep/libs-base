@@ -326,13 +326,13 @@ static NSMapTable *port_number_2_in_port = NULL;
 
 @implementation UdpOutPort
 
-static NSArray *udp_out_port_array;
+static NSMutableArray *udp_out_port_array;
 
 + (void) initialize
 {
   if (self == [UdpOutPort class])
     {
-      udp_out_port_array = [NSArray new];
+      udp_out_port_array = [NSMutableArray new];
     }
 }
 

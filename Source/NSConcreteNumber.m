@@ -27,6 +27,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <GSConfig.h>
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSString.h>

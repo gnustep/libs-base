@@ -27,14 +27,15 @@
 #include <objc/objc.h>
 #include <stdarg.h>
 
-#if BUILD_libgnustep-base_DLL
-#  define GS_EXPORT __declspec(dllexport)
-#elif libgnustep-base_ISDLL
-#  define GS_EXPORT extern __declspec(dllimport)
+#if BUILD_libgnustep_base_DLL
+#  define GS_EXPORT  __declspec(dllexport)
+#elif libgnustep_base_ISDLL
+#  define GS_EXPORT  extern __declspec(dllimport)
 #else
 #  define GS_EXPORT extern
 #endif
 #define GS_IMPORT extern
+#define GS_DECLARE
 
 @class	NSString;
 

@@ -127,6 +127,9 @@
 /* Define if your Obj-C compiler calls +load methods before main */
 #undef HAVE_LOAD_METHOD 
 
+/* Define if objc-api.h defines this function */
+#undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
+
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
 

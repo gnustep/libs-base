@@ -170,8 +170,43 @@ AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
+# Check for alternate Objective-C libraries 
+#--------------------------------------------------------------------
+if test x$GNUSTEP_SYSTEM_ROOT != "x"; then
+  gnustep_obj_dir=${target_cpu}/${target_os}/${ac_cv_library_combo}
+  # May have a private version of libobj installed here
+  if test -f $GNUSTEP_SYSTEM_ROOT/Headers/objc/objc.h; then
+    CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Headers"
+    LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_ROOT/Libraries/$gnustep_obj_dir"
+    echo "Using Objective-C library from $GNUSTEP_SYSTEM_ROOT, if available"
+  fi
+fi
+
+#--------------------------------------------------------------------
 # Check if Objective-C is installed
 #--------------------------------------------------------------------
+AC_MSG_CHECKING(for alternate objc library)
+AC_CACHE_VAL(gs_cv_objc_libdir,
+[dnl
+gs_cv_objc_libdir=NONE
+if test -f $GNUSTEP_SYSTEM_ROOT/Headers/objc/objc.h; then
+  clean_target_os=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_os.sh $target_os`
+  clean_target_cpu=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_cpu.sh $target_cpu`
+  obj_dir=$clean_target_cpu/$clean_target_os/$ac_cv_library_combo
+  if test -f $GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir/libobjc.a; then
+    gs_cv_objc_libdir=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
+  else
+    gs_cv_objc_libdir=NONE
+  fi
+fi
+])
+AC_MSG_RESULT($gs_cv_objc_libdir)
+
+if test "$gs_cv_objc_libdir" != "NONE"; then
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Headers/"
+  LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
+fi
+
 AC_CHECK_HEADERS(objc/objc.h)
 if test $ac_cv_header_objc_objc_h = no; then
   echo "Could not find Objective-C headers"
@@ -472,8 +507,12 @@ CPPFLAGS="$saved_CPPFLAGS"
 
 #--------------------------------------------------------------------
 # This function needed by NSLock.m for conditioned wait
+# get_uninstalled_dtable used by behavior.m and objc-load.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(objc_condition_timedwait)
+
+AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
+	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE),)
 
 LIBS="$saved_LIBS"
 

@@ -79,6 +79,7 @@
 /* Define to turn off NSAssertions. */
 #define NS_BLOCK_ASSERTIONS 1
 
+#define IN_NSZONE_M 1
 
 #include <config.h>
 #include <base/preface.h>
@@ -410,7 +411,7 @@ NSZone* __nszone_private_hidden_default_zone = &default_zone;
  */
 static NSZone	*zone_list = 0;
 
-inline NSZone*
+GS_DECLARE NSZone*
 NSZoneFromPointer(void *ptr)
 {
   NSZone	*zone;
@@ -1695,54 +1696,10 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
     return newZone;
 }
 
-inline NSZone*
-NSDefaultMallocZone (void)
-{
-  return __nszone_private_hidden_default_zone;
-}
-
-NSZone* GSAtomicMallocZone (void)
-{
-  return NSDefaultMallocZone();
-}
-
-inline void*
-NSZoneMalloc (NSZone *zone, size_t size)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->malloc)(zone, size);
-}
-
 void*
 NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
 {
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
-}
-
-inline void*
-NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->realloc)(zone, ptr, size);
-}
-
-inline void
-NSRecycleZone (NSZone *zone)
-{
-  if (zone == 0)
-    zone = NSDefaultMallocZone();
-
-  (zone->recycle)(zone);
-}
-
-inline void
-NSZoneFree (NSZone *zone, void *ptr)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  (zone->free)(zone, ptr);
 }
 
 void
@@ -1756,40 +1713,6 @@ NSSetZoneName (NSZone *zone, NSString *name)
     [zone->name release];
   zone->name = name;
   [gnustep_global_lock unlock];
-}
-
-inline NSString*
-NSZoneName (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return zone->name;
-}
-
-/* Not in OpenStep. */
-
-void*
-NSZoneMallocAtomic (NSZone *zone, size_t size)
-{
-  return NSZoneMalloc(GSAtomicMallocZone(), size);
-}
-
-/* Not in OpenStep. */
-inline BOOL
-NSZoneCheck (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->check)(zone);
-}
-
-/* Not in OpenStep. */
-inline struct NSZoneStats
-NSZoneStats (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->stats)(zone);
 }
 
 #else

@@ -57,6 +57,13 @@ ADDITIONAL_LDFLAGS =
 # Additional library directories the linker should search
 ADDITIONAL_LIB_DIRS = 
 
+ifeq ($(GNUSTEP_TARGET_OS),mingw32)
+libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
+endif
+ifeq ($(GNUSTEP_TARGET_OS),cygwin)
+libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
+endif
+
 #
 # Flags dealing with installing and uninstalling
 #

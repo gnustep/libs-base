@@ -36,6 +36,9 @@
 /* Define if your Obj-C compiler calls +load methods before main */
 #undef HAVE_LOAD_METHOD 
 
+/* Define if objc-api.h defines this function */
+#undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
+
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
 
@@ -125,6 +128,9 @@
 
 /* Define if you have the <grp.h> header file.  */
 #undef HAVE_GRP_H
+
+/* Define if you have the <libxml/xmlversion.h> header file.  */
+#undef HAVE_LIBXML_XMLVERSION_H
 
 /* Define if you have the <memory.h> header file.  */
 #undef HAVE_MEMORY_H
