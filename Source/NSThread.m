@@ -74,6 +74,7 @@ static BOOL entered_multi_threaded_state;
 
   /* initialize our ivars. */
   _thread_dictionary = nil;	// Initialize this later only when needed
+  _exception_handler = NULL;
   init_autorelease_thread_vars (&_autorelease_vars);
 
   /* Make it easy and fast to get this NSThread object from the thread. */
@@ -186,6 +187,16 @@ static BOOL entered_multi_threaded_state;
 
   // Tell the runtime to exit the thread
   objc_thread_exit ();
+}
+
+- (NSHandler*)exceptionHandler
+{
+  return _exception_handler;
+}
+
+- (void)setExceptionHandler: (NSHandler*)handler
+{
+  _exception_handler = handler;
 }
 
 @end

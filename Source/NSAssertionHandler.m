@@ -21,18 +21,28 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 #include <Foundation/NSException.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSThread.h>
 
 @implementation NSAssertionHandler
 
+/* Key for thread dictionary. */
+static NSString *dict_key = @"_NSAssertionHandler";
+
 + (NSAssertionHandler *)currentHandler
 {
-  // FIXME: current handler should come from current thread dictionary;
-  static NSAssertionHandler *only_one = nil;
-    
-  if (!only_one)
-    only_one = [NSAssertionHandler new];
-  return only_one;
+  NSMutableDictionary *dict;
+  NSAssertionHandler *handler;
+
+  dict = [[NSThread currentThread] threadDictionary];
+  handler = [dict objectForKey: dict_key];
+  if (handler == nil)
+    {
+      handler = [[NSAssertionHandler alloc] init];
+      [dict setObject: handler forKey: dict_key];
+    }
+  return handler;
 }
 
 - (void)handleFailureInFunction:(NSString *)functionName 

@@ -98,7 +98,8 @@ basic.m \
 release.m \
 nsscanner.m \
 nsdate.m \
-awake.m
+awake.m \
+thread-except.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))
