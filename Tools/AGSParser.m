@@ -878,6 +878,15 @@ fail:
 	      {
 		return methods;
 	      }
+	    else if ([token isEqual: @"class"] == YES)
+	      {
+		/*
+		 * Pre-declaration of one or more classes ... rather like a
+		 * normal C statement, it ends with a semicolon.
+		 */
+		[self skipStatementLine];
+		return nil;
+	      }
 	    else
 	      {
 		[self log: @"@method list with unknown directive '%@'", token];
