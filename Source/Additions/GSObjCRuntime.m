@@ -1128,14 +1128,20 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
       types1 = gs_skip_type_qualifier_and_layout_info (types1);
       types2 = gs_skip_type_qualifier_and_layout_info (types2);
 
+      /* Reached the end of the selector.  */
       if (! *types1 && ! *types2)
         return YES;
 
-      /* (Ayers) This does not account for older versions of gcc
-	 which encoded structures as {??=<types>} while new versions replaced
-	 the ?? with the structure name.  But it seems to expensive to
-	 handle that here and sel_types_match also never took this into 
-	 account.  */
+      /* Ignore structure name yet compare layout.  */
+      if (*types1 == '{' && *types2 == '{')
+	{
+	  while (*types1 != '=')
+	    types1++;
+
+	  while (*types2 != '=')
+	    types2++;
+	}
+
       if (*types1 != *types2)
         return NO;
 

@@ -20,7 +20,6 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 
-
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSRunLoop.h>
@@ -354,12 +353,13 @@ test_GSSelectorTypesMatch(void)
 			     {"@12@+0:+4:+8", "@16@4:8:12"},
 			     {"@12@-0:-4:-8", "@16@4:8:12"},
 
+			     {"{_MyLargeStruct2={_MyLargeStruct=dd}dd}@:",
+			      "{??={??=dd}dd}16@0:4"},
+
 			     {"{_MyLargeStruct=dd}56@+8:+12@+16c+23s+26i+28l24f28d32{_MyLargeStruct=dd}40{_MySmallStruct=c}44",
 			      "{_MyLargeStruct=dd}46@+8:+12@+16c+17s+16i+20l+24f+28d24{_MyLargeStruct=dd}32{_MySmallStruct=c}45"},
-			     /* This comparison is currently not supported.  
 			     {"{_MyLargeStruct=dd}56@+8:+12@+16c+23s+26i+28l24f28d32{_MyLargeStruct=dd}40{_MySmallStruct=c}44",
 			      "{??=dd}46@+8:+12@+16c+17s+16i+20l+24f+28d24{??=dd}32{??=c}45"},
-			     */
 			     {0, 0} };
   unsigned int i = 0;
 
