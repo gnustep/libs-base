@@ -172,7 +172,7 @@ static NSMutableSet	*textNodes = nil;
  * the html element is returned (&lt;a ...&gt;).<br />
  * If the boolean f is YES, then the link is a reference to somewhere,
  * otherwise the link is an anchor for some element being output.<br />
- * The method will try to infer the unit in which the emement was
+ * The method will try to infer the unit in which the element was
  * defined if the value of u is nil.<br />
  * If there is an error, the method returns nil.
  */
@@ -202,6 +202,27 @@ static NSMutableSet	*textNodes = nil;
 	  if (s != nil)
 	    {
 	      u = unit;
+	    }
+	  else
+	    {
+	      NSString	*x = unit;
+
+	      /*
+	       * Try stepping up superclasses until we find a match.
+	       */
+	      while (x != nil)
+		{
+		  x = [localRefs globalRef: x type: @"class"];
+		  if (x != nil)
+		    {
+		      s = [localRefs unitRef: r type: t unit: x];
+		      if (s != nil)
+			{
+			  u = x;
+			  break;
+			}
+		    }
+		}
 	    }
 	}
       /*
