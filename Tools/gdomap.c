@@ -129,7 +129,9 @@
 #define	MAX_EXTRA	((GDO_NAME_MAX_LEN - 2 * IASIZE)/IASIZE)
 
 typedef	unsigned char	*uptr;
+#ifndef __MINGW__
 static int	is_daemon = 0;		/* Currently running as daemon.	 */
+#endif
 static int	debug = 0;		/* Extra debug gdomap_logging.	 */
 static int	nobcst = 0;		/* turn off broadcast probing.	 */
 static int	nofork = 0;		/* turn off fork() for debugging. */
@@ -159,7 +161,9 @@ struct in_addr	class_c_mask;
  *	Predeclare some of the functions used.
  */
 static void	dump_stats();
+#ifndef __MINGW__
 static void	dump_tables();
+#endif
 static void	handle_accept();
 static void	handle_io();
 static void	handle_read(int);
@@ -1030,6 +1034,7 @@ dump_stats()
   gdomap_log(LOG_INFO);
 }
 
+#ifndef __MINGW__
 static void
 dump_tables()
 {
@@ -1066,6 +1071,7 @@ dump_tables()
       gdomap_log(LOG_ERR);
     }
 }
+#endif
 
 /*
  *	Name -		init_iface()
@@ -4569,7 +4575,7 @@ printf(
 	}
       a[argc] = "-f";
       a[argc+1] = 0;
-      if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
+      if (_spawnv(_P_NOWAIT, argv[0], (const char* const*)a) == -1)
 	{
 	  fprintf(stderr, "gdomap - spawn '%s' failed - bye.\n", argv[0]);
 	  exit(EXIT_FAILURE);
@@ -4725,8 +4731,10 @@ printf(
 #endif
     }
 {
+#ifndef __MINGW__
   int uid = -2;
   int gid = -2;
+#endif
 
 #ifdef	HAVE_PWD_H
 #ifdef	HAVE_GETPWNAM
