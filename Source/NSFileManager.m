@@ -387,69 +387,89 @@ static NSFileManager* defaultManager = nil;
 	   toPath: (NSString*)destination
 	  handler: handler
 {
-  BOOL		sourceIsDir;
   BOOL		fileExists;
-  NSDictionary	*attributes;
+  NSDictionary	*attrs;
+  NSString	*fileType;
 
-  fileExists = [self fileExistsAtPath: source isDirectory: &sourceIsDir];
-  if (!fileExists)
-    return NO;
-
+  attrs = [self _attributesAtPath: source traverseLink: NO forCopy: YES];
+  if (attrs == nil)
+    {
+      return NO;
+    }
   fileExists = [self fileExistsAtPath: destination];
   if (fileExists)
-    return NO;
-
-  attributes = [self _attributesAtPath: source traverseLink: NO forCopy: YES];
-
-  if (sourceIsDir)
+    {
+      return NO;
+    }
+  fileType = [attrs objectForKey: NSFileType];
+  if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
     {
       /* If destination directory is a descendant of source directory copying
 	  isn't possible. */
       if ([[destination stringByAppendingString: @"/"]
-			  hasPrefix: [source stringByAppendingString: @"/"]])
-	return NO;
+	hasPrefix: [source stringByAppendingString: @"/"]])
+	{
+	  return NO;
+	}
 
       [handler fileManager: self willProcessPath: destination];
-      if (![self createDirectoryAtPath: destination attributes: attributes])
+      if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
 	  if (handler)
 	    {
 	      NSDictionary* errorInfo
-		  = [NSDictionary dictionaryWithObjectsAndKeys: 
-		      destination, @"Path",
-		      _lastError, @"Error",
-		      nil];
+		= [NSDictionary dictionaryWithObjectsAndKeys: 
+		  destination, @"Path", _lastError, @"Error", nil];
 	      return [handler fileManager: self
-			      shouldProceedAfterError: errorInfo];
+		  shouldProceedAfterError: errorInfo];
 	    }
 	  else
-	    return NO;
+	    {
+	      return NO;
+	    }
+	}
+
+      if ([self _copyPath: source toPath: destination handler: handler] == NO)
+	{
+	  return NO;
 	}
     }
-
-  if (sourceIsDir)
+  else if ([fileType isEqualToString: NSFileTypeSymbolicLink] == YES)
     {
-      if (![self _copyPath: source toPath: destination handler: handler])
-	return NO;
-      else
+      NSString	*path;
+      BOOL	result;
+
+      [handler fileManager: self willProcessPath: source];
+      path = [self pathContentOfSymbolicLinkAtPath: source];
+      result = [self createSymbolicLinkAtPath: destination pathContent: path];
+      if (result == NO)
 	{
-	  [self changeFileAttributes: attributes atPath: destination];
-	  return YES;
+	  if (handler != nil)
+	    {
+	      NSDictionary	*errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys: 
+		  source, @"Path", destination, @"ToPath",
+			  @"cannot link to file", @"Error",
+			  nil];
+	      result = [handler fileManager: self
+		    shouldProceedAfterError: errorInfo];
+	    }
+	  if (result == NO)
+	    {
+	      return NO;
+	    }
 	}
     }
   else
     {
       [handler fileManager: self willProcessPath: source];
-      if (![self _copyFile: source toFile: destination handler: handler])
-	return NO;
-      else
+      if ([self _copyFile: source toFile: destination handler: handler] == NO)
 	{
-	  [self changeFileAttributes: attributes atPath: destination];
-	  return YES;
+	  return NO;
 	}
     }
-
-  return NO;
+  [self changeFileAttributes: attrs atPath: destination];
+  return YES;
 }
 
 - (BOOL) movePath: (NSString*)source
