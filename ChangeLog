@@ -1,3 +1,8 @@
+2001-05-02  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSObject.m ([NSObject +initialize]): fixed a FreeBSD specific
+	code bug introduced by the call of GSSetLocaleC().
+
 Wed May  2 13:19:13 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/UnixFileHandle.m (id): Redefine `id' when including
