@@ -76,7 +76,8 @@ FILE_AUTHORS = \
 "Jeremy Bettis" \
 "Georg Tuparev" \
 "Peter Burka" \
-"Albin L. Jones"
+"Albin L. Jones" \
+"Scott Christley"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
