@@ -58,29 +58,6 @@
 @end
 
 /*
- * Private concrete string classes.
- * NB. All these concrete string classes MUST have the same initial ivar
- * layout so that we can swap between them as necessary.
- * The initial layout must also match that of NXConstantString (which is
- * determined by the compiler).
- */
-@interface GSString : NSString
-{
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
-  unsigned int	_count;
-  struct {
-    unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Should free memory?
-    unsigned int	unused: 2;
-    unsigned int	hash: 28;
-  } _flags;
-}
-@end
-
-/*
  * GSCString - concrete class for strings using 8-bit character sets.
  */
 @interface GSCString : GSString
