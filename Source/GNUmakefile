@@ -168,6 +168,7 @@ win32-def.top \
 libgnustep-base.def
 
 GNU_HEADERS = \
+fast.x \
 Archiver.h \
 Array.h \
 ArrayPrivate.h \
