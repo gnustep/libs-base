@@ -132,12 +132,12 @@ GS_EXPORT NSString* const NSLocale;
 
 /* Getting the Shared Instance */
 + (NSUserDefaults*) standardUserDefaults;
-#ifndef	NO_GNUSTEP
+#ifndef	STRICT_OPENSTEP
 /*
  * Called by GSSetUserName() to get the defaults system to use the defaults
  * of a new user.
  */
-+ (void) resetUserDefaults;
++ (void) resetStandardUserDefaults;
 #endif
 + (NSArray*) userLanguages;
 + (void) setUserLanguages: (NSArray*)languages;
