@@ -2,6 +2,9 @@
 
 	* Source/Unicode.m: Rationalise so that all conversion operations
 	go through the two new functions.  Gets rid of a load of old code.
+	* Source/GSString.m: ([-replaceCharactersInRange:withString:])
+	minor performance enhancement when copying from a 16-bit string
+	to an 8-bit string.
 
 2002-05-10  Adam Fedor  <fedor@gnu.org>
 

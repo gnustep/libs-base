@@ -2938,23 +2938,43 @@ transmute(ivars self, NSString *aString)
 	}
       else
 	{
+	  /*
+	   * As we got here, intEnc == defEnc, so we can use standard
+	   * CString methods to get the characters into our buffer,
+	   * or may even be able to copy from another string directly.
+	   */
 	  if (other == 0)
 	    {
-	      unsigned	l;
-
 	      /*
-	       * Since getCString appends a '\0' terminator, we must ask for
-	       * one character less than we actually want, then get the last
-	       * character separately.
+	       * Since getCString appends a '\0' terminator, we must handle 
+	       * that problem in copying data into our buffer.  Either by
+	       * saving and restoring the character which would be
+	       * overwritten by the nul, or by getting a character less,
+	       * and fetching the last character separately.
 	       */
-	      l = length - 1;
-	      if (l > 0)
+	      if (aRange.location + length  < _count)
 		{
+		  unsigned char	tmp = _contents.c[aRange.location + length];
+
 		  [aString getCString: &_contents.c[aRange.location]
-			    maxLength: l];
+			    maxLength: length];
+		  _contents.c[aRange.location + length] = tmp;
 		}
-	      _contents.c[aRange.location + l]
-		= encode_unitochar([aString characterAtIndex: l], intEnc);
+	      else
+		{ 
+		  unsigned int	l = length - 1;
+		  unsigned int  size = 1;
+		  unichar	u;
+		  unsigned char *dst = &_contents.c[aRange.location + l];
+
+		  if (l > 0)
+		    {
+		      [aString getCString: &_contents.c[aRange.location]
+				maxLength: l];
+		    }
+		  u = [aString characterAtIndex: l];
+		  GSFromUnicode(&dst, &size, &u, 1, intEnc, 0, 0);
+		}
 	    }
 	  else
 	    {
