@@ -195,8 +195,7 @@ o_map_cbs.m \
 preface.m \
 proplist.tab.m \
 mframe.m \
-objc-gnu2next.m \
-objc-malloc.m
+objc-gnu2next.m
 
 GNU_CFILES = \
 md5.c \
@@ -310,7 +309,6 @@ include/o_map.h \
 include/o_map_bas.h \
 include/o_map_cbs.h \
 include/objc-gnu2next.h \
-include/objc-malloc.h \
 include/all.h \
 include/README 
 
