@@ -33,6 +33,8 @@
   NSFileHandle	*handle;	/* File handle to talk to gdomap.	*/
   NSMutableData	*data;		/* Where to accumulated incoming data.	*/
   unsigned	expecting;	/* Length of data we want.		*/
+  NSMapTable	*portMap;	/* Registered ports information.	*/
+  NSMapTable	*nameMap;	/* Registered names information.	*/
 }
 + (id) defaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;
@@ -41,6 +43,10 @@
 - (BOOL) registerPort: (NSPort*)port
 	      forName: (NSString*)name;
 - (void) removePortForName: (NSString*)name;
+@end
+
+@interface	NSPortNameServer (GNUstep)
+- (void) removePort: (NSPort*)port;		/* remove all names for port */
 @end
 
 #endif

@@ -26,6 +26,8 @@
 
 #include	<Foundation/NSObject.h>
 
+@class	NSMutableSet;
+
 extern NSString *NSPortTimeoutException; /* OPENSTEP */
 
 @interface NSPort : NSObject <NSCoding, NSCopying>
@@ -55,6 +57,7 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 
 + (Class) outPacketClass;
 - (Class) outPacketClass;
+
 @end
 
 extern	NSString*	NSPortDidBecomeInvalidNotification;

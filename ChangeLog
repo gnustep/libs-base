@@ -1,3 +1,17 @@
+Fri Oct 30 09:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/include/NSPortNameServer.h: Added ([-removePort:]) method in a
+	GNUstep catagory so that ports can unregister all their names at one
+	go. Added maps of names and ports to keep track.
+	* src/include/Port.h: removed [-invalidate] - inherit from NSPort
+	* src/Port.m: removed [-invalidate] - inherit from NSPort
+	* src/NSPort.m: made [-invalidate] method remove all the ports names
+	from the name server and send the invalidation notification.
+	* src/NSPortNameServer.m: Keep track of name/port mappings and, the
+	first time a name is registered for a port, tell gdomap to remove
+	any pre-existing names for that port (left around from a crashed
+	server perhaps).
+
 Thu Oct 29 13:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/UnixFileHandle.m: Improved handling of error conditions on

@@ -1,5 +1,5 @@
-/* Implementation of abstract superclass port for use with Connection
-   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+/* Implementation of abstract superclass port for use with NSConnection
+   Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: August 1997
@@ -23,7 +23,9 @@
 
 #include <config.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSAutoreleasePool.h>
 
 NSString*	NSPortDidBecomeInvalidNotification
@@ -36,87 +38,96 @@ NSString *NSPortTimeoutException
 
 + (NSPort*) port
 {
-    return [[[NSPort alloc] init] autorelease];
+  return [[[NSPort alloc] init] autorelease];
 }
 
 + (NSPort*) portWithMachPort: (int)machPort
 {
-    return [[[NSPort alloc] initWithMachPort:machPort] autorelease];
+  return [[[NSPort alloc] initWithMachPort: machPort] autorelease];
 }
 
-- copyWithZone: (NSZone*)aZone
+- (id) copyWithZone: (NSZone*)aZone
 {
-    return NSCopyObject(self, 0, aZone);
+  return [self retain];
 }
 
-- delegate
+- (id) delegate
 {
-    return delegate;
+  return delegate;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+  [self subclassResponsibility: _cmd];
 }
 
-- init
+- (id) init
 {
-    self = [super init];
-    return self;
+  self = [super init];
+  return self;
 }
 
-- initWithCoder: (NSCoder*)aCoder
+- (id) initWithCoder: (NSCoder*)aCoder
 {
-    return self;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
-- initWithMachPort: (int)machPort
+- (id) initWithMachPort: (int)machPort
 {
-    [self notImplemented: _cmd];
-    return nil;
+  [self notImplemented: _cmd];
+  return nil;
 }
 
+/*
+ *	subclasses should override this method and call [super invalidate]
+ *	in their versions of the method.
+ */
 - (void) invalidate
 {
-    [self subclassResponsibility: _cmd];
+  [[NSPortNameServer defaultPortNameServer] removePort: self];
+  is_valid = NO;
+  [NSNotificationCenter postNotificationName: NSPortDidBecomeInvalidNotification
+				      object: self];
 }
 
 - (BOOL) isValid
 {
-    return is_valid;
+  return is_valid;
 }
 
-- machPort
+- (id) machPort
 {
-    [self notImplemented: _cmd];
-    return nil;
+  [self notImplemented: _cmd];
+  return nil;
 }
 
 - (void) release
 {
-    if (is_valid && [self retainCount] == 1) {
-	NSAutoreleasePool	*arp;
+  if (is_valid && [self retainCount] == 1)
+    {
+      NSAutoreleasePool	*arp;
 
-	/*
-	 *	If the port is about to have a final release deallocate it
-	 *	we must invalidate it.  Use a local autorelease pool when
-	 *	invalidating so that we know that anything refering to this
-	 *	port during the invalidation process is released immediately.
-	 *	Also - bracket with retain/release pair to prevent recursion.
-	 */
-	[super retain];
-        arp = [[NSAutoreleasePool alloc] init];
-	[self invalidate];
-	[arp release];
-	[super release];
+      /*
+       *	If the port is about to have a final release deallocate it
+       *	we must invalidate it.  Use a local autorelease pool when
+       *	invalidating so that we know that anything refering to this
+       *	port during the invalidation process is released immediately.
+       *	Also - bracket with retain/release pair to prevent recursion.
+       */
+      [super retain];
+      arp = [[NSAutoreleasePool alloc] init];
+      [self invalidate];
+      [arp release];
+      [super release];
     }
-    [super release];
+  [super release];
 }
 
 - (void) setDelegate: anObject
 {
-    delegate = anObject;
+  delegate = anObject;
 }
 
 @end
-
 
