@@ -2041,7 +2041,10 @@ static BOOL snuggleStart(NSString *t)
 		  isEqual: @",..."])
 		{
 		  pos += 4;
-		  c = [tmp characterAtIndex: pos];
+		  if (pos < ePos)
+		    {
+		      c = [tmp characterAtIndex: pos];
+		    }
 		}
 	      if (pos > 1 && (pos == ePos || c == ',' || c == '.' || c == ';'))
 		{
