@@ -46,9 +46,6 @@ id announce_broken_port (id notification)
   s = [o appellation];
   printf("Added remote object with appellation %s\n", s);
 
-  /* Free it because the remote messaging system malloc'ed it for us,
-     and we don't need it anymore. */
-  (*objc_free)((void*)s);
   return self;
 }
 
