@@ -117,6 +117,21 @@
     </item>
   </list>
   <p>
+    Generally, the text in comments is reformatted to standardise and
+    indent it nicely ... the reformatting is <em>not</em> performed on
+    any text inside an &lt;example&gt; element.<br />
+    When the text is reformatted, it is broken into whitespace separated
+    'words' which are then subjected to some extra processing ...
+  </p>
+  <list>
+    <item>Certain well known constants such as YES, NO, and nil are
+      enclosed in &lt;code&gt; ... &lt;/code&gt; markup.
+    </item>
+    <item>Method names (beginning with a plus or minus) are enclosed
+      in &lt;ref...&gt; ... &lt;/ref&gt; markup.
+    </item>
+  </list>
+  <p>
     The tools accepts certain user defaults (which can of course be
     supplied as command-line arguments as usual) -
   </p>

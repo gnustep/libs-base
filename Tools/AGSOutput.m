@@ -179,8 +179,8 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-  [str appendString: @"\"-//GNUstep//DTD gsdoc 0.6.5//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_5.xml\">\n"];
+  [str appendString: @"\"-//GNUstep//DTD gsdoc 0.6.6//EN\" "];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_6.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   tmp = [info objectForKey: @"Base"];
@@ -878,20 +878,75 @@ static BOOL snuggleStart(NSString *t)
 
   for (l = 0; l < [a count]; l++)
     {
+      static NSArray	*constants = nil;
+      static unsigned	cCount = 0;
+      unsigned		pos;
       NSString	*tmp = [a objectAtIndex: l];
 
       /*
        * Ensure that well known constants are rendered as 'code'
        */
-      if ([tmp isEqual: @"YES"]
-	|| [tmp isEqual: @"NO"]
-	|| [tmp isEqual: @"nil"])
+      if (constants == nil)
 	{
-	  if (l == 0 || [[a objectAtIndex: l - 1] isEqual: @"<code>"] == NO)
+	  constants = [[NSArray alloc] initWithObjects:
+	    @"YES", @"NO", @"nil", nil];
+	  cCount = [constants count];
+	}
+      for (pos = 0; pos < cCount; pos++)
+	{
+	  NSString	*c = [constants objectAtIndex: pos];
+	  NSRange	r = [tmp rangeOfString: c];
+
+	  if (r.length > 0)
 	    {
-	      [a insertObject: @"</code>" atIndex: l + 1];
-	      [a insertObject: @"<code>" atIndex: l];
-	      l += 2;
+	      NSString	*start;
+	      NSString	*end;
+
+	      if (r.location > 0)
+		{
+		  start = [tmp substringToIndex: r.location];
+		}
+	      else
+		{
+		  start = nil;
+		}
+	      if (NSMaxRange(r) < [tmp length])
+		{
+		  end = [tmp substringFromIndex: NSMaxRange(r)];
+		}
+	      else
+		{
+		  end = nil;
+		}
+	      if ((start == nil || snuggleStart(start) == YES)
+		&& (end == nil || snuggleEnd(end) == YES))
+		{
+		  NSString	*sub;
+
+		  if (start != nil || end != nil)
+		    {
+		      sub = [tmp substringWithRange: r];
+		    }
+		  else
+		    {
+		      sub = nil;
+		    }
+		  if (start != nil)
+		    {
+		      [a insertObject: start atIndex: l++];
+		    }
+		  [a insertObject: @"<code>" atIndex: l++];
+		  if (sub != nil)
+		    {
+		      [a replaceObjectAtIndex: l withObject: sub];
+		    }
+		  l++;
+		  [a insertObject: @"</code>" atIndex: l];
+		  if (end != nil)
+		    {
+		      [a insertObject: end atIndex: ++l];
+		    }
+		}
 	    }
 	}
 
