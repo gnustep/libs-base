@@ -1,6 +1,10 @@
 2004-05-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Create output directories if necessary.
+	* Headers/Foundation/NSAutoreleasePool.h: Rationalised a little
+	Moved documentation from source code.
+	* Source/NSAutoreleasePool.m: Rationalised a little
+	Moved documentation to headers.
 
 2004-05-14 Richard Frith-Macdonald <rfm@gnu.org>
 
