@@ -1,5 +1,5 @@
 /* This is a simple name server for GNUstep Distributed Objects
-   Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998, 2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1996
@@ -44,7 +44,8 @@
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
 #ifdef __MINGW__
-#include <winsock.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <wininet.h>
 #include <process.h>
 #include <sys/time.h>
@@ -125,6 +126,7 @@
 #define	MAX_EXTRA	((GDO_NAME_MAX_LEN - 2 * IASIZE)/IASIZE)
 
 typedef	unsigned char	*uptr;
+int	daemon = 0;		/* Currently running as daemon.		*/
 int	debug = 0;		/* Extra debug logging.			*/
 int	nobcst = 0;		/* turn off broadcast probing.		*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
@@ -271,16 +273,23 @@ static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
-int		log_perror = 0;
-int		log_priority;
+int	is_daemon = 0;
+int	log_perror = 0;
+int	log_priority;
 
 void
 log (int prio)
 {
-  syslog (log_priority | prio, ebuf);
-
-  /* Also log it to stderr? */
-  if (log_perror || nofork)
+  if (daemon)
+    {
+      syslog (log_priority | prio, ebuf);
+    }
+  else if (prio == 0)
+    {
+      write (0, ebuf, strlen (ebuf));
+      write (0, "\n", 1);
+    }
+  else
     {
       write (2, ebuf, strlen (ebuf));
       write (2, "\n", 1);
@@ -288,8 +297,11 @@ log (int prio)
 
   if (prio == LOG_CRIT)
     {
-      syslog (LOG_CRIT, "exiting.");
-      if (log_perror || nofork)
+      if (daemon)
+	{
+	  syslog (LOG_CRIT, "exiting.");
+	}
+      else
      	{
 	  fprintf (stderr, "exiting.\n");
 	  fflush (stderr);
@@ -299,9 +311,9 @@ log (int prio)
 }
 #else
 
-#define	LOG_CRIT	1
+#define	LOG_CRIT	2
 #define LOG_DEBUG	0
-#define LOG_ERR		0
+#define LOG_ERR		1
 #define LOG_INFO	0
 #define LOG_WARNING	0
 void
@@ -1146,7 +1158,7 @@ dump_tables()
     }
   else
     {
-  log(LOG_INFO);
+      sprintf(ebuf, "Failed to open gdomap.dump file for output\n");
       log(LOG_ERR);
     }
 }
@@ -1159,6 +1171,72 @@ dump_tables()
 static void
 init_iface()
 {
+#ifdef __MINGW__
+  INTERFACE_INFO InterfaceList[20];
+  unsigned long nBytesReturned;
+  int i, nNumInterfaces;
+  SOCKET desc = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
+
+  if (desc == SOCKET_ERROR)
+    {
+      sprintf(ebuf, "Failed to get a socket. Error %s\n", WSAGetLastError());
+      log(LOG_CRIT);
+      exit(1);
+    }
+
+  if (WSAIoctl(desc, SIO_GET_INTERFACE_LIST, 0, 0, &InterfaceList,
+    sizeof(InterfaceList), &nBytesReturned, 0, 0) == SOCKET_ERROR)
+    {
+      sprintf(ebuf, "Failed WSAIoctl. Error %s\n", WSAGetLastError());
+      log(LOG_CRIT);
+      exit(1);
+    }
+
+  nNumInterfaces = nBytesReturned / sizeof(INTERFACE_INFO);
+
+  /*
+   * Allocate enough space for all interfaces.
+   */
+  if (addr != 0) free(addr);
+  addr = (struct in_addr*)malloc((nNumInterfaces+1)*IASIZE);
+  if (bcok != 0) free(bcok);
+  bcok = (char*)malloc((nNumInterfaces+1)*sizeof(char));
+  if (bcst != 0) free(bcst);
+  bcst = (struct in_addr*)malloc((nNumInterfaces+1)*IASIZE);
+  if (mask != 0) free(mask);
+  mask = (struct in_addr*)malloc((nNumInterfaces+1)*IASIZE);
+
+  for (i = 0; i < nNumInterfaces; i++)
+    {
+      u_long		nFlags = InterfaceList[i].iiFlags;
+
+      if (nFlags & IFF_UP)
+        {  /* interface is up */
+	  int	broadcast = 0;
+	  int	pointopoint = 0;
+	  int	loopback = 0;
+
+	  if (nFlags & IFF_BROADCAST)
+	    {
+	      broadcast = 1;
+	    }
+	  if (nFlags & IFF_POINTTOPOINT)
+	    {
+	      pointopoint = 1;
+	    }
+	  if (nFlags & IFF_LOOPBACK)
+	    {
+	      loopback = 1;
+	    }
+	  addr[interfaces] = ((struct sockaddr_in*)&(InterfaceList[i].iiAddress))->sin_addr;
+	  mask[interfaces] = ((struct sockaddr_in*)&(InterfaceList[i].iiNetmask))->sin_addr;
+	  bcst[interfaces] = ((struct sockaddr_in*)&(InterfaceList[i].iiBroadcastAddress))->sin_addr;
+	  bcok[interfaces] = (broadcast | pointopoint);
+	  interfaces++;
+	}
+    }
+  closesocket(desc);
+#else
 #ifdef	SIOCGIFCONF
   struct ifconf	ifc;
   struct ifreq	ifreq;
@@ -1357,15 +1435,16 @@ init_iface()
 	}
     }
 #ifdef __MINGW__
-      closesocket(desc);
+  closesocket(desc);
 #else
-      close(desc);
+  close(desc);
 #endif /* __MINGW__ */
 #else
   sprintf(ebuf, "I can't find the SIOCGIFCONF ioctl on this platform - "
     "use the '-a' flag to load interface details from a file instead.");
   log(LOG_CRIT);
   exit(1);
+#endif
 #endif
 }
 
@@ -4336,6 +4415,7 @@ printf(
 #ifndef __MINGW__ /* On Win32, we don't fork */
   if (nofork == 0)
     {
+      daemon = 1;
       /*
        *	Now fork off child process to run in background.
        */
