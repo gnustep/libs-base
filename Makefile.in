@@ -55,7 +55,7 @@ exec_prefix = @exec_prefix@
 
 # Installation locations
 libdir = $(exec_prefix)/lib
-includedir = $(prefix)/include/objects
+includedir = $(prefix)/include
 infodir = $(prefix)/info
 
 #### End of system configuration section. ####
@@ -267,16 +267,16 @@ install: installdirs all
 	$(INSTALL_DATA) libobjects.a $(libdir)/libobjects.a
 	$(RANLIB) $(libdir)/libobjects.a
 	for file in $(INSTALL_HEADERS); do \
-	  $(INSTALL_DATA) $$file $(includedir) ; \
+	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
 	done
 	$(INSTALL_DATA) libobjects.info $(infodir)
 
 installdirs:
 	$(srcdir)/mkinstalldirs $(libdir) $(infodir) \
-	 $(includedir) \
-	 $(includedir)/next-include \
-	 $(includedir)/next-include/objc \
-	 $(includedir)/next-include/foundation
+	 $(includedir)/objects \
+	 $(includedir)/objects/next-include \
+	 $(includedir)/objects/next-include/objc \
+	 $(includedir)/objects/next-include/foundation
 
 uninstall:
 	rm -f $(libdir)/libobjects.a
