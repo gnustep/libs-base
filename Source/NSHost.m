@@ -24,8 +24,9 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSDictionary.h>
 #include <netdb.h>
-#include <libc.h>
+/* #include <libc.h> */
 
 #ifdef WIN32
 #include <Windows32/Sockets.h>
