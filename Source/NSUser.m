@@ -506,10 +506,20 @@ userDirectory(NSString *name, BOOL defaults)
 	      val = [val stringByTrimmingSpaces];
 	      if ([key isEqualToString: @"GNUSTEP_USER_ROOT"] == YES)
 		{
+		  if ([val length] > 0 && [val characterAtIndex: 0] == '~')
+		    {
+		      val = [home stringByAppendingString:
+			[val substringFromIndex: 1]];
+		    }
 		  user = val;
 		}
 	      else if ([key isEqualToString: @"GNUSTEP_DEFAULTS_ROOT"] == YES)
 		{
+		  if ([val length] > 0 && [val characterAtIndex: 0] == '~')
+		    {
+		      val = [home stringByAppendingString:
+			[val substringFromIndex: 1]];
+		    }
 		  defs = val;
 		}
 	    }
