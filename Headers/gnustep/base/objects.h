@@ -1,5 +1,5 @@
 /* Includes interfaces for all concrete objects classes
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -63,8 +63,8 @@
 
 /* Coder objects */
 #include <objects/Coder.h>
-#include <objects/BinaryCoder.h>
-#include <objects/TextCoder.h>
+#include <objects/BinaryCStream.h>
+#include <objects/TextCStream.h>
 
 /* Port objects */
 #include <objects/Port.h>
