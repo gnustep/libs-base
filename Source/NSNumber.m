@@ -679,42 +679,42 @@ static Class	doubleNumberClass;
       switch (info->typeLevel)
 	{
 	  case 0:
-	    return [self boolValue] ? @"YES" : @"NO";
+	    return [self boolValue] ? @"true" : @"false";
 	  case 1:
-	    return [NSString stringWithFormat: @"%c",
-	      [self charValue]];
+	    return [NSString stringWithFormat: @"%i",
+	      (int)[self charValue]];
 	  case 2:
-	    return [NSString stringWithFormat: @"%c",
-	      [self unsignedCharValue]];
+	    return [NSString stringWithFormat: @"%u",
+	      (unsigned int)[self unsignedCharValue]];
 	  case 3:
-	    return [NSString stringWithFormat: @"%hd",
-	      [self shortValue]];
+	    return [NSString stringWithFormat: @"%hi",
+	      (short int)[self shortValue]];
 	  case 4:
 	    return [NSString stringWithFormat: @"%hu",
-	      [self unsignedShortValue]];
+	      (unsigned short int)[self unsignedShortValue]];
 	  case 5:
-	    return [NSString stringWithFormat: @"%d",
+	    return [NSString stringWithFormat: @"%i",
 	      [self intValue]];
 	  case 6:
 	    return [NSString stringWithFormat: @"%u",
 	      [self unsignedIntValue]];
 	  case 7:
-	    return [NSString stringWithFormat: @"%ld",
+	    return [NSString stringWithFormat: @"%li",
 	      [self longValue]];
 	  case 8:
 	    return [NSString stringWithFormat: @"%lu",
 	      [self unsignedLongValue]];
 	  case 9:
-	    return [NSString stringWithFormat: @"%lld",
+	    return [NSString stringWithFormat: @"%lli",
 	      [self longLongValue]];
 	  case 10:
 	    return [NSString stringWithFormat: @"%llu",
 	      [self unsignedLongLongValue]];
 	  case 11:
-	    return [NSString stringWithFormat: @"%f",
-	      [self floatValue]];
+	    return [NSString stringWithFormat: @"%0.7g",
+	      (double)[self floatValue]];
 	  case 12:
-	    return [NSString stringWithFormat: @"%g",
+	    return [NSString stringWithFormat: @"%0.16g",
 	      [self doubleValue]];
 	  default:
 	    [NSException raise: NSInvalidArgumentException
