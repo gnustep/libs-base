@@ -1,8 +1,10 @@
 /* Implementation of host class
-   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997,1999 Free Software Foundation, Inc.
    
    Written by: Luke Howard <lukeh@xedoc.com.au> 
    Date: 1996
+   Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: 1999
    
    This file is part of the GNUstep Base Library.
 
