@@ -27,7 +27,7 @@ AC_INIT(src/Collection.m)
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(src/include/config.h)
+AC_CONFIG_HEADER(src/include/config.h src/include/GSConfig.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems

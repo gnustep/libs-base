@@ -53,6 +53,8 @@ after-install::
 	  $(INSTALL_DATA) ./include/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
 	done
+	$(INSTALL_DATA) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h \
+	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
 	  if [ "`whoami`" != root ]; then \
 	    echo "WARNING: Please add the following lines yourself"; \
@@ -89,7 +91,7 @@ after-uninstall::
 
 # Things to do after distcleaning
 after-distclean::
-	rm -f include/config.h include/dynamic-load.h \
+	rm -f include/config.h include/GSConfig.h include/dynamic-load.h \
 		Foundation gnustep/base \
 		NSNumber[0-9]*.m NSValue[0-9]*.m o_*_bas.m
 	rmdir gnustep
@@ -178,6 +180,11 @@ $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
 	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
 	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
+	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
+	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv include/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 include/o_%_bas.h: include/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
