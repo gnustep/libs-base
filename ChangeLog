@@ -1,3 +1,9 @@
+2003-10-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSPrivate.h: New macros to aid with appropriate use of stack
+	or heap for allocating temporary storage.
+	* NSArray.m: Use new OBUFBEGIN() and OBUFEND() macros.
+
 2003-10-09  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add special check for sys/mount.h for NetBSD.

@@ -265,16 +265,20 @@ static SEL	rlSel;
     [NSException raise: NSInvalidArgumentException
 		format: @"Attempt to add nil to an array"];
   if (c == 0)
-    na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
-      initWithObjects: &anObject count: 1];
+    {
+      na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: &anObject count: 1];
+    }
   else
     {
-      id	objects[c+1];
+      OBUFBEGIN(objects, c+1)
 
       [self getObjects: objects];
       objects[c] = anObject;
       na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
 	initWithObjects: objects count: c+1];
+
+      OBUFEND(objects, c+1)
     }
   return AUTORELEASE(na);
 }
@@ -290,13 +294,15 @@ static SEL	rlSel;
 
   c = [self count];
   l = [anotherArray count];
-  {
-    id	objects[c+l];
 
-    [self getObjects: objects];
-    [anotherArray getObjects: &objects[c]];
-    na = [NSArrayClass arrayWithObjects: objects count: c+l];
-  }
+  OBUFBEGIN(objects, c+l)
+
+  [self getObjects: objects];
+  [anotherArray getObjects: &objects[c]];
+  na = [NSArrayClass arrayWithObjects: objects count: c+l];
+
+  OBUFEND(objects, c+l)
+
   return na;
 }
 
@@ -352,12 +358,13 @@ static SEL	rlSel;
 
   if (count > 0)
     {
-      id	a[count];
+      OBUFBEGIN(a, count)
 
       [self getObjects: a];
       [aCoder encodeArrayOfObjCType: @encode(id)
                               count: count
                                  at: a];
+      OBUFEND(a, count)
     }
 }
 
@@ -494,7 +501,7 @@ static SEL	rlSel;
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy
 {
   unsigned	c = [array count];
-  id		objects[c];
+  OBUFBEGIN(objects, c)
 
   [array getObjects: objects];
   if (shouldCopy == YES)
@@ -517,6 +524,7 @@ static SEL	rlSel;
     {
       self = [self initWithObjects: objects count: c];
     }
+  OBUFEND(objects, c)
   return self;
 }
 
@@ -528,10 +536,11 @@ static SEL	rlSel;
 - (id) initWithArray: (NSArray*)array
 {
   unsigned	c = [array count];
-  id		objects[c];
+  OBUFBEGIN(objects, c)
 
   [array getObjects: objects];
   self = [self initWithObjects: objects count: c];
+  OBUFEND(objects, c)
   return self;
 }
 
@@ -547,7 +556,7 @@ static SEL	rlSel;
 			     at: &count];
   if (count > 0)
     {
-      id	contents[count];
+      OBUFBEGIN(contents, count)
 
       [aCoder decodeArrayOfObjCType: @encode(id)
                               count: count
@@ -559,6 +568,7 @@ static SEL	rlSel;
 	  [contents[count] release];
 	}
 #endif
+      OBUFEND(contents, count)
     }
   else
     {
@@ -974,10 +984,11 @@ compare(id elem1, id elem2, void* context)
     }
   else
     {
-      id	objects[aRange.length];
+      OBUFBEGIN(objects, aRange.length)
 
       [self getObjects: objects range: aRange];
       na = [NSArray arrayWithObjects: objects count: aRange.length];
+      OBUFEND(objects, aRange.length)
     }
   return na;
 }
@@ -1728,12 +1739,15 @@ compare(id elem1, id elem2, void* context)
 
 - (id) initWithArray: (NSArray*)anArray
 {
-  [super init];
-  array = anArray;
-  IF_NO_GC(RETAIN(array));
-  pos = 0;
-  get = [array methodForSelector: oaiSel];
-  cnt = (unsigned (*)(NSArray*, SEL))[array methodForSelector: countSel];
+  self = [super init];
+  if (self != nil)
+    {
+      array = anArray;
+      IF_NO_GC(RETAIN(array));
+      pos = 0;
+      get = [array methodForSelector: oaiSel];
+      cnt = (unsigned (*)(NSArray*, SEL))[array methodForSelector: countSel];
+    }
   return self;
 }
 
@@ -1765,8 +1779,11 @@ compare(id elem1, id elem2, void* context)
 
 - (id) initWithArray: (NSArray*)anArray
 {
-  [super initWithArray: anArray];
-  pos = (*cnt)(array, countSel);
+  self = [super initWithArray: anArray];
+  if (self != nil)
+    {
+      pos = (*cnt)(array, countSel);
+    }
   return self;
 }
 
