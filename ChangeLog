@@ -1,3 +1,10 @@
+Fri Aug 31 11:58:42 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Documentation/gsdoc/NSFunctions.gsdoc: Documented the
+	localization functions/macros: NSLocalizedString,
+	NSLocalizedStringFromTable, NSLocalizedStringFromTableInBundle,
+	NSLocalizedStaticString, _ and __.
+
 2001-08-30  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/sfparse.m: Add code to convert files to Unicode.
