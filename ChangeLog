@@ -1,4 +1,4 @@
-Fri Jan  4 10:15:48 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+Fri Jan  4 11:42:23 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/HTMLLinker.m: Implemented -FixupAllLinks, -PathMappings,
 	-PathMappingsFile options.  Made -CheckLinks default to YES.
@@ -6,6 +6,7 @@ Fri Jan  4 10:15:48 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 	file, meaning all html files found in the directory.  Never
 	attempt to fixup links starting with mailto: or news: or without a
 	filename, even if running with -FixupAllLinks YES.
+	* Tools/HTMLLinker.html: New file.
 	
 2002-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
