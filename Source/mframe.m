@@ -30,7 +30,7 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
-#include <gnustep/base/mframe.h>
+#include <mframe.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdlib.h>

@@ -26,7 +26,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
-#include <gnustep/base/mframe.h>
+#include <mframe.h>
 
 @implementation NSInvocation
 

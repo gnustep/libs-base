@@ -34,7 +34,7 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/DistributedObjects.h>
 #include <gnustep/base/TcpPort.h>
-#include <gnustep/base/mframe.h>
+#include <mframe.h>
 #include <gnustep/base/NotificationDispatcher.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
