@@ -214,8 +214,9 @@ typedef	struct	{
  *	gdomap to another port, you can uncomment the next #define to
  *	run gdomap on port 6006 (or modify this to a port of your choice).
  *
- *	When you have done this you must recompile gdomap.c and TcpPort.m
- *	and re-install the base library with the new TcpPort.o
+ *	When you have done this you must recompile gdomap.c and
+ *	NSPortNameServer.m and re-install the base library with
+ *	the new NSPortNameServer.o
  */
 /* #define	GDOMAP_PORT_OVERRIDE	6006	*/
 
