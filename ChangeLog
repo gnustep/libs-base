@@ -1,3 +1,8 @@
+Fri May 21 16:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSZone.h: Added NSZoneMallocAtomic() for Helge
+	and in anticipation of adding garbage collection support some day.
+
 Fri May 21  9:56:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSObject.h: Bracket macro definitions with #ifndef
