@@ -55,9 +55,9 @@
 {
   [anEncoder encodeValueOfCType:@encode(unsigned char)
 	     at:&_send_behavior
-	     withName:"DelegatePool Send Behavior"];
+	     withName:@"DelegatePool Send Behavior"];
   [anEncoder encodeObject:_list
-	     withName:"DelegatePool Collection of Delegates"];
+	     withName:@"DelegatePool Collection of Delegates"];
 }
 
 + newWithCoder: aDecoder

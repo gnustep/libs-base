@@ -149,13 +149,13 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 	  /* This proxy is local on the other side */
 	  willBeLocal = YES;
 	  [aRmc encodeObjectBycopy:nil
-		withName:"Proxy is local on other side"];
+		withName:@"Proxy is local on other side"];
 	  [aRmc encodeValueOfObjCType:@encode(unsigned)
 		at:&aTarget 
-		withName:"Object Proxy target"];
+		withName:@"Object Proxy target"];
 	  [aRmc encodeValueOfObjCType:@encode(BOOL)
 		at:&willBeLocal 
-		withName:"Proxy willBeLocal"];
+		withName:@"Proxy willBeLocal"];
 	}
       else
 	{
@@ -167,13 +167,13 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 	  /* It's remote here, so we need to tell other side where to form
 	     triangle connection to */
 	  [aRmc encodeObjectBycopy:op
-		withName:"Proxy outPort"];
+		withName:@"Proxy outPort"];
 	  [aRmc encodeValueOfObjCType:@encode(unsigned)
 		at:&aTarget 
-		withName:"Object Proxy target"];
+		withName:@"Object Proxy target"];
 	  [aRmc encodeValueOfObjCType:@encode(BOOL)
 		at:&willBeLocal 
-		withName:"Proxy willBeLocal"];
+		withName:@"Proxy willBeLocal"];
 	}
     }
   else
@@ -185,13 +185,13 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
       [[aRmc connection] addLocalObject:anObject];
       /* if nil port, other connection will use ConnectedCoder remotePort */
       [aRmc encodeObjectBycopy:nil 
-	    withName:"Proxy outPort == remotePort"];
+	    withName:@"Proxy outPort == remotePort"];
       [aRmc encodeValueOfObjCType:@encode(unsigned)
 	    at:&aTarget 
-	    withName:"Object Proxy target"];
+	    withName:@"Object Proxy target"];
       [aRmc encodeValueOfObjCType:@encode(BOOL)
 	    at:&willBeLocal 
-	    withName:"Proxy willBeLocal"];
+	    withName:@"Proxy willBeLocal"];
     }
 }
 

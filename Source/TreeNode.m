@@ -55,8 +55,8 @@
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeObjectReference:_parent withName:"Parent Tree Node"];
-  [aCoder encodeObject:_children withName:"Children of Tree Node"];
+  [aCoder encodeObjectReference:_parent withName:@"Parent Tree Node"];
+  [aCoder encodeObject:_children withName:@"Children of Tree Node"];
 }
 
 - initWithCoder: aCoder

@@ -60,7 +60,7 @@
 - (void) encodeWithCoder: aCoder
 {
   [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 
-	  withName:"Concrete String content_chars"];
+	  withName:@"Concrete String content_chars"];
 }
 
 - initWithCoder: aCoder
@@ -256,9 +256,9 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 - (void) encodeWithCoder: aCoder
 {
   [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity
-	  withName:"String capacity"];
+	  withName:@"String capacity"];
   [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 
-	  withName:"String content_chars"];
+	  withName:@"String content_chars"];
 }
 
 - initWithCoder: aCoder

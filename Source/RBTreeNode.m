@@ -41,7 +41,7 @@
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeValueOfObjCType:@encode(BOOL) at:&_red withName:"RBTreeNode isRed"];
+  [aCoder encodeValueOfObjCType:@encode(BOOL) at:&_red withName:@"RBTreeNode isRed"];
 }
 
 - initWithCoder: aCoder

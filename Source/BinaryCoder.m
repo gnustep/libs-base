@@ -99,7 +99,7 @@ static BOOL debug_binary_coder = NO;
       {
 	int length = strlen(*(char**)d);
 	[self encodeValueOfCType:@encode(int)
-	      at:&length withName:"BinaryCoder char* length"];
+	      at:&length withName:@"BinaryCoder char* length"];
 	[stream writeBytes:*(char**)d length:length];
 	break;
       }
@@ -173,7 +173,7 @@ static BOOL debug_binary_coder = NO;
 	char *s = buf;
 	sprintf(buf, "%f", *(float*)d);
 	[self encodeValueOfCType:@encode(char*)
-	      at:&s withName:"BinaryCoder float"];
+	      at:&s withName:@"BinaryCoder float"];
 	break;
       }
     case _C_DBL:
@@ -182,7 +182,7 @@ static BOOL debug_binary_coder = NO;
 	char *s = buf;
 	sprintf(buf, "%f", *(double*)d);
 	[self encodeValueOfCType:@encode(char*)
-	      at:&s withName:"BinaryCoder double"];
+	      at:&s withName:@"BinaryCoder double"];
 	break;
       }
     default:
@@ -317,7 +317,7 @@ static BOOL debug_binary_coder = NO;
       [[BinaryCoder debugStderrCoder] 
        encodeValueOfCType:type
        at:d
-       withName:"decoding unnamed"];
+       withName:@"decoding unnamed"];
     }
 }
 

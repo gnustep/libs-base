@@ -97,9 +97,9 @@
 
   [super _encodeCollectionWithCoder:aCoder];
   [aCoder encodeValueOfObjCType:@encode(char*) at:&encoding
-	  withName:"EltNodeCollector Content Type Encoding"];
+	  withName:@"EltNodeCollector Content Type Encoding"];
   [aCoder encodeValueOfObjCType:"#" at:&_node_class
-	  withName:"EltNodeCollector Content Node Class"];
+	  withName:@"EltNodeCollector Content Node Class"];
 }
 
 - _initCollectionWithCoder: aCoder
@@ -117,7 +117,7 @@
 - (void) _encodeContentsWithCoder: (Coder*)aCoder
 {
   [aCoder encodeObject:_contents_collector 
-	  withName:"EltNodeCollector Contents Collector"];
+	  withName:@"EltNodeCollector Contents Collector"];
 }
 
 - (void) _decodeContentsWithCoder: (Coder*)aCoder

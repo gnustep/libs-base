@@ -387,7 +387,7 @@ or
 {
   [aCoder encodeValueOfObjCType:@encode(typeof(sockPort.sin_port))
 	  at:&sockPort.sin_port 
-	  withName:"socket number"];
+	  withName:@"socket number"];
   if (![self isSoft])
     {
       struct hostent *hp;
@@ -400,13 +400,13 @@ or
       bcopy(hp->h_addr, &sp.sin_addr, hp->h_length);
       [aCoder encodeValueOfObjCType:@encode(typeof(sp.sin_addr.s_addr))
 	      at:&sp.sin_addr.s_addr
-	      withName:"inet address"];
+	      withName:@"inet address"];
     }
   else
     {
       [aCoder encodeValueOfObjCType:@encode(typeof(sockPort.sin_addr.s_addr))
 	      at:&sockPort.sin_addr.s_addr
-	      withName:"inet address"];
+	      withName:@"inet address"];
     }
 }
 
