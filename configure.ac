@@ -91,7 +91,7 @@ fi
 #--------------------------------------------------------------------
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
-if test "$OBJC_RUNTIME_LIB" = "nx"; then
+if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
   LIBOBJC='-lobjc'
   CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
