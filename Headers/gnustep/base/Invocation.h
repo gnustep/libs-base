@@ -69,7 +69,7 @@
 @end
 
 @interface TclInvocation
-- initWithTcl: (Tcl*)t command: (String*)c;
+- initWithTcl: (Tcl*)t command: (id <String>)c;
 @end
 
 @interface Collection (Invokes)

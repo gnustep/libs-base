@@ -45,7 +45,7 @@ typedef struct sockaddr_in sockport_t;
 + newForSockPort: (sockport_t)s;
 + newLocalWithNumber: (int)n;
 + newLocal;
-+ newRemoteWithNumber: (int)n onHost: (String*)h;
++ newRemoteWithNumber: (int)n onHost: (id <String>)h;
 
 - (sockport_t) sockPort;
 
