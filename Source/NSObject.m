@@ -464,16 +464,23 @@ static BOOL double_release_check_enabled = NO;
   return [[self class] conformsToProtocol:aProtocol];
 }
 
-+ (IMP) instanceMethodForSelector: (SEL)aSelector
+- (IMP) instanceMethodForSelector: (SEL)aSelector
 {
-  return method_get_imp(class_get_instance_method(self, aSelector));
+  /*
+   *	Since 'self' is an class, get_imp() will get the instance method.
+   */
+  return get_imp((Class)self, aSelector);
 }
-  
+
 - (IMP) methodForSelector: (SEL)aSelector
 {
-  return (method_get_imp(object_is_instance(self)
-                         ?class_get_instance_method(self->isa, aSelector)
-                         :class_get_class_method(self->isa, aSelector)));
+  /*
+   *	If 'self' is an instance, fastClass() will get the class,
+   *	and get_imp() will get the instance method.
+   *	If 'self' is a class, fastClass() will get the meta-class,
+   *	and get_imp() will get the class method.
+   */
+  return get_imp(fastClass(self), aSelector);
 }
 
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
@@ -671,12 +678,20 @@ static BOOL double_release_check_enabled = NO;
 
 - performSelector: (SEL)aSelector
 {
-  IMP msg = objc_msg_lookup(self, aSelector);
+  IMP msg;
+
+  if (aSelector == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nul selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
+    
+  msg = get_imp(fastClass(self), aSelector);
   if (!msg)
     {
-      [NSException
-	raise: NSGenericException
-	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      [NSException raise: NSGenericException
+		  format: @"invalid selector passed to %s", sel_get_name(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -684,27 +699,45 @@ static BOOL double_release_check_enabled = NO;
 
 - performSelector: (SEL)aSelector withObject: anObject
 {
-  IMP msg = objc_msg_lookup(self, aSelector);
-  if (!msg)
+  IMP msg;
+
+  if (aSelector == 0)
     {
-      [NSException
-	raise: NSGenericException
-	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nul selector passed to %s", sel_get_name(_cmd)];
       return nil;
     }
+    
+  msg = get_imp(fastClass(self), aSelector);
+  if (!msg)
+    {
+      [NSException raise: NSGenericException
+		  format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
+
   return (*msg)(self, aSelector, anObject);
 }
 
 - performSelector: (SEL)aSelector withObject: object1 withObject: object2
 {
-  IMP msg = objc_msg_lookup(self, aSelector);
-  if (!msg)
+  IMP msg;
+
+  if (aSelector == 0)
     {
-      [NSException
-	raise: NSGenericException
-	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nul selector passed to %s", sel_get_name(_cmd)];
       return nil;
     }
+  
+  msg = get_imp(fastClass(self), aSelector);
+  if (!msg)
+    {
+      [NSException raise: NSGenericException
+		  format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
+
   return (*msg)(self, aSelector, object1, object2);
 }
 
@@ -732,9 +765,10 @@ static BOOL double_release_check_enabled = NO;
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-  return ((object_is_instance(self)
-           ?class_get_instance_method(self->isa, aSelector)
-           :class_get_class_method(self->isa, aSelector))!=METHOD_NULL);
+  if (fastIsInstance(self))
+    return (class_get_instance_method(fastClass(self), aSelector)!=METHOD_NULL);
+  else
+    return (class_get_class_method(fastClass(self), aSelector)!=METHOD_NULL);
 }
 
 - retain
@@ -863,7 +897,7 @@ static BOOL double_release_check_enabled = NO;
   return objc_msg_sendv(self, aSel, argFrame);
 }
 
-+ (IMP)instanceMethodFor:(SEL)aSel
++ (IMP) instanceMethodFor:(SEL)aSel
 {
   return [self instanceMethodForSelector:aSel];
 }
@@ -876,7 +910,7 @@ static BOOL double_release_check_enabled = NO;
 		: nil;
 }
 
-- (IMP)methodFor:(SEL)aSel
+- (IMP) methodFor:(SEL)aSel
 {
   return [self methodForSelector:aSel];
 }
