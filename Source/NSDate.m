@@ -1,5 +1,5 @@
 /* Implementation for NSDate for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Jeremy Bettis <jeremy@hksys.com>
    Rewritten by:  Scott Christley <scottc@net-community.com>
@@ -254,11 +254,6 @@
   /* xxx We need to check for overflow? */
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
 		       seconds_since_ref + seconds];
-}
-
-- (NSTimeInterval) timeIntervalSince1970
-{
-  return seconds_since_ref - UNIX_REFERENCE_INTERVAL;
 }
 
 - (NSTimeInterval) timeIntervalSince1970
