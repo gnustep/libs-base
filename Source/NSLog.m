@@ -1,11 +1,11 @@
-/* Implementation of NSLog() error loging functions for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
-   
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: Nov 1995
+/* Interface for NSLog for GNUStep
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+
+   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Date: November 1996
    
    This file is part of the GNUstep Base Library.
-
+   
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
@@ -21,22 +21,51 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-`void NSLog(NSString *format,...'
-     ) Writes to stderr an error message of the form:
+#include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSProcessInfo.h>
 
-     ª \i time processName processID format\i0 º. The format argument
-     to `NSLog()' is a format string in the style of the standard C
-     function `printf()', followed by an arbitrary number of arguments
-     that match conversion specifications (such as %s or %d) in the
-     format string. (You can pass an object in the list of arguments by
-     specifying % in the format stringÐthis conversion specification
-     gets replaced by the string that the object's description method
-     returns.)
+NSLog_printf_handler *_NSLog_printf_handler;
 
-void
-NSLogv(NSString* format, va_list args)
+static void
+_NSLog_standard_printf_handler (NSString* message)
 {
-  fprintf(stderr, "", );
-  vfprintf(stderr, [[NSString stringWithFormat:format
-		     arguments:args] cString]);
+  fprintf (stderr, [message cStringNoCopy]);
 }
+
+void 
+NSLog (NSString* format, ...)
+{
+  va_list ap;
+
+  va_start (ap, format);
+  NSLogv (format, ap);
+  va_end (ap);
+}
+
+void 
+NSLogv (NSString* format, va_list args)
+{
+  NSString* prefix;
+  NSString* message;
+
+  if (_NSLog_printf_handler == NULL)
+    _NSLog_printf_handler = *_NSLog_standard_printf_handler;
+
+  prefix = [NSString
+	     stringWithFormat: @"%@ %@[%d] ",
+	     [[NSCalendarDate calendarDate] 
+	       descriptionWithCalendarFormat: @"%b %d %H:%M:%S"],
+	     [[[NSProcessInfo processInfo] processName] lastPathComponent],
+	     getpid()];
+
+  /* Check if there is already a newline at the end of the format */
+  if (![format hasSuffix: @"\n"])
+    format = [format stringByAppendingString: @"\n"];
+  message = [NSString stringWithFormat: format arguments: args];
+
+  prefix = [prefix stringByAppendingString: message];
+  _NSLog_printf_handler (prefix);
+}
+
