@@ -27,6 +27,8 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Streaming.h>
 
+extern id<String> StreamException;
+
 @interface Stream : NSObject <Streaming>
 
 - init;

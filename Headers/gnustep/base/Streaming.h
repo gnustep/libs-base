@@ -56,10 +56,18 @@
 
 @end
 
+typedef enum _seek_mode_t
+{
+  STREAM_SEEK_FROM_START, 
+  STREAM_SEEK_FROM_CURRENT, 
+  STREAM_SEEK_FROM_END
+} seek_mode_t;
+
 @protocol SeekableStreaming
 
 - (void) rewindStream;
 - (void) setStreamPosition: (unsigned)i;
+- (void) setStreamPosition: (unsigned)i seekMode: (seek_mode_t)mode;
 
 @end
 

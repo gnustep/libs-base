@@ -27,6 +27,8 @@
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/NSString.h>
 
+NSString* StreamException = @"StreamException";
+
 @implementation Stream
 
 /* This is the designated initializer. */
@@ -66,8 +68,13 @@
 
 - (int) writeFormat: (id <String>)format, ...
 {
-  [self subclassResponsibility:_cmd];
-  return 0;
+  int ret;
+  va_list ap;
+
+  va_start(ap, format);
+  ret = [self writeFormat: format arguments: ap];
+  va_end(ap);
+  return ret;
 }
 
 - (int) readFormat: (id <String>)format
@@ -112,9 +119,14 @@
   return NO;
 }
 
-- (void) setStreamPosition: (unsigned)i
+- (void) setStreamPosition: (unsigned)i seekMode: (seek_mode_t)mode
 {
   [self subclassResponsibility:_cmd];
+}
+
+- (void) setStreamPosition: (unsigned)i
+{
+  [self setStreamPosition: i seekMode: STREAM_SEEK_FROM_START];
 }
 
 - (void) rewindStream
