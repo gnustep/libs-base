@@ -1,3 +1,12 @@
+2004-06-18  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (xgethostname): Add missing colon (patch
+	from Tom Koelman).
+
+	* Tools/Makefile.postamble: Fix missing space.
+	* Souce/Makefile.postamble (before-uninstall): Change from 
+	after-uninstall.
+
 2004-06-18  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Source/NSKeyValueCoding.m: fix exception userInfo
