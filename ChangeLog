@@ -1,9 +1,10 @@
-Tue Jan 30 13:38:27 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+2001-01-30  Nicola Pero  <nicola@brainstorm.co.uk>
 
+	* gnustep-base.script.spec.in: Fixed, tidied.
 	* configure.in (CPPFLAGS): Added -I$GNUSTEP_HDIR so that custom
 	libobjc headers are used - this should fix ffcall detection.
 	* configure: Regenerated.
-
+	
 2001-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSDate.h: Partial support added for MacOS-X
@@ -21,9 +22,8 @@ Tue Jan 30 13:38:27 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 	make .../gnustep/Foundation
 	* Source/Makefile.postamble (after-install): Don't install headers
 	in .../gnustep/Foundation
-	
 
-Mon Jan 29 13:08:21 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+2001-01-29  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* GNUmakefile: Include local base.make.
 	* Admin/GNUmakefile: Idem.
