@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
@@ -205,10 +206,12 @@ myEqual(NSObject *self, NSObject *other)
 	FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
 
 	if (keys[i] == nil) {
+	    [self autorelease];
 	    [NSException raise: NSInvalidArgumentException
 			format: @"Tried to init dictionary with nil key"];
 	}
 	if (objs[i] == nil) {
+	    [self autorelease];
 	    [NSException raise: NSInvalidArgumentException
 			format: @"Tried to init dictionary with nil value"];
 	}
@@ -243,8 +246,9 @@ myEqual(NSObject *self, NSObject *other)
     if (aKey != nil) {
 	FastMapNode	node  = FastMapNodeForKey(&map, (FastMapItem)aKey);
 
-	if (node)
+	if (node) {
 	    return node->value.o;
+	}
     }
     return nil;
 }
