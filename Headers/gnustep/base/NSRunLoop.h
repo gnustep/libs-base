@@ -42,6 +42,7 @@ extern id NSDefaultRunLoopMode;
   NSMutableArray *_timedPerformers;
   NSMapTable	*_rfdMap;
   NSMapTable	*_wfdMap;
+  NSDate	*_limit;
 }
 
 + (NSRunLoop*) currentRunLoop;

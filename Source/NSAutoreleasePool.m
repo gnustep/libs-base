@@ -383,6 +383,29 @@ static IMP	initImp;
   return self;
 }
 
++ (void) _endThread
+{
+  struct autorelease_thread_vars *tv;
+  id	pool;
+
+  tv = ARP_THREAD_VARS;
+  while (tv->current_pool)
+    {
+      [tv->current_pool release];
+      pool = pop_pool_from_cache(tv);
+      [pool reallyDealloc];
+    }
+
+  while (tv->pool_cache_count)
+    {
+      pool = pop_pool_from_cache(tv);
+      [pool reallyDealloc];
+    }
+
+  if (tv->pool_cache)
+    OBJC_FREE(tv->pool_cache);
+}
+
 + (void) resetTotalAutoreleasedObjects
 {
   ARP_THREAD_VARS->total_objects_count = 0;

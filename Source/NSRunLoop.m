@@ -1,4 +1,4 @@
-/* Implementation of object for waiting on several input sources
+/* Implementation of object for waiting on several input seurces
    Copyright (C) 1996-1999 Free Software Foundation, Inc.
 
    Original by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -46,6 +46,8 @@
 
 static int	debug_run_loop = 0;
 static NSDate	*theFuture = nil;
+static NSTimeInterval	futureInterval;
+static NSTimeInterval	pastInterval;
 
 
 
@@ -87,7 +89,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 @interface RunLoopWatcher: NSObject
 {
 @public
-  NSDate		*_date;		/* First to match layout of NSTimer */
+  NSTimeInterval	_date;		/* First to match layout of NSTimer */
   BOOL			_invalidated;	/* 2nd to match layout of NSTimer */
   IMP			handleEvent;	/* New-style event handling */
   void			*data;
@@ -104,7 +106,6 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 
 - (void) dealloc
 {
-  RELEASE(_date);
   RELEASE(receiver);
   [super dealloc];
 }
@@ -140,7 +141,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
  *	the NSTimer class is known to be the same as RunLoopWatcher for the
  *	first two elements.
  */
-static inline NSDate* timerDate(NSTimer* timer)
+static inline NSTimeInterval timerDate(NSTimer* timer)
 {
   return ((RunLoopWatcher*)timer)->_date;
 }
@@ -152,7 +153,12 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 
 static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
 {
-  return [i0->_date compare: i1->_date];
+  if (i0->_date < i1->_date)
+    return -1;
+  else if (i0->_date > i1->_date)
+    return 1;
+  else
+    return 0;
 }
 
 
@@ -424,7 +430,7 @@ static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
     {
       NSDate	*d = [obj limitDateForMode: mode];
 
-      ASSIGN(item->_date, d);
+      item->_date = [d timeIntervalSinceReferenceDate];
     }
   else if ([obj respondsToSelector: @selector(delegate)])
     {
@@ -433,13 +439,13 @@ static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
 	{
 	  NSDate	*d = [obj limitDateForMode: mode];
 
-	  ASSIGN(item->_date, d);
+	  item->_date = [d timeIntervalSinceReferenceDate];
 	}
       else
-	ASSIGN(item->_date, theFuture);
+	item->_date = futureInterval;
     }
   else
-    ASSIGN(item->_date, theFuture);
+    item->_date = futureInterval;
   FastArrayInsertSorted(watchers, (FastArrayItem)item, aSort);
 }
 
@@ -697,6 +703,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
+      futureInterval = [theFuture timeIntervalSinceReferenceDate];
+      pastInterval = [[NSDate distantPast] timeIntervalSinceReferenceDate];
 #if	GS_WITH_GC == 0
       wRelImp = [[RunLoopWatcher class] instanceMethodForSelector: wRelSel];
       wRetImp = [[RunLoopWatcher class] instanceMethodForSelector: wRetSel];
@@ -736,12 +744,14 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 				  WatcherMapValueCallBacks, 0);
   _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  WatcherMapValueCallBacks, 0);
+  _limit = RETAIN([NSDate date]);
   return self;
 }
 
 - (void) dealloc
 {
   [self gcFinalize];
+  RELEASE(_limit);
   RELEASE(_performers);
   RELEASE(_timedPerformers);
   [super dealloc];
@@ -784,14 +794,14 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 /* Fire appropriate timers and determine the earliest time that anything
   watched for becomes useless. */
 
-- limitDateForMode: (NSString*)mode
+- (NSDate*) limitDateForMode: (NSString*)mode
 {
   id			saved_mode;
+  NSTimeInterval	when;
   FastArray		timers;
+  FastArray		watchers;
   NSTimer		*min_timer = nil;
   RunLoopWatcher	*min_watcher = nil;
-  FastArray		watchers;
-  NSDate		*when;
 
   saved_mode = _current_mode;
   _current_mode = mode;
@@ -809,7 +819,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      continue;
 	    }
 
-	  if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
+	  if (timerDate(min_timer) > GSTimeNow())
 	    {
 	      break;
 	    }
@@ -819,12 +829,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  [min_timer fire];
 	  if (timerInvalidated(min_timer) == NO)
 	    {
-	      unsigned	index;
-
-	      index = FastArrayInsertionPosition(timers,
+	      FastArrayInsertSortedNoRetain(timers,
 		(FastArrayItem)min_timer, aSort);
-	      FastArrayInsertItemNoRetain(timers,
-		(FastArrayItem)min_timer, index);
 	    }
 	  else
 	    {
@@ -851,8 +857,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      continue;
 	    }
 
-	  when = min_watcher->_date;
-	  if ([when timeIntervalSinceNow] > 0)
+	  if (min_watcher->_date > GSTimeNow())
 	    {
 	      break;
 	    }
@@ -887,18 +892,14 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		}
 	      if (nxt && [nxt timeIntervalSinceNow] > 0.0)
 		{
-		  unsigned	index;
-
 		  /*
 		   *	If the watcher has been given a revised limit date -
 		   *	re-insert it into the queue in the correct place.
 		   */
 		  FastArrayRemoveItemAtIndexNoRelease(watchers, 0);
-		  ASSIGN(min_watcher->_date, nxt);
-		  index = FastArrayInsertionPosition(watchers,
-			(FastArrayItem)min_watcher, aSort);
-		  FastArrayInsertItemNoRetain(watchers,
-			(FastArrayItem)min_watcher, index);
+		  min_watcher->_date = [nxt timeIntervalSinceReferenceDate];
+		  FastArrayInsertSortedNoRetain(watchers,
+		    (FastArrayItem)min_watcher, aSort);
 		}
 	      else
 		{
@@ -915,47 +916,38 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	}
     }
 
-  /*
-   *	If there are timers - set limit date to the earliest of them.
-   */
-  if (min_timer)
-    {
-      when = [min_timer fireDate];
-    }
-  else
-    {
-      when = nil;
-    }
+  _current_mode = saved_mode;
 
   /*
+   *	If there are timers - set limit date to the earliest of them.
    *	If there are watchers, set the limit date to that of the earliest
    *	watcher (or leave it as the date of the earliest timer if that is
    *	before the watchers limit).
    */
-  if (min_watcher)
+  if (min_timer)
     {
-      if (when == nil)
+      when = timerDate(min_timer);
+      if (min_watcher && min_watcher->_date < when)
 	{
 	  when = min_watcher->_date;
 	}
-      else
-	{
-	  when = [when earlierDate: min_watcher->_date];
-	}
     }
-
-  /*
-   *	'when' will only be nil if there are neither timers nor watchers
-   *	outstanding.
-   */
-  if (when && debug_run_loop)
+  else if (min_watcher)
     {
-      printf ("\tNSRunLoop limit date %f\n",
-	    [when timeIntervalSinceReferenceDate]);
+      when = min_watcher->_date;
     }
-  _current_mode = saved_mode;
+  else
+    {
+      return nil;	/* Nothing waiting to be done.	*/
+    }
 
-  return when;
+  if (debug_run_loop)
+    {
+      printf ("\tNSRunLoop limit date %f\n", when);
+    }
+
+  _limit = [_limit initWithTimeIntervalSinceReferenceDate: when];
+  return _limit;
 }
 
 - (RunLoopWatcher*) _getWatcher: (void*)data
@@ -1059,14 +1051,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	printf ("\tNSRunLoop accept input before %f (seconds from now %f)\n", 
 		[limit_date timeIntervalSinceReferenceDate], ti);
       /* If LIMIT_DATE has already past, return immediately. */
-      if (ti < 0)
-	{
-          [self _checkPerformers];
-	  if (debug_run_loop)
-	    printf ("\tNSRunLoop limit date past, returning\n");
-          _current_mode = saved_mode;
-	  return;
-	}
       timeout.tv_sec = ti;
       timeout.tv_usec = (ti - timeout.tv_sec) * 1000000.0;
       select_timeout = &timeout;
@@ -1075,6 +1059,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       /* The LIMIT_DATE has already past; return immediately without
 	 polling any inputs. */
+      [self _checkPerformers];
+      if (debug_run_loop)
+	printf ("\tNSRunLoop limit date past, returning\n");
       _current_mode = saved_mode;
       return;
     }
@@ -1305,12 +1292,20 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     }
 
   /* Use the earlier of the two dates we have. */
-  d = RETAIN([d earlierDate: date]);
+  d = [d earlierDate: date];
+
+  /*
+   *	If the date is not our own ivar, we must retain it so it doesn't
+   *	get destroyed inside the run loop
+   */
+  if (d != _limit)
+    RETAIN(d);
 
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode beforeDate: d];
 
-  RELEASE(d);
+  if (d != _limit)
+    RELEASE(d);
   return YES;
 }
 

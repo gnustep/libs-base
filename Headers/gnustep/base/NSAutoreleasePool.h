@@ -90,6 +90,7 @@ struct autorelease_array_list
 + (void) enableRelease: (BOOL)enable;
 + (void) setPoolCountThreshhold: (unsigned)c;
 + (unsigned) autoreleaseCountForObject: anObject;
++ (void) _endThread; /* Don't call this directly - NSThread uses it. */
 /*
  * The next two methods have no effect unless you define COUNT_ALL to be
  * 1 in NSAutoreleasepool.m - doing so incurs a thread lookup overhead

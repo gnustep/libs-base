@@ -113,7 +113,7 @@ static unsigned local_object_counter = 0;
 
   counter = (GSLocalCounter*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   counter->ref = 1;
-  counter->object = [obj retain];
+  counter->object = RETAIN(obj);
   counter->target = ++local_object_counter;
   return counter;
 }
@@ -149,7 +149,7 @@ static unsigned local_object_counter = 0;
 {
   CachedLocalObject	*item = [[self alloc] init];
 
-  item->obj = [o retain];
+  item->obj = RETAIN(o);
   item->time = t;
   return [item autorelease];
 }
@@ -485,7 +485,8 @@ static int messages_received_count;
     unsigned 	i;
 
     [proxiesHashGate lock];
-    targets = [NSAllMapTableValues(local_targets) retain];
+    targets = NSAllMapTableValues(local_targets);
+    RETAIN(targets);
     for (i = 0; i < [targets count]; i++)
       {
 	id	t = [[targets objectAtIndex:i] localForProxy];

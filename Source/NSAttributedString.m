@@ -135,7 +135,7 @@ static Class NSMutableAttributedString_concrete_class;
     return [[[[self class] _concreteClass] allocWithZone: zone]
         initWithAttributedString: self];
   else
-    return [self retain];
+    return RETAIN(self);
 }
 
 //NSMutableCopying protocol
@@ -392,10 +392,10 @@ static Class NSMutableAttributedString_concrete_class;
 	  [m setAttributes: attrs range: rangeToSet];
 	}
       newAttrString = [m copy];
-      [m release];
+      RELEASE(m);
     }
 
-  [newAttrString autorelease];
+  AUTORELEASE(newAttrString);
   return newAttrString;
 }
 
@@ -435,10 +435,10 @@ static Class NSMutableAttributedString_concrete_class;
 
   tmpLength = [self length];
   if (aRange.location <= 0 || NSMaxRange(aRange) > tmpLength)
-  {
-    [NSException raise: NSRangeException
-      format: @"RangeError in method -addAttribute: value: range: in class NSMutableAttributedString"];
-  }
+    {
+      [NSException raise: NSRangeException
+	format: @"RangeError in method -addAttribute: value: range: in class NSMutableAttributedString"];
+    }
   
   attrDict = [self attributesAtIndex: aRange.location
     effectiveRange: &effectiveRange];
@@ -448,7 +448,7 @@ static Class NSMutableAttributedString_concrete_class;
     effectiveRange = NSIntersectionRange(aRange,effectiveRange);
     
     newDict = [[NSMutableDictionary alloc] initWithDictionary: attrDict];
-    [newDict autorelease];
+    AUTORELEASE(newDict);
     [newDict setObject: value forKey: name];
     [self setAttributes: newDict range: effectiveRange];
     
@@ -490,7 +490,7 @@ static Class NSMutableAttributedString_concrete_class;
     effectiveRange = NSIntersectionRange(aRange,effectiveRange);
     
     newDict = [[NSMutableDictionary alloc] initWithDictionary: attrDict];
-    [newDict autorelease];
+    AUTORELEASE(newDict);
     [newDict addEntriesFromDictionary: attributes];
     [self setAttributes: newDict range: effectiveRange];
     
@@ -526,7 +526,7 @@ static Class NSMutableAttributedString_concrete_class;
     effectiveRange = NSIntersectionRange(aRange,effectiveRange);
     
     newDict = [[NSMutableDictionary alloc] initWithDictionary: attrDict];
-    [newDict autorelease];
+    AUTORELEASE(newDict);
     [newDict removeObjectForKey: name];
     [self setAttributes: newDict range: effectiveRange];
     
@@ -617,7 +617,7 @@ static Class NSMutableAttributedString_concrete_class;
   str = (GSMutableAttributedStringTracker*) NSAllocateObject(self, 0, z);
 
   str->_owner = RETAIN(as);
-  return [str autorelease];
+  return AUTORELEASE(str);
 }
 
 - (void) dealloc

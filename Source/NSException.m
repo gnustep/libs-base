@@ -1,5 +1,5 @@
 /* NSException - Object encapsulation of a general exception handler
-   Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996, 1997, 1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -33,106 +33,102 @@
 static volatile void
 _NSFoundationUncaughtExceptionHandler(NSException *exception)
 {
-    fprintf(stderr, "Uncaught exception %s, reason: %s\n",
+  fprintf(stderr, "Uncaught exception %s, reason: %s\n",
     	[[exception name] cString], [[exception reason] cString]);
 /* FIXME: need to implement this:
-    NSLogError("Uncaught exception %@, reason: %@", 
+  NSLogError("Uncaught exception %@, reason: %@",
     	[exception name], [exception reason]);
 */
-    abort();
+  abort();
 }
 
 @implementation NSException
 
-+ (NSException *)exceptionWithName:(NSString *)name
-			    reason:(NSString *)reason
-			  userInfo:(NSDictionary *)userInfo 
++ (NSException*) exceptionWithName: (NSString *)name
+			    reason: (NSString *)reason
+			  userInfo: (NSDictionary *)userInfo
 {
-    return [[[self alloc] initWithName:name reason:reason
-			userInfo:userInfo] autorelease];
+  return AUTORELEASE([[self alloc] initWithName: name reason: reason
+		      userInfo: userInfo]);
 }
 
-+ (volatile void)raise:(NSString *)name
-	format:(NSString *)format,...
++ (volatile void) raise: (NSString *)name
+		 format: (NSString *)format,...
 {
-    va_list args;
+  va_list args;
 
-    va_start(args, format);
-    [self raise:name format:format arguments:args];
-    // FIXME: This probably doesn't matter, but va_end won't get called
-    va_end(args);
+  va_start(args, format);
+  [self raise: name format: format arguments: args];
+  // FIXME: This probably doesn't matter, but va_end won't get called
+  va_end(args);
 }
 
-+ (volatile void)raise:(NSString *)name
-	format:(NSString *)format
-	arguments:(va_list)argList
++ (volatile void) raise: (NSString *)name
+		 format: (NSString *)format
+	      arguments: (va_list)argList
 {
-    NSString *reason;
-    NSException *except;
-    
-    // OK?: not in OpenStep docs but is implmented by GNUStep
-    reason = [NSString stringWithFormat:format arguments:argList];
-    //reason = [[NSString alloc] initWithFormat:format arguments:argList];
-    //[reason autorelease];
-    except = [self exceptionWithName:name reason:reason userInfo:nil];
-    [except raise];
+  NSString	*reason;
+  NSException	*except;
+
+  reason = [NSString stringWithFormat: format arguments: argList];
+  except = [self exceptionWithName: name reason: reason userInfo: nil];
+  [except raise];
 }
 
-- (id)initWithName:(NSString *)name reason:(NSString *)reason
-	  userInfo:(NSDictionary *)userInfo 
+- (id) initWithName: (NSString *)name
+	     reason: (NSString *)reason
+	   userInfo: (NSDictionary *)userInfo
 {
-    self = [super init];
-    e_name = [name retain];
-    e_reason = [reason retain];
-    e_info = [userInfo retain];
-    
-    return self;
+  ASSIGN(e_name, name);
+  ASSIGN(e_reason, reason);
+  ASSIGN(e_info, userInfo);
+  return self;
 }
 
 - (void)dealloc
 {
-  [e_name release];
-  e_name = nil;
-  [e_reason release];
-  e_reason = nil;
-  [e_info release];
-  e_info = nil;
+  DESTROY(e_name);
+  DESTROY(e_reason);
+  DESTROY(e_info);
   [super dealloc];
 }
 
-- (volatile void)raise
+- (volatile void) raise
 {
-    NSThread *thread;
-    NSHandler *handler;
-    
-    if (_NSUncaughtExceptionHandler == NULL)
-        _NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
+  NSThread	*thread;
+  NSHandler	*handler;
 
-    thread = GSCurrentThread();
-    handler = thread->_exception_handler;
-    if (handler == NULL) {
-    	_NSUncaughtExceptionHandler(self);
-	return;
+  if (_NSUncaughtExceptionHandler == NULL)
+    {
+      _NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
     }
 
-    thread->_exception_handler = handler->next;
-    handler->exception = self;
-    longjmp(handler->jumpState, 1);
+  thread = GSCurrentThread();
+  handler = thread->_exception_handler;
+  if (handler == NULL)
+    {
+      _NSUncaughtExceptionHandler(self);
+      return;
+    }
+
+  thread->_exception_handler = handler->next;
+  handler->exception = self;
+  longjmp(handler->jumpState, 1);
 }
 
-- (NSString *)name
+- (NSString *) name
 {
-    return e_name;
+  return e_name;
 }
 
-- (NSString *)reason
+- (NSString *) reason
 {
-    return e_reason;
+  return e_reason;
 }
 
-- (NSDictionary *)userInfo
+- (NSDictionary *) userInfo
 {
-    return e_info;
+  return e_info;
 }
 
 - (Class) classForPortCoder
@@ -140,49 +136,56 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   return [self class];
 }
 
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
-    return self;
+  return self;
 }
 
-- (void)encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    [super encodeWithCoder:aCoder];
-    [aCoder encodeObject:e_name]; 
-    [aCoder encodeObject:e_reason]; 
-    [aCoder encodeObject:e_info]; 
+  [aCoder encodeValueOfObjCType: @encode(id) at: &e_name];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &e_reason];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &e_info];
 }
 
-- (id)initWithCoder: aDecoder
+- (id) initWithCoder: (NSCoder*)aDecoder
 {
-    self = [super initWithCoder:aDecoder];
-    e_name = [[aDecoder decodeObject] retain];
-    e_reason = [[aDecoder decodeObject] retain];
-    e_info = [[aDecoder decodeObject] retain];
-    return self;
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &e_name];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &e_reason];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &e_info];
+  return self;
 }
 
-- deepen
+- (id) deepen
 {
-    e_name = [e_name copyWithZone:[self zone]];
-    e_reason = [e_reason copyWithZone:[self zone]];
-    e_info = [e_info copyWithZone:[self zone]];
-    return self;
+  e_name = [e_name copyWithZone: [self zone]];
+  e_reason = [e_reason copyWithZone: [self zone]];
+  e_info = [e_info copyWithZone: [self zone]];
+  return self;
 }
 
-- copyWithZone:(NSZone *)zone
+- (id) copyWithZone: (NSZone *)zone
 {
-    if (NSShouldRetainWithZone(self, zone))
-    	return [self retain];
-    else
-    	return [(NSException*)NSCopyObject(self, 0, zone) deepen];
+  if (NSShouldRetainWithZone(self, zone))
+    return RETAIN(self);
+  else
+    return [(NSException*)NSCopyObject(self, 0, zone) deepen];
 }
 
+- (NSString*) description
+{
+  if (e_info)
+    return [NSString stringWithFormat: "%@ NAME:%@ REASON:%@ INFO:%@",
+	[super description], e_name, e_reason, e_info];
+  else
+    return [NSString stringWithFormat: "%@ NAME:%@ REASON:%@",
+	[super description], e_name, e_reason];
+}
 
 @end
 
 
-void 
+void
 _NSAddHandler( NSHandler *handler )
 {
   NSThread *thread;
@@ -192,7 +195,7 @@ _NSAddHandler( NSHandler *handler )
   thread->_exception_handler = handler;
 }
 
-void 
+void
 _NSRemoveHandler( NSHandler *handler )
 {
   NSThread *thread;
