@@ -799,7 +799,6 @@ static Class NSMutableArray_concrete_class;
 /* Override our superclass's designated initializer to go our's */
 - initWithObjects: (id*)objects count: (unsigned)count
 {
-  /* xxx Could be made more efficient by increasing capacity all at once. */
   unsigned i;
   self = [self initWithCapacity: count];
   for (i = 0; i < count; i++)
@@ -904,7 +903,6 @@ static Class NSMutableArray_concrete_class;
 
 - (void) addObjectsFromArray: (NSArray*)otherArray
 {
-  /* xxx Could be made more efficient by increasing capacity all at once. */
   unsigned i, c = [otherArray count];
   for (i = 0; i < c; i++)
     [self addObject: [otherArray objectAtIndex: i]];
@@ -919,12 +917,6 @@ static Class NSMutableArray_concrete_class;
 - (void) removeObjectsFromIndices: (unsigned*)indices 
 		       numIndices: (unsigned)count
 {
-  int compare_unsigned(const void *u1, const void *u2)
-    {
-      return *((int*)u1) - *((int*)u2);
-    }
-  /* xxx are we allowed to modify the contents of indices? */
-  qsort(indices, count, sizeof(unsigned), compare_unsigned);
   while (count--)
     [self removeObjectAtIndex:indices[count]];
 }
