@@ -398,8 +398,19 @@ make_method_call(const char *forward_type,
 		 addition to the FLT_AND_DBL_RETFRAME_OFFSET while working
 		 on guileobjc.
 		 Look into this for Distributed Objects. */
+	      /* xxx Yipes!  Perhaps this change is needed on other
+		 architectures too. */
+#if __mips__
+	      if (*tmptype == _C_FLT)
+		(*fe)(-1, ((char*)retframe) + FLT_AND_DBL_RETFRAME_OFFSET + 4,
+		      tmptype, flags);
+	      else
+		(*fe)(-1, ((char*)retframe) + FLT_AND_DBL_RETFRAME_OFFSET,
+		      tmptype, flags);
+#else
 	      (*fe)(-1, ((char*)retframe) + FLT_AND_DBL_RETFRAME_OFFSET,
 		    tmptype, flags);
+#endif
 	    }
 	  else /* Among other types, _C_CHARPTR is handled here */
 	    {
