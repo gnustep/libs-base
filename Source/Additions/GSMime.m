@@ -224,13 +224,15 @@ parseCharacterSet(NSString *token)
   if ([token isEqualToString: @"iso-8859-1"] == YES)
     return NSISOLatin1StringEncoding;
   if ([token isEqualToString: @"utf-8"] == YES)
-    return NSISOLatin1StringEncoding;
+    return NSUTF8StringEncoding;
 
   /*
    * Now try all remaining character sets in alphabetical order.
    */
   if ([token isEqualToString: @"ascii"] == YES)
     return NSASCIIStringEncoding;
+  if ([token isEqualToString: @"iso-8859-2"] == YES)
+    return NSISOLatin2StringEncoding;
   if ([token isEqualToString: @"iso-8859-3"] == YES)
     return NSISOLatin3StringEncoding;
   if ([token isEqualToString: @"iso-8859-4"] == YES)
@@ -265,6 +267,57 @@ parseCharacterSet(NSString *token)
     return NSWindowsCP1254StringEncoding;
 
   return NSASCIIStringEncoding;		// Default character set.
+}
+
+static NSString *
+selectCharacterSet(NSString *str, NSData **d)
+{
+  if ([str length] == 0)
+    {
+      *d = [NSData data];
+      return @"us-ascii";	// Default character set.
+    }
+  if ((*d = [str dataUsingEncoding: NSASCIIStringEncoding]) != nil)
+    return @"us-ascii";	// Default character set.
+  if ((*d = [str dataUsingEncoding: NSISOLatin1StringEncoding]) != nil)
+    return @"iso-8859-1";
+  if ((*d = [str dataUsingEncoding: NSISOLatin2StringEncoding]) != nil)
+    return @"iso-8859-2";
+  if ((*d = [str dataUsingEncoding: NSISOLatin3StringEncoding]) != nil)
+    return @"iso-8859-3";
+  if ((*d = [str dataUsingEncoding: NSISOLatin4StringEncoding]) != nil)
+    return @"iso-8859-4";
+  if ((*d = [str dataUsingEncoding: NSISOCyrillicStringEncoding]) != nil)
+    return @"iso-8859-5";
+  if ((*d = [str dataUsingEncoding: NSISOArabicStringEncoding]) != nil)
+    return @"iso-8859-6";
+  if ((*d = [str dataUsingEncoding: NSISOGreekStringEncoding]) != nil)
+    return @"iso-8859-7";
+  if ((*d = [str dataUsingEncoding: NSISOHebrewStringEncoding]) != nil)
+    return @"iso-8859-8";
+  if ((*d = [str dataUsingEncoding: NSISOLatin5StringEncoding]) != nil)
+    return @"iso-8859-9";
+  if ((*d = [str dataUsingEncoding: NSISOLatin6StringEncoding]) != nil)
+    return @"iso-8859-10";
+  if ((*d = [str dataUsingEncoding: NSISOLatin7StringEncoding]) != nil)
+    return @"iso-8859-13";
+  if ((*d = [str dataUsingEncoding: NSISOLatin8StringEncoding]) != nil)
+    return @"iso-8859-14";
+  if ((*d = [str dataUsingEncoding: NSISOLatin9StringEncoding]) != nil)
+    return @"iso-8859-15";
+  if ((*d = [str dataUsingEncoding: NSWindowsCP1250StringEncoding]) != nil)
+    return @"windows-1250";
+  if ((*d = [str dataUsingEncoding: NSWindowsCP1251StringEncoding]) != nil)
+    return @"windows-1251";
+  if ((*d = [str dataUsingEncoding: NSWindowsCP1252StringEncoding]) != nil)
+    return @"windows-1252";
+  if ((*d = [str dataUsingEncoding: NSWindowsCP1253StringEncoding]) != nil)
+    return @"windows-1253";
+  if ((*d = [str dataUsingEncoding: NSWindowsCP1254StringEncoding]) != nil)
+    return @"windows-1254";
+
+  *d = [str dataUsingEncoding: NSUTF8StringEncoding];
+  return @"utf-8";		// Catch-all character set.
 }
 
 /**
@@ -2625,9 +2678,19 @@ static NSCharacterSet	*tokenSet = nil;
   unsigned		l;
 
   [t appendString: [[self name] capitalizedString]];
-  [t appendString: @": "];
-  [t appendString: value];
-  l = [t length];
+  if ([t length] + [value length] + 2 > 72)
+    {
+      [t appendString: @":\r\n\t"];
+      [t appendString: value];
+      l = [t length] + 8;
+    }
+  else
+    {
+      [t appendString: @": "];
+      [t appendString: value];
+      l = [t length];
+    }
+
   while ((k = [e nextObject]) != nil)
     {
       NSString	*v = [GSMimeHeader makeQuoted: [params objectForKey: k]];
@@ -2636,11 +2699,14 @@ static NSCharacterSet	*tokenSet = nil;
 
       if ((l + kl + vl + 3) > 72)
 	{
-	  [t appendString: @"\r\n\t"];
-	  l = 8;
+	  [t appendFormat: @";\r\n\t%@=%@", k, v];
+	  l = kl + vl + 9;
 	}
-      [t appendFormat: @"; %@=%@", k, v];
-      l += kl + vl + 3;
+      else
+	{
+	  [t appendFormat: @"; %@=%@", k, v];
+	  l += kl + vl + 3;
+	}
     }
   [t appendString: @"\r\n"];
 
@@ -3120,7 +3186,10 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Return the content as an NSData object (unless it is multipart)
+ * Return the content as an NSData object (unless it is multipart)<br />
+ * Perform conversion from text to data using the charset specified in
+ * the content-type header, or infer the charset, and update the header
+ * accordingly.
  */
 - (NSData*) convertToData
 {
@@ -3130,9 +3199,18 @@ static NSCharacterSet	*tokenSet = nil;
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
-      NSStringEncoding	enc = parseCharacterSet(charset);
 
-      d = [content dataUsingEncoding: enc];
+      if (charset != nil)
+	{
+	  NSStringEncoding	enc = parseCharacterSet(charset);
+
+	  d = [content dataUsingEncoding: enc];
+	}
+      else
+	{
+	  charset = selectCharacterSet(content, &d);
+	  [hdr setParameter: charset forKey: @"charset"];
+	}
     }
   else if ([content isKindOfClass: [NSData class]] == YES)
     {
@@ -3289,23 +3367,204 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Return an NSData object representing the MIME document as raw data
+ * ready to be sent via an email system.
+ */
+- (NSMutableData*) rawMimeData
+{
+  NSData	*d = nil;
+  NSMutableData	*md;
+  NSEnumerator	*enumerator;
+  GSMimeHeader	*type;
+  GSMimeHeader	*enc;
+  GSMimeHeader	*hdr;
+  NSData	*boundary;
+
+  /*
+   * Ensure there is a mime version header.
+   */
+  hdr = [self headerNamed: @"mime-version"];
+  if (hdr == nil)
+    {
+      hdr = [GSMimeHeader alloc];
+      hdr = [hdr initWithName: @"mime-version" value: @"1.0" parameters: nil];
+      [self addHeader: hdr];
+      RELEASE(hdr);
+    }
+
+  type = [self headerNamed: @"content-type"];
+  if (type == nil)
+    {
+      /*
+       * Attempt to infer the content type from the content.
+       */
+      if ([content isKindOfClass: [NSString class]] == YES)
+	{
+	  [self setContent: content
+		      type: @"text"
+		   subType: @"plain"
+		      name: nil];
+	}
+      else if ([content isKindOfClass: [NSData class]] == YES)
+	{
+	  [self setContent: content
+		      type: @"application"
+		   subType: @"octet-stream"
+		      name: nil];
+	}
+      else if ([content isKindOfClass: [NSArray class]] == YES
+	&& [content count] > 0)
+	{
+	  [self setContent: content
+		      type: @"multipart"
+		   subType: @"mixed"
+		      name: nil];
+	}
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"[%@ -%@:] with bad content",
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	}
+      type = [self headerNamed: @"content-type"];
+    }
+  enc = [self headerNamed: @"content-transfer-encoding"];
+  if ([[type parameterForKey: @"type"] isEqual: @"multipart"] == YES)
+    {
+      NSString	*v;
+
+      if (enc != nil)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"[%@ -%@:] content transfer encoding not supported",
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	}
+      v = [type parameterForKey: @"boundary"];
+      if (v == nil)
+	{
+	  v = makeUniqueString();
+	  [type setParameter: v forKey: @"boundary"];
+	}
+      boundary = [v dataUsingEncoding: NSASCIIStringEncoding];
+    }
+  else if (enc == nil)
+    {
+      enc = [GSMimeHeader alloc];
+      if ([[type parameterForKey: @"type"] isEqual: @"text"] == YES)
+	{
+	  enc = [enc initWithName: @"content-transfer-encoding"
+			    value: @"8bit"
+		       parameters: nil];
+	}
+      else
+	{
+	  enc = [enc initWithName: @"content-transfer-encoding"
+			    value: @"base64"
+		       parameters: nil];
+	}
+      [self addHeader: enc];
+      RELEASE(enc);
+      d = [self convertToData];
+    }
+
+  /*
+   * Now build the output.
+   */
+  md = [NSMutableData dataWithCapacity: 1024];
+
+  /*
+   * Add all the headers.
+   */
+  enumerator = [headers objectEnumerator];
+  while ((hdr = [enumerator nextObject]) != nil)
+    {
+      [md appendData: [[hdr text] dataUsingEncoding: NSASCIIStringEncoding]];
+    }
+
+  /*
+   * Separate headers from body.
+   */
+  [md appendBytes: "\r\n" length: 2];
+
+  if (enc == nil)
+    {
+      unsigned	count;
+      unsigned	i;
+
+      /*
+       * For a multipart document, insert the boundary between each part.
+       */
+      [md appendBytes: "--" length: 2];
+      [md appendData: boundary];
+      [md appendBytes: "\r\n" length: 2];
+      count = [content count];
+      for (i = 0; i < count; i++)
+	{
+	  CREATE_AUTORELEASE_POOL(arp);
+	  NSMutableData	*part = [[content objectAtIndex: i] rawMimeData];
+
+	  [md appendData: part];
+	  [md appendBytes: "\r\n--" length: 2];
+	  [md appendData: boundary];
+	  [md appendBytes: "\r\n" length: 2];
+	  RELEASE(arp);
+	}
+    }
+  else
+    {
+      if ([[enc value] isEqual: @"base64"] == YES)
+        {
+	  const char	*ptr;
+	  unsigned	len;
+	  unsigned	pos = 0;
+
+	  d = [GSMimeDocument encodeBase64: d];
+	  ptr = [d bytes];
+	  len = [d length];
+
+	  while (len - pos > 76)
+	    {
+	      [md appendBytes: &ptr[pos] length: 76];
+	      [md appendBytes: "\r\n" length: 2];
+	      pos += 76;
+	    }
+	  [md appendBytes: &ptr[pos] length: len-pos];
+	}
+      else
+	{
+	  [md appendData: d];
+	}
+    }
+  return md;
+}
+
+/**
  * Sets a new value for the content of the document.
  */
 - (void) setContent: (id)newContent
 {
   if ([newContent isKindOfClass: [NSString class]] == YES)
     {
-      ASSIGNCOPY(content, newContent);
+      if (newContent != content)
+	{
+	  ASSIGNCOPY(content, newContent);
+	}
     }
   else if ([newContent isKindOfClass: [NSData class]] == YES)
     {
-      ASSIGNCOPY(content, newContent);
+      if (newContent != content)
+	{
+	  ASSIGNCOPY(content, newContent);
+	}
     }
   else if ([newContent isKindOfClass: [NSArray class]] == YES)
     {
-      newContent = [newContent mutableCopy];
-      ASSIGN(content, newContent);
-      RELEASE(newContent);
+      if (newContent != content)
+	{
+	  newContent = [newContent mutableCopy];
+	  ASSIGN(content, newContent);
+	  RELEASE(newContent);
+	}
     }
   else
     {

@@ -110,6 +110,7 @@
 - (GSMimeHeader*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
 - (GSMimeHeader*) makeContentID;
+- (NSMutableData*) rawMimeData;
 - (void) setContent: (id)newContent;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
