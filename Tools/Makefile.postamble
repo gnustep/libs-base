@@ -19,7 +19,10 @@
 
 # Things to do after installing
 after-install::
-	@if [ "`whoami`" != "root" ]; then \
+        @for file in $(DTD_FILES); do \
+          $(INSTALL_DATA) $$file $(dtddir)/$$file ; \
+        done; \
+	if [ "`whoami`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
 	  echo "WARNING: gdomap MUST be installed owned by root and with"; \

@@ -2,9 +2,12 @@
 
 	* configure.in: Added check for recent libxml
 	* config.mak.in: Added defeine for HAVE_LIBXML
-	* GSDoc/gsdoc.m: modified for standard libxml 2.0 installation
-	* GSDoc/README: updated
-	* GSDoc/Makefile.preamble: conditional on presence of libxml
+	* Tools/gsdoc.m: Added from GSDoc and modified for standard
+	libxml 2.0 installation
+	* Tools/gsdoc-0_6_5.dtd: Added from GSDoc
+	* Tools/gsdoc.gsdoc: Added from GSDoc
+	* Tools/gnustep.gsdoc: Added from GSDoc
+	* GSDoc: all removed
 
 2000-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -30,14 +30,19 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
+# DTDs to install
+dtddir = $(GNUSTEP_RESOURCES)/DTDs
+DTD_FILES = gsdoc-0_6_5.dtd
+
 # The application to be compiled
-TOOL_NAME = gdnc defaults plmerge \
+TOOL_NAME = gdnc gsdoc defaults plmerge \
 		plparse sfparse pldes plser
 OBJC_PROGRAM_NAME = gdomap
 
 # The source files to be compiled
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
+gsdoc_OBJC_FILES = gsdoc.m
 defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
