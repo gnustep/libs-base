@@ -10,9 +10,6 @@
 
 @itemize @bullet
 
-@item @emph{Fix NSZoneFromPointer (when given a pointer to malloced memory), and
-NSRecycleZone (to tramsfer 'live' objects to the default zone).} [4] (980805).
-
 @item Implement Formatter classes (NSDateFormatter, etc) [5] (980722).
 
 @item Check that every class implements coding (correctly). [2, NSCoder] (980721).
