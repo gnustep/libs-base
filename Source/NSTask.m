@@ -336,12 +336,11 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
       if (val)
 	{
-	  s = [NSString stringWithFormat: @"%s=%s",
-			[key cString], [val cString]];
+	  s = [NSString stringWithFormat: @"%@=%@", key, val];
 	}
       else
 	{
-	  s = [NSString stringWithFormat: @"%s=", [key cString]];
+	  s = [NSString stringWithFormat: @"%@=", key];
 	}
       envl[i] = [s cString];
     }
@@ -388,17 +387,31 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     }
   if (pid == 0)
     {
+      /*
+       * Set up stdin, stdout and stderr by duplicating descriptors as
+       * necessary and closing the originals (to ensure we won't have a
+       * pipe left with two write descriptors etc).
+       */
       if (idesc != 0)
 	{
 	  dup2(idesc, 0);
+          if (idesc != odesc && idesc != edesc)
+            {
+              (void) close(idesc);
+            }
 	}
       if (odesc != 1)
 	{
 	  dup2(odesc, 1);
+          if (odesc != edesc)
+            {
+              (void) close(odesc);
+            }
 	}
       if (edesc != 2)
 	{
 	  dup2(edesc, 2);
+          (void) close(edesc);
 	}
       chdir(path);
       execve(executable, args, envl);
@@ -452,11 +465,11 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
       NSDate	*limit;
 
       /*
-       *	Poll at 1.0 second intervals.
+       *	Poll at 0.1 second intervals.
        */
-      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
+      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
       [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-			       beforeDate: nil];
+			       beforeDate: limit];
       [limit release];
     }
 }
@@ -466,9 +479,15 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
 - (void) _collectChild
 {
+  extern int errno;
+
   if (hasCollected == NO)
     {
-      if (waitpid(taskId, &terminationStatus, WNOHANG) == taskId)
+      int       result;
+
+      errno = 0;
+      result = waitpid(taskId, &terminationStatus, WNOHANG);
+      if (result == taskId || (result == 0 && errno == 0))
 	{
 	  if (WIFEXITED(terminationStatus))
 	    {
@@ -480,7 +499,15 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 		  [self _sendNotification];
 		}
 	    }
+#ifdef  DEBUG
+          else
+            NSLog(@"Termination status = %d", terminationStatus);
+#endif
 	}
+#ifdef  DEBUG
+      else
+        NSLog(@"waitpid result %d, error %s", result, strerror(errno));
+#endif
     }
 }
 
