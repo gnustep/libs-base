@@ -117,8 +117,8 @@
 
 - (void) encodePropertyList: (id)plist
 {
-  id    anObject = [NSSerializer serializePropertyList: plist];
-  [self encodeValueOfObjCType:@encode(id) at: &anObject];
+  id    anObject = plist ? [NSSerializer serializePropertyList: plist] : nil;
+  [self encodeValueOfObjCType: @encode(id) at: &anObject];
 }
 
 - (void) encodePoint: (NSPoint)point
@@ -200,10 +200,15 @@
 {
   id o;
   id d;
-  [self decodeValueOfObjCType:@encode(id) at:&d];
-  o = [NSDeserializer deserializePropertyListFromData: d
-				    mutableContainers: NO];
-  [d release];
+  [self decodeValueOfObjCType: @encode(id) at: &d];
+  if (d)
+    {
+      o = [NSDeserializer deserializePropertyListFromData: d
+                                        mutableContainers: NO];
+      [d release];
+    }
+  else
+    o = nil;
   return o;
 }
 

@@ -16,6 +16,7 @@ Fri Dec 18 18:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	NSGString.m: ditto
 	NSString.m: ditto
         NSConcreteNumber.m: Added ([-replacementObjectForPortCoder:])
+        NSCoder.m: Cope nicely with encode/decode of nil property-list.
 
 Thu Dec 17 16:12:18 1998  Matthias Klose  <doko@cs.tu-berlin.de>
 
