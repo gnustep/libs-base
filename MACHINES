@@ -1,9 +1,17 @@
 The testers of the various ports to different machines:
 
-sparc-sun-sunos4.1.3	mccallum@cs.rochester.edu (Andrew McCallum)
-
-sparc-sun-solaris2.3	pkr@kom.auc.dk (Peter Kristensen)
-
 i386-unknown-linux	jbettis@cse.unl.edu (Jeremy Bettis)
-
+i386-freebsd2.0		cracauer@wavehh.hanse.de (Martin Cracauer)
+i386-solaris2.4		james.gledhill@brite.com (James Gledhill)
+i386-esix		james.gledhill@brite.com (James Gledhill)
+sparc-sun-sunos4.1.3	mccallum@cs.rochester.edu (Andrew McCallum)
+			cracauer@wavehh.hanse.de (Martin Cracauer)
+sparc-sun-solaris2.3	pkr@kom.auc.dk (Peter Kristensen)
+			james.gledhill@brite.com (James Gledhill)
 m68k-next-nextstep3.3p1	jbettis@cse.unl.edu (Jeremy Bettis)
+m68k-next-nextstep3.2	ebariaux@ulb.ac.be (Eric Bariaux)
+m68k-amiga-amigaos3.1	fog@cyberspace.org (Federico Di Gregorio)
+hppa1.1-hp-hpux9	mooney@golem.phys.ndsu.NoDak.edu (Timothy Mooney)
+mips-sgi-irix5.2	cracauer@wavehh.hanse.de (Martin Cracauer)
+			ebariaux@ulb.ac.be (Eric Bariaux)
+mips-dec-ultrix4.2	fedor@boulder.colorado.edu (Adam Fedor)
