@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <Foundation/NSZone.h>
 #include <gnustep/base/callbacks.h>
-#include <gnustep/base/o-hash.h>
+#include <gnustep/base/o_hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -82,8 +82,8 @@ struct _o_array_enumerator
 
 /** Basics **/
 
-#include <gnustep/base/o-array-bas.h>
-#include <gnustep/base/o-array-cbs.h>
+#include <gnustep/base/o_array_bas.h>
+#include <gnustep/base/o_array_cbs.h>
 
 /** Creating **/
 

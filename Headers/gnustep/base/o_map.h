@@ -29,7 +29,7 @@
 
 #include <Foundation/NSZone.h>
 #include <gnustep/base/callbacks.h>
-#include <gnustep/base/o-hash.h>
+#include <gnustep/base/o_hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -118,8 +118,8 @@ struct _o_map_enumerator
 /* All the structures (hashes, maps, lists, and arrays) have
  * the same basic ideas behind them. */
 
-#include <gnustep/base/o-map-bas.h>
-#include <gnustep/base/o-map-cbs.h>
+#include <gnustep/base/o_map_bas.h>
+#include <gnustep/base/o_map_cbs.h>
 
 /** Callbacks... **/
 

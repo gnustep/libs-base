@@ -1,5 +1,12 @@
 Fri May 31 10:06:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	* src/Makefile.in: Rename all `o-*' files to `o_*', and prepend
+ 	`o_' to some related files.
+
+	* src/NSString.m ([NSString -initWithFormat:arguments:]): Increase
+ 	bsprintf buffer size, and assert that we haven't overrun the
+ 	buffer.
+
 	* src/Makefile.in (GNU_OTHER_SRCFILES): Added win32-entry.c and
  	win32-def.top.
 

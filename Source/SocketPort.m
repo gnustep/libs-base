@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #endif /* !WIN32 */
 
-#include <objc/o-hash.h>
+#include <objc/o_hash.h>
 #include <gnustep/base/Lock.h>
 #include <objc/List.h>
 #include <gnustep/base/Connection.h>
