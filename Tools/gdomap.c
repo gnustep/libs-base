@@ -1734,7 +1734,10 @@ handle_recv()
 	}
       if (is_local_host(addr->sin_addr) == 1)
 	{
-	  fprintf(stderr, "recvfrom packet from self discarded\n");
+	  if (debug)
+	    {
+	      fprintf(stderr, "recvfrom packet from self discarded\n");
+	    }
 	  return;
 	}
       handle_request(udp_desc);
