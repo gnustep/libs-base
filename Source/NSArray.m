@@ -1472,7 +1472,8 @@ static NSString	*indentStrings[] = {
  *      if it is greater, and NSOrderedSame if it is equal.
  */
 - (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id))sorter
+		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		       context: (void *)context
 {
   unsigned	count = [self count];
   unsigned	upper = count;
@@ -1499,7 +1500,7 @@ static NSString	*indentStrings[] = {
     {
       NSComparisonResult comparison;
 
-      comparison = (*sorter)(item, (*oai)(self, oaiSel, index));
+      comparison = (*sorter)(item, (*oai)(self, oaiSel, index), context);
       if (comparison == NSOrderedAscending)
         {
           upper = index;
@@ -1518,7 +1519,7 @@ static NSString	*indentStrings[] = {
    *	items that are equal to the new one.
    */
   while (index < count
-    && (*sorter)(item, (*oai)(self, oaiSel, index)) != NSOrderedAscending)
+    && (*sorter)(item, (*oai)(self, oaiSel, index), context) != NSOrderedAscending)
     {
       index++;
     }
