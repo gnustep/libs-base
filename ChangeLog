@@ -1,3 +1,10 @@
+2002-09-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix problem with signed/unsigned type
+	conversion when initialising a date at a daylight savings time
+	boundary, and attempt to improve the code for adding offsets to
+	dates.
+
 2002-09-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: ([GSTcphandle+initialize]) ignore SIGPIPE in
