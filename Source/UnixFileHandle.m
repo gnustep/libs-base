@@ -265,30 +265,32 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		     service: (NSString*)s
 		    protocol: (NSString*)p
 {
-  NSRunLoop	*loop;
-  NSDate	*limit;
-
   self = [self initAsClientInBackgroundAtAddress: a
 					 service: s
 					protocol: p
 					forModes: nil];
+  if (self != nil)
+    {
+      NSRunLoop	*loop;
+      NSDate	*limit;
 
-  loop = [NSRunLoop currentRunLoop];
-  limit = [NSDate dateWithTimeIntervalSinceNow: 300];
-  while ([limit timeIntervalSinceNow] > 0
-    && (readInfo != nil || [writeInfo count] > 0))
-    {
-      [loop runMode: NSDefaultRunLoopMode
-	 beforeDate: limit];
-    }
-  if (readInfo != nil || [writeInfo count] > 0 || readOK == NO)
-    {
-      /* Must have timed out or failed */
-      DESTROY(self);
-    }
-  else
-    {
-      [self setNonBlocking: NO];
+      loop = [NSRunLoop currentRunLoop];
+      limit = [NSDate dateWithTimeIntervalSinceNow: 300];
+      while ([limit timeIntervalSinceNow] > 0
+	&& (readInfo != nil || [writeInfo count] > 0))
+	{
+	  [loop runMode: NSDefaultRunLoopMode
+	     beforeDate: limit];
+	}
+      if (readInfo != nil || [writeInfo count] > 0 || readOK == NO)
+	{
+	  /* Must have timed out or failed */
+	  DESTROY(self);
+	}
+      else
+	{
+	  [self setNonBlocking: NO];
+	}
     }
   return self;
 }
@@ -698,8 +700,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      NSLog(@"bad address-service-protocol combination");
       RELEASE(self);
+      NSLog(@"bad address-service-protocol combination");
       return nil;
     }
   [self setAddr: &sin];		// Store the address of the remote end.
