@@ -1,3 +1,8 @@
+2002-06-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/cifframe.m (cifframe_from_info): Set value locations
+	after prepping cifframe.
+
 2002-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLog.m: patch by Jeff Teunissen to avoid adding date/time
