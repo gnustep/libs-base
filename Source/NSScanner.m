@@ -117,7 +117,7 @@ typedef struct {
     }
 }
 
-/*
+/**
  * Create and return a scanner that scans aString.<br />
  * Uses -initWithString: and with no locale set.
  */
@@ -933,6 +933,18 @@ typedef struct {
  * <p>To count the occurrances of string, this should be used in
  * conjunction with the -scanString:intoString: method.
  * </p>
+ * <example>
+ * NSString *ch = @"["; 
+ * unsigned total = 0; 
+ *
+ * [scanner scanUpToString: ch intoString: NULL]; 
+ * while ([scanner scanString: ch intoString: NULL] == YES)
+ *  { 
+ *    total++;
+ *    [scanner scanUpToString: ch intoString: NULL]; 
+ *  } 
+ * NSLog(@"total %d", total); 
+ * </example>
  */
 - (BOOL) scanUpToString: (NSString *)string 
 	     intoString: (NSString **)value
