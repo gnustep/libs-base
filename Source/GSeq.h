@@ -275,7 +275,7 @@ typedef struct {
   unsigned _lcount = 0; \
   while (_lcount < (R).length) \
     { \
-      (B)[_lcount] = (unichar)s->_contents_chars[(R).location + _lcount]; \
+      (B)[_lcount] = (unichar)(unsigned char)s->_contents_chars[(R).location + _lcount]; \
       _lcount++; \
     } \
 } )
@@ -307,7 +307,7 @@ typedef struct {
   unsigned _lcount = 0; \
   while (_lcount < (R).length) \
     { \
-      (B)[_lcount] = (unichar)o->_contents_chars[(R).location + _lcount]; \
+      (B)[_lcount] = (unichar)(unsigned char)o->_contents_chars[(R).location + _lcount]; \
       _lcount++; \
     } \
 } )
