@@ -468,6 +468,31 @@ GSObjCZone(NSObject *obj);
 GS_EXPORT void *
 GSAutoreleasedBuffer(unsigned size);
 
+/**
+ * Allocate a new objc_mutex_t and store it in the location
+ * pointed to by request.  A mutex is only created if the value
+ * pointed to by request is NULL.  This function is thread safe
+ * in the sense that multiple threads my call this function with the same
+ * value of request and only one will actually set the mutex.
+ * It is the users responsibility that no one else attempts to set
+ * the mutex pointed to.  This function should be
+ * used with objc_mutex_t variables which were statically initialized
+ * to NULL like:
+ * <example>
+ * void function (void)
+ * {
+ *   static objc_mutex_t my_lock = NULL;
+ *   if (my_lock == NULL)
+ *     GSAllocateMutexAt(&my_lock);
+ *   objc_mutex_lock(my_lock);
+ *   do_work ();
+ *   objc_mutex_unlock(my_lock);
+ * }
+ * </example>
+ */
+GS_EXPORT void
+GSAllocateMutexAt(objc_mutex_t *request);
+
 /** Returns a system error message on a variety of systems
  */
 GS_EXPORT const char *

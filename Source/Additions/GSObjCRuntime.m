@@ -59,6 +59,59 @@
 @end
 #endif
 
+static objc_mutex_t local_lock = NULL;
+
+/* This class it intended soley for thread safe / +load safe
+   initialization of the local lock.
+   It's a root class so it won't trigger the initialization
+   of any other class.  */
+@interface _GSObjCRuntimeInitializer /* Root Class */
+{
+  Class isa;
+}
++ (Class)class;
+@end
+@implementation _GSObjCRuntimeInitializer
++ (void)initialize
+{
+  if (local_lock == NULL)
+    {
+      local_lock = objc_mutex_allocate();
+    }
+}
++ (Class)class
+{
+  return self;
+}
+@end
+
+void
+GSAllocateMutexAt(objc_mutex_t *request)
+{
+  if (request == NULL)
+    {
+      /* This could be called very early in process 
+	 initialization so many things may not have 
+	 been setup correctly yet.  */
+      fprintf(stderr, 
+	      "Error: GSAllocateMutexAt() called with NULL pointer.\n");
+      abort();
+    }
+
+  if (local_lock == NULL)
+    {
+      /* Initialize in a thread safe way.  */
+      [_GSObjCRuntimeInitializer class];
+    }
+
+  objc_mutex_lock(local_lock);
+  if (*request == NULL)
+    {
+      *request = objc_mutex_allocate();
+    }
+  objc_mutex_unlock(local_lock);
+}
+
 /**  Deprecated ... use GSObjCFindVariable() */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,

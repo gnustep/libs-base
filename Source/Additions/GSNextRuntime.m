@@ -593,3 +593,59 @@ objc_set_error_handler(objc_error_handler func)
   return temp;
 }
 
+/*
+ * Functions for threading support.
+ */
+
+/* This currently assumes that the NeXT Runtime is using pthreads
+   as the underlying thread support.  This is true for 'modern' NeXT
+   Runtime implementations but it may not be for older versions.  */
+
+#include <pthread.h>
+
+objc_mutex_t
+objc_mutex_allocate(void)
+{
+  pthread_mutex_t *p;
+  p = (pthread_mutex_t *)calloc(1, sizeof(pthread_mutex_t));
+  if (pthread_mutex_init(p, NULL) != 0)
+    {
+      abort();
+    }
+  return (objc_mutex_t)p;
+}
+
+int
+objc_mutex_deallocate(objc_mutex_t mutex)
+{
+  int ret;
+  pthread_mutex_t *p = (pthread_mutex_t *)mutex;
+  ret = pthread_mutex_destroy(p);
+  if (ret == 0)
+    {
+      free(p);
+    }
+  return ret;
+}
+
+int
+objc_mutex_lock(objc_mutex_t mutex)
+{
+  pthread_mutex_t *p = (pthread_mutex_t *)mutex;
+  return pthread_mutex_lock(p);  
+}
+
+int
+objc_mutex_unlock (objc_mutex_t mutex)
+{
+  pthread_mutex_t *p = (pthread_mutex_t *)mutex;
+  return pthread_mutex_unlock(p);  
+}
+
+int
+objc_mutex_trylock (objc_mutex_t mutex)
+{
+  pthread_mutex_t *p = (pthread_mutex_t *)mutex;
+  return pthread_mutex_trylock(p);  
+}
+

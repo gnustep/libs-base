@@ -36,8 +36,8 @@
 #include <ctype.h>
 #include <stdio.h>
 
-/* Disable builtin functions for gcc < 3.x since it triggers a bad bug (even some 3.x versions may have this
-   bug) */
+/* Disable builtin functions for gcc < 3.x since it triggers a bad bug 
+   (even some 3.x versions may have this bug).  */
 #if __GNUC__ < 3
 #define __builtin_apply(a,b,c) 0
 #define __builtin_apply_args() 0
@@ -191,6 +191,16 @@ extern void *(*_objc_valloc)(size_t);
 extern void *(*_objc_realloc)(void *, size_t);
 extern void *(*_objc_calloc)(size_t, size_t);
 extern void (*_objc_free)(void *);
+
+
+/* threading functions */
+typedef void *objc_mutex_t;
+
+objc_mutex_t objc_mutex_allocate (void);
+int objc_mutex_deallocate (objc_mutex_t mutex);
+int objc_mutex_lock (objc_mutex_t mutex);
+int objc_mutex_unlock (objc_mutex_t mutex);
+int objc_mutex_trylock (objc_mutex_t mutex);
 
 /* encoding functions */
 extern int objc_sizeof_type(const char* type);
