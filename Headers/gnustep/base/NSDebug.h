@@ -119,7 +119,7 @@ GS_EXPORT const char*	GSDebugAllocationListAll();
 
 /**
  * Starts recording all allocated objects of a certain class.<br />
- * Use with extreme carre ... this could slow down your application
+ * Use with extreme care ... this could slow down your application
  * enormously.
  */
 GS_EXPORT void     GSDebugAllocationActiveRecordingObjects(Class c);
