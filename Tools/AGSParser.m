@@ -2910,6 +2910,18 @@ fail:
       [self log: @"protocol with bad name"];
       goto fail;
     }
+
+  /*
+   * If there is a comma, this must be a forward declaration of a list
+   * of protocols ... so we can ignore it.  Otherwise, if we found a
+   * semicolon, we have a single forward declaration to ignore.
+   */
+  if (pos < length && (buffer[pos] == ',' || buffer[pos] == ';'))
+    {
+      [self skipStatement];
+      return nil;
+    }
+
   [dict setObject: name forKey: @"Name"];
   [self setStandards: dict];
   unitName = [NSString stringWithFormat: @"(%@)", name];
