@@ -30,6 +30,8 @@
 
 @interface BinaryCStream : CStream
 
++ setDebugging: (BOOL)f;
+
 @end
 
 #endif /* __BinaryCStream_h_OBJECTS_INCLUDE */
