@@ -33,6 +33,8 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSDictionary.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
 
 static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
 
@@ -42,6 +44,18 @@ static NSCharacterSet* cache_set[MAX_STANDARD_SETS];
 static NSLock* cache_lock = nil;
 
 @implementation NSCharacterSet
+
++ (void) _becomeThreaded: (NSNotification*)notification
+{
+  if (cache_lock == nil)
+    {
+      cache_lock = [NSLock new];
+      [[NSNotificationCenter defaultCenter]
+	removeObserver: self
+		  name: NSWillBecomeMultiThreadedNotification
+		object: nil];
+    }
+}
 
 + (void) initialize
 {
@@ -56,6 +70,18 @@ static NSLock* cache_lock = nil;
 	  cache_set[i] = 0;
 	}
       one_time = YES;
+    }
+  if ([NSThread isMultiThreaded])
+    {
+      [self _becomeThreaded: nil];
+    }
+  else
+    {
+      [[NSNotificationCenter defaultCenter]
+        addObserver: self
+        selector: @selector(_becomeThreaded:)
+        name: NSWillBecomeMultiThreadedNotification
+        object: nil];
     }
 }
 
@@ -73,8 +99,6 @@ static NSLock* cache_lock = nil;
   NSString *set_path;
   NSBundle *bundle;
 
-  if (!cache_lock)
-    cache_lock = [NSLock new];
   [cache_lock lock];
 
   set = nil; /* Quiet warnings */
