@@ -34,6 +34,9 @@
    creating the potential for deadlock. */
 NSRecursiveLock *gnustep_global_lock = nil;
 
+/* Set this variable to print NSDebugLog messages */
+int NSDebugLogging = NO;
+
 /* Connection Notification Strings. */
 
 NSString *ConnectionBecameInvalidNotification = 

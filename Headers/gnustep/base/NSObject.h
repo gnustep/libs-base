@@ -95,6 +95,7 @@
 
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
 - (IMP) methodForSelector: (SEL)aSelector;
++ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 
 - (NSString*) description;

@@ -1,3 +1,28 @@
+Tue Jul 14 16:26:36 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/Makefile.postamble (gnustep-base): Fixup dir creation.
+	(Foundation): Likewise.
+
+	* src/externs.m: New NSDebugLogging variable.
+	* src/include/NSObjCRuntime: Change NSDebugLog so it works when
+	DEBUG is defined and NSDebugLogging is set.
+
+	* src/include/Foundation.h: Include NSTimer.h
+	* src/include/NSObject.h: Define +instanceMethodSignatureForSelector:
+
+Tue Jul 14 10:06:31 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+        * checks/nsset.m : Added new testing functions.
+        (intersects_set_test): Likewise.
+        (is_subset_of_set_test): Likewise.
+
+        * src/include/NSSet.h ([NSSet -setWithObjects:]): Remove the type
+ 	declaration of arguments, "NSArray *".  The arguments should be
+ 	declared as id.
+
+        * src/NSSet.m ([NSSet -isSubsetOfSet:otherSet]): Implement.
+        ([NSSet -intersectsSet:otherSet]): Likewise.
+
 Wed Jul 15 12:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/Invocation.m: Rewrote ([-invoke]) to retrieve return values

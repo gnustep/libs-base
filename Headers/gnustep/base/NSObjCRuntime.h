@@ -43,9 +43,12 @@ extern NSLog_printf_handler *_NSLog_printf_handler;
 extern void NSLog (NSString* format, ...);
 extern void NSLogv (NSString* format, va_list args);
 
-/* Debug logging which can be enabled/disabled */
-#ifdef DEBUGLOG
-#define NSDebugLog(format, args...) NSLog(format, ## args)
+/* Debug logging which can be enabled/disabled by defining DEBUG
+   when compiling and also setting the NSDebugLogging variable */
+#ifdef DEBUG
+extern int NSDebugLogging;
+#define NSDebugLog(format, args...) \
+  do { if (NSDebugLogging) NSLog(format, ## args); } while (0)
 #else
 #define NSDebugLog(format, args...)
 #endif

@@ -249,14 +249,46 @@ static Class NSMutableSet_concrete_class;
 
 - (BOOL) intersectsSet: (NSSet*) otherSet
 {
-  [self notImplemented:_cmd];
+  id o = nil, e = nil;
+
+  // -1. If this set is empty, this method should return NO.
+  if ([self count] == 0) return NO;
+
+  // 0. Loop for all members in otherSet
+  e = [otherSet objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+    {
+      if ([self member: o])    // 2. check the member is in this set(self).
+       return YES;
+    }
   return NO;
 }
 
 - (BOOL) isSubsetOfSet: (NSSet*) otherSet
 {
-  [self notImplemented:_cmd];
-  return NO;
+  id o = nil, e = nil;
+
+  // -1. members of this set(self) <= that of otherSet
+  if ([self count] > [otherSet count]) return NO;
+
+  // 0. Loop for all members in this set(self).
+  e = [self objectEnumerator];
+  while ((o = [e nextObject]))
+    {
+      // 1. check the member is in the otherSet.
+      if ([otherSet member: o])
+       {
+         // 1.1 if true -> continue, try to check the next member.
+         continue ;
+       }
+      else
+       {
+         // 1.2 if false -> return NO;
+         return NO;
+       }
+    }
+  // 2. return YES; all members in this set are also in the otherSet.
+  return YES;
 }
 
 - (BOOL) isEqual: other

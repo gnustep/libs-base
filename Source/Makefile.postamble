@@ -86,9 +86,10 @@ after-distclean::
 
 # Local links to the include files
 gnustep/base: FORCE
-	rm -rf gnustep
-	mkdir gnustep
-	cd gnustep ; $(LN_S) ../include base
+	if [ ! -d gnustep ]; then \
+	  mkdir gnustep; \
+	fi
+	cd gnustep ; rm -f base ; $(LN_S) ../include base;
 	# Make necessary links to source headers if compiling in seperate dir
 	# These are separate directories because one contains the .h files
 	# generated during the build; the other contains the unchanged sources.
@@ -101,7 +102,9 @@ gnustep/base: FORCE
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
 Foundation: FORCE
-	rm -rf Foundation
+	if [ -d Foundation ]; then \
+	  rm -rf Foundation; \
+	fi
 	$(LN_S) $(srcdir)/include Foundation
 
 # Creation of NSValue and NSNumber concrete classes from templates

@@ -272,10 +272,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if ([s isEqual: gnustep_target_cpu])
 	path = [path stringByDeletingLastPathComponent];
 
-#ifdef DEBUG
-      fprintf(stderr, "Debug (NSBundle): Found main in %s\n", 
-	      [path cString]);
-#endif
+      NSDebugLog(@"(NSBundle): Found main in %@\n", path);
       /* We do alloc and init separately so initWithPath: knows
           we are the _mainBundle */
       _mainBundle = [NSBundle alloc];
