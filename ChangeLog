@@ -4,6 +4,9 @@
 	* Source/NSInvocation.m: Support the two new macros. Documented.
 	* Testing/nsinvocation.m: Trivial tests added.
         * Documentation/OpenStepCompliance.gsdoc: Updated.
+	* Source/NSConnection.m: ([-forwardInvocation:forProxy:]) set
+	invocation target explicitly, in case this was called as a result
+	of a manual setup of the invocation rather than real forwarding.
 
 2003-04-03  Adam Fedor  <fedor@gnu.org>
 

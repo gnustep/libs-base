@@ -1959,6 +1959,7 @@ static void retEncoder (DOContext *ctxt)
   if (debug_connection > 4)
     NSLog(@"building packet seq %d", ctxt.seq);
 
+  [inv setTarget: object];
   outParams = [inv encodeWithDistantCoder: op passPointers: NO];
 
   if (outParams == YES)
