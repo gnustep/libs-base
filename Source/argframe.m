@@ -151,7 +151,7 @@ make_method_call(const char *forward_type,
 	      /* xxx or should this be alloca?!  
 		 What about inout params?  Where do they get freed? */
 	      *(void**)datum = 
-		(*objc_malloc)(objc_sizeof_type(tmptype));
+		objc_malloc (objc_sizeof_type(tmptype));
 	      if ((flags & _F_IN) || !(flags & _F_OUT))
 		(*fd)(argnum, *(void**)datum, tmptype);
 	    }
@@ -160,7 +160,7 @@ make_method_call(const char *forward_type,
 	      /* xxx or should this be alloca?!  
 		 What about inout params?  Where dothey get freed? */
 	      *(char**)datum = 
-		(*objc_malloc)(objc_sizeof_type(tmptype));
+		objc_malloc (objc_sizeof_type(tmptype));
 	      if ((flags & _F_IN) || !(flags & _F_OUT))
 		(*fd)(argnum, *(void**)datum, tmptype);
 	    }
@@ -332,13 +332,13 @@ retval_t dissect_method_return(arglist_t frame, const char *type,
 		if (*tmptype == _C_STRUCT_B || *tmptype == _C_ARY_B)
 		  {
 		    *(void**)retframe = 
-		      (*objc_malloc)(objc_sizeof_type(tmptype));
+		      objc_malloc (objc_sizeof_type(tmptype));
 		    (*f)(argnum, *(void**)retframe, tmptype, flags);
 		  }
 		else
 		  {
 		    *(void**)retframe = 
-		      (*objc_malloc)(objc_sizeof_type(tmptype));
+		      objc_malloc (objc_sizeof_type(tmptype));
 		    (*f)(argnum, *(void**)retframe, tmptype, flags);
 		  }
 	      }
