@@ -2150,8 +2150,8 @@ tables:
 			{
 			  *outbuf++ = '*';
 			  outbytesleft--;
-			  inbuf++;
-			  inbytesleft--;
+			  inbuf += sizeof(unichar);
+			  inbytesleft -= sizeof(unichar);
 			}
 		    }
 		  else if (errno != E2BIG)
