@@ -50,7 +50,7 @@
 #if NeXT_runtime
 + class;
 #else
-+ (Class*) class;
++ (Class) class;
 #endif
 
 - invalidateProxy;
