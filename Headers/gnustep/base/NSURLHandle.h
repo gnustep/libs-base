@@ -1,8 +1,8 @@
 /* NSURLHandle.h - Class NSURLHandle
    Copyright (C) 1999 Free Software Foundation, Inc.
    
-   Written by:	Manuel Guesdon <mguesdon@sbuilders.com>
-   Date: 		Jan 1999
+   Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
+   Date: 	Jan 1999
    
    This file is part of the GNUstep Library.
    
@@ -22,7 +22,7 @@
 */
 
 #ifndef _NSURLHandle_h__
-	#define _NSURLHandle_h__
+#define _NSURLHandle_h__
 
 @class NSURLHandle;
 @class NSURL;
@@ -35,70 +35,70 @@ extern NSString *NSHTTPPropertyErrorPageDataKey;
 
 typedef enum
 {
-    NSURLHandleNotLoaded = 0,
-    NSURLHandleLoadSucceeded,
-    NSURLHandleLoadInProgress,
-    NSURLHandleLoadFailed
+  NSURLHandleNotLoaded = 0,
+  NSURLHandleLoadSucceeded,
+  NSURLHandleLoadInProgress,
+  NSURLHandleLoadFailed
 } NSURLHandleStatus;
 
-//===================================================================================
+//=============================================================================
 @protocol NSURLHandleClient
--(void)					URLHandle:(NSURLHandle*)sender
-   resourceDataDidBecomeAvailable:(NSData*)newData;
+- (void) URLHandle: (NSURLHandle*)sender
+  resourceDataDidBecomeAvailable: (NSData*)newData;
 
--(void)URLHandleResourceDidBeginLoading:(NSURLHandle*)sender;
--(void)URLHandleResourceDidFinishLoading:(NSURLHandle*)sender;
--(void)URLHandleResourceDidCancelLoading:(NSURLHandle*)sender;
+- (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender;
+- (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
+- (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender;
 
--(void)						URLHandle:(NSURLHandle*)sender
-	 resourceDidFailLoadingWithReason:(NSString*)reason;
+- (void) URLHandle: (NSURLHandle*)sender
+  resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
 
-//===================================================================================
-@interface NSURLHandle:NSObject
+//=============================================================================
+@interface NSURLHandle: NSObject
 {
-    NSMutableArray *clients;
-    id data; 
-    NSURLHandleStatus status;
-};
+  NSMutableArray	*clients;
+  id			data; 
+  NSURLHandleStatus	status;
+}
 
-+(void)registerURLHandleClass:(Class)_urlHandleSubclass;
-+(Class)URLHandleClassForURL:(NSURL*)_url;
++ (void) registerURLHandleClass: (Class)_urlHandleSubclass;
++ (Class) URLHandleClassForURL: (NSURL*)_url;
 
--(id)initWithURL:(NSURL*)_url
-		  cached:(BOOL)_cached;
+- (id) initWithURL: (NSURL*)_url
+	    cached: (BOOL)_cached;
 
--(NSURLHandleStatus)status;
--(NSString*)failureReason;
+- (NSURLHandleStatus) status;
+- (NSString*) failureReason;
 
--(void)addClient:(id <NSURLHandleClient>)_client;
--(void)removeClient:(id <NSURLHandleClient>)_client;
+- (void) addClient: (id <NSURLHandleClient>)_client;
+- (void) removeClient: (id <NSURLHandleClient>)_client;
 
--(void)loadInBackground;
--(void)cancelLoadInBackground;
+- (void) loadInBackground;
+- (void) cancelLoadInBackground;
 
--(NSData*)resourceData;
--(NSData*)availableResourceData;
+- (NSData*) resourceData;
+- (NSData*) availableResourceData;
 
--(void)flushCachedData;
+- (void) flushCachedData;
 
--(void)backgroundLoadDidFailWithReason:(NSString*)reason;
--(void)didLoadBytes:(NSData*)newData
-	   loadComplete:(BOOL)_loadComplete;
+- (void) backgroundLoadDidFailWithReason: (NSString*)reason;
+- (void) didLoadBytes: (NSData*)newData
+	 loadComplete: (BOOL)_loadComplete;
 
 
-+(BOOL)canInitWithURL:(NSURL*)_url;
-+(NSURLHandle*)cachedHandleForURL:(NSURL*)_url;
++ (BOOL) canInitWithURL: (NSURL*)_url;
++ (NSURLHandle*) cachedHandleForURL: (NSURL*)_url;
 
--(id)propertyForKey:(NSString*)propertyKey;
--(id)propertyForKeyIfAvailable:(NSString*)propertyKey;
--(BOOL)writeProperty:(id)propertyValue
-			  forKey:(NSString*)propertyKey;
--(BOOL)writeData:(NSData*)data;
+- (id) propertyForKey: (NSString*)propertyKey;
+- (id) propertyForKeyIfAvailable: (NSString*)propertyKey;
+- (BOOL) writeProperty: (id)propertyValue
+		forKey: (NSString*)propertyKey;
+- (BOOL) writeData: (NSData*)data;
 
--(NSData*)loadInForeground;
--(void)beginLoadInBackground;
--(void)endLoadInBackground;
+- (NSData*) loadInForeground;
+- (void) beginLoadInBackground;
+- (void) endLoadInBackground;
 
 @end
 

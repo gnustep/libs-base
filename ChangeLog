@@ -1,3 +1,9 @@
+Thu Jul 15  6:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/Foundation/NSURL.h: Tidied
+	* Headers/Foundation/NSURLHandle.h: Tidied
+	* Headers/Foundation/Foundation.h: inlcude NSURL.h and NSURLHandle.h
+
 Wed Jul 14 20:19:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSThread.m: Make sure that a thread retains the target object
