@@ -1,5 +1,6 @@
 
 #include <objects/Connection.h>
+#include <objects/Proxy.h>
 #include "first-server.h"
 #include <objects/String.h>
 
@@ -30,7 +31,9 @@ int main(int argc, char *argv[])
 
 
   printf("Shutting down my connection to the server\n");
-  [s invalidate];
+  [[s connectionForProxy] invalidate];
+  /* Although this isn't strictly necessary.  The server will recognize
+     that we are gone, and handle it, if we just exit (or if we crash). */
 
   exit(0);
 }
