@@ -1,3 +1,12 @@
+2005-03-14  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.10.2
+
+2005-03-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSFileManager.m (-createFileAtPath:...): Define var at
+	beginning to work on gcc 2.x compilers.
+        
 2005-02-22 14:00 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc:
@@ -51,7 +60,6 @@
 	Include malloc.h for systems where it is needed for alloca()
 	* Tools/gdomap.c: Avoid some warnings on mingw32
 
-M Source/mframe/mframe.head
 2005-02-21 14:10 Stefan Urbanek <stefan@agentfarms.net>
 
 	* Source/NSAttributedString.m: Fix loop decoding from archive.
@@ -75,7 +83,7 @@ M Source/mframe/mframe.head
 	as the variable may not be set.  Sort variables because windows needs
 	them in alphabetical order.  Fix conversion to unicode.
 
-	2005-02-16 14:40 Richard Frith-Macdonald <rfm@gnu.org>
+2005-02-16 14:40 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/patchxml.m4: Try to detect libxml2 in standard directories
 	exen if xml2-config is not present.

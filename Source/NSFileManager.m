@@ -780,6 +780,7 @@ static NSFileManager* defaultManager = nil;
   DWORD	written = 0;
   DWORD	len = [contents length];
 #else
+  const char	*lpath;
   int	fd;
   int	len;
   int	written;
@@ -811,7 +812,7 @@ static NSFileManager* defaultManager = nil;
       return YES;
     }
 #else
-  const char	*lpath = [self fileSystemRepresentationWithPath: path];
+  lpath = [self fileSystemRepresentationWithPath: path];
 
   fd = open(lpath, GSBINIO|O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)

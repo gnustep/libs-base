@@ -1,9 +1,23 @@
 News
 ****
 
-The currently released version of the library is `1.10.1'.
+The currently released version of the library is `1.10.2'.
 
 See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.10.2'
+======================================
+
+This version mostly includes minor fixes and updates.
+
+   * The definition of NSContainsRect has changed to correspond with the
+     current Mac OS X/Cocoa def - the sides of the bRect can touch
+     aRect.
+
+   * Add support for systems that support unichar file paths (e.g.
+     Windows).
+
+   * Use a proper one-to-one abbreviation dictionary for NSTimeZone.
 
 Noteworthy changes in version `1.10.1'
 ======================================
