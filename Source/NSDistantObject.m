@@ -105,12 +105,12 @@ typedef struct {
 /* This is the proxy tag; it indicates where the local object is,
    and determines whether the reply port to the Connection-where-the-
    proxy-is-local needs to encoded/decoded or not. */
-enum
+enum proxyLocation
 {
   PROXY_LOCAL_FOR_RECEIVER = 0,
   PROXY_LOCAL_FOR_SENDER,
   PROXY_REMOTE_FOR_BOTH
-} proxyLocation;
+};
 
 
 

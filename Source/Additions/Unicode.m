@@ -559,7 +559,7 @@ GSEncodingFromLocale(const char *clocale)
  * Return the default encoding
  */
 NSStringEncoding
-GetDefEncoding()
+GetDefEncoding(void)
 {
   if (defEnc == GSUndefinedEncoding)
     {

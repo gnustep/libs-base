@@ -1967,7 +1967,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #include "GNUstepBase/GSIArray.h"
 
 /* Portable replacement for strdup - return a copy of original.  */
-inline char *custom_strdup (const char *original)
+static inline char *custom_strdup (const char *original)
 {
   char *result;
   unsigned length = sizeof(char) * (strlen (original) + 1);
@@ -1981,7 +1981,7 @@ inline char *custom_strdup (const char *original)
    The function takes for granted that path and file are correct
    filesystem paths; that path does not end with a path separator, and
    file does not begin with a path separator. */
-inline char *append_file_to_path (const char *path, const char *file)
+static inline char *append_file_to_path (const char *path, const char *file)
 {
   unsigned path_length = strlen(path);
   unsigned file_length = strlen(file);
