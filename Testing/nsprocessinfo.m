@@ -1,8 +1,8 @@
-#include <<Foundation/NSProcessInfo.h>
-#include <<Foundation/NSString.h>
-#include <<Foundation/NSArray.h>
-#include <<Foundation/NSDictionary.h>
-#include <<Foundation/NSDate.h>
+#include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSDate.h>
 
 int main(int argc, char *argv[]) 
 {
@@ -13,15 +13,17 @@ int main(int argc, char *argv[])
 
 
   enumerator = [[pi arguments] objectEnumerator];
-  while (aString = [enumerator nextObject])
-    printf("-->%s",[aString cString]);
+  while ((aString = [enumerator nextObject]))
+    printf("-->%s\n",[aString cString]);
         
   enumerator = [[pi environment] keyEnumerator];
-  while (aKey = [enumerator nextObject])
-    printf("++>%s=%s",[aKey cString],[[[pi environment] 
+  while ((aKey = [enumerator nextObject]))
+    printf("++>%s=%s\n",[aKey cString],[[[pi environment] 
 				       objectForKey:aKey] cString]);
         
-  printf("==>%s",[[pi hostName] cString]);
-  printf("==>%s",[[pi processName] cString]);
-  printf("==>%s",[[pi globallyUniqueString] cString]);
+  printf("==>%s\n",[[pi hostName] cString]);
+  printf("==>%s\n",[[pi processName] cString]);
+  printf("==>%s\n",[[pi globallyUniqueString] cString]);
+
+  exit(0);
 }
