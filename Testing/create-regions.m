@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA. */
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #include <stdio.h>
 #include <Foundation/NSArray.h>
@@ -83,7 +83,7 @@ main (int argc, char *argv[])
 	{
 	  e = [zones[i] objectEnumerator];
 	  while ((name = [e nextObject]) != nil)
-	    NSLog(@"%d %@\n", i, name);
+	    printf("%d %@\n", i, name);
 	}
     }
 

@@ -114,7 +114,13 @@ typedef struct {
   /*
    * Ensure that we have an NSGString so we can access its internals directly.
    */
-  if (fastClass(aString) == NSGString_class)
+  if (aString == nil)
+    {
+      RELEASE(self);
+      NSLog(@"Scanner initialised with nil string");
+      return nil;
+    }
+  else if (fastClass(aString) == NSGString_class)
     {
       _isUnicode = YES;
       _string = RETAIN(aString);
@@ -131,9 +137,9 @@ typedef struct {
     }
   else
     {
-      [self dealloc];
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Scanner initialised with something not a string"];
+      RELEASE(self);
+      NSLog(@"Scanner initialised with something not a string");
+      return nil;
     }
   [self setCharactersToBeSkipped: defaultSkipSet];
   _decimal = '.';
