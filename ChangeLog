@@ -1,3 +1,9 @@
+Sun Feb 27 08:37:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/gnustep/base/NSPortMessage.m: use separate ivars for ports.
+	* Source/NSPortMessage.m: modified to use separate ivars for send and
+	receive ports so that we can easily pass mutable array for send.
+
 Fri Feb 25 12:56:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSPort.m: provide default implementations for methods dealing
