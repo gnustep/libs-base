@@ -58,7 +58,16 @@
 @end
 
 /*
- * GSCSubString - concrete subclass of GSCString, that relys on the
+ * GSCInlineString - concrete subclass of GSCString, that expects the
+ * characterData to appear in memory immediately after the object itsself.
+ */
+@interface GSCInlineString : GSCString
+{
+}
+@end
+
+/*
+ * GSCSubString - concrete subclass of GSCString, that relies on the
  * data stored in a GSCString object.
  */
 @interface GSCSubString : GSCString
@@ -72,6 +81,15 @@
  * GSUString - concrete class for strings using 16-bit character sets.
  */
 @interface GSUString : GSString
+{
+}
+@end
+
+/*
+ * GSUInlineString - concrete subclass of GSUString, that expects the
+ * characterData to appear in memory immediately after the object itsself.
+ */
+@interface GSUInlineString : GSUString
 {
 }
 @end
@@ -160,9 +178,11 @@ static Class NSDataClass = 0;
 static Class NSStringClass = 0;
 static Class GSStringClass = 0;
 static Class GSCStringClass = 0;
+static Class GSCInlineStringClass = 0;
 static Class GSCSubStringClass = 0;
 static Class GSUStringClass = 0;
 static Class GSUSubStringClass = 0;
+static Class GSUInlineStringClass = 0;
 static Class GSMStringClass = 0;
 static Class NXConstantStringClass = 0;
 
@@ -193,6 +213,8 @@ setup()
       GSStringClass = [GSString class];
       GSCStringClass = [GSCString class];
       GSUStringClass = [GSUString class];
+      GSCInlineStringClass = [GSCInlineString class];
+      GSUInlineStringClass = [GSUInlineString class];
       GSCSubStringClass = [GSCSubString class];
       GSUSubStringClass = [GSUSubString class];
       GSMStringClass = [GSMString class];
@@ -1204,7 +1226,7 @@ transmute(ivars self, NSString *aString)
       NSZoneFree(NSZoneFromPointer(_contents.c), _contents.c);
       _contents.c = 0;
     }
-  [super dealloc];
+  NSDeallocateObject(self);
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
@@ -1300,17 +1322,10 @@ transmute(ivars self, NSString *aString)
 {
   if (NSShouldRetainWithZone(self, z) == NO)
     {
-      GSCString	*obj;
+      NSString	*obj;
 
-      obj = (GSCString*)NSCopyObject(self, 0, z);
-      if (_contents.c != 0)
-	{
-	  unsigned char	*tmp;
-
-	  tmp = NSZoneMalloc(z, _count);
-	  memcpy(tmp, _contents.c, _count);
-	  obj->_contents.c = tmp;
-	}
+      obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
+      obj = [obj initWithCString: _contents.c length: _count];
       return obj;
     }
   else 
@@ -1483,11 +1498,26 @@ transmute(ivars self, NSString *aString)
 
 
 
+@implementation	GSCInlineString
+- (id) initWithCString: (const char*)chars length: (unsigned)length
+{
+  _count = length;
+  _contents.c = (unsigned char*)&self[1];
+  memcpy(_contents.c, chars, length);
+  _flags.wide = 0;
+  return self;
+}
+- (void) dealloc
+{
+  NSDeallocateObject(self);
+}
+@end
+
 @implementation	GSCSubString
 - (void) dealloc
 {
   RELEASE(_parent);
-  [super dealloc];
+  NSDeallocateObject(self);
 }
 @end
 
@@ -1559,17 +1589,10 @@ transmute(ivars self, NSString *aString)
 {
   if (NSShouldRetainWithZone(self, z) == NO)
     {
-      GSUString	*obj;
+      NSString	*obj;
 
-      obj = (GSUString*)NSCopyObject(self, 0, z);
-      if (_contents.u != 0)
-	{
-	  unichar	*tmp;
-
-	  tmp = NSZoneMalloc(z, _count*sizeof(unichar));
-	  memcpy(tmp, _contents.u, _count*sizeof(unichar));
-	  obj->_contents.u = tmp;
-	}
+      obj = (NSString*)NSAllocateObject(GSUInlineStringClass, _count*2, z);
+      obj = [obj initWithCharacters: _contents.u length: _count];
       return obj;
     }
   else 
@@ -1751,11 +1774,26 @@ transmute(ivars self, NSString *aString)
 
 
 
+@implementation	GSUInlineString
+- (id) initWithCharacters: (const unichar*)chars length: (unsigned)length
+{
+  _count = length;
+  _contents.u = (unichar*)&self[1];
+  memcpy(_contents.u, chars, length*sizeof(unichar));
+  _flags.wide = 1;
+  return self;
+}
+- (void) dealloc
+{
+  NSDeallocateObject(self);
+}
+@end
+
 @implementation	GSUSubString
 - (void) dealloc
 {
   RELEASE(_parent);
-  [super dealloc];
+  NSDeallocateObject(self);
 }
 @end
 
@@ -1835,12 +1873,13 @@ transmute(ivars self, NSString *aString)
 
   if (_flags.wide == 1)
     {
-      copy = [GSUStringClass allocWithZone: z];
+      copy = (NSString*)NSAllocateObject(GSUInlineStringClass,
+	_count*sizeof(unichar), z);
       copy = [copy initWithCharacters: _contents.u length: _count];
     }
   else
     {
-      copy = [GSCStringClass allocWithZone: z];
+      copy = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
       copy = [copy initWithCString: _contents.c length: _count];
     }
   return copy;
@@ -1879,7 +1918,7 @@ transmute(ivars self, NSString *aString)
       self->_contents.c = 0;
       self->_zone = 0;
     }
-  [super dealloc];
+  NSDeallocateObject(self);
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
