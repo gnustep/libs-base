@@ -206,7 +206,7 @@ handle_printf_atsign (FILE *stream,
 + (NSString*) stringWithCharacters: (const unichar*)chars
    length: (unsigned int)length
 {
-  [self notImplemented:_cmd];
+  [self notImplemented:_cmd];  
   return self;
 }
 
@@ -483,15 +483,19 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  unichar buffer[aRange.length];
+  char buffer[aRange.length];
   int count = [self length];
 
   if (aRange.location > count)
     [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (count - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
-  [self getCharacters: buffer range: aRange];
-  return [[self class] stringWithCharacters: buffer length: aRange.length];
+  /* This will only DTRT for CString's... but that's all we have right now. */
+  [self getCString: buffer 
+	maxLength: aRange.length
+	range: aRange
+	remainingRange: NULL];
+  return [[self class] stringWithCString: buffer length: aRange.length];
 }
 
 - (NSString*) substringToIndex: (unsigned int)index
@@ -933,7 +937,7 @@ handle_printf_atsign (FILE *stream,
   int len;
 
   /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
-  assert(aRange.location + aRange.length < [self cStringLength]);
+  assert(aRange.location + aRange.length <= [self cStringLength]);
   if (maxLength < aRange.length)
     {
       len = maxLength;
