@@ -134,6 +134,9 @@ NEWS: news.texi version.texi
 ADVERTISEMENT: advertisement.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
+GNUstep-HOWTO: gnustep-howto.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o GNUstep-HOWTO -D GNUsteo-HOWTO_ONLY \
+	--no-header --no-split $(srcdir)/gnustep-howto.texi
 
 # Unused for now, but may be used in the future.
 #%: %.texi

@@ -1,3 +1,9 @@
+Wed Nov  5 13:36:45 1997  Adam Fedor  <fedor@doc.com>
+
+	* doc/GNUmakefile (TEXT_FILES): Add GNUstep-HOWTO
+	* doc/Makefile.postamble (GNUstep-HOWTO): New target.
+	* doc/gnustep-howto.texi: New file.
+
 Sun Nov  2 15:47:10 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
 
 	* src/NSTimeZone.m: More effecient implementation of [NSTimeZone

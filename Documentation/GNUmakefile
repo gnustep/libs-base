@@ -36,21 +36,22 @@ TEXI_FILES = \
 announce.texi \
 base-desc.texi \
 coding-standards.texi \
-install.texi \
+faq.texi \
 gnustep-base.texi \
+gnustep-faq.texi \
+gnustep-howto.texi \
 gnustep-zones.texi \
+install.texi \
+machines.texi \
 news.texi \
 objective-c.texi \
 readme.texi \
 todo.texi \
-machines.texi \
-gnustep-faq.texi \
-faq.texi \
 version.texi \
 NSZone.texi
 
 TEXT_FILES = \
-TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE
+TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE GNUstep-HOWTO
 
 INFO_FILES = gnustep-base.info
 PS_FILES = gnustep-base.dvi
