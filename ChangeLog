@@ -10,6 +10,8 @@
 	* configure: regenerated
 	* Source/NSRunLoop.m: ([acceptInputForMode:beforeDate:]) block until
 	limit date even if no I/O is possible.
+	* Source/NSUserDefaults.m: Patch by Alexander Malmberg to try all
+	listed locales rather than giving up at first failure.
 
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
