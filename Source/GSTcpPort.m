@@ -1769,6 +1769,8 @@ static Class		tcpPortClass;
       NSArray		*handleArray;
       unsigned		i;
 
+      [super invalidate];	// Avoid recursive calls
+
       [tcpPortLock lock];
       thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
       if (thePorts != 0)
@@ -1795,7 +1797,6 @@ static Class		tcpPortClass;
 	  NSFreeMapTable(handles);
 	  handles = 0;
 	}
-      [super invalidate];
     }
   DO_UNLOCK(myLock);
 }
