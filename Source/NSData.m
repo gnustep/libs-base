@@ -640,9 +640,7 @@ failure:
 	  [self deserializeBytes: &length
 			  length: sizeof(length)
 			atCursor: cursor];
-#ifndef	GS_WORDS_BIGENDIAN
-	  length = GSSwapI32(length);
-#endif
+	  length = GSSwapBigI32ToHost(length);
 	  if (length == -1)
 	    {
 	      *(const char**)data = NULL;
@@ -813,9 +811,7 @@ failure:
 	  [self deserializeBytes: &ni
 			  length: sizeof(ni)
 			atCursor: cursor];
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(ni);
-#endif
+	  ni = GSSwapBigI16ToHost(ni);
 	  if (ni == 0)
 	    {
 	      *(Class*)data = 0;
@@ -847,15 +843,11 @@ failure:
 	  [self deserializeBytes: &ln
 			  length: sizeof(ln)
 			atCursor: cursor];
-#ifndef	GS_WORDS_BIGENDIAN
-	  ln = GSSwapI16(ln);
-#endif
+	  ln = GSSwapBigI16ToHost(ln);
 	  [self deserializeBytes: &lt
 			  length: sizeof(lt)
 			atCursor: cursor];
-#ifndef	GS_WORDS_BIGENDIAN
-	  lt = GSSwapI16(lt);
-#endif
+	  lt = GSSwapBigI16ToHost(lt);
 	  if (ln == 0)
 	    {
 	      *(SEL*)data = 0;
@@ -1268,24 +1260,18 @@ failure:
 
       case _C_CHARPTR:
 	{
-	  unsigned	len;
-	  gss32		ni;
+	  gsu32	len;
+	  gsu32	ni;
 
 	  if (!*(void**)data)
 	    {
-	      ni = -1;
-#ifndef	GS_WORDS_BIGENDIAN
-	      ni = GSSwapI32(ni);
-#endif
+	      ni = (gsu32)-1;
+	      ni = GSSwapHostI32ToBig(ni);
 	      [self appendBytes: (void*)&ni length: sizeof(ni)];
 	      return;
 	    }
-	  len = strlen(*(void**)data);
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI32(len);
-#else
-	  ni = len;
-#endif
+	  len = (gsu32)strlen(*(void**)data);
+	  ni = GSSwapHostI32ToBig(len);
 	  [self appendBytes: (void*)&ni length: sizeof(ni)];
 	  [self appendBytes: *(void**)data length: len];
 	  return;
@@ -1396,11 +1382,7 @@ failure:
 	  gsu16	ln = (gsu16)strlen(name);
 	  gsu16	ni;
 
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(ln);
-#else
-	  ni = ln;
-#endif
+	  ni = GSSwapHostI16ToBig(ln);
 	  [self appendBytes: &ni length: sizeof(ni)];
 	  if (ln)
 	    {
@@ -1416,17 +1398,9 @@ failure:
 	  gsu16	lt = (gsu16)strlen(types);
 	  gsu16	ni;
 
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(ln);
-#else
-	  ni = ln;
-#endif
+	  ni = GSSwapHostI16ToBig(ln);
 	  [self appendBytes: &ni length: sizeof(ni)];
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(lt);
-#else
-	  ni = lt;
-#endif
+	  ni = GSSwapHostI16ToBig(lt);
 	  [self appendBytes: &ni length: sizeof(ni)];
 	  if (ln)
 	    {
@@ -1444,13 +1418,13 @@ failure:
     }
 }
 
-- (void)serializeInt: (int)value
+- (void) serializeInt: (int)value
 {
   unsigned ni = NSSwapHostIntToBig(value);
   [self appendBytes: &ni length: sizeof(unsigned)];
 }
 
-- (void)serializeInt: (int)value atIndex: (unsigned)index
+- (void) serializeInt: (int)value atIndex: (unsigned)index
 {
   unsigned ni = NSSwapHostIntToBig(value);
   NSRange range = { index, sizeof(int) };
@@ -1705,10 +1679,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   *pos += len;
 }
 
-- (void)deserializeDataAt: (void*)data
-	       ofObjCType: (const char*)type
-		 atCursor: (unsigned*)cursor
-		  context: (id <NSObjCTypeSerializationCallBack>)callback
+- (void) deserializeDataAt: (void*)data
+	        ofObjCType: (const char*)type
+		  atCursor: (unsigned*)cursor
+		   context: (id <NSObjCTypeSerializationCallBack>)callback
 {
   if (data == 0 || type == 0)
     {
@@ -1740,9 +1714,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  [self deserializeBytes: &len
 			  length: sizeof(len)
 			atCursor: cursor];
-#ifndef	GS_WORDS_BIGENDIAN
-	  len = GSSwapI32(len);
-#endif
+	  len = GSSwapBigI32ToHost(len);
 	  if (len == -1)
 	    {
 	      *(const char**)data = NULL;
@@ -1893,9 +1865,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  gsu16	ni;
 
 	  getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(ni);
-#endif
+	  ni = GSSwapBigI16ToHost(ni);
 	  if (ni == 0)
 	    {
 	      *(Class*)data = 0;
@@ -1923,13 +1893,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  gsu16	lt;
 
 	  getBytes((void*)&ln, bytes, sizeof(ln), length, cursor);
-#ifndef	GS_WORDS_BIGENDIAN
-	  ln = GSSwapI16(ln);
-#endif
+	  ln = GSSwapBigI16ToHost(ln);
 	  getBytes((void*)&lt, bytes, sizeof(lt), length, cursor);
-#ifndef	GS_WORDS_BIGENDIAN
-	  lt = GSSwapI16(lt);
-#endif
+	  lt = GSSwapBigI16ToHost(lt);
 	  if (ln == 0)
 	    {
 	      *(SEL*)data = 0;
@@ -2010,11 +1976,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		}
 	      x = *(gsu16*)(bytes + *cursor);
 	      *cursor += 2;
-#if	GS_WORDS_BIGENDIAN
-	      *ref = (unsigned int)x;
-#else
-	      *ref = (unsigned int)GSSwapI16(x);
-#endif
+	      *ref = (unsigned int)GSSwapBigI16ToHost(x);
 	      return;
 	    }
 	  default:
@@ -2029,11 +1991,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		}
 	      x = *(gsu32*)(bytes + *cursor);
 	      *cursor += 4;
-#if	GS_WORDS_BIGENDIAN
-	      *ref = (unsigned int)x;
-#else
-	      *ref = (unsigned int)GSSwapI32(x);
-#endif
+	      *ref = (unsigned int)GSSwapBigI32ToHost(x);
 	      return;
 	    }
 	}
@@ -2662,18 +2620,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  if (!*(void**)data)
 	    {
 	      ni = -1;
-#ifndef	GS_WORDS_BIGENDIAN
-	      ni = GSSwapI32(ni);
-#endif
+	      ni = GSSwapHostI32ToBig(ni);
 	      [self appendBytes: (void*)&len length: sizeof(len)];
 	      return;
 	    }
 	  len = strlen(*(void**)data);
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI32(len);
-#else
-	  ni = len;
-#endif
+	  ni = GSSwapHostI32ToBig(len);
 	  minimum = length + len + sizeof(ni);
 	  if (minimum > capacity)
 	    {
@@ -2812,11 +2764,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    {
 	      [self _grow: minimum];
 	    }
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(ln);
-#else
-	  ni = ln;
-#endif
+	  ni = GSSwapHostI16ToBig(ln);
 	  memcpy(bytes+length, &ni, sizeof(ni));
 	  length += sizeof(ni);
 	  if (ln)
@@ -2839,18 +2787,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    {
 	      [self _grow: minimum];
 	    }
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(ln);
-#else
-	  ni = ln;
-#endif
+	  ni = GSSwapHostI16ToBig(ln);
 	  memcpy(bytes+length, &ni, sizeof(ni));
 	  length += sizeof(ni);
-#ifndef	GS_WORDS_BIGENDIAN
-	  ni = GSSwapI16(lt);
-#else
-	  ni = lt;
-#endif
+	  ni = GSSwapHostI16ToBig(lt);
 	  memcpy(bytes+length, &ni, sizeof(ni));
 	  length += sizeof(ni);
 	  if (ln)
@@ -2903,11 +2843,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  [self _grow: length + 3];
 	}
       *(gsu8*)(bytes + length++) = tag;
-#if	GS_WORDS_BIGENDIAN
-      *(gsu16*)(bytes + length) = (gsu16)x;
-#else
-      *(gsu16*)(bytes + length) = GSSwapI16(x);
-#endif
+      *(gsu16*)(bytes + length) = GSSwapHostI16ToBig(x);
       length += 2;
     }
   else
@@ -2920,11 +2856,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  [self _grow: length + 5];
 	}
       *(gsu8*)(bytes + length++) = tag;
-#if	GS_WORDS_BIGENDIAN
-      *(gsu32*)(bytes + length) = (gsu32)x;
-#else
-      *(gsu32*)(bytes + length) = GSSwapI32(x);
-#endif
+      *(gsu32*)(bytes + length) = GSSwapHostI32ToBig(x);
       length += 4;
     }
 }

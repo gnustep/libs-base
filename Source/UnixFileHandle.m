@@ -34,6 +34,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSByteOrder.h>
 
 #ifdef WIN32
 #include <Windows32/Sockets.h>
@@ -116,7 +117,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 #endif
     }
   else
-    sin->sin_addr.s_addr = htonl(INADDR_ANY);
+    sin->sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
 
   if (svc == nil)
     {
@@ -133,9 +134,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       if (*ptr == '\0' && val <= 0xffff)
 	{
-	  short       v = val;
+	  gsu16       v = val;
 
-	  sin->sin_port = htons(v);
+	  sin->sin_port = GSSwapHostI16ToBig(v);
 	  return YES;
         }
       else
@@ -237,7 +238,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
-		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(errno));
+		inet_ntoa(sin.sin_addr),
+		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
 	  [self release];
 	  return nil;
 	}
@@ -290,7 +292,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	if (errno != EINPROGRESS)
 	  {
 	    NSLog(@"unable to make connection to %s:%d - %s",
-		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(errno));
+		inet_ntoa(sin.sin_addr),
+		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
 	    [self release];
 	    return nil;
 	  }
@@ -339,7 +342,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
       NSLog(@"unable to bind to port %s:%d - %s",
-		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(errno));
+		inet_ntoa(sin.sin_addr),
+		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
       (void) close(net);
       [self release];
       return nil;
@@ -1330,7 +1334,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   address = [NSString stringWithCString: (char*)inet_ntoa(sin->sin_addr)];
   [address retain];
-  service = [NSString stringWithFormat: @"%d", (int)ntohs(sin->sin_port)];
+  service = [NSString stringWithFormat: @"%d",
+	(int)GSSwapBigI16ToHost(sin->sin_port)];
   [service retain];
   protocol = @"tcp";
 }

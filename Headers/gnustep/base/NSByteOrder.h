@@ -57,6 +57,42 @@ GSSwapI64(gsu64 in) __attribute__((unused));
 static inline gsu128
 GSSwapI128(gsu128 in) __attribute__((unused));
 
+static inline gsu16
+GSSwapBigI16ToHost(gsu16 in) __attribute__((unused));
+static inline gsu32
+GSSwapBigI32ToHost(gsu32 in) __attribute__((unused));
+static inline gsu64
+GSSwapBigI64ToHost(gsu64 in) __attribute__((unused));
+static inline gsu128
+GSSwapBigI128ToHost(gsu128 in) __attribute__((unused));
+
+static inline gsu16
+GSSwapHostI16ToBig(gsu16 in) __attribute__((unused));
+static inline gsu32
+GSSwapHostI32ToBig(gsu32 in) __attribute__((unused));
+static inline gsu64
+GSSwapHostI64ToBig(gsu64 in) __attribute__((unused));
+static inline gsu128
+GSSwapHostI128ToBig(gsu128 in) __attribute__((unused));
+
+static inline gsu16
+GSSwapLittleI16ToHost(gsu16 in) __attribute__((unused));
+static inline gsu32
+GSSwapLittleI32ToHost(gsu32 in) __attribute__((unused));
+static inline gsu64
+GSSwapLittleI64ToHost(gsu64 in) __attribute__((unused));
+static inline gsu128
+GSSwapLittleI128ToHost(gsu128 in) __attribute__((unused));
+
+static inline gsu16
+GSSwapHostI16ToLittle(gsu16 in) __attribute__((unused));
+static inline gsu32
+GSSwapHostI32ToLittle(gsu32 in) __attribute__((unused));
+static inline gsu64
+GSSwapHostI64ToLittle(gsu64 in) __attribute__((unused));
+static inline gsu128
+GSSwapHostI128ToLittle(gsu128 in) __attribute__((unused));
+
 
 static inline gsu16
 GSSwapI16(gsu16 in)
@@ -395,6 +431,27 @@ NSHostByteOrder(void)
 /*
  *	Swap Big endian to host
  */
+static inline gsu16
+GSSwapBigI16ToHost(gsu16 in)
+{
+  return in;
+}
+static inline gsu32
+GSSwapBigI32ToHost(gsu32 in)
+{
+  return in;
+}
+static inline gsu64
+GSSwapBigI64ToHost(gsu64 in)
+{
+  return in;
+}
+static inline gsu128
+GSSwapBigI128ToHost(gsu128 in)
+{
+  return in;
+}
+
 static inline double
 NSSwapBigDoubleToHost(NSSwappedDouble num)
 {
@@ -434,6 +491,27 @@ NSSwapBigShortToHost(unsigned short num)
 /*
  *	Swap Host to Big endian
  */
+static inline gsu16
+GSSwapHostI16ToBig(gsu16 in)
+{
+  return in;
+}
+static inline gsu32
+GSSwapHostI32ToBig(gsu32 in)
+{
+  return in;
+}
+static inline gsu64
+GSSwapHostI64ToBig(gsu64 in)
+{
+  return in;
+}
+static inline gsu128
+GSSwapHostI128ToBig(gsu128 in)
+{
+  return in;
+}
+
 static inline NSSwappedDouble
 NSSwapHostDoubleToBig(double num)
 {
@@ -473,6 +551,27 @@ NSSwapHostShortToBig(unsigned short num)
 /*
  *	Swap Little endian to Host
  */
+static inline gsu16
+GSSwapLittleI16ToHost(gsu16 in)
+{
+  return GSSwapI16(in);
+}
+static inline gsu32
+GSSwapLittleI32ToHost(gsu32 in)
+{
+  return GSSwapI32(in);
+}
+static inline gsu64
+GSSwapLittleI64ToHost(gsu64 in)
+{
+  return GSSwapI64(in);
+}
+static inline gsu128
+GSSwapLittleI128ToHost(gsu128 in)
+{
+  return GSSwapI128(in);
+}
+
 static inline double
 NSSwapLittleDoubleToHost(NSSwappedDouble num)
 {
@@ -512,6 +611,27 @@ NSSwapLittleShortToHost(unsigned short num)
 /*
  *	Swap Host to Little endian
  */
+static inline gsu16
+GSSwapHostI16ToLittle(gsu16 in)
+{
+  return GSSwapI16(in);
+}
+static inline gsu32
+GSSwapHostI32ToLittle(gsu32 in)
+{
+  return GSSwapI32(in);
+}
+static inline gsu64
+GSSwapHostI64ToLittle(gsu64 in)
+{
+  return GSSwapI64(in);
+}
+static inline gsu128
+GSSwapHostI128ToLittle(gsu128 in)
+{
+  return GSSwapI128(in);
+}
+
 static inline NSSwappedDouble
 NSSwapHostDoubleToLittle(double num)
 {
@@ -561,6 +681,26 @@ NSHostByteOrder(void)
 /*
  *	Swap Big endian to host
  */
+static inline gsu16
+GSSwapBigI16ToHost(gsu16 in)
+{
+  return GSSwapI16(in);
+}
+static inline gsu32
+GSSwapBigI32ToHost(gsu32 in)
+{
+  return GSSwapI32(in);
+}
+static inline gsu64
+GSSwapBigI64ToHost(gsu64 in)
+{
+  return GSSwapI64(in);
+}
+static inline gsu128
+GSSwapBigI128ToHost(gsu128 in)
+{
+  return GSSwapI128(in);
+}
 static inline double
 NSSwapBigDoubleToHost(NSSwappedDouble num)
 {
@@ -600,6 +740,26 @@ NSSwapBigShortToHost(unsigned short num)
 /*
  *	Swap Host to Big endian
  */
+static inline gsu16
+GSSwapHostI16ToBig(gsu16 in)
+{
+  return GSSwapI16(in);
+}
+static inline gsu32
+GSSwapHostI32ToBig(gsu32 in)
+{
+  return GSSwapI32(in);
+}
+static inline gsu64
+GSSwapHostI64ToBig(gsu64 in)
+{
+  return GSSwapI64(in);
+}
+static inline gsu128
+GSSwapHostI128ToBig(gsu128 in)
+{
+  return GSSwapI128(in);
+}
 static inline NSSwappedDouble
 NSSwapHostDoubleToBig(double num)
 {
@@ -639,6 +799,27 @@ NSSwapHostShortToBig(unsigned short num)
 /*
  *	Swap Little endian to Host
  */
+static inline gsu16
+GSSwapLittleI16ToHost(gsu16 in)
+{
+  return in;
+}
+static inline gsu32
+GSSwapLittleI32ToHost(gsu32 in)
+{
+  return in;
+}
+static inline gsu64
+GSSwapLittleI64ToHost(gsu64 in)
+{
+  return in;
+}
+static inline gsu128
+GSSwapLittleI128ToHost(gsu128 in)
+{
+  return in;
+}
+
 static inline double
 NSSwapLittleDoubleToHost(NSSwappedDouble num)
 {
@@ -678,6 +859,27 @@ NSSwapLittleShortToHost(unsigned short num)
 /*
  *	Swap Host to Little endian
  */
+static inline gsu16
+GSSwapHostI16ToLittle(gsu16 in)
+{
+  return in;
+}
+static inline gsu32
+GSSwapHostI32ToLittle(gsu32 in)
+{
+  return in;
+}
+static inline gsu64
+GSSwapHostI64ToLittle(gsu64 in)
+{
+  return in;
+}
+static inline gsu128
+GSSwapHostI128ToLittle(gsu128 in)
+{
+  return in;
+}
+
 static inline NSSwappedDouble
 NSSwapHostDoubleToLittle(double num)
 {
