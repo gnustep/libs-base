@@ -2935,8 +2935,9 @@ transmute(ivars self, NSString *aString)
 {
   unsigned	count;
 
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
   RELEASE(self);
-  self = (id)NSAllocateObject(GSCStringClass, 0, GSObjCZone(self));
+  self = (id)NSAllocateObject(GSCStringClass, 0, NSDefaultMallocZone());
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {
@@ -2965,8 +2966,9 @@ transmute(ivars self, NSString *aString)
 {
   unsigned	count;
 
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
   RELEASE(self);
-  self = (id)NSAllocateObject(GSMutableStringClass, 0, GSObjCZone(self));
+  self = (id)NSAllocateObject(GSMutableStringClass, 0, NSDefaultMallocZone());
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {
@@ -2995,8 +2997,9 @@ transmute(ivars self, NSString *aString)
 {
   unsigned	count;
 
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
   RELEASE(self);
-  self = (id)NSAllocateObject(GSUnicodeStringClass, 0, GSObjCZone(self));
+  self = (id)NSAllocateObject(GSUnicodeStringClass, 0, NSDefaultMallocZone());
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {
@@ -3025,8 +3028,9 @@ transmute(ivars self, NSString *aString)
 {
   unsigned	count;
 
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
   RELEASE(self);
-  self = (id)NSAllocateObject(GSMutableStringClass, 0, GSObjCZone(self));
+  self = (id)NSAllocateObject(GSMutableStringClass, 0, NSDefaultMallocZone());
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {

@@ -328,11 +328,12 @@ usage(const char *program)
   printf("  -m     - Messaging test\n");
   printf("  -l     - Loop test\n");
   printf("  -o     - Objects test\n");
+  printf("  -c     - Connect test\n");
 }
 
 typedef enum {
   NO_TEST, TYPE_TEST, BENCHMARK_TEST, MESSAGE_TEST,
-  LOOP_TEST, OBJECT_TEST
+  LOOP_TEST, OBJECT_TEST, CONNECT_TEST
 } test_t;
 
 int main (int argc, char *argv[], char **env)
@@ -340,6 +341,7 @@ int main (int argc, char *argv[], char **env)
   int c, debug, stats;
   test_t type_test;
   id cobj, prx;
+  unsigned	connect_attempts;
   NSAutoreleasePool	*arp;
   Auth *auth;
 #ifndef __MINGW__
@@ -355,7 +357,7 @@ int main (int argc, char *argv[], char **env)
   debug = 0;
   type_test = 0;
   stats = 0;
-  while ((c = getopt(argc, argv, "hdtbmslo")) != EOF)
+  while ((c = getopt(argc, argv, "hdtbmsloc")) != EOF)
     switch (c) 
       {
       case 'd':
@@ -379,6 +381,9 @@ int main (int argc, char *argv[], char **env)
       case 'o':
 	type_test = OBJECT_TEST;
 	break;
+      case 'c':
+	type_test = CONNECT_TEST;
+	break;
       case 'h':
 	usage(argv[0]);
 	exit(0);
@@ -398,25 +403,42 @@ int main (int argc, char *argv[], char **env)
       //[NSPort setDebug: 10];
     }
 
-  if (optind < argc)
+  if (type_test == CONNECT_TEST)
+    connect_attempts = 100000;
+  else
+    connect_attempts = 1;
+
+  while (connect_attempts-- > 0)
     {
-      if (optind+1 < argc)
-	prx = [NSConnection rootProxyForConnectionWithRegisteredName: 
-			      [NSString stringWithCString: argv[optind+1]]
-			host: [NSString stringWithCString:argv[optind]]];
+      if (optind < argc)
+	{
+	  if (optind+1 < argc)
+	    prx = [NSConnection rootProxyForConnectionWithRegisteredName: 
+				  [NSString stringWithCString: argv[optind+1]]
+			    host: [NSString stringWithCString:argv[optind]]];
+	  else
+	    prx = [NSConnection rootProxyForConnectionWithRegisteredName:
+				 @"test2server"
+			    host:[NSString stringWithCString:argv[optind]]];
+	}
       else
 	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
-			     @"test2server"
-			host:[NSString stringWithCString:argv[optind]]];
-    }
-  else
-    prx = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server" 
-		    host:nil];
-
-  if (prx == nil)
-    {
-      printf("ERROR: Failed to connect to server\n");
-      return -1;
+		@"test2server" 
+			host:nil];
+      if (prx == nil)
+	{
+	  printf("ERROR: Failed to connect to server\n");
+	  return -1;
+	}
+      if (type_test == CONNECT_TEST)
+	{
+	  NSLog(@"Made connection\n");
+	  if (connect_attempts > 0)
+	    {
+	      RELEASE(arp);
+	      arp = [NSAutoreleasePool new];
+	    }
+	}
     }
 
   cobj = [prx connectionForProxy];

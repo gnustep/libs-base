@@ -720,7 +720,6 @@ static Class	runLoopClass;
       NSDebugMLLog(@"GSTcpHandle", @"read %d bytes", res);
       rLength += res;
 
-
       while (valid == YES && rLength >= rWant)
 	{
 	  switch (rType)
@@ -1004,12 +1003,14 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
+DO_LOCK(myLock);
 	  res = write(desc, b + wLength,  l - wLength);
 	  if (res < 0)
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
 		{
 		  NSLog(@"write attempt failed - %s", strerror(errno));
+DO_UNLOCK(myLock);
 		  [self invalidate];
 		  return;
 		}
@@ -1056,6 +1057,7 @@ static Class	runLoopClass;
 		    }
 		}
 	    }
+DO_UNLOCK(myLock);
 	}
     }
 }

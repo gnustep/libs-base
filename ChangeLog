@@ -1,3 +1,8 @@
+2000-11-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: Added some locking tweaks for writing data.
+	* Source/GSString.m: Fix for decoding obsolete string classes.
+
 2000-11-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPort.m: ([-setDelegate:]) corrected assertion to allow
