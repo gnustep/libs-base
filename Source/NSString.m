@@ -2819,7 +2819,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: 0 length: 0 freeWhenDone: NO];
+      self = [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
     }
   return self;
 }
