@@ -1,3 +1,12 @@
+2004-03-24  Adam Fedor  <fedor@gnu.org>
+
+	* Resources/GNUmakefile: Add Languages/Hungarian.
+	* Languages/Hungarian: New file (from Reuss Andras <reuss@chello.hu>).
+	
+	* configure.ac: Check for null ac_cv_lib_dl_dladdr.
+
+	* Documentation/announce.texi: Update bug reporting URL.
+
 2004-03-19  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSFileManager.m (-createDirectoryAtPath:attributes:):
