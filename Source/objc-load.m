@@ -29,15 +29,23 @@
     
 */
 
+#include <config.h>
+
+#ifdef HAVE_DLADDR
+/* Define _GNU_SOURCE because that is required with GNU libc in order
+ * to have dladdr() available.  */
+# define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME
-#include <objc/objc-list.h>
+# include <objc/objc-list.h>
 #else
-#include <objc/objc-load.h>
+# include <objc/objc-load.h>
 #endif
-#include <config.h>
+
 #include <Foundation/objc-load.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDebug.h>
@@ -63,7 +71,7 @@ objc_get_uninstalled_dtable()
 #endif /* ! NeXT */
 
 /* Declaration from NSBundle.m */
-const char *objc_executable_location( void );
+const char *objc_executable_location (void);
 
 /* dynamic_loaded is YES if the dynamic loader was sucessfully initialized. */
 static BOOL	dynamic_loaded;
@@ -313,28 +321,28 @@ objc_unload_modules(FILE *errorStream,
 }
 
 NSString *
-objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
+objc_get_symbol_path(Class theClass, Category *theCategory)
 {
   const char *ret;
   char        buf[125], *p = buf;
   int         len = strlen(theClass->name);
   
-  if (!theCategory)
+  if (theCategory == NULL)
     {
-      if (len+sizeof(char)*19 > sizeof(buf))
+      if (len + sizeof(char)*19 > sizeof(buf))
 	{
-	  p = malloc(len+sizeof(char)*19);
+	  p = malloc(len + sizeof(char)*19);
 
-	  if (!p)
+	  if (p == NULL)
 	    {
 	      fprintf(stderr, "Unable to allocate memory !!");
 	      return nil;
 	    }
 	}
 
-      memcpy(buf, "__objc_class_name_", sizeof(char)*18);
-      memcpy(&buf[18*sizeof(char)], theClass->name,
-	     strlen(theClass->name)+1);
+      memcpy(p, "__objc_class_name_", sizeof(char)*18);
+      memcpy(&p[18*sizeof(char)], theClass->name,
+	     strlen(theClass->name) + 1);
     }
   else
     {
@@ -344,19 +352,19 @@ objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
 	{
 	  p = malloc(len + sizeof(char)*23);
 
-	  if (!p)
+	  if (p == NULL)
 	    {
 	      fprintf(stderr, "Unable to allocate memory !!");
 	      return nil;
 	    }
 	}
 
-      memcpy(buf, "__objc_category_name_", sizeof(char)*21);
-      memcpy(&buf[21*sizeof(char)], theCategory->class_name,
-	     strlen(theCategory->class_name)+1);
-      memcpy(&buf[strlen(p)], "_", 2*sizeof(char));
-      memcpy(&buf[strlen(p)], theCategory->category_name,
-	     strlen(theCategory->category_name)+1);
+      memcpy(p, "__objc_category_name_", sizeof(char)*21);
+      memcpy(&p[21*sizeof(char)], theCategory->class_name,
+	     strlen(theCategory->class_name) + 1);
+      memcpy(&p[strlen(p)], "_", 2*sizeof(char));
+      memcpy(&p[strlen(p)], theCategory->category_name,
+	     strlen(theCategory->category_name) + 1);
     }
 
   ret = __objc_dynamic_get_symbol_path(0, p);
@@ -368,7 +376,7 @@ objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
   
   if (ret)
     {
-      return [NSString stringWithCString:ret];
+      return [NSString stringWithCString: ret];
     }
   
   return nil;

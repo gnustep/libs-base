@@ -1,3 +1,20 @@
+Wed Oct 30 03:14:34 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Headers/gnustep/base/objc-load.h: Added copyright notice.
+	(objc_get_symbol_path): Declare to take a Category *, not a struct
+	objc_category *, argument; documented.
+	* Source/objc-load.m: Include config.h first.  Define _GNU_SOURCE
+	if HAVE_DLADDR is defined.
+	(objc_get_symbol_path): Fixed crash with classes or categories
+	with long names.  Updated declaration.
+	* config/objc-sys-dynamic.m4 (OBJC_SYS_DYNAMIC_LINKER): Print a
+	message displaying the type of dynamic linker found.  Add -ldl on
+	the link line for linux-gnu and other systems, so that dladdr() is
+	actually found.  With the 'simple' linker, print a message saying
+	if we found dladdr() or not.
+	(OBJC_SYS_DYNAMIC): Historical unused macro removed.
+	* configure: Regenerated.
+
 2002-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: include statvfs.h if available.
