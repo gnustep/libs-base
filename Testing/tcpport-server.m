@@ -2,6 +2,7 @@
 #include <objects/TcpPort.h>
 #include <objects/Notification.h>
 #include <objects/Invocation.h>
+#include <objects/RunLoop.h>
 
 id announce_new_connection (id notification)
 {
@@ -25,13 +26,32 @@ id announce_broken_connection (id notification)
   return nil;
 }
 
-int main (int argc, char *argv[])
+static id port = nil;
+
+id handle_incoming_packet (id packet)
 {
-  id port;
-  id packet;
-  unsigned message_count = 0;
+  static unsigned message_count = 0;
   id reply_port;
 
+  message_count++;
+  fprintf (stdout, "received >");
+  fwrite ([packet streamBuffer] + [packet streamBufferPrefix],
+	  [packet streamEofPosition], 1, stdout);
+  fprintf (stdout, "<\n");
+  reply_port = [packet replyPort];
+  [packet release];
+
+  packet = [[TcpPacket alloc] initForSendingWithCapacity: 100
+			      replyPort: port];
+  [packet writeFormat: @"Your's was my message number %d", 
+	  message_count];
+  [reply_port sendPacket: packet withTimeout: 20 * 1000];
+  [packet release];
+  return nil;
+}
+
+int main (int argc, char *argv[])
+{
   if (argc > 1)
     port = [TcpInPort newForReceivingFromRegisteredName:
 	     [NSString stringWithCString: argv[1]]];
@@ -50,23 +70,39 @@ int main (int argc, char *argv[])
     object: port];
 
   printf ("Waiting for connections.\n");
-  while ((packet = [port receivePacketWithTimeout: -1]))
-    {
-      message_count++;
-      fprintf (stdout, "received >");
-      fwrite ([packet streamBuffer] + [packet streamBufferPrefix],
-	      [packet streamEofPosition], 1, stdout);
-      fprintf (stdout, "<\n");
-      reply_port = [packet replyPort];
-      [packet release];
 
-      packet = [[TcpPacket alloc] initForSendingWithCapacity: 100
-				  replyPort: port];
-      [packet writeFormat: @"Your's was my message number %d", 
-	      message_count];
-      [reply_port sendPacket: packet withTimeout: 20 * 1000];
-      [packet release];
-    }
+#if 1
+  [port setPacketInvocation:
+	  [[[ObjectFunctionInvocation alloc]
+	     initWithObjectFunction: handle_incoming_packet]
+	    autorelease]];
+  [port addToRunLoop: [RunLoop currentInstance] forMode: nil];
+  [[RunLoop currentInstance] run];
+#else
+  {
+    id packet;
+    unsigned message_count = 0;
+    id reply_port;
+
+    while ((packet = [port receivePacketWithTimeout: -1]))
+      {
+	message_count++;
+	fprintf (stdout, "received >");
+	fwrite ([packet streamBuffer] + [packet streamBufferPrefix],
+		[packet streamEofPosition], 1, stdout);
+	fprintf (stdout, "<\n");
+	reply_port = [packet replyPort];
+	[packet release];
+
+	packet = [[TcpPacket alloc] initForSendingWithCapacity: 100
+				    replyPort: port];
+	[packet writeFormat: @"Your's was my message number %d", 
+		message_count];
+	[reply_port sendPacket: packet withTimeout: 20 * 1000];
+	[packet release];
+      }
+  }
+#endif
   fprintf (stdout, "Timed out.  Exiting.\n");
 
   exit (0);
