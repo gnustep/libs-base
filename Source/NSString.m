@@ -4770,52 +4770,138 @@ static id parsePlItem(pldata* pld)
 	break;
 
       case '<':
-	{
-	  NSMutableData	*data;
-	  unsigned	max = pld->end - 1;
-	  unsigned char	buf[BUFSIZ];
-	  unsigned	len = 0;
+	pld->pos++;
+	if (pld->pos < pld->end && pld->ptr[pld->pos] == '*')
+	  {
+	    const unichar	*ptr;
+	    unsigned	min;
+	    unsigned	len = 0;
+	    int		i;
 
-	  data = [[NSMutableData alloc] initWithCapacity: 0];
-	  pld->pos++;
-	  skipSpace(pld);
-	  while (pld->pos < max
-		 && GS_IS_HEXDIGIT(pld->ptr[pld->pos])
-		 && GS_IS_HEXDIGIT(pld->ptr[pld->pos+1]))
-	    {
-	      unsigned char	byte;
+	    pld->pos++;
+	    min = pld->pos;
+	    ptr = &(pld->ptr[min]);
+	    while (pld->pos < pld->end && pld->ptr[pld->pos] != '>')
+	      {
+		pld->pos++;
+	      }
+	    len = pld->pos - min;
+	    if (len > 1)
+	      {
+		unichar	type = *ptr++;
 
-	      byte = (char2num(pld->ptr[pld->pos])) << 4;
-	      pld->pos++;
-	      byte |= char2num(pld->ptr[pld->pos]);
-	      pld->pos++;
-	      buf[len++] = byte;
-	      if (len == sizeof(buf))
-		{
-		  [data appendBytes: buf length: len];
-		  len = 0;
-		}
-	      skipSpace(pld);
-	    }
-	  if (pld->pos >= pld->end)
-	    {
-	      pld->err = @"unexpected end of string when parsing data";
-	      RELEASE(data);
-	      return nil;
-	    }
-	  if (pld->ptr[pld->pos] != '>')
-	    {
-	      pld->err = @"unexpected character in string";
-	      RELEASE(data);
-	      return nil;
-	    }
-	  if (len > 0)
-	    {
-	      [data appendBytes: buf length: len];
-	    }
-	  pld->pos++;
-	  result = data;
-	}
+		len--;
+		if (type == 'I')
+		  {
+		    char	buf[len+1];
+
+		    for (i = 0; i < len; i++) buf[i] = (char)ptr[i];
+		    buf[len] = '\0';
+		    result = [[NSNumber alloc] initWithLong: atol(buf)];
+		  }
+		else if (type == 'B')
+		  {
+		    if (ptr[0] == 'Y')
+		      {
+			result = [[NSNumber alloc] initWithBool: YES];
+		      }
+		    else if (ptr[0] == 'N')
+		      {
+			result = [[NSNumber alloc] initWithBool: NO];
+		      }
+		    else
+		      {
+			pld->err = @"bad value for bool";
+			return nil;
+		      }
+		  }
+		else if (type == 'D')
+		  {
+		    NSString	*str;
+
+		    str = [[NSString alloc] initWithCharacters: ptr
+							length: len];
+		    result = [[NSCalendarDate alloc] initWithString: str
+		      calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
+		    RELEASE(str);
+		  }
+		else if (type == 'R')
+		  {
+		    char	buf[len+1];
+
+		    for (i = 0; i < len; i++) buf[i] = (char)ptr[i];
+		    buf[len] = '\0';
+		    result = [[NSNumber alloc] initWithDouble: atof(buf)];
+		  }
+		else
+		  {
+		    pld->err = @"unrecognized type code after '<*'";
+		    return nil;
+		  }
+	      }
+	    else
+	      {
+		pld->err = @"missing type code after '<*'";
+		return nil;
+	      }
+	    if (pld->pos >= pld->end)
+	      {
+		pld->err = @"unexpected end of string when parsing data";
+		return nil;
+	      }
+	    if (pld->ptr[pld->pos] != '>')
+	      {
+		pld->err = @"unexpected character in string";
+		return nil;
+	      }
+	    pld->pos++;
+	  }
+	else
+	  {
+	    NSMutableData	*data;
+	    unsigned	max = pld->end - 1;
+	    unsigned	char	buf[BUFSIZ];
+	    unsigned	len = 0;
+
+	    data = [[NSMutableData alloc] initWithCapacity: 0];
+	    skipSpace(pld);
+	    while (pld->pos < max
+	      && GS_IS_HEXDIGIT(pld->ptr[pld->pos])
+	      && GS_IS_HEXDIGIT(pld->ptr[pld->pos+1]))
+	      {
+		unsigned char	byte;
+
+		byte = (char2num(pld->ptr[pld->pos])) << 4;
+		pld->pos++;
+		byte |= char2num(pld->ptr[pld->pos]);
+		pld->pos++;
+		buf[len++] = byte;
+		if (len == sizeof(buf))
+		  {
+		    [data appendBytes: buf length: len];
+		    len = 0;
+		  }
+		skipSpace(pld);
+	      }
+	    if (pld->pos >= pld->end)
+	      {
+		pld->err = @"unexpected end of string when parsing data";
+		RELEASE(data);
+		return nil;
+	      }
+	    if (pld->ptr[pld->pos] != '>')
+	      {
+		pld->err = @"unexpected character in string";
+		RELEASE(data);
+		return nil;
+	      }
+	    if (len > 0)
+	      {
+		[data appendBytes: buf length: len];
+	      }
+	    pld->pos++;
+	    result = data;
+	  }
 	break;
 
       case '"':

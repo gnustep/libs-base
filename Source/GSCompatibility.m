@@ -482,7 +482,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	  else
 	    {
-	      Append(@"YES", dest);
+	      Append(@"<*BY>", dest);
 	    }
 	}
       else if (val == 0.0)
@@ -493,7 +493,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	  else
 	    {
-	      Append(@"NO", dest);
+	      Append(@"<*BN>", dest);
 	    }
 	}
       else if (rint(val) == val)
@@ -506,7 +506,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	  else
 	    {
+	      Append(@"<*I", dest);
 	      PString([obj stringValue], dest);
+	      Append(@">", dest);
 	    }
 	}
       else
@@ -519,7 +521,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	  else
 	    {
+	      Append(@"<*R", dest);
 	      PString([obj stringValue], dest);
+	      Append(@">", dest);
 	    }
 	}
     }
@@ -571,14 +575,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       if (x == YES)
 	{
 	  Append(@"<date>", dest);
-	  Append([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"],
-	    dest);
+	  Append([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
+	    timeZone: nil locale: nil], dest);
 	  Append(@"</date>\n", dest);
 	}
       else
 	{
-	  PString([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"],
-	    dest);
+	  Append(@"<*D", dest);
+	  Append([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
+	    timeZone: nil locale: nil], dest);
+	  Append(@">", dest);
 	}
     }
   else if ([obj isKindOfClass: [NSArray class]])

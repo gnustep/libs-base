@@ -33,8 +33,22 @@ int main ()
 {
   id	pool = [NSAutoreleasePool new];
   id	o = [NSObject new];
+  id	x;
+  NSString	*s;
   NSArray	*a = [NSArray arrayWithObjects: @"a", @"b", nil];
 
+  o = [NSDictionary dictionaryWithObjectsAndKeys:
+   @"test", @"one",
+   [NSNumber numberWithBool: YES], @"two",
+   [NSDate date], @"three",
+   [NSNumber numberWithInt: 33], @"four",
+   [NSNumber numberWithFloat: 4.5], @"five",
+   nil];
+  s = [o description];
+  NSLog(@"%@", s);
+  x = [s propertyList];
+  NSLog(@"%d", [o isEqual: x]);
+  
 
     test1();
     test2();
