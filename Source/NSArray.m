@@ -188,10 +188,10 @@ static SEL	rlSel;
 }
 
 /**
- * Returns an autoreleased array based upon the file.
- * This may be in property list format or in XML format
- * (if XML is available on your system).
- * This method returns nil if file does not represent an array.
+ * Returns an autoreleased array based upon the file.  The new array is
+ * created using +allocWithZone: and initialised using the
+ * -initWithContentsOfFile: method. See the documentation for those
+ * methods for more detail.
  */
 + (id) arrayWithContentsOfFile: (NSString*)file
 {
@@ -287,7 +287,7 @@ static SEL	rlSel;
 }
 
 /**
- * Returns the abstract class ... arrays are coded as abstract arrays
+ * Returns the abstract class ... arrays are coded as abstract arrays.
  */
 - (Class) classForCoder
 {
@@ -303,6 +303,10 @@ static SEL	rlSel;
   return ([self indexOfObject: anObject] != NSNotFound);
 }
 
+/**
+ * The default NSArray implemntation of a copy is simply to -retain
+ * the receiver and return it.
+ */
 - (id) copyWithZone: (NSZone*)zone
 {
   return RETAIN(self);
@@ -317,6 +321,10 @@ static SEL	rlSel;
   return 0;
 }
 
+/**
+ * Encodes the receiver for storing to archive or sending over an
+ * [NSConnection].
+ */
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = [self count];
@@ -364,7 +372,7 @@ static SEL	rlSel;
 }
 
 /**
- * Returns the ame value as -count
+ * Returns the same value as -count
  */
 - (unsigned) hash
 {
@@ -543,7 +551,7 @@ static SEL	rlSel;
  * method will recognise which it is.
  * </p>
  * <p>If there is a failure to load the file for any reason, the receiver
- * will be released and the method will return nil.
+ * will be released, the method will return nil, and a warning may be logged.
  * </p>
  * <p>Works by invoking [NSString-initWithContentsOfFile:] and
  * [NSString-propertyList] then checking that the result is an array.  
@@ -787,7 +795,8 @@ static int compare(id elem1, id elem2, void* context)
 
 /**
  * Returns an autoreleased array in which the objects are ordered
- * according to a sort with comparator.
+ * according to a sort with comparator.  This invokes
+ * -sortedArrayUsingFunction:context:hint: with a nil hint.
  */
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
    context: (void*)context
@@ -795,46 +804,70 @@ static int compare(id elem1, id elem2, void* context)
   return [self sortedArrayUsingFunction: comparator context: context hint: nil];
 }
 
+/**
+ * Subclasses may provide a hint for sorting ...  The default GNUstep
+ * implementation just returns nil.
+ */
 - (NSData*) sortedArrayHint
 {
   return nil;
 }
 
+/**
+ * Returns an autoreleased array in which the objects are ordered
+ * according to a sort with comparator, where the comparator function
+ * is passed two objects to compare, and the copntext as the third
+ * argument.
+ */
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
    context: (void*)context
    hint: (NSData*)hint
 {
   NSMutableArray	*sortedArray;
-  NSArray		*result;
 
   sortedArray = [[NSMutableArrayClass allocWithZone:
     NSDefaultMallocZone()] initWithArray: self];
   [sortedArray sortUsingFunction: comparator context: context];
-  result = [NSArrayClass arrayWithArray: sortedArray];
-  RELEASE(sortedArray);
-  return result;
+
+  return AUTORELEASE([sortedArray makeImmutableCopyOnFail: NO]);
 }
 
+/**
+ * Returns a string formed by concatenating the objects in the receiver,
+ * with the specified separator string inserted between each part.
+ */
 - (NSString*) componentsJoinedByString: (NSString*)separator
 {
-  unsigned i, c = [self count];
-  id s = [NSMutableString stringWithCapacity: 2]; /* arbitrary capacity */
+  unsigned int		c = [self count];
+  NSMutableString	*s = [[NSMutableString alloc] initWithCapacity: c];
   
-  if (!c)
-    return s;
-  [s appendString: [[self objectAtIndex: 0] description]];
-  for (i = 1; i < c; i++)
+  if (c > 0)
     {
-      [s appendString: separator];
-      [s appendString: [[self objectAtIndex: i] description]];
+      unsigned	l = [separator length];
+      unsigned	i;
+
+      [s appendString: [[self objectAtIndex: 0] description]];
+      for (i = 1; i < c; i++)
+	{
+	  if (l > 0)
+	    {
+	      [s appendString: separator];
+	    }
+	  [s appendString: [[self objectAtIndex: i] description]];
+	}
     }
-  return s;
+  return AUTORELEASE([s makeImmutableCopyOnFail: NO]);
 }
 
+/**
+ * Assumes that the receiver is an array of paths, and returns an
+ * array formed by selecting the subset of those patch matching
+ * the specified array of extensions.
+ */
 - (NSArray*) pathsMatchingExtensions: (NSArray*)extensions
 {
   unsigned i, c = [self count];
-  NSMutableArray *a = [NSMutableArray arrayWithCapacity: 1];
+  NSMutableArray *a = [[NSMutableArray alloc] initWithCapacity: 1];
   Class	cls = [NSString class];
   IMP	get = [self methodForSelector: oaiSel];
   IMP	add = [a methodForSelector: addSel];
@@ -844,22 +877,40 @@ static int compare(id elem1, id elem2, void* context)
       id o = (*get)(self, oaiSel, i);
 
       if ([o isKindOfClass: cls])
-	if ([extensions containsObject: [o pathExtension]])
-	  (*add)(a, addSel, o);
+	{
+	  if ([extensions containsObject: [o pathExtension]])
+	    {
+	      (*add)(a, addSel, o);
+	    }
+	}
     }
-  return a;
+  return AUTORELEASE([a makeImmutableCopyOnFail: NO]);
 }
 
+/**
+ * Returns the first object found in the receiver (starting at index 0)
+ * which is present in the otherArray as determined by using the
+ * -containsObject: method.
+ */
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray
 {
   unsigned i, c = [self count];
   id o;
+
   for (i = 0; i < c; i++)
-    if ([otherArray containsObject: (o = [self objectAtIndex: i])])
-      return o;
+    {
+      if ([otherArray containsObject: (o = [self objectAtIndex: i])])
+	{
+	  return o;
+	}
+    }
   return nil;
 }
 
+/**
+ * Returns a subarray of the receiver containing the objects found in
+ * the specified range aRange.
+ */
 - (NSArray*) subarrayWithRange: (NSRange)aRange
 {
   id na;
@@ -1187,7 +1238,8 @@ static NSString	*indentStrings[] = {
 }
 
 /** <override-subclass />
- * Adds an object at the end of the array.
+ * Adds anObject at the end of the array, thus increasing the size of
+ * the array.  The object is retained upon addition.
  */
 - (void) addObject: (id)anObject
 {
@@ -1252,6 +1304,7 @@ static NSString	*indentStrings[] = {
 /** <override-subclass />
  * Inserts an object into the receiver at the specified location.<br />
  * Raises an exception if given an array index which is too large.<br />
+ * The size of the array increases by one.<br />
  * The object is retained by the array.
  */
 - (void) insertObject: anObject atIndex: (unsigned)index
@@ -1261,6 +1314,7 @@ static NSString	*indentStrings[] = {
 
 /** <override-subclass />
  * Removes an object from the receiver at the specified location.<br />
+ * The size of the array decreases by one.<br />
  * Raises an exception if given an array index which is too large.<br />
  */
 - (void) removeObjectAtIndex: (unsigned)index
@@ -1268,6 +1322,10 @@ static NSString	*indentStrings[] = {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Creates an autoreleased mutable array anble to store at least numItems.
+ * See the -initWithCapacity: method.
+ */
 + (id) arrayWithCapacity: (unsigned)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -1289,6 +1347,10 @@ static NSString	*indentStrings[] = {
   return self;
 }
 
+/**
+ * Removes the last object in the array.  Raises an exception if the array
+ * is already empty.
+ */
 - (void) removeLastObject
 {
   unsigned	count = [self count];
@@ -1299,6 +1361,10 @@ static NSString	*indentStrings[] = {
   [self removeObjectAtIndex: count-1];
 }
 
+/**
+ * Removes all occurrances of anObject (found by pointer equality)
+ * from the receiver.
+ */
 - (void) removeObjectIdenticalTo: (id)anObject
 {
   unsigned	i;
@@ -1330,6 +1396,10 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Removes all occurrances of anObject (found by the -isEqual: method
+ * of anObject) aRange in the receiver.
+ */
 - (void) removeObject: (id)anObject inRange: (NSRange)aRange
 {
   unsigned	c;
@@ -1383,6 +1453,10 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Removes all occurrances of anObject (found by pointer equality)
+ * from aRange in the receiver.
+ */
 - (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange
 {
   unsigned	c;
@@ -1422,6 +1496,10 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Removes all occurrances of anObject (found by anObjects -isEqual: method)
+ * from the receiver.
+ */
 - (void) removeObject: (id)anObject
 {
   unsigned	i;
@@ -1467,6 +1545,9 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Removes all objects from the receiver, leaving an empty array.
+ */
 - (void) removeAllObjects
 {
   unsigned	c = [self count];
@@ -1482,6 +1563,9 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Adds each object from otherArray to the receiver, in first to last order.
+ */
 - (void) addObjectsFromArray: (NSArray*)otherArray
 {
   unsigned c = [otherArray count];
@@ -1497,12 +1581,22 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Sets the contents of the receiver to be identical to the contents
+ * of othrArray.
+ */
 - (void) setArray: (NSArray *)otherArray
 {
   [self removeAllObjects];
   [self addObjectsFromArray: otherArray];
 }
 
+/**
+ * Supplied with a C array of indices containing count values, this method
+ * removes all corresponding objects from the receiver.  The objects are
+ * removed in such a way that the removal is <em>safe</em> irrespective 
+ * of the order in which they are specified in the indices array.
+ */
 - (void) removeObjectsFromIndices: (unsigned*)indices 
 		       numIndices: (unsigned)count
 {
@@ -1555,6 +1649,10 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Removes from the receiver, all the objects present in otherArray,
+ * as determined by using the -isEqual: method.
+ */
 - (void) removeObjectsInArray: (NSArray*)otherArray
 {
   unsigned	c = [otherArray count];
@@ -1570,6 +1668,9 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Removes all the objects in aRange from the receiver.
+ */
 - (void) removeObjectsInRange: (NSRange)aRange
 {
   unsigned	i;
@@ -1592,11 +1693,18 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Sorts the array according to the supplied comparator.
+ */
 - (void) sortUsingSelector: (SEL)comparator
 {
   [self sortUsingFunction: compare context: (void *)comparator];
 }
 
+/**
+ * Sorts the array according to the supplied compare function
+ * with the context information.
+ */
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
 		   context: (void*)context
 {
@@ -1616,7 +1724,7 @@ static NSString	*indentStrings[] = {
       stride = stride * STRIDE_FACTOR + 1;
     }
     
-  while(stride > (STRIDE_FACTOR - 1))
+  while (stride > (STRIDE_FACTOR - 1))
     {
       // loop to sort for each value of stride
       stride = stride / STRIDE_FACTOR;
@@ -1699,6 +1807,12 @@ static NSString	*indentStrings[] = {
   return self;
 }
 
+/**
+ * Returns the next object in the enumeration or nil if there are no more
+ * objects.<br />
+ * NB. modifying a mutable array during an enumeration can break things ...
+ * don't do it.
+ */
 - (id) nextObject
 {
   if (pos >= (*cnt)(array, countSel))
@@ -1726,6 +1840,12 @@ static NSString	*indentStrings[] = {
   return self;
 }
 
+/**
+ * Returns the next object in the enumeration or nil if there are no more
+ * objects.<br />
+ * NB. modifying a mutable array during an enumeration can break things ...
+ * don't do it.
+ */
 - (id) nextObject
 {
   if (pos == 0)
@@ -1737,12 +1857,14 @@ static NSString	*indentStrings[] = {
 
 @implementation	NSArray (GNUstep)
 
-/*
- *	The comparator function takes two items as arguments, the first is the
- *	item to be added, the second is the item already in the array.
- *      The function should return NSOrderedAscending if the item to be
- *      added is 'less than' the item in the array, NSOrderedDescending
- *      if it is greater, and NSOrderedSame if it is equal.
+/**
+ * Locate the correct insertion position for item where the receiver is
+ * a sorted array witch was sorted using the sorter function.<br />
+ * The comparator function takes two items as arguments, the first is the
+ * item to be added, the second is the item already in the array.
+ * The function should return NSOrderedAscending if the item to be
+ * added is 'less than' the item in the array, NSOrderedDescending
+ * if it is greater, and NSOrderedSame if it is equal.
  */
 - (unsigned) insertionPosition: (id)item
 		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
@@ -1791,14 +1913,18 @@ static NSString	*indentStrings[] = {
    *	Now skip past any equal items so the insertion point is AFTER any
    *	items that are equal to the new one.
    */
-  while (index < count
-    && (*sorter)(item, (*oai)(self, oaiSel, index), context) != NSOrderedAscending)
+  while (index < count && (*sorter)(item, (*oai)(self, oaiSel, index), context)
+    != NSOrderedAscending)
     {
       index++;
     }
   return index;
 }
 
+/**
+ * Locate the correct insertion position for item where the receiver is
+ * a sorted array which was sorted using the comp selector.
+ */
 - (unsigned) insertionPosition: (id)item
 		 usingSelector: (SEL)comp
 {
