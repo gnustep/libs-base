@@ -44,6 +44,10 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSMapTable.h>
 #include <limits.h>
+#include <Foundation/GSLocale.h>
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
 
 #include "GSPrivate.h"
 
@@ -770,7 +774,6 @@ static BOOL double_release_check_enabled = NO;
   if (self == [NSObject class])
     {
       extern void		GSBuildStrings(void);	// See externs.m
-      extern const char*	GSSetLocaleC(const char*); // See GSLocale.m
 
 #ifdef __MINGW__
       // See libgnustep-base-entry.m
@@ -791,7 +794,9 @@ static BOOL double_release_check_enabled = NO;
       }
 #endif
 
-      GSSetLocaleC("");		// Set up locale from environment.
+#ifdef HAVE_LOCALE_H
+      GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
+#endif
 
       // Create the global lock
       gnustep_global_lock = [NSRecursiveLock new];
