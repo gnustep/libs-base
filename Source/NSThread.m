@@ -804,8 +804,13 @@ static NSDate *theFuture;
  * and anObject are both retained until the method is performed.
  * </p>
  * <p>The selector is performed when the runloop of the main thread next
- * runs in one of the modes specified in anArray. if there are no modes in
- * anArray, the method has no effect and simply returns immediately.
+ * runs in one of the modes specified in anArray.<br />
+ * Where this method has been called more than once before the runloop
+ * of the main thread runs in the required mode, the order in which the
+ * 'perform' operations in the main thread is done is the same as that
+ * in which they were added.<br />
+ * If there are no modes in anArray,
+ * the method has no effect and simply returns immediately.
  * </p>
  * <p>The argument aFlag specifies whether the method should wait until
  * the selector has been performed before returning.<br />
