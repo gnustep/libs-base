@@ -185,9 +185,12 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 - (void) encodeWithCoder: aCoder
 {
   [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count];
-  [aCoder encodeArrayOfObjCType:@encode(unsigned char)
-			  count:_count
-			     at:_contents_chars];
+  if (_count > 0)
+    {
+      [aCoder encodeArrayOfObjCType:@encode(unsigned char)
+			      count:_count
+				 at:_contents_chars];
+    }
 }
 
 - initWithCoder: aCoder
@@ -887,9 +890,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap];
   [self initWithCapacity:cap];
   _count = cap;
-  [aCoder decodeArrayOfObjCType:@encode(unsigned char)
-			  count:_count
-			     at:_contents_chars];
+  if (_count > 0)
+    {
+      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+			      count: _count
+			         at: _contents_chars];
+    }
   return self;
 }
 
