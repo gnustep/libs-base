@@ -1,3 +1,8 @@
+Mon Aug 24 09:22:17 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* doc/gnustep-base.tmpl.texi: Fix up doc problems.
+	* doc/todo.tmpl.texi: Likewise.
+
 Thu Aug 20 11:50:23 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/mframe.m (mframe_next_arg): Fixes from Richard
