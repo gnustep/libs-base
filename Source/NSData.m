@@ -48,18 +48,25 @@
 + (id) dataWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
+  /* FIXME: Why do we switch to `self' here, when `NSGData' was used
+   * above and still seems more applicable?  If we just use `self' we
+   * don't get useful objects. */
   return [[[self alloc] initWithBytesNoCopy:bytes length:length]
 	  autorelease];
 }
 
+/* FIXME: Should these next two be autorelease?  The pattern says yes.
+ * But the docs fail to explicitly indicate it.  It only makes sense,
+ * though. */
 + (id)dataWithContentsOfFile: (NSString*)path
 {
-  return [self notImplemented:_cmd];
+  return [[[NSGData alloc] initWithContentsOfFile:path] autorelease];
 }
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
-  return [self notImplemented:_cmd];
+  return [[[NSGData alloc] initWithContentsOfMappedFile:path]
+          autorelease];
 }
 
 - (id) initWithBytes: (const void*)bytes
@@ -76,6 +83,11 @@
 - (id) initWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
+  /* FIXME: Shouldn't this call [super init], rather than
+   * [self notImplemented:]?  Otherwise, how are subclasses supposed
+   * to initialize their NSObject instance variables?  Although I
+   * notice that the concrete subclasses are doing strange things; so
+   * maybe this doesn't matter. */
   /* xxx Eventually we'll have to be aware of malloc'ed memory
      vs vm_allocate'd memory, etc. */
   [self notImplemented:_cmd];
@@ -85,18 +97,98 @@
 - init
 {
   /* xxx Is this right? */
-  return [self initWithBytesNoCopy:NULL
-	       length:0];
+  /* FIXME: It seems so; mutable subclasses need to deal gracefully
+   * with NULL pointers and/or 0 length data objects, though.  Which
+   * they do. */
+  return [self initWithBytesNoCopy:NULL length:0];
 }
 
-- (id) initWithContentsOfFile: (NSString*)path
+- (id) initWithContentsOfFile: (NSString *)path
 {
-  return [self notImplemented:_cmd];
+  void *tmpBytes;
+  const char *theFileName;
+  FILE *theFile;
+  long int length;
+  long int d;
+  int c;
+  
+  /* FIXME: I'm not sure that I'm dealing with failures correctly
+   * here.  I just return nil; should I return something like
+   *
+   *   [self initWithBytesNoCopy:NULL length:0]
+   *
+   * instead?  The docs don't indicate any exception raising should
+   * take place; so what else can I do? */
+
+  /* FIXME: I believe that we should take the name of the file to be
+   * the cString of the path provided.  It is unclear, however, that
+   * this is correct for fully internationalized functionality.  If
+   * the cString <--> Unicode translation isn't completely
+   * bidirectional, this simple translation might not be the proper
+   * one. */
+
+  theFileName = [path cString];
+  theFile = fopen(theFileName, "r");
+  
+  if (theFile == NULL)          /* We failed to open the file. */
+    goto failure;
+
+  /* Seek to the end of the file. */
+  c = fseek(theFile, 0L, SEEK_END);
+  
+  if (c != 0)                   /* Something went wrong; though I
+                                 * don't know what. */
+    goto failure;
+
+  /* Determine the length of the file (having seeked to the end of the
+   * file) by calling ftell(). */
+  length = ftell(theFile);
+  
+  if (length == -1)             /* I can't imagine what could go
+                                 * wrong, but here we are. */
+    goto failure;
+
+  /* Set aside the space we'll need. */
+  tmpBytes = NSZoneMalloc([self zone], length);
+
+  if (tmpBytes == NULL)         /* Out of memory, I guess. */
+    goto failure;
+
+  /* Rewind the file pointer to the beginning, preparing to read in
+   * the file. */
+  c = fseek(theFile, 0L, SEEK_SET);
+  
+  if (c != 0)                   /* Oh, No. */
+    goto failure;
+
+  /* Now we read the file into tmpBytes one (unsigned) byte at a
+   * time.  We should probably be more careful to check that we don't
+   * get an EOF.  But what would this mean?  That the file had been
+   * changed in the middle of all this.  So maybe we should think
+   * about locking the file? */
+  for (d = 0; d < length; d++)
+    ((unsigned char *)tmpBytes)[d] = (unsigned char) fgetc(theFile);
+
+  /* success: */
+  return [self initWithBytesNoCopy:tmpBytes length:length];
+
+  /* Just in case the failure action needs to be changed. */
+ failure:
+  return nil;
 }
 
-- (id) initWithContentsOfMappedFile: (NSString*)path;
+- (id) initWithContentsOfMappedFile: (NSString *)path;
 {
-  return [self notImplemented:_cmd];
+  /* FIXME: Until I can learn about mapped files on various systems,
+   * the docs indicate that this should be identical with
+   *
+   *   [self initWithContentsOfFile:path].
+   *
+   * Linux, for example, has mapped files, as do many (all?) SYSV
+   * unices, but I don't know enough about these various systems to
+   * deal with them.  Does any POSIX standard specify mapped file
+   * capabilities? */
+  return [self initWithContentsOfFile:path];
 }
 
 - (id) initWithData: (NSData*)data
@@ -116,6 +208,10 @@
 - (NSString*) description
 {
   /* xxx worry about escaping, NSString does that? */
+  /* FIXME: Well, according to the docs, this is suppossed to create a
+   * string which has a hexadecimal representation of the data
+   * contained in the NSData object.  NSString certainly won't do
+   * *that* all on its own.  Hmmm. */
   return [NSString stringWithCString:[self bytes] length:[self length]];
 }
 
@@ -127,24 +223,50 @@
 - (void)getBytes: (void*)buffer
    length: (unsigned int)length
 {
+  /* FIXME: Is this static NSRange creation preferred to the
+   * documented NSMakeRange()? */
   [self getBytes:buffer range:((NSRange){0, length})];
 }
 
 - (void)getBytes: (void*)buffer
    range: (NSRange)aRange
 {
-  /* xxx need to do range checking */
-  memcpy(buffer, [self bytes] + aRange.location, aRange.length);
+  if (NSMaxRange(aRange) > [self length])
+    /* FIXME: I think that this is the proper way to raise this
+     * exception.  Maybe not, though.  Does GNUStep have a standard
+     * format that ``internal'' exceptions like this one should have?
+     * If not, then maybe it should.  It would help debugging. */
+    [NSException raise:NSRangeException
+                format:@"Out of bounds of Data."];
+  else
+    /* FIXME: I guess we're guaranteed that memcpy() exists? */
+    memcpy(buffer, [self bytes] + aRange.location, aRange.length);
+  return;
 }
 
 - (NSData*) subdataWithRange: (NSRange)aRange
 {
-  [self notImplemented:_cmd];
-  return nil;
+  void *buffer;
+
+  /* FIXME: Just a question; is it safe to have all of the
+   * NSZoneMalloc'ing without closing NSZoneFree'ing?  It seems to be
+   * popular in this code.  */
+  buffer = NSZoneMalloc([self zone], aRange.length);
+
+  /* Remember, [NSData -getBytes:range:] will raise an exception if
+   * aRange is out-of-bounds. */
+  [self getBytes:buffer range:aRange];
+
+  /* FIXME: Should this be an autoreleased object, as it is now? */
+  return [NSData dataWithBytesNoCopy:buffer length:aRange.length];
 }
 
 - (BOOL) isEqual: anObject
 {
+  /* FIXME: OpenStep uses -isKindOfClass: rather than -isKindOf:.  Is
+   * it better to use -isKindOf:, since we know we're using GNUObjC?
+   * It seems to me more prudent to stick with the OpenStep version,
+   * since we're writing OpenStep code. */
   if ([anObject isKindOf:[NSData class]])
     return [self isEqualToData:anObject];
   return NO;
@@ -161,6 +283,7 @@
 
 - (unsigned int)length;
 {
+  /* This is left to concrete subclasses to implement. */
   [self notImplemented:_cmd];
   return 0;
 }
@@ -168,10 +291,85 @@
 
 // Storing Data
 
-- (BOOL) writeToFile: (NSString*)path
+- (BOOL) writeToFile: (NSString *)path
    atomically: (BOOL)useAuxiliaryFile
 {
-  [self notImplemented:_cmd];
+  const char *theFileName;
+  const char *theRealFileName;
+  FILE *theFile;
+  int c;
+
+  /* FIXME: The docs say nothing about the raising of any exceptions,
+   * but if someone can provide evidence as to the proper handling of
+   * bizarre situations here, I'll add whatever functionality is
+   * needed.  For the time being, I'm returning the success or failure
+   * of the write as a boolean YES or NO. */
+
+  /* FIXME: I believe that we should take the name of the file to be
+   * the cString of the path provided.  It is unclear, however, that
+   * this is correct for fully internationalized functionality.  If
+   * the cString <--> Unicode translation isn't completely
+   * bidirectional, this simple translation might not be the proper
+   * one. */
+
+  if (useAuxiliaryFile)
+    {
+      /* FIXME: Is it clear that using the tmpnam() system call is the
+       * right way to go?  Do we need to worry about renaming the
+       * tempfile thus created, if we happen to be moving it across
+       * filesystems, for example?  I don't think so.  In particular,
+       * I think that this *is* a correct way to handle things. */
+      theFileName = tmpnam(NULL);
+      theRealFileName = [path cString];
+    }
+  else
+    {
+      theFileName = [path cString];
+    }
+
+  /* Open the file (whether temp or real) for writing. */
+  theFile = fopen(theFileName, "w");
+
+  if (theFile == NULL)          /* Something went wrong; we weren't
+                                 * even able to open the file. */
+    goto failure;
+
+  /* Now we try and write the NSData's bytes to the file.  Here `c' is
+   * the number of bytes which were successfully written to the file
+   * in the fwrite() call. */
+  /* FIXME: Do we need the `sizeof(char)' here? Is there any system
+   * where sizeof(char) isn't just 1?  Or is it guaranteed to be 8
+   * bits? */
+  c = fwrite([self bytes], sizeof(char), [self length], theFile);
+
+  if (c < [self length])        /* We failed to write everything for
+                                 * some reason. */
+    goto failure;
+
+  /* We're done, so close everything up. */
+  c = fclose(theFile);
+
+  if (c != 0)                   /* I can't imagine what went wrong
+                                 * closing the file, but we got here,
+                                 * so we need to deal with it. */
+    goto failure;
+
+  /* If we used a temporary file, we still need to rename() it be the
+   * real file.  Am I forgetting anything here? */
+  if (useAuxiliaryFile)
+    {
+      c = rename(theFileName, theRealFileName);
+
+      if (c != 0)               /* Many things could go wrong, I
+                                 * guess. */
+	goto failure;
+    }
+
+  /* success: */
+  return YES;
+
+  /* Just in case the failure action needs to be changed. */
+ failure:
   return NO;
 }
 
