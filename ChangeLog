@@ -1,3 +1,10 @@
+2002-10-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: ([-initWithContentsOfFile:]) check to see
+	if the file is writable and the directory exists.
+	If we can't operate properly, run in read-only ,mode where we try
+	to read the file if possible, but never write defaults back.
+
 2002-10-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([-synchronize]) handle locking more

@@ -51,6 +51,7 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSDebug.h>
 #include <base/GSLocale.h>
 
 #include "GSPrivate.h"
@@ -719,6 +720,9 @@ static NSString	*pathForUser(NSString *user)
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  BOOL		flag;
+
   self = [super init];
 
   /*
@@ -729,16 +733,39 @@ static NSString	*pathForUser(NSString *user)
       processName = RETAIN([[NSProcessInfo processInfo] processName]);
     }
 
-  if (path != nil && [path isEqual: @""] == NO)
+  if (path == nil || [path isEqual: @""] == YES)
     {
-      _defaultsDatabase = [path copy];
+      path = pathForUser(NSUserName());
+    }
+  path = [path stringByStandardizingPath];
+  _defaultsDatabase = [path copy];
+  path = [path stringByDeletingLastPathComponent];
+  if ([mgr isWritableFileAtPath: path] == NO)
+    {
+      NSWarnMLog(@"Path '%@' is not writable - making user defaults for '%@' "
+	@" read-only\n", path, _defaultsDatabase);
+    }
+  else if ([mgr fileExistsAtPath: path isDirectory: &flag] == NO && flag == NO)
+    {
+      NSWarnMLog(@"Path '%@' is not an accessible directory - making user "
+	@"defaults for '%@' read-only\n", path, _defaultsDatabase);
+    }
+  else if ([mgr fileExistsAtPath: _defaultsDatabase] == YES
+    && [mgr isReadableFileAtPath: _defaultsDatabase] == NO)
+    {
+      NSWarnMLog(@"Path '%@' is not readable - making user defaults blank\n",
+	_defaultsDatabase);
     }
   else
     {
-      _defaultsDatabase = [pathForUser(NSUserName()) copy];
+      /*
+       * Only create the file lock if we can update the file ...
+       * if we can't the absence of the lock tells us we must be
+       * in read-only mode.
+       */
+      _fileLock = [[NSDistributedLock alloc] initWithPath:
+	[_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
     }
-  _fileLock = [[NSDistributedLock alloc] initWithPath:
-    [_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
   _lock = [NSRecursiveLock new];
 
   // Create an empty search list
@@ -1187,43 +1214,46 @@ static NSString	*pathForUser(NSString *user)
 
   [_lock lock];
 
-  while ([_fileLock tryLock] == NO)
+  if (_fileLock != nil)
     {
-      CREATE_AUTORELEASE_POOL(arp);
-      NSDate	*when;
-      NSDate	*lockDate;
-
-      lockDate = [_fileLock lockDate];
-      when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
-
-      /*
-       * In case we have tried and failed to break the lock,
-       * we give up after a while ... 16 seconds should give
-       * us three lock breaks if we do them at 5 second
-       * intervals.
-       */
-      if ([when timeIntervalSinceDate: started] > 16.0)
+      while ([_fileLock tryLock] == NO)
 	{
-	  NSLog(@"Failed to lock user defaults database even after "
-	    @"breaking old locks!");
-	  [_lock unlock];
-	  return NO;
-	}
+	  CREATE_AUTORELEASE_POOL(arp);
+	  NSDate	*when;
+	  NSDate	*lockDate;
 
-      /*
-       * If lockDate is nil, we should be able to lock again ... but we
-       * wait a little anyway ... so that in the case of a locking
-       * problem we do an idle wait rather than a busy one.
-       */ 
-      if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
-	{
-	  [_fileLock breakLock];
+	  lockDate = [_fileLock lockDate];
+	  when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+
+	  /*
+	   * In case we have tried and failed to break the lock,
+	   * we give up after a while ... 16 seconds should give
+	   * us three lock breaks if we do them at 5 second
+	   * intervals.
+	   */
+	  if ([when timeIntervalSinceDate: started] > 16.0)
+	    {
+	      NSLog(@"Failed to lock user defaults database even after "
+		@"breaking old locks!");
+	      [_lock unlock];
+	      return NO;
+	    }
+
+	  /*
+	   * If lockDate is nil, we should be able to lock again ... but we
+	   * wait a little anyway ... so that in the case of a locking
+	   * problem we do an idle wait rather than a busy one.
+	   */ 
+	  if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
+	    {
+	      [_fileLock breakLock];
+	    }
+	  else
+	    {
+	      [NSThread sleepUntilDate: when];
+	    }
+	  RELEASE(arp);
 	}
-      else
-	{
-	  [NSThread sleepUntilDate: when];
-	}
-      RELEASE(arp);
     }
 
   if (_tickingTimer == nil)
@@ -1260,7 +1290,7 @@ static NSString	*pathForUser(NSString *user)
 	      NSDate	*mod;
 
 	      mod = [attr objectForKey: NSFileModificationDate];
-	      if ([_lastSync earlierDate: mod] != _lastSync)
+	      if (mod !=nil && [_lastSync earlierDate: mod] != _lastSync)
 		{
 		  wantRead = YES;
 		}
@@ -1280,11 +1310,14 @@ static NSString	*pathForUser(NSString *user)
   if (attr == nil)
     {
       newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-		  initWithCapacity: 1];
-      NSLog(@"Creating defaults database file %@", _defaultsDatabase);
-      [newDict writeToFile: _defaultsDatabase atomically: YES];
-      attr = [mgr fileAttributesAtPath: _defaultsDatabase
-			  traverseLink: YES];
+	initWithCapacity: 1];
+      if (_fileLock != nil)
+	{
+	  NSLog(@"Creating defaults database file %@", _defaultsDatabase);
+	  [newDict writeToFile: _defaultsDatabase atomically: YES];
+	  attr = [mgr fileAttributesAtPath: _defaultsDatabase
+			      traverseLink: YES];
+	}
     }
   else
     {
@@ -1345,12 +1378,15 @@ static NSString	*pathForUser(NSString *user)
 	}
       RELEASE(_persDomains);
       _persDomains = newDict;
-      // Save the changes
-      if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
+      // Save the changes unless we are in read-only mode.
+      if (_fileLock != nil)
 	{
-	  [_fileLock unlock];
-	  [_lock unlock];
-	  return NO;
+	  if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
+	    {
+	      [_fileLock unlock];
+	      [_lock unlock];
+	      return NO;
+	    }
 	}
       ASSIGN(_lastSync, [NSDate date]);
     }
