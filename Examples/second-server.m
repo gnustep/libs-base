@@ -71,25 +71,26 @@ id announce_broken_port (id notification)
 
 - connectionBecameInvalid: notification
 {
-  id sender = [notification object];
-  if ([sender isKindOf:[Connection class]])
+  id connection = [notification object];
+  if ([connection isKindOf: [Connection class]])
     {
-      id remotes = [sender proxies];
-      int remotesCount = [remotes count];
       int arrayCount = [array count];
-      int i, j;
+      int i;
 
-      printf(">>> Connection 0x%x invalidated\n", (unsigned)sender);
+      printf(">>> Connection 0x%x invalidated\n", (unsigned)connection);
 
-      /* This contortion avoids Array's calling -isEqual: on the proxy */
-      for (j = 0; j < remotesCount; j++)
-	for (i = 0; i < arrayCount; i++)
-	  if ([remotes objectAtIndex:j] == [array objectAtIndex:i])
+      /* Remember to avoid calling -isEqual: on the proxies of the
+	 invalidated Connection. */
+      for (i = arrayCount-1; i >= 0; i--)
+	{
+	  id o = [array objectAtIndex: i];
+	  if ([o isProxy]
+	      && [o connectionForProxy] == connection)
 	    {
-	      printf("removing remote proxy from the list\n");
-	      [array removeObjectAtIndex:j];
-	      break;
+	      printf(">>> Removing proxy 0x%x\n", (unsigned)o);
+	      [array removeObjectAtIndex: i];
 	    }
+	}
     }
   else
     {
