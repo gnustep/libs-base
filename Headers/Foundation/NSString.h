@@ -289,9 +289,11 @@ enum {
              forRange: (NSRange)aRange;
 - (NSRange) lineRangeForRange: (NSRange)aRange;
 - (const char*) lossyCString;
+- (NSString*) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByPaddingToLength: (unsigned int)newLength
 			   withString: (NSString*)padString
 		      startingAtIndex: (unsigned int)padIndex;
+- (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet;
 - (const char *)UTF8String;
 #endif
