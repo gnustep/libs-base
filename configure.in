@@ -281,6 +281,60 @@ fi
 AC_SUBST(GS_FLT64)
 
 #--------------------------------------------------------------------
+# Type-size information for encoding into archives using NSArchiver etc.
+# 0x00 == 2 bytes, 0x20 == 4 bytes, 0x40 == 8 bytes, 0x60 == 16 bytes
+#--------------------------------------------------------------------
+if test $ac_cv_sizeof_short = 4; then
+  _GSC_S_SHT=0x20
+else
+  _GSC_S_SHT=0x00
+fi
+AC_SUBST(_GSC_S_SHT)
+
+if test $ac_cv_sizeof_int = 4; then
+  _GSC_S_INT=0x20
+else
+  if test $ac_cv_sizeof_int = 2; then
+    _GSC_S_INT=0x00
+  else
+    if test $ac_cv_sizeof_int = 8; then
+      _GSC_S_INT=0x40
+    else
+      if test $ac_cv_sizeof_int = 16; then
+	_GSC_S_INT=0x60
+      fi
+    fi
+  fi
+fi
+AC_SUBST(_GSC_S_INT)
+
+if test $ac_cv_sizeof_long = 4; then
+  _GSC_S_LNG=0x20
+else
+  if test $ac_cv_sizeof_long = 8; then
+    _GSC_S_LNG=0x40
+  else
+    if test $ac_cv_sizeof_long = 16; then
+      _GSC_S_LNG=0x60
+    fi
+  fi
+fi
+AC_SUBST(_GSC_S_LNG)
+
+if test $ac_cv_sizeof_long_long = 4; then
+  _GSC_S_LNG_LNG=0x20
+else
+  if test $ac_cv_sizeof_long_long = 8; then
+    _GSC_S_LNG_LNG=0x40
+  else
+    if test $ac_cv_sizeof_long_long = 16; then
+      _GSC_S_LNG_LNG=0x60
+    fi
+  fi
+fi
+AC_SUBST(_GSC_S_LNG_LNG)
+
+#--------------------------------------------------------------------
 # Setup dynamic linking 
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()

@@ -103,6 +103,9 @@ typedef	union {
   const void	*P;
   char		*s;
   const char	*S;
+  gsu8		u8;
+  gsu16		u16;
+  gsu32		u32;
 } FastMapItem;
 
 typedef struct _FastMapTable FastMapTable_t;

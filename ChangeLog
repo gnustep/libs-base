@@ -1,3 +1,10 @@
+Tue Jan 26 15:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* configure.in: More stuff for type-size info
+	* src/include/GSConfig.h.in: More stuff for type-size info.
+	* src/FastArray.x: Allow types with fixed sizes in array.
+	* src/FastMap.x: Allow types with fixed sizes in map.
+
 Tue Jan 26  8:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSThread.m: ([-sleepUntilDate:]) cast argument of usleep() to

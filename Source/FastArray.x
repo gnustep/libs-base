@@ -67,6 +67,9 @@ typedef	union {
   char		*s;
   const char	*S;
   SEL		C;
+  gsu8		u8;
+  gsu16		u16;
+  gsu32		u32;
 } FastArrayItem;
 
 struct	_FastArray {
