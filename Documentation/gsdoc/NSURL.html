@@ -71,6 +71,28 @@
 <h3><a name ="method-3">loadResourceDataNotifyingClient:usingCache:</a></h3>
 - (void) <b>loadResourceDataNotifyingClient:</b> (id)client <b>usingCache:</b> (BOOL)shouldUseCache;<br>
 
+	    Loads the resource data for the specified URL.
+	    <p>
+
+	      If <em>shouldUseCache</em> is <code>YES</code> then an attempt
+	      will be made to locate a cached NSURLHandle to provide the
+	      resource data, otherwise a new handle will be created and
+	      cached.
+	    </p>
+
+	    <p>
+
+	      If the handle does not have the data available, it will be
+	      asked to load the data in the background by calling its
+	      loadInBackground  method.
+	    </p>
+
+	    <p>
+
+	      The specified client (if non-nil) will be set up to recieve
+	      notifications of the progress fo the background load process.
+	    </p>
+
           
  <hr>
 <h3><a name ="method-4">parameterString</a></h3>
