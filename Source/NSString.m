@@ -99,18 +99,28 @@ static Class NSMutableString_c_concrete_class;
 #include <stdio.h>
 #include <printf.h>
 #include <stdarg.h>
-int
+
+static int
+arginfo_func (const struct printf_info *info,
+            size_t n,
+            int *argtypes) {
+  *argtypes = PA_POINTER;
+  return 1;
+}
+
+static int
 handle_printf_atsign (FILE *stream, 
 		      const struct printf_info *info,
-		      va_list *ap_pointer)
+		      const void **const args)
 {
+  const void *ptr = *args;
   id string_object;
   int len;
 
   /* xxx This implementation may not pay pay attention to as much 
      of printf_info as it should. */
 
-  string_object = va_arg (*ap_pointer, id);
+  string_object = *((id *) ptr);
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
 		[string_object cStringNoCopy]);
@@ -133,7 +143,7 @@ handle_printf_atsign (FILE *stream,
 #if HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@', 
 				    (printf_function)handle_printf_atsign, 
-				    NULL))
+				    (printf_arginfo_function)arginfo_func))
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
