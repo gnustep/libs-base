@@ -1,3 +1,9 @@
+2004-11-18 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Tools/pl.m: Added a tool I wrote a while back which is an 
+	implementation of the pl command (as it is on Mac OS X and 
+	OPENSTEP).
+	
 2004-11-11  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/Foundation/NSBundle.h (builtInPlugInsPath): New method.
