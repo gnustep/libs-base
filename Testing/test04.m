@@ -39,6 +39,6 @@ int main()
   /* cause an error */
   /*  s = [heap elementAtIndex:999].short_int_u; */
 
-  [heap free];
+  [heap release];
   exit(0);
 }

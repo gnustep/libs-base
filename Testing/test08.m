@@ -13,13 +13,13 @@ void test(id objects)
   stream = objc_open_typed_stream_for_file("test08.data", OBJC_WRITEONLY);
   objc_write_root_object(stream, objects);
   objc_close_typed_stream(stream);
-  [objects free];
+  [objects release];
 
   stream = objc_open_typed_stream_for_file("test08.data", OBJC_READONLY);
   objc_read_object(stream, &objects);
   printf("read    ");
   [objects printForDebugger];
-  [objects free];
+  [objects release];
 }
 
 int main()

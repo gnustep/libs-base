@@ -30,9 +30,9 @@ int main()
   mc = [[MappedCollector alloc] initCollection:dict map:translator];
   [mc printForDebugger];
 
-  [mc free];
-  [dict free];
-  [translator free];
+  [mc release];
+  [dict release];
+  [translator release];
 
   exit(0);
 

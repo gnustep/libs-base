@@ -17,7 +17,7 @@ int main()
   [array makeObjectsPerform:@selector(name)];
 
   [[array objectAtIndex:0] hash];
-  [[array freeObjects] free];
+  [[array releaseObjects] release];
   printf("no errors\n");
   exit(0);
 }

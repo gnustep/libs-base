@@ -19,7 +19,7 @@ int main()
   for (i = 1; i < 20; i++)
     [s addElement:(int)random()%99];
   [[s contentsCollector] binaryTreePrintForDebugger];
-  [s free];
+  [s release];
 
   s = [[EltNodeCollector alloc] initWithType:@encode(int)
        nodeCollector:[[SplayTree alloc] init]
@@ -30,7 +30,7 @@ int main()
   [s removeElement:[s elementAtIndex:10]];
   [[s contentsCollector] binaryTreePrintForDebugger];
   [[s contentsCollector] withObjectsCall:foo];
-  [s free];
+  [s release];
 
   s = [[EltNodeCollector alloc] initWithType:@encode(int)
        nodeCollector:[[BinaryTree alloc] init]
