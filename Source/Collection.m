@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -1013,6 +1013,17 @@
     }
   CHECK_CONTAINS_OBJECTS_ERROR();
   return [self withElementsCall:doIt];
+}
+
+/* xxx a temporary implementation until the collection overhaul gets done. */
+- (void) withObjectsInvoke: anInvocation
+{
+  void doIt(elt e)
+    {
+      [anInvocation invokeWithObject: e.id_u];
+    }
+  CHECK_CONTAINS_OBJECTS_ERROR();
+  [self withElementsCall:doIt];
 }
 
 - safeWithObjectsCall: (void(*)(id))aFunc
