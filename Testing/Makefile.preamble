@@ -45,14 +45,14 @@ ADDITIONAL_OBJCFLAGS = -g
 ADDITIONAL_CFLAGS = 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS = -I../src -I../src/srcdir-include \
-	-I../src/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+ADDITIONAL_INCLUDE_DIRS = -I../Source -I../Source/srcdir-include \
+	-I../Source/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS = 
 
 # Additional library directories the linker should search
-ADDITIONAL_LIB_DIRS = -L../src/$(GNUSTEP_OBJ_DIR)
+ADDITIONAL_LIB_DIRS = -L../Source/$(GNUSTEP_OBJ_DIR)
 
 #
 # Flags dealing with installing and uninstalling

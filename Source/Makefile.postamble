@@ -282,19 +282,19 @@ regenerate: $(DIST_FILES)
 	mv AUTHORS ..
 
 copy-dist: $(DIST_FILES)
-	mkdir ../snap/src
-	mkdir ../snap/src/include
-	mkdir ../snap/src/Foundation
-	mkdir ../snap/src/objc
-	mkdir ../snap/src/unicode
+	mkdir ../snap/Source
+	mkdir ../snap/Source/include
+	mkdir ../snap/Source/Foundation
+	mkdir ../snap/Source/objc
+	mkdir ../snap/Source/unicode
 	for file in $(DIST_FILES); do \
-	  ln $$file ../snap/src/$$file ; \
+	  ln $$file ../snap/Source/$$file ; \
 	done
 	for file in $(GNU_HEADERS); do \
-	  ln ./include/$$file ../snap/src/include/$$file ; \
+	  ln ./include/$$file ../snap/Source/include/$$file ; \
 	done
 	for file in $(BASE_HEADERS); do \
-	  ln $$file ../snap/src/include/`basename $$file` ; \
+	  ln $$file ../snap/Source/include/`basename $$file` ; \
 	done
 	ln AUTHORS ../snap
 
