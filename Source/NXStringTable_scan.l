@@ -1,5 +1,5 @@
 /* Lex scanner for Objective C NeXT-compatible NXStringTable object 
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <adam@bastille.rmnug.org>
 
@@ -43,7 +43,7 @@ ESCAPES		[abfnrtv]
 %%
     /* Lexical initialization - This gets executed before any analysis */
     char string_buf[MAX_STRINGTABLE_LENGTH];
-    char *string_buf_ptr;
+    char *string_buf_ptr = NULL;
     static int  got;		/* Holds the type of token we just got */
     static int  line;
     #ifndef HAVE_FLEX
