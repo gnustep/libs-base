@@ -25,6 +25,17 @@
 
 
 /*
+ * Macros to manage memory for chunks of code that need to work with
+ * arrays of objects.  Use OBUFBEGIN() to start the block of code using
+ * the array and OBUFEND() to end it.  The idea is to ensure that small
+ * arrays are allocated on the stack (for speed), but large arrays are
+ * allocated from the heap (to avoid stack overflow).
+ */
+#define	OBUFMAX	1024
+#define	OBUFBEGIN(P, S) { id _xxx[(S) <= OBUFMAX ? (S) : 0]; id *(P) = ((S) <= OBUFMAX) ? _xxx : (id*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(id)); 
+#define	OBUFEND(P, S) if ((S) > OBUFMAX) NSZoneFree(NSDefaultMallocZone(), (P)); }
+
+/*
  * Function to get the name of a string encoding as an NSString.
  */
 GS_EXPORT NSString	*GSEncodingName(NSStringEncoding encoding);

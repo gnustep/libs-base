@@ -589,7 +589,7 @@ static Class	GSInlineArrayClass;
 		  _contents_array[pos-1] = _contents_array[pos];
 		}
 	      _count--;
-		  _contents_array[_count] = 0;
+	      _contents_array[_count] = 0;
 	      RELEASE(obj);
 	    }
 	}
