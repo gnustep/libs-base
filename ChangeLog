@@ -1,3 +1,15 @@
+Mon Dec 30 18:19:55 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.ac: Recognize apple OBJC_RUNTIME_LIB.
+	* configure: Regenerated.
+	* Makefile.postamble: Updated check for gnu FOUNDATION_LIB.
+	* Source/Makefile.preamble (libgnustep-baseadd_LIBRARIES_DEPEND_UPON): 
+	Do not add -framework Foundation on Apple, it's added automatically
+	by gnustep-make.
+	* Source/GNUmakefile: Updated check for OBJC_RUNTIME_LIB.
+	* Source/Additions/GNUmakefile: Updated checks for
+	OBJC_RUNTIME_LIB and FOUNDATION_LIB.
+	
 2002-12-28  Kelvin  <kelvin@xbar.org>
 
 	* Source/NSPage.m: Add BeOS support.
