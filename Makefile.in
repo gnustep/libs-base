@@ -287,7 +287,6 @@ NSAutoreleasePool.m \
 NSBundle.m \
 NSCoder.m \
 NSCopyObject.m \
-NSConcreteArray.m \
 NSConcreteValue.m \
 NSCString.m \
 NSDeallocateObject.m \
@@ -295,7 +294,8 @@ NSDictionary.m \
 NSEnumerator.m \
 NSException.m \
 NSGeometry.m \
-NSGNUCoder.m \
+NSGArray.m \
+NSGCoder.m \
 NSNumber.m \
 NSObject.m \
 NSRange.m \
@@ -339,14 +339,14 @@ foundation/NSAutoreleasePool.h \
 foundation/NSBundle.h \
 foundation/NSCString.h \
 foundation/NSCoder.h \
-foundation/NSConcreteArray.h \
 foundation/NSConcreteNumber.h \
 foundation/NSConcreteValue.h \
 foundation/NSDate.h \
 foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
-foundation/NSGNUCoder.h \
+foundation/NSGArray.h \
+foundation/NSGCoder.h \
 foundation/NSInvocation.h \
 foundation/NSMethodSignature.h \
 foundation/NSObjCRuntime.h \
