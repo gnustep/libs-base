@@ -48,6 +48,12 @@
 /* Define if your system has a /proc/self/exe symlink to the executable */
 #undef HAVE_PROC_FS_EXE_LINK
 
+/* Define if using the libffi library for invocations */
+#undef USE_LIBFFI
+
+/* Define if using the ffcall library for invocations */
+#undef USE_FFCALL
+
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 
@@ -135,11 +141,17 @@
 /* Define if you have the vsprintf function.  */
 #undef HAVE_VSPRINTF
 
+/* Define if you have the <callback> header file.  */
+#undef HAVE_CALLBACK
+
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
 /* Define if you have the <getopt.h> header file.  */
 #undef HAVE_GETOPT_H
+
+/* Define if you have the <gmp.h> header file.  */
+#undef HAVE_GMP_H
 
 /* Define if you have the <grp.h> header file.  */
 #undef HAVE_GRP_H

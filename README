@@ -18,8 +18,8 @@ Initial reading
 
    The file `NEWS' has the library's feature history.
 
-   The file `GNUstep-HOWTO' give instructions for installing the
-library.
+   The files `INSTALL' or `GNUstep-HOWTO' (from the core package) gives
+instructions for installing the library.
 
 How can you help?
 =================

@@ -28,6 +28,11 @@
 #include <config.h>
 #include <base/preface.h>
 #include <mframe.h>
+#if defined(USE_LIBFFI)
+#include "cifframe.h"
+#elif defined(USE_FFCALL)
+#include "callframe.h"
+#endif
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -65,6 +70,7 @@
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSDebug.h>
+#include <base/GSInvocation.h>
 
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
@@ -1560,6 +1566,142 @@ static BOOL	multi_threaded = NO;
   return retframe;
 }
 
+/*
+ * NSDistantObject's -forwardInvocation: method calls this to send the message
+ * over the wire.
+ */
+- (void) forwardInvocation: (NSInvocation *)inv 
+		  forProxy: (NSDistantObject*)object 
+{
+  NSPortCoder	*op;
+  BOOL		outParams;
+  BOOL		needsResponse;
+  const char	*type;
+  int		seq_num;
+
+  /* Encode the method on an RMC, and send it. */
+
+  NSParameterAssert (_isValid);
+
+  /* get the method types from the selector */
+  type = [[inv methodSignature] methodType];
+  if (type == 0 || *type == '\0')
+    {
+      type = [[object methodSignatureForSelector: [inv selector]] methodType];
+      if (type)
+	{
+	  sel_register_typed_name(sel_get_name([inv selector]), type);
+	}
+    }
+  NSParameterAssert(type);
+  NSParameterAssert(*type);
+
+  op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
+
+  if (debug_connection > 4)
+    NSLog(@"building packet seq %d", seq_num);
+
+  outParams = [inv encodeWithDistantCoder: op passPointers: YES];
+
+  if (outParams == YES)
+    {
+      needsResponse = YES;
+    }
+  else
+    {
+      int		flags;
+
+      needsResponse = NO;
+      flags = objc_get_type_qualifiers(type);
+      if ((flags & _F_ONEWAY) == 0)
+	{
+	  needsResponse = YES;
+	}
+      else
+	{
+	  const char	*tmptype = objc_skip_type_qualifiers(type);
+
+	  if (*tmptype != _C_VOID)
+	    {
+	      needsResponse = YES;
+	    }
+	}
+    }
+
+  [self _sendOutRmc: op type: METHOD_REQUEST];
+  NSDebugMLLog(@"NSConnection", @"Sent message to 0x%x", (gsaddr)self);
+
+  if (needsResponse == NO)
+    {
+      /*
+       * Since we don't need a response, we can remove the placeholder from
+       * the _replyMap.
+       */
+      M_LOCK(_refGate);
+      GSIMapRemoveKey(_replyMap, (GSIMapKey)seq_num);
+      M_UNLOCK(_refGate);
+    }
+  else
+    {
+      NSPortCoder	*ip = nil;
+      BOOL		is_exception = NO;
+
+      void decoder(int argnum, void *datum, const char *type, int flags)
+	{
+	  if (type == 0)
+	    {
+	      if (ip != nil)
+		{
+		  DESTROY(ip);
+		  /* this must be here to avoid trashing alloca'ed retframe */
+		  ip = (id)-1;
+		  _repInCount++;	/* received a reply */
+		}
+	      return;
+	    }
+	  /* If we didn't get the reply packet yet, get it now. */
+	  if (!ip)
+	    {
+	      if (!_isValid)
+		{
+		  [NSException raise: NSGenericException
+		    format: @"connection waiting for request was shut down"];
+		}
+	      ip = [self _getReplyRmc: seq_num];
+	      /*
+	       * Find out if the server is returning an exception instead
+	       * of the return values.
+	       */
+	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+	      if (is_exception)
+		{
+		  /* Decode the exception object, and raise it. */
+		  id exc;
+		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
+		  DESTROY(ip);
+		  ip = (id)-1;
+		  /* xxx Is there anything else to clean up in
+		     dissect_method_return()? */
+		  [exc raise];
+		}
+	    }
+	  [ip decodeValueOfObjCType: type at: datum];
+	  if (*type == _C_ID)
+	    AUTORELEASE(*(id*)datum);
+	}
+
+#ifdef USE_FFCALL
+      callframe_build_return (inv, type, outParams, decoder);
+#endif
+      /* Make sure we processed all arguments, and dismissed the IP.
+	 IP is always set to -1 after being dismissed; the only places
+	 this is done is in this function DECODER().  IP will be nil
+	 if mframe_build_return() never called DECODER(), i.e. when
+	 we are just returning (void).*/
+      NSAssert(ip == (id)-1 || ip == nil, NSInternalInconsistencyException);
+    }
+}
+
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target
 {
   id op, ip;
@@ -1811,6 +1953,9 @@ static BOOL	multi_threaded = NO;
 	}
 
       [aRmc decodeValueOfObjCType: type at: datum];
+#ifdef USE_FFCALL
+      if (*type == _C_ID)
+#else
       /* -decodeValueOfObjCType: at: malloc's new memory
 	 for char*'s.  We need to make sure it gets freed eventually
 	 so we don't have a memory leak.  Request here that it be
@@ -1818,6 +1963,7 @@ static BOOL	multi_threaded = NO;
       if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
 	[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
       else if (*type == _C_ID)
+#endif
         AUTORELEASE(*(id*)datum);
     }
 
@@ -1871,7 +2017,13 @@ static BOOL	multi_threaded = NO;
       if (debug_connection > 1)
         NSLog(@"Handling message from 0x%x", (gsaddr)self);
       _reqInCount++;	/* Handling an incoming request. */
+#if defined(USE_LIBFFI)
+      cifframe_do_call (forward_type, decoder, encoder);
+#elif defined(USE_FFCALL)
+      callframe_do_call (forward_type, decoder, encoder);
+#else
       mframe_do_call (forward_type, decoder, encoder);
+#endif
       if (op != nil)
 	{
 	  [self _sendOutRmc: op type: METHOD_REPLY];

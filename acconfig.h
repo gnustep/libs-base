@@ -138,3 +138,10 @@
 
 /* Define if your system has a /proc/self/exe symlink to the executable */
 #undef HAVE_PROC_FS_EXE_LINK
+
+/* Define if using the libffi library for invocations */
+#undef USE_LIBFFI
+
+/* Define if using the ffcall library for invocations */
+#undef USE_FFCALL
+

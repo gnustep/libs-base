@@ -31,6 +31,16 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSObjCRuntime.h>
 
+#define DO_FORWARD_INVOCATION(_SELX, _ARG1)			\
+  sig = [self methodSignatureForSelector: @selector(_SELX)];	\
+  inv = [NSInvocation invocationWithMethodSignature: sig];	\
+  [inv setSelector: @selector(_SELX)];				\
+  [inv setTarget: self];					\
+  [inv setArgument: _ARG1 atIndex: 2];			       	\
+  [self forwardInvocation: inv];				\
+  [inv getReturnValue: &m]
+
+
 static int	debug_proxy = 0;
 static Class	placeHolder = 0;
 static Class	distantObjectClass = 0;
@@ -482,8 +492,17 @@ enum
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  [NSException raise: NSInvalidArgumentException
-	      format: @"Not yet implemented '%s'", sel_get_name(_cmd)];
+  if (debug_proxy)
+    NSLog(@"NSDistantObject forwardInvocation: %@\n", anInvocation);
+
+  if (![_connection isValid])
+    [NSException
+	   raise: NSGenericException
+	  format: @"Trying to send message to an invalid Proxy.\n"
+      @"You should request NSConnectionDidDieNotification's and\n"
+      @"release all references to the proxy's of invalid Connections."];
+
+  [_connection forwardInvocation: anInvocation forProxy: self];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -778,6 +797,10 @@ enum
 	{
 	  id		m;
 	  const char	*types;
+#ifdef USE_FFCALL
+	  id            inv, sig;
+	  DO_FORWARD_INVOCATION(_cmd, aSelector);
+#else
 	  arglist_t	args;
 	  void		*retframe;
 
@@ -792,6 +815,7 @@ enum
 	  args = __builtin_apply_args();
 	  retframe = [self forward: _cmd : args];
 	  m = retframe_id(retframe);
+#endif
 	  types = [m methodType];
 
 	  return [NSMethodSignature signatureWithObjCTypes: types];
@@ -901,6 +925,12 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
+#ifdef USE_FFCALL
+  BOOL m;
+  id inv, sig;
+  DO_FORWARD_INVOCATION(_cmd, aProtocol);
+  return m;
+#else
   arglist_t	args;
   void		*retframe;
 
@@ -915,10 +945,17 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
   args = __builtin_apply_args();
   retframe = [self forward: _cmd : args];
   return retframe_bool(retframe);
+#endif
 }
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
+#ifdef USE_FFCALL
+  BOOL m;
+  id inv, sig;
+  DO_FORWARD_INVOCATION(_cmd, aSelector);
+  return m;
+#else
   arglist_t	args;
   void		*retframe;
 
@@ -933,6 +970,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
   args = __builtin_apply_args();
   retframe = [self forward: _cmd : args];
   return retframe_bool(retframe);
+#endif
 }
 
 - (id) replacementObjectForCoder: (NSCoder*)aCoder

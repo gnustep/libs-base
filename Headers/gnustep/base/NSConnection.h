@@ -36,6 +36,7 @@
 @class NSPort;
 @class NSPortNameServer;
 @class NSData;
+@class NSInvocation;
 
 /*
  *	Keys for the NSDictionary returned by [NSConnection -statistics]
@@ -159,6 +160,8 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
 		    selector: (SEL)sel 
 		    argFrame: (arglist_t)frame;
+- (void) forwardInvocation: (NSInvocation *)inv 
+		  forProxy: (NSDistantObject*)object;
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 
 @end
