@@ -4,6 +4,7 @@
 	type specifications of the form (id<protocol1,protocol2,...>)
 	* Tools/autogsdoc.m: Add -Files option to read names of files
 	to process as a property list rather than using command line args.
+	* Tools/AGSParser.m: Warn about private methods and ivars.
 
 2002-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -113,6 +113,7 @@
 - (unsigned) skipToEndOfLine;
 - (unsigned) skipUnit;
 - (NSMutableArray*) sources;
+- (id) _foo;
 @end
 
 /** Let's document a macro
