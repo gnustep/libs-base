@@ -1,3 +1,11 @@
+2002-04-24  Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Tools/make_strings/GNUmakefile - modified to prevent build
+	error when building from scratch
+	* Tools/make_strings/GNUmakefile.preamble - added to provide
+	paths to include and lib directories for linking make_strings
+	tool when building from scratch.
+	
 2002-04-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GSFFIInvocation.m
