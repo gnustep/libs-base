@@ -649,7 +649,7 @@
   [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:NULL];
-  OBJC_MALLOC(content_array, id, count);
+  content_array = alloca (sizeof (id) * count);
   for (i = 0; i < count; i++)
     [aCoder decodeObjectAt: &(content_array[i])
 	    withName:NULL];
