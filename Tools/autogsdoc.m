@@ -68,7 +68,7 @@
     <item><strong>&lt;chapter&gt;</strong>
       Placed immediately before any generated class documentation ...
       intended to be used to provide overall description of how the
-      code bing documented works.
+      code being documented works.<br />
     </item>
     <item><strong>&lt;copy&gt;</strong>
       Copyright of the content of the document ... placed in the head
@@ -87,6 +87,16 @@
       Title of the document ... placed in the head of the gsdoc output.
       If this is omitted the tool will generate a (probably poor)
       title of its own.
+    </item>
+    <item>
+      <strong>NB</strong>This markup may be used within
+      class, category, or protocol documentation ... if so, it is
+      extracted and wrapped round the rest of the documentation for
+      the class as the classes chapter.
+      The rest of the class documentation is normally
+      inserted at the end of the chapter, but may instead be sbstituted
+      in in place of the &lt;unit /&gt; pseudo-element within the
+      &lt;chapter&gt; element.
     </item>
     <item><strong>&lt;version&gt;</strong>
       Version identifier of the document ... placed in the head
