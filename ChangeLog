@@ -1,3 +1,11 @@
+2005-03-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+gnustepBundle, 
+	+pathForGNUstepResource:ofType:inDirectory:]): Add depreciated
+	log message.
+	* Source/NSNotificationQueue.m, Source/null-load.h: 
+	Fix copyright message.
+
 2005-03-01 02:50 Nicola Pero <n.pero@mi.flashnet.it>
 
 	* Source/Makefile.preamble (ADDITIONAL_LIB_DIRS): When building a
