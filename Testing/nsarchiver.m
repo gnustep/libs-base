@@ -41,10 +41,8 @@ printf("%u\n", [arc retainCount]);
   [arc release];
 printf("%u\n", [arc retainCount]);
   [arc encodeRootObject: set];
-  /* Intentionally dodgy code - autorelease before init to see if init copes. */
-  una = [[[NSUnarchiver alloc] autorelease] initForReadingWithData: [arc archiverData]];
+  una = [[[NSUnarchiver alloc] initForReadingWithData: [arc archiverData]] autorelease];
   xxx = [una decodeObject];
-  [xxx release];
   [apl release];
 
   /* Write it to a file */
