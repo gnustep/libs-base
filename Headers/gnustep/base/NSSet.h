@@ -91,5 +91,26 @@
 
 @end
 
+#ifndef NO_GNUSTEP
+
+#include <objects/KeyedCollecting.h>
+#include <Foundation/NSSet.h>
+
+/* Eventually we'll make a Constant version of this protocol. */
+@interface NSSet (GNU) <Collecting>
+/* These methods will be moved to NSMutableSet as soon as GNU's
+   collection objects are separated by mutability. */
++ (unsigned) defaultCapacity;
+- initWithType: (const char *)contentEncoding
+    capacity: (unsigned)aCapacity;
+@end
+
+@interface NSMutableSet (GNU)
+@end
+
+@interface NSCountedSet (GNU) <Collecting>
+@end
+
+#endif /* NO_GNUSTEP */
 
 #endif
