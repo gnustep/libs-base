@@ -26,6 +26,15 @@
 
 #include <Foundation/NSObject.h>
 
+/* xxx Where does this go? */
+/* Info about layout of arguments. */
+typedef struct  
+{
+  int offset;
+  int size;
+  char *type;
+} NSArgumentInfo;
+
 @interface NSMethodSignature : NSObject
 {
   char *types;
@@ -37,7 +46,7 @@
 
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)types;
 
-//- (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index;
+- (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index;
 - (unsigned) frameLength;
 - (BOOL) isOneway;
 - (unsigned) methodReturnLength;
