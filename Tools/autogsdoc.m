@@ -383,7 +383,7 @@
 	A boolean value which may be used to specify that the program should
 	ignore file modification times and regenerate files anyway.  Provided
 	for use in conjunction with the <code>make</code> system, which is
-	expected to manage dependency checking itsself.
+	expected to manage dependency checking itself.
       </item>
       <item><strong>LocalProjects</strong>
 	This value is used to control the automatic inclusion of local
@@ -628,6 +628,7 @@ main(int argc, char **argv, char **env)
   BOOL			showDependencies = NO;
   BOOL			verbose = NO;
   BOOL			warn = NO;
+  BOOL			instanceVarsAtEnd = YES;
   NSArray		*files = nil;
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
@@ -851,6 +852,12 @@ main(int argc, char **argv, char **env)
   if (obj != nil)
     {
       generateHtml = [defs boolForKey: @"GenerateHtml"];
+    }
+
+  obj = [defs objectForKey: @"InstanceVariablesAtEnd"];
+  if (obj != nil)
+    {
+      instanceVarsAtEnd = [defs boolForKey: @"InstanceVariablesAtEnd"];
     }
 
   declared = [defs stringForKey: @"Declared"];
@@ -1836,7 +1843,7 @@ main(int argc, char **argv, char **env)
         @"    (<A HREF=\"%@.html\" TARGET=\"mainFrame\">intro</A>)&nbsp;",
         project];
       [idxIndex appendFormat:
-        @"&nbsp;(<A HREF=\"%@.html\" TARGET=\"_top\">no frames</A>)\n",
+        @"&nbsp;(<A HREF=\"%@.html\" TARGET=\"_top\">unframe</A>)\n",
         project];
       [idxIndex appendString: @"    </FONT>\n  </BODY>\n</HTML>\n"];
       [idxIndex writeToFile:
@@ -1997,8 +2004,7 @@ main(int argc, char **argv, char **env)
 		  [html setGlobalRefs: globalRefs];
 		  [html setProjectRefs: projectRefs];
 		  [html setLocalRefs: localRefs];
-                  [html setInstanceVariablesAtEnd:
-                             [defs boolForKey: @"InstanceVariablesAtEnd"]];
+                  [html setInstanceVariablesAtEnd: instanceVarsAtEnd];
 		  generated = [html outputDocument: root];
 		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
 		    {
@@ -2072,8 +2078,7 @@ main(int argc, char **argv, char **env)
 	      [html setGlobalRefs: globalRefs];
 	      [html setProjectRefs: projectRefs];
 	      [html setLocalRefs: nil];
-              [html setInstanceVariablesAtEnd:
-                         [defs boolForKey: @"InstanceVariablesAtEnd"]];
+              [html setInstanceVariablesAtEnd: instanceVarsAtEnd];
 
 	      s = [NSMutableString stringWithContentsOfFile: src];
 	      l = [s length];
