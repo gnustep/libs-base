@@ -227,54 +227,16 @@ if test $ac_cv_header_objc_objc_h = no; then
 fi
 
 #--------------------------------------------------------------------
-# Check if libobjc was compiled with thread support.
+# Check for thread flags for libobjc.
 #--------------------------------------------------------------------
-AC_MSG_CHECKING(whether objc has thread support)
-saved_LIBS="$LIBS"
-extra_LIBS=""
-case "${target_os}" in
-  solaris*)
-	extra_LIBS="-lposix4"
-	;;
-esac
-objc_thread_lib=""
-if test $host_os = linux-gnu; then
-  LIBS="-lobjc -lpthread"
-  AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-lpthread",
-	objc_threaded="", objc_threaded="-lpthread")
-  if test x"$objc_threaded" = x""; then
-    LIBS="-lobjc -lpcthread"
-    AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-lpcthread",
-	objc_threaded="", objc_threaded="-lpcthread")
-  fi
-elif test "`echo $host_os|sed 's/[[0-9]].*//'|sed s/elf//`" = freebsd; then
-  LIBS="-pthread -lobjc"
-  AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-pthread",
-	objc_threaded="", objc_threaded="-pthread")
-  if test x"$objc_threaded" = x""; then
-    LIBS="-lpthread -lobjc"
-    AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-lpthread",
-	objc_threaded="", objc_threaded="-lpthread")
-  fi
-  if test x"$objc_threaded" = x""; then
-    LIBS="-lobjc -lpcthread"
-    AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-lpcthread",
-	objc_threaded="", objc_threaded="-lpcthread")
-  fi
-else
-  LIBS="-lobjc $LIBS $extra_LIBS"
-  AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-lthread",
-	objc_threaded="", objc_threaded="-lthread")
-fi
-LIBS="$saved_LIBS"
-if test x"$objc_threaded" = x""; then
-  AC_MSG_RESULT(no)
-else
-  AC_MSG_RESULT(yes)
-fi
-ac_cv_objc_threaded=$objc_threaded
-AC_SUBST(objc_threaded)
-AC_SUBST(ac_cv_objc_threaded)
+#
+AC_MSG_CHECKING(for objc threading flags)
+#
+# Get them from gnustep-make which contains the real code to get them
+#
+objc_threaded=`grep objc_threaded: $GNUSTEP_SYSTEM_ROOT/Makefiles/$obj_dir/config.make | sed -e 's/objc_threaded:=//'`
+#
+AC_MSG_RESULT($objc_threaded)
 
 #--------------------------------------------------------------------
 # Byte order information needed for foundation headers.
@@ -496,8 +458,8 @@ saved_LIBS="$LIBS"
 saved_CPPFLAGS="$CPPFLAGS"
 LIBS="$LIBS -lobjc"
 CPPFLAGS="$CPPFLAGS -x objective-c"
-if test x"$ac_cv_objc_threaded" != x""; then
-  LIBS="$LIBS $ac_cv_objc_threaded"
+if test x"$objc_threaded" != x""; then
+  LIBS="$LIBS $objc_threaded"
 fi
 LIBS="$LIBS $extra_LIBS"
 AC_MSG_CHECKING(if +load method is executed before main)
