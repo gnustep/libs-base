@@ -196,6 +196,7 @@ main ()
 
   t = [Target new];
   p = [[MyProxy alloc] initWithTarget: t];
+[p loopInt: 1];
 
 #define	SETUP(X) \
   sig = [t methodSignatureForSelector: @selector(X)]; \

@@ -1212,11 +1212,50 @@ isEqual_u(ivars self, id anObject)
 static inline const char*
 lossyCString_c(ivars self)
 {
-  unsigned char	*r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+  char *r;
 
-  memcpy(r, self->_contents.c, self->_count);
-  r[self->_count] = '\0';
-  return (const char*)r;
+  if (self->_count == 0)
+    {
+      return "";
+    }
+  if (defEnc == intEnc)
+    {
+      r = (char*)_fastMallocBuffer(self->_count+1);
+
+      if (self->_count > 0)
+	{
+	  memcpy(r, self->_contents.c, self->_count);
+	}
+      r[self->_count] = '\0';
+    }
+  else
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+      unsigned	s = 0;
+
+      /*
+       * The external C string encoding is not compatible with the internal
+       * 8-bit character strings ... we must convert from internal format to
+       * unicode and then to the external C string encoding.
+       */
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), 0) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to/from Unicode string."];
+	}
+      if (GSFromUnicode((unsigned char**)&r, &s, u, l, defEnc,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary) == NO)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to/from Unicode string."];
+	}
+      NSZoneFree(NSDefaultMallocZone(), u);
+    }
+  
+  return r;
 }
 
 static inline const char*

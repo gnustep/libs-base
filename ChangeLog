@@ -1,3 +1,9 @@
+2002-03-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: lossyCString_c() fix in line with recent
+	changes ... cope with case where internal coding is not same as
+	external coding.
+
 2002-03-18  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (gdomap_log): Write to stdout if prio=LOG_INFO.
