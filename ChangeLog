@@ -1,3 +1,36 @@
+2000-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Coding/decoding modifications to make system more in line with
+	OPENSTEP/MacOS-X. Tidyup of global string constants.  Advanced
+	development of DO rewrite.
+	* Headers/gnustep/base/DistributedObjects.h: removed obsolete info
+	* Headers/gnustep/base/GSConnection.h: improved and tidied
+	* Headers/gnustep/base/GSPortCoder.h: private method for connection
+	* Headers/gnustep/base/NSArchiver.h: remove libobjects compatibility
+	* Headers/gnustep/base/NSCoder.h: added libobjects compatibility
+	* Headers/gnustep/base/NSException.h: tidied
+	* Headers/gnustep/base/NSPortMessage.h: private method for connections
+	* Headers/gnustep/base/NSRunLoop.h: tidied string constants.
+	* Headers/gnustep/unicode/decomp.h: tidied to avoid compiler warning.
+	* Source/GSConnection.m: largely implemented (untested)
+	* Source/GSPortCoder.m: more efficient data coding
+	* Source/NSArchiver.m: moved global constants to externs.m
+	* Source/NSAttributedString.m: don't call super coding methods.
+	* Source/NSCoder.m: add libobjects compatibility
+	* Source/NSConnection.m: tidied a few bugs
+	* Source/NSDistantObject.m: don't call super coding methods.
+	* Source/NSGAttributedString.m: don't call super coding methods.
+	* Source/NSHost.m: don't call super coding methods.
+	* Source/NSNotification.m: don't call super coding methods.
+	* Source/NSObject.m: tidied a little
+	* Source/NSPort.m: moved global constants to externs.m
+	* Source/NSPortMessage.m: new access method for connections.
+	* Source/NSRunLoop.m: moved global constants to externs.m
+	* Source/NSTimeZone.m: don't call super coding methods.
+	* Source/NSURL.m: don't call super coding methods.
+	* Source/NSUnarchiver.m: tidied.
+	* Source/externs.m: Tdied and added new global constants.
+
 2000-06-28  Adam Fedor  <fedor@gnu.org>
 
 	Extension to force process args to be forwarded by the user.

@@ -211,13 +211,11 @@ enum
 	    NSLog(@"Sending a proxy, will be remote 0x%x connection 0x%x\n",
 			proxy_target, (gsaddr)_connection);
 
-	  [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-				at: &proxy_tag
-			  withName: @"Proxy is local for sender"];
+	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
+				   at: &proxy_tag];
 
-	  [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-				at: &proxy_target
-			  withName: @"Proxy target"];
+	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
+				   at: &proxy_target];
 	}
       else
 	{
@@ -230,13 +228,11 @@ enum
 	    NSLog(@"Sending a proxy, will be local 0x%x connection 0x%x\n",
 			proxy_target, (gsaddr)_connection);
 
-	  [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-				at: &proxy_tag
-			  withName: @"Proxy is local for receiver"];
+	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
+				   at: &proxy_tag];
 
-	  [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-				at: &proxy_target
-			  withName: @"Proxy target"];
+	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
+				   at: &proxy_target];
 	}
     }
   else
@@ -275,20 +271,16 @@ enum
        *	It's remote here, so we need to tell other side where to form
        *	triangle connection to
        */
-      [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-			    at: &proxy_tag
-		      withName: @"Proxy remote for both sender and receiver"];
+      [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
+			       at: &proxy_tag];
 
-      [aRmc encodeValueOfCType: @encode(typeof(localProxy->_handle))
-			    at: &localProxy->_handle
-		      withName: @"Intermediary target"];
+      [aRmc encodeValueOfObjCType: @encode(typeof(localProxy->_handle))
+			       at: &localProxy->_handle];
 
-      [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-			    at: &proxy_target
-		      withName: @"Original target"];
+      [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
+			       at: &proxy_target];
 
-      [aRmc encodeBycopyObject: proxy_connection_out_port
-		      withName: @"Original port"];
+      [aRmc encodeBycopyObject: proxy_connection_out_port];
     }
 }
 
@@ -319,9 +311,8 @@ enum
   NSAssert(decoder_connection, NSInternalInconsistencyException);
 
   /* First get the tag, so we know what values need to be decoded. */
-  [aCoder decodeValueOfCType: @encode(typeof(proxy_tag))
-			  at: &proxy_tag
-		    withName: NULL];
+  [aCoder decodeValueOfObjCType: @encode(typeof(proxy_tag))
+			     at: &proxy_tag];
 
   switch (proxy_tag)
     {
@@ -332,9 +323,8 @@ enum
 	 *	Lookup the target handle to ensure that it exists here.
 	 *	Return a retained copy of the local target object.
 	 */
-	[aCoder decodeValueOfCType: @encode(typeof(target))
-				at: &target
-			  withName: NULL];
+	[aCoder decodeValueOfObjCType: @encode(typeof(target))
+				   at: &target];
 
         if (debug_proxy)
 	  NSLog(@"Receiving a proxy for local object 0x%x "
@@ -369,9 +359,8 @@ enum
 	 *	return the proxy object we already created for this target, or
 	 *	create a new proxy object if necessary.
 	 */
-	[aCoder decodeValueOfCType: @encode(typeof(target))
-				at: &target
-			  withName: NULL];
+	[aCoder decodeValueOfObjCType: @encode(typeof(target))
+				   at: &target];
 	if (debug_proxy)
 	  NSLog(@"Receiving a proxy, was local 0x%x connection 0x%x\n",
 		  target, (gsaddr)decoder_connection);
@@ -408,9 +397,8 @@ enum
 	   *	time we will have obtained our own proxy for the original
 	   *	object ...
 	   */
-	  [aCoder decodeValueOfCType: @encode(typeof(intermediary))
-				  at: &intermediary
-			    withName: NULL];
+	  [aCoder decodeValueOfObjCType: @encode(typeof(intermediary))
+				     at: &intermediary];
 	  [NSDistantObject proxyWithTarget: intermediary
 				connection: decoder_connection];
 
@@ -419,12 +407,11 @@ enum
 	   *	and (if necessary) get the originating process to retain the
 	   *	object for us.
 	   */
-	  [aCoder decodeValueOfCType: @encode(typeof(target))
-				  at: &target
-			    withName: NULL];
+	  [aCoder decodeValueOfObjCType: @encode(typeof(target))
+				     at: &target];
 
-	  [aCoder decodeObjectAt: &proxy_connection_out_port
-		        withName: NULL];
+	  [aCoder decodeValueOfObjCType: @encode(id)
+				     at: &proxy_connection_out_port];
 
 	  NSAssert(proxy_connection_out_port, NSInternalInconsistencyException);
 	  /*

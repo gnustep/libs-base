@@ -95,7 +95,7 @@
 @end
 
 @interface	NSPortCoder (Private)
-- (NSArray*) _components;
+- (NSMutableArray*) _components;
 @end
 
 

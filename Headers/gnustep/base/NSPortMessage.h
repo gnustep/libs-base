@@ -44,11 +44,12 @@
 - (NSPort*) receivePort;
 - (void) setMsgid: (unsigned)anId;
 - (unsigned) msgid;
-
-#ifndef	NO_GNUSTEP
-- (void) addComponent: (id)aComponent;
-#endif
 @end
 
+#ifndef	NO_GNUSTEP
+@interface	NSPortMessage (private)
+- (NSMutableArray*) _components;
+@end
+#endif
 #endif
 

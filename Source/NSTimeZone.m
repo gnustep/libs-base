@@ -332,7 +332,6 @@ decode (const void *ptr)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   if (self == localTimeZone)
     [aCoder encodeObject: @"NSLocalTimeZone"];
   else
@@ -348,9 +347,8 @@ decode (const void *ptr)
   return [NSTimeZone timeZoneWithName: name];
 }
 
-- (id) initWithDecoder: (NSCoder*)aDecoder
+- (id) initWithCoder: (NSCoder*)aDecoder
 {
-  self = [super initWithCoder: aDecoder];
   [aDecoder decodeValueOfObjCType: @encode(id) at: &name];
   return self;
 }
@@ -452,15 +450,13 @@ static NSMapTable	*absolutes = 0;
   [super dealloc];
 }
 
-- (void) encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeObject: name];
 }
 
-- (id) initWithCoder: aDecoder
+- (id) initWithCoder: (NSCoder*)aDecoder
 {
-  self = [super initWithCoder: aDecoder];
   [aDecoder decodeValueOfObjCType: @encode(id) at: &name];
   offset = [name intValue];
   detail = [[NSConcreteTimeZoneDetail alloc]
@@ -509,17 +505,15 @@ static NSMapTable	*absolutes = 0;
   [super dealloc];
 }
 
-- (void) encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeObject: abbrev];
   [aCoder encodeValueOfObjCType: @encode(int) at: &offset];
   [aCoder encodeValueOfObjCType: @encode(BOOL) at: &is_dst];
 }
 
-- initWithCoder: aDecoder
+- (id) initWithCoder: (NSCoder*)aDecoder
 {
-  self = [super initWithCoder: aDecoder];
   [aDecoder decodeValueOfObjCType: @encode(id) at: &abbrev];
   [aDecoder decodeValueOfObjCType: @encode(int) at: &offset];
   [aDecoder decodeValueOfObjCType: @encode(BOOL) at: &is_dst];

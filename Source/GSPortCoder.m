@@ -399,10 +399,27 @@ typeCheck(char t1, char t2)
 
 - (NSData*) decodeDataObject
 {
-  unsigned	pos;
+  int	pos;
 
-  [self decodeValueOfObjCType: @encode(unsigned) at: &pos];
-  return [_comp objectAtIndex: pos];
+  [self decodeValueOfObjCType: @encode(int) at: &pos];
+  if (pos >= 0)
+    {
+      return [_comp objectAtIndex: pos];
+    }
+  else if (pos == -1)
+    {
+      return nil;
+    }
+  else if (pos == -2)
+    {
+      return [NSData data];
+    }
+  else
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Bad tag (%d) decoding data object", pos];
+      return nil;
+    }
 }
 
 - (NSPort*) decodePortObject
@@ -1121,10 +1138,22 @@ typeCheck(char t1, char t2)
  */
 - (void) encodeDataObject: (NSData*)anObject
 {
-  unsigned	pos = [_comp count];
+  int	pos;
 
-  [_comp addObject: anObject];
-  [self encodeValueOfObjCType: @encode(unsigned) at: &pos];
+  if (anObject == nil)
+    {
+      pos = -1;
+    }
+  else if ([anObject length] == 0)
+    {
+      pos = -2;
+    }
+  else
+    {
+      pos = (int)[_comp count];
+      [_comp addObject: anObject];
+    }
+  [self encodeValueOfObjCType: @encode(int) at: &pos];
 }
 
 - (void) encodeObject: (id)anObject
@@ -1641,7 +1670,7 @@ typeCheck(char t1, char t2)
 
 @implementation	GSPortCoder (Private)
 
-- (NSArray*) _components
+- (NSMutableArray*) _components
 {
   return _comp;
 }

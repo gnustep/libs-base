@@ -100,14 +100,12 @@
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &loc];
   [aCoder encodeValueOfObjCType: @encode(id) at: &attrs];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  self = [super initWithCoder: aCoder];
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &loc];
   [aCoder decodeValueOfObjCType: @encode(id) at: &attrs];
   return self;
@@ -298,14 +296,12 @@ _attributesAtIndexEffectiveRange(
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_textChars];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_infoArray];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  self = [super initWithCoder: aCoder];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_textChars];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_infoArray];
   return self;
@@ -407,14 +403,12 @@ _attributesAtIndexEffectiveRange(
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_textChars];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_infoArray];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  self = [super initWithCoder: aCoder];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_textChars];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_infoArray];
   return self;

@@ -1315,11 +1315,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   [self runUntilDate: date forMode: _current_mode];
 }
 
-
-/* NSRunLoop mode strings. */
-
-id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
-
 @end
 
 

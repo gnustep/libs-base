@@ -75,14 +75,6 @@
   return self;
 }
 
-- (void) addComponent: (id)aComponent
-{
-  NSAssert([aComponent isKindOfClass: [NSData class]]
-	|| [aComponent isKindOfClass: [NSPort class]],
-	NSInvalidArgumentException);
-  [_components addObject: aComponent];
-}
-
 - (NSArray*) components
 {
   return AUTORELEASE([_components copy]);
@@ -114,6 +106,13 @@
 - (void) setMsgid: (unsigned)anId
 {
   _msgid = anId;
+}
+@end
+
+@implementation	NSPortMessage (Private)
+- (NSMutableArray*) _components
+{
+  return _components;
 }
 @end
 

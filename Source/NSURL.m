@@ -163,7 +163,6 @@ NSString* NSURLPartKey_query = @"query";
 //-----------------------------------------------------------------------------
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeObject: _urlString];
   [aCoder encodeObject: _baseURL];
   //FIXME? _clients ?
@@ -172,7 +171,6 @@ NSString* NSURLPartKey_query = @"query";
 //-----------------------------------------------------------------------------
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  self = [super initWithCoder: aCoder];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_urlString];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_baseURL];
   //FIXME? _clients ?

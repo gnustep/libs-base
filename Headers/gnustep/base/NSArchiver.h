@@ -130,21 +130,6 @@
 		   classes: (unsigned)classCount
 		   objects: (unsigned)objectCount
 		  pointers: (unsigned)pointerCount;
-
-/* libObjects compatibility */
-- (void) encodeArrayOfObjCType: (const char*) type
-		         count: (unsigned)count
-			    at: (const void*)buf
-		      withName: (id)name;
-- (void) encodeIndent;
-- (void) encodeValueOfCType: (const char*) type
-			 at: (const void*)buf
-		   withName: (id)name;
-- (void) encodeValueOfObjCType: (const char*) type
-			    at: (const void*)buf
-		      withName: (id)name;
-- (void) encodeObject: (id)anObject
-	     withName: (id)name;
 @end
 #endif
 
@@ -250,26 +235,11 @@
 		     classes: (unsigned*)classCount
 		     objects: (unsigned*)objectCount
 		    pointers: (unsigned*)pointerCount;
-
-/* Compatibility with libObjects */
-- (void) decodeArrayOfObjCType: (const char*) type
-		         count: (unsigned)count
-			    at: (void*)buf
-		      withName: (id*)name;
-- (void) decodeIndent;
-- (void) decodeValueOfCType: (const char*) type
-			 at: (void*)buf
-		   withName: (id*)name;
-- (void) decodeValueOfObjCType: (const char*) type
-			    at: (void*)buf
-		      withName: (id*)name;
-- (void) decodeObjectAt: (id*)anObject
-	       withName: (id*)name;
 @end
 #endif
 
 
 /* Exceptions */
-GS_EXPORT NSString *NSInconsistentArchiveException;
+GS_EXPORT NSString* const NSInconsistentArchiveException;
 
 #endif	/* __NSArchiver_h_GNUSTEP_BASE_INCLUDE */

@@ -76,6 +76,8 @@ enum {
 - (NSDistantObject*) localForObject: (id)object;
 - (NSDistantObject*) localForTarget: (unsigned)target;
 - (NSDistantObject*) proxyForTarget: (unsigned)target;
++ (void) removeLocalObject: (id)object;
+- (void) removeLocalObject: (id)object;
 - (void) retainTarget: (unsigned)target;
 @end
 

@@ -31,12 +31,6 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSAutoreleasePool.h>
 
-NSString*	NSPortDidBecomeInvalidNotification
-= @"NSPortDidBecomeInvalidNotification";
-
-NSString *NSPortTimeoutException
-= @"NSPortTimeoutException";
-
 @implementation NSPort
 
 + (NSPort*) port
