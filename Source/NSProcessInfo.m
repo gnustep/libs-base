@@ -578,6 +578,18 @@ int main(int argc, char *argv[], char *env[])
   return _gnu_hostName;
 }
 
+- (int) processIdentifier
+{
+  int	pid;
+
+#if defined(__MINGW__)
+  pid = (int)GetCurrentProcessId();
+#else
+  pid = (int)getpid();
+#endif
+  return pid;
+}
+
 - (NSString *) processName
 {
   return _gnu_processName;

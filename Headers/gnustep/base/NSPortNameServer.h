@@ -39,14 +39,14 @@
 		 onHost: (NSString*)host;
 - (BOOL) registerPort: (NSPort*)port
 	      forName: (NSString*)name;
-- (void) removePortForName: (NSString*)name;
+- (BOOL) removePortForName: (NSString*)name;
 @end
 
 #ifndef	NO_GNUSTEP
 @interface	NSPortNameServer (GNUstep)
 - (NSArray*) namesForPort: (NSPort*)port;	/* return all names for port */
-- (void) removePort: (NSPort*)port;		/* remove all names for port */
-- (void) removePort: (NSPort*)port forName: (NSString*)name;
+- (BOOL) removePort: (NSPort*)port;		/* remove all names for port */
+- (BOOL) removePort: (NSPort*)port forName: (NSString*)name;
 @end
 #endif
 

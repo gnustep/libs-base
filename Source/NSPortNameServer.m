@@ -934,12 +934,13 @@ typedef enum {
   return YES;
 }
 
-- (void) removePortForName: (NSString*)name
+- (BOOL) removePortForName: (NSString*)name
 {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
   GSPortCom	*com = nil;
   unsigned	len;
   NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
+  BOOL		val = NO;
 
   if (name == nil)
     {
@@ -990,6 +991,7 @@ typedef enum {
 	  if (result == 0)
 	    {
 	      NSLog(@"NSPortNameServer unable to unregister '%@'", name);
+	      val = NO;
 	    }
 	  else
 	    {
@@ -1015,6 +1017,7 @@ typedef enum {
 			}
 		    }
 		}
+	      val = YES;
 	    }
 	}
       tmp = com;
@@ -1032,6 +1035,7 @@ typedef enum {
     }
   NS_ENDHANDLER
   [serverLock unlock];
+  return val;
 }
 @end
 
@@ -1070,8 +1074,9 @@ typedef enum {
  *	Remove all names for a particular port - used when a port is
  *	invalidated.
  */
-- (void) removePort: (NSPort*)port
+- (BOOL) removePort: (NSPort*)port
 {
+  BOOL	ok = YES;
   [serverLock lock];
   NS_DURING
     {
@@ -1080,7 +1085,10 @@ typedef enum {
 
       while ((name = [known anyObject]) != nil)
 	{
-	  [self removePortForName: name];
+	  if ([self removePortForName: name] == NO)
+	    {
+	      ok = NO;
+	    }
 	}
     }
   NS_HANDLER
@@ -1090,13 +1098,16 @@ typedef enum {
     }
   NS_ENDHANDLER
   [serverLock unlock];
+  return ok;
 }
 
 /*
  * Remove name for port iff it is registered.
  */
-- (void) removePort: (NSPort*)port forName: (NSString*)name
+- (BOOL) removePort: (NSPort*)port forName: (NSString*)name
 {
+  BOOL	ok = YES;
+
   [serverLock lock];
   NS_DURING
     {
@@ -1104,7 +1115,10 @@ typedef enum {
 
       if ([known member: name] != nil)
 	{
-	  [self removePortForName: name];
+	  if ([self removePortForName: name] == NO)
+	    {
+	      ok = NO;
+	    }
 	}
     }
   NS_HANDLER
@@ -1114,6 +1128,7 @@ typedef enum {
     }
   NS_ENDHANDLER
   [serverLock unlock];
+  return ok;
 }
 @end
 

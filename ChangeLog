@@ -1,3 +1,12 @@
+2001-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Added -processIdentifier for compatibility
+	with MacOS-X
+	* Source/NSTask.m: Added -processIdentifier, -suspend, and -resume
+	for compatibility with MacOS-X
+	* Source/NSPortNameServer.m: Modified removal methods to return a
+	boolean success/failure status for MacOS-X compatibility.
+
 2001-07-14  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: More function defs.
