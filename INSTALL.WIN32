@@ -1,6 +1,11 @@
 Installing on Windows NT/95
 ***************************
 
+This file is maintained by Scott Christley <scottc@linus.ocbi.com>.
+If you have questions about the installation procedure on WIN32,
+please contact Scott.
+
+
 The system requires that you have headers and for the WIN32 API
 and ANSI-C.  If you are have a working bash shell then
 you should run the normal Unix ./configure shell script; otherwise,
