@@ -1,5 +1,11 @@
 2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSTcpPort.m: Fix stupid error in last bugfix
+	* Source/Foundation/GSConfig.h.in: define GS_SIZEOF_VOIDP
+	* configure.in: provide GS_SIZEOF_VOIDP
+
+2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSThread.m: clarify code for getting current thread.
 
 2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
