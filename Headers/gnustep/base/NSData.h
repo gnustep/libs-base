@@ -84,4 +84,53 @@
 
 @end
 
+
+@interface NSMutableData :  NSData
+
++ (id) dataWithCapacity: (unsigned int)numBytes;
++ (id) dataWithLength: (unsigned int)length;
+- (id) initWithCapacity: (unsigned int)capacity;
+- (id) initWithLength: (unsigned int)length;
+
+// Adjusting Capacity
+
+- (void) increaseLengthBy: (unsigned int)extraLength;
+- (void) setLength: (unsigned int)length;
+- (void*) mutableBytes;
+
+// Appending Data
+
+- (void) appendBytes: (const void*)bytes
+	      length: (unsigned int)length;
+- (void) appendData: (NSData*)other;
+
+// Modifying Data
+
+- (void) replaceBytesInRange: (NSRange)aRange
+		   withBytes: (const void*)bytes;
+- (void) resetBytesInRange: (NSRange)aRange;
+
+// Serializing Data
+
+- (void) serializeAlignedBytesLength: (unsigned int)length;
+- (void) serializeDataAt: (const void*)data
+	      ofObjCType: (const char*)type
+		 context: (id <NSObjCTypeSerializationCallBack>)callback;
+- (void) serializeInt: (int)value;
+- (void) serializeInt: (int)value
+	      atIndex: (unsigned int)location;
+- (void) serializeInts: (int*)intBuffer
+		 count: (unsigned int)numInts;
+- (void) serializeInts: (int*)intBuffer
+		 count: (unsigned int)numInts
+	       atIndex: (unsigned int)location;
+
+@end
+
+/*
+  Local Variables:
+  mode: ObjC
+  End:
+  */
+
 #endif /* __NSData_h_OBJECTS_INCLUDE */
