@@ -69,6 +69,11 @@ static BOOL snuggleStart(NSString *t)
  *  far too special purpose.</p>
  *  <unit />
  *  <p>Here is the afterword for the class.</p>
+ *  <p> Ad here is some automated cross referencing ...
+ *  A method in a protocol: [(NSCopying)-copyWithZone:], a class:
+ *  [NSString], a protocol: [(NSCopying)], and a
+ *  category: [NSRunLoop(GNUstepExtensions)].
+ *  </p>
  * </unit>
  * And finally, here is the actual class description ... outside the chapter.
  * With a reference to foo() in it.
@@ -1809,6 +1814,7 @@ static BOOL snuggleStart(NSString *t)
       /*
        * Ensure that methods are rendered as references.
        * First look for format with class name in square brackets.
+       * If that's all there is, we make a class reference.
        */
       r = [tmp rangeOfString: @"["];
       if (r.length > 0)
@@ -1824,6 +1830,7 @@ static BOOL snuggleStart(NSString *t)
 	      NSString	*cName = nil;
 	      NSString	*mName = nil;
 	      unichar	c;
+	      BOOL	isProtocol = NO;
 
 	      if (pos < ePos
 		&& [identStart characterIsMember:
@@ -1880,8 +1887,7 @@ static BOOL snuggleStart(NSString *t)
 		      cName = [tmp substringWithRange: r];
 		    }
 		}
-	      else if (pos < ePos
-		&& (c = [tmp characterAtIndex: pos]) == '(')
+	      else if (pos < ePos && (c = [tmp characterAtIndex: pos]) == '(')
 		{
 		  /*
 		   * Look for protocol name.
@@ -1903,6 +1909,7 @@ static BOOL snuggleStart(NSString *t)
 			}
 		      pos++;
 		    }
+		  isProtocol = YES;
 		}
 
 	      if (pos < ePos && (c == '+' || c == '-'))
@@ -1986,6 +1993,23 @@ static BOOL snuggleStart(NSString *t)
 		      ref = [NSString stringWithFormat:
 			@"<ref type=\"method\" id=\"%@\">", mName];
 		    }
+		  else if (isProtocol == YES)
+		    {
+		      ref = [NSString stringWithFormat:
+			@"<ref type=\"method\" id=\"%@\" class=\"%@\">",
+			mName, cName];
+		      if (isProtocol == YES)
+			{
+			  if (sub == nil)
+			    {
+			      sub = tmp;
+			    }
+			  sub = [sub stringByReplacingString: @"("
+						  withString: @"&lt;"];
+			  sub = [sub stringByReplacingString: @")"
+						  withString: @"&gt;"];
+			}
+		    }
 		  else
 		    {
 		      ref = [NSString stringWithFormat:
@@ -2004,6 +2028,34 @@ static BOOL snuggleStart(NSString *t)
 		    {
 		      [a insertObject: end atIndex: ++l];
 		    }
+		}
+	      else if (pos == ePos && cName != nil)
+		{
+		  NSString	*ref;
+
+		  if (isProtocol == YES)
+		    {
+		      NSRange	r;
+
+		      r = NSMakeRange(1, [cName length] - 2);
+		      cName = [cName substringWithRange: r];
+		      ref = [NSString stringWithFormat:
+			@"<ref type=\"protocol\" id=\"(%@)\">&lt;%@&gt;</ref>",
+			cName, cName];
+		    }
+		  else if ([cName hasSuffix: @")"] == YES)
+		    {
+		      ref = [NSString stringWithFormat:
+			@"<ref type=\"category\" id=\"%@\">%@</ref>",
+			cName, cName];
+		    }
+		  else
+		    {
+		      ref = [NSString stringWithFormat:
+			@"<ref type=\"class\" id=\"%@\">%@</ref>",
+			cName, cName];
+		    }
+		  [a replaceObjectAtIndex: l withObject: ref];
 		}
 	    }
 	  continue;

@@ -188,8 +188,8 @@ static NSMutableSet	*textNodes = nil;
       if (u == nil)
 	{
 	  u = unit;
+	  s = base;
 	}
-      s = base;
     }
   else if (u == nil)
     {
@@ -215,7 +215,7 @@ static NSMutableSet	*textNodes = nil;
 	  s = [globalRefs unitRef: r type: t unit: &u];
 	}
     }
-  else
+  if (s == nil)
     {
       NSString	*tmp = u;
 
@@ -1448,12 +1448,12 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*type = [prop objectForKey: @"type"];
 	  NSString	*r = [prop objectForKey: @"id"];
 	  GSXMLNode	*tmp = [node firstChild];
+	  NSString	*c = [prop objectForKey: @"class"];
 	  NSString	*s;
 
 	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
 	    {
-	      s = [prop objectForKey: @"class"];
-	      s = [self makeLink: r ofType: type inUnit: s isRef: YES];
+	      s = [self makeLink: r ofType: type inUnit: c isRef: YES];
 	    }
 	  else
 	    {
@@ -1470,7 +1470,16 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	  if (s == nil)
 	    {
-	      NSLog(@"ref '%@' not found for %@", r, type);
+	      if (c == nil)
+		{
+		  NSLog(@"No unique ref to %@ '%@' not found in %@",
+		    type, r, base);
+		}
+	      else
+		{
+		  NSLog(@"ref to the %@ version of %@ '%@' not found in %@",
+		    c, type, r, base);
+		}
 	      if (tmp == nil)
 		{
 		  [buf appendString: r];

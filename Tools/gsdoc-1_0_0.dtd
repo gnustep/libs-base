@@ -149,7 +149,7 @@
 <!ELEMENT ref (%text;)*>
 <!ATTLIST ref
   id CDATA #REQUIRED
-  type (class|protocol|method|ivariable|function|type|macro|variable|constant|label|EOModel|EOEntity) "label"
+  type (class|category|protocol|method|ivariable|function|type|macro|variable|constant|label|EOModel|EOEntity) "label"
   class CDATA #IMPLIED
 >
 

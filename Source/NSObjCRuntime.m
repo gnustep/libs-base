@@ -510,7 +510,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
  * If type is null and can't be determined from the selector, the
- * [NSObject-handleTakevalue:forUnboundKey:] method is called to try
+ * [NSObject-handleTakeValue:forUnboundKey:] method is called to try
  * to set a value.
  */
 void
