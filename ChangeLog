@@ -1,3 +1,13 @@
+Wed Mar 10 09:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/FastMap.x: FastMapNodeForKey() - special case for empty map
+	return 0 immediately.  Fast for empty maps, marginally slower othrwise.
+	* Source/NSProcessInfo.m: Removed [-debugArray], Added [-debugSet],
+	Added GSDebugSet() function for rapid debug level testing.
+	* Source/include/NSProcessInfo.h: Remove [-debugArray], Add [-debugSet]
+	* Source/include/NSDebug.h: Rewrite NSDebugLog() and NSDebugLLog() to
+	be much more efficient - now minimal performance impact.
+
 1999-03-09  Adam Fedor  <fedor@gnu.org>
 
 	* Source/include/NSObjCRuntime.h: Define some OpenStep cpp vars.

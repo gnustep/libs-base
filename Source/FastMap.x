@@ -392,6 +392,8 @@ FastMapNodeForKey(FastMapTable map, FastMapItem key)
   FastMapBucket	bucket;
   FastMapNode	node;
 
+  if (map->nodeCount == 0)
+    return 0;
   bucket = FastMapBucketForKey(map, key);
   node = FastMapNodeForKeyInBucket(bucket, key);
   return node;

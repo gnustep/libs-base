@@ -66,6 +66,7 @@
 #include <string.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSSet.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
@@ -129,7 +130,7 @@ static NSArray* _gnu_arguments = nil;
 static NSMutableDictionary* _gnu_environment = nil;
 
 // Array of debug levels set.
-static NSMutableArray* _debug_array = nil;
+static NSMutableSet* _debug_set = nil;
 
 /*************************************************************************
  *** Implementing the Libobjects main function
@@ -146,19 +147,21 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	
   /* Copy the argument list */
   {
+    NSMutableSet	*mySet;
     id obj_argv[argc];
     int added = 0;
 
-    _debug_array = [[NSMutableArray alloc] init];
+    mySet = [[NSMutableSet alloc] init];
     for (i = 0; i < argc; i++) 
       {
 	NSString	*str = [NSString stringWithCString:argv[i]];
 	if ([str hasPrefix: @"--GNU-Debug="])
-	  [_debug_array addObject: [str substringFromIndex: 12]];
+	  [mySet addObject: [str substringFromIndex: 12]];
 	else
           obj_argv[added++] = str;
       }
     _gnu_arguments = [[NSArray alloc] initWithObjects:obj_argv count:added];
+    _debug_set = mySet;
   }
 	
   /* Copy the evironment list */
@@ -209,83 +212,89 @@ static char **_gnu_noobjc_env;
 static void 
 _gnu_process_noobjc_args(int argc, char *argv[], char *env[])
 {
-	int i;
+  int i;
 
-	/* We have to copy these in case the main() modifies their values
-	 * somehow before we get a change to use them
-	 */
+  /* We have to copy these in case the main() modifies their values
+   * somehow before we get a change to use them
+   */
 
-	_gnu_noobjc_argc = argc;
-	i=0;
-	while(argv[i])
-		i++;
-	_gnu_noobjc_argv = malloc(sizeof(char *)*(i+1));
-	if (_gnu_noobjc_argv == NULL)
-		goto error;
-	i=0;
-	while(*argv) {
-	  _gnu_noobjc_argv[i] = malloc(strlen(*argv)+1);
-	  if (_gnu_noobjc_argv[i] == NULL)
-	  	goto error;
-	  strcpy(_gnu_noobjc_argv[i],*argv);
-	  argv++;
-	  i++;
-	}
-	_gnu_noobjc_argv[i] = 0;
-	i=0;
-	while(env[i])
-		i++;
-	_gnu_noobjc_env = malloc(sizeof(char *)*(i+1));
-	if (_gnu_noobjc_env == NULL)
-		goto error;
-	i=0;
-	while(*env) {
-		_gnu_noobjc_env[i] = malloc(strlen(*env)+1);
-		if (_gnu_noobjc_env[i] == NULL)
-			goto error;
-		strcpy(_gnu_noobjc_env[i],*env);
-		env++;
-		i++;
-	}
-	_gnu_noobjc_env[i] = 0;
-	return;
+  _gnu_noobjc_argc = argc;
+  i = 0;
+  while (argv[i])
+    i++;
+  _gnu_noobjc_argv = malloc(sizeof(char *)*(i+1));
+  if (_gnu_noobjc_argv == NULL)
+    goto error;
+  i = 0;
+  while (*argv)
+    {
+      _gnu_noobjc_argv[i] = malloc(strlen(*argv)+1);
+      if (_gnu_noobjc_argv[i] == NULL)
+	goto error;
+      strcpy(_gnu_noobjc_argv[i],*argv);
+      argv++;
+      i++;
+    }
+  _gnu_noobjc_argv[i] = 0;
+  i = 0;
+  while (env[i])
+    i++;
+  _gnu_noobjc_env = malloc(sizeof(char *)*(i+1));
+  if (_gnu_noobjc_env == NULL)
+    goto error;
+  i = 0;
+  while(*env)
+    {
+      _gnu_noobjc_env[i] = malloc(strlen(*env)+1);
+      if (_gnu_noobjc_env[i] == NULL)
+	goto error;
+      strcpy(_gnu_noobjc_env[i],*env);
+      env++;
+      i++;
+    }
+  _gnu_noobjc_env[i] = 0;
+  return;
 
  error:
-	fputs("malloc() error when starting gstep-base\n", stderr);
-	abort();
+  fputs("malloc() error when starting gstep-base\n", stderr);
+  abort();
 }
 
 static void _gnu_noobjc_free_vars(void)
 {
-	char **p;
+  char **p;
 
-	p = _gnu_noobjc_argv;
-	while (*p) {
-		free(*p);
-		p++;
-	}
-	free(_gnu_noobjc_argv);
-	_gnu_noobjc_argv = 0;
+  p = _gnu_noobjc_argv;
+  while (*p)
+    {
+      free(*p);
+      p++;
+    }
+  free(_gnu_noobjc_argv);
+  _gnu_noobjc_argv = 0;
 
-	p = _gnu_noobjc_env;
-	while (*p) {
-		free(*p);
-		p++;
-	}
-	free(_gnu_noobjc_env);
-	_gnu_noobjc_env = 0;
+  p = _gnu_noobjc_env;
+  while (*p)
+    {
+      free(*p);
+      p++;
+    }
+  free(_gnu_noobjc_env);
+  _gnu_noobjc_env = 0;
 }
 
 void * __gnustep_base_subinit_args__
 __attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
 
-+ (void)initialize {
-	if (!_gnu_processName && !_gnu_arguments && !_gnu_environment) {
-		NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
++ (void) initialize
+{
+  if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
+    {
+      NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
 			_GNU_MISSING_MAIN_FUNCTION_CALL);
-		_gnu_process_args(_gnu_noobjc_argc,_gnu_noobjc_argv,_gnu_noobjc_env);
-		_gnu_noobjc_free_vars();
-	}
+      _gnu_process_args(_gnu_noobjc_argc,_gnu_noobjc_argv,_gnu_noobjc_env);
+      _gnu_noobjc_free_vars();
+    }
 }
 
 #else
@@ -361,9 +370,9 @@ int main(int argc, char *argv[], char *env[])
   return _gnu_arguments;
 }
 
-- (NSMutableArray*) debugArray
+- (NSMutableSet*) debugSet
 {
-  return _debug_array;
+  return _debug_set;
 }
 
 - (NSDictionary *)environment
@@ -412,4 +421,23 @@ int main(int argc, char *argv[], char *env[])
 }
 
 @end
+
+/*
+ *	Function for rapid testing to see if a debug level is set.
+ */
+BOOL GSDebugSet(NSString *val)
+{
+  static SEL debugSel = @selector(member:);
+  static IMP debugImp = 0;
+
+  if (debugImp == 0)
+    {
+      if (_debug_set == nil)
+	{
+	  [[NSProcessInfo processInfo] debugSet];
+	}
+      debugImp = [_debug_set methodForSelector: debugSel];
+    }
+  return ((*debugImp)(_debug_set, debugSel, val) == val) ? YES : NO;
+}
 

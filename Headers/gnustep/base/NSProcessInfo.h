@@ -32,6 +32,7 @@
 @class NSMutableArray;
 @class NSDictionary;
 @class NSData;
+@class NSMutableSet;
 
 @interface NSProcessInfo: NSObject
 
@@ -48,10 +49,22 @@
 /* Specifying a Process Name */
 - (void)setProcessName:(NSString *)newName;
 
-/* GNUstep extension this is a list of debug levels set using the
- * --GNU-Debug=... command line option. */
-- (NSMutableArray*) debugArray;
-
 @end
+
+#ifndef	NO_GNUSTEP
+
+@interface	NSProcessInfo (GNUstep)
+/* This method returns a set of debug levels set using the
+ * --GNU-Debug=... command line option. */
+- (NSMutableSet*) debugSet;
+@end
+
+/*
+ * This function determines if the specified debug level is present in the
+ * set of active debug levels.
+ */
+extern BOOL GSDebugSet(NSString *level);
+
+#endif
 
 #endif /* __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE */
