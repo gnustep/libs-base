@@ -480,9 +480,9 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
  */
 - (void) addInformalProtocols: (NSArray *)protocolNames
 {
-  NSString *name;
-  NSString *file;
-  NSEnumerator *pnames = [protocolNames objectEnumerator];
+  NSString	*name;
+  NSString	*file;
+  NSEnumerator	*pnames = [protocolNames objectEnumerator];
 
   //PENDING, should we worry about not overriding entries?
   while ((name = [pnames nextObject]) != nil)
@@ -490,7 +490,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       file = [[refs objectForKey: @"category"] objectForKey: name];
       if (file != nil)
         {
-            [[refs objectForKey: @"protocol"] setObject: file forKey: name];
+	  [[refs objectForKey: @"protocol"] setObject: file forKey: name];
         }
       else
         {
