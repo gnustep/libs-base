@@ -83,29 +83,30 @@ GS_EXPORT void GSObjCGetVariable(id obj, int offset, unsigned int size,
 GS_EXPORT void GSObjCSetVariable(id obj, int offset, unsigned int size,
   const void *data);
 
-/*
- * The next three are old (deprecated) names for the same thing.
- */
-GS_EXPORT BOOL GSFindInstanceVariable(id obj, const char *name,
-  const char **type, unsigned int *size, int *offset);
-GS_EXPORT void GSGetVariable(id obj, int offset, unsigned int size, void *data);
-GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
-  const void *data);
-
 GS_EXPORT void GSObjCAddClassBehavior(Class receiver, Class behavior);
 
 GS_EXPORT NSValue*
 GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars);
 GS_EXPORT void GSObjCAddClasses(NSArray *classes);
 
-
-
-
 /*
  * Functions for key-value encoding ... they access values in an object
  * either by selector or directly, but do so using NSNumber for the
  * scalar types of data.
  */
+GS_EXPORT id GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
+  const char *type, unsigned size, int offset);
+GS_EXPORT void GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
+  const char *type, unsigned size, int offset);
+
+/*
+ * The next five are old (deprecated) names for the same thing.
+ */
+GS_EXPORT BOOL GSFindInstanceVariable(id obj, const char *name,
+  const char **type, unsigned int *size, int *offset);
+GS_EXPORT void GSGetVariable(id obj, int offset, unsigned int size, void *data);
+GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
+  const void *data);
 GS_EXPORT id GSGetValue(NSObject *self, NSString *key, SEL sel,
   const char *type, unsigned size, int offset);
 GS_EXPORT void GSSetValue(NSObject *self, NSString *key, id val, SEL sel,

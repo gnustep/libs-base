@@ -38,6 +38,7 @@
 #include <mframe.h>
 #include <string.h>
 
+/**  Deprecated ... use GSObjCFindInstanceVariable() */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset)
@@ -93,33 +94,36 @@ GSObjCFindInstanceVariable(id obj, const char *name,
   return YES;
 }
 
-/**
- * This function performs no checking ... you should use it only where
- * you are providing information from a call to GSFindInstanceVariable()
- * and you know that the data area provided is the correct size.
- */
+/**  Deprecated ... use GSObjCGetVariable() */
 void
 GSGetVariable(id obj, int offset, unsigned int size, void *data)
 {
   GSObjCGetVariable(obj, offset, size, data);
 }
+/**
+ * Gets the value from an instance variable in obj<br />
+ * This function performs no checking ... you should use it only where
+ * you are providing information from a call to GSFindInstanceVariable()
+ * and you know that the data area provided is the correct size.
+ */
 void
 GSObjCGetVariable(id obj, int offset, unsigned int size, void *data)
 {
   memcpy(data, ((void*)obj) + offset, size);
 }
 
-/**
- * This function performs no checking ... you should use it only where
- * you are providing information from a call to GSFindInstanceVariable()
- * and you know that the data area provided is the correct size.
- */
+/**  Deprecated ... use GSObjCSetVariable() */
 void
 GSSetVariable(id obj, int offset, unsigned int size, const void *data)
 {
   GSObjCSetVariable(obj, offset, size, data);
 }
-
+/**
+ * Sets the value in an instance variable in obj<br />
+ * This function performs no checking ... you should use it only where
+ * you are providing information from a call to GSFindInstanceVariable()
+ * and you know that the data area provided is the correct size.
+ */
 void
 GSObjCSetVariable(id obj, int offset, unsigned int size, const void *data)
 {
@@ -625,6 +629,14 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSKeyValueCoding.h>
+
+/**  Deprecated ... use GSObjCGetValue() */
+id
+GSGetValue(NSObject *self, NSString *key, SEL sel,
+  const char *type, unsigned size, int offset)
+{
+  return GSObjCGetValue(self, key, sel, type, size, offset);
+}
 /**
  * This is used internally by the key-value coding methods, to get a
  * value from an object either via an accessor method (if sel is
@@ -636,7 +648,7 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
  * to get a value.
  */
 id
-GSGetValue(NSObject *self, NSString *key, SEL sel,
+GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
   const char *type, unsigned size, int offset)
 {
   if (sel != 0)
@@ -935,6 +947,13 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
     }
 }
 
+/**  Deprecated ... use GSObjCSetValue() */
+void
+GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
+  const char *type, unsigned size, int offset)
+{
+  GSObjCSetValue(self, key, val, sel, type, size, offset);
+}
 /**
  * This is used internally by the key-value coding methods, to set a
  * value in an object either via an accessor method (if sel is
@@ -946,7 +965,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
  * to set a value.
  */
 void
-GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
+GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
   const char *type, unsigned size, int offset)
 {
   if (sel != 0)

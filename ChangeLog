@@ -5,6 +5,9 @@
 	* Tools/AGSOutput.m: Bugfix to output ivar type information.
 	* Tools/AGSHtml.m: Reduce space around examples.
 	Bugs reported by Chris B. Vetter
+	* Source/Additions/GSObjCRuntime.m: Tidied function name conventions.
+	* Headers/gnustep/base/GSObjCRuntime.h: ditto.
+	* Source/NSKeyValueCoding.m: Use new function names.
 
 2002-11-27  Manuel Guesdon <mguesdon@orange-concept.com>
 
