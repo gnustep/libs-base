@@ -41,14 +41,14 @@ typedef enum {
 
 GS_EXPORT NSString	*NSLocalNotificationCenterType;
 
-@interface	NSDistributedNotificationCenter : NSObject
+@interface	NSDistributedNotificationCenter : NSNotificationCenter
 {
   NSRecursiveLock *_centerLock;	/* For thread safety.		*/
   id		_remote;		/* Proxy for center.		*/
   BOOL		_suspended;	/* Is delivery suspended?	*/
 }
-+ (id) defaultCenter;
-+ (id) notificationCenterForType: (NSString*)type;
++ (NSNotificationCenter*) defaultCenter;
++ (NSNotificationCenter*) notificationCenterForType: (NSString*)type;
 
 - (void) addObserver: (id)anObserver
 	    selector: (SEL)aSelector
