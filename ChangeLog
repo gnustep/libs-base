@@ -1,3 +1,11 @@
+2002-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix so we document static declarations made in
+	headers and only ignore them in implementation.
+	* Tools/AGSOutput.m: Bugfix to output ivar type information.
+	* Tools/AGSHtml.m: Reduce space around examples.
+	Bugs reported by Chris B. Vetter
+
 2002-11-27  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Source/Additions/GSObjCRuntime.m: fixed type call typo 
