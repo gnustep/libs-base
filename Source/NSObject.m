@@ -464,7 +464,7 @@ static BOOL double_release_check_enabled = NO;
   return [[self class] conformsToProtocol:aProtocol];
 }
 
-- (IMP) instanceMethodForSelector: (SEL)aSelector
++ (IMP) instanceMethodForSelector: (SEL)aSelector
 {
   /*
    *	Since 'self' is an class, get_imp() will get the instance method.
@@ -830,11 +830,6 @@ static BOOL double_release_check_enabled = NO;
 @end
 
 
-@implementation NSObject (GNUstep)
-
-@end
-
-
 @implementation NSObject (NEXTSTEP)
 
 /* NEXTSTEP Object class compatibility */
@@ -951,7 +946,7 @@ static BOOL double_release_check_enabled = NO;
 @end
 
 
-@implementation NSObject (GNU)
+@implementation NSObject (GNUstep)
 
 /* GNU Object class compatibility */
 
