@@ -36,18 +36,19 @@
 
 // Creating a checker
 
-+ (id) protocolCheckerWithTarget: (NSObject *)anObject
-			protocol: (Protocol *)aProtocol;
-- (id) initWithTarget: (NSObject *)anObject protocol: (Protocol *)aProtocol;
++ (id) protocolCheckerWithTarget: (NSObject*)anObject
+			protocol: (Protocol*)aProtocol;
+
+- (id) initWithTarget: (NSObject*)anObject
+	     protocol: (Protocol*)aProtocol;
 
 // Reimplemented NSObject methods
  
-- (void)forwardInvocation: (NSInvocation *)anInvocation;
-- (struct objc_method_description *) methodDescriptionForSelector: (SEL)aSelector;
+- (void) forwardInvocation: (NSInvocation*)anInvocation;
    
 // Getting information
-- (Protocol *) protocol;
-- (NSObject *) target;
+- (Protocol*) protocol;
+- (NSObject*) target;
 
 @end
 

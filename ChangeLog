@@ -1,3 +1,8 @@
+2004-04-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProtocolChecker.m: Rewrite ... appeared almost totally
+	non-functional.
+
 2004-04-23  David Ayers  <d.ayers@inode.at>
 
 	* Source/Additions/GSLock.m ([GSLazyLock -init])
