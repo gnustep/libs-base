@@ -10,6 +10,7 @@
 #ifndef __MINGW32__
 #include <sys/param.h>
 #endif
+#include "Foundation/NSArray.h"
 #include "Foundation/NSBundle.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"

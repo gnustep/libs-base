@@ -8,6 +8,7 @@
 
 */
 #include <stdio.h>
+#include <Foundation/NSString.h>
 #include "LoadMe.h"
 
 @implementation LoadMe 
@@ -21,7 +22,7 @@
 
 - afterLoad
 {
-    printf("%s's instance variable is %i\n", [self description], var);
+    printf("%s's instance variable is %i\n", [[self description] cString], var);
     return self;
 }
 
