@@ -31,13 +31,13 @@
 #include <netdb.h>
 #include <Foundation/NSMapTable.h>
 
-@interface TcpPacket : Packet
-@end
+/* A concrete implementation of a Port object implemented on top of
+   SOCK_STREAM connections. */
 
 @interface TcpInPort : InPort
 {
   int _socket;
-  struct sockaddr_in _address;
+  struct sockaddr_in _listening_address;
   fd_set active_fd_set;
   NSMapTable *client_sock_2_out_port;
   NSMapTable *client_sock_2_packet;
@@ -50,20 +50,26 @@
    within MILLISECONDS, then return nil.  The caller is responsible 
    for releasing the packet. */
 - receivePacketWithTimeout: (int)milliseconds;
+/* xxx Change this name to - newPacketReceivedWithTimeout: to emphasize
+   need to release the returned packet. */
 
 - (int) portNumber;
 - (id <Collecting>) connectedOutPorts;
 - (unsigned) numberOfConnectedOutPorts;
 
-- (void) checkConnection;
-
 @end
+
 
 @interface TcpOutPort : OutPort
 {
   int _socket;
-  struct sockaddr_in _address;
-  id connected_in_port;
+  /* This is actually the address of the listen()'ing socket of the remote
+     TcpInPort we are connected to, not the address of the _socket ivar. */
+  struct sockaddr_in _remote_in_port_address;
+  /* This is the address of our remote peer socket. */
+  struct sockaddr_in _peer_address;
+  /* The TcpInPort that is polling our _socket with select(). */
+  id _polling_in_port;
 }
 
 + newForSendingToPortNumber: (unsigned short)n 
@@ -76,7 +82,16 @@
 
 @end
 
+
+/*  */
+
+@interface TcpPacket : Packet
+@end
+
+
+/* Notification Strings. */
 extern NSString *InPortClientBecameInvalidNotification;
+extern NSString *InPortAcceptedClientNotification;
 
 #endif /* __TcpPort_h__OBJECTS_INCLUDE */
 
