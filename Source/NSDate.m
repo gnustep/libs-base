@@ -119,8 +119,9 @@ GSTimeNow()
   return interval;
 #else
   SYSTEMTIME sys_time;
-  NSCalendarDate *d;
   NSTimeInterval t;
+#if 0
+  NSCalendarDate *d;
 
   // Get the system time
   GetLocalTime(&sys_time);
@@ -136,6 +137,14 @@ GSTimeNow()
      timeZone: [NSTimeZone localTimeZone]];
   t = otherTime(d);
   RELEASE(d);
+#else
+  /*
+   * Get current GMT time, convert to NSTimeInterval since reference date,
+   */
+  GetSystemTime(&sys_time);
+  t = GSTime(sys_time.eDay, sys_time.wMonth, sys_time.wYear,
+    sys_time.wHour, sys_time.wMinute, sys_time.wSecond); 
+#endif
   return t + sys_time.wMilliseconds / 1000.0;
 #endif /* __MINGW__ */
 }

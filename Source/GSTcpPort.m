@@ -51,6 +51,9 @@
 
 extern	int	errno;
 
+#define	DO_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
+#define	DO_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"unlock %@",X); [X unlock];}
+
 #define	GS_CONNECTION_MSG	0
 #define	NETBLOCK	8192
 
@@ -241,7 +244,7 @@ decodePort(NSData *data)
   pnum = GSSwapBigI16ToHost(pi->num);
   addr = [NSString stringWithCString: pi->addr];
 
-  NSDebugLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
+  NSDebugFLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
 
   host = [NSHost hostWithAddress: addr];
   return [GSTcpPort portWithNumber: pnum
@@ -293,7 +296,7 @@ encodePort(GSTcpPort *port)
   pi->num = GSSwapHostI16ToBig(pnum);
   [addr getCString: pi->addr];
 
-  NSDebugLLog(@"NSPort", @"Encoded port as '%@:%d'", addr, pnum);
+  NSDebugFLLog(@"NSPort", @"Encoded port as '%@:%d'", addr, pnum);
 
   return data;
 }
@@ -348,7 +351,7 @@ encodePort(GSTcpPort *port)
   BOOL			gotAddr = NO;
   NSRunLoop		*l;
 
-  NSDebugLLog(@"GSTcpHandle", @"Connecting before %@", when);
+  NSDebugMLLog(@"GSTcpHandle", @"Connecting before %@", when);
   if (state != GS_H_UNCON)
     {
       NSLog(@"attempting connect on connected handle");
@@ -469,7 +472,7 @@ encodePort(GSTcpPort *port)
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
-  RELEASE(myLock);
+  DESTROY(myLock);
   [super dealloc];
 }
 
@@ -502,15 +505,15 @@ encodePort(GSTcpPort *port)
 
 - (void) invalidate
 {
-  [myLock lock];
+  DO_LOCK(myLock);
   if (valid == YES)
     { 
       valid = NO;
-      NSDebugLLog(@"GSTcpHandle", @"invalidated");
+      NSDebugMLLog(@"GSTcpHandle", @"invalidated", 0);
       [[self recvPort] removeHandle: self];
       [[self sendPort] removeHandle: self];
     }
-  [myLock unlock];
+  DO_UNLOCK(myLock);
 }
 
 - (BOOL) isValid
@@ -531,7 +534,7 @@ encodePort(GSTcpPort *port)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugLLog(@"GSTcpHandle", @"Received %s event",
+  NSDebugMLLog(@"GSTcpHandle", @"received %s event",
     type == ET_RPORT ? "read" : "write");
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
@@ -589,7 +592,7 @@ encodePort(GSTcpPort *port)
 	{
 	  if (res == 0)
 	    {
-	      NSDebugLLog(@"GSTcpHandle", @"read attempt failed - eof");
+	      NSDebugMLLog(@"GSTcpHandle", @"read attempt failed - eof", 0);
 	      [self invalidate];
 	      return;
 	    }
@@ -601,7 +604,7 @@ encodePort(GSTcpPort *port)
 	    }
 	  res = 0;	/* Interrupted - continue	*/
 	}
-      NSDebugLLog(@"GSTcpHandle", @"read %d bytes", res);
+      NSDebugMLLog(@"GSTcpHandle", @"read %d bytes", res);
       rLength += res;
 
 
@@ -801,7 +804,7 @@ encodePort(GSTcpPort *port)
 	      len = write(desc, [d bytes], [d length]);
 	      if (len == [d length])
 		{
-		  NSDebugLLog(@"GSTcpHandle", @"wrote %d bytes", len);
+		  NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes", len);
 		  state = GS_H_CONNECTED;
 		}
 	      else
@@ -846,7 +849,7 @@ encodePort(GSTcpPort *port)
 	    }
 	  else
 	    {
-	      NSDebugLLog(@"GSTcpHandle", @"wrote %d bytes", res);
+	      NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes", res);
 	      wLength += res;
 	      if (wLength == l)
 		{
@@ -886,7 +889,7 @@ encodePort(GSTcpPort *port)
   BOOL		sent = NO;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
-  NSDebugLLog(@"GSTcpHandle", @"Sending message before %@", when);
+  NSDebugMLLog(@"GSTcpHandle", @"Sending message before %@", when);
   [wMsgs addObject: components];
 
   l = [NSRunLoop currentRunLoop];
@@ -911,7 +914,7 @@ encodePort(GSTcpPort *port)
       sent = YES;
     }
   RELEASE(self);
-  NSDebugLLog(@"GSTcpHandle", @"Message send %d", sent);
+  NSDebugMLLog(@"GSTcpHandle", @"Message send %d", sent);
   return sent;
 }
 
@@ -1156,7 +1159,7 @@ static NSMapTable	*tcpPortMap = 0;
 	       * Ok - now add the port for the host
 	       */
 	      NSMapInsert(thePorts, (void*)aHost, (void*)port);
-	      NSDebugLLog(@"NSPort", @"Created listening port: %@", port);
+	      NSDebugMLLog(@"NSPort", @"Created listening port: %@", port);
 	    }
 	}
       else
@@ -1180,13 +1183,13 @@ static NSMapTable	*tcpPortMap = 0;
 	   * Record the port by host.
 	   */
 	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
-	  NSDebugLLog(@"NSPort", @"Created speaking port: %@", port);
+	  NSDebugMLLog(@"NSPort", @"Created speaking port: %@", port);
 	}
       IF_NO_GC(AUTORELEASE(port));
     }
   else
     {
-      NSDebugLLog(@"NSPort", @"Using pre-existing port: %@", port);
+      NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
     }
 
   [tcpPortLock unlock];
@@ -1195,7 +1198,7 @@ static NSMapTable	*tcpPortMap = 0;
 
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send
 {
-  [myLock lock];
+  DO_LOCK(myLock);
   if (send == YES)
     {
       if (handle->caller == YES)
@@ -1208,7 +1211,7 @@ static NSMapTable	*tcpPortMap = 0;
       handle->recvPort = GS_GC_HIDE(self);
     }
   NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
-  [myLock unlock];
+  DO_UNLOCK(myLock);
 }
 
 - (NSString*) address
@@ -1223,7 +1226,7 @@ static NSMapTable	*tcpPortMap = 0;
 
 - (void) dealloc
 {
-  [self invalidate];
+  [self gcFinalize];
   DESTROY(host);
   [super dealloc];
 }
@@ -1253,7 +1256,7 @@ static NSMapTable	*tcpPortMap = 0;
   int			sock;
   GSTcpHandle		*handle;
 
-  [myLock lock];
+  DO_LOCK(myLock);
 
   /*
    * Make sure there is enough room in the provided array.
@@ -1274,7 +1277,7 @@ static NSMapTable	*tcpPortMap = 0;
     {
       fds[(*count)++] = sock;
     }
-  [myLock unlock];
+  DO_UNLOCK(myLock);
 }
 
 - (GSTcpHandle*) handleForPort: (GSTcpPort*)recvPort beforeDate: (NSDate*)when
@@ -1283,7 +1286,7 @@ static NSMapTable	*tcpPortMap = 0;
   int			sock;
   GSTcpHandle		*handle = nil;
 
-  [myLock lock];
+  DO_LOCK(myLock);
   /*
    * Enumerate all our socket handles, and look for one with port.
    */
@@ -1292,7 +1295,7 @@ static NSMapTable	*tcpPortMap = 0;
     {
       if ([handle recvPort] == recvPort)
 	{
-	  [myLock unlock];
+	  DO_UNLOCK(myLock);
 	  return handle;
 	}
     }
@@ -1320,7 +1323,7 @@ static NSMapTable	*tcpPortMap = 0;
 	  [recvPort addHandle: handle forSend: NO];
 	}
     }
-  [myLock unlock];
+  DO_UNLOCK(myLock);
   /*
    * If we succeeded in creating a new handle - connect to remote host.
    */
@@ -1341,12 +1344,12 @@ static NSMapTable	*tcpPortMap = 0;
 
   if (d == nil)
     {
-      NSDebugLLog(@"NSPort", @"No delegate to handle incoming message");
+      NSDebugMLLog(@"NSPort", @"No delegate to handle incoming message", 0);
       return;
     }
   if ([d respondsToSelector: @selector(handlePortMessage:)] == NO)
     {
-      NSDebugLLog(@"NSPort", @"delegate doesn't handle messages");
+      NSDebugMLLog(@"NSPort", @"delegate doesn't handle messages", 0);
       return;
     }
   [d handlePortMessage: m];
@@ -1371,7 +1374,7 @@ static NSMapTable	*tcpPortMap = 0;
 
 - (void) invalidate
 {
-  [myLock lock];
+  DO_LOCK(myLock);
 
   if ([self isValid])
     {
@@ -1404,8 +1407,7 @@ static NSMapTable	*tcpPortMap = 0;
       handles = 0;
       [super invalidate];
     }
-  [myLock unlock];
-  DESTROY(myLock);
+  DO_UNLOCK(myLock);
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -1462,10 +1464,10 @@ static NSMapTable	*tcpPortMap = 0;
     }
   else
     {
-      [myLock lock];
+      DO_LOCK(myLock);
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
       AUTORELEASE(RETAIN(handle));
-      [myLock unlock];
+      DO_UNLOCK(myLock);
       if (handle == nil)
 	{
 	  NSLog(@"No handle for event on descriptor %d", desc);
@@ -1484,7 +1486,7 @@ static NSMapTable	*tcpPortMap = 0;
  */
 - (void) removeHandle: (GSTcpHandle*)handle
 {
-  [myLock lock];
+  DO_LOCK(myLock);
   if ([handle sendPort] == self)
     {
       if (handle->caller == YES)
@@ -1502,7 +1504,7 @@ static NSMapTable	*tcpPortMap = 0;
     {
       [self invalidate];
     }
-  [myLock unlock];
+  DO_UNLOCK(myLock);
 }
 
 /*

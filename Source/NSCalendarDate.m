@@ -47,6 +47,60 @@
 
 #define GREGORIAN_REFERENCE 730486
 
+static inline int
+lastDayOfGregorianMonth(int year, int month)
+{
+  switch (month)
+    {
+      case 2:
+	if ((((year % 4) == 0) && ((year % 100) != 0))
+	  || ((year % 400) == 0))
+	  return 29;
+	else
+	  return 28;
+      case 4:
+      case 6:
+      case 9:
+      case 11: return 30;
+      default: return 31;
+    }
+}
+
+static inline int
+absoluteGregorianDay(int day, int month, int year)
+{
+  int m, N;
+
+  N = day;   // day of month
+  for (m = month - 1;  m > 0; m--) // days in prior months this year
+    N = N + lastDayOfGregorianMonth(m, year);
+  return
+    (N                    // days this year
+     + 365 * (year - 1)   // days in previous years ignoring leap days
+     + (year - 1)/4       // Julian leap days before this year...
+     - (year - 1)/100     // ...minus prior century years...
+     + (year - 1)/400);   // ...plus prior years divisible by 400
+}
+
+/*
+ * External - so NSDate can use it.
+ */
+NSTimeInterval
+GSTime(int day, int month, int year, int h, int m, int s)
+{
+  NSTimeInterval	a;
+
+  a = (NSTimeInterval)absoluteGregorianDay(day, month, year);
+
+  // Calculate date as GMT
+  a -= GREGORIAN_REFERENCE;
+  a = (NSTimeInterval)a * 86400;
+  a += h * 3600;
+  a += m * 60;
+  a += s;
+  return a;
+}
+
 @interface NSCalendarDate (Private)
 
 - (void)getYear: (int *)year month: (int *)month day: (int *)day
@@ -628,18 +682,11 @@
 	     second: (unsigned int)second
 	   timeZone: (NSTimeZone *)aTimeZone
 {
-  int	a;
   int	c;
   NSTimeInterval s;
 
-  a = [self absoluteGregorianDay: day month: month year: year];
-
   // Calculate date as GMT
-  a -= GREGORIAN_REFERENCE;
-  s = (double)a * 86400;
-  s += hour * 3600;
-  s += minute * 60;
-  s += second;
+  s = GSTime(day, month, year, hour, minute, second);
 
   // Assign time zone detail
   _time_zone = RETAIN([aTimeZone
@@ -800,7 +847,7 @@
 	day: &d month: &m year: &y];
   days = d;
   for (i = m - 1;  i > 0; i--) // days in prior months this year
-    days = days + [self lastDayOfGregorianMonth: i year: y];
+    days = days + lastDayOfGregorianMonth(i, y);
 
   return days;
 }
@@ -1240,34 +1287,12 @@
 
 - (int) lastDayOfGregorianMonth: (int)month year: (int)year
 {
-  switch (month) {
-    case 2:
-      if ((((year % 4) == 0) && ((year % 100) != 0))
-	  || ((year % 400) == 0))
-	return 29;
-      else
-	return 28;
-    case 4:
-    case 6:
-    case 9:
-    case 11: return 30;
-    default: return 31;
-  }
+  return lastDayOfGregorianMonth(month, year);
 }
 
 - (int) absoluteGregorianDay: (int)day month: (int)month year: (int)year
 {
-  int m, N;
-
-  N = day;   // day of month
-  for (m = month - 1;  m > 0; m--) // days in prior months this year
-      N = N + [self lastDayOfGregorianMonth: m year: year];
-  return
-    (N                    // days this year
-     + 365 * (year - 1)   // days in previous years ignoring leap days
-     + (year - 1)/4       // Julian leap days before this year...
-     - (year - 1)/100     // ...minus prior century years...
-     + (year - 1)/400);   // ...plus prior years divisible by 400
+  return absoluteGregorianDay(day, month, year);
 }
 
 - (void) gregorianDateFromAbsolute: (int)d
@@ -1277,15 +1302,14 @@
 {
   // Search forward year by year from approximate year
   *year = d/366;
-  while (d >= [self absoluteGregorianDay: 1 month: 1 year: (*year)+1])
+  while (d >= absoluteGregorianDay(1, 1, (*year)+1))
     (*year)++;
   // Search forward month by month from January
   (*month) = 1;
-  while (d > [self absoluteGregorianDay:
-		   [self lastDayOfGregorianMonth: *month year: *year]
-		   month: *month year: *year])
+  while (d > absoluteGregorianDay(lastDayOfGregorianMonth(*month, *year),
+    *month, *year))
     (*month)++;
-  *day = d - [self absoluteGregorianDay: 1 month: *month year: *year] + 1;
+  *day = d - absoluteGregorianDay(1, *month, *year) + 1;
 }
 
 @end
@@ -1489,7 +1513,7 @@
 	      tmpmonth += 12;
 	      tmpyear--;
 	    }
-          extra += [end lastDayOfGregorianMonth: tmpmonth year: tmpyear];
+          extra += lastDayOfGregorianMonth(tmpmonth, tmpyear);
         }
     }
 

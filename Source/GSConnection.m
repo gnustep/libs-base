@@ -195,7 +195,7 @@ static unsigned local_object_counter = 0;
 + (void) setDebug: (int)val;
 - (void) handlePortMessage: (NSPortMessage*)msg;
 
-- _getReceivedReplyRmcWithSequenceNumber: (int)n;
+- _getReplyRmc: (int)n;
 - (NSPortCoder*) _makeRmc: (int)sequence;
 - (int) _newMsgNumber;
 - (void) _sendRmc: (NSPortCoder*)c type: (int)msgid;
@@ -992,7 +992,7 @@ static int messages_received_count;
   op = [self _makeRmc: seq_num];
   [self _sendRmc: op type: ROOTPROXY_REQUEST];
 
-  ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
+  ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
   return AUTORELEASE(newProxy);
 }
@@ -1264,7 +1264,7 @@ static int messages_received_count;
 		}
 	      /* xxx Why do we get the reply packet in here, and not
 		 just before calling dissect_method_return() below? */
-	      ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
+	      ip = [self _getReplyRmc: seq_num];
 	      /* Find out if the server is returning an exception instead
 		 of the return values. */
 	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
@@ -1318,7 +1318,7 @@ static int messages_received_count;
   [op encodeValueOfObjCType: ":" at: &sel];
   [op encodeValueOfObjCType: @encode(unsigned) at: &target];
   [self _sendRmc: op type: METHODTYPE_REQUEST];
-  ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
+  ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(char*) at: &type];
   return type;
 }
@@ -1508,156 +1508,6 @@ static int messages_received_count;
 + (void) setDebug: (int)val
 {
   debug_connection = val;
-}
-
-
-
-
-/* Methods for handling client and server, requests and replies */
-
-/* NSDistantObject's -forward: : method calls this to the the message over the wire. */
-- (retval_t) forwardForProxy: (NSDistantObject*)object
-		    selector: (SEL)sel
-                    argFrame: (arglist_t)argframe
-{
-  NSPortCoder *op;
-
-  /* The callback for encoding the args of the method call. */
-  void encoder (int argnum, void *datum, const char *type, int flags)
-    {
-#define ENCODED_ARGNAME @"argument value"
-      switch (*type)
-	{
-	case _C_ID: 
-	  if (flags & _F_BYCOPY)
-	    [op encodeBycopyObject: *(id*)datum];
-#ifdef	_F_BYREF
-	  else if (flags & _F_BYREF)
-	    [op encodeByrefObject: *(id*)datum];
-#endif
-	  else
-	    [op encodeObject: *(id*)datum];
-	  break;
-	default: 
-	  [op encodeValueOfObjCType: type at: datum];
-	}
-    }
-
-  /* Encode the method on an RMC, and send it. */
-  {
-    BOOL	out_parameters;
-    const char	*type;
-    int		seq_num;
-    retval_t	retframe;
-
-    NSParameterAssert (_isValid);
-
-    /* get the method types from the selector */
-#if NeXT_runtime
-    [NSException
-      raise: NSGenericException
-      format: @"Sorry, distributed objects does not work with NeXT runtime"];
-    /* type = [object selectorTypeForProxy: sel]; */
-#else
-    type = sel_get_type(sel);
-#endif
-    if (type == 0 || *type == '\0') {
-	type = [[object methodSignatureForSelector: sel] methodType];
-	if (type) {
-	    sel_register_typed_name(sel_get_name(sel), type);
-	}
-    }
-    NSParameterAssert(type);
-    NSParameterAssert(*type);
-
-    seq_num = [self _newMsgNumber];
-    op = [self _makeRmc: seq_num];
-
-    if (debug_connection > 4)
-      NSLog(@"building packet seq %d", seq_num);
-
-    /* Send the types that we're using, so that the performer knows
-       exactly what qualifiers we're using.
-       If all selectors included qualifiers, and if I could make
-       sel_types_match() work the way I wanted, we wouldn't need to do
-       this. */
-    [op encodeValueOfObjCType: @encode(char*) at: &type];
-
-    /* xxx This doesn't work with proxies and the NeXT runtime because
-       type may be a method_type from a remote machine with a
-       different architecture, and its argframe layout specifiers
-       won't be right for this machine! */
-    out_parameters = mframe_dissect_call (argframe, type, encoder);
-
-    [self _sendRmc: op type: METHOD_REQUEST];
-
-    if (debug_connection > 1)
-      NSLog(@"Sent message to 0x%x", (gsaddr)self);
-
-    /* Get the reply rmc, and decode it. */
-    {
-      NSPortCoder	*ip = nil;
-      BOOL		is_exception = NO;
-
-      void decoder(int argnum, void *datum, const char *type, int flags)
-	{
-	  if (type == 0) {
-	    if (ip) {
-	      /* this must be here to avoid trashing alloca'ed retframe */
-	      [ip dismiss]; 	
-	      ip = (id)-1;
-	    }
-	    return;
-	  }
-	  /* If we didn't get the reply packet yet, get it now. */
-	  if (!ip)
-	    {
-	      if (!_isValid)
-		{
-	          [NSException raise: NSGenericException
-		      format: @"connection waiting for request was shut down"];
-		}
-	      /* xxx Why do we get the reply packet in here, and not
-		 just before calling dissect_method_return() below? */
-	      ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
-	      /* Find out if the server is returning an exception instead
-		 of the return values. */
-	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	      if (is_exception)
-		{
-		  /* Decode the exception object, and raise it. */
-		  id exc;
-		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
-		  [ip dismiss];
-		  ip = (id)-1;
-		  /* xxx Is there anything else to clean up in
-		     dissect_method_return()? */
-		  [exc raise];
-		}
-	    }
-	  [ip decodeValueOfObjCType: type at: datum];
-	  /* -decodeValueOfObjCType: at: malloc's new memory
-	     for char*'s.  We need to make sure it gets freed eventually
-	     so we don't have a memory leak.  Request here that it be
-	     autorelease'ed. Also autorelease created objects. */
-	  if (*type == _C_CHARPTR)
-	    [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
-          else if (*type == _C_ID)
-            [*(id*)datum autorelease];
-	}
-
-      retframe = mframe_build_return (argframe, type, out_parameters,
-				      decoder);
-      /* Make sure we processed all arguments, and dismissed the IP.
-         IP is always set to -1 after being dismissed; the only places
-	 this is done is in this function DECODER().  IP will be nil
-	 if mframe_build_return() never called DECODER(), i.e. when
-	 we are just returning (void).*/
-      NSAssert(ip == (id)-1 || ip == nil, NSInternalInconsistencyException);
-      _repInCount++;	/* received a reply */
-      return retframe;
-    }
-  }
 }
 
 /* NSConnection calls this to service the incoming method request. */
@@ -1958,14 +1808,12 @@ static int messages_received_count;
   [self runConnectionUntilDate: [NSDate distantFuture]];
 }
 
-/* Deal with an RMC, either by queuing it for later service, or
-   by servicing it right away.  This method is called by the
-   _receivePort's received-packet-invocation. */
-
-/* Check the queue, then try to get it from the network by waiting
-   while we run the NSRunLoop.  Raise exception if we don't get anything
-   before timing out. */
-- _getReceivedReplyRmcWithSequenceNumber: (int)sn
+/*
+ * Check the queue, then try to get it from the network by waiting
+ * while we run the NSRunLoop.  Raise exception if we don't get anything
+ * before timing out.
+ */
+- _getReplyRmc: (int)sn
 {
   NSPortCoder	*rmc;
   NSDate	*timeout_date = nil;
@@ -2016,7 +1864,6 @@ static int messages_received_count;
 
 - (void) _sendRmc: (NSPortCoder*)c type: (int)msgid
 {
-  NSPortMessage		*message;
   NSDate		*limit;
   BOOL			raiseException = NO;
   NSMutableArray	*components = [c _components];
@@ -2033,12 +1880,12 @@ static int messages_received_count;
 	}
       [components addObject: d];
     }
-  message = [[NSPortMessage alloc] initWithSendPort: [self sendPort]
-					receivePort: [self receivePort]
-					 components: components]; 
-  [message setMsgid: msgid];
   limit = [NSDate dateWithTimeIntervalSinceNow: [self requestTimeout]];
-  if ([message sendBeforeDate: limit] == NO)
+  if ([_sendPort sendBeforeDate: limit
+			  msgid: msgid
+		     components: components
+			   from: _receivePort
+		       reserved: [_sendPort reservedSpaceLength]] == NO)
     {
       NSString	*text;
 
@@ -2275,7 +2122,7 @@ static int messages_received_count;
 	  [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
 	  [self _sendRmc: op type: PROXY_RETAIN];
 
-	  ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
+	  ip = [self _getReplyRmc: seq_num];
 	  [ip decodeValueOfObjCType: @encode(id) at: &result];
 	  if (result != nil)
 	    NSLog(@"failed to retain target - %@", result);
