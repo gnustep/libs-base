@@ -1,3 +1,7 @@
+2002-07-27  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.4.0
+
 2002-07-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSInvocation.m ([GSFrameInvocation
