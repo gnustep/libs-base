@@ -37,6 +37,8 @@
 #include <Foundation/NSKeyValueCoding.h>
 #include <Foundation/NSNull.h>
 
+/** An exception for an unknown key */
+NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 
 /**
  * This describes an informal protocol for key-value coding.
@@ -58,19 +60,31 @@
 
 - (id) handleQueryWithUnboundKey: (NSString*)aKey
 {
-  [NSException raise: NSGenericException
-	      format: @"%@ -- %@ 0x%x: Unable to find value for key \"%@\"",
-    NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
-
+  NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+				     self, 
+				     @"NSTargetObjectUserInfoKey", 
+				     aKey,
+				     @"NSUnknownUserInfoKey",
+				     nil];
+  NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
+				  reason: @"Unable to find value for key"
+				  userInfo: dict];
+  [exp raise];
   return nil;
 }
 
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
 {
-  [NSException raise: NSGenericException
-	      format: @"%@ -- %@ 0x%x: Unable set value \"%@\" for key \"%@\"",
-    NSStringFromSelector(_cmd), NSStringFromClass([self class]),
-    self, anObject, aKey];
+  NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+				     anObject, 
+				     @"NSTargetObjectUserInfoKey", 
+				     aKey,
+				     @"NSUnknownUserInfoKey",
+				     nil];
+  NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
+				  reason: @"Unable to set value for key"
+				  userInfo: dict];
+  [exp raise];
 }
 
 - (id) storedValueForKey: (NSString*)aKey

@@ -1,3 +1,9 @@
+2003-02-19  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSKeyValueCoding.m ([NSObject -handleQueryWithUnboundKey:]): 
+	Raise NSUnknownKeyException.
+	([NSObject -handleTakeValue:forUnboundKey:]): Idem.
+
 2003-02-18  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Cast
