@@ -2,7 +2,7 @@
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <rfm@gnu.org>
-   Date: August 1994
+   Date: August 2000
    
    This file is part of the GNUstep Base Library.
 
@@ -104,5 +104,156 @@ BOOL GSMacOSXCompatiblePropertyLists()
   if (setupDone == NO)
     compatibilitySetup();
   return MacOSXCompatiblePropertyLists;
+}
+
+#include <math.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSGCString.h>
+
+static char base64[]
+  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static NSString*
+encodeBase64(NSData *source)
+{
+  int		length = [source length];
+  int		enclen = length / 3;
+  int		remlen = length - 3 * enclen;
+  int		destlen = 4 * ((length - 1) / 3) + 5;
+  unsigned char *sBuf = (unsigned char*)[source bytes];
+  unsigned char *dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
+  int		sIndex = 0;
+  int		dIndex = 0;
+
+  dBuf[destlen - 1] = '\0';
+
+  for (sIndex = 0; sIndex < length - 2; sIndex += 3, dIndex += 4)
+    {
+      dBuf[dIndex] = base64[sBuf[sIndex] >> 2];
+      dBuf[dIndex + 1]
+	= base64[((sBuf[sIndex] << 4) | (sBuf[sIndex + 1] >> 4)) & 0x3f];
+      dBuf[dIndex + 2]
+	= base64[((sBuf[sIndex + 1] << 2) | (sBuf[sIndex + 2] >> 6)) & 0x3f];
+      dBuf[dIndex + 3] = base64[sBuf[sIndex + 2] & 0x3f];
+    }
+
+  if (remlen == 1)
+    {
+      dBuf[dIndex] = base64[sBuf[sIndex] >> 2];
+      dBuf[dIndex + 1] = (sBuf[sIndex] << 4) & 0x30;
+      dBuf[dIndex + 1] = base64[dBuf[dIndex + 1]];
+      dBuf[dIndex + 2] = '=';
+      dBuf[dIndex + 3] = '=';
+    }
+  else if (remlen == 2)
+    {
+      dBuf[dIndex] = base64[sBuf[sIndex] >> 2];
+      dBuf[dIndex + 1] = (sBuf[sIndex] << 4) & 0x30;
+      dBuf[dIndex + 1] |= sBuf[sIndex + 1] >> 4;
+      dBuf[dIndex + 1] = base64[dBuf[dIndex + 1]];
+      dBuf[dIndex + 2] = (sBuf[sIndex + 1] << 2) & 0x3c;
+      dBuf[dIndex + 2] = base64[dBuf[dIndex + 2]];
+      dBuf[dIndex + 3] = '=';
+    }
+
+  return [[NSGCString allocWithZone: NSDefaultMallocZone()]
+    initWithCStringNoCopy: dBuf
+		   length: destlen-1
+		 fromZone: NSDefaultMallocZone()];
+}
+
+static NSString*
+XMLString(NSString* obj)
+{
+  /* Should substitute in entities */
+  return obj;
+}
+
+static void
+XMLPlObject(NSMutableString *dest, id obj)
+{
+  if ([obj isKindOfClass: [NSString class]])
+    {
+      [dest appendString: @"<string>"];
+      [dest appendString: XMLString(obj)];
+      [dest appendString: @"</string>\n"];
+    }
+  else if ([obj isKindOfClass: [NSNumber class]])
+    {
+      double	val = [obj doubleValue];
+
+      if (val == 1.0)
+	{
+	  [dest appendString: @"<true/>\n"];
+	}
+      else if (val == 0.0)
+	{
+	  [dest appendString: @"<false/>\n"];
+	}
+      else if (rint(val) == val)
+	{
+	  [dest appendString: @"<integer>"];
+	  [dest appendString: [obj stringValue]];
+	  [dest appendString: @"</integer>\n"];
+	}
+      else
+	{
+	  [dest appendString: @"<real>"];
+	  [dest appendString: [obj stringValue]];
+	  [dest appendString: @"</real>\n"];
+	}
+    }
+  else if ([obj isKindOfClass: [NSData class]])
+    {
+      [dest appendString: @"<data>"];
+      [dest appendString: encodeBase64(obj)];
+      [dest appendString: @"</data>\n"];
+    }
+  else if ([obj isKindOfClass: [NSDate class]])
+    {
+      [dest appendString: @"<date>"];
+      [dest appendString:
+	[obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"]];
+      [dest appendString: @"</date>\n"];
+    }
+  else if ([obj isKindOfClass: [NSArray class]])
+    {
+      NSEnumerator	*e;
+
+      [dest appendString: @"<array>\n"];
+      e = [obj objectEnumerator];
+      while ((obj = [e nextObject]))
+        {
+          XMLPlObject(dest, obj);
+        }
+      [dest appendString: @"</array>\n"];
+    }
+  else if ([obj isKindOfClass: [NSDictionary class]])
+    {
+      NSEnumerator	*e;
+      id		key;
+
+      [dest appendString: @"<dict>\n"];
+      e = [obj keyEnumerator];
+      while ((key = [e nextObject]))
+        {
+	  id	val;
+
+          val = [obj objectForKey: key];
+	  [dest appendString: @"<key>"];
+	  [dest appendString: XMLString(key)];
+	  [dest appendString: @"</key>\n"];
+          XMLPlObject(dest, val);
+        }
+      [dest appendString: @"</dict>\n"];
+    }
+  else
+    {
+      NSLog(@"Non-property-list class encoded as string");
+      [dest appendString: @"<string>"];
+      [dest appendString: [obj description]];
+      [dest appendString: @"</string>\n"];
+    }
 }
 
