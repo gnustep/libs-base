@@ -47,7 +47,8 @@ int main (int argc, char *argv[])
       [out_port sendPacket: packet timeout: 10.0];
       [packet release];
 
-      [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+      [[NSRunLoop currentRunLoop] runUntilDate:
+	[NSDate dateWithTimeIntervalSinceNow: 1.0]];
     }
 
   [out_port close];

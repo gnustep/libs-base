@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
 	    autorelease]];
   [[NSRunLoop currentRunLoop] addPort: port
 			     forMode: NSDefaultRunLoopMode];
-  [NSRunLoop run];
+  [[NSRunLoop currentRunLoop] run];
 #else
   {
     id packet;

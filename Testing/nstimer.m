@@ -59,7 +59,7 @@ int main()
   [NSTimer scheduledTimerWithTimeInterval: 3.0
 	   invocation: inv
 	   repeats: YES];
-  [NSRunLoop run];
+  [[NSRunLoop currentRunLoop] run];
   [arp release];
   exit (0);
 }

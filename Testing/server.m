@@ -310,7 +310,7 @@ int main(int argc, char *argv[])
   printf("list's hash is 0x%x\n", (unsigned)[l hash]);
   printf("object's hash is 0x%x\n", (unsigned)[o hash]);
 
-  [NSRunLoop run];
+  [[NSRunLoop currentRunLoop] run];
 
   [arp release];
   exit(0);

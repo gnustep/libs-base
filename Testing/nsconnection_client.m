@@ -338,7 +338,8 @@ con_loop (id prx)
   printf("%s\n", [[[cobj statistics] description] cString]);
   //printf("%s\n", GSDebugAllocationList(YES));
 
-  [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 2 * 60]];
+  [[NSRunLoop currentRunLoop] runUntilDate:
+    [NSDate dateWithTimeIntervalSinceNow: 2 * 60]];
   [cobj invalidate];
   [arp release];
   return 0;
