@@ -26,7 +26,7 @@ from Richard Frith-Macdonald @email{richard@@brainstorm.co.uk}. Also added a
 nameserver.
 
 @item Major rewrite of NSString, include Unicode strings from Stevo
-Crvenkovski  @email{stevoc@@lotus.mpt.com.mk} 
+Crvenkovski  @email{stevo@@btinternet.com} 
 
 @item A rewrite of the NSBundle class from Adam Fedor @email{fedor@@gnu.org}
 

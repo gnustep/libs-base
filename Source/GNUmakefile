@@ -58,7 +58,8 @@ FILE_AUTHORS = \
 "Scott Christley" \
 "Luke Howard" \
 "Yoo C. Chung" \
-"Richard Frith-Macdonald"
+"Richard Frith-Macdonald" \
+"Stevo Crvenkovski"
 
 # The GNU source files
 
@@ -80,6 +81,7 @@ DelegatePool.m \
 Dictionary.m \
 Encoder.m \
 GapArray.m \
+GetDefEncoding.m \
 Heap.m \
 IndexedCollection.m \
 Invocation.m \
@@ -189,6 +191,7 @@ Dictionary.h \
 Enumerating.h \
 GapArray.h \
 GapArrayPrivate.h \
+GetDefEncoding.h \
 Heap.h \
 IndexedCollecting.h \
 IndexedCollection.h \

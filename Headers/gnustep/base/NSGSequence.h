@@ -2,7 +2,7 @@
    class for GNUSTEP
    Copyright (C) 1997 Free Software Foundation, Inc.
    
-   Written by:  Stevo Crvenkovski
+   Written by:  Stevo Crvenkovski <stevo@btinternet.com>
    Date: Marth 1997
    
    This file is part of the GNUstep Base Library.

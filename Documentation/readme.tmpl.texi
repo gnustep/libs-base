@@ -11,20 +11,19 @@ Here is some introductory info to get you started:
 
 The file @samp{NEWS} has the library's feature history.
 
-The files @samp{INSTALL} and @samp{GNUstep-HOWTO} 
+The file @samp{GNUstep-HOWTO} 
 give instructions for installing the library.
 
 @section Preparing to write code
 
 The documentation isn't much to speak of so far.  Better documentation
 will be forthcoming, but the library needs to settle first.  For now I
-recommend skipping @file{gnustep-base.info} and reading the header files
-instead.  The headers for the classes are in @file{./src/include}.
+recommend reading the header files.  
+The headers for the classes are in @file{./src/include}.
 
 The FAQ contains an outline of the class heirarchy, as well as a
 list of the differences between GNUstep and NeXT's implementation of
-OpenStep, and GNUstep's improvements over NeXT's implementation.  The
-FAQ can be found in @file{doc/GNUstep-FAQ}.
+OpenStep, and GNUstep's improvements over NeXT's implementation. 
 
 @section Overview of the classes
 

@@ -49,11 +49,11 @@
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  /* assert(!flag);	xxx need to make a subclass to handle this. */
+  /* assert(!flag); xxx need to make a subclass to handle this. */
+  [super init];
   _count = length;
   _contents_chars = byteString;
   _free_contents = flag;
-  [super init];
   return self;
 }
 
@@ -271,12 +271,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 /* xxx Should capacity include the '\0' terminator? */
 - initWithCapacity: (unsigned)capacity
 {
+  [super init];
   _count = 0;
   _capacity = MAX(capacity, 2);
   OBJC_MALLOC(_contents_chars, char, _capacity);
   _contents_chars[0] = '\0';
   _free_contents = YES;
-  [super init];
   return self;
 }
 
@@ -352,11 +352,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
+  [super init];
   _count = length;
   _capacity = length+1;
   _contents_chars = byteString;
   _free_contents = flag;
-  [super init];
   return self;
 }
 

@@ -1,7 +1,7 @@
 /* Implementation for GNUStep of NSStrings with Unicode-string backing
    Copyright (C) 1997 Free Software Foundation, Inc.
    
-   Written by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>
+   Written by Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
    
    Based on NSGCSting and NSString
@@ -63,10 +63,10 @@
    freeWhenDone: (BOOL)flag
 {
   /* assert(!flag);	xxx need to make a subclass to handle this. */
+  [super init];
   _count = length;
   _contents_chars = chars;
   _free_contents = flag;
-  [super init];
   return self;
 }
 
@@ -318,6 +318,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 // xxx Should capacity include the '\0' terminator?
 - initWithCapacity: (unsigned)capacity
 {
+  [super init];
   _count = 0;
   _capacity = MAX(capacity, 2);
   OBJC_MALLOC(_contents_chars, unichar, _capacity);
@@ -406,11 +407,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
+  [super init];
   _count = length;
   _capacity = length+1;
   _contents_chars = chars;
   _free_contents = flag;
-  [super init];
   return self;
 }
 
