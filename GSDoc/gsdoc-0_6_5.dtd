@@ -189,6 +189,17 @@
   id CDATA #REQUIRED
 >
 
+<!-- Entity for standard elements. -->
+<!ELEMENT GNUstep EMPTY>
+<!ELEMENT OpenStep EMPTY>
+<!ELEMENT NotOpenStep EMPTY>
+<!ELEMENT MacOS-X EMPTY>
+<!ELEMENT NotMacOS-X EMPTY>
+
+<!-- A standard that something is or isn't  compliant with. -->
+<!ENTITY % standard "GNUstep | OpenStep | NotOpenStep | MacOS-X | NotMacOS-X">
+
+<!ELEMENT standards (%standard;)*>
 
 <!--***** Argument elements. *****-->
 
@@ -214,7 +225,7 @@
      superclass.
   If factory not set, instance method
 -->
-<!ELEMENT method (((sel, arg?), (sel, arg)*, vararg?), desc?)>
+<!ELEMENT method (((sel, arg?), (sel, arg)*, vararg?), desc?, standards?)>
 <!ATTLIST method
   type CDATA #IMPLIED
   factory %boolean; "no"
@@ -226,14 +237,11 @@
 
 <!--***** Elements for definitions of classes, functions, etc. *****-->
 
-<!-- A standard that something is compliant with. -->
-<!ELEMENT standard (%text;)*>
-
 <!-- Show what header file something lives in. -->
 <!ELEMENT declared (#PCDATA)*>
 
 <!-- A macro definition. -->
-<!ELEMENT macro ((arg*, vararg?), declared?, desc?, standard*)>
+<!ELEMENT macro ((arg*, vararg?), declared?, desc?, standards?)>
 <!ATTLIST macro
   id CDATA #IMPLIED
   name CDATA #REQUIRED
@@ -242,7 +250,7 @@
 <!ELEMENT typespec (#PCDATA)*>
 
 <!-- A type definition. -->
-<!ELEMENT type (typespec, declared?, desc?, standard*)>
+<!ELEMENT type (typespec, declared?, desc?, standards?)>
 <!ATTLIST type
   id CDATA #IMPLIED
   name CDATA #REQUIRED
@@ -251,7 +259,7 @@
 <!-- Variable definition.
   VALUE may be set for a constant or a default value
 -->
-<!ELEMENT variable (declared?, desc?, standard*)>
+<!ELEMENT variable (declared?, desc?, standards?)>
 <!ATTLIST variable
   id CDATA #IMPLIED
   name CDATA #REQUIRED
@@ -261,7 +269,7 @@
 >
 
 <!-- A function definition. -->
-<!ELEMENT function ((arg*, vararg?), declared?, desc?, standard*)>
+<!ELEMENT function ((arg*, vararg?), declared?, desc?, standards?)>
 <!ATTLIST function
   id CDATA #IMPLIED
   name CDATA #REQUIRED
@@ -269,14 +277,14 @@
 >
 
 <!-- Protocol definition. -->
-<!ELEMENT protocol (declared?, desc?, method*, standard*)>
+<!ELEMENT protocol (declared?, desc?, method*, standards?)>
 <!ATTLIST protocol
   id CDATA #IMPLIED
   name CDATA #REQUIRED
 >
 
 <!-- Category definition. -->
-<!ELEMENT category (declared?, desc?, method*, standard*)>
+<!ELEMENT category (declared?, desc?, method*, standards?)>
 <!ATTLIST category
   id CDATA #IMPLIED
   name CDATA #REQUIRED
@@ -286,7 +294,7 @@
 <!-- Show a protocol a class conforms to. -->
 <!ELEMENT conform (#PCDATA)*>
 
-<!ELEMENT class (declared?, conform*, desc?, method*, standard*)>
+<!ELEMENT class (declared?, conform*, desc?, method*, standards?)>
 <!ATTLIST class
   id CDATA #IMPLIED
   name CDATA #REQUIRED
