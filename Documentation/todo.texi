@@ -12,7 +12,9 @@ help is greatly appreciated.  Send email to
 
 @itemize @bullet
 
-@item Write a test-suite for the library.  Use dejagnu.
+@item Help write a test-suite for the library.  Use dejagnu.  (Contact
+Richard Frith-Macdonald <richard@brainstorm.co.uk>, who has volunteered
+to coordinate these efforts.)
 
 @item Write a proper name server for Port's.  Currently we're just
 hashing the name to a socket port number---we could get unwanted hash
@@ -34,15 +36,17 @@ argument to @@encode() and get a type string like the selector types.
 @end enumerate
 @end ignore
 
-@item Write some code to deal with `%@@' in printf-style format strings
-for systems that do not have the GNU C library.  Those with the GNU C
-Library can just use @samp{register_printf_function}.
+@item Improve the code to deal with `%@@' in printf-style format strings
+for systems that do not have the GNU C library.  See src/NSString.m for
+the current implementation, which does not handle formatting modifiers.
+(Those with the GNU C Library can just use
+@samp{register_printf_function}.)
 
 @item Implement efficient SmallInt and SmallFloat classes in the same
 sort of way that Smalltalk does.  Talk to me.  mccallum@@gnu.ai.mit.edu.
 
 @item See
-http://www.cs.rochester.edu/u/mccallum/libgnustep-base/volunteers.html for
+http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers.html for
 a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @end itemize
@@ -51,6 +55,8 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 @section McCallum's To Do's
 
 @itemize @bullet
+
+@item Overhaul the string classes.
 
 @item Separate core and non-core code in NSDictionary, NSSet, etc, the
 same way I did for NSArray.
@@ -85,14 +91,12 @@ Change many NSParameterAssert()'s into NSAssert()'s with explanations.
 @item Finish NotificationQueue, and make it interoperate with the
 RunLoop properly.
 
-@item Make the NSTimer's work and interoperate with the run loop
+@item Make the NSTimer's work and interoperate with the RunLoop
 properly. 
-
-@item Clean up and finish the String object situation.
 
 @item Fix many memory allocation inconsistencies.  Methods that return
 malloc'ed buffers should autorelease those buffers, (like readFormat:).
-(I think these are all fixed now.)
+(I think all these are fixed now.)
 
 @item Many code fixes and cleanups, indicated with @samp{xxx} in the
 source.
@@ -113,7 +117,7 @@ to do anyway?).  Handle archiving of atom string, "%", keys.
 Finish Time.m.  Many methods are not yet implemented.
 
 @item
-Many implementations could be made more efficient.  Libobjects hasn't
+Many implementations could be made more efficient.  The library hasn't
 been efficiency tuned very much.  Overridding more methods in certain
 classes could make things more efficient (especially EltNodeCollector).
 SplayTree's could be done using top-down splaying.  collhash could be
