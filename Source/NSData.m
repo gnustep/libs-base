@@ -323,7 +323,7 @@
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
 {
-  memcpy([self bytes] + aRange.location, bytes, aRange.length);
+  memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
 }
 
 - (void) resetBytesInRange: (NSRange)aRange
