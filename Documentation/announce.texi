@@ -13,8 +13,11 @@ designed in the Smalltalk tradition.  It includes collection objects for
 maintaining groups of objects and C types, streams for I/O to various
 destinations, coders for formating objects and C types to streams, ports
 for network packet transmission, distributed objects (remote object
-messaging), pseudo-random number generators, string handling, and time
-handling facilities.
+messaging), pseudo-random number generators, character string classes,
+and time handling facilities.
+
+The library also includes the foundation classes for the GNUStep
+project.
 
 @ignore
 So that developers of non-free, commercial programs can use the library,
