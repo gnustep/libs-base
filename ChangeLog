@@ -1,3 +1,10 @@
+Fri Oct 17 14:04:27 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Makefile.postamble (regenerate, stamp-regenerate): Do-nothing
+	targets removed.
+	* Tools/Makefile.postamble (after-install): Use ECHO_NOTHING, END_ECHO.
+	* Tools/Makefile.preamble: Commented out unused line.
+
 Thu Oct 16 21:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* GSPrivate.h: Try to think of better macro names and documentation
