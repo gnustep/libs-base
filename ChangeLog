@@ -1,3 +1,12 @@
+Thu Jul 19 12:41:22 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* config/config.objc.m: New file.
+	* configure.in: Added new test to check whether Objective-C really
+	works.  If it doesn't, abort immediately telling the user to fix
+	their compiler installation first.
+	(AC_CHECK_HEADERS): Don't check for libguile.h
+	* configure: Regenerated.
+	
 2001-07-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Removed bogus tests for character zero in 
