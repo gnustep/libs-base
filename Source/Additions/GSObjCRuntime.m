@@ -62,6 +62,9 @@
 @end
 #endif
 
+#define BDBGPrintf(format, args...) \
+  do { if (behavior_debug) { fprintf(stderr, (format), ## args); } } while (0)
+
 static objc_mutex_t local_lock = NULL;
 
 /* This class it intended soley for thread safe / +load safe
@@ -647,11 +650,8 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
         {
           struct objc_method *method = &(mlist->method_list[counter]);
 
-	  if (behavior_debug)
-	    {
-	      fprintf(stderr, "   processing method [%s] ... ", 
-		GSNameFromSelector(method->method_name));
-	    }
+	  BDBGPrintf("   processing method [%s] ... ", 
+		     GSNameFromSelector(method->method_name));
 
 	  if (!search_for_method_in_class(class,method->method_name)
 	    && !sel_eq(method->method_name, initialize_sel))
@@ -661,14 +661,12 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 		 methods override the superclasses' methods. */
 	      new_list->method_list[new_list->method_count] = *method;
 	      (new_list->method_count)++;
-	      if (behavior_debug)
-		{
-		  fprintf(stderr, "added.\n"); 
-		}
+
+	      BDBGPrintf("added.\n"); 
 	    }
-	  else if (behavior_debug)
+	  else
 	    {
-	      fprintf(stderr, "ignored.\n"); 
+	      BDBGPrintf("ignored.\n"); 
 	    }
           counter -= 1;
         }
@@ -754,13 +752,11 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 
       while (counter >= 0)
         {
-          struct objc_method	*method = &(mlist->method_list[counter]);
-	  const char		*name = GSNameFromSelector(method->method_name);
+          struct objc_method *method = &(mlist->method_list[counter]);
+	  const char	     *name = GSNameFromSelector(method->method_name);
 
-	  if (behavior_debug)
-	    {
-	      fprintf(stderr, "   processing method [%s] ... ", name);
-	    }
+	  BDBGPrintf("   processing method [%s] ... ", name);
+
 	  if (!search_for_method_in_list(class->methods, method->method_name)
 	    && !sel_eq(method->method_name, initialize_sel))
 	    {
@@ -777,14 +773,12 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 	      new_list->method_list[new_list->method_count].method_name
 		= (SEL)name;
 	      (new_list->method_count)++;
-	      if (behavior_debug)
-		{
-		  fprintf(stderr, "added.\n"); 
-		}
+
+	      BDBGPrintf("added.\n"); 
 	    }
-	  else if (behavior_debug)
+	  else
 	    {
-	      fprintf(stderr, "ignored.\n"); 
+	      BDBGPrintf("ignored.\n"); 
 	    }
           counter -= 1;
         }
@@ -1084,16 +1078,10 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
       receiver->instance_size = behavior->instance_size;
     }
 
-  if (behavior_debug)
-    {
-      fprintf(stderr, "Adding behavior to class %s\n", receiver->name);
-    }
+  BDBGPrintf("Adding behavior to class %s\n", receiver->name);
+  BDBGPrintf("  instance methods from %s\n", behavior->name);
 
   /* Add instance methods */
-  if (behavior_debug)
-    {
-      fprintf(stderr, "Adding instance methods from %s\n", behavior->name);
-    }
 #if NeXT_RUNTIME
   {
     void			*iterator = 0;
@@ -1111,11 +1099,8 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 #endif
 
   /* Add class methods */
-  if (behavior_debug)
-    {
-      fprintf(stderr, "Adding class methods from %s\n",
-	      behavior->class_pointer->name);
-    }
+  BDBGPrintf("Adding class methods from %s\n",
+	     behavior->class_pointer->name);
 #if NeXT_RUNTIME
   {
     void			*iterator = 0;
