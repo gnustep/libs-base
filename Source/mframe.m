@@ -361,17 +361,15 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	  unsigned int acc_size = 0;
 	  unsigned int def_align = objc_alignof_type(typePtr-1);
 	  unsigned int acc_align = def_align;
+	  const char	*ptr = typePtr;
 
 	  /*
 	   *	Skip "<name>=" stuff.
 	   */
-	  while (*typePtr != _C_STRUCT_E)
-	    {
-	      if (*typePtr++ == '=')
-		{
-		  break;
-		}
-	    }
+	  while (*ptr != _C_STRUCT_E && *ptr != '=') ptr++;
+	  if (*ptr == '=') typePtr = ptr;
+	  typePtr++;
+
 	  /*
 	   *	Base structure alignment on first element.
 	   */

@@ -1,3 +1,7 @@
+2003-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe.m: Allow for structure names in type specifications.
+
 2003-05-29  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Pass on original CPPFLAGS to config.mak.

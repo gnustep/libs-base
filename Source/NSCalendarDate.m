@@ -1600,10 +1600,10 @@ static inline int getDigits(const char *from, char *to, int limit)
  *     %w   day of the week as decimal number (Sunday = 0)
  *   </item>
  *   <item>
- *     %y   year as a decimal number without century
+ *     %y   year as a decimal number without century (minimum 0)
  *   </item>
  *   <item>
- *     %Y   year as a decimal number with century
+ *     %Y   year as a decimal number with century, minimum 0, maximum 9999
  *   </item>
  *   <item>
  *     %z   time zone offset (HHMM)
@@ -1668,6 +1668,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 	      ycent = YES;
 	    case 'y':
 	      ++i;
+	      if (yd < 0)
+		yd = 0;
+	      if (yd > 9999)
+		yd = 9999;
 	      if (ycent)
 		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%04d", yd));
 	      else
