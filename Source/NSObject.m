@@ -1684,12 +1684,20 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * Returns the hash of the receiver.  Subclasses should ensure that their
  * implementations of this method obey the rule that if the -isEqual: method
  * returns YES for two instances of the class, the -hash method returns the
- * same value fro both instances.<br />
- * The default implementation returns the address of the instance.
+ * same value for both instances.<br />
+ * The default implementation returns a value based on the address
+ * of the instance.
  */
 - (unsigned) hash
 {
-  return (unsigned)self;
+  /*
+   * Ideally we would shift left to lose any zero bits produced by the
+   * alignment of the object in memory ... but that depends on the
+   * processor architecture and the memory allocatiion implementation.
+   * In the absence of detailed information, pick a reasonable value
+   * assuming the object will be aligned to an eight byte boundary.
+   */
+  return (unsigned)self >> 3;
 }
 
 /**

@@ -1258,7 +1258,6 @@ PString(NSString *obj, NSMutableData *output)
 	      case '\v':
 	      case '\f':
 	      case '\\':
-	      case '\'' :
 	      case '"' :
 		len += 2;
 		break;
@@ -1301,7 +1300,6 @@ PString(NSString *obj, NSMutableData *output)
 	      case '\v': 	*ptr++ = '\\'; *ptr++ = 'v';  break;
 	      case '\f': 	*ptr++ = '\\'; *ptr++ = 'f';  break;
 	      case '\\': 	*ptr++ = '\\'; *ptr++ = '\\'; break;
-	      case '\'': 	*ptr++ = '\\'; *ptr++ = '\''; break;
 	      case '"' : 	*ptr++ = '\\'; *ptr++ = '"';  break;
 
 	      default:

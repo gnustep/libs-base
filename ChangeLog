@@ -1,3 +1,8 @@
+2004-08-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: don't escape single quotes unnecessarily.
+	* Source/NSObject.m: (hash) tweak performance a little.
+
 2004-08-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPort.m (+initialize), Source/NSPortNameServer.m
