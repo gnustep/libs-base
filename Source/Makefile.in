@@ -303,7 +303,6 @@ NSException.m \
 NSGeometry.m \
 NSGArchiver.m \
 NSGArray.m \
-NSGCoder.m \
 NSGCountedSet.m \
 NSGCString.m \
 NSGData.m \
@@ -367,7 +366,6 @@ Foundation/NSException.h \
 Foundation/NSGeometry.h \
 Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
-Foundation/NSGCoder.h \
 Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
