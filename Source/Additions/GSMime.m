@@ -3560,8 +3560,12 @@ static NSCharacterSet	*tokenSet = nil;
 
 	  enc = [GSMimeDocument encodingFromCharset: charset];
 	  d = [content dataUsingEncoding: enc];
+	  if (d == nil)
+	    {
+	      charset = nil;	// String can't be converted to this charset
+	    }
 	}
-      else
+      if (charset == nil)
 	{
 	  charset = selectCharacterSet(content, &d);
 	  [hdr setParameter: charset forKey: @"charset"];
