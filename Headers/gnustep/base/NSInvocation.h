@@ -1,8 +1,8 @@
 /* Interface for NSInvocation for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: 1995
+   Created: 1995
    
    This file is part of the GNU Objective C Class Library.
 
@@ -29,15 +29,13 @@
 @class NSMethodSignature;
 
 @interface NSInvocation : NSObject
-{
-  id methodSignature;
-  arglist_t argFrame;
-  retval_t retFrame;
-}
+@end
+
+/* Put these in a category to avoid gcc complaints about methods
+   not being there; the method come from a behavior. */
+@interface NSInvocation (GNUstep)
 
 + (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms;
-+ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms
-   frame: (arglist_t)argFrame;
 
 - (void) getArgument: (void*)argumentLocation atIndex: (int)index;
 - (void) getReturnValue: (void*)returnLocation;
