@@ -77,7 +77,9 @@ getpagesize(void)
    getpagesize() system call repeatedly. */
 static unsigned ns_page_size = 0;
 
-/* Return the number of bytes in a memory page. */
+/**
+ * Return the number of bytes in a memory page.
+ */
 unsigned
 NSPageSize (void)
 {
@@ -86,7 +88,9 @@ NSPageSize (void)
   return ns_page_size;
 }
 
-/* Return log base 2 of the number of bytes in a memory page. */
+/**
+ * Return log base 2 of the number of bytes in a memory page.
+ */
 unsigned
 NSLogPageSize (void)
 {
@@ -98,8 +102,10 @@ NSLogPageSize (void)
   return log;
 }
 
-/* Round BYTES down to the nearest multiple of the memory page size,
-   and return it. */
+/**
+ * Round bytes down to the nearest multiple of the memory page size,
+ * and return it.
+ */
 unsigned
 NSRoundDownToMultipleOfPageSize (unsigned bytes)
 {
@@ -108,8 +114,10 @@ NSRoundDownToMultipleOfPageSize (unsigned bytes)
   return (bytes / a) * a;
 }
 
-/* Round BYTES up to the nearest multiple of the memory page size,
-   and return it. */
+/**
+ * Round bytes up to the nearest multiple of the memory page size,
+ * and return it.
+ */
 unsigned
 NSRoundUpToMultipleOfPageSize (unsigned bytes)
 {
@@ -122,6 +130,9 @@ NSRoundUpToMultipleOfPageSize (unsigned bytes)
 #include	<sys/sysinfo.h>
 #endif
 
+/**
+ * Return the number of bytes of real (physical) memory available.
+ */
 unsigned
 NSRealMemoryAvailable ()
 {
@@ -148,6 +159,10 @@ NSRealMemoryAvailable ()
 #endif
 }
 
+/**
+ * Allocate memory for this process and return a pointer to it (or a nul
+ * pointer on failure).  
+ */
 void *
 NSAllocateMemoryPages (unsigned bytes)
 {
@@ -171,6 +186,10 @@ NSAllocateMemoryPages (unsigned bytes)
 #endif
 }
 
+/**
+ * Deallocate memory which was previously allocated using the
+ * NSAllocateMemoryPages() function.
+ */
 void
 NSDeallocateMemoryPages (void *ptr, unsigned bytes)
 {
@@ -181,29 +200,19 @@ NSDeallocateMemoryPages (void *ptr, unsigned bytes)
 #endif
 }
 
+/**
+ * Perform an efficient large scale copy of data from src to dest.
+ * The value bytes specifies the length of the data copied.
+ */
 void
-NSCopyMemoryPages (const void *source, void *dest, unsigned bytes)
+NSCopyMemoryPages (const void *src, void *dest, unsigned bytes)
 {
 #if __mach__
   kern_return_t r;
-  r = vm_copy (mach_task_self(), source, bytes, dest);
+  r = vm_copy (mach_task_self(), src, bytes, dest);
   NSParameterAssert (r == KERN_SUCCESS);
 #else
-  memcpy (dest, source, bytes);
+  memcpy (dest, src, bytes);
 #endif
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
