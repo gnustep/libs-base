@@ -1967,6 +1967,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (void) setDefaultCharset: (NSString*)aName
 {
   _defaultEncoding = [documentClass encodingFromCharset: aName];
+  if (_defaultEncoding == 0)
+    {
+      _defaultEncoding = NSASCIIStringEncoding;
+    }
 }
 
 
@@ -3106,15 +3110,26 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Return the MIME characterset name corresponding to the
- * specified string encoding.
+ * specified string encoding.<br />
+ * As a special case, returns "ascii" if enc is zero.<br />
+ * Raises an NSInvalidArgumentException if enc cannot be
+ * mapped to a charset.<br />
+ * NB. The correspondence between charsets and encodings is not
+ * a direct one to one mapping, so successive calls to +encodingFromCharset:
+ * and +charsetFromEncoding: may not produce the original input.
  */
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc
 {
-  NSString	*charset = (NSString*)NSMapGet(encodings, (void*)enc);
+  NSString	*charset = @"ascii";
 
-  if (charset == nil)
+  if (enc != 0)
     {
-      charset = @"utf-8";
+      charset = (NSString*)NSMapGet(encodings, (void*)enc);
+      if (charset == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"no charset for encoding '%d'", enc];
+	}
     }
   return charset;
 }
@@ -3305,7 +3320,14 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Return the string encoding corresponding to the specified MIME
- * characterset name.
+ * characterset name.<br />
+ * As a special case, returns NSASCIIStringEncoding if charset is nil.<br />
+ * Raises an NSInvalidArgumentException if charset cannot be found.<br />
+ * NB. We treat iso-10646-ucs-2 and iso-10646 as utf-16, which should
+ * work correctly for most text, but is not strictly correct.<br />
+ * The correspondence between charsets and encodings is not
+ * a direct one to one mapping, so successive calls to +encodingFromCharset:
+ * and +charsetFromEncoding: may not produce the original input.
  */
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset
 {
@@ -3320,7 +3342,8 @@ static NSCharacterSet	*tokenSet = nil;
 	  enc = (NSStringEncoding)NSMapGet(charsets, charset);
 	  if (enc == 0)
 	    {
-	      enc = NSASCIIStringEncoding;	// Default character set.
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"unknown charset '%@'", charset];
 	    }
 	}
     }
@@ -3367,6 +3390,8 @@ static NSCharacterSet	*tokenSet = nil;
 	    NSIntMapValueCallBacks, 0);
 	  NSMapInsert(charsets, (void*)@"ascii",
 	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"us-ascii",
+	    (void*)NSASCIIStringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-1",
 	    (void*)NSISOLatin1StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-2",
@@ -3407,10 +3432,14 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-10646",
 	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16",
+	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"big5",
 	    (void*)NSBIG5StringEncoding);
 	  NSMapInsert(charsets, (void*)@"shift_JIS",
 	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-7",
+	    (void*)NSUTF7StringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-8",
 	    (void*)NSUTF8StringEncoding);
 	}
@@ -3457,11 +3486,15 @@ static NSCharacterSet	*tokenSet = nil;
 	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
 	    (void*)@"windows-1254");
 	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
-	    (void*)@"utf-8");
+	    (void*)@"utf-16");
 	  NSMapInsert(encodings, (void*)NSBIG5StringEncoding,
 	    (void*)@"big5");
 	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
 	    (void*)@"shift_JIS");
+	  NSMapInsert(encodings, (void*)NSUTF7StringEncoding,
+	    (void*)@"utf-7");
+	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
+	    (void*)@"utf-8");
 	}
     }
 }
