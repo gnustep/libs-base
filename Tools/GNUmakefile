@@ -64,7 +64,10 @@ pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
 HTMLLinker_OBJC_FILES = HTMLLinker.m
 
-DOCUMENT_NAME = autogsdoc
+DOCUMENT_NAME = autogsdoc HTMLLinkerDoc
+
+HTMLLinkerDoc_DOC_INSTALL_DIR = Developer/Tools
+HTMLLinkerDoc_INSTALL_FILES = HTMLLinker.html
 
 # Documentation rules for autogsdoc
 autogsdoc_AGSDOC_FLAGS = -Up autogsdoc
