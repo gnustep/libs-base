@@ -3092,7 +3092,9 @@ handle_printf_atsign (FILE *stream,
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
 {
-  if ([self length] == 0)
+  unsigned	length;
+
+  if ((length = [self length]) == 0)
     {
       [output appendString: @"\"\""];
       return;
@@ -3104,11 +3106,23 @@ handle_printf_atsign (FILE *stream,
     }
   if ([self rangeOfCharacterFromSet: quotables].length > 0)
     {
-      const char	*cstring = [self cString];
-      const char	*from;
-      int		len = 0;
+      unichar	tmp[length <= 1024 ? length : 0];
+      unichar	*ustring;
+      unichar	*from;
+      unichar	*end;
+      int	len = 0;
 
-      for (from = cstring; *from; from++)
+      if (length <= 1024)
+	{
+	  ustring = tmp;
+	}
+      else
+	{
+	  ustring = NSZoneMalloc(NSDefaultMallocZone(), length);
+	}
+      end = &ustring[length];
+      [self getCharacters: ustring];
+      for (from = ustring; from < end; from++)
 	{
 	  switch (*from)
 	    {
@@ -3126,13 +3140,20 @@ handle_printf_atsign (FILE *stream,
 		break;
 
 	      default: 
-		if (isprint(*from) || *from == ' ')
+		if (*from < 128)
 		  {
-		    len++;
+		    if (isprint(*from) || *from == ' ')
+		      {
+			len++;
+		      }
+		    else
+		      {
+			len += 4;
+		      }
 		  }
 		else
 		  {
-		    len += 4;
+		    len += 10;
 		  }
 		break;
 	    }
@@ -3143,7 +3164,7 @@ handle_printf_atsign (FILE *stream,
 	char	*ptr = buf;
 
 	*ptr++ = '"';
-	for (from = cstring; *from; from++)
+	for (from = ustring; from < end; from++)
 	  {
 	    switch (*from)
 	      {
@@ -3159,14 +3180,22 @@ handle_printf_atsign (FILE *stream,
 		case '"' : 	*ptr++ = '\\'; *ptr++ = '"';  break;
 
 		default: 
-		  if (isprint(*from) || *from == ' ')
+		  if (*from < 128)
 		    {
-		      *ptr++ = *from;
+		      if (isprint(*from) || *from == ' ')
+			{
+			  *ptr++ = *from;
+			}
+		      else
+			{
+			  sprintf(ptr, "\\%03o", *(unsigned char*)from);
+			  ptr = &ptr[4];
+			}
 		    }
 		  else
 		    {
-		      sprintf(ptr, "\\%03o", *(unsigned char*)from);
-		      ptr = &ptr[4];
+		      sprintf(ptr, "\\U%08x", *from);
+		      ptr = &ptr[10];
 		    }
 		  break;
 	      }
@@ -3175,6 +3204,10 @@ handle_printf_atsign (FILE *stream,
 	*ptr = '\0';
 	[output appendString: [NSStringClass stringWithCString: buf]];
       }
+      if (length > 1024)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), ustring);
+	}
     }
   else
     {
@@ -3847,28 +3880,35 @@ static inline id parseQuotedString(pldata* pld)
 
       if (escaped)
 	{
-	  if (escaped == 1 && c == '0')
+	  if (escaped == 1 && c >= '0' && c <= '7')
 	    {
 	      escaped = 2;
 	      hex = NO;
 	    }
+	  else if (escaped == 1 && c == 'U')
+	    {
+	      escaped = 2;
+	      shrink++;
+	      hex = YES;
+	    }
 	  else if (escaped > 1)
 	    {
-	      if (escaped == 2 && c == 'x')
-		{
-		  hex = YES;
-		  shrink++;
-		  escaped++;
-		}
-	      else if (hex && GS_IS_HEXDIGIT(c))
+	      if (hex && GS_IS_HEXDIGIT(c))
 		{
 		  shrink++;
 		  escaped++;
+		  if (escaped == 10)
+		    {
+		      escaped = 0;
+		    }
 		}
 	      else if (c >= '0' && c <= '7')
 		{
 		  shrink++;
-		  escaped++;
+		  if (escaped == 4)
+		    {
+		      escaped = 0;
+		    }
 		}
 	      else
 		{
@@ -3920,30 +3960,39 @@ static inline id parseQuotedString(pldata* pld)
 
 	  if (escaped)
 	    {
-	      if (escaped == 1 && c == '0')
+	      if (escaped == 1 && c >= '0' && c <= '7')
 		{
 		  chars[k] = 0;
 		  hex = NO;
 		  escaped++;
 		}
+	      else if (escaped == 1 && c == 'U')
+		{
+		  chars[k] = 0;
+		  hex = YES;
+		  escaped++;
+		}
 	      else if (escaped > 1)
 		{
-		  if (escaped == 2 && c == 'x')
-		    {
-		      hex = YES;
-		      escaped++;
-		    }
-		  else if (hex && GS_IS_HEXDIGIT(c))
+		  if (hex && GS_IS_HEXDIGIT(c))
 		    {
 		      chars[k] <<= 4;
 		      chars[k] |= char2num(c);
 		      escaped++;
+		      if (escaped == 10)
+			{
+			  escaped = 0;
+			}
 		    }
 		  else if (c >= '0' && c <= '7')
 		    {
 		      chars[k] <<= 3;
 		      chars[k] |= (c - '0');
 		      escaped++;
+		      if (escaped == 4)
+			{
+			  escaped = 0;
+			}
 		    }
 		  else
 		    {

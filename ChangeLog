@@ -1,3 +1,10 @@
+2001-04-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: parseQuotedString() handle \U escape sequences
+	of eight digit hex encoded unicode values.
+	([descriptionWithLocale:indent:to@]) handle unicode strings by using
+	\U escape sequences in output C string.
+
 2000-04-28  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSString.m: 
