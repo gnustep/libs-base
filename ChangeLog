@@ -1,3 +1,19 @@
+2001-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSuserDefaults.m: Fix +resetUserDefaults to retain the
+        NSRegistrationDomain information ... was losing it when this method
+        was called in response to the user name being initially set.
+        ([-registerDefaults:]) fix for when no dictionary found.
+        Use NSLanguages rather than Languages as key for the languages list.
+	* Source/NSUser.m: GSSetUserName() ... only reset the user defaults
+	if the name is actually changed - and not if it is being initialised.
+	When standardUserDefaults are first obtained, the user name should be
+	initialised as part of that process anyway.
+        * Source/NSFileManager.m: ([-removeFileAtpath:handler:])
+        Fix this method so it *doesn't* follow symbolic links.
+        This makes it conform to the documentation and prevents
+        accidental removal of entire directory hierarchies!
+
 Wed Jun 13 19:43:16 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSFileManager.m

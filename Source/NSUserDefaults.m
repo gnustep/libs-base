@@ -106,8 +106,25 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 + (void) resetUserDefaults
 {
-  setSharedDefaults = NO;
-  DESTROY(sharedDefaults);
+  if (sharedDefaults != nil)
+    {
+      NSDictionary	*regDefs;
+
+      regDefs = RETAIN([sharedDefaults->_tempDomains
+	objectForKey: NSRegistrationDomain]);
+      setSharedDefaults = NO;
+      DESTROY(sharedDefaults);
+      if (regDefs != nil)
+	{
+	  [self standardUserDefaults];
+	  if (sharedDefaults != nil)
+	    {
+	      [sharedDefaults->_tempDomains setObject: regDefs
+					       forKey: NSRegistrationDomain];
+	    }
+	  RELEASE(regDefs);
+	}
+    }
 }
 
 /* Create a locale dictionary when we have absolutely no information
@@ -308,7 +325,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   locale = GSSetLocale(@"");
   if (sharedDefaults == nil)
     {
-      /* Create our own defaults to get "Languages" since sharedDefaults
+      /* Create our own defaults to get "NSLanguages" since sharedDefaults
 	 depends on us */
       NSUserDefaults	*tempDefaults;
 
@@ -328,13 +345,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	  [sList addObject: NSRegistrationDomain];
 	  [tempDefaults setSearchList: sList];
 	  RELEASE(sList);
-	  currLang = [tempDefaults stringArrayForKey: @"Languages"];
+	  currLang = [tempDefaults stringArrayForKey: @"NSLanguages"];
 	  AUTORELEASE(tempDefaults);
 	}
     }
   else
     {
-      currLang = [[self standardUserDefaults] stringArrayForKey: @"Languages"];
+      currLang
+	= [[self standardUserDefaults] stringArrayForKey: @"NSLanguages"];
     }
   if (currLang == nil && locale != 0 && GSLanguageFromLocale(locale))
     {
@@ -880,7 +898,7 @@ static NSString	*pathForUser(NSString *user)
   else
     {
       attr = [NSDictionary dictionaryWithObjectsAndKeys: 
-		NSUserName(), NSFileOwnerAccountName, nil];
+	NSUserName(), NSFileOwnerAccountName, nil];
       NSLog(@"Creating defaults database file %@", _defaultsDatabase);
       [mgr createFileAtPath: _defaultsDatabase
 		   contents: nil
@@ -1034,6 +1052,7 @@ static NSString	*pathForUser(NSString *user)
     {
       regDefs = [NSMutableDictionaryClass
 	dictionaryWithCapacity: [newVals count]];
+      [_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
     }
   DESTROY(_dictionaryRep);
   [regDefs addEntriesFromDictionary: newVals];
