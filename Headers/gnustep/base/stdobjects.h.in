@@ -61,11 +61,11 @@
 @class String;
 
 /* The following five lines are maintained by the libobjects Makefile */
-#define OBJECTS_VERSION 0.1.6
-#define OBJECTS_MAJOR_VERSION 0
-#define OBJECTS_MINOR_VERSION 1
-#define OBJECTS_SUBMINOR_VERSION 6
-#define OBJECTS_GCC_VERSION 2.6.3
+#define OBJECTS_VERSION @OBJECTS_VERSION@
+#define OBJECTS_MAJOR_VERSION @OBJECTS_MAJOR_VERSION@
+#define OBJECTS_MINOR_VERSION @OBJECTS_MINOR_VERSION@
+#define OBJECTS_SUBMINOR_VERSION @OBJECTS_SUBMINOR_VERSION@
+#define OBJECTS_GCC_VERSION @OBJECTS_GCC_VERSION@
 
 extern const char objects_version[];
 extern const char objects_gcc_version[];
