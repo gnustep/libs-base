@@ -5,6 +5,7 @@
 	* Source/callframe.m:
 	* Source/cifframe.m:
 	Include malloc.h for systems where it is needed for alloca()
+	* Tools/gdomap.c: Avoid some warnings on mingw32
 
 M Source/mframe/mframe.head
 2005-02-21 14:10 Stefan Urbanek <stefan@agentfarms.net>
