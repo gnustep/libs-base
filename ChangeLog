@@ -1,3 +1,8 @@
+2004-02-18  David Ayers  <d.ayers@inode.at>
+
+	* Source/Additions/Unicode.m (GetDefEncoding): Replace
+	NSKoreanEUCEncoding with NSKoreanEUCStringEncoding.
+
 2004-02-17  Bruno Haible  <bruno@clisp.org>
 
 	* Source/Additions/Unicode.m (GetDefEncoding): Use the result of

@@ -694,7 +694,7 @@ GetDefEncoding()
 		   || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
 		   || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
 		   || strcmp(encoding, "5601") == 0 /* Solaris */)
-	    defEnc = NSKoreanEUCEncoding;
+	    defEnc = NSKoreanEUCStringEncoding;
 	  else
 #endif
 	    defEnc = NSISOLatin1StringEncoding;
