@@ -2,6 +2,9 @@
 
 	* Source/NSDebug.m: Remove checks for existence of lock ... it always
 	exists, so the checks are useless.
+	* Source/NSThread.m: Refrain from creating thread dictionary in an
+	inactive thread ... we don't want to create new objects in a thread
+	which is in the process of exiting.
 
 2004-09-24 Richard Frith-Macdonald <rfm@gnu.org>
 

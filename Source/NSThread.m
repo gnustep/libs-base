@@ -53,6 +53,8 @@
 
 @class	GSPerformHolder;
 
+typedef struct { @defs(NSThread) } NSThread_ivars;
+
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
 
@@ -261,7 +263,8 @@ GSCurrentThread(void)
 }
 
 /**
- * Fast access function for thread dictionary of current thread.
+ * Fast access function for thread dictionary of current thread.<br />
+ * If there is no dictionary, and the thread is active, creates the dictionary.
  */
 NSMutableDictionary*
 GSDictionaryForThread(NSThread *t)
@@ -278,7 +281,7 @@ GSDictionaryForThread(NSThread *t)
     {
       NSMutableDictionary	*dict = t->_thread_dictionary;
 
-      if (dict == nil)
+      if (dict == nil && ((NSThread_ivars *)t)->_active == YES)
 	{
 	  dict = [t threadDictionary];
 	}
@@ -313,7 +316,9 @@ NSTimer	*GSHousekeeper(void)
 
 /**
  * Returns the runloop for the specified thread (or, if t is nil,
- * for the current thread).  Creates a new runloop if necessary.<br />
+ * for the current thread).<br />
+ * Creates a new runloop if necessary,
+ * as long as the thread dictionary exists.<br />
  * Returns nil on failure.
  */
 NSRunLoop*
@@ -1065,9 +1070,6 @@ static NSDate *theFuture;
 			      modes: commonModes()];
 }
 @end
-
-typedef struct { @defs(NSThread) } NSThread_ivars;
-
 
 /**
  * <p>
