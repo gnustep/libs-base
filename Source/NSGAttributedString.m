@@ -43,9 +43,11 @@
  *		attributes argument and use the values from the string.
  */
 
+#include <base/preface.h>
 #include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
+#include <base/NSGArray.h>
+#include <base/fast.x>
 
 @interface	GSAttrInfo : NSObject
 {
@@ -106,16 +108,55 @@
 
 @implementation NSGAttributedString
 
-static SEL	infSel = @selector(newWithZone:value:at:);
-static IMP	infImp = 0;
 static Class	infCls = 0;
 
-void _setAttributesFrom(
+static SEL	infSel = @selector(newWithZone:value:at:);
+static IMP	infImp = 0;
+
+static SEL	addSel = @selector(addObject:);
+static void	(*addImp)() = 0;
+
+static SEL	cntSel = @selector(count);
+static unsigned (*cntImp)() = 0;
+
+static SEL	insSel = @selector(insertObject:atIndex:);
+static void	(*insImp)() = 0;
+
+static SEL	oatSel = @selector(objectAtIndex:);
+static IMP	oatImp = 0;
+
+static SEL	remSel = @selector(removeObjectAtIndex:);
+static void	(*remImp)() = 0;
+
+#define	NEWINFO(Z,O,L)	((*infImp)(infCls, infSel, (Z), (O), (L)))
+#define	ADDOBJECT(O)	((*addImp)(infoArray, addSel, (O)))
+#define	INSOBJECT(O,I)	((*insImp)(infoArray, insSel, (O), (I)))
+#define	OBJECTAT(I)	((*oatImp)(infoArray, oatSel, (I)))
+#define	REMOVEAT(I)	((*remImp)(infoArray, remSel, (I)))
+
+static void _setup()
+{
+  if (infCls == 0)
+    {
+      Class	c = [NSGMutableArray class];
+
+      infCls = [GSAttrInfo class];
+      infImp = [infCls methodForSelector: infSel];
+      addImp = (void (*)())[c instanceMethodForSelector: addSel];
+      cntImp = (unsigned (*)())[c instanceMethodForSelector: cntSel];
+      insImp = (void (*)())[c instanceMethodForSelector: insSel];
+      oatImp = [c instanceMethodForSelector: oatSel];
+      remImp = (void (*)())[c instanceMethodForSelector: remSel];
+    }
+}
+
+static void
+_setAttributesFrom(
   NSAttributedString *attributedString,
   NSRange aRange,
   NSMutableArray *infoArray)
 {
-  NSZone	*z = [infoArray zone];
+  NSZone	*z = fastZone(infoArray);
   NSRange	range;
   NSDictionary	*attr;
   GSAttrInfo	*info;
@@ -132,7 +173,7 @@ void _setAttributesFrom(
   attr = [attributedString attributesAtIndex: aRange.location
 			      effectiveRange: &range];
   info = [GSAttrInfo newWithZone: z value: attr at: 0];
-  [infoArray addObject: info];
+  ADDOBJECT(info);
   RELEASE(info);
 
   while ((loc = NSMaxRange(range)) < NSMaxRange(aRange))
@@ -140,12 +181,13 @@ void _setAttributesFrom(
       attr = [attributedString attributesAtIndex: loc
 				  effectiveRange: &range];
       info = [GSAttrInfo newWithZone: z value: attr at: loc - aRange.location];
-      [infoArray addObject: info];
+      ADDOBJECT(info);
       RELEASE(info);
     }
 }
 
-NSDictionary *_attributesAtIndexEffectiveRange(
+inline static NSDictionary*
+_attributesAtIndexEffectiveRange(
   unsigned int index,
   NSRange *aRange,
   unsigned int tmpLength,
@@ -162,7 +204,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 			  @"_attributesAtIndexEffectiveRange()"];
     }
   
-  used = [infoArray count];
+  used = (*cntImp)(infoArray, cntSel);
 
   /*
    * Binary search for efficiency in huge attributed strings
@@ -172,7 +214,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   while (low <= high)
     {
       cnt = (low + high) / 2;
-      found = [infoArray objectAtIndex: cnt];
+      found = OBJECTAT(cnt);
       if (found->loc > index)
 	{
 	  high = cnt - 1;
@@ -185,7 +227,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 	    }
 	  else
 	    {
-	      GSAttrInfo	*inf = [infoArray objectAtIndex: cnt + 1];
+	      GSAttrInfo	*inf = OBJECTAT(cnt + 1);
 
 	      nextLoc = inf->loc;
 	    }
@@ -215,11 +257,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 
 + (void) initialize
 {
-  if (infCls == 0)
-    {
-      infCls = [GSAttrInfo class];
-      infImp = [infCls methodForSelector: infSel];
-    }
+  _setup();
 }
 
 - (Class) classForPortCoder
@@ -250,9 +288,9 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = [self zone];
+  NSZone	*z = fastZone(self);
 
-  infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
+  infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
@@ -264,8 +302,8 @@ NSDictionary *_attributesAtIndexEffectiveRange(
     {
       GSAttrInfo	*info;
 
-      info = (*infImp)(infCls, infSel, z, attributes, 0);
-      [infoArray addObject: info];
+      info = NEWINFO(z, attributes, 0);
+      ADDOBJECT(info);
       RELEASE(info);
     }
   if (aString == nil)
@@ -284,7 +322,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
-    index, aRange, [self length], infoArray, NULL);
+    index, aRange, [textChars length], infoArray, NULL);
 }
 
 - (void) dealloc
@@ -301,11 +339,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 
 + (void) initialize
 {
-  if (infCls == 0)
-    {
-      infCls = [GSAttrInfo class];
-      infImp = [infCls methodForSelector: infSel];
-    }
+  _setup();
 }
 
 - (Class) classForPortCoder
@@ -336,9 +370,9 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = [self zone];
+  NSZone	*z = fastZone(self);
 
-  infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
+  infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
@@ -350,12 +384,12 @@ NSDictionary *_attributesAtIndexEffectiveRange(
     {
       GSAttrInfo	*info;
 
-      info = (*infImp)(infCls, infSel, z, attributes, 0);
-      [infoArray addObject: info];
+      info = NEWINFO(z, attributes, 0);
+      ADDOBJECT(info);
       RELEASE(info);
     }
   if (aString == nil)
-    textChars = [[NSMutableString alloc] init];
+    textChars = [[NSGMutableString allocWithZone: z] init];
   else
     textChars = [aString mutableCopyWithZone: z];
   return self;
@@ -370,7 +404,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
-    index, aRange, [self length], infoArray, NULL);
+    index, aRange, [textChars length], infoArray, NULL);
 }
 
 - (void) setAttributes: (NSDictionary*)attributes
@@ -380,19 +414,19 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   NSRange	effectiveRange;
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
-  NSZone	*z = [self zone];
+  NSZone	*z = fastZone(self);
   GSAttrInfo	*info;
 
   if (!attributes)
     attributes = [NSDictionary dictionary];
-  tmpLength = [self length];
+  tmpLength = [textChars length];
   if (NSMaxRange(range) > tmpLength)
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -replaceCharactersInRange: "
 			  @"withString: in class NSMutableAttributedString"];
     }
-  arraySize = [infoArray count];
+  arraySize = (*cntImp)(infoArray, cntSel);
   if (NSMaxRange(range) < tmpLength)
     {
       attrs = _attributesAtIndexEffectiveRange(
@@ -401,13 +435,14 @@ NSDictionary *_attributesAtIndexEffectiveRange(
       afterRangeLoc = NSMaxRange(range);
       if (effectiveRange.location > range.location)
 	{
-	  info = [infoArray objectAtIndex: arrayIndex];
+	  info = OBJECTAT(arrayIndex);
 	  info->loc = afterRangeLoc;
 	}
       else
 	{
-	  info = (*infImp)(infCls, infSel, z, attrs, afterRangeLoc);
-	  [infoArray insertObject: info atIndex: ++arrayIndex];
+	  info = NEWINFO(z, attrs, afterRangeLoc);
+	  arrayIndex++;
+	  INSOBJECT(info, arrayIndex);
 	  RELEASE(info);
 	}
       arrayIndex--;
@@ -419,15 +454,15 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   
   while (arrayIndex > 0)
     {
-      info = [infoArray objectAtIndex: arrayIndex-1];
+      info = OBJECTAT(arrayIndex-1);
       if (info->loc < range.location)
 	break;
-      [infoArray removeObjectAtIndex: arrayIndex];
+      REMOVEAT(arrayIndex);
       arrayIndex--;
     }
 
   beginRangeLoc = range.location;
-  info = [infoArray objectAtIndex: arrayIndex];
+  info = OBJECTAT(arrayIndex);
   location = info->loc;
   if (location >= range.location)
     {
@@ -440,8 +475,8 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   else
     {
       arrayIndex++;
-      info = (*infImp)(infCls, infSel, z, attributes, beginRangeLoc);
-      [infoArray insertObject: info atIndex: arrayIndex];
+      info = NEWINFO(z, attributes, beginRangeLoc);
+      INSOBJECT(info, arrayIndex);
       RELEASE(info);
     }
   
@@ -468,18 +503,18 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   NSDictionary	*attrs;
   unsigned	afterRangeLoc;
   GSAttrInfo	*info;
-  NSZone	*z = [self zone];
+  NSZone	*z = fastZone(self);
 
   if (!aString)
     aString = @"";
-  tmpLength = [self length];
+  tmpLength = [textChars length];
   if (NSMaxRange(range) > tmpLength)
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -replaceCharactersInRange: "
 			  @"withString: in class NSMutableAttributedString"];
     }
-  arraySize = [infoArray count];
+  arraySize = (*cntImp)(infoArray, cntSel);
   if (NSMaxRange(range) < tmpLength)
     {
       attrs = _attributesAtIndexEffectiveRange(
@@ -490,13 +525,14 @@ NSDictionary *_attributesAtIndexEffectiveRange(
       
       if (effectiveRange.location > range.location)
 	{
-	  info = [infoArray objectAtIndex: arrayIndex];
+	  info = OBJECTAT(arrayIndex);
 	  info->loc = afterRangeLoc;
 	}
       else
 	{
-	  info = (*infImp)(infCls, infSel, z, attrs, afterRangeLoc);
-	  [infoArray insertObject: info atIndex: ++arrayIndex];
+	  info = NEWINFO(z, attrs, afterRangeLoc);
+	  arrayIndex++;
+	  INSOBJECT(info, arrayIndex);
 	  arraySize++;
 	  RELEASE(info);
 	}
@@ -525,10 +561,10 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 
   while (arrayIndex > 0)
     {
-      info = [infoArray objectAtIndex: arrayIndex];
+      info = OBJECTAT(arrayIndex);
       if (info->loc <= range.location)
 	break;
-      [infoArray removeObjectAtIndex: arrayIndex];
+      REMOVEAT(arrayIndex);
       arrayIndex--;
     }
   [textChars replaceCharactersInRange: range withString: aString];
