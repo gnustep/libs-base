@@ -24,7 +24,7 @@
 
 #include <foundation/NSArray.h>
 #include <foundation/NSString.h>
-#include <foundation/NSConcreteArray.h>
+#include <foundation/NSGArray.h>
 #include <foundation/NSArrayEnumerator.h>
 #include <limits.h>
 
@@ -32,12 +32,12 @@
 
 + array
 {
-  return [[[NSConcreteArray alloc] init] autorelease];
+  return [[[NSGArray alloc] init] autorelease];
 }
 
 + arrayWithObject: anObject
 {
-  id a = [[[NSConcreteArray class] alloc] init];
+  id a = [[[NSGArray class] alloc] init];
   [a addObject: anObject];
   return [a autorelease];
 }
@@ -88,7 +88,7 @@
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[NSConcreteArray alloc] initWithObjects:firstObject rest:ap];
+  self = [[NSGArray alloc] initWithObjects:firstObject rest:ap];
   va_end(ap);
   return [self autorelease];
 }
@@ -263,7 +263,7 @@
 
 - mutableCopyWithZone: (NSZone*)zone
 {
-  return [[NSConcreteMutableArray allocWithZone:zone] initWithArray:self];
+  return [[NSGMutableArray allocWithZone:zone] initWithArray:self];
 }
 
 @end
@@ -272,7 +272,7 @@
 
 + arrayWithCapacity: (unsigned)numItems
 {
-  return [[[[NSConcreteMutableArray class] alloc] initWithCapacity:numItems] 
+  return [[[[NSGMutableArray class] alloc] initWithCapacity:numItems] 
 	  autorelease];
 }
 

@@ -1,4 +1,4 @@
-/* Interface to concrete implementation of NSArray.
+/* Interface to concrete implementation of NSArray based on GNU Array
    Copyright (C) 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
@@ -21,14 +21,14 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#ifndef __NSConcreteArray_h_OBJECTS_INCLUDE
-#define __NSConcreteArray_h_OBJECTS_INCLUDE
+#ifndef __NSGArray_h_OBJECTS_INCLUDE
+#define __NSGArray_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
 #include <foundation/NSArray.h>
 #include <objects/elt.h>
 
-@interface NSConcreteArray : NSArray
+@interface NSGArray : NSArray
 {
   /* For now, these must match the instance variables in objects/Array.h.
      This will change. */
@@ -41,7 +41,7 @@
 
 @end
 
-@interface NSConcreteMutableArray : NSArray
+@interface NSGMutableArray : NSMutableArray
 {
   /* For now, these must match the instance variables in objects/Array.h.
      This will change. */
@@ -54,4 +54,4 @@
 
 @end
 
-#endif /* __NSConcreteArray_h_OBJECTS_INCLUDE */
+#endif /* __NSGArray_h_OBJECTS_INCLUDE */
