@@ -351,7 +351,7 @@ static char	**_gnu_noobjc_env = NULL;
   kptr = kvm_open(NULL, "/dev/null", NULL, O_RDONLY, "NSProcessInfo");
   if(!kptr) {
     fprintf(stderr, "Error: Your system appears to provide libkvm, but the kernel open fails\n");
-    fprintf(stderr. "Try to reconfigure gnustep-base with --enable-fake-main. to work\n");
+    fprintf(stderr, "Try to reconfigure gnustep-base with --enable-fake-main. to work\n");
     fprintf(stderr, "around this problem.");
     abort();
   }
