@@ -528,13 +528,20 @@ AC_CHECK_FUNCS(syslog)
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(vsprintf)
+AC_CHECK_FUNCS(vsprintf vasprintf)
 if test $ac_cv_func_vsprintf = yes ; then
     AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
 		VSPRINTF_RETURNS_LENGTH=1,
 		VSPRINTF_RETURNS_LENGTH=0,
 		VSPRINTF_RETURNS_LENGTH=1)
     AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH)
+fi
+if test $ac_cv_func_vasprintf = yes ; then
+    AC_TRY_RUN([#include "$srcdir/config/config.vasprintf.c"],
+		VASPRINTF_RETURNS_LENGTH=1,
+		VASPRINTF_RETURNS_LENGTH=0,
+		VASPRINTF_RETURNS_LENGTH=1)
+    AC_DEFINE_UNQUOTED(VASPRINTF_RETURNS_LENGTH, $VASPRINTF_RETURNS_LENGTH)
 fi
 
 #--------------------------------------------------------------------
