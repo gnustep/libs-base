@@ -34,6 +34,7 @@
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSUserDefaults.h"
+#include "GSPrivate.h"
 
 
 @class NSMessagePort;
@@ -68,7 +69,8 @@ Class	NSPort_concrete_class;
       NSPort_abstract_class = self;
       /* Must be kept in sync with [NSPortNameServer
       +systemDefaultPortNameServer]. */
-      if ([[NSUserDefaults standardUserDefaults]
+      if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES 
+	|| [[NSUserDefaults standardUserDefaults]
 	boolForKey: @"NSPortIsMessagePort"])
 	{
 	  NSPort_concrete_class = [NSMessagePort class];

@@ -30,6 +30,7 @@
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSUserDefaults.h"
+#include "GSPrivate.h"
 
 
 /**
@@ -64,7 +65,8 @@
 + (id) systemDefaultPortNameServer
 {
   /* Must be kept in sync with [NSPort +initialize]. */
-  if ([[NSUserDefaults standardUserDefaults]
+  if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES
+    || [[NSUserDefaults standardUserDefaults]
     boolForKey: @"NSPortIsMessagePort"])
     {
       return [NSMessagePortNameServer sharedInstance];
