@@ -125,7 +125,11 @@ cacheAttributes(NSDictionary *attrs)
   node = GSIMapNodeForKey(&attrMap, (GSIMapKey)attrs);
   if (node == 0)
     {
-      attrs = [attrs copy];
+      /*
+       * Shallow copy of dictionary, without copying objects ... results
+       * in an immutable dictionary that can safely be cached.
+       */
+      attrs = [[NSDictionary alloc] initWithDictionary: attrs copyItems: NO];
       GSIMapAddPair(&attrMap, (GSIMapKey)attrs, (GSIMapVal)(unsigned)1);
     }
   else
