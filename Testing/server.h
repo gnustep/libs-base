@@ -75,10 +75,25 @@ struct myarray {
 - (oneway void) exceptionTest3;
 @end
 
+#ifdef	IN_SERVER
+/*
+ * We don't want the client to know about some methods, so we can
+ * check that they work when it doesn't know them.
+ */
+@protocol privateServer
+- quietBycopy: (bycopy id)o;
+@end
+@interface Server : NSObject <ServerProtocol,privateServer>
+{
+  id the_array;
+}
+@end
+#else
 @interface Server : NSObject <ServerProtocol>
 {
   id the_array;
 }
 @end
+#endif
 
 #endif /* _server_h */

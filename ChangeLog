@@ -1,6 +1,13 @@
 2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSDistantObject.m: Avoid recursion fetching method signature
+	* Source/NSDistantObject.m: Avoid recursion fetching method signature.
+	* Source/NSObject.m: ([methodSignatureForSelector:]) modified to take
+	into account any protocols that the receiver conforms to, so the
+	returned signature has the fullest possible type information.
+	* Source/GSFFCallInvocation.m: Fetch method signature from receiver
+	in preference to using other info.  Ensures we have correct info for
+	the object we are sending the message to.
+	* Source/GSFFIInvocation.m: ditto
 
 2003-07-03  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -704,7 +704,7 @@ enum
     }
 
   /*
-   *	We don't need to retain the oibject here - the connection
+   *	We don't need to retain the object here - the connection
    *	will retain the proxies local object if necessary (and release it
    *	when all proxies referring to it have been released).
    */
