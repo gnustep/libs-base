@@ -58,7 +58,7 @@ NSLocationInRange(unsigned location, NSRange range)
 
 /* Create an NSRange having the specified LOCATION and LENGTH. */
 extern NSRange
-NSMakeRange(float location, float length);
+NSMakeRange(unsigned int location, unsigned int length);
 
 extern NSRange
 NSUnionRange(NSRange range1, NSRange range2);

@@ -53,7 +53,7 @@ YACC = bison
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 DEFS= -DGNUSTEP_INSTALL_PREFIX=$(prefix) -DPLATFORM_OS=\"@PLATFORM_OS@\" \
-	-DGNUSTEP_INSTALL_LIBDIR=$(gnustep_libdir) @DEFS@
+	-DGNUSTEP_INSTALL_LIBDIR=\"$(gnustep_libdir)\" @DEFS@
 
 # File name extensions
 OEXT = .o

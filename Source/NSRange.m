@@ -5,7 +5,7 @@
 #include <Foundation/NSString.h>
 
 NSRange	
-NSMakeRange(float location, float length)
+NSMakeRange(unsigned int location, unsigned int length)
 {
     NSRange range;
     range.location = location;

@@ -27,9 +27,7 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSLock.h>
 
-#ifndef NSCharacterSet_PATH
-#define NSCharacterSet_PATH OBJC_STRINGIFY(GNUSTEP_INSTALL_LIBDIR) @"/NSCharacterSets"
-#endif
+static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 12
