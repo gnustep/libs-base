@@ -127,6 +127,9 @@
 /* Define if you have the objc_thread_add function.  */
 #undef HAVE_OBJC_THREAD_ADD
 
+/* Define if you have the poll function.  */
+#undef HAVE_POLL
+
 /* Define if you have the readlink function.  */
 #undef HAVE_READLINK
 
@@ -219,6 +222,9 @@
 
 /* Define if you have the <openssl/ssl.h> header file.  */
 #undef HAVE_OPENSSL_SSL_H
+
+/* Define if you have the <poll.h> header file.  */
+#undef HAVE_POLL_H
 
 /* Define if you have the <pthread.h> header file.  */
 #undef HAVE_PTHREAD_H

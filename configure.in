@@ -519,6 +519,13 @@ AC_CHECK_HEADERS(syslog.h)
 AC_CHECK_FUNCS(syslog)
 
 #--------------------------------------------------------------------
+# These headers/functions needed by NSRunLoop.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(poll.h)
+AC_CHECK_FUNCS(poll)
+
+
+#--------------------------------------------------------------------
 # Check for pthread.h (only when building on Darwin machines)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h)
