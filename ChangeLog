@@ -1,3 +1,20 @@
+2001-11-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m:
+	* Tools/AGSOutput.h:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m: Many bugfixes and enhancements ... generate
+	html as well as gsdoc.
+
+2001-11-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSXML.m: Implement NSCopying protocol for most classes.
+
 2001-11-19  Adam Fedor  <fedor@gnu.org>
 
 	* Source/simple-load.h (__objc_dynamic_get_symbol_path): Fix

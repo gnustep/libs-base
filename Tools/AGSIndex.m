@@ -104,6 +104,14 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
   [super dealloc];
 }
 
+- (NSString*) globalRef: (NSString*)ref type: (NSString*)type
+{
+  NSDictionary	*t;
+
+  t = [refs objectForKey: type];
+  return [t objectForKey: ref];
+}
+
 - (id) init
 {
   refs = [[NSMutableDictionary alloc] initWithCapacity: 8];
@@ -263,7 +271,8 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
       else if ([name isEqual: @"protocol"] == YES)
 	{
 	  newUnit = YES;
-	  unit = [prop objectForKey: @"name"];
+	  unit = [NSString stringWithFormat: @"(%@)",
+	    [prop objectForKey: @"name"]];
 	  [self setGlobalRef: unit type: name];
 	}
       else if ([name isEqual: @"constant"] == YES
@@ -357,6 +366,23 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
 	type, ref, unit, old, base);
     }
   [r setObject: base forKey: unit];
+}
+
+- (NSDictionary*) unitRef: (NSString*)ref type: (NSString*)type
+{
+  NSDictionary	*t;
+
+  t = [refs objectForKey: type];
+  return [t objectForKey: ref];
+}
+
+- (NSString*) unitRef: (NSString*)ref type: (NSString*)type unit: (NSString*)u
+{
+  NSDictionary	*t;
+
+  t = [refs objectForKey: type];
+  t = [t objectForKey: ref];
+  return [t objectForKey: unit];
 }
 
 @end

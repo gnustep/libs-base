@@ -26,6 +26,7 @@
 
 - (void) dealloc
 {
+  DESTROY(declared);
   DESTROY(info);
   DESTROY(comment);
   DESTROY(identifier);
@@ -124,6 +125,10 @@
 
   commentsRead = NO;
   fileName = name;
+  if (declared == nil)
+    {
+      ASSIGN(declared, fileName);
+    }
   unitName = nil;
   itemName = nil;
   DESTROY(comment);
@@ -422,7 +427,7 @@ fail:
       [dict setObject: methods forKey: @"Methods"];
     }
 
-  [dict setObject: fileName forKey: @"Declared"];
+  [dict setObject: declared forKey: @"Declared"];
 
   if (category == nil)
     {
@@ -521,6 +526,11 @@ fail:
 	      [self log: @"interface with bad visibility (%@)", token];
 	      return nil;
 	    }
+	}
+      else if (buffer[pos] == '#')
+	{
+	  [self skipRemainderOfLine];	// Ignore preprocessor directive.
+	  DESTROY(comment);
 	}
       else
 	{
@@ -758,7 +768,11 @@ fail:
       /*
        * Get a list of known methods.
        */
-      if ([unitName hasSuffix: @")"])
+      if ([unitName hasPrefix: @"("])
+	{
+	  exist = nil;	// A protocol ... no method implementations.
+	}
+      else if ([unitName hasSuffix: @")"])
 	{
 	  exist = [info objectForKey: @"Categories"];
 	}
@@ -770,7 +784,7 @@ fail:
       exist = [exist objectForKey: @"Methods"];
       /*
        * If there were no methods in the interface, we can't
-       * document any now so we mak as well skip to the end.
+       * document any now so we may as well skip to the end.
        */
       if (exist == nil)
 	{
@@ -1006,7 +1020,7 @@ fail:
       goto fail;
     }
   [dict setObject: name forKey: @"Name"];
-  unitName = name;
+  unitName = [NSString stringWithFormat: @"(%@)", name];
 
   /*
    * Protocols may themselves conform to protocols.
@@ -1092,6 +1106,7 @@ fail:
 - (void) reset
 {
   [info removeAllObjects];
+  DESTROY(declared);
   DESTROY(comment);
   fileName = nil;
   unitName = nil;
@@ -1100,6 +1115,11 @@ fail:
   buffer = 0;
   length = 0;
   pos = 0;
+}
+
+- (void) setDeclared: (NSString*)name
+{
+  ASSIGN(declared, name);
 }
 
 /**
@@ -1449,7 +1469,7 @@ fail:
 			{
 			  r = NSMakeRange(i, r.location - i);
 			  author = [comment substringWithRange: r];
-			  author = [author stringByTrimmingWhiteSpaces];
+			  author = [author stringByTrimmingSpaces];
 			  authors = [NSMutableArray arrayWithObject: author];
 			  [info setObject: authors forKey: @"authors"];
 			}
@@ -1525,7 +1545,7 @@ fail:
 			{
 			  r = NSMakeRange(i, r.location - i);
 			  date = [comment substringWithRange: r];
-			  date = [date stringByTrimmingWhiteSpaces];
+			  date = [date stringByTrimmingSpaces];
 			  date = [NSString stringWithFormat:
 			    @"<date>%@</date>", date];
 			  [info setObject: date forKey: @"date"];
@@ -1552,7 +1572,7 @@ fail:
 			{
 			  r = NSMakeRange(i, r.location - i);
 			  version = [comment substringWithRange: r];
-			  version = [version stringByTrimmingWhiteSpaces];
+			  version = [version stringByTrimmingSpaces];
 			  version = [NSString stringWithFormat:
 			    @"<version>%@</version>", version];
 			  [info setObject: version forKey: @"version"];

@@ -43,7 +43,7 @@
 @class GSSAXHandler;
 
 
-@interface GSXMLDocument : NSObject
+@interface GSXMLDocument : NSObject <NSCopying>
 {
   void	*lib;            // pointer to xmllib pointer of xmlDoc struct
   BOOL	native;
@@ -74,7 +74,7 @@
 
 
 
-@interface GSXMLNamespace : NSObject
+@interface GSXMLNamespace : NSObject <NSCopying>
 {
   void	*lib;          /* pointer to struct xmlNs in the gnome xmllib */
   BOOL	native;
@@ -103,7 +103,7 @@
 
 /* XML Node */
 
-@interface GSXMLNode : NSObject
+@interface GSXMLNode : NSObject <NSCopying>
 {
   void  *lib;      /* pointer to struct xmlNode from libxml */
   BOOL  native;
@@ -147,7 +147,7 @@
 
 /* Attribute */
 
-@interface GSXMLAttribute : GSXMLNode
+@interface GSXMLAttribute : GSXMLNode <NSCopying>
 {
 }
 
