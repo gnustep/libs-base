@@ -1,3 +1,14 @@
+2002-10-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Source/NSObject.m: Add ([-makeImmutableCopyOnFail:]) for use by methods
+	wishing to return constant string/array/dictionary etc results after
+	building them using mutable objects they created.
+	Source/GSArray.m: Implement ([makeImmutableCopyOnFail:])
+	Source/GSString.m: ditto
+	Source/GSDictionary.m: ditto
+	Source/GSSet.m: ditto
+	Source/NSFileManager.m: Use it
+
 2002-10-13  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSBundle.m ([NSBundle +_addFrameworkFromClass:]): remove

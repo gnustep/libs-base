@@ -45,9 +45,9 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSDictionary.h>
 #include <Foundation/NSEnumerator.h>
 #include <Foundation/NSSet.h>
+#include "GSPrivate.h"
 
 #include <stdio.h>
 
@@ -1428,12 +1428,12 @@ static NSFileManager* defaultManager = nil;
   
   id  values[5];
   id	keys[5] = {
-	  NSFileSystemSize,
-	  NSFileSystemFreeSize,
-	  NSFileSystemNodes,
-	  NSFileSystemFreeNodes,
-	  NSFileSystemNumber
-      };
+    NSFileSystemSize,
+    NSFileSystemFreeSize,
+    NSFileSystemNodes,
+    NSFileSystemFreeNodes,
+    NSFileSystemNumber
+  };
   
   if (stat(cpath, &statbuf) != 0)
     return nil;
@@ -1468,7 +1468,8 @@ static NSFileManager* defaultManager = nil;
  * Returns an array of the contents of the specified directory.<br />
  * The listing does <strong>not</strong> recursively list subdirectories.<br />
  * The special files '.' and '..' are not listed.<br />
- * Returns nil if path is not a directory (or it can't be read for some reason).
+ * Indicates an error by returning nil (eg. if path is not a directory or
+ * it can't be read for some reason).
  */
 - (NSArray*) directoryContentsAtPath: (NSString*)path
 {
@@ -1504,7 +1505,7 @@ static NSFileManager* defaultManager = nil;
     }
   RELEASE(direnum);
 
-  return content;
+  return [content makeImmutableCopyOnFail: NO];
 }
 
 /**
@@ -1569,7 +1570,7 @@ static NSFileManager* defaultManager = nil;
   
   RELEASE(direnum);
 
-  return content;
+  return [content makeImmutableCopyOnFail: NO];
 }
 
 /**

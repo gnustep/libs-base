@@ -562,6 +562,12 @@ static Class	mutableSetClass;
     }
 }
 
+- (id) makeImmutableCopyOnFail: (BOOL)force
+{
+  isa = [GSSet class];
+  return self;
+}
+
 - (void) minusSet: (NSSet*) other
 {
   if (other == self)
