@@ -813,7 +813,7 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
 	{
 	  return nil;
 	}
-      return [NSDataClass dataWithBytesNoCopy: r length: l];
+      return [NSDataClass dataWithBytesNoCopy: r length: l * sizeof(unichar)];
     }
   else
     {
