@@ -115,8 +115,8 @@ struct _o_hash_enumerator
 /* All the structures (hashes, maps, lists, and arrays) have
  * the same basic ideas behind them. */
 
-#include <gnustep/base/hash-bas.h>
-#include <gnustep/base/hash-cbs.h>
+#include <gnustep/base/o-hash-bas.h>
+#include <gnustep/base/o-hash-cbs.h>
 
 /** Callbacks... **/
 

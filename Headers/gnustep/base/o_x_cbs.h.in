@@ -28,7 +28,7 @@
 /**** Included Headers *******************************************************/
 
 #include <gnustep/base/callbacks.h>
-#include <gnustep/base/@YY@.h>
+#include <gnustep/base/o-@YY@.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

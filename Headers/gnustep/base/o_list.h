@@ -82,8 +82,8 @@ struct _o_list_enumerator
 
 /** Basics **/
 
-#include <gnustep/base/list-bas.h>
-#include <gnustep/base/list-cbs.h>
+#include <gnustep/base/o-list-bas.h>
+#include <gnustep/base/o-list-cbs.h>
 
 /** Creating **/
 

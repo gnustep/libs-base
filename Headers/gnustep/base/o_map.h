@@ -118,8 +118,8 @@ struct _o_map_enumerator
 /* All the structures (hashes, maps, lists, and arrays) have
  * the same basic ideas behind them. */
 
-#include <gnustep/base/map-bas.h>
-#include <gnustep/base/map-cbs.h>
+#include <gnustep/base/o-map-bas.h>
+#include <gnustep/base/o-map-cbs.h>
 
 /** Callbacks... **/
 
