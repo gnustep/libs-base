@@ -366,7 +366,6 @@ Foundation/NSProcessInfo.h \
 Foundation/NSRange.h \
 Foundation/NSSerialization.h \
 Foundation/NSString.h \
-Foundation/NSTimeZone.h \
 Foundation/NSUnarchiver.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
