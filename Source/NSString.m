@@ -1834,6 +1834,7 @@ handle_printf_atsign (FILE *stream,
     {
       return self;
     }
+
   s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
   for (count = 0; count < len; count++)
@@ -2078,7 +2079,7 @@ handle_printf_atsign (FILE *stream,
     || (encoding == NSNEXTSTEPStringEncoding)
     || (encoding == NSNonLossyASCIIStringEncoding)
     || (encoding == NSSymbolStringEncoding)
-    || (encoding == NSCyrillicStringEncoding))
+    || (encoding == NSISOCyrillicStringEncoding))
     {
       char		t;
       unsigned char	*buff;

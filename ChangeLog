@@ -1,3 +1,12 @@
+2001-03-12  Jonathan Gapen  <jagapen@home.com>
+
+	* Headers/gnustep/base/NSString.h: Change NSCyrillicStringEncoding
+	to NSISOCyrillicStringEncoding, and likewise for Greek, Arabic, and
+	Hebrew, to avoid ambiguity.  Add enum values for all remaining
+	ISO-8859 character sets, plus UTF-7.
+	* Source/NSString.m: Update pursuant to above changes.
+	* Source/Unicode.m: Ditto.
+
 2001-03-11  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSThread.m: Remove runtime.h include since this isn't

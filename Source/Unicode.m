@@ -82,13 +82,13 @@ static NSStringEncoding _availableEncodings[] = {
     NSMacOSRomanStringEncoding,
 //    NSProprietaryStringEncoding,
 // GNUstep additions
-    NSCyrillicStringEncoding,
+    NSISOCyrillicStringEncoding,
     NSKOI8RStringEncoding,
     NSISOLatin3StringEncoding,
     NSISOLatin4StringEncoding,
-    NSArabicStringEncoding,
-    NSGreekStringEncoding,
-    NSHebrewStringEncoding,
+    NSISOArabicStringEncoding,
+    NSISOGreekStringEncoding,
+    NSISOHebrewStringEncoding,
     NSGB2312StringEncoding,
     0
 };
@@ -114,13 +114,13 @@ static NSStringEncoding _availableEncodings[] = {
 //    NSMacOSRomanStringEncoding,
 //    NSProprietaryStringEncoding,
 // GNUstep additions
-    NSCyrillicStringEncoding,
+    NSISOCyrillicStringEncoding,
 //    NSKOI8RStringEncoding,
 //    NSISOLatin3StringEncoding,
 //    NSISOLatin4StringEncoding,
-//    NSArabicStringEncoding,
-//    NSGreekStringEncoding,
-//    NSHebrewStringEncoding,
+//    NSISOArabicStringEncoding,
+//    NSISOGreekStringEncoding,
+//    NSISOHebrewStringEncoding,
 //    NSGB2312StringEncoding,
     0
 };
@@ -149,13 +149,13 @@ const struct _strenc_ str_encoding_table[]=
   {NSProprietaryStringEncoding, "NSProprietaryStringEncoding"},
 
 // GNUstep additions
-  {NSCyrillicStringEncoding,"NSCyrillicStringEncoding"},
+  {NSISOCyrillicStringEncoding,"NSISOCyrillicStringEncoding"},
   {NSKOI8RStringEncoding, "NSKOI8RStringEncoding"},
   {NSISOLatin3StringEncoding, "NSISOLatin3StringEncoding"},
   {NSISOLatin4StringEncoding, "NSISOLatin4StringEncoding"},
-  {NSArabicStringEncoding, "NSArabicStringEncoding"},
-  {NSGreekStringEncoding, "NSGreekStringEncoding"},
-  {NSHebrewStringEncoding, "NSHebrewStringEncoding"},
+  {NSISOArabicStringEncoding, "NSISOArabicStringEncoding"},
+  {NSISOGreekStringEncoding, "NSISOGreekStringEncoding"},
+  {NSISOHebrewStringEncoding, "NSISOHebrewStringEncoding"},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding"},
 
   {0, "Unknown encoding"}
@@ -305,13 +305,13 @@ iconv_stringforencoding(NSStringEncoding enc)
 	return "ISO-8859-3";
       case NSISOLatin4StringEncoding: 
 	return "ISO-8859-4";
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
 	return "ISO-8859-5";
-      case NSArabicStringEncoding: 
+      case NSISOArabicStringEncoding: 
 	return "ISO-8859-6";
-      case NSGreekStringEncoding: 
+      case NSISOGreekStringEncoding: 
 	return "ISO-8859-7";
-      case NSHebrewStringEncoding:
+      case NSISOHebrewStringEncoding:
 	return "ISO-8859-8";
       case NSGB2312StringEncoding:
 	return "EUC-CN";
@@ -393,7 +393,7 @@ encode_chartouni(char c, NSStringEncoding enc)
 	else
 	  return(Next_char_to_uni_table[(unc)c - Next_conv_base]);
 
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
 	if ((unc)c < Cyrillic_conv_base)
 	  return (unichar)((unc)c);
 	else
@@ -466,7 +466,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 	    return res ? '*' : Next_uni_to_char_table[--i].to;
 	  }
 
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
 	if (u < (unichar)Cyrillic_conv_base)
 	  return (char)u;
 	else
@@ -554,7 +554,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 	    return res ? 0 : Next_uni_to_char_table[--i].to;
 	  }
 
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
 	if (u < (unichar)Cyrillic_conv_base)
 	  return (char)u;
 	else
@@ -680,7 +680,7 @@ encode_strtoustr(unichar *u1, const char *s1, int size, NSStringEncoding enc)
 	  }
 	return count;
 
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
 	for (count = 0; (count < size) && (s1[count] != 0); count++)
 	  {
 	    unc c = (unc)s1[count];
@@ -794,7 +794,7 @@ encode_ustrtostr(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	  }
 	return count;
 
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
         for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
 	  {
 	    u = u1[count];
@@ -923,7 +923,7 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	  }
 	return count;
 
-      case NSCyrillicStringEncoding:
+      case NSISOCyrillicStringEncoding:
         for (count = 0; count < size; count++)
 	  {
 	    u = u1[count];

@@ -58,31 +58,40 @@ typedef enum _NSStringEncoding
   NSNEXTSTEPStringEncoding = 2,
   NSJapaneseEUCStringEncoding = 3,
   NSUTF8StringEncoding = 4,
-  NSISOLatin1StringEncoding = 5,
+  NSISOLatin1StringEncoding = 5,	// ISO-8859-1; West European
   NSSymbolStringEncoding = 6,
   NSNonLossyASCIIStringEncoding = 7,
   NSShiftJISStringEncoding = 8,
-  NSISOLatin2StringEncoding = 9,
+  NSISOLatin2StringEncoding = 9,	// ISO-8859-2; East European
   NSUnicodeStringEncoding = 10,
   NSWindowsCP1251StringEncoding = 11,
-  NSWindowsCP1252StringEncoding = 12,
-  NSWindowsCP1253StringEncoding = 13,
-  NSWindowsCP1254StringEncoding = 14,
-  NSWindowsCP1250StringEncoding = 15,
+  NSWindowsCP1252StringEncoding = 12,	// WinLatin1
+  NSWindowsCP1253StringEncoding = 13,	// Greek
+  NSWindowsCP1254StringEncoding = 14,	// Turkish
+  NSWindowsCP1250StringEncoding = 15,	// WinLatin2
   NSISO2022JPStringEncoding = 21,
   NSMacOSRomanStringEncoding = 30,
   NSProprietaryStringEncoding = 31,
 
 // GNUstep additions
-  NSCyrillicStringEncoding = 22,
-  NSKOI8RStringEncoding = 50,
-  NSISOLatin3StringEncoding = 51,
-  NSISOLatin4StringEncoding = 52,
-  NSArabicStringEncoding = 53,
-  NSGreekStringEncoding = 54,
-  NSHebrewStringEncoding = 55,
-  NSGB2312StringEncoding = 56
-
+  NSKOI8RStringEncoding = 50,		// Russian/Cyrillic
+  NSISOLatin3StringEncoding = 51,	// ISO-8859-3; South European
+  NSISOLatin4StringEncoding = 52,	// ISO-8859-4; North European
+  NSISOCyrillicStringEncoding = 22,	// ISO-8859-5
+  NSISOArabicStringEncoding = 53,	// ISO-8859-6
+  NSISOGreekStringEncoding = 54,	// ISO-8859-7
+  NSISOHebrewStringEncoding = 55,	// ISO-8859-8
+  NSISOLatin5StringEncoding = 57,	// ISO-8859-9; Turkish
+  NSISOLatin6StringEncoding = 58,	// ISO-8859-10; Nordic
+/* Possible future ISO-8859 additions
+  NSISOThaiStringEncoding = 59,		// ISO-8859-11
+					// ISO-8859-12
+*/
+  NSISOLatin7StringEncoding = 61,	// ISO-8859-13
+  NSISOLatin8StringEncoding = 62,	// ISO-8859-14
+  NSISOLatin9StringEncoding = 63,	// ISO-8859-15; Replaces ISOLatin1
+  NSGB2312StringEncoding = 56,
+  NSUTF7StringEncoding = 64		// RFC 2152
 } NSStringEncoding;
 
 enum {
