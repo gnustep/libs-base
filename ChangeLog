@@ -1,3 +1,9 @@
+Wed Mar 13 16:55:49 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Additions/GSXML.m ([GSSAXHandler
+	-externalSubset:externalID:ystemID:]): Fixed typo, 'ystemID:'
+	instead of 'systemID:'.
+
 2002-03-13  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (log): Redefine to gdomap_log to avoid conflict
