@@ -1,3 +1,7 @@
+2000-04-25  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+initialize): retain _executable_path.
+
 2000-04-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAttributedString.m: Optimised - cache method implementations
