@@ -1,92 +1,55 @@
-#include "NSInvocation.h"
+/* Implementation for GNUstep NSInvocation object
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Created: May 1993
+
+   This file is part of the GNU Objective C Class Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/ 
+
+#include <objects/stdobjects.h>
+#include <Foundation/NSInvocation.h>
 
 @implementation NSInvocation
 
-+ (NSInvocation*) invocationWithMethodSignature: (MethodSignature*)ms
-   frame: (arglist_t)aFrame
++ (void) initialize
 {
-  NSInvocation *newInv = [self invocationWithMethodSignature:ms];
-  bcopy(aFrame->arg_ptr, newInv->agrFrame->arg_ptr, [ms frameLength]);
-  ...
-  return newInv;
+  if (self == [NSInvocation class])
+    class_add_behavior (self, [MethodInvocation class]);
+}
+
++ (NSInvocation*) invocationWithObjCTypes: (const char*) types
+{
+  return [[self alloc] initWithArgframe: NULL type: types];
 }
 
 + (NSInvocation*) invocationWithMethodSignature: (MethodSignature*)ms
 {
-  int argsize = [ms frameLength];
-  int retsize = [ms methodReturnLength];
-  NSInvocation* newInv = [self alloc];
-
-  newInv->methodSignature = ms;
-  newInv->argFrame = malloc(argsize);
-  newInv->argFrame->arg_ptr = malloc(argsize);
-  newInv->retFrame = malloc(retsize);
-  return newInv;
+  /* This assumes that the methodReturnType also includes the 
+     parameter types. */
+  return [self invocationWithObjectTypes: [ms methodReturnType]];
 }
 
-- (void) getArgument: (void*)argumentLocation atIndex: (int)index
+- (NSMethodSignature*) methodSignature
 {
-  *argumentLocation = 
+  /* xxx This isn't really needed by the our implementation anyway. */
+  [self notImplemented: _cmd];
 }
 
-- (void) getReturnValue: (void*)returnLocation
-{
-  bcopy(retFrame, returnLocation, [methodSignature methodReturnLength]);
-  return;
-}
-
-- (MethodSignature*) methodSignature
-{
-  return methodSignature;
-}
-
-- (SEL) selector
-{
-  SEL s;
-  [self getArgument:&s atIndex:1];
-  return s;
-}
-
-- (void) setArgument: (void*)argumentLocation atIndex: (int)index;
-- (void) setReturnValue: (void*)returnLocation
-{
-  bcopy(returnLocation, retFrame, [methodSignature methodReturnLength]);
-  return;
-}
-
-- (void) setSelector: (SEL)aSelector
-{
-  [self setArgument:&aSelector atIndex:1];
-  return;
-}
-
-- (void) setTarget: (id)aTarget
-{
-  target = aTarget;
-  return;
-}
-
-- (id) target
-{
-  id t;
-  [self getArgument:&t atIndex:0];
-  return t;
-}
-
-- (void) invoke
-{
-  char *type;
-  Method* m;
-  id target;
-  SEL sel;
-  IMP imp;
-
-  target = *(id*)method_get_first_argument(m, argFrame, &type);
-
- = [target methodForSelector:
-  __builtin_apply(
-
-- (void) invokeWithTarget: (id)target
-		  {
+/* All other methods come from the MethodInvocation behavior. */
 
 @end
