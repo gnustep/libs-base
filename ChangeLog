@@ -1,3 +1,20 @@
+2000-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Changed so that property lists are output in a compact form when
+	no locale is supplied.
+	* Documentation/gsdoc/NSObject.gsdoc: Added documentation of the
+	various description methods.
+	* GSDoc/gsdoc.m: Bugfixes for text in descriptions.
+	* Headers/gnustep/base/NSObject.h: Updated description methods
+	* Source/NSArray.m: Updated to be closer to MacOS description.
+	* Source/NSDictionary.m: ditto.
+	* Source/NSGCString.m: ditto.
+	* Source/NSGString.m: ditto.
+	* Source/NSObject.m: added more description methods.
+	* Tools/defaults.m: updated to use locale.
+	* Tools/dread.m: ditto.
+	* Tools/pldes.m: ditto.
+
 Fri Mar 17 07:47:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSGString.m: Add checks to safely (and more efficiently)

@@ -53,6 +53,9 @@ main(int argc, char** argv)
     }
   else
     {
+      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+      NSDictionary	*locale = [defs dictionaryRepresentation];
+
       for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
@@ -72,7 +75,7 @@ main(int argc, char** argv)
 		{
 		  NSFileHandle	*out;
 
-		  myString = [result description];
+		  myString = [result descriptionWithLocale: locale indent: 0];
 		  out = [NSFileHandle fileHandleWithStandardOutput];
 		  myData = [myString dataUsingEncoding: NSASCIIStringEncoding];
 		  [out writeData: myData];

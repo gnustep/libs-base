@@ -47,6 +47,7 @@
 - (NSMutableDictionary*) indexForType: (NSString*)type;
 - (id) initWithFileName: (NSString*)name;
 - (NSString*) parseText: (xmlNodePtr)node;
+- (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode;
 @end
 
 static xmlParserInputPtr
@@ -214,6 +215,20 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
 - (NSString*) parseText: (xmlNodePtr)node
 {
+  xmlNodePtr	endNode;
+  NSString	*result;
+
+  result = [self parseText: node end: &endNode];
+  if (endNode != 0)
+    {
+      NSLog(@"Unexpected node type in text node - %d", endNode->type);
+      result = nil;
+    }
+  return result;
+}
+
+- (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode
+{
   return nil;
 }
 
@@ -250,7 +265,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 - (NSString*) parseMacro: (xmlNodePtr)node;
 - (NSString*) parseMethod: (xmlNodePtr)node;
 - (NSArray*) parseStandards: (xmlNodePtr)node;
-- (NSString*) parseText: (xmlNodePtr)node;
+- (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode;
 - (void) setEntry: (NSString*)entry
 	  withRef: (NSString*)ref
     inIndexOfType: (NSString*)type;
@@ -1261,7 +1276,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       else
 	{
-	  [text appendString: [self parseText: node]];
+	  [text appendString: [self parseText: node end: &node]];
+	  continue;
 	}
 
       node = node->next;
@@ -1873,10 +1889,11 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   return nil;
 }
 
-- (NSString*) parseText: (xmlNodePtr)node
+- (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode
 {
   NSMutableString	*text = [NSMutableString string];
 
+  *endNode = node;
   while (node != 0)
     {
       switch (node->type)
@@ -1960,13 +1977,17 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		  elem = ref;
 		[text appendFormat: @"<a href=\"%@\">%@</a>", ref, elem];
 	      }
+	    else
+	      {
+		return text;
+	      }
 	    break;
 
 	  default:
-	    NSLog(@"Unexpected node type in text node - %d", node->type);
-	    return nil; 
+	    return text; 
 	}
       node = node->next;
+      *endNode = node;
     }
   return text;
 }

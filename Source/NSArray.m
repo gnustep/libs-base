@@ -37,6 +37,7 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSDebug.h>
 
 #include <base/fast.x>
@@ -626,26 +627,35 @@ static SEL	rlSel = @selector(removeLastObject);
   GS_RANGE_CHECK(aRange, c);
 
   if (aRange.length == 0)
-    return [NSArray array];
+    {
+      na = [NSArray array];
+    }
+  else
+    {
+      id	objects[aRange.length];
 
-  {
-    id	objects[aRange.length];
-
-    [self getObjects: objects range: aRange];
-    na = [NSArray arrayWithObjects: objects count: aRange.length];
-  }
+      [self getObjects: objects range: aRange];
+      na = [NSArray arrayWithObjects: objects count: aRange.length];
+    }
   return na;
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return AUTORELEASE([[NSArrayEnumerator allocWithZone: NSDefaultMallocZone()]
-    initWithArray: self]);
+  id	e;
+
+  e = [NSArrayEnumerator allocWithZone: NSDefaultMallocZone()];
+  e = [e initWithArray: self];
+  return AUTORELEASE(e);
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return AUTORELEASE([[NSArrayEnumeratorReverse allocWithZone: NSDefaultMallocZone()] initWithArray: self]);
+  id	e;
+
+  e = [NSArrayEnumeratorReverse allocWithZone: NSDefaultMallocZone()];
+  e = [e initWithArray: self];
+  return AUTORELEASE(e);
 }
 
 - (NSString*) description
@@ -663,7 +673,8 @@ static SEL	rlSel = @selector(removeLastObject);
 {
   NSMutableString	*result;
 
-  result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity: 20*[self count]]);
+  result = [[NSGMutableCString alloc] initWithCapacity: 20*[self count]];
+  result = AUTORELEASE(result);
   [self descriptionWithLocale: locale
 		       indent: level
 			   to: (id<GNUDescriptionDestination>)result];
@@ -690,64 +701,85 @@ static NSString	*indentStrings[] = {
 		        indent: (unsigned int)level
 			    to: (id<GNUDescriptionDestination>)result
 {
-  NSString		*iBaseString;
-  NSString		*iSizeString;
   unsigned		count = [self count];
+  unsigned		last = count - 1;
   NSString		*plists[count];
   unsigned		i;
   IMP			appImp;
 
   appImp = [(NSObject*)result methodForSelector: appSel];
 
-  if (level < sizeof(indentStrings)/sizeof(NSString*))
-    iBaseString = indentStrings[level];
-  else
-    iBaseString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
-  level++;
-  if (level < sizeof(indentStrings)/sizeof(NSString*))
-    iSizeString = indentStrings[level];
-  else
-    iSizeString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
-
-  (*appImp)(result, appSel, @"(\n");
-
   [self getObjects: plists];
-  for (i = 0; i < count; i++)
-    {
-      id	item = plists[i];
 
-      (*appImp)(result, appSel, iSizeString);
- 
-      if ([item respondsToSelector: 
-	      @selector(descriptionWithLocale:indent:)])
+  if (locale == nil)
+    {
+      (*appImp)(result, appSel, @"(");
+      for (i = 0; i < count; i++)
 	{
-	  [item descriptionWithLocale: locale indent: level to: result];
+	  id	item = plists[i];
+
+	  [item descriptionWithLocale: nil indent: 0 to: result];
+	  if (i != last)
+	    {
+	      (*appImp)(result, appSel, @",");
+	    }
 	}
-      else if ([item respondsToSelector: 
-	      @selector(descriptionWithLocale:)])
-	{
-	  [item descriptionWithLocale: locale to: result];
-	}
-      else
-	{
-	  [item descriptionTo: result];
-	}
-      if (i == count - 1)
-	{
-	  (*appImp)(result, appSel, @"\n");
-	}
-      else
-	{
-	  (*appImp)(result, appSel, @",\n");
-	}
+      (*appImp)(result, appSel, @")");
     }
-  (*appImp)(result, appSel, iBaseString);
-  (*appImp)(result, appSel, @")");
+  else
+    {
+      NSString	*iBaseString;
+      NSString	*iSizeString;
+
+      if (level < sizeof(indentStrings)/sizeof(id))
+	{
+	  iBaseString = indentStrings[level];
+	}
+      else
+	{
+	  iBaseString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+      level++;
+      if (level < sizeof(indentStrings)/sizeof(id))
+	{
+	  iSizeString = indentStrings[level];
+	}
+      else
+	{
+	  iSizeString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+
+      (*appImp)(result, appSel, @"(\n");
+      for (i = 0; i < count; i++)
+	{
+	  id	item = plists[i];
+
+	  (*appImp)(result, appSel, iSizeString);
+     
+	  [item descriptionWithLocale: locale indent: level to: result];
+	  if (i == last)
+	    {
+	      (*appImp)(result, appSel, @"\n");
+	    }
+	  else
+	    {
+	      (*appImp)(result, appSel, @",\n");
+	    }
+	}
+      (*appImp)(result, appSel, iBaseString);
+      (*appImp)(result, appSel, @")");
+    }
 }
 
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  return [[self description] writeToFile: path atomically: useAuxiliaryFile];
+  NSDictionary	*loc;
+  NSString	*desc;
+
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  desc = [self descriptionWithLocale: loc indent: 0];
+
+  return [desc writeToFile: path atomically: useAuxiliaryFile];
 }
 
 @end

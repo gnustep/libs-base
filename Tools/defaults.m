@@ -213,6 +213,8 @@ property list which is set as the value of a default.\n\n");
   if ([[args objectAtIndex: i] isEqual: @"read"] ||
       [[args objectAtIndex: i] isEqual: @"readkey"])
     {
+      NSDictionary	*locale = [defs dictionaryRepresentation];
+
       if ([[args objectAtIndex: i] isEqual: @"read"])
 	{
 	  if ([args count] == ++i)
@@ -266,7 +268,8 @@ property list which is set as the value of a default.\n\n");
 
 			  printf("%s %s '",
 				[domainName cString], [key cString]);
-			  ptr = [[obj description] cString];
+			  ptr = [[obj descriptionWithLocale: locale indent: 0]
+			    cString];
 			  while (*ptr)
 			    {
 			      if (*ptr == '\'')
@@ -289,7 +292,8 @@ property list which is set as the value of a default.\n\n");
 
 			  printf("%s %s '",
 				[domainName cString], [name cString]);
-			  ptr = [[obj description] cString];
+			  ptr = [[obj descriptionWithLocale: locale indent: 0]
+			    cString];
 			  while (*ptr)
 			    {
 			      if (*ptr == '\'')

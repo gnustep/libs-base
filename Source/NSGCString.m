@@ -595,7 +595,9 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return [self initWithCStringNoCopy: buf length: length fromZone: z];
 }
 
-- (void) descriptionTo: (id<GNUDescriptionDestination>)output
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned) level
+			    to: (id<GNUDescriptionDestination>)output
 {
   if (output == nil)
     return;
