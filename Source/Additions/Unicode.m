@@ -32,6 +32,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSPathUtilities.h>
@@ -1349,12 +1350,21 @@ tables:
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
 	    }
 	}
+      else if (ptr == buf)
+	{
+	  ptr = NULL;
+	  result = NO;
+	}
       *dst = ptr;
     }
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
+
+  if (dst)
+    NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
+
   return result;
 }
 
@@ -1949,12 +1959,21 @@ tables:
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
 	    }
 	}
+      else if (ptr == buf)
+	{
+	  ptr = NULL;
+	  result = NO;
+	}
       *dst = ptr;
     }
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
+
+  if (dst)
+    NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
+
   return result;
 }
 

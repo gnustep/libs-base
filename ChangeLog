@@ -1,3 +1,18 @@
+2003-05-05 15:28  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/Unicode.m (GSFromUnicode, GSToUnicode): Make sure the
+	internal work buffer isn't returned to the caller.
+
+	* Source/NSString.m: Clarify some comments, and mark code that is
+	broken when defEnc!=intEnc.
+
+	(fillHole, makeHole): Remove STABLE_MEMCPY. Use memmove.
+
+	(transmute): Set the zone to the default zone when transmuting.
+	Check the return value from GSToUnicode.
+
+	(getCharacters_c): Check the return value from GSToUnicode.
+
 2003-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: ([dispatch]) catch exceptions handling the port
