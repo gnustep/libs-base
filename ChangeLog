@@ -1,3 +1,9 @@
+Wed May  2 13:19:13 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/UnixFileHandle.m (id): Redefine `id' when including
+	openssl header files to avoid syntax errors from 3.x serie gcc
+	compilers.
+
 2001-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone: ([-initWithName:]) fix for trivial locking bug.
