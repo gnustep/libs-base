@@ -29,6 +29,8 @@ typedef struct {
 - (small) loopSmallPtr: (small*)v;
 - (char*) loopString: (char*)v;
 
+- (double) loopMulti: (float)f int: (float)v ch: (char)c;
+
 - (char) retChar;
 - (double) retDouble;
 - (float) retFloat;
@@ -89,6 +91,11 @@ typedef struct {
 - (char*) loopString: (char*)v
 {
   return v;
+}
+
+- (double) loopMulti: (float)f int: (float)v ch: (char)c
+{
+  return v+1.0;
 }
 
 - (char) retChar
@@ -356,6 +363,11 @@ printf("Calling proxy\n");
   printf("invoke: %.1f ", d);
   d = [p loopDouble: 5.0];
   printf("forward: %.1f\n", d);
+
+  SETUP(loopMulti:int:ch:);
+  printf("Expect: 6.0, ");
+  f = [p loopMulti: 3.0 int: 5.0  ch: 'a'];
+  printf("forward: %.1f\n", f);
 
   SETUP(loopObject:);
   [inv setArgument: &p atIndex: 2];
