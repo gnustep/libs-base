@@ -421,7 +421,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	}
     }
   return YES;
-#endif HAVE__OBJC_CONDITION_TIMEDWAIT
+#endif /* HAVE__OBJC_CONDITION_TIMEDWAIT */
 }
 
 // NSLocking protocol
