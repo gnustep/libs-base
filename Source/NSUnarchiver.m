@@ -25,6 +25,7 @@
 #include <objc/objc-api.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSByteOrder.h>
 
 /*
  *	Setup for inline operation of arrays.
