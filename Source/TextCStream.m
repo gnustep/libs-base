@@ -52,6 +52,11 @@ static BOOL debug_textcoder = NO;
          at: (const void*) d 
          withName: (id <String>) name;
 {
+  assert(type);
+  assert(*type != '@');
+  assert(*type != '^');
+  assert(*type != ':');
+
   if (!name)
     name = @"";
   switch (*type)
@@ -171,7 +176,12 @@ if (debug_textcoder) \
 {
   char *tmpname;
 
+  assert(type);
+  assert(*type != '@');
+  assert(*type != '^');
+  assert(*type != ':');
   assert (d);
+
   switch (*type)
     {
     case _C_LNG:
