@@ -1130,7 +1130,6 @@ static NSMapTable	*absolutes = 0;
 	  /*
 	   * Try to get timezone from tzset and tzname
 	   */
-	  extern char *tzname[2];
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
 	    localZoneString = [NSString stringWithCString: tzname[0]];
