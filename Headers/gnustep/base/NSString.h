@@ -241,16 +241,16 @@ enum {
 + (NSString*) stringWithString: (NSString*) aString;
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 + (NSString*) stringWithFormat: (NSString*)format
-   arguments: (va_list)argList;
+		     arguments: (va_list)argList;
 - (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary;
+	       locale: (NSDictionary*)dictionary;
 - (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary
-   arguments: (va_list)argList;
+	       locale: (NSDictionary*)dictionary
+	    arguments: (va_list)argList;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (BOOL) writeToFile: (NSString*)filename
-   atomically: (BOOL)useAuxiliaryFile;
+	  atomically: (BOOL)useAuxiliaryFile;
 - (double) doubleValue;
 + (NSStringEncoding*)availableStringEncodings;
 + (NSString*)localizedNameOfStringEncoding:(NSStringEncoding)encoding;
@@ -259,7 +259,7 @@ enum {
          contentsEnd:(unsigned int *)contentsEndIndex
             forRange:(NSRange)aRange;
 - (NSRange)lineRangeForRange:(NSRange)aRange;
-
+- (const char*) lossyCString;
 #endif
 
 #ifndef NO_GNUSTEP

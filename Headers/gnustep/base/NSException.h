@@ -65,6 +65,7 @@ extern NSString *NSInternalInconsistencyException;
 extern NSString *NSInvalidArgumentException;
 extern NSString *NSMallocException;
 extern NSString *NSRangeException;
+extern NSString *NSCharacterConversionException;
 
 /* Exception handler definitions */
 typedef struct _NSHandler 

@@ -72,6 +72,7 @@ NSString *NSInternalInconsistencyException =
 NSString *NSInvalidArgumentException = @"NSInvalidArgumentException";
 NSString *NSMallocException = @"NSMallocException";
 NSString *NSRangeException = @"NSRangeException";
+NSString *NSCharacterConversionException = @"NSCharacterConversionException";
 
 /* Exception handler */
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
