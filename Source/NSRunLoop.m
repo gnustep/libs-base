@@ -1188,7 +1188,7 @@ static int debug_run_loop = 0;
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  perror ("[NSRunLoop receivePacketWithTimeout:] select()");
+	  perror ("[NSRunLoop acceptInputForMode:beforeDate:] select()");
 	  abort ();
 	}
     }
