@@ -50,6 +50,19 @@ static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
 static Class NSFileHandle_ssl_class = nil;
 
+/**
+ * <p>
+ * NSFileHandler is a Class that provides a wrapper for accessing
+ * system files and other connections. You can open connections to a
+ * file using class methods such as +fileHandleForReadingAtPath:.
+ * </p>
+ * <p>
+ * GNUstep extends the use of this Class to allow you to create
+ * network connections (sockets), secure connections and also allows
+ * you to use compression with these files and connections (as long as
+ * GNUstep Base was compiled with the zlib library).
+ * </p>
+ */
 @implementation NSFileHandle
 
 + (void) initialize
@@ -74,7 +87,11 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 // Allocating and Initializing a FileHandle Object
-
+/** 
+ * Returns an NSFileHandle object setup for reading from the
+ * file listed at path. If the file does not exist or cannot
+ * be opened for some other reason, nil is returned.
+ */
 + (id) fileHandleForReadingAtPath: (NSString*)path
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -82,6 +99,11 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initForReadingAtPath: path]);
 }
 
+/** 
+ * Returns an NSFileHandle object setup for writing to the
+ * file listed at path. If the file does not exist or cannot
+ * be opened for some other reason, nil is returned.
+ */
 + (id) fileHandleForWritingAtPath: (NSString*)path
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -89,6 +111,11 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initForWritingAtPath: path]);
 }
 
+/** 
+ * Returns an NSFileHandle object setup for updating (reading and
+ * writing) from the file listed at path. If the file does not exist
+ * or cannot be opened for some other reason, nil is returned.
+ */
 + (id) fileHandleForUpdatingAtPath: (NSString*)path
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -96,6 +123,11 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initForUpdatingAtPath: path]);
 }
 
+/** 
+ * Returns an NSFileHandle object for the standard error descriptor.
+ * The returned object is a shared instance as there can only be one
+ * standard error per process.
+ */
 + (id) fileHandleWithStandardError
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -103,6 +135,11 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithStandardError]);
 }
 
+/** 
+ * Returns an NSFileHandle object for the standard input descriptor.
+ * The returned object is a shared instance as there can only be one
+ * standard input per process.
+ */
 + (id) fileHandleWithStandardInput
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -110,6 +147,11 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithStandardInput]);
 }
 
+/** 
+ * Returns an NSFileHandle object for the standard output descriptor.
+ * The returned object is a shared instance as there can only be one
+ * standard output per process.
+ */
 + (id) fileHandleWithStandardOutput
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -117,6 +159,13 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithStandardOutput]);
 }
 
+/** 
+ * Returns a file handle object that is connected to the null device
+ * (i.e. a device that does nothing.)  It is typically used in arrays
+ * and other collections of file handle objects as a place holder
+ * (null) object, so that all objects can respond to the same
+ * messages.
+ */
 + (id) fileHandleWithNullDevice
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
@@ -210,7 +259,10 @@ static Class NSFileHandle_ssl_class = nil;
 
 /**
  * Set up an asynchonous read operation which will cause a notification to
- * be sent when any amount of data (or end of file) is read.
+ * be sent when any amount of data (or end of file) is read. Note that
+ * the file handle will not continuously send notifications when data
+ * is available. If you want to continue to receive notifications, you
+ * need to send this message again after receiving a notification.
  */
 - (void) readInBackgroundAndNotifyForModes: (NSArray*)modes
 {

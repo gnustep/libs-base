@@ -119,8 +119,43 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
+/**
+   <p>
+   The NSException class helps manage errors in a program. It provides
+   a mechanism for lower-level methods to provide information about
+   problems to higher-level methods, which more often than not, have a
+   better ability to decide what to do about the problems.
+   </p>
+   <p>
+   Exceptions are typically handled by enclosing a sensitive section
+   of code inside the macros NS_DURING and NS_HANDLER, and then
+   handling any problems after this, up to the NS_ENDHANDLER macro:
+   </p>
+   <example>
+   NS_DURING
+    code that might cause an exception
+   NS_HANDLER
+    code that deals with the exception. If this code cannot deal with
+    it, you can re-raise the exception like this
+    [localException raise]
+    so the next higher level of code can handle it
+   NS_ENDHANDLER
+   </example>
+   <p>
+   The local variable localException is the name of the exception
+   object you can use in the NS_HANDLER section.
+   The easiest way to cause an exeption is using the +raise:format:
+   method.
+   </p>
+*/
 @implementation NSException
 
+/**
+   Create an an exception object with a name, reason and a dictionary
+   userInfo which can be used to provide additional information or
+   access to objects needed to handle the exception. After the
+   exception is created you must -raise it.
+*/
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason
 			  userInfo: (NSDictionary*)userInfo
@@ -129,6 +164,11 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 				   userInfo: userInfo]);
 }
 
+/**
+   Creates an exception with a name and a reason using the
+   format string and any additional arguments. The exception is then
+   raised.
+ */
 + (void) raise: (NSString*)name
 	format: (NSString*)format,...
 {
@@ -136,10 +176,15 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
   va_start(args, format);
   [self raise: name format: format arguments: args];
-  // FIXME: This probably doesn't matter, but va_end won't get called
+  // This probably doesn't matter, but va_end won't get called
   va_end(args);
 }
 
+/**
+   Creates an exception with a name and a reason string using the
+   format string and additional arguments specified as a variable
+   argument list argList. The exception is then raised.
+ */
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList
@@ -152,6 +197,10 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   [except raise];
 }
 
+/**
+   <init/>Initializes a newly allocated NSException object with a
+   name, reason and a dictionary userInfo.
+*/
 - (id) initWithName: (NSString*)name
 	     reason: (NSString*)reason
 	   userInfo: (NSDictionary*)userInfo
@@ -170,6 +219,13 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   [super dealloc];
 }
 
+/**
+   Raises the exception. All code following the raise will not be
+   executed and program control will be transfered to the closest
+   calling method which encapsulates the exception code in an
+   NS_DURING macro, or to the uncaught exception handler if there is no
+   other handling code.
+*/
 - (void) raise
 {
   NSThread	*thread;
@@ -193,6 +249,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   longjmp(handler->jumpState, 1);
 }
 
+/** Returns the name of the exception */
 - (NSString*) name
 {
   if (_e_name != nil)
@@ -205,6 +262,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
+/** Returns the exception reason */
 - (NSString*) reason
 {
   if (_e_reason != nil)
@@ -217,6 +275,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
+/** Returns the exception userInfo dictionary */
 - (NSDictionary*) userInfo
 {
   return _e_info;

@@ -1942,11 +1942,9 @@ static BOOL double_release_check_enabled = NO;
  * for debugging.
  * </p>
  * <p>
- * Where you are having memory allocation problems, it may make more sense
- * to look at the memory allocation debugging functions documnented in
- *  look at the memory allocation debugging functions documnented in
- * NSDebug.h, or use the NSZombie features.NSDebug.h, or use the NSZombie
- * features.  
+ * When you are having memory allocation problems, it may make more sense
+ * to look at the memory allocation debugging functions documented in
+ * NSDebug.h, or use the NSZombie features.
  * </p>
  */
 + (void) enableDoubleReleaseCheck: (BOOL)enable
