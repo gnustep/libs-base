@@ -33,7 +33,7 @@
 + (void) initialize
 {
   if (self == [NSInvocation class])
-    class_add_behavior (self, [Invocation class]);
+    class_add_behavior (self, [MethodInvocation class]);
 }
 
 + (NSInvocation*) invocationWithObjCTypes: (const char*) types
@@ -43,15 +43,26 @@
 
 + (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms
 {
-  /* This assumes that the methodReturnType also includes the 
-     parameter types. */
-  return [self invocationWithObjCTypes: [ms methodReturnType]];
+  return [self invocationWithObjCTypes: [ms methodType]];
 }
 
 - (NSMethodSignature*) methodSignature
 {
+#if 0
   /* xxx This isn't really needed by the our implementation anyway. */
   [self notImplemented: _cmd];
+#else
+  SEL mysel = [self selector];
+  char * my_sel_type;
+  if (mysel)
+    {
+      my_sel_type = sel_get_type(mysel);
+      if (my_sel_type)
+	return [NSMethodSignature signatureWithObjCTypes: my_sel_type];
+      else
+	return nil;
+    }
+#endif
   return nil;
 }
 

@@ -657,7 +657,11 @@ my_method_get_next_argument (arglist_t argframe,
 
 - (void) setSelector: (SEL)s
 {
-  if (sel_types_match(sel_get_type([self selector]), sel_get_type(s)))
+  SEL mysel = [self selector];
+  if (mysel == (SEL)0)
+    /* XXX Type check is needed! (masata-y@is.aist-nara.ac.jp) */
+    *sel_pointer = sel_get_any_typed_uid (sel_get_name (s));
+  else if (sel_types_match(sel_get_type(mysel), sel_get_type(s)))
     *sel_pointer = s;
   else
     {

@@ -49,6 +49,7 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSDistributedLock.h>
+#include <Foundation/NSRunLoop.h>
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
@@ -212,8 +213,23 @@ static NSMutableString   *processName = nil;
   persDomains = [[NSMutableDictionary dictionaryWithCapacity:10] retain];
   if ([self synchronize] == NO)
     {
-      [self dealloc];
-      return self = nil;
+      NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
+      BOOL	done = NO;
+      int	attempts;
+
+      // Retry for a couple of seconds in case we are locked out.
+      for (attempts = 0; done == NO && attempts < 10; attempts++)
+	{
+	  [runLoop runMode: [runLoop currentMode]
+		beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.2]];
+	  if ([self synchronize] == YES)
+	    done = YES;
+        }
+      if (done == NO)
+	{
+          [self dealloc];
+          return self = nil;
+        }
     }
 	
   // Check and if not existent add the Application and the Global domains
@@ -478,12 +494,14 @@ static NSMutableString   *processName = nil;
 
   // Get file lock - break any lock that is more than five minute old.
   if ([defaultsDatabaseLock tryLock] == NO)
-    if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < 300.0)
+    if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
     {
       [defaultsDatabaseLock breakLock];
       if ([defaultsDatabaseLock tryLock] == NO)
         return NO;
     }
+    else
+      return NO;
 	
   // Read the persistent data from the stored database
   newDict = [[NSMutableDictionary allocWithZone:[self zone]]
@@ -510,7 +528,6 @@ static NSMutableString   *processName = nil;
       // Save the changes
       if (![persDomains writeToFile:defaultsDatabase atomically:YES])
 	{
-//          NSLog(@"failed to write defaults to '%@'\n", defaultsDatabase);
 	  [defaultsDatabaseLock unlock];
 	  return NO;
 	}

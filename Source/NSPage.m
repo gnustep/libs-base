@@ -32,6 +32,11 @@
 #include <mach.h>
 #endif
 
+#if __linux__
+#include <linux/kernel.h>
+#include <linux/sys.h>
+#endif
+
 #ifdef __WIN32__
 #define getpagesize() vm_page_size
 #endif
@@ -92,8 +97,16 @@ NSRoundUpToMultipleOfPageSize (unsigned bytes)
 unsigned
 NSRealMemoryAvailable ()
 {
+#if __linux__
+  struct sysinfo info;
+
+  if ((sysinfo(&info)) != 0)
+    return 0;
+  return (unsigned) info.freeram;
+#else
   fprintf (stderr, "NSRealMemoryAvailable() not implemented.\n");
   return 0;
+#endif
 }
 
 void *
@@ -136,4 +149,18 @@ NSCopyMemoryPages (const void *source, void *dest, unsigned bytes)
   memcpy (dest, source, bytes);
 #endif
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
