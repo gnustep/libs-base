@@ -30,6 +30,8 @@
 #include	<Foundation/NSHashTable.h>
 #include	<Foundation/NSMapTable.h>
 #include	<Foundation/NSAutoreleasePool.h>
+#include	<Foundation/NSProcessInfo.h>
+#include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSDistributedNotificationCenter.h>
 
 #include	"gdnc.h"
@@ -63,6 +65,7 @@
   tmp->name = [notificationName retain];
   tmp->object = [notificationObject retain];
   tmp->info = [notificationData retain];
+  return [tmp autorelease];
 }
 @end
 
@@ -104,7 +107,7 @@
   unsigned		observer;
   NSString		*notificationName;
   NSString		*notificationObject;
-  SEL			selector;
+  NSString		*selector;
   GDNCClient		*client;
   NSMutableArray	*queue;
   NSNotificationSuspensionBehavior	behavior;
@@ -116,6 +119,7 @@
 - (void) dealloc
 {
   [queue release];
+  [selector release];
   [notificationName release];
   [notificationObject release];
   [super dealloc];
@@ -124,6 +128,7 @@
 - (id) init
 {
   queue = [[NSMutableArray alloc] initWithCapacity: 1];
+  return self;
 }
 @end
 
@@ -138,7 +143,7 @@
 }
 
 - (void) addObserver: (unsigned long)anObserver
-	    selector: (SEL)aSelector
+	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
   suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
@@ -242,7 +247,7 @@
 }
 
 - (void) addObserver: (unsigned long)anObserver
-	    selector: (SEL)aSelector
+	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
   suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
@@ -275,7 +280,7 @@
   obs->observer = anObserver;
   obs->client = info;
   obs->behavior = suspensionBehavior;
-  obs->selector = aSelector;
+  obs->selector = [aSelector copy];
   [info->observers addObject: obs];
   [obs release];
   NSHashInsert(allObservers, obs);
@@ -304,7 +309,7 @@
 
 	  anObject = tmp->notificationObject;
 	}
-      obs->notificationName = [anObject retain];
+      obs->notificationObject = [anObject retain];
       [objList addObject: obs];
     }
 
@@ -427,7 +432,7 @@
    */
   for (pos = [byName count]; pos > 0; pos--)
     {
-      GDNCObserver	*obs = [byName objectAtIndex: pos];
+      GDNCObserver	*obs = [byName objectAtIndex: pos - 1];
 
       if (obs->notificationObject == nil ||
 		[obs->notificationObject isEqual: notificationObject])
@@ -437,7 +442,7 @@
     }
   for (pos = [byObject count]; pos > 0; pos--)
     {
-      GDNCObserver	*obs = [byObject objectAtIndex: pos];
+      GDNCObserver	*obs = [byObject objectAtIndex: pos - 1];
 
       if (obs->notificationName == nil ||
 		[obs->notificationName isEqual: notificationName])
@@ -465,11 +470,11 @@
    */
   for (pos = [observers count]; pos > 0; pos--)
     {
-      GDNCObserver	*obs = [observers objectAtIndex: pos];
+      GDNCObserver	*obs = [observers objectAtIndex: pos - 1];
 
       if (obs->client->suspended == NO || deliverImmediately == YES)
 	{
-	  [obs->queue addObject: d];
+	  [obs->queue addObject: notification];
 	}
       else
 	{
@@ -479,13 +484,13 @@
 		break;
 	      case NSNotificationSuspensionBehaviorCoalesce:
 		[obs->queue removeAllObjects];
-		[obs->queue addObject: d];
+		[obs->queue addObject: notification];
 		break;
 	      case NSNotificationSuspensionBehaviorHold:
-		[obs->queue addObject: d];
+		[obs->queue addObject: notification];
 		break;
 	      case NSNotificationSuspensionBehaviorDeliverImmediately:
-		[obs->queue addObject: d];
+		[obs->queue addObject: notification];
 		break;
 	    }
 	}
@@ -497,7 +502,7 @@
    */
   for (pos = [observers count]; pos > 0; pos--)
     {
-      GDNCObserver	*obs = [observers objectAtIndex: pos];
+      GDNCObserver	*obs = [observers objectAtIndex: pos - 1];
 
       if (obs->client->suspended == NO || deliverImmediately == YES)
 	{
@@ -543,7 +548,7 @@
       objList = [observersForObjects objectForKey: obs->notificationObject];
       if (objList != nil)
 	{
-	  [objList removeObject: obs];
+	  [objList removeObjectIdenticalTo: obs];
 	}
     }
   if (obs->notificationName)
@@ -553,10 +558,11 @@
       namList = [observersForNames objectForKey: obs->notificationName];
       if (namList != nil)
 	{
-	  [namList removeObject: obs];
+	  [namList removeObjectIdenticalTo: obs];
 	}
     }
   NSHashRemove(allObservers, obs);
+  [obs->client->observers removeObjectIdenticalTo: obs];
 }
 
 - (void) removeObserversForClients: (NSMapTable*)clients
@@ -630,7 +636,7 @@
 	    {
 	      GDNCObserver	*obs;
 
-	      obs = [byName objectAtIndex: pos];
+	      obs = [byName objectAtIndex: pos - 1];
 	      if ([byObject indexOfObjectIdenticalTo: obs] != NSNotFound)
 		{
 		  [self removeObserver: obs];
@@ -640,7 +646,7 @@
 	    {
 	      GDNCObserver	*obs;
 
-	      obs = [byObject objectAtIndex: pos];
+	      obs = [byObject objectAtIndex: pos - 1];
 	      if ([byName indexOfObjectIdenticalTo: obs] != NSNotFound)
 		{
 		  [self removeObserver: obs];
@@ -743,26 +749,39 @@ main()
 {
   GDNCServer		*server;
   NSAutoreleasePool	*pool;
+  NSString		*str;
+  BOOL			shouldFork = YES;
 
-  switch (fork())
+  pool = [NSAutoreleasePool new];
+  str = [[NSUserDefaults standardUserDefaults] stringForKey: @"debug"];
+  if (str != nil && [str caseInsensitiveCompare: @"yes"] == NSOrderedSame)
     {
-      case -1:
-	fprintf(stderr, "gdnc - fork failed - bye.\n");
-	exit(1);
+      shouldFork = NO;
+    }
+  [pool release];
 
-      case 0:
-	/*
-	 *	Try to run in background.
-	 */
-#ifdef	NeXT
-	setpgrp(0, getpid());
-#else
-	setsid();
-#endif
-	break;
+  if (shouldFork)
+    {
+      switch (fork())
+	{
+	  case -1:
+	    fprintf(stderr, "gdnc - fork failed - bye.\n");
+	    exit(1);
 
-      default:
-	exit(0);
+	  case 0:
+	    /*
+	     *	Try to run in background.
+	     */
+    #ifdef	NeXT
+	    setpgrp(0, getpid());
+    #else
+	    setsid();
+    #endif
+	    break;
+
+	  default:
+	    exit(0);
+	}
     }
 
   pool = [NSAutoreleasePool new];
