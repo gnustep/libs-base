@@ -147,7 +147,6 @@ static IMP gs_objc_msg_forward (SEL sel)
   const char		*sel_type;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
-  NSMutableData         *amemory;
 
   NSMethodSignature     *sig;
 
@@ -172,8 +171,7 @@ static IMP gs_objc_msg_forward (SEL sel)
      worry about freeing it */
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
   /* Autorelease the closure through fastMallocBuffer */
-  amemory = _fastMallocBuffer(sizeof(ffi_closure));
-  cclosure = [amemory mutableBytes];
+  cclosure = (ffi_closure *)_fastMallocBuffer(sizeof(ffi_closure));
   if (cframe == NULL || cclosure == NULL)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
