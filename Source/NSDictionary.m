@@ -936,6 +936,14 @@ static NSString	*indentStrings[] = {
     }
 }
 
+/**
+ * Default implementation for this class is to return the value stored in
+ * the dictionary under the specified key, or nil if there is no value.
+ */
+- (id) valueForKey: (NSString*)key
+{
+  return	[self objectForKey: key];
+}
 @end
 
 @implementation NSMutableDictionary
@@ -1096,4 +1104,37 @@ static NSString	*indentStrings[] = {
   [self addEntriesFromDictionary: otherDictionary];
 }
 
+/**
+ * Default implementation for this class is equivalent to the
+ * -setObject:forKey: method unless value is nil, in which case
+ * it is equivalent to -removeObjectForKey:
+ */
+- (void) takeStoredValue: (id)value forKey: (NSString*)key
+{
+  if (value == nil)
+    {
+      [self removeObjectForKey: key];
+    }
+  else
+    {
+      [self setObject: value forKey: key];
+    }
+}
+
+/**
+ * Default implementation for this class is equivalent to the
+ * -setObject:forKey: method unless value is nil, in which case
+ * it is equivalent to -removeObjectForKey:
+ */
+- (void) takeValue: (id)value forKey: (NSString*)key
+{
+  if (value == nil)
+    {
+      [self removeObjectForKey: key];
+    }
+  else
+    {
+      [self setObject: value forKey: key];
+    }
+}
 @end
