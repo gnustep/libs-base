@@ -308,6 +308,7 @@ NSDebug.m \
 NSDictionary.m \
 NSDistantObject.m \
 NSDistributedLock.m \
+NSDistributedNotificationCenter.m \
 NSEnumerator.m \
 NSException.m \
 NSFileHandle.m \
@@ -407,6 +408,7 @@ Foundation/NSDebug.h \
 Foundation/NSDictionary.h \
 Foundation/NSDistantObject.h \
 Foundation/NSDistributedLock.h \
+Foundation/NSDistributedNotificationCenter.h \
 Foundation/NSEnumerator.h \
 Foundation/NSException.h \
 Foundation/NSFileHandle.h \
