@@ -1,3 +1,8 @@
+2003-11-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Fix based on email by Chris Vetter to correct
+	presentation of protocol names in index pages.
+
 2003-11-10  David Ayers  <d.ayers@inode.at>
 
 	Based on patches by Philip Moetteli <Philip.Moetteli@tele2.ch>.
