@@ -1,3 +1,7 @@
+2005-01-14 06:50 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Correction for redo.
+
 2005-01-14 05:43 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUndoManager.m: Fix forward invocation to not add
