@@ -196,11 +196,33 @@ static Class	NSDate_class;
 {
   if (_selector == 0)
     {
-      [(NSInvocation*)_target invoke];
+      NS_DURING
+	{
+	  [(NSInvocation*)_target invoke];
+	}
+      NS_HANDLER
+	{
+	  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+	   @"raised during posting of timer with target %p and selector '%@'",
+	    [localException name], [localException reason], _target,
+	    NSStringFromSelector([_target selector]));
+	}
+      NS_ENDHANDLER
     }
   else
     {
-      [_target performSelector: _selector withObject: self];
+      NS_DURING
+	{
+	  [_target performSelector: _selector withObject: self];
+	}
+      NS_HANDLER
+	{ 
+	  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+	    @"raised during posting of timer with target %p and selector '%@'",
+	    [localException name], [localException reason], _target,
+	    NSStringFromSelector(_selector));
+	}
+      NS_ENDHANDLER
     }
 
   if (_repeats == NO)
