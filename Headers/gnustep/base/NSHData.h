@@ -103,7 +103,10 @@ typedef	enum {
    The write operations have no effect on an NSData but work as expected
    for NSMutableData objects.
  */
-+ (void) setVMThreshold:(unsigned int)size;
++ (void) setVMChunk:(int)size;
++ (void) setVMThreshold:(int)size;
++ (int) vmChunk;
++ (int) vmThreshold;
 - (void) close;
 - (void) flushStream;
 
@@ -166,12 +169,12 @@ typedef	enum {
 - (void) setStreamEofPosition: (unsigned)i;
 - (void) setStreamPosition: (unsigned)i;
 - (void) setStreamPosition: (unsigned)i seekMode: (seek_mode_t)mode;
+- (void) setVMThreshold:(int)size;
 
 - (char*) streamBuffer;		/* Returns null for an NSData object. */
 - (unsigned) streamBufferLength;
 - (unsigned) streamEofPosition;
 - (unsigned) streamPosition;
-- (unsigned int) vmThreshold;
 
 /* The following write operations have no effect on an NSData object. */
 - (int) writeByte: (unsigned char)b;
@@ -179,6 +182,8 @@ typedef	enum {
 - (int) writeFormat: (NSString*)format, ...;
 - (int) writeFormat: (NSString*)format arguments: (va_list)arg;
 - (void) writeLine: (NSString*)l;
+
+- (int) vmThreshold;
 @end
 
 @interface NSHMutableData : NSHData
@@ -200,7 +205,7 @@ typedef	enum {
 - (void) resetBytesInRange: (NSRange)aRange;
 - (void) setData:(NSData*)other;
 - (void) setLength:(unsigned int)length;
-- (void) setVMThreshold:(unsigned int)size;
+- (void) setVMThreshold:(int)size;
 
 - (void) serializeAlignedBytesLength: (unsigned int)length;
 - (void) serializeDataAt: (const void*)data
@@ -215,6 +220,7 @@ typedef	enum {
                  count: (unsigned int)numInts
                atIndex: (unsigned int)location;
 
+- (int) vmThreshold;
 - (void) increaseCapacityBy:(unsigned int)length;
 @end
 
