@@ -128,9 +128,11 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
         {
           if (GSIMapNodeForKey(t2, n->key) == 0)
             {
+	      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
               return NO;
             }
         }
+      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
       return YES;
     }
 }
@@ -159,6 +161,7 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
     {
       GSIMapAddKey(t, n->key);
     }
+  GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
 
   return (NSHashTable*)t;
 }
@@ -234,9 +237,7 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
       NSWarnFLog(@"Nul enumerator argument supplied");
       return;
     }
-#if	GS_WITH_GC
-  memset(enumerator, 0, sizeof(*enumerator));
-#endif
+  GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
 }
 
 /**

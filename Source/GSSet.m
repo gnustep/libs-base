@@ -86,6 +86,7 @@
 
 - (void) dealloc
 {
+  GSIMapEndEnumerator(&enumerator);
   RELEASE(set);
   [super dealloc];
 }
@@ -121,6 +122,7 @@ static Class	mutableSetClass;
       objs[i++] = node->key.obj;
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
   return AUTORELEASE([[arrayClass allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objs count: i]);
 }
@@ -167,6 +169,7 @@ static Class	mutableSetClass;
       (*imp)(aCoder, sel, node->key.obj);
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (unsigned) hash
@@ -247,10 +250,12 @@ static Class	mutableSetClass;
 	{
 	  if (GSIMapNodeForKey(&map, node->key) != 0)
 	    {
+	      GSIMapEndEnumerator(&enumerator);
 	      return YES;
 	    }
 	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
+      GSIMapEndEnumerator(&enumerator);
     }
   else
     {
@@ -295,9 +300,11 @@ static Class	mutableSetClass;
       else
 	{
 	  // 1.2 if false -> return NO;
+	  GSIMapEndEnumerator(&enumerator);
 	  return NO;
 	}
     }
+  GSIMapEndEnumerator(&enumerator);
   // 2. return YES; all members in this set are also in the otherSet.
   return YES;
 }
@@ -334,10 +341,12 @@ static Class	mutableSetClass;
 		{
 		  if (GSIMapNodeForKey(&(((GSSet*)other)->map), node->key) == 0)
 		    {
+		      GSIMapEndEnumerator(&enumerator);
 		      return NO;
 		    }
 		  node = GSIMapEnumeratorNextNode(&enumerator);
 		}
+	      GSIMapEndEnumerator(&enumerator);
 	    }
 	}
       else
@@ -358,10 +367,12 @@ static Class	mutableSetClass;
 		{
 		  if ([other member: node->key.obj] == nil)
 		    {
+		      GSIMapEndEnumerator(&enumerator);
 		      return NO;
 		    }
 		  node = GSIMapEnumeratorNextNode(&enumerator);
 		}
+	      GSIMapEndEnumerator(&enumerator);
 	    }
 	}
       return YES;
@@ -378,6 +389,7 @@ static Class	mutableSetClass;
       [node->key.obj performSelector: aSelector];
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector
@@ -390,6 +402,7 @@ static Class	mutableSetClass;
       [node->key.obj performSelector: aSelector];
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
@@ -402,6 +415,7 @@ static Class	mutableSetClass;
       [node->key.obj performSelector: aSelector withObject: argument];
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector withObject: argument
@@ -414,6 +428,7 @@ static Class	mutableSetClass;
       [node->key.obj performSelector: aSelector withObject: argument];
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (id) member: (id)anObject
@@ -529,18 +544,21 @@ static Class	mutableSetClass;
   if (other != self)
     {
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapBucket		bucket = GSIMapEnumeratorBucket(&enumerator);
       GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
-	  GSIMapNode	next = GSIMapEnumeratorNextNode(&enumerator);
 
 	  if ([other containsObject: node->key.obj] == NO)
 	    {
-	      GSIMapRemoveKey(&map, node->key);
+	      GSIMapRemoveNodeFromMap(&map, bucket, node);
+	      GSIMapFreeNode(&map, node);
 	    }
-	  node = next;
+	  bucket = GSIMapEnumeratorBucket(&enumerator);
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
+      GSIMapEndEnumerator(&enumerator);
     }
 }
 

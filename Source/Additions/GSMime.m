@@ -57,7 +57,8 @@ static unsigned		_count = 0;
 
 static NSString *makeUniqueString();
 
-static	NSCharacterSet	*specials = nil;
+static	NSCharacterSet	*rfc822specials = nil;
+static	NSCharacterSet	*rfc2045specials = nil;
 
 /*
  *	Name -		decodebase64()
@@ -354,6 +355,7 @@ parseCharacterSet(NSString *token)
 - (BOOL) _decodeBody: (NSData*)data;
 - (NSString*) _decodeHeader;
 - (BOOL) _unfoldHeader;
+- (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info;
 @end
 
 /**
@@ -530,7 +532,8 @@ parseCharacterSet(NSString *token)
   if (dData == nil || [con isKindOfClass: [GSMimeCodingContext class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Bad destination data for decode"];
+		  format: @"[%@ -%@:] bad destination data for decode",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   GS_RANGE_CHECK(aRange, len);
 
@@ -1332,42 +1335,11 @@ parseCharacterSet(NSString *token)
       [document deleteHeaderNamed: name];	// Should be unique
     }
 
-  return [document addHeader: info];
-}
-
-- (BOOL) scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info
-{
-  [self scanPastSpace: scanner];
-  while ([scanner scanString: @";" intoString: 0] == YES)
-    {
-      NSString	*paramName;
-
-      paramName = [self scanToken: scanner];
-      if ([paramName length] == 0)
-	{
-	  NSLog(@"Invalid Mime %@ field (parameter name)", [info name]);
-	  return NO;
-	}
-      [self scanPastSpace: scanner];
-      if ([scanner scanString: @"=" intoString: 0] == YES)
-	{
-	  NSString	*paramValue;
-
-	  [self scanPastSpace: scanner];
-	  paramValue = [self scanToken: scanner];
-	  [self scanPastSpace: scanner];
-	  if (paramValue == nil)
-	    {
-	      paramValue = @"";
-	    }
-	  [info setParameter: paramValue forKey: paramName];
-	}
-      else
-	{
-	  NSLog(@"Ignoring Mime %@ field parameter (%@)",
-	    [info name], paramName);
-	}
-    }
+  NS_DURING
+    [document addHeader: info];
+  NS_HANDLER
+    return NO;
+  NS_ENDHANDLER
   return YES;
 }
 
@@ -1556,7 +1528,7 @@ parseCharacterSet(NSString *token)
 	  value = type;
 	}
 
-      [self scanHeaderParameters: scanner into: info];
+      [self _scanHeaderParameters: scanner into: info];
     }
   else if ([name isEqualToString: @"content-disposition"] == YES)
     {
@@ -1579,7 +1551,7 @@ parseCharacterSet(NSString *token)
       /*
        *	Expect anything else to be 'name=value' parameters.
        */
-      [self scanHeaderParameters: scanner into: info];
+      [self _scanHeaderParameters: scanner into: info];
     }
   else
     {
@@ -1625,11 +1597,20 @@ parseCharacterSet(NSString *token)
  */
 - (NSString*) scanSpecial: (NSScanner*)scanner
 {
+  NSCharacterSet	*specials;
   unsigned		location;
   unichar		c;
 
   [self scanPastSpace: scanner];
 
+  if (isHttp == YES)
+    {
+      specials = rfc822specials;
+    }
+  else
+    {
+      specials = rfc2045specials;
+    }
   /*
    * Now return token delimiter (may be whitespace)
    */
@@ -1732,8 +1713,18 @@ parseCharacterSet(NSString *token)
     }
   else							// Token
     {
+      NSCharacterSet		*specials;
       NSCharacterSet		*skip;
       NSString			*value;
+
+      if (isHttp == YES)
+	{
+	  specials = rfc822specials;
+	}
+      else
+	{
+	  specials = rfc2045specials;
+	}
 
       /*
        * Move past white space.
@@ -2289,6 +2280,43 @@ parseCharacterSet(NSString *token)
     input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
   return unwrappingComplete;
 }
+
+- (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info
+{
+  [self scanPastSpace: scanner];
+  while ([scanner scanString: @";" intoString: 0] == YES)
+    {
+      NSString	*paramName;
+
+      paramName = [self scanToken: scanner];
+      if ([paramName length] == 0)
+	{
+	  NSLog(@"Invalid Mime %@ field (parameter name)", [info name]);
+	  return NO;
+	}
+      [self scanPastSpace: scanner];
+      if ([scanner scanString: @"=" intoString: 0] == YES)
+	{
+	  NSString	*paramValue;
+
+	  [self scanPastSpace: scanner];
+	  paramValue = [self scanToken: scanner];
+	  [self scanPastSpace: scanner];
+	  if (paramValue == nil)
+	    {
+	      paramValue = @"";
+	    }
+	  [info setParameter: paramValue forKey: paramName];
+	}
+      else
+	{
+	  NSLog(@"Ignoring Mime %@ field parameter (%@)",
+	    [info name], paramName);
+	}
+    }
+  return YES;
+}
+
 @end
 
 
@@ -2630,24 +2658,27 @@ static NSCharacterSet	*tokenSet = nil;
 
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
-	@"()<>@,;:/[]?=\"\\"]];
+	@".()<>@,;:[]\"\\"]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet controlCharacterSet]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet illegalCharacterSet]];
-      specials = [m copy];
+      rfc822specials = [m copy];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet characterSetWithCharactersInString:
+	@"/?="]];
+      [m removeCharactersInString: @"."];
+      rfc2045specials = [m copy];
     }
 }
 
 /**
  * Adds a part to a multipart document
  */
-- (BOOL) addContent: (GSMimeDocument*)newContent
+- (void) addContent: (GSMimeDocument*)newContent
 {
-  BOOL	result = YES;
-
   if (content == nil)
     {
       content = [NSMutableArray new];
@@ -2658,9 +2689,10 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
-      result = NO;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ -%@:] passed bad content",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  return result;
 }
 
 /**
@@ -2670,17 +2702,17 @@ static NSCharacterSet	*tokenSet = nil;
  *   at least the fields that are standard for all headers.
  * </p>
  */
-- (BOOL) addHeader: (GSMimeHeader*)info
+- (void) addHeader: (GSMimeHeader*)info
 {
   NSString	*name = [info name];
 
   if (name == nil || [name isEqual: @"unknown"] == YES)
     {
-      NSLog(@"setHeader: supplied with header without valid name");
-      return NO;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ -%@:] header with invalid name",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   [headers addObject: info];
-  return YES;
 }
 
 /**
@@ -3003,10 +3035,8 @@ static NSCharacterSet	*tokenSet = nil;
 /**
  * Sets a new value for the content of the document.
  */
-- (BOOL) setContent: (id)newContent
+- (void) setContent: (id)newContent
 {
-  BOOL	result = YES;
-
   if ([newContent isKindOfClass: [NSString class]] == YES)
     {
       ASSIGNCOPY(content, newContent);
@@ -3023,47 +3053,43 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
-      result = NO;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ -%@:] passed bad content",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  return result;
 }
 
 /**
  * Convenience method to set the content of the document along with
  * creating a content-type header for it.
  */
-- (BOOL) setContent: (id)newContent
+- (void) setContent: (id)newContent
 	       type: (NSString*)type
 	    subType: (NSString*)subType
 	       name: (NSString*)name
 {
+  GSMimeHeader	*hdr;
+  NSString	*val;
+
   if ([type isEqualToString: @"multi-part"] == NO
     && [content isKindOfClass: [NSArray class]] == YES)
     {
-      NSLog(@"Can't set non-'multi-part' content type for array of content");
-      return NO;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ -%@:] content doesn't match content-type",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
 
-  if ([self setContent: newContent] == NO)
-    {
-      return NO;
-    }
-  else
-    {
-      GSMimeHeader	*hdr;
-      NSString		*val;
+  [self setContent: newContent];
 
-      val = [NSString stringWithFormat: @"%@/%@", type, subType];
-      hdr = [GSMimeHeader alloc];
-      hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
-      if (name != nil)
-	{
-	  [hdr setParameter: name forKey: @"name"];
-	}
-      [self setHeader: hdr];
-      RELEASE(hdr);
+  val = [NSString stringWithFormat: @"%@/%@", type, subType];
+  hdr = [GSMimeHeader alloc];
+  hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
+  if (name != nil)
+    {
+      [hdr setParameter: name forKey: @"name"];
     }
-  return YES;
+  [self setHeader: hdr];
+  RELEASE(hdr);
 }
 
 /**
@@ -3071,7 +3097,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Any other headers with the same name will be removed from
  * the document.
  */
-- (BOOL) setHeader: (GSMimeHeader*)info
+- (void) setHeader: (GSMimeHeader*)info
 {
   NSString	*name = [info name];
 
@@ -3092,7 +3118,7 @@ static NSCharacterSet	*tokenSet = nil;
 	    }
 	}
     }
-  return [self addHeader: info];
+  [self addHeader: info];
 }
 
 @end

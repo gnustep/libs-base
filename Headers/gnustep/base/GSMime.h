@@ -86,8 +86,8 @@
   id			content;
 }
 
-- (BOOL) addContent: (id)newContent;
-- (BOOL) addHeader: (GSMimeHeader*)info;
+- (void) addContent: (id)newContent;
+- (void) addHeader: (GSMimeHeader*)info;
 - (NSArray*) allHeaders;
 - (id) content;
 - (id) contentByID: (NSString*)key;
@@ -104,12 +104,12 @@
 - (GSMimeHeader*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
 - (GSMimeHeader*) makeContentID;
-- (BOOL) setContent: (id)newContent;
-- (BOOL) setContent: (id)newContent
+- (void) setContent: (id)newContent;
+- (void) setContent: (id)newContent
 	       type: (NSString*)type
 	    subType: (NSString*)subType
 	       name: (NSString*)name;
-- (BOOL) setHeader: (GSMimeHeader*)info;
+- (void) setHeader: (GSMimeHeader*)info;
 
 @end
 

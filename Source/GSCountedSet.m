@@ -57,6 +57,7 @@
 
 - (void) dealloc
 {
+  GSIMapEndEnumerator(&enumerator);
   RELEASE(set);
   [super dealloc];
 }
@@ -160,6 +161,7 @@
       (*imp2)(aCoder, sel2, type, &node->value.uint);
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (unsigned) hash
@@ -249,27 +251,32 @@
     NSDefaultMallocZone()] initWithSet: self]);
 }
 
+/**
+ * Removes all objcts which have not been added more than level times
+ * from the counted set.<br />
+ * Note to GNUstep maintainers ... this method depends on the characteristic
+ * of the GSIMap enumeration that, once enumerated, an object can be removed
+ * from the map.  If GSIMap ever loses that characterstic, this will break.
+ */
 - (void) purge: (int)level
 {
   if (level > 0)
     {
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapBucket       	bucket = GSIMapEnumeratorBucket(&enumerator);
       GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
-	  GSIMapNode	next = GSIMapEnumeratorNextNode(&enumerator);
-
 	  if (node->value.uint <= level)
 	    {
-	      GSIMapBucket	bucket;
-
-	      bucket = GSIMapBucketForKey(&map, node->key);
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
 	    }
-	  node = next;
+	  bucket = GSIMapEnumeratorBucket(&enumerator);
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
+      GSIMapEndEnumerator(&enumerator);
     }
 }
 

@@ -173,13 +173,16 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
     {
       NSMapEnumerator enumerator = GSIMapEnumeratorForMap((GSIMapTable)t1);
       GSIMapNode n;
+
       while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
         {
           if (GSIMapNodeForKey(t2, n->key) == 0)
             {
+	      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
               return NO;
             }
         }
+      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
       return YES;
     }
 }
@@ -209,6 +212,7 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
     {
       GSIMapAddPair(t, n->key, n->value);
     }
+  GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
 
   return (NSMapTable*)t;
 }
@@ -295,9 +299,7 @@ NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
       NSWarnFLog(@"Nul enumerator argument supplied");
       return;
     }
-#if	GS_WITH_GC
-  memset(enumerator, 0, sizeof(*enumerator));
-#endif
+  GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
 }
 
 /**
