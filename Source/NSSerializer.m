@@ -50,21 +50,34 @@
 /*
  *	Setup for inline operation of string map tables.
  */
-#define	GSI_NEW	1
+#ifdef	GSI_NEW
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	[(X).obj hash]
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToString: (Y).obj]
+#else
+#define	GSI_MAP_RETAIN_KEY(X)	
+#define	GSI_MAP_RELEASE_KEY(X)	
+#define	GSI_MAP_RETAIN_VAL(X)	
+#define	GSI_MAP_RELEASE_VAL(X)	
+#define	GSI_MAP_HASH(X)	[(X).obj hash]
+#define	GSI_MAP_EQUAL(X,Y)	[(X).obj isEqualToString: (Y).obj]
+#endif
 
 #include <base/GSIMap.h>
 
 /*
  *	Setup for inline operation of string arrays.
  */
+#ifdef	GSI_NEW
 #define	GSI_ARRAY_RETAIN(A, X)	
 #define	GSI_ARRAY_RELEASE(A, X)	
+#else
+#define	GSI_ARRAY_RETAIN(X)	
+#define	GSI_ARRAY_RELEASE(X)	
+#endif
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ
 
 #include <base/GSIArray.h>

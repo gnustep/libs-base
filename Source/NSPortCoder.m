@@ -49,21 +49,34 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_NEW	1
+#ifdef	GSI_NEW
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
+#else
+#define	GSI_MAP_RETAIN_KEY(X)	
+#define	GSI_MAP_RELEASE_KEY(X)	
+#define	GSI_MAP_RETAIN_VAL(X)	
+#define	GSI_MAP_RELEASE_VAL(X)	
+#define	GSI_MAP_HASH(X)	((X).uint)
+#define	GSI_MAP_EQUAL(X,Y)	((X).uint == (Y).uint)
+#endif
 
 #include <base/GSIMap.h>
 
 /*
  *	Setup for inline operation of arrays.
  */
+#ifdef	GSI_NEW
 #define	GSI_ARRAY_RETAIN(A, X)	
 #define	GSI_ARRAY_RELEASE(A, X)	
+#else
+#define	GSI_ARRAY_RETAIN(X)	
+#define	GSI_ARRAY_RELEASE(X)	
+#endif
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_STR
 
 #include <base/GSIArray.h>
