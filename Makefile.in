@@ -390,23 +390,6 @@ $(NSNUMBER_OFILES) : NSConcreteNumber.m
 	    rm -f NSConcreteNumber$$i.m; \
 	done
 
-# Compilation of class clusters
-$(NSVALUE_OFILES) : NSCTemplateValue.m
-	for i in ${NSVALUE_CLUSTER}; do \
-	    cp NSCTemplateValue.m NSCTemplateValue$$i.m; \
-	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
-	    -DTYPE_ORDER=$$i NSCTemplateValue$$i.m -o NSValue$$i.o; \
-	    rm -f NSCTemplateValue$$i.m; \
-	done
-
-$(NSNUMBER_OFILES) : NSConcreteNumber.m
-	for i in ${NSNUMBER_CLUSTER}; do \
-	    cp NSConcreteNumber.m NSConcreteNumber$$i.m; \
-	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
-	    -DTYPE_ORDER=$$i -c NSConcreteNumber$$i.m -o NSNumber$$i.o; \
-	    rm -f NSConcreteNumber$$i.m; \
-	done
-
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(LEX) $(LFLAGS) -t NXStringTable_scan.l > NXStringTable_scan.temp
 	sed 's/yy/NXlex_/g' < NXStringTable_scan.temp > NXStringTable_scan.c
