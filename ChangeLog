@@ -1,3 +1,10 @@
+2004-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: ([descriptionWithCalendarFormat:locale:])
+	Rewritten to support unicode and also to support some extra format
+	specifiers like '%r' which might be used in native O/S locale strings
+	but which are not part of OpenStep/Cocoa.
+
 2004-06-21 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSIndexSet.m: (-indexGreaterThanOrEqualToIndex,
