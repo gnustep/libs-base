@@ -38,6 +38,8 @@
  * Private API used internally by NSString etc.
  */
 #ifndef	NO_GNUSTEP
+#include "GSObjCRuntime.h"
+
 
 GS_EXPORT NSStringEncoding *GetAvailableEncodings(void);
 GS_EXPORT NSStringEncoding GetDefEncoding(void);
