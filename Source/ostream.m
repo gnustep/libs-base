@@ -235,7 +235,7 @@ ostream_open_memory (const char *addr, int size, int mode)
   if (addr)
     {
       stream->stream_obj = [[MemoryStream alloc] 
-			     _initOnMallocBuffer: addr
+			     _initOnMallocBuffer: (char*)addr
 			     freeWhenDone: NO
 			     size: size
 			     eofPosition: size
