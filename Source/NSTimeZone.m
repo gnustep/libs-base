@@ -405,7 +405,7 @@ decode (const void *ptr)
   name = [NSString stringWithFormat: @"%d", anOffset];
   detail = [[NSConcreteTimeZoneDetail alloc]
 	     initWithTimeZone: self withAbbrev: name
-	     withOffset: offset withDST: NO];
+	     withOffset: anOffset withDST: NO];
   offset = anOffset;
   return self;
 }

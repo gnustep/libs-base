@@ -38,8 +38,6 @@
 #include <unistd.h>
 #endif
 
-NSLog_printf_handler *_NSLog_printf_handler;
-
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
@@ -74,6 +72,8 @@ _NSLog_standard_printf_handler (NSString* message)
   write(2, buf, len);
 #endif
 }
+
+NSLog_printf_handler *_NSLog_printf_handler = _NSLog_standard_printf_handler;
 
 void 
 NSLog (NSString* format, ...)
@@ -130,7 +130,7 @@ NSLogv (NSString* format, va_list args)
     }
   [myLock lock];
 
-  _NSLog_printf_handler (prefix);
+  _NSLog_printf_handler(prefix);
 
   [myLock unlock];
 
