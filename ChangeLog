@@ -5,6 +5,10 @@
 	internals in scalar types and NSNumbers etc to NSObjCRuntime.m.
 	Re-implemented path methods to fix incorrect implementation as pointed
 	out by Manuel Guesdon.
+	* Headers/Foundation/NSObjCRuntime.h: New functions from NSObject
+	* Source/NSObjCRuntime.m: New functions from NSObject
+	* Source/NSKeyValueCoding.m: Put key value coding methods here for
+	clarity and ease of documentation.
 
 2002-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 

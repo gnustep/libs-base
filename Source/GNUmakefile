@@ -190,6 +190,7 @@ NSGeometry.m \
 NSHashTable.m \
 NSHost.m \
 NSInvocation.m \
+NSKeyValueCoding.m \
 NSLock.m \
 NSLog.m \
 NSMapTable.m \
