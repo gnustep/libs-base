@@ -1,3 +1,8 @@
+Mon Nov 03 12:30:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Use locking at all times until
+	problems with GNUMail threading and notifications are analysed/fixed.
+
 Mon Nov 03 08:35:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Remove unnecessary -copy implementations for
