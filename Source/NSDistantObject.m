@@ -439,24 +439,8 @@ enum
 	   *	automatically when no proxies are left on it.
 	   */
 	  proxy_connection = [[decoder_connection class]
-				connectionByInPort:
-					[decoder_connection receivePort]
-				outPort:
-					proxy_connection_out_port];
-	  if (proxy_connection == nil)
-	    {
-	      proxy_connection = [[decoder_connection class]
-			      connectionByOutPort: proxy_connection_out_port];
-	    }
-	  if (proxy_connection == nil)
-	    {
-	      proxy_connection = [[decoder_connection class]
-			     newForInPort: [decoder_connection receivePort]
-				  outPort: proxy_connection_out_port
-		       ancestorConnection: decoder_connection];
-	      [proxy_connection setNotOwned];
-	      [proxy_connection autorelease];
-	    }
+	    connectionWithReceivePort: [decoder_connection receivePort]
+			     sendPort: proxy_connection_out_port];
 
 	  if (debug_proxy)
 	    NSLog(@"Receiving a triangle-connection proxy 0x%x "
