@@ -770,13 +770,14 @@ static BOOL	multi_threaded = NO;
 }
 
 /**
- * Undocumented feature of OPENSTEP/MacOS-X
- * -init returns the default connection.
+ * Return a connection able to act as a server receive incoming requests.
  */
 - (id) init
 {
-  RELEASE(self);
-  return RETAIN([connectionClass defaultConnection]);
+  NSPort	*port = [NSPort port];
+
+  self = [self initWithReceivePort: port sendPort: nil];
+  return self;
 }
 
 /** <init />

@@ -3,6 +3,8 @@
 	* Sourcewin32-def.top: Manually added external functions.
 	* Source/libgnustep-base.def.in: Regenerated to combine external
 	functions and all public classes.
+	* Source/NSConnection.m: ([-init]) creates a connection usable as
+	a server.
 
 2003-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
