@@ -211,22 +211,22 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (s == nil)
     {
-      [self release];
       NSLog(@"bad argument - service is nil");
+      [self release];
       return nil;
     }
   if (getAddr(a, s, p, &sin) == NO)
     {
-      [self release];
       NSLog(@"bad address-service-protocol combination");
+      [self release];
       return nil;
     }
   [self setAddr: &sin];
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self release];
       NSLog(@"unable to create socket - %s", strerror(errno));
+      [self release];
       return nil;
     }
 
@@ -235,8 +235,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	{
-	  [self release];
 	  NSLog(@"unable to make connection - %s", strerror(errno));
+	  [self release];
 	  return nil;
 	}
 	
@@ -257,22 +257,22 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (s == nil)
     {
-      [self release];
       NSLog(@"bad argument - service is nil");
+      [self release];
       return nil;
     }
   if (getAddr(a, s, p, &sin) == NO)
     {
-      [self release];
       NSLog(@"bad address-service-protocol combination");
+      [self release];
       return nil;
     }
   [self setAddr: &sin];
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self release];
       NSLog(@"unable to create socket - %s", strerror(errno));
+      [self release];
       return nil;
     }
 
@@ -285,8 +285,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	if (errno != EINPROGRESS)
 	  {
-	    [self release];
 	    NSLog(@"unable to make connection - %s", strerror(errno));
+	    [self release];
 	    return nil;
 	  }
 	
@@ -324,8 +324,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self release];
       NSLog(@"unable to create socket - %s", strerror(errno));
+      [self release];
       return nil;
     }
 
@@ -333,25 +333,25 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
+      NSLog(@"unable to bind to port - %s", strerror(errno));
       (void) close(net);
       [self release];
-      NSLog(@"unable to bind to port - %s", strerror(errno));
       return nil;
     }
 
   if (listen(net, 5) < 0)
     {
+      NSLog(@"unable to listen on port - %s", strerror(errno));
       (void) close(net);
       [self release];
-      NSLog(@"unable to listen on port - %s", strerror(errno));
       return nil;
     }
 
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
+      NSLog(@"unable to get socket name - %s", strerror(errno));
       (void) close(net);
       [self release];
-      NSLog(@"unable to get socket name - %s", strerror(errno));
       return nil;
     }
 
@@ -491,8 +491,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       if (fstat(desc, &sbuf) < 0)
 	{
-	  [self release];
           NSLog(@"unable to get status of descriptor - %s", strerror(errno));
+	  [self release];
 	  return nil;
 	}
       if (S_ISREG(sbuf.st_mode))
