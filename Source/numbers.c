@@ -24,7 +24,7 @@
 
 /**** Included Headers *******************************************************/
 
-#include <objects/numbers.h>
+#include <gnustep/base/numbers.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

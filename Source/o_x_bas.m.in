@@ -26,8 +26,8 @@
 
 #include <Foundation/NSZone.h>
 #include <Foundation/NSString.h>
-#include <objects/numbers.h>
-#include <objects/@XX@.h>
+#include <gnustep/base/numbers.h>
+#include <gnustep/base/@XX@.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -84,7 +84,7 @@ objects_@XX@_unset_name(objects_@XX@_t *xx)
 /** Number **/
 
 /* Returns the (process-wide) unique serial number given to the
- * structure XX.  See <objects/numbers.h> for more info. */
+ * structure XX.  See <gnustep/base/numbers.h> for more info. */
 inline size_t
 objects_@XX@_serial_number(objects_@XX@_t *xx)
 {
@@ -92,7 +92,7 @@ objects_@XX@_serial_number(objects_@XX@_t *xx)
 }
 
 /* Gives XX a new (process-wide) unique number.  Numbers are not
- * reused.  See <objects/numbers.h> for more info. */
+ * reused.  See <gnustep/base/numbers.h> for more info. */
 inline size_t
 _objects_@XX@_set_serial_number(objects_@XX@_t *xx)
 {
