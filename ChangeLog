@@ -1,3 +1,20 @@
+Thu Feb  4 13:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSBitmapCharSet.m: ([-formUnionWithCharacterSet]) corrected
+	to use bitwise or rather than logical or.
+	([-formIntersectionWithCharacterSet:]) corrected to use bitwise and
+	rather than logical and.
+	* Source/NSString.m: Implemented handwritten parser code for
+	([-propertyList]) and ([-propertyListFromStringsFileFormat]) which
+	supports unicode strings, is 64-bit clean, and raises exceptions
+	as it should when given a badly formatted string to parse.
+	This replaces the old lex/bison code (which did none of these things)
+	and runs just as fast!  Just hope that if there are any bugs they
+	show up in time to fix for the 0.6 release.
+	* Tools/GNUmakefile: Added plparse and sfparse.
+	* Tools/plparse.m: New tool to parse a property-list and report errors.
+	* Tools/sfparse.m: New tool to parse a strings-file and report errors.
+	
 Wed Feb  3 12:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/FastArray.x: Don't use value returned by RETAIN macro.
