@@ -42,74 +42,74 @@ NSRecursiveLock *gnustep_global_lock = nil;
 /*
  * Connection Notification Strings.
  */
-NSString *NSConnectionDidDieNotification
-  = @"NSConnectionDidDieNotification";
-NSString *NSConnectionDidInitializeNotification
-  = @"NSConnectionDidInitializeNotification";
+NSString *NSConnectionDidDieNotification;
+
+NSString *NSConnectionDidInitializeNotification;
+
 
 /*
  * NSThread Notifications
  */
-NSString *NSWillBecomeMultiThreadedNotification
-  = @"NSWillBecomeMultiThreadedNotification";
-NSString *NSThreadWillExitNotification
-  = @"NSThreadWillExitNotification";
+NSString *NSWillBecomeMultiThreadedNotification;
+
+NSString *NSThreadWillExitNotification;
+
 
 /*
  * Port Notifications
  */
-NSString *PortBecameInvalidNotification
-  = @"PortBecameInvalidNotification";
-NSString *InPortClientBecameInvalidNotification
-  = @"InPortClientBecameInvalidNotification";
-NSString *InPortAcceptedClientNotification
-  = @"InPortAcceptedClientNotification";
+NSString *PortBecameInvalidNotification;
 
-NSString *NSPortDidBecomeInvalidNotification
-  = @"NSPortDidBecomeInvalidNotification";
+NSString *InPortClientBecameInvalidNotification;
+
+NSString *InPortAcceptedClientNotification;
+
+
+NSString *NSPortDidBecomeInvalidNotification;
+
 
 
 /* RunLoop modes */
-NSString *NSDefaultRunLoopMode
-  = @"NSDefaultRunLoopMode";
-NSString *NSConnectionReplyMode
-  = @"NSConnectionReplyMode";
+NSString *NSDefaultRunLoopMode;
+
+NSString *NSConnectionReplyMode;
+
 
 
 /* Exceptions */
-NSString *NSCharacterConversionException
-  = @"NSCharacterConversionException";
-NSString *NSFailedAuthenticationException
-  = @"NSFailedAuthenticationException";
-NSString *NSGenericException
-  = @"NSGenericException";
-NSString *NSInconsistentArchiveException
-  = @"NSInconsistentArchiveException";
-NSString *NSInternalInconsistencyException
-  = @"NSInternalInconsistencyException";
-NSString *NSInvalidArgumentException
-  = @"NSInvalidArgumentException";
-NSString *NSMallocException
-  = @"NSMallocException";
-NSString *NSPortTimeoutException
-  = @"NSPortTimeoutException";
-NSString *NSRangeException
-  = @"NSRangeException";
+NSString *NSCharacterConversionException;
+
+NSString *NSFailedAuthenticationException;
+
+NSString *NSGenericException;
+
+NSString *NSInconsistentArchiveException;
+
+NSString *NSInternalInconsistencyException;
+
+NSString *NSInvalidArgumentException;
+
+NSString *NSMallocException;
+
+NSString *NSPortTimeoutException;
+
+NSString *NSRangeException;
+
 
 /* Exception handler */
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
 /* NSBundle */
-NSString *NSBundleDidLoadNotification
-  = @"NSBundleDidLoadNotification";
-NSString *NSShowNonLocalizedStrings
-  = @"NSShowNonLocalizedStrings";
-NSString *NSLoadedClasses
-  = @"NSLoadedClasses";
+NSString *NSBundleDidLoadNotification;
+
+NSString *NSShowNonLocalizedStrings;
+
+NSString *NSLoadedClasses;
+
 
 /* Stream */
-NSString *StreamException
-  = @"StreamException";
+NSString *StreamException;
+
 
 /*
  * File attributes names
@@ -117,155 +117,155 @@ NSString *StreamException
 
 /* File Attributes */
 
-NSString *NSFileDeviceIdentifier
-  = @"NSFileDeviceIdentifier";
-NSString *NSFileGroupOwnerAccountName
-  = @"NSFileGroupOwnerAccountName";
-NSString *NSFileGroupOwnerAccountNumber
-  = @"NSFileGroupOwnerAccountNumber";
-NSString *NSFileModificationDate
-  = @"NSFileModificationDate";
-NSString *NSFileOwnerAccountName
-  = @"NSFileOwnerAccountName";
-NSString *NSFileOwnerAccountNumber
-  = @"NSFileOwnerAccountNumber";
-NSString *NSFilePosixPermissions
-  = @"NSFilePosixPermissions";
-NSString *NSFileReferenceCount
-  = @"NSFileReferenceCount";
-NSString *NSFileSize
-  = @"NSFileSize";
-NSString *NSFileSystemFileNumber
-  = @"NSFileSystemFileNumber";
-NSString *NSFileSystemNumber
-  = @"NSFileSystemNumber";
-NSString *NSFileType
-  = @"NSFileType";
+NSString *NSFileDeviceIdentifier;
+
+NSString *NSFileGroupOwnerAccountName;
+
+NSString *NSFileGroupOwnerAccountNumber;
+
+NSString *NSFileModificationDate;
+
+NSString *NSFileOwnerAccountName;
+
+NSString *NSFileOwnerAccountNumber;
+
+NSString *NSFilePosixPermissions;
+
+NSString *NSFileReferenceCount;
+
+NSString *NSFileSize;
+
+NSString *NSFileSystemFileNumber;
+
+NSString *NSFileSystemNumber;
+
+NSString *NSFileType;
+
 
 /* File Types */
 
-NSString *NSFileTypeDirectory
-  = @"NSFileTypeDirectory";
-NSString *NSFileTypeRegular
-  = @"NSFileTypeRegular";
-NSString *NSFileTypeSymbolicLink
-  = @"NSFileTypeSymbolicLink";
-NSString *NSFileTypeSocket
-  = @"NSFileTypeSocket";
-NSString *NSFileTypeFifo
-  = @"NSFileTypeFifo";
-NSString *NSFileTypeCharacterSpecial
-  = @"NSFileTypeCharacterSpecial";
-NSString *NSFileTypeBlockSpecial
-  = @"NSFileTypeBlockSpecial";
-NSString *NSFileTypeUnknown
-  = @"NSFileTypeUnknown";
+NSString *NSFileTypeDirectory;
+
+NSString *NSFileTypeRegular;
+
+NSString *NSFileTypeSymbolicLink;
+
+NSString *NSFileTypeSocket;
+
+NSString *NSFileTypeFifo;
+
+NSString *NSFileTypeCharacterSpecial;
+
+NSString *NSFileTypeBlockSpecial;
+
+NSString *NSFileTypeUnknown;
+
 
 /* FileSystem Attributes */
 
-NSString *NSFileSystemSize
-  = @"NSFileSystemSize";
-NSString *NSFileSystemFreeSize
-  = @"NSFileSystemFreeSize";
-NSString *NSFileSystemNodes
-  = @"NSFileSystemNodes";
-NSString *NSFileSystemFreeNodes
-  = @"NSFileSystemFreeNodes";
+NSString *NSFileSystemSize;
+
+NSString *NSFileSystemFreeSize;
+
+NSString *NSFileSystemNodes;
+
+NSString *NSFileSystemFreeNodes;
+
 
 /* Standard domains */
-NSString *NSArgumentDomain
-  = @"NSArgumentDomain";
-NSString *NSGlobalDomain
-  = @"NSGlobalDomain";
-NSString *NSRegistrationDomain
-  = @"NSRegistrationDomain";
+NSString *NSArgumentDomain;
+
+NSString *NSGlobalDomain;
+
+NSString *NSRegistrationDomain;
+
 
 /* Public notification */
-NSString *NSUserDefaultsDidChangeNotification
-  = @"NSUserDefaultsDidChangeNotification";
+NSString *NSUserDefaultsDidChangeNotification;
+
 
 /* Keys for language-dependent information */
-NSString *NSWeekDayNameArray
-  = @"NSWeekDayNameArray";
-NSString *NSShortWeekDayNameArray
-  = @"NSShortWeekDayNameArray";
-NSString *NSMonthNameArray
-  = @"NSMonthNameArray";
-NSString *NSShortMonthNameArray
-  = @"NSShortMonthNameArray";
-NSString *NSTimeFormatString
-  = @"NSTimeFormatString";
-NSString *NSDateFormatString
-  = @"NSDateFormatString";
-NSString *NSShortDateFormatString
-  = @"NSShortDateFormatString";
-NSString *NSTimeDateFormatString
-  = @"NSTimeDateFormatString";
-NSString *NSShortTimeDateFormatString
-  = @"NSShortTimeDateFormatString";
-NSString *NSCurrencySymbol
-  = @"NSCurrencySymbol";
-NSString *NSDecimalSeparator
-  = @"NSDecimalSeparator";
-NSString *NSThousandsSeparator
-  = @"NSThousandsSeparator";
-NSString *NSInternationalCurrencyString
-  = @"NSInternationalCurrencyString";
-NSString *NSCurrencyString
-  = @"NSCurrencyString";
-NSString *NSNegativeCurrencyFormatString
-  = @"NSNegativeCurrencyFormatString";
-NSString *NSPositiveCurrencyFormatString
-  = @"NSPositiveCurrencyFormatString";
-NSString *NSDecimalDigits
-  = @"NSDecimalDigits";
-NSString *NSAMPMDesignation
-  = @"NSAMPMDesignation";
+NSString *NSWeekDayNameArray;
 
-NSString *NSHourNameDesignations
-  = @"NSHourNameDesignations";
-NSString *NSYearMonthWeekDesignations
-  = @"NSYearMonthWeekDesignations";
-NSString *NSEarlierTimeDesignations
-  = @"NSEarlierTimeDesignations";
-NSString *NSLaterTimeDesignations
-  = @"NSLaterTimeDesignations";
-NSString *NSThisDayDesignations
-  = @"NSThisDayDesignations";
-NSString *NSNextDayDesignations
-  = @"NSNextDayDesignations";
-NSString *NSNextNextDayDesignations
-  = @"NSNextNextDayDesignations";
-NSString *NSPriorDayDesignations
-  = @"NSPriorDayDesignations";
-NSString *NSDateTimeOrdering
-  = @"NSDateTimeOrdering";
+NSString *NSShortWeekDayNameArray;
+
+NSString *NSMonthNameArray;
+
+NSString *NSShortMonthNameArray;
+
+NSString *NSTimeFormatString;
+
+NSString *NSDateFormatString;
+
+NSString *NSShortDateFormatString;
+
+NSString *NSTimeDateFormatString;
+
+NSString *NSShortTimeDateFormatString;
+
+NSString *NSCurrencySymbol;
+
+NSString *NSDecimalSeparator;
+
+NSString *NSThousandsSeparator;
+
+NSString *NSInternationalCurrencyString;
+
+NSString *NSCurrencyString;
+
+NSString *NSNegativeCurrencyFormatString;
+
+NSString *NSPositiveCurrencyFormatString;
+
+NSString *NSDecimalDigits;
+
+NSString *NSAMPMDesignation;
+
+
+NSString *NSHourNameDesignations;
+
+NSString *NSYearMonthWeekDesignations;
+
+NSString *NSEarlierTimeDesignations;
+
+NSString *NSLaterTimeDesignations;
+
+NSString *NSThisDayDesignations;
+
+NSString *NSNextDayDesignations;
+
+NSString *NSNextNextDayDesignations;
+
+NSString *NSPriorDayDesignations;
+
+NSString *NSDateTimeOrdering;
+
 
 /* These are in OPENSTEP 4.2 */
-NSString *NSLanguageCode
-  = @"NSLanguageCode";
-NSString *NSLanguageName
-  = @"NSLanguageName";
-NSString *NSFormalName
-  = @"NSFormalName";
+NSString *NSLanguageCode;
+
+NSString *NSLanguageName;
+
+NSString *NSFormalName;
+
 
 /*
  * Keys for the NSDictionary returned by [NSConnection -statistics]
  */
 /* These in OPENSTEP 4.2 */
-NSString *NSConnectionRepliesReceived
-  = @"NSConnectionRepliesReceived";
-NSString *NSConnectionRepliesSent
-  = @"NSConnectionRepliesSent";
-NSString *NSConnectionRequestsReceived
-  = @"NSConnectionRequestsReceived";
-NSString *NSConnectionRequestsSent
-  = @"NSConnectionRequestsSent";
+NSString *NSConnectionRepliesReceived;
+
+NSString *NSConnectionRepliesSent;
+
+NSString *NSConnectionRequestsReceived;
+
+NSString *NSConnectionRequestsSent;
+
 /* These Are GNUstep extras */
-NSString *NSConnectionLocalCount
-  = @"NSConnectionLocalCount";
-NSString *NSConnectionProxyCount
-  = @"NSConnectionProxyCount";
+NSString *NSConnectionLocalCount;
+
+NSString *NSConnectionProxyCount;
+
 
 /*
  *	Setup function called when NSString is initialised.
@@ -294,9 +294,11 @@ GSBuildStrings()
       NSBundleDidLoadNotification
 	= [[NSGCString alloc] initWithCString: "NSBundleDidLoadNotification"];
       *(NSString**)&NSCharacterConversionException
-	= [[NSGCString alloc] initWithCString: "NSCharacterConversionException"];
+	= [[NSGCString alloc] initWithCString:
+	"NSCharacterConversionException"];
       NSConnectionDidDieNotification
-	= [[NSGCString alloc] initWithCString: "NSConnectionDidDieNotification"];
+	= [[NSGCString alloc] initWithCString:
+	"NSConnectionDidDieNotification"];
       NSConnectionDidInitializeNotification
 	= [[NSGCString alloc] initWithCString:
 	"NSConnectionDidInitializeNotification"];
@@ -331,7 +333,8 @@ GSBuildStrings()
       NSEarlierTimeDesignations
 	= [[NSGCString alloc] initWithCString: "NSEarlierTimeDesignations"];
       NSFailedAuthenticationException
-	= [[NSGCString alloc] initWithCString: "NSFailedAuthenticationException"];
+	= [[NSGCString alloc] initWithCString:
+	"NSFailedAuthenticationException"];
       NSFileDeviceIdentifier
 	= [[NSGCString alloc] initWithCString: "NSFileDeviceIdentifier"];
       NSFileGroupOwnerAccountName
@@ -389,7 +392,8 @@ GSBuildStrings()
       NSHourNameDesignations
 	= [[NSGCString alloc] initWithCString: "NSHourNameDesignations"];
       NSInconsistentArchiveException
-	= [[NSGCString alloc] initWithCString: "NSInconsistentArchiveException"];
+	= [[NSGCString alloc] initWithCString:
+	"NSInconsistentArchiveException"];
       *(NSString**)&NSInternalInconsistencyException
 	= [[NSGCString alloc] initWithCString:
 	"NSInternalInconsistencyException"];
@@ -410,7 +414,8 @@ GSBuildStrings()
       NSMonthNameArray
 	= [[NSGCString alloc] initWithCString: "NSMonthNameArray"];
       NSNegativeCurrencyFormatString
-        = [[NSGCString alloc] initWithCString: "NSNegativeCurrencyFormatString"];
+        = [[NSGCString alloc] initWithCString:
+	"NSNegativeCurrencyFormatString"];
       NSNextDayDesignations
 	= [[NSGCString alloc] initWithCString: "NSNextDayDesignations"];
       NSNextNextDayDesignations
@@ -421,7 +426,8 @@ GSBuildStrings()
       NSPortTimeoutException
 	= [[NSGCString alloc] initWithCString: "NSPortTimeoutException"];
       NSPositiveCurrencyFormatString
-        = [[NSGCString alloc] initWithCString: "NSPositiveCurrencyFormatString"];
+        = [[NSGCString alloc] initWithCString:
+	"NSPositiveCurrencyFormatString"];
       NSPriorDayDesignations
 	= [[NSGCString alloc] initWithCString: "NSPriorDayDesignations"];
       *(NSString**)&NSRangeException
