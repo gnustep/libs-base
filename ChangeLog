@@ -1,3 +1,8 @@
+Thu Nov 26 11:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSRunLoop.m: Bugfix in ([-addEvent:type:watcher:forMode:]) to get
+	the count of numbers of time a watcher has added a descriptor correct.
+
 Wed Nov 25 16:27:52 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/include/fast.x: Add #ifndef/#define around file.
