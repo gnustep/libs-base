@@ -22,7 +22,6 @@
 
 	* Source/libgnustep-base.def.in: Regenerated
 
->>>>>>> 1.1753
 2003-01-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Fixed bug in utf-8 output for three
