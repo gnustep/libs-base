@@ -1,0 +1,49 @@
+/* GNU extensions to NSSet.
+   Copyright (C) 1995 Free Software Foundation, Inc.
+
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Date: April 1995
+
+   This file is part of the GNU Objective C Class Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+
+/* You can include this instead of (or in addition to)
+   Foundation/NSSet.h if you want to use the GNU extensions. */
+
+#ifndef __objects_NSSet_h_OBJECTS_INCLUDE
+#define __objects_NSSet_h_OBJECTS_INCLUDE
+
+#include <objects/stdobjects.h>
+#include <objects/KeyedCollecting.h>
+#include <Foundation/NSSet.h>
+
+/* Eventually we'll make a Constant version of this protocol. */
+@interface NSSet (GNU) <Collecting>
+@end
+
+@interface NSMutableSet (GNU)
+#if 0
++ (unsigned) defaultCapacity;
+- initWithType: (const char *)contentEncoding
+    capacity: (unsigned)aCapacity;
+#endif
+@end
+
+@interface NSCountedSet (GNU) <Collecting>
+@end
+
+#endif /* __objects_NSSet_h_OBJECTS_INCLUDE */
