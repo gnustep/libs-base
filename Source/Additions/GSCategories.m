@@ -895,7 +895,7 @@ static NSRecursiveLock *local_lock = nil;
 @implementation _GSLockInitializer
 + (void)initialize
 {
-  if (!local_lock)
+  if (local_lock == nil)
     {
       local_lock = [GSLazyRecursiveLock new];
     }
