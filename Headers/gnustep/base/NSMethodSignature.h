@@ -55,4 +55,7 @@ typedef struct
 
 @end
 
+@interface NSMethodSignature(GNU)
+- (char*) methodType;
+@end
 #endif /* __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE */

@@ -335,12 +335,35 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 				    range.location, range.length);
 }
 
-// xxx This should be primitive method
-- (void) replaceCharactersInRange: (NSRange)range
+- (void) replaceCharactersInRange: (NSRange)aRange
    withString: (NSString*)aString
 {
-  [self deleteCharactersInRange:range];
-  [self insertString:aString atIndex:range.location];
+  int offset;
+  int i;
+
+  if (aRange.location > _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (_count - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  if (_count + [aString length] - aRange.length > _capacity)
+    {
+      _capacity += [aString length] - aRange.length;
+      OBJC_REALLOC(_contents_chars, unichar, _capacity);
+    }
+  offset = [aString length] - aRange.length;
+  if (offset > 0)
+    {
+      int first = aRange.location + aRange.length;
+      for (i = self->_count - 1; i >= first; i--)
+        self->_contents_chars[i+offset] = self->_contents_chars[i];
+    }
+  else if (offset < 0)
+    {
+      for (i = aRange.location + aRange.length; i < self->_count; i++)
+        self->_contents_chars[i+offset] = self->_contents_chars[i];
+    }
+  (self->_count) += offset;
+  [aString getCharacters: &self->_contents_chars[aRange.location]];
 }
 
 //  xxx Check this

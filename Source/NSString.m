@@ -590,7 +590,6 @@ handle_printf_atsign (FILE *stream,
     {
       buffer[i] = [self characterAtIndex: aRange.location+i];
     }
-  buffer[aRange.length] = (unichar)0;
 }
 
 // Combining Strings
@@ -2678,14 +2677,13 @@ else
 
 // Modify A String
 
-/* Inefficient. */
 - (void) appendString: (NSString*)aString
 {
-  id tmp;
-  if (!aString)
-    return;
-  tmp = [self stringByAppendingString:aString];
-  [self setString:tmp];
+  NSRange aRange;
+
+  aRange.location = [self length];
+  aRange.length = 0;
+  [self replaceCharactersInRange: aRange withString: aString];
 }
 
 /* Inefficient. */

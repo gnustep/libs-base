@@ -1,3 +1,52 @@
+Mon Jan 26 09:10:39 1998  Adam Fedor  <fedor@doc.com>
+
+	* NSPage.m (NSRealMemoryAvailable): Add implementation for
+	GNU/Linux (Patch from Matt Jenkins <mdj@arcadia.cs.rmit.EDU.AU>).
+
+Sat Jan 24 15:14:50 1998  Masatake Yamato  <masata-y@aist-nara.ac.jp>
+
+	* src/include/NSMethodSignature.h(-methodType): 
+	Declare new category NSMethodSignature(GNU).
+
+	* src/Invocation.m ([MethodInvocation -setSelector:]): 
+	Add code to handle a case that sel_pointer is pointing NULL 
+	SEL value. This is far from perfect. Type checking is needed.
+
+	* src/NSMethodSignature.m 
+	Add cpp directives to use `strrchr'.
+	(rtn_type_is_oneway): New function
+	for [NSMethodSignature -isOneway].
+	([NSMethodSignature +signatureWithObjCTypes:]): Fix length of 
+	memory allocation for strings.
+	Do not copy all the encoding string T to returnTypes. 
+	([NSMethodSignature -isOneway]): Method implemented.
+	([NSMethodSignature(GNU) -methodType]): New category and method.
+	This is not part of OpenStep spec. This method is used in 
+	NSInvocation.m.
+
+	* src/NSInvocation.m ([NSInvocation +initialize]): Add
+	MethodInvocation class instead of Invocation.
+	([NSInvocation -methodSignature]): Method implemented.
+	([NSInvocation +invocationWithMethodSignature:]): Invoke
+	[NSMethodSignature -methodType] instead of 
+	[NSMethodSignature -methodReturnType].
+	
+Sat Jan 24 23:24:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSGString.m: Re-wrote ([-replaceCharactersInRange:withString:])
+	as a primitive method for greater efficiency.
+
+	* src/NSString.m: ([-getCharacters:range:]) removed code which
+	incorrectly added nul terminator to characters copied.
+	The Rhapsody docs specifically say no terminator.
+	([-appendString:]) rewrote to be reasonably efficient by using the
+	([-replaceCharactersInRange:withString:]) method.
+
+	* src/NSUserDefaults.m: ([-syncronize]) fixed stupid bug I introduced
+	in checking for lock duration and breaking locks on files.
+	([-initWithContentsOfFile:]) Added code to retry a few times when
+	we are locked out.
+	
 Wed Jan 21 17:37:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* Tools/defaults.m: Fixed bug in handling 'write' operations reading

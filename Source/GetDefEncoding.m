@@ -112,8 +112,9 @@ NSStringEncoding GetDefEncoding()
   }
   else /* envirinment var not found */
   {
-    fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment variable not found\n");
-    fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+    /* This shouldn't be required. It really should be in UserDefaults - asf */
+    //fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment variable not found\n");
+    //fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
     ret=NSASCIIStringEncoding;
   }
   return ret;
