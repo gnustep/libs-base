@@ -36,6 +36,8 @@
 #include <objects/TextCStream.h>
 #include <objects/StdioStream.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSGeometry.h>
+#include <Foundation/NSData.h>
 #include <assert.h>
 
 
@@ -177,6 +179,7 @@ my_object_is_class(id object)
   root_object_table = nil;
   forward_object_table = nil;
   interconnected_stack_height = 0;
+  zone = NSDefaultMallocZone();
 
   return self;
 }
@@ -1001,7 +1004,7 @@ exc_return_null(arglist_t f)
 }
 
 
-- (void) encodeObjectBycopy: anObj
+- (void) encodeBycopyObject: anObj
    withName: (id <String>)name
 {
   [self _encodeObject:anObj withName:name isBycopy:YES isForwardReference:NO];
@@ -1055,7 +1058,7 @@ exc_return_null(arglist_t f)
 	    Method *init_method = 
 	      class_get_instance_method(object_class, init_sel);
 	    /*xxx Fix this NS_NOZONE. */
-	    *anObjPtr = (id) NSAllocateObject (object_class, 0, NS_NOZONE);
+	    *anObjPtr = (id) NSAllocateObject (object_class, 0, zone);
 	    if (init_method)
 	      *anObjPtr = 
 		(*(init_method->method_imp))(*anObjPtr, init_sel, self);
@@ -1174,8 +1177,8 @@ exc_return_null(arglist_t f)
 }
 
 - (void) encodeArrayOfObjCType: (const char *)type
-   at: (const void *)d
    count: (unsigned)c
+   at: (const void *)d
    withName: (id <String>)name
 {
   int i;
@@ -1193,8 +1196,8 @@ exc_return_null(arglist_t f)
 }
 
 - (void) decodeArrayOfObjCType: (const char *)type
-   at: (void *)d
    count: (unsigned)c
+   at: (void *)d
    withName: (id <String> *) name
 {
   int i;
@@ -1266,7 +1269,51 @@ exc_return_null(arglist_t f)
 }
 
 
+/* Substituting Classes */
+
++ (id <String>) classNameEncodedForTrueClassName: (id <String>) trueName
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) encodeClassName: (id <String>) trueName
+   intoClassName: (id <String>) inArchiveName
+{
+  [self notImplemented:_cmd];
+}
+
++ (NSString*) classNameDecodedForArchiveClassName: (NSString*) inArchiveName
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
++ (void) decodeClassName: (NSString*) inArchiveName
+             asClassName:(NSString *)trueName
+{
+  [self notImplemented:_cmd];
+}
+
+
+/* Managing Zones */
+
+- (NSZone*) objectZone
+{
+  return zone;
+}
+
+- (void) setObjectZone: (NSZone*)z
+{
+  zone = z;
+}
+
+
 /* Access to instance variables. */
+
+- cStream
+{
+  return cstream;
+}
 
 - (int) formatVersion
 {
@@ -1342,3 +1389,207 @@ exc_return_null(arglist_t f)
 @end
 
 
+@implementation Coder (NSCoderCompatibility)
+
+
+/* Encoding Data */
+
+- (void) encodeValueOfObjCType: (const char*)type
+   at: (const void*)address;
+{
+  [self encodeValueOfObjCType: type at: address withName: NULL];
+}
+
+- (void) encodeArrayOfObjCType: (const char*)type
+   count: (unsigned)count
+   at: (const void*)array
+{
+  [self encodeArrayOfObjCType: type count: count at: array withName: NULL];
+}
+
+- (void) encodeBycopyObject: (id)anObject
+{
+  [self encodeBycopyObject: anObject withName: NULL];
+}
+
+- (void) encodeConditionalObject: (id)anObject
+{
+  [self encodeObjectReference: anObject withName: NULL];
+}
+
+- (void) encodeDataObject: (NSData*)data
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) encodeObject: (id)anObject
+{
+  [self encodeObject: anObject withName: NULL];
+}
+
+- (void) encodePropertyList: (id)plist
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) encodePoint: (NSPoint)point
+{
+  [self encodeValueOfObjCType:@encode(NSPoint)
+	at:&point
+	withName: NULL];
+}
+
+- (void) encodeRect: (NSRect)rect
+{
+  [self encodeValueOfObjCType:@encode(NSRect) at:&rect withName: NULL];
+}
+
+- (void) encodeRootObject: (id)rootObject
+{
+  [self encodeRootObject: rootObject withName: NULL];
+}
+
+- (void) encodeSize: (NSSize)size
+{
+  [self encodeValueOfObjCType:@encode(NSSize) at:&size withName: NULL];
+}
+
+- (void) encodeValuesOfObjCTypes: (const char*)types,...
+{
+  [self notImplemented:_cmd];
+}
+
+
+/* Decoding Data */
+
+- (void) decodeValueOfObjCType: (const char*)type
+   at: (void*)address
+{
+  [self decodeValueOfObjCType: type at: address withName: NULL];
+}
+
+- (void) decodeArrayOfObjCType: (const char*)type
+                         count: (unsigned)count
+                            at: (void*)address
+{
+  [self decodeArrayOfObjCType: type count: count at: address withName: NULL];
+}
+
+- (NSData*) decodeDataObject
+{
+  [self notImplemented:_cmd];
+}
+
+- (id) decodeObject
+{
+  /* xxx This won't work for decoding forward references!!! */
+  id o;
+  [self decodeObjectAt: &o withName: NULL];
+}
+
+- (id) decodePropertyList
+{
+  [self notImplemented:_cmd];
+}
+
+- (NSPoint) decodePoint
+{
+  NSPoint point;
+  [self decodeValueOfObjCType:@encode(NSPoint)
+	at:&point
+	withName: NULL];
+  return point;
+}
+
+- (NSRect) decodeRect
+{
+  NSRect rect;
+  [self decodeValueOfObjCType:@encode(NSRect)
+	at:&rect
+	withName: NULL];
+  return rect;
+}
+
+- (NSSize) decodeSize
+{
+  NSSize size;
+  [self decodeValueOfObjCType:@encode(NSSize)
+	at:&size
+	withName: NULL];
+  return size;
+}
+
+- (void) decodeValuesOfObjCTypes: (const char*)types,...
+{
+  [self notImplemented:_cmd];
+}
+
+
+/* Getting a Version */
+
+- (unsigned int) systemVersion
+{
+  return format_version;	/* xxx Is this right? */
+}
+
+- (unsigned int) versionForClassName: (NSString*)className
+{
+  [self notImplemented:_cmd];
+  return 0;
+}
+
+@end  /* of (NSCoderCompatibility) */
+
+
+@implementation Coder (NSArchiverCompatibility)
+
+
+/* Initializing an archiver */
+
+@interface NSData (Streaming) <Streaming>
+@end
+
+- (id) initForWritingWithMutableData: (NSMutableData*)mdata
+{
+  /* This relies on the fact that GNU extentions to NSMutableData 
+     cause it to conform to <Streaming>. */
+  [self initForWritingToStream: mdata];
+  return self;
+}
+
+/* Archiving Data */
+
++ (NSData*) archivedDataWithRootObject: (id)rootObject
+{
+  id d = [[NSMutableData alloc] init];
+  id a = [[NSArchiver alloc] initForWritingWithMutableData:d];
+  [a encodeRootObject:rootObject];
+  return [d autorelease];
+}
+
++ (BOOL) archiveRootObject: (id)rootObject toFile: (NSString*)path
+{
+  /* xxx fix this return value */
+  id d = [self archivedDataWithRootObject:rootObject];
+  [d writeToFile:path atomically:NO];
+  return YES;
+}
+
+/* Getting data from the archiver */
+
++ unarchiveObjectWithData: (NSData*) data
+{
+  return [self decodeObjectWithName: NULL fromStream: data];
+}
+
++ unarchiveObjectWithFile: (NSString*) path
+{
+  return [self decodeObjectWithName: NULL fromFile: path];
+}
+
+- (NSMutableData*) archiverData
+{
+  [self notImplemented:_cmd];
+}
+
+@end
