@@ -1,3 +1,9 @@
+Thu Sep 16 19:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Change request from Helge
+	* Source/externs.m: added NSNonRetainedObjectMapValueCallBacks
+	* Headers/Foundation/NSMapTable.h: ditto.
+
 Thu Sep 16  8:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Changes to minimise naming conflicts by making sure that all ivars
