@@ -1502,7 +1502,7 @@ if (0) {
 
   info = [self _getWatcher: data type: type forMode: mode];
 
-  if (info != nil && info->receiver == watcher)
+  if (info != nil && info->receiver == (id)watcher)
     {
       /* Increment usage count for this watcher. */
       info->count++;
