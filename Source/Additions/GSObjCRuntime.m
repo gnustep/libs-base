@@ -53,7 +53,7 @@
 /**  Deprecated ... use GSObjCFindVariable() */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,
-  const char **type, unsigned int *size, int *offset)
+		       const char **type, unsigned int *size, int *offset)
 {
   return GSObjCFindVariable(obj, name, type, size, offset);
 }
@@ -67,7 +67,7 @@ GSFindInstanceVariable(id obj, const char *name,
  */
 BOOL
 GSObjCFindVariable(id obj, const char *name,
-  const char **type, unsigned int *size, int *offset)
+		   const char **type, unsigned int *size, int *offset)
 {
   Class			class;
   struct objc_ivar_list	*ivars;
@@ -114,7 +114,7 @@ GSObjCFindVariable(id obj, const char *name,
  * If obj is a class, this returns the class methods.<br />
  * Returns nil if obj is nil.
  */
-NSArray*
+NSArray *
 GSObjCMethodNames(id obj)
 {
   NSMutableSet			*set;
@@ -190,7 +190,7 @@ GSObjCMethodNames(id obj)
  * belong to the class of obj or one of its superclasses.<br />
  * Returns nil if obj is nil.
  */
-NSArray*
+NSArray *
 GSObjCVariableNames(id obj)
 {
   NSMutableArray	*array;
@@ -283,7 +283,7 @@ ObjcRuntimeUtilities.m by Nicola Pero
  * <p>The iVars dictionary lists the instance variable names and their types.
  * </p>
  */
-NSValue*
+NSValue *
 GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
 {
   Class		newClass; 
@@ -838,7 +838,7 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 /**  Deprecated ... use GSObjCGetValue() */
 id
 GSGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int offset)
+	   const char *type, unsigned size, int offset)
 {
   return GSObjCGetValue(self, key, sel, type, size, offset);
 }
@@ -854,7 +854,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
  */
 id
 GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int offset)
+	       const char *type, unsigned size, int offset)
 {
   if (sel != 0)
     {
@@ -1155,7 +1155,7 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
 /**  Deprecated ... use GSObjCSetValue() */
 void
 GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int offset)
+	   const char *type, unsigned size, int offset)
 {
   GSObjCSetValue(self, key, val, sel, type, size, offset);
 }
@@ -1171,7 +1171,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
  */
 void
 GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int offset)
+	       const char *type, unsigned size, int offset)
 {
   static NSNull	*null = nil;
 
@@ -1535,10 +1535,10 @@ LPTSTR GetErrorMsg(DWORD msgId)
 }
 #else
 #ifndef HAVE_STRERROR
-const char*
+const char *
 strerror(int eno)
 {
-  extern char*  sys_errlist[];
+  extern char  *sys_errlist[];
   extern int    sys_nerr;
 
   if (eno < 0 || eno >= sys_nerr)
