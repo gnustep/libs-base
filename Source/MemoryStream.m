@@ -246,7 +246,7 @@ void unchar_func(void *s, int c)
   return position;
 }
 
-- (void) closeStream
+- (void) close
 {
   [self flushStream];
 }

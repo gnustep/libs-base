@@ -102,7 +102,7 @@
   /* Do nothing. */
 }
 
-- (void) closeStream
+- (void) close
 {
   /* Do nothing. */
 }

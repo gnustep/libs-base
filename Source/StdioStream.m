@@ -193,7 +193,7 @@ stdio_unchar_func(void *s, int c)
   fflush(fp);
 }
 
-- (void) closeStream
+- (void) close
 {
   fclose(fp);
 }
