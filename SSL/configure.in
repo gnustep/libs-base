@@ -41,6 +41,27 @@ AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
 
 #--------------------------------------------------------------------
+# Miscellaneous flags
+#--------------------------------------------------------------------
+# Set location of GNUstep dirs for later use
+GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Headers
+if test "$GNUSTEP_FLATTENED" = yes; then
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries
+else
+  clean_target_os=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_os.sh $target_os`
+  clean_target_cpu=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_cpu.sh $target_cpu`
+  obj_dir=$clean_target_cpu/$clean_target_os
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
+fi
+
+#
+# The following one is so that headers of custom libraries placed in
+# $GNUSTEP_HDIR are used before the standard ones
+#
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
+
+#--------------------------------------------------------------------
 # Determine the host, build, and target systems
 #--------------------------------------------------------------------
 AC_CANONICAL_SYSTEM

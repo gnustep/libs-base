@@ -1,3 +1,8 @@
+2002-03-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/configure.in: Check GNUstep directories for headers and
+	libraries as well as standard system directories.
+
 Tue Mar 12 07:37:44 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Additions/GSXML.m ([GSXMLNode -properties]): Fixed return
