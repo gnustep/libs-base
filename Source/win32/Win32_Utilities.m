@@ -21,10 +21,12 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
   */
 #include <Foundation/NSString.h>
-#include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSLock.h>
+#include <Foundation/NSPathUtilities.h>
+#include <Foundation/NSProcessInfo.h>
 
-#include "Win32_Utilities.h"
+#include "GNUstepBase/Win32_Utilities.h"
 
 /* ------------------ */
 /* Internal Variables */
@@ -125,8 +127,9 @@ Win32NSStringFromEnvironmentVariable(const char * envVar)
  * Locates the users profile directory, roughly equivalent to ~/ on unix
  */
 NSString *
-Win32GetUserProfileDirectory(NSString *userName)
+Win32GetUserProfileDirectory(NSString *loginName)
 {
+  NSString *s;
   if ([loginName isEqual: NSUserName()] == YES)
     {
       [gnustep_global_lock lock];
@@ -174,21 +177,23 @@ Win32GetUserProfileDirectory(NSString *userName)
  * Locates specified directory on Win32 systems
  */
 NSString *
-Win32FindDirectory( int DirCSIDL)
+Win32FindDirectory( DWORD DirCSIDL)
 {
   [NSException raise: NSInternalInconsistencyException
               format: @"Not implemented! Can't find directories in Win32."];    
+  return nil;
 }
 
 /**
  * Initialises resources required by utilities
  */
-void Win32_Utilities_init(void)
+void 
+Win32_Utilities_init(void)
 {
   /*
    * Initialise the COM sub-system for this application
    */
-  CoCreateInstance();
+  //CoCreateInstance();
 
   /*
    * Look for the libraries we need
@@ -200,20 +205,15 @@ void Win32_Utilities_init(void)
    */
 //  IShellMalloc, IShellFree
 //  SHGetFolder
-  ;
 }
 
 /**
  * Closes down and releases resources
  */
-void Win32_Utilities_fini(void)
+void 
+Win32_Utilities_fini(void)
 {
   /*
    * Release the pointers for Explorer Shell functions
    */
-  ;
 }
-
-#endif // defined(__WIN32)
-// EOF
-
