@@ -1782,7 +1782,10 @@ handle_request(int desc)
 	{
 	  fprintf(stderr, "request type '%c' from chan %d", type, desc);
 	}
-      fprintf(stderr, " - name: '%.*s' port: %ld\n", size, buf, port);
+      if (type != GDO_PROBE && type != GDO_PREPLY)
+	{
+	  fprintf(stderr, " - name: '%.*s' port: %ld\n", size, buf, port);
+	}
     }
 
   if (ptype != GDO_TCP_GDO && ptype != GDO_TCP_FOREIGN &&
