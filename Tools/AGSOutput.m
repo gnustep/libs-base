@@ -71,14 +71,14 @@ static BOOL snuggleStart(NSString *t)
  *  far too special purpose.</p>
  *  <unit />
  *  <p>Here is the afterword for the class.</p>
- *  <p> Ad here is some automated cross referencing ...
+ *  <p> And here is some automated cross referencing ...
  *  A method in a protocol: [(NSCopying)-copyWithZone:], a class:
  *  [NSString], a protocol: [(NSCopying)], and a
  *  category: [NSRunLoop(GNUstepExtensions)].
  *  </p>
  * </unit>
  * And finally, here is the actual class description ... outside the chapter.
- * With a reference to foo() in it.
+ * With a reference to escapeType() in it.
  */
 @implementation	AGSOutput
 
@@ -283,8 +283,8 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.0//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_0.xml\">\n"];
+  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.1//EN\" "];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   if (base != nil)
@@ -324,7 +324,7 @@ static BOOL snuggleStart(NSString *t)
 	}
       else
 	{
-	  [str appendFormat: @"%@ autogsdoc generated documentation",
+	  [str appendFormat: @"%@ documentation",
 	    [info objectForKey: @"base"]];
 	}
       [str appendString: @"</title>\n"];
@@ -2296,8 +2296,8 @@ static BOOL snuggleStart(NSString *t)
 
 	  [str appendString: @"<?xml version=\"1.0\"?>\n"];
 	  [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-	  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.0//EN\" "];
-	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_0.xml\">\n"];
+	  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.1//EN\" "];
+	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"];
 	  [str appendString: @"<gsdoc base=\""];
 	  [str appendString: [name lastPathComponent]];
 	  /*

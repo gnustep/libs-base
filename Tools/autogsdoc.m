@@ -1,4 +1,4 @@
-/** This tool produces gsdoc files from source files.
+/** This tool produces GSDoc files from source files.
 
    <title>Autogsdoc ... a tool to make documentation from source code</title>
    Copyright (C) 2001 Free Software Foundation, Inc.
@@ -21,33 +21,68 @@
 <chapter>
   <heading>The autogsdoc tool</heading>
   <section>
-    <heading>overview</heading>
+    <heading>Overview</heading>
     <p>
-      The autogsdoc tool is a command-line utility for parsing ObjectiveC
-      source code (header files and optionally source files) in order to
-      generate documentation covering the public interface of the various
-      classes, categories, and protocols in the source.
+      The autogsdoc tool is a command-line utility that helps developers
+      produce reference documentation for GNUstep APIs.  It also enables
+      developers to write and maintain other documentation in XML and have it
+      converted to HTML.  In detail, autogsdoc will:
     </p>
+    <list>
+      <item>
+        Extract special comments describing the public interfaces of classes,
+        categories, protocols, functions, and macros from Objective C source
+        code (header files and optionally source files) into GSDoc XML files.
+      </item>
+      <item>
+        Convert GSDoc XML files, whether generated from source code or written
+        manually by developers, into HTML.
+      </item>
+      <item>
+        Construct indices based on GSDoc XML file sets, and convert those
+        to HTML as well.
+      </item>
+    </list>
     <p>
-      The simple way to use this is to run the command with one or more
+      synopsis: <code>autogsdoc (options) (files)</code><br/>
+        &#160;&#160;&#160;&#160;(options) described below<br/>
+        &#160;&#160;&#160;&#160;(files) <code>.h</code>, <code>.m</code>, <code>.gsdoc</code>, and/or <code>.html</code> files, in any order.
+    </p>  
+    <p>
+      The most common usage this is to run the command with one or more
       header file names as arguments ... the tool will automatically
       parse corresponding source files in the same directory as the
       headers (or the current directory, or the directory specified
-      using the DocumentationDirectory default), and produce gsdoc
-      and html files as output.
+      using the DocumentationDirectory default), and produce GSDoc
+      and HTML files as output.  For best results this mode should be
+      run from the directory containing the source files.
     </p>
     <p>
-      Even without any human assistance, this tool will produce skeleton
-      documents listing the methods in the classes found in the source
-      files, but more importantly it can take specially formatted comments
-      from the source files and insert those comments into the gsdoc output.
+      GSDoc files may also be given directly in addition or by themselves, and
+      will be converted to HTML.  See the
+      <uref url="gsdoc.html">GSDoc reference</uref> for information
+      on the GSDoc format.
+    </p>
+    <p>
+      Finally, HTML files may be given on the command line.  Cross-references
+      to other parts of code documentation found within them will be rewritten
+      based on what is found in the project currently.
+    </p>
+  </section>
+  <section>
+    <heading>Source Code Markup</heading>
+    <p>
+      The source code parser will automatically produce GSDoc documents
+      listing the methods in the classes found in the source files, and it
+      will include text from specially formatted comments from the source
+      files.
     </p>
     <p>
       Any comment beginning with slash and <em>two</em> asterisks rather than
-      the common slash and single asterisk, is taken to be gsdoc markup, to
+      the common slash and single asterisk, is taken to be GSDoc markup, to
       be use as the description of the class or method following it.  This
       comment text is reformatted and then inserted into the output.<br />
-      Where multiple comments are associatd with the same item, they are
+      Where multiple comments are associated with the same item, they are
       joined together with a line break (&lt;br /&gt;) between each if
       necessary.
     </p>
@@ -59,38 +94,42 @@
       the end of the first chapter of the document (it creates the first
       chapter if necessary).
     </p>
+    <p>
+      <strong>Options</strong> are described in the section
+      <em>Arguments and Defaults</em> below.
+    </p>
   </section>
   <section>
     <heading>Extra markup</heading>
     <p>
       There are some cases where special extra processing is performed,
       predominantly in the first comment found in the source file,
-      from which various chunks of gsdoc markup may be extracted and
+      from which various chunks of GSDoc markup may be extracted and
       placed into appropriate locations in the output document -
     </p>
     <list>
-      <item><strong>AutogsdocSource</strong>
-	In any line where <code>AutogsdocSource</code>: is found, the remainder
-	of the line is taken as a source file name to be used instead of
-	making the assumption that each .h file processed uses a .m file
-	of the same name.  You may supply multiple <code>AutogsdocSource</code>:
-	lines where a header file declares items which are defined in
-	multiple source files.<br />
-	If a file name is absolute, it is used just as supplied.<br />
-	If on the other hand, it is a relative path, the software looks for
-	the source file first relative to the location of the header file,
-	and if not found there, relative to the current directory in which
-	autogsdoc is running, and finally relative to the directory
-	specified by the DocumentationDirectory default.
+      <item><strong>AutogsdocSource</strong>:&#160;
+	In any line where <code>AutogsdocSource</code>:&#160; is found, the
+        remainder of the line is taken as a source file name to be used
+        instead of making the assumption that each&#160;.h file processed uses
+        a &#160;.m file of the same name.  You may supply multiple
+        <code>AutogsdocSource</code>:&#160; lines where a header file declares
+        items which are defined in multiple source files.<br /> If a file name
+        is absolute, it is used just as supplied.<br /> If on the other hand,
+        it is a relative path, the software looks for the source file first
+        relative to the location of the header file, and if not found there,
+        relative to the current directory in which autogsdoc is running, and
+        finally relative to the directory specified by the
+        <code>DocumentationDirectory</code> default.
       </item>
       <item><strong>&lt;abstract&gt;</strong>
 	An abstract of the content of the document ... placed in the head
-	of the gsdoc output.
+	of the GSDoc output.
       </item>
       <item><strong>&lt;author&gt;</strong>
 	A description of the author of the code - may be repeated to handle
 	the case where a document has multiple authors.  Placed in the
-	head of the gsdoc output.<br />
+	head of the GSDoc output.<br />
 	As an aid to readability of the source, some special additional
 	processing is performed related to the document author -<br />
 	Any line of the form '<code>Author</code>: name &lt;email-address&gt;',
@@ -100,8 +139,8 @@
 	possibly containing an <em>email</em> element.
       </item>
       <item><strong>&lt;back&gt;</strong>
-	Placed in the gsdoc output just before the end of the body of the
-	document - intended to be used for appendices, index etc.
+	Placed in the GSDoc output just before the end of the body of the
+	document - intended to be used for appendices, index etc..
       </item>
       <item><strong>&lt;chapter&gt;</strong>
 	Placed immediately before any generated class documentation ...
@@ -112,7 +151,7 @@
       </item>
       <item><strong>&lt;copy&gt;</strong>
 	Copyright of the content of the document ... placed in the head
-	of the gsdoc output.<br />
+	of the GSDoc output.<br />
 	As an aid to readability of the source, some special additional
 	processing is performed -<br />
 	Any line of the form 'Copyright (C) text' will be recognised and
@@ -120,7 +159,7 @@
       </item>
       <item><strong>&lt;date&gt;</strong>
 	Date of the revision of the document ... placed in the head
-	of the gsdoc output.  If this is omitted the tool will try to
+	of the GSDoc output.  If this is omitted the tool will try to
 	construct a value from the RCS Date tag (if available).
       </item>
       <item><strong>&lt;front&gt;</strong>
@@ -128,26 +167,25 @@
 	to provide for introduction or contents pages etc.
       </item>
       <item><strong>&lt;title&gt;</strong>
-	Title of the document ... placed in the head of the gsdoc output.
+	Title of the document ... placed in the head of the GSDoc output.
 	If this is omitted the tool will generate a (probably poor)
 	title of its own - so you should include this markup manually.
       </item>
-      <item>
-	<strong>NB</strong>This markup may be used within
-	class, category, or protocol documentation ... if so, it is
-	extracted and wrapped round the rest of the documentation for
-	the class as the classes chapter.
-	The rest of the class documentation is normally
-	inserted at the end of the chapter, but may instead be substituted
-	in in place of the &lt;unit /&gt; pseudo-element within the
-	&lt;chapter&gt; element.
-      </item>
       <item><strong>&lt;version&gt;</strong>
 	Version identifier of the document ... placed in the head
-	of the gsdoc output.  If this is omitted the tool will try to
+	of the GSDoc output.  If this is omitted the tool will try to
 	construct a value from the RCS Revision tag (if available).
       </item>
     </list>
+    <p>
+      <strong>NB</strong>The markup just described may be used within class,
+	category, or protocol documentation ... if so, it is extracted and
+	wrapped round the rest of the documentation for the class as the
+	class's chapter.  The rest of the class documentation is normally
+	inserted at the end of the chapter, but may instead be substituted in
+	in place of the &lt;unit /&gt; pseudo-element within the
+	&lt;chapter&gt; element.
+    </p>
   </section>
   <section>
     <heading>Method markup</heading>
@@ -161,7 +199,7 @@
       </item>
       <item><strong>&lt;override-subclass /&gt;</strong>
 	The method is marked as being one which subclasses must override
-	(eg an abstract method).
+	(e.g. an abstract method).
       </item>
       <item><strong>&lt;override-never /&gt;</strong>
 	The method is marked as being one which subclasses should <em>NOT</em>
@@ -169,7 +207,7 @@
       </item>
       <item><strong>&lt;standards&gt; ... &lt;/standards&gt;</strong>
 	The markup is removed from the description and placed <em>after</em>
-	it in the gsdoc output - so that the method is described as
+	it in the GSDoc output - so that the method is described as
 	conforming (or not conforming) to the specified standards.
       </item>
     </list>
@@ -192,7 +230,7 @@
       </item>
       <item>Method names (beginning with a plus or minus) are enclosed
 	in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
-	eg. "-init" (without the quotes) would be wrapped in a gsdoc
+	e.g. "-init" (without the quotes) would be wrapped in a GSDoc
 	reference element to point to the init method of the current
 	class or, if only one known class had an init method, it
 	would refer to the method of that class.
@@ -202,52 +240,54 @@
       </item>
       <item>Method specifiers including class names (beginning and ending with
 	square brackets) are enclosed in &lt;ref...&gt; ... &lt;/ref&gt; markup.
-	<br />eg. <code>[</code>NSObject-init<code>]</code>,
+	<br />e.g. <code>[</code>NSObject-init<code>]</code>,
 	will create a reference to the init method of NSObject (either the
 	class proper, or any of its categories), while
 	<br /><code>[</code>(NSCopying)-copyWithZone:<code>]</code>, creates a
-	reference to a method in the NSCopyIng protocol.
+	reference to a method in the NSCopying protocol.
 	<br />Note that no spaces must appear between the square brackets
 	in these specifiers.
 	<br />Protocol names are enclosed in round brackets rather than
-	the customary angle brackets, because gsdoc is an XML language, and
+	the customary angle brackets, because GSDoc is an XML language, and
 	XML treats angle brackets specially.
       </item>
       <item>Class names (and also protocol and category names) enclosed
 	in square brackets are also cross referenced.
 	<br />Protocol names are enclosed in round brackets rather than
-	the customary angle brackets, because gsdoc is an XML language, and
+	the customary angle brackets, because GSDoc is an XML language, and
 	XML treats angle brackets specially.
       </item>
       <item>Function names (ending with '()') other than 'main()' are enclosed
 	in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
-	eg. "NSLogv()" (without the quotes) would be wrapped in a gsdoc
+	e.g. "NSLogv()" (without the quotes) would be wrapped in a GSDoc
 	reference element to point to the documentation of the NSLog function.
 	<br />Note the fact that the function name must be surrounded by
 	whitespace (though a comma, fullstop, or semicolon at the end
 	of the specifier will also act as a whitespace terminator).
+        <br />
       </item>
     </list>
   </section>
   <section>
     <heading>Arguments and Defaults</heading>
     <p>
-      The tools accepts certain user defaults (which can of course be
-      supplied as command-line arguments as usual) -
+      The tool accepts certain user defaults (which can of course be
+      supplied as command-line arguments by prepending '-' before the default
+      name and giving the value afterwards, as in -<code>Clean YES</code>):
     </p>
     <list>
       <item><strong>Clean</strong>
 	If this boolean value is set to YES, then rather than generating
-	documentation, the tool removes all gsdoc files generated in the
+	documentation, the tool removes all GSDoc files generated in the
 	project, and all html files generated from them (as well as any
-	which would be generated from gsdoc files listed explicitly),
+	which would be generated from GSDoc files listed explicitly),
 	and finally removes the project index file.<br />
-	The only exception to this is that template gsdoc files (ie those
-	specifield using "-ConstantsTemplate ...", "-FunctionsTemplate ..."
+	The only exception to this is that template GSDoc files (i.e. those
+	specified using "-ConstantsTemplate ...", "-FunctionsTemplate ..."
         arguments etc) are not deleted unless the CleanTemplates flag is set.
       </item>
       <item><strong>CleanTemplates</strong>
-	This flag specifies whether template gsdoc files are to be removed
+	This flag specifies whether template GSDoc files are to be removed
 	along with other files when the Clean option is specified.
 	The default is for them not to be removed ... since these templates
 	may have been produced manually and just had data inserted into them.
@@ -285,10 +325,15 @@
 	'protected' will be documented.
       </item>
       <item><strong>DocumentationDirectory</strong>
-	May be used to specify the directory in which generated
-	documentation is to be placed.  If this is not set, output
-	is placed in the current directory.  This directory is also
-	used as a last resort to locate source files (not headers).
+	May be used to specify the directory in which generated documentation
+	is to be placed.  If this is not set, output is placed in the current
+	directory.  This directory is also used as a last resort to locate
+	source files (not headers), and more importantly, it is used as the
+	<em>first and only</em> resort to locate any <code>.gsdoc</code> files
+	that are passed in on the command line.  Any path information given
+	for these files is <em><strong>removed</strong></em> and they are
+	searched for in <code>DocumentationDirectory</code> (even though they
+        may not have been autogenerated).
       </item>
       <item><strong>Files</strong>
 	Specifies the name of a file containing a list of file names as
@@ -361,13 +406,16 @@
 	of the <em>body</em> element) in the template.
       </item>
       <item><strong>MakeDependencies</strong>
-	A filename to be used to output dependency information for make
+	A filename to be used to output dependency information for make.  This
+	will take the form of listing all header and source files known for
+	the project as dependencies of the project name (see
+        <code>Project</code>).
       </item>
       <item><strong>Project</strong>
-	May be used to specify the name of this project ... determines the
+	Specifies the name of this project ... determines the
 	name of the index reference file produced as part of the documentation
 	to provide information enabling other projects to cross-reference to
-	items in this project.
+	items in this project.  If not set, 'Untitled' is used.
       </item>
       <item><strong>Projects</strong>
 	This value may be supplied as a dictionary containing the paths to
@@ -377,7 +425,10 @@
 	<code>Foo</code> is found in the file <code>Foo</code>, and the
 	path associated with that project index is <code>/usr/doc/proj</code>,
 	Then generated html output may reference the class as being in
-	<code>/usr/doc/prj/Foo.html</code>
+	<code>/usr/doc/prj/Foo.html</code> .  Note that a dictionary may be
+        given on the command line by using the standard PropertyList format
+        (not the XML format of OS X), using semicolons as line-separators, and
+        enclosing it in single quotes.
       </item>
       <item><strong>ShowDependencies</strong>
 	A boolean value which may be used to specify that the program should
@@ -386,7 +437,7 @@
       </item>
       <item><strong>Standards</strong>
 	A boolean value used to specify whether the program should insert
-	information about standards complience into ythe documentation.
+	information about standards complience into the documentation.
 	This should only be used when documenting the GNUstep libraries
 	and tools themselves as it assumes that the code being documented
 	is part of GNUstep and possibly complies with the OpenStep standard
@@ -426,7 +477,7 @@
       </item>
       <item><strong>Up</strong>
 	A string used to supply the name to be used in the 'up' link from
-	generated gsdoc documents.  This should normally be the name of a
+	generated GSDoc documents.  This should normally be the name of a
 	file which contains an index of the contents of a project.<br />
 	If this is missing or set to an empty string, then no 'up' link
 	will be provided in the documents.
@@ -451,7 +502,7 @@
       </item>
       <item><strong>Warn</strong>
 	A boolean used to specify whether you want standard warning
-	output (eg report of undocumented methods) produced.
+	output (e.g. report of undocumented methods) produced.
       </item>
       <item><strong>WordMap</strong>
 	This value is a dictionary used to map identifiers/keywords found
@@ -463,6 +514,9 @@
 	Another identifier,<br />
 	An empty string - the value is ignored,<br />
 	Two slashes ('//') - the rest of the line is ignored.<br />
+        Note that a dictionary may be given on the command line by using the
+        standard PropertyList format (not the XML format of OS X), using
+        semicolons as line-separators, and enclosing it in single quotes.
       </item>
     </list>
   </section>
@@ -473,13 +527,13 @@
       should be used as the 'up' link for any other documents used.<br />
       This name must not include a path or extension.<br />
       Generally, the document referred to by this default should be a
-      hand-edited gsdoc document which should have a <em>back</em>
-      section containing a project index. eg.
+      hand-edited GSDoc document which should have a <em>back</em>
+      section containing a project index. e.g.
     </p>
 <example>
   &lt;?xml version="1.0"?&gt;
-  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.0//EN" 
-  "http://www.gnustep.org/gsdoc-1_0_0.xml"&gt;
+  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" 
+  "http://www.gnustep.org/gsdoc-1_0_1.xml"&gt;
   &lt;gsdoc base="index"&gt;
     &lt;head&gt;
       &lt;title&gt;My project reference&lt;/title&gt;
@@ -496,11 +550,32 @@
   &lt;/gsdoc&gt;
 </example>
   </section>
+
+  <section>
+    <heading>Implementation Notes</heading>
+    <p>
+      The autogsdoc tool internally makes use of the following four classes-
+    </p>
+    <deflist>
+      <term><ref type="class" id="AGSParser"/></term>
+      <desc>Parses source code comments to an internal representation.
+      </desc>
+      <term><ref type="class" id="AGSOutput"/></term>
+      <desc>Converts internal representation of source comments to a gsdoc
+            document.</desc>
+      <term><ref type="class" id="AGSIndex"/></term>
+      <desc>Internal representation of an igsdoc file, representing indices
+            of a project's files.</desc>
+      <term><ref type="class" id="AGSHtml"/></term>
+      <desc>Converts gsdoc XML to HTML, using AGSIndex instances.</desc>
+    </deflist>
+  </section>
+
 </chapter>
 <back>
   <index type="title" scope="project" />
-  <index type="class" scope="project" />
 </back>
+
    */
 
 #include	<config.h>
@@ -514,11 +589,13 @@
 #include "GNUstepBase/GSCategories.h"
 #endif
 
+/** Invokes the autogsdoc tool. */
 int
 main(int argc, char **argv, char **env)
 {
   NSProcessInfo		*proc;
   unsigned		i;
+  NSDictionary		*argsRecognized;
   NSUserDefaults	*defs;
   NSFileManager		*mgr;
   NSString		*documentationDirectory;
@@ -548,6 +625,63 @@ main(int argc, char **argv, char **env)
   NSAutoreleasePool	*pool = nil;
 #endif
 
+  /*
+   Overall process in this file is as follows:
+
+   1) Get/test defaults and arguments.
+
+   2) Init filename list, and move .h/.m into "source files", .gsdoc into
+      "gsdoc files", and .html into "html files".
+
+   3) Load existing .igsdoc file (PropertyList/Dictionary format) if found,
+      initializing an AGSIndex from it.
+
+   4) Clean if desired:
+
+      4a) Build list of all template files, and remove generated content
+          from them if not cleaning templates.
+      4b) Figure out generated files from index file (if none assumes none
+          generated) and remove them (but not template files unless
+          supposed to).
+      4c) Remove index file.
+      4d) Remove HTML files corresponding to .gsdoc files in current list.
+
+   5) Start with "source files".. for each one (hereafter called a "header
+      file"):
+
+      5a) Parse declarations (in .h or .m) using an AGSParser object.
+      5b) Determine (possibly multiple) dependent .m files corresponding to
+          a .h and parse them.
+      5c) Feed parser results to an AGSOutput instance.
+
+   6) Move to "gsdoc files" (including both command-line given ones and
+      just-generated ones).. and generate the index; for each one:
+
+      6a) Remove any path specification and search in
+          documentationDirectory then CWD for it.
+      6b) Parse the file, call [localRefs makeRefs: root],
+          [projectRefs mergeRefs: localRefs] to make indices.
+
+   7) Write the .igsdoc file.
+
+   8) Build index references to external projects.
+
+   8.5) Create HTML frames auxiliary files.
+
+   9) If needed, re-pass through the "gsdoc files" to generate HTML.
+      9a) Find files as before.
+      9b) Parse as before.
+      9c) Feed the DOM tree to an AGSHtml instance, and dump the result to
+          a file.
+
+   10) For HTML files that were given on the command line, adjust all cross
+       reference HREFs to paths given in arguments.
+
+   11) If MakeDependencies was requested, list all header and source files
+       as colon-dependencies of the project name.
+
+   */
+
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
 #endif
@@ -563,10 +697,83 @@ main(int argc, char **argv, char **env)
   exit(EXIT_FAILURE);
 #endif
 
+  /*
+   * 1) Get/test defaults and arguments.
+   */
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
     nil]];
+
+  // BEGIN test for any unrecognized arguments, or "--help"
+  argsRecognized = [NSDictionary dictionaryWithObjectsAndKeys:
+      @"\t\t\tBOOL\t(NO)\n\tproduce verbose output", @"Verbose",
+      @"\t\t\tBOOL\t(NO)\n\tproduce warnings", @"Warn",
+      @"\tBOOL\t(NO)\n\tignore file mod times (always generate)", @"IgnoreDependencies",
+      @"\t\tBOOL\t(NO)\n\tlog files being regenerated due to dependencies", @"ShowDependencies",
+      @"\t\tBOOL\t(YES)\n\tgenerate HTML output (as opposed to just gsdoc from source)", @"GenerateHtml",
+      @"\t\t\tSTR\t(\"\")\n\tspecify where headers are to be documented as being found", @"Declared",
+      @"\t\t\tSTR\t(\"Untitled\")\n\thead title name of this documentation", @"Project",
+      @"\t\tSTR\t(.)\n\tdirectory to search for .h files", @"HeaderDirectory",
+      @"\tSTR\t(.)\n\tdirectory to place generated files and search for gsdoc files", @"DocumentationDirectory",
+      @"\t\t\tSTR\t(\"\")\n\tname of file containing filenames to document", @"Files",
+      @"\t\t\tBOOL\t(NO)\n\tremove all generated files", @"Clean",
+      @"\t\tBOOL\t(NO)\n\tremove template files when cleaning", @"CleanTemplates",
+      @"\t\t\tSTR\t(\"\")\n\tfilename to link to from generated HTML", @"Up",
+      @"\t\t\tspecial\t(nil)\n\tdictionary used to preprocess (see docs)", @"WordMap",
+      @"\t\t\tBOOL\t(NO)\n\twhether to insert information on standards compliance", @"Standards",
+      @"BOOL\t(NO)\n\tdocument private instance variables", @"DocumentAllInstanceVariables",
+      @"\t\tSTR\t(\"None\")\n\twhether to include other projects in index", @"LocalProjects",
+      @"\t\tSTR\t(\"None\")\n\twhether to include system projects in index", @"SystemProjects",
+      @"\t\t\tSTR\t(\"None\")\n\texplicit list of other projects to index", @"Projects",
+      @"\t\tSTR\t(\"\")\n\tfile to output dependency info for 'make' into", @"MakeDependencies",
+      @"\t\tSTR\t(\"\")\n\tfile into which docs for constants should be consolidated", @"ConstantsTemplate",
+      @"\t\tSTR\t(\"\")\n\tfile into which docs for functions should be consolidated", @"FunctionsTemplate",
+      @"\t\tSTR\t(\"\")\n\tfile into which docs for macros should be consolidated", @"MacrosTemplate",
+      @"\t\tSTR\t(\"\")\n\tfile into which docs for typedefs should be consolidated", @"TypedefsTemplate",
+      @"\t\tSTR\t(\"\")\n\tfile into which docs for variables should be consolidated", @"VariablesTemplate",
+      @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages for display in HTML frames", @"MakeFrames",
+      nil];
+    NSString *arg;
+    NSString *opt;
+    NSSet *argSet = [NSSet setWithArray: [argsRecognized allKeys]];
+    NSArray *argsGiven = [[NSProcessInfo processInfo] arguments];
+
+    for (i=0; i<[argsGiven count]; i++) {
+        arg = [argsGiven objectAtIndex: i];
+        if ([arg characterAtIndex: 0] == '-')
+          {
+            opt = ([arg characterAtIndex: 1] == '-') ?
+                [arg substringFromIndex: 2] : [arg substringFromIndex: 1];
+          }
+        else
+          {
+            continue;
+          }
+        if (![argSet containsObject: opt] || [@"help" isEqual: opt])
+          {
+              NSArray *args = [argsRecognized allKeys];
+
+              GSPrintf(stderr, @"Usage:\n");
+              GSPrintf(stderr, [NSString stringWithFormat:
+                                             @"    %@ [options] [files]\n",
+                                         [argsGiven objectAtIndex :0]]);
+              GSPrintf(stderr, @"\n Options:\n");
+              for (i=0; i<[args count]; i++) {
+                  arg = [args objectAtIndex: i];
+                  GSPrintf(stderr, [NSString stringWithFormat:
+                                                 @"     -%@\t%@\n\n",
+                                             arg, [argsRecognized objectForKey:
+                                                                      arg]]);
+              }
+
+              GSPrintf(stderr, @"\n Files:\n");
+              GSPrintf(stderr, @"  [.h files]\t\tMust be in 'HeaderDirectory'\n");
+              GSPrintf(stderr, @"  [.m files]\t\tAbsolute or relative path (from here)\n");
+              GSPrintf(stderr, @"  [.gsdoc files]\tMust be in 'DocumentationDirectory'\n\n");
+            exit(1);
+          }
+    }
 
   verbose = [defs boolForKey: @"Verbose"];
   warn = [defs boolForKey: @"Warn"];
@@ -611,7 +818,7 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * Build an array of files to be processed.
+   * 2) Build an array of files to be processed.
    */
   obj = [defs stringForKey: @"Files"];
   if (obj != nil)
@@ -675,8 +882,9 @@ main(int argc, char **argv, char **env)
   mgr = [NSFileManager defaultManager];
 
   /*
-   * Load any old project indexing information and determine when the
-   * indexing information was last updated (never ==> distant past)
+   * 3) Load old project indexing information from the .igsdoc file if
+   *    present and determine when the indexing information was last
+   *    updated (never ==> distant past).
    */
   refsFile = [documentationDirectory
     stringByAppendingPathComponent: project];
@@ -702,6 +910,9 @@ main(int argc, char **argv, char **env)
 	}
     }
 
+  /*
+   * 4) Clean if desired:
+   */
   if ([defs boolForKey: @"Clean"] == YES)
     {
       NSDictionary	*output;
@@ -720,7 +931,7 @@ main(int argc, char **argv, char **env)
 	nil];
 
       /*
-       * Build a set of all template files.
+       * 4a) Build a set of all template files.
        */
       templates = AUTORELEASE([NSMutableSet new]);
       enumerator = [keys objectEnumerator];
@@ -741,8 +952,8 @@ main(int argc, char **argv, char **env)
 	}
 
       /*
-       * Unless we are supposed to clean templates, we preserve any
-       * template gsdoc files, but remove any generated content.
+       * 4b) Unless we are supposed to clean templates, we preserve any
+       *     template gsdoc files, but remove any generated content.
        */
       if ([defs boolForKey: @"CleanTemplates"] == NO)
 	{
@@ -797,8 +1008,8 @@ main(int argc, char **argv, char **env)
 	}
 
       /*
-       * Build a list of all generated gsdoc files, then remove them
-       * and their corresponding html documents.
+       * 4b) Build a list of all generated gsdoc files, then remove them
+       *     and their corresponding html documents.
        */
       output = [[projectRefs refs] objectForKey: @"output"];
       enumerator = [output objectEnumerator];
@@ -836,7 +1047,7 @@ main(int argc, char **argv, char **env)
       RELEASE(allPaths);
 
       /*
-       * Remove the project index file.
+       * 4c) Remove the project index file.
        */
       if ([mgr fileExistsAtPath: refsFile] == YES)
 	{
@@ -847,8 +1058,8 @@ main(int argc, char **argv, char **env)
 	}
 
       /*
-       * Remove any HTML documents resulting from gsdoc files which
-       * were specified on the command line rather than generated.
+       * 4d) Remove any HTML documents resulting from gsdoc files which
+       *     were specified on the command line rather than generated.
        */
       enumerator = [gFiles objectEnumerator];
       while ((path = [enumerator nextObject]) != nil)
@@ -871,10 +1082,18 @@ main(int argc, char **argv, char **env)
 
   if ([sFiles count] == 0 && [gFiles count] == 0 && [hFiles count] == 0)
     {
-      NSLog(@"No filename arguments found ... giving up");
+      NSLog(@"No .h, .m, or .gsdoc filename arguments found ... giving up");
       return 1;
     }
 
+  /*
+   * 5) Start with "source files".. for each one (hereafter called a
+   *    "header file"):
+   *    a) Parse declarations (in .h or .m) using an AGSParser object.
+   *    b) Determine (possibly multiple) dependent .m files corresponding to
+   *       a .h and parse them.
+   *    c) Feed parser results to an AGSOutput instance.
+   */
   count = [sFiles count];
   if (count > 0)
     {
@@ -1137,6 +1356,11 @@ main(int argc, char **argv, char **env)
       DESTROY(output);
     }
 
+  /*
+   * 6) Now move to "gsdoc files" (including both command-line given ones and
+   *    just-generated ones).. and generate the index.
+   *    
+   */
   count = [gFiles count];
   if (count > 0)
     {
@@ -1158,6 +1382,14 @@ main(int argc, char **argv, char **env)
 	      arp = [NSAutoreleasePool new];
 	    }
 #endif
+          /*
+           * 6a) Chop off any path specification that might be there (for files
+           *     given on the command line) and search for the file only in
+           *     'DocumentationDirectory' or the CWD (which is assumed to be
+           *     the directory with the source files, though this will not be
+           *     true if path information was given for them on the command
+           *     line).
+           */
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
 	  gsdocfile = [documentationDirectory
@@ -1181,9 +1413,9 @@ main(int argc, char **argv, char **env)
 	    }
 
 	  /*
-	   * Now we try to process the gsdoc data to make index info
-	   * unless the project index is already more up to date than
-	   * this file (or the gsdoc file does not exist of course).
+	   * 6b) Now we try to process the gsdoc data to make index info
+	   *     unless the project index is already more up to date than
+	   *     this file (or the gsdoc file does not exist of course).
 	   */
 	  if (gDate != nil && [gDate earlierDate: rDate] == rDate)
 	    {
@@ -1198,6 +1430,7 @@ main(int argc, char **argv, char **env)
 		  GSXMLParser	*parser;
 		  AGSIndex	*localRefs;
 
+                  // This parses the file for index info
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
@@ -1215,6 +1448,7 @@ main(int argc, char **argv, char **env)
 		    }
 
 		  localRefs = AUTORELEASE([AGSIndex new]);
+                  // This is the main call that computes index information
 		  [localRefs makeRefs: root];
 
 		  /*
@@ -1224,7 +1458,7 @@ main(int argc, char **argv, char **env)
 		}
 	      else
 		{
-		  NSLog(@"No readable documentation at '%@' ... skipping",
+		  NSLog(@"File '%@' not found in $DocumentationDirectory or '.' ... skipping indexing",
 		    gsdocfile);
 		}
 	    }
@@ -1234,7 +1468,8 @@ main(int argc, char **argv, char **env)
 #endif
 
       /*
-       * Save project references if they have been modified.
+       * 7) Save project references if they have been modified
+       *    (into an .igsdoc file named for the project).
        */
       projectIndex = [projectRefs refs];
       if (projectIndex != nil && [originalIndex isEqual: projectIndex] == NO)
@@ -1250,9 +1485,13 @@ main(int argc, char **argv, char **env)
   globalRefs = [AGSIndex new];
   
   /*
-   * If we are either generating html output, or relocating existing
-   * html documents, we must build up the indexing information needed
-   * for any cross-referencing etc.
+   * 8) If we are either generating html output, or relocating existing
+   *    html documents, we must build up the indexing information needed
+   *    for any cross-referencing etc..  This comes from the "xxxProjects"
+   *    defaults.  Each of these is used to find a project directory, in
+   *    which an .igsdoc index cache file is searched for.  If found, its
+   *    contents are read in and merged with the current project (but NOT
+   *    merged into its index file).
    */
   if (generateHtml == YES || [hFiles count] > 0)
     {
@@ -1275,8 +1514,7 @@ main(int argc, char **argv, char **env)
       AUTORELEASE(projects);
 
       /*
-       * Merge any external project references into the
-       * main cross reference index.
+       * Merge any system project references.
        */
       if ([systemProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
 	{
@@ -1317,6 +1555,9 @@ main(int argc, char **argv, char **env)
 	    }
 	}
 
+      /*
+       * Merge any local project references.
+       */
       if ([localProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
 	{
 	  NSString	*base = [NSSearchPathForDirectoriesInDomains(
@@ -1357,6 +1598,9 @@ main(int argc, char **argv, char **env)
 	    }
 	}
 
+      /*
+       * Merge any "plain project" references.
+       */
       if (projects != nil)
 	{
 	  NSEnumerator	*e = [projects keyEnumerator];
@@ -1413,7 +1657,125 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * Next pass ... generate html output from gsdoc files if required.
+   * 8.5) If we are generating HTML frames, create the gsdoc files specifying
+   *      indices that we will use.
+   */
+  if ([defs boolForKey: @"MakeFrames"] == YES)
+    {
+      int i;
+      int cap = 1360;
+      NSArray *idxTypes = [NSArray arrayWithObjects:
+	@"class",
+	@"constant",
+	@"function",
+	@"macro",
+	@"type",
+	@"variable",
+	@"tool",
+	nil];
+      NSString *idxIndexFile;
+      NSMutableString *idxIndex = [NSMutableString stringWithCapacity: 5*cap];
+      NSString *framesetFile;
+      NSMutableString *frameset = [NSMutableString stringWithCapacity: cap];
+      NSMutableString *tocSkel = [NSMutableString stringWithCapacity: cap];
+
+      [tocSkel setString :@"<?xml version=\"1.0\"?>\n"
+"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
+"<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
+"  <head>\n"
+"    <title>[typeU]</title>\n"
+"  </head>\n"
+"  <body>\n"
+"    <chapter>\n"
+"      <index type=\"[typeL]\" scope=\"project\" target=\"mainFrame\"\n"
+"             style=\"bare\" />\n"
+"    </chapter>\n"
+"  </body>\n"
+"</gsdoc>\n"];
+      [tocSkel replaceOccurrencesOfString: @"[prjName]" withString: project
+                                   options: 0
+                                     range: NSMakeRange(0, [tocSkel length])];
+
+      idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
+      [idxIndex setString: @"<HTML>\n  <BODY>\n"
+"    <FONT FACE=\"sans\" SIZE=\"+1\"><B>Index</B></FONT><BR/><BR/>\n"
+"    <FONT FACE=\"sans\" SIZE=\"-1\">"];
+
+      framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
+      [frameset setString: @"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"\"http://www.w3.org/TR/REC-html40/loose.dtd\">\n"
+"<HTML>\n"
+"  <HEAD>\n"
+"  <TITLE>\n"
+"    Autogsdoc-generated Documentation for [prjName]\n"
+"  </TITLE>\n"
+"  </HEAD>\n"
+"  <FRAMESET cols=\"20%,80%\">\n"
+"    <FRAMESET rows=\"30%,70%\">\n"
+"      <FRAME src=\"MainIndex.html\" name=\"packageListFrame\">\n"
+"      <FRAME src=\"ClassesTOC.html\" name=\"packageFrame\">\n"
+"    </FRAMESET>\n"
+"    <FRAME src=\"[prjName].html\" name=\"mainFrame\">\n"
+"  </FRAMESET>\n"
+"</HTML>\n"];
+      [frameset replaceOccurrencesOfString: @"[prjName]" withString: project
+                                   options: 0
+                                     range: NSMakeRange(0, [frameset length])];
+
+      for (i=0; i<[idxTypes count]; i++)
+        {
+          NSString *gsdocFile;
+          NSString *htmlFile;
+          NSMutableString *contents= [NSMutableString stringWithCapacity: cap];
+          [contents setString: tocSkel];
+          NSString *typeL = [idxTypes objectAtIndex: i];
+          NSString *typeU = [typeL capitalizedString];
+          typeU = [@"Class" isEqualToString: typeU] ?
+            [typeU stringByAppendingString: @"es"] :
+            [typeU stringByAppendingString: @"s"];
+          [contents replaceOccurrencesOfString: @"[typeL]" withString: typeL
+                                      options: 0
+                                      range: NSMakeRange(0,[contents length])];
+          [contents replaceOccurrencesOfString: @"[typeU]" withString: typeU
+                                      options: 0
+                                      range: NSMakeRange(0, [contents length])];
+          gsdocFile = [[typeU stringByAppendingString: @"TOC"]
+                         stringByAppendingPathExtension: @"gsdoc"];
+          htmlFile = [[typeU stringByAppendingString: @"TOC"]
+                         stringByAppendingPathExtension: @"html"];
+
+          if ([[projectRefs refs] objectForKey: typeL] != nil)
+            {
+              [contents writeToFile:
+                  [documentationDirectory stringByAppendingPathComponent:
+                                            gsdocFile]
+                         atomically: YES];
+              [gFiles addObject: gsdocFile];
+              [idxIndex appendFormat:
+                  @"    <A HREF=\"%@\" TARGET=\"packageFrame\">%@</A><BR/>\n",
+                        htmlFile, typeU];
+            }
+        }
+
+      [idxIndex appendString: @"    <BR/>\n"];
+      [idxIndex appendFormat:
+        @"    (<A HREF=\"%@.html\" TARGET=\"mainFrame\">intro</A>)&nbsp;",
+        project];
+      [idxIndex appendFormat:
+        @"&nbsp;(<A HREF=\"%@.html\" TARGET=\"_top\">no frames</A>)\n",
+        project];
+      [idxIndex appendString: @"    </FONT>\n  </BODY>\n</HTML>\n"];
+      [idxIndex writeToFile:
+        [documentationDirectory stringByAppendingPathComponent: idxIndexFile]
+                 atomically: YES];
+
+      [frameset writeToFile:
+        [documentationDirectory stringByAppendingPathComponent: framesetFile]
+                 atomically: YES];
+    }
+
+  
+  /*
+   * 9) Next pass ... generate html output from gsdoc files if required.
    */
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
@@ -1440,6 +1802,11 @@ main(int argc, char **argv, char **env)
 	      pool = [NSAutoreleasePool new];
 	    }
 #endif
+          /*
+           * 9a) As before in connection with (6a), drop path information
+           *     and look for gsdoc files in 'documentationDirectory' or
+           *     CWD.
+           */
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
 	  gsdocfile = [documentationDirectory
@@ -1487,6 +1854,7 @@ main(int argc, char **argv, char **env)
 		      NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
 			file, gDate, hDate);
 		    }
+                  // 9b) parse the .gsdoc file
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
@@ -1507,7 +1875,8 @@ main(int argc, char **argv, char **env)
 		  [localRefs makeRefs: root];
 
 		  /*
-		   * We perform final output
+		   * 9c) Feed the XML tree to an AGSHtml instance, and dump
+                   *     the result to a file.
 		   */
 		  html = AUTORELEASE([AGSHtml new]);
 		  [html setGlobalRefs: globalRefs];
@@ -1522,7 +1891,7 @@ main(int argc, char **argv, char **env)
 	    }
 	  else if ([arg hasSuffix: @".gsdoc"] == YES)
 	    {
-	      NSLog(@"No readable documentation at '%@' ... skipping",
+	      NSLog(@"File '%@' not found in $DocumentationDirectory or '.' ... skipping",
 		gsdocfile);
 	    }
 	}
@@ -1532,8 +1901,10 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * Relocate existing html documents if required ... adjust all cross
-   * referencing within those documents.
+   * 10) Relocate existing html documents if required ... adjust all cross
+   *     referencing within those documents.  This entails searching for
+   *     <a rel="..." href="..."> links, parsing the key, and replacing the
+   *     contents as per our current index info (which may have changed).
    */
   count = [hFiles count];
   if (count > 0)
@@ -1723,12 +2094,20 @@ main(int argc, char **argv, char **env)
 	    {
 	      NSLog(@"No readable documentation at '%@' ... skipping", src);
 	    }
+	  else
+	    {
+	      NSLog(@"Type of file '%@' unrecognized ... skipping", src);
+	    }
 	}
 #if GS_WITH_GCC == 0
       RELEASE(pool);
 #endif
     }
 
+  /*
+   * 11) If MakeDependencies was requested, list all header and source files
+   *     as colon-dependencies of the project name.
+   */
   if ([defs stringForKey: @"MakeDependencies"] != nil)
     {
       NSString		*stamp = [defs stringForKey: @"MakeDependencies"];
@@ -1756,7 +2135,7 @@ main(int argc, char **argv, char **env)
 
       [depend writeToFile: stamp atomically: YES];
     }
+
   RELEASE(outer);
   return 0;
 }
-

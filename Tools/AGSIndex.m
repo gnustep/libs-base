@@ -156,27 +156,27 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 /**
  * This class is used to build and manipulate a dictionary of
  * cross-reference information.<br />
- * The references are held in a tree consisting of dictionaries
- * with strings at the leaves -<br />
- * method method-name class-name file-name<br />
- * method method-name protocol-name file-name<br />
- * ivariable variable-name class-name file-name<br />
- * class class-name file-name<br />
- * category category-name file-name<br />
- * protocol protocol-name file-name<br />
- * function function-name file-name<br />
- * type type-name file-name<br />
- * constant constant-name file-name<br />
- * variable variable-name file-name<br />
- * entry entry-name file-name ref<br />
- * label label-name file-name ref<br />
- * contents ref text<br />
- * super class-name superclass-name<br />
- * categories class-name category-name file-name<br />
- * unitmethods unit-name method-name<br />
- * classvars class-name variables-name<br />
- * title file-name text<br />
- * source file-name array-of-source-files<br />
+ * The references are held in a nested dictionary
+ * with strings at the leaves (persisted to 'projectName'.igsdoc) -<br />
+ * method : method-name - { class-name file-name }<br />
+ * method : method-name - { protocol-name file-name }<br />
+ * ivariable : variable-name - { class-name file-name }<br />
+ * class : class-name - file-name<br />
+ * category : category-name - file-name<br />
+ * protocol : protocol-name - file-name<br />
+ * function : function-name - file-name<br />
+ * type : type-name - file-name<br />
+ * constant : constant-name - file-name<br />
+ * variable : variable-name - file-name<br />
+ * entry : entry-name - { file-name ref }<br />
+ * label : label-name - { file-name ref }<br />
+ * contents : ref - text<br />
+ * super : class-name - superclass-name<br />
+ * categories : class-name - { category-name file-name }<br />
+ * unitmethods : unit-name - method-name<br />
+ * classvars : class-name - variables-name<br />
+ * title : file-name - text<br />
+ * source : file-name - array-of-source-files<br />
  */
 @implementation	AGSIndex
 
@@ -227,6 +227,14 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     {
       NSString		*name = [node name];
       NSDictionary	*prop = [node attributes];
+
+      // special case- if has an id of "_main" this gsdoc is from a tool
+      // file; add an entry to the index to indicate so
+      if (([name isEqual: @"chapter"] || [name isEqual: @"section"])
+          && [@"_main" isEqual: [prop objectForKey: @"id"]] == YES)
+        {
+          [self setGlobalRef: base type: @"tool"];
+        }
 
       if ([name isEqual: @"category"] == YES)
 	{
@@ -302,7 +310,6 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       else if ([name isEqual: @"entry"] || [name isEqual: @"label"])
 	{
 	  NSMutableDictionary	*all;
-	  NSMutableDictionary	*byFile;
 	  NSString		*text;
 	  NSString		*val;
 
@@ -316,19 +323,12 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	      [refs setObject: all forKey: name];
 	      RELEASE(all);
 	    }
-	  byFile = [all objectForKey: base];
-	  if (byFile == nil)
-	    {
-	      byFile = [[NSMutableDictionary alloc] initWithCapacity: 2];
-	      [all setObject: byFile forKey: base];
-	      RELEASE(byFile);
-	    }
 	  val = [prop objectForKey: @"id"];
 	  if (val == nil)
 	    {
 	      val = text;
 	    }
-	  [byFile setObject: val forKey: @"text"];
+	  [all setObject: base forKey: val];
 	}
       else if ([name isEqual: @"method"] == YES)
 	{
@@ -408,6 +408,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	}
       else if ([name isEqual: @"section"] == YES)
 	{
+          //FIXME-  this info needs to be placed into the "label" refs somehow
 	  sect++;
 	  ssect = 0;
 	  sssect = 0;

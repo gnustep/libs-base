@@ -1,4 +1,4 @@
-/* Implementation of GNUstep Distributed Notification Center
+/** Implementation of GNUstep Distributed Notification Center
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -286,7 +286,7 @@ ihandler(int sig)
 
 - (void) addObserver: (unsigned long)anObserver
 	    selector: (NSString*)aSelector
-	        name: (NSString*)notificationname
+	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
   suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
 		 for: (id<GDNCClient>)client;
@@ -297,7 +297,7 @@ ihandler(int sig)
 - (id) connectionBecameInvalid: (NSNotification*)notification;
 
 - (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)anObject
+		       object: (NSString*)notificationObject
 		     userInfo: (NSData*)d
 	   deliverImmediately: (BOOL)deliverImmediately
 			  for: (id<GDNCClient>)client;
@@ -307,8 +307,8 @@ ihandler(int sig)
 - (void) removeObserversForClients: (NSMapTable*)clients;
 
 - (void) removeObserver: (unsigned long)anObserver
-		   name: (NSString*)notificationname
-		 object: (NSString*)anObject
+		   name: (NSString*)notificationName
+		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client;
 
 - (void) setSuspended: (BOOL)flag
@@ -559,7 +559,7 @@ ihandler(int sig)
 }
 
 - (BOOL) connection: (NSConnection*)ancestor
-  shouldMakeNewConnection: (NSConnection*)newConn;
+  shouldMakeNewConnection: (NSConnection*)newConn
 {
   NSMapTable	*table;
 
@@ -766,30 +766,30 @@ ihandler(int sig)
     }
 }
 
-- (void) removeObserver: (GDNCObserver*)obs
+- (void) removeObserver: (GDNCObserver*)observer
 {
-  if (obs->notificationObject)
+  if (observer->notificationObject)
     {
       NSMutableArray	*objList;
 
-      objList = [observersForObjects objectForKey: obs->notificationObject];
+      objList= [observersForObjects objectForKey: observer->notificationObject];
       if (objList != nil)
 	{
-	  [objList removeObjectIdenticalTo: obs];
+	  [objList removeObjectIdenticalTo: observer];
 	}
     }
-  if (obs->notificationName)
+  if (observer->notificationName)
     {
       NSMutableArray	*namList;
 
-      namList = [observersForNames objectForKey: obs->notificationName];
+      namList = [observersForNames objectForKey: observer->notificationName];
       if (namList != nil)
 	{
-	  [namList removeObjectIdenticalTo: obs];
+	  [namList removeObjectIdenticalTo: observer];
 	}
     }
-  NSHashRemove(allObservers, obs);
-  [obs->client->observers removeObjectIdenticalTo: obs];
+  NSHashRemove(allObservers, observer);
+  [observer->client->observers removeObjectIdenticalTo: observer];
 }
 
 - (void) removeObserversForClients: (NSMapTable*)clients
@@ -971,6 +971,22 @@ ihandler(int sig)
 
 @end
 
+
+/** <p>The  gdnc  daemon is used by GNUstep programs to send notifications and
+       messages to one another, in conjunction with the Base library
+       Notification-related classes.</p>
+
+    <p>Every user needs to have his own instance of gdnc running.  While  gdnc
+       will be started automatically as soon as it is needed, it is recommended
+       to start gdnc in a personal login script like  ~/.bashrc  or  ~/.cshrc.
+       Alternatively  you  can  launch  gpbs when your windowing system or the
+       window manager is started. For example, on systems  with  X11  you  can
+       launch  gdnc  from  your  .xinitrc script or alternatively - if you are
+       running Window Maker - put it in Window Maker's autostart script.   See
+       the GNUstep Build Guide for a sample startup script.</p>
+
+     <p>Please see the man page for more information.
+</p> */
 int
 main(int argc, char** argv, char** env)
 {

@@ -1,4 +1,4 @@
-/* Include for communications with GNUstep Distributed Objects name server
+/* Include for communications with GNUstep Distributed Objects name server.
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

@@ -1,6 +1,4 @@
-/**
-
-   <title>AGSParser ... a tool to get documention info from ObjC source</title>
+/*
    Copyright (C) 2001 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -34,23 +32,38 @@
 - (void) addMain: (NSString*)c
 {
   NSString		*chap;
+  NSString		*toolName;
+  NSString		*secHeading;
+  BOOL			createSec = NO;
   NSMutableString	*m;
   NSRange		r;
 
   chap = [info objectForKey: @"chapter"];
+  toolName = [[fileName lastPathComponent] stringByDeletingPathExtension];
   if (chap == nil)
     {
       chap = [NSString stringWithFormat:
-        @"<chapter><heading>%@</heading></chapter>",
-	[[fileName lastPathComponent] stringByDeletingPathExtension]];
+        @"<chapter id=\"_main\"><heading>%@</heading></chapter>", toolName];
+    }
+  else
+    {
+      createSec = YES;
     }
   m = [chap mutableCopy];
   r = [m rangeOfString: @"</chapter>"];
   r.length = 0;
-  [m replaceCharactersInRange: r withString: @"</section>\n"];
+  if (createSec)
+    {
+      [m replaceCharactersInRange: r withString: @"</section>\n"];
+    }
   [m replaceCharactersInRange: r withString: c];
-  [m replaceCharactersInRange: r withString:
-    @"<section>\n<heading>The main() function</heading>\n"];
+  if (createSec)
+    {
+      secHeading = [NSString stringWithFormat:
+        @"<section id=\"_main\">\n<heading></heading>\n", toolName];
+  //The %@ tool
+      [m replaceCharactersInRange: r withString: secHeading];
+    }
   [info setObject: m forKey: @"chapter"];
   RELEASE(m);
 }
@@ -488,6 +501,9 @@
 	      [self appendComment: tmp to: nil];
 	    }
 
+          /*
+           * We're in the first comment of a file; perform special processing.
+           */
 	  if (commentsRead == NO && comment != nil)
 	    {
 	      unsigned		commentLength = [comment length];

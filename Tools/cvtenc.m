@@ -1,4 +1,4 @@
-/* This tool converts a file containing a string to a C String encoding.
+/** This tool converts a file containing a string to a C String encoding.
    Copyright (C) 2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -35,13 +35,21 @@
 
 #include	<ctype.h>
 
+/** Return whether value ch between min and max. */
 #define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+/** Convert hex digit in ascii to decimal equivalent. */
 #define char2num(ch) \
 inrange(ch,'0','9') \
 ? ((ch)-0x30) \
 : (inrange(ch,'a','f') \
 ? ((ch)-0x57) : ((ch)-0x37))
 
+
+/** <p>Converts  a file encoded in a specified or default non-unicode encoding
+ *  to unicode, or, if the file is already in unicode,  converts  it  to  a
+ *  specified  or  default  non-unicode  encoding.   The  converted text is
+ *  printed to standard out.</p>
+ */
 int
 main(int argc, char** argv, char **env)
 {

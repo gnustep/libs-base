@@ -42,6 +42,7 @@
   unsigned		sect;
   unsigned		ssect;
   unsigned		sssect;
+  BOOL			isContentsDoc;
 }
 - (void) decIndent;
 - (void) incIndent;

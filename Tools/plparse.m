@@ -1,4 +1,4 @@
-/* This tool checks that a file contains a valid text property-list
+/** This tool checks that a file contains a valid text property-list.
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -29,6 +29,9 @@
 #include	<Foundation/NSAutoreleasePool.h>
 
 
+/** <p>
+    This tool checks that a file contains a valid text property-list.
+ </p> */
 int
 main(int argc, char** argv, char **env)
 {

@@ -1,4 +1,4 @@
-/* This tool mimics the OPENSTEP command line tool for handling defaults.
+/** This tool mimics the OPENSTEP command line tool for handling defaults.
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -35,6 +35,9 @@
 #define GSEXIT_FAILURE EXIT_FAILURE
 #define GSEXIT_NOTFOUND 2
 
+/** <p>This tool mimics the OPENSTEP command line tool for handling defaults.
+       Please see the man page for more information.
+ </p>*/
 int
 main(int argc, char** argv, char **env)
 {
@@ -118,7 +121,7 @@ main(int argc, char** argv, char **env)
 "    output some information about property lists\n\n");
 	  printf(
 "defaults help\n"
-"    list options fo the defaults command.\n\n");
+"    list options for the defaults command.\n\n");
 	  [pool release];
 	  exit(GSEXIT_SUCCESS);
 	}
@@ -673,7 +676,7 @@ main(int argc, char** argv, char **env)
 	      domain = [[defs persistentDomainForName: owner] mutableCopy];
 	      if (domain == nil || [domain objectForKey: name] == nil)
 		{
-		  printf("dremove: couldn't remove %s owned by %s\n",
+		  printf("defaults delete: couldn't remove %s owned by %s\n",
 			[name cString], [owner cString]);
 		}
 	      else

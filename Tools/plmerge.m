@@ -1,4 +1,4 @@
-/* This tool merges text property lists into a single property list.
+/** This tool merges text property lists into a single property list.
    Copyright (C) 2000 Free Software Foundation, Inc.
 
    Written by:  Jonathan Gapen  <jagapen@whitewater.chem.wisc.edu>
@@ -33,6 +33,9 @@
 #include "GNUstepBase/GSObjCRuntime.h"
 #endif
 
+
+/** <p> This tool merges text property lists into a single property list.
+ </p> */
 int
 main(int argc, char** argv, char **env)
 {
