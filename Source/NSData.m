@@ -61,25 +61,28 @@ static Class NSMutableData_concrete_class;
 }
 
 // Allocating and Initializing a Data Object
++ allocWithZone:(NSZone *)zone
+{
+  return NSAllocateObject([self _concreteClass], 0, zone);
+}
 
 + (id) data
 {
-  return [[[[self _concreteClass] alloc] init] 
+  return [[[self alloc] init] 
 	  autorelease];
 }
 
 + (id) dataWithBytes: (const void*)bytes
    length: (unsigned int)length
 {
-  return [[[[self _concreteClass] alloc] initWithBytes:bytes length:length] 
+  return [[[self alloc] initWithBytes:bytes length:length] 
 	  autorelease];
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
-  return [[[[self _concreteClass] alloc]
-	   initWithBytesNoCopy:bytes length:length]
+  return [[[self alloc] initWithBytesNoCopy:bytes length:length]
 	  autorelease];
 }
 
@@ -88,13 +91,13 @@ static Class NSMutableData_concrete_class;
  * though. */
 + (id)dataWithContentsOfFile: (NSString*)path
 {
-  return [[[[self _concreteClass] alloc] initWithContentsOfFile:path] 
+  return [[[self alloc] initWithContentsOfFile:path] 
 	  autorelease];
 }
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
-  return [[[[self _concreteClass] alloc] initWithContentsOfMappedFile:path]
+  return [[[self alloc] initWithContentsOfMappedFile:path]
           autorelease];
 }
 
@@ -473,16 +476,20 @@ static Class NSMutableData_concrete_class;
 
 @implementation NSMutableData
 
++ allocWithZone:(NSZone *)zone
+{
+  return NSAllocateObject([self _mutableConcreteClass], 0, zone);
+}
+
 + (id) dataWithCapacity: (unsigned int)numBytes
 {
-  return [[[[[self _mutableConcreteClass] class] alloc]
-	   initWithCapacity:numBytes]
+  return [[[self alloc] initWithCapacity:numBytes]
 	  autorelease];
 }
 
 + (id) dataWithLength: (unsigned int)length
 {
-  return [[[[[self _mutableConcreteClass] class] alloc] initWithLength:length]
+  return [[[self alloc] initWithLength:length]
 	  autorelease];
 }
 
