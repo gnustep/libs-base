@@ -324,6 +324,18 @@
 	variables.  Normally, only those explicitly declared 'public' or
 	'protected' will be documented.
       </item>
+      <item><strong>DocumentInstanceVariables</strong>
+	This flag permits you to turn off documentation for instance
+	variables completely.  Normally, explicitly declared 'public' or
+	'protected' instance variables will be documented.
+      </item>
+      <item><strong>InstanceVariablesAtEnd</strong>
+	This flag, if set, directs the HTML generator to place instance
+        variable documentation at the end of the class, instead of the
+        beginning.  This is useful if you use a lot of protected instance
+        variables which are only going to be of secondary interest to general
+        users of the class.
+      </item>
       <item><strong>DocumentationDirectory</strong>
 	May be used to specify the directory in which generated documentation
 	is to be placed.  If this is not set, output is placed in the current
@@ -666,18 +678,18 @@ main(int argc, char **argv, char **env)
 
    8) Build index references to external projects.
 
-   8.5) Create HTML frames auxiliary files.
+   9) Create HTML frames auxiliary files.
 
-   9) If needed, re-pass through the "gsdoc files" to generate HTML.
-      9a) Find files as before.
-      9b) Parse as before.
-      9c) Feed the DOM tree to an AGSHtml instance, and dump the result to
-          a file.
+   10) If needed, re-pass through the "gsdoc files" to generate HTML.
+      10a) Find files as before.
+      10b) Parse as before.
+      10c) Feed the DOM tree to an AGSHtml instance, and dump the result to
+           a file.
 
-   10) For HTML files that were given on the command line, adjust all cross
+   11) For HTML files that were given on the command line, adjust all cross
        reference HREFs to paths given in arguments.
 
-   11) If MakeDependencies was requested, list all header and source files
+   12) If MakeDependencies was requested, list all header and source files
        as colon-dependencies of the project name.
 
    */
@@ -723,6 +735,8 @@ main(int argc, char **argv, char **env)
       @"\t\t\tspecial\t(nil)\n\tdictionary used to preprocess (see docs)", @"WordMap",
       @"\t\t\tBOOL\t(NO)\n\twhether to insert information on standards compliance", @"Standards",
       @"BOOL\t(NO)\n\tdocument private instance variables", @"DocumentAllInstanceVariables",
+      @"\tBOOL\t(YES)\n\tdocument instance variables at all", @"DocumentInstanceVariables",
+      @"\tBOOL\t(YES)\n\tput instance variable docs at end of class", @"InstanceVariablesAtEnd",
       @"\t\tSTR\t(\"None\")\n\twhether to include other projects in index", @"LocalProjects",
       @"\t\tSTR\t(\"None\")\n\twhether to include system projects in index", @"SystemProjects",
       @"\t\t\tSTR\t(\"None\")\n\texplicit list of other projects to index", @"Projects",
@@ -756,15 +770,14 @@ main(int argc, char **argv, char **env)
 
               GSPrintf(stderr, @"Usage:\n");
               GSPrintf(stderr, [NSString stringWithFormat:
-                                             @"    %@ [options] [files]\n",
-                                         [argsGiven objectAtIndex :0]]);
+                                           @"    %@ [options] [files]\n",
+                                 [argsGiven objectAtIndex: 0]]);
               GSPrintf(stderr, @"\n Options:\n");
               for (i=0; i<[args count]; i++) {
                   arg = [args objectAtIndex: i];
-                  GSPrintf(stderr, [NSString stringWithFormat:
-                                                 @"     -%@\t%@\n\n",
-                                             arg, [argsRecognized objectForKey:
-                                                                      arg]]);
+                  GSPrintf(stderr,
+                           [NSString stringWithFormat: @"     -%@\t%@\n\n",
+                                     arg, [argsRecognized objectForKey: arg]]);
               }
 
               GSPrintf(stderr, @"\n Files:\n");
@@ -1117,6 +1130,11 @@ main(int argc, char **argv, char **env)
       if ([defs boolForKey: @"DocumentAllInstanceVariables"] == YES)
 	{
 	  [parser setDocumentAllInstanceVariables: YES];
+	}
+      if ([defs objectForKey: @"DocumentInstanceVariables"] != nil
+          && [defs boolForKey: @"DocumentInstanceVariables"] == NO)
+	{
+	  [parser setDocumentInstanceVariables: NO];
 	}
 
       for (i = 0; i < count; i++)
@@ -1657,29 +1675,32 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * 8.5) If we are generating HTML frames, create the gsdoc files specifying
+   * 9) If we are generating HTML frames, create the gsdoc files specifying
    *      indices that we will use.
    */
   if ([defs boolForKey: @"MakeFrames"] == YES)
     {
       int i;
       int cap = 1360;
-      NSArray *idxTypes = [NSArray arrayWithObjects:
-	@"class",
-	@"constant",
-	@"function",
-	@"macro",
-	@"type",
-	@"variable",
-	@"tool",
-	nil];
-      NSString *idxIndexFile;
-      NSMutableString *idxIndex = [NSMutableString stringWithCapacity: 5*cap];
-      NSString *framesetFile;
-      NSMutableString *frameset = [NSMutableString stringWithCapacity: cap];
-      NSMutableString *tocSkel = [NSMutableString stringWithCapacity: cap];
+      NSArray		*idxTypes = [NSArray arrayWithObjects:
+                                               @"class",
+                                             @"constant",
+                                             @"function",
+                                             @"macro",
+                                             @"type",
+                                             @"variable",
+                                             @"tool",
+                                             nil];
+      NSString		*idxIndexFile;
+      NSMutableString	*idxIndex= [NSMutableString stringWithCapacity: 5*cap];
+      NSString		*framesetFile;
+      NSMutableString	*frameset = [NSMutableString stringWithCapacity: cap];
+      NSMutableString	*tocSkel = [NSMutableString stringWithCapacity: cap];
+      NSString		*prjFile =
+        [NSString stringWithFormat: @"%@.gsdoc",project];
 
-      [tocSkel setString :@"<?xml version=\"1.0\"?>\n"
+      // skeleton for table of contents files
+      [tocSkel setString: @"<?xml version=\"1.0\"?>\n"
 "<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
 "<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
 "  <head>\n"
@@ -1693,14 +1714,16 @@ main(int argc, char **argv, char **env)
 "  </body>\n"
 "</gsdoc>\n"];
       [tocSkel replaceOccurrencesOfString: @"[prjName]" withString: project
-                                   options: 0
-                                     range: NSMakeRange(0, [tocSkel length])];
+                                  options: 0
+                                    range: NSMakeRange(0, [tocSkel length])];
 
+      // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
       [idxIndex setString: @"<HTML>\n  <BODY>\n"
 "    <FONT FACE=\"sans\" SIZE=\"+1\"><B>Index</B></FONT><BR/><BR/>\n"
 "    <FONT FACE=\"sans\" SIZE=\"-1\">"];
 
+      // this becomes index.html
       framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
       [frameset setString: @"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"\"http://www.w3.org/TR/REC-html40/loose.dtd\">\n"
 "<HTML>\n"
@@ -1721,27 +1744,30 @@ main(int argc, char **argv, char **env)
                                    options: 0
                                      range: NSMakeRange(0, [frameset length])];
 
+      // generate the table of contents gsdoc files
       for (i=0; i<[idxTypes count]; i++)
         {
-          NSString *gsdocFile;
-          NSString *htmlFile;
-          NSMutableString *contents= [NSMutableString stringWithCapacity: cap];
+          NSString		*gsdocFile;
+          NSString		*htmlFile;
+          NSMutableString 	*contents;
+          NSString		*typeL = [idxTypes objectAtIndex: i];
+          NSString		*typeU = [typeL capitalizedString];
+
+          contents = [NSMutableString stringWithCapacity: cap];
           [contents setString: tocSkel];
-          NSString *typeL = [idxTypes objectAtIndex: i];
-          NSString *typeU = [typeL capitalizedString];
           typeU = [@"Class" isEqualToString: typeU] ?
             [typeU stringByAppendingString: @"es"] :
             [typeU stringByAppendingString: @"s"];
           [contents replaceOccurrencesOfString: @"[typeL]" withString: typeL
-                                      options: 0
+                                       options: 0
                                       range: NSMakeRange(0,[contents length])];
           [contents replaceOccurrencesOfString: @"[typeU]" withString: typeU
-                                      options: 0
-                                      range: NSMakeRange(0, [contents length])];
+                                       options: 0
+                                      range: NSMakeRange(0,[contents length])];
           gsdocFile = [[typeU stringByAppendingString: @"TOC"]
-                         stringByAppendingPathExtension: @"gsdoc"];
+                       stringByAppendingPathExtension: @"gsdoc"];
           htmlFile = [[typeU stringByAppendingString: @"TOC"]
-                         stringByAppendingPathExtension: @"html"];
+                       stringByAppendingPathExtension: @"html"];
 
           if ([[projectRefs refs] objectForKey: typeL] != nil)
             {
@@ -1771,11 +1797,51 @@ main(int argc, char **argv, char **env)
       [frameset writeToFile:
         [documentationDirectory stringByAppendingPathComponent: framesetFile]
                  atomically: YES];
+
+      // it is possible that <project>.gsdoc does not exist; if that is the
+      // case, generate one now as a placeholder
+      for (i=0; i<[gFiles count]; i++)
+        {
+          NSString	*fname = [gFiles objectAtIndex: i];
+          if ([fname rangeOfString: prjFile].length > 0)
+              break;
+        }
+      if (i == [gFiles count])
+        {
+          NSLog(@"\n\nNOTE: Generating a simple introductory page for your"
+" project.\nTo replace this with a custom version, edit the gsdoc file \n"
+"named %@ in the documentation output directory.\n"
+"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
+          NSMutableString 	*prjFileContents =
+            [NSMutableString stringWithCapacity: cap];
+          [prjFileContents setString: @"<?xml version=\"1.0\"?>\n"
+"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
+"<gsdoc base=\"[prjName]\">\n"
+"  <head>\n"
+"    <title>The [prjName] Project</title>\n"
+"  </head>\n"
+"  <body>\n"
+"    <chapter>\n"
+"      <p>The index below lists the major components of the [prjName] \n"
+"         documentation.<br/></p>\n"
+"      <index type=\"title\" scope=\"project\" target=\"mainFrame\" />\n"
+"    </chapter>\n"
+"  </body>\n"
+"</gsdoc>\n"];
+          [prjFileContents replaceOccurrencesOfString: @"[prjName]"
+                                           withString: project
+                                              options: 0
+                              range: NSMakeRange(0, [prjFileContents length])];
+          [prjFileContents writeToFile:
+            [documentationDirectory stringByAppendingPathComponent: prjFile]
+                            atomically: YES];
+          [gFiles addObject: prjFile];
+        }
     }
 
   
   /*
-   * 9) Next pass ... generate html output from gsdoc files if required.
+   * 10) Next pass ... generate html output from gsdoc files if required.
    */
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
@@ -1803,9 +1869,9 @@ main(int argc, char **argv, char **env)
 	    }
 #endif
           /*
-           * 9a) As before in connection with (6a), drop path information
-           *     and look for gsdoc files in 'documentationDirectory' or
-           *     CWD.
+           * 10a) As before in connection with (6a), drop path information
+           *      and look for gsdoc files in 'documentationDirectory' or
+           *      CWD.
            */
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
@@ -1854,7 +1920,7 @@ main(int argc, char **argv, char **env)
 		      NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
 			file, gDate, hDate);
 		    }
-                  // 9b) parse the .gsdoc file
+                  // 10b) parse the .gsdoc file
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
@@ -1875,13 +1941,15 @@ main(int argc, char **argv, char **env)
 		  [localRefs makeRefs: root];
 
 		  /*
-		   * 9c) Feed the XML tree to an AGSHtml instance, and dump
-                   *     the result to a file.
+		   * 10c) Feed the XML tree to an AGSHtml instance, and dump
+                   *      the result to a file.
 		   */
 		  html = AUTORELEASE([AGSHtml new]);
 		  [html setGlobalRefs: globalRefs];
 		  [html setProjectRefs: projectRefs];
 		  [html setLocalRefs: localRefs];
+                  [html setInstanceVariablesAtEnd:
+                             [defs boolForKey: @"InstanceVariablesAtEnd"]];
 		  generated = [html outputDocument: root];
 		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
 		    {
@@ -1901,7 +1969,7 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * 10) Relocate existing html documents if required ... adjust all cross
+   * 11) Relocate existing html documents if required ... adjust all cross
    *     referencing within those documents.  This entails searching for
    *     <a rel="..." href="..."> links, parsing the key, and replacing the
    *     contents as per our current index info (which may have changed).
@@ -1955,6 +2023,8 @@ main(int argc, char **argv, char **env)
 	      [html setGlobalRefs: globalRefs];
 	      [html setProjectRefs: projectRefs];
 	      [html setLocalRefs: nil];
+              [html setInstanceVariablesAtEnd:
+                         [defs boolForKey: @"InstanceVariablesAtEnd"]];
 
 	      s = [NSMutableString stringWithContentsOfFile: src];
 	      l = [s length];
@@ -2105,7 +2175,7 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * 11) If MakeDependencies was requested, list all header and source files
+   * 12) If MakeDependencies was requested, list all header and source files
    *     as colon-dependencies of the project name.
    */
   if ([defs stringForKey: @"MakeDependencies"] != nil)

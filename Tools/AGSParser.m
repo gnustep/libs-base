@@ -155,6 +155,7 @@
   source = [NSMutableArray new];
   verbose = [[NSUserDefaults standardUserDefaults] boolForKey: @"Verbose"];
   warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
+  documentInstanceVariables = YES;
   ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
   s = [NSMutableSet new];
   [ifStack addObject: s];
@@ -2050,8 +2051,7 @@ try:
 {
   NSString		*validity = @"private";
   NSMutableDictionary	*ivars;
-  BOOL			shouldDocument = documentAllInstanceVariables;
-
+  BOOL			shouldDocument = documentInstanceVariables;
   DESTROY(comment);
 
   inInstanceVariables = YES;
@@ -2074,17 +2074,18 @@ try:
 	  if ([token isEqual: @"private"] == YES)
 	    {
 	      ASSIGN(validity, token);
-	      shouldDocument = documentAllInstanceVariables;
+	      shouldDocument = documentInstanceVariables
+                                 && documentAllInstanceVariables;
 	    }
 	  else if ([token isEqual: @"protected"] == YES)
 	    {
 	      ASSIGN(validity, token);
-	      shouldDocument = YES;
+	      shouldDocument = documentInstanceVariables;
 	    }
 	  else if ([token isEqual: @"public"] == YES)
 	    {
 	      ASSIGN(validity, token);
-	      shouldDocument = YES;
+	      shouldDocument = documentInstanceVariables;
 	    }
 	  else
 	    {
@@ -3202,6 +3203,15 @@ fail:
 - (void) setDocumentAllInstanceVariables: (BOOL)flag
 {
   documentAllInstanceVariables = flag;
+}
+
+/**
+ * This method is used to enable (or disable) documentation of instance
+ * variables.  If it is turned off, instance variables will not be documented.
+ */
+- (void) setDocumentInstanceVariables: (BOOL)flag
+{
+  documentInstanceVariables = flag;
 }
 
 /**
