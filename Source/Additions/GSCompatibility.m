@@ -24,7 +24,6 @@
 */
 #include "config.h"
 #include <objc/objc-class.h>
-#include "GSCompatibility.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GCObject.h"
 
