@@ -522,9 +522,15 @@ _attributesAtIndexEffectiveRange(
 
 #if	SANITY_CHECKS
 
-#define	SANITY()	[self sanity]
-	
-- (void) sanity
+#define	SANITY()	[self _sanity]
+
+#else
+#define	SANITY()	
+#endif
+
+/* We always compile in this method so that it is available from
+ * regression test cases.  */
+- (void) _sanity
 {
   GSAttrInfo	*info;
   unsigned	i;
@@ -543,9 +549,6 @@ _attributesAtIndexEffectiveRange(
       l = info->loc;
     }
 }
-#else
-#define	SANITY()	
-#endif
 
 + (void) initialize
 {
