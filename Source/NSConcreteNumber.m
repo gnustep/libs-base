@@ -160,7 +160,6 @@
 - (id)initWithBytes: (const void *)value objCType: (const char *)type
 {
   typedef _dt = data;
-  self = [super init];
   data = *(_dt *)value;
   return self;
 }
@@ -304,14 +303,6 @@
   if ([self compare: o] == NSOrderedSame)
     return YES;
   return NO;
-}
-
-- (BOOL) isEqual: o
-{
-  if ([o isKindOf: [NSNumber class]])
-    return [self isEqualToNumber: (NSNumber*)o];
-  else
-    return [super isEqual: o];
 }
 
 - (NSString *)descriptionWithLocale: (NSDictionary*)locale
