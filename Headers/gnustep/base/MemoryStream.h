@@ -59,6 +59,7 @@
 
 - initWithSize: (unsigned)s;	/* For backwards compatibility, depricated */
 
+- (void) setFreeWhenDone: (BOOL)f;
 - (unsigned) streamBufferPrefix;
 - (unsigned) streamBufferLength; /* prefix + eofPosition */
 
