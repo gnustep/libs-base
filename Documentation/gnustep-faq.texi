@@ -473,6 +473,13 @@ type can already be found on the server, there is no need to ask the
 client for the type, and GNU distributed objects takes two less network
 hops.
 
+@item OpenStep's distributed objects mechanism is based on a single
+@i{Port} class.  By contrast, GNU distributed objects makes use of a
+heirarchy of Port objects that will provide the different ``back-ends''
+appropriate to different situations.  For example, the network back-end
+for GNU distributed objects will be able to send messages using TCP,
+UDP, local Unix sockets, or shared memory.
+
 @item NeXT's Objective C runtime becomes very slow when thread-safety is
 turned on since the runtime must acquire a global mutual-exclusion lock
 each time an Objective C message is sent.  GNUstep takes advantage of
@@ -679,6 +686,69 @@ Packet                     holds data and reply port
 @end format
 
 
+@item @b{Why don't we separate the OpenStep standard classes from the GNU-specific classes?}
+
+Just like @i{GCC} has more features than ANSI C, @i{gawk} has more
+features than @i{awk}, and the @i{GNU C Library} has more features than
+standard C Libraries, also, @i{GNUstep} has more features than
+@i{OpenStep}.  In all these cases, ``more features'' means some
+combination of increased capabilities, and better time/space efficiency.
+It is in keeping with the GNU tradition that GNU implementations are not
+simply mindless copies of others standards, but that our implementations
+include new improvements and creative solutions to previous annoyances.
+
+In fact, Richard Stallman encourages innovation of this kind---not only
+for the sake of better software---but also because it makes the legal
+issues more clear: when the underlying implementation differs from the
+proprietary implementation in significant, core, structural ways, it is
+far more difficult for the proprietary entities to claim copyright
+infringement.
+
+With Steve Job's reputation for legal intimidation (e.g. the 1991
+third-party D.O. implementation, WebRex, etc), the GNUstep community
+certainly needs to concern itself with legal safety.
+
+But the far more exciting reason for structural differences is the
+increased efficiency and features that come from the changes.  The item
+above, ``@b{In what ways is the Base Library different from OpenStep's
+FoundationKit?}'', explains some of the advantages that GNUstep's
+organizational differences provide.
+
+Many of these advantages are based on variations in class hierarchy, and
+could not have been obtained by simply adding Category methods, or
+subclasses to NeXT's structural organization.  Using advantageous GNU
+structure, providing the OpenStep standard interface on top of the GNU
+implementations is quite straightforward, (and, when the mechanism is
+understood, quite clean, also).
+
+By analogy, consider the GNU C Library's @i{stdio} functionality.  It is
+based on a different underlying structure that provides new features not
+found in standard @i{stdio} implementations.  A @i{FILE*} can be opened
+on a memory string that automatically grows as necessary; a @i{FILE*}
+can be opened on a Mach port, where available.  Using the generalized
+underlying mechanism, it is straightforward to also implement the
+standard @i{FILE*} opened on a UNIX file descriptor.
+
+For example, the GNUstep NSArray class is implemented in much the same
+way.  GNUstep has a generalized collection class hierarchy with a deep
+structure that provides common super classes in which a programmer can
+add new functionality across all collection classes at once.  It also
+provides a simple powerful way to ensure uniformity of method names and
+semantics across all collection class methods.  It also provides more
+efficient code sharing between classes.  The @i{Array} class is part of
+the GNUstep collection classes hierarchy; implementing @i{NSArray} in
+terms of @i{Array} is straightforward.  It avoids much duplicated code.
+And it also provides users of NSArray with the extra GNU features;
+(although, like in the GNU C Library, the GNUstep library user has the
+option of turning off the availability of these extra features.)
+
+In summary, the GNU project has often found that, while adding new
+features to standard programs and libraries often requires more thought
+and source code than standard implementations, it is worthwhile because
+of the advantages of (1) better features, (2) increased time/space
+efficiency, and (2) legal clarity.  GNUstep is no exception.
+
+
 @item @b{Where can I get a copy?}
 
 The most recently released ``official'' version can be obtained from
@@ -686,13 +756,6 @@ The most recently released ``official'' version can be obtained from
 
 The most recently released alpha version can be obtained from
 @url{ftp://alpha.gnu.ai.mit.edu}.
-
-The most recent developer's snapshot can be obtained from
-@url{ftp://ftp.cs.rochester.edu/pub/u/mccallum/gnustep-base}.  These
-releases are there for exchange between active GNUstep coders, and for
-curious code-readers, not for naive users; read the README.first file in
-the FTP directory.
-
 
 @end enumerate
 @c GNUstep Base Library
