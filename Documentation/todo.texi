@@ -84,7 +84,8 @@ source.
 @item Clean up the behavior code.  Make sure that classes with behavior
 added can be subclassed properly... accounting for size.
 
-@item Clean and comment mframe.m.
+@item Clean and comment mframe.m.  Make sure all malloc'ed pieces get
+free'd somewhere.
 
 @item Finish Collection heirarchy clean ups.  We need non-mutable
 version for many of the classes.
