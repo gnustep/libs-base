@@ -45,13 +45,13 @@
 const char*
 GSSetLocaleC(const char *loc)
 {
-  return setlocale(LC_ALL, loc);
+  return setlocale(LC_CTYPE, loc);
 }
 
 /* Set the locale for libc functions from the supplied string or from
    the environment if not specified. This function should be called
    as soon as possible after the start of the program. Passing
-   @"" will set the locale from the environment variables LC_ALL or LANG (or
+   @"" will set the locale from the environment variables LC_CTYPE or LANG (or
    whatever is specified by setlocale) Passing nil will just return the
    current locale. */
 NSString *

@@ -1,3 +1,7 @@
+2002-06-19  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSLocale.m (GSSetLocaleC): Only set locale for LC_CTYPE.
+
 2002-06-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Cope with a URL where the path is missing.
