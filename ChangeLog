@@ -1,8 +1,8 @@
 Wed Jan  9 11:55:54 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
-	* configure.in: Set AC_CONFIG_AUX_DIR to
-	$GNUSTEP_SYSTEM_ROOT/Makefiles so that gnustep-make's
-	config.guess, config.sub and install.sh are used.
+	* configure.in: Call AC_CONFIG_AUX_DIR with
+	$GNUSTEP_SYSTEM_ROOT/Makefiles arg so that gnustep-make's
+	config.guess and config.sub are used.
 	* configure: Regenerated.
 	* config.guess: Removed.
 	* config.sub: Removed.
