@@ -11,13 +11,13 @@ int main()
 
   for (i = 0; i < N; i++)
     {
-      [array addObject:[[Object alloc] init]];
+      [array addObject:[[[NSObject alloc] init] autorelease]];
     }
 
   [array makeObjectsPerform:@selector(name)];
 
   [[array objectAtIndex:0] hash];
-  [[array releaseObjects] release];
+  [array release];
   printf("no errors\n");
   exit(0);
 }
