@@ -2090,7 +2090,7 @@ try:
 
 - (NSMutableDictionary*) parseInstanceVariables
 {
-  NSString		*validity = @"private";
+  NSString		*validity = @"protected";
   NSMutableDictionary	*ivars;
   BOOL			shouldDocument = documentInstanceVariables;
   DESTROY(comment);
