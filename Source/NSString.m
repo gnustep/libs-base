@@ -3848,11 +3848,14 @@ handle_printf_atsign (FILE *stream,
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  if ([self isKindOfClass: [NSMutableString class]] ||
-    NSShouldRetainWithZone(self, zone) == NO)
-    return [[NSStringClass allocWithZone: zone] initWithString: self];
-  else
-    return RETAIN(self);
+  /*
+   * Default implementation should not simply retain ... the string may
+   * have been initialised with freeWhenDone==NO and not own its
+   * characters ... so the code which created it may destroy the memory
+   * when it has finished with the original string ... leaving the
+   * copy with pointers to invalid data.  So, we always copy in full.
+   */
+  return [[NSStringClass allocWithZone: zone] initWithString: self];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
