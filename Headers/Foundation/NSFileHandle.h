@@ -182,6 +182,8 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 				    forModes: (NSArray*)modes;
 - (BOOL) readInProgress;
 - (NSString*) socketAddress;
+- (NSString*) socketLocalAddress;
+- (NSString*) socketLocalService;
 - (NSString*) socketService;
 - (NSString*) socketProtocol;
 - (BOOL) useCompression;

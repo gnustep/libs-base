@@ -614,6 +614,22 @@ NSString * const NSFileHandleOperationException
 }
 
 /**
+ * Returns the local address of the network connection or nil.
+ */
+- (NSString*) socketLocalAddress
+{
+  return nil;
+}
+
+/**
+ * Returns the local service/port of the network connection or nil.
+ */
+- (NSString*) socketLocalService
+{
+  return nil;
+}
+
+/**
  * Returns the name (or number) of the service (network port) in use for
  * the network connection represented by the file handle.
  */
