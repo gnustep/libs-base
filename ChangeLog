@@ -1,3 +1,17 @@
+2005-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSetData.h: Add data outside unicode base plane.
+	* Source/NSCharacterSet.m: Change to support all unicode characters
+	rather than just UTF16.  The current implementation is still based
+	on (often much larger than before) bitmaps.  It may be that the size
+	of the bitmap data is too large for real world use, and we may have
+	to introduce a different storage mechanism.  The current mechanism
+	is good for cases where the number of characters in the set is large
+	and those characters are scattered, or where characters are only
+	present in the base plane.  Another implementation might be better
+	for cases where characters are clustered into contiguous groups
+	and the groups are scattered through the full range.
+
 2005-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSConfig.h.in: Extra types
