@@ -831,6 +831,9 @@ main(int argc, char **argv, char **env)
 	}
     }
 
+  mgr = [NSFileManager defaultManager];
+
+
   verbose = [defs boolForKey: @"Verbose"];
   warn = [defs boolForKey: @"Warn"];
   ignoreDependencies = [defs boolForKey: @"IgnoreDependencies"];
@@ -864,6 +867,11 @@ main(int argc, char **argv, char **env)
   if (documentationDirectory == nil)
     {
       documentationDirectory = @"";
+    }
+  if ([documentationDirectory length] > 0
+    && [mgr fileExistsAtPath: documentationDirectory] == NO)
+    {
+      [mgr createDirectoryAtPath: documentationDirectory attributes: nil];
     }
 
   proc = [NSProcessInfo processInfo];
@@ -934,8 +942,6 @@ main(int argc, char **argv, char **env)
 	  NSLog(@"Unknown argument '%@' ... ignored", arg);
 	}
     }
-
-  mgr = [NSFileManager defaultManager];
 
   /*
    * 3) Load old project indexing information from the .igsdoc file if
@@ -2246,6 +2252,11 @@ main(int argc, char **argv, char **env)
 	  [depend appendFormat: @" \\\n\t%@", file];
 	}
 
+      file = [stamp stringByDeletingLastPathComponent];
+      if ([file length]> 0 && [mgr fileExistsAtPath: file] == NO)
+	{
+	  [mgr createDirectoryAtPath: file attributes: nil];
+	}
       [depend writeToFile: stamp atomically: YES];
     }
 
