@@ -1,5 +1,5 @@
 /* Interface to debugging utilities for GNUStep and OpenStep
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: August 1997
@@ -72,6 +72,7 @@ extern	NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
 #endif
 
+
 
 /* Debug logging which can be enabled/disabled by defining DEBUG
    when compiling and also setting values in the mutable array
@@ -110,6 +111,7 @@ extern	NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 #ifdef DEBUG
 #include	<Foundation/NSObjCRuntime.h>
 #include	<Foundation/NSProcessInfo.h>
+
 #define NSDebugLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) \
     NSLog(format, ## args); } while (0)
@@ -143,6 +145,53 @@ extern	NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 #define NSDebugFLog(format, args...)
 #define NSDebugMLLog(level, format, args...)
 #define NSDebugMLog(format, args...)
+#endif
+
+
+
+/* Warning messages which can be enabled/disabled by defining GSWARN
+   when compiling.
+
+   These logging macros are intended to be used when the software detects
+   something that it not necessarily fatal or illegal, but looks like it
+   might be a programming error.  eg. attempting to remove 'nil' from an
+   NSArray, which the Spec/documentation does not prohibit, but which a
+   well written progam should not be attempting (since an NSArray object
+   cannot contain a 'nil').
+
+   NB. The 'warn=yes' option is understood by the GNUstep make package
+   to mean that GSWARN should be defined, and the 'warn=no' means that
+    GSWARN should be undefined.  Default is to define it.
+
+   To embed debug logging in your code you use the NSWarnLog() macro.
+
+   As a convenience, there are two more logging macros you can use -
+   NSWarnLog(), and NSWarnMLog().
+   These are specifically for use in either functions or methods and
+   prepend information about the file, line and either function or
+   class/method in which the message was generated.
+
+ */
+#ifdef GSWARN
+#include	<Foundation/NSObjCRuntime.h>
+
+#define NSWarnLog(format, args...) \
+  do { \
+    NSLog(format, ## args); } while (0)
+#define NSWarnFLog(format, args...) \
+  do { \
+    NSString *fmt = GSDebugFunctionMsg( \
+	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    NSLog(fmt, ## args); } while (0)
+#define NSWarnMLog(format, args...) \
+  do { \
+    NSString *fmt = GSDebugMethodMsg( \
+	self, _cmd, __FILE__, __LINE__, format); \
+    NSLog(fmt, ## args); } while (0)
+#else
+#define NSWarnLog(format, args...)
+#define NSWarnFLog(format, args...)
+#define NSWarnMLog(format, args...)
 #endif
 
 #endif

@@ -29,6 +29,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSDebug.h>
 
 #include <base/behavior.h>
 #include <base/fast.x>
@@ -383,7 +384,7 @@ myEqual(id self, id other)
 {
   if (aKey == nil)
     {
-      NSLog(@"attempt to remove nil key");
+      NSWarnMLog(@"attempt to remove nil key", 0);
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)aKey);

@@ -28,6 +28,7 @@
 #include <base/behavior.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSDebug.h>
 
 static SEL	eqSel = @selector(isEqual:);
 
@@ -425,7 +426,7 @@ static SEL	eqSel = @selector(isEqual:);
 
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   index = _count;
@@ -480,7 +481,7 @@ static SEL	eqSel = @selector(isEqual:);
 
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   index = _count;
