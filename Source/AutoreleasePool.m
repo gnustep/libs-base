@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobject.h>
+#include <objects/stdobjects.h>
 #include <objects/AutoreleasePool.h>
 #include <objects/collhash.h>
 #include <objects/eltfuncs.h>
@@ -46,7 +46,7 @@ static AutoreleasePool *current_pool = nil;
 + initialize
 {
   if (self == [AutoreleasePool class])
-    objc_set_autorelease_class(self);
+    autorelease_class = self;
   return self;
 }
 
@@ -55,12 +55,12 @@ static AutoreleasePool *current_pool = nil;
   return current_pool;
 }
 
-+ (void) addObject: anObj
++ (void) autoreleaseObject: anObj
 {
-  [current_pool addObject:anObj];
+  [current_pool autoreleaseObject:anObj];
 }
 
-- (void) addObject: anObj
+- (void) autoreleaseObject: anObj
 {
   released_count++;
   if (released_count == released_size)

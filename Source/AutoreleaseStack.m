@@ -1,3 +1,31 @@
+/* Implementation of release stack for delayed disposal
+   Copyright (C) 1994 Free Software Foundation, Inc.
+   
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Date: May 1993
+   
+   This file is part of the GNU Objective C Class Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   */ 
+
+#include <objects/stdobjects.h>
+#include <objects/AutoreleaseStack.h>
+#include <objects/ObjectRetaining.h>
+#include <objects/collhash.h>
+#include <objects/eltfuncs.h>
 #include <assert.h>
 
 /* The initial size of the released_objects array */
@@ -89,6 +117,8 @@ objc_stack_release_count()
   if (!init_done)
     {
       init_done = 1;
+
+      autorelease_class = self;
       
       released_capacity = DEFAULT_SIZE;
       OBJC_MALLOC(released_objects, id, released_capacity);
@@ -99,13 +129,13 @@ objc_stack_release_count()
 
 - init
 {
-  objc_stack_release_object(self, 0);
+  objc_stack_release_object_with_address(self, 0);
   return self;
 }
 
 - (void) dealloc
 {
-  while (released_objects[release_index] != self)
+  while (released_objects[released_index] != self)
     {
       [released_objects[released_index] release];
       released_index--;
@@ -114,10 +144,14 @@ objc_stack_release_count()
   [super dealloc];
 }
 
-- addObject: anObject
+- (void) autoreleaseObject: anObject
 {
   objc_stack_release_object(anObject);
-  return self;
+}
+
++ (void) autoreleaseObject: anObject
+{
+  objc_stack_release_object(anObject);
 }
 
 @end
