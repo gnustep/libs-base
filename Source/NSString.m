@@ -639,10 +639,10 @@ handle_printf_atsign (FILE *stream,
       unsigned	count;
       const unsigned char *b;
 
+      z = fastZone(self);
       if (len < 2)
 	return [self initWithCStringNoCopy: 0 length: 0 fromZone: z];
 
-      z = fastZone(self);
       b=[data bytes];
       u = NSZoneMalloc(z, sizeof(unichar)*(len+1));
       if (encoding==NSUnicodeStringEncoding)
