@@ -36,34 +36,29 @@
 + (id) setWithObjects: (id)anObject, ...;
 + (id) setWithSet: (NSSet*)aSet;
 
-- (id) initWithObjects: (id*)objects
-		 count: (unsigned)count;
-- (unsigned) count;
-- (id) member: (id)anObject;
-- (NSEnumerator*) objectEnumerator;
-
-@end
-
-@interface NSSet (NonCore)
-
-- (id) initWithArray: (NSArray*)array;
-- (id) initWithObjects: (id)objects, ...;
-- (id) initWithObjects: firstObject rest: (va_list)ap;
-- (id) initWithSet: (NSSet*)otherSet;
-- (id) initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
-
 - (NSArray*) allObjects;
 - (id) anyObject;
 - (BOOL) containsObject: (id)anObject;
-- (void) makeObjectsPerform: (SEL)aSelector;
-- (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
+- (unsigned) count;
+- (NSString*) descriptionWithLocale: (NSDictionary*)ld;
 
+- (id) initWithArray: (NSArray*)array;
+- (id) initWithObjects: (id)objects, ...;
+- (id) initWithObjects: (id*)objects
+		 count: (unsigned)count;
+- (id) initWithObjects: firstObject
+		  rest: (va_list)ap;
+- (id) initWithSet: (NSSet*)otherSet;
+- (id) initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
 
 - (BOOL) intersectsSet: (NSSet*)other;
 - (BOOL) isEqualToSet: (NSSet*)other;
 - (BOOL) isSubsetOfSet: (NSSet*)other;
 
-- (NSString*) descriptionWithLocale: (NSDictionary*)ld;
+- (void) makeObjectsPerform: (SEL)aSelector;
+- (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
+- (id) member: (id)anObject;
+- (NSEnumerator*) objectEnumerator;
 
 @end
 
@@ -71,19 +66,14 @@
 
 + (id) setWithCapacity: (unsigned)numItems;
 
-- (id) initWithCapacity: (unsigned)numItems;
 - (void) addObject: (id)anObject;
-- (void) removeObject: (id)anObject;
-
-@end
-
-@interface NSMutableSet (NonCore)
-
 - (void) addObjectsFromArray: (NSArray*)array;
-- (void) unionSet: (NSSet*)other;
+- (id) initWithCapacity: (unsigned)numItems;
 - (void) intersectSet: (NSSet*)other;
 - (void) minusSet: (NSSet*)other;
 - (void) removeAllObjects;
+- (void) removeObject: (id)anObject;
+- (void) unionSet: (NSSet*)other;
 
 @end
 
@@ -112,7 +102,7 @@
  * GSUnique() returns an object that is equal to the one passed to it.
  * If the returned object is not the same object as the object passed in,
  * the original object is released and the returned object is retained.
- * Thus, an -init metod that wants to implement uniquing simply needs
+ * Thus, an -init method that wants to implement uniquing simply needs
  * to end with 'return GSUnique(self);'
  */
 void	GSUniquing(BOOL flag);	

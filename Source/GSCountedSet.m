@@ -39,9 +39,6 @@
 
 #include <base/GSIMap.h>
 
-@class	NSSetNonCore;
-@class	NSMutableSetNonCore;
-
 @interface GSCountedSet : NSCountedSet
 {
 @public
@@ -96,8 +93,6 @@
 {
   if (self == [GSCountedSet class])
     {
-      class_add_behavior(self, [NSSetNonCore class]);
-      class_add_behavior(self, [NSMutableSetNonCore class]);
     }
 }
 
