@@ -27,6 +27,12 @@
 #define size_t unsigned long
 #endif
 
+#ifdef HAVE_VALLOC
+#include <stdlib.h>
+#else
+#define valloc  malloc
+#endif
+
 void*
 __objc_malloc(size_t size)
 {
