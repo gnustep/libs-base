@@ -429,7 +429,10 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 DOCUMENT_NAME = Base
 
 Base_AGSDOC_FILES = $(FOUNDATION_HEADERS)
-Base_AGSDOC_FLAGS = -HeaderDirectory ../Headers/Foundation -Declared Foundation
+Base_AGSDOC_FLAGS = \
+	-HeaderDirectory ../Headers/Foundation \
+	-Declared Foundation \
+	-Standards YES
 
 -include Makefile.preamble
 

@@ -252,6 +252,14 @@
       log which files are being regenerated because of their dependencies
       on other files.
     </item>
+    <item><strong>Standards</strong>
+      A boolean value used to specify whether the program should insert
+      information about standards complience into ythe documentation.
+      This should only be used when documenting the GNUstep libraries
+      and tools themselves as it assumes that the code being documented
+      is part of GNUstep and possibly complies with the OpenStep standard
+      or implements MacOS-X compatible methods.
+    </item>
     <item><strong>SourceDirectory</strong>
       May be used to specify the directory to be searched for source
       (anything other than <code>.h</code> files ... which are controlled
@@ -342,6 +350,7 @@ main(int argc, char **argv, char **env)
   BOOL			showDependencies = NO;
   BOOL			autoIndex = NO;
   BOOL			modifiedRefs = NO;
+  BOOL			standards = NO;
   NSDate		*rDate = nil;
   NSMutableArray	*files = nil;
   CREATE_AUTORELEASE_POOL(outer);
@@ -359,6 +368,7 @@ main(int argc, char **argv, char **env)
     nil]];
 
   autoIndex = [defs boolForKey: @"AutoIndex"];
+  standards = [defs boolForKey: @"Standards"];
   ignoreDependencies = [defs boolForKey: @"IgnoreDependencies"];
   showDependencies = [defs boolForKey: @"ShowDependencies"];
   if (ignoreDependencies == YES)
@@ -464,6 +474,7 @@ main(int argc, char **argv, char **env)
   prjRefs = [AGSIndex new];
   indexer = [AGSIndex new];
   parser = [AGSParser new];
+  [parser setGenerateStandards: standards];
   output = [AGSOutput new];
 
   /*

@@ -81,6 +81,8 @@
 - (NSMutableArray*) parseProtocolList;
 - (void) reset;
 - (void) setDeclared: (NSString*)name;
+- (void) setGenerateStandards: (BOOL)flag;
+- (void) setStandards: (NSMutableDictionary*)dict;
 - (void) setupBuffer;
 - (unsigned) skipBlock;
 - (unsigned) skipComment;
@@ -92,6 +94,5 @@
 - (unsigned) skipStatementLine;
 - (unsigned) skipUnit;
 - (unsigned) skipWhiteSpace;
-- (void) setStandards: (NSMutableDictionary*)dict;
 @end
 #endif
