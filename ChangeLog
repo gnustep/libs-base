@@ -1,3 +1,8 @@
+2001-01-26  Adam Fedor  <fedor@gnu.org>
+
+	* gnustep-base.script.spec.in: New file, rpm script for installing 
+	gdomap, updating ld.conf, etc.
+
 2001-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Fix failure to assign result of init to self
