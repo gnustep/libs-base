@@ -1,4 +1,4 @@
-=* *errs *.tar.gz *.patch
+=* *errs *.tar.gz *.patch *-patch
 
 COPYING COPYING.LIB INSTALL NEWS README TAGS TODO
 
