@@ -32,6 +32,7 @@
 #include <Foundation/Foundation.h>
 #else
 #include	<Foundation/NSObject.h>
+#include	<Foundation/NSString.h>
 #endif
 
 @class	NSArray;
@@ -41,8 +42,6 @@
 @class	NSDictionary;
 @class	NSMutableDictionary;
 @class	NSScanner;
-@class	NSString;
-@class	NSMutableString;
 
 /*
  * A trivial class for mantaining state while decoding/encoding data.
