@@ -178,8 +178,7 @@ static BOOL debug_coder = NO;
      you could get corrupt data on the stack when Coder resolves its 
      forward references.  I recommend just using the GNU Coder. */
 #if 1
-  unsigned xref = PTR2LONG(anObject);
-  if ([self _coderHasObjectReference:xref])
+  if ([self _coderReferenceForObject: anObject])
     [self encodeObject: anObject];
   else
     [self encodeObject: nil];
