@@ -155,13 +155,17 @@
 
 - (id) init
 {
+  id	o;
+
   _allowsFloats = YES;
   _decimalSeparator = '.';
   _thousandSeparator = ',';
-  [self setAttributedStringForNil: AUTORELEASE([[NSAttributedString new] 
-						   initWithString: @""])];
-  [self setAttributedStringForNotANumber: AUTORELEASE([[NSAttributedString new] 
-						   initWithString: @"NaN"])];
+  o = [[NSAttributedString alloc] initWithString: @""];
+  [self setAttributedStringForNil: o];
+  RELEASE(o);
+  o = [[NSAttributedString alloc] initWithString: @"NaN"];
+  [self setAttributedStringForNotANumber: o];
+  RELEASE(o);
 
   return self;
 }
@@ -174,16 +178,19 @@
   [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
   [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
 
-  _roundingBehavior = RETAIN([decoder decodeObject]);
-  _maximum  = RETAIN([decoder decodeObject]);
-  _minimum  = RETAIN([decoder decodeObject]);
-  _attributedStringForNil = RETAIN([decoder decodeObject]);
-  _attributedStringForNotANumber = RETAIN([decoder decodeObject]);
-  _attributedStringForZero = RETAIN([decoder decodeObject]);
-  _negativeFormat = RETAIN([decoder decodeObject]);
-  _positiveFormat = RETAIN([decoder decodeObject]);
-  _attributesForPositiveValues = RETAIN([decoder decodeObject]);
-  _attributesForNegativeValues = RETAIN([decoder decodeObject]);
+  [decoder decodeValueOfObjCType: @encode(id) at: &_roundingBehavior];
+  [decoder decodeValueOfObjCType: @encode(id) at: &_maximum];
+  [decoder decodeValueOfObjCType: @encode(id) at: &_minimum];
+  [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForNil];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForNotANumber];
+  [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForZero];
+  [decoder decodeValueOfObjCType: @encode(id) at: &_negativeFormat];
+  [decoder decodeValueOfObjCType: @encode(id) at: &_positiveFormat];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributesForPositiveValues];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributesForNegativeValues];
 
   return self;
 }

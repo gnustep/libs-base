@@ -68,6 +68,7 @@ static NSLock			*placeholderLock;
   if (self == [NSValue class])
     {
       abstractClass = self;
+      [abstractClass setVersion: 1];	// Version 1
       concreteClass = [GSValue class];
       nonretainedObjectValueClass = [GSNonretainedObjectValue class];
       pointValueClass = [GSPointValue class];
@@ -381,33 +382,118 @@ static NSLock			*placeholderLock;
 
 - (id) initWithCoder: (NSCoder *)coder
 {
+  char		type[64];
   const char	*objctype;
   Class		c;
   id		o;
   unsigned	size;
-  NSData	*d;
-  char		*data;
-  unsigned	cursor = 0;
+  int		ver;
 
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-  objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
+  /*
+   * For almost all type encodings, we can use space on the stack,
+   * but to handle exceptionally large ones (possibly some huge structs)
+   * we have a strategy of allocating and deallocating heap space too.
+   */
+  if (size <= 64)
+    {
+      objctype = type;
+    }
+  else
+    {
+      objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
+    }
   [coder decodeArrayOfObjCType: @encode(signed char)
 			 count: size
 			    at: (void*)objctype];
   c = [abstractClass valueClassWithObjCType: objctype];
-  o = [c alloc];
+  o = [c allocWithZone: [coder objectZone]];
 
-  size = objc_sizeof_type(objctype);
-  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
-  [coder decodeValueOfObjCType: @encode(id) at: &d];
-  [d deserializeDataAt: data
-	    ofObjCType: objctype
-	      atCursor: &cursor
-	       context: nil];
-  o = [o initWithBytes: data objCType: objctype];
-  RELEASE(d);
-  NSZoneFree(NSDefaultMallocZone(), data);
-  NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
+  ver = [coder versionForClassName: @"NSValue"];
+  if (ver < 1)
+    {
+      if (c == pointValueClass)
+	{
+	  NSPoint	v;
+
+	  [coder decodeValueOfObjCType: @encode(NSPoint) at: &v];
+	  o = [o initWithBytes: &v objCType: @encode(NSPoint)];
+	}
+      else if (c == sizeValueClass)
+	{
+	  NSSize	v;
+
+	  [coder decodeValueOfObjCType: @encode(NSSize) at: &v];
+	  o = [o initWithBytes: &v objCType: @encode(NSSize)];
+	}
+      else if (c == rangeValueClass)
+	{
+	  NSRange	v;
+
+	  [coder decodeValueOfObjCType: @encode(NSRange) at: &v];
+	  o = [o initWithBytes: &v objCType: @encode(NSRange)];
+	}
+      else if (c == rectValueClass)
+	{
+	  NSRect	v;
+
+	  [coder decodeValueOfObjCType: @encode(NSRect) at: &v];
+	  o = [o initWithBytes: &v objCType: @encode(NSRect)];
+	}
+      else
+	{
+	  unsigned char	*data;
+
+	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+	  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	  [coder decodeArrayOfObjCType: @encode(unsigned char)
+				 count: size
+				    at: (void*)data];
+	  o = [o initWithBytes: data objCType: objctype];
+	  NSZoneFree(NSDefaultMallocZone(), data);
+	}
+    }
+  else
+    {
+      NSData		*d;
+      unsigned		cursor = 0;
+
+      /*
+       * For performance, decode small values directly onto the stack,
+       * For larger values we allocate and deallocate heap space.  
+       */
+      size = objc_sizeof_type(objctype);
+      if (size <= 64)
+	{
+	  unsigned char	data[size];
+
+	  [coder decodeValueOfObjCType: @encode(id) at: &d];
+	  [d deserializeDataAt: data
+		    ofObjCType: objctype
+		      atCursor: &cursor
+		       context: nil];
+	  o = [o initWithBytes: data objCType: objctype];
+	  RELEASE(d);
+	}
+      else
+	{
+	  unsigned char	*data;
+
+	  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	  [coder decodeValueOfObjCType: @encode(id) at: &d];
+	  [d deserializeDataAt: data
+		    ofObjCType: objctype
+		      atCursor: &cursor
+		       context: nil];
+	  o = [o initWithBytes: data objCType: objctype];
+	  RELEASE(d);
+	  NSZoneFree(NSDefaultMallocZone(), data);
+	}
+    }
+  if (objctype != type)
+    {
+      NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
+    }
   RELEASE(self);
   self = o;
   return self;
@@ -434,39 +520,6 @@ static NSLock			*placeholderLock;
 {
   [NSException raise: NSInternalInconsistencyException
 	      format: @"attempt to use uninitialised value"];
-}
-
-- (id) initWithCoder: (NSCoder *)coder
-{
-  const char	*objctype;
-  Class		c;
-  id		o;
-  unsigned	size;
-  NSData	*d;
-  char		*data;
-  unsigned	cursor = 0;
-
-  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-  objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
-  [coder decodeArrayOfObjCType: @encode(signed char)
-			 count: size
-			    at: (void*)objctype];
-  c = [abstractClass valueClassWithObjCType: objctype];
-  o = [c alloc];
-
-  size = objc_sizeof_type(objctype);
-  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
-  [coder decodeValueOfObjCType: @encode(id) at: &d];
-  [d deserializeDataAt: data
-	    ofObjCType: objctype
-	      atCursor: &cursor
-	       context: nil];
-  o = [o initWithBytes: data objCType: objctype];
-  RELEASE(d);
-  NSZoneFree(NSDefaultMallocZone(), data);
-  NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
-  self = o;
-  return self;
 }
 
 - (id) initWithBytes: (const void*)data objCType: (const char*)type
