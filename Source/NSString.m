@@ -185,7 +185,6 @@ static NSString		*pathSepString = @"/";
 static NSString		*rootPath = @"/";
 #endif
 
-static BOOL (*sepMember)(NSCharacterSet*, SEL, unichar) = 0;
 static NSCharacterSet	*myPathSeps = nil;
 /*
  *	We can't have a 'pathSeps' variable initialized in the +initialize
@@ -202,20 +201,29 @@ pathSeps()
       myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
 #endif
       IF_NO_GC(RETAIN(myPathSeps));
-      sepMember = (BOOL (*)(NSCharacterSet*, SEL, unichar))
-	[myPathSeps methodForSelector: @selector(characterIsMember:)];
     }
   return myPathSeps;
 }
 
-static BOOL
+inline static BOOL
 pathSepMember(unichar c)
 {
-  if (sepMember == 0)
-    pathSeps();
-  
-  return (*sepMember)(myPathSeps, @selector(characterIsMember:), c);
+
+#if defined(__MINGW__)
+  if (c == (unichar)'\\' || c == (unichar)'/')
+#else 
+  if (c == (unichar)'/')
+#endif 
+    {
+      return YES;
+    }
+  else
+    {
+      return NO;
+    }
 }
+
+
 
 /* Convert a high-low surrogate pair into Unicode scalar code-point */
 static inline gsu32
@@ -2926,11 +2934,11 @@ handle_printf_atsign (FILE *stream,
 {
   NSMutableArray	*a;
   NSArray		*r;
-  int			i;
+  unsigned		i, count = [paths count];
 
   a = [[NSMutableArray allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: [paths count]];
-  for (i = 0; i < [paths count]; i++)
+	initWithCapacity: count];
+  for (i = 0; i < count; i++)
     {
       NSString	*s = [paths objectAtIndex: i];
 
