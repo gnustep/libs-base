@@ -25,6 +25,7 @@
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSMethodSignature.h>
 #include <objects/Invocation.h>
+#include <objects/behavior.h>
 
 @implementation NSInvocation
 
@@ -50,6 +51,7 @@
 {
   /* xxx This isn't really needed by the our implementation anyway. */
   [self notImplemented: _cmd];
+  return nil;
 }
 
 /* All other methods come from the MethodInvocation behavior. */
