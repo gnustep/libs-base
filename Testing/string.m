@@ -1,5 +1,8 @@
 #include <Foundation/NSString.h>
 
+// Fri Oct 23 02:58:47 MET DST 1998 	dave@turbocat.de
+// cStringNoCopy -> cString
+
 /* For demo of Strings as Collections of char's. */
 #include <Foundation/NSString.h>
 #include    <Foundation/NSAutoreleasePool.h>
@@ -7,7 +10,7 @@
 void
 print_string(NSString* s)
 {
-  printf("The string [%s], length %d\n", [s cStringNoCopy], [s length]);
+  printf("The string [%s], length %d\n", [s cString], [s length]);
 }
 
 #include <Foundation/NSString.h>

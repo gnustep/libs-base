@@ -1,4 +1,6 @@
 /* A demonstration of writing and reading with NSArchiver */
+// Fri Oct 23 03:02:04 MET DST 1998 	dave@turbocat.de
+// cStringNoCopy -> cString
 
 #if 1
 
@@ -30,7 +32,7 @@ int main()
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%s\n", [o cStringNoCopy]);    
+      printf("%s\n", [o cString]);    
   }
 
   apl = [[NSAutoreleasePool alloc] init];
@@ -68,7 +70,7 @@ printf("%u\n", [arc retainCount]);
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%s\n", [o cStringNoCopy]);    
+      printf("%s\n", [o cString]);    
   }
 
   /* Do the autorelease. */

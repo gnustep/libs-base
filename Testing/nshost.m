@@ -1,3 +1,6 @@
+// Fri Oct 23 03:02:52 MET DST 1998 	dave@turbocat.de
+// cStringNoCopy -> cString
+
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSHost.h>
@@ -12,10 +15,10 @@ displayHost(NSHost* h)
   printf("\n");
   a = [h names];
   for (i = 0; i < [a count]; i++)
-    printf("%s\n", [[a objectAtIndex:i] cStringNoCopy]);
+    printf("%s\n", [[a objectAtIndex:i] cString]);
   a = [h addresses];
   for (i = 0; i < [a count]; i++)
-    printf("%s\n", [[a objectAtIndex:i] cStringNoCopy]);
+    printf("%s\n", [[a objectAtIndex:i] cString]);
 }
 
 int
