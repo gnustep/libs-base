@@ -317,6 +317,47 @@
   return _count;
 }
 
+- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
+	 allowLossyConversion: (BOOL)flag
+{
+  unsigned int	len = [self length];
+
+  if (len == 0)
+    {
+      return [NSData data];
+    }
+
+  if (encoding == NSUnicodeStringEncoding)
+    {
+      unichar *buff;
+
+      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*len+2);
+      buff[0] = 0xFEFF;
+      memcpy(buff+1, _contents_chars, 2*len);
+      return [NSData dataWithBytesNoCopy: buff length: 2*len+2];
+    }
+  else
+    {
+      int t;
+      unsigned char *buff;
+
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
+      // FIXME: Here should the lossy flag be used
+      if (flag)
+	t = encode_ustrtostr(buff, _contents_chars, len, encoding);
+      else 
+	t = encode_ustrtostr_strict(buff, _contents_chars, len, encoding);
+      buff[t] = '\0';
+      if (!t)
+        {
+	  NSZoneFree(NSDefaultMallocZone(), buff);
+	  return nil;
+	}
+      return [NSData dataWithBytesNoCopy: buff length: t];
+    }
+  return nil;
+}
+
 - (NSStringEncoding) fastestEncoding
 {
   return NSUnicodeStringEncoding;

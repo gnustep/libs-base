@@ -437,6 +437,66 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 		       length: aRange.length];
 }
 
+- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
+	 allowLossyConversion: (BOOL)flag
+{
+  unsigned int	len = [self length];
+  NSStringEncoding defEnc = [NSString defaultCStringEncoding];
+
+  if (len == 0)
+    {
+      return [NSData data];
+    }
+
+  if (encoding == NSUnicodeStringEncoding)
+    {
+      int t;
+      unichar *buff;
+
+      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*len+2);
+      buff[0] = 0xFEFF;
+      t = encode_strtoustr(buff+1, _contents_chars, len, defEnc);
+      return [NSData dataWithBytesNoCopy: buff length: t+2];
+    }
+  else if ((encoding == defEnc)
+	   ||((defEnc == NSASCIIStringEncoding) 
+	      && ((encoding == NSISOLatin1StringEncoding)
+		  || (encoding == NSISOLatin2StringEncoding)
+		  || (encoding == NSNEXTSTEPStringEncoding)
+		  || (encoding == NSNonLossyASCIIStringEncoding))))
+    {
+      unsigned char *buff;
+
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
+      memcpy(buff, _contents_chars, len);
+      buff[len] = '\0';
+      return [NSData dataWithBytesNoCopy: buff length: len];
+    }
+  else
+    {
+      int t;
+      unichar *ubuff;
+      unsigned char *buff;
+
+      ubuff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*len);
+      t = encode_strtoustr(ubuff, _contents_chars, len, defEnc);
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), t+1);
+      if (flag)
+	t = encode_ustrtostr(buff, ubuff, t, encoding);
+      else 
+	t = encode_ustrtostr_strict(buff, ubuff, t, encoding);
+      buff[t] = '\0';
+      NSZoneFree(NSDefaultMallocZone(), ubuff);
+      if (!t)
+        {
+	  NSZoneFree(NSDefaultMallocZone(), buff);
+	  return nil;
+	}
+      return [NSData dataWithBytesNoCopy: buff length: t];
+    }
+  return nil;
+}
+
 - (NSStringEncoding) fastestEncoding
 {
   if (([NSString defaultCStringEncoding] == NSASCIIStringEncoding)
