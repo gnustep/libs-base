@@ -25,11 +25,20 @@
 #define __NSNotification_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
+#include <objects/Notification.h>
 
 @class NSString;
 @class NSDictionary;
 
 @interface NSNotification : NSObject
+{
+  /* Make the instance size of this class match exactly the instance
+     size of Notification.  Thus, behavior_class_add_class() will not
+     have to increase the instance size of NSNotification, and
+     NSNotification can safely be subclassed. */
+  char _NSNotification_placeholder[(sizeof(struct NSObject)
+				    - sizeof(struct Notification))];
+}
 @end
 
 /* Put this in a category to avoid unimportant errors due to behaviors. */
