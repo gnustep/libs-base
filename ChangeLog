@@ -1,3 +1,12 @@
+Fri Nov 20 12:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	src/NSSerializer.m: Added GNUstep specific methods for controlling
+	format to optimise serialisation for property lists containing
+	repeated strings.
+	include/NSSerializer.h: ditto
+	src/FastArray.x: inline implementation of fast array code for stuff
+	that doesn't need to be retained etc. Minimal functionality so far.
+
 Thu Nov 19 21:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	src/Archiver.m: Got rid of 'assert' - replace with 'NSAssert' etc.
 	src/BinaryTree.m: ditto
