@@ -1,3 +1,31 @@
+Tue Sep  9 10:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSConnection.m: Made numerous changes to fix memory leak with
+	ports never being released and to fix problems in port invalidation
+	associated with that.  Also added code to cope with odd cases like
+	when a remote application dires while we are waiting for a response
+	from it.
+
+	* src/NSPort.m: Added [-release] method which ensures that ports
+	are invlidated before they are finally deallocated.
+
+	* src/NSPortCoder.m: Catch exceptions during attempt to write data.
+
+	* src/NSRunLoop.m: Fixed this so that a count is kept of the
+	number of times a port has been added to the run loop as per the
+	OPENSTEP documentation.
+
+	* src/TcpPort.m: Fixed a minor retain/release problem.
+
+	* src/UnixFileHandle.m: Added loads of checks so that attempts to
+	use a file handle which has been closed will fail/generate an exception
+	rather than crashing things!  Also modified for changes to NSRunLoop.
+
+	* src/include/NSRunLoop.h: Modified the interface for adding watchers
+	for events with a count of the number of times they have been added.
+
+	* src/include/Port.h: Removed [-isValid] - now in NSPort.
+
 Tue Aug 26 15:47:54 1997  Adam Fedor  <fedor@doc.com>
 
         * src/NSCTemplateValue.m ([NSCTemplateValue -description]): New

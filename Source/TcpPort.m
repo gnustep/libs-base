@@ -699,7 +699,7 @@ static NSMapTable* port_number_2_port;
   if ((p = (id) NSMapGet (port_number_2_port, (void*)((int)n))))
     {
       assert (p->is_valid);
-      return p;
+      return [p retain];
     }
 
   /* There isn't already a TcpInPort for this port number, so create
@@ -878,6 +878,7 @@ static NSMapTable* port_number_2_port;
    want to wait for one directly from a port, you can use this method. */
 - newPacketReceivedBeforeDate: date
 {
+  NSString*	saved_mode = [NSRunLoop currentMode];
   id saved_packet_invocation;
   id packet = nil;
   id handle_packet (id p)
@@ -894,7 +895,7 @@ static NSMapTable* port_number_2_port;
   /* Make sure we're in the run loop, and run it, waiting for the
      incoming packet. */
   [[NSRunLoop currentRunLoop] addPort: self
-			      forMode: [NSRunLoop currentMode]];
+			      forMode: saved_mode];
   while ([NSRunLoop runOnceBeforeDate: date]
 	 && !packet)
     ;
@@ -904,7 +905,7 @@ static NSMapTable* port_number_2_port;
      this run loop. */ 
   _packet_invocation = saved_packet_invocation;
   [[NSRunLoop currentRunLoop] removePort: self
-			         forMode: [NSRunLoop currentMode]];
+			         forMode: saved_mode];
   return packet;
 }
 
@@ -1347,7 +1348,7 @@ static NSMapTable *out_port_bag = NULL;
 	       work because sin_zero's may differ. */
 	    {
 	      assert (p->is_valid);
-	      return p;
+	      return [p retain];
 	    }
 	}
     }
@@ -1681,8 +1682,7 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) dealloc
 {
-  if (is_valid)
-    [self invalidate];
+  [self invalidate];
   [super dealloc];
 }
 

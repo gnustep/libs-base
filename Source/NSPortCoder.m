@@ -34,6 +34,7 @@
 #include <gnustep/base/CStream.h>
 #include <gnustep/base/Port.h>
 #include <gnustep/base/MemoryStream.h>
+#include <Foundation/NSException.h>
 #include <Foundation/DistributedObjects.h>
 #include <assert.h>
 
@@ -103,8 +104,19 @@ static BOOL debug_connected_coder = NO;
 - (void) dismiss
 {
   id packet = [cstream stream];
-  [(OutPort*)[connection sendPort] sendPacket: packet
+  NS_DURING
+  {
+    [(OutPort*)[connection sendPort] sendPacket: packet
 				      timeout: [connection requestTimeout]];
+  }
+  NS_HANDLER
+  {
+    if (debug_connected_coder)
+      fprintf(stderr, "dismiss 0x%x: #=%d i=%d write failed - %s\n",
+	        (unsigned)self, sequence_number, identifier,
+		[[localException reason] cStringNoCopy]);
+  }
+  NS_ENDHANDLER
   if (debug_connected_coder)
     fprintf(stderr, "dismiss 0x%x: #=%d i=%d %d\n",
 	    (unsigned)self, sequence_number, identifier,
