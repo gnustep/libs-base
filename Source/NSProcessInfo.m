@@ -242,7 +242,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   [arp release];
 }
 
-#if !GS_FAKE_MAIN && (defined(HAVE_PROC_FS) && defined(HAVE_LOAD_METHOD))
+#if !GS_FAKE_MAIN && (defined(HAVE_PROCFS) && defined(HAVE_LOAD_METHOD))
 /*
  * We have to save program arguments and environment before main () is
  * executed, because main () could modify their values before we get a
@@ -478,7 +478,7 @@ _gnu_noobjc_free_vars(void)
       _gnu_noobjc_free_vars();
     }
 }
-#else /* !HAVE_PROC_FS || !HAVE_LOAD_METHOD */
+#else /* !HAVE_PROCFS || !HAVE_LOAD_METHOD */
 
 #ifdef __MINGW__
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
@@ -516,7 +516,7 @@ int main(int argc, char *argv[], char *env[])
 #endif /* !GS_PASS_ARGUMENTS */
 #endif /* __MINGW__ */
 
-#endif /* HAS_LOAD_METHOD && HAS_PROC_FS */ 
+#endif /* HAS_LOAD_METHOD && HAS_PROCFS */ 
 
 /* Fallback method. User must call this method if none of the other
    above hacks is being used

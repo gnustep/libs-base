@@ -1,66 +1,14 @@
-# aclocal.m4 - configure macros for libobjects and projects that depend on it.
-#
-#   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
-#
-#   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
-#
-#   This file is part of the GNU Objective-C library.
-#
-#   This library is free software; you can redistribute it and/or
-#   modify it under the terms of the GNU Library General Public
-#   License as published by the Free Software Foundation; either
-#   version 2 of the License, or (at your option) any later version.
-#   
-#   This library is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#   Library General Public License for more details.
-#
-#   You should have received a copy of the GNU Library General Public
-#   License along with this library; if not, write to the Free
-#   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA
+dnl aclocal.m4 generated automatically by aclocal 1.4
 
+dnl Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
-AC_DEFUN(OBJC_CON_AUTOLOAD,
-#--------------------------------------------------------------------
-# Guess if we are using a object file format that supports automatic
-# loading of constructor functions.
-#
-# If this system supports autoloading of constructors, that means that gcc
-# doesn't have to do it for us via collect2. This routine tests for this
-# in a very roundabout way by compiling a program with a constructor and
-# testing the file, via nm, for certain symbols that collect2 includes to
-# handle loading of constructors.
-#
-# Makes the following substitutions:
-#	Defines CON_AUTOLOAD (whether constructor functions are autoloaded)
-#--------------------------------------------------------------------
-[dnl
-AC_MSG_CHECKING(loading of constructor functions)
-AC_CACHE_VAL(objc_cv_con_autoload,
-[dnl 
-cat > conftest.constructor.c <<EOF
-void cons_functions() __attribute__ ((constructor));
-void cons_functions() {}
-int main()
-{
-  return 0;
-}
-EOF
-${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
-if test -n "`nm conftest | grep _ctors_aux`"; then 
-  objc_cv_con_autoload=yes
-else
-  objc_cv_con_autoload=no
-fi
-])
-if test $objc_cv_con_autoload = yes; then
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(CON_AUTOLOAD)
-else
-  AC_MSG_RESULT(no)
-fi
-])
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+dnl PARTICULAR PURPOSE.
 
 AC_DEFUN(OBJC_SYS_DYNAMIC_LINKER,
 [dnl
@@ -91,7 +39,6 @@ fi
 
 AC_SUBST(DYNAMIC_LINKER)dnl
 ])
-
 AC_DEFUN(OBJC_SYS_DYNAMIC_FLAGS,
 [dnl
 AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
@@ -149,9 +96,157 @@ AC_SUBST(DYNAMIC_LDFLAGS)dnl
 AC_SUBST(DYNAMIC_CFLAGS)dnl
 ])
 
-#-----------------------------------------------------------------------------
-# Check for libxml; macro taken from libxml 2.2.10 installation
-#-----------------------------------------------------------------------------
+AC_DEFUN(OBJC_CON_AUTOLOAD,
+#--------------------------------------------------------------------
+# Guess if we are using a object file format that supports automatic
+# loading of constructor functions.
+#
+# If this system supports autoloading of constructors, that means that gcc
+# doesn't have to do it for us via collect2. This routine tests for this
+# in a very roundabout way by compiling a program with a constructor and
+# testing the file, via nm, for certain symbols that collect2 includes to
+# handle loading of constructors.
+#
+# Makes the following substitutions:
+#	Defines CON_AUTOLOAD (whether constructor functions are autoloaded)
+#--------------------------------------------------------------------
+[dnl
+AC_MSG_CHECKING(loading of constructor functions)
+AC_CACHE_VAL(objc_cv_con_autoload,
+[dnl 
+cat > conftest.constructor.c <<EOF
+void cons_functions() __attribute__ ((constructor));
+void cons_functions() {}
+int main()
+{
+  return 0;
+}
+EOF
+${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
+if test -n "`nm conftest | grep _ctors_aux`"; then 
+  objc_cv_con_autoload=yes
+else
+  objc_cv_con_autoload=no
+fi
+])
+if test $objc_cv_con_autoload = yes; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(CON_AUTOLOAD)
+else
+  AC_MSG_RESULT(no)
+fi
+])
+
+dnl AC_PROG_OBJCC
+dnl Macro checks for Objective C compiler.
+AC_DEFUN(AC_PROG_OBJCC,
+[AC_BEFORE([$0], [AC_PROG_CPP])dnl
+AC_CHECK_PROGS(OBJCC, gcc objc objcc)
+if test -z "$OBJCC"; then
+  AC_CHECK_PROG(OBJCC, cc, cc, , , /usr/ucb/cc)
+  test -z "$OBJCC" && AC_MSG_ERROR([no acceptable cc found in \$PATH])
+fi
+
+AC_PROG_OBJCC_WORKS
+])
+
+AC_DEFUN(AC_PROG_OBJCC_WORKS,
+[AC_MSG_CHECKING([whether the Objective C compiler ($OBJCC $CFLAGS $LDFLAGS) works])
+AC_LANG_SAVE
+AC_LANG_OBJC
+AC_TRY_COMPILER([main(){return(0);}], ac_cv_prog_objcc_works, ac_cv_prog_objcc_cross)
+AC_LANG_RESTORE
+AC_MSG_RESULT($ac_cv_prog_objcc_works)
+if test $ac_cv_prog_objcc_works = no; then
+  AC_MSG_ERROR([installation or configuration problem: Objective C compiler cannot create executables.])
+fi
+AC_MSG_CHECKING([whether the Objective C compiler ($OBJCC $CFLAGS $LDFLAGS) is a cross-compiler])
+AC_MSG_RESULT($ac_cv_prog_objcc_cross)
+cross_compiling=$ac_cv_prog_objcc_cross
+])
+
+dnl AC_LANG_OBJC()
+AC_DEFUN(AC_LANG_OBJC,
+[define([AC_LANG], [OBJC])dnl
+ac_ext=m
+# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='${OBJCC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&AC_FD_CC'
+ac_link='${OBJCC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&AC_FD_CC'
+cross_compiling=$ac_cv_prog_cc_cross
+])
+
+dnl AC_PROG_NEXTCC
+dnl Check for NeXT compiler.
+AC_DEFUN(AC_PROG_NEXTCC,
+[ AC_CACHE_CHECK(whether we are using the NeXT compiler, ac_prog_nextcc,
+    [AC_EGREP_CPP(yes,
+[#if defined(NeXT)
+  #if defined(_NEXT_SOURCE)
+    no
+  #else
+    yes
+  #endif
+#else
+  no
+#endif], ac_prog_nextcc=yes, ac_prog_nextcc=no)])
+
+  if test "$ac_prog_nextcc" = yes; then
+    NeXTCC=yes
+  fi
+])
+
+dnl AC_SYS_PROCFS
+dnl This macro defines HAVE_PROCFS if either it finds a mounted /proc
+dnl or the user explicitly enables it for cross-compiles.
+AC_DEFUN(AC_SYS_PROCFS,
+[ AC_ARG_WITH(enable_procfs,
+    [  --enable-procfs               Use /proc filesystem (default)],
+    enable_procfs="$enableval", if test "$cross_compiling" = yes; then enable_procfs=cross; else enable_procfs=yes; fi;)
+
+  AC_CACHE_CHECK([kernel support for /proc filesystem], ac_cv_sys_procfs,
+  [if test "$enable_procfs" = yes; then
+    if test -d /proc/0; then
+      ac_cv_sys_procfs=yes
+    else
+      ac_cv_sys_procfs=no
+    fi
+  elif test "$enable_procfs" = cross; then
+    AC_MSG_WARN(Pass --enable-procfs argument to enable use of /proc filesystem.)
+  fi])
+
+  if test $ac_cv_sys_procfs = yes; then
+    AC_DEFINE(HAVE_PROCFS, 1, [Define if system supports the /proc filesystem])
+  fi
+]
+)
+
+dnl AC_SYS_PROCFS_EXE_LINK
+dnl This macro checks for the existence of a symlink in /proc to the executable
+dnl file associated with the current process, and defines PROCFS_EXE_LINK to
+dnl the path it finds.  Currently supports Linux and FreeBSD variants.
+AC_DEFUN(AC_SYS_PROCFS_EXE_LINK,
+[ AC_REQUIRE([AC_SYS_PROCFS])
+
+  AC_CACHE_CHECK([link to exe of process in /proc], ac_cv_sys_procfs_exe_link,
+    [if test "$ac_cv_sys_procfs" = yes; then
+      # Linux 2.2.x and up
+      if test -L /proc/self/exe; then
+        ac_cv_sys_procfs_exe_link=/proc/self/exe
+      # FreeBSD 4.x and up
+      elif test -L /proc/curproc/file; then
+        ac_cv_sys_procfs_exe_link=/proc/curproc/file
+      else
+        ac_cv_sys_procfs_exe_link=no
+      fi
+    fi])
+
+  if test "$ac_cv_sys_procfs_exe_link" != no; then
+    AC_DEFINE_UNQUOTED(PROCFS_EXE_LINK, ["$ac_cv_sys_procfs_exe_link"],
+      [Define as the link to exe of process in /proc filesystem.])
+  fi
+]) 
+
 dnl Code shamelessly stolen from glib-config by Sebastian Rittau
 dnl AM_PATH_XML([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 AC_DEFUN(AM_PATH_XML,[
@@ -300,3 +395,4 @@ main()
   AC_SUBST(XML_LIBS)
   rm -f conf.xmltest
 ])
+
