@@ -2027,13 +2027,13 @@ static int messages_received_count;
       if (anObj)
 	{
 	  [root_object_dictionary_gate lock];
-	  [root_object_dictionary putObject: anObj atKey: aPort];
+	  [root_object_dictionary setObject: Obj forKey: aPort];
 	  [root_object_dictionary_gate unlock];
 	}
       else /* anObj == nil && oldRootObject != nil */
 	{
 	  [root_object_dictionary_gate lock];
-	  [root_object_dictionary removeObjectAtKey: aPort];
+	  [root_object_dictionary removeObjectForKey: aPort];
 	  [root_object_dictionary_gate unlock];
 	}
     }
