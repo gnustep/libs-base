@@ -2864,7 +2864,7 @@ transmute(ivars self, NSString *aString)
 		      length: (unsigned int)length
 	        freeWhenDone: (BOOL)flag
 {
-  if (defEnc == intEnc)
+  if (defEnc != intEnc)
     {
       unichar	*u = 0;
       unsigned	l = 0;
