@@ -69,8 +69,6 @@
 #define NBLK_OPT     FNDELAY
 #endif
 
-#define	NSPORTNAMESERVER	1
-#define	GDOMAP	1	/* 1 = Use name server.	*/
 #define	stringify_it(X)	#X
 #define	make_gdomap_cmd(X)	stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap &"
 #define	make_gdomap_err(X)	"check that " stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap is running and owned by root."
@@ -163,12 +161,6 @@ static int debug_tcp_port = 0;
 
 
 
-#ifdef	GDOMAP
-/*
- *	Code to contact distributed objects name server.
- */
-#include	"../Tools/gdomap.h"
-
 extern	int	errno;	/* For systems where it is not in the include	*/
 
 /*
@@ -338,376 +330,6 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
     }
   }
 }
-
-/*
- *	Name -		tryHost()
- *	Purpose -	Perform a name server operation with a given
- *			request packet to a server at specified address.
- *			On error - return non-zero with reason in 'errno'
- */
-static int
-tryHost(unsigned char op, unsigned char len, const unsigned char* name,
-struct sockaddr_in* addr, unsigned short* p, unsigned char **v)
-{
-    int desc = socket(AF_INET, SOCK_STREAM, 0);
-    int	e = 0;
-    unsigned long	port = *p;
-    gdo_req		msg;
-    struct sockaddr_in sin;
-
-    *p = 0;
-    if (desc < 0) {
-	return(1);	/* Couldn't create socket.	*/
-    }
-
-    if ((e = fcntl(desc, F_GETFL, 0)) >= 0) {
-	e |= NBLK_OPT;
-	if (fcntl(desc, F_SETFL, e) < 0) {
-	    e = errno;
-	    close(desc);
-	    errno = e;
-	    return(2);	/* Couldn't set non-blocking.	*/
-	}
-    }
-    else {
-	e = errno;
-	close(desc);
-	errno = e;
-	return(2);	/* Couldn't set non-blocking.	*/
-    }
-
-    memcpy(&sin, addr, sizeof(sin));
-    if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) != 0) {
-	if (errno == EINPROGRESS) {
-	    e = tryWrite(desc, 10, 0, 0);
-	    if (e == -2) {
-		e = errno;
-		close(desc);
-		errno = e;
-		return(3);	/* Connect timed out.	*/
-	    }
-	    else if (e == -1) {
-		e = errno;
-		close(desc);
-		errno = e;
-		return(3);	/* Select failed.	*/
-	    }
-	}
-	else {
-	    e = errno;
-	    close(desc);
-	    errno = e;
-	    return(3);		/* Failed connect.	*/
-	}
-    }
-
-    memset((char*)&msg, '\0', GDO_REQ_SIZE);
-    msg.rtype = op;
-    msg.nsize = len;
-    msg.ptype = GDO_TCP_GDO;
-    if (op != GDO_REGISTER) {
-	port = 0;
-    }
-    msg.port = htonl(port);
-    memcpy(msg.name, name, len);
-
-    e = tryWrite(desc, 10, (unsigned char*)&msg, GDO_REQ_SIZE);
-    if (e != GDO_REQ_SIZE) {
-	e = errno;
-	close(desc);
-	errno = e;
-	return(4);
-    }
-    e = tryRead(desc, 3, (unsigned char*)&port, 4);
-    if (e != 4) {
-	e = errno;
-	close(desc);
-	errno = e;
-	return(5);	/* Read timed out.	*/
-    }
-    port = ntohl(port);
-
-/*
- *	Special case for GDO_SERVERS - allocate buffer and read list.
- */
-    if (op == GDO_SERVERS) {
-	int	len = port * sizeof(struct in_addr);
-	unsigned char*	b;
-
-	b = (unsigned char*)objc_malloc(len);
-	if (tryRead(desc, 3, b, len) != len) {
-	    objc_free(b);
-	    e = errno;
-	    close(desc);
-	    errno = e;
-	    return(5);
-	}
-	*v = b;
-    }
-
-    *p = (unsigned short)port;
-    close(desc);
-    errno = 0;
-    return(0);
-}
-
-/*
- *	Name -		nameFail()
- *	Purpose -	If given a failure status from tryHost()
- *			raise an appropriate exception.
- */
-static void
-nameFail(int why)
-{
-    switch (why) {
-	case 0:	break;
-	case 1:
-	    [NSException raise: NSInternalInconsistencyException
-		format: @"failed to contact name server - socket - %s - %s",
-		strerror(errno),
-	        make_gdomap_err(GNUSTEP_INSTALL_PREFIX)];
-	case 2:
-	    [NSException raise: NSInternalInconsistencyException
-		format: @"failed to contact name server - socket - %s - %s",
-		strerror(errno),
-	        make_gdomap_err(GNUSTEP_INSTALL_PREFIX)];
-	case 3:
-	    [NSException raise: NSInternalInconsistencyException
-		format: @"failed to contact name server - socket - %s - %s",
-		strerror(errno),
-	        make_gdomap_err(GNUSTEP_INSTALL_PREFIX)];
-	case 4:
-	    [NSException raise: NSInternalInconsistencyException
-		format: @"failed to contact name server - socket - %s - %s",
-		strerror(errno),
-	        make_gdomap_err(GNUSTEP_INSTALL_PREFIX)];
-    }
-}
-
-/*
- *	Name -		nameServer()
- *	Purpose -	Perform name server lookup or registration.
- *			Return success/failure status and set up an
- *			address structure for use in bind or connect.
- *	Restrictions -	0xffff byte name limit
- *			Uses old style host lookup - only handles the
- *			primary network interface for each host!
- */
-static int
-nameServer(const char* name, const char* host, int op, struct sockaddr_in* addr, int pnum, int max)
-{
-  struct sockaddr_in	sin;
-  struct servent*	sp;
-  struct hostent*	hp;
-  unsigned short	p = htons(GDOMAP_PORT);
-  unsigned short	port = 0;
-  int			len = strlen(name);
-  int			multi = 0;
-  int			found = 0;
-  int			rval;
-  char local_hostname[MAXHOSTNAMELEN];
-
-  if (len == 0)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"no name specified"];
-    }
-  if (len > 255)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"name length to large (>255 characters)"];
-    }
-
-#if	GDOMAP_PORT_OVERRIDE
-  p = htons(GDOMAP_PORT_OVERRIDE);
-#else
-  /*
-   *	Ensure we have port number to connect to name server.
-   *	The TCP service name 'gdomap' overrides the default port.
-   */
-  if ((sp = getservbyname("gdomap", "tcp")) != 0)
-    {
-      p = sp->s_port;		/* Network byte order.	*/
-    }
-#endif
-
-  /*
-   *	The host name '*' matches any host on the local network.
-   */
-  if (host && host[0] == '*' && host[1] == '\0')
-    {
-      multi = 1;
-    }
-  /*
-   *	If no host name is given, we use the name of the local host.
-   *	NB. This should always be the case for operations other than lookup.
-   */
-  if (multi || host == 0 || *host == '\0')
-    {
-      char *first_dot;
-
-      if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"gethostname() failed: %s", strerror(errno)];
-	}
-      first_dot = strchr(local_hostname, '.');
-      if (first_dot)
-	{
-	  *first_dot = '\0';
-	}
-      host = local_hostname;
-    }
-  if ((hp = gethostbyname(host)) == 0)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"get host address for %s", host];
-    }
-  if (hp->h_addrtype != AF_INET)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"non-internet network not supported for %s", host];
-    }
-
-  memset((char*)&sin, '\0', sizeof(sin));
-  sin.sin_family = AF_INET;
-  sin.sin_port = p;
-  memcpy((caddr_t)&sin.sin_addr, hp->h_addr, hp->h_length);
-
-  if (multi)
-    {
-      unsigned short	num;
-      struct in_addr*	b;
-
-      /*
-       *	A host name of '*' is a special case which should do lookup on
-       *	all machines on the local network until one is found which has 
-       *	the specified server on it.
-       */
-      rval = tryHost(GDO_SERVERS, 0, 0, &sin, &num, (unsigned char**)&b);
-      /*
-       *	If the connection to the local name server fails,
-       *	attempt to start it us and retry the lookup.
-       */
-      if (rval != 0 && host == local_hostname)
-	{
-	  system(make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX));
-	  sleep(5);
-	  rval = tryHost(GDO_SERVERS, 0, 0, &sin, &num, (unsigned char**)&b);
-	}
-      if (rval == 0)
-	{
-	  int	i;
-
-	  for (i = 0; found == 0 && i < num; i++)
-	    {
-	      memset((char*)&sin, '\0', sizeof(sin));
-	      sin.sin_family = AF_INET;
-	      sin.sin_port = p;
-	      memcpy((caddr_t)&sin.sin_addr, &b[i], sizeof(struct in_addr));
-	      if (sin.sin_addr.s_addr == 0)
-		continue;
-
-	      if (tryHost(GDO_LOOKUP, len, name, &sin, &port, 0) == 0)
-		{
-		  if (port != 0)
-		    {
-		      memset((char*)&addr[found], '\0', sizeof(*addr));
-		      memcpy((caddr_t)&addr[found].sin_addr, &sin.sin_addr,
-				sizeof(sin.sin_addr));
-		      addr[found].sin_family = AF_INET;
-		      addr[found].sin_port = htons(port);
-		      found++;
-		      if (found == max)
-			{
-			  break;
-			}
-		    }
-		}
-	    }
-	  objc_free(b);
-	  return(found);
-	}
-      else
-	{
-	  nameFail(rval);
-	}
-    }
-  else
-    {
-      if (op == GDO_REGISTER)
-	{
-	  port = (unsigned short)pnum;
-	}
-      rval = tryHost(op, len, name, &sin, &port, 0);
-      /*
-       *	If the connection to the local name server fails,
-       *	attempt to start it us and retry the lookup.
-       */
-      if (rval != 0 && host == local_hostname)
-	{
-	  system(make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX));
-	  sleep(5);
-	  if (op == GDO_REGISTER)
-	    {
-	      port = (unsigned short)pnum;
-	    }
-	  rval = tryHost(op, len, name, &sin, &port, 0);
-	}
-      nameFail(rval);
-    }
-
-  if (op == GDO_REGISTER)
-    {
-      if (port == 0 || (pnum != 0 && port != pnum))
-	{
-	  /*
-	   *	If the name server thinks we are already registered on this
-	   *	port, we must have crashed, restarted, and got the same port
-	   *	number we used to have before we crashed.  The solution is to
-	   *	unregister our name from the port and retry the registration.
-	   */
-	  rval = tryHost(GDO_UNREG, len, name, &sin, &port, 0);
-	  nameFail(rval);
-	  port = (unsigned short)pnum;
-	  rval = tryHost(op, len, name, &sin, &port, 0);
-	  nameFail(rval);
-	  if (port == 0 || (pnum != 0 && port != pnum))
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"service already registered"];
-	    }
-	}
-    }
-  if (port == 0)
-    {
-      return 0;
-    }
-  memset((char*)addr, '\0', sizeof(*addr));
-  memcpy((caddr_t)&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
-  addr->sin_family = AF_INET;
-  addr->sin_port = htons(port);
-  return 1;
-}
-
-#else
-/* The old hash code for a name server. */
-
-static unsigned short
-name_2_port_number (const char *name)
-{
-  unsigned int ret = 0;
-  unsigned int ctr = 0;
-        
-  while (*name) 
-    {
-      ret ^= *name++ << ctr;
-      ctr = (ctr + 1) % sizeof (void *);
-    }
-  return (ret % (65535 - IPPORT_USERRESERVED - 1)) + IPPORT_USERRESERVED;
-  /* return strlen (name) + IPPORT_USERRESERVED; */
-}
-#endif	/* GDOMAP */
 
 
 /* Both TcpInPort's and TcpOutPort's are entered in this maptable. */
@@ -915,28 +537,20 @@ static NSMapTable* port_number_2_port;
 
 + newForReceivingFromRegisteredName: (NSString*)name
 {
-#ifdef	GDOMAP
-  TcpInPort*		p = [self newForReceivingFromPortNumber: 0];
+  return [self newForReceivingFromRegisteredName: name fromPort: 0];
+}
+
++ newForReceivingFromRegisteredName: (NSString*)name
+			   fromPort: (int)portn
+{
+  TcpInPort*		p = [self newForReceivingFromPortNumber: portn];
   struct sockaddr_in	sin;
 
   if (p) {
-#if NSPORTNAMESERVER
     [[NSPortNameServer defaultPortNameServer] registerPort: p
 						   forName: name];
-#else
-    int	port = [p portNumber];
-
-    if (nameServer([name cString], 0, GDO_REGISTER, &sin, port, 1) == 0) {
-      [p release];
-      return nil;
-    }
-#endif
   }
   return p;
-#else
-  return [self newForReceivingFromPortNumber: 
-		 name_2_port_number ([name cString])];
-#endif	/* GDOMAP */
 }
 
 + newForReceiving
@@ -1655,33 +1269,11 @@ static NSMapTable *out_port_bag = NULL;
 + newForSendingToRegisteredName: (NSString*)name 
 			 onHost: (NSString*)hostname
 {
-#ifdef	GDOMAP
-#if NSPORTNAMESERVER
   id	c;
 
   c = [[NSPortNameServer defaultPortNameServer] portForName: name
 						     onHost: hostname];
   return [c retain];
-#else
-  struct sockaddr_in	sin[100];
-  int			found;
-  int			i;
-  id			c = nil;
-
-  found = nameServer([name cString], [hostname cString],
-	GDO_LOOKUP, sin, 0, 100);
-  for (i = 0; c == nil && i < found; i++)
-    {
-      c = [self newForSendingToSockaddr: &sin[i]
-		     withAcceptedSocket: 0
-		     pollingInPort: nil];
-    }
-  return c;
-#endif
-#else
-  return [self newForSendingToPortNumber: 
-		 name_2_port_number ([name cString]) onHost: hostname];;
-#endif	/* GDOMAP */
 }
 
 + _newWithAcceptedSocket: (int)s 
@@ -1917,15 +1509,7 @@ static NSMapTable *out_port_bag = NULL;
   char prefix_buffer[PREFIX_SIZE];
   int c;
   
-#ifdef	GDOMAP
   c = tryRead (s, 3, prefix_buffer, PREFIX_SIZE);
-#else
-#ifdef	__WIN32__
-  c = recv (s, prefix_buffer, PREFIX_SIZE, 0);
-#else
-  c = read (s, prefix_buffer, PREFIX_SIZE);
-#endif	/* __WIN32__ */
-#endif	/* GDOMAP */
   if (c <= 0)
     {
       *packet_size = EOF;  *rp = nil;
@@ -1972,16 +1556,7 @@ static NSMapTable *out_port_bag = NULL;
   int remaining;
 
   remaining = [data length] - prefix - eof_position;
-#ifdef	GDOMAP
   c = tryRead(s, 1, [data mutableBytes] + prefix + eof_position, -remaining);
-#else
-  /* xxx We need to make sure this read() is non-blocking. */
-#ifdef	__WIN32__
-  c = recv (s, [data mutableBytes] + prefix + eof_position, remaining, 0);
-#else
-  c = read (s, [data mutableBytes] + prefix + eof_position, remaining);
-#endif	/* __WIN32 */
-#endif	/* GDOMAP */
   if (c <= 0) {
     return EOF;
   }
@@ -2021,15 +1596,7 @@ static NSMapTable *out_port_bag = NULL;
     memset ([data mutableBytes]+PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
 
   /* Write the packet on the socket. */
-#ifdef	GDOMAP
   c = tryWrite (s, (int)timeout, (unsigned char*)[data bytes], prefix + eof_position);
-#else
-#ifdef	__WIN32__
-  c = send (s, [data bytes], prefix + eof_position, 0);
-#else
-  c = write (s, [data bytes], prefix + eof_position);
-#endif	/* __WIN32__ */
-#endif	/* GDOMAP */
   if (c == -2) {
     [NSException raise: NSPortTimeoutException
 	format: @"[TcpOutPort -_writeToSocket:] write() timed out"];

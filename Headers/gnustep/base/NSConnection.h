@@ -169,7 +169,11 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
    it's unclear if we're connecting to another NSConnection that already
    registered with that name. */
 + (NSConnection*) newWithRootObject: anObj;
-+ (NSConnection*) newRegisteringAtName: (NSString*)n withRootObject: anObj;
++ (NSConnection*) newRegisteringAtName: (NSString*)n
+			withRootObject: anObj;
++ (NSConnection*) newRegisteringAtName: (NSString*)n
+				atPort: (int)portn
+			withRootObject: anObj;
 
 /* Get a proxy to a remote server object.
    A new connection is created if necessary. */

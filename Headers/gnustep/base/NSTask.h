@@ -33,22 +33,23 @@
 
 @interface NSTask : NSObject
 {
-    NSString		*currentDirectoryPath;
-    NSString		*launchPath;
-    NSArray		*arguments;
-    NSDictionary	*environment;
-    NSFileHandle	*standardError;
-    NSFileHandle	*standardInput;
-    NSFileHandle	*standardOutput;
-    int			taskId;
-    int			terminationStatus;
-    BOOL		hasLaunched;
-    BOOL		hasTerminated;
-    BOOL		hasCollected;
-    BOOL		hasNotified;
+  NSString	*currentDirectoryPath;
+  NSString	*launchPath;
+  NSArray	*arguments;
+  NSDictionary	*environment;
+  id		standardError;
+  id		standardInput;
+  id		standardOutput;
+  int		taskId;
+  int		terminationStatus;
+  BOOL		hasLaunched;
+  BOOL		hasTerminated;
+  BOOL		hasCollected;
+  BOOL		hasNotified;
 }
 
-+ (NSTask*)launchedTaskWithLaunchPath:(NSString*)path arguments: (NSArray*)args;
++ (NSTask*) launchedTaskWithLaunchPath: (NSString*)path
+			     arguments: (NSArray*)args;
 
 /*
  *	Querying task parameters.
@@ -57,20 +58,20 @@
 - (NSString*) currentDirectoryPath;
 - (NSDictionary*) environment;
 - (NSString*) launchPath;
-- (NSFileHandle*) standardError;
-- (NSFileHandle*) standardInput;
-- (NSFileHandle*) standardOutput;
+- (id) standardError;
+- (id) standardInput;
+- (id) standardOutput;
 
 /*
  *	Setting task parameters.
  */
-- (void)setArguments: (NSArray*)args;
-- (void)setCurrentDirectoryPath: (NSString*)path;
-- (void)setEnvironment: (NSDictionary*)env;
-- (void)setLaunchPath: (NSString*)path;
-- (void)setStandardError: (NSFileHandle*)hdl;
-- (void)setStandardInput: (NSFileHandle*)hdl;
-- (void)setStandardOutput: (NSFileHandle*)hdl;
+- (void) setArguments: (NSArray*)args;
+- (void) setCurrentDirectoryPath: (NSString*)path;
+- (void) setEnvironment: (NSDictionary*)env;
+- (void) setLaunchPath: (NSString*)path;
+- (void) setStandardError: (id)hdl;
+- (void) setStandardInput: (id)hdl;
+- (void) setStandardOutput: (id)hdl;
 
 /*
  *	Obtaining task state

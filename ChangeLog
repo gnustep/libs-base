@@ -1,3 +1,20 @@
+Wed Dec 16 20:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Various modifications suggested by <mguesdon@sbuilders.com> and
+	<jagapen@whitewater.chem.wisc.edu>.  All untested.
+	src/include/Port.h: ([+newForReceivingFromRegisteredName:fromPort:])
+	Additional method for DO through firewalls.
+	src/include/NSConnection.h: Addittional method for DO through firewall
+	([+newRegisteringAtName:atPort:withRootObject:])
+	Additional method for DO through firewalls.
+	src/NSTask.h: Updated to MacOS-X spec - accepts NSPipes.
+	src/TcpPort.m: ([+newForReceivingFromRegisteredName:fromPort:])
+	Additional method for DO through firewalls. Removed obsolete name
+	server code.
+	src/NSConnection.m: Addittional method for DO through firewall
+	([+newRegisteringAtName:atPort:withRootObject:])
+	src/NSTask.m: Updated to MacOS-X spec - accepts NSPipes.
+
 Tue Dec 15 13:25:10 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSUser.m (NSFullUserName): New function (not implemented).

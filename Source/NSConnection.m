@@ -832,14 +832,24 @@ static int messages_received_count;
 
 + (NSConnection*) newRegisteringAtName: (NSString*)n withRootObject: anObj
 {
+  return [self newRegisteringAtName: n
+			     atPort: 0
+		     withRootObject: anObj];
+}
+
++ (NSConnection*) newRegisteringAtName: (NSString*)n
+				atPort: (int)p
+			withRootObject: anObj
+{
   id newPort;
   id newConn;
 
-  newPort = [default_receive_port_class newForReceivingFromRegisteredName: n];
-  newConn = [self newForInPort:[newPort autorelease]
-		       outPort:nil
-	    ancestorConnection:nil];
-  [self setRootObject:anObj forInPort:newPort];
+  newPort = [default_receive_port_class newForReceivingFromRegisteredName: n
+								 fromPort: p];
+  newConn = [self newForInPort: [newPort autorelease]
+		       outPort: nil
+	    ancestorConnection: nil];
+  [self setRootObject: anObj forInPort: newPort];
   return newConn;
 }
 

@@ -57,7 +57,8 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     }
 }
 
-+ (NSTask*)launchedTaskWithLaunchPath:(NSString*)path arguments: (NSArray*)args
++ (NSTask*) launchedTaskWithLaunchPath: (NSString*)path
+			     arguments: (NSArray*)args
 {
   NSTask*	task = [NSTask new];
 
@@ -113,7 +114,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
   return launchPath;
 }
 
-- (NSFileHandle*) standardError
+- (id) standardError
 {
   if (standardError == nil)
     {
@@ -122,7 +123,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
   return standardError;
 }
 
-- (NSFileHandle*) standardInput
+- (id) standardInput
 {
   if (standardInput == nil)
     {
@@ -131,7 +132,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
   return standardInput;
 }
 
-- (NSFileHandle*) standardOutput
+- (id) standardOutput
 {
   if (standardOutput == nil)
     {
@@ -192,8 +193,10 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
   launchPath = path;
 }
 
-- (void) setStandardError: (NSFileHandle*)hdl
+- (void) setStandardError: (id)hdl
 {
+  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
+	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
   if (hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
@@ -206,6 +209,8 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
 - (void) setStandardInput: (NSFileHandle*)hdl
 {
+  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
+	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
   if (hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
@@ -218,6 +223,8 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
 - (void) setStandardOutput: (NSFileHandle*)hdl
 {
+  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
+	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
   if (hasLaunched)
     {
       [NSException raise: NSInvalidArgumentException
@@ -278,6 +285,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
 - (void) launch
 {
+  NSMutableArray	*toClose;
   int		pid;
   const char	*executable;
   const char	*path;
@@ -291,6 +299,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
   int		ac = [a count];
   const char	*args[ac+2];
   const char	*envl[ec+1];
+  id		hdl;
   int		i;
 
   if (hasLaunched)
@@ -339,9 +348,37 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
   envl[ec] = 0;
 
   path = [[self currentDirectoryPath] cString];
-  idesc = [[self standardInput] fileDescriptor];
-  odesc = [[self standardError] fileDescriptor];
-  edesc = [[self standardOutput] fileDescriptor];
+
+  toClose = [NSMutableArray arrayWithCapacity: 3];
+  hdl = [self standardInput];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [hdl fileHandleForReading];
+      [toClose addObject: hdl];
+    }
+  idesc = [hdl fileDescriptor];
+
+  hdl = [self standardOutput];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [hdl fileHandleForWriting];
+      [toClose addObject: hdl];
+    }
+  odesc = [hdl fileDescriptor];
+
+  hdl = [self standardError];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [hdl fileHandleForWriting];
+      /*
+       * If we have the same pipe twice we don't want to close it twice
+       */
+      if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
+	{
+	  [toClose addObject: hdl];
+	}
+    }
+  edesc = [hdl fileDescriptor];
 
   pid = fork();
   if (pid < 0)
@@ -371,6 +408,15 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     {
       taskId = pid;
       hasLaunched = YES;
+      /*
+       *	Close the ends of any pipes used by the child.
+       */
+      while ([toClose count] > 0)
+	{
+	  hdl = [toClose objectAtIndex: 0];
+	  [hdl closeFile];
+	  [toClose removeObjectAtIndex: 0];
+	}
     }
 }
 

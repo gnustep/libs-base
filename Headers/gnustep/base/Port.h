@@ -54,6 +54,7 @@
 
 + newForReceiving;
 + newForReceivingFromRegisteredName: (NSString*)name;
++ newForReceivingFromRegisteredName: (NSString*)name fromPort: (int)port;
 
 /* Register/Unregister this port for input handling through RunLoop 
    RUN_LOOP in mode MODE. */
