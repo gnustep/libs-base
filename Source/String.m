@@ -83,7 +83,7 @@
 {
   if (strcmp(contentEncoding, @encode(char)))
     [self error:"invalid args to String initializer"];
-  [self initWithCString:NULL range:((IndexRange){0,0})];
+  [super initWithType:contentEncoding];
   return self;
 }
 
