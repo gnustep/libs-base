@@ -3,6 +3,8 @@
 
 #include <objc/Object.h>
 
+@class NSMethodSignature;
+
 @interface NSInvocation : Object
 {
   id methodSignature;
@@ -10,12 +12,14 @@
   retval_t retFrame;
 }
 
-+ (NSInvocation*) invocationWithMethodSignature: (MethodSignature*)ms;
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms;
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms
+   frame: (arglist_t)argFrame;
 
 - (void) getArgument: (void*)argumentLocation atIndex: (int)index;
 - (void) getReturnValue: (void*)returnLocation;
 
-- (MethodSignature*) methodSignature;
+- (NSMethodSignature*) methodSignature;
 - (SEL) selector;
 - (void) setArgument: (void*)argumentLocation atIndex: (int)index;
 - (void) setReturnValue: (void*)returnLocation;
