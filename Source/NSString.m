@@ -722,14 +722,14 @@ handle_printf_atsign (FILE *stream,
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
-      start = NSMaxRange(aRange); stop = aRange.location; step = -1;
+      start = NSMaxRange(aRange)-1; stop = aRange.location-1; step = -1;
     }
   else
     {
       start = aRange.location; stop = NSMaxRange(aRange); step = 1;
     }
   range.length = 0;
-  for (i = start; i < stop; i+=step)
+  for (i = start; i != stop; i+=step)
     {
       unichar letter = [self characterAtIndex:i];
       if ([aSet characterIsMember:letter])
