@@ -162,7 +162,7 @@ typedef	@GS_ADDR@ gsaddr;
 /*
  * Define to say if we use NXConstantString or NSConstantString
  */
-#define NXConstantString	@NXCONST@
+#define NXConstantString	@NX_CONST_STRING_CLASS@
 
 #endif	/* included_GSConfig_h */
 
