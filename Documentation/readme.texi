@@ -20,23 +20,17 @@ some of the design decisions.
 
 @section Preparing to write code
 
-@ignore
 Preliminary documentation is available via @samp{texinfo} in the files
 @samp{libobjects.info} and @samp{libobjects.texi}.  The info file was
 created from the texi file using an modified version of @samp{makeinfo}
 available by anonymous ftp from @samp{iesd.auc.dk:pub/ObjC}.
-@end ignore
 
 The documentation isn't much to speak of so far.  Better documentation
 will be forthcoming, but the library needs to settle first.  For now I
-recommend skipping libobjects.info and reading the header files
-instead.  The headers for the GNU classes are in ./objects; the headers
-for the NeXT-compatible classes are in ./objects/next-include.
-
-[NOTE: To compile code that uses NeXT compatibility classes, you'll want
-to put @samp{XX/objects/next-include} in your include file search path.
-Then, (unlike with the old libcoll), you can use #include <objc/List.h>
-instead of #include <coll/List.h>.]
+recommend skipping libobjects.info and reading the header files instead.
+The headers for the GNU classes are in @file{./objects}; the headers for
+the NeXT-compatible classes are in @file{./objc} and
+@file{./Foundation}.
 
 The overview of classes below should help you see the big picture as you
 read the source.
@@ -82,10 +76,10 @@ subclassing) end with "Collection";
         TextCoder
         BinaryCoder
             ConnectedCoder
-    Port <Coding>
+    Port
         SocketPort
     Connection
-    Proxy <Coding>
+    Proxy
     Magnitude
         Time
     Random
@@ -96,9 +90,9 @@ subclassing) end with "Collection";
 
 @section Overview of the classes
 
-The GNU classes included in this version of the library fall into five
-categories: collections, magnitudes, streams, coders and distributed
-object support.
+The GNU classes included in this version of the library fall into six
+categories: collections, strings, magnitudes, streams, coders and
+distributed object support.
 
 @c There are several GNU protocols also.  You can recognize the protocols
 @c by their name: they all end with ``ing''.
@@ -114,6 +108,8 @@ collections are @samp{Set} and @samp{Bag}.  The keyed collections are
 @samp{Dictionary} and @samp{MappedCollector}.  The classes @samp{Array},
 @samp{Queue}, @samp{GapArray}, @samp{LinkedList}, @samp{BinaryTree},
 @samp{RBTree} and @samp{SplayTree} are all indexed collections.
+
+@item The string objects... [unfinished].
 
 @item The public magnitude classes are @samp{Time} and @samp{Random}.
 The @samp{Random} class works in conjunction with pseudo-random number
@@ -291,34 +287,13 @@ when the library compiles correctly.  I'm looking for a volunteer to
 write some nicely organized test cases using @samp{dejagnu}.  Any
 takers?
 
-
-@section Coming Soon...
-
-More improvements to the library are on the way.  Closest in the
-pipeline are String objects and better allocation/deallocation
-conventions for objects.
-
-These improvements will bring some changes to the current interfaces:
-(1) Almost everywhere that the current methods now take (char*)
-arguments, the new methods will take (String*) arguments.  (2) The use
-of the method @samp{free} will be abolished and replaced by new
-methods.
-
-I'm trying to get these changes in place as soon as possible so that
-you don't end up writing too much code that uses the old (i.e. current)
-interfaces.  
-
-Meanwhile, please use the library!  The small amount of changes you may
-need to make won't be difficult, and the earlier I get usability
-suggestions and bug reports, the sooner the fixes will come.
-
-
 @section How can you help?
 
 @itemize
 
 @item Read the projects and  questions in the @samp{TODO} file.  If you
-have any useful comments mail them to me!
+can volunteer for any of the projects, or if you have any useful
+comments send me email!  <mccallum@@gnu.ai.mit.edu>
 
 @item
 Give me feedback!  Tell me what you like; tell me what you think
