@@ -537,6 +537,98 @@ static NSMapTable	globalClassMap = 0;
   return s;
 }
 
+- (void) decodeValueOfObjCType: (const char*)type
+			    at: (void*)address
+{
+  NSString	*aKey;
+  id		o;
+
+  if (*type == _C_ID || *type == _C_CLASS
+    || *type == _C_SEL || *type == _C_CHARPTR)
+    {
+      o = [self decodeObject];
+      if (*type == _C_ID || *type == _C_CLASS)
+	{
+	  *(id*)address = RETAIN(o);
+	}
+      else if (*type == _C_SEL)
+	{
+	  *(SEL*)address = NSSelectorFromString(o);
+	}
+      else if (*type == _C_CHARPTR)
+	{
+	  *(const char**)address = [o cString];
+	}
+      return;
+    }
+
+  aKey = [NSString stringWithFormat: @"$%u", _cursor++];
+  o = [_keyMap objectForKey: aKey];
+
+  switch (*type)
+    {
+      case _C_CHR:
+	*(char*)address = [o charValue];
+	return;
+
+      case _C_UCHR:
+	*(unsigned char*)address = [o unsignedCharValue];
+	return;
+
+      case _C_SHT:
+	*(short*)address = [o shortValue];
+	return;
+
+      case _C_USHT:
+	*(unsigned short*)address = [o unsignedShortValue];
+	return;
+
+      case _C_INT:
+	*(int*)address = [o intValue];
+	return;
+
+      case _C_UINT:
+	*(unsigned int*)address = [o unsignedIntValue];
+	return;
+
+      case _C_LNG:
+	*(long int*)address = [o longValue];
+	return;
+
+      case _C_ULNG:
+	*(unsigned long int*)address = [o unsignedLongValue];
+	return;
+
+      case _C_LNG_LNG:
+	*(long long int*)address = [o longLongValue];
+	return;
+
+      case _C_ULNG_LNG:
+	*(unsigned long long int*)address = [o unsignedLongLongValue];
+	return;
+
+      case _C_FLT:
+	*(float*)address = [o floatValue];
+	return;
+
+      case _C_DBL:
+	*(double*)address = [o doubleValue];
+	return;
+
+      case _C_STRUCT_B:
+	[NSException raise: NSInvalidArgumentException
+		    format: @"-[%@ %@]: this archiver cannote decode structs",
+	  NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	return;
+
+      default:
+	[NSException raise: NSInvalidArgumentException
+		    format: @"-[%@ %@]: unknown type encoding ('%c')",
+	  NSStringFromClass([self class]), NSStringFromSelector(_cmd), *type];
+	break;
+    }
+}
+
 - (id) delegate
 {
   return _delegate;
