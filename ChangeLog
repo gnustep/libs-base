@@ -1,5 +1,10 @@
 2001-06-05  Nicola Pero  <n.pero@mi.flashnet.it>
 
+	* GNUmakefile: If GNUSTEP_MAKEFILES is not set, tell the user it
+	needs to source GNUstep.sh and then exit with an error.
+
+2001-06-05  Nicola Pero  <n.pero@mi.flashnet.it>
+
 	* Source/mframe.m: Disabled inlining of nested functions.  This
 	should allow gnustep-base to be compiled using gcc 3.0.
 
