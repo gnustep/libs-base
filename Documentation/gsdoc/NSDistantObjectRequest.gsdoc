@@ -16,6 +16,10 @@
       <class name="NSDistantObjectRequest" super="NSObject">
         <declared>Foundation/NSConnection.h</declared>
           <desc>
+	    This class is used internally by the MacOS-X distributed
+	    objects system.  The MacOS-X documentation says you should
+	    not need to use it yourself, and GNUstep does not currently
+	    implement it as it serves no purpose. 
           </desc>
         <method type="NSConnection*">
           <sel>connection</sel>
