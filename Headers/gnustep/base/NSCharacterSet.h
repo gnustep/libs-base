@@ -52,6 +52,9 @@
 - (BOOL)characterIsMember:(unichar)aCharacter;
 - (NSCharacterSet *)invertedSet;
 
+#ifndef	STRICT_MACOS_X
++ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)file;
+#endif
 @end
 
 @interface NSMutableCharacterSet : NSCharacterSet

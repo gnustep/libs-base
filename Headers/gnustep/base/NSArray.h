@@ -64,11 +64,15 @@
 - firstObjectCommonWithArray: (NSArray*) otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
 
+#ifndef	STRICT_MACOS_X
 - (void) makeObjectsPerform: (SEL) aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject: argument;
+#endif
+#ifndef	STRICT_OPENSTEP
 - (void) makeObjectsPerformSelector: (SEL) aSelector;
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument;
-    
+#endif
+
 - (NSData*) sortedArrayHint;
 - (NSArray*) sortedArrayUsingFunction: (int (*)(id, id, void*))comparator 
 			      context: (void*)context;
@@ -94,7 +98,7 @@
 
 
 @interface NSMutableArray : NSArray
-- initWithCapacity: (unsigned)numItems;
+- (id) initWithCapacity: (unsigned)numItems;
 - (void) addObject: anObject;
 - (void) replaceObjectAtIndex: (unsigned)index withObject: anObject;
 - (void) insertObject: anObject atIndex: (unsigned)index;
@@ -130,23 +134,5 @@
 - (void) sortUsingSelector: (SEL) aSelector;
 
 @end
-
-#ifndef NO_GNUSTEP
-
-#include <gnustep/base/IndexedCollecting.h>
-
-/* Eventually we'll make a Constant version of this protocol. */
-@interface NSArray (GNU) <IndexedCollecting>
-@end
-
-@interface NSMutableArray (GNU)
-+ (unsigned) defaultCapacity;
-+ (unsigned) defaultGrowFactor;
-- setCapacity: (unsigned)newCapacity;
-- (unsigned) growFactor;
-- setGrowFactor: (unsigned)aNum;
-@end
-
-#endif /* NO_GNUSTEP */
 
 #endif /* __NSArray_h_GNUSTEP_BASE_INCLUDE */

@@ -86,12 +86,13 @@ struct autorelease_array_list
 + (void)addObject: anObject;
 - (void)addObject: anObject;
 
+#ifndef	NO_GNUSTEP
 + (void) enableRelease: (BOOL)enable;
 + (void) setPoolCountThreshhold: (unsigned)c;
 + (unsigned) autoreleaseCountForObject: anObject;
 + (void) resetTotalAutoreleasedObjects;
 + (unsigned) totalAutoreleasedObjects;
-
+#endif
 @end
 
 #endif /* __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE */

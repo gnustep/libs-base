@@ -1,5 +1,5 @@
 /* NSCharacterSet - Character set holder
-   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Apr 1995
@@ -293,6 +293,17 @@ static NSLock* cache_lock = nil;
       SETBIT(bytes[i/8], i % 8);
 
   return [self characterSetWithBitmapRepresentation:bitmap];
+}
+
++ (NSCharacterSet *)characterSetWithContentsOfFile: (NSString *)aFile
+{
+  if ([@"bitmap" isEqual: [aFile pathExtension]])
+    {
+      NSData	*bitmap = [NSData dataWithContentsOfFile: aFile];
+      return [self characterSetWithBitmapRepresentation: bitmap];
+    }
+  else
+    return nil;
 }
 
 - (NSData *)bitmapRepresentation
