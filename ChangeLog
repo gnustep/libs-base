@@ -1,3 +1,8 @@
+Fri May 21 19:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSObject.h: Added NSExtraRefCount()
+	* Source/NSObject.m: Added NSExtraRefCount()
+
 Fri May 21 16:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSThread.h: Update notification names to MacOS-X
