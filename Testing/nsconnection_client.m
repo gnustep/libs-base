@@ -70,7 +70,7 @@ int main (int argc, char *argv[])
 GSDebugAllocationActive(YES);
   [NSConnection setDebug: 10];
   [NSDistantObject setDebug: 10];
-  [NSPort setDebug: 10];
+  //[NSPort setDebug: 10];
 
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
@@ -213,7 +213,7 @@ printf("oneway %d\n", _F_ONEWAY);
     NSLog(@"Send: 0x%x, Reply: 0x%x, Length: %d", sen, rep, [rep length]);
     [NSConnection setDebug: 0];
     [NSDistantObject setDebug: 0];
-    [NSPort setDebug: 0];
+    //[NSPort setDebug: 0];
     for (i = 0; i < 10000; i++)
       {
 #if 0
