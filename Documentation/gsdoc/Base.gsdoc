@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="Base">
+  <head>
+    <title>GNUstep Base</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>Base</heading>
+      <p>
+	The GNUstep base library is a free software package compatible with
+        the OpenStep Foundation Kit (tm).
+      </p>
+      <section>
+	<heading>The classes</heading>
+	<list>
+	  <item><uref url="NSArchiver.html">NSArchiver</uref></item>
+	  <item><uref url="NSArray.html">NSArray</uref></item>
+	  <item><uref url="NSAssertionHandler.html">NSAssertionHandler</uref></item>
+	  <item><uref url="NSAttributedString.html">NSAttributedString</uref></item>
+	  <item><uref url="NSAutoreleasePool.html">NSAutoreleasePool</uref></item>
+	  <item><uref url="NSBundle.html">NSBundle</uref></item>
+	  <item><uref url="NSCalendarDate.html">NSCalendarDate</uref></item>
+	  <item><uref url="NSCharacterSet.html">NSCharacterSet</uref></item>
+	  <item><uref url="NSCoder.html">NSCoder</uref></item>
+	  <item><uref url="NSConditionLock.html">NSConditionLock</uref></item>
+	  <item><uref url="NSConnection.html">NSConnection</uref></item>
+	  <item><uref url="NSCountedSet.html">NSCountedSet</uref></item>
+	  <item><uref url="NSDate.html">NSDate</uref></item>
+	  <item><uref url="NSDateFormatter.html">NSDateFormatter</uref></item>
+	  <item><uref url="NSDecimalNumber.html">NSDecimalNumber</uref></item>
+	  <item><uref url="NSDecimalNumberHandler.html">NSDecimalNumberHandler</uref></item>
+	  <item><uref url="NSDeserializer.html">NSDeserializer</uref></item>
+	  <item><uref url="NSDictionary.html">NSDictionary</uref></item>
+	  <item><uref url="NSDirectoryEnumerator.html">NSDirectoryEnumerator</uref></item>
+	  <item><uref url="NSDistantObject.html">NSDistantObject</uref></item>
+	  <item><uref url="NSDistantObjectRequest.html">NSDistantObjectRequest</uref></item>
+	  <item><uref url="NSDistributedLock.html">NSDistributedLock</uref></item>
+	  <item><uref url="NSDistributedNotificationCenter.html">NSDistributedNotificationCenter</uref></item>
+	  <item><uref url="NSEnumerator.html">NSEnumerator</uref></item>
+	  <item><uref url="NSException.html">NSException</uref></item>
+	  <item><uref url="NSFileHandle.html">NSFileHandle</uref></item>
+	  <item><uref url="NSFileManager.html">NSFileManager</uref></item>
+	  <item><uref url="NSFormatter.html">NSFormatter</uref></item>
+	  <item><uref url="NSHost.html">NSHost</uref></item>
+	  <item><uref url="NSInvocation.html">NSInvocation</uref></item>
+	  <item><uref url="NSLock.html">NSLock</uref></item>
+	  <item><uref url="NSMethodSignature.html">NSMethodSignature</uref></item>
+	  <item><uref url="NSMutableArray.html">NSMutableArray</uref></item>
+	  <item><uref url="NSMutableAttributedString.html">NSMutableAttributedString</uref></item>
+	  <item><uref url="NSMutableCharacterSet.html">NSMutableCharacterSet</uref></item>
+	  <item><uref url="NSMutableData.html">NSMutableData</uref></item>
+	  <item><uref url="NSMutableDictionary.html">NSMutableDictionary</uref></item>
+	  <item><uref url="NSMutableSet.html">NSMutableSet</uref></item>
+	  <item><uref url="NSMutableString.html">NSMutableString</uref></item>
+	  <item><uref url="NSNotification.html">NSNotification</uref></item>
+	  <item><uref url="NSNotificationCenter.html">NSNotificationCenter</uref></item>
+	  <item><uref url="NSNotificationQueue.html">NSNotificationQueue</uref></item>
+	  <item><uref url="NSNumber.html">NSNumber</uref></item>
+	  <item><uref url="NSNumberFormatter.html">NSNumberFormatter</uref></item>
+	  <item><uref url="NSObject.html">NSObject</uref></item>
+	  <item><uref url="NSPort.html">NSPort</uref></item>
+	  <item><uref url="NSPortCoder.html">NSPortCoder</uref></item>
+	  <item><uref url="NSPortMessage.html">NSPortMessage</uref></item>
+	  <item><uref url="NSPortNameServer.html">NSPortNameServer</uref></item>
+	  <item><uref url="NSProcessInfo.html">NSProcessInfo</uref></item>
+	  <item><uref url="NSProtocolChecker.html">NSProtocolChecker</uref></item>
+	  <item><uref url="NSProxy.html">NSProxy</uref></item>
+	  <item><uref url="NSRecursiveLock.html">NSRecursiveLock</uref></item>
+	  <item><uref url="NSRunLoop.html">NSRunLoop</uref></item>
+	  <item><uref url="NSScanner.html">NSScanner</uref></item>
+	  <item><uref url="NSSerializer.html">NSSerializer</uref></item>
+	  <item><uref url="NSSet.html">NSSet</uref></item>
+	  <item><uref url="NSString.html">NSString</uref></item>
+	  <item><uref url="NSTask.html">NSTask</uref></item>
+	  <item><uref url="NSThread.html">NSThread</uref></item>
+	  <item><uref url="NSTimeZone.html">NSTimeZone</uref></item>
+	  <item><uref url="NSTimer.html">NSTimer</uref></item>
+	  <item><uref url="NSURL.html">NSURL</uref></item>
+	  <item><uref url="NSURLHandle.html">NSURLHandle</uref></item>
+	  <item><uref url="NSUnarchiver.html">NSUnarchiver</uref></item>
+	  <item><uref url="NSUndoManager.html">NSUndoManager</uref></item>
+	  <item><uref url="NSUserDefaults.html">NSUserDefaults</uref></item>
+	  <item><uref url="NSValue.html">NSValue</uref></item>
+	</list>
+      </section>
+    </chapter>
+  </body>
+</gsdoc>

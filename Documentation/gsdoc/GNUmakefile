@@ -28,9 +28,9 @@ GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 include $(GNUSTEP_MAKEFILES)/common.make
 
 # The documents to be generated
-DOCUMENT_NAME = Foundation
+DOCUMENT_NAME = Base
 
-Foundation_GSDOC_FILES = Foundation.gsdoc \
+Base_GSDOC_FILES = Base.gsdoc \
 	NSArchiver.gsdoc \
 	NSArray.gsdoc \
 	NSAssertionHandler.gsdoc \
