@@ -291,13 +291,13 @@ extern NSRecursiveLock *gnustep_global_lock;
 #endif
 
 /*
- *	ASSIGN(object,value) assignes the value to the object with
+ *	ASSIGN(object,value) assigns the value to the object with
  *	appropriate retain and release operations.
  */
 #ifndef	ASSIGN
 #define	ASSIGN(object,value)	({\
-typeof (value) __value = (value); \
-if (__value != object) \
+id __value = (id)(value); \
+if (__value != (id)object) \
   { \
     if (__value) \
       { \
@@ -305,9 +305,9 @@ if (__value != object) \
       } \
     if (object) \
       { \
-	[object release]; \
+	[(id)object release]; \
       } \
-    object = __value; \
+    (id)object = __value; \
   } \
 })
 #endif
@@ -318,8 +318,8 @@ if (__value != object) \
  */
 #ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	({\
-typeof (value) __value = (value); \
-if (__value != object) \
+id __value = (value); \
+if (__value != (id)object) \
   { \
     if (__value) \
       { \
@@ -327,9 +327,9 @@ if (__value != object) \
       } \
     if (object) \
       { \
-	[object release]; \
+	[(id)object release]; \
       } \
-    object = __value; \
+    (id)object = __value; \
   } \
 })
 #endif

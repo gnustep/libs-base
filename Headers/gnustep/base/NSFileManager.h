@@ -43,6 +43,9 @@
 @class NSDirectoryEnumerator;
 
 @interface NSFileManager : NSObject
+{
+  NSString	*lastError;
+}
 
 // Getting the default manager
 + (NSFileManager*) defaultManager;

@@ -1,6 +1,11 @@
 Fri Jun 18  8:36:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSFileManager.m: Fix lookup of fileGroupOwnerAccountName
+	Fix test for symbolic links, add diagnostic info, fix copy to produce
+	files owned by current user.
+	* Source/include/NSFileManager.h: tidyup
+	* Source/include/NSObject.h: fixup for ASSIGN macro - should work for
+	all objects.
 
 Thu Jun 17 14:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
