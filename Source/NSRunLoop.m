@@ -105,7 +105,6 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 - (void) dealloc
 {
   RELEASE(_date);
-  RELEASE(receiver);
   [super dealloc];
 }
 
@@ -124,7 +123,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];
     }
-  receiver = RETAIN(anObj);
+  receiver = anObj;
   if ([receiver respondsToSelector: eventSel] == YES) 
     handleEvent = [receiver methodForSelector: eventSel];
   else
