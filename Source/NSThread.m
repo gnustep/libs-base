@@ -38,6 +38,9 @@
 #ifdef HAVE_NANOSLEEP
 #include <time.h>
 #endif
+#ifdef NeXT_RUNTIME
+#include "thr-mach.h"
+#endif
 
 #include "Foundation/NSException.h"
 #include "Foundation/NSThread.h"

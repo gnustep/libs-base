@@ -32,9 +32,6 @@
 #define _GNUstep_H_NSLock
 
 #include <Foundation/NSObject.h>
-#ifdef NeXT_RUNTIME
-#include <GNUstepBase/thr-mach.h>
-#endif
 
 /*
  * NSLocking protocol
@@ -53,7 +50,7 @@
 @interface NSLock : NSObject <NSLocking, GCFinalization>
 {
 @private
-  objc_mutex_t	_mutex;
+  void *_mutex;
 }
 
 - (BOOL) tryLock;
@@ -71,9 +68,9 @@
 @interface NSConditionLock : NSObject <NSLocking, GCFinalization>
 {
 @private
-  objc_condition_t	_condition;
-  objc_mutex_t		_mutex;
-  int			_condition_value;
+  void *_condition;
+  void *_mutex;
+  int   _condition_value;
 }
 
 /*
@@ -117,7 +114,7 @@
 @interface NSRecursiveLock : NSObject <NSLocking, GCFinalization>
 {
 @private
-  objc_mutex_t	_mutex;
+  void *_mutex;
 }
 
 - (BOOL) tryLock;

@@ -29,7 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include <mach/mach.h>
 #include <mach/cthreads.h>
 #include "GNUstepBase/objc-gnu2next.h"
-#include "GNUstepBase/thr-mach.h"
+#include "thr-mach.h"
 
 /* Global exit status. */
 int __objc_thread_exit_status = 0;

@@ -25,9 +25,6 @@
 #ifndef __NSThread_h_GNUSTEP_BASE_INCLUDE
 #define __NSThread_h_GNUSTEP_BASE_INCLUDE
 
-#ifdef NeXT_RUNTIME
-#include <GNUstepBase/thr-mach.h>
-#endif
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
