@@ -754,14 +754,14 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithFormat: (NSString*)format
-            arguments: (va_list)arg_list
+            arguments: (va_list)argList
 {
-  return [self initWithFormat: format locale: nil arguments: arg_list];
+  return [self initWithFormat: format locale: nil arguments: argList];
 }
 
 - (id) initWithFormat: (NSString*)format
                locale: (NSDictionary*)locale
-            arguments: (va_list)arg_list
+            arguments: (va_list)argList
 {
   FormatBuf_t	f;
   unichar	*fmt;
@@ -775,7 +775,7 @@ handle_printf_atsign (FILE *stream,
   f.buf = NSZoneMalloc(f.z, 100*sizeof(unichar));
   f.len = 0;
   f.size = 100;
-  GSFormat(&f, fmt, arg_list, locale);
+  GSFormat(&f, fmt, argList, locale);
   objc_free(fmt);
   // don't use noCopy because f.size > f.len!
   self = [self initWithCharacters: f.buf length: f.len];
@@ -787,7 +787,7 @@ handle_printf_atsign (FILE *stream,
 /* xxx Change this when we have non-CString classes */
 - (id) initWithFormat: (NSString*)format
                locale: (NSDictionary*)locale
-            arguments: (va_list)arg_list
+            arguments: (va_list)argList
 {
 #if defined(HAVE_VSPRINTF) || defined(HAVE_VASPRINTF)
   const char *format_cp = [format lossyCString];
@@ -832,7 +832,7 @@ handle_printf_atsign (FILE *stream,
         *atsign_pos = '\0';
         /* Print the part before the '%@' */
         printed_local_len = VASPRINTF_LENGTH (vasprintf (&buf_l,
-	  format_to_go, arg_list));
+	  format_to_go, argList));
         if(buf_l)
           {
             if(avail_len < printed_local_len+1)
@@ -879,21 +879,21 @@ handle_printf_atsign (FILE *stream,
              for this */
               case 'd': case 'i': case 'o':
               case 'x': case 'X': case 'u': case 'c':
-                va_arg(arg_list, int);
+                va_arg(argList, int);
                 break;
               case 's':
                 if (*(spec_pos - 1) == '*')
-                  va_arg(arg_list, int*);
-                va_arg(arg_list, char*);
+                  va_arg(argList, int*);
+                va_arg(argList, char*);
                 break;
               case 'f': case 'e': case 'E': case 'g': case 'G':
-                va_arg(arg_list, double);
+                va_arg(argList, double);
                 break;
               case 'p':
-                va_arg(arg_list, void*);
+                va_arg(argList, void*);
                 break;
               case 'n':
-                va_arg(arg_list, int*);
+                va_arg(argList, int*);
                 break;
 #endif /* NOT powerpc */
               case '\0':
@@ -903,7 +903,7 @@ handle_printf_atsign (FILE *stream,
             format_to_go = spec_pos+1;
           }
         /* Get a C-string (char*) from the String object, and print it. */
-        cstring = [[(id) va_arg (arg_list, id) description] lossyCString];
+        cstring = [[(id) va_arg (argList, id) description] lossyCString];
         if (!cstring)
           cstring = "<null string>";
         cstring_len = strlen(cstring);
@@ -925,7 +925,7 @@ handle_printf_atsign (FILE *stream,
       }
     /* Print the rest of the string after the last `%@'. */
     printed_local_len = VASPRINTF_LENGTH (vasprintf (&buf_l,
-      format_to_go, arg_list));
+      format_to_go, argList));
     if(buf_l)
       {
         if(avail_len < printed_local_len+1)
@@ -957,7 +957,7 @@ handle_printf_atsign (FILE *stream,
 #else /* HAVE_VSPRINTF */
   /* The available libc has `register_printf_function()', so the `%@'
      printf directive is handled by printf and friends. */
-  printed_len = VASPRINTF_LENGTH (vasprintf (&buf, format_cp, arg_list));
+  printed_len = VASPRINTF_LENGTH (vasprintf (&buf, format_cp, argList));
 
   if(!buf)
     {
@@ -1006,7 +1006,7 @@ handle_printf_atsign (FILE *stream,
 	*atsign_pos = '\0';
 	/* Print the part before the '%@' */
 	printed_len += VSPRINTF_LENGTH (vsprintf (buf+printed_len,
-						  format_to_go, arg_list));
+						  format_to_go, argList));
 	/* Skip arguments used in last vsprintf(). */
 	while ((formatter_pos = strchr(format_to_go, '%')))
 	  {
@@ -1026,21 +1026,21 @@ handle_printf_atsign (FILE *stream,
 	      for this */
 	      case 'd': case 'i': case 'o':
 	      case 'x': case 'X': case 'u': case 'c':
-		(void)va_arg(arg_list, int);
+		(void)va_arg(argList, int);
 		break;
 	      case 's':
 		if (*(spec_pos - 1) == '*')
-		  (void)va_arg(arg_list, int*);
-		(void)va_arg(arg_list, char*);
+		  (void)va_arg(argList, int*);
+		(void)va_arg(argList, char*);
 		break;
 	      case 'f': case 'e': case 'E': case 'g': case 'G':
-		(void)va_arg(arg_list, double);
+		(void)va_arg(argList, double);
 		break;
 	      case 'p':
-		(void)va_arg(arg_list, void*);
+		(void)va_arg(argList, void*);
 		break;
 	      case 'n':
-		(void)va_arg(arg_list, int*);
+		(void)va_arg(argList, int*);
 		break;
 #endif /* NOT powerpc */
 	      case '\0':
@@ -1050,7 +1050,7 @@ handle_printf_atsign (FILE *stream,
 	    format_to_go = spec_pos+1;
 	  }
 	/* Get a C-string (char*) from the String object, and print it. */
-	cstring = [[(id) va_arg (arg_list, id) description] lossyCString];
+	cstring = [[(id) va_arg (argList, id) description] lossyCString];
 	if (!cstring)
 	  cstring = "<null string>";
 	strcat (buf+printed_len, cstring);
@@ -1060,12 +1060,12 @@ handle_printf_atsign (FILE *stream,
       }
     /* Print the rest of the string after the last `%@'. */
     printed_len += VSPRINTF_LENGTH (vsprintf (buf+printed_len,
-					      format_to_go, arg_list));
+					      format_to_go, argList));
   }
 #else
   /* The available libc has `register_printf_function()', so the `%@'
      printf directive is handled by printf and friends. */
-  printed_len = VSPRINTF_LENGTH (vsprintf (buf, format_cp, arg_list));
+  printed_len = VSPRINTF_LENGTH (vsprintf (buf, format_cp, argList));
 #endif /* !HAVE_REGISTER_PRINTF_FUNCTION */
 
   /* Raise an exception if we overran our buffer. */

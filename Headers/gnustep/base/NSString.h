@@ -258,7 +258,7 @@ enum {
 	       locale: (NSDictionary*)locale, ...;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)locale
-	    arguments: (va_list)arg_list;
+	    arguments: (va_list)argList;
 - (id) initWithUTF8String: (const char *)bytes;
 - (id) initWithContentsOfURL: (NSURL*)url;
 - (NSString*) substringWithRange: (NSRange)aRange;

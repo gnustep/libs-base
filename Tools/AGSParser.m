@@ -731,10 +731,6 @@
 	    {
 	      [d setObject: comment forKey: @"Comment"];
 	    }
-	  if (verbose == YES)
-	    {
-	      [self log: @"parse '%@'", d];
-	    }
 	  DESTROY(comment);
 	}
 

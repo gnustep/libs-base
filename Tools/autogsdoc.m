@@ -543,6 +543,7 @@ main(int argc, char **argv, char **env)
       [parser setWordMap: [defs dictionaryForKey: @"WordMap"]];
       [parser setVerbose: verbose];
       output = [AGSOutput new];
+      [output setVerbose: verbose];
       if ([defs boolForKey: @"Standards"] == YES)
 	{
 	  [parser setGenerateStandards: YES];
