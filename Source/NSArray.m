@@ -129,6 +129,59 @@ static Class NSMutableArray_concrete_class;
   return nil;
 }
 
+/* The NSCoding Protocol */
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+/* The NSCopying Protocol */
+
+- copyWithZone: (NSZone*)zone
+{
+  /* a deep copy */
+  unsigned count = [self count];
+  id oldObjects[count];
+  id newObjects[count];
+  id newArray;
+  unsigned i;
+  BOOL needCopy = [self isKindOfClass: [NSMutableArray class]];
+
+  if (NSShouldRetainWithZone(self, zone) == NO)
+    needCopy = YES;
+  [self getObjects: oldObjects];
+  for (i = 0; i < count; i++)
+    {
+      newObjects[i] = [oldObjects[i] copyWithZone:zone];
+      if (newObjects[i] != oldObjects[i])
+	needCopy = YES;
+    }
+  if (needCopy)
+    newArray = [[[[self class] _concreteClass] allocWithZone:zone]
+	      initWithObjects:newObjects count:count];
+  else
+    newArray = [self retain];
+  for (i = 0; i < count; i++)
+    [newObjects[i] release];
+  return newArray;
+}
+
+/* The NSMutableCopying Protocol */
+
+- mutableCopyWithZone: (NSZone*)zone
+{
+  /* a shallow copy */
+  return [[[[self class] _mutableConcreteClass] allocWithZone:zone] 
+	  initWithArray:self];
+}
+
 @end
 
 
@@ -628,46 +681,6 @@ static Class NSMutableArray_concrete_class;
     [arp release];
 
     return [result autorelease];
-}
-
-/* The NSCopying Protocol */
-
-- copyWithZone: (NSZone*)zone
-{
-  /* a deep copy */
-  unsigned count = [self count];
-  id oldObjects[count];
-  id newObjects[count];
-  id newArray;
-  unsigned i;
-  BOOL needCopy = [self isKindOfClass: [NSMutableArray class]];
-
-  if (NSShouldRetainWithZone(self, zone) == NO)
-    needCopy = YES;
-  [self getObjects: oldObjects];
-  for (i = 0; i < count; i++)
-    {
-      newObjects[i] = [oldObjects[i] copyWithZone:zone];
-      if (newObjects[i] != oldObjects[i])
-	needCopy = YES;
-    }
-  if (needCopy)
-    newArray = [[[[self class] _concreteClass] allocWithZone:zone]
-	      initWithObjects:newObjects count:count];
-  else
-    newArray = [self retain];
-  for (i = 0; i < count; i++)
-    [newObjects[i] release];
-  return newArray;
-}
-
-/* The NSMutableCopying Protocol */
-
-- mutableCopyWithZone: (NSZone*)zone
-{
-  /* a shallow copy */
-  return [[[[self class] _mutableConcreteClass] allocWithZone:zone] 
-	  initWithArray:self];
 }
 
 @end
