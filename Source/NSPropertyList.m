@@ -1992,10 +1992,21 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else
     {
+      NSString	*cls;
+
+      if (obj == nil)
+	{
+	  obj = @"(nil)";
+	  cls = @"(nil)";
+	}
+      else
+	{
+	  cls = NSStringFromClass([obj class]);
+	}
+
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
-	  NSDebugLog(@"Non-property-list class (%@) encoded as string",
-	    NSStringFromClass([obj class]));
+	  NSDebugLog(@"Non-property-list class (%@) encoded as string", cls);
 	  [dest appendBytes: "<string>" length: 8];
 	  XString([obj description], dest);
 	  [dest appendBytes: "</string>" length: 9];
@@ -2010,14 +2021,13 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      plobj = [desc propertyList];
 	      NSDebugLog(@"Non-property-list class (%@) "
-			 @"encoded as description's property-list",
-			 NSStringFromClass([obj class]));
+		@"encoded as description's property-list", cls);
 	    }
 	  NS_HANDLER
 	    {
 	      plobj = desc;
-	      NSDebugLog(@"Non-property-list class (%@) encoded as string",
-			 NSStringFromClass([obj class]));
+	      NSDebugLog(@"Non-property-list class (%@) "
+		@"encoded as string", cls);
 	    }
 	  NS_ENDHANDLER
 	  OAppend(plobj, loc, lev, step, x, dest);

@@ -1,9 +1,14 @@
+2005-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Handle null object passed to OAppend()
+
 2005-03-11  David Wetzel <dave@turbocat.de>
         * Source/Additions/GSMime.m:
         * Headers/Additions/GNUstepBase/GSMime.h
           Added setDefaultEncoding:
           This is needed in GSWeb if you use utf-8 and faster than using a
           String as encoding name.
+
 2005-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSet.m: Fix bug in forming union ... was using
