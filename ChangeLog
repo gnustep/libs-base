@@ -2,6 +2,7 @@
 
 	* Source/GSFileHandle.m: Encapsulate read and write operations in
 	new low level methods to ease subclassing.
+	* SSL/GSSSLHandle.m: Use new read and write methods to simplify. 
 
 2002-09-28  Richard Frith-Macdonald <rfm@gnu.org>
 
