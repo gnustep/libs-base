@@ -725,7 +725,8 @@ static NSDate *theFuture;
                forMode: (NSString*)mode
 {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
-  unsigned	c;
+  unsigned int	i;
+  unsigned int	c;
   char		dummy;
 
   read(inputFd, &dummy, 1);
@@ -733,9 +734,9 @@ static NSDate *theFuture;
   [subthreadsLock lock];
 
   c = [perfArray count];
-  while (c-- > 0)
+  for (i = 0; i < c; i++)
     {
-      GSPerformHolder	*h = [perfArray objectAtIndex: c];
+      GSPerformHolder	*h = [perfArray objectAtIndex: i];
 
       [loop performSelector: @selector(fire)
 		     target: h
