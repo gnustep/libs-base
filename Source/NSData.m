@@ -2554,6 +2554,16 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     initWithBytes: bytes length: length];
 }
 
+- (void) dealloc
+{
+  if (bytes != 0)
+    {
+      NSZoneFree(zone, bytes);
+      bytes = 0;
+    }
+  [super dealloc];
+}
+
 - (id) initWithBytes: (const void*)aBuffer length: (unsigned)bufferSize
 {
   self = [self initWithCapacity: bufferSize];
@@ -3082,7 +3092,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) dealloc
 {
-  if (bytes)
+  if (bytes != 0)
     {
       struct shmid_ds	buf;
 

@@ -1,8 +1,10 @@
 2001-06-01  Richard Frith-Macdonald  <rfm@gnu.uk>
 
+	Optimisations suggested by Guenther Fuerthaller
 	* Source/NSZone.m: NSZonefromPointer() check for empty zones
-	list before locking ... optimisation suggested by
-	Guenther Fuerthaller
+	list before locking.
+	* Source/NSData.m: more efficient dealloc implementation for
+	NSMutableDataMalloc.
 
 2001-06-01  Nicola Pero  <nicola@brainstorm.co.uk>
 
