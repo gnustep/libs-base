@@ -1,3 +1,9 @@
+2003-08-26  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSMessagePort.m: For older OS comptibility, define some
+	macros if they are not already defined.
+	* Source/NSMessagePortNameServer.m: Idem.
+
 2003-08-24  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h

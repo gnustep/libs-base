@@ -100,6 +100,15 @@
 #define close closesocket
 #endif
 
+/* Older systems (Solaris) compatibility */
+#ifndef AF_LOCAL
+#define AF_LOCAL AF_UNIX
+#define PF_LOCAL PF_UNIX
+#endif
+#ifndef SUN_LEN
+#define SUN_LEN(su) \
+	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
 
 static	BOOL	multi_threaded = NO;
 
