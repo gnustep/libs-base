@@ -1,6 +1,7 @@
 
 #include <objects/Connection.h>
 #include "first-server.h"
+#include <objects/String.h>
 
 int main(int argc, char *argv[])
 {
@@ -10,12 +11,13 @@ int main(int argc, char *argv[])
     {
       printf("Looking for connection named `firstserver' on host `%s'...\n",
 	     argv[2]);
-      s = [Connection rootProxyAtName:"firstserver" onHost:argv[2]];
+      s = [Connection rootProxyAtName:@"firstserver" 
+		      onHost:[String stringWithCString:argv[2]]];
     }
   else
     {
       printf("Looking for connection named `firstserver' on localhost...\n");
-      s = [Connection rootProxyAtName:"firstserver"];
+      s = [Connection rootProxyAtName:@"firstserver"];
     }
 
   printf("Found connection named `firstserver'\n");
@@ -28,7 +30,7 @@ int main(int argc, char *argv[])
 
 
   printf("Shutting down my connection to the server\n");
-  [s free];
+  [s release];
 
   exit(0);
 }
