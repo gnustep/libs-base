@@ -1,3 +1,7 @@
+2003-07-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Don't output authors heading if not needed.
+
 2003-07-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m (GROW): Fix shifting of pointers into
