@@ -2193,13 +2193,10 @@ handle_printf_atsign (FILE *stream,
        * The hash caching in our concrete string classes uses zero to denote
        * an empty cache value, so we MUST NOT return a hash of zero.
        */
+      ret &= 0x0fffffff;
       if (ret == 0)
 	{
 	  ret = 0x0fffffff;
-	}
-      else
-	{
-	  ret &= 0x0fffffff;
 	}
       return ret;
     }
