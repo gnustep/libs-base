@@ -99,6 +99,15 @@
           </desc>
 	  <standards><GNUstep/><NotMacOS-X/><NotOpenStep/></standards>
 	</method>
+        <method type="void" factory="yes">
+          <sel>setUserLanguages:</sel>
+          <arg type="NSArray*">languages</arg>
+          <desc>
+	    Sets the array of user languages preferences.  Places the specified
+	    array in the <em>NSLanguages</em> user default.
+          </desc>
+	  <standards><GNUstep/><NotMacOS-X/><NotOpenStep/></standards>
+	</method>
         <method type="NSArray*">
           <sel>arrayForKey:</sel>
           <arg type="NSString*">defaultName</arg>
