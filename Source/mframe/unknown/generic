@@ -38,6 +38,10 @@
     { \
       (TYPE)++; \
     } \
+  if (*(TYPE) == '-') \
+    { \
+      (TYPE)++; \
+    } \
   while (isdigit(*(TYPE))) \
     { \
       (TYPE)++; \

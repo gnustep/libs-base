@@ -74,6 +74,7 @@
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSRange.h>
+#include <Foundation/NSZone.h>
 #include <string.h>		/* for memset() */
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 
@@ -270,7 +271,7 @@ failure:
     }
 }
 
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject(dataMalloc, 0, z);
 }
@@ -1176,7 +1177,7 @@ failure:
 
 
 @implementation NSMutableData
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject(mutableDataMalloc, 0, z);
 }
@@ -1662,7 +1663,7 @@ failure:
  */
 @implementation	NSDataStatic
 
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject(self, 0, z);
 }
@@ -2285,7 +2286,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 #if	HAVE_MMAP
 @implementation	NSDataMappedFile
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject([NSDataMappedFile class], 0, z);
 }
@@ -2357,7 +2358,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 #if	HAVE_SHMCTL
 @implementation	NSDataShared
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject([NSDataShared class], 0, z);
 }
@@ -2468,7 +2469,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject(mutableDataMalloc, 0, z);
 }
@@ -3043,7 +3044,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 #if	HAVE_SHMCTL
 @implementation	NSMutableDataShared
-+ (NSData*) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return (NSData*)NSAllocateObject([NSMutableDataShared class], 0, z);
 }

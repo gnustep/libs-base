@@ -113,6 +113,10 @@ mframe_build_signature(const char *typePtr, int *size, int *narg, char *buf)
     {
       types++;
     }
+  if (*types == '-')
+    {
+      types++;
+    }
   while (isdigit(*types))
     {
       types++;
@@ -448,6 +452,8 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
    */
   if (info->type[0] != _C_PTR || info->type[1] == '?')
     {
+      BOOL	negative = NO;
+
       /*
        *	May tell the caller if the item is stored in a register.
        */
@@ -456,11 +462,18 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	  typePtr++;
 	  info->isReg = YES;
 	}
-      else if (info->isReg)
+      else
 	{
 	  info->isReg = NO;
 	}
-
+      /*
+       * Cope with negative offsets.
+       */
+      if (*typePtr == '-')
+	{
+	  typePtr++;
+	  negative = YES;
+	}
       /*
        *	May tell the caller what the stack/register offset is for
        *	this argument.
@@ -469,6 +482,10 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
       while (isdigit(*typePtr))
 	{
 	  info->offset = info->offset * 10 + (*typePtr++ - '0');
+	}
+      if (negative == YES)
+	{
+	  info->offset = -info->offset;
 	}
     }
 

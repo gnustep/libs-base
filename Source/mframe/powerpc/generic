@@ -110,6 +110,10 @@ typedef struct rs6000_args
     { \
       (TYPE)++; \
     } \
+  if (*(TYPE) == '-') \
+    { \
+      (TYPE)++; \
+    } \
   while (isdigit(*(TYPE))) \
     { \
       (TYPE)++; \
