@@ -73,6 +73,11 @@ typedef enum {
 static NSBundle*   _mainBundle = nil;
 static NSMapTable* _bundles = NULL;
 
+/*
+ * An empty strings file table for use when localization files can't be found.
+ */
+static NSDictionary	*_emptyTable = nil;
+
 /* This is for bundles that we can't unload, so they shouldn't be
    dealloced.  This is true for all bundles right now */
 static NSMapTable* _releasedBundles = NULL;
@@ -237,6 +242,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     {
       NSDictionary	*env;
 
+      _emptyTable = RETAIN([NSDictionary dictionary]);
+
       /* Need to make this recursive since both mainBundle and initWithPath:
 	 want to lock the thread */
       load_lock = [NSRecursiveLock new];
@@ -247,25 +254,25 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  NSString		*str;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
-	    gnustep_target_dir = [str retain];
+	    gnustep_target_dir = RETAIN(str);
 	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
-	    gnustep_target_dir = [str retain];
+	    gnustep_target_dir = RETAIN(str);
 	
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
-	    gnustep_target_cpu = [str retain];
+	    gnustep_target_cpu = RETAIN(str);
 	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
-	    gnustep_target_cpu = [str retain];
+	    gnustep_target_cpu = RETAIN(str);
 	
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
-	    gnustep_target_os = [str retain];
+	    gnustep_target_os = RETAIN(str);
 	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
-	    gnustep_target_os = [str retain];
+	    gnustep_target_os = RETAIN(str);
 	
 	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
-	    library_combo = [str retain];
+	    library_combo = RETAIN(str);
 
-	  system = [[[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
-		    mutableCopy] autorelease];
+	  system = AUTORELEASE([[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
+		    mutableCopy]);
 	  [system appendString: @"/Libraries"];
 
 	  _gnustep_bundle = [NSBundle bundleWithPath: system];
@@ -381,7 +388,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 + (NSBundle *)bundleWithPath:(NSString *)path
 {
-  return [[[NSBundle alloc] initWithPath: path] autorelease];
+  return AUTORELEASE([[NSBundle alloc] initWithPath: path]);
 }
 
 - initWithPath:(NSString *)path;
@@ -402,7 +409,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if (bundle)
 	{
 	  [self dealloc];
-	  return [bundle retain]; /* retain - look as if we were alloc'ed */
+	  return RETAIN(bundle); /* retain - look as if we were alloc'ed */
 	}
     }
   if (_releasedBundles)
@@ -413,7 +420,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  NSMapInsert(_bundles, path, loaded);
 	  NSMapRemove(_releasedBundles, path);
 	  [self dealloc];
-	  return [loaded retain]; /* retain - look as if we were alloc'ed */
+	  return RETAIN(loaded); /* retain - look as if we were alloc'ed */
 	}
     }
 
@@ -476,10 +483,10 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 - (void) dealloc
 {
   NSMapRemove(_bundles, _path);
-  [_bundleClasses release];
-  [_infoDict release];
-  [_localizations release];
-  [_path release];
+  RELEASE(_bundleClasses);
+  RELEASE(_infoDict);
+  RELEASE(_localizations);
+  RELEASE(_path);
   [super dealloc];
 }
 
@@ -553,7 +560,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       object = [[self infoDictionary] objectForKey: @"NSExecutable"];
       object = bundle_object_name(_path, object);
       _loadingBundle = self;
-      _bundleClasses = [[NSMutableArray arrayWithCapacity:2] retain];
+      _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
       if (objc_load_module([object cString], 
 			   stderr, _bundle_load_callback, NULL, NULL))
 	{
@@ -781,22 +788,31 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSDictionary	*table;
   NSString	*newString;
 
-  if (tableName == nil || [tableName isEqualToString: @""] == YES)
-    {
-      tableName = @"Localizable";
-    }
-  else if ([@"strings" isEqual: [tableName pathExtension]] == YES)
-    {
-      tableName = [tableName stringByDeletingPathExtension];
-    }
-
   if (_localizations == nil)
     _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
 
-  table = [_localizations objectForKey: tableName];
+  if (tableName == nil || [tableName isEqualToString: @""] == YES)
+    {
+      tableName = @"Localizable";
+      table = [_localizations objectForKey: tableName];
+    }
+  else if ((table = [_localizations objectForKey: tableName]) == nil
+    && [@"strings" isEqual: [tableName pathExtension]] == YES)
+    {
+      tableName = [tableName stringByDeletingPathExtension];
+      table = [_localizations objectForKey: tableName];
+    }
+
   if (table == nil)
     {
-      NSString	*tablePath;
+      NSString			*tablePath;
+
+      /*
+       * Make sure we have an empty table in place in case anything
+       * we do somehow causes recursion.  The recusive call will look
+       * up the string in the empty table.
+       */
+      [_localizations setObject: _emptyTable forKey: tableName];
 
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath)
@@ -820,12 +836,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	NSLog(@"Failed to locate strings file %@", tablePath);
 	
       /*
-       * If we couldn't find, or couldn't parse the strings table,
-       * we create an empty dictionary to avoid attempting to read it again..
+       * If we couldn't found and parsed the strings table, we put it in
+       * the cache of strings tables in this bundle, otherwise we will just
+       * be keeping the empty table in the cache so we don't keep retrying.
        */
-      if (table == nil)
-	table = [NSDictionary dictionary];
-      [_localizations setObject: table forKey: tableName];
+      if (table != nil)
+	[_localizations setObject: table forKey: tableName];
     }
 
   if (key == nil || (newString = [table objectForKey: key]) == nil)
@@ -877,7 +893,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if (path)
 	_infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
       else
-	_infoDict = [[NSDictionary dictionary] retain];
+	_infoDict = RETAIN([NSDictionary dictionary]);
     }
   return _infoDict;
 }
@@ -927,11 +943,11 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     */
   pInfo = [NSProcessInfo processInfo];
   env = [pInfo environment];
-  user = [[[env objectForKey: @"GNUSTEP_USER_ROOT"]
-	    mutableCopy] autorelease];
+  user = AUTORELEASE([[env objectForKey: @"GNUSTEP_USER_ROOT"]
+	    mutableCopy]);
   [user appendString: @"/Libraries"];
-  local = [[[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
-	    mutableCopy] autorelease];
+  local = AUTORELEASE([[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
+	    mutableCopy]);
   [local appendString: @"/Libraries"];
 
   if (user)
