@@ -564,10 +564,11 @@ static BOOL snuggleStart(NSString *t)
     }
 
   [str appendString: @"          <desc>\n"];
-  if (comment != nil)
+  if ([comment length] == 0)
     {
-      [self reformat: comment withIndent: 12 to: str];
+      comment = @"<em>Descripttion forthcoming.</em>";
     }
+  [self reformat: comment withIndent: 12 to: str];
   [str appendString: @"          </desc>\n"];
   if (standards != nil)
     {
@@ -748,10 +749,11 @@ static BOOL snuggleStart(NSString *t)
 
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"<desc>\n"];
-  if (comment != nil)
+  if ([comment length] == 0)
     {
-      [self reformat: comment withIndent: ind + 2 to: str];
+      comment = @"<em>Descripttion forthcoming.</em>";
     }
+  [self reformat: comment withIndent: ind + 2 to: str];
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"</desc>\n"];
   
