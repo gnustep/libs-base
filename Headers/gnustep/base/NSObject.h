@@ -226,41 +226,74 @@ extern NSRecursiveLock *gnustep_global_lock;
 #endif
 #if	GS_WITH_GC
 
+#ifndef	RETAIN
 #define	RETAIN(object)		((id)object)
+#endif
+#ifndef	RELEASE
 #define	RELEASE(object)		
+#endif
+#ifndef	AUTORELEASE
 #define	AUTORELEASE(object)	((id)object)
+#endif
 
+#ifndef	TEST_RETAIN
 #define	TEST_RETAIN(object)	((id)object)
+#endif
+#ifndef	TEST_RELEASE
 #define	TEST_RELEASE(object)
+#endif
+#ifndef	TEST_AUTORELEASE
 #define	TEST_AUTORELEASE(object)	((id)object)
+#endif
 
+#ifndef	ASSIGN
 #define	ASSIGN(object,value)	(object = value)
+#endif
+#ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	(object = [value copy])
+#endif
+#ifndef	DESTROY
 #define	DESTROY(object) 	(object = nil)
+#endif
 
+#ifndef	CREATE_AUTORELEASE_POOL
 #define	CREATE_AUTORELEASE_POOL(X)	
+#endif
 
 #else
 
 /*
  *	Basic retain, release, and autorelease operations.
  */
+#ifndef	RETAIN
 #define	RETAIN(object)		[object retain]
+#endif
+#ifndef	RELEASE
 #define	RELEASE(object)		[object release]
+#endif
+#ifndef	AUTORELEASE
 #define	AUTORELEASE(object)	[object autorelease]
+#endif
 
 /*
  *	Tested retain, release, and autorelease operations - only invoke the
  *	objective-c method if the receiver is not nil.
  */
+#ifndef	TEST_RETAIN
 #define	TEST_RETAIN(object)	(object != nil ? [object retain] : nil)
+#endif
+#ifndef	TEST_RELEASE
 #define	TEST_RELEASE(object)	({ if (object) [object release]; })
+#endif
+#ifndef	TEST_AUTORELEASE
 #define	TEST_AUTORELEASE(object)	({ if (object) [object autorelease]; })
+#endif
 
 /*
  *	ASSIGN(object,value) assignes the value to the object with
  *	appropriate retain and release operations.
  */
+#ifndef	ASSIGN
 #define	ASSIGN(object,value)	({\
 typeof (value) __value = (value); \
 if (__value != object) \
@@ -276,11 +309,13 @@ if (__value != object) \
     object = __value; \
   } \
 })
+#endif
 
 /*
  *	ASSIGNCOPY(object,value) assignes a copy of the value to the object with
  *	and release operations.
  */
+#ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	({\
 typeof (value) __value = (value); \
 if (__value != object) \
@@ -296,12 +331,14 @@ if (__value != object) \
     object = __value; \
   } \
 })
+#endif
 
 /*
  *	DESTROY() is a release operation which also sets the object to be
  *	a nil pointer for tidyness - we can't accidentally use a DESTROYED
  *	object later.
  */
+#ifndef	DESTROY
 #define	DESTROY(object) 	({ \
   if (object) \
     { \
@@ -309,9 +346,12 @@ if (__value != object) \
       object = nil; \
     } \
 })
+#endif
 
+#ifndef	CREATE_AUTORELEASE_POOL
 #define	CREATE_AUTORELEASE_POOL(X)	\
   NSAutoreleasePool *(X) = [NSAutoreleasePool new]
+#endif
 
 #endif
 

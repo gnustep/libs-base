@@ -1,3 +1,8 @@
+Fri May 21  9:56:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSObject.h: Bracket macro definitions with #ifndef
+	in case they are already defined.
+
 Thu May 20 20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUserDefaults.m: Don't load defaults unless we need to.
