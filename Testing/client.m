@@ -2,7 +2,8 @@
 #include <objects/SocketPort.h>
 #include <objects/Connection.h>
 #include <objects/Proxy.h>
-#include <objects/BinaryCoder.h>
+#include <objects/Coder.h>
+#include <objects/BinaryCStream.h>
 #include <objects/String.h>
 #include <assert.h>
 #include "server.h"
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
   const char *type;
 
   [Coder setDebugging:YES];
-  [BinaryCoder setDebugging:YES];
+  [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime
   [Proxy setProtocolForProxies:@protocol(AllProxies)];

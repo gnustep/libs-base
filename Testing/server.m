@@ -1,9 +1,9 @@
 #include <objects/stdobjects.h>
 #include <stdio.h>
 #include <objects/SocketPort.h>
+#include <objects/BinaryCStream.h>
 #include <objects/Connection.h>
 #include <objc/List.h>
-#include <objects/BinaryCoder.h>
 #include <objects/String.h>
 #include "server.h"
 
@@ -202,7 +202,7 @@ int main()
   double d;
   Connection *c;
 
-  [BinaryCoder setDebugging:YES];
+  [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime
   [Proxy setProtocolForProxies:@protocol(AllProxies)];
