@@ -28,6 +28,7 @@
 
 #include <gnustep/base/GSObjCRuntime.h>
 #include <gnustep/base/GCObject.h>
+#include "GSCompatibility.h"
 
 typedef struct {
   id	object;

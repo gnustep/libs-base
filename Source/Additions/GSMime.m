@@ -54,6 +54,7 @@
 #include	<gnustep/base/GSMime.h>
 #include	<string.h>
 #include	<ctype.h>
+#include 	"GSCompatibility.h"
 
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
@@ -2563,7 +2564,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  if (r.location > pos)
 	    {
 	      [m appendString:
-		[v substringFromRange: NSMakeRange(pos, r.location - pos)]];
+		[v substringWithRange: NSMakeRange(pos, r.location - pos)]];
 	    }
 	  pos = r.location + 1;
 	  c = [v characterAtIndex: r.location];
@@ -2589,7 +2590,7 @@ static NSCharacterSet	*tokenSet = nil;
       if (l > pos)
 	{
 	  [m appendString:
-	    [v substringFromRange: NSMakeRange(pos, l - pos)]];
+	    [v substringWithRange: NSMakeRange(pos, l - pos)]];
 	}
       [m appendString: @"\""];
       v = AUTORELEASE(m);

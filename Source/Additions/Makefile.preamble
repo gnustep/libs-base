@@ -57,4 +57,3 @@ ADDITIONAL_INCLUDE_DIRS = -I../../Headers/gnustep -I../../Headers \
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS = 
-

@@ -66,9 +66,6 @@
 #define nil		0
 #endif
 
-#define FOUNDATION_EXPORT
-#define FOUNDATION_STATIC_INLINE static inline
-
 #ifndef	NO_GNUSTEP
 /*
  * Functions for accessing instance variables directly -
@@ -114,6 +111,11 @@ GS_EXPORT void GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   const char *type, unsigned size, int offset);
 
 #include <base/objc-gnu2next.h>
+
+#ifndef FOUNDATION_EXPORT
+#define FOUNDATION_EXPORT
+#define FOUNDATION_STATIC_INLINE static inline
+#endif
 
 /*
  * GSObjCClass() return the class of an instance.

@@ -53,6 +53,7 @@
 #include <base/preface.h>
 #include <base/behavior.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
 
 static BOOL class_is_kind_of(Class self, Class class);
 
@@ -73,19 +74,9 @@ behavior_class_add_class (Class class, Class behavior)
   NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
 #if NeXT_RUNTIME
-  if (class->instance_size < behavior->instance_size)
-    {
-      /* We can allow this since we're pretty sure NXConstantString is 
-	 not subclassed. */
-      if (class == [NXConstantString class])
-        {
-          class->instance_size = behavior->instance_size;
-        }
-      else
-        NSCAssert2(class->instance_size >= behavior->instance_size,
+  NSCAssert2(class->instance_size >= behavior->instance_size,
   @"Trying to add behavior (%s) with instance size larger than class (%s)",
   class_get_class_name(behavior), class_get_class_name(class));
-    }
 #else
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)

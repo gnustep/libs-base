@@ -38,9 +38,16 @@ Additions_OBJC_FILES =\
 	GCDictionary.m \
 	GSMime.m \
 	GSXML.m \
-	Unicode.m \
 	behavior.m
 
+ifeq ($(OBJC_RUNTIME), NeXT)
+Additions_OBJC_FILES += GSNextRuntime.m
+endif
+ifeq ($(FOUNDATION_LIB),nx)
+Additions_OBJC_FILES += GSCompatibility.m
+else
+Additions_OBJC_FILES += Unicode.m
+endif
 
 -include Makefile.preamble
 
