@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
   short s = 0x987;
   char c = 0x12;
   char *string = "Testing";
-  float f = 0.1234;
+  float f = 0.1234F;
   double d = 0.987654321;
   id cstream;
   Class cstream_class;
@@ -36,15 +36,17 @@ int main(int argc, char *argv[])
   [cstream encodeWithName: @"some values"
 	   valuesOfCTypes: "liIsc*fd",
 	   &l, &i, &u, &s, &c, &string, &f, &d];
-  printf ("Wrote %d %d %u %d %d %s %g %g\n",
+  printf ("Wrote %d %d %u %d %d %s %g %.15g\n",
 	  (int)l, i, u, (int)s, (int)c, string, f, d);
   [[cstream stream] close];
+  
+  f = d = 0;
 
   cstream = [cstream_class cStreamReadingFromFile: @"cstream.dat"];
   [cstream decodeWithName: NULL
-	   valuesOfCTypes: "liIsc*",
+	   valuesOfCTypes: "liIsc*fd",
 	   &l, &i, &u, &s, &c, &string, &f, &d];
-  printf ("Read  %d %d %u %d %d %s %g %g\n",
+  printf ("Read  %d %d %u %d %d %s %g %.15g\n",
 	  (int)l, i, u, (int)s, (int)c, string, f, d);
   [[cstream stream] close];
 
