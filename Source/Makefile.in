@@ -176,7 +176,6 @@ callbacks-char_p.c \
 callbacks-int.c \
 callbacks-int_p.c \
 callbacks-void_p.c \
-collhash.c \
 data.c \
 hash.c \
 list.c \
@@ -299,7 +298,6 @@ objects/abort.h \
 objects/allocs.h \
 objects/behavior.h \
 objects/callbacks.h \
-objects/collhash.h \
 objects/data.h \
 objects/elt.h \
 objects/eltfuncs.h \
