@@ -25,9 +25,10 @@ contributions by Pascal Forget @email{pascal@@wsc.com}, Scott Christley
 @email{scottc@@net-community.com}, and Randy Chapman
 @email{chapman@@u.washington.edu}.
 
-Last updated 10 July 1996.  
-The most up-to-date version of this FAQ is
-available at @url{ftp://ftp.cs.rochester.edu/pub/u/mccallum/gnustep-base}.
+@c Do not remove the two words at the beginning of the next
+@c non-commented line, nor the period at the end of the line.
+@c time-stamp depends on them to find and properly update the date.
+Last updated 17 September 1996.
 Please send corrections to @email{mccallum@@gnu.ai.mit.edu}.
 
 The intended audience of this FAQ is future and present code developers
@@ -887,4 +888,9 @@ All trademarks mentioned on in this FAQ belong to their owners.
 
 @c Local variables:
 @c page-delimiter: "^\n\n"
+@c time-stamp-active: t
+@c time-stamp-format: "%d %b %y"
+@c time-stamp-line-limit: 50
+@c time-stamp-start: "Last updated[ \t]+"
+@c time-stamp-end: "\\."
 @c end:
