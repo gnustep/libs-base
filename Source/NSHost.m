@@ -148,17 +148,23 @@ static NSMutableDictionary*_hostCache = nil;
     }
 }
 
+/*
+ *	Max hostname length in line with RFC  1123
+ */
+#define	GSMAXHOSTNAMELEN	255
+
 + (NSHost*) currentHost
 {
-  char name[MAXHOSTNAMELEN];
-  int res;
-  struct hostent*h;
+  char	name[GSMAXHOSTNAMELEN+1];
+  int	res;
+  struct hostent	*h;
 	
-  res = gethostname(name, sizeof(name));
+  res = gethostname(name, GSMAXHOSTNAMELEN);
   if (res < 0)
     {
       return nil;
     }
+  name[GSMAXHOSTNAMELEN] = '\0';
 		
   h = gethostbyname(name);
   if (h == NULL)

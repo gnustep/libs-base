@@ -30,9 +30,9 @@
 #include <base/Array.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSHost.h>
 #ifndef __WIN32__
 #include <unistd.h>
-#include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #endif /* !__WIN32__ */
 #if _AIX
 #include <sys/select.h>
@@ -126,14 +126,8 @@ static NSMapTable *port_number_2_in_port = NULL;
   /* Give the socket a name using bind */
   {
     struct hostent *hp;
-    char hostname[MAXHOSTNAMELEN];
-    int len = MAXHOSTNAMELEN;
-    if (gethostname (hostname, len) < 0)
-      {
-	perror ("[UdpInPort +newForReceivingFromPortNumber:] gethostname()");
-	abort ();
-      }
-    hp = gethostbyname (hostname);
+
+    hp = gethostbyname ([[[NSHost currentHost] name] cString]);
     if (!hp)
       /* xxx This won't work with port connections on a network, though.
          Fix this.  Perhaps there is a better way of getting the address
