@@ -111,27 +111,6 @@ GS_EXPORT void
 GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	       const char *type, unsigned size, int offset);
 
-/*
- * The next five are old (deprecated) names for the same thing.
- */
-GS_EXPORT BOOL
-GSFindInstanceVariable(id obj, const char *name,
-		       const char **type, unsigned int *size, int *offset);
-
-GS_EXPORT void
-GSGetVariable(id obj, int offset, unsigned int size, void *data);
-
-GS_EXPORT void
-GSSetVariable(id obj, int offset, unsigned int size, const void *data);
-
-GS_EXPORT id
-GSGetValue(NSObject *self, NSString *key, SEL sel,
-	   const char *type, unsigned size, int offset);
-
-GS_EXPORT void
-GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-	   const char *type, unsigned size, int offset);
-
 #include <gnustep/base/objc-gnu2next.h>
 
 #define GS_STATIC_INLINE static inline
@@ -172,32 +151,6 @@ GSObjCIsKindOf(Class this, Class other)
       this = class_get_super_class(this);
     }
   return NO;
-}
-
-/** ## deprecated ##
- */
-GS_STATIC_INLINE const char*
-GSObjCName(Class this)
-{
-  return class_get_class_name(this);
-}
-
-/** ## deprecated ##
- */
-GS_STATIC_INLINE const char*
-GSObjCSelectorName(SEL this)
-{
-  if (this == 0)
-    return 0;
-  return sel_get_name(this);
-}
-
-/** ## deprecated ##
- */
-GS_STATIC_INLINE const char*
-GSObjCSelectorTypes(SEL this)
-{
-  return sel_get_type(this);
 }
 
 /**
@@ -343,6 +296,58 @@ GSAutoreleasedBuffer(unsigned size);
 /* Getting a system error message on a variety of systems */
 GS_EXPORT const char *
 GSLastErrorStr(long error_id);
+
+
+
+#ifndef NO_DEPRECATED
+/*
+ * The next five are old (deprecated) names for the same thing.
+ */
+GS_EXPORT BOOL
+GSFindInstanceVariable(id obj, const char *name,
+		       const char **type, unsigned int *size, int *offset);
+
+GS_EXPORT void
+GSGetVariable(id obj, int offset, unsigned int size, void *data);
+
+GS_EXPORT void
+GSSetVariable(id obj, int offset, unsigned int size, const void *data);
+
+GS_EXPORT id
+GSGetValue(NSObject *self, NSString *key, SEL sel,
+	   const char *type, unsigned size, int offset);
+
+GS_EXPORT void
+GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
+	   const char *type, unsigned size, int offset);
+
+/** ## deprecated ##
+ */
+GS_STATIC_INLINE const char*
+GSObjCName(Class this)
+{
+  return class_get_class_name(this);
+}
+
+/** ## deprecated ##
+ */
+GS_STATIC_INLINE const char*
+GSObjCSelectorName(SEL this)
+{
+  if (this == 0)
+    return 0;
+  return sel_get_name(this);
+}
+
+/** ## deprecated ##
+ */
+GS_STATIC_INLINE const char*
+GSObjCSelectorTypes(SEL this)
+{
+  return sel_get_type(this);
+}
+
+#endif  /* NO_DEPRECATED */
 
 
 
@@ -492,6 +497,6 @@ GSLastErrorStr(long error_id);
 })
 
 
-#endif
+#endif /* NO_GNUSTEP */
 
 #endif /* __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */
