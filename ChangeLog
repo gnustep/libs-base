@@ -1,3 +1,8 @@
+2002-04-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/COPYING.LIB: New file ... just to make it *REALLY* obvious
+	this code is under the LGPL
+
 2002-04-18  Adam Fedor  <fedor@gnu.org>
 
 	* Minimally working libffi support. Needs work.
