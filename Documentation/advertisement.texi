@@ -171,7 +171,7 @@ It is known not to work with:
 
 The current version is @value{OBJECTS_VERSION} the low number indicates
 that the library is still in flux.  A version coming soon will include
-String objects and better allocation/dealocation conventions.
+String objects and better allocation/deallocation conventions.
 
 @section GNUStep
 
