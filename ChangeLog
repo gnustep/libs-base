@@ -1,3 +1,8 @@
+2002-08-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Hack for compatibility with MacOS-X in returning
+	path of a file URL ... the RFC says we shouldn't.
+
 2002-08-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Fix typo ... missing closing brace under
