@@ -1,5 +1,9 @@
 2001-06-01  Richard Frith-Macdonald  <rfm@gnu.uk>
 
+	* Source/NSString.m: Patch by David Relson applied
+
+2001-06-01  Richard Frith-Macdonald  <rfm@gnu.uk>
+
 	Optimisations suggested by Guenther Fuerthaller
 	* Source/NSZone.m: NSZonefromPointer() check for empty zones
 	list before locking.
