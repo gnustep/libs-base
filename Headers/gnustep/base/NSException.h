@@ -1,5 +1,5 @@
 /* Interface for NSException for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
@@ -109,7 +109,7 @@ extern void _NSRemoveHandler( NSHandler *handler );
 		    if( !setjmp(NSLocalHandler.jumpState) ) {
 
 #define NS_HANDLER _NSRemoveHandler(&NSLocalHandler); } else { \
-		    NSException *exception = NSLocalHandler.exception;
+		    NSException *localException = NSLocalHandler.exception;
 
 #define NS_ENDHANDLER }}
 
