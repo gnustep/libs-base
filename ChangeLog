@@ -1,3 +1,10 @@
+2000-09-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([-initWithUTFString:length:]),
+	([-initWithData:encoding]) create UTF strings as 8-bit strings if
+	they actually only contain ascii characters.
+	* Source/GSXML.m: Create strings from UTF8 data throughout.
+
 2000-09-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCompatibility.m: Fix stupid error in last modification -

@@ -47,10 +47,27 @@ extern int xmlGetWarningsDefaultValue;
  *
  */
 static Class NSString_class;
-static IMP csImp;
-static IMP cslImp;
-static SEL csSel = @selector(stringWithCString:);
-static SEL cslSel = @selector(stringWithCString:length:);
+static IMP usImp;
+static SEL usSel = @selector(stringWithUTF8String:);
+
+inline static NSString*
+UTF8Str(const char *bytes)
+{
+  return (*usImp)(NSString_class, usSel, bytes);
+}
+
+inline static NSString*
+UTF8StrLen(const char *bytes, unsigned length)
+{
+  char		*buf = NSZoneMalloc(NSDefaultMallocZone(), length+1);
+  NSString	*str;
+
+  memcpy(buf, bytes, length);
+  buf[length] = '\0';
+  str = UTF8Str(buf);
+  NSZoneFree(NSDefaultMallocZone(), buf);
+  return str;
+}
 
 static BOOL cacheDone = NO;
 
@@ -61,8 +78,7 @@ setupCache()
     {
       cacheDone = YES;
       NSString_class = [NSString class];
-      csImp = [NSString_class methodForSelector: csSel];
-      cslImp = [NSString_class methodForSelector: cslSel];
+      usImp = [NSString_class methodForSelector: usSel];
     }
 }
 
@@ -311,13 +327,13 @@ setupCache()
 /* return the namespace prefix  */
 - (NSString*) prefix
 {
-  return (*csImp)(NSString_class, csSel, ((xmlNsPtr)(lib))->prefix);
+  return UTF8Str(((xmlNsPtr)(lib))->prefix);
 }
 
 /* the namespace reference */
 - (NSString*) href
 {
-  return (*csImp)(NSString_class, csSel, ((xmlNsPtr)(lib))->href);
+  return UTF8Str(((xmlNsPtr)(lib))->href);
 }
 
 /* type of namespace */
@@ -484,7 +500,7 @@ static NSMapTable	*nodeNames = 0;
 {
   if (((xmlNodePtr)lib)->content != NULL)
     {
-      return (*csImp)(NSString_class, csSel, ((xmlNodePtr)lib)->content);
+      return UTF8Str(((xmlNodePtr)lib)->content);
     }
   else
     {
@@ -496,7 +512,7 @@ static NSMapTable	*nodeNames = 0;
 {
   if (lib != NULL)
     {
-      return (*csImp)(NSString_class, csSel, ((xmlNodePtr)lib)->name);
+      return UTF8Str(((xmlNodePtr)lib)->name);
     }
   else
     {
@@ -543,13 +559,11 @@ static NSMapTable	*nodeNames = 0;
 	{
 	   const void	*content = prop->children->content;
 
-	   [d setObject: (*csImp)(NSString_class, csSel, content)
-		 forKey: (*csImp)(NSString_class, csSel, name)];
+	   [d setObject: UTF8Str(content) forKey: UTF8Str(name)];
 	}
       else
 	{
-	   [d setObject: @""
-		 forKey: (*csImp)(NSString_class, csSel, name)];
+	   [d setObject: @"" forKey: UTF8Str(name)];
 	}
       prop = prop->next;
   }
@@ -777,8 +791,7 @@ static NSMapTable	*nodeNames = 0;
   if (((xmlNodePtr)lib)->children != NULL
     && ((xmlNodePtr)lib)->children->content != NULL)
     {
-      return (*csImp)(NSString_class, csSel,
-	((xmlNodePtr)(lib))->children->content);
+      return UTF8Str(((xmlNodePtr)(lib))->children->content);
     }
   return nil;
 }
@@ -1272,9 +1285,9 @@ internalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER internalSubset: (*csImp)(NSString_class, csSel, name)
-	       externalID: (*csImp)(NSString_class, csSel, ExternalID)
-		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
+  [HANDLER internalSubset: UTF8Str(name)
+	       externalID: UTF8Str(ExternalID)
+		 systemID: UTF8Str(SystemID)];
 }
 
 static void
@@ -1282,31 +1295,31 @@ externalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER externalSubset: (*csImp)(NSString_class, csSel, name)
-	       externalID: (*csImp)(NSString_class, csSel, ExternalID)
-		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
+  [HANDLER externalSubset: UTF8Str(name)
+	       externalID: UTF8Str(ExternalID)
+		 systemID: UTF8Str(SystemID)];
 }
 
 static xmlParserInputPtr
 resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
 {
   NSCAssert(ctx,@"No Context");
-  return [HANDLER resolveEntity: (*csImp)(NSString_class, csSel, publicId)
-		       systemID: (*csImp)(NSString_class, csSel, systemId)];
+  return [HANDLER resolveEntity: UTF8Str(publicId)
+		       systemID: UTF8Str(systemId)];
 }
 
 static xmlEntityPtr
 getEntityFunction(void *ctx, const char *name)
 {
   NSCAssert(ctx,@"No Context");
-  return [HANDLER getEntity: (*csImp)(NSString_class, csSel, name)];
+  return [HANDLER getEntity: UTF8Str(name)];
 }
 
 static xmlEntityPtr
 getParameterEntityFunction(void *ctx, const char *name)
 {
   NSCAssert(ctx,@"No Context");
-  return [HANDLER getParameterEntity: (*csImp)(NSString_class, csSel, name)];
+  return [HANDLER getParameterEntity: UTF8Str(name)];
 }
 
 static void
@@ -1314,11 +1327,11 @@ entityDeclFunction(void *ctx, const char *name, int type,
   const char *publicId, const char *systemId, char *content)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER entityDecl: (*csImp)(NSString_class, csSel, name)
+  [HANDLER entityDecl: UTF8Str(name)
 		 type: type
-	       public: (*csImp)(NSString_class, csSel, publicId)
-	       system: (*csImp)(NSString_class, csSel, systemId)
-	      content: (*csImp)(NSString_class, csSel, content)];
+	       public: UTF8Str(publicId)
+	       system: UTF8Str(systemId)
+	      content: UTF8Str(content)];
 }
 
 static void
@@ -1326,11 +1339,11 @@ attributeDeclFunction(void *ctx, const char *elem, const char *name,
   int type, int def, const char *defaultValue, xmlEnumerationPtr tree)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER attributeDecl: (*csImp)(NSString_class, csSel, elem)
-		    name: (*csImp)(NSString_class, csSel, name)
+  [HANDLER attributeDecl: UTF8Str(elem)
+		    name: UTF8Str(name)
 		    type: type
 	    typeDefValue: def
-	    defaultValue: (*csImp)(NSString_class, csSel, defaultValue)];
+	    defaultValue: UTF8Str(defaultValue)];
 }
 
 static void
@@ -1338,7 +1351,7 @@ elementDeclFunction(void *ctx, const char *name, int type,
   xmlElementContentPtr content)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER elementDecl: (*csImp)(NSString_class, csSel, name)
+  [HANDLER elementDecl: UTF8Str(name)
 		  type: type];
 
 }
@@ -1348,9 +1361,9 @@ notationDeclFunction(void *ctx, const char *name,
   const char *publicId, const char *systemId)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER notationDecl: (*csImp)(NSString_class, csSel, name)
-		 public: (*csImp)(NSString_class, csSel, publicId)
-		 system: (*csImp)(NSString_class, csSel, systemId)];
+  [HANDLER notationDecl: UTF8Str(name)
+		 public: UTF8Str(publicId)
+		 system: UTF8Str(systemId)];
 }
 
 static void
@@ -1358,10 +1371,10 @@ unparsedEntityDeclFunction(void *ctx, const char *name,
   const char *publicId, const char *systemId, const char *notationName)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER unparsedEntityDecl: (*csImp)(NSString_class, csSel, name)
-		       public: (*csImp)(NSString_class, csSel, publicId)
-		       system: (*csImp)(NSString_class, csSel, systemId)
-		 notationName: (*csImp)(NSString_class, csSel, notationName)];
+  [HANDLER unparsedEntityDecl: UTF8Str(name)
+		       public: UTF8Str(publicId)
+		       system: UTF8Str(systemId)
+		 notationName: UTF8Str(notationName)];
 }
 
 static void
@@ -1381,7 +1394,7 @@ startElementFunction(void *ctx, const char *name, const char **atts)
 	  [dict setObject: obj forKey: key];
 	}
     }
-  [HANDLER startElement: (*csImp)(NSString_class, csSel, name)
+  [HANDLER startElement: UTF8Str(name)
 	     attributes: dict];
 }
 
@@ -1389,50 +1402,50 @@ static void
 endElementFunction(void *ctx, const char *name)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER endElement: (*csImp)(NSString_class, csSel, name)];
+  [HANDLER endElement: UTF8Str(name)];
 }
 
 static void
 charactersFunction(void *ctx, const char *ch, int len)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER characters: (*cslImp)(NSString_class, cslSel, ch, len)];
+  [HANDLER characters: UTF8StrLen(ch, len)];
 }
 
 static void
 referenceFunction(void *ctx, const char *name)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER reference: (*csImp)(NSString_class, csSel, name)];
+  [HANDLER reference: UTF8Str(name)];
 }
 
 static void
 ignorableWhitespaceFunction(void *ctx, const char *ch, int len)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER ignoreWhitespace: (*cslImp)(NSString_class, cslSel, ch, len)];
+  [HANDLER ignoreWhitespace: UTF8StrLen(ch, len)];
 }
 
 static void
 processInstructionFunction(void *ctx, const char *target,  const char *data)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER processInstruction: (*csImp)(NSString_class, csSel, target)
-			 data: (*csImp)(NSString_class, csSel, data)];
+  [HANDLER processInstruction: UTF8Str(target)
+			 data: UTF8Str(data)];
 }
 
 static void
 cdataBlockFunction(void *ctx, const char *value, int len)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER cdataBlock: (*cslImp)(NSString_class, cslSel, value, len)];
+  [HANDLER cdataBlock: UTF8StrLen(value, len)];
 }
 
 static void
 commentFunction(void *ctx, const char *value)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER comment: (*csImp)(NSString_class, csSel, value)];
+  [HANDLER comment: UTF8Str(value)];
 }
 
 static void
@@ -1446,7 +1459,7 @@ warningFunction(void *ctx, const char *msg, ...)
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
-  [HANDLER warning: (*csImp)(NSString_class, csSel, allMsg)];
+  [HANDLER warning: UTF8Str(allMsg)];
 }
 
 static void
@@ -1459,7 +1472,7 @@ errorFunction(void *ctx, const char *msg, ...)
   vsprintf(allMsg, msg, args);
   va_end(args);
   NSCAssert(ctx,@"No Context");
-  [HANDLER error: (*csImp)(NSString_class, csSel, allMsg)];
+  [HANDLER error: UTF8Str(allMsg)];
 }
 
 static void
@@ -1471,8 +1484,8 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
-  NSCAssert(ctx,@"No Context");
-  [HANDLER fatalError: (*csImp)(NSString_class, csSel, allMsg)];
+  NSCAssert(ctx, @"No Context");
+  [HANDLER fatalError: UTF8Str(allMsg)];
 }
 
 #undef	HANDLER

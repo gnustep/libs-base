@@ -184,7 +184,7 @@
     {
       _count = length;
       _contents_chars = chars;
-      if (flag && chars)
+      if (flag == YES && chars != 0)
 	{
 #if	GS_WITH_GC
 	  _zone = GSAtomicMallocZone();
@@ -669,7 +669,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
       _count = length;
       _capacity = length;
       _contents_chars = chars;
-      if (flag && chars)
+      if (flag == YES && chars != 0)
 	{
 #if	GS_WITH_GC
 	  _zone = GSAtomicMallocZone();
