@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <base/fast.x>
 #include <Foundation/DistributedObjects.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSPort.h>
@@ -37,6 +38,13 @@ static Class	distantObjectClass = 0;
 typedef struct {
   @defs(NSDistantObject)
 } NSDO;
+
+@interface NSConnection (DistantObjectHacks)
+- (BOOL) includesProxyForTarget: (unsigned)target;
+- (void) addLocalObject: (id)obj;
+- (void) addProxy: (id)obj;
+- (void) removeProxy: (id)obj;
+@end
 
 /* This is the proxy tag; it indicates where the local object is,
    and determines whether the reply port to the Connection-where-the-
@@ -724,6 +732,11 @@ enum
 	 (gsaddr)self, _handle, (gsaddr)_connection);
 
   return self;
+}
+
+- (IMP) methodForSelector: (SEL)aSelector
+{
+  return get_imp(fastClass((id)self), aSelector);
 }
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
