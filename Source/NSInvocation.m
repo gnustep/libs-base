@@ -441,7 +441,11 @@ _arg_addr(NSInvocation *inv, int index)
     {
       Super	s;
 
+#ifndef NeXT_RUNTIME
       s.self = _target;
+#else
+      s.receiver = _target;
+#endif
       if (GSObjCIsInstance(_target))
 	s.class = class_get_super_class(GSObjCClass(_target));
       else

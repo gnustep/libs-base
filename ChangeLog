@@ -1,3 +1,13 @@
+2001-07-14  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: More function defs.
+	* Headers/gnustep/base/objc-load.h (objc_get_symbol_path): Correct
+	def to match function decl.
+	* Source/NSDistantObject.m (-selectorTypeForProxy:): Declare
+	variable in NeXT implementation.
+	* Source/NSInvocation.m (-invokeWithTarget:): Special def for NeXT.
+	* Source/thr-pthread.m: Add forward decl of __objc_thread_detach.
+
 2001-07-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAttributedString.m: ([addAttributes:range:]) corrected

@@ -70,6 +70,8 @@ typedef struct objc_super Super;
     (((struct objc_class*)(OBJECT))->isa)
 #define class_get_super_class(CLASSPOINTER) \
     (((struct objc_class*)(CLASSPOINTER))->super_class)
+#define object_get_class_name(OBJECT) \
+     (((struct objc_class*)(object_get_class(OBJECT)))->name)
 
 #define __objc_responds_to(OBJECT,SEL) \
     class_getInstanceMethod(object_get_class(OBJECT), SEL)
@@ -78,6 +80,8 @@ typedef struct objc_super Super;
 #define CLS_ISMETA(CLASSPOINTER) \
     ((((struct objc_class*)(CLASSPOINTER))->info) & CLS_META)
 #define objc_msg_lookup(OBJ,SEL) \
+    (class_getInstanceMethod(object_get_class(OBJ), SEL)->method_imp)
+#define objc_msg_lookup_super(OBJ,SEL) \
     (class_getInstanceMethod(object_get_class(OBJ), SEL)->method_imp)
 
 
