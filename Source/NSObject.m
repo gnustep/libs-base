@@ -31,6 +31,7 @@
 // #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSString.h>
 #include <objects/collhash.h>
 #include <objects/eltfuncs.h>
 #include <limits.h>
@@ -213,12 +214,12 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (NSString*) description
 {
-  return nil;
+  return [NSString stringWithCString: object_get_class_name(self)];
 }
 
 + (NSString*) description
 {
-  return nil;
+  return [NSString stringWithCString: class_get_class_name(self)];
 }
 
 + (void) poseAsClass: (Class)aClassObject
