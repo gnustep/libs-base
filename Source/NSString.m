@@ -1982,6 +1982,7 @@ handle_printf_atsign (FILE *stream,
     [s deleteCharactersInRange: ((NSRange){0,7})];
 
   /* Condense `//' */
+  r = NSMakeRange(0, [s length]);
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
 				 options: 0
 				   range: r]).length)
@@ -1998,6 +1999,7 @@ handle_printf_atsign (FILE *stream,
     }
 
   /* Condense `/./' */
+  r = NSMakeRange(0, [s length]);
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
 				 options: 0
 				   range: r]).length)
@@ -2021,6 +2023,7 @@ handle_printf_atsign (FILE *stream,
     return s;
 
   /* Condense `/../' */
+  r = NSMakeRange(0, [s length]);
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
 				 options: 0
 				   range: r]).length)
