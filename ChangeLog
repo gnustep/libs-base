@@ -1,5 +1,11 @@
 2003-05-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSString.m: ([-initWithCStringNocopy:length:freeWhenDone:])
+	check encodings and convert to unicode if necessary. Thanks to
+	Alaxander for pointing out bug.
+
+2003-05-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSString.m: Fix call to GSFormat() to append to a mutable
 	string whose contents should not be freed.
 	Removed bogus TODO comments saying code broken when defEnc!=intEnc

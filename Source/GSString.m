@@ -424,7 +424,7 @@ setup(void)
 	{
 	  self = [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
 	}
-      if (flag == YES)
+      if (flag == YES && chars != 0)
 	{
 	  NSZoneFree(NSZoneFromPointer(chars), chars);
 	}
@@ -2860,20 +2860,36 @@ transmute(ivars self, NSString *aString)
   return self;
 }
 
-- (id) initWithCStringNoCopy: (char*)byteString
+- (id) initWithCStringNoCopy: (char*)chars
 		      length: (unsigned int)length
 	        freeWhenDone: (BOOL)flag
 {
-  _count = length;
-  _capacity = length;
-  _contents.c = byteString;
-  _flags.wide = 0;
-  if (flag == YES && byteString != 0)
+  if (defEnc == intEnc)
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+
+      if (GSToUnicode(&u, &l, chars, length, defEnc, GSObjCZone(self), 0) == NO)
+	{
+	  DESTROY(self);
+	}
+      else
+	{
+	  self = [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
+	}
+      if (flag == YES && chars != 0)
+	{
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+	}
+      return self;
+    }
+
+  if (flag == YES && chars != 0)
     {
 #if	GS_WITH_GC
       _zone = GSAtomicMallocZone();
 #else
-      _zone = NSZoneFromPointer(byteString);
+      _zone = NSZoneFromPointer(chars);
 #endif
       _flags.free = 1;
     }
@@ -2881,6 +2897,11 @@ transmute(ivars self, NSString *aString)
     {
       _zone = 0;
     }
+  _count = length;
+  _capacity = length;
+  _contents.c = chars;
+  _flags.wide = 0;
+
   return self;
 }
 
