@@ -100,6 +100,8 @@ separately.
 This version of the distributed objects only works with sockets.  A Mach
 port back-end should be on the way.
 
+@end itemize
+ 
 @section Test Programs
 
 Some of the programs I've used to test the library are in

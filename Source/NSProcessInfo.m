@@ -325,8 +325,13 @@ int main(int argc, char *argv[], char *env[])
 + (NSProcessInfo *)processInfo
 {
   // Check if the main() function was successfully called
-  NSAssert(_gnu_processName && _gnu_arguments && _gnu_environment,
-	   _GNU_MISSING_MAIN_FUNCTION_CALL);
+  // We can't use NSAssert, which calls NSLog, which calls NSProcessInfo...
+  if (!(_gnu_processName && _gnu_arguments && _gnu_environment))
+    {
+      _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+      [NSException raise: NSInternalInconsistencyException
+	       format: _GNU_MISSING_MAIN_FUNCTION_CALL];
+    }
 
   if (!_gnu_sharedProcessInfoObject)
     _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];

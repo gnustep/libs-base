@@ -335,7 +335,11 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     }
 
     hasTerminated = YES;
+#ifdef	HAVE_KILLPG
     killpg(taskId, SIGTERM);
+#else
+    kill(-taskId, SIGTERM);
+#endif
 
     if (hasNotified == NO) {
 	[self _sendNotification];

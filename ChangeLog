@@ -1,7 +1,44 @@
+Fri May 29 10:16:09 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* doc/news.tmpl.texi: Fixed typo.  
+	* doc/readme.tmpl.texi: Likewise. (patch from doko@cs.tu-berlin.de
+ 	(Matthias Klose)).
+	* src/ostream.m (ostream_save_buffer): Retain stream.
+	* src/include/MemoryStream.h: Remove outdated methods.
+	* src/include/NSException.h (NS_VALUERETURN): New macro.
+
+Thu May 28 10:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: Added code to cope with systems where we can't
+	determine what network interfaces are active.
+
+	* checks/heap.m: Portability fix for svr4 systems.
+
+	* configure.in: Improved portability to svr4 systems.
+
+	* src/NSMethodSignature.m: Changed order of includes to fix
+ 	compilation on svr4 systems.
+
+	* src/NSPage.m: Altered to use 'sysconf(_SC_PAGESIZE)' to get page
+ 	size on svr4 systems.
+
+	* src/NSTask.m: Altered to use 'kill()' rather than 'killpg()' on
+ 	svr4
+
+	* src/NSThread.m: Altered to use 'sleep()' rather than 'usleep()'
+ 	on svr4
+
+	* src/include/config.h.in: Added a couple of configuration
+ 	constants for portability - HAVE_KILLPG and HAVE_USLEEP
+
 Thu May 21 09:38:14 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSUser.m (NSUserName): Use getpwuid for BSD machines (patch
 	provided by Stefanos Kiakas <stefanos@ringworld.uniscape.com>).
+
+	* src/GetDefEncoding.c (GetDefEncoding): Change binary AND to 
+	logical AND. (GetEncoding): Likewise (patch provided by 
+	David Fritzsche <david@dementia.wupper.de>).
 
 Wed May 20 15:26:50 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

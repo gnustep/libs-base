@@ -2940,9 +2940,9 @@ done
 
 
 #--------------------------------------------------------------------
-# This function needed by NSDebug.m
+# This function needed by NSTask.m
 #--------------------------------------------------------------------
-for ac_func in strerror
+for ac_func in killpg
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:2949: checking for $ac_func" >&5
@@ -2999,9 +2999,9 @@ done
 
 
 #--------------------------------------------------------------------
-# This function needed by NSString for handling of %@ printf directive.
+# This function needed by NSThread.m
 #--------------------------------------------------------------------
-for ac_func in register_printf_function
+for ac_func in usleep
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:3008: checking for $ac_func" >&5
@@ -3033,6 +3033,124 @@ $ac_func();
 ; return 0; }
 EOF
 if { (eval echo configure:3036: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_func 1
+EOF
+ 
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
+
+#--------------------------------------------------------------------
+# This function needed by NSDebug.m
+#--------------------------------------------------------------------
+for ac_func in strerror
+do
+echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+echo "configure:3067: checking for $ac_func" >&5
+if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 3072 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char $ac_func();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+$ac_func();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:3095: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_func 1
+EOF
+ 
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
+
+#--------------------------------------------------------------------
+# This function needed by NSString for handling of %@ printf directive.
+#--------------------------------------------------------------------
+for ac_func in register_printf_function
+do
+echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+echo "configure:3126: checking for $ac_func" >&5
+if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 3131 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char $ac_func();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+$ac_func();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:3154: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else

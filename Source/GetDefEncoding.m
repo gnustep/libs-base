@@ -65,7 +65,7 @@ NSStringEncoding GetDefEncoding()
   if (encoding)
     {
       count = 0;
-      while ((count < str_encoding_table_size) &
+      while ((count < str_encoding_table_size) &&
 	     strcmp(str_encoding_table[count].ename,encoding))
 	{
 	  count++;
@@ -125,7 +125,7 @@ GetEncodingName(NSStringEncoding encoding)
 {
   char* ret;
   unsigned int count=0;
-  while ((count < str_encoding_table_size) &
+  while ((count < str_encoding_table_size) &&
          !(str_encoding_table[count].enc == encoding))
     {
       count++;

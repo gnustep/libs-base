@@ -59,6 +59,9 @@
 #endif
 #endif
 
+#if	defined(__svr4__)
+#include <sys/stropts.h>
+#endif
 #endif /* !__WIN32__ */
 
 #include	"gdomap.h"
@@ -123,6 +126,7 @@ static void	handle_request(int);
 static void	handle_send();
 static void	handle_write(int);
 static void	init_iface();
+static void	load_iface(const char* from);
 static void	init_ports();
 static void	init_probe();
 static void	queue_msg(struct sockaddr_in* a, unsigned char* d, int l);
@@ -602,71 +606,65 @@ dump_stats()
 
 /*
  *	Name -		init_iface()
- *	Purpose -	Establish our well-known port (my_port) and build up
- *			an array of the IP addresses supported on the network
- *			interfaces of this machine.
- *			The first non-loopback interface is presumed to be
- *			our primary interface and it's address is stored in
- *			the global variable 'my_addr'.
+ *	Purpose -	Build up an array of the IP addresses supported on
+ *			the network interfaces of this machine.
  */
 static void
 init_iface()
 {
-    struct servent	*sp;
+#ifdef	SIOCGIFCONF
     struct ifconf	ifc;
     struct ifreq	ifreq;
     struct ifreq	*ifr;
     struct ifreq	*final;
     char		buf[MAX_IFACE * sizeof(struct ifreq)];
-    int			set_my_addr = 0;
     int			desc;
     int			num_iface;
 
-    /*
-     *	First we determine the port for the 'gdomap' service - ideally
-     *	this should be the default port, since we should have registered
-     *	this with the appropriate authority and have it reserved for us.
-     */
-#ifdef	GDOMAP_PORT_OVERRIDE
-    my_port = htons(GDOMAP_PORT_OVERRIDE);
-#else
-    my_port = htons(GDOMAP_PORT);
-    if ((sp = getservbyname("gdomap", "tcp")) == 0) {
-	fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
-    }
-    else {
-	unsigned short	tcp_port = sp->s_port;
-
-	if ((sp = getservbyname("gdomap", "udp")) == 0) {
-	    fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
-	}
-	else if (sp->s_port != tcp_port) {
-	    fprintf(stderr, "Warning - UDP and TCP service entries differ\n");
-	    fprintf(stderr, "Warning - I will use the TCP entry for both!\n");
-	}
-	if (tcp_port != my_port) {
-	    fprintf(stderr, "Warning - gdomap not running on normal port\n");
-	}
-	my_port = tcp_port;
-    }
-#endif
-
     if ((desc = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-	perror("socketf for init_iface");
+	perror("socket for init_iface");
 	exit(1);
     }
+#if	defined(__svr4__)
+    {
+	struct strioctl	ioc;
+
+	ioc.ic_cmd = SIOCGIFCONF;
+	ioc.ic_timout = 0;
+	ioc.ic_len = sizeof(buf);
+	ioc.ic_dp = buf;
+	if (ioctl(desc, I_STR, (char*)&ioc) < 0) {
+	    ioc.ic_len = 0;
+	}
+	ifc.ifc_len = ioc.ic_len;
+	ifc.ifc_buf = ioc.ic_dp;
+    }
+#else
     ifc.ifc_len = sizeof(buf);
     ifc.ifc_buf = buf;
     if (ioctl(desc, SIOCGIFCONF, (char*)&ifc) < 0) {
-	perror("SIOCGIFCONF for init_iface");
-	close(desc);
-	exit(1);
+	ifc.ifc_len = 0;
     }
+#endif
 
     /*
      *	Find the IP address of each active network interface.
      */
     num_iface = ifc.ifc_len / sizeof(struct ifreq);
+    if (num_iface == 0) {
+	int	res = errno;
+
+	perror("SIOCGIFCONF for init_iface found no active interfaces");
+	if (res == EINVAL) {
+	    fprintf(stderr,
+"Either you have too many network interfaces on your machine (in which case\n"
+"you need to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or\n"
+"your system is buggy, and you need to use the '-a' command line flag for\n"
+"gdomap to manually set the interface addresses and masks to be used.\n");
+	}
+	close(desc);
+	exit(1);
+    }
     addr = (struct in_addr*)malloc(num_iface*IASIZE);
     mask = (struct in_addr*)malloc(num_iface*IASIZE);
 
@@ -708,6 +706,172 @@ init_iface()
 	}
     }
     close(desc);
+#else
+    fprintf(stderr, "I can't find the SIOCGIFCONF ioctl on this platform -\r\nuse the '-a' flag to load interface details from a file instead.\r\n");
+    exit(1);
+#endif
+}
+
+/*
+ *	Name -		load_iface()
+ *	Purpose -	Read addresses and netmasks for interfaces on this
+ *			machine from a file.
+ */
+static void
+load_iface(const char* from)
+{
+    FILE	*fptr = fopen(from, "r");
+    char	buf[128];
+    int		num_iface = 0;
+
+    if (fptr == 0) {
+	fprintf(stderr, "Unable to open address config - '%s'\n", from);
+	exit(1);
+    }
+
+    while (fgets(buf, sizeof(buf), fptr) != 0) {
+	char	*ptr = buf;
+
+	/*
+	 *	Strip leading white space.
+	 */
+	while (isspace(*ptr)) {
+	    ptr++;
+	}
+	if (ptr != buf) {
+	    strcpy(buf, ptr);
+	}
+	/*
+	 *	Strip comments.
+	 */
+	ptr = strchr(buf, '#');
+	if (ptr) {
+	    *ptr = '\0';
+	}
+	/*
+	 *	Strip trailing white space.
+	 */
+	ptr = buf;
+	while (*ptr) {
+	    ptr++;
+	}
+	while (ptr > buf && isspace(ptr[-1])) {
+	    ptr--;
+	}
+	*ptr = '\0';
+	/*
+	 *	Ignore blank lines.
+	 */
+	if (*buf == '\0') {
+	    continue;
+	}
+	num_iface++;
+    }
+    fseek(fptr, 0, 0);
+
+    if (num_iface == 0) {
+	fprintf(stderr, "No address mask pairs found in file.\n");
+	exit(1);
+    }
+    addr = (struct in_addr*)malloc(num_iface*IASIZE);
+    mask = (struct in_addr*)malloc(num_iface*IASIZE);
+
+    while (fgets(buf, sizeof(buf), fptr) != 0) {
+	char	*ptr = buf;
+
+	/*
+	 *	Strip leading white space.
+	 */
+	while (isspace(*ptr)) {
+	    ptr++;
+	}
+	if (ptr != buf) {
+	    strcpy(buf, ptr);
+	}
+	/*
+	 *	Strip comments.
+	 */
+	ptr = strchr(buf, '#');
+	if (ptr) {
+	    *ptr = '\0';
+	}
+	/*
+	 *	Strip trailing white space.
+	 */
+	ptr = buf;
+	while (*ptr) {
+	    ptr++;
+	}
+	while (ptr > buf && isspace(ptr[-1])) {
+	    ptr--;
+	}
+	*ptr = '\0';
+	/*
+	 *	Ignore blank lines.
+	 */
+	if (*buf == '\0') {
+	    continue;
+	}
+
+	ptr = buf;
+	while (*ptr && (isdigit(*ptr) || (*ptr == '.'))) {
+	    ptr++;
+	}
+	while (isspace(*ptr)) {
+	    *ptr++ = '\0';
+	}
+	addr[interfaces].s_addr = inet_addr(buf);
+	mask[interfaces].s_addr = inet_addr(ptr);
+	if (addr[interfaces].s_addr == -1) {
+	    fprintf(stderr, "'%s' is not as valid address\n", buf);
+	}
+	else if (mask[interfaces].s_addr == -1) {
+	    fprintf(stderr, "'%s' is not as valid netmask\n", ptr);
+	}
+	else {
+	    interfaces++;
+	}
+    }
+    fclose(fptr);
+}
+
+/*
+ *	Name -		init_my_port()
+ *	Purpose -	Establish our well-known port (my_port).
+ */
+static void
+init_my_port()
+{
+    struct servent	*sp;
+
+    /*
+     *	First we determine the port for the 'gdomap' service - ideally
+     *	this should be the default port, since we should have registered
+     *	this with the appropriate authority and have it reserved for us.
+     */
+#ifdef	GDOMAP_PORT_OVERRIDE
+    my_port = htons(GDOMAP_PORT_OVERRIDE);
+#else
+    my_port = htons(GDOMAP_PORT);
+    if ((sp = getservbyname("gdomap", "tcp")) == 0) {
+	fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
+    }
+    else {
+	unsigned short	tcp_port = sp->s_port;
+
+	if ((sp = getservbyname("gdomap", "udp")) == 0) {
+	    fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
+	}
+	else if (sp->s_port != tcp_port) {
+	    fprintf(stderr, "Warning - UDP and TCP service entries differ\n");
+	    fprintf(stderr, "Warning - I will use the TCP entry for both!\n");
+	}
+	if (tcp_port != my_port) {
+	    fprintf(stderr, "Warning - gdomap not running on normal port\n");
+	}
+	my_port = tcp_port;
+    }
+#endif
 }
 
 /*
@@ -1767,7 +1931,7 @@ int
 main(int argc, char** argv)
 {
     extern char	*optarg;
-    char	*options = "CHc:dfi:p";
+    char	*options = "CHa:c:dfi:p";
     int		c;
 
     /*
@@ -1788,6 +1952,7 @@ main(int argc, char** argv)
 		printf("GNU Distributed Objects name server\n");
 		printf("-C		help about configuration\n");
 		printf("-H		general help\n");
+		printf("-a file		use config file for interface list.\n");
 		printf("-c file		use config file for probe.\n");
 		printf("-d		extra debug logging.\n");
 		printf("-f		avoid fork() to make debugging easy\n");
@@ -1824,7 +1989,24 @@ main(int argc, char** argv)
 "Anything on a line after a hash ('#') is ignored.\n"
 "You tell gdomap about the config file with the '-c' command line option.\n");
 		printf("\n");
+		printf("\n");
+printf(
+"gdomap uses the SIOCGIFCONF ioctl to build a list of IP addresses and\n"
+"netmasks for the network interface cards on your machine.  On some operating\n"
+"systems, this facility is not available (or is broken), so you must tell\n"
+"gdomap the addresses and masks of the interfaces using the '-a' command line\n"
+"option.  The file named with '-a' should contain a series of lines with\n"
+"space separated pairs of addresses and masks in 'dot' notation.\n"
+"You must NOT include loopback interfaces in this list.\n"
+"If your operating system has some other method of giving you a list of\n"
+"network interfaces and masks, please send me example code so that I can\n"
+"implement it in gdomap.\n");
+		printf("\n");
 		exit(0);
+
+	    case 'a':
+		load_iface(optarg);
+		break;
 
 	    case 'c':
 		{
@@ -1979,7 +2161,10 @@ main(int argc, char** argv)
     (void)open("/dev/null", O_WRONLY);	/* Stdout.	*/
     (void)open("/dev/tty", O_WRONLY);	/* Stderr.	*/
 
-    init_iface();	/* Build up list of network interfaces.	*/
+    init_my_port();	/* Determine port to listen on.		*/
+    if (interfaces == 0) {
+	init_iface();	/* Build up list of network interfaces.	*/
+    }
     init_ports();	/* Create ports to handle requests.	*/
     init_probe();	/* Probe other name servers on net.	*/
 

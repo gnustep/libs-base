@@ -125,6 +125,7 @@ static BOOL debug_memory_stream = NO;
 }
 
 /* xxx This method will disappear. */
+#if 0
 - initWithSize: (unsigned)s
    prefix: (unsigned)p
    position: (unsigned)i
@@ -136,18 +137,27 @@ static BOOL debug_memory_stream = NO;
 	       prefix: p
 	       position: i];
 }
+#endif
 
 - initWithCapacity: (unsigned)capacity
 	    prefix: (unsigned)p
 {
-  return [self initWithSize: capacity
+  return [self _initOnMallocBuffer: 0
+	       freeWhenDone: YES
+	       size: capacity
+	       eofPosition: 0
 	       prefix: p
-	       position: 0];
+	       position: i];
 }
 
 - initWithCapacity: (unsigned)capacity
 {
-  return [self initWithSize:capacity prefix:0 position:0];
+  return [self _initOnMallocBuffer: 0
+	       freeWhenDone: YES
+	       size: capacity
+	       eofPosition: 0
+	       prefix: 0
+	       position: i];
 }
 
 - initWithData: (id)anObject
@@ -173,10 +183,12 @@ static BOOL debug_memory_stream = NO;
   return self;
 }
 
+#if 0
 - initWithSize: (unsigned)s
 {
   return [self initWithCapacity:s];
 }
+#endif
 
 - init
 {

@@ -30,6 +30,9 @@
 /* Define if you have the inet_aton function.  */
 #undef HAVE_INET_ATON
 
+/* Define if you have the killpg function.  */
+#undef HAVE_KILLPG
+
 /* Define if you have the mmap function.  */
 #undef HAVE_MMAP
 
@@ -47,6 +50,9 @@
 
 /* Define if you have the times function.  */
 #undef HAVE_TIMES
+
+/* Define if you have the usleep function.  */
+#undef HAVE_USLEEP
 
 /* Define if you have the valloc function.  */
 #undef HAVE_VALLOC

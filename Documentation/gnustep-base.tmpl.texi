@@ -52,10 +52,10 @@ into another language, under the above conditions for modified versions.
 @finalout
 @titlepage
 @title The GNUstep BASE Library
-@subtitle DRAFT Edition for GNUstep BASE Library @value{GNUSTEP-BASE-VERSION}
-@subtitle Last revision Jan 1998
+@c @subtitle DRAFT Edition for GNUstep BASE Library @value{GNUSTEP-BASE-VERSION}
+@c @subtitle Last revision Jan 1998
 @c @subtitle For GCC Version @value{GNUSTEP-BASE-GCC}
-@author Andrew McCallum
+@c @author Andrew McCallum
 @page
 
 @vskip 0pt plus 1filll

@@ -36,6 +36,7 @@ Classes
 
 *NSArray::			[9]*
 *NSAssertionHandler::		[9]*
+*NSAttributedString::		[8]*
 *NSAutoreleasePool::		[9]*
      	But not exception- safe
 
@@ -71,12 +72,18 @@ Classes
 *NSDeserializer::		[7]*
 *NSDictionary::		[8]*
 *NSDistantObject::		[7]*
+*NSDistributedLock::		[7]*
 *NSEnumerator::		[9]*
-*NSException::			[9]*
+*NSException::		[9]*
      	But this needs integration with new, better
 
+*NSFileHandle::		[9]*
+*NSFileManager::		[9]*
+*NSHashTable::		[8]*
+*NSHost::			[8]*
 *NSInvocation::		[3]*
 *NSLock::			[8]*
+*NSMapTable::		[8]*
 *NSMethodSignature::		[4]*
 *NSMutableArray::		[8]*
 *NSMutableCharacterSet::	[7]*
@@ -104,6 +111,7 @@ Classes
      	Careful, relationship with GNU String is tricky; this could 	 also
      use fixing.
 
+*NSTask::				[8]*
 *NSThread::			[8]*
 *NSTimeZone::			[8]*
 *NSTimeZoneDetail::		[8]*
