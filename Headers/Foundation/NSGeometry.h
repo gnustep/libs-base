@@ -487,15 +487,17 @@ NSContainsRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
 /** Returns 'YES' iff aRect totally encloses bRect.  NOTE: For
  * this to be the case, aRect cannot be empty, nor can any side
- * of bRect coincide with any side of aRect. */
+ * of bRect go beyond any side of aRect. Note that this behavior
+ * is different than the original OpenStep behavior, where the sides
+ * of bRect could not touch aRect. */
 GS_GEOM_SCOPE BOOL
 NSContainsRect(NSRect aRect, NSRect bRect)
 {
   return (!NSIsEmptyRect(bRect)
-	  && (NSMinX(aRect) < NSMinX(bRect))
-	  && (NSMinY(aRect) < NSMinY(bRect))
-	  && (NSMaxX(aRect) > NSMaxX(bRect))
-	  && (NSMaxY(aRect) > NSMaxY(bRect))) ? YES : NO;
+	  && (NSMinX(aRect) <= NSMinX(bRect))
+	  && (NSMinY(aRect) <= NSMinY(bRect))
+	  && (NSMaxX(aRect) >= NSMaxX(bRect))
+	  && (NSMaxY(aRect) >= NSMaxY(bRect))) ? YES : NO;
 }
 
 #ifndef	STRICT_OPENSTEP
