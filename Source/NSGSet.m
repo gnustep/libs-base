@@ -81,7 +81,7 @@
 
 - member: anObject
 {
-  [self containsObject: anObject];
+  return ([self containsObject: anObject] ? anObject : nil);
 }
 
 - (NSEnumerator*) objectEnumerator
