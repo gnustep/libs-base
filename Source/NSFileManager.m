@@ -564,7 +564,7 @@ static NSFileManager* defaultManager = nil;
 #endif
 
   /* This is consitent with MacOSX - just return NO for an invalid path. */
-  if (path == nil)
+  if ([path length] == 0)
     return NO;
     
 #if defined(__MINGW__)
@@ -719,7 +719,7 @@ static NSFileManager* defaultManager = nil;
 #endif
 
   /* This is consitent with MacOSX - just return NO for an invalid path. */
-  if (path == nil)
+  if ([path length] == 0)
     return NO;
 
 #if	defined(__MINGW__)
