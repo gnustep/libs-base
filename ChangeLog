@@ -1,3 +1,9 @@
+2003-12-23 18:15  Alexander Malmberg <alexander@malmberg.org>
+
+	* Documentation/news.texi, Headers/Foundation/NSDebug.h,
+	Source/GSPrivate.h, Source/externs.m, Tools/plist-0_9.dtd: Fix
+	spelling errors in comments.
+
 2003-12-06 12:34  Alexander Malmberg <alexander@malmberg.org>
 
 	* Headers/Foundation/NSGeometry.h (NSContainsRect): Return NO

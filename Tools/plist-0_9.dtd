@@ -57,10 +57,10 @@
 <!ELEMENT key (#PCDATA)>
 
 <!-- A string of characters.
-     Not all unicodee characters are legal in PCDATA in XML,
+     Not all unicode characters are legal in PCDATA in XML,
      so an escape mechanism is provided.  A string containing
      a sequence of the form \UXXXX or \uXXXX (where XXXX is a
-     hexadecimal number) will be replaced by thew appropriate
+     hexadecimal number) will be replaced by the appropriate
      unicode character after the property list is parsed.
 -->
 <!ELEMENT string (#PCDATA)>
