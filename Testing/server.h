@@ -57,7 +57,7 @@ struct myarray {
 @end
 #endif
 
-@interface Server : Object <ServerProtocol,InvalidationListening>
+@interface Server : NSObject <ServerProtocol,InvalidationListening>
 {
   id theList;
 }

@@ -20,11 +20,11 @@ int main ()
 
 	a = [Array new];
 
-	[a prependObject: [Object new]];
-	[a prependObject: [Object new]];
-	[a prependObject: [Object new]];
+	[a prependObject: [NSObject new]];
+	[a prependObject: [NSObject new]];
+	[a prependObject: [NSObject new]];
 	printf("count: %d\n", [a count]);
-	[a insertObject: [Object new] atIndex: 2]; // ok!
+	[a insertObject: [NSObject new] atIndex: 2]; // ok!
 	printf("count: %d\n", [a count]);
 
 	c = [[CircularArray alloc] initWithType:@encode(int)];
@@ -34,11 +34,11 @@ int main ()
 	[c insertElement:0 atIndex:2]; // core dump!
 
 	q = [Queue new];
-	[q enqueueObject: [Object new]];
-	[q enqueueObject: [Object new]];
-	[q enqueueObject: [Object new]];
+	[q enqueueObject: [NSObject new]];
+	[q enqueueObject: [NSObject new]];
+	[q enqueueObject: [NSObject new]];
 	printf("count: %d\n", [q count]);
-	[q insertObject: [Object new] atIndex: 2]; // core dump!
+	[q insertObject: [NSObject new] atIndex: 2]; // core dump!
 	printf("count: %d\n", [q count]);
 	return 0;
 }

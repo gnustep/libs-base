@@ -198,7 +198,7 @@
 int main()
 {
   id l = [[Server alloc] init];
-  id o = [[Object alloc] init];
+  id o = [[NSObject alloc] init];
   double d;
   Connection *c;
 
