@@ -339,6 +339,11 @@ static BOOL	multi_threaded = NO;
 
 
 
+/**
+ * NSConnection objects are used to manage communications between
+ * objects in different processes, in different machines, or in
+ * different threads.
+ */
 @implementation NSConnection
 
 /*
@@ -380,6 +385,12 @@ static BOOL	multi_threaded = NO;
 	    object: nil];
 }
 
+/**
+ * Returns an array containing all the NSConnection objects known to
+ * the system. These connections will be valid at the time that the
+ * array was created, but may be invalidated by other threads
+ * before you get to examine the array.
+ */
 + (NSArray*) allConnections
 {
   NSArray	*a;
@@ -390,6 +401,9 @@ static BOOL	multi_threaded = NO;
   return a;
 }
 
+/**
+ * Returns a connection initialised using -initWithReceivePort:sendPort:
+ */
 + (NSConnection*) connectionWithReceivePort: (NSPort*)r
 				   sendPort: (NSPort*)s
 {
@@ -404,6 +418,14 @@ static BOOL	multi_threaded = NO;
   return c;
 }
 
+/**
+ * <p>Returns an NSConnection object whose send port is that of the
+ * NSConnection registered under the name n on the host h
+ * </p>
+ * <p>This method calls +connectionWithRegisteredName:host:usingNameServer:
+ * using the default system name server.
+ * </p>
+ */
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
 					  host: (NSString*)h
 {
@@ -415,8 +437,33 @@ static BOOL	multi_threaded = NO;
 			    usingNameServer: s];
 }
 
-/*
- * Create a connection to a remote server.
+/**
+ * <p>
+ *   Returns an NSConnection object whose send port is that of the
+ *   NSConnection registered under <em>name</em> on <em>host</em>.
+ * </p>
+ * <p>
+ *   The nameserver <em>server</em> is used to look up the send
+ *   port to be used for the connection.
+ * </p>
+ * <p>
+ *   If <em>host</em> is <code>nil</code> or an empty string,
+ *   the host is taken to be the local machine.
+ *   If it is an asterisk ('*') then the nameserver checks all
+ *   hosts on the local subnet (unless the nameserver is one
+ *   that only manages local ports).
+ *   In the GNUstep implementation, the local host is searched before
+ *   any other hosts.
+ * </p>
+ * <p>
+ *   If no NSConnection can be found for <em>name</em> and
+ *   <em>host</em>host, the method returns <code>nil</code>.
+ * </p>
+ * <p>
+ *   The returned object has the default NSConnection of the
+ *   current thread as its parent (it has the same receive port
+ *   as the default connection).
+ * </p>
  */
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
 					  host: (NSString*)h
@@ -453,17 +500,23 @@ static BOOL	multi_threaded = NO;
   return con;
 }
 
+/**
+ */
 + (id) currentConversation
 {
   [self notImplemented: _cmd];
   return self;
 }
 
-/*
- *	Get the default connection for a thread.
- *	Possible problem - if the connection is invalidated, it won't be
- *	cleaned up until this thread calls this method again.  The connection
- *	and it's ports could hang around for a very long time.
+/**
+ * Returns the default connection for a thread.<br />
+ * Creates a new instance if necessary.<br />
+ * The default connection has a single NSPort object used for
+ * both sending and receiving - this it can't be used to
+ * connect to a remote process, but can be used to vend objects.<br />
+ * Possible problem - if the connection is invalidated, it won't be
+ * cleaned up until this thread calls this method again.  The connection
+ * and it's ports could hang around for a very long time.
  */
 + (NSConnection*) defaultConnection
 {
@@ -543,15 +596,21 @@ static BOOL	multi_threaded = NO;
     }
 }
 
+/**
+ * Undocumented feature for compatibility with OPENSTEP/MacOS-X
+ * +new returns the default connection.
+ */
 + (id) new
 {
-  /*
-   * Undocumented feature of OPENSTEP/MacOS-X
-   * +new returns the default connection.
-   */
   return RETAIN([self defaultConnection]);
 }
 
+/**
+ * This method calls
+ * +rootProxyForConnectionWithRegisteredName:host:usingNameServer:
+ * to return a proxy for a root object on the remote connection with
+ * the send port registered under name n on host h.
+ */
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
 						         host: (NSString*)h
 {
@@ -567,6 +626,14 @@ static BOOL	multi_threaded = NO;
   return proxy;
 }
 
+/**
+ * This method calls
+ * +connectionWithRegisteredName:host:usingNameServer:
+ * to get a connection, then sends it a -rootProxy message to get
+ * a proxy for the root object being vended by the remote connection.
+ * Returns the proxy or nil if it couldn't find a connection or if
+ * the root object for the connection has not been set.
+ */
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
   host: (NSString*)h usingNameServer: (NSPortNameServer*)s
 {
@@ -607,6 +674,10 @@ static BOOL	multi_threaded = NO;
     }
 }
 
+/**
+ * Adds mode to the run loop modes that the NSConnection
+ * will listen to for incoming messages.
+ */
 - (void) addRequestMode: (NSString*)mode
 {
   M_LOCK(_refGate);
@@ -628,6 +699,10 @@ static BOOL	multi_threaded = NO;
   M_UNLOCK(_refGate);
 }
 
+/**
+ * Adds loop to the set of run loops that the NSConnection
+ * will listen to for incoming messages.
+ */
 - (void) addRunLoop: (NSRunLoop*)loop
 {
   M_LOCK(_refGate);
@@ -656,32 +731,89 @@ static BOOL	multi_threaded = NO;
   [super dealloc];
 }
 
+/**
+ * Returns the delegate of the NSConnection.
+ */
 - (id) delegate
 {
   return GS_GC_UNHIDE(_delegate);
 }
 
+/**
+ * Sets the NSConnection configuration so that multiple threads may
+ * use the connection to send requests to the remote connection.<br />
+ * This option is inherited by child connections.<br />
+ * NB. A connection with multiple threads enabled will run slower than
+ * a normal connection.
+ */
 - (void) enableMultipleThreads
 {
   _multipleThreads = YES;
 }
 
+/**
+ * Returns YES if the NSConnection is configured to
+ * handle remote messages atomically, NO otherwise.<br />
+ * This option is inherited by child connections.
+ */
 - (BOOL) independentConversationQueueing
 {
   return _independentQueueing;
 }
 
+/**
+ * Undocumented feature of OPENSTEP/MacOS-X
+ * -init returns the default connection.
+ */
 - (id) init
 {
-  /*
-   * Undocumented feature of OPENSTEP/MacOS-X
-   * -init returns the default connection.
-   */
   RELEASE(self);
   return RETAIN([connectionClass defaultConnection]);
 }
 
-/* This is the designated initializer for NSConnection */
+/** <init />
+ * Initialises an NSConnection with the receive port r and the 
+ * send port s.<br />
+ *  Behavior varies with the port values as follows -
+ *  <deflist>
+ *    <term>r is <code>nil</code></term>
+ *    <desc>
+ *      The NSConnection is released and the method returns
+ *      <code>nil</code>.
+ *    </desc>
+ *    <term>s is <code>nil</code></term>
+ *    <desc>
+ *      The NSConnection uses r as the send port as
+ *      well as the receive port.
+ *    </desc>
+ *    <term>s is the same as r</term>
+ *    <desc>
+ *      The NSConnection is usable only for vending objects.
+ *    </desc>
+ *    <term>A connection with the same ports exists</term>
+ *    <desc>
+ *      The new connection is released and the old connection
+ *      is retained and returned.
+ *    </desc>
+ *    <term>A connection with the same ports (swapped) exists</term>
+ *    <desc>
+ *      The new connection is initialised as normal, and will
+ *      communicate with the old connection.
+ *    </desc>
+ *  </deflist>
+ *  <p>
+ *    If a connection exists whose send and receive ports are
+ *    both the same as the new connections receive port, that
+ *    existing connection is deemed to be the parent of the
+ *    new connection.  The new connection inherits configuration
+ *    information from the parent, and the delegate of the
+ *    parent has a chance to adjust ythe configuration of the
+ *    new connection or veto its creation.
+ *    <br/>
+ *    NSConnectionDidInitializeNotification is posted once a new
+ *    connection is initialised.
+ *  </p>
+ */
 - (id) initWithReceivePort: (NSPort*)r
 		  sendPort: (NSPort*)s
 {
@@ -827,11 +959,8 @@ static BOOL	multi_threaded = NO;
     {
       _multipleThreads = NO;
       _independentQueueing = NO;
-#ifndef	DBL_MAX
-#define	DBL_MAX	100000000.0
-#endif
-      _replyTimeout = DBL_MAX;
-      _requestTimeout = DBL_MAX;
+      _replyTimeout = 300.0;	// Five minute default.
+      _requestTimeout = 300.0;	// Five minute default.
       /*
        * Set up request modes array and make sure the receiving port
        * is added to the run loop to get data.
@@ -904,6 +1033,15 @@ static BOOL	multi_threaded = NO;
   return self;
 }
 
+/**
+ * Marks the receiving NSConnection as invalid.
+ * <br />
+ * Removes the NSConnections ports from any run loops.
+ * <br />
+ * Posts an NSConnectionDidDieNotification.
+ * <br />
+ * Invalidates all remote objects and local proxies.
+ */
 - (void) invalidate
 {
   M_LOCK(_refGate);
@@ -1020,11 +1158,18 @@ static BOOL	multi_threaded = NO;
   RELEASE(self);
 }
 
+/**
+ * Returns YES if the connection is invalid, NO otherwise.
+ */
 - (BOOL) isValid
 {
   return _isValid;
 }
 
+/**
+ * Returns an array of all the local proxies to objects that
+ * are retained by the remote connection.
+ */
 - (NSArray*) localObjects
 {
   NSMutableArray	*c;
@@ -1054,16 +1199,27 @@ static BOOL	multi_threaded = NO;
   return c;
 }
 
+/**
+ * Returns YES if the connection permits multiple threads to use it to
+ * send requests, NO otherwise.
+ */
 - (BOOL) multipleThreadsEnabled
 {
   return _multipleThreads;
 }
 
+/**
+ * Returns the NSPort object on which incoming messages are recieved.
+ */
 - (NSPort*) receivePort
 {
   return _receivePort;
 }
 
+/**
+ * Simply invokes -registerName:usingNameServer: passing it the default
+ * system nameserver.
+ */
 - (BOOL) registerName: (NSString*)name
 {
   NSPortNameServer	*svr = [NSPortNameServer systemDefaultPortNameServer];
@@ -1071,6 +1227,14 @@ static BOOL	multi_threaded = NO;
   return [self registerName: name withNameServer: svr];
 }
 
+/**
+ * Registers the recieve port of the NSConnection as name and
+ * unregisters the previous value (if any).<br />
+ * Returns YES on success, NO on failure.<br />
+ * On failure, the connection remains registered under the
+ * previous name.<br />
+ * Supply nil as name to unregister the NSConnection.
+ */
 - (BOOL) registerName: (NSString*)name withNameServer: (NSPortNameServer*)svr
 {
   BOOL			result = YES;
@@ -1108,6 +1272,10 @@ static BOOL	multi_threaded = NO;
   [super release];
 }
 
+/**
+ *  Returns an array of proxies to all the remote objects known to
+ * the NSConnection.
+ */
 - (NSArray *) remoteObjects
 {
   NSMutableArray	*c;
@@ -1137,6 +1305,9 @@ static BOOL	multi_threaded = NO;
   return c;
 }
 
+/**
+ * Removes mode from the run loop modes used to recieve incoming messages.
+ */
 - (void) removeRequestMode: (NSString*)mode
 {
   M_LOCK(_refGate);
@@ -1155,6 +1326,9 @@ static BOOL	multi_threaded = NO;
   M_UNLOCK(_refGate);
 }
 
+/**
+ * Removes loop from the run loops used to recieve incoming messages.
+ */
 - (void) removeRunLoop: (NSRunLoop*)loop
 {
   M_LOCK(_refGate);
@@ -1178,11 +1352,24 @@ static BOOL	multi_threaded = NO;
   M_UNLOCK(_refGate);
 }
 
+/**
+ * Returns the timeout interval used when waiting for a reply to
+ * a request sent on the NSConnection.  This value is inherited
+ * from the parent connection or may be set using the -setReplyTimeout:
+ * method.<br />
+ * Under MacOS-X the default value is documented as the maximum delay
+ * (effectively infinite), but under GNUstep it is set to a more
+ * useful 300 seconds.
+ */
 - (NSTimeInterval) replyTimeout
 {
   return _replyTimeout;
 }
 
+/**
+ * Returns an array of all the run loop modes that the NSConnection
+ * uses when waiting for an incoming request.
+ */
 - (NSArray*) requestModes
 {
   NSArray	*c;
@@ -1193,16 +1380,32 @@ static BOOL	multi_threaded = NO;
   return c;
 }
 
+/**
+ * Returns the timeout interval used when trying to send a request
+ * on the NSConnection.  This value is inherited from the parent
+ * connection or may be set using the -setRequestTimeout: method.<br />
+ * Under MacOS-X the default value is documented as the maximum delay
+ * (effectively infinite), but under GNUstep it is set to a more
+ * useful 300 seconds.
+ */
 - (NSTimeInterval) requestTimeout
 {
   return _requestTimeout;
 }
 
+/**
+ * Returns the object that is made available by this connection
+ * or by its parent (the object is associated with the receive port).<br />
+ * Returns nil if no root object has been set.
+ */
 - (id) rootObject
 {
   return rootObjectForInPort(_receivePort);
 }
 
+/**
+ * Returns the proxy for the root object of the remote NSConnection.
+ */
 - (NSDistantObject*) rootProxy
 {
   NSPortCoder		*op;
@@ -1230,6 +1433,10 @@ static BOOL	multi_threaded = NO;
   return AUTORELEASE(newProxy);
 }
 
+/**
+ * Removes the NSConnection from the current threads default
+ * run loop, then creates a new thread and runs the NSConnection in it.
+ */
 - (void) runInNewThread
 {
   [self removeRunLoop: [runLoopClass currentRunLoop]];
@@ -1238,11 +1445,19 @@ static BOOL	multi_threaded = NO;
 			 withObject: nil];
 }
 
+/**
+ * Returns the port on which the NSConnection sends messages.
+ */
 - (NSPort*) sendPort
 {
   return _sendPort;
 }
 
+/**
+ * Sets the NSConnection's delegate (without retaining it).<br />
+ * The delegate is able to control some of the NSConnection's
+ * behavior by implementing methods in an informal protocol.
+ */
 - (void) setDelegate: (id)anObj
 {
   _delegate = GS_GC_HIDE(anObj);
@@ -1252,16 +1467,32 @@ static BOOL	multi_threaded = NO;
     [anObj respondsToSelector: @selector(authenticationDataForComponents:)];
 }
 
+/**
+ * Sets whether or not the NSConnection should handle requests
+ * arriving from the remote NSConnection atomically.<br />
+ * By default, this is set to NO ... if set to YES then any messages
+ * arriving while one message is being dealt with, will be queued.<br />
+ * NB. careful - use of this option can cause deadlocks.
+ */
 - (void) setIndependentConversationQueueing: (BOOL)flag
 {
   _independentQueueing = flag;
 }
 
+/**
+ * Sets the time interval that the NSConnection will wait for a
+ * reply to one of its requests before raising an
+ * NSPortTimeoutException.
+ */
 - (void) setReplyTimeout: (NSTimeInterval)to
 {
   _replyTimeout = to;
 }
 
+/**
+ * Sets the runloop mode in which requests will be sent to the remote
+ * end of the connection.
+ */
 - (void) setRequestMode: (NSString*)mode
 {
   M_LOCK(_refGate);
@@ -1284,16 +1515,55 @@ static BOOL	multi_threaded = NO;
   M_UNLOCK(_refGate);
 }
 
+/**
+ * Sets the time interval that the NSConnection will wait to send
+ * one of its requests before raising an NSPortTimeoutException.
+ */
 - (void) setRequestTimeout: (NSTimeInterval)to
 {
   _requestTimeout = to;
 }
 
+/**
+ * Sets the root object that is vended by the connection.
+ */
 - (void) setRootObject: (id)anObj
 {
   setRootObjectForInPort(anObj, _receivePort);
 }
 
+/**
+ * Returns an object containing various statistics for the
+ * NSConnection.
+ * <br />
+ * On GNUstep the dictionary contains -
+ * <deflist>
+ *   <term>NSConnectionRepliesReceived</term>
+ *   <desc>
+ *     The number of messages replied to by the remote NSConnection
+ *   </desc>
+ *   <term>NSConnectionRepliesSent</term>
+ *   <desc>
+ *     The number of replies sent to the remote NSConnection
+ *   </desc>
+ *   <term>NSConnectionRequestsReceived</term>
+ *   <desc>
+ *     The number of messages recieved from the remote NSConnection
+ *   </desc>
+ *   <term>NSConnectionRequestsSent</term>
+ *   <desc>
+ *     The number of messages sent to the remote NSConnection
+ *   </desc>
+ *   <term>NSConnectionLocalCount</term>
+ *   <desc>
+ *     The number of local objects currently vended
+ *   </desc>
+ *   <term>NSConnectionProxyCount</term>
+ *   <desc>
+ *     The number of remote objects currently in use
+ *   </desc>
+ * </deflist>
+ */
 - (NSDictionary*) statistics
 {
   NSMutableDictionary	*d;
@@ -3171,5 +3441,107 @@ static void callEncoder (DOContext *ctxt)
     }
 }
 
+@end
+
+
+
+/**
+ * This category represents an informal protocol to which NSConnection
+ * delegates may conform ...  implementing these methods has the effect
+ * documented.
+ */
+@implementation Object (NSConnectionDelegate)
+/**
+ * <p>
+ *   This is not an NSConnection method, but is a method that may
+ *   be implemented by the delegate of an NSConnection object.
+ * </p>
+ * <p>
+ *   If the delegate implements this method, the NSConnection will
+ *   invoke the method for every message request or reply it receives
+ *   from the remote NSConnection.  The delegate should use the
+ *   authentication data to check all the NSData objects
+ *   in the components array (ignoring NSPort objects),
+ *   and return YES if they are valid, NO otherwise.
+ * </p>
+ * <p>
+ *   If the method returns NO then an
+ *   NSFailedAuthentication exception will be raised.
+ * </p>
+ * <p>
+ *   In GNUstep the components array is mutable, allowing
+ *   you to replace the NSData objects with your own version.
+ * </p>
+ */
+- (BOOL) authenticateComponents: (NSMutableArray*)components
+		       withData: (NSData*)authenticationData
+{
+  return NO;
+}
+
+/**
+ * <p>
+ *   This is not an NSConnection method, but is a method that may
+ *   be implemented by the delegate of an NSConnection object.
+ * </p>
+ * <p>
+ *   If the delegate implements this method, the NSConnection will
+ *   invoke the method for every message request ro reply it sends
+ *   to the remote NSConnection.  The delegate should generate
+ *   authentication data by examining all the NSData objects
+ *   in the components array (ignoring NSPort objects),
+ *   and return the authentication data that can be used by the
+ *   remote NSConnection.
+ * </p>
+ * <p>
+ *   If the method returns nil then an
+ *   NSGenericException exception will be raised.
+ * </p>
+ * <p>
+ *   In GNUstep the components array is mutable, allowing
+ *   you to replace the NSData objects with your own version.
+ * </p>
+ */
+- (NSData*) authenticationDataForComponents: (NSMutableArray*)components
+{
+  return nil;
+}
+
+/**
+ * <p>
+ *   This is not an NSConnection method, but is a method that may
+ *   be implemented by the delegate of an NSConnection object.
+ * </p>
+ * <p>
+ *   If the delegate implements this method, it will be called
+ *   whenever a new NSConnection is created that has this
+ *   NSConnection as its parent.  The delegate may take this
+ *   opportunity to adjust the configuration of the new
+ *   connection and may return a boolean value to tell the
+ *   parent whether the creation of the new connection is to
+ *   be permitted or not.
+ * </p>
+ */
+ - (BOOL) connection: (NSConnection*)parent
+  shouldMakeNewConnection: (NSConnection*)newConnection
+{
+  return NO;
+}
+
+- (NSConnection*) connection: (NSConnection*)ancestorConn
+		  didConnect: (NSConnection*)newConn
+{
+  return nil;
+}
+
+/**
+ * An old fashioned synonym for -connection:shouldMakeNewConnection: -
+ * don't use this.
+ */
+- (BOOL) makeNewConnection: (NSConnection*)newConnection
+                    sender: (NSConnection*)parent
+{
+  return NO;
+}
 @end
 

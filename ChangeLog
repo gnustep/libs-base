@@ -2,6 +2,8 @@
 
 	* Source/NSArray.m: Ensure property-list read/write uses UTF8
 	* Source/NSDictionary.m: ditto
+	* Source/NSConnection.m: Change timeouts to 300 seconds and
+	document all methods.
 
 2002-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
