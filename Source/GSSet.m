@@ -194,6 +194,11 @@ static Class	mutableSetClass;
   return map.nodeCount;
 }
 
+- (id) init
+{
+  return [self initWithObjects: 0 count: 0];
+}
+
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -549,6 +554,11 @@ static Class	mutableSetClass;
   NSSet	*copy = [setClass allocWithZone: z];
 
   return [copy initWithSet: self copyItems: NO];
+}
+
+- (id) init
+{
+  return [self initWithCapacity: 0];
 }
 
 /* Designated initialiser */

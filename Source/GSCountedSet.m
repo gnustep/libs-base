@@ -174,6 +174,11 @@
   return map.nodeCount;
 }
 
+- (id) init
+{
+  return [self initWithCapacity: 0];
+}
+
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {

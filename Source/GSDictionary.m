@@ -132,6 +132,11 @@ static SEL	objSel;
   return map.nodeCount;
 }
 
+- (id) init
+{
+  return [self initWithObjects: 0 forKeys: 0 count: 0];
+}
+
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -350,6 +355,11 @@ static SEL	objSel;
   NSDictionary	*copy = [GSDictionary allocWithZone: zone];
 
   return [copy initWithDictionary: self copyItems: NO];
+}
+
+- (id) init
+{
+  return [self initWithCapacity: 0];
 }
 
 /* Designated initialiser */
