@@ -1,3 +1,7 @@
+2004-09-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProxy.m: minor hash optimisation
+
 2004-09-19  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Headers/Foundation/NSCoder.h
