@@ -224,22 +224,32 @@ static NSMutableDictionary *_hostCache = nil;
     [super encodeWithCoder: aCoder];
     [aCoder encodeObject: [self address]];
 }
+
+#if 1
 /*	GNUstep specific method for more efficient decoding. */
 + (id) newWithCoder: (NSCoder*)aCoder
 {
     NSString	*address = [aCoder decodeObject];
     return [NSHost hostWithAddress: address];
 }
-/*	OpenStep method for decoding (not used) */
+#else
+/*	OpenStep methods for decoding (not used) */
+- (id) awakeAfterUsingCoder: (NSCoder*)aCoder
+{
+    return [NSHost hostWithAddress: [addresses objectAtIndex: 0]];
+}
+
 - (id) initWithCoder: (NSCoder*)aCoder
 {
     NSString	*address;
 
     [super initWithCoder: aCoder];
     address = [aCoder decodeObject];
-    [self dealloc];
-    return [NSHost hostWithAddress: address];
+    addresses = [NSArray arrayWithObject: address];
+    [address release];
+    return self;
 }
+#endif
 
 - (BOOL)isEqualToHost:(NSHost *)aHost
 {

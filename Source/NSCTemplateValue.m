@@ -77,6 +77,49 @@
     memcpy( value, &data, objc_sizeof_type([self objCType]) );
 }
 
+- (BOOL) isEqual: (id)other
+{
+    if ([other isKindOfClass: [self class]]) {
+	return [self isEqualToValue: other];
+    }
+    return NO;
+}
+
+- (BOOL) isEqualToValue: (NSValue*)aValue
+{
+    typedef _dt = data;
+    if ([aValue isKindOfClass: [self class]]) {
+	_dt	val = [aValue TYPE_METHOD];
+#if TYPE_ORDER == 0
+	return [data isEqual: val];
+#elif TYPE_ORDER == 1
+	if (data.x == val.x && data.y == val.y)
+	    return YES;
+	else
+	    return NO;
+#elif TYPE_ORDER == 2
+	if (data == val)
+	    return YES;
+	else
+	    return NO;
+#elif TYPE_ORDER == 3
+	if (data.origin.x == val.origin.x &&
+		data.origin.y == val.origin.y &&
+		data.size.width == val.size.width &&
+		data.size.height == val.size.height)
+	    return YES;
+	else
+	    return NO;
+#elif TYPE_ORDER == 4
+	if (data.width == val.width && data.height == val.height)
+	    return YES;
+	else
+	    return NO;
+#endif
+    }
+    return NO;
+}
+
 - (const char *)objCType
 {
     typedef _dt = data;

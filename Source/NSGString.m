@@ -145,7 +145,8 @@
   char *r;
 
   OBJC_MALLOC(r, char, _count+1);
-  ustrtostr(r,_contents_chars, _count);
+  if (_count > 0)
+    ustrtostr(r,_contents_chars, _count);
   r[_count] = '\0';
   [[[MallocAddress alloc] initWithAddress:r] autorelease];
   return r;

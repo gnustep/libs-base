@@ -260,6 +260,18 @@
     return self=[[NSUShortNumber alloc] initValue:&value withObjCType:NULL];
 }
 
+- (id) copy
+{
+    [self subclassResponsibility:_cmd];
+    return nil;
+}
+
+- copyWithZone: (NSZone*)zone
+{
+    [self subclassResponsibility:_cmd];
+    return nil;
+}
+
 - (NSString*) description
 {
     return [self descriptionWithLocale: nil];

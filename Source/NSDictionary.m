@@ -367,22 +367,41 @@ compareIt(id o1, id o2, void* context)
 - copyWithZone: (NSZone*)z
 {
   /* a deep copy */
-  int count = [self count];
-  id objects[count];
-  NSObject *keys[count];
-  id enumerator = [self keyEnumerator];
+  unsigned count = [self count];
+  id oldKeys[count];
+  id newKeys[count];
+  id oldObjects[count];
+  id newObjects[count];
+  id newDictionary;
+  unsigned i;
   id key;
-  int i;
+  NSEnumerator *enumerator = [self keyEnumerator];
+  BOOL needCopy = [self isKindOfClass: [NSMutableDictionary class]];
 
+  if (NSShouldRetainWithZone(self, z) == NO)
+    needCopy = YES;
   for (i = 0; (key = [enumerator nextObject]); i++)
     {
-      keys[i] = [key copyWithZone:z];
-      objects[i] = [[self objectForKey:key] copyWithZone:z];
+      oldKeys[i] = key;
+      oldObjects[i] = [self objectForKey:key];
+      newKeys[i] = [oldKeys[i] copyWithZone:z];
+      newObjects[i] = [oldObjects[i] copyWithZone:z];
+      if (oldKeys[i] != newKeys[i] || oldObjects[i] != newObjects[i])
+	needCopy = YES;
     }
-  return [[[[self class] _concreteClass] alloc] 
-	  initWithObjects:objects
-	  forKeys:keys
+  if (needCopy)
+    newDictionary = [[[[self class] _concreteClass] alloc] 
+	  initWithObjects:newObjects
+	  forKeys:newKeys
 	  count:count];
+  else
+    newDictionary = [self retain];
+  for (i = 0; i < count; i++)
+    {
+      [newKeys[i] release];
+      [newObjects[i] release];
+    }
+  return newDictionary;
 }
 
 - mutableCopyWithZone: (NSZone*)z

@@ -557,7 +557,7 @@ handle_printf_atsign (FILE *stream,
 
 - (id) init
 {
- [super init];
+ self = [super init];
  return self;
 }
 
@@ -1325,7 +1325,7 @@ if (mask & NSLiteralSearch)
   [aString getCharacters:s2];
   s2[s2len] = (unichar)0;
   end = s1len+1;
-  if (s2len > s1len)
+  if (s2len < s1len)
     end = s2len+1;
 
   if (mask & NSCaseInsensitiveSearch)
@@ -1346,7 +1346,12 @@ if (mask & NSLiteralSearch)
 	  if (s1[i] > s2[i]) return NSOrderedDescending;
 	}
     }
-  return NSOrderedSame;
+  if (s1len > s2len)
+    return NSOrderedDescending;
+  else if (s1len < s2len)
+    return NSOrderedAscending;
+  else
+    return NSOrderedSame;
 }  /* if NSLiteralSearch */
 else
 {
@@ -1362,9 +1367,9 @@ else
   while(myCount < end)
   {
     if(strCount>=[aString length])
-      return NSOrderedAscending;
-    if(myCount>=[self length])
       return NSOrderedDescending;
+    if(myCount>=[self length])
+      return NSOrderedAscending;
     myRange = [self rangeOfComposedCharacterSequenceAtIndex:  myCount];
     myCount += myRange.length;
     strRange = [aString rangeOfComposedCharacterSequenceAtIndex:  strCount];
@@ -1379,7 +1384,7 @@ else
       return result;
     } /* while */
   if(strCount<[aString length])
-    return NSOrderedDescending;
+    return NSOrderedAscending;
   return NSOrderedSame;
  }  /* else */
 }
@@ -2590,7 +2595,12 @@ else
 
 - copyWithZone: (NSZone*)zone
 {
-  return [[[self class] allocWithZone:zone] initWithString:self];
+  if ([self isKindOfClass: [NSMutableString class]] ||
+	NSShouldRetainWithZone(self, zone) == NO)
+    return [[[[self class] _concreteClass] allocWithZone:zone]
+	initWithString:self];
+  else
+    return [self retain];
 }
 
 /* xxx Temporarily put this NSObject-like implementation here, so

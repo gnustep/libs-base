@@ -327,14 +327,25 @@ decode (const void *ptr)
 - (void)encodeWithCoder: aCoder
 {
   [super encodeWithCoder: aCoder];
-  [aCoder encodeObject: name];
+  if (self == localTimeZone)
+    [aCoder encodeObject: @"NSLocalTimeZone"];
+  else
+    [aCoder encodeObject: name];
+}
+
+- (id) awakeAfterUsingCoder: aCoder
+{
+  if ([name isEqual: @"NSLocalTimeZone"]) {
+    return localTimeZone;
+  }
+  return [NSTimeZone timeZoneWithName: name];
 }
 
 - initWithDecoder: aDecoder
 {
-  /* FIXME?: is this right? */
   self = [super initWithCoder: aDecoder];
-  return (self = (id)[NSTimeZone timeZoneWithName: [aDecoder decodeObject]]);
+  name = [aDecoder decodeObject];
+  return self;
 }
 
 - (NSTimeZoneDetail*)timeZoneDetailForDate: (NSDate*)date

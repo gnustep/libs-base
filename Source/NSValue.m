@@ -88,6 +88,11 @@
     return self;
 }
 
+- (id)copy
+{
+    return [self copyWithZone: NSDefaultMallocZone()];
+}
+
 - (id)copyWithZone:(NSZone *)zone
 {
     if (NSShouldRetainWithZone(self, zone))
@@ -201,6 +206,20 @@
 - (void)getValue:(void *)value
 {
     [self subclassResponsibility:_cmd];
+}
+
+- (BOOL)isEqual: (id)other
+{
+    if ([other isKindOfClass: [self class]]) {
+	return [self isEqualToValue: other];
+    }
+    return NO;
+}
+
+- (BOOL)isEqualToValue: (NSValue*)other
+{
+    [self subclassResponsibility:_cmd];
+    return NO;
 }
 
 - (const char *)objCType

@@ -1439,8 +1439,10 @@ static NSMapTable *out_port_bag = NULL;
 		          sockaddr,
 		          sizeof (p->_remote_in_port_address));
 	          NSMapInsert (out_port_bag, (void*)p, (void*)p);
+/*
 	          NSLog(@"Out port changed from %@ to %@\n", od,
 			    [p description]);
+*/
 		}
 #endif
 	    }

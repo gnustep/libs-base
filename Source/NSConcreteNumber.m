@@ -304,6 +304,21 @@
     return [super isEqual: o];
 }
 
+- (id) copy
+{
+    return [self copyWithZone: NSDefaultMallocZone()];
+}
+
+- copyWithZone: (NSZone*)zone
+{ 
+    if (NSShouldRetainWithZone(self, zone)) {
+	return [self retain];
+    }
+    else {
+	return NSCopyObject(self, 0, zone);
+    }
+}
+
 - (NSString *)descriptionWithLocale: (NSDictionary*)locale
 {
     return [NSString stringWithFormat:TYPE_FORMAT, data];
