@@ -38,7 +38,7 @@
 @protocol NSObject
 - autorelease;
 - (Class) class;
-- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
+- (BOOL) conformsToProtocol: (Protocol *)aProtocol;
 - (unsigned) hash;
 - (BOOL) isEqual: anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
@@ -52,7 +52,8 @@
 - retain;
 - (unsigned) retainCount;
 - self;
-- (NSZone *)zone;
+- (NSZone *) zone;
+- (NSString *) description;
 @end
 
 @protocol NSCopying
