@@ -28,7 +28,6 @@
 #include <objects/Connection.h>
 #include <objects/ConnectedCoder.h>
 #include <objects/eltfuncs.h>
-#include <objects/AutoreleasePool.h>
 #include <assert.h>
 
 static BOOL debugProxies = NO;
@@ -317,7 +316,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
   coll_hash_delete(_method_types);
   object_dispose((Object*)self);
 #else
-  NSDeallocateObject(self);
+  NSDeallocateObject((id)self);
 #endif
 }
 
@@ -343,9 +342,14 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
   return self;
 }
 
+- (NSZone*) zone
+{
+  return NULL;			/* xxx Fix this. */
+}
+
 @end
 
-@implementation Object (ForProxy)
+@implementation NSObject (ForProxy)
 - (const char *) selectorTypeForProxy: (SEL)selector
 {
 #if NeXT_runtime
@@ -361,15 +365,6 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 #endif
 }
 @end
-
-#if 0 /* temporarily moved to Coder.m */
-@implementation Object (IsProxy)
-- (BOOL) isProxy
-{
-  return NO;
-}
-@end
-#endif
 
 @implementation Protocol (RemoteCoding)
 
