@@ -1,0 +1,168 @@
+<html><head>
+<title>NSScanner</title>
+</head>
+<body>
+<a href="NSRunLoop.html">[Previous]</a>
+<a href="Foundation.html">[Up]</a>
+<a href="NSSerializer.html">[Next]</a>
+<h1>NSScanner</h1>
+<h3>Authors</h3>
+<dl>
+<dt><a href="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 28 February, 2000</p>
+<h2><a name="cont-0">NSScanner</a></h2>
+<h2><a name="NSScanner">NSScanner</a></h2>
+<p><b>Declared in:</b> Foundation/NSScanner.h</p>
+<p><b>Inherits from:</b> NSObject</p>
+<p><b>Conforms to:</b> NSCopying
+</p>
+<hr>
+
+          
+<ul>
+<li><a href="NSScanner.html#method-0">+localizedScannerWithString:</a>
+<li><a href="NSScanner.html#method-1">+scannerWithString:</a>
+<li><a href="NSScanner.html#method-2">-caseSensitive</a>
+<li><a href="NSScanner.html#method-3">-charactersToBeSkipped</a>
+<li><a href="NSScanner.html#method-4">-initWithString:</a>
+<li><a href="NSScanner.html#method-5">-isAtEnd</a>
+<li><a href="NSScanner.html#method-6">-locale</a>
+<li><a href="NSScanner.html#method-7">-scanCharactersFromSet:intoString:</a>
+<li><a href="NSScanner.html#method-8">-scanDecimal:</a>
+<li><a href="NSScanner.html#method-9">-scanDouble:</a>
+<li><a href="NSScanner.html#method-10">-scanFloat:</a>
+<li><a href="NSScanner.html#method-11">-scanHexInt:</a>
+<li><a href="NSScanner.html#method-12">-scanInt:</a>
+<li><a href="NSScanner.html#method-13">-scanLocation</a>
+<li><a href="NSScanner.html#method-14">-scanLongLong:</a>
+<li><a href="NSScanner.html#method-15">-scanString:intoString:</a>
+<li><a href="NSScanner.html#method-16">-scanUpToCharactersFromSet:intoString:</a>
+<li><a href="NSScanner.html#method-17">-scanUpToString:</a>
+<li><a href="NSScanner.html#method-18">-setCaseSensitive:</a>
+<li><a href="NSScanner.html#method-19">-setCharactersToBeSkipped:</a>
+<li><a href="NSScanner.html#method-20">-setLocale:</a>
+<li><a href="NSScanner.html#method-21">-setScanLocation:</a>
+<li><a href="NSScanner.html#method-22">-string</a>
+</ul>
+<hr>
+<h2><a name="method-0">localizedScannerWithString:</a></h2>
++ (id) <b>localizedScannerWithString:</b> (NSString*)aString<br>
+
+          
+<hr>
+<h2><a name="method-1">scannerWithString:</a></h2>
++ (id) <b>scannerWithString:</b> (NSString*)aString<br>
+
+          
+<hr>
+<h2><a name="method-2">caseSensitive</a></h2>
+- (BOOL) <b>caseSensitive</b><br>
+
+          
+<hr>
+<h2><a name="method-3">charactersToBeSkipped</a></h2>
+- (NSCharacterSet*) <b>charactersToBeSkipped</b><br>
+
+          
+<hr>
+<h2><a name="method-4">initWithString:</a></h2>
+- (id) <b>initWithString:</b> (NSString*)aString<br>
+
+          
+<hr>
+<h2><a name="method-5">isAtEnd</a></h2>
+- (BOOL) <b>isAtEnd</b><br>
+
+          
+<hr>
+<h2><a name="method-6">locale</a></h2>
+- (NSDictionary*) <b>locale</b><br>
+
+          
+<hr>
+<h2><a name="method-7">scanCharactersFromSet:intoString:</a></h2>
+- (BOOL) <b>scanCharactersFromSet:</b> (NSCharacterSet*)scanSet <b>intoString:</b> (NSString**)stringValue<br>
+
+          
+<hr>
+<h2><a name="method-8">scanDecimal:</a></h2>
+- (BOOL) <b>scanDecimal:</b> (NSDecimal*)decimalValue<br>
+
+          
+<hr>
+<h2><a name="method-9">scanDouble:</a></h2>
+- (BOOL) <b>scanDouble:</b> (double*)doubleValue<br>
+
+          
+<hr>
+<h2><a name="method-10">scanFloat:</a></h2>
+- (BOOL) <b>scanFloat:</b> (float*)floatValue<br>
+
+          
+<hr>
+<h2><a name="method-11">scanHexInt:</a></h2>
+- (BOOL) <b>scanHexInt:</b> (unsigned int*)intValue<br>
+
+          
+<hr>
+<h2><a name="method-12">scanInt:</a></h2>
+- (BOOL) <b>scanInt:</b> (int*)intValue<br>
+
+          
+<hr>
+<h2><a name="method-13">scanLocation</a></h2>
+- (unsigned int) <b>scanLocation</b><br>
+
+          
+<hr>
+<h2><a name="method-14">scanLongLong:</a></h2>
+- (BOOL) <b>scanLongLong:</b> (longlong*)longLongValue<br>
+
+          
+<hr>
+<h2><a name="method-15">scanString:intoString:</a></h2>
+- (BOOL) <b>scanString:</b> (NSString*)string <b>intoString:</b> (NSString**)stringValue<br>
+
+          
+<hr>
+<h2><a name="method-16">scanUpToCharactersFromSet:intoString:</a></h2>
+- (BOOL) <b>scanUpToCharactersFromSet:</b> (NSCharacterSet*)stopSet <b>intoString:</b> (NSString**)stringValue<br>
+
+          
+<hr>
+<h2><a name="method-17">scanUpToString:</a></h2>
+- (BOOL) <b>scanUpToString:</b> (NSString*)stopString<br>
+
+          
+<hr>
+<h2><a name="method-18">setCaseSensitive:</a></h2>
+- (void) <b>setCaseSensitive:</b> (BOOL)flag<br>
+
+          
+<hr>
+<h2><a name="method-19">setCharactersToBeSkipped:</a></h2>
+- (void) <b>setCharactersToBeSkipped:</b> (NSCharacterSet*)skipSet<br>
+
+          
+<hr>
+<h2><a name="method-20">setLocale:</a></h2>
+- (void) <b>setLocale:</b> (NSDictionary*)aLocale<br>
+
+          
+<hr>
+<h2><a name="method-21">setScanLocation:</a></h2>
+- (void) <b>setScanLocation:</b> (unsigned int)index<br>
+
+          
+<hr>
+<h2><a name="method-22">string</a></h2>
+- (NSString*) <b>string</b><br>
+
+          
+<hr>
+</body>
+
+</html>

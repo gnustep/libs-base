@@ -1,0 +1,108 @@
+<html><head>
+<title>NSRunLoop</title>
+</head>
+<body>
+<a href="NSRecursiveLock.html">[Previous]</a>
+<a href="Foundation.html">[Up]</a>
+<a href="NSScanner.html">[Next]</a>
+<h1>NSRunLoop</h1>
+<h3>Authors</h3>
+<dl>
+<dt><a href="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 28 February, 2000</p>
+<h2><a name="cont-0">NSRunLoop</a></h2>
+<h2><a name="NSRunLoop">NSRunLoop</a></h2>
+<p><b>Declared in:</b> Foundation/NSRunLoop.h</p>
+<p><b>Inherits from:</b> NSObject</p>
+<p><b>Conforms to:</b> NSObject
+</p>
+<hr>
+
+          
+<ul>
+<li><a href="NSRunLoop.html#method-0">+currentRunLoop</a>
+<li><a href="NSRunLoop.html#method-1">-acceptInputForMode:beforeDate:</a>
+<li><a href="NSRunLoop.html#method-2">-addPort:forMode:</a>
+<li><a href="NSRunLoop.html#method-3">-addTimer:forMode:</a>
+<li><a href="NSRunLoop.html#method-4">-cancelPerformSelector:target:argument:</a>
+<li><a href="NSRunLoop.html#method-5">-configureAsServer</a>
+<li><a href="NSRunLoop.html#method-6">-currentMode</a>
+<li><a href="NSRunLoop.html#method-7">-limitDateForMode:</a>
+<li><a href="NSRunLoop.html#method-8">-performSelector:target:argument:order:modes:</a>
+<li><a href="NSRunLoop.html#method-9">-removePort:forMode:</a>
+<li><a href="NSRunLoop.html#method-10">-run</a>
+<li><a href="NSRunLoop.html#method-11">-runMode:beforeDate:</a>
+<li><a href="NSRunLoop.html#method-12">-runUntilDate:</a>
+</ul>
+<hr>
+<h2><a name="method-0">currentRunLoop</a></h2>
++ (NSRunLoop*) <b>currentRunLoop</b><br>
+
+          
+<hr>
+<h2><a name="method-1">acceptInputForMode:beforeDate:</a></h2>
+- (void) <b>acceptInputForMode:</b> (NSString*)mode <b>beforeDate:</b> (NSDate*)limitDate<br>
+
+          
+<hr>
+<h2><a name="method-2">addPort:forMode:</a></h2>
+- (void) <b>addPort:</b> (NSPort*)aPort <b>forMode:</b> (NSString*)mode<br>
+
+          
+<hr>
+<h2><a name="method-3">addTimer:forMode:</a></h2>
+- (void) <b>addTimer:</b> (NSTimer*)aTimer <b>forMode:</b> (NSString*)mode<br>
+
+          
+<hr>
+<h2><a name="method-4">cancelPerformSelector:target:argument:</a></h2>
+- (void) <b>cancelPerformSelector:</b> (SEL)aSelector <b>target:</b> (id)target <b>argument:</b> (id)anArgument<br>
+
+          
+<hr>
+<h2><a name="method-5">configureAsServer</a></h2>
+- (void) <b>configureAsServer</b><br>
+
+          
+<hr>
+<h2><a name="method-6">currentMode</a></h2>
+- (NSString*) <b>currentMode</b><br>
+
+          
+<hr>
+<h2><a name="method-7">limitDateForMode:</a></h2>
+- (NSDate*) <b>limitDateForMode:</b> (NSString*)mode<br>
+
+          
+<hr>
+<h2><a name="method-8">performSelector:target:argument:order:modes:</a></h2>
+- (void) <b>performSelector:</b> (SEL)aSelector <b>target:</b> (id)target <b>argument:</b> (id)anArgument <b>order:</b> (unsigned int)order <b>modes:</b> (NSArray*)modes<br>
+
+          
+<hr>
+<h2><a name="method-9">removePort:forMode:</a></h2>
+- (void) <b>removePort:</b> (NSPort*)aPort <b>forMode:</b> (NSString*)mode<br>
+
+          
+<hr>
+<h2><a name="method-10">run</a></h2>
+- (void) <b>run</b><br>
+
+          
+<hr>
+<h2><a name="method-11">runMode:beforeDate:</a></h2>
+- (BOOL) <b>runMode:</b> (NSString*)mode <b>beforeDate:</b> (NSDate*)limitDate<br>
+
+          
+<hr>
+<h2><a name="method-12">runUntilDate:</a></h2>
+- (void) <b>runUntilDate:</b> (NSDate*)limitDate<br>
+
+          
+<hr>
+</body>
+
+</html>
