@@ -3196,6 +3196,8 @@ handle_printf_atsign (FILE *stream,
   return match_count;
 }
 
+static NSFileManager *fm = nil;
+
 /**
  * Converts this string, which is assumed to be a path in Unix notation ('/'
  * is file separator, '.' is extension separator) to a C string path expressed
@@ -3205,8 +3207,6 @@ handle_printf_atsign (FILE *stream,
  */
 - (const char*) fileSystemRepresentation
 {
-  static NSFileManager *fm = nil;
-
   if (fm == nil)
     {
       fm = RETAIN([NSFileManager defaultManager]);
@@ -3214,6 +3214,7 @@ handle_printf_atsign (FILE *stream,
 
   return [fm fileSystemRepresentationWithPath: self];
 }
+
 /**
  * Converts this string, which is assumed to be a path in Unix notation ('/'
  * is file separator, '.' is extension separator) to a string path expressed
@@ -3221,15 +3222,14 @@ handle_printf_atsign (FILE *stream,
  */
 - (NSString*) localFromOpenStepPath
 {
-  static NSFileManager *fm = nil;
+  if (fm == nil)
+    {
+      fm = RETAIN([NSFileManager defaultManager]);
+    }
 
-	if (fm == nil)
-	{
-		fm = RETAIN([NSFileManager defaultManager]);
-	}
-
-	return [fm localFromOpenStepPath: self];
+  return [fm localFromOpenStepPath: self];
 }	
+
 /**
  * Converts this string, which is assumed to be a path in the convention 
  * for the host operating system to a string path expressed
@@ -3237,14 +3237,12 @@ handle_printf_atsign (FILE *stream,
  */
 - (NSString*) openStepPathFromLocal
 {
-  static NSFileManager *fm = nil;
+  if (fm == nil)
+    {
+      fm = RETAIN([NSFileManager defaultManager]);
+    }
 
-	if (fm == nil)
-	{
-		fm = RETAIN([NSFileManager defaultManager]);
-	}
-
-	return [fm openStepPathFromLocal: self];
+  return [fm openStepPathFromLocal: self];
 }	
 
 
