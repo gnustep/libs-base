@@ -1,3 +1,7 @@
+2000-03-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: typo reported by karl@nfox.com fixed.
+
 2000-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDictionary.m: Fix to avoid crash on being asked to init
