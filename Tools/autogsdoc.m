@@ -266,7 +266,7 @@
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
       element (or if that does not exist, immediately before the end
-      of the <em>body</em> lement) in the template.
+      of the <em>body</em> element) in the template.
     </item>
     <item><strong>GenerateHtml</strong>
       May be used to specify if HTML output is to be generated.
@@ -303,6 +303,20 @@
       being documented will <em>not</em> be included by this mechanism.
       If you wish to include such projects, you must do so explicitly
       using <em>-Projects</em>
+    </item>
+    <item><strong>MacrosTemplate</strong>
+      Specify the name of a template document into which documentation
+      about macros should be inserted from all files in the project.<br />
+      This is useful if macro code is scattered around many
+      files, and you need to group it into one place.<br />
+      You are responsible for ensuring that the basic template document
+      (into which individual macro documentation is inserted) contains
+      all the other information you want, but as a convenience autogsdoc
+      will generate a simple template (which you may then edit) for you
+      if the file does not exist.
+      <br />Insertion takes place immediately before the <em>back</em>
+      element (or if that does not exist, immediately before the end
+      of the <em>body</em> element) in the template.
     </item>
     <item><strong>Project</strong>
       May be used to specify the name of this project ... determines the
@@ -363,7 +377,7 @@
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
       element (or if that does not exist, immediately before the end
-      of the <em>body</em> lement) in the template.
+      of the <em>body</em> element) in the template.
     </item>
     <item><strong>Up</strong>
       A string used to supply the name to be used in the 'up' link from
@@ -384,7 +398,7 @@
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
       element (or if that does not exist, immediately before the end
-      of the <em>body</em> lement) in the template.
+      of the <em>body</em> element) in the template.
     </item>
     <item><strong>Verbose</strong>
       A boolean used to specify whether you want verbose debug/warning
