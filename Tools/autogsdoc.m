@@ -536,7 +536,7 @@ main(int argc, char **argv, char **env)
 
 	  [projectRefs mergeRefs: originalIndex override: NO];
 	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
-	  rDate = [dict objectForKey: NSFileModificationDate];
+	  rDate = [dict fileModificationDate];
 	}
     }
 
@@ -628,7 +628,7 @@ main(int argc, char **argv, char **env)
 
 		  attrs = [mgr fileAttributesAtPath: sfile
 				       traverseLink: YES];
-		  d = [attrs objectForKey: NSFileModificationDate];
+		  d = [attrs fileModificationDate];
 		  if (sDate == nil || [d earlierDate: sDate] == sDate)
 		    {
 		      sDate = d;
@@ -655,7 +655,7 @@ main(int argc, char **argv, char **env)
 		  NSString	*ofile = [a objectAtIndex: j];
 
 		  attrs = [mgr fileAttributesAtPath: ofile traverseLink: YES];
-		  d = [attrs objectForKey: NSFileModificationDate];
+		  d = [attrs fileModificationDate];
 		  if (gDate == nil || [d laterDate: gDate] == gDate)
 		    {
 		      gDate = d;
@@ -843,7 +843,7 @@ main(int argc, char **argv, char **env)
 	  if (ignoreDependencies == NO)
 	    {
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	      gDate = [attrs objectForKey: NSFileModificationDate];
+	      gDate = [attrs fileModificationDate];
 	      AUTORELEASE(RETAIN(gDate));
 	    }
 
@@ -1133,10 +1133,10 @@ main(int argc, char **argv, char **env)
 	       * When were the files last modified?
 	       */
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	      gDate = [attrs objectForKey: NSFileModificationDate];
+	      gDate = [attrs fileModificationDate];
 	      AUTORELEASE(RETAIN(gDate));
 	      attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
-	      hDate = [attrs objectForKey: NSFileModificationDate];
+	      hDate = [attrs fileModificationDate];
 	      AUTORELEASE(RETAIN(hDate));
 	    }
 
