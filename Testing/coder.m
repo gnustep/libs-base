@@ -1,6 +1,5 @@
 /* A demonstration of writing and reading GNU Objective C objects to a file. */
 // Fri Oct 23 03:01:09 MET DST 1998 	dave@turbocat.de
-// cStringNoCopy -> cString
 
 #include <base/Archiver.h>
 #include <base/BinaryCStream.h>

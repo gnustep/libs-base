@@ -1,5 +1,4 @@
 // Fri Oct 23 03:02:52 MET DST 1998 	dave@turbocat.de
-// cStringNoCopy -> cString
 
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
