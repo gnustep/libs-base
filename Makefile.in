@@ -192,25 +192,32 @@ GNU_CFILES = \
 behavior.c \
 collhash.c \
 objc-malloc.c \
-o_vscanf.c
+o_vscanf.c 
+
 
 NEXTSTEP_CFILES = \
 NXStringTable_scan.c
 
 GNUSTEP_CFILES = \
-NSZone.c
+NSZone.c \
+find_exec.c \
+objc-load.c \
 
 GNU_OTHER_SRCFILES = 
 
 NEXTSTEP_OTHER_SRCFILES = \
 NXStringTable_scan.l 
 
-GNUSTEP_OTHER_SRCFILES =
+GNUSTEP_OTHER_SRCFILES = \
+dld-load.h \
+hpux-load.h \
+null-load.h \
+simple-load.h 
 
 GNU_OBJS = $(GNU_MFILES:.m=.o) $(GNU_CFILES:.c=.o)
 NEXTSTEP_OBJS = $(NEXTSTEP_MFILES:.m=.o) $(NEXTSTEP_CFILES:.c=.o)
-GNUSTEP_OBJS =  $(GNUSTEP_MFILES:.m=.o) $(GNUSTEP_CFILES:.c=.o)
-FEDOR_GNUSTEP_OBJS =  $(FEDOR_GNUSTEP_MFILES:.m=.o) $(FEDOR_GNUSTEP_CFILES:.c=.o) $(FEDOR_CLUSTER_OBJS)
+GNUSTEP_OBJS =  $(GNUSTEP_MFILES:.m=.o) $(GNUSTEP_CFILES:.c=.o) \
+	$(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 
 GNU_HEADERS = \
 objects/Array.h \
@@ -299,7 +306,12 @@ objc/README
 
 GNUSTEP_HEADERS = \
 foundation/NSAutoreleasePool.h \
+foundation/NSBundle.h \
 foundation/NSCString.h \
+foundation/NSConcreteValue.h \
+foundation/NSConcreteNumber.h \
+foundation/NSException.h \
+foundation/NSGeometry.h \
 foundation/NSInvocation.h \
 foundation/NSMethodSignature.h \
 foundation/NSObjCRuntime.h \
@@ -335,11 +347,11 @@ version.texi \
 libobjects.info libobjects.texi \
 texinfo.tex \
 gcc-class.patch gcc-string.patch \
-$(FEDOR_GNUSTEP_MFILES) $(FEDOR_GNUSTEP_HEADERS) \
+gcc-dynamic.patch NSBundle.README \
 $(GNU_MFILES) $(NEXTSTEP_MFILES) $(GNUSTEP_MFILES) \
 $(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
 $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
-$(GNU_OTHER_SRCFILES) $(NEXTSTEP_OTHER_SRCFILES) 
+$(GNU_OTHER_SRCFILES) $(NEXTSTEP_OTHER_SRCFILES) $(GNUSTEP_OTHER_SRCFILES)
 
 all: libobjects.a
 
@@ -372,23 +384,6 @@ check: libobjects.a
 depend:
 	rm -f $(srcdir)/Makefile.depend
 	$(CC) $(ALL_INCLUDE_FLAGS) -M $(SRCS) > $(srcdir)/Makefile.depend
-
-# Compilation of class clusters
-$(NSVALUE_OFILES) : NSCTemplateValue.m
-	for i in ${NSVALUE_CLUSTER}; do \
-	    cp NSCTemplateValue.m NSCTemplateValue$$i.m; \
-	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
-	    -DTYPE_ORDER=$$i NSCTemplateValue$$i.m -o NSValue$$i.o; \
-	    rm -f NSCTemplateValue$$i.m; \
-	done
-
-$(NSNUMBER_OFILES) : NSConcreteNumber.m
-	for i in ${NSNUMBER_CLUSTER}; do \
-	    cp NSConcreteNumber.m NSConcreteNumber$$i.m; \
-	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
-	    -DTYPE_ORDER=$$i -c NSConcreteNumber$$i.m -o NSNumber$$i.o; \
-	    rm -f NSConcreteNumber$$i.m; \
-	done
 
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(LEX) $(LFLAGS) -t NXStringTable_scan.l > NXStringTable_scan.temp
