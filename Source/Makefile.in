@@ -76,7 +76,8 @@ FILE_AUTHORS = \
 "Jeremy Bettis" \
 "Georg Tuparev" \
 "Peter Burka" \
-"Albin L. Jones"
+"Albin L. Jones" \
+"Niels M\366ller"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
@@ -116,6 +117,7 @@ Bag.m \
 BinaryCStream.m \
 BinaryTree.m \
 BinaryTreeNode.m \
+Catch.m \
 CircularArray.m \
 Collection.m \
 ConnectedCoder.m \
@@ -128,6 +130,7 @@ Decoder.m \
 DelegatePool.m \
 Dictionary.m \
 Encoder.m \
+Exception.m \
 GapArray.m \
 Heap.m \
 IndexedCollection.m \
@@ -159,12 +162,14 @@ RunLoop.m \
 Set.m \
 SplayTree.m \
 Stack.m \
+StackFrame.m \
 StdioStream.m \
 Stream.m \
 String.m \
 TcpPort.m \
 TextCStream.m \
 UdpPort.m \
+UnwindProtect.m \
 array.m \
 array-bas.m \
 array-cbs.m \
@@ -174,6 +179,7 @@ cbs-id.m \
 cbs-int.m \
 cbs-int-p.m \
 cbs-void-p.m \
+frame_stack-objc.m \
 hash.m \
 hash-bas.m \
 hash-cbs.m \
@@ -189,9 +195,12 @@ objc-gnu2next.m
 
 GNU_CFILES = \
 behavior.c \
+ccatch.c \
+frame_stack.c \
 md5.c \
 numbers.c \
 objc-malloc.c \
+obstack.c \
 o_vscanf.c 
 
 GNU_OTHER_SRCFILES = \
@@ -213,6 +222,8 @@ objects/Bag.h \
 objects/BinaryCStream.h \
 objects/BinaryTree.h \
 objects/BinaryTreeNode.h \
+objects/Catch.h \
+objects/Catching.h \
 objects/CircularArray.h \
 objects/CircularArrayPrivate.h \
 objects/Coder.h \
@@ -228,6 +239,7 @@ objects/CStreaming.h \
 objects/DelegatePool.h \
 objects/Dictionary.h \
 objects/Enumerating.h \
+objects/Exception.h \
 objects/GapArray.h \
 objects/GapArrayPrivate.h \
 objects/Heap.h \
@@ -275,6 +287,7 @@ objects/RunLoop.h \
 objects/Set.h \
 objects/SplayTree.h \
 objects/Stack.h \
+objects/StackFrame.h \
 objects/StdioStream.h \
 objects/Stream.h \
 objects/Streaming.h \
@@ -283,6 +296,7 @@ objects/TcpPort.h \
 objects/TextCStream.h \
 objects/Time.h \
 objects/UdpPort.h \
+objects/UnwindProtect.h \
 objects/ValueHolding.h \
 objects/array.h \
 objects/array-bas.h \
@@ -303,7 +317,12 @@ objects/numbers.h \
 objects/objc-gnu2next.h \
 objects/objc-malloc.h \
 objects/objects.h \
-objects/README 
+objects/README \
+SETJMP.h \
+frame_stack.h \
+ccatch.h \
+obstack.h 
+
 
 # NEXTSTEP source files
 
@@ -452,10 +471,19 @@ Foundation/NSValue.h \
 Foundation/NSZone.h \
 Foundation/objc-load.h
 
+# CCATCH source files
+CCATCH_CFILES = \
+frame_stack.c \
+ccatch.c \
+
+CCATCH_OBJS = $(CCATCH_CFILES:.c=.o)
+CCATCH_HEADERS =
+
 HEADERS_INSTALL = @HEADERS_INSTALL@ \
                   objects/stdobjects.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:$(OEXT)=_pic$(OEXT))
+CCATCH_INSTALL = $(CCATCH_OBJS) obstack.o
 
 DIST_FILES = \
         Makefile.in AUTHORS \
@@ -464,7 +492,8 @@ DIST_FILES = \
         $(GNU_CFILES) \
         $(GNU_HEADERS) \
         $(GNU_OTHER_SRCFILES) \
-        $(NEXTSTEP_MFILES) \
+	$(CCATCH_CFILES) \
+	$(NEXTSTEP_MFILES) \
         $(NEXTSTEP_CFILES) \
         $(NEXTSTEP_DERIVED_CFILES) \
         $(NEXTSTEP_HEADERS) \
@@ -481,7 +510,8 @@ RCS_FILES = \
         $(GNU_CFILES) \
         $(GNU_HEADERS) \
         $(GNU_OTHER_SRCFILES) \
-        $(NEXTSTEP_MFILES) \
+	$(CCATCH_CFILES) \
+	$(NEXTSTEP_MFILES) \
         $(NEXTSTEP_CFILES) \
         $(NEXTSTEP_HEADERS) \
         $(NEXTSTEP_OTHER_SRCFILES) \
@@ -490,7 +520,7 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: libobjects$(LIBEXT) @LIBOBJECTS_SO@
+all: libobjects$(LIBEXT) libccatch$(LIBEXT) @LIBOBJECTS_SO@
 
 libobjects.so.$(OBJECTS_VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
 	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
@@ -507,6 +537,10 @@ libobjects$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 	$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL)
 	$(RANLIB) libobjects$(LIBEXT)
 
+libccatch.a: $(CCATCH_OBJS) obstack.o
+	$(AR) $(ARFLAGS) libccatch.a $(CCATCH_OBJS) obstack.o
+	$(RANLIB) libccatch.a
+
 install: installdirs all
 	# Install the library
 	$(INSTALL_DATA) libobjects$(LIBEXT) $(libdir)
@@ -520,6 +554,8 @@ install: installdirs all
 	  ln -s $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) \
 		$(libdir)/libobjects.so ; \
 	fi
+	# Install the ccatch library
+	$(INSTALL_DATA) libccatch.a $(libdir)
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file $(includedir)/$$file ; \
@@ -629,7 +665,7 @@ mostlyclean:
 	Foundation/*~ \
 	objc/*~
 clean: mostlyclean
-	rm -f libobjects$(LIBEXT) *$(OEXT)
+	rm -f libobjects$(LIBEXT) libccatch$(LIBEXT) *$(OEXT)
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 distclean: clean
 	rm -f Makefile 

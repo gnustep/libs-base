@@ -21,11 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifdef __STDC__
-#include <stddef.h>
-#else
-#define size_t unsigned long
-#endif
+#include <objects/objc-malloc.h>
 
 #ifdef HAVE_VALLOC
 #include <stdlib.h>
@@ -42,7 +38,12 @@ __objc_malloc(size_t size)
   CHECK_ZERO_SIZE(size);
   res = (void*) malloc(size);
   if(!res)
-    objc_fatal("Virtual memory exhausted\n");
+    {
+      /* Try to do something graceful, for example raise an exception. */
+      if (objc_out_of_memory_hook)
+	(*objc_out_of_memory_hook)();
+      objc_fatal("Virtual memory exhausted\n");
+    }
   return res;
 }
  
@@ -53,7 +54,12 @@ __objc_valloc(size_t size)
   CHECK_ZERO_SIZE(size);
   res = (void*) valloc(size);
   if(!res)
-    objc_fatal("Virtual memory exhausted\n");
+    {
+      /* Try to do something graceful, for example raise an exception. */
+      if (objc_out_of_memory_hook)
+	(*objc_out_of_memory_hook)();
+      objc_fatal("Virtual memory exhausted\n");
+    }
   return res;
 }
  
@@ -64,7 +70,12 @@ __objc_realloc(void* mem, size_t size)
   CHECK_ZERO_SIZE(size);
   res = (void*) realloc(mem, size);
   if(!res)
-    objc_fatal("Virtual memory exhausted\n");
+    {
+      /* Try to do something graceful, for example raise an exception. */
+      if (objc_out_of_memory_hook)
+	(*objc_out_of_memory_hook)();
+      objc_fatal("Virtual memory exhausted\n");
+    }
   return res;
 }
  
@@ -75,7 +86,12 @@ __objc_calloc(size_t nelem, size_t size)
   CHECK_ZERO_SIZE(size);
   res = (void*) calloc(nelem, size);
   if(!res)
-    objc_fatal("Virtual memory exhausted\n");
+    {
+      /* Try to do something graceful, for example raise an exception. */
+      if (objc_out_of_memory_hook)
+	(*objc_out_of_memory_hook)();
+      objc_fatal("Virtual memory exhausted\n");
+    }
   return res;
 }
 
@@ -88,6 +104,11 @@ __objc_free (void* mem)
 /* We should put
      *(void**)obj = 0xdeadface;
    into object_dispose(); */
+
+/* Replace this to function to do something more graceful
+ * if allocation fails. */
+
+void (*objc_out_of_memory_hook)(void) = NULL;
 
 /* I do this to make substituting Boehm's Garbage Collector easy. */
 void *(*objc_malloc)(size_t size) = __objc_malloc;

@@ -1,0 +1,275 @@
+The design of the exception system for C and Objective-C.
+
+Written by Niels Möller <nisse@lysator.liu.se> 27/1 1996.
+
+
+Contents
+~~~~~~~~
+1. Design goals
+2. Basic framework
+3. The design of the interface
+4. C facilities
+5. Catch and throw for Objective-C
+6. Exceptions
+7. NSException
+8. Compatibility
+9. Todo
+
+
+1. Design goals
+~~~~~~~~~~~~~~~
+
+(i) Functionality similar to catch, throw and unwindprotect in Lisp
+for the C and Objective-C languages.
+
+(ii) An exception mechanism for Objective-C.
+
+(iii) NSException (the libobjects implementation written by Adam
+Fedor) built on top of this.
+
+(iv) Compatibility: as far as possible, catches and throws from
+C-code, d:o from Objective-C code, exceptions and NSExceptions should
+work together.
+
+
+2. Basic framework
+~~~~~~~~~~~~~~~~~~
+
+I use a stack (more precisely, an obstack) for keeping track of
+different kind of "frames", associated with catch tags and cleanup
+actions. For actually jumping to another frame, standard
+longjmp()/setjmp() is used. So far the following types of frames
+exist:
+
+  frstack_ccatch,          // Catch tag for the CCATCH and CTHROW
+                           // C macros.
+
+  frstack_catch_object,    // Catch tag for Objective-C facilities,
+                           // CATCH, TRY, NS_HANDLER
+
+  frstack_cleanup_fn0,     // Various kinds of cleanup actions,
+  frstack_cleanup_fn1,     // frstack_cleanup_jmp is perhaps the
+  frstack_cleanup_object,  // most useful.
+  frstack_cleanup_jmp,
+
+Usually, this stack should be kept in sync with the execution stack;
+that is, a function that pushes a new frame onto the stack should
+remove it before it returns. This requirement comes from the fact that
+longjmp() is used to jump from one frame to another.
+
+It may be possible to make use of the frame stack without following
+this rule, but than you must make sure that you don't longjmp() into
+the void.
+
+
+3. The design of the interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I had some difficulties when deciding how the interface to the frame
+stack should be designed. There are two main alternatives: first the
+NextStep style, for example
+
+NS_DURING
+   body
+NS_HANDLER
+   handler
+NS_ENDHANLDER
+
+The other style is perhaps influenced from Lisp. I use C-macros taking
+blocks as their arguments, like
+
+CPROTECT(tag,
+         {
+            body
+         },
+         {
+            cleanup
+         });
+
+I decided in favour of the second style. One of the reasons is that I
+have several facilities for jumps and exceptions, not just one like in
+NextStep, and I think that the fewer macro names to invent and
+remember, the better.
+
+
+4. C facilities
+~~~~~~~~~~~~~~~
+
+For C programs, there are three macros, CCATCH, CTHROW and CPROTECT,
+analogous to catch, throw and unwind-protect in Lisp.
+
+CCATCH(TAG, BODY) is superficially similar to setjmp() . BODY should
+be a block to be executed. During the execution of BODY, a CTHROW to
+TAG can pass control directly back to the CCATCH. Values are as for
+setjmp() and longjmp(): CCATCH returns 0 if no CTHROW happened. A
+CTHROW can pass a non-zero integer back, which will then be the value
+of the CCATCH.
+
+CPROTECT(BODY, CLEANUP) is the difference between CCATCH() and
+setjmp(). This statement lets you execute BODY, with the guarantee
+that when BODY terminates, because of a throw, an exception (which can
+not however be raised from within a C function), or simply because it
+falls through to the bottom. Don't use exit(), return, break etc
+within the CPROTECT.
+
+See ccatch.h for exact usage of these macros.
+
+
+5. Catch and throw for Objective-C
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Catch class
+
+The catch and throw facilities for Objective-C is similar to the C
+macros described above. The differences are that the tags are objects,
+and that arbitrary objects, not just non-zero integers, can be
+returned from a throw.
+
+#include <objects/Catch.h>
+
+id tag = [[Catch alloc] init] // Creation.
+
+if (0!=CATCH(tag, {                  // Prepare for catching.
+                     body            // Value is 1 of a throw happened,
+                  }))                // otherwise 0.
+   {                                 // A throw put us here,
+      [tag value];                   // this extracts the value
+   }                                 // passed with throw
+
+To pass control to the CATCH, use [tag throw: (id) value]
+
+
+The UnwindProtect class
+
+This is even more similar to the C version, but it offers more
+flexibility, as several kinds of cleanup actions are possible. The
+easy way to use it is almost like with the C version
+UNWINDPROTECT(BODY,CLEANUP) .
+
+
+6. Exceptions
+~~~~~~~~~~~~~
+
+Exceptions are arranged in a hierarchy, where each kind of exception
+is represented by a protocol (one reason to use protocols, not
+classes, is that it is nice to have multiple "inheritance" here). A
+start of the classification hierarchy is
+
+AnyException
+  AnyError
+    StorageError
+      MemoryError
+    ThrowError
+
+Exceptions that are not errors (that is, doesn't conform to the
+AnyError protocol) are considered warnings, and are ignored if they
+are not caught. In contrast, an uncaught error abort()s with a cor
+dump.
+
+A particular exception is an object of a class that conforms to one or
+more of the above protocols. Examples of such classes is OutOfMemnory
+and ThrowWithoutCatch. Useful superclasses when defining new
+exceptions are Exception, Error and Simple Error, of which the latter
+two conforms to AnyError.
+
+An exception is raised by sending it the -raise message. This method
+doesn't *usually* return, but it can return if the exception is a
+warning, not an error, and there is no handler for it.
+
+To catch exceptions, use the TRY macro.
+
+#include <objects/Catch.h>
+#include <objects/Exception.h>
+
+TRY({
+       BODY
+    },
+    // Only exceptions of type EXCEPTIONTYPE will be caught
+    @protocol(EXCEPTIONTYPE), ERROR,
+    { // Handler, the exception that occured is bound to the
+      // variable ERROR
+      HANDLER
+    });
+
+All exceptions respond to -message, which returns a C string pointer
+to a description of the exception. When finished with the exception,
+send it the -finished message. This usually frees the exception
+object, but some exceptions are kind of read-only, and don't want to
+be freed. They can then simply override -finished.
+
+Exception specific methods should be specified in the corresponding
+protocols.
+
+A few exceptions can be raised from within this package. If a -throw
+message is sent to a Catch object, for which no corresponding frame
+can be found in the frame stack (that is, there's no active CATCH
+involving that object), ThrowWithoutCatch is raised.
+
+Also, OutOfMemory can be raised. This is not well tested, but the goal
+is that this package, and in the future the rest of the libobjc and
+libobjects libraries should be robust in low memory situations. I have
+included a version of xmalloc that raises an exception if malloc fails,
+instead of just abort()ing. And I try to recover gracefully and raise
+an exception if memory allocation fails when trying to push new frames
+onto the frame stack.
+
+
+7. NSException
+~~~~~~~~~~~~~~
+I have adapted Adam Fedors NSException implementation to use the frame
+stack. This implementation should be equivalent to the former.
+
+
+8. Compatibility
+~~~~~~~~~~~~~~~~
+
+As far as possible, different kinds of throws and exceptions should
+work together. Most importantly, cleanup actions should be invoked
+when the body of for example a UNWINDPROTECT() is terminated, whatever
+the cause of the termination may be. However, there are a few
+limitations:
+
+(i) Don't use ordinary longjmp() together with this facilities, unless
+you *really* know what you are doing. Use CATCH or CCATCH instead.
+
+(ii) NS_HANDLER won't be invoked for any exception but NSException.
+This is because the handlers expect a variable to be bound to the
+NSException that occured, and this is simply not possible. And
+similarly, TRY won't catch NSExceptions.
+
+(iii) [technical] Invoking cleanup actions by sending a UnwindProtect
+object the -cleanup message won't invoke cleanup actions corresponding
+to a frstack_cleanup_jmp_frame. The reason is that after longjmp()ing
+to the cleanup there's no way to return to the correct place.
+
+That's all, I hope.
+
+And the implementation should be portable, as it is built on standard
+setjmp(), longjmp() and GNU obstacks. However, the interface macros
+use extensions of the GNU C Compiler.
+
+
+9. Todo
+~~~~~~~
+
+(*) I have attempted to follow the convention in libobjects to have
+NSObject as root class. But I'm not too familiar with the NextStep
+conventions for allocating and freeing objects, and therefore my
+classes implement the -free method. This should be fixed.
+
+(*) Invent another cleanup action, and corresponding frame type, that
+holds a pointer to a pointer to an id, and a message to be sent on
+cleanup, provided the id is not nil. Then you could make local
+variables free themselves automagically:
+
+{  // Whether this block terminatess normally or by a throw or exception,
+   // foo and tag will be freed properly.
+   id foo = nil;
+   id tag = [[UnwindProtect alloc]] init];
+
+   [tag cleanupBySending: @selector(free) toObjectPointedToBy: &foo];
+
+   ... Some code that may cause an exception ...
+
+   [tag cleanup];
+}

@@ -3,6 +3,9 @@
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
+
+   Adapted to work together with other C and Objective-C exceptions by
+   Niels Möller <nisse@lysator.liu.se>
    
    This file is part of the GNU Objective C Class Library.
 
@@ -25,7 +28,7 @@
 #define __NSException_h_OBJECTS_INCLUDE
 
 #include <Foundation/NSString.h>
-#include <setjmp.h>
+#include <objects/Catch.h>
 #include <stdarg.h>
 
 @class NSDictionary;
@@ -66,13 +69,15 @@ extern NSString *NSInvalidArgumentException;
 extern NSString *NSMallocException;
 extern NSString *NSRangeException;
 
-/* Exception handler definitions */
-typedef struct _NSHandler 
+
+@interface NSHandler : Catch_common
 {
-    jmp_buf jumpState;			/* place to longjmp to */
-    struct _NSHandler *next;		/* ptr to next handler */
-    NSException *exception;
-} NSHandler;
+  NSException * theException;
+}
+- (NSException *) exception;
+- exception: (NSException *) anException;
+@end /* NSHandler */
+
 
 typedef volatile void NSUncaughtExceptionHandler(NSException *exception);
 
@@ -100,25 +105,23 @@ extern NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
    NS_VALRETURN, NS_VOIDRETURN, or just falling out the bottom.
  */
 
-/* private support routines.  Do not call directly. */
-extern void _NSAddHandler( NSHandler *handler );
-extern void _NSRemoveHandler( NSHandler *handler );
+#define NS_DURING { NSHandler* _LocalHandler = [NSHandler new]; \
+		    if (SETJMP(*[_LocalHandler catch]) == 0) { 
 
-#define NS_DURING { NSHandler NSLocalHandler;			\
-		    _NSAddHandler(&NSLocalHandler);		\
-		    if( !setjmp(NSLocalHandler.jumpState) ) {
-
-#define NS_HANDLER _NSRemoveHandler(&NSLocalHandler); } else { \
-		    NSException *exception = NSLocalHandler.exception;
+#define NS_HANDLER [_LocalHandler release]; \
+		  } else { \
+		     NSException *exception = [_LocalHandler exception]; \
+		     [_LocalHandler release];
 
 #define NS_ENDHANDLER }}
 
-#define NS_VALRETURN(val)  do { typeof(val) temp = (val);	\
-			_NSRemoveHandler(&NSLocalHandler);	\
-			return(temp); } while (0)
+#define NS_VALRETURN(val) do { typeof(val) temp = (val);	\
+			       [_LocalHandler release];	\
+			       return(temp); } while (0)
 
-#define NS_VOIDRETURN	do { _NSRemoveHandler(&NSLocalHandler);	\
-			return; } while (0)
+#define NS_VOIDRETURN do { [_LocalHandler release];	\
+			   return; } while (0)
+
 
 /* ------------------------------------------------------------------------ */
 /*   Assertion Handling */

@@ -4,6 +4,9 @@
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
 
+   Adapted to work together with other C and Objective-C exceptions by
+   Niels Möller <nisse@lysator.liu.se>. 
+
    This file is part of the GNU Objective C Class Library.
 
    This library is free software; you can redistribute it and/or
@@ -28,6 +31,11 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDictionary.h>
 
+#define CANT_HAPPEN assert(0)
+
+/* Class used for processing stack frames */
+#define FRAME_STACK StackFrame
+
 NSString *NSGenericException
 	= @"NSGenericException";
 NSString *NSInternalInconsistencyException
@@ -36,8 +44,9 @@ NSString *NSInvalidArgumentException = @"NSInvalidArgumentException";
 NSString *NSMallocException = @"NSMallocException";
 NSString *NSRangeException = @"NSRangeException";
 
-/* FIXME: Not thread safe - probably need one for each thread. */
-static NSMutableArray *e_queue;
+
+/* FIXME: Not thread safe - probably need one frame stack
+ * for each thread. */
 
 static NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
@@ -52,6 +61,23 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 */
     abort();
 }
+
+
+@implementation NSHandler
+- (NSException *) exception { return theException; }
+- exception: (NSException *) anException
+{
+  theException = anException; return self;
+}
+
+- (BOOL)matches: tag
+{
+  /* This handler should match all and any NSException objects,
+   * including subclasses */
+  return [tag isKindOf: [NSException class]];
+}
+
+@end /* NSHandler */
 
 @implementation NSException
 
@@ -99,24 +125,21 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (volatile void)raise
 {
-    NSHandler *handler;
+  frame_id frame;  
+  NSHandler *handler;
     
-    if (_NSUncaughtExceptionHandler == NULL)
-    	_NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
+  if (_NSUncaughtExceptionHandler == NULL)
+    _NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
 
-    if (!e_queue) {
-    	_NSUncaughtExceptionHandler(self);
-	return;
+  frame = [FRAME_STACK findFrameMatching: self];
+  if (frame)
+    {
+      handler = ( (struct frstack_catch_object_frame *) frame)->object;
+      [handler exception: self];
+      [FRAME_STACK unwind: frame pleaseReturn: NO];
+      CANT_HAPPEN;
     }
-    if ([e_queue count] == 0) {
-    	_NSUncaughtExceptionHandler(self);
-	return;
-    }
-    
-    [[e_queue lastObject] getValue:&handler];
-    handler->exception = self;
-    [e_queue removeLastObject];
-    longjmp(handler->jumpState, 1);
+  _NSUncaughtExceptionHandler(self);
 }
 
 - (NSString *)name
@@ -170,25 +193,3 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 
 @end
-
-
-void 
-_NSAddHandler( NSHandler *handler )
-{
-    if (!e_queue) {
-    	e_queue = [[NSMutableArray arrayWithCapacity:8] retain];
-    }
-
-    [e_queue addObject:
-	[NSValue value:&handler withObjCType:@encode(NSHandler *)]];
-}
-
-void 
-_NSRemoveHandler( NSHandler *handler )
-{
-    // FIXME: Should be NSAssert??
-    assert(e_queue);
-    assert([e_queue count] != 0);
-    [e_queue removeLastObject];
-}
-

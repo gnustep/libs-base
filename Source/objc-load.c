@@ -1,6 +1,6 @@
 /* objc-load - Dynamically load in Obj-C modules (Classes, Categories)
 
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Adam Fedor, Pedja Bogdanovich
    
@@ -141,9 +141,9 @@ objc_load_module(
 
 {
     typedef void (*void_fn)();
-    void_fn *ctor_list;
+    // void_fn *ctor_list;
     dl_handle_t handle;
-    int i;
+    // int i;
 
     if (!dynamic_loaded)
         if (objc_initialize_loading(errorStream))

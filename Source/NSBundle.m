@@ -489,7 +489,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 + (void)setSystemLanguages:(NSArray *)languages
 {
-    static NSString *separator = @" ";
+  // static NSString *separator = @" ";
 
     if (_languages) {
     	FREE_OBJECT(_languages);
@@ -501,7 +501,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     */
     if (!languages) {
 	const char *env_list;
-        NSString *env;
+        // NSString *env;
         env_list = getenv("LANGUAGES");
 	if (env_list) {
 #if 0

@@ -65,7 +65,7 @@ ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
 .c$(OEXT):
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*$(OEXT)
 
-SRCS = \
+OBJC_SRCS = \
 test01.m \
 test02.m \
 test03.m \
@@ -97,7 +97,12 @@ tcpport-client.m \
 nsnotification.m \
 nstimer.m \
 coder.m \
-cstream.m
+cstream.m \
+Catch_test.m \
+Exception_test.m
+
+C_SRCS = \
+ccatch_test.c
 
 # nsarchiving.m
 
@@ -112,7 +117,7 @@ HDRS = \
 server.h
 
 EXCS = $(SRCS:.m=)
-EXECS = $(SRCS:.m=$(EXEEXT))
+EXECS = $(OBJC_SRCS:.m=$(EXEEXT)) $(C_SRCS:.c=$(EXEEXT))
 
 BUNDLE_NAME=LoadMe
 DYNAMIC_MFILES = \
@@ -132,11 +137,21 @@ RCS_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 DIST_FILES = $(RCS_FILES) 
 
 # type 'make bundles' if you also want to check bundles.
-all: $(EXCS)
+all: $(EXCS) check
 
 # This works for GNU make, but not others.
 %: %$(OEXT) $(srcdir)/../src/libobjects$(LIBEXT)
 	$(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
+
+test.out: $(TESTS)
+	rm -rf test.out
+	sh >test.out -c \
+	'for prog in $(TESTS); do echo Running $$prog...; $$prog; done'
+
+check: $(EXCS)
+	sh -c \
+	'for prog in $(TESTS); do echo Running $$prog...; $$prog; done'	\
+	| diff -c - test.out
 
 install:
 uninstall:

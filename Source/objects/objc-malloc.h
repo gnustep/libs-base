@@ -24,6 +24,12 @@
 #ifndef __objc_malloc_h_INCLUDE_GNU
 #define __objc_malloc_h_INCLUDE_GNU
 
+#ifdef __STDC__
+#include <stddef.h>
+#else
+#define size_t unsigned long
+#endif
+
 /* I do this to make substituting Boehm's Garbage Collection easy. */
 extern void *(*objc_malloc)(size_t);
 extern void *(*objc_valloc)(size_t);
@@ -31,6 +37,8 @@ extern void *(*objc_atomic_malloc)(size_t);
 extern void *(*objc_realloc)(void *, size_t);
 extern void *(*objc_calloc)(size_t, size_t);
 extern void (*objc_free)(void *);
+
+extern void (*objc_out_of_memory_hook) (void);
 
 #define OBJC_MALLOC(VAR, TYPE, NUM) \
    ((VAR) = (TYPE *) (*objc_malloc)((unsigned)(NUM)*sizeof(TYPE))) 
