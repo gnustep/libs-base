@@ -1,3 +1,10 @@
+Wed Apr 14 14:32:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSPortNameServer.m: Don't suspend thread while waiting for
+	gdomap to start up.
+	* Source/NSDistributedNotificationCenter.m: Don't suspend thread while
+	waiting for gdnc to start up.
+
 Wed Apr 14 10:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle: ([+allBundles]) implemented (ignoring the frameworks

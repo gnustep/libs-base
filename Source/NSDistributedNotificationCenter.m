@@ -29,7 +29,7 @@
 #include	<Foundation/NSArchiver.h>
 #include	<Foundation/NSNotification.h>
 #include	<Foundation/NSDate.h>
-#include	<Foundation/NSThread.h>
+#include	<Foundation/NSRunLoop.h>
 #include	<Foundation/NSTask.h>
 #include	<Foundation/NSDistributedNotificationCenter.h>
 
@@ -40,8 +40,8 @@
  *      message about it - they include installation path information.
  */
 #define stringify_it(X) #X
-#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/gdnc"
-#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/gdnc is running."
+#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/gdnc"
+#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/gdnc is running."
 
 /*
  *	Global variables for distributed notification center types.
@@ -347,8 +347,11 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 NSLog(@"NSDistributedNotificationCenter failed to contact GDNC server.\n");
 NSLog(@"Attempting to start GDNC process - this will take several seconds.\n");
 	      [NSTask launchedTaskWithLaunchPath: cmd arguments: nil];
-	      [NSThread sleepUntilDate:
-		[NSDate dateWithTimeIntervalSinceNow: 8.0]];
+	      [NSTimer scheduledTimerWithTimeInterval: 5.0
+					   invocation: nil
+					      repeats: NO];
+	      [[NSRunLoop currentRunLoop] runUntilDate:
+		[NSDate dateWithTimeIntervalSinceNow: 5.0]];
 NSLog(@"Retrying connection to the GDNC server.\n");
 	      recursion = YES;
 	      [self _connect];
