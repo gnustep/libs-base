@@ -930,7 +930,7 @@ ac_abs_top_srcdir=`cd "$ac_dir" && cd $ac_top_srcdir && pwd`
     else
       echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2
     fi
-    cd "$ac_popdir"
+    cd $ac_popdir
   done
 fi
 
@@ -1127,7 +1127,7 @@ _ASBOX
       echo "$as_me: caught signal $ac_signal"
     echo "$as_me: exit $exit_status"
   } >&5
-  rm -f core *.core &&
+  rm -f core core.* *.core &&
   rm -rf conftest* confdefs* conf$$* $ac_clean_files &&
     exit $exit_status
      ' 0
@@ -2178,7 +2178,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   for ac_declaration in \
-   '' \
+   ''\
+   '#include <stdlib.h>' \
    'extern "C" void std::exit (int) throw (); using std::exit;' \
    'extern "C" void std::exit (int); using std::exit;' \
    'extern "C" void exit (int) throw ();' \
@@ -2192,8 +2193,8 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-$ac_declaration
 #include <stdlib.h>
+$ac_declaration
 int
 main ()
 {
@@ -2607,7 +2608,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 gcc_nested=0
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 if test $gcc_nested = 0; then
   echo "$as_me:$LINENO: result: no" >&5
@@ -2827,7 +2828,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 ac_cv_header_stdc=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 fi
@@ -3151,7 +3152,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 reuseaddr_ok=0
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 if test $reuseaddr_ok = 0; then
 
@@ -3373,7 +3374,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 ac_cv_c_bigendian=yes
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.$ac_objext conftest.$ac_ext
@@ -3753,7 +3754,7 @@ echo "$as_me: error: cannot compute sizeof (void*), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -4120,7 +4121,7 @@ echo "$as_me: error: cannot compute sizeof (short), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -4483,7 +4484,7 @@ echo "$as_me: error: cannot compute sizeof (int), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -4846,7 +4847,7 @@ echo "$as_me: error: cannot compute sizeof (long), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -5209,7 +5210,7 @@ echo "$as_me: error: cannot compute sizeof (long long), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -5572,7 +5573,7 @@ echo "$as_me: error: cannot compute sizeof (float), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -5935,7 +5936,7 @@ echo "$as_me: error: cannot compute sizeof (double), 77
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 rm -f conftest.val
@@ -6182,7 +6183,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 objc_cv_con_autoload=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 case "$target_os" in
     cygwin*)	objc_cv_con_autoload=yes;;
@@ -6878,7 +6879,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 objc_works=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 fi
@@ -6945,7 +6946,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 objc_compiler_supports_constant_string_class=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 fi
@@ -7013,7 +7014,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 objc_load_method_worked=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 fi
@@ -7416,7 +7417,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 ac_cv_header_stdc=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 fi
@@ -9488,7 +9489,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 VSPRINTF_RETURNS_LENGTH=0
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 cat >>confdefs.h <<_ACEOF
@@ -9529,7 +9530,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 VASPRINTF_RETURNS_LENGTH=0
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 cat >>confdefs.h <<_ACEOF
@@ -10626,7 +10627,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 ac_cv_func_setpgrp_void=yes
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 echo "$as_me:$LINENO: result: $ac_cv_func_setpgrp_void" >&5
@@ -11648,7 +11649,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 NEED_WORD_ALIGNMENT=1
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 cat >>confdefs.h <<_ACEOF
@@ -11777,7 +11778,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 working_register_printf=0
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
   if test $working_register_printf = 1; then
 
@@ -11925,7 +11926,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 program_invocation_name_worked=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 
@@ -12065,7 +12066,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 CMDLINE_TERMINATED=0
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
 cat >>confdefs.h <<_ACEOF
@@ -12626,13 +12627,15 @@ else
   echo "$as_me:$LINENO: result: none" >&5
 echo "${ECHO_T}none" >&6
   echo
+  if test $have_forward_hook = no; then
+    echo "You do not have an up-to-date libobjc library installed"
+  else
+    echo "You do not have either ffcall or libffi installed"
+  fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."
-  echo "Make sure one of these libraries is installed and you have a proper"
-  echo "libobjc library. Otherwise DO will not be compatible with other"
-  echo "systems, and you will not be able to use gnustep-gui."
-  echo "(This does not apply on apple-apple-apple systems, except DO will"
-  echo "still not be compatible with other GNUstep systems.)"
+  echo "(This does not apply on apple-apple-apple systems where DO is"
+  echo "not compatible with other GNUstep systems.)"
   if test $enable_do = yes; then
     echo
     echo "You most likely do not want to build base without DO support. Many"
@@ -12894,7 +12897,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 no_xml=yes
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
       CFLAGS="$ac_save_CFLAGS"

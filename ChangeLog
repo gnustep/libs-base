@@ -1,5 +1,7 @@
 2003-10-28  Adam Fedor  <fedor@gnu.org>
 
+	* configure.ac: Simplify and clarify ffi errors.
+
 	* macosx/gnustep.pbproj/project.pbxproj: Update for 10.3 (Xcode).
 	* macosx/REAMDE: Add comment
 	(Update from Philip Mötteli <Philip.Moetteli@tele2.ch>).
