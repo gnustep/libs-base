@@ -76,7 +76,7 @@ NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
 static coll_cache_ptr retain_counts = NULL;
 
 /* The Class responsible for handling autorelease's */
-id autorelease_class = nil;
+static id autorelease_class = nil;
 
 BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
 {
@@ -154,7 +154,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (void) dealloc
 {
-  return NSDeallocateObject(self);
+  NSDeallocateObject(self);
 }
 
 - free
@@ -250,16 +250,21 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
+#if 1
+  [self doesNotRecognizeSelector:aSel];
+  return NULL;
+#else
   void *retFrame;
   NSMethodSignature *ms = [self methodSignatureForSelector:aSel];
   NSInvocation *inv = [NSInvocation invocationWithMethodSignature:ms
 				    frame:argFrame];
   /* is this right? */
-  retFrame = (void*) alloc([ms methodReturnLength]);
+  retFrame = (void*) alloca([ms methodReturnLength]);
   [self forwardInvocation:inv];
   [inv getReturnValue:retFrame];
   /* where do ms and inv get free'd? */
   return retFrame;
+#endif
 }
 
 - (void) forwardInvocation: (NSInvocation*)anInvocation
@@ -501,12 +506,6 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return [self error:"method %s not implemented", sel_get_name(aSel)];
 }
 
-- shouldNotImplement:(SEL)aSel
-{
-  return [self error:"%s should not implement %s", 
-	             object_get_class_name(self), sel_get_name(aSel)];
-}
-
 - doesNotRecognize:(SEL)aSel
 {
   return [self error:"%s does not recognize %s",
@@ -518,6 +517,16 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 @implementation NSObject (GNU)
 
 /* GNU Object class compatibility */
+
++ (void) setAutoreleaseClass: (Class)aClass
+{
+  autorelease_class = aClass;
+}
+
++ (Class) autoreleaseClass
+{
+  return autorelease_class;
+}
 
 - (int)compare:anotherObject;
 {
@@ -583,6 +592,12 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 - subclassResponsibility:(SEL)aSel
 {
   return [self error:"subclass should override %s", sel_get_name(aSel)];
+}
+
+- shouldNotImplement:(SEL)aSel
+{
+  return [self error:"%s should not implement %s", 
+	             object_get_class_name(self), sel_get_name(aSel)];
 }
 
 + (int)streamVersion: (TypedStream*)aStream
