@@ -26,13 +26,13 @@
 
 /* xxx These method names need to be fixed because we will get
    type conflicts with GNUSTEP.
-   Perhaps I'll just get rid of the GNU String objects and just
-   transfer this functionality into NSSTring and friends. */
+   I will do the work to merge NSString and GNU String in the same 
+   manner as NSArray and GNU Array. */
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/ValueHolding.h>
-#include <Foundation/NSString.h>
+//#include <Foundation/NSString.h>
 #include <stdarg.h>
 
 typedef unsigned short Character;
@@ -47,7 +47,7 @@ typedef unsigned short Character;
 
 /* Think about changing these names to avoid conflicts with OpenStep? */
 
-@protocol String <NSObject, ValueGetting, IndexedCollecting, NSString>
+@protocol String <NSObject, ValueGetting, IndexedCollecting>
 
 // INITIALIZING NEWLY ALLOCATED STRINGS.  DON'T FORGET TO RELEASE THEM!;
 - init;
@@ -172,11 +172,5 @@ typedef unsigned short Character;
 
 @interface ConstantString : CString
 @end
-
-#if 0 /* Moved to foundation/NSString.h */
-/* The compiler makes @""-strings into NXConstantString's */
-@interface NXConstantString : ConstantString
-@end
-#endif /* 0 */
 
 #endif /* __String_h_OBJECTS_INCLUDE */
