@@ -722,7 +722,7 @@ static int messages_received_count;
       [op encodeValueOfCType: @encode(BOOL)
 	  at: &is_exception
 	  withName: @"Exceptional reply flag"];
-      [op encodeBycopyObject: exception
+      [op encodeBycopyObject: localException
 	  withName: @"Exception object"];
       [op dismiss];
     }
