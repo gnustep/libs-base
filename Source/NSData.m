@@ -500,7 +500,29 @@ failure:
       NSLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
+#ifdef	HAVE_MKSTEMP
+  if (useAuxiliaryFile)
+    {
+      int	desc;
 
+      strcpy(thePath, theRealPath);
+      strcat(thePath, "XXXXXX");
+      if ((desc = mktemp(thePath)) < 0)
+	{
+          NSLog(@"mkstemp (%s) failed - %s", thePath, strerror(errno));
+          goto failure;
+	}
+      if ((theFile = fdopen(desc, "w")) == 0)
+	{
+	  close(desc);
+	}
+    }
+  else
+    {
+      strcpy(thePath, theRealPath);
+      theFile = fopen(thePath, "w");
+    }
+#else
   if (useAuxiliaryFile)
     {
       /* Use the path name of the destination file as a prefix for the
@@ -521,6 +543,7 @@ failure:
 
   /* Open the file (whether temp or real) for writing. */
   theFile = fopen(thePath, "w");
+#endif
 
   if (theFile == NULL)          /* Something went wrong; we weren't
                                  * even able to open the file. */

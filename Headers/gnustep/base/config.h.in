@@ -48,6 +48,9 @@
 /* Define if you have the shmctl function.  */
 #undef HAVE_SHMCTL
 
+/* Define if you have the mkstemp function.  */
+#undef HAVE_MKSTEMP
+
 /* Define if you have the statvfs function.  */
 #undef HAVE_STATVFS
 

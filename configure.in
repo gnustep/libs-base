@@ -473,6 +473,7 @@ AC_CHECK_FUNCS(times)
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(shmctl)
 AC_CHECK_FUNCS(mmap)
+AC_CHECK_FUNCS(mkstemp)
 
 #--------------------------------------------------------------------
 # This function needed by UnixFileHandle.m
