@@ -40,6 +40,7 @@
       withObjCType:(const char *)type
 {
     [self shouldNotImplement:_cmd];
+    return self;
 }
 
 /* xxx What's going on here?  This doesn't look right to me -mccallum. */
