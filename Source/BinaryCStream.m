@@ -26,6 +26,7 @@
 #include <objects/NSString.h>
 #include <objects/StdioStream.h>
 #include <objects/TextCStream.h>
+#include <objects/MallocAddress.h>
 #include <Foundation/NSException.h>
 
 #define DEFAULT_FORMAT_VERSION 0
@@ -290,12 +291,13 @@ static BOOL debug_binary_coder;
 			     length: NUM_BYTES_STRING_LENGTH];
 	assert (read_count == NUM_BYTES_STRING_LENGTH);
 	length = ntohl (length);
-	/* xxx Maybe I should make this alloca() instead of malloc(). */
 	OBJC_MALLOC (*(char**)d, char, length+1);
 	read_count = [stream readBytes: *(char**)d 
 			     length: length];
 	assert (read_count == length);
 	(*(char**)d)[length] = '\0';
+	/* Autorelease the newly malloc'ed pointer. */
+	[MallocAddress autoreleaseMallocAddress: *(char**)d];
 	break;
       }
 
