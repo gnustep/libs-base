@@ -1,4 +1,4 @@
-/** Implementation for NSKeyedUnarchiver for GNUStep
+/** Implementation for NSKeyedUnarchiver for GNUstep
    Copyright (C) 2004 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
