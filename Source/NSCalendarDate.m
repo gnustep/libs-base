@@ -1371,10 +1371,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
 			[name cString]));
 		    else
-		      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
+		      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%01d", dow));
 		  }
 		else
-		  k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
+		  k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%01d", dow));
 		j += k;
 	      }
 	      break;
