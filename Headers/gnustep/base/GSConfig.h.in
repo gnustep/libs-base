@@ -13,6 +13,16 @@
 #define GS_WORDS_BIGENDIAN      @GS_WORDS_BIGENDIAN@
 
 /*
+ *	Size definitions for standard types
+ */
+#define	GS_SIZEOF_SHORT		@ac_cv_sizeof_short@
+#define	GS_SIZEOF_INT		@ac_cv_sizeof_int@
+#define	GS_SIZEOF_LONG		@ac_cv_sizeof_long@
+#define	GS_SIZEOF_LONG_LONG	@ac_cv_sizeof_long_long@
+#define	GS_SIZEOF_FLOAT		@ac_cv_sizeof_float@
+#define	GS_SIZEOF_DOUBLE	@ac_cv_sizeof_double@
+
+/*
  * Type definitions for types with known sizes.
  */
 
