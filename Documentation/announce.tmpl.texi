@@ -1,9 +1,9 @@
-@chapter GNUstep Base Library
+@chapter Announcement
 
-@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
-@include version.texi
+@c set the vars GNUSTEP-BASE-VERSION and GNUSTEP-BASE-GCC-VERSION
+@include version.tmpl.texi
 
-The GNUstep Base Library, version @value{GNUSTEP_BASE_VERSION}, is now
+The GNUstep Base Library, version @value{GNUSTEP-BASE-VERSION}, is now
 available.
 
 @section What is the GNUstep Base Library?
@@ -26,17 +26,17 @@ distribution.
 
 @section Where can you get it?  How can you compile it?
 
-@ifset GNUSTEP_BASE_FTP_MACHINE
-The libgnustep-base-@value{GNUSTEP_BASE_VERSION}.tar.gz distribution file has been
-placed on @samp{@value{GNUSTEP_BASE_FTP_MACHINE}} in
-@samp{@value{GNUSTEP_BASE_FTP_DIRECTORY}}.
+@ifset GNUSTEP-BASE-FTP-MACHINE
+The libgnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has been
+placed on @samp{@value{GNUSTEP-BASE-FTP-MACHINE}} in
+@samp{@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
 @end ifset
-@ifclear GNUSTEP_BASE_FTP_MACHINE
-The libgnustep-base-@value{GNUSTEP_BASE_VERSION}.tar.gz distribution file has not
+@ifclear GNUSTEP-BASE-FTP-MACHINE
+The libgnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has not
 been made available by anonymous ftp.
 @end ifclear
 
-The library requires gcc @value{GNUSTEP_BASE_GCC_VERSION} or higher.
+The library requires gcc @value{GCC-VERSION} or higher.
 Significant sections of the library do not work with the NeXT runtime,
 so we recommend using gcc instead of NeXT's cc.  See the @samp{INSTALL}
 file for more instructions about compiling and installing the library.

@@ -60,7 +60,9 @@
 after-clean::
 	rm -f version.texi
 	rm -f $(TEXT_FILES)
+	rm -f $(ORIG_FILES:.tmpl.texi=.texi)
 	rm -f *.info
+	rm -f *.html
 	rm -f gnustep-base.dvi gnustep-base.aux gnustep-base.log \
 	gnustep-base.toc gnustep-base.cl \
 	gnustep-base.cp gnustep-base.cps gnustep-base.fn gnustep-base.fns \
@@ -193,7 +195,11 @@ TODO: version.tmpl.texi todo.tmpl.texi
 		> todo.texi ; \
 	$(MAKEINFO) $(TEXT_FLAGS) -o TODO $(srcdir)/todo.texi
 
-CODING-STANDARDS: version.tmpl.texi coding-standards.texi
+CODING-STANDARDS: version.tmpl.texi coding-standards.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/coding-standards.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> coding-standards.texi ; \
 	$(MAKEINFO) $(TEXT_FLAGS) -o CODING-STANDARDS \
 		$(srcdir)/coding-standards.texi
 

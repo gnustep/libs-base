@@ -1,6 +1,6 @@
-@chapter GNU Objective-C Class Library To Do list, and Questions.
-@c set the vars GOBJC_VERSION and GCC_VERSION
-@include version.texi
+@chapter Todo
+@c set the vars GSTEP-BASE-VERSION and GCC-VERSION
+@include version.tmpl.texi
 
 This TODO list is out of date.
 

@@ -16,9 +16,7 @@
 @c @definfoenclose url `, '
 @c @end ifinfo
 
-@iftex
 @chapter GNUstep Frequently Asked Questions with Answers
-@end iftex
 
 Maintained by Andrew McCallum @email{mccallum@@gnu.org}, with
 contributions by Adam Fedor @email{fedor@@gnu.org}, 

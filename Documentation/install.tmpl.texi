@@ -3,9 +3,9 @@
 @c data files, please ignore the references to them below.
 
 @c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
-@include version.texi
+@include version.tmpl.texi
 
-@ifset INSTALL_ONLY
+@ifset TEXT_ONLY
 This file documents the installation of the GNUstep Base Library,
 @samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996, 1997 Free Software 
 Foundation, Inc.  You may copy, distribute, and modify it freely as long

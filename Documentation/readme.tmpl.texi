@@ -1,7 +1,7 @@
-@chapter GNUstep Base Library README
+@chapter Readme
 
-@c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
-@include version.texi
+@c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
+@include version.tmpl.texi
 
 @include base-desc.texi
 
@@ -21,15 +21,10 @@ will be forthcoming, but the library needs to settle first.  For now I
 recommend skipping @file{gnustep-base.info} and reading the header files
 instead.  The headers for the classes are in @file{./src/include}.
 
-The GNUstep FAQ contains an outline of the class heirarchy, as well as a
+The FAQ contains an outline of the class heirarchy, as well as a
 list of the differences between GNUstep and NeXT's implementation of
 OpenStep, and GNUstep's improvements over NeXT's implementation.  The
 FAQ can be found in @file{doc/GNUstep-FAQ}.
-
-Outdated, preliminary documentation is available via @samp{texinfo} in
-the files @samp{gnustep-base.info} and @samp{gnustep-base.texi}.
-Because texinfo doesn't yet handle @code{@@deftypemethod}, this
-documentation cannot yet be compiled into more readable forms.
 
 @section Overview of the classes
 
