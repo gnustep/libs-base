@@ -462,8 +462,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
         format: @"Bundle for path %@ released too many times", _path];
     }
   
-  if ([self retainCount]
-	- [[[self class] autoreleaseClass] autoreleaseCountForObject:self] == 0)
+  if ([self retainCount] == 0)
     {
       /* Cache all bundles */
       if (_bundleType == NSBUNDLE_APPLICATION
@@ -472,10 +471,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	{
 	  NSMapRemove(_bundles, _path);
 	  NSMapInsert(_releasedBundles, _path, self);
+	  return;
 	}
-      else
-	[self dealloc];
-      return;
     }
   [super release];
 }
