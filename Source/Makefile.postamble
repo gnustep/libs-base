@@ -202,6 +202,7 @@ $(GNUSTEP_OBJ_DIR)/mframe.o \
 $(GNUSTEP_OBJ_DIR)/NSArchiver.o \
 $(GNUSTEP_OBJ_DIR)/NSConnection.o \
 $(GNUSTEP_OBJ_DIR)/NSData.o \
+$(GNUSTEP_OBJ_DIR)/NSDecimal.o \
 $(GNUSTEP_OBJ_DIR)/NSInvocation.o \
 $(GNUSTEP_OBJ_DIR)/NSMethodSignature.o \
 $(GNUSTEP_OBJ_DIR)/NSProcessInfo.o \
