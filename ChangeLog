@@ -1,3 +1,8 @@
+2003-09-30  Adam Fedor  <fedor@gnu.org>
+
+	* config/procfs.m4: Force disable /proc on Irix. Force enable
+	on cygwin.
+
 2003-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Protect the function handling notification

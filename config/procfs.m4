@@ -20,6 +20,9 @@ AC_DEFUN(AC_SYS_PROCFS,
     case "$target_os" in
       # Solaris has proc, but it is not readable
       solaris*)    ac_cv_sys_procfs=no;;
+      irix*)       ac_cv_sys_procfs=no;;
+      # Cygwin does have proc, but it does not show with mount
+      cygwin*)     ac_cv_sys_procfs=yes;;
     esac
   elif test "$enable_procfs" = cross; then
     AC_MSG_WARN(Pass --enable-procfs argument to enable use of /proc filesystem.)
