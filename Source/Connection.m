@@ -45,6 +45,7 @@
 #include <objects/RunLoop.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSException.h>
 #include <assert.h>
 
 @interface Connection (GettingCoderInterface)

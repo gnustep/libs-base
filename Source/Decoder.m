@@ -578,7 +578,7 @@
 	  [NSException 
 	    raise: NSGenericException
 	    format: @"can't decode forward reference when not decoding "
-	    "a root object"];
+	    @"a root object"];
 	[self decodeValueOfCType: @encode(unsigned)
 	      at: &fref 
 	      withName: NULL];
@@ -653,7 +653,7 @@
 	if (!*anObjPtr)
 	  [NSException 
 	    raise: NSGenericException
-	    format: @ "repeated object cross-reference number %u not found",
+	    format: @"repeated object cross-reference number %u not found",
 	    xref];
 	break;
       }

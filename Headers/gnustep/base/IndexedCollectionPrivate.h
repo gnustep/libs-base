@@ -1,8 +1,8 @@
 /* IndexedCollection definitions for the use of subclass implementations only
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -26,22 +26,16 @@
 
 #include <objects/stdobjects.h>
 #include <objects/CollectionPrivate.h>
+#include <Foundation/NSException.h>
+#include <objects/NSString.h>
 
 /* To be used inside a method for making sure that index
    is not above range.
 */
 #define CHECK_INDEX_RANGE_ERROR(INDEX, OVER) \
-({if (INDEX >= OVER) \
-  [self error:"in %s, index out of range", sel_get_name(_cmd)];})
-
-
-/* For use with subclasses of IndexedCollections that allow elements to
-   be added, but not added at particular indices---the collection itself 
-   determines the order.
-*/
-#define INSERTION_ERROR() \
-([self error:"in %s, this collection does not allow insertions", \
-	sel_get_name(aSel)];)
-
+if (INDEX >= OVER) \
+  [NSException raise: NSRangeException \
+               format: @"in %s, index %d is out of range", \
+               sel_get_name (_cmd), INDEX]
 
 #endif /* __IndexedCollectionPrivate_h_INCLUDE_GNU */
