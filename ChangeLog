@@ -1,3 +1,8 @@
+2004-09-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Implement init for GSPlaceHolderString
+	to return an empty inline unicode string.
+
 2004-09-07  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/HtmlNav/docs-web.html: Update to work with current
