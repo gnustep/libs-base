@@ -1,3 +1,23 @@
+Mon Jan 29 13:08:21 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* GNUmakefile: Include local base.make.
+	* Admin/GNUmakefile: Idem.
+	* Documentation/GNUmakefile: Idem.
+	* Documentation/gsdoc/GNUmakefile: Idem.
+	* Examples/GNUmakefile: Idem.
+	* NSCharacterSets/GNUmakefile: Idem. 
+	* NSTimeZones/GNUmakefile: Idem.
+	* Testing/GNUmakefile: Idem.
+	* Tools/GNUmakefile: Idem.
+	* Resources/GNUmakefile: Idem.
+	* Source/GNUmakefile: Idem.
+	* configure.in (tests for ffi): set CONFIG_SYSTEM_LIBS too
+	(test for iconv): test taken from the make package.  (AC_OUTPUT):
+	Generate base.make.
+	* configure: Regenerated.
+	* base.make.in: New file.
+	* Makefile.postamble (before-install): Install base.make.
+	
 2001-01-29  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* NSTimeZones/NSTimeZones.tar: Updated.
