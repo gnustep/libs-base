@@ -64,71 +64,65 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 @interface	NSDistantObject (NSConnection)
 - (BOOL) isVended;
+- (id) localForProxy;
 - (void) setProxyTarget: (unsigned)target;
 - (void) setVended;
+- (unsigned) targetForProxy;
 @end
 
 @implementation	NSDistantObject (NSConnection)
 - (BOOL) isVended
 {
-    return _isVended;
+  return _isVended;
+}
+- (id) localForProxy
+{
+  return _object;
 }
 - (void) setProxyTarget: (unsigned)target
 {
-    _handle = target;
+  _handle = target;
 }
 - (void) setVended
 {
-    _isVended = YES;
+  _isVended = YES;
+}
+- (unsigned) targetForProxy
+{
+  return _handle;
 }
 @end
 
-static unsigned local_object_counter = 0;
-
 /*
- *	ConnectionLocalCounter is a trivial class to keep track of how
+ *	GSLocalCounter is a trivial class to keep track of how
  *	many different connections a particular local object is vended
  *	over.  This is required so that we know when to remove an object
  *	from the global list when it is removed from the list of objects
  *	vended on a particular connection.
  */
-@interface	ConnectionLocalCounter : NSObject
+@interface	GSLocalCounter : NSObject
 {
 @public
   unsigned	ref;
   unsigned	target;
   id		object;
 }
-- (void)decrement;
-- (void)increment;
-- (unsigned int) value;
++ (GSLocalCounter*) newWithObject: (id)ob;
 @end
 
-@implementation	ConnectionLocalCounter
+@implementation	GSLocalCounter
 
-- (void) decrement
-{
-  ref--;
-}
+static unsigned local_object_counter = 0;
 
-- (void) increment
++ (GSLocalCounter*) newWithObject: (id)obj
 {
-  ref++;
-}
+  GSLocalCounter	*counter;
 
-- init
-{
-  self = [super init];
-  if (self)
-    {
-      ref = 1;
-    }
-  return self;
-}
-
-- (unsigned int) value
-{
-  return ref;
+  counter = (GSLocalCounter*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  counter->ref = 1;
+  counter->object = obj;
+  counter->target = ++local_object_counter;
+  return counter;
 }
 @end
 
@@ -346,7 +340,7 @@ static int messages_received_count;
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
   all_connections_local_cached =
-    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+    NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
   received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
   received_request_rmc_queue_gate = [NSLock new];
@@ -402,7 +396,8 @@ static int messages_received_count;
 	CachedLocalObject *item = [cached_locals objectAtIndex: i-1];
 
 	if ([item countdown] == NO) {
-	    NSMapRemove(all_connections_local_cached, [item obj]);
+	    GSLocalCounter	*counter = [item obj];
+	    NSMapRemove(all_connections_local_cached, (void*)counter->target);
 	}
     }
     if ([cached_locals count] == 0) {
@@ -1504,9 +1499,9 @@ static int messages_received_count;
 
   if ([self includesLocalTarget: target] == nil)
     {
-      ConnectionLocalCounter	*counter;
+      GSLocalCounter	*counter;
 
-      counter = (ConnectionLocalCounter*)[[self class] includesLocalTarget: target];
+      counter = (GSLocalCounter*)[[self class] includesLocalTarget: target];
       if (counter != nil)
 	[NSDistantObject proxyWithLocal: counter->object connection: self];
     }
@@ -1798,9 +1793,9 @@ static int messages_received_count;
 /* Managing objects and proxies. */
 - (void) addLocalObject: anObj
 {
-  id		object = [anObj localForProxy];
-  unsigned	target;
-  ConnectionLocalCounter	*counter;
+  id			object = [anObj localForProxy];
+  unsigned		target;
+  GSLocalCounter	*counter;
 
   NSParameterAssert (is_valid);
   [proxiesHashGate lock];
@@ -1814,15 +1809,13 @@ static int messages_received_count;
   counter = NSMapGet(all_connections_local_targets, (void*)target);
   if (counter)
     {
-      [counter increment];
+      counter->ref++;
       target = counter->target;
     }
   else
     {
-      counter = [ConnectionLocalCounter new];
-      target = ++local_object_counter;
-      counter->target = target;
-      counter->object = object;
+      counter = [GSLocalCounter newWithObject: object];
+      target = counter->target;
       NSMapInsert(all_connections_local_objects, (void*)object, counter);
       NSMapInsert(all_connections_local_targets, (void*)target, counter);
       [counter release];
@@ -1831,7 +1824,7 @@ static int messages_received_count;
   NSMapInsert(local_targets, (void*)target, anObj);
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) to connection (0x%x) (ref %d)\n",
-		(unsigned)object, (unsigned) self, [counter value]);
+		(unsigned)object, (unsigned) self, counter->ref);
   [proxiesHashGate unlock];
 }
 
@@ -1866,7 +1859,7 @@ static int messages_received_count;
 {
   NSDistantObject	*prox;
   unsigned		target;
-  id			counter;
+  GSLocalCounter	*counter;
   unsigned		val = 0;
 
   [proxiesHashGate lock];
@@ -1881,8 +1874,8 @@ static int messages_received_count;
   counter = NSMapGet(all_connections_local_objects, (void*)anObj);
   if (counter)
     {
-      [counter decrement];
-      if ((val = [counter value]) == 0)
+      counter->ref--;
+      if ((val = counter->ref) == 0)
 	{
 	  NSMapRemove(all_connections_local_objects, (void*)anObj);
 	  NSMapRemove(all_connections_local_targets, (void*)target);
@@ -1902,8 +1895,8 @@ static int messages_received_count;
 					 userInfo: nil
 					  repeats: YES];
 		}
-	      item = [CachedLocalObject itemWithObject: anObj time: 30];
-	      NSMapInsert(all_connections_local_cached, anObj, item);
+	      item = [CachedLocalObject itemWithObject: counter time: 30];
+	      NSMapInsert(all_connections_local_cached, (void*)target, item);
 	    }
 	}
     }
