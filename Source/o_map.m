@@ -30,11 +30,14 @@
 #include <gnustep/base/o_hash.h>
 #include <gnustep/base/o_map.h>
 
+/* To easily un-inline functions for debugging */
+#define INLINE inline
+
 /**** Function Implementations ***********************************************/
 
 /** Background functions **/
 
-static inline o_map_bucket_t *
+static INLINE o_map_bucket_t *
 _o_map_pick_bucket_for_key(o_map_t *map,
 				 o_map_bucket_t *buckets,
 				 size_t bucket_count,
@@ -45,7 +48,7 @@ _o_map_pick_bucket_for_key(o_map_t *map,
 		    % bucket_count);
 }
 
-static inline o_map_bucket_t *
+static INLINE o_map_bucket_t *
 _o_map_pick_bucket_for_node(o_map_t *map,
 				  o_map_bucket_t *buckets,
 				  size_t bucket_count,
@@ -56,21 +59,21 @@ _o_map_pick_bucket_for_node(o_map_t *map,
 		    % bucket_count);
 }
 
-static inline o_map_bucket_t *
+static INLINE o_map_bucket_t *
 _o_map_bucket_for_key(o_map_t *map, const void *key)
 {
   return _o_map_pick_bucket_for_key(map, map->buckets,
 					  map->bucket_count, key);
 }
 
-static inline o_map_bucket_t *
+static INLINE o_map_bucket_t *
 _o_map_bucket_for_node(o_map_t *map, o_map_node_t *node)
 {
   return _o_map_pick_bucket_for_node(map, map->buckets,
 					   map->bucket_count, node);
 }
 
-static inline void
+static INLINE void
 _o_map_link_node_into_bucket(o_map_bucket_t *bucket,
 				   o_map_node_t *node)
 {
@@ -84,7 +87,7 @@ _o_map_link_node_into_bucket(o_map_bucket_t *bucket,
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_unlink_node_from_its_bucket(o_map_node_t *node)
 {
   if (node == node->bucket->first_node)
@@ -100,7 +103,7 @@ _o_map_unlink_node_from_its_bucket(o_map_node_t *node)
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_link_node_into_map(o_map_t *map,
 				o_map_node_t *node)
 {
@@ -114,7 +117,7 @@ _o_map_link_node_into_map(o_map_t *map,
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_unlink_node_from_its_map(o_map_node_t *node)
 {
   if (node == node->map->first_node)
@@ -130,7 +133,7 @@ _o_map_unlink_node_from_its_map(o_map_node_t *node)
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_add_node_to_bucket(o_map_bucket_t *bucket,
 				o_map_node_t *node)
 {
@@ -147,7 +150,7 @@ _o_map_add_node_to_bucket(o_map_bucket_t *bucket,
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_add_node_to_its_bucket(o_map_t *map,
 				    o_map_node_t *node)
 {
@@ -156,7 +159,7 @@ _o_map_add_node_to_its_bucket(o_map_t *map,
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_add_node_to_map(o_map_t *map, o_map_node_t *node)
 {
   if (map != 0)
@@ -174,7 +177,7 @@ _o_map_add_node_to_map(o_map_t *map, o_map_node_t *node)
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_remove_node_from_its_bucket(o_map_node_t *node)
 {
   if (node->bucket != 0)
@@ -188,7 +191,7 @@ _o_map_remove_node_from_its_bucket(o_map_node_t *node)
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_remove_node_from_its_map(o_map_node_t *node)
 {
   if (node->map != 0)
@@ -204,7 +207,7 @@ _o_map_remove_node_from_its_map(o_map_node_t *node)
   return;
 }
 
-static inline o_map_bucket_t *
+static INLINE o_map_bucket_t *
 _o_map_new_buckets(o_map_t *map, size_t bucket_count)
 {
   return (o_map_bucket_t *)NSZoneCalloc(o_map_zone(map),
@@ -212,7 +215,7 @@ _o_map_new_buckets(o_map_t *map, size_t bucket_count)
 					   sizeof(o_map_bucket_t));
 }
 
-static inline void
+static INLINE void
 _o_map_free_buckets(o_map_t *map, o_map_bucket_t *buckets)
 {
   if (buckets != 0)
@@ -220,7 +223,7 @@ _o_map_free_buckets(o_map_t *map, o_map_bucket_t *buckets)
   return;
 }
 
-static inline void
+static INLINE void
 _o_map_remangle_buckets(o_map_t *map,
 			      o_map_bucket_t *old_buckets,
 			      size_t old_bucket_count,
@@ -246,7 +249,7 @@ _o_map_remangle_buckets(o_map_t *map,
   return;
 }
 
-static inline o_map_node_t *
+static INLINE o_map_node_t *
 _o_map_new_node(o_map_t *map, const void *key, const void *value)
 {
   o_map_node_t *node;
@@ -277,7 +280,7 @@ _o_map_new_node(o_map_t *map, const void *key, const void *value)
   return node;
 }
 
-static inline void
+static INLINE void
 _o_map_free_node(o_map_node_t *node)
 {
   if (node != 0)
@@ -301,7 +304,7 @@ _o_map_free_node(o_map_node_t *node)
   return;
 }
 
-static inline o_map_node_t *
+static INLINE o_map_node_t *
 _o_map_node_for_key(o_map_t *map, const void *key)
 {
   o_map_bucket_t *bucket;
@@ -323,7 +326,7 @@ _o_map_node_for_key(o_map_t *map, const void *key)
   return node;
 }
 
-/* A non--static-inline version for use in NSObject.
+/* A non--static-INLINE version for use in NSObject.
    xxx Figure out if this change should be generalized. */
 o_map_node_t *
 o_map_node_for_key (o_map_t *map, const void *key)
@@ -331,7 +334,7 @@ o_map_node_for_key (o_map_t *map, const void *key)
   return _o_map_node_for_key (map, key);
 }
 
-/* A non--static-inline version for use in NSObject.
+/* A non--static-INLINE version for use in NSObject.
    xxx Figure out if this change should be generalized. */
 void
 o_map_remove_node (o_map_node_t *node)
@@ -508,7 +511,7 @@ o_map_contains_value(o_map_t *map, const void *value)
  *       for MAP is placed there;
  *   (3) if VALUE is non-zero, then the the "not a value marker"
  *       for MAP is placed there. */
-inline int
+INLINE int
 o_map_key_and_value_at_key(o_map_t *map,
 				 const void **old_key,
 				 const void **value,

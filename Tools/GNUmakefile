@@ -27,7 +27,7 @@ include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
 # The application to be compiled
 TOOL_NAME = dread dwrite dremove
-OBJC-PROGRAM_NAME = gdomap
+OBJC_PROGRAM_NAME = gdomap
 
 # The source files to be compiled
 gdomap_C_FILES = gdomap.c

@@ -34,6 +34,11 @@
 #include <Foundation/NSAttributedString.h>
 #include <stdio.h>
 
+// These are normally defined in the AppKit
+NSString *NSFontAttributeName = @"NSFont";
+NSString *NSForegroundColorAttributeName = @"NSForegroundColor";
+NSString *NSBackgroundColorAttributeName = @"NSBackgroundColor";
+
 void printAttrString(NSAttributedString *attrStr)
 {
   NSDictionary *tmpAttrDict;

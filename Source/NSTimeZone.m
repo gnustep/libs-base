@@ -66,7 +66,7 @@
 
 
 /* Key for local time zone in user defaults. */
-#define LOCALDBKEY "Local Time Zone"
+#define LOCALDBKEY @"Local Time Zone"
 
 /* Directory that contains the time zone data. */
 #define TIME_ZONE_DIR @"gnustep/NSTimeZones"
@@ -87,7 +87,7 @@
 #define LOCAL_TIME_FILE @"localtime"
 
 /* Directory that contains the actual time zones. */
-#define ZONES_DIR "zones/"
+#define ZONES_DIR @"zones/"
 
 
 @class NSInternalTimeTransition;
@@ -519,7 +519,7 @@ decode (const void *ptr)
       zoneDictionary = [[NSMutableDictionary alloc] init];
 
       localZoneString = [[NSUserDefaults standardUserDefaults]
-			  stringForKey: @LOCALDBKEY];
+			  stringForKey: LOCALDBKEY];
       if (localZoneString == nil)
         /* Try to get timezone from environment. */
 	localZoneString = [[[NSProcessInfo processInfo]
@@ -892,7 +892,7 @@ decode (const void *ptr)
 
 + (NSString*)getTimeZoneFile: (NSString *)name
 {
-  NSString *fileName = [NSString stringWithFormat: @"%s%@",
+  NSString *fileName = [NSString stringWithFormat: @"%@%@",
 				 ZONES_DIR, name];
 
   return [NSBundle pathForGNUstepResource: fileName

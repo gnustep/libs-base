@@ -485,7 +485,7 @@ libgnustep-base_OBJC_FILES = $(GNU_MFILES) $(NEXTSTEP_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
 libgnustep-base_HEADER_FILES_DIR = .
-libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep/base
+libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep
 
 libgnustep-base_HEADER_FILES = $(NEXTSTEP_HEADERS) $(BASE_HEADERS)
 
