@@ -81,12 +81,6 @@ end.  (970101)
 
 @itemize @bullet
 
-@item Separate core and non-core code in NSDictionary, NSSet, etc, the
-same way I did for NSArray.
-
-@item Separate Constant and non-Constant collections for the rest of the
-GNU connection classes the same way I did for Array.
-
 @item Make sure the GNU Archiver/Unarchiver handle
 -encodeConditionalObject: and -decodeObject: correctly.
 
@@ -103,14 +97,6 @@ end.
 @item Do low-level frobbing of TCP to reduce delays.
 
 @item Make UdpPort work; make MachPort work.
-
-@item Finish NotificationQueue, and make it interoperate with the
-RunLoop properly.
-
-@item Make the NSTimer's work and interoperate with the RunLoop
-properly. 
-
-@item Add Coding methods to all the collection classes.
 
 @item Finish Collection heirarchy clean ups.  We need non-mutable
 version for many of the classes.
