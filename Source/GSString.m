@@ -341,6 +341,14 @@ setup(void)
 }
 
 /*
+ * Replace self with an empty inline unicode string.
+ */
+- (id) init
+{
+  return [self initWithCharacters: 0 length: 0];
+}
+
+/*
  * Replace self with an inline unicode string.
  */
 - (id) initWithCharacters: (const unichar*)chars
