@@ -59,6 +59,8 @@ int main()
   exit(0);
 }
 
+
+/* An old, unused test. */
 #else
 
 #include <gnustep/base/all.h>
