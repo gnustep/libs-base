@@ -6,6 +6,7 @@
 	* Tools/GNUmakefile: Build autogsdoc documentation using autogsdoc.
 	* Tools/autogsdoc.m: Fix minor dependency error.
 	* Tools/gsdoc-0_6_7.dtd: Fix ivar support
+	* Source/GSFFCallInvocation.m: minor debug output improvement.
 
 2001-12-13  Adam Fedor  <fedor@gnu.org>
 
