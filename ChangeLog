@@ -6,6 +6,9 @@
 	(GSAllocMethodList, GSAppendMethodToList, GSRemoveMethodFromList)
 	(GSMethodListForSelector, GSMethodFromList)
 	(GSAddMethodList, GSRemoveMethodList): New functions.
+	(GSObjCMethodNames, search_for_method_in_class, GSObjCAddMethods)
+	(search_for_method_in_class, GSObjCAddClassBehavior): Use GSMethod
+	and GSMethodList types instead of pointers to runtime structures.
 	* Testing/GNUmakefile
 	* Testing/gsbehavior.m: New tests.
  

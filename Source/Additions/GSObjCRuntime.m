@@ -185,10 +185,10 @@ GSObjCFindVariable(id obj, const char *name,
 NSArray *
 GSObjCMethodNames(id obj)
 {
-  NSMutableSet			*set;
-  NSArray			*array;
-  Class				class;
-  struct objc_method_list	*methods;
+  NSMutableSet	*set;
+  NSArray	*array;
+  Class		 class;
+  GSMethodList	 methods;
 
   if (obj == nil)
     {
@@ -213,7 +213,7 @@ GSObjCMethodNames(id obj)
 
 	  for (i = 0; i < methods->method_count; i++)
 	    {
-	      struct objc_method *method = &methods->method_list[i];
+	      GSMethod method = &methods->method_list[i];
 
 	      if (method->method_name != 0)
 		{
@@ -620,13 +620,13 @@ GSObjCBehaviorDebug(int i)
 
 #if NeXT_RUNTIME
 
-static struct objc_method *search_for_method_in_class (Class class, SEL op);
+static GSMethod search_for_method_in_class (Class class, SEL op);
 
 void 
-GSObjCAddMethods (Class class, struct objc_method_list *methods)
+GSObjCAddMethods (Class class, GSMethodList methods)
 {
   static SEL initialize_sel = 0;
-  struct objc_method_list *mlist;
+  GSMethodList mlist;
 
   if (!initialize_sel)
     initialize_sel = sel_register_name ("initialize");
@@ -635,20 +635,20 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
   mlist = methods;
     {
       int counter;
-      struct objc_method_list *new_list;
+      GSMethodList new_list;
 
       counter = mlist->method_count ? mlist->method_count - 1 : 1;
 
       /* This is a little wasteful of memory, since not necessarily 
 	 all methods will go in here. */
-      new_list = (struct objc_method_list *)
+      new_list = (GSMethodList)
 	objc_malloc (sizeof(struct objc_method_list) +
 		     sizeof(struct objc_method[counter+1]));
       new_list->method_count = 0;
 
       while (counter >= 0)
         {
-          struct objc_method *method = &(mlist->method_list[counter]);
+          GSMethod method = &(mlist->method_list[counter]);
 
 	  BDBGPrintf("   processing method [%s] ... ", 
 		     GSNameFromSelector(method->method_name));
@@ -683,11 +683,11 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 
 /* Search for the named method's method structure.  Return a pointer
    to the method's method structure if found.  NULL otherwise. */
-static struct objc_method *
+static GSMethod
 search_for_method_in_class (Class class, SEL op)
 {
   void *iterator = 0;
-  struct objc_method_list *method_list;
+  GSMethodList method_list;
 
   if (! sel_is_mapped (op))
     return NULL;
@@ -700,7 +700,7 @@ search_for_method_in_class (Class class, SEL op)
       /* Search the method list.  */
       for (i = 0; i < method_list->method_count; ++i)
         {
-          struct objc_method *method = &method_list->method_list[i];
+          GSMethod method = &method_list->method_list[i];
 
           if (method->method_name)
             {
@@ -724,10 +724,10 @@ extern void class_add_method_list(Class, MethodList_t);
 static Method_t search_for_method_in_class (Class class, SEL op);
 
 void
-GSObjCAddMethods (Class class, struct objc_method_list *methods)
+GSObjCAddMethods (Class class, GSMethodList methods)
 {
   static SEL initialize_sel = 0;
-  struct objc_method_list *mlist;
+  GSMethodList mlist;
 
   if (initialize_sel == 0)
     {
@@ -737,14 +737,14 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
   /* Add methods to class->dtable and class->methods */
   for (mlist = methods; mlist; mlist = mlist->method_next)
     {
-      int			counter;
-      struct objc_method_list	*new_list;
+      int counter;
+      GSMethodList new_list;
 
       counter = mlist->method_count ? mlist->method_count - 1 : 1;
 
       /* This is a little wasteful of memory, since not necessarily 
 	 all methods will go in here. */
-      new_list = (struct objc_method_list *)
+      new_list = (GSMethodList)
 	objc_malloc (sizeof(struct objc_method_list) +
 		     sizeof(struct objc_method[counter+1]));
       new_list->method_count = 0;
@@ -752,8 +752,8 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 
       while (counter >= 0)
         {
-          struct objc_method *method = &(mlist->method_list[counter]);
-	  const char	     *name = GSNameFromSelector(method->method_name);
+          GSMethod method = &(mlist->method_list[counter]);
+	  const char *name = GSNameFromSelector(method->method_name);
 
 	  BDBGPrintf("   processing method [%s] ... ", name);
 
@@ -1334,8 +1334,8 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
   /* Add instance methods */
 #if NeXT_RUNTIME
   {
-    void			*iterator = 0;
-    struct objc_method_list	*method_list;
+    void	 *iterator = 0;
+    GSMethodList  method_list;
 
     method_list = class_nextMethodList(behavior, &iterator);
     while (method_list != 0)
@@ -1353,8 +1353,8 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 	     behavior->class_pointer->name);
 #if NeXT_RUNTIME
   {
-    void			*iterator = 0;
-    struct objc_method_list	*method_list;
+    void	 *iterator = 0;
+    GSMethodList  method_list;
 
     method_list = class_nextMethodList(behavior->class_pointer, &iterator);
     while (method_list != 0)
