@@ -1,8 +1,8 @@
 /* General purpose definitions for the GNU Objective-C Library.
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -67,6 +67,8 @@
 #define OBJECTS_MINOR_VERSION @OBJECTS_MINOR_VERSION@
 #define OBJECTS_SUBMINOR_VERSION @OBJECTS_SUBMINOR_VERSION@
 #define OBJECTS_GCC_VERSION @OBJECTS_GCC_VERSION@
+
+#define OBJECTS_PACKAGE_NAME libobjects
 
 extern const char objects_version[];
 extern const char objects_gcc_version[];
