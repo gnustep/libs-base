@@ -993,7 +993,7 @@ NSDictionary *locale)
 	  break
 
 	T (PA_CHAR, pa_char, int); /* Promoted.  */
-	T (PA_WCHAR, pa_wchar, wint_t);
+	T (PA_WCHAR, pa_wchar, int); /* Sometimes promoted.  */
 	T (PA_INT|PA_FLAG_SHORT, pa_short_int, int); /* Promoted.  */
 	T (PA_INT, pa_int, int);
 	T (PA_INT|PA_FLAG_LONG, pa_long_int, long int);
