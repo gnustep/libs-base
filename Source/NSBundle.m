@@ -1624,6 +1624,25 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _infoDict;
 }
 
+- (NSString *)builtInPlugInsPath
+{
+  NSString  *version = _frameworkVersion;
+
+  if (!version)
+    version = @"Current";
+
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    {
+      return [_path stringByAppendingPathComponent:
+                      [NSString stringWithFormat:@"Versions/%@/PlugIns", 
+                      version]];
+    }
+  else
+    {
+      return [_path stringByAppendingPathComponent: @"PlugIns"];
+    }
+}
+
 - (NSString *)bundleIdentifier
 {
     return [[self infoDictionary] objectForKey:@"CFBundleIdentifier"];
