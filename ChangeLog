@@ -1,3 +1,12 @@
+Wed Jan 21 17:37:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/defaults.m: Fixed bug in handling 'write' operations reading
+	info from stdin - now puts all values into the database correctly.
+
+	* src/TcpPort.m: ([+newForReceivingFromPortNumber:]) added code to
+	perform retries if the kernel freaks out when asked to select the
+	port to bind to - this has happened to me on linux!
+
 Wed Jan 21 11:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/GetDefEncoding.m: Modified GetDefEncoding() to us the NSString
