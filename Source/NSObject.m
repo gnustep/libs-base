@@ -34,8 +34,6 @@
 #include <Foundation/NSException.h>
 #include <limits.h>
 
-extern void (*_objc_error)(id object, const char *format, va_list);
-
 
 /* Reference count management */
 
@@ -45,10 +43,10 @@ extern void (*_objc_error)(id object, const char *format, va_list);
 /* The maptable of retain counts on objects */
 static o_map_t *retain_counts = NULL;
 /* The mutex lock to protect multi-threaded use of `retain_counts' */
-static _objc_mutex_t retain_counts_gate = NULL;
+static objc_mutex_t retain_counts_gate = NULL;
 
 /* The mutex lock to protect RETAIN_COUNTS. */
-static _objc_mutex_t retain_counts_gate;
+static objc_mutex_t retain_counts_gate;
 
 /* The Class responsible for handling autorelease's.  This does not
    need mutex protection, since it is simply a pointer that gets read
@@ -491,7 +489,8 @@ NSDecrementExtraRefCountWasZero (id anObject)
                     object_is_instance(self)?"instance":"class",
                     (aString!=NULL)?aString:"");
   va_start(ap, aString);
-  (*_objc_error)(self, fmt, ap);
+  /* xxx What should `code' argument be?  Current 0. */
+  objc_verror (self, 0, fmt, ap);
   va_end(ap);
   return nil;
 #undef FMT
