@@ -46,12 +46,13 @@ _preventRecursion (NSException *exception)
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  BOOL		a;
+  BOOL			a;
+  extern const char*	GSArgZero();
 
   _NSUncaughtExceptionHandler = _preventRecursion;
-#if 0
-  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
-    	[[exception name] lossyCString], [[exception reason] lossyCString]);
+#if 1
+  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n", GSArgZero(),
+    [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
 #else
   NSLog("Uncaught exception %@, reason: %@",
