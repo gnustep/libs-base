@@ -95,6 +95,12 @@
   return self;
 }
 
++ newForReceivingFromRegisteredName: (NSString*)name fromPort: (int)port
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
 + newForReceivingFromRegisteredName: (NSString*)name
 {
   [self subclassResponsibility:_cmd];
