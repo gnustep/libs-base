@@ -6,7 +6,7 @@
 #include <gnustep/base/Proxy.h>
 #include <Foundation/NSString.h>
 #include <gnustep/base/Notification.h>
-#include <Foundation/RunLoop.h>
+#include <gnustep/base/RunLoop.h>
 #include "oldserver.h"
 
 @implementation Server

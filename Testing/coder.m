@@ -4,7 +4,7 @@
 #include <gnustep/base/BinaryCStream.h>
 #include <gnustep/base/Array.h>
 #include <gnustep/base/Dictionary.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSValue.h>
 

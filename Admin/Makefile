@@ -1,10 +1,10 @@
-
-# Makefile definitions for inclusion in all subdir Makefiles
-# Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+#
+#  admin makefile for the GNUstep Base Library
+#  Copyright (C) 1995 Free Software Foundation, Inc.
 #
 #  Written by:	Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 #
-#  This file is part of the GNU Objective-C Class library.
+#  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Library General Public
@@ -20,14 +20,24 @@
 #  License along with this library; if not, write to the Free
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
-# Put this first so it's the default
-all:
+include ../Version
+include ../config.mak
 
-# Default to empty; individual Makefile's can override this
-install:
-uninstall:
+ADMIN_FILES = \
+HOWTO-patches \
+example.patch \
+volunteers \
+tasks
 
-PACKAGE_NAME = gstep-base
-LIBRARY_NAME = gnustep-base
-LIBRARY_VAR = GNUSTEP_BASE
+RCS_FILES = Makefile
+DIST_FILES = $(RCS_FILES) $(ADMIN_FILES)
+
+-include Makefile.preamble
+
+# We don't actually build anything in this directory so
+# just include the common makefile rules
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/rules.make
+
+-include Makefile.postamble

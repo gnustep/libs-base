@@ -418,8 +418,7 @@ AC_SUBST(no_whole_archive)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile
-doc/Makefile NSCharacterSets/Makefile admin/Makefile)
+AC_OUTPUT(config.mak)
 
 dnl Local Variables:
 dnl comment-start: "dnl "

@@ -25,7 +25,7 @@
 #define __NSPortCoder_h
 
 #include <gnustep/base/preface.h>
-#include <gnustep/base/NSCoder.h>
+#include <Foundation/NSCoder.h>
 #include <gnustep/base/Port.h>
 
 #include <Foundation/DistributedObjects.h>

@@ -25,7 +25,7 @@
 #define __Notification_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 #include <gnustep/base/KeyedCollecting.h>
 #include <gnustep/base/NotificationDispatcher.h>
 

@@ -60,7 +60,7 @@
 #include <gnustep/base/LinkedList.h>
 #include <gnustep/base/Array.h>
 #include <Foundation/NSMapTable.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>
 
 @interface NotificationDispatcher : NSObject
