@@ -31,10 +31,6 @@
 #ifndef __GSXML_H__
 #define __GSXML_H__
 
-/* libxml headers */
-#include <tree.h>
-#include <entities.h>
-
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDictionary.h>
@@ -45,12 +41,6 @@
 @class GSXMLNamespace;
 @class GSXMLNode;
 @class GSSAXHandler;
-
-typedef xmlElementType 		GSXMLElementType;
-typedef xmlEntityType  		GSXMLEntityType;
-typedef xmlAttributeType 	GSXMLAttributeType;
-typedef xmlElementTypeVal 	GSXMLElementTypeVal;
-typedef xmlNsType		GSXMLNamespaceType;
 
 
 @interface GSXMLDocument : NSObject
@@ -90,10 +80,12 @@ typedef xmlNsType		GSXMLNamespaceType;
   BOOL	native;
 }
 
++ (NSString*) descriptionFromType:  (int)t;
 + (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
 				 href: (NSString*)href
 			       prefix: (NSString*)prefix;
 + (GSXMLNamespace*) namespaceFrom: (void*)data;
++ (int) typeFromDescription:  (NSString*)d;
 
 - (id) initWithNode: (GSXMLNode*)node
 	       href: (NSString*)href
@@ -104,7 +96,8 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void*) lib;
 - (GSXMLNamespace*) next;
 - (NSString*) prefix;
-- (GSXMLNamespaceType) type;
+- (int) type;
+- (NSString*) typeDescription;
 
 @end
 
@@ -115,8 +108,11 @@ typedef xmlNsType		GSXMLNamespaceType;
   void  *lib;      /* pointer to struct xmlNode from libxml */
   BOOL  native;
 }
+
++ (NSString*) descriptionFromType:  (int)t;
 + (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 + (GSXMLNode*) nodeFrom: (void*) data;
++ (int) typeFromDescription:  (NSString*)d;
 
 - (id) initWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 - (id) initFrom: (void*) data;
@@ -133,8 +129,9 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (GSXMLNode*) prev;
 - (GSXMLAttribute*) properties;
 - (NSMutableDictionary*) propertiesAsDictionary;
-- (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:(SEL)keyTransformSel;
-- (GSXMLElementType) type;
+- (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
+  (SEL)keyTransformSel;
+- (int) type;
 - (NSString*) typeDescription;
 
 - (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
@@ -153,10 +150,13 @@ typedef xmlNsType		GSXMLNamespaceType;
 @interface GSXMLAttribute : GSXMLNode
 {
 }
+
++ (NSString*) descriptionFromType:  (int)t;
 + (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
 				 name: (NSString*)name
 				value: (NSString*)value;
 + (GSXMLAttribute*) attributeFrom: (void*)data;
++ (int) typeFromDescription:  (NSString*)d;
 
 - (id) initWithNode: (GSXMLNode*)node
 	       name: (NSString*)name
@@ -167,7 +167,8 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (GSXMLNamespace*) ns;
 - (GSXMLAttribute*) next;
 - (GSXMLAttribute*) prev;
-- (GSXMLAttributeType) type;
+- (int) type;
+- (NSString*) typeDescription;
 - (NSString*) value;
 
 @end

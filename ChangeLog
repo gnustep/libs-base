@@ -1,3 +1,22 @@
+2001-04-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/GSXML.h: Many changes to restore encapsulation
+	of libxml previously broken by someone...  Partly as a matter of
+	good OO programming practice, partly so that the library can be
+	used effectively from Java (via JIGS).
+	Moved libxml header includes out of this file.
+	Removed typedefs for libxml constants and changed 'type' methods
+	to return 'int'.
+	Added class methods for mapping between integer type values
+	and constant string type values.
+	Added a typeDescription method to GSXMLAttribute for consistency.
+	* Source/GSXML.m: include required headers and update to implement
+	changes in API.  Also fixed bug in implementation of typeDescription
+	method for GSXMLNamespace.
+	* Documentation/gsdoc/GSXMLNode.gsdoc: Updated to reflect current API
+	* Documentation/gsdoc/GSXMLNamespace.gsdoc: ditto
+	* Documentation/gsdoc/GSXMLAttribute.gsdoc: ditto
+
 2001-04-25  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* base.make.in: (GNUSTEP_BASE_VERSION),

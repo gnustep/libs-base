@@ -2,9 +2,9 @@
  <title>GSXMLAttribute</title>
 </head>
 <body>
-<a href ="GSXMLNode.html">[Previous]</a>
-<a href ="GSXML.html">[Up]</a>
-<a href ="GSXMLDocument.html">[Next]</a>
+<a href ="GSXMLNode.html">[Previous] </a>
+<a href ="GSXML.html">[Up] </a>
+<a href ="GSXMLDocument.html">[Next] </a>
 <h1>GSXMLAttribute</h1>
 <h3>Authors </h3>
  <dl>
@@ -28,15 +28,19 @@
 </ul>
 <h2>Methods </h2>
 <ul>
-<li><a href ="GSXMLAttribute.html#method-2">+attributeFrom:</a>
-<li><a href ="GSXMLAttribute.html#method-0">+attributeWithNode:name:value:</a>
-<li><a href ="GSXMLAttribute.html#method-3">-initFrom:</a>
-<li><a href ="GSXMLAttribute.html#method-1">-initWithNode:name:value:</a>
-<li><a href ="GSXMLAttribute.html#method-4">-lib</a>
-<li><a href ="GSXMLAttribute.html#method-5">-name</a>
-<li><a href ="GSXMLAttribute.html#method-7">-next</a>
-<li><a href ="GSXMLAttribute.html#method-9">-prev</a>
-<li><a href ="GSXMLAttribute.html#method-6">-value</a>
+<li ><a href ="GSXMLAttribute.html#method-4">+attributeFrom:</a>
+<li ><a href ="GSXMLAttribute.html#method-0">+attributeWithNode:name:value:</a>
+<li ><a href ="GSXMLAttribute.html#method-1">+descriptionFromType:</a>
+<li ><a href ="GSXMLAttribute.html#method-2">+typeFromDescription:</a>
+<li ><a href ="GSXMLAttribute.html#method-5">-initFrom:</a>
+<li ><a href ="GSXMLAttribute.html#method-3">-initWithNode:name:value:</a>
+<li ><a href ="GSXMLAttribute.html#method-6">-lib</a>
+<li ><a href ="GSXMLAttribute.html#method-7">-name</a>
+<li ><a href ="GSXMLAttribute.html#method-9">-next</a>
+<li ><a href ="GSXMLAttribute.html#method-11">-prev</a>
+<li ><a href ="GSXMLAttribute.html#method-12">-type</a>
+<li ><a href ="GSXMLAttribute.html#method-13">-typeDescription</a>
+<li ><a href ="GSXMLAttribute.html#method-8">-value</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">attributeWithNode:name:value:</a></h3>
@@ -48,7 +52,44 @@ Create a new property carried by a node.
 
           
  <hr>
-<h3><a name ="method-2">attributeFrom:</a></h3>
+<h3><a name ="method-1">descriptionFromType:</a></h3>
++ (NSString*) <b>descriptionFromType:</b> (int)type;<br>
+
+	    <p>
+
+	      Return the string constant value for the attribute
+	      type given.
+            </p>
+
+          
+ <hr>
+<h3><a name ="method-2">typeFromDescription:</a></h3>
++ (int) <b>typeFromDescription:</b> (NSString*)desc;<br>
+
+	    <p>
+
+	      Return the numeric constant value for the attribute
+	      type named.  This method is inefficient, so the returned
+	      value should be saved for re-use later.  The possible
+	      values are -
+            </p>
+
+	    <ul>
+<li >XML_ATTRIBUTE_CDATA
+<li >XML_ATTRIBUTE_ID
+<li >XML_ATTRIBUTE_IDREF	
+<li >XML_ATTRIBUTE_IDREFS
+<li >XML_ATTRIBUTE_ENTITY
+<li >XML_ATTRIBUTE_ENTITIES
+<li >XML_ATTRIBUTE_NMTOKEN
+<li >XML_ATTRIBUTE_NMTOKENS
+<li >XML_ATTRIBUTE_ENUMERATION
+<li >XML_ATTRIBUTE_NOTATION
+</ul>
+
+          
+ <hr>
+<h3><a name ="method-4">attributeFrom:</a></h3>
 + (GSXMLAttribute*) <b>attributeFrom:</b> (void*)data;<br>
 
 	    <p>
@@ -58,7 +99,7 @@ Creation of a new Attribute from libxml data.
           
  <hr>
 <hr><h2>Instances Methods </h2>
-<h3><a name ="method-1">initWithNode:name:value:</a></h3>
+<h3><a name ="method-3">initWithNode:name:value:</a></h3>
 - (id) <b>initWithNode:</b> (GSXMLNode*)node <b>name:</b> (NSString*)name <b>value:</b> (NSString*)value;<br>
 
 	    <p>
@@ -67,7 +108,7 @@ Create a new property carried by a node.
 
           
  <hr>
-<h3><a name ="method-3">initFrom:</a></h3>
+<h3><a name ="method-5">initFrom:</a></h3>
 <b>This is the designated initialiser </b><br>
 - (id) <b>initFrom:</b> (void*)data;<br>
 
@@ -77,7 +118,7 @@ Creation of a new Attribute from libxml data.
 
           
  <hr>
-<h3><a name ="method-4">lib</a></h3>
+<h3><a name ="method-6">lib</a></h3>
 - (void*) <b>lib</b>;<br>
 
 	    <p>
@@ -86,7 +127,7 @@ Return pointer to xmlAttribute structure.
 
           
  <hr>
-<h3><a name ="method-5">name</a></h3>
+<h3><a name ="method-7">name</a></h3>
 - (NSString*) <b>name</b>;<br>
 
           <p>
@@ -95,7 +136,7 @@ Return a Attribute name.
 
           
  <hr>
-<h3><a name ="method-6">value</a></h3>
+<h3><a name ="method-8">value</a></h3>
 - (NSString*) <b>value</b>;<br>
 
           <p>
@@ -104,14 +145,14 @@ Return a value of this attribute.
 
           
  <hr>
-<h3><a name ="method-7">next</a></h3>
+<h3><a name ="method-9">next</a></h3>
 - (GSXMLAttribute*) <b>next</b>;<br>
 
 	    <p>
 Return next Attribute.
             </p>
 
-	    <a name ="label-8">example </a>
+	    <a name ="label-10">example </a>
 <pre>
 
 
@@ -127,11 +168,32 @@ Return next Attribute.
 
           
  <hr>
-<h3><a name ="method-9">prev</a></h3>
+<h3><a name ="method-11">prev</a></h3>
 - (GSXMLAttribute*) <b>prev</b>;<br>
 
 	    <p>
-Return previous Attribute.
+
+	      Return previous Attribute.
+            </p>
+
+          
+ <hr>
+<h3><a name ="method-12">type</a></h3>
+- (int) <b>type</b>;<br>
+
+	    <p>
+
+	      Return the numeric type code for this attribute.
+            </p>
+
+          
+ <hr>
+<h3><a name ="method-13">typeDescription</a></h3>
+- (NSString*) <b>typeDescription</b>;<br>
+
+	    <p>
+
+	      Return the string type code for this attribute.
             </p>
 
           
