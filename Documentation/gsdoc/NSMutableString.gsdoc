@@ -63,6 +63,20 @@
           </desc>
         </method>
         <method type="void">
+          <sel>replaceString:</sel>
+          <arg type="NSString*">aString</arg>
+          <sel>withString:</sel>
+          <arg type="NSString*">replacement</arg>
+          <desc>
+	    Replaces any (and all) occurrances of <em>aString</em> in the
+	    receiver by <em>replacement</em>.
+	    Has no effect if <em>aString</em> does not occur within the
+	    receiver.  NB. an empty string is not considered to exist within
+	    the receiver.
+          </desc>
+	  <standards><GNUstep/><NotMacOS-X/><NotOpenStep/></standards>
+        </method>
+        <method type="void">
           <sel>setString:</sel>
           <arg type="NSString*">aString</arg>
           <desc>

@@ -43,8 +43,8 @@ A constant NSString can be created using the following syntax: <code>@"..."</cod
 <li><a href="NSString.html#method-3">+localizedStringWithFormat:</a>
 <li><a href="NSString.html#method-4">+pathWithComponents:</a>
 <li><a href="NSString.html#method-5">+string</a>
-<li><a href="NSString.html#method-8">+stringWithCString:</a>
 <li><a href="NSString.html#method-9">+stringWithCString:</a>
+<li><a href="NSString.html#method-8">+stringWithCString:</a>
 <li><a href="NSString.html#method-6">+stringWithCharacters:length:</a>
 <li><a href="NSString.html#method-7">+stringWithContentsOfFile:</a>
 <li><a href="NSString.html#method-10">+stringWithFormat:</a>
@@ -106,7 +106,7 @@ A constant NSString can be created using the following syntax: <code>@"..."</cod
 <li><a href="NSString.html#method-68">-rangeOfCharacterFromSet:options:range:</a>
 <li><a href="NSString.html#method-69">-rangeOfComposedCharacterSequenceAtIndex:</a>
 <li><a href="NSString.html#method-70">-rangeOfString:</a>
-<li><a href="NSString.html#method-71">-rangeOfString:</a>
+<li><a href="NSString.html#method-71">-rangeOfString:options:</a>
 <li><a href="NSString.html#method-72">-rangeOfString:options:range:</a>
 <li><a href="NSString.html#method-73">-smallestEncoding</a>
 <li><a href="NSString.html#method-74">-stringByAbbreviatingWithTildeInPath</a>
@@ -117,12 +117,13 @@ A constant NSString can be created using the following syntax: <code>@"..."</cod
 <li><a href="NSString.html#method-79">-stringByDeletingLastPathComponent</a>
 <li><a href="NSString.html#method-80">-stringByDeletingPathExtension</a>
 <li><a href="NSString.html#method-81">-stringByExpandingTildeInPath</a>
-<li><a href="NSString.html#method-82">-stringsByAppendingPaths:</a>
-<li><a href="NSString.html#method-83">-substringFromIndex:</a>
-<li><a href="NSString.html#method-84">-substringToIndex:</a>
-<li><a href="NSString.html#method-85">-substringWithRange:</a>
-<li><a href="NSString.html#method-86">-uppercaseString</a>
-<li><a href="NSString.html#method-87">-writeToFile:atomically:</a>
+<li><a href="NSString.html#method-82">-stringByReplacingString:withString:</a>
+<li><a href="NSString.html#method-83">-stringsByAppendingPaths:</a>
+<li><a href="NSString.html#method-84">-substringFromIndex:</a>
+<li><a href="NSString.html#method-85">-substringToIndex:</a>
+<li><a href="NSString.html#method-86">-substringWithRange:</a>
+<li><a href="NSString.html#method-87">-uppercaseString</a>
+<li><a href="NSString.html#method-88">-writeToFile:atomically:</a>
 </ul>
 <hr>
 <h2><a name="method-0">availableStringEncodings</a></h2>
@@ -487,15 +488,39 @@ Returns the localized name of the encoding specified by <var>encoding</var>.</p>
 <h2><a name="method-70">rangeOfString:</a></h2>
 - (NSRange) <b>rangeOfString:</b> (NSString*)aString;<br>
 
+	    Invokes <em>rangeOfString:options:</em> with the options mask
+	    set to zero.
           
 <hr>
-<h2><a name="method-71">rangeOfString:</a></h2>
-- (NSRange) <b>rangeOfString:</b> (NSString*)aString;<br>
+<h2><a name="method-71">rangeOfString:options:</a></h2>
+- (NSRange) <b>rangeOfString:</b> (NSString*)aString <b>options:</b> (unsigned int)mask;<br>
 
+	    Invokes <em>rangeOfString:options:range</em> with the range set
+	    set to the range of the whole of the reciever.
           
 <hr>
 <h2><a name="method-72">rangeOfString:options:range:</a></h2>
 - (NSRange) <b>rangeOfString:</b> (NSString*)subString <b>options:</b> (unsigned int)mask <b>range:</b> (NSRange)aRange;<br>
+
+	    Returns the range giving the location and length of the first
+	    occurrence of <em>subString</em> within <em>aRange</em>.
+	    <br>
+	    If <em>subString</em> does not exist in the receiver (an empty
+	    string is <em>never</em> considered to exist in the receiver),
+	    the length of the returned range is zero.
+	    <br>
+	    If <em>substring</em> is nil, an exception is raised.
+	    <br>
+	    If any part of <em>aRange</em> lies outside the range of the
+	    receiver, an exception is raised.
+	    <br>
+	    The optionsm mask may contain the following options -
+	    <ul>
+<li>NSCaseInsensitiveSearch
+<li>NSLiteralSearch
+<li>NSBackwardsSearch
+<li>NSAnchoredSearch
+</ul>
 
           
 <hr>
@@ -544,32 +569,43 @@ Returns the localized name of the encoding specified by <var>encoding</var>.</p>
 
           
 <hr>
-<h2><a name="method-82">stringsByAppendingPaths:</a></h2>
+<h2><a name="method-82">stringByReplacingString:withString:</a></h2>
+- (NSString*) <b>stringByReplacingString:</b> (NSString*)aString <b>withString:</b> (NSString*)replacement;<br>
+Standards: GNUstep NotMacOS-X NotOpenStep<br>
+
+	    Returns a string in which any (and all) occurrances of
+	    <em>aString</em> in the receiver have been replaced by
+	    <em>replacement</em>.  Returns the receiver if <em>aString</em>
+	    does not occur within the receiver.  NB. an empty string is
+	    not considered to exist within the receiver.
+          
+<hr>
+<h2><a name="method-83">stringsByAppendingPaths:</a></h2>
 - (NSArray*) <b>stringsByAppendingPaths:</b> (NSArray*)paths;<br>
 
           
 <hr>
-<h2><a name="method-83">substringFromIndex:</a></h2>
+<h2><a name="method-84">substringFromIndex:</a></h2>
 - (NSString*) <b>substringFromIndex:</b> (unsigned int)anIndex;<br>
 
           
 <hr>
-<h2><a name="method-84">substringToIndex:</a></h2>
+<h2><a name="method-85">substringToIndex:</a></h2>
 - (NSString*) <b>substringToIndex:</b> (unsigned int)anIndex;<br>
 
           
 <hr>
-<h2><a name="method-85">substringWithRange:</a></h2>
+<h2><a name="method-86">substringWithRange:</a></h2>
 - (NSString*) <b>substringWithRange:</b> (NSRange)aRange;<br>
 
           
 <hr>
-<h2><a name="method-86">uppercaseString</a></h2>
+<h2><a name="method-87">uppercaseString</a></h2>
 - (NSString*) <b>uppercaseString</b>;<br>
 
           
 <hr>
-<h2><a name="method-87">writeToFile:atomically:</a></h2>
+<h2><a name="method-88">writeToFile:atomically:</a></h2>
 - (BOOL) <b>writeToFile:</b> (NSString*)path <b>atomically:</b> (BOOL)flag;<br>
 
           

@@ -30,7 +30,8 @@
 <li><a href="NSMutableString.html#method-4">-initWithCapacity:</a>
 <li><a href="NSMutableString.html#method-5">-insertString:</a>
 <li><a href="NSMutableString.html#method-6">-replaceCharactersInRange:withString:</a>
-<li><a href="NSMutableString.html#method-7">-setString:</a>
+<li><a href="NSMutableString.html#method-7">-replaceString:withString:</a>
+<li><a href="NSMutableString.html#method-8">-setString:</a>
 </ul>
 <hr>
 <h2><a name="method-0">stringWithCapacity:</a></h2>
@@ -68,7 +69,18 @@
 
           
 <hr>
-<h2><a name="method-7">setString:</a></h2>
+<h2><a name="method-7">replaceString:withString:</a></h2>
+- (void) <b>replaceString:</b> (NSString*)aString <b>withString:</b> (NSString*)replacement;<br>
+Standards: GNUstep NotMacOS-X NotOpenStep<br>
+
+	    Replaces any (and all) occurrances of <em>aString</em> in the
+	    receiver by <em>replacement</em>.
+	    Has no effect if <em>aString</em> does not occur within the
+	    receiver.  NB. an empty string is not considered to exist within
+	    the receiver.
+          
+<hr>
+<h2><a name="method-8">setString:</a></h2>
 - (void) <b>setString:</b> (NSString*)aString;<br>
 
           
