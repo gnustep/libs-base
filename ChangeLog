@@ -1,3 +1,30 @@
+2002-08-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCountedSet.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSCountedSet.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSDictionary.m:
+	* Source/NSFileHandle.m:
+	* Source/NSLock.m:
+	* Source/NSNull.m:
+	* Source/NSNumber.m:
+	* Source/NSObject.m:
+	* Source/NSPipe.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/Additions/GSMime.m:
+	* Headers/gnustep/base/NSBundle.h:
+	* Headers/gnustep/base/NSRange.h:
+	* Headers/gnustep/base/NSSet.h:
+	Modify comments to include gsdoc documentation for autogsdoc.
+
 2002-08-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m: Documented all methods and corrected implementation

@@ -851,7 +851,30 @@ static NSMapTable	*absolutes = 0;
   
 @end
 
-
+/**
+ * <p>
+ * If the GNUstep time zone datafiles become too out of date, one
+ * can download an updated database from <uref
+ * url="ftp://elsie.nci.nih.gov/pub/">ftp://elsie.nci.nih.gov/pub/</uref>
+ * and compile it as specified in the README file in the
+ * NSTimeZones directory.
+ *
+ * Time zone names in NSDates should be GMT, MET etc. not
+ * Europe/Berlin, America/Washington etc.
+ *
+ * The problem with this is that various time zones may use the
+ * same abbreviation (e.g. Australia/Brisbane and
+ * America/New_York both use EST), and some time zones
+ * may have different rules for daylight saving time even if the
+ * abbreviation and offsets from UTC are the same.
+ *
+ * The problems with depending on the OS for providing time zone
+ * info are that some methods for the NSTimeZone classes might be
+ * difficult to implement, and also that time zone names may vary
+ * wildly between OSes (this could be a big problem when
+ * archiving is used between different systems).
+ * </p>
+ */
 @implementation NSTimeZone
 
 + (NSDictionary*) abbreviationDictionary

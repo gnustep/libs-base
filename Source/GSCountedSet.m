@@ -96,6 +96,12 @@
     }
 }
 
+/**
+ * Adds an object to the set.  If the set already contains an object
+ * equal to the specified object (as determined by the [-isEqual:]
+ * method) then the count for that object is incremented rather
+ * than the new object being added.
+ */
 - (void) addObject: (NSObject*)anObject
 {
   GSIMapNode node;
@@ -285,6 +291,12 @@
   GSIMapCleanMap(&map);
 }
 
+/**
+ * Decrements the count of the number of times that the specified
+ * object (or an object qequal to it as determined by the
+ * [-isEqual:] method) has been added to the set.  If the count
+ * becomes zero, the object is removed from the set.
+ */
 - (void) removeObject: (NSObject*)anObject
 {
   GSIMapBucket       bucket;

@@ -32,10 +32,17 @@
 #include <unistd.h>
 #endif
 
+/**
+ * The NSPipe provides an encapsulation of the UNIX concept of pipe.
+ * With NSPipe, it is possible to redirect the standard input or
+ * standard output.
+ */
 @implementation NSPipe
 
-// Allocating and Initializing a FileHandle Object
-
+/**
+ * Returns a newly allocated and initialized NSPipe object that has been
+ * sent an autorelease message.
+ */
 + (id) pipe
 {
   return AUTORELEASE([[self alloc] init]);

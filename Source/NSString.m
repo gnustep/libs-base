@@ -257,7 +257,30 @@ surrogatePairValue(unichar high, unichar low)
 }
 
 
-
+/**
+ * <p>
+ *   NSString objects represent an immutable string of characters.
+ *   NSString itself is an abstract class which provides factory
+ *   methods to generate objects of unspecified subclasses.
+ * </p>
+ * <p>
+ *   A constant NSString can be created using the following syntax:
+ *   <code>@"..."</code>, where the contents of the quotes are the
+ *   string, using only ASCII characters.
+ * </p>
+ * <p>
+ *   To create a concrete subclass of NSString, you must have your
+ *   class inherit from NSString and override at least the two
+ *   primitive methods - length and characterAtIndex:
+ * </p>
+ * <p>
+ *   In general the rule is that your subclass must override any
+ *   initialiser that you want to use with it.  The GNUstep
+ *   implementation relaxes that to say that, you may override
+ *   only the <em>designated initialiser</em> and the other
+ *   initialisation methods should work.
+ * </p>
+ */
 @implementation NSString
 
 static NSStringEncoding _DefaultStringEncoding;
@@ -541,7 +564,11 @@ handle_printf_atsign (FILE *stream,
 
 // Initializing Newly Allocated Strings
 
-/* This is the designated initializer. */
+/** <init />
+ * This is the most basic initialiser for unicode strings.
+ * In the GNUstep implementation, your subclasses may override
+ * this initialiser in order to have all others function.
+ */
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
@@ -742,6 +769,9 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Invokes -initWithFormat:locale:arguments: with a nil locale.
+ */
 - (id) initWithFormat: (NSString*)format,...
 {
   va_list ap;
@@ -751,6 +781,9 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Invokes -initWithFormat:locale:arguments:
+ */
 - (id) initWithFormat: (NSString*)format
                locale: (NSDictionary*)locale, ...
 {
@@ -761,12 +794,19 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Invokes -initWithFormat:locale:arguments: with a nil locale.
+ */
 - (id) initWithFormat: (NSString*)format
             arguments: (va_list)argList
 {
   return [self initWithFormat: format locale: nil arguments: argList];
 }
 
+/**
+ * Initialises the string using the specified format and locale
+ * to format the following arguments.
+ */
 - (id) initWithFormat: (NSString*)format
                locale: (NSDictionary*)locale
             arguments: (va_list)argList
@@ -1492,6 +1532,10 @@ handle_printf_atsign (FILE *stream,
   return range;
 }
 
+/**
+ * Invokes -rangeOfString:options: with the options mask
+ * set to zero.
+ */
 - (NSRange) rangeOfString: (NSString*)string
 {
   NSRange	all = NSMakeRange(0, [self length]);
@@ -1501,6 +1545,10 @@ handle_printf_atsign (FILE *stream,
 		       range: all];
 }
 
+/**
+ * Invokes -rangeOfString:options:range: with the range set
+ * set to the range of the whole of the reciever.
+ */
 - (NSRange) rangeOfString: (NSString*)string
 		  options: (unsigned int)mask
 {
@@ -1511,9 +1559,30 @@ handle_printf_atsign (FILE *stream,
 		       range: all];
 }
 
-- (NSRange) rangeOfString: (NSString *) aString
-		  options: (unsigned int) mask
-		    range: (NSRange) aRange
+/**
+ * Returns the range giving the location and length of the first
+ * occurrence of aString within aRange.
+ * <br/>
+ * If aString does not exist in the receiver (an empty
+ * string is never considered to exist in the receiver),
+ * the length of the returned range is zero.
+ * <br/>
+ * If aString is nil, an exception is raised.
+ * <br/>
+ * If any part of aRange lies outside the range of the
+ * receiver, an exception is raised.
+ * <br/>
+ * The options mask may contain the following options -
+ * <list>
+ *   <item>NSCaseInsensitiveSearch</item>
+ *   <item>NSLiteralSearch</item>
+ *   <item>NSBackwardsSearch</item>
+ *   <item>NSAnchoredSearch</item>
+ * </list>
+ */
+- (NSRange) rangeOfString: (NSString *)aString
+		  options: (unsigned int)mask
+		    range: (NSRange)aRange
 {
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
@@ -2008,6 +2077,10 @@ handle_printf_atsign (FILE *stream,
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
+/**
+ * Returns a copy of the receiver with all characters converted
+ * to lowercase.
+ */
 - (NSString*) lowercaseString
 {
   unichar	*s;
@@ -2030,6 +2103,10 @@ handle_printf_atsign (FILE *stream,
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
+/**
+ * Returns a copy of the receiver with all characters converted
+ * to uppercase.
+ */
 - (NSString*) uppercaseString
 {
   unichar	*s;
@@ -2061,6 +2138,12 @@ handle_printf_atsign (FILE *stream,
 
 // Getting C Strings
 
+/**
+ * Returns a pointer to a nul terminated string of 8-bit
+ * characters in the default encoding.  The memory pointed
+ * to is not owned by the caller, so the caller must copy
+ * its contents to keep it.
+ */
 - (const char*) cString
 {
   NSData	*d;
@@ -2217,16 +2300,40 @@ handle_printf_atsign (FILE *stream,
 
 // Working With Encodings
 
+/**
+ * <p>
+ *   Returns the encoding used for any method accepting a C string.
+ *   This value is determined automatically from the programs
+ *   environment and cannot be changed programmatically.
+ * </p>
+ * <p>
+ *   You should <em>NOT</em> override this method in an attempt to
+ *   change the encoding being used... it won't work.
+ * </p>
+ * <p>
+ *   In GNUstep, this encoding is determined by the initial value
+ *   of the <code>GNUSTEP_STRING_ENCODING</code> environment
+ *   variable.  If this is not defined,
+ *   <code>NSISOLatin1StringEncoding</code> is assumed.
+ * </p>
+ */
 + (NSStringEncoding) defaultCStringEncoding
 {
   return _DefaultStringEncoding;
 }
 
+/**
+ * Returns an array of all available string encodings,
+ * terminated by a null value.
+ */
 + (NSStringEncoding*) availableStringEncodings
 {
   return GetAvailableEncodings();
 }
 
+/**
+ * Returns the localized name of the encoding specified.
+ */
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding
 {
   id ourbundle;
@@ -3973,6 +4080,13 @@ handle_printf_atsign (FILE *stream,
   return [self substringFromIndex: [_prefix length]];
 }
 
+/**
+ * Returns a string in which any (and all) occurrances of
+ * replace in the receiver have been replaced with by.
+ * Returns the receiver if replace
+ * does not occur within the receiver.  NB. an empty string is
+ * not considered to exist within the receiver.
+ */
 - (NSString*) stringByReplacingString: (NSString*)replace
 			   withString: (NSString*)by
 {
@@ -4041,7 +4155,10 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * Replaces all occurrances of the string replace with the string by
- * in the receiver.
+ * in the receiver.<br />
+ * Has no effect if <em>replace</em> does not occur within the
+ * receiver.  NB. an empty string is not considered to exist within
+ * the receiver.
  */
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by

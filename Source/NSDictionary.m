@@ -90,7 +90,8 @@ static SEL	appSel;
     }
 }
 
-/* This is the designated initializer */
+/** <init />
+ */
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
 		 count: (unsigned)count
@@ -99,24 +100,38 @@ static SEL	appSel;
   return 0;
 }
 
+/**
+ * Returns an unsigned integer which is the number of elements
+ * stored in the dictionary.
+ */
 - (unsigned) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ * Returns the object in the dictionary corresponding to aKey, or nil if
+ * the key is not present.
+ */
 - (id) objectForKey: (id)aKey
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ * Return an enumerator object containing all the keys of the dictionary.
+ */
 - (NSEnumerator*) keyEnumerator
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ * Return an enumerator object containing all the objects of the dictionary.
+ */
 - (NSEnumerator*) objectEnumerator
 {
   [self subclassResponsibility: _cmd];
@@ -197,12 +212,23 @@ static SEL	appSel;
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
+/**
+ * Returns a newly created dictionary with the keys and objects
+ * of otherDictionary.
+ * (The keys and objects are not copied.)
+ */
 + (id) dictionaryWithDictionary: (NSDictionary*)otherDictionary
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithDictionary: otherDictionary]);
 }
 
+/**
+ * Returns a dictionary created using the given objects and keys.
+ * The two arrays must have the same size.
+ * The n th element of the objects array is associated with the n th
+ * element of the keys array.
+ */
 + (id) dictionaryWithObjects: (id*)objects 
 		     forKeys: (id*)keys
 		       count: (unsigned)count
@@ -216,6 +242,12 @@ static SEL	appSel;
   return [self count];
 }
 
+/**
+ * Initialises a dictionary created using the given objects and keys.
+ * The two arrays must have the same size.
+ * The n th element of the objects array is associated with the n th
+ * element of the keys array.
+ */
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
   unsigned	objectCount = [objects count];
@@ -232,6 +264,11 @@ static SEL	appSel;
   return [self initWithObjects: os forKeys: ks count: objectCount];
 }
 
+/**
+ * Initialises a dictionary created using the list given as argument.
+ * The list is alernately composed of objects and keys.
+ * Thus, the list's length must be pair.
+ */
 - (id) initWithObjectsAndKeys: (id)firstObject, ...
 {
   va_list ap;
@@ -287,6 +324,11 @@ static SEL	appSel;
   return self;
 }
 
+/**
+ * Returns a dictionary created using the list given as argument.
+ * The list is alernately composed of objects and keys.
+ * Thus, the list's length must be pair.
+ */
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...
 {
   va_list ap;
@@ -344,6 +386,10 @@ static SEL	appSel;
     initWithObjects: objects forKeys: keys]);
 }
 
+/**
+ * Returns a dictionary containing only one object which is associated
+ * with a key.
+ */
 + (id) dictionaryWithObject: (id)object forKey: (id)key
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -460,7 +506,11 @@ static SEL	appSel;
   return nil;
 }
 
-+ (id) dictionaryWithContentsOfFile: (NSString *)path
+/**
+ * Returns a dictionary using the file located at path.
+ * The file must be a property list containing a dictionary as its root object.
+ */
++ (id) dictionaryWithContentsOfFile: (NSString*)path
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithContentsOfFile: path]);
@@ -512,6 +562,9 @@ static SEL	appSel;
   return NO;
 }
 
+/**
+ * Returns an array containing all the dictionary's keys.
+ */
 - (NSArray*) allKeys
 {
   unsigned	c = [self count];
@@ -537,6 +590,9 @@ static SEL	appSel;
     }
 }
 
+/**
+ * Returns an array containing all the dictionary's objects.
+ */
 - (NSArray*) allValues
 {
   unsigned	c = [self count];
@@ -561,6 +617,10 @@ static SEL	appSel;
     }
 }
 
+/**
+ * Returns an array containing all the dictionary's keys that are
+ * associated with anObject.
+ */
 - (NSArray*) allKeysForObject: (id)anObject
 {
   unsigned	c;

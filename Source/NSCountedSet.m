@@ -52,6 +52,17 @@ static BOOL		uniquing = NO;
 + (void) _becomeThreaded: (id)notification;
 @end
 
+/**
+ * <p>
+ *   The NSCountedSet class is used to maintain a set of objects where
+ *   the number of times each object has been added (wiithout a
+ *   corresponding removal) is kept track of.
+ * </p>
+ * <p>
+ *   In GNUstep, extra methods are provided to make use of a counted
+ *   set for <em>uniquing</em> objects easier.
+ * </p>
+ */
 @implementation NSCountedSet 
 
 static Class NSCountedSet_abstract_class;
@@ -90,6 +101,11 @@ static Class NSCountedSet_concrete_class;
     }
 }
 
+/**
+ * Returns the number of times that an object that is equal to the
+ * specified object (as determined byt the [-isEqual:] method) has
+ * been added to the set and not removed from it.
+ */
 - (unsigned int) countForObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
@@ -201,6 +217,17 @@ static Class NSCountedSet_concrete_class;
   return self;
 }
 
+/**
+ * <p>
+ *   This method removes from the set all objects whose count is
+ *   less than or equal to the specified value.
+ * </p>
+ * <p>
+ *   This is useful where a counted set is used for uniquing objects.
+ *   The set can be periodically purged of objects that have only
+ *   been added once - and are therefore simply wasting space.
+ * </p>
+ */
 - (void) purge: (int)level
 {
   if (level > 0)
@@ -236,6 +263,22 @@ static Class NSCountedSet_concrete_class;
     }
 }
 
+/**
+ * <p>
+ *   If the supplied object (or one equal to it as determined by
+ *   the [-isEqual:] method) is already present in the set, the
+ *   count for that object is incremented, the supplied object
+ *   is released, and the object in the set is retained and returned.
+ *   Otherwise, the supplied object is added to the set and returned.
+ * </p>
+ * <p> 
+ *   This method is useful for uniquing objects - the init method of
+ *   a class need simply end with -
+ *   <code>
+ *     return [myUniquingSet unique: self];
+ *   </code>
+ * </p>
+ */
 - (id) unique: (id)anObject
 {
   id	o = [self member: anObject];
@@ -268,7 +311,11 @@ static Class NSCountedSet_concrete_class;
 }
 @end
 
-
+/**
+ * This function purges the global NSCountedSet object used for
+ * uniquing.  It handles locking as necessary.  It can be used to
+ * purge the set even when uniquing is turned off.
+ */
 void
 GSUPurge(unsigned level)
 {
@@ -283,6 +330,14 @@ GSUPurge(unsigned level)
     }
 }
 
+/**
+ * This function sets the count for the specified object.  If the
+ * count for the object is set to zero then the object is removed
+ * from the global uniquing set.  The object is added to the set
+ * if necessary.  The object returned is the one stored in the set.
+ * The function handles locking as necessary.  It can be used to
+ * alter the set even when uniquing is turned off.
+ */
 id
 GSUSet(id obj, unsigned level)
 {
@@ -329,6 +384,12 @@ GSUSet(id obj, unsigned level)
   return found;
 }
 
+/**
+ * This function <em>uniques</em> the supplied argument, returning
+ * the result.  It works by using the [-unique:] method of a global
+ * NSCountedSet object.  It handles locking as necessary.
+ * If uniquing is turned off, it simply returns its argument.
+ */
 id
 GSUnique(id obj)
 {
@@ -347,6 +408,12 @@ GSUnique(id obj)
   return obj;
 }
 
+/**
+ * This function sets the state of a flag that determines the
+ * behavior of the GSUnique() function.  If the flag is on,
+ * uniquing is performed, if it is off the function has no effect.
+ * The default is for uniquing to be turned off.
+ */
 void
 GSUniquing(BOOL flag)
 {

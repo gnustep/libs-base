@@ -144,16 +144,28 @@ static NSLock* cache_lock = nil;
   return [self _bitmapForSet: @"controlCharSet" number: 1];
 }
 
+/**
+ * Returns a character set containing characters that represent
+ * the decimal digits 0 through 9.
+ */
 + (NSCharacterSet*) decimalDigitCharacterSet
 {
   return [self _bitmapForSet: @"decimalDigitCharSet" number: 2];
 }
 
+/**
+ * Returns a character set containing individual charactars that
+ * can be represented also by a composed character sequence.
+ */
 + (NSCharacterSet*) decomposableCharacterSet
 {
   return [self _bitmapForSet: @"decomposableCharSet" number: 3];
 }
 
+/**
+ * Returns a character set containing unassigned (illegal)
+ * character values.
+ */
 + (NSCharacterSet*) illegalCharacterSet
 {
   return [self _bitmapForSet: @"illegalCharSet" number: 4];
@@ -164,6 +176,11 @@ static NSLock* cache_lock = nil;
   return [self _bitmapForSet: @"letterCharSet" number: 5];
 }
 
+/**
+ * Returns a character set that contains the lowercase characters.
+ * This set does not include caseless characters, only those that
+ * have corresponding characters in uppercase and/or titlecase.
+ */
 + (NSCharacterSet*) lowercaseLetterCharacterSet
 {
   return [self _bitmapForSet: @"lowercaseLetterCharSet" number: 6];
@@ -184,16 +201,28 @@ static NSLock* cache_lock = nil;
   return [self _bitmapForSet: @"symbolAndOperatorCharSet" number: 9];
 }
 
+/**
+ * Returns a character set that contains the uppercase characters.
+ * This set does not include caseless characters, only those that
+ * have corresponding characters in lowercase and/or titlecase.
+ */
 + (NSCharacterSet*) uppercaseLetterCharacterSet
 {
   return [self _bitmapForSet: @"uppercaseLetterCharSet" number: 10];
 }
 
+/**
+ * Returns a character set that contains the whitespace characters,
+ * plus the newline characters, values 0x000A and 0x000D.
+ */
 + (NSCharacterSet*) whitespaceAndNewlineCharacterSet
 {
   return [self _bitmapForSet: @"whitespaceAndNlCharSet" number: 11];
 }
 
+/**
+ * Returns a character set that contains the whitespace characters.
+ */
 + (NSCharacterSet*) whitespaceCharacterSet
 {
   return [self _bitmapForSet: @"whitespaceCharSet" number: 12];
@@ -201,6 +230,10 @@ static NSLock* cache_lock = nil;
 
 // Creating custom character sets
 
+/**
+ * Returns a character set containing characters as encoded in the
+ * data object.
+ */
 + (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[NSBitmapCharSet alloc] initWithBitmap: data]);
@@ -264,12 +297,20 @@ static NSLock* cache_lock = nil;
     return nil;
 }
 
+/**
+ * Returns a bitmap representation of the receiver's character set
+ * suitable for archiving or writing to a file, in an NSData object.
+ */
 - (NSData*) bitmapRepresentation
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ * Returns YES if the receiver contains <em>aCharacter</em>, NO if
+ * it does not.
+ */
 - (BOOL) characterIsMember: (unichar)aCharacter
 {
   [self subclassResponsibility: _cmd];
@@ -308,6 +349,10 @@ static NSLock* cache_lock = nil;
   return NO;
 }
 
+/**
+ * Returns a character set containing only characters that the
+ * receiver does not contain.
+ */
 - (NSCharacterSet*) invertedSet
 {
   unsigned	i;
