@@ -44,6 +44,7 @@
 #include <string.h>
 #include <base/preface.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSCalendarDate.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSException.h>

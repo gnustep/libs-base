@@ -25,6 +25,8 @@
 #include <base/preface.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSCalendarDate.h>
+#include <Foundation/NSTimeZone.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSLock.h>

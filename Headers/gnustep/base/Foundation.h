@@ -37,6 +37,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSByteOrder.h>
+#include <Foundation/NSCalendarDate.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSClassDescription.h>
 #include <Foundation/NSCoder.h>
@@ -80,6 +81,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSTask.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSTimeZone.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSURLHandle.h>
