@@ -4,8 +4,7 @@
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
 
-   Unicode implementation by Stevo Crvenkovski
-   <stevoc@lotus.mpt.com.mk>
+   Unicode implementation by Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
 
    This file is part of the GNUstep Base Library.
@@ -49,6 +48,7 @@
 #include <Foundation/NSUserDefaults.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSBundle.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
@@ -63,14 +63,8 @@
 
 #include <gnustep/base/NSGSequence.h>
 #include <gnustep/base/Unicode.h>
+#include <gnustep/base/GetDefEncoding.h>
 
-
-// Choose default encoding
-// xxx Should be install time option, not compile time
-#define DEFAULT_ENCODING NSNEXTSTEPStringEncoding
-// #define DEFAULT_ENCODING NSASCIIStringEncoding
-// #define DEFAULT_ENCODING NSISOLatin1StringEncoding
-// #define DEFAULT_ENCODING NSCyrillicStringEncoding
 
 #if defined(__WIN32__) || defined(_WIN32)
 
@@ -95,6 +89,9 @@ static Class NSMutableString_concrete_class;
 /* For CString's */
 static Class NSString_c_concrete_class;
 static Class NSMutableString_c_concrete_class;
+
+static NSStringEncoding _DefaultStringEncoding;
+
 
 + (void) _setConcreteClass: (Class)c
 {
@@ -199,6 +196,7 @@ handle_printf_atsign (FILE *stream,
 {
   if (self == [NSString class])
     {
+      _DefaultStringEncoding = GetDefEncoding();
       NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableString class];
@@ -480,15 +478,12 @@ handle_printf_atsign (FILE *stream,
   || (encoding==NSASCIIStringEncoding))
   {
     char *s;
-    int count;
 
     int len=[data length];
-    const char *b=[data bytes];
     OBJC_MALLOC(s, char, len+1);
-    for(count=0;count<len;count++)
-      s[count]=b[count];
-    s[count]=0;
-      return [self initWithCStringNoCopy:s length:count freeWhenDone:YES];
+    [data getBytes:s];
+    s[len]=0;
+      return [self initWithCStringNoCopy:s length:len freeWhenDone:YES];
     }
   else
   {
@@ -499,14 +494,16 @@ handle_printf_atsign (FILE *stream,
     const unsigned char *b=[data bytes];
     OBJC_MALLOC(u, unichar, len+1);
 
-    count=len/2;
     if(encoding==NSUnicodeStringEncoding)
+    {
       if((b[0]==0xFE)&(b[1]==0xFF))
-        for(count=0;count<len;count+=2)
-          u[count/2]=256*b[count]+b[count+1];
+        for(count=2;count<(len-1);count+=2)
+          u[count/2 - 1]=256*b[count]+b[count+1];
       else
-        for(count=0;count<len;count+=2)
-          u[count/2]=256*b[count+1]+b[count];
+        for(count=2;count<(len-1);count+=2)
+          u[count/2 -1]=256*b[count+1]+b[count];
+      count = count/2 -1;
+    }
     else
       count = encode_strtoustr(u,b,len,encoding);
 
@@ -517,49 +514,18 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithContentsOfFile: (NSString*)path
-  {
-  /* xxx Maybe this should use StdioStream? */
-#if defined(__WIN32__) || defined(_WIN32)
-  NSMutableString *s = [NSMutableString stringWithCString:""];
-  DWORD dwread;
-  char bytes[1024];
-  BOOL res, done = NO;
-  HANDLE fd = CreateFile([path cString], GENERIC_READ, FILE_SHARE_READ,
-			 NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
-  if (fd == -1)
-    return nil;
+{
+  unsigned char *buff;
+  NSStringEncoding enc;
+  id d = [NSData dataWithContentsOfFile: path];
+  const unsigned char *test=[d bytes];
+  unsigned int len = [d length];
 
-  while (!done)
-    {
-      res = ReadFile(fd, bytes, 1023, &dwread, NULL);
-      bytes[dwread] = '\0';
-      if ((res) && (dwread == 0))
-	done = YES;
-      else
-	[s appendString: [NSString stringWithCString: bytes]];
-    }
-  CloseHandle(fd);
-  [self initWithString: s];
-  [s release];
-  return self;
-#else
-  int fd = open([path cString], O_RDONLY);
-  struct stat fstat_buf;
-  char* bytes = NULL;
-
-  if((fd == -1) || (fstat(fd, &fstat_buf) == -1))
-    return nil;
-
-  OBJC_MALLOC(bytes, char, fstat_buf.st_size + 1);
-  if (read(fd, bytes, fstat_buf.st_size) != fstat_buf.st_size) {
-    OBJC_FREE(bytes);
-    return nil;
-  }
-  close(fd);
-  bytes[fstat_buf.st_size] = '\0';
-  return [self initWithCStringNoCopy:bytes length:fstat_buf.st_size
-	       freeWhenDone:YES];
-#endif
+  if(((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE)))
+    enc = NSUnicodeStringEncoding;
+  else
+    enc = [NSString defaultCStringEncoding];
+  return [self initWithData:d encoding:enc];
 }
 
 - (id) init
@@ -1456,24 +1422,103 @@ else
 
 - (unsigned int) hash
 {
+  #define MAXDEC 18
+
   unsigned ret = 0;
   unsigned ctr = 0;
   unsigned char_count = 0;
-  unichar *s,*p;
+  unichar *source,*p;
 
-  id g = [self _normalizedString];
-  int len = [g length];
-  OBJC_MALLOC(s, unichar, len + 1);
-  [g getCharacters: s];
-  s[len]=(unichar)0;
-  p = s;
+  unichar *target;
+  unichar *spoint;
+  unichar *tpoint;
+  unichar *dpoint;
+  BOOL notdone;
+
+  unichar  *first,*second,tmp;
+  int count,len2;
+
+  int len = [self length];
+
+  if (len)
+  {
+    if(len > NSHashStringLength)
+      len = NSHashStringLength;
+    OBJC_MALLOC(source, unichar, len*MAXDEC + 1);
+    [self getCharacters: source range:NSMakeRange(0,len)];
+    source[len]=(unichar)0;
+
+// decompose
+
+    OBJC_MALLOC(target, unichar, len*MAXDEC+1);
+    spoint = source;
+    tpoint = target;
+    do
+    {
+      notdone=NO;
+      do
+      {
+        if(!(dpoint=uni_is_decomp(*spoint)))
+          *tpoint++ = *spoint;
+        else
+        {
+          while(*dpoint)
+            *tpoint++=*dpoint++;
+          notdone=YES;
+        }
+      } while(*spoint++);
+      *tpoint=(unichar)0;
+      memcpy(source, target,2*(len*MAXDEC+1));
+      tpoint = target;
+      spoint = source;
+    } while(notdone);
+    OBJC_FREE(target);
+
+// order
+
+  len2 = uslen(source);
+  if(len2>1)
+  do
+  {
+    notdone=NO;
+    first=source;
+    second=first+1;
+    for(count=1;count<len2;count++)
+    {
+      if(uni_cop(*second))
+      {
+         if(uni_cop(*first)>uni_cop(*second))
+         {
+            tmp= *first;
+            *first= *second;
+            *second=tmp;
+            notdone=YES;
+         }
+         if(uni_cop(*first)==uni_cop(*second))
+           if(*first>*second)
+           {
+              tmp= *first;
+              *first= *second;
+              *second=tmp;
+              notdone=YES;
+           }
+      }
+      first++;
+      second++;
+    }
+  } while(notdone);
+
+  p = source;
   while (*p && char_count++ < NSHashStringLength)
     {
       ret ^= *p++ << ctr;
       ctr = (ctr + 1) % sizeof (void*);
     }
-  OBJC_FREE(s);
+  OBJC_FREE(source);
   return ret;
+  }
+  else
+  return 0;
 }
 
 // Getting a Shared Prefix
@@ -1590,27 +1635,168 @@ else
  }
 }
 
+- (NSRange)lineRangeForRange:(NSRange)aRange
+{
+  unsigned int startIndex;
+  unsigned int lineEndIndex;
+
+  [self getLineStart: &startIndex
+                 end: &lineEndIndex
+         contentsEnd: NULL
+            forRange:aRange];
+  return NSMakeRange(startIndex, lineEndIndex - startIndex);
+}
+
+- (void)getLineStart:(unsigned int *)startIndex
+                 end:(unsigned int *)lineEndIndex
+         contentsEnd:(unsigned int *)contentsEndIndex
+         forRange:(NSRange)aRange
+{
+  unichar thischar;
+  BOOL done;
+  unsigned int start, end, len;
+
+  if (aRange.location > [self length])
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > ([self length] - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
+  len = [self length];
+  start=aRange.location;
+
+  if(startIndex)
+    if(start==0)
+      *startIndex=0;
+    else
+    {
+      start--;
+      while(start>0)
+      {
+        BOOL done = NO;
+        thischar = [self characterAtIndex:start];
+        switch(thischar)
+        {
+          case (unichar)0x000A:
+          case (unichar)0x000D:
+          case (unichar)0x2028:
+          case (unichar)0x2029:
+            done = YES;
+            break;
+          default:
+            start--;
+            break;
+        };
+        if(done)
+          break;
+      };
+      if(start == 0)
+      {
+         thischar = [self characterAtIndex:start];
+         switch(thischar)
+         {
+           case (unichar)0x000A:
+           case (unichar)0x000D:
+           case (unichar)0x2028:
+           case (unichar)0x2029:
+             start++;
+             break;
+           default:
+             break;
+         };
+      }
+      else
+      start++;
+      *startIndex=start;
+    };
+
+  if(lineEndIndex || contentsEndIndex)
+  {
+    end=aRange.location+aRange.length;
+    while(end<len)
+    {
+       BOOL done = NO;
+       thischar = [self characterAtIndex:end];
+       switch(thischar)
+       {
+         case (unichar)0x000A:
+         case (unichar)0x000D:
+         case (unichar)0x2028:
+         case (unichar)0x2029:
+           done = YES;
+           break;
+         default:
+           break;
+       };
+       end++;
+       if(done)
+         break;
+    };
+    if(end<len)
+    {
+      if([self characterAtIndex:end]==(unichar)0x000D)
+        if([self characterAtIndex:end+1]==(unichar)0x000A)
+          *lineEndIndex = end+1;
+        else  *lineEndIndex = end;
+      else  *lineEndIndex = end;
+    }
+    else
+    *lineEndIndex = end;
+  };
+
+  if(contentsEndIndex)
+  {
+    if(end<len)
+    {
+      *contentsEndIndex= end-1;
+    }
+    else
+
+/* xxx OPENSTEP documentation does not say what to do if last
+   line is not terminated. Assume this */
+     *contentsEndIndex= end;
+    };
+}
+
 // Changing Case
 
 // xxx There is more than this in word capitalization in Unicode,
 // but this will work in most cases
-// xxx fix me - consider tab, newline and friends
 - (NSString*) capitalizedString
 {
   unichar *s;
   int count=0;
+  BOOL found=YES;
   int len=[self length];
+  id white = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+
   OBJC_MALLOC(s, unichar,len +1);
-  s[0]=uni_toupper([self characterAtIndex:0]);
+  [self getCharacters:s];
   while(count<len)
   {
-    while((!([self characterAtIndex: count++]==' '))&(count<len))
-      s[count]=uni_tolower([self characterAtIndex:count]);
-    if(count<len)
-      s[count]=uni_toupper([self characterAtIndex:count]);
-  }
-  s[len] = (unichar)0;
-  return [NSString stringWithCharacters:s length:len];
+    if([white characterIsMember:s[count]])
+    {
+      count++;
+      found=YES;
+      while([white characterIsMember:s[count]]&(count<len))
+        count++;
+    };
+    if(found)
+    {
+      s[count]=uni_toupper(s[count]);
+      count++;
+    }
+    else
+    {
+      while(![white characterIsMember:s[count]]&(count<len))
+      {
+        s[count]=uni_tolower(s[count]);
+        count++;
+      };
+    };
+    found=NO;
+  };
+  s[count] = (unichar)0;
+  return [[[NSString alloc] initWithCharactersNoCopy:s length:len freeWhenDone:YES] autorelease];
 }
 
 - (NSString*) lowercaseString
@@ -1735,7 +1921,31 @@ else
 
 + (NSStringEncoding) defaultCStringEncoding
 {
-  return DEFAULT_ENCODING;
+  return _DefaultStringEncoding;
+}
+
++ (NSStringEncoding*)availableStringEncodings
+{
+  return _availableEncodings;
+}
+
++ (NSString*)localizedNameOfStringEncoding:(NSStringEncoding)encoding
+{
+  id ourbundle;
+  id ourname;
+
+/*
+      Should be path to localizable.strings file.
+      Until we have it, just make shure that bundle
+      is initialized.
+*/
+  ourbundle = [NSBundle bundleWithPath:@"/"];
+
+  ourname = GetEncodingName(encoding);
+  return [ourbundle
+            localizedStringForKey:ourname
+            value:ourname
+            table:nil];
 }
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
@@ -1753,7 +1963,6 @@ else
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
    allowLossyConversion: (BOOL)flag
 {
-  unsigned char *buff="";
   int count=0;
   int len = [self length];
 
@@ -1764,6 +1973,7 @@ else
   || (encoding==NSSymbolStringEncoding)
   || (encoding==NSCyrillicStringEncoding))
   {
+    unsigned char *buff;
     char t;
     OBJC_MALLOC(buff, char, len+1);
     for(count=0; count<len; count++)
@@ -1790,19 +2000,22 @@ else
             buff[count] = '*';
         };
         buff[count]=0;
+     return [NSData dataWithBytes: (char *)buff length: count];
     }
     else
       if(encoding==NSUnicodeStringEncoding)
       {
-        OBJC_MALLOC((unichar*)buff, unichar, len+2);
-        (unichar)buff[0]=0xFEFF;
+        unichar *buff;
+        OBJC_MALLOC(buff, unichar, len+2);
+        buff[0]=0xFEFF;
         for(count=0; count<len; count++)
-          (unichar)buff[count]=[self characterAtIndex: count];
-        (unichar)buff[count]= (unichar)0;
+          buff[count+1]=[self characterAtIndex: count];
+        buff[count+1]= (unichar)0;
+  return [NSData dataWithBytes: (char *)buff length: 2*(count+1)];
       }
       else /* UTF8 or EUC */
         [self notImplemented:_cmd];
-  return [NSData dataWithBytes: (char *)buff length: count];
+  return nil;
 }
 
 - (NSStringEncoding) fastestEncoding
@@ -2168,9 +2381,10 @@ else
 - (BOOL) writeToFile: (NSString*)filename
    atomically: (BOOL)useAuxiliaryFile
 {
-  id d = [self  dataUsingEncoding: NSUnicodeStringEncoding allowLossyConversion: NO];
-  return [d writeToFile: filename
-   atomically: useAuxiliaryFile];
+  id d;
+  if(!(d = [self dataUsingEncoding:[NSString defaultCStringEncoding]]))
+    d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+  return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 // #endif
 

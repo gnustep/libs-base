@@ -1,7 +1,7 @@
   /* Support functions for Unicode implementation
    Copyright (C) 1997 Free Software Foundation, Inc.
 
-   Written by: Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>
+   Written by: Stevo Crvenkovski <stevo@btinternet.com>
    Date: March 1997
 
    This file is part of the GNUstep Base Library.

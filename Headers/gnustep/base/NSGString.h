@@ -1,8 +1,7 @@
 /* Interface to NSString implementation with Unicode-string backing
    Copyright (C) 1995 Free Software Foundation, Inc.
 
-   Unicode implementation by: Stevo Crvenkovski
-   <stevoc@lotus.mpt.com.mk>
+   Unicode implementation by: Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
    
    Based on NSGCSting written by: Andrew Kachites McCallum

@@ -1,7 +1,7 @@
 /* Implementation of composite character sequence class for GNUSTEP
    Copyright (C) 1997 Free Software Foundation, Inc.
    
-   Written by:  Stevo Crvenkovski
+   Written by:  Stevo Crvenkovski <stevo@btinternet.com>
    Date: March 1997
    
    This file is part of the GNUstep Base Library.
@@ -275,13 +275,14 @@
   unichar  *first,*second,tmp;
   int  count,len;
   BOOL notdone;
+  len=[self length];
 
+  if(len>1)
   do
   {
     notdone=NO;
     first=_contents_chars;
     second=first+1;
-    len=[self length];
     for(count=1;count<len;count++)
     {
       if(uni_cop(*second))

@@ -46,6 +46,7 @@ enum
   NSAnchoredSearch = 8
 };
 
+/*
 typedef enum _NSStringEncoding 
 {
   NSUnicodeStringEncoding = 0,
@@ -58,6 +59,57 @@ typedef enum _NSStringEncoding
   NSCyrillicStringEncoding,
   NSNonLossyASCIIStringEncoding
 } NSStringEncoding;
+*/
+
+typedef enum _NSStringEncoding
+{
+                NSASCIIStringEncoding = 1,
+                NSNEXTSTEPStringEncoding = 2,
+                NSJapaneseEUCStringEncoding = 3,
+                NSUTF8StringEncoding = 4,
+                NSISOLatin1StringEncoding = 5,
+                NSSymbolStringEncoding = 6,
+                NSNonLossyASCIIStringEncoding = 7,
+                NSShiftJISStringEncoding = 8,
+                NSISOLatin2StringEncoding = 9,
+                NSUnicodeStringEncoding = 10,
+                NSWindowsCP1251StringEncoding = 11,
+                NSWindowsCP1252StringEncoding = 12,
+                NSWindowsCP1253StringEncoding = 13,
+                NSWindowsCP1254StringEncoding = 14,
+                NSWindowsCP1250StringEncoding = 15,
+                NSISO2022JPStringEncoding = 21,
+// GNUstep additions
+                NSCyrillicStringEncoding = 22
+
+} NSStringEncoding;
+
+enum {
+                NSOpenStepUnicodeReservedBase = 0xF400
+};
+
+// Uncomment when implemented
+    static NSStringEncoding _availableEncodings[] = {
+ NSASCIIStringEncoding,
+        NSNEXTSTEPStringEncoding,
+//        NSJapaneseEUCStringEncoding,
+//        NSUTF8StringEncoding,
+        NSISOLatin1StringEncoding,
+//        NSSymbolStringEncoding,
+//        NSNonLossyASCIIStringEncoding,
+//        NSShiftJISStringEncoding,
+//        NSISOLatin2StringEncoding,
+        NSUnicodeStringEncoding,
+//        NSWindowsCP1251StringEncoding,
+//        NSWindowsCP1252StringEncoding,
+//        NSWindowsCP1253StringEncoding,
+//        NSWindowsCP1254StringEncoding,
+//        NSWindowsCP1250StringEncoding,
+//        NSISO2022JPStringEncoding,
+// GNUstep additions
+        NSCyrillicStringEncoding,
+ 0
+    };
 
 @protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
 
@@ -216,6 +268,14 @@ typedef enum _NSStringEncoding
 - (BOOL) writeToFile: (NSString*)filename
    atomically: (BOOL)useAuxiliaryFile;
 - (double) doubleValue;
++ (NSStringEncoding*)availableStringEncodings;
++ (NSString*)localizedNameOfStringEncoding:(NSStringEncoding)encoding;
+- (void)getLineStart:(unsigned int *)startIndex
+                 end:(unsigned int *)lineEndIndex
+         contentsEnd:(unsigned int *)contentsEndIndex
+            forRange:(NSRange)aRange;
+- (NSRange)lineRangeForRange:(NSRange)aRange;
+
 #endif
 
 #ifndef NO_GNUSTEP

@@ -12,9 +12,21 @@ help is greatly appreciated.  Send email to
 
 @itemize @bullet
 
-@item Help write a test-suite for the library.  Use dejagnu.  (Contact
-Richard Frith-Macdonald <richard@@brainstorm.co.uk>, who has volunteered
-to coordinate these efforts.)
+@item Need to improve the testsuite and actually run it on gstep-base.
+
+@item Change all the assert()'s (especially in the archiving code) to
+NSAssert()'s.  This will help make D.O. servers more safe from bad
+clients. 
+
+@item Make NS... classes raise the NSExceptions they are supposed to.
+Change many NSParameterAssert()'s into NSAssert()'s with explanations.
+
+@item
+Many implementations could be made more efficient.  The library hasn't
+been efficiency tuned very much.  Overridding more methods in certain
+classes could make things more efficient (especially EltNodeCollector).
+SplayTree's could be done using top-down splaying.  collhash could be
+completely reimplemented.  ...and a lot more...
 
 @ignore
 @item Add some features to the compiler:  
@@ -60,13 +72,6 @@ Stream's.  It seems that the Stream is not getting -delloc'ed, and
 therefore may not be closed, and therefore may be missing data at the
 end. 
 
-@item Change all the assert()'s (especially in the archiving code) to
-NSAssert()'s.  This will help make D.O. servers more safe from bad
-clients. 
-
-@item Make my NS... classes raise the NSExceptions they are supposed to.
-Change many NSParameterAssert()'s into NSAssert()'s with explanations.
-
 @item Do low-level frobbing of TCP to reduce delays.
 
 @item Make UdpPort work; make MachPort work.
@@ -91,13 +96,6 @@ version for many of the classes.
 
 @item Possibly change implementation of @code{-(int)compare:anObject}
 for Collection.  How should non-Indexed collections be ordered?
-
-@item
-Many implementations could be made more efficient.  The library hasn't
-been efficiency tuned very much.  Overridding more methods in certain
-classes could make things more efficient (especially EltNodeCollector).
-SplayTree's could be done using top-down splaying.  collhash could be
-completely reimplemented.  ...and a lot more...
 
 @item
 Fix all the subclassResponsibility comments in objects/*.h
@@ -131,10 +129,6 @@ This way we avoid having yet another method in which instance vars
 must be initialized to some consistent state.  -allocCopy would never
 even get called.  <<ObjC insiders: This is a less well-expressed
 version of what we've just been discussing in email.>>
-
-@item
-I created libgnustep-base.texi by copying libg++.texi.  Some of the text
-is taken verbatim.  Is this a problem?
 
 @item
 If you don't like the organization of the documentation and you have
