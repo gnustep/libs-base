@@ -56,10 +56,10 @@
 # include <ndir.h>
 #endif
 
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if HAVE_WINDOWS_H
+#ifdef HAVE_WINDOWS_H
 #  include <windows.h>
 #endif
 
@@ -77,7 +77,7 @@
 #   include <utime.h>
 # endif
 #else
-# if HAVE_SYS_PARAM_H
+# ifdef HAVE_SYS_PARAM_H
 #  include <sys/param.h>		/* for MAXPATHLEN */
 # endif
 #endif
@@ -107,11 +107,11 @@
 # include <sys/statfs.h>
 #endif
 
-#if HAVE_SYS_FILE_H
+#ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
 
-#if HAVE_SYS_MOUNT_H
+#ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
 
@@ -122,13 +122,13 @@
 #endif
 
 #include <fcntl.h>
-#if HAVE_PWD_H
+#ifdef HAVE_PWD_H
 #include <pwd.h>     /* For struct passwd */
 #endif
-#if HAVE_GRP_H
+#ifdef HAVE_GRP_H
 #include <grp.h>     /* For struct group */
 #endif
-#if HAVE_UTIME_H
+#ifdef HAVE_UTIME_H
 # include <utime.h>
 #endif
 
@@ -1017,9 +1017,10 @@ static NSFileManager* defaultManager = nil;
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
   
 #else
-#if HAVE_SYS_VFS_H || HAVE_SYS_STATFS_H || HAVE_SYS_MOUNT_H
+#if defined(HAVE_SYS_VFS_H) || defined(HAVE_SYS_STATFS_H) \
+  || defined(HAVE_SYS_MOUNT_H)
   struct stat statbuf;
-#if HAVE_STATVFS
+#ifdef HAVE_STATVFS
   struct statvfs statfsbuf;
 #else
   struct statfs statfsbuf;
@@ -1039,7 +1040,7 @@ static NSFileManager* defaultManager = nil;
   if (stat(cpath, &statbuf) != 0)
     return nil;
 
-#if HAVE_STATVFS
+#ifdef HAVE_STATVFS
   if (statvfs(cpath, &statfsbuf) != 0)
     return nil;
 #else
@@ -1090,7 +1091,7 @@ static NSFileManager* defaultManager = nil;
       if ((str = [attributes objectForKey: NSFileOwnerAccountName]) != nil)
 	{
 	  BOOL	ok = NO;
-#if HAVE_PWD_H	
+#ifdef HAVE_PWD_H	
 	  struct passwd *pw = getpwnam([str cString]);
 
 	  if (pw)
@@ -1123,7 +1124,7 @@ static NSFileManager* defaultManager = nil;
   else if ((str=[attributes objectForKey: NSFileGroupOwnerAccountName]) != nil)
     {
       BOOL	ok = NO;
-#if HAVE_GRP_H
+#ifdef HAVE_GRP_H
       struct group *gp = getgrnam([str cString]);
 
       if (gp)
@@ -1280,7 +1281,7 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) createSymbolicLinkAtPath: (NSString*)path
 		      pathContent: (NSString*)otherPath
 {
-#if HAVE_SYMLINK
+#ifdef HAVE_SYMLINK
   const char* newpath = [self fileSystemRepresentationWithPath: path];
   const char* oldpath = [self fileSystemRepresentationWithPath: otherPath];
     
@@ -1292,7 +1293,7 @@ static NSFileManager* defaultManager = nil;
 
 - (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path
 {
-#if HAVE_READLINK
+#ifdef HAVE_READLINK
   char  lpath[PATH_MAX];
   const char* cpath = [self fileSystemRepresentationWithPath: path];
   int   llen = readlink(cpath, lpath, PATH_MAX-1);
@@ -2206,7 +2207,7 @@ static int sparc_warn = 0;
 
   if (copy == NO)
     {
-#if HAVE_PWD_H	
+#ifdef HAVE_PWD_H	
       {
 	struct passwd *pw;
 
@@ -2271,7 +2272,7 @@ static int sparc_warn = 0;
        * If we are running setuid to root - we need to specify the user
        * to be the owner of copied files.
        */
-#if HAVE_GETEUID
+#ifdef HAVE_GETEUID
       if (geteuid() == 0 && [@"root" isEqualToString: u] == NO)
 	{
 	  values[count++] = u;

@@ -68,7 +68,7 @@
 #include <base/GSFormat.h>
 #include <limits.h>
 #include <sys/stat.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <sys/types.h>
@@ -262,7 +262,7 @@ static NSRange  highSurrogateRange = {0xD800, 1024};
 static NSRange  lowSurrogateRange = {0xDC00, 1024};
 
 
-#if HAVE_REGISTER_PRINTF_FUNCTION
+#ifdef HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
 #include <printf.h>
 #include <stdarg.h>
@@ -359,7 +359,7 @@ handle_printf_atsign (FILE *stream,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       placeholderLock = [NSLock new];
 
-#if HAVE_REGISTER_PRINTF_FUNCTION
+#ifdef HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@',
 				    handle_printf_atsign,
 #if PRINTF_ATSIGN_VA_LIST
@@ -792,7 +792,7 @@ handle_printf_atsign (FILE *stream,
 #if defined(HAVE_VSPRINTF) || defined(HAVE_VASPRINTF)
   const char *format_cp = [format lossyCString];
   int format_len = strlen (format_cp);
-#if HAVE_VASPRINTF
+#ifdef HAVE_VASPRINTF
   char *buf;
   int printed_len = 0;
   NSString *ret;
@@ -2848,7 +2848,7 @@ handle_printf_atsign (FILE *stream,
   #define MAX_PATH 1024
   #endif
   char		new_buf[MAX_PATH];
-#if HAVE_REALPATH
+#ifdef HAVE_REALPATH
 
   if (realpath([self cString], new_buf) == 0)
     return self;
@@ -4048,7 +4048,7 @@ handle_printf_atsign (FILE *stream,
 
 
 
-#if	HAVE_LIBXML
+#ifdef	HAVE_LIBXML
 #include	<Foundation/GSXML.h>
 
 static int      XML_ELEMENT_NODE;
@@ -4597,7 +4597,7 @@ static id parsePlItem(pldata* pld)
   return result;
 }
 
-#if	HAVE_LIBXML
+#ifdef	HAVE_LIBXML
 static GSXMLNode*
 elementNode(GSXMLNode* node)
 {
@@ -4827,7 +4827,7 @@ nodeToObject(GSXMLNode* node)
 static void
 setupPl()
 {
-#if	HAVE_LIBXML
+#ifdef	HAVE_LIBXML
   /*
    * Cache XML node information.
    */
@@ -4859,7 +4859,7 @@ GSPropertyList(NSString *string)
   unsigned	length = [string length];
   NSData	*d;
   id		pl;
-#if	HAVE_LIBXML
+#ifdef	HAVE_LIBXML
   unsigned	index = 0;
 #endif
 
@@ -4876,7 +4876,7 @@ GSPropertyList(NSString *string)
       setupPl();
     }
 
-#if	HAVE_LIBXML
+#ifdef	HAVE_LIBXML
   if (whitespaceBitmapRep == NULL)
     {
       setupWhitespace();

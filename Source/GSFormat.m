@@ -65,7 +65,7 @@
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <sys/types.h>

@@ -41,16 +41,16 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDebug.h>
 
-#if HAVE_SYS_TYPES_H
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
-#if HAVE_SYS_TIME_H
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#if HAVE_POLL_H
+#ifdef HAVE_POLL_H
 #include <poll.h>
 #endif
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <time.h>
@@ -62,7 +62,7 @@ static NSDate	*theFuture = nil;
 
 extern BOOL	GSCheckTasks();
 
-#if	HAVE_POLL
+#ifdef	HAVE_POLL
 typedef struct {
   int		limit;
   short		*index;
@@ -396,7 +396,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   NSMapTable	*_wfdMap;
   int		fairStart;	// For trying to ensure fair handling.
   BOOL		completed;	// To mark operation as completed.
-#if	HAVE_POLL
+#ifdef	HAVE_POLL
   int		pollfds_capacity;
   int		pollfds_count;
   struct pollfd	*pollfds;
@@ -431,7 +431,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       NSFreeMapTable(_wfdMap);
     }
-#if	HAVE_POLL
+#ifdef	HAVE_POLL
   if (pollfds != 0)
     {
       objc_free(pollfds);
@@ -515,7 +515,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   return self;
 }
 
-#if	HAVE_POLL
+#ifdef	HAVE_POLL
 
 static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 {
@@ -1619,7 +1619,7 @@ if (0) {
       _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-#if	HAVE_POLL
+#ifdef	HAVE_POLL
       _extra = objc_malloc(sizeof(pollextra));
       memset(_extra, '\0', sizeof(pollextra));
 #endif
@@ -1635,7 +1635,7 @@ if (0) {
 
 - (void) gcFinalize
 {
-#if	HAVE_POLL
+#ifdef	HAVE_POLL
   if (_extra != 0)
     {
       pollextra	*e = (pollextra*)_extra;

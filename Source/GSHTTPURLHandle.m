@@ -38,7 +38,7 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/GSMime.h>
 #include <string.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <sys/file.h>

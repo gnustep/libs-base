@@ -79,11 +79,11 @@
 #include <Foundation/NSZone.h>
 #include <stdio.h>
 #include <string.h>		/* for memset() */
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 #endif
 
-#if	HAVE_MMAP
+#ifdef	HAVE_MMAP
 #include	<unistd.h>
 #include	<sys/mman.h>
 #include	<fcntl.h>
@@ -97,7 +97,7 @@
 #include <sys/stat.h>
 #endif
 
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
 #include	<sys/ipc.h>
 #include	<sys/shm.h>
 
@@ -351,12 +351,12 @@ failure:
 - (void) _grow: (unsigned int)minimum;
 @end
 
-#if	HAVE_MMAP
+#ifdef	HAVE_MMAP
 @interface	NSDataMappedFile : NSDataMalloc
 @end
 #endif
 
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
 @interface	NSDataShared : NSDataMalloc
 {
   int		shmid;
@@ -443,7 +443,7 @@ failure:
 {
   NSData	*d;
 
-#if	HAVE_MMAP
+#ifdef	HAVE_MMAP
   d = [NSDataMappedFile allocWithZone: NSDefaultMallocZone()];
   d = [d initWithContentsOfMappedFile: path];
 #else
@@ -529,7 +529,7 @@ failure:
 
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
-#if	HAVE_MMAP
+#ifdef	HAVE_MMAP
   RELEASE(self);
   self = [NSDataMappedFile allocWithZone: GSObjCZone(self)];
   return [self initWithContentsOfMappedFile: path];
@@ -1306,7 +1306,7 @@ failure:
 @implementation	NSData (GNUstepExtensions)
 + (id) dataWithShmID: (int)anID length: (unsigned int)length
 {
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
   NSDataShared	*d;
 
   d = [NSDataShared allocWithZone: NSDefaultMallocZone()];
@@ -1322,7 +1322,7 @@ failure:
 {
   NSData	*d;
 
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
   d = [NSDataShared allocWithZone: NSDefaultMallocZone()];
   d = [d initWithBytes: bytes length: length];
 #else
@@ -1870,7 +1870,7 @@ failure:
 @implementation	NSMutableData (GNUstepExtensions)
 + (id) dataWithShmID: (int)anID length: (unsigned int)length
 {
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
   NSDataShared	*d;
 
   d = [NSMutableDataShared allocWithZone: NSDefaultMallocZone()];
@@ -1886,7 +1886,7 @@ failure:
 {
   NSData	*d;
 
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
   d = [NSMutableDataShared allocWithZone: NSDefaultMallocZone()];
   d = [d initWithBytes: bytes length: length];
 #else
@@ -2429,7 +2429,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 @end
 
-#if	HAVE_MMAP
+#ifdef	HAVE_MMAP
 @implementation	NSDataMappedFile
 + (id) allocWithZone: (NSZone*)z
 {
@@ -2497,7 +2497,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 @end
 #endif	/* HAVE_MMAP	*/
 
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
 @implementation	NSDataShared
 + (id) allocWithZone: (NSZone*)z
 {
@@ -3156,7 +3156,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 @end
 
 
-#if	HAVE_SHMCTL
+#ifdef	HAVE_SHMCTL
 @implementation	NSMutableDataShared
 + (id) allocWithZone: (NSZone*)z
 {

@@ -42,10 +42,10 @@
 #include "GSPrivate.h"
 
 #include <stdlib.h>		// for getenv()
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>		// for getlogin()
 #endif
-#if	HAVE_PWD_H
+#ifdef	HAVE_PWD_H
 #include <pwd.h>		// for getpwnam()
 #endif
 #include <sys/types.h>
@@ -150,7 +150,7 @@ NSUserName(void)
 	loginName = buf;
 #else
       loginName = getenv("LOGNAME");
-#if	HAVE_GETPWNAM
+#ifdef	HAVE_GETPWNAM
       /*
        * Check that LOGNAME contained legal name.
        */
@@ -159,7 +159,7 @@ NSUserName(void)
 	  loginName = 0;
 	}
 #endif	/* HAVE_GETPWNAM */
-#if	HAVE_GETLOGIN
+#ifdef	HAVE_GETLOGIN
       /*
        * Try getlogin() if LOGNAME environmentm variable didn't work.
        */
@@ -168,13 +168,13 @@ NSUserName(void)
 	  loginName = getlogin();
 	}
 #endif	/* HAVE_GETLOGIN */
-#if HAVE_GETPWUID
+#ifdef HAVE_GETPWUID
       /*
        * Try getting the name of the effective user as a last resort.
        */
       if (loginName == 0)
 	{
-#if HAVE_GETEUID
+#ifdef HAVE_GETEUID
 	  int uid = geteuid();
 #else
 	  int uid = getuid();
@@ -280,7 +280,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 NSString *
 NSFullUserName(void)
 {
-#if HAVE_PWD_H
+#ifdef HAVE_PWD_H
   struct passwd	*pw;
 
   pw = getpwnam([NSUserName() cString]);

@@ -1,3 +1,31 @@
+2002-05-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GSUnixSSLHandle.m: Change '#if HAVE...' to '#ifdef HAVE_...'
+	* Source/GSFormat.m: ditto
+	* Source/GSHTTPURLHandle.m: ditto
+	* Source/GSTcpPort.m: ditto
+	* Source/NSBundle.m: ditto
+	* Source/NSData.m: ditto
+	* Source/NSDate.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSHost.m: ditto
+	* Source/NSLock.m: ditto
+	* Source/NSLog.m: ditto
+	* Source/NSPage.m: ditto
+	* Source/NSPipe.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSRunLoop.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSTask.m: ditto
+	* Source/NSThread.m: ditto
+	* Source/NSUser.m: ditto
+	* Source/UnixFileHandle.m: ditto
+	* Source/WindowsFileHandle.m: ditto
+	* Tools/gsdoc.m: ditto
+	* Tools/autogsdoc.m: ditto
+	Fixes to handle configuration changes where AC_DEFINE is setting
+	preprocessor constants to be empty (but defined) rather than to be 1
+
 2002-05-02  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Updated to autoconf 2.53 from configure.in

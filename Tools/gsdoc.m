@@ -84,7 +84,7 @@ Parameters:
 
 #include <Foundation/Foundation.h>
 
-#if	HAVE_LIBXML
+#ifdef	HAVE_LIBXML
 
 #include <stdio.h>
 #include <string.h>
