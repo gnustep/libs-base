@@ -12,6 +12,7 @@
 	recursion with sharedUserDefaults.
 	(__createStandardSearchList): Put NSGlobalDomain before Language
 	domain to match MacOSX docs (wasn't specified in OpenStep docs).
+	* Documentation/gsdoc/NSUserDefaults.m: Updated.
 
 	* Tools/locale_alias.m: New test-tool mostly for maintainance use.
 
