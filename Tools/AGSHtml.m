@@ -78,7 +78,7 @@ static NSString		*mainFont = nil;
 
       // default fonts
       tocFont = @"sans";
-      mainFont = @"palatino linotype,times,serif";
+      mainFont = @"serif";
     }
 }
 
