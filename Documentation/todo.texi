@@ -38,6 +38,8 @@ argument to @@encode() and get a type string like the selector types.
 
 @item GNU Notification registration classes, notification classes.  
 
+@item GNU Exception classes.
+
 @item Write more/better random number generators.  Make them conform to
 the protocol <RandomGenerating>.  See RNGAdditiveCongruential.
 
@@ -53,7 +55,7 @@ also?
 sort of way that Smalltalk does.  Talk to me.  mccallum@@gnu.ai.mit.edu.
 
 @item See
-http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers-gnustep for
+http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers.html for
 a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @end itemize
@@ -73,21 +75,22 @@ malloced buffers should autorelease those buffers, (like readFormat:).
 
 @item Remove (Stream*) types on args.
 
-@item Many code fixes and cleanups, indicated with @samp{xxx} in the source.
+@item Many code fixes and cleanups, indicated with @samp{xxx} in the
+source.
+
+@item Make a GNU analogue to NSException.
 
 @item In remote object messaging, send exceptions back to the requestor.
 I'm waiting for gcc 2.7 exceptions.
+
+@item Separate Coder's "-..Simple.." methods into another class.
 
 @item Add Coding methods to all the other collection classes.
 
 @item
 Once we have SmallInt and SmallFloat classes, overhaul the collection
 heirarchy to get rid of the (elt) stuff.  Probably will get rid of
-function pointer passing too.
-
-@item
-Possibly change @code{-(int)compare:anObject} for Collection.  How
-should non-Indexed collections be ordered?
+function pointer passing and nested functions too.
 
 @item
 Think about restructuring the Collection heirarchy.  We need an abstract
@@ -97,18 +100,15 @@ of the classes.  The implementation of this stuff is crying out for
 multiple inheritance or protocols-with-implementation!
 
 @item
+Possibly change @code{-(int)compare:anObject} for Collection.  How
+should non-Indexed collections be ordered?
+
+@item
 Finish HashTable.m.  Implement freeKeys:values: (What is this supposed
 to do anyway?).  Handle archiving of atom string, "%", keys.
 
 @item
 Finish Time.m.  Many methods are not yet implemented.
-
-@item
-Write a good hash function for floats and doubles.
-@c This from
-@c libg++.texi: @code{unsigned int foldhash(double x);} a hash function for
-@c doubles that exclusive-or's the first and second words of x, returning
-@c the result as an integer.
 
 @item
 Many implementations could be made more efficient.  Libobjects hasn't
@@ -282,17 +282,6 @@ Currently you have to remove, change, add, for some classes.
 
 @c -------------------------------------------------------------------
 @c @section Questions leftover from last release 
-
-@item
-Opinions on the error reporting scheme?  See also
-@samp{checks/test05.m}.  This error reporting scheme will most likely
-change completely as soon as gcc gets exception handling.
-
-@item
-Should I include _comparison_function as an instance variable of
-Collection?  Putting it back in could make some things more efficient,
-but several classes don't have configurable comparisonFunction's
-(i.e. String, LinkedList, BinaryTree, RBTree), so they don't need it.
 
 @item
 I've been told that GNU filenames should be 14 chars or less.  I
