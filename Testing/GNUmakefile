@@ -53,6 +53,7 @@ CHECKABLE_TOOLS = \
 		nshashtable \
 		nshost \
 		nsindexset \
+		nsinvocation \
 		nsmaptable \
 		nsmethodsignature \
 		nsnotification \
