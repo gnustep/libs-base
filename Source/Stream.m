@@ -101,7 +101,10 @@ NSString* StreamException = @"StreamException";
 {
   char *l;
   [self readFormat: @"%a[^\n]\n", &l];
-  return [NSString stringWithCStringNoCopy:l];
+  return [[[NSString alloc] initWithCStringNoCopy: l
+			    length: strlen (l)
+			    freeWhenDone: YES]
+	   autorelease];
 }
 
 - (void) flushStream
