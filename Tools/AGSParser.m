@@ -1006,10 +1006,11 @@
   a = [NSMutableArray array];
   while ((s = [self parseIdentifier]) != nil)
     {
-      if ([s isEqualToString: @"static"] == YES)
+      if (inHeader == NO && [s isEqualToString: @"static"] == YES)
 	{
 	  /*
-	   * We don't want to document static declarations.
+	   * We don't want to document static declarations unless they
+	   * occur in a public header.
 	   */
 	  [self skipStatementLine];
 	  goto fail;

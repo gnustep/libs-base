@@ -1805,9 +1805,11 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([n isEqual: @"example"] == YES)
 	{
-	  [buf appendString: @"<pre>\n"];
-	  [self outputText: [node firstChild] to: buf];
-	  [buf appendString: @"\n</pre>\n"];
+	  GSXMLNode	*c = [node firstChild];
+
+	  [buf appendString: @"<pre>"];
+	  [self outputText: c to: buf];
+	  [buf appendString: @"</pre>\n"];
 	  return [node next];
 	}
       else if ([n isEqual: @"embed"] == YES)

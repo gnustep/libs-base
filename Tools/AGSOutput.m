@@ -869,7 +869,8 @@ static BOOL snuggleStart(NSString *t)
 			     to: (NSMutableString*)str
 			    for: (NSString*)unit
 {
-  NSString	*type = [d objectForKey: @"Type"];
+  NSString	*pref = [d objectForKey: @"Prefix"];
+  NSString	*type = [d objectForKey: @"BaseType"];
   NSString	*validity = [d objectForKey: @"Validity"];
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*comment = [d objectForKey: @"Comment"];
@@ -877,6 +878,10 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"        <ivariable type=\""];
   [str appendString: escapeType(type)];
+  if ([pref length] > 0)
+    {
+      [str appendString: pref];
+    }
   [str appendString: @"\" name=\""];
   [str appendString: name];
   if (validity != nil)
