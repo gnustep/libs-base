@@ -1,3 +1,10 @@
+2002-10-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Update logging after checks for results of memory
+	allocation.
+	* Source/NSTimeZone.m: Don't abort on failure to allocate memory ...
+	just print a log and continue returning a null pointer.
+
 2002-10-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: readContentsOfFile() fix use of atomic memory
