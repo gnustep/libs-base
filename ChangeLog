@@ -1,3 +1,9 @@
+2003-11-23 S.J.Chun <chunsj@embian.com>
+
+	* Headers/Additions/GNUstepBase/GSCategories.h: Change
+	KoreanEUCEncoding to KoreanEUCStringEncoding.
+	* Headers/Foundation/NSString.h, Source/Additions/Unicode.m: Idem.
+
 2003-11-23  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.9.0
