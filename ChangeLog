@@ -1,3 +1,10 @@
+2003-07-05  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add flags for openbsd like freebsd.
+
+	* Tools/gdnc.1, Tools/gdomap.8: Unzip
+	* Tools/GNUmakefile (MAN1_PAGES): gzip man pages.
+
 2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: Use -setProtocolForProxy:

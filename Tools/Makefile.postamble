@@ -41,6 +41,8 @@ after-install::
 	for file in $(MAN1_PAGES) __done; do \
 	  if [ $$file != __done ]; then \
 	    $(INSTALL_DATA) $$file $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file; \
+	    which gzip && rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file.gz \
+		&& gzip -9 $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file; \
 	  fi; \
 	done; \
 	if [ ! -f $(GNUSTEP_DOCUMENTATION_MAN)/man8 ]; then \
@@ -48,6 +50,8 @@ after-install::
 	fi; \
 	for file in $(MAN8_PAGES); do \
 	  $(INSTALL_DATA) $$file $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file; \
+	    which gzip && rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file.gz \
+		&& gzip -9 $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file; \
 	done; \
 	if [ "`$(WHOAMI)`" != "root" ]; then \
 	  echo ""; \
