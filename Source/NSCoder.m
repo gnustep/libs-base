@@ -24,7 +24,7 @@
 
 #include <objects/stdobjects.h>
 #include <foundation/NSCoder.h>
-#include <foundation/NSConcreteCoder.h>
+#include <foundation/NSGCoder.h>
 #include <objects/NSCoder.h>
 
 @implementation NSCoder

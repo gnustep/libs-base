@@ -1,4 +1,4 @@
-/* NSArray - Array object to hold other objects.
+/* Concrete implementation of NSArray based on GNU Array class
    Copyright (C) 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
@@ -21,13 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <foundation/NSConcreteArray.h>
+#include <foundation/NSGArray.h>
 #include <objects/NSArray.h>
 #include <objects/behavior.h>
 #include <objects/Array.h>
 #include <objects/ArrayPrivate.h>
 
-@implementation NSConcreteArray
+@implementation NSGArray
 
 + (void) initialize
 {
@@ -36,7 +36,7 @@
   if (!done)
     {
       done = 1;
-      class_add_behavior([NSConcreteArray class], [Array class]);
+      class_add_behavior([NSGArray class], [Array class]);
     }
 }
 
@@ -74,7 +74,7 @@
 
 @end
 
-@implementation NSConcreteMutableArray
+@implementation NSGMutableArray
 
 + (void) initialize
 {
@@ -82,9 +82,8 @@
   if (!done)
     {
       done = 1;
-      class_add_behavior([NSConcreteMutableArray class], 
-			 [NSConcreteArray class]);
-      class_add_behavior([NSConcreteMutableArray class], [Array class]);
+      class_add_behavior([NSGMutableArray class], [NSGArray class]);
+      class_add_behavior([NSGMutableArray class], [Array class]);
     }
 }
 

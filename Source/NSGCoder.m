@@ -34,7 +34,7 @@
   if (!done)
     {
       done = 1;
-      class_add_behavior([NSConcreteCoder class], [Coder class]);
+      class_add_behavior([NSGCoder class], [Coder class]);
     }
 }
 
