@@ -28,8 +28,10 @@
 #include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSBundle.h>
+#include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSFileHandle.h>
@@ -1008,6 +1010,58 @@ static DWORD WINAPI _threadFunction(LPVOID t)
     }
 }
 
+
+static NSString*
+endSlashesDoubledFromString(NSString *aString)
+{
+  int			i = [aString length] - 2;
+  NSMutableString	*returnString;
+  
+  if (![aString hasSuffix:@"\\"])
+    {
+      return aString;
+    }
+  returnString = [NSMutableString stringWithFormat: @"%@\\", aString];
+  while ([aString characterAtIndex: i] == '\\' && i >= 0)
+    {
+      [returnString appendString:@"\\"];
+      i--;
+    }
+
+  return returnString;
+}
+
+static NSString*
+quotedFromString(NSString *aString)
+{
+  NSString		*resultString;
+  NSMutableArray	*components;
+  int			i;
+  
+  /* First split on "'s */
+  components = [NSMutableArray arrayWithArray:
+    [aString componentsSeparatedByString: @"\""]];
+
+  /* Iterate over all but the last component and double slashes if needed */
+  i = [components count];
+  while (i-- > 0)
+    {
+      [components replaceObjectAtIndex: i withObject:
+	endSlashesDoubledFromString([components objectAtIndex: i])];
+    }
+
+  /* Join them again with \" as separator */
+  resultString = [components componentsJoinedByString: @"\\\""];
+
+  /* Put in in "'s if it contains spaces */
+  if ([resultString rangeOfCharacterFromSet:
+    [NSCharacterSet whitespaceCharacterSet]].length > 0)
+    {
+      resultString = [NSString stringWithFormat: @"\"%@\"", resultString];
+    }
+  return resultString;
+}
+
 - (void) launch
 {
   DWORD		tid;
@@ -1019,7 +1073,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
   char		*c_args;
   int		result;
   const char	*executable;
-
+  
   if (_hasLaunched)
     {
       return;
@@ -1027,13 +1081,16 @@ static DWORD WINAPI _threadFunction(LPVOID t)
 
   lpath = [self _fullLaunchPath];
   executable = [lpath fileSystemRepresentation];
-  args = [[NSMutableString alloc] initWithCString: executable];
+
+  args = [[NSMutableString alloc] initWithString:
+    quotedFromString([NSString stringWithCString: executable])];
   arg_enum = [[self arguments] objectEnumerator];
   while ((arg = [arg_enum nextObject]))
     {
       [args appendString: @" "];
-      [args appendString: arg];
+      [args appendString: quotedFromString(arg)];
     }
+  
   c_args = NSZoneMalloc(NSDefaultMallocZone(), [args cStringLength]+1);
   [args getCString: c_args];
 

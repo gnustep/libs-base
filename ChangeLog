@@ -1,3 +1,9 @@
+2003-02-11  Tom Koelman <tkoelman@xs4all.nl>
+
+	* Source/NSTask.m: Make arguments into windows quoted strings for
+	mingw.  Adjustments to conform to GNUstep style and use static
+	functions to avoid adding methods by RFM.
+
 2003-02-11  Adam Fedor  <fedor@Eldorado.local.>
 
 	* configure (LDFLAGS): Remove extra spaces that cause problems
