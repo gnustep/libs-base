@@ -48,7 +48,7 @@ DIST_FILES = \
 	COPYING COPYING.LIB ChangeLog \
 	configure Version \
 	config.guess mkinstalldirs install-sh \
-	NSBundle.README 
+	NSBundle.README objc.patch
 
 all: src
 
