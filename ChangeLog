@@ -1,4 +1,13 @@
 2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRunLoop.h: Go back to new version.
+	* Source/NSRunLoop.m: Back to new (hopefully bug-free) version ...
+	fixed a fence-post error in examining descriptors.  Enabled poll()
+	support if the O/S supports it.  Converted to use standard debug
+	logging keyed on NSRunLoop.  Fixed poll code to call any available
+	event handler when an error occurs on a descriptor.
+
+2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 	* Headers/gnustep/base/GSIMap.h: Fix bug cleaning table and add
 	option to specify type of enumerator structure externally.
 	* Headers/gnustep/base/NSHashTable.h: Modify to conform to MacOS-X
@@ -39,7 +48,7 @@
 2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRunLoop.h: revert
-	* Headers/Foundation/NSRunLoop.m: revert
+	* Source/NSRunLoop.m: revert
 	Revert to earlier version temporarily, while I try to track down
 	an obscure bug causing problems with some DO applications.
 
