@@ -36,6 +36,9 @@ Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
 GSMime.h \
 GSXML.h \
+behavior.h \
+Unicode.h \
+GCObject.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \

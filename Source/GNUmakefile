@@ -88,8 +88,6 @@ endif
 GNU_MFILES = \
 GSCompatibility.m \
 GSLocale.m \
-Unicode.m \
-behavior.m \
 preface.m \
 mframe.m
 
@@ -118,6 +116,7 @@ libgnustep-base.def
 
 GNU_HEADERS = \
 DistributedObjects.h \
+GCObject.h \
 GSFileHandle.h \
 GSLocale.h \
 GSUnion.h \
