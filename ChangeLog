@@ -1,3 +1,13 @@
+Sun Nov  7 14:04:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Foundation/NSDebug.h: Added NSWarnLog(), NSWarnFLog() and
+	NSWarnMLog() macros to log warnings about potential programming errors.
+	* Source/NSArray.m: Change to use NSWarnMLog() for warnings.
+	* Source/NSGArray.m: ditto
+	* Source/NSGCountedSet.m: ditto
+	* Source/NSGDictionary.m: ditto
+	* Source/NSGSet.m: ditto
+
 Thu Nov  4 1999  Michael Hanni <mhanni@sprintmail.com>
 
 	* Source/NSObject.m: added FreeBSD specific code in

@@ -30,6 +30,7 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSDebug.h>
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
@@ -236,7 +237,7 @@
 {
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)anObject);

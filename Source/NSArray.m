@@ -37,6 +37,7 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSDebug.h>
 
 #include <base/fast.x>
 
@@ -331,7 +332,7 @@ static SEL	rlSel = @selector(removeLastObject);
 	  return self;
 	}
     }
-  NSLog(@"Contents of file does not contain an array");
+  NSWarnMLog(@"Contents of file does not contain an array", 0);
   RELEASE(self);
   return nil;
 }
@@ -881,7 +882,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   i = [self count];
@@ -912,7 +913,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   c = [self count];
@@ -951,7 +952,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   c = [self count];
@@ -986,7 +987,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSLog(@"attempt to remove nil object");
+      NSWarnMLog(@"attempt to remove nil object", 0);
       return;
     }
   i = [self count];
