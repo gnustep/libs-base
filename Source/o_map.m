@@ -908,7 +908,7 @@ o_map_alloc_with_zone(NSZone * zone)
 o_map_t *
 o_map_alloc(void)
 {
-  return o_map_alloc_with_zone(0);
+  return o_map_alloc_with_zone(NSDefaultMallocZone());
 }
 
 o_map_t *
@@ -1281,7 +1281,7 @@ o_map_copy_with_zone(o_map_t *old_map, NSZone * zone)
 o_map_t *
 o_map_copy(o_map_t *old_map)
 {
-  return o_map_copy_with_zone(old_map, 0);
+  return o_map_copy_with_zone(old_map, NSDefaultMallocZone());
 }
 
 /** Describing... **/
