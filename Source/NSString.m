@@ -1261,7 +1261,7 @@ handle_printf_atsign (FILE *stream,
 {
   id obj;
   void *bufstate;
-  bufstate = (void *)pl_scan_string([self cString]);
+  bufstate = (void *)pl_scan_string([self cStringNoCopy]);
   obj = (id)plparse();
   pl_delete_buffer(bufstate);
   return obj;
@@ -1273,7 +1273,7 @@ handle_printf_atsign (FILE *stream,
    id dict = [[[NSMutableDictionary alloc] init] autorelease];
    void *bufstate;
 
-   bufstate = (void *)sf_scan_string([self cString]);
+   bufstate = (void *)sf_scan_string([self cStringNoCopy]);
    sfSetDict(dict);
    sfparse(dict);
    sf_delete_buffer(bufstate);
@@ -1416,11 +1416,15 @@ else
 {
   id mySeq, strSeq;
   NSRange myRange, strRange;
-  unsigned int myLength = [self length];
-  unsigned int strLength = [aString length];
+  unsigned int myLength;
+  unsigned int strLength;
   unsigned int myIndex = 0;
   unsigned int strIndex = 0;
 
+  if ([self hash] != [aString hash])
+    return NO;
+  myLength = [self length];
+  strLength = [aString length];
   if((!myLength) && (!strLength))
     return YES;
   if(!myLength)
@@ -1484,13 +1488,12 @@ else
   {
     if(len > NSHashStringLength)
       len = NSHashStringLength;
-    OBJC_MALLOC(source, unichar, len*MAXDEC + 1);
+    source = alloca(sizeof(unichar)*(len*MAXDEC+1));
     [self getCharacters: source range:NSMakeRange(0,len)];
     source[len]=(unichar)0;
 
 // decompose
-
-    OBJC_MALLOC(target, unichar, len*MAXDEC+1);
+    target = alloca(sizeof(unichar)*(len*MAXDEC+1));
     spoint = source;
     tpoint = target;
     do
@@ -1512,7 +1515,6 @@ else
       tpoint = target;
       spoint = source;
     } while(notdone);
-    OBJC_FREE(target);
 
 // order
 
@@ -1554,7 +1556,6 @@ else
       ret ^= *p++ << ctr;
       ctr = (ctr + 1) % sizeof (void*);
     }
-  OBJC_FREE(source);
   return ret;
   }
   else
@@ -1569,11 +1570,11 @@ else
  if(mask & NSLiteralSearch)
  {
   int prefix_len = 0;
-  unichar *s1;
-  unichar *s2;
   unichar *u,*w;
-  OBJC_MALLOC(s1, unichar,[self length] +1);
-  OBJC_MALLOC(s2, unichar,[aString length] +1);
+  unichar a1[[self length]+1];
+  unichar *s1 = a1;
+  unichar a2[[aString length]+1];
+  unichar *s2 = a2;
   u=s1;
   [self getCharacters:s1];
   s1[[self length]] = (unichar)0;
@@ -1597,7 +1598,6 @@ else
       s2++;
       prefix_len++;
     }
-    OBJC_FREE(w);
     return [NSString stringWithCharacters: u length: prefix_len];
  }
  else
@@ -2520,11 +2520,8 @@ else
 
     if ([self length] == 0 ||
 	[self rangeOfCharacterFromSet: quotables].length > 0) {
-	NSString	*result;
-	const char	*cstring = [self cString];
+	const char	*cstring = [self cStringNoCopy];
 	const char	*from;
-	char		*buf;
-	char		*ptr;
 	int		len = 0;
 
 	for (from = cstring; *from; from++) {
@@ -2553,38 +2550,44 @@ else
 	    }
 	}
 
-	buf = objc_malloc(len + 3);
-	ptr = buf;
-	*ptr++ = '"';
-	for (from = cstring; *from; from++) {
-	    switch (*from) {
-		case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
-		case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
-		case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
-		case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
-		case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
-		case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
-		case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
-		case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-		case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
-		case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
-
-		default:
-		    if (isprint(*from) || *from == ' ') {
-			*ptr++ = *from;
-		    }
-		    else {
-			sprintf(ptr, "\\%03o", *(unsigned char*)from);
-			ptr = &ptr[4];
-		    }
-		    break;
-	    }
+	if (len == 0) {
+	    return @"\"\"";
 	}
-	*ptr++ = '"';
-	*ptr = '\0';
-	result = [NSString stringWithCString: buf];
-	objc_free(buf);
-	return result;
+	else {
+	    char	buf[len+3];
+	    char	*ptr = buf;
+	    NSString	*result;
+
+	    *ptr++ = '"';
+	    for (from = cstring; *from; from++) {
+		switch (*from) {
+		    case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		    case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		    case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
+		    case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		    case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		    case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
+		    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+
+		    default:
+			if (isprint(*from) || *from == ' ') {
+			    *ptr++ = *from;
+			}
+			else {
+			    sprintf(ptr, "\\%03o", *(unsigned char*)from);
+			    ptr = &ptr[4];
+			}
+			break;
+		}
+	    }
+	    *ptr++ = '"';
+	    *ptr = '\0';
+	    result = [NSString stringWithCString: buf];
+	    return result;
+	}
     }
     return self;
 }
@@ -2793,7 +2796,6 @@ else
 
 - (unichar) characterAtIndex: (unsigned int)index
 {
-  /* xxx This should raise an NSException. */
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return (unichar)_contents_chars[index];
 }
