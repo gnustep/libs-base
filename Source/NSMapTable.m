@@ -338,7 +338,7 @@ NSFreeMapTable(NSMapTable *table)
 void *
 NSMapGet(NSMapTable *table, const void *key)
 {
-  GSIMapNode	n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
+  GSIMapNode	n;
 
   if (table == 0)
     {

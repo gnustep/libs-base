@@ -893,31 +893,6 @@ static inline int getDigits(const char *from, char *to, int limit)
 	  had |= hadD;
 	}
 
-      /*
-       * Use current date/time information for anything missing.
-       */
-      if ((had & (hadY|hadM|hadD|hadh|hadm|hads))
-	!= (hadY|hadM|hadD|hadh|hadm|hads))
-	{
-	  NSCalendarDate	*now = [NSCalendarDate  date];
-	  int			Y, M, D, h, m, s;
-
-	  [now setTimeZone: tz];
-	  [now getYear: &Y month: &M day: &D hour: &h minute: &m second: &s];
-	  if ((had & hadY) == 0)
-	    year = Y;
-	  if ((had & hadM) == 0)
-	    month = M;
-	  if ((had & hadD) == 0)
-	    day = D;
-	  if ((had & hadh) == 0)
-	    hour = h;
-	  if ((had & hadm) == 0)
-	    min = m;
-	  if ((had & hads) == 0)
-	    sec = s;
-	}
-
       return [self initWithYear: year
 			  month: month
 			    day: day
