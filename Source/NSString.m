@@ -102,7 +102,7 @@ static id	(*plAlloc)(Class, SEL, NSZone*) = 0;
 static id	(*plInit)(id, SEL, unichar*, unsigned) = 0;
 
 static SEL	plSel;
-static SEL	cMemberSel;
+static SEL	cMemberSel = 0;
 
 static NSCharacterSet	*hexdigits = nil;
 static BOOL		(*hexdigitsImp)(id, SEL, unichar) = 0;
@@ -113,6 +113,8 @@ static void setupHexdigits()
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789abcdefABCDEF"];
       IF_NO_GC(RETAIN(hexdigits));
+      if (cMemberSel == 0)
+	cMemberSel = @selector(characterIsMember:);
       hexdigitsImp =
 	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];
     }
@@ -132,6 +134,8 @@ static void setupQuotables()
       [s invert];
       quotables = [s copy];
       RELEASE(s);
+      if (cMemberSel == 0)
+	cMemberSel = @selector(characterIsMember:);
       quotablesImp =
 	(BOOL(*)(id,SEL,unichar)) [quotables methodForSelector: cMemberSel];
     }
@@ -146,6 +150,8 @@ static void setupWhitespce()
       whitespce = [NSCharacterSet characterSetWithCharactersInString:
 	@" \t\r\n\f\b"];
       IF_NO_GC(RETAIN(whitespce));
+      if (cMemberSel == 0)
+	cMemberSel = @selector(characterIsMember:);
       whitespceImp =
 	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
     }
@@ -3789,25 +3795,24 @@ static id parsePlItem(pldata* pld)
 
 	  data = [[NSMutableData alloc] initWithCapacity: 0];
 	  pld->pos++;
-	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '>')
+	  skipSpace(pld);
+	  while (pld->pos < max
+	    && (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos])
+	    && (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos+1]))
 	    {
-	      while (pld->pos < max
-		&& (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos])
-		&& (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos+1]))
-		{
-		  unsigned char	byte;
+	      unsigned char	byte;
 
-		  byte = (char2num(pld->ptr[pld->pos])) << 4; 
-		  pld->pos++;
-		  byte |= char2num(pld->ptr[pld->pos]);
-		  pld->pos++;
-		  buf[len++] = byte;
-		  if (len == sizeof(buf))
-		    {
-		      [data appendBytes: buf length: len];
-		      len = 0;
-		    }
+	      byte = (char2num(pld->ptr[pld->pos])) << 4; 
+	      pld->pos++;
+	      byte |= char2num(pld->ptr[pld->pos]);
+	      pld->pos++;
+	      buf[len++] = byte;
+	      if (len == sizeof(buf))
+		{
+		  [data appendBytes: buf length: len];
+		  len = 0;
 		}
+	      skipSpace(pld);
 	    }
 	  if (pld->pos >= pld->end)
 	    {
@@ -3978,7 +3983,7 @@ GSPropertyList(NSString *string)
     {
       unsigned	c = [string characterAtIndex: index];
 
-      if ((*whitespceImp)(whitespce, cMemberSel, c) == YES)
+      if ((*whitespceImp)(whitespce, cMemberSel, c) == NO)
 	{
 	  break;
 	}
@@ -3994,8 +3999,9 @@ GSPropertyList(NSString *string)
       GSXMLParser	*parser;
 
       data = [string dataUsingEncoding: NSUTF8StringEncoding]; 
-      parser = [GSXMLParser parserWithData: nil];
-      [parser substituteEntities: NO];
+      parser = [GSXMLParser parser];
+      [parser substituteEntities: YES];
+      [parser doValidityChecking: YES];
       if ([parser parse: data] == NO || [parser parse: nil] == NO)
 	{
 	  NSLog(@"not a property list - failed to parse as XML");

@@ -1,3 +1,9 @@
+2000-11-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fixed uninitialised variable bug.
+	* Source/NSString.m: Fixed error in xml property list parsing
+	* Source/GSXML.m: Various SAX things to use default implementation.
+
 2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Implemented

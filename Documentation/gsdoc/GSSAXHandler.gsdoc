@@ -9,8 +9,8 @@
     <author name="Richard Frith-Macdonald">
       <email address="rfm@gnu.org"/>
     </author>
-    <version>0.2</version>
-    <date>15 september, 2000</date>
+    <version>0.3</version>
+    <date>1 November, 2000</date>
   </head>
 
   <body>
@@ -211,20 +211,32 @@
         <method type="int">
           <sel>hasInternalSubset:</sel>
           <desc>
-          <p>Callback on internal subset declaration.
+            <p>
+	      Does this document have an internal subset?
             </p>
+	    <list>
+	      <item>Return 1 for yes</item>
+	      <item>Return 0 for no</item>
+	      <item>Return -1 for don't know (let parser decide)</item>
+	    </list>
           </desc>
         </method>
 
         <method type="int">
           <sel>hasExternalSubset:</sel>
           <desc>
-          <p>Does this document have an external subset.
+	    <p>
+	      Does this document have an external subset.
             </p>
+	    <list>
+	      <item>Return 1 for yes</item>
+	      <item>Return 0 for no</item>
+	      <item>Return -1 for don't know (let parser decide)</item>
+	    </list>
           </desc>
         </method>
 
-        <method type="void">
+        <method type="BOOL">
           <sel>internalSubset:</sel>
           <arg type="NSString*">name</arg>
           <sel>externalID:</sel>
@@ -232,12 +244,14 @@
           <sel>systemID:</sel>
           <arg type="NSString*">systemID</arg>
           <desc>
-          <p>Callback on internal subset declaration.
+	    <p>
+	      Callback on internal subset declaration.
+	      Return YES if handled, NO if you want the parser to handle it.
             </p>
           </desc>
         </method>
 
-        <method type="void">
+        <method type="BOOL">
           <sel>externalSubset:</sel>
           <arg type="NSString*">name</arg>
           <sel>externalID:</sel>
@@ -245,20 +259,40 @@
           <sel>systemID:</sel>
           <arg type="NSString*">systemID</arg>
           <desc>
-          <p>Callback on external subset declaration.
+	    <p>
+	      Callback on external subset declaration.
+	      Return YES if handled, NO if you want the parser to handle it.
             </p>
           </desc>
         </method>
 
-        <method type="void*">
-          <sel>resolveEntity:</sel>
+        <method type="NSString*">
+          <sel>loadEntity:</sel>
           <arg type="NSString*">publicID</arg>
-          <sel>systemID:</sel>
-          <arg type="NSString*">systemID</arg>
+          <sel>at:</sel>
+          <arg type="NSString*">locationURL</arg>
           <desc>
-          <p>The entity loader, to control the loading of external entities,
-          the application can either.
-          </p>
+	    <p>
+	      This method controls the loading of external entities into
+	      the system.  If it returns an empty string, the entity is not
+	      loaded.  If it returns a filename, the entity is loaded from
+	      that file.  If it returns nil, the default entity loading
+	      mechanism is used.
+	    </p>
+	    <p>
+	      The default entity loading mechanism is to construct a file
+	      name from the locationURL, by replacing all path separators
+	      with underscores, then attempt to locate that file in the DTDs
+	      resource directory of the main bundle, and all the standard
+	      system locations.
+	    </p>
+	    <p>
+	      As a special case, the default loader examines the publicID
+	      and if it is a GNUstep DTD, the loader constructs a special
+	      name from the ID (by replacing dots with underscores and
+	      spaces with hyphens) and looks for a file with that name
+	      and a '.dtd' extension in the GNUstep bundles.
+	    </p>
           </desc>
         </method>
 

@@ -12,8 +12,8 @@
 <dt>Richard Frith-Macdonald
 <dd>
 </dl>
-<p>Version: 0.2</p>
-<p>Date: 15 september, 2000</p>
+<p>Version: 0.3</p>
+<p>Date: 1 November, 2000</p>
 <h2><a name ="cont-0">GSSAXHandler</a></h2>
 <h2><a name ="GSSAXHandler">GSSAXHandler</a></h2>
 <p><b>Declared in: </b> GSXML.h</p>
@@ -72,12 +72,12 @@ XML SAX Handler.</p>
 <li><a href ="GSSAXHandler.html#method-20">-internalSubset:externalID:systemID:</a>
 <li><a href ="GSSAXHandler.html#method-5">-isStandalone</a>
 <li><a href ="GSSAXHandler.html#method-1">-lib</a>
+<li><a href ="GSSAXHandler.html#method-22">-loadEntity:at:</a>
 <li><a href ="GSSAXHandler.html#method-25">-namespaceDecl:href:prefix:</a>
 <li><a href ="GSSAXHandler.html#method-26">-notationDecl:systemId:</a>
 <li><a href ="GSSAXHandler.html#method-2">-parser</a>
 <li><a href ="GSSAXHandler.html#method-11">-processInstruction:value:</a>
 <li><a href ="GSSAXHandler.html#method-31">-reference:</a>
-<li><a href ="GSSAXHandler.html#method-22">-resolveEntity:systemID:</a>
 <li><a href ="GSSAXHandler.html#method-3">-startDocument</a>
 <li><a href ="GSSAXHandler.html#method-6">-startElement:attributes:</a>
 <li><a href ="GSSAXHandler.html#method-30">-unparsedEntityDecl:public:system:notationName:</a>
@@ -288,13 +288,35 @@ Callback on external subset declaration.
 
           
  <hr>
-<h3><a name ="method-22">resolveEntity:systemID:</a></h3>
-- (void*) <b>resolveEntity:</b> (NSString*)publicID <b>systemID:</b> (NSString*)systemID;<br>
+<h3><a name ="method-22">loadEntity:at:</a></h3>
+- (NSString*) <b>loadEntity:</b> (NSString*)publicID <b>at:</b> (NSString*)locationURL;<br>
 
-          <p>
-The entity loader, to control the loading of external entities,
-          the application can either.
-          </p>
+	    <p>
+
+	      This method controls the loading of external entities into
+	      the system.  If it returns an empty string, the entity is not
+	      loaded.  If it returns a filename, the entity is loaded from
+	      that file.  If it returns nil, the default entity loading
+	      mechanism is used.
+	    </p>
+
+	    <p>
+
+	      The default entity loading mechanism is to construct a file
+	      name from the locationURL, by replacing all path separators
+	      with underscores, then attempt to locate that file in the DTDs
+	      resource directory of the main bundle, and all the standard
+	      system locations.
+	    </p>
+
+	    <p>
+
+	      As a special case, the default loader examines the publicID
+	      and if it is a GNUstep DTD, the loader constructs a special
+	      name from the ID (by replacing dots with underscores and
+	      spaces with hyphens) and looks for a file with that name
+	      and a '.dtd' extension in the GNUstep bundles.
+	    </p>
 
           
  <hr>
