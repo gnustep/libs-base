@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSURL" prev="NSTimer.html" next="NSURLHandle.html" up="Foundation.html">
+<gsdoc base="NSURL" prev="NSTimer.html" next="NSURLHandle.html" up="Base.html">
   <head>
     <title>NSURL</title>
     <author name="Richard Frith-Macdonald">
