@@ -82,8 +82,8 @@ struct _o_array_enumerator
 
 /** Basics **/
 
-#include <gnustep/base/array-bas.h>
-#include <gnustep/base/array-cbs.h>
+#include <gnustep/base/o-array-bas.h>
+#include <gnustep/base/o-array-cbs.h>
 
 /** Creating **/
 
