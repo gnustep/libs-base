@@ -853,13 +853,21 @@ if test $ac_cv_func_iconv = no; then
     LIBS="$LIBS -L$libiconv_libdir"
   fi
 
-  AC_CHECK_LIB(iconv, main)
-  if test x"$av_cv_lib_iconv_main" = xyes; then
-    LIBS="$LIBS -liconv"
+  # BSDs install this lib as libgiconv
+  AC_CHECK_LIB(giconv, main)
+  if test x"$av_cv_lib_giconv_main" = xyes; then
+    LIBS="$LIBS -lgiconv"
     AC_SUBST(LIBS)
     SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
   else
-    LIBS="$libs_temp";
+    AC_CHECK_LIB(iconv, main)
+    if test x"$av_cv_lib_iconv_main" = xyes; then
+      LIBS="$LIBS -liconv"
+      AC_SUBST(LIBS)
+      SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+    else
+      LIBS="$libs_temp"
+    fi
   fi
 else
   SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
