@@ -29,9 +29,6 @@ GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-include ../Version
-include ../config.mak
-
 # The tools to be compiled
 TEST_TOOL_NAME = \
 dictionary \
