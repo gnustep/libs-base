@@ -33,12 +33,12 @@
 
 @implementation NSDistributedLock
 
-+ (NSDistributedLock*)lockWithPath: (NSString*)aPath
++ (NSDistributedLock*) lockWithPath: (NSString*)aPath
 {
-    return [[[self alloc] initWithPath: aPath] autorelease];
+  return [[[self alloc] initWithPath: aPath] autorelease];
 }
 
-- (void)breakLock
+- (void) breakLock
 {
   NSFileManager	*fileManager;
 
@@ -51,14 +51,14 @@
   lockTime = nil;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   [lockPath release];
   [lockTime release];
   [super dealloc];
 }
 
-- (NSDistributedLock*)initWithPath: (NSString*)aPath
+- (NSDistributedLock*) initWithPath: (NSString*)aPath
 {
   NSFileManager	*fileManager;
   NSString	*lockDir;
@@ -72,33 +72,33 @@
   if ([fileManager fileExistsAtPath: lockDir isDirectory: &isDirectory] == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is missing\n", lockPath);
-      [self dealloc];
+      [self release];
       return nil;
     }
   if (isDirectory == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is not a directory\n",
 		lockPath);
-      [self dealloc];
+      [self release];
       return nil;
     }
   if ([fileManager isWritableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not writable\n", lockPath);
-      [self dealloc];
+      [self release];
       return nil;
     }
   if ([fileManager isExecutableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not accessible\n",
 		lockPath);
-      [self dealloc];
+      [self release];
       return nil;
     }
   return self;
 }
 
-- (NSDate*)lockDate
+- (NSDate*) lockDate
 {
   NSFileManager	*fileManager;
   NSDictionary	*attributes;
@@ -108,7 +108,7 @@
   return [attributes objectForKey: NSFileModificationDate];
 }
 
-- (BOOL)tryLock
+- (BOOL) tryLock
 {
   NSFileManager		*fileManager;
   NSMutableDictionary	*attributes;
@@ -145,7 +145,7 @@
     }
 }
 
-- (void)unlock
+- (void) unlock
 {
   NSFileManager	*fileManager;
   NSDictionary	*attributes;
