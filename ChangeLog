@@ -1,7 +1,8 @@
 2002-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
-        * Tools/AGSParser.m: ([-parseMethodIsDeclaration:]) Correct wrongly
-	positioned autorelease pool in last change. Hope that's the only one.
+        * Tools/AGSParser.m: ([-parseDeclaration:]) Correct wrongly
+	positioned autorelease pool in last change. Hope that's the only
+	one.
 
 Wed Jun 26 15:32:36 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
