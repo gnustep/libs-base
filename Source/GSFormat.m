@@ -127,7 +127,7 @@ struct printf_info
 };
 
 /* Type of a printf specifier-handler function.
-   STREAM is the FormatBuf_t on which to write output.
+   STREAM is the GSStr on which to write output.
    INFO gives information about the format specification.
    ARGS is a vector of pointers to the argument data;
    the number of pointers will be the number returned
@@ -733,32 +733,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
 }
 
 
-#define	outchar(Ch)							      \
-  do									      \
-    {									      \
-      register const wint_t outc = (Ch);				      \
-      if (s->len+1 >= s->size) {					      \
-        s->size += s->size / 2;						      \
-	s->buf = NSZoneRealloc(s->z, s->buf, s->size*sizeof(s->buf[0]));      \
-      }                                                                       \
-      s->buf[s->len++] = outc;                                                \
-      ++done;								      \
-    }									      \
-  while (0)
-
-#define outstring(String, Len)						      \
-  do									      \
-    {									      \
-      unsigned i;							      \
-      									      \
-      if (s->len+((unsigned)(Len)) >= s->size) {			      \
-      	s->size += s->size/2 > ((unsigned)(Len))? s->size/2: (unsigned)(Len); \
-	s->buf = NSZoneRealloc(s->z, s->buf, s->size*sizeof(s->buf[0]));      \
-      }									      \
-      for (i=0; i < ((unsigned)(Len)); i++) s->buf[s->len++] = (String)[i];   \
-      done += (unsigned)(Len);						      \
-    }									      \
-  while (0)
+#define	outchar(Ch)		GSStrAppendUnichar(s, Ch)
+#define outstring(String, Len)	GSStrAppendUnichars(s, String, Len)
 
 /* For handling long_double and longlong we use the same flag.  If
    `long' and `long long' are effectively the same type define it to
@@ -787,7 +763,7 @@ static const unichar null[] = {'(','n','u','l','l',')','\0'};
 
 
 /* Handle unknown format specifier.  */
-static int printf_unknown (FormatBuf_t *, const struct printf_info *,
+static int printf_unknown (GSStr, const struct printf_info *,
 				const void *const *);
 
 /* Group digits of number string.  */
@@ -796,7 +772,7 @@ static unichar *group_number (unichar *, unichar *, const char *, NSString *);
 
 /* The function itself.  */
 void
-GSFormat (FormatBuf_t *s, const unichar *format, va_list ap,
+GSFormat (GSStr s, const unichar *format, va_list ap,
 NSDictionary *locale)
 {
   /* The character used as thousands separator.  */
@@ -865,12 +841,6 @@ NSDictionary *locale)
 #define NOT_IN_JUMP_RANGE(Ch) ((Ch) < ' ' || (Ch) > 'z')
 #define CHAR_CLASS(Ch) (jump_table[(wint_t) (Ch) - ' '])
 # define JUMP_TABLE_TYPE const void *const
-
-  if (s->size == 0)
-    {
-      s->buf = NSZoneMalloc(s->z, 100*sizeof(unichar));
-      s->size = 100;
-    }
 
   /* Initialize local variables.  */
   done = 0;
@@ -1768,7 +1738,7 @@ NSDictionary *locale)
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */
 	    if (len < 8192
-	      || ((string = (unichar *) NSZoneMalloc(s->z, len * sizeof (unichar)))
+	      || ((string = (unichar *) NSZoneMalloc(s->_zone, len * sizeof (unichar)))
 		    == NULL))
 	      string = (unichar *) alloca (len * sizeof (unichar));
 	    else
@@ -1795,7 +1765,7 @@ NSDictionary *locale)
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */
 	    if (len < 8192
-	      || ((string = (unichar *) NSZoneMalloc(s->z, len * sizeof (unichar)))
+	      || ((string = (unichar *) NSZoneMalloc(s->_zone, len * sizeof (unichar)))
 		    == NULL))
 	      string = (unichar *) alloca (len * sizeof (unichar));
 	    else
@@ -1819,7 +1789,7 @@ NSDictionary *locale)
 	      PAD (' ');
 	  }
 	if (string_malloced)
-	  NSZoneFree(s->z, string);
+	  NSZoneFree(s->_zone, string);
       }
       break;
 
@@ -1851,7 +1821,7 @@ NSDictionary *locale)
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */
 	    if (len < 8192
-	      || ((string = (unichar *) NSZoneMalloc(s->z, len * sizeof (unichar)))
+	      || ((string = (unichar *) NSZoneMalloc(s->_zone, len * sizeof (unichar)))
 		    == NULL))
 	      string = (unichar *) alloca (len * sizeof (unichar));
 	    else
@@ -1875,7 +1845,7 @@ NSDictionary *locale)
 	      PAD (' ');
 	  }
 	if (string_malloced)
-	  NSZoneFree(s->z, string);
+	  NSZoneFree(s->_zone, string);
       }
       break;
 
@@ -1919,7 +1889,7 @@ all_done:
 /* Handle an unknown format specifier.  This prints out a canonicalized
    representation of the format spec itself.  */
 static int
-printf_unknown (FormatBuf_t *s, const struct printf_info *info,
+printf_unknown (GSStr s, const struct printf_info *info,
 		const void *const *args)
 
 {

@@ -290,14 +290,14 @@ static inline void GSeq_uppercase(GSeq seq)
  * Set up macros for dealing with 'self' on the basis of GSQ_S
  */
 #if	GSEQ_S == GSEQ_US
-#define	GSEQ_ST	ivars
+#define	GSEQ_ST	GSStr
 #define	GSEQ_SLEN	s->_count
 #define	GSEQ_SGETC(I)	s->_contents.u[I]
 #define	GSEQ_SGETR(B,R)	memcpy(B, &s->_contents.u[R.location], 2*(R).length)
 #define	GSEQ_SRANGE(I)	(*srImp)((id)s, ranSel, I)
 #else
 #if	GSEQ_S == GSEQ_CS
-#define	GSEQ_ST	ivars
+#define	GSEQ_ST	GSStr
 #define	GSEQ_SLEN	s->_count
 #define	GSEQ_SGETC(I)	(unichar)s->_contents.c[I]
 #define	GSEQ_SGETR(B,R)	( { \
@@ -322,14 +322,14 @@ static inline void GSeq_uppercase(GSeq seq)
  * Set up macros for dealing with 'other' string on the basis of GSQ_O
  */
 #if	GSEQ_O == GSEQ_US
-#define	GSEQ_OT	ivars
+#define	GSEQ_OT	GSStr
 #define	GSEQ_OLEN	o->_count
 #define	GSEQ_OGETC(I)	o->_contents.u[I]
 #define	GSEQ_OGETR(B,R)	memcpy(B, &o->_contents.u[R.location], 2*(R).length)
 #define	GSEQ_ORANGE(I)	(*orImp)((id)o, ranSel, I)
 #else
 #if	GSEQ_O == GSEQ_CS
-#define	GSEQ_OT	ivars
+#define	GSEQ_OT	GSStr
 #define	GSEQ_OLEN	o->_count
 #define	GSEQ_OGETC(I)	(unichar)o->_contents.c[I]
 #define	GSEQ_OGETR(B,R)	( { \

@@ -1,3 +1,19 @@
+2004-05-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.h:
+	* Source/GSFormat.m:
+	* Source/GSPrivate.h:
+	* Source/GSString.m:
+	* Source/GSeq.h:
+	* Source/NSString.m:
+	Updates to allow GSFormat to write directly into an existing string
+	in either 16bit or 8bit format.  Also tidyups and modifications to
+	use temporary buffers on stack rather than malloc/free as long as
+	the buffers are reasonably sized.
+	* Source/benchmark.m: Trivial string format benchmarks ...
+	Performance improvement of 10% for initWithFormat and 90% for
+	appendFormat operations.
+
 2004-05-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: ([initWithString:calendarFormat:locale:])
