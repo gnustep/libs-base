@@ -185,7 +185,7 @@ static Class NSMutableDictionary_concrete_class;
 
   desc = [NSMutableString stringWithCapacity: 2];
   [desc appendString: @"{"];
-  while((key = [keyenum nextObject]))
+  while ((key = [keyenum nextObject]))
     {
       /* I wish appendString: returned self*/
       [desc appendString: [key description]];
