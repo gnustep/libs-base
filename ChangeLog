@@ -1,4 +1,242 @@
+Fri Jan 26 10:48:30 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Coder.m ([Coder -encodeTag:]): Let the cstream handle it, 
+	if it can.
+	([Coder -decodeTag]): Likewise.
+	([Coder -encodeClass:]): Perform classname mapping ala
+	encodeClassName:intoClassName.
+	([Coder -_doEncodeBycopyObject:]): Perform callbacks
+	-replacementObjectForCoder, -replacementObjectForArchiver,
+ 	-classForCoder, -classForArchiver.
+	([Coder -encodeClassName:intoClassName:]): Fix typos.
+	([Coder -encodeConditionalObject:]): Don't encode *forward*
+	references, only backward references; apparently NeXT-style
+ 	decoding
+	(with -decodeObject, instead of GNU's decodeObjectAt:) can't
+	handle them.
+
+	* src/Foundation/NSArchiver.h: Move NSUnarchiver declaration here
+ 	from NSUnarchiver.h.
+	* src/NSGArchiver.m: Move implementation of NSGUnarchiver here
+ 	from NSGUnarchiver.m.
+	* src/Foundation/NSGArchiver.h: Remove ivars; behavior code now
+ 	handles instance_size.  Move NSGUnarchiver here from
+ 	NSGUnarchiver.h.
+	* src/NSArchiver.m: Move NSUnarchiver implementation here from
+ 	NSUnarchiver.m.  Use subclassResponsibility where correct.
+	([NSArchiver +initialize]): Make NSGArchiver the concrete class.
+	* src/Makefile.in (GNUSTEP_MFILES): NSUnarchiver.m and
+ 	NSGUnarchiver.m removed.
+	(GNUSTEP_HEADERS): Foundation/NSUnarchiver.h and
+	Foundation/NSGUnarchiver.h removed.
+
+	* src/Foundation/NSObject.h ([NSObject -classForArchiver]): Method
+ 	removed; it's now in NSArchiver.m.
+	([NSObject -replacementObjectForArchiver:]): Likewise.
+
+	* src/ConnectedCoder.m (Object (ConnectedCoderCallbacks)):
+ 	Category methods moved here from Coder.m.
+
+	* checks/nsarchiver.m (main): Use NSUnarchiver properly.
+
+	* src/NSException.m (NSInconsistentArchiveException): String
+ 	removed; it's in NSArchiver.m.
+
+	* src/NSGArchiver.m ([NSGArchiver +initialize]): Add the behavior
+ 	of the Coder class.  All other methods deleted.
+
+	* src/NSObject.m: Some minor formatting changes.
+	([NSObject -classForArchiver]): Method removed; it's in NSArchiver.m.
+	([NSObject -replacementObjectForArchiver:]): Likewise.
+
+	* src/Makefile.in (GNUSTEP_MFILES): Remove NSGCoder.m.
+	(GNUSTEP_HEADERS): Remove Foundation/NSGCoder.h.
+
+	Make use of new behavior size matching to avoid ugliness of
+	forcing ivar layout match when adding behaviors---more robust.
+	* src/NSGArray.m (self): New macro, cast to (Array*) to reflect
+ 	behavior addition.
+	([NSGArray -initWithObjects:count:]): Call Array designated initalizer
+	instead of accessing ivars directly.
+	([NSGMutableArray -initWithCapacity:]): Likewise.
+	([NSGArray -count]): Method removed, Array behavior will take care
+	of it.
+	([NSGArray -objectAtIndex:]): Use self to access ivars.
+	* src/Foundation/NSGArray.h: Remove ivars; class_add_behavior now
+ 	handles instance_size match.
+
+	* src/behavior.c (class_add_behavior): If necessary, increase
+ 	instance_size of class to which behavior is being added.
+
+Thu Jan 25 10:11:41 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSArchiver.m ([NSArchiver +initialize]): Set concrete class
+ 	to Coder.
+	([NSArchiver +allocWithZone:]): New method.
+	([NSArchiver -initForWritingWithMutableData:]): Make this a subclass
+	responsibility.
+	([NSArchiver -versionForClassName:]): New method.
+	([NSArchiver +unarchiveObjectWithData:data]): New method.
+	([NSArchiver +unarchiveObjectWithFile:path]): Call concrete class.
+	([NSArchiver +classNameEncodedForTrueClassName:]): Likewise.
+
+	* src/Foundation/NSArchiver.h: Declare new methods.
+
+	* src/Foundation/NSCoder.h: Fix spelling of argument names.
+
+	* src/Foundation/NSSet.h: Fix typo, initWithObjects: takes
+ 	objects, not NSArray's.
+
+	* src/NSGData.m ([NSGData -writeToFile:atomically:]): Use
+ 	cStringNoCopy for efficiency.
+
+	* src/MemoryStream.m ([MemoryStream -init]): New method, otherwise
+ 	naive creation dies with NULL buffer.
+
+	* src/objects/Coding.h (Coding -cStream): New method.
+	(Coder -encodeArrayOfObjCType:count:at:withName:): Renamed from
+	-encodeArrayOfObjCType:at:count:withName:, to better match NeXT.
+	(Coder -decodeArrayOfObjCType:count:at:withName:): Likewise.
+
+	* src/objects/Coder.h (zone): New ivar.
+
+	* src/Coder.m ([Coder -_initWithCStream:formatVersion:isDecoding:]): 
+	Initialize new zone ivar.
+	([Coder -encodeBycopyObject:withName:]): Renamed from
+	-encodeObjectBycopy, to better match NeXT.
+	([Coder -decodeObjectAt::name]): Use zone ivar in creating
+	decoded objects.
+	([Coder -encodeArrayOfObjCType:count:at:withName:]): Renamed from
+	-encodeArrayOfObjCType:at:count:withName:, to better match NeXT.
+	([Coder -decodeArrayOfObjCType:count:at:withName:]): Likewise.
+	([Coder +classNameEncodedForTrueClassName:trueName]): New method, for
+	NSCoder compatibility.
+	([Coder -encodeClassName:trueNameintoClassName:]):
+	Likewise.
+	([Coder -objectZone]): Likewise.
+	([Coder -setObjectZone:]): Likewise.
+	([Coder -encodeValueOfObjCType:at:]): Likewise.
+	([Coder -encodeArrayOfObjCType:count:at:]): Likewise.
+	([Coder -encodeBycopyObject:]): Likewise.
+	([Coder -encodeConditionalObject:]): Likewise.
+	([Coder -encodeDataObject:]): Likewise.
+	([Coder -encodeObject:]): Likewise.
+	([Coder -encodePoint:]): Likewise.
+	([Coder -encodeRect:]): Likewise.
+	([Coder -encodeRootObject:]): Likewise.
+	([Coder -encodeSize:]): Likewise.
+	([Coder -encodeValuesOfObjCTypes:...:]): Likewise.
+	([Coder -decodeValueOfObjCType:at:]): Likewise.
+	([Coder -decodeArrayOfObjCType:count:at:]): Likewise.
+	([Coder -decodeDataObject]): Likewise.
+	([Coder -decodeObject]): Likewise.
+	([Coder -decodePropertyList]): Likewise.
+	([Coder -decodePoint]): Likewise.
+	([Coder -decodeRect]): Likewise.
+	([Coder -decodeSize]): Likewise.
+	([Coder -decodeValuesOfObjCTypes:...:]): Likewise.
+	([Coder -systemVersion]): Likewise.
+	([Coder -versionForClassName:]): Likewise.
+	([Coder -initForWritingWithMutableData:]): New method, for
+	NSArchiver compatibility.
+	([Coder +archivedDataWithRootObject:]): Likewise.
+	([Coder +archiveRootObject:toFile:]): Likewise.
+	([Coder +unarchiveObjectWithData:data]): Likewise.
+	([Coder +unarchiveObjectWithFile:path]): Likewise.
+	([Coder -archiverData]): Likewise.
+	([Coder -cStream]): New method.
+
+	* checks/Makefile.in (SRCS): Added nsarchiver.m.
+
+	* checks/nsarchiver.m: New file.
+
+	* examples/textcoding.m (main): Use new [Coder -closeCoder]
+ 	method.
+
+	* src/StdioStream.m ([StdioStream -isClosed]): Remove bad
+ 	implementation; currently not implemented.
+
+	* src/Coder.m ([Coder
+ 	-initForWritingToStream:withFormatVersion:cStreamClass:
+ 	cStreamFormatVersion:]): New method.
+	([Coder -initForWritingToFile:withFormatVersion:cStreamClass:
+	cStreamFormatVersion:]): New method.
+	([Coder -initForWritingToFile:filenamewithCStreamClass:cStreamClass]):
+	New method.
+	([Coder +encodeRootObject:withName:nametoStream:]): New method.
+	([Coder +encodeRootObject:withName:nametoFile:filename]): New method.
+	([Coder +decodeObjectWithName:namefromStream:]): New method.
+	([Coder +decodeObjectWithName:namefromFile:filename]): New method.
+	* src/objects/Coder.h: Declare new methods.
+
+	* src/CStream.m: Use "..withFormatVersion" instead of
+ 	"formatVersion" in several method names.
+	* src/objects/CStream.h: Declare new method.
+
+	* src/objects/Coding.h (Coding -closeCoder): New protocol method.
+	(Coding -isClosed): New protocol method.
+	* src/Coder.m ([Coder -initForReadingFromFile:filename]): New method.
+	([Coder -initForWritingToFile:filename]): New method.
+	([Coder -closeCoder]): New method.
+	([Coder -isClosed]): New method.
+
+	* src/objects/Streaming.h (Streaming -isClosed): New protocol method.
+	* src/Stream.m ([Stream -flushStream]): Do nothing, instead of
+ 	calling -subclassResponsibility.
+	([Stream -closeStream]): Likewise.
+	([Stream -isClosed]): New method, return NO.
+	* src/MemoryStream.m ([MemoryStream -flushStream]): Method removed.
+	* src/StdioStream.m ([StdioStream -isClosed]): New method.
+	* src/MemoryStream.m ([MemoryStream -closeStream]): New method,
+ 	just flush the stream.
+
+Wed Jan 24 09:02:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/objects/Streaming.h (Streaming -closeStream): New method; we
+ 	must separate the idea of "closing" a stream and "deallocating" a
+ 	stream because of delays in deallocation due to -autorelease.
+	* src/Stream.m ([Stream -closeStream]): New method.
+	* src/StdioStream.m ([StdioStream -closeStream]): New method.
+
+	* src/CStream.m ([CStream -encodeWithName:valuesOfCTypes:...]):
+ 	New method.
+	([CStream -decodeWithName:valuesOfCTypes:...]): New method.
+	* src/objects/CStreaming.h: Declare new methods.
+
+	* src/String.m ([String -initWithCStringNoCopy:freeWhenDone:]):
+ 	New method, needed for protocol.
+
+	* src/Stream.m ([Stream -writeFormat:arguments:]): New method.
+	([Stream -readFormat:arguments:]): New method.
+
+	* src/Coder.m (SIGNATURE_FORMAT_STRING): New macro.
+	([Coder -writeSignature]): Use it.
+	([Coder +readSignatureFromCStream:getClassname:formatVersion:]):
+	Likewise, and receive (char*) instead of (char**).  All callers
+ 	changed.
+
+	* src/objects/EltNode-m: Include <objects/NSString.h> for @"" in
+ 	encoding withName:.  Use constant string objects instead of C
+ 	strings where appropriate.
+
+	* src/Connection.m: Use constant string objects instead of C
+ 	strings where appropriate.
+
+	* src/RBTreeNode.m: Include <objects/NSString.h> for @"" in
+ 	encoding withName:.
+	* src/DelegatePool.m: Likewise.
+	* src/BinaryTreeNode.m: Likewise.
+
 Tue Jan 23 11:54:54 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+        * Set.m, SocketPort.m, TreeNode.m, EltNodeCollector.m,
+ 	LinkedListNode.m, MutableCString.m, NSGCString.m, Proxy.m,
+ 	RBTreeNode.m, BinaryCoder.m, BinaryTreeNode.m, Collection.m,
+ 	Connection.m, DelegatePool.m:
+        Use string objects instead of C strings
+        for name arguments to encoding methods.
+
+	* src/.cvsignore: Add errs*.
 
 	* examples/textcoding.m: Update for new Coder organization.
 
@@ -11,8 +249,17 @@ Tue Jan 23 11:54:54 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	(Coding -decodeValueOfCType:at:withName:): New method.
 	* src/objects/Coder.h: Declare new methods.
 
-	* src/Makefile.in (GNU_MFILES): Add BinaryCStream.m and CStream.m.
-	(GNU_HEADERS): Add objects/BinaryCStream.h and objects/CStream.h.
+	* src/objects/CStreaming.h: New file.
+	* src/CStream.m: New file.
+	* src/objects/CStream.h: New file.
+	* src/TextCStream.m: New file.
+	* src/objects/TextCStream.h: New file.
+	* src/BinaryCStream.m: New file.
+	* src/objects/BinaryCStream.h: New file.
+	* src/Makefile.in (GNU_MFILES): Add BinaryCStream.m, TextCStream.m
+	and CStream.m.
+	(GNU_HEADERS): Add objects/BinaryCStream.h, objects/TextCStream.h
+	and objects/CStream.h.
 
 	* src/NSString.m (handle_printf_atsign): Fix type for va_arg ().
 
