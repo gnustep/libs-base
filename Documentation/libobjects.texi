@@ -26,7 +26,7 @@ END-INFO-DIR-ENTRY
 This file documents the features and implementation of The GNU
 Objective-C class library.
 
-Copyright (C) 1993 Free Software Foundation, Inc.
+Copyright (C) 1993, 1996 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -234,7 +234,7 @@ messaging support.
 @c There are several GNU protocols also.  You can recognize the protocols
 @c by their name: they all end with ``ing''.
 
-@itemize
+@itemize @bullet
 
 @item The collection objects all conform to the @samp{Collecting}
 protocol.  Reading @samp{./objects/Collecting.h} is a good place to
@@ -284,7 +284,7 @@ threw them together because I needed them for remote object messaging.
 
 The library is built around several protocols:
 
-@itemize
+@itemize @bullet
 
 @item
 The <Collecting> protocol is root of the collection protocol heirarchy. 
@@ -455,7 +455,7 @@ Declared in @samp{coll/collstd.h}
 Objective-C is not Smalltalk.  Differences that matter to the
 Collection heirarchy:
 
-@itemize
+@itemize @bullet
 
 @item
 There can be only one set of argument types with each selector.

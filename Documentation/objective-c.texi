@@ -526,7 +526,7 @@ as an implementation detail.
 @node Directives, Declaring Methods, Language Summary, Language Summary
 @section Directives
 
-@itemize
+@itemize @bullet
 @item @@defs
 @item @@encode
 @item @@end
