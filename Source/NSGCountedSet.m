@@ -253,6 +253,29 @@
     NSDefaultMallocZone()] initWithSet: self]);
 }
 
+- (void) purge: (int)level
+{
+  if (level > 0)
+    {
+      GSIMapNode	node = map.firstNode;
+
+      while (node != 0)
+	{
+	  GSIMapNode	tmp = node->nextInMap;
+
+	  if (node->value.uint <= level)
+	    {
+	      GSIMapBucket	bucket;
+
+	      bucket = GSIMapBucketForKey(&map, node->key);
+	      GSIMapRemoveNodeFromMap(&map, bucket, node);
+	      GSIMapFreeNode(&map, node);
+	    }
+	  node = tmp;
+	}
+    }
+}
+
 - (void) removeObject: (NSObject*)anObject
 {
   GSIMapBucket       bucket;
@@ -284,4 +307,35 @@
   GSIMapCleanMap(&map);
 }
 
+- (id) unique: (id)anObject
+{
+  GSIMapNode	node;
+  id		result;
+
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to unique nil value in counted set"];
+    }
+
+  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+  if (node == 0)
+    {
+      result = anObject;
+      GSIMapAddPairNoRetain(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
+    }
+  else
+    {
+      result = node->key.obj;
+      node->value.uint++;
+#if	!GS_WITH_GC
+      if (result != anObject)
+	{
+	  [anObject release];
+	  [result retain];
+	}
+#endif
+    }
+  return result;
+}
 @end

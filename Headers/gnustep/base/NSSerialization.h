@@ -90,17 +90,13 @@
  *	efficient equality testing of uniqued strings).
  *	The default is NOT to deserialize uniqued strings.
  *
- *	The [+uniquing:] method turns uniquing on/off.  Turning off uniquing
- *	destroys the NSMutableSet used for uniquing.
- *	The [+uniqueSet] method gives you direct access to the uniquing set.
- *	The [+unique:] method lets you find the 'uniqued' version os a string.
+ *	The [+uniquing:] method turns uniquing on/off.
+ *	Uniquing is done using a global NSCountedSet - see NSCountedSet for
+ *	details.
  */
 @class	NSMutableSet;
 @interface NSDeserializer (GNUstep)
-+ (void) _becomeThreaded: (id)notification; /* private */
-+ (NSString*) unique: (NSString*)original;
 + (void) uniquing: (BOOL)flag;
-+ (NSMutableSet*) uniqueSet;
 @end
 
 #endif

@@ -28,9 +28,26 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSLock.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSThread.h>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
+
+/*
+ *	Class variables for uniquing objects;
+ */
+static NSRecursiveLock	*uniqueLock = nil;
+static NSCountedSet	*uniqueSet = nil;
+static IMP		uniqueImp = 0;
+static IMP		lockImp = 0;
+static IMP		unlockImp = 0;
+static BOOL		uniquing = NO;
+
+@interface	NSCountedSet (GSThreading)
++ (void) _becomeThreaded: (id)notification;
+@end
 
 @implementation NSCountedSet 
 
@@ -45,6 +62,18 @@ static Class NSCountedSet_concrete_class;
       NSCountedSet_concrete_class = [NSGCountedSet class];
       behavior_class_add_class(self, [NSMutableSetNonCore class]);
       behavior_class_add_class(self, [NSSetNonCore class]);
+      if ([NSThread isMultiThreaded])
+	{
+	  [self _becomeThreaded: nil];
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_becomeThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
     }
 }
 
@@ -65,7 +94,7 @@ static Class NSCountedSet_concrete_class;
   return [super allocWithZone: z];
 }
 
-- (unsigned int) countForObject: anObject
+- (unsigned int) countForObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -129,4 +158,110 @@ static Class NSCountedSet_concrete_class;
   return self;
 }
 
+- (void) purge: (int)level
+{
+  if (level > 0)
+    {
+      NSEnumerator	*enumerator = [self objectEnumerator];
+
+      if (enumerator != nil)
+	{
+	  id		obj;
+	  id		(*nImp)(NSEnumerator*, SEL);
+	  unsigned	(*cImp)(NSCountedSet*, SEL, id);
+	  void		(*rImp)(NSCountedSet*, SEL, id);
+
+	  nImp = (id (*)(NSEnumerator*, SEL))
+	    [enumerator methodForSelector: @selector(nextObject)];
+	  cImp = (unsigned (*)(NSCountedSet*, SEL, id))
+	    [self methodForSelector: @selector(countForObject:)];
+	  rImp = (void (*)(NSCountedSet*, SEL, id))
+	    [self methodForSelector: @selector(removeObject:)];
+	  while ((obj = (*nImp)(enumerator, @selector(nextObject))) != nil)
+	    {
+	      unsigned	c = (*cImp)(self, @selector(countForObject:), obj);
+
+	      if (c <= level)
+		{
+		  while (c-- > 0)
+		    {
+		      (*rImp)(self, @selector(removeObject:), obj);
+		    }
+		}
+	    }
+	}
+    }
+}
+
+- (id) unique: (id)anObject
+{
+  id	o = [self member: anObject];
+
+  [self addObject: anObject];
+#if	!GS_WITH_GC
+  if (o != anObject)
+    {
+      [anObject release];
+      [o retain];
+    }
+#endif
+  return o;
+}
 @end
+
+@implementation	NSCountedSet (GSThreading)
+/*
+ * If we are multi-threaded, we must guard access to the uniquing set.
+ */
++ (void) _becomeThreaded: (id)notification
+{
+  uniqueLock = [NSLock new];
+  lockImp = [uniqueLock methodForSelector: @selector(lock)];
+  unlockImp = [uniqueLock methodForSelector: @selector(unlock)];
+}
+@end
+
+
+void
+GSUPurge(int level)
+{
+  if (uniqueLock != nil)
+    {
+      (*lockImp)(uniqueLock, @selector(lock));
+    }
+  [uniqueSet purge: level];
+  if (uniqueLock != nil)
+    {
+      (*unlockImp)(uniqueLock, @selector(unlock));
+    }
+}
+
+id
+GSUnique(id obj)
+{
+  if (uniquing == YES)
+    {
+      if (uniqueLock != nil)
+	{
+	  (*lockImp)(uniqueLock, @selector(lock));
+	}
+      obj = (*uniqueImp)(uniqueSet, @selector(unique:), obj);
+      if (uniqueLock != nil)
+	{
+	  (*unlockImp)(uniqueLock, @selector(unlock));
+	}
+    }
+  return obj;
+}
+
+void
+GSUniquing(BOOL flag)
+{
+  if (uniqueSet == nil)
+    {
+      uniqueSet = [NSCountedSet new];
+      uniqueImp = [uniqueSet methodForSelector: @selector(unique:)];
+    }
+  uniquing = flag;
+}
+

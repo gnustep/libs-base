@@ -358,6 +358,18 @@ bench_str()
   END_TIMER;
   PRINT_TIMER("NSString (ser/des)");
 
+  [NSDeserializer uniquing: YES];
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT/100; i++)
+    {
+      NSData	*d = [ser serializePropertyList: plist];
+      id 	p = [des deserializePropertyListFromData: d
+				       mutableContainers: NO];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (ser/des - uniquing)");
+  [NSDeserializer uniquing: NO];
+
   START_TIMER;
   for (i = 0; i < MAX_COUNT/100; i++)
     {

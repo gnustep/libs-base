@@ -221,7 +221,7 @@
 	  </desc>
 	</method>
 
-	<standard>OpenStep GNU</standard>
+	<standards><OpenStep/><GNUstep/></standards>
 	
       </class>
 
@@ -279,7 +279,7 @@
 	  </desc>
 	</method>
 
-	<standard>OpenStep GNU</standard>
+	<standards><OpenStep/><GNUstep></standards>
       </class>
     </chapter>
     <back>
@@ -370,7 +370,7 @@ function (void *ptr)
 	  <desc>
 	    Return the larger between <var>a</var> and <var>b</var>.
 	  </desc>
-	  <standard>GNU</standard>
+	  <standards><GNUstep/></standards>
 	</macro>
 
 	<macro name="NS_DURING">
@@ -399,7 +399,7 @@ function (void *ptr)
 	    Allocate <var>size</var> bytes from the dynamic memory
 	    allocation zone <var>zone</var>.
 	  </desc>
-	  <standard>OpenStep GNU</standard>
+	  <standards><OpenStep/><GNUstep/></standards>
 	</function>
       </chapter>
       <index type="class"/>

@@ -1,3 +1,18 @@
+2000-04-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/gsdoc/NSCountedSet.gsdoc: Method descriptions fleshed
+	out, including GNUstep additional methods and related functions.
+	* Documentation/gsdoc/NSDeserializer.gsdoc: GNUstep specific extension
+	method documented.
+	* GSDoc/gnustep.gsdoc: Fixed use of 'standards' element.
+	* Headers/NSSerialization.h: Removed some extensions.
+	* Headers/NSSet.h: Added some extensions for uniquing.
+	* Source/NSCountedSet.m: Added uniquing methods and functions.
+	* Source/NSGCountedSet.m: Added optimised uniquing methods.
+	* Source/NSSerializer.m: Simplified uniquing code using stuff from
+	NSCountedSet.
+	* Testing/benchmark.m: included uniquing serialization/deserialization.
+
 2000-04-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe.m: Update to handle '-' in stack position information

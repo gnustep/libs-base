@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.1</version>
-    <date>28 February, 2000</date>
+    <version>0.2</version>
+    <date>18 April, 2000</date>
   </head>
   <body>
     <chapter>
@@ -47,6 +47,17 @@
           <arg type="BOOL">mutable</arg>
           <desc>
           </desc>
+        </method>
+        <method type="void" factory="yes">
+          <sel>uniquing:</sel>
+          <arg type="BOOL">flag</arg>
+          <desc>
+	    This method turns on/off uniquing of strings as they are
+	    deserialized from data objects.  The uniquing mechanism
+	    employs the GNUstep-specific functions documented with
+            the NSCountedSet class.
+          </desc>
+	  <standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
         </method>
       </class>
     </chapter>
