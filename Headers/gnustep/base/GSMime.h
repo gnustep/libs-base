@@ -125,6 +125,7 @@
   unsigned		expect;
   unsigned		rawBodyLength;
   BOOL			inBody;
+  BOOL			isHttp;
   BOOL			complete;
   NSData		*boundary;
   GSMimeDocument	*document;
@@ -141,17 +142,19 @@
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)con;
-- (GSMimeDocument*) document;
 - (void) expectNoHeaders;
 - (BOOL) isComplete;
+- (BOOL) isHttp;
 - (BOOL) isInBody;
 - (BOOL) isInHeaders;
+- (GSMimeDocument*) mimeDocument;
 - (BOOL) parse: (NSData*)d;
 - (BOOL) parseHeader: (NSString*)aHeader;
 - (BOOL) scanHeaderBody: (NSScanner*)scanner into: (GSMimeHeader*)info;
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
+- (void) setIsHttp;
 @end
 
 #endif

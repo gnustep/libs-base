@@ -864,9 +864,10 @@ parseCharacterSet(NSString *token)
 }
 
 /**
+ * <deprecated />
  * Returns the object into which raw mime data is being parsed.
  */
-- (GSMimeDocument*) document
+- (id) document
 {
   return document;
 }
@@ -888,12 +889,22 @@ parseCharacterSet(NSString *token)
       inBody = YES;
     }
 }
+
 /**
  * Returns YES if the document parsing is known to be completed.
  */
 - (BOOL) isComplete
 {
   return complete;
+}
+
+/**
+ * Returns YES if the parser is parsing an HTTP document rather than
+ * a true MIME document.
+ */
+- (BOOL) isHttp
+{
+  return isHttp;
 }
 
 /**
@@ -927,6 +938,15 @@ parseCharacterSet(NSString *token)
       document = [[GSMimeDocument alloc] init];
     }
   return self;
+}
+
+/**
+ * Returns the GSMimeDocument instance into which data is being parsed
+ * or has been parsed.
+ */
+- (GSMimeDocument*) mimeDocument
+{
+  return document;
 }
 
 /**
@@ -1383,6 +1403,10 @@ parseCharacterSet(NSString *token)
 
 	  [document deleteHeader: h];
 	}
+      /*
+       * Mark to say we are parsing HTTP content
+       */
+      [self setIsHttp];
     }
   else if ([name isEqualToString: @"content-transfer-encoding"] == YES
     || [name isEqualToString: @"transfer-encoding"] == YES)
@@ -1590,8 +1614,28 @@ parseCharacterSet(NSString *token)
 	    }
 	  if ([string characterAtIndex: r.location - 1] == '\\')
 	    {
-	      r.location++;
-	      r.length = length - r.location;
+	      int	p;
+
+	      /*
+               * Count number of escape ('\') characters ... if it's odd
+	       * then the quote has been escaped and is not a closing
+	       * quote.
+	       */
+	      p = r.location;
+	      while (p > 0 && [string characterAtIndex: p - 1] == '\\')
+		{
+		  p--;
+		}
+	      p = r.location - p;
+	      if (p % 2 == 1)
+		{
+		  r.location++;
+		  r.length = length - r.location;
+		}
+	      else
+		{
+		  done = YES;
+		}
 	    }
 	  else
 	    {
@@ -1648,11 +1692,25 @@ parseCharacterSet(NSString *token)
     }
 }
 
+/**
+ * Method to inform the parser that the data it is parsing is an HTTP
+ * document rather than true MIME.  This method is called internally
+ * if the parser detects an HTTP response line at the start of the
+ * headers it is parsing.
+ */
+- (void) setIsHttp
+{
+  isHttp = YES;
+}
 @end
 
 @implementation	GSMimeParser (Private)
 /*
  * This method takes the raw data of an unfolded header line, and handles
+ * Method to inform the parser that the data it is parsing is an HTTP
+ * document rather than true MIME.  This method is called internally
+ * if the parser detects an HTTP response line at the start of the
+ * headers it is parsing.
  * RFC2047 word encoding in the header by creating a string containing the
  * decoded words.
  */
