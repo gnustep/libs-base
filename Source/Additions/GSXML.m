@@ -3829,7 +3829,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 #ifdef HAVE_LIBXSLT
 /**
  * Performs an XSLT transformation on the specified file using the
- * sytelsheet provided.<br />
+ * stylesheet provided.<br />
  *
  * Returns an autoreleased GSXMLDocument containing the transformed
  * XML, or nil on failure.
@@ -3844,7 +3844,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 /**
  * Performs an XSLT transformation on the specified file using the
- * sytelsheet and parameters provided. See the libxslt documentation
+ * stylesheet and parameters provided. See the libxslt documentation
  * for details of the supported parameters.<br />
  *
  * Returns an autoreleased GSXMLDocument containing the transformed
@@ -3884,7 +3884,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 }
 /**
  * Performs an XSLT transformation on the specified file using the
- * sytelsheet provided.<br />
+ * stylesheet provided.<br />
  *
  * Returns an autoreleased GSXMLDocument containing the transformed
  * XML, or nil on failure.
@@ -3899,7 +3899,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 			  
 /**
  * Performs an XSLT transformation on the specified file using the
- * sytelsheet and parameters provided.See the libxslt documentation
+ * stylesheet and parameters provided.See the libxslt documentation
  * for details of the supported parameters.<br />
  *
  * Returns an autoreleased GSXMLDocument containing the transformed
