@@ -26,9 +26,12 @@
 #define h_zone_NS_h
 
 #if NeXT_runtime
+
 #include <objc/zone.h>
 #define NSZone NXZone
+
 #else
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <gnustep/base/config.h>
@@ -162,5 +165,20 @@ extern void NSNameZone(NSZone *z, const char *name);
 extern void NSSetZoneName (NSZone *z, NSString *name);
 extern NSString *NSZoneName (NSZone *z);
 
-#endif /* __NeXT__ */
+
+/* Memory-Page-related functions. */
+
+extern unsigned NSPageSize ();
+extern unsigned NSLogPageSize ();
+extern unsigned NSRoundUpToMultipleOfPageSize (unsigned bytes);
+extern unsigned NSRoundDownToMultipleOfPageSize (unsigned bytes);
+
+extern unsigned NSRealMemoryAvailable ();
+
+extern void *NSAllocateMemoryPages (unsigned bytes);
+extern void NSDeallocateMemoryPages (void *ptr, unsigned bytes);
+extern void NSCopyMemoryPages (const void *source, void *dest, unsigned bytes);
+
+
+#endif /* NeXT_runtime */
 #endif /* h_zone_NS_h */
