@@ -90,7 +90,6 @@
 	  forKeys: (NSString**)keys
 	    count: (unsigned)count
    - (unsigned) count 
-   - objectForKey: (NSString*)aKey
    - (NSEnumerator*) keyEnumerator
    - (NSEnumerator*) objectEnumerator
    */
@@ -117,6 +116,13 @@
 - (void) setObject:anObject forKey:(NSString *)aKey
 {
   [self putObject: anObject atKey: aKey];
+}
+
+- objectForKey: aKey
+{
+  /* xxx Should I change the method name in Dictionary?
+     I don't really want to; I think "at" is better. */
+  return [self objectAtKey: aKey];
 }
 
 - (void) removeObjectForKey:(NSString *)aKey
