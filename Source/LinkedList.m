@@ -68,9 +68,16 @@
 
 - (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
 {
+  id l;
+
   [aCoder startDecodingInterconnectedObjects];
   [super _decodeContentsWithCoder:aCoder];
   [aCoder finishDecodingInterconnectedObjects];
+  FOR_COLLECTION (self, l)
+    {
+      [l setLinkedList: self];
+    }
+  END_FOR_COLLECTION (self);
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */
