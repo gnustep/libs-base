@@ -119,6 +119,7 @@
   id mapContent;
   id domainKey;
 
+  /* xxx This needs debugging; see checks/test02.m */
   while ((mapContent = [_map nextObjectAndKey:keyPtr withEnumState:enumState])
 	 && 
 	 (![_domain containsKey: (domainKey = [_map objectAtKey:*keyPtr])]))
