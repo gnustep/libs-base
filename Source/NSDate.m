@@ -84,8 +84,7 @@
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return [[[NSConcreteDate class] allocWithZone:zone]
-	  initWithTimeIntervalSinceReferenceDate:timeSinceReference];
+  return [[NSConcreteDate class] copyWithZone:zone];
 }
 
 // Getting current time
