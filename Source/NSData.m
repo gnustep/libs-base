@@ -122,7 +122,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
-      NSLog(@"Open (%s) attempt failed - bad path", thePath);
+      NSDebugLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
 #if	defined(__WIN32__)
@@ -133,7 +133,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 
   if (theFile == NULL)		/* We failed to open the file. */
     {
-      NSLog(@"Open (%s) attempt failed - %s", thePath, strerror(errno));
+      NSDebugLog(@"Open (%s) attempt failed - %s", thePath, strerror(errno));
       goto failure;
     }
 
@@ -518,7 +518,7 @@ failure:
   if ([path getFileSystemRepresentation: theRealPath
 			      maxLength: sizeof(theRealPath)-1] == NO)
     {
-      NSLog(@"Open (%s) attempt failed - bad path", theRealPath);
+      NSDebugLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
 
@@ -2280,7 +2280,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
-      NSLog(@"Open (%s) attempt failed - bad path", thePath);
+      NSDebugLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
   fd = open(thePath, O_RDONLY);
