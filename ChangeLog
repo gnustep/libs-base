@@ -1,8 +1,14 @@
+Tue Jan 19 12:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSUserDefaults.m: Fixed to update periodically from disk and
+	to post notifications if the on-disk copy has changed.
+	* src/include/NSUserDefaults.m: Changed vtimer info for update.
+
 Fri Jan 15 10:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSObjCRuntime.m: Added GSGetInstanceVariable() and
+	* src/NSObjCRuntime.m: Added GSGetInstanceVariable() and
 	GSSetInstanceVariable() methods - extensions to gnustep.
-	src/NSObjCRuntime.h: ditto
+	* src/NSObjCRuntime.h: ditto
 
 Tue Jan 12  4:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

@@ -66,6 +66,7 @@ static NSString* GNU_UserDefaultsDatabaseLock = @"GNUstep/.GNUstepUDLock";
 - (void)__createStandardSearchList;
 - (NSDictionary *)__createArgumentDictionary;
 - (void)__changePersistentDomain:(NSString *)domainName;
+- (void)__timerTicked: (NSTimer*)tim;
 @end
 
 @implementation NSUserDefaults: NSObject
@@ -624,7 +625,14 @@ static NSMutableString   *processName = nil;
 {
   NSMutableDictionary *newDict = nil;
 		
-  tickingTimer = NO;
+  if (tickingTimer == nil)
+    {
+      [NSTimer scheduledTimerWithTimeInterval:30
+	       target:self
+	       selector:@selector(__timerTicked:)
+	       userInfo:nil
+	       repeats:NO];
+    }
 
   // Get file lock - break any lock that is more than five minute old.
   if ([defaultsDatabaseLock tryLock] == NO)
@@ -676,14 +684,23 @@ static NSMutableString   *processName = nil;
 	  [defaultsDatabaseLock unlock];
 	  return NO;
 	}
+      [defaultsDatabaseLock unlock];	// release file lock
     }
   else
-    {                          // Just update from disk
-      [persDomains release];
-      persDomains = newDict;
+    {
+      [defaultsDatabaseLock unlock];	// release file lock
+      if ([persDomains isEqual: newDict] == NO)
+	{
+	  [persDomains release];
+	  persDomains = newDict;
+	  [[NSNotificationCenter defaultCenter] 
+	    postNotificationName: NSUserDefaultsDidChangeNotification
+			  object: nil];
+	}
+      else
+	[newDict release];
     }
 	
-  [defaultsDatabaseLock unlock];	// release file lock
 
   return YES;
 }
@@ -855,16 +872,6 @@ static NSMutableString   *processName = nil;
 	postNotificationName:NSUserDefaultsDidChangeNotification object:nil];
     }
 	
-  if (!tickingTimer)
-    {
-      [NSTimer scheduledTimerWithTimeInterval:30
-	       target:self
-	       selector:@selector(synchronize)
-	       userInfo:nil
-	       repeats:NO];
-      tickingTimer = YES;
-    }
-
   enumerator = [changedDomains objectEnumerator];
   while ((obj = [enumerator nextObject]))
     {
@@ -875,4 +882,11 @@ static NSMutableString   *processName = nil;
   return;
 }
 
+- (void) __timerTicked: (NSTimer*)tim
+{
+  if (tim == tickingTimer)
+    tickingTimer = nil;
+
+  [self synchronize];
+}
 @end

@@ -1,4 +1,4 @@
-/* Interface for <Class> for GNUStep
+/* Interface for <NSUserDefaults> for GNUStep
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:   Georg Tuparev, EMBL & Academia Naturalis, 
@@ -34,6 +34,7 @@
 @class NSDictionary;
 @class NSMutableDictionary;
 @class NSData;
+@class NSTimer;
 
 /* Standard domains */
 extern NSString* const NSArgumentDomain;
@@ -118,7 +119,7 @@ extern NSString* const NSDateTimeOrdering;
   NSMutableString	*defaultsDatabase;
   NSMutableString	*defaultsDatabaseLockName;
   NSDistributedLock	*defaultsDatabaseLock;
-  BOOL			tickingTimer;   // for synchronization
+  NSTimer		*tickingTimer;   // for synchronization
 }
 
 /* Getting the Shared Instance */
