@@ -137,6 +137,7 @@ static Class		NSURLHandleClass = 0;
 	  if ([found canInitWithURL: url] == YES)
 	    {
 	      c = (Class)found;
+	      break;		// Found it.
 	    }
 	}
     }

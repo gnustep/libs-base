@@ -1,3 +1,9 @@
+2002-05-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: ([URLHandleClassForURL:]) Fix to return most
+	recently registered class rather than first registered one.
+	Bug report via savannah
+
 2002-04-30  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.3.2
