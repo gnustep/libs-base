@@ -31,6 +31,7 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSData.h>
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
@@ -41,12 +42,29 @@
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
-  unsigned	len = [message cStringLength];
-  char		buf[len+1];
+  NSData	*d;
+  const char	*buf;
+  unsigned	len;
 
-  [message getCString: buf];
-  buf[len] = '\0';
+  d = [message dataUsingEncoding: NSASCIIStringEncoding
+	    allowLossyConversion: NO];
+  if (d == nil)
+    {
+      d = [message dataUsingEncoding: NSUTF8StringEncoding
+		allowLossyConversion: NO];
+    }
 
+  if (d == nil)		// Should never happen.
+    {
+      buf = [message lossyCString];
+      len = strlen(buf);
+    }
+  else
+    {
+      buf = (const char*)[d bytes];
+      len = [d length];
+    }
+ 
 #ifdef	HAVE_SYSLOG
 
   if (write(2, buf, len) != len)
