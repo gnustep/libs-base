@@ -650,14 +650,16 @@ handle_printf_atsign (FILE *stream,
 #define charesc(ch) (inrange(ch,07,014) || ((ch)=='\"') || ((ch)=='\\'))
 #define numesc(ch) (((ch)<=06) || inrange(ch,015,037) || ((ch)>0176))
 
-  for(src_ptr=(char *)src,len=0,quote=0; ch=*src_ptr; src_ptr++,len++)
+  for (src_ptr = (char*)src, len=0,quote=0;
+       (ch=*src_ptr);
+       src_ptr++, len++)
     {
-      if(!noquote(ch))
+      if (!noquote(ch))
 	{
 	  quote=1;
-	  if(charesc(ch))
+	  if (charesc(ch))
 	    len++;
-	  else if(numesc(ch))
+	  else if (numesc(ch))
 	    len+=3;
 	}
     }
@@ -670,12 +672,12 @@ handle_printf_atsign (FILE *stream,
   dest_ptr = dest;
   if (quote)
     *(dest_ptr++) = '\"';
-  for(; ch=*src_ptr; src_ptr++,dest_ptr++)
+  for (; (ch=*src_ptr); src_ptr++,dest_ptr++)
     {
-      if(charesc(ch))
+      if (charesc(ch))
 	{
 	  *(dest_ptr++) = '\\';
-	  switch(ch)
+	  switch (ch)
 	    {
 	    case '\a': *dest_ptr = 'a'; break;
 	    case '\b': *dest_ptr = 'b'; break;
