@@ -126,6 +126,17 @@ extern inline NSString* NSZoneName (NSZone *zone)
   return nil;
 }
 
+#ifndef	NO_GNUSTEP
+
+extern inline void* NSZoneMallocAtomic (NSZone *zone, size_t size)
+{
+  void	*ptr = (void*)GC_MALLOC_ATOMIC(size);
+
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size, YES);
+  return ptr;
+}
+
 extern inline BOOL NSZoneCheck (NSZone *zone)
 {
   return YES;
@@ -136,48 +147,80 @@ extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
   struct NSZoneStats stats = { 0 };
   return stats;
 }
+#endif
 
 #else	/* GS_WITH_GC */
 
 extern NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
 extern inline NSZone* NSDefaultMallocZone (void)
-{ return __nszone_private_hidden_default_zone; }
+{
+  return __nszone_private_hidden_default_zone;
+}
 
 extern NSZone* NSZoneFromPointer (void *ptr);
 
 extern inline void* NSZoneMalloc (NSZone *zone, size_t size)
-{ if (!zone) zone = NSDefaultMallocZone();
-return (zone->malloc)(zone, size); }
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->malloc)(zone, size);
+}
 
 extern void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
 
 extern inline void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
-{ if (!zone) zone = NSDefaultMallocZone();
-return (zone->realloc)(zone, ptr, size); }
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->realloc)(zone, ptr, size);
+}
 
 extern inline void NSRecycleZone (NSZone *zone)
-{ if (!zone) zone = NSDefaultMallocZone();
-(zone->recycle)(zone); }
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  (zone->recycle)(zone);
+}
 
 extern inline void NSZoneFree (NSZone *zone, void *ptr)
-{ if (!zone) zone = NSDefaultMallocZone();
-(zone->free)(zone, ptr); }
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  (zone->free)(zone, ptr);
+}
 
 extern void NSSetZoneName (NSZone *zone, NSString *name);
 
 extern inline NSString* NSZoneName (NSZone *zone)
-{ if (!zone) zone = NSDefaultMallocZone();
-return zone->name; }
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return zone->name;
+}
 
-extern inline BOOL NSZoneCheck (NSZone *zone) // Not in OpenStep
-{ if (!zone) zone = NSDefaultMallocZone();
-return (zone->check)(zone); }
+#ifndef	NO_GNUSTEP
+extern inline void* NSZoneMallocAtomic (NSZone *zone, size_t size)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->malloc)(zone, size);
+}
 
-/* Not in OpenStep */
+extern inline BOOL NSZoneCheck (NSZone *zone)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->check)(zone);
+}
+
 extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
-{ if (!zone) zone = NSDefaultMallocZone();
-return (zone->stats)(zone); }
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->stats)(zone);
+}
+#endif	/* NO_GNUSTEP */
 
 #endif	/* GS_WITH_GC */
 
