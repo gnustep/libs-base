@@ -24,6 +24,9 @@
 #undef VSPRINTF_RETURNS_LENGTH
 #undef VASPRINTF_RETURNS_LENGTH
 
+/* Define if your system needs to have short/int word aligned */
+#undef NEED_WORD_ALIGNMENT
+
 /* Define if you have the register_printf_function function.  */
 #undef HAVE_REGISTER_PRINTF_FUNCTION
 

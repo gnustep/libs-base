@@ -655,16 +655,31 @@ fi
 # Linux (and others?) /proc contains a symlink to the executable
 # file from which the process loaded its code.  This can be used
 # by NSBundle.m to locate the main bundle.
+sys_proc_fs_exe=no;
 if test $sys_proc_fs = yes; then
   AC_MSG_CHECKING(link to executable in /proc)
   if test -L /proc/self/exe; then
-    AC_DEFINE(HAVE_PROC_FS_EXE_LINK)
+    sys_proc_fs_exe=yes;
     AC_MSG_RESULT(yes)
   else
     AC_MSG_RESULT(no)
   fi
 fi
 
+#--------------------------------------------------------------------
+# Check if short and int values need to be word aligned
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(short/int needs to be word aligned)
+AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
+	NEED_WORD_ALIGNMENT=0,
+	NEED_WORD_ALIGNMENT=1,
+	NEED_WORD_ALIGNMENT=1)
+AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT)
+if test $NEED_WORD_ALIGNMENT = 1; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
 
 #--------------------------------------------------------------------
 # Tools for making a DLL.
@@ -736,6 +751,9 @@ else
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1
+  fi
+  if test $sys_proc_fs_exe = yes; then
+    AC_DEFINE(HAVE_PROC_FS_EXE_LINK)
   fi
 fi
 AC_SUBST(GS_FAKE_MAIN)

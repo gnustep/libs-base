@@ -4166,20 +4166,52 @@ fi
 # Linux (and others?) /proc contains a symlink to the executable
 # file from which the process loaded its code.  This can be used
 # by NSBundle.m to locate the main bundle.
+sys_proc_fs_exe=no;
 if test $sys_proc_fs = yes; then
   echo $ac_n "checking link to executable in /proc""... $ac_c" 1>&6
-echo "configure:4172: checking link to executable in /proc" >&5
+echo "configure:4173: checking link to executable in /proc" >&5
   if test -L /proc/self/exe; then
-    cat >> confdefs.h <<\EOF
-#define HAVE_PROC_FS_EXE_LINK 1
-EOF
-
+    sys_proc_fs_exe=yes;
     echo "$ac_t""yes" 1>&6
   else
     echo "$ac_t""no" 1>&6
   fi
 fi
 
+#--------------------------------------------------------------------
+# Check if short and int values need to be word aligned
+#--------------------------------------------------------------------
+echo $ac_n "checking short/int need to be word aligned""... $ac_c" 1>&6
+echo "configure:4186: checking short/int need to be word aligned" >&5
+if test "$cross_compiling" = yes; then
+  NEED_WORD_ALIGNMENT=1
+else
+  cat > conftest.$ac_ext <<EOF
+#line 4191 "configure"
+#include "confdefs.h"
+#include "$srcdir/config/config.align.c"
+EOF
+if { (eval echo configure:4195: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+then
+  NEED_WORD_ALIGNMENT=0
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -fr conftest*
+  NEED_WORD_ALIGNMENT=1
+fi
+rm -fr conftest*
+fi
+
+cat >> confdefs.h <<EOF
+#define NEED_WORD_ALIGNMENT $NEED_WORD_ALIGNMENT
+EOF
+
+if test $NEED_WORD_ALIGNMENT = 1; then
+  echo "$ac_t""yes" 1>&6
+else
+  echo "$ac_t""no" 1>&6
+fi
 
 #--------------------------------------------------------------------
 # Tools for making a DLL.
@@ -4256,6 +4288,12 @@ else
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1
+  fi
+  if test $sys_proc_fs_exe = yes; then
+    cat >> confdefs.h <<\EOF
+#define HAVE_PROC_FS_EXE_LINK 1
+EOF
+
   fi
 fi
 

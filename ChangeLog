@@ -1,3 +1,13 @@
+2000-05-02  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Add check for word alignment. Also don't define
+	HAVE_SYS_PROC_EXE on systems that need fake main.
+	* Headers/gnustep/base/config.h.in: Add define if word-align needed.
+	* Source/NSData.m: 
+	([NSDataStatic -deserializeTypeTag:andCrossRef:atCursor:]): Use
+	memcpy if word alignment needed.
+	([NSMutableDataMalloc -serializeTypeTag:andCrossRef:]): Likewise.
+
 2000-04-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: ([+defaultConnection]) create receive port.
