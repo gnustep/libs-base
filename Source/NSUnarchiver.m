@@ -395,14 +395,8 @@ static Class NSDataMallocClass;
   if (clsMap)
     {
       NSZone	*z = clsMap->zone;
-      unsigned	i;
 
       GSIArrayClear(clsMap);
-      i = GSIArrayCount(objMap);
-      while (i-- > 0)
-	{
-	  RELEASE(GSIArrayItemAtIndex(objMap, i).obj);
-	}
       GSIArrayClear(objMap);
       GSIArrayClear(ptrMap);
       NSZoneFree(z, (void*)clsMap);
@@ -410,17 +404,10 @@ static Class NSDataMallocClass;
   [super dealloc];
 }
 
-- (id) init
-{
-  self = [self initForReadingWithData: nil];
-  return self;
-}
-
 - (id) initForReadingWithData: (NSData*)anObject
 {
   if (anObject == nil)
     {
-      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil data passed to initForReadingWithData:"];
     }
@@ -607,25 +594,19 @@ static Class NSDataMallocClass;
 				  format: @"decoded nil class"];
 		    }
 		  obj = [c allocWithZone: zone];
-		  /*
-		   * The objMap array does not retain its contents directly,
-		   * so we perform explicit retain/release as we add objects
-		   * to and remove objects from the array.
-		   */
-		  RETAIN(obj);
 		  GSIArrayAddItem(objMap, (GSIArrayItem)obj);
 
 		  rep = [obj initWithCoder: self];
 		  if (rep != obj)
 		    {
-		      ASSIGN(obj, rep);
+		      obj = rep;
 		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
 		    }
 
 		  rep = [obj awakeAfterUsingCoder: self];
 		  if (rep != obj)
 		    {
-		      ASSIGN(obj, rep);
+		      obj = rep;
 		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
 		    }
 		}
@@ -1180,16 +1161,11 @@ static Class NSDataMallocClass;
 
   if (replacement == anObject)
     return;
-  i = GSIArrayCount(objMap);
-  while (i-- > 0)
+  for (i = GSIArrayCount(objMap) - 1; i > 0; i--)
     {
-      id	old = GSIArrayItemAtIndex(objMap, i).obj;
-
-      if (old == anObject)
+      if (GSIArrayItemAtIndex(objMap, i).obj == anObject)
 	{
 	  GSIArraySetItemAtIndex(objMap, (GSIArrayItem)replacement, i);
-	  RETAIN(replacement);
-	  RELEASE(old);
 	  return;
 	}
     }
@@ -1279,7 +1255,7 @@ static Class NSDataMallocClass;
 
       objMap = &clsMap[1];
       GSIArrayInitWithZoneAndCapacity(objMap, zone, sizeO);
-      GSIArrayAddItem(objMap, (GSIArrayItem)(void*)nil);
+      GSIArrayAddItem(objMap, (GSIArrayItem)(void*)0);
 
       ptrMap = &clsMap[2];
       GSIArrayInitWithZoneAndCapacity(ptrMap, zone, sizeP);
