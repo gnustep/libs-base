@@ -2588,25 +2588,33 @@ static NSCharacterSet	*tokenSet = nil;
   BOOL		conv = YES;
 
   /*
-   * Capitalise the header name.
+   * Capitalise the header name.  However, the version header is a special
+   * case - it is defined as being literally 'MIME-Version'
    */
   memcpy(buf, [d bytes], l);
-  while (i < l)
+  if (l == 12 && memcmp(buf, "MIME-Version", 12) == 0)
     {
-      if (conv == YES)
-        {
-	  if (islower(buf[i]))
+      memcpy(buf, "MIME-Version", 12);
+    }
+  else
+    {
+      while (i < l)
+	{
+	  if (conv == YES)
 	    {
-	      buf[i] = toupper(buf[i]);
+	      if (islower(buf[i]))
+		{
+		  buf[i] = toupper(buf[i]);
+		}
 	    }
-	}
-      if (buf[i++] == '-')
-        {
-	  conv = YES;
-	}
-      else
-        {
-	  conv = NO;
+	  if (buf[i++] == '-')
+	    {
+	      conv = YES;
+	    }
+	  else
+	    {
+	      conv = NO;
+	    }
 	}
     }
   [md appendBytes: buf length: l];
@@ -3532,6 +3540,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*enc;
   GSMimeHeader	*hdr;
   NSData	*boundary;
+  BOOL		is7bit = YES;
 
   if (isOuter == YES)
     {
@@ -3592,11 +3601,26 @@ static NSCharacterSet	*tokenSet = nil;
       NSString	*v;
 
       enc = [self headerNamed: @"content-transfer-encoding"];
-      if (enc != nil)
+      if (enc == nil)
+        {
+	  enc = [GSMimeHeader alloc];
+	  enc = [enc initWithName: @"content-transfer-encoding"
+			    value: @"7bit"
+		       parameters: nil];
+	  [self addHeader: enc];
+	  RELEASE(enc);
+	}
+      else
 	{
-	  [NSException raise: NSInternalInconsistencyException
-	    format: @"[%@ -%@:] content transfer encoding not supported",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	  v = [enc value];
+	  if ((is7bit = [v isEqual: @"7bit"]) == NO
+	    && [v isEqual: @"8bit"] == NO && [v isEqual: @"binary"] == NO)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"[%@ -%@:] %@ illegal for multipart",
+		NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+		v];
+	    }
 	}
       v = [type parameterForKey: @"boundary"];
       if (v == nil)
@@ -3675,9 +3699,24 @@ static NSCharacterSet	*tokenSet = nil;
       for (i = 0; i < count; i++)
 	{
 	  CREATE_AUTORELEASE_POOL(arp);
-	  NSMutableData	*part = [[content objectAtIndex: i] rawMimeData: NO];
+	  GSMimeDocument	*part = [content objectAtIndex: i];
+	  NSMutableData		*rawPart = [part rawMimeData: NO];
 
-	  [md appendData: part];
+	  if (is7bit == YES)
+	    {
+	      NSString	*v;
+
+	      enc = [part headerNamed: @"content-transport-encoding"];
+	      v = [enc value];
+	      if (v != nil && ([v isEqual: @"8bit"] || [v isEqual: @"binary"]))
+	        {
+		  [NSException raise: NSInternalInconsistencyException
+		    format: @"[%@ -%@:] bad part encoding for 7bit container",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd)];
+		}
+	    }
+	  [md appendData: rawPart];
 	  [md appendBytes: "\r\n--" length: 4];
 	  [md appendData: boundary];
 	  [md appendBytes: "\r\n" length: 2];
