@@ -1,3 +1,8 @@
+2001-02-07  Jonathan Gapen  <jagapen@home.com>
+
+	* Source/NSFileManager.m: Make disk space report work on FreeBSD.
+	On all Unix platforms, report disk space available to non-root users.
+
 2001-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: merged in some more fixes by Kai.
