@@ -3923,7 +3923,9 @@ handle_printf_atsign (FILE *stream,
 
 @end
 
-
+/**
+ * This is the mutable form of the NSString class.
+ */
 @implementation NSMutableString
 
 + (id) allocWithZone: (NSZone*)z
@@ -4086,10 +4088,40 @@ handle_printf_atsign (FILE *stream,
 
 @end
 
-#ifndef NO_GNUSTEP
+
 
-@implementation NSString (GSTrimming)
+/**
+ * GNUstep specific (non-standard) additions to the NSString class.
+ * The methods in this category are not available in MacOS-X
+ */
+@implementation NSString (GNUstep)
 
+/**
+ * Returns a string formed by removing the suffix string from the
+ * receiver.  Raises an exception if the suffix is not present.
+ */
+- (NSString*) stringByRemovingSuffix: (NSString*)suffix
+{
+  NSCAssert2([self hasSuffix: suffix],
+    @"'%@' has not the suffix '%@'", self, suffix);
+  return [self substringToIndex: ([self length] - [suffix length])];
+}
+
+/**
+ * Returns a string formed by removing the prefix string from the
+ * receiver.  Raises an exception if the prefix is not present.
+ */
+- (NSString*) stringByRemovingPrefix: (NSString*)prefix
+{
+  NSCAssert2([self hasPrefix: prefix],
+    @"'%@' has not the prefix '%@'", self, prefix);
+  return [self substringFromIndex: [prefix length]];
+}
+
+/**
+ * Returns a string formed by removing leading white space from the
+ * receiver.
+ */
 - (NSString*) stringByTrimmingLeadSpaces
 {
   unsigned	length = [self length];
@@ -4112,6 +4144,10 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Returns a string formed by removing trailing white space from the
+ * receiver.
+ */
 - (NSString*) stringByTrimmingTailSpaces
 {
   unsigned	length = [self length];
@@ -4138,6 +4174,10 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Returns a string formed by removing both leading and trailing
+ * white space from the receiver.
+ */
 - (NSString*) stringByTrimmingSpaces
 {
   unsigned	length = [self length];
@@ -4177,80 +4217,6 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-@end
-
-@implementation NSMutableString (GSTrimming)
-
-- (void) trimLeadSpaces
-{
-  unsigned	length = [self length];
-
-  if (length > 0)
-    {
-      unsigned	start = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
-
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (start < length && isspace((*caiImp)(self, caiSel, start)))
-	{
-	  start++;
-	}
-      if (start > 0)
-	{
-	  [self deleteCharactersInRange: NSMakeRange(0, start)];
-	}
-    }
-}
-
-- (void) trimTailSpaces
-{
-  unsigned	length = [self length];
-
-  if (length > 0)
-    {
-      unsigned	end = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
-
-      caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (end > 0)
-	{
-	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
-	    {
-	      break;
-	    }
-	  end--;
-	}
-      if (end < length)
-	{
-	  [self deleteCharactersInRange: NSMakeRange(end, length - end)];
-	}
-    }
-}
-
-- (void) trimSpaces
-{
-  [self trimTailSpaces];
-  [self trimLeadSpaces];
-}
-
-@end
-
-@implementation NSString (GNUstep)
-
-- (NSString*) stringWithoutSuffix: (NSString*)_suffix
-{
-  NSCAssert2([self hasSuffix: _suffix],
-    @"'%@' has not the suffix '%@'",self,_suffix);
-  return [self substringToIndex: ([self length] - [_suffix length])];
-}
-
-- (NSString*) stringWithoutPrefix: (NSString*)_prefix
-{
-  NSCAssert2([self hasPrefix: _prefix],
-    @"'%@' has not the prefix '%@'",self,_prefix);
-  return [self substringFromIndex: [_prefix length]];
-}
-
 /**
  * Returns a string in which any (and all) occurrances of
  * replace in the receiver have been replaced with by.
@@ -4279,6 +4245,10 @@ handle_printf_atsign (FILE *stream,
 
 @end
 
+/**
+ * GNUstep specific (non-standard) additions to the NSMutableString class.
+ * The methods in this category are not available in MacOS-X
+ */
 @implementation NSMutableString (GNUstep)
 @class	NSImmutableString;
 @class	GSImmutableString;
@@ -4303,25 +4273,25 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * Removes the specified suffix from the string.  Raises an exception
- * if the prefix is not present.
+ * if the suffix is not present.
  */
-- (void) removeSuffix: (NSString*)_suffix
+- (void) removeSuffix: (NSString*)suffix
 {
-  NSCAssert2([self hasSuffix: _suffix],
-    @"'%@' has not the suffix '%@'",self,_suffix);
+  NSCAssert2([self hasSuffix: suffix],
+    @"'%@' has not the suffix '%@'", self, suffix);
   [self deleteCharactersInRange:
-    NSMakeRange([self length] - [_suffix length], [_suffix length])];
+    NSMakeRange([self length] - [suffix length], [suffix length])];
 }
 
 /**
- * Removes the specified prefx from the string.  Raises an exception
+ * Removes the specified prefix from the string.  Raises an exception
  * if the prefix is not present.
  */
-- (void) removePrefix: (NSString*)_prefix;
+- (void) removePrefix: (NSString*)prefix;
 {
-  NSCAssert2([self hasPrefix: _prefix],
-    @"'%@' has not the prefix '%@'",self,_prefix);
-  [self deleteCharactersInRange: NSMakeRange(0, [_prefix length])];
+  NSCAssert2([self hasPrefix: prefix],
+    @"'%@' has not the prefix '%@'", self, prefix);
+  [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
 }
 
 /**
@@ -4353,6 +4323,68 @@ handle_printf_atsign (FILE *stream,
       while (range.length > 0);
     }
 }
+
+/**
+ * Removes all leading white space from the receiver.
+ */
+- (void) trimLeadSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	start = 0;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+	{
+	  start++;
+	}
+      if (start > 0)
+	{
+	  [self deleteCharactersInRange: NSMakeRange(0, start)];
+	}
+    }
+}
+
+/**
+ * Removes all trailing white space from the receiver.
+ */
+- (void) trimTailSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	end = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (end > 0)
+	{
+	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
+	    {
+	      break;
+	    }
+	  end--;
+	}
+      if (end < length)
+	{
+	  [self deleteCharactersInRange: NSMakeRange(end, length - end)];
+	}
+    }
+}
+
+/**
+ * Removes all leading or trailing white space from the receiver.
+ */
+- (void) trimSpaces
+{
+  [self trimTailSpaces];
+  [self trimLeadSpaces];
+}
+
 @end
 
 
@@ -5369,4 +5401,4 @@ GSPropertyListFromStringsFormat(NSString *string)
     }
   return AUTORELEASE(dict);
 }
-#endif /* NO_GNUSTEP */
+
