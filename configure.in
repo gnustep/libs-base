@@ -367,7 +367,7 @@ AC_CHECK_FUNCS(inet_aton)
 #--------------------------------------------------------------------
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(killpg, setpgrp, setpgid)
+AC_CHECK_FUNCS(killpg setpgrp setpgid)
 
 #--------------------------------------------------------------------
 # This function needed by NSThread.m
