@@ -1,5 +1,10 @@
 2001-02-22  Nicola Pero  <n.pero@mi.flashnet.it>
 
+	* Headers/gnustep/base/NSBundle.h: Added three new localization
+	macros: _(), __() and NSLocalizedStaticString ().
+	
+2001-02-22  Nicola Pero  <n.pero@mi.flashnet.it>
+
 	* Resources/Languages/Italian: New file.
 	* Resources/GNUmakefile (LANGUAGES): Added Italian.
 	
