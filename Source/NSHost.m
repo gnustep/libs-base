@@ -32,7 +32,7 @@
 #include <netdb.h>
 /* #include <libc.h> */
 
-#ifdef __WIN32__
+#if	defined(__WIN32__) && !defined(__CYGWIN__)
 #include <Windows32/Sockets.h>
 #else
 #include <unistd.h>

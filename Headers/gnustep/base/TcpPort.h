@@ -27,7 +27,7 @@
 #include <base/preface.h>
 #include <base/Port.h>
 #include <base/RunLoop.h>
-#ifndef __WIN32__
+#if	!defined(__WIN32__) || defined(__CYGWIN__)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>

@@ -36,7 +36,7 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
 
-#if	defined(__WIN32__)
+#if	defined(__WIN32__) && !defined(__CYGWIN__)
 #include <Windows32/Sockets.h>
 #else
 #include <time.h>
@@ -67,6 +67,14 @@
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
+#endif
+
+#ifndef	O_BINARY
+#ifdef	_O_BINARY
+#define	O_BINARY	_O_BINARY
+#else
+#define	O_BINARY	0
+#endif
 #endif
 
 // Maximum data in single I/O operation
@@ -378,7 +386,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initForReadingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_RDONLY);
+  int	d = open([path fileSystemRepresentation], O_RDONLY|O_BINARY);
 
   if (d < 0)
     {
@@ -396,7 +404,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initForWritingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_WRONLY);
+  int	d = open([path fileSystemRepresentation], O_WRONLY|O_BINARY);
 
   if (d < 0)
     {
@@ -414,7 +422,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initForUpdatingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_RDWR);
+  int	d = open([path fileSystemRepresentation], O_RDWR|O_BINARY);
 
   if (d < 0)
     {
@@ -483,7 +491,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initWithNullDevice
 {
-  self = [self initWithFileDescriptor: open("/dev/null", O_RDWR)
+  self = [self initWithFileDescriptor: open("/dev/null", O_RDWR|O_BINARY)
 		       closeOnDealloc: YES];
   if (self) {
     isNullDevice = YES;
