@@ -1,5 +1,13 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* src/NSBundle.m ([NSBundle
+ 	+pathForResource:ofType:inDirectory:]): Change it from an instance
+ 	method to a class method, in order to conform to spec.
+	* src/include/NSBundle.h ([NSBundle
+ 	+pathForResource:ofType:inDirectory:]): Likewise.
+	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
+ 	Revert last change.
+
 	* src/Makefile.in (GNUSTEP_HEADERS): Added include/NSHost.h.
 	(GNUSTEP_MFILES): Added NSHost.m.
 
