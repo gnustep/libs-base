@@ -790,7 +790,7 @@ static NSString	*indentStrings[] = {
 #define STRIDE_FACTOR 3
 	  unsigned	c,d, stride;
 	  BOOL		found;
-	  NSComparisonResult	(*comp)(id, SEL, id);
+	  NSComparisonResult	(*comp)(id, SEL, id) = 0;
 	  int		count = numKeys;
 #ifdef	GSWARN
 	  BOOL		badComparison = NO;

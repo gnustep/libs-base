@@ -580,7 +580,7 @@ typedef enum {
   NSRunLoop		*loop = [NSRunLoop currentRunLoop];
   struct in_addr	singleServer;
   struct in_addr	*svrs = &singleServer;
-  unsigned		numSvrs;
+  unsigned		numSvrs = 1;
   unsigned		count;
   unsigned		portNum = 0;
   unsigned		len;
@@ -616,7 +616,6 @@ typedef enum {
       /*
        *	Query a single nameserver - on the local host.
        */
-      numSvrs = 1;
 #ifndef HAVE_INET_ATON
       svrs->s_addr = inet_addr("127.0.0.1");
 #else
@@ -938,7 +937,7 @@ typedef enum {
 - (void) removePortForName: (NSString*)name
 {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
-  GSPortCom	*com;
+  GSPortCom	*com = nil;
   unsigned	len;
   NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
 

@@ -319,6 +319,7 @@ static Class NSDataMallocClass;
     }
   NS_HANDLER
     {
+      obj = nil;
       RELEASE(unarchiver);
       [localException raise];
     }

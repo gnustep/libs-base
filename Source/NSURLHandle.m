@@ -492,6 +492,7 @@ static NSLock			*fileLock = nil;
 	}
       NS_HANDLER
 	{
+	  obj = nil;
 	  [fileLock unlock];
 	  [localException raise];
 	}

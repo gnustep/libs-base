@@ -2577,23 +2577,21 @@ transmute(ivars self, NSString *aString)
 		       withString: (NSString*)aString
 {
   int		offset;
-  unsigned	length;
+  unsigned	length = 0;
 
   GS_RANGE_CHECK(aRange, _count);
-  if (aString == nil)
+  if (aString != nil)
     {
-      length = 0;
+      if (GSObjCIsInstance(aString) == NO)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"replace characters with non-string"];
+	}
+      else
+	{
+	  length = (aString == nil) ? 0 : [aString length];
+	}
     }
-  else if (GSObjCIsInstance(aString) == NO)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"replace characters with non-string"];
-    }
-  else
-    {
-      length = (aString == nil) ? 0 : [aString length];
-    }
-
   offset = length - aRange.length;
 
   if (offset < 0)

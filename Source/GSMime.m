@@ -1755,7 +1755,7 @@ parseCharacterSet(NSString *token)
 
 - (BOOL) _unfoldHeader
 {
-  char	c;
+  char	c = 0;
   BOOL	unwrappingComplete = NO;
 
   lineStart = lineEnd;

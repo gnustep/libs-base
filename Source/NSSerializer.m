@@ -159,7 +159,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Class (%@) in property list - expected instance",
-				[c description]];
+				[object description]];
     }
   c = GSObjCClass(object);
   if (GSObjCIsKindOf(c, CStringClass)

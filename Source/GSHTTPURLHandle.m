@@ -331,7 +331,7 @@ static NSLock			*urlLock = nil;
 	name = GSFileHandleConnectCompletionNotification;
       else if (connectionState == writing)
 	name = GSFileHandleWriteCompletionNotification;
-      else if (connectionState == reading)
+      else
 	name = NSFileHandleReadCompletionNotification;
 
       [nc removeObserver: self name: name object: sock];
