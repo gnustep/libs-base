@@ -47,6 +47,9 @@ typedef double NSTimeInterval;
 
 + (id) date;
 + (id) dateWithString: (NSString*)description;
++ (id) dateWithNaturalLanguageString: (NSString *)string;
++ (id) dateWithNaturalLanguageString: (NSString *)string
+                              locale: (NSDictionary *)localeDictionary;
 + (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
 + (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 + (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
@@ -69,7 +72,8 @@ typedef double NSTimeInterval;
 
 - (NSString*) description;
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
-				   timeZone: (NSTimeZone*)aTimeZone;
+				   timeZone: (NSTimeZone*)aTimeZone
+				     locale: (NSDictionary *)localeDictionary;
 - (NSString *) descriptionWithLocale: (NSDictionary *)locale;
 
 // Adding and getting intervals
@@ -79,12 +83,13 @@ typedef double NSTimeInterval;
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate;
 - (NSTimeInterval) timeIntervalSinceNow;
 - (NSTimeInterval) timeIntervalSinceReferenceDate;
+- (NSTimeInterval) timeIntervalSinceReferenceDate;
 
 // Comparing dates
 
 - (NSComparisonResult) compare: (NSDate*)otherDate;
 - (NSDate*) earlierDate: (NSDate*)otherDate;
-- (BOOL) isEqual: (id)other;
+- (BOOL) isEqualToDate: (NSDate*)otherDate;
 - (NSDate*) laterDate: (NSDate*)otherDate;
 
 @end

@@ -1,7 +1,7 @@
 /* Interface for <Class> for GNUStep
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
-   Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
+   Written by:   Georg Tuparev, EMBL & Academia Naturalis, 
                 Heidelberg, Germany
                 Tuparev@EMBL-Heidelberg.de
    
@@ -62,7 +62,7 @@ extern NSString *NSCurrencyString;
 extern NSString *NSDecimalDigits;
 extern NSString *NSAMPMDesignation;
 
-/* NeXTSTEP 4.0 includes some more language-dependent constarnts:
+/* NeXTSTEP 4.0 includes some more language-dependent constants: 
 extern NSString *NSHourNameDesignations;
 extern NSString *NSYearMonthWeekDesignations;
 extern NSString *NSEarlierTimeDesignations;
@@ -82,100 +82,101 @@ extern NSString *NSHomeDirectory(void);
 extern NSString *NSHomeDirectoryForUser(NSString * userName);
 
 
-/* General implementation notes:
+/* General implementation notes: 
 
    OpenStep spec currently is either complete nor consitent. Therefor
    we had to take several implementation decisions which make vary in
    different OpenStep implementations.
   
-  - We add a new instance method initWithFile: as a designated 
+  - We add a new instance method initWithFile:  as a designated 
     initialization method because it allows to create user defaults
     database from a "default user" and also it will work for various 
     non-posix implementations. 
 
   - We add two new class methods for getting and setting a list of 
-    user languages (userLanguages and setUserLanguages:). They are 
+    user languages (userLanguages and setUserLanguages: ). They are 
     somehow equivalent to the NS3.x Application's systemLanguages 
     method.
 
   - Definition of argument (command line parameters)
   	(-GSxxxx || --GSxxx) [value]
 	
-    Note: As far as I know, there is nothing like home directory for 
+    Note:  As far as I know, there is nothing like home directory for 
     the M$ hell. God help the Win95/WinNT users of NSUserDefaults ;-)
   
-  To Do:
-  	- Add writeToFile: instance method;
+  To Do: 
+  	- Add writeToFile:  instance method;
 	- implement the description method;
 	- test for UNIX  (write test app);
 	- ask somebody to test it for M$;
 	- polish & optimize;
 	- when tested, fix NSBundle (the system languages stuff);
-	- write docs :-(
+	- write docs : -(
 	*/
 
-@interface NSUserDefaults: NSObject
+@interface NSUserDefaults:  NSObject
 {
 @private
-   NSMutableArray      *searchList;    // Current search list;
-   NSMutableDictionary *persDomains;   // Contains persistent defaults info;
-   NSMutableDictionary *tempDomains;   // Contains volatile defaults info;
-   NSMutableArray      *changedDomains; /* ..after first time that persistent 
-					   user defaults are changed */
-   NSMutableString     *defaultsDatabase;
-   NSMutableString     *defaultsDatabaseLockName;
-   NSDistributedLock   *defaultsDatabaseLock;
-   BOOL                tickingTimer;   // for synchronization
+  NSMutableArray	*searchList;    // Current search list;
+  NSMutableDictionary	*persDomains;   // Contains persistent defaults info;
+  NSMutableDictionary	*tempDomains;   // Contains volatile defaults info;
+  NSMutableArray	*changedDomains; /* ..after first time that persistent 
+					    user defaults are changed */
+  NSDictionary		*dictionaryRep;	// Cached dictionary representation
+  NSMutableString	*defaultsDatabase;
+  NSMutableString	*defaultsDatabaseLockName;
+  NSDistributedLock	*defaultsDatabaseLock;
+  BOOL			tickingTimer;   // for synchronization
 }
 
 /* Getting the Shared Instance */
-+ (NSUserDefaults *)standardUserDefaults;
-+ (NSArray *)userLanguages;
-+ (void)setUserLanguages:(NSArray *)languages;
++ (NSUserDefaults*) standardUserDefaults;
++ (NSArray*) userLanguages;
++ (void) setUserLanguages: (NSArray*)languages;
 
 /* Initializing the User Defaults */
-- (id)init;
-- (id)initWithUser:(NSString *)userName;
-- (id)initWithContentsOfFile:(NSString *)path;     // This is a new method
+- (id) init;
+- (id) initWithUser: (NSString*)userName;
+- (id) initWithContentsOfFile: (NSString*)path;     // This is a new method
 
 /* Getting and Setting a Default */
-- (NSArray *)arrayForKey:(NSString *)defaultName;
-- (BOOL)boolForKey:(NSString *)defaultName;
-- (NSData *)dataForKey:(NSString *)defaultName;
-- (NSDictionary *)dictionaryForKey:(NSString *)defaultName;
-- (float)floatForKey:(NSString *)defaultName;
-- (int)integerForKey:(NSString *)defaultName;
-- (id)objectForKey:(NSString *)defaultName;
-- (void)removeObjectForKey:(NSString *)defaultName;
-- (void)setBool:(BOOL)value forKey:(NSString *)defaultName;
-- (void)setFloat:(float)value forKey:(NSString *)defaultName;
-- (void)setInteger:(int)value forKey:(NSString *)defaultName;
-- (void)setObject:(id)value forKey:(NSString *)defaultName;
-- (NSArray *)stringArrayForKey:(NSString *)defaultName;
-- (NSString *)stringForKey:(NSString *)defaultName;
+- (NSArray*) arrayForKey: (NSString*)defaultName;
+- (BOOL) boolForKey: (NSString*)defaultName;
+- (NSData*) dataForKey: (NSString*)defaultName;
+- (NSDictionary*) dictionaryForKey: (NSString*)defaultName;
+- (float) floatForKey: (NSString*)defaultName;
+- (int) integerForKey: (NSString*)defaultName;
+- (id) objectForKey: (NSString*)defaultName;
+- (void) removeObjectForKey: (NSString*)defaultName;
+- (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
+- (void) setFloat: (float)value forKey: (NSString*)defaultName;
+- (void) setInteger: (int)value forKey: (NSString*)defaultName;
+- (void) setObject: (id)value forKey: (NSString*)defaultName;
+- (NSArray*) stringArrayForKey: (NSString*)defaultName;
+- (NSString*) stringForKey: (NSString*)defaultName;
 
 /* Returning the Search List */
-- (NSMutableArray *)searchList;
-- (void)setSearchList:(NSArray*)newList;
+- (NSMutableArray*) searchList;
+- (void)setSearchList: (NSArray*)newList;
 
 /* Maintaining Persistent Domains */
-- (NSDictionary *)persistentDomainForName:(NSString *)domainName;
-- (NSArray *)persistentDomainNames;
-- (void)removePersistentDomainForName:(NSString *)domainName;
-- (void)setPersistentDomain:(NSDictionary *)domain 
-        forName:(NSString *)domainName;
-- (BOOL)synchronize;
+- (NSDictionary*) persistentDomainForName: (NSString*)domainName;
+- (NSArray*) persistentDomainNames;
+- (void) removePersistentDomainForName: (NSString*)domainName;
+- (void) setPersistentDomain: (NSDictionary*)domain 
+        forName: (NSString*)domainName;
+- (BOOL) synchronize;
 
 /* Maintaining Volatile Domains */
-- (void)removeVolatileDomainForName:(NSString *)domainName;
-- (void)setVolatileDomain:(NSDictionary *)domain 
-        forName:(NSString *)domainName;
-- (NSDictionary *)volatileDomainForName:(NSString *)domainName;
-- (NSArray *)volatileDomainNames;
+- (void) removeVolatileDomainForName: (NSString*)domainName;
+- (void) setVolatileDomain: (NSDictionary*)domain 
+        forName: (NSString*)domainName;
+- (NSDictionary*) volatileDomainForName: (NSString*)domainName;
+- (NSArray*) volatileDomainNames;
 
 /* Making Advanced Use of Defaults */
-- (NSDictionary *)dictionaryRepresentation;
-- (void)registerDefaults:(NSDictionary *)dictionary;
+- (NSDictionary*) dictionaryRepresentation;
+- (void) registerDefaults: (NSDictionary*)dictionary;
 @end
 
 #endif /* __NSUserDefaults_h_OBJECTS_INCLUDE */

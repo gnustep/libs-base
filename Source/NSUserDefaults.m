@@ -267,6 +267,7 @@ static NSMutableString   *processName = nil;
   [persDomains release];
   [tempDomains release];
   [changedDomains release];
+  [dictionaryRep release];
   [super dealloc];
 }
 
@@ -467,6 +468,7 @@ static NSMutableString   *processName = nil;
 
 - (void)setSearchList:(NSArray*)newList
 {
+  DESTROY(dictionaryRep);
   [searchList release];
   searchList = [newList mutableCopy];
 }
@@ -528,6 +530,8 @@ static NSMutableString   *processName = nil;
     else
       return NO;
 	
+  DESTROY(dictionaryRep);
+
   // Read the persistent data from the stored database
   if ([[NSFileManager defaultManager] fileExistsAtPath: defaultsDatabase])
     newDict = [[NSMutableDictionary allocWithZone:[self zone]]
@@ -583,8 +587,8 @@ static NSMutableString   *processName = nil;
  *************************************************************************/
 - (void)removeVolatileDomainForName:(NSString *)domainName
 {
+  DESTROY(dictionaryRep);
   [tempDomains removeObjectForKey:domainName];
-  return;
 }
 
 - (void)setVolatileDomain:(NSDictionary *)domain 
@@ -599,6 +603,7 @@ static NSMutableString   *processName = nil;
 		   domainName];
       return;
     }
+  DESTROY(dictionaryRep);
   [tempDomains setObject:domain forKey:domainName];
   return;
 }
@@ -616,28 +621,41 @@ static NSMutableString   *processName = nil;
 /*************************************************************************
  *** Making Advanced Use of Defaults
  *************************************************************************/
-- (NSDictionary *)dictionaryRepresentation
+- (NSDictionary *) dictionaryRepresentation
 {
-  NSEnumerator *enumerator = [searchList reverseObjectEnumerator];
-  NSMutableDictionary *dictRep =
-    [NSMutableDictionary dictionaryWithCapacity:10];
-  id obj;
-  id dict;
-	
-  while ((obj = [enumerator nextObject]))
+  if (dictionaryRep == nil)
     {
-      if ( (dict = [persDomains objectForKey:obj])
-	   || (dict = [tempDomains objectForKey:obj]) )
-	[dictRep addEntriesFromDictionary:dict];
+      NSEnumerator		*enumerator;
+      NSMutableDictionary	*dictRep;
+      id obj;
+      id dict;
+	
+      enumerator = [searchList reverseObjectEnumerator];
+      dictRep = [NSMutableDictionary allocWithZone: NSDefaultMallocZone()];
+      dictRep = [dictRep initWithCapacity: 512];
+      while ((obj = [enumerator nextObject]))
+	{
+	  if ( (dict = [persDomains objectForKey: obj])
+	       || (dict = [tempDomains objectForKey: obj]) )
+	    [dictRep addEntriesFromDictionary: dict];
+	}
+      dictionaryRep = [dictRep copy];
+      [dictRep release];
     }
-  // $$$ Should we return NSDictionary here ?
-  return dictRep;
+  return dictionaryRep;
 }
 
-- (void)registerDefaults:(NSDictionary *)dictionary
+- (void) registerDefaults: (NSDictionary*)newVals
 {
-  [tempDomains setObject:dictionary forKey:NSRegistrationDomain];
-  return;
+  NSMutableDictionary	*regDefs;
+
+  regDefs = [tempDomains objectForKey: NSRegistrationDomain];
+  if (regDefs == nil)
+    {
+      regDefs = [NSMutableDictionary dictionaryWithCapacity: [newVals count]];
+    }
+  DESTROY(dictionaryRep);
+  [regDefs addEntriesFromDictionary: newVals];
 }
 
 /*************************************************************************
@@ -721,7 +739,8 @@ static NSMutableString   *processName = nil;
 {
   NSEnumerator *enumerator = nil;
   id obj;
-	
+
+  DESTROY(dictionaryRep);
   if (!changedDomains)
     {
       changedDomains = [[NSMutableArray arrayWithCapacity:5] retain];

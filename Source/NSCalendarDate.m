@@ -25,9 +25,11 @@
 #include <math.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSUserDefaults.h>
 
 #ifndef __WIN32__
 #include <time.h>
@@ -49,49 +51,6 @@
 //    + (year - 1)/400     // ...plus prior years divisible by 400
 
 #define GREGORIAN_REFERENCE 730486
-
-//
-// Short and long month names
-// TODO: These should be localized for the language.
-//
-static id short_month[12] = {@"Jan",
-			     @"Feb",
-			     @"Mar",
-			     @"Apr",
-			     @"May",
-			     @"Jun",
-			     @"Jul",
-			     @"Aug",
-			     @"Sep",
-			     @"Oct",
-			     @"Nov",
-			     @"Dec"};
-static id long_month[12] = {@"January",
-			    @"February",
-			    @"March",
-			    @"April",
-			    @"May",
-			    @"June",
-			    @"July",
-			    @"August",
-			    @"September",
-			    @"October",
-			    @"November",
-			    @"December"};
-static id short_day[7] = {@"Sun",
-			  @"Mon",
-			  @"Tue",
-			  @"Wed",
-			  @"Thu",
-			  @"Fri",
-			  @"Sat"};
-static id long_day[7] = {@"Sunday",
-			 @"Monday",
-			 @"Tuesday",
-			 @"Wednesday",
-			 @"Thursday",
-			 @"Friday",
-			 @"Saturday"};
 
 @interface NSCalendarDate (Private)
 
@@ -192,7 +151,7 @@ static id long_day[7] = {@"Sunday",
 //
 - (id)initWithString:(NSString *)description
       calendarFormat:(NSString *)format
-	      locale:(NSDictionary *)dictionary
+	      locale:(NSDictionary *)locale
 {
   const char *d = [description cString];
   const char *f = [format cString];
@@ -394,7 +353,6 @@ static id long_day[7] = {@"Sunday",
     yd += 1900;
 
   // Possibly convert month from string to decimal number
-  // +++ how do we take locale into account?
   if (mtag)
     {
       int i;
@@ -402,14 +360,18 @@ static id long_day[7] = {@"Sunday",
       
       if (fullm)
 	{
+	  NSArray	*names = [locale objectForKey: NSMonthNameArray];
+
 	  for (i = 0;i < 12; ++i)
-	    if ([long_month[i] isEqual: m] == YES)
+	    if ([[names objectAtIndex: i] isEqual: m] == YES)
 	      break;
 	}
       else
 	{
+	  NSArray	*names = [locale objectForKey: NSShortMonthNameArray];
+
 	  for (i = 0;i < 12; ++i)
-	    if ([short_month[i] isEqual: m] == YES)
+	    if ([[names objectAtIndex: i] isEqual: m] == YES)
 	      break;
 	}
       md = i + 1;
@@ -762,8 +724,8 @@ static id long_day[7] = {@"Sunday",
 				     locale:(NSDictionary *)locale
 {
   char buf[1024];
-  const char *f = [format cString];
-  int lf = strlen(f);
+  const char *f;
+  int lf;
   BOOL mtag = NO, dtag = NO, ycent = NO;
   BOOL mname = NO, dname = NO;
   double s;
@@ -771,9 +733,17 @@ static id long_day[7] = {@"Sunday",
   int hd = 0, nhd;
   int i, j, k, z;
 
+  if (locale == nil)
+    locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  if (format == nil)
+    format = [locale objectForKey: NSTimeDateFormatString];
+
   // If the format is nil then return an empty string
   if (!format)
     return @"";
+
+  f = [format cString];
+  lf = strlen(f);
 
   [self getYear: &yd month: &md day: &dom hour: &hd minute: &mnd second: &sd];
   nhd = hd;
@@ -841,11 +811,16 @@ static id long_day[7] = {@"Sunday",
 	      ++i;
 	      if (mtag)
 		{
-		  // +++ Translate to locale character string
+		  NSArray	*months;
+		  NSString	*name;
+
 		  if (mname)
-		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [short_month[md-1] cString]));
+		    months = [locale objectForKey: NSShortMonthNameArray];
 		  else
-		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [long_month[md-1] cString]));
+		    months = [locale objectForKey: NSMonthNameArray];
+		  name = [months objectAtIndex: md-1];
+		  k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
+		      [name cString]));
 		}
 	      else
 		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", md));
@@ -887,19 +862,26 @@ static id long_day[7] = {@"Sunday",
 	    case 'A':
 	      dtag = YES;   // Day is character string
 	    case 'w':
-	      ++i;
-	      if (dow < 0) dow = [self dayOfWeek];
-	      if (dtag)
-		{
-		  // +++ Translate to locale character string
-		  if (dname)
-		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [short_day[dow] cString]));
-		  else
-		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [long_day[dow] cString]));
-		}
-	      else
-		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
-	      j += k;
+	      {
+		++i;
+		if (dow < 0) dow = [self dayOfWeek];
+		if (dtag)
+		  {
+		    NSArray	*days;
+		    NSString	*name;
+
+		    if (dname)
+		      days = [locale objectForKey: NSShortWeekDayNameArray];
+		    else
+		      days = [locale objectForKey: NSWeekDayNameArray];
+		    name = [days objectAtIndex: dow];
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
+			[name cString]));
+		  }
+		else
+		  k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
+		j += k;
+	      }
 	      break;
 
 	      // is it the hour
@@ -929,12 +911,18 @@ static id long_day[7] = {@"Sunday",
 
 	      // Is it the am/pm indicator
 	    case 'p':
-	      ++i;
-	      if (hd >= 12)
-		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "PM"));
-	      else
-		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "AM"));
-	      j += k;
+	      {
+		NSArray		*a = [locale objectForKey: NSAMPMDesignation];
+		NSString	*ampm;
+
+		++i;
+		if (hd >= 12)
+		  ampm = [a objectAtIndex: 1];
+		else
+		  ampm = [a objectAtIndex: 0];
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), [ampm cString]));
+		j += k;
+	      }
 	      break;
 
 	      // is it the zone name

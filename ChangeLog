@@ -1,3 +1,14 @@
+Mon Nov 30 10:20:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSTask: Minor bugfix -ignore SIGCHLD
+	* src/NSUserDefaults: bugfix in registerDefaults: was replacing rather
+	than addning defaults. Also changed to cache dictionaryRepresaentation.
+	* src/include/NSUserDefaults.h: Added ivar to cache dictionary
+	representation.
+	* src/include/NSDate.h: Updated header for a couple of fixes.
+	* src/NSDate.m: Initialise locale stuff.
+	* src/NSCalendarDate.m: Use locale stuff.
+
 Fri Nov 27 21:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSPortNameServer.m: ([_open]) changed to stop attempts to restart
