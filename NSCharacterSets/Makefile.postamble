@@ -80,4 +80,6 @@ after-uninstall::
 
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/NSCharacterSets
-	ln $(DIST_FILES) ../snap/NSCharacterSets
+	for file in $(DIST_FILES); do \
+	  ln $$file ../snap/NSCharacterSets/$$file ; \
+	done

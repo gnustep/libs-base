@@ -1,3 +1,9 @@
+Mon Oct 20 09:51:53 1997  Adam Fedor  <fedor@doc.com>
+
+	* Version: Update ftp sites.
+	* NSCharacterSets/Makefile.postamble (copy-dist): Correct copy.
+	* NSTimeZones/Makefile.postamble (copy-dist): Correct dist files.
+
 Sat Oct 18 12:27:56 1997  Scott Christley  <scottc@net-community.com>
 
 	* Get NSTimeZone to work in GNUstep directory structure.

@@ -79,6 +79,6 @@ after-uninstall::
 
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/NSTimeZones
-	for file in $(INSTALL_FILES); do \
+	for file in $(DIST_FILES); do \
 	   ln $$file ../snap/NSTimeZones/$$file ; \
 	done
