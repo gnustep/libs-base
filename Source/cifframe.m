@@ -100,7 +100,10 @@ cifframe_guess_struct_size(ffi_type *stype)
   i = 0;
   while (stype->elements[i])
     {
-      size += stype->elements[i]->size;
+      if (stype->elements[i]->elements)
+	size += cifframe_guess_struct_size(stype->elements[i]);
+      else
+	size += stype->elements[i]->size;
       
       if (size % align != 0)
 	{
@@ -173,7 +176,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
    * make room for it at the end of the cifframe so we
    * only need to do a single malloc.
    */
-  if (retval)
+  if (rtype && rtype->size > 0)
     {
       unsigned	full = size;
       unsigned	pos;
@@ -188,7 +191,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
       else
 	full += MAX(rtype->size, sizeof(smallret_t));
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
-      if (cframe)
+      if (cframe && retval)
 	{
 	  *retval = buf + pos;
 	}

@@ -95,7 +95,6 @@
 #include <Foundation/NSZone.h>
 #include <Foundation/NSLock.h>
 
-
 /*
  *	Try to get more memory - the normal process has failed.
  *	If we can't do anything, bomb out.
