@@ -1,3 +1,8 @@
+2003-02-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: GSObjCSetValue() correct to call
+	([unableToSetNilForKey:]) when it should.
+
 2003-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: ([_connect]) make the

@@ -45,6 +45,8 @@
 #include <gnustep/base/GSObjCRuntime.h>
 #include <string.h>
 
+@class	NSNull;
+
 /**  Deprecated ... use GSObjCFindVariable() */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,
@@ -981,6 +983,12 @@ void
 GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
   const char *type, unsigned size, int offset)
 {
+  static NSNull	*null = nil;
+
+  if (null == nil)
+    {
+      null = [NSNull new];
+    }
   if (sel != 0)
     {
       NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
@@ -996,6 +1004,10 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
     {
       [self handleTakeValue: val forUnboundKey: key];
     }
+  else if ((val == nil || val == null) && *type != _C_ID && *type != _C_CLASS)
+    {
+      [self unableToSetNilForKey: key];
+    }
   else
     {
       switch (*type)
@@ -1009,8 +1021,7 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 		{
 		  id *ptr = (id *)((char *)self + offset);
 
-		  [*ptr autorelease];
-		  *ptr = [v retain];
+		  ASSIGN(*ptr, v);
 		}
 	      else
 		{
