@@ -475,7 +475,7 @@ static const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 }
 
 /**
- * Mark this poll conext as having completed, so that if we are
+ * Mark this poll context as having completed, so that if we are
  * executing a re-entrant poll, the enclosing poll operations
  * know they can stop what they are doing because an inner
  * operation has done the job.
@@ -1357,10 +1357,14 @@ if (0) {
 	  item->_date = RETAIN(d);
 	}
       else
-	item->_date = RETAIN(theFuture);
+	{
+	  item->_date = RETAIN(theFuture);
+	}
     }
   else
-    item->_date = RETAIN(theFuture);
+    {
+      item->_date = RETAIN(theFuture);
+    }
   GSIArrayInsertSorted(watchers, (GSIArrayItem)item, aSort);
 }
 
@@ -2033,6 +2037,8 @@ if (0) {
 
 /**
  * Calls -acceptInputForMode:beforeDate: to run the loop once.<br />
+ * The specified date may be nil ... in which case the loop runs
+ * until the first input or timeout.<br />
  * If the limit dates for all of mode's input sources have passed,
  * returns NO without running the loop, otherwise returns YES.
  */
@@ -2040,9 +2046,9 @@ if (0) {
 {
   id	d;
 
-  NSAssert(mode && date, NSInvalidArgumentException);
+  NSAssert(mode != nil, NSInvalidArgumentException);
   /* If date has already passed, simply return. */
-  if ([date timeIntervalSinceNow] < 0)
+  if (date != nil && [date timeIntervalSinceNow] < 0)
     {
       NSDebugMLLog(@"NSRunLoop", @"run mode with date already past");
       /*
@@ -2075,7 +2081,10 @@ if (0) {
    * Retain the date in case the firing of a timer (or some other event)
    * releases it.
    */
-  d = [d earlierDate: date];
+  if (date != nil)
+    {
+      d = [d earlierDate: date];
+    }
   IF_NO_GC(RETAIN(d));
 
   /* Wait, listening to our input sources. */
