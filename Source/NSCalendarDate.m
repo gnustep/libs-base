@@ -1334,10 +1334,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 	      s = ([self dayOfCommonEra] - GREGORIAN_REFERENCE) * 86400.0;
 	      s -= (_seconds_since_ref
 		+ [_time_zone secondsFromGMTForDate: self]);
-	      s = abs(s);
+	      s = fabs(s);
 	      s -= floor(s);
 	      ++i;
-	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%03d", (int)s*1000));
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%03d", (int)(s*1000)));
 	      j += k;
 	      break;
 
