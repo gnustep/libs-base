@@ -38,35 +38,75 @@
 #include <limits.h>
 
 
-/* Reference count management */
+/*
+ *	Reference count and memory management
+ *
+ *	If REFCNT_LOCAL is defined, reference counts for object are stored
+ *	with the object, otherwise they are stored in a global map table
+ *	that has to be protected by mutexes in a multithreraded environment.
+ *	You therefore want REFCNT_LOCAL defined for best performance.
+ *
+ *	If CACHE_ZONE is defined, the zone in which an object has been
+ *	allocated is stored with the object - this makes lookup of the
+ *	correct zone to free memory very fast.
+ */
 
-/* Handles multi-threaded access.
-   ?? Doesn't handle exceptions. */
+#define	REFCNT_LOCAL	1
+/* #define	CACHE_ZONE	1	*/
+
+#if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
+
+/*
+ *	Define a structure to hold information that is held locally
+ *	(before the start) in each object.
+ */ 
+struct obj_layout {
+#if	defined(REFCNT_LOCAL)
+    unsigned	retained;
+#endif
+#if	defined(CACHE_ZONE)
+    NSZone	*zone;
+#endif
+};
+typedef	struct obj_layout *obj;
+
+#endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
+
+
+/*
+ *	Now do conditional compilation of reference count functions
+ *	depending on whether we are using local or global counting.
+ */
+#if	defined(REFCNT_LOCAL)
+void
+NSIncrementExtraRefCount(id anObject)
+{
+  ((obj)anObject)[-1].retained++;
+}
+
+#define	NSIncrementExtraRefCount(X) \
+	((obj)(X))[-1].retained++
+
+BOOL
+NSDecrementExtraRefCountWasZero(id anObject)
+{
+  if (((obj)anObject)[-1].retained-- == 0)
+    return YES;
+  else
+    return NO;
+}
+
+#define	NSDecrementExtraRefCountWasZero(X) \
+	(((obj)(X))[-1].retained-- == 0 ? YES : NO)
+
+#define	extraRefCount(X)	(((obj)(X))[-1].retained)
+
+#else
 
 /* The maptable of retain counts on objects */
 static o_map_t *retain_counts = NULL;
 /* The mutex lock to protect multi-threaded use of `retain_counts' */
 static objc_mutex_t retain_counts_gate = NULL;
-
-/* The mutex lock to protect RETAIN_COUNTS. */
-static objc_mutex_t retain_counts_gate;
-
-/* The Class responsible for handling autorelease's.  This does not
-   need mutex protection, since it is simply a pointer that gets read
-   and set. */
-static id autorelease_class = nil;
-
-/* When this is `YES', every call to release/autorelease, checks to
-   make sure isn't being set up to release itself too many times.
-   This does not need mutex protection. */
-static BOOL double_release_check_enabled = NO;
-
-BOOL
-NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
-{
-  return (!requestedZone || requestedZone == NSDefaultMallocZone()
-	  || [anObject zone] == requestedZone);
-}
 
 void
 NSIncrementExtraRefCount (id anObject)
@@ -117,6 +157,127 @@ extraRefCount (id anObject)
   return ret;	/* ExtraRefCount + 1	*/
 }
 
+#endif	/* defined(REFCNT_LOCAL) */
+
+
+/*
+ *	Now do conditional compilation of memory allocation functions
+ *	depending on what information (if any) we are storing before
+ *	the start of each object.
+ */
+#if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
+
+NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+{
+  id new = nil;
+  int size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
+  if (CLS_ISCLASS (aClass))
+    {
+      if (zone == 0)
+	zone = NSDefaultMallocZone();
+      new = NSZoneMalloc(zone, size);
+    }
+  if (new != nil)
+    {
+      memset (new, 0, size);
+#if	defined(CACHE_ZONE)
+      ((obj)new)->zone = zone;
+#endif
+      new = (id)&((obj)new)[1];
+      new->class_pointer = aClass;
+    }
+#ifndef	NDEBUG
+  GSDebugAllocationAdd(aClass);
+#endif
+  return new;
+}
+
+void NSDeallocateObject(NSObject *anObject)
+{
+  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
+    {
+      NSZone	*z;
+      obj	o = &((obj)anObject)[-1];
+
+#ifndef	NDEBUG
+      GSDebugAllocationRemove(((id)anObject)->class_pointer);
+#endif
+#if defined(CACHE_ZONE)
+      z = o->zone;
+#else
+      z = [anObject zone];
+#endif
+      ((id)anObject)->class_pointer = (void*) 0xdeadface;
+      NSZoneFree(z, o);
+    }
+  return;
+}
+
+#else
+
+NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+{
+  id new = nil;
+  int size = aClass->instance_size + extraBytes;
+  if (CLS_ISCLASS (aClass))
+    new = NSZoneMalloc (zone, size);
+  if (new != nil)
+    {
+      memset (new, 0, size);
+      new->class_pointer = aClass;
+    }
+#ifndef	NDEBUG
+  GSDebugAllocationAdd(aClass);
+#endif
+  return new;
+}
+
+void NSDeallocateObject(NSObject *anObject)
+{
+  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
+    {
+      NSZone	*z = [anObject zone];
+
+#ifndef	NDEBUG
+      GSDebugAllocationRemove(((id)anObject)->class_pointer);
+#endif
+      ((id)anObject)->class_pointer = (void*) 0xdeadface;
+      NSZoneFree(z, anObject);
+    }
+  return;
+}
+
+#endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
+
+#if defined(CACHE_ZONE)
+BOOL
+NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
+{
+  return (!requestedZone || requestedZone == NSDefaultMallocZone()
+	  || ((obj)anObject)[-1].zone == requestedZone);
+}
+#else
+BOOL
+NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
+{
+  return (!requestedZone || requestedZone == NSDefaultMallocZone()
+	  || [anObject zone] == requestedZone);
+}
+#endif
+
+
+
+
+/* The Class responsible for handling autorelease's.  This does not
+   need mutex protection, since it is simply a pointer that gets read
+   and set. */
+static id autorelease_class = nil;
+
+/* When this is `YES', every call to release/autorelease, checks to
+   make sure isn't being set up to release itself too many times.
+   This does not need mutex protection. */
+static BOOL double_release_check_enabled = NO;
+
 
 @implementation NSObject
 
@@ -126,10 +287,11 @@ extraRefCount (id anObject)
     {
       // Create the global lock
       gnustep_global_lock = [[NSRecursiveLock alloc] init];
-
+#if !defined(REFCNT_LOCAL)
       retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
 					    o_callbacks_for_int);
       retain_counts_gate = objc_mutex_allocate ();
+#endif
       autorelease_class = [NSAutoreleasePool class];
     }
   return;
@@ -498,7 +660,15 @@ extraRefCount (id anObject)
 
 - (NSZone *)zone
 {
+#if defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
+#if defined(CACHE_ZONE)
+  return ((obj)self)[-1].zone;
+#else
+  return NSZoneFromPointer(&((obj)self)[-1]);
+#endif
+#else
   return NSZoneFromPointer(self);
+#endif
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

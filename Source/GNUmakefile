@@ -288,7 +288,6 @@ objc/zone.h
 # GNUStep source files
 
 BASE_MFILES = \
-NSAllocateObject.m \
 NSAttributedString.m \
 NSArchiver.m \
 NSArray.m \
@@ -307,7 +306,6 @@ NSConnection.m \
 NSData.m \
 NSDate.m \
 NSDebug.m \
-NSDeallocateObject.m \
 NSDictionary.m \
 NSDistantObject.m \
 NSDistributedLock.m \
