@@ -1240,6 +1240,7 @@ tables:
 	  size_t	rval;
 	  iconv_t	cd;
 	  const char	*estr = iconv_stringforencoding(enc);
+	  BOOL		done = NO;
 
 	  /* explicitly check for empty encoding name since some systems
 	   * have buggy iconv_open() code which succeeds on an empty name.
@@ -1249,6 +1250,10 @@ tables:
 	      NSLog(@"No iconv for encoding x%02x", enc);
 	      result = NO;
 	      break;
+	    }
+	  if (slen == 0)
+	    {
+	      break;	// Nothing to do
 	    }
 	  cd = iconv_open(UNICODE_ENC, estr);
 	  if (cd == (iconv_t)-1)
@@ -1263,7 +1268,7 @@ tables:
 	  inbytesleft = slen;
 	  outbuf = (char*)ptr;
 	  outbytesleft = bsize * sizeof(unichar);
-	  while (inbytesleft > 0)
+	  while (done == NO)
 	    {
 	      if (dpos >= bsize)
 		{
@@ -1273,7 +1278,16 @@ tables:
 		  outbuf = (char*)&ptr[dpos];
 		  outbytesleft += (bsize - old) * sizeof(unichar);
 		}
-	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      if (inbytesleft == 0)
+		{
+		  done = YES;	// Flush iconv, then terminate.
+		  rval = iconv(cd, 0, 0, &outbuf, &outbytesleft);
+		}
+	      else
+		{
+		  rval = iconv(cd,
+		    &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+		}
 	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
 	      if (rval == (size_t)-1)
 		{
@@ -1816,6 +1830,7 @@ tables:
 	  size_t	outbytesleft;
 	  size_t	rval;
 	  const char	*estr = iconv_stringforencoding(enc);
+	  BOOL		done = NO;
 
 	  /* explicitly check for empty encoding name since some systems
 	   * have buggy iconv_open() code which succeeds on an empty name.
@@ -1825,6 +1840,10 @@ tables:
 	      NSLog(@"No iconv for encoding x%02x", enc);
 	      result = NO;
 	      break;
+	    }
+	  if (slen == 0)
+	    {
+	      break;	// Nothing to convert.
 	    }
 	  cd = iconv_open(estr, UNICODE_ENC);
 	  if (cd == (iconv_t)-1)
@@ -1839,7 +1858,7 @@ tables:
 	  inbytesleft = slen * sizeof(unichar);
 	  outbuf = (char*)ptr;
 	  outbytesleft = bsize;
-	  while (inbytesleft > 0)
+	  while (done == NO)
 	    {
 	      if (dpos >= bsize)
 		{
@@ -1849,7 +1868,16 @@ tables:
 		  outbuf = (char*)&ptr[dpos];
 		  outbytesleft += (bsize - old);
 		}
-	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      if (inbytesleft == 0)
+		{
+		  done = YES; // Flush buffer, then terminate.
+		  rval = iconv(cd, 0, 0, &outbuf, &outbytesleft);
+		}
+	      else
+		{
+		  rval = iconv(cd,
+		    &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+		}
 	      dpos = bsize - outbytesleft;
 	      if (rval != 0)
 		{
