@@ -59,7 +59,6 @@ Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <gnustep/base/objc-malloc.h>
 
 extern double strtod(const char *str, char **ptr);
 extern long strtol(const char *str, char** ptr, int base);
