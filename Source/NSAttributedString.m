@@ -653,7 +653,7 @@ static Class GSMutableAttributedStringClass;
 
 	  self = [self initWithString: string attributes: nil];
 	  [self setAttributes: attrs range: r];
-	  while (index < length);
+	  while (index < length)
 	    {
 	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
 					   at: &index];
