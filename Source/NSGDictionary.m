@@ -32,7 +32,6 @@
 #include <Foundation/NSDebug.h>
 
 #include <base/behavior.h>
-#include <base/fast.x>
 
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
@@ -133,7 +132,7 @@ static SEL	objSel;
   [aCoder decodeValueOfObjCType: @encode(unsigned)
 			     at: &count];
 
-  GSIMapInitWithZoneAndCapacity(&map, fastZone(self), count);
+  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
   while (count-- > 0)
     {
       (*imp)(aCoder, sel, type, &key);
@@ -148,7 +147,7 @@ static SEL	objSel;
 {
   int	i;
 
-  GSIMapInitWithZoneAndCapacity(&map, fastZone(self), c);
+  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
@@ -187,7 +186,7 @@ static SEL	objSel;
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSZone	*z = fastZone(self);
+  NSZone	*z = GSObjCZone(self);
   unsigned	c = [other count];
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
@@ -284,7 +283,7 @@ static SEL	objSel;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-  GSIMapInitWithZoneAndCapacity(&map, fastZone(self), cap);
+  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
   return self;
 }
 

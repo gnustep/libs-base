@@ -27,9 +27,9 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSObjCRuntime.h>
 #include "limits.h"
 
-#include <objc/objc-api.h>
 
 @implementation NSProxy
 

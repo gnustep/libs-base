@@ -25,7 +25,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/fast.x>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSValue.h>

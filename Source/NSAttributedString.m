@@ -45,7 +45,6 @@
 
 #include "config.h"
 #include <base/preface.h>
-#include <base/fast.x>
 #include <base/Unicode.h>
 
 #include <Foundation/NSAttributedString.h>

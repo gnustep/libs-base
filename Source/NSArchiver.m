@@ -22,7 +22,6 @@
    */
 
 #include <config.h>
-#include <objc/objc-api.h>
 /*
  *	Setup for inline operation of pointer map tables.
  */
@@ -39,13 +38,12 @@
 #include <Foundation/NSArchiver.h>
 #undef	_IN_NSARCHIVER_M
 
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
-
-#include <base/fast.x>
 
 typedef	unsigned char	uchar;
 
@@ -80,7 +78,7 @@ static Class	NSMutableDataMallocClass;
 {
   NSMutableData	*d;
 
-  d = [[NSMutableDataMallocClass allocWithZone: fastZone(self)] init];
+  d = [[NSMutableDataMallocClass allocWithZone: GSObjCZone(self)] init];
   self = [self initForWritingWithMutableData: d];
   RELEASE(d);
   return self;
@@ -415,9 +413,9 @@ static Class	NSMutableDataMallocClass;
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = fastClassVersion(c);
+		int		tmp = GSObjCVersion(c);
 		unsigned	version = tmp;
-		Class		s = fastSuper(c);
+		Class		s = GSObjCSuper(c);
 
 		if (tmp < 0)
 		  {
@@ -777,7 +775,7 @@ static Class	NSMutableDataMallocClass;
 	    }
 
 	  obj = [anObject replacementObjectForArchiver: self];
-	  if (fastIsInstance(obj) == NO)
+	  if (GSObjCIsInstance(obj) == NO)
 	    {
 	      /*
 	       * If the object we have been given is actually a class,
@@ -829,7 +827,7 @@ static Class	NSMutableDataMallocClass;
       if (node)
 	{
 	  c = (Class)node->value.ptr;
-	  return [NSString stringWithCString: fastClassName(c)];
+	  return [NSString stringWithCString: GSObjCName(c)];
 	}
     }
   return trueName;

@@ -36,7 +36,6 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
 #include <base/behavior.h>
-#include <base/fast.x>
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -102,9 +101,9 @@ otherTime(NSDate* other)
 
   if (other == nil)
     [NSException raise: NSInvalidArgumentException format: @"other time nil"];
-  if (fastIsInstance(other) == NO)
+  if (GSObjCIsInstance(other) == NO)
     [NSException raise: NSInvalidArgumentException format: @"other time bad"];
-  c = GSObjCClassOfObject(other);
+  c = GSObjCClass(other);
   if (c == concreteClass || c == calendarClass)
     return ((NSGDate*)other)->_seconds_since_ref;
   else

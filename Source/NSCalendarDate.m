@@ -23,8 +23,7 @@
 
 #include <config.h>
 #include <math.h>
-#include <objc/objc-api.h>
-#include <base/preface.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>

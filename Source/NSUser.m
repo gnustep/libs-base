@@ -22,8 +22,8 @@
    */ 
 
 #include <config.h>
-#include <objc/objc-api.h>
 #include <base/preface.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSException.h>

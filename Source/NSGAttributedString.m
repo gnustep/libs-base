@@ -51,7 +51,6 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSZone.h>
-#include <base/fast.x>
 
 #define		SANITY_CHECKS	0
 
@@ -150,7 +149,7 @@ _setAttributesFrom(
   NSRange aRange,
   NSMutableArray *_infoArray)
 {
-  NSZone	*z = fastZone(_infoArray);
+  NSZone	*z = GSObjCZone(_infoArray);
   NSRange	range;
   NSDictionary	*attr;
   GSAttrInfo	*info;
@@ -272,7 +271,7 @@ _attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = fastZone(self);
+  NSZone	*z = GSObjCZone(self);
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
@@ -356,7 +355,7 @@ _attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = fastZone(self);
+  NSZone	*z = GSObjCZone(self);
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
@@ -402,7 +401,7 @@ SANITY();
   NSRange	effectiveRange;
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
-  NSZone	*z = fastZone(self);
+  NSZone	*z = GSObjCZone(self);
   GSAttrInfo	*info;
 
   if (range.length == 0)
@@ -504,7 +503,7 @@ SANITY();
   NSDictionary	*attrs;
   GSAttrInfo	*info;
   int		moveLocations;
-  NSZone	*z = fastZone(self);
+  NSZone	*z = GSObjCZone(self);
   unsigned	start;
 
 SANITY();

@@ -23,7 +23,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/fast.x>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
@@ -136,7 +135,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {
   Class	c;
 
-  c = GSObjCClassOfObject(d);
+  c = GSObjCClass(d);
   info->data = d; 
   info->appImp = (void (*)())get_imp(c, appSel);
   info->datImp = (void* (*)())get_imp(c, datSel);
@@ -164,14 +163,14 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 {
   Class	c;
 
-  c = GSObjCClassOfObject(object);
-  if (fastIsClass(c) == NO)
+  if (object == nil || GSObjCIsInstance(object) == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Class (%@) in property list - expected instance",
 				[c description]];
     }
-  if (fastClassIsKindOfClass(c, CStringClass)
+  c = GSObjCClass(object);
+  if (GSObjCIsKindOf(c, CStringClass)
     || (c == MStringClass && ((ivars)object)->_flags.wide == 0))
     {
       GSIMapNode	node;
@@ -201,7 +200,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  (*info->serImp)(info->data, serSel, node->value.uint);
 	}
     }
-  else if (fastClassIsKindOfClass(c, StringClass))
+  else if (GSObjCIsKindOf(c, StringClass))
     {
       GSIMapNode	node;
 
@@ -230,7 +229,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  (*info->serImp)(info->data, serSel, node->value.uint);
 	}
     }
-  else if (fastClassIsKindOfClass(c, ArrayClass))
+  else if (GSObjCIsKindOf(c, ArrayClass))
     {
       unsigned int count;
 
@@ -254,7 +253,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	    }
 	}
     }
-  else if (fastClassIsKindOfClass(c, DictionaryClass))
+  else if (GSObjCIsKindOf(c, DictionaryClass))
     {
       NSEnumerator	*e = [object keyEnumerator];
       id		k;
@@ -278,7 +277,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  serializeToInfo(o, info);
 	}
     }
-  else if (fastClassIsKindOfClass(c, DataClass))
+  else if (GSObjCIsKindOf(c, DataClass))
     {
       (*info->appImp)(info->data, appSel, &st_data, 1);
       (*info->serImp)(info->data, serSel, [object length]);

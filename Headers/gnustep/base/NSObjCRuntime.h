@@ -25,6 +25,7 @@
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
 #include <objc/objc.h>
+#include <objc/objc-api.h>
 #include <stdarg.h>
 
 #if BUILD_libgnustep_base_DLL
@@ -36,6 +37,7 @@
 #endif
 #define GS_DECLARE
 
+@class	NSObject;
 @class	NSString;
 
 GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
@@ -73,14 +75,83 @@ GS_EXPORT BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
 GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 
 /*
- * GSObjCClassOfInstance() return the class of an instance.
+ * GSObjCClass() return the class of an instance.
  * The argument to this function must NOT be nil.
  */
 FOUNDATION_STATIC_INLINE Class
-GSObjCClassOfObject(id obj)
+GSObjCClass(id obj)
 {
   return obj->class_pointer;
 }
+
+/*
+ * GSObjCIsInstance() tests to see if an id is an instance.
+ * The argument to this function must NOT be nil.
+ */
+FOUNDATION_STATIC_INLINE BOOL
+GSObjCIsInstance(id obj)
+{
+  return CLS_ISCLASS(obj->class_pointer);
+}
+
+/*
+ * GSObjCIsKindOf() tests to see if a class inherits from another class
+ * The argument to this function must NOT be nil.
+ */
+FOUNDATION_STATIC_INLINE BOOL
+GSObjCIsKindOf(Class this, Class other)
+{
+  while (this != Nil)
+    {
+      if (this == other)
+	{
+	  return YES;
+	}
+      this = class_get_super_class(this);
+    }
+  return NO;
+}
+
+FOUNDATION_STATIC_INLINE const char*
+GSObjCName(Class this)
+{
+  return this->name;
+}
+
+FOUNDATION_STATIC_INLINE const char*
+GSObjCSelectorName(SEL this)
+{
+  return sel_get_name(this);
+}
+
+FOUNDATION_STATIC_INLINE const char*
+GSObjCSelectorTypes(SEL this)
+{
+  return sel_get_type(this);
+}
+
+FOUNDATION_STATIC_INLINE Class
+GSObjCSuper(Class this)
+{
+  return class_get_super_class(this);
+}
+
+FOUNDATION_STATIC_INLINE int
+GSObjCVersion(Class this)
+{
+  return this->version;
+}
+
+/*
+ * Return the zone in which an object belongs, without using the zone method
+ */
+#include	<Foundation/NSZone.h>
+NSZone	*GSObjCZone(NSObject *obj);
+
+/*
+ * Quickly return autoreleased data.
+ */
+void	*_fastMallocBuffer(unsigned size);
 
 #endif
 

@@ -24,7 +24,6 @@
 
 #include <config.h>
 #include <base/behavior.h>
-#include <base/fast.x>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
@@ -780,14 +779,14 @@ static NSString	*indentStrings[] = {
 
       for (i = 0; i < numKeys; i++)
 	{
-	  if (GSObjCClassOfObject(keys[i]) == lastClass)
+	  if (GSObjCClass(keys[i]) == lastClass)
 	    continue;
 	  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
 	    {
 	      canCompare = NO;
 	      break;
 	    }
-	  lastClass = GSObjCClassOfObject(keys[i]);
+	  lastClass = GSObjCClass(keys[i]);
 	}
 
       if (canCompare == YES)
@@ -831,7 +830,7 @@ static NSString	*indentStrings[] = {
 		      Class			x;
 		      NSComparisonResult	r;
 
-		      x = GSObjCClassOfObject(a);
+		      x = GSObjCClass(a);
 		      if (x != lastClass)
 			{
 			  lastClass = x;

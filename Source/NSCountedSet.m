@@ -23,7 +23,6 @@
 
 #include <config.h>
 #include <base/behavior.h>
-#include <base/fast.x>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSCoder.h>
@@ -111,7 +110,7 @@ static Class NSCountedSet_concrete_class;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	count;
-  Class		c = GSObjCClassOfObject(self);
+  Class		c = GSObjCClass(self);
 
   if (c == NSCountedSet_abstract_class)
     {

@@ -70,8 +70,6 @@
 
 #include <base/Unicode.h>
 
-#include <base/fast.x>
-
 @class	GSString;
 @class	GSMString;
 @class	GSUString;
@@ -440,7 +438,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  char	*s;
 
-	  s = NSZoneMalloc(fastZone(self), length);
+	  s = NSZoneMalloc(GSObjCZone(self), length);
 
 	  for (i = 0; i < length; i++)
 	    {
@@ -454,7 +452,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  unichar	*s;
 
-	  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+	  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
 
 	  memcpy(s, chars, sizeof(unichar)*length);
 	  self = [self initWithCharactersNoCopy: s
@@ -483,7 +481,7 @@ handle_printf_atsign (FILE *stream,
 {
   if (length > 0)
     {
-      char	*s = NSZoneMalloc(fastZone(self), length);
+      char	*s = NSZoneMalloc(GSObjCZone(self), length);
 
       if (byteString != 0)
 	{
@@ -511,7 +509,7 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unichar	*s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+      unichar	*s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
 
       [string getCharacters: s];
       self = [self initWithCharactersNoCopy: s
@@ -553,7 +551,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  unichar	*s;
 
-	  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+	  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
 	  length = encode_strtoustr(s, bytes, length+1, NSUTF8StringEncoding);
 	  self = [self initWithCharactersNoCopy: s
 					 length: length
@@ -604,7 +602,7 @@ handle_printf_atsign (FILE *stream,
   NSString *ret;
 
 #if ! HAVE_REGISTER_PRINTF_FUNCTION
-  NSZone *z = fastZone(self);
+  NSZone *z = GSObjCZone(self);
 
   /* If the available libc doesn't have `register_printf_function()', then
      the `%@' printf directive isn't available with printf() and friends.
@@ -894,7 +892,7 @@ handle_printf_atsign (FILE *stream,
 
       if (len > 0)
 	{
-	  char	*s = NSZoneMalloc(fastZone(self), len);
+	  char	*s = NSZoneMalloc(GSObjCZone(self), len);
 
 	  [data getBytes: s];
 	  self = [self initWithCStringNoCopy: s length: len freeWhenDone: YES];
@@ -929,7 +927,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  unichar	*u;
 
-	  u = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+	  u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
 	  length = encode_strtoustr(u, bytes, length+1, NSUTF8StringEncoding);
 	  self = [self initWithCharactersNoCopy: u
 					 length: length
@@ -947,7 +945,7 @@ handle_printf_atsign (FILE *stream,
 	return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
 
       b = [data bytes];
-      u = NSZoneMalloc(fastZone(self), sizeof(unichar)*(len+1));
+      u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*(len+1));
       if (encoding == NSUnicodeStringEncoding)
         {
 	  if ((b[0]==0xFE) & (b[1]==0xFF))
@@ -1080,7 +1078,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	len = [self length];
   unsigned	otherLength = [aString length];
-  NSZone	*z = fastZone(self);
+  NSZone	*z = GSObjCZone(self);
   unichar	*s = NSZoneMalloc(z, (len+otherLength)*sizeof(unichar));
   NSString	*tmp;
 
@@ -1148,7 +1146,7 @@ handle_printf_atsign (FILE *stream,
 
   if (aRange.length == 0)
     return @"";
-  buf = NSZoneMalloc(fastZone(self), sizeof(unichar)*aRange.length);
+  buf = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*aRange.length);
   [self getCharacters: buf range: aRange];
   ret = [[GSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length freeWhenDone: YES];
@@ -1323,13 +1321,13 @@ handle_printf_atsign (FILE *stream,
     {
       return YES;
     }
-  if (anObject != nil)
+  if (anObject != nil && GSObjCIsInstance(anObject) == YES)
     {
-      Class c = fastClassOfInstance(anObject);
+      Class c = GSObjCClass(anObject);
 
       if (c != nil)
 	{
-	  if (fastClassIsKindOfClass(c, NSStringClass))
+	  if (GSObjCIsKindOf(c, NSStringClass))
 	    {
 	      return [self isEqualToString: anObject];
 	    }
@@ -1674,7 +1672,7 @@ handle_printf_atsign (FILE *stream,
   if (whitespce == nil)
     setupWhitespce();
 
-  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   [self getCharacters: s];
   while (count < len)
     {
@@ -1722,7 +1720,7 @@ handle_printf_atsign (FILE *stream,
     {
       return self;
     }
-  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
   for (count = 0; count < len; count++)
     {
@@ -1743,7 +1741,7 @@ handle_printf_atsign (FILE *stream,
     {
       return self;
     }
-  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
   for (count = 0; count < len; count++)
     {
@@ -2895,7 +2893,7 @@ handle_printf_atsign (FILE *stream,
 #if	GS_WITH_GC
       zone = GSAtomicMallocZone();
 #else
-      zone = fastZone(self);
+      zone = GSObjCZone(self);
 #endif
 
       if (enc == NSUnicodeStringEncoding)

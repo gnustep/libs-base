@@ -31,6 +31,7 @@
 #include <config.h>
 #include <base/preface.h>
 #include <mframe.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdlib.h>

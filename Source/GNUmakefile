@@ -117,7 +117,6 @@ win32-def.top \
 libgnustep-base.def
 
 GNU_HEADERS = \
-fast.x \
 GSLocale.h \
 GSUnion.h \
 GSIArray.h \

@@ -27,7 +27,6 @@
 #include <string.h>
 #include <config.h>
 #include <base/preface.h>
-#include <base/fast.x>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotification.h>
@@ -59,7 +58,7 @@ GSNumberInfoFromObject(NSNumber *o)
 
   if (o == nil)
     return nil;
-  c = GSObjCClassOfObject(o);
+  c = GSObjCClass(o);
   info = (GSNumberInfo*)NSMapGet (numberMap, (void*)c);
   if (info == 0)
     {
@@ -667,7 +666,7 @@ static Class	doubleNumberClass;
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"descriptionWithLocale: for abstract NSNumber"];
@@ -728,7 +727,7 @@ static Class	doubleNumberClass;
 /* All the rest of these methods must be implemented by a subclass */
 - (BOOL) boolValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get boolValue from abstract NSNumber"];
   else
@@ -838,7 +837,7 @@ static Class	doubleNumberClass;
 
 - (signed char) charValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get charValue from abstract NSNumber"];
   else
@@ -948,7 +947,7 @@ static Class	doubleNumberClass;
 
 - (double) doubleValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get doubleValue from abstract NSNumber"];
   else
@@ -1058,7 +1057,7 @@ static Class	doubleNumberClass;
 
 - (float) floatValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get floatValue from abstract NSNumber"];
   else
@@ -1168,7 +1167,7 @@ static Class	doubleNumberClass;
 
 - (signed int) intValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get intValue from abstract NSNumber"];
   else
@@ -1278,7 +1277,7 @@ static Class	doubleNumberClass;
 
 - (signed long long) longLongValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get longLongValue from abstract NSNumber"];
   else
@@ -1388,7 +1387,7 @@ static Class	doubleNumberClass;
 
 - (signed long) longValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get longValue from abstract NSNumber"];
   else
@@ -1498,7 +1497,7 @@ static Class	doubleNumberClass;
 
 - (signed short) shortValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get shortValue from abstract NSNumber"];
   else
@@ -1613,7 +1612,7 @@ static Class	doubleNumberClass;
 
 - (unsigned char) unsignedCharValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get unsignedCharrValue from abstract NSNumber"];
   else
@@ -1723,7 +1722,7 @@ static Class	doubleNumberClass;
 
 - (unsigned int) unsignedIntValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get unsignedIntValue from abstract NSNumber"];
   else
@@ -1833,7 +1832,7 @@ static Class	doubleNumberClass;
 
 - (unsigned long long) unsignedLongLongValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get unsignedLongLongValue from abstract NSNumber"];
   else
@@ -1943,7 +1942,7 @@ static Class	doubleNumberClass;
 
 - (unsigned long) unsignedLongValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get unsignedLongValue from abstract NSNumber"];
   else
@@ -2053,7 +2052,7 @@ static Class	doubleNumberClass;
 
 - (unsigned short) unsignedShortValue
 {
-  if (GSObjCClassOfObject(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
 		format: @"get unsignedShortValue from abstract NSNumber"];
   else
@@ -2227,7 +2226,8 @@ static Class	doubleNumberClass;
     {
       return NO;
     }
-  else if (fastIsInstance(o) && fastInstanceIsKindOfClass(o, abstractClass))
+  else if (GSObjCIsInstance(o) == YES
+    && GSObjCIsKindOf(GSObjCClass(o), abstractClass))
     {
       return [self isEqualToNumber: (NSNumber*)o];
     }

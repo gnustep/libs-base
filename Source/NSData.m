@@ -61,10 +61,8 @@
  */
 
 #include <config.h>
-#include <objc/objc-api.h>
-#include <base/preface.h>
-#include <base/fast.x>
 #include <base/behavior.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>
@@ -464,7 +462,7 @@ failure:
 #if	GS_WITH_GC
   zone = GSAtomicMallocZone();
 #else
-  zone = fastZone(self);
+  zone = GSObjCZone(self);
 #endif
   if (readContentsOfFile(path, &fileBytes, &fileLength, zone) == NO)
     {
@@ -482,7 +480,7 @@ failure:
 {
 #if	HAVE_MMAP
   RELEASE(self);
-  self = [NSDataMappedFile allocWithZone: fastZone(self)];
+  self = [NSDataMappedFile allocWithZone: GSObjCZone(self)];
   return [self initWithContentsOfMappedFile: path];
 #else
   return [self initWithContentsOfFile: path];
@@ -1697,7 +1695,7 @@ failure:
 	}
       case _C_CLASS:
 	{
-	  const char  *name = *(Class*)data?fastClassName(*(Class*)data):"";
+	  const char  *name = *(Class*)data?GSObjCName(*(Class*)data):"";
 	  gsu16	ln = (gsu16)strlen(name);
 	  gsu16	ni;
 
@@ -1711,9 +1709,9 @@ failure:
 	}
       case _C_SEL:
 	{
-	  const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
+	  const char  *name = *(SEL*)data?GSObjCSelectorName(*(SEL*)data):"";
 	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
-	  const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
+	  const char  *types = *(SEL*)data?GSObjCSelectorTypes(*(SEL*)data):"";
 	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
 	  gsu16	ni;
 
@@ -2593,7 +2591,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC
   zone = GSAtomicMallocZone();
 #else
-  zone = fastZone(self);
+  zone = GSObjCZone(self);
 #endif
   if (size)
     {
@@ -2863,7 +2861,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_CLASS:
 	{
-	  const char  *name = *(Class*)data?fastClassName(*(Class*)data):"";
+	  const char  *name = *(Class*)data?GSObjCName(*(Class*)data):"";
 	  gsu16	ln = (gsu16)strlen(name);
 	  gsu16	minimum = length + ln + sizeof(gsu16);
 	  gsu16	ni;
@@ -2884,9 +2882,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_SEL:
 	{
-	  const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
+	  const char  *name = *(SEL*)data?GSObjCSelectorName(*(SEL*)data):"";
 	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
-	  const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
+	  const char  *types = *(SEL*)data?GSObjCSelectorTypes(*(SEL*)data):"";
 	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
 	  gsu16	minimum = length + ln + lt + 2*sizeof(gsu16);
 	  gsu16	ni;
