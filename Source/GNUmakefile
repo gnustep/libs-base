@@ -237,7 +237,7 @@ NSZone.m \
 externs.m \
 objc-load.m
 
-ifeq ($(add),yes)
+ifneq ($(add),yes)
 BASE_MFILES += GSMime.m GSXML.m
 endif
 
