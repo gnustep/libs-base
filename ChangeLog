@@ -1,72 +1,781 @@
+Tue Mar 12 09:43:32 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/tcpport-server.m, checks/tcpport-client.m: Method name
+	changes. 
+
+	* checks/Makefile.in (SRCS): Add nstimer.m.
+
+	* src/TcpPort.m ([TcpInPort +newForReceivingFromPortNumber:]):
+ 	Initialize _run_loops.
+	([TcpInPort -addToRunLoop:forMode:]): Use new _run_loops Bag.
+	([TcpInPort -removeFromRunLoop:forMode:]): Likewise.
+	([TcpInPort -_connectedOutPortInvalidated:]): Likewise.
+	([TcpInPort -_addClientOutPort:]): Likewise.
+	([TcpInPort -dealloc]): Release _run_loops.
+	([TcpOutPort -outPacketClass]): Method renamed from -packetClass.
+	([TcpOutPort +outPacketClass]): Likewise.
+	* src/objects/TcpPort.h (TcpInPort _run_loops): Make it a Bag.
+	(TcpInPort _run_loop_modes): Remove ivar.
+
+	* src/Port.m ([InPort -setReceivedPacketInvocation:]): Assert that
+ 	_packet_invocation isn't already set.
+
+	* src/RunLoop.m ([RunLoop -removeFileDescriptor:forMode:]): Add
+ 	debugging message.
+
+	* src/NSGSet.m ([NSGSet -member:]): Return value.
+
+	* src/IndexedCollection.m ([ConstantIndexedCollection
+ 	-firstObject]): Return nil if emtpy.
+	([ConstantIndexedCollection -lastObject]): Likewise.
+	([ConstantIndexedCollection -prevObjectWithEnumState:]): Use -1 to
+	deal with reversals at extremes.
+	([ConstantIndexedCollection -nextObjectWithEnumState:]): Use [self
+	count] to deal with reversals at extremes.
+
+	* src/Connection.m (in_port_2_ancestor): New static variable.
+	([Connection +initialize]): Initialize it.
+	([Connection +newForInPort:outPort:ancestorConnection:]): Use new
+	static variable to handle ancestor; (ignore ancestor argument; the
+ 	method name will be changed later).  Set the in-port's packet
+ 	invocation to the Connection class. Don't call
+ 	-addToRunLoop.. here, the mechanics of it were already done above.
+	([Connection -addToRunLoop:forMode:]): Mark it as not implemented,
+	for now.
+	([Connection -runConnectionUntilDate:]): Don't add to run loop here.
+	([Connection +invokeWithObject:]): Make it a class method instead of
+	an instance method; alter contents appropriately for this.
+	([Connection -portIsInvalid:]): Look at in_port_2_ancestor and remove
+	ourselves if necessary.
+	([Connection -invalidate]): Don't remove ourselves from the run loop
+	here, because we may not be the only one listening.  This still
+ 	needs fixing.
+
+	* src/ConnectedCoder.m ([ConnectedEncoder -dismiss]): Fix typo in
+ 	sendPacket: call.
+
+	* src/IndexedCollection.m: Several minor fixes to return types and
+ 	return values.  Also:
+	([ReverseEnumerator -nextObject]): Pass pointer to enum_state.
+	([ConstantIndexedCollection -prevObjectWithEnumState:]): Method
+	overhauled.
+	([ConstantIndexedCollection -nextObjectWithEnumState:]): Likewise.
+	([ConstantIndexedCollection -newEnumState]): New method.
+
+	* src/Foundation/NSGSet.h: Remove #include of objects/elt.h.
+	* src/Foundation/NSGDictionary.h: Likewise.
+	* src/Foundation/NSGArray.h: Likewise.
+	* src/NSGSet.m: Remove #include of objects/eltfuncs.h.
+	* src/NSGDictionary.m: Likewise.
+	* src/NSGCountedSet.m: Likewise.
+	* src/AutoreleasePool.m: Remove #include of objects/collhash.h.
+
+	* src/TcpPort.m: Updated to conform to new Port class.  TcpPacket
+ 	class split into TcpInPacket and TcpOutPacket.
+	* src/objects/TcpPort.h: Declare new methods and classes.
+
+	* src/RunLoop.m: Debugging messages conditioned on debug_run_loop.
+	([RunLoop -runOnceBeforeDate:forMode:]): New method.
+	* src/objects/RunLoop.h: Declare new method.
+
+	* src/Port.m ([Port +outPacketClass]): Method renamed from
+ 	packetClass.
+	([Port -outPacketClass]): Likewise.
+	([InPort -setReceivedPacketInvocation:]): Method renamed from
+	setPacketInvocation.
+	([OutPort -sendPacket:]): Method renamed from -sendPacket:withTimeout:.
+	(OutPacket, InPacket): New classes, replacing Packet class.
+	* src/objects/Port.h: Declare new methods and classes.
+
+	* src/MemoryStream.m ([MemoryStream -initWithCapacity:prefix:]):
+ 	New method.
+	* src/objects/MemoryStream.h: Declare new method.
+
+	* src/Connection.m: Remove old-style methods for getting incoming
+ 	ConnectedCoders.  Add new methods that use RunLoop.  All callers
+ 	changed.
+	([Connection -addToRunLoop:forMode:]): New method.
+	([Connection -removeFromRunLoop:forMode:]): New method.
+	([Connection -runConnectionUntilDate:]): New method.
+	([Connection -runConnection]): Method changed to call above method.
+	([Connection -_handleRmc:]): New method.
+	([Connection -_handleQueuedRmcRequests]): New method.
+	([Connection -_getReceivedReplyRmcFromQueueWithSequenceNumber:]): New
+	method.
+	([Connection -_getReceivedReplyRmcWithSequenceNumber:]): New method.
+	([Connection -invokeWithObject:]): New method.
+	([Connection +newForInPort:outPort:ancestorConnection:]): Set
+	reply_depth ivar.
+	([Connection -_encoderCreateReferenceForConstPtr:]): Return the xref!
+	* src/objects/Connection.h: Declare new methods.  Type arguments
+ 	with InPort and OutPort, not just Port.
+	(Connection reply_depth): New ivar.
+
+	* src/ConnectedCoder.m ([ConnectedDecoder
+ 	+newDecodingWithPacket:connection:]): New method.  Old method
+	+newDecodingWithConnection:timeout: is deprecated.
+	* src/objects/ConnectedCoder.h: Declare new method.
+
+Mon Mar 11 12:02:04 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/tcpport-server.m: Updated for RunLoop.
+	* checks/tcpport-client.m: Likewise.
+
+	* src/RunLoop.m: New file.
+	* src/objects/RunLoop.h: New file.
+	* src/NSTimer.m: New file.
+	* src/Makefile.in (CFLAGS): Add -Wall.
+	(GNU_MFILES): Add RunLoop.m.
+	(GNU_HEADERS): Add objects/RunLoop.h.
+	(GNUSTEP_MFILES): Add NSTimer.m.
+	(GNUSTEP_HEADERS): Add Foundation/NSTimer.h.
+
+	* src/TcpPort.m ([TcpInPort -receivePacketWithTimeout:]):
+ 	Completely new implementation that uses the RunLoop.
+	([TcpInPort -old_receivePacketWithTimeout:]): New method, holding old
+	implementation.
+	([TcpInPort -invokeWithObject:]): New method, called by RunLoop.
+	([TcpInPort -_tryToGetPacketFromReadableFD:]): New private method.
+	([TcpInPort -_addClientOutPort:toRunLoop:forMode:]): New method.
+	([TcpInPort -addToRunLoop:forMode:]): New method.
+	([TcpInPort -_removeClientOutPort:fromRunLoop:forMode:]): New method.
+	([TcpInPort -removeFromRunLoop:forMode:]): New method.
+	([TcpInPort -_addClientOutPort:]): Add it to the RunLoop.
+	([TcpInPort -_connectedOutPortInvalidated:]): Remove it from the
+	RunLoop.
+	([TcpInPort -_addClientOutPort:]): Method renamed from _addOutPort:.
+	* src/objects/TcpPort.h (TcpInPort _run_loop, _run_loop_mode): New
+ 	ivars.
+
+	* src/Port.m ([InPort -init]): Set _packet_invocation.
+	([InPort -setPacketInvocation:]): New method.
+	([InPort -addToRunLoop:forMode:]): New method.
+	([InPort -removeFromRunLoop:forMode:]): New method.
+	* src/objects/Port.h: Declare new methods.
+	(Port _packet_invocation): New ivar.
+
+	* src/NotificationDispatcher.m ([NotificationDispatcher
+ 	+defaultInstance]): New method.
+	([NotificationDispatcher -removeObserver:name:object:]): Remove
+	handling of non-existance _nil_observer_array.
+
+	* src/NSDate.m: Many small formatting changes.
+	(UNIX_REFERENCE_INTERVAL): Macro renamed from UNIX_OFFSET.
+	([NSConcreteDate -timeIntervalSinceNow]): New method.
+
+	* src/Invocation.m (return_retained): Change macro from 1 to 0.
+
+	* src/Foundation/NSTimer.h: Declare NSTimer class interface.
+
+	* src/Connection.m ([Connection -isValid]): New method.
+
+	* src/objects/NotificationDispatcher.h ([NotificationDispatcher
+ 	+defaultInstance]): Declare new method.
+
+	* src/objects/Notification.h (Notifying): New protocol.
+	(NotificationPosting): New protocol.
+
+	* src/objects/Connection.h: Declare new method.
+
+	* src/objects/Array.h (ConstantArray): Inherit from
+ 	ConstantIndexedCollection, not IndexedCollection.
+
+	* src/IndexedCollection.m ([IndexedCollection +initialize]):
+ 	Compare self with IndexedCollection, not KeyedCollection.
+
+	* doc/gnustep-faq.texi: Changes by Scott Christley.
+
+Thu Mar  7 15:51:51 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/TcpPort.m ([TcpInPort -receivePacketWithTimeout:]): Move
+ 	initialization of select_timeout to inside loop since Linux
+ 	select() modifies *select_timeout.
+
+Wed Mar  6 11:40:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/TcpPort.m: Assert is_valid in many places.
+	([TcpInPort +newForReceivingFromPortNumber:]): Get the address of the
+	host, not localhost=127.0.0.1.
+	([TcpInPort -invalidate]): Remove ourselves from socket_2_port and
+	port_number_2_port here instead of in -dealloc.
+	([TcpInPort -description]): Indicate whether we are valid or not in
+	string.
+	([TcpOutPort -description]): Likewise.
+	([TcpOutPort -invalidate]): Assert is_valid, don't just conditionally
+	execute body.  Remove ourselves from out_port_bag and
+ 	socket_2_port here, not in -dealloc.
+	([TcpPacket +_getPacketSize:andReplyPort:fromSocket:inPort:]): If we
+	don't read() full prefix, don't abort(), just return EOF.
+
+	* src/Proxy.m: Assert that the connection is valid in several
+ 	places.
+
+	* src/Connection.m: Assert is_valid in many places.
+	([Connection +newForInPort:outPort:ancestorConnection:]): Set is_valid
+	to 1.  Only ask for notification of out port death if out port is
+ 	non-nil.
+	([Connection -portIsInvalid:]): Properly get the port from the
+	notification object.
+
+	* src/Port.m ([Port -invalidate]): Insist that is_valid is true at
+ 	the beginning of this method, don't test it and skip the body of
+ 	this method.  Force users to be careful about calling -invalidate
+ 	more than once.
+
+	* src/NSMapTable.m (NSAllMapTableValues): Get rid of unused
+ 	variable ARRAY.  Return VALUEARRAY, not unused variable.
+
+	* examples/second-server.m (announce_new_port): New function.
+	(announce_broken_port): New function.
+	(main): Register them for notifications; let user choose registered
+	name on command line.
+
+	* examples/second-client.m (main): Use new notification interface.
+
+	* checks/nsnotification.m (main): Wrap it with an
+ 	NSAutoreleasePool.
+
+	* checks/tcpport-server.m (main): Use new notification interface
+ 	for invocations.
+
+	* src/NotificationDispatcher.m (NotificationRequest): Ivar names
+ 	prepended with `_'.
+	(NotificationInvocation): Likewise.
+	(NotificationPerformer): Likewise.
+	([NotificationDispatcher
+	-_addObserver:notificationRequest:name:object:]): Insist that
+ 	observer be non-nil; (in the case of Invocation's, the invocation
+ 	is now the observer).
+	([NotificationDispatcher -addInvocation:name:object:]): Method renamed
+	from -addObserver:invocation:...  Pass the invocation as the
+ 	observer.  Release the NR after it has been added.
+	([NotificationDispatcher -addObserver:selector:name:object:]): Release
+	the NR after it has been added.
+	([NotificationDispatcher -_removeFromLinkedListNotificationRequest:]):
+	New method.
+	([NotificationDispatcher -removeInvocation:]): New method.
+	([NotificationDispatcher -removeInvocation:name:object:]): New method.
+	([NotificationDispatcher -removeObserver:]): Use
+	_removeFromLinkedListNotificationRequest:.
+	([NotificationDispatcher -removeObserver:name:object:]): Likewise.
+	([NotificationDispatcher +addInvocation:name:object:]): New method.
+	([NotificationDispatcher +removeInvocation:]): New method.
+	([NotificationDispatcher +removeInvocation:name:object:]): New method.
+	* src/objects/NotificationDispatcher.h: Declare new methods.
+
+	* src/Connection.m ([Connection +initialize]): Initialize
+ 	all_connections_local_targets.
+	([Connection -addLocalObject:]): Put it in
+	all_connections_local_targets also.
+	([Connection -removeLocalObject:]): Remove it from
+	all_connections_local_targets also.
+
+Tue Mar  5 10:32:51 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* examples/second-server.m: Use notifications instead of old
+ 	scheme for invalidation listening.
+	* examples/second-server.h: Don't conform to no-longer-used
+ 	InvalidationListening protocol.
+	* examples/second-client.m (announce_new_connection): New function.
+	(main): Register it for notifications.  Run the connection forever,
+	instead of on a 15 second timeout.
+	* examples/first-client.m (main): Before exit, invalidate the
+ 	connection, not the proxy.
+	* examples/textcoding.m: Send -close to Archiver, not old
+ 	-closeCoder.
+	* examples/Makefile.in (first): Force check for re-compilation of
+ 	libobjects.
+	(second): Likewise.
+
+	* checks/tcpport-server.m (announce_new_connection): New function.
+	(announce_broken_connection): New function.
+	(main): Register new functions for notifications.  Send messages back
+	to clients to test reply port mechanism.
+	* checks/tcpport-client.m: Test the reply port mechanism; look for
+ 	messages coming back from the server.
+	* checks/server.m: Use Array instead of List.  Use
+ 	NotificationDispatcher to hear about invalid and new connections.
+  	Let the user set the registerd name from the command line.
+	* checks/server.h: Update for new server interface.
+	* checks/client.m (main): Let user set registered name from
+ 	command line.
+	* checks/Makefile.in (SRCS): Added nsnotification.m.
+	(tcpport, remote): Force check of libobjects re-compilation.
+
+	* doc/Makefile.in (TEXI_FILES): Add gnustep-faq.texi.
+	(GNUstep-FAQ): New target.
+
+	* src/TcpPort.m: Many ivar names changed for clarity.  Some new
+ 	ivars added; see changes to TcpPort.h.  Overhaul of how
+ 	TcpOutPort's track their remote address.  Previously they used the
+ 	address of their local peer; this is no good when encoding a
+ 	TcpOutPort on the wire for D.O.; the D.O. reciever needs a way to
+ 	contact the listen'ing socket of the TcpInPort in order to form a
+ 	new connection.  _remote_in_port_address is now the address of the
+ 	remote listen'ing socket.  Added many comments throughout.  All
+ 	perror() calls changes to be more informative.
+	(debug_tcp_port): Make this a static variable instead of a macro.
+	(init_socket_2_port): Check pre-existance of socket_2_port here
+	instead of callers.
+	([TcpInPort +newForReceivingFromPortNumber:]): Method overhauled.
+	Don't bind socket to INADDR_ANY because we need to be able to
+ 	encode our unique host address on the wire for D.O.
+	([TcpInPort -_listeningSockaddr]): New method.
+	([TcpInPort -receivePacketWithTimeout:]): Method overhauled.  Get the
+	reply port for an incoming packet from the packet prefix.
+	([TcpInPort -_connectedOutPortInvalidated:]): Add debugging message.
+	([TcpInPort -classForConnectedCoder:]): Return the TcpOutPort class,
+	not [self class] because we always encode a "send right" (ala
+ 	Mach), not a "recieve right".
+	([TcpOutPort 
+	+newForSendingToSockaddr:withAcceptedSocket:pollingInPort:]):
+ 	Method renamed, and majorly overhauled.  Now many different
+ 	combinations of NULL argument do different things.  This is now
+ 	the single designated initializer.  We now check both the SOCKADDR
+ 	and the SOCK argument to find previously-created TcpOutPort's.
+  	This method is also used to set the remote_in_port_address of an
+ 	already-created TcpOutPort.  There is more error checking.
+	([TcpOutPort +newForSendingToPortNumber:onHost:]): Overhauled.
+	([TcpOutPort +_newWithAcceptedSocket:peeraddr:inPort:]): Overhauled to
+	work with new designated initalizer.
+	([TcpOutPort -sendPacket:withTimeout:]): Use new low-level Packet
+	interface that deals with reply ports.
+	([TcpOutPort +packetClass]): New method.
+	(PREFIX_LENGTH_TYPE): New macro.
+	(PREFIX_LENGTH_SIZE): New macro.
+	(PREFIX_ADDRESS_TYPE): New macro.
+	(PREFIX_ADDRESS_SIZE): New macro.
+	(PREFIX_SIZE): New macro.
+	([TcpPacket -_initForReceivingWithSize:replyPort:]): Use 0 prefix,
+	because the separate +_getPacketSize... method reads those bytes.
+	([TcpPacket -_writeToSocket:withReplySockaddr:]): Now the prefix
+	includes the sockaddr of the reply port.  If ADDR is non-null, set
+ 	the reply port address portion of the prefix.
+	([TcpPacket +_getPacketSize:andReplyPort:fromSocket:inPort:]): New
+	method, replacing +readPacketSizeFromSocket:.
+	([TcpPacket -_fillFromSocket:]): Set Stream's eofPosition properly.
+	Leave Stream's position at zero.
+	(InPortAcceptedClientNotification): New notification string.
+	* src/objects/TcpPort.h: Declare new ivars and notfication
+ 	strings.
+
+	* src/Proxy.m: Change many ivar names.
+	(debug_proxy): Temporarily set to 1.
+	([Proxy +newForRemoteTarget:connection:]): Set new ivar names.
+	Embellish debugging message to include connection.
+	([Proxy -invalidateProxy]): Return void instead of self.
+	([Proxy +encodeObject:withConnectedCoder:]): Overhauled, encode tag,
+	and change order of encoding for more efficient encoding.  Added
+ 	many comments.
+	([Proxy +newWithCoder:]): Likewise, to match.  Also added a check to
+	make sure we don't return a bogus pointer for a local object; do
+ 	this by checking with connection's +includesLocalObject; if it's
+ 	not there, raise an exception.
+	([Proxy -forward::]): Call the new forwarding method name in 
+	Connection.
+	* src/objects/Proxy.h: Several ivar name changes.  Method types
+ 	fixed.
+
+	* src/Connection.m (default_in_port_class,
+ 	default_out_port_class): New static variables, replacing
+ 	default_port_class.
+	(all_connections_local_targets): New map table; not used yet, though.
+	(debug_connection): Temporarily set to 1.
+	([Connection +initialize]): Set new static vars.
+	([Connection +setDefaultInPortClass:]): New method.
+	([Connection +defaultInPortClass]): New method.
+	([Connection +setDefaultOutPortClass:]): New method.
+	([Connection +defaultOutPortClass]): New method.
+	([Connection -init]): Use new default_in_port_class.
+	([Connection +new]): Likewise.
+	([Connection +newWithRootObject:]): Likewise.
+	([Connection +newRegisteringAtName:withRootObject:]): Likewise.
+	([Connection +rootProxyAtName:onHost:]): Likewise.
+	([Connection +rootProxyAtPort:]): Likewise.
+	([Connection +newForInPort:outPort:ancestorConnection:]): Assert the
+	in port.  Embellish the debugging message to print the in port and
+ 	out port.  Set the new connection's in port and out port ivars.
+  	Register ourselves as observers of port invalidation with the
+ 	NotificationDispatcher.  Post a notification that a new connection
+ 	was created.
+	([Connection -runConnectionWithTimeout:]): Use
+	_serviceReceivedRequestsWithTimeout:.
+	([Connection -_newReceivedRmcWithTimeout:]): Use decodingClass, not
+	encodingClass.
+	([Connection -_serviceReceivedRequestsWithTimeout:]): Method name
+	changed from -newReceivedReplyRmcWithSequenceNumber:.
+	([Connection +includesLocalObject:]): New method; still needs more
+	infrastructure to work, though.
+	([Connection -inPortClass]): New method.
+	([Connection -outPortClass]): New method.
+	([Connection -setInPortClass:aPortClass]): New method.
+	([Connection -setOutPortClass:aPortClass]): New method.
+	([Connection -_encoderCreateReferenceForConstPtr:]): Add 1 to map
+	table count to get xref.
+	([Connection -_decoderCreateReferenceForConstPtr:]): Likewise.
+	([Connection -dealloc]): Remove ourselves from the
+	NotificationDispatcher. 
+	(ConnectionWasCreatedNotification): New notification string.
+	* src/objects/Connection.h (in_port_class, out_port_class): New
+ 	ivars replacing port_class.  Declare methods to get and set them.
+
+	* src/ConnectedCoder.m (CONNECTED_CODER_FORMAT_VERSION): New
+ 	macro.
+	([ConnectedEncoder
+	-_initForWritingWithConnection:sequenceNumber:identifier:]): Get
+ 	packetClass from the connection's outPort, not the outPortClass.
+  	Return self.
+	([ConnectedDecoder
+	+readSignatureFromCStream:getClassname:formatVersion:]): Fill in
+ 	name and version.
+
+	* src/LinkedList.m ([LinkedList -prependObject:]): Fix return type.
+	([LinkedList -insertObject:atIndex:]): Likewise.
+
+	* src/Encoder.m ([Encoder -_coderCreateReferenceForObject:]):
+ 	Insert it in object_2_xref, not const_ptr_2_xref.
+	([Encoder -_encodeObject:withName:isBycopy:isForwardReference:]):
+	Create the in_progress_table with
+ 	NSNonOwnedPointerMapKeyCallBacks, not NSObject..; needed by
+ 	distributed objects so we don't get infinite loop with proxy
+ 	objects.
+
+	* src/Decoder.m ([Decoder
+ 	+readSignatureFromCStream:getClassname:formatVersion:]): Compare
+ 	got with 6, not 2.
+	([Decoder -_coderCreateReferenceForObject:]): Add warning comment
+	about a -retain we don't want.  Fix this eventually!
+
+	* src/objects/CoderPrivate.h (SIGNATURE_FORMAT_STRING): Remove
+ 	"version" from between class name and format version.
+
+	* src/CStream.m: Use new SIGNATURE_FORMAT_STRING, as defined in
+ 	objects/CoderPrivate.h.
+
+Sat Mar  2 19:33:26 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Wrote implementation of GNU Notification and
+	NotificationDispatcher classes.  Used these as the engines for new
+	versions of the NSNotification* classes.  The previous versions of
+	NSNotification and NSNotificationCenter were buggy and slow.  The
+	new GNU implementations have some dramatic improvements speed, due
+	to extra use of hash tables, and the use of LinkedList's; they
+	also have some better features.
+
+	* src/Notification.m: New file.
+	* src/NotificationDispatcher.m: New file.
+	* src/objects/Notification.h: New file.
+	* src/objects/NotificationDispatcher.h: New file.
+
+	* src/NSNotificationCenter.m: Completely new implementation based
+	on GNU NotificationDispatcher.  This version is much faster, and
+	has some better features.
+	* src/NSNotification.m: Completely new implementation based on GNU
+ 	Notification.
+	* src/Foundation/NSNotification.h: New interface based on GNU
+ 	Notification and NotificationDispatcher.
+
+	* src/Makefile.in (GNU_MFILES): Added Notification.m and
+ 	NotificationDispatcher.m.  Removed SocketPort.m.
+	(GNU_HEADERS): Added objects/Notification.h and
+	objects/NotificationDispatcher.h.  Removed objects/SocketPort.h.
+	* src/Foundation/NSConnection.h (NSConnectionDeath): New macro.
+
+	* src/objects/TcpPort.h: Declare new methods and new Notification
+ 	String.
+
+	* src/Proxy.m ([Proxy +initialize]): Don't return self.
+
+	* src/objects/Magnitude.h: Don't include <objc/Object.h>
+
+	* src/LinkedList.m ([LinkedList -insertObject:after:]): When
+ 	inserting first object, set _count to 1.
+	([LinkedList -insertObject:before:]): Likewise.
+	([LinkedList -appendObject:]): Don't claim ownership here if we're
+	going to call -insertObject:after: later.
+	([LinkedList -prependObject:]): Likewise.  And renamed from
+	prependElement.
+	([LinkedList -insertObject:atIndex:]): Likewise.
+	([LinkedList -newEnumState]): New method.
+	([LinkedList -nextObjectWithEnumState:]): Overhauled.
+	([LinkedList -prevObjectWithEnumState:]): Likewise.
+	* src/LinkedListNode.m ([LinkedListNode -initialize]): Method
+ 	removed.
+	([LinkedListNode -init]): Set _linked_list.
+
+	* src/Connection.m ([Connection +connectionsCountWithInPort:]):
+ 	Fix use of END_FOR_ARRAY.
+	([Connection -invalidate]): Post ConnectionBecameInvalidNotification.
+	(ConnectionBecameInvalidNotification): New extern String.
+
+	* src/objects/Connection.h (ConnectionBecameInvalidNotification):
+ 	Declare extern new String.
+
+	* src/objects/String.h (String): Make the protocol inherit from
+ 	the NSObject protocol.
+
+	* src/objects/Collecting.h (ConstantCollecting): Make is inherit
+ 	from the NSObject protocol.
+
+	* src/TcpPort.m ([TcpInPort -numberOfConnectedOutPorts]): New
+ 	method.
+	([TcpInPort -_connectedOutPortInvalidated:]): Post an
+	InPortClientBecameInvalidNotification.
+	([TcpInPort -portNumber]): New method.
+	([TcpInPort -description]): New method.
+	([TcpOutPort +newWithAcceptedSocket:inPort:]): Fill in the 
+	_address ivar.
+	([TcpOutPort -portNumber]): New method.
+	([TcpOutPort -description]): New method.
+
+	* src/Invocation.m ([MethodInvocation -invokeWithObject:]): Make
+ 	it a -subclassResponsibililty.
+	([MethodInvocation -initWithArgframe:selector:]): Raise an exception
+	if we are unable to get a non-null selector type string.
+
+	* src/Port.m ([Port -invalidate]): Post
+ 	PortBecameInvalidNotification.
+	(PortBecameInvalidNotification): New String object.
+
+	* src/NSGDictionary.m ([NSGMutableDictionary -objectForKey:]): New
+ 	method.
+
+	* src/KeyedCollection.m ([ConstantKeyedCollection -description]):
+ 	Use object_get_class_name instead of -name.
+
+	* src/Foundation/NSObject.h (NSObject (NEXSTEP)): Comment out
+ 	-name method because NSNotification.h declares it with a different
+ 	type.  Eventually we'll have to come up with a more permanent
+ 	solution.
+
+	* src/DelegatePool.m ([DelegatePool -forward::]): Fix use of
+ 	END_FOR_ARRAY.
+
+	* src/Collection.m ([Enumerator -nextObject]): Pass pointer to
+ 	ENUM_STATE.
+	([Enumerator -dealloc]): Likewise.
+	([ConstantCollection -detectObjectByInvoking:]): Use -returnValueIsTrue.
+	([ConstantCollection -printForDebugger]): Use object_get_class_name
+	instead of -name because -name is now ambiguously typed.
+
+Fri Mar  1 09:53:31 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/Makefile.in: Removed all invdividual targets for
+ 	executables.  Use general rule that works for GNU make, but may
+ 	not work for others.
+	(SRCS): Add tcpport-server.m and tcpport-client.m.
+	(tcpport): New target.
+
+	* src/MachPort.m: Surrounded by #if for mach.
+
+	* src/Port.m: Overhauled for new Port heirarchy.  More changes
+	than I want to list individually.
+	* src/objects/Port.h: Likewise.
+	* src/TcpPort.m, src/objects/TcpPort.h: New files.
+	* src/UdpPort.m, src/objects/UdpPort.h: New files.
+	* src/MachPort.m,src/objects/MachPort.h: New files.
+	* src/Makefile.in (GNU_MFILES): Added UdpPort.m.
+	(GNU_HEADERS): Added objects/UdpPort.h.
+	* src/Makefile.in (GNU_MFILES): Add MachPort.m.
+	(GNU_HEADERS): Add objects/MachPort.h.
+
+	* src/Encoder.m ([Encoder -_coderCreateReferenceForConstPtr:]):
+ 	Get xref before asserting it.
+
+	* src/objects/CoderPrivate.h (WRITE_SIGNATURE_FORMAT_ARGS): Use
+ 	STRINGIFY() for OBJECTS_PACKAGE_NAME.
+	* src/objects/stdobjects.h.in (STRINGIFY): New macro defined, if
+ 	not defined already.
+	(XSTRINGIFY): Likewise.
+
+	* src/objects/Array.h (END_FOR_ARRAY): Macro renamed from
+ 	FOR_ARRAY_END, and given argument.
+
+	* src/Connection.m: Overhauled for new collections, coders and
+	ports.  More changes than I want to list individually.
+	* src/ConnectedCoder.m: Likewise.
+	* src/objects/ConnectedCoder.h: Likewise.
+	* src/objects/Connection.h: Likewise.
+	* src/Proxy.m: Likewise.
+	* src/objects/Proxy.h: Likewise.
+	All this overhaul work not yet finished.
+	
+Thu Feb 29 21:49:33 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (GNUSTEP_MFILES): Re-added Connection.m and
+ 	ConnectedCoder.m.
+	(GNUSTEP_HEADERS): Removed duplicate Foundation/NSHashTable.h.
+
+Wed Feb 28 20:37:27 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/invocation.m: Test many new features.
+
+	* src/objects/CoderPrivate.h (SIGNATURE_FORMAT_STRING): Change to
+ 	include package name and version.
+	(WRITE_SIGNATURE_FORMAT_ARGS): New macro.
+	* src/objects/stdobjects.h.in: New macro.
+	* src/Decoder.m
+	([Decoder +readSignatureFromCStream:getClassname:formatVersion:]):
+	Get new values.
+	* src/Encoder.m ([Encoder -writeSignature]): Use new macro.
+
+	* src/Makefile.in (GNU_MFILES): Add TcpPort.m.
+	(GNU_HEADERS): Add objects/TcpPort.h.
+
+Sun Feb 25 13:01:50 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (FILE_AUTHORS): Added "Albin L. Jones".
+
+Sat Feb 24 13:47:40 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (GNUSTEP_MFILES): Add NSInvocation.m.
+
+	* src/NSInvocation.m: Class implemented using Invocation as
+ 	behavior.
+	* src/Foundation/NSInvocation.h: Remove ivars.  Define so that
+ 	behavior can be used.
+
+	* src/Invocation.m (return_retained): New macro.
+	([Invocation -setReturnValue:]): Retain return value if necessary.
+	([ArgframeInvocation -_retainArguments]): Add missing local var.
+	([MethodInvocation -initWithArgframe:type:]): New method.
+	([MethodInvocation -initWithArgframe:selector:]): Use new method.  Set
+	selector using sel_pointer.
+	([ObjectFunctionInvocation -invokeWithObject:]): Use return_retained,
+	not args_retained.
+
+Fri Feb 23 14:35:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Invocation.m ([Invocation -initWithReturnType:]): Use new
+ 	ivar names.  Use calloc instead of malloc.
+	([Invocation -encodeWithCoder:]): New method.
+	([Invocation -initWithCoder:]): New method.
+	([Invocation -classForConnectedCoder:]): New method.
+	([Invocation -returnType]): Use new ivar name.
+	([Invocation -setReturnValue:]): New method.
+	([Invocation -objectReturnValue]): Method implemented.
+	([Invocation -intReturnValue]): Method implemented.
+	([Invocation -returnValueIsTrue]): Method implementation finished.
+	([Invocation -dealloc]): Use new ivar name.  Release return type if
+	necessary.
+	([ArgframeInvocation -_retainArguments]): New method.
+	([ArgframeInvocation -_initArgframeFrom:withType:retainArgs:]): Method
+	overhauled.
+	([ArgframeInvocation -initWithArgframe:type:]): Use new method.
+	([ArgframeInvocation -encodeWithCoder:]): New method.
+	([ArgframeInvocation -initWithCoder:]): New method.
+	([ArgframeInvocation -argumentTypeAtIndex:]): Use new ivar name.
+	([ArgframeInvocation -retainArguments]): New method.
+	([ArgframeInvocation -argumentsRetained]): New method.
+	([ArgframeInvocation -_deallocArgframe]): New method.
+	([ArgframeInvocation -dealloc]): Use new method.  Release args if
+	necessary.
+	([MethodInvocation -_initTargetAndSelPointers]): New method.
+	([MethodInvocation -initWithArgframe:selector:]): Use new method.
+	([MethodInvocation -initWithCoder:]): New method.
+	([MethodInvocation -initWithTarget:selector:...]): Retain args if
+	necessary.
+	([MethodInvocation -invoke]): Use new ivars.
+	([MethodInvocation -invokeWithTarget:]): Use -setTarget:.
+	([MethodInvocation -selector]): Use new ivar.
+	([MethodInvocation -setSelector:]): Likewise.
+	([MethodInvocation -target]): Likewise.
+	([MethodInvocation -setTarget:]): Likewise.
+	([ObjectMethodInvocation -_initArgObjectPointer]): New method.
+	([ObjectMethodInvocation -initWithArgframe:selector:]): Use new method.
+	([ObjectMethodInvocation -initWithCoder:]): New method.
+	([ObjectMethodInvocation -invokeWithObject:]): New method.
+	(VoidFunctionInvocation): New class implementation.
+	(ObjectFunctionInvocation): New class implementation.
+
+	* src/objects/Invocation.h: Make -invoke methods return void.
+  	Include objects/Invoking.h.
+	(return_type): ivar renamed from encoding.
+	(ArgframeInvocation args_retained): new ivar.
+	(MethodInvocation target_pointer): new ivar.
+	(MethodInvocation sel_pointer): new ivar.
+	(VoidFunctionInvocation): New class.
+	(ObjectFunctionInvocation): New class.
+
+	* src/objects/Invoking.h: Make -invoke methods return void.
+
+	* src/Encoder.m ([Encoder +initialize]): Compare self with
+ 	Encoder, not Coder.
+	([Encoder +encodeRootObject:withName:toStream:]): Rename method to
+	-close.
+	([Encoder -encodeSelector:withName:name]): Use sel_get_any_typed_uid
+	instead of sel_get_any_uid.
+
+	* src/Stream.m ([Stream -close]): Method renamed from
+ 	-closeStream.
+	* src/objects/Streaming.h: Likewise.
+	* src/StdioStream.m ([Stream -close]): Likewise.
+	* src/MemoryStream.m ([Stream -close]): Likewise.
+
+	* src/objects/Coder.h ([Coder +setDefaultCStreamClass:]): Declare
+ 	method.
+	([Coder +defaultCStreamClass]): Declare method.
+
+	* src/Coder.m ([Coder -close]): Method renamed from -closeCoding.
+	* src/objects/Coding.h: Likewise.
+
 Thu Feb 22 10:03:01 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSObject.m (retain_counts): Make it a NSMapTable instead of
+ 	a coll_hash.
+	(NSIncrementExtraRefCount): Update for new retain_counts type.
+	(NSDecrementExtraRefCountWasZero): Likewise.
+	([NSObject +initialize]): Likewise.
+	([NSObject -retainCount]): Likewise.
+
+	* src/Makefile.in (GNU_HEADERS): Add objects/bitops.h,
+ 	objects/minmax.h.
+	(GNU_OTHER_SRCFILES): Add md5.h.
+	* src/Makefile.in (GNU_HEADERS): Add objects/Enumerating.h,
+ 	objects/Invoking.h.
+	* src/Makefile.in (GNU_HEADERS): Add objects/array.h.
+
+	* Makefile.in (DIST_FILES): Add RELEASE-NOTES.
+
+	* src/NSString.m ([NSString -hash]): Don't use elt_* function, and
+ 	use NSHashStringLength.
+	* src/String.m ([String -hash]): Likewise.
+
+	* src/simple-load.h (__objc_dynamic_find_symbol): Cast to drop
+ 	const type, and avoid warning.
+
+	* src/Makefile.in (GNU_MFILES): Remove eltfuncs.m.
+	(GNU_HEADERS): Remove objects/elt.h, objects/eltfuncs.h.
+	* src/Makefile.in (GNU_CFILES): Remove collhash.c.
+	(GNU_HEADERS): Remove objects/collhash.h.
+
+	* src/CString.m ([CString -initWithCString:range:]): Don't make
+ 	super call.  Fix infinite loop in _collectionDealloc.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-decodeValueOfCType:at:withName:]): Make save_type const.
+
+	* src/AutoreleasePool.m: Don't include <objects/eltfuncs.h>.
+	* src/AutoreleaseStack.m: Likewise.
+
+	* examples/textcoding.m: Overhaul for new collection class scheme
+ 	to improve distributed objects and NeXT-compatibility.
+
+	* checks/Makefile.in (SRCS): Add nsmaptable.m and nshashtable.m.
+	* checks/nsarchiver.m: Update for new Archiver classes.
+	* checks/test01.m: Update for new collection classes.
 
 	* doc/Makefile.in (TEXI_FILES): Add faq.texi.
 	* doc/faq.texi: New file.
 
-	* src/Coder.m: Move much of functionality to Encoder.m, Decoder.m,
- 	and objects/CoderPrivate.h.
-
-	* src/Invocation.m ([Invocation -objectReturnValue]): New method.
-	([Invocation -intReturnValue]): New method.
-	([Invocation -returnValueIsTrue]): New method.
-	([Invocation -initWithTarget:selector:...]): Use switch statement to
-	handle value arguments, instead of pointer-to-value arguments.
-
-	* src/NSConcreteNumber.m ([NumberTemplate -hash]): New method.
-	([NumberTemplate -isEqual:]): New method.
-	([NumberTemplate -encodeWithCoder:]): Make this self-contained.
-	([NumberTemplate -initWithCoder:]): Likewise.
-
-	* src/NSGCString.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
-
-	* src/NSData.m: Fix typos.
-
-	* src/String.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
-
-	* src/Port.m ([Port -encodeWithCoder:]): Fix argument type.
-
-	* src/OrderedCollection.m: Many fixes, continuing conversion from
- 	old IndexedCollection.m
-
-	* src/NSValue.m ([NSValueDecoder +newWithCoder:]): Comment out for
- 	now; I think it needs fixes.
-	([NSValueDecoder -initWithCoder:]): Likewise.
-
-	* src/NSNumber.m ([NSNumber -description]): New method.
-
-	* src/Foundation/atoz.h: New version from Albin Jones, plus fixes
- 	by McCallum.
-
-	* src/Foundation/NSMapTable.h: New version from Albin Jones, plus
- 	fixes by McCallum.
-
-	* src/Foundation/NSHashTable.h: New version from Albin Jones, plus
- 	fixes by McCallum.
-
 	* src/Foundation/NSGSet.h: Remove ivars, the behavior code now
  	handles this.
-
-	* src/Foundation/NSGDictionary.h: Remove ivars, the behavior code
- 	now handles this.
-
-	* src/allocs.c: New version from Albin Jones, plus fixes by
- 	McCallum.
-
-	* src/atoz.m: New version from Albin Jones, plus fixes by
- 	McCallum.
-
-	* src/array.c: New version from Albin Jones, plus fixes by
- 	McCallum.
+	* src/Foundation/NSGDictionary.h: Likewise.
 
 	* src/objects/Coder.h: Declare classes Encoder and Decoder;
  	extensive rearrangement of ivars, method names and protocols.
 
 	* src/objects/RetainingNotifier.h: Don't include <objc/List.h>
-
-	* src/objects/DelegatePool.h: Change many method return types to
- 	void.
 
 	* src/objects/Archiver.h: Subclass from Encoder and Decoder, not
  	Coder.
@@ -90,84 +799,74 @@ Thu Feb 22 10:03:01 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	objects/Invoking.h, objects/CoderPrivate.h,
 	objects/OrderedCollection.h: New files.
 
-	* src/NSHashTable.m: New version from Albin Jones, plus fixes by
- 	McCallum.
+	* src/Coder.m: Move much of functionality to Encoder.m, Decoder.m,
+ 	and objects/CoderPrivate.h.
 
-	* src/NSMapTable.m: New version from Albin Jones, plus fixes by
- 	McCallum.
+	* src/Invocation.m ([Invocation -objectReturnValue]): New method.
+	([Invocation -intReturnValue]): New method.
+	([Invocation -returnValueIsTrue]): New method.
+	([Invocation -initWithTarget:selector:...]): Use switch statement to
+	handle value arguments, instead of pointer-to-value arguments.
 
-	* src/NSString.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
+	* src/NSConcreteNumber.m ([NumberTemplate -hash]): New method.
+	([NumberTemplate -isEqual:]): New method.
+	([NumberTemplate -encodeWithCoder:]): Make this self-contained.
+	([NumberTemplate -initWithCoder:]): Likewise.
 
-	* src/NSGSet.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
+	* src/NSData.m: Fix typos.
 
-	* src/NSGDictionary.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
+	* src/Port.m ([Port -encodeWithCoder:]): Fix argument type.
 
-	* src/NSGCountedSet.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
+	* src/OrderedCollection.m: Many fixes, continuing conversion from
+ 	old IndexedCollection.m
 
-	* src/NSGArray.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
+	* src/NSValue.m ([NSValueDecoder +newWithCoder:]): Comment out for
+ 	now; I think it needs fixes.
+	([NSValueDecoder -initWithCoder:]): Likewise.
 
-	* src/NSGArchiver.m: Use new Archiver classes instead of Coder.
+	* src/NSNumber.m ([NSNumber -description]): New method.
 
-	* src/MutableString.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
+        * src/callbacks-char_p.c, src/callbacks-id.m, src/callbacks-int.c,
+ 	src/callbacks-int_p.c, src/callbacks-void_p.c, src/callbacks.c,
+ 	src/hash.c, src/list.c, src/map.c, src/objects/allocs.h,
+ 	src/objects/array.h, src/objects/callbacks.h, src/objects/data.h,
+ 	src/objects/hash.h, src/objects/list.h, src/objects/map.h,
+ 	src/objects/objects.h, src/x-basics.c.in, src/x-callbacks.c.in,
+ 	src/NSHashTable .m, src/NSMapTable.m, src/Foundation/atoz.h,
+	src/Foundation/NSMapTable.h, src/Foundation/NSHashTable.h: New
+ 	version from Albin Jones, plus fixes by McCallum.
 
-	* src/MutableCString.m: Overhaul for new collection class scheme
- 	to improve distributed objects and NeXT-compatibility.
+	Major overhaul of collection class heirarchy to improve
+	distributed objects and NeXT-compatibility.  Many classes
+	entirely-reworked.  More changes than I want to list here.
 
-	* src/MallocAddress.m: Update for new collection class scheme: use
-	NSMapTable instead of Dictionary class.
+        * src/KeyedCollection.m, src/IndexedCollection.m, src/Heap.m,
+ 	src/GapArray.m, src/Dictionary.m, src/Bag.m, src/Array.m,
+ 	src/CircularArray.m, src/Collection.m, src/ConstantString.m,
+ 	src/DelegatePool.m, src/MappedCollector.m, src/MutableString.m,
+ 	src/MutableCString.m, src/Queue.m, src/RBTree.m, src/Set.m,
+ 	src/SplayTree.m, src/Stack.m, src/objects/Array.h,
+ 	src/objects/Bag.h, src/objects/BinaryTree.h,
+ 	src/objects/BinaryTreeNode.h, src/objects/Collecting.h,
+ 	src/objects/Collection.h, src/objects/CollectionPrivate.h,
+ 	src/objects/Dictionary.h, src/objects/Heap.h,
+ 	src/objects/IndexedCollecting.h, src/objects/IndexedCollection.h,
+ 	src/objects/KeyedCollecting.h, src/objects/KeyedCollection.h,
+ 	src/objects/LinkedList.h, src/objects/LinkedListNode.h,
+ 	src/MallocAddress.m, src/objects/MappedCollector.h,
+ 	src/MutableString.m, src/MutableCString.m, src/NSString.m,
+ 	src/NSGSet.m, src/NSGCString.m, src/NSGDictionary.m,
+ 	src/NSGCountedSet.m, src/NSGArray.m, src/NSGArchiver.m,
+ 	src/objects/Queue.h, src/objects/Set.h, src/objects/SplayTree.h,
+ 	src/objects/Stack.h, src/String.m: Overhaul for new collection
+ 	class scheme to improve distributed objects and
+ 	NeXT-compatibility.
 
 	* src/DelegatePool.m: Overhaul for new collection class scheme to
  	improve distributed objects and NeXT-compatibility.  Change
  	several methods to return void.
-
-	* src/ConstantString.m: Overhaul for new collection class scheme
- 	to improve distributed objects and NeXT-compatibility.
-
-	* src/CString.m ([CString -initWithCString:range:]): Don't make
- 	super call.  Fix infinite loop in _collectionDealloc.
-
-	* src/BinaryCStream.m ([BinaryCStream
- 	-decodeValueOfCType:at:withName:]): Make save_type const.
-
-	* src/AutoreleaseStack.m: Don't include <objects/eltfuncs.h>.
-
-	* src/AutoreleasePool.m: Don't include <objects/eltfuncs.h>.
-
-	* examples/textcoding.m: Overhaul for new collection class scheme
- 	to improve distributed objects and NeXT-compatibility.
-
-	* src/KeyedCollection.m: Overhaul for new collection class scheme
- 	to improve distributed objects and NeXT-compatibility.
-
-	* src/IndexedCollection.m: Overhaul for new collection class
- 	scheme to improve distributed objects and NeXT-compatibility.
-
-	* src/Heap.m: Overhaul for new collection class scheme to improve
- 	distributed objects and NeXT-compatibility.
-
-	* src/GapArray.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
-
-	* src/Dictionary.m: Overhaul for new collection class scheme to
- 	improve distributed objects and NeXT-compatibility.
-
-	* src/Bag.m: Overhaul for new collection class scheme to improve
- 	distributed objects and NeXT-compatibility.
-
-	* src/Array.m: Overhaul for new collection class scheme to improve
- 	distributed objects and NeXT-compatibility.
-
-	* checks/Makefile.in (SRCS): Add nsmaptable.m and nshashtable.m.
-
-	* checks/nsarchiver.m: Update for new Archiver classes.
-
-	* checks/test01.m: Update for new collection classes.
+	* src/objects/DelegatePool.h: Change many method return types to
+ 	void.
 
 Thu Feb 15 11:18:33 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
