@@ -1,3 +1,71 @@
+Sat Mar 30 10:05:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSAutoreleasePool.m: Make NSAutoreleasePools co-exist with
+ 	exceptions, safely and without leaks.  (Also improve efficiency by
+ 	using a linked list of arrays instead of realloc when more space
+ 	is needed, and by using a cache of pools that helps avoid the
+ 	allocation/deallocation of pools.)
+	(push_pool_to_cache): New function.
+	(pop_pool_from_cache): New function.
+	([NSAutoreleasePool +initialize]): New method.
+	([NSAutoreleasePool +allocWithZone:]): New method.
+	([NSAutoreleasePool -init]): Method overhauled to initialize new ivar
+	for handling exceptions, _child; also use pool cache.
+	(total_autoreleased_objects_count): New static variable.
+	(BEGINNING_POOL_SIZE): Macro renamed from DEFAULT_SIZE.
+	(autorelease_pool_cache, autorelease_pool_cache_size,
+	autorelease_pool_cache_count): New static variables.
+	([NSAutoreleasePool -_setChildPool:]): New method, handling stack and
+	dealing with exceptions.
+	([NSAutoreleasePool -addObject:]): Deal with linked list of arrays.
+	([NSAutoreleasePool -dealloc]): Deal with exceptions by releasing
+	child pools.  Place self into the pool cache instead of
+ 	deallocating.
+	([NSAutoreleasePool +resetTotalAutoreleasedObjects]): New method.
+	([NSAutoreleasePool +totalAutoreleasedObjects]): New method.
+	* src/Foundation/NSAutoreleasePool.h: Declare new ivars and
+ 	methods.
+
+	* src/NSArray.m ([NSArray -isEqualToArray:]): Fix typo; reverse
+ 	test for returning NO.
+	([NSArray -arrayByAddingObject:]): New function, from Scott
+	Christley.
+	([NSArray -arrayByAddingObjectsFromArray:]): Likewise.
+	([NSArray -subarrayWithRange:]): Implemented by Scott Christely.
+	([NSMutableArray -removeObjectIdenticalTo:]): Don't fail if the object
+	is not present.  Initial implementation by Scott Christley
+	overhauled by McCallum.
+	([NSMutableArray -removeObject:]): Likewise.
+	([NSMutableArray -removeAllObjects]): Implemented by Scott Christley.
+	([NSMutableArray -setArray:]): New function, from Scott Christley.
+	* src/Foundation/NSArray.h: Declare new methods.
+
+	* src/objects/ArrayPrivate.h: Add new semantic to ivar
+ 	_grow_factor: if it is less than 0, the array capacity grows by
+ 	-_grow_factor, but never shrinks.
+	(incrementCount): Use the ABS() of _grow_factor.
+	(decrementCount): Only shrink the array capacity if _grow_factor
+	is greater than 0.
+	* src/objects/Array.h (Array _grow_factor): Change type of ivar
+ 	from unsigned to int.
+	* src/Array.m ([Array +defaultGrowFactor]): Return type changed to
+ 	int.
+	([Array -growFactor]): Likewise.
+	* src/objects/stdobjects.h.in (ABS): New macro, defined if not
+ 	already defined.
+	* src/objects/Array.h: Change return types of "grow factor"
+ 	methods from unsigned to int.
+
+	* src/IndexedCollection.m ([IndexedCollection -removeObject:]):
+ 	Now removes *all* instances of ANOBJECT, not just one.
+	([IndexedCollection -replaceObject:withObject:]): Now replaces *all*
+	instances of OLDOBJECT, not just one.
+	* src/objects/IndexedCollecting.h (NO_INDEX): Change from UINT_MAX
+ 	to NSNotFound, so that Array and NSArray can coexist.
+
+	* checks/test01.m ([ConstantCollection -printCount]): Use
+ 	object_get_class_name() instead of sending -name.
+
 Fri Mar 29 09:47:39 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Overhaul mframe functions.
@@ -34,6 +102,16 @@ Fri Mar 29 09:47:39 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
  	space for _C_PTR values, struct's and arrays.
 	* src/objects/mframe.h: Declare new method names, and comment.
 
+	* src/Connection.m ([Connection
+ 	-forwardForProxy:selector:argFrame:]): Use new mframe interface.
+  	In the nested function DECODER, autorelease any char*'s that we
+ 	decode, as required by the new memory reference scheme.
+	([Connection -_service_forwardForProxy:]): Likewise, for both.
+
+	* src/Collection.m ([ConstantCollection
+ 	-_collectionReleaseContents]): Use alloca() instead of malloc()
+ 	and free().
+
 	Fixes to checks for testing new coding of float and double.
 	* checks/server.m ([Server -returnFloat]): Append float const with
  	`f'.  Include <objects/Proxy.h> for -connectionForProxy.
@@ -45,13 +123,6 @@ Fri Mar 29 09:47:39 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
  	-encodeValueOfCType:at:withName:]): Encode the exponent as a
  	short, not an int.
 	([BinaryCStream -decodeValueOfCType:at:withName:]): Likewise, decoding.
-
-	* src/Connection.m ([Connection
- 	-forwardForProxy:selector:argFrame:]): Use new mframe interface.
-  	In the nested function DECODER, autorelease any char*'s that we
- 	decode, as required by the new memory reference scheme.
-	([Connection -_service_forwardForProxy:]): Likewise, for both.
-
 	* src/BinaryCStream.m ([BinaryCStream
  	-encodeValueOfCType:at:withName:]): [_C_CHARPTR]: Don't
  	autorelease the malloc'ed pointer here; thus the behavior is
@@ -59,10 +130,6 @@ Fri Mar 29 09:47:39 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
  	the callers responsibility to free it.
 	([BinaryCStream -decodeValueOfCType:at:withName:]): [_C_DBL]: Fix
 	typo.  Use mantissa1, not mantissa2 twice.
-
-	* src/Collection.m ([ConstantCollection
- 	-_collectionReleaseContents]): Use alloca() instead of malloc()
- 	and free().
 
 	Fix the scheme for encoding and decoding floats and doubles.  The
 	old scheme sometimes lost precision, and it was also very
