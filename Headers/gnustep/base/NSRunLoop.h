@@ -34,11 +34,15 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
 @interface NSRunLoop : NSObject <GCFinalization>
 {
   @private
-  NSString		*_currentMode;
-  NSMapTable		*_contextMap;
-  NSMutableArray	*_contextStack;
-  NSMutableArray	*_timedPerformers;
-  void			*_extra;
+  id		_current_mode;
+  NSMapTable	*_mode_2_timers;
+  NSMapTable	*_mode_2_watchers;
+  NSMapTable	*_mode_2_performers;
+  NSMutableArray *_timedPerformers;
+  NSMapTable	*_efdMap;
+  NSMapTable	*_rfdMap;
+  NSMapTable	*_wfdMap;
+  int		_fdStart;
 }
 
 + (NSRunLoop*) currentRunLoop;
@@ -51,7 +55,7 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
 
 - (NSString*) currentMode;
 
-- (NSDate*) limitDateForMode: (NSString*)mode;
+- (NSDate*)limitDateForMode: (NSString*)mode;
 
 - (void) run;
 
@@ -68,14 +72,14 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
          forMode: (NSString*)mode;
 
 - (void) cancelPerformSelector: (SEL)aSelector
-			target: (id)target
-		      argument: (id)argument;
+			target: target
+		      argument: argument;
 
 - (void) configureAsServer;
 
 - (void) performSelector: (SEL)aSelector
-		  target: (id)target
-		argument: (id)argument
+		  target: target
+		argument: argument
 		   order: (unsigned int)order
 		   modes: (NSArray*)modes;
 
@@ -89,10 +93,10 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
  */
 
 typedef	enum {
-    ET_RDESC,	/* Watch for descriptor becoming readable.	*/
-    ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
-    ET_RPORT,	/* Watch for message arriving on port.		*/
-    ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
+    ET_RDESC,   /* Watch for descriptor becoming readable.	*/
+    ET_WDESC,   /* Watch for descriptor becoming writeable.	*/
+    ET_RPORT,   /* Watch for message arriving on port.		*/
+    ET_EDESC   /* Watch for descriptor with exception data.	*/
 } RunLoopEventType;
 
 @protocol RunLoopEvents
@@ -121,9 +125,29 @@ typedef	enum {
 
 @interface NSRunLoop(GNUstepExtensions)
 
+#if 0
 /*
- *	These are general purpose methods for letting objects ask
- *	the runloop to watch for events for them.  Only one object
+ * The following ten methods are DEPRECATED
+ * They will be removed in later releases of GNUstep
+ */
++ currentInstance;
++ (NSString*) currentMode;
++ (void) run;
++ (BOOL) runOnceBeforeDate: (NSDate*)date;
++ (BOOL) runOnceBeforeDate: (NSDate*)date
+		   forMode: (NSString*)mode;
++ (void) runUntilDate: (NSDate*)date;
++ (void) runUntilDate: (NSDate*)date
+	      forMode: (NSString*)mode;
+- (BOOL) runOnceBeforeDate: (NSDate*)date;
+- (BOOL) runOnceBeforeDate: (NSDate*)date
+		   forMode: (NSString*)mode;
+- (void) runUntilDate: (NSDate*)date
+	      forMode: (NSString*)mode;
+#endif
+/*
+ *	These next two are general purpose methods for letting objects
+ *	ask the runloop to watch for events for them.  Only one object
  *	at a time may be watching for a particular event in a mode, but
  *	that object may add itsself as a watcher many times as long as
  *	each addition is matched by a removal (the run loop keeps count).
