@@ -489,5 +489,85 @@
   [self encodeValueOfObjCType: @encode(id) at: anObject withName: name];
 }
 
-
 @end
+
+
+
+#include	"GSPrivate.h"
+
+@implementation	_NSKeyedCoderOldStyleArray
+- (const void*) bytes
+{
+  return _a;
+}
+- (unsigned) count
+{
+  return _c;
+}
+- (void) dealloc
+{
+  DESTROY(_d);
+  [super dealloc];
+}
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  id		o;
+  void		*address;
+  unsigned	i;
+
+  _c = [aCoder decodeIntForKey: @"NS.count"];
+  _t[0] = (char)[aCoder decodeIntForKey: @"NS.type"];
+  _t[1] = '\0';
+
+  /*
+   * We decode the size from the remote end, but discard it as we
+   * are probably safer to use the local size of the datatype involved.
+   */
+  _s = [aCoder decodeIntForKey: @"NS.size"];
+  _s = objc_sizeof_type(_t);
+
+  _d = o = [[NSMutableData alloc] initWithLength: _c * _s];
+  _a = address = [o mutableBytes];
+  for (i = 0; i < _c; i++)
+    {
+      [aCoder decodeValueOfObjCType: _t at: address];
+      address += _s;
+    }
+  return self;
+}
+
+- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a
+{
+  _t[0] = *t;
+  _t[1] = '\0';
+  _s = objc_sizeof_type(_t);
+  _c = c;
+  _a = a;
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  int	i;
+
+  [aCoder encodeInt: _c forKey: @"NS.count"];
+  [aCoder encodeInt: *_t forKey: @"NS.type"];
+  [aCoder encodeInt: _s forKey: @"NS.size"];
+  for (i = 0; i < _c; i++)
+    {
+      [aCoder encodeValueOfObjCType: _t at: _a];
+      _a += _s;
+    }
+}
+
+- (unsigned) size
+{
+  return _s;
+}
+
+- (const char*) type
+{
+  return _t;
+}
+@end
+

@@ -1531,7 +1531,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  if (x == NSPropertyListXMLFormat_v1_0)
 	    {
-	      [dest appendBytes: "<integer>" length: 8];
+	      [dest appendBytes: "<integer>" length: 9];
 	      XString([obj stringValue], dest);
 	      [dest appendBytes: "</integer>\n" length: 11];
 	    }

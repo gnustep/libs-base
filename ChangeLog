@@ -1,6 +1,22 @@
+2004-01-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Fix bug in encoding integers as xml.
+	* Source/GSPrivate.h: Added internal class for handling old style
+	arrays of items within keyed coding ... should this go elsewhere?
+	* Source/NSCoder.m: Added internal class for keyed coding of
+	arrays of items.
+	* Source/NSKeyedArchiver.m: Added support for
+	([encodeArrayOfobjCType:count:at:]) and the private
+	([_encodeArrayOfObjects:forKey:]) method.  This completes (afaik) the
+	implementation for archiving ... and it's somewhat tested for xml
+	coding.  Time to start using and debugging.
+	* Source/NSKeyedUnarchiver.m: All methods now implemented, but no
+	proper type checking/coercion done, and minimal testing done.
+	No attempt to handle OpenStep style property lists either, just xml!
+
 2004-01-24 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* wHeaders/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
 	* Source/NSKeyedArchiver.m:
 	Add keyed version of geometry encoding methods as pointed out by
 	Fred Kiefer.
