@@ -40,12 +40,12 @@
 
 - nextObject
 {
-  return [collection nextObjectWithEnumState: enum_state];
+  return [collection nextObjectWithEnumState: &enum_state];
 }
 
 - (void) dealloc
 {
-  [collection freeEnumState: enum_state];
+  [collection freeEnumState: &enum_state];
   [collection release];
 }
 
@@ -305,7 +305,8 @@
 
   FOR_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if ([anInvocation invokeWithObject: o])
+      [anInvocation invokeWithObject: o];
+      if ([anInvocation returnValueIsTrue])
 	{
 	  flag = NO;
 	  detectedObject = o;
@@ -593,7 +594,7 @@
       printf("%s ", [[o description] cStringNoCopy]);
     }
   END_FOR_COLLECTION(self);
-  printf(": %s\n", [self name]);
+  printf(": %s\n", object_get_class_name (self));
   return self;
 }
 
