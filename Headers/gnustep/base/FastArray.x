@@ -209,11 +209,13 @@ FastArrayAddItemNoRetain(FastArray array, FastArrayItem item)
 /*
  *	The comparator function takes two items as arguments, the first is the
  *	item to be added, the second is the item already in the array.
- *	The function should return <0 if the item to be added is 'less than'
- *	the item in the array, >0 if it is greater, and 0 if it is equal.
+ *      The function should return NSOrderedAscending if the item to be
+ *      added is 'less than' the item in the array, NSOrderedDescending
+ *      if it is greater, and NSOrderedSame if it is equal.
  */
 static INLINE unsigned
-FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
+FastArrayInsertionPosition(FastArray array, FastArrayItem item, 
+	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
 {
   unsigned	upper = array->count;
   unsigned	lower = 0;
@@ -224,26 +226,28 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
    */
   for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
     {
-      int	comparison = (*sorter)(item.obj, (array->ptr[index]).obj);
+      NSComparisonResult comparison;
 
-      if (comparison < 0)
-	{
-	  upper = index;
+      comparison = (*sorter)(item, (array->ptr[index]));
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
         }
-      else if (comparison > 0)
-	{
-	  lower = index + 1;
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
         }
       else
-	{
-	  break;
-        } 
+        {
+          break;
+        }
     }
   /*
    *	Now skip past any equal items so the insertion point is AFTER any
    *	items that are equal to the new one.
    */
-  while (index < array->count && (*sorter)(item.obj, (array->ptr[index]).obj) >= 0)
+  while (index < array->count
+    && (*sorter)(item, (array->ptr[index])) != NSOrderedAscending)
     {
       index++;
     }
@@ -253,20 +257,22 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
 
 #ifndef	NS_BLOCK_ASSERTIONS
 static INLINE void
-FastArrayCheckSort(FastArray array, int (*sorter)())
+FastArrayCheckSort(FastArray array, 
+	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
 {
   unsigned	i;
 
   for (i = 1; i < array->count; i++)
     {
-      NSCAssert(((*sorter)((array->ptr[i-1]).obj, (array->ptr[i]).obj) <= 0),
-	NSInvalidArgumentException);
+      NSCAssert(((*sorter)(array->ptr[i-1], array->ptr[i]) 
+	         != NSOrderedDecending), NSInvalidArgumentException);
     }
 }
 #endif
 
 static INLINE void
-FastArrayInsertSorted(FastArray array, FastArrayItem item, int (*sorter)())
+FastArrayInsertSorted(FastArray array, FastArrayItem item, 
+	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
 {
   unsigned	index;
 
@@ -278,7 +284,8 @@ FastArrayInsertSorted(FastArray array, FastArrayItem item, int (*sorter)())
 }
 
 static INLINE void
-FastArrayInsertSortedNoRetain(FastArray array, FastArrayItem item, int (*sorter)())
+FastArrayInsertSortedNoRetain(FastArray array, FastArrayItem item,
+	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
 {
   unsigned	index;
 
