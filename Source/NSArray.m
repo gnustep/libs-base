@@ -728,25 +728,14 @@ static int compare(id elem1, id elem2, void* context)
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-  extern BOOL GSMacOSXCompatiblePropertyLists();
+  NSMutableString	*result;
 
-  if (GSMacOSXCompatiblePropertyLists() == YES)
-    {
-      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
-
-      return GSXMLPlMake(self, locale, level);
-    }
-  else
-    {
-      NSMutableString	*result;
-
-      result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
-      result = AUTORELEASE(result);
-      [self descriptionWithLocale: locale
-			   indent: level
-			       to: (id<GNUDescriptionDestination>)result];
-      return result;
-    }
+  result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
+  result = AUTORELEASE(result);
+  [self descriptionWithLocale: locale
+		       indent: level
+			   to: (id<GNUDescriptionDestination>)result];
+  return result;
 }
 
 static NSString	*indentStrings[] = {
@@ -841,11 +830,29 @@ static NSString	*indentStrings[] = {
 
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
+  extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
   NSString	*desc;
 
   loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-  desc = [self descriptionWithLocale: loc indent: 0];
+
+  if (GSMacOSXCompatiblePropertyLists() == YES)
+    {
+      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc);
+
+      desc = GSXMLPlMake(self, loc);
+    }
+  else
+    {
+      NSMutableString	*result;
+
+      result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
+      result = AUTORELEASE(result);
+      [self descriptionWithLocale: loc
+			   indent: 0
+			       to: (id<GNUDescriptionDestination>)result];
+      desc = result;
+    }
 
   return [desc writeToFile: path atomically: useAuxiliaryFile];
 }

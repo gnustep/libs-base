@@ -1,3 +1,12 @@
+2001-09-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCompatibility.m: GSXMLPlMake() unused argument removed.
+	* Source/NSData.m: Unused and commented out XML plist code removed.
+	* Source/NSString.m: ditto
+	* Source/NSArray.m: Generate XML plists only when writing to file,
+	not for the -description... methods.  This is what MacOS-X does.
+	* Source/NSDictionary.m: ditto
+
 2001-09-05  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Define BROKEN_NESTED_FUNCTIONS if compiler sucks.
