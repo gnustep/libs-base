@@ -238,6 +238,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	}
 	
       connectOK = NO;
+      acceptOK = NO;
       readOK = YES;
       writeOK = YES;
     }
@@ -303,6 +304,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [info release];
       [self watchWriteDescriptor];
       connectOK = YES;
+      acceptOK = NO;
       readOK = NO;
       writeOK = NO;
     }
@@ -360,6 +362,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
   if (self)
     {
+      connectOK = NO;
       acceptOK = YES;
       readOK = NO;
       writeOK = NO;
@@ -381,7 +384,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       self = [self initWithFileDescriptor: d closeOnDealloc: YES];
       if (self)
-	writeOK = NO;
+	{
+	  connectOK = NO;
+	  acceptOK = NO;
+	  writeOK = NO;
+	}
       return self;
     }
 }
@@ -399,7 +406,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       self = [self initWithFileDescriptor: d closeOnDealloc: YES];
       if (self)
-        readOK = NO;
+	{
+	  connectOK = NO;
+	  acceptOK = NO;
+	  readOK = NO;
+	}
       return self;
     }
 }
@@ -415,7 +426,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      return [self initWithFileDescriptor: d closeOnDealloc: YES];
+      self = [self initWithFileDescriptor: d closeOnDealloc: YES];
+      if (self)
+	{
+	  connectOK = NO;
+	  acceptOK = NO;
+	}
+      return self;
     }
 }
 
@@ -433,7 +450,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   self = fh_stderr;
   if (self)
-    readOK = NO;
+    {
+      readOK = NO;
+    }
   return self;
 }
 
@@ -451,7 +470,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   self = fh_stdin;
   if (self)
-    writeOK = NO;
+    {
+      writeOK = NO;
+    }
   return self;
 }
 
@@ -469,7 +490,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   self = fh_stdout;
   if (self)
-    readOK = NO;
+    {
+      readOK = NO;
+    }
   return self;
 }
 
@@ -525,6 +548,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       writeInfo = [[NSMutableArray array] retain];
       readPos = 0;
       writePos = 0;
+      connectOK = YES;
+      acceptOK = YES;
       readOK = YES;
       writeOK = YES;
     }
