@@ -1,4 +1,4 @@
-AC_INIT(src/Collection.m)
+AC_INIT(Source/Collection.m)
 
 # configure.in for GNU Objective-C library
 # Process this file with autoconf to produce a configure script.
@@ -27,7 +27,7 @@ AC_INIT(src/Collection.m)
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(src/include/config.h)
+AC_CONFIG_HEADER(Source/include/config.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -548,12 +548,12 @@ esac
 AC_SUBST(whole_archive)
 AC_SUBST(no_whole_archive)
 
-AC_CONFIG_SUBDIRS(src/mframe)
+AC_CONFIG_SUBDIRS(Source/mframe)
 
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(config.mak src/include/GSConfig.h)
+AC_OUTPUT(config.mak Source/include/GSConfig.h)
 
 dnl Local Variables:
 dnl comment-start: "dnl "
