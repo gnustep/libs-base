@@ -25,6 +25,9 @@
    "Class without any instance variables".  A key feature of behaviors
    is that they give a degree of multiple inheritance.
 
+   Behavior methods override the class's superclass methods, but not 
+   the class's methods.
+
    xxx not necessarily on the "no instance vars".  The behavior just has 
    to have the same layout as the class.
 
