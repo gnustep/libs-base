@@ -1,3 +1,8 @@
+2001-01-10 Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/GSAttributedString.m ([GSAttributedString -length]),
+	([GSMutableAttributedString -length]): Added for speed.
+
 2001-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Fix bug in checking possible default string

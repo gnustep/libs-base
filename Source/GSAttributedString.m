@@ -490,6 +490,13 @@ _attributesAtIndexEffectiveRange(
   [super dealloc];
 }
 
+
+// The superclass implementation is correct but too slow
+- (unsigned int) length
+{
+  return [_textChars length];
+}
+
 @end
 
 
@@ -826,6 +833,12 @@ SANITY();
   RELEASE(_textChars);
   RELEASE(_infoArray);
   [super dealloc];
+}
+
+// The superclass implementation is correct but too slow
+- (unsigned int) length
+{
+  return [_textChars length];
 }
 
 @end
