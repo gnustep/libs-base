@@ -173,35 +173,6 @@ static void	queue_pop();
 static void	queue_probe(struct in_addr* to, struct in_addr *from,
   int num_extras, struct in_addr* extra, int is_reply);
 
-/*
- *	I have simple mcopy() and mzero() implementations here for the
- *	present because there seems to be a bug in the gcc 2.7.2.1
- *	memcpy() and memset() on SunOS 4.1.3 for sparc!
- */
-static void
-mcopy(void* p0, void* p1, int l)
-{
-  uptr	b0 = (uptr)p0;
-  uptr	b1 = (uptr)p1;
-  int	i;
-
-  for (i = 0; i < l; i++)
-    {
-      b0[i] = b1[i];
-    }
-}
-
-static void
-mzero(void* p, int l)
-{
-  uptr	b = (uptr)p;
-
-  while (l > 0)
-    {
-      *b++ = '\0';
-      l--;
-    }
-}
 
 #if (defined __MINGW__)
 /* A simple implementation of getopt() */
@@ -453,8 +424,7 @@ delRInfo(int s)
   _rInfoCount--;
   if (i != _rInfoCount) /* not last element */
     {
-      memcpy(&(_rInfo[i]), &(_rInfo[i+1]),
-       (_rInfoCount-i)*sizeof(RInfo));
+      memmove(&(_rInfo[i]), &(_rInfo[i+1]), (_rInfoCount-i)*sizeof(RInfo));
     }
 }
 
@@ -527,8 +497,7 @@ delWInfo(int s)
   _wInfoCount--;
   if (i != _wInfoCount) /* not last element */
     {
-      memcpy(&(_wInfo[i]), &(_wInfo[i+1]),
-       (_wInfoCount-i)*sizeof(WInfo));
+      memmove(&(_wInfo[i]), &(_wInfo[i+1]), (_wInfoCount-i)*sizeof(WInfo));
     }
 }
 
@@ -677,7 +646,7 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
   m->size = l;
   m->net = (t & GDO_NET_MASK);
   m->svc = (t & GDO_SVC_MASK);
-  mcopy(m->name, n, l);
+  memcpy(m->name, n, l);
 
   if (map_used >= map_size)
     {
@@ -1716,7 +1685,7 @@ init_ports()
    *	Now we bind our address to the socket and prepare to accept incoming
    *	connections by listening on it.
    */
-  mzero(&sa, sizeof(sa));
+  memset(&sa, '\0', sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = htonl(INADDR_ANY);
   sa.sin_port = my_port;
@@ -1781,7 +1750,7 @@ init_ports()
     }
 #endif /* __MINGW__ */
 
-  mzero(&sa, sizeof(sa));
+  memset(&sa, '\0', sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = htonl(INADDR_ANY);
   sa.sin_port = my_port;
@@ -2143,7 +2112,7 @@ handle_accept()
       FD_SET(desc, &read_fds);
       ri = getRInfo(desc, 1);
       ri->pos = 0;
-      mcopy((char*)&ri->addr, (char*)&sa, sizeof(sa));
+      memcpy((char*)&ri->addr, (char*)&sa, sizeof(sa));
 
       if (debug)
 	{
@@ -2650,7 +2619,7 @@ handle_request(int desc)
 		  int			result;
 		  short			p = m->port;
 
-		  mzero(&sa, sizeof(sa));
+		  memset(&sa, '\0', sizeof(sa));
 		  sa.sin_family = AF_INET;
 		  sa.sin_addr.s_addr = htonl(INADDR_ANY);
 		  sa.sin_port = htons(p);
@@ -2746,7 +2715,7 @@ handle_request(int desc)
 		  int			result;
 		  unsigned short	p = (unsigned short)m->port;
 
-		  mzero(&sa, sizeof(sa));
+		  memset(&sa, '\0', sizeof(sa));
 		  sa.sin_family = AF_INET;
 		  /* FIXME: This must not be INADDR_ANY on Win,
 		     otherwise the system will try to bind on any of
@@ -2846,7 +2815,7 @@ handle_request(int desc)
       wi->buf = (char*)malloc(sizeof(unsigned long)
 	+ (prb_used+1)*IASIZE);
       *(unsigned long*)wi->buf = htonl(prb_used+1);
-      mcopy(&wi->buf[4], &ri->addr.sin_addr, IASIZE);
+      memcpy(&wi->buf[4], &ri->addr.sin_addr, IASIZE);
 
       /*
        * Copy the addresses of the hosts we have probed into the buffer.
@@ -2857,7 +2826,7 @@ handle_request(int desc)
        */
       for (i = 0, j = prb_used; i < prb_used; i++)
 	{
-	  mcopy(&wi->buf[4+(i+1)*IASIZE], &prb[--j]->sin, IASIZE);
+	  memcpy(&wi->buf[4+(i+1)*IASIZE], &prb[--j]->sin, IASIZE);
 	}
       wi->len = 4 + (prb_used+1)*IASIZE;
     }
@@ -2971,15 +2940,15 @@ handle_request(int desc)
 	  r->rtype = GDO_PREPLY;
 	  r->nsize = IASIZE*2;
 
-	  mcopy(&raddr, rbuf, IASIZE);
-	  mcopy(&laddr, rbuf+IASIZE, IASIZE);
+	  memcpy(&raddr, rbuf, IASIZE);
+	  memcpy(&laddr, rbuf+IASIZE, IASIZE);
 	  if (debug > 2)
 	    {
 	      sprintf(ebuf, "Probe sent remote '%s'", inet_ntoa(raddr));
 	      sprintf(ebuf, "Probe sent local  '%s'", inet_ntoa(laddr));
 	    }
 
-	  mcopy(wbuf+IASIZE, &raddr, IASIZE);
+	  memcpy(wbuf+IASIZE, &raddr, IASIZE);
 	  /*
 	   *	If the other end did not tell us which of our addresses it was
 	   *	probing, try to select one on the same network to send back.
@@ -2998,14 +2967,14 @@ handle_request(int desc)
 			(mask[i].s_addr && ri->addr.sin_addr.s_addr))
 		    {
 		      laddr = addr[i];
-		      mcopy(wbuf, &laddr, IASIZE);
+		      memcpy(wbuf, &laddr, IASIZE);
 		      break;
 		    }
 		}
 	    }
 	  else
 	    {
-	      mcopy(wbuf, &laddr, IASIZE);
+	      memcpy(wbuf, &laddr, IASIZE);
 	    }
 	  wi->len = GDO_REQ_SIZE;
 
@@ -4567,12 +4536,12 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
 	    }
 	}
     }
-  mzero(&sin, sizeof(sin));
+  memset(&sin, '\0', sizeof(sin));
   sin.sin_family = AF_INET;
-  mcopy(&sin.sin_addr, to, sizeof(*to));
+  memcpy(&sin.sin_addr, to, sizeof(*to));
   sin.sin_port = my_port;
 
-  mzero((char*)&msg, GDO_REQ_SIZE);
+  memset((char*)&msg, '\0', GDO_REQ_SIZE);
   if (f)
     {
       msg.rtype = GDO_PREPLY;
@@ -4585,8 +4554,8 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
   msg.ptype = 0;
   msg.dummy = 0;
   msg.port = 0;
-  mcopy(msg.name, from, IASIZE);
-  mcopy(&msg.name[IASIZE], to, IASIZE);
+  memcpy(msg.name, from, IASIZE);
+  memcpy(&msg.name[IASIZE], to, IASIZE);
   if (l > 0)
     {
       memcpy(&msg.name[msg.nsize], e, l*IASIZE);
