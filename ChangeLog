@@ -1,3 +1,12 @@
+Mon Jan 11 16:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        Fixes for bugs reported by Benhur-de-Oliveira.Stein@imag.fr
+        * src/NSDictionary.m: ([-initWithObjectsAndKeys:]) fixed test for nil.
+        * src/NSSet.m: Added makeObjectsPerformSelector methods.
+        * src/NSString.m: ([-rangeOfComposedCharacterSequenceAtIndex:]) find
+        range from before the index if necessary.
+        * Tidied allocation methods in NSArray.m NSDictionary.m
+
 Sat Jan  8  6:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/NSPortNameServer.m: Raise exception on failure to register name.
