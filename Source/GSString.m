@@ -2922,10 +2922,20 @@ transmute(ivars self, NSString *aString)
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
+#ifndef NDEBUG
+  GSDebugAllocationRemove(isa, self);
+#endif
   if (_flags.wide == 1)
-    isa = [GSUnicodeString class];
+    {
+      isa = [GSUnicodeString class];
+    }
   else
-    isa = [GSCString class];
+    {
+      isa = [GSCString class];
+    }
+#ifndef NDEBUG
+  GSDebugAllocationAdd(isa, self);
+#endif
   return self;
 }
 

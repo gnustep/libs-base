@@ -481,7 +481,13 @@ static SEL	eqSel;
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
+#ifndef NDEBUG
+  GSDebugAllocationRemove(isa, self);
+#endif
   isa = [GSArray class];
+#ifndef NDEBUG
+  GSDebugAllocationAdd(isa, self);
+#endif
   return self;
 }
 
