@@ -1,3 +1,235 @@
+Tue Apr 16 17:29:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.2.1.
+
+	* checks/Makefile.in (CFLAGS): Add -Wno-format.
+	(SRCS): Use new, more descriptive file names.
+
+	* checks/prepend.m: Include NSValue.h
+
+	* src/NotificationDispatcher.m ([NotificationDispatcher
+ 	-_addObserver:notificationRequest:name:object:]): Don't release NR
+ 	here.
+	([NotificationDispatcher -addInvocation:name:object:]): Release it
+	here. 
+	([NotificationDispatcher -addObserver:selector:name:object:]):
+	Likewise.
+
+	* src/TcpPort.m (debug_tcpport): Changed from 1 to 0; don't print
+ 	debugging messages.
+	* src/Proxy.m (debug_proxy): Likewise.
+	* src/Connection.m (debug_connection): Likewise.
+
+	* src/NSArray.m ([NSArrayNonCore -arrayByAddingObject:]):
+ 	Autorelease the returned array.
+	([NSArrayNonCore -arrayByAddingObjectsFromArray:]): Likewise.
+	([NSArrayNonCore -subarrayWithRange:]): Likewise.
+
+	* checks/nsarray.m (main): Removed several -autorelease calls that
+ 	are repetative, now that NSArray autoreleases properly.  The test
+ 	still does not complete successfully.  It tries to send -cString
+ 	to an NSMutableArray.
+
+	* src/objects/objc-malloc.h: Only declare "id
+ 	MemoryExchaustedException" #ifdef __OBJC__.  This allows
+ 	<objects/objc-malloc.h> to be include in non-ObjC files, i.e. C
+ 	files.
+
+	* src/NSZone.m: Include <objects/stdobjects.h> first.
+
+	* checks/*.m: Many test??.m files renamed with descriptive names.
+
+	* checks/nsarchiver.m (main): Add extra parens around assignment
+ 	in while().
+
+	* checks/string.m (main): Comment out use of obsolete
+ 	-withElementsCall:.
+
+	* checks/nsbundle.m (main): Use object_get_class_name(), not
+ 	-name.
+
+	* src/Makefile.in (GNU_MFILES): Re-added Time.m.
+	(o_vscanf$(OEXT), o_vscanf_pic$(OEXT)): New rules that turn off
+	warnings for o_vscanf.c, it generates a bunch of unimportant ones.
+
+	* src/Time.m ([Time +initialize]): Comment out day/month name
+ 	handling that depends on old Collection heirarchy.
+	([Time +indexOfDayName:]): un-implemented.
+	([Time +nameOfDayIndex:]): Likewise.
+	([Time +indexOfMonthName:]): Likewise.
+	([Time +nameOfMonthIndex:]): Likewise.
+
+	* checks/prepend.m: New file from test13.m.
+	* checks/nxst.m: New file from test11.m.
+	* checks/heap.m: New file from test04.m.
+
+	* src/Heap.m ([Heap -heapifyFromIndex:]): Swap -compare: receiver
+ 	and argument, so firstObject is minimum instead of maximum object.
+	([Heap -addObject:]): Likewise.
+
+Mon Apr 15 21:41:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSGDictionary.m ([NSGDictionaryObjectEnumerator
+ 	-nextObject]): Return the key, not the object.
+	([NSGDictionary -objectForKey:]): Method moved from
+	NSGMutableDictionary.
+	([NSGMutableDictionary +initialize]): Don't use static variable in
+	test.
+
+	* src/KeyedCollection.m ([KeyEnumerator -initWithCollection:]):
+ 	New method.
+	([KeyEnumerator -nextObject]): New method.
+	([KeyEnumerator -dealloc]): New method.
+
+	* doc/install.texi: Mention possible need for GNU make.
+
+Sun Apr 14 11:58:04 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Old archiving scheme didn't properly deal with the
+	LinkedListNode's _linked_list ivar.
+	* src/LinkedList.m ([LinkedList -encodeWithCoder:]): New method.
+	([LinkedList -initWithCoder:]): New method.
+	([LinkedList -_initCollectionWithCoder:]): Method removed.
+	([LinkedList -_encodeContentsWithCoder:]): Method removed.
+	([LinkedList -_decodeContentsWithCoder:]): Method removed.
+
+	* src/Coder.m ([Coder -encodeConditionalObject:]): Don't use old,
+ 	removed method name to see if object has already been encoded.
+
+Sat Apr 13 13:49:23 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/BinaryCStream.m (debug_binary_coder): Explicitly set to
+ 	zero.
+
+	* src/objects/CoderPrivate.h ([Coder (Private)
+ 	-_coderReferenceForObject:): Renamed from old-xref-scheme
+ 	"_coderHasObjectReference:.
+
+	* checks/Makefile.in (SRCS): Added fref.m.
+
+	Fix a bug with encoding an object whose encoding generates forward
+ 	references to the object itself.
+
+	* src/Encoder.m ([Encoder
+ 	-_encodeObject:withName:isBycopy:isForwardReference:]): See if the
+ 	object satisfies a forward reference *after* encoding it, not
+ 	before.  This is necessary because the encoding of subobjects may
+ 	generate forward references to the object.  (In a sense, this
+ 	undoes the last change to this method, but it is significantly
+ 	different in that we test whether the object is in the
+ 	object_2_fref table *after* encoding the object; earlier we looked
+ 	in the table before encoding the object.)  As a consequence, the
+ 	CODER_OBJECT_FORWARD_SATISFIER tag is no longer necessary; this
+ 	was used to tag an object before it was encoded, but now we
+ 	understand that we cannot know whether this object satisfies a
+ 	forward reference until after it has been encoded.  Thus, for all
+ 	objects we encode an unsigned int after encoding the object
+ 	itself.  This unsigned int is either the forward reference number
+ 	of zero, depending on whether this object satisfies any forward
+ 	references.
+
+	* src/Decoder.m ([Decoder -decodeObjectAt:withName:]): Allow for
+ 	the case in which ANOBJPTR is NULL, and deal with it using a
+ 	DUMMY_OBJECT local variable.  Remove
+ 	CODER_OBJECT_FORWARD_SATISFIER case.  In the CODER_OBJECT case,
+ 	decode the forward reference number, and deal with it
+ 	appropriately.  See the ChangeLog comments for the Encoder
+ 	changes.  * src/objects/CoderPrivate.h
+ 	(CODER_OBJECT_FORWARD_SATISFIER): Enum constant removed; it is no
+ 	longer needed.  Note: decoders built after this change will not be
+ 	able to read data files encoded before this change.
+
+	* src/Encoder.m ([Encode
+ 	-_encodeObject:withName:isBycopy:isForwardReference:]): If this
+ 	object satisfies a forward reference, remove it from the
+ 	object_2_fref table before encoding the object, since, in the
+ 	process of encoding the object, we may generate more references to
+ 	this object, and we don't want to interpret this as another
+ 	forward reference satisfier; previously an object could get
+ 	encoded as a forward reference satisfier more than once.
+
+	Plug a memory leak in decoding.
+
+	* src/Collection.m ([ConstantCollection
+ 	-_decodeContentsWithCoder:]): Use alloca(), not objc_malloc(),
+ 	plugging memory leak.
+
+Fri Apr 12 17:08:08 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/objects/Coder.h (Encoder fref_counter): New ivar for
+ 	guaranteeing that forward references have unique names.  Previous
+ 	use of the MapTable count for this purpose didn't work because we
+ 	occasionally removed elements from the table, and thus had aliased
+ 	forward reference numbers.
+	* src/Encoder.m ([Encoder
+ 	-initForWritingToStream:withFormatVersion:cStreamClass
+ 	:cStreamFormatVersion:]): Initialize new ivar.
+	([Encoder -_coderCreateForwardReferenceForObject:]): Use new ivar to
+	`gensym' a new forward reference.
+	* src/Decoder.m ([Decoder
+ 	-_coderSatisfyForwardReference:withObject:]): Create fref_2_object
+ 	with NSNonOwnedPointerMapValueCallBacks, not
+ 	NSObjectMapValueCallBacks.
+
+	* src/StdioStream.m ([StdioStream -writeBytes:length:]): Check for
+ 	error condition, and report.  Reporting scheme needs fixing.
+	([StdioStream -readBytes:length:]): Likewise.
+
+	* src/LinkedList.m ([LinkedList -_decodeContentsWithCoder:]): Step
+ 	through the new list, and send -setLinkedList:, otherwise the
+ 	links don't properly know about their parent LinkedList.
+
+Wed Apr 10 12:37:35 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Encoder.m ([Encoder
+ 	-_coderCreateForwardReferenceForObject:]): Initialize the
+ 	OBJECT_2_FREF ivar, if it hasn't been already.
+
+	* configure.in: Init some emacs variables.
+
+	* src/objc-malloc.m: New file, changed from objc-malloc.c.  Raise
+ 	a MemoryExhaustedException with NSException instead of calling
+ 	objc_fatal.
+	* src/Makefile.in (GNU_CFILES): Removed objc-malloc.c.
+	(GNU_MFILES): Added objc-malloc.m.
+	* src/objects/objc-malloc.h (MemoryExhaustedException): Declare
+ 	this global variable; note that now objc-malloc.h cannot be
+ 	included in .c files, only .m files.
+
+	* src/NSRunLoop.m: New file.
+	* src/Foundation/NSRunLoop.h: Declare classes NSDate and NSTimer.
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSRunLoop.m.
+	(GNUSTEP_HEADERS): Added Foundation/NSRunLoop.h.
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -dealloc]): When
+ 	unintalling ourselves at the current pool, and setting our parent
+ 	to be the current pool, be sure to set our parent's _CHILD ivar to
+ 	nil.
+
+	* src/mframe.m (mframe_do_call): Use sel_get_type() instead of
+ 	class_get_instance_method() to get the selector type.  For some
+ 	reason the old scheme wasn't getting class methods properly; I
+ 	should look at this again, though.
+
+Tue Apr  9 19:55:44 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/mframe.m (mframe_do_call): When getting the instance method,
+ 	just use object->class_pointer, not object_get_class(),... because
+ 	object_get_class() of a class will return the argument, not the
+ 	metaclass---we want the metaclass.
+
+Mon Apr  8 13:19:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/TcpPort.m ([TcpInPort +newForReceivingFromPortNumber:]):
+ 	Bind the socket with INADDR_ANY, (not the host's address), so that
+ 	others can connect using any of the host's interfaces, including
+ 	localhost.  Add the host's address to _LISTENING_ADDRESS after the
+ 	bind().
+
+	* src/NSDictionary.m ([NSDictionary -allKeysForObject:]): Ask SELF
+ 	for objectForKey:, not K.  (Reported by Robert Quillen
+	<rquillen@csugrad.cs.vt.edu>).
+
 Sun Mar 31 16:43:42 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Several small bug fixes.
@@ -49,7 +281,7 @@ Sun Mar 31 16:43:42 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	* src/objects/Notification.h: Add #ifndef/#endif wrapper around
  	header file.
 
-	New behavior mechanisms for safer subclassing.
+	New behavior mechanisms for safe subclassing.
 
 	* src/behavior.m (behavior_class_add_class): Function renamed from
  	class_add_behavior.  Add more explanation to NSCAssert().
@@ -78,12 +310,13 @@ Sat Mar 30 10:05:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	([NSMutableArray -removeLastObject]): Don't assert count; raise
 	NSRangeError if it's empty.
 
-	* src/NSAutoreleasePool.m: Make NSAutoreleasePools co-exist with
- 	exceptions, safely and without leaks.  (Also improve efficiency by
- 	using a linked list of arrays instead of realloc when more space
- 	is needed, and by using a cache of pools that helps avoid the
- 	allocation/deallocation of pools.)
-	(push_pool_to_cache): New function.
+	Make NSAutoreleasePools co-exist with exceptions, safely and
+ 	without leaks.  (Also improve efficiency by using a linked list of
+ 	arrays instead of realloc when more space is needed, and by using
+ 	a cache of pools that helps avoid the allocation/deallocation of
+ 	pools.)
+
+	* src/NSAutoreleasePool.m: (push_pool_to_cache): New function.
 	(pop_pool_from_cache): New function.
 	([NSAutoreleasePool +initialize]): New method.
 	([NSAutoreleasePool +allocWithZone:]): New method.
