@@ -361,7 +361,7 @@ if test x"$objc_threaded" != x""; then
 fi
 LIBS="$LIBS $extra_LIBS"
 CPPFLAGS="$CPPFLAGS -fconstant-string-class=NSConstantString"
-AC_MSG_CHECKING(if the compiler support -fconstant-string-class)
+AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
 AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
   AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
   objc_compiler_supports_constant_string_class=yes,
