@@ -50,6 +50,7 @@ static Class   NSInvocation_concrete_class;
 + (id) _newWithTarget: (id)t;
 - (NSInvocation*) _invocation;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
 @interface GSMessageProxy : GSInvocationProxy
 @end
@@ -1001,7 +1002,7 @@ _arg_addr(NSInvocation *inv, int index)
 {
   GSInvocationProxy	*o;
   o = (GSInvocationProxy*) NSAllocateObject(self, 0, NSDefaultMallocZone());
-  o->target = t;
+  o->target = RETAIN(t);
   return o;
 }
 - (NSInvocation*) _invocation
@@ -1024,6 +1025,10 @@ _arg_addr(NSInvocation *inv, int index)
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
   invocation = anInvocation;
+}
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  return [target methodSignatureForSelector: aSelector];
 }
 @end
 

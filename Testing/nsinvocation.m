@@ -152,6 +152,7 @@ typedef struct {
 }
 - (void) forwardInvocation: (NSInvocation*)inv;
 - (id) initWithTarget: (id)target;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
 
 @implementation	MyProxy
@@ -177,6 +178,10 @@ typedef struct {
   [i getReturnValue: b];
   [inv setReturnValue: b];
   objc_free(b);
+}
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  return [obj methodSignatureForSelector: aSelector];
 }
 @end
 

@@ -1,3 +1,8 @@
+2003-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSInvocation.m: implement methodSignatureForSelector for
+	proxy.
+
 2003-07-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFCALLInvocation.m: Add evil hack to cope with cases
