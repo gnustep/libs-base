@@ -41,6 +41,11 @@
 	      length: (unsigned int)length;
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length;
+#ifndef STRICT_OPENSTEP
++ (id) dataWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned int)bufferSize
+	      freeWhenDone: (BOOL)shouldFree;
+#endif
 + (id) dataWithContentsOfFile: (NSString*)path;
 + (id) dataWithContentsOfMappedFile: (NSString*)path;
 #ifndef STRICT_OPENSTEP
@@ -51,6 +56,11 @@
 	      length: (unsigned int)bufferSize;
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize;
+#ifndef STRICT_OPENSTEP
+- (id) initWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned int)bufferSize
+	      freeWhenDone: (BOOL)shouldFree;
+#endif
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) initWithContentsOfMappedFile: (NSString*)path;
 #ifndef STRICT_OPENSTEP
@@ -179,7 +189,6 @@
 @interface NSData (GNUstepExtensions)
 + (id) dataWithShmID: (int)anID length: (unsigned int) length;
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int) length;
-+ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned int) length;
 
 /*
  *	-deserializeTypeTag:andCrossRef:atCursor:
@@ -215,6 +224,11 @@
 
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes;
+#ifndef STRICT_OPENSTEP
+- (void) replaceBytesInRange: (NSRange)aRange
+		   withBytes: (const void*)bytes
+		      length: (unsigned int)length;
+#endif
 - (void) resetBytesInRange: (NSRange)aRange;
 - (void) setData: (NSData*)data;
 
