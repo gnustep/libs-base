@@ -191,7 +191,7 @@
     {
       fmt = [NSString stringWithFormat: @"%@:%u %@", fileName, where, fmt];
     }
-  fmt = [[[NSString alloc] initWithFormat: fmt arguments: args] autorelease];
+  fmt = AUTORELEASE([[NSString alloc] initWithFormat: fmt arguments: args]);
   if ([fmt hasSuffix: @"\n"] == NO)
     {
       fmt = [fmt stringByAppendingString: @"\n"];
