@@ -619,8 +619,11 @@ AC_TRY_CPP([#ifdef HAVE_STDINT_H
 	#endif
 	#include <limits.h>
 	#if defined(LONG_LONG_MAX)
-	#if LONG_MAX != LONG_LONG_MAX
+	#if LONG_MAX == LONG_LONG_MAX
+	#error long max equals long long max
 	#endif
+	#else
+	#error long long max not defined
 	#endif
 	], llmax=yes, llmax=no)
 if test $llmax = yes; then
@@ -637,8 +640,11 @@ AC_MSG_CHECKING([whether we have LLONG_MAX])
 
 AC_TRY_CPP([#include <limits.h>
 	#if defined(LLONG_MAX)
-	#if LONG_MAX != LLONG_MAX
+	#if LONG_MAX = LLONG_MAX
+	#error long max equals long long max
 	#endif
+	#else
+	#error llong max not defined
 	#endif
 	], llmax=yes, llmax=no)
 
