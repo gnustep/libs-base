@@ -37,7 +37,7 @@
 #include <Foundation/NSDebug.h>
 
 #include <sys/types.h>
-#if	!defined(__WIN32__) || defiend(__CYGWIN__)
+#if	!defined(__WIN32__) || defined(__CYGWIN__)
 #include <time.h>
 #include <sys/time.h>
 #endif /* !__WIN32__ */
