@@ -504,6 +504,11 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     }
 }
 
+/**
+ * Locates a runloop watcher matching the specified data and type in this
+ * runloop.  If the mode is nil, either the currentMode is used (if the
+ * loop is running) or NSDefaultRunLoopMode is used.
+ */
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
 			  forMode: (NSString*)mode
@@ -513,6 +518,10 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   if (mode == nil)
     {
       mode = _current_mode;
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
     }
 
   watchers = NSMapGet(_mode_2_watchers, mode);
@@ -534,6 +543,11 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   return nil;
 }
 
+/**
+ * Removes a runloop watcher matching the specified data and type in this
+ * runloop.  If the mode is nil, either the currentMode is used (if the
+ * loop is running) or NSDefaultRunLoopMode is used.
+ */
 - (void) _removeWatcher: (void*)data
                    type: (RunLoopEventType)type
                 forMode: (NSString*)mode
@@ -543,6 +557,10 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   if (mode == nil)
     {
       mode = _current_mode;
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
     }
 
   watchers = NSMapGet(_mode_2_watchers, mode);
@@ -584,6 +602,11 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   [[self currentRunLoop] run];
 }
 
+/**
+ * Adds a runloop watcher matching the specified data and type in this
+ * runloop.  If the mode is nil, either the currentMode is used (if the
+ * loop is running) or NSDefaultRunLoopMode is used.
+ */
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
           watcher: (id<RunLoopEvents>)watcher
@@ -594,6 +617,10 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   if (mode == nil)
     {
       mode = _current_mode;
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
     }
 
   info = [self _getWatcher: data type: type forMode: mode];
@@ -618,6 +645,13 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     }
 }
 
+/**
+ * Removes a runloop watcher matching the specified data and type in this
+ * runloop.  If the mode is nil, either the currentMode is used (if the
+ * loop is running) or NSDefaultRunLoopMode is used.
+ * The additional removeAll flag may be used to remove all instances of
+ * the watcher rather than just a single one.
+ */
 - (void) removeEvent: (void*)data
                 type: (RunLoopEventType)type
              forMode: (NSString*)mode
@@ -626,6 +660,10 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   if (mode == nil)
     {
       mode = _current_mode;
+      if (mode == nil)
+	{
+	  mode = NSDefaultRunLoopMode;
+	}
     }
   if (removeAll)
     {
@@ -793,7 +831,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (id) init
 {
   [super init];
-  _current_mode = NSDefaultRunLoopMode;
   _mode_2_timers = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 				     ArrayMapValueCallBacks, 0);
   _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
@@ -827,6 +864,10 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   NSFreeMapTable(_wfdMap);
 }
 
+/**
+ * Returns the current mode of this runloop.  If the runloop is not running
+ * then this method returns nil.
+ */
 - (NSString*) currentMode
 {
   return _current_mode;
@@ -1014,9 +1055,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   return when;
 }
 
-/* Listen to input sources.
-   If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
-
+/**
+ * Listen to input sources.<br />
+ * If limit_date is nil, then don't wait; just poll inputs and return,
+ * otherwise block until input is available or until all input limit dates
+ * have passed (whichever comes first).<br />
+ * If the supplied mode is nil, uses NSDefaultRunLoopMode.
+ */
 - (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: (NSDate*)limit_date
 {
@@ -1036,6 +1081,10 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
   NSAssert(mode, NSInvalidArgumentException);
   saved_mode = _current_mode;
+  if (mode == nil)
+    {
+      mode = NSDefaultRunLoopMode;
+    }
   _current_mode = mode;
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
@@ -1344,6 +1393,11 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   RELEASE(arp);
 }
 
+/**
+ * Calls -acceptInputForMode:beforeDate: to run the loop once.<br />
+ * If the limit dates for all of mode's input sources have passed,
+ * returns NO without running the loop, otherwise returns YES.
+ */
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   id	d;
