@@ -34,6 +34,7 @@
 #include <objects/RetainingNotifier.h>
 #include <objects/Collecting.h>
 #include <objects/Dictionary.h>
+#include <objects/NSString.h>
 
 @class Proxy;
 @class Port;
@@ -76,7 +77,7 @@
    or registered for invalidation notification */
 
 + (Connection*) newWithRootObject: anObj;
-+ (Connection*) newRegisteringAtName: (String*)n withRootObject: anObj;
++ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj;
 /* Registering your server object on the network.
    These methods create a new connection object that must be "run" in order
    to start handling requests from clients. 
@@ -89,8 +90,8 @@
    it's unclear if we're connecting to another Connection that already
    registered with that name. */
 
-+ (Proxy*) rootProxyAtName: (String*)name onHost: (String*)host;
-+ (Proxy*) rootProxyAtName: (String*)name;
++ (Proxy*) rootProxyAtName: (id <String>)name onHost: (id <String>)host;
++ (Proxy*) rootProxyAtName: (id <String>)name;
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort;
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort;
 /* Get a proxy to a remote server object.

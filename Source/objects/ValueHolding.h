@@ -26,14 +26,14 @@
 
 #include <objects/stdobjects.h>
 
-@class String;
+/* protocol String; */
 
 @protocol ValueGetting
 - (int) intValue;
 - (float) floatValue;
 - (double) doubleValue;
 - (const char *) cStringValue;
-- (String *) stringValue;
+- /* (id <String>) */ stringValue;
 @end
 
 @protocol ValueSetting
@@ -41,7 +41,7 @@
 - (void) setFloatValue: (float)aFloat;
 - (void) setDoubleValue: (double)aDouble;
 - (void) setCStringValue: (const char *)aCString;
-- (void) setStringValue: (String*)aString;
+- (void) setStringValue: /* (id <String>) */ aString;
 @end
 
 @protocol ValueHolding <ValueGetting, ValueSetting>

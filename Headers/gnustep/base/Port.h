@@ -27,14 +27,15 @@
 #include <objects/stdobjects.h>
 #include <objects/RetainingNotifier.h>
 #include <objects/Coding.h>
+#include <objects/NSString.h>
 
 @class Connection;
 
 @interface Port : RetainingNotifier <Coding>
 
 /* xxx These will probably change */
-+ newRegisteredPortWithName: (String*)n;
-+ newPortFromRegisterWithName: (String*)n onHost: (String*)host;
++ newRegisteredPortWithName: (id <String>)n;
++ newPortFromRegisterWithName: (id <String>)n onHost: (id <String>)host;
 + newPort;
 
 /* xxx These sending and receiving interfaces will change */
