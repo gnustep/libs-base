@@ -1,7 +1,8 @@
 /* NSDictionary - Dictionary object to store key/value pairs
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1995 Free Software Foundation, Inc.
    
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
    
    This file is part of the GNU Objective C Class Library.
@@ -22,105 +23,187 @@
    */
 
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSGDictionary.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSUtilities.h>
+#include <objects/NSString.h>
+#include <assert.h>
 
 @implementation NSDictionary 
 
-- copyWithZone:(NSZone *)zone
++ allocWithZone: (NSZone*)z
 {
-  return [super copyWithZone:zone];
-}
-
-+ allocWithZone:(NSZone *)zone
-{
-  return [super allocWithZone:zone];
+  return NSAllocateObject([NSGDictionary class], 0, z);
 }
 
 + dictionary
 {
-  return [[[NSDictionary alloc] init] autorelease];
+  return [[[NSGDictionary alloc] init] 
+	  autorelease];
 }
 
-+ dictionaryWithObjects:(id *)objects forKeys:(NSString **)keys count:(unsigned)count
++ dictionaryWithObjects: (id*)objects 
+		forKeys: (NSString**)keys
+		  count: (unsigned)count
+{
+  return [[[NSGDictionary alloc] initWithObjects:objects
+				 forKeys:keys
+				 count:count]
+	  autorelease];
+}
+
+- initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
+{
+  int c = [objects count];
+  id os[c], ks[c];
+  int i;
+  
+  assert(c == [keys count]); /* Should be NSException instead */
+  for (i = 0; i < c; i++)
+    {
+      os[i] = [objects objectAtIndex:i];
+      ks[i] = [keys objectAtIndex:i];
+    }
+  return [self initWithObjects:os forKeys:ks count:c];
+}
+
++ dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
+{
+  return [[[NSGDictionary alloc] initWithObjects:objects forKeys:keys]
+	  autorelease];
+}
+
+/* This is the designated initializer */
+- initWithObjects: (id*)objects
+	  forKeys: (NSString**)keys
+	    count: (unsigned)count
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-+ dictionaryWithObjects:(NSArray *)objects forKeys:(NSArray *)keys
+/* Override superclass's designated initializer */
+- init
+{
+  return [self initWithObjects:NULL forKeys:NULL count:0];
+}
+
+- initWithDictionary: (NSDictionary*)other
+{
+  int c = [other count];
+  id os[c], ks[c], k, e = [other keyEnumerator];
+  int i = 0;
+
+  while ((k = [e nextObject]))
+    {
+      ks[i] = k;
+      os[i] = [other objectForKey:k];
+      i++;
+    }
+  return [self initWithObjects:os forKeys:ks count:c];
+}
+
+- initWithContentsOfFile: (NSString*)path
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-- initWithObjects:(id *)objects forKeys:(NSString **)keys count:(unsigned)count
+- (unsigned) count
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-- initWithDictionary:(NSDictionary *)otherDictionary
+- objectForKey: (NSString*)aKey
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-- initWithContentsOfFile:(NSString *)path
+- (NSEnumerator*) keyEnumerator
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (BOOL) isEqual: other
+{
+  if ([other isKindOfClass:[NSDictionary class]])
+    return [self isEqualToDictionary:other];
+  return NO;
+}
+
+- (BOOL) isEqualToDictionary: (NSDictionary*)other
+{
+  if ([self count] != [other count])
+    return NO;
+  {
+    id k, e = [self keyEnumerator];
+    while ((k = [e nextObject]))
+      if (![[self objectForKey:k] isEqual:[other objectForKey:k]])
+	return NO;
+  }
+  /* xxx Recheck this. */
+  return YES;
+}
+
+- (NSString*) description
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-- (unsigned)count
+- (NSString*) descriptionWithIndent: (unsigned)level
 {
-  [self notImplemented:_cmd];
-  return 0;
+  /* xxx Fix this when we get %@ working in format strings. */
+  return [NSString stringWithFormat:@"%*s%s", 
+		   level, "", [[self description] cString]];
 }
 
-- objectForKey:(NSString *)aKey
+- (NSArray*) allKeys
 {
-  [self notImplemented:_cmd];
-  return 0;
+  id e = [self keyEnumerator];
+  int i, c = [self count];
+  id k[c];
+
+  for (i = 0; i < c; i++)
+    {
+      k[i] = [e nextObject];
+      assert(k[i]);
+    }
+  assert(![e nextObject]);
+  return [[[NSArray alloc] initWithObjects:k count:c]
+	  autorelease];
 }
 
-//- (NSEnumerator *)keyEnumerator
-//{
-  //    [self notImplemented:_cmd];
-  //}
-
-- (BOOL)isEqualToDictionary:(NSDictionary *)other
+- (NSArray*) allValues
 {
-  [self notImplemented:_cmd];
-  return 0;
+  id e = [self objectEnumerator];
+  int i, c = [self count];
+  id k[c];
+
+  for (i = 0; i < c; i++)
+    {
+      k[i] = [e nextObject];
+      assert(k[i]);
+    }
+  assert(![e nextObject]);
+  return [[[NSArray alloc] initWithObjects:k count:c]
+	  autorelease];
 }
 
-- (NSString *)description
+- (NSArray*) allKeysForObject: anObject
 {
-  [self notImplemented:_cmd];
-  return 0;
-}
+  id k, e = [self keyEnumerator];
+  id a[[self count]];
+  int c = 0;
 
-- (NSString *)descriptionWithIndent:(unsigned)level
-{
-  [self notImplemented:_cmd];
-  return 0;
-}
-
-- (NSArray *)allKeys
-{
-  [self notImplemented:_cmd];
-  return 0;
-}
-
-- (NSArray *)allValues
-{
-  [self notImplemented:_cmd];
-  return 0;
-}
-
-- (NSArray *)allKeysForObject:anObject
-{
-  [self notImplemented:_cmd];
-  return 0;
+  while ((k = [e nextObject]))
+    if ([anObject isEqual:[k objectForKey:k]])
+      a[c++] = k;
+  return [[[NSArray alloc] initWithObjects:a count:c]
+	  autorelease];
 }
 
 - (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
@@ -129,58 +212,84 @@
   return 0;
 }
 
-//- (NSEnumerator *)objectEnumerator
-//{
-  //    [self notImplemented:_cmd];
-  //}
+- (NSEnumerator*) objectEnumerator
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
 
+- copyWithZone: (NSZone*)z
+{
+  return [[NSGDictionary alloc] initWithDictionary:self];
+}
+
+- mutableCopyWithZone: (NSZone*)z
+{
+  return [[NSGMutableDictionary alloc] initWithDictionary:self];
+}
 
 @end
 
 @implementation NSMutableDictionary
 
-+ allocWithZone:(NSZone *)zone
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject([NSGMutableDictionary class], 0, z);
+}
+
++ dictionaryWithCapacity: (unsigned)numItems
+{
+  return [[[NSGDictionary alloc] initWithCapacity:numItems]
+	  autorelease];
+}
+
+/* This is the designated initializer */
+- initWithCapacity: (unsigned)numItems
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-+ dictionaryWithCapacity:(unsigned)numItems
+/* Override superclass's designated initializer */
+- initWithObjects: (id*)objects
+	  forKeys: (NSString**)keys
+	    count: (unsigned)count
 {
-  [self notImplemented:_cmd];
-  return 0;
+  [self initWithCapacity:count];
+  while (count--)
+    [self setObject:objects[count] forKey:keys[count]];
+  return self;
 }
 
-- initWithCapacity:(unsigned)numItems
-{
-  [self notImplemented:_cmd];
-  return 0;
-}
-
-
-- (void)setObject:anObject forKey:(NSString *)aKey
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)removeObjectForKey:(NSString *)aKey
+- (void) setObject:anObject forKey:(NSString *)aKey
 {
   [self notImplemented:_cmd];
 }
 
-- (void)removeAllObjects
+- (void) removeObjectForKey:(NSString *)aKey
 {
   [self notImplemented:_cmd];
 }
 
-- (void)removeObjectsForKeys:(NSArray *)keyArray
+- (void) removeAllObjects
 {
-  [self notImplemented:_cmd];
+  id k, e = [self keyEnumerator];
+  while ((k = [e nextObject]))
+    [self removeObjectForKey:k];
 }
 
-- (void)addEntriesFromDictionary:(NSDictionary *)otherDictionary
+- (void) removeObjectsForKeys: (NSArray*)keyArray
 {
-  [self notImplemented:_cmd];
+  int c = [keyArray count];
+  while (c--)
+    [self removeObjectForKey:[keyArray objectAtIndex:c]];
+}
+
+- (void) addEntriesFromDictionary: (NSDictionary*)other
+{
+  id k, e = [other keyEnumerator];
+  while ((k = [e nextObject]))
+    [self setObject:[other objectForKey:k] forKey:k];
 }
 
 
