@@ -147,8 +147,8 @@ GSTimeNow()
    * Get current GMT time, convert to NSTimeInterval since reference date,
    */
   GetSystemTime(&sys_time);
-  t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear,
-    sys_time.wHour, sys_time.wMinute, sys_time.wSecond); 
+  t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear, sys_time.wHour,
+    sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds); 
 #endif
   return t + sys_time.wMilliseconds / 1000.0;
 #endif /* __MINGW__ */

@@ -86,7 +86,7 @@ absoluteGregorianDay(int day, int month, int year)
  * External - so NSDate can use it.
  */
 NSTimeInterval
-GSTime(int day, int month, int year, int h, int m, int s)
+GSTime(int day, int month, int year, int h, int m, int s, int mil)
 {
   NSTimeInterval	a;
 
@@ -98,6 +98,7 @@ GSTime(int day, int month, int year, int h, int m, int s)
   a += h * 3600;
   a += m * 60;
   a += s;
+  a += mil/1000.0;
   return a;
 }
 
@@ -932,7 +933,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   NSTimeInterval s;
 
   // Calculate date as GMT
-  s = GSTime(day, month, year, hour, minute, second);
+  s = GSTime(day, month, year, hour, minute, second, 0);
 
   // Assign time zone detail
   _time_zone = RETAIN([aTimeZone
