@@ -1,0 +1,5 @@
+2005-01-07  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimeZone.m (+abbreviationDictionary): Retain	dictionary
+	(Fixes bug #11516).
+
