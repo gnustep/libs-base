@@ -1,5 +1,11 @@
 2000-04-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/gnustep/base/NSException.h: remove 'volatile' from function
+	and method declarations - no longer supported in gcc.
+	* Source/NSException.m: ditto
+
+2000-04-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/gdomap.c: init_probe() fix bug placing incorrect responder
 	address in broadcast probe.
 

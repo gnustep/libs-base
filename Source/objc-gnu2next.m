@@ -467,7 +467,7 @@ objc_get_type_qualifiers (const char* type)
 #ifdef objc_fatal
 #undef objc_fatal
 #endif
-volatile void
+void
 objc_fatal(const char* msg)
 {
   write(2, msg, (int)strlen((const char*)msg));

@@ -89,7 +89,7 @@
     (class_getInstanceMethod(object_get_class(OBJ), SEL)->method_imp)
 
 #if 1
-volatile void objc_fatal(const char* msg);
+void objc_fatal(const char* msg);
 #else
 #define objc_fatal(FMT, args...) \
  do { fprintf (stderr, (FMT), ##args); abort(); } while (0)
