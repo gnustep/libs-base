@@ -1119,9 +1119,13 @@ static BOOL double_release_check_enabled = NO;
  * where a subclass implements -forwardInvocation: to respond to
  * selectors not normally handled ... in these cases the subclass
  * may override this method to handle it.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 + (BOOL) instancesRespondToSelector: (SEL)aSelector
 {
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 #if 0
   return (class_get_instance_method(self, aSelector) != METHOD_NULL);
 #else
@@ -1170,8 +1174,17 @@ static BOOL double_release_check_enabled = NO;
   return [[self class] conformsToProtocol: aProtocol];
 }
 
+/**
+ * Returns a pointer to the C function implementing the method used
+ * to respond to messages with aSelector by instances of the receiving
+ * class.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
+ */
 + (IMP) instanceMethodForSelector: (SEL)aSelector
 {
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
    *	Since 'self' is an class, get_imp() will get the instance method.
    */
@@ -1181,9 +1194,13 @@ static BOOL double_release_check_enabled = NO;
 /**
  * Returns a pointer to the C function implementing the method used
  * to respond to messages with aSelector.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (IMP) methodForSelector: (SEL)aSelector
 {
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
    *	If 'self' is an instance, GSObjCClass() will get the class,
    *	and get_imp() will get the instance method.
@@ -1197,10 +1214,17 @@ static BOOL double_release_check_enabled = NO;
  * Returns a pointer to the C function implementing the method used
  * to respond to messages with aSelector whihc are sent to instances
  * of the receiving class.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
 {
-  struct objc_method* mth = class_get_instance_method(self, aSelector);
+  struct objc_method	*mth;
+
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
+  mth = class_get_instance_method(self, aSelector);
   return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
     : nil;
 }
@@ -1208,6 +1232,7 @@ static BOOL double_release_check_enabled = NO;
 /**
  * Returns the method signature describing how the receiver would handle
  * a message with aSelector.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
@@ -1215,9 +1240,9 @@ static BOOL double_release_check_enabled = NO;
   struct objc_method *mth;
 
   if (aSelector == 0)
-    {
-      return nil;
-    }
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   mth = (GSObjCIsInstance(self)
     ? class_get_instance_method(GSObjCClass(self), aSelector)
     : class_get_class_method(GSObjCClass(self), aSelector));
@@ -1282,12 +1307,16 @@ static BOOL double_release_check_enabled = NO;
 	      format: @"%s(%s) does not recognize %s",
 	       object_get_class_name(self), 
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       sel_get_name(aSelector)];
+	       aSelector ? sel_get_name(aSelector) : "(null)"];
 }
 
 - (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
 {
   NSInvocation *inv;
+
+  if (aSel == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
 						  selector: aSel]);
@@ -1506,17 +1535,15 @@ static BOOL double_release_check_enabled = NO;
  * Causes the receiver to execute the method implementation corresponding
  * to aSelector and returns the result.<br />
  * The method must be one which takes no arguments and returns an object.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (id) performSelector: (SEL)aSelector
 {
   IMP msg;
 
   if (aSelector == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null selector passed to %s", sel_get_name(_cmd)];
-      return nil;
-    }
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
     
   msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
@@ -1532,17 +1559,15 @@ static BOOL double_release_check_enabled = NO;
  * Causes the receiver to execute the method implementation corresponding
  * to aSelector and returns the result.<br />
  * The method must be one which takes one argument and returns an object.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (id) performSelector: (SEL)aSelector withObject: (id) anObject
 {
   IMP msg;
 
   if (aSelector == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null selector passed to %s", sel_get_name(_cmd)];
-      return nil;
-    }
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
     
   msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
@@ -1559,6 +1584,7 @@ static BOOL double_release_check_enabled = NO;
  * Causes the receiver to execute the method implementation corresponding
  * to aSelector and returns the result.<br />
  * The method must be one which takes two arguments and returns an object.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id) object1
@@ -1567,11 +1593,8 @@ static BOOL double_release_check_enabled = NO;
   IMP msg;
 
   if (aSelector == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null selector passed to %s", sel_get_name(_cmd)];
-      return nil;
-    }
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   
   msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
@@ -1631,13 +1654,14 @@ static BOOL double_release_check_enabled = NO;
  * where a subclass implements -forwardInvocation: to respond to
  * selectors not normally handled ... in these cases the subclass
  * may override this method to handle it.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
   if (aSelector == 0)
-    {
-      return NO;
-    }
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   return __objc_responds_to(self, aSelector);
 }
 
@@ -1812,6 +1836,10 @@ static BOOL double_release_check_enabled = NO;
 
 - (retval_t) performv: (SEL)aSel :(arglist_t)argFrame
 {
+  if (aSel == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   return objc_msg_sendv(self, aSel, argFrame);
 }
 
@@ -1822,8 +1850,13 @@ static BOOL double_release_check_enabled = NO;
 
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
 {
-  struct objc_method* mth = class_get_instance_method(self, aSelector);
+  struct objc_method* mth;
 
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
+  mth = class_get_instance_method(self, aSelector);
   return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
     : nil;
 }
@@ -1843,7 +1876,8 @@ static BOOL double_release_check_enabled = NO;
 {
   [NSException
     raise: NSGenericException
-    format: @"method %s not implemented in %s(%s)", sel_get_name(aSel), 
+    format: @"method %s not implemented in %s(%s)",
+    aSel ? sel_get_name(aSel) : "(null)", 
     object_get_class_name(self),
     GSObjCIsInstance(self) ? "instance" : "class"];
   return nil;
@@ -1855,7 +1889,7 @@ static BOOL double_release_check_enabled = NO;
 	       format: @"%s(%s) does not recognize %s",
 	       object_get_class_name(self), 
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       sel_get_name(aSel)];
+	       aSel ? sel_get_name(aSel) : "(null)"];
   return nil;
 }
 
@@ -2034,12 +2068,20 @@ static BOOL double_release_check_enabled = NO;
 
 + (struct objc_method_description *) descriptionForInstanceMethod: (SEL)aSel
 {
+  if (aSel == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   return ((struct objc_method_description *)
            class_get_instance_method(self, aSel));
 }
 
 - (struct objc_method_description *) descriptionForMethod: (SEL)aSel
 {
+  if (aSel == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   return ((struct objc_method_description *)
            (GSObjCIsInstance(self)
             ?class_get_instance_method(GSObjCClass(self), aSel)
@@ -2066,7 +2108,7 @@ static BOOL double_release_check_enabled = NO;
     format: @"subclass %s(%s) should override %s", 
 	       object_get_class_name(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       sel_get_name(aSel)];
+	       aSel ? sel_get_name(aSel) : "(null)"];
   return nil;
 }
 
@@ -2077,7 +2119,7 @@ static BOOL double_release_check_enabled = NO;
     format: @"%s(%s) should not implement %s", 
     object_get_class_name(self), 
     GSObjCIsInstance(self) ? "instance" : "class",
-    sel_get_name(aSel)];
+    aSel ? sel_get_name(aSel) : "(null)"];
   return nil;
 }
 
@@ -2213,6 +2255,10 @@ _fastMallocBuffer(unsigned size)
 @implementation	NSZombie
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
+  if (aSel == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
   GSLogZombie(self, aSel);
   return 0;
 }
