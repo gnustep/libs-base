@@ -568,6 +568,56 @@
           <desc>
           </desc>
         </method>
+        <method type="BOOL">
+          <sel>deallocNotificationsActive</sel>
+          <desc>
+	    <p>
+	      Returns a boolean indicating whether deallocation notification
+	      has been turned on.
+	    </p>
+	    <p>
+	      If deallocation notification is turned on, whenever an objects
+	      retain count reaches zero (and it would normally be deallocated)
+	      the <em>_dealloc</em> methiod is called and the object is only
+	      deallocated if that method returns YES.
+	    </p>
+          </desc>
+        </method>
+        <method type="void">
+          <sel>setDeallocNotificationsActive:</sel>
+          <arg type="BOOL">flag</arg>
+          <desc>
+	    <p>
+	      Turns on (or off) deallocation notification.
+	    </p>
+	    <p>
+	      If deallocation notification is turned on, whenever an objects
+	      retain count reaches zero (and it would normally be deallocated)
+	      the <em>_dealloc</em> methiod is called and the object is only
+	      deallocated if that method returns YES.
+	    </p>
+          </desc>
+        </method>
+        <method type="BOOL">
+          <sel>_dealloc</sel>
+          <desc>
+	    <p>
+	      Returns a boolean indicating whether the receiver should be
+	      deallocated or not.  The default implementation returns YES.
+	    </p>
+	    <p>
+	      This method is called when an objects retain count reaches
+	      zero (if deallocation notifications are active).
+	    </p>
+	    <p>
+	      This method is provided so that you can take some sort of
+	      action when objects are deallocated ... normally you would
+	      override this method in your classes, but you could also
+	      override it in a category of NSObject - and perform some
+	      action whenever <em>any</em> object is deallocated.
+	    </p>
+	  </desc>
+	</method>
       </class>
     </chapter>
   </body>
