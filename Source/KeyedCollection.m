@@ -216,7 +216,7 @@
       [s appendFormat: @"(%@,%@) ", [k description], [o description]];
     }
   END_FOR_KEYED_COLLECTION(self);
-  [s appendFormat: @" :%s\n", [self name]];
+  [s appendFormat: @" :%s\n", object_get_class_name (self)];
   return [s autorelease];
 }
 
