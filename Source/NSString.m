@@ -33,14 +33,6 @@
 
 */
 
-/* xxx Temporarily set HAVE_REGISTER_PRINTF_FUNCTION function to 0
-   because I can't seem to figure out which versions of libc pass a
-   `va_list' to the output handler, and which pass a `void**' to the
-   output handler.  Once I figure this out, these lines should be
-   removed. */
-#undef HAVE_REGISTER_PRINTF_FUNCTION
-#define HAVE_REGISTER_PRINTF_FUNCTION 0
-
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <Foundation/NSString.h>
@@ -60,6 +52,14 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
+
+/* xxx Temporarily set HAVE_REGISTER_PRINTF_FUNCTION function to 0
+   because I can't seem to figure out which versions of libc pass a
+   `va_list' to the output handler, and which pass a `void**' to the
+   output handler.  Once I figure this out, these lines should be
+   removed. */
+#undef  HAVE_REGISTER_PRINTF_FUNCTION
+#define HAVE_REGISTER_PRINTF_FUNCTION 0
 
 
 @implementation NSString
