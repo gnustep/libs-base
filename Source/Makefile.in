@@ -57,7 +57,7 @@ LIBEXT = .a
 
 # All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
-CFLAGS = -Wno-implicit -O
+CFLAGS = -g -O
 CPPFLAGS = 
 INCLUDEFLAGS =
 
@@ -105,6 +105,10 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 		$(ALL_CFLAGS) -o $@ $<
 
 # GNU Class source files
+#ConnectedCoder.m \
+#Connection.m \
+#RetainingNotifier.m \
+#Time.m \
 
 GNU_MFILES = \
 Archiver.m \
@@ -112,25 +116,23 @@ Array.m \
 Bag.m \
 BinaryCStream.m \
 BinaryTree.m \
-BinaryTreeEltNode.m \
 BinaryTreeNode.m \
 CircularArray.m \
-Coder.m \
 Collection.m \
 CString.m \
-ConnectedCoder.m \
-Connection.m \
+Coder.m \
 ConstantString.m \
 CStream.m \
+Decoder.m \
 DelegatePool.m \
 Dictionary.m \
+Encoder.m \
 GapArray.m \
 Heap.m \
 IndexedCollection.m \
 Invocation.m \
 KeyedCollection.m \
 LinkedList.m \
-LinkedListEltNode.m \
 LinkedListNode.m \
 Lock.m \
 Magnitude.m \
@@ -146,11 +148,9 @@ Queue.m \
 Random.m \
 RawCStream.m \
 RBTree.m \
-RBTreeEltNode.m \
 RBTreeNode.m \
 RNGAdditiveCongruential.m \
 RNGBerkeley.m \
-RetainingNotifier.m \
 Set.m \
 SocketPort.m \
 SplayTree.m \
@@ -159,7 +159,6 @@ StdioStream.m \
 Stream.m \
 String.m \
 TextCStream.m \
-Time.m \
 atoz.m \
 callbacks-id.m \
 stdobjects.m \
@@ -169,6 +168,7 @@ eltfuncs.m
 
 GNU_CFILES = \
 abort.c \
+allocs.c \
 array.c \
 behavior.c \
 callbacks.c \
@@ -219,9 +219,9 @@ objects/x-basics.h.in \
 objects/x-callbacks.h.in
 
 GNU_OBJS = \
-	$(GNU_MFILES:.m=$(OEXT)) \
 	$(GNU_BASICS_CFILES:.c=$(OEXT)) \
 	$(GNU_CALLBACKS_CFILES:.c=$(OEXT)) \
+	$(GNU_MFILES:.m=$(OEXT)) \
 	$(GNU_CFILES:.c=$(OEXT))
 
 GNU_HEADERS = \
@@ -231,7 +231,6 @@ objects/ArrayPrivate.h \
 objects/Bag.h \
 objects/BinaryCStream.h \
 objects/BinaryTree.h \
-objects/BinaryTreeEltNode.h \
 objects/BinaryTreeNode.h \
 objects/CircularArray.h \
 objects/CircularArrayPrivate.h \
@@ -246,8 +245,6 @@ objects/CStream.h \
 objects/CStreaming.h \
 objects/DelegatePool.h \
 objects/Dictionary.h \
-objects/EltNode-h \
-objects/EltNode-m \
 objects/GapArray.h \
 objects/GapArrayPrivate.h \
 objects/Heap.h \
@@ -260,7 +257,6 @@ objects/KeyedCollecting.h \
 objects/KeyedCollection.h \
 objects/LibobjectsMain.h \
 objects/LinkedList.h \
-objects/LinkedListEltNode.h \
 objects/LinkedListNode.h \
 objects/Lock.h \
 objects/Locking.h \
@@ -280,7 +276,6 @@ objects/Port.h \
 objects/Proxy.h \
 objects/Queue.h \
 objects/RBTree.h \
-objects/RBTreeEltNode.h \
 objects/RBTreeNode.h \
 objects/RNGAdditiveCongruential.h \
 objects/RNGBerkeley.h \
@@ -357,6 +352,7 @@ NSAssertionHandler.m \
 NSAutoreleasePool.m \
 NSBitmapCharSet.m \
 NSBundle.m \
+NSCallBacks.m \
 NSCharacterSet.m \
 NSCoder.m \
 NSCopyObject.m \
@@ -376,7 +372,9 @@ NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
+NSHashTable.m \
 NSLock.m \
+NSMapTable.m \
 NSMethodSignature.m \
 NSNotification.m \
 NSNotificationCenter.m \
@@ -425,6 +423,7 @@ Foundation/NSArray.h \
 Foundation/NSAutoreleasePool.h \
 Foundation/NSBitmapCharSet.h \
 Foundation/NSBundle.h \
+Foundation/NSCallBacks.h \
 Foundation/NSCharacterSet.h \
 Foundation/NSCoder.h \
 Foundation/NSConcreteNumber.h \
@@ -439,6 +438,7 @@ Foundation/NSGArray.h \
 Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
+Foundation/NSHashTable.h \
 Foundation/NSLock.h \
 Foundation/NSGSet.h \
 Foundation/NSHashTable.h \
