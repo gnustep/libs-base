@@ -105,7 +105,7 @@ int main()
 
   checkSameContents([collections delegatePoolCollection]);
 
-  [collections empty];
+  [collections release];
 
   exit(0);
 }
