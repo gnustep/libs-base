@@ -1,3 +1,7 @@
+2004-02-09  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add ffcall dir to INCLUDE_FLAGS.
+
 2004-02-08  Adam Fedor  <fedor@gnu.org>
 
 	* Source/simple-load.h (__USE_GNU): Define for dlfcn.
