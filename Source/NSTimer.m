@@ -48,25 +48,42 @@ static Class	NSDate_class;
 
 /**
  * <init />
- * Initialise a newly allocated NSTimer object.<br />
- * The ti argument specifies the time (in seconds) between the firing.<br />
- * The f argument specifies whether the timer will fire repeatedly.<br />
- * The object and info arguments will be retained until the timer is
+ * Initialise the receive, a newly allocated NSTimer object.<br />
+ * The fd argument specifies an initial fire date ... if it is not
+ * supplied (a nil object) then the ti argument is used to create
+ * a astart date relative to the current time.<br />
+ * The ti argument specifies the time (in seconds) between the firing.
+ * If it is less than or equal to 0.0 then a small interval is chosen
+ * automatically.<br />
+ * The f argument specifies whether the timer will fire repeatedly
+ * or just once.<br />
+ * If the selector argument is zero, then then object is an invocation
+ * to be used when the timer fires.  otherwise, the object is sent the
+ * message specified by the selector and with the timer as an argument.<br />
+ * The fd, object and info arguments will be retained until the timer is
  * invalidated.<br />
  */
-- (id) initWithTimeInterval: (NSTimeInterval)ti
-	 targetOrInvocation: (id)object
-		   selector: (SEL)selector
-		   userInfo: (id)info
-		    repeats: (BOOL)f
+- (id) initWithFireDate: (NSDate*)fd
+	       interval: (NSTimeInterval)ti
+		 target: (id)object
+	       selector: (SEL)selector
+	       userInfo: (id)info
+		repeats: (BOOL)f
 {
   if (ti <= 0)
     {
       ti = 0.0001;
     }
   _interval = ti;
-  _date = [[NSDate_class allocWithZone: [self zone]]
-    initWithTimeIntervalSinceNow: ti];
+  if (fd == nil)
+    {
+      _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
+        initWithTimeIntervalSinceReferenceDate: _interval];
+    }
+  else
+    {
+      _date = [fd copy];
+    }
   _target = RETAIN(object);
   _selector = selector;
   _info = RETAIN(info);
@@ -83,11 +100,12 @@ static Class	NSDate_class;
 		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f
 {
-  return AUTORELEASE([[self alloc] initWithTimeInterval: ti
-				     targetOrInvocation: invocation
-					       selector: NULL
-					       userInfo: nil
-						repeats: f]);
+  return AUTORELEASE([[self alloc] initWithFireDate: nil
+					   interval: ti
+					     target: invocation
+					   selector: NULL
+					   userInfo: nil
+					    repeats: f]);
 }
 
 /**
@@ -103,18 +121,19 @@ static Class	NSDate_class;
 			  userInfo: (id)info
 			   repeats: (BOOL)f
 {
-  return AUTORELEASE([[self alloc] initWithTimeInterval: ti
-				     targetOrInvocation: object
-					       selector: selector
-					       userInfo: info
-						repeats: f]);
+  return AUTORELEASE([[self alloc] initWithFireDate: nil
+					   interval: ti
+					     target: object
+					   selector: selector
+					   userInfo: info
+					    repeats: f]);
 }
 
 /**
- * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, invocation will be performed.<br />
  * This timer will automatically be added to the current run loop and
- * will fire in the defaut run loop mode.
+ * will fire in the default run loop mode.
  */
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				 invocation: (NSInvocation*)invocation
@@ -128,12 +147,12 @@ static Class	NSDate_class;
 }
 
 /**
- * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, the target object will be
  * sent a message specified by selector and with the object info as an
  * argument.<br />
  * This timer will automatically be added to the current run loop and
- * will fire in the defaut run loop mode.
+ * will fire in the default run loop mode.
  */
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				     target: (id)object
@@ -198,7 +217,7 @@ static Class	NSDate_class;
 	}
 #endif
       RELEASE(_date);
-      _date = [[NSDate_class allocWithZone: [self zone]]
+      _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
 	initWithTimeIntervalSinceReferenceDate: nxt];
     }
 }
@@ -245,6 +264,18 @@ static Class	NSDate_class;
 - (NSDate*) fireDate
 {
   return _date;
+}
+
+/**
+ * Change the fire date for the receiver.<br />
+ * NB. You should <em>NOT</em> use this method for a timer which has
+ * been added to a run loop.  The only time whan it is safe to modify
+ * the fire date of a timer in a run loop is for a repeating timer
+ * when the timer is actually in the process of firing.
+ */
+- (void) setFireDate: (NSDate*)fireDate
+{
+  ASSIGN(_date, fireDate);
 }
 
 /**
