@@ -907,7 +907,9 @@ static void unescape(const char *from, char * to)
 
 /**
  * Returns the host portion of the receiver or nil if there is no
- * host supplied in the URL.
+ * host supplied in the URL.<br />
+ * Percent escape sequences in the user string are translated and the string
+ * treated as UTF8.<br />
  */
 - (NSString*) host
 {
@@ -915,7 +917,10 @@ static void unescape(const char *from, char * to)
 
   if (myData->host != 0)
     {
-      host = [NSString stringWithUTF8String: myData->host];
+      char	buf[strlen(myData->host)+1];
+
+      unescape(myData->host, buf);
+      host = [NSString stringWithUTF8String: buf];
     }
   return host;
 }
@@ -1015,6 +1020,8 @@ static void unescape(const char *from, char * to)
 /**
  * Returns the password portion of the receiver or nil if there is no
  * password supplied in the URL.<br />
+ * Percent escape sequences in the user string are translated and the string
+ * treated as UTF8 in GNUstep but this appears to be broken in MacOS-X.<br />
  * NB. because of its security implications it is recommended that you
  * do not use URLs with users and passwords unless necessary.
  */
@@ -1024,7 +1031,10 @@ static void unescape(const char *from, char * to)
 
   if (myData->password != 0)
     {
-      password = [NSString stringWithUTF8String: myData->password];
+      char	buf[strlen(myData->password)+1];
+
+      unescape(myData->password, buf);
+      password = [NSString stringWithUTF8String: buf];
     }
   return password;
 }
@@ -1089,7 +1099,9 @@ static void unescape(const char *from, char * to)
 
 /**
  * Returns the port portion of the receiver or nil if there is no
- * port supplied in the URL.
+ * port supplied in the URL.<br />
+ * Percent escape sequences in the user string are translated in GNUstep
+ * but this appears to be broken in MacOS-X.
  */
 - (NSNumber*) port
 {
@@ -1097,7 +1109,10 @@ static void unescape(const char *from, char * to)
 
   if (myData->port != 0)
     {
-      port = [NSNumber numberWithUnsignedShort: atol(myData->port)];
+      char	buf[strlen(myData->port)+1];
+
+      unescape(myData->port, buf);
+      port = [NSNumber numberWithUnsignedShort: atol(buf)];
     }
   return port;
 }
@@ -1303,6 +1318,8 @@ static void unescape(const char *from, char * to)
 /**
  * Returns the user portion of the receiver or nil if there is no
  * user supplied in the URL.<br />
+ * Percent escape sequences in the user string are translated and
+ * the whole is treated as UTF8 data.<br />
  * NB. because of its security implications it is recommended that you
  * do not use URLs with users and passwords unless necessary.
  */
@@ -1312,7 +1329,10 @@ static void unescape(const char *from, char * to)
 
   if (myData->user != 0)
     {
-      user = [NSString stringWithUTF8String: myData->user];
+      char	buf[strlen(myData->user)+1];
+
+      unescape(myData->user, buf);
+      user = [NSString stringWithUTF8String: buf];
     }
   return user;
 }

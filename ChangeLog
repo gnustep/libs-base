@@ -6,6 +6,8 @@
 	Changes based on bug report by Andy Ruder <aeruder@yahoo.com>
 	* Source/NSURL.m: Fixed one possible nul pointer indirection,
 	and added some comments about the internal data structure.
+	Handle percentage escape sequences in user, password, host and port
+	even though MacOS-X only seems to do it for the user name and host.
 	* Tools/plmerge.m: Fixed some crasher bugs where given bad arguments.
 
 2002-06-16  Richard Frith-Macdonald <rfm@gnu.org>
