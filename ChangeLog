@@ -1,3 +1,8 @@
+Wed Dec 15  2:18:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/UnixFileHandle.m: Chck to see if we are given a bad address.
+	* Source/NSHost.m: major rewrite
+
 Tue Dec 14  8:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimeZone.m: ([+getTimeZoneFile:]) Removed misleading comment
