@@ -1,5 +1,5 @@
 /* NSHashTable implementation for GNUStep.
- * Copyright (C) 1994, 1995, 1996  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 1997  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:54:09 EST 1994
@@ -61,7 +61,7 @@ const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks =
   (NSHT_describe_func_t) _NS_owned_void_p_describe
 };
 
-const NSHashTableCallBacks NSNonRetainedObjectsHashCallBacks = 
+const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks = 
 {
   (NSHT_hash_func_t) _NS_non_retained_id_hash,
   (NSHT_isEqual_func_t) _NS_non_retained_id_is_equal,
