@@ -146,7 +146,12 @@ static void setupWhitespce()
 {
   if (whitespce == nil)
     {
+#if 0
       whitespce = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+#else
+      whitespce = [NSMutableCharacterSet characterSetWithCharactersInString:
+	@" \t\r\n\f\b"];
+#endif
       [whitespce retain];
       whitespceImp =
 	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
