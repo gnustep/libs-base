@@ -1,5 +1,11 @@
 2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/autogsdoc.m: store and fetch dependency info in .igsdoc
+	so we can parse the correct source files for each header when we
+	need to.
+
+2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GNUmakefile: build subproject.
 	* Source/Additions/Makefile.preamble: set include flags.
 	* Source/Additions/GSXML.m: moved implementation here.

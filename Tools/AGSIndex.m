@@ -520,7 +520,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 /**
  * Set up an array listing the source files for a particular header.
  */
-- (void) setSource: (NSArray*)s forHeader: (NSString*)h
+- (void) setSources: (NSArray*)a forHeader: (NSString*)h
 {
   NSMutableDictionary	*dict;
 
@@ -531,7 +531,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       [refs setObject: dict forKey: @"source"];
       RELEASE(dict);
     }
-  [dict setObject: s forKey: h];
+  [dict setObject: a forKey: h];
 }
 
 /**
