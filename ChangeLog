@@ -1,3 +1,17 @@
+Thu Sep 30 17:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	More performance work - huge improvement in dictionary lookup and
+	perhaps 15 percent improvement elsewhere.
+	* src/NSString.m: ([-hash]) changed hash generation to produce a
+	more evenly distributed value so that dictionary lookup works
+	better for large dictionaries full of similar keys.
+	* src/NSDictionary.m: ([+dictionaryWithObjectsAndKeys:,...]) fixed
+	memory leak.
+	* src/include/NSGDictionary.h: Removed - not needed.
+	* src/NSGDictionary.m.old: Backup added.
+	* src/NSGDictionary.m: Complete rewrite.
+	* src/FastMap.x: New map table stuff for NSGDictionary.
+
 Thu Sep 30  7:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Changes to slightly more than double the speed of dictionary
