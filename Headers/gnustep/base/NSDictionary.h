@@ -67,6 +67,7 @@
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #ifndef	STRICT_OPENSTEP
+- (id) valueForKey: (NSString*)key;
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 #endif
 @end
@@ -82,7 +83,10 @@
 - (void) removeObjectsForKeys: (NSArray*)keyArray;
 - (void) setObject: (id)anObject forKey: (id)aKey;		// Primitive
 - (void) setDictionary: (NSDictionary*)otherDictionary;
-
+#ifndef	STRICT_OPENSTEP
+- (void) takeStoredValue: (id)value forKey: (NSString*)key;
+- (void) takeValue: (id)value forKey: (NSString*)key;
+#endif
 @end
 
 #ifndef NO_GNUSTEP
