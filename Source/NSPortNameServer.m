@@ -687,15 +687,17 @@ static NSPortNameServer	*defaultServer = nil;
 {
   if (handle)
     {
-      [NSNotificationCenter removeObserver: self
-				name: GSFileHandleConnectCompletionNotification
-			      object: handle];
-      [NSNotificationCenter removeObserver: self
-				name: NSFileHandleReadCompletionNotification
-			      object: handle];
-      [NSNotificationCenter removeObserver: self
-				name: GSFileHandleWriteCompletionNotification
-			      object: handle];
+      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+
+      [nc removeObserver: self
+		    name: GSFileHandleConnectCompletionNotification
+		  object: handle];
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: handle];
+      [nc removeObserver: self
+		    name: GSFileHandleWriteCompletionNotification
+		  object: handle];
       [handle closeFile];
       [handle release];
       handle = nil;
@@ -721,9 +723,10 @@ static NSPortNameServer	*defaultServer = nil;
        *	stop watching for connection completion.
        */ 
       expecting = 0;
-      [NSNotificationCenter removeObserver: self
-				name: GSFileHandleConnectCompletionNotification
-			      object: handle];
+      [[NSNotificationCenter defaultCenter]
+	removeObserver: self
+		  name: GSFileHandleConnectCompletionNotification
+		object: handle];
     }
 }
 

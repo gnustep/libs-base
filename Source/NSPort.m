@@ -88,8 +88,9 @@ NSString *NSPortTimeoutException
 {
   [[NSPortNameServer defaultPortNameServer] removePort: self];
   is_valid = NO;
-  [NSNotificationCenter postNotificationName: NSPortDidBecomeInvalidNotification
-				      object: self];
+  [[NSNotificationCenter defaultCenter]
+    postNotificationName: NSPortDidBecomeInvalidNotification
+		  object: self];
 }
 
 - (BOOL) isValid

@@ -325,11 +325,11 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	  /*
 	   *	Ask to be told if the copnnection goes away.
 	   */
-	  [NSNotificationCenter
-                    addObserver: self
-		       selector: @selector(_invalidated:)
-			   name: NSConnectionDidDieNotification
-			 object: c];
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_invalidated:)
+		   name: NSConnectionDidDieNotification
+		 object: c];
 	  [remote registerClient: (id<GDNCClient>)self];
 	}
       else
@@ -376,9 +376,10 @@ NSLog(@"Connection to GDNC server established.\n");
   /*
    *	Tidy up now that the connection has gone away.
    */
-  [NSNotificationCenter removeObserver: self
-				  name: NSConnectionDidDieNotification
-				object: connection];
+  [[NSNotificationCenter defaultCenter]
+    removeObserver: self
+	      name: NSConnectionDidDieNotification
+	    object: connection];
   NSAssert(connection == [remote connectionForProxy],
 		 NSInternalInconsistencyException);
   [remote release];
