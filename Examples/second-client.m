@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
       printf("Caught our exception\n"
 	     "NAME: %@\n"
 	     "REASON: %@\n",
-	     [exception name],
-	     [exception reason]);
-      [exception release];
+	     [localException name],
+	     [localException reason]);
+      [localException release];
     }
   NS_ENDHANDLER
 
