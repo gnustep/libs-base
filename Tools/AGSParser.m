@@ -481,6 +481,59 @@ fail:
   return nil;
 }
 
+/*
+- (NSString*) parseType
+{
+  NSMutableString	*m;
+  NSString		*s;
+  BOOL			hadName = NO;
+
+  s = [self parseIdentifier];
+  if (s == nil)
+    {
+      return nil;
+    }
+  m = [NSMutableString string];
+  [m appendString: s];
+  if ([qualifiers member: s] == nil)
+    {
+      hadName = YES;
+    }
+  [self skipWhiteSpace];
+  while (pos < length)
+    {
+      unsigned	saved;
+      BOOL	hadStar = NO;
+
+      while (pos < length && buffer[pos] == '*')
+	{
+	  if (hadStar == NO)
+	    {
+	      [m appendString: @" "];
+	      hadStar = YES;
+	    }
+	  [m appendString: @"*"];
+	  pos++;
+	  [self skipWhiteSpace];
+	}
+      saved = pos;
+      s = [self parseIdentifier];
+      if ([qualifiers member: s] == nil)
+	{
+	  if (hadName == YES)
+	    {
+	      pos = saved;
+	      break;
+	    }
+	  hadName = YES;
+	}
+      [m appendString: @" "];
+      [m appendString: s];
+    }
+  return m;
+}
+*/
+
 - (NSString*) parseIdentifier
 {
   unsigned	start;
