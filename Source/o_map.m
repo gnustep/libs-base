@@ -562,12 +562,22 @@ o_map_key_at_key(o_map_t *map, const void *key)
 const void *
 o_map_value_at_key(o_map_t *map, const void *key)
 {
+#if 0
   const void *value;
 
   /* Use the grandfather function above... */
   o_map_key_and_value_at_key(map, 0, &value, key);
-
   return value;
+#else
+  o_map_node_t *node;
+
+  /* Try and find the node for KEY. */
+  node = _o_map_node_for_key(map, key);
+
+  if (node != 0)
+    return node->value;
+  return 0;
+#endif
 }
 
 const void **
