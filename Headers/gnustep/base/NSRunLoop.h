@@ -38,6 +38,7 @@ extern id NSDefaultRunLoopMode;
   @private NSMapTable *_mode_2_timers;
   @private NSMapTable *_mode_2_watchers;
   @private NSMutableArray *_performers;
+  @private NSMutableArray *_timedPerformers;
 }
 
 + (NSRunLoop*) currentRunLoop;

@@ -1,3 +1,34 @@
+Wed Apr  1 18:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.m: Modified code so that we make sure we have at least
+	one valid route to any gdomap process which has probed us.  This is
+	to cope with machines which send out info about all their interfaces
+	when one or more of the interfaces is not working.
+
+	* src/checks/nstask.m: added test for environment setting.
+
+	* src/NSCalendarDate.m: Fixed bug in initialisation where daylight
+	savings time is in operation - was adjusting in wrong direction.
+
+	* src/NSRunLoop.m: Added NSObject catagory for the methods -
+	([NSObject +cancelPreviousPerformRequestsWithTarget:selector:object:]),
+	([NSObject -performSelector:withObject:afterDelay:]), and
+	([NSObject -performSelector:withObject:afterDelay:inModes:])
+
+	* src/NSTask.m: Various bug fixes as a result of running the test
+ 	suite.  All seems to work ok now.
+
+	* src/NSDate.h: Changed order of declaractions so this can be included
+	within NSObject.h
+
+	* src/NSObject.h: Added run-loop integration methods -
+	([NSObject +cancelPreviousPerformRequestsWithTarget:selector:object:]),
+	([NSObject -performSelector:withObject:afterDelay:]), and
+	([NSObject -performSelector:withObject:afterDelay:inModes:])
+	
+	* src/NSRunLoop.h: Added an instance variable to keep track of
+	queued delayed actions to be performed on objects.
+
 Tue Mar 31 11:32:03 1998  Adam Fedor  <fedor@doc.com>
 
 	* aclocal.m4 (OBJC_CON_AUTOLOAD): Improved test. Check nm output

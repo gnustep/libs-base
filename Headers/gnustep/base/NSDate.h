@@ -21,10 +21,10 @@
 #ifndef __NSDate_h_GNUSTEP_BASE_INCLUDE
 #define __NSDate_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
-
 /* Time interval difference between two dates, in seconds. */
 typedef double NSTimeInterval;
+
+#include <Foundation/NSObject.h>
 
 @class NSArray;
 @class NSCalendarDate;

@@ -537,16 +537,17 @@ prb_del(struct in_addr *p)
 }
 
 /*
- *	Remove any server  from which we have had no messages in the last
- *	thirty minutes.
+ *	Remove any server from which we have had no messages in the last
+ *	thirty minutes (as long as we have sent as probe in that time).
  */
 static void
 prb_tim(long when)
 {
     int	i;
 
+    when -= 1800;
     for (i = prb_used - 1; i >= 0; i--) {
-	if (when - prb[i]->when > 1800) {
+	if (prb[i]->when < when && prb[i]->when < last_probe) {
 	    prb_del(&prb[i]->sin);
 	}
     }
@@ -1524,10 +1525,10 @@ handle_request(int desc)
 	    if (debug > 2) {
 		fprintf(stderr, "Probe from '%s'\n", inet_ntoa(sin));
 	    }
-	    prb_add(&sin);
 	    net = inet_netof(sin);
 	    ptr = (struct in_addr*)&r_info[desc].buf.r.name[2*IASIZE];
 	    c = (r_info[desc].buf.r.nsize - 2*IASIZE)/IASIZE;
+	    prb_add(&sin);
 	    while (c-- > 0) {
 		if (debug > 2) {
 		    fprintf(stderr, "Delete server '%s'\n", inet_ntoa(*ptr));
@@ -1535,6 +1536,12 @@ handle_request(int desc)
 		prb_del(ptr);
 		ptr++;
 	    }
+	    /*
+	     *	Irrespective of what we are told to do - we also add the
+	     *	interface from which this packet arrived so we have a
+	     *	route we KNOW we can use.
+	     */
+	    prb_add(&r_info[desc].addr.sin_addr);
 	}
 	/*
 	 *	For a UDP request from another name server, we send a reply
@@ -1611,10 +1618,10 @@ handle_request(int desc)
 	    if (debug > 2) {
 		fprintf(stderr, "Probe reply from '%s'\n", inet_ntoa(sin));
 	    }
-	    prb_add(&sin);
 	    net = inet_netof(sin);
 	    ptr = (struct in_addr*)&r_info[desc].buf.r.name[2*IASIZE];
 	    c = (r_info[desc].buf.r.nsize - 2*IASIZE)/IASIZE;
+	    prb_add(&sin);
 	    while (c-- > 0) {
 		if (debug > 2) {
 		    fprintf(stderr, "Delete server '%s'\n", inet_ntoa(*ptr));
@@ -1622,6 +1629,12 @@ handle_request(int desc)
 		prb_del(ptr);
 		ptr++;
 	    }
+	    /*
+	     *	Irrespective of what we are told to do - we also add the
+	     *	interface from which this packet arrived so we have a
+	     *	route we KNOW we can use.
+	     */
+	    prb_add(&r_info[desc].addr.sin_addr);
 	}
 	/*
 	 *	Because this is really a reply to us, we don't want to reply

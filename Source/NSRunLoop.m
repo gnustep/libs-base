@@ -271,6 +271,18 @@ static int debug_run_loop = 0;
 @end
 
 
+
+@interface NSRunLoop (TimedPerformers)
+- (NSMutableArray*) _timedPerformers;
+@end
+
+@implementation	NSRunLoop (TimedPerformers)
+- (NSMutableArray*) _timedPerformers
+{
+    return _timedPerformers;
+}
+@end
+
 /*
  *	The RunLoopPerformer class is used to hold information about
  *	messages which are due to be sent to objects once a particular
@@ -282,7 +294,8 @@ static int debug_run_loop = 0;
     id		target;
     id		argument;
     unsigned	order;
-    NSArray*	modes;
+    NSArray	*modes;
+    NSTimer	*timer;
 }
 
 - (void) fire;
@@ -296,12 +309,14 @@ static int debug_run_loop = 0;
 		argument: anArgument;
 - (NSArray*) modes;
 - (unsigned int) order;
+- (void) setTimer: (NSTimer*)timer;
 @end
 
 @implementation RunLoopPerformer
 
 - (void) dealloc
 {
+    [timer invalidate];
     [target release];
     [argument release];
     [modes release];
@@ -310,7 +325,13 @@ static int debug_run_loop = 0;
 
 - (void)fire
 {
-    [target perform:selector withObject:argument];
+    if (timer != nil) {
+	timer = nil;
+	[[self retain] autorelease];
+	[[[NSRunLoop currentInstance] _timedPerformers]
+		removeObjectIdenticalTo: self];
+    }
+    [target perform: selector withObject: argument];
 }
 
 - initWithSelector: (SEL)aSelector
@@ -351,6 +372,91 @@ static int debug_run_loop = 0;
     return order;
 }
 
+- (void) setTimer: (NSTimer*)t
+{
+    timer = t;
+}
+@end
+
+@implementation NSObject (TimedPerformers)
+
++ (void) cancelPreviousPerformRequestsWithTarget: (id)target
+					selector: (SEL)aSelector
+					  object: (id)arg
+{
+    NSMutableArray	*array;
+    int			i;
+
+    [target retain];
+    [arg retain];
+    array = [[NSRunLoop currentInstance] _timedPerformers];
+    for (i = [array count]; i > 0; i--) {
+	if ([[array objectAtIndex: i-1] matchesSelector: aSelector
+					         target: target
+					       argument: arg]) {
+	    [array removeObjectAtIndex: i-1];
+	}
+    }
+    [arg release];
+    [target release];
+}
+
+- (void) performSelector: (SEL)aSelector
+	      withObject: (id)argument
+	      afterDelay: (NSTimeInterval)seconds
+{
+    NSMutableArray	*array;
+    RunLoopPerformer	*item;
+
+    array = [[NSRunLoop currentInstance] _timedPerformers];
+    item = [[RunLoopPerformer alloc] initWithSelector: aSelector
+					       target: self
+          				     argument: argument
+             					order: 0
+						modes: nil];
+    [array addObject: item];
+    [item setTimer: [NSTimer scheduledTimerWithTimeInterval: seconds
+						     target: item
+						   selector: @selector(fire)
+						   userInfo: nil
+						    repeats: NO]];
+    [item release];
+}
+
+- (void) performSelector: (SEL)aSelector
+	      withObject: (id)argument
+	      afterDelay: (NSTimeInterval)seconds
+		 inModes: (NSArray*)modes
+{
+    NSRunLoop		*loop;
+    NSMutableArray	*array;
+    RunLoopPerformer	*item;
+    NSTimer		*timer;
+    int			i;
+
+    if (modes == nil || [modes count] == 0) {
+	return;
+    }
+    loop = [NSRunLoop currentInstance];
+    array = [loop _timedPerformers];
+    item = [[RunLoopPerformer alloc] initWithSelector: aSelector
+					       target: self
+          				     argument: argument
+             					order: 0
+						modes: nil];
+    [array addObject: item];
+    timer = [NSTimer timerWithTimeInterval: seconds
+				    target: item
+				  selector: @selector(fire)
+				  userInfo: nil
+				   repeats: NO];
+    [item setTimer: timer];
+    [item release];
+    for (i = 0; i < [modes count]; i++) {
+	[loop addTimer: timer forMode: [modes objectAtIndex: i]];
+    }
+}
+
 @end
 
 
@@ -362,6 +468,7 @@ static int debug_run_loop = 0;
 - (RunLoopWatcher*) _getWatcher: (void*)data
 			   type: (RunLoopEventType)type
 		        forMode: (NSString*)mode;
+- (NSMutableArray*) _performers;
 - (void) _removeWatcher: (void*)data
 		   type: (RunLoopEventType)type
 		forMode: (NSString*)mode;
@@ -430,17 +537,20 @@ static int debug_run_loop = 0;
 - (void) _checkPerformers
 {
     RunLoopPerformer	*item;
-    int			count = [_performers count];
+    NSArray		*array = [NSArray arrayWithArray: _performers];
+    int			count = [array count];
+    unsigned		pos;
     int			i;
 
-    for (i = count; i > 0; i++) {
-	item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
+    for (i = 0; i < count; i++) {
+	item = (RunLoopPerformer*)[array objectAtIndex: i];
 
-	if ([[item modes] containsObject: _current_mode]) {
-	    [item retain];
-	    [_performers removeObjectAtIndex:(i-1)];
-	    [item fire];
-	    [item release];
+	pos = [_performers indexOfObjectIdenticalTo: item];
+	if (pos != NSNotFound) {
+	    if ([[item modes] containsObject: _current_mode]) {
+		[_performers removeObjectAtIndex: pos];
+		[item fire];
+	    }
 	}
     }
 }
@@ -640,6 +750,7 @@ static int debug_run_loop = 0;
   _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
 					   NSObjectMapValueCallBacks, 0);
   _performers = [[NSMutableArray arrayWithCapacity:8] retain];
+  _timedPerformers = [[NSMutableArray arrayWithCapacity:8] retain];
   return self;
 }
 
@@ -648,6 +759,7 @@ static int debug_run_loop = 0;
     NSFreeMapTable(_mode_2_timers);
     NSFreeMapTable(_mode_2_watchers);
     [_performers release];
+    [_timedPerformers release];
     [super dealloc];
 }
 
@@ -1159,6 +1271,8 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
     int			count = [_performers count];
     int			i;
 
+    [target retain];
+    [argument retain];
     for (i = count; i > 0; i++) {
 	item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
 
@@ -1166,6 +1280,8 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 	    [_performers removeObjectAtIndex:(i-1)];
 	}
     }
+    [argument release];
+    [target release];
 }
 
 - (void) configureAsServer

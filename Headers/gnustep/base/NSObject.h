@@ -30,6 +30,7 @@
 #include <gnustep/base/fake-main.h>
 
 @class NSArchiver;
+@class NSArray;
 @class NSCoder;
 @class NSPortCoder;
 @class NSMethodSignature;
@@ -162,6 +163,21 @@ enum {NSNotFound = 0x7fffffff};
 - performSelector: (SEL)aSelector;
 - performSelector: (SEL)aSelector withObject: anObject;
 - performSelector: (SEL)aSelector withObject: object1 withObject: object2;
+@end
+
+
+#include <Foundation/NSDate.h>
+@interface NSObject (TimedPerformers)
++ (void) cancelPreviousPerformRequestsWithTarget: (id)obj
+					selector: (SEL)s
+					  object: (id)arg;
+- (void) performSelector: (SEL)s
+	      withObject: (id)arg
+	      afterDelay: (NSTimeInterval)seconds;
+- (void) performSelector: (SEL)s
+	      withObject: (id)arg
+	      afterDelay: (NSTimeInterval)seconds
+		 inModes: (NSArray*)modes;
 @end
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */
