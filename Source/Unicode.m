@@ -925,7 +925,7 @@ tables:
 	    }
 	  ptr = r;
 	}
-      else if (zone != 0 && bsize > dpos)
+      else if (zone != 0 && (ptr == buf || bsize > dpos))
 	{
 	  unsigned	bytes = dpos * sizeof(unichar) + extra;
 
@@ -1462,7 +1462,7 @@ tables:
 	    }
 	  ptr = r;
 	}
-      else if (zone != 0 && bsize > dpos)
+      else if (zone != 0 && (ptr == buf || bsize > dpos))
 	{
 	  unsigned	bytes = dpos + extra;
 
