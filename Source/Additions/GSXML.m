@@ -65,7 +65,14 @@
 #include <libxml/entities.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
-#include <libxml/SAX.h>
+#ifdef	HAVE_LIBXML_SAX2_H
+#include <libxml/SAX2.h>
+#else
+# define	xmlSAX2GetColumnNumber	getColumnNumber
+# define	xmlSAX2GetLineNumber	getLineNumber
+# define	xmlSAX2GetPublicId	getPublicId
+# define	xmlSAX2GetSystemId	getSystemId
+#endif
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
@@ -1887,6 +1894,14 @@ static NSString	*endMarker = @"At end of incremental parse";
   return xmlEncodingString;
 }
 
+/**
+ * If executed during a parse operation, returns the current column number.
+ */
+- (int) columnNumber
+{
+  return  xmlSAX2GetColumnNumber(lib);
+}
+
 - (void) dealloc
 {
   NSHashRemove(warnings, self);
@@ -1906,12 +1921,11 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) doValidityChecking: (BOOL)yesno
 {
-  int	oldVal;
-  int	newVal = (yesno == YES) ? 1 : 0;
+  BOOL	old;
 
-  xmlGetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&oldVal);
-  xmlSetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&newVal);
-  return (oldVal == 1) ? YES : NO;
+  old = (((xmlParserCtxtPtr)lib)->validate) ? YES : NO;
+  ((xmlParserCtxtPtr)lib)->validate = (yesno ? 1 : 0);
+  return old;
 }
 
 /**
@@ -2080,15 +2094,6 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
- * Returns the string into which warning and error messages are saved,
- * or nil if they are being written to stderr.
- */
-- (NSString*) messages
-{
-  return messages;
-}
-
-/**
  * Set and return the previous value for blank text nodes support.
  * ignorableWhitespace nodes are only generated when running
  * the parser in validating mode and when the current element
@@ -2096,12 +2101,28 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) keepBlanks: (BOOL)yesno
 {
-  int	oldVal;
-  int	newVal = (yesno == YES) ? 1 : 0;
+  BOOL	old;
 
-  xmlGetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&oldVal);
-  xmlSetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&newVal);
-  return (oldVal == 1) ? YES : NO;
+  old = (((xmlParserCtxtPtr)lib)->keepBlanks) ? YES : NO;
+  ((xmlParserCtxtPtr)lib)->keepBlanks = (yesno ? 1 : 0);
+  return old;
+}
+
+/**
+ * If executed during a parse operation, returns the current line number.
+ */
+- (int) lineNumber
+{
+  return  xmlSAX2GetLineNumber(lib);
+}
+
+/**
+ * Returns the string into which warning and error messages are saved,
+ * or nil if they are being written to stderr.
+ */
+- (NSString*) messages
+{
+  return messages;
 }
 
 /**
@@ -2243,6 +2264,14 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
+ * Return the public ID of the document being parsed.
+ */
+- (NSString*) publicID
+{
+  return UTF8Str(xmlSAX2GetPublicId(lib));
+}
+
+/**
  * Sets up (or removes) a mutable string to which error and warning
  * messages are saved.  Using an argument of NO will cause these messages
  * to be written to stderr (the default).<br />
@@ -2268,34 +2297,19 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) substituteEntities: (BOOL)yesno
 {
-  int	oldVal;
-  int	newVal = (yesno == YES) ? 1 : 0;
+  BOOL	old;
 
-  xmlGetFeature((xmlParserCtxtPtr)lib, "substitute entities", (void*)&oldVal);
-  if (xmlSetFeature((xmlParserCtxtPtr)lib, "substitute entities",
-    (void*)&newVal) < 0)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"Unable to set substituteEntities"];
+  old = (((xmlParserCtxtPtr)lib)->replaceEntities) ? YES : NO;
+  ((xmlParserCtxtPtr)lib)->replaceEntities = (yesno ? 1 : 0);
+  return old;
+}
 
-  newVal = -1;
-  if (xmlGetFeature((xmlParserCtxtPtr)lib, "substitute entities",
-    (void*)&newVal) < 0)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"Unable to get substituteEntities"];
-  if (yesno == YES)
-    {
-      if (newVal != 1)
-	[NSException raise: NSInternalInconsistencyException
-		    format: @"Unable to set substituteEntities to 1"];
-    }
-  else
-    {
-      if (newVal != 0)
-	[NSException raise: NSInternalInconsistencyException
-		    format: @"Unable to set substituteEntities to 0"];
-    }
-  xmlSubstituteEntitiesDefault(newVal);	// Set default too.
-  return (oldVal == 1) ? YES : NO;
+/**
+ * Return the system ID of the document being parsed.
+ */
+- (NSString*) systemID
+{
+  return UTF8Str(xmlSAX2GetSystemId(lib));
 }
 
 /*
@@ -2886,6 +2900,56 @@ endElementFunction(void *ctx, const unsigned char *name)
     }
 }
 
+#if	HAVE_LIBXML_SAX2_H
+static void
+startElementNsFunction(void *ctx, const unsigned char *name,
+  const unsigned char *prefix, const unsigned char *href,
+  int nb_namespaces, const unsigned char **namespaces,
+  int nb_attributes, int nb_defaulted,
+  const unsigned char **atts)
+{
+  START(startElement:prefix:href:attributes:, void, (id,SEL,id,id,id,id));
+
+  if (imp != treeImp)
+    {
+      int i;
+      NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+      NSString *key, *obj;
+
+      if (atts != NULL)
+	{
+	  for (i = 0; (atts[i] != NULL); i++)
+	    {
+	      key = UTF8Str(atts[i++]);
+	      obj = UTF8Str(atts[i]);
+	      [dict setObject: obj forKey: key];
+	    }
+	}
+      (*imp)(HANDLER, sel, UTF8Str(name), UTF8Str(prefix), UTF8Str(href), dict);
+    }
+  else
+    {
+      xmlSAX2StartElementNs(ctx, name, prefix, href, nb_namespaces, namespaces, nb_attributes, nb_defaulted, atts);
+    }
+}
+
+static void
+endElementNsFunction(void *ctx, const unsigned char *name,
+  const unsigned char *prefix, const unsigned char *href)
+{
+  START(endElement:, void, (id,SEL,id,id,id));
+
+  if (imp != treeImp)
+    {
+      (*imp)(HANDLER, sel, UTF8Str(name), UTF8Str(prefix), UTF8Str(href));
+    }
+  else
+    {
+      xmlSAX2EndElementNs(ctx, name, prefix, href);
+    }
+}
+#endif
+
 static void
 charactersFunction(void *ctx, const unsigned char *ch, int len)
 {
@@ -2991,7 +3055,7 @@ warningFunction(void *ctx, const unsigned char *msg, ...)
 
   NSCAssert(ctx,@"No Context");
   lineNumber = getLineNumber(ctx);
-  colNumber = getColumnNumber(ctx);
+  colNumber = xmlSAX2GetColumnNumber(ctx);
   [HANDLER warning: estr
 	 colNumber: colNumber
 	lineNumber: lineNumber];
@@ -3009,8 +3073,8 @@ errorFunction(void *ctx, const unsigned char *msg, ...)
   estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
   NSCAssert(ctx,@"No Context");
-  lineNumber = getLineNumber(ctx);
-  colNumber = getColumnNumber(ctx);
+  lineNumber = xmlSAX2GetLineNumber(ctx);
+  colNumber = xmlSAX2GetColumnNumber(ctx);
   [HANDLER error: estr
        colNumber: colNumber
       lineNumber: lineNumber];
@@ -3028,8 +3092,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
   NSCAssert(ctx, @"No Context");
-  lineNumber = getLineNumber(ctx);
-  colNumber = getColumnNumber(ctx);
+  lineNumber = xmlSAX2GetLineNumber(ctx);
+  colNumber = xmlSAX2GetColumnNumber(ctx);
   [HANDLER fatalError: estr
             colNumber: colNumber
            lineNumber: lineNumber];
@@ -3118,10 +3182,26 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 {
 }
 
+- (void) startElement: (NSString*)elementName
+               prefix: (NSString*)prefix
+		 href: (NSString*)href
+	   attributes: (NSMutableDictionary*)elementAttributes
+{
+}
+
 /**
  * Called when a closing tag has been processed.
  */
-- (void) endElement: (NSString*) elementName
+- (void) endElement: (NSString*)elementName
+{
+}
+
+/**
+ * Called when a closing tag has been processed.
+ */
+- (void) endElement: (NSString*)elementName
+	     prefix: (NSString*)prefix
+	       href: (NSString*)href
 {
 }
 
@@ -3392,6 +3472,10 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->endDocument            = (void*) endDocumentFunction;
       LIB->startElement           = (void*) startElementFunction;
       LIB->endElement             = (void*) endElementFunction;
+#if	HAVE_LIBXML_SAX2_H
+      LIB->startElementNs         = (void*) startElementNsFunction;
+      LIB->endElementNs           = (void*) endElementNsFunction;
+#endif
       LIB->reference              = (void*) referenceFunction;
       LIB->characters             = (void*) charactersFunction;
       LIB->ignorableWhitespace    = (void*) ignorableWhitespaceFunction;
@@ -3402,6 +3486,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->fatalError             = (void*) fatalErrorFunction;
       LIB->getParameterEntity     = (void*) getParameterEntityFunction;
       LIB->cdataBlock             = (void*) cdataBlockFunction;
+#if	HAVE_LIBXML_SAX2_H
+      xmlSAXVersion(LIB, 2);	// Set SAX2
+#endif
 #undef	LIB
       return YES;
     }
@@ -3422,7 +3509,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 @implementation GSTreeSAXHandler
 
 /**
- * Called when a warning message needs to be output.<br />
+: Cal]led when a warning message needs to be output.<br />
  * See [GSXMLParser-setErrors:] for the mechanism implemented by this.
  */
 - (void) warning: (NSString*)e
