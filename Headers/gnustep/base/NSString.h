@@ -88,29 +88,6 @@ enum {
                 NSOpenStepUnicodeReservedBase = 0xF400
 };
 
-// Uncomment when implemented
-    static NSStringEncoding _availableEncodings[] = {
- NSASCIIStringEncoding,
-        NSNEXTSTEPStringEncoding,
-//        NSJapaneseEUCStringEncoding,
-//        NSUTF8StringEncoding,
-        NSISOLatin1StringEncoding,
-//        NSSymbolStringEncoding,
-//        NSNonLossyASCIIStringEncoding,
-//        NSShiftJISStringEncoding,
-//        NSISOLatin2StringEncoding,
-        NSUnicodeStringEncoding,
-//        NSWindowsCP1251StringEncoding,
-//        NSWindowsCP1252StringEncoding,
-//        NSWindowsCP1253StringEncoding,
-//        NSWindowsCP1254StringEncoding,
-//        NSWindowsCP1250StringEncoding,
-//        NSISO2022JPStringEncoding,
-// GNUstep additions
-        NSCyrillicStringEncoding,
- 0
-    };
-
 @protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
@@ -254,6 +231,10 @@ enum {
 - (NSString*) _normalizedString;
 
 #ifndef STRICT_OPENSTEP
++ (NSString*) pathWithComponents: (NSArray*)components;
+- (BOOL) isAbsolutePath;
+- (NSArray*) pathComponents;
+- (NSArray*) stringsByAppendingPaths: (NSArray*)paths;
 + (NSString*) stringWithString: (NSString*) aString;
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 + (NSString*) stringWithFormat: (NSString*)format

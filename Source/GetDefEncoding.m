@@ -57,6 +57,9 @@ NSStringEncoding GetDefEncoding()
   char *encoding;
   unsigned int count;
   NSStringEncoding ret,tmp;
+  NSStringEncoding *availableEncodings;
+
+  availableEncodings = [NSString availableStringEncodings];
 
   encoding = getenv("GNUSTEP_STRING_ENCODING");
   if(encoding)
@@ -81,9 +84,9 @@ NSStringEncoding GetDefEncoding()
       {
         count=0;
         tmp=0;
-        while(!(_availableEncodings[count]==0))
+        while(!(availableEncodings[count]==0))
         {
-          if(!(ret==_availableEncodings[count]))
+          if(!(ret==availableEncodings[count]))
             tmp=0;
           else
 	  {

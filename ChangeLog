@@ -1,9 +1,25 @@
+Wed Jan 21 11:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/GetDefEncoding.m: Modified GetDefEncoding() to us the NSString
+	method - ([+availableStringEncodings]) so we can make the
+	_availableEncodings array local to NSString.m
+
+	* src/NSString.m: Moved _availableEncodings here from NSString.h
+	Added methods as specified in Rhapsody documentation -
+	([+pathWithComponents:]), ([-isAbsolutePath]), ([-pathComponents]),
+	([-stringsByAppendingPaths:])
+
+	* src/include/NSString.h: Moved _availableEncodings from here to
+	NSString.m and added declarations for new methods -
+	([+pathWithComponents:]), ([-isAbsolutePath]), ([-pathComponents]),
+	([-stringsByAppendingPaths:])
+
 Wed Jan 21 09:41:46 1998  Adam Fedor  <fedor@spanky.doc.com>
 
 	* src/Makefile.postamble: Change $(LEX) to $(FLEX) and $(YACC) to
 	$(BISON). Add $(GNUSTEP_OBJC_DIR) to targets with ${OEXT}.
 
-Tue Jan 20 19:05:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+Tue Jan 20 19:05:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* Tools/GNUmakefile: Added defaults.m
 

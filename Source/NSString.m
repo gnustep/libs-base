@@ -65,6 +65,29 @@
 #include <gnustep/base/Unicode.h>
 #include <gnustep/base/GetDefEncoding.h>
 
+// Uncomment when implemented
+    static NSStringEncoding _availableEncodings[] = {
+ NSASCIIStringEncoding,
+        NSNEXTSTEPStringEncoding,
+//        NSJapaneseEUCStringEncoding,
+//        NSUTF8StringEncoding,
+        NSISOLatin1StringEncoding,
+//        NSSymbolStringEncoding,
+//        NSNonLossyASCIIStringEncoding,
+//        NSShiftJISStringEncoding,
+//        NSISOLatin2StringEncoding,
+        NSUnicodeStringEncoding,
+//        NSWindowsCP1251StringEncoding,
+//        NSWindowsCP1252StringEncoding,
+//        NSWindowsCP1253StringEncoding,
+//        NSWindowsCP1254StringEncoding,
+//        NSWindowsCP1250StringEncoding,
+//        NSISO2022JPStringEncoding,
+// GNUstep additions
+        NSCyrillicStringEncoding,
+ 0
+    };
+
 
 #if defined(__WIN32__) || defined(_WIN32)
 
@@ -2367,6 +2390,74 @@ else
 }
 
 // #ifndef STRICT_OPENSTEP
++ (NSString*) pathWithComponents: (NSArray*)components
+{
+    NSString	*s = [self string];
+    int		i;
+
+    for (i = 0; i < [components count]; i++) {
+	s = [s stringByAppendingPathComponent: [components objectAtIndex: i]];
+    }
+    return s;
+}
+
+- (BOOL) isAbsolutePath
+{
+    if ([self length] > 0 && [self characterAtIndex: 0] == (unichar)'/') {
+	return YES;
+    }
+    return NO;
+}
+
+- (NSArray*) pathComponents
+{
+    NSMutableArray	*a;
+    NSArray		*r;
+
+    a = [[self componentsSeparatedByString: @"/"] mutableCopy];
+    if ([a count] > 0) {
+	int	i;
+
+	/* If the path began with a '/' then the first path component must
+	 * be a '/' rather than an empty string so that our output could be
+	 * fed into [+pathWithComponents:]
+         */
+	if ([[a objectAtIndex: 0] length] == 0) {
+	    [a replaceObjectAtIndex: 0 withObject: @"/"];
+	}
+	/* Any empty path components (except a trailing one) must be removed. */
+	for (i = [a count] - 2; i > 0; i--) {
+	    if ([[a objectAtIndex: i] length] == 0) {
+		[a removeObjectAtIndex: i];
+	    }
+	}
+    }
+    r = [a copy];
+    [a release];
+    return [r autorelease];
+}
+
+- (NSArray*) stringsByAppendingPaths: (NSArray*)paths
+{
+    NSMutableArray	*a;
+    NSArray		*r;
+    int			i;
+
+    a = [[NSMutableArray alloc] initWithCapacity: [paths count]];
+    for (i = 0; i < [paths count]; i++) {
+	NSString	*s = [paths objectAtIndex: i];
+
+	while ([s isAbsolutePath]) {
+	    s = [s substringFromIndex: 1];
+	}
+	s = [self stringByAppendingPathComponent: s];
+	[a addObject: s];
+    }
+    r = [a copy];
+    [a release];
+    return [r autorelease];
+}
+
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...
 {
   [self notImplemented:_cmd];
