@@ -4,19 +4,18 @@
    text archive format.
    */
 
-#include <objects/TextCoder.h>
-#include <objects/StdioStream.h>
+#include <objects/Coder.h>
 #include <objects/Set.h>
 #include <objects/EltNodeCollector.h>
 #include <objects/LinkedList.h>
 #include <objects/LinkedListEltNode.h>
+#include <objects/NSString.h>
 
 int main()
 {
   id set, ll;
-  id stream;
   id coder;
-  const char *n;
+  id name;
 
   /* Create a Set of int's
      and a LinkedList of float's */
@@ -42,59 +41,33 @@ int main()
   [ll printForDebugger];
 
   /* Write them to a file */
-  stream = [[StdioStream alloc] 
-	    initWithFilename:"./textcoding.txt"
-	    fmode:"w"];
-  coder = [[TextCoder alloc] initEncodingOnStream:stream];
-  [coder encodeObject:set withName:"Test Set"];
-  [coder encodeObject:ll withName:"Test EltNodeCollector LinkedList"];
+  coder = [Coder coderWritingToFile: @"./textcoding.txt"];
+  [coder encodeObject:set withName:@"Test Set"];
+  [coder encodeObject:ll withName:@"Test EltNodeCollector LinkedList"];
 
-  /* Free the objects */
-  [coder release];
+  /* Release the objects that were coded */
   [set release];
   [ll release];
 
   /* Read them back in from the file */
   /* First init the stream and coder */
-  stream = [[StdioStream alloc] 
-	    initWithFilename:"./textcoding.txt"
-	    fmode:"r"];
-  coder = [[TextCoder alloc] initDecodingOnStream:stream];
+  coder = [Coder coderReadingFromFile: @"./textcoding.txt"];
 
   /* Read in the Set */
-  [coder decodeObjectAt:&set withName:&n];
-  printf("got object named %s\n", n);
-  /* The name was malloc'ed by the Stream, free it */
-  (*objc_free)((void*)n);
+  [coder decodeObjectAt:&set withName:&name];
+  printf("got object named %@\n", name);
 
   /* Read in the LinkedList */
-  [coder decodeObjectAt:&ll withName:&n];
-  printf("got object named %s\n", n);
-  /* The name was malloc'ed by the Stream, free it */
-  (*objc_free)((void*)n);
+  [coder decodeObjectAt:&ll withName:&name];
+  printf("got object named %@\n", name);
 
   /* Display what we read, to make sure it matches what we wrote */
   [set printForDebugger];
   [ll printForDebugger];
 
-  /* Free the objects */
-  [coder release];
+  /* Relase the objects we read */
   [set release];
   [ll release];
   
   exit(0);
 }
-
-/* Some notes:
-
-   This program is a great example of how allocating and freeing
-   memory is very screwed up:
-
-   * The Stream allocates the name, we have to free it.
-
-   * The Coder free's its Stream when the Coder is free'd, but we
-   were the ones to create it.
-
-   These difficult and ad-hoc rules will be fixed in the future.
-
-*/
