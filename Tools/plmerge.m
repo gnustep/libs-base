@@ -36,7 +36,7 @@ main(int argc, char** argv, char **env)
   NSArray		*args;
   NSString		*destName;
   NSString		*fileContents;
-  NSMutableDictionary	*plist;
+  NSMutableDictionary	*plist = nil;
   unsigned		i;
 
 #ifdef GS_PASS_ARGUMENTS
