@@ -3,6 +3,44 @@ Mon Mar  3 14:41:01 1997  Andrew McCallum  <mccallum@jprc.com>
 	* src/NSHost.m, src/include/NSHost.h: New files from Luke Howard
 	<lukeh@xedoc.com.au>.
 
+Fri Jan 17 20:08:00 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/o_x_bas.m.in (o_@XX@_zone): Use NSZoneFromPointer().
+	(_o_@XX@_alloc_with_zone): Remove unnecessary assignment.
+
+	* src/o_array.m (o_array_alloc): Use NSDefaultMallocZone().
+	* src/o_hash.m (o_hash_alloc): Likewise.
+	(o_hash_copy): Likewise.
+	* src/o_list.m (o_list_alloc): Likewise.
+	(o_list_copy): Likewise.
+
+	* src/include/o_array.h (_o_array): Remove zone.  It's just a
+	waste of space when we have a very fast NSZoneFromPointer().
+	* src/include/o_hash.h (_o_hash): Likewise.
+	* src/include/o_list.h (_o_list): Likewise.
+	* src/include/o_map.h (_o_map): Likewise.
+
+	* src/include/NSZone.h: New implementation.
+
+	* src/include/NSPage.h: New file.
+
+	* src/include/NSException.h (NS_HANDLER): Separate declaration and
+ 	assignment of localException.  This is to shut up gcc when we
+ 	don't use localException.
+
+	* src/StdioStream.m ([StdioStream -dealloc]): Removed call to
+ 	fclose().
+
+	* src/NSZone.m: New implementation.
+
+	* src/NSDeallocateObject.m: Simplified.
+
+	* src/NSAutoreleasePool.m:
+	Included NSZone.h.
+	([NSAutoreleasePool -dealloc]): Use NSZoneMemInUse().
+
+	* src/Makefile.in (GNUSTEP_HEADERS): Added NSPage.h.
+
 Sun Jan 12 13:46:38 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.12.  There seems to be

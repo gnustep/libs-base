@@ -22,6 +22,7 @@
    */ 
 
 #include <gnustep/base/preface.h>
+#include <Foundation/NSZone.h>
 #include <string.h>		/* For memset(). */
 
 NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
