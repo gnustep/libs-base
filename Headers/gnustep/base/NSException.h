@@ -109,7 +109,8 @@ extern void _NSRemoveHandler( NSHandler *handler );
 		    if( !setjmp(NSLocalHandler.jumpState) ) {
 
 #define NS_HANDLER _NSRemoveHandler(&NSLocalHandler); } else { \
-		    NSException *localException = NSLocalHandler.exception;
+		    NSException *localException;               \
+		    localException = NSLocalHandler.exception;
 
 #define NS_ENDHANDLER }}
 

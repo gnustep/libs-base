@@ -50,7 +50,7 @@ o_@XX@_magic_number(o_@XX@_t *xx)
 inline NSZone *
 o_@XX@_zone(o_@XX@_t *xx)
 {
-  return xx->zone;
+  return NSZoneFromPointer(xx);
 }
 
 /** Names... **/
@@ -191,7 +191,6 @@ _o_@XX@_alloc_with_zone(NSZone *zone)
       _o_@XX@_set_serial_number(xx);
       xx->magic_number = _OBJECTS_MAGIC_@XX@;
       xx->name = 0;
-      xx->zone = zone;
       xx->extra_callbacks = o_callbacks_for_non_owned_void_p;
       xx->extra = 0;
 

@@ -79,7 +79,8 @@ FILE_AUTHORS = \
 "Georg Tuparev" \
 "Peter Burka" \
 "Albin L. Jones" \
-"Scott Christley"
+"Scott Christley" \
+"Luke Howard"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
@@ -457,6 +458,7 @@ include/NSMethodSignature.h \
 include/NSNotification.h \
 include/NSObjCRuntime.h \
 include/NSObject.h \
+include/NSPage.h \
 include/NSPathUtilities.h \
 include/NSProcessInfo.h \
 include/NSRange.h \

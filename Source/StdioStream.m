@@ -281,7 +281,6 @@ stdio_unchar_func(void *s, int c)
 
 - (void) dealloc
 {
-  fclose(fp);
   [super dealloc];
 }
 
