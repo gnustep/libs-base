@@ -29,6 +29,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSDebug.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSObjCRuntime.h>
@@ -255,7 +256,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if ([s isEqual: gnustep_target_cpu])
 	path = [path stringByDeletingLastPathComponent];
 
-      NSDebugLog(@"(NSBundle): Found main in %@\n", path);
+      NSDebugLog(@"NSBundle", @"(NSBundle): Found main in %@\n", path);
       /* We do alloc and init separately so initWithPath: knows
           we are the _mainBundle */
       _mainBundle = [NSBundle alloc];
@@ -338,7 +339,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
   if (stat([path cString], &statbuf) != 0) 
     {
-      NSDebugLog(@"Could not access path %s for bundle", [path cString]);
+      NSDebugLog(@"NSBundle", @"Could not access path %s for bundle", [path cString]);
       //[self dealloc];
       //return nil;
     }

@@ -53,12 +53,36 @@ extern int	errno;
  *		was last called.
  */
 
+#ifndef	NDEBUG
 extern	void		GSDebugAllocationAdd(Class c);
 extern	void		GSDebugAllocationRemove(Class c);
 
 extern	BOOL		GSDebugAllocationActive(BOOL active);
 extern	int		GSDebugAllocationCount(Class c);
 extern	const char*	GSDebugAllocationList(BOOL changeFlag);
+#endif
 
+
+/* Debug logging which can be enabled/disabled by defining DEBUG
+   when compiling and also setting values in the mutable array
+   that is set up by NSProcessInfo.
+   This array is initialised by NSProcess info using the
+    '--GNU-Debug=...' command line argument.  Each command-line argument
+   of that form is removed from NSProcessInfos list of arguments and the
+   variable part (...) is added to the array.
+   For instance, to debug the NSBundle class, run your program with 
+    '--GNU-Debug=NSBundle'
+   You can of course supply multiple '--GNU-Debug=...' arguments to
+   output debug information on more than one thing.
+ */
+#ifdef DEBUG
+#include	<Foundation/NSDebug.h>
+#include	<Foundation/NSProcessInfo.h>
+#define NSDebugLog(level, format, args...) \
+  do { if ([[[NSProcessInfo processInfo] debugArray] containsObject: level]) \
+    NSLog(format, ## args); } while (0)
+#else
+#define NSDebugLog(level, format, args...)
+#endif
 
 #endif

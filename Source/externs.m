@@ -22,6 +22,7 @@
    */ 
 
 #include <config.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSMapTable.h>
@@ -33,9 +34,6 @@
    data that invoke other methods which also access global; thus,
    creating the potential for deadlock. */
 NSRecursiveLock *gnustep_global_lock = nil;
-
-/* Set this variable to print NSDebugLog messages */
-int NSDebugLogging = NO;
 
 /* Connection Notification Strings. */
 

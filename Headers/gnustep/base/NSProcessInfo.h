@@ -48,6 +48,10 @@
 /* Specifying a Process Name */
 - (void)setProcessName:(NSString *)newName;
 
+/* GNUstep extension this is a list of debug levels set using the
+ * --GNU-Debug=... command line option. */
+- (NSMutableArray*) debugArray;
+
 @end
 
 #endif /* __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE */
