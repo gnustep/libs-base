@@ -362,7 +362,7 @@ decode (const void *ptr)
       [zone_mutex lock];
     }
   zone = [zoneDictionary objectForKey: name];
-  if (data != [zone data] && [data isEqual: [zone data]] == NO)
+  if (data != nil && [data isEqual: [zone data]] == NO)
     {
       zone = nil;
     }
