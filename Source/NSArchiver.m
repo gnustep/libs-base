@@ -674,6 +674,28 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
     }
 }
 
+- (void) encodeDataObject: (NSData*)anObject
+{
+  unsigned	l = [anObject length];
+
+  (*eValImp)(self, eValSel, @encode(unsigned int), &l);
+  if (l)
+    {
+      const void	*b = [anObject bytes];
+      unsigned char	c = 0;			/* Type tag	*/
+
+      /*
+       * The type tag 'c' is used to specify an encoding scheme for the
+       * actual data - at present we have '0' meaning raw data.  In the
+       * future we might want zipped data for instance.
+       */
+      (*eValImp)(self, eValSel, @encode(unsigned char), &c);
+      [self encodeArrayOfObjCType: @encode(unsigned char)
+			    count: l
+			       at: b];
+    }
+}
+
 - (void) encodeObject: (id)anObject
 {
   if (anObject == nil)

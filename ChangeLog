@@ -1,3 +1,8 @@
+Fri Jan 29 11:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSArchiver.m: Implemented ([-encodeDataObject:])
+	* src/NSUnarchiver.m: Implemented ([-decodeDataObject])
+
 1999-01-28  Adam Fedor  <fedor@gnu.org>
 
 	* GNUmakefile (SUBPROJECTS): Change directory names
