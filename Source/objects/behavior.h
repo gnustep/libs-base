@@ -33,9 +33,23 @@
    encounter a common ancestor.)  CLASS and BEHAVIOR should share the
    same instance variable layout.
 
-   xxx We do not yet deal with Protocols, but we should. */
+   We do not yet deal with Protocols; perhaps we should. 
+
+   The semantics of this stuff is pretty fragile.  I don't recommend
+   that you use it in code you write.  It might go away completely in
+   future. 
+
+*/
+
 void class_add_behavior (Class class, Class behavior);
 
+/* This macro may go away in future.
+   Use it carefully, you can really screw yourself up by sending to 
+   a CLASS with a different instance variable layout than "self". */
+
+#define CALL_METHOD_IN_CLASS(CLASS, METHOD, ARGS...)	\
+((*imp([CLASS class], @selector(METHOD)))		\
+  self, @selector(METHOD), ## ARGS)
 
 /* Set to non-zero if you want debugging messages on stderr. */
 void set_behavior_debug(int i);
