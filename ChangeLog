@@ -1,3 +1,9 @@
+2001-04-24   Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Testing/benchmark.m (bench_object): Use a choice of the 10 more
+	used classes when benchmarking class method invocation, rather
+	than always using `NSObject'.  Added bench for NSClassFromString.
+
 2001-04-23  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/GSValue.m ([-getValue:]): Fixed typo - was raising
