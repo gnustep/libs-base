@@ -1,7 +1,13 @@
 2002-11-04  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSArray.m: Ensurd some documentation in place for almost all
+	* Source/NSArray.m: Ensured some documentation in place for almost all
 	methods.
+	* Source/Additions/GSMime.m: Fix broken method reference.
+	* Source/Additions/GSXML.m: ditto
+	* Source/NSScanner.m: ditto
+	* Source/NSUnarchiver.m: ditto
+	* Tools/AGSIndex.m: Minor fix for superclass reference lookup.
+	* Tools/AGSHtml.m: ditto
 
 2002-11-03  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -662,7 +662,6 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       *u = nil;
       return nil;
     }
-
   if (*u == nil)
     {
       /**
@@ -708,6 +707,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       *u = [self globalRef: *u type: @"super"];
       if (*u != nil)
 	{
+	  *u = [*u lastPathComponent];
 	  s = [t objectForKey: *u];
 	  if (s != nil)
 	    {

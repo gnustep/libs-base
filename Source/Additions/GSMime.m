@@ -599,7 +599,8 @@ wordData(NSString *word)
  * </p>
  * <p>
  *   On completion of parsing a valid document, the
- *   -document method returns the resulting parsed document.
+ *   [GSMimeDocument-mimeDocument] method returns the
+ *   resulting parsed document.
  * </p>
  */
 @implementation	GSMimeParser

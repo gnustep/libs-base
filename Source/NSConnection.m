@@ -1225,8 +1225,8 @@ static BOOL	multi_threaded = NO;
 }
 
 /**
- * Simply invokes -registerName:usingNameServer: passing it the default
- * system nameserver.
+ * Simply invokes -registerName:withNameServer:
+ * passing it the default system nameserver.
  */
 - (BOOL) registerName: (NSString*)name
 {

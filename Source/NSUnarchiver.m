@@ -296,7 +296,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
  * This class reconstructs objects from an archive.<br />
  * <strong>Re-using the archiver</strong><br />
  * <p>
- *   The -resetUnarchiverWithdata:atIndex: method lets you re-use
+ *   The -resetUnarchiverWithData:atIndex: method lets you re-use
  *   the archive to decode a new data object or, in conjunction
  *   with the 'cursor' method (which reports the current decoding
  *   position in the archive), decode a second archive that exists
@@ -306,22 +306,19 @@ mapClassName(NSUnarchiverObjectInfo *info)
  * NSUnarchiver normally reads directly from an NSData object using
  * the methods -
  * <deflist>
- *   <term>[-deserializeTypeTagAtCursor:]</term>
+ *   <term>-deserializeTypeTag:andCrossRef:atCursor:</term>
  *   <desc>
  *     to decode type tags for data items, the tag is the
  *     first byte of the character encoding string for the
  *     data type (as provided by '@encode(xxx)'), possibly
  *     with the top bit set to indicate that what follows is
- *     a crossreference to an item already encoded.
- *   </desc>
- *   <term>[-deserializeCrossRefAtCursor:]</term>
- *   <desc>
- *     to decode a crossreference number either to identify the
+ *     a crossreference to an item already encoded.<br />
+ *     Also decode a crossreference number either to identify the
  *     following item, or to refer to a previously encoded item.
  *     Objects, Classes, Selectors, CStrings and Pointer items
  *     have crossreference encoding, other types do not.
  *   </desc>
- *   <term>[-deserializeData:ofObjCType:atCursor:context:]</term>
+ *   <term>[NSData-deserializeDataAt:ofObjCType:atCursor:context:]</term>
  *   <desc>
  *     to decode all other information.
  *   </desc>

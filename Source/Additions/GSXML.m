@@ -1769,7 +1769,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 /**
  * Set and return the previous value for blank text nodes support.
- * ignorableWhitespace() are only generated when running
+ * ignorableWhitespace nodes are only generated when running
  * the parser in validating mode and when the current element
  * doesn't allow CDATA or mixed content.
  */

@@ -215,7 +215,7 @@ GS_EXPORT BOOL NSDeallocateZombies;
    </p>
    <p>NSUserDefaults also adds debug levels from the array given by the
    GNU-Debug key ... but these values will not take effect until the
-   +sharedUserDefaults method is called ... so they are useless for
+   +standardUserDefaults method is called ... so they are useless for
    debugging NSUserDefaults itsself or for debugging any code executed
    before the defaults system is used.
    </p>
