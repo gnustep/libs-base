@@ -34,6 +34,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSThread.h"
+#include "GNUstepBase/GSLock.h"
 
 
 /**
@@ -208,6 +209,8 @@ static void obsFree(Observation *o);
 
 #include "GNUstepBase/GSIMap.h"
 
+@class	GSLazyRecursiveLock;
+
 /*
  * An NC table is used to keep track of memory allocated to store
  * Observation structures. When an Observation is removed from the
@@ -237,9 +240,7 @@ typedef struct NCTbl {
   GSIMapTable		named;		/* Getting named messages only.	*/
   GSIArray		array;		/* Temp store during posting.	*/
   unsigned		lockCount;	/* Count recursive operations.	*/
-  NSRecursiveLock	*_lock;		/* Lock out other threads.	*/
-  IMP			lImp;
-  IMP			uImp;
+  GSLazyRecursiveLock	*_lock;		/* Lock out other threads.	*/
   BOOL			lockingDisabled;
   BOOL			immutableInPost;
 
@@ -415,16 +416,16 @@ static NCTable *newNCTable(void)
 
 static inline void lockNCTable(NCTable* t)
 {
-  if (t->_lock != nil && t->lockingDisabled == NO)
-    (*t->lImp)(t->_lock, @selector(lock));
+  if (t->lockingDisabled == NO)
+    [t->_lock lock];
   t->lockCount++;
 }
 
 static inline void unlockNCTable(NCTable* t)
 {
   t->lockCount--;
-  if (t->_lock != nil && t->lockingDisabled == NO)
-    (*t->uImp)(t->_lock, @selector(unlock));
+  if (t->lockingDisabled == NO)
+    [t->_lock unlock];
 }
 
 static void obsFree(Observation *o)
@@ -582,42 +583,13 @@ static NSNotificationCenter *default_center = nil;
 
 /* Initializing. */
 
-- (void) _becomeThreaded: (NSNotification*)notification
-{
-  unsigned	count;
-
-  TABLE->_lock = [NSRecursiveLock new];
-  TABLE->lImp = [TABLE->_lock methodForSelector: @selector(lock)];
-  TABLE->uImp = [TABLE->_lock methodForSelector: @selector(unlock)];
-  count = LOCKCOUNT;
-  /*
-   * If we start locking inside a method that would normally have been
-   * locked, we must lock the lock enough times so that when we leave
-   * the method the number of unlocks will match.
-   */
-  while (count-- > 0)
-    {
-      (*TABLE->lImp)(TABLE->_lock, @selector(lock));
-    }
-}
-
 - (id) init
 {
-  [super init];
-  TABLE = newNCTable();
-  if ([NSThread isMultiThreaded])
+  if ((self = [super init]) != nil)
     {
-      [self _becomeThreaded: nil];
+      TABLE = newNCTable();
+      TABLE->_lock = [GSLazyRecursiveLock new];
     }
-  else
-    {
-      [[NSNotificationCenter defaultCenter]
-	addObserver: self
-	   selector: @selector(_becomeThreaded:)
-	       name: NSWillBecomeMultiThreadedNotification
-	     object: nil];
-    }
-
   return self;
 }
 
