@@ -74,12 +74,11 @@
 
 /* This error message should be called only if the private main function
  * was not executed successfully. This may heppen ONLY if onother library
- * or kit defines its own main function (as libobjects does).
+ * or kit defines its own main function (as gnustep-base does).
  */
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"Libobjects internal error: \
-the private libobjects function to establish the argv and environment \
-variables was not called. Please contact Tuparev@EMBL-Heidelberg.de for \
-further information."
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"GNUSTEP Internal Error: \
+The private GNUstep function to establish the argv and environment \
+variables was not called. Please report this error to bug-gnustep@gnu.org."
 
 /*************************************************************************
  *** _NSConcreteProcessInfo

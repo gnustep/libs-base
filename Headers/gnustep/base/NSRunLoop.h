@@ -32,7 +32,7 @@
 /* Mode strings. */
 extern id NSDefaultRunLoopMode;
 
-@interface NSRunLoop : NSObject
+@interface NSRunLoop : NSObject <GCFinalization>
 {
   @private id _current_mode;
   @private NSMapTable *_mode_2_timers;

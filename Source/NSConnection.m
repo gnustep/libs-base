@@ -47,6 +47,8 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSPort.h>
+#include <Foundation/NSPortMessage.h>
 #include <Foundation/NSNotification.h>
 
 NSString* NSConnectionReplyMode = @"NSConnectionReplyMode";
@@ -184,6 +186,7 @@ static unsigned local_object_counter = 0;
 
 @interface NSConnection (Private)
 - _superInit;
+- (void) handlePortMessage: (NSPortMessage*)msg;
 + setDebug: (int)val;
 @end
 
@@ -411,9 +414,14 @@ static int messages_received_count;
   return delegate;
 }
 
+- (void) handlePortMessage: (NSPortMessage*)msg
+{
+  [self notImplemented: _cmd];
+}
+
 - (BOOL) independantConversationQueueing
 {
-    return independant_queueing;
+  return independant_queueing;
 }
 
 - (void) enableMultipleThreads

@@ -5,6 +5,10 @@
 @include version.tmpl.texi
 @end ifset
 
+The gnustep-base library is nearly complete, although a few things could
+be fixed here and there and it could be ported to more systems. This
+list is probably out of date. In the future we will be primarily adding
+features and performance tuning.
 Please send corrections to @email{fedor@@gnu.org}.
 
 @emph{Key:}
@@ -31,80 +35,62 @@ Unknown status.
 (Many classes do not raise the proper NSExceptions yet.)
 
 @table @strong
-@item NSArchiver::			[8]
-	Doesn't yet call -awakeAfterUsingCoder:.
+@item NSArchiver::			[9]
 @item NSArray::			[9]
 @item NSAssertionHandler::		[9]
-@item NSAttributedString::		[8]
+@item NSAttributedString::		[9]
 @item NSAutoreleasePool::		[9]
 	But not exception- safe
-@item NSBundle::			[8]
-@item NSCalendarDate::		[7]
-@item NSCharacterSet::		[8]
-	decomposableCharacterSet and illegalCharacter set missing
-@item NSCoder::			[8]
-	Missing class name substitution methods.
+@item NSBundle::			[9]
+@item NSCalendarDate::		[8]
+@item NSCharacterSet::		[9]
+@item NSCoder::			[9]
 @item NSConditionLock::		[8]
-@item NSConnection::		[7]
-	GNU Connection, however, needs:
-        @itemize @bullet
-	 @item to handle retain/release/dealloc properly
-	 @item to be integrated with NSInvocation
-	 @item to incorporate futzing with low-level TCP-backend for better speed
-	 @item to have UDP-backend work
-	 @item to cache ConnectedCoder's for better speed
-	 @item Thread-safety overhaul, this is major
-        @end itemize
-@item NSCountedSet::		[8]
-@item NSData::			[8]
-@item NSDate::			[8]
-@item NSDeserializer::		[7]
-@item NSDictionary::		[8]
-@item NSDistantObject::		[7]
-@item NSDistributedLock::		[7]
+@item NSConnection::		[9]
+@item NSCountedSet::		[9]
+@item NSData::			[9]
+@item NSDate::			[9]
+@item NSDeserializer::		[8]
+@item NSDictionary::		[9]
+@item NSDistantObject::		[8]
+@item NSDistributedLock::		[9]
 @item NSEnumerator::		[9]
 @item NSException::		[9]
 	But this needs integration with new, better
 @item NSFileHandle::		[9]
 @item NSFileManager::		[9]
-@item NSHashTable::		[8]
-@item NSHost::			[8]
-@item NSInvocation::		[3]
-@item NSLock::			[8]
-@item NSMapTable::		[8]
-@item NSMethodSignature::		[4]
-@item NSMutableArray::		[8]
-@item NSMutableCharacterSet::	[7]
-@item NSMutableData::		[8]
-@item NSMutableDictionary::		[8]
-@item NSMutableSet::		[8]
-@item NSMutableString::		[8]
+@item NSHashTable::		[9]
+@item NSHost::			[9]
+@item NSInvocation::		[7]
+@item NSLock::			[9]
+@item NSMapTable::		[9]
+@item NSMethodSignature::		[7]
+@item NSMutableArray::		[9]
+@item NSMutableCharacterSet::	[8]
+@item NSMutableData::		[9]
+@item NSMutableDictionary::		[9]
+@item NSMutableSet::		[9]
+@item NSMutableString::		[9]
 @item NSNotification::		[9]
 @item NSNotificationCenter::	[9]
 @item NSNotificationQueue::		[6]
-	Needs integration with NSRunLoop, and efficiency improvements
 @item NSNumber::			[9]
 @item NSObject::			[10]
 @item NSProcessInfo::		[9]
-@item NSProxy::			[7]
-@item NSRecursiveLock::		[8]
-@item NSRunLoop::			[8]
-	NSTimer's not yet working, but everything else should be
-@item NSScanner::			[8]
-@item NSSerializer::		[7]
-@item NSSet::			[8]
-@item NSString::			[8]
-	Careful, relationship with GNU String is tricky; this could
-	 also use fixing.
+@item NSProxy::			[8]
+@item NSRecursiveLock::		[9]
+@item NSRunLoop::			[9]
+@item NSScanner::			[9]
+@item NSSerializer::		[8]
+@item NSSet::			[9]
+@item NSString::			[9]
 @item NSTask::				[8]
 @item NSThread::			[8]
-@item NSTimeZone::			[8]
-@item NSTimeZoneDetail::		[8]
-@item NSTimer::			[6]
-	Working out bugs with returning doubles.
-@item NSUnarchiver::		[8]
-	See NSArchvier
-@item NSUserDefaults::		[8]
+@item NSTimeZone::			[9]
+@item NSTimeZoneDetail::		[9]
+@item NSTimer::			[7]
+@item NSUnarchiver::		[9]
+@item NSUserDefaults::		[9]
 @item NSValue::			[9]
 @end table
 

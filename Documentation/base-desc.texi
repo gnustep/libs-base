@@ -6,5 +6,4 @@ remote object messaging support (distributed objects), event loops, and
 random number generators.
 
 It provides functionality that aims to implement the non-graphical
-portion of the OpenStep standard.  In many cases, the @samp{NS*} classes
-are implemented as wrappers around more featureful GNU classes.
+portion of the OpenStep standard (the Foundation library).  

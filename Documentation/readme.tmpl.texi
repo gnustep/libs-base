@@ -21,107 +21,13 @@ will be forthcoming, but the library needs to settle first.  For now I
 recommend reading the header files.  
 The headers for the classes are in @file{./src/include}.
 
-The FAQ contains an outline of the class heirarchy, as well as a
-list of the differences between GNUstep and NeXT's implementation of
-OpenStep, and GNUstep's improvements over NeXT's implementation. 
-
-@section Overview of the classes
-
-Here is partial list of non-OpenStep classes, grouped by functionality.
-
-There are several GNU-specific protocols also.  You can recognize the
-protocols by their name: they all end with ``ing''.
-
-@itemize @bullet
-
-@item The collection objects all conform to the @samp{Collecting}
-protocol.  Reading @samp{src/include/Collecting.h} is a good place to
-start.  Protocols for collections that store their contents with keys
-and with indices can be found in @samp{src/incliude/KeyedCollecting.h} and
-@samp{src/include/IndexedCollecting.h} respectively.  Examples of generic
-collections are @samp{Set} and @samp{Bag}.  The keyed collections are
-@samp{Dictionary} and @samp{MappedCollector}.  The classes @samp{Array},
-@samp{Queue}, @samp{GapArray}, @samp{LinkedList}, @samp{BinaryTree},
-@samp{RBTree} and @samp{SplayTree} are all indexed collections.
-
-@item The string objects conform to the @samp{String} protocol.
-@samp{CString} provides an interface to strings based on ASCII bytes,
-and is currently the only concrete subclass of String.  The interface
-between GNU @samp{String} and OpenStep's @samp{NSString} needs cleaning
-up and will change.  For now, I recommend using @samp{NSString}.
-
-@item The public magnitude classes are @samp{Time} and @samp{Random}.
-The @samp{Random} class works in conjunction with pseudo-random number
-generators that conform to the @samp{RandomGenerating} protocol.  The
-conforming class @samp{RNGBerkeley} provides identical behavior to the
-BSD random() function.  The class @samp{RNGAdditiveCongruential} is an
-implementation of the additive congruential method.
-
-@item Stream objects provide a consistent interface for reading and
-writing bytes.  Read @samp{src/include/Stream.h} to get the general
-idea.  @samp{StdioStream} objects work with files, file descriptors,
-FILE pointers and pipes to/from executables.  @samp{MemoryStream}
-objects work with memory buffers.
-
-@item CStream objects provide a way to write C variables to Stream
-objects.  Read @file{src/include/CStream.h} to understand the interface
-of the abstract superclass.  @samp{TextCStream} writes C variables in a
-human-readable ASCII format that can be manipulated with a text editor
-or with your choice of text-processing programs, like @samp{awk} or
-@samp{perl}.  @samp{BinaryCStream} writes C variables in a compact,
-illegible stream of bytes.  @samp{TextCStream} and @samp{BinaryCStream}
-each write in machine-independant formats---so you can write on one
-machine architecture, and successfully read on another.
-@samp{RawCStream} is like @samp{BinaryCStream} accept it is
-machine-dependant; it useful for efficient Distributed Objects
-connections on the same machine.
-
-@item Coders provide a formatted way of writing Objective C objects to
-CStream objects.  After a coder is initialized with a stream, the coder
-can encode/decode interconnected webs of Objective C objects and C types
-and successfully keep track of complex interconnections between objects.
-See @samp{src/include/Coder.h} for the abstract superclass interface;
-see @samp{src/include/Coding.h} for the protocol adopted by objects that
-read and write themselves using coders.  @samp{Archiver} and
-@samp{Unarchiver} are concrete subclasses that are used for
-writing/reading with files.
-
-@samp{Coder}s and @samp{CStream}s and @samp{Stream}s can be mixed and
-matched so that programmers can choose the destination and the format
-separately.
-
-@ignore
-@item @samp{Notification} 
-@samp{NotificationDispatcher}
-@end ignore
-
-@item The distributed object support classes are @samp{NSConnection},
-@samp{NSProxy}, @samp{ConnectedCoder}, @samp{Port} and @samp{TcpPort}.
-This version of the distributed objects only works with sockets.  A Mach
-port back-end should be on the way.
-
-@end itemize
- 
-@section Test Programs
-
-Some of the programs I've used to test the library are in
-@samp{./checks}.  Many of them are pretty messy, (desperately trying to
-tickle that late night bug), but at least they show some code that works
-when the library compiles correctly.  I'm looking for a volunteer to
-write some nicely organized test cases using @samp{dejagnu}.  Any
-takers?
-
 @section How can you help?
 
 @itemize @bullet
 
-@item Read the projects and questions in the @samp{TODO} file.  If you
-can volunteer for any of the projects, or if you have any useful
-comments send me email! 
-
 @item
-Give me feedback!  Tell me what you like; tell me what you think
-could be better.  Send me bug reports.
+Give us feedback!  Tell us what you like; tell us what you think
+could be better.  Send bug reports to @email{bug-gnustep@@gnu.org}.
 
 @item
 Donate classes.  If you write classes that fit in the libgnustep-base
@@ -131,9 +37,4 @@ framework, I'd be happy to include them.
 
 @example
 Happy hacking!
-       Andrew McCallum
-       mccallum@@gnu.org
-
-       Adam Fedor
-       fedor@@gnu.org
 @end example

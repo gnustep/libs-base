@@ -12,7 +12,6 @@ BinaryTreeNode.m
 CircularArray.m
 Collection.m
 ConnectedCoder.m
-Connection.m
 Coder.m
 CStream.m
 Decoder.m
@@ -25,22 +24,16 @@ Invocation.m
 KeyedCollection.m
 LinkedList.m
 LinkedListNode.m
-Lock.m
 MachPort.m
-Magnitude.m
-MallocAddress.m
 MappedCollector.m
 MemoryStream.m
-Notification.m
 NotificationDispatcher.m
 OrderedCollection.m
 Port.m
-Proxy.m
 Queue.m
 RawCStream.m
 RBTree.m
 RBTreeNode.m
-RNGAdditiveCongruential.m
 Set.m
 SplayTree.m
 Stack.m
@@ -48,34 +41,23 @@ StdioStream.m
 Stream.m
 TcpPort.m
 TextCStream.m
-Time.m
 UdpPort.m
 behavior.m
 preface.m
 mframe.m
-HashTable.m
-List.m
-objc/HashTable.h
-objc/List.h
-NSAllocateObject.m
-NSArchiver.m
 NSArray.m
 NSAutoreleasePool.m
 NSCoder.m
 NSCopyObject.m
 NSCountedSet.m
 NSData.m
-NSDeallocateObject.m
 NSDictionary.m
 NSEnumerator.m
 NSGArchiver.m
 NSGArray.m
-NSGCountedSet.m
 NSGCString.m
-NSGDictionary.m
 NSGSet.m
 NSGString.m
-NSInvocation.m
 NSMethodSignature.m
 NSNotification.m
 NSNotificationCenter.m
@@ -93,16 +75,10 @@ NSUser.m
 Kresten Krab Thorup:
 GapArray.m
 objc-gnu2next.m
-Storage.m
-objc/Storage.h
 
 
 Adam Fedor:
 ostream.m
-NXStringTable.m
-NXStringTable_scan.c
-objc/NXStringTable.h
-NXStringTable_scan.l
 NSAssertionHandler.m
 NSBitmapCharSet.m
 NSBundle.m
@@ -189,12 +165,17 @@ NSZone.m
 Richard Frith-Macdonald:
 UnixFileHandle.m
 NSData.m
+NSDateFormatter.m
 NSDebug.m
 NSDistantObject.m
 NSDistributedLock.m
+NSDistributedNotificationCenter.m
 NSFileHandle.m
+NSFormatter.m
+NSGDictionary.m
 NSPipe.m
 NSPort.m
+NSPortNameServer.m
 NSProxy.m
 NSTask.m
 NSUndoManager.m
@@ -209,3 +190,8 @@ NSGString.m
 
 Mike Kienenberger:
 NSProtocolChecker.m
+
+
+Manuel Guesdon:
+NSURL.m
+NSURLHandle.m

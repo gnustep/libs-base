@@ -7,6 +7,31 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{0.5.5}
+
+Too many changes to mention in detail, but here is a list of a few:
+
+@itemize @bullet
+
+@item
+Many base classes have been rewritten with tonnes of performance
+improvements that in many cases make it as fast as or faster than the
+NeXT implementation.
+
+@item
+DO and archiving has received many improvements that help it work on a
+variety of different platforms.
+
+@item
+Configuration and compilation has been greatly improved and fool
+proofed.
+
+@item
+There are several new tools for handling services, defaults, and
+pasteboards. 
+
+@end itemize
+
 @section Noteworthy changes in version @samp{0.5.1}
 
 @itemize @bullet

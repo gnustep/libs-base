@@ -1,3 +1,42 @@
+Tue Mar  2 08:04:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Merge in 'dawn' CVS branch.
+
+1999-03-01  Adam Fedor  <fedor@gnu.org>
+
+	* Update documentation.
+
+1999-02-28  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.postamble: Don't install services if not
+	root. (patches submitted by Christopher Seawood
+	<cls@seawood.org>). 
+
+Tue Feb 23  12:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSObject.h: Fixed bugin in ASSIGNCOPY() macro and added
+	CREATE_AUTORELEASE_POOL() macro for libFoundation compatibility.
+	* Source/include/NSRunLoop.h: Added GCFinalization protocol.
+	* Source/NSRunLoop.m: Tidied a little, added GC macro use, fixed minor
+	bug, and added slight performance improvement.
+
+Mon Feb 22   5:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Merged in alterations from main cvs branch made to wrong place 'cos
+	dawn branch was already created :-(
+	* Source/NSData.m: preserve file attributes when writing atomically
+	* Source/NSUser.m: Bugfixes for consistent naming of current user.
+	* Source/NSUserDefaults.m: Bugfixes so that running apps as root
+	doesn't mess up defaults database.
+	* Source/NSFileManager.m: Create files with correct ownership when
+	process is setuid to root - and provide facility for NSData to do same.
+	* Source/NSArray.m: Merged enumerator bugfix - missing @end
+
+1999-02-22  Adam Fedor  <fedor@gnu.org>
+
+	* Version: update version.
+	* Source/NSProcessInfo.m: Change missing main message.
+
 Sun Feb 21  19:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSFileManager.m: Attempt to fix problems with directory
