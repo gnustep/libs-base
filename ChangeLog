@@ -1,3 +1,16 @@
+2000-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSRunLoop.h: Added event type for exceptional
+	conditions on a file descriptor and removed obsolete methods.
+	* Source/NSRunLoop.m: Added support for monitoring for exceptional
+	conditions on a file descriptor and removed obsolete methods for
+	handling file descriptors.
+
+2000-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * NSTimeZones/NSTimeZones.tar: Updated to latest information
+        available from elsie.nci.nih.gov
+
 2000-03-25  Jonathan Gapen  <jagapen@whitewater.chem.wisc.edu>
 
 	* Source/NSUser.m: Added new MacOS X function,

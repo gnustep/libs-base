@@ -310,13 +310,13 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   int i;
 
   env = [[NSProcessInfo processInfo] environment];
-  gnustep_user_root = [env objectForKey:@"GNUSTEP_USER_ROOT"];
-  gnustep_local_root = [env objectForKey:@"GNUSTEP_LOCAL_ROOT"];
-  gnustep_network_root = [env objectForKey:@"GNUSTEP_NETWORK_ROOT"];
-  gnustep_system_root = [env objectForKey:@"GNUSTEP_SYSTEM_ROOT"];
+  gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+  gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+  gnustep_network_root = [env objectForKey: @"GNUSTEP_NETWORK_ROOT"];
+  gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
 
   if (directoryKey == NSApplicationDirectory
-        || directoryKey == NSAllApplicationsDirectory)
+    || directoryKey == NSAllApplicationsDirectory)
     {
       if (domainMask & NSUserDomainMask)
         [paths addObject:
@@ -333,14 +333,14 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
     }
 /*
   if (directoryKey == NSDemoApplicationDirectory
-        || directoryKey == NSAllApplicationsDirectory);
+    || directoryKey == NSAllApplicationsDirectory);
   if (directoryKey == NSDeveloperApplicationDirectory
-        || directoryKey == NSAllApplicationsDirectory);
+    || directoryKey == NSAllApplicationsDirectory);
   if (directoryKey == NSAdminApplicationDirectory
-        || directoryKey == NSAllApplicationsDirectory);
+    || directoryKey == NSAllApplicationsDirectory);
 */
   if (directoryKey == NSLibraryDirectory
-        || directoryKey == NSAllLibrariesDirectory)
+    || directoryKey == NSAllLibrariesDirectory)
     {
       if (domainMask & NSUserDomainMask)
         [paths addObject:
@@ -356,7 +356,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
              [gnustep_system_root stringByAppendingPathComponent: libraryDir]];
     }
   if (directoryKey == NSDeveloperDirectory
-        || directoryKey == NSAllLibrariesDirectory)
+    || directoryKey == NSAllLibrariesDirectory)
     {
       // GNUstep doesn't have a 'Developer' subdirectory (yet?)
       if (domainMask & NSUserDomainMask)

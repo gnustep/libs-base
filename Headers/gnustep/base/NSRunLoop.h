@@ -40,6 +40,7 @@ extern id NSDefaultRunLoopMode;
   NSMapTable	*_mode_2_watchers;
   NSMapTable	*_mode_2_performers;
   NSMutableArray *_timedPerformers;
+  NSMapTable	*_efdMap;
   NSMapTable	*_rfdMap;
   NSMapTable	*_wfdMap;
 }
@@ -91,17 +92,11 @@ extern id NSDefaultRunLoopMode;
  *	GNUstep extensions
  */
 
-@protocol FdListening
-- (void) readyForReadingOnFileDescriptor: (int)fd;
-@end
-@protocol FdSpeaking
-- (void) readyForWritingOnFileDescriptor: (int)fd;
-@end
-
 typedef	enum {
-    ET_RDESC,   /* Watch for descriptor becoming readable.      */
-    ET_WDESC,   /* Watch for descriptor becoming writeable.     */
-    ET_RPORT    /* Watch for message arriving on port.          */
+    ET_RDESC,   /* Watch for descriptor becoming readable.	*/
+    ET_WDESC,   /* Watch for descriptor becoming writeable.	*/
+    ET_RPORT,   /* Watch for message arriving on port.		*/
+    ET_EDESC   /* Watch for descriptor with exception data.	*/
 } RunLoopEventType;
 
 @protocol RunLoopEvents
@@ -162,21 +157,6 @@ typedef	enum {
 	        type: (RunLoopEventType)type
 	     forMode: (NSString*)mode
 		 all: (BOOL)removeAll;
-/*
- *	The next four methods are rendered obsolete by
- *	[-addEvent:type:watcher:forMode:] and
- *	[-removeEvent:type:forMode:]
- */
-- (void) addReadDescriptor: (int)fd
-		    object: (id <FdListening>)listener
-		   forMode: (NSString*)mode;
-- (void) addWriteDescriptor: (int)fd
-		     object: (id <FdSpeaking>)speaker
-		    forMode: (NSString*)mode;
-- (void) removeReadDescriptor: (int)fd
-		      forMode: (NSString*)mode;
-- (void) removeWriteDescriptor: (int)fd
-		       forMode: (NSString*)mode;
 @end
 
 /* xxx This interface will probably change. */
