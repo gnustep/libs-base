@@ -31,6 +31,10 @@ prefix = @prefix@
 datadir = $(prefix)/share
 charsetdir = $(datadir)/NSCharacterSets
 
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
@@ -55,7 +59,7 @@ INSTALL_FILES = $(CHARSET_FILES) README.CharSet
 
 installdirs:
 	$(srcdir)/../mkinstalldirs $(charsetdir)
-install:
+install: installdirs
 	for file in $(INSTALL_FILES); do \
 	  $(INSTALL_DATA) $$file $(charsetdir)/$$file ; \
 	done
