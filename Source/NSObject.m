@@ -233,6 +233,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #define GSI_MAP_RELEASE_VAL(M, X)
 #define GSI_MAP_KTYPES  GSUNION_OBJ|GSUNION_INT
 #define GSI_MAP_VTYPES  GSUNION_INT
+#define	GSI_MAP_NOCLEAN	1
 
 #include <base/GSIMap.h>
 

@@ -55,6 +55,7 @@
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
+#define	GSI_MAP_NOCLEAN	1
 
 #include <base/GSIMap.h>
 
