@@ -637,7 +637,9 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	    }
 	  else if ([name isEqual: @"footnote"] == YES)
 	    {
-NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+	      [buf appendString: @"<blockquote>"];
+	      [self outputText: children to: buf];
+	      [buf appendString: @"</blockquote>"];
 	    }
 	  else
 	    {

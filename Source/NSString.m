@@ -460,7 +460,7 @@ handle_printf_atsign (FILE *stream,
 + (id) stringWithCString: (const char*) byteString
 {
   NSString	*obj;
-  unsigned	length = strlen(byteString);
+  unsigned	length = byteString ? strlen(byteString) : 0;
 
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithCString: byteString length: length];
