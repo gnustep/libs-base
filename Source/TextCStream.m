@@ -25,6 +25,7 @@
 #include <objects/TextCStream.h>
 #include <objects/NSString.h>
 #include <objects/StdioStream.h>
+#include <Foundation/NSException.h>
 
 #define DEFAULT_FORMAT_VERSION 0
 
@@ -147,21 +148,24 @@ static BOOL debug_textcoder = NO;
 	break;
       }
     case _C_PTR:
-      [self error:"Cannot encode pointers"];
+      [NSException raise: NSGenericException
+		   format: @"Cannot encode pointers"];
       break;
 #if 0 /* No, don't know how far to recurse */
       [self encodeValueOfObjCType:type+1 at:*(char**)d withName:name];
       break;
 #endif
     default:
-      [self error:"type %s not implemented", type];
+      [NSException raise: NSGenericException
+		   format: @"type %s not implemented", type];
     }
 }
 
 #define DECODER_FORMAT(TYPE, CONVERSION) \
 @" <%a[^>]> (" ATXSTR(TYPE) @") = %" ATXSTR(CONVERSION) @" \n"
 
-#define DECODE_ERROR(TYPE) [self error:"bad format decoding " XSTR(TYPE)]
+#define DECODE_ERROR(TYPE) [NSException raise: NSGenericException \
+format: @"bad format decoding " ATXSTR(TYPE)]
 
 #define DECODE_DEBUG(TYPE, CONVERSION) \
 if (debug_textcoder) \
@@ -299,7 +303,8 @@ if (debug_textcoder) \
 	break;
       }
     case _C_PTR:
-      [self error:"Cannot decode pointers"];
+      [NSException raise: NSGenericException
+		   format: @"Cannot decode pointers"];
       break;
 #if 0 /* No, don't know how far to recurse */
       OBJC_MALLOC(*(void**)d, void*, 1);
@@ -307,7 +312,8 @@ if (debug_textcoder) \
       break;
 #endif
     default:
-      [self error:"type %s not yet implemented", type];
+      [NSException raise: NSGenericException
+		   format: @"type %s not yet implemented", type];
     }
   if (namePtr)
     *namePtr = [NSString stringWithCStringNoCopy: tmpname];
@@ -339,7 +345,8 @@ if (debug_textcoder) \
   lp = [line cStringNoCopy];
   while (*lp == ' ') lp++;
   if (*lp != '{')
-    [self error:"bad indent format, got \"%s\"", line];
+    [NSException raise: NSGenericException
+		 format: @"bad indent format, got \"%s\"", line];
 }
 
 - (void) decodeUnindent
@@ -351,7 +358,8 @@ if (debug_textcoder) \
   lp = [line cStringNoCopy];
   while (*lp == ' ') lp++;
   if (*lp != '}')
-    [self error:"bad unindent format, got \"%s\"", line];
+    [NSException raise: NSGenericException
+		 format: @"bad unindent format, got \"%s\"", line];
 }
 
 - (void) encodeName: (id <String>) n
@@ -368,7 +376,8 @@ if (debug_textcoder) \
   if (name)
     {
       if ([stream readFormat: @" <%a[^>]> \n", &n] != 1)
-	[self error:"bad format"];
+	[NSException raise: NSGenericException
+		     format: @"bad format"];
       *name = [NSString stringWithCStringNoCopy: n
 			freeWhenDone: YES];
       if (debug_textcoder)

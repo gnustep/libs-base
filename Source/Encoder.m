@@ -28,6 +28,7 @@
 #include <objects/StdioStream.h>
 #include <objects/BinaryCStream.h>
 #include <Foundation/NSArchiver.h>
+#include <Foundation/NSException.h>
 
 static int default_format_version;
 static id default_stream_class;

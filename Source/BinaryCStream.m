@@ -26,6 +26,7 @@
 #include <objects/NSString.h>
 #include <objects/StdioStream.h>
 #include <objects/TextCStream.h>
+#include <Foundation/NSException.h>
 
 #define DEFAULT_FORMAT_VERSION 0
 
@@ -276,7 +277,7 @@ static BOOL debug_binary_coder;
       && !((encoded_type=='c' || encoded_type=='C') 
 	   && (*type=='c' || *type=='C')))
     [NSException raise: NSGenericException
-		 format @"Expected type \"%c\", got type \"%c\"",
+		 format: @"Expected type \"%c\", got type \"%c\"",
 		 *type, encoded_type];
 
   switch (encoded_type)

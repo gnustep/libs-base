@@ -24,6 +24,7 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <objects/objc-malloc.h>
+#include <Foundation/NSException.h>
 #include <limits.h>
 
 /* Doesn't handle multi-threaded stuff.
@@ -102,7 +103,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
   if (released_count >= pool_count_warning_threshhold)
     [NSException raise: NSGenericException
-format: @"AutoreleasePool count threshhold exceeded."];
+		 format: @"AutoreleasePool count threshhold exceeded."];
 
   if (released_count == released_size)
     {
@@ -126,7 +127,7 @@ format: @"AutoreleasePool count threshhold exceeded."];
 - (id) retain
 {
   [NSException raise: NSGenericException
-format: @"Don't call `-retain' on a NSAutoreleasePool"];
+	       format: @"Don't call `-retain' on a NSAutoreleasePool"];
   return self;
 }
 

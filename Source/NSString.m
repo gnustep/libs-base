@@ -966,7 +966,9 @@ handle_printf_atsign (FILE *stream,
 }
 @end
 
-@implementation NSString (GNU)
+/* We don't actually implement (GNU) Category, in order to avoid warning
+   about "unimplemented methods"; they come from the behavior. */
+@implementation NSString (GNUCollection)
 
 - objectAtIndex: (unsigned)index
 {

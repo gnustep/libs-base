@@ -31,6 +31,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSMapTable.h>
+#include <Foundation/NSException.h>
 #include <limits.h>
 
 extern void (*_objc_error)(id object, const char *format, va_list);
@@ -304,7 +305,7 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
         [NSException
 	  raise: NSGenericException
 	  format: @"Autorelease would release object too many times.\n"
-	  "%d release(s) versus %d retain(s)", release_count, retain_count];
+	  @"%d release(s) versus %d retain(s)", release_count, retain_count];
     }
 
   [autorelease_class addObject:self];
@@ -355,9 +356,12 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
-    return [NSException
-	     raise: NSGenericException
-	     format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+    {
+      [NSException
+	raise: NSGenericException
+	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
   return (*msg)(self, aSelector);
 }
 
@@ -365,9 +369,12 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
-    return [NSException
-	     raise: NSGenericException
-	     format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+    {
+      [NSException
+	raise: NSGenericException
+	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
   return (*msg)(self, aSelector, anObject);
 }
 
@@ -375,9 +382,12 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
-    return [NSException
-	     raise: NSGenericException
-	     format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+    {
+      [NSException
+	raise: NSGenericException
+	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
   return (*msg)(self, aSelector, object1, object2);
 }
 
@@ -545,16 +555,18 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - notImplemented:(SEL)aSel
 {
-  return [NSException
-	   raise: NSGenericException
-	   format: @"method %s not implemented", sel_get_name(aSel)];
+  [NSException
+    raise: NSGenericException
+    format: @"method %s not implemented", sel_get_name(aSel)];
+  return nil;
 }
 
 - doesNotRecognize:(SEL)aSel
 {
-  return [NSException raise: NSGenericException
-		      format: @"%s does not recognize %s",
-		      object_get_class_name(self), sel_get_name(aSel)];
+  [NSException raise: NSGenericException
+	       format: @"%s does not recognize %s",
+	       object_get_class_name(self), sel_get_name(aSel)];
+  return nil;
 }
 
 - perform: (SEL)sel with: anObject
@@ -651,17 +663,19 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - subclassResponsibility:(SEL)aSel
 {
-  return [NSException
-	   raise: NSGenericException
-	   format: @"subclass should override %s", sel_get_name(aSel)];
+  [NSException
+    raise: NSGenericException
+    format: @"subclass should override %s", sel_get_name(aSel)];
+  return nil;
 }
 
 - shouldNotImplement:(SEL)aSel
 {
-  return [NSException
-	   raise: NSGenericException
-	   format: @"%s should not implement %s", 
-	   object_get_class_name(self), sel_get_name(aSel)];
+  [NSException
+    raise: NSGenericException
+    format: @"%s should not implement %s", 
+    object_get_class_name(self), sel_get_name(aSel)];
+  return nil;
 }
 
 + (int)streamVersion: (TypedStream*)aStream
