@@ -27,6 +27,7 @@
 struct _ucc_ {unichar from; char to;};
 
 #include "unicode/cyrillic.h"
+#include "unicode/latin2.h"
 #include "unicode/nextstep.h"
 #include "unicode/caseconv.h"
 #include "unicode/cop.h"
@@ -61,6 +62,13 @@ encode_chartouni(char c, NSStringEncoding enc)
 	return (unichar)((unc)c);
       else
 	return(Cyrillic_char_to_uni_table[(unc)c - Cyrillic_conv_base]);
+    }
+  if ((enc ==  NSISOLatin2StringEncoding))
+    {
+      if ((unc)c < Latin2_conv_base)
+	return (unichar)((unc)c);
+      else
+	return(Latin2_char_to_uni_table[(unc)c - Latin2_conv_base]);
     }
 
 #if 0
@@ -120,6 +128,18 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 	  while (((res = u-Cyrillic_uni_to_char_table[i++].from) > 0)
 	    && (i < Cyrillic_uni_to_char_table_size));
 	  return res ? 0 : Cyrillic_uni_to_char_table[--i].to;
+	}
+    }
+
+  if ((enc == NSISOLatin2StringEncoding))
+    {
+      if (u <(unichar)Latin2_conv_base)
+	return (char)u;
+      else
+	{
+	  while (((res = u-Latin2_uni_to_char_table[i++].from) > 0)
+	    && (i < Latin2_uni_to_char_table_size));
+	  return res ? 0 : Latin2_uni_to_char_table[--i].to;
 	}
     }
 

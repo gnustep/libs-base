@@ -1,3 +1,10 @@
+2000-04-08  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSString.m: Include NSISOLatin2StringEncoding coding.
+	* Source/Unicode.m (encode_chartouni): Implement latin2 encoding.
+	(encode_unitochar): Likewise. (patches from  
+	Stefan Urbanek <urbane@decef.elf.stuba.sk>).
+
 2000-04-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Bugfix intialising from string.

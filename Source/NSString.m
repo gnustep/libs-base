@@ -86,7 +86,7 @@
 //        NSSymbolStringEncoding,
 //        NSNonLossyASCIIStringEncoding,
 //        NSShiftJISStringEncoding,
-//        NSISOLatin2StringEncoding,
+        NSISOLatin2StringEncoding,
         NSUnicodeStringEncoding,
 //        NSWindowsCP1251StringEncoding,
 //        NSWindowsCP1252StringEncoding,
@@ -1754,6 +1754,7 @@ handle_printf_atsign (FILE *stream,
 
   if ((encoding==NSASCIIStringEncoding)
     || (encoding==NSISOLatin1StringEncoding)
+    || (encoding==NSISOLatin2StringEncoding)
     || (encoding==NSNEXTSTEPStringEncoding)
     || (encoding==NSNonLossyASCIIStringEncoding)
     || (encoding==NSSymbolStringEncoding)
