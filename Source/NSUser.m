@@ -104,31 +104,26 @@ GSSetUserName(NSString* name)
     {
       NSUserName();	// Ensure we know the old user name.
     }
-  if ([theUserName isEqualToString: name] == NO)
-    {
-      /*
-       * We can destroy the cached user path so that next time
-       * anything wants it, it will be regenerated.
-       */
-      DESTROY(gnustep_user_root);
-      /*
-       * Next we can set up the new user name, and reset the user defaults
-       * system so that standard user defaults will be those of the new
-       * user.
-       */
-      ASSIGN(theUserName, name);
-      [NSUserDefaults resetStandardUserDefaults];
-    }
+  /*
+   * We can destroy the cached user path so that next time
+   * anything wants it, it will be regenerated.
+   */
+  DESTROY(gnustep_user_root);
+  /*
+   * Next we can set up the new user name, and reset the user defaults
+   * system so that standard user defaults will be those of the new
+   * user.
+   */
+  ASSIGN(theUserName, name);
+  [NSUserDefaults resetStandardUserDefaults];
 }
 
 /**
- * Return the caller's login name as an NSString object.
- * The 'LOGNAME' environment variable is our primary source, but we use
- * other system-dependent sources if LOGNAME is not set.  This function
- * is intended to return the name under which the user logged in rather
- * than the name associated with their numeric user ID (though the two
- * are usually the same).  If you have a setuid program and want to
- * change the user to reflect the uid, use GSSetUserName()
+ * Return the caller's login name as an NSString object.<br />
+ * Under ms-windows, the 'LOGNAME' environment variable is used as the
+ * user name.<br />
+ * Under unix-like systems, the name associated with the current
+ * effective user ID is used.
  */
 /* NOTE FOR DEVELOPERS.
  * If you change the behavior of this method you must also change
@@ -137,10 +132,10 @@ GSSetUserName(NSString* name)
 NSString *
 NSUserName(void)
 {
+#if defined(__WIN32__)
   if (theUserName == nil)
     {
       const char *loginName = 0;
-#if defined(__WIN32__)
       /* The GetUserName function returns the current user name */
       char buf[1024];
       DWORD n = 1024;
@@ -149,48 +144,35 @@ NSUserName(void)
 	loginName = buf;
       else if (GetUserName(buf, &n) != 0 && buf[0] != '\0')
 	loginName = buf;
-#else
-      loginName = getenv("LOGNAME");
-#ifdef	HAVE_GETPWNAM
-      /*
-       * Check that LOGNAME contained legal name.
-       */
-      if (loginName != 0 && getpwnam(loginName) == 0)
-	{
-	  loginName = 0;
-	}
-#endif	/* HAVE_GETPWNAM */
-#ifdef	HAVE_GETLOGIN
-      /*
-       * Try getlogin() if LOGNAME environmentm variable didn't work.
-       */
-      if (loginName == 0)
-	{
-	  loginName = getlogin();
-	}
-#endif	/* HAVE_GETLOGIN */
-#ifdef HAVE_GETPWUID
-      /*
-       * Try getting the name of the effective user as a last resort.
-       */
-      if (loginName == 0)
-	{
-#ifdef HAVE_GETEUID
-	  int uid = geteuid();
-#else
-	  int uid = getuid();
-#endif /* HAVE_GETEUID */
-	  struct passwd *pwent = getpwuid (uid);
-	  loginName = pwent->pw_name;
-	}
-#endif /* HAVE_GETPWUID */
-#endif
       if (loginName)
 	theUserName = [[NSString alloc] initWithCString: loginName];
       else
 	[NSException raise: NSInternalInconsistencyException
 		    format: @"Unable to determine current user name"];
     }
+#else
+  static int	olduid = 0;
+#ifdef HAVE_GETEUID
+  int uid = geteuid();
+#else
+  int uid = getuid();
+#endif /* HAVE_GETEUID */
+
+  if (theUserName == nil || uid != olduid)
+    {
+      const char *loginName = 0;
+#ifdef HAVE_GETPWUID
+      struct passwd *pwent = getpwuid (uid);
+      loginName = pwent->pw_name;
+#endif /* HAVE_GETPWUID */
+      olduid = uid;
+      if (loginName)
+	theUserName = [[NSString alloc] initWithCString: loginName];
+      else
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"Unable to determine current user name"];
+    }
+#endif
   return theUserName;
 }
 
