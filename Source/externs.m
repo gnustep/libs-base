@@ -283,8 +283,6 @@ NSString *NSHTTPPropertyRedirectionHeadersKey;
 NSString *NSHTTPPropertyErrorPageDataKey;
  
 /* These are GNUstep extras */
-NSString *GSHTTPPropertyBodyKey;
-
 NSString *GSHTTPPropertyMethodKey;
 
 NSString *GSHTTPPropertyProxyHostKey;
@@ -519,8 +517,6 @@ GSBuildStrings()
       NSHTTPPropertyErrorPageDataKey
 	= [[SClass alloc] initWithCString: "HTTPPropertyErrorPageDataKey"];
 
-      GSHTTPPropertyBodyKey
-	= [[SClass alloc] initWithCString: "GSHTTPPropertyBodyKey"];
       GSHTTPPropertyMethodKey
 	= [[SClass alloc] initWithCString: "GSHTTPPropertyMethodKey"];
       GSHTTPPropertyProxyHostKey

@@ -1,3 +1,11 @@
+2001-12-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Remove GSHTPPropertyBodyKey ... make
+	the ([writeData:]) method do nothing until the page is reloaded,
+	so its behavior is consistent with ([writeProperty:forKey:]) and
+	can be used in conjunction with background loading (ie all I/O
+	is done during the load).
+
 2001-12-11  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Source/NSString.m: corrected  bug in +stringByTrimmingSpaces 

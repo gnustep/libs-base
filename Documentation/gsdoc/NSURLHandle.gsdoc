@@ -249,8 +249,14 @@
           <sel>writeData:</sel>
           <arg type="NSData*">data</arg>
           <desc>
-	    Writes resource data to the handle.  Returns YES on success,
-	    NO on failure.
+	    <p>
+	      Writes resource data to the handle.  Returns YES on success,
+	      NO on failure.
+	    </p>
+	    <p>
+	      The GNUstep implementation sets the specified data as
+	      information to be POSTed to the URL next time it is loaded.
+	    </p>
           </desc>
         </method>
 
@@ -260,7 +266,16 @@
 	  <sel>forKey:</sel>
 	  <arg type="NSString*">key</arg>
           <desc>
-	    Attempts to set property for handle.
+	    <p>
+	      Sets a property for handle.
+	      Returns YES on success, NO on failure.
+	    </p>
+	    <p>
+	      The GNUstep implementation sets the property as a header
+	      to be sent the next time the URL is loaded, and recognizes
+	      some special property keys which control the behavior of
+	      the next load.
+	    </p>
           </desc>
         </method>
 

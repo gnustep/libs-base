@@ -45,9 +45,10 @@
 <li ><a href ="NSFileHandle.html#method-15">-seekToFileOffset:</a>
 <li ><a href ="NSFileHandle.html#method-16">-synchronizeFile</a>
 <li ><a href ="NSFileHandle.html#method-17">-truncateFileAtOffset:</a>
-<li ><a href ="NSFileHandle.html#method-18">-waitForDataInBackgroundAndNotify</a>
-<li ><a href ="NSFileHandle.html#method-19">-waitForDataInBackgroundAndNotifyForModes:</a>
-<li ><a href ="NSFileHandle.html#method-20">-writeData:</a>
+<li ><a href ="NSFileHandle.html#method-18">-useCompression</a>
+<li ><a href ="NSFileHandle.html#method-19">-waitForDataInBackgroundAndNotify</a>
+<li ><a href ="NSFileHandle.html#method-20">-waitForDataInBackgroundAndNotifyForModes:</a>
+<li ><a href ="NSFileHandle.html#method-21">-writeData:</a>
 </ul>
 <hr><h2>Instances Methods </h2>
 <h3><a name ="method-0">acceptConnectionInBackgroundAndNotify</a></h3>
@@ -140,17 +141,34 @@
 
           
  <hr>
-<h3><a name ="method-18">waitForDataInBackgroundAndNotify</a></h3>
+<h3><a name ="method-18">useCompression</a></h3>
+- (BOOL) <b>useCompression</b>;<br>
+
+	    On systems which support it, this method may be called after
+	    a file handle has been initialised to turn on compression or
+	    decompression of the data being written/read.<br>
+	    Returns YES on success, NO on failure.<br>
+	    Reasons for failure are - <br>
+	    <ul>
+<li >Not supported/built in to GNUstep
+<li >File handle has been closed
+<li >File handle is open for both read and write
+<li >Failure in compression/decompression library
+</ul>
+
+          
+ <hr>
+<h3><a name ="method-19">waitForDataInBackgroundAndNotify</a></h3>
 - (void) <b>waitForDataInBackgroundAndNotify</b>;<br>
 
           
  <hr>
-<h3><a name ="method-19">waitForDataInBackgroundAndNotifyForModes:</a></h3>
+<h3><a name ="method-20">waitForDataInBackgroundAndNotifyForModes:</a></h3>
 - (void) <b>waitForDataInBackgroundAndNotifyForModes:</b> (NSArray*)modes;<br>
 
           
  <hr>
-<h3><a name ="method-20">writeData:</a></h3>
+<h3><a name ="method-21">writeData:</a></h3>
 - (void) <b>writeData:</b> (NSData*)data;<br>
 
           

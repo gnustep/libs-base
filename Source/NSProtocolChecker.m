@@ -1,4 +1,4 @@
-/* Interface for NSMethodSignature for GNUStep
+/* Implementation of NSProtocolChecker for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Mike Kienenberger
@@ -30,33 +30,35 @@
 
 @implementation NSProtocolChecker
 
-// Allocates and initializes an NSProtocolChecker instance that will
-// forward any messages in the aProtocol protocol to anObject, its
-// target. Thus, the checker can be vended in lieu of anObject to
-// restrict the messages that can be sent to anObject. Returns the
-// new instance.
+/*
+ * Allocates and initializes an NSProtocolChecker instance that will
+ * forward any messages in the aProtocol protocol to anObject, its
+ * target. Thus, the checker can be vended in lieu of anObject to
+ * restrict the messages that can be sent to anObject. Returns the
+ * new instance.
+ */
 
-+ (id)protocolCheckerWithTarget: (NSObject *)anObject
-			protocol: (Protocol *)aProtocol
++ (id) protocolCheckerWithTarget: (NSObject*)anObject
+			protocol: (Protocol*)aProtocol
 {
   return AUTORELEASE([[NSProtocolChecker alloc] initWithTarget: anObject
-				    protocol: aProtocol]);
+						      protocol: aProtocol]);
 }
 
-// Forwards any message to the delegate if the method is declared in
-// the checker's protocol; otherwise raises an NSInvalidArgumentException.
-
-- (void)forwardInvocation: (NSInvocation *)anInvocation
+/*
+ * Forwards any message to the delegate if the method is declared in
+ * the checker's protocol; otherwise raises an NSInvalidArgumentException.
+ */
+- (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  unsigned int length;
-  void *buffer;
+  unsigned int	length;
+  void		*buffer;
   
   if ((struct objc_method_description *)NULL
-      != [self methodDescriptionForSelector: [anInvocation selector]])
+    != [self methodDescriptionForSelector: [anInvocation selector]])
     [[NSException exceptionWithName: NSInvalidArgumentException
 		  reason: @"Method not declared in current protocol"
-		  userInfo: nil]
-      raise];
+		  userInfo: nil] raise];
       
   [anInvocation invokeWithTarget: _myTarget];
   
@@ -87,14 +89,15 @@
   return self;
 }
 
-// Initializes a newly allocated NSProtocolChecker instance that will
-// forward any messages in the aProtocol protocol to anObject, its
-// delegate. Thus, the checker can be vended in lieu of anObject to
-// restrict the messages that can be sent to anObject. If anObject is
-// allowed to be freed or dereferenced by clients, the free method
-// should be included in aProtocol. Returns the new instance.
-
-- (id)initWithTarget: (NSObject *)anObject protocol: (Protocol *)aProtocol
+/*
+ * Initializes a newly allocated NSProtocolChecker instance that will
+ * forward any messages in the aProtocol protocol to anObject, its
+ * delegate. Thus, the checker can be vended in lieu of anObject to
+ * restrict the messages that can be sent to anObject. If anObject is
+ * allowed to be freed or dereferenced by clients, the free method
+ * should be included in aProtocol. Returns the new instance.
+ */
+- (id) initWithTarget: (NSObject*)anObject protocol: (Protocol*)aProtocol
 {
   [super init];
   
@@ -105,33 +108,35 @@
   return self;
 }
 
-// Returns an Objective C description for a method in the checker's
-// protocol, or NULL if aSelector isn't declared as an instance method
-// in the protocol.
-
-- (struct objc_method_description *)methodDescriptionForSelector: (SEL)aSelector
+/*
+ * Returns an Objective C description for a method in the checker's
+ * protocol, or NULL if aSelector isn't declared as an instance method
+ * in the protocol.
+ */
+- (struct objc_method_description*) methodDescriptionForSelector: (SEL)aSelector
 {
   return [_myProtocol descriptionForInstanceMethod: aSelector];
 }
 
-// Returns the protocol object the checker uses to verify whether a
-// given message should be forwarded to its delegate, or the protocol
-// checker should raise an NSInvalidArgumentException.
-
-- (Protocol *)protocol
+/*
+ * Returns the protocol object the checker uses to verify whether a
+ * given message should be forwarded to its delegate, or the protocol
+ * checker should raise an NSInvalidArgumentException.
+ */
+- (Protocol*) protocol
 {
   if (nil == _myProtocol)
     [[NSException exceptionWithName: NSInvalidArgumentException
 		  reason: @"No protocol specified"
-		  userInfo: nil]
-      raise];
+		  userInfo: nil] raise];
   
   return _myProtocol;
 }
 
-// Returns the target of the NSProtocolChecker.
-
-- (NSObject *)target
+/*
+ * Returns the target of the NSProtocolChecker.
+ */
+- (NSObject*) target
 {
   return _myTarget;
 }
