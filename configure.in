@@ -181,7 +181,7 @@ AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
-# Byte order and type size information needed for foundation headers.
+# Byte order information needed for foundation headers.
 #--------------------------------------------------------------------
 AC_C_BIGENDIAN
 if test $ac_cv_c_bigendian = yes; then
@@ -191,6 +191,9 @@ else
 fi
 AC_SUBST(GS_WORDS_BIGENDIAN)
 
+#--------------------------------------------------------------------
+# Type size information needed for foundation headers.
+#--------------------------------------------------------------------
 GS_SINT8="signed char"
 GS_UINT8="unsigned char"
 AC_SUBST(GS_SINT8)
@@ -249,59 +252,88 @@ fi
 AC_SUBST(GS_SINT32)
 AC_SUBST(GS_UINT32)
 
-if test $ac_cv_sizeof_long_long = 8; then
-  GS_SINT64="signed long long"
-  GS_UINT64="unsigned long long"
+GS_HAVE_I64=1
+if test $ac_cv_sizeof_int = 8; then
+  GS_SINT64="signed int"
+  GS_UINT64="unsigned int"
 else
   if test $ac_cv_sizeof_long = 8; then
     GS_SINT64="signed long"
     GS_UINT64="unsigned long"
   else
-    echo "Unable to determine type for 64-bit integer - abort configuration"
-    exit
+    if test $ac_cv_sizeof_long_long = 8; then
+      GS_SINT64="signed long long"
+      GS_UINT64="unsigned long long"
+    else
+#     64-bit ints not supported - but we need a dummy type for byte-swapping
+#     of 64-bit values arriving from another system.
+      GS_SINT64="struct { gsu8 a[8]; }"
+      GS_SINT64="struct { gsu8 a[9]; }"
+      GS_HAVE_I64=0
+    fi
   fi
 fi
 AC_SUBST(GS_SINT64)
 AC_SUBST(GS_UINT64)
+AC_SUBST(GS_HAVE_I64)
+
+GS_HAVE_I128=1
+if test $ac_cv_sizeof_long = 16; then
+  GS_SINT128="signed long"
+  GS_UINT128="unsigned long"
+else
+  if test $ac_cv_sizeof_long_long = 16; then
+    GS_SINT128="signed long long"
+    GS_UINT128="unsigned long long"
+  else
+#     128-bit ints not supported - but we need a dummy type for byte-swapping
+#     of 128-bit values arriving from another system.
+    GS_SINT128="struct { gsu8 a[16]; }"
+    GS_SINT128="struct { gsu8 a[16]; }"
+    GS_HAVE_I128=0
+  fi
+fi
+AC_SUBST(GS_SINT128)
+AC_SUBST(GS_UINT128)
+AC_SUBST(GS_HAVE_I128)
 
 if test $ac_cv_sizeof_float = 4; then
   GS_FLT32="float"
 else
-    echo "Unable to determine type for 32-bit float - abort configuration"
-    exit
+  echo "Unable to determine type for 32-bit float - abort configuration"
+  exit
 fi
 AC_SUBST(GS_FLT32)
 
 if test $ac_cv_sizeof_double = 8; then
   GS_FLT64="double"
 else
-    echo "Unable to determine type for 64-bit float - abort configuration"
-    exit
+  echo "Unable to determine type for 64-bit float - abort configuration"
+  exit
 fi
 AC_SUBST(GS_FLT64)
 
 #--------------------------------------------------------------------
 # Type-size information for encoding into archives using NSArchiver etc.
-# 0x00 == 2 bytes, 0x20 == 4 bytes, 0x40 == 8 bytes, 0x60 == 16 bytes
 #--------------------------------------------------------------------
-if test $ac_cv_sizeof_short = 4; then
-  _GSC_S_SHT=0x20
+if test $ac_cv_sizeof_short = 2; then
+  _GSC_S_SHT=_GSC_I16
 else
-  _GSC_S_SHT=0x00
+  _GSC_S_SHT=_GSC_I32
 fi
 AC_SUBST(_GSC_S_SHT)
 
-if test $ac_cv_sizeof_int = 4; then
-  _GSC_S_INT=0x20
+if test $ac_cv_sizeof_int = 2; then
+  _GSC_S_INT=_GSC_I16
 else
-  if test $ac_cv_sizeof_int = 2; then
-    _GSC_S_INT=0x00
+  if test $ac_cv_sizeof_int = 4; then
+    _GSC_S_INT=_GSC_I32
   else
     if test $ac_cv_sizeof_int = 8; then
-      _GSC_S_INT=0x40
+      _GSC_S_INT=_GSC_I64
     else
       if test $ac_cv_sizeof_int = 16; then
-	_GSC_S_INT=0x60
+	_GSC_S_INT=_GSC_I128
       fi
     fi
   fi
@@ -309,26 +341,26 @@ fi
 AC_SUBST(_GSC_S_INT)
 
 if test $ac_cv_sizeof_long = 4; then
-  _GSC_S_LNG=0x20
+  _GSC_S_LNG=_GSC_I32
 else
   if test $ac_cv_sizeof_long = 8; then
-    _GSC_S_LNG=0x40
+    _GSC_S_LNG=_GSC_I_64
   else
     if test $ac_cv_sizeof_long = 16; then
-      _GSC_S_LNG=0x60
+      _GSC_S_LNG=_GSC_I128
     fi
   fi
 fi
 AC_SUBST(_GSC_S_LNG)
 
 if test $ac_cv_sizeof_long_long = 4; then
-  _GSC_S_LNG_LNG=0x20
+  _GSC_S_LNG_LNG=_GSC_I32
 else
   if test $ac_cv_sizeof_long_long = 8; then
-    _GSC_S_LNG_LNG=0x40
+    _GSC_S_LNG_LNG=_GSC_I64
   else
     if test $ac_cv_sizeof_long_long = 16; then
-      _GSC_S_LNG_LNG=0x60
+      _GSC_S_LNG_LNG=_GSC_I128
     fi
   fi
 fi

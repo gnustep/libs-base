@@ -28,10 +28,6 @@
 
 @class NSMutableDictionary, NSMutableData, NSData, NSString;
 
-#define	_C_NONE	0x00		/* No type information.		*/
-#define	_C_MASK	0x7f		/* Basic type info.		*/
-#define	_C_XREF	0x80		/* Cross reference to an item.	*/
-
 @interface NSArchiver : NSCoder
 {
   NSMutableData	*data;		/* Data to write into.		*/
@@ -160,8 +156,7 @@
   Class			dataClass;	/* What sort of data is it?	*/
   id			src;		/* Deserialization source.	*/
   IMP			desImp;		/* Method to deserialize with.	*/
-  unsigned char		(*tagImp)(id, SEL, unsigned*);
-  unsigned		(*xRefImp)(id, SEL, unsigned*);
+  void			(*tagImp)(id, SEL, unsigned char*, unsigned*,unsigned*);
   IMP			dValImp;	/* Method to decode data with.	*/
 #ifndef	_IN_NSUNARCHIVER_M
 #define	FastArray	void*

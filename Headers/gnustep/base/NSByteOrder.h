@@ -29,8 +29,8 @@
 /*
  *	OPENSTEP type definitions for Byte ordering.
  */
-typedef unsigned long		NSSwappedFloat;
-typedef unsigned long long	NSSwappedDouble;
+typedef gsu32	NSSwappedFloat;
+typedef gsu64	NSSwappedDouble;
 
 typedef enum {
   NSLittleEndian,
@@ -45,6 +45,96 @@ typedef enum {
 #  define __attribute__(x)
 #endif
 
+/*
+ *	First the GNUstep functions for byte swapping
+ */
+static inline gsu16
+GSSwapI16(gsu16 in) __attribute__((unused));
+static inline gsu32
+GSSwapI32(gsu32 in) __attribute__((unused));
+static inline gsu64
+GSSwapI64(gsu64 in) __attribute__((unused));
+static inline gsu128
+GSSwapI128(gsu128 in) __attribute__((unused));
+
+
+static inline gsu16
+GSSwapI16(gsu16 in)
+{
+  union swap {
+    gsu16	num;
+    gsu8	byt[2];
+  } dst;
+  union swap	*src = (union swap*)&in;
+  dst.byt[0] = src->byt[1];
+  dst.byt[1] = src->byt[0];
+  return dst.num;
+}
+
+static inline gsu32
+GSSwapI32(gsu32 in)
+{
+  union swap {
+    gsu32	num;
+    gsu8	byt[4];
+  } dst;
+  union swap	*src = (union swap*)&in;
+  dst.byt[0] = src->byt[3];
+  dst.byt[1] = src->byt[2];
+  dst.byt[2] = src->byt[1];
+  dst.byt[3] = src->byt[0];
+  return dst.num;
+}
+
+static inline gsu64
+GSSwapI64(gsu64 in)
+{
+  union swap {
+    gsu64	num;
+    gsu8	byt[8];
+  } dst;
+  union swap	*src = (union swap*)&in;
+  dst.byt[0] = src->byt[7];
+  dst.byt[1] = src->byt[6];
+  dst.byt[2] = src->byt[5];
+  dst.byt[3] = src->byt[4];
+  dst.byt[4] = src->byt[3];
+  dst.byt[5] = src->byt[2];
+  dst.byt[6] = src->byt[1];
+  dst.byt[7] = src->byt[0];
+  return dst.num;
+}
+
+static inline gsu128
+GSSwapI128(gsu128 in)
+{
+  union swap {
+    gsu128	num;
+    gsu8	byt[16];
+  } dst;
+  union swap	*src = (union swap*)&in;
+  dst.byt[0] = src->byt[15];
+  dst.byt[1] = src->byt[14];
+  dst.byt[2] = src->byt[13];
+  dst.byt[3] = src->byt[12];
+  dst.byt[4] = src->byt[11];
+  dst.byt[5] = src->byt[10];
+  dst.byt[6] = src->byt[9];
+  dst.byt[7] = src->byt[8];
+  dst.byt[8] = src->byt[7];
+  dst.byt[9] = src->byt[6];
+  dst.byt[10] = src->byt[5];
+  dst.byt[11] = src->byt[4];
+  dst.byt[12] = src->byt[3];
+  dst.byt[13] = src->byt[2];
+  dst.byt[14] = src->byt[1];
+  dst.byt[15] = src->byt[0];
+  return dst.num;
+}
+
+/*
+ *	Now the OpenStep functions
+ */
 static inline NSSwappedDouble
 NSConvertHostDoubleToSwapped(double num) __attribute__((unused));
 static inline NSSwappedFloat
@@ -213,75 +303,85 @@ NSConvertSwappedFloatToHost(NSSwappedFloat num)
 static inline unsigned int
 NSSwapInt(unsigned int in)
 {
-  union swap {
-    unsigned int	num;
-    unsigned char	byt[4];
-  } dst;
-  union swap	*src = (union swap*)&in;
-  dst.byt[0] = src->byt[3];
-  dst.byt[1] = src->byt[2];
-  dst.byt[2] = src->byt[1];
-  dst.byt[3] = src->byt[0];
-  return dst.num;
+#if	GS_SIZEOF_INT == 2
+  return GSSwapI16(in);
+#else
+#if	GS_SIZEOF_INT == 4
+  return GSSwapI32(in);
+#else
+#if	GS_SIZEOF_INT == 8
+  return GSSwapI64(in);
+#else
+  return GSSwapI128(in);
+#endif
+#endif
+#endif
 }
 
 static inline unsigned long long
 NSSwapLongLong(unsigned long long in)
 {
-  union swap {
-    unsigned long long	num;
-    unsigned char	byt[8];
-  } dst;
-  union swap	*src = (union swap*)&in;
-  dst.byt[0] = src->byt[7];
-  dst.byt[1] = src->byt[6];
-  dst.byt[2] = src->byt[5];
-  dst.byt[3] = src->byt[4];
-  dst.byt[4] = src->byt[3];
-  dst.byt[5] = src->byt[2];
-  dst.byt[6] = src->byt[1];
-  dst.byt[7] = src->byt[0];
-  return dst.num;
+#if	GS_SIZEOF_LONG_LONG == 2
+  return GSSwapI16(in);
+#else
+#if	GS_SIZEOF_LONG_LONG == 4
+  return GSSwapI32(in);
+#else
+#if	GS_SIZEOF_LONG_LONG == 8
+  return GSSwapI64(in);
+#else
+  return GSSwapI128(in);
+#endif
+#endif
+#endif
 }
 
 static inline unsigned long
 NSSwapLong(unsigned long in)
 {
-  union swap {
-    unsigned long	num;
-    unsigned char	byt[4];
-  } dst;
-  union swap	*src = (union swap*)&in;
-  dst.byt[0] = src->byt[3];
-  dst.byt[1] = src->byt[2];
-  dst.byt[2] = src->byt[1];
-  dst.byt[3] = src->byt[0];
-  return dst.num;
+#if	GS_SIZEOF_LONG == 2
+  return GSSwapI16(in);
+#else
+#if	GS_SIZEOF_LONG == 4
+  return GSSwapI32(in);
+#else
+#if	GS_SIZEOF_LONG == 8
+  return GSSwapI64(in);
+#else
+  return GSSwapI128(in);
+#endif
+#endif
+#endif
 }
 
 static inline unsigned short
 NSSwapShort(unsigned short in)
 {
-  union swap {
-    unsigned short	num;
-    unsigned char	byt[2];
-  } dst;
-  union swap	*src = (union swap*)&in;
-  dst.byt[0] = src->byt[1];
-  dst.byt[1] = src->byt[0];
-  return dst.num;
+#if	GS_SIZEOF_SHORT == 2
+  return GSSwapI16(in);
+#else
+#if	GS_SIZEOF_SHORT == 4
+  return GSSwapI32(in);
+#else
+#if	GS_SIZEOF_SHORT == 8
+  return GSSwapI64(in);
+#else
+  return GSSwapI128(in);
+#endif
+#endif
+#endif
 }
 
 static inline NSSwappedDouble
 NSSwapDouble(NSSwappedDouble num)
 {
-  return NSSwapLongLong(num);
+  return GSSwapI64(num);
 }
 
 static inline NSSwappedFloat
 NSSwapFloat(NSSwappedFloat num)
 {
-  return NSSwapLong(num);
+  return GSSwapI32(num);
 }
 
 #if	GS_WORDS_BIGENDIAN

@@ -46,12 +46,10 @@
 
 #include <base/fast.x>
 
-typedef	unsigned char uchar;
-
 static const char*
-typeToName(char type)
+typeToName1(char type)
 {
-  switch (type & _C_MASK)
+  switch (type)
     {
       case _C_CLASS:	return "class";
       case _C_ID:	return "object";
@@ -94,22 +92,107 @@ typeToName(char type)
     }
 }
 
+static const char*
+typeToName2(char type)
+{
+  switch (type & _GSC_MASK)
+    {
+      case _GSC_CLASS:	return "class";
+      case _GSC_ID:	return "object";
+      case _GSC_SEL:	return "selector";
+      case _GSC_CHR:	return "char";
+      case _GSC_UCHR:	return "unsigned char";
+      case _GSC_SHT:	return "short";
+      case _GSC_USHT:	return "unsigned short";
+      case _GSC_INT:	return "int";
+      case _GSC_UINT:	return "unsigned int";
+      case _GSC_LNG:	return "long";
+      case _GSC_ULNG:	return "unsigned long";
+#ifdef	_GSC_LNG_LNG
+      case _GSC_LNG_LNG:	return "long long";
+      case _GSC_ULNG_LNG:	return "unsigned long long";
+#endif
+      case _GSC_FLT:	return "float";
+      case _GSC_DBL:	return "double";
+      case _GSC_PTR:	return "pointer";
+      case _GSC_CHARPTR:	return "cstring";
+      case _GSC_ARY_B:	return "array";
+      case _GSC_STRUCT_B:	return "struct";
+      default:
+	{
+	  static char	buf1[32];
+	  static char	buf2[32];
+	  static char	*bufptr = buf1;
+
+	  if (bufptr == buf1)
+	    {
+		bufptr = buf2;
+	    }
+	  else
+	    {
+	      bufptr = buf1;
+	    }
+	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  return bufptr;
+	}
+    }
+}
+
+/*
+ *	There are thirtyone possible basic types.  We reserve a type of zero
+ *	to mean that no information is specified.  The slots in this array
+ *	MUST correspond to the definitions in NSData.h
+ */
+static char	type_map[32] = {
+  0,
+  _C_CHR,
+  _C_UCHR,
+  _C_SHT,
+  _C_USHT,
+  _C_INT,
+  _C_UINT,
+  _C_LNG,
+  _C_ULNG,
+  _C_LNG_LNG,
+  _C_ULNG_LNG,
+  _C_FLT,
+  _C_DBL,
+  0,
+  0,
+  0,
+  _C_ID,
+  _C_CLASS,
+  _C_SEL,
+  _C_PTR,
+  _C_CHARPTR,
+  _C_ARY_B,
+  _C_STRUCT_B,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+};
+
 static inline void
 typeCheck(char t1, char t2)
 {
-  if (t1 != t2)
+  if (type_map[(t2 & _GSC_MASK)] != t1)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
-		    typeToName(t1), typeToName(t2)];
+		    typeToName1(t1), typeToName2(t2)];
     }
 }
 
 #define	PREFIX		"GNUstep archive"
 
 static SEL desSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
-static SEL tagSel = @selector(deserializeTypeTagAtCursor:);
-static SEL xRefSel = @selector(deserializeCrossRefAtCursor:);
+static SEL tagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
 static SEL dValSel = @selector(decodeValueOfObjCType:at:);
 
 @interface	NSUnarchiverClassInfo : NSObject
@@ -288,10 +371,8 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	{
 	  src = self;		/* Default object to handle serialisation */
 	  desImp = [src methodForSelector: desSel];
-	  tagImp = (unsigned char (*)(id, SEL, unsigned*))
+	  tagImp = (void (*)(id, SEL, unsigned char*, unsigned*, unsigned*))
 	      [src methodForSelector: tagSel];
-	  xRefImp = (unsigned (*)(id, SEL, unsigned*))
-	      [src methodForSelector: xRefSel];
 	}
       /*
        *	objDict is a dictionary of objects for mapping classes of
@@ -314,15 +395,15 @@ mapClassName(NSUnarchiverObjectInfo *info)
   int		i;
   int		offset = 0;
   int		size = objc_sizeof_type(type);
-  uchar		info;
+  unsigned char	info;
   unsigned	count;
 
-  info = (*tagImp)(src, tagSel, &cursor);
+  (*tagImp)(src, tagSel, &info, 0, &cursor);
   (*desImp)(src, desSel, &count, @encode(unsigned), &cursor, nil);
-  if (info != _C_ARY_B)
+  if (info != _GSC_ARY_B)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"expected array and got %s", typeToName(info)];
+		  format: @"expected array and got %s", typeToName2(info)];
     }
   if (count != expected)
     {
@@ -333,25 +414,25 @@ mapClassName(NSUnarchiverObjectInfo *info)
 
   switch (*type)
     {
-      case _C_ID:	info = _C_NONE; break;
-      case _C_CHR:	info = _C_CHR; break;
-      case _C_UCHR:	info = _C_UCHR; break;
-      case _C_SHT:	info = _C_SHT; break;
-      case _C_USHT:	info = _C_USHT; break;
-      case _C_INT:	info = _C_INT; break;
-      case _C_UINT:	info = _C_UINT; break;
-      case _C_LNG:	info = _C_LNG; break;
-      case _C_ULNG:	info = _C_ULNG; break;
+      case _C_ID:	info = _GSC_NONE; break;
+      case _C_CHR:	info = _GSC_CHR; break;
+      case _C_UCHR:	info = _GSC_UCHR; break;
+      case _C_SHT:	info = _GSC_SHT; break;
+      case _C_USHT:	info = _GSC_USHT; break;
+      case _C_INT:	info = _GSC_INT; break;
+      case _C_UINT:	info = _GSC_UINT; break;
+      case _C_LNG:	info = _GSC_LNG; break;
+      case _C_ULNG:	info = _GSC_ULNG; break;
 #ifdef	_C_LNG_LNG
-      case _C_LNG_LNG:	info = _C_LNG_LNG; break;
-      case _C_ULNG_LNG:	info = _C_ULNG_LNG; break;
+      case _C_LNG_LNG:	info = _GSC_LNG_LNG; break;
+      case _C_ULNG_LNG:	info = _GSC_ULNG_LNG; break;
 #endif
-      case _C_FLT:	info = _C_FLT; break;
-      case _C_DBL:	info = _C_DBL; break;
-      default:		info = _C_NONE; break;
+      case _C_FLT:	info = _GSC_FLT; break;
+      case _C_DBL:	info = _GSC_DBL; break;
+      default:		info = _GSC_NONE; break;
     }
 
-  if (info == _C_NONE)
+  if (info == _GSC_NONE)
     {
       for (i = 0; i < count; i++)
 	{
@@ -361,15 +442,16 @@ mapClassName(NSUnarchiverObjectInfo *info)
     }
   else
     {
-      uchar	ainfo;
+      unsigned char	ainfo;
 
-      ainfo = (*tagImp)(src, tagSel, &cursor);
-      if (info != ainfo)
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"expected %s and got %s",
-			typeToName(info), typeToName(ainfo)];
-	}
+      (*tagImp)(src, tagSel, &ainfo, 0, &cursor);
+      if (info != (ainfo & _GSC_MASK))
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"expected %s and got %s",
+                        typeToName2(info), typeToName2(ainfo)];
+        }
+
       for (i = 0; i < count; i++)
 	{
 	  (*desImp)(src, desSel, (char*)buf + offset, type, &cursor, nil);
@@ -381,27 +463,37 @@ mapClassName(NSUnarchiverObjectInfo *info)
 - (void) decodeValueOfObjCType: (const char*)type
 			    at: (void*)address
 {
-  uchar info = (*tagImp)(src, tagSel, &cursor);
+  unsigned	xref;
+  unsigned char	info;
+#if	GS_HAVE_I128
+    gsu128	bigval;
+#else
+#if	GS_HAVE_I64
+    gsu64	bigval;
+#else
+    gsu32	bigval;
+#endif
+#endif
 
-  switch (info & _C_MASK)
+  (*tagImp)(src, tagSel, &info, &xref, &cursor);
+
+  switch (info & _GSC_MASK)
     {
-      case _C_ID:
+      case _GSC_ID:
 	{
-	  unsigned	xref;
 	  id		obj;
 
-	  typeCheck(*type, _C_ID);
-	  xref = (*xRefImp)(src, xRefSel, &cursor);
+	  typeCheck(*type, _GSC_ID);
 	  /*
-	   *	Special case - a zero crossref value is a nil pointer.
+	   *	Special case - a zero crossref value size is a nil pointer.
 	   */
-	  if (xref == 0)
+	  if ((info & _GSC_SIZE) == 0)
 	    {
 	      obj = nil;
 	    }
 	  else
 	    {
-	      if (info & _C_XREF)
+	      if (info & _GSC_XREF)
 		{
 		  if (xref >= FastArrayCount(objMap))
 		    {
@@ -451,24 +543,23 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  *(id*)address = obj;
 	  return;
 	}
-      case _C_CLASS:
+
+      case _GSC_CLASS:
 	{
-	  unsigned	xref;
 	  Class		c;
 	  NSUnarchiverObjectInfo	*classInfo;
 	  Class		dummy;
 
-	  typeCheck(*type, _C_CLASS);
-	  xref = (*xRefImp)(src, xRefSel, &cursor);
-	  if (xref == 0)
+	  typeCheck(*type, _GSC_CLASS);
+	  /*
+	   *	Special case - a zero crossref value size is a nil pointer.
+	   */
+	  if ((info & _GSC_SIZE) == 0)
 	    {
-	      /*
-	       *	Special case - an xref of zero is a nul pointer.
-	       */
 	      *(SEL*)address = 0;
 	      return;
 	    }
-	  if (info & _C_XREF)
+	  if (info & _GSC_XREF)
 	    {
 	      if (xref >= FastArrayCount(clsMap))
 		{
@@ -479,7 +570,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	      *(Class*)address = mapClassObject(classInfo);
 	      return;
 	    }
-	  while (info == _C_CLASS)
+	  while ((info & _GSC_MASK) == _GSC_CLASS)
 	    {
 	      unsigned	cver;
 	      NSString	*className;
@@ -513,35 +604,30 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	       *	next tag - if it is another class, loop to get it.
 	       */
 	      address = &dummy;
-	      info = (*tagImp)(src, tagSel, &cursor);
-	      if (info == _C_CLASS)
-		{
-		  xref = (*xRefImp)(src, xRefSel, &cursor);
-		}
+	      (*tagImp)(src, tagSel, &info, &xref, &cursor);
 	    }
-	  if (info != _C_NONE)
+	  if (info != _GSC_NONE)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"class list improperly terminated"];
 	    }
 	  return;
 	}
-      case _C_SEL:
+
+      case _GSC_SEL:
 	{
-	  unsigned	xref;
 	  SEL		sel;
 
-	  typeCheck(*type, _C_SEL);
-	  xref = (*xRefImp)(src, xRefSel, &cursor);
-	  if (xref == 0)
+	  typeCheck(*type, _GSC_SEL);
+	  /*
+	   *	Special case - a zero crossref value size is a nil pointer.
+	   */
+	  if ((info & _GSC_SIZE) == 0)
 	    {
-	      /*
-	       *	Special case - an xref of zero is a nul pointer.
-	       */
 	      *(SEL*)address = 0;
 	      return;
 	    }
-	  if (info & _C_XREF)
+	  if (info & _GSC_XREF)
 	    {
 	      if (xref >= FastArrayCount(ptrMap))
 		{
@@ -563,11 +649,12 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  *(SEL*)address = sel;
 	  return;
 	}
-      case _C_ARY_B:
+
+      case _GSC_ARY_B:
 	{
 	  int	count;
 
-	  typeCheck(*type, _C_ARY_B);
+	  typeCheck(*type, _GSC_ARY_B);
 	  count = atoi(++type);
 	  while (isdigit(*type))
 	    {
@@ -576,11 +663,12 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  [self decodeArrayOfObjCType: type count: count at: address];
 	  return;
 	}
-      case _C_STRUCT_B:
+
+      case _GSC_STRUCT_B:
 	{
 	  int offset = 0;
 
-	  typeCheck(*type, _C_STRUCT_B);
+	  typeCheck(*type, _GSC_STRUCT_B);
 	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
 	  for (;;)
 	    {
@@ -604,21 +692,19 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	    }
 	  return;
 	}
-      case _C_PTR:
-	{
-	  unsigned	xref;
 
-	  typeCheck(*type, _C_PTR);
-	  xref = (*xRefImp)(src, xRefSel, &cursor);
-	  if (xref == 0)
+      case _GSC_PTR:
+	{
+	  typeCheck(*type, _GSC_PTR);
+	  /*
+	   *	Special case - a zero crossref value size is a nil pointer.
+	   */
+	  if ((info & _GSC_SIZE) == 0)
 	    {
-	      /*
-	       *	Special case - an xref of zero is a nul pointer.
-	       */
 	      *(void**)address = 0;
 	      return;
 	    }
-	  if (info & _C_XREF)
+	  if (info & _GSC_XREF)
 	    {
 	      if (xref >= FastArrayCount(ptrMap))
 		{
@@ -653,22 +739,21 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	    }
 	  return;
 	}
-      case _C_CHARPTR:
+
+      case _GSC_CHARPTR:
 	{
-	  unsigned	xref;
 	  char		*str;
 
-	  typeCheck(*type, _C_CHARPTR);
-	  xref = (*xRefImp)(src, xRefSel, &cursor);
-	  if (xref == 0)
+	  typeCheck(*type, _GSC_CHARPTR);
+	  /*
+	   *	Special case - a zero crossref value size is a nil pointer.
+	   */
+	  if ((info & _GSC_SIZE) == 0)
 	    {
-	      /*
-	       *	Special case - an xref of zero is a nul pointer.
-	       */
 	      *(char**)address = 0;
 	      return;
 	    }
-	  if (info & _C_XREF)
+	  if (info & _GSC_XREF)
 	    {
 	      if (xref >= FastArrayCount(ptrMap))
 		{
@@ -691,59 +776,171 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	    }
 	  return;
 	}
-      case _C_CHR:
-	typeCheck(*type, _C_CHR);
+
+      case _GSC_CHR:
+      case _GSC_UCHR:
+	typeCheck(*type, info & _GSC_MASK);
 	(*desImp)(src, desSel, address, type, &cursor, nil);
+	return;
+
+      case _GSC_SHT:
+      case _GSC_USHT:
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_SHT)
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	    return;
+	  }
 	break;
-      case _C_UCHR:
-	  typeCheck(*type, _C_UCHR);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_SHT:
-	  typeCheck(*type, _C_SHT);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_USHT:
-	  typeCheck(*type, _C_USHT);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_INT:
-	  typeCheck(*type, _C_INT);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_UINT:
-	  typeCheck(*type, _C_UINT);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_LNG:
-	  typeCheck(*type, _C_LNG);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_ULNG:
-	  typeCheck(*type, _C_ULNG);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
+
+      case _GSC_INT:
+      case _GSC_UINT:
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_INT)
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	    return;
+	  }
+	break;
+
+      case _GSC_LNG:
+      case _GSC_ULNG:
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_LNG)
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	    return;
+	  }
+	break;
+
 #ifdef	_C_LNG_LNG
-      case _C_LNG_LNG:
-	  typeCheck(*type, _C_LNG_LNG);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_ULNG_LNG:
-	  typeCheck(*type, _C_ULNG_LNG);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
+      case _GSC_LNG_LNG:
+      case _GSC_ULNG_LNG:
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_LNG_LNG)
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	    return;
+	  }
+	break;
+
 #endif
-      case _C_FLT:
-	  typeCheck(*type, _C_FLT);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
-      case _C_DBL:
-	  typeCheck(*type, _C_DBL);
-	  (*desImp)(src, desSel, address, type, &cursor, nil);
-	  break;
+      case _GSC_FLT:
+	typeCheck(*type, _GSC_FLT);
+	(*desImp)(src, desSel, address, type, &cursor, nil);
+	return;
+
+      case _GSC_DBL:
+	typeCheck(*type, _GSC_DBL);
+	(*desImp)(src, desSel, address, type, &cursor, nil);
+	return;
+
       default:
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"read unknown type info - %d", info];
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"read unknown type info - %d", info];
+    }
+
+  /*
+   *	We fall through to here only when we have to decode a value
+   *	whose natural size on this system is not the same as on the
+   *	machine on which the archive was created.
+   */
+
+  /*
+   *	First, we read the data and convert it to the largest size
+   *	this system can support.
+   */
+  switch (info & _GSC_SIZE)
+    {
+      case _GSC_I16:	/* Encoded as 16-bit	*/
+	{
+	  gsu16	val;
+
+	  (*desImp)(src, desSel, &val, @encode(gsu16), &cursor, nil);
+	  bigval = val;
+	  break;
+	}
+
+      case _GSC_I32:	/* Encoded as 32-bit	*/
+	{
+	  gsu32	val;
+
+	  (*desImp)(src, desSel, &val, @encode(gsu32), &cursor, nil);
+	  bigval = val;
+	  break;
+	}
+
+      case _GSC_I64:	/* Encoded as 64-bit	*/
+	{
+	  gsu64	val;
+
+	  (*desImp)(src, desSel, &val, @encode(gsu64), &cursor, nil);
+#if	GS_HAVE_I64
+	  bigval = val;
+#else
+#if	GS_WORDS_BIGENDIAN == 0
+	  val = GSSwapI64(val);
+#endif
+	  bigval = *(gsu32*)&val;
+#endif
+	  break;
+	}
+
+      default:		/* A 128-bit value	*/
+	{
+	  gsu128	val;
+
+	  (*desImp)(src, desSel, &val, @encode(gsu128), &cursor, nil);
+#if	GS_HAVE_I128
+	  bigval = val;
+#else
+#if	GS_WORDS_BIGENDIAN == 0
+	  val = GSSwapI128(val);
+#endif
+#if	GS_HAVE_I64
+	  bigval = *(gsu64*)&val;
+#else
+	  bigval = *(gsu32*)&val;
+#endif
+#endif
+	  break;
+	}
+    }
+
+/*
+ *	Now we copy from the 'bigval' to the destination location.
+ */
+  switch (info & _GSC_MASK)
+    {
+      case _GSC_SHT:
+	*(short*)address = (short)bigval;
+	return;
+      case _GSC_USHT:
+	*(unsigned short*)address = (unsigned short)bigval;
+	return;
+      case _GSC_INT:
+	*(int*)address = (int)bigval;
+	return;
+      case _GSC_UINT:
+	*(unsigned int*)address = (unsigned int)bigval;
+	return;
+      case _GSC_LNG:
+	*(long*)address = (long)bigval;
+	return;
+      case _GSC_ULNG:
+	*(unsigned long*)address = (unsigned long)bigval;
+	return;
+#ifdef	_C_LNG_LNG
+      case _GSC_LNG_LNG:
+	*(long long*)address = (long long)bigval;
+	return;
+      case _GSC_ULNG_LNG:
+	*(unsigned long long*)address = (unsigned long long)bigval;
+	return;
+#endif
+      default:
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"type/size information error"];
     }
 }
 
@@ -755,27 +952,26 @@ mapClassName(NSUnarchiverObjectInfo *info)
  */
 - (id) decodeObject
 {
-  uchar		info;
+  unsigned char	info;
   unsigned	xref;
   id		obj;
 
-  info = (*tagImp)(src, tagSel, &cursor);
-  if ((info & _C_MASK) != _C_ID)
+  (*tagImp)(src, tagSel, &info, &xref, &cursor);
+  if ((info & _GSC_MASK) != _GSC_ID)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"expected object and got %s", typeToName(info)];
+		  format: @"expected object and got %s", typeToName2(info)];
     }
 
-  xref = (*xRefImp)(src, xRefSel, &cursor);
   /*
    *	Special case - a zero crossref value is a nil pointer.
    */
-  if (xref == 0)
+  if ((info & _GSC_SIZE) == 0)
     {
       return nil;
     }
 
-  if (info & _C_XREF)
+  if (info & _GSC_XREF)
     {
       if (xref >= FastArrayCount(objMap))
 	{
@@ -987,10 +1183,8 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	       *	Cache methods for deserialising from the data object.
 	       */
 	      desImp = [src methodForSelector: desSel];
-	      tagImp = (unsigned char (*)(id, SEL, unsigned*))
+	      tagImp = (void (*)(id, SEL, unsigned char*, unsigned*, unsigned*))
 		  [src methodForSelector: tagSel];
-	      xRefImp = (unsigned (*)(id, SEL, unsigned*))
-		  [src methodForSelector: xRefSel];
 	    }
 	}
       dataClass = c;

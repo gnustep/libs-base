@@ -1,3 +1,19 @@
+Wed Jan 27 12:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* configure.n: More type-size stuff
+	* src/include/GSConfig.h.in: More type-size stuff
+	* src/include/NSData.h: Changed GNUstep extensions and added constants
+	for coder support.
+	* src/include/NSArchiver.h: Changes for handling systems with differing
+	type sizes.
+	* src/include/NSByteOrder.h: Changes and additions for handling systems
+	with differing type sizes.
+	* src/NSData.m: Changed GNUstep extensions for coder support in order
+	to make handling of type-size information easier.
+	* src/NSArchiver.m: Encode type-size info and write more efficiently.
+	* src/NSUnarchiver.m: Decode type-size info.
+	* src/UnixFileHanlde.m: Use localhost if given no host for connect.
+
 Tue Jan 26 15:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* configure.in: More stuff for type-size info
