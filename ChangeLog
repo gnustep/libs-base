@@ -331,13 +331,13 @@ Sun Jan  5 17:41:37 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 	* src/include/Stream.h (StreamException): Change type to NSString
  	from id <String>.
 
-	* src/include/NSUserDefaults.h (NSUserName, NSHomeDirectory,
- 	NSDirectoryForUser): Declare them unconditionally; before it was
- 	conditioned on NEXT_FOUNDATION.
-
 	* src/include/NSUser.h (NSUserName, NSHomeDirectory,
  	NSDirectoryForUser): Change the return types from (char*) to
  	(NSString*).
+
+	* src/include/NSUserDefaults.h (NSUserName, NSHomeDirectory,
+ 	NSDirectoryForUser): Declare them unconditionally; before it was
+ 	conditioned on NEXT_FOUNDATION.
 
 	* src/include/NSArray.h: Don't include <gnustep/base/String.h>
 	* src/include/Streaming.h: Likewise.
