@@ -553,10 +553,11 @@ static NSMutableSet	*textNodes = nil;
 
 	  nam = [prop objectForKey: @"name"];
 	  str = [prop objectForKey: @"type"];
+	  str = [self typeRef: str];
 	  str = [str stringByAppendingFormat: @" %@;", nam];
 
 	  /*
-	   * Output function heading.
+	   * Output heading.
 	   */
 	  [buf appendString: indent];
 	  [buf appendString: @"<h3>"];
@@ -808,6 +809,7 @@ static NSMutableSet	*textNodes = nil;
 
 	  fun = [prop objectForKey: @"name"];
 	  str = [prop objectForKey: @"type"];
+	  str = [self typeRef: str];
 	  str = [str stringByAppendingFormat: @" %@(", fun];
 	  children = nil;
 	  while (tmp != nil)
@@ -1454,6 +1456,7 @@ static NSMutableSet	*textNodes = nil;
 
 	  nam = [prop objectForKey: @"name"];
 	  str = [prop objectForKey: @"type"];
+	  str = [self typeRef: str];
 	  str = [NSString stringWithFormat: @"typedef %@ %@", str, nam];
 
 	  /*
@@ -1526,6 +1529,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 
 	  nam = [prop objectForKey: @"name"];
 	  str = [prop objectForKey: @"type"];
+	  str = [self typeRef: str];
 	  str = [str stringByAppendingFormat: @" %@", nam];
 
 	  /*
