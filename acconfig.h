@@ -3,3 +3,6 @@
 
 #undef SYS_AUTOLOAD
 #undef CON_AUTOLOAD
+
+#undef NeXT_cc
+#undef NeXT_runtime
