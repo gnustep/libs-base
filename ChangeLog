@@ -10,6 +10,8 @@
 	* Source/NSNotificationCenter.m: Rewrite posting so that we don't hold
 	a lock on the center while actually posting ... should prevent
 	possible deadlock in multithreaded programs.
+`	* Source/NSFileManager.m: ([-fileExistsAtPath:isDirectory:]) set
+	the flag to NO if the path does not exist. (Fixes bug #7532)
 
 2004-03-30  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
