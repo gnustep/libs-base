@@ -541,7 +541,10 @@ AC_CHECK_HEADERS(values.h)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
 AC_CHECK_HEADERS(sys/mount.h sys/types.h windows.h)
+saved_LIBS="$LIBS"
+LIBS="$LIBS -lm"
 AC_CHECK_FUNCS(statvfs symlink readlink geteuid rint)
+LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
