@@ -22,15 +22,13 @@
 #define __NSString_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <objects/String.h>
-
 #include <foundation/NSRange.h>
 
 typedef unsigned short unichar;
 
-@class NSData;
 @class NSArray;
 @class NSCharacterSet;
+@class NSData;
 @class NSDictionary;
 
 #define NSMaximumStringLength	(INT_MAX-1)
@@ -56,9 +54,7 @@ typedef enum _NSStringEncoding
   NSNonLossyASCIIStringEncoding
 } NSStringEncoding;
 
-@interface NSString : String <NSCopying, NSMutableCopying>
-
-#if 0
+@interface NSString : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
 
@@ -66,10 +62,11 @@ typedef enum _NSStringEncoding
 + (NSString*) stringWithCString: (const char*) byteString;
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length;
-
 + (NSString*) stringWithCharacters: (const unichar*)chars
    length: (unsigned int)length;
 + (NSString*) stringWithFormat: (NSString*)format,...;
++ (NSString*) stringWithFormat: (NSString*)format
+   arguments: (va_list)argList;
 
 // Initializing Newly Allocated Strings
 
@@ -130,7 +127,6 @@ typedef enum _NSStringEncoding
     options: (unsigned int)mask
     range: (NSRange)aRange;
 - (NSRange) rangeOfString: (NSString*)string;
- 
 - (NSRange) rangeOfString: (NSString*)string
    options: (unsigned int)mask;
 - (NSRange) rangeOfString: (NSString*)aString
@@ -223,8 +219,52 @@ typedef enum _NSStringEncoding
 - (NSString*) stringByResolvingSymlinksInPath;
 - (NSString*) stringByStandardizingPath;
 
-#endif
+@end
 
+/* This private method will go away later. */
+@interface NSString (NSCStringAccess)
+- (const char *) _cStringContents;
+@end
+
+
+@interface NSMutableString : NSString
+
+// Creating Temporary Strings
+
++ (NSMutableString*) stringWithCapacity:(unsigned)capacity;
+
+#if 0
+These methods were already declared above with different return type.
+Including them again here with different return type causes a
+compiler warning. 
++ (NSMutableString*) stringWithCString: (const char*)byteString;
++ (NSMutableString*) stringWithCharacters: (const unichar*)characters
+   length: (unsigned)length;
++ (NSMutableString*) stringWithCString: (const char*)bytes
+   length:(unsigned)length;
++ (NSMutableString*) stringWithFormat: (NSString*)format, ...;
+#endif 
+
+// Initializing Newly Allocated Strings
+
+- initWithCapacity:(unsigned)capacity;
+
+// Modify A String
+
+- (void) appendString: (NSString*)aString;
+- (void) appendFormat: (NSString*)format, ...;
+- (void) deleteCharactersInRange: (NSRange)range;
+- (void) insertString: (NSString*)aString atIndex:(unsigned)index;
+- (void) replaceCharactersInRange: (NSRange)range 
+   withString: (NSString*)aString;
+- (void) setString: (NSString*)aString;
+
+@end
+
+
+/* Because the compiler thinks that @".." strings are NXConstantString's. */
+#include <foundation/NSCString.h>
+@interface NXConstantString : NSCString
 @end
 
 #endif /* __NSString_h_OBJECTS_INCLUDE */
