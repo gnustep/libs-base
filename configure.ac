@@ -860,6 +860,22 @@ AC_ARG_ENABLE(do,
   [  --disable-do			Compile even if DO-dependencies are not met],,
   enable_do=yes)
 
+AC_ARG_WITH(ffcall-include,
+    [  --with-ffcall-include=PATH include path for ffcall headers],
+    ffcall_incdir="$withval", ffcall_incdir="no")
+if test ${ffcall_incdir} != "no"; then
+    ffcall_check_lib_save_cppflags="$CPPFLAGS"
+    CPPFLAGS="-I${ffcall_incdir} $CPPFLAGS"
+fi
+
+AC_ARG_WITH(ffcall-library,
+    [  --with-ffcall-library=PATH library path for ffcall libraries],
+    ffcall_libdir="$withval", ffcall_libdir="no")
+if test ${ffcall_libdir} != "no"; then
+    ffcall_check_lib_save_libs="$LIBS"
+    LIBS="-L${ffcall_libdir} $LIBS"
+fi
+
 AC_CHECK_HEADER(ffi.h, , enable_libffi=no)
 
 AC_MSG_CHECKING("for forwarding callback in runtime")
