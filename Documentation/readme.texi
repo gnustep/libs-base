@@ -18,11 +18,6 @@ The file @samp{INSTALL} gives instructions for installing the library.
 
 @section Preparing to write code
 
-Preliminary documentation is available via @samp{texinfo} in the files
-@samp{gnustep-base.info} and @samp{gnustep-base.texi}.  Because texinfo
-doesn't yet handle @code{@@deftypemethod}, this documentation cannot yet
-be compiled into more readable forms.
-
 The documentation isn't much to speak of so far.  Better documentation
 will be forthcoming, but the library needs to settle first.  For now I
 recommend skipping @file{gnustep-base.info} and reading the header files
@@ -33,9 +28,14 @@ The GNUstep FAQ also contains much useful information, including an
 outline of the class heirarchy.  The FAQ can be found in
 @file{./doc/GNUstep-FAQ}.
 
+Preliminary documentation is available via @samp{texinfo} in the files
+@samp{gnustep-base.info} and @samp{gnustep-base.texi}.  Because texinfo
+doesn't yet handle @code{@@deftypemethod}, this documentation cannot yet
+be compiled into more readable forms.
+
 @section Overview of the classes
 
-[This section needs updating -mccallum Apr 17 1996.]
+[This section badly needs updating -mccallum Apr 17 1996.]
 
 The GNU classes included in this version of the library fall into six
 categories: collections, strings, magnitudes, streams, coders and
