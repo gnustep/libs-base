@@ -11,15 +11,6 @@
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
 */
-#ifdef NeXT_RUNTIME
-/* ignore this test with the NeXT runtime - never use
-   -fconstant-string-class */
-int main (int argc, char **argv)
-{
-  abort ();
-  return 1;
-}
-#else /* GNU RUNTIME - the real test */
 
 /* must be compiled compile using -fconstant-string-class=NSConstantString
    as an option to gcc.  If it doesn't work, it means your gcc doesn't
@@ -29,15 +20,21 @@ int main (int argc, char **argv)
 #include <objc/Object.h>
 
 /* Define our custom constant string class */
-@interface NSConstantString : Object
+@interface FooConstantString : Object
 {
    char *c_string;
    unsigned int len;
 }
 - (char *) customString;
 @end
+
+#ifdef NeXT_RUNTIME
+/* This structure shouldn't be seen outside the compiler.
+   See Apple Radar 2870817 and the memcpy() in main(). */
+struct objc_class _FooConstantStringClassReference;
+#endif
   
-@implementation NSConstantString
+@implementation FooConstantString
 - (char *) customString
 {
     return c_string;
@@ -48,14 +45,30 @@ int main (int argc, char **argv)
 int main (int argc, char **argv)
 {
    /* Create a test constant string */
-   NSConstantString *string = @"Antonio Valente";
+   FooConstantString *string = @"Antonio Valente";
    
+#ifdef NeXT_RUNTIME
+   /* This memcpy is needed here due to a bug in ObjC gcc when using
+      next runtime. It has to be done once per program and before
+      the first message is sent to a constant string. Can't be moved to
+      the constant string's +initialize since this is already a message.
+      See Apple Radar 2870817 */
+   memcpy(&_FooConstantStringClassReference,
+          objc_getClass("FooConstantString"),
+          sizeof(_FooConstantStringClassReference));
+#endif
+
    /* Check that it really works */
    if (strcmp ([string customString], "Antonio Valente"))
      {
        abort ();
      }
    
+   /* Do another, more direct test. */
+   if (strcmp ([@"Jump" customString], "Jump"))
+       {
+         abort ();
+       }
    return 0;
 }
-#endif /* GNU RUNTIME */
+
