@@ -60,6 +60,13 @@ static NSDate	*theFuture = nil;
 
 extern BOOL	GSCheckTasks();
 
+#if	HAVE_POLL
+typedef struct {
+  int		limit;
+  short		*index;
+} pollextra;
+#endif
+
 
 /*
  *	The 'GSRunLoopWatcher' class was written to permit the (relatively)
@@ -375,6 +382,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 @interface	GSRunLoopCtxt : NSObject
 {
 @public
+  void		*extra;		/** Copy of the RunLoop ivar.		*/
   GSIArray	performers;	/** The actions to perform regularly.	*/
   GSIArray	timers;		/** The timers set for the runloop mode */
   GSIArray	watchers;	/** The inputs set for the runloop mode */
@@ -388,8 +396,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   int		pollfds_capacity;
   int		pollfds_count;
   struct pollfd	*pollfds;
-  int		fd_limit;
-  short		*fd_pollfds;
 #endif
 }
 - (void) endPoll;
@@ -412,10 +418,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   if (pollfds != 0)
     {
       objc_free(pollfds);
-    }
-  if (fd_pollfds != 0)
-    {
-      objc_free(fd_pollfds);
     }
 #endif
   [super dealloc];
@@ -458,48 +460,43 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 #if	HAVE_POLL
 
-static void setPollfd(int fd, int event,
-  int *pollfds_capacity_inout,
-  int *pollfds_count_inout,
-  struct pollfd **pollfds_inout,
-  short **fd_pollfds,
-  int *fd_limit)
+static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 {
-  int	index;
-  struct pollfd *pollfds = *pollfds_inout;
+  int		index;
+  struct pollfd *pollfds = ctxt->pollfds;
+  pollextra	*pe = (pollextra*)ctxt->extra;
 
-  if (fd >= *fd_limit)
+  if (fd >= pe->limit)
     {
-      int oldfd_limit = *fd_limit;
+      int oldfd_limit = pe->limit;
 
-      *fd_limit = fd + 1;
-      if (*fd_pollfds == 0)
+      pe->limit = fd + 1;
+      if (pe->index == 0)
 	{
-	  *fd_pollfds = objc_malloc(*fd_limit * sizeof (**fd_pollfds));
+	  pe->index = objc_malloc(pe->limit * sizeof(*(pe->index)));
 	}
       else
 	{
-	  *fd_pollfds =
-	    objc_realloc(*fd_pollfds, *fd_limit * sizeof (**fd_pollfds));
+	  pe->index = objc_realloc(pe->index, pe->limit * sizeof(*(pe->index)));
 	}
       do
 	{
-	  (*fd_pollfds)[oldfd_limit++] = -1;
+	  pe->index[oldfd_limit++] = -1;
 	}
-      while (oldfd_limit < *fd_limit);
+      while (oldfd_limit < pe->limit);
     }
-  index = (*fd_pollfds)[fd];
+  index = pe->index[fd];
   if (index == -1)
     {
-      if (*pollfds_count_inout >= *pollfds_capacity_inout)
+      if (ctxt->pollfds_count >= ctxt->pollfds_capacity)
 	{
-	  (*pollfds_capacity_inout) += 8;
+	  ctxt->pollfds_capacity += 8;
 	  pollfds =
-	    objc_realloc(pollfds, *pollfds_capacity_inout * sizeof (*pollfds));
-	  *pollfds_inout = pollfds;
+	    objc_realloc(pollfds, ctxt->pollfds_capacity * sizeof (*pollfds));
+	  ctxt->pollfds = pollfds;
 	}
-      index = (*pollfds_count_inout)++;
-      (*fd_pollfds)[fd] = index;
+      index = ctxt->pollfds_count++;
+      pe->index[fd] = index;
       pollfds[index].fd = fd;
       pollfds[index].events = 0;
       pollfds[index].revents = 0;
@@ -546,7 +543,7 @@ static void setPollfd(int fd, int event,
 	}
     }
   pollfds_count = 0;
-  fd_limit = 0;
+  ((pollextra*)extra)->limit = 0;
   end_inputs = 0;
 
   while (i-- > 0)
@@ -567,8 +564,7 @@ static void setPollfd(int fd, int event,
 	    fd = (int)info->data;
 	    if (fd > end_inputs)
 	      end_inputs = fd;
-	    setPollfd(fd, POLLERR, &pollfds_capacity,
-	      &pollfds_count, &pollfds, &fd_pollfds, &fd_limit);
+	    setPollfd(fd, POLLERR, self);
 	    NSMapInsert(_efdMap, (void*)fd, info);
 	    num_inputs++;
 	    break;
@@ -577,8 +573,7 @@ static void setPollfd(int fd, int event,
 	    fd = (int)info->data;
 	    if (fd > end_inputs)
 	      end_inputs = fd;
-	    setPollfd(fd, POLLIN, &pollfds_capacity,
-	      &pollfds_count, &pollfds, &fd_pollfds, &fd_limit);
+	    setPollfd(fd, POLLIN, self);
 	    NSMapInsert(_rfdMap, (void*)fd, info);
 	    num_inputs++;
 	    break;
@@ -587,8 +582,7 @@ static void setPollfd(int fd, int event,
 	    fd = (int)info->data;
 	    if (fd > end_inputs)
 	      end_inputs = fd;
-	    setPollfd(fd, POLLOUT, &pollfds_capacity,
-	      &pollfds_count, &pollfds, &fd_pollfds, &fd_limit);
+	    setPollfd(fd, POLLOUT, self);
 	    NSMapInsert(_wfdMap, (void*)fd, info);
 	    num_inputs++;
 	    break;
@@ -622,9 +616,7 @@ static void setPollfd(int fd, int event,
 		while (port_fd_count--)
 		  {
 		    fd = port_fd_array[port_fd_count];
-		    setPollfd(fd, POLLIN, &pollfds_capacity,
-		      &pollfds_count, &pollfds,
-		      &fd_pollfds, &fd_limit);
+		    setPollfd(fd, POLLIN, self);
 		    if (fd > end_inputs)
 		      {
 			end_inputs = fd;
@@ -1224,6 +1216,7 @@ if (0) {
   if (context == nil)
     {
       context = [GSRunLoopCtxt new];
+      context->extra = _extra;
       NSMapInsert(_mode_2_context, mode, context);
       RELEASE(context);
     }
@@ -1544,6 +1537,10 @@ if (0) {
       _mode_2_context = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
+#if	HAVE_POLL
+      _extra = objc_malloc(sizeof(pollextra));
+      memset(_extra, '\0', sizeof(pollextra));
+#endif
     }
   return self;
 }
@@ -1556,6 +1553,15 @@ if (0) {
 
 - (void) gcFinalize
 {
+#if	HAVE_POLL
+  {
+    pollextra	*e = (pollextra*)_extra;
+
+    if (e->index != 0)
+      objc_free(e->index);
+    objc_free(e);
+  }
+#endif
   NSFreeMapTable(_mode_2_context);
   RELEASE(_timedPerformers);
 }
@@ -1582,6 +1588,7 @@ if (0) {
   if (context == nil)
     {
       context = [GSRunLoopCtxt new];
+      context->extra = _extra;
       NSMapInsert(_mode_2_context, mode, context);
       RELEASE(context);
     }
@@ -2024,6 +2031,7 @@ if (0) {
 	  if (context == nil)
 	    {
 	      context = [GSRunLoopCtxt new];
+	      context->extra = _extra;
 	      NSMapInsert(_mode_2_context, mode, context);
 	      RELEASE(context);
 	    }
