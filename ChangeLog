@@ -1,6 +1,8 @@
-Fri May  7 13:46:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri May  7 15:12:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	* Source/NSBundle.m: Modified ([-release]) to avoid unnecessary work.
+	* Source/NSBundle.m: Modified ([-release]) to avoid unnecessary work
+	and to refrain from caching bundles unless they have loaded code
+	(or are the main bundle or the gnustep bundle).
 
 Thu May  6 21:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
