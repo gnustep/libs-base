@@ -192,6 +192,15 @@ $(GNUSTEP_OBJ_DIR)/NSInvocation.o : NSInvocation.m
 	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
 
 #
+#	Files that need a rebuild if config.h is changed.
+#	XML support
+#	SSL support
+#
+$(GNUSTEP_OBJ_DIR)/GSXML.o \
+$(GNUSTEP_OBJ_DIR)/UnixFileHandle.o \
+	: $(GNUSTEP_TARGET_DIR)/config.h 
+
+#
 #	Files that need a rebuild if GSConfig.h is changed.
 #
 $(GNUSTEP_OBJ_DIR)/mframe.o \
