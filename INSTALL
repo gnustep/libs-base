@@ -27,7 +27,7 @@ shell initialization script is in /opt/GNUstep/System/Makefiles/GNUstep.sh.
 this package.  Configuration is performed by running the `configure' program
 at a shell prompt. You may want to use some of the optional arguments to the
 `configure' program. Type `./configure --help' for a list of these.  NB: you
-do *not* need to use the `--prefix' option, since gnustep-base will
+should *not* use the `--prefix' option, since gnustep-base will
 automatically install in the directory specified by the
 `GNUSTEP_SYSTEM_ROOT' environment variable (specified when you installed
 gnustep-make), and this should not be changed.
