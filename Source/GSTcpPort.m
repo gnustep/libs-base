@@ -1694,6 +1694,7 @@ static Class		tcpPortClass;
 {
   NSMapEnumerator	me;
   int			sock;
+  int			opt = 1;
   GSTcpHandle		*handle = nil;
 
   DO_LOCK(myLock);
@@ -1711,37 +1712,37 @@ static Class		tcpPortClass;
 	}
     }
   NSEndMapTableEnumeration(&me);
-  if (handle == nil)
-    {
-      int	opt = 1;
 
-      if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
-	{
-	  NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
-	}
+  /*
+   * Not found ... create a new handle.
+   */
+  handle = nil;
+  if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+    {
+      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
+    }
 #ifndef	BROKEN_SO_REUSEADDR
-      /*
-       * Under decent systems, SO_REUSEADDR means that the port can be reused
-       * immediately that this process exits.  Under some it means
-       * that multiple processes can serve the same port simultaneously.
-       * We don't want that broken behavior!
-       */
-      else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
-	sizeof(opt)) < 0)
-	{
-	  (void)close(sock);
-	  NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
-	}
+  /*
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
+   */
+  else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
+    sizeof(opt)) < 0)
+    {
+      (void)close(sock);
+      NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
+    }
 #endif
-      else if ((handle = [GSTcpHandle handleWithDescriptor: sock]) == nil)
-	{
-	  (void)close(sock);
-	  NSLog(@"unable to create GSTcpHandle - %s", GSLastErrorStr(errno));
-	}
-      else
-	{
-	  [recvPort addHandle: handle forSend: NO];
-	}
+  else if ((handle = [GSTcpHandle handleWithDescriptor: sock]) == nil)
+    {
+      (void)close(sock);
+      NSLog(@"unable to create GSTcpHandle - %s", GSLastErrorStr(errno));
+    }
+  else
+    {
+      [recvPort addHandle: handle forSend: NO];
     }
   DO_UNLOCK(myLock);
   /*
