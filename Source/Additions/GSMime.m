@@ -3777,6 +3777,26 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Convenience method to create a new header and add it to the receiver
+ * replacing any existing header of the same name.<br />
+ * Returns the newly created header.<br />
+ * See [GSMimeHeader-initWithName:value:parameters:] and -setHeader: methods.
+ */
+- (GSMimeHeader*) makeHeader: (NSString*)name
+		       value: (NSString*)value
+		  parameters: (NSDictionary*)parameters
+{
+  GSMimeHeader	*hdr;
+
+  hdr = [[GSMimeHeader alloc] initWithName: name
+				     value: value
+				parameters: parameters];
+  [self setHeader: hdr];
+  RELEASE(hdr);
+  return hdr;
+}
+
+/**
  * Create new message ID header, set it as the message ID of the document
  * and return it.<br />
  * This is a convenience method which simply places angle brackets around

@@ -124,6 +124,9 @@
 - (NSArray*) headersNamed: (NSString*)name;
 - (NSString*) makeBoundary;
 - (GSMimeHeader*) makeContentID;
+- (GSMimeHeader*) makeHeader: (NSString*)name
+                       value: (NSString*)value
+		  parameters: (NSDictionary*)parameters;
 - (GSMimeHeader*) makeMessageID;
 - (NSMutableData*) rawMimeData;
 - (NSMutableData*) rawMimeData: (BOOL)isOuter;
