@@ -177,6 +177,7 @@ NSConcreteValue.m \
 NSCString.m \
 NSDeallocateObject.m \
 NSDictionary.m \
+NSEnumerator.m \
 NSException.m \
 NSGeometry.m \
 NSNumber.m \
