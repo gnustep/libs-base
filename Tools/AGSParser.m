@@ -331,8 +331,10 @@
 
 - (NSMutableDictionary*) parseDeclaration
 {
-  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
+  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
   NSMutableString	*t = nil;
@@ -918,7 +920,6 @@ fail:
 
 - (NSMutableDictionary*) parseImplementation
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSString		*tmp = nil;
   NSString		*name;
   NSString		*base = nil;
@@ -926,6 +927,7 @@ fail:
   NSDictionary		*methods = nil;
   NSMutableDictionary	*d;
   NSMutableDictionary	*dict = nil;
+  CREATE_AUTORELEASE_POOL(arp);
 
   /*
    * Record any class documentation for this class
@@ -1042,13 +1044,13 @@ fail:
 
 - (NSMutableDictionary*) parseInterface
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSString		*name;
   NSString		*base = nil;
   NSString		*category = nil;
   NSDictionary		*methods = nil;
   NSMutableDictionary	*d;
   NSMutableDictionary	*dict;
+  CREATE_AUTORELEASE_POOL(arp);
 
   dict = [NSMutableDictionary dictionaryWithCapacity: 8];
 
@@ -1319,7 +1321,9 @@ fail:
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
 {
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
   NSMutableDictionary	*method;
   NSMutableString	*mname;
   NSString		*token;
@@ -1850,11 +1854,11 @@ fail:
 
 - (NSMutableDictionary*) parseProtocol
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSString		*name;
   NSDictionary		*methods = nil;
   NSMutableDictionary	*dict;
   NSMutableDictionary	*d;
+  CREATE_AUTORELEASE_POOL(arp);
 
   dict = [[NSMutableDictionary alloc] initWithCapacity: 8];
 
@@ -2086,13 +2090,13 @@ fail:
  */
 - (void) setupBuffer
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSString		*contents;
   NSMutableData		*data;
   unichar		*end;
   unichar		*inptr;
   unichar		*outptr;
   NSMutableArray	*a;
+  CREATE_AUTORELEASE_POOL(arp);
 
   contents = [NSString stringWithContentsOfFile: fileName];
   length = [contents length];

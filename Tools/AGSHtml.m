@@ -438,7 +438,9 @@ static NSMutableSet	*textNodes = nil;
 
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
 {
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
   GSXMLNode	*children = [node firstChild];
 
   if ([node type] == XML_ELEMENT_NODE)

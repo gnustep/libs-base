@@ -851,7 +851,9 @@ main(int argc, char** argv, char** env)
 #endif /* !MINGW */
 
   {
+#if GS_WITH_GC == 0
     CREATE_AUTORELEASE_POOL(pool);
+#endif
     NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
 
     /*
