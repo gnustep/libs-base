@@ -1,5 +1,5 @@
 /* Implementation of NSMutableData for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: April 1995
@@ -51,7 +51,7 @@
 {
   /* xxx Eventually we'll have to be aware of malloc'ed memory
      vs vm_allocate'd memory, etc. */
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -65,7 +65,7 @@
 /* This method not in OpenStep */
 - (unsigned) capacity
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -78,12 +78,12 @@
 
 - (void) setLength: (unsigned int)length
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void*) mutableBytes
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return NULL;
 }
 
@@ -92,7 +92,7 @@
 - (void) appendBytes: (const void*)bytes
 	      length: (unsigned int)length
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) appendData: (NSData*)other

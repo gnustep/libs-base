@@ -1,5 +1,5 @@
 /* Implementation for GNU Objective-C MutableString object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -32,7 +32,7 @@
 /* This is the designated initializer */
 - initWithCapacity: (unsigned)capacity
 {
-  return [self notImplemented:_cmd];
+  return [self subclassResponsibility:_cmd];
 }
 
 + (MutableString*) stringWithCapacity: (unsigned)capacity
@@ -41,17 +41,17 @@
   return [n autorelease];
 }
 
-/* Subclasses need to implemented the next to methods */
+/* Subclasses need to implemented the next two methods */
 
 - removeRange: (IndexRange)range
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
 - (void) insertString: (String*)string atIndex: (unsigned)index
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) setString: (String*)string

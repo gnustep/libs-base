@@ -1,5 +1,5 @@
 /* NSArray - Array object to hold other objects.
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -138,7 +138,7 @@ static Class NSMutableArray_concrete_class;
 /* This is the designated initializer for NSArray. */
 - initWithObjects: (id*)objects count: (unsigned)count
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -202,13 +202,13 @@ static Class NSMutableArray_concrete_class;
 
 - (unsigned) count
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - objectAtIndex: (unsigned)index
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -388,7 +388,7 @@ static Class NSMutableArray_concrete_class;
 /* This is the desgnated initializer for NSMutableArray */
 - initWithCapacity: (unsigned)numItems
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
