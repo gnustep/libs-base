@@ -1,4 +1,4 @@
-/* This tool converts a serialised proerty list to a text representation.
+/** This tool converts a serialised property list to a text representation.
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -31,6 +31,9 @@
 #include	<Foundation/NSAutoreleasePool.h>
 
 
+/** <p>This tool converts a binary serialised property list to a text
+    representation.
+</p> */
 int
 main(int argc, char** argv, char **env)
 {

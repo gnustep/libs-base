@@ -44,6 +44,7 @@
 after-all::
 ifeq ($(HAVE_LIBXML),1)
 	$(MAKE) -C ../Source -f DocMakefile
+	$(MAKE) -C ../Tools -f DocMakefile
 endif
 
 # Things to do before installing

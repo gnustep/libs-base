@@ -278,6 +278,8 @@ static NSMutableSet	*textNodes = nil;
 - (void) outputIndex: (NSString*)type
 	       scope: (NSString*)scope
 	       title: (NSString*)title
+	       style: (NSString*)style
+              target: (NSString*)target
 		  to: (NSMutableString*)buf
 {
   NSDictionary	*refs = [localRefs refs];
@@ -285,6 +287,7 @@ static NSMutableSet	*textNodes = nil;
   NSArray	*a;
   unsigned	c;
   unsigned	i;
+  BOOL		isBareStyle = [@"bare" isEqualToString: style];
 
   if (globalRefs != nil && [scope isEqual: @"global"] == YES)
     {
@@ -320,11 +323,14 @@ static NSMutableSet	*textNodes = nil;
 
   if ([dict count] > 1 && [type isEqual: @"title"] == YES)
     {
-      [buf appendString: indent];
-      [buf appendFormat: @"<b>%@</b>\n", title];
-      [buf appendString: indent];
-      [buf appendString: @"<ul>\n"];
-      [self incIndent];
+      if (!isBareStyle)
+        {
+          [buf appendString: indent];
+          [buf appendFormat: @"<b>%@ Index</b>\n", title];
+          [buf appendString: indent];
+          [buf appendString: @"<ul>\n"];
+          [self incIndent];
+        }
 
       a = [dict allKeys];
       a = [a sortedArrayUsingSelector: @selector(compare:)];
@@ -342,14 +348,34 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<li><a rel=\"gsdoc\" href="];
-	  [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
+          if (!isBareStyle)
+            {
+              [buf appendString: @"<li>"];
+            }
+          [buf appendString: @"<a rel=\"gsdoc\" "];
+          if (target != nil)
+            {
+              [buf appendFormat: @"target=\"%@\" ", target];
+            }
+	  [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
 	    file, type, ref, text];
+          if (!isBareStyle)
+            {
+              [buf appendString: @"</li>"];
+            }
+          else
+            {
+              [buf appendString: @"<br/>"];
+            }
+          [buf appendString: @"\n"];
 	}
 
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</ul>\n"];
+      if (!isBareStyle)
+        {
+          [self decIndent];
+          [buf appendString: indent];
+          [buf appendString: @"</ul>\n"];
+        }
     }
   else if ([dict count] > 0)
     {
@@ -418,10 +444,16 @@ static NSMutableSet	*textNodes = nil;
 	}
 
       [buf appendString: indent];
-      [buf appendFormat: @"<b>%@</b>\n", title];
+      if (!isBareStyle)
+        {
+          [buf appendFormat: @"<b>%@</b>\n", title];
+        }
       [buf appendString: indent];
-      [buf appendString: @"<ul>\n"];
-      [self incIndent];
+      if (!isBareStyle) {
+        [buf appendString: @"<ul>"];
+        [self incIndent];
+      }
+      [buf appendString: @"\n"];
 
       a = [dict allKeys];
       a = [a sortedArrayUsingSelector: @selector(compare:)];
@@ -457,22 +489,43 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<li><a rel=\"gsdoc\" href="];
+          if (!isBareStyle)
+            {
+              [buf appendString: @"<li>"];
+            }
+	  [buf appendString: @"<a rel=\"gsdoc\" "];
+          if (target != nil)
+            {
+              [buf appendFormat: @"target=\"%@\" ", target];
+            }
 	  if (isInUnit == YES)
 	    {
-	      [buf appendFormat: @"\"%@.html#%@$%@%@%@\">%@</a></li>\n",
+	      [buf appendFormat: @"href=\"%@.html#%@$%@%@%@\">%@</a>",
 		file, type, u, sep, ref, text];
 	    }
 	  else
 	    {
-	      [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
+	      [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
 		file, type, ref, text];
 	    }
+          if (!isBareStyle)
+            {
+              [buf appendString: @"</li>"];
+            }
+          else
+            {
+              [buf appendString: @"<br/>"];
+            }
+          [buf appendString: @"\n"];
+
 	}
 
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</ul>\n"];
+      if (!isBareStyle) {
+        [self decIndent];
+        [buf appendString: indent];
+        [buf appendString: @"</ul>"];
+      }
+      [buf appendString: @"\n"];
     }
 }
 
@@ -526,6 +579,15 @@ static NSMutableSet	*textNodes = nil;
 
 	  [self decIndent];
 	  [buf appendString: indent];
+
+          // special formatting for table-of-contents frames; ultimately
+          // this should be moved to stylesheet
+          if (isContentsDoc)
+            {
+              [buf appendString: indent];
+              [buf appendString: @"</font>\n"];
+            }
+
 	  [buf appendString: @"</body>\n"];
 	}
       else if ([name isEqual: @"br"] == YES)
@@ -966,6 +1028,8 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
 	{
+          NSString	*stylesheetURL = [prop objectForKey: @"stylesheeturl"];
+
 	  base = [prop objectForKey: @"base"];
 	  if (base == nil)
 	    {
@@ -978,10 +1042,19 @@ static NSMutableSet	*textNodes = nil;
 	  prevFile = [prevFile stringByAppendingPathExtension: @"html"];
 	  upFile = [prop objectForKey: @"up"];
 	  upFile = [upFile stringByAppendingPathExtension: @"html"];
+
+          // special formatting for table-of-contents frames; ultimately
+          // this should be moved to stylesheet
+          isContentsDoc = ((stylesheetURL != nil) &&
+            ([stylesheetURL rangeOfString: @"gsdoc_contents"].length > 0)) ?
+            YES : NO;
+
 	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"head"] == YES)
 	{
+          NSString	*headerTag;
+
 	  [buf appendString: indent];
 	  [buf appendString: @"<head>\n"];
 	  [self incIndent];
@@ -999,6 +1072,14 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<body>\n"];
 	  [self incIndent];
 
+          // special formatting for table-of-contents frames; ultimately
+          // this should be moved to stylesheet
+          if (isContentsDoc)
+            {
+              [buf appendString: indent];
+              [buf appendString: @"<font face=\"sans\" size=\"-1\">\n"];
+            }
+
 	  if (prevFile != nil)
 	    {
 	      [buf appendString: indent];
@@ -1014,13 +1095,24 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString: indent];
 	      [buf appendFormat: @"<a href=\"%@\">Next</a>\n", nextFile];
 	    }
-	  [buf appendString: indent];
-	  [buf appendString: @"<br />\n"];
+          if (prevFile != nil || upFile != nil || nextFile != nil)
+            {
+              [buf appendString: indent];
+              [buf appendString: @"<br />\n"];
+            }
 
 	  [buf appendString: indent];
-	  [buf appendFormat: @"<h1><a name=\"title$%@\">", base];
+          if (isContentsDoc)
+            {
+              headerTag = @"h2";
+            }
+          else
+            {
+              headerTag = @"h1";
+            }
+	  [buf appendFormat: @"<%@><a name=\"title$%@\">", headerTag, base];
 	  [self outputText: [children firstChild] to: buf];
-	  [buf appendString: @"</a></h1>\n"];
+	  [buf appendFormat: @"</a></%@>\n", headerTag];
 
 	  children = [children nextElement];
 	  if ([[children name] isEqual: @"author"] == YES)
@@ -1092,10 +1184,8 @@ static NSMutableSet	*textNodes = nil;
 		  if (desc != nil)
 		    {
 		      [self incIndent];
-		      while (desc != nil)
-			{
-			  desc = [self outputBlock: desc to: buf inPara: NO];
-			}
+                      [self outputNode: desc to: buf];
+                      desc = nil;
 		      [self decIndent];
 		    }
 		  [buf appendString: indent];
@@ -1170,9 +1260,12 @@ static NSMutableSet	*textNodes = nil;
         {
 	  NSString	*scope = [prop objectForKey: @"scope"];
 	  NSString	*type = [prop objectForKey: @"type"];
+	  NSString	*target = [prop objectForKey: @"target"];
 	  NSString	*title = [type capitalizedString];
+	  NSString	*style = [prop objectForKey: @"style"];
 
-	  [self outputIndex: type scope: scope title: title to: buf];
+	  [self outputIndex: type scope: scope title: title style: style
+                target: target to: buf ];
 	}
       else if ([name isEqual: @"ivar"] == YES)	// %phrase
 	{
@@ -1519,6 +1612,10 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*c = [prop objectForKey: @"class"];
 	  NSString	*s;
 
+          // fill in default value
+          if ((type == nil) || [type isEqual: @""])
+              type = @"label";
+
 	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
 	    {
 	      s = [self makeLink: r ofType: type inUnit: c isRef: YES];
@@ -1588,8 +1685,6 @@ static NSMutableSet	*textNodes = nil;
       else if ([name isEqual: @"EOEntity"] == YES
 	|| [name isEqual: @"EOModel"] == YES)
 	{
-	  NSString	*tmp = [prop objectForKey: @"name"];
-
 	  NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([name isEqual: @"section"] == YES)
@@ -1722,7 +1817,12 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"url"] == YES)
 	{
-NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+          // create an HREF as before but use the URL itself as marker text
+	  [buf appendString: @"<a href=\""];
+	  [buf appendString: [prop objectForKey: @"url"]];
+	  [buf appendString: @"\">"];
+          [buf appendString: [prop objectForKey: @"url"]];
+	  [buf appendString: @"</a>"];
 	}
       else if ([name isEqual: @"var"] == YES)	// %phrase
 	{
@@ -1788,7 +1888,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	{
 	  GSXMLNode	*tmp;
 	  /*
-	   * Try outputing as any of the list elements.
+	   * Try outputting as any of the list elements.
 	   */
 	  tmp = [self outputList: node to: buf];
 	  if (tmp == node)
@@ -1900,6 +2000,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else
 	{
 	  NSLog(@"Non-block element '%@' in block ...", n);
+          NSLog(@"%@",node);
 	  return nil;
 	}
     }
@@ -2033,7 +2134,52 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
     }
   else if ([name isEqual: @"dictionary"] == YES)
     {
-NSLog(@"Element '%@' not implemented", name); // FIXME
+      [buf appendString: indent];
+      [buf appendString: @"<dl>{\n"];
+      [self incIndent];
+      // all children should be dictionaryItems w/key and value attributes;
+      // if the value attribute is absent, the content is the value
+      for (; children != nil; children = [children nextElement])
+	{
+	  GSXMLNode	*dItem = children;
+          NSDictionary	*dProp = [dItem attributes];
+          NSString	*value = [dProp objectForKey: @"value"];
+          GSXMLNode	*dChild;
+          if (![@"dictionaryItem" isEqualToString: [dItem name]])
+            {
+              continue;
+            }
+          [buf appendString: indent];
+          [buf appendString: @"<dt>"];
+          [buf appendString: [dProp objectForKey: @"key"]];
+          [buf appendString: @" = </dt>\n"];
+	  [buf appendString: indent];
+          [buf appendString: @"<dd>\n"];
+          [self incIndent];
+          if (value != nil)
+            {
+              [buf appendString: value];
+            }
+          else
+            {
+              dChild = [dItem firstChildElement];
+              if ( dChild == nil )
+                {
+                  // no elements, just text contents
+                  dChild = [dItem firstChild];
+                  [buf appendString: indent];
+                }
+              dItem = [self outputBlock: dChild to: buf inPara: NO];
+              //PENDING should check that dItem is what it should be...
+            }
+          [buf appendString: @"\n"];
+          [self decIndent];
+          [buf appendString: indent];
+          [buf appendString: @";</dd>\n"];
+        }
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</dl>}\n"];
     }
   else
     {
@@ -2183,6 +2329,8 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [self outputIndex: @"method"
 		  scope: @"global"
 		  title: @"Method summary"
+		  style: nil
+                 target: nil
 		     to: buf];
       [buf appendString: indent];
       [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];

@@ -1,4 +1,4 @@
-/* This tool checks that a file is a valid strings-file
+/** This tool checks that a file is a valid strings-file
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -103,6 +103,13 @@ convert_utf8(NSArray *args)
   return 0;
 }
 
+
+/** <p>
+ This tool checks that a file is a valid strings-file, and can also convert
+ files to Unicode or UTF-8.  If given the '<code>--unicode</code>' option
+ it converts an ASCII or UTF-8 file to unicode.  If given the
+ '<code>--utf8</code>' option is converts an ASCII or unicode file to UTF-8.
+ </p> */
 int
 main(int argc, char** argv, char **env)
 {

@@ -35,14 +35,16 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-0_6_5.dtd \
 	gsdoc-0_6_6.dtd \
 	gsdoc-0_6_7.dtd \
-	gsdoc-1_0_0.dtd
+	gsdoc-1_0_0.dtd \
+	gsdoc-1_0_1.dtd
 
 # DocTemplates to install
 doctemplatesdir = $(GNUSTEP_LIBRARY)/DocTemplates
 DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
 
 # Manual pages to install
-MAN1_PAGES = gdnc.1
+MAN1_PAGES = gdnc.1 autogsdoc.1 cvtenc.1 defaults.1 pldes.1 sfparse.1 xmlparse.1
+MAN7_PAGES = gsdoc.7
 MAN8_PAGES = gdomap.8
 
 # The application to be compiled

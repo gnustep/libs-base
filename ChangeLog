@@ -1,3 +1,40 @@
+2004-03-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Documentation/BaseAdditions.gsdoc:
+	* Documentation/Functions.gsdoc:
+	* Documentation/TypesAndConstants.gsdoc:
+	Update to latest gsdoc document version.
+	* Documentation/Makefile.postamble:
+	Build Tools documentation.
+
+2004-03-29 Adrian Robert <arobert@cogsci.ucsd.edu>
+
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/gsdoc.gsdoc:
+	* Tools/autogsdoc.m:
+	* Tools/GNUmakefile:
+	Added support for building frames structured project documentation
+	along with various other tidyups.
+
+	* Tools/cvtenc.m:
+	* Tools/defaults.m:
+	* Tools/gdnc.1:
+	* Tools/gdnc.m:
+	* Tools/gdomap.h:
+	* Tools/pldes.m:
+	* Tools/plmerge.m:
+	* Tools/plparse.m:
+	* Tools/plser.m:
+	* Tools/sfparse.m:
+	* Tools/xmlparse.m:
+	Added/improved documentaition.
+
 2004-03-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:

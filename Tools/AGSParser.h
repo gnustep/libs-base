@@ -2,7 +2,7 @@
 #define	_INCLUDED_AGSPARSER_H
 /**
 
-   <title>AGSParser ... a tool to get documention info from ObjC source</title>
+   <title>AGSParser ...a class to get documention info from ObjC source</title>
    Copyright (C) 2001 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -22,17 +22,10 @@
 
    <abstract>
     This is the AGSParser class ... and some autogsdoc examples.
+    The AGSParser class is designed to produce a property-list
+    which can be handled by AGSOutput ... one class is not much
+    use without the other.
    </abstract>
-   <front>
-    <chapter>
-      <heading>AGSParser front page</heading>
-      <p>
-	The AGSParser class is designed to produce a property-list
-	which can be handled by AGSOutput ... one class is not much
-	use without the other.
-      </p>
-    </chapter>
-   </front>
 
    */
 
@@ -114,9 +107,5 @@
 - (unsigned) skipUnit;
 - (NSMutableArray*) sources;
 @end
-
-/** Let's document a macro
- */
-#define	fibble(a,b,c)	feep /** with three arguments: a, b, c */
 
 #endif

@@ -60,6 +60,9 @@
 }
 @end
 
+/** <p>This tool error-checks and validates xml documents.  The parse
+    is simply discarded after checking.
+</p> */
 int
 main(int argc, char **argv, char **env)
 {
