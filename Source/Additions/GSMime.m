@@ -2419,10 +2419,21 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       /*
        * Eat a newline that is part of a cr-lf sequence.
        */
-      input++;
-      if (c == '\r' && input < dataEnd && bytes[input] == '\n')
-	{
+      if (input < dataEnd)
+        {
+	  /*
+	   * If we had an end-of-line with nothing else, we must have
+	   * finished unwrapping at the final boundary.
+	   */
+	  if (input == lineStart)
+	    {
+	      unwrappingComplete = YES;
+	    }
 	  input++;
+	  if (c == '\r' && input < dataEnd && bytes[input] == '\n')
+	    {
+	      input++;
+	    }
 	}
 
       /*
@@ -2432,6 +2443,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	&& ((c = bytes[input]) == '\r' || c == '\n' || isspace(c) == 0))
 	{
 	  unwrappingComplete = YES;
+	}
+
+      if (unwrappingComplete == YES)
+        {
 	  bytes[lineEnd] = '\0';
 	  /*
 	   * If this is a zero-length line, we have reached the end of
