@@ -23,8 +23,8 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
-#include <Foundation/NSUtilities.h>
 #include <Foundation/NSTimeZone.h>
+#include <Foundation/NSUtilities.h>
 
 int
 main (int argc, char *argv[])
@@ -36,7 +36,7 @@ main (int argc, char *argv[])
 
   for (i = 1; i < argc; i++)
     {
-      name = [NSString stringWithCString: argv[i]];
+      name = [NSString stringWithUTF8String: argv[i]];
       zone = [NSTimeZone timeZoneWithName: name];
       if (zone != nil)
 	{
@@ -49,7 +49,7 @@ main (int argc, char *argv[])
 	    [dict setObject: name forKey: [detail timeZoneAbbreviation]];
 	  e = [dict keyEnumerator];
 	  while ((abbrev = [e nextObject]) != nil)
-	    printf("%@\t%@\n", abbrev, name);
+	    printf("%s\t%s\n", [abbrev UTF8String], [name UTF8String]);
 	}
     }
 

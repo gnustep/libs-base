@@ -58,6 +58,8 @@
 
 #define GREGORIAN_REFERENCE 730486
 
+static NSTimeZone	*localTZ = nil;
+
 static inline int
 lastDayOfGregorianMonth(int month, int year)
 {
@@ -196,6 +198,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   if (self == [NSCalendarDate class])
     {
       [self setVersion: 1];
+      localTZ = RETAIN([NSTimeZone localTimeZone]);
       behavior_class_add_class(self, [NSGDate class]);
     }
 }
@@ -368,7 +371,7 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       int		year = 0, month = 1, day = 1;
       int		hour = 0, min = 0, sec = 0;
-      NSTimeZone	*tz = [NSTimeZone localTimeZone];
+      NSTimeZone	*tz = localTZ;
       BOOL		ampm = NO;
       BOOL		twelveHrClock = NO; 
       int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
@@ -852,7 +855,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      if ((tz = [NSTimeZone timeZoneForSecondsFromGMT: 
 			(zone / 100 * 60 + (zone % 100)) * 60]) == nil)
 			{
-			  tz = [NSTimeZone localTimeZone];
+			  tz = localTZ;
 			}
 		    }
 		    break;
@@ -882,7 +885,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			}
 		      if (tz == nil)
 			{
-			  tz = [NSTimeZone localTimeZone];
+			  tz = localTZ;
 			}
 		    }
 		    break;
@@ -900,7 +903,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 
       if (tz == nil)
 	{
-	  tz = [NSTimeZone localTimeZone];
+	  tz = localTZ;
 	}
 
       if (twelveHrClock == YES)
@@ -1066,7 +1069,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   // Assign time zone detail
   if (aTimeZone == nil)
     {
-      _time_zone = RETAIN([NSTimeZone localTimeZone]);
+      _time_zone = RETAIN(localTZ);
     }
   else
     {
@@ -1104,14 +1107,22 @@ static inline int getDigits(const char *from, char *to, int limit)
   return self;
 }
 
-// Default initializer
+/**
+ * Initialises the receiver with the specified interval since the
+ * reference date.  Uses th standard format string "%Y-%m-%d %H:%M:%S %z"
+ * and the default time zone.
+ */
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
   _seconds_since_ref = seconds;
   if (_calendar_format == nil)
-    _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+    {
+      _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+    }
   if (_time_zone == nil)
-    _time_zone = RETAIN([NSTimeZone localTimeZone]);
+    {
+      _time_zone = RETAIN(localTZ);
+    }
   return self;
 }
 

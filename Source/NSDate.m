@@ -867,7 +867,7 @@ GSTimeNow()
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
 }
 
-+ (id)dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
++ (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
 		       UNIX_REFERENCE_INTERVAL + seconds]);
@@ -875,7 +875,8 @@ GSTimeNow()
 
 + (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
-  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate: seconds]);
+  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
+    seconds]);
 }
 
 + (id) distantFuture
@@ -987,7 +988,7 @@ GSTimeNow()
     GSTimeNow() + secsToBeAdded];
 }
 
-- (id)initWithTimeIntervalSince1970: (NSTimeInterval)seconds
+- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return [self initWithTimeIntervalSinceReferenceDate:
     UNIX_REFERENCE_INTERVAL + seconds];
