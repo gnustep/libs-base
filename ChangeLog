@@ -1,4 +1,10 @@
-Wed Dec  3 16:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Sun Dec  6 20:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSDate.m: removed +initialize - moved default locale info to
+	NSUserDefaults.
+	* src/NSUserDefaults.m: Added code to set up default locale info.
+
+Thu Dec  3 16:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSDictionary.m: Removed filesystem methods - conflict with
 	versions in NSFileManger.
