@@ -1,3 +1,29 @@
+Thu Oct 31 11:54:42 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/mframe.m (method_types_get_next_argument): Do weird argframe
+ 	workaround not just on m68k, but on all NeXT systems.  (Reported
+ 	by Richard Frith-Macdonald <richard@brainstorm.co.uk>.)
+
+	* src/RunLoop.m ([RunLoop -acceptInputForMode:beforeDate:]): Fix
+ 	assignment of TIMEOUT.TV_USEC.  (Reported by Richard
+ 	Frith-Macdonald <richard@brainstorm.co.uk>.)
+
+Wed Oct 16 10:01:23 1996  Scott Christley  <scottc@net-community.com>
+
+	* checks/nsdate.m: New file.
+	* src/NSCalendarDate.m: New file.
+	* checks/Makefile.in: Add test program for NSDate classes.
+	* src/Makefile.in (GNUSTEP_MFILES: Add NSCalendarDate.m.
+	* src/NSDate.m: Eliminate use of NSConcreteDate.  Utilize the
+	NSCalendarDate class for implementing some methods.
+	* src/include/NSDate.h: Add NSCalendarDate interface.
+
+Tue Oct  1 12:56:09 1996  Nicholas Christopher  <nwc@gun.com>
+
+	* NSString.m: Added initWithContentsOfFile: and
+	propertyListFromStringsFileFormat:.
+	* stringsfile.l, stringsfile.y: New files.
+
 Fri Oct 25 20:22:37 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* src/StdioStream.m (strerror) [!HAS_STRERROR]: New function from

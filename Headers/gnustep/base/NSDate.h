@@ -33,7 +33,11 @@ typedef double NSTimeInterval;
 @class NSTimeZone;
 @class NSTimeZoneDetail;
 
-@interface NSDate : NSObject <NSCopying>
+@interface NSDate : NSObject
+
+{
+  NSTimeInterval seconds_since_ref;
+}
 
 // Getting current time
 
@@ -41,13 +45,13 @@ typedef double NSTimeInterval;
 
 // Allocation and initializing
 
-+ (id) allocWithZone: (NSZone*)z;
 + (NSDate*) date;
 + (NSDate*) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
++ (NSDate*) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 + (NSDate*) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
 + (NSDate*) distantFuture;
 + (NSDate*) distantPast;
-- (id) init;
+
 - (id) initWithString: (NSString*)description;
 - (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		       sinceDate: (NSDate*)anotherDate;
@@ -64,6 +68,7 @@ typedef double NSTimeInterval;
 - (NSString*) description;
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone;
+- (NSString *) descriptionWithLocale: (NSDictionary *)locale;
 
 // Adding and getting intervals
 
@@ -126,6 +131,90 @@ typedef double NSTimeInterval;
 // comparing
 - (BOOL)isEqual:anObject;
 - (unsigned int)hash;
+
+@end
+
+@interface NSCalendarDate : NSDate
+
+{
+  NSString *calendar_format;
+  NSTimeZoneDetail *time_zone;
+}
+
+// Getting an NSCalendar Date
++ (NSCalendarDate *)calendarDate;
++ (NSCalendarDate *)dateWithString:(NSString *)description
+		    calendarFormat:(NSString *)format;
++ (NSCalendarDate *)dateWithString:(NSString *)description
+		    calendarFormat:(NSString *)format
+			    locale:(NSDictionary *)dictionary;
++ (NSCalendarDate *)dateWithYear:(int)year
+			   month:(unsigned int)month
+			     day:(unsigned int)day
+			    hour:(unsigned int)hour
+			  minute:(unsigned int)minute
+			  second:(unsigned int)second
+			timeZone:(NSTimeZone *)aTimeZone;
+
+// Initializing an NSCalendar Date
+- (id)initWithString:(NSString *)description;
+- (id)initWithString:(NSString *)description
+      calendarFormat:(NSString *)format;
+- (id)initWithString:(NSString *)description
+      calendarFormat:(NSString *)format
+	      locale:(NSDictionary *)dictionary;
+- (id)initWithYear:(int)year
+	     month:(unsigned int)month
+	       day:(unsigned int)day
+	      hour:(unsigned int)hour
+	    minute:(unsigned int)minute
+	    second:(unsigned int)second
+	  timeZone:(NSTimeZone *)aTimeZone;
+
+// Retreiving Date Elements
+- (int)dayOfCommonEra;
+- (int)dayOfMonth;
+- (int)dayOfWeek;
+- (int)dayOfYear;
+- (int)hourOfDay;
+- (int)minuteOfHour;
+- (int)monthOfYear;
+- (int)secondOfMinute;
+- (int)yearOfCommonEra;
+
+// Providing Adjusted Dates
+- (NSCalendarDate *)addYear:(int)year
+		      month:(unsigned int)month
+			day:(unsigned int)day
+		       hour:(unsigned int)hour
+		     minute:(unsigned int)minute
+		     second:(unsigned int)second;
+
+// Getting String Descriptions of Dates
+- (NSString *)description;
+- (NSString *)descriptionWithCalendarFormat:(NSString *)format;
+- (NSString *)descriptionWithCalendarFormat:(NSString *)format
+				     locale:(NSDictionary *)locale;
+- (NSString *)descriptionWithLocale:(NSDictionary *)locale;
+
+// Getting and Setting Calendar Formats
+- (NSString *)calendarFormat;
+- (void)setCalendarFormat:(NSString *)format;
+
+// Getting and Setting Time Zones
+- (void)setTimeZone:(NSTimeZone *)aTimeZone;
+- (NSTimeZoneDetail *)timeZoneDetail;
+
+@end
+
+@interface NSCalendarDate (GregorianDate)
+
+- (int)lastDayOfGregorianMonth:(int)month year:(int)year;
+- (int)absoluteGregorianDay:(int)day month:(int)month year:(int)year;
+- (void)gregorianDateFromAbsolute:(int)d
+			      day:(int *)day
+			    month:(int *)month
+			     year:(int *)year;
 
 @end
 

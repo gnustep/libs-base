@@ -357,6 +357,7 @@ NSAssertionHandler.m \
 NSAutoreleasePool.m \
 NSBitmapCharSet.m \
 NSBundle.m \
+NSCalendarDate.m \
 NSCallBacks.m \
 NSCharacterSet.m \
 NSCoder.m \
