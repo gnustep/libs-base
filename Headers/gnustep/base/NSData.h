@@ -94,6 +94,16 @@
 + (id) dataWithShmID: (int)anID length: (unsigned) length;
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
 + (id) dataWithStaticBytes: (const void*)bytes length: (unsigned) length;
+
+/*
+ *	-deserializeTypeTagAtCursor:
+ *	-deserializeCrossRefAtCursor:
+ *	These methods are provided in order to give the GNUstep version of
+ *	NSUnarchiver maximum possible performance.
+ */
+- (unsigned char) deserializeTypeTagAtCursor: (unsigned*)cursor;
+- (unsigned) deserializeCrossRefAtCursor: (unsigned*)cursor;
+
 /*
  *	-initWithBytesNoCopy:length:fromZone:
  *	The GNUstep designated initialiser for normal data objects - lets
@@ -169,9 +179,24 @@
 @end
 
 @interface NSMutableData (GNUstepExtensions)
+/*
+ *	Capacity management - GNUstep gives you control over the size of
+ *	the data buffer as well as the 'length' of valid data in it.
+ */
 - (unsigned int) capacity;
 - (id) setCapacity: (unsigned int)newCapacity;
-- (int) shmID;
+
+- (int) shmID;	/* Shared memory ID for data buffer (if any)	*/
+
+/*
+ *	-serializeTypeTag:
+ *	-serializeCrossRef:
+ *	These methods are provided in order to give the GNUstep version of
+ *	NSArchiver maximum possible performance.
+ */
+- (void) serializeTypeTag: (unsigned char)tag;
+- (void) serializeCrossRef: (unsigned)xref;
+
 @end
 
 /*
