@@ -181,7 +181,7 @@
   (*imp)(self, @selector(decodeValueOfObjCType:at:),
 	@encode(unsigned), &count);
   *l = count;
-  array = objc_malloc(count);
+  array = NSZoneMalloc(NSDefaultMallocZone(), count);
   where = array;
   while (count-- > 0)
     (*imp)(self, @selector(decodeValueOfObjCType:at:), type, where++);

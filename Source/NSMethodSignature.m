@@ -112,9 +112,9 @@
 - (void) dealloc
 {
   if (_methodTypes)
-    objc_free((void*)_methodTypes);
+    NSZoneFree(NSDefaultMallocZone(), (void*)_methodTypes);
   if (_info)
-    objc_free((void*)_info);
+    NSZoneFree(NSDefaultMallocZone(), (void*)_info);
   [super dealloc];
 }
 
@@ -128,7 +128,8 @@
       const char	*types = _methodTypes;
       int		i;
 
-      _info = objc_malloc(sizeof(NSArgumentInfo)*(_numArgs+1));
+      _info = NSZoneMalloc(NSDefaultMallocZone(),
+	sizeof(NSArgumentInfo)*(_numArgs+1));
       for (i = 0; i <= _numArgs; i++)
 	{
 	  types = mframe_next_arg(types, &_info[i]);

@@ -128,11 +128,11 @@ NSHomeDirectoryForUser(NSString *login_name)
   if (n > 1024)
     {
       /* Buffer not big enough, so dynamically allocate it */
-      nb = (char *)objc_malloc(sizeof(char)*(n+1));
+      nb = (char *)NSZoneMalloc(NSDefaultMallocZone(), sizeof(char)*(n+1));
       n = GetEnvironmentVariable("HOMEPATH", nb, n+1);
       nb[n] = '\0';
       s = [NSString stringWithCString: nb];
-      free(nb);
+      NSZoneFree(NSDefaultMallocZone(), nb);
       return s;
     }
   else

@@ -186,7 +186,7 @@ static Class NSMutableSet_concrete_class;
   /*	Do initial allocation.	*/
   prevSize = 3;
   curSize  = 5;
-  OBJC_MALLOC(objsArray, id, curSize);
+  objsArray = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * curSize);
   tmpId = firstObject;
 
   /*	Loop through adding objects to array until a nil is
@@ -208,7 +208,8 @@ static Class NSMutableSet_concrete_class;
 	  curSize  = newSize;
 
 	  /*	Reallocate object array.	*/
-	  OBJC_REALLOC(objsArray, id, curSize);
+	  objsArray = (id*)NSZoneRealloc(NSDefaultMallocZone(), objsArray,
+	    sizeof(id) * curSize);
 	}
       tmpId = va_arg(ap, id);
     }
@@ -216,7 +217,7 @@ static Class NSMutableSet_concrete_class;
 
   /*	Put object ids into NSSet.	*/
   self = [self initWithObjects: objsArray count: i];
-  OBJC_FREE( objsArray );
+  NSZoneFree(NSDefaultMallocZone(), objsArray);
   return( self );
 }
 

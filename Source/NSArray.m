@@ -261,7 +261,7 @@ static SEL	rlSel = @selector(removeLastObject);
   /*	Do initial allocation.	*/
   prevSize = 3;
   curSize  = 5;
-  OBJC_MALLOC(objsArray, id, curSize);
+  objsArray = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * curSize);
   tmpId = firstObject;
 
   /*	Loop through adding objects to array until a nil is
@@ -283,7 +283,8 @@ static SEL	rlSel = @selector(removeLastObject);
 	  curSize  = newSize;
 
 	  /*	Reallocate object array.	*/
-	  OBJC_REALLOC(objsArray, id, curSize);
+	  objsArray = (id*)NSZoneRealloc(NSDefaultMallocZone(), objsArray,
+	    sizeof(id) * curSize);
 	}
       tmpId = va_arg(ap, id);
     }
@@ -291,7 +292,7 @@ static SEL	rlSel = @selector(removeLastObject);
 
   /*	Put object ids into NSArray.	*/
   self = [self initWithObjects: objsArray count: i];
-  OBJC_FREE( objsArray );
+  NSZoneFree(NSDefaultMallocZone(), objsArray);
   return( self );
 }
 

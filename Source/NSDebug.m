@@ -81,7 +81,9 @@ GSDebugAllocationAdd(Class c)
       if (num_classes >= table_size)
 	{
 	  int		more = table_size + 128;
-	  table_entry*	tmp = objc_malloc(more * sizeof(table_entry));
+	  table_entry	*tmp;
+
+	  tmp = NSZoneMalloc(NSDefaultMallocZone(), more * sizeof(table_entry));
 
 	  if (tmp == 0)
 	    {
@@ -90,7 +92,7 @@ GSDebugAllocationAdd(Class c)
 	  if (the_table)
 	    {
 	      memcpy(tmp, the_table, num_classes * sizeof(table_entry));
-	      objc_free(the_table);
+	      NSZoneFree(NSDefaultMallocZone(), the_table);
 	    }
 	  the_table = tmp;
 	}
@@ -170,9 +172,9 @@ GSDebugAllocationList(BOOL difference)
       siz = pos;
       if (buf)
 	{
-	  objc_free(buf);
+	  NSZoneFree(NSDefaultMallocZone(), buf);
 	}
-      buf = objc_malloc(siz);
+      buf = NSZoneMalloc(NSDefaultMallocZone(), siz);
     }
 
   if (buf)
@@ -234,9 +236,9 @@ GSDebugAllocationListAll()
       siz = pos;
       if (buf)
 	{
-	  objc_free(buf);
+	  NSZoneFree(NSDefaultMallocZone(), buf);
 	}
-      buf = objc_malloc(siz);
+      buf = NSZoneMalloc(NSDefaultMallocZone(), siz);
     }
 
   if (buf)

@@ -212,8 +212,8 @@ static SEL	appSel = @selector(appendString:);
     }
   /* Gather all the arguments in a simple array, in preparation for
      calling the designated initializer. */
-  OBJC_MALLOC (objects, id, capacity);
-  OBJC_MALLOC (keys, id, capacity);
+  objects = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
+  keys = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
 
   objects[num_pairs] = firstObject;
   /* Keep grabbing arguments until we get a nil... */
@@ -223,8 +223,10 @@ static SEL	appSel = @selector(appendString:);
 	{
 	  /* Must increase capacity in order to fit additional ARG's. */
 	  capacity *= 2;
-	  OBJC_REALLOC (objects, id, capacity);
-	  OBJC_REALLOC (keys, id, capacity);
+	  objects = (id*)NSZoneRealloc(NSDefaultMallocZone(), objects,
+	    sizeof(id) * capacity);
+	  keys = (id*)NSZoneRealloc(NSDefaultMallocZone(), keys,
+	    sizeof(id) * capacity);
 	}
       /* ...and alternately dump them into OBJECTS and KEYS */
       if (argi++ % 2 == 0)
@@ -237,14 +239,14 @@ static SEL	appSel = @selector(appendString:);
     }
   if (argi %2 != 0)
     {
-      OBJC_FREE(objects);
-      OBJC_FREE(keys);
+      NSZoneFree(NSDefaultMallocZone(), objects);
+      NSZoneFree(NSDefaultMallocZone(), keys);
       [NSException raise: NSInvalidArgumentException
 		  format: @"init dictionary with nil key"];
     }
   self = [self initWithObjects: objects forKeys: keys count: num_pairs];
-  OBJC_FREE(objects);
-  OBJC_FREE(keys);
+  NSZoneFree(NSDefaultMallocZone(), objects);
+  NSZoneFree(NSDefaultMallocZone(), keys);
   return self;
 }
 
@@ -261,8 +263,8 @@ static SEL	appSel = @selector(appendString:);
   va_start (ap, firstObject);
   /* Gather all the arguments in a simple array, in preparation for
      calling the designated initializer. */
-  OBJC_MALLOC (objects, id, capacity);
-  OBJC_MALLOC (keys, id, capacity);
+  objects = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
+  keys = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
   if (firstObject != nil)
     {
       NSDictionary *d;
@@ -274,8 +276,10 @@ static SEL	appSel = @selector(appendString:);
 	    {
 	      /* Must increase capacity in order to fit additional ARG's. */
 	      capacity *= 2;
-	      OBJC_REALLOC (objects, id, capacity);
-	      OBJC_REALLOC (keys, id, capacity);
+	      objects = (id*)NSZoneRealloc(NSDefaultMallocZone(), objects,
+		sizeof(id) * capacity);
+	      keys = (id*)NSZoneRealloc(NSDefaultMallocZone(), keys,
+		sizeof(id) * capacity);
 	    }
 	  /* ...and alternately dump them into OBJECTS and KEYS */
 	  if (argi++ % 2 == 0)
@@ -289,8 +293,8 @@ static SEL	appSel = @selector(appendString:);
       NSAssert (argi % 2 == 0, NSInvalidArgumentException);
       d = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 	initWithObjects: objects forKeys: keys count: num_pairs]);
-      OBJC_FREE(objects);
-      OBJC_FREE(keys);
+      NSZoneFree(NSDefaultMallocZone(), objects);
+      NSZoneFree(NSDefaultMallocZone(), keys);
       return d;
     }
   /* FIRSTOBJECT was nil; just return an empty NSDictionary object. */

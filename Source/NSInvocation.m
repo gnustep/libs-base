@@ -55,7 +55,7 @@
 		  char	*str;
 
 		  mframe_get_arg(_argframe, &_info[i], &str);
-		  objc_free(str);
+		  NSZoneFree(NSDefaultMallocZone(), str);
 		}
 	      else if (*_info[i].type == _C_ID)
 		{
@@ -73,7 +73,7 @@
     }
   if (_retval)
     {
-      objc_free(_retval);
+      NSZoneFree(NSDefaultMallocZone(), _retval);
     }
   RELEASE(_sig);
   [super dealloc];
@@ -181,14 +181,15 @@
 		}
 	      else
 		{
-		  char	*tmp = objc_malloc(strlen(newstr)+1);
+		  char	*tmp;
 
+		  tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(newstr)+1);
 		  strcpy(tmp, newstr);
 		  mframe_set_arg(_argframe, &_info[i], tmp);
 		}
 	      if (oldstr != 0)
 		{
-		  objc_free(oldstr);
+		  NSZoneFree(NSDefaultMallocZone(), oldstr);
 		}
 	    }
 	}
@@ -283,8 +284,9 @@
 		  mframe_get_arg(_argframe, &_info[i], &str);
 		  if (str != 0)
 		    {
-		      char	*tmp = objc_malloc(strlen(str)+1);
+		      char	*tmp;
 
+		      tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(str)+1);
 		      strcpy(tmp, str);
 		      mframe_set_arg(_argframe, &_info[i], &tmp);
 		    }
@@ -525,7 +527,7 @@
   _argframe = mframe_create_argframe([_sig methodType], &_retval);
   if (_retval == 0 && _info[0].size > 0)
     {
-      _retval = objc_malloc(_info[0].size);
+      _retval = NSZoneMalloc(NSDefaultMallocZone(), _info[0].size);
     }
   return self;
 }
@@ -572,8 +574,9 @@
 
 		    if (old != 0)
 		      {
-			char	*tmp = objc_malloc(strlen(old)+1);
+			char	*tmp;
 
+			tmp = NSZoneMalloc(NSDefaultMallocZone(),strlen(old)+1);
 			strcpy(tmp, old);
 			*(char**)datum = tmp;
 		      }
