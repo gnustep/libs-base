@@ -594,10 +594,8 @@ static int debug_run_loop = 0;
       info = [[RunLoopWatcher alloc] initWithType: type
 					 receiver: watcher
 					     data: data];
-      /* Add the object to the array for the mode and keep count. */
+      /* Add the object to the array for the mode. */
       [self _addWatcher:info forMode:mode];
-      info->count++;
-
       [info release];		/* Now held in array.	*/
     }
 }
