@@ -2289,7 +2289,7 @@ handle_printf_atsign (FILE *stream,
   if (length > 0)
     {
       aLength = length - 1;
-      while (aLength > 1)
+      while (aLength > 0)
 	{
 	  if (pathSepMember(buf[aLength]) == YES)
 	    {
@@ -2721,6 +2721,10 @@ handle_printf_atsign (FILE *stream,
   NSMutableArray	*a;
   NSArray		*r;
 
+  if ([self length] == 0)
+    {
+      return [NSArray array];
+    }
   a = [[self componentsSeparatedByString: pathSepString] mutableCopy];
   if ([a count] > 0)
     {
@@ -2734,8 +2738,8 @@ handle_printf_atsign (FILE *stream,
 	{
 	  [a replaceObjectAtIndex: 0 withObject: pathSepString];
 	}
-      /* Any empty path components (except a trailing one) must be removed. */
-      for (i = [a count] - 2; i > 0; i--)
+      /* Any empty path components  must be removed. */
+      for (i = [a count] - 1; i > 0; i--)
 	{
 	  if ([[a objectAtIndex: i] length] == 0)
 	    {

@@ -1,3 +1,9 @@
+2001-01-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fixes for OPENSTEP compatibility in string path
+	operations - patch provided by Pierre-Yves Rivaille, plus another fix
+	by me.
+
 2001-01-19  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* gnustep-base.spec.in: Updated copyright and attempt at improving
