@@ -615,13 +615,13 @@
 	  day = dayOfWeek + (julianWeeks * 7 - (currDay - 1));
 	}
 
-      return [[NSCalendarDate alloc] initWithYear: year
-					    month: month
-					      day: day
-					     hour: hour
-					   minute: min
-					   second: sec
-					 timeZone: tz];
+      return [self initWithYear: year
+			  month: month
+			    day: day
+			   hour: hour
+			 minute: min
+			 second: sec
+		       timeZone: tz];
     }
 }
 
