@@ -1972,7 +1972,10 @@ handle_printf_atsign (FILE *stream,
   [self getCharacters: buf];
   if (aLength > 0)
     {
-      buf[length++] = pathSepChar;
+      if (length > 0)
+	{
+	  buf[length++] = pathSepChar;
+	}
       [aString getCharacters: &buf[length]];
     }
   length += aLength;
