@@ -1,5 +1,5 @@
 /* Interface for NSSet, NSMutableSet, NSCountedSet for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
@@ -30,24 +30,29 @@
 
 @interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
-+ allocWithZone: (NSZone*)zone;
 + set;
 + setWithArray: (NSArray*)array;
 + setWithObject: anObject;
 + setWithObjects: anObject, ...;
+
+- (id) initWithObjects: (id*)objects
+		 count: (unsigned)count;
+- (unsigned) count;
+- (id) member: (id)anObject;
+- (NSEnumerator*) objectEnumerator;
+
+@end
+
+@interface NSSet (NonCore)
+
 - initWithArray: (NSArray*)array;
 - initWithObjects: (id)objects, ...;
-- initWithObjects: (id*)objects
-	    count: (unsigned)count;
 - initWithSet: (NSSet*)otherSet;
 - initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
 
 - (NSArray*) allObjects;
 - anyObject;
 - (BOOL) containsObject: anObject;
-- (unsigned) count;
-- member: anObject;
-- (NSEnumerator*) objectEnumerator;
 - (void) makeObjectsPerform: (SEL)aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject:argument;
 
@@ -56,38 +61,33 @@
 - (BOOL) isEqualToSet: (NSSet*)other;
 - (BOOL) isSubsetOfSet: (NSSet*)other;
 
-- (NSString*) description;
 - (NSString*) descriptionWithLocale: (NSDictionary*)ld;
 
 @end
 
 @interface NSMutableSet: NSSet
 
-+ allocWithZone: (NSZone*)zone;
 + setWithCapacity: (unsigned)numItems;
-- initWithCapacity: (unsigned)numItems;
 
-- (void) addObject: anObject;
+- initWithCapacity: (unsigned)numItems;
+- (void) addObject: (id)anObject;
+- (void) removeObject: (id)anObject;
+
+@end
+
+@interface NSMutableSet (NonCore)
+
 - (void) addObjectsFromArray: (NSArray*)array;
 - (void) unionSet: (NSSet*)other;
 - (void) intersectSet: (NSSet*)other;
 - (void) minusSet: (NSSet*)other;
 - (void) removeAllObjects;
-- (void) removeObject: anObject;
 
 @end
 
 @interface NSCountedSet : NSMutableSet
 
-+ allocWithZone: (NSZone*)zone;
-- initWithCapacity: (unsigned)numItems;
-- initWithArray: (NSArray*)array;
-- initWithSet: (NSSet*)otherSet;
-
-- (void) addObject: anObject;
-- (void) removeObject: anObject;
 - (unsigned int) countForObject: anObject;
-- (NSEnumerator*) objectEnumerator;
 
 @end
 

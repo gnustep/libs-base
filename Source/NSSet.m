@@ -1,5 +1,5 @@
 /* NSSet - Set object to store key/value pairs
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
@@ -22,17 +22,32 @@
    */
 
 #include <config.h>
+#include <gnustep/base/behavior.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 #include <assert.h>
+
+@interface NSSetNonCore : NSSet
+@end
+@interface NSMutableSetNonCore: NSMutableSet
+@end
 
 @implementation NSSet 
 
 static Class NSSet_concrete_class;
 static Class NSMutableSet_concrete_class;
+
++ (void) initialize
+{
+    if (self == [NSSet class]) {
+        NSSet_concrete_class = [NSGSet class];
+        NSMutableSet_concrete_class = [NSGMutableSet class];
+        behavior_class_add_class(self, [NSSetNonCore class]);
+    }
+}
 
 + (void) _setConcreteClass: (Class)c
 {
@@ -54,17 +69,6 @@ static Class NSMutableSet_concrete_class;
   return NSMutableSet_concrete_class;
 }
 
-+ (void) initialize
-{
-  NSSet_concrete_class = [NSGSet class];
-  NSMutableSet_concrete_class = [NSGMutableSet class];
-}
-
-+ allocWithZone: (NSZone*)z
-{
-  return NSAllocateObject([self _concreteClass], 0, z);
-}
-
 + set
 {
   return [[[self alloc] init] 
@@ -81,9 +85,7 @@ static Class NSMutableSet_concrete_class;
 
 + setWithArray: (NSArray*)objects
 {
-  /* xxx Only works because NSArray also responds to objectEnumerator
-     and nextObject. */
-  return [[[self alloc] initWithSet:(NSSet*)objects]
+  return [[[self alloc] initWithArray: objects]
 	  autorelease];
 }
 
@@ -94,34 +96,6 @@ static Class NSMutableSet_concrete_class;
 	  autorelease];
 }
 
-/* Same as NSArray */
-/* Not very pretty... */
-#define INITIAL_OBJECTS_SIZE 10
-- initWithObjects: firstObject rest: (va_list)ap
-{
-  id *objects;
-  int i = 0;
-  int s = INITIAL_OBJECTS_SIZE;
-
-  OBJC_MALLOC(objects, id, s);
-  if (firstObject != nil)
-    {
-      objects[i++] = firstObject;
-      while ((objects[i++] = va_arg(ap, id)))
-	{
-	  if (i >= s)
-	    {
-	      s *= 2;
-	      OBJC_REALLOC(objects, id, s);
-	    }
-	}
-    }
-  self = [self initWithObjects:objects count:i-1];
-  OBJC_FREE(objects);
-  return self;
-}
-
-/* Same as NSArray */
 + setWithObjects: firstObject, ...
 {
   va_list ap;
@@ -129,6 +103,11 @@ static Class NSMutableSet_concrete_class;
   self = [[self alloc] initWithObjects:firstObject rest:ap];
   va_end(ap);
   return [self autorelease];
+}
+
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject([self _concreteClass], 0, z);
 }
 
 /* This is the designated initializer */
@@ -139,11 +118,121 @@ static Class NSMutableSet_concrete_class;
   return 0;
 }
 
-- initWithArray: (NSArray*)array
+- initWithCoder: aCoder
 {
-  /* xxx Only works because NSArray also responds to objectEnumerator
-     and nextObject. */
-  return [self initWithSet:(NSSet*)array];
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (void) encodeWithCoder: aCoder
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (unsigned) count
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- member: anObject
+{
+  return [self subclassResponsibility:_cmd];
+  return 0;  
+}
+
+- (NSEnumerator*) objectEnumerator
+{
+  return [self subclassResponsibility:_cmd];
+}
+
+- copyWithZone: (NSZone*)z
+{
+  /* a deep copy */
+  int count = [self count];
+  id objects[count];
+  id enumerator = [self objectEnumerator];
+  id o;
+  NSSet *newSet;
+  int i;
+  BOOL needCopy = [self isKindOfClass: [NSMutableSet class]];
+
+  if (NSShouldRetainWithZone(self, z) == NO)
+    needCopy = YES;
+
+  for (i = 0; (o = [enumerator nextObject]); i++)
+    {
+      objects[i] = [o copyWithZone:z];
+      if (objects[i] != o)
+        needCopy = YES;
+    }
+  if (needCopy)
+    newSet = [[[[self class] _concreteClass] allocWithZone: z] 
+	  initWithObjects:objects
+	  count:count];
+  else
+    newSet = [self retain];
+  for (i = 0; i < count; i++) 
+    [objects[i] release];
+  return newSet;
+}
+
+- mutableCopyWithZone: (NSZone*)z
+{
+  /* a shallow copy */
+  return [[[[self class] _mutableConcreteClass] allocWithZone: z] 
+	  initWithSet: self];
+}
+
+@end
+
+@implementation NSSetNonCore
+
+/* Same as NSArray */
+- initWithObjects: firstObject rest: (va_list)ap
+{
+  register	unsigned		i;
+  register	unsigned		curSize;
+  auto		unsigned		prevSize;
+  auto		unsigned		newSize;
+  auto		id			*objsArray;
+  auto		id			tmpId;
+
+  /*	Do initial allocation.	*/
+  prevSize = 3;
+  curSize  = 5;
+  OBJC_MALLOC(objsArray, id, curSize);
+  tmpId = firstObject;
+
+  /*	Loop through adding objects to array until a nil is
+   *	found.
+   */
+  for (i = 0; tmpId != nil; i++)
+    {
+      /*	Put id into array.	*/
+      objsArray[i] = tmpId;
+
+      /*	If the index equals the current size, increase size.	*/
+      if (i == curSize - 1)
+	{
+	  /*	Fibonacci series.  Supposedly, for this application,
+	   *	the fibonacci series will be more memory efficient.
+	   */
+	  newSize  = prevSize + curSize;
+	  prevSize = curSize;
+	  curSize  = newSize;
+
+	  /*	Reallocate object array.	*/
+	  OBJC_REALLOC(objsArray, id, curSize);
+	}
+      tmpId = va_arg(ap, id);
+    }
+  va_end( ap );
+
+  /*	Put object ids into NSSet.	*/
+  self = [self initWithObjects: objsArray count: i];
+  OBJC_FREE( objsArray );
+  return( self );
 }
 
 /* Same as NSArray */
@@ -162,6 +251,21 @@ static Class NSMutableSet_concrete_class;
   return [self initWithObjects:NULL count:0];
 }
 
+- initWithArray: (NSArray*)other
+{
+    unsigned	count = [other count];
+
+    if (count == 0) {
+	return [self init];
+    }
+    else {
+	id	objs[count];
+
+	[other getObjects: objs];
+	return [self initWithObjects: objs count: count];
+    }
+}
+
 - initWithSet: (NSSet*)other copyItems: (BOOL)flag
 {
   int c = [other count];
@@ -176,7 +280,11 @@ static Class NSMutableSet_concrete_class;
 	os[i] = o;
       i++;
     }
-  return [self initWithObjects:os count:c];
+  self = [self initWithObjects:os count:c];
+  if (flag)
+    while (--i)
+      [os[i] release];
+  return self;
 }
 
 - initWithSet: (NSSet*)other 
@@ -214,23 +322,6 @@ static Class NSMutableSet_concrete_class;
 - (BOOL) containsObject: anObject
 {
   return (([self member:anObject]) ? YES : NO);
-}
-
-- (unsigned) count
-{
-  [self subclassResponsibility:_cmd];
-  return 0;
-}
-
-- member: anObject
-{
-  return [self subclassResponsibility:_cmd];
-  return 0;  
-}
-
-- (NSEnumerator*) objectEnumerator
-{
-  return [self subclassResponsibility:_cmd];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector
@@ -322,62 +413,16 @@ static Class NSMutableSet_concrete_class;
   return [[self allObjects] descriptionWithLocale: locale];
 }
 
-- copyWithZone: (NSZone*)z
-{
-  /* a deep copy */
-  int count = [self count];
-  id objects[count];
-  id enumerator = [self objectEnumerator];
-  id o;
-  NSSet *newSet;
-  int i;
-  BOOL needCopy = [self isKindOfClass: [NSMutableSet class]];
-
-  if (NSShouldRetainWithZone(self, z) == NO)
-    needCopy = YES;
-
-  for (i = 0; (o = [enumerator nextObject]); i++)
-    {
-      objects[i] = [o copyWithZone:z];
-      if (objects[i] != o)
-        needCopy = YES;
-    }
-  if (needCopy)
-    newSet = [[[[self class] _concreteClass] alloc] 
-	  initWithObjects:objects
-	  count:count];
-  else
-    newSet = [self retain];
-  for (i = 0; i < count; i++) 
-    [objects[i] release];
-  return newSet;
-}
-
-- mutableCopyWithZone: (NSZone*)z
-{
-  /* a shallow copy */
-  return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
-	  initWithSet:self];
-}
-
-- initWithCoder: aCoder
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
-
-- (void) encodeWithCoder: aCoder
-{
-  [self subclassResponsibility:_cmd];
-}
-
 @end
 
 @implementation NSMutableSet
 
-+ allocWithZone: (NSZone*)z
++ (void) initialize
 {
-  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+    if (self == [NSMutableSet class]) {
+        behavior_class_add_class(self, [NSMutableSetNonCore class]);
+        behavior_class_add_class(self, [NSSetNonCore class]);
+    }
 }
 
 + setWithCapacity: (unsigned)numItems
@@ -386,11 +431,30 @@ static Class NSMutableSet_concrete_class;
 	  autorelease];
 }
 
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+}
+
 /* This is the designated initializer */
 - initWithCapacity: (unsigned)numItems
 {
   return [self subclassResponsibility:_cmd];
 }
+
+- (void) addObject: anObject
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void) removeObject: anObject
+{
+  [self subclassResponsibility:_cmd];
+}
+
+@end
+
+@implementation NSMutableSetNonCore
 
 /* Override superclass's designated initializer */
 - initWithObjects: (id*)objects
@@ -400,11 +464,6 @@ static Class NSMutableSet_concrete_class;
   while (count--)
     [self addObject:objects[count]];
   return self;
-}
-
-- (void) addObject: anObject
-{
-  [self subclassResponsibility:_cmd];
 }
 
 - (void) addObjectsFromArray: (NSArray*)array
@@ -444,11 +503,6 @@ static Class NSMutableSet_concrete_class;
 }
 
 - (void) removeAllObjects
-{
-  [self subclassResponsibility:_cmd];
-}
-
-- (void) removeObject: anObject
 {
   [self subclassResponsibility:_cmd];
 }

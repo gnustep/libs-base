@@ -1,3 +1,15 @@
+The Oct  8 15:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/FastMap.x: Minor bugfixes and updates.
+	* src/NSArray.m: Optimisation - don't use malloc unless really needed.
+	* src/NSCountedSet.m: Tidied
+	* src/NSSet.m: Tidied - core/non-core separation made.
+	* src/NSGArray.m: Rewrite - simpler and faster.
+	* src/NSGCountedSet.m: Rewrite to use FastMap (and work).
+	* src/NSGDictionary.m: Tidied initialisation.
+	* src/NSGSet.m: Rewrite to use FastMap - much faster.
+	* src/include/NSSet.h: tidied - core/non-core stuff.
+
 Tue Oct  6 16:35:48 1998  Adam Fedor  <fedor@doc.com>
 
 	* aclocal.m4: Add win32 test
@@ -5,7 +17,7 @@ Tue Oct  6 16:35:48 1998  Adam Fedor  <fedor@doc.com>
 	* src/GNUmakefile: Add win32-load.h
 	* src/win32-load.h: New file.
 
-Sat Oct  6 16:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Oct  6 16:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/FastMap.x: New map table for dictionaries.
 	* src/include/fast.x: New stuff for avoiding objc message overheads.

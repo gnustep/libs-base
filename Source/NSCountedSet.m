@@ -22,16 +22,29 @@
    */
 
 #include <config.h>
+#include <gnustep/base/behavior.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 #include <assert.h>
+
+@class	NSSetNonCore;
+@class	NSMutableSetNonCore;
 
 @implementation NSCountedSet 
 
 static Class NSCountedSet_concrete_class;
+
++ (void) initialize
+{
+    if (self == [NSCountedSet class]) {
+	NSCountedSet_concrete_class = [NSGCountedSet class];
+	behavior_class_add_class(self, [NSMutableSetNonCore class]);
+	behavior_class_add_class(self, [NSSetNonCore class]);
+    }
+}
 
 + (void) _CountedSetConcreteClass: (Class)c
 {
@@ -43,56 +56,9 @@ static Class NSCountedSet_concrete_class;
   return NSCountedSet_concrete_class;
 }
 
-+ (void) initialize
-{
-  NSCountedSet_concrete_class = [NSGCountedSet class];
-}
-
 + allocWithZone: (NSZone*)z
 {
   return NSAllocateObject([self _concreteClass], 0, z);
-}
-
-
-/* This is the designated initializer */
-/* Also, override superclass's designated initializer */
-- initWithCapacity: (unsigned)numItems
-{
-  return [self subclassResponsibility:_cmd];
-}
-
-- initWithArray: (NSArray*)array
-{
-  int i, c = [array count];
-  [self initWithCapacity:c];
-  for (i = 0; i < c; i++)
-    [self addObject:[array objectAtIndex:i]];
-  return self;
-}
-
-- initWithSet: (NSSet*)other
-{
-  id o, e = [other objectEnumerator];
-
-  [self initWithCapacity:[other count]];
-  while ((o = [e nextObject]))
-    [self addObject:o];
-  return self;
-}
-
-- (NSEnumerator*) objectEnumerator
-{
-  return [self subclassResponsibility:_cmd];
-}
-
-- (void) addObject: anObject
-{
-  [self subclassResponsibility:_cmd];
-}
-
-- (void) removeObject: anObject
-{
-  [self subclassResponsibility:_cmd];
 }
 
 - (unsigned int) countForObject: anObject
@@ -103,14 +69,51 @@ static Class NSCountedSet_concrete_class;
 
 - copyWithZone: (NSZone*)z
 {
-  id o, e = [self objectEnumerator];
-  id c = [[[[self class] _concreteClass] alloc]
-	  initWithCapacity:[self count]];
-  while ((o = [e nextObject]))
-    [(NSCountedSet*)c addObject:o]; 
-  /* Cast to avoid type warning.  
-     I'll fix the type in gnustep/base/Collecting.h eventually. */
-  return o;
+  /* a deep copy */
+  int count = [self count];
+  id objects[count];
+  id enumerator = [self objectEnumerator];
+  id o;
+  NSSet *newSet;
+  int i;
+  BOOL needCopy = [self isKindOfClass: [NSMutableSet class]];
+
+  if (NSShouldRetainWithZone(self, z) == NO)
+    needCopy = YES;
+
+  for (i = 0; (o = [enumerator nextObject]); i++)
+    {
+      objects[i] = [o copyWithZone:z];
+      if (objects[i] != o)
+        needCopy = YES;
+    }
+  if (needCopy)
+    {
+      int	j;
+
+      newSet = [[[[self class] _concreteClass] allocWithZone: z] 
+		  initWithObjects:objects count:count];
+
+      for (j = 0; j < i; j++)
+	{
+          unsigned	extra = [self countForObject: objects[j]];
+
+	  if (extra > 1)
+	    while (--extra)
+	      [newSet addObject: objects[j]];
+	}
+    }
+  else
+    newSet = [self retain];
+  for (i = 0; i < count; i++) 
+    [objects[i] release];
+  return newSet;
+}
+
+- mutableCopyWithZone: (NSZone*)z
+{
+  /* a shallow copy */
+  return [[[[self class] _concreteClass] allocWithZone: z] initWithSet: self];
 }
 
 - initWithCoder: aCoder
@@ -122,6 +125,40 @@ static Class NSCountedSet_concrete_class;
 - (void) encodeWithCoder: aCoder
 {
   [self subclassResponsibility:_cmd];
+}
+
+- initWithSet: (NSSet*)other copyItems: (BOOL)flag
+{
+  int c = [other count];
+  id os[c], o, e = [other objectEnumerator];
+  int i = 0;
+
+  while ((o = [e nextObject]))
+    {
+      if (flag)
+	os[i] = [o copy];
+      else
+	os[i] = o;
+      i++;
+    }
+  self = [self initWithObjects:os count:c];
+  if ([other isKindOfClass: [NSCountedSet class]])
+    {
+      int	j;
+
+      for (j = 0; j < i; j++)
+	{
+          unsigned	extra = [(NSCountedSet*)other countForObject: os[j]];
+
+	  if (extra > 1)
+	    while (--extra)
+	      [self addObject: os[j]];
+	}
+    }
+  if (flag)
+    while (--i)
+      [os[i] release];
+  return self;
 }
 
 @end
