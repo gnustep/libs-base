@@ -25,11 +25,8 @@
 #ifndef __NSConnection_h_GNUSTEP_BASE_INCLUDE
 #define __NSConnection_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <base/Collecting.h>
-#include <base/Dictionary.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSRunLoop.h>
@@ -100,7 +97,6 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (BOOL) independantConversationQueueing;
 - (void) invalidate;
 - (BOOL) isValid;
-- (BOOL) registerName: (NSString*)name;
 - (NSArray *) remoteObjects;
 - (void) removeRequestMode: (NSString*)mode;
 - (void) removeRunLoop: (NSRunLoop *)runloop;
@@ -139,7 +135,9 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
  *	This catagory contains legacy methods from the original GNU 'Connection'
  *	class, and useful extensions to NSConnection.
  */
-@interface NSConnection (GNUstepExtensions)
+@interface NSConnection (GNUstepExtensions) <GCFinalization>
+
+- (void) gcFinalize;
 
 /* Setting and getting class configuration */
 + (Class) defaultReceivePortClass;

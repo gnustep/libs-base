@@ -58,10 +58,11 @@ enum {
  ROOTPROXY_REQUEST,
  ROOTPROXY_REPLY,
  CONNECTION_SHUTDOWN,
- METHODTYPE_REQUEST,	/* these two only needed with NeXT runtime */
- METHODTYPE_REPLY,	/* these two only needed with NeXT runtime */
+ METHODTYPE_REQUEST,
+ METHODTYPE_REPLY,
  PROXY_RELEASE,
  PROXY_RETAIN,
+ RETAIN_REPLY
 };
 
 

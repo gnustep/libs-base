@@ -1,3 +1,13 @@
+Thu Feb 11  7:27:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSConnection.m: Tidy up with bugfixes and better distributed
+	retain/release for triangle connections.
+	* Source/NSDistantObject.m: ditto
+	* Source/TcpPort.m: ditto
+	* Source/include/DistributedObjects.h: ditto
+	* Source/include/NSConnection.h: ditto
+	* Source/include/NSDistantObject.h: ditto
+
 1999-02-09  Adam Fedor  <fedor@gnu.org>
 
 	* Source/HashTable.m: Moved to extensions.
