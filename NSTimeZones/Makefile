@@ -30,7 +30,7 @@ resourcedir = $(GNUSTEP_RESOURCES)/gnustep
 TIMEZONE_ARCHIVE = \
 NSTimeZones.tar
 
-DIST_FILES = Makefile Makefile.preamble $(TIMEZONE_ARCHIVE)
+DIST_FILES = Makefile $(TIMEZONE_ARCHIVE)
 
 -include Makefile.preamble
 

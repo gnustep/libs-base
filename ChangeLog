@@ -1,6 +1,8 @@
 Mon Oct 20 09:51:53 1997  Adam Fedor  <fedor@doc.com>
 
 	* Version: Update ftp sites.
+	* NSCharacterSets/Makefile (DIST_FILES): Remove Makefile.preamble.
+	* NSTimeZones/Makefile (DIST_FILES): Likewise.
 	* NSCharacterSets/Makefile.postamble (copy-dist): Correct copy.
 	* NSTimeZones/Makefile.postamble (copy-dist): Correct dist files.
 
