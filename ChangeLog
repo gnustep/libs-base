@@ -1,5 +1,18 @@
 2004-09-19  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
+	* Headers/Foundation/NSCoder.h
+	* Headers/Foundation/NSFileHandle.h
+	* Headers/Foundation/NSKeyValueCoding.h
+	* Headers/Foundation/NSObject.h
+	* Headers/Foundation/NSSet.h
+	* Source/NSKeyValueCoding.m
+	* Source/NSSet.m: Comment cleanups to improve documentation output
+	and cross-referencing.
+	* Documentation/manual/GSDoc.texi: Add more complete description of
+	cross-referencing.
+
+2004-09-19  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
 	* Headers/Foundation/NSBundle.h
 	* Headers/Foundation/NSConnection.h
 	* Headers/Foundation/NSDistributedNotificationCenter.h
