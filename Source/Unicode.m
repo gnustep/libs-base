@@ -1624,10 +1624,21 @@ tables:
 		  outbytesleft = (bsize - old) * sizeof(unichar);
 		}
 	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-	      if (rval == (size_t)-1 && errno != E2BIG)
+	      if (rval == (size_t)-1)
 		{
-		  result = NO;
-		  break;
+		  if (errno == E2BIG)
+		    {
+		      unsigned	old = bsize;
+
+		      GROW();
+		      outbuf = (char*)&ptr[dpos];
+		      outbytesleft = (bsize - old) * sizeof(unichar);
+		    }
+		  else
+		    {
+		      result = NO;
+		      break;
+		    }
 		}
 	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
 	    }
@@ -2133,9 +2144,17 @@ tables:
 		  outbytesleft = (bsize - old);
 		}
 	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-	      if (rval == (size_t)-1 && errno != E2BIG)
+	      if (rval == (size_t)-1)
 		{
-		  if (errno == EILSEQ)
+		  if (errno == E2BIG)
+		    {
+		      unsigned	old = bsize;
+
+		      GROW();
+		      outbuf = (char*)&ptr[dpos];
+		      outbytesleft = (bsize - old);
+		    }
+		  else if (errno == EILSEQ)
 		    {
 		      if (strict == YES)
 			{
@@ -2154,7 +2173,7 @@ tables:
 			  inbytesleft -= sizeof(unichar);
 			}
 		    }
-		  else if (errno != E2BIG)
+		  else
 		    {
 		      result = NO;
 		      break;
