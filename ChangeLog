@@ -1,3 +1,17 @@
+Thu Oct 16 19:30:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for sigaction()
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Notice sigaction
+	* Source/GSFileHandle.m: Remove SIGPIPE code
+	* Source/GSTcpPort.m: ditto
+	* Source/NSMessagePort.m: ditto
+	* Source/NSSocketPort.m: ditto
+	* Source/NSObject.m: New code to ignore SIGPIPE unless it's being
+	explicitly handled.  Use sigaction so we can test to see if there
+	is a handler installed without temporarily unsetting it (as signal
+	does) so that it is safe in a multi-threaded system.
+
 Thu Oct 16 16:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m:

@@ -49,6 +49,13 @@
 #include <locale.h>
 #endif
 
+#ifdef	HAVE_SIGNAL_H
+#include	<signal.h>
+#endif
+#ifdef	HAVE_SYS_SIGNAL_H
+#include	<sys/signal.h>
+#endif
+
 #include "GSPrivate.h"
 
 
@@ -857,6 +864,43 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       // See libgnustep-base-entry.m
       extern void gnustep_base_socket_init(void);	
       gnustep_base_socket_init();	
+#else 
+
+#ifdef	SIGPIPE
+    /*
+     * If SIGPIPE is not handled or ignored, we will abort on any attempt
+     * to write to a pipe/socket that has been closed by the other end!
+     * We therefore need to ignore the signal if nothing else is already
+     * handling it.
+     */
+#ifdef	HAVE_SIGACTION
+      {
+	struct sigaction	act;
+
+	if (sigaction(SIGPIPE, 0, &act) == 0 && act.sa_handler == SIG_DFL)
+	  {
+	    if (sigaction(SIGPIPE, &act, 0) != 0)
+	      {
+		fprintf(stderr, "Unable to ignore SIGPIPE\n");
+	      }
+	  }
+	else
+	  {
+	    fprintf(stderr, "Unable to retrieve information about SIGPIPE\n");
+	  }
+      }
+#else
+      {
+	void	(*handler)(int);
+
+	handler = signal(SIGPIPE, SIG_IGN);
+	if (handler != SIG_DFL)
+	  {
+	    signal(SIGPIPE, handler);
+	  }
+      }
+#endif
+#endif
 #endif
       
 #ifdef __FreeBSD__
@@ -871,6 +915,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 	__asm__ volatile ("fldcw (%0)" : : "g" (&cw));
       }
 #endif
+
 
 #ifdef HAVE_LOCALE_H
       GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.

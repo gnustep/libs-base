@@ -41,12 +41,6 @@
 #include "Foundation/NSDebug.h"
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef	HAVE_SYS_SIGNAL_H
-#include <sys/signal.h>
-#endif
-#ifdef	HAVE_SIGNAL_H
-#include <signal.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>		/* for gethostname() */
 #endif
@@ -419,17 +413,6 @@ static Class	runLoopClass;
 
       wVersionRequested = MAKEWORD(2, 0);
       WSAStartup(wVersionRequested, &wsaData);
-#else
-      void	(*handler)(int);
-      /*
-       * If SIGPIPE is not handled or ignored, we will abort on any attempt
-       * to write to a pipe/socket that has been closed by the other end!
-       */
-      handler = signal(SIGPIPE, SIG_IGN);
-      if (handler != SIG_DFL)
-	{
-	  signal(SIGPIPE, handler);
-	}
 #endif
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableData class];
