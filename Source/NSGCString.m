@@ -136,7 +136,7 @@ typedef struct {
 
 static inline void
 stringIncrementCountAndMakeHoleAt(NSMutableCStringStruct *self, 
-				  unsigned index, unsigned size)
+				  int index, int size)
 {
 #ifndef STABLE_MEMCPY
   {
@@ -154,7 +154,7 @@ stringIncrementCountAndMakeHoleAt(NSMutableCStringStruct *self,
 
 static inline void
 stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self, 
-				  unsigned index, unsigned size)
+				  int index, int size)
 {
   (self->_count) -= size;
 #ifndef STABLE_MEMCPY
