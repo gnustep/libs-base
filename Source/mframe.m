@@ -136,7 +136,7 @@ method_types_get_size_of_register_arguments(const char *types)
 }
 
 
-/* To fix temporary bug in method_get_next_argument() on m68k */
+/* To fix temporary bug in method_get_next_argument() on NeXT boxes */
 /* xxx Perhaps this isn't working with the NeXT runtime? */
 
 char*
@@ -161,7 +161,7 @@ method_types_get_next_argument (arglist_t argf,
     return argframe->arg_regs + atoi(++t);
   else
     /* xxx What's going on here?  This -8 needed on my 68k NeXT box. */
-#if m68k
+#if NeXT
     return argframe->arg_ptr + (atoi(t) - 8);
 #else
     return argframe->arg_ptr + atoi(t);
