@@ -196,22 +196,26 @@ _gnu_process_noobjc_args(int argc, char *argv[], char *env[]) {
 	i=0;
 	while(argv[i])
 		i++;
-	_gnu_noobjc_argv = NSZoneMalloc(NS_NOZONE,sizeof(char *)*(i+1));
+	_gnu_noobjc_argv =
+	  NSZoneMalloc(NSDefaultMallocZone(),sizeof(char *)*(i+1));
 	i=0;
 	while(*argv) {
-		_gnu_noobjc_argv[i] = NSZoneMalloc(NS_NOZONE,strlen(*argv)+1);
-		strcpy(_gnu_noobjc_argv[i],*argv);
-		argv++;
-		i++;
+	  _gnu_noobjc_argv[i] =
+	    NSZoneMalloc(NSDefaultMallocZone(),strlen(*argv)+1);
+	  strcpy(_gnu_noobjc_argv[i],*argv);
+	  argv++;
+	  i++;
 	}
 	_gnu_noobjc_argv[i] = 0;
 	i=0;
 	while(env[i])
 		i++;
-	_gnu_noobjc_env = NSZoneMalloc(NS_NOZONE,sizeof(char *)*(i+1));
+	_gnu_noobjc_env =
+	  NSZoneMalloc(NSDefaultMallocZone(),sizeof(char *)*(i+1));
 	i=0;
 	while(*env) {
-		_gnu_noobjc_env[i] = NSZoneMalloc(NS_NOZONE,strlen(*env)+1);
+	        _gnu_noobjc_env[i] =
+		  NSZoneMalloc(NSDefaultMallocZone(),strlen(*env)+1);
 		strcpy(_gnu_noobjc_env[i],*env);
 		env++;
 		i++;
@@ -226,18 +230,18 @@ static void _gnu_noobjc_free_vars(void)
 
 	p = _gnu_noobjc_argv;
 	while (*p) {
-		NSZoneFree(NS_NOZONE,*p);
+		NSZoneFree(NSDefaultMallocZone(),*p);
 		p++;
 	}
-	NSZoneFree(NS_NOZONE,_gnu_noobjc_argv);
+	NSZoneFree(NSDefaultMallocZone(),_gnu_noobjc_argv);
 	_gnu_noobjc_argv = 0;
 
 	p = _gnu_noobjc_env;
 	while (*p) {
-		NSZoneFree(NS_NOZONE,*p);
+		NSZoneFree(NSDefaultMallocZone(),*p);
 		p++;
 	}
-	NSZoneFree(NS_NOZONE,_gnu_noobjc_env);
+	NSZoneFree(NSDefaultMallocZone(),_gnu_noobjc_env);
 	_gnu_noobjc_env = 0;
 }
 
