@@ -2,6 +2,9 @@
 
 	* Source/NSObject.m: Fix locking bug with NSZombie ... was not
 	locking when adding/removing zombies.
+	* Source/NSString.m: Fix property list parsing code to raise
+	exceptions on failure rather than logging messages.  Also check for
+	extra data at end of parsed string.
 	* Tools/ctvenc.m: new tool for converting string encodings.
 
 2002-03-28  Manuel Guesdon <mguesdon@orange-concept.com>

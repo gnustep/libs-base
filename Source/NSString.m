@@ -4042,7 +4042,9 @@ static BOOL skipSpace(pldata *pld)
 		    {
 		      c = pld->ptr[pld->pos];
 		      if (c == '\n')
-			break;
+			{
+			  break;
+			}
 		      pld->pos++;
 		    }
 		  if (pld->pos >= pld->end)
@@ -4058,7 +4060,9 @@ static BOOL skipSpace(pldata *pld)
 		    {
 		      c = pld->ptr[pld->pos];
 		      if (c == '\n')
-			pld->lin++;
+			{
+			  pld->lin++;
+			}
 		      else if (c == '*' && pld->pos < pld->end - 1
 			&& pld->ptr[pld->pos+1] == '/')
 			{
@@ -4074,13 +4078,19 @@ static BOOL skipSpace(pldata *pld)
 		    }
 		}
 	      else
-		return YES;
+		{
+		  return YES;
+		}
 	    }
 	  else
-	    return YES;
+	    {
+	      return YES;
+	    }
 	}
       if (c == '\n')
-	pld->lin++;
+	{
+	  pld->lin++;
+	}
       pld->pos++;
     }
   pld->err = @"reached end of string";
@@ -4281,9 +4291,13 @@ static inline id parseUnquotedString(pldata *pld)
 
 static id parsePlItem(pldata* pld)
 {
-  if (skipSpace(pld) == NO)
-    return nil;
+  id	result = nil;
+  BOOL	start = (pld->pos == 1 ? YES : NO);
 
+  if (skipSpace(pld) == NO)
+    {
+      return nil;
+    }
   switch (pld->ptr[pld->pos])
     {
       case '{':
@@ -4300,7 +4314,9 @@ static id parsePlItem(pldata* pld)
 
 	      key = parsePlItem(pld);
 	      if (key == nil)
-		return nil;
+		{
+		  return nil;
+		}
 	      if (skipSpace(pld) == NO)
 		{
 		  RELEASE(key);
@@ -4352,8 +4368,9 @@ static id parsePlItem(pldata* pld)
 	      return nil;
 	    }
 	  pld->pos++;
-	  return dict;
+	  result = dict;
 	}
+	break;
 
       case '(':
 	{
@@ -4399,8 +4416,9 @@ static id parsePlItem(pldata* pld)
 	      return nil;
 	    }
 	  pld->pos++;
-	  return array;
+	  result = array;
 	}
+	break;
 
       case '<':
 	{
@@ -4447,15 +4465,27 @@ static id parsePlItem(pldata* pld)
 	      [data appendBytes: buf length: len];
 	    }
 	  pld->pos++;
-	  return data;
+	  result = data;
 	}
+	break;
 
       case '"':
-	return parseQuotedString(pld);
+	result = parseQuotedString(pld);
+	break;
 
       default:
-	return parseUnquotedString(pld);
+	result = parseUnquotedString(pld);
+	break;
     }
+  if (start == YES && result != nil)
+    {
+      if (skipSpace(pld) == YES)
+	{
+	  pld->err = @"extra data after parsed string";
+	  result = nil;		// Not at end of string.
+	}
+    }
+  return result;
 }
 
 #if	HAVE_LIBXML
@@ -4766,13 +4796,15 @@ GSPropertyList(NSString *string)
       [parser doValidityChecking: YES];
       if ([parser parse: data] == NO || [parser parse: nil] == NO)
 	{
-	  NSLog(@"not a property list - failed to parse as XML");
+	  [NSException raise: NSGenericException
+		      format: @"not a property list - failed to parse as XML"];
 	  return nil;
 	}
       if (![[[[parser doc] root] name] isEqualToString: @"plist"])
 	{
-	  NSLog(@"not a property list - because name node is %@",
-	    [[[parser doc] root] name]);
+	  [NSException raise: NSGenericException
+		      format: @"not a property list - because name node is %@",
+	    [[[parser doc] root] name]];
 	  return nil;
 	}
       pl = AUTORELEASE(RETAIN(nodeToObject([[[parser doc] root] children])));
@@ -4788,8 +4820,9 @@ GSPropertyList(NSString *string)
   pl = AUTORELEASE(parsePlItem(pld));
   if (pl == nil && _pld.err != nil)
     {
-      NSLog(@"Parse failed at line %d (char %d) - %@",
-	_pld.lin, _pld.pos, _pld.err);
+      [NSException raise: NSGenericException
+		  format: @"Parse failed at line %d (char %d) - %@",
+	_pld.lin, _pld.pos, _pld.err];
     }
   return pl;
 }
@@ -4910,8 +4943,10 @@ GSPropertyListFromStringsFormat(NSString *string)
     }
   if (dict == nil && _pld.err != nil)
     {
-      NSLog(@"Parse failed at line %d (char %d) - %@",
-	_pld.lin, _pld.pos, _pld.err);
+      RELEASE(dict);
+      [NSException raise: NSGenericException
+		  format: @"Parse failed at line %d (char %d) - %@",
+	_pld.lin, _pld.pos, _pld.err];
     }
   return AUTORELEASE(dict);
 }
