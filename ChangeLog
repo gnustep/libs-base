@@ -1,3 +1,8 @@
+2002-05-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSMethodSignature.m (-isEqual:): Implemented (from
+	znek@mulle-kybernetik.com).
+
 2002-05-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMapTable.m: Delete line teft over by accident ... could
