@@ -1,3 +1,8 @@
+2004-10-21  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (GSBinaryPLParser objectAtIndex:):
+	Changed integer handling to unsigned long long to support bigger numbers.
+
 2004-10-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/Foundation.h: include NSXMLParser
