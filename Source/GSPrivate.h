@@ -51,15 +51,15 @@
 /**
  * Macro to consistently replace public accessable
  * constant strings with dynamically allocated versions.
- * This method assumes an initialzed NSStringClass symbol
+ * This method assumes an initialized NSStringClass symbol
  * which contains the Class object of NSString.  <br>
- * Most public accesable strings are used in collection classes
- * like NSDictionary, and therefor tend to receive -isEqual:
+ * Most public accessible strings are used in collection classes
+ * like NSDictionary, and therefore tend to receive -isEqual:
  * messages (and therefore -hash) rather often.  Statically
- * allocated strings must calculate thier hash values where
+ * allocated strings must calculate their hash values while
  * dynamically allocated strings can store them.  This optimization
- * is by far more effective than using NSString * const.  
- * The backdraw is that the memory managent cannot enforce these values
+ * is by far more effective than using NSString * const.
+ * The drawback is that the memory management cannot enforce these values
  * to remain unaltered as it would for variables declared NSString * const.
  * Yet the optimization of the stored hash value is currently deemed
  * more important.

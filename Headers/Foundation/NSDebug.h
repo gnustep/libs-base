@@ -137,7 +137,7 @@ GS_EXPORT NSArray *GSDebugAllocationListRecordedObjects(Class c);
  * This function associates the supplied tag with a recorded
  * object and returns the tag which was previously associated
  * with it (if any).<br />
- * If the object was not recorded, the method reurns nil<br />
+ * If the object was not recorded, the method returns nil<br />
  * The tag is retained while it is associated with the object.<br />
  * See also the NSDebugFRLog() and NSDebugMRLog() macros.
  */

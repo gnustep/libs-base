@@ -191,7 +191,7 @@ NSString *NSClassDescriptionNeededForClassNotification = @"NSClassDescriptionNee
 
 
 /*
- * Opimization function called when NSObject is initialised.
+ * Optimization function called when NSObject is initialised.
  * We replace all the constant strings so they can
  * cache their hash values and be used much more efficiently as keys in
  * dictionaries etc.
