@@ -1,0 +1,31 @@
+Date: Fri, 3 May 96 11:10:16 +0200
+From: Wolfgang Baron <wbaron@ixpoint.de>
+To: Adam Fedor <fedor@mode.colorado.edu>
+Subject: Re: NSAutoreleasePool and NSException problem
+
+>
+> I get:
+>
+> ...
+> test[10] = 100.
+> error: NSGCString (instance)
+> in characterAtIndex:, index out of range
+> Abort
+>
+> But when I change the count to 10 (at line 119 of the program), it works
+> fine. I don't see anything wrong with the program either.
+
+AAARGH!!!! I don't believe this. The problem was the following line,
+with which I compiled the program:
+
+ gcc NSExceptionTest.m -L/usr/local/lib -lobjects -lobjc -L/usr/ucblib -lucb -lm
+
+Apparently, there are some serious bugs in the ucblib files.  I
+changed the lin\ e to
+
+ gcc NSExceptionTest.m -L/usr/local/lib -lobjects -lobjc -lm -lnsl
+
+And now it works just like under NeXTSTEP (even the rangecheck works)!
+Great!  Maybe there should be some hint in a README file about linking
+code with libobjects.
+
