@@ -1061,43 +1061,6 @@ quotedFromString(NSString *aString)
   return resultString;
 }
 
-static NSData*
-createUnicodeEnvBlockFromDict(NSDictionary *env)
-{
-  NSMutableData	*data = nil;
-
-  if ([env count] > 0)
-    {
-      // arbitrary value
-      NSMutableData	*data = [NSMutableData dataWithCapacity:10*1024];
-      NSEnumerator	*enumerator;
-      NSString		*key;
-      unichar 		terminator= (unichar)'\0';
-      unichar		separator = (unichar)'=';
-      CREATE_AUTORELEASE_POOL(pool);
-      
-      enumerator = [env keyEnumerator];
-      while ((key = [enumerator nextObject]))
-	{
-	  NSString	*value;
-	  NSString	*expression;
-	  unsigned	l;
-	  NSRange	r = NSMakeRange(0,0);
-	  unichar	buffer[1024];
-
-	  [data appendData: [key dataUsingEncoding: NSUnicodeStringEncoding];
-	  [data appendBytes: separator length: 2];
-	  value = [env objectForKey: key];
-	  [data appendData: [value dataUsingEncoding: NSUnicodeStringEncoding];
-	  [data appendBytes: terminator length: 2];	// end key-value pair
-	}
-      [data appendBytes: terminator length: 2];		// end of environment
-      RELEASE(pool);
-    }
-  return data;
-}
-
-
 - (void) launch
 {
   DWORD		tid;
