@@ -366,22 +366,12 @@ extern struct objc_class _NSConstantStringClassReference;
 
 #ifndef NO_GNUSTEP
 
-@interface NSString (GSCategories)
-- (NSString*) stringByDeletingPrefix: (NSString*)prefix;
-- (NSString*) stringByDeletingSuffix: (NSString*)suffix;
-@end
-
 @interface NSString (GNUstep)
 - (NSString*) stringByReplacingString: (NSString*)replace
 			   withString: (NSString*)by;
 - (NSString*) stringByTrimmingLeadSpaces;
 - (NSString*) stringByTrimmingTailSpaces;
 - (NSString*) stringByTrimmingSpaces;
-@end
-
-@interface NSMutableString (GSCategories)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
 @end
 
 @interface NSMutableString (GNUstep)

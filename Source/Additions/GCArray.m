@@ -24,6 +24,7 @@
 */
 
 #include "config.h"
+#include <string.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSRange.h>
 #include <Foundation/NSString.h>

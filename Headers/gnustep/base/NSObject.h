@@ -291,6 +291,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (id) write: (TypedStream*)aStream;
 @end
 
+#define NSOBJECT_GSCATEGORIES_INTERFACE
 @interface NSObject (GSCategories)
 - notImplemented:(SEL)aSel;
 - (id) subclassResponsibility: (SEL)aSel;

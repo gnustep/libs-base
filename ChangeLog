@@ -1,3 +1,19 @@
+2003-01-31  Stephane Corthesy <stephane@sente.ch>
+	    Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/GSCategories.h: Moved
+	NSString(GSCategories), NSMutableString(GSCategories), and copied
+	NSObject(GSCategories) to here
+	* Headers/gnustep/base/NSString.h, Headers/gnustep/base/NSObject:
+	From here.
+	* Headers/gnustep/base/GSMime.h: Include Foundation on MacOSX.
+
+	* Source/Additions/GSCategories.m: Fix includes.
+	* Source/Additions/GSCompatibility.h: Defined DebugLog, WarnLog 
+	macros. Add Additional NSObject, NSInvocation, NSString and
+	NSProcessInfo methods. Add NSStandardLibraryPaths.
+	* Source/Additions/GSCompatibility.m: Idem.
+
 2003-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/libgnustep-base.def.in: Regenerated
