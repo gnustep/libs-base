@@ -1,5 +1,5 @@
 /* Concrete implementation of NSArray based on GNU Array class
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -28,6 +28,8 @@
 #include <objects/ArrayPrivate.h>
 #include <Foundation/NSException.h>
 
+#define self ((Array*)self)
+
 @implementation NSGArray
 
 + (void) initialize
@@ -50,43 +52,24 @@
     if (objects[i] == nil)
       [NSException raise:NSInvalidArgumentException
 		   format:@"Tried to add nil"];
-  /* "super" call into IndexedCollection */
-#if 1
-  CALL_METHOD_IN_CLASS([IndexedCollection class], initWithType:,
-		       @encode(id));
-#else
-  (*(imp))
-#endif
-  _comparison_function = elt_get_comparison_function(@encode(id));
-  _grow_factor = [[self class] defaultGrowFactor];
-  _count = count;
-  _capacity = (count < 1) ? 1 : count;
-  OBJC_MALLOC(_contents_array, elt, _capacity);
+  [self initWithType: @encode(id) capacity: count];
   while (count--)
-    {
-      [objects[count] retain];
-      _contents_array[count] = objects[count];
-    }
+    [self addObject: [objects[count] retain]];
   return self;
-}
-
-- (unsigned) count
-{
-  return _count;
 }
 
 /* Force message to go to super class rather than the behavior class */
 - (unsigned) indexOfObject: anObject
 {
-    return [super indexOfObject: anObject];
+  return [super indexOfObject: anObject];
 }
 
 - objectAtIndex: (unsigned)index
 {
-  if (index >= _count)
-    [NSException raise:NSRangeException
-		 format:@"Index out of bounds"];
-  return _contents_array[index].id_u;
+  if (index >= self->_count)
+    [NSException raise: NSRangeException
+		 format: @"Index out of bounds"];
+  return self->_contents_array[index].id_u;
 }
 
 
@@ -107,25 +90,17 @@
 
 - initWithCapacity: (unsigned)numItems
 {
-  /* "super" call into IndexedCollection */
-  CALL_METHOD_IN_CLASS([IndexedCollection class], initWithType:,
-		       @encode(id));
-  _comparison_function = elt_get_comparison_function(@encode(id));
-  _grow_factor = [[self class] defaultGrowFactor];
-  _count = 0;
-  _capacity = (numItems < 1) ? 1 : numItems;
-  OBJC_MALLOC(_contents_array, elt, _capacity);
-  return self;
+  return [self initWithType: @encode(id) capacity: numItems];
 }
 
 /* Comes in from Array behavior 
    - (void) addObject: anObject
-   - (void)insertObject: anObject atIndex: (unsigned)index
+   - (void) insertObject: anObject atIndex: (unsigned)index
    */
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
 {
-    [self replaceObjectAtIndex: index with: anObject];
+  [self replaceObjectAtIndex: index with: anObject];
 }
 
 @end
