@@ -1,3 +1,8 @@
+Thu Feb 28 16:46:31 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSUser.m (NSSearchPathForDirectoriesInDomains): Changed
+	'Apps' to read 'Applications'.
+
 2002-02-27  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
 
 	* Source/GSString.m ([GSMutableString -substringWithRange:]): 
