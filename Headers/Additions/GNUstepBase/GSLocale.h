@@ -25,7 +25,12 @@
 #ifndef __GSLocale_H_
 #define __GSLocale_H_
 
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSString.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
+#include "GSObjCRuntime.h"
 
 @class NSDictionary;
 

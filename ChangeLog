@@ -1,3 +1,23 @@
+2003-11-10  David Ayers  <d.ayers@inode.at>
+
+	Based on patches by Philip Moetteli <Philip.Moetteli@tele2.ch>.
+	* Headers/Additions/GNUstepBase/GSCategories.h: Added
+	NSKoreanEUCEncoding.  
+	* Headers/Additions/GNUstepBase/GSLock.h
+	* Headers/Additions/GNUstepBase/GSLocale.h: Guard includes for
+	NeXT_Foundation_LIBRARY.  
+	* Source/Additions/GSLock.m: Include GNUstepBase/GNUstep.h.  
+	* Headers/Additions/GNUstepBase/GSCategories.h
+	* Headers/Foundation/NSString.h:
+	(+[NSString stringWithFormat:arguments:]): Move declaration to
+	GSCategories.  
+	* Source/NSString.m
+	* Source/Additions/GSCategories.m:
+	(+[NSString stringWithFormat:arguments:]): Move implementation to
+	Additions.
+	* macosx/config.h: Define HAVE_WCHAR_H.
+	* macosx/gnustep.pbproj/project.pbxproj: Added GSLock files.
+
 2003-11-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Only obtain distributed lock for reading

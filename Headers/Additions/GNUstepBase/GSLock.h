@@ -27,7 +27,11 @@
 #ifndef	INCLUDED_GS_LOCK_H
 #define	INCLUDED_GS_LOCK_H
 
+#ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSLock.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 @class NSNotification;
 

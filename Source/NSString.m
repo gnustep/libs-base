@@ -563,14 +563,6 @@ handle_printf_atsign (FILE *stream,
   return ret;
 }
 
-+ (id) stringWithFormat: (NSString*)format
-	      arguments: (va_list)argList
-{
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithFormat: format arguments: argList]);
-}
-
-
 // Initializing Newly Allocated Strings
 
 /** <init />

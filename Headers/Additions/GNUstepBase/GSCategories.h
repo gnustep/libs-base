@@ -158,7 +158,8 @@ typedef enum _NSGNUstepStringEncoding
   NSGB2312StringEncoding = 56,
   NSUTF7StringEncoding = 64,		// RFC 2152
   NSGSM0338StringEncoding,		// GSM (mobile phone) default alphabet
-  NSBIG5StringEncoding			// Traditional chinese
+  NSBIG5StringEncoding,			// Traditional chinese
+  NSKoreanEUCEncoding
 } NSGNUstepStringEncoding;
 
 
@@ -187,6 +188,8 @@ typedef enum _NSGNUstepStringEncoding
 @end
 
 @interface NSString (GSCategories)
++ (id) stringWithFormat: (NSString*)format
+	      arguments: (va_list)argList;
 - (NSString*) stringByDeletingPrefix: (NSString*)prefix;
 - (NSString*) stringByDeletingSuffix: (NSString*)suffix;
 - (NSString*) stringByTrimmingLeadSpaces;
