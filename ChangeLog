@@ -1,3 +1,9 @@
+2002-05-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAssertion.m: Added comments and fixed bug in handling
+	an assertion in a function ... was calling va_end() before the last
+	use of the arguments.
+
 2002-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GSUnixSSLHandle.m: Change '#if HAVE...' to '#ifdef HAVE_...'

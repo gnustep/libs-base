@@ -37,6 +37,10 @@
 /* Key for thread dictionary. */
 static NSString *dict_key = @"_NSAssertionHandler";
 
+/**
+ * Returns the assertion handler object for the current thread.<br />
+ * If none exists, creates one and returns it.
+ */
 + (NSAssertionHandler*) currentHandler
 {
   NSMutableDictionary	*dict;
@@ -52,6 +56,11 @@ static NSString *dict_key = @"_NSAssertionHandler";
   return handler;
 }
 
+/**
+ * Handles an assertion failure by using NSLogv() to print an error
+ * message built from the supplied arguments, and then raising an
+ * NSInternalInconsistencyException
+ */
 - (void) handleFailureInFunction: (NSString*)functionName 
 			    file: (NSString*)fileName 
 		      lineNumber: (int)line 
@@ -66,13 +75,18 @@ static NSString *dict_key = @"_NSAssertionHandler";
       stringWithFormat: @"%@:%d  Assertion failed in %@.  %@",
       fileName, line, functionName, format];
   NSLogv(message, ap);
-  va_end(ap);
 
   [NSException raise: NSInternalInconsistencyException
 	      format: message arguments: ap];
+  va_end(ap);
   /* NOT REACHED */
 }
 
+/**
+ * Handles an assertion failure by using NSLogv() to print an error
+ * message built from the supplied arguments, and then raising an
+ * NSInternalInconsistencyException
+ */
 - (void) handleFailureInMethod: (SEL) aSelector
                         object: object
                           file: (NSString *) fileName
