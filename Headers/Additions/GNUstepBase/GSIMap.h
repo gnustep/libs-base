@@ -189,6 +189,74 @@
 #define GSI_MAP_CLEAR_VAL(node)  
 #endif
 
+/*
+ *  Description of the datastructure
+ *  --------------------------------
+ *  The complete GSIMap implementation can be viewed in two different ways,
+ *
+ *  (1) viewed as a structure to add and retrieve elements
+ *  (2) viewed as a memory management structure to facilitate (1)
+ *
+ *  The first view is best described as follows:
+ *
+ *   _GSIMapTable   ----->  C-array of buckets 
+ *
+ *  Where each bucket contains a count (nodeCount), describing the number of nodes in
+ *  in the bucket and a pointer (firstNode) to a single linked list of nodes.
+ *  
+ *  The second view is slightly more complicated
+ *  The individual nodes are allocated and deallocated in chunks.
+ *  In order to keep track of this we have:
+ *
+ *   _GSIMapTable   ----->  C-array of chunks
+ *
+ *  Where each chunk points to a C-array of nodes.
+ *  Also the _GSIMapTable contains a pointer to the free nodes
+ *
+ *   _GSIMapTable   ----->  single linked list of free nodes
+ *
+ *  Consequence of this is that EVERY node is part of a single linked list.
+ *  Either it is in use and reachable from a bucket, or it is part of the
+ *  freeNodes linked list.
+ *  Also EVERY node is part of chunk, due to the way the nodes are allocated.
+ *
+ *  A rough picture is include below:
+ *   
+ *  
+ *   This is the map                C - array of the buckets
+ *   +---------------+             +---------------+
+ *   | _GSIMapTable  |      /----->| nodeCount     |  
+ *   |---------------|     /       | firstNode ----+--\  
+ *   | buckets    ---+----/        | ..........    |  |
+ *   | bucketCount  =| size of --> | nodeCount     |  |
+ *   | nodeChunks ---+--\          | firstNode     |  |
+ *   | chunkCount  =-+\ |          |     .         |  | 
+ *   |   ....        || |          |     .         |  |
+ *   +---------------+| |          | nodeCount     |  |
+ *                    | |          | fistNode      |  | 
+ *                    / |          +---------------+  | 
+ *         ----------   v                             v
+ *       /       +----------+      +---------------------------+ 
+ *       |       |  * ------+----->| Node1 | Node2 | Node3 ... |         A chunk of nodes
+ *   chunkCount  |  * ------+--\   +---------------------------+
+ *  is size of = |  .       |   \  +-------------------------------+
+ *               |  .       |    ->| Node n | Node n + 1 | ...     |     Another chunk of nodes
+ *               +----------+      +-------------------------------+
+ *               array pointing
+ *               to the chunks
+ *
+ *
+ *  NOTES on the way chunks are allocated
+ *  -------------------------------------
+ *  Chunks are allocated when needed, that is a new chunk is allocated
+ *  whenever the freeNodes list is empty and a new node is required.
+ *  In gnustep-base-1.9.0 the size of the new chunk is calculated as roughly 3/4 of the number
+ *  of nodes in use.  The problem with this approach is that it can lead to unnecessary
+ *  address space fragmentation.  So in this version the algorithme
+ *  will use the 3/4 rule until the nodeCount reaches the "increment" member variable.
+ *  If nodeCount is bigger than the "increment" it will allocate chunks of size
+ *  "increment".
+ */
 
 typedef struct _GSIMapTable GSIMapTable_t;
 typedef struct _GSIMapBucket GSIMapBucket_t;
@@ -213,12 +281,13 @@ struct	_GSIMapBucket {
 
 struct	_GSIMapTable {
   NSZone	*zone;
-  size_t	nodeCount;	/* Number of nodes in map.	*/
+  size_t	nodeCount;	/* Number of used nodes in map.	*/
   size_t	bucketCount;	/* Number of buckets in map.	*/
   GSIMapBucket	buckets;	/* Array of buckets.		*/
   GSIMapNode	freeNodes;	/* List of unused nodes.	*/
   size_t	chunkCount;	/* Number of chunks in array.	*/
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
+  size_t	increment;
 #ifdef	GSI_MAP_EXTRA
   GSI_MAP_EXTRA	extra;
 #endif
@@ -400,7 +469,7 @@ GSIMapNewNode(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 
   if (node == 0)
     {
-      GSIMapMoreNodes(map, 0);
+      GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
       node = map->freeNodes;
       if (node == 0)
 	{
@@ -423,7 +492,7 @@ GSIMapNewNode(GSIMapTable map, GSIMapKey key)
 
   if (node == 0)
     {
-      GSIMapMoreNodes(map, 0);
+      GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
       node = map->freeNodes;
       if (node == 0)
 	{
@@ -523,11 +592,11 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
       size += tmp;
     }
   /*
-   *	Avoid 8 - since hash functions frequently generate uneven distributions
+   *	Avoid even numbers - since hash functions frequently generate uneven distributions
    *	around powers of two - we don't want lots of keys falling into a single
    *	bucket.
    */
-  if (size == 8)
+  if (size % 2 == 0)
     {
       size++;
     }
@@ -836,6 +905,7 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
   map->nodeChunks = 0;
   map->freeNodes = 0;
   map->chunkCount = 0;
+  map->increment = 300000;   // choosen so the chunksize will be less than 4Mb
   GSIMapRightSizeMap(map, capacity);
   GSIMapMoreNodes(map, capacity);
 }
