@@ -27,6 +27,9 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GSLock.h"
 
+/* Test for ASCII whitespace which is safe for unicode characters */
+#define	space(C)	((C) > 127 ? NO : isspace(C))
+
 /**
  * Extension methods for the NSCalendarDate class
  */
@@ -912,7 +915,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+      while (start < length && space((*caiImp)(self, caiSel, start)))
 	{
 	  start++;
 	}
@@ -941,7 +944,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (end > 0)
 	{
-	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
+	  if (!space((*caiImp)(self, caiSel, end - 1)))
 	    {
 	      break;
 	    }
@@ -971,13 +974,13 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+      while (start < length && space((*caiImp)(self, caiSel, start)))
 	{
 	  start++;
 	}
       while (end > start)
 	{
-	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
+	  if (!space((*caiImp)(self, caiSel, end - 1)))
 	    {
 	      break;
 	    }
@@ -1087,7 +1090,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+      while (start < length && space((*caiImp)(self, caiSel, start)))
 	{
 	  start++;
 	}
@@ -1112,7 +1115,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (end > 0 && isspace((*caiImp)(self, caiSel, end - 1)))
+      while (end > 0 && space((*caiImp)(self, caiSel, end - 1)))
 	{
 	  end--;
 	}
