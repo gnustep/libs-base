@@ -1,7 +1,7 @@
 /*
     null-load - NULL dynamic loader. Doesn't do anything.
 
-    Copyright (C) 1995, Adam Fedor.
+    Copyright (C) 1995, Free Software Foundation, Inc.
 
 */
 
