@@ -60,11 +60,12 @@ HEADERS = gdomap.h gdnc.h
 DIST_FILES = GNUmakefile Makefile.preamble Makefile.postamble \
 $(SOURCES) $(HEADERS)
 
--include Makefile.preamble
+include Makefile.preamble
 
--include GNUmakefile.local
+include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/objc.make
 include $(GNUSTEP_MAKEFILES)/tool.make
 
--include Makefile.postamble
+include Makefile.postamble
+

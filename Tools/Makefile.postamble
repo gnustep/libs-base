@@ -19,9 +19,9 @@
 
 # Things to do after installing
 after-install::
-        @for file in $(DTD_FILES); do \
-          $(INSTALL_DATA) $$file $(dtddir)/$$file ; \
-        done; \
+	for file in $(DTD_FILES); do \
+	  $(INSTALL_DATA) $$file $(dtddir)/$$file; \
+	done; \
 	if [ "`whoami`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
