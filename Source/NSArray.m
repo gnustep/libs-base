@@ -987,11 +987,17 @@ static NSString	*indentStrings[] = {
 
   [self getObjects: objects];
   for (i = 0; i < count; i++)
-    objects[i] = [objects[i] copyWithZone: zone];
+    {
+      objects[i] = [objects[i] copyWithZone: zone];
+    }
   newArray = [[GSArrayClass allocWithZone: zone]
     initWithObjects: objects count: count];
+#if GS_WITH_GC == 0
   while (i > 0)
-    RELEASE(objects[--i]);
+    {
+      [objects[--i] release];
+    }
+#endif
   return newArray;
 }
 
@@ -1150,7 +1156,7 @@ static NSString	*indentStrings[] = {
 	      (*rem)(self, remSel, i);
 	    }
 	}
-#ifndef GS_WITH_GC
+#if GS_WITH_GC == 0
       if (rem != 0)
 	{
 	  RELEASE(anObject);

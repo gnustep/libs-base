@@ -6,6 +6,7 @@
 	Added support for system-wide .GNUsteprc with force options.
 	Removed use of FORCE_USER_ROOT and FORCE_DEFAULTS_ROOT
 	* Source/Base/gsdoc: Document the .GNUsteprc files.
+	* Source/NSArray.m: Fix bug with GC pointed out by James Knight
 
 2002-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
