@@ -1,7 +1,11 @@
+2003-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Don't NSLog when we can't find a localizable
+	file ... log only when bundle debugging is turned on.
+
 2003-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPipe.m: Fix descriptor leak ... close on dealloc
-	* Source/NSTask.m: Don't bother to close pipes.
 
 2003-06-25  Adam Fedor  <fedor@gnu.org>
 

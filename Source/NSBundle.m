@@ -1502,8 +1502,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  NS_ENDHANDLER
 	}
       else
-	NSLog(@"Failed to locate strings file %@", tableName);
-	
+	{
+	  NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
+	    tableName);
+	}
       /*
        * If we couldn't found and parsed the strings table, we put it in
        * the cache of strings tables in this bundle, otherwise we will just
