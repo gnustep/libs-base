@@ -6,9 +6,7 @@
 
 @ifinfo
 @format
-START-INFO-DIR-ENTRY
 * GNUstep Zones: (gnustep-zones).       Memory management in GNUstep.
-END-INFO-DIR-ENTRY
 @end format
 @end ifinfo
 

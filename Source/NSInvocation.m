@@ -37,7 +37,6 @@
 #include "callframe.h"
 #endif
 
-
 static Class   NSInvocation_abstract_class;
 static Class   NSInvocation_concrete_class;
 
@@ -47,13 +46,15 @@ static Class   NSInvocation_concrete_class;
 static inline void
 _get_arg(NSInvocation *inv, int index, void *buffer)
 {
-  cifframe_get_arg((cifframe_t *)inv->_cframe, index, buffer);
+  cifframe_get_arg((cifframe_t *)inv->_cframe, index, buffer,
+		   inv->_info[index+1].size);
 }
 
 static inline void
 _set_arg(NSInvocation *inv, int index, void *buffer)
 {
-  cifframe_set_arg((cifframe_t *)inv->_cframe, index, buffer);
+  cifframe_set_arg((cifframe_t *)inv->_cframe, index, buffer,
+		   inv->_info[index+1].size);
 }
 
 static inline void *
@@ -169,7 +170,7 @@ _arg_addr(NSInvocation *inv, int index)
 #if	defined(USE_LIBFFI)
   if (_cframe)
     {
-      cifframe_free((cifframe_t *)_cframe);
+      NSZoneFree(NSDefaultMallocZone(), _cframe);
       _retval = 0;	// Part of _cframe
     }
 #elif defined(USE_FFCALL)
@@ -478,21 +479,12 @@ _arg_addr(NSInvocation *inv, int index)
 
   stack_argsize = [_sig frameLength];
 
-#ifdef USE_LIBFFI
-  ffi_call(&((cifframe_t *)_cframe)->cif, (void(*)(void))imp, _retval,
-	   ((cifframe_t *)_cframe)->values);
-  if (_info[0].size)
-    {
-      cifframe_decode_return(_info[0].type, _retval);
-    }
-#else
   returned = __builtin_apply((void(*)(void))imp,
     (arglist_t)_cframe, stack_argsize);
   if (_info[0].size)
     {
       mframe_decode_return(_info[0].type, _retval, returned);
     }
-#endif
   _validReturn = YES;
 }
 
@@ -659,9 +651,6 @@ _arg_addr(NSInvocation *inv, int index)
 	  unsigned	size = _info[i].size;
 	  void		*datum;
 
-#ifdef USE_LIBFFI
-	  size = ((cifframe_t *)_cframe)->args[i-1]->size;
-#endif
 	  datum = _arg_addr(self, i-1);
 
 #define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break

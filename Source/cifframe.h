@@ -26,24 +26,32 @@
 #define cifframe_h_INCLUDE
 
 #include <ffi.h>
-#include <base/preface.h>
+#include <Foundation/NSMethodSignature.h>
+#include <base/DistributedObjects.h>
 
 typedef struct _cifframe_t {
   ffi_cif cif;
   int nargs;
-  ffi_type *rtype;
-  ffi_type **args;
+  ffi_type **arg_types;
   void **values;
 } cifframe_t;
 
-extern cifframe_t *cifframe_from_sig (const char *typePtr, void **retval);
-extern void cifframe_free(cifframe_t *cframe);
-extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer);
-extern void cifframe_get_arg(cifframe_t *cframe, int index, void *buffer);
+extern cifframe_t *cifframe_from_info (NSArgumentInfo *info, int numargs,
+					 void **retval);
+extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
+			     int size);
+extern void cifframe_get_arg(cifframe_t *cframe, int index, void *buffer,
+			     int size);
 extern void *cifframe_arg_addr(cifframe_t *cframe, int index);
-extern BOOL cifframe_decode_return (const char *type, void* buffer);
+extern BOOL cifframe_decode_arg (const char *type, void* buffer);
+extern BOOL cifframe_encode_arg (const char *type, void* buffer);
 
 extern void cifframe_do_call (DOContext *ctxt,
 		void(*decoder)(DOContext*),
 		void(*encoder)(DOContext*));
+extern void cifframe_build_return (NSInvocation *inv,
+		const char *type, 
+		BOOL out_parameters,
+		void(*decoder)(DOContext*),
+		DOContext* ctxt);
 #endif

@@ -36,7 +36,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = 
+ADDITIONAL_CPPFLAGS =
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS = -g
@@ -53,7 +53,6 @@ ADDITIONAL_LDFLAGS =
 
 # Additional library directories the linker should search
 ADDITIONAL_LIB_DIRS = -L../Source/$(GNUSTEP_OBJ_DIR)
-
 
 ifeq ($(GNUSTEP_TARGET_OS),mingw32)
 BUNDLE_LIBS += -lgnustep-base -lobjc

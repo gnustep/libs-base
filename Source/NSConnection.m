@@ -2004,7 +2004,9 @@ static void retEncoder (DOContext *ctxt)
     }
   else
     {
-#ifdef USE_FFCALL
+#ifdef USE_LIBFFI
+      cifframe_build_return (inv, type, outParams, retDecoder, &ctxt);
+#elif defined(USE_FFCALL)
       callframe_build_return (inv, type, outParams, retDecoder, &ctxt);
 #endif
       /* Make sure we processed all arguments, and dismissed the IP.

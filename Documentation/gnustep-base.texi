@@ -13,9 +13,7 @@ prindex for protocols, and clindex for classes.
 
 @ifinfo
 @format
-START-INFO-DIR-ENTRY
 * gstep-base::                      The GNUstep Base Library
-END-INFO-DIR-ENTRY
 @end format
 @end ifinfo
 
