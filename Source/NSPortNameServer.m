@@ -26,41 +26,16 @@
 
 #include "config.h"
 #include "Foundation/NSString.h"
-#include "Foundation/NSByteOrder.h"
 #include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSTask.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSDebug.h"
-#ifdef __MINGW__
-#include <winsock2.h>
-#include <wininet.h>
-#else
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
-
-/*
- *	Protocol definition stuff for talking to gdomap process.
- */
-#include        "../Tools/gdomap.h"
-
-#define stringify_it(X) #X
-#define	make_gdomap_port(X)	stringify_it(X)
 
 
-
+/**
+ * The abstract port name server class.  This defines an API for
+ * working with port name servers ... objects used to manage access
+ * to ports in the distributed objects system (see [NSConnection]).
+ */
 @implementation NSPortNameServer
 
 + (id) allocWithZone: (NSZone*)aZone
@@ -77,6 +52,14 @@
     }
 }
 
+/**
+ * Returns the default port name server for the process.<br />
+ * The MacOS-X documentation says that this is a nameserver
+ * dealing with NSMessagePort objects, but that is incompatible
+ * with OpenStep/OPENSTEP/NeXTstep behavior, so GNUstep returns
+ * a name server which deals with NSSocketPort objects capable
+ * of being used for inter-host communications.
+ */
 + (id) systemDefaultPortNameServer
 {
   return [NSSocketPortNameServer sharedInstance];
@@ -89,11 +72,29 @@
 	      format: @"attempt to deallocate default port name server"]; 
 }
 
+/**
+ * Looks up the port with the specified name on the local host and
+ * returns it or nil if no port is found with that name.<br />
+ * Different nameservers  have different namespaces appropriate to the
+ * type of port they deal with, so failing to find a named port with one
+ * nameserver does not guarantee that a port does with that name does
+ * not exist.<br />
+ * This is a convenience method calling -portForName:onHost: with a nil
+ * host argument.
+ */
 - (NSPort*) portForName: (NSString*)name
 {
   return [self portForName: name onHost: nil];
 }
 
+/** <override-subclass />
+ * Looks up the port with the specified name on host and returns it
+ * or nil if no port is found with that name.<br />
+ * Different nameservers  have different namespaces appropriate to the
+ * type of port they deal with, so failing to find a named port with one
+ * nameserver does not guarantee that a port does with that name does
+ * not exist.
+ */
 - (NSPort*) portForName: (NSString*)name
 		 onHost: (NSString*)host
 {
@@ -101,6 +102,15 @@
   return nil;
 }
 
+/** <override-subclass />
+ * Registers port with the supplied name, so that other processes can
+ * look it up to contact it.  A port may be registered with more than
+ * one name by making multiple calls to this method.<br />
+ * Returns YES on success, NO otherwise.<br />
+ * The common cause for failure is that another port is already registered
+ * with the name.
+ * Raises NSInvalidArgumentException if given bad arguments.
+ */
 - (BOOL) registerPort: (NSPort*)port
 	      forName: (NSString*)name
 {
@@ -108,6 +118,13 @@
   return NO;
 }
 
+/** <override-subclass />
+ * Removes any port registration for the supplied name (whether
+ * registered in the current process or another).<br />
+ * The common cause for failure is that no port is registered
+ * with the name.<br />
+ * Raises NSInvalidArgumentException if given bad arguments.
+ */
 - (BOOL) removePortForName: (NSString*)name
 {
   [self subclassResponsibility: _cmd];
@@ -119,7 +136,8 @@
  * Some extensions to make cleaning up port names easier.
  */
 @implementation	NSPortNameServer (GNUstep)
-/** Return all names for port
+/** <override-subclass />
+ * Return all names that have been registered with the receiver for port.
  */
 - (NSArray*) namesForPort: (NSPort*)port
 {
@@ -128,8 +146,8 @@
 }
 
 /**
- * Remove all names for port.  Probably inefficient ... subclasses 
- * should override this.
+ * Remove all names registered with the receiver for port.
+ * Probably inefficient ... subclasses might want to override this.
  */
 - (BOOL) removePort: (NSPort*)port
 {
@@ -147,8 +165,9 @@
   return removed;
 }
 
-/**
- * Remove the name if and only if it is registered by the given port.
+/** <override-subclass />
+ * Remove the name if and only if it is registered with the receiver
+ * for the given port.
  */
 - (BOOL) removePort: (NSPort*)port forName: (NSString*)name
 {

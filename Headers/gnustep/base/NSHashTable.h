@@ -50,22 +50,22 @@ typedef struct { void *map; void *node; size_t bucket; } NSHashEnumerator;
 /** Callback functions. <br />*/
 typedef struct _NSHashTableCallBacks
 {
-  /** hash() ... Hashing function. NOTE: Elements with equal values must have
+  /** hash ... Hashing function. NOTE: Elements with equal values must have
    * equal hash function values. <br />*/
   unsigned int (*hash)(NSHashTable *, const void *);
 
-  /** isEqual() ... Comparison function. <br />*/
+  /** isEqual ... Comparison function. <br />*/
   BOOL (*isEqual)(NSHashTable *, const void *, const void *);
 
-  /** retain() ... Retaining function called when adding elements
+  /** retain ... Retaining function called when adding elements
    * to the table. <br />*/
   void (*retain)(NSHashTable *, const void *);
 
-  /** release() ... Releasing function called when a data element is
+  /** release ... Releasing function called when a data element is
    * removed from the table. <br />*/
   void (*release)(NSHashTable *, void *);
 
-  /** describe() ... Description function. <br />*/
+  /** describe ... Description function. <br />*/
   NSString *(*describe)(NSHashTable *, const void *);
 } NSHashTableCallBacks;
 

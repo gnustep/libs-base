@@ -171,7 +171,8 @@ typedef enum {
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
-      NSDebugMLLog(@"NSSocketPortNameServer", @"failed connect to gdomap on %@ - %@",
+      NSDebugMLLog(@"NSSocketPortNameServer",
+	@"failed connect to gdomap on %@ - %@",
 	[[notification object] socketAddress], e); 
       /*
        * Remove our file handle, then either retry or fail.
@@ -527,6 +528,12 @@ typedef enum {
 
 
 
+/**
+ * This is the nameserver handling ports used for distributed objects
+ * communications (see [NSConnection]) between hosts.<br />
+ * Use the +sharedInstance method to get a nameserver, rather than
+ * allocating and initialising one.
+ */
 @implementation NSSocketPortNameServer
 
 + (id) allocWithZone: (NSZone*)aZone
@@ -550,6 +557,9 @@ typedef enum {
     }
 }
 
+/**
+ * Returns the shared name server object for the process.
+ */
 + (id) sharedInstance
 {
   if (defaultServer == nil)
@@ -562,7 +572,8 @@ typedef enum {
 	  [serverLock unlock];
 	  return defaultServer;
 	}
-      s = (NSSocketPortNameServer*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      s = (NSSocketPortNameServer*)NSAllocateObject(self, 0,
+	NSDefaultMallocZone());
       s->_portMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 			NSObjectMapValueCallBacks, 0);
       s->_nameMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
@@ -674,11 +685,12 @@ typedef enum {
       NS_HANDLER
 	{
 	  /*
-	   *	If we had a problem - unlock before continueing.
+	   *	If we had a problem - unlock before continuing.
 	   */
 	  RELEASE(com);
 	  [serverLock unlock];
-          [localException raise];
+	  NSDebugMLLog(@"NSSocketPortNameServer", @"%@", localException);
+	  return NO;
 	}
       NS_ENDHANDLER
       [serverLock unlock];
@@ -778,10 +790,11 @@ typedef enum {
   NS_HANDLER
     {
       /*
-       *	If we had a problem - unlock before continueing.
+       *	If we had a problem - unlock before continuing.
        */
       [serverLock unlock];
-      [localException raise];
+      NSDebugMLLog(@"NSSocketPortNameServer", @"%@", localException);
+      return NO;
     }
   NS_ENDHANDLER
   [serverLock unlock];
@@ -848,6 +861,11 @@ typedef enum {
       [NSException raise: NSInvalidArgumentException
 		  format: @"attempt to register nil port"]; 
     }
+  if ([port isKindOfClass: [NSSocketPort class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"attempt to register non-NSSocketPort (%@)", port]; 
+    }
   len = [name cStringLength];
   if (len == 0)
     {
@@ -890,7 +908,8 @@ typedef enum {
       if ([known count] == 0)
 	{
 	  com = [GSPortCom new];
-	  [com startPortUnregistration: [(NSSocketPort *)port portNumber] withName: nil];
+	  [com startPortUnregistration: [(NSSocketPort*)port portNumber]
+			      withName: nil];
 	  while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
 	    {
 	      [loop runMode: mode
@@ -906,7 +925,8 @@ typedef enum {
 	}
 
       com = [GSPortCom new];
-      [com startPortRegistration: [(NSSocketPort *)port portNumber] withName: name];
+      [com startPortRegistration: [(NSSocketPort*)port portNumber]
+			withName: name];
       while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
 	{
 	  [loop runMode: mode beforeDate: limit];
@@ -987,11 +1007,12 @@ typedef enum {
   NS_HANDLER
     {
       /*
-       *	If we had a problem - close and unlock before continueing.
+       *	If we had a problem - close and unlock before continuing.
        */
       DESTROY(com);
       [serverLock unlock];
-      [localException raise];
+      NSDebugMLLog(@"NSSocketPortNameServer", @"%@", localException);
+      return NO;
     }
   NS_ENDHANDLER
   [serverLock unlock];
@@ -1090,11 +1111,11 @@ typedef enum {
   NS_HANDLER
     {
       /*
-       *	If we had a problem - unlock before continueing.
+       *	If we had a problem - unlock before continuing.
        */
       RELEASE(com);
-      [serverLock unlock];
-      [localException raise];
+      NSDebugMLLog(@"NSSocketPortNameServer", @"%@", localException);
+      val = NO;
     }
   NS_ENDHANDLER
   [serverLock unlock];
@@ -1159,7 +1180,8 @@ typedef enum {
   NS_HANDLER
     {
       [serverLock unlock];
-      [localException raise];
+      NSDebugMLLog(@"NSSocketPortNameServer", @"%@", localException);
+      return NO;
     }
   NS_ENDHANDLER
   [serverLock unlock];

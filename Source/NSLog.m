@@ -215,8 +215,8 @@ NSLog (NSString* format, ...)
  *   perform actual output.  Locking is performed around the call to
  *   the function actually writing the message out, to ensure that
  *   logging is thread-safe.  However, the actual creation of the
- *   message written is only as safe as the -description methods of
- *   the arguments you supply.
+ *   message written is only as safe as the [NSObject-description] methods
+ *   of the arguments you supply.
  * </p>
  * <p>
  *   The function to write the data is pointed to by

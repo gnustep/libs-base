@@ -4,6 +4,18 @@
 	* Source/NSUser.m: Use HOMEPATH in preference to USERPROFILE for
 	OPENSTEP compatibility and because USERPROFILE generally doesn't
 	work due to the presence of spaces.
+	* Headers/gnustep/base/NSDebug.h: Minor documentation fix.
+	* Headers/gnustep/base/NSHashTable.h: ditto
+	* Headers/gnustep/base/NSPort.h: ditto
+	* Headers/gnustep/base/NSPortNameServer.h: ditto
+	* Source/DocMakefile: Document serialization classes
+	* Source/NSDebug.m: Fix broken cross reference
+	* Source/NSLog.m: ditto
+	* Source/NSMessagePortNameServer.m: Tidied
+	* Source/NSPortNameServer.m: Tidied and documented.
+	* Source/NSSocketPortNameServer.m: Documented and fixed methods
+	to return NO on failure rather than raising exception.
+	* Source/NSUndoManager.m: Fix documentation markup errors.
 
 2003-07-21  Richard Frith-Macdonald <rfm@gnu.org>
 

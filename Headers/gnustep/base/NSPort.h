@@ -22,6 +22,7 @@
 
   AutogsdocSource: NSPort.m
   AutogsdocSource: NSSocketPort.m
+  AutogsdocSource: NSMessagePort.m
 */
 
 #ifndef __NSPort_h_GNUSTEP_BASE_INCLUDE
@@ -115,9 +116,9 @@ typedef SOCKET NSSocketNativeHandle;
 }
 
 + (NSSocketPort*) existingPortWithNumber: (gsu16)number
-				  onHost: (NSHost*)host;
+				  onHost: (NSHost*)aHost;
 + (NSSocketPort*) portWithNumber: (gsu16)number
-			  onHost: (NSHost*)host
+			  onHost: (NSHost*)aHost
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen;
 
@@ -129,7 +130,7 @@ typedef SOCKET NSSocketNativeHandle;
 - (void) handlePortMessage: (NSPortMessage*)m;
 - (NSHost*) host;
 - (gsu16) portNumber;
-- (void) removeHandle: (GSTcpHandle*)h;
+- (void) removeHandle: (GSTcpHandle*)handle;
 
 /*
 {
@@ -178,7 +179,7 @@ typedef SOCKET NSSocketNativeHandle;
 
 - (int) _listener;
 - (const unsigned char *) _name;
-+ (NSMessagePort*) _portWithName: (const unsigned char *)name
++ (NSMessagePort*) _portWithName: (const unsigned char *)socketName
 			listener: (BOOL)shouldListen;
 
 - (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send;

@@ -644,7 +644,7 @@ GSDebugAllocationRemove(Class c, id o)
  * containing all the allocated objects of a certain class
  * which have been recorded ... to start the recording, you need
  * to invoke GSDebugAllocationActiveRecordingObjects().
- * Presumably, you will immediately call -description on them
+ * Presumably, you will immediately call [NSObject-description] on them
  * to find out the objects you are leaking.  The objects are
  * returned in an array, so until the array is autoreleased,
  * the objects are not released.
