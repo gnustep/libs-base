@@ -1,4 +1,4 @@
-/* Interface for NSArray for GNUStep
+/* Interface for NSException for GNUStep
    Copyright (C) 1994 NeXT Computer, Inc.
    
    This file is part of the GNU Objective C Class Library.
@@ -117,5 +117,94 @@ extern void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_VOIDRETURN	do { _NSRemoveHandler(&NSLocalHandler);	\
 			return; } while (0)
+
+/* ------------------------------------------------------------------------ */
+/*   Assertion Handling */
+/* ------------------------------------------------------------------------ */
+
+@interface NSAssertionHandler : NSObject
+
++ (NSAssertionHandler *)currentHandler;
+
+- (void)handleFailureInFunction:(NSString *)functionName 
+	file:(NSString *)fileName 
+	lineNumber:(int)line 
+	description:(NSString *)format,...;
+
+- (void)handleFailureInMethod:(SEL)aSelector 
+	object:object 
+	file:(NSString *)fileName 
+	lineNumber:(int)line 
+	description:(NSString *)format,...;
+
+@end
+
+#define _NSAssertArgs(condition, desc, args...)		\
+    do {							\
+	if (!(condition)) {					\
+	    [[NSAssertionHandler currentHandler] 		\
+	    	handleFailureInMethod:_cmd 			\
+		object:self 					\
+		file:[NSString stringWithCString:__FILE__] 	\
+		lineNumber:__LINE__ 				\
+		description:(desc), ## args]; 			\
+	}							\
+    } while(0)
+
+#define _NSCAssertArgs(condition, desc, args...)		\
+    do {							\
+	if (!(condition)) {					\
+	    [[NSAssertionHandler currentHandler] 		\
+	    handleFailureInFunction:[NSString stringWithCString:__PRETTY_FUNCTION__] 				\
+	    file:[NSString stringWithCString:__FILE__] 		\
+	    lineNumber:__LINE__ 				\
+	    description:(desc), ## args]; 			\
+	}							\
+    } while(0)
+
+
+/* Asserts to use in Objective-C method bodies*/ 
+#define NSAssert5(condition, desc, arg1, arg2, arg3, arg4, arg5)	\
+    _NSAssertArgs((condition), (desc), (arg1), (arg2), (arg3), (arg4), (arg5))
+
+#define NSAssert4(condition, desc, arg1, arg2, arg3, arg4)	\
+    _NSAssertArgs((condition), (desc), (arg1), (arg2), (arg3), (arg4))
+
+#define NSAssert3(condition, desc, arg1, arg2, arg3)	\
+    _NSAssertArgs((condition), (desc), (arg1), (arg2), (arg3))
+
+#define NSAssert2(condition, desc, arg1, arg2)		\
+    _NSAssertArgs((condition), (desc), (arg1), (arg2))
+
+#define NSAssert1(condition, desc, arg1)		\
+    _NSAssertArgs((condition), (desc), (arg1))
+
+#define NSAssert(condition, desc)			\
+    _NSAssertArgs((condition), (desc))
+
+#define NSParameterAssert(condition)			\
+    _NSAssertArgs((condition), @"Invalid parameter not satisfying: %s", #condition)
+
+/* Asserts to use in C function bodies */
+#define NSCAssert5(condition, desc, arg1, arg2, arg3, arg4, arg5)	\
+    _NSCAssertArgs((condition), (desc), (arg1), (arg2), (arg3), (arg4), (arg5))
+
+#define NSCAssert4(condition, desc, arg1, arg2, arg3, arg4)	\
+    _NSCAssertArgs((condition), (desc), (arg1), (arg2), (arg3), (arg4))
+
+#define NSCAssert3(condition, desc, arg1, arg2, arg3)	\
+    _NSCAssertArgs((condition), (desc), (arg1), (arg2), (arg3))
+
+#define NSCAssert2(condition, desc, arg1, arg2)		\
+    _NSCAssertArgs((condition), (desc), (arg1), (arg2))
+
+#define NSCAssert1(condition, desc, arg1)		\
+    _NSCAssertArgs((condition), (desc), (arg1))
+
+#define NSCAssert(condition, desc)			\
+    _NSCAssertArgs((condition), (desc))
+
+#define NSCParameterAssert(condition)			\
+    _NSCAssertArgs((condition), @"Invalid parameter not satisfying: %s", #condition)
 
 #endif /* __NSException_h_OBJECTS_INCLUDE */
