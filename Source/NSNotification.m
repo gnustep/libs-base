@@ -23,45 +23,44 @@
 
 #include <config.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
 
 @implementation NSNotification
 
 /* This is the designated initializer. */
-- initWithName: (NSString*)name
-	object: object
-      userInfo: info
+- (id) initWithName: (NSString*)name
+	     object: (id)object
+	   userInfo: (id)info
 {
   [super init];
   _name = [name copyWithZone: NSDefaultMallocZone()];
-  _object = (object != nil) ? RETAIN(object) : nil;
-  _info = (info != nil) ? RETAIN(info) : nil;
+  _object = TEST_RETAIN(object);
+  _info = TEST_RETAIN(info);
   return self;
 }
 
 - (void) dealloc
 {
   RELEASE(_name);
-  if (_object)
-    RELEASE(_object);
-  if (_info)
-    RELEASE(_info);
+  TEST_RELEASE(_object);
+  TEST_RELEASE(_info);
   [super dealloc];
 }
 
 
 /* Creating autoreleased Notification objects. */
 
-+ notificationWithName: (NSString*)name
-		object: object
-	      userInfo: info
++ (NSNotification*) notificationWithName: (NSString*)name
+				  object: (id)object
+			        userInfo: (id)info
 {
   return [[[self allocWithZone: NSDefaultMallocZone()] initWithName: name 
     object: object userInfo: info] autorelease];
 }
 
-+ notificationWithName: (NSString*)name
-		object: object
++ (NSNotification*) notificationWithName: (NSString*)name
+				  object: (id)object
 {
   return [self notificationWithName: name object: object userInfo: nil];
 }
@@ -74,12 +73,12 @@
   return _name;
 }
 
-- object
+- (id) object
 {
   return _object;
 }
 
-- userInfo
+- (NSDictionary*) userInfo
 {
   return _info;
 }
@@ -87,15 +86,37 @@
 
 /* NSCopying protocol. */
 
-- copyWithZone: (NSZone*)zone
+- (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone (self, zone))
     return [self retain];
 
   return [[[self class] allocWithZone: zone]
-	   initWithName: _name
-	   object: _object
-	   userInfo: _info];
+    initWithName: _name
+	  object: _object
+	userInfo: _info];
+}
+
+/*
+ * NSCoding protocol - the MacOS-X documentation says it should conform,
+ * but how can we meaningfully encode/decode the object and userInfo.
+ * We do it anyway - at least it should make sense over DO.
+ */
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [super encodeWithCoder: aCoder];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_name];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_object];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &_info];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  [super initWithCoder: aCoder];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_name];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_object];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &_info];
+  return self;
 }
 
 @end

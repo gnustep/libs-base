@@ -1,5 +1,5 @@
-/* Interface for NSNotification and NSNotificationCenter for GNUStep
-   Copyright (C) 1996 Free Software Foundation, Inc.
+/* Interface for NSNotification and NSNotificationCenter for GNUstep
+   Copyright (C) 1996,1999 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: March 1996
@@ -25,85 +25,65 @@
 #define __NSNotification_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSMapTable.h>
 
 @class NSString;
 @class NSDictionary;
+@class NSLock;
 
-@protocol Notifying
-- (NSString*) name;
-- object;
-- userInfo;
-@end
-
-@protocol NotificationPosting
-- (void) postNotification: (id <Notifying>)notification;
-@end
-
-@interface NSNotification : NSObject <Notifying,NSCopying>
+@interface NSNotification : NSObject <NSCopying, NSCoding>
 {
-  id _name;
-  id _object;
-  id _info;
+  NSString	*_name;
+  id		_object;
+  NSDictionary	*_info;
 }
 
 /* Creating a Notification Object */
 + (NSNotification*) notificationWithName: (NSString*)name
-   object: object;
+				  object: (id)object;
 
 + (NSNotification*) notificationWithName: (NSString*)name
-   object: object
-   userInfo: (NSDictionary*)user_info;
+				  object: (id)object
+			        userInfo: (NSDictionary*)user_info;
 
 /* Querying a Notification Object */
 
 - (NSString*) name;
-- object;
+- (id) object;
 - (NSDictionary*) userInfo;
 
 @end
 
 
-#include <base/NotificationDispatcher.h>
 
-/* Put this in a category to avoid unimportant errors due to behaviors. */
-@interface NSNotificationCenter : NSObject
-  /* Make the instance size of this class match exactly the instance
-     size of NotificationDispatcher.  Thus, behavior_class_add_class() will not
-     have to increase the instance size of NSNotificationCenter, and
-     NSNotificationCenter can safely be subclassed. */
-  char _NSNotificationCenter_placeholder[(sizeof(struct NotificationDispatcher)
-                                  - sizeof(struct NSObject))];
-
-@end
-
-#ifndef	NO_GNUSTEP
-@interface NSNotificationCenter (GNUstep)
-
-/* Getting the default NotificationCenter */
+@interface NSNotificationCenter : NSObject <GCFinalization>
+{
+  void		*wildcard;	/* Observations matching anything.	*/
+  NSMapTable	*nameless;	/* Observations matching objects.	*/
+  void		*named;		/* Observations matching names.		*/
+  NSMapTable	*observers;	/* Observations keyed by observer.	*/
+  NSLock	*_lock;
+}
 
 + (NSNotificationCenter*) defaultCenter;
 
-/* Adding and removing observers */
-
-- (void) addObserver: anObserver
-	    selector: (SEL)selector
+- (void) addObserver: (id)observer
+            selector: (SEL)sel
                 name: (NSString*)name
-	      object: object;
+              object: (id)object;
 
-- (void) removeObserver: anObserver;
-- (void) removeObserver: anObserver
-		   name: (NSString*)name
-                 object: object;
+- (void) removeObserver: (id)observer;
+- (void) removeObserver: (id)observer
+                   name: (NSString*)name
+                 object: (id)object;
 
-/* Posting Notifications */
-
-- (void) postNotification: (NSNotification*)aNotification;
+- (void) postNotification: (NSNotification*)notification;
 - (void) postNotificationName: (NSString*)name
-		       object: object;
+                       object: (id)object;
 - (void) postNotificationName: (NSString*)name
-		       object: object
-		     userInfo: (NSDictionary*)user_info;
+                       object: (id)object
+                     userInfo: (NSDictionary*)info;
+
 @end
-#endif
 
 #endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */
