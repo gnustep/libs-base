@@ -797,10 +797,34 @@ static NSMutableSet	*textNodes = nil;
 		    {
 		      NSString		*ref = [a objectAtIndex: i];
 		      NSDictionary	*units = [dict objectForKey: ref];
-		      NSArray		*b = [units allKeys];
+		      NSMutableArray	*b = [[units allKeys] mutableCopy];
 		      unsigned		j;
 
-		      b = [b sortedArrayUsingSelector: @selector(compare:)];
+		      if (unit != nil)
+			{
+			  /*
+			   * Remove any listing for methods not in the
+			   * current unit or in categories of the
+			   * current class.
+			   */
+			  for (j = 0; j < [b count]; j++)
+			    {
+			      NSString	*u = [b objectAtIndex: j];
+
+			      if ([unit isEqual: u] == NO)
+				{
+				  if ([unit hasSuffix: @")"] == NO
+				    && [u hasPrefix: unit] == YES
+				    && [u characterAtIndex: [unit length]]
+				    == '(')
+				    {
+				      continue;
+				    }
+				  [b removeObjectAtIndex: j--];
+				}
+			    }
+			}
+		      [b sortUsingSelector: @selector(compare:)];
 		      for (j = 0; j < [b count]; j++)
 			{
 			  NSString	*u = [b objectAtIndex: j];
@@ -810,8 +834,9 @@ static NSMutableSet	*textNodes = nil;
 			  [buf appendFormat: @"<li><a rel=\"gsdoc\" href="];
 			  [buf appendFormat: @"\"%@.html#%@$%@%@%@\">",
 			    file, type, u, sep, ref];
-			  [buf appendFormat: @"%@ in %@</a></li>\n", ref, u];
+			  [buf appendFormat: @"%@</a> in %@</li>\n", ref, u];
 			}
+		      RELEASE(b);
 		    }
 		  else
 		    {
