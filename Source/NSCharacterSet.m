@@ -63,7 +63,6 @@ static NSLock* cache_lock = nil;
 {
   NSCharacterSet* set;
   NSString *path;
-  id csb;
 
   if (!cache_lock)
     cache_lock = [NSLock new];
@@ -71,16 +70,15 @@ static NSLock* cache_lock = nil;
 
   set = nil; /* Quiet warnings */
   if (cache_set[number] == nil)
-      NS_DURING {
-        csb = [NSBundle bundleWithPath:NSCharacterSet_PATH];
-	path = [csb pathForResource:setname
+    {
+      NS_DURING
+	path = [NSBundle pathForResource:setname
 			ofType:@"dat"
 			inDirectory:NSCharacterSet_PATH];
         /* This is for testing purposes */
         if (path == nil || [path length] == 0)
-          }
-        csb = [NSBundle bundleWithPath:@"../NSCharacterSets"];
-	    path = [csb pathForResource:setname
+	  {
+	    path = [NSBundle pathForResource:setname
 			ofType:@"dat"
 			inDirectory:@"../NSCharacterSets"];
 	  }
