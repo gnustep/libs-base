@@ -351,7 +351,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - retain
 {
-  NSIncrementExtraRefCount(self, [self zone]);
+  NSIncrementExtraRefCount(self);
   return self;
 }
 
