@@ -1,4 +1,21 @@
-2004-09-13  Adrian Robert  <arobert@cogsci.ucsd.edu>
+2004-09-19  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Headers/Foundation/NSBundle.h
+	* Headers/Foundation/NSConnection.h
+	* Headers/Foundation/NSDistributedNotificationCenter.h
+	* Headers/Foundation/NSPort.h
+	* Headers/Foundation/NSTask.h
+	* Headers/Foundation/NSThread.h
+	* Headers/Foundation/NSURL.h
+	* Headers/Foundation/NSUndoManager.h
+	* Source/NSDistributedNotificationCenter.m
+	* Source/NSTask.m
+	* Source/NSURL.m
+	* Source/NSUndoManager.m
+	* Source/externs.m: Declare constant strings as constant, and move
+	values from source files into externs.m .
+
+2004-09-19  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Tools/AGSOutput.h
 	(informalProtocols): New array to accumulate informal protocols
