@@ -1,8 +1,13 @@
-  /* Interface for support functions for Unicode implementation
+/* Interface for support functions for Unicode implementation.
+   Interface for GetDefEncoding function to determine default c
+   string encoding for GNUstep based on GNUSTEP_STRING_ENCODING
+   environment variable.
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by: Stevo Crvenkovski <stevo@btinternet.com>
    Date: March 1997
+   Merged with GetDefEncoding.h: Fred Kiefer <fredkiefer@gmx.de>
+   Date: September 2000
 
    This file is part of the GNUstep Base Library.
 
@@ -25,6 +30,10 @@
 #define __Unicode_h_OBJECTS_INCLUDE
 
 #include <Foundation/NSString.h>	/* For string encodings */
+
+NSStringEncoding *GetAvailableEncodings();
+NSStringEncoding GetDefEncoding();
+NSString* GetEncodingName(NSStringEncoding encoding);
 
 unichar chartouni(char c);
 char unitochar(unichar u);
