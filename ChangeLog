@@ -1,3 +1,7 @@
+2001-11-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSData.m: Add an include to avoid some warnings.
+
 Tue Oct 30 14:33:48 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Testing/benchmark.m (bench_object): Added test showing that a
