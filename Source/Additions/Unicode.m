@@ -1038,7 +1038,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    }
 		  if (c < 0xe0)
 		    {
-		      if (c < 0xc2)
+		      if (c < 0xc1)
 			{
 			  /*
 			   * Either we are inside a multibyte sequence or
@@ -1072,13 +1072,30 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 			}
 		      c2 = src[spos++];
 		      if (((c1 ^ 0x80) >= 0x40) || ((c2 ^ 0x80) >= 0x40)
-			|| (c1 == 0x80))
+			|| (c == 0xe0 && c1 == 0x80))
 			{
 			  result = NO;	// Invalid sequence.
 			  break;
 			}
 		      u = ((c & 0x0f) << 12) | ((c1 & 0x3f) << 6)
 			| (c2 & 0x3f);
+
+		      if (u >= 0xd800 && u <= 0xdfff)
+			{
+			  /*
+			   * Sequence not legal ... in utf-16 surrogates.
+			   */
+			  result = NO;
+			  break;
+			}
+		      if (u >= 0xfffe)
+			{
+			  /*
+			   * Sequence not legal ... in utf-16 surrogates.
+			   */
+			  result = NO;
+			  break;
+			}
 		    }
 		  else
 		    {
