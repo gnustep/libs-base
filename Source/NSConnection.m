@@ -34,13 +34,11 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/DistributedObjects.h>
 #include <gnustep/base/TcpPort.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/Dictionary.h>
-#include <gnustep/base/Queue.h>
 #include <gnustep/base/mframe.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
@@ -182,7 +180,7 @@ static NSMutableArray *connection_array;
 static NSMutableArray *not_owned;
 static Lock *connection_array_gate;
 
-static Dictionary *root_object_dictionary;
+static NSMutableDictionary *root_object_dictionary;
 static Lock *root_object_dictionary_gate;
 
 static NSMapTable *receive_port_2_ancestor;
@@ -190,9 +188,9 @@ static NSMapTable *receive_port_2_ancestor;
 static NSMapTable *all_connections_local_targets = NULL;
 
 /* rmc handling */
-static Queue *received_request_rmc_queue;
+static NSMutableArray *received_request_rmc_queue;
 static Lock *received_request_rmc_queue_gate;
-static Queue *received_reply_rmc_queue;
+static NSMutableArray *received_reply_rmc_queue;
 static Lock *received_reply_rmc_queue_gate;
 
 static int messages_received_count;
@@ -258,11 +256,11 @@ static int messages_received_count;
   all_connections_local_targets =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
-  received_request_rmc_queue = [[Queue alloc] init];
+  received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
   received_request_rmc_queue_gate = [Lock new];
-  received_reply_rmc_queue = [[Queue alloc] init];
+  received_reply_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
   received_reply_rmc_queue_gate = [Lock new];
-  root_object_dictionary = [[Dictionary alloc] init];
+  root_object_dictionary = [[NSMutableDictionary alloc] initWithCapacity:8];
   root_object_dictionary_gate = [Lock new];
   receive_port_2_ancestor =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
@@ -1444,7 +1442,7 @@ static int messages_received_count;
 	 If the REPLY_DEPTH is 0, then we aren't in the middle of waiting
 	 for a reply, we are waiting for requests---so service it now.
 	 If REPLY_DEPTH is non-zero, we may still want to service it now
-	 unless we have independant_queueing set. */
+	 if independant_queuing is NO. */
       if (reply_depth == 0 || independant_queueing == NO)
 	{
 	  [self retain];
@@ -1459,7 +1457,7 @@ static int messages_received_count;
       else
 	{
 	  [received_request_rmc_queue_gate lock];
-	  [received_request_rmc_queue enqueueObject: rmc];
+	  [received_request_rmc_queue addObject: rmc];
 	  [received_request_rmc_queue_gate unlock];
 	}
       break;
@@ -1468,7 +1466,7 @@ static int messages_received_count;
     case METHODTYPE_REPLY:
       /* Remember multi-threaded callbacks will have to be handled specially */
       [received_reply_rmc_queue_gate lock];
-      [received_reply_rmc_queue enqueueObject: rmc];
+      [received_reply_rmc_queue addObject: rmc];
       [received_reply_rmc_queue_gate unlock];
       break;
     case CONNECTION_SHUTDOWN:
@@ -1499,8 +1497,10 @@ static int messages_received_count;
   id rmc;
 
   [received_request_rmc_queue_gate lock];
-  while (is_valid && (rmc = [received_request_rmc_queue dequeueObject]))
+  while (is_valid && ([received_request_rmc_queue count] > 0))
     {
+      rmc = [received_request_rmc_queue objectAtIndex: 0];
+      [received_request_rmc_queue removeObjectAtIndex: 0];
       [received_request_rmc_queue_gate unlock];
       [self _handleRmc: rmc];
       [received_request_rmc_queue_gate lock];

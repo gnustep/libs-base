@@ -585,15 +585,16 @@ static int debug_run_loop = 0;
 - (void) runUntilDate: date forMode: (NSString*)mode
 {
   volatile double ti;
+  BOOL mayDoMore = YES;
 
   ti = [date timeIntervalSinceNow];
   /* Positive values are in the future. */
-  while (ti > 0)
+  while (ti > 0 && mayDoMore == YES)
     {
       id arp = [NSAutoreleasePool new];
       if (debug_run_loop)
 	printf ("\tNSRunLoop run until date %f seconds from now\n", ti);
-      [self runMode: mode beforeDate: date];
+      mayDoMore = [self runMode: mode beforeDate: date];
       [arp release];
       ti = [date timeIntervalSinceNow];
     }

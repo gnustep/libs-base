@@ -1290,4 +1290,3 @@ static NSFileManager* defaultManager = nil;
 }
 
 @end /* NSFileManager (PrivateMethods) */
-@end
