@@ -1537,6 +1537,16 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 	    }
 	    break;
 
+	  case _C_VOID:
+            {
+              void        (*imp)(id, SEL) =
+                (void (*)(id, SEL))[self methodForSelector: sel];
+              
+              (*imp)(self, sel);
+            }
+            val = nil;
+            break;
+
 	  default:
 	    [NSException raise: NSInvalidArgumentException
 			format: @"key-value get method has unsupported type"];
