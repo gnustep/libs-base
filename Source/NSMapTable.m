@@ -367,6 +367,7 @@ void
 NSMapInsert(NSMapTable *table, const void *key, const void *value)
 {
   GSIMapTable	t = (GSIMapTable)table;
+  GSIMapNode	n;
 
   if (table == 0)
     {
@@ -378,7 +379,19 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place notAKeyMarker in map table"];
     }
-  GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+  n = GSIMapNodeForKey(t, (GSIMapKey)key);
+  if (n == 0)
+    {
+      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+    }
+  else
+    {
+      GSIMapVal	tmp = n->value;
+
+      n->value = (GSIMapVal)value;
+      GSI_MAP_RETAIN_VAL(t, n->value);
+      GSI_MAP_RELEASE_VAL(t, tmp);
+    }
 }
 
 /**

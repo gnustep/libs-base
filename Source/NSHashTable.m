@@ -309,6 +309,7 @@ void
 NSHashInsert(NSHashTable *table, const void *element)
 {
   GSIMapTable   t = (GSIMapTable)table;
+  GSIMapNode    n;
 
   if (table == 0)
     {
@@ -320,7 +321,19 @@ NSHashInsert(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place nul in hash table"];
     }
-  GSIMapAddKey(t, (GSIMapKey)element);
+  n = GSIMapNodeForKey(t, (GSIMapKey)element);
+  if (n == 0)
+    {
+      GSIMapAddKey(t, (GSIMapKey)element);
+    }
+  else
+    {
+      GSIMapKey	tmp = n->key;
+
+      n->key = (GSIMapKey)element;
+      GSI_MAP_RETAIN_KEY(t, n->key);
+      GSI_MAP_RELEASE_KEY(t, tmp);
+    }
 }
 
 /**

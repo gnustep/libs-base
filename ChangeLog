@@ -6,6 +6,8 @@
 	* Source/Unicode.m: Added some standard string handling for iconv.
 	* Source/NSString.m: ([-initWithData:encoding:]) return nil on
 	failure to handle encoding.
+	* Source/NSMapTable.m: NSMapInsert() fixed to conform to spec.
+	* Source/NSHashTable.m: NSHashInsert() fixed to conform to spec.
 	Reports by Alexander Malmberg
 
 2002-03-07  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
