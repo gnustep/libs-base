@@ -28,6 +28,7 @@
 #define __NSPort_h_GNUSTEP_BASE_INCLUDE
 
 #include	<Foundation/NSObject.h>
+#include	<Foundation/NSMapTable.h>
 
 #ifdef __MINGW__
 #include	<winsock2.h>
@@ -42,6 +43,8 @@
 @class	NSDate;
 @class	NSRunLoop;
 @class	NSString;
+@class	NSPortMessage;
+@class	NSHost;
 
 GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 
@@ -100,7 +103,35 @@ GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
 
 typedef SOCKET NSSocketNativeHandle;
 
-@interface NSSocketPort : NSPort  <NSCoding, NSCopying>
+@class GSTcpHandle;
+@interface NSSocketPort : NSPort <GCFinalization>
+{
+  NSRecursiveLock	*myLock;
+  NSHost		*host;		/* OpenStep host for this port.	*/
+  NSString		*address;	/* Forced internet address.	*/
+  gsu16			portNum;	/* TCP port in host byte order.	*/
+  SOCKET		listener;
+  NSMapTable		*handles;	/* Handles indexed by socket.	*/
+}
+
++ (NSSocketPort*) existingPortWithNumber: (gsu16)number
+				  onHost: (NSHost*)host;
++ (NSSocketPort*) portWithNumber: (gsu16)number
+			  onHost: (NSHost*)host
+		    forceAddress: (NSString*)addr
+			listener: (BOOL)shouldListen;
+
+- (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send;
+- (NSString*) address;
+- (void) getFds: (SOCKET*)fds count: (int*)count;
+- (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort
+		    beforeDate: (NSDate*)when;
+- (void) handlePortMessage: (NSPortMessage*)m;
+- (NSHost*) host;
+- (gsu16) portNumber;
+- (void) removeHandle: (GSTcpHandle*)h;
+
+/*
 {
   NSSocketNativeHandle _socket;
   int _protocolFamily;
@@ -108,7 +139,6 @@ typedef SOCKET NSSocketNativeHandle;
   int _protocol;
   NSData *_remoteAddrData;
 }
-
 - (id) init;
 - (id) initWithTCPPort: (unsigned short)portNumber;
 - (id) initWithProtocolFamily: (int)family
@@ -131,8 +161,35 @@ typedef SOCKET NSSocketNativeHandle;
 - (int) protocolFamily;
 - (NSSocketNativeHandle) socket;
 - (int) socketType;
+*/
 
 @end
+
+
+@class GSMessageHandle;
+
+@interface NSMessagePort : NSPort <GCFinalization>
+{
+  NSData		*name;
+  NSRecursiveLock	*myLock;
+  NSMapTable		*handles;	/* Handles indexed by socket.	*/
+  int			listener;	/* Descriptor to listen on.	*/
+}
+
+- (int) _listener;
+- (const unsigned char *) _name;
++ (NSMessagePort*) _portWithName: (const unsigned char *)name
+			listener: (BOOL)shouldListen;
+
+- (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send;
+- (void) removeHandle: (GSMessageHandle*)handle;
+- (void) handlePortMessage: (NSPortMessage*)m;
+
+@end
+
+
 #endif
 
+
 #endif /* __NSPort_h_GNUSTEP_BASE_INCLUDE */
+

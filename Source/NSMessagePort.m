@@ -1,4 +1,4 @@
-/** Implementation of network port object based on TCP sockets
+/** Implementation of network port object based on unix domain sockets
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -30,15 +30,14 @@
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
-#include "Foundation/NSHost.h"
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSPortMessage.h"
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSLock.h"
-#include "Foundation/NSHost.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSPathUtilities.h"
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef	HAVE_SYS_SIGNAL_H
@@ -51,12 +50,10 @@
 #include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifdef __MINGW__
-#define close closesocket
-#else
+#ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
-#include <netinet/in.h>
+#include <sys/un.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__MINGW__ */
 #include <errno.h>
@@ -75,6 +72,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
@@ -96,12 +94,12 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-
-#define	SOCKET	int
-#define	SOCKET_ERROR	-1
-#define	INVALID_SOCKET	-1
-
 #endif /* !__MINGW__ */
+
+#ifdef __MINGW__
+#define close closesocket
+#endif
+
 
 static	BOOL	multi_threaded = NO;
 
@@ -111,8 +109,8 @@ static	BOOL	multi_threaded = NO;
 static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 #if 0
-#define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
-#define	M_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"unlock %@",X); [X unlock];}
+#define	M_LOCK(X) {NSDebugMLLog(@"NSMessagePort",@"lock %@",X); [X lock];}
+#define	M_UNLOCK(X) {NSDebugMLLog(@"NSMessagePort",@"unlock %@",X); [X unlock];}
 #else
 #define	M_LOCK(X) {[X lock];}
 #define	M_UNLOCK(X) {[X unlock];}
@@ -167,8 +165,8 @@ typedef struct {
 } GSPortMsgHeader;
 
 typedef	struct {
-  gsu16 num;		/* TCP port num	*/
-  char	addr[0];	/* host address	*/
+  char	version;
+  char	addr[0];	/* name of the socket in the port directory */
 } GSPortInfo;
 
 /*
@@ -188,9 +186,9 @@ typedef enum {
   GS_H_CONNECTED	// Currently connected.
 } GSHandleState;
 
-@interface GSTcpHandle : NSObject <GCFinalization, RunLoopEvents>
+@interface GSMessageHandle : NSObject <GCFinalization, RunLoopEvents>
 {
-  SOCKET		desc;		/* File descriptor for I/O.	*/
+  int			desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
   NSMutableData		*wData;		/* Data object being written.	*/
   unsigned		wLength;	/* Ammount written so far.	*/
@@ -208,14 +206,13 @@ typedef enum {
   NSRecursiveLock	*myLock;	/* Lock for this handle.	*/
   BOOL			caller;		/* Did we connect to other end?	*/
   BOOL			valid;
-  NSSocketPort		*recvPort;
-  NSSocketPort		*sendPort;
-  struct sockaddr_in	sockAddr;	/* Far end of connection.	*/
-  NSString		*defaultAddress;
+  NSMessagePort		*recvPort;
+  NSMessagePort		*sendPort;
+  struct sockaddr_un 	sockAddr;	/* Far end of connection.	*/
 }
 
-+ (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
-- (BOOL) connectToPort: (NSSocketPort*)aPort beforeDate: (NSDate*)when;
++ (GSMessageHandle*) handleWithDescriptor: (int)d;
+- (BOOL) connectToPort: (NSMessagePort*)aPort beforeDate: (NSDate*)when;
 - (int) descriptor;
 - (void) invalidate;
 - (BOOL) isValid;
@@ -223,9 +220,9 @@ typedef enum {
                   type: (RunLoopEventType)type
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
-- (NSSocketPort*) recvPort;
+- (NSMessagePort*) recvPort;
 - (BOOL) sendMessage: (NSArray*)components beforeDate: (NSDate*)when;
-- (NSSocketPort*) sendPort;
+- (NSMessagePort*) sendPort;
 - (void) setState: (GSHandleState)s;
 - (GSHandleState) state;
 - (NSDate*) timedOutEvent: (void*)data
@@ -237,144 +234,86 @@ typedef enum {
 /*
  * Utility functions for encoding and decoding ports.
  */
-static NSSocketPort*
-decodePort(NSData *data, NSString *defaultAddress)
+static NSMessagePort*
+decodePort(NSData *data)
 {
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
-  NSString		*addr;
-  gsu16			pnum;
-  gsu32			length;
-  NSHost		*host;
-  unichar		c;
   
   pih = (GSPortItemHeader*)[data bytes];
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
     NSInternalInconsistencyException);
-  length = GSSwapBigI32ToHost(pih->length);
   pi = (GSPortInfo*)&pih[1];
-  pnum = GSSwapBigI16ToHost(pi->num);
-  if (strncmp(pi->addr, "VER", 3) == 0)
+  if (pi->version != 0)
     {
-      NSLog(@"Remote version of GNUstep at %s:%d is more recent than this one",
-	pi->addr, pnum); 
+      NSLog(@"Remote version of GNUstep is more recent than this one (%i)",
+	pi->version);
       return nil;
     }
-  addr = [NSString stringWithCString: pi->addr];
 
-  NSDebugFLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
+  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%s'", pi->addr);
 
-  /*
-   * Special case - the encoded port was on the host from which the
-   * message was sent.
-   */
-  if ([addr length] == 0)
-    {
-      addr = defaultAddress;
-    }
-  c = [addr characterAtIndex: 0];
-  if (c >= '0' && c <= '9')
-    {
-      host = [NSHost hostWithAddress: addr];
-    }
-  else
-    {
-      host = [NSHost hostWithName: addr];
-    }
-
-  return [NSSocketPort portWithNumber: pnum
-			    onHost: host
-		      forceAddress: nil
-			  listener: NO];
+  return [NSMessagePort _portWithName: pi->addr
+			     listener: NO];
 }
 
 static NSData*
-newDataWithEncodedPort(NSSocketPort *port)
+newDataWithEncodedPort(NSMessagePort *port)
 {
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
   NSMutableData		*data;
   unsigned		plen;
-  NSString		*addr;
-  gsu16			pnum;
-  
-  pnum = [port portNumber];
-  addr = [port address];
-  if (addr == nil)
-    {
-      static NSHost	*local = nil;
+  const unsigned char	*name = [port _name];
 
-      /*
-       * If the port is not forced to use a specific address ...
-       * 1. see if it is on the local host, and if so, encode as "".
-       * 2. see if it s a hostname and if so, use the name.
-       * 3. pick one of the host addresses.
-       * 4. use the localhost address.
-       */
-      if (local == nil)
-	{
-	  local = RETAIN([NSHost localHost]);
-	}
-      if ([[port host] isEqual: local] == YES)
-	{
-	  addr = @"";
-	}
-      else if ((addr = [[port host] name]) == nil)
-	{
-	  addr = [[port host] address];
-	  if (addr == nil)
-	    {
-	      addr = @"127.0.0.1";	/* resign ourselves to this	*/
-	    }
-	}
-    }
-  plen = [addr cStringLength] + 3;
+  plen = 2 + strlen(name);
+  
   data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
   pih = (GSPortItemHeader*)[data mutableBytes];
   pih->type = GSSwapHostI32ToBig(GSP_PORT);
   pih->length = GSSwapHostI32ToBig(plen);
   pi = (GSPortInfo*)&pih[1];
-  pi->num = GSSwapHostI16ToBig(pnum);
-  [addr getCString: pi->addr];
+  strcpy(pi->addr, name);
 
-  NSDebugFLLog(@"NSPort", @"Encoded port as '%@:%d'", addr, pnum);
+  NSDebugFLLog(@"NSMessagePort", @"Encoded port as '%s'", pi->addr);
 
   return data;
 }
 
 
 
-@implementation	GSTcpHandle
+@implementation	GSMessageHandle
 
 static Class	mutableArrayClass;
 static Class	mutableDataClass;
 static Class	portMessageClass;
 static Class	runLoopClass;
 
+
 + (id) allocWithZone: (NSZone*)zone
 {
   [NSException raise: NSGenericException
-	      format: @"attempt to alloc a GSTcpHandle!"];
+	      format: @"attempt to alloc a GSMessageHandle!"];
   return nil;
 }
 
-+ (GSTcpHandle*) handleWithDescriptor: (SOCKET)d
++ (GSMessageHandle*) handleWithDescriptor: (int)d
 {
-  GSTcpHandle	*handle;
+  GSMessageHandle	*handle;
 #ifdef __MINGW__
   unsigned long dummy;
 #else
   int		e;
 #endif /* __MINGW__ */
 
-  if (d == INVALID_SOCKET)
+  if (d < 0)
     {
-      NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
+      NSLog(@"illegal descriptor (%d) for message handle", d);
       return nil;
     }
 #ifdef __MINGW__
   dummy = 1;
-  if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
+  if (ioctlsocket(d, FIONBIO, &dummy) < 0)
     {
       NSLog(@"unable to set non-blocking mode on %d - %s",
 	d, GSLastErrorStr(errno));
@@ -398,7 +337,7 @@ static Class	runLoopClass;
       return nil;
     }
 #endif
-  handle = (GSTcpHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  handle = (GSMessageHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
   if (multi_threaded == YES)
@@ -411,7 +350,7 @@ static Class	runLoopClass;
 
 + (void) initialize
 {
-  if (self == [GSTcpHandle class])
+  if (self == [GSMessageHandle class])
     {
 #ifdef __MINGW__
       WORD wVersionRequested;
@@ -433,14 +372,13 @@ static Class	runLoopClass;
     }
 }
 
-- (BOOL) connectToPort: (NSSocketPort*)aPort beforeDate: (NSDate*)when
+- (BOOL) connectToPort: (NSMessagePort*)aPort beforeDate: (NSDate*)when
 {
-  NSArray		*addrs;
-  BOOL			gotAddr = NO;
   NSRunLoop		*l;
+  const unsigned char *name;
 
   M_LOCK(myLock);
-  NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x in thread 0x%x before %@",
+  NSDebugMLLog(@"NSMessagePort", @"Connecting on 0x%x in thread 0x%x before %@",
     self, GSCurrentThread(), when);
   if (state != GS_H_UNCON)
     {
@@ -472,54 +410,13 @@ static Class	runLoopClass;
       return NO;	/* impossible.		*/
     }
 
-  /*
-   * Get an IP address to try to connect to.
-   * If the port has a 'forced' address, just use that. Otherwise we try
-   * each of the addresses for the host in turn.
-   */
-  if ([aPort address] != nil)
-    {
-      addrs = [NSArray arrayWithObject: [aPort address]];
-    }
-  else
-    {
-      addrs = [[aPort host] addresses];
-    }
-  while (gotAddr == NO)
-    {
-      const char	*addr;
 
-      if (addrNum >= [addrs count])
-	{
-	  NSLog(@"run out of addresses to try (tried %d) for port %@",
-	    addrNum, aPort);
-	  M_UNLOCK(myLock);
-	  return NO;
-	}
-      addr = [[addrs objectAtIndex: addrNum++] cString];
+  name = [aPort _name];
+  memset(&sockAddr, '\0', sizeof(sockAddr));
+  sockAddr.sun_family = AF_LOCAL;
+  strncpy(sockAddr.sun_path, name, sizeof(sockAddr.sun_path));
 
-      memset(&sockAddr, '\0', sizeof(sockAddr));
-      sockAddr.sin_family = AF_INET;
-#ifndef HAVE_INET_ATON
-      sockAddr.sin_addr.s_addr = inet_addr(addr);
-      if (sockAddr.sin_addr.s_addr == INADDR_NONE)
-#else
-      if (inet_aton(addr, &sockAddr.sin_addr) == 0)
-#endif
-	{
-	  NSLog(@"bad ip address - '%s'", addr);
-	}
-      else
-	{
-	  gotAddr = YES;
-	  NSDebugMLLog(@"GSTcpHandle", @"Connecting to %s:%d using desc %d",
-	    addr, [aPort portNumber], desc);
-	}
-    }
-  sockAddr.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
-
-  if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr))
-    == SOCKET_ERROR)
+  if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
 #ifdef __MINGW__
       if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -527,22 +424,11 @@ static Class	runLoopClass;
       if (errno != EINPROGRESS)
 #endif
 	{
-	  NSLog(@"unable to make connection to %s:%d - %s",
-	    inet_ntoa(sockAddr.sin_addr),
-	    GSSwapBigI16ToHost(sockAddr.sin_port), GSLastErrorStr(errno));
-	  if (addrNum < [addrs count])
-	    {
-	      BOOL	result;
-
-	      result = [self connectToPort: aPort beforeDate: when];
-	      M_UNLOCK(myLock);
-	      return result;
-	    }
-	  else
-	    {
-	      M_UNLOCK(myLock);
-	      return NO;	/* Tried all addresses	*/
-	    }
+	  NSLog(@"unable to make connection to %s - %s",
+	    sockAddr.sun_path,
+	    GSLastErrorStr(errno));
+	  M_UNLOCK(myLock);
+	  return NO;
 	}
     }
 
@@ -579,22 +465,10 @@ static Class	runLoopClass;
     }
   else if (state == GS_H_UNCON)
     {
-      if (addrNum < [addrs count] && [when timeIntervalSinceNow] > 0)
-	{
-	  BOOL	result;
-
-	  /*
-	   * The connection attempt failed, but there are still IP addresses
-	   * that we haven't tried.
-	   */
-	  result = [self connectToPort: aPort beforeDate: when];
-	  M_UNLOCK(myLock);
-	  return result;
-	}
       addrNum = 0;
       state = GS_H_UNCON;
       M_UNLOCK(myLock);
-      return NO;	/* connection failed	*/
+      return NO;
     }
   else
     {
@@ -609,7 +483,6 @@ static Class	runLoopClass;
 - (void) dealloc
 {
   [self gcFinalize];
-  DESTROY(defaultAddress);
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
@@ -619,11 +492,11 @@ static Class	runLoopClass;
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"Handle (%d) to %s:%d",
-    desc, inet_ntoa(sockAddr.sin_addr), ntohs(sockAddr.sin_port)];
+  return [NSString stringWithFormat: @"<GSMessageHandle %p (%d) to %s>",
+    self, desc, sockAddr.sun_path];
 }
 
-- (SOCKET) descriptor
+- (int) descriptor
 {
   return desc;
 }
@@ -658,7 +531,7 @@ static Class	runLoopClass;
 		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
-	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x in thread 0x%x",
+	  NSDebugMLLog(@"NSMessagePort", @"invalidated 0x%x in thread 0x%x",
 	    self, GSCurrentThread());
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
@@ -672,7 +545,7 @@ static Class	runLoopClass;
   return valid;
 }
 
-- (NSSocketPort*) recvPort
+- (NSMessagePort*) recvPort
 {
   if (recvPort == nil)
     return nil;
@@ -685,13 +558,13 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x in thread 0x%x",
+  NSDebugMLLog(@"NSMessagePort_details", @"received %s event on 0x%x in thread 0x%x",
     type == ET_RPORT ? "read" : "write", self, GSCurrentThread());
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
    */
-  if (desc == INVALID_SOCKET)
+  if (desc < 0)
     {
       NSRunLoop	*l = [runLoopClass currentRunLoop];
 
@@ -744,12 +617,16 @@ static Class	runLoopClass;
        * Now try to fill the buffer with data.
        */
       bytes = [rData mutableBytes];
+#ifdef __MINGW__
       res = recv(desc, bytes + rLength, want - rLength, 0);
+#else
+      res = read(desc, bytes + rLength, want - rLength);
+#endif
       if (res <= 0)
 	{
 	  if (res == 0)
 	    {
-	      NSDebugMLLog(@"GSTcpHandle", @"read eof on 0x%x in thread 0x%x",
+	      NSDebugMLLog(@"NSMessagePort", @"read eof on 0x%x in thread 0x%x",
 		self, GSCurrentThread());
 	      M_UNLOCK(myLock);
 	      [self invalidate];
@@ -757,7 +634,7 @@ static Class	runLoopClass;
 	    }
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
-	      NSDebugMLLog(@"GSTcpHandle",
+	      NSDebugMLLog(@"NSMessagePort",
 		@"read failed - %s on 0x%x in thread 0x%x",
 		GSLastErrorStr(errno), self, GSCurrentThread());
 	      M_UNLOCK(myLock);
@@ -766,7 +643,7 @@ static Class	runLoopClass;
 	    }
 	  res = 0;	/* Interrupted - continue	*/
 	}
-      NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on 0x%x in thread 0x%x",
+      NSDebugMLLog(@"NSMessagePort_details", @"read %d bytes on 0x%x in thread 0x%x",
 	res, self, GSCurrentThread());
       rLength += res;
 
@@ -790,7 +667,7 @@ static Class	runLoopClass;
 		  l = GSSwapBigI32ToHost(h->length);
 		  if (rType == GSP_PORT)
 		    {
-		      if (l > 128)
+		      if (l > 512)
 			{
 			  NSLog(@"%@ - unreasonable length (%u) for port",
 			    self, l);
@@ -876,7 +753,7 @@ static Class	runLoopClass;
 		    }
 		  else
 		    {
-		      NSLog(@"%@ - bad data received on port handle", self);
+		      NSLog(@"%@ - bad data received on port handle, rType=%i", self, rType);
 		      M_UNLOCK(myLock);
 		      [self invalidate];
 		      return;
@@ -965,10 +842,10 @@ static Class	runLoopClass;
 
 	      case GSP_PORT:
 		{
-		  NSSocketPort	*p;
+		  NSMessagePort	*p;
 
 		  rType = GSP_NONE;	/* ready for a new item	*/
-		  p = decodePort(rData, defaultAddress);
+		  p = decodePort(rData);
 		  if (p == nil)
 		    {
 		      NSLog(@"%@ - unable to decode remote port", self);
@@ -1014,7 +891,7 @@ static Class	runLoopClass;
 	  if (shouldDispatch == YES)
 	    {
 	      NSPortMessage	*pm;
-	      NSSocketPort		*rp = [self recvPort];
+	      NSMessagePort		*rp = [self recvPort];
 
 	      pm = [portMessageClass allocWithZone: NSDefaultMallocZone()];
 	      pm = [pm initWithSendPort: [self sendPort]
@@ -1023,7 +900,7 @@ static Class	runLoopClass;
 	      [pm setMsgid: rId];
 	      rId = 0;
 	      DESTROY(rItems);
-	      NSDebugMLLog(@"GSTcpHandle",
+	      NSDebugMLLog(@"NSMessagePort_details",
 		@"got message %@ on 0x%x in thread 0x%x",
 		pm, self, GSCurrentThread());
 	      RETAIN(rp);
@@ -1064,13 +941,14 @@ static Class	runLoopClass;
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
+#ifdef __MINGW__
 	      len = send(desc, [d bytes], [d length], 0);
+#else
+	      len = write(desc, [d bytes], [d length]);
+#endif
 	      if (len == (int)[d length])
 		{
-		  RELEASE(defaultAddress);
-		  defaultAddress = RETAIN([NSString stringWithCString:
-		    inet_ntoa(sockAddr.sin_addr)]);
-		  NSDebugMLLog(@"GSTcpHandle",
+		  NSDebugMLLog(@"NSMessagePort_details",
 		    @"wrote %d bytes on 0x%x in thread 0x%x",
 		    len, self, GSCurrentThread());
 		  state = GS_H_CONNECTED;
@@ -1107,7 +985,11 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
+#ifdef __MINGW__
 	  res = send(desc, b + wLength,  l - wLength, 0);
+#else
+	  res = write(desc, b + wLength,  l - wLength);
+#endif
 	  if (res < 0)
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
@@ -1120,7 +1002,7 @@ static Class	runLoopClass;
 	    }
 	  else
 	    {
-	      NSDebugMLLog(@"GSTcpHandle",
+	      NSDebugMLLog(@"NSMessagePort_details",
 		@"wrote %d bytes on 0x%x in thread 0x%x",
 		res, self, GSCurrentThread());
 	      wLength += res;
@@ -1148,7 +1030,7 @@ static Class	runLoopClass;
 		      /*
 		       * message completed - remove from list.
 		       */
-		      NSDebugMLLog(@"GSTcpHandle",
+		      NSDebugMLLog(@"NSMessagePort_details",
 			@"completed 0x%x on 0x%x in thread 0x%x",
 			components, self, GSCurrentThread());
 		      wData = nil;
@@ -1178,7 +1060,7 @@ static Class	runLoopClass;
   BOOL		sent = NO;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
-  NSDebugMLLog(@"GSTcpHandle",
+  NSDebugMLLog(@"NSMessagePort_details",
     @"Sending message 0x%x %@ on 0x%x(%d) in thread 0x%x before %@",
     components, components, self, desc, GSCurrentThread(), when);
   M_LOCK(myLock);
@@ -1210,13 +1092,13 @@ static Class	runLoopClass;
     }
   M_UNLOCK(myLock);
   RELEASE(self);
-  NSDebugMLLog(@"GSTcpHandle",
+  NSDebugMLLog(@"NSMessagePort_details",
     @"Message send 0x%x on 0x%x in thread 0x%x status %d",
     components, self, GSCurrentThread(), sent);
   return sent;
 }
 
-- (NSSocketPort*) sendPort
+- (NSMessagePort*) sendPort
 {
   if (sendPort == nil)
     return nil;
@@ -1247,7 +1129,7 @@ static Class	runLoopClass;
 
 
 
-@interface NSSocketPort (RunLoop) <RunLoopEvents>
+@interface NSMessagePort (RunLoop) <RunLoopEvents>
 - (void) receivedEvent: (void*)data
                   type: (RunLoopEventType)type
 		 extra: (void*)extra
@@ -1257,11 +1139,33 @@ static Class	runLoopClass;
 		  forMode: (NSString*)mode;
 @end
 
-@implementation	NSSocketPort
 
-static NSRecursiveLock	*tcpPortLock = nil;
-static NSMapTable	*tcpPortMap = 0;
-static Class		tcpPortClass;
+@implementation	NSMessagePort
+
+static NSRecursiveLock	*messagePortLock = nil;
+
+/*
+Maps NSData objects with the socket name to NSMessagePort objects.
+*/
+static NSMapTable	*messagePortMap = 0;
+static Class		messagePortClass;
+
+
+static void clean_up_sockets(void)
+{
+  NSMessagePort *port;
+  NSData *name;
+  NSMapEnumerator mEnum;
+
+  mEnum = NSEnumerateMapTable(messagePortMap);
+  while (NSNextMapEnumeratorPair(&mEnum, (void *)&name, (void *)&port))
+    {
+      if ([port _listener] != -1)
+	unlink([name bytes]);
+    }
+  NSEndMapTableEnumeration(&mEnum);
+}
+
 
 /*
  *	When the system becomes multithreaded, we set a flag to say so and
@@ -1271,28 +1175,22 @@ static Class		tcpPortClass;
 {
   if (multi_threaded == NO)
     {
-      NSMapEnumerator	pEnum;
-      NSMapTable	*m;
+      NSMapEnumerator	mEnum;
+      NSMessagePort	*p;
       void		*dummy;
 
       multi_threaded = YES;
-      if (tcpPortLock == nil)
+      if (messagePortLock == nil)
 	{
-	  tcpPortLock = [NSRecursiveLock new];
+	  messagePortLock = [NSRecursiveLock new];
 	}
-      pEnum = NSEnumerateMapTable(tcpPortMap);
-      while (NSNextMapEnumeratorPair(&pEnum, &dummy, (void**)&m))
-	{
-	  NSMapEnumerator	mEnum;
-	  NSSocketPort		*p;
-
-	  mEnum = NSEnumerateMapTable(m);
+      mEnum = NSEnumerateMapTable(messagePortMap);
 	  while (NSNextMapEnumeratorPair(&mEnum, &dummy, (void**)&p))
 	    {
 	      if ([p isValid] == YES)
 		{
 		  NSMapEnumerator	hEnum;
-		  GSTcpHandle		*h;
+		  GSMessageHandle		*h;
 
 		  if (p->myLock == nil)
 		    {
@@ -1309,9 +1207,7 @@ static Class		tcpPortClass;
 		  NSEndMapTableEnumeration(&hEnum);
 		}
 	    }
-	  NSEndMapTableEnumeration(&mEnum);
-	}
-      NSEndMapTableEnumeration(&pEnum);
+      NSEndMapTableEnumeration(&mEnum);
     }
   [[NSNotificationCenter defaultCenter]
     removeObserver: self
@@ -1325,13 +1221,13 @@ static unsigned	wordAlign;
 
 + (void) initialize
 {
-  if (self == [NSSocketPort class])
+  if (self == [NSMessagePort class])
     {
 #if NEED_WORD_ALIGNMENT
       wordAlign = objc_alignof_type(@encode(gsu32));
 #endif
-      tcpPortClass = self;
-      tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+      messagePortClass = self;
+      messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       if ([NSThread isMultiThreaded])
@@ -1346,99 +1242,56 @@ static unsigned	wordAlign;
 		   name: NSWillBecomeMultiThreadedNotification
 		 object: nil];
 	}
+      atexit(clean_up_sockets);
     }
 }
 
 + (id) new
 {
-  return RETAIN([self portWithNumber: 0
-			      onHost: nil
-			forceAddress: nil
-			    listener: YES]);
+static int unique_index = 0;
+  NSString *path;
+
+  path = NSTemporaryDirectory();
+
+  path = [path stringByAppendingPathComponent: @"NSMessagePort"];
+  mkdir([path fileSystemRepresentation], 0700);
+
+  path = [path stringByAppendingPathComponent: @"ports"];
+  mkdir([path fileSystemRepresentation], 0700);
+
+  M_LOCK(messagePortLock);
+  path = [path stringByAppendingPathComponent:
+	   [NSString stringWithFormat: @"%i.%i", getpid(), unique_index++]];
+  M_UNLOCK(messagePortLock);
+
+  return RETAIN([self _portWithName: [path fileSystemRepresentation]
+			   listener: YES]);
 }
 
 /*
- * Look up an existing NSSocketPort given a host and number
- */
-+ (NSSocketPort*) existingPortWithNumber: (gsu16)number
-			       onHost: (NSHost*)aHost
-{
-  NSSocketPort	*port = nil;
-  NSMapTable	*thePorts;
-
-  M_LOCK(tcpPortLock);
-
-  /*
-   *	Get the map table of ports with the specified number.
-   */
-  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
-  if (thePorts != 0)
-    {
-      port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
-      IF_NO_GC(AUTORELEASE(RETAIN(port)));
-    }
-  M_UNLOCK(tcpPortLock);
-  return port;
-}
-
-/*
- * This is the preferred initialisation method for NSSocketPort
+ * This is the preferred initialisation method for NSMessagePort
  *
- * 'number' should be a TCP/IP port number or may be zero for a port on
- * the local host.
- * 'aHost' should be the host for the port or may be nil for the local
- * host.
- * 'addr' is the IP address that MUST be used for this port - if it is nil
- * then, for the local host, the port uses ALL IP addresses, and for a
- * remote host, the port will use the first address that works.
+ * 'name' is the name of the socket in the port directory
  */
-+ (NSSocketPort*) portWithNumber: (gsu16)number
-		       onHost: (NSHost*)aHost
-		 forceAddress: (NSString*)addr
++ (NSMessagePort*) _portWithName: (const unsigned char *)socketName
 		     listener: (BOOL)shouldListen
 {
   unsigned		i;
-  NSSocketPort		*port = nil;
-  NSHost		*thisHost = [NSHost localHost];
-  NSMapTable		*thePorts;
+  NSMessagePort		*port = nil;
+  NSData *theName = [[NSData alloc] initWithBytes: socketName  length: strlen(socketName)+1];
 
-  if (thisHost == nil)
-    {
-      NSLog(@"attempt to create port on host without networking set up!");
-      return nil;
-    }
-  if (aHost == nil)
-    {
-      aHost = thisHost;
-    }
-  if (addr != nil && [[aHost addresses] containsObject: addr] == NO)
-    {
-      NSLog(@"attempt to use address '%@' on host without that address", addr);
-      return nil;
-    }
-  if (number == 0 && [thisHost isEqual: aHost] == NO)
-    {
-      NSLog(@"attempt to get port zero on remote host");
-      return nil;
-    }
-
-  M_LOCK(tcpPortLock);
+  M_LOCK(messagePortLock);
 
   /*
    * First try to find a pre-existing port.
    */
-  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
-  if (thePorts != 0)
-    {
-      port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
-    }
+  port = (NSMessagePort*)NSMapGet(messagePortMap, theName);
 
   if (port == nil)
     {
-      port = (NSSocketPort*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      port = (NSMessagePort*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      port->name = theName;
       port->listener = -1;
-      port->host = RETAIN(aHost);
-      port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
       if (multi_threaded == YES)
@@ -1447,86 +1300,44 @@ static unsigned	wordAlign;
 	}
       port->_is_valid = YES;
 
-      if (shouldListen == YES && [thisHost isEqual: aHost])
+      if (shouldListen == YES)
 	{
-#ifndef	BROKEN_SO_REUSEADDR
-	  int	reuse = 1;	/* Should we re-use ports?	*/
-#endif
-	  SOCKET desc;
-	  BOOL	addrOk = YES;
-	  struct sockaddr_in	sockaddr;
+	  int	desc;
+	  struct sockaddr_un	sockaddr;
 
 	  /*
 	   * Creating a new port on the local host - so we must create a
 	   * listener socket to accept incoming connections.
 	   */
 	  memset(&sockaddr, '\0', sizeof(sockaddr));
-	  sockaddr.sin_family = AF_INET;
-	  if (addr == nil)
-	    {
-	      sockaddr.sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
-	    }
-	  else
-	    {
-#ifndef HAVE_INET_ATON
-	      sockaddr.sin_addr.s_addr = inet_addr([addr cString]);
-	      if (sockaddr.sin_addr.s_addr == INADDR_NONE)
-#else
-	      if (inet_aton([addr cString], &sockaddr.sin_addr) == 0)
-#endif
-		{
-		  addrOk = NO;
-		}
-	    }
+	  sockaddr.sun_family = AF_LOCAL;
+	  strncpy(sockaddr.sun_path, socketName, sizeof(sockaddr.sun_path));
 
 	  /*
            * Need size of buffer for getsockbyname() later.
 	   */
 	  i = sizeof(sockaddr);
 
-	  if (addrOk == NO)
-	    {
-	      NSLog(@"Bad address (%@) specified for listening port", addr);
-	      DESTROY(port);
-	    }
-	  else if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))
-	    == INVALID_SOCKET)
+	  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 	    {
 	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	      DESTROY(port);
 	    }
-#ifndef	BROKEN_SO_REUSEADDR
-	  /*
-	   * Under decent systems, SO_REUSEADDR means that the port can be
-	   * reused immediately that this porcess exits.  Under some it means
-	   * that multiple processes can serve the same port simultaneously.
-	   * We don't want that broken behavior!
-	   */
-	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse,
-	    sizeof(reuse)) < 0)
-	    {
-	      (void) close(desc);
-              NSLog(@"unable to set reuse on socket - %s",
-		GSLastErrorStr(errno));
-              DESTROY(port);
-	    }
-#endif
 	  else if (bind(desc, (struct sockaddr *)&sockaddr,
-	    sizeof(sockaddr)) == SOCKET_ERROR)
+	    sizeof(sockaddr)) < 0)
 	    {
-	      NSLog(@"unable to bind to port %s:%d - %s",
-		inet_ntoa(sockaddr.sin_addr), number, GSLastErrorStr(errno));
+	      NSLog(@"unable to bind to %s - %s",
+		sockaddr.sun_path, GSLastErrorStr(errno));
 	      (void) close(desc);
               DESTROY(port);
 	    }
-	  else if (listen(desc, 5) == SOCKET_ERROR)
+	  else if (listen(desc, 5) < 0)
 	    {
 	      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
-	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i)
-	    == SOCKET_ERROR)
+	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i) < 0)
 	    {
 	      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
@@ -1535,33 +1346,16 @@ static unsigned	wordAlign;
 	  else
 	    {
 	      /*
-	       * Set up the listening descriptor and the actual TCP port
+	       * Set up the listening descriptor and the actual message port
 	       * number (which will have been set to a real port number when
 	       * we did the 'bind' call.
 	       */
 	      port->listener = desc;
-	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
 	      /*
 	       * Make sure we have the map table for this port.
 	       */
-	      thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
-		(void*)(gsaddr)port->portNum);
-	      if (thePorts == 0)
-		{
-		  /*
-		   * No known ports with this port number -
-		   * create the map table to add the new port to.
-		   */ 
-		  thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
-		    NSNonOwnedPointerMapValueCallBacks, 0);
-		  NSMapInsert(tcpPortMap, (void*)(gsaddr)port->portNum,
-		    (void*)thePorts);
-		}
-	      /*
-	       * Ok - now add the port for the host
-	       */
-	      NSMapInsert(thePorts, (void*)aHost, (void*)port);
-	      NSDebugMLLog(@"NSPort", @"Created listening port: %@", port);
+	      NSMapInsert(messagePortMap, (void*)theName, (void*)port);
+	      NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@", port);
 	    }
 	}
       else
@@ -1569,37 +1363,23 @@ static unsigned	wordAlign;
 	  /*
 	   * Make sure we have the map table for this port.
 	   */
-	  port->portNum = number;
-	  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
-	  if (thePorts == 0)
-	    {
-	      /*
-	       * No known ports within this port number -
-	       * create the map table to add the new port to.
-	       */ 
-	      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
-			      NSNonOwnedPointerMapValueCallBacks, 0);
-	      NSMapInsert(tcpPortMap, (void*)(gsaddr)number, (void*)thePorts);
-	    }
-	  /*
-	   * Record the port by host.
-	   */
-	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
-	  NSDebugMLLog(@"NSPort", @"Created speaking port: %@", port);
+	  NSMapInsert(messagePortMap, (void*)theName, (void*)port);
+	  NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", port);
 	}
     }
   else
     {
+      RELEASE(theName);
       RETAIN(port);
-      NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
+      NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
     }
   IF_NO_GC(AUTORELEASE(port));
 
-  M_UNLOCK(tcpPortLock);
+  M_UNLOCK(messagePortLock);
   return port;
 }
 
-- (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send
+- (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send
 {
   M_LOCK(myLock);
   if (send == YES)
@@ -1617,11 +1397,6 @@ static unsigned	wordAlign;
   M_UNLOCK(myLock);
 }
 
-- (NSString*) address
-{
-  return address;
-}
-
 - (id) copyWithZone: (NSZone*)zone
 {
   return RETAIN(self);
@@ -1630,32 +1405,22 @@ static unsigned	wordAlign;
 - (void) dealloc
 {
   [self gcFinalize];
-  DESTROY(host);
-  TEST_RELEASE(address);
+  DESTROY(name);
   [super dealloc];
 }
 
 - (NSString*) description
 {
-  NSMutableString	*desc;
+  NSString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"NSPort on host with details -\n"
-    @"%@\n", host];
-  if (address == nil)
-    {
-      [desc appendFormat: @"  IP address - any\n"];
-    }
-  else
-    {
-      [desc appendFormat: @"  IP address - %@\n", address];
-    }
-  [desc appendFormat: @"  TCP port - %d\n", portNum];
+  desc = [NSString stringWithFormat: @"<NSMessagePort %p with name %s>",
+	   self, [name bytes]];
   return desc;
 }
 
 - (void) gcFinalize
 {
-  NSDebugMLLog(@"NSPort", @"NSSocketPort 0x%x finalized", self);
+  NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
   [self invalidate];
 }
 
@@ -1663,11 +1428,11 @@ static unsigned	wordAlign;
  * This is a callback method used by the NSRunLoop class to determine which
  * descriptors to watch for the port.
  */
-- (void) getFds: (SOCKET*)fds count: (int*)count
+- (void) getFds: (int*)fds count: (int*)count
 {
   NSMapEnumerator	me;
-  SOCKET		sock;
-  GSTcpHandle		*handle;
+  int			sock;
+  GSMessageHandle		*handle;
   id			recvSelf;
 
   M_LOCK(myLock);
@@ -1704,14 +1469,12 @@ static unsigned	wordAlign;
   M_UNLOCK(myLock);
 }
 
-- (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort beforeDate: (NSDate*)when
+- (GSMessageHandle*) handleForPort: (NSMessagePort*)recvPort beforeDate: (NSDate*)when
 {
   NSMapEnumerator	me;
-  SOCKET		sock;
-#ifndef	BROKEN_SO_REUSEADDR
+  int			sock;
   int			opt = 1;
-#endif
-  GSTcpHandle		*handle = nil;
+  GSMessageHandle		*handle = nil;
 
   M_LOCK(myLock);
   /*
@@ -1733,7 +1496,7 @@ static unsigned	wordAlign;
    * Not found ... create a new handle.
    */
   handle = nil;
-  if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
+  if ((sock = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
     }
@@ -1751,10 +1514,10 @@ static unsigned	wordAlign;
       NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
     }
 #endif
-  else if ((handle = [GSTcpHandle handleWithDescriptor: sock]) == nil)
+  else if ((handle = [GSMessageHandle handleWithDescriptor: sock]) == nil)
     {
       (void)close(sock);
-      NSLog(@"unable to create GSTcpHandle - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to create GSMessageHandle - %s", GSLastErrorStr(errno));
     }
   else
     {
@@ -1781,12 +1544,12 @@ static unsigned	wordAlign;
 
   if (d == nil)
     {
-      NSDebugMLLog(@"NSPort", @"No delegate to handle incoming message", 0);
+      NSDebugMLLog(@"NSMessagePort", @"No delegate to handle incoming message", 0);
       return;
     }
   if ([d respondsToSelector: @selector(handlePortMessage:)] == NO)
     {
-      NSDebugMLLog(@"NSPort", @"delegate doesn't handle messages", 0);
+      NSDebugMLLog(@"NSMessagePort", @"delegate doesn't handle messages", 0);
       return;
     }
   [d handlePortMessage: m];
@@ -1794,18 +1557,13 @@ static unsigned	wordAlign;
 
 - (unsigned) hash
 {
-  return (unsigned)portNum;
-}
-
-- (NSHost*) host
-{
-  return host;
+  return [name hash];
 }
 
 - (id) init
 {
   RELEASE(self);
-  self = [tcpPortClass new];
+  self = [messagePortClass new];
   return self;
 }
 
@@ -1817,22 +1575,18 @@ static unsigned	wordAlign;
 
       if ([self isValid] == YES)
 	{
-	  NSMapTable	*thePorts;
 	  NSArray	*handleArray;
 	  unsigned	i;
 
-	  M_LOCK(tcpPortLock);
-	  thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
-	  if (thePorts != 0)
+	  M_LOCK(messagePortLock);
+	  if (listener >= 0)
 	    {
-	      if (listener >= 0)
-		{
-		  (void) close(listener);
-		  listener = -1;
-		}
-	      NSMapRemove(thePorts, (void*)host);
+	      (void) close(listener);
+	      unlink([name bytes]);
+	      listener = -1;
 	    }
-	  M_UNLOCK(tcpPortLock);
+	  NSMapRemove(messagePortMap, (void*)name);
+	  M_UNLOCK(messagePortLock);
 
 	  if (handles != 0)
 	    {
@@ -1840,7 +1594,7 @@ static unsigned	wordAlign;
 	      i = [handleArray count];
 	      while (i-- > 0)
 		{
-		  GSTcpHandle	*handle = [handleArray objectAtIndex: i];
+		  GSMessageHandle	*handle = [handleArray objectAtIndex: i];
 
 		  [handle invalidate];
 		}
@@ -1854,7 +1608,7 @@ static unsigned	wordAlign;
 		  handles = 0;
 		}
 	    }
-	  [[NSSocketPortNameServer sharedInstance] removePort: self];
+	  [[NSMessagePortNameServer sharedInstance] removePort: self];
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
@@ -1869,19 +1623,11 @@ static unsigned	wordAlign;
     }
   if ([anObject class] == [self class])
     {
-      NSSocketPort	*o = (NSSocketPort*)anObject;
+      NSMessagePort	*o = (NSMessagePort*)anObject;
 
-      if (o->portNum == portNum && [o->host isEqual: host])
-	{
-	  return YES;
-	}
+      return [o->name isEqual: name];
     }
   return NO;
-}
-
-- (gsu16) portNumber
-{
-  return portNum;
 }
 
 - (void) receivedEvent: (void*)data
@@ -1889,18 +1635,18 @@ static unsigned	wordAlign;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  SOCKET	desc = (SOCKET)(gsaddr)extra;
-  GSTcpHandle	*handle;
+  int		desc = (int)(gsaddr)extra;
+  GSMessageHandle	*handle;
 
   if (desc == listener)
     {
-      struct sockaddr_in	sockAddr;
+      struct sockaddr_un	sockAddr;
       int			size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
-      if (desc == INVALID_SOCKET)
+      if (desc < 0)
         {
-	  NSDebugMLLog(@"NSPort", @"accept failed - handled in other thread?");
+	  NSDebugMLLog(@"NSMessagePort", @"accept failed - handled in other thread?");
         }
       else
 	{
@@ -1909,10 +1655,8 @@ static unsigned	wordAlign;
 	   * receiving port, and it's waiting to get the port name from
 	   * the other end.
 	   */
-	  handle = [GSTcpHandle handleWithDescriptor: desc];
+	  handle = [GSMessageHandle handleWithDescriptor: desc];
 	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
-	  handle->defaultAddress = RETAIN([NSString stringWithCString:
-	    inet_ntoa(sockAddr.sin_addr)]);
 
 	  [handle setState: GS_H_ACCEPT];
 	  [self addHandle: handle forSend: NO];
@@ -1921,7 +1665,7 @@ static unsigned	wordAlign;
   else
     {
       M_LOCK(myLock);
-      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
+      handle = (GSMessageHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
       IF_NO_GC(AUTORELEASE(RETAIN(handle)));
       M_UNLOCK(myLock);
       if (handle == nil)
@@ -1951,7 +1695,7 @@ static unsigned	wordAlign;
  * connection handle from this port and, if this was the last handle to a
  * remote port, we invalidate the port.
  */
-- (void) removeHandle: (GSTcpHandle*)handle
+- (void) removeHandle: (GSMessageHandle*)handle
 {
   M_LOCK(myLock);
   if ([handle sendPort] == self)
@@ -1983,7 +1727,7 @@ static unsigned	wordAlign;
 
 /*
  * This returns the amount of space that a port coder should reserve at the
- * start of its encoded data so that the NSSocketPort can insert header info
+ * start of its encoded data so that the NSMessagePort can insert header info
  * into the data.
  * The idea is that a message consisting of a single data item with space at
  * the start can be written directly without having to copy data to another
@@ -2001,7 +1745,7 @@ static unsigned	wordAlign;
                reserved: (unsigned)length
 {
   BOOL		sent = NO;
-  GSTcpHandle	*h;
+  GSMessageHandle	*h;
   unsigned	rl;
 
   if ([self isValid] == NO)
@@ -2024,13 +1768,13 @@ static unsigned	wordAlign;
       NSLog(@"bad reserved length - %u", length);
       return NO;
     }
-  if ([receivingPort isKindOfClass: tcpPortClass] == NO)
+  if ([receivingPort isKindOfClass: messagePortClass] == NO)
     {
       NSLog(@"woah there - receiving port is not the correct type");
       return NO;
     }
 
-  h = [self handleForPort: (NSSocketPort*)receivingPort beforeDate: when];
+  h = [self handleForPort: (NSMessagePort*)receivingPort beforeDate: when];
   if (h != nil)
     {
       NSMutableData	*header;
@@ -2143,7 +1887,7 @@ static unsigned	wordAlign;
 		  RELEASE(d);
 		}
 	    }
-	  else if ([o isKindOfClass: tcpPortClass])
+	  else if ([o isKindOfClass: messagePortClass])
 	    {
 	      NSData	*d = newDataWithEncodedPort(o);
 	      unsigned	dLength = [d length];
@@ -2184,6 +1928,16 @@ static unsigned	wordAlign;
   return nil;
 }
 
-@end
 
+-(const unsigned char *) _name
+{
+  return [name bytes];
+}
+
+-(int) _listener
+{
+  return listener;
+}
+
+@end
 

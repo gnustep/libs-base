@@ -24,14 +24,13 @@
 #ifndef __NSPortNameServer_h_GNUSTEP_BASE_INCLUDE
 #define __NSPortNameServer_h_GNUSTEP_BASE_INCLUDE
 
-#include	<Foundation/NSObject.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSMapTable.h>
 
 @class	NSPort, NSString, NSMutableArray;
 
 @interface	NSPortNameServer : NSObject
 {
-  NSMapTable	*_portMap;	/* Registered ports information.	*/
-  NSMapTable	*_nameMap;	/* Registered names information.	*/
 }
 + (id) systemDefaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;
@@ -46,9 +45,25 @@
 @interface	NSPortNameServer (GNUstep)
 - (NSArray*) namesForPort: (NSPort*)port;	/* return all names for port */
 - (BOOL) removePort: (NSPort*)port;		/* remove all names for port */
+
+/* Remove the name if and only if it is registered by the given port. */
 - (BOOL) removePort: (NSPort*)port forName: (NSString*)name;
 @end
 #endif
+
+
+@interface NSSocketPortNameServer : NSPortNameServer
+{
+  NSMapTable	*_portMap;	/* Registered ports information.	*/
+  NSMapTable	*_nameMap;	/* Registered names information.	*/
+}
++ (id) sharedInstance;
+@end
+
+
+@interface NSMessagePortNameServer : NSPortNameServer
++ (id) sharedInstance;
+@end
 
 #endif
 

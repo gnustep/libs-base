@@ -2,6 +2,14 @@
 
 	* Source/NSConnection.m: When creating new connection with registered
 	name on host, ensure that send and receive ports are of same class.
+	* Source/NSMessagePort.m: New for private local connections.
+	* Source/NSMessagePortNameServer.m: New for private local connections.
+	* Source/NSPortNameServer.m: Made abstract
+	* Source/NSSocketPortNameServer.m: Concrete version based on original.
+	* Source/NSSocketPort.m: GSTcpPort.m renamed
+	Alexanders modifications added by RFM and altered slightly to use
+	NSSocketPort by default and to refrain from building new code under
+	windows, so this *shouldn't* break any existing code I hope.
 
 2003-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
