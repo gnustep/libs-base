@@ -58,8 +58,8 @@ GSSetUserName(NSString* name)
   else if ([theUserName isEqualToString: name] == NO)
     {
       ASSIGN(theUserName, name);
-      [NSUserDefaults resetUserDefaults];
     }
+  [NSUserDefaults resetUserDefaults];
 }
 
 /*
