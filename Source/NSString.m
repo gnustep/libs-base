@@ -34,6 +34,8 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSCharacterSet.h>
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/String.h>
@@ -269,8 +271,25 @@
 
 - (NSArray*) componentsSeparatedByString: (NSString*)separator
 {
-  [self notImplemented:_cmd];
-  return nil;
+  NSRange search;
+  NSRange found;
+  NSMutableArray *array;
+
+  search = NSMakeRange(0, [self length]);
+  found = [self rangeOfString:separator];
+  while (found.length)
+    {
+      NSRange current;
+      current = NSMakeRange(search.location, found.location - search.location);
+      [array addObject:[self substringFromRange:current]];
+      search = NSMakeRange(found.location+1, search.length - found.location);
+      found = [self rangeOfString:separator 
+		options:0
+		range:search];
+    }
+
+  // FIXME: Need to make mutable array into non-mutable array?
+  return array;
 }
 
 - (NSString*) substringFromIndex: (unsigned int)index
@@ -280,8 +299,9 @@
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  [self notImplemented:_cmd];
-  return self;
+  unichar buffer[aRange.length];
+  [self getCharacters:buffer range:aRange];
+  return [[self class] stringWithCharacters:buffer length:aRange.length];
 }
 
 - (NSString*) substringToIndex: (unsigned int)index
@@ -294,36 +314,70 @@
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
+  NSRange all = NSMakeRange(0, [self length]);
+  return [self rangeOfCharacterFromSet:aSet
+		options:0
+		range:all];
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
    options: (unsigned int)mask
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
+  NSRange all = NSMakeRange(0, [self length]);
+  return [self rangeOfCharacterFromSet:aSet
+		options:mask
+		range:all];
 }
 
+/* FIXME:  how do you do a case insensitive search?  what's an anchored
+   search? what's a literal search? */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
     options: (unsigned int)mask
     range: (NSRange)aRange
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
+  int i, start, stop, step;
+  NSRange range;
+
+  /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
+  assert(NSMaxRange(aRange) < [self length]);
+
+  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+    {
+      start = NSMaxRange(aRange); stop = aRange.location; step = -1;
+    }
+  else
+    {
+      start = aRange.location; stop = NSMaxRange(aRange); step = 1;
+    }
+  range.length = 0;
+  for (i = start; i < stop; i+=step)
+    {
+      unichar letter = [self characterAtIndex:i];
+      if ([aSet characterIsMember:letter])
+	{
+	  range = NSMakeRange(i, 1);
+	  break;
+	}
+    }
+
+  return range;
 }
 
 - (NSRange) rangeOfString: (NSString*)string
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
+  NSRange all = NSMakeRange(0, [self length]);
+  return [self rangeOfString:string
+		options:0
+		range:all];
 }
 
 - (NSRange) rangeOfString: (NSString*)string
    options: (unsigned int)mask
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
+  NSRange all = NSMakeRange(0, [self length]);
+  return [self rangeOfString:string
+		options:mask
+		range:all];
 }
 
 - (NSRange) rangeOfString: (NSString*)aString
@@ -348,8 +402,8 @@
 
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
 {
-  [self notImplemented:_cmd];
-  return 0;
+  return [self compare:aString options:NSCaseInsensitiveSearch 
+	       range:((NSRange){0, [self length]})];
 }
 
 - (NSComparisonResult) compare: (NSString*)aString
@@ -411,14 +465,16 @@
 
 - (BOOL) hasPrefix: (NSString*)aString
 {
-  [self notImplemented:_cmd];
-  return NO;
+  NSRange range;
+  range = [self rangeOfString:aString];
+  return (range.location == 0) ? YES : NO;
 }
 
 - (BOOL) hasSuffix: (NSString*)aString
 {
-  [self notImplemented:_cmd];
-  return NO;
+  NSRange range;
+  range = [self rangeOfString:aString options:NSBackwardsSearch];
+  return (range.location == ([self length] - [aString length])) ? YES : NO;
 }
 
 - (unsigned int) hash
@@ -630,16 +686,51 @@
   return 0;
 }
 
+/* Returns a new string containing the last path component of the receiver. The
+   path component is any substring after the last '/' character. If the last
+   character is a '/', then the substring before the last '/', but after the
+   second-to-last '/' is returned. Returns the receiver if there are no '/'
+   characters. Returns the null string if the receiver only contains a '/'
+   character. */
 - (NSString*) lastPathComponent
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSRange range;
+  NSString *substring = nil;
+
+  range = [self rangeOfString:@"/" options:NSBackwardsSearch];
+  if (range.length == 0)
+      substring = self;
+  else if (range.location == [self length] - 1)
+    {
+      if (range.location == 0)
+	  substring = [NSString new];
+      else
+	  substring = [[self substringToIndex:range.location-1] 
+				lastPathComponent];
+    }
+  else
+      substring = [self substringFromIndex:range.location+1];
+
+  return substring;
 }
 
+/* Returns a new string containing the path extension of the receiver. The
+   path extension is a suffix on the last path component which starts with
+   a '.' (for example .tiff is the pathExtension for /foo/bar.tiff). Returns
+   a null string if no such extension exists. */
 - (NSString*) pathExtension
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSRange range;
+  NSString *substring = nil;
+
+  range = [self rangeOfString:@"." options:NSBackwardsSearch];
+  if (range.length == 0 
+	|| range.location 
+	    < ([self rangeOfString:@"/" options:NSBackwardsSearch]).location)
+      substring =  [NSString new];
+  else
+      substring = [self substringFromIndex:range.location+1];
+  return substring;
 }
 
 - (NSString*) stringByAbbreviatingWithTildeInPath
@@ -648,28 +739,71 @@
   return self;
 }
 
+/* Returns a new string with the path component given in aString
+   appended to the receiver.  Assumes that aString is NOT prefixed by
+   a '/'.  Checks the receiver to see if the last letter is a '/', if it
+   is not, a '/' is appended before appending aString */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSRange  range;
+  NSString *newstring;
+
+  range = [self rangeOfString:@"/" options:NSBackwardsSearch];
+  if (range.length != 0 && range.location != [self length] - 1)
+      newstring = [self stringByAppendingString:@"/"];
+  else
+      newstring = self;
+
+  return [newstring stringByAppendingString:aString];
 }
 
+/* Returns a new string with the path extension given in aString
+   appended to the receiver.  Assumes that aString is NOT prefixed by
+   a '.'.  Checks the receiver to see if the last letter is a '.', if it
+   is not, a '.' is appended before appending aString */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSRange  range;
+  NSString *newstring;
+
+  range = [aString rangeOfString:@"." options:NSBackwardsSearch];
+  if (range.length != 0 && range.location != [self length] - 1)
+      newstring = [self stringByAppendingString:@"."];
+  else
+      newstring = self;
+
+  return [newstring stringByAppendingString:aString];
 }
 
+/* Returns a new string with the last path component removed from the
+  receiver.  See lastPathComponent for a definition of a path component */
 - (NSString*) stringByDeletingLastPathComponent
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSRange range;
+  NSString *substring;
+
+  range = [self rangeOfString:[self lastPathComponent] 
+			options:NSBackwardsSearch];
+  if (range.length != 0)
+      substring = [self substringToIndex:range.location-2];
+  else
+      substring = self;
+  return substring;
 }
 
+/* Returns a new string with the path extension removed from the receiver.
+   See pathExtension for a definition of the path extension */
 - (NSString*) stringByDeletingPathExtension
 {
-  [self notImplemented:_cmd];
-  return self;
+  NSRange range;
+  NSString *substring;
+
+  range = [self rangeOfString:[self pathExtension] options:NSBackwardsSearch];
+  if (range.length != 0)
+      substring = [self substringToIndex:range.location-2];
+  else
+      substring = self;
+  return substring;
 }
 
 - (NSString*) stringByExpandingTildeInPath
