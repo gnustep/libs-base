@@ -122,7 +122,7 @@ internal_unicode_enc(void)
 
 #endif 
 
-static NSRecursiveLock *local_lock = nil;
+static GSLazyLock *local_lock = nil;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
@@ -210,7 +210,7 @@ static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyRecursiveLock) lock];
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
@@ -328,7 +328,8 @@ GetAvailableEncodings()
 {
   if (_availableEncodings == 0)
     {
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyRecursiveLock) lock];
+      GSSetupEncodingTable();
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
       if (_availableEncodings == 0)
 	{
 	  NSStringEncoding	*encodings;
@@ -342,7 +343,6 @@ GetAvailableEncodings()
 	   * This is also the place where we determine the name we use
 	   * for iconv to support unicode.
 	   */
-	  GSSetupEncodingTable();
 	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
 	  for (i = 0; i < encTableSize+1; i++)
@@ -562,14 +562,14 @@ GetDefEncoding()
       char		*encoding;
       unsigned int	count;
 
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyRecursiveLock) lock];
+      GSSetupEncodingTable();
+
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
       if (defEnc != GSUndefinedEncoding)
 	{
 	  [local_lock unlock];
 	  return defEnc;
 	}
-
-      GSSetupEncodingTable();
 
       encoding = getenv("GNUSTEP_STRING_ENCODING");
       if (encoding != 0)

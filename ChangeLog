@@ -1,3 +1,11 @@
+Sat Nov 01 07:05:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Simplify locking code as original
+	code was hanging in GNUMail after Davids recent locking changes ...
+	not sure what the actual problem was, so this change may have merely
+	re-hidden a bug :-(
+	* Source/Additions/Unicode.m: Simplify to use non-recursive lock.
+
 2003-10-31  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSCharacterSet.m 

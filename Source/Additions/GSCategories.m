@@ -893,7 +893,7 @@ static NSRecursiveLock *local_lock = nil;
 @interface _GSLockInitializer : NSObject
 @end
 @implementation _GSLockInitializer
-+ (void)initialize
++ (void) initialize
 {
   if (local_lock == nil)
     {
@@ -957,7 +957,7 @@ newLockAt(Class self, SEL _cmd, id *location)
  * 
  * </example>
  */
-+ (id)newLockAt:(id *)location
++ (id) newLockAt: (id *)location
 {
   return newLockAt(self, _cmd, location);
 }
@@ -987,7 +987,7 @@ newLockAt(Class self, SEL _cmd, id *location)
  * 
  * </example>
  */
-+ (id)newLockAt:(id *)location
++ (id) newLockAt: (id *)location
 {
   return newLockAt(self, _cmd, location);
 }
