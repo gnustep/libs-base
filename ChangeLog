@@ -1,3 +1,8 @@
+2001-06-06  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/mframe.m: Reactivated inling nested functions after 
+	gcc 3.0 was fixed to compile them again.
+
 2001-06-05  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* GNUmakefile: If GNUSTEP_MAKEFILES is not set, tell the user it
