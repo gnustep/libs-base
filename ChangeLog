@@ -7,6 +7,10 @@
 	* Source/UnixFileHandle.m: Permit accept/connect on descriptors
 	by default.
 	* Source/WindowsFileHandle.m: ditto
+	* Headers/Foundation/NSProcessInfo.h: Added MacOS-X operating system
+	methods and enum
+	* Source/NSProcessInfo.m: Added operating system methods and documented
+	all methods for autogsdoc.
 
 2002-04-07  Richard Frith-Macdonald <rfm@gnu.org>
 

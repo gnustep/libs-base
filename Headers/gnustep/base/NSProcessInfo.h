@@ -34,22 +34,42 @@
 @class NSData;
 @class NSMutableSet;
 
+#ifndef	STRICT_OPENSTEP
+/*
+ * Constants returned by -operatingSystem
+ * NB. The presence of a constant in this list does *NOT* imply that
+ * the named operating system is supported.  Some values are provided
+ * for MacOS-X compatibility only.
+ */
+enum {
+  NSWindowsNTOperatingSystem = 1,
+  NSWindows95OperatingSystem,
+  NSSolarisOperatingSystem,
+  NSHPUXOperatingSystem,
+  NSMACHOperatingSystem,
+  NSSunOSOperatingSystem,
+  NSOSF1OperatingSystem,
+  NSGNULinuxOperatingSystem = 100,
+  NSBSDOperatingSystem
+};
+#endif
+
+
 @interface NSProcessInfo: NSObject
 
-/* Getting an NSProcessInfo Object */
 + (NSProcessInfo*) processInfo;
 
-/* Returning Process Information */
 - (NSArray*) arguments;
 - (NSDictionary*) environment;
+- (NSString*) globallyUniqueString;
 - (NSString*) hostName;
 #ifndef	STRICT_OPENSTEP
+- (unsigned int) operatingSystem;
+- (NSString*) operatingSystemName;
 - (int) processIdentifier;
 #endif
 - (NSString*) processName;
-- (NSString*) globallyUniqueString;
 
-/* Specifying a Process Name */
 - (void) setProcessName: (NSString*)newName;
 
 @end
