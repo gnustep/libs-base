@@ -306,7 +306,6 @@ NSAttributedString.h \
 NSAutoreleasePool.h \
 NSBitmapCharSet.h \
 NSBundle.h \
-NSByteOrder.h \
 NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
@@ -332,7 +331,6 @@ NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
-NSKeyValueCoding.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \
@@ -342,7 +340,6 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
-NSPathUtilities.h \
 NSPort.h \
 NSPortCoder.h \
 NSPortMessage.h \
@@ -353,7 +350,6 @@ NSProxy.h \
 NSRange.h \
 NSRunLoop.h \
 NSScanner.h \
-NSSerialization.h \
 NSSet.h \
 NSString.h \
 NSTask.h \
@@ -364,11 +360,18 @@ NSURL.h \
 NSURLHandle.h \
 NSUndoManager.h \
 NSUserDefaults.h \
-NSUtilities.h \
 NSValue.h \
 NSZone.h
 
-FOUNDATION_HEADERS = Foundation.h $(AUTOGSDOC_HEADERS) objc-load.h
+FOUNDATION_HEADERS = \
+Foundation.h \
+NSByteOrder.h \
+NSKeyValueCoding.h \
+NSPathUtilities.h \
+NSSerialization.h \
+NSUtilities.h \
+$(AUTOGSDOC_HEADERS) \
+objc-load.h
 
 
 UNICODE_HEADERS = \
@@ -415,7 +418,6 @@ Base_HEADER_FILES_DIR = $(HEADER_DIR)
 Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
 Base_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Foundation \
-	-SourceDirectory . \
 	-Declared Foundation \
 	-Standards YES \
 	-Up Base
