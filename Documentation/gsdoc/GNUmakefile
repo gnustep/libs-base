@@ -111,6 +111,8 @@ Base_GSDOC_FILES = Base.gsdoc \
 	GSXMLNode.gsdoc \
 	GSXMLParser.gsdoc
 
+Base_DOC_INSTALL_DIR = Developer/Base/Reference
+
 -include Makefile.preamble
 
 -include GNUmakefile.local
