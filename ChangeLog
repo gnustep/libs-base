@@ -1,3 +1,8 @@
+2005-02-10 01:05  Alexander Malmberg  <alexander@malmberg.org>
+
+	* Tools/gdnc.m (main): Remove the program name from the arguments
+	given to the new task.
+
 2005-02-08 11:20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: (unicodeString) rewrite to conform to coding

@@ -1047,6 +1047,7 @@ main(int argc, char** argv, char** env)
       t = [NSTask new];
       NS_DURING
 	{
+	  [args removeObjectAtIndex: 0];
 	  [args addObject: @"--daemon"];
 	  [t setLaunchPath: [[NSBundle mainBundle] executablePath]];
 	  [t setArguments: args];
