@@ -99,7 +99,10 @@
  0
     };
 
-static Class	NSString_class;	/* For speed	*/
+static Class	NSString_class;		/* For speed	*/
+static Class	NSGSequence_class;	/* For speed	*/
+
+static SEL	caiSel = @selector(characterAtIndex:);
 
 /*
  *	Include property-list parsing code configured for unicode characters.
@@ -250,6 +253,7 @@ handle_printf_atsign (FILE *stream,
     {
       _DefaultStringEncoding = GetDefEncoding();
       NSString_class = self;
+      NSGSequence_class = [NSGSequence class];
       NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableString class];
@@ -1016,7 +1020,7 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
     range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
 
       for (;;)
@@ -1026,7 +1030,7 @@ handle_printf_atsign (FILE *stream,
         NSRange strRange;
         unsigned int myCount = 1;
         unsigned int strCount = 1;
-        id myCharacter = [NSGSequence sequenceWithString: self
+        id myCharacter = [NSGSequence_class sequenceWithString: self
     range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
         id strCharacter = strFirstCharacterSeq;
         for (;;)
@@ -1038,9 +1042,9 @@ handle_printf_atsign (FILE *stream,
             if (strCount >= strLength)
               return (NSRange){myIndex, myCount};
             myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            myCharacter = [NSGSequence sequenceWithString: self range: myRange];
+            myCharacter = [NSGSequence_class sequenceWithString: self range: myRange];
             strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
-            strCharacter = [NSGSequence sequenceWithString: aString range: strRange];
+            strCharacter = [NSGSequence_class sequenceWithString: aString range: strRange];
             myCount += myRange.length;
             strCount += strRange.length;
           }  /* for */
@@ -1069,7 +1073,7 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
     range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
 
       for (;;)
@@ -1078,7 +1082,7 @@ handle_printf_atsign (FILE *stream,
         NSRange strRange;
         unsigned int myCount = 1;
         unsigned int strCount = 1;
-        id myCharacter = [NSGSequence sequenceWithString: self
+        id myCharacter = [NSGSequence_class sequenceWithString: self
     range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
         id strCharacter = strFirstCharacterSeq;
         for (;;)
@@ -1089,9 +1093,9 @@ handle_printf_atsign (FILE *stream,
               break;
             if (strCount >= strLength)
               return (NSRange){myIndex, myCount};
-            myCharacter = [NSGSequence sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
+            myCharacter = [NSGSequence_class sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
             myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            strCharacter = [NSGSequence sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
+            strCharacter = [NSGSequence_class sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
             strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
             myCount += myRange.length;
             strCount += strRange.length;
@@ -1123,7 +1127,7 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
     range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
 
       for (;;)
@@ -1133,7 +1137,7 @@ handle_printf_atsign (FILE *stream,
         NSRange mainRange;
         unsigned int myCount = 1;
         unsigned int strCount = 1;
-        id myCharacter = [NSGSequence sequenceWithString: self
+        id myCharacter = [NSGSequence_class sequenceWithString: self
     range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
         id strCharacter = strFirstCharacterSeq;
         for (;;)
@@ -1143,9 +1147,9 @@ handle_printf_atsign (FILE *stream,
             if (strCount >= strLength)
               return (NSRange){myIndex, myCount};
             myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            myCharacter = [NSGSequence sequenceWithString: self range: myRange];
+            myCharacter = [NSGSequence_class sequenceWithString: self range: myRange];
             strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
-            strCharacter = [NSGSequence sequenceWithString: aString range: strRange];
+            strCharacter = [NSGSequence_class sequenceWithString: aString range: strRange];
             myCount += myRange.length;
             strCount += strRange.length;
           }  /* for */
@@ -1175,7 +1179,7 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
     range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
 
       for (;;)
@@ -1184,7 +1188,7 @@ handle_printf_atsign (FILE *stream,
         NSRange strRange;
         unsigned int myCount = 1;
         unsigned int strCount = 1;
-        id myCharacter = [NSGSequence sequenceWithString: self
+        id myCharacter = [NSGSequence_class sequenceWithString: self
     range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
         id strCharacter = strFirstCharacterSeq;
         for (;;)
@@ -1194,9 +1198,9 @@ handle_printf_atsign (FILE *stream,
               break;
             if (strCount >= strLength)
               return (NSRange){myIndex, myCount};
-            myCharacter = [NSGSequence sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
+            myCharacter = [NSGSequence_class sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
             myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            strCharacter = [NSGSequence sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
+            strCharacter = [NSGSequence_class sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
             strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
             myCount += myRange.length;
             strCount += strRange.length;
@@ -1425,8 +1429,8 @@ else
     myCount += myRange.length;
     strRange = [aString rangeOfComposedCharacterSequenceAtIndex:  strCount];
     strCount += strRange.length;
-    mySeq = [NSGSequence sequenceWithString: self range: myRange];
-    strSeq = [NSGSequence sequenceWithString: aString range: strRange];
+    mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
+    strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
     if (mask & NSCaseInsensitiveSearch)
       result = [[mySeq lowercase] compare: [strSeq lowercase]];
     else
@@ -1473,12 +1477,19 @@ else
 
 - (BOOL) isEqualToString: (NSString*)aString
 {
-  id mySeq, strSeq;
-  NSRange myRange, strRange;
-  unsigned int myLength;
-  unsigned int strLength;
-  unsigned int myIndex = 0;
-  unsigned int strIndex = 0;
+  id		mySeq;
+  id		strSeq;
+  NSRange	myRange;
+  NSRange	strRange;
+  unsigned	myLength;
+  unsigned	strLength;
+  unsigned	myIndex = 0;
+  unsigned	strIndex = 0;
+  static SEL	ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
+  unichar	(*scImp)(NSString*, SEL, unsigned);
+  unichar	(*ocImp)(NSString*, SEL, unsigned);
+  NSRange	(*srImp)(NSString*, SEL, unsigned);
+  NSRange	(*orImp)(NSString*, SEL, unsigned);
 
   if ([self hash] != [aString hash])
     return NO;
@@ -1491,33 +1502,37 @@ else
   if (!strLength)
     return NO;
 
+  scImp = (unichar (*)())[self methodForSelector: caiSel];
+  ocImp = (unichar (*)())[aString methodForSelector: caiSel];
+  srImp = (NSRange (*)())[self methodForSelector: ranSel];
+  orImp = (NSRange (*)())[aString methodForSelector: ranSel];
+
   while ((myIndex < myLength) && (strIndex < strLength))
-    if ([self characterAtIndex: myIndex] ==
-       [aString characterAtIndex: strIndex])
-    {
-      myIndex++;
-      strIndex++;
-    }
-    else
-    {
-      myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
-      strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strIndex];
-      if ((myRange.length < 2) || (strRange.length < 2))
-        return NO;
-      else
+    if ((*scImp)(self, caiSel, myIndex) == (*ocImp)(aString, caiSel, strIndex))
       {
-        mySeq = [NSGSequence sequenceWithString: self range: myRange];
-        strSeq = [NSGSequence sequenceWithString: aString range: strRange];
-        if ([mySeq isEqual: strSeq])
-        {
-          myIndex += myRange.length;
-          strIndex += strRange.length;
-        }
-        else
-          return NO;
+	myIndex++;
+	strIndex++;
       }
-    }
-  if ((myIndex  == myLength) && (strIndex  == strLength))
+    else
+      {
+	myRange = (*srImp)(self, ranSel, myIndex);
+	strRange = (*orImp)(aString, ranSel, strIndex);
+	if ((myRange.length < 2) || (strRange.length < 2))
+	  return NO;
+	else
+	  {
+	    mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
+	    strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
+	    if ([mySeq isEqual: strSeq])
+	      {
+		myIndex += myRange.length;
+		strIndex += strRange.length;
+	      }
+	    else
+	      return NO;
+	  }
+      }
+  if ((myIndex == myLength) && (strIndex == strLength))
     return YES;
   else
     return NO;
@@ -1707,8 +1722,8 @@ else
         return [self substringFromRange: NSMakeRange(0, myIndex)];
       else
       {
-        mySeq = [NSGSequence sequenceWithString: self range: myRange];
-        strSeq = [NSGSequence sequenceWithString: aString range: strRange];
+        mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
+        strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
         if ([[mySeq lowercase] isEqual: [strSeq lowercase]])
         {
           myIndex += myRange.length;
@@ -1737,8 +1752,8 @@ else
         return [self substringFromRange: NSMakeRange(0, myIndex)];
       else
       {
-        mySeq = [NSGSequence sequenceWithString: self range: myRange];
-        strSeq = [NSGSequence sequenceWithString: aString range: strRange];
+        mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
+        strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
         if ([mySeq isEqual: strSeq])
         {
           myIndex += myRange.length;
@@ -2566,7 +2581,6 @@ else
   if (len > 0)
     {
       int	count = 0;
-      SEL	caiSel = @selector(characterAtIndex: );
       unichar	(*caiImp)() = (unichar (*)())[self methodForSelector: caiSel];
 
       while (count < len)
@@ -2594,7 +2608,7 @@ else
   while (count < len)
   {
     r = [self rangeOfComposedCharacterSequenceAtIndex: count];
-    seq=[NSGSequence sequenceWithString: self range: r];
+    seq=[NSGSequence_class sequenceWithString: self range: r];
     [[seq normalize] getCharacters: upoint];
     upoint += [seq length];
     count += r.length;
