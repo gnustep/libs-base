@@ -100,6 +100,20 @@ doubt, do not include this option.
 If you have trouble with the Makefile, it may be that our makefiles use
 features that your @code{make} does not support; use GNU make.
 
+@item
+Then install libgnustep-base:
+
+@example
+make install
+@end example
+
+If you set any environment variables when running @samp{make} to build
+libgnustep-base, you should set them again here; for example:
+
+@example
+CFLAGS=-fgnu-runtime ./configure 
+@end example
+
 @end enumerate
 
 Here are general instructions for @file{configure}, that explain
