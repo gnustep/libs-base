@@ -7,6 +7,10 @@
 
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Define encoding
 	macros for the NeXT runtime.
+
+	* Source/Additions/GSObjCRuntime.m
+	(GSAppendMethodToList): Copy type information for NeXT_RUNTIME.
+	(GSRemoveMethodFromList): Add comment about potential minor leak.
 	
 2004-09-14 Richard Frith-Macdonald <rfm@gnu.org>
 
