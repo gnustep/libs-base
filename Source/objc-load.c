@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <objc/objc-api.h>
-#include <objc/list.h>
+#include <objc/objc-list.h>
 #include <Foundation/objc-load.h>
 
 /* include the interface to the dynamic linker */

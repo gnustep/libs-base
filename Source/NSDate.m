@@ -29,7 +29,11 @@
 
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
+
+#ifndef WIN32
 #include <sys/time.h>
+#endif /* WIN32 */
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>

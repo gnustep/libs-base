@@ -28,8 +28,11 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Magnitude.h>
+
+#ifndef WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #ifdef _SEQUENT_
 /* Include needed for getclock() in our replacement for gettimeofday() */

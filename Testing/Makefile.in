@@ -40,6 +40,10 @@ DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
 DEFS = @DEFS@
 LIBS = -L../src -lobjects @LIBOBJC@ @LIBS@ -lm
 
+EXEEXT = 
+OEXT = .o
+LIBEXT = .a
+
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
@@ -56,10 +60,10 @@ ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
 ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
 
 .SUFFIXES: .m
-.m.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*.o
-.c.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*.o
+.m$(OEXT):
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*$(OEXT)
+.c$(OEXT):
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*$(OEXT)
 
 SRCS = \
 test01.m \
@@ -84,7 +88,8 @@ nsdictionary.m \
 nsset.m \
 nsprocessinfo.m \
 nsarchiver.m \
-invocation.m
+invocation.m \
+diningPhilophers.m
 
 # nsarchiving.m
 
@@ -92,6 +97,7 @@ HDRS = \
 server.h
 
 EXCS = $(SRCS:.m=)
+EXECS = $(SRCS:.m=$(EXEEXT))
 
 BUNDLE_NAME=LoadMe
 DYNAMIC_MFILES = \
@@ -104,65 +110,67 @@ LoadMe.h \
 MyCategory.h \
 SecondClass.h
 
-DYNAMIC_OFILES = $(DYNAMIC_MFILES:.m=.o)
+DYNAMIC_OFILES = $(DYNAMIC_MFILES:.m=$(OEXT))
 
 RCS_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
-	Makefile.in NXStringTable.example
+	Makefile.in NXStringTable.example Makefile.sed.nt
 DIST_FILES = $(RCS_FILES) 
 
 # type 'make bundles' if you also want to check bundles.
 all: $(EXCS)
 
 # This works for GNU make, but not others.
-# %: %.o $(srcdir)/../src/libobjects.a
+# %: %$(OEXT) $(srcdir)/../src/libobjects$(LIBEXT)
 # 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
 # How can I do this in a better way than the ugliness below?
 # (but also have it work on old-style /bin/make)
 
-LINK_CMD = $(CC) $(ALL_CFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-test01: test01.o ../src/libobjects.a
+LINK_CMD = $(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
+test01: test01$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test02: test02.o ../src/libobjects.a
+test02: test02$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test03: test03.o ../src/libobjects.a
+test03: test03$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test04: test04.o ../src/libobjects.a
+test04: test04$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test05: test05.o ../src/libobjects.a
+test05: test05$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test06: test06.o ../src/libobjects.a
+test06: test06$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test07: test07.o ../src/libobjects.a
+test07: test07$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test10: test10.o ../src/libobjects.a
+test10: test10$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test11: test11.o ../src/libobjects.a
+test11: test11$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test12: test12.o ../src/libobjects.a
+test12: test12$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-test13: test13.o ../src/libobjects.a
+test13: test13$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-pipes: pipes.o ../src/libobjects.a
+pipes: pipes$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-server: server.o ../src/libobjects.a
+server: server$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-client: client.o ../src/libobjects.a
+client: client$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-string: string.o ../src/libobjects.a
+string: string$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-values: values.o ../src/libobjects.a
+values: values$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-nsarray: nsarray.o ../src/libobjects.a
+nsarray: nsarray$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-nsbundle: nsbundle.o ../src/libobjects.a
-	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-nsdictionary: nsdictionary.o ../src/libobjects.a
+nsbundle: nsbundle$(OEXT) ../src/libobjects$(LIBEXT)
+	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
+nsdictionary: nsdictionary$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-nsset: nsset.o ../src/libobjects.a
+nsset: nsset$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-nsprocessinfo: nsprocessinfo.o ../src/libobjects.a
+nsprocessinfo: nsprocessinfo$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-nsarchiver: nsarchiver.o ../src/libobjects.a
+nsarchiver: nsarchiver$(OEXT) ../src/libobjects$(LIBEXT)
+	$(LINK_CMD)
+diningPhilosophers: diningPhilosophers$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
 invocation: invocation.o ../src/libobjects.a
 	$(LINK_CMD)
@@ -181,7 +189,7 @@ bundles: $(BUNDLE_NAME).bundle/$(BUNDLE_NAME)
 
 $(DYNAMIC_OFILES): $(DYNAMIC_MFILES) $(DYNAMIC_HFILES)
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(DYNAMIC_CFLAGS) $(ALL_OBJCFLAGS) \
-		$(srcdir)/$*.m -o $*.o
+		$(srcdir)/$*.m -o $*$(OEXT)
 
 $(BUNDLE_NAME).bundle/$(BUNDLE_NAME): $(DYNAMIC_OFILES)
 	-mkdir $(BUNDLE_NAME).bundle
@@ -194,7 +202,7 @@ mostlyclean:
 	rm -f core *~ test08.data textcoder.txt
 
 clean: mostlyclean
-	rm -f *.o $(EXCS)
+	rm -f *$(OEXT) $(EXECS)
 	rm -rf $(BUNDLE_NAME).bundle
 
 distclean: clean

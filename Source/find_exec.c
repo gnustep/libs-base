@@ -31,11 +31,21 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifdef WIN32
+#include <limits.h>
+#define S_IFLNK 0120000
+int readlink(char *path, char *buf, int bufsiz) { return (-1); }
+int lstat(char *path, struct stat *buf) { return (-1); }
+#define MAXPATHLEN 255
+#else
 #include <sys/file.h>
 #include <sys/param.h>
+#include <unistd.h>
+#endif /* WIN32 */
+
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #define DEFAULT_PATH ".:~/bin::/usr/local/bin:/usr/new:/usr/ucb:/usr/bin:/bin:/usr/hosts"
 

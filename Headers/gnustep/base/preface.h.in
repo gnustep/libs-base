@@ -54,7 +54,7 @@
  #include <objc/objc-api.h>
  #include <objc/encoding.h>
  #include <objc/sarray.h>
- #include <objc/list.h>
+ #include <objc/objc-list.h>
 #endif
 
 #include <Foundation/NSObject.h>

@@ -31,6 +31,7 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
+#include <objects/config.h>
 
 /*
  * This the NeXTStep zone typedef.   It is nothing like the implementation
