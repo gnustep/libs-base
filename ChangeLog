@@ -1,3 +1,8 @@
+2003-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Fix reference to zone of deallocated object.
+	Bug reported by Roland Schwingel
+
 2003-02-17    <woudshoo@agilisys.com>
 
 	* GNUmakefile (GNUSTEP_TARGET_INSTALL_PREFIX)

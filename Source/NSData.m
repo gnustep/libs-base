@@ -634,8 +634,9 @@ failure:
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
 #ifdef	HAVE_MMAP
+  NSZone	*z = GSObjCZone(self);
   RELEASE(self);
-  self = [NSDataMappedFile allocWithZone: GSObjCZone(self)];
+  self = [NSDataMappedFile allocWithZone: z];
   return [self initWithContentsOfMappedFile: path];
 #else
   return [self initWithContentsOfFile: path];
