@@ -1,3 +1,12 @@
+Mon Oct 26 10:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	src/NSGCString.m: Implemented ([-copy]) and ([-copyWithZone:]) to
+	work without invoking any methods uing the runtime - much faster.
+	src/NSObject.m: Bugfix and performance improvement to the -perform...
+	methods.  They previously threw an exception if the method referred
+	to by the selector was not implemented (when they should have tried
+	forwarding instead) rather than when passed a nul selector.
+
 Sun Oct 25 08:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	src/NSObject.m: Cache implementation for adding object to autorelease
