@@ -44,7 +44,7 @@ typedef void* NSHashTable;
  * Type for enumerating.
  * NB. layout *must* correspond to that used by the GSIMap code.
  */
-typedef struct { void *map; void *node; } NSHashEnumerator;
+typedef struct { void *map; void *node; size_t bucket; } NSHashEnumerator;
 
 /** Callback functions. <br />*/
 typedef struct _NSHashTableCallBacks

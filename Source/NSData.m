@@ -977,7 +977,7 @@ failure:
 #if	GS_WITH_GC == 0
 	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
 #else
-	      *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len);
+	      *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
 #endif
 	    }
 
@@ -1044,7 +1044,7 @@ failure:
 #if	GS_WITH_GC == 0
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
 #else
-	  *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len);
+	  *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
 #endif
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type
@@ -2096,7 +2096,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC == 0
 	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
 #else
-	      *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len+1);
+	      *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len+1);
 #endif
 	    }
 	  getBytes(*(void**)data, bytes, len, length, cursor);
@@ -2160,7 +2160,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC == 0
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
 #else
-	  *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len);
+	  *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
 #endif
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type

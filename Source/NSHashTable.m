@@ -122,15 +122,14 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
     }
   else
     {
-      GSIMapNode        n = t1->firstNode;
-
-	while (n != 0)
-	  {
+      NSHashEnumerator enumerator = GSIMapEnumeratorForMap((GSIMapTable)t1);
+      GSIMapNode n;
+      while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+        {
           if (GSIMapNodeForKey(t2, n->key) == 0)
             {
               return NO;
             }
-          n = n->nextInMap;
         }
       return YES;
     }
@@ -144,7 +143,8 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 {
   GSIMapTable   t;
   GSIMapNode    n;
-
+  NSHashEnumerator enumerator;
+  
   if (table == 0)
     {
       NSWarnFLog(@"Nul table argument supplied");
@@ -154,11 +154,10 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
   t->extra = ((GSIMapTable)table)->extra;
-  n = ((GSIMapTable)table)->firstNode;
-  while (n != 0)
+  enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
+  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
     {
       GSIMapAddKey(t, n->key);
-      n = n->nextInMap;
     }
 
   return (NSHashTable*)t;
@@ -225,7 +224,7 @@ NSCreateHashTableWithZone(
 
 /**
  * Function to be called when finished with the enumerator.
- * Not required in GNUstep ... just provided for MacOS-X compatibility.
+ * This permits memory used by the enumerator to be released.
  */
 void
 NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
@@ -233,7 +232,11 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
   if (enumerator == 0)
     {
       NSWarnFLog(@"Nul enumerator argument supplied");
+      return;
     }
+#if	GS_WITH_GC
+  memset(enumerator, 0, sizeof(*enumerator));
+#endif
 }
 
 /**
@@ -245,7 +248,7 @@ NSEnumerateHashTable(NSHashTable *table)
 {
   if (table == 0)
     {
-      NSHashEnumerator	v = { 0, 0 };
+      NSHashEnumerator	v = { 0, 0, 0 };
 
       NSWarnFLog(@"Nul table argument supplied");
       return v;

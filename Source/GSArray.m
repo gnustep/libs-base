@@ -464,6 +464,7 @@ static SEL	eqSel;
     }
   _count--;
   RELEASE(_contents_array[_count]);
+  _contents_array[_count] = 0;
 }
 
 - (void) removeObject: (id)anObject
@@ -504,6 +505,7 @@ static SEL	eqSel;
 		  _contents_array[pos-1] = _contents_array[pos];
 		}
 	      _count--;
+		  _contents_array[_count] = 0;
 	      RELEASE(obj);
 	    }
 	}
@@ -533,6 +535,7 @@ static SEL	eqSel;
       _contents_array[index] = _contents_array[index+1];
       index++;
     }
+  _contents_array[_count] = 0;
   RELEASE(obj);	/* Adjust array BEFORE releasing object.	*/
 }
 
@@ -560,6 +563,7 @@ static SEL	eqSel;
 	      _contents_array[pos-1] = _contents_array[pos];
 	    }
 	  _count--;
+	  _contents_array[_count] = 0;
 	  RELEASE(obj);
 	}
     }

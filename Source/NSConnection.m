@@ -292,6 +292,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	  break;
 	}
     }
+  NSEndHashTableEnumeration(&enumerator);
   F_UNLOCK(connection_table_gate);
   return c;
 }
@@ -381,6 +382,7 @@ static BOOL	multi_threaded = NO;
 	      c->_refGate = [NSRecursiveLock new];
 	    }
 	}
+      NSEndHashTableEnumeration(&enumerator);
     }
   [[NSNotificationCenter defaultCenter]
     removeObserver: self
@@ -2067,6 +2069,7 @@ static void retEncoder (DOContext *ctxt)
 	  count++;
 	}
     }
+  NSEndHashTableEnumeration(&enumerator);
   M_UNLOCK(connection_table_gate);
 
   return count;

@@ -43,7 +43,7 @@ typedef void *NSMapTable;
  * Type for enumerating.
  * NB. layout *must* correspond to that used by the GSIMap code.
  */
-typedef struct { void *map; void *node; } NSMapEnumerator;
+typedef struct { void *map; void *node; size_t bucket; } NSMapEnumerator;
 
 /* Callback functions for a key. */
 typedef struct _NSMapTableKeyCallBacks

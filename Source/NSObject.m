@@ -52,9 +52,11 @@
 extern BOOL __objc_responds_to(id, SEL);
 #endif
 
+#if GS_WITH_GC == 0
 @class	_FastMallocBuffer;
 static Class	fastMallocClass;
 static unsigned	fastMallocOffset;
+#endif
 
 static Class	NSConstantStringClass;
 
@@ -726,15 +728,13 @@ static BOOL double_release_check_enabled = NO;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
-      fastMallocClass = [_FastMallocBuffer class];
 #if	GS_WITH_GC == 0
+      fastMallocClass = [_FastMallocBuffer class];
 #if	!defined(REFCNT_LOCAL)
       GSIMapInitWithZoneAndCapacity(&retain_counts,
 	NSDefaultMallocZone(), 1024);
 #endif
       fastMallocOffset = fastMallocClass->instance_size % ALIGN;
-#else
-      fastMallocOffset = 0;
 #endif
       NSConstantStringClass = [NSString constantStringClass];
       GSBuildStrings();
@@ -1584,11 +1584,13 @@ static BOOL double_release_check_enabled = NO;
 /*
  *	Stuff for temporary memory management.
  */
+#if GS_WITH_GC == 0
 @interface	_FastMallocBuffer : NSObject
 @end
 
 @implementation	_FastMallocBuffer
 @end
+#endif
 
 /*
  *	Function for giving us the fastest possible allocation of memory to
@@ -1597,12 +1599,16 @@ static BOOL double_release_check_enabled = NO;
 void *
 _fastMallocBuffer(unsigned size)
 {
+#if GS_WITH_GC
+	return GC_malloc(size);
+#else
   _FastMallocBuffer	*o;
 
   o = (_FastMallocBuffer*)NSAllocateObject(fastMallocClass,
 	size + fastMallocOffset, NSDefaultMallocZone());
   (*autorelease_imp)(autorelease_class, autorelease_sel, o);
   return ((void*)&o[1])+fastMallocOffset;
+#endif
 }
 
 
