@@ -147,49 +147,184 @@ static void setupWhitespace(void)
 #define	GSEQ_S	GSEQ_NS
 #include "GSeq.h"
 
+/*
+ * The path handling mode.
+ */
+static enum {
+  PH_DO_THE_RIGHT_THING,
+  PH_UNIX,
+  PH_WINDOWS
+} pathHandling = PH_DO_THE_RIGHT_THING;
 
-static NSCharacterSet	*myPathSeps = nil;
+#define	GSPathHandlingUnix()	((pathHandling == PH_UNIX) ? YES : NO)
+#define	GSPathHandlingWindows()	((pathHandling == PH_WINDOWS) ? YES : NO)
+
 /*
  * The pathSeps character set is used for parsing paths ... it *must*
  * contain the '/' character, which is the internal path separator,
  * and *may* contain additiona system specific separators.
  *
  * We can't have a 'pathSeps' variable initialized in the +initialize
- * method 'cos that would cause recursion.
+ * method because that would cause recursion.
  */
 static NSCharacterSet*
 pathSeps(void)
 {
-  if (myPathSeps == nil)
+  static NSCharacterSet	*wPathSeps = nil;
+  static NSCharacterSet	*uPathSeps = nil;
+  if (GSPathHandlingUnix())
     {
-#if defined(__MINGW__)
-      myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
-#else
-      myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
-#endif
-      IF_NO_GC(RETAIN(myPathSeps));
+      if (uPathSeps == nil)
+	{
+	  uPathSeps
+	    = [NSCharacterSet characterSetWithCharactersInString: @"/"];
+	  IF_NO_GC(RETAIN(uPathSeps));
+	}
+      return uPathSeps;
     }
-  return myPathSeps;
+  else
+    {
+      if (wPathSeps == nil)
+	{
+	  wPathSeps
+	    = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
+	  IF_NO_GC(RETAIN(wPathSeps));
+	}
+      return wPathSeps;
+    }
 }
 
 inline static BOOL
 pathSepMember(unichar c)
 {
-
-#if defined(__MINGW__)
-  if (c == (unichar)'\\' || c == (unichar)'/')
-#else
   if (c == (unichar)'/')
-#endif
     {
       return YES;
     }
-  else
+  if (GSPathHandlingUnix() == NO)
     {
-      return NO;
+      if (c == (unichar)'\\')
+	{
+	  return YES;
+	}
     }
+  return NO;
 }
 
+/*
+ * Find end of 'root' sequence in a string.  Characters before this
+ * point in the string cannot be split into path components/extensions.
+ * Possible roots are -
+ *
+ * '/'			absolute root on unix
+ * ''			if entire path is empty string
+ * 'C:/'		absolute root for a drive on windows
+ * 'C:'			if entire path is 'C:' or 'C:relativepath'
+ * '//host/share/'	absolute root for a host and share on windows
+ * '//host/share'	if entire path is '//host/share'
+ * '~/'			home directory for user
+ * '~'			if entire path is '~'
+ * '~username/'		home directory for user
+ * '~username'		if entire path is '~username'
+ *
+ * Most roots are terminated in '/' (or '\') unless the root is the entire
+ * path.  The exception is for windows drive-relative paths, where the root
+ * may be a drive letter followed by a colon, but there may still be path
+ * components after the root with no path separator.
+ *
+ * The presence of any non-empty root indicates an absolute path except -
+ * 1. A windows drive-relative path is not absolute unless the root
+ * ends with a path separator, since the path part on the drive is relative.
+ * 2. On windows, a root consisting of a single path separator indicates
+ * a drive-relative path with no drive ... so the path is relative.
+ */
+unsigned rootOf(NSString *s, unsigned l)
+{
+  unsigned	root = 0;
+
+  if (l > 0)
+    {
+      unichar	c = [s characterAtIndex: 0];
+
+      if (c == '~')
+	{
+	  NSRange	range = NSMakeRange(1, l-1);
+
+	  range = [s rangeOfCharacterFromSet: pathSeps()
+				     options: NSLiteralSearch
+				       range: range];
+	  if (range.length == 0)
+	    {
+	      root = l;			// ~ or ~name
+	    }
+	  else
+	    {
+	      root = NSMaxRange(range);	// ~/... or ~name/...
+	    }
+	}
+      else
+	{
+	  if (pathSepMember(c))
+	    {
+	      root++;
+	    }
+	  if (GSPathHandlingUnix() == NO)
+	    {
+	      if (root == 0 && l > 1
+		&& ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+		&& [s characterAtIndex: 1] == ':')
+		{
+		  // Got a drive relative path ... see if it's absolute.
+		  root = 2;
+		  if (l > 2 && pathSepMember([s characterAtIndex: 2]))
+		    {
+		      root++;
+		    }
+		}
+	      else if (root == 1
+		&& l > 4 && pathSepMember([s characterAtIndex: 1]))
+		{
+		  NSRange	range = NSMakeRange(2, l-2);
+
+		  range = [s rangeOfCharacterFromSet: pathSeps()
+					     options: NSLiteralSearch
+					       range: range];
+		  if (range.length > 0 && range.location > 2)
+		    {
+		      unsigned pos = NSMaxRange(range);
+
+		      // Found end of UNC host perhaps ... look for share
+		      if (pos < l)
+			{
+			  range = NSMakeRange(pos, l - pos);
+			  range = [s rangeOfCharacterFromSet: pathSeps()
+						     options: NSLiteralSearch
+						       range: range];
+			  if (range.length > 0)
+			    {
+			      /*
+			       * Found another slash ...  but if it comes
+			       * immediately after the last one this can't
+			       * be a UNC path as it's '//host//' rather
+			       * than '//host/share'
+			       */
+			      if (range.location > pos)
+				{
+				  root = NSMaxRange(range);
+				}
+			    }
+			  else
+			    {
+			      root = l;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
+  return root;
+}
 
 
 /* Convert a high-low surrogate pair into Unicode scalar code-point */
@@ -395,7 +530,21 @@ handle_printf_atsign (FILE *stream,
   return [NXConstantString class];
 }
 
-// Creating Temporary Strings
++ (void) setPathHandling: (NSString*)mode
+{
+  pathHandling = PH_DO_THE_RIGHT_THING;
+  if (mode != nil)
+    {
+      if ([mode caseInsensitiveCompare: @"windows"] == NSOrderedSame)
+	{
+	  pathHandling = PH_WINDOWS;
+	}
+      else if ([mode caseInsensitiveCompare: @"unix"] == NSOrderedSame)
+	{
+	  pathHandling = PH_UNIX;
+	}
+    }
+}
 
 /**
  * Create an empty string.
@@ -3112,30 +3261,17 @@ handle_printf_atsign (FILE *stream,
   return NSUnicodeStringEncoding;
 }
 
-
-// Manipulating File System Paths
-
-/**
- * Attempts to complete this string as a path in the filesystem by finding
- * a unique completion if one exists and returning it by reference in
- * outputName (which must be a non-nil pointer), or if it finds a set of
- * completions they are returned by reference in outputArray, if it is non-nil.
- * filterTypes can be an array of strings specifying extensions to consider;
- * files without these extensions will be ignored and will not constitute
- * completions.  Returns 0 if no match found, else a positive number that is
- * only accurate if outputArray was non-nil.
- */
 - (unsigned int) completePathIntoString: (NSString**)outputName
 			  caseSensitive: (BOOL)flag
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes
 {
-  NSString		*base_path = [self stringByDeletingLastPathComponent];
-  NSString		*last_compo = [self lastPathComponent];
-  NSString		*tmp_path;
+  NSString		*basePath = [self stringByDeletingLastPathComponent];
+  NSString		*lastComp = [self lastPathComponent];
+  NSString		*tmpPath;
   NSDirectoryEnumerator *e;
   NSMutableArray	*op = nil;
-  unsigned		match_count = 0;
+  unsigned		matchCount = 0;
 
   if (outputArray != 0)
     {
@@ -3147,64 +3283,57 @@ handle_printf_atsign (FILE *stream,
       *outputName = nil;
     }
 
-  if ([base_path length] == 0)
+  if ([basePath length] == 0)
     {
-      base_path = @".";
+      basePath = @".";
     }
 
-  e = [[NSFileManager defaultManager] enumeratorAtPath: base_path];
-  while (tmp_path = [e nextObject], tmp_path)
+  e = [[NSFileManager defaultManager] enumeratorAtPath: basePath];
+  while (tmpPath = [e nextObject], tmpPath)
     {
       /* Prefix matching */
       if (flag == YES)
 	{ /* Case sensitive */
-	  if ([tmp_path hasPrefix: last_compo] == NO)
+	  if ([tmpPath hasPrefix: lastComp] == NO)
 	    {
 	      continue;
 	    }
 	}
-      else if ([[tmp_path uppercaseString]
-	hasPrefix: [last_compo uppercaseString]] == NO)
+      else if ([[tmpPath uppercaseString]
+	hasPrefix: [lastComp uppercaseString]] == NO)
 	{
 	  continue;
 	}
 
       /* Extensions filtering */
       if (filterTypes
-	&& ([filterTypes containsObject: [tmp_path pathExtension]] == NO))
+	&& ([filterTypes containsObject: [tmpPath pathExtension]] == NO))
 	{
 	  continue;
 	}
 
       /* Found a completion */
-      match_count++;
+      matchCount++;
       if (outputArray != NULL)
 	{
-	  [op addObject: tmp_path];
+	  [op addObject: tmpPath];
 	}
 
       if ((outputName != NULL) &&
-	((*outputName == nil) || (([*outputName length] < [tmp_path length]))))
+	((*outputName == nil) || (([*outputName length] < [tmpPath length]))))
 	{
-	  *outputName = tmp_path;
+	  *outputName = tmpPath;
 	}
     }
   if (outputArray != NULL)
     {
       *outputArray = AUTORELEASE([op copy]);
     }
-  return match_count;
+  return matchCount;
 }
 
 static NSFileManager *fm = nil;
 
-/**
- * Converts this string, which is assumed to be a path in Unix notation ('/'
- * is file separator, '.' is extension separator) to a C string path expressed
- * in the convention for the host operating system.  This string will be
- * automatically freed soon after it is returned, so copy it if you need it
- * for long.
- */
 - (const char*) fileSystemRepresentation
 {
   if (fm == nil)
@@ -3245,13 +3374,6 @@ static NSFileManager *fm = nil;
   return [fm openStepPathFromLocal: self];
 }	
 
-
-/**
- * Converts this string, which is assumed to be a path in Unix notation ('/'
- * is file separator, '.' is extension separator) to a C string path expressed
- * in the convention for the host operating system.  This string will be
- * stored into buffer if it is shorter than size, otherwise NO is returned.
- */
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size
 {
@@ -3262,150 +3384,162 @@ static NSFileManager *fm = nil;
   return YES;
 }
 
-
-/**
- * Returns a string containing the last path component of the receiver.<br />
- * The path component is the last non-empty substring delimited by the ends
- * of the string or by path * separator ('/') characters.<br />
- * If the receiver is an empty string, it is simply returned.<br />
- * If there are no non-empty substrings, the root string is returned.
- */
 - (NSString*) lastPathComponent
 {
-  NSString	*substring;
   unsigned int	l = [self length];
+  NSRange	range;
+  unsigned int	i;
 
   if (l == 0)
     {
-      substring = self;		// self is empty
+      return @"";		// self is empty
     }
-  else
+
+  // Skip back over any trailing path separators, but not in to root.
+  i = rootOf(self, l);
+  while (l > i && pathSepMember([self characterAtIndex: l-1]) == YES)
     {
-      NSRange	range;
-
-      range = [self rangeOfCharacterFromSet: pathSeps()
-				    options: NSBackwardsSearch
-				      range: ((NSRange){0, l})];
-      if (range.length == 0)
-	{
-	  substring = self;		// No '/' in self
-	}
-      else if (range.location == (l - 1))
-	{
-	  if (range.location == 0)
-	    {
-	      substring = self;		// Just '/'
-	    }
-	  else
-	    {
-	      l = range.location;
-	      while (l > 0 && [self characterAtIndex: l - 1] == '/')
-		{
-		  l--;
-		}
-	      if (l > 0)
-		{
-		  substring = [[self substringToIndex: l] lastPathComponent];
-		}
-	      else
-		{
-		  substring = @"/";	// Multiple '/' characters.
-		}
-	    }
-	}
-      else
-	{
-	  substring = [self substringFromIndex: range.location + 1];
-	}
+      l--;
     }
 
-  return substring;
+  // If only the root is left, return it.
+  if (i == l)
+    {
+      /*
+       * NB. tilde escapes should not have trailing separator in the
+       * path component as they are not trreated as true roots.
+       */
+      if ([self characterAtIndex: 0] == '~'
+	&& pathSepMember([self characterAtIndex: i-1]) == YES)
+	{
+	  return [self substringToIndex: i-1];
+	}
+      return [self substringToIndex: i];
+    }
+
+  // Got more than root ... find last component.
+  range = [self rangeOfCharacterFromSet: pathSeps()
+				options: NSBackwardsSearch
+				  range: ((NSRange){i, l-i})];
+  if (range.length > 0)
+    {
+      // Found separator ... adjust to point to component.
+      i = NSMaxRange(range);
+    }
+  return [self substringWithRange: ((NSRange){i, l-i})];
 }
 
-/**
- * Returns a new string containing the path extension of the receiver.<br />
- * The path extension is a suffix on the last path component which starts
- * with the extension separator (a '.') (for example .tiff is the
- * pathExtension for /foo/bar.tiff).<br />
- * Returns an empty string if no such extension exists.
- */
 - (NSString*) pathExtension
 {
   NSRange	range;
-  NSString	*substring = @"";
-  unsigned int	length = [self length];
+  unsigned int	l = [self length];
+  unsigned int	root;
+
+  if (l == 0)
+    {
+      return @"";
+    }
+  root = rootOf(self, l);
 
   /*
    * Step past trailing path separators.
    */
-  while (length > 1 && pathSepMember([self characterAtIndex: length-1]) == YES)
+  while (l > root && pathSepMember([self characterAtIndex: l-1]) == YES)
     {
-      length--;
+      l--;
     }
-  range = NSMakeRange(0, length);
+  range = NSMakeRange(root, l-root);
 
   /*
-   * Look for a dot in the path ... if there isn't one, there is no extension.
+   * Look for a dot in the path ... if there isn't one, or if it is
+   * immediately after the root or a path separator, there is no extension.
    */
   range = [self rangeOfString: @"." options: NSBackwardsSearch range: range];
-  if (range.length > 0)
+  if (range.length > 0 && range.location > root
+    && pathSepMember([self characterAtIndex: range.location-1]) == NO)
     {
       NSRange	sepRange;
 
       /*
        * Found a dot, so we determine the range of the (possible)
-       * path extension, then cvheck to see if we have a path
+       * path extension, then check to see if we have a path
        * separator within it ... if we have a path separator then
        * the dot is inside the last path component and there is
-       * thereofore no extension.
+       * therefore no extension.
        */
       range.location++;
-      range.length = length - range.location;
+      range.length = l - range.location;
       sepRange = [self rangeOfCharacterFromSet: pathSeps()
 				       options: NSBackwardsSearch
 				         range: range];
       if (sepRange.length == 0)
 	{
-	  substring = [self substringFromRange: range];
+	  return [self substringFromRange: range];
 	}
     }
 
-  return substring;
+  return @"";
 }
 
-/**
- * Returns a new string with the path component given in aString
- * appended to the receiver.
- * Removes trailing separators and multiple separators.
- */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString
 {
-  unsigned	length = [self length];
+  unsigned	originalLength = [self length];
+  unsigned	length = originalLength;
   unsigned	aLength = [aString length];
+  unsigned	root = rootOf(aString, aLength);
   unichar	buf[length+aLength+1];
 
-  [self getCharacters: buf range: ((NSRange){0, length})];
-  while (length > 1 && pathSepMember(buf[length-1]) == YES)
+  if (length == 0)
     {
-      length--;
+      [aString getCharacters: buf range: ((NSRange){0, aLength})];
+      length = aLength;
     }
-  if (aLength > 0)
+  else
     {
-      if (length > 0 && pathSepMember(buf[length-1]) == NO)
+      [self getCharacters: buf range: ((NSRange){0, length})];
+
+      /* We strip back trailing path separators, and replace them with
+       * a single one ... except in the case where we have a windows
+       * drive specification, and the string being appended does not
+       * have a path separator as a root. In that case we just want to
+       * append to the drive specification directly, leaving a relative
+       * path like c:foo
+       */
+      if (length != 2 || buf[1] != ':' || GSPathHandlingUnix() == YES
+	|| buf[0] < 'A' || buf[0] > 'z' || (buf[0] > 'Z' && buf[0] < 'a')
+	|| (root > 0 && pathSepMember([aString characterAtIndex: root-1])))
 	{
+	  while (length > 0 && pathSepMember(buf[length-1]) == YES)
+	    {
+	      length--;
+	    }
 	  buf[length++] = '/';
 	}
-      [aString getCharacters: &buf[length] range: ((NSRange){0, aLength})];
+
+      if ((aLength - root) > 0)
+	{
+	  // appending .. discard root from aString
+	  [aString getCharacters: &buf[length]
+			   range: ((NSRange){root, aLength-root})];
+	  length += aLength-root;
+	}
+      // Find length of root part of new path.
+      root = rootOf(self, originalLength);
     }
-  length += aLength;
+
+  // Trim trailing path separators
   while (length > 1 && pathSepMember(buf[length-1]) == YES)
     {
       length--;
     }
+
+  /* Trim multi separator sequences outside root (root may contain an
+   * initial // pair if it is a windows UNC path).
+   */
   if (length > 0)
     {
       aLength = length - 1;
-      while (aLength > 0)
+      while (aLength > root)
 	{
 	  if (pathSepMember(buf[aLength]) == YES)
 	    {
@@ -3419,6 +3553,7 @@ static NSFileManager *fm = nil;
 		    }
 		  length--;
 		}
+	      buf[aLength] = '/';	// Standardise
 	    }
 	  aLength--;
 	}
@@ -3426,108 +3561,135 @@ static NSFileManager *fm = nil;
   return [NSStringClass stringWithCharacters: buf length: length];
 }
 
-/**
- * Returns a new string with the path extension given in aString
- * appended to the receiver after the extensionSeparator ('.').<br />
- * If the receiver has trailing '/' characters which are not part of the
- * root directory, those '/' characters are stripped before the extension
- * separator is added.
- */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString
 {
-  if ([aString length] == 0)
-    {
-      return [self stringByAppendingString: @"."];
-    }
-  else
-    {
-      unsigned	length = [self length];
-      unsigned	len = length;
-      NSString	*base = self;
+  unsigned	l = [self length];
+  unsigned 	originalLength = l;
+  unsigned	root;
 
-      /*
-       * Step past trailing path separators.
-       */
-      while (len > 1 && pathSepMember([self characterAtIndex: len-1]) == YES)
-	{
-	  len--;
-	}
-      if (length != len)
-	{
-	  NSRange	range = NSMakeRange(0, len);
-
-	  base = [base substringFromRange: range];
-	}
-      return [base stringByAppendingFormat: @".%@", aString];
+  if (l == 0)
+    {
+      NSLog(@"[%@-%@] cannot append extension '%@' to empty string",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aString);
+      return @"";		// Must have a file name to append extension.
     }
+  root = rootOf(self, l);
+  /*
+   * Step past trailing path separators.
+   */
+  while (l > root && pathSepMember([self characterAtIndex: l-1]) == YES)
+    {
+      l--;
+    }
+  if (root == l)
+    {
+      NSLog(@"[%@-%@] cannot append extension '%@' to path '%@'",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+	aString, self);
+      return IMMUTABLE(self);	// Must have a file name to append extension.
+    }
+
+  /* MacOS-X prohibits an extension beginning with a path separator,
+   * but this code extends that a little to prohibit any root from
+   * being used as an extension.  Perhaps we should be more permissive?
+   */ 
+  root = rootOf(aString, [aString length]);
+  if (root > 0)
+    {
+      NSLog(@"[%@-%@] cannot append extension '%@' to path '%@'",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+	aString, self);
+      return IMMUTABLE(self);	// Must have a file name to append extension.
+    }
+
+  if (originalLength != l)
+    {
+      NSRange	range = NSMakeRange(0, l);
+
+      return [[self substringFromRange: range]
+	stringByAppendingFormat: @".%@", aString];
+    }
+  return [self stringByAppendingFormat: @".%@", aString];
 }
 
-/**
- * Returns a new string with the last path component (including any final
- * path separators) removed from the receiver.<br />
- * A string without a path component other than the root is returned
- * without alteration.<br />
- * See -lastPathComponent for a definition of a path component.
- */
 - (NSString*) stringByDeletingLastPathComponent
 {
   NSRange	range;
-  NSString	*substring;
-  unsigned int	length = [self length];
+  unsigned int	l = [self length];
+  unsigned int	i;
+
+  if (l == 0)
+    {
+      return @"";
+    }
+  i = rootOf(self, l);
+
+  /*
+   * Any root without a trailing path separator can be deleted
+   * as it's either a relative path or a tilde expression.
+   */
+  if (i == l && pathSepMember([self characterAtIndex: i-1]) == NO)
+    {
+      return @"";	// Delete relative root
+    }
 
   /*
    * Step past trailing path separators.
    */
-  while (length > 1 && pathSepMember([self characterAtIndex: length-1]) == YES)
+  while (l > i && pathSepMember([self characterAtIndex: l-1]) == YES)
     {
-      length--;
+      l--;
     }
-  range = NSMakeRange(0, length);
+
+  /*
+   * If all we have left is the root, return that root, except for the
+   * special case of a tilde expression ... which may be deleted even
+   * when it is followed by a separator.
+   */
+  if (l == i)
+    {
+      if ([self characterAtIndex: 0] == '~')
+	{
+	  return @"";				// Tilde roots may be deleted.
+	}
+      return [self substringToIndex: i];	// Return root component.
+    }
 
   /*
    * Locate path separator preceeding last path component.
    */
   range = [self rangeOfCharacterFromSet: pathSeps()
 				options: NSBackwardsSearch
-				  range: range];
+				  range: ((NSRange){i, l-i})];
   if (range.length == 0)
     {
-      substring = @"";
+      return [self substringToIndex: i];
     }
-  else if (range.location == 0)
-    {
-      substring = @"/";
-    }
-  else
-    {
-      substring = [self substringToIndex: range.location];
-    }
-  return substring;
+  return [self substringToIndex: range.location];
 }
 
-/**
- * Returns a new string with the path extension removed from the receiver.<br />
- * Strips any trailing path separators before checking for the extension
- * separator.<br />
- * Does not consider a string starting with the extension separator ('.') to
- * be a path extension.
- */
 - (NSString*) stringByDeletingPathExtension
 {
   NSRange	range;
   NSRange	r0;
   NSRange	r1;
   NSString	*substring;
-  unsigned	length = [self length];
+  unsigned	l = [self length];
+  unsigned	root;
+
+  if ((root = rootOf(self, l)) == l)
+    {
+      return IMMUTABLE(self);
+    }
 
   /*
-   * Skip past any trailing path separators... but not a leading one.
+   * Skip past any trailing path separators... but not into root.
    */
-  while (length > 1 && pathSepMember([self characterAtIndex: length-1]) == YES)
+  while (l > root && pathSepMember([self characterAtIndex: l-1]) == YES)
     {
-      length--;
+      l--;
     }
-  range = NSMakeRange(0, length);
+  range = NSMakeRange(root, l-root);
   /*
    * Locate path extension.
    */
@@ -3544,25 +3706,19 @@ static NSFileManager *fm = nil;
    * Assuming the extension separator was found in the last path
    * component, set the length of the substring we want.
    */
-  if (r0.length > 0 && (r1.length == 0 || r1.location < r0.location))
+  if (r0.length > 0 && r0.location > root
+    && (r1.length == 0 || r1.location < r0.location))
     {
-      length = r0.location;
+      l = r0.location;
     }
-  substring = [self substringToIndex: length];
+  substring = [self substringToIndex: l];
   return substring;
 }
 
-/**
- * Returns a string created by expanding the initial tilde ('~') and any
- * following username to be the home directory of the current user or the
- * named user.<br />
- * Returns the receiver or an immutable copy if it was not possible to
- * expand it.
- */
 - (NSString*) stringByExpandingTildeInPath
 {
   NSString	*homedir;
-  NSRange	first_slash_range;
+  NSRange	firstSlashRange;
   unsigned	length;
 
   if ((length = [self length]) == 0)
@@ -3574,7 +3730,7 @@ static NSFileManager *fm = nil;
       return IMMUTABLE(self);
     }
 
-  /*
+  /* FIXME ... should remove in future
    * Anything beginning '~@' is assumed to be a windows path specification
    * which can't be expanded.
    */
@@ -3583,40 +3739,40 @@ static NSFileManager *fm = nil;
       return IMMUTABLE(self);
     }
 
-  first_slash_range = [self rangeOfCharacterFromSet: pathSeps()
+  firstSlashRange = [self rangeOfCharacterFromSet: pathSeps()
 					    options: NSLiteralSearch
 					      range: ((NSRange){0, length})];
-  if (first_slash_range.length == 0)
+  if (firstSlashRange.length == 0)
     {
-      first_slash_range.location = length;
+      firstSlashRange.location = length;
     }
 
-  /*
+  /* FIXME ... should remove in future
    * Anything beginning '~' followed by a single letter is assumed
    * to be a windows drive specification.
    */
-  if (first_slash_range.location == 2 && isalpha([self characterAtIndex: 1]))
+  if (firstSlashRange.location == 2 && isalpha([self characterAtIndex: 1]))
     {
       return IMMUTABLE(self);
     }
 
-  if (first_slash_range.location != 1)
+  if (firstSlashRange.location != 1)
     {
       /* It is of the form `~username/blah/...' or '~username' */
-      int	uname_len;
+      int	userNameLen;
       NSString	*uname;
 
-      if (first_slash_range.length != 0)
+      if (firstSlashRange.length != 0)
 	{
-	  uname_len = first_slash_range.location - 1;
+	  userNameLen = firstSlashRange.location - 1;
 	}
       else
 	{
 	  /* It is actually of the form `~username' */
-	  uname_len = [self length] - 1;
-	  first_slash_range.location = [self length];
+	  userNameLen = [self length] - 1;
+	  firstSlashRange.location = [self length];
 	}
-      uname = [self substringWithRange: ((NSRange){1, uname_len})];
+      uname = [self substringWithRange: ((NSRange){1, userNameLen})];
       homedir = NSHomeDirectoryForUser (uname);
     }
   else
@@ -3627,10 +3783,10 @@ static NSFileManager *fm = nil;
 
   if (homedir != nil)
     {
-      if (first_slash_range.location < length)
+      if (firstSlashRange.location < length)
 	{
 	  return [homedir stringByAppendingPathComponent:
-	    [self substringFromIndex: first_slash_range.location]];
+	    [self substringFromIndex: firstSlashRange.location]];
 	}
       else
 	{
@@ -3643,11 +3799,6 @@ static NSFileManager *fm = nil;
     }
 }
 
-/**
- * Returns a string where a prefix of the current user's home directory is
- * abbreviated by '~', or returns the receiver (or an immutable copy) if
- * it was not found to have the home directory as a prefix.
- */
 - (NSString*) stringByAbbreviatingWithTildeInPath
 {
   NSString	*homedir = NSHomeDirectory ();
@@ -3844,10 +3995,6 @@ static NSFileManager *fm = nil;
   return s;
 }
 
-/**
- * Replaces path string by one in which path components representing symbolic
- * links have been replaced by their referents.
- */
 - (NSString*) stringByResolvingSymlinksInPath
 {
 #if defined(__MINGW__)
@@ -3856,10 +4003,10 @@ static NSFileManager *fm = nil;
   #ifndef MAX_PATH
   #define MAX_PATH 1024
   #endif
-  char		new_buf[MAX_PATH];
+  char		newBuf[MAX_PATH];
 #ifdef HAVE_REALPATH
 
-  if (realpath([self fileSystemRepresentation], new_buf) == 0)
+  if (realpath([self fileSystemRepresentation], newBuf) == 0)
     return IMMUTABLE(self);
 #else
   char		extra[MAX_PATH];
@@ -3869,17 +4016,18 @@ static NSFileManager *fm = nil;
   const	char	*end;
   unsigned	num_links = 0;
 
-
   if (name[0] != '/')
     {
-      if (!getcwd(new_buf, MAX_PATH))
-        return IMMUTABLE(self);			/* Couldn't get directory.	*/
-      dest = strchr(new_buf, '\0');
+      if (!getcwd(newBuf, MAX_PATH))
+	{
+	  return IMMUTABLE(self);	/* Couldn't get directory.	*/
+	}
+      dest = strchr(newBuf, '\0');
     }
   else
     {
-      new_buf[0] = '/';
-      dest = &new_buf[1];
+      newBuf[0] = '/';
+      dest = &newBuf[1];
     }
 
   for (start = end = name; *start; start = end)
@@ -3890,13 +4038,15 @@ static NSFileManager *fm = nil;
 
       /* Elide repeated path separators	*/
       while (*start == '/')
-	start++;
-
+	{
+	  start++;
+	}
       /* Locate end of path component	*/
       end = start;
       while (*end && *end != '/')
-	end++;
-
+	{
+	  end++;
+	}
       len = end - start;
       if (len == 0)
 	{
@@ -3911,7 +4061,7 @@ static NSFileManager *fm = nil;
 	  /*
 	   * Backup - if we are not at the root, remove the last component.
 	   */
-	  if (dest > &new_buf[1])
+	  if (dest > &newBuf[1])
 	    {
 	      do
 		{
@@ -3923,34 +4073,40 @@ static NSFileManager *fm = nil;
       else
         {
           if (dest[-1] != '/')
-            *dest++ = '/';
-
-          if (&dest[len] >= &new_buf[MAX_PATH])
-	    return IMMUTABLE(self);	/* Resolved name too long.	*/
-
+	    {
+	      *dest++ = '/';
+	    }
+          if (&dest[len] >= &newBuf[MAX_PATH])
+	    {
+	      return IMMUTABLE(self);	/* Resolved name too long.	*/
+	    }
           memcpy(dest, start, len);
           dest += len;
           *dest = '\0';
 
-          if (lstat(new_buf, &st) < 0)
-            return IMMUTABLE(self);	/* Unable to stat file.		*/
-
+          if (lstat(newBuf, &st) < 0)
+	    {
+	      return IMMUTABLE(self);	/* Unable to stat file.		*/
+	    }
           if (S_ISLNK(st.st_mode))
             {
               char buf[MAX_PATH];
 
               if (++num_links > MAXSYMLINKS)
-		return IMMUTABLE(self);	/* Too many symbolic links.	*/
-
-              n = readlink(new_buf, buf, MAX_PATH);
+		{
+		  return IMMUTABLE(self);	/* Too many links.	*/
+		}
+              n = readlink(newBuf, buf, MAX_PATH);
               if (n < 0)
-		return IMMUTABLE(self);	/* Couldn't resolve links.	*/
-
+		{
+		  return IMMUTABLE(self);	/* Couldn't resolve.	*/
+		}
               buf[n] = '\0';
 
               if ((n + strlen(end)) >= MAX_PATH)
-		return IMMUTABLE(self);	/* Path would be too long.	*/
-
+		{
+		  return IMMUTABLE(self);	/* Path too long.	*/
+		}
 	      /*
 	       * Concatenate the resolved name with the string still to
 	       * be processed, and start using the result as input.
@@ -3964,14 +4120,14 @@ static NSFileManager *fm = nil;
 		  /*
 		   * For an absolute link, we start at root again.
 		   */
-		  dest = new_buf + 1;
+		  dest = newBuf + 1;
 		}
               else
 		{
 		  /*
 		   * Backup - remove the last component.
 		   */
-		  if (dest > new_buf + 1)
+		  if (dest > newBuf + 1)
 		    {
 		      do
 			{
@@ -3987,80 +4143,98 @@ static NSFileManager *fm = nil;
 	    }
         }
     }
-  if (dest > new_buf + 1 && dest[-1] == '/')
-    --dest;
+  if (dest > newBuf + 1 && dest[-1] == '/')
+    {
+      --dest;
+    }
   *dest = '\0';
 #endif
-  if (strncmp(new_buf, "/private/", 9) == 0)
+  if (strncmp(newBuf, "/private/", 9) == 0)
     {
       struct stat	st;
 
-      if (lstat(&new_buf[8], &st) == 0)
-	strcpy(new_buf, &new_buf[8]);
+      if (lstat(&newBuf[8], &st) == 0)
+	{
+	  strcpy(newBuf, &newBuf[8]);
+	}
     }
   return [[NSFileManager defaultManager]
-	     stringWithFileSystemRepresentation: new_buf
-	     length: strlen(new_buf)];
+   stringWithFileSystemRepresentation: newBuf length: strlen(newBuf)];
 #endif  /* (__MINGW__) */
 }
 
-/**
- * Returns a standardised form of the receiver, with unnecessary parts
- * removed, tilde characters expanded, and symbolic links resolved
- * where possible.<br />
- * If the string is an invalid path, the unmodified receiver is returned.<br />
- * <p>
- *   Uses -stringByExpandingTildeInPath to expand tilde expressions.<br />
- *   Simplifies '//' and '/./' sequences.<br />
- *   Removes any '/private' prefix.
- * </p>
- * <p>
- *  For absolute paths, uses -stringByResolvingSymlinksInPath to resolve
- *  any links, then gets rid of '/../' sequences.
- * </p>
- */
 - (NSString*) stringByStandardizingPath
 {
   NSMutableString	*s;
   NSRange		r;
   unichar		(*caiImp)(NSString*, SEL, unsigned int);
+  unsigned int		l = [self length];
+  unichar		c;
+  unsigned		root;
 
-  /* Expand `~' in the path */
-  s = AUTORELEASE([[self stringByExpandingTildeInPath] mutableCopy]);
+  if (l == 0)
+    {
+      return @"";
+    }
+  c = [self characterAtIndex: 0];
+  if (c == '~')
+    {
+      s = AUTORELEASE([[self stringByExpandingTildeInPath] mutableCopy]);
+    }
+  else
+    {
+      s = AUTORELEASE([self mutableCopy]);
+    }
+  [s replaceString: @"\\" withString: @"/"];
+  l = [s length];
+  root = rootOf(s, l);
+
   caiImp = (unichar (*)())[s methodForSelector: caiSel];
 
-  /* Condense `//' and '/./' */
-  r = NSMakeRange(0, [s length]);
+  // Condense multiple separator ('/') sequences.
+  r = (NSRange){root, l-root};
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
 				 options: 0
-				   range: r]).length)
+				   range: r]).length == 1)
     {
-      unsigned	length = [s length];
-
-      if (r.location + r.length + 1 <= length
-	&& pathSepMember((*caiImp)(s, caiSel, r.location + 1)) == YES)
-	{
-	  [s deleteCharactersInRange: r];
-	}
-      else if (r.location + r.length + 2 <= length
-	&& (*caiImp)(s, caiSel, r.location + 1) == (unichar)'.'
-	&& pathSepMember((*caiImp)(s, caiSel, r.location + 2)) == YES)
+      while (NSMaxRange(r) < l
+	&& pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES)
 	{
 	  r.length++;
+	}
+      r.location++;
+      r.length--;
+      if (r.length > 0)
+	{
 	  [s deleteCharactersInRange: r];
+	  l -= r.length;
+	}
+      r.length = l - r.location;
+    }
+  // Condense ('/./') sequences.
+  r = (NSRange){root, l-root};
+  while ((r = [s rangeOfString: @"/." options: 0 range: r]).length == 2)
+    {
+      if (NSMaxRange(r) == l || 
+	pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES)
+	{
+	  [s deleteCharactersInRange: r];
+	  l -= r.length;
 	}
       else
 	{
 	  r.location++;
 	}
-      if ((r.length = [s length]) > r.location)
-	{
-	  r.length -= r.location;
-	}
-      else
-	{
-	  break;
-	}
+      r.length = l - r.location;
+    }
+
+  // Strip trailing '/' if present.
+  if (l > root && [s hasSuffix: @"/"])
+    {
+      r.length = 1;
+      r.location = l - r.length;
+      [s deleteCharactersInRange: r];
+      l -= r.length;
     }
 
   if ([s isAbsolutePath] == NO)
@@ -4068,10 +4242,11 @@ static NSFileManager *fm = nil;
       return s;
     }
 
-  /* Remove `/private' */
+  // Remove leading `/private' if present.
   if ([s hasPrefix: @"/private"])
     {
-      [s deleteCharactersInRange: ((NSRange){0,7})];
+      [s deleteCharactersInRange: ((NSRange){0,8})];
+      l -= 8;
     }
 
   /*
@@ -4080,19 +4255,16 @@ static NSFileManager *fm = nil;
    */
 #if defined(__MINGW__)
   /* Condense `/../' */
-  r = NSMakeRange(0, [s length]);
-  while ((r = [s rangeOfCharacterFromSet: pathSeps()
-				 options: 0
-				   range: r]).length)
+  r = (NSRange){root, l-root};
+  while ((r = [s rangeOfString: @"/.." options: 0 range: r]).length == 3)
     {
-      if (r.location + r.length + 3 <= [s length]
-	&& (*caiImp)(s, caiSel, r.location + 1) == (unichar)'.'
-	&& (*caiImp)(s, caiSel, r.location + 2) == (unichar)'.'
-	&& pathSepMember((*caiImp)(s, caiSel, r.location + 3)) == YES)
+      if (NSMaxRange(r) == l || 
+	pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES)
 	{
-	  if (r.location > 0)
+	  if (r.location > root)
 	    {
-	      NSRange r2 = {0, r.location};
+	      NSRange r2 = {root, r.location-root};
+
 	      r = [s rangeOfCharacterFromSet: pathSeps()
 				     options: NSBackwardsSearch
 				       range: r2];
@@ -4102,28 +4274,21 @@ static NSFileManager *fm = nil;
 		}
 	      else
 		{
-		  r.length = r2.length - r.location - 1;
+		  r.length = NSMaxRange(r2) - r.location;
 		}
-	      r.length += 4;		/* Add the `/../' */
+	      r.length += 3;		/* Add the `/..' */
 	    }
 	  [s deleteCharactersInRange: r];
+	  l -= r.length;
 	}
       else
 	{
 	  r.location++;
 	}
-
-      if ((r.length = [s length]) > r.location)
-	{
-	  r.length -= r.location;
-	}
-      else
-	{
-	  break;
-	}
+      r.length = l - r.location;
     }
 
-  return s;
+  return IMMUTABLE(s);
 #else
   return [s stringByResolvingSymlinksInPath];
 #endif
@@ -4209,10 +4374,6 @@ static NSFileManager *fm = nil;
   return blen;
 }
 
-/**
- * Concatenates the strings in the components array placing a path
- * separator between each one and returns the result.
- */
 + (NSString*) pathWithComponents: (NSArray*)components
 {
   NSString	*s;
@@ -4236,91 +4397,96 @@ static NSFileManager *fm = nil;
   return s;
 }
 
-/**
- * Returns YES if the receiver represents an absolute path ... i.e. if it
- * begins with a '/' or a '~'<br />
- * Returns NO otherwise.
- */
 - (BOOL) isAbsolutePath
 {
   unichar	c;
+  unsigned	l = [self length];
+  unsigned	root;
 
-  if ([self length] == 0)
+  if (l == 0)
     {
-      return NO;
+      return NO;		// Empty string ... not absolute
     }
   c = [self characterAtIndex: 0];
-#if defined(__MINGW__)
-  if (isalpha(c) && [self indexOfString: @":"] == 1)
+  if (c == (unichar)'~')
     {
-      return YES;
+      return YES;		// Begins with tilde ... absolute
     }
-#endif
-  if (c == (unichar)'/' || c == (unichar)'~')
+  root = rootOf(self, l);
+  if (root > 0 && pathSepMember([self characterAtIndex: root-1]))
     {
-      return YES;
+#if defined(__MINGW__)
+      if (root == 1 && GSPathHandlingUnix() == NO)
+	{
+	  return NO;		// Single slash/backslash is not absolute. 
+	}
+#endif
+      if (root == 1 && c == '\\')
+	{
+	  return NO;		// Single backslash is not absolute
+	}
+      return YES;		// Root ends with separator ... absolute.
     }
   return NO;
 }
 
-/**
- * Returns the path components of the reciever separated into an array.<br />
- * If the receiver begins with a '/' character then that is used as the
- * first element in the array.<br />
- * Empty components are removed.
- */
 - (NSArray*) pathComponents
 {
   NSMutableArray	*a;
   NSArray		*r;
+  NSString		*s = self;
+  unsigned int		l = [s length];
+  unsigned int		root;
+  unsigned int		i;
+  NSRange		range;
 
-  if ([self length] == 0)
+  if (l == 0)
     {
       return [NSArray array];
     }
-  a = [[self componentsSeparatedByString: @"/"] mutableCopy];
-  if ([a count] > 0)
+  root = rootOf(s, l);
+  a = [[NSMutableArray alloc] initWithCapacity: 8];
+  if (root > 0)
     {
-      int	i;
+      [a addObject: [s substringToIndex: root]];
+    }
+  i = root;
 
-      /*
-       * If the path began with a '/' then the first path component must
-       * be a '/' rather than an empty string so that our output could be
-       * fed into [+pathWithComponents: ]
-       */
-      if ([[a objectAtIndex: 0] length] == 0)
+  while (i < l)
+    {
+      range = [s rangeOfCharacterFromSet: pathSeps()
+				 options: NSLiteralSearch
+				   range: ((NSRange){i, l - i})];
+      if (range.length > 0)
 	{
-	  [a replaceObjectAtIndex: 0 withObject: @"/"];
-	}
-      /*
-       * Similarly if the path ended with a path separator (other than the
-       * leading one).
-       */
-      if ([[a objectAtIndex: [a count]-1] length] == 0)
-	{
-	  if ([self length] > 1)
+	  if (range.location > i)
 	    {
-	      [a replaceObjectAtIndex: [a count]-1 withObject: @"/"];
+	      [a addObject: [s substringWithRange:
+		NSMakeRange(i, range.location - i)]];
 	    }
+	  i = NSMaxRange(range);
 	}
-      /* Any empty path components  must be removed. */
-      for (i = [a count] - 1; i > 0; i--)
+      else
 	{
-	  if ([[a objectAtIndex: i] length] == 0)
-	    {
-	      [a removeObjectAtIndex: i];
-	    }
+	  [a addObject: [s substringFromIndex: i]];
+	  i = l;
 	}
     }
+
+  /*
+   * If the path ended with a path separator which was not already
+   * added as part of the root, add it as final component.
+   */
+  if (l > root && pathSepMember([s characterAtIndex: l-1]))
+    {
+      [a addObject: @"/"];
+    }
+
   r = [a copy];
   RELEASE(a);
   return AUTORELEASE(r);
 }
 
-/**
- * Returns an array of strings made by appending the values in paths
- * to the receiver.
- */
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths
 {
   NSMutableArray	*a;

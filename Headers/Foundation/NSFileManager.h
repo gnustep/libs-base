@@ -1,7 +1,7 @@
-/* -*-objc-*-
+/**
    NSFileManager.h
 
-   Copyright (C) 1997,1999 Free Software Foundation, Inc.
+   Copyright (C) 1997,1999-2005 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -22,6 +22,147 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+
+<chapter>
+  <heading>File management</heading>
+  <section>
+    <heading>Path handling</heading>
+    <p>The rules for path handling depend on the value in the
+    <code>GSPathHandling</code> user default and, to some extent,
+    on the platform on which the program mis running.<br />
+    The understood values of GSPathHandling are <em>unix</em>
+    and <em>windows</em>.  If GSPathHandling is any other value
+    (or has not been set), GNUstep interprets this as meaning
+    it should try to <em>do-the-right-thing</em><br />
+    In the default mode of operation the system is very tolerant
+    of paths and allows you to work with both unix and windows
+    style paths.  The consequences of this are apparent in the 
+    path handling methods of [NSString] rather than in [NSFileManager].
+    </p>
+    <subsect>
+      <heading>unix</heading>
+      <p>On all Unix platforms, Path components are separated by slashes
+      and file names may contain any character other than slash.<br />
+      The file names . and .. are special cases meaning current directory
+      and the parent of the current directory respectively.<br />
+      Multiple adjacent slash characters are treated as a single separator.
+      </p>
+      Here are various examples:
+      <deflist>
+	<term>/</term>
+	<desc>An absolute path to the root directory. 
+	</desc>
+	<term>/etc/motd</term>
+	<desc>An absolute path to the file named <em>motd</em>
+	in the subdirectory <em>etc</em> of the root directory. 
+	</desc>
+	<term>..</term>
+	<desc>A relative path to the parent of the current directory. 
+	</desc>
+	<term>program.m</term>
+	<desc>A relative path to the file <em>program.m</em>
+	in the current directory. 
+	</desc>
+	<term>Source/program.m</term>
+	<desc>A relative path to the file <em>program.m</em> in the
+	subdirectory <em>Source</em> of the current directory. 
+	</desc>
+	<term>../GNUmakefile</term>
+	<desc>A relative path to the file <em>GNUmakefile</em>
+	in the directory above the current directory.
+	</desc>
+      </deflist>
+    </subsect>
+    <subsect>
+      <heading>windows</heading>
+      <p>On Microsoft Windows the native paths may be either UNC
+      or drive-relative, so GNUstep supports both.<br />
+      Either or both slash (/) and backslash (\) may be used as
+      separators for path components in either type of name.<br />
+      UNC paths follow the general form //host/share/path/file,
+      but must at least contain the host and share parts,
+      i.e. //host/share is a UNC path, but //host is <em>not</em><br />
+      Drive-relative names consist of an optional drive specifier
+      (consisting of a single letter followed by a single colon)
+      followed by an absolute or relative path.<br />
+      In both forms, the names . and .. are refer to the curtrent
+      directory and the parent directory as in unix paths.
+      </p>
+      Here are various examples:
+      <deflist>
+	<term>//host/share/file</term>
+	<desc>An absolute UNC path to a file called <em>file</em>
+	in the top directory of the export point share on host.
+	</desc>
+	<term>C:</term>
+	<desc>A relative path to the current directory on drive C.
+	</desc>
+	<term>C:program.m</term>
+	<desc>A relative path to the file <em>program.m</em> on drive C.
+	</desc>
+	<term>C:\program.m</term>
+	<desc>An absolute path to the file <em>program.m</em>
+	in the top level directory on drive C.
+	</desc>
+	<term>/Source\program.m</term>
+	<desc>A drive-relative path to <em>program.m</em> in the directory
+	<em>Source</em> on the current drive.
+	</desc>
+	<term>\\name</term>
+	<desc>A drive-relative path to <em>name</em> in the top level directory
+	on the current drive.  The '\\' is treated as a single backslash as
+	this is not a UNC name (there must be both a host and a share part in
+	a UNC name).
+	</desc>
+      </deflist>
+    </subsect>
+    <subsect>
+      <heading>gnustep</heading>
+      <p>In the default mode, GNUstep handles both unix and windows paths so
+      it treats both slash (/) and backslash (\) as separators and understands
+      the windows UNC and drive relative path roots.<br />
+      However, it treats any path beginning with a slash (/) as an absolute
+      path <em>if running on a unix system</em>.
+      </p>
+    </subsect>
+    <subsect>
+      <heading>Portability</heading>
+      <p>Attempting to pass absolute paths between applications working on
+      different systems is fraught with difficulty ... just don't do it.<br />
+      Where paths need to be passed around (eg. in property lists or archives)
+      you should pass relative paths and use a standard mechanism to construct
+      an absolute path in the receiving application, for instance, appending
+      the relative path to the home directory of a user.
+      </p>
+      Even using relative paths you should take care ...
+      <list>
+        <item>Use only the slash (/) as a path separator, not backslash (\).
+	</item>
+        <item>Never use a backslash (\) in a file name.
+	</item>
+        <item>Avoid colons in file names.
+	</item>
+        <item>Use no more than three letters in a path extension.
+	</item>
+      </list>
+      Remember that, while GNUstep will manipulate both windows and unix
+      paths, any path actually used to reference a file or directory
+      must be valid on the local system.
+    </subsect>
+    <subsect>
+      <heading>Tilde substitution</heading>
+      <p>GNUstep handles substitution of tilde (~) as foillows:<br />
+      If a path is just ~ or begins ~/ then the value returned by
+      NSHomeDirectory() is substituted for the tilde.<br />
+      If a path is of the form ~name or begins wityh a string like ~name/
+      then name is used as the argument to NSHomeDirectoryForUser() and
+      the return value from that method (if non-nil) is used to replace
+      the tilde.
+      </p>
+    </subsect>
+  </section>
+</chapter>
 */
 
 #ifndef __NSFileManager_h_GNUSTEP_BASE_INCLUDE

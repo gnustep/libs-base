@@ -1,3 +1,15 @@
+2005-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileManager.h: Add path handling documentation.
+	* Headers/Foundation/NSString.h: Add path handling methods
+	documentation and new method to set global path handling mode.
+	* Source/NSUserDefaults.m: Update path handling mode when defaults
+	are read in.
+	* Source/NSString.m: Implement selectable path handling mode ...
+	gnustep/unix/windows.  In the default gnustep mode we try to
+	handle paths in any format and just do the right thing.
+	Also updated handling of path extensions to match MacOSX behavior.
+
 2005-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Use fprintf rather than NSLog to try to

@@ -254,7 +254,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 - (void) dealloc
 {
-  RELEASE(sock);
+  if (sock != nil)
+    {
+      [sock closeFile];
+      DESTROY(sock);
+    }
   RELEASE(u);
   RELEASE(url);
   RELEASE(dat);
