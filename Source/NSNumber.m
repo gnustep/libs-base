@@ -326,13 +326,13 @@ static Class	doubleNumberClass;
 
 + (NSNumber*) numberWithBool: (BOOL)value
 {
-  if (value == YES)
+  if (value == NO)
     {
-      return boolY;
+      return boolN;
     }
   else
     {
-      return boolN;
+      return boolY;
     }
 }
 
@@ -507,13 +507,13 @@ static Class	doubleNumberClass;
 - (id) initWithBool: (BOOL)value
 {
   NSDeallocateObject(self);
-  if (value == YES)
+  if (value == NO)
     {
-      self = boolY;
+      self = boolN;
     }
   else
     {
-      self = boolN;
+      self = boolY;
     }
   return RETAIN(self);
 }
@@ -822,98 +822,98 @@ static Class	doubleNumberClass;
 	      BOOL	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 1:
 	    {
 	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 2:
 	    {
 	      unsigned char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 3:
 	    {
 	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 4:
 	    {
 	      unsigned short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 5:
 	    {
 	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 6:
 	    {
 	      unsigned int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 7:
 	    {
 	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 8:
 	    {
 	      unsigned long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 9:
 	    {
 	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 10:
 	    {
 	      unsigned long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 11:
 	    {
 	      float	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  case 12:
 	    {
 	      double	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
+	      return (oData == 0) ? NO : YES;
 	    }
 	  default:
 	    [NSException raise: NSInvalidArgumentException
 			format: @"unknown number type value for get"];
 	}
     }
-  return 0;
+  return NO;
 }
 
 - (signed char) charValue
