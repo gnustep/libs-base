@@ -1,4 +1,4 @@
-#include <gnustep/base/stdall.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/behavior.h>
 #include <Foundation/NSCoder.h>
 
