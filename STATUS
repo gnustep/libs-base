@@ -17,20 +17,19 @@ Classes
 * NSArchiver::			[8]
 	Doesn't yet call -awakeAfterUsingCoder:.
 
-* NSArray::			[8]
+* NSArray::			[9]
 
 * NSAssertionHandler::		[9]
 
 * NSAutoreleasePool::		[9]
-	But not exception- or thread-safe
+	But not exception- safe
 
 * NSBundle::			[8]
 
-* NSCalendarDate::		[5]
+* NSCalendarDate::		[7]
 
 * NSCharacterSet::		[8]
 	decomposableCharacterSet and illegalCharacter set missing
-	No Unicode support	
 
 * NSCoder::			[8]
 	Missing class name substitution methods.
@@ -241,13 +240,13 @@ Error-Handling Functions
 Geometric Functions
 -------------------
 
-[9] Create Basic Structures
+[10] Create Basic Structures
 `NSPoint NSMakePoint(float X, float Y)'
 `NSSize NSMakeSize(float W, float H)'
 `NSRect NSMakeRect(float X, float Y, float W, float H)'
 `NSRange NSMakeRange(unsigned int LOCATION, unsigned int LENGTH)'
 
-[9] Get a Rectangle's Coordinates
+[10] Get a Rectangle's Coordinates
 `float NSMaxX(NSRect ARECT)'
 `float NSMaxY(NSRect ARECT)'
 `float NSMidX(NSRect ARECT)'
@@ -257,17 +256,17 @@ Geometric Functions
 `float NSWidth(NSRect ARECT)'
 `float NSHeight(NSRect ARECT)'
 
-[9] Modify a Copy of a Rectangle
+[10] Modify a Copy of a Rectangle
 `NSRect NSInsetRect(NSRect ARECT, float DX, float DY)'
 `NSRect NSOffsetRect(NSRect ARECT, float DX, float DY)'
 `void NSDivideRect(NSRect INRECT, NSRect *SLICE, NSRect *REMAINDER, float AMOUNT, NSRectEdge EDGE)'
 `NSRect NSIntegralRect(NSRect ARECT)'
 
-[9] Compute a Third Rectangle from Two Rectangles
+[10] Compute a Third Rectangle from Two Rectangles
 `NSRect NSUnionRect(NSRect ARECT, NSRect BRECT)'
 `NSRect NSIntersectionRect(NSRect ARECT, NSRect BRECT)'
 
-[9] Test Geometric Relationships
+[10] Test Geometric Relationships
 `BOOL NSEqualRects(NSRect ARECT, NSRect BRECT)'
 `BOOL NSEqualSizes(NSSize ASIZE, NSSize BSIZE)'
 `BOOL NSEqualPoints(NSPoint APOINT, NSPoint BPOINT)'
@@ -276,7 +275,7 @@ Geometric Functions
 `BOOL NSPointInRect(NSPoint APOINT, NSRect ARECT)'
 `BOOL NSContainsRect(NSRect ARECT, NSRect BRECT)'
 
-[0] Get a String Representation
+[10] Get a String Representation
 `NSString *NSStringFromPoint(NSPoint APOINT)'
 `NSString *NSStringFromRect(NSRect ARECT)'
 `NSString *NSStringFromSize(NSSize ASIZE)'

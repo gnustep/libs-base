@@ -1,3 +1,43 @@
+Fri Jan  2 13:04:53 1998  Adam Fedor  <fedor@spanky.doc.com>
+
+	* doc/Makefile.postamble: Generate texi from tmpl.texi files.
+	* doc/announce.tmpl.texi: Renamed from announce.texi
+	* doc/faq.tmpl.texi: Likewise.
+	* doc/gnustep-base.tmpl.texi: Likewise.
+	* doc/gnustep-howto.tmpl.texi: Likewise.
+	* doc/gnustep-zones.tmpl.texi: Likewise.
+	* doc/install.tmpl.texi: Likewise.
+	* doc/manual.tmpl.texi: Likewise.
+	* doc/news.tmpl.texi: Likewise.
+	* doc/readme.tmpl.texi: Likewise.
+	* doc/todo.tmpl.texi: Likewise.
+
+Wed Dec 31 13:58:51 1997  Adam Fedor  <fedor@doc.com>
+
+	* STATUS: Updated status on a few classes.
+
+	* doc/GNUmakefile (TOP_DOC_FILES): Add GNUstep-HOWTO.
+	* doc/gnustep-howto.texi: Update documentation.
+	* doc/gnustep-faq.texi: Likewise.
+	* doc/install.texi: Likewise.
+	* doc/readme.texi: Likewise.
+
+Mon Dec 29 09:16:34 1997  Adam Fedor  <fedor@doc.com>
+
+	* src/Random.m ([Random -randomFloatBetween:and:]): Add lowBound
+	(Fix suggested by Masatake Yamato <masata-y@is.aist-nara.ac.jp>).
+
+Fri Dec 26 10:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSCalendarDate.m:
+ 	([-dateByAddingYears:months:days:hours:minutes:seconds:]) Fixed
+ 	bug in wrapping months when adding date to december.
+
+	* src/NSUserDefaults.m: ([-__createArgumentDictionary]) Fixed to
+	use command line args beginning with a dash as defaults keys.
+	Retained old behaviour for -GS and --GS prefixes for backward
+	compatibility.
+
 Fri Dec 19 13:09:28 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/NSGeometry.m (NSPointFromString, NSSizeFromString,

@@ -635,7 +635,13 @@ static NSMutableString   *processName = nil;
 	
   while (!done)
     {
-      if ([key hasPrefix:@"-GS"] || [key hasPrefix:@"--GS"]) {
+      if ([key hasPrefix:@"-"]) {
+	/* anything beginning with a '-' is a defaults key and we must strip
+	    the '-' from it.  As a special case, we leave the '- in place
+	    for '-GS...' and '--GS...' for backward compatibility. */
+        if ([key hasPrefix:@"-GS"] == NO && [key hasPrefix:@"--GS"] == NO) {
+	  key = [key substringFromIndex: 1];
+	}
 	val = [enumerator nextObject];
 	if (!val)
 	  {            // No more args

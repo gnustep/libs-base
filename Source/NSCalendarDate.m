@@ -1068,7 +1068,7 @@ static id long_day[7] = {@"Sunday",
     }
 
   day += days;
-  if (day > 0)
+  if (day > 28)
     {
       i = [self lastDayOfGregorianMonth: month year: year];
       while (day > i)
@@ -1078,7 +1078,7 @@ static id long_day[7] = {@"Sunday",
 	    month++;
 	  else
 	    {
-	      month = 0;
+	      month = 1;
 	      year++;
 	    }
 	}

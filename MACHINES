@@ -3,7 +3,7 @@ The testers of the various ports to different machines.
 A machine's presence in this list does not imply that the latest
 version of libobjects works on that machine.  Mostly this list
 provides you with people you can contact who have had experience with
-libobjects on these machines.
+libobjects on these machines. This list is probably out of date.
 
 i386-unknown-linux	jbettis@cse.unl.edu (Jeremy Bettis)
 i386-freebsd2.0		cracauer@wavehh.hanse.de (Martin Cracauer)
@@ -20,7 +20,7 @@ hppa1.1-hp-hpux9	mooney@golem.phys.ndsu.NoDak.edu (Timothy Mooney)
 mips-sgi-irix5.2	mccallum@gnu.ai.mit.edu (Andrew McCallum)
 			cracauer@wavehh.hanse.de (Martin Cracauer)
 			ebariaux@ulb.ac.be (Eric Bariaux)
-mips-dec-ultrix4.2	fedor@boulder.colorado.edu (Adam Fedor)
+sparc-sun-solaris2.5	fedor@doc.com(Adam Fedor)
 
 The uniq'ed list:
 
@@ -31,4 +31,4 @@ The uniq'ed list:
 	ebariaux@ulb.ac.be (Eric Bariaux),
 	fog@cyberspace.org (Federico Di Gregorio),
 	mooney@golem.phys.ndsu.NoDak.edu (Timothy Mooney),
-	fedor@boulder.colorado.edu (Adam Fedor)
+	fedor@doc.com(Adam Fedor)
