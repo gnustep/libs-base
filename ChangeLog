@@ -1,3 +1,13 @@
+Tue Jan  1 11:18:35 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSFileManager.m (custom_strdup): New inline function
+	to simplify code.  (append_file_to_path): Use it.
+	([NSDirectoryEnumerator -initWithDirectoryPath:
+	recurseIntoSubdirectories:followSymlinks:justContents:]):
+	Idem.
+	([NSDirectoryEnumerator -nextObject]): Fixed memory leak (Reported
+	by Brian Alliet <brian@brian-web.com>).
+
 2001-12-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/behavior.m: behavior_class_add_methods() bugfix to ensure

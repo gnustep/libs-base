@@ -1353,6 +1353,17 @@ static NSFileManager* defaultManager = nil;
  * tools for big directories.
  */
 
+/* A directory to enumerate.  We keep a stack of the directories we
+   still have to enumerate.  We start by putting the top-level
+   directory into the stack, then we start reading files from it
+   (using readdir).  If we find a file which is actually a directory,
+   and if we have to recurse into it, we create a new
+   GSEnumeratedDirectory struct for the subdirectory, open its DIR
+   *pointer for reading, and put it on top of the stack, so next time
+   -nextObject is called, it will read from that directory instead of
+   the top level one.  Once all the subdirectory is read, it is
+   removed from the stack, so the top of the stack if the top
+   directory again, and enumeration continues in there.  */
 typedef	struct	_GSEnumeratedDirectory {
   char *path;
   DIR *pointer;
@@ -1373,6 +1384,17 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
 #include <base/GSIArray.h>
 
+/* Portable replacement for strdup - return a copy of original.  */
+inline char *custom_strdup (const char *original)
+{
+  char *result;
+  unsigned length = sizeof(char) * (strlen (original) + 1);
+  
+  result = NSZoneMalloc(NSDefaultMallocZone(), length);
+  memcpy(result, original, length);
+  return result;
+}
+
 /* The return value of this function is to be freed by using NSZoneFree().
    The function takes for granted that path and file are correct
    filesystem paths; that path does not end with a path separator, and
@@ -1386,12 +1408,7 @@ inline char *append_file_to_path (const char *path, const char *file)
 
   if (path_length == 0)
     {
-      /* return strdup(file); */
-      result = NSZoneMalloc(NSDefaultMallocZone(), 
-			    sizeof(char) * file_length  + 1);
-      memcpy(result, file, sizeof(char) * file_length);
-      result[file_length] = '\0';
-      return result;
+      return custom_strdup(file);
     }
 
   result = NSZoneMalloc(NSDefaultMallocZone(), 
@@ -1433,7 +1450,7 @@ static SEL swfsSel = 0;
 	      followSymlinks: (BOOL)follow
 		justContents: (BOOL)justContents
 {
-  DIR*  dir_pointer;
+  DIR *dir_pointer;
   const char *topPath;
   
   _stringWithFileSysImp = (NSString *(*)(id, SEL, char *, unsigned))
@@ -1446,9 +1463,7 @@ static SEL swfsSel = 0;
   _flags.isFollowing = follow;
   _flags.justContents = justContents;
   topPath = [defaultManager fileSystemRepresentationWithPath: path];
-  _top_path = NSZoneMalloc(NSDefaultMallocZone(), 
-                           sizeof(char) * (strlen(topPath) + 1));
-  memcpy(_top_path, topPath, sizeof(char) * (strlen(topPath) + 1));
+  _top_path = custom_strdup(topPath);
   
   dir_pointer = opendir(_top_path);
   
@@ -1456,18 +1471,15 @@ static SEL swfsSel = 0;
     {
       GSIArrayItem item;
       
-      /* item.ext.path = strdup(""); */
-      item.ext.path = NSZoneMalloc(NSDefaultMallocZone(), sizeof(char) * 2);
-      memcpy(item.ext.path, "", sizeof(char) * 2);
-      
+      item.ext.path = custom_strdup("");
       item.ext.pointer = dir_pointer;
       
       GSIArrayAddItem(_stack, item);
     }
   else
     {
-      NSLog(@"Failed to recurse into directory '%@' - %s",
-	path, GSLastErrorStr(errno));
+      NSLog(@"Failed to recurse into directory '%@' - %s", path, 
+	    GSLastErrorStr(errno));
     }
   
   return self;
@@ -1540,9 +1552,7 @@ static SEL swfsSel = 0;
     find the next entry in the parent
     - sets currentFile to nil if there are no more files to enumerate
   */
-  struct dirent *dirbuf;
-  struct stat statbuf;
-  char *current_file_name = NULL;
+  char *return_file_name = NULL;
 
   if (_current_file_path != NULL)
     {
@@ -1553,6 +1563,8 @@ static SEL swfsSel = 0;
   while (GSIArrayCount(_stack) > 0)
     {
       GSEnumeratedDirectory dir = GSIArrayLastItem(_stack).ext;
+      struct dirent *dirbuf;
+      struct stat statbuf;
       
       dirbuf = readdir(dir.pointer);
       if (dirbuf)
@@ -1562,14 +1574,14 @@ static SEL swfsSel = 0;
 	      || strcmp(dirbuf->d_name, "..") == 0)
 	    continue;
 	  
-	  // Name of current file
-	  current_file_name = append_file_to_path(dir.path, dirbuf->d_name);
+	  /* Name of file to return  */
+	  return_file_name = append_file_to_path(dir.path, dirbuf->d_name);
 	  
 	  /* TODO - can this one can be removed ? */
 	  if (!_flags.justContents)
 	    {
 	      _current_file_path = append_file_to_path(_top_path, 
-						       current_file_name);
+						       return_file_name);
 	    }
   	  if (_flags.isRecursive == YES)
 	    {
@@ -1599,7 +1611,7 @@ static SEL swfsSel = 0;
 		    {
 		      GSIArrayItem item;
 		      
-		      item.ext.path = current_file_name;
+		      item.ext.path = custom_strdup(return_file_name);
 		      item.ext.pointer = dir_pointer;
       
 		      GSIArrayAddItem(_stack, item);
@@ -1623,15 +1635,17 @@ static SEL swfsSel = 0;
 	    }
 	}
     }
-  if (current_file_name == NULL)
+  if (return_file_name == NULL)
     {
       return nil;
     }
   else
     {
-      return _stringWithFileSysImp(defaultManager, swfsSel, 
-				   current_file_name, 
-				   strlen(current_file_name));
+      NSString *result = _stringWithFileSysImp(defaultManager, swfsSel, 
+					       return_file_name, 
+					       strlen(return_file_name));
+      NSZoneFree(NSDefaultMallocZone(), return_file_name);
+      return result;
     }
 }
 
