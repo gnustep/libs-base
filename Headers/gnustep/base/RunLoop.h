@@ -13,6 +13,7 @@
   NSMapTable *_mode_2_timers;
   NSMapTable *_mode_2_in_ports;
   NSMapTable *_mode_2_fd_listeners;
+  NSMapTable *_mode_2_fd_speakers;
 }
 
 - (void) addPort: port
@@ -46,9 +47,33 @@
 /* Mode strings. */
 extern id RunLoopDefaultMode;
 
-/* xxx This interface will probably change. */
+/*
+ *	GNUstep specific extensions to the RunLoop class
+ *	xxx This interface will probably change.
+ */
+
 @protocol FdListening
 - (void) readyForReadingOnFileDescriptor: (int)fd;
+@end
+@protocol FdSpeaking
+- (void) readyForWritingOnFileDescriptor: (int)fd;
+@end
+
+@interface RunLoop (GNUstepExtensions)
+/* Register an object (listener) to receive 'readyForReadingOnFileDescriptor:'
+   message whenever the descriptor (fd) is readable. */
+- (void) addReadDescriptor: (int)fd
+		    object: (id <FdListening>)listener
+		   forMode: (id <String>)mode;
+/* Register an object (speaker) to receive 'readyForWritingOnFileDescriptor:'
+   message whenever the descriptor (fd) is writable. */
+- (void) addWriteDescriptor: (int)fd
+		    object: (id <FdSpeaking>)speaker
+		   forMode: (id <String>)mode;
+- (void) removeReadDescriptor: (int)fd
+		   forMode: (id <String>)mode;
+- (void) removeWriteDescriptor: (int)fd
+		   forMode: (id <String>)mode;
 @end
 
 /* xxx This interface will probably change. */
