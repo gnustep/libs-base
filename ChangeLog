@@ -1,3 +1,9 @@
+2001-04-10  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/preface.h.in: Correct NeXT_RUNTIME name
+
+	* Documentation/gsdoc/NSLock.h: Documented.
+
 2001-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Bugfix to send out task termination notification

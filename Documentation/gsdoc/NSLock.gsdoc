@@ -3,8 +3,8 @@
 <gsdoc base="NSLock" prev="NSInvocation" next="NSMethodSignature" up="Base">
   <head>
     <title>NSLock</title>
-    <author name="Richard Frith-Macdonald">
-      <email address="rfm@gnu.org"/>
+    <author name="Adam Fedor">
+      <email address="fedor@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
     <version>$Revision$</version>
@@ -17,16 +17,32 @@
         <declared>Foundation/NSLock.h</declared>
         <conform>NSLocking</conform>
           <desc>
+	  An NSLock is used in multi-threaded applications to protect critical
+	  pieces of code. While one thread holds a lock within a piece of code,
+	  another thread cannot execute that code until the first thread has
+	  given up it's hold on the lock. The limitation of NSLock is that 
+	  you can only lock an
+	  NSLock once and it must be unlocked before it can be aquired again. 
+	  Other lock classes, notably NSRecursiveLock, have 
+	  different restrictions.
           </desc>
         <method type="BOOL">
           <sel>lockBeforeDate:</sel>
           <arg type="NSDate*">limit</arg>
           <desc>
+	  Attempts to aquire a lock before the date limit passes. It returns YES
+	  if it can. It returns NO if it cannot, or if the current thread already
+	  has the lock (but it waits until the time limit is up before returning
+	  NO).
           </desc>
         </method>
         <method type="BOOL">
           <sel>tryLock</sel>
           <desc>
+	  Attempts to aquire a lock, but returns immediately if the lock
+	  cannot be aquired. It returns YES if the lock is aquired. It returns
+	  NO if the lock cannot be aquired or if the current thread already has
+	  the lock.
           </desc>
         </method>
       </class>

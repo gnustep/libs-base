@@ -28,7 +28,7 @@
 
 #include <base/preface.h>
 
-#if NeXT_runtime
+#if NeXT_RUNTIME
 
 #include <objc/objc-class.h>
 
@@ -269,6 +269,6 @@ list_free(struct objc_list* list)
     }
 }
 
-#endif /* NeXT_runtime */
+#endif /* NeXT_RUNTIME */
 
 #endif /* __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE */
