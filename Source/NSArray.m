@@ -898,13 +898,10 @@ static NSString	*indentStrings[] = {
 	  if (o == anObject)
 	    {
 	      if (rem == 0)
-		rem = [self methodForSelector: remSel];
+		{
+		  rem = [self methodForSelector: remSel];
+		}
 	      (*rem)(self, remSel, i);
-	      /*
-	       * Bail out now or run the risk of comparing against a garbage
-	       * pointer.
-	       */
-	      return;
 	    }
 	}
     }
@@ -942,15 +939,24 @@ static NSString	*indentStrings[] = {
 	  if (o == anObject || (*eq)(anObject, eqSel, o) == YES)
 	    {
 	      if (rem == 0)
-		rem = [self methodForSelector: remSel];
+		{
+		  rem = [self methodForSelector: remSel];
+		  /*
+		   * We need to retain the object so that when we remove the
+		   * first equal object we don't get left with a bad object
+		   * pointer for later comparisons.
+		   */
+		  RETAIN(anObject);
+		}
 	      (*rem)(self, remSel, i);
-	      /*
-	       * Bail out now or run the risk of comparing against a garbage
-	       * pointer.
-	       */
-	      return;
 	    }
 	}
+#ifndef GS_WITH_GC
+      if (rem != 0)
+	{
+	  RELEASE(anObject);
+	}
+#endif
     }
 }
 
@@ -984,13 +990,10 @@ static NSString	*indentStrings[] = {
 	  if (o == anObject)
 	    {
 	      if (rem == 0)
-		rem = [self methodForSelector: remSel];
+		{
+		  rem = [self methodForSelector: remSel];
+		}
 	      (*rem)(self, remSel, i);
-	      /*
-	       * Bail out now or run the risk of comparing against a garbage
-	       * pointer.
-	       */
-	      return;
 	    }
 	}
     }
@@ -1020,15 +1023,24 @@ static NSString	*indentStrings[] = {
 	  if (o == anObject || (*eq)(anObject, eqSel, o) == YES)
 	    {
 	      if (rem == 0)
-		rem = [self methodForSelector: remSel];
+		{
+		  rem = [self methodForSelector: remSel];
+		  /*
+		   * We need to retain the object so that when we remove the
+		   * first equal object we don't get left with a bad object
+		   * pointer for later comparisons.
+		   */
+		  RETAIN(anObject);
+		}
 	      (*rem)(self, remSel, i);
-	      /*
-	       * Bail out now or run the risk of comparing against a garbage
-	       * pointer.
-	       */
-	      return;
 	    }
 	}
+#ifndef GS_WITH_GC
+      if (rem != 0)
+	{
+	  RELEASE(anObject);
+	}
+#endif
     }
 }
 
@@ -1041,7 +1053,9 @@ static NSString	*indentStrings[] = {
       IMP	remLast = [self methodForSelector: rlSel];
 
       while (c--)
-	(*remLast)(self, rlSel);
+	{
+	  (*remLast)(self, rlSel);
+	}
     }
 }
 
@@ -1149,7 +1163,9 @@ static NSString	*indentStrings[] = {
       IMP	rem = [self methodForSelector: remSel];
 
       while (i-- > s)
-	(*rem)(self, remSel, i);
+	{
+	  (*rem)(self, remSel, i);
+	}
     }
 }
 

@@ -97,41 +97,43 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 {
   // Ask the runtime to acquire a lock on the mutex
   if (objc_mutex_trylock(_mutex) == -1)
-	{
+    {
       return NO;
-	} else {
-	  /*
-	   * The recursive lock check goes here to support openstep's 
-	   * implementation.  In openstep you can lock in one thread trylock in the
-	   *  same thread and have another thread release the lock.
-	   *  
-	   *  This is dangerous and broken IMHO.
-	   */
-	  CHECK_RECURSIVE_LOCK(_mutex);
-	  return YES;
-	}
+    }
+  else
+    {
+      /*
+       * The recursive lock check goes here to support openstep's 
+       * implementation.  In openstep you can lock in one thread trylock in the
+       *  same thread and have another thread release the lock.
+       *  
+       *  This is dangerous and broken IMHO.
+       */
+      CHECK_RECURSIVE_LOCK(_mutex);
+      return YES;
+    }
 }
 
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
   int x;
 
-  while ((x = objc_mutex_trylock (_mutex)) == -1 )
+  while ((x = objc_mutex_trylock(_mutex)) == -1)
+    {
+      NSDate *current = [NSDate date];
+      NSComparisonResult compare;
+      
+      compare = [current compare: limit];
+      if (compare == NSOrderedSame || compare == NSOrderedDescending)
 	{
-	  NSDate *current = [NSDate date];
-	  NSComparisonResult compare;
-	  
-	  compare = [current compare: limit];
-	  if ( compare == NSOrderedSame || compare == NSOrderedDescending )
-		{
-		  return NO;
-		}
-	  /*
-	   * This should probably be more accurate like usleep(250)
-	   * but usleep is known to NOT be thread safe under all architectures.
-	   */
-	  sleep(1);
+	  return NO;
 	}
+      /*
+       * This should probably be more accurate like usleep(250)
+       * but usleep is known to NOT be thread safe under all architectures.
+       */
+      sleep(1);
+    }
   /*
    * The recursive lock check goes here to support openstep's implementation.
    * In openstep you can lock in one thread trylock in the same thread and have
@@ -334,22 +336,22 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 { 
   CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
 
-  while ( objc_mutex_trylock (_mutex) == -1 )
+  while (objc_mutex_trylock(_mutex) == -1)
+    {
+      NSDate *current = [NSDate date];
+      NSComparisonResult compare;
+      
+      compare = [current compare: limit];
+      if (compare == NSOrderedSame || compare == NSOrderedDescending)
 	{
-	  NSDate *current = [NSDate date];
-	  NSComparisonResult compare;
-	  
-	  compare = [current compare: limit];
-	  if ( compare == NSOrderedSame || compare == NSOrderedDescending )
-		{
-		  return NO;
-		}
-	  /*
-	   * This should probably be more accurate like usleep(250)
-	   * but usleep is known to NOT be thread safe under all architectures.
-	   */
-	  sleep(1);
+	  return NO;
 	}
+      /*
+       * This should probably be more accurate like usleep(250)
+       * but usleep is known to NOT be thread safe under all architectures.
+       */
+      sleep(1);
+    }
   return YES;
 }
 
@@ -378,22 +380,22 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   endtime.tv_nsec = (unsigned int)((atimeinterval - (float)endtime.tv_sec)
 				   * 1000000000.0);
   
-  while( _condition_value != condition_to_meet)
+  while (_condition_value != condition_to_meet)
     {
-      switch(objc_condition_timedwait(_condition, _mutex, &endtime))
+      switch (objc_condition_timedwait(_condition, _mutex, &endtime))
 	{
-	case 0:
-	  break;
-	case EINTR:
-	  break;
-	case ETIMEDOUT :
-	  [self unlock];
-	  return NO;
-	default:
-	  [NSException raise:NSConditionLockException 
-		       format:@"objc_condition_timedwait failed"];
-	  [self unlock];
-	  return NO;
+	  case 0:
+	    break;
+	  case EINTR:
+	    break;
+	  case ETIMEDOUT :
+	    [self unlock];
+	    return NO;
+	  default:
+	    [NSException raise:NSConditionLockException 
+			 format:@"objc_condition_timedwait failed"];
+	    [self unlock];
+	    return NO;
 	}
     }
   return YES;
@@ -488,22 +490,22 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
-  while ( objc_mutex_trylock (_mutex) == -1 )
+  while (objc_mutex_trylock(_mutex) == -1)
+    {
+      NSDate *current = [NSDate date];
+      NSComparisonResult compare;
+      
+      compare = [current compare: limit];
+      if (compare == NSOrderedSame || compare == NSOrderedDescending)
 	{
-	  NSDate *current = [NSDate date];
-	  NSComparisonResult compare;
-	  
-	  compare = [current compare: limit];
-	  if ( compare == NSOrderedSame || compare == NSOrderedDescending )
-		{
-		  return NO;
-		}
-	  /*
-	   * This should probably be more accurate like usleep(250)
-	   * but usleep is known to NOT be thread safe under all architectures.
-	   */
-	  sleep(1);
+	  return NO;
 	}
+      /*
+       * This should probably be more accurate like usleep(250)
+       * but usleep is known to NOT be thread safe under all architectures.
+       */
+      sleep(1);
+    }
   return YES;
 }
 

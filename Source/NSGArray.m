@@ -432,17 +432,26 @@ static SEL	eqSel = @selector(isEqual:);
   index = _count;
   if (index > 0)
     {
-      BOOL		(*imp)(id,SEL,id);
+      BOOL	(*imp)(id,SEL,id);
+#if	GS_WITH_GC == 0
+      BOOL	retained = NO;
+#endif
 
       imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: eqSel];
       while (index-- > 0)
 	{
 	  if ((*imp)(anObject, eqSel, _contents_array[index]) == YES)
 	    {
+	      unsigned	pos = index;
 #if	GS_WITH_GC == 0
 	      id	obj = _contents_array[index];
+
+	      if (retained == NO)
+		{
+		  RETAIN(anObject);
+		  retained = YES;
+		}
 #endif
-	      unsigned	pos = index;
 
 	      while (++pos < _count)
 		{
@@ -450,13 +459,14 @@ static SEL	eqSel = @selector(isEqual:);
 		}
 	      _count--;
 	      RELEASE(obj);
-	      /*
-	       * Bail out now or run the risk of comparing against a garbage
-	       * pointer.
-	       */
-	      return;
 	    }
 	}
+#if	GS_WITH_GC == 0
+      if (retained == YES)
+	{
+	  RELEASE(anObject);
+	}
+#endif
     }
 }
 
@@ -505,11 +515,6 @@ static SEL	eqSel = @selector(isEqual:);
 	    }
 	  _count--;
 	  RELEASE(obj);
-	  /*
-	   * Bail out now or run the risk of comparing against a garbage
-	   * pointer.
-	   */
-	  return;
 	}
     }
 }
