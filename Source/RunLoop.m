@@ -80,6 +80,8 @@ static RunLoop *current_run_loop;
 {
   /* xxx But actually we should let it be added multiple times,
      and keep count. (?) */
+  if (debug_run_loop)
+    printf ("\tRunLoop adding fd %d\n", fd);
   assert (!NSMapGet (_fd_2_object, (void*)fd));
   NSMapInsert (_fd_2_object, (void*)fd, invocation);
   FD_SET (fd, &_fds);
@@ -88,6 +90,8 @@ static RunLoop *current_run_loop;
 - (void) removeFileDescriptor: (int)fd 
 		      forMode: (id <String>)mode
 {
+  if (debug_run_loop)
+    printf ("\tRunLoop removing fd %d\n", fd);
   assert (NSMapGet (_fd_2_object, (void*)fd));
   NSMapRemove (_fd_2_object, (void*)fd);
   FD_CLR (fd, &_fds);
@@ -130,7 +134,8 @@ static RunLoop *current_run_loop;
 #endif
 }
 
-- (void) acceptInputForMode: (id <String>)mode beforeDate: limit_date
+- (void) acceptInputForMode: (id <String>)mode 
+		 beforeDate: limit_date
 {
   NSTimeInterval ti;
   struct timeval timeout;
