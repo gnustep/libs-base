@@ -33,24 +33,9 @@
 #include <gnustep/base/behavior.h>
 
 #include <gnustep/base/Unicode.h>
-
-static Class	immutableClass;
-static Class	mutableClass;
-static Class	constantClass;
+#include <gnustep/base/fast.x>
 
 @implementation NSGCString
-
-+ (void) initialize
-{
-  static int done = 0;
-  if (!done)
-    {
-      done = 1;
-      immutableClass = [NSGCString class];
-      mutableClass = [NSGMutableCString class];
-      constantClass = [NXConstantString class];
-    }
-}
 
 - (void)dealloc
 {
@@ -62,7 +47,7 @@ static Class	constantClass;
 - (unsigned) hash
 {
   if (_hash == 0)
-    if ((_hash = [super hash]) == 0)
+    if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
       _hash = 0xffffffff;
   return _hash;
 }
@@ -274,18 +259,19 @@ static Class	constantClass;
   Class	c;
   if (anObject == self)
     return YES;
-  c = [anObject class];
+  c = fastClassOfInstance(anObject);
 
-  if (c == immutableClass || c == mutableClass || c == constantClass)
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString || c == _fastCls._NXConstantString)
     {
       NSGCString	*other = (NSGCString*)anObject;
 
       if (_count != other->_count)
 	return NO;
       if (_hash == 0)
-         if ((_hash = [super hash]) == 0)
+         if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
            _hash = 0xffffffff;
-      if (other->_hash == 0) [other hash];
+      if (other->_hash == 0)
+         _fastImp._NSGString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
@@ -302,15 +288,18 @@ static Class	constantClass;
 {
   Class	c;
 
-  c = [aString class];
-  if (c == immutableClass || c == mutableClass || c == constantClass)
+  c = fastClassOfInstance(aString);
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString || c == _fastCls._NXConstantString)
     {
       NSGCString	*other = (NSGCString*)aString;
 
       if (_count != other->_count)
 	return NO;
-      if (_hash == 0) [self hash];
-      if (other->_hash == 0) [other hash];
+      if (_hash == 0)
+        if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
+          _hash = 0xffffffff;
+      if (other->_hash == 0)
+         _fastImp._NSGString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
