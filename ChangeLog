@@ -1,9 +1,13 @@
+2000-12-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSGAttributedString.m: Fix logic errors setting attributes.
+
 2000-12-18  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.postamble (libgnustep.def): Rebuild manually
 	rather than automatically.
 
-2000-12-04  Richard Frith-Macdonald <rfm@gnu.org>
+2000-12-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Tidied to conform to coding standards and changed
 	to use ISOLatin1 as the default cString encoding.
