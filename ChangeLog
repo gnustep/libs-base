@@ -1,3 +1,11 @@
+2002-03-13  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (log): Redefine to gdomap_log to avoid conflict
+	with syslog function on Darwin.
+
+	* Source/NSProcessInfo.m (main): Use STRINIGFY to get proper
+	name of constant string class.
+
 2002-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSObjCRuntime.h: Remove bad markup in comments.
