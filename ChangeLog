@@ -1,5 +1,11 @@
 2003-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSConnection.m: ([_service_forwardForProxy:]) don't free the
+	decoded selector name ... the NSPortCoder now does it.
+	([typeForSelector:]) return autoreleased copy of the type string.
+
+2003-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/callframe.m:
 	* Source/cifframe.m:
 	Fix error in returning data via pointer arguments ... was writing to

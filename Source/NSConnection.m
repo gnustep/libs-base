@@ -2034,6 +2034,7 @@ static void retEncoder (DOContext *ctxt)
   id op, ip;
   char	*type = 0;
   int	seq_num;
+  NSData *data;
 
   NSParameterAssert(_receivePort);
   NSParameterAssert (_isValid);
@@ -2043,8 +2044,9 @@ static void retEncoder (DOContext *ctxt)
   [self _sendOutRmc: op type: METHODTYPE_REQUEST];
   ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(char*) at: &type];
+  data = type ? [NSData dataWithBytes: type length: strlen(type)+1] : nil;
   [self _doneInRmc: ip];
-  return type;
+  return (const char*)[data bytes];
 }
 
 
@@ -2453,10 +2455,6 @@ static void callEncoder (DOContext *ctxt)
 	}
     }
   NS_ENDHANDLER;
-  if (forward_type != 0)
-    {
-      NSZoneFree(NSDefaultMallocZone(), forward_type);
-    }
 }
 
 - (void) _service_rootObject: (NSPortCoder*)rmc
