@@ -83,12 +83,14 @@ static BOOL	entered_multi_threaded_state = NO;
  */
 static NSThread	*defaultThread = nil;
 
-/*
+/**
  * Fast access function to get current thread.
  */
 inline NSThread*
 GSCurrentThread()
 {
+  NSThread	*t;
+
   if (entered_multi_threaded_state == NO)
     {
       /*
@@ -97,33 +99,48 @@ GSCurrentThread()
        */
       if (defaultThread == nil)
 	{
-	  return [NSThread currentThread];
+	  t = [NSThread currentThread];
 	}
       else
 	{
-	  return defaultThread;
+	  t = defaultThread;
 	}
     }
   else
     {
-      return (NSThread*)objc_thread_get_data();
+      t = (NSThread*)objc_thread_get_data();
+      if (t == nil)
+	{
+	  fprintf(stderr, "ALERT ... GSCurrentThread() ... the "
+	    "objc_thread_get_data() call returned nil!");
+	  fflush(stderr);	// Needed for windoze
+	}
     }
+  return t;
 }
 
-/*
+/**
  * Fast access function for thread dictionary of current thread.
  */
 NSMutableDictionary*
 GSCurrentThreadDictionary()
 {
   NSThread		*thread = GSCurrentThread();
-  NSMutableDictionary	*dict = thread->_thread_dictionary;
 
-  if (dict == nil)
+  if (thread == nil)
     {
-      dict = [thread threadDictionary];
+      return nil;
     }
-  return dict; 
+  else 
+    {
+      NSMutableDictionary	*dict = thread->_thread_dictionary;
+
+      if (dict == nil)
+	{
+	  dict = [thread threadDictionary];
+	}
+      return dict; 
+    }
 }
 
 /*
@@ -159,18 +176,33 @@ gnustep_base_thread_callback()
  */
 + (NSThread*) currentThread
 {
+  NSThread	*t;
+ 
   if (entered_multi_threaded_state == NO)
     {
       /*
        * The NSThread class has been initialized - so we will have a default
        * thread set up.
        */
-      return defaultThread;
+      t = defaultThread;
+      if (t == nil)
+	{
+	  fprintf(stderr, "ALERT ... [NSThread +currentThread] ... the "
+	    "default thread is nil!");
+	  fflush(stderr);	// Needed for windoze
+	}
     }
   else
     {
-      return (NSThread*)objc_thread_get_data();
+      t = (NSThread*)objc_thread_get_data();
+      if (t == nil)
+	{
+	  fprintf(stderr, "ALERT ... [NSThread +currentThread] ... the "
+	    "objc_thread_get_data() call returned nil!");
+	  fflush(stderr);	// Needed for windoze
+	}
     }
+  return t;
 }
 
 /*

@@ -52,6 +52,7 @@ static NSString *dict_key = @"_NSAssertionHandler";
     {
       handler = [[NSAssertionHandler alloc] init];
       [dict setObject: handler forKey: dict_key];
+      RELEASE(handler);
     }
   return handler;
 }
