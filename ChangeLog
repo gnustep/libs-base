@@ -1,3 +1,8 @@
+2004-03-29 Adam Fedor <fedor@gnu.org>
+
+	* Headers/Foundation/NSCoder.h (uint8_t, int32_t, int64_t): Define
+	only ifndef (sugg. from Peter Cooper <comrade-gs@obverse.com.au>)
+
 Mon Mar 29 17:19:40 BST 2004 Nicola Pero <n.pero@mi.flashnet.it>
 
 	* Tools/autogsdoc.m: Use @"..." @"..." for concatenated string
