@@ -235,7 +235,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	{
-	  NSLog(@"unable to make connection - %s", strerror(errno));
+	  NSLog(@"unable to make connection to %s:%d - %s",
+		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(errno));
 	  [self release];
 	  return nil;
 	}
@@ -285,7 +286,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	if (errno != EINPROGRESS)
 	  {
-	    NSLog(@"unable to make connection - %s", strerror(errno));
+	    NSLog(@"unable to make connection to %s:%d - %s",
+		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(errno));
 	    [self release];
 	    return nil;
 	  }
@@ -333,7 +335,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
-      NSLog(@"unable to bind to port - %s", strerror(errno));
+      NSLog(@"unable to bind to port %s:%d - %s",
+		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(errno));
       (void) close(net);
       [self release];
       return nil;
