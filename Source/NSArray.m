@@ -218,19 +218,19 @@ static Class NSMutableArray_concrete_class;
 
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
 {
-    id		na;
-    unsigned	c, l;
- 
-    c = [self count];
-    l = [anotherArray count];
-    {
-	id	objects[c+l];
+  id		na;
+  unsigned	c, l;
 
-	[self getObjects: objects];
-	[anotherArray getObjects: &objects[c]];
-	na = [NSArray arrayWithObjects: objects count: c+l];
-    }
-    return na;
+  c = [self count];
+  l = [anotherArray count];
+  {
+    id	objects[c+l];
+
+    [self getObjects: objects];
+    [anotherArray getObjects: &objects[c]];
+    na = [NSArray arrayWithObjects: objects count: c+l];
+  }
+  return na;
 }
 
 - initWithObjects: firstObject rest: (va_list) ap
@@ -337,21 +337,22 @@ static Class NSMutableArray_concrete_class;
 
 - initWithArray: (NSArray*)array
 {
-    unsigned c;
- 
-    c = [array count];
-    {
-	id	objects[c];
+  unsigned c;
 
-	[array getObjects: objects];
-	self = [self initWithObjects: objects count: c];
-    }
-    return self;
+  c = [array count];
+  {
+    id	objects[c];
+
+    [array getObjects: objects];
+    self = [self initWithObjects: objects count: c];
+  }
+  return self;
 }
 
 - (void) getObjects: (id*)aBuffer
 {
   unsigned i, c = [self count];
+
   for (i = 0; i < c; i++)
     aBuffer[i] = [self objectAtIndex: i];
 }
@@ -359,15 +360,19 @@ static Class NSMutableArray_concrete_class;
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange
 {
   unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
-  if (c < e)
-    e = c;
+
+  if (aRange.location >= c)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (c - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
   for (i = aRange.location; i < e; i++)
     aBuffer[j++] = [self objectAtIndex: i];
 }
 
 - (unsigned) hash
 {
-    return [self count];
+  return [self count];
 }
 
 - (unsigned) indexOfObjectIdenticalTo: anObject
@@ -382,8 +387,12 @@ static Class NSMutableArray_concrete_class;
 - (unsigned) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
-  if (c < e)
-    e = c;
+
+  if (aRange.location >= c)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (c - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
   for (i = aRange.location; i < e; i++)
     if (anObject == [self objectAtIndex: i])
       return i;
@@ -404,8 +413,12 @@ static Class NSMutableArray_concrete_class;
 - (unsigned) indexOfObject: anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
-  if (c < e)
-    e = c;
+
+  if (aRange.location >= c)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (c - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
   for (i = aRange.location; i < e; i++)
     {
       id o = [self objectAtIndex: i];
@@ -547,31 +560,24 @@ static Class NSMutableArray_concrete_class;
   return nil;
 }
 
-- (NSArray*) subarrayWithRange: (NSRange)range
+- (NSArray*) subarrayWithRange: (NSRange)aRange
 {
   id na;
-  id *objects;
   unsigned c = [self count];
-  unsigned i, j, k;
 
-  // If array is empty or start is beyond end of array
-  // then return an empty array
-  if (([self count] == 0) || (range.location > (c-1)))
+  if (aRange.location >= c)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (c - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
+  if (aRange.length == 0)
     return [NSArray array];
 
-  // Obtain bounds
-  i = range.location;
-  // Check if length extends beyond end of array
-  if ((range.location + range.length) > (c-1))
-    j = c-1;
-  else
-    j = range.location + range.length - 1;
-
   {
-    id	objects[j-i+1];
+    id	objects[aRange.length];
 
-    [self getObjects: objects range: NSMakeRange(i, j-i+1)];
-    na = [NSArray arrayWithObjects: objects count: j-i+1];
+    [self getObjects: objects range: aRange];
+    na = [NSArray arrayWithObjects: objects count: aRange.length];
   }
   return na;
 }
