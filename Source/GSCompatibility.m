@@ -290,27 +290,10 @@ XString(NSString* obj, GSMutableString *output)
 	      case '"': 
 		len += 6;
 		break;
-	      case '\\': 
-		len += 1;
-		break;
 
 	      default: 
-		if (c < 0x20)
-		  {
-		    if (c == 0x09 || c == 0x0A || c == 0x0D)
-		      {
-			len++;
-		      }
-		    else
-		      {
-			len += 4;
-		      }
-		  }
-		else if (c > 0xD7FF && c < 0xE000)
-		  {
-		    len += 6;
-		  }
-		else if (c > 0xFFFD)
+		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
+		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
 		    len += 6;
 		  }
@@ -362,27 +345,10 @@ XString(NSString* obj, GSMutableString *output)
 		map[wpos++] = 't';
 		map[wpos++] = ';';
 		break;
-	      case '\\': 
-		map[wpos++] = '\\';
-		map[wpos++] = '\\';
-		break;
 
 	      default: 
-		if (c < 0x20)
-		  {
-		    if (c == 0x09 || c == 0x0A || c == 0x0D)
-		      {
-			map[wpos++] = c;
-		      }
-		    else
-		      {
-			map[wpos++] = '\\';
-			map[wpos++] = '0' + ((c / 64) & 7);
-			map[wpos++] = '0' + ((c / 8) & 7);
-			map[wpos++] = '0' + (c & 7);
-		      }
-		  }
-		else if (c > 0xD7FF && c < 0xE000)
+		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
+		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
 		    map[wpos++] = '\\';
 		    map[wpos++] = 'U';
@@ -390,15 +356,6 @@ XString(NSString* obj, GSMutableString *output)
 		    map[wpos++] = hexdigits[(c>>8) & 0xf];
 		    map[wpos++] = hexdigits[(c>>4) & 0xf];
 		    map[wpos++] = hexdigits[c & 0xf];
-		  }
-		else if (c > 0xFFFD)
-		  {
-		    map[wpos++] = '\\';
-		    map[wpos++] = hexdigits[(c>>12) & 0xf];
-		    map[wpos++] = hexdigits[(c>>8) & 0xf];
-		    map[wpos++] = hexdigits[(c>>4) & 0xf];
-		    map[wpos++] = hexdigits[c & 0xf];
-		    map[wpos++] = '\\';
 		  }
 		else
 		  {
