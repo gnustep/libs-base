@@ -101,6 +101,9 @@ will have the method descriptions handy when they need them.  If @i{autogsdoc}
 finds comments for the same entity in both interface and implementation, the
 version in the implementation file ``wins''.
 
+Nonetheless, the recommendation of this author is that you put the comments
+in the header, since this is more within the spirit of Objective-C, where the
+interface file declares the behavior of a class.
 
 @section Comparison with OS X Header Doc and Java JavaDoc
 
@@ -113,7 +116,10 @@ are documenting, just type it normally.  To refer to another method within the
 same class you are documenting, just type its selector with the + or - sign in
 front.  No need to enclose it in special markup.  To refer to another class in
 documentation, you just type the class's name in [Brackets].  To refer to a
-function, simply type its name with parentheses().
+method in another class, put the method selector after the name, as in [Class
+-methodWithArg1:andArg2:].  To refer to a protocol, use
+[(BracketsAndParentheses)] instead of just brackets.  To refer to a function,
+simply type its name suffixed by parentheses().
 
 In terms of non-HTML output formats and control over the HTML format, these
 are not provided with GSdoc, yet, but there are plans to provide them through
