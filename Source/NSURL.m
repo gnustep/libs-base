@@ -53,22 +53,20 @@ NSString	*NSURLPartKey_fragment = @"fragment";
 NSString	*NSURLPartKey_parameterString = @"parameterString";
 NSString	*NSURLPartKey_query = @"query";
 
-//=============================================================================
+
+
 @implementation NSURL
 
-//-----------------------------------------------------------------------------
 + (id) fileURLWithPath: (NSString*)aPath
 {
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath]);
 }
 
-//-----------------------------------------------------------------------------
 + (id) URLWithString: (NSString*)aUrlString
 {
   return AUTORELEASE([[NSURL alloc] initWithString: aUrlString]);
 }
 
-//-----------------------------------------------------------------------------
 + (id) URLWithString: (NSString*)aUrlString
        relativeToURL: (NSURL*)aBaseUrl
 {
@@ -76,7 +74,6 @@ NSString	*NSURLPartKey_query = @"query";
 				     relativeToURL: aBaseUrl]);
 }
 
-//-----------------------------------------------------------------------------
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
 		 path: (NSString*)aPath
@@ -95,7 +92,6 @@ NSString	*NSURLPartKey_query = @"query";
   return self;
 }
 
-//-----------------------------------------------------------------------------
 //Non Standard Function
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
@@ -115,7 +111,6 @@ NSString	*NSURLPartKey_query = @"query";
   return self;
 }
 
-//-----------------------------------------------------------------------------
 //Do a initWithScheme: NSFileScheme host: nil path: aPath
 - (id) initFileURLWithPath: (NSString*)aPath
 {
@@ -125,7 +120,6 @@ NSString	*NSURLPartKey_query = @"query";
   return self;
 }
 
-//-----------------------------------------------------------------------------
 // _urlString is escaped
 - (id) initWithString: (NSString*)aUrlString
 {
@@ -134,7 +128,6 @@ NSString	*NSURLPartKey_query = @"query";
   return self;
 }
 
-//-----------------------------------------------------------------------------
 //_urlString!= nil 
 // _urlString is escaped
 - (id) initWithString: (NSString*)aUrlString
@@ -146,7 +139,6 @@ NSString	*NSURLPartKey_query = @"query";
   return self;
 }
 
-//-----------------------------------------------------------------------------
 - (void) dealloc
 {
   DESTROY(_urlString);
@@ -154,7 +146,6 @@ NSString	*NSURLPartKey_query = @"query";
   [super dealloc];
 }
 
-//-----------------------------------------------------------------------------
 - (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone) == NO)
@@ -164,14 +155,12 @@ NSString	*NSURLPartKey_query = @"query";
     return RETAIN(self);
 }
 
-//-----------------------------------------------------------------------------
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeObject: _urlString];
   [aCoder encodeObject: _baseURL];
 }
 
-//-----------------------------------------------------------------------------
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   [aCoder decodeValueOfObjCType: @encode(id) at: &_urlString];
@@ -180,7 +169,6 @@ NSString	*NSURLPartKey_query = @"query";
 }
 
 
-//-----------------------------------------------------------------------------
 - (NSString*) description
 {
   NSString	*dscr = _urlString;
@@ -190,7 +178,6 @@ NSString	*NSURLPartKey_query = @"query";
   return dscr;
 }
 
-//-----------------------------------------------------------------------------
 // Non Standard Function
 - (NSString*) baseURLAbsolutePart
 {
@@ -202,11 +189,11 @@ NSString	*NSURLPartKey_query = @"query";
 
       if (query != nil)
 	suffix = [suffix stringByAppendingFormat: @"?%@", query];
-      // /test?aa = bb&cc=dd -- http: //user: passwd@www.gnustep.org: 80/apache
-      //    ==> http: //user: passwd@www.gnustep.org: 80/
+      // /test?aa = bb&cc=dd -- http: //user:passwd@www.gnustep.org: 80/apache
+      //    ==> http: //user:passwd@www.gnustep.org: 80/
       tmp = [[_baseURL absoluteString] stringWithoutSuffix: suffix];
 
-      //    ==> http: //user: passwd@www.gnustep.org: 80
+      //    ==> http: //user:passwd@www.gnustep.org: 80
       if ([tmp hasSuffix: @"/"])
 	tmp = [tmp stringWithoutSuffix: @"/"];
       return tmp;
@@ -216,15 +203,14 @@ NSString	*NSURLPartKey_query = @"query";
 }
 
 
-//-----------------------------------------------------------------------------
 - (NSString*) absoluteString
 {
   NSString *absString = nil;
 
   if (_baseURL != nil)
     {
-      // /test?aa = bb&cc=dd -- http: //user: passwd@www.gnustep.org: 80/apache
-      //    ==> http: //user: passwd@www.gnustep.org: 80
+      // /test?aa = bb&cc=dd -- http: //user:passwd@www.gnustep.org: 80/apache
+      //    ==> http: //user:passwd@www.gnustep.org: 80
       absString = [self baseURLAbsolutePart];
 
       if ([_urlString hasPrefix: @"/"])
@@ -237,19 +223,16 @@ NSString	*NSURLPartKey_query = @"query";
   return absString;
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) relativeString
 {
   return _urlString;
 }
 
-//-----------------------------------------------------------------------------
 - (NSURL*) baseURL
 {
   return _baseURL;
 }
 
-//-----------------------------------------------------------------------------
 - (NSURL*) absoluteURL
 {
   if (_baseURL != nil)
@@ -258,7 +241,6 @@ NSString	*NSURLPartKey_query = @"query";
     return [NSURL URLWithString: [self absoluteString]];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) scheme
 {
   NSString	*scheme = nil;
@@ -283,7 +265,6 @@ NSString	*NSURLPartKey_query = @"query";
   return scheme;
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) resourceSpecifier
 {
   NSString	*absoluteString = [self absoluteString];
@@ -310,7 +291,6 @@ NSString	*NSURLPartKey_query = @"query";
     }
 }
 
-//-----------------------------------------------------------------------------
 //Non Standard Function
 - (NSDictionary*) explode
 {
@@ -363,7 +343,7 @@ NSString	*NSURLPartKey_query = @"query";
 	hostPort = userPasswordHostPort;
       if (userPassword != nil)
 	{
-	  range = [userPassword rangeOfString: @": "];
+	  range = [userPassword rangeOfString: @":"];
 	  if (range.length > 0)
 	    {
 	      if (range.location > 0)
@@ -393,7 +373,7 @@ NSString	*NSURLPartKey_query = @"query";
 
       if (hostPort != nil)
 	{
-	  range = [hostPort rangeOfString: @": "];
+	  range = [hostPort rangeOfString: @":"];
 	  if (range.length > 0)
 	    {
 	      if (range.location > 0)
@@ -455,68 +435,57 @@ NSString	*NSURLPartKey_query = @"query";
   return elements;
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) host
 {
   return [[self explode] objectForKey: NSURLPartKey_host];
 }
 
-//-----------------------------------------------------------------------------
 - (NSNumber*) port;
 {
   return [[self explode] objectForKey: NSURLPartKey_port];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) user;
 {
   return [[self explode] objectForKey: NSURLPartKey_user];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) password;
 {
   return [[self explode] objectForKey: NSURLPartKey_password];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) path;
 {
   return [[self explode] objectForKey: NSURLPartKey_path];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) fragment;
 {
   return [[self explode] objectForKey: NSURLPartKey_fragment];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) parameterString;
 {
   return [[self explode] objectForKey: NSURLPartKey_parameterString];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) query;
 {
   return [[self explode] objectForKey: NSURLPartKey_query];
 }
 
-//-----------------------------------------------------------------------------
 - (NSString*) relativePath
 {
   //FIXME?
   return [self path];
 }
 
-//-----------------------------------------------------------------------------
 - (BOOL) isFileURL
 {
   return [[self scheme] isEqualToString: NSURLFileScheme];
 }
 
-//-----------------------------------------------------------------------------
 - (NSURL*) standardizedURL
 {
   //FIXME
@@ -524,34 +493,28 @@ NSString	*NSURLPartKey_query = @"query";
   return nil;
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDataDidBecomeAvailable: (NSData*)newData
 {
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender
 {
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender
 {
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
 {
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason
 {
 }
 
-//-----------------------------------------------------------------------------
 //FIXME: delete these fn when NSURL will be validated
 + (void) test
 {
@@ -679,7 +642,8 @@ NSString	*NSURLPartKey_query = @"query";
 
 @end
 
-//=============================================================================
+
+
 @implementation NSObject (NSURLClient)
 
 - (void) URL: (NSURL*)sender
