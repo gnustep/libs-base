@@ -1188,6 +1188,9 @@ static BOOL snuggleStart(NSString *t)
 		&& [identStart characterIsMember:
 		  (c = [tmp characterAtIndex: pos])] == YES)
 		{
+		  /*
+		   * Look for class or category name.
+		   */
 		  pos++;
 		  while (pos < ePos)
 		    {
@@ -1234,6 +1237,30 @@ static BOOL snuggleStart(NSString *t)
 		    {
 		      r = NSMakeRange(sPos, pos - sPos);
 		      cName = [tmp substringWithRange: r];
+		    }
+		}
+	      else if (pos < ePos
+		&& (c = [tmp characterAtIndex: pos]) == '(')
+		{
+		  /*
+		   * Look for protocol name.
+		   */
+		  pos++;
+		  while (pos < ePos)
+		    {
+		      c = [tmp characterAtIndex: pos];
+		      if (c == ')')
+			{
+			  pos++;
+			  r = NSMakeRange(sPos, pos - sPos);
+			  cName = [tmp substringWithRange: r];
+			  if (pos < ePos)
+			    {
+			      c = [tmp characterAtIndex: pos];
+			    }
+			  break;
+			}
+		      pos++;
 		    }
 		}
 
