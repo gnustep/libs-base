@@ -1,7 +1,9 @@
 2000-07-18  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/gdomap.h: Add new GDO_NAMES command.
 	* Tools/gdomap.c: Incorporate MINGW port by Bjoern.Giesler@gmx.de
 	after modifications to conform to coding standards.
+	Add GDO_NAMES support to list all registered names.
 
 2000-07-16  Fred Kiefer <FredKiefer@gmx.de>
 
