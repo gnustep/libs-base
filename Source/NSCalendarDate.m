@@ -354,12 +354,15 @@ static inline int getDigits(const char *from, char *to, int limit)
 		}
 	      else
 		{
-		  if (source[sourceIdx] != format[formatIdx])
+		  if (sourceIdx < sourceLen)
 		    {
-		      NSLog(@"Expected literal '%c' but got '%c'",
-			format[formatIdx], source[sourceIdx]);
+		      if (source[sourceIdx] != format[formatIdx])
+			{
+			  NSLog(@"Expected literal '%c' but gmtt '%c'",
+			    format[formatIdx], source[sourceIdx]);
+			}
+		      sourceIdx++;
 		    }
-		  sourceIdx++;
 		}
 	    }
 	  else
@@ -371,19 +374,28 @@ static inline int getDigits(const char *from, char *to, int limit)
 		{
 		  case '%':
 		    // skip literal %
-		    if (source[sourceIdx] != '%')
+		    if (sourceIdx < sourceLen)
 		      {
-			NSLog(@"Expected literal '%' but got '%c'",
-			  source[sourceIdx]);
+			if (source[sourceIdx] != '%')
+			  {
+			    NSLog(@"Expected literal '%' but got '%c'",
+			      source[sourceIdx]);
+			  }
+			sourceIdx++;
 		      }
-		    sourceIdx++;
 		    break;
 
 		  case 'a':
 		    // Are Short names three chars in all locales?????
-		    tmpStr[0] = toupper(source[sourceIdx++]);
-		    tmpStr[1] = tolower(source[sourceIdx++]);
-		    tmpStr[2] = tolower(source[sourceIdx++]);
+		    tmpStr[0] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[1] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[2] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
 		    tmpStr[3] = '\0';
 		    {
 		      NSString	*currDay;
@@ -437,9 +449,15 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 		  case 'b':
 		    // Are Short names three chars in all locales?????
-		    tmpStr[0] = toupper(source[sourceIdx++]);
-		    tmpStr[1] = tolower(source[sourceIdx++]);
-		    tmpStr[2] = tolower(source[sourceIdx++]);
+		    tmpStr[0] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[1] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[2] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
 		    tmpStr[3] = '\0';
 		    {
 		      NSString	*currMonth;
@@ -530,8 +548,12 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  case 'p':
 		    // Questionable assumption that all am/pm indicators are 2
 		    // characters and in upper case....
-		    tmpStr[0] = toupper(source[sourceIdx++]);
-		    tmpStr[1] = toupper(source[sourceIdx++]);
+		    tmpStr[0] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[1] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
 		    tmpStr[2] = '\0';
 		    {
 		      NSString	*currAMPM;

@@ -343,15 +343,47 @@ handle_printf_atsign (FILE *stream,
 {
   if (length > 0)
     {
-      unichar	*s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+      int	i;
+      BOOL	isAscii = YES;
 
-      if (chars != 0)
+      if (chars == 0)
 	{
-	  memcpy(s, chars, sizeof(unichar)*length);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"nul pointer but non-zero length"];
 	}
-      self = [self initWithCharactersNoCopy: s
-				     length: length
-			       freeWhenDone: YES];
+      for (i = 0; i < length; i++)
+	{
+	  if (chars[i] >= 128)
+	    {
+	      isAscii = NO;
+	      break;
+	    }
+	}
+      if (isAscii == YES)
+	{
+	  char	*s;
+
+	  s = NSZoneMalloc(fastZone(self), length);
+
+	  for (i = 0; i < length; i++)
+	    {
+	      s[i] = (unsigned char)chars[i];
+	    }
+	  self = [self initWithCStringNoCopy: s
+				      length: length
+				freeWhenDone: YES];
+	}
+      else
+	{
+	  unichar	*s;
+
+	  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+
+	  memcpy(s, chars, sizeof(unichar)*length);
+	  self = [self initWithCharactersNoCopy: s
+					 length: length
+				   freeWhenDone: YES];
+	}
     }
   else
     {

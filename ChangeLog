@@ -1,3 +1,12 @@
+2000-10-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([-initWithCharacters:length:]) use
+	([-initWithCStringNoCopy:length:freeWhenDone:]) if possible.
+	* Source/GSString.m: Much tidying up.  Added two new concrete
+	classes for substrings.
+	* Source/NSCalendarDate.m: ([-initWithString:calendarFormat:locale:])
+	avoid any attempt to read beyond the supplied string.
+
 2000-10-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Attempts to make sure that when members of a class cluster are encoded

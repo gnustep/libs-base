@@ -49,16 +49,48 @@
 #include <base/fast.x>
 #include <base/Unicode.h>
 
+/*
+ * GSCString - concrete class for strings using 8-bit character sets.
+ */
 @interface GSCString : GSString
 {
 }
 @end
 
+/*
+ * GSCSubString - concrete subclass of GSCString, that relys on the
+ * data stored in a GSCString object.
+ */
+@interface GSCSubString : GSCString
+{
+@public
+  GSCString	*_parent;
+}
+@end
+
+/*
+ * GSUString - concrete class for strings using 16-bit character sets.
+ */
 @interface GSUString : GSString
 {
 }
 @end
 
+/*
+ * GSUSubString - concrete subclass of GSUString, that relys on the
+ * data stored in a GSUString object.
+ */
+@interface GSUSubString : GSUString
+{
+@public
+  GSUString	*_parent;
+}
+@end
+
+/*
+ * GSMString - concrete mutable string, capable of changing its storage
+ * from holding 8-bit to 16-bit character set.
+ */
 @interface GSMString : NSMutableString
 {
   union {
@@ -70,7 +102,8 @@
     unsigned int	wide: 1;
     unsigned int	ascii: 1;
     unsigned int	free: 1;
-    unsigned int	hash: 30;
+    unsigned int	unused: 1;
+    unsigned int	hash: 28;
   } _flags;
   NSZone	*_zone;
   unsigned int	_capacity;
@@ -126,8 +159,11 @@ typedef struct {
 
 static Class NSDataClass = 0;
 static Class NSStringClass = 0;
+static Class GSStringClass = 0;
 static Class GSCStringClass = 0;
+static Class GSCSubStringClass = 0;
 static Class GSUStringClass = 0;
+static Class GSUSubStringClass = 0;
 static Class GSMStringClass = 0;
 static Class NXConstantStringClass = 0;
 
@@ -140,6 +176,10 @@ static unsigned (*hashImp)(id, SEL) = 0;
 
 static NSStringEncoding defEnc = 0;
 
+/*
+ * The setup() function is called when any concrete string class is
+ * initialized, and cached classes and some method implementations.
+ */
 static void
 setup()
 {
@@ -151,8 +191,11 @@ setup()
 
       NSDataClass = [NSData class];
       NSStringClass = [NSString class];
+      GSStringClass = [GSString class];
       GSCStringClass = [GSCString class];
       GSUStringClass = [GSUString class];
+      GSCSubStringClass = [GSCSubString class];
+      GSUSubStringClass = [GSUSubString class];
       GSMStringClass = [GSMString class];
       NXConstantStringClass = [NXConstantString class];
 
@@ -167,6 +210,19 @@ setup()
     }
 }
 
+
+/*
+ * The following inline functions are used by the concrete string classes
+ * to implement their core functionality.
+ * GSCString uses the functions with the _c suffix.
+ * GSCSubString and NXConstant inherit methods from GSCString.
+ * GSUString uses the functions with the _u suffix.
+ * GSUSubString inherits methods from GSUString.
+ * GSMString uses all the functions, selecting the _c or _u versions
+ * depending on whether its storage is 8-bit or 16-bit.
+ * In addition, GSMString uses a few functions without a suffix that are
+ * peculiar to its memory management (shrinking, growing, and converting).
+ */
 
 static inline BOOL
 boolValue_c(ivars self)
@@ -230,14 +286,35 @@ canBeConvertedToEncoding_c(ivars self, NSStringEncoding enc)
 {
   if (enc == defEnc)
     return YES;
+  else if (self->_flags.ascii == 1)
+    return YES;
   else
-    return (*convertImp)((id)self, convertSel, enc);
+    {
+      BOOL	result = (*convertImp)((id)self, convertSel, enc);
+
+      if (enc == NSASCIIStringEncoding)
+	{
+	  self->_flags.ascii = 1;
+	}
+      return result;
+    }
 }
 
 static inline BOOL
 canBeConvertedToEncoding_u(ivars self, NSStringEncoding enc)
 {
-  return (*convertImp)((id)self, convertSel, enc);
+  if (self->_flags.ascii == 1)
+    return YES;
+  else
+    {
+      BOOL	result = (*convertImp)((id)self, convertSel, enc);
+
+      if (enc == NSASCIIStringEncoding)
+	{
+	  self->_flags.ascii = 1;
+	}
+      return result;
+    }
 }
 
 static inline unichar
@@ -270,13 +347,16 @@ compare_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
+  if (fastIsInstance(aString) == NO)
+    return strCompCsNs((id)self, aString, mask, aRange);
+
   c = fastClass(aString);
-  if (c == GSUStringClass
+  if (fastClassIsKindOfClass(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
-  else if (c == GSCStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0)
-    || c == NXConstantStringClass)
+  else if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+    || c == NXConstantStringClass
+    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompCsCs((id)self, aString, mask, aRange);
   else
     return strCompCsNs((id)self, aString, mask, aRange);
@@ -289,13 +369,16 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
+  if (fastIsInstance(aString) == NO)
+    return strCompUsNs((id)self, aString, mask, aRange);
+
   c = fastClass(aString);
-  if (c == GSUStringClass
+  if (fastClassIsKindOfClass(c, GSUStringClass)
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
-  else if (c == GSCStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0)
-    || c == NXConstantStringClass)
+  else if (fastClassIsKindOfClass(c, GSCStringClass)
+    || c == NXConstantStringClass
+    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompUsCs((id)self, aString, mask, aRange);
   else
     return strCompUsNs((id)self, aString, mask, aRange);
@@ -386,11 +469,11 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
       return [NSDataClass dataWithBytesNoCopy: buff length: t+2];
     }
   else if ((encoding == defEnc)
-	   ||((defEnc == NSASCIIStringEncoding) 
-	      && ((encoding == NSISOLatin1StringEncoding)
-		  || (encoding == NSISOLatin2StringEncoding)
-		  || (encoding == NSNEXTSTEPStringEncoding)
-		  || (encoding == NSNonLossyASCIIStringEncoding))))
+    || ((defEnc == NSASCIIStringEncoding) 
+    && ((encoding == NSISOLatin1StringEncoding)
+    || (encoding == NSISOLatin2StringEncoding)
+    || (encoding == NSNEXTSTEPStringEncoding)
+    || (encoding == NSNonLossyASCIIStringEncoding))))
     {
       unsigned char *buff;
 
@@ -621,16 +704,6 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
   buffer[len] = '\0';
 }
 
-static inline unsigned
-hash(ivars self)
-{
-  if (self->_flags.hash == 0)
-    {
-      self->_flags.hash = (*hashImp)((id)self, hashSel);
-    }
-  return self->_flags.hash;
-}
-
 static inline int
 intValue_c(ivars self)
 {
@@ -668,7 +741,7 @@ intValue_u(ivars self)
 }
 
 static inline BOOL
-isEqual(ivars self, id anObject)
+isEqual_c(ivars self, id anObject)
 {
   Class	c;
 
@@ -680,8 +753,21 @@ isEqual(ivars self, id anObject)
     {
       return NO;
     }
+  if (fastIsInstance(anObject) == NO)
+    {
+      return NO;
+    }
   c = fastClassOfInstance(anObject);
-  if (c == GSCStringClass || c == GSUStringClass || c == GSMStringClass)
+  if (c == NXConstantStringClass)
+    {
+      ivars	other = (ivars)anObject;
+      NSRange	r = {0, self->_count};
+
+      if (strCompCsCs((id)self, (id)other, 0, r) == NSOrderedSame)
+	return YES;
+      return NO;
+    }
+  else if (fastClassIsKindOfClass(c, GSStringClass) == YES)
     {
       ivars	other = (ivars)anObject;
       NSRange	r = {0, self->_count};
@@ -701,40 +787,7 @@ isEqual(ivars self, id anObject)
        */
       if (other->_flags.wide == 1)
 	{
-	  if (self->_flags.wide == 1)
-	    {
-	      if (strCompUsUs((id)self, (id)other, 0, r) == NSOrderedSame)
-		return YES;
-	    }
-	  else
-	    {
-	      if (strCompCsUs((id)self, (id)other, 0, r) == NSOrderedSame)
-		return YES;
-	    }
-	}
-      else
-	{
-	  if (self->_flags.wide == 1)
-	    {
-	      if (strCompUsCs((id)self, (id)other, 0, r) == NSOrderedSame)
-		return YES;
-	    }
-	  else
-	    {
-	      if (strCompCsCs((id)self, (id)other, 0, r) == NSOrderedSame)
-		return YES;
-	    }
-	}
-      return NO;
-    }
-  else if (c == NXConstantStringClass)
-    {
-      ivars	other = (ivars)anObject;
-      NSRange	r = {0, self->_count};
-
-      if (self->_flags.wide == 1)
-	{
-	  if (strCompUsCs((id)self, (id)other, 0, r) == NSOrderedSame)
+	  if (strCompCsUs((id)self, (id)other, 0, r) == NSOrderedSame)
 	    return YES;
 	}
       else
@@ -744,8 +797,71 @@ isEqual(ivars self, id anObject)
 	}
       return NO;
     }
-  else if (c == nil)
+  else if (fastClassIsKindOfClass(c, NSStringClass))
     {
+      return (*equalImp)((id)self, equalSel, anObject);
+    }
+  else
+    {
+      return NO;
+    }
+}
+
+static inline BOOL
+isEqual_u(ivars self, id anObject)
+{
+  Class	c;
+
+  if (anObject == (id)self)
+    {
+      return YES;
+    }
+  if (anObject == nil)
+    {
+      return NO;
+    }
+  if (fastIsInstance(anObject) == NO)
+    {
+      return NO;
+    }
+  c = fastClassOfInstance(anObject);
+  if (c == NXConstantStringClass)
+    {
+      ivars	other = (ivars)anObject;
+      NSRange	r = {0, self->_count};
+
+      if (strCompUsCs((id)self, (id)other, 0, r) == NSOrderedSame)
+	return YES;
+      return NO;
+    }
+  else if (fastClassIsKindOfClass(c, GSStringClass) == YES)
+    {
+      ivars	other = (ivars)anObject;
+      NSRange	r = {0, self->_count};
+
+      /*
+       * First see if the hash is the same - if not, we can't be equal.
+       */
+      if (self->_flags.hash == 0)
+        self->_flags.hash = (*hashImp)((id)self, hashSel);
+      if (other->_flags.hash == 0)
+        other->_flags.hash = (*hashImp)((id)other, hashSel);
+      if (self->_flags.hash != other->_flags.hash)
+	return NO;
+
+      /*
+       * Do a compare depending on the type of the other string.
+       */
+      if (other->_flags.wide == 1)
+	{
+	  if (strCompUsUs((id)self, (id)other, 0, r) == NSOrderedSame)
+	    return YES;
+	}
+      else
+	{
+	  if (strCompUsCs((id)self, (id)other, 0, r) == NSOrderedSame)
+	    return YES;
+	}
       return NO;
     }
   else if (fastClassIsKindOfClass(c, NSStringClass))
@@ -925,13 +1041,16 @@ rangeOfString_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+  if (fastIsInstance(aString) == NO)
+    return strRangeCsNs((id)self, aString, mask, aRange);
+
   c = fastClass(aString);
-  if (c == GSUStringClass
+  if (fastClassIsKindOfClass(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
-  else if (c == GSCStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0)
-    || c == NXConstantStringClass)
+  else if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+    || c == NXConstantStringClass
+    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeCsCs((id)self, aString, mask, aRange);
   else
     return strRangeCsNs((id)self, aString, mask, aRange);
@@ -944,30 +1063,19 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+  if (fastIsInstance(aString) == NO)
+    return strRangeUsNs((id)self, aString, mask, aRange);
+
   c = fastClass(aString);
-  if (c == GSUStringClass
+  if (fastClassIsKindOfClass(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
-  else if (c == GSCStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0)
-    || c == NXConstantStringClass)
+  else if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+    || c == NXConstantStringClass
+    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeUsCs((id)self, aString, mask, aRange);
   else
     return strRangeUsNs((id)self, aString, mask, aRange);
-}
-
-static inline NSString*
-substringFromRange_c(ivars self, NSRange aRange)
-{
-  return [GSCStringClass stringWithCString:
-    self->_contents.c + aRange.location length: aRange.length];
-}
-
-static inline NSString*
-substringFromRange_u(ivars self, NSRange aRange)
-{
-  return [GSUStringClass stringWithCharacters:
-    self->_contents.u + aRange.location length: aRange.length];
 }
 
 /*
@@ -987,8 +1095,24 @@ transmute(ivars self, NSString *aString)
   other = (ivars)aString;
   transmute = YES;
 
+  /*
+   * Unless we are sure that the other string we are going to insert into
+   * this one contains only ascii characters, we clear the flag that says
+   * we contain only ascii.
+   */
+  if (fastClassIsKindOfClass(c, GSStringClass) == NO
+    || c == NXConstantStringClass || other->_flags.ascii == 0)
+    {
+      self->_flags.ascii = 0;
+    }
+
   if (self->_flags.wide == 1)
     {
+      /*
+       * This is already a unicode string, so we don't need to transmute,
+       * but we still need to know if the other string is a unicode
+       * string whose ivars we can access directly.
+       */
       transmute = NO;
       if ((c != GSMStringClass || other->_flags.wide != 1)
 	&& c != GSUStringClass)
@@ -1001,20 +1125,39 @@ transmute(ivars self, NSString *aString)
       if (c == GSCStringClass || c == NXConstantStringClass
 	|| (c == GSMStringClass && other->_flags.wide == 0))
 	{
+	  /*
+	   * This is a C string, but the other string is also a C string
+	   * so we don't need to transmute, and we can use its ivars.
+	   */
 	  transmute = NO;
 	}
       else if ([aString canBeConvertedToEncoding: defEnc] == YES)
 	{
+	  /*
+	   * This is a C string, but the other string can be converted to
+	   * a C string, so we don't need to transmute, but we can not use
+	   * its ivars.
+	   */
 	  transmute = NO;
 	  other = 0;
 	}
       else if ((c == GSMStringClass && other->_flags.wide == 1)
 	|| c == GSUStringClass)
 	{
+	  /*
+	   * This is a C string, and the other string can not be converted
+	   * to a C string, so we need to transmute, and will then be able
+	   * to use its ivars.
+	   */
 	  transmute = YES;
 	}
       else
 	{
+	  /*
+	   * This is a C string, and the other string can not be converted
+	   * to a C string, so we need to transmute, but even then we will
+	   * not be able to use  the other strings ivars.
+	   */
 	  other = 0;
 	}
     }
@@ -1235,7 +1378,11 @@ transmute(ivars self, NSString *aString)
 
 - (unsigned) hash
 {
-  return hash((ivars)self);
+  if (self->_flags.hash == 0)
+    {
+      self->_flags.hash = (*hashImp)((id)self, hashSel);
+    }
+  return self->_flags.hash;
 }
 
 - (int) intValue
@@ -1245,7 +1392,12 @@ transmute(ivars self, NSString *aString)
 
 - (BOOL) isEqual: (id)anObject
 {
-  return isEqual((ivars)self, anObject);
+  return isEqual_c((ivars)self, anObject);
+}
+
+- (BOOL) isEqualToString: (NSString*)anObject
+{
+  return isEqual_c((ivars)self, anObject);
 }
 
 - (unsigned int) length
@@ -1293,8 +1445,22 @@ transmute(ivars self, NSString *aString)
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
+  GSCSubString	*sub;
+
   GS_RANGE_CHECK(aRange, _count);
-  return substringFromRange_c((ivars)self, aRange);
+
+  sub = [GSCSubStringClass allocWithZone: NSDefaultMallocZone()];
+  sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
+			    length: aRange.length
+		      freeWhenDone: NO];
+  if (sub != nil)
+    {
+      sub->_parent = RETAIN(self);
+      if (_flags.ascii == 1)
+	((ivars)sub)->_flags.ascii = 1;
+      AUTORELEASE(sub);
+    }
+  return sub;
 }
 
 // private method for Unicode level 3 implementation
@@ -1303,6 +1469,16 @@ transmute(ivars self, NSString *aString)
   return _count;
 } 
 
+@end
+
+
+
+@implementation	GSCSubString
+- (void) dealloc
+{
+  RELEASE(_parent);
+  [super dealloc];
+}
 @end
 
 
@@ -1472,7 +1648,11 @@ transmute(ivars self, NSString *aString)
 
 - (unsigned) hash
 {
-  return hash((ivars)self);
+  if (self->_flags.hash == 0)
+    {
+      self->_flags.hash = (*hashImp)((id)self, hashSel);
+    }
+  return self->_flags.hash;
 }
 
 - (int) intValue
@@ -1482,7 +1662,12 @@ transmute(ivars self, NSString *aString)
 
 - (BOOL) isEqual: (id)anObject
 {
-  return isEqual((ivars)self, anObject);
+  return isEqual_u((ivars)self, anObject);
+}
+
+- (BOOL) isEqualToString: (NSString*)anObject
+{
+  return isEqual_u((ivars)self, anObject);
 }
 
 - (unsigned int) length
@@ -1530,8 +1715,22 @@ transmute(ivars self, NSString *aString)
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
+  GSUSubString	*sub;
+
   GS_RANGE_CHECK(aRange, _count);
-  return substringFromRange_u((ivars)self, aRange);
+
+  sub = [GSUStringClass allocWithZone: NSDefaultMallocZone()];
+  sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
+			       length: aRange.length
+			 freeWhenDone: NO];
+  if (sub != nil)
+    {
+      sub->_parent = RETAIN(self);
+      if (_flags.ascii == 1)
+	((ivars)sub)->_flags.ascii = 1;
+      AUTORELEASE(sub);
+    }
+  return sub;
 }
 
 // private method for Unicode level 3 implementation
@@ -1546,6 +1745,16 @@ transmute(ivars self, NSString *aString)
   return blen;
 } 
 
+@end
+
+
+
+@implementation	GSUSubString
+- (void) dealloc
+{
+  RELEASE(_parent);
+  [super dealloc];
+}
 @end
 
 
@@ -1783,7 +1992,11 @@ transmute(ivars self, NSString *aString)
 
 - (unsigned) hash
 {
-  return hash((ivars)self);
+  if (self->_flags.hash == 0)
+    {
+      self->_flags.hash = (*hashImp)((id)self, hashSel);
+    }
+  return self->_flags.hash;
 }
 
 - (id) init
@@ -1868,7 +2081,18 @@ transmute(ivars self, NSString *aString)
 
 - (BOOL) isEqual: (id)anObject
 {
-  return isEqual((ivars)self, anObject);
+  if (_flags.wide == 1)
+    return isEqual_u((ivars)self, anObject);
+  else
+    return isEqual_c((ivars)self, anObject);
+}
+
+- (BOOL) isEqualToString: (NSString*)anObject
+{
+  if (_flags.wide == 1)
+    return isEqual_u((ivars)self, anObject);
+  else
+    return isEqual_c((ivars)self, anObject);
 }
 
 - (unsigned int) length
@@ -2071,9 +2295,15 @@ transmute(ivars self, NSString *aString)
   GS_RANGE_CHECK(aRange, _count);
   
   if (_flags.wide == 1)
-    return substringFromRange_u((ivars)self, aRange);
+    {
+      return [GSUStringClass stringWithCharacters:
+	self->_contents.u + aRange.location length: aRange.length];
+    }
   else
-    return substringFromRange_c((ivars)self, aRange);
+    {
+      return [GSCStringClass stringWithCString:
+	self->_contents.c + aRange.location length: aRange.length];
+    }
 }
 
 // private method for Unicode level 3 implementation
@@ -2246,9 +2476,14 @@ transmute(ivars self, NSString *aString)
     {
       return NO;
     }
+  if (fastIsInstance(anObject) == NO)
+    {
+      return NO;
+    }
   c = fastClassOfInstance(anObject);
 
-  if (c == GSCStringClass || c == NXConstantStringClass
+  if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+    || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
       ivars	other = (ivars)anObject;
@@ -2259,14 +2494,11 @@ transmute(ivars self, NSString *aString)
 	return NO;
       return YES;
     }
-  else if (c == GSUStringClass || c == GSMStringClass)
+  else if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+    || c == GSMStringClass)
     {
       if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
 	return YES;
-      return NO;
-    }
-  else if (c == nil)
-    {
       return NO;
     }
   else if (fastClassIsKindOfClass(c, NSStringClass))
@@ -2291,9 +2523,14 @@ transmute(ivars self, NSString *aString)
     {
       return NO;
     }
+  if (fastIsInstance(anObject) == NO)
+    {
+      return NO;
+    }
   c = fastClassOfInstance(anObject);
 
-  if (c == GSCStringClass || c == NXConstantStringClass
+  if (fastClassIsKindOfClass(c, GSCStringClass) == YES
+    || c == NXConstantStringClass
     || (c == GSMStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
       ivars	other = (ivars)anObject;
@@ -2304,14 +2541,11 @@ transmute(ivars self, NSString *aString)
 	return NO;
       return YES;
     }
-  else if (c == GSUStringClass || c == GSMStringClass)
+  else if (fastClassIsKindOfClass(c, GSUStringClass) == YES
+    || c == GSMStringClass)
     {
       if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
 	return YES;
-      return NO;
-    }
-  else if (c == nil)
-    {
       return NO;
     }
   else if (fastClassIsKindOfClass(c, NSStringClass))
