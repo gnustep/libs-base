@@ -369,6 +369,25 @@
   return result;
 }
 
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
+{
+  unsigned	start;
+  unsigned	end;
+
+  if (anIndex >= _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+
+  start = anIndex;
+  while (uni_isnonsp(_contents_chars[start]) && start > 0)
+    start--;
+  end = start + 1;
+  if (end < _count)
+    while ((end < _count) && (uni_isnonsp(_contents_chars[end])) )
+      end++;
+  return NSMakeRange(start, end-start);
+}
+
 @end
 
 

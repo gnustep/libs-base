@@ -649,6 +649,14 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return result;
 }
 
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
+{
+  if (anIndex >= _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  return NSMakeRange(anIndex, 1);
+}
+
+
 @end
 
 

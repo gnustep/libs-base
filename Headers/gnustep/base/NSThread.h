@@ -42,16 +42,17 @@ typedef enum
 @interface NSThread : NSObject
 {
 @public
-   objc_thread_t _thread_id;
-   NSHandler *_exception_handler;
-   NSMutableDictionary *_thread_dictionary;
+   objc_thread_t	_thread_id;
+   NSHandler		*_exception_handler;
+   NSMutableDictionary	*_thread_dictionary;
    struct autorelease_thread_vars _autorelease_vars;
+   id			_gcontext;
 }
 
 + (NSThread*) currentThread;
 + (void) detachNewThreadSelector: (SEL)aSelector
-   toTarget: (id)aTarget
-   withObject: (id)anArgument;
+		        toTarget: (id)aTarget
+		      withObject: (id)anArgument;
 
 + (BOOL) isMultiThreaded;
 - (NSMutableDictionary*) threadDictionary;
