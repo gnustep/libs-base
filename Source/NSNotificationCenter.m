@@ -910,7 +910,7 @@ static NSNotificationCenter *default_center = nil;
   /*
    * If this is a recursive posting of a notification, the array will already
    * be in use, so we restrict our operation to array indices beyond the end
-   * of those used by the posting that cuased this one.
+   * of those used by the posting that caused this one.
    */
   arrayBase = GSIArrayCount(a);
 
@@ -1053,7 +1053,7 @@ static NSNotificationCenter *default_center = nil;
 
 	  /*
 	   * Post the notification to all the observers of NAME, except those
-	   * observers with a non-nill OBJECT that doesn't match the
+	   * observers with a non-nil OBJECT that doesn't match the
 	   * notification's OBJECT).
 	   */
 	  if (n_name)

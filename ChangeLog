@@ -1,3 +1,9 @@
+Thu Feb 10 14:13:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/UnixFileHandle.m: ([-receivedEvent:type:extra: forMode:])
+	fix so that incoming connections are closed when their file handle
+	is deallocated.
+
 Thu Feb 10  9:34:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Headers/gnustep/base/preface.h.in: Added tests to see if _C_LNG_LNG
