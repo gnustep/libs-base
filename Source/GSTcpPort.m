@@ -203,7 +203,8 @@ typedef enum {
   BOOL			valid;
   GSTcpPort		*recvPort;
   GSTcpPort		*sendPort;
-  struct sockaddr_in	clientname;	/* Far end of connection.	*/
+  struct sockaddr_in	sockAddr;	/* Far end of connection.	*/
+  NSString		*defaultAddress;
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (int)d;
@@ -265,7 +266,7 @@ typedef enum {
  * Utility functions for encoding and decoding ports.
  */
 static GSTcpPort*
-decodePort(NSData *data)
+decodePort(NSData *data, NSString *defaultAddress)
 {
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
@@ -273,6 +274,7 @@ decodePort(NSData *data)
   gsu16			pnum;
   gsu32			length;
   NSHost		*host;
+  unichar		c;
   
   pih = (GSPortItemHeader*)[data bytes];
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
@@ -284,7 +286,24 @@ decodePort(NSData *data)
 
   NSDebugFLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
 
-  host = [NSHost hostWithAddress: addr];
+  /*
+   * Special case - the encoded port was on the host from which the
+   * message was sent.
+   */
+  if ([addr length] == 0)
+    {
+      addr = defaultAddress;
+    }
+  c = [addr characterAtIndex: 0];
+  if (c >= '0' && c <= '9')
+    {
+      host = [NSHost hostWithAddress: addr];
+    }
+  else
+    {
+      host = [NSHost hostWithName: addr];
+    }
+
   return [GSTcpPort portWithNumber: pnum
 			    onHost: host
 		      forceAddress: nil
@@ -305,29 +324,30 @@ newDataWithEncodedPort(GSTcpPort *port)
   addr = [port address];
   if (addr == nil)
     {
-      /*
-       * If the port is not forced to use a specific address, just try one
-       * at random, but try not to make it the loopback address!
-       */
-      addr = [[port host] address];
-      if ([addr isEqualToString: @"127.0.0.1"] == YES)
-	{
-	  NSArray	*a = [[port host] addresses];
-          unsigned	c = [a count];
-	  unsigned	i;
+      static NSHost	*local = nil;
 
-	  for (i = 0; i < c; i++)
-	    {
-	      addr = [a objectAtIndex: i];
-	      if ([addr isEqualToString: @"127.0.0.1"] == NO)
-		{
-		  break;
-		}
-	    }
-	}
-      if (addr == nil)
+      /*
+       * If the port is not forced to use a specific address ...
+       * 1. see if it is on the local host, and if so, encode as "".
+       * 2. see if it s a hostname and if so, use the name.
+       * 3. pick one of the host addresses.
+       * 4. use the localhost address.
+       */
+      if (local == nil)
 	{
-	  addr = @"127.0.0.1";	/* resign ourselves to this	*/
+	  local = RETAIN([NSHost localHost]);
+	}
+      if ([[port host] isEqual: local] == YES)
+	{
+	  addr = @"";
+	}
+      else if ((addr = [[port host] name]) == nil)
+	{
+	  addr = [[port host] address];
+	  if (addr == nil)
+	    {
+	      addr = @"127.0.0.1";	/* resign ourselves to this	*/
+	    }
 	}
     }
   plen = [addr cStringLength] + 3;
@@ -428,7 +448,6 @@ static Class	runLoopClass;
 - (BOOL) connectToPort: (GSTcpPort*)aPort beforeDate: (NSDate*)when
 {
   NSArray		*addrs;
-  struct sockaddr_in	sin;
   BOOL			gotAddr = NO;
   NSRunLoop		*l;
 
@@ -468,13 +487,14 @@ static Class	runLoopClass;
 	  return NO;
 	}
       addr = [[addrs objectAtIndex: addrNum++] cString];
-      memset(&sin, '\0', sizeof(sin));
-      sin.sin_family = AF_INET;
+
+      memset(&sockAddr, '\0', sizeof(sockAddr));
+      sockAddr.sin_family = AF_INET;
 #ifndef HAVE_INET_ATON
-      sin.sin_addr.s_addr = inet_addr(addr);
-      if (sin.sin_addr.s_addr == INADDR_NONE)
+      sockAddr.sin_addr.s_addr = inet_addr(addr);
+      if (sockAddr.sin_addr.s_addr == INADDR_NONE)
 #else
-      if (inet_aton(addr, &sin.sin_addr) == 0)
+      if (inet_aton(addr, &sockAddr.sin_addr) == 0)
 #endif
 	{
 	  NSLog(@"bad ip address - '%s'", addr);
@@ -484,9 +504,9 @@ static Class	runLoopClass;
 	  gotAddr = YES;
 	}
     }
-  sin.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
+  sockAddr.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
 
-  if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+  if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) < 0)
     {
 #ifdef __MINGW__
       if (WSAGetLastError() != WSAEINPROGRESS)
@@ -495,8 +515,8 @@ static Class	runLoopClass;
 #endif
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
-	      inet_ntoa(sin.sin_addr),
-	      GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
+	      inet_ntoa(sockAddr.sin_addr),
+	      GSSwapBigI16ToHost(sockAddr.sin_port), strerror(errno));
 	  if (addrNum < [addrs count])
 	    {
 	      return [self connectToPort: aPort beforeDate: when];
@@ -555,6 +575,7 @@ static Class	runLoopClass;
 - (void) dealloc
 {
   [self gcFinalize];
+  DESTROY(defaultAddress);
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
@@ -565,7 +586,7 @@ static Class	runLoopClass;
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"Handle (%d) to %s:%d",
-    desc, inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port)];
+    desc, inet_ntoa(sockAddr.sin_addr), ntohs(sockAddr.sin_port)];
 }
 
 - (int) descriptor
@@ -912,7 +933,7 @@ static Class	runLoopClass;
 		  GSTcpPort	*p;
 
 		  rType = GSP_NONE;	/* ready for a new item	*/
-		  p = decodePort(rData);
+		  p = decodePort(rData, defaultAddress);
 		  /*
 		   * Set up to read another item header.
 		   */
@@ -951,6 +972,7 @@ static Class	runLoopClass;
     }
   else if (type == ET_WDESC)
     {
+      DO_LOCK(myLock);
       if (state == GS_H_TRYCON)	/* Connection attempt.	*/
 	{
 	  int	res;
@@ -969,6 +991,9 @@ static Class	runLoopClass;
 	      len = write(desc, [d bytes], [d length]);
 	      if (len == [d length])
 		{
+		  RELEASE(defaultAddress);
+		  defaultAddress = RETAIN([NSString stringWithCString:
+		    inet_ntoa(sockAddr.sin_addr)]);
 		  NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes", len);
 		  state = GS_H_CONNECTED;
 		}
@@ -1003,14 +1028,13 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
-DO_LOCK(myLock);
 	  res = write(desc, b + wLength,  l - wLength);
 	  if (res < 0)
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
 		{
 		  NSLog(@"write attempt failed - %s", strerror(errno));
-DO_UNLOCK(myLock);
+		  DO_UNLOCK(myLock);
 		  [self invalidate];
 		  return;
 		}
@@ -1057,8 +1081,8 @@ DO_UNLOCK(myLock);
 		    }
 		}
 	    }
-DO_UNLOCK(myLock);
 	}
+      DO_UNLOCK(myLock);
     }
 }
 
@@ -1695,10 +1719,10 @@ static Class		tcpPortClass;
 
   if (desc == listener)
     {
-      struct sockaddr_in	clientname;
-      int			size = sizeof(clientname);
+      struct sockaddr_in	sockAddr;
+      int			size = sizeof(sockAddr);
 
-      desc = accept(listener, (struct sockaddr*)&clientname, &size);
+      desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc < 0)
         {
           [NSException raise: NSInternalInconsistencyException
@@ -1710,7 +1734,10 @@ static Class		tcpPortClass;
        * the other end.
        */
       handle = [GSTcpHandle handleWithDescriptor: desc];
-      memcpy(&handle->clientname, &clientname, sizeof(clientname));
+      memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
+      handle->defaultAddress = RETAIN([NSString stringWithCString:
+	inet_ntoa(sockAddr.sin_addr)]);
+
       [handle setState: GS_H_ACCEPT];
       [self addHandle: handle forSend: NO];
     }
