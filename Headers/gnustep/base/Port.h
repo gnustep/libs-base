@@ -27,7 +27,8 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <gnustep/base/MemoryStream.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
+#include <gnustep/base/Invocation.h>
 
 /* xxx Use something like this? */
 @protocol PacketSending
