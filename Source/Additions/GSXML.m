@@ -2980,19 +2980,19 @@ commentFunction(void *ctx, const unsigned char *value)
 static void
 warningFunction(void *ctx, const unsigned char *msg, ...)
 {
-  unsigned char allMsg[2048];
-  va_list args;
-  int lineNumber = -1;
-  int colNumber = -1;
+  NSString	*estr;
+  va_list	args;
+  int		lineNumber = -1;
+  int		colNumber = -1;
 
   va_start(args, msg);
-  vsprintf(allMsg, msg, args);
+  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
   lineNumber = getLineNumber(ctx);
   colNumber = getColumnNumber(ctx);
-  [HANDLER warning: UTF8Str(allMsg)
+  [HANDLER warning: estr
 	 colNumber: colNumber
 	lineNumber: lineNumber];
 }
@@ -3019,18 +3019,18 @@ errorFunction(void *ctx, const unsigned char *msg, ...)
 static void
 fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 {
-  unsigned char allMsg[2048];
-  va_list args;
-  int lineNumber = -1;
-  int colNumber = -1;
+  NSString	*estr;
+  va_list	args;
+  int		lineNumber = -1;
+  int		colNumber = -1;
 
   va_start(args, msg);
-  vsprintf(allMsg, msg, args);
+  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
   NSCAssert(ctx, @"No Context");
   lineNumber = getLineNumber(ctx);
   colNumber = getColumnNumber(ctx);
-  [HANDLER fatalError: UTF8Str(allMsg)
+  [HANDLER fatalError: estr
             colNumber: colNumber
            lineNumber: lineNumber];
 }
@@ -3281,6 +3281,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber
 {
+  e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
+    lineNumber, colNumber, e];
   [self warning: e];
 }
 
