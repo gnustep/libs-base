@@ -1,3 +1,8 @@
+2001-10-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: _NSLog_standard_printf_handler() modified to output
+	message as UTF8 data if it can't be done as ASCII
+
 2001-09-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSString: setupQuotables() ... add several characters to the
