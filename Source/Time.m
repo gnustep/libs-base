@@ -46,7 +46,7 @@ id monthNames;
 
 @implementation Time
 
-+ initialize
++ (void) initialize
 {
   if (self == [Time class])
     {
@@ -77,7 +77,6 @@ id monthNames;
       [monthNames putElement:"November" atKey:10];
       [monthNames putElement:"December" atKey:11];
     }
-  return self;
 }
 
 + (long) secondClockValue

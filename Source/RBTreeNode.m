@@ -25,11 +25,10 @@
 
 @implementation RBTreeNode
 
-+ initialize
++ (void) initialize
 {
   if (self == [RBTreeNode class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 - init
