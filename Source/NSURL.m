@@ -72,6 +72,7 @@ typedef struct {
   BOOL	pathIsAbsolute;
   BOOL	hasNoPath;
   BOOL	isGeneric;
+  BOOL	isFile;
 } parsedURL;
 
 #define	myData ((parsedURL*)(self->_data))
@@ -210,7 +211,26 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   else
     {
       char	*start = base->path;
-      char	*end = strrchr(start, '/');
+      char	*end;
+
+      /*
+       * Evil hack for MacOS-X compatibility.
+       * RFCs state that '/foo/bar' combined with 'xxx'
+       * gives '/foo/xxx', but MacOS-X treats file URLs
+       * differently and returns '/foo/bar/xxx'
+       */
+      if (rel->isFile == YES)
+	{
+	  end = &start[strlen(start)];
+	  if (end > start && end[-1] == '/')
+	    {
+	      end--;
+	    }
+	}
+      else
+	{
+	  end = strrchr(start, '/');
+	}
 
       if (end != 0)
 	{
@@ -662,6 +682,7 @@ static void unescape(const char *from, char * to)
 	      usesFragments = NO;
 	      usesParameters = NO;
 	      usesQueries = NO;
+	      buf->isFile = YES;
 	    }
 	  else if (strcmp(buf->scheme, "mailto") == 0)
 	    {
@@ -1059,11 +1080,7 @@ static void unescape(const char *from, char * to)
  */
 - (BOOL) isFileURL
 {
-  if (myData->scheme != 0 && strcmp(myData->scheme, "file") == 0)
-    {
-      return YES;
-    }
-  return NO;
+  return myData->isFile;
 }
 
 /**
@@ -1186,7 +1203,7 @@ static void unescape(const char *from, char * to)
   /*
    * If this scheme is from a URL without generic format, there is no path.
    */
-  if (myData->isGeneric == YES)
+  if (myData->isGeneric == YES || myData->isFile == YES)
     {
       unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
 	+ strlen(myData->path) + 3;
@@ -1230,11 +1247,6 @@ static void unescape(const char *from, char * to)
 
       unescape(buf, buf);
       path = [NSString stringWithUTF8String: buf];
-    }
-  else if (myData->scheme != 0 && myData->path != 0
-    && strcmp(myData->scheme, "file") == 0)
-    {
-      path = [NSString stringWithUTF8String: myData->path];
     }
   return path;
 }
