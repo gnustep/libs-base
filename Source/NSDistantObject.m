@@ -28,6 +28,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/DistributedObjects.h"
+#include "Foundation/NSDebug.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSMethodSignature.h"
@@ -37,13 +38,20 @@
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1) ({			\
   sig = [self methodSignatureForSelector: @selector(_SELX)];	\
-  if (sig != nil) {						\
-  inv = [NSInvocation invocationWithMethodSignature: sig];	\
-  [inv setSelector: @selector(_SELX)];				\
-  [inv setTarget: self];					\
-  [inv setArgument: (void*)&_ARG1 atIndex: 2];			\
-  [self forwardInvocation: inv];				\
-  [inv getReturnValue: &m]; }})
+  if (sig != nil)						\
+  {								\
+    inv = [NSInvocation invocationWithMethodSignature: sig];	\
+    [inv setSelector: @selector(_SELX)];			\
+    [inv setTarget: self];					\
+    [inv setArgument: (void*)&_ARG1 atIndex: 2];		\
+    [self forwardInvocation: inv];				\
+    [inv getReturnValue: &m];					\
+  }								\
+  else								\
+  {								\
+    NSWarnLog(@"DO_FORWARD_INVOCATION failed, got nil signature for '%@'.", \
+      NSStringFromSelector(@selector(_SELX)));			\
+  }})
 
 
 static int	debug_proxy = 0;
@@ -716,13 +724,10 @@ enum
 	    {
 	      types = mth->types;
 	    }
-	  if (types == 0)
-	    {
-	      return nil;
-	    }
-	  return [NSMethodSignature signatureWithObjCTypes: types];
+	  if (types)
+	    return [NSMethodSignature signatureWithObjCTypes: types];
 	}
-      else
+
 	{
 	  id		m = nil;
 #if	defined(USE_FFCALL) || defined(USE_LIBFFI)
