@@ -27,17 +27,14 @@
 #include <objects/stdobjects.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <objc/hash.h>
-#include <objc/Protocol.h>
 #include <objects/Lock.h>
-#include <objects/InvalidationListening.h>
 #include <objects/Collecting.h>
 #include <objects/Dictionary.h>
 #include <objects/NSString.h>
 #include <Foundation/NSMapTable.h>
 
 @class Proxy;
-@class Port;
+@class InPort, OutPort;
 
 @interface Connection : NSObject
 {
@@ -45,8 +42,9 @@
   unsigned delay_dialog_interruptions:1;
   unsigned connection_filler:6;
   unsigned retain_count:24;
-  Port *in_port;
-  Port *out_port;
+  unsigned reply_depth;
+  InPort *in_port;
+  OutPort *out_port;
   unsigned message_count;
   NSMapTable *local_targets;
   NSMapTable *remote_proxies;
@@ -76,7 +74,7 @@
 + (int) messagesReceived;
 + (id <Collecting>) allConnections;
 + (unsigned) connectionsCount;
-+ (unsigned) connectionsCountWithInPort: (Port*)aPort;
++ (unsigned) connectionsCountWithInPort: (InPort*)aPort;
 
 /* Use these when you're release'ing an object that may have been vended
    or registered for invalidation notification */
@@ -100,17 +98,17 @@
    A new connection is created if necessary. */
 + (Proxy*) rootProxyAtName: (id <String>)name onHost: (id <String>)host;
 + (Proxy*) rootProxyAtName: (id <String>)name;
-+ (Proxy*) rootProxyAtPort: (Port*)anOutPort;
-+ (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort;
++ (Proxy*) rootProxyAtPort: (OutPort*)anOutPort;
++ (Proxy*) rootProxyAtPort: (OutPort*)anOutPort withInPort: (InPort*)anInPort;
 
 /* This is the designated initializer for the Connection class.
    You don't need to call it yourself. */
-+ (Connection*) newForInPort: (Port*)anInPort outPort: (Port*)anOutPort
++ (Connection*) newForInPort: (InPort*)anInPort outPort: (OutPort*)anOutPort
    ancestorConnection: (Connection*)ancestor;
 
 /* Make a connection object start listening for incoming requests.  After 
-   `timeout' milliseconds without receiving anything, return. */
-- (void) runConnectionWithTimeout: (int)timeout;
+   after DATE. */
+- (void) runConnectionUntilDate: date;
 
 /* Same as above, but never time out. */
 - (void) runConnection;
@@ -126,12 +124,12 @@
 
 /* For getting the root object of a connection or port */
 - rootObject;
-+ rootObjectForInPort: (Port*)aPort;
++ rootObjectForInPort: (InPort*)aPort;
 
 /* Used for setting the root object of a connection that we
    created without one, or changing the root object of a connection
    that already has one. */
-+ (void) setRootObject: anObj forInPort: (Port*)aPort;
++ (void) setRootObject: anObj forInPort: (InPort*)aPort;
 - setRootObject: anObj;
 
 /* Querying and setting some instance variables */
@@ -155,6 +153,8 @@
 - (BOOL) isValid;
 
 /* Only subclassers and power-users need worry about these */
+- (void) addToRunLoop: run_loop forMode: (id <String>)mode;
+- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode;
 - (Proxy*) proxyForTarget: (unsigned)target;
 - (void) addProxy: (Proxy*)aProxy;
 - (BOOL) includesProxyForTarget: (unsigned)target;
