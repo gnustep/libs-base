@@ -35,16 +35,21 @@
 NSString *
 NSUserName ()
 {
-#ifndef __WIN32__
+#if __WIN32__
+  return nil;
+#elif __SOLARIS__
+  int uid = geteuid(); // get the effective user id
+  struct passwd *pwent = getpwuid (uid);
+  NSString* name = [NSString stringWithCString: pwent->pw_name];
+  return name;
+#else
   const char *login_name = getlogin ();
   
   if (login_name)
     return [NSString stringWithCString: login_name];
   else
     return nil;
-#else
-  return nil;
-#endif /* __WIN32__ */
+#endif
 }
 
 /* Return the caller's home directory as an NSString object. */
