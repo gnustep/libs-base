@@ -87,6 +87,8 @@
 
 NSString * const NSFailedAuthenticationException =
   @"NSFailedAuthenticationExceptions";
+NSString * const NSObjectInaccessibleException =
+  @"NSObjectInaccessibleException";
 
 /*
  * Set up a type to permit us to have direct access into an NSDistantObject
@@ -244,6 +246,7 @@ static unsigned local_object_counter = 0;
 - (NSPortCoder*) _getReplyRmc: (int)sn;
 - (NSPortCoder*) _makeInRmc: (NSMutableArray*)components;
 - (NSPortCoder*) _makeOutRmc: (int)sequence generate: (int*)sno reply: (BOOL)f;
+- (void) _portIsInvalid: (NSNotification*)notification;
 - (void) _sendOutRmc: (NSPortCoder*)c type: (int)msgid;
 
 - (void) _service_forwardForProxy: (NSPortCoder*)rmc;
@@ -252,6 +255,7 @@ static unsigned local_object_counter = 0;
 - (void) _service_rootObject: (NSPortCoder*)rmc;
 - (void) _service_shutdown: (NSPortCoder*)rmc;
 - (void) _service_typeForSelector: (NSPortCoder*)rmc;
+- (void) _threadWillExit: (NSNotification*)notification;
 @end
 
 #define _proxiesGate _refGate
@@ -1025,20 +1029,35 @@ static BOOL	multi_threaded = NO;
      a substitute.  Note: The delegate is responsible for freeing
      newConn if it returns something different. */
   if ([del respondsToSelector: @selector(connection:didConnect:)])
-    self = [del connection: parent didConnect: self];
+    {
+      self = [del connection: parent didConnect: self];
+    }
 
-  /* Register ourselves for invalidation notification when the
-     ports become invalid. */
   nCenter = [NSNotificationCenter defaultCenter];
+  /*
+   * Register ourselves for invalidation notification when the
+   * ports become invalid.
+   */
   [nCenter addObserver: self
-	      selector: @selector(portIsInvalid:)
+	      selector: @selector(_portIsInvalid:)
 		  name: NSPortDidBecomeInvalidNotification
 		object: r];
   if (s != nil)
-    [nCenter addObserver: self
-		selector: @selector(portIsInvalid:)
-		    name: NSPortDidBecomeInvalidNotification
-		  object: s];
+    {
+      [nCenter addObserver: self
+		  selector: @selector(_portIsInvalid:)
+		      name: NSPortDidBecomeInvalidNotification
+		    object: s];
+    }
+  
+  /*
+   * When any thread exits, we must check to see if we are using its
+   * runloop, and remove ourselves from it if necessary.
+   */
+  [nCenter addObserver: self
+	      selector: @selector(_threadWillExit:)
+		  name: NSThreadWillExitNotification
+		object: nil];
 
   /* In order that connections may be deallocated - there is an
      implementation of [-release] to automatically remove the connection
@@ -1046,9 +1065,8 @@ static BOOL	multi_threaded = NO;
   NSHashInsert(connection_table, (void*)self);
   M_UNLOCK(connection_table_gate);
 
-  [[NSNotificationCenter defaultCenter]
-    postNotificationName: NSConnectionDidInitializeNotification
-		  object: self];
+  [nCenter postNotificationName: NSConnectionDidInitializeNotification
+			  object: self];
 
   return self;
 }
@@ -1078,7 +1096,7 @@ static BOOL	multi_threaded = NO;
   M_UNLOCK(_refGate);
 
   /*
-   *	Don't need notifications any more - so remove self as observer.
+   * Don't need notifications any more - so remove self as observer.
    */
   [[NSNotificationCenter defaultCenter] removeObserver: self];
 
@@ -1100,11 +1118,11 @@ static BOOL	multi_threaded = NO;
 	(gsaddr)self, _receivePort, _sendPort);
     }
   /*
-   *	We need to notify any watchers of our death - but if we are already
-   *	in the deallocation process, we can't have a notification retaining
-   *	and autoreleasing us later once we are deallocated - so we do the
-   *	notification with a local autorelease pool to ensure that any release
-   *	is done before the deallocation completes.
+   * We need to notify any watchers of our death - but if we are already
+   * in the deallocation process, we can't have a notification retaining
+   * and autoreleasing us later once we are deallocated - so we do the
+   * notification with a local autorelease pool to ensure that any release
+   * is done before the deallocation completes.
    */
   {
     CREATE_AUTORELEASE_POOL(arp);
@@ -1124,8 +1142,8 @@ static BOOL	multi_threaded = NO;
   M_LOCK(_proxiesGate);
   if (_localTargets != 0)
     {
-      NSMutableArray	*targets;
-      unsigned	 	i = _localTargets->nodeCount;
+      NSMutableArray		*targets;
+      unsigned	 		i = _localTargets->nodeCount;
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
@@ -1172,6 +1190,17 @@ static BOOL	multi_threaded = NO;
       _localObjects = 0;
     }
   M_UNLOCK(_proxiesGate);
+
+#if 1
+  /*
+   * If we are invalidated, we shouldn't be receiving any event and
+   * should not need to be in any run loops.
+   */
+  while ([_runLoops count] > 0)
+    {
+      [self removeRunLoop: [_runLoops lastObject]];
+    }
+#endif
 
   RELEASE(self);
 }
@@ -1811,6 +1840,7 @@ static void retEncoder (DOContext *ctxt)
   const char	*type;
   retval_t	retframe;
   DOContext	ctxt;
+  NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
 
   memset(&ctxt, 0, sizeof(ctxt));
   ctxt.connection = self;
@@ -1818,6 +1848,19 @@ static void retEncoder (DOContext *ctxt)
   /* Encode the method on an RMC, and send it. */
 
   NSParameterAssert (_isValid);
+
+  if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+    {
+      if (_multipleThreads == NO)
+	{
+	  [NSException raise: NSObjectInaccessibleException
+		      format: @"Forwarding message in wrong thread"];
+	}
+      else
+	{
+	  [self addRunLoop: runLoop];
+	}
+    }
 
   /* get the method types from the selector */
 #if NeXT_RUNTIME
@@ -1940,7 +1983,21 @@ static void retEncoder (DOContext *ctxt)
   BOOL		needsResponse;
   const char	*type;
   DOContext	ctxt;
+  NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
 
+  if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+    {
+      if (_multipleThreads == NO)
+	{
+	  [NSException raise: NSObjectInaccessibleException
+		      format: @"Forwarding message in wrong thread"];
+	}
+      else
+	{
+	  [self addRunLoop: runLoop];
+	}
+    }
+  
   /* Encode the method on an RMC, and send it. */
 
   NSParameterAssert (_isValid);
@@ -2389,7 +2446,21 @@ static void callEncoder (DOContext *ctxt)
    */
   NS_DURING
     {
+      NSRunLoop		*runLoop = [NSRunLoop currentRunLoop];
+
       NSParameterAssert (_isValid);
+      if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+	{
+	  if (_multipleThreads == YES)
+	    {
+	      [self addRunLoop: runLoop];
+	    }
+	  else
+	    {
+	      [NSException raise: NSObjectInaccessibleException
+			  format: @"Message received in wrong thread"];
+	    }
+	}
 
       /* Save this for later */
       [aRmc decodeValueOfObjCType: @encode(int) at: &ctxt.seq];
@@ -2634,7 +2705,6 @@ static void callEncoder (DOContext *ctxt)
   NSDate		*delay_date = nil;
   NSRunLoop		*runLoop = [runLoopClass currentRunLoop];
   BOOL			isLocked = NO;
-  BOOL			addedRunLoop = NO;
 
   /*
    * If we have sent out a request on a run loop that we don't already
@@ -2642,11 +2712,17 @@ static void callEncoder (DOContext *ctxt)
    * enabled, we must add the run loop of the new thread so that we can
    * get the reply in this thread.
    */
-  if (_multipleThreads == YES
-    && [_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+  if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
-      [self addRunLoop: runLoop];
-      addedRunLoop = YES;
+      if (_multipleThreads == YES)
+	{
+	  [self addRunLoop: runLoop];
+	}
+      else
+	{
+	  [NSException raise: NSObjectInaccessibleException
+		      format: @"Waiting for reply in wrong thread"];
+	}
     }
 
   NS_DURING
@@ -2766,19 +2842,9 @@ static void callEncoder (DOContext *ctxt)
 			  format: @"invalidated while awaiting reply"];
 	    }
 	}
-      if (addedRunLoop == YES)
-	{
-	  addedRunLoop = NO;
-	  [self removeRunLoop: runLoop];
-	}
     }
   NS_HANDLER
     {
-      if (addedRunLoop == YES)
-	{
-	  addedRunLoop = NO;
-	  [self removeRunLoop: runLoop];
-	}
       if (isLocked == YES)
 	{
 	  M_UNLOCK(_queueGate);
@@ -3457,32 +3523,24 @@ static void callEncoder (DOContext *ctxt)
   return ret;
 }
 
-
-/* Accessing ivars */
-
-
 /* Prevent trying to encode the connection itself */
 
 - (void) encodeWithCoder: (NSCoder*)anEncoder
 {
   [self shouldNotImplement: _cmd];
 }
-
 - (id) initWithCoder: (NSCoder*)aDecoder;
 {
   [self shouldNotImplement: _cmd];
   return self;
 }
 
-
-/* Shutting down and deallocating. */
-
 /*
  *	We register this method for a notification when a port dies.
  *	NB. It is possible that the death of a port could be notified
  *	to us after we are invalidated - in which case we must ignore it.
  */
-- (void) portIsInvalid: (NSNotification*)notification
+- (void) _portIsInvalid: (NSNotification*)notification
 {
   if (_isValid)
     {
@@ -3501,6 +3559,21 @@ static void callEncoder (DOContext *ctxt)
       NSParameterAssert (port == _receivePort || port == _sendPort);
 
       [self invalidate];
+    }
+}
+
+/**
+ * On thread exit, we need to be removed from the runloop of the thread
+ * or we will retain that and cause a memory leak.
+ */
+- (void) _threadWillExit: (NSNotification*)notification
+{
+  extern NSRunLoop	*GSRunLoopForThread(NSThread*);
+  NSRunLoop		*runLoop = GSRunLoopForThread([notification object]);
+
+  if ([_runLoops indexOfObjectIdenticalTo: runLoop] != NSNotFound)
+    {
+      [self removeRunLoop: runLoop];
     }
 }
 

@@ -1,3 +1,11 @@
+2003-09-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Add a couple of checks to raise exceptions
+	when trying to use a connection from the wrong thread.  Also, change
+	the code for handling multithreaded connections so that they are
+	removed from the runloops of exiting threads in response to the
+	thread exit notification.
+
 2003-09-13  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h: Move declarations
