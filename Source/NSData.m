@@ -461,8 +461,8 @@ failure:
  * and with the specified length.  Invokes
  * -initWithBytesNoCopy:length:freeWhenDone:
  */
-+ (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length
++ (id) dataWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned int)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
   NSData	*d;
@@ -475,7 +475,9 @@ failure:
     {
       d = [dataStatic allocWithZone: NSDefaultMallocZone()];
     }
-  d = [d initWithBytesNoCopy: bytes length: length freeWhenDone: shouldFree];
+  d = [d initWithBytesNoCopy: aBuffer
+		      length: bufferSize
+		freeWhenDone: shouldFree];
   return AUTORELEASE(d);
 }
 
@@ -592,7 +594,8 @@ failure:
  * The value fo shouldFree specifies whether the receiver should
  * attempt to free the memory pointer to by aBuffer when the receiver
  * is deallocated ... ie. it says whether the receiver <em>owns</em>
- * the memory.
+ * the memory.  Supplying the wrong value here will lead to memory
+ * leaks or crashes.
  */
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize

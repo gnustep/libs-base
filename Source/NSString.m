@@ -4339,7 +4339,7 @@ handle_printf_atsign (FILE *stream,
  * Removes the specified prefix from the string.  Raises an exception
  * if the prefix is not present.
  */
-- (void) deletePrefix: (NSString*)prefix;
+- (void) deletePrefix: (NSString*)prefix
 {
   NSCAssert2([self hasPrefix: prefix],
     @"'%@' does not have the prefix '%@'", self, prefix);

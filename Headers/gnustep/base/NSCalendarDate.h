@@ -135,7 +135,11 @@
 @end
 
 #ifndef	NO_GNUSTEP
-NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
+void
+GSBreakTime(NSTimeInterval when, int *year, int *month, int *day, int *hour,
+  int *minute, int *second, int *mil);
+NSTimeInterval
+GSTime(int day, int month, int year, int hour, int minute, int second, int mil);
 #endif
 
 #endif  /* __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE*/

@@ -152,7 +152,7 @@ BOOL
 GSInstanceVariableInfo(id obj, NSString *iVarName,
   const char **type, unsigned *size, unsigned *offset)
 {
-  const char	*name = [iVarName cString];
+  const char	*name = [iVarName UTF8String];
 
   return GSFindInstanceVariable(obj, name, type, size, offset);
 }
@@ -160,13 +160,13 @@ GSInstanceVariableInfo(id obj, NSString *iVarName,
 /** ## deprecated ##
  */
 BOOL
-GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
+GSGetInstanceVariable(id obj, NSString *name, void *data)
 {
-  const char	*name = [iVarName cString];
+  const char	*cName = [name UTF8String];
   int		offset;
   unsigned int	size;
 
-  if (GSFindInstanceVariable(obj, name, 0, &size, &offset) == YES)
+  if (GSFindInstanceVariable(obj, cName, 0, &size, &offset) == YES)
     {
       GSGetVariable(obj, offset, size, data);
       return YES;
@@ -177,13 +177,13 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
 /** ## deprecated ##
  */
 BOOL
-GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
+GSSetInstanceVariable(id obj, NSString *name, const void *data)
 {
-  const char	*name = [iVarName cString];
+  const char	*cName = [name UTF8String];
   int		offset;
   unsigned int	size;
 
-  if (GSFindInstanceVariable(obj, name, 0, &size, &offset) == YES)
+  if (GSFindInstanceVariable(obj, cName, 0, &size, &offset) == YES)
     {
       GSSetVariable(obj, offset, size, data);
       return YES;

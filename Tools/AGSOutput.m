@@ -81,24 +81,24 @@ static BOOL snuggleStart(NSString *t)
   if ([comment length] == 0)
     {
       comment = @"<em>Description forthcoming.</em>";
-      if (verbose == YES)
+      if (warn == YES)
 	{
 	  NSString	*name = [d objectForKey: @"Name"];
 	  NSString	*type = [d objectForKey: @"Type"];
 
 	  if (unit == nil)
 	    {
-	      NSLog(@"No comments for %@ %@", type, name);
+	      NSLog(@"Warning - No comments for %@ %@", type, name);
 	    }
 	  else
 	    {
 	      if ([d objectForKey: @"ReturnType"] != nil)
 		{
-		  NSLog(@"No comments for [%@ %@]", unit, name);
+		  NSLog(@"Warning - No comments for [%@ %@]", unit, name);
 		}
 	      else
 		{
-		  NSLog(@"No comments for instance variable %@ in %@",
+		  NSLog(@"Warning - No comments for instance variable %@ in %@",
 		    name, unit);
 		}
 	    }
@@ -213,6 +213,8 @@ static BOOL snuggleStart(NSString *t)
     @"_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
+  verbose = [[NSUserDefaults standardUserDefaults] boolForKey: @"Verbose"];
+  warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
 
   return self;
 }
@@ -629,7 +631,7 @@ static BOOL snuggleStart(NSString *t)
   NSString	*declared = [d objectForKey: @"Declared"];
   NSString	*standards = nil;
 
-  if ([[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+  if (warn == YES && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
       NSLog(@"Warning ... %@ %@ is not implemented where expected", kind, name);
     }
@@ -680,7 +682,7 @@ static BOOL snuggleStart(NSString *t)
   NSString	*standards = nil;
   unsigned	i = [aa count];
 
-  if ([[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+  if (warn == YES && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
       NSLog(@"Warning ... function %@ is not implemented where expected", name);
     }
@@ -861,7 +863,8 @@ static BOOL snuggleStart(NSString *t)
   NSString	*override = nil;
   NSString	*standards = nil;
 
-  if (unit != nil && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+  if (warn == YES && unit != nil
+    && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
       NSLog(@"Warning ... method %@ %@ is not implemented where expected",
         unit, name);
@@ -1056,7 +1059,7 @@ static BOOL snuggleStart(NSString *t)
 	      [m setObject: @"YES" forKey: @"Implemented"];
 	    }
 	}
-      else
+      else if (warn == YES)
 	{
 	  NSLog(@"Warning ... unit %@ is not implemented where expected", name);
 	}
@@ -1391,11 +1394,6 @@ static BOOL snuggleStart(NSString *t)
     }
   RELEASE(arp);
   return ind;
-}
-
-- (void) setVerbose: (BOOL)flag
-{
-  verbose = flag;
 }
 
 - (NSArray*) split: (NSString*)str

@@ -1,4 +1,28 @@
-2002-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+2002-10-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: Improve warning code, support text output
+	in chapter/section/subsection.
+	* Tools/AGSParser.m: move concatenation of comments into a single
+	method, make it insert a linebreak between concatenated comments,
+	and make it refrain from appending the same comment onto itsself
+	(which would happen if the same file was parsed twice, as both a
+	header and as source).
+	Treat the 'main()' function specially ... don't document it as a
+	function but insert its comments at the end of the 'chapter' part
+	of the output document.  These modifications make it easy to
+	document a directory containing tools, by listing the tool source
+	files as arguments to autogsdoc.
+	Tools/gsdoc_0_6_7.dtd: Fix bug preventing use of text in a chapter!
+	* Source/GSString.m: Implement -UTF8String method for better
+	performance.
+	* Source/NSPortNameServer.m: Improve diagnostic message in exception
+	when reporting failure to register ... try to provide all the info
+	needed to begin diagnosing any problem.
+	* Tools/gdomap.c: Make -M flag work with -N.  Make -M flag work when
+	used after -N or -L.  Improve diagnostic messages on failure so
+	people know what it is trying to do.
+
+2002-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Tidied init from file to ensure that everything
 	is released properly on failure, and we don't generate log messages

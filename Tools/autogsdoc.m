@@ -32,7 +32,7 @@
     parse corresponding source files in the same directory as the
     headers (or the current directory, or the directory specified
     using the DocumentationDirectory default), and produce gsdoc
-    files as output.
+    and html files as output.
   </p>
   <p>
     Even without any human assistance, this tool will produce skeleton
@@ -44,7 +44,18 @@
     Any comment beginning with slash and <em>two</em> asterisks rather than
     the common slash and single asterisk, is taken to be gsdoc markup, to
     be use as the description of the class or method following it.  This
-    comment text is reformatted and then inserted into the output.
+    comment text is reformatted and then inserted into the output.<br />
+    Where multiple comments are associatd with the same item, they are
+    joined together with a line break (&lt;br /&gt;) between each if
+    necessary.
+  </p>
+  <p>
+    The tool can easily be used to document programs as well as libraries,
+    simply by giving it the name of the source file containing the main()
+    function of the program - it takes the special comments from that
+    function and handles them specially, inserting them as a section at
+    the end of the first chapter of the document (it creates the first
+    chapter if necessary).
   </p>
   <p>
     There are some cases where special extra processing is performed,
@@ -90,7 +101,9 @@
     <item><strong>&lt;chapter&gt;</strong>
       Placed immediately before any generated class documentation ...
       intended to be used to provide overall description of how the
-      code being documented works.<br />
+      code being documented works.<br />Any documentation for the main()
+      function of a program is inserted as a section at the end of this
+      chapter.
     </item>
     <item><strong>&lt;copy&gt;</strong>
       Copyright of the content of the document ... placed in the head
@@ -112,7 +125,7 @@
     <item><strong>&lt;title&gt;</strong>
       Title of the document ... placed in the head of the gsdoc output.
       If this is omitted the tool will generate a (probably poor)
-      title of its own.
+      title of its own - so you should include this markup manually.
     </item>
     <item>
       <strong>NB</strong>This markup may be used within
@@ -178,13 +191,14 @@
     </item>
     <item>Method specifiers including class names (beginning and ending with
       square brackets) are enclosed in &lt;ref...&gt; ... &lt;/ref&gt; markup.
-      <br />eg. [ NSObject-init],
-      will create a reference to the init method of NSObject, while
-      <br />[ (NSCopying)-copyWithZone:], creates a
+      <br />eg. <code>[</code>NSObject-init<code>]</code>,
+      will create a reference to the init method of NSObject (either the
+      class proper, or any of its categories), while
+      <br /><code>[</code>(NSCopying)-copyWithZone:<code>]</code>, creates a
       reference to a method in the NSCopyIng protocol.
       <br />Note that no spaces must appear between the square brackets
       in these specifiers.
-      <br />Protocol namnes are enclosed in round brackets rather than
+      <br />Protocol names are enclosed in round brackets rather than
       the customary angle brackets, because gsdoc is an XML language, and
       XML treats angle brackets specially.
     </item>
@@ -197,16 +211,16 @@
     <item><strong>ConstantsTemplate</strong>
       Specify the name of a template document into which documentation
       about constants should be inserted from all files in the project.<br />
-      This is useful if constanr in the source code are scattered around many
+      This is useful if constants in the source code are scattered around many
       files, and you need to group them into one place.<br />
       You are responsible for ensuring that the basic template document
       (into which individual constant documentation is inserted) contains
-      all the other information you want, but as a conveniencem autogsdoc
+      all the other information you want, but as a convenience autogsdoc
       will generate a simple template (which you may then edit) for you
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
       element (or if that does not exist, immediately before the end
-      of the <em>body</em> lement) in the template.
+      of the <em>body</em> element) in the template.
     </item>
     <item><strong>Declared</strong>
       Specify where headers are to be documented as being found.<br />
@@ -239,7 +253,7 @@
       files, and you need to group it into one place.<br />
       You are responsible for ensuring that the basic template document
       (into which individual function documentation is inserted) contains
-      all the other information you want, but as a conveniencem autogsdoc
+      all the other information you want, but as a convenience autogsdoc
       will generate a simple template (which you may then edit) for you
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
@@ -336,7 +350,7 @@
       files, and you need to group it into one place.<br />
       You are responsible for ensuring that the basic template document
       (into which individual typedef documentation is inserted) contains
-      all the other information you want, but as a conveniencem autogsdoc
+      all the other information you want, but as a convenience autogsdoc
       will generate a simple template (which you may then edit) for you
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
@@ -357,12 +371,20 @@
       files, and you need to group it into one place.<br />
       You are responsible for ensuring that the basic template document
       (into which individual variable documentation is inserted) contains
-      all the other information you want, but as a conveniencem autogsdoc
+      all the other information you want, but as a convenience autogsdoc
       will generate a simple template (which you may then edit) for you
       if the file does not exist.
       <br />Insertion takes place immediately before the <em>back</em>
       element (or if that does not exist, immediately before the end
       of the <em>body</em> lement) in the template.
+    </item>
+    <item><strong>Verbose</strong>
+      A boolean used to specify whether you want verbose debug/warning
+      output to be produced.
+    </item>
+    <item><strong>Warn</strong>
+      A boolean used to specify whether you want standard warning
+      output (eg report of undocumented methods) produced.
     </item>
     <item><strong>WordMap</strong>
       This value is a dictionary used to map identifiers/keywords found
@@ -443,6 +465,7 @@ main(int argc, char **argv, char **env)
   BOOL			ignoreDependencies = NO;
   BOOL			showDependencies = NO;
   BOOL			verbose = NO;
+  BOOL			warn = NO;
   NSArray		*files;
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
@@ -469,6 +492,7 @@ main(int argc, char **argv, char **env)
     nil]];
 
   verbose = [defs boolForKey: @"Verbose"];
+  warn = [defs boolForKey: @"Warn"];
   ignoreDependencies = [defs boolForKey: @"IgnoreDependencies"];
   showDependencies = [defs boolForKey: @"ShowDependencies"];
   if (ignoreDependencies == YES)
@@ -607,9 +631,7 @@ main(int argc, char **argv, char **env)
 
       parser = [AGSParser new];
       [parser setWordMap: [defs dictionaryForKey: @"WordMap"]];
-      [parser setVerbose: verbose];
       output = [AGSOutput new];
-      [output setVerbose: verbose];
       if ([defs boolForKey: @"Standards"] == YES)
 	{
 	  [parser setGenerateStandards: YES];

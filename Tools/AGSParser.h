@@ -61,6 +61,7 @@
   BOOL		inArgList;
   BOOL		documentAllInstanceVariables;
   BOOL		verbose;
+  BOOL		warn;
   NSDictionary		*wordMap;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
@@ -93,7 +94,6 @@
 - (void) setDocumentAllInstanceVariables: (BOOL)flag;
 - (void) setGenerateStandards: (BOOL)flag;
 - (void) setStandards: (NSMutableDictionary*)dict;
-- (void) setVerbose: (BOOL)flag;
 - (void) setWordMap: (NSDictionary*)map;
 - (void) setupBuffer;
 - (unsigned) skipArray;

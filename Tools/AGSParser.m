@@ -24,6 +24,83 @@
 
 @implementation	AGSParser
 
+/**
+ * Method to add the comment from the main() function to the end
+ * of the initial chapter in the output document.  We do this to
+ * support the use of autogsdoc to document tools.
+ */
+- (void) addMain: (NSString*)c
+{
+  NSString		*chap;
+  NSMutableString	*m;
+  NSRange		r;
+
+  chap = [info objectForKey: @"chapter"];
+  if (chap == nil)
+    {
+      chap = [NSString stringWithFormat:
+        @"<chapter><heading>%@</heading></chapter>",
+	[[fileName lastPathComponent] stringByDeletingPathExtension]];
+    }
+  m = [chap mutableCopy];
+  r = [m rangeOfString: @"</chapter>"];
+  r.length = 0;
+  [m replaceCharactersInRange: r withString: @"</section>\n"];
+  [m replaceCharactersInRange: r withString: c];
+  [m replaceCharactersInRange: r withString:
+    @"<section>\n<heading>The main() function</heading>\n"];
+  [info setObject: m forKey: @"chapter"];
+  RELEASE(m);
+}
+
+/**
+ * Append a comment (with leading and trailing space stripped)
+ * to an information dictionary.<br />
+ * If the dictionary is nil, accumulate in the comment ivar instead.<br />
+ * If the comment is empty, ignore it.<br />
+ * If there is no comment in the dictionary, simply set the new value.<br />
+ * If a comment already exists then the new comment text is appended to
+ * it with a separating line break inserted if necessary.<br />
+ */
+- (void) appendComment: (NSString*)s to: (NSMutableDictionary*)d
+{
+  s = [s stringByTrimmingSpaces];
+  if ([s length] > 0)
+    {
+      NSString	*old;
+
+      if (d == nil)
+        {
+	  old = comment;
+	}
+      else
+        {
+	  old = [d objectForKey: @"Comment"];
+	}
+      if (old != nil)
+        {
+	  if ([old hasSuffix: @"</p>"] == NO
+	    && [old hasSuffix: @"<br />"] == NO
+	    && [old hasSuffix: @"<br/>"] == NO)
+	    {
+	      s = [old stringByAppendingFormat: @"<br />%@", s];
+	    }
+	  else
+	    {
+	      s = [old stringByAppendingString: s];
+	    }
+	}
+      if (d == nil)
+        {
+	  ASSIGN(comment, s);
+	}
+      else
+	{
+	  [d setObject: s forKey: @"Comment"];
+	}
+    }
+}
+
 - (void) dealloc
 {
   DESTROY(wordMap);
@@ -60,6 +137,8 @@
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   info = [[NSMutableDictionary alloc] initWithCapacity: 6];
   source = [NSMutableArray new];
+  verbose = [[NSUserDefaults standardUserDefaults] boolForKey: @"Verbose"];
+  warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
   return self;
 }
 
@@ -731,7 +810,7 @@
 	    }
 	  if (comment != nil)
 	    {
-	      [d setObject: comment forKey: @"Comment"];
+	      [self appendComment: comment to: d];
 	    }
 	  DESTROY(comment);
 	}
@@ -750,7 +829,7 @@
 	      /*
 	       * Don't bother to warn about nameless enumerations.
 	       */
-	      if ([t isEqual: @"enum ..."] == NO)
+	      if (verbose == YES && [t isEqual: @"enum ..."] == NO)
 		{
 		  [self log: @"parse declaration with no name - %@", d];
 		}
@@ -919,19 +998,20 @@ fail:
 
 		    if (oDecl != nil)
 		      {
-			NSString	*tmp = [nDecl objectForKey: @"Comment"];
+		        NSString	*oc = [oDecl objectForKey: @"Comment"];
+		        NSString	*nc = [nDecl objectForKey: @"Comment"];
 
-			if (tmp != nil)
+			/*
+			 * If the old comment from the header parsing is
+			 * the same as the new comment from the source
+			 * parsing, assume we parsed the same file as both
+			 * source and header ... otherwise append the new
+			 * comment.
+			 */
+		        if ([oc isEqual: nc] == NO)
 			  {
-			    NSString	*old = [oDecl objectForKey: @"Comment"];
-
-			    if (old != nil)
-			      {
-				tmp = [old stringByAppendingString: tmp];
-			      }
-			    [oDecl setObject: tmp forKey: @"Comment"];
+			    [self appendComment: nc to: oDecl];
 			  }
-
 			[oDecl setObject: @"YES" forKey: @"Implemented"];
 
 			if ([kind isEqualToString: @"Functions"] == YES)
@@ -943,6 +1023,23 @@ fail:
 			      {
 				[self log: @"Function %@ args missmatch - "
 				  @"%@ %@", name, a1, a2];
+			      }
+			    /*
+			     * A main function is not documented as a
+			     * function, but as a special case its
+			     * comments are added to the 'front'
+			     * section of the documentation.
+			     */
+			    if ([name isEqual: @"main"] == YES)
+			      {
+			        NSString	*c;
+
+			        c = [oDecl objectForKey: @"Comment"];
+				if (c != nil)
+				  {
+				    [self addMain: c];
+				  }
+				[dict removeObjectForKey: name];
 			      }
 			  }
 		      }
@@ -1036,16 +1133,7 @@ fail:
       /*
        * Append any comment we have for this
        */
-      if (tmp != nil)
-	{
-	  NSString	*old = [dict objectForKey: @"Comment"];
-
-	  if (old != nil)
-	    {
-	      tmp = [old stringByAppendingString: tmp];
-	    }
-	  [dict setObject: tmp forKey: @"Comment"];
-	}
+      [self appendComment: tmp to: dict];
       /*
        * Update base class if necessary.
        */
@@ -1096,7 +1184,7 @@ fail:
    */
   if (comment != nil)
     {
-      [dict setObject: comment forKey: @"Comment"];
+      [self appendComment: comment to: dict];
       DESTROY(comment);
     }
 
@@ -1584,18 +1672,7 @@ fail:
    */
   if (comment != nil)
     {
-      NSString	*old;
-
-      old = [method objectForKey: @"Comment"];
-      if (old != nil)
-	{
-	  [method setObject: [old stringByAppendingString: comment]
-		     forKey: @"Comment"];
-	}
-      else
-	{
-	  [method setObject: comment forKey: @"Comment"];
-	}
+      [self appendComment: comment to: method];
       DESTROY(comment);
     }
 
@@ -1716,17 +1793,8 @@ fail:
 		      }
 		  }
 
-		token = [method objectForKey: @"Comment"];
-		if (token != nil)
-		  {
-		    NSString	*old = [exist objectForKey: @"Comment"];
-
-		    if (old != nil)
-		      {
-			token = [old stringByAppendingString: token];
-		      }
-		    [exist setObject: token forKey: @"Comment"];
-		  }
+		[self appendComment: [method objectForKey: @"Comment"]
+				 to: exist];
 		[exist setObject: @"YES" forKey: @"Implemented"];
 	      }
 	    break;
@@ -2100,14 +2168,6 @@ fail:
 }
 
 /**
- * Control boolean option to do verbose logging of the parsing process.
- */
-- (void) setVerbose: (BOOL)flag
-{
-  verbose = flag;
-}
-
-/**
  * Sets up a dictionary used for mapping identifiers/keywords to other
  * words.  This is used to help cope with cases where C preprocessor
  * definitions are confusing the parsing process.
@@ -2447,11 +2507,7 @@ fail:
 	      NSString	*tmp;
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
-	      if (comment != nil)
-		{
-		  tmp = [comment stringByAppendingFormat: @"<br />\n%@", tmp];
-		}
-	      ASSIGN(comment, tmp);
+	      [self appendComment: tmp to: nil];
 	    }
 
 	  if (commentsRead == NO && comment != nil)
