@@ -74,20 +74,20 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
 BOOL
 GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
 {
-  const char	*name = [iVarName cString];
-  Class	class;
+  const char		*name = [iVarName cString];
+  Class			class;
   struct objc_ivar_list	*ivars;
   struct objc_ivar	*ivar = 0;
-  int		offset;
-  const char	*type;
-  unsigned int	size;
+  int			offset;
+  const char		*type;
+  unsigned int		size;
 
   class = [obj class];
   while (class != nil && ivar == 0)
     {
       ivars = class->ivars;
       class = class->super_class;
-      if (ivars)
+      if (ivars != 0)
 	{
 	  int	i;
 
@@ -103,7 +103,6 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
     }
   if (ivar == 0)
     {
-      NSLog(@"Attempt to get non-existent ivar '%s'", name);
       return NO;
     }
 
@@ -114,23 +113,20 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
   return YES;
 }
 
-BOOL
-GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
+const char*
+GSInstanceVariableType(id obj, NSString *iVarName)
 {
-  const	char	*name = [iVarName cString];
-  Class	class;
+  const char		*name = [iVarName cString];
+  Class			class;
   struct objc_ivar_list	*ivars;
   struct objc_ivar	*ivar = 0;
-  int		offset;
-  const char	*type;
-  unsigned int	size;
 
   class = [obj class];
   while (class != nil && ivar == 0)
     {
       ivars = class->ivars;
       class = class->super_class;
-      if (ivars)
+      if (ivars != 0)
 	{
 	  int	i;
 
@@ -146,7 +142,44 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
     }
   if (ivar == 0)
     {
-      NSLog(@"Attempt to set non-existent ivar '%s'", name);
+      return 0;
+    }
+
+  return ivar->ivar_type;
+}
+
+BOOL
+GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
+{
+  const	char		*name = [iVarName cString];
+  Class			class;
+  struct objc_ivar_list	*ivars;
+  struct objc_ivar	*ivar = 0;
+  int			offset;
+  const char		*type;
+  unsigned int		size;
+
+  class = [obj class];
+  while (class != nil && ivar == 0)
+    {
+      ivars = class->ivars;
+      class = class->super_class;
+      if (ivars != 0)
+	{
+	  int	i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
+		{
+		  ivar = &ivars->ivar_list[i];
+		  break;
+		}
+	    }
+	}
+    }
+  if (ivar == 0)
+    {
       return NO;
     }
 

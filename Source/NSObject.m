@@ -1281,90 +1281,6 @@ static BOOL deallocNotifications = NO;
 #include	<Foundation/NSNull.h>
 
 
-static BOOL
-GSGetValue(id obj, NSString *iVarName, id *data)
-{
-  const char	*name = [iVarName cString];
-  Class		class;
-  struct objc_ivar_list	*ivars;
-  struct objc_ivar	*ivar = 0;
-  int		offset;
-  const char	*type;
-  unsigned int	size;
-
-  class = [obj class];
-  while (class != nil && ivar == 0)
-    {
-      ivars = class->ivars;
-      class = class->super_class;
-      if (ivars != 0)
-	{
-	  int	i;
-
-	  for (i = 0; i < ivars->ivar_count; i++)
-	    {
-	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
-		{
-		  ivar = &ivars->ivar_list[i];
-		  break;
-		}
-	    }
-	}
-    }
-  if (ivar == 0)
-    {
-      return NO;
-    }
-
-  offset = ivar->ivar_offset;
-  type = ivar->ivar_type;
-  size = objc_sizeof_type(type);
-  memcpy(data, ((void*)obj) + offset, size);
-  return YES;
-}
-
-static BOOL
-GSSetValue(id obj, NSString *iVarName, id *data)
-{
-  const	char	*name = [iVarName cString];
-  Class		class;
-  struct objc_ivar_list	*ivars;
-  struct objc_ivar	*ivar = 0;
-  int		offset;
-  const char	*type;
-  unsigned int	size;
-
-  class = [obj class];
-  while (class != nil && ivar == 0)
-    {
-      ivars = class->ivars;
-      class = class->super_class;
-      if (ivars != 0)
-	{
-	  int	i;
-
-	  for (i = 0; i < ivars->ivar_count; i++)
-	    {
-	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
-		{
-		  ivar = &ivars->ivar_list[i];
-		  break;
-		}
-	    }
-	}
-    }
-  if (ivar == 0)
-    {
-      return NO;
-    }
-
-  offset = ivar->ivar_offset;
-  type = ivar->ivar_type;
-  size = objc_sizeof_type(type);
-  memcpy(((void*)obj) + offset, data, size);
-  return YES;
-}
-
 @implementation NSObject (KeyValueCoding)
 
 + (BOOL) accessInstanceVariablesDirectly
@@ -1413,12 +1329,12 @@ GSSetValue(id obj, NSString *iVarName, id *data)
     {
       id	v;
 
-      if (GSGetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+      if (GSGetInstanceVariable(self, [NSString stringWithFormat: @"_%@", aKey],
 	(void*)&v) == YES)
 	{
 	  return v;
 	}
-      if (GSGetValue(self, aKey, (void*)&v) == YES)
+      if (GSGetInstanceVariable(self, aKey, (void*)&v) == YES)
 	{
 	  return v;
 	}
@@ -1460,12 +1376,12 @@ GSSetValue(id obj, NSString *iVarName, id *data)
 
   if ([[self class] accessInstanceVariablesDirectly] == YES)
     {
-      if (GSSetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+      if (GSSetInstanceVariable(self, [NSString stringWithFormat: @"_%@", aKey],
 	(void*)&anObject) == YES)
 	{
 	  return;
 	}
-      if (GSSetValue(self, aKey, (void*)&anObject) == YES)
+      if (GSSetInstanceVariable(self, aKey, (void*)&anObject) == YES)
 	{
 	  return;
 	}
@@ -1504,12 +1420,12 @@ GSSetValue(id obj, NSString *iVarName, id *data)
 
   if ([[self class] accessInstanceVariablesDirectly] == YES)
     {
-      if (GSSetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+      if (GSSetInstanceVariable(self, [NSString stringWithFormat: @"_%@", aKey],
 	(void*)&anObject) == YES)
 	{
 	  return;
 	}
-      if (GSSetValue(self, aKey, (void*)&anObject) == YES)
+      if (GSSetInstanceVariable(self, aKey, (void*)&anObject) == YES)
 	{
 	  return;
 	}
@@ -1591,12 +1507,12 @@ GSSetValue(id obj, NSString *iVarName, id *data)
     {
       id	v;
 
-      if (GSGetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+      if (GSGetInstanceVariable(self, [NSString stringWithFormat: @"_%@", aKey],
 	(void*)&v) == YES)
 	{
 	  return v;
 	}
-      if (GSGetValue(self, aKey, (void*)&v) == YES)
+      if (GSGetInstanceVariable(self, aKey, (void*)&v) == YES)
 	{
 	  return v;
 	}
