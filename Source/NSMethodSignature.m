@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include "foundation/NSMethodSignature.h"
-#include "objc/objc-malloc.h"
+#include <objects/stdobjects.h>
+#include <Foundation/NSMethodSignature.h>
 
 static int
 types_get_size_of_arguments(const char *types)
@@ -46,24 +46,29 @@ types_get_number_of_arguments (const char *types)
 
 @implementation NSMethodSignature
 
-+ (NSMethodSignature*) signatureWithObjCTypes: (const char*)types
++ (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
 {
   int len;
   NSMethodSignature *newMs = [NSMethodSignature alloc];
-  len = strlen(types);
+  len = strlen(t);
   OBJC_MALLOC(newMs->types, char, len);
-  bcopy(types, newMs->types, len);
-  len = str??();
+  bcopy(t, newMs->types, len);
+  len = strlen(t);	                                 /* xxx */
   OBJC_MALLOC(newMs->returnTypes, char, len);
-  bcopy(types, newMs->returnTypes, len);
-  newMs->argFrameLength = types_get_size_of_arguments(types);
-  newMs->returnFrameLength = objc_size_of_type(types);
-  newMs->numArgs = types_get_number_of_arguments(types);
+  bcopy(t, newMs->returnTypes, len);
+  newMs->returnTypes[len-1] = '\0';
+  newMs->argFrameLength = types_get_size_of_arguments(t);
+  newMs->returnFrameLength = objc_size_of_type(t);
+  newMs->numArgs = types_get_number_of_arguments(t);
   return newMs;
 }
 
 - (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index
 {
+  if (index >= numArgs)
+    [NSException raise:NSInvalidArgumentException
+		 format:@"Index too high."];
+  [self notImplemented:_cmd];
   return 0;
 }
 
