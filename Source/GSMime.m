@@ -31,6 +31,9 @@
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSException.h>
+#include	<Foundation/NSValue.h>
+#include	<Foundation/NSURL.h>
+#include	<Foundation/NSURLHandle.h>
 #include	<Foundation/GSMime.h>
 #include	<string.h>
 
@@ -302,6 +305,11 @@ parseCharacterSet(NSString *token)
   return AUTORELEASE([[self alloc] init]);
 }
 
+- (NSData*) data
+{
+  return data;
+}
+
 - (void) dealloc
 {
   RELEASE(data);
@@ -324,7 +332,6 @@ parseCharacterSet(NSString *token)
     }
   if (info == nil)
     {
-      NSLog(@"contextFor: - nil header ... assumed binary encoding");
       return defaultContext;
     }
 
@@ -775,7 +782,7 @@ parseCharacterSet(NSString *token)
 
 - (BOOL) parse: (NSData*)d
 {
-  if (data == nil)
+  if (complete == YES)
     {
       return NO;	/* Already completely parsed! */
     }
@@ -839,7 +846,7 @@ parseCharacterSet(NSString *token)
            */
 	  result = [self parse: [NSData dataWithBytes: @"\r\n\r\n" length: 4]];
 	}
-      DESTROY(data);
+      complete = YES;	/* Finished parsing	*/
       return result;
     }
 }
@@ -1055,16 +1062,19 @@ parseCharacterSet(NSString *token)
 	  NSLog(@"Bad value for http status");
 	  return NO;
 	}
-      [info setObject: [NSString stringWithFormat: @"%d", major]
-	       forKey: @"HttpMajorVersion"];
       [info setObject: [NSString stringWithFormat: @"%d", minor]
 	       forKey: @"HttpMinorVersion"];
       [info setObject: [NSString stringWithFormat: @"%d.%d", major, minor]
 	       forKey: @"HttpVersion"];
+      [info setObject: [NSString stringWithFormat: @"%d", major]
+	       forKey: NSHTTPPropertyServerHTTPVersionKey];
       [info setObject: [NSString stringWithFormat: @"%d", status]
-	       forKey: @"HttpStatus"];
+	       forKey: NSHTTPPropertyStatusCodeKey];
       [self scanPastSpace: scanner];
       value = [[scanner string] substringFromIndex: [scanner scanLocation]];
+      [info setObject: value
+	       forKey: NSHTTPPropertyStatusReasonKey];
+      value = nil;
     }
   else if ([name isEqualToString: @"content-transfer-encoding"] == YES
     || [name isEqualToString: @"transfer-encoding"] == YES)
@@ -1507,6 +1517,8 @@ parseCharacterSet(NSString *token)
 
 	  if ([context atEnd] == YES)
 	    {
+	      complete = YES;
+
 	      /*
 	       * If no content type is supplied, we assume text.
 	       */

@@ -53,6 +53,16 @@
 	  </desc>
 	</method>
 
+        <method type="NSData*">
+          <sel>data</sel>
+	  <desc>
+	    Return the data accumulated in the parser.  If the parser is
+	    still parsing headers, this will be the header data read so far.
+	    If the parse has parsed the body of the message, this will be
+	    the data of the body, with any transfer encoding removed.
+	  </desc>
+	</method>
+
         <method type="BOOL">
           <sel>decodeData:</sel>
           <arg type="NSData*">sourceData</arg>
@@ -129,15 +139,15 @@
 	      contains -
 	    </p>
 	    <deflist>
-	      <term>HttpVersion</term>
-	      <desc>The full HTTP protocol version number</desc>
 	      <term>HttpMajorVersion</term>
 	      <desc>The first part of the version number</desc>
 	      <term>HttpMinorVersion</term>
 	      <desc>The second part of the version number</desc>
-	      <term>HttpStatus</term>
+	      <term>NSHTTPPropertyServerHTTPVersionKey</term>
+	      <desc>The full HTTP protocol version number</desc>
+	      <term>NSHTTPPropertyStatusCodeKey</term>
 	      <desc>The HTTP status code</desc>
-	      <term>Value</term>
+	      <term>NSHTTPPropertyStatusReasonKey</term>
 	      <desc>The text message (if any) after the status code</desc>
 	    </deflist>
 	  </desc>
