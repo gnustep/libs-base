@@ -147,6 +147,11 @@ Mon Mar 18 13:31:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
  	caching a single instance in a static variable.
 	([NSDate +distantPast]): Likewise.
 
+Fri Mar 15 19:13:57 1996  Scott Christley <scottc@net-community.com>
+
+        * checks/nsarray.m (main): Filled out tests for NSArray and
+        NSMutableArray classes.
+
 Sun Mar 17 18:20:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Many miscellaneous small bug fixes, found with -Wall:
