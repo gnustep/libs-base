@@ -130,12 +130,14 @@ main(int argc, char** argv)
 
   /*
    *	Build a list of 'root' directories to search for applications.
+   *	Order is important - later duplicates of services are ignored.
    */
-  str = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+  str = [env objectForKey: @"GNUSTEP_USER_ROOT"];
   if (str != nil)
-    [roots addObject: str];
+    usrRoot = str;
   else
-    [roots addObject: @"/usr/GNUstep"];
+    usrRoot = [NSString stringWithFormat: @"%@/GNUstep", NSHomeDirectory()];
+  [roots addObject: usrRoot];
 
   str = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
   if (str != nil)
@@ -143,12 +145,11 @@ main(int argc, char** argv)
   else
     [roots addObject: @"/usr/GNUstep/Local"];
 
-  str = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+  str = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
   if (str != nil)
-    usrRoot = str;
+    [roots addObject: str];
   else
-    usrRoot = [NSString stringWithFormat: @"%@/GNUstep", NSHomeDirectory()];
-  [roots addObject: usrRoot];
+    [roots addObject: @"/usr/GNUstep"];
 
   /*
    *	List of directory names to search within each root directory
