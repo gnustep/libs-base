@@ -15,6 +15,7 @@
 	* Headers/gnustep/base/NSHashTable.h: Ditto
 	* Tools/AGSHtml.m: Fix typo ... excess semicolon in constant output.
 	* Tools/AGSParser.m: Fix error failing to find comment for constants.
+	* Source/NSObjCRuntime.m: Document functions.
 
 2002-12-30  Adam Fedor  <fedor@gnu.org>
 
