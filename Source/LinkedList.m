@@ -119,7 +119,7 @@
   [[oldElement.id_u nextLink] setPrevLink:[oldElement.id_u prevLink]];
   [[oldElement.id_u prevLink] setNextLink:[oldElement.id_u nextLink]];
   _count--;
-  return oldElement;
+  return AUTORELEASE_ELT(oldElement);
 }
   
 - insertElement: (elt)newElement after: (elt)oldElement
@@ -160,18 +160,20 @@
       [oldElement.id_u setPrevLink:newElement.id_u];
     }
   _count++;
+  RETAIN_ELT(newElement);
   return self;
 }
 
 - (elt) replaceElement: (elt)oldElement with: (elt)newElement
 {
+  RETAIN_ELT(newElement);
   if (oldElement.id_u == _first_link)
     _first_link = newElement.id_u;
   [newElement.id_u setNextLink:[oldElement.id_u nextLink]];
   [newElement.id_u setPrevLink:[oldElement.id_u prevLink]];
   [[oldElement.id_u prevLink] setNextLink:newElement.id_u];
   [[oldElement.id_u nextLink] setPrevLink:newElement.id_u];
-  return oldElement;
+  return AUTORELEASE_ELT(oldElement);
 }
 
 /* End of methods that change the instance variables. */

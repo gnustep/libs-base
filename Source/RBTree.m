@@ -237,7 +237,7 @@ static id nilRBNode;
   [oldElement.id_u setLeftNode:[self nilNode]];
   [oldElement.id_u setParentNode:[self nilNode]];
   _count--;
-  return oldElement;
+  return AUTORELEASE_ELT(oldElement);
 }
 
 /* Override methods that could violate assumptions of RBTree structure.
