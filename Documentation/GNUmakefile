@@ -32,7 +32,7 @@ include ../config.mak
 # The documents to be generated
 DOCUMENT_NAME = coding-standards
 
-SUBPROJECTS = manual
+SUBPROJECTS = manual General
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
