@@ -1,4 +1,4 @@
-/* Debugging utilities for GNUStep and OpenStep
+/** Debugging utilities for GNUStep and OpenStep
    Copyright (C) 1997,1999,2000,2001 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

@@ -1,4 +1,4 @@
-/* Implementation of GNUSTEP string class
+/** Implementation of GNUSTEP string class
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -1950,7 +1950,7 @@ handle_printf_atsign (FILE *stream,
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
-- (NSString*) uppercaseString;
+- (NSString*) uppercaseString
 {
   unichar	*s;
   unsigned	count;

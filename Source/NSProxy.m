@@ -1,4 +1,4 @@
-/* Implementation for GNU Objective-C version of NSProxy
+/** Implementation for GNU Objective-C version of NSProxy
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

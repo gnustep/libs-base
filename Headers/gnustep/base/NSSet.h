@@ -31,29 +31,29 @@
 @interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 + (id) set;
-+ (id) setWithArray: (NSArray*)array;
++ (id) setWithArray: (NSArray*)objects;
 + (id) setWithObject: (id)anObject;
-+ (id) setWithObjects: (id)anObject, ...;
++ (id) setWithObjects: (id)firstObject, ...;
 + (id) setWithSet: (NSSet*)aSet;
 
 - (NSArray*) allObjects;
 - (id) anyObject;
 - (BOOL) containsObject: (id)anObject;
 - (unsigned) count;
-- (NSString*) descriptionWithLocale: (NSDictionary*)ld;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 
-- (id) initWithArray: (NSArray*)array;
-- (id) initWithObjects: (id)objects, ...;
+- (id) initWithArray: (NSArray*)other;
+- (id) initWithObjects: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count;
 - (id) initWithObjects: firstObject
 		  rest: (va_list)ap;
-- (id) initWithSet: (NSSet*)otherSet;
-- (id) initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
+- (id) initWithSet: (NSSet*)other;
+- (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag;
 
-- (BOOL) intersectsSet: (NSSet*)other;
+- (BOOL) intersectsSet: (NSSet*)otherSet;
 - (BOOL) isEqualToSet: (NSSet*)other;
-- (BOOL) isSubsetOfSet: (NSSet*)other;
+- (BOOL) isSubsetOfSet: (NSSet*)otherSet;
 
 - (void) makeObjectsPerform: (SEL)aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;

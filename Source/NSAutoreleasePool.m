@@ -1,4 +1,4 @@
-/* Implementation of auto release pool for delayed disposal
+/** Implementation of auto release pool for delayed disposal
    Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

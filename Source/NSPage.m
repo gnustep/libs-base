@@ -1,4 +1,4 @@
-/* Implementation of page-related functions for GNUstep
+/** Implementation of page-related functions for GNUstep
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

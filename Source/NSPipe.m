@@ -1,4 +1,4 @@
-/* Implementation for NSPipe for GNUStep
+/** Implementation for NSPipe for GNUStep
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

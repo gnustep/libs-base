@@ -1,4 +1,4 @@
-/* callframe.m - Wrapper/Objective-C interface for ffcall function interface
+/** callframe.m - Wrapper/Objective-C interface for ffcall function interface
 
    Copyright (C) 2000, Free Software Foundation, Inc.
    

@@ -1,4 +1,4 @@
-/* Time zone management. -*- Mode: ObjC -*-
+/** Time zone management. -*- Mode: ObjC -*-
    Copyright (C) 1997 Free Software Foundation, Inc.
   
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>

@@ -1,4 +1,4 @@
-/* Implementation for GNU Objective-C version of NSDistantObject
+/** Implementation for GNU Objective-C version of NSDistantObject
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

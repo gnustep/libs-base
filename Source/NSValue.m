@@ -1,4 +1,4 @@
-/* NSValue.m - Object encapsulation for C types.
+/** NSValue.m - Object encapsulation for C types.
    Copyright (C) 1993, 1994, 1996, 1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>

@@ -1,4 +1,4 @@
-/* Zone memory management. -*- Mode: ObjC -*-
+/** Zone memory management. -*- Mode: ObjC -*-
    Copyright (C) 1997,1998 Free Software Foundation, Inc.
 
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>

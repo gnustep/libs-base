@@ -1,4 +1,4 @@
-/* Implementation of NSUnarchiver for GNUstep
+/** Implementation of NSUnarchiver for GNUstep
    Copyright (C) 1998 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>

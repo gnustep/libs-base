@@ -60,7 +60,7 @@ typedef struct	{
 #endif
 }
 
-+ (NSMethodSignature*) signatureWithObjCTypes: (const char*)types;
++ (NSMethodSignature*) signatureWithObjCTypes: (const char*)t;
 
 #ifndef	STRICT_MACOS_X
 - (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index;

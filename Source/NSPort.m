@@ -1,4 +1,4 @@
-/* Implementation of abstract superclass port for use with NSConnection
+/** Implementation of abstract superclass port for use with NSConnection
    Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

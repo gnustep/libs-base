@@ -1,4 +1,4 @@
-/* 
+/** 
    NSAttributedString.m
 
    Implementation of string class with attributes
@@ -278,14 +278,14 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Retrieving attribute information
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (unsigned int)index
 		     effectiveRange: (NSRange*)aRange
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
   return nil;
 }
 
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (unsigned int)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit
 {
@@ -335,7 +335,7 @@ static Class GSMutableAttributedStringClass;
 }
 
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned)index
+	 atIndex: (unsigned int)index
   effectiveRange: (NSRange*)aRange
 {
   NSDictionary *tmpDictionary;

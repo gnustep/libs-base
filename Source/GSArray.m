@@ -1,4 +1,4 @@
-/* Concrete implementation of NSArray 
+/** Concrete implementation of NSArray 
    Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

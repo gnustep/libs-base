@@ -44,7 +44,7 @@
 
 + (NSNotification*) notificationWithName: (NSString*)name
 				  object: (id)object
-			        userInfo: (NSDictionary*)user_info;
+			        userInfo: (NSDictionary*)info;
 
 /* Querying a Notification Object */
 

@@ -1,4 +1,4 @@
-/* NSCharacterSet - Character set holder
+/** NSCharacterSet - Character set holder
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -171,12 +171,12 @@ static NSLock* cache_lock = nil;
   return [self _bitmapForSet: @"nonBaseCharSet" number: 7];
 }
 
-+ (NSCharacterSet*) punctuationCharacterSet;
++ (NSCharacterSet*) punctuationCharacterSet
 {
   return [self _bitmapForSet: @"punctuationCharSet" number: 8];
 }
 
-+ (NSCharacterSet*) symbolAndOperatorCharacterSet;
++ (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   return [self _bitmapForSet: @"symbolAndOperatorCharSet" number: 9];
 }

@@ -47,10 +47,10 @@
 + (id) dataWithContentsOfURL: (NSURL*)url;
 #endif
 + (id) dataWithData: (NSData*)data;
-- (id) initWithBytes: (const void*)bytes
-	      length: (unsigned int)length;
-- (id) initWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length;
+- (id) initWithBytes: (const void*)aBuffer
+	      length: (unsigned int)bufferSize;
+- (id) initWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned int)bufferSize;
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) initWithContentsOfMappedFile: (NSString*)path;
 #ifndef STRICT_OPENSTEP
@@ -90,7 +90,7 @@
 		  atCursor: (unsigned int*)cursor
 		   context: (id <NSObjCTypeSerializationCallBack>)callback;
 - (int) deserializeIntAtCursor: (unsigned int*)cursor;
-- (int) deserializeIntAtIndex: (unsigned int)location;
+- (int) deserializeIntAtIndex: (unsigned int)index;
 - (void) deserializeInts: (int*)intBuffer
 		   count: (unsigned int)numInts
 		atCursor: (unsigned int*)cursor;
@@ -173,9 +173,9 @@
 #define	_GSC_CID	0x17	/* Class encoded as id	*/
 
 @interface NSData (GNUstepExtensions)
-+ (id) dataWithShmID: (int)anID length: (unsigned) length;
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
-+ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned) length;
++ (id) dataWithShmID: (int)anID length: (unsigned int) length;
++ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int) length;
++ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned int) length;
 
 /*
  *	-deserializeTypeTag:andCrossRef:atCursor:
@@ -183,8 +183,8 @@
  *	NSUnarchiver maximum possible performance.
  */
 - (void) deserializeTypeTag: (unsigned char*)tag
-		andCrossRef: (unsigned int*)xref
-		   atCursor: (unsigned*)cursor;
+		andCrossRef: (unsigned int*)ref
+		   atCursor: (unsigned int*)cursor;
 @end
 #endif
 
@@ -198,13 +198,13 @@
 // Adjusting Capacity
 
 - (void) increaseLengthBy: (unsigned int)extraLength;
-- (void) setLength: (unsigned int)length;
+- (void) setLength: (unsigned int)size;
 - (void*) mutableBytes;
 
 // Appending Data
 
-- (void) appendBytes: (const void*)bytes
-	      length: (unsigned int)length;
+- (void) appendBytes: (const void*)aBuffer
+	      length: (unsigned int)bufferSize;
 - (void) appendData: (NSData*)other;
 
 // Modifying Data
@@ -222,12 +222,12 @@
 		 context: (id <NSObjCTypeSerializationCallBack>)callback;
 - (void) serializeInt: (int)value;
 - (void) serializeInt: (int)value
-	      atIndex: (unsigned int)location;
+	      atIndex: (unsigned int)index;
 - (void) serializeInts: (int*)intBuffer
 		 count: (unsigned int)numInts;
 - (void) serializeInts: (int*)intBuffer
 		 count: (unsigned int)numInts
-	       atIndex: (unsigned int)location;
+	       atIndex: (unsigned int)index;
 
 @end
 
@@ -250,7 +250,7 @@
  */
 - (void) serializeTypeTag: (unsigned char)tag;
 - (void) serializeTypeTag: (unsigned char)tag
-	      andCrossRef: (unsigned)xref;
+	      andCrossRef: (unsigned int)xref;
 
 @end
 #endif

@@ -120,7 +120,7 @@
 - (NSString*) description;
 + (NSString*) description;
 
-+ (void) poseAsClass: (Class)aClass;
++ (void) poseAsClass: (Class)aClassObject;
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector;
 
@@ -130,9 +130,9 @@
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (Class) classForPortCoder;
-- (id) replacementObjectForArchiver: (NSArchiver*)anEncoder;
+- (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
-- (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
 
 
 + (id) setVersion: (int)aVersion;

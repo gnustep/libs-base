@@ -1,4 +1,4 @@
-/* Support functions for Unicode implementation
+/** Support functions for Unicode implementation
    Function to determine default c string encoding for
    GNUstep based on GNUSTEP_STRING_ENCODING environment variable.
 

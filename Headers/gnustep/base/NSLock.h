@@ -98,8 +98,8 @@
  * Acquiring the lock with a date condition
  */
 - (BOOL) lockBeforeDate: (NSDate*)limit;
-- (BOOL) lockWhenCondition: (int)condition
-                beforeDate: (NSDate*)limit;
+- (BOOL) lockWhenCondition: (int)condition_to_meet
+                beforeDate: (NSDate*)limitDate;
 
 - (void) lock;
 - (void) unlock;

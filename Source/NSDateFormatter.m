@@ -1,4 +1,4 @@
-/* Implementation of NSDateFormatter class
+/** Implementation of NSDateFormatter class
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

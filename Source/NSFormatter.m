@@ -1,4 +1,4 @@
-/* Implementation of NSFormatter class
+/** Implementation of NSFormatter class
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

@@ -1,4 +1,4 @@
-/* Implementation of functions for dissecting/making method calls 
+/** Implementation of functions for dissecting/making method calls 
    Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

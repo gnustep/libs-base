@@ -63,19 +63,19 @@
 - (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes;
 
 //Retrieving character information
-- (unsigned) length;
+- (unsigned int) length;
 - (NSString*) string;					//Primitive method!
 
 //Retrieving attribute information
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (unsigned int)index
 		     effectiveRange: (NSRange*)aRange;	//Primitive method!
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (unsigned int)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit;
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned)index
+	 atIndex: (unsigned int)index
   effectiveRange: (NSRange*)aRange;
-- (id) attribute: (NSString*)attributeName atIndex: (unsigned)index
+- (id) attribute: (NSString*)attributeName atIndex: (unsigned int)index
   longestEffectiveRange: (NSRange*)aRange inRange: (NSRange)rangeLimit;
 
 //Comparing attributed strings
@@ -114,7 +114,7 @@
 //Changing characters and attributes
 - (void) appendAttributedString: (NSAttributedString*)attributedString;
 - (void) insertAttributedString: (NSAttributedString*)attributedString
-			atIndex: (unsigned)index;
+			atIndex: (unsigned int)index;
 - (void) replaceCharactersInRange: (NSRange)aRange
 	     withAttributedString: (NSAttributedString*)attributedString;
 - (void) replaceCharactersInRange: (NSRange)aRange

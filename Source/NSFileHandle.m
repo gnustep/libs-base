@@ -1,4 +1,4 @@
-/* Implementation for NSFileHandle for GNUStep
+/** Implementation for NSFileHandle for GNUStep
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -389,7 +389,7 @@ NSString*	NSFileHandleOperationException =
   [self subclassResponsibility: _cmd];
 }
 
-- (void) writeInBackgroundAndNotify: (NSData*)item;
+- (void) writeInBackgroundAndNotify: (NSData*)item
 {
   [self subclassResponsibility: _cmd];
 }

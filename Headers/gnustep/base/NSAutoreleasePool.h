@@ -85,8 +85,8 @@ struct autorelease_array_list
   void 	(*_addImp)(id, SEL, id);
 }
 
-+ (void) addObject: (id)anObject;
-- (void) addObject: (id)anObject;
++ (void) addObject: (id)anObj;
+- (void) addObject: (id)anObj;
 
 #ifndef	NO_GNUSTEP
 + (void) enableRelease: (BOOL)enable;

@@ -1,9 +1,10 @@
-/* Implementation for NSUserDefaults for GNUstep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/** Implementation for NSUserDefaults for GNUstep
+   Copyright (C) 1995-2001 Free Software Foundation, Inc.
 
-   Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
+   Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
+   		EMBL & Academia Naturalis, 
                 Heidelberg, Germany
-                Tuparev@EMBL-Heidelberg.de
+   Modified by:  Richard Frith-Macdonald <rfm@gnu.org>
   
    This file is part of the GNUstep Base Library.
 

@@ -1,4 +1,4 @@
-/* Implementatikon for <NSUndoManager> for GNUStep
+/** Implementatikon for <NSUndoManager> for GNUStep
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

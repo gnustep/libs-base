@@ -106,14 +106,14 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 			       usingNameServer: (NSPortNameServer*)s;
 + (id) currentConversation;
 + (NSConnection*) defaultConnection;
-+ (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)name
-                                                         host: (NSString*)host;
-+ (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)name
-  host: (NSString*)host usingNameServer: (NSPortNameServer*)s;
++ (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
+                                                         host: (NSString*)h;
++ (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
+  host: (NSString*)h usingNameServer: (NSPortNameServer*)s;
 
 
 - (void) addRequestMode: (NSString*)mode;
-- (void) addRunLoop: (NSRunLoop*)runloop;
+- (void) addRunLoop: (NSRunLoop*)loop;
 - (id) delegate;
 - (void) enableMultipleThreads;
 - (BOOL) independentConversationQueueing;
@@ -128,7 +128,7 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (BOOL) registerName: (NSString*)name withNameServer: (NSPortNameServer*)svr;
 - (NSArray*) remoteObjects;
 - (void) removeRequestMode: (NSString*)mode;
-- (void) removeRunLoop: (NSRunLoop *)runloop;
+- (void) removeRunLoop: (NSRunLoop *)loop;
 - (NSTimeInterval) replyTimeout;
 - (NSArray*) requestModes;
 - (NSTimeInterval) requestTimeout;
@@ -138,9 +138,9 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (NSPort*) sendPort;
 - (void) setDelegate: anObj;
 - (void) setIndependentConversationQueueing: (BOOL)flag;
-- (void) setReplyTimeout: (NSTimeInterval)seconds;
+- (void) setReplyTimeout: (NSTimeInterval)to;
 - (void) setRequestMode: (NSString*)mode;
-- (void) setRequestTimeout: (NSTimeInterval)seconds;
+- (void) setRequestTimeout: (NSTimeInterval)to;
 - (void) setRootObject: anObj;
 - (NSDictionary*) statistics;
 @end
@@ -152,14 +152,14 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
  */
 @interface NSConnection (GNUstepExtensions) <GCFinalization>
 
-+ (NSConnection*) newRegisteringAtName: (NSString*)n
++ (NSConnection*) newRegisteringAtName: (NSString*)name
 			withRootObject: (id)anObject;
 
 - (void) gcFinalize;
 
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
 		    selector: (SEL)sel 
-		    argFrame: (arglist_t)frame;
+		    argFrame: (arglist_t)argframe;
 - (void) forwardInvocation: (NSInvocation *)inv 
 		  forProxy: (NSDistantObject*)object;
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;

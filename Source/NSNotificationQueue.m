@@ -1,4 +1,4 @@
-/*
+/**
    NSNotificationQueue.m
 
    Copyright (C) 1995, 1996 Ovidiu Predescu and Mircea Oancea.
@@ -344,7 +344,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 /* Inserting and Removing Notifications From a Queue */
 
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
-  coalesceMask: (NSNotificationCoalescing)coalesceMask
+			 coalesceMask: (unsigned int)coalesceMask
 {
   NSNotificationQueueRegistration	*item;
   NSNotificationQueueRegistration	*next;
@@ -446,21 +446,22 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 		postingStyle: (NSPostingStyle)postingStyle	
 {
   [self enqueueNotification: notification
-    postingStyle: postingStyle
-    coalesceMask: NSNotificationCoalescingOnName
-      + NSNotificationCoalescingOnSender
-    forModes: nil];
+	       postingStyle: postingStyle
+	       coalesceMask: NSNotificationCoalescingOnName
+			      + NSNotificationCoalescingOnSender
+		   forModes: nil];
 }
 
 - (void) enqueueNotification: (NSNotification*)notification
 		postingStyle: (NSPostingStyle)postingStyle
-		coalesceMask: (NSNotificationCoalescing)coalesceMask
+		coalesceMask: (unsigned int)coalesceMask
 		    forModes: (NSArray*)modes
 {
   if (coalesceMask != NSNotificationNoCoalescing)
-    [self dequeueNotificationsMatching: notification
-      coalesceMask: coalesceMask];
-
+    {
+      [self dequeueNotificationsMatching: notification
+			    coalesceMask: coalesceMask];
+    }
   switch (postingStyle)
     {
       case NSPostNow: 

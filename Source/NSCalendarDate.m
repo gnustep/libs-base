@@ -1,4 +1,4 @@
-/* Implementation for NSCalendarDate for GNUstep
+/** Implementation for NSCalendarDate for GNUstep
    Copyright (C) 1996, 1998 Free Software Foundation, Inc.
 
    Author:  Scott Christley <scottc@net-community.com>

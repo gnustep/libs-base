@@ -1,4 +1,4 @@
-/* Concrete implementation of NSSet based on GNU Set class
+/** Concrete implementation of NSSet based on GNU Set class
    Copyright (C) 1995, 1996, 1998, 2000 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

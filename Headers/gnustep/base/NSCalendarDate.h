@@ -53,8 +53,8 @@
 - (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)format;
 - (id) initWithString: (NSString*)description
-       calendarFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary;
+       calendarFormat: (NSString*)fmt
+	       locale: (NSDictionary*)locale;
 - (id) initWithYear: (int)year
 	      month: (unsigned int)month
 	        day: (unsigned int)day

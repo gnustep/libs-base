@@ -1,4 +1,4 @@
-/* NSHashTable implementation for GNUStep.
+/** NSHashTable implementation for GNUStep.
  * Copyright (C) 1994, 1995, 1996, 1997  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>

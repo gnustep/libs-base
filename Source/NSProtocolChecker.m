@@ -1,4 +1,4 @@
-/* Implementation of NSProtocolChecker for GNUStep
+/** Implementation of NSProtocolChecker for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Mike Kienenberger

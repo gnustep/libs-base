@@ -1,4 +1,4 @@
-/* Implementation for NSTask for GNUStep
+/** Implementation for NSTask for GNUStep
    Copyright (C) 1998,1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -394,7 +394,7 @@ pty_slave(const char* name)
   ASSIGN(_standardError, hdl);
 }
 
-- (void) setStandardInput: (NSFileHandle*)hdl
+- (void) setStandardInput: (id)hdl
 {
   NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
 	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
@@ -406,7 +406,7 @@ pty_slave(const char* name)
   ASSIGN(_standardInput, hdl);
 }
 
-- (void) setStandardOutput: (NSFileHandle*)hdl
+- (void) setStandardOutput: (id)hdl
 {
   NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
 	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);

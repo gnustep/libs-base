@@ -1,4 +1,4 @@
-/* Implementation of GSFFCallInvocation for GNUStep
+/** Implementation of GSFFCallInvocation for GNUStep
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written: Adam Fedor <fedor@gnu.org>

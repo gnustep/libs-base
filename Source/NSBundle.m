@@ -1,4 +1,4 @@
-/* Implementation of NSBundle class
+/** Implementation of NSBundle class
    Copyright (C) 1993,1994,1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -727,12 +727,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return bundle;
 }
 
-+ (NSBundle *)bundleWithPath:(NSString *)path
++ (NSBundle*) bundleWithPath: (NSString*)path
 {
   return AUTORELEASE([[NSBundle alloc] initWithPath: path]);
 }
 
-- (id) initWithPath:(NSString *)path;
+- (id) initWithPath: (NSString*)path
 {
   [super init];
 
@@ -1112,7 +1112,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 }
 
 - (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext;
+			ofType: (NSString *)ext
 {
   return [self pathForResource: name
 	       ofType: ext 
@@ -1121,7 +1121,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext
-		   inDirectory: (NSString *)bundlePath;
+		   inDirectory: (NSString *)bundlePath
 {
   NSString *rootPath;
 
@@ -1385,7 +1385,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 + (NSString *) pathForGNUstepResource: (NSString *)name
 			       ofType: (NSString *)ext	
-			  inDirectory: (NSString *)bundlePath;
+			  inDirectory: (NSString *)bundlePath
 {
   NSString	*path = nil;
   NSString	*bundle_path = nil;

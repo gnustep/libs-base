@@ -48,7 +48,7 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
 + (NSRunLoop*) currentRunLoop;
 
 - (void) acceptInputForMode: (NSString*)mode
-                 beforeDate: (NSDate*)date;
+                 beforeDate: (NSDate*)limit_date;
 
 - (void) addTimer: (NSTimer*)timer
 	  forMode: (NSString*)mode;
@@ -62,7 +62,7 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
 - (BOOL) runMode: (NSString*)mode
       beforeDate: (NSDate*)date;
 
-- (void) runUntilDate: (NSDate*)limit_date;
+- (void) runUntilDate: (NSDate*)date;
 
 @end
 
@@ -133,16 +133,16 @@ typedef	enum {
 + currentInstance;
 + (NSString*) currentMode;
 + (void) run;
-+ (BOOL) runOnceBeforeDate: date;
-+ (BOOL) runOnceBeforeDate: date
++ (BOOL) runOnceBeforeDate: (NSDate*)date;
++ (BOOL) runOnceBeforeDate: (NSDate*)date
 		   forMode: (NSString*)mode;
-+ (void) runUntilDate: date;
-+ (void) runUntilDate: date
++ (void) runUntilDate: (NSDate*)date;
++ (void) runUntilDate: (NSDate*)date
 	      forMode: (NSString*)mode;
 - (BOOL) runOnceBeforeDate: (NSDate*)date;
 - (BOOL) runOnceBeforeDate: (NSDate*)date
 		   forMode: (NSString*)mode;
-- (void) runUntilDate: (NSDate*)limit_date
+- (void) runUntilDate: (NSDate*)date
 	      forMode: (NSString*)mode;
 #endif
 /*

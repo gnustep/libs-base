@@ -1,4 +1,4 @@
-/* Implementation of NSNotification for GNUstep
+/** Implementation of NSNotification for GNUstep
    Copyright (C) 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -31,7 +31,7 @@
 /* This is the designated initializer. */
 - (id) initWithName: (NSString*)name
 	     object: (id)object
-	   userInfo: (id)info
+	   userInfo: (NSDictionary*)info
 {
   [super init];
   _name = [name copyWithZone: NSDefaultMallocZone()];
@@ -53,7 +53,7 @@
 
 + (NSNotification*) notificationWithName: (NSString*)name
 				  object: (id)object
-			        userInfo: (id)info
+			        userInfo: (NSDictionary*)info
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithName: name object: object userInfo: info]);

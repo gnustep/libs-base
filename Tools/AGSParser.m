@@ -684,14 +684,60 @@ fail:
 	  [mname appendString: token];
 	  if (buffer[pos] != term)
 	    {
-	      [self log: @"error parsing method name"];
-	      goto fail;
+	      unsigned	saved = pos;
+
+	      /*
+	       * As a special case, try to cope with a method name separated
+	       * from its body by a semicolon ... a common bug since the
+	       * compiler doesn't pick it up!
+	       */
+	      if (term == '{' && buffer[pos] == ';')
+		{
+		  pos++;
+		  if ([self skipWhiteSpace] >= length || buffer[pos] != term)
+		    {
+		      pos = saved;
+		    }
+		}
+	      if (buffer[pos] == term)
+		{
+		  [self log: @"error in method definition ... "
+		    @"semicolon after name"];
+		}
+	      else
+		{
+		  [self log: @"error parsing method name"];
+		  goto fail;
+		}
 	    }
 	}
       else
 	{
-	  [self log: @"error parsing method name"];
-	  goto fail;
+	  unsigned	saved = pos;
+
+	  /*
+	   * As a special case, try to cope with a method name separated
+	   * from its body by a semicolon ... a common bug since the
+	   * compiler doesn't pick it up!
+	   */
+	  if (term == '{' && buffer[pos] == ';')
+	    {
+	      pos++;
+	      if ([self skipWhiteSpace] >= length || buffer[pos] != term)
+		{
+		  pos = saved;
+		}
+	    }
+	  if (buffer[pos] == term)
+	    {
+	      [self log: @"error in method definition ... "
+		@"semicolon after name"];
+	    }
+	  else
+	    {
+	      [self log: @"error parsing method name"];
+	      goto fail;
+	    }
 	}
     }
 
@@ -934,11 +980,25 @@ fail:
 
       if (c == '(')
 	{
+	  /*
+	   * Remove any whitespace before an opening bracket.
+	   */
+	  if (ptr > start && ptr[-1] == ' ')
+	    {
+	      ptr--;
+	    }
 	  *ptr++ = '(';
 	  nest++;
 	}
       else if (c == ')')
 	{
+	  /*
+	   * Remove any whitespace before a closing bracket.
+	   */
+	  if (ptr > start && ptr[-1] == ' ')
+	    {
+	      ptr--;
+	    }
 	  if (nest > 0)
 	    {
 	      *ptr++ = ')';

@@ -1,4 +1,4 @@
-/* Implementation of network port object based on TCP sockets
+/** Implementation of network port object based on TCP sockets
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

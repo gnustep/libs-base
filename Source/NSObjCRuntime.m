@@ -1,4 +1,4 @@
-/* Implementation of ObjC runtime for GNUStep
+/** Implementation of ObjC runtime for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

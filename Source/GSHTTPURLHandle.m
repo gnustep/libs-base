@@ -1,4 +1,4 @@
-/* GSHTTPURLHandle.m - Class GSHTTPURLHandle
+/** GSHTTPURLHandle.m - Class GSHTTPURLHandle
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written by: 	Mark Allison <mark@brainstorm.co.uk>

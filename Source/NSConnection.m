@@ -1,4 +1,4 @@
-/* Implementation of connection object for remote object messaging
+/** Implementation of connection object for remote object messaging
    Copyright (C) 1994, 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
    Created by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

@@ -1,4 +1,4 @@
-/* Control of executable units within a shared virtual memory space
+/** Control of executable units within a shared virtual memory space
    Copyright (C) 1996-2000 Free Software Foundation, Inc.
 
    Original Author:  Scott Christley <scottc@net-community.com>

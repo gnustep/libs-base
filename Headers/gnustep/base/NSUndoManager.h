@@ -73,17 +73,17 @@ GS_EXPORT NSString *NSUndoManagerWillUndoChangeNotification;
 - (void) redo;
 - (NSString*) redoActionName;
 - (NSString*) redoMenuItemTitle;
-- (NSString*) redoMenuTitleForUndoActionName: (NSString*)actionName;
+- (NSString*) redoMenuTitleForUndoActionName: (NSString*)name;
 - (void) registerUndoWithTarget: (id)target
 		       selector: (SEL)aSelector
 			 object: (id)anObject;
 - (void) removeAllActions;
 - (void) removeAllActionsWithTarget: (id)target;
 - (NSArray*) runLoopModes;
-- (void) setActionName: (NSString*)actionName;
+- (void) setActionName: (NSString*)name;
 - (void) setGroupsByEvent: (BOOL)flag;
 - (void) setLevelsOfUndo: (unsigned)num;
-- (void) setRunLoopModes: (NSArray*)modes;
+- (void) setRunLoopModes: (NSArray*)newModes;
 - (void) undo;
 - (NSString*) undoActionName;
 - (NSString*) undoMenuItemTitle;

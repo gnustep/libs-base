@@ -1,4 +1,4 @@
-/* Implementation for GNUStep of NSString concrete subclasses
+/** Implementation for GNUStep of NSString concrete subclasses
    Copyright (C) 1997,1998,2000 Free Software Foundation, Inc.
    
    Base on code written by Stevo Crvenkovski <stevo@btinternet.com>
