@@ -44,3 +44,10 @@ before-install::
 
 # Things to do after checking
 # after-check::
+
+copy-dist: $(DIST_FILES)
+	mkdir ../snap/Tools
+	for f in $(DIST_FILES); do \
+	  cp $$f ../snap/Tools ; \
+	done
+

@@ -49,16 +49,14 @@ first-client_OBJC_FILES = first-client.m
 second-server_OBJC_FILES = second-server.m
 second-client_OBJC_FILES = second-client.m
 
-SRCS = $(TOOL_NAME:=.m)
+SRCS = $(TEST_TOOL_NAME:=.m)
 
 HDRS = \
 first-server.h \
 second-server.h \
 second-client.h
 
-DIST_FILES = $(SRCS) $(HDRS) Makefile Makefile.postamble Makefile.preamble \
-Makefile.example.in \
-configure.example.in \
+DIST_FILES = $(SRCS) $(HDRS) GNUmakefile Makefile.postamble Makefile.preamble \
 custom-zone.m
 
 -include Makefile.preamble

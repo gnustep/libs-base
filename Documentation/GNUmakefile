@@ -58,7 +58,7 @@ HTML_FILES =
 DVI_FILES = gnustep-base.dvi objective-c.dvi
 
 TOP_DOC_FILES = README INSTALL NEWS
-RCS_FILES =  $(TEXI_FILES) Makefile Makefile.postamble
+RCS_FILES =  $(TEXI_FILES) GNUmakefile Makefile.postamble
 DIST_FILES = $(RCS_FILES) texinfo.tex $(TEXT_FILES)
 
 -include Makefile.preamble

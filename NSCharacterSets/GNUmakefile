@@ -42,7 +42,7 @@ uppercaseCharSet.dat \
 whitespaceCharSet.dat \
 whitespaceandnlCharSet.dat
 
-RCS_FILES = Makefile Makefile.postamble
+RCS_FILES = GNUmakefile Makefile.postamble
 DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
 INSTALL_FILES = $(CHARSET_FILES) README.CharSet
 

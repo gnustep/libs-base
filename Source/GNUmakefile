@@ -455,7 +455,7 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
                   $(BASE_HEADERS)
 
 DIST_FILES = \
-        Makefile Makefile.preamble Makefile.postamble AUTHORS \
+        GNUmakefile Makefile.preamble Makefile.postamble AUTHORS \
         include/config.h.in include/preface.h.in \
 	include/config-win32.h \
         $(GNU_MFILES) \

@@ -32,7 +32,7 @@ include ./Version
 PACKAGE_NAME = gstep-base
 
 DIST_FILES = \
-	Makefile Makefile.postamble config.mak.in \
+	GNUmakefile Makefile.postamble config.mak.in \
 	configure.in aclocal.m4 acconfig.h \
 	configure.bat INSTALL.WIN32 \
 	config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
