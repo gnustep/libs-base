@@ -35,6 +35,7 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSData.h"
+#include "Foundation/NSThread.h"
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
@@ -45,6 +46,8 @@
 #endif
 
 #include "GSPrivate.h"
+
+extern NSThread	*GSCurrentThread();
 
 /**
  * A variable holding the file descriptor to which NSLogv() messages are
@@ -211,6 +214,12 @@ NSLog (NSString* format, ...)
  *   ensuring that a newline is present at the end of the message.
  * </p>
  * <p>
+ *   In GNUstep, the GSLogThread user default may be set to YES in
+ *   order to instruct this function to include the internal ID of
+ *   the mcurrent thread after the process ID.  This can help you
+ *   to track the behavior of a multi-threaded program.
+ * </p>
+ * <p>
  *   The resulting message is then passed to a handler function to
  *   perform actual output.  Locking is performed around the call to
  *   the function actually writing the message out, to ensure that
@@ -242,15 +251,38 @@ NSLogv (NSString* format, va_list args)
 
 #ifdef	HAVE_SYSLOG
   if (GSUserDefaultsFlag(GSLogSyslog) == YES)
-    prefix = @"";
+    {
+      if (GSUserDefaultsFlag(GSLogThread) == YES)
+	{
+	  prefix = [NSString stringWithFormat: @"[%08x] ", GSCurrentThread()];
+	}
+      else
+	{
+	  prefix = @"";
+	}
+    }
   else
 #endif
-    prefix = [NSString
-	     stringWithFormat: @"%@ %@[%d] ",
-	     [[NSCalendarDate calendarDate]
-	       descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
-	     [[NSProcessInfo processInfo] processName],
-	     pid];
+    {
+      if (GSUserDefaultsFlag(GSLogThread) == YES)
+	{
+	  prefix = [NSString
+	    stringWithFormat: @"%@ %@[%d,%08x] ",
+	    [[NSCalendarDate calendarDate]
+	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
+	    [[NSProcessInfo processInfo] processName],
+	    pid, GSCurrentThread()];
+	}
+      else
+	{
+	  prefix = [NSString
+	    stringWithFormat: @"%@ %@[%d] ",
+	    [[NSCalendarDate calendarDate]
+	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
+	    [[NSProcessInfo processInfo] processName],
+	    pid];
+	}
+    }
 
   /* Check if there is already a newline at the end of the format */
   if (![format hasSuffix: @"\n"])

@@ -104,6 +104,15 @@
 		some reason.
 	      </p>
 	    </desc>
+	    <term>GSLogThread</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogThread</code> to
+		<code>YES</code> will cause NSLog and debug output to
+		include the current thread in the logged message.<br />
+		This is useful for debugging multi-threaded applications.
+	      </p>
+	    </desc>
 	    <term>GSMacOSXCompatible</term>
 	    <desc>
 	      <p>
