@@ -2714,7 +2714,6 @@ else
 fi;
 
 cppflags_temp="$CPPFLAGS"
-libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
   CPPFLAGS="$CPPFLAGS -I$openssl_incdir"
@@ -2731,6 +2730,7 @@ else
 fi
 
 if test $enable_openssl = yes; then
+  ssl_ok=no
 
 for ac_header in openssl/ssl.h
 do
@@ -2845,14 +2845,9 @@ fi
 
 done
 
-  if test $ac_cv_header_openssl_ssl_h = no; then
-    { echo "$as_me:$LINENO: WARNING: Could not find openssl headers" >&5
-echo "$as_me: WARNING: Could not find openssl headers" >&2;}
-    { echo "$as_me:$LINENO: WARNING: The SSL bundle will not be built" >&5
-echo "$as_me: WARNING: The SSL bundle will not be built" >&2;}
-    ssl_ok=no
-  else
-    echo "$as_me:$LINENO: checking for CRYPTO_malloc in -lcrypto" >&5
+  if test $ac_cv_header_openssl_ssl_h = yes; then
+
+echo "$as_me:$LINENO: checking for CRYPTO_malloc in -lcrypto" >&5
 echo $ECHO_N "checking for CRYPTO_malloc in -lcrypto... $ECHO_C" >&6
 if test "${ac_cv_lib_crypto_CRYPTO_malloc+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -2908,15 +2903,77 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_crypto_CRYPTO_malloc" >&5
 echo "${ECHO_T}$ac_cv_lib_crypto_CRYPTO_malloc" >&6
 if test $ac_cv_lib_crypto_CRYPTO_malloc = yes; then
-  ssl_ok=yes
-else
-  ssl_ok=no
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBCRYPTO 1
+_ACEOF
+
+  LIBS="-lcrypto $LIBS"
+
 fi
 
-    if test "$ssl_ok" = yes; then
-      base_libs="$LIBS"
-      LIBS="$LIBS -lcrypto"
-      echo "$as_me:$LINENO: checking for ssl2_clear in -lssl" >&5
+    if test $ac_cv_lib_crypto_CRYPTO_malloc = yes; then
+      # ssl needs socket on Solaris
+
+echo "$as_me:$LINENO: checking for main in -lsocket" >&5
+echo $ECHO_N "checking for main in -lsocket... $ECHO_C" >&6
+if test "${ac_cv_lib_socket_main+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsocket  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+main ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_socket_main=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_socket_main=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_socket_main" >&5
+echo "${ECHO_T}$ac_cv_lib_socket_main" >&6
+if test $ac_cv_lib_socket_main = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSOCKET 1
+_ACEOF
+
+  LIBS="-lsocket $LIBS"
+
+fi
+
+
+echo "$as_me:$LINENO: checking for ssl2_clear in -lssl" >&5
 echo $ECHO_N "checking for ssl2_clear in -lssl... $ECHO_C" >&6
 if test "${ac_cv_lib_ssl_ssl2_clear+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -2972,24 +3029,16 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_ssl_ssl2_clear" >&5
 echo "${ECHO_T}$ac_cv_lib_ssl_ssl2_clear" >&6
 if test $ac_cv_lib_ssl_ssl2_clear = yes; then
-  ssl_ok=yes
-else
-  ssl_ok=no
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSSL 1
+_ACEOF
+
+  LIBS="-lssl $LIBS"
+
 fi
 
-      if test "$ssl_ok" = yes; then
-        echo "found openssl"
-        LIBS="$base_libs -lssl -lcrypto"
-	SSLLIBS="$SSLLIBS -lssl -lcrypto"
-      else
-	SSLLIBS="$SSLLIBS -lcrypto"
-        { echo "$as_me:$LINENO: WARNING: Could not find openssl libraries" >&5
-echo "$as_me: WARNING: Could not find openssl libraries" >&2;}
-	{ echo "$as_me:$LINENO: WARNING: The SSL bundle will not be built" >&5
-echo "$as_me: WARNING: The SSL bundle will not be built" >&2;}
-      fi
 
-      echo "$as_me:$LINENO: checking for des_setkey in -lcipher" >&5
+echo "$as_me:$LINENO: checking for des_setkey in -lcipher" >&5
 echo $ECHO_N "checking for des_setkey in -lcipher... $ECHO_C" >&6
 if test "${ac_cv_lib_cipher_des_setkey+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -3045,36 +3094,34 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_cipher_des_setkey" >&5
 echo "${ECHO_T}$ac_cv_lib_cipher_des_setkey" >&6
 if test $ac_cv_lib_cipher_des_setkey = yes; then
-  cipher_ok=yes
-else
-  cipher_ok=no
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBCIPHER 1
+_ACEOF
+
+  LIBS="-lcipher $LIBS"
+
 fi
 
-      if test "$cipher_ok" = yes; then
-        echo "found cipher"
-        LIBS="$LIBS -lcipher"
-        SSLLIBS="$SSLLIBS -lcipher"
+      if test $ac_cv_lib_ssl_ssl2_clear = yes; then
+        ssl_ok=yes
       fi
-    else
-      { echo "$as_me:$LINENO: WARNING: Could not find openssl libraries" >&5
-echo "$as_me: WARNING: Could not find openssl libraries" >&2;}
-      { echo "$as_me:$LINENO: WARNING: The SSL bundle will not be built" >&5
-echo "$as_me: WARNING: The SSL bundle will not be built" >&2;}
     fi
   fi
+  if test $ssl_ok = no; then
+    { echo "$as_me:$LINENO: WARNING: SSL bundle will not be built: Could not find openssl libraries" >&5
+echo "$as_me: WARNING: SSL bundle will not be built: Could not find openssl libraries" >&2;}
+  fi
 else
-  { echo "$as_me:$LINENO: WARNING: The use of openssl was disabled" >&5
-echo "$as_me: WARNING: The use of openssl was disabled" >&2;}
-  { echo "$as_me:$LINENO: WARNING: The SSL bundle will not be built" >&5
-echo "$as_me: WARNING: The SSL bundle will not be built" >&2;}
+  { echo "$as_me:$LINENO: WARNING: SSL bundle will not be built: Openssl disabled by user" >&5
+echo "$as_me: WARNING: SSL bundle will not be built: Openssl disabled by user" >&2;}
 fi
 HAVE_OPENSSL=$ssl_ok
+SSLLIBS="$SSLLIBS $LIBS"
 
 
 
 
 CPPFLAGS="$cppflags_temp";
-LIBS="$libs_temp";
 
 #--------------------------------------------------------------------
 # Write the Makefiles

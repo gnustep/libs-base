@@ -128,5 +128,9 @@
 
 @end
 
+@interface NSNumber (NSDecimalNumber)
+- (NSDecimal) decimalValue;
+@end
+
 #endif
 #endif

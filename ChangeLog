@@ -1,3 +1,12 @@
+2002-08-15  Adam Fedor  <fedor@gnu.org>
+
+	* SSL/configure.ac: Simplified check for libraries. Added socket
+	lib check for Solaris.
+
+	* Headers/gnustep/base/NSDecimalNumber.h: Add NSNumber category
+	for decimalValue.
+	* Source/NSDecimalNumber.m ([NSNumber -decimalValue]): Implemented.
+
 2002-08-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Allow 'true' as boolean value

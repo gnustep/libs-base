@@ -98,7 +98,6 @@ AC_ARG_WITH(openssl-library,
   openssl_libdir="$withval", openssl_libdir="no")
 
 cppflags_temp="$CPPFLAGS"
-libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
   CPPFLAGS="$CPPFLAGS -I$openssl_incdir"
@@ -115,49 +114,33 @@ else
 fi
 
 if test $enable_openssl = yes; then
+  ssl_ok=no
   AC_CHECK_HEADERS(openssl/ssl.h)
-  if test $ac_cv_header_openssl_ssl_h = no; then
-    AC_MSG_WARN(Could not find openssl headers)
-    AC_MSG_WARN(The SSL bundle will not be built)
-    ssl_ok=no
-  else
-    AC_CHECK_LIB(crypto, CRYPTO_malloc, ssl_ok=yes, ssl_ok=no)
-    if test "$ssl_ok" = yes; then
-      base_libs="$LIBS"
-      LIBS="$LIBS -lcrypto"
-      AC_CHECK_LIB(ssl, ssl2_clear, ssl_ok=yes, ssl_ok=no)
-      if test "$ssl_ok" = yes; then
-        echo "found openssl"
-        LIBS="$base_libs -lssl -lcrypto"
-	SSLLIBS="$SSLLIBS -lssl -lcrypto"
-      else
-	SSLLIBS="$SSLLIBS -lcrypto"
-        AC_MSG_WARN(Could not find openssl libraries)
-	AC_MSG_WARN(The SSL bundle will not be built)
+  if test $ac_cv_header_openssl_ssl_h = yes; then
+    AC_CHECK_LIB(crypto, CRYPTO_malloc)
+    if test $ac_cv_lib_crypto_CRYPTO_malloc = yes; then
+      # ssl needs socket on Solaris
+      AC_CHECK_LIB(socket, main)
+      AC_CHECK_LIB(ssl, ssl2_clear)
+      AC_CHECK_LIB(cipher,des_setkey)
+      if test $ac_cv_lib_ssl_ssl2_clear = yes; then
+        ssl_ok=yes
       fi
-
-      AC_CHECK_LIB(cipher,des_setkey,cipher_ok=yes,cipher_ok=no)
-      if test "$cipher_ok" = yes; then
-        echo "found cipher"
-        LIBS="$LIBS -lcipher"
-        SSLLIBS="$SSLLIBS -lcipher"
-      fi
-    else
-      AC_MSG_WARN(Could not find openssl libraries)
-      AC_MSG_WARN(The SSL bundle will not be built)
     fi
   fi
+  if test $ssl_ok = no; then
+    AC_MSG_WARN(SSL bundle will not be built: Could not find openssl libraries)
+  fi
 else
-  AC_MSG_WARN(The use of openssl was disabled)
-  AC_MSG_WARN(The SSL bundle will not be built)
+  AC_MSG_WARN(SSL bundle will not be built: Openssl disabled by user)
 fi
 HAVE_OPENSSL=$ssl_ok
+SSLLIBS="$SSLLIBS $LIBS"
 AC_SUBST(HAVE_OPENSSL)
 AC_SUBST(SSLFLAGS)
 AC_SUBST(SSLLIBS)
 
 CPPFLAGS="$cppflags_temp";
-LIBS="$libs_temp";
 
 #--------------------------------------------------------------------
 # Write the Makefiles
