@@ -278,7 +278,7 @@ static SEL	rlSel;
       na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
 	initWithObjects: objects count: c+1];
 
-      OBUFEND(objects, c+1)
+      OBUFEND()
     }
   return AUTORELEASE(na);
 }
@@ -301,7 +301,7 @@ static SEL	rlSel;
   [anotherArray getObjects: &objects[c]];
   na = [NSArrayClass arrayWithObjects: objects count: c+l];
 
-  OBUFEND(objects, c+l)
+  OBUFEND()
 
   return na;
 }
@@ -364,7 +364,7 @@ static SEL	rlSel;
       [aCoder encodeArrayOfObjCType: @encode(id)
                               count: count
                                  at: a];
-      OBUFEND(a, count)
+      OBUFEND()
     }
 }
 
@@ -524,7 +524,7 @@ static SEL	rlSel;
     {
       self = [self initWithObjects: objects count: c];
     }
-  OBUFEND(objects, c)
+  OBUFEND()
   return self;
 }
 
@@ -540,7 +540,7 @@ static SEL	rlSel;
 
   [array getObjects: objects];
   self = [self initWithObjects: objects count: c];
-  OBUFEND(objects, c)
+  OBUFEND()
   return self;
 }
 
@@ -568,7 +568,7 @@ static SEL	rlSel;
 	  [contents[count] release];
 	}
 #endif
-      OBUFEND(contents, count)
+      OBUFEND()
     }
   else
     {
@@ -988,7 +988,7 @@ compare(id elem1, id elem2, void* context)
 
       [self getObjects: objects range: aRange];
       na = [NSArray arrayWithObjects: objects count: aRange.length];
-      OBUFEND(objects, aRange.length)
+      OBUFEND()
     }
   return na;
 }
