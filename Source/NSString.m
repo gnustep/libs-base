@@ -589,19 +589,18 @@ handle_printf_atsign (FILE *stream,
     && (encoding==_DefaultStringEncoding || encoding==NSASCIIStringEncoding))
     {
       self = [self initWithCString: bytes
-			    length: length
-		      freeWhenDone: YES];
+			    length: length];
     }
   else if (encoding == NSUTF8StringEncoding)
     {
-      unsigned			i = 0;
+      unsigned char	*b = (unsigned char*)bytes;
+      unsigned		i = 0;
 
       /*
        * If the data begins with the UTF8 Byte Order Marker (as a
        * signature for UTF8 data) we must remove it.
        */
-      if (length > 2
-	&& bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+      if (length > 2 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
 	{
 	  length -= 3;
 	  bytes += 3;
@@ -615,7 +614,7 @@ handle_printf_atsign (FILE *stream,
 	   */
 	  while (i < length)
 	    {
-	      if ((bytes)[i] > 127)
+	      if (b[i] > 127)
 		{
 		  break;
 		}
@@ -623,7 +622,7 @@ handle_printf_atsign (FILE *stream,
 	    }
 	}
 
-      if (i == len)
+      if (i == length)
 	{
 	  self = [self initWithCString: bytes length: length];
 	}
@@ -685,7 +684,7 @@ handle_printf_atsign (FILE *stream,
 		{
 		  unsigned	i;
 
-		  for (i = 0; i < len; i += 2)
+		  for (i = 0; i < length; i += 2)
 		    {
 		      u[i] = b[i + 1];
 		      u[i + 1] = b[i];
@@ -693,7 +692,7 @@ handle_printf_atsign (FILE *stream,
 		}
 	      else
 		{
-		  memcpy(u, b, len);
+		  memcpy(u, b, length);
 		}
 	      self = [self initWithCharactersNoCopy: (unichar*)u
 					     length: length/2
@@ -755,21 +754,21 @@ handle_printf_atsign (FILE *stream,
   else if (_ByteEncodingOk == YES
     && (encoding==_DefaultStringEncoding || encoding==NSASCIIStringEncoding))
     {
-      self = [self initWithCStringNoCopy: bytes
+      self = [self initWithCStringNoCopy: (void*)bytes
 				  length: length
 			    freeWhenDone: YES];
       bytesNeeded = YES;
     }
   else if (encoding == NSUTF8StringEncoding)
     {
-      unsigned			i = 0;
+      unsigned char	*b =(unsigned char*)bytes;
+      unsigned		i = 0;
 
       /*
        * If the data begins with the UTF8 Byte Order Marker (as a
        * signature for UTF8 data) we must remove it.
        */
-      if (length > 2
-	&& bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+      if (length > 2 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
 	{
 	  length -= 3;
 	  bytes += 3;
@@ -783,7 +782,7 @@ handle_printf_atsign (FILE *stream,
 	   */
 	  while (i < length)
 	    {
-	      if ((bytes)[i] > 127)
+	      if (b[i] > 127)
 		{
 		  break;
 		}
@@ -791,7 +790,7 @@ handle_printf_atsign (FILE *stream,
 	    }
 	}
 
-      if (i == len)
+      if (i == length)
 	{
 	  self = [self initWithCString: bytes length: length];
 	}
@@ -860,7 +859,7 @@ handle_printf_atsign (FILE *stream,
 		    {
 		      unsigned	i;
 
-		      for (i = 0; i < len; i += 2)
+		      for (i = 0; i < length; i += 2)
 			{
 			  u[i] = b[i + 1];
 			  u[i + 1] = b[i];
@@ -868,12 +867,12 @@ handle_printf_atsign (FILE *stream,
 		    }
 		  else
 		    {
-		      memcpy(u, b, len);
+		      memcpy(u, b, length);
 		    }
 		}
 	      else
 		{
-		  u = bytes;
+		  u = (unsigned char *)bytes;
 		  bytesNeeded = YES;
 		}
 	      self = [self initWithCharactersNoCopy: (unichar*)u
@@ -902,7 +901,7 @@ handle_printf_atsign (FILE *stream,
     }
   if (bytesNeeded == NO && bytes != 0)
     {
-      NSZoneFree(NSDefaultMallocZone(), bytes);
+      NSZoneFree(NSZoneFromPointer((void*)bytes), (void*)bytes);
     }
   return self;
 }
