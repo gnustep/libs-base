@@ -10,7 +10,10 @@ The currently released version of the library is
 
 @itemize
 
-@item Bug fixes:  Makefile installation.
+@item Bug fixes: installation; NSArray and NSDictionary copying;
+NSArray, NSDictionary, NSData, NSArchiver, NSUnarchiver concrete class
+configurability; NSString -getCharacter:range:. See the ChangeLog for
+more details.
 
 @end itemize
 
