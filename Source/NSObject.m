@@ -2279,6 +2279,7 @@ struct objc_method_description_list {
 @interface	NSZombie
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
 
 @implementation	NSZombie
@@ -2300,6 +2301,21 @@ struct objc_method_description_list {
   GSLogZombie(self, [anInvocation selector]);
   [anInvocation setReturnValue: (void*)v];
   return;
+}
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  Class	c;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
+  c = NSMapGet(zombieMap, (void*)self);
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
+  return [c instanceMethodSignatureForSelector: aSelector];
 }
 @end
 
