@@ -60,35 +60,39 @@ GS_EXPORT NSString* NSLoadedClasses;
  *  does not include normal bundles.  */
 + (NSArray*) allFrameworks;
 
-/** Return the bundle containing the resources for the executable.  If
+/**
+ * <p>Return the bundle containing the resources for the executable.  If
  * the executable is an application, this is the main application
  * bundle (the xxx.app directory); if the executable is a tool, this
  * is a bundle 'naturally' associated with the tool: if the tool
  * executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control then the
  * tool's main bundle directory is xxx/Tools/Resources/Control.
- *
- * NB: traditionally tools didn't have a main bundle -- this is a recent
+ * </p>
+ * <p>NB: traditionally tools didn't have a main bundle -- this is a recent
  * GNUstep extension, but it's quite nice and it's here to stay.
- *
- * The main bundle is where the application should put all of its
+ * </p>
+ * <p>The main bundle is where the application should put all of its
  * resources, such as support files (images, html, rtf, txt, ...),
  * localization tables, .gorm (.nib) files, etc.  gnustep-make
  * (/ProjectCenter) allows you to easily specify the resource files to
  * put in the main bundle when you create an application or a tool.
+ * </p>
  */
 + (NSBundle*) mainBundle;
 
-/** Return the bundle to which aClass belongs.  If aClass was loaded
+/**
+ * <p>Return the bundle to which aClass belongs.  If aClass was loaded
  * from a bundle, return the bundle; if it belongs to a framework
  * (either a framework linked into the application, or loaded
  * dynamically), return the framework; in all other cases, return the
  * main bundle.
- *
- * Please note that GNUstep supports plain shared libraries, while the
+ * </p>
+ * <p>Please note that GNUstep supports plain shared libraries, while the
  * openstep standard, and other openstep-like systems, do not; the
  * behaviour when aClass belongs to a plain shared library is at the
  * moment still under investigation -- you should consider it
  * undefined since it might be changed. :-)
+ * </p>
  */
 + (NSBundle*) bundleForClass: (Class)aClass;
 
@@ -97,8 +101,8 @@ GS_EXPORT NSString* NSLoadedClasses;
  * application or a tool, it's better if you use +mainBundle.  */
 + (NSBundle*) bundleWithPath: (NSString*)path;
 
-/** Search for a file with name 'name' and extension 'ext' in the bundle
- * rooted at 'bundlePath'.  */
+/** Search for a file with name and extension ext in the bundle
+ * rooted at bundlePath.  */
 + (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath;
@@ -107,7 +111,8 @@ GS_EXPORT NSString* NSLoadedClasses;
 		  inDirectory: (NSString*)bundlePath
 		  withVersion: (int)version;
 
-/** Init the bundle for reading resources from path.  path must be an
+/** <init />
+ * Init the bundle for reading resources from path.  path must be an
  * absolute path to a directory on disk.  If path is nil or doesn't
  * exist, initWithPath: returns nil.  If a bundle for that path
  * already existed, it is returned in place of the receiver (and the
@@ -174,7 +179,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 
 #endif /* GNUSTEP */
 
-/*
+/**
  * <p>
  *   This function (macro) is used to get the localized
  *   translation of the string <code>key</code>.
@@ -235,7 +240,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 #define NSLocalizedString(key, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
 
-/*
+/**
  * This function (macro) does the same as
  * <code>NSLocalizedString</code>, but uses the table
  * <code>table</code> rather than the default table.  This
@@ -253,7 +258,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 #define NSLocalizedStringFromTable(key, tbl, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
 
-/*
+/**
  * This function is the full-blown localization function (it
  * is actually a macro).  It looks up the string
  * <code>key</code> for translation in the table
@@ -286,7 +291,7 @@ GS_EXPORT NSString* NSLoadedClasses;
      get the time to localize seriously your code.
   */
 
-/*
+/**
  * <p>
  *   This function (macro) is a GNUstep extension.
  * </p>
@@ -317,7 +322,7 @@ GS_EXPORT NSString* NSLoadedClasses;
     
      NSLog (_(string)); */
  
-/*
+/**
  * <p>
  *   This function (macro) is a GNUstep extension.
  * </p>
@@ -363,7 +368,7 @@ GS_EXPORT NSString* NSLoadedClasses;
      the static strings manually.
 */
 
-/*
+/**
  * <p>
  *   This function (macro) is a GNUstep extensions, and it is used
  *   to localize static strings.  Here is an example of a static
@@ -387,9 +392,9 @@ GS_EXPORT NSString* NSLoadedClasses;
  *   <code>
  *     NSString *message = NSLocalizedStaticString (@"Hi there",
  *       @"Greeting");
- 
+ * 
  *     ... some code ...
- 
+ * 
  *     NSLog (NSLocalizedString (message, @""));
  *  </code>
  * </p>

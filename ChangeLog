@@ -1,5 +1,7 @@
 2002-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/gnustep/base/NSBundle.h: Tidied/corrected documentation
+	markup.
 	* Headers/gnustep/base/NSDate.h: Added NSTimeIntervalSince1970 and
 	removed GSTimeNow() from public API.
 	* Source/NSDate.m: Update to use NSTimeIntervalSince1970
