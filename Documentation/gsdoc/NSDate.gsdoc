@@ -21,115 +21,107 @@
         <method type="NSTimeInterval" factory="yes"><sel>timeIntervalSinceReferenceDate</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>date</sel>
         <desc>
         </desc>
-</method>
-        <method type="id" factory="yes"><sel></sel>
-        <desc>
-        </desc>
-</method>
-        <method type="id" factory="yes"><sel></sel>
-        <desc>
-        </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>dateWithString:</sel><arg type="NSString*">aString</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>dateWithTimeIntervalSinceNow:</sel><arg type="NSTimeInterval">seconds</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>dateWithTimeIntervalSince1970:</sel><arg type="NSTimeInterval">seconds</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>dateWithTimeIntervalSinceReferenceDate:</sel><arg type="NSTimeInterval">seconds</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>distantFuture</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>distantPast</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>addTimeInterval:</sel><arg type="NSTimeInterval">seconds</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSComparisonResult"><sel>compare:</sel><arg type="NSDate*">anotherDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSCalendarDate*"><sel>dateWithCalendarFormat:</sel><arg type="NSString*">formatString</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>description</sel>
         <desc>
         </desc>
-</method>
-        <method type="NSString*"><sel>descriptionWithCalendarFormat:</sel><arg type="NSString*">formatString</arg><sel>timeZone:(NSTimeZone *)aTimeZone  locale:</sel><arg type="NSDictionary*">localeDictionary</arg>
+        </method>
+        <method type="NSString*"><sel>descriptionWithCalendarFormat:</sel><arg type="NSString*">formatString</arg><sel>timeZone:</sel><arg type="NSTimeZone*">aTimeZone</arg><sel>locale:</sel><arg type="NSDictionary*">localeDictionary</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">localeDictionary</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDate*"><sel>earlierDate:</sel><arg type="NSDate*">anotherDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>init</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithString:</sel><arg type="NSString*">description</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithTimeInterval:</sel><arg type="NSTimeInterval">seconds</arg><sel>sinceDate:</sel><arg type="NSDate*">anotherDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithTimeIntervalSinceNow:</sel><arg type="NSTimeInterval">seconds</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithTimeIntervalSinceReferenceDate:</sel><arg type="NSTimeInterval">seconds</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isEqualToDate:</sel><arg type="NSDate*">anotherDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDate*"><sel>laterDate:</sel><arg type="NSDate*">anotherDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSTimeInterval"><sel>timeIntervalSinceDate:</sel><arg type="NSDate*">anotherDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSTimeInterval"><sel>timeIntervalSince1970</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSTimeInterval"><sel>timeIntervalSinceNow</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSTimeInterval"><sel>timeIntervalSinceReferenceDate</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

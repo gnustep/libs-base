@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSEnumerator" prev="NSDistributedNotifctnCtr.html" next="NSException.html" up="Foundation.html">
+<gsdoc base="NSEnumerator" prev="NSDistributedNotificationCenter.html" next="NSException.html" up="Foundation.html">
   <head>
     <title>NSEnumerator</title>
     <author name="Richard Frith-Macdonald">
@@ -21,11 +21,11 @@
         <method type="NSArray*"><sel>allObjects</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>nextObject</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

@@ -21,11 +21,11 @@
         <method type="NSData*" factory="yes"><sel>serializePropertyList:</sel><arg type="id">aPropertyList</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void" factory="yes"><sel>serializePropertyList:</sel><arg type="id">aPropertyList</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

@@ -21,27 +21,27 @@
         <method type="NSDistantObject*" factory="yes"><sel>proxyWithLocal:</sel><arg type="id">anObject</arg><sel>connection:</sel><arg type="NSConnection*">aConnection</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDistantObject*" factory="yes"><sel>proxyWithTarget:</sel><arg type="id">remoteObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSConnection*"><sel>connectionForProxy</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithLocal:</sel><arg type="id">anObject</arg><sel>connection:</sel><arg type="NSConnection*">aConnection</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithTarget:</sel><arg type="id">remoteObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>setProtocolForProxy:</sel><arg type="Protocol*">aProtocol</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

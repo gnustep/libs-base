@@ -21,23 +21,23 @@
         <method type="NSNotificationQueue*" factory="yes"><sel>defaultQueue</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>dequeueNotificationsMatching:</sel><arg type="NSNotification*">notification</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>enqueueNotification:</sel><arg type="NSNotification*">notification</arg>
         <desc>
         </desc>
-</method>
-        <method type="void"><sel>enqueueNotification:</sel><arg type="NSNotification*">notification</arg><sel>postingStyle:(NSPostingStyle)postingStyle coalesceMask:</sel><arg type="unsignedint">coalesceMask</arg>
+        </method>
+        <method type="void"><sel>enqueueNotification:</sel><arg type="NSNotification*">notification</arg><sel>postingStyle:</sel><arg type="NSPostingStyle">postingStyle</arg><sel>coalesceMask:</sel><arg type="unsigned int">coalesceMask</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithNotificationCenter:</sel><arg type="NSNotificationCenter*">notificationCenter</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

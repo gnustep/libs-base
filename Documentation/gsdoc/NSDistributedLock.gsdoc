@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSDistributedLock" prev="NSDistantObjectRequest.html" next="NSDistributedNotifctnCtr.html" up="Foundation.html">
+<gsdoc base="NSDistributedLock" prev="NSDistantObjectRequest.html" next="NSDistributedNotificationCenter.html" up="Foundation.html">
   <head>
     <title>NSDistributedLock</title>
     <author name="Richard Frith-Macdonald">
@@ -21,27 +21,27 @@
         <method type="NSDistributedLock*" factory="yes"><sel>lockWithPath:</sel><arg type="NSString*">aPath</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>breakLock</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDistributedLock*"><sel>initWithPath:</sel><arg type="NSString*">aPath</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDate*"><sel>lockDate</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>tryLock</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>unlock</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

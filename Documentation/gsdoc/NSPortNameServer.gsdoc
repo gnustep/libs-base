@@ -21,23 +21,23 @@
         <method type="id" factory="yes"><sel>defaultPortNameServer</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSPort*"><sel>portForName:</sel><arg type="NSString*">portName</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSPort*"><sel>portForName:</sel><arg type="NSString*">portName</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>registerPort:</sel><arg type="NSPort*">aPort</arg><sel>forName:</sel><arg type="NSString*">portName</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>removePortForName:</sel><arg type="NSString*">portName</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

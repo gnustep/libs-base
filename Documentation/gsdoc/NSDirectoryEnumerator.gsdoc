@@ -21,15 +21,15 @@
         <method type="NSDictionary*"><sel>directoryAttributes</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDictionary*"><sel>fileAttributes</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>skipDescendents</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

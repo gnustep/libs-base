@@ -21,119 +21,119 @@
         <method type="NSFileManager*" factory="yes"><sel>defaultManager</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>changeCurrentDirectoryPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>changeFileAttributes:</sel><arg type="NSDictionary*">attributes</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSData*"><sel>contentsAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>contentsEqualAtPath:</sel><arg type="NSString*">path1</arg><sel>andPath:</sel><arg type="NSString*">path2</arg>
         <desc>
         </desc>
-</method>
-        <method type="BOOL"><sel>copyPath:</sel><arg type="NSString*">source</arg><sel>toPath:(NSString *)destination  handler:</sel><arg>handler</arg>
+        </method>
+        <method type="BOOL"><sel>copyPath:</sel><arg type="NSString*">source</arg><sel>toPath:</sel><arg type="NSString*">destination</arg><sel>handler:</sel><arg>handler</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>createDirectoryAtPath:</sel><arg type="NSString*">path</arg><sel>attributes:</sel><arg type="NSDictionary*">attributes</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>createFileAtPath:</sel><arg type="NSString*">path</arg><sel>contents:</sel><arg type="NSData*">contents</arg><sel>attributes:</sel><arg type="NSDictionary*">attributes</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>createSymbolicLinkAtPath:</sel><arg type="NSString*">path</arg><sel>pathContent:</sel><arg type="NSString*">otherPath</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>currentDirectoryPath</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSArray*"><sel>directoryContentsAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDirectoryEnumerator*"><sel>enumeratorAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDictionary*"><sel>fileAttributesAtPath:</sel><arg type="NSString*">path</arg><sel>traverseLink:</sel><arg type="BOOL">flag</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>fileExistsAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>fileExistsAtPath:</sel><arg type="NSString*">path</arg><sel>isDirectory:</sel><arg type="BOOL*">isDirectory</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDictionary*"><sel>fileSystemAttributesAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
-        <method type="constchar*"><sel>fileSystemRepresentationWithPath:</sel><arg type="NSString*">path</arg>
+        </method>
+        <method type="const char*"><sel>fileSystemRepresentationWithPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isDeletableFileAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isExecutableFileAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isReadableFileAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isWritableFileAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
-        <method type="BOOL"><sel>linkPath:</sel><arg type="NSString*">source</arg><sel>toPath:(NSString *)destination handler:</sel><arg>handler</arg>
+        </method>
+        <method type="BOOL"><sel>linkPath:</sel><arg type="NSString*">source</arg><sel>toPath:</sel><arg type="NSString*">destination</arg><sel>handler:</sel><arg>handler</arg>
         <desc>
         </desc>
-</method>
-        <method type="BOOL"><sel>movePath:</sel><arg type="NSString*">source</arg><sel>toPath:(NSString *)destination  handler:</sel><arg>handler</arg>
+        </method>
+        <method type="BOOL"><sel>movePath:</sel><arg type="NSString*">source</arg><sel>toPath:</sel><arg type="NSString*">destination</arg><sel>handler:</sel><arg>handler</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>pathContentOfSymbolicLinkAtPath:</sel><arg type="NSString*">cStringPath</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>removeFileAtPath:</sel><arg type="NSString*">path</arg><sel>handler:</sel><arg>handler</arg>
         <desc>
         </desc>
-</method>
-        <method type="NSString*"><sel>stringWithFileSystemRepresentation:</sel><arg type="constchar*">string</arg>
+        </method>
+        <method type="NSString*"><sel>stringWithFileSystemRepresentation:</sel><arg type="const char*">string</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSArray*"><sel>subpathsAtPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>fileManager:</sel><arg type="NSFileManager*">manager</arg><sel>shouldProceedAfterError:</sel><arg type="NSDictionary*">errorInfo</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>fileManager:</sel><arg type="NSFileManager*">manager</arg><sel>willProcessPath:</sel><arg type="NSString*">path</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

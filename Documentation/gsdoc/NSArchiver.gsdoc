@@ -21,39 +21,39 @@
         <method type="BOOL" factory="yes"><sel>archiveRootObject:</sel><arg type="id">rootObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSData*" factory="yes"><sel>archivedDataWithRootObject:</sel><arg type="id">rootObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSMutableData*"><sel>archiverData</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>classNameEncodedForTrueClassName:</sel><arg type="NSString*">trueName</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>encodeClassName:</sel><arg type="NSString*">trueName</arg><sel>intoClassName:</sel><arg type="NSString*">inArchiveName</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>encodeConditionalObject:</sel><arg type="id">object</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>encodeRootObject:</sel><arg type="id">rootObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initForWritingWithMutableData:</sel><arg type="NSMutableData*">data</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>replaceObject:</sel><arg type="id">object</arg><sel>withObject:</sel><arg type="id">newObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

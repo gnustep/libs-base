@@ -21,23 +21,23 @@
         <method type="id" factory="yes"><sel>notificationWithName:</sel><arg type="NSString*">aName</arg><sel>object:</sel><arg type="id">anObject</arg>
         <desc>
         </desc>
-</method>
-        <method type="id" factory="yes"><sel>notificationWithName:</sel><arg type="NSString*">aName</arg><sel>object:</sel><arg type="id">anObject</arg>
+        </method>
+        <method type="id" factory="yes"><sel>notificationWithName:</sel><arg type="NSString*">aName</arg><sel>object:</sel><arg type="id">anObject</arg><sel>userInfo:</sel><arg type="NSDictionary*">userInfo</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>name</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>object</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDictionary*"><sel>userInfo</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>
