@@ -38,7 +38,6 @@ test01 \
 test02 \
 heap \
 nxst \
-randoms \
 prepend \
 pipes \
 server \
@@ -55,8 +54,6 @@ nshost \
 nsset \
 nsprocessinfo \
 nsarchiver \
-oldclient \
-oldserver \
 invocation \
 invocation2 \
 diningPhilosophers \

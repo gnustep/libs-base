@@ -76,7 +76,6 @@ BinaryTreeNode.m \
 CircularArray.m \
 Collection.m \
 ConnectedCoder.m \
-Connection.m \
 Coder.m \
 CStream.m \
 Decoder.m \
@@ -91,23 +90,17 @@ Invocation.m \
 KeyedCollection.m \
 LinkedList.m \
 LinkedListNode.m \
-Lock.m \
 MachPort.m \
-Magnitude.m \
 MallocAddress.m \
 MappedCollector.m \
 MemoryStream.m \
-Notification.m \
 NotificationDispatcher.m \
 OrderedCollection.m \
 Port.m \
-Proxy.m \
 Queue.m \
 RawCStream.m \
 RBTree.m \
 RBTreeNode.m \
-RNGAdditiveCongruential.m \
-RNGBerkeley.m \
 Set.m \
 SplayTree.m \
 Stack.m \
@@ -115,10 +108,10 @@ StdioStream.m \
 Stream.m \
 TcpPort.m \
 TextCStream.m \
-Time.m \
 UdpPort.m \
 Unicode.m \
 UnixFileHandle.m \
+$(GNU_EXTRAS_MFILES) \
 behavior.m \
 lex.pl.m \
 lex.sf.m \
@@ -147,7 +140,12 @@ stringsfile.tab.m \
 mframe.m \
 objc-gnu2next.m
 
-#Random.m \
+GNU_EXTRAS_MFILES = \
+Magnitude.m \
+Random.m \
+RNGAdditiveCongruential.m \
+RNGBerkeley.m \
+Time.m
 
 GNU_CFILES = \
 md5.c \
@@ -187,7 +185,6 @@ Collecting.h \
 Collection.h \
 CollectionPrivate.h \
 ConnectedCoder.h \
-Connection.h \
 CStream.h \
 CStreaming.h \
 DelegatePool.h \
@@ -207,20 +204,17 @@ KeyedCollecting.h \
 KeyedCollection.h \
 LinkedList.h \
 LinkedListNode.h \
-Lock.h \
 Locking.h \
 MachPort.h \
 Magnitude.h \
 MallocAddress.h \
 MappedCollector.h \
 MemoryStream.h \
-Notification.h \
 NotificationDispatcher.h \
 Ordering.h \
 OrderedCollecting.h \
 OrderedCollection.h \
 Port.h \
-Proxy.h \
 Queue.h \
 RBTree.h \
 RBTreeNode.h \
@@ -229,7 +223,6 @@ RNGBerkeley.h \
 RandomGenerating.h \
 RawCStream.h \
 Retaining.h \
-RetainingNotifier.h \
 RunLoop.h \
 Set.h \
 SplayTree.h \

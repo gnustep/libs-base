@@ -28,8 +28,8 @@
 #include <gnustep/base/CStream.h>
 #include <gnustep/base/Port.h>
 #include <gnustep/base/MemoryStream.h>
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/Proxy.h>
+#include <Foundation/NSConnection.h>
+#include <Foundation/NSProxy.h>
 #include <assert.h>
 
 #define PTR2LONG(P) (((char*)(P))-(char*)0)
@@ -48,13 +48,13 @@ static BOOL debug_connected_coder = NO;
   return;
 }
 
-- _initForWritingWithConnection: (Connection*)c
+- _initForWritingWithConnection: (NSConnection*)c
    sequenceNumber: (int)n
    identifier: (int)i
 {
-  OutPacket* packet = [[[[c outPort] outPacketClass] alloc]
+  OutPacket* packet = [[[[c sendPort] outPacketClass] alloc]
 			initForSendingWithCapacity: DEFAULT_SIZE
-			replyInPort: [c inPort]];
+			replyInPort: [c receivePort]];
   [super initForWritingToStream: packet];
   [packet release];
   connection = c;
@@ -69,7 +69,7 @@ static BOOL debug_connected_coder = NO;
   return self;
 }
 
-+ newForWritingWithConnection: (Connection*)c
++ newForWritingWithConnection: (NSConnection*)c
    sequenceNumber: (int)n
    identifier: (int)i
 {
@@ -83,7 +83,7 @@ static BOOL debug_connected_coder = NO;
 - (void) dismiss
 {
   id packet = [cstream stream];
-  [[connection outPort] sendPacket: packet timeout:15.0];
+  [[connection sendPort] sendPacket: packet timeout:15.0];
   if (debug_connected_coder)
     fprintf(stderr, "dismiss 0x%x: #=%d i=%d %d\n", 
 	    (unsigned)self, sequence_number, identifier, 
@@ -148,7 +148,7 @@ static BOOL debug_connected_coder = NO;
 }
 
 
-+ newDecodingWithConnection: (Connection*)c
++ newDecodingWithConnection: (NSConnection*)c
    timeout: (int) timeout
 {
   ConnectedDecoder *cd;
@@ -157,7 +157,7 @@ static BOOL debug_connected_coder = NO;
   id reply_port;
 
   /* Try to get a packet. */
-  in_port = [c inPort];
+  in_port = [c receivePort];
   packet = [in_port receivePacketWithTimeout: timeout];
   if (!packet)
     return nil;			/* timeout */
@@ -166,7 +166,7 @@ static BOOL debug_connected_coder = NO;
   cd = [self newReadingFromStream: packet];
   [packet release];
   reply_port = [packet replyPort];
-  cd->connection = [Connection newForInPort: in_port
+  cd->connection = [NSConnection newForInPort: in_port
 			       outPort: reply_port
 			       ancestorConnection: c];
 
@@ -185,19 +185,19 @@ static BOOL debug_connected_coder = NO;
 }
 
 + newDecodingWithPacket: (InPacket*)packet
-	     connection: (Connection*)c
+	     connection: (NSConnection*)c
 {
   ConnectedDecoder *cd;
   id in_port;
   id reply_port;
 
-  in_port = [c inPort];
+  in_port = [c receivePort];
 
   /* Create the new ConnectedDecoder */
   cd = [self newReadingFromStream: packet];
   [packet release];
   reply_port = [packet replyOutPort];
-  cd->connection = [Connection newForInPort: in_port
+  cd->connection = [NSConnection newForInPort: in_port
 			       outPort: reply_port
 			       ancestorConnection: c];
 

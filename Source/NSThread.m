@@ -27,7 +27,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_map.h>
-#include <gnustep/base/Notification.h>
+#include <gnustep/base/NotificationDispatcher.h>
 
 // Class variables
 

@@ -49,6 +49,14 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 
 @end
 
+@interface NSPort (GNUstep)
+
+- (void) close;
+
++ (Class) outPacketClass;
+- (Class) outPacketClass;
+@end
+
 extern	NSString*	NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification

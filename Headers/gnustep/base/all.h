@@ -65,8 +65,6 @@
 #include <gnustep/base/Port.h>
 
 /* Remote messaging support objects */
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/Proxy.h>
 #include <gnustep/base/ConnectedCoder.h>
 
 #include <gnustep/base/Invocation.h>

@@ -66,6 +66,7 @@
 
 #include <sys/types.h>
 #ifndef __WIN32__
+#include <time.h>
 #include <sys/time.h>
 #endif /* !__WIN32__ */
 #include <limits.h>

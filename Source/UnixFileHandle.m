@@ -38,6 +38,8 @@
 #ifdef WIN32
 #include <Windows32/Sockets.h>
 #else
+#include <time.h>
+#include <sys/time.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -23,17 +23,81 @@
 
 #include <config.h>
 #include <Foundation/NSNotification.h>
-#include <gnustep/base/Notification.h>
-#include <gnustep/base/behavior.h>
 
 @implementation NSNotification
 
-/* This class is fully implemented in GNU's Notification. */
-
-+ (void) initialize
+/* This is the designated initializer. */
+- initWithName: (NSString*)name
+	object: object
+      userInfo: info
 {
-  if (self == [NSNotification class])
-    class_add_behavior (self, [Notification class]);
+  [super init];
+  _name = [name retain];
+  _object = [object retain];
+  _info = [info retain];
+  return self;
+}
+
+- (void) dealloc
+{
+  [_name release];
+  [_object release];
+  [_info release];
+  [super dealloc];
+}
+
+
+/* Creating autoreleased Notification objects. */
+
++ notificationWithName: (NSString*)name
+		object: object
+	      userInfo: info
+{
+  return [[[self alloc] initWithName: name 
+			object: object 
+			userInfo: info]
+	   autorelease];
+}
+
++ notificationWithName: (NSString*)name
+		object: object
+{
+  return [self notificationWithName: name 
+	       object: object 
+	       userInfo: nil];
+}
+
+
+/* Querying a Notification object. */
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- object
+{
+  return _object;
+}
+
+- userInfo
+{
+  return _info;
+}
+
+
+/* NSCopying protocol. */
+
+- copyWithZone: (NSZone*)zone
+{
+  if (NSShouldRetainWithZone (self, zone))
+    return [self retain];
+
+  /* xxx How deep should the copy go?  Should we copy _name, etc.? */
+  return [[[self class] allocWithZone: zone]
+	   initWithName: _name
+	   object: _object
+	   userInfo: _info];
 }
 
 @end

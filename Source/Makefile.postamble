@@ -88,7 +88,7 @@ after-distclean::
 gnustep/base: FORCE
 	if [ ! -d gnustep ]; then \
 	  mkdir gnustep; \
-	  cd gnustep ; $(LN_S) ../include base;
+	  cd gnustep ; $(LN_S) ../include base; \
 	fi
 	# Make necessary links to source headers if compiling in seperate dir
 	# These are separate directories because one contains the .h files
