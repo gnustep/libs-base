@@ -21,6 +21,14 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+/* To do:
+   Integrate with NSRunLoop
+   Pass exceptions back to client.
+   Find bug with proxies of invalidated connections.
+   Make it thread-safe.
+   Support @"*" hostname.
+   */
+
 /* RMC == Remote Method Coder, or Remote Method Call.
    It's an instance of ConnectedEncoder or ConnectedDecoder. */
 
@@ -1341,6 +1349,11 @@ static int messages_received_count;
       /* xxx Yes, somehow Proxies of connections with invalid ports
 	 are being asked to encode themselves. */
     }
+}
+
+- (BOOL) isValid
+{
+  return is_valid;
 }
 
 /* This needs locks */
