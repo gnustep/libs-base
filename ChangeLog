@@ -1,3 +1,24 @@
+2004-09-13  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Tools/AGSOutput.h
+	(informalProtocols): New array to accumulate informal protocols
+	discovered during processing.
+	* Tools/AGSOutput.h
+	(outputUnit:to:): Accumulate informal protocols found here.
+	* Tools/AGSIndex.h
+	(addInformalProtocols:): New method to copy informal protocol refs.
+	* Tools/AGSIndex.m
+	(addInformalProtocols:): New method.
+	(unitRef:type:unit:): Return unit including category for category
+	methods.
+	* Tools/AGSHtml.h: Add declaration of existing outputIndex.. method.
+	* Tools/AGSHtml.m
+	(makeLink:ofType:inUnit:isRef:)
+	(outputIndex:scope:title:style:target:to:): Make proper references for
+	informal protocols.
+	* Tools/autogsdoc.m: Send informal protocols found by AGSOutput to
+	AGSIndex.
+
 2004-09-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m:
