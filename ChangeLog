@@ -13,6 +13,7 @@
 	* Testing/values.m: Added some number output tests.
 	* Source/NSUserDefaults.m: Locking bug fixed ... was locking before
 	lock had been created.
+	* Source/libgnustep-base.def: Removed defunct class
 
 2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
