@@ -328,6 +328,11 @@ static Class NSMutableSet_concrete_class;
   return (([self member:anObject]) ? YES : NO);
 }
 
+- (unsigned) hash
+{
+    return [self count];
+}
+
 - (void) makeObjectsPerform: (SEL)aSelector
 {
   id o, e = [self objectEnumerator];

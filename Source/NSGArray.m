@@ -140,6 +140,11 @@
     return _count;
 }
 
+- (unsigned) hash
+{
+    return _count;
+}
+
 - (unsigned) indexOfObject: anObject
 {
     unsigned	hash = [anObject hash];

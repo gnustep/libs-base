@@ -41,21 +41,21 @@
 @interface NSGSet : NSSet
 {
 @public
-    FastMapTable_t	map;
+  FastMapTable_t	map;
 }
 @end
 
 @interface NSGMutableSet : NSMutableSet
 {
 @public
-    FastMapTable_t	map;
+  FastMapTable_t	map;
 }
 @end
 
 @interface NSGSetEnumerator : NSEnumerator
 {
-    NSGSet	*set;
-    FastMapNode	node;
+  NSGSet	*set;
+  FastMapNode	node;
 }
 @end
 
@@ -63,27 +63,28 @@
 
 - initWithSet: (NSSet*)d
 {
-    [super init];
-    set = [(NSGSet*)d retain];
-    node = set->map.firstNode;
-    return self;
+  [super init];
+  set = [(NSGSet*)d retain];
+  node = set->map.firstNode;
+  return self;
 }
 
 - nextObject
 {
-    FastMapNode old = node;
+  FastMapNode old = node;
 
-    if (node == 0) {
-        return nil;
+  if (node == 0)
+    {
+      return nil;
     }
-    node = node->nextInMap;
-    return old->key.o;
+  node = node->nextInMap;
+  return old->key.o;
 }
 
 - (void) dealloc
 {
-    [set release];
-    [super dealloc];
+  [set release];
+  [super dealloc];
 }
 
 @end
@@ -93,91 +94,105 @@
 
 + (void) initialize
 {
-    if (self == [NSGSet class]) {
-	class_add_behavior(self, [NSSetNonCore class]);
+  if (self == [NSGSet class])
+    {
+      class_add_behavior(self, [NSSetNonCore class]);
     }
 }
 
 - (unsigned) count
 {
-    return map.nodeCount;
+  return map.nodeCount;
 }
 
 - (void) dealloc
 {
-    FastMapEmptyMap(&map);
-    [super dealloc];
+  FastMapEmptyMap(&map);
+  [super dealloc];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    unsigned    count = map.nodeCount;
-    FastMapNode node = map.firstNode;
-    SEL		sel = @selector(encodeObject:);
-    IMP		imp = [aCoder methodForSelector: sel];
+  unsigned	count = map.nodeCount;
+  FastMapNode	node = map.firstNode;
+  SEL		sel = @selector(encodeObject:);
+  IMP		imp = [aCoder methodForSelector: sel];
 
-    [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-    while (node != 0) {
-	(*imp)(aCoder, sel, node->key.o);
-	node = node->nextInMap;
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  while (node != 0)
+    {
+      (*imp)(aCoder, sel, node->key.o);
+      node = node->nextInMap;
     }
+}
+
+- (unsigned) hash
+{
+  return map.nodeCount;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    unsigned    count;
-    id          value;
-    SEL		sel = @selector(decodeValueOfObjCType:at:);
-    IMP		imp = [aCoder methodForSelector: sel];
-    const char	*type = @encode(id);
+  unsigned	count;
+  id		value;
+  SEL		sel = @selector(decodeValueOfObjCType:at:);
+  IMP		imp = [aCoder methodForSelector: sel];
+  const char	*type = @encode(id);
 
-    (*imp)(aCoder, sel, @encode(unsigned), &count);
+  (*imp)(aCoder, sel, @encode(unsigned), &count);
 
-    FastMapInitWithZoneAndCapacity(&map, [self zone], count);
-    while (count-- > 0) {
-	(*imp)(aCoder, sel, type, &value);
-        FastMapAddKeyNoRetain(&map, (FastMapItem)value);
+  FastMapInitWithZoneAndCapacity(&map, [self zone], count);
+  while (count-- > 0)
+    {
+      (*imp)(aCoder, sel, type, &value);
+      FastMapAddKeyNoRetain(&map, (FastMapItem)value);
     }
 
-    return self;
+  return self;
 }
 
 /* Designated initialiser */
 - (id) initWithObjects: (id*)objs count: (unsigned)c
 {
-    int i;
-    FastMapInitWithZoneAndCapacity(&map, [self zone], c);
-    for (i = 0; i < c; i++) {
-        FastMapNode     node;
+  int i;
 
-	if (objs[i] == nil) {
-	    [self autorelease];
-	    [NSException raise: NSInvalidArgumentException
-			format: @"Tried to init set with nil value"];
+  FastMapInitWithZoneAndCapacity(&map, [self zone], c);
+  for (i = 0; i < c; i++)
+    {
+      FastMapNode     node;
+
+      if (objs[i] == nil)
+	{
+	  [self autorelease];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Tried to init set with nil value"];
 	}
-        node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
-        if (node == 0) {
-            FastMapAddKey(&map, (FastMapItem)objs[i]);
+      node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+      if (node == 0)
+	{
+	  FastMapAddKey(&map, (FastMapItem)objs[i]);
         }
     }
-    return self;
+  return self;
 }
 
 - (id) member: (id)anObject
 {
-    if (anObject) {
-	FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+  if (anObject)
+    {
+      FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
 
-	if (node) {
-	    return node->key.o;
+      if (node)
+	{
+	  return node->key.o;
 	}
     }
-    return nil;
+  return nil;
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-    return [[[NSGSetEnumerator alloc] initWithSet: self] autorelease];
+  return [[[NSGSetEnumerator alloc] initWithSet: self] autorelease];
 }
 
 @end
@@ -186,43 +201,47 @@
 
 + (void) initialize
 {
-    if (self == [NSGMutableSet class]) {
-	class_add_behavior(self, [NSMutableSetNonCore class]);
-	class_add_behavior(self, [NSGSet class]);
+  if (self == [NSGMutableSet class])
+    {
+      class_add_behavior(self, [NSMutableSetNonCore class]);
+      class_add_behavior(self, [NSGSet class]);
     }
 }
 
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-    FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
-    return self;
+  FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
+  return self;
 }
 
 - (void) addObject: (NSObject*)anObject
 {
-    FastMapNode node;
+  FastMapNode node;
 
-    if (anObject == nil) {
-	[NSException raise: NSInvalidArgumentException
-		    format: @"Tried to add nil to  set"];
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to add nil to  set"];
     }
-    node = FastMapNodeForKey(&map, (FastMapItem)anObject);
-    if (node == 0) {
-        FastMapAddKey(&map, (FastMapItem)anObject);
+  node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+  if (node == 0)
+    {
+      FastMapAddKey(&map, (FastMapItem)anObject);
     }
 }
 
 - (void) removeObject: (NSObject *)anObject
 {
-    if (anObject) {
-	FastMapRemoveKey(&map, (FastMapItem)anObject);
+  if (anObject)
+    {
+      FastMapRemoveKey(&map, (FastMapItem)anObject);
     }
 }
 
 - (void) removeAllObjects
 {
-    FastMapCleanMap(&map);
+  FastMapCleanMap(&map);
 }
 
 @end

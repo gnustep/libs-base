@@ -30,7 +30,6 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <assert.h>
 
 @interface NSDictionaryNonCore : NSDictionary
 @end
@@ -82,7 +81,7 @@ static Class NSMutableDictionary_concrete_class;
 
 /* This is the designated initializer */
 - initWithObjects: (id*)objects
-	  forKeys: (NSObject**)keys
+	  forKeys: (id*)keys
 	    count: (unsigned)count
 {
   [self subclassResponsibility:_cmd];
@@ -95,7 +94,7 @@ static Class NSMutableDictionary_concrete_class;
   return 0;
 }
 
-- objectForKey: (NSObject*)aKey
+- objectForKey: (id)aKey
 {
   [self subclassResponsibility:_cmd];
   return 0;
@@ -186,7 +185,7 @@ static Class NSMutableDictionary_concrete_class;
 }
 
 + dictionaryWithObjects: (id*)objects 
-		forKeys: (NSObject**)keys
+		forKeys: (id*)keys
 		  count: (unsigned)count
 {
   return [[[self alloc] initWithObjects:objects
@@ -195,19 +194,25 @@ static Class NSMutableDictionary_concrete_class;
 	  autorelease];
 }
 
+- (unsigned) hash
+{
+  return [self count];
+}
+
 - initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
-  int c = [objects count];
-  id os[c], ks[c];
+  int objectCount = [objects count];
+  id os[objectCount], ks[objectCount];
   int i;
   
-  assert(c == [keys count]); /* Should be NSException instead */
-  for (i = 0; i < c; i++)
+  if (objectCount != [keys count])
     {
-      os[i] = [objects objectAtIndex:i];
-      ks[i] = [keys objectAtIndex:i];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"init with obj and key arrays of different sizes"];
     }
-  return [self initWithObjects:os forKeys:ks count:c];
+  [objects getObjects: os];
+  [keys getObjects: ks];
+  return [self initWithObjects:os forKeys:ks count:objectCount];
 }
 
 + dictionaryWithObjectsAndKeys: (id)firstObject, ...
@@ -279,17 +284,42 @@ static Class NSMutableDictionary_concrete_class;
 
 - initWithDictionary: (NSDictionary*)other
 {
+  return [self initWithDictionary: other copyItems: NO];
+}
+
+- initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy
+{
   int c = [other count];
   id os[c], ks[c], k, e = [other keyEnumerator];
   int i = 0;
 
-  while ((k = [e nextObject]))
+  if (shouldCopy)
     {
-      ks[i] = k;
-      os[i] = [other objectForKey:k];
-      i++;
+      NSZone	*z = [self zone];
+
+      while ((k = [e nextObject]))
+	{
+	  ks[i] = k;
+	  os[i] = [[other objectForKey: k] copyWithZone: z];
+	  i++;
+	}
+      self = [self initWithObjects: os forKeys: ks count: i];
+      while (i > 0)
+	{
+	  [os[--i] release];
+	}
+      return self;
     }
-  return [self initWithObjects:os forKeys:ks count:c];
+  else
+    {
+      while ((k = [e nextObject]))
+	{
+	  ks[i] = k;
+	  os[i] = [other objectForKey:k];
+	  i++;
+	}
+      return [self initWithObjects:os forKeys:ks count:c];
+    }
 }
 
 - initWithContentsOfFile: (NSString*)path
@@ -354,9 +384,9 @@ static Class NSMutableDictionary_concrete_class;
   for (i = 0; i < c; i++)
     {
       k[i] = [e nextObject];
-      assert(k[i]);
+      NSAssert (k[i], NSInternalInconsistencyException);
     }
-  assert(![e nextObject]);
+  NSAssert (![e nextObject], NSInternalInconsistencyException);
   return [[[NSArray alloc] initWithObjects:k count:c]
 	  autorelease];
 }
@@ -370,9 +400,9 @@ static Class NSMutableDictionary_concrete_class;
   for (i = 0; i < c; i++)
     {
       k[i] = [e nextObject];
-      assert(k[i]);
+      NSAssert (k[i], NSInternalInconsistencyException);
     }
-  assert(![e nextObject]);
+  NSAssert (![e nextObject], NSInternalInconsistencyException);
   return [[[NSArray alloc] initWithObjects:k count:c]
 	  autorelease];
 }
@@ -386,6 +416,8 @@ static Class NSMutableDictionary_concrete_class;
   while ((k = [e nextObject]))
     if ([anObject isEqual: [self objectForKey: k]])
       a[c++] = k;
+  if (c == 0)
+    return nil;
   return [[[NSArray alloc] initWithObjects: a count: c]
 	  autorelease];
 }
@@ -676,12 +708,12 @@ compareIt(id o1, id o2, void* context)
   return 0;
 }
 
-- (void) setObject:anObject forKey:(NSObject *)aKey
+- (void) setObject:anObject forKey:(id)aKey
 {
   [self subclassResponsibility:_cmd];
 }
 
-- (void) removeObjectForKey:(NSObject *)aKey
+- (void) removeObjectForKey:(id)aKey
 {
   [self subclassResponsibility:_cmd];
 }
@@ -698,7 +730,7 @@ compareIt(id o1, id o2, void* context)
 
 /* Override superclass's designated initializer */
 - initWithObjects: (id*)objects
-	  forKeys: (NSObject**)keys
+	  forKeys: (id*)keys
 	    count: (unsigned)count
 {
   [self initWithCapacity:count];
