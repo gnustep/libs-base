@@ -33,7 +33,6 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGString.h>
-#include <Foundation/NSData.h>
 #include <Foundation/NSCoder.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
@@ -224,13 +223,11 @@
 
 - (const char *) cString
 {
-  char *r;
+  char *r = (char*)_fastMallocBuffer(_count+1);
 
-  OBJC_MALLOC(r, char, _count+1);
   if (_count > 0)
     ustrtostr(r,_contents_chars, _count);
   r[_count] = '\0';
-  [NSData dataWithBytesNoCopy: r length: _count+1];
   return r;
 }
 

@@ -44,6 +44,10 @@
 fastCls	_fastCls;	/* Structure to cache classes.	*/
 fastImp	_fastImp;	/* Structure to cache methods.	*/
 
+@class	_FastMallocBuffer;
+static Class	fastMallocClass;
+static unsigned	fastMallocOffset;
+
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
 
@@ -75,7 +79,6 @@ void	_fastBuildCache()
   _fastImp._NSGCString_isEqual_ = (BOOL (*)())[_fastCls._NSGCString
 	    instanceMethodForSelector: @selector(isEqual:)];
 }
-
 
 
 /*
@@ -374,6 +377,8 @@ static BOOL double_release_check_enabled = NO;
 #endif
       autorelease_class = [NSAutoreleasePool class];
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
+      fastMallocClass = [_FastMallocBuffer class];
+      fastMallocOffset = fastMallocClass->instance_size % ALIGN;
       _fastBuildCache();
     }
   return;
@@ -1081,3 +1086,28 @@ static BOOL double_release_check_enabled = NO;
 }
 
 @end
+
+/*
+ *	Stuff for temporary memory management.
+ */
+@interface	_FastMallocBuffer : NSObject
+@end
+
+@implementation	_FastMallocBuffer
+@end
+
+/*
+ *	Function for giving us the fastest possible allocation of memory to
+ *	be used for temporary storage.
+ */
+void *
+_fastMallocBuffer(unsigned size)
+{
+  _FastMallocBuffer	*o;
+
+  o = (_FastMallocBuffer*)NSAllocateObject(fastMallocClass,
+	size + fastMallocOffset, NSDefaultMallocZone());
+  (*autorelease_imp)(autorelease_class, autorelease_sel, o);
+  return ((void*)&o[1])+fastMallocOffset;
+}
+

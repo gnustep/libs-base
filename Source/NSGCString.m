@@ -26,7 +26,6 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSData.h>
 #include <Foundation/NSCoder.h>
 #include <gnustep/base/NSGString.h>
 #include <gnustep/base/NSGCString.h>
@@ -299,11 +298,10 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (const char *) cString
 {
-  char *r = NSZoneMalloc(NSDefaultMallocZone(), _count+1);
+  char *r = (char*)_fastMallocBuffer(_count+1);
 
   memcpy(r, _contents_chars, _count);
   r[_count] = '\0';
-  [NSData dataWithBytesNoCopy:r length: _count+1];
   return r;
 }
 
