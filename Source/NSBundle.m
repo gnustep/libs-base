@@ -222,10 +222,15 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 
 + (BOOL) _addFrameworkFromClass:(Class)frameworkClass
 {
-  NSBundle	*bundle;
+  NSBundle	 *bundle;
   NSString	**fmClasses;
-  NSString	*bundlePath = nil;
-  int		len = strlen(frameworkClass->name);
+  NSString	 *bundlePath = nil;
+  int		  len;
+
+  if (frameworkClass == Nil)
+    return NO;
+
+  len = strlen(frameworkClass->name);
 
   if (len > 12*sizeof(char)
     && !strncmp("NSFramework_", frameworkClass->name, sizeof(char)*12))
