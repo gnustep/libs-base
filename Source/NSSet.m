@@ -253,8 +253,8 @@ static Class NSMutableSet_concrete_class;
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
       if (count > 0)
         {
-	  GS_BEGINIDBUF(objs, count);
 	  unsigned	i;
+	  GS_BEGINIDBUF(objs, count);
 	  
 	  for (i = 0; i < count; i++)
 	    {
