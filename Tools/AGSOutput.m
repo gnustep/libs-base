@@ -179,12 +179,20 @@ static BOOL snuggleStart(NSString *t)
   return self;
 }
 
+/**
+ * Return a string containing a gsdoc document generated from d (the
+ * parse tree)
+ */
 - (NSString*) output: (NSDictionary*)d
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
   NSDictionary		*categories;
   NSDictionary		*protocols;
+  NSDictionary		*functions;
+  NSDictionary		*types;
+  NSDictionary		*variables;
+  NSDictionary		*constants;
   NSArray		*authors;
   NSString		*tmp;
   unsigned		chapters = 0;
@@ -194,6 +202,10 @@ static BOOL snuggleStart(NSString *t)
   classes = [info objectForKey: @"Classes"];
   categories = [info objectForKey: @"Categories"];
   protocols = [info objectForKey: @"Protocols"];
+  functions = [info objectForKey: @"Functions"];
+  types = [info objectForKey: @"Types"];
+  variables = [info objectForKey: @"Variables"];
+  constants = [info objectForKey: @"Constants"];
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
@@ -380,6 +392,106 @@ static BOOL snuggleStart(NSString *t)
 	}
     }
 
+  if ([types count] > 0)
+    {
+      NSArray	*names;
+      unsigned	i;
+      unsigned	c = [types count];
+
+      [str appendString: @"    <chapter>\n"];
+      [str appendString:
+	@"      <heading>Types</heading>\n"];
+      [str appendString: @"      <p></p>\n"];
+
+      chapters++;
+      names = [types allKeys];
+      names = [names sortedArrayUsingSelector: @selector(compare:)];
+      for (i = 0; i < c; i++)
+	{
+	  NSString	*name = [names objectAtIndex: i];
+	  NSDictionary	*d = [types objectForKey: name];
+
+	  [self outputDecl: d kind: @"type" to: str];
+	}
+
+      [str appendString: @"    </chapter>\n"];
+    }
+
+  if ([constants count] > 0)
+    {
+      NSArray	*names;
+      unsigned	i;
+      unsigned	c = [constants count];
+
+      [str appendString: @"    <chapter>\n"];
+      [str appendString:
+	@"      <heading>Constants</heading>\n"];
+      [str appendString: @"      <p></p>\n"];
+
+      chapters++;
+      names = [constants allKeys];
+      names = [names sortedArrayUsingSelector: @selector(compare:)];
+      for (i = 0; i < c; i++)
+	{
+	  NSString	*name = [names objectAtIndex: i];
+	  NSDictionary	*d = [constants objectForKey: name];
+
+	  [self outputDecl: d kind: @"constant" to: str];
+	}
+
+      [str appendString: @"    </chapter>\n"];
+    }
+
+  if ([variables count] > 0)
+    {
+      NSArray	*names;
+      unsigned	i;
+      unsigned	c = [variables count];
+
+      [str appendString: @"    <chapter>\n"];
+      [str appendString:
+	@"      <heading>Variables</heading>\n"];
+      [str appendString: @"      <p></p>\n"];
+
+      chapters++;
+      names = [variables allKeys];
+      names = [names sortedArrayUsingSelector: @selector(compare:)];
+      for (i = 0; i < c; i++)
+	{
+	  NSString	*name = [names objectAtIndex: i];
+	  NSDictionary	*d = [variables objectForKey: name];
+
+	  [self outputDecl: d kind: @"variable" to: str];
+	}
+
+      [str appendString: @"    </chapter>\n"];
+    }
+
+  if ([functions count] > 0)
+    {
+      NSArray	*names;
+      unsigned	i;
+      unsigned	c = [functions count];
+
+      [str appendString: @"    <chapter>\n"];
+      [str appendString:
+	@"      <heading>Functions</heading>\n"];
+      [str appendString: @"      <p></p>\n"];
+
+      chapters++;
+      names = [functions allKeys];
+      names = [names sortedArrayUsingSelector: @selector(compare:)];
+      for (i = 0; i < c; i++)
+	{
+	  NSString	*name = [names objectAtIndex: i];
+	  NSDictionary	*d = [functions objectForKey: name];
+
+	  [self outputFunction: d to: str];
+	}
+
+      [str appendString: @"    </chapter>\n"];
+    }
+
   if (chapters == 0)
     {
       // We must have at least one chapter!
@@ -407,6 +519,197 @@ static BOOL snuggleStart(NSString *t)
   NSString	*str = [self output: d];
 
   return [str writeToFile: name atomically: YES];
+}
+
+/**
+ * Uses -split: and -reformat:withIndent:to:.
+ */
+- (void) outputDecl: (NSDictionary*)d
+	       kind: (NSString*)kind
+		 to: (NSMutableString*)str
+{
+  NSString	*pref = [d objectForKey: @"Prefix"];
+  NSString	*type = [d objectForKey: @"BaseType"];
+  NSString	*name = [d objectForKey: @"Name"];
+  NSString	*comment = [d objectForKey: @"Comment"];
+  NSString	*declared = [d objectForKey: @"Declared"];
+  NSString	*standards = nil;
+
+  if (standards == nil)
+    {
+      standards = [d objectForKey: @"Standards"];
+    }
+
+  [str appendFormat: @"      <%@ type=\"", kind];
+  [str appendString: escapeType(type)];
+  if ([pref length] > 0)
+    {
+      [str appendString: pref];
+    }
+  [str appendString: @"\" name=\""];
+  [str appendString: name];
+  [str appendString: @"\">\n"];
+
+  if (declared != nil)
+    {
+      [str appendString: @"        <declared>"];
+      [str appendString: declared];
+      [str appendString: @"</declared>\n"];
+    }
+
+  [str appendString: @"        <desc>\n"];
+  if ([comment length] == 0)
+    {
+      comment = @"<em>Description forthcoming.</em>";
+    }
+  [self reformat: comment withIndent: 10 to: str];
+  [str appendString: @"        </desc>\n"];
+  if (standards != nil)
+    {
+      [self reformat: standards withIndent: 8 to: str];
+    }
+  [str appendFormat: @"      </%@>\n", kind];
+}
+
+/**
+ * Uses -split: and -reformat:withIndent:to:.
+ */
+- (void) outputFunction: (NSDictionary*)d to: (NSMutableString*)str
+{
+  NSArray	*aa = [d objectForKey: @"Args"];
+  NSString	*pref = [d objectForKey: @"Prefix"];
+  NSString	*type = [d objectForKey: @"BaseType"];
+  NSString	*name = [d objectForKey: @"Name"];
+  NSString	*comment = [d objectForKey: @"Comment"];
+  NSString	*declared = [d objectForKey: @"Declared"];
+  NSString	*standards = nil;
+  unsigned	i = [aa count];
+
+  /**
+   * Place the names of function arguments in a temporary array 'args'
+   * so that they will be highlighted if they appear in the function
+   * description.
+   */
+  if (i > 0)
+    {
+      NSMutableArray	*tmp = [NSMutableArray arrayWithCapacity: i];
+
+      while (i-- > 0)
+	{
+	  NSString	*n = [[aa objectAtIndex: i] objectForKey: @"Name"];
+
+	  if (n != nil)
+	    {
+	      [tmp addObject: n];
+	    }
+	}
+      if ([tmp count] > 0)
+	{
+	  args = tmp;
+	}
+    }
+
+  /**
+   * Check special markup which should be removed from the text
+   * actually placed in the gsdoc method documentation ... the
+   * special markup is included in the gsdoc markup differently.
+   */ 
+  if (comment != nil)
+    {
+      NSMutableString	*m = nil;
+      NSRange		r;
+
+      r = [comment rangeOfString: @"<standards>"];
+      if (r.length > 0)
+	{
+	  unsigned  i = r.location;
+
+	  r = NSMakeRange(i, [comment length] - i);
+	  r = [comment rangeOfString: @"</standards>"
+			 options: NSLiteralSearch
+			   range: r];
+	  if (r.length > 0)
+	    {
+	      r = NSMakeRange(i, NSMaxRange(r) - i);
+	      standards = [comment substringWithRange: r];
+	      if (m == nil)
+		{
+		  m = [comment mutableCopy];
+		}
+	      [m deleteCharactersInRange: r];
+	      comment = m;
+	    }
+	  else
+	    {
+	      NSLog(@"unterminated <standards> in comment for %@", name);
+	    }
+	}
+      if (m != nil)
+	{
+	  AUTORELEASE(m);
+	}
+    }
+  if (standards == nil)
+    {
+      standards = [d objectForKey: @"Standards"];
+    }
+
+  [str appendString: @"      <function type=\""];
+  [str appendString: escapeType(type)];
+  if ([pref length] > 0)
+    {
+      [str appendString: pref];
+    }
+  [str appendString: @"\" name=\""];
+  [str appendString: name];
+  [str appendString: @"\">\n"];
+
+  for (i = 0; i < [aa count]; i++)
+    {
+      NSDictionary	*a = [aa objectAtIndex: i];
+      NSString		*s = [a objectForKey: @"BaseType"];
+
+      [str appendString: @"        <arg type=\""];
+      [str appendString: s];
+      s = [a objectForKey: @"Prefix"];
+      if (s != nil)
+	{
+	  [str appendString: s];
+	}
+      s = [a objectForKey: @"Suffix"];
+      if (s != nil)
+	{
+	  [str appendString: s];
+	}
+      [str appendString: @"\">"];
+      [str appendString: [a objectForKey: @"Name"]];
+      [str appendString: @"</arg>\n"];
+    }
+  if ([[d objectForKey: @"VarArgs"] boolValue] == YES)
+    {
+      [str appendString: @"<vararg />\n"];
+    }
+
+  if (declared != nil)
+    {
+      [str appendString: @"        <declared>"];
+      [str appendString: declared];
+      [str appendString: @"</declared>\n"];
+    }
+
+  [str appendString: @"        <desc>\n"];
+  if ([comment length] == 0)
+    {
+      comment = @"<em>Description forthcoming.</em>";
+    }
+  [self reformat: comment withIndent: 10 to: str];
+  [str appendString: @"        </desc>\n"];
+  if (standards != nil)
+    {
+      [self reformat: standards withIndent: 8 to: str];
+    }
+  [str appendString: @"      </function>\n"];
+  args = nil;
 }
 
 /**
@@ -594,7 +897,7 @@ static BOOL snuggleStart(NSString *t)
 	  [str appendString: @"</arg>\n"];
 	}
     }
-  if ([[d objectForKey: @"VarArg"] boolValue] == YES)
+  if ([[d objectForKey: @"VarArgs"] boolValue] == YES)
     {
       [str appendString: @"<vararg />\n"];
     }

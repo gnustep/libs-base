@@ -145,7 +145,7 @@
       else if (buffer[pos] == '.')
 	{
 	  pos += 3;	// Skip '...'
-	  [d setObject: @"YES" forKey: @"Varargs"];
+	  [d setObject: @"YES" forKey: @"VarArgs"];
 	}
       else
 	{
@@ -477,21 +477,21 @@
   RELEASE(t);
 
   /*
-   * Set the 'Kind' of declaration ... one of 'typedef', 'function',
-   * 'variable', or 'constant'
-   * We may ovrride this later.
+   * Set the 'Kind' of declaration ... one of 'Types', 'Functions',
+   * 'Variables', or 'Constants'
+   * We may override this later.
    */
   if (isTypedef == YES)
     {
-      [d setObject: @"typedef" forKey: @"Kind"];
+      [d setObject: @"Types" forKey: @"Kind"];
     }
   else if (baseConstant == YES)
     {
-      [d setObject: @"constant" forKey: @"Kind"];
+      [d setObject: @"Constants" forKey: @"Kind"];
     }
   else
     {
-      [d setObject: @"variable" forKey: @"Kind"];
+      [d setObject: @"Variables" forKey: @"Kind"];
     } 
 
   if (s == nil)
@@ -523,7 +523,7 @@
 			       options: NSBackwardsSearch|NSLiteralSearch];
 		  if (r.length > 0 && r.location >= p)
 		    {
-		      [d setObject: @"constant" forKey: @"Kind"];
+		      [d setObject: @"Constants" forKey: @"Kind"];
 		    }
 		}
 	    }
@@ -575,7 +575,7 @@
        */
       if (isPointer == NO || [d objectForKey: @"Suffix"] == nil)
 	{
-	  [d setObject: @"function" forKey: @"Kind"];
+	  [d setObject: @"Functions" forKey: @"Kind"];
 	  isFunction = YES;
 	}
     }
@@ -689,7 +689,8 @@ fail:
 
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource
 {
-  NSString	*token;
+  NSString		*token;
+  NSMutableDictionary	*nDecl;
 
   commentsRead = NO;
   fileName = name;
@@ -772,8 +773,59 @@ fail:
 	     * Must be some sort of declaration ...
 	     */
 	    pos--;
-	    [self parseDeclaration];
-	    // [self skipStatementLine];
+	    nDecl = [self parseDeclaration];
+	    if (nDecl != nil)
+	      {
+		NSString		*name = [nDecl objectForKey: @"Name"];
+		NSString		*kind = [nDecl objectForKey: @"Kind"];
+		NSMutableDictionary	*dict = [info objectForKey: kind];
+
+		if (isSource == NO)
+		  {
+		    /*
+		     * Ensure that we have an entry for this declaration.
+		     */
+		    if (dict == nil)
+		      {
+			dict = [NSMutableDictionary new];
+			[info setObject: dict forKey: kind];
+			RELEASE(dict);
+		      }
+		    [dict setObject: nDecl forKey: name];
+		  }
+		else
+		  {
+		    NSMutableDictionary	*oDecl = [dict objectForKey: name];
+
+		    if (oDecl != nil)
+		      {
+			NSString	*tmp = [nDecl objectForKey: @"Comment"];
+
+			if (tmp != nil)
+			  {
+			    NSString	*old = [oDecl objectForKey: @"Comment"];
+
+			    if (old != nil)
+			      {
+				tmp = [old stringByAppendingString: tmp];
+			      }
+			    [oDecl setObject: tmp forKey: @"Comment"];
+			  }
+
+			if ([kind isEqualToString: @"Functions"] == YES)
+			  {
+			    NSArray	*a1 = [oDecl objectForKey: @"Args"];
+			    NSArray	*a2 = [nDecl objectForKey: @"Args"];
+
+			    if ([a1 isEqual: a2] == NO)
+			      {
+				[self log: @"Function %@ args missmatch - "
+				  @"%@ %@", name, a1, a2];
+			      }
+			  }
+		      }
+		  }
+	      }
 	    break;
         }
     }

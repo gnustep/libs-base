@@ -370,6 +370,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
 	  [self setGlobalRef: tmp type: name];
+	  children = nil;
 	}
       else if ([name isEqual: @"section"] == YES)
 	{

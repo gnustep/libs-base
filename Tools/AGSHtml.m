@@ -545,6 +545,59 @@ static NSMutableSet	*textNodes = nil;
 	  [self outputText: children to: buf];
 	  [buf appendString: @"</code>"];
 	}
+      else if ([name isEqual: @"constant"] == YES)
+	{
+	  NSString	*nam;
+	  NSString	*str;
+	  NSString	*s;
+
+	  nam = [prop objectForKey: @"name"];
+	  str = [prop objectForKey: @"type"];
+	  str = [str stringByAppendingFormat: @" %@;", nam];
+
+	  /*
+	   * Output function heading.
+	   */
+	  [buf appendString: indent];
+	  [buf appendString: @"<h3>"];
+	  s = [self makeLink: nam ofType: @"constant" isRef: NO];
+	  if (s != nil)
+	    {
+	      [buf appendString: s];
+	      [buf appendString: nam];
+	      [buf appendString: @"</a>"];
+	    }
+	  else
+	    {
+	      [buf appendString: nam];
+	    }
+	  [buf appendString: @"</h3>\n"];
+	  [buf appendString: indent];
+	  [buf appendString: str];
+	  [buf appendString: @";<br />\n"];
+
+	  node = firstElement(children);
+
+	  if ([[node name] isEqual: @"declared"] == YES)
+	    {
+	      [self outputNode: node to: buf];
+	      node = firstElement(node);
+	    }
+
+	  children = firstElement(node);
+	  if ([[children name] isEqual: @"standards"])
+	    {
+	      [self outputNode: children to: buf];
+	    }
+
+	  if ([[node name] isEqual: @"desc"])
+	    {
+	      [self outputNode: node to: buf];
+	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	}
       else if ([name isEqual: @"contents"] == YES)
         {
 	  NSDictionary	*dict;
@@ -744,6 +797,115 @@ static NSMutableSet	*textNodes = nil;
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</div>\n"];
+	}
+      else if ([name isEqual: @"function"] == YES)
+	{
+	  NSString	*fun;
+	  NSString	*str;
+	  NSString	*s;
+	  GSXMLNode	*tmp = children;
+	  BOOL		hadArg = NO;
+
+	  fun = [prop objectForKey: @"name"];
+	  str = [prop objectForKey: @"type"];
+	  str = [str stringByAppendingFormat: @" %@(", fun];
+	  children = nil;
+	  while (tmp != nil)
+	    {
+	      if ([tmp type] == XML_ELEMENT_NODE)
+		{
+		  if ([[tmp name] isEqual: @"arg"] == YES)
+		    {
+		      GSXMLNode		*t = [tmp children];
+		      NSString		*s;
+
+		      if (hadArg == YES)
+			{
+			  str = [str stringByAppendingString: @", "];
+			}
+
+		      s = [[tmp propertiesAsDictionary] objectForKey: @"type"];
+		      s = [self typeRef: s];
+		      str = [str stringByAppendingString: s];
+
+		      str = [str stringByAppendingString: @" <b>"];
+		      while (t != nil)
+			{
+			  if ([t type] == XML_TEXT_NODE)
+			    {
+			      NSString	*content = [t content];
+
+			      str = [str stringByAppendingString: content];
+			    }
+			  t = [t next];
+			}
+		      str = [str stringByAppendingString: @"</b>"];
+		      hadArg = YES;
+		    }
+		  else if ([[tmp name] isEqual: @"vararg"] == YES)
+		    {
+		      if (hadArg == YES)
+			{
+			  str = [str stringByAppendingString: @"<b>,...</b>"];
+			}
+		      else
+			{
+			  str = [str stringByAppendingString: @"<b>,...</b>"];
+			}
+		      children = [tmp next];
+		      break;
+		    }
+		  else
+		    {
+		      children = tmp;
+		      break;
+		    }
+		}
+	      tmp = [tmp next];
+	    }
+
+	  /*
+	   * Output function heading.
+	   */
+	  [buf appendString: indent];
+	  [buf appendString: @"<h3>"];
+	  s = [self makeLink: fun ofType: @"function" isRef: NO];
+	  if (s != nil)
+	    {
+	      [buf appendString: s];
+	      [buf appendString: fun];
+	      [buf appendString: @"</a>"];
+	    }
+	  else
+	    {
+	      [buf appendString: fun];
+	    }
+	  [buf appendString: @"</h3>\n"];
+	  [buf appendString: indent];
+	  [buf appendString: str];
+	  [buf appendString: @");<br />\n"];
+
+	  node = firstElement(children);
+
+	  if ([[node name] isEqual: @"declared"] == YES)
+	    {
+	      [self outputNode: node to: buf];
+	      node = firstElement(node);
+	    }
+
+	  children = firstElement(node);
+	  if ([[children name] isEqual: @"standards"])
+	    {
+	      [self outputNode: children to: buf];
+	    }
+
+	  if ([[node name] isEqual: @"desc"])
+	    {
+	      [self outputNode: node to: buf];
+	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
 	{
@@ -1112,12 +1274,13 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString: indent];
 	      [buf appendString: str];
 	      [buf appendString: @";<br />\n"];
-	      node = children;
+
+	      node = firstElement(children);
 
 	      /*
 	       * List standards with which method complies
 	       */
-	      children = [node next];
+	      children = firstElement(node);
 	      if ([[children name] isEqual: @"standards"])
 		{
 		  [self outputNode: children to: buf];
@@ -1198,12 +1361,9 @@ static NSMutableSet	*textNodes = nil;
 	  [self outputUnit: node to: buf];
 	  unit = nil;
 	}
-      else if ([name isEqual: @"constant"] == YES
-	|| [name isEqual: @"EOEntity"] == YES
+      else if ([name isEqual: @"EOEntity"] == YES
 	|| [name isEqual: @"EOModel"] == YES
-	|| [name isEqual: @"function"] == YES
-	|| [name isEqual: @"macro"] == YES
-	|| [name isEqual: @"type"] == YES)
+	|| [name isEqual: @"macro"] == YES)
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
@@ -1273,33 +1433,57 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"type"] == YES)
 	{
-	  NSString	*n = [prop objectForKey: @"name"];
+	  NSString	*nam;
+	  NSString	*str;
 	  NSString	*s;
 
-	  node = [node children];
-	  s = [NSString stringWithFormat: @"typedef %@ %@", [node content], n];
+	  nam = [prop objectForKey: @"name"];
+	  str = [prop objectForKey: @"type"];
+	  str = [NSString stringWithFormat: @"typedef %@ %@", str, nam];
+
+	  /*
+	   * Output typedef heading.
+	   */
 	  [buf appendString: indent];
 	  [buf appendString: @"<h3>"];
-	  [buf appendString:
-	    [self makeAnchor: n ofType: @"type" name: s]];
+	  s = [self makeLink: nam ofType: @"type" isRef: NO];
+	  if (s != nil)
+	    {
+	      [buf appendString: s];
+	      [buf appendString: nam];
+	      [buf appendString: @"</a>"];
+	    }
+	  else
+	    {
+	      [buf appendString: nam];
+	    }
 	  [buf appendString: @"</h3>\n"];
-	  node = [node next];
+	  [buf appendString: indent];
+	  [buf appendString: str];
+	  [buf appendString: @";<br />\n"];
+
+	  node = firstElement(children);
 
 	  if (node != nil && [[node name] isEqual: @"declared"] == YES)
 	    {
 	      [self outputNode: node to: buf];
-	      node = [node next];
+	      node = firstElement(node);
 	    }
+
+	  children = firstElement(node);
+	  if ([[children name] isEqual: @"standards"])
+	    {
+	      [self outputNode: children to: buf];
+	    }
+
 	  if (node != nil && [[node name] isEqual: @"desc"] == YES)
 	    {
 	      [self outputNode: node to: buf];
-	      node = [node next];
+	      node = firstElement(node);
 	    }
-	  if (node != nil && [[node name] isEqual: @"standards"] == YES)
-	    {
-	      [self outputNode: node to: buf];
-	      node = [node next];
-	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
 	}
       else if ([name isEqual: @"uref"] == YES)
 	{
@@ -1321,7 +1505,56 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([name isEqual: @"variable"] == YES)
 	{
-NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+	  NSString	*nam;
+	  NSString	*str;
+	  NSString	*s;
+
+	  nam = [prop objectForKey: @"name"];
+	  str = [prop objectForKey: @"type"];
+	  str = [str stringByAppendingFormat: @" %@", nam];
+
+	  /*
+	   * Output variable heading.
+	   */
+	  [buf appendString: indent];
+	  [buf appendString: @"<h3>"];
+	  s = [self makeLink: nam ofType: @"variable" isRef: NO];
+	  if (s != nil)
+	    {
+	      [buf appendString: s];
+	      [buf appendString: nam];
+	      [buf appendString: @"</a>"];
+	    }
+	  else
+	    {
+	      [buf appendString: nam];
+	    }
+	  [buf appendString: @"</h3>\n"];
+	  [buf appendString: indent];
+	  [buf appendString: str];
+	  [buf appendString: @";<br />\n"];
+
+	  node = firstElement(children);
+
+	  if ([[node name] isEqual: @"declared"] == YES)
+	    {
+	      [self outputNode: node to: buf];
+	      node = firstElement(node);
+	    }
+
+	  children = firstElement(node);
+	  if ([[children name] isEqual: @"standards"])
+	    {
+	      [self outputNode: children to: buf];
+	    }
+
+	  if ([[node name] isEqual: @"desc"])
+	    {
+	      [self outputNode: node to: buf];
+	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
 	}
       else
 	{
