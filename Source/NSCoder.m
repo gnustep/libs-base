@@ -1,5 +1,5 @@
 /* NSCoder - coder obejct for serialization and persistance.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1995 Free Software Foundation, Inc.
    
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
