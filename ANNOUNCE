@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.10.1, is now available.
+The GNUstep Base Library, version 1.10.2, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -18,25 +18,24 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.10.1'
+Noteworthy changes in version `1.10.2'
 ======================================
 
 This version mostly includes minor fixes and updates.
 
-   * Runtime discovery of the library version is possible.
+   * The definition of NSContainsRect has changed to correspond with the
+     current Mac OS X/Cocoa def - the sides of the bRect can touch
+     aRect.
 
-   * NSXMLParser class added. Not completely implemented.
+   * Add support for systems that support unichar file paths (e.g.
+     Windows).
 
-   * NSArrays makeObjectsPerformSelector iterates in same order as
-     MacOS X.
-
-   * Designated initializers for NSArray, NSDictionary, NSSet, and
-     NSString have been changed for MacOS X compatibility.
+   * Use a proper one-to-one abbreviation dictionary for NSTimeZone.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-The gnustep-base-1.10.1.tar.gz distribution file has been placed on
+The gnustep-base-1.10.2.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
