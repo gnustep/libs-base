@@ -29,12 +29,22 @@
 #include <Foundation/NSObject.h>
 
 #ifndef	STRICT_MACOS_X
-/*
- *	Info about layout of arguments.
+/**
+ *	<p>Info about layout of arguments.
  *	Extended from the original OpenStep version to let us know if the
- *	arg is passed in registers or on the stack.
+ *	arg is passed in registers or on the stack.</p>
  *
- *	NB. This no longer exists in Rhapsody/MacOS.
+ *	<p>NB. This no longer exists in Rhapsody/MacOS.</p>
+ <example>
+typedef struct	{
+  int		offset;
+  unsigned	size;
+  const char	*type;
+  unsigned	align;  // extension, available only ifndef NO_GNUSTEP
+  unsigned	qual;   // extension, available only ifndef NO_GNUSTEP
+  BOOL		isReg;  // extension, available only ifndef NO_GNUSTEP
+} NSArgumentInfo;
+ </example>
  */
 typedef struct	{
   int		offset;
@@ -48,6 +58,19 @@ typedef struct	{
 } NSArgumentInfo;
 #endif
 
+/**
+ * <p>Class encapsulating type information for method arguments and return
+ * value.  It is used as a component of [NSInvocation] to implement message
+ * forwarding, such as within the distributed objects framework.  Instances
+ * can be obtained from the [NSObject] method
+ * [NSObject-methodSignatureForSelector:].</p>
+ *
+ * <p>Basically, types are represented as Objective-C <code>@encode(...)</code>
+ * compatible strings, together with size information.  The arguments are
+ * numbered starting from 0, including the implicit arguments
+ * <code><em>self</em></code> (type <code>id</code>, at position 0) and
+ * <code><em>_cmd</em></code> (type <code>SEL</code>, at position 1).</p>
+ */
 @interface NSMethodSignature : NSObject
 {
   const char		*_methodTypes;
@@ -60,23 +83,78 @@ typedef struct	{
 #endif
 }
 
+/**
+ * Build a method signature directly from string description of return type and
+ * argument types, using the Objective-C <code>@encode(...)</code> type codes.
+ */
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t;
 
 #ifndef	STRICT_MACOS_X
+/**
+ * Returns full information on given argument.  Indices start at 0.  Provide
+ * -1 to get info on return value.
+ */
 - (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index;
 #endif
+
+/**
+ * Number of bytes that the full set of arguments occupies on the stack, which
+ * is platformt(hardware)-dependent.
+ */
 - (unsigned) frameLength;
+
+/**
+ * Returns Objective-C <code>@encode(...)</code> compatible string.  Arguments
+ * are numbered starting from 0, including the implicit arguments
+ * <code><em>self</em></code> (type <code>id</code>, at position 0) and
+ * <code><em>_cmd</em></code> (type <code>SEL</code>, at position 1).
+ */
 - (const char*) getArgumentTypeAtIndex: (unsigned)index;
+
+/**
+ * Pertains to distributed objects; method is asynchronous when invoked and
+ * return should not be waited for.
+ */
 - (BOOL) isOneway;
+
+/**
+ * Number of bytes that the return value occupies on the stack, which is
+ * platformt(hardware)-dependent.
+ */
 - (unsigned) methodReturnLength;
+
+/**
+ * Returns Objective-C <code>@encode(...)</code> compatible string.  Arguments
+ * are numbered starting from 0, including the implicit arguments
+ * <code><em>self</em></code> (type <code>id</code>, at position 0) and
+ * <code><em>_cmd</em></code> (type <code>SEL</code>, at position 1).
+ */
 - (const char*) methodReturnType;
+
+/**
+ * Returns number of arguments to method, including the implicit
+ * <code><em>self</em></code> and <code><em>_cmd</em></code>.
+ */
 - (unsigned) numberOfArguments;
 
 @end
 
 #ifndef	NO_GNUSTEP
+/**
+ * Declares a convenience method for getting the entire array of raw type and
+ * size information.
+ */
 @interface NSMethodSignature(GNUstep)
+/**
+ * Convenience method for getting the entire array of raw type and size
+ * information.
+ */
 - (NSArgumentInfo*) methodInfo;
+
+/**
+ * Returns a string containing all Objective-C
+ * <code>@encode(...)</code> compatible type information.
+ */
 - (const char*) methodType;
 @end
 #endif

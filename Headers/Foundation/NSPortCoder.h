@@ -31,6 +31,17 @@
 @class NSConnection;
 @class NSPort;
 
+/**
+ * This class is an [NSCoder] implementation specialized for sending objects
+ * over network connections for immediate use (as opposed to the archivers
+ * which persist objects for reconstitution after an indefinite term).  It is
+ * used to help implement the distributed objects framework by the
+ * [NSConnection] class.  Even for highly specialized applications, you
+ * probably do not need to use this class directly.
+ */
+//FIXME: the above is what Apple's docs say, but looking at the code the
+// NSConnection is actually created by this class rather than the other way
+// around, so maybe the docs should be changed..
 @interface NSPortCoder : NSCoder
 {
 @private
@@ -77,18 +88,57 @@
   NSZone		*_zone;		/* Zone for allocating objs.	*/
 }
 
+/**
+ * Create a new instance for communications over send and recv, and send an
+ * initial message through send as specified by comp.
+ */
 + (NSPortCoder*) portCoderWithReceivePort: (NSPort*)recv
 				 sendPort: (NSPort*)send
 			       components: (NSArray*)comp;
+
+/**
+ * Initialize a new instance for communications over send and recv, and send an
+ * initial message through send as specified by comp.
+ */
 - (id) initWithReceivePort: (NSPort*)recv
 		  sendPort: (NSPort*)send
 		components: (NSArray*)comp;
 
+/**
+ * Returns the <code>NSConnection</code> using this instance.
+ */
 - (NSConnection*) connection;
+
+/**
+ * Return port object previously encoded by this instance.  Mainly for use
+ * by the ports themselves.
+ */
 - (NSPort*) decodePortObject;
+
+/**
+ * Processes and acts upon the initial message the receiver was initialized
+ * with..
+ */
 - (void) dispatch;
+
+/**
+ * Encodes aPort so it can be sent to the receiving side of the connection.
+ * Mainly for use by the ports themselves.
+ */
 - (void) encodePortObject: (NSPort*)aPort;
+
+/**
+ * Returns YES if receiver is in the process of encoding objects by copying
+ * them (rather than substituting a proxy).  This method is mainly needed
+ * internally and by subclasses.
+ */
 - (BOOL) isBycopy;
+
+/**
+ * Returns YES if receiver will substitute a proxy when encoding objects
+ * rather than by copying them.  This method is mainly needed
+ * internally and by subclasses.
+ */
 - (BOOL) isByref;
 
 @end

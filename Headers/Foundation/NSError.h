@@ -58,8 +58,9 @@ GS_EXPORT NSString* const NSOSStatusErrorDomain;
 GS_EXPORT NSString* const NSPOSIXErrorDomain;
 
 /**
- * Error information class
+ * Error information class.
  */
+// TODO: document what this is for, especially since it's not in OS X
 @interface NSError : NSObject <NSCopying, NSCoding>
 {
 @private
@@ -89,7 +90,7 @@ GS_EXPORT NSString* const NSPOSIXErrorDomain;
 
 /** <init />
  * Initialises the receiver using the supplied domain, code, and info.<br />
- * The domain musat be non-nil.
+ * The domain must be non-nil.
  */
 - (id) initWithDomain: (NSString*)aDomain
 		 code: (int)aCode
@@ -105,10 +106,11 @@ GS_EXPORT NSString* const NSPOSIXErrorDomain;
 
 /**
  * Return the user info for this instance (or nil if none is set)<br />
- * The NSLocalizedDescriptionKey should locate a human readable description
- * in the dictionary.<br /> 
- * The NSUnderlyingErrorKey key should locate an NSError instance if an
- * error is available describing any underlying problem.<br />
+ * The <code>NSLocalizedDescriptionKey</code> should locate a human readable
+ * description in the dictionary.<br /> 
+ * The <code>NSUnderlyingErrorKey</code> key should locate an
+ * <code>NSError</code> instance if an error is available describing any
+ * underlying problem.<br />
  */
 - (NSDictionary*) userInfo;
 @end

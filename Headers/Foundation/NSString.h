@@ -349,10 +349,10 @@ enum {
  * added for GNUstep, to permit the isa variable to be set to another
  * class, and GNUstep uses this to avoid conflicts with the default
  * implementation of NXConstantString in the ObjC runtime library (the
- * preprocessor is used to change all occurances of NXConstantString
+ * preprocessor is used to change all occurences of NXConstantString
  * in the source code to NSConstantString).</p>
  * <p>Since GNUstep will generally use the GNUstep extension to the
- * compiler, you should never refer to the constnat string class by
+ * compiler, you should never refer to the constant string class by
  * name, but should use the [NSString+constantStringClass] method to
  * get the actual class being used for constant strings.</p>
  * What follows is a dummy declaration of the class to keep the compiler
@@ -377,25 +377,101 @@ extern struct objc_class _NSConstantStringClassReference;
 - (NSString*) immutableProxy;
 @end
 
+/**
+ * Provides some additional (non-standard) utility methods.
+ */
 @interface NSString (GSCategories)
+/**
+ * Alternate way to invoke <code>stringWithFormat</code> if you have or wish
+ * to build an explicit <code>va_list</code> structure.
+ */
 + (id) stringWithFormat: (NSString*)format
 	      arguments: (va_list)argList;
+
+/**
+ * Returns a string formed by removing the prefix string from the
+ * receiver.  Raises an exception if the prefix is not present.
+ */
 - (NSString*) stringByDeletingPrefix: (NSString*)prefix;
+
+/**
+ * Returns a string formed by removing the suffix string from the
+ * receiver.  Raises an exception if the suffix is not present.
+ */
 - (NSString*) stringByDeletingSuffix: (NSString*)suffix;
+
+/**
+ * Returns a string formed by removing leading white space from the
+ * receiver.
+ */
 - (NSString*) stringByTrimmingLeadSpaces;
+
+/**
+ * Returns a string formed by removing trailing white space from the
+ * receiver.
+ */
 - (NSString*) stringByTrimmingTailSpaces;
+
+/**
+ * Returns a string formed by removing both leading and trailing
+ * white space from the receiver.
+ */
 - (NSString*) stringByTrimmingSpaces;
+
+/**
+ * Returns a string in which any (and all) occurrences of
+ * replace in the receiver have been replaced with by.
+ * Returns the receiver if replace
+ * does not occur within the receiver.  NB. an empty string is
+ * not considered to exist within the receiver.
+ */
 - (NSString*) stringByReplacingString: (NSString*)replace
 			   withString: (NSString*)by;
 @end
 
+
+/**
+ * GNUstep specific (non-standard) additions to the NSMutableString class.
+ */
 @interface NSMutableString (GSCategories)
+
+/**
+ * Removes the specified suffix from the string.  Raises an exception
+ * if the suffix is not present.
+ */
 - (void) deleteSuffix: (NSString*)suffix;
+
+/**
+ * Removes the specified prefix from the string.  Raises an exception
+ * if the prefix is not present.
+ */
 - (void) deletePrefix: (NSString*)prefix;
+
+/**
+ * Replaces all occurrances of the string replace with the string by
+ * in the receiver.<br />
+ * Has no effect if replace does not occur within the
+ * receiver.  NB. an empty string is not considered to exist within
+ * the receiver.<br />
+ * Calls - replaceOccurrencesOfString:withString:options:range: passing
+ * zero for the options and a range from 0 with the length of the receiver.
+ */
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by;
+
+/**
+ * Removes all leading white space from the receiver.
+ */
 - (void) trimLeadSpaces;
+
+/**
+ * Removes all trailing white space from the receiver.
+ */
 - (void) trimTailSpaces;
+
+/**
+ * Removes all leading or trailing white space from the receiver.
+ */
 - (void) trimSpaces;
 @end
 

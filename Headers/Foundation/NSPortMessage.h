@@ -27,6 +27,15 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSPort.h>
 
+/**
+ * <p>The data transported for distributed objects communications is sent over
+ * the network encapsulated by NSPortMessage objects, which consist of two
+ * [NSPort]s (sender and receiver, not sent over the network) and a body
+ * consisting of one or more [NSData] or [NSPort] objects. (Data in the
+ * [NSData] must be in network byte order.)</p>
+ *
+ * <p>See the [NSConnection] and [NSPortCoder] classes.</p>
+ */
 @interface	NSPortMessage : NSObject
 {
   unsigned		_msgid;
@@ -34,15 +43,59 @@
   NSPort		*_send;
   NSMutableArray	*_components;
 }
+/**
+ * OpenStep compatibility.
+ */
 - (id) initWithMachMessage: (void*)buffer;
+
+/** <init/> Initializes to send message described by items (which should
+ * contain only [NSPort] and/or [NSData] objects, with contents in network
+ * byte order) over aPort.  If/when a reply to the message is sent, it will
+ * arrive on anotherPort.
+ */
 - (id) initWithSendPort: (NSPort*)aPort
 	    receivePort: (NSPort*)anotherPort
 	     components: (NSArray*)items;
+
+/**
+ * Request that the message be sent before when.  Will block until either
+ * sends it (returns YES) or when expires (returns NO).  The latter may occur
+ * if many messages are queued up (by multiple threads) faster than they can
+ * be sent over the network.
+ */
 - (BOOL) sendBeforeDate: (NSDate*)when;
+
+/**
+ * Returns the message components originally used to constitute this message.
+ */
 - (NSArray*) components;
+
+/**
+ * For an outgoing message, returns the port the receiver will send itself
+ * through.  For an incoming message, returns the port replies to the receiver
+ * should be sent through.
+ */
 - (NSPort*) sendPort;
+
+/**
+ * For an outgoing message, returns the port on which a reply to this message
+ * will arrive.  For an incoming message, returns the port this message
+ * arrived on.
+ */
 - (NSPort*) receivePort;
+
+/**
+ * Sets ID for message.  This is not used by the distributed objects system,
+ * but may be used in custom ways by cooperating applications to sort or
+ * otherwise organize messages.
+ */
 - (void) setMsgid: (unsigned)anId;
+
+/**
+ * Returns ID for message.  This is not used by the distributed objects
+ * system, but may be used in custom ways by cooperating applications to sort
+ * or otherwise organize messages.  Set to 0 initially.
+ */
 - (unsigned) msgid;
 @end
 

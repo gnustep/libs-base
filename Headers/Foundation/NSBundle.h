@@ -140,7 +140,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 		  inDirectory: (NSString*)bundlePath;
 
 /**
-  This method has been depreciated. Version numbers were never implemented
+  This method has been deprecated. Version numbers were never implemented
   so this method behaves exactly like +pathForResource:ofType:inDirectory:.
  */
 + (NSString*) pathForResource: (NSString*)name
@@ -173,6 +173,10 @@ GS_EXPORT NSString* NSLoadedClasses;
  */
 - (Class) principalClass;
 
+/**
+ *  Not implemented.  Create an instance and call the corresponding instance
+ *  method instead.
+ */
 + (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath;
 
@@ -241,14 +245,29 @@ GS_EXPORT NSString* NSLoadedClasses;
 - (void) setBundleVersion: (unsigned)version;
 
 #ifndef STRICT_OPENSTEP
+/**
+ *  Returns subarray of given array containing those localizations that are
+ *  used to locate resources given environment and user preferences.
+ */
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray;
+/**
+ *  Returns subarray of given array containing those localizations that are
+ *  used to locate resources given environment given user preferences (which
+ *  are used instead of looking up the preferences of the current user).
+ */
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
 			       forPreferences: (NSArray *)preferencesArray;
 
 - (BOOL) isLoaded;
+/**
+ *  Not implemented.
+ */
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath
 		     forLocalization: (NSString*)localizationName;
+/**
+ *  Not implemented.
+ */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath
@@ -285,6 +304,10 @@ GS_EXPORT NSString* NSLoadedClasses;
 @end
 
 #ifndef	 NO_GNUSTEP
+/**
+ *  Augments [NSBundle], including methods for handling libraries in the GNUstep
+ *  fashion, for rapid localization, and other purposes.
+ */
 @interface NSBundle (GNUstep)
 
 /** This method is an experimental GNUstep extension, and
@@ -301,15 +324,15 @@ GS_EXPORT NSString* NSLoadedClasses;
 + (NSString*) _gnustep_target_os;
 + (NSString*) _library_combo;
 
-/** Find a resource in the "Library" directory */
+/** Find a resource in the "Library" directory. */
 + (NSString*) pathForLibraryResource: (NSString*)name
 			      ofType: (NSString*)ext
 			 inDirectory: (NSString*)bundlePath;
 
-/** Depreciated. Use +bundleForLibrary: instead. */
+/** Deprecated. Use +bundleForLibrary: instead. */
 + (NSBundle*) gnustepBundle;
 
-/** Depreciated. Use +pathForLibraryResource:ofType:inDirectory: 
+/** Deprecated. Use +pathForLibraryResource:ofType:inDirectory: 
     or +bundleForLibrary: instead. */
 + (NSString*) pathForGNUstepResource: (NSString*)name
 			      ofType: (NSString*)ext

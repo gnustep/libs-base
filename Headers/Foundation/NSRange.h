@@ -47,6 +47,11 @@
 #endif
 
 /**
+ * <example>
+{
+  unsigned int location;
+  unsigned int length;
+}</example>
  * <p>
  *   The NSRange type is used to specify ranges of locations,
  *   typically items in an array, characters in a string, and bytes

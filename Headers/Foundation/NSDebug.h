@@ -220,8 +220,9 @@ GS_EXPORT BOOL NSDeallocateZombies;
    </p>
    <p>NSProcess initialises a set of strings that are the names of active
    debug levels using the '--GNU-Debug=...' command line argument.
-   Each command-line argument of that form is removed from NSProcessInfos
-   list of arguments and the variable part (...) is added to the set.
+   Each command-line argument of that form is removed from
+   <code>NSProcessInfo</code>'s list of arguments and the variable part
+   (...) is added to the set.
    This means that as far as the program proper is concerned, it is
    running with the same arguments as if debugging had not been enabled.
    </p>
@@ -233,7 +234,7 @@ GS_EXPORT BOOL NSDeallocateZombies;
    <p>NSUserDefaults also adds debug levels from the array given by the
    GNU-Debug key ... but these values will not take effect until the
    +standardUserDefaults method is called ... so they are useless for
-   debugging NSUserDefaults itsself or for debugging any code executed
+   debugging NSUserDefaults itself or for debugging any code executed
    before the defaults system is used.
    </p>
    <p>To embed debug logging in your code you use the NSDebugLLog() or
@@ -395,7 +396,7 @@ GS_EXPORT BOOL NSDeallocateZombies;
    something that it not necessarily fatal or illegal, but looks like it
    might be a programming error.  eg. attempting to remove 'nil' from an
    NSArray, which the Spec/documentation does not prohibit, but which a
-   well written progam should not be attempting (since an NSArray object
+   well written program should not be attempting (since an NSArray object
    cannot contain a 'nil').
    </p>
    <p>NB. The 'warn=yes' option is understood by the GNUstep make package
@@ -405,7 +406,7 @@ GS_EXPORT BOOL NSDeallocateZombies;
    <p>To embed debug logging in your code you use the NSWarnLog() macro.
    </p>
    <p>As a convenience, there are two more logging macros you can use -
-   NSWarnLog(), and NSWarnMLog().
+   NSWarnFLog(), and NSWarnMLog().
    These are specifically for use in either functions or methods and
    prepend information about the file, line and either function or
    class/method in which the message was generated.

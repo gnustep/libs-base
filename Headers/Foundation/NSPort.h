@@ -49,38 +49,104 @@
 
 GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 
+/**
+ * <p><code>NSPort</code> is an abstract class defining interfaces underlying
+ * communications in the distributed objects framework.  Each side of a
+ * connection will have an <code>NSPort</code> object, responsible for sending
+ * and receiving [NSPortMessage]s, which are then passed to delegates when
+ * received.  The <code>NSPort</code> must be added to the [NSRunLoop] as an
+ * input source.</p>
+ *
+ * <p>This class also implements the functionality of the
+ * <code><em>NSMachPort</em></code> class on OS X.</p>
+ */
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
   BOOL		_is_valid;
   id		_delegate;
 }
 
+/**
+ * Basic constructor returns object capable of send and receive.
+ */
 + (NSPort*) port;
+
+/**
+ * NSMachPort compatibility method.
+ */
 + (NSPort*) portWithMachPort: (int)machPort;
 
+/**
+ *  Returns the object that received messages will be passed off to.
+ */
 - (id) delegate;
 
-- (id) init;
-- (id) initWithMachPort: (int)machPort;
-
-- (void) invalidate;
-- (BOOL) isValid;
-- (int) machPort;
+/**
+ *  Sets the object that received messages will be passed off to.
+ */
 - (void) setDelegate: (id)anObject;
 
+/**
+ * Basic initializer sets up object capable of send and receive.
+ */
+- (id) init;
+
+/**
+ * NSMachPort compatibility method.
+ */
+- (id) initWithMachPort: (int)machPort;
+
+/**
+ * NSMachPort compatibility.
+ */
+- (int) machPort;
+
+/**
+ * Mark port as invalid, deregister with listeners and cease further network
+ * operations.  Subclasses should override and call super.
+ */
+- (void) invalidate;
+
+/**
+ * Returns whether port has been marked invalid.
+ */
+- (BOOL) isValid;
+
 #ifndef	STRICT_OPENSTEP
+/**
+ * Adds to run loop as input source to be notified for input in given mode.
+ * This method is for use by subclasses.
+ */
 - (void) addConnection: (NSConnection*)aConnection
 	     toRunLoop: (NSRunLoop*)aLoop
 	       forMode: (NSString*)aMode;
+
+/**
+ * Removes from run loop as input source to be notified for input in given mode.
+ * This method is for use by subclasses.
+ */
 - (void) removeConnection: (NSConnection*)aConnection
 	      fromRunLoop: (NSRunLoop*)aLoop
 		  forMode: (NSString*)aMode;
+
+/**
+ * Returns amount of space used for header info at beginning of messages.
+ * Subclasses should override (this implementation returns 0).
+ */
 - (unsigned) reservedSpaceLength;
+
+/**
+ * Internal method for sending message, for use by subclasses.
+ */
 - (BOOL) sendBeforeDate: (NSDate*)when
 		  msgid: (int)msgid
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
 	       reserved: (unsigned)length;
+
+/**
+ * Internal method for sending message, for use by subclasses.
+ */
 - (BOOL) sendBeforeDate: (NSDate*)when
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
@@ -89,7 +155,11 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 @end
 
 #ifndef	NO_GNUSTEP
+/**
+ * Stubs for backward compatibility.  Do not use.
+ */
 @interface NSPort (GNUstep)
+//PENDING: none of this is implemented.. should it be removed?
 - (void) close;
 + (Class) outPacketClass;
 - (Class) outPacketClass;
@@ -105,6 +175,15 @@ GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
 typedef SOCKET NSSocketNativeHandle;
 
 @class GSTcpHandle;
+
+/**
+ *  <p>An [NSPort] implementation for network object communications based on
+ *  BSD sockets.  Can be used for interthread/interprocess
+ *  communications between same or different hosts (though on same host
+ *  [NSMessagePort] will be more efficient).</p>
+ *
+ *  <p>Note that this class is incompatible with the latest OS X version.</p>
+ */
 @interface NSSocketPort : NSPort <GCFinalization>
 {
   NSRecursiveLock	*myLock;
@@ -115,23 +194,76 @@ typedef SOCKET NSSocketNativeHandle;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
 }
 
+/**
+ * Look up and return an existing <code>NSSocketPort</code> given a host and
+ * number, or return nil if one has not been created.
+ */
 + (NSSocketPort*) existingPortWithNumber: (gsu16)number
 				  onHost: (NSHost*)aHost;
+
+/**
+ * This is the preferred initialisation method for <code>NSSocketPort</code>.
+ * <br/>
+ * number should be a TCP/IP port number or may be zero for a port on
+ * the local host.<br/>
+ * aHost should be the host for the port or may be nil for the local
+ * host.<br/>
+ * addr is the IP address that MUST be used for this port - if it is nil
+ * then, for the local host, the port uses ALL IP addresses, and for a
+ * remote host, the port will use the first address that works.<br/>
+ * shouldListen specifies whether to listen on the port initially.
+ */
 + (NSSocketPort*) portWithNumber: (gsu16)number
 			  onHost: (NSHost*)aHost
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen;
 
+/**
+ *  Setup method: add new send or receive connection handle.
+ */
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send;
+
+/**
+ *  Returns IP address of underlying socket.
+ */
 - (NSString*) address;
+
+/**
+ * This is a callback method used by the NSRunLoop class to determine which
+ * descriptors to watch for the port.
+ */
 - (void) getFds: (int*)fds count: (int*)count;
+
+/**
+ *
+ */
 - (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort
 		    beforeDate: (NSDate*)when;
+
+/**
+ *  Delegates processing of a message.
+ */
 - (void) handlePortMessage: (NSPortMessage*)m;
+
+/**
+ * Returns host that the underlying socket is connected to.
+ */
 - (NSHost*) host;
+
+/**
+ *  Returns port number of underlying socket.
+ */
 - (gsu16) portNumber;
+
+/**
+ * This is called when a TCP/IP socket connection is broken.  We remove the
+ * connection handle from this port and, if this was the last handle to a
+ * remote port, we invalidate the port.
+ */
 - (void) removeHandle: (GSTcpHandle*)handle;
 
+
+// This is the OS X interface
 /*
 {
   NSSocketNativeHandle _socket;
@@ -169,6 +301,11 @@ typedef SOCKET NSSocketNativeHandle;
 
 @class GSMessageHandle;
 
+/**
+ *  An [NSPort] implementation for network object communications based on
+ *  Unix domain sockets.  Can be used for interthread/interprocess
+ *  communications on the same host, but not between different hosts.
+ */
 @interface NSMessagePort : NSPort <GCFinalization>
 {
   NSData		*name;
@@ -179,11 +316,31 @@ typedef SOCKET NSSocketNativeHandle;
 
 - (int) _listener;
 - (const unsigned char *) _name;
+
+/**
+ *  <init/>
+ * This is the preferred initialisation method for <code>NSMessagePort</code>.
+ *
+ * socketName is the name of the socket in the port directory
+ */
 + (NSMessagePort*) _portWithName: (const unsigned char *)socketName
 			listener: (BOOL)shouldListen;
 
+/**
+ *  Setup method: add new send or receive connection handle.
+ */
 - (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send;
+
+/**
+ * This is called when a socket connection is broken.  We remove the
+ * connection handle from this port and, if this was the last handle to a
+ * remote port, we invalidate the port.
+ */
 - (void) removeHandle: (GSMessageHandle*)handle;
+
+/**
+ *  Delegates processing of a message.
+ */
 - (void) handlePortMessage: (NSPortMessage*)m;
 
 @end

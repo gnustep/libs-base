@@ -27,6 +27,10 @@
 
 @class NSString, NSArray, NSSet;
 
+/**
+ *  Instances of this class encapsulate host information.  Constructors based
+ *  on host name or numeric address are provided.
+ */
 @interface NSHost : NSObject
 {
   @private
@@ -34,51 +38,82 @@
   NSSet	*_addresses;
 }
 
-/*
- * Get a host object.  Hosts are cached for efficiency.  Only one
- * shared instance of a host will exist.
- * Addresses must be "Dotted Decimal" strings, e.g.
- *
- * NSHost aHost = [NSHost hostWithAddress:@"192.42.172.1"];
- *
+/**
+ * Get current host object.
  */
 + (NSHost*) currentHost;
+
+/**
+ *  Get info for host with given DNS name.
+ */
 + (NSHost*) hostWithName: (NSString*)name;
+
+/**
+ *  Get a host object.  Hosts are cached for efficiency.  The address
+ *  must be an IPV4 "dotted decimal" string, e.g.
+ <example>
+  NSHost aHost = [NSHost hostWithAddress:@"192.42.172.1"];
+ </example>
+ */
 + (NSHost*) hostWithAddress: (NSString*)address;
 
-/*
- * Host cache management
+/**
+ * Set host cache management.
  * If enabled, only one object representing each host will be created, and
  * a shared instance will be returned by all methods that return a host.
  */
 + (void) setHostCacheEnabled: (BOOL)flag;
+
+/**
+ * Return host cache management.
+ * If enabled, only one object representing each host will be created, and
+ * a shared instance will be returned by all methods that return a host.
+ */
 + (BOOL) isHostCacheEnabled;
+
+/**
+ * Clear cache of host info instances.
+ */
 + (void) flushHostCache;
 
-/*
- * Compare hosts
+/**
+ * Compare hosts.
  * Hosts are equal if they share at least one address
  */
 - (BOOL) isEqualToHost: (NSHost*) aHost;
 
-/*
- * Host names.
- * "name" will return one name (arbitrarily chosen) if a host has several.
+/**
+ * Return host name.  Chosen arbitrarily if a host has more than one.
  */
 - (NSString*) name;
+
+/**
+ * Return all known names for host.
+ */
 - (NSArray*) names;
 
-/*
- * Host addresses.
- * Addresses are represented as "Dotted Decimal" strings, e.g.  @"192.42.172.1"
- * "address" will return one address (arbitrarily chosen) if there are several.
+/**
+ * Return host address in "dotted decimal" notation, e.g. "192.42.172.1".
+ * Chosen arbitrarily if a host has more than one.
  */
 - (NSString*) address;
+
+/**
+ * Return all known addresses for host in "dotted decimal" notation,
+ * e.g. "192.42.172.1".
+ */
 - (NSArray*) addresses;
 
 @end
 
+/**
+ *  Adds synonym for +currentHost.
+ */
 @interface NSHost (GNUstep)
+
+/**
+ *  Synonym for +currentHost.
+ */
 + (NSHost*) localHost;		/* All local IP addresses	*/
 @end
 
