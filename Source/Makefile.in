@@ -301,6 +301,7 @@ NSObject.m \
 NSProcessInfo.m \
 NSRange.m \
 NSString.m \
+NSTimeZone.m \
 NSUnarchiver.m \
 NSValue.m
 
@@ -363,6 +364,7 @@ Foundation/NSProcessInfo.h \
 Foundation/NSRange.h \
 Foundation/NSSerialization.h \
 Foundation/NSString.h \
+Foundation/NSTimeZone.h \
 Foundation/NSUnarchiver.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
