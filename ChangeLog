@@ -1,3 +1,10 @@
+Thu Jun 17 14:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSNotification.h: Update to MacOS-X specs.
+	* Source/NSNotification.m: Tidied
+	* Source/NSNotificationCenter.m: Complete rewrite for performance
+	(order of magnitude improvement) and GC.
+
 Thu Jun 17 12:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdnc.m: Only use OpenStep NSNotificationCenter methods.
