@@ -234,17 +234,15 @@ ostream_open_memory (const char *addr, int size, int mode)
   ostream* stream = _ostream_new_stream_struct(mode, &fmode);
   if (addr)
     {
-      stream->stream_obj = [[MemoryStream alloc] _initOnMallocBuffer: addr
-			  size: size
-			  eofPosition: size
-			  prefix: 0
-			  position: 0];
+      stream->stream_obj = [[MemoryStream alloc] 
+			     _initOnMallocBuffer: addr
+			     freeWhenDone: NO
+			     size: size
+			     eofPosition: size
+			     prefix: 0
+			     position: 0];
       if (!stream->stream_obj)
 	return NULL;
-
-      /* xxxFIXME: Now way of telling MemoryStream that we own this buffer
-	 so just ad an extra retain so we never free the stream */
-      [(id)stream->stream_obj retain];
     }
   else
     {
