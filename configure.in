@@ -964,7 +964,7 @@ fi
 
 AC_SUBST(SYSTEM_DEFS)
 
-AC_CONFIG_SUBDIRS(Source/mframe)
+AC_CONFIG_SUBDIRS(Source/mframe SSL)
 
 #--------------------------------------------------------------------
 # Record the version
