@@ -1,6 +1,6 @@
 #include <gnustep/base/preface.h>
 #include <stdio.h>
-#include <gnustep/base/SocketPort.h>
+#include <gnustep/base/TcpPort.h>
 #include <gnustep/base/BinaryCStream.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Proxy.h>
