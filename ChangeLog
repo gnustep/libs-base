@@ -1,3 +1,8 @@
+2000-07-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSGCString.m: implement methods to get numeric values.
+	* Source/NSGString.m: implement methods to get numeric values.
+
 2000-07-19  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/news.tmpl.texi: Update.
