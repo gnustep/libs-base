@@ -1,6 +1,10 @@
 Thu Jun 24 22:05:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
-	* src/NSData.m: Added [NSMutableData +data]
+	* src/NSData.m: Added ([NSMutableData +data])
+	* src/Unicode.m: Efficiency hack for conversion to/from unicode
+	* src/include/NSArray.h:  Added ([-writeToFile:Atomically:])
+	* src/include/NSString.h:  Added GSUndefinedEncoding and comment to
+	make sure nobody deletes it - needed for efficiency hack in Unicode.m
 
 Fri Jun 19 13:37:37 1998  Adam Fedor  <fedor@doc.com>
 
