@@ -55,7 +55,7 @@ main(int argc, char** argv, char **env)
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
-      NSLog(@"defaults: unable to get process information!\n");
+      GSPrintf(stderr, @"defaults: unable to get process information!\n");
       [pool release];
       exit(0);
     }
@@ -178,7 +178,7 @@ main(int argc, char** argv, char **env)
   i = 1;
   if ([args count] <= i)
     {
-      NSLog(@"defaults: too few arguments supplied!\n");
+      GSPrintf(stderr, @"defaults: too few arguments supplied!\n");
       [pool release];
       exit(0);
     }
@@ -190,7 +190,7 @@ main(int argc, char** argv, char **env)
 	}
       else
 	{
-	  NSLog(@"defaults: no name supplied for -u option!\n");
+	  GSPrintf(stderr, @"defaults: no name supplied for -u option!\n");
 	  [pool release];
 	  exit(0);
 	}
@@ -206,7 +206,7 @@ main(int argc, char** argv, char **env)
     }
   if (defs == nil)
     {
-      NSLog(@"defaults: unable to access defaults database!\n");
+      GSPrintf(stderr, @"defaults: unable to access defaults database!\n");
       [pool release];
       exit(0);
     }
@@ -215,7 +215,7 @@ main(int argc, char** argv, char **env)
 
   if ([args count] <= i)
     {
-      NSLog(@"defaults: too few arguments supplied!\n");
+      GSPrintf(stderr, @"defaults: too few arguments supplied!\n");
       [pool release];
       exit(0);
     }
@@ -245,7 +245,7 @@ main(int argc, char** argv, char **env)
 	{
 	  if ([args count] == ++i)
 	    {
-	      NSLog(@"defaults: too few arguments supplied!\n");
+	      GSPrintf(stderr, @"defaults: too few arguments supplied!\n");
 	      [pool release];
 	      exit(0);
 	    }
@@ -528,7 +528,7 @@ main(int argc, char** argv, char **env)
 	  owner = [args objectAtIndex: i++];
 	  if ([args count] <= i)
 	    {
-	      NSLog(@"defaults: no dictionary or key for write!\n");
+	      GSPrintf(stderr, @"defaults: no dictionary or key for write!\n");
 	      [pool release];
 	      exit(0);
 	    }
@@ -571,7 +571,8 @@ main(int argc, char** argv, char **env)
 	      if (domain == nil ||
 			[domain isKindOfClass: [NSDictionary class]] == NO)
 		{
-		  NSLog(@"defaults write: domain is not a dictionary!\n");
+		  GSPrintf(stderr,
+		    @"defaults write: domain is not a dictionary!\n");
 		  [pool release];
 		  exit(0);
 		}
@@ -580,8 +581,9 @@ main(int argc, char** argv, char **env)
 
       if ([defs synchronize] == NO)
 	{
-	  NSLog(@"defaults: unable to write to defaults database - %s\n",
-		strerror(errno));
+	  GSPrintf(stderr,
+	    @"defaults: unable to write to defaults database - %s\n",
+	    strerror(errno));
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"delete"])
@@ -682,8 +684,9 @@ main(int argc, char** argv, char **env)
 	}
       if ([defs synchronize] == NO)
 	{
-	  NSLog(@"defaults: unable to write to defaults database - %s\n",
-		strerror(errno));
+	  GSPrintf(stderr,
+	    @"defaults: unable to write to defaults database - %s\n",
+	    strerror(errno));
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"domains"])
@@ -700,7 +703,7 @@ main(int argc, char** argv, char **env)
     {
       if ([args count] == ++i)
 	{
-	  NSLog(@"defaults: no arguments for find!\n");
+	  GSPrintf(stderr, @"defaults: no arguments for find!\n");
 	  [pool release];
 	  exit(0);
 	}
@@ -756,7 +759,7 @@ main(int argc, char** argv, char **env)
     }
   else
     {
-      NSLog(@"defaults: unknown option supplied!\n");
+      GSPrintf(stderr, @"defaults: unknown option supplied!\n");
     }
 
   [pool release];

@@ -55,7 +55,7 @@ main(int argc, char** argv, char **env)
 
   if ([args count] <= 1)
     {
-      NSLog(@"No file names given to serialize.");
+      GSPrintf(stderr, @"No file names given to serialize.\n");
     }
   else
     {
@@ -72,7 +72,7 @@ main(int argc, char** argv, char **env)
 	      myString = [NSString stringWithContentsOfFile: file];
 	      result = [myString propertyList];
 	      if (result == nil)
-		NSLog(@"Loading '%@' - nil property list", file);
+		GSPrintf(stderr, @"Loading '%@' - nil property list\n", file);
 	      else
 		{
 		  NSFileHandle	*out;
@@ -85,7 +85,8 @@ main(int argc, char** argv, char **env)
 	    }
 	  NS_HANDLER
 	    {
-	      NSLog(@"Loading '%@' - %@", file, [localException reason]);
+	      GSPrintf(stderr, @"Loading '%@' - %@\n", file,
+		[localException reason]);
 	    }
 	  NS_ENDHANDLER
 	}

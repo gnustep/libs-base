@@ -59,8 +59,8 @@ main(int argc, char** argv, char **env)
 
   if ([args count] < 2)
     {
-      NSLog(@"Usage: %@ input-file [destination-file]",
-              [procinfo processName]);
+      GSPrintf(stderr, @"Usage: %@ input-file [destination-file]\n",
+	[procinfo processName]);
       [pool release];
       exit(0);
     }
@@ -82,13 +82,15 @@ main(int argc, char** argv, char **env)
     }
   NS_HANDLER
     {
-      NSLog(@"Parsing '%@' - %@", sourceName, [localException reason]);
+      GSPrintf(stderr, @"Parsing '%@' - %@\n", sourceName,
+	[localException reason]);
     }
   NS_ENDHANDLER
 
   if ((plist == nil) || ![plist isKindOfClass: [NSDictionary class]])
     {
-      NSLog(@"The source property list must contain an NSDictionary.");
+      GSPrintf(stderr,
+	@"The source property list must contain an NSDictionary.\n");
       [pool release];
       exit(1);
     }
@@ -146,9 +148,10 @@ main(int argc, char** argv, char **env)
   }
 
   if ([[fileContents dataUsingEncoding: NSUTF8StringEncoding] 
-	  writeToFile: destName atomically: YES] == NO)
-    NSLog(@"Error writing property list to '%@'", destName);
-
+    writeToFile: destName atomically: YES] == NO)
+    {
+      GSPrintf(stderr, @"Error writing property list to '%@'\n", destName);
+    }
   [pool release];
   exit(0);
 }

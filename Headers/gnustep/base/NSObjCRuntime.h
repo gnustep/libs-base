@@ -69,10 +69,11 @@ GS_EXPORT NSLog_printf_handler	*_NSLog_printf_handler;
 GS_EXPORT int	_NSLogDescriptor;
 @class NSRecursiveLock;
 GS_EXPORT NSRecursiveLock	*GSLogLock();
+GS_EXPORT BOOL	GSPrintf (FILE *fptr, NSString *format, ...);
 #endif
 
-GS_EXPORT void			NSLog (NSString* format, ...);
-GS_EXPORT void			NSLogv (NSString* format, va_list args);
+GS_EXPORT void			NSLog (NSString *format, ...);
+GS_EXPORT void			NSLogv (NSString *format, va_list args);
 
 #ifndef YES
 #define YES		1

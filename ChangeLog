@@ -1,3 +1,13 @@
+2002-10-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Added GSPrintf()
+	* Tools/defaults.m: Use GSPrintf()
+	* Tools/pldes.m: ditto
+	* Tools/plser.m: ditto
+	* Tools/plmerge.m: ditto
+	* Tools/plparse.m: ditto
+	* Tools/sfparse.m: ditto
+
 2002-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/GNUmakefile: revert ... can't build if base library isn't
