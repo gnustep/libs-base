@@ -75,7 +75,8 @@ FILE_AUTHORS = \
 "Mark Lakata" \
 "Jeremy Bettis" \
 "Georg Tuparev" \
-"Peter Burka"
+"Peter Burka" \
+"Albin L. Jones"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
