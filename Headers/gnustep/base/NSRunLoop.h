@@ -125,6 +125,11 @@ typedef	enum {
 
 @interface NSRunLoop(GNUstepExtensions)
 
+#if 0
+/*
+ * The following ten methods are DEPRECATED
+ * They will be removed in later releases of GNUstep
+ */
 + currentInstance;
 + (NSString*) currentMode;
 + (void) run;
@@ -139,6 +144,7 @@ typedef	enum {
 		   forMode: (NSString*)mode;
 - (void) runUntilDate: (NSDate*)limit_date
 	      forMode: (NSString*)mode;
+#endif
 /*
  *	These next two are general purpose methods for letting objects
  *	ask the runloop to watch for events for them.  Only one object

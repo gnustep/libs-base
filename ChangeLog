@@ -1,5 +1,7 @@
 2001-06-21  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSConnection.m: Change some deprecated runloop methods for
+	standard ones.
 	* Source/NSRunLoop.m: ([runMode:beforeDate:]) Check for task
 	completion and send out notifications if required.
         * Source/NSTask.m: ([waitUntilExit]) schedule a timer so that the

@@ -37,6 +37,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSTask.h>
+#include <Foundation/NSTimer.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
 
@@ -525,7 +526,7 @@ pty_slave(const char* name)
        *	Poll at 0.1 second intervals.
        */
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
-      if (timer = nil)
+      if (timer == nil)
 	{
 	  timer = [NSTimer scheduledTimerWithTimeInterval: 0.1
 						   target: nil
