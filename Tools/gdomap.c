@@ -35,6 +35,7 @@
 #ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__MINGW__ */
@@ -4542,10 +4543,12 @@ printf(
        * Try to be the user who launched us ... so they can kill us too.
        */
       setuid (getuid ());
+      setgid (getgid ());
     }
   else
     {
       int	uid = -2;
+      int	gid = -2;
 #ifdef	HAVE_PWD_H
 #ifdef	HAVE_GETPWNAM
       struct passwd *pw = getpwnam("nobody");
@@ -4553,10 +4556,12 @@ printf(
       if (pw != 0)
 	{
 	  uid = pw->pw_uid;
+	  gid = pw->pw_gid;
 	}
 #endif
 #endif
       setuid (uid);
+      setgid (gid);
     }
 #endif /* __MINGW__ */
 
@@ -4572,6 +4577,7 @@ printf(
 	}
       fprintf(fptr, "%d\n", (int) getpid());
       fclose(fptr);
+      chmod(pidfile, 0644);
     }
 
 #if	!defined(__svr4__)
