@@ -48,6 +48,7 @@
 
 - (id) initWithArray: (NSArray*)array;
 - (id) initWithObjects: (id)objects, ...;
+- (id) initWithObjects: firstObject rest: (va_list)ap;
 - (id) initWithSet: (NSSet*)otherSet;
 - (id) initWithSet: (NSSet*)otherSet copyItems: (BOOL)flags;
 
