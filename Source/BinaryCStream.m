@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C binary stream object for use serializing
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Written: Jan 1996
@@ -54,6 +54,8 @@
 #if !defined(BITSPERBYTE) && defined(NeXT)
 #include <mach/vm_param.h>
 #define BITSPERBYTE BYTE_SIZE
+#elif !defined(BITSPERBYTE)
+#define BITSPERBYTE 8		/* a safe guess? */
 #endif
 #define FLOAT_FACTOR ((double)(1 << ((sizeof(int)*BITSPERBYTE)-2)))
 
