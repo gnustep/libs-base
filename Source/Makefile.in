@@ -57,7 +57,7 @@ LIBEXT = .a
 
 # All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
-CFLAGS = -g -O
+CFLAGS = -g -O -Wall
 CPPFLAGS = 
 INCLUDEFLAGS =
 
@@ -155,6 +155,7 @@ RBTree.m \
 RBTreeNode.m \
 RNGAdditiveCongruential.m \
 RNGBerkeley.m \
+RunLoop.m \
 Set.m \
 SplayTree.m \
 Stack.m \
@@ -294,6 +295,7 @@ objects/RandomGenerating.h \
 objects/RawCStream.h \
 objects/Retaining.h \
 objects/RetainingNotifier.h \
+objects/RunLoop.h \
 objects/Set.h \
 objects/SplayTree.h \
 objects/Stack.h \
@@ -398,6 +400,7 @@ NSRange.m \
 NSSet.m \
 NSString.m \
 NSThread.m \
+NSTimer.m \
 NSTimeZone.m \
 NSValue.m
 
@@ -465,6 +468,7 @@ Foundation/NSSerialization.h \
 Foundation/NSSet.h \
 Foundation/NSString.h \
 Foundation/NSThread.h \
+Foundation/NSTimer.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
