@@ -1759,10 +1759,6 @@ static void retDecoder(DOContext *ctxt)
   else
     {
       [coder decodeValueOfObjCType: type at: ctxt->datum];
-      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)ctxt->datum != 0)
-	{
-	  [NSData dataWithBytesNoCopy: *(void**)ctxt->datum length: 1];
-	}
     }
 }
 
@@ -2303,19 +2299,7 @@ static void callDecoder (DOContext *ctxt)
     }
   else
     {
-      void	*datum = ctxt->datum;
-
-      [ctxt->decoder decodeValueOfObjCType: type at: datum];
-      /*
-       * -decodeValueOfObjCType:at: malloc's new memory
-       * for pointers.  We need to make sure it gets freed eventually
-       * so we don't have a memory leak.  Request here that it be
-       * autorelease'ed.
-       */
-      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
-	{
-	  [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
-	}
+      [ctxt->decoder decodeValueOfObjCType: type at: ctxt->datum];
     }
 }
 

@@ -821,14 +821,18 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    }
 	  else
 	    {
+	      char	*tmp;
+
 	      if (xref != GSIArrayCount(_ptrAry))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"extra string crossref - %d", xref];
 		}
-	      (*_dDesImp)(_src, dDesSel, address, @encode(char*), &_cursor,
-		nil);
+	      (*_dDesImp)(_src, dDesSel, &tmp, @encode(char*), &_cursor, nil);
+	      *(void**)address = GSAutoreleasedBuffer(strlen(tmp)+1);
 	      GSIArrayAddItem(_ptrAry, (GSIArrayItem)*(void**)address);
+	      strcpy(*(char**)address, tmp);
+	      NSZoneFree(NSDefaultMallocZone(), tmp);
 	    }
 	  return;
 	}

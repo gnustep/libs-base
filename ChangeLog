@@ -9,7 +9,9 @@
 	* Source/NSArchiver.m: Structure encoding/decoding fixes.
 	* Source/NSData.m: Structure encoding/decoding fixes.
 	* Source/NSPortCoder.m: Structure encoding/decoding fixes.
+	Manage memory used by decoded pointers (including c-strings).
 	* Source/NSUnarchiver.m: Structure encoding/decoding fixes.
+	* Source/NSConnectiom.m: Don't try to autorelease decoded pointers.
 
 2003-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
