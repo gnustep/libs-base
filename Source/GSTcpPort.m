@@ -51,8 +51,13 @@
 
 extern	int	errno;
 
+#if 0
 #define	DO_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
 #define	DO_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"unlock %@",X); [X unlock];}
+#else
+#define	DO_LOCK(X) {[X lock];}
+#define	DO_UNLOCK(X) {[X unlock];}
+#endif
 
 #define	GS_CONNECTION_MSG	0
 #define	NETBLOCK	8192
@@ -305,6 +310,11 @@ newDataWithEncodedPort(GSTcpPort *port)
 
 @implementation	GSTcpHandle
 
+static Class	mutableArrayClass;
+static Class	mutableDataClass;
+static Class	portMessageClass;
+static Class	runLoopClass;
+
 + (id) allocWithZone: (NSZone*)zone
 {
   [NSException raise: NSGenericException
@@ -342,6 +352,17 @@ newDataWithEncodedPort(GSTcpPort *port)
   handle->myLock = [NSRecursiveLock new];
   handle->valid = YES;
   return AUTORELEASE(handle);
+}
+
++ (void) initialize
+{
+  if (self == [GSTcpHandle class])
+    {
+      mutableArrayClass = [NSMutableArray class];
+      mutableDataClass = [NSMutableData class];
+      portMessageClass = [NSPortMessage class];
+      runLoopClass = [NSRunLoop class];
+    }
 }
 
 - (BOOL) connectToPort: (GSTcpPort*)aPort beforeDate: (NSDate*)when
@@ -428,7 +449,7 @@ newDataWithEncodedPort(GSTcpPort *port)
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  while  (state == GS_H_TRYCON && [when timeIntervalSinceNow] > 0)
+  while (state == GS_H_TRYCON && [when timeIntervalSinceNow] > 0)
     {
       [l runMode: NSDefaultRunLoopMode beforeDate: when];
     }
@@ -487,15 +508,16 @@ newDataWithEncodedPort(GSTcpPort *port)
 - (void) dispatch
 {
   NSPortMessage	*pm;
+  GSTcpPort	*rp = [self recvPort];
 
-  pm = [NSPortMessage allocWithZone: NSDefaultMallocZone()];
+  pm = [portMessageClass allocWithZone: NSDefaultMallocZone()];
   pm = [pm initWithSendPort: [self sendPort]
-		receivePort: [self recvPort]
+		receivePort: rp
 		 components: rItems];
   [pm setMsgid: rId];
   rId = 0;
   DESTROY(rItems);
-  [[self recvPort] handlePortMessage: pm];
+  [rp handlePortMessage: pm];
   RELEASE(pm);
 }
 
@@ -536,15 +558,15 @@ newDataWithEncodedPort(GSTcpPort *port)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"GSTcpHandle", @"received %s event",
-    type == ET_RPORT ? "read" : "write");
+  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
+    type == ET_RPORT ? "read" : "write", self);
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
    */
   if (desc < 0)
     {
-      NSRunLoop	*l = [NSRunLoop currentRunLoop];
+      NSRunLoop	*l = [runLoopClass currentRunLoop];
 
       [l removeEvent: data
 		type: ET_WDESC
@@ -565,7 +587,7 @@ newDataWithEncodedPort(GSTcpPort *port)
        */
       if (rData == nil)
 	{
-	  rData = [[NSMutableData alloc] initWithLength: NETBLOCK];
+	  rData = [[mutableDataClass alloc] initWithLength: NETBLOCK];
 	  rWant = sizeof(GSPortItemHeader);
 	  rLength = 0;
 	  want = NETBLOCK;
@@ -648,7 +670,7 @@ newDataWithEncodedPort(GSTcpPort *port)
 			  memcpy(bytes, bytes + rWant, rLength);
 			}
 		      rWant = sizeof(GSPortItemHeader);
-		      d = [NSData new];
+		      d = [mutableDataClass new];
 		      [rItems addObject: d];
 		      RELEASE(d);
 		      if (nItems == [rItems count])
@@ -686,7 +708,9 @@ newDataWithEncodedPort(GSTcpPort *port)
 		  rId = GSSwapBigI32ToHost(h->mId);
 		  nItems = GSSwapBigI32ToHost(h->nItems);
 		  NSAssert(nItems >0, NSInternalInconsistencyException);
-		  rItems = [[NSMutableArray alloc] initWithCapacity: nItems];
+		  rItems
+		    = [mutableArrayClass allocWithZone: NSDefaultMallocZone()];
+		  rItems = [rItems initWithCapacity: nItems];
 		  if (rWant > sizeof(GSPortMsgHeader))
 		    {
 		      NSData	*d;
@@ -696,7 +720,7 @@ newDataWithEncodedPort(GSTcpPort *port)
 		       * the header - so add it to the rItems array.
 		       */
 		      rWant -= sizeof(GSPortMsgHeader);
-		      d = [NSData alloc];
+		      d = [mutableDataClass alloc];
 		      d = [d initWithBytes: bytes + sizeof(GSPortMsgHeader)
 				    length: rWant];
 		      [rItems addObject: d];
@@ -733,7 +757,8 @@ newDataWithEncodedPort(GSTcpPort *port)
 		  NSData	*d;
 
 		  rType = GSP_NONE;
-		  d = [[NSData alloc] initWithBytes: bytes length: rWant];
+		  d = [mutableDataClass allocWithZone: NSDefaultMallocZone()];
+		  d = [d initWithBytes: bytes length: rWant];
 		  [rItems addObject: d];
 		  RELEASE(d);
 		  rLength -= rWant;
@@ -838,7 +863,7 @@ newDataWithEncodedPort(GSTcpPort *port)
 		}
 	      else
 		{
-		  NSLog(@"No messages to write.");
+		  NSLog(@"No messages to write on 0x%x.", self);
 		  return;
 		}
 	    }
@@ -856,7 +881,8 @@ newDataWithEncodedPort(GSTcpPort *port)
 	    }
 	  else
 	    {
-	      NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes", res);
+	      NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes on 0x%x",
+		res, self);
 	      wLength += res;
 	      if (wLength == l)
 		{
@@ -877,12 +903,21 @@ newDataWithEncodedPort(GSTcpPort *port)
 		    }
 		  else
 		    {
+		      NSRunLoop	*l = [runLoopClass currentRunLoop];
+
 		      /*
 		       * message completed - remove from list.
 		       */
+		      NSDebugMLLog(@"GSTcpHandle", @"completed 0x%x on 0x%x",
+			components, self);
 		      wData = nil;
 		      wItem = 0;
 		      [wMsgs removeObjectAtIndex: 0];
+
+		      [l removeEvent: data
+				type: ET_WDESC
+			     forMode: mode
+				 all: NO];
 		    }
 		}
 	    }
@@ -896,10 +931,11 @@ newDataWithEncodedPort(GSTcpPort *port)
   BOOL		sent = NO;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
-  NSDebugMLLog(@"GSTcpHandle", @"Sending message before %@", when);
+  NSDebugMLLog(@"GSTcpHandle", @"Sending message 0x%x on 0x%x(%d) before %@",
+    components, self, desc, when);
   [wMsgs addObject: components];
 
-  l = [NSRunLoop currentRunLoop];
+  l = [runLoopClass currentRunLoop];
 
   RETAIN(self);
 
@@ -912,16 +948,17 @@ newDataWithEncodedPort(GSTcpPort *port)
     {
       [l runMode: NSDefaultRunLoopMode beforeDate: when];
     }
-  [l removeEvent: (void*)(gsaddr)desc
-	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
+  /*
+   * NB. We will remove ourself from the run loop when the message send
+   * is completed, so we don't need to do it here.
+   */
   if ([wMsgs indexOfObjectIdenticalTo: components] == NSNotFound)
     {
       sent = YES;
     }
   RELEASE(self);
-  NSDebugMLLog(@"GSTcpHandle", @"Message send %d", sent);
+  NSDebugMLLog(@"GSTcpHandle", @"Message send 0x%x on 0x%x status %d",
+    components, self, sent);
   return sent;
 }
 
@@ -1575,7 +1612,7 @@ static NSMapTable	*tcpPortMap = 0;
        */
       if (length == 0 && rl != 0)
 	{
-	  header = [[NSMutableData alloc] initWithCapacity: NETBLOCK];
+	  header = [[mutableDataClass alloc] initWithCapacity: NETBLOCK];
 
 	  [header setLength: rl];
 	  [components insertObject: header atIndex: 0];

@@ -278,7 +278,7 @@ typeCheck(char t1, char t2)
 
 
 
-@interface	NSPortCoder (Private)
+@interface	NSPortCoder (Headers)
 - (void) _deserializeHeaderAt: (unsigned*)pos
 		      version: (unsigned*)v
 		      classes: (unsigned*)c
@@ -293,6 +293,22 @@ typeCheck(char t1, char t2)
 
 
 @implementation NSPortCoder
+
+static Class	connectionClass;
+static Class	mutableArrayClass;
+static Class	mutableDataClass;
+static Class	mutableDictionaryClass;
+
++ (void) initialize
+{
+  if (self == [NSPortCoder class])
+    {
+      connectionClass = [NSConnection class];
+      mutableArrayClass = [NSMutableArray class];
+      mutableDataClass = [NSMutableData class];
+      mutableDictionaryClass = [NSMutableDictionary class];
+    }
+}
 
 + (NSPortCoder*) portCoderWithReceivePort: (NSPort*)recv
 				 sendPort: (NSPort*)send
@@ -326,6 +342,12 @@ typeCheck(char t1, char t2)
     }
   if (_clsAry != 0)
     {
+      unsigned	count = GSIArrayCount(_clsAry);
+
+      while (count-- > 0)
+	{
+	  RELEASE(GSIArrayItemAtIndex(_clsAry, count).obj);
+	}
       GSIArrayClear(_clsAry);
       GSIArrayClear(_objAry);
       GSIArrayClear(_ptrAry);
@@ -422,7 +444,7 @@ typeCheck(char t1, char t2)
     }
   else if (pos == -2)
     {
-      return [NSData data];
+      return [mutableDataClass data];
     }
   else
     {
@@ -646,8 +668,6 @@ typeCheck(char t1, char t2)
 			      format: @"decoded nil class"];
 		}
 	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
-              [_cInfo addObject: classInfo];
-	      RELEASE(classInfo);
 	      GSIArrayAddItem(_clsAry, (GSIArrayItem)classInfo);
 	      *(Class*)address = classInfo->class;
 	      /*
@@ -925,7 +945,7 @@ typeCheck(char t1, char t2)
 #if	GS_HAVE_I64
 	  bigval = val;
 #else
-	  val = GSSwapBigI64ToHost(val);
+	  bigval = GSSwapBigI64ToHost(val);
 #endif
 	  break;
 	}
@@ -1232,7 +1252,7 @@ typeCheck(char t1, char t2)
 	  (*_eValImp)(self, eValSel, @encode(Class), &cls);
 	  [obj encodeWithCoder: self];
 	}
-      else if (!_initialPass)
+      else
 	{
 	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
 	}
@@ -1592,7 +1612,8 @@ typeCheck(char t1, char t2)
 
       case _C_ULNG_LNG:
 	(*_eTagImp)(_dst, eTagSel, _GSC_ULNG_LNG | _GSC_S_LNG_LNG);
-	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(unsigned long long), nil);
+	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(unsigned long long),
+	  nil);
 	return;
 
       case _C_FLT:
@@ -1621,8 +1642,8 @@ typeCheck(char t1, char t2)
 {
   BOOL	firstTime;
 
-  _conn = RETAIN([NSConnection connectionWithReceivePort: recv
-						sendPort: send]);
+  _conn = RETAIN([connectionClass connectionWithReceivePort: recv
+						   sendPort: send]);
   if (_comp == nil)
     {
       firstTime = YES;
@@ -1657,8 +1678,8 @@ typeCheck(char t1, char t2)
 	       * the start for use by the port when the encoded data is sent.
 	       * Make the data item the first component of the array.
 	       */
-	      _comp = [NSMutableArray new];
-	      _dst = [_fastCls._NSMutableDataMalloc allocWithZone: _zone];
+	      _comp = [mutableArrayClass new];
+	      _dst = [mutableDataClass allocWithZone: _zone];
 	      _dst = [_dst initWithLength: _cursor];
 	      [_comp addObject: _dst];
 	      RELEASE(_dst);
@@ -1744,12 +1765,7 @@ typeCheck(char t1, char t2)
 	   *	_cInfo is a dictionary of objects for keeping track of the
 	   *	version numbers that the classes were encoded with.
 	   */
-	  if (firstTime == YES)
-	    {
-	      _cInfo
-		= [[NSMutableArray allocWithZone: _zone] initWithCapacity: 16];
-	    }
-	  else
+	  if (firstTime == NO)
 	    {
 	      [_cInfo removeAllObjects];
 	    }
@@ -1778,12 +1794,18 @@ typeCheck(char t1, char t2)
 	    }
 	  else
 	    {
+	      unsigned	count = GSIArrayCount(_clsAry);
+
+	      while (count-- > 0)
+		{
+		  RELEASE(GSIArrayItemAtIndex(_clsAry, count).obj);
+		}
 	      GSIArrayRemoveAllItems(_clsAry);
 	      GSIArrayRemoveAllItems(_objAry);
 	      GSIArrayRemoveAllItems(_ptrAry);
 	    }
-	  GSIArrayAddItem(_clsAry, (GSIArrayItem)0);
-	  GSIArrayAddItem(_objAry, (GSIArrayItem)0);
+	  GSIArrayAddItem(_clsAry, (GSIArrayItem)nil);
+	  GSIArrayAddItem(_objAry, (GSIArrayItem)nil);
 	  GSIArrayAddItem(_ptrAry, (GSIArrayItem)0);
 	}
       NS_HANDLER
@@ -1824,17 +1846,30 @@ typeCheck(char t1, char t2)
 
 - (unsigned) versionForClassName: (NSString*)className
 {
-  GSClassInfo	*info;
+  GSClassInfo	*info = nil;
   unsigned	version = NSNotFound;
-  unsigned	count = [_cInfo count];
+  unsigned	count = GSIArrayCount(_clsAry);
 
-  while (--count > 0)
+  /*
+   * Lazy ... we construct a dictionary of all the class information in
+   * the request the first time that class version info is asked for.
+   */
+  if (_cInfo == nil)
     {
-      info = [_cInfo objectAtIndex: count];
-      if ([[info className] isEqual: className] == YES)
+      _cInfo = [[mutableDictionaryClass alloc] initWithCapacity: count];
+    }
+  if ([_cInfo count] == 0)
+    {
+      while (count-- > 0)
 	{
-	  version = info->version;
+	  info = GSIArrayItemAtIndex(_clsAry, count).obj;
+	  [_cInfo setObject: info forKey: NSStringFromClass(info->class)];
 	}
+    }
+  info = [_cInfo objectForKey: className];
+  if (info != nil)
+    {
+      version = info->version;
     }
   return version;
 }
@@ -1849,6 +1884,10 @@ typeCheck(char t1, char t2)
 {
   return _comp;
 }
+
+@end
+
+@implementation	NSPortCoder (Headers)
 
 - (void) _deserializeHeaderAt: (unsigned*)pos
 		      version: (unsigned*)v

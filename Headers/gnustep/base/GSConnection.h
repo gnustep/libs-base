@@ -63,6 +63,7 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
   BOOL			_independentQueueing;
   BOOL			_authenticateIn;
   BOOL			_authenticateOut;
+  BOOL			_multipleThreads;
   NSPort		*_receivePort;
   NSPort		*_sendPort;
   unsigned		_requestDepth;
@@ -82,8 +83,8 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
   NSMutableArray	*_requestQueue;
   id			_delegate;
   NSRecursiveLock	*_refGate;
-  NSPortCoder		*_cachedDecoder;
-  NSPortCoder		*_cachedEncoder;
+  NSMutableArray	*_cachedDecoders;
+  NSMutableArray	*_cachedEncoders;
 }
 
 + (NSArray*) allConnections;
@@ -141,6 +142,9 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
  *	class, and useful extensions to NSConnection.
  */
 @interface NSConnection (GNUstepExtensions) <GCFinalization>
+
++ (NSConnection*) newRegisteringAtName: (NSString*)n
+			withRootObject: (id)anObject;
 
 - (void) gcFinalize;
 

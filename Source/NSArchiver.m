@@ -359,7 +359,8 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		/*
 		 *	Second pass, write a cross-reference number.
 		 */
-		(*_xRefImp)(_dst, xRefSel, _GSC_PTR|_GSC_XREF, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_PTR|_GSC_XREF,
+		  node->value.uint);
 	      }
 	  }
 	return;
@@ -425,8 +426,8 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		 *	of its subclasses are decoded and call
 		 *	[super initWithCoder:ccc]
 		 */
-		if (s == c || s == 0 ||
-			GSIMapNodeForKey(_clsMap, (GSIMapKey)(void*)s) != 0)
+		if (s == c || s == 0
+		  || GSIMapNodeForKey(_clsMap, (GSIMapKey)(void*)s) != 0)
 		  {
 		    done = YES;
 		  }
@@ -458,7 +459,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    if (node == 0)
 	      {
 		node = GSIMapAddPair(_ptrMap,
-			(GSIMapKey)(void*)s, (GSIMapVal)++_xRefP);
+		  (GSIMapKey)(void*)s, (GSIMapVal)++_xRefP);
 		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.uint);
 		/*
 		 *	Encode selector.
@@ -467,7 +468,8 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      }
 	    else
 	      {
-		(*_xRefImp)(_dst, xRefSel, _GSC_SEL|_GSC_XREF, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_SEL|_GSC_XREF,
+		  node->value.uint);
 	      }
 	  }
 	return;
@@ -784,7 +786,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  (*_eValImp)(self, eValSel, @encode(Class), &cls);
 	  [obj encodeWithCoder: self];
 	}
-      else if(!_initialPass)
+      else
 	{
 	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
 	}
