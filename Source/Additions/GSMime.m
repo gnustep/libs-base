@@ -4118,6 +4118,11 @@ static NSCharacterSet	*tokenSet = nil;
 		  hadCarriageReturn = NO;
 		  lineLength = 0;
 		}
+	      else if (c == '\n')
+		{
+		  encoding = @"binary";		// LF not part of CRLF
+		  break;
+		}
 	      else if (c == '\r')
 		{
 		  hadCarriageReturn = YES;
