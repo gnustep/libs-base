@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __WIN32__
 #include <unistd.h>		/* for gethostname() */
+#ifndef __WIN32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -34,7 +34,9 @@
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
-#ifndef __WIN32__
+#ifdef __WIN32__
+#include <winsock.h>
+#else
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <netdb.h>

@@ -498,7 +498,7 @@ AC_CHECK_HEADERS(values.h)
 # Header files and functions for files and filesystems
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
-AC_CHECK_HEADERS(sys/mount.h)
+AC_CHECK_HEADERS(sys/mount.h sys/types.h)
 AC_CHECK_FUNCS(statvfs)
 
 #--------------------------------------------------------------------
@@ -506,7 +506,7 @@ AC_CHECK_FUNCS(statvfs)
 #--------------------------------------------------------------------
 dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 
-AC_CHECK_HEADERS(sys/rusage.h ucbinclude/sys/resource.h)
+AC_CHECK_HEADERS(sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
 
 #--------------------------------------------------------------------
 # These headers/functions needed by TcpPort.m
@@ -514,10 +514,6 @@ AC_CHECK_HEADERS(sys/rusage.h ucbinclude/sys/resource.h)
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(netinet/in.h)
 dnl AC_REPLACE_FUNCS(recvfrom)
-
-if test $ac_cv_header_sys_socket_h = no -o $ac_cv_header_netinet_in_h = no ; then
-  AC_MSG_ERROR(Could not find socket and networking headers)
-fi
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
@@ -680,52 +676,6 @@ if test $NEED_WORD_ALIGNMENT = 1; then
 else
   AC_MSG_RESULT(no)
 fi
-
-#--------------------------------------------------------------------
-# Tools for making a DLL.
-#--------------------------------------------------------------------
-DLLTOOL='dlltool'
-AC_SUBST(DLLTOOL)
-
-#--------------------------------------------------------------------
-# Custom configuration based upon the target
-#--------------------------------------------------------------------
-
-# On some platforms, ld doesn't link in the complete library which
-# can cause problems with the dynamic nature of ObjC.  Programs call
-# methods for classes which don't exist in the executable!!
-# The variables turn on/off the behaviour of ld to include the
-# whole archive.
-# Note that executable sizes will be larger.
-# Note that these variables are passed to GCC not ld directly
-whole_archive=''
-no_whole_archive=''
-
-case "${target}" in
-  i[[345]]86-*-cygwin32)
-        whole_archive='-Wl,--whole-archive'
-	no_whole_archive='-Wl,--no-whole-archive'
-	LIBS="$LIBS -ladvapi32"
-	# -pipe not supported
-	PIPE=''
-	;;
-  i[[345]]86-*-mingw32)
-        whole_archive='-Wl,--whole-archive'
-	no_whole_archive='-Wl,--no-whole-archive'
-	LIBS="$LIBS -lwsock32 -ladvapi32 -luser32"
-	# Shared library is a DLL
-	if [[ x$SHARED_LIBRARY != x ]]; then
-		SHARED_LIBRARY='lib$(LIBRARY_NAME).dll'
-		# Rename static library if also building a shared library
-		if [[ x$STATIC_LIBRARY != x ]]; then
-			STATIC_LIBRARY='lib$(LIBRARY_NAME)_s$(LIBEXT)'
-			IMPORT_LIBRARY='lib$(LIBRARY_NAME)$(LIBEXT)'
-		fi
-	fi
-	# -pipe not supported
-	PIPE=''
-	;;
-esac
 
 #--------------------------------------------------------------------
 # Include redefinition of main () only if needed.

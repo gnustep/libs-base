@@ -36,14 +36,12 @@
 #include <base/preface.h>
 #include <base/behavior.h>
 #include <base/fast.x>
-#ifndef __WIN32__
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 #include <time.h>
-#endif /* !__WIN32__ */
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __WIN32__
-#include <sys/time.h>
-#endif /* !__WIN32__ */
 
 /* The number of seconds between 1/1/2001 and 1/1/1970 = -978307200. */
 /* This number comes from:

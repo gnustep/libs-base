@@ -30,7 +30,9 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <math.h>
-#ifndef __WIN32__
+#ifdef __WIN32__
+#include <winsock.h>
+#else /* __WIN32__ */
 #if HAVE_VALUES_H
 #include <values.h>		// This gets BITSPERBYTE on Solaris
 #endif

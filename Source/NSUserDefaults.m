@@ -24,15 +24,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#if 0 
-/* My Linux doesn't have <libc.h>.  Why is this necessary? 
-   What is a work-around that will work for all?  -mccallum*/
-#include <libc.h>
-/* If POSIX then:  #include <unistd.h> */
-#endif /* 0 */
-#if	!defined(__WIN32__)
-#include <pwd.h>
-#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>

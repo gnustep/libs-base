@@ -39,31 +39,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
-
-#include <sys/stat.h>
-
-#ifndef __WIN32__
 #include <unistd.h>
-#include <sys/param.h>		/* Needed by sys/stat */
-#endif
-
-/* For DIR and diropen() */
-#if HAVE_DIRENT_H
-# include <dirent.h>
-# define NAMLEN(dirent) strlen((dirent)->d_name)
-#else
-# define dirent direct
-# define NAMLEN(dirent) (dirent)->d_namlen
-# if HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# if HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# if HAVE_NDIR_H
-#  include <ndir.h>
-# endif
-#endif
 
 typedef enum {
   NSBUNDLE_BUNDLE = 1, NSBUNDLE_APPLICATION, NSBUNDLE_LIBRARY
@@ -131,6 +107,26 @@ objc_executable_location( void )
   return [[[NSBundle mainBundle] bundlePath] cString];
 }
 
+static BOOL
+bundle_directory_readable(NSString *path)
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  BOOL directory;
+
+  if (![mgr fileExistsAtPath: path isDirectory: &directory]
+      || !directory)
+    return NO;
+
+  return [mgr isReadableFileAtPath: path];
+}
+
+static BOOL
+bundle_file_readable(NSString *path)
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  return [mgr isReadableFileAtPath: path];
+}
+
 /* Get the object file that should be located in the bundle of the same name */
 static NSString *
 bundle_object_name(NSString *path, NSString* executable)
@@ -186,35 +182,21 @@ _bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
 
 /* Find the first directory entry with a given name (with any extension) */
 static NSString *
-_bundle_path_for_name(NSString* path, NSString* name)
+_bundle_name_first_match(NSString* directory, NSString* name)
 {
-#ifdef __WIN32__
-  return nil;
-#else
-  DIR *thedir;
-  struct dirent *entry;
-  NSString *fullname;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSEnumerator *filelist;
+  NSString *path, *match;
 
-  fullname = NULL;
-  thedir = opendir([path cString]);
-  if(thedir) 
+  path = [directory stringByAppendingPathComponent: name];
+  filelist = [[mgr directoryContentsAtPath: directory] objectEnumerator];
+  while ((match = [filelist nextObject]))
     {
-      while ((entry = readdir(thedir))) 
-	{
-	  if (*(entry->d_name) != '.'
-	      && strncmp([name cString], entry->d_name, [name length]) == 0)
-	    {
-	      fullname = [NSString stringWithCString: entry->d_name];
-	      break;
-	    }
-	}
-      closedir(thedir);
+      if ([path isEqual: [match stringByDeletingPathExtension]])
+	return match;
     }
-  if (!fullname)
-    return nil;
 
-  return [path stringByAppendingPathComponent: fullname];
-#endif
+  return nil;
 }
 
 @interface NSBundle (Private)
@@ -410,7 +392,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 - initWithPath:(NSString *)path;
 {
-  struct stat statbuf;
   [super init];
 
   if (!path || [path length] == 0) 
@@ -453,7 +434,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     }
   [load_lock unlock];
 
-  if (stat([path cString], &statbuf) != 0) 
+  if (bundle_directory_readable(path) == NO)
     {
       NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
       //[self dealloc];
@@ -649,7 +630,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
     [array addObject: _bundle_resource_path(primary, bundlePath, language)];
-    
+     
   primary = rootPath;
   [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
   enumerate = [languages objectEnumerator];
@@ -665,9 +646,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		inDirectory: (NSString *)bundlePath
 		withVersion: (int)version
 {
-  NSString *path;
-  NSArray* paths;
-  NSEnumerator* enumerate;
+  NSString *path, *fullpath;
+  NSEnumerator* pathlist;
     
   if (!name || [name length] == 0) 
     {
@@ -676,19 +656,19 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       /* NOT REACHED */
     }
 
-  paths = [NSBundle _bundleResourcePathsWithRootPath: rootPath
-	     subPath: bundlePath];
-  enumerate = [paths objectEnumerator];
-  while((path = [enumerate nextObject]))
+  pathlist = [[NSBundle _bundleResourcePathsWithRootPath: rootPath
+	       subPath: bundlePath] objectEnumerator];
+  fullpath = nil;
+  while((path = [pathlist nextObject]))
     {
-      NSString* fullpath = nil;
+      if (!bundle_directory_readable(path))
+	continue;
 
       if (ext && [ext length] != 0)
 	{
-	  struct stat statbuf;
 	  fullpath = [path stringByAppendingPathComponent:
 		        [NSString stringWithFormat: @"%@.%@", name, ext]];
-	  if ( stat([fullpath cString], &statbuf) == 0) 
+	  if ( bundle_file_readable(fullpath) )
 	    {
 	      if (gnustep_target_os)
 		{
@@ -696,7 +676,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		  platpath = [path stringByAppendingPathComponent:
 			      [NSString stringWithFormat: @"%@-%@.%@", 
 			       name, gnustep_target_os, ext]];
-		  if ( stat([platpath cString], &statbuf) == 0) 
+		  if ( bundle_file_readable(platpath) )
 		    fullpath = platpath;
 		}
 	    }
@@ -705,40 +685,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	}
       else
 	{
-	  struct stat statbuf;
-	  fullpath = [path stringByAppendingPathComponent:
-		        [NSString stringWithFormat: @"%@", name]];
-	  if ( stat([fullpath cString], &statbuf) == 0) 
+	  fullpath = _bundle_name_first_match(path, name);
+	  if (fullpath && gnustep_target_os)
 	    {
-	      if (gnustep_target_os)
-		{
-		  NSString* platpath;
-		  platpath = [path stringByAppendingPathComponent:
-			      [NSString stringWithFormat: @"%@-%@", 
-			       name, gnustep_target_os]];
-		  if ( stat([platpath cString], &statbuf) == 0) 
-		    fullpath = platpath;
-		}
-	    }
-	  else
-	    {
-	      fullpath = _bundle_path_for_name(path, name);
-	      if (fullpath && gnustep_target_os)
-		{
-		  NSString* platpath;
-		  platpath = _bundle_path_for_name(path, 
-				 [NSString stringWithFormat: @"%@-%@", 
-					   name, gnustep_target_os]);
-		  if (platpath)
-		    fullpath = platpath;
-		}
+	      NSString* platpath;
+	      platpath = _bundle_name_first_match(path, 
+				   [NSString stringWithFormat: @"%@-%@", 
+				   name, gnustep_target_os]);
+	      if (platpath)
+		fullpath = platpath;
 	    }
 	}
       if (fullpath)
-	return fullpath;
+	break;
     }
 
-  return nil;
+  return fullpath;
 }
 
 + (NSString *) pathForResource: (NSString *)name
@@ -786,42 +748,30 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
 			  inDirectory: (NSString *)bundlePath
 {
+  BOOL allfiles;
   NSString *path;
-  NSArray* paths;
-  NSMutableArray* resources;
-  NSEnumerator* enumerate;
+  NSMutableArray *resources;
+  NSEnumerator *pathlist;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
     
-  paths = [NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
-	    subPath: bundlePath];
-  enumerate = [paths objectEnumerator];
+  pathlist = [[NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
+	        subPath: bundlePath] objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
-#ifdef __WIN32__
-#else
-  while((path = [enumerate nextObject]))
-    {
-      DIR *thedir;
-      struct dirent *entry;
+  allfiles = (extension == nil || [extension length] == 0);
 
-      thedir = opendir([path cString]);
-      if (thedir) 
+  while((path = [pathlist nextObject]))
+    {
+      NSEnumerator *filelist;
+      NSString *match;
+
+      filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
+      while ((match = [filelist nextObject]))
 	{
-	  while ((entry = readdir(thedir))) 
-	    {
-	      if (*entry->d_name != '.') 
-		{
-		  char* ext;
-		  ext = strrchr(entry->d_name, '.');
-		  if (!extension || [extension length] == 0
-		      || (ext && strcmp(++ext, [extension cString]) == 0))
-		    [resources addObject: 
-		      [path stringByAppendingPathComponent:
-		        [NSString stringWithCString: entry->d_name]]];
-		}
-	    }
-	  closedir(thedir);
+	  if (allfiles || [extension isEqual: [match pathExtension]])
+	    [resources addObject: match];
 	}
     }
-#endif
+
   return resources;
 }
 

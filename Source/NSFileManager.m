@@ -801,7 +801,7 @@ static NSFileManager* defaultManager = nil;
 
       if (res == WIN32ERR)
         return NO;
-      if (len > 4 && strcmp(&path[len-4], ".exe") == 0)
+      if (len > 4 && strcmp(&cpath[len-4], ".exe") == 0)
 	return YES;
       return NO;
 #else

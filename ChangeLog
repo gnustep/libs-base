@@ -1,3 +1,31 @@
+2000-06-06  Adam Fedor  <fedor@gnu.org>
+
+	* Code cleanup to help with Windows port.
+	* configure.in: Check for some extra headers. Remove obsolete stuff.
+	* Source/BinaryCStream.m: Fix includes for WIN32
+	* Source/NSCalandarDate.m: Likewise.
+	* Source/NSDate.m: Likewise.
+	* Source/NSLog.m: Likewise.
+	* Source/NSPipe.m: Likewise.
+	* Source/NSProcessInfo.m: Likewise.
+	* Source/NSRunLoop.m: Likewise.
+	* Source/NSUserDefaults.m: Likewise.
+	* Source/StdioStream.m: Likewise.
+	* Source/UdpPort.m: Likewise.
+	* Tools/gdomap.c: Likewise.
+
+	* Source/Invocation.m (initWithTarget:selector:): Use proper cast.
+	* Source/NSFileManager.m (-isExecutableFileAtPath): Typo.
+	* Source/NSPage.m (getpagesize): New function for WIN32
+	* Source/NSString.m (-indexOfString): New method.
+	
+	* Source/NSBundle.m (bundle_directory_readable,
+	bundle_file_readable, _bundle_name_first_match): New functions
+	use NSFileManager instead of unix dir functions.
+	(-initWithPath:) Use them.
+	(-pathForResource:...): Likewise.
+	(-pathsForResource:...): Likewise.
+
 2000-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSConnection.h: Changed reply_depth ivar to be

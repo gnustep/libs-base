@@ -597,7 +597,7 @@ my_method_get_next_argument (arglist_t argframe,
 	  {
 	    int copysize;
 	    copysize = objc_sizeof_type(tmptype);
-	    memcpy(datum, (char)va_arg(ap, int), copysize);
+	    memcpy(datum, (char *)va_arg(ap, int), copysize);
 	  } /* default */
 	}
       datum = my_method_get_next_argument (argframe, &tmptype);
