@@ -2,6 +2,7 @@
 #include "second-client.h"
 #include <objects/Connection.h>
 #include <objects/String.h>
+#include <objects/Notification.h>
 
 @implementation SecondServer
 
@@ -34,14 +35,19 @@
 
 - (Connection*) connection: ancestor didConnect: newConn
 {
-  printf("New connection created\n");
-  [newConn registerForInvalidationNotification:self];
-  [newConn setDelegate:self];
+  printf(">>>>New connection 0x%x created\n", (unsigned)newConn);
+  [NotificationDispatcher
+    addObserver: self
+    selector: @selector(connectionBecameInvalid:)
+    name: ConnectionBecameInvalidNotification
+    object: newConn];
+  [newConn setDelegate: self];
   return newConn;
 }
 
-- senderIsInvalid: sender
+- connectionBecameInvalid: notification
 {
+  id sender = [notification object];
   if ([sender isKindOf:[Connection class]])
     {
       id remotes = [sender proxies];
@@ -49,7 +55,7 @@
       int arrayCount = [array count];
       int i, j;
 
-      printf("Connection invalidated\n");
+      printf(">>> Connection 0x%x invalidated\n", (unsigned)sender);
 
       /* This contortion avoids Array's calling -isEqual: on the proxy */
       for (j = 0; j < remotesCount; j++)
@@ -82,7 +88,11 @@ int main(int argc, char *argv[])
   printf("Regsitered server object on localhost with name `secondserver'\n");
 
   [c setDelegate:s];
-  [c registerForInvalidationNotification:s];
+  [NotificationDispatcher
+    addObserver: s
+    selector: @selector(connectionBecameInvalid:)
+    name: ConnectionBecameInvalidNotification
+    object: c];
 
   [c runConnection];
 
