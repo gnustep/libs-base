@@ -10,7 +10,8 @@
 @item New category: ObjectRetaining.  New classes: AutoreleasePool,
 AutoreleaseStack. 
 
-@item Bug fixes: Install next-includes properly.
+@item Bug fixes: Install next-includes properly.  New instructions in
+README.ULTRIX.  Time.m patched for Solaris 2.4.  test12.m free fix.
 
 @end itemize
 
