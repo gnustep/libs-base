@@ -1,3 +1,8 @@
+2003-11-22  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Typo fix - add original CPPFLAGS back when updating 
+	netbsd CPPFLAGS.
+
 2003-11-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSCompatibility.m: Add dummy gcFinalize
