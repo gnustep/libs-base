@@ -1728,9 +1728,9 @@ static BOOL	multi_threaded = NO;
 
       while (node != 0)
 	{
-	  if (node->key.obj != dummyObject)
+	  if (node->value.obj != dummyObject)
 	    {
-	      RELEASE(node->key.obj);
+	      RELEASE(node->value.obj);
 	    }
 	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
