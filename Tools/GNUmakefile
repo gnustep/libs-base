@@ -36,7 +36,8 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-0_6_6.dtd \
 	gsdoc-0_6_7.dtd \
 	gsdoc-1_0_0.dtd \
-	gsdoc-1_0_1.dtd
+	gsdoc-1_0_1.dtd \
+	gsdoc-1_0_1.rnc
 
 # Manual pages to install
 MAN1_PAGES = gdnc.1 autogsdoc.1 cvtenc.1 defaults.1 pldes.1 sfparse.1 xmlparse.1
