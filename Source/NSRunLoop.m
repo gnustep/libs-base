@@ -306,9 +306,9 @@ static inline BOOL timerInvalidated(NSTimer* timer)
  *      Setup for inline operation of arrays.
  */
 
-#define GSI_NEW	1
-
 #define GSI_ARRAY_TYPES       GSUNION_OBJ
+
+#ifdef GSI_NEW
 
 #if	GS_WITH_GC == 0
 #define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
@@ -316,6 +316,18 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 #else
 #define GSI_ARRAY_RELEASE(A, X)	
 #define GSI_ARRAY_RETAIN(A, X)	
+#endif
+
+#else
+
+#if	GS_WITH_GC == 0
+#define GSI_ARRAY_RELEASE(X)	[(X).obj release]
+#define GSI_ARRAY_RETAIN(X)	[(X).obj retain]
+#else
+#define GSI_ARRAY_RELEASE(X)	
+#define GSI_ARRAY_RETAIN(X)	
+#endif
+
 #endif
 
 #include <base/GSIArray.h>

@@ -1376,12 +1376,16 @@ inline void gsedRelease(GSEnumeratedDirectory X)
   closedir(X.pointer);
 }
 
-#define	GSI_NEW	1
 #define GSI_ARRAY_TYPES	0
+#ifdef	GSI_NEW
 #define GSI_ARRAY_TYPE	GSEnumeratedDirectory
-
 #define GSI_ARRAY_RELEASE(A, X)   gsedRelease(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)
+#else
+#define GSI_ARRAY_EXTRA	GSEnumeratedDirectory
+#define GSI_ARRAY_RELEASE(X)   gsedRelease(X.ext)
+#define GSI_ARRAY_RETAIN(X)
+#endif
 
 #include <base/GSIArray.h>
 
