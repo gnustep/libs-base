@@ -2971,6 +2971,85 @@ handle_printf_atsign (FILE *stream,
     [self substringFromIndex: [homedir length] + 1]];
 }
 
+/**
+ * Returns a string formed by extending or truncating the receiver to
+ * newLength characters.  If the new string is larger, it is padded
+ * by appending characters from padString (appending it as many times
+ * as required).  The first character from padString to be appended
+ * is specified by padIndex.<br />
+ */
+- (NSString*) stringByPaddingToLength: (unsigned int)newLength
+			   withString: (NSString*)padString
+		      startingAtIndex: (unsigned int)padIndex
+{
+  unsigned	length = [self length];
+  unsigned	padLength;
+
+  if (padString == nil || [padString isKindOfClass: [NSString class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"%@ - Illegal pad string", NSStringFromSelector(_cmd)];
+    }
+  padLength = [padString length];
+  if (padIndex >= padLength)
+    {
+      [NSException raise: NSRangeException
+	format: @"%@ - pad index larger too big", NSStringFromSelector(_cmd)];
+    }
+  if (newLength == length)
+    {
+      return self;
+    }
+  else if (newLength < length)
+    {
+      return [self substringToIndex: newLength];
+    }
+  else
+    {
+      length = newLength - length;	// What we want to add.
+      if (length <= (padLength - padIndex))
+	{
+	  return [self stringByAppendingString:
+	    [padString substringWithRange: NSMakeRange(padIndex, length)]];
+	}
+      else
+	{
+	  NSMutableString	*m = [self mutableCopy];
+
+	  if (padIndex > 0)
+	    {
+	      [m appendString:
+		[padString substringWithRange: NSMakeRange(padIndex, length)]];
+	      length -= (padLength - padIndex);
+	    }
+	  /*
+	   * In case we have to append a small string lots of times,
+	   * we cache the method impllementation to do it.
+	   */
+	  if (length >= padLength)
+	    {
+	      void	(*appImp)(NSMutableString*, SEL, NSString*);
+	      SEL	appSel;
+
+	      appSel = @selector(appendString:);
+	      appImp = (void (*)(NSMutableString*, SEL, NSString*))
+		[m methodForSelector: appSel];
+	      while (length >= padLength)
+		{
+		  (*appImp)(m, appSel, padString);
+		  length -= padLength;
+		}
+	    }
+	  if (length > 0)
+	    {
+	      [m appendString:
+		[padString substringWithRange: NSMakeRange(0, length)]];
+	    }
+	  return AUTORELEASE(m);
+	}
+    }
+}
+
 - (NSString*) stringByResolvingSymlinksInPath
 {
 #if defined(__MINGW__)
@@ -3248,6 +3327,63 @@ handle_printf_atsign (FILE *stream,
 #else
   return [s stringByResolvingSymlinksInPath];
 #endif
+}
+
+/**
+ * Return a string formed by removing characters from the ends of the
+ * receiver.  Characters are removed only if they are in aSet.<br />
+ * If the string consists entirely of characters in aSet, an empty
+ * string is returned.<br />
+ * The aSet argument nust not be nil.<br />
+ */
+- (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet
+{
+  unsigned	length = [self length];
+  unsigned	end = length;
+  unsigned	start = 0;
+
+  if (aSet == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"%@ - nil character set argument", NSStringFromSelector(_cmd)];
+    }
+  if (length > 0)
+    {
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      BOOL	(*mImp)(id, SEL, unichar);
+      unichar	letter;
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      mImp = (BOOL(*)(id,SEL,unichar)) [aSet methodForSelector: cMemberSel];
+
+      while (end > 0)
+	{
+	  letter = (*caiImp)(self, caiSel, end-1);
+	  if ((*mImp)(aSet, cMemberSel, letter) == NO)
+	    {
+	      break;
+	    }
+	  end--;
+	}
+      while (start < end)
+	{
+	  letter = (*caiImp)(self, caiSel, start);
+	  if ((*mImp)(aSet, cMemberSel, letter) == NO)
+	    {
+	      break;
+	    }
+	  start++;
+	}
+    }
+  if (start == 0 && end == length)
+    {
+      return self;
+    }
+  if (start == end)
+    {
+      return @"";
+    }
+  return [self substringFromRange: NSMakeRange(start, end - start)];
 }
 
 // private methods for Unicode level 3 implementation
