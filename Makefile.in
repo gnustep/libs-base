@@ -88,9 +88,9 @@ distclean-top:
 maintainer-clean-top:
 
 mostlyclean: mostlyclean-top mostlyclean-subdirs
-clean: mostlyclean-top clean-subdirs
-distclean: clean-top distclean-subdirs
-maintainer-clean: maintainer-clean-subdirs distclean-top
+clean: clean-top clean-subdirs
+distclean: distclean-top distclean-subdirs
+maintainer-clean: maintainer-clean-top maintainer-clean-subdirs
 
 snap: $(DIST_FILES)
 	rm -rf snap
