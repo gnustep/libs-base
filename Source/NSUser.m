@@ -26,11 +26,13 @@
 #include <base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPathUtilities.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSUserDefaults.h>
 
 #include <stdlib.h>		// for getenv()
 #if !defined(__WIN32__) && !defined(_WIN32)
@@ -39,38 +41,62 @@
 #endif
 #include <sys/types.h>
 
-/* Return the caller's login name as an NSString object. */
+static NSString	*theUserName = nil;
+
+void
+GSSetUserName(NSString* name)
+{
+  if (theUserName == nil)
+    theUserName = RETAIN(name);
+  else if ([theUserName isEqualToString: name] == NO)
+    {
+      ASSIGN(theUserName, name);
+      [NSUserDefaults resetUserDefaults];
+    }
+}
+
+/*
+ * Return the caller's login name as an NSString object.
+ * The 'LOGNAME' environment variable is our primary source, but we use
+ * other system-dependent sources if LOGNAME is not set.
+ */
 NSString *
 NSUserName ()
 {
+  if (theUserName == nil)
+    {
+      const char *login_name = 0;
 #if defined(__WIN32__) || defined(_WIN32)
-  /* The GetUserName function returns the current user name */
-  char buf[1024];
-  DWORD n = 1024;
+      /* The GetUserName function returns the current user name */
+      char buf[1024];
+      DWORD n = 1024;
 
-  if (GetUserName(buf, &n))
-    return [NSString stringWithCString: buf];
-  else
-    return [NSString stringWithCString: ""];
-#elif __SOLARIS__ || defined(BSD)
-  int uid = geteuid(); // get the effective user id
-  struct passwd *pwent = getpwuid (uid);
-  NSString* name = [NSString stringWithCString: pwent->pw_name];
-  return name;
+      if (GetEnvironmentVariable("LOGNAME", buf, 1024))
+	login_name = buf;
+      else if (GetUserName(buf, &n))
+	login_name = buf;
 #else
-  const char *login_name = getlogin ();
-  
-  if (!login_name)
-        login_name = cuserid(NULL);
-
-  if (!login_name)
-        login_name= getenv ("LOGNAME");
-
-  if (login_name)
-    return [NSString stringWithCString: login_name];
-  else
-    return nil;
+      login_name = getenv("LOGNAME");
+      if (login_name == 0 || getpwnam(login_name) == 0)
+	{
+#  if __SOLARIS__ || defined(BSD)
+	  int uid = geteuid(); // get the effective user id
+	  struct passwd *pwent = getpwuid (uid);
+	  login_name = pwent->pw_name;
+#  else
+	  login_name = getlogin();
+	  if (!login_name)
+	    login_name = cuserid(NULL);
+#  endif
+	}
 #endif
+      if (login_name)
+	GSSetUserName([NSString stringWithCString: login_name]);
+      else
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"Unable to determine curren user name"];
+    }
+  return theUserName;
 }
 
 /* Return the caller's home directory as an NSString object. */
@@ -78,8 +104,6 @@ NSString *
 NSHomeDirectory ()
 {
   return NSHomeDirectoryForUser (NSUserName ());
-  /* xxx Was using this.  Is there a reason to prefer it?
-     return [NSString stringWithCString: getenv ("HOME")]; */
 }
 
 /* Return LOGIN_NAME's home directory as an NSString object. */

@@ -79,6 +79,17 @@ static NSMutableString   *processName = nil;
 /*************************************************************************
  *** Getting the Shared Instance
  *************************************************************************/
+static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
+
++ (void) resetUserDefaults
+{
+  id	defs = sharedDefaults;
+
+  setSharedDefaults = NO;
+  sharedDefaults = nil;
+  [defs release];
+}
+
 + (NSUserDefaults *)standardUserDefaults
   /*
     Returns the shared defaults object. If it doesn't exist yet, it's
@@ -88,11 +99,9 @@ static NSMutableString   *processName = nil;
     convenience; other instances may also be created.
     */
 {
-  static BOOL	beenHere = NO;	/* Flag to prevent infinite recursion */
-
-  if (beenHere)
+  if (setSharedDefaults)
     return sharedDefaults;
-  beenHere = YES;
+  setSharedDefaults = YES;
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
   sharedDefaults = [[self alloc] init];
 	
@@ -663,10 +672,15 @@ static NSMutableString   *processName = nil;
     }
   else
     {
+      NSDictionary	*attr;
+
+      attr = [NSDictionary dictionaryWithObjectsAndKeys:
+		NSUserName(), NSFileOwnerAccountName, nil];
       NSLog(@"Creating defaults database file %@", defaultsDatabase);
       [[NSFileManager defaultManager] createFileAtPath: defaultsDatabase
-				  contents: nil
-				  attributes: nil];
+					      contents: nil
+					    attributes: attr];
+      [[NSDictionary dictionary] writeToFile: defaultsDatabase atomically: YES];
     }
 
   if (!newDict)

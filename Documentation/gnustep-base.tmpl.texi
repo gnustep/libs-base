@@ -90,12 +90,6 @@ into another language, under the above conditions for modified versions.
 @c News
 @include news.texi
 
-@c Status Report
-@include status.texi
-
-@c The ToDo
-@include todo.texi
-
 @c Generate Short Contents
 @shortcontents
 

@@ -107,10 +107,11 @@ static int debug_run_loop = 0;
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
  
-@interface RunLoopWatcher: NSObject
+@interface RunLoopWatcher: NSObject <GCFinalization>
 {
 @public
   BOOL			invalidated;
+  BOOL			handleEvent;	// New-style event handling
   void			*data;
   id			receiver;
   RunLoopEventType	type;
@@ -130,9 +131,9 @@ static int debug_run_loop = 0;
 
 - (void) dealloc
 {
-  [self invalidate];
-  [limit release];
-  [receiver release];
+  [self gcFinalize];
+  RELEASE(limit);
+  RELEASE(receiver);
   [super dealloc];
 }
 
@@ -144,8 +145,7 @@ static int debug_run_loop = 0;
       return;
     }
 
-  if ([receiver respondsToSelector:
-		@selector(receivedEvent:type:extra:forMode:)])
+  if (handleEvent)
     {
       [receiver receivedEvent: data type: type extra: info forMode: mode];
     }
@@ -155,21 +155,27 @@ static int debug_run_loop = 0;
 	{
 	  case ET_RDESC:
 	  case ET_RPORT:
-	    [receiver readyForReadingOnFileDescriptor: (int)info];
+	    [receiver readyForReadingOnFileDescriptor: (int)(gsaddr)info];
 	    break;
 
 	  case ET_WDESC:
-	    [receiver readyForWritingOnFileDescriptor: (int)info];
+	    [receiver readyForWritingOnFileDescriptor: (int)(gsaddr)info];
 	    break;
 	}
     }
 }
 
-- initWithType: (RunLoopEventType)aType
-      receiver: (id)anObj
-          data: (void*)item
+- (void) gcFinalize
+{
+  [self invalidate];
+}
+
+- (id) initWithType: (RunLoopEventType)aType
+	   receiver: (id)anObj
+	       data: (void*)item
 {
   invalidated = NO;
+
   switch (aType)
     {
       case ET_RDESC:	type = aType;	break;
@@ -179,7 +185,12 @@ static int debug_run_loop = 0;
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];
     }
-  receiver = [anObj retain];
+  receiver = RETAIN(anObj);
+  if ([receiver respondsToSelector:
+		@selector(receivedEvent:type:extra:forMode:)])
+    handleEvent = YES;
+  else
+    handleEvent = NO;
   data = item;
   return self;
 }
@@ -224,7 +235,7 @@ static int debug_run_loop = 0;
  *	messages which are due to be sent to objects once a particular
  *	runloop iteration has passed.
  */
-@interface RunLoopPerformer: NSObject
+@interface RunLoopPerformer: NSObject <GCFinalization>
 {
   SEL		selector;
   id		target;
@@ -252,10 +263,10 @@ static int debug_run_loop = 0;
 
 - (void) dealloc
 {
-  [timer invalidate];
-  [target release];
-  [argument release];
-  [modes release];
+  [self gcFinalize];
+  RELEASE(target);
+  RELEASE(argument);
+  RELEASE(modes);
   [super dealloc];
 }
 
@@ -264,11 +275,16 @@ static int debug_run_loop = 0;
   if (timer != nil)
     {
       timer = nil;
-      [[self retain] autorelease];
+      AUTORELEASE(RETAIN(self));
       [[[NSRunLoop currentInstance] _timedPerformers]
 		removeObjectIdenticalTo: self];
     }
   [target performSelector: selector withObject: argument];
+}
+
+- (void) gcFinalize
+{
+  [timer invalidate];
 }
 
 - initWithSelector: (SEL)aSelector
@@ -281,8 +297,8 @@ static int debug_run_loop = 0;
   if (self)
     {
       selector = aSelector;
-      target = [aTarget retain];
-      argument = [anArgument retain];
+      target = RETAIN(aTarget);
+      argument = RETAIN(anArgument);
       order = theOrder;
       modes = [theModes copy];
     }
@@ -331,8 +347,8 @@ static int debug_run_loop = 0;
   NSMutableArray	*array;
   int			i;
 
-  [target retain];
-  [arg retain];
+  RETAIN(target);
+  RETAIN(arg);
   array = [[NSRunLoop currentInstance] _timedPerformers];
   for (i = [array count]; i > 0; i--)
     {
@@ -343,8 +359,8 @@ static int debug_run_loop = 0;
 	  [array removeObjectAtIndex: i-1];
 	}
     }
-  [arg release];
-  [target release];
+  RELEASE(arg);
+  RELEASE(target);
 }
 
 - (void) performSelector: (SEL)aSelector
@@ -366,7 +382,7 @@ static int debug_run_loop = 0;
 						 selector: @selector(fire)
 						 userInfo: nil
 						  repeats: NO]];
-  [item release];
+  RELEASE(item);
 }
 
 - (void) performSelector: (SEL)aSelector
@@ -398,7 +414,7 @@ static int debug_run_loop = 0;
 				userInfo: nil
 				 repeats: NO];
   [item setTimer: timer];
-  [item release];
+  RELEASE(item);
   for (i = 0; i < [modes count]; i++)
     {
       [loop addTimer: timer forMode: [modes objectAtIndex: i]];
@@ -438,8 +454,8 @@ static int debug_run_loop = 0;
   if (watchers == nil)
     {
       watchers = [NSMutableArray new];
-      NSMapInsert (_mode_2_watchers, mode, watchers);
-      [watchers release];
+      NSMapInsert(_mode_2_watchers, mode, watchers);
+      RELEASE(watchers);
       count = 0;
     }
   else
@@ -592,7 +608,7 @@ static int debug_run_loop = 0;
 					     data: data];
       /* Add the object to the array for the mode. */
       [self _addWatcher:info forMode:mode];
-      [info release];		/* Now held in array.	*/
+      RELEASE(info);		/* Now held in array.	*/
     }
 }
 
@@ -683,11 +699,12 @@ static int debug_run_loop = 0;
   /* Positive values are in the future. */
   while (ti > 0 && mayDoMore == YES)
     {
-      id arp = [NSAutoreleasePool new];
+      CREATE_AUTORELEASE_POOL(arp);
+
       if (debug_run_loop)
 	printf ("\tNSRunLoop run until date %f seconds from now\n", ti);
       mayDoMore = [self runMode: mode beforeDate: date];
-      [arp release];
+      RELEASE(arp);
       ti = [date timeIntervalSinceNow];
     }
 }
@@ -698,7 +715,7 @@ static int debug_run_loop = 0;
 
 @implementation NSRunLoop
 
-+ currentRunLoop
++ (NSRunLoop*) currentRunLoop
 {
   static NSString	*key = @"NSRunLoopThreadKey";
   NSRunLoop*	r;
@@ -710,7 +727,7 @@ static int debug_run_loop = 0;
     {
       r = [NSRunLoop new];
       [[t threadDictionary] setObject: r forKey: key];
-      [r release];
+      RELEASE(r);
     }
   return r;
 }
@@ -722,7 +739,7 @@ static int debug_run_loop = 0;
 }
 
 /* This is the designated initializer. */
-- init
+- (id) init
 {
   [super init];
   _current_mode = NSDefaultRunLoopMode;
@@ -737,11 +754,16 @@ static int debug_run_loop = 0;
 
 - (void) dealloc
 {
+  [self gcFinalize];
+  RELEASE(_performers);
+  RELEASE(_timedPerformers);
+  [super dealloc];
+}
+
+- (void) gcFinalize
+{
   NSFreeMapTable(_mode_2_timers);
   NSFreeMapTable(_mode_2_watchers);
-  [_performers release];
-  [_timedPerformers release];
-  [super dealloc];
 }
 
 - (NSString*) currentMode
@@ -762,7 +784,7 @@ static int debug_run_loop = 0;
     {
       timers = [Heap new];
       NSMapInsert (_mode_2_timers, mode, timers);
-      [timers release];
+      RELEASE(timers);
     }
   /* xxx Should we make sure it isn't already there? */
   [timers addObject: timer];
@@ -801,7 +823,7 @@ static int debug_run_loop = 0;
 	      break;
 	    }
 
-	  [min_timer retain];
+	  RETAIN(min_timer);
 	  [timers removeFirstObject];
 	  /* Firing will also increment its fireDate, if it is repeating. */
 	  [min_timer fire];
@@ -809,7 +831,7 @@ static int debug_run_loop = 0;
 	    {
 	      [timers addObject: min_timer];
 	    }
-	  [min_timer release];
+	  RELEASE(min_timer);
 	  min_timer = nil;
 	  [NSNotificationQueue runLoopASAP];	/* Post notifications. */
 	}
@@ -871,11 +893,11 @@ static int debug_run_loop = 0;
 		   *	If the watcher has been given a revised limit date -
 		   *	re-insert it into the queue in the correct place.
 		   */
-		  [min_watcher retain];
+		  RETAIN(min_watcher);
 		  ASSIGN(min_watcher->limit, nxt);
 		  [watchers removeObjectAtIndex: 0];
 		  [self _addWatcher: min_watcher forMode: mode];
-		  [min_watcher release];
+		  RELEASE(min_watcher);
 		}
 	      else
 		{
@@ -1204,14 +1226,14 @@ static int debug_run_loop = 0;
         {
 	  id watcher = (id) NSMapGet (wfd_2_object, (void*)fd_index);
 	  NSAssert(watcher, NSInternalInconsistencyException);
-	  [watcher eventFor:(void*)fd_index mode:_current_mode];
+	  [watcher eventFor: (void*)(gsaddr)fd_index mode: _current_mode];
           [NSNotificationQueue runLoopASAP];
         }
       if (FD_ISSET (fd_index, &read_fds))
         {
 	  id watcher = (id) NSMapGet (rfd_2_object, (void*)fd_index);
 	  NSAssert(watcher, NSInternalInconsistencyException);
-	  [watcher eventFor:(void*)fd_index mode:_current_mode];
+	  [watcher eventFor: (void*)(gsaddr)fd_index mode: _current_mode];
           [NSNotificationQueue runLoopASAP];
         }
     }
@@ -1250,12 +1272,12 @@ static int debug_run_loop = 0;
     }
 
   /* Use the earlier of the two dates we have. */
-  d = [[d earlierDate:date] retain];
+  d = RETAIN([d earlierDate: date]);
 
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode beforeDate: d];
 
-  [d release];
+  RELEASE(d);
   return YES;
 }
 
@@ -1297,8 +1319,8 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
   int			count = [_performers count];
   int			i;
 
-  [target retain];
-  [argument retain];
+  RETAIN(target);
+  RETAIN(argument);
   for (i = count; i > 0; i--)
     {
       item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
@@ -1308,8 +1330,8 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 	  [_performers removeObjectAtIndex:(i-1)];
 	}
     }
-  [argument release];
-  [target release];
+  RELEASE(argument);
+  RELEASE(target);
 }
 
 - (void) configureAsServer
@@ -1353,7 +1375,7 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 	  [_performers addObject:item];
 	}
     }
-  [item release];
+  RELEASE(item);
 }
 
 - (void) removePort: (NSPort*)port

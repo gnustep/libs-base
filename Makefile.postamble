@@ -74,7 +74,6 @@ after-distclean::
 
 configure: configure.in
 	autoconf
-	autoheader
 
 # Regenerate automatically generated files
 regenerate: stamp-regenerate
@@ -84,36 +83,3 @@ stamp-regenerate: ChangeLog configure
 	  (cd $$i; $(MAKE) $(MAKEDEFINES) regenerate); \
 	done
 	touch stamp-regenerate
-
-snapshot: 
-	@echo Making $(PACKAGE_NAME) snapshot
-	cvs export -r snapshot-`date +%y%m%d` $(PACKAGE_NAME)
-	rm -f .name
-	echo $(PACKAGE_NAME)-`date +%y%m%d` >.name
-	rm -rf `cat .name`
-	mv $(PACKAGE_NAME) `cat .name`
-	tar -chvf `cat .name`.tar `cat .name`
-	rm -f `cat .name`.tar.gz
-	gzip -9 `cat .name`.tar
-	rm -rf `cat .name`
-
-dist: 
-	@echo Making $(PACKAGE_NAME) release $(VERSION)
-	cvs export -r release-`echo $(VERSION) | tr . -` $(PACKAGE_NAME)
-	mv $(PACKAGE_NAME) $(PACKAGE_NAME)-$(VERSION)
-	tar -chvf $(PACKAGE_NAME)-$(VERSION).tar \
-		$(PACKAGE_NAME)-$(VERSION)
-	rm -f $(PACKAGE_NAME)-$(VERSION).tar.gz
-	gzip -9 $(PACKAGE_NAME)-$(VERSION).tar
-	rm -rf $(PACKAGE_NAME)-$(VERSION)
-
-snapshot-rtag:
-	@echo Tagging current base HEAD for snapshot `date +%y%m%d`
-	cvs rtag snapshot-`date +%y%m%d` $(PACKAGE_NAME)
-
-dist-rtag:
-	@echo Tagging current base HEAD for release $(VERSION)
-	cvs rtag release-`echo $(VERSION) | tr . -` $(PACKAGE_NAME)
-
-rdiff:
-	cvs rdiff -u -r $(OLD) $(PACKAGE_NAME)

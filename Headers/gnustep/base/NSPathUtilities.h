@@ -27,9 +27,21 @@
 #include <base/preface.h>
 #include <Foundation/NSString.h>
 
-extern NSString *NSUserName ();
-extern NSString *NSHomeDirectory ();
-extern NSString *NSHomeDirectoryForUser (NSString *userName);
+#ifndef	NO_GNUSTEP
+/*
+ * This extension permits a change of username from that specified in the
+ * LOGNAME environment variable.  Using it will almost certainly cause
+ * trouble if the process does not posess the file access priviliges of the
+ * new name.  This is provided primarily for use by processes that run as
+ * system-manager and need to act as particular users.  If uses the
+ * [NSUserDefaults +resetUserDefaults] extension to reset the defaults system
+ * to use the defaults belonging to the new user.
+ */
+extern void	GSSetUserName(NSString *name);
+#endif
+extern NSString *NSUserName();
+extern NSString *NSHomeDirectory();
+extern NSString *NSHomeDirectoryForUser(NSString *userName);
 
 #ifndef STRICT_OPENSTEP
 extern NSString *NSFullUserName(void);

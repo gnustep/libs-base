@@ -110,9 +110,10 @@ extern void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_HANDLER _NSRemoveHandler(&NSLocalHandler); } else { \
 		    NSException *localException;               \
-		    localException = NSLocalHandler.exception;
+		    localException = NSLocalHandler.exception; \
+		    {
 
-#define NS_ENDHANDLER }}
+#define NS_ENDHANDLER }}}
 
 #define NS_VALRETURN(val)  do { typeof(val) temp = (val);	\
 			_NSRemoveHandler(&NSLocalHandler);	\

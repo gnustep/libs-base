@@ -35,9 +35,9 @@ DOCUMENT_NAME = gnustep-base
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
-TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE STATUS
+INSTALL NEWS CODING-STANDARDS README ANNOUNCE 
 
-TOP_DOC_FILES = TODO INSTALL NEWS README ANNOUNCE STATUS
+TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE 
 
 gnustep-base_TEXI_FILES = \
 version.tmpl.texi \
@@ -47,9 +47,7 @@ announce.tmpl.texi \
 coding-standards.tmpl.texi \
 install.tmpl.texi \
 news.tmpl.texi \
-readme.tmpl.texi \
-status.tmpl.texi \
-todo.tmpl.texi
+readme.tmpl.texi
 
 TODO_TEXI_FILES = version.tmpl.texi
 TODO_TEXT_MAIN = todo.tmpl.texi
