@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <objects/Array.h>
 #include <objects/NSString.h>
+#include <objects/behavior.h>
 
 @implementation KeyEnumerator
 
@@ -42,6 +43,7 @@
 - initWithObjects: (id*)objects forKeys: (id*)keys count: (unsigned)c
 {
   [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 
@@ -50,11 +52,13 @@
 - objectAtKey: aKey
 {
   [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - keyOfObject: aContentObject
 {
   [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 
@@ -76,7 +80,7 @@
 	   autorelease];
 }
 
-- withKeysInvoke: (id <Invoking>)anInvocation
+- (void) withKeysInvoke: (id <Invoking>)anInvocation
 {
   id o, k;
 
@@ -87,7 +91,7 @@
   END_FOR_KEYED_COLLECTION(self);
 }
 
-- withKeysInvoke: (id <Invoking>)anInvocation
+- (void) withKeysInvoke: (id <Invoking>)anInvocation
     whileTrue: (BOOL *)flag
 {
   id o, k;
@@ -113,6 +117,7 @@
 - nextObjectAndKey: (id*)keyPtr withEnumState: (void**)enumState
 {
   [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 
@@ -156,11 +161,13 @@
 - copyValuesAs: (Class)aCollectingClass
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 - copyKeysAs: (Class)aCollectingClass;
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 
