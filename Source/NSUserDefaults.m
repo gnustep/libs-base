@@ -228,8 +228,16 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSEnumerator *enumerator;
 
   if (setSharedDefaults)
-    return sharedDefaults;
+    {
+      return sharedDefaults;
+    }
   setSharedDefaults = YES;
+  /*
+   * Get the user languages *before* setting up sharedDefaults, to avoid
+   * the userLanguages method trying to look up languages in a partially
+   * constructed user defaults object.
+   */
+  uL = [[self class] userLanguages];
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
   sharedDefaults = [[self alloc] init];
   if (sharedDefaults == nil)
@@ -243,7 +251,6 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   /* Set up language constants */
   added_locale = NO;
   added_lang = NO;
-  uL = [[self class] userLanguages];
   enumerator = [uL objectEnumerator];
   while ((lang = [enumerator nextObject]))
     {
@@ -308,14 +315,26 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       tempDefaults = [[self alloc] init];
       if (tempDefaults != nil)
 	{	
-	  [tempDefaults __createStandardSearchList];
+	  NSMutableArray	*sList;
+
+	  /*
+	   * Can't use the standard method to set up a search list,
+	   * it would cause mutual recursion as it includes languages.
+	   */
+	  sList = [[NSMutableArray alloc] initWithCapacity: 4];
+	  [sList addObject: NSArgumentDomain];
+	  [sList addObject: processName];
+	  [sList addObject: NSGlobalDomain];
+	  [sList addObject: NSRegistrationDomain];
+	  [tempDefaults setSearchList: sList];
+	  RELEASE(sList);
 	  currLang = [tempDefaults stringArrayForKey: @"Languages"];
-	  RELEASE(tempDefaults);
+	  AUTORELEASE(tempDefaults);
 	}
     }
   else
     {
-      currLang =  [[self standardUserDefaults] stringArrayForKey: @"Languages"];
+      currLang = [[self standardUserDefaults] stringArrayForKey: @"Languages"];
     }
   if (currLang == nil && locale != 0 && GSLanguageFromLocale(locale))
     {
@@ -1025,8 +1044,8 @@ static NSString	*pathForUser(NSString *user)
  *************************************************************************/
 - (void) __createStandardSearchList
 {
-  NSArray	*uL = [[self class] userLanguages];
-  NSEnumerator	*enumerator = [uL objectEnumerator];
+  NSArray	*uL;
+  NSEnumerator	*enumerator;
   id		object;
 	
   // Note: The search list should exist!
@@ -1041,6 +1060,8 @@ static NSString	*pathForUser(NSString *user)
   [_searchList addObject: NSGlobalDomain];
 	
   // 4. User's preferred languages
+  uL = [[self class] userLanguages];
+  enumerator = [uL objectEnumerator];
   while ((object = [enumerator nextObject]))
     {
       [_searchList addObject: object];
