@@ -72,14 +72,6 @@
 #define	GSI_MAP_HAS_VALUE	1
 #endif
 
-/*
- * If GSI_NEW is defined we expect to pass a pointer to the maptable as
- * the first argument to each macro so we can have the macros behave
- * differently for different maptables.
- * The old version will become obsolete and be removed at some point.
- */
-#ifdef	GSI_NEW
-
 #ifndef	GSI_MAP_RETAIN_KEY
 #define	GSI_MAP_RETAIN_KEY(M, X)	[(X).obj retain]
 #endif
@@ -97,29 +89,6 @@
 #endif
 #ifndef	GSI_MAP_EQUAL
 #define	GSI_MAP_EQUAL(M, X, Y)		[(X).obj isEqual: (Y).obj]
-#endif
-
-#else
-
-#ifndef	GSI_MAP_RETAIN_KEY
-#define	GSI_MAP_RETAIN_KEY(X)	[(X).obj retain]
-#endif
-#ifndef	GSI_MAP_RELEASE_KEY
-#define	GSI_MAP_RELEASE_KEY(X)	[(X).obj release]
-#endif
-#ifndef	GSI_MAP_RETAIN_VAL
-#define	GSI_MAP_RETAIN_VAL(X)	[(X).obj retain]
-#endif
-#ifndef	GSI_MAP_RELEASE_VAL
-#define	GSI_MAP_RELEASE_VAL(X)	[(X).obj release]
-#endif
-#ifndef	GSI_MAP_HASH
-#define	GSI_MAP_HASH(X)		[(X).obj hash]
-#endif
-#ifndef	GSI_MAP_EQUAL
-#define	GSI_MAP_EQUAL(X, Y)		[(X).obj isEqual: (Y).obj]
-#endif
-
 #endif
 
 /*
@@ -251,13 +220,8 @@ GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, size_t bucketCount)
 static INLINE GSIMapBucket
 GSIMapBucketForKey(GSIMapTable map, GSIMapKey key)
 {
-#ifdef	GSI_NEW
   return GSIMapPickBucket(GSI_MAP_HASH(map, key),
     map->buckets, map->bucketCount);
-#else
-  return GSIMapPickBucket(GSI_MAP_HASH(key),
-    map->buckets, map->bucketCount);
-#endif
 }
 
 static INLINE void
@@ -363,13 +327,8 @@ GSIMapRemangleBuckets(GSIMapTable map,
 	  GSIMapBucket	bkt;
 
 	  GSIMapRemoveNodeFromBucket(old_buckets, node);
-#ifdef	GSI_NEW
 	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
 	    new_buckets, new_bucketCount);
-#else
-	  bkt = GSIMapPickBucket(GSI_MAP_HASH(node->key),
-	    new_buckets, new_bucketCount);
-#endif
 	  GSIMapAddNodeToBucket(bkt, node);
 	}
       old_buckets++;
@@ -487,22 +446,14 @@ GSIMapNewNode(GSIMapTable map, GSIMapKey key)
 static INLINE void
 GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
 {
-#ifdef	GSI_NEW
   GSI_MAP_RELEASE_KEY(map, node->key);
 #if	GSI_MAP_HAS_VALUE
   GSI_MAP_RELEASE_VAL(map, node->value);
-#endif
-#else
-  GSI_MAP_RELEASE_KEY(node->key);
-#if	GSI_MAP_HAS_VALUE
-  GSI_MAP_RELEASE_VAL(node->value);
-#endif
 #endif
   node->nextInMap = map->freeNodes;
   map->freeNodes = node;
 }
 
-#ifdef	GSI_NEW
 static INLINE GSIMapNode 
 GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 {
@@ -514,19 +465,6 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
     }
   return node;
 }
-#else
-static INLINE GSIMapNode 
-GSIMapNodeForKeyInBucket(GSIMapBucket bucket, GSIMapKey key)
-{
-  GSIMapNode	node = bucket->firstNode;
-
-  while ((node != 0) && GSI_MAP_EQUAL(node->key, key) == NO)
-    {
-      node = node->nextInBucket;
-    }
-  return node;
-}
-#endif
 
 static INLINE GSIMapNode 
 GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
@@ -537,11 +475,7 @@ GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
   if (map->nodeCount == 0)
     return 0;
   bucket = GSIMapBucketForKey(map, key);
-#ifdef	GSI_NEW
   node = GSIMapNodeForKeyInBucket(map, bucket, key);
-#else
-  node = GSIMapNodeForKeyInBucket(bucket, key);
-#endif
   return node;
 }
 
@@ -689,13 +623,8 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
   GSIMapNode node;
 
-#ifdef	GSI_NEW
   GSI_MAP_RETAIN_KEY(map, key);
   GSI_MAP_RETAIN_VAL(map, value);
-#else
-  GSI_MAP_RETAIN_KEY(key);
-  GSI_MAP_RETAIN_VAL(value);
-#endif
   node = GSIMapNewNode(map, key, value);
 
   if (node != 0)
@@ -726,11 +655,7 @@ GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 {
   GSIMapNode node;
 
-#ifdef	GSI_NEW
   GSI_MAP_RETAIN_KEY(map, key);
-#else
-  GSI_MAP_RETAIN_KEY(key);
-#endif
   node = GSIMapNewNode(map, key);
 
   if (node != 0)
@@ -751,11 +676,7 @@ GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
     {
       GSIMapNode	node;
 
-#ifdef	GSI_NEW
       node = GSIMapNodeForKeyInBucket(map, bucket, key);
-#else
-      node = GSIMapNodeForKeyInBucket(bucket, key);
-#endif
       if (node != 0)
 	{
 	  GSIMapRemoveNodeFromMap(map, bucket, node);

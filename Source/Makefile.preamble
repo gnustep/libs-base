@@ -39,7 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = -DGSI_NEW=1 $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall
+ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS = $(SSLFLAGS)
