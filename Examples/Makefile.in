@@ -35,7 +35,7 @@ CPPFLAGS =
 LDFLAGS =
      
 DEFS = @DEFS@
-LIBS = -L../src -lobjects @LIBOBJC@ @LIBS@ 
+LIBS = -L../src -lobjects @LIBOBJC@ @LIBS@ -lm
 
 #### End of system configuration section. ####
 
