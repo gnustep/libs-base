@@ -1158,7 +1158,8 @@ NSDictionary *locale)
 	{
 	  long long int signed_number;
 
-	    signed_number = args_value[specs[nspecs_done].data_arg].pa_long_long_int;
+	  signed_number
+	    = args_value[specs[nspecs_done].data_arg].pa_long_long_int;
 
 	  is_negative = signed_number < 0;
 	  number.longlong = is_negative ? (- signed_number) : signed_number;
@@ -1169,10 +1170,24 @@ NSDictionary *locale)
 	{
 	  long int signed_number;
 
-	    if (is_long_num)
-	      signed_number = args_value[specs[nspecs_done].data_arg].pa_long_int;
-	    else
+	  if (is_char)
+	    {
+	      signed_number = args_value[specs[nspecs_done].data_arg].pa_char;
+	    }
+	  else if (is_short)
+	    {
+	      signed_number
+		= args_value[specs[nspecs_done].data_arg].pa_short_int;
+	    }
+	  else if (is_long_num)
+	    {
+	      signed_number
+		= args_value[specs[nspecs_done].data_arg].pa_long_int;
+	    }
+	  else
+	    {
 	      signed_number = args_value[specs[nspecs_done].data_arg].pa_int;
+	    }
 
 	  is_negative = signed_number < 0;
 	  number.word = is_negative ? (- signed_number) : signed_number;
@@ -1207,7 +1222,8 @@ NSDictionary *locale)
 
       if (is_longlong)
 	{
-	    number.longlong = args_value[specs[nspecs_done].data_arg].pa_u_long_long_int;
+	  number.longlong
+	    = args_value[specs[nspecs_done].data_arg].pa_u_long_long_int;
 
 	LABEL (longlong_number):
 	  if (prec < 0)
@@ -1244,16 +1260,16 @@ NSDictionary *locale)
 	}
       else
 	{
-	    if (is_long_num)
-	      number.word = args_value[specs[nspecs_done].data_arg].pa_u_long_int;
-	    else if (is_char)
-	      number.word = (unsigned char)
-		args_value[specs[nspecs_done].data_arg].pa_char;
-	    else if (!is_short)
-	      number.word = args_value[specs[nspecs_done].data_arg].pa_u_int;
-	    else
-	      number.word = (unsigned short int)
-		args_value[specs[nspecs_done].data_arg].pa_u_short_int;
+	  if (is_long_num)
+	    number.word = args_value[specs[nspecs_done].data_arg].pa_u_long_int;
+	  else if (is_char)
+	    number.word = (unsigned char)
+	      args_value[specs[nspecs_done].data_arg].pa_char;
+	  else if (!is_short)
+	    number.word = args_value[specs[nspecs_done].data_arg].pa_u_int;
+	  else
+	    number.word = (unsigned short int)
+	      args_value[specs[nspecs_done].data_arg].pa_u_short_int;
 
 	LABEL (number):
 	  if (prec < 0)

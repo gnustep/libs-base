@@ -1,3 +1,12 @@
+2001-11-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: describe char and unsigned char as numbers
+	rather than ascii characters.  Use g format for floats.
+	Use 'true' and 'false' for boolean output ... for MacOS-X compatibility.
+	* Source/NSConcreteNumber.m: ditto
+	* Source/GSFormat.m: Fix bug in formatting short integers - was trying
+	to treat them as full sized.
+
 2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/gsdoc/Base.gsdoc:

@@ -40,55 +40,42 @@
    defined to a number from 0 to 12 cooresponding to each number type */
 #if TYPE_ORDER == 0
 #  define NumberTemplate	NSBoolNumber
-#  define TYPE_FORMAT	@"%u"
 #  define TYPE_TYPE	BOOL
 #elif TYPE_ORDER == 1
 #  define NumberTemplate	NSCharNumber
-#  define TYPE_FORMAT	@"%c"
 #  define TYPE_TYPE	signed char
 #elif TYPE_ORDER == 2
 #  define NumberTemplate	NSUCharNumber
-#  define TYPE_FORMAT	@"%c"
 #  define TYPE_TYPE	unsigned char
 #elif TYPE_ORDER == 3
 #  define NumberTemplate	NSShortNumber
-#  define TYPE_FORMAT	@"%hd"
 #  define TYPE_TYPE	signed short
 #elif TYPE_ORDER == 4
 #  define NumberTemplate	NSUShortNumber
-#  define TYPE_FORMAT	@"%hu"
 #  define TYPE_TYPE	unsigned short
 #elif TYPE_ORDER == 5
 #  define NumberTemplate	NSIntNumber
-#  define TYPE_FORMAT	@"%d"
 #  define TYPE_TYPE	signed int
 #elif TYPE_ORDER == 6
 #  define NumberTemplate	NSUIntNumber
-#  define TYPE_FORMAT	@"%u"
 #  define TYPE_TYPE	unsigned int
 #elif TYPE_ORDER == 7
 #  define NumberTemplate	NSLongNumber
-#  define TYPE_FORMAT	@"%ld"
 #  define TYPE_TYPE	signed long
 #elif TYPE_ORDER == 8
 #  define NumberTemplate	NSULongNumber
-#  define TYPE_FORMAT	@"%lu"
 #  define TYPE_TYPE	unsigned long
 #elif TYPE_ORDER == 9
 #  define NumberTemplate	NSLongLongNumber
-#  define TYPE_FORMAT	@"%lld"
 #  define TYPE_TYPE	signed long long
 #elif TYPE_ORDER == 10
 #  define NumberTemplate	NSULongLongNumber
-#  define TYPE_FORMAT	@"%llu"
 #  define TYPE_TYPE	unsigned long long
 #elif TYPE_ORDER == 11
 #  define NumberTemplate	NSFloatNumber
-#  define TYPE_FORMAT	@"%0.7f"
 #  define TYPE_TYPE	float
 #elif TYPE_ORDER == 12
 #  define NumberTemplate	NSDoubleNumber
-#  define TYPE_FORMAT	@"%0.16g"
 #  define TYPE_TYPE	double
 #endif
 
@@ -389,9 +376,31 @@
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
 #if TYPE_ORDER == 0
-  return (data) ? @"YES" : @"NO";
-#else
-  return [NSString stringWithFormat: TYPE_FORMAT, data];
+  return (data) ? @"true" : @"false";
+#elif TYPE_ORDER == 1
+  return [NSString stringWithFormat: @"%i", (int)data];
+#elif TYPE_ORDER == 2
+  return [NSString stringWithFormat: @"%u", (unsigned int)data];
+#elif TYPE_ORDER == 3
+  return [NSString stringWithFormat: @"%hi", (short int)data];
+#elif TYPE_ORDER == 4
+  return [NSString stringWithFormat: @"%hu", (unsigned short int)data];
+#elif TYPE_ORDER == 5
+  return [NSString stringWithFormat: @"%i", data];
+#elif TYPE_ORDER == 6
+  return [NSString stringWithFormat: @"%u", data];
+#elif TYPE_ORDER == 7
+  return [NSString stringWithFormat: @"%li", data];
+#elif TYPE_ORDER == 8
+  return [NSString stringWithFormat: @"%lu", data];
+#elif TYPE_ORDER == 9
+  return [NSString stringWithFormat: @"%lli", data];
+#elif TYPE_ORDER == 10
+  return [NSString stringWithFormat: @"%llu", data];
+#elif TYPE_ORDER == 11
+  return [NSString stringWithFormat: @"%0.7g", (double)data];
+#elif TYPE_ORDER == 12
+  return [NSString stringWithFormat: @"%0.16g", data];
 #endif
 }
 
