@@ -131,6 +131,17 @@ NSRealMemoryAvailable ()
   if ((sysinfo(&info)) != 0)
     return 0;
   return (unsigned) info.freeram;
+#elif __MINGW__
+  MEMORYSTATUS memory;
+  
+  GlobalMemoryStatus(&memory);
+  return (unsigned)memory.dwAvailPhys;
+#elif __BEOS__
+  system_info info;
+  
+  if (get_system_info(&info) != B_OK)
+    return 0;
+  return (unsigned)(info.max_pages - info.used_pages) * B_PAGE_SIZE;
 #else
   fprintf (stderr, "NSRealMemoryAvailable() not implemented.\n");
   return 0;
