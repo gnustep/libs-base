@@ -1787,14 +1787,15 @@ NSDictionary *locale)
 	if ((width -= len) <= 0)
 	  {
 	    outstring (string, len);
-	    break;
 	  }
-
-	if (!left)
-	  PAD (' ');
-	outstring (string, len);
-	if (left)
-	  PAD (' ');
+	else
+	  {
+	    if (!left)
+	      PAD (' ');
+	    outstring (string, len);
+	    if (left)
+	      PAD (' ');
+	  }
 	if (string_malloced)
 	  NSZoneFree(s->z, string);
       }
@@ -1842,14 +1843,15 @@ NSDictionary *locale)
 	if ((width -= len) < 0)
 	  {
 	    outstring (string, len);
-	    break;
 	  }
-
-	if (!left)
-	  PAD (' ');
-	outstring (string, len);
-	if (left)
-	  PAD (' ');
+	else
+	  {
+	    if (!left)
+	      PAD (' ');
+	    outstring (string, len);
+	    if (left)
+	      PAD (' ');
+	  }
 	if (string_malloced)
 	  NSZoneFree(s->z, string);
       }

@@ -1,3 +1,8 @@
+2003-06-16 13:36  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/GSFormat.m (GSFormat()): Free malloc memory in all cases
+	after handling %s, %S, %@ with strings longer than 8192 characters.
+
 2003-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: Documented.
