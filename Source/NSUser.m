@@ -33,6 +33,7 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSUserDefaults.h>
 
 #include <stdlib.h>		// for getenv()
@@ -116,7 +117,10 @@ NSHomeDirectoryForUser(NSString *login_name)
 {
 #if !defined(__WIN32__)
   struct passwd *pw;
+
+  [gnustep_global_lock lock];
   pw = getpwnam ([login_name cString]);
+  [gnustep_global_lock unlock];
   return [NSString stringWithCString: pw->pw_dir];
 #else
   /* Then environment variable HOMEPATH holds the home directory
@@ -125,6 +129,7 @@ NSHomeDirectoryForUser(NSString *login_name)
   DWORD n;
   NSString *s;
 
+  [gnustep_global_lock lock];
   n = GetEnvironmentVariable("HOMEPATH", buf, 1024);
   if (n > 1024)
     {
@@ -134,14 +139,15 @@ NSHomeDirectoryForUser(NSString *login_name)
       nb[n] = '\0';
       s = [NSString stringWithCString: nb];
       NSZoneFree(NSDefaultMallocZone(), nb);
-      return s;
     }
   else
     {
       /* null terminate it and return the string */
       buf[n] = '\0';
-      return [NSString stringWithCString: buf];
+      s = [NSString stringWithCString: buf];
     }
+  [gnustep_global_lock unlock];
+  return s;
 #endif
 }
 
