@@ -28,7 +28,7 @@
 
 @class NSData;
 
-@interface NSCharacterSet : NSObject <NSCopying, NSMutableCopying>
+@interface NSCharacterSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating standard character sets
 + (NSCharacterSet *)alphanumericCharacterSet;
@@ -54,7 +54,7 @@
 
 @end
 
-@interface NSMutableCharacterSet : NSCharacterSet <NSCopying, NSMutableCopying>
+@interface NSMutableCharacterSet : NSCharacterSet
 
 - (void)addCharactersInRange:(NSRange)aRange;
 - (void)addCharactersInString:(NSString *)aString;
