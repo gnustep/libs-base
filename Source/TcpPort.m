@@ -2075,6 +2075,7 @@ static NSMapTable *out_port_bag = NULL;
     {
       id	port = _polling_in_port;
 
+      [self retain];
       _polling_in_port = nil;
 
       /* This is here, and not in -dealloc, because invalidated
@@ -2106,6 +2107,7 @@ static NSMapTable *out_port_bag = NULL;
 	          strerror(errno)];
 	    }
 	}
+      [self release];
     }
 }
 
