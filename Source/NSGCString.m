@@ -1,5 +1,5 @@
 /* Implementation for GNUStep of NSStrings with C-string backing
-   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -218,7 +218,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       OBJC_REALLOC(_contents_chars, char, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
-  memcpy(_contents_chars + index, [aString _cStringContents], c);
+  memcpy(_contents_chars + index, [aString cStringNoCopy], c);
   _contents_chars[_count] = '\0';
 }
 
