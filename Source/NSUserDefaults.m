@@ -583,7 +583,9 @@ static NSString	*pathForUser(NSString *user)
     }
   path = [home stringByAppendingPathComponent: @"Defaults"];
 
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+#if	!(defined(S_IRUSR) && defined(S_IWUSR) && defined(S_IXUSR) \
+  && defined(S_IRGRP) && defined(S_IXGRP) \
+  && defined(S_IROTH) && defined(S_IXOTH))
   desired = 0755;
 #else
   desired = (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
