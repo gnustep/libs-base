@@ -225,7 +225,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 
 #else
 
-#define  GSI_NEW
+#define  GSI_NEW	1
 #define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
 #define GSI_MAP_HASH(M, X)	(X.ptr >> 2)
 #define GSI_MAP_RETAIN_KEY(M, X)
