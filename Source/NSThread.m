@@ -6,6 +6,9 @@
    Created: 1996
    Rewritten by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
    to add optimisations features for faster thread access.
+   Modified by: Nicola Pero <n.pero@mi.flashnet.it>
+   to add GNUstep extensions allowing to interact with threads created 
+   by external libraries/code (eg, a Java Virtual Machine).
    
    This file is part of the GNUstep Objective-C Library.
 
@@ -31,6 +34,32 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
+
+#ifndef NO_GNUSTEP
+/* We need to access these private vars in the objc runtime - because
+   the objc runtime's API is not enough powerful for the GNUstep
+   extensions we want to add.  */
+extern int __objc_is_multi_threaded;
+extern objc_mutex_t __objc_runtime_mutex;
+extern int __objc_runtime_threads_alive;
+
+/* TODO: Submit patches to the objc runtime to add the following 
+   two functions */
+inline static void objc_thread_add ()
+{
+  objc_mutex_lock(__objc_runtime_mutex);
+  __objc_is_multi_threaded = 1;
+  __objc_runtime_threads_alive++;
+  objc_mutex_unlock(__objc_runtime_mutex);  
+}
+
+inline static void objc_thread_remove ()
+{
+  objc_mutex_lock(__objc_runtime_mutex);
+  __objc_runtime_threads_alive--;
+  objc_mutex_unlock(__objc_runtime_mutex);  
+}
+#endif
 
 @interface	NSThread (Private)
 - (id) _initWithSelector: (SEL)s toTarget: (id)t withObject: (id)o;
@@ -330,6 +359,10 @@ gnustep_base_thread_callback()
 
 - (void) _sendThreadMethod
 {
+#ifndef NO_GNUSTEP
+  NSNotification *n;
+#endif
+
   /*
    * We are running in the new thread - so we store ourself in the thread
    * dictionary and release ourself - thus, when the thread exits, we will
@@ -337,6 +370,19 @@ gnustep_base_thread_callback()
    */
   objc_thread_set_data(self);
   _active = YES;
+
+#ifndef NO_GNUSTEP
+  /*
+   * Let observers know a new thread is starting.
+   */
+  n = [NSNotification alloc];
+  n = [n initWithName: NSThreadDidStartNotification
+	 object: self
+	 userInfo: nil];
+  [[NSNotificationCenter defaultCenter] postNotification: n];
+  RELEASE(n);
+#endif
+
   [_target performSelector: _selector withObject: _arg];
   [NSThread exit];
 }
@@ -356,5 +402,69 @@ gnustep_base_thread_callback()
   return _thread_dictionary;
 }
 
+@end
+
+@implementation NSThread (GNUstepRegister)
++ (BOOL) registerCurrentThread 
+{
+  NSThread *thread;
+
+  /*
+   * Do nothing and return NO if the thread is known to us.
+   */
+  if ((NSThread*)objc_thread_get_data() != nil)
+    {
+      return NO;
+    }
+
+  /*
+   * Create the new thread object.
+   */
+  thread = (NSThread*)NSAllocateObject (self, 0, NSDefaultMallocZone ());
+  thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
+  objc_thread_set_data (thread);
+  ((NSThread *)thread)->_active = YES;
+
+  /*
+   * Make sure the Objective-C runtime knows there is an additional thread.
+   */
+  objc_thread_add ();
+
+  /*
+   * We post the notification after we register the thread.  
+   */
+  gnustep_base_thread_callback();
+
+  return YES;
+}
+
++ (void) unregisterCurrentThread
+{
+  NSThread *thread;
+
+  thread = GSCurrentThread();
+
+  if (thread->_active == YES)
+    {
+      /*
+       * Set the thread to be inactive to avoid any possibility of recursion.
+       */
+      thread->_active = NO;
+      /*
+       * Release anything in our autorelease pools
+       */
+      [NSAutoreleasePool _endThread];
+      /*
+       * destroy the thread object.
+       */
+      DESTROY (thread);
+      objc_thread_set_data (NULL);
+
+      /*
+       * Make sure Objc runtime knows there is a thread less to manage
+       */
+      objc_thread_remove ();
+    }
+}
 @end
 

@@ -1,3 +1,16 @@
+Fri Nov 10 12:30:27 2000  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	Added some GNUstep extensions to NSThread to allow JIGS to
+	transparently map java threads to gnustep threads (and vice
+	versa):
+	* Headers/gnustep/base/NSThread.h, Source/externs.m:
+	(NSThreadDidStartNotification): New notification.
+	* Source/NSThread.m ([NSThread -_sendThreadMethod]): Post 
+	the NSThreadDidStartNotification.	
+	* Source/NSThread.m, Headers/gnustep/base/NSThread.h
+	([+registerCurrentThread]), ([+unregisterCurrentThread]): New
+	methods.
+
 2000-11-10  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSBundle.m ([NSBundle +_addFrameworkFromClass:]): avoid crash
