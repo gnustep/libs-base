@@ -20,7 +20,7 @@ int main()
   rng = [[RNGBerkeley alloc] init];
   printf("%s chi^2 = %f\n", 
 	 [rng name], [Random chiSquareOfRandomGenerator:rng]);
-  [r free];
+  [r release];
 
   rng = [[RNGAdditiveCongruential alloc] init];
 /*
@@ -29,7 +29,7 @@ int main()
 */
   printf("%s chi^2 = %f\n", 
 	 [rng name], [Random chiSquareOfRandomGenerator:rng]);
-  [rng free];
+  [rng release];
 
   exit(0);
 }

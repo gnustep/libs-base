@@ -137,7 +137,7 @@
 - sendBycopy: (bycopy id)o
 {
   printf(">> bycopy class is %s\n", [o name]);
-  [o free];
+  [o release];
   return self;
 }
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
@@ -175,7 +175,7 @@
 	for (j = 0; j < [theList count]; j++)
 	  if ([theList objectAt:j] == [objList objectAtIndex:i])
 	    [theList removeObjectAt:j];
-      [objList free];
+      [objList release];
       if (listCount != [theList count])
 	printf("$$$$$ senderIsInvalid: removed from theList\n");
     }
