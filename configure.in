@@ -244,7 +244,7 @@ AC_CHECK_LIB(nsl, main)
 # Make a shared library?
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(shared, Build the library as a shared library,
-        SHARED_LIBRARY='$(LIBRARY_NAME).so.$(VERSION)',
+        SHARED_LIBRARY='lib$(LIBRARY_NAME).so.$(VERSION)',
     SHARED_LIBRARY=)
 AC_SUBST(SHARED_LIBRARY)
 
