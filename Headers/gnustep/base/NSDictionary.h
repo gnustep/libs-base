@@ -35,6 +35,7 @@
 + dictionaryWithObjects: (id*)objects forKeys: (NSString**)keys
 		  count: (unsigned)count;
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
+- initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 - initWithObjects: (id*)objects forKeys: (NSString**)keys
 	    count: (unsigned)count;
 - initWithDictionary: (NSDictionary*)otherDictionary;
