@@ -1,6 +1,17 @@
-Wed Mar  4 17:11:23 1998  Adam Fedor  <fedor@doc.com>
+Wed Mar  11 17:11:23 1998  Adam Fedor  <fedor@doc.com>
 
 	* Version: Version 0.5.0;
+
+Tue Mar 10  9:40:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: Changes to permit configuration of gdomap so that
+	it probes a specific list of hosts rather than all hosts on the
+	local net.  Also permit compile-time override of port number.
+	
+	* Tools/gdomap.h: Added comments about overriding port used by gdomap.
+
+	* src/TcpPort.m: (nameServer()) modified for easy compile-time
+	override of port number used.
 
 Thu Mar  5 15:40:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 

@@ -204,3 +204,14 @@ typedef	struct	{
 
 #define	GDO_REQ_SIZE	sizeof(gdo_req)	/* Size of a request packet.	*/
 
+/*
+ *	If you have a fascist sysadmin who wqill not let you run gdomap
+ *	as root and will not even let you modify /etc/services to point
+ *	gdomap to another port, you can uncomment the next #define to
+ *	run gdomap on port 6006 (or modify this to a port of your choice).
+ *
+ *	When you have done this you must recompile gdomap.c and TcpPort.m
+ *	and re-install the base library with the new TcpPort.o
+ */
+/* #define	GDOMAP_PORT_OVERRIDE	6006	*/
+

@@ -510,6 +510,9 @@ nameServer(const char* name, const char* host, int op, struct sockaddr_in* addr,
 		format: @"name length to large (>255 characters)"];
     }
 
+#if	GDOMAP_PORT_OVERRIDE
+    p = htons(GDOMAP_PORT_OVERRIDE);
+#else
     /*
      *	Ensure we have port number to connect to name server.
      *	The TCP service name 'gdomap' overrides the default port.
@@ -517,6 +520,7 @@ nameServer(const char* name, const char* host, int op, struct sockaddr_in* addr,
     if ((sp = getservbyname("gdomap", "tcp")) != 0) {
 	p = sp->s_port;		/* Network byte order.	*/
     }
+#endif
 
     /*
      *	The host name '*' matches any host on the local network.

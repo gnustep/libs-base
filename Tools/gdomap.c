@@ -1,5 +1,5 @@
 /* This is a simple name server for GNUstep Distributed Objects
-   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1996
@@ -156,6 +156,18 @@ mzero(void* p, int l)
 	l--;
     }
 }
+
+/*
+ *	Structure for linked list of addresses to probe rather than
+ *	probing entire network.
+ */
+typedef struct plstruct {
+    struct plstruct	*next;
+    int			direct;
+    struct in_addr	addr;
+} plentry;
+
+static plentry	*plist = 0;
 
 /*
  *	Variables used for determining if a connection is from a process
@@ -614,6 +626,9 @@ init_iface()
      *	this should be the default port, since we should have registered
      *	this with the appropriate authority and have it reserved for us.
      */
+#ifdef	GDOMAP_PORT_OVERRIDE
+    my_port = htons(GDOMAP_PORT_OVERRIDE);
+#else
     my_port = htons(GDOMAP_PORT);
     if ((sp = getservbyname("gdomap", "tcp")) == 0) {
 	fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
@@ -633,6 +648,7 @@ init_iface()
 	}
 	my_port = tcp_port;
     }
+#endif
 
     if ((desc = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 	perror("socketf for init_iface");
@@ -910,31 +926,105 @@ init_probe()
 	    }
 	}
 
-	/*
-	 *	Now start probes for servers on machines which may be on
-	 *	any network for which we have an interface.
-	 *
-	 *	Assume 'low' and 'high' are not valid host addresses as 'low'
-	 *	is the network address and 'high' is the broadcast address.
-	 */
-	for (j = low + 1; j < high; j++) {
-	    struct in_addr	a;
+	if (plist) {
+	    plentry	*p;
 
-	    a.s_addr = htonl(net + j);
-	    if (is_local_host(a)) {
-		continue;	/* Don't probe self - that's silly.	*/
+	    /*
+	     *	Now start probes for servers on machines in our probe config
+	     *	list for which we have a direct connection.
+	     */
+	    for (p = plist; p != 0; p = p->next) {
+		if ((p->addr.s_addr & mask[iface].s_addr) ==
+		    (addr[iface].s_addr & mask[iface].s_addr)) {
+		    int	len = elen;
+
+		    p->direct = 1;
+		    /* Kick off probe.	*/
+		    if (is_local_host(p->addr)) {
+			continue;	/* Don't probe self.	*/
+		    }
+		    while (len > MAX_EXTRA) {
+			len -= MAX_EXTRA;
+			queue_probe(&p->addr, &sin, MAX_EXTRA, &other[len], 0);
+		    }
+		    queue_probe(&p->addr, &sin, len, other, 0);
+		}
 	    }
-	    /* Kick off probe.	*/
-	    while (elen > MAX_EXTRA) {
-		elen -= MAX_EXTRA;
-		queue_probe(&a, &sin, MAX_EXTRA, &other[elen], 0);
-	    }
-	    queue_probe(&a, &sin, elen, other, 0);
 	}
+	else {
+	    /*
+	     *	Now start probes for servers on machines which may be on
+	     *	any network for which we have an interface.
+	     *
+	     *	Assume 'low' and 'high' are not valid host addresses as 'low'
+	     *	is the network address and 'high' is the broadcast address.
+	     */
+	    for (j = low + 1; j < high; j++) {
+		struct in_addr	a;
+		int	len = elen;
+
+		a.s_addr = htonl(net + j);
+		if (is_local_host(a)) {
+		    continue;	/* Don't probe self - that's silly.	*/
+		}
+		/* Kick off probe.	*/
+		while (len > MAX_EXTRA) {
+		    len -= MAX_EXTRA;
+		    queue_probe(&a, &sin, MAX_EXTRA, &other[len], 0);
+		}
+		queue_probe(&a, &sin, len, other, 0);
+	    }
+	}
+
 	if (elen > 0) {
 	    free(other);
 	}
     }
+
+    if (plist) {
+	plentry	*p;
+	int	indirect = 0;
+
+	/*
+	 *	Are there any hosts for which we do not have a direct
+	 *	network connection, and to which we have therefore not
+	 *	queued a probe?
+	 */
+	for (p = plist; p != 0; p = p->next) {
+	    if (p->direct == 0) {
+		indirect = 1;
+	    }
+	}
+	if (indirect) {
+	    struct in_addr	*other;
+	    int			elen;
+
+	    /*
+	     *	Queue probes for indirect connections to hosts from our
+	     *	primary interface and let the routing system handle it.
+	     */
+	    elen = other_addresses_on_net(addr[0], &other);
+	    for (p = plist; p != 0; p = p->next) {
+		if (p->direct == 0) {
+		    int	len = elen;
+
+		    if (is_local_host(p->addr)) {
+			continue;	/* Don't probe self.	*/
+		    }
+		    /* Kick off probe.	*/
+		    while (len > MAX_EXTRA) {
+			len -= MAX_EXTRA;
+			queue_probe(&p->addr, addr, MAX_EXTRA, &other[len], 0);
+		    }
+		    queue_probe(&p->addr, addr, len, other, 0);
+		}
+	    }
+	    if (elen > 0) {
+		free(other);
+	    }
+	}
+    }
+
     if (debug > 2) {
 	fprintf(stderr, "Probe requests initiated.\n");
     }
@@ -1664,7 +1754,7 @@ int
 main(int argc, char** argv)
 {
     extern char	*optarg;
-    char	*options = "Hdfi:p";
+    char	*options = "CHc:dfi:p";
     int		c;
 
     /*
@@ -1683,13 +1773,131 @@ main(int argc, char** argv)
 	    case 'H':
 		printf("%s -[%s]\n", argv[0], options);
 		printf("GNU Distributed Objects name server\n");
-		printf("-H		for help\n");
-		printf("-d		Extra debug logging.\n");
+		printf("-C		help about configuration\n");
+		printf("-H		general help\n");
+		printf("-c file		use config file for probe.\n");
+		printf("-d		extra debug logging.\n");
 		printf("-f		avoid fork() to make debugging easy\n");
 		printf("-i seconds	re-probe at this interval (roughly)\n");
 		printf("-p		obsolete no-op\n");
+		printf("\n");
 		exit(0);
 
+	    case 'C':
+		printf("\n");
+		printf(
+"Gdomap normally probes every machine on the local network to see if there\n"
+"is a copy of gdomap running on it.  This is done for class-C networks and\n"
+"subnets of class-C networks.  If your host is on a class-B or class-A net\n"
+"then the default behaviour is to treat it as a class-C net and probe only\n"
+"the hosts that would be expected on a class-C network of the same number.\n");
+		printf("\n");
+		printf(
+"If you are running on a class-A or class-B network, or if your net has a\n"
+"large number of hosts which will not have gdomap on them - you may want to\n"
+"supply a configuration file listing the hosts to be probed explicitly,\n"
+"rather than getting gdomap to probe all hosts on the local net.\n");
+		printf("\n");
+		printf(
+"You may also want to supply the configuration file so that hosts which are\n"
+"not actually on your local network can still be found when your code tries\n"
+"to connect to a host using @\"*\" as the host name.  NB. this functionality\n"
+"does not exist in OpenStep.\n");
+		printf("\n");
+		printf(
+"A configuration file consists of a list of IP addresses to be probed.\n"
+"The IP addresses shoudl be in standard 'dot' notation, one per line.\n"
+"Empty lines are permitted in the configuration file.\n"
+"Anything on a line after a hash ('#') is ignored.\n"
+"You tell gdomap about the config file with the '-c' command line option.\n");
+		printf("\n");
+		exit(0);
+
+	    case 'c':
+		{
+		    FILE	*fptr = fopen(optarg, "r");
+		    char	buf[128];
+
+		    if (fptr == 0) {
+			fprintf(stderr, "Unable to open probe config - '%s'\n",
+				optarg);
+			exit(1);
+		    }
+		    while (fgets(buf, sizeof(buf), fptr) != 0) {
+			char	*ptr = buf;
+			plentry	*prb;
+
+			/*
+			 *	Strip leading white space.
+			 */
+			while (isspace(*ptr)) {
+			    ptr++;
+			}
+			if (ptr != buf) {
+			    strcpy(buf, ptr);
+			}
+			/*
+			 *	Strip comments.
+			 */
+			ptr = strchr(buf, '#');
+			if (ptr) {
+			    *ptr = '\0';
+			}
+			/*
+			 *	Strip trailing white space.
+			 */
+			ptr = buf;
+			while (*ptr) {
+			    ptr++;
+			}
+			while (ptr > buf && isspace(ptr[-1])) {
+			    ptr--;
+			}
+			*ptr = '\0';
+			/*
+			 *	Ignore blank lines.
+			 */
+			if (*buf == '\0') {
+			    continue;
+			}
+
+			prb = (plentry*)malloc(sizeof(plentry));
+			memset((char*)prb, '\0', sizeof(plentry));
+			prb->addr.s_addr = inet_addr(buf);
+			if (prb->addr.s_addr == -1) {
+			    fprintf(stderr, "'%s' is not as valid address\n",
+				    buf);
+			    free(prb);
+			}
+			else {
+			    /*
+			     *	Add this address at the end of the list.
+			     */
+			    if (plist == 0) {
+				plist = prb;
+			    }
+			    else {
+				plentry	*tmp = plist;
+
+				while (tmp->next) {
+				    if (tmp->addr.s_addr == prb->addr.s_addr) {
+					fprintf(stderr, "'%s' repeat in '%s'\n",
+						buf, optarg);
+					free(prb);
+					break;
+				    }
+				    tmp = tmp->next;
+				}
+				if (tmp->next == 0) {
+				    tmp->next = prb;
+				}
+			    }
+			}
+		    }
+		    fclose(fptr);
+		}
+		break;
+		
 	    case 'd':
 		debug++;
 		break;
