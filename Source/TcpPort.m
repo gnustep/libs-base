@@ -1157,12 +1157,12 @@ static NSMapTable *out_port_bag = NULL;
   int c;
   int remaining;
 
-  remaining = size - eofPosition;
+  remaining = size - eof_position;
   /* xxx We need to make sure this read() is non-blocking. */
-  c = read (s, buffer + prefix + eofPosition, remaining);
+  c = read (s, buffer + prefix + eof_position, remaining);
   if (c == 0)
     return EOF;
-  eofPosition += c;
+  eof_position += c;
   return remaining - c;
 }
 
@@ -1182,7 +1182,7 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Put the packet size in the first two bytes of the packet. */
   assert (prefix == PREFIX_SIZE);
-  *(PREFIX_LENGTH_TYPE*)buffer = htons (eofPosition);
+  *(PREFIX_LENGTH_TYPE*)buffer = htons (eof_position);
 
   /* Put the sockaddr_in for replies in the next bytes of the prefix
      region.  If there is no reply address specified, fill it with zeros. */
@@ -1194,7 +1194,7 @@ static NSMapTable *out_port_bag = NULL;
     memset (buffer + PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
 
   /* Write the packet on the socket. */
-  c = write (s, buffer, prefix + eofPosition);
+  c = write (s, buffer, prefix + eof_position);
   if (c < 0)
     {
       perror ("[TcpOutPort -_writeToSocket:] write()");
@@ -1202,7 +1202,7 @@ static NSMapTable *out_port_bag = NULL;
     }
 
   /* Did we sucessfully write it all? */
-  if (c != prefix + eofPosition)
+  if (c != prefix + eof_position)
     [self error: "socket write failed"];
 }
 
