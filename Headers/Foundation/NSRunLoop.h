@@ -116,7 +116,7 @@ typedef	enum {
 #endif
     ET_RPORT,	/* Watch for message arriving on port.		*/
 /* For binary compatibility we have an extra ifdef... */
-#ifndef __MINGW_
+#ifndef __MINGW__
     ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
 #endif
 } RunLoopEventType;
