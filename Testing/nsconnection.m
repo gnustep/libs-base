@@ -72,9 +72,15 @@ id	myServer;
 @end
 
 int
-main()
+main(int argc, char *argv[], char **env)
 {
-  NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+  NSAutoreleasePool	*pool;
+
+#if LIB_FOUNDATION_LIBRARY || defined(GS_PASS_ARGUMENTS)
+   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+#endif
+  pool = [[NSAutoreleasePool alloc] init];
+
 
   [Tester startup];
   [[NSRunLoop currentRunLoop] run];

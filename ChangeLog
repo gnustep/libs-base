@@ -1,3 +1,16 @@
+2001-07-30  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSObjCRuntime.h: Export additional functions
+	and variables for Windows DLLs.
+	* Headers/gnustep/base/NSObject.h: Likewise.
+	* Headers/gnustep/base/Unicode.h: Likewise.
+
+	* Headers/gnustep/base/preface.h.in: Define __WIN32__ ifndef on 
+	MINGW32.
+
+	* Testing/nsarray.m: Use NSCParameterAssert.
+	* Testing/nsconnection.m: Cleanup for MinGW/Cygwin.
+
 Sat Jul 21 23:25:14 2001  Wim Oudshoorn
 	* Source/NSHost.m ([NSHost +hostWithName:]):
 	Added forgotten argument to NSLog().

@@ -2,6 +2,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
 
 int
 main()
@@ -75,7 +76,7 @@ main()
 
   {
     // Querying the arra
-    assert([c containsObject:[NSObject class]]);
+    NSCParameterAssert([c containsObject:[NSObject class]]);
 
     p = [e indexOfObject:@"Hello World\n"];
     if (p == NSNotFound)
@@ -89,7 +90,7 @@ main()
     else
       printf("Index of identical object is %d\n", p);
 
-    assert([c lastObject]);
+    NSCParameterAssert([c lastObject]);
     printf("Classname at index 2 is %s\n", [[c objectAtIndex:2] name]);
 
     printf("Forward enumeration\n");
@@ -114,7 +115,7 @@ main()
 
   {
     // Comparing arrays
-    assert([d firstObjectCommonWithArray:e]);
+    NSCParameterAssert([d firstObjectCommonWithArray:e]);
 
     if ([d isEqualToArray: d])
       printf("NSArray is equal to itself\n");
@@ -208,16 +209,16 @@ main()
   {
     // Creating and initializing an NSMutableArray
     f = [NSMutableArray arrayWithCapacity: 10];
-    assert(f);
+    NSCParameterAssert(f);
     f = [[NSMutableArray alloc] initWithCapacity: 10];
     [f release];
-    assert(f);
+    NSCParameterAssert(f);
   }
 
   {
     // Adding objects
     f = [e mutableCopy];
-    assert([f count]);
+    NSCParameterAssert([f count]);
 
     printf("Method -addObject:[NSObject class]\n");
     [f addObject:[NSObject class]];
