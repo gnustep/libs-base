@@ -29,6 +29,10 @@
 
 #define DEFAULT_FORMAT_VERSION 0
 
+#define ROUND(V, A) \
+  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
+     __a*((__v+__a-1)/__a); })
+
 @implementation BinaryCStream
 
 
@@ -80,8 +84,6 @@ static BOOL debug_binary_coder;
   assert(*type != '@');
   assert(*type != '^');
   assert(*type != ':');
-  assert(*type != '{');
-  assert(*type != '[');
 
   /* A fairly stupid, inefficient binary encoding.  This could use 
      some improvement.  For instance, we could compress the sign
@@ -96,7 +98,7 @@ static BOOL debug_binary_coder;
       {
 	int length = strlen(*(char**)d);
 	[self encodeValueOfCType:@encode(int)
-	      at:&length withName:@"BinaryCoder char* length"];
+	      at:&length withName:@"BinaryCStream char* length"];
 	[stream writeBytes:*(char**)d length:length];
 	break;
       }
@@ -170,7 +172,7 @@ static BOOL debug_binary_coder;
 	char *s = buf;
 	sprintf(buf, "%f", *(float*)d);
 	[self encodeValueOfCType:@encode(char*)
-	      at:&s withName:@"BinaryCoder float"];
+	      at:&s withName:@"BinaryCStream float"];
 	break;
       }
     case _C_DBL:
@@ -179,7 +181,48 @@ static BOOL debug_binary_coder;
 	char *s = buf;
 	sprintf(buf, "%f", *(double*)d);
 	[self encodeValueOfCType:@encode(char*)
-	      at:&s withName:@"BinaryCoder double"];
+	      at:&s withName:@"BinaryCStream double"];
+	break;
+      }
+    case _C_ARY_B:
+      {
+	int len = atoi (type+1);	/* xxx why +1 ? */
+	int offset;
+
+	while (isdigit(*++type));
+	offset = objc_sizeof_type(type);
+	[self encodeName:name];
+	[self encodeIndent];
+	while (len-- > 0)
+	  {
+	    /* Change this so we don't re-write type info every time. */
+	    [self encodeValueOfCType:type 
+		  at:d 
+		  withName:@"array component"];
+	    ((char*)d) += offset;
+	  }
+	[self encodeUnindent];
+	break; 
+      }
+    case _C_STRUCT_B:
+      {
+	int acc_size = 0;
+	int align;
+
+	while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+	[self encodeName:name];
+	[self encodeIndent];
+	while (*type != _C_STRUCT_E)
+	  {
+	    align = objc_alignof_type (type); /* pad to alignment */
+	    acc_size = ROUND (acc_size, align);
+	    [self encodeValueOfCType:type 
+		  at:((char*)d)+acc_size 
+		  withName:@"structure component"];
+	    acc_size += objc_sizeof_type (type); /* add component size */
+	    type = objc_skip_typespec (type); /* skip component */
+	  }
+	[self encodeUnindent];
 	break;
       }
     default:
@@ -199,8 +242,6 @@ static BOOL debug_binary_coder;
   assert(*type != '@');
   assert(*type != '^');
   assert(*type != ':');
-  assert(*type != '{');
-  assert(*type != '[');
 
   [stream readByte:&encoded_type];
   if (encoded_type != *type 
@@ -303,6 +344,49 @@ static BOOL debug_binary_coder;
 	if (sscanf(buf, "%lf", (double*)d) != 1)
 	  [self error:"expected double, got %s", buf];
 	(*objc_free)(buf);
+	break;
+      }
+    case _C_ARY_B:
+      {
+	/* xxx Do we need to allocate space, just like _C_CHARPTR ? */
+	int len = atoi(type+1);
+	int offset;
+	[self decodeName:namePtr];
+	[self decodeIndent];
+	while (isdigit(*++type));
+	offset = objc_sizeof_type(type);
+	while (len-- > 0)
+	  {
+	    [self decodeValueOfCType:type 
+		  at:d 
+		  withName:namePtr];
+	    ((char*)d) += offset;
+	  }
+	[self decodeUnindent];
+	break; 
+      }
+    case _C_STRUCT_B:
+      {
+	/* xxx Do we need to allocate space just like char* ?  No. */
+	int acc_size = 0;
+	int align;
+	char *save_type = type;
+
+	while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+	[self decodeName:namePtr];
+	[self decodeIndent];		/* xxx insert [self decodeName:] */
+	while (*type != _C_STRUCT_E)
+	  {
+	    align = objc_alignof_type (type); /* pad to alignment */
+	    acc_size = ROUND (acc_size, align);
+	    [self decodeValueOfCType:type 
+		  at:((char*)d)+acc_size 
+		  withName:namePtr];
+	    acc_size += objc_sizeof_type (type); /* add component size */
+	    type = objc_skip_typespec (type); /* skip component */
+	  }
+	type = save_type;
+	[self decodeUnindent];
 	break;
       }
     default:
