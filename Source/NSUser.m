@@ -257,14 +257,20 @@ NSHomeDirectoryForUser(NSString *loginName)
 #else
   if ([loginName isEqual: NSUserName()] == YES)
     {
-      /* Then environment variable HOMEPATH holds the home directory
-	 for the user on Windows NT; Win95 has no concept of home. */
       [gnustep_global_lock lock];
-      s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
-      if (s != nil)
+      /* The environment variable USERPROFILE holds the home directory
+	 for the user on more modern versions of windoze. */
+      s = GSStringFromWin32EnvironmentVariable("USERPROFILE");
+      if (s == nil)
 	{
-	  s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
-	    stringByAppendingString: s];
+	  /* The environment variable HOMEPATH holds the home directory
+	     for the user on Windows NT; Win95 has no concept of home. */
+	  s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
+	  if (s != nil)
+	    {
+	      s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
+		stringByAppendingString: s];
+	    }
 	}
       [gnustep_global_lock unlock];
     }
