@@ -44,13 +44,13 @@
 }
 
 + (unsigned) defaultCapacity;
-+ (unsigned) defaultGrowFactor;
++ (int) defaultGrowFactor;
 
 - initWithCapacity: (unsigned) aCapacity;
 
 - (void) setCapacity: (unsigned)newCapacity;
-- (unsigned) growFactor;
-- (void) setGrowFactor: (unsigned)aNum;
+- (int) growFactor;
+- (void) setGrowFactor: (int)aNum;
 
 @end
 
