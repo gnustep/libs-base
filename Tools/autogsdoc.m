@@ -353,6 +353,7 @@ main(int argc, char **argv, char **env)
   BOOL			modifiedRefs = NO;
   NSDate		*rDate = nil;
   NSMutableArray	*files = nil;
+  NSMutableArray	*hFiles = nil;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
 
@@ -447,6 +448,7 @@ main(int argc, char **argv, char **env)
    * Build an array of files to be processed.
    */
   files = AUTORELEASE([[proc arguments] mutableCopy]);
+  hFiles = [NSMutableArray array];
   [files removeObjectAtIndex: 0];
   for (i = 0; i < [files count]; i++)
     {
@@ -463,13 +465,21 @@ main(int argc, char **argv, char **env)
 	&& [arg hasSuffix: @".m"] == NO
 	&& [arg hasSuffix: @".gsdoc"] == NO)
 	{
-	  // Skip this value ... not a known file type.
-	  NSLog(@"Unknown argument '%@' ... ignored", arg);
+	  if ([arg hasSuffix: @".html"] == YES)
+	    {
+	      // Make a note of any html files found.
+	      [hFiles addObject: [files objectAtIndex: i]];
+	    }
+	  else
+	    {
+	      // Skip this value ... not a known file type.
+	      NSLog(@"Unknown argument '%@' ... ignored", arg);
+	    }
 	  [files removeObjectAtIndex: i];
 	  i--;
 	}
     }
-  if ([files count] < 1)
+  if ([files count] < 1 && [hFiles count] < 1)
     {
       NSLog(@"No filename arguments found ... giving up");
       return 1;
@@ -829,13 +839,14 @@ main(int argc, char **argv, char **env)
 
   RELEASE(pool);
 
-  if (generateHtml == YES)
+  /*
+   * If we are either generating html output, or relocating existing
+   * html documents, we must build up the indexing information needed
+   * for any cross-referencing etc.
+   */
+  if (generateHtml == YES || [hFiles count] > 0)
     {
-      /*
-       * Second pass ... generate html output from gsdoc files.
-       */
       pool = [NSAutoreleasePool new];
-
       /*
        * Merge any external project references into the
        * main cross reference index.
@@ -967,6 +978,13 @@ main(int argc, char **argv, char **env)
       [globalRefs mergeRefs: [projectRefs refs] override: YES];
 
       RELEASE(pool);
+    }
+
+  /*
+   * Next pass ... generate html output from gsdoc files if required.
+   */
+  if (generateHtml == YES)
+    {
       pool = [NSAutoreleasePool new];
 
       for (i = 0; i < [files count]; i++)
@@ -1078,6 +1096,187 @@ main(int argc, char **argv, char **env)
 	    {
 	      NSLog(@"No readable documentation at '%@' ... skipping",
 		gsdocfile);
+	    }
+	}
+      RELEASE(pool);
+    }
+
+  /*
+   * Relocate existing html documents if required ... adjust all cross
+   * referencing within those documents.
+   */
+  if ([hFiles count] > 0)
+    {
+      pool = [NSAutoreleasePool new];
+
+      for (i = 0; i < [hFiles count]; i++)
+	{
+	  NSString	*file = [hFiles objectAtIndex: i];
+	  NSString	*src;
+	  NSString	*dst;
+	  NSString	*sdir;
+	  NSString	*ddir;
+
+	  if (pool != nil)
+	    {
+	      RELEASE(pool);
+	      pool = [NSAutoreleasePool new];
+	    }
+	  file = [file lastPathComponent];
+	  sdir = sourceDirectory;
+	  ddir = documentationDirectory;
+
+	  src = [sdir stringByAppendingPathComponent: file];
+	  dst = [ddir stringByAppendingPathComponent: file];
+
+	  /*
+	   * If we can't find the file in the source directory, assume
+	   * it is in the ddocumentation directory already, and just needs
+	   * cross-refs rebuilding.
+	   */
+	  if ([mgr isReadableFileAtPath: src] == NO)
+	    {
+	      src = dst;
+	    }
+
+	  if ([mgr isReadableFileAtPath: src] == YES)
+	    {
+	      NSMutableString	*s;
+	      NSRange		r;
+	      unsigned		l;
+	      unsigned		p;
+	      AGSHtml		*html;
+
+	      html = AUTORELEASE([AGSHtml new]);
+	      [html setGlobalRefs: globalRefs];
+	      [html setProjectRefs: projectRefs];
+	      [html setLocalRefs: nil];
+
+	      s = [NSMutableString stringWithContentsOfFile: src];
+	      l = [s length];
+	      p = 0;
+	      r = NSMakeRange(p, l);
+	      r = [s rangeOfString: @"<a rel=\"gsdoc\" href=\""
+			   options: NSLiteralSearch
+			     range: r];
+	      while (r.length > 0)
+		{
+		  NSRange	replace;
+		  NSString	*repstr;
+		  NSString	*href;
+		  NSString	*type;
+		  NSString	*unit = nil;
+
+		  replace.location = r.location;
+		  p = NSMaxRange(r);
+
+		  r = [s rangeOfString: @"\">"
+			       options: NSLiteralSearch
+				 range: NSMakeRange(p, l - p)];
+		  if (r.length == 0)
+		    {
+		      NSLog(@"Unterminated gsdoc rel at %u", p);
+		      break;
+		    }
+		  else
+		    {
+		      replace = NSMakeRange(replace.location,
+			r.location - replace.location);
+		      href = [s substringWithRange:
+			NSMakeRange(p, r.location - p)];
+		      p = NSMaxRange(replace);
+		    }
+
+		  /*
+		   * Skip past the '#' to the local reference.
+		   */
+		  r = [href rangeOfString: @"#"
+				  options: NSLiteralSearch];
+		  if (r.length == 0)
+		    {
+		      NSLog(@"Missing '#' in href at %u", replace.location);
+		      break;
+		    }
+		  href = [href substringFromIndex: NSMaxRange(r)];
+
+		  /*
+		   * Split out the reference type information.
+		   */
+		  r = [href rangeOfString: @"$"
+				  options: NSLiteralSearch];
+		  if (r.length == 0)
+		    {
+		      NSLog(@"Missing '$' in href at %u", replace.location);
+		      break;
+		    }
+		  type = [href substringToIndex: r.location];
+		  href = [href substringFromIndex: NSMaxRange(r)];
+
+		  /*
+		   * Parse unit name from method or instance variable link.
+		   */
+		  if ([type isEqual: @"method"] == YES
+		    || [type isEqual: @"ivariable"] == YES)
+		    {
+		      if ([type isEqual: @"method"] == YES)
+			{
+			  r = [href rangeOfString: @"-"
+					  options: NSLiteralSearch];
+			  if (r.length == 0)
+			    {
+			      r = [href rangeOfString: @"+"
+					      options: NSLiteralSearch];
+			    }
+			  if (r.length > 0)
+			    {
+			      unit = [href substringToIndex: r.location];
+			      href = [href substringFromIndex: NSMaxRange(r)-1];
+			    }
+			}
+		      else
+			{
+			  r = [href rangeOfString: @"*"
+					  options: NSLiteralSearch];
+			  if (r.length > 0)
+			    {
+			      unit = [href substringToIndex: r.location];
+			      href = [href substringFromIndex: NSMaxRange(r)];
+			    }
+			}
+		      if (unit == nil)
+			{
+			  NSLog(@"Missing unit name terminator at %u",
+			    replace.location);
+			  break;
+			}
+		    }
+		  if (unit == nil)
+		    {
+		      repstr = [html makeLink: href
+				       ofType: type
+					isRef: YES];
+		    }
+		  else
+		    {
+		      repstr = [html makeLink: href
+				       ofType: type
+				       inUnit: unit
+					isRef: YES];
+		    }
+		  if (repstr != nil)
+		    {
+		      p += ([repstr length] - replace.length);
+		      [s replaceCharactersInRange: replace withString: repstr];
+		    }
+
+		  r = [s rangeOfString: @"<a rel=\"gsdoc\" href=\""
+			       options: NSLiteralSearch
+				 range: NSMakeRange(p, l - p)];
+		}
+	    }
+	  else
+	    {
+	      NSLog(@"No readable documentation at '%@' ... skipping", src);
 	    }
 	}
       RELEASE(pool);
