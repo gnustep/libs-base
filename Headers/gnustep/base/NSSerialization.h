@@ -26,6 +26,8 @@
 #ifndef __NSSerialization_h_GNUSTEP_BASE_INCLUDE
 #define __NSSerialization_h_GNUSTEP_BASE_INCLUDE
 
+#include <Foundation/NSObject.h>
+
 @class NSData, NSMutableData;
 
 @protocol NSObjCTypeSerializationCallBack
