@@ -18,6 +18,7 @@
         the API of the OpenStep Foundation Kit (tm), including later
 	additions.
       </p>
+      <index scope="project" type="title" />
       <section>
 	<heading>Compatibility</heading>
 	<p>
@@ -298,7 +299,8 @@
       </section>
     </chapter>
     <back>
-      <index scope="project" type="title" />
+      <index scope="project" type="class" />
+      <index scope="project" type="protocol" />
     </back>
   </body>
 </gsdoc>

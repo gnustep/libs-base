@@ -1266,6 +1266,11 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  NSLog(@"Element 'embed' not supported");
 	  return [node next];
 	}
+      else if ([n isEqual: @"index"] == YES)
+	{
+	  [self outputNode: node to: buf];
+	  return [node next];
+	}
       else if ([textNodes member: n] != nil)
 	{
 	  [buf appendString: indent];
