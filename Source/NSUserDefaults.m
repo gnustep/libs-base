@@ -367,7 +367,19 @@ static NSMutableString   *processName = nil;
 	
   if (obj)
     {
-      [[persDomains objectForKey:processName] removeObjectForKey:defaultName];
+      id	obj = [persDomains objectForKey: processName];
+      NSMutableDictionary *dict;
+
+      if ([obj isKindOfClass: [NSMutableDictionary class]] == YES)
+	{
+	  dict = obj;
+	}
+      else
+	{
+	  dict = [obj mutableCopy];
+	  [persDomains setObject: dict forKey: processName];
+	}
+      [dict removeObjectForKey:defaultName];
       [self __changePersistentDomain:processName];
     }
   return;
@@ -464,7 +476,7 @@ static NSMutableString   *processName = nil;
  *************************************************************************/
 - (NSDictionary *)persistentDomainForName:(NSString *)domainName
 {
-  return [persDomains objectForKey:domainName];
+  return [[persDomains objectForKey:domainName] copy];
 }
 
 - (NSArray *)persistentDomainNames
@@ -714,7 +726,7 @@ static NSMutableString   *processName = nil;
     {
       changedDomains = [[NSMutableArray arrayWithCapacity:5] retain];
       [[NSNotificationCenter defaultCenter] 
-	postNotificationName:NSUserDefaultsChanged object:nil];
+	postNotificationName:NSUserDefaultsDidChange object:nil];
     }
 	
   if (!tickingTimer)
