@@ -49,9 +49,18 @@ before-install::
 after-install::
 	cp $(TIMEZONE_ARCHIVE) $(resourcedir); \
 	cd $(resourcedir); \
+	if [ -f NSTimeZones/localtime ]; then \
+	  cp NSTimeZones/localtime /tmp/localtime.tmp; \
+        else \
+          rm -f /tmp/localtime.tmp; \
+	fi; \
 	rm -rf NSTimeZones; \
 	tar -xf $(TIMEZONE_ARCHIVE); \
-	rm -f $(TIMEZONE_ARCHIVE)
+	rm -f $(TIMEZONE_ARCHIVE); \
+	if [ -f /tmp/localtime.tmp ]; then \
+	  cp /tmp/localtime.tmp NSTimeZones/localtime; \
+	  rm -f /tmp/localtime.tmp; \
+        fi
 
 # Things to do before uninstalling
 # before-uninstall::
