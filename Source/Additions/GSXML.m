@@ -54,13 +54,13 @@
 #include <Foundation/NSFileManager.h>
 
 /* libxml headers */
-#include <tree.h>
-#include <entities.h>
-#include <parser.h>
-#include <parserInternals.h>
-#include <SAX.h>
-#include <HTMLparser.h>
-#include <xmlmemory.h>
+#include <libxml/tree.h>
+#include <libxml/entities.h>
+#include <libxml/parser.h>
+#include <libxml/parserInternals.h>
+#include <libxml/SAX.h>
+#include <libxml/HTMLparser.h>
+#include <libxml/xmlmemory.h>
 
 extern int xmlDoValidityCheckingDefaultValue;
 extern int xmlGetWarningsDefaultValue;
@@ -186,7 +186,7 @@ static NSMapTable	*attrNames = 0;
 
 + (NSString*) descriptionFromType: (int)type
 {
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)type);
 
   return desc;
 }
@@ -268,14 +268,19 @@ static NSMapTable	*attrNames = 0;
  */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
 {
-  void	*data = xmlNewDoc([version UTF8String]);
+  void		*data = xmlNewDoc([version UTF8String]);
+  GSXMLDocument	*document = nil;
 
   if (data == 0)
     {
       NSLog(@"Can't create GSXMLDocument object");
-      DESTROY(self);
     }
-  return [self _initFrom: data parent: nil ownsLib: YES];
+  else
+    {
+      document = [GSXMLDocument alloc];
+      document = [document _initFrom: data parent: nil ownsLib: YES];
+    }
+  return AUTORELEASE(document);
 }
 
 + (void) initialize
@@ -475,7 +480,7 @@ static NSMapTable	*nsNames = 0;
  */
 + (NSString*) descriptionFromType: (int)type
 {
-  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
+  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)type);
 
   return desc;
 }
@@ -652,7 +657,7 @@ static NSMapTable	*nodeNames = 0;
  */
 + (NSString*) descriptionFromType: (int)type
 {
-  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
+  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)type);
 
   return desc;
 }

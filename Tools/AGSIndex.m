@@ -224,7 +224,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   if ([node type] == XML_ELEMENT_NODE)
     {
       NSString		*name = [node name];
-      NSDictionary	*prop = [node propertiesAsDictionary];
+      NSDictionary	*prop = [node attributes];
 
       if ([name isEqual: @"category"] == YES)
 	{
