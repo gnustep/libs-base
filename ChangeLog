@@ -1,3 +1,8 @@
+2004-07-13  Andrew Ruder <aeruder@ksu.edu>
+
+	* Source/NSMessagePort.m, Source/NSSocketPort.m: Use memmove instead
+	of memcpy for potentially overlapping moves.
+
 2004-07-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/cvtenc.m: Use uppercase 'U' rather than 'u' in unicode
@@ -15,9 +20,9 @@
 
 2004-07-05 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/Unicode.m: GSToUnicode() be strict about converting ASCII
-	to unicode.  
-	GetDefEncoding() don't override default (latin1) encoding to be
+	* Source/Additions/Unicode.m: GSToUnicode() be strict about
+	converting ASCII to unicode.
+	(GetDefEncoding): Don't override default (latin1) encoding to be
 	ascii if we only have the return value of nl_langinfo() to go on.
 
 2004-07-04 Richard Frith-Macdonald <rfm@gnu.org>

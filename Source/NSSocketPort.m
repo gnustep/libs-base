@@ -806,7 +806,7 @@ static Class	runLoopClass;
 			  rLength -= rWant;
 			  if (rLength > 0)
 			    {
-			      memcpy(bytes, bytes + rWant, rLength);
+			      memmove(bytes, bytes + rWant, rLength);
 			    }
 			  rWant = sizeof(GSPortItemHeader);
 			  d = [mutableDataClass new];
@@ -835,7 +835,7 @@ static Class	runLoopClass;
 			  rLength -= rWant;
 			  if (rLength > 0)
 			    {
-			      memcpy(bytes, bytes + rWant, rLength);
+			      memmove(bytes, bytes + rWant, rLength);
 			    }
 			  rWant = l;
 			}
@@ -858,7 +858,7 @@ static Class	runLoopClass;
 		      rLength -= rWant;
 		      if (rLength > 0)
 			{
-			  memcpy(bytes, bytes + rWant, rLength);
+			  memmove(bytes, bytes + rWant, rLength);
 			}
 		      rWant = l;
 		    }
@@ -906,7 +906,7 @@ static Class	runLoopClass;
 		      rLength -= rWant;
 		      if (rLength > 0)
 			{
-			  memcpy(bytes, bytes + rWant, rLength);
+			  memmove(bytes, bytes + rWant, rLength);
 			}
 		      rWant = sizeof(GSPortItemHeader);
 		      if (nItems == 1)
@@ -922,7 +922,7 @@ static Class	runLoopClass;
 		      rLength -= rWant;
 		      if (rLength > 0)
 			{
-			  memcpy(bytes, bytes + rWant, rLength);
+			  memmove(bytes, bytes + rWant, rLength);
 			}
 		      rWant = sizeof(GSPortItemHeader);
 		    }
@@ -941,7 +941,7 @@ static Class	runLoopClass;
 		  rLength -= rWant;
 		  if (rLength > 0)
 		    {
-		      memcpy(bytes, bytes + rWant, rLength);
+		      memmove(bytes, bytes + rWant, rLength);
 		    }
 		  rWant = sizeof(GSPortItemHeader);
 		  if (nItems == [rItems count])
@@ -970,7 +970,7 @@ static Class	runLoopClass;
 		  rLength -= rWant;
 		  if (rLength > 0)
 		    {
-		      memcpy(bytes, bytes + rWant, rLength);
+		      memmove(bytes, bytes + rWant, rLength);
 		    }
 		  rWant = sizeof(GSPortItemHeader);
 
