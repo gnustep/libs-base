@@ -301,5 +301,5 @@ typedef xmlNsType		GSXMLNamespaceType;
 @interface GSHTMLSAXHandler : GSSAXHandler
 @end
 
-#endif __GSXML_H__
+#endif /* __GSXML_H__ */
 
