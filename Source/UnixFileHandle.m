@@ -1980,34 +1980,37 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       //NSLog(@"Number of attempts: %d", count);
       if (err != SSL_ERROR_NONE)
 	{
-	  NSLog(@"unable to make SSL connection");
+	  NSString	*err;
+
 	  switch (SSL_get_error(ssl, ret))
 	    {
 	      case SSL_ERROR_NONE:
-		NSLog(@"No error: really helpful");
+		err = @"No error: really helpful";
 		break;
 	      case SSL_ERROR_ZERO_RETURN:
-		NSLog(@"Zero Return error");
+		err = @"Zero Return error";
 		break;
 	      case SSL_ERROR_WANT_READ:
-		NSLog(@"Want Read Error");
+		err = @"Want Read Error";
 		break;
 	      case SSL_ERROR_WANT_WRITE:
-		NSLog(@"Want Write Error");
+		err = @"Want Write Error";
 		break;
 	      case SSL_ERROR_WANT_X509_LOOKUP:
-		NSLog(@"Want X509 Lookup Error");
+		err = @"Want X509 Lookup Error";
 		break;
 	      case SSL_ERROR_SYSCALL:
-		NSLog(@"Syscall Error - %s", GSLastErrorStr(errno));
+		err = @"Syscall Error - %s", GSLastErrorStr(errno);
 		break;
 	      case SSL_ERROR_SSL:
-		NSLog(@"SSL Error: really helpful");
+		err = @"SSL Error: really helpful";
 		break;
 	      default:
-		NSLog(@"Standard Unix Error: really helpful");
+		err = @"Standard Unix Error: really helpful";
 		break;
 	    }
+	  NSLog(@"unable to make SSL connection to %@:%@ - %@",
+	    address, service, err);
 	  return NO;
 	}
     }

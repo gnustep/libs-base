@@ -887,15 +887,24 @@ if test $enable_openssl = yes; then
       LIBS="$LIBS -lcrypto"
       AC_CHECK_LIB(ssl, ssl2_clear, ssl_ok=yes, ssl_ok=no)
       if test "$ssl_ok" = yes; then
+        echo "found openssl"
         LIBS="$base_libs -lssl -lcrypto"
         AC_DEFINE(HAVE_OPENSSL)
+      else
+        echo "Could not find openssl crypto library"
+        echo "Check to make sure you have a recent version of openssl installed"
+        AC_MSG_WARN(Could not find openssl headers)
       fi
 
       AC_CHECK_LIB(cipher,des_setkey,cipher_ok=yes,cipher_ok=no)
       if test "$cipher_ok" = yes; then
+        echo "found cipher"
         LIBS="$LIBS -lcipher"
       fi
-
+    else
+      echo "Could not find openssl library"
+      echo "Check to make sure you have a recent version of openssl installed"
+      AC_MSG_WARN(Could not find openssl headers)
     fi
   fi
 fi
