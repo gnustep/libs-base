@@ -17,7 +17,7 @@
 <h2><a name="cont-0">GSSAXHandler</a></h2>
 <h2><a name="GSSAXHandler">GSSAXHandler</a></h2>
 <p><b>Declared in:</b> GSXML.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <hr>
 
 	   <p>
@@ -57,12 +57,12 @@ SAX is a callback-based interface to the XML parser.</p>
 <li><a href="GSSAXHandler.html#method-19">-hasExternalSubset:</a>
 <li><a href="GSSAXHandler.html#method-18">-hasInternalSubset:</a>
 <li><a href="GSSAXHandler.html#method-10">-ignoreWhitespace:length:</a>
-<li><a href="GSSAXHandler.html#method-1">-init</a>
 <li><a href="GSSAXHandler.html#method-20">-internalSubset:externalID:systemID:</a>
 <li><a href="GSSAXHandler.html#method-5">-isStandalone</a>
-<li><a href="GSSAXHandler.html#method-2">-lib</a>
+<li><a href="GSSAXHandler.html#method-1">-lib</a>
 <li><a href="GSSAXHandler.html#method-24">-namespaceDecl:href:prefix:</a>
 <li><a href="GSSAXHandler.html#method-25">-notationDecl:systemId:</a>
+<li><a href="GSSAXHandler.html#method-2">-parser</a>
 <li><a href="GSSAXHandler.html#method-11">-processInstruction:value:</a>
 <li><a href="GSSAXHandler.html#method-30">-reference:</a>
 <li><a href="GSSAXHandler.html#method-21">-resolveEntity:systemID:</a>
@@ -75,27 +75,30 @@ SAX is a callback-based interface to the XML parser.</p>
 <h3><a name="method-0">handler</a></h3>
 + (<A HREF="GSSAXHandler.html#GSSAXHandler">GSSAXHandler</A>*) <b>handler</b>;<br>
 
-          <p>
+	    <p>
 Create a new SAX handler.
             </p>
 
           
 <hr>
 <hr><h2>Instances Methods</h2>
-<h3><a name="method-1">init</a></h3>
-- (id) <b>init</b>;<br>
+<h3><a name="method-1">lib</a></h3>
+- (void*) <b>lib</b>;<br>
 
-          <p>
-Create a new SAX handler.
+	    <p>
+
+	      Return pointer to xmlSAXHandler structure.
             </p>
 
           
 <hr>
-<h3><a name="method-2">lib</a></h3>
-- (void*) <b>lib</b>;<br>
+<h3><a name="method-2">parser</a></h3>
+- (<A HREF="GSXMLParser.html#GSXMLParser">GSXMLParser</A>*) <b>parser</b>;<br>
 
-          <p>
-Return pointer to xmlSAXHandler structure.
+	    <p>
+
+	      Return the parser object with which this handler is
+	      associated.  This may occasionally be useful.
             </p>
 
           
@@ -103,8 +106,9 @@ Return pointer to xmlSAXHandler structure.
 <h3><a name="method-3">startDocument</a></h3>
 - (void) <b>startDocument</b>;<br>
 
-          <p>
-Called when the document start being processed.
+	    <p>
+
+	      Called when the document start being processed.
             </p>
 
           
@@ -112,23 +116,24 @@ Called when the document start being processed.
 <h3><a name="method-4">endDocument</a></h3>
 - (void) <b>endDocument</b>;<br>
 
-          <p>
-Called when the document end has been detected.
+	    <p>
+
+	      Called when the document end has been detected.
             </p>
 
           
 <hr>
 <h3><a name="method-5">isStandalone</a></h3>
-- (void) <b>isStandalone</b>;<br>
+- (int) <b>isStandalone</b>;<br>
 
-          <p>
+	    <p>
 Called if the document is standalone.
             </p>
 
           
 <hr>
 <h3><a name="method-6">startElement:attributes:</a></h3>
-- (void) <b>startElement:</b> (NSString*)elementName <b>attributes:</b> (NSMutableDictionary*)elementAttributes;<br>
+- (void) <b>startElement:</b> (<A HREF="NSString.html#NSString">NSString</A>*)elementName <b>attributes:</b> (<A HREF="NSMutableDictionary.html#NSMutableDictionary">NSMutableDictionary</A>*)elementAttributes;<br>
 
           <p>
 Called when an opening tag has been processed.
@@ -137,7 +142,7 @@ Called when an opening tag has been processed.
           
 <hr>
 <h3><a name="method-7">endElement</a></h3>
-- (void) <b>endElement</b> (NSString*)elementName;<br>
+- (void) <b>endElement</b> (<A HREF="NSString.html#NSString">NSString</A>*)elementName;<br>
 
           <p>
 Called when the end of an element has been detected.
@@ -146,7 +151,7 @@ Called when the end of an element has been detected.
           
 <hr>
 <h3><a name="method-8">attribute:value:</a></h3>
-- (void) <b>attribute:</b> (NSString*)name <b>value:</b> (NSString*)value;<br>
+- (void) <b>attribute:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>value:</b> (<A HREF="NSString.html#NSString">NSString</A>*)value;<br>
 
           <p>
 Handle an attribute that has been read by the parser.
@@ -155,7 +160,7 @@ Handle an attribute that has been read by the parser.
          
 <hr>
 <h3><a name="method-9">characters:length:</a></h3>
-- (void) <b>characters:</b> (NSString*)name <b>length:</b> (int)len;<br>
+- (void) <b>characters:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>length:</b> (int)len;<br>
 
           <p>
 Receiving some chars from the parser.
@@ -164,7 +169,7 @@ Receiving some chars from the parser.
           
 <hr>
 <h3><a name="method-10">ignoreWhitespace:length:</a></h3>
-- (void) <b>ignoreWhitespace:</b> (NSString*)ch <b>length:</b> (int)length;<br>
+- (void) <b>ignoreWhitespace:</b> (<A HREF="NSString.html#NSString">NSString</A>*)ch <b>length:</b> (int)length;<br>
 
           <p>
 Receiving some ignorable whitespaces from the parser.
@@ -173,7 +178,7 @@ Receiving some ignorable whitespaces from the parser.
           
 <hr>
 <h3><a name="method-11">processInstruction:value:</a></h3>
-- (void) <b>processInstruction:</b> (NSString*)targetName <b>value:</b> (NSString*)PIData;<br>
+- (void) <b>processInstruction:</b> (<A HREF="NSString.html#NSString">NSString</A>*)targetName <b>value:</b> (<A HREF="NSString.html#NSString">NSString</A>*)PIData;<br>
 
           <p>
 A processing instruction has been parsed.
@@ -182,7 +187,7 @@ A processing instruction has been parsed.
           
 <hr>
 <h3><a name="method-12">comment:</a></h3>
-- (void) <b>comment:</b> (NSString*)value;<br>
+- (void) <b>comment:</b> (<A HREF="NSString.html#NSString">NSString</A>*)value;<br>
 
           <p>
 A comment has been parsed.
@@ -191,7 +196,7 @@ A comment has been parsed.
           
 <hr>
 <h3><a name="method-13">cdataBlock:length:</a></h3>
-- (void) <b>cdataBlock:</b> (NSString*)value <b>length:</b> (int)length;<br>
+- (void) <b>cdataBlock:</b> (<A HREF="NSString.html#NSString">NSString</A>*)value <b>length:</b> (int)length;<br>
 
           <p>
 Called when a pcdata block has been parsed.
@@ -200,7 +205,7 @@ Called when a pcdata block has been parsed.
           
 <hr>
 <h3><a name="method-14">globalNamespace:href:prefix:</a></h3>
-- (void) <b>globalNamespace:</b> (NSString*)name <b>href:</b> (NSString*)href <b>prefix:</b> (NSString*)prefix;<br>
+- (void) <b>globalNamespace:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>href:</b> (<A HREF="NSString.html#NSString">NSString</A>*)href <b>prefix:</b> (<A HREF="NSString.html#NSString">NSString</A>*)prefix;<br>
 
           <p>
 An old global namespace has been parsed.
@@ -209,7 +214,7 @@ An old global namespace has been parsed.
           
 <hr>
 <h3><a name="method-15">error:</a></h3>
-- (void) <b>error:</b> (NSString*)message;<br>
+- (void) <b>error:</b> (<A HREF="NSString.html#NSString">NSString</A>*)message;<br>
 
           <p>
 Called when found a error.
@@ -218,7 +223,7 @@ Called when found a error.
           
 <hr>
 <h3><a name="method-16">fatalError:</a></h3>
-- (void) <b>fatalError:</b> (NSString*)message;<br>
+- (void) <b>fatalError:</b> (<A HREF="NSString.html#NSString">NSString</A>*)message;<br>
 
           <p>
 Called when found a fatal error.
@@ -227,7 +232,7 @@ Called when found a fatal error.
           
 <hr>
 <h3><a name="method-17">warning:</a></h3>
-- (void) <b>warning:</b> (NSString*)message;<br>
+- (void) <b>warning:</b> (<A HREF="NSString.html#NSString">NSString</A>*)message;<br>
 
           <p>
 Called when found a warning.
@@ -236,7 +241,7 @@ Called when found a warning.
           
 <hr>
 <h3><a name="method-18">hasInternalSubset:</a></h3>
-- (void) <b>hasInternalSubset:</b>;<br>
+- (int) <b>hasInternalSubset:</b>;<br>
 
           <p>
 Callback on internal subset declaration.
@@ -245,7 +250,7 @@ Callback on internal subset declaration.
           
 <hr>
 <h3><a name="method-19">hasExternalSubset:</a></h3>
-- (void) <b>hasExternalSubset:</b>;<br>
+- (int) <b>hasExternalSubset:</b>;<br>
 
           <p>
 Does this document have an external subset.
@@ -254,7 +259,7 @@ Does this document have an external subset.
           
 <hr>
 <h3><a name="method-20">internalSubset:externalID:systemID:</a></h3>
-- (void) <b>internalSubset:</b> (NSString*)name <b>externalID:</b> (NSString*)externalID <b>systemID:</b> (NSString*)systemID;<br>
+- (void) <b>internalSubset:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>externalID:</b> (<A HREF="NSString.html#NSString">NSString</A>*)externalID <b>systemID:</b> (<A HREF="NSString.html#NSString">NSString</A>*)systemID;<br>
 
           <p>
 Callback on internal subset declaration.
@@ -263,7 +268,7 @@ Callback on internal subset declaration.
           
 <hr>
 <h3><a name="method-21">resolveEntity:systemID:</a></h3>
-- (void) <b>resolveEntity:</b> (NSString*)publicID <b>systemID:</b> (NSString*)systemID;<br>
+- (void*) <b>resolveEntity:</b> (<A HREF="NSString.html#NSString">NSString</A>*)publicID <b>systemID:</b> (<A HREF="NSString.html#NSString">NSString</A>*)systemID;<br>
 
           <p>
 The entity loader, to control the loading of external entities,
@@ -273,7 +278,7 @@ The entity loader, to control the loading of external entities,
           
 <hr>
 <h3><a name="method-22">getEntity:</a></h3>
-- (void) <b>getEntity:</b> (NSString*)name;<br>
+- (void*) <b>getEntity:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name;<br>
 
           <p>
 Get an entity by name.
@@ -282,7 +287,7 @@ Get an entity by name.
           
 <hr>
 <h3><a name="method-23">getParameterEntity:</a></h3>
-- (void) <b>getParameterEntity:</b> (NSString*)name;<br>
+- (void*) <b>getParameterEntity:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name;<br>
 
           <p>
 Get a parameter entity by name.
@@ -291,7 +296,7 @@ Get a parameter entity by name.
           
 <hr>
 <h3><a name="method-24">namespaceDecl:href:prefix:</a></h3>
-- (void) <b>namespaceDecl:</b> (NSString*)name <b>href:</b> (NSString*)href <b>prefix:</b> (NSString*)prefix;<br>
+- (void) <b>namespaceDecl:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>href:</b> (<A HREF="NSString.html#NSString">NSString</A>*)href <b>prefix:</b> (<A HREF="NSString.html#NSString">NSString</A>*)prefix;<br>
 
           <p>
 A namespace has been parsed.
@@ -300,7 +305,7 @@ A namespace has been parsed.
           
 <hr>
 <h3><a name="method-25">notationDecl:systemId:</a></h3>
-- (void) <b>notationDecl:</b> (NSString*)publicId <b>systemId:</b> (NSString*)systemId;<br>
+- (void) <b>notationDecl:</b> (<A HREF="NSString.html#NSString">NSString</A>*)publicId <b>systemId:</b> (<A HREF="NSString.html#NSString">NSString</A>*)systemId;<br>
 
           <p>
 What to do when a notation declaration has been parsed.
@@ -309,7 +314,7 @@ What to do when a notation declaration has been parsed.
           
 <hr>
 <h3><a name="method-26">entityDecl:type:publicId:systemId:content:</a></h3>
-- (void) <b>entityDecl:</b> (NSString*)name <b>type:</b> (int)type <b>publicId:</b> (NSString*)publicId <b>systemId:</b> (NSString*)systemId <b>content:</b> (NSString*)content;<br>
+- (void) <b>entityDecl:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>type:</b> (int)type <b>publicId:</b> (<A HREF="NSString.html#NSString">NSString</A>*)publicId <b>systemId:</b> (<A HREF="NSString.html#NSString">NSString</A>*)systemId <b>content:</b> (<A HREF="NSString.html#NSString">NSString</A>*)content;<br>
 
           <p>
 An entity definition has been parsed.
@@ -318,7 +323,7 @@ An entity definition has been parsed.
           
 <hr>
 <h3><a name="method-27">attributeDecl:name:type:typeDefValue:defaultValue:</a></h3>
-- (void) <b>attributeDecl:</b> (NSString*)nameElement <b>name:</b> (NSString*)name <b>type:</b> (int)type <b>typeDefValue:</b> (int)defType <b>defaultValue:</b> (NSString*)value;<br>
+- (void) <b>attributeDecl:</b> (<A HREF="NSString.html#NSString">NSString</A>*)nameElement <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>type:</b> (int)type <b>typeDefValue:</b> (int)defType <b>defaultValue:</b> (<A HREF="NSString.html#NSString">NSString</A>*)value;<br>
 
           <p>
 An attribute definition has been parsed.
@@ -327,7 +332,7 @@ An attribute definition has been parsed.
           
 <hr>
 <h3><a name="method-28">elementDecl:type:</a></h3>
-- (void) <b>elementDecl:</b> (NSString*)name <b>type:</b> (int)type;<br>
+- (void) <b>elementDecl:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>type:</b> (int)type;<br>
 
           <p>
 An element definition has been parsed.
@@ -336,7 +341,7 @@ An element definition has been parsed.
           
 <hr>
 <h3><a name="method-29">unparsedEntityDecl:public:system:notationName:</a></h3>
-- (void) <b>unparsedEntityDecl:</b> (NSString*)name <b>public:</b> (NSString*)publicId <b>system:</b> (NSString*)systemId <b>notationName:</b> (NSString*)notation;<br>
+- (void) <b>unparsedEntityDecl:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>public:</b> (<A HREF="NSString.html#NSString">NSString</A>*)publicId <b>system:</b> (<A HREF="NSString.html#NSString">NSString</A>*)systemId <b>notationName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notation;<br>
 
           <p>
 What to do when an unparsed entity declaration is parsed.
@@ -345,7 +350,7 @@ What to do when an unparsed entity declaration is parsed.
           
 <hr>
 <h3><a name="method-30">reference:</a></h3>
-- (void) <b>reference:</b> (NSString*)name;<br>
+- (void) <b>reference:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name;<br>
 
           <p>
 Called when an entity reference is detected.
