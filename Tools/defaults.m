@@ -32,9 +32,9 @@
 
 
 int
-main(int argc, char** argv)
+main(int argc, char** argv, char **env)
 {
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  NSAutoreleasePool	*pool;
   NSUserDefaults	*defs;
   NSProcessInfo		*proc;
   NSArray		*args;
@@ -47,6 +47,10 @@ main(int argc, char** argv)
   BOOL			found = NO;
   int			i;
 
+#ifdef GS_PASS_ARGUMENTS
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+#endif
+  pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {

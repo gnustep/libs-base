@@ -57,6 +57,11 @@
 /* This method returns a set of debug levels set using the
  * --GNU-Debug=... command line option. */
 - (NSMutableSet*) debugSet;
+
+/* When non using the other argument initialization hacks... */
++ (void)initializeWithArguments:(char**)argv
+                          count:(int)argc
+                    environment:(char**)env;
 @end
 
 /*

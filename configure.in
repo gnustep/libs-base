@@ -721,33 +721,54 @@ fi
 #--------------------------------------------------------------------
 # Include redefinition of main () only if needed.
 # On some systems - force redefinition to be used as the /proc stuff
-# doesn't work.
+# doesn't work. Allow NSProcessInfo initialization method also.
 #--------------------------------------------------------------------
-echo "handling fake-main definition"
+AC_MSG_CHECKING("use of pass-through arguments")
+AC_ARG_ENABLE(pass-arguments,
+  [  --enable-pass-arguments  User main calls NSProcessInfo initialization],,
+  enable_pass_arguments=no)
+
+case "$target_os" in
+  cygnus*)	enable_pass_arguments=yes;;
+esac
+if test "$enable_pass_arguments" = "yes"; then
+  GS_PASS_ARGUMENTS=1
+else
+  GS_PASS_ARGUMENTS=0
+fi
+AC_SUBST(GS_PASS_ARGUMENTS)
+AC_MSG_RESULT($enable_pass_arguments)
+
+AC_MSG_CHECKING("use of fake-main definition")
 AC_ARG_ENABLE(fake-main,
   [  --enable-fake-main  Force use of redefine of the main function],,
   enable_fake_main=no)
 
-case "$target_os" in
-  freebsd*)	enable_fake_main=yes;;
-  netbsd*)	enable_fake_main=yes;;
-  openbsd*)	enable_fake_main=yes;;
-  *sysv*)	enable_fake_main=yes;;
-esac
+if test "$enable_pass_arguments" = "no"; then
+  case "$target_os" in
+    freebsd*)	enable_fake_main=yes;;
+    netbsd*)	enable_fake_main=yes;;
+    openbsd*)	enable_fake_main=yes;;
+    *sysv*)	enable_fake_main=yes;;
+  esac
+fi
 
+GS_FAKE_MAIN=0
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
-else
+elif test "$enable_pass_arguments" = "no"; then
   if test $objc_load_method_worked = yes -a $sys_proc_fs = yes; then
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1
+    enable_fake_main=yes
   fi
   if test $sys_proc_fs_exe = yes; then
     AC_DEFINE(HAVE_PROC_FS_EXE_LINK)
   fi
 fi
 AC_SUBST(GS_FAKE_MAIN)
+AC_MSG_RESULT($enable_fake_main)
 
 #--------------------------------------------------------------------
 # Check recent libxlm for GSDoc etc.

@@ -750,13 +750,16 @@
 @end
 
 int
-main()
+main(int argc, char** argv, char** env)
 {
   GDNCServer		*server;
   NSAutoreleasePool	*pool;
   NSString		*str;
   BOOL			shouldFork = YES;
 
+#ifdef GS_PASS_ARGUMENTS
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+#endif
   pool = [NSAutoreleasePool new];
   str = [[NSUserDefaults standardUserDefaults] stringForKey: @"debug"];
   if (str != nil && [str caseInsensitiveCompare: @"yes"] == NSOrderedSame)

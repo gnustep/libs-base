@@ -44,6 +44,14 @@
 /* From the objc runtime -- needed when invalidating the dtable */
 extern void __objc_install_premature_dtable(Class);
 extern void sarray_free(struct sarray*);
+#ifndef HAVE_OBJC_GET_UNINSTALLED_DTABLE
+extern void *__objc_uninstalled_dtable;
+static void *
+objc_get_uninstalled_dtable()
+{
+  return __objc_uninstalled_dtable;
+}
+#endif
 
 /* Declaration from NSBundle.m */
 const char *objc_executable_location( void );
@@ -85,13 +93,9 @@ objc_invalidate_dtable(Class class)
 {
     Class s;
 
-#ifdef HAVE_OBJC_GET_UNINSTALLED_DTABLE
     if (class->dtable == objc_get_uninstalled_dtable()) 
 	return;
-#else
-    if (class->dtable == NULL)
-	return;
-#endif
+
     sarray_free(class->dtable);
     __objc_install_premature_dtable(class);
     for (s=class->subclass_list; s; s=s->sibling_class) 

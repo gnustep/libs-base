@@ -1,3 +1,23 @@
+2000-06-28  Adam Fedor  <fedor@gnu.org>
+
+	Extension to force process args to be forwarded by the user.
+	* configure.in (enable-pass-arguments): New switch that forces user
+	to call NSProcessInfo initialization with process arguments.
+	* Headers/gnustep/base/GSConfig.h.in (GS_PASS_ARGUMENTS): New define.
+	* Source/NSProcessInfo.m (+initializeWithArguments:count:environment:):
+	New method.
+	* Tools/defaults.m (main): Update to call method if GS_PASS_ARGUMENTS.
+	* Tools/gdnc.m: Likewise.
+	* Tools/gsdoc.m: Likewise.
+	* Tools/pldes.m: Likewise.
+	* Tools/plmerge.m: Likewise.
+	* Tools/plparse.m: Likewise.
+	* Tools/plser.m: Likewise.
+	* Tools/sfparse.m: Likewise.
+
+	* Source/behavior.m: Define __objc_uninstalled_dtable if not available
+	from runtime.
+
 2000-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Various minor tidyups for distributed objects - and included development
