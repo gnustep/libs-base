@@ -6,6 +6,7 @@
 	than doubling each time.
 	* Headers/Foundation/NSConnection.h: Remove default timeout constant.
 	* configure.in: Check for float.h, not for values.h
+	* Documentation/gsdoc/NSConnection.gsdoc: updated.
 
 2001-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
