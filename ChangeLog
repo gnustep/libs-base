@@ -1,3 +1,9 @@
+2003-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Flush iconv buffer at end of conversion
+	to handle obscure cases where it says it has converted all the input
+	sequence, but hasn't written all the output.
+
 2003-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Add 'UTF-7' so iconv can be used to
