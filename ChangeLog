@@ -1,3 +1,8 @@
+Wed Jan  5 16:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSData.m: when serializing selectors, cope with untyped
+	selectors instead of crashing.
+
 Wed Jan  5 14:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimeZone.m: Changed order of lookup to determine the local

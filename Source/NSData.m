@@ -1462,9 +1462,9 @@ failure:
       case _C_SEL:
 	{
 	  const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
-	  gsu16	ln = (gsu16)strlen(name);
+	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
 	  const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
-	  gsu16	lt = (gsu16)strlen(types);
+	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
 	  gsu16	ni;
 
 	  ni = GSSwapHostI16ToBig(ln);
@@ -2883,9 +2883,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       case _C_SEL:
 	{
 	  const char  *name = *(SEL*)data?fastSelectorName(*(SEL*)data):"";
-	  gsu16	ln = (gsu16)strlen(name);
+	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
 	  const char  *types = *(SEL*)data?fastSelectorTypes(*(SEL*)data):"";
-	  gsu16	lt = (gsu16)strlen(types);
+	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
 	  gsu16	minimum = length + ln + lt + 2*sizeof(gsu16);
 	  gsu16	ni;
 
