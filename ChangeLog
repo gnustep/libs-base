@@ -1,3 +1,10 @@
+Wed Apr 15 09:54:25 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/NSFIleManager.m ([NSFileManager
+	-fileAttributesAtPath:traverseLink:]): Add NSFileOwnerAccountName.
+	* src/externs.m: Add NSFileOwnerAccountName definition.
+	(patch provided by Marcus Mueller <znek@object-factory.com>)
+
 Sun Apr  5 20:07:28 1998  Scott Christley  <scottc@net-community.com>
 
 	* Utilize documentation rules in Makefile Package.
