@@ -2829,7 +2829,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (BOOL) externalSubset: (NSString*)name
 	     externalID: (NSString*)externalID
-		ystemID: (NSString*)systemID
+	       systemID: (NSString*)systemID
 {
   return NO;
 }
