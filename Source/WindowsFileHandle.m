@@ -43,7 +43,9 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <string.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <errno.h>
 
 // Maximum data in single I/O operation

@@ -79,7 +79,9 @@
 #include <Foundation/NSZone.h>
 #include <stdio.h>
 #include <string.h>		/* for memset() */
+#if HAVE_UNISTD_H
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
+#endif
 
 #if	HAVE_MMAP
 #include	<unistd.h>

@@ -45,7 +45,9 @@
 #include <Foundation/NSDebug.h>
 
 #include <string.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <sys/types.h>
 #ifdef __FreeBSD__
 #include <fcntl.h>

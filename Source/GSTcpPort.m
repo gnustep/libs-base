@@ -41,7 +41,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>		/* for gethostname() */
+#endif
 
 #ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
