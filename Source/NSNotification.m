@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSString.h>
 
 @implementation NSNotification
 

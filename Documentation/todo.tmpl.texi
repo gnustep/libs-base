@@ -10,6 +10,12 @@
 
 @itemize @bullet
 
+@item Implement Formatter classes (NSDateFormatter, etc) [5] (980722).
+
+@item Check that every class implements coding (correctly). [2, NSCoder] (980721).
+
+@item Check that every class implements copying (correctly) - i.e. non-mutable classes should just retain, etc. [1, NSCopying] (980721).
+
 @item   Implement [NSDeserializer +deserializePropertyListLazilyFromData:atCursor:length:mutableContainers:]
 [3 NSProxy]  (980712)
 

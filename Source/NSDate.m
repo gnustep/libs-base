@@ -154,7 +154,7 @@
   if (NSShouldRetainWithZone(self, zone))
     return [self retain];
   else
-    return [super copyWithZone: zone];
+    return NSCopyObject(self, 0, zone);
 }
 
 - (Class) classForConnectedCoder: aRmc

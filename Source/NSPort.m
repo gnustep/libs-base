@@ -46,7 +46,7 @@ NSString *NSPortTimeoutException
 
 - copyWithZone: (NSZone*)aZone
 {
-    return [super copyWithZone:aZone];
+    return NSCopyObject(self, 0, zone);
 }
 
 - delegate
@@ -56,7 +56,6 @@ NSString *NSPortTimeoutException
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    [super encodeWithCoder: aCoder];
 }
 
 - init
@@ -67,7 +66,6 @@ NSString *NSPortTimeoutException
 
 - initWithCoder: (NSCoder*)aCoder
 {
-    self = [super initWithCoder: aCoder];
     return self;
 }
 

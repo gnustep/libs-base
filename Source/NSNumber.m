@@ -262,14 +262,17 @@
 
 - (id) copy
 {
-    [self subclassResponsibility:_cmd];
-    return nil;
+    return [self retain];
 }
 
 - copyWithZone: (NSZone*)zone
 {
-    [self subclassResponsibility:_cmd];
-    return nil;
+    if (NSShouldRetainWithZone(self, zone)) {
+        return [self retain];
+    }
+    else {
+        return NSCopyObject(self, 0, zone);
+    }
 }
 
 - (NSString*) description

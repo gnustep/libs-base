@@ -460,7 +460,6 @@ unicode/decomp.h \
 unicode/nextstep.h
 
 HEADERS_INSTALL = $(GNU_HEADERS) \
-                  $(NEXTSTEP_HEADERS) \
                   $(BASE_HEADERS)
 
 DIST_FILES = \
@@ -470,11 +469,6 @@ DIST_FILES = \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
         $(GNU_OTHER_SRCFILES) \
-        $(NEXTSTEP_MFILES) \
-        $(NEXTSTEP_CFILES) \
-        $(NEXTSTEP_DERIVED_CFILES) \
-        $(NEXTSTEP_HEADERS) \
-        $(NEXTSTEP_OTHER_SRCFILES) \
         $(BASE_MFILES) \
         $(BASE_CFILES) \
         $(BASE_OTHER_SRCFILES) \
@@ -490,17 +484,16 @@ include/o_map.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
 
 # The C source files to be compiled
-libgnustep-base_C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) \
-	$(NEXTSTEP_DERIVED_CFILES) $(BASE_CFILES)
+libgnustep-base_C_FILES = $(GNU_CFILES) $(BASE_CFILES)
 
 # The Objective-C source files to be compiled
-libgnustep-base_OBJC_FILES = $(GNU_MFILES) $(NEXTSTEP_MFILES) \
+libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
 libgnustep-base_HEADER_FILES_DIR = .
 libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep
 
-libgnustep-base_HEADER_FILES = $(NEXTSTEP_HEADERS) $(BASE_HEADERS)
+libgnustep-base_HEADER_FILES = $(BASE_HEADERS)
 
 -include Makefile.preamble
 

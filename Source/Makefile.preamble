@@ -64,5 +64,4 @@ ADDITIONAL_LIB_DIRS =
 # Additional directories to be created during installation
 ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/gnustep/base \
    $(GNUSTEP_HEADERS)/gnustep/Foundation \
-   $(GNUSTEP_HEADERS)/gnustep/objc \
    $(GNUSTEP_HEADERS)/gnustep/unicode \
