@@ -186,6 +186,7 @@ typedef xmlNsType		GSXMLNamespaceType;
 
 - (GSXMLDocument*) doc;
 - (BOOL) parse;
+- (BOOL) parse: (NSData*)data;
 
 - (BOOL) doValidityChecking: (BOOL)yesno;
 - (int) errNo;
@@ -219,16 +220,12 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) endElement: (NSString*)elementName;
 - (void) attribute: (NSString*)name
 	     value: (NSString*)value;
-- (void) characters: (NSString*)name
-	     length: (int)len;
-- (void) ignoreWhitespace: (NSString*)ch
-		   length: (int)len;
+- (void) characters: (NSString*)name;
+- (void) ignoreWhitespace: (NSString*)ch;
 - (void) processInstruction: (NSString*)targetName
 		       data: (NSString*)PIdata;
 - (void) comment: (NSString*) value;
-- (void) cdataBlock: (NSString*)value
-	     length: (int)len;
-
+- (void) cdataBlock: (NSString*)value;
 
 - (int) hasInternalSubset;
 - (void) internalSubset: (NSString*)name
