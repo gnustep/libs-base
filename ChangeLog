@@ -3,6 +3,8 @@
 	* Source/Additions/GSObjCRuntime.m
 	(GSObjCMethodNames): Unify implementation for both runtimes.
 	(GSGetClassMethodNotInherited): Fix typo.
+	(GSObjCAddClassBehavior): Add call to GSFlushMethodCacheForClass
+	after adding behavior.
 
 2004-06-05  David Ayers  <d.ayers@inode.at>
 
