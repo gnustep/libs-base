@@ -134,7 +134,7 @@ int main()
 	// Have them sit at the table
 	for (i = 0;i < 5; ++i)
 		[NSThread detachNewThreadSelector:@selector(sitAtChair:)
-			toTarget:p[i] withObject:i];
+			toTarget:p[i] withObject: (id)i];
 
 	// Now let them all eat
 	for (i = 0;i < 5; ++i)
