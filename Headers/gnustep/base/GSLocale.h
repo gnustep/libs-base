@@ -29,7 +29,8 @@
 
 @class NSDictionary;
 
-GS_EXPORT NSString *GSSetLocale(NSString *locale);
+GS_EXPORT const char *GSSetLocaleC(int category, const char *loc);
+GS_EXPORT NSString   *GSSetLocale(int category, NSString *locale);
 
 GS_EXPORT NSDictionary *GSDomainFromDefaultLocale(void);
 

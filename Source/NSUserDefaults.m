@@ -53,6 +53,9 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDebug.h>
 #include <base/GSLocale.h>
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
 
 #include "GSPrivate.h"
 
@@ -432,7 +435,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	}
       else if (added_locale == NO)
 	{
-	  NSString *locale = GSSetLocale(nil);
+	  NSString *locale;
+#ifdef HAVE_LOCALE_H
+	  locale = GSSetLocale(LC_MESSAGES, nil);
+#endif
 	  if (locale == nil)
 	    continue;
 	  /* See if we can get the dictionary from i18n functions.
@@ -479,7 +485,6 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       return AUTORELEASE(userLanguages);
     }
   userLanguages = RETAIN([NSMutableArray arrayWithCapacity: 5]);
-  locale = GSSetLocale(@"");
   if (sharedDefaults == nil)
     {
       /* Create our own defaults to get "NSLanguages" since sharedDefaults

@@ -43,9 +43,9 @@
  * make use of locale information.
  */
 const char*
-GSSetLocaleC(const char *loc)
+GSSetLocaleC(int category, const char *loc)
 {
-  return setlocale(LC_CTYPE, loc);
+  return setlocale(category, loc);
 }
 
 /* Set the locale for libc functions from the supplied string or from
@@ -55,7 +55,7 @@ GSSetLocaleC(const char *loc)
    whatever is specified by setlocale) Passing nil will just return the
    current locale. */
 NSString *
-GSSetLocale(NSString *locale)
+GSSetLocale(int category, NSString *locale)
 {
   const char *clocale;
 
@@ -64,7 +64,7 @@ GSSetLocale(NSString *locale)
     {
       clocale = [locale cString];
     }
-  clocale = GSSetLocaleC(clocale);
+  clocale = GSSetLocaleC(category, clocale);
 
   if (clocale == NULL || strcmp(clocale, "C") == 0 
     || strcmp(clocale, "POSIX") == 0) 
@@ -184,7 +184,7 @@ GSDomainFromDefaultLocale(void)
   
   /* FIXME: Get currency format from localeconv */
 
-  str1 = GSSetLocale(nil);
+  str1 = GSSetLocale(LC_MESSAGES, nil);
   if (str1 != nil)
     {
       [dict setObject: str1 forKey: NSLocale];
@@ -213,7 +213,7 @@ GSDomainFromDefaultLocale(void)
 
 #else /* HAVE_LOCALE_H */
 NSString *
-GSSetLocale(NSString *locale)
+GSSetLocale(int category, NSString *locale)
 {
   return nil;
 }

@@ -1,3 +1,12 @@
+2002-12-04  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/GSLocale.h: Add category arg to
+	SetLocale functions.
+	* Source/GSLocale.m (GSSetLocaleC, GSSetLocale): Update for change.
+	* Source/NSObject.m (+initialize): Idem.
+	* Source/NSUserDefaults.m ([NSUserDefaults +standardUserDefaults]):
+	Idem.
+
 2002-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSerializer.m: bugfix deserialisation ... was trying to	
