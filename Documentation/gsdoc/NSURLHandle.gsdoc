@@ -35,7 +35,7 @@
           <arg type="NSURL*">anURL</arg>
           <desc>
 	    Returns the most recently registered NSURLHandle subclass that
-	    responds to <ref id="initWithURL:">canInitWithURL:</ref>
+	    responds to <ref id="canInitWithURL:">canInitWithURL:</ref>
 	    with <code>YES</code>.  If there is no such subclass, returns nil.
           </desc>
         </method>
@@ -49,11 +49,12 @@
           </desc>
         </method>
 
-        <method type="BOOL" factory="yes">
+        <method type="BOOL" factory="yes" id="canInitWithURL:"
+	  override="subclass">
           <sel>canInitWithURL:</sel>
           <arg type="NSURL*">anURL</arg>
           <desc>
-	    MUST be implemented by subclasses to say which URLs they can handle.
+	    Implemented by subclasses to say which URLs they can handle.
 	    This method is used to determine which subclasses can be used
 	    to handle a particular URL.
           </desc>
@@ -71,12 +72,18 @@
           <sel>addClient:</sel>
           <arg type="id&lt;NSURLHandleClient&gt;">client</arg>
           <desc>
+	    Adds an object conforming to the
+	    <ref id="NSURLHandleClient">NSURLHandleClient protocol</ref>
+	    as a client of the URL handle.
           </desc>
         </method>
 
         <method type="NSData*">
           <sel>availableResourceData</sel>
           <desc>
+	    Returns the resource data that is currently available for the
+	    handle.  This may be a partially loaded resource or may be
+	    empty of no data has been loaded yet.
           </desc>
         </method>
 
@@ -84,18 +91,30 @@
           <sel>backgroundLoadDidFailWithReason:</sel>
           <arg type="NSString*">reason</arg>
           <desc>
+	    This method should be called when a background load fails.
+	    The method passes the failure notification to the clients of
+	    the handle - so subclasses should call super's implementation
+	    at the end of their implementation of this method.
           </desc>
         </method>
 
         <method type="void">
           <sel>beginLoadInBackground</sel>
           <desc>
+	    This method is called by when a background load begins.
+	    Subclasses should call super's implementation at
+	    the end of their implementation of this method.
           </desc>
         </method>
 
-        <method type="void">
+        <method type="void" id="cancelLoadInBackground">
           <sel>cancelLoadInBackground</sel>
           <desc>
+	    This method should be called to cancel a load currently in
+	    progress.  The method calls
+	    <ref id="endLoadInBackground">endLoadInBackground</ref>
+	    Subclasses should call super's implementation at
+	    the end of their implementation of this method.
           </desc>
         </method>
 
@@ -105,50 +124,81 @@
           <sel>loadComplete:</sel>
           <arg type="BOOL">yorn</arg>
           <desc>
+	    This method must be called by subclasses whenever data is
+	    loaded.
           </desc>
         </method>
 
-        <method type="void">
+        <method type="void" id="endLoadInBackground">
           <sel>endLoadInBackground</sel>
           <desc>
+	    This method is called to stop any background loading process.
+	    <ref id="cancelLoadInBackground">cancelLoadInBackground</ref>
+	    uses this method to cancel loading.
+	    Subclasses should call super's implementation at
+	    the end of their implementation of this method.
           </desc>
         </method>
 
         <method type="NSString*">
           <sel>failureReason</sel>
           <desc>
+	    Returns the failure reason for the last failure to load
+	    the resource data.
           </desc>
         </method>
 
         <method type="void">
           <sel>flushCachedData</sel>
           <desc>
+	    Flushes any cached resource data.
           </desc>
         </method>
 
-        <method type="void">
+        <method type="init" init="yes" override="subclass">
+          <sel>initWithURL:</sel>
+          <arg type="NSURL*">url</arg>
+          <sel>cached:</sel>
+          <arg type="BOOL">yesno</arg>
+          <desc>
+	    Initialises a handle with the specified URL.
+	    The flag determines whether the handle will cache resource data
+	    and respond to requests from equivalent URLs for the cached data.
+          </desc>
+        </method>
+
+        <method type="void" override="subclass">
           <sel>loadInBackground</sel>
           <desc>
+	    Starts (or queues) loading of the handle's resource data
+	    in the background (asynchronously).
           </desc>
         </method>
 
-        <method type="NSData*">
+        <method type="NSData*" id ="loadInForeground">
           <sel>loadInForeground</sel>
           <desc>
+	    Loads the handle's resource data in the foreground (synchronously).
+	    This may be implemented by starting a background load and
+	    waiting for it to complete.
           </desc>
         </method>
 
-        <method type="id">
+        <method type="id" override="subclass">
           <sel>propertyForKey:</sel>
           <arg type="NSString*">propertyKey</arg>
           <desc>
+	    Returns the property for the specified key, or nil if the
+	    key does not exist.
           </desc>
         </method>
 
-        <method type="id">
+        <method type="id" override="subclass">
           <sel>propertyForKeyIfAvailable:</sel>
           <arg type="NSString*">propertyKey</arg>
           <desc>
+	    Returns the property for the specified key, but only if the
+	    handle does not need to do any work to retrieve it.
           </desc>
         </method>
 
@@ -156,34 +206,44 @@
           <sel>removeClient:</sel>
           <arg type="id&lt;NSURLHandleClient&gt;">client</arg>
           <desc>
+	    Removes an object from them list of clients notified of
+	    resource loading events by the URL handle.
           </desc>
         </method>
 
         <method type="NSData*">
           <sel>resourceData</sel>
           <desc>
+	    Returns the resource data belonging to the handler.
+	    Calls <ref id="loadInForeground">loadInForeground</ref> if
+	    necessary.
           </desc>
         </method>
 
         <method type="NSURLHandleStatus">
           <sel>status</sel>
           <desc>
+	    Returns the current status of the handle.
           </desc>
         </method>
 
-        <method type="BOOL">
+        <method type="BOOL" override="subclass">
           <sel>writeData:</sel>
           <arg type="NSData*">data</arg>
           <desc>
+	    Writes resource data to the handle.  Returns YES on success,
+	    NO on failure.
           </desc>
         </method>
 
-        <method type="BOOL">
+        <method type="BOOL" override="subclass">
           <sel>writeProperty:</sel>
           <arg type="id">propertyValue</arg>
           <desc>
+	    Attempts to set property for handle.
           </desc>
         </method>
+
 	<standards><MacOS-X/><NotOpenStep/></standards>
       </class>
 

@@ -107,9 +107,15 @@ static NSMutableArray	*registry = nil;
   return 0;
 }
 
+/*
+ * Add a client object, making sure that it doesn't occur more than once.
+ */
 - (void) addClient: (id <NSURLHandleClient>)client
 {
+  RETAIN((id)client);
+  [_clients removeObjectIdenticalTo: client];
   [_clients addObject: client];
+  RELEASE((id)client);
 }
 
 - (NSData*) availableResourceData
