@@ -1,3 +1,11 @@
+2000-08-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/gnustep/base/NSDecimal.h:
+	Use signed char for exponent, as char may be unsigned on some machines
+	* Source/NSDecimal.m:
+	Corrected some bugs and added a basic implementation based on GMP
+	(Still not complete)
+
 2000-08-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSDebug.m (NSFrameAddress): New function
