@@ -887,12 +887,12 @@ static Class GSMutableAttributedStringClass;
 
 - (void)getCharacters: (unichar*)buffer
 {
-  return [[_owner string] getCharacters: buffer];
+  [[_owner string] getCharacters: buffer];
 }
 
 - (void)getCharacters: (unichar*)buffer range: (NSRange)aRange
 {
-  return [[_owner string] getCharacters: buffer range: aRange];
+  [[_owner string] getCharacters: buffer range: aRange];
 }
 
 - (const char*) cString
@@ -922,7 +922,7 @@ static Class GSMutableAttributedStringClass;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  return [[_owner string] encodeWithCoder: aCoder];
+  [[_owner string] encodeWithCoder: aCoder];
 }
 
 - (Class) classForCoder

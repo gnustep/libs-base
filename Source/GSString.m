@@ -811,7 +811,7 @@ cString_c(ivars self)
 	}
       NSZoneFree(NSDefaultMallocZone(), u);
     }
-  
+
   return r;
 }
 
@@ -1127,7 +1127,7 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
   can't deal with our leftoverRange case, so we need to use a bit of
   complexity instead. */
   unsigned int len;
-
+  
   /* TODO: this is an extremely ugly hack to work around buggy iconvs
   that return -1/E2BIG for buffers larger than 0x40000acf */
   if (maxLength > 0x40000000)
@@ -3398,12 +3398,12 @@ transmute(ivars self, NSString *aString)
 
 - (void) getCharacters: (unichar*)buffer
 {
-  return [_parent getCharacters: buffer];
+  [_parent getCharacters: buffer];
 }
 
 - (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
 {
-  return [_parent getCharacters: buffer range: aRange];
+  [_parent getCharacters: buffer range: aRange];
 }
 
 - (void) getCString: (char*)buffer
