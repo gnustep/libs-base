@@ -63,23 +63,23 @@ struct _NSHashTableCallBacks
 };
 
 /* For sets of pointer-sized or smaller quantities. */
-extern const NSHashTableCallBacks NSIntHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSIntHashCallBacks;
 
 /* For sets of pointers hashed by address. */
-extern const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
 
 /* For sets of objects without retaining and releasing. */
-extern const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks;
 
 /* For sets of objects; similar to NSSet. */
-extern const NSHashTableCallBacks NSObjectHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSObjectHashCallBacks;
 
 /* For sets of pointers with transfer of ownership upon insertion. */
-extern const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
 
 /* For sets of pointers to structs when the first field of the
  * struct is the size of an int. */
-extern const NSHashTableCallBacks NSPointerToStructHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSPointerToStructHashCallBacks;
 
 /* These are to increase readabilty locally. */
 typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);

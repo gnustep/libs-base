@@ -26,6 +26,7 @@
 */
 
 #include <config.h>
+#include <base/preface.h>
 #include <GSConfig.h>
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSString.h>

@@ -24,7 +24,6 @@
 #ifndef __IndexedCollection_h_GNUSTEP_BASE_INCLUDE
 #define __IndexedCollection_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/KeyedCollection.h>
 #include <base/IndexedCollecting.h>
 

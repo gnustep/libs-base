@@ -278,7 +278,7 @@ NSInsetRect(NSRect aRect, float dX, float dY)
  * "cutting" ARECT---parallel to, and a distance AMOUNT from the edge
 v * of ARECT determined by EDGE.  You may pass 0 in as either of SLICE or
  * REMAINDER to avoid obtaining either of the created rectangles. */
-extern void
+GS_EXPORT void
 NSDivideRect(NSRect aRect,
              NSRect *slice,
              NSRect *remainder,
@@ -287,7 +287,7 @@ NSDivideRect(NSRect aRect,
 
 /* Returns a rectangle obtained by expanding ARECT minimally
  * so that all four of its defining components are integers. */
-extern NSRect
+GS_EXPORT NSRect
 NSIntegralRect(NSRect aRect);
 
 /** Compute a Third Rectangle from Two Rectangles... **/
@@ -468,23 +468,23 @@ NSIntersectsRect(NSRect aRect, NSRect bRect)
 #ifdef __OBJC__
 /* Returns an NSString of the form "{x=X; y=Y}", where
  * X and Y are the x- and y-coordinates of APOINT, respectively. */
-extern NSString *
+GS_EXPORT NSString *
 NSStringFromPoint(NSPoint aPoint);
 
 /* Returns an NSString of the form "{x=X; y=Y; width=W; height=H}",
  * where X, Y, W, and H are the x-coordinate, y-coordinate,
  * width, and height of ARECT, respectively. */
-extern NSString *
+GS_EXPORT NSString *
 NSStringFromRect(NSRect aRect);
 
 /* Returns an NSString of the form "{width=W; height=H}", where
  * W and H are the width and height of ASIZE, respectively. */
-extern NSString *
+GS_EXPORT NSString *
 NSStringFromSize(NSSize aSize);
 
-extern NSPoint	NSPointFromString(NSString* string);
-extern NSSize	NSSizeFromString(NSString* string);
-extern NSRect	NSRectFromString(NSString* string);
+GS_EXPORT NSPoint	NSPointFromString(NSString* string);
+GS_EXPORT NSSize	NSSizeFromString(NSString* string);
+GS_EXPORT NSRect	NSRectFromString(NSString* string);
 
 #endif /* __OBJC__ */
 

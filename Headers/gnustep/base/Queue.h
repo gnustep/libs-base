@@ -24,7 +24,6 @@
 #ifndef __Queue_h_GNUSTEP_BASE_INCLUDE
 #define __Queue_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/CircularArray.h>
 
 @interface Queue : CircularArray

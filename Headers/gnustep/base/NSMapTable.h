@@ -85,37 +85,37 @@ struct _NSMapTableValueCallBacks
 #define NSNotAPointerMapKey  o_not_a_void_p_marker
 
 /* For keys that are pointer-sized or smaller quantities. */
-extern const NSMapTableKeyCallBacks NSIntMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSIntMapKeyCallBacks;
 
 /* For keys that are pointers not freed. */
-extern const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks;
 
 /* For keys that are pointers not freed, or 0. */
-extern const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks;
 
 /* For sets of objects without retaining and releasing. */
-extern const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks;
 
 /* For keys that are objects. */
-extern const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks;
 
 /* For keys that are pointers with transfer of ownership upon insertion. */
-extern const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks;
 
 /* For values that are pointer-sized quantities. */
-extern const NSMapTableValueCallBacks NSIntMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSIntMapValueCallBacks;
 
 /* For values that are pointers not freed. */
-extern const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks;
 
 /* For sets of objects without retaining and releasing. */
-extern const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks;
 
 /* For values that are objects. */
-extern const NSMapTableValueCallBacks NSObjectMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSObjectMapValueCallBacks;
 
 /* For values that are pointers with transfer of ownership upon insertion. */
-extern const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks;
 
 /* This is for keeping track of information... */     
 typedef struct _NSMT_extra _NSMT_extra_t;

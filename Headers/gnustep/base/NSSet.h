@@ -24,7 +24,7 @@
 #ifndef _NSSet_h_GNUSTEP_BASE_INCLUDE
 #define _NSSet_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 

@@ -47,7 +47,6 @@
  * It was reworked for the GNU Objective-C Library by Andrew Kachites McCallum
  */
 
-#include <base/preface.h>
 #include <base/RandomGenerating.h>
 
 @interface RNGBerkeley : NSObject <RandomGenerating>

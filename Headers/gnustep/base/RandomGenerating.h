@@ -24,7 +24,7 @@
 #ifndef __RandomGenerating_h_GNUSTEP_BASE_INCLUDE
 #define __RandomGenerating_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 @protocol RandomGenerating <NSObject, NSCoding>
 

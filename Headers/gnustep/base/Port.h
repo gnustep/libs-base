@@ -24,7 +24,6 @@
 #ifndef __Port_h_GNUSTEP_BASE_INCLUDE
 #define __Port_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Coding.h>
 #include <base/MemoryStream.h>
 #include <Foundation/NSPort.h>

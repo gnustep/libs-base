@@ -24,7 +24,6 @@
 #ifndef __LinkedListNode_h_GNUSTEP_BASE_INCLUDE
 #define __LinkedListNode_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/LinkedList.h>
 #include <base/Coding.h>
 

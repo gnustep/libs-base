@@ -24,10 +24,9 @@
 #ifndef __UdpPort_h_GNUSTEP_BASE_INCLUDE
 #define __UdpPort_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Port.h>
 #include <sys/types.h>
-#ifdef __MINGW__
+#ifdef __MINGW32__
 # include <winsock.h>
 #else
 # include <sys/socket.h>

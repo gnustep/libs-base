@@ -24,7 +24,6 @@
 #ifndef __NSGArchiver_h_GNUSTEP_BASE_INCLUDE
 #define __NSGArchiver_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSArchiver.h>
 #include <base/Coding.h>
 

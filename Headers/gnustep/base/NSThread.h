@@ -25,7 +25,6 @@
 #ifndef __NSThread_h_GNUSTEP_BASE_INCLUDE
 #define __NSThread_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <objc/thr.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
@@ -66,17 +65,17 @@ typedef enum
 @end
 
 /* Notification Strings. */
-extern NSString	*NSWillBecomeMultiThreadedNotification;
+GS_EXPORT NSString	*NSWillBecomeMultiThreadedNotification;
 #define	NSBecomingMultiThreaded NSWillBecomeMultiThreadedNotification
-extern NSString	*NSThreadWillExitNotification;
+GS_EXPORT NSString	*NSThreadWillExitNotification;
 #define NSThreadExiting NSThreadWillExitNotification
 
 #ifndef	NO_GNUSTEP
 /*
  *	Get current thread and it's dictionary.
  */
-extern NSThread			*GSCurrentThread();
-extern NSMutableDictionary	*GSCurrentThreadDictionary();
+GS_EXPORT NSThread		*GSCurrentThread();
+GS_EXPORT NSMutableDictionary	*GSCurrentThreadDictionary();
 #endif
 
 #endif /* __NSThread_h_GNUSTEP_BASE_INCLUDE */

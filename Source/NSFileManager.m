@@ -26,6 +26,7 @@
 */
 
 #include <config.h>
+#include <string.h>
 #include <base/preface.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSException.h>

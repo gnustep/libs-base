@@ -28,7 +28,6 @@
 #ifndef __Collection_h_GNUSTEP_BASE_INCLUDE
 #define __Collection_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <base/Collecting.h>
 #include <base/preface.h>

@@ -26,6 +26,7 @@
 
 #include <base/preface.h>
 #include <objc/objc-api.h>
+#include <Foundation/NSObject.h>
 
 #ifndef	INLINE
 #define	INLINE	inline
@@ -85,7 +86,7 @@ typedef struct {
     Class	_NSDataMalloc;
     Class	_NSMutableDataMalloc;
 } fastCls;
-extern	fastCls	_fastCls;	/* Populated by _fastBuildCache()	*/
+GS_EXPORT fastCls	_fastCls;	/* Populated by _fastBuildCache()	*/
 
 /*
  *	Structure to cache method implementation information.
@@ -102,7 +103,7 @@ typedef struct {
     BOOL		(*_NSGString_isEqual_)();
     BOOL		(*_NSGCString_isEqual_)();
 } fastImp;
-extern	fastImp	_fastImp;	/* Populated by _fastBuildCache()	*/
+GS_EXPORT fastImp	_fastImp;	/* Populated by _fastBuildCache()	*/
 
 /*
  *	The '_fastBuildCache()' function is called to populate the cache
@@ -111,7 +112,7 @@ extern	fastImp	_fastImp;	/* Populated by _fastBuildCache()	*/
  *	changes have been made to the runtime by loading of categories or
  *	by classes posing as other classes.
  */
-extern void	_fastBuildCache();
+GS_EXPORT void	_fastBuildCache();
 
 
 /*
@@ -119,7 +120,7 @@ extern void	_fastBuildCache();
  *	memory that will automatically be released when the current
  *	autorelease pool goes away.
  */
-extern void	*_fastMallocBuffer(unsigned size);
+GS_EXPORT void	*_fastMallocBuffer(unsigned size);
 
 /*
  *	Fast access to class info - DON'T pass nil to these!
@@ -215,7 +216,7 @@ fastSelectorTypes(SEL s)
  *	This function DOES know about NXConstantString, so it's pretty safe
  *	for normal use.
  */
-extern NSZone	*fastZone(NSObject* obj);
+GS_EXPORT NSZone	*fastZone(NSObject* obj);
 
 
 #endif

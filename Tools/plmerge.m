@@ -20,6 +20,8 @@
 
 #import		<Foundation/NSArray.h>
 #import		<Foundation/NSAutoreleasePool.h>
+#import		<Foundation/NSData.h>
+#import		<Foundation/NSDictionary.h>
 #import		<Foundation/NSException.h>
 #import		<Foundation/NSFileManager.h>
 #import		<Foundation/NSProcessInfo.h>

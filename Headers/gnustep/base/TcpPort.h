@@ -24,10 +24,9 @@
 #ifndef __TcpPort_h__GNUSTEP_BASE_INCLUDE
 #define __TcpPort_h__GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Port.h>
 #include <base/RunLoop.h>
-#ifdef __MINGW__
+#ifdef __MINGW32__
 # include <winsock.h>
 #else
 #include <sys/socket.h>
@@ -89,8 +88,8 @@
 
 
 /* Notification Strings. */
-extern NSString *InPortClientBecameInvalidNotification;
-extern NSString *InPortAcceptedClientNotification;
+GS_EXPORT NSString *InPortClientBecameInvalidNotification;
+GS_EXPORT NSString *InPortAcceptedClientNotification;
 
 #endif /* __TcpPort_h__GNUSTEP_BASE_INCLUDE */
 

@@ -24,7 +24,6 @@
 #ifndef __StdioStream_h__GNUSTEP_BASE_INCLUDE
 #define __StdioStream_h__GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Stream.h>
 #include <stdio.h>
 

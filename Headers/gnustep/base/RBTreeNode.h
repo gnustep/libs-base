@@ -24,7 +24,6 @@
 #ifndef __RBTreeNode_h_GNUSTEP_BASE_INCLUDE
 #define __RBTreeNode_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/BinaryTreeNode.h>
 #include <base/RBTree.h>
 

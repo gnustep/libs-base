@@ -27,7 +27,6 @@
 /* This class is currently thrown together.  When it is cleaned up, it
    may no longer be concrete. */
 
-#include <base/preface.h>
 #include <Foundation/NSDate.h>
 
 /*

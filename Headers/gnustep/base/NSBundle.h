@@ -31,9 +31,9 @@
 @class NSDictionary;
 @class NSMutableDictionary;
 
-extern NSString* NSBundleDidLoadNotification;
-extern NSString* NSShowNonLocalizedStrings;
-extern NSString* NSLoadedClasses;
+GS_EXPORT NSString* NSBundleDidLoadNotification;
+GS_EXPORT NSString* NSShowNonLocalizedStrings;
+GS_EXPORT NSString* NSLoadedClasses;
 
 @interface NSBundle : NSObject
 {

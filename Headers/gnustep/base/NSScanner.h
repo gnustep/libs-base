@@ -24,7 +24,6 @@
 #ifndef __NSScanner_h_GNUSTEP_INCLUDE
 #define __NSScanner_h_GNUSTEP_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSDecimal.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>

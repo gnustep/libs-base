@@ -26,6 +26,7 @@
 /**** Included Headers *******************************************************/
 
 #include <config.h>
+#include <base/preface.h>
 #include <NSCallBacks.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>

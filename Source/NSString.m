@@ -40,6 +40,8 @@
 */
 
 #include <config.h>
+#include <stdio.h>
+#include <string.h>
 #include <base/preface.h>
 #include <base/Coding.h>
 #include <Foundation/NSString.h>

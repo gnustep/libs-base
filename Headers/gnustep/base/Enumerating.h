@@ -24,8 +24,7 @@
 #ifndef __Enumerating_h__GNUSTEP_BASE_INCLUDE
 #define __Enumerating_h__GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-
+#include <Foundation/NSObject.h>
 @protocol Enumerating <NSObject>
 
 - initWithCollection: aCollection;

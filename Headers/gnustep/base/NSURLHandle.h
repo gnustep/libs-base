@@ -27,11 +27,11 @@
 @class NSURLHandle;
 @class NSURL;
 
-extern NSString *NSHTTPPropertyStatusCodeKey;
-extern NSString *NSHTTPPropertyStatusReasonKey;
-extern NSString *NSHTTPPropertyServerHTTPVersionKey;
-extern NSString *NSHTTPPropertyRedirectionHeadersKey;
-extern NSString *NSHTTPPropertyErrorPageDataKey;
+GS_EXPORT NSString *NSHTTPPropertyStatusCodeKey;
+GS_EXPORT NSString *NSHTTPPropertyStatusReasonKey;
+GS_EXPORT NSString *NSHTTPPropertyServerHTTPVersionKey;
+GS_EXPORT NSString *NSHTTPPropertyRedirectionHeadersKey;
+GS_EXPORT NSString *NSHTTPPropertyErrorPageDataKey;
 
 typedef enum
 {

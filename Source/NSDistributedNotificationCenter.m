@@ -22,6 +22,7 @@
    */
 
 #include	<config.h>
+#include	<base/preface.h>
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSConnection.h>
 #include	<Foundation/NSDistantObject.h>

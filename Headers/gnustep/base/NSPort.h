@@ -32,7 +32,7 @@
 @class	NSRunLoop;
 @class	NSString;
 
-extern NSString *NSPortTimeoutException; /* OPENSTEP */
+GS_EXPORT NSString *NSPortTimeoutException; /* OPENSTEP */
 
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
@@ -79,7 +79,7 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 @end
 #endif
 
-extern	NSString*	NSPortDidBecomeInvalidNotification;
+GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification
 

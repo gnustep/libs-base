@@ -22,6 +22,7 @@
    */
 
 #include <config.h>
+#include <base/preface.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSObjCRuntime.h>

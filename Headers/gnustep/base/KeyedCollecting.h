@@ -33,7 +33,6 @@
 #ifndef __KeyedCollecting_h_GNUSTEP_BASE_INCLUDE
 #define __KeyedCollecting_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Collecting.h>
 
 @protocol ConstantKeyedCollecting <ConstantCollecting>

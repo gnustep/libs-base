@@ -31,7 +31,6 @@
 #ifndef __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 #define __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Stream.h>
 #include <base/Streaming.h>
 

@@ -37,42 +37,42 @@
 @class NSTimer;
 
 /* Standard domains */
-extern NSString* const NSArgumentDomain;
-extern NSString* const NSGlobalDomain;
-extern NSString* const NSRegistrationDomain;
+GS_EXPORT NSString* const NSArgumentDomain;
+GS_EXPORT NSString* const NSGlobalDomain;
+GS_EXPORT NSString* const NSRegistrationDomain;
 
 /* Public notification */
-extern NSString* const NSUserDefaultsDidChangeNotification;
+GS_EXPORT NSString* const NSUserDefaultsDidChangeNotification;
 /* Backwards compatibility */
 #define	NSUserDefaultsChanged NSUserDefaultsDidChangeNotification
 
 /* Keys for language-dependent information */
-extern NSString* const NSWeekDayNameArray;
-extern NSString* const NSShortWeekDayNameArray;
-extern NSString* const NSMonthNameArray;
-extern NSString* const NSShortMonthNameArray;
-extern NSString* const NSTimeFormatString;
-extern NSString* const NSDateFormatString;
-extern NSString* const NSTimeDateFormatString;
-extern NSString* const NSShortTimeDateFormatString;
-extern NSString* const NSCurrencySymbol;
-extern NSString* const NSDecimalSeparator;
-extern NSString* const NSThousandsSeparator;
-extern NSString* const NSInternationalCurrencyString;
-extern NSString* const NSCurrencyString;
-extern NSString* const NSDecimalDigits;
-extern NSString* const NSAMPMDesignation;
+GS_EXPORT NSString* const NSWeekDayNameArray;
+GS_EXPORT NSString* const NSShortWeekDayNameArray;
+GS_EXPORT NSString* const NSMonthNameArray;
+GS_EXPORT NSString* const NSShortMonthNameArray;
+GS_EXPORT NSString* const NSTimeFormatString;
+GS_EXPORT NSString* const NSDateFormatString;
+GS_EXPORT NSString* const NSTimeDateFormatString;
+GS_EXPORT NSString* const NSShortTimeDateFormatString;
+GS_EXPORT NSString* const NSCurrencySymbol;
+GS_EXPORT NSString* const NSDecimalSeparator;
+GS_EXPORT NSString* const NSThousandsSeparator;
+GS_EXPORT NSString* const NSInternationalCurrencyString;
+GS_EXPORT NSString* const NSCurrencyString;
+GS_EXPORT NSString* const NSDecimalDigits;
+GS_EXPORT NSString* const NSAMPMDesignation;
 
 #ifndef	STRICT_OPENSTEP
-extern NSString* const NSHourNameDesignations;
-extern NSString* const NSYearMonthWeekDesignations;
-extern NSString* const NSEarlierTimeDesignations;
-extern NSString* const NSLaterTimeDesignations;
-extern NSString* const NSThisDayDesignations;
-extern NSString* const NSNextDayDesignations;
-extern NSString* const NSNextNextDayDesignations;
-extern NSString* const NSPriorDayDesignations;
-extern NSString* const NSDateTimeOrdering;
+GS_EXPORT NSString* const NSHourNameDesignations;
+GS_EXPORT NSString* const NSYearMonthWeekDesignations;
+GS_EXPORT NSString* const NSEarlierTimeDesignations;
+GS_EXPORT NSString* const NSLaterTimeDesignations;
+GS_EXPORT NSString* const NSThisDayDesignations;
+GS_EXPORT NSString* const NSNextDayDesignations;
+GS_EXPORT NSString* const NSNextNextDayDesignations;
+GS_EXPORT NSString* const NSPriorDayDesignations;
+GS_EXPORT NSString* const NSDateTimeOrdering;
 #endif
 
 /* General implementation notes: 

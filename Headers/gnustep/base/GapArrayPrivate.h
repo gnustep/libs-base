@@ -26,7 +26,6 @@
 #ifndef __GapArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 #define __GapArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/ArrayPrivate.h>
 #include <assert.h>
 

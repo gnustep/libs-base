@@ -24,7 +24,6 @@
 #ifndef __RBTree_h_GNUSTEP_BASE_INCLUDE
 #define __RBTree_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/BinaryTree.h>
 
 @protocol RBTreeComprising <BinaryTreeComprising>
