@@ -1147,9 +1147,11 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   read_fds = fds;
   exception_fds = fds;
 
-  /* Detect if the NSRunLoop is idle, and if necessary - dispatch the
-     notifications from NSNotificationQueue's idle queue? */
-  if (num_inputs == 0 && GSNotifyMore())
+  /*
+   * If there are notifications in the 'idle' queue, we try an instantaneous
+   * select so that, if there is no input pending, we can service the queue.
+   */
+  if (GSNotifyMore())
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
