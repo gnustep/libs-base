@@ -39,6 +39,8 @@
 
 #include <base/GSIMap.h>
 
+static SEL	memberSel;
+
 @interface GSSet : NSSet
 {
 @public
@@ -107,6 +109,7 @@ static Class	mutableSetClass;
       arrayClass = [NSArray class];
       setClass = [GSSet class];
       mutableSetClass = [GSMutableSet class];
+      memberSel = @selector(member:);
     }
 }
 
@@ -283,13 +286,19 @@ static Class	mutableSetClass;
 {
   GSIMapEnumerator_t	enumerator;
   GSIMapNode 		node;
+  IMP			imp;
 
   // -1. members of this set(self) <= that of otherSet
   if (map.nodeCount > [otherSet count])
     {
       return NO;
     }
+  if (map.nodeCount == 0)
+    {
+      return YES;
+    }
 
+  imp = [otherSet methodForSelector: memberSel];
   enumerator = GSIMapEnumeratorForMap(&map);
   node = GSIMapEnumeratorNextNode(&enumerator);
 
@@ -297,7 +306,7 @@ static Class	mutableSetClass;
   while (node != 0)
     {
       // 1. check the member is in the otherSet.
-      if ([otherSet member: node->key.obj])
+      if ((*imp)(otherSet, memberSel, node->key.obj) != nil)
 	{
 	  // 1.1 if true -> continue, try to check the next member.
 	  node = GSIMapEnumeratorNextNode(&enumerator);
@@ -334,6 +343,10 @@ static Class	mutableSetClass;
 	    {
 	      return NO;
 	    }
+	  else if (map.nodeCount == 0)
+	    {
+	      return YES;
+	    }
 	  else
 	    {
 	      GSIMapEnumerator_t	enumerator;
@@ -360,17 +373,23 @@ static Class	mutableSetClass;
 	    {
 	      return NO;
 	    }
+	  else if (map.nodeCount == 0)
+	    {
+	      return YES;
+	    }
 	  else
 	    {
 	      GSIMapEnumerator_t	enumerator;
 	      GSIMapNode 		node;
+	      IMP			imp;
 
+	      imp = [other methodForSelector: memberSel];
 	      enumerator = GSIMapEnumeratorForMap(&map);
 	      node = GSIMapEnumeratorNextNode(&enumerator);
 
 	      while (node != 0)
 		{
-		  if ([other member: node->key.obj] == nil)
+		  if ((*imp)(other, memberSel, node->key.obj) == nil)
 		    {
 		      GSIMapEndEnumerator(&enumerator);
 		      return NO;

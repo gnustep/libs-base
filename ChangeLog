@@ -1,3 +1,10 @@
+2003-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSDictionary.m: ([-isEqualToDictionary:]) implement optimised
+	version which does not need to create a key enumerator.
+	* Source/GSArray.m: ditto
+	* Source/GSSet.m: similar minor optimisations.
+
 2003-02-15 15:53  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSRunLoop.m (-performSelector:target:argument:order:modes:):
