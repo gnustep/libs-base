@@ -23,7 +23,6 @@
 
 #include <objects/stdobjects.h>
 #include <objects/AutoreleasePool.h>
-#include <objects/collhash.h>
 #include <objects/objc-malloc.h>
 #include <objects/ObjectRetaining.h>
 
