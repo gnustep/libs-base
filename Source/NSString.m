@@ -100,6 +100,11 @@ static Class NSMutableString_c_concrete_class;
 #include <printf.h>
 #include <stdarg.h>
 
+/* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this
+   should be 0, but for me, with libc-5.0.9, it crashes.  -mccallum */
+#define PRINTF_ATSIGN_VA_LIST 1
+
+#if ! PRINTF_ATSIGN_VA_LIST
 static int
 arginfo_func (const struct printf_info *info,
             size_t n,
@@ -107,20 +112,31 @@ arginfo_func (const struct printf_info *info,
   *argtypes = PA_POINTER;
   return 1;
 }
+#endif
 
 static int
 handle_printf_atsign (FILE *stream, 
 		      const struct printf_info *info,
-		      const void **const args)
+#if PRINTF_ATSIGN_VA_LIST
+		      va_list *ap_pointer)
+#else
+                      const void **const args)
+#endif
 {
+#if ! PRINTF_ATSIGN_VA_LIST
   const void *ptr = *args;
+#endif
   id string_object;
   int len;
 
   /* xxx This implementation may not pay pay attention to as much 
      of printf_info as it should. */
 
+#if PRINTF_ATSIGN_VA_LIST
+  string_object = va_arg (*ap_pointer, id);
+#else
   string_object = *((id *) ptr);
+#endif
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
 		[string_object cStringNoCopy]);
@@ -143,7 +159,11 @@ handle_printf_atsign (FILE *stream,
 #if HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@', 
 				    (printf_function)handle_printf_atsign, 
-				    (printf_arginfo_function)arginfo_func))
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                           (printf_arginfo_function)arginfo_func))
+#endif
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
