@@ -36,7 +36,7 @@ static NSMutableArray *validateEntry(id svcs, NSString* path);
 static NSMutableDictionary *validateService(NSDictionary *service, NSString* path, unsigned i);
 
 static NSString		*cacheName = @".GNUstepServices";
-static NSString		*infoLoc = @"Resources/Info.plist";
+static NSString		*infoLoc = @"Resources/Info-gnustep.plist";
 
 static	BOOL verbose = NO;
 static	NSMutableDictionary	*serviceMap;
