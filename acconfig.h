@@ -124,9 +124,6 @@
 /* Define if you have the <values.h> header file.  */
 #undef HAVE_VALUES_H
 
-/* Define if your kernel supports the /proc filesystem */
-#undef HAVE_PROC_FS
-
 /* Define if your Obj-C compiler calls +load methods before main */
 #undef HAVE_LOAD_METHOD 
 
@@ -135,9 +132,6 @@
 
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
-
-/* Define if your system has a /proc/self/exe symlink to the executable */
-#undef HAVE_PROC_FS_EXE_LINK
 
 /* Define if using the libffi library for invocations */
 #undef USE_LIBFFI

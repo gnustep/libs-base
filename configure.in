@@ -43,12 +43,6 @@ AC_PROG_CPP
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 
 #--------------------------------------------------------------------
-# -pipe option for compiler
-#--------------------------------------------------------------------
-PIPE='-pipe'
-AC_SUBST(PIPE)
-
-#--------------------------------------------------------------------
 # specific target_os options
 #--------------------------------------------------------------------
 case "$target_os" in
@@ -63,11 +57,8 @@ esac
 # if no:
 #   include implementations of List, HashTable etc.
 #--------------------------------------------------------------------
-AC_MSG_CHECKING(whether we are using NeXT's compiler)
-AC_TRY_CPP([#include "$srcdir/config/config.nextcc.h"], NeXTCC=0, NeXTCC=1)
-# Was using this too: -o `basename $CC` = "gcc" -o `basename $CC` = "xgcc"
-if test $NeXTCC = 0; then
-    AC_MSG_RESULT(no)
+AC_PROG_NEXTCC
+if test "$NeXTCC" != yes; then
     #----------------------------------------------------------------
     # Find out if nested functions work on this machine
     #----------------------------------------------------------------
@@ -145,7 +136,6 @@ if test $NeXTCC = 0; then
 
 else
 
-    AC_MSG_RESULT(yes)
     AC_MSG_ERROR(Sorry, $(LIBRARY_NAME) does not currently work with NeXT's cc; use gcc)
     #----------------------------------------------------------------
     # Find out if we have NEXTSTEP 3.2 or lower
@@ -657,36 +647,11 @@ else
 fi
 
 #--------------------------------------------------------------------
-# Defines HAVE_PROC_FS if the kernel supports the /proc filesystem. 
+# Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
 # Needed by NSProcessInfo.m 
 #--------------------------------------------------------------------
-AC_MSG_CHECKING(kernel support for /proc filesystem)
-if (grep proc /etc/fstab >/dev/null 2>/dev/null); then 
-  sys_proc_fs=yes;
-  AC_DEFINE(HAVE_PROC_FS)
-  AC_MSG_RESULT(yes)
-# Solaris has proc, but for some reason the dir is not readable
-#elif (grep proc /etc/vfstab >/dev/null 2>/dev/null); then 
-#  sys_proc_fs=yes;
-#  AC_DEFINE(HAVE_PROC_FS)
-#  AC_MSG_RESULT(yes)
-else
-  sys_proc_fs=no;
-  AC_MSG_RESULT(no)
-fi
-# Linux (and others?) /proc contains a symlink to the executable
-# file from which the process loaded its code.  This can be used
-# by NSBundle.m to locate the main bundle.
-sys_proc_fs_exe=no;
-if test $sys_proc_fs = yes; then
-  AC_MSG_CHECKING(link to executable in /proc)
-  if test -L /proc/self/exe; then
-    sys_proc_fs_exe=yes;
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no)
-  fi
-fi
+AC_SYS_PROCFS
+AC_SYS_PROCFS_EXE_LINK
 
 #--------------------------------------------------------------------
 # Check if short and int values need to be word aligned
@@ -743,14 +708,11 @@ GS_FAKE_MAIN=0
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
 elif test "$enable_pass_arguments" = "no"; then
-  if test $objc_load_method_worked = yes -a $sys_proc_fs = yes; then
+  if test "$objc_load_method_worked" = yes -a "$ac_sys_procfs" = yes; then
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1
     enable_fake_main=yes
-  fi
-  if test $sys_proc_fs_exe = yes; then
-    AC_DEFINE(HAVE_PROC_FS_EXE_LINK)
   fi
 fi
 case "$target_os" in

@@ -541,9 +541,10 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  [system appendString: @"/Libraries"];
 
 	  _executable_path = nil;
-#ifdef HAVE_PROC_FS_EXE_LINK
+#ifdef PROCFS_EXE_LINK
 	  _executable_path = [[NSFileManager defaultManager]
-	    pathContentOfSymbolicLinkAtPath: @"/proc/self/exe"];
+	    pathContentOfSymbolicLinkAtPath:
+              [NSString stringWithCString: PROCFS_EXE_LINK]];
 #endif
 	  if (_executable_path == nil || [_executable_path length] == 0)
 	    {
@@ -714,7 +715,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return AUTORELEASE([[NSBundle alloc] initWithPath: path]);
 }
 
-- initWithPath:(NSString *)path;
+- (id) initWithPath:(NSString *)path;
 {
   [super init];
 
@@ -989,7 +990,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSEnumerator* enumerate;
 
   array = [NSMutableArray arrayWithCapacity: 8];
-  languages = [NSUserDefaults userLanguages];
+  languages = [[NSUserDefaults standardUserDefaults] stringArrayForKey: @"NSLanguages"];
 
   primary = [rootPath stringByAppendingPathComponent: @"Resources"];
   [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
