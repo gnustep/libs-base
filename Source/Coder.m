@@ -133,10 +133,10 @@ my_object_is_class(id object)
 - (void) writeSignature
 {
   /* Careful: the string should not contain newlines. */
-  [cstream writeFormat: 
-	   @"GNU Objective C Class Library %s version %d\n", 
-	   objects_get_class_name(self),
-	   format_version];
+  [[cstream stream] writeFormat: 
+		      @"GNU Objective C Class Library %s version %d\n", 
+		    object_get_class_name(self),
+		    format_version];
 }
 
 + (void) readSignatureFromCStream: (id <CStreaming>) cs
@@ -145,7 +145,7 @@ my_object_is_class(id object)
 {
   int got;
 
-  got = [cs readFormat: @"GNU %a version %d\n", namePtr, version];
+  got = [[cs stream] readFormat: @"GNU %a version %d\n", namePtr, version];
   if (got != 2)
     [NSException raise:CoderSignatureMalformedException
 		 format:@"Coder found a malformed signature"];
@@ -216,6 +216,12 @@ my_object_is_class(id object)
   return self;
 }
 
+- initForReadingFromStream: (id <Streaming>) s
+{
+  return [self initForReadingFromStream: s
+	       formatVersion: DEFAULT_FORMAT_VERSION];
+}
+
 - initForWritingToStream: (id <Streaming>) s
 	   formatVersion: (int) version
 {
@@ -224,6 +230,26 @@ my_object_is_class(id object)
 	formatVersion: version
 	isDecoding: NO];
   [self writeSignature];
+  return self;
+}
+
+- initForWritingToStream: (id <Streaming>) s
+{
+  return [self initForWritingToStream: s
+	       formatVersion: DEFAULT_FORMAT_VERSION];
+}
+
++ coderWritingToStream: (id <Streaming>)s
+{
+  return [[[self alloc] initForWritingToStream: s]
+	   autorelease];
+}
+
++ coderWritingToFile: (id <String>)filename
+{
+  return [self coderWritingToStream:
+		 [StdioStream streamWithFilename: filename
+			      fmode: "w"]];
 }
 
 - init
