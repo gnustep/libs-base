@@ -523,6 +523,26 @@ static NSMapTable	*globalClassMap = 0;
   [self _encodeObject: anObject forKey: aKey conditional: NO];
 }
 
+- (void) encodePoint: (NSPoint)p
+{
+  [self encodeValueOfObjCType: @encode(float) at: &p.x];
+  [self encodeValueOfObjCType: @encode(float) at: &p.y];
+}
+
+- (void) encodeRect: (NSRect)r
+{
+  [self encodeValueOfObjCType: @encode(float) at: &r.origin.x];
+  [self encodeValueOfObjCType: @encode(float) at: &r.origin.y];
+  [self encodeValueOfObjCType: @encode(float) at: &r.size.width];
+  [self encodeValueOfObjCType: @encode(float) at: &r.size.height];
+}
+
+- (void) encodeSize: (NSSize)s
+{
+  [self encodeValueOfObjCType: @encode(float) at: &s.width];
+  [self encodeValueOfObjCType: @encode(float) at: &s.height];
+}
+
 - (void) encodeValueOfObjCType: (const char*)type
 			    at: (const void*)address
 {

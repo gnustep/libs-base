@@ -508,6 +508,35 @@ static NSMapTable	globalClassMap = 0;
   return nil;
 }
 
+- (NSPoint) decodePoint
+{
+  NSPoint	p;
+
+  [self decodeValueOfObjCType: @encode(float) at: &p.x];
+  [self decodeValueOfObjCType: @encode(float) at: &p.y];
+  return p;
+}
+
+- (NSRect) decodeRect
+{
+  NSRect	r;
+
+  [self decodeValueOfObjCType: @encode(float) at: &r.origin.x];
+  [self decodeValueOfObjCType: @encode(float) at: &r.origin.y];
+  [self decodeValueOfObjCType: @encode(float) at: &r.size.width];
+  [self decodeValueOfObjCType: @encode(float) at: &r.size.height];
+  return r;
+}
+
+- (NSSize) decodeSize
+{
+  NSSize	s;
+
+  [self decodeValueOfObjCType: @encode(float) at: &s.width];
+  [self decodeValueOfObjCType: @encode(float) at: &s.height];
+  return s;
+}
+
 - (id) delegate
 {
   return _delegate;

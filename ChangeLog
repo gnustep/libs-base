@@ -1,3 +1,9 @@
+2004-01-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	Added NSPoint, NSRect, and NSSize coding methods.
+
 2004-01-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m:
