@@ -464,6 +464,116 @@ patches to make the runtime thread-safe.
 @end enumerate
 
 
+@item @b{What are the features of GNU Distributed Objects?}
+
+GNU Distributed Objects has many of the features of other distributed
+objects implementations, but, since it is free software, it can be
+ported to platforms for which other distributed objects implementations
+are not available.
+
+If you are interested in having it ported to a new platform, or if you
+have any questions about it, please contact Andrew McCallum,
+@email{mccallum@@gnu.ai.mit.edu}.
+
+The distributed object support classes are @b{Connection}, @b{Proxy},
+@b{ConnectedCoder}, @b{Port}, @b{TcpPort}, @b{UdpPort}, and
+@b{MachPort}.  Of the various Port backend's, currently only the the
+TcpPort is in working order.
+
+
+[NOTE: The GNU distributed object facilities have the same ease-of-use
+as NeXT's; be warned, however, that they are not compatible with each
+other.  They have different class heirarchies, different instance
+variables, different method names, different implementation strategies
+and different network message formats.  You cannot communicate with a
+NeXT NXConnection using a GNU Connection.  
+
+Here are some differences between GNU distributed objects and NeXT's
+distributed objects: NXConnection creates NXProxy objects for local
+objects as well as remote objects; GNU Connection doesn't need and
+doesn't create proxies for local objects.  NXProxy asks it's remote
+target for the method encoding types and caches the results; GNU Proxy
+gets the types directly from the local GNU "typed selector" mechanism
+and has no need for querying the remote target or caching encoding
+types.  The NXProxy for the remote root object always has name 0 and,
+once set, you cannot change the root object of a NXConnection; the GNU
+Proxy for the remote root object has a target address value just like
+all other Proxy's, and you can change the root object as many times as
+you like.  See the "lacking-capabilities" list below for a partial
+list of things that NXConnection can do that GNU Connection cannot.]
+
+
+Here is a partial list of what the current distributed objects system
+can do:
+
+@itemize @bullet
+
+@item It can pass and return all simple C types, including char*, float
+and double, both by value and by reference.
+
+@item It can pass structures by value and by reference, return
+structures by reference.  The structures can contain arrays.
+
+@item It obeys all the type qualifiers: oneway, in, out, inout, const.
+
+@item It can pass and return objects, either bycopy or with proxies.  An
+object encoded multiple times in a single message is properly decoded on
+the other side.
+
+@item Proxies to remote objects are automatically created as they are
+returned.  Proxies passed back where they came from are decoded as the
+correct local object.
+
+@item It can wait for an incoming message and timeout after a specified
+period.
+
+@item A server can handle multiple clients.
+
+@item The server will ask its delegate before making new connections.
+
+@item The server can make call-back requests of the client, and keep it
+all straight even when the server has multiple clients.
+
+@item A client will automatically form a connection to another client if
+an object from the other client is vended to it. (i.e. Always make a
+direct connection rather than forwarding messages twice, once into the
+server, from there out to the other client.)
+
+@item Servers and clients can detect port deaths (due to remote
+application crash, for example) and close down gracefully, announcing
+the closed connection to other objects who have requested notifications.
+
+@item Exceptions that occur in the server (during the course of
+servicing a request) are sent back to the client, and the exception is
+then properly raised in the client's process.
+
+@item Servers and clients can be on different machines of different
+architectures; byte-order and all other architecture-dependent nits are
+taken care of for you.  You can have SPARC, i386, m68k, and
+MIPS---Linux, SunOS, Solaris, IRIX, AIX and HPUX machines all
+distributed-object'ing away together in one big web of client-server
+connections!  The library can be ported to other architectures and
+operating systems also.  Please contact Andrew McCallum,
+@email{mccallum@@gnu.ai.mit.edu}, if you are interested in having a new
+port of GNU Distributed Objects.
+
+@end itemize
+
+Here is a partial list of what the current distributed objects system
+does @b{not} yet do: 
+
+@itemize @bullet
+
+@item  Run multi-threaded.
+
+@item  Return structures by value.
+
+@item  Use Mach ports, pass Mach ports, pass Mach virtual memory.
+
+@end itemize
+
+
+
 @item @b{What is the general organization of the non-OpenStep, GNU classes?}
 
 (This FAQ does not describe the OpenStep standard classes, because a
