@@ -374,7 +374,6 @@ static IMP	initImp;
 - (void) emptyPool
 {
   struct autorelease_array_list	*released;
-  unsigned int			i;
 
   if (_child)
     {
@@ -384,6 +383,8 @@ static IMP	initImp;
   released = _released_head;
   while (released)
     {
+      unsigned int	i;
+
       for (i = 0; i < released->count; i++)
 	{
 	  id anObject = released->objects[i];
@@ -393,6 +394,7 @@ static IMP	initImp;
       released->count = 0;
       released = released->next;
     }
+  _released = _released_head;
 }
 
 - (void) _reallyDealloc

@@ -1,3 +1,8 @@
+2004-07-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: ([emptyPool]) reset _released ivar
+	suggested by Cristobal Castillo
+
 2004-07-28  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
 	* Source/GSFileHandle.m ([GSFileHandle -gcFinalize]): if __MINGW__ also
