@@ -351,6 +351,7 @@ main(int argc, char **argv, char **env)
   BOOL			showDependencies = NO;
   BOOL			autoIndex = NO;
   BOOL			modifiedRefs = NO;
+  BOOL			verbose = NO;
   NSDate		*rDate = nil;
   NSMutableArray	*files = nil;
   NSMutableArray	*hFiles = nil;
@@ -376,6 +377,7 @@ main(int argc, char **argv, char **env)
     nil]];
 
   autoIndex = [defs boolForKey: @"AutoIndex"];
+  verbose = [defs boolForKey: @"Verbose"];
   ignoreDependencies = [defs boolForKey: @"IgnoreDependencies"];
   showDependencies = [defs boolForKey: @"ShowDependencies"];
   if (ignoreDependencies == YES)
@@ -1263,9 +1265,18 @@ main(int argc, char **argv, char **env)
 				       inUnit: unit
 					isRef: YES];
 		    }
+		  if (verbose == YES)
+		    {
+		      NSLog(@"Replace %@ with %@",
+			[s substringWithRange: replace],
+			repstr ? repstr : @"self");
+		    }
 		  if (repstr != nil)
 		    {
-		      p += ([repstr length] - replace.length);
+		      int	offset = [repstr length] - replace.length;
+
+		      p += offset;
+		      l += offset;
 		      [s replaceCharactersInRange: replace withString: repstr];
 		    }
 

@@ -1,3 +1,8 @@
+2002-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/autogsdoc.m: Fixup bug in html relocation code ... was
+	failing to adjust string length variable correctly.
+
 2002-01-03  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSString.h: Extern constant string class
