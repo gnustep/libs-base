@@ -81,6 +81,8 @@
   else
     coll_hash_add(&_contents_hash, newElement, count);
   _count += count;
+  while (count--)
+    RETAIN_ELT(newElement);
   return self;
 }
 
@@ -120,7 +122,9 @@
       coll_hash_remove(_contents_hash, oldElement);
     }
   _count -= count;
-  return oldElement;
+  while (count-- > 0)
+    RELEASE_ELT(oldElement);
+  return AUTORELEASE_ELT(oldElement);
 }
 
 - (elt) removeElement: (elt)oldElement ifAbsentCall: (elt(*)(arglist_t))excFunc
@@ -136,6 +140,8 @@
   _count = 0;
   while ((node = coll_hash_next(_contents_hash, &state)))
     {
+      while ((node->value.unsigned_int_u)-- > 0)
+	RELEASE_ELT(node->key);
       node->value.unsigned_int_u = 1;
       _count++;
     }
