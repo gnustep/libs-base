@@ -204,12 +204,18 @@ static NSMutableDictionary*_hostCache = nil;
       NSLog(@"Nil address sent to +[NSHost hostWithAddress]");
       return nil;
     }
-	
-  hostaddr.s_addr = inet_addr((char*)[address cString]);
+#ifndef	HAVE_INET_ATON
+  hostaddr.s_addr = inet_addr([address cString]);
   if (hostaddr.s_addr == -1)
     {
       return nil;
     }
+#else
+  if (inet_aton([address cString], &hostaddr.s_addr) == 0)
+    {
+      return nil;
+    }
+#endif
 		
   h = gethostbyaddr((char*)&hostaddr, sizeof(hostaddr), AF_INET);
   return [self _hostWithHostEntry: h];
