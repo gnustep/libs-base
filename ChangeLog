@@ -11,6 +11,8 @@
 	* Source/Additions/GSFunctions.m: New file for extra functions.
 	* Source/NSString.m: ([stringByExpandingTildeInPath]) Improve handling
 	of paths containing mingw drives.
+	* Source/NSDate.m: Use same values for distant past/future as MacOSX
+	* Source/NSCalendarDate.m: Support output of extreme year values.
 
 2005-03-14  Adam Fedor  <fedor@gnu.org>
 

@@ -27,6 +27,8 @@ main()
 
   pool = [[NSAutoreleasePool alloc] init];
 
+  NSLog(@"%@", [NSCalendarDate distantFuture]);
+  NSLog(@"%@", [NSCalendarDate distantPast]);
   NSLog(@"%@", [NSCalendarDate dateWithNaturalLanguageString: @"01-08-2002 00:00:00"]);
   NSLog(@"%@", [NSCalendarDate dateWithNaturalLanguageString: @"31-08-2002 23:59:59"]);
 
