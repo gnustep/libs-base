@@ -1,3 +1,10 @@
+2000-11-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSXML.m: External entity loader revisions completed.
+	* Documentation/gsdoc/GSXML.gsdoc: changes to api
+	* Documentation/gsdoc/GSXMLParser.gsdoc: ditto
+	* Documentation/gsdoc/GSSAXHandler.gsdoc: ditto
+
 2000-11-01  Manuel Guesdon <mguesdon@orange-concept.com>
 	* Headers/Foundation/GSXML.h: added GSXMLNode 
 		propertiesAsDictionaryWithKeyTransformationSel:

@@ -175,6 +175,8 @@ typedef xmlNsType		GSXMLNamespaceType;
    void          *lib;                  /* parser context       */
    GSSAXHandler  *saxHandler;
 }
++ (NSString*) loadEntity: (NSString*)publicId
+		      at: (NSString*)locationURL;
 + (GSXMLParser*) parser;
 + (GSXMLParser*) parserWithContentsOfFile: (NSString*)path;
 + (GSXMLParser*) parserWithContentsOfURL: (NSURL*)url;

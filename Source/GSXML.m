@@ -849,6 +849,12 @@ static NSString	*endMarker = @"At end of incremental parse";
   xmlSetExternalEntityLoader((xmlExternalEntityLoader)loadEntityFunction);
 }
 
++ (NSString*) loadEntity: (NSString*)publicId
+		      at: (NSString*)location
+{
+  return nil;
+}
+
 + (GSXMLParser*) parser
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: nil]);
@@ -1297,6 +1303,10 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctx)
    * Now ask the SAXHandler callback for the name of a local file
    */
   file = [HANDLER loadEntity: entityId at: location];
+  if (file == nil)
+    {
+      file = [GSXMLParser loadEntity: entityId at: location];
+    }
 
   if (file == nil)
     {
