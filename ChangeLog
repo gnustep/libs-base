@@ -1,3 +1,13 @@
+Fri Jan  4 15:44:02 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* base.make.in (GNUSTEP_BASE_HAVE_LIBXML): Define.
+	* Source/GNUmakefile (Base_AGSDOC_FLAGS): Do not use
+	-HeaderDirectory.
+	(Base_HEADER_FILES_DIR): Define.
+	* Source/GNUmakefile: Include documentation.make only if doc=yes
+	is passed on the command line.
+	* Tools/GNUmakefile: Idem.
+	
 2002-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Rearrange code somewhat and remove auto
