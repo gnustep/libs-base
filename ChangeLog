@@ -1,3 +1,8 @@
+2005-02-27 13:20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m:
+	Set default timeouts to maximum timeouts for MacOS-X compatibility.
+
 2005-02-27 08:45 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSCharacterSets/dataToheader.c: new file to convert data files to
