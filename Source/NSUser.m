@@ -243,32 +243,31 @@ GSStringFromWin32EnvironmentVariable(const char * envVar)
 NSString *
 NSHomeDirectoryForUser(NSString *loginName)
 {
-  NSString	*s;
+  NSString	*s = nil;
 #if !defined(__MINGW__)
   struct passwd *pw;
 
   [gnustep_global_lock lock];
   pw = getpwnam ([loginName cString]);
-  if (pw == 0)
-    {
-      s = nil;
-    }
-  else
+  if (pw != 0)
     {
       s = [NSString stringWithCString: pw->pw_dir];
     }
   [gnustep_global_lock unlock];
 #else
-  /* Then environment variable HOMEPATH holds the home directory
-     for the user on Windows NT; Win95 has no concept of home. */
-  [gnustep_global_lock lock];
-  s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
-  if (s != nil)
+  if ([loginName isEqual: NSUserName()] == YES)
     {
-      s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
-        stringByAppendingString: s];
+      /* Then environment variable HOMEPATH holds the home directory
+	 for the user on Windows NT; Win95 has no concept of home. */
+      [gnustep_global_lock lock];
+      s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
+      if (s != nil)
+	{
+	  s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
+	    stringByAppendingString: s];
+	}
+      [gnustep_global_lock unlock];
     }
-  [gnustep_global_lock unlock];
 #endif
   return ImportPath(s, 0);
 }
