@@ -1,3 +1,8 @@
+2000-11-23  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSBundle.m ([NSBundle +_addFrameworkFromClass:]): fixed an
+	autorelease problem. (reported by Gerald Siebke <gerald@turbocat.de>)
+
 2000-11-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: ([-connectToPort:beforeDate:]) added locking to

@@ -259,7 +259,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
       bundlePath = [bundlePath stringByAppendingPathComponent:
 	[NSString stringWithFormat: @"%@.framework", name]];
 
-      bundle = [NSBundle bundleWithPath: bundlePath];
+      bundle = [NSBundle initWithPath: bundlePath];
       bundle->_bundleType = NSBUNDLE_FRAMEWORK;
       bundle->_codeLoaded = YES;
       bundle->_frameworkVersion = RETAIN([frameworkClass frameworkVersion]);
