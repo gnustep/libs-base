@@ -32,20 +32,20 @@
 {
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_dst;		/* Serialization destination.	*/
-  IMP		_serImp;		/* Method to serialize with.	*/
-  IMP		_tagImp;		/* Serialize a type tag.	*/
+  IMP		_serImp;	/* Method to serialize with.	*/
+  IMP		_tagImp;	/* Serialize a type tag.	*/
   IMP		_xRefImp;	/* Serialize a crossref.	*/
   IMP		_eObjImp;	/* Method to encode an id.	*/
   IMP		_eValImp;	/* Method to encode others.	*/
 #ifndef	_IN_NSARCHIVER_M
 #define	GSIMapTable	void*
 #endif
-  GSIMapTable	_clsMap;		/* Class cross references.	*/
-  GSIMapTable	_cIdMap;		/* Conditionally coded.		*/
-  GSIMapTable	_uIdMap;		/* Unconditionally coded.	*/
-  GSIMapTable	_ptrMap;		/* Constant pointers.		*/
-  GSIMapTable	_namMap;		/* Mappings for class names.	*/
-  GSIMapTable	_repMap;		/* Mappings for objects.	*/
+  GSIMapTable	_clsMap;	/* Class cross references.	*/
+  GSIMapTable	_cIdMap;	/* Conditionally coded.		*/
+  GSIMapTable	_uIdMap;	/* Unconditionally coded.	*/
+  GSIMapTable	_ptrMap;	/* Constant pointers.		*/
+  GSIMapTable	_namMap;	/* Mappings for class names.	*/
+  GSIMapTable	_repMap;	/* Mappings for objects.	*/
 #ifndef	_IN_NSARCHIVER_M
 #undef	GSIMapTable
 #endif
