@@ -59,7 +59,7 @@ NSPageSize (void)
 unsigned
 NSLogPageSize (void)
 {
-  unsigned tmp_page_size = ns_page_size();
+  unsigned tmp_page_size = NSPageSize();
   unsigned log = 0;
 
   while (tmp_page_size >>= 1)
@@ -72,7 +72,7 @@ NSLogPageSize (void)
 unsigned
 NSRoundDownToMultipleOfPageSize (unsigned bytes)
 {
-  unsigned a = ns_page_size();
+  unsigned a = NSPageSize();
 
   return (bytes / a) * a;
 }
@@ -82,7 +82,7 @@ NSRoundDownToMultipleOfPageSize (unsigned bytes)
 unsigned
 NSRoundUpToMultipleOfPageSize (unsigned bytes)
 {
-  unsigned a = ns_page_size();
+  unsigned a = NSPageSize();
 
   return ((bytes % a) ? ((bytes / a + 1) * a) : bytes);
 }
