@@ -374,7 +374,7 @@ setupPathNames()
 }
 
 /** Returns a string containing the path to the GNUstep system
-    installation directory. This function is gaurenteed to return a non-nil
+    installation directory. This function is guarenteed to return a non-nil
     answer (unless something is seriously wrong, in which case the application
     will probably crash anyway) */
 NSString *
@@ -391,8 +391,8 @@ GSSystemRootDirectory(void)
     the standard search order for resources, etc. If the environment
     variable GNUSTEP_PATHPREFIX_LIST is set. It returns the list of
     paths set in that variable. Otherwise, it returns the user, local,
-    network, and system paths, in that order This function is
-    gaurenteed to return a non-nil answer (unless something is
+    network, and system paths, in that order.  This function is
+    guarenteed to return a non-nil answer (unless something is
     seriously wrong, in which case the application will probably crash
     anyway) */
 NSArray *
