@@ -1,3 +1,12 @@
+Thu Aug 19 16:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSCalendarDate.m: Various memory-leak fixes.
+	* Source/NSTimeZone.m: Various memory leak fixes.
+
+Sat Aug  7 17:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Testing/tcpport-server.m: fixes to work with NSNotificationCenter.
+
 1999-08-10  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Move objc_conditioned_wait test so it gets proper
@@ -33,6 +42,7 @@
 	
 	* many files: Changed FSF mailing address
 
+>>>>>>> 1.463.2.5
 Fri Aug  6 13:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Portability fixes for compilers that don't leave enough space in an

@@ -4,7 +4,14 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSRunLoop.h>
 
-id announce_new_connection (id notification)
+@interface	Dummy: NSObject
++ (id) announce_new_connection: notification;
++ (id) announce_broken_connection: notification;
+@end
+
+@implementation	Dummy
+
++ announce_new_connection: notification
 {
   id in_port = [notification object];
   id out_port = [notification userInfo];
@@ -15,7 +22,7 @@ id announce_new_connection (id notification)
   return nil;
 }
 
-id announce_broken_connection (id notification)
++ announce_broken_connection: notification
 {
   id in_port = [notification object];
   id out_port = [notification userInfo];
@@ -25,6 +32,7 @@ id announce_broken_connection (id notification)
 	  [in_port numberOfConnectedOutPorts]);
   return nil;
 }
+@end
 
 static id port = nil;
 
@@ -58,16 +66,16 @@ int main (int argc, char *argv[])
   else
     port = [TcpInPort newForReceivingFromRegisteredName: @"tcpport-test"];
 
-  [NSNotificationCenter
-    addInvocation: [[ObjectFunctionInvocation alloc] 
-		     initWithObjectFunction: announce_broken_connection]
-    name: InPortClientBecameInvalidNotification
-    object: port];
-  [NSNotificationCenter
-    addInvocation: [[ObjectFunctionInvocation alloc] 
-		     initWithObjectFunction: announce_new_connection]
-    name: InPortAcceptedClientNotification
-    object: port];
+  [[NSNotificationCenter defaultCenter]
+    addObserver: [Dummy class]
+       selector: @selector(announce_broken_connection:)
+	   name: InPortClientBecameInvalidNotification
+	 object: port];
+  [[NSNotificationCenter defaultCenter]
+    addObserver: [Dummy class]
+       selector: @selector(announce_new_connection:)
+	   name: InPortAcceptedClientNotification
+	 object: port];
 
   printf ("Waiting for connections.\n");
 
