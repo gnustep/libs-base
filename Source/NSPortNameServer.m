@@ -821,7 +821,7 @@ typedef enum {
 	      forName: (NSString*)name
 {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
-  GSPortCom	*com;
+  GSPortCom	*com = nil;
   unsigned	len;
   NSDate	*limit;
 
