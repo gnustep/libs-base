@@ -52,4 +52,4 @@ maintainer-clean: distclean
 
 copy-dist: $(DIST_FILES)
 	mkdir $(srcdir)/../snap/admin
-	ln $(DIST_FILES) $(srcdir)/../snap/admin
+	ln -s $(DIST_FILES) $(srcdir)/../snap/admin
