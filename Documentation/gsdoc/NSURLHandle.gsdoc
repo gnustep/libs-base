@@ -530,6 +530,10 @@
 	    one of the following -
 	    <list>
 	      <item>
+		GSHTTPPropertyBodyKey - set an NSData item to be sent to
+		the server as the body of the request.
+	      </item>
+	      <item>
 		GSHTTPPropertyMethodKey - override the default method of
 		the request (eg. &quot;PUT&quot;).
 	      </item>

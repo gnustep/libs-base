@@ -1,3 +1,8 @@
+2001-12-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Understand GSHTPPropertyBodyKey so we
+	can set data to be posted in background.
+
 2001-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: Add library dependencies for SSL bundle ...
