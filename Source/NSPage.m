@@ -32,7 +32,7 @@
 #ifdef __WIN32__
 #include <malloc.h>
 #endif
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <stdio.h>
@@ -143,7 +143,7 @@ NSAllocateMemoryPages (unsigned bytes)
     return NULL;
   return where;
 #else
-#if HAVE_VALLOC
+#ifdef HAVE_VALLOC
   where = valloc (bytes);
 #else
   where = malloc (bytes);

@@ -61,7 +61,7 @@
 #endif
 #include <netdb.h>
 #include <string.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <errno.h>
@@ -222,7 +222,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
   /*
    * The gzDescriptor should always be closed when we have done with it.
    */
@@ -750,7 +750,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   d = [NSMutableData dataWithCapacity: 0];
   if (isStandardFile)
     {
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  while ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
@@ -767,7 +767,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  if ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
@@ -801,7 +801,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
   d = [NSMutableData dataWithCapacity: 0];
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
   if (gzDescriptor != 0)
     {
       while ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
@@ -838,7 +838,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       buf = NSZoneMalloc(NSDefaultMallocZone(), len);
       d = [NSMutableData dataWithBytesNoCopy: buf length: len];
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  got = gzread(gzDescriptor, [d mutableBytes], len);
@@ -863,7 +863,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
 
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
 	  if (gzDescriptor != 0)
 	    {
 	      got = gzread(gzDescriptor, buf, chunk);
@@ -908,7 +908,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  toWrite = NETBUF_SIZE;
 	}
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  rval = gzwrite(gzDescriptor, (char*)ptr+pos, toWrite);
@@ -1018,7 +1018,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (isStandardFile && descriptor >= 0)
     {
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  result = gzseek(gzDescriptor, 0, SEEK_CUR);
@@ -1042,7 +1042,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (isStandardFile && descriptor >= 0)
     {
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  result = gzseek(gzDescriptor, 0, SEEK_END);
@@ -1066,7 +1066,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (isStandardFile && descriptor >= 0)
     {
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
       if (gzDescriptor != 0)
 	{
 	  result = gzseek(gzDescriptor, (off_t)pos, SEEK_SET);
@@ -1096,7 +1096,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreWriteDescriptor];
 
   [self setNonBlocking: wasNonBlocking];
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
   if (gzDescriptor != 0)
     {
       gzclose(gzDescriptor);
@@ -1435,7 +1435,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
 	  length = [item length];
 
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
 	  if (gzDescriptor != 0)
 	    {
 	      received = gzread(gzDescriptor, buf, sizeof(buf));
@@ -1489,7 +1489,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    {
 	      int	written;
 
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
 	      if (gzDescriptor != 0)
 		{
 		  written = gzwrite(gzDescriptor, (char*)ptr+writePos,
@@ -1608,7 +1608,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (BOOL) useCompression
 {
-#if	HAVE_ZLIB
+#ifdef	HAVE_ZLIB
   int	d;
 
   if (gzDescriptor != 0)

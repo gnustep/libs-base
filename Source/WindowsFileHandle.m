@@ -46,7 +46,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <io.h>

@@ -29,7 +29,7 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSDebug.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
