@@ -4364,6 +4364,9 @@ handle_printf_atsign (FILE *stream,
  * string representation of a <em>property list</em> then the method
  * returns nil.
  * </p>
+ * <p>Containers (arrays and dictionaries) are decoded as <em>mutable</em>
+ * objects.
+ * </p>
  * <p>There are three readable <em>property list</em> storage formats -
  * The binary format used by [NSSerializer] does not concern us here,
  * but there are two 'human readable' formats, the <em>traditional</em>
