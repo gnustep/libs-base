@@ -3,7 +3,7 @@
 Last updated 3 March 1996.
 Maintained by Andrew McCallum <mccallum@@gnu.ai.mit.edu>, with
 contributions by Pascal Forget <pascal@@wsc.com>, Scott Christley
-<scottc@@ocbi.com>, and Randy Chapman <chapman@@u.washington.edu>.
+<scottc@@net-community.com>, and Randy Chapman <chapman@@u.washington.edu>.
 Please send corrections to <mccallum@@gnu.ai.mit.edu>.
 
 The intended audience of this FAQ is future and present code developers
@@ -28,6 +28,12 @@ some components are useable now.
 The GNUstep project consists of the following sub-projects:
 
 @itemize @bullet
+
+@item GNU Compiler and Objective-C Runtime Library - though not part of 
+the GNUstep project per se, the GNU Compiler is used to compile 
+Objective-C code and the Library is a fundamental part of any GNUstep 
+application.  Of particular interest to the GNUstep project is its 
+efficient thread-safe capability.
 
 @item GNUstep Base Library - code for non-graphical objects, such as
 strings, collections, archiving support and distributed objects
@@ -70,7 +76,8 @@ on this platform.
 OpenStep is an Application Programming Interface (API) for creating
 applications using the Objective C language.  It was published by NeXT
 Computer Inc. in 1994.  It is being used by Sun Microsystems as part of
-their Common Desktop Environment (CDE).
+their Common Desktop Environment (CDE), and it is being used by Ohio Carbon
+Blank as part of their On-line Virtual Community Project.
 
 OpenStep consists of three parts: the @samp{FoundationKit}, a library of
 non-graphical objects; the @samp{AppKit}, a library of objects usful in
@@ -114,7 +121,7 @@ DisplayGhostScript and X Windows as a GNUstep GUI backend.
 GNUstep DisplayGhostScript Server, adding DPS extensions to GhostScript,
 including pswrap work.
 
-@item Scott Christley <scottc@@ocbi.com> is in charge of the
+@item Scott Christley <scottc@@net-community.com> is in charge of the
 InterfaceModeler project, which is currently in the design stages.  He
 is working on the GUI Library in conjunction with Pascal Forget.  He has
 already written much of the GUI Library frontend.
@@ -189,11 +196,12 @@ maintained by McCallum <mccallum@@gnu.ai.mit.edu>.
 be completed?
 
 The Base Library is about 85 percent done.  Significant useful work can
-already be done using the library.  The GUI library is a little less
-than half done.  It can already put up windows with working buttons,
-sliders and textfields, but significant work needs to be done before it
-is ready for generic application development work.  The
-DisplayPostscript and drawing support is in transition now.
+already be done using the library.  The GUI library is about 25
+percent done.  It is going through a major transition at the moment
+to coordinate work from multiple developers, DisplayPostscript, and
+the non-OPENSTEP objcX library into a single package that will be made
+available to the public.  The DisplayPostscript and drawing support 
+is also in transition.
 
 More detailed information about the state of each of the sub-projects
 can be found below.
@@ -216,6 +224,50 @@ Andrew McCallum <mccallum@@gnu.ai.mit.edu>.
 More detailed inforation about each of the GNUstep sub-projects can be
 found below.
 
+@section GNU Compiler and Objective-C Runtime Library
+
+@enumerate
+
+@item What is the Objective-C Runtime Library?
+
+The Objective-C Runtime Library is a library of C functions and data 
+structures required to execute an Objective-C program.  There has been
+much written about the special capabilities of Objective-C; we refer you 
+to these resources to learn more about the language:
+
+NEXTSTEP Object-Oriented Programming And The Objective-C Language
+Addison-Wesley Publishing Company
+ISBN 0-201-63251-9
+
+FSF's implementation utilizes a very efficient sparse array for storing
+and looking up selectors when performing method calls, and recently has
+been enhanced to provide thread safe operation that induces NO overhead
+to method calls.  It has full support for protocols and categories.
+
+@item What is its current state of development?
+
+As of this writing 2.7.2 is the most recent version of the GNU Compiler;
+it can be obtained at any of the FSF's ftp archives.  This version does
+not contain the patches for thread safe operation; though a later release
+of the compiler will, so you must apply the patch which is distributed
+with the GNUstep Base Library and recompile the Objective-C Runtime Library.
+
+The thread safe patch defines a number of functions for maintaining mutual
+exclusion objects and threads.  The NSThread and NSLock type classes 
+in the GNUstep Base Library are based upon these underlying functions, but
+you can call them directly if you are not using GNUstep.  The implementation
+is based upon a back-end program for the underlying operating system;
+currently Microsoft Windows NT/95, SGI Unix, and Sun Unix have back-end
+tested implementations.  Volunteers are solicited for writing additional
+back-ends, especially one for Linux which is sorely needed.
+
+Additional detail about the implementation of thread safe operation can be
+found in the source code and related documentation files.  The Library
+will still operate in a single, non-threaded, environment but any attempt
+to create a thread will return an error.
+
+@end enumerate
+@c GNU Compiler and Objective-C Runtime Library
 
 @section GNUstep Base Library
 
@@ -466,19 +518,16 @@ the FTP directory.
 @item What is the GUI Library?
 
 The GNUstep GUI Library is a library of objects useful for writing
-graphical applications.  For example, it includes classes for windows,
-menus, buttons, sliders, text fields, and events.
+graphical applications.  For example, it includes classes for drawing
+and manipulating graphics objects on the screen:  windows, menus, buttons, 
+sliders, text fields, and events.  Likewise there are many periphery
+classes that offer operating system independent usage of images, cursors,
+colors, fonts, pasteboards, printing; and workspace enhancement classes 
+such as data links, open/save panels, context-dependent help, spell checking.
 
 It provides functionality that aims to implement the @samp{AppKit}
-portion of the OpenStep standard.
-
-
-@item What is its current state of development?
-
-Much of the front-end is implemented, including...
-
-The X Window / DPS back-end ...
-
+portion of the OpenStep standard.  However the implementation has
+been written to take advantage of GNUstep enhancements wherever possible.
 
 @item Explain the organization of the front- and back-ends.
 
@@ -489,7 +538,7 @@ methods necessary in order to implement low-level drawing event
 receiving.  Different back-ends will make GNUstep available on various
 platforms.  The default GNU back-end will run on top of X Windows and
 the DisplayGhostScript Server.  Other back-ends could allow GNUstep to
-run on OpenGL, OS/2, WindowsNT, graphics/event platforms.  Much work
+run on OpenGL, OS/2, WIN32, graphics/event platforms.  Much work
 will be saved by this clean separation between front- and back-end,
 because it allows different platforms to share the large amount of
 front-end code.
@@ -501,6 +550,22 @@ two backends will use @samp{+poseAs:} method, for example, running
 more flexible than using Categories because it allows the the back-end
 implementor to choose what to override in the front-end, instead of
 having the interface between front- and back-end fixed by the front-end.
+
+
+@item What is the current state of development of the front-end?
+
+A number of classes in the front-end are complete or almost complete;
+these include:  NSActionCell, NSButtonCell, NSButton, NSCell, NSControl,
+NSEvent, NSFont, NSResponder, and NSSlider.
+
+These classes are complete enough to use but still require some major
+additions before being considered almost complete:  NSApplication, NSBox,
+NSColor, NSFontManager, NSMenu, NSMenuCell, NSPopUpButton, NSSliderCell,
+NSText, NSTextField, NSTextFieldCell, NSView, and NSWindow.
+
+All remaining classes have stub implementations.
+
+@item What is the current state of development of the X/DPS back-end?
 
 
 @item Where can I get a copy?
@@ -527,7 +592,7 @@ able to find it in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
 
 
 @end enumerate
-@c GNUstep GUI Library
+@c GNUstep DisplayGhostScript Server
 
 
 
@@ -537,10 +602,17 @@ able to find it in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
 
 @item What is the Interface Modeller?
 
+Interface Modeller in its simplest form is an application for visually
+constructing and prototyping graphical user interfaces.  At a more
+abstract level, it is a tool for connecting instances of Objective-C
+classes to create a graph of objects; this graph is a model of an
+executable program that Interface Modeller can save to a file to be
+loaded and executed later outside of Interface Modeller.
 
 @item What is its current state of development?
 
-It is in the planning stages.
+It is in the specification stage; no code has been written yet.  You
+may read the current specifications at the GNUstep WWW pages.
 
 @end enumerate
 @c GNUstep IM
