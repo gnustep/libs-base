@@ -1,5 +1,5 @@
 /* Implementation of page-related functions for GNUstep
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: May 1996
@@ -60,9 +60,9 @@ unsigned
 NSLogPageSize (void)
 {
   unsigned tmp_page_size = ns_page_size();
-  unsigned log = 1;
+  unsigned log = 0;
 
-  while (tmp_page_size >> 1)
+  while (tmp_page_size >>= 1)
     log++;
   return log;
 }
