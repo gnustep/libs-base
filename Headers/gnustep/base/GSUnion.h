@@ -57,51 +57,51 @@
 #if	defined(GSUNION) && defined(GSUNION_TYPES)
 
 typedef	union {
-#if	(GSUNION_TYPES & GSUNION_OBJ)
+#if	((GSUNION_TYPES) & GSUNION_OBJ)
   id		obj;
   NSObject	*nso;
 #endif
-#if	(GSUNION_TYPES & GSUNION_CLS)
+#if	((GSUNION_TYPES) & GSUNION_CLS)
   Class		cls;
 #endif
-#if	(GSUNION_TYPES & GSUNION_SEL)
+#if	((GSUNION_TYPES) & GSUNION_SEL)
   SEL		sel;
 #endif
-#if	(GSUNION_TYPES & GSUNION_CHAR)
+#if	((GSUNION_TYPES) & GSUNION_CHAR)
   char		schr;
   unsigned char	uchr;
 #endif
-#if	(GSUNION_TYPES & GSUNION_SHORT)
+#if	((GSUNION_TYPES) & GSUNION_SHORT)
   short		ssht;
   unsigned short	usht;
 #endif
-#if	(GSUNION_TYPES & GSUNION_INT)
+#if	((GSUNION_TYPES) & GSUNION_INT)
   int		sint;
   unsigned	uint;
 #endif
-#if	(GSUNION_TYPES & GSUNION_LONG)
+#if	((GSUNION_TYPES) & GSUNION_LONG)
   long 		slng;
   unsigned long	ulng;
 #endif
-#if	(GSUNION_TYPES & GSUNION_PTR)
+#if	((GSUNION_TYPES) & GSUNION_PTR)
   void		*ptr;
   const void	*cptr;
   char		*str;
   const char	*cstr;
 #endif
-#if	(GSUNION_TYPES & GSUNION_8B)
+#if	((GSUNION_TYPES) & GSUNION_8B)
   gss8		s8;
   gsu8		u8;
 #endif
-#if	(GSUNION_TYPES & GSUNION_16B)
+#if	((GSUNION_TYPES) & GSUNION_16B)
   gss16		s16;
   gsu16		u16;
 #endif
-#if	(GSUNION_TYPES & GSUNION_32B)
+#if	((GSUNION_TYPES) & GSUNION_32B)
   gss32		s32;
   gsu32		u32;
 #endif
-#if	(GSUNION_TYPES & GSUNION_64B)
+#if	((GSUNION_TYPES) & GSUNION_64B)
   gss64		s64;
   gsu64		u64;
 #endif

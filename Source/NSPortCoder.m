@@ -64,7 +64,7 @@
  */
 #define	GSI_ARRAY_RETAIN(A, X)	
 #define	GSI_ARRAY_RELEASE(A, X)	
-#define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_STR
+#define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
 #include <base/GSIArray.h>
 
@@ -1803,7 +1803,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    }
 	  GSIArrayAddItem(_clsAry, (GSIArrayItem)nil);
 	  GSIArrayAddItem(_objAry, (GSIArrayItem)nil);
-	  GSIArrayAddItem(_ptrAry, (GSIArrayItem)0);
+	  GSIArrayAddItem(_ptrAry, (GSIArrayItem)(void*)0);
 	}
       NS_HANDLER
 	{
