@@ -1,3 +1,8 @@
+Wed Jul 29 13:50:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/Collection.m: Removed [-copy]
+	* src/include/Collecting.h: likewise
+
 Wed Jul 29  9:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/TcpPort.m: typecast to get rid of warning
