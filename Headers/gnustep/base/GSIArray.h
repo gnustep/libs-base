@@ -56,7 +56,48 @@
  *		Defined if no release operation is needed for an item
  *	GSI_ARRAY_NO_RETAIN
  *		Defined if no retain operation is needed for a an item
+ *		 
+ *	The value GSI_ARRAY_EXTRA may be defined as the type of an extra
+ *	field produced in every array.  The name of this field is 'extra'.
+ *
+ *	The value GSI_ARRAY_TEXTRA may be defined as an additional type
+ *	which must be valid as an array element.  Otherwise the types are
+ *	controlled by the mechanism in GSUnion.h
  */
+
+
+/*
+ * If GSI_NEW is defined we expect to pass a pointer to the maptable as
+ * the first argument to each macro so we can have the macros behave
+ * differently for different maptables.
+ * The old version will become obsolete and be removed at some point.
+ */
+#ifdef	GSI_NEW
+
+#ifdef	GSI_ARRAY_NO_RETAIN
+#ifdef	GSI_ARRAY_RETAIN
+#undef	GSI_ARRAY_RETAIN
+#endif
+#define	GSI_ARRAY_RETAIN(A, X)	
+#else
+#ifndef	GSI_ARRAY_RETAIN
+#define	GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
+#endif
+#endif
+
+#ifdef	GSI_ARRAY_NO_RELEASE
+#ifdef	GSI_ARRAY_RELEASE
+#undef	GSI_ARRAY_RELEASE
+#endif
+#define	GSI_ARRAY_RELEASE(A, X)	
+#else
+#ifndef	GSI_ARRAY_RELEASE
+#define	GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
+#endif
+#endif
+
+#else
+
 #ifdef	GSI_ARRAY_NO_RETAIN
 #ifdef	GSI_ARRAY_RETAIN
 #undef	GSI_ARRAY_RETAIN
@@ -77,6 +118,8 @@
 #ifndef	GSI_ARRAY_RELEASE
 #define	GSI_ARRAY_RELEASE(X)	[(X).obj release]
 #endif
+#endif
+
 #endif
 
 /*
@@ -106,8 +149,11 @@
 #ifdef	GSUNION_EXTRA
 #undef	GSUNION_EXTRA
 #endif
-#ifdef	GSI_ARRAY_EXTRA
-#define	GSUNION_EXTRA	GSI_ARRAY_EXTRA
+/*
+ * Override extra type used in array value
+ */
+#ifdef	GSI_ARRAY_TEXTRA
+#define	GSUNION_EXTRA	GSI_ARRAY_TEXTRA
 #endif
 
 /*
@@ -121,6 +167,9 @@ struct	_GSIArray {
   unsigned	cap;
   unsigned	old;
   NSZone	*zone;
+#ifdef	GSI_ARRAY_EXTRA
+  GSI_ARRAY_EXTRA	extra;
+#endif
 };
 typedef	struct	_GSIArray	GSIArray_t;
 typedef	struct	_GSIArray	*GSIArray;
@@ -187,7 +236,11 @@ GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned	i;
 
+#ifdef GSI_NEW
+  GSI_ARRAY_RETAIN(array, item);
+#else
   GSI_ARRAY_RETAIN(item);
+#endif
   GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
@@ -222,7 +275,11 @@ GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 static INLINE void
 GSIArrayAddItem(GSIArray array, GSIArrayItem item)
 {
+#ifdef GSI_NEW
+  GSI_ARRAY_RETAIN(array, item);
+#else
   GSI_ARRAY_RETAIN(item);
+#endif
   GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
@@ -349,7 +406,11 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
+#ifdef GSI_NEW
+  GSI_ARRAY_RELEASE(array, tmp);
+#else
   GSI_ARRAY_RELEASE(tmp);
+#endif
 }
 
 static INLINE void
@@ -358,7 +419,11 @@ GSIArrayRemoveLastItem(GSIArray array)
 #ifdef	GSI_ARRAY_CHECKS
   NSCAssert(array->count, NSInvalidArgumentException);
 #endif
+#ifdef GSI_NEW
+  GSI_ARRAY_RELEASE(array, array->ptr[array->count-1]);
+#else
   GSI_ARRAY_RELEASE(array->ptr[array->count-1]);
+#endif
   array->count--;
 }
 
@@ -383,9 +448,17 @@ GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
   NSCAssert(index < array->count, NSInvalidArgumentException);
 #endif
   tmp = array->ptr[index];
+#ifdef GSI_NEW
+  GSI_ARRAY_RETAIN(array, item);
+#else
   GSI_ARRAY_RETAIN(item);
+#endif
   array->ptr[index] = item;
+#ifdef GSI_NEW
+  GSI_ARRAY_RELEASE(array, tmp);
+#else
   GSI_ARRAY_RELEASE(tmp);
+#endif
 }
 
 static INLINE GSIArrayItem
@@ -425,7 +498,11 @@ GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
 #ifndef	GSI_ARRAY_NO_RELEASE
       while (array->count-- > index)
 	{
+#ifdef GSI_NEW
+	  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#else
 	  GSI_ARRAY_RELEASE(array->ptr[array->count]);
+#endif
 	}
 #endif
       array->count = index;
@@ -438,7 +515,11 @@ GSIArrayRemoveAllItems(GSIArray array)
 #ifndef	GSI_ARRAY_NO_RELEASE
   while (array->count--)
     {
+#ifdef GSI_NEW
+      GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#else
       GSI_ARRAY_RELEASE(array->ptr[array->count]);
+#endif
     }
 #endif
   array->count = 0;
@@ -477,7 +558,11 @@ GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
 
   for (i = 0; i < array->count; i++)
     {
+#ifdef GSI_NEW
+      GSI_ARRAY_RETAIN(array, array->ptr[i]);
+#else
       GSI_ARRAY_RETAIN(array->ptr[i]);
+#endif
       new->ptr[new->count++] = array->ptr[i];
     }
   return new;

@@ -91,19 +91,12 @@
 
 
 
-#ifdef	GSI_NEW
+#define	GSI_NEW	1
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToDictionary: (Y).obj]
-#else
-#define	GSI_MAP_RETAIN_KEY(X)	
-#define	GSI_MAP_RELEASE_KEY(X)	
-#define	GSI_MAP_RETAIN_VAL(X)	
-#define	GSI_MAP_RELEASE_VAL(X)	
-#define	GSI_MAP_EQUAL(X,Y)	[(X).obj isEqualToDictionary: (Y).obj]
-#endif
 
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT
