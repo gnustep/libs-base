@@ -3,6 +3,9 @@
 	* Source/NSString.m; Bug report by Manuel Guesdon prompted me to
 	rewrite string trimming extensions.  All the tail end trimming
 	was wrong.
+	* Source/Unicode.m: Added two new conversion functions ... untested.
+	The intention is to replace other string conversion with these ones
+	which should localise memory management issues.
 
 2002-03-14  Richard Frith-Macdonald <rfm@gnu.org>
 

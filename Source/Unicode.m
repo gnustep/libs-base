@@ -1352,3 +1352,750 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
 */
 }
 
+
+
+
+#define	GROW() \
+if (dst == 0) \
+  { \
+    /* \
+     * Data is just being discarded anyway, so we can \
+     * adjust the offset into the local buffer on the \
+     * stack and pretend the buffer has grown. \
+     */ \
+    ptr -= BUFSIZ; \
+    bsize += BUFSIZ; \
+  } \
+else if (zone == 0) \
+  { \
+    return NO; /* No buffer growth possible ... fail. */ \
+  } \
+else \
+  { \
+    unsigned	grow = slen; \
+\
+    if (grow < bsize + BUFSIZ) \
+      { \
+	grow = bsize + BUFSIZ; \
+      } \
+    grow *= sizeof(unichar); \
+\
+    if (ptr == buf || ptr == *dst) \
+      { \
+	unichar	*tmp; \
+\
+	tmp = NSZoneMalloc(zone, grow + extra); \
+	if (tmp != 0) \
+	  { \
+	    memcpy(tmp, ptr, bsize * sizeof(unichar)); \
+	  } \
+	ptr = tmp; \
+      } \
+    else \
+      { \
+	ptr = NSZoneRealloc(zone, ptr, grow + extra); \
+      } \
+    if (ptr == 0) \
+      { \
+	return NO;	/* Not enough memory */ \
+      } \
+    bsize = grow / sizeof(unichar); \
+  }
+
+/**
+ * Function to convert from 8-bit character data to 16-bit unicode.
+ * <p>The dst argument is a pointer to a pointer to a buffer in which the
+ * converted string is to be stored.  If it is a nul pointer, this function
+ * discards converted data, and is used only to determine the length of the
+ * converted string.  If the zone argument is non-nul, the function is free
+ * to allocate a larger buffer if necessary, and store this new buffer in
+ * the dst argument.  It will *NOT* deallocate the original buffer!
+ * </p>
+ * <p>The size argument is a pointer to the initial size of the destination
+ * buffer.  If the function changes the buffer size, this value will be
+ * altered to the new size.  This is measured in characters, not bytes.
+ * </p>
+ * <p>The src argument is a pointer to the 8-bit character string which is
+ * to be converted to 16-bit unicode.
+ * </p>
+ * <p>The slen argument is the length (bytes) of the 8-bit character string
+ * which is to be converted to 16-bit unicode.
+ * This is measured in characters, not bytes.
+ * </p>
+ * <p>The end argument specifies the encoding type of the 8-bit character
+ * string which is to be converted to 16-bit unicode.
+ * </p>
+ * <p>The zone argument specifies a memory zone in which the function may
+ * allocate a buffer to return data in.
+ * If this is nul, the function will fail if the originally supplied buffer
+ * is not big enough (unless dst is a nul pointer ... indicating that
+ * converted data is to be discarded).
+ * </p>
+ * <p>The terminate argument indicates that the destination buffer size
+ * supplied is actually one character shorter than the real buffer size,
+ * and that a nul terminator is to be placed at the end of the output string.
+ * Also, if the function grows the buffer, it must allow for an extra
+ * termination character.
+ * </p>
+ * <p>On return, the function result is a flag indicating success (YES)
+ * or failure (NO), and on success, the value stored in size is the number
+ * of characters in the converted string.  The converted string itsself is
+ * stored in the location gioven by dst.<br />
+ * NB. If the value stored in dst has been changed, it is a pointer to
+ * allocated memory which the caller is responsible for freeing, and the
+ * caller is <em>still</em> responsible for freeing the original buffer.
+ * </p>
+ */
+BOOL
+gsToUnicode(unichar **dst, unsigned *size, const char *src, unsigned slen,
+  NSStringEncoding enc, NSZone *zone, BOOL terminate)
+{
+  unichar	buf[BUFSIZ];
+  unichar	*ptr;
+  unsigned	bsize;
+  unsigned	dpos = 0;	// Offset into destination buffer.
+  unsigned	spos = 0;	// Offset into source buffer.
+  unsigned	extra = (terminate == YES) ? sizeof(unichar) : 0;
+  unichar	base = 0;
+  unichar	*table = 0;
+
+  if (slen == 0)
+    {
+      return YES;
+    }
+
+  /*
+   * Ensure we have an initial buffer set up to decode data into.
+   */
+  if (dst == 0 || *size == 0)
+    {
+      ptr = buf;
+      bsize = (terminate == YES) ? BUFSIZ - 1 : BUFSIZ;
+    }
+  else
+    {
+      ptr = *dst;
+      bsize = *size;
+    }
+
+  switch (enc)
+    {
+      case NSNonLossyASCIIStringEncoding:
+      case NSASCIIStringEncoding:
+      case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding: 	  
+	while (spos < slen)
+	  {
+	    if (dpos >= bsize)
+	      {
+		GROW();
+	      }
+	    ptr[dpos++] = (unichar)((unc)src[spos++]);
+	  }
+	break;
+
+      case NSNEXTSTEPStringEncoding:
+	base = Next_conv_base;
+	table = Next_char_to_uni_table;
+	goto tables;
+
+      case NSISOCyrillicStringEncoding:
+	base = Cyrillic_conv_base;
+	table = Cyrillic_char_to_uni_table;
+	goto tables;
+
+      case NSISOLatin2StringEncoding:
+	base = Latin2_conv_base;
+	table = Latin2_char_to_uni_table;
+	goto tables;
+	    
+#if 0
+      case NSSymbolStringEncoding:
+	base = Symbol_conv_base;
+	table = Symbol_char_to_uni_table;
+	goto tables;    
+#endif
+
+tables:
+	while (spos < slen)
+	  {
+	    unc c = (unc)src[spos];
+
+	    if (dpos >= bsize)
+	      {
+		GROW();
+	      }
+	    if (c < base)
+	      {
+		ptr[dpos++] = c;
+	      }
+	    else
+	      {
+		ptr[dpos++] = table[c - base];
+	      }
+	    spos++;
+	  }
+	break;
+
+      case NSGSM0338StringEncoding:
+	while (spos < slen)
+	  {
+	    unc c = (unc)src[spos];
+
+	    if (dpos >= bsize)
+	      {
+		GROW();
+	      }
+
+	    ptr[dpos] = GSM0338_char_to_uni_table[c];
+	    if (c == 0x1b && spos < slen)
+	      {
+		unsigned	i = 0;
+
+		c = (unc)src[spos+1];
+		while (i < sizeof(GSM0338_escapes)/sizeof(GSM0338_escapes[0]))
+		  {
+		    if (GSM0338_escapes[i].to == c)
+		      {
+			ptr[dpos] = GSM0338_escapes[i].from;
+			spos++;
+			break;
+		      }
+		  }
+	      }
+	    dpos++;
+	    spos++;
+	  }
+	break;
+
+      default:
+#ifdef HAVE_ICONV
+	{
+	  iconv_t	cd;
+	  char		*inbuf;
+	  char		*outbuf;
+	  size_t	inbytesleft;
+	  size_t	outbytesleft;
+	  size_t	result;
+
+	  cd = iconv_open(UNICODE_ENC, iconv_stringforencoding(enc));
+	  if (cd == (iconv_t)-1)
+	    {
+	      NSLog(@"No iconv for encoding %@ tried to use %s", 
+		GetEncodingName(enc), iconv_stringforencoding(enc));
+	      return NO;
+	    }
+
+	  inbuf = (char*)src;
+	  inbytesleft = slen;
+	  outbuf = (char*)ptr;
+	  outbytesleft = bsize * sizeof(unichar);
+	  while (inbytesleft > 0)
+	    {
+	      if (dpos >= bsize)
+		{
+		  unsigned	old = bsize;
+
+		  GROW();
+		  outbuf = (char*)&ptr[dpos];
+		  outbytesleft = (bsize - old) * sizeof(unichar);
+		}
+	      result = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      if (result == (size_t)-1 && errno != E2BIG)
+		{
+		  return NO;
+		}
+	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
+	    }
+	  // close the converter
+	  iconv_close(cd);
+	}
+#else 
+	return NO;
+#endif 
+    }
+
+  /*
+   * Post conversion ... set output values.
+   */
+  if (terminate == YES)
+    {
+      ptr[dpos] = (unichar)0;
+    }
+  *size = dpos;
+  if (dst != 0)
+    {
+      /*
+       * If resizing is permitted, try ensure we return a buffer which
+       * is just big enough to hold the converted string.
+       */
+      if (zone != 0 && bsize > dpos)
+	{
+	  unsigned	bytes = dpos * sizeof(unichar) + extra;
+
+	  if (ptr == buf || ptr == *dst)
+	    {
+	      unichar	*tmp;
+
+	      tmp = NSZoneMalloc(zone, bytes);
+	      if (tmp != 0)
+		{
+		  memcpy(tmp, ptr, bytes);
+		}
+	      ptr = tmp;
+	    }
+	  else
+	    {
+	      ptr = NSZoneRealloc(zone, ptr, bytes);
+	    }
+	  if (ptr == 0)
+	    {
+	      return NO;
+	    }
+	}
+      *dst = ptr;
+    }
+  return YES;
+}
+
+#undef	GROW
+
+
+#define	GROW() \
+if (dst == 0) \
+  { \
+    /* \
+     * Data is just being discarded anyway, so we can \
+     * adjust the offset into the local buffer on the \
+     * stack and pretend the buffer has grown. \
+     */ \
+    ptr -= BUFSIZ; \
+    bsize += BUFSIZ; \
+  } \
+else if (zone == 0) \
+  { \
+    return NO; /* No buffer growth possible ... fail. */ \
+  } \
+else \
+  { \
+    unsigned	grow = slen; \
+\
+    if (grow < bsize + BUFSIZ) \
+      { \
+	grow = bsize + BUFSIZ; \
+      } \
+\
+    if (ptr == buf || ptr == *dst) \
+      { \
+	unsigned char	*tmp; \
+\
+	tmp = NSZoneMalloc(zone, grow + extra); \
+	if (tmp != 0) \
+	  { \
+	    memcpy(tmp, ptr, bsize); \
+	  } \
+	ptr = tmp; \
+      } \
+    else \
+      { \
+	ptr = NSZoneRealloc(zone, ptr, grow + extra); \
+      } \
+    if (ptr == 0) \
+      { \
+	return NO;	/* Not enough memory */ \
+      } \
+    bsize = grow; \
+  }
+
+/**
+ * Function to convert from 16-bit unicode to 8-bit character data.
+ * <p>The dst argument is a pointer to a pointer to a buffer in which the
+ * converted string is to be stored.  If it is a nul pointer, this function
+ * discards converted data, and is used only to determine the length of the
+ * converted string.  If the zone argument is non-nul, the function is free
+ * to allocate a larger buffer if necessary, and store this new buffer in
+ * the dst argument.  It will *NOT* deallocate the original buffer!
+ * </p>
+ * <p>The size argument is a pointer to the initial size of the destination
+ * buffer.  If the function changes the buffer size, this value will be
+ * altered to the new size.  This is measured in characters, not bytes.
+ * </p>
+ * <p>The src argument is a pointer to the 16-bit unicode string which is
+ * to be converted to 8-bit data.
+ * </p>
+ * <p>The slen argument is the length (bytes) of the 16-bit unicode string
+ * which is to be converted to 8-bit data.
+ * This is measured in characters, not bytes.
+ * </p>
+ * <p>The end argument specifies the encoding type of the 8-bit character
+ * string which is to be produced from the 16-bit unicode.
+ * </p>
+ * <p>The zone argument specifies a memory zone in which the function may
+ * allocate a buffer to return data in.
+ * If this is nul, the function will fail if the originally supplied buffer
+ * is not big enough (unless dst is a nul pointer ... indicating that
+ * converted data is to be discarded).
+ * </p>
+ * <p>The terminate argument indicates that the destination buffer size
+ * supplied is actually one character shorter than the real buffer size,
+ * and that a nul terminator is to be placed at the end of the output string.
+ * Also, if the function grows the buffer, it must allow for an extra
+ * termination character.
+ * </p>
+ * <p>On return, the function result is a flag indicating success (YES)
+ * or failure (NO), and on success, the value stored in size is the number
+ * of characters in the converted string.  The converted string itsself is
+ * stored in the location gioven by dst.<br />
+ * NB. If the value stored in dst has been changed, it is a pointer to
+ * allocated memory which the caller is responsible for freeing, and the
+ * caller is <em>still</em> responsible for freeing the original buffer.
+ * </p>
+ */
+BOOL
+gsFromUnicode(unsigned char **dst, unsigned *size, const unichar *src,
+  unsigned slen, NSStringEncoding enc, NSZone *zone, BOOL terminate,
+  BOOL strict)
+{
+  unsigned char	buf[BUFSIZ];
+  unsigned char	*ptr;
+  unsigned	bsize;
+  unsigned	dpos = 0;	// Offset into destination buffer.
+  unsigned	spos = 0;	// Offset into source buffer.
+  unsigned	extra = (terminate == YES) ? 1 : 0;
+  unichar	base = 0;
+  _ucc_		*table = 0;
+  unsigned	tsize = 0;
+  
+  if (slen == 0)
+    {
+      return YES;
+    }
+    
+  /*
+   * Ensure we have an initial buffer set up to decode data into.
+   */
+  if (dst == 0 || *size == 0)
+    {
+      ptr = buf;
+      bsize = (terminate == YES) ? BUFSIZ - 1 : BUFSIZ;
+    }
+  else
+    {
+      ptr = *dst;
+      bsize = *size;
+    }
+
+  switch (enc)
+    {
+      case NSNonLossyASCIIStringEncoding:
+      case NSASCIIStringEncoding:
+	base = 128;
+	goto bases;
+      case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding: 	  
+	base = 256;
+	goto bases;
+
+bases:
+	if (strict == YES)
+	  {
+	    while (spos < slen)
+	      {
+		unichar	u = src[spos++];
+
+		if (dpos >= bsize)
+		  {
+		    GROW();
+		  }
+		if (u < 128)
+		  {
+		    ptr[dpos++] = (char)u;
+		  }
+		else
+		  {
+		    ptr[dpos++] =  '*';
+		  }
+	      }
+	  }
+	else
+	  {
+	    while (spos < slen)
+	      {
+		unichar	u = src[spos++];
+
+		if (dpos >= bsize)
+		  {
+		    GROW();
+		  }
+		if (u < 128)
+		  {
+		    ptr[dpos++] = (char)u;
+		  }
+		else
+		  {
+		    return NO;
+		  }
+	      }
+	  }
+	break;
+
+      case NSNEXTSTEPStringEncoding:
+	base = (unichar)Next_conv_base;
+	table = Next_uni_to_char_table;
+	tsize = Next_uni_to_char_table_size;
+	goto tables;
+
+      case NSISOCyrillicStringEncoding:
+	base = (unichar)Cyrillic_conv_base;
+	table = Cyrillic_uni_to_char_table;
+	tsize = Cyrillic_uni_to_char_table_size;
+	goto tables;
+
+      case NSISOLatin2StringEncoding:
+	base = (unichar)Latin2_conv_base;
+	table = Latin2_uni_to_char_table;
+	tsize = Latin2_uni_to_char_table_size;
+	goto tables;
+
+#if 0
+      case NSSymbolStringEncoding:
+	base = (unichar)Symbol_conv_base;
+	table = Symbol_uni_to_char_table;
+	tsize = Symbol_uni_to_char_table_size;
+	goto tables;
+#endif
+
+tables:
+	if (strict == YES)
+	  {
+	    while (spos < slen)
+	      {
+		unichar	u = src[spos++];
+
+		if (dpos >= bsize)
+		  {
+		    GROW();
+		  }
+		if (u < base)
+		  {
+		    ptr[dpos++] = (char)u;
+		  }
+		else
+		  {
+		    int res;
+		    int i = 0;
+
+		    while ((res = u - table[i].from) > 0)
+		      {
+			if (++i >= tsize)
+			  {
+			    break;
+			  }
+		      }
+		    if (res > 0)
+		      {
+			ptr[dpos++] = '*';
+		      }
+		    else
+		      {
+			ptr[dpos++] = table[--i].to;
+		      }
+		  }
+	      }
+	  }
+	else
+	  {
+	    while (spos < slen)
+	      {
+		unichar	u = src[spos++];
+
+		if (dpos >= bsize)
+		  {
+		    GROW();
+		  }
+		if (u < base)
+		  {
+		    ptr[dpos++] = (char)u;
+		  }
+		else
+		  {
+		    int res;
+		    int i = 0;
+
+		    while ((res = u - table[i].from) > 0)
+		      {
+			if (++i >= tsize)
+			  {
+			    return NO;
+			  }
+		      }
+		    ptr[dpos++] = table[--i].to;
+		  }
+	      }
+	  }
+	break;
+
+      case NSGSM0338StringEncoding:
+	while (spos < slen)
+	  {
+	    unichar	u = src[spos++];
+	    int	res;
+	    int	i = 0;
+
+	    if (dpos >= bsize)
+	      {
+		GROW();
+	      }
+
+	    while ((res = u - GSM0338_uni_to_char_table[i].from) > 0)
+	      {
+		if (++i >= GSM0338_tsize)
+		  {
+		    break;
+		  }
+	      }
+	    if (res == 0)
+	      {
+		ptr[dpos] = GSM0338_uni_to_char_table[--i].to;
+	      }
+	    else
+	      {
+		if (strict == YES)
+		  {
+		    return NO;
+		  }
+		for (i = 0; i < GSM0338_esize; i++)
+		  {
+		    if (GSM0338_escapes[i].from == u)
+		      {
+			ptr[dpos++] = 0x1b;
+			if (dpos >= bsize)
+			  {
+			    GROW();
+			  }
+			ptr[dpos] = GSM0338_escapes[i].to;
+			break;
+		      }
+		  }
+		if (i == GSM0338_esize)
+		  {
+		    ptr[dpos] = '*';
+		  }
+	      }
+	    dpos++;
+	  }
+	break;
+
+      default:
+#ifdef HAVE_ICONV
+	{
+	  iconv_t	cd;
+	  char		*inbuf;
+	  char		*outbuf;
+	  size_t	inbytesleft;
+	  size_t	outbytesleft;
+	  size_t	result;
+
+	  cd = iconv_open(iconv_stringforencoding(enc), UNICODE_ENC);
+	  if (cd == (iconv_t)-1)
+	    {
+	      NSLog(@"No iconv for encoding %@ tried to use %s", 
+		GetEncodingName(enc), iconv_stringforencoding(enc));
+	      return NO;
+	    }
+
+	  inbuf = (char*)src;
+	  inbytesleft = slen * sizeof(unichar);
+	  outbuf = (char*)ptr;
+	  outbytesleft = bsize;
+	  while (inbytesleft > 0)
+	    {
+	      if (dpos >= bsize)
+		{
+		  unsigned	old = bsize;
+
+		  GROW();
+		  outbuf = (char*)&ptr[dpos];
+		  outbytesleft = (bsize - old);
+		}
+	      result = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      if (result == (size_t)-1 && errno != E2BIG)
+		{
+		  if (errno == EILSEQ)
+		    {
+		      if (strict == YES)
+			{
+			  return NO;
+			}
+		      /*
+		       * If we are allowing lossy conversion, we replace any
+		       * unconvertable character with an asterisk.
+		       */
+		      if (outbytesleft > 0)
+			{
+			  *outbuf++ = '*';
+			  outbytesleft--;
+			  inbuf++;
+			  inbytesleft--;
+			}
+		    }
+		  else if (errno != E2BIG)
+		    {
+		      return NO;
+		    }
+		}
+	      dpos = bsize - outbytesleft;
+	    }
+	  // close the converter
+	  iconv_close(cd);
+	}
+#else 
+	return NO;
+#endif 
+    }
+
+  /*
+   * Post conversion ... set output values.
+   */
+  if (terminate == YES)
+    {
+      ptr[dpos] = (unsigned char)0;
+    }
+  *size = dpos;
+  if (dst != 0)
+    {
+      /*
+       * If resizing is permitted, try ensure we return a buffer which
+       * is just big enough to hold the converted string.
+       */
+      if (zone != 0 && bsize > dpos)
+	{
+	  unsigned	bytes = dpos + extra;
+
+	  if (ptr == buf || ptr == *dst)
+	    {
+	      unsigned char	*tmp;
+
+	      tmp = NSZoneMalloc(zone, bytes);
+	      if (tmp != 0)
+		{
+		  memcpy(tmp, ptr, bytes);
+		}
+	      ptr = tmp;
+	    }
+	  else
+	    {
+	      ptr = NSZoneRealloc(zone, ptr, bytes);
+	    }
+	  if (ptr == 0)
+	    {
+	      return NO;
+	    }
+	}
+      *dst = ptr;
+    }
+  return YES;
+}
+
+#undef	GROW
+
