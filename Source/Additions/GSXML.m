@@ -1017,15 +1017,15 @@ static NSMapTable	*nodeNames = 0;
  */
 - (GSXMLNode*) nextElement
 {
-  xmlNodePtr	ptr = ((xmlNodePtr)(lib))->next;
+  xmlNodePtr	ptr = (xmlNodePtr)lib;
 
   while (ptr->next != NULL)
     {
+      ptr = ptr->next;
       if (ptr->type == XML_ELEMENT_NODE)
 	{
-	  return [GSXMLNode nodeFrom: ptr->next];
+	  return [GSXMLNode nodeFrom: ptr];
 	}
-      ptr = ptr->next;
     }
   return nil;
 }
