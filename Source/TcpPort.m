@@ -40,6 +40,7 @@
 #include <base/NotificationDispatcher.h>
 #include <base/NSException.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSByteOrder.h>
 #include <base/Invocation.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
@@ -129,14 +130,15 @@ static int debug_tcp_port = 0;
 @interface TcpInPacket (Private)
 - (int) _fillFromSocket: (int)s;
 + (void) _getPacketSize: (int*)size
-	   andReplyPort: (id*)rp
-             fromSocket: (int)s
-	         inPort: ip;
+	    andSendPort: (id*)sp
+	 andReceivePort: (id*)rp
+             fromSocket: (int)s;
 @end
 
 @interface TcpOutPacket (Private)
 - (void) _writeToSocket: (int)s 
-       withReplySockaddr: (struct sockaddr_in*)addr
+	   withSendPort: (id)sp
+	withReceivePort: (id)rp
                 timeout: (NSTimeInterval)t;
 @end
 
@@ -428,9 +430,9 @@ static NSMapTable* port_number_2_port;
        will accept connection on any of the machine network addresses;
        most machine will have both an Internet address, and the
        "localhost" address (i.e. 127.0.0.1) */
-    p->_listening_address.sin_addr.s_addr = htonl (INADDR_ANY);
+    p->_listening_address.sin_addr.s_addr = GSSwapHostI32ToBig (INADDR_ANY);
     p->_listening_address.sin_family = AF_INET;
-    p->_listening_address.sin_port = htons (n);
+    p->_listening_address.sin_port = GSSwapHostI16ToBig (n);
     /* N may be zero, in which case bind() will choose a port number
        for us. */
     if (bind (p->_port_socket,
@@ -448,7 +450,7 @@ static NSMapTable* port_number_2_port;
 
 	  for (count = 0; count < 10; count++) {
 	    memset(&p->_listening_address, 0, sizeof(p->_listening_address));
-	    p->_listening_address.sin_addr.s_addr = htonl (INADDR_ANY);
+	    p->_listening_address.sin_addr.s_addr = GSSwapHostI32ToBig (INADDR_ANY);
 	    p->_listening_address.sin_family = AF_INET;
 	    if (bind (p->_port_socket,
 	      (struct sockaddr*) &(p->_listening_address),
@@ -484,7 +486,7 @@ static NSMapTable* port_number_2_port;
 
 	  }
 	NSAssert(p->_listening_address.sin_port, NSInternalInconsistencyException);
-	n = ntohs(p->_listening_address.sin_port);
+	n = GSSwapBigI16ToHost(p->_listening_address.sin_port);
       }
 
     /* Now change _LISTENING_ADDRESS to the specific network address of this
@@ -692,11 +694,12 @@ static NSMapTable* port_number_2_port;
 	  /* First, get the packet size and reply port, (which is
 	     encoded in the first few bytes of the stream). */
 	  int packet_size;
-	  id reply_port;
+	  id send_port;
+	  id receive_port;
 	  [TcpInPacket _getPacketSize: &packet_size
-		       andReplyPort: &reply_port
-		       fromSocket: fd_index
-		       inPort: self];
+			  andSendPort: &send_port
+		       andReceivePort: &receive_port
+			   fromSocket: fd_index];
 	  /* If we got an EOF when trying to read the packet prefix,
 	     invalidate the port, and keep on waiting for incoming
 	     data on other sockets. */
@@ -710,8 +713,8 @@ static NSMapTable* port_number_2_port;
 	    {
 	      packet = [[TcpInPacket alloc] 
 			 initForReceivingWithCapacity: packet_size
-			 receivingInPort: self
-			 replyOutPort: reply_port];
+			 receivingInPort: send_port
+			 replyOutPort: receive_port];
 	      if (packet == nil)
 	        [NSException raise: NSInternalInconsistencyException
 	          format: @"[TcpInPort _tryToGetPacketFromReadableFD:"
@@ -864,7 +867,7 @@ static NSMapTable* port_number_2_port;
 
 - (int) portNumber
 {
-  return (int) ntohs (_listening_address.sin_port);
+  return (int) GSSwapBigI16ToHost (_listening_address.sin_port);
 }
 
 - (void) invalidate
@@ -882,7 +885,7 @@ static NSMapTable* port_number_2_port;
 	 +newForReceivingFromPortNumber: from returning invalid sockets. */
       NSMapRemove (socket_2_port, (void*)_port_socket);
       NSMapRemove (port_number_2_port,
-		   (void*)(int) ntohs(_listening_address.sin_port));
+		   (void*)(int)GSSwapBigI16ToHost(_listening_address.sin_port));
 
       for (i = 0; 
 	   NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port);
@@ -943,7 +946,7 @@ static NSMapTable* port_number_2_port;
 	   object_get_class_name (self),
 	   is_valid ? ' ' : '-',
 	   (unsigned)self,
-	   ntohs (_listening_address.sin_port),
+	   GSSwapBigI16ToHost(_listening_address.sin_port),
 	   _port_socket];
 }
 
@@ -1259,7 +1262,7 @@ static NSMapTable *out_port_bag = NULL;
   /* Get the sockaddr_in address. */
   memcpy (&addr.sin_addr, hp->h_addr, hp->h_length);
   addr.sin_family = AF_INET;
-  addr.sin_port = htons (n);
+  addr.sin_port = GSSwapHostI16ToBig (n);
 
   return [self newForSendingToSockaddr: &addr
 	       withAcceptedSocket: 0
@@ -1293,7 +1296,7 @@ static NSMapTable *out_port_bag = NULL;
     }
   NSAssert(size == sizeof (struct sockaddr_in), NSInternalInconsistencyException);
   /* xxx Perhaps I have to get peer name here!! */
-  NSAssert(ntohs (addr.sin_port) != [p portNumber], NSInternalInconsistencyException);
+  NSAssert(GSSwapBigI16ToHost(addr.sin_port) != [p portNumber], NSInternalInconsistencyException);
 #elif 0
   struct sockaddr_in in_port_address;
   c = read (s, &in_port_address, sizeof(struct sockaddr_in));
@@ -1339,12 +1342,14 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Ask the packet to write it's bytes to the socket.
      The TcpPacket will also write a prefix, indicating the packet size
-     and the reply port address.  If REPLY_PORT is nil, the second argument
-     to this call with be NULL, and __writeToSocket:withReplySockaddr:timeout:
+     and the port addresses.  If REPLY_PORT is nil, the third argument
+     to this call with be NULL, and
+	__writeToSocket:withSendPort:withReceivePort:timeout:
      will know that there is no reply port. */
   [packet _writeToSocket: _port_socket 
-	  withReplySockaddr: [reply_port _listeningSockaddr]
-		    timeout: timeout];
+	    withSendPort: self
+	 withReceivePort: reply_port
+		 timeout: timeout];
   return YES;
 }
 
@@ -1355,7 +1360,7 @@ static NSMapTable *out_port_bag = NULL;
 
 - (int) portNumber
 {
-  return (int) ntohs (_remote_in_port_address.sin_port);
+  return (int) GSSwapBigI16ToHost (_remote_in_port_address.sin_port);
 }
 
 - (void) close
@@ -1442,7 +1447,7 @@ static NSMapTable *out_port_bag = NULL;
 	   is_valid ? ' ' : '-',
 	   (unsigned)self,
 	   inet_ntoa (_remote_in_port_address.sin_addr),
-	   ntohs (_remote_in_port_address.sin_port),
+	   GSSwapBigI16ToHost(_remote_in_port_address.sin_port),
 	   _port_socket];
 }
 
@@ -1450,7 +1455,7 @@ static NSMapTable *out_port_bag = NULL;
 {
   NSAssert(is_valid, NSInternalInconsistencyException);
   NSAssert(!_polling_in_port 
-	  || (ntohs (_remote_in_port_address.sin_port)
+	  || (GSSwapBigI16ToHost(_remote_in_port_address.sin_port)
       != [_polling_in_port portNumber]), NSInternalInconsistencyException);
   /* Encode these at bytes, not as C-variables, because they are
      already in "network byte-order". */
@@ -1462,7 +1467,7 @@ static NSMapTable *out_port_bag = NULL;
 	  withName: @"inet address"];
   if (debug_tcp_port)
     NSLog(@"TcpOutPort encoded port %hd host %s\n",
-	    ntohs (_remote_in_port_address.sin_port),
+	    GSSwapBigI16ToHost(_remote_in_port_address.sin_port),
 	    inet_ntoa (_remote_in_port_address.sin_addr));
 }
 
@@ -1479,7 +1484,7 @@ static NSMapTable *out_port_bag = NULL;
 	  withName: NULL];
   if (debug_tcp_port)
     NSLog(@"TcpOutPort decoded port %hd host %s\n",
-	    ntohs (addr.sin_port),
+	    GSSwapBigI16ToHost(addr.sin_port),
 	    inet_ntoa (addr.sin_addr));
   return [TcpOutPort newForSendingToSockaddr: &addr
 		     withAcceptedSocket: 0
@@ -1491,28 +1496,30 @@ static NSMapTable *out_port_bag = NULL;
 
 /* In and Out Packet classes. */
 
-/* If you change this "unsigned long", you must change the use
-   of ntohl() and htonl() below. */
-#define PREFIX_LENGTH_TYPE unsigned long
+#define PREFIX_LENGTH_TYPE gsu32
 #define PREFIX_LENGTH_SIZE sizeof (PREFIX_LENGTH_TYPE)
 #define PREFIX_ADDRESS_TYPE struct sockaddr_in
 #define PREFIX_ADDRESS_SIZE sizeof (PREFIX_ADDRESS_TYPE)
-#define PREFIX_SIZE (PREFIX_LENGTH_SIZE + PREFIX_ADDRESS_SIZE)
+#define	PREFIX_SP_OFF	PREFIX_LENGTH_SIZE
+#define	PREFIX_RP_OFF	(PREFIX_LENGTH_SIZE + PREFIX_ADDRESS_SIZE)
+#define PREFIX_SIZE (PREFIX_LENGTH_SIZE + 2*PREFIX_ADDRESS_SIZE)
 
 @implementation TcpInPacket
 
 + (void) _getPacketSize: (int*)packet_size 
-	   andReplyPort: (id*)rp
+	    andSendPort: (id*)sp
+	 andReceivePort: (id*)rp
              fromSocket: (int)s
-	         inPort: ip
 {
-  char prefix_buffer[PREFIX_SIZE];
-  int c;
+  char	prefix_buffer[PREFIX_SIZE];
+  int	c;
   
   c = tryRead (s, 3, prefix_buffer, PREFIX_SIZE);
   if (c <= 0)
     {
-      *packet_size = EOF;  *rp = nil;
+      *packet_size = EOF;
+      *sp = nil;
+      *rp = nil;
       return;
     }
   if (c != PREFIX_SIZE)
@@ -1522,27 +1529,48 @@ static NSMapTable *out_port_bag = NULL;
 	 we should treat it differently. */
       fprintf (stderr, "[%s %s]: Got %d chars instead of full prefix\n",
 	       class_get_class_name (self), sel_get_name (_cmd), c);
-      *packet_size = EOF;  *rp = nil;
+      *packet_size = EOF;
+      *sp = nil;
+      *rp = nil;
       return;
     }      
 
   /* *size is the number of bytes in the packet, not including 
      the PREFIX_SIZE-byte header. */
-  *packet_size = ntohl (*(PREFIX_LENGTH_TYPE*) prefix_buffer);
+  *packet_size = GSSwapBigI32ToHost (*(PREFIX_LENGTH_TYPE*) prefix_buffer);
   NSAssert(packet_size, NSInternalInconsistencyException);
 
   /* If the reply address is non-zero, and the TcpOutPort for this socket
      doesn't already have its _address ivar set, then set it now. */
   {
     struct sockaddr_in addr;
-    /* Do this memcpy instead of simply casting the pointer because
+
+    /* Use memcpy instead of simply casting the pointer because
        some systems fail to do the cast correctly (due to alignment issues?) */
-    memcpy (&addr, prefix_buffer + PREFIX_LENGTH_SIZE, sizeof (typeof (addr)));
+
+    /*
+     *	Get the senders send port (our receive port)
+     */
+    memcpy (&addr, prefix_buffer + PREFIX_SP_OFF, sizeof (typeof (addr)));
+    if (addr.sin_family)
+      {
+	gsu16	pnum = GSSwapBigI16ToHost(addr.sin_port);
+
+        *sp = [TcpInPort newForReceivingFromPortNumber: pnum];
+	[(*sp) autorelease];
+      }
+    else
+      *sp = nil;
+
+    /*
+     *	Now get the senders receive port (our send port)
+     */
+    memcpy (&addr, prefix_buffer + PREFIX_RP_OFF, sizeof (typeof (addr)));
     if (addr.sin_family)
       {
         *rp = [TcpOutPort newForSendingToSockaddr: &addr
-			withAcceptedSocket: s
-			pollingInPort: ip];
+			       withAcceptedSocket: s
+				    pollingInPort: *sp];
 	[(*rp) autorelease];
       }
     else
@@ -1574,26 +1602,39 @@ static NSMapTable *out_port_bag = NULL;
 }
 
 - (void) _writeToSocket: (int)s 
-      withReplySockaddr: (struct sockaddr_in*)addr
+	   withSendPort: (id)sp
+	withReceivePort: (id)rp
                 timeout: (NSTimeInterval)timeout
 {
-  int c;
+  struct sockaddr_in	*addr;
+  int			c;
 
   if (debug_tcp_port > 1)
     NSLog(@"%s: Write to socket %d\n", object_get_class_name (self), s);
 
   /* Put the packet size in the first four bytes of the packet. */
   NSAssert(prefix == PREFIX_SIZE, NSInternalInconsistencyException);
-  *(PREFIX_LENGTH_TYPE*)[data mutableBytes] = htonl (eof_position);
+  *(PREFIX_LENGTH_TYPE*)[data mutableBytes] = GSSwapHostI32ToBig(eof_position);
 
+  addr = [sp _remoteInPortSockaddr];
   /* Put the sockaddr_in for replies in the next bytes of the prefix
      region.  If there is no reply address specified, fill it with zeros. */
   if (addr)
     /* Do this memcpy instead of simply casting the pointer because
        some systems fail to do the cast correctly (due to alignment issues?) */
-    memcpy ([data mutableBytes]+PREFIX_LENGTH_SIZE, addr, PREFIX_ADDRESS_SIZE);
+    memcpy ([data mutableBytes]+PREFIX_SP_OFF, addr, PREFIX_ADDRESS_SIZE);
   else
-    memset ([data mutableBytes]+PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
+    memset ([data mutableBytes]+PREFIX_SP_OFF, 0, PREFIX_ADDRESS_SIZE);
+
+  addr = [rp _listeningSockaddr];
+  /* Put the sockaddr_in for the destination in the next bytes of the prefix
+     region.  If there is no destination address specified, fill with zeros. */
+  if (addr)
+    /* Do this memcpy instead of simply casting the pointer because
+       some systems fail to do the cast correctly (due to alignment issues?) */
+    memcpy ([data mutableBytes]+PREFIX_RP_OFF, addr, PREFIX_ADDRESS_SIZE);
+  else
+    memset ([data mutableBytes]+PREFIX_RP_OFF, 0, PREFIX_ADDRESS_SIZE);
 
   /* Write the packet on the socket. */
   c = tryWrite (s, (int)timeout, (unsigned char*)[data bytes], prefix + eof_position);

@@ -35,7 +35,6 @@
     NSConnection	*_connection;
     id			_object;
     unsigned		_handle;
-    BOOL		_isVended;
     Protocol		*_protocol;
 }
 
@@ -56,12 +55,13 @@
 
 @end
 
-@interface NSDistantObject(GNUstepExtensions)
+@interface NSDistantObject(GNUstepExtensions) <GCFinalization>
 
-- awakeAfterUsingCoder: aDecoder;
-- classForPortCoder;
+- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
+- (Class) classForPortCoder;
 - (const char *) selectorTypeForProxy: (SEL)selector;
-- forward: (SEL)aSel :(arglist_t)frame;
+- (id) forward: (SEL)aSel :(arglist_t)frame;
+- (void) gcFinalize;
 @end
 
 #endif /* __NSDistantObject_h_GNUSTEP_BASE_INCLUDE */

@@ -35,7 +35,8 @@
 #include <Foundation/DistributedObjects.h>
 #include <base/TcpPort.h>
 #include <mframe.h>
-#include <base/NotificationDispatcher.h>
+#include <Foundation/NSHashTable.h>
+#include <Foundation/NSMapTable.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSArray.h>
@@ -63,18 +64,12 @@ NSString *NSConnectionLocalCount = @"NSConnectionLocalCount";
 NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 @interface	NSDistantObject (NSConnection)
-- (BOOL) isVended;
 - (id) localForProxy;
 - (void) setProxyTarget: (unsigned)target;
-- (void) setVended;
 - (unsigned) targetForProxy;
 @end
 
 @implementation	NSDistantObject (NSConnection)
-- (BOOL) isVended
-{
-  return _isVended;
-}
 - (id) localForProxy
 {
   return _object;
@@ -82,10 +77,6 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 - (void) setProxyTarget: (unsigned)target
 {
   _handle = target;
-}
-- (void) setVended
-{
-  _isVended = YES;
 }
 - (unsigned) targetForProxy
 {
@@ -120,9 +111,14 @@ static unsigned local_object_counter = 0;
 
   counter = (GSLocalCounter*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   counter->ref = 1;
-  counter->object = obj;
+  counter->object = [obj retain];
   counter->target = ++local_object_counter;
   return counter;
+}
+- (void) dealloc
+{
+  [object release];
+  [super dealloc];
 }
 @end
 
@@ -244,15 +240,8 @@ static NSTimer *timer;
 
 static int debug_connection = 0;
 
-/* Perhaps this should be a hashtable, keyed by remote port.
-   But we may also need to include the local port---even though
-   when receiving the local port is fixed, there may be more than
-   one registered connection (with different in ports) in the
-   application. */
-/* We could write -hash and -isEqual implementations for NSConnection */
-static NSMutableArray *connection_array;
-static NSMutableArray *not_owned;
-static NSLock *connection_array_gate;
+static NSHashTable *connection_table;
+static NSLock *connection_table_gate;
 
 static NSMutableDictionary *root_object_dictionary;
 static NSLock *root_object_dictionary_gate;
@@ -278,11 +267,7 @@ static int messages_received_count;
 
 + (NSArray*) allConnections
 {
-  int	count = [connection_array count];
-  id	cons[count];
-
-  [connection_array getObjects: cons];
-  return [NSArray arrayWithObjects: cons count: count];
+  return NSAllHashTableObjects(connection_table);
 }
 
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
@@ -329,9 +314,9 @@ static int messages_received_count;
 
 + (void) initialize
 {
-  not_owned = [[NSMutableArray alloc] initWithCapacity:8];
-  connection_array = [[NSMutableArray alloc] initWithCapacity:8];
-  connection_array_gate = [NSLock new];
+  connection_table = 
+    NSCreateHashTable (NSNonRetainedObjectHashCallBacks, 0);
+  connection_table_gate = [NSLock new];
   /* xxx When NSHashTable's are working, change this. */
   all_connections_local_objects =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
@@ -414,39 +399,10 @@ static int messages_received_count;
     }
 }
 
-/* This needs locks */
 - (void) dealloc
 {
   if (debug_connection)
-    NSLog(@"deallocating 0x%x\n", (unsigned)self);
-  [self invalidate];
-
-  /* Remove rootObject from root_object_dictionary
-     if this is last connection */
-  if (![NSConnection connectionsCountWithInPort:receive_port])
-    [NSConnection setRootObject:nil forInPort:receive_port];
-
-  /* Remove receive port from run loop. */
-  [self setRequestMode: nil];
-  [[NSRunLoop currentRunLoop] removePort: receive_port
-				 forMode: NSConnectionReplyMode];
-  [request_modes release];
-
-  /* Finished with ports - releasing them may generate a notification */
-  [receive_port release];
-  [send_port release];
-
-  /* Don't need notifications any more - so remove self as observer. */
-  [NotificationDispatcher removeObserver: self];
-
-  [proxiesHashGate lock];
-  NSFreeMapTable (remote_proxies);
-  NSFreeMapTable (local_objects);
-  NSFreeMapTable (local_targets);
-  NSFreeMapTable (incoming_xref_2_const_ptr);
-  NSFreeMapTable (outgoing_const_ptr_2_xref);
-  [proxiesHashGate unlock];
-
+    NSLog(@"deallocating 0x%x\n", (gsaddr)self);
   [super dealloc];
 }
 
@@ -482,18 +438,6 @@ static int messages_received_count;
   return newConn;
 }
 
-/* xxx This method is an anomaly, just until we get a proper name
-   server for port objects.  Richard Frith-MacDonald is working on a
-   name server. */
-- (BOOL) registerName: (NSString*)name
-{
-  id old_receive_port = receive_port;
-  receive_port = [default_receive_port_class newForReceivingFromRegisteredName: name];
-  [old_receive_port release];
-  return YES;
-}
-
-
 /*
  *	Keep track of connections created by DO system but not necessarily
  *	ever retained by users code.  These must be retained now for later
@@ -501,63 +445,67 @@ static int messages_received_count;
  */
 - (void) setNotOwned
 {
-  if (![not_owned containsObject:self]) {
-    [not_owned addObject:self];
-  }
 }
 
 /* xxx This needs locks */
 - (void) invalidate
 {
-  if (is_valid)
-    {
-      is_valid = 0;
+  if (is_valid == NO)
+    return;
 
-      /*
-       *	We can't be the ancestor of anything if we are invalid.
-       */
-      if (self == NSMapGet(receive_port_2_ancestor, receive_port))
-	NSMapRemove(receive_port_2_ancestor, receive_port);
+  is_valid = NO;
 
-      /*
-       *	If we have been invalidated, we don't need to retain proxies
-       *	for local objects any more.  In fact, we want to get rid of
-       *	these proxies in case they are keeping us retained when we
-       *	might otherwise de deallocated.
-       */
+  /*
+   *	Don't need notifications any more - so remove self as observer.
+   */
+  [NSNotificationCenter removeObserver: self];
+
+  /*
+   *	We can't be the ancestor of anything if we are invalid.
+   */
+  if (self == NSMapGet(receive_port_2_ancestor, receive_port))
+    NSMapRemove(receive_port_2_ancestor, receive_port);
+
+  /*
+   *	If we have been invalidated, we don't need to retain proxies
+   *	for local objects any more.  In fact, we want to get rid of
+   *	these proxies in case they are keeping us retained when we
+   *	might otherwise de deallocated.
+   */
+  {
+    NSArray *targets;
+    unsigned 	i;
+
+    [proxiesHashGate lock];
+    targets = [NSAllMapTableValues(local_targets) retain];
+    for (i = 0; i < [targets count]; i++)
       {
-	NSArray *targets;
-	unsigned 	i;
+	id	t = [[targets objectAtIndex:i] localForProxy];
 
-	[proxiesHashGate lock];
-	targets = [NSAllMapTableValues(local_targets) retain];
-	for (i = 0; i < [targets count]; i++)
-	  {
-	    id	t = [[targets objectAtIndex:i] localForProxy];
-
-	    [self removeLocalObject:t];
-	  }
-	[targets release];
-	[proxiesHashGate unlock];
+	[self removeLocalObject: t];
       }
-      /* xxx Note: this is causing us to send a shutdown message
-	 to the connection that shut *us* down.  Don't do that.
-	 Well, perhaps it's a good idea just in case other side didn't really
-	 send us the shutdown; this way we let them know we're going away */
-#if 0
-      [self shutdown];
-#endif
+    [targets release];
+    [proxiesHashGate unlock];
+  }
 
-      if (debug_connection)
-	NSLog(@"Invalidating connection 0x%x\n\t%@\n\t%@\n", (unsigned)self,
-		[receive_port description], [send_port description]);
+  if (debug_connection)
+    NSLog(@"Invalidating connection 0x%x\n\t%@\n\t%@\n", (gsaddr)self,
+	    [receive_port description], [send_port description]);
 
-      [NotificationDispatcher
-	postNotificationName: NSConnectionDidDieNotification
-	object: self];
+  /*
+   *	We need to notify any watchers of our death - but if we are already
+   *	in the deallocation process, we can't have a notification retaining
+   *	and autoreleasing us later once we are deallocated - so we do the
+   *	notification with a local autorelease pool to ensure that any release
+   *	is done before the deallocation completes.
+   */
+  {
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
-      [not_owned removeObjectIdenticalTo:self];
-    }
+    [NSNotificationCenter postNotificationName: NSConnectionDidDieNotification
+					object: self];
+    [arp release];
+  }
 }
 
 - (BOOL) isValid
@@ -567,25 +515,19 @@ static int messages_received_count;
 
 - (void) release
 {
-    /*
-     *	In order that connections may be deallocated - we check to see if
-     *	the only thing still retaining us is the connection_array.
-     *	if so (we assume a retain count of 2 means this) we remove self
-     *	from the connection array.
-     *	NB. bracket this operation with retain and release so that we don't
-     *	suffer problems with recursion.
-     */
-    if ([self retainCount] == 2) {
-	[super retain];
-	[connection_array_gate lock];
-	[connection_array removeObject: self];
-	[timer invalidate];
-	timer = nil;
-	NSResetMapTable(all_connections_local_cached);
-	[connection_array_gate unlock];
-	[super release];
+  /*
+   *	If this would cause the connection to be deallocated then we
+   *	must perform all necessary work (done in [-gcFinalize]).
+   *	We bracket the code with a retain and release so that any
+   *	retain/release pairs in the code won't cause recursion.
+   */
+  if ([self retainCount] == 1)
+    {
+      [super retain];
+      [self gcFinalize];
+      [super release];
     }
-    [super release];
+  [super release];
 }
 
 - (NSArray *) remoteObjects
@@ -596,9 +538,10 @@ static int messages_received_count;
 
 - (void) removeRequestMode: (NSString*)mode
 {
-    if ([request_modes containsObject:mode]) {
-	[request_modes removeObject:mode];
-        [[NSRunLoop currentRunLoop] removePort: receive_port forMode: mode];
+  if ([request_modes containsObject:mode])
+    {
+      [request_modes removeObject:mode];
+      [[NSRunLoop currentRunLoop] removePort: receive_port forMode: mode];
     }
 }
 
@@ -614,17 +557,12 @@ static int messages_received_count;
 
 - (NSArray*) requestModes
 {
-    return [request_modes copy];
+  return [[request_modes copy] autorelease];
 }
 
 - (NSTimeInterval) requestTimeout
 {
   return request_timeout;
-}
-
-- (id) retain
-{
-    return [super retain];
 }
 
 - (id) rootObject
@@ -659,7 +597,7 @@ static int messages_received_count;
 
 - (void) setIndependantConversationQueueing: (BOOL)flag
 {
-    independant_queueing = flag;
+  independant_queueing = flag;
 }
 
 - (void) setReplyTimeout: (NSTimeInterval)to
@@ -669,14 +607,17 @@ static int messages_received_count;
 
 - (void) setRequestMode: (NSString*)mode
 {
-    while ([request_modes count]>0 && [request_modes objectAtIndex:0]!=mode) {
-	[self removeRequestMode:[request_modes objectAtIndex:0]];
+  while ([request_modes count] > 0 && [request_modes objectAtIndex: 0] != mode)
+    {
+      [self removeRequestMode: [request_modes objectAtIndex: 0]];
     }
-    while ([request_modes count]>1) {
-	[self removeRequestMode:[request_modes objectAtIndex:1]];
+  while ([request_modes count] > 1)
+    {
+      [self removeRequestMode: [request_modes objectAtIndex: 1]];
     }
-    if (mode != nil && [request_modes count] == 0) {
-	[self addRequestMode:mode];
+  if (mode != nil && [request_modes count] == 0)
+    {
+	[self addRequestMode: mode];
     }
 }
 
@@ -692,32 +633,36 @@ static int messages_received_count;
 
 - (NSDictionary*) statistics
 {
-    NSMutableDictionary*	d;
-    id				o;
+  NSMutableDictionary	*d;
+  id			o;
 
-    d = [NSMutableDictionary dictionaryWithCapacity:8];
+  d = [NSMutableDictionary dictionaryWithCapacity: 8];
 
-    /*
-     *	These are in OPENSTEP 4.2
-     */
-    o = [NSNumber numberWithUnsignedInt:rep_in_count];
-    [d setObject:o forKey:NSConnectionRepliesReceived];
-    o = [NSNumber numberWithUnsignedInt:rep_out_count];
-    [d setObject:o forKey:NSConnectionRepliesSent];
-    o = [NSNumber numberWithUnsignedInt:req_in_count];
-    [d setObject:o forKey:NSConnectionRequestsReceived];
-    o = [NSNumber numberWithUnsignedInt:req_out_count];
-    [d setObject:o forKey:NSConnectionRequestsSent];
+  /*
+   *	These are in OPENSTEP 4.2
+   */
+  o = [NSNumber numberWithUnsignedInt: rep_in_count];
+  [d setObject: o forKey: NSConnectionRepliesReceived];
+  o = [NSNumber numberWithUnsignedInt: rep_out_count];
+  [d setObject: o forKey: NSConnectionRepliesSent];
+  o = [NSNumber numberWithUnsignedInt: req_in_count];
+  [d setObject: o forKey: NSConnectionRequestsReceived];
+  o = [NSNumber numberWithUnsignedInt: req_out_count];
+  [d setObject: o forKey: NSConnectionRequestsSent];
 
-    /*
-     *	These are GNUstep extras
-     */
-    o = [NSNumber numberWithUnsignedInt:NSCountMapTable(local_targets)];
-    [d setObject:o forKey:NSConnectionLocalCount];
-    o = [NSNumber numberWithUnsignedInt:NSCountMapTable(remote_proxies)];
-    [d setObject:o forKey:NSConnectionProxyCount];
+  /*
+   *	These are GNUstep extras
+   */
+  o = [NSNumber numberWithUnsignedInt: NSCountMapTable(local_targets)];
+  [d setObject: o forKey: NSConnectionLocalCount];
+  o = [NSNumber numberWithUnsignedInt: NSCountMapTable(remote_proxies)];
+  [d setObject: o forKey: NSConnectionProxyCount];
+  [received_request_rmc_queue_gate lock];
+  o = [NSNumber numberWithUnsignedInt: [received_request_rmc_queue count]];
+  [received_request_rmc_queue_gate unlock];
+  [d setObject: o forKey: @"Pending packets"];
 
-    return d;
+  return d;
 }
 
 @end
@@ -725,6 +670,46 @@ static int messages_received_count;
 
 
 @implementation	NSConnection (GNUstepExtensions)
+
+- (void) gcFinalize
+{
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+
+  if (debug_connection)
+    NSLog(@"finalising 0x%x\n", (gsaddr)self);
+
+  [self invalidate];
+  [connection_table_gate lock];
+  NSHashRemove(connection_table, self);
+  [timer invalidate];
+  timer = nil;
+  [connection_table_gate unlock];
+
+  /* Remove rootObject from root_object_dictionary
+     if this is last connection */
+  if (![NSConnection connectionsCountWithInPort:receive_port])
+    [NSConnection setRootObject:nil forInPort:receive_port];
+
+  /* Remove receive port from run loop. */
+  [self setRequestMode: nil];
+  [[NSRunLoop currentRunLoop] removePort: receive_port
+				 forMode: NSConnectionReplyMode];
+  [request_modes release];
+
+  /* Finished with ports - releasing them may generate a notification */
+  [receive_port release];
+  [send_port release];
+
+  [proxiesHashGate lock];
+  NSFreeMapTable (remote_proxies);
+  NSFreeMapTable (local_objects);
+  NSFreeMapTable (local_targets);
+  NSFreeMapTable (incoming_xref_2_const_ptr);
+  NSFreeMapTable (outgoing_const_ptr_2_xref);
+  [proxiesHashGate unlock];
+
+  [arp release];
+}
 
 /* Getting and setting class variables */
 
@@ -797,26 +782,27 @@ static int messages_received_count;
 
 + (unsigned) connectionsCount
 {
-  return [connection_array count];
+  return NSCountHashTable(connection_table);
 }
 
 + (unsigned) connectionsCountWithInPort: (NSPort*)aPort
 {
-    unsigned	count = 0;
-    unsigned	pos;
+  unsigned	count = 0;
+  NSHashEnumerator	enumerator;
+  NSConnection		*o;
 
-    [connection_array_gate lock];
-    count = [connection_array count];
-    for (pos = 0; pos < [connection_array count]; pos++) {
-	id	o = [connection_array objectAtIndex:pos];
-
-        if ([aPort isEqual: [o receivePort]]) {
-	    count++;
+  [connection_table_gate lock];
+  enumerator = NSEnumerateHashTable(connection_table);
+  while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
+    {
+      if ([aPort isEqual: [o receivePort]])
+	{
+	  count++;
 	}
     }
-    [connection_array_gate unlock];
+  [connection_table_gate unlock];
 
-    return count;
+  return count;
 }
 
 
@@ -828,8 +814,8 @@ static int messages_received_count;
   id newConn;
 
   newPort = [[default_receive_port_class newForReceiving] autorelease];
-  newConn = [self newForInPort:newPort outPort:nil
-		  ancestorConnection:nil];
+  newConn = [self newForInPort: newPort outPort: nil
+		  ancestorConnection: nil];
   [self setRootObject:anObj forInPort:newPort];
   return newConn;
 }
@@ -891,9 +877,9 @@ static int messages_received_count;
 + (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort 
 			  withInPort: (NSPort *)anInPort
 {
-  NSConnection *newConn = [self newForInPort:anInPort
-				outPort:anOutPort
-				ancestorConnection:nil];
+  NSConnection *newConn = [self newForInPort: anInPort
+				     outPort: anOutPort
+			  ancestorConnection: nil];
   NSDistantObject *newRemote;
 
   newRemote = [newConn rootProxy];
@@ -904,25 +890,30 @@ static int messages_received_count;
 
 /* This is the designated initializer for NSConnection */
 
-+ (NSConnection*) newForInPort: (NSPort*)ip outPort: (NSPort*)op
-   ancestorConnection: ancestor
++ (NSConnection*) newForInPort: (NSPort*)ip
+		       outPort: (NSPort*)op
+	    ancestorConnection: (NSConnection*)ancestor
 {
   NSConnection *newConn;
 
   NSParameterAssert (ip);
 
   /* Find previously existing connection if there */
-  newConn = [[self connectionByInPort: ip outPort: op] retain];
+  newConn = [self connectionByInPort: ip outPort: op];
   if (newConn)
-    return newConn;
-
-  [connection_array_gate lock];
+    {
+      if (debug_connection > 2)
+	NSLog(@"Found existing connection (0x%x) for \n\t%@\n\t%@\n",
+		(gsaddr)newConn, [ip description], [op description]);
+      return [newConn retain];
+    }
+  [connection_table_gate lock];
 
   newConn = [[NSConnection alloc] _superInit];
   if (debug_connection)
     NSLog(@"Created new connection 0x%x\n\t%@\n\t%@\n",
-	    (unsigned)newConn, [ip description], [op description]);
-  newConn->is_valid = 1;
+	    (gsaddr)newConn, [ip description], [op description]);
+  newConn->is_valid = YES;
   newConn->receive_port = ip;
   [ip retain];
   newConn->send_port = op;
@@ -948,7 +939,7 @@ static int messages_received_count;
   /* This maps [proxy targetForProxy] to proxy.  The proxy's are retained. */
   newConn->remote_proxies =
     NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSObjectMapValueCallBacks, 0);
+		      NSNonOwnedPointerMapValueCallBacks, 0);
 
   newConn->incoming_xref_2_const_ptr =
     NSCreateMapTable (NSIntMapKeyCallBacks,
@@ -1009,7 +1000,7 @@ static int messages_received_count;
       if (![[ancestor delegate] connection: ancestor
 		   shouldMakeNewConnection: (NSConnection*)newConn])
 	{
-	  [connection_array_gate unlock];
+	  [connection_table_gate unlock];
 	  [newConn release];
 	  return nil;
 	}
@@ -1020,7 +1011,7 @@ static int messages_received_count;
       if (![[ancestor delegate] makeNewConnection: (NSConnection*)newConn
 				sender: ancestor])
 	{
-	  [connection_array_gate unlock];
+	  [connection_table_gate unlock];
 	  [newConn release];
 	  return nil;
 	}
@@ -1034,15 +1025,15 @@ static int messages_received_count;
 
   /* Register ourselves for invalidation notification when the
      ports become invalid. */
-  [NotificationDispatcher addObserver: newConn
-			  selector: @selector(portIsInvalid:)
-			  name: NSPortDidBecomeInvalidNotification
-			  object: ip];
+  [NSNotificationCenter addObserver: newConn
+			   selector: @selector(portIsInvalid:)
+			       name: NSPortDidBecomeInvalidNotification
+			     object: ip];
   if (op)
-    [NotificationDispatcher addObserver: newConn
-			    selector: @selector(portIsInvalid:)
-			    name: NSPortDidBecomeInvalidNotification
-			    object: op];
+    [NSNotificationCenter addObserver: newConn
+			     selector: @selector(portIsInvalid:)
+				 name: NSPortDidBecomeInvalidNotification
+			       object: op];
   /* if OP is nil, making this notification request would have
      registered us to receive all NSPortDidBecomeInvalidNotification
      requests, independent of which port posted them.  This isn't
@@ -1051,12 +1042,12 @@ static int messages_received_count;
   /* In order that connections may be deallocated - there is an
      implementation of [-release] to automatically remove the connection
      from this array when it is the only thing retaining it. */
-  [connection_array addObject: newConn];
-  [connection_array_gate unlock];
+  NSHashInsert(connection_table, (void*)newConn);
+  [connection_table_gate unlock];
 
-  [NotificationDispatcher
+  [NSNotificationCenter
     postNotificationName: NSConnectionDidInitializeNotification
-    object: newConn];
+		  object: newConn];
 
   return newConn;
 }
@@ -1064,56 +1055,54 @@ static int messages_received_count;
 + (NSConnection*) connectionByInPort: (NSPort*)ip
 			     outPort: (NSPort*)op
 {
-  int count;
-  int i;
+  NSHashEnumerator	enumerator;
+  NSConnection		*o;
 
   NSParameterAssert (ip);
 
-  [connection_array_gate lock];
-  count = [connection_array count];
-  for (i = 0; i < count; i++)
+  [connection_table_gate lock];
+
+  enumerator = NSEnumerateHashTable(connection_table);
+  while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
       id newConnInPort;
       id newConnOutPort;
-      NSConnection *newConn;
 
-      newConn = [connection_array objectAtIndex: i];
-      newConnInPort = [newConn receivePort];
-      newConnOutPort = [newConn sendPort];
+      newConnInPort = [o receivePort];
+      newConnOutPort = [o sendPort];
       if ([newConnInPort isEqual: ip]
 	  && [newConnOutPort isEqual: op])
 	{
-	  [connection_array_gate unlock];
-	  return newConn;
+	  [connection_table_gate unlock];
+	  return o;
 	}
     }
-  [connection_array_gate unlock];
+  [connection_table_gate unlock];
   return nil;
 }
 
 + (NSConnection*) connectionByOutPort: (NSPort*)op
 {
-  int i, count;
+  NSHashEnumerator	enumerator;
+  NSConnection		*o;
 
   NSParameterAssert (op);
 
-  [connection_array_gate lock];
+  [connection_table_gate lock];
 
-  count = [connection_array count];
-  for (i = 0; i < count; i++)
+  enumerator = NSEnumerateHashTable(connection_table);
+  while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
       id newConnOutPort;
-      NSConnection *newConn;
 
-      newConn = [connection_array objectAtIndex: i];
-      newConnOutPort = [newConn sendPort];
+      newConnOutPort = [o sendPort];
       if ([newConnOutPort isEqual: op])
 	{
-	  [connection_array_gate unlock];
-	  return newConn;
+	  [connection_table_gate unlock];
+	  return o;
 	}
     }
-  [connection_array_gate unlock];
+  [connection_table_gate unlock];
   return nil;
 }
 
@@ -1125,7 +1114,7 @@ static int messages_received_count;
 
 + setDebug: (int)val
 {
-    debug_connection = val;
+  debug_connection = val;
 }
 
 /* Creating new rmc's for encoding requests and replies */
@@ -1192,7 +1181,6 @@ static int messages_received_count;
     int seq_num;
 
     NSParameterAssert (is_valid);
-    [[self retain] autorelease];
 
     /* get the method types from the selector */
 #if NeXT_runtime
@@ -1214,6 +1202,8 @@ static int messages_received_count;
 
     op = [self newSendingRequestRmc];
     seq_num = [op sequenceNumber];
+    if (debug_connection > 4)
+      NSLog(@"building packet seq %d\n", seq_num);
 
     /* Send the types that we're using, so that the performer knows
        exactly what qualifiers we're using.
@@ -1232,7 +1222,7 @@ static int messages_received_count;
     /* Send the rmc */
     [op dismiss];
     if (debug_connection > 1)
-      NSLog(@"Sent message to 0x%x\n", (unsigned)self);
+      NSLog(@"Sent message to 0x%x\n", (gsaddr)self);
     req_out_count++;	/* Sent a request.	*/
 
     /* Get the reply rmc, and decode it. */
@@ -1387,7 +1377,7 @@ static int messages_received_count;
 	    withName:NULL];
 
       if (debug_connection > 1)
-        NSLog(@"Handling message from 0x%x\n", (unsigned)self);
+        NSLog(@"Handling message from 0x%x\n", (gsaddr)self);
       req_in_count++;	/* Handling an incoming request. */
       mframe_do_call (forward_type, decoder, encoder);
       [op dismiss];
@@ -1445,6 +1435,7 @@ static int messages_received_count;
 
   if ([rmc connection] != self)
     {
+      [rmc dismiss];
       [NSException raise: @"ProxyDecodedBadTarget"
 		  format: @"request to release object on bad connection"];
     }
@@ -1456,26 +1447,23 @@ static int messages_received_count;
   for (pos = 0; pos < count; pos++)
     {
       unsigned		target;
-      char		vended;
       NSDistantObject	*prox;
 
       [rmc decodeValueOfCType: @encode(typeof(target))
 			   at: &target
 		     withName: NULL];
 
-      [rmc decodeValueOfCType: @encode(typeof(char))
-			   at: &vended
-		     withName: NULL];
-
       prox = (NSDistantObject*)[self includesLocalTarget: target];
       if (prox != nil)
 	{
-	  if (vended)
-	    {
-	      [prox setVended];
-	    }
+	  if (debug_connection > 3)
+	    NSLog(@"releasing object with target (0x%x) on (0x%x)",
+		target, (gsaddr)self);
 	  [self removeLocalObject: [prox localForProxy]];
 	}
+      else if (debug_connection > 3)
+	NSLog(@"releasing object with target (0x%x) on (0x%x) - nothing to do",
+		target, (gsaddr)self);
     }
 
   [rmc dismiss];
@@ -1483,29 +1471,84 @@ static int messages_received_count;
 
 - (void) _service_retain: rmc forConnection: receiving_connection
 {
-  unsigned target;
+  unsigned	target;
+  NSPortCoder	*op;
 
   NSParameterAssert (is_valid);
 
   if ([rmc connection] != self)
     {
+      [rmc dismiss];
       [NSException raise: @"ProxyDecodedBadTarget"
 		  format: @"request to retain object on bad connection"];
     }
+
+  op = [[self encodingClass] newForWritingWithConnection: [rmc connection]
+					  sequenceNumber: [rmc sequenceNumber]
+					      identifier: RETAIN_REPLY];
 
   [rmc decodeValueOfCType: @encode(typeof(target))
 		       at: &target
 		 withName: NULL];
 
+  if (debug_connection > 3)
+    NSLog(@"looking to retain local object with target (0x%x) on (0x%x)",
+		target, (gsaddr)self);
+
   if ([self includesLocalTarget: target] == nil)
     {
       GSLocalCounter	*counter;
 
-      counter = (GSLocalCounter*)[[self class] includesLocalTarget: target];
-      if (counter != nil)
-	[NSDistantObject proxyWithLocal: counter->object connection: self];
+      [proxiesHashGate lock];
+      counter = NSMapGet (all_connections_local_targets, (void*)target);
+      if (counter == nil)
+	{
+	  /*
+	   *	If the target doesn't exist for any connection, but still
+	   *	persists in the cache (ie it was recently released) then
+	   *	we move it back from the cache to the main maps so we can
+	   *	retain it on this connection.
+	   */
+	  counter = NSMapGet (all_connections_local_cached, (void*)target);
+	  if (counter)
+	    {
+	      unsigned	t = counter->target;
+	      id	o = counter->object;
+
+	      NSMapInsert(all_connections_local_objects, (void*)o, counter);
+	      NSMapInsert(all_connections_local_targets, (void*)t, counter);
+	      NSMapRemove(all_connections_local_cached, (void*)t);
+	      if (debug_connection > 3)
+		NSLog(@"target (0x%x) moved from cache", target);
+	    }
+	}
+      [proxiesHashGate unlock];
+      if (counter == nil)
+	{
+	  [op encodeObject: @"target not found anywhere"
+		  withName: @"retain failed"];
+	  if (debug_connection > 3)
+	    NSLog(@"target (0x%x) not found anywhere for retain", target);
+	}
+      else
+	{
+	  [NSDistantObject proxyWithLocal: counter->object
+			       connection: self];
+	  [op encodeObject: nil withName: @"retain ok"];
+	  if (debug_connection > 3)
+	    NSLog(@"retained object (0x%x) target (0x%x) on connection(0x%x)",
+			counter->object, counter->target, self);
+	}
+    }
+  else 
+    {
+      [op encodeObject: nil withName: @"already retained"];
+      if (debug_connection > 3)
+	NSLog(@"target (0x%x) already retained on connection (0x%x)",
+		target, self);
     }
 
+  [op dismiss];
   [rmc dismiss];
 }
 
@@ -1619,9 +1662,13 @@ static int messages_received_count;
 
 - (void) _handleRmc: rmc
 {
-  NSConnection*	conn = [[rmc connection] retain];
+  NSConnection	*conn = [rmc connection];
+  int		ident = [rmc identifier];
 
-  switch ([rmc identifier])
+  if (debug_connection > 4)
+    NSLog(@"handling packet of type %d seq %d\n", ident, [rmc sequenceNumber]);
+
+  switch (ident)
     {
     case ROOTPROXY_REQUEST:
       /* It won't take much time to handle this, so go ahead and service
@@ -1642,14 +1689,12 @@ static int messages_received_count;
 	 if independant_queuing is NO. */
       if (reply_depth == 0 || independant_queueing == NO)
 	{
-	  [self retain];
 	  [conn _service_forwardForProxy: rmc];
 	  /* Service any requests that were queued while we
 	     were waiting for replies.
 	     xxx Is this the right place for this check? */
 	  if (reply_depth == 0)
 	    [self _handleQueuedRmcRequests];
-	  [self release];
 	}
       else
 	{
@@ -1661,6 +1706,7 @@ static int messages_received_count;
     case ROOTPROXY_REPLY:
     case METHOD_REPLY:
     case METHODTYPE_REPLY:
+    case RETAIN_REPLY:
       /* Remember multi-threaded callbacks will have to be handled specially */
       [received_reply_rmc_queue_gate lock];
       [received_reply_rmc_queue addObject: rmc];
@@ -1682,11 +1728,10 @@ static int messages_received_count;
 	break;
       }
     default:
-      [conn release];
+      [rmc dismiss];
       [NSException raise: NSGenericException
 		   format: @"unrecognized NSPortCoder identifier"];
     }
-  [conn release];
 }
 
 - (void) _handleQueuedRmcRequests
@@ -1694,6 +1739,7 @@ static int messages_received_count;
   id rmc;
 
   [received_request_rmc_queue_gate lock];
+  [self retain];
   while (is_valid && ([received_request_rmc_queue count] > 0))
     {
       rmc = [received_request_rmc_queue objectAtIndex: 0];
@@ -1702,6 +1748,7 @@ static int messages_received_count;
       [self _handleRmc: rmc];
       [received_request_rmc_queue_gate lock];
     }
+  [self release];
   [received_request_rmc_queue_gate unlock];
 }
 
@@ -1770,11 +1817,23 @@ static int messages_received_count;
    This method is called by InPort when it receives a new packet. */
 + (void) invokeWithObject: packet
 {
-  id rmc = [NSPortCoder
-	     newDecodingWithPacket: packet
-	     connection: NSMapGet (receive_port_2_ancestor,
-				   [packet receivingInPort])];
-  [[rmc connection] _handleRmc: rmc];
+  id rmc;
+  NSConnection	*connection;
+
+  if (debug_connection > 3)
+    NSLog(@"packet arrived on %@", [[packet receivingInPort] description]);
+
+  connection = NSMapGet(receive_port_2_ancestor, [packet receivingInPort]);
+  if (connection && [connection isValid])
+    {
+      rmc = [NSPortCoder newDecodingWithPacket: packet
+				    connection: connection];
+      [[rmc connection] _handleRmc: rmc];
+    }
+  else
+    {
+      [packet release];		/* Discard data on invalid connection.	*/
+    }
 }
 
 - (int) _newMsgNumber
@@ -1800,13 +1859,13 @@ static int messages_received_count;
   NSParameterAssert (is_valid);
   [proxiesHashGate lock];
   /* xxx Do we need to check to make sure it's not already there? */
-  /* This retains anObj. */
+  /* This retains object. */
   NSMapInsert(local_objects, (void*)object, anObj);
 
   /*
    *	Keep track of local objects accross all connections.
    */
-  counter = NSMapGet(all_connections_local_targets, (void*)target);
+  counter = NSMapGet(all_connections_local_objects, (void*)object);
   if (counter)
     {
       counter->ref++;
@@ -1823,8 +1882,9 @@ static int messages_received_count;
   [anObj setProxyTarget: target];
   NSMapInsert(local_targets, (void*)target, anObj);
   if (debug_connection > 2)
-    NSLog(@"add local object (0x%x) to connection (0x%x) (ref %d)\n",
-		(unsigned)object, (unsigned) self, counter->ref);
+    NSLog(@"add local object (0x%x) target (0x%x) "
+	  @"to connection (0x%x) (ref %d)\n",
+		(gsaddr)object, target, (gsaddr) self, counter->ref);
   [proxiesHashGate unlock];
 }
 
@@ -1843,15 +1903,13 @@ static int messages_received_count;
 /* This should get called whenever an object free's itself */
 + (void) removeLocalObject: (id)anObj
 {
-  id c;
-  int i, count = [connection_array count];
+  NSHashEnumerator	enumerator;
+  NSConnection		*o;
 
-  /* Don't assert (is_valid); */
-  for (i = 0; i < count; i++)
+  enumerator = NSEnumerateHashTable(connection_table);
+  while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
-      c = [connection_array objectAtIndex:i];
-      [c removeLocalObject: anObj];
-//      [c removeProxy: anObj];
+      [o removeLocalObject: anObj];
     }
 }
 
@@ -1877,14 +1935,12 @@ static int messages_received_count;
       counter->ref--;
       if ((val = counter->ref) == 0)
 	{
-	  NSMapRemove(all_connections_local_objects, (void*)anObj);
-	  NSMapRemove(all_connections_local_targets, (void*)target);
 	  /*
 	   *	If this proxy has been vended onwards by another process, we
 	   *	need to keep a reference to the local object around for a
 	   *	while in case that other process needs it.
 	   */
-	  if ([prox isVended])
+	  if (0)
 	    {
 	      id	item;
 	      if (timer == nil)
@@ -1897,7 +1953,12 @@ static int messages_received_count;
 		}
 	      item = [CachedLocalObject itemWithObject: counter time: 30];
 	      NSMapInsert(all_connections_local_cached, (void*)target, item);
+	      if (debug_connection > 3)
+		NSLog(@"placed local object (0x%x) target (0x%x) in cache",
+			    (gsaddr)anObj, target);
 	    }
+	  NSMapRemove(all_connections_local_objects, (void*)anObj);
+	  NSMapRemove(all_connections_local_targets, (void*)target);
 	}
     }
 
@@ -1905,13 +1966,14 @@ static int messages_received_count;
   NSMapRemove(local_targets, (void*)target);
 
   if (debug_connection > 2)
-    NSLog(@"remove local object (0x%x) to connection (0x%x) (ref %d)\n",
-		(unsigned)anObj, (unsigned) self, val);
+    NSLog(@"remove local object (0x%x) target (0x%x) "
+	@"from connection (0x%x) (ref %d)\n",
+		(gsaddr)anObj, target, (gsaddr)self, val);
 
   [proxiesHashGate unlock];
 }
 
-- (void) _release_targets: (NSDistantObject**)list count:(unsigned int)number
+- (void) _release_targets: (unsigned*)list count: (unsigned)number
 {
   NS_DURING
     {
@@ -1921,31 +1983,29 @@ static int messages_received_count;
        *	proxies for them any more.
        */
       if (receive_port && is_valid && number > 0) {
-	  id		op;
-	  unsigned int 	i;
+	id		op;
+	unsigned 	i;
 
-	  op = [[self encodingClass]
-		  newForWritingWithConnection: self
-			       sequenceNumber: [self _newMsgNumber]
-				   identifier: PROXY_RELEASE];
+	op = [[self encodingClass]
+		newForWritingWithConnection: self
+			     sequenceNumber: [self _newMsgNumber]
+				 identifier: PROXY_RELEASE];
 
-	  [op encodeValueOfCType: @encode(typeof(number))
-			      at: &number
-			withName: NULL];
+	[op encodeValueOfCType: @encode(unsigned)
+			    at: &number
+		      withName: NULL];
 
-	  for (i = 0; i < number; i++) {
-	      unsigned	target = [list[i] targetForProxy];
-	      char	vended = [list[i] isVended];
-
-	      [op encodeValueOfCType: @encode(typeof(target))
-				  at: &target
-			    withName: NULL];
-	      [op encodeValueOfCType: @encode(char)
-				  at: &vended
-			    withName: NULL];
+	for (i = 0; i < number; i++)
+	  {
+	    [op encodeValueOfCType: @encode(unsigned)
+				at: &list[i]
+			  withName: NULL];
+	    if (debug_connection > 3)
+	      NSLog(@"sending release for target (0x%x) on (0x%x)",
+		    list[i], (gsaddr)self);
 	  }
 
-	  [op dismiss];
+	[op dismiss];
       }
     }
   NS_HANDLER
@@ -1967,7 +2027,9 @@ static int messages_received_count;
       if (receive_port && is_valid)
 	{
 	  id		op;
+	  id		ip;
 	  unsigned int 	i;
+	  id		result;
 	  int seq_num = [self _newMsgNumber];
 
 	  op = [[self encodingClass]
@@ -1980,31 +2042,35 @@ static int messages_received_count;
 			withName: NULL];
 
 	  [op dismiss];
+	  ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
+	  [ip decodeObjectAt: &result withName: NULL];
+	  if (result != nil)
+	    NSLog(@"failed to retain target - %@\n", result);
+	  [ip dismiss];
 	}
     }
   NS_HANDLER
     {
-      if (debug_connection)
-        NSLog(@"failed to retain target - %@\n", [localException name]);
+      NSLog(@"failed to retain target - %@\n", [localException name]);
     }
   NS_ENDHANDLER
 }
 
 - (void) removeProxy: (NSDistantObject*)aProxy
 {
-    unsigned target = (unsigned)[aProxy targetForProxy];
+  unsigned target = [aProxy targetForProxy];
 
-    /* Don't assert (is_valid); */
-    [proxiesHashGate lock];
-    /* This also releases aProxy */
-    NSMapRemove (remote_proxies, (void*)target);
-    [proxiesHashGate unlock];
+  /* Don't assert (is_valid); */
+  [proxiesHashGate lock];
+  /* This also releases aProxy */
+  NSMapRemove (remote_proxies, (void*)target);
+  [proxiesHashGate unlock];
 
-    /*
-     *	Tell the remote application that we have removed our proxy and
-     *	it can release it's local object.
-     */
-    [self _release_targets:&aProxy count:1];
+  /*
+   *	Tell the remote application that we have removed our proxy and
+   *	it can release it's local object.
+   */
+  [self _release_targets: &target count: 1];
 }
 
 - (NSArray *) localObjects
@@ -2050,8 +2116,11 @@ static int messages_received_count;
   NSParameterAssert([aProxy connectionForProxy] == self);
   [proxiesHashGate lock];
   if (NSMapGet (remote_proxies, (void*)target))
-    [NSException raise: NSGenericException
-		 format: @"Trying to add the same proxy twice"];
+    {
+      [proxiesHashGate unlock];
+      [NSException raise: NSGenericException
+		  format: @"Trying to add the same proxy twice"];
+    }
   NSMapInsert (remote_proxies, (void*)target, aProxy);
   [proxiesHashGate unlock];
 }
@@ -2103,9 +2172,6 @@ static int messages_received_count;
   NSParameterAssert (all_connections_local_targets);
   [proxiesHashGate lock];
   ret = NSMapGet (all_connections_local_targets, (void*)target);
-  if (ret == nil) {
-    ret = NSMapGet (all_connections_local_cached, (void*)target);
-  }
   [proxiesHashGate unlock];
   return ret;
 }
@@ -2253,12 +2319,12 @@ static int messages_received_count;
 
 	if (debug_connection)
 	    NSLog(@"Received port invalidation notification for "
-		@"connection 0x%x\n\t%@\n", (unsigned)self,
+		@"connection 0x%x\n\t%@\n", (gsaddr)self,
 		[port description]);
 
 	/* We shouldn't be getting any port invalidation notifications,
 	    except from our own ports; this is how we registered ourselves
-	    with the NotificationDispatcher in
+	    with the NSNotificationCenter in
 	    +newForInPort:outPort:ancestorConnection. */
 	NSParameterAssert (port == receive_port || port == send_port);
 
