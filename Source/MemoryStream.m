@@ -231,11 +231,6 @@ void unchar_func(void *s, int c)
   return ret;
 }
 
-- (void) flushStream
-{
-  /* Nothing needed */
-}
-
 - (void) setStreamPosition: (unsigned)i
 {
   position = i;
