@@ -24,8 +24,22 @@
 #include <config.h>
 #include <base/preface.h>
 #include <Foundation/NSUtilities.h>
+#include <Foundation/NSArray.h>
 
 @implementation NSEnumerator
+
+- (NSArray *)allObjects
+{
+  NSMutableArray *array;
+  id obj;
+
+  array = [NSMutableArray arrayWithCapacity:10];
+
+  while((obj = [self nextObject]))
+    [array addObject:obj];
+
+  return array;
+}
 
 - (id) nextObject
 {

@@ -29,6 +29,7 @@
 #include <Foundation/NSObject.h>
 
 @interface NSEnumerator : NSObject
+- (NSArray *) allObjects;
 - (id) nextObject;
 @end
 
