@@ -624,25 +624,21 @@ my_method_get_next_argument (arglist_t argframe,
 			types_get_size_of_stack_arguments(return_type));
   if (return_size)
     {
-      if (*return_type == _C_DBL)
-	/* DBL's are stored in a different place relative to RET. */
-	memcpy(return_value, (char*)ret + 2*sizeof(void*), return_size);
-      else if (*return_type == _C_ID)
+      if (*return_type == _C_ID)
 	{
-	  if (*(id*)return_value != *(id*)ret)
+	  id	old = *(id*)return_value;
+
+	  mframe_decode_return(return_type, return_value, ret);
+       
+	  if (return_retained && (*(id*)return_value != old))
 	    {
-	      if (return_retained)
-		{
-		  if (*(id*)return_value)
-		    [*(id*)return_value release];
-		  [*(id*)ret retain];
-		}
-	      *(id*)return_value = *(id*)ret;
+	      [old release];
+	      [*(id*)return_value retain];
 	    }
 	}
       else
 	{
-	  memcpy(return_value, ret, return_size);
+	  mframe_decode_return(return_type, return_value, ret);
 	}
     }
 }
