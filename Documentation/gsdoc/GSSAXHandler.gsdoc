@@ -20,11 +20,20 @@
         <declared>GSXML.h</declared>
           <desc>
 	   <p>XML SAX Handler.</p>
-	   <p>SAX is a callback-based interface to the XML parser.</p>
 	   <p>
-	      You can debug the SAX behaviour by using the GSDebugSAXHandler
-	      class.  Here is the sequence of callbacks that would be
-	      reported when parsing the example XML document shown earlier.
+	     GSSAXHandler is a callback-based interface to the XML parser
+	     that operates in a similar (though not identical) manner to
+	     SAX.
+	   </p>
+	   <p>
+	      Each GSSAXHandler object is associated with a GSXMLParser
+	      object.  As parsing progresses, the mathods of the GSSAXHandler
+	      are invoked by the parser, so the handler is able to deal
+	      with the elements and entities being parsed.
+	    </p>
+	    <p>
+	      The callback methods in the GSSAXHandler class do nothing - it
+	      is intended that you subclass GSSAXHandler and override them.
 	    </p>
           </desc>
 
@@ -87,17 +96,16 @@
           <sel>attributes:</sel>
           <arg type="NSMutableDictionary*">elementAttributes</arg>
           <desc>
-          <p>Called when an opening tag has been processed.
+	    <p>Called when an opening tag has been processed.
             </p>
           </desc>
         </method>
-
 
         <method type="void">
           <sel>endElement</sel>
           <arg type="NSString*">elementName</arg>
           <desc>
-          <p>Called when the end of an element has been detected.
+	    <p>Called when the end of an element has been detected.
             </p>
           </desc>
         </method>
@@ -108,7 +116,7 @@
           <sel>value:</sel>
           <arg type="NSString*">value</arg>
           <desc>
-          <p>Handle an attribute that has been read by the parser.
+	    <p>Handle an attribute that has been read by the parser.
             </p>
          </desc>
         </method>
@@ -116,10 +124,8 @@
         <method type="void">
           <sel>characters:</sel>
           <arg type="NSString*">name</arg>
-          <sel>length:</sel>
-          <arg type="int">len</arg>
           <desc>
-          <p>Receiving some chars from the parser.
+	    <p>Receiving some chars from the parser.
             </p>
           </desc>
         </method>
@@ -127,8 +133,6 @@
         <method type="void">
           <sel>ignoreWhitespace:</sel>
           <arg type="NSString*">ch</arg>
-          <sel>length:</sel>
-          <arg type="int">length</arg>
           <desc>
           <p>Receiving some ignorable whitespaces from the parser.
             </p>
@@ -141,7 +145,7 @@
           <sel>value:</sel>
           <arg type="NSString*">PIData</arg>
           <desc>
-          <p>A processing instruction has been parsed.
+	    <p>A processing instruction has been parsed.
             </p>
           </desc>
         </method>
@@ -150,7 +154,7 @@
           <sel>comment:</sel>
           <arg type="NSString*">value</arg>
           <desc>
-          <p>A comment has been parsed.
+	    <p>A comment has been parsed.
             </p>
           </desc>
         </method>
@@ -158,8 +162,6 @@
         <method type="void">
           <sel>cdataBlock:</sel>
           <arg type="NSString*">value</arg>
-          <sel>length:</sel>
-          <arg type="int">length</arg>
           <desc>
           <p>Called when a pcdata block has been parsed.
             </p>

@@ -19,8 +19,12 @@
       <class name="GSXMLParser" super="NSObject">
         <declared>GSXML.h</declared>
           <desc>
-             <p>XML Parser.
-              </p>
+            <p>
+	      The XML parser object is the pivotal part of parsing an XML
+	      document - it will either build a tree representing the
+              document, or will cooperate with a GSSAXHandler object to
+              provide parsing without the overhead of building a tree.
+            </p>
           </desc>
 
 
@@ -31,10 +35,13 @@
 	    <p>Creation of a new Parser by calling initWithSAXHandler:source:
             </p>
 	    <p>
-	      Source must be <code>NSString</code> or <code>NSData</code>.
+	      Source must be <code>NSString</code> (file name),
+	      <code>NSData</code> (raw document contnets),
+	      <code>NSURL</code> (not yet implemented),
+	      or <code>nil</code> (for incremental parsing).
             </p>
             <example>
-  GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
+  GSXMLParser       *p = [GSXMLParser parser: @"macos.xml"];
 
   if ([p parse])
     {
@@ -56,8 +63,20 @@
           <sel>source:</sel>
           <arg type="id">source</arg>
           <desc>
-	    <p>Creation of a new Parser by calling initWithSAXHandler:source:
+	    <p>
+	      Creation of a new Parser by calling initWithSAXHandler:source:
             </p>
+	    <p>
+	      Source must be <code>NSString</code> (file name),
+	      <code>NSData</code> (raw document contnets),
+	      <code>NSURL</code> (not yet implemented),
+	      or <code>nil</code> (for incremental parsing).
+	    </p>
+	    <p>
+	      If the handler object supplied is nil, the parser will build
+	      a tree representing the parsed file rather than attempting
+	      to get the handler to deal with the parsed elements and entities.
+	    </p>
             <example>
   NSAutoreleasePool *arp = [[NSAutoreleasePool alloc] init];
   GSSAXHandler *h = [GSDebugSAXHandler handler];
@@ -99,8 +118,17 @@
                containing raw XML text, or the name of a file to parse.
 	    </p>
 	    <p>
-	      Future options are intended to include NSURL objects, and
-              nil objects (for incremental (data push) operation.
+	      In the future, it is intended that this method will also
+              support NSYRL objects.
+	    </p>
+	    <p>
+	      If the source object is <code>nil</code> then the parser will
+	      be initialised for incremental parsing.
+	    </p>
+	    <p>
+	      If the handler object supplied is nil, the parser will build
+	      a tree representing the parsed file rather than attempting
+	      to get the handler to deal with the parsed elements and entities.
 	    </p>
           </desc>
         </method>
@@ -108,7 +136,7 @@
         <method type="void*">
           <sel>lib</sel>
           <desc>
-          <p>Return pointer to xmlParserCtxt structure.
+	    <p>Return pointer to xmlParserCtxt structure.
             </p>
           </desc>
         </method>
@@ -116,16 +144,17 @@
         <method type="GSXMLDocument*">
           <sel>doc</sel>
           <desc>
-          <p>Return GSXMLDocument object.
+	    <p>Return GSXMLDocument object.
             </p>
-
           </desc>
         </method>
 
         <method type="BOOL">
           <sel>parse</sel>
           <desc>
-          <p>Parse source. Return YES if parsed, otherwise NO.
+	    <p>
+	      Parse source. Return YES if parsed, otherwise NO.
+	      This method should be called once to parse the entiore document.
             </p>
             <example>
   GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
@@ -138,6 +167,37 @@
     {
       printf("error parse file\n");
     }
+
+            </example>
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>parse:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+	    <p>
+	      Pass data to the parser for incremental parsing.  This method
+	      should be called many times, with each call passing another
+	      block of data from the same document.  After the whole of the
+	      document has been parsed, the method should be called with
+	      an empty or nil data object to indicate end of parsing.
+	      Once this has been done, the method may be used again to
+	      parse a new document.
+            </p>
+            <example>
+  GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: nil source: nil];
+
+  while ((data = getMoreData()) != nil)
+    {
+      if ([p parse: data] == NO)
+	{
+	  NSLog(@"parse error");
+	}
+    }
+    // Do something with document parsed
+
+    [p parse: nil];  // Ready to parse another document.
 
             </example>
           </desc>

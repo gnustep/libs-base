@@ -1113,39 +1113,42 @@ static NSString	*endMarker = @"At end of incremental parse";
     setupCache();
 }
 
+/*
+ * The parser passes a pointer to the GSSAXHandler object as context.
+ */
 #define	HANDLER	(GSSAXHandler*)(ctx)
 
-void
+static void
 startDocumentFunction(void *ctx)
 {
   [HANDLER startDocument];
 }
 
-void
+static void
 endDocumentFunction(void *ctx)
 {
   [HANDLER endDocument];
 }
 
-int
+static int
 isStandaloneFunction(void *ctx)
 {
   return [HANDLER isStandalone];
 }
 
-int
+static int
 hasInternalSubsetFunction(void *ctx)
 {
   return [HANDLER hasInternalSubset];
 }
 
-int
+static int
 hasExternalSubsetFunction(void *ctx)
 {
   return [HANDLER hasExternalSubset];
 }
 
-void
+static void
 internalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
@@ -1154,27 +1157,26 @@ internalSubsetFunction(void *ctx, const char *name,
 		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
 }
 
-xmlParserInputPtr
+static xmlParserInputPtr
 resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
 {
   return [HANDLER resolveEntity: (*csImp)(NSString_class, csSel, publicId)
 		       systemID: (*csImp)(NSString_class, csSel, systemId)];
 }
 
-xmlEntityPtr
+static xmlEntityPtr
 getEntityFunction(void *ctx, const char *name)
 {
   return [HANDLER getEntity: (*csImp)(NSString_class, csSel, name)];
 }
 
-xmlEntityPtr
+static xmlEntityPtr
 getParameterEntityFunction(void *ctx, const char *name)
 {
   return [HANDLER getParameterEntity: (*csImp)(NSString_class, csSel, name)];
 }
 
-
-void
+static void
 entityDeclFunction(void *ctx, const char *name, int type,
   const char *publicId, const char *systemId, char *content)
 {
@@ -1185,7 +1187,7 @@ entityDeclFunction(void *ctx, const char *name, int type,
 	      content: (*csImp)(NSString_class, csSel, content)];
 }
 
-void
+static void
 attributeDeclFunction(void *ctx, const char *elem, const char *name,
   int type, int def, const char *defaultValue, xmlEnumerationPtr tree)
 {
@@ -1196,7 +1198,7 @@ attributeDeclFunction(void *ctx, const char *elem, const char *name,
 	    defaultValue: (*csImp)(NSString_class, csSel, defaultValue)];
 }
 
-void
+static void
 elementDeclFunction(void *ctx, const char *name, int type,
   xmlElementContentPtr content)
 {
@@ -1205,7 +1207,7 @@ elementDeclFunction(void *ctx, const char *name, int type,
 
 }
 
-void
+static void
 notationDeclFunction(void *ctx, const char *name,
   const char *publicId, const char *systemId)
 {
@@ -1214,7 +1216,7 @@ notationDeclFunction(void *ctx, const char *name,
 		 system: (*csImp)(NSString_class, csSel, systemId)];
 }
 
-void
+static void
 unparsedEntityDeclFunction(void *ctx, const char *name,
   const char *publicId, const char *systemId, const char *notationName)
 {
@@ -1224,8 +1226,7 @@ unparsedEntityDeclFunction(void *ctx, const char *name,
 		 notationName: (*csImp)(NSString_class, csSel, notationName)];
 }
 
-
-void
+static void
 startElementFunction(void *ctx, const char *name, const char **atts)
 {
   int i;
@@ -1245,49 +1246,50 @@ startElementFunction(void *ctx, const char *name, const char **atts)
 	     attributes: dict];
 }
 
-void endElementFunction(void *ctx, const char *name)
+static void
+endElementFunction(void *ctx, const char *name)
 {
   [HANDLER endElement: (*csImp)(NSString_class, csSel, name)];
 }
 
-void
+static void
 charactersFunction(void *ctx, const char *ch, int len)
 {
   [HANDLER characters: (*cslImp)(NSString_class, cslSel, ch, len)];
 }
 
-void
+static void
 referenceFunction(void *ctx, const char *name)
 {
   [HANDLER reference: (*csImp)(NSString_class, csSel, name)];
 }
 
-void
+static void
 ignorableWhitespaceFunction(void *ctx, const char *ch, int len)
 {
   [HANDLER ignoreWhitespace: (*cslImp)(NSString_class, cslSel, ch, len)];
 }
 
-void
+static void
 processInstructionFunction(void *ctx, const char *target,  const char *data)
 {
   [HANDLER processInstruction: (*csImp)(NSString_class, csSel, target)
 			 data: (*csImp)(NSString_class, csSel, data)];
 }
 
-void
+static void
 cdataBlockFunction(void *ctx, const char *value, int len)
 {
   [HANDLER cdataBlock: (*cslImp)(NSString_class, cslSel, value, len)];
 }
 
-void
+static void
 commentFunction(void *ctx, const char *value)
 {
   [HANDLER comment: (*csImp)(NSString_class, csSel, value)];
 }
 
-void
+static void
 warningFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
@@ -1300,7 +1302,7 @@ warningFunction(void *ctx, const char *msg, ...)
   [HANDLER warning: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
-void
+static void
 errorFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
@@ -1312,7 +1314,7 @@ errorFunction(void *ctx, const char *msg, ...)
   [HANDLER error: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
-void
+static void
 fatalErrorFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];

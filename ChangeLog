@@ -1,9 +1,20 @@
+2000-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/GSXML.h: Added ([-parser:]) and removed
+	redundant 'length' info from callbacks.
+	* Source/GSXML.m: Added ([-parser:]), tidied ([-parser]), fixed
+	scope of functions, and removed redundant 'length' info from callbacks.
+	* Documenttion/gsdoc/GSXMLParser.gsdoc: document ([-parser:])
+        * Documentation/gsdoc/GSSAXHandler.gsdoc: update for removal of
+	redundant 'length' info on some callbacks.
+
 2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSXML.h:
 	* Source/GSXML.m: Revert to earlier version to remove
-	formatting/coding-standards errors and complexity adding
-	api additions.  Continued integration of Michael Pakhantsovs code.
+	formatting/coding-standards errors, broken GSSAXHandler class,
+	and complexity adding api additions.
+	Continued integration of Michael Pakhantsovs code.
 	Added Manuels +xmlEncodingStringForStringEncoding with tidying.
 	Added Manuels -typeDescription with rewrite for performance.
 	* Documenttion/gsdoc/GSXMLParser.gsdoc:
