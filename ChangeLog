@@ -2,6 +2,11 @@
 
 	* Source/GSCompatibility.m: Fix stupid error in last modification -
 	missed part of method name.
+	* Source/GNUmakefile: Fix to get headers installed in
+	$(GNUSTEP_SYSTEM_ROOT)/Headers/Foundation again.
+	* Source/Makefile.postamble:  Add code to install headers in 
+	$(GNUSTEP_SYSTEM_ROOT)/Headers/gnustep/Foundation as well - is this
+	really necessary?
 
 2000-09-29  Manuel Guesdon <mguesdon@orange-concept.com>
 	-- You'll need libxml2 v >= 2.2.3 to compile GSXML --

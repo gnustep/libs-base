@@ -253,80 +253,80 @@ NSCallBacks.h \
 tzfile.h
 
 BASE_HEADERS = \
-Foundation/Foundation.h \
-Foundation/DistributedObjects.h \
-Foundation/NSArchiver.h \
-Foundation/NSArray.h \
-Foundation/NSAttributedString.h \
-Foundation/NSAutoreleasePool.h \
-Foundation/NSBitmapCharSet.h \
-Foundation/NSBundle.h \
-Foundation/NSByteOrder.h \
-Foundation/NSCharacterSet.h \
-Foundation/NSCoder.h \
-Foundation/NSConcreteNumber.h \
-Foundation/NSConcreteValue.h \
-Foundation/NSConnection.h \
-Foundation/NSData.h \
-Foundation/NSDate.h \
-Foundation/NSDateFormatter.h \
-Foundation/NSDebug.h \
-Foundation/NSDecimal.h \
-Foundation/NSDecimalNumber.h \
-Foundation/NSDictionary.h \
-Foundation/NSDistantObject.h \
-Foundation/NSDistributedLock.h \
-Foundation/NSDistributedNotificationCenter.h \
-Foundation/NSEnumerator.h \
-Foundation/NSException.h \
-Foundation/NSFileHandle.h \
-Foundation/NSFileManager.h \
-Foundation/NSFormatter.h \
-Foundation/NSGeometry.h \
-Foundation/NSGArray.h \
-Foundation/NSGAttributedString.h \
-Foundation/NSGCString.h \
-Foundation/NSGSet.h \
-Foundation/NSGString.h \
-Foundation/NSHashTable.h \
-Foundation/NSHost.h \
-Foundation/NSInvocation.h \
-Foundation/NSLock.h \
-Foundation/NSMapTable.h \
-Foundation/NSMethodSignature.h \
-Foundation/NSNotification.h \
-Foundation/NSNotificationQueue.h \
-Foundation/NSNumberFormatter.h \
-Foundation/NSObjCRuntime.h \
-Foundation/NSObject.h \
-Foundation/NSPathUtilities.h \
-Foundation/NSPort.h \
-Foundation/NSPortCoder.h \
-Foundation/NSPortMessage.h \
-Foundation/NSPortNameServer.h \
-Foundation/NSProcessInfo.h \
-Foundation/NSProtocolChecker.h \
-Foundation/NSProxy.h \
-Foundation/NSRange.h \
-Foundation/NSRunLoop.h \
-Foundation/NSScanner.h \
-Foundation/NSSerialization.h \
-Foundation/NSSet.h \
-Foundation/NSString.h \
-Foundation/NSTask.h \
-Foundation/NSThread.h \
-Foundation/NSTimer.h \
-Foundation/NSUndoManager.h \
-Foundation/NSUserDefaults.h \
-Foundation/NSUtilities.h \
-Foundation/NSValue.h \
-Foundation/NSZone.h \
-Foundation/objc-load.h \
-Foundation/NSURL.h \
-Foundation/NSURLHandle.h
+Foundation.h \
+DistributedObjects.h \
+NSArchiver.h \
+NSArray.h \
+NSAttributedString.h \
+NSAutoreleasePool.h \
+NSBitmapCharSet.h \
+NSBundle.h \
+NSByteOrder.h \
+NSCharacterSet.h \
+NSCoder.h \
+NSConcreteNumber.h \
+NSConcreteValue.h \
+NSConnection.h \
+NSData.h \
+NSDate.h \
+NSDateFormatter.h \
+NSDebug.h \
+NSDecimal.h \
+NSDecimalNumber.h \
+NSDictionary.h \
+NSDistantObject.h \
+NSDistributedLock.h \
+NSDistributedNotificationCenter.h \
+NSEnumerator.h \
+NSException.h \
+NSFileHandle.h \
+NSFileManager.h \
+NSFormatter.h \
+NSGeometry.h \
+NSGArray.h \
+NSGAttributedString.h \
+NSGCString.h \
+NSGSet.h \
+NSGString.h \
+NSHashTable.h \
+NSHost.h \
+NSInvocation.h \
+NSLock.h \
+NSMapTable.h \
+NSMethodSignature.h \
+NSNotification.h \
+NSNotificationQueue.h \
+NSNumberFormatter.h \
+NSObjCRuntime.h \
+NSObject.h \
+NSPathUtilities.h \
+NSPort.h \
+NSPortCoder.h \
+NSPortMessage.h \
+NSPortNameServer.h \
+NSProcessInfo.h \
+NSProtocolChecker.h \
+NSProxy.h \
+NSRange.h \
+NSRunLoop.h \
+NSScanner.h \
+NSSerialization.h \
+NSSet.h \
+NSString.h \
+NSTask.h \
+NSThread.h \
+NSTimer.h \
+NSUndoManager.h \
+NSUserDefaults.h \
+NSUtilities.h \
+NSValue.h \
+NSZone.h \
+objc-load.h \
+NSURL.h \
+NSURLHandle.h
 
 ifeq ($(HAVE_LIBXML),1)
-BASE_HEADERS += Foundation/GSXML.h
+BASE_HEADERS += GSXML.h
 endif
 
 UNICODE_HEADERS = \
@@ -362,8 +362,8 @@ libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def
 
-libgnustep-base_HEADER_FILES_DIR = ../Headers
-libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep
+libgnustep-base_HEADER_FILES_DIR = $(HEADER_DIR)
+libgnustep-base_HEADER_FILES_INSTALL_DIR = /Foundation
 
 libgnustep-base_HEADER_FILES = $(BASE_HEADERS)
 
