@@ -5433,9 +5433,12 @@ subdirs="Source/mframe"
 #--------------------------------------------------------------------
 # Record the version
 #--------------------------------------------------------------------
+echo $ac_n "checking for the version of gnustep-base we are compiling""... $ac_c" 1>&6
+echo "configure:5435: checking for the version of gnustep-base we are compiling" >&5
 if test -f "Version"; then
   . ./Version
 fi
+echo "$ac_t""$VERSION" 1>&6
 
 
 
