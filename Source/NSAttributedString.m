@@ -176,6 +176,26 @@ static Class NSMutableAttributedString_concrete_class;
   return nil;
 }
 
+- (NSString*) description
+{
+  NSRange		r = NSMakeRange(0, 0);
+  unsigned		index = NSMaxRange(r);
+  unsigned		length = [self length];
+  NSString		*string = [self string];
+  NSDictionary		*attrs;
+  NSMutableString	*desc;
+
+  desc = AUTORELEASE([[super description] mutableCopy]);
+  while (index <= length &&
+    (attrs = [self attributesAtIndex: index effectiveRange: &r]) != nil)
+    {
+      index = NSMaxRange(r);
+      [desc appendFormat: @"\nRange: %@ Chars:'%@' Attrs: %@",
+	NSStringFromRange(r), [string substringFromRange: r], attrs];
+    }
+  return desc;
+}
+
 //Retrieving character information
 - (unsigned int) length
 {

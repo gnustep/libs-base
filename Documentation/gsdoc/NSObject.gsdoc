@@ -57,7 +57,46 @@
         <method type="NSString*" factory="yes">
           <sel>description</sel>
           <desc>
+	    The <code>description</code> factory method describes the class
+	    of the receiver.  In the default GNUstep implementation, this
+	    simply returns the name of the class as an NSString object.
           </desc>
+        </method>
+        <method type="NSString*" factory="yes">
+          <sel>descriptionWithLocale:</sel>
+	  <arg type="NSDictionary*">aLocale</arg>
+          <desc>
+	    The default (NSOBject) implementation of this method simply calls
+	    the <code>description</code> method and discards the locale
+	    information.
+          </desc>
+	  <standards><GNUstep/></standards>
+        </method>
+        <method type="NSString*" factory="yes">
+          <sel>descriptionWithLocale:</sel>
+	  <arg type="NSDictionary*">aLocale</arg>
+	  <sel>indent:</sel>
+	  <arg type="unsigned int">level</arg>
+          <desc>
+	    The default (NSObject) implementation of this method simply calls
+	    the <code>descriptionWithLocale:</code> method and discards the
+	    level information.
+          </desc>
+	  <standards><GNUstep/></standards>
+        </method>
+        <method type="NSString*" factory="yes">
+          <sel>descriptionWithLocale:</sel>
+	  <arg type="NSDictionary*">aLocale</arg>
+	  <sel>indent:</sel>
+	  <arg type="unsigned int">level</arg>
+	  <sel>to:</sel>
+	  <arg type="id&lt;GNUDescriptionDestination&gt;">output</arg>
+          <desc>
+	    The default (NSObject) implementation of this method simply calls
+	    the <code>descriptionWithLocale:indent:</code> method and appends
+            the value returned by that method to the output object.
+          </desc>
+	  <standards><GNUstep/></standards>
         </method>
         <method type="void" factory="yes">
           <sel>initialize</sel>
@@ -162,7 +201,59 @@
         <method type="NSString*">
           <sel>description</sel>
           <desc>
+	    <p>
+	      The <code>description</code> method describes the reciever.
+	      In the default GNUstep implementation, this returns an NSString
+	      object giving the name of the class of the receiver and the
+	      hexadecimal representation of the recievers address enclosed
+	      in angle brackets.
+	    </p>
+	    <p>
+	      Generally, classes other than NSObject will override this method
+	      to provide a more informative description of their instances.
+	    </p>
           </desc>
+        </method>
+        <method type="NSString*">
+          <sel>descriptionWithLocale:</sel>
+	  <arg type="NSDictionary*">aLocale</arg>
+          <desc>
+	    The default (NSOBject) implementation of this method simply calls
+	    the <code>description</code> method and discards the locale
+	    information.
+          </desc>
+	  <standards><GNUstep/></standards>
+        </method>
+        <method type="NSString*">
+          <sel>descriptionWithLocale:</sel>
+	  <arg type="NSDictionary*">aLocale</arg>
+	  <sel>indent:</sel>
+	  <arg type="unsigned int">level</arg>
+          <desc>
+	    The default (NSObject) implementation of this method simply calls
+	    the <code>descriptionWithLocale:</code> method and discards the
+	    level information.
+          </desc>
+	  <standards><GNUstep/></standards>
+        </method>
+        <method type="NSString*">
+          <sel>descriptionWithLocale:</sel>
+	  <arg type="NSDictionary*">aLocale</arg>
+	  <sel>indent:</sel>
+	  <arg type="unsigned int">level</arg>
+	  <sel>to:</sel>
+	  <arg type="id&lt;GNUDescriptionDestination&gt;">output</arg>
+          <desc>
+	    The default (NSObject) implementation of this method simply calls
+	    the <code>descriptionWithLocale:indent:</code> method and appends
+            the value returned by that method to the output object.
+	    <p>
+	      Property-list classes (NSString, NSArray, NSDictionary and
+	      NSData) will override this method in order to efficiently
+	      write descriptions of themselves into property lists.
+	    </p>
+          </desc>
+	  <standards><GNUstep/></standards>
         </method>
         <method type="void">
           <sel>doesNotRecognizeSelector:</sel>

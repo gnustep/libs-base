@@ -780,7 +780,7 @@ static BOOL deallocNotifications = NO;
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %lx>",
-	object_get_class_name(self), (unsigned long)self];
+    object_get_class_name(self), (unsigned long)self];
 }
 
 + (NSString*) description
@@ -788,22 +788,40 @@ static BOOL deallocNotifications = NO;
   return [NSString stringWithCString: object_get_class_name(self)];
 }
 
-- (void) descriptionTo: (id<GNUDescriptionDestination>)output
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-  [output appendString: [self description]];
+  return [self description];
 }
 
-- (void) descriptionWithLocale: (NSDictionary*)aLocale
-			    to: (id<GNUDescriptionDestination>)output
++ (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-  [output appendString: [(id)self descriptionWithLocale: aLocale]];
+  return [self description];
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale indent: (unsigned)c
+{
+  return [self descriptionWithLocale: locale];
+}
+
++ (NSString*) descriptionWithLocale: (NSDictionary*)locale indent: (unsigned)c
+{
+  return [self descriptionWithLocale: locale];
 }
 
 - (void) descriptionWithLocale: (NSDictionary*)aLocale
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
 {
-  [output appendString: [(id)self descriptionWithLocale: aLocale indent: level]];
+  [output appendString:
+    [(id)self descriptionWithLocale: aLocale indent: level]];
+}
+
++ (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned)level
+			    to: (id<GNUDescriptionDestination>)output
+{
+  [output appendString:
+    [(id)self descriptionWithLocale: aLocale indent: level]];
 }
 
 + (void) poseAsClass: (Class)aClassObject
@@ -1273,7 +1291,7 @@ static BOOL deallocNotifications = NO;
   double_release_check_enabled = enable;
 }
 
-- (int)compare:anotherObject;
+- (int) compare: (id)anotherObject;
 {
   if ([self isEqual:anotherObject])
     return 0;
@@ -1285,34 +1303,34 @@ static BOOL deallocNotifications = NO;
     return -1;
 }
 
-- (BOOL)isMetaClass
+- (BOOL) isMetaClass
 {
   return NO;
 }
 
-- (BOOL)isClass
+- (BOOL) isClass
 {
   return object_is_class(self);
 }
 
-- (BOOL)isInstance
+- (BOOL) isInstance
 {
   return object_is_instance(self);
 }
 
-- (BOOL)isMemberOfClassNamed:(const char *)aClassName
+- (BOOL) isMemberOfClassNamed: (const char*)aClassName
 {
   return ((aClassName!=NULL)
           &&!strcmp(class_get_class_name(self->isa), aClassName));
 }
 
-+ (struct objc_method_description *)descriptionForInstanceMethod:(SEL)aSel
++ (struct objc_method_description *) descriptionForInstanceMethod: (SEL)aSel
 {
   return ((struct objc_method_description *)
            class_get_instance_method(self, aSel));
 }
 
-- (struct objc_method_description *)descriptionForMethod:(SEL)aSel
+- (struct objc_method_description *) descriptionForMethod: (SEL)aSel
 {
   return ((struct objc_method_description *)
            (object_is_instance(self)
@@ -1320,7 +1338,7 @@ static BOOL deallocNotifications = NO;
             :class_get_class_method(self->isa, aSel)));
 }
 
-- (Class)transmuteClassTo:(Class)aClassObject
+- (Class) transmuteClassTo: (Class)aClassObject
 {
   if (object_is_instance(self))
     if (class_is_class(aClassObject))
@@ -1334,7 +1352,7 @@ static BOOL deallocNotifications = NO;
   return nil;
 }
 
-- subclassResponsibility:(SEL)aSel
+- (id) subclassResponsibility: (SEL)aSel
 {
   [NSException
     raise: NSGenericException
@@ -1342,7 +1360,7 @@ static BOOL deallocNotifications = NO;
   return nil;
 }
 
-- shouldNotImplement:(SEL)aSel
+- (id) shouldNotImplement: (SEL)aSel
 {
   [NSException
     raise: NSGenericException
@@ -1351,7 +1369,7 @@ static BOOL deallocNotifications = NO;
   return nil;
 }
 
-+ (int)streamVersion: (TypedStream*)aStream
++ (int) streamVersion: (TypedStream*)aStream
 {
   if (aStream->mode == OBJC_READONLY)
     return objc_get_stream_class_version (aStream, self);

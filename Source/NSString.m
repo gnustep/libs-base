@@ -2264,7 +2264,9 @@ handle_printf_atsign (FILE *stream,
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 
-- (void) descriptionTo: (id<GNUDescriptionDestination>)output
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned)level
+			    to: (id<GNUDescriptionDestination>)output
 {
   if ([self length] == 0)
     {
@@ -2273,8 +2275,9 @@ handle_printf_atsign (FILE *stream,
     }
 
   if (quotables == nil)
-    setupQuotables();
-
+    {
+      setupQuotables();
+    }
   if ([self rangeOfCharacterFromSet: quotables].length > 0)
     {
       const char	*cstring = [self cString];

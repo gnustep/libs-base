@@ -38,6 +38,7 @@ main(int argc, char** argv)
     NSString		*name = nil;
     NSString		*user = nil;
     BOOL		found = NO;
+    NSDictionary	*locale;
     int			i;
 
     proc = [NSProcessInfo processInfo];
@@ -169,6 +170,7 @@ main(int argc, char** argv)
     /* We don't want dwrite in the defaults database - so remove it. */
     [defs removePersistentDomainForName: [proc processName]];
 
+    locale = [defs dictionaryRepresentation];
     domains = [defs persistentDomainNames];
     for (i = 0; i < [domains count]; i++) {
 	NSString	*domainName = [domains objectAtIndex: i];
@@ -188,7 +190,8 @@ main(int argc, char** argv)
 			const char	*ptr;
 
 			printf("%s %s '", [domainName cString], [key cString]);
-			ptr = [[obj description] cString];
+			ptr = [[obj descriptionWithLocale: locale indent: 0]
+			  cString];
 			while (*ptr) {
 			    if (*ptr == '\'') {
 				putchar('\'');
@@ -206,7 +209,8 @@ main(int argc, char** argv)
 			const char	*ptr;
 
 			printf("%s %s '", [domainName cString], [name cString]);
-			ptr = [[obj description] cString];
+			ptr = [[obj descriptionWithLocale: locale indent: 0]
+			  cString];
 			while (*ptr) {
 			    if (*ptr == '\'') {
 				putchar('\'');

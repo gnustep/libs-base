@@ -32,6 +32,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSDebug.h>
 
 @interface NSDictionaryNonCore : NSDictionary
@@ -577,12 +578,18 @@ compareIt(id o1, id o2, void* context)
 
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  return [[self description] writeToFile: path atomically: useAuxiliaryFile];
+  NSDictionary	*loc;
+  NSString	*desc;
+
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  desc = [self descriptionWithLocale: loc indent: 0];
+
+  return [desc writeToFile: path atomically: useAuxiliaryFile];
 }
 
 - (NSString*) description
 {
-  return [self descriptionWithLocale: nil];
+  return [self descriptionWithLocale: nil indent: 0];
 }
 
 - (NSString*) descriptionInStringsFileFormat
@@ -601,11 +608,13 @@ compareIt(id o1, id o2, void* context)
       id val = (*myObj)(self, objSel, key);
 
       [key descriptionWithLocale: nil
+			  indent: 0
                               to: (id<GNUDescriptionDestination>)result];
       if (val != nil && [val isEqualToString: @""] == NO)
         {
 	  (*appImp)(result, appSel, @" = ");
           [val descriptionWithLocale: nil
+			      indent: 0
                                   to: (id<GNUDescriptionDestination>)result];
         }
       (*appImp)(result, appSel, @";\n");
@@ -654,8 +663,6 @@ static NSString	*indentStrings[] = {
 {
   IMP			myObj = [self methodForSelector: objSel];
   BOOL			canCompare = YES;
-  NSString		*iBaseString;
-  NSString		*iSizeString;
   unsigned		i;
   NSArray		*keyArray = [self allKeys];
   unsigned		numKeys = [keyArray count];
@@ -665,16 +672,6 @@ static NSString	*indentStrings[] = {
   Class			lastClass = 0;
 
   appImp = [(NSObject*)result methodForSelector: appSel];
-
-  if (level < sizeof(indentStrings)/sizeof(NSString*))
-    iBaseString = indentStrings[level];
-  else
-    iBaseString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
-  level++;
-  if (level < sizeof(indentStrings)/sizeof(NSString*))
-    iSizeString = indentStrings[level];
-  else
-    iSizeString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
 
   [keyArray getObjects: keys];
   for (i = 0; i < numKeys; i++)
@@ -780,34 +777,57 @@ static NSString	*indentStrings[] = {
       plists[i] = (*myObj)(self, objSel, keys[i]);
     }
 
-  (*appImp)(result, appSel, @"{\n");
-  for (i = 0; i < numKeys; i++)
+  if (locale == nil)
     {
-      id	item = plists[i];
-
-      (*appImp)(result, appSel, iSizeString);
-
-      [keys[i] descriptionTo: result];
-
-      (*appImp)(result, appSel, @" = ");
-
-      if ([item respondsToSelector: @selector(descriptionWithLocale:indent:)])
+      (*appImp)(result, appSel, @"{");
+      for (i = 0; i < numKeys; i++)
 	{
-	  [item descriptionWithLocale: locale indent: level to: result];
+	  id	o = plists[i];
+
+	  [keys[i] descriptionWithLocale: nil indent: 0 to: result];
+	  (*appImp)(result, appSel, @"=");
+	  [o descriptionWithLocale: nil indent: 0 to: result];
+	  (*appImp)(result, appSel, @";");
 	}
-      else if ([item respondsToSelector: @selector(descriptionWithLocale:)])
+      (*appImp)(result, appSel, @"}");
+    }
+  else
+    {
+      NSString	*iBaseString;
+      NSString	*iSizeString;
+
+      if (level < sizeof(indentStrings)/sizeof(id))
 	{
-	  [item descriptionWithLocale: locale to: result];
+	  iBaseString = indentStrings[level];
 	}
       else
 	{
-	  [item descriptionTo: result];
+	  iBaseString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+      level++;
+      if (level < sizeof(indentStrings)/sizeof(id))
+	{
+	  iSizeString = indentStrings[level];
+	}
+      else
+	{
+	  iSizeString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
 	}
 
-      (*appImp)(result, appSel, @";\n");
+      (*appImp)(result, appSel, @"{\n");
+      for (i = 0; i < numKeys; i++)
+	{
+	  id	o = plists[i];
+
+	  (*appImp)(result, appSel, iSizeString);
+	  [keys[i] descriptionWithLocale: nil indent: 0 to: result];
+	  (*appImp)(result, appSel, @" = ");
+	  [o descriptionWithLocale: locale indent: level to: result];
+	  (*appImp)(result, appSel, @";\n");
+	}
+      (*appImp)(result, appSel, iBaseString);
+      (*appImp)(result, appSel, @"}");
     }
-  (*appImp)(result, appSel, iBaseString);
-  (*appImp)(result, appSel, @"}");
 }
 
 @end
