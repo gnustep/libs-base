@@ -627,9 +627,9 @@ int main(int argc, char *argv[], char *env[])
     [self hostName], pid, [NSDate date]];
 }
 
-/*************************************************************************
- *** Specifying a Process Name
- *************************************************************************/
+/**
+ * Change the name of the current process to newName.
+ */
 - (void) setProcessName: (NSString *)newName
 {
   if (newName && [newName length]) {
@@ -641,10 +641,11 @@ int main(int argc, char *argv[], char *env[])
 
 @end
 
-/*
- *	Function for rapid testing to see if a debug level is set.
+/**
+ * Function for rapid testing to see if a debug level is set.
+ * This is used by the debugging macros.
  */
-BOOL GSDebugSet(NSString *val)
+BOOL GSDebugSet(NSString *level)
 {
   static IMP debugImp = 0;
   static SEL debugSel;
@@ -658,8 +659,10 @@ BOOL GSDebugSet(NSString *val)
 	}
       debugImp = [_debug_set methodForSelector: debugSel];
     }
-  if ((*debugImp)(_debug_set, debugSel, val) == nil)
-    return NO;
+  if ((*debugImp)(_debug_set, debugSel, level) == nil)
+    {
+      return NO;
+    }
   return YES;
 }
 

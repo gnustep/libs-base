@@ -119,13 +119,13 @@ GSInstanceVariableInfo(id obj, NSString *iVarName,
 }
 
 BOOL
-GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
+GSGetInstanceVariable(id obj, NSString *name, void *data)
 {
   int			offset;
   const char		*type;
   unsigned int		size;
 
-  if (GSInstanceVariableInfo(obj, iVarName, &type, &size, &offset) == NO)
+  if (GSInstanceVariableInfo(obj, name, &type, &size, &offset) == NO)
     {
       return NO;
     }
@@ -136,13 +136,13 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
 }
 
 BOOL
-GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
+GSSetInstanceVariable(id obj, NSString *name, const void *data)
 {
   int			offset;
   const char		*type;
   unsigned int		size;
 
-  if (GSInstanceVariableInfo(obj, iVarName, &type, &size, &offset) == NO)
+  if (GSInstanceVariableInfo(obj, name, &type, &size, &offset) == NO)
     {
       return NO;
     }

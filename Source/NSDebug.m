@@ -328,7 +328,7 @@ GSDebugAllocationClassList()
  *	call (difference != 0).
  */
 const char*
-GSDebugAllocationList(BOOL difference)
+GSDebugAllocationList(BOOL changeFlag)
 {
   const char *ans;
   if (debug_allocation == NO)
@@ -337,7 +337,7 @@ GSDebugAllocationList(BOOL difference)
     }
   if (uniqueLock != nil)
     [uniqueLock lock];
-  ans = _GSDebugAllocationList(difference);
+  ans = _GSDebugAllocationList(changeFlag);
   if (uniqueLock != nil)
     [uniqueLock unlock];
   return ans;

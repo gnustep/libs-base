@@ -585,24 +585,24 @@ GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r,
 		 NSRoundingMode mode);
 
 NSCalculationError
-NSDecimalMultiply(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, 
+NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, 
 		  NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
   NSDecimal n1;
   NSDecimal n2;
-  int exp = left->exponent + right->exponent;
-  BOOL neg = left->isNegative != right->isNegative;
+  int exp = l->exponent + r->exponent;
+  BOOL neg = l->isNegative != r->isNegative;
   NSComparisonResult comp;
 
-  if (!left->validNumber || !right->validNumber)
+  if (!l->validNumber || !r->validNumber)
     {
       result->validNumber = NO;
       return error;
     }
 
   // check for zero
-  if (NSDECIMAL_IS_ZERO(left) || NSDECIMAL_IS_ZERO(right))
+  if (NSDECIMAL_IS_ZERO(l) || NSDECIMAL_IS_ZERO(r))
     {
       NSDecimalCopy(result, &zero);
       return error;
@@ -617,8 +617,8 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *left, const NSDecimal *rig
 	return NSCalculationOverflow;
     }
 
-  NSDecimalCopy(&n1, left);
-  NSDecimalCopy(&n2, right);
+  NSDecimalCopy(&n1, l);
+  NSDecimalCopy(&n2, r);
   n1.exponent = 0;
   n2.exponent = 0;
   n1.isNegative = NO;
@@ -664,25 +664,26 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *left, const NSDecimal *rig
 
 NSCalculationError
 GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, 
-	       NSRoundingMode mode);
+  NSRoundingMode mode);
 
 NSCalculationError
-NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRoundingMode mode)
+NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr,
+  NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
   NSDecimal n1;
   NSDecimal n2;
-  int exp = l->exponent - r->exponent;
-  BOOL neg = l->isNegative != r->isNegative;
+  int exp = l->exponent - rr->exponent;
+  BOOL neg = l->isNegative != rr->isNegative;
 
-  if (!l->validNumber || !r->validNumber)
+  if (!l->validNumber || !rr->validNumber)
     {
       result->validNumber = NO;
       return NSCalculationNoError;
     }
 
   // Check for zero
-  if (NSDECIMAL_IS_ZERO(r))
+  if (NSDECIMAL_IS_ZERO(rr))
     {
       result->validNumber = NO;
       return NSCalculationDivideByZero;
@@ -698,7 +699,7 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRou
   NSDecimalCopy(&n1, l);
   n1.exponent = 0;
   n1.isNegative = NO;
-  NSDecimalCopy(&n2, r);
+  NSDecimalCopy(&n2, rr);
   n2.exponent = 0;
   n2.isNegative = NO;
 
@@ -733,14 +734,14 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRou
 }
 
 NSCalculationError
-NSDecimalPower(NSDecimal *result, const NSDecimal *l, unsigned power, NSRoundingMode mode)
+NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
   unsigned int e = power;
   NSDecimal n1;
-  BOOL neg = (l->isNegative && (power % 2));
+  BOOL neg = (n->isNegative && (power % 2));
 
-  NSDecimalCopy(&n1, l);
+  NSDecimalCopy(&n1, n);
   n1.isNegative = NO;
   NSDecimalCopy(result, &one);
 //  NSDecimalCopy(result, &zero);
@@ -1242,11 +1243,11 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 }
 
 NSString*
-NSDecimalString(const NSDecimal *number, NSDictionary *locale)
+NSDecimalString(const NSDecimal *decimal, NSDictionary *locale)
 {
   GSDecimal n;
 
-  DecimalToCharvec(number, &n);
+  DecimalToCharvec(decimal, &n);
   return GSDecimalString(&n, locale);
 }
 
@@ -1599,9 +1600,9 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
 }
 
 NSString*
-NSDecimalString(const NSDecimal *number, NSDictionary *locale)
+NSDecimalString(const NSDecimal *decimal, NSDictionary *locale)
 {
-  return GSDecimalString(number, locale);
+  return GSDecimalString(decimal, locale);
 }
 
 // GNUstep extensions to make the implementation of NSDecimalNumber totaly 

@@ -63,13 +63,13 @@ setupCache()
 }
 
 NSRange
-NSRangeFromString(NSString* string)
+NSRangeFromString(NSString *aString)
 {
   NSScanner	*scanner;
   NSRange	range;
 
   setupCache();
-  scanner = (*scannerImp)(NSScannerClass, scannerSel, string);
+  scanner = (*scannerImp)(NSScannerClass, scannerSel, aString);
   if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"location", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)

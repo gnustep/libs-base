@@ -137,7 +137,7 @@ NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
  * default zone.) */
 GS_EXPORT NSMapTable *
 NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
-                         NSMapTableValueCallBacks valueCallbacks,
+                         NSMapTableValueCallBacks valueCallBacks,
                          unsigned int capacity,
                          NSZone *zone);
 
