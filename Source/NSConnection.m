@@ -64,6 +64,7 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 @interface	NSDistantObject (NSConnection)
 - (BOOL) isVended;
+- (void) setProxyTarget: (unsigned)target;
 - (void) setVended;
 @end
 
@@ -72,11 +73,17 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 {
     return _isVended;
 }
+- (void) setProxyTarget: (unsigned)target
+{
+    _handle = target;
+}
 - (void) setVended
 {
     _isVended = YES;
 }
 @end
+
+static unsigned local_object_counter = 0;
 
 /*
  *	ConnectionLocalCounter is a trivial class to keep track of how
@@ -87,7 +94,10 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
  */
 @interface	ConnectionLocalCounter : NSObject
 {
-    unsigned	ref;
+@public
+  unsigned	ref;
+  unsigned	target;
+  id		object;
 }
 - (void)decrement;
 - (void)increment;
@@ -98,26 +108,27 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 - (void) decrement
 {
-    ref--;
+  ref--;
 }
 
 - (void) increment
 {
-    ref++;
+  ref++;
 }
 
 - init
 {
-    self = [super init];
-    if (self) {
-	ref = 1;
+  self = [super init];
+  if (self)
+    {
+      ref = 1;
     }
-    return self;
+  return self;
 }
 
 - (unsigned int) value
 {
-    return ref;
+  return ref;
 }
 @end
 
@@ -132,8 +143,8 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
  */
 @interface	CachedLocalObject : NSObject
 {
-    id	obj;
-    int time;
+  id	obj;
+  int	time;
 }
 - (BOOL)countdown;
 - (id) obj;
@@ -144,29 +155,29 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 + (CachedLocalObject*) itemWithObject: (id)o time: (int)t
 {
-    CachedLocalObject	*item = [[self alloc] init];
+  CachedLocalObject	*item = [[self alloc] init];
 
-    item->obj = [o retain];
-    item->time = t;
-    return [item autorelease];
+  item->obj = [o retain];
+  item->time = t;
+  return [item autorelease];
 }
 
 - (void) dealloc
 {
-    [obj release];
-    [super dealloc];
+  [obj release];
+  [super dealloc];
 }
 
 - (BOOL) countdown
 {
-    if (time-- > 0)
-	return YES;
-    return NO;
+  if (time-- > 0)
+    return YES;
+  return NO;
 }
 
 - (id) obj
 {
-    return obj;
+  return obj;
 }
 
 @end
@@ -1432,67 +1443,75 @@ static int messages_received_count;
 
 - (void) _service_release: rmc forConnection: receiving_connection
 {
-    unsigned int	count;
-    unsigned int	pos;
+  unsigned int	count;
+  unsigned int	pos;
 
-    NSParameterAssert (is_valid);
+  NSParameterAssert (is_valid);
 
-    if ([rmc connection] != self) {
-	[NSException raise: @"ProxyDecodedBadTarget"
-		    format: @"request to release object on bad connection"];
+  if ([rmc connection] != self)
+    {
+      [NSException raise: @"ProxyDecodedBadTarget"
+		  format: @"request to release object on bad connection"];
     }
 
-    [rmc decodeValueOfCType: @encode(typeof(count))
-			 at: &count
-		   withName: NULL];
+  [rmc decodeValueOfCType: @encode(typeof(count))
+		       at: &count
+		 withName: NULL];
 
-    for (pos = 0; pos < count; pos++) {
-	gsu32		target;
-	char		vended;
-	NSDistantObject	*prox;
+  for (pos = 0; pos < count; pos++)
+    {
+      unsigned		target;
+      char		vended;
+      NSDistantObject	*prox;
 
-	[rmc decodeValueOfCType: @encode(typeof(target))
-			     at: &target
-		       withName: NULL];
+      [rmc decodeValueOfCType: @encode(typeof(target))
+			   at: &target
+		     withName: NULL];
 
-	[rmc decodeValueOfCType: @encode(typeof(char))
-			     at: &vended
-		       withName: NULL];
+      [rmc decodeValueOfCType: @encode(typeof(char))
+			   at: &vended
+		     withName: NULL];
 
-	prox = [self includesLocalObject:(void*)target];
-	if (prox != nil) {
-	    if (vended) {
-	        [prox setVended];
+      prox = (NSDistantObject*)[self includesLocalTarget: target];
+      if (prox != nil)
+	{
+	  if (vended)
+	    {
+	      [prox setVended];
 	    }
-	    [self removeLocalObject: (id)target];
+	  [self removeLocalObject: [prox localForProxy]];
 	}
     }
 
-    [rmc dismiss];
+  [rmc dismiss];
 }
 
 - (void) _service_retain: rmc forConnection: receiving_connection
 {
-    gsu32 target;
+  unsigned target;
 
-    NSParameterAssert (is_valid);
+  NSParameterAssert (is_valid);
 
-    if ([rmc connection] != self) {
-	[NSException raise: @"ProxyDecodedBadTarget"
-		    format: @"request to retain object on bad connection"];
+  if ([rmc connection] != self)
+    {
+      [NSException raise: @"ProxyDecodedBadTarget"
+		  format: @"request to retain object on bad connection"];
     }
 
-    [rmc decodeValueOfCType: @encode(typeof(target))
-			 at: &target
-		   withName: NULL];
+  [rmc decodeValueOfCType: @encode(typeof(target))
+		       at: &target
+		 withName: NULL];
 
-    if ([self includesLocalObject:(void*)target] == nil) {
-	if ([[self class] includesLocalObject:(void*)target] != nil) {
-	    [NSDistantObject proxyWithLocal: (id)target connection: self];
-	}
+  if ([self includesLocalTarget: target] == nil)
+    {
+      ConnectionLocalCounter	*counter;
+
+      counter = (ConnectionLocalCounter*)[[self class] includesLocalTarget: target];
+      if (counter != nil)
+	[NSDistantObject proxyWithLocal: counter->object connection: self];
     }
 
-    [rmc dismiss];
+  [rmc dismiss];
 }
 
 - (void) shutdown
@@ -1518,7 +1537,7 @@ static int messages_received_count;
   [rmc dismiss];
 }
 
-- (const char *) typeForSelector: (SEL)sel remoteTarget: (gsu32)target
+- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target
 {
   id op, ip;
   char *type = 0;
@@ -1534,7 +1553,7 @@ static int messages_received_count;
   [op encodeValueOfObjCType:":"
       at:&sel
       withName:NULL];
-  [op encodeValueOfCType:@encode(gsu32)
+  [op encodeValueOfCType:@encode(unsigned)
       at:&target
       withName:NULL];
   [op dismiss];
@@ -1549,7 +1568,7 @@ static int messages_received_count;
 - (void) _service_typeForSelector: rmc
 {
   NSPortCoder* op;
-  gsu32 target;
+  unsigned target;
   NSDistantObject *p;
   id o;
   SEL sel;
@@ -1567,7 +1586,7 @@ static int messages_received_count;
   [rmc decodeValueOfObjCType:":"
        at:&sel
        withName:NULL];
-  [rmc decodeValueOfCType:@encode(gsu32)
+  [rmc decodeValueOfCType:@encode(unsigned)
        at:&target
        withName:NULL];
   p = [self includesLocalTarget: target];
@@ -1779,16 +1798,15 @@ static int messages_received_count;
 /* Managing objects and proxies. */
 - (void) addLocalObject: anObj
 {
-  id	object = [anObj localForProxy];
-  gsu32	target = [anObj targetForProxy];
-  id	counter;
+  id		object = [anObj localForProxy];
+  unsigned	target;
+  ConnectionLocalCounter	*counter;
 
   NSParameterAssert (is_valid);
   [proxiesHashGate lock];
   /* xxx Do we need to check to make sure it's not already there? */
   /* This retains anObj. */
   NSMapInsert(local_objects, (void*)object, anObj);
-  NSMapInsert(local_targets, (void*)target, anObj);
 
   /*
    *	Keep track of local objects accross all connections.
@@ -1797,14 +1815,20 @@ static int messages_received_count;
   if (counter)
     {
       [counter increment];
+      target = counter->target;
     }
   else
     {
       counter = [ConnectionLocalCounter new];
+      target = ++local_object_counter;
+      counter->target = target;
+      counter->object = object;
       NSMapInsert(all_connections_local_objects, (void*)object, counter);
       NSMapInsert(all_connections_local_targets, (void*)target, counter);
       [counter release];
     }
+  [anObj setProxyTarget: target];
+  NSMapInsert(local_targets, (void*)target, anObj);
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) to connection (0x%x) (ref %d)\n",
 		(unsigned)object, (unsigned) self, [counter value]);
@@ -1840,12 +1864,15 @@ static int messages_received_count;
 
 - (void) removeLocalObject: anObj
 {
-  NSDistantObject	*prox = NSMapGet(local_objects, (void*)anObj);
-  gsu32			target = [prox targetForProxy];
-  id	counter;
-  unsigned val = 0;
+  NSDistantObject	*prox;
+  unsigned		target;
+  id			counter;
+  unsigned		val = 0;
 
   [proxiesHashGate lock];
+
+  prox = NSMapGet(local_objects, (void*)anObj);
+  target = [prox targetForProxy];
 
   /*
    *	If all references to a local proxy have gone - remove the
@@ -1914,7 +1941,7 @@ static int messages_received_count;
 			withName: NULL];
 
 	  for (i = 0; i < number; i++) {
-	      gsu32	target = [list[i] targetForProxy];
+	      unsigned	target = [list[i] targetForProxy];
 	      char	vended = [list[i] isVended];
 
 	      [op encodeValueOfCType: @encode(typeof(target))
@@ -1936,7 +1963,7 @@ static int messages_received_count;
   NS_ENDHANDLER
 }
 
-- (void) retainTarget: (gsu32)target
+- (void) retainTarget: (unsigned)target
 {
   NS_DURING
     {
@@ -2009,7 +2036,7 @@ static int messages_received_count;
   return c;
 }
 
-- (NSDistantObject*) proxyForTarget: (gsu32)target
+- (NSDistantObject*) proxyForTarget: (unsigned)target
 {
   NSDistantObject *p;
 
@@ -2036,7 +2063,7 @@ static int messages_received_count;
   [proxiesHashGate unlock];
 }
 
-- (id) includesProxyForTarget: (gsu32)target
+- (id) includesProxyForTarget: (unsigned)target
 {
   NSDistantObject	*ret;
 
@@ -2058,7 +2085,7 @@ static int messages_received_count;
   return ret;
 }
 
-- (id) includesLocalTarget: (gsu32)target
+- (id) includesLocalTarget: (unsigned)target
 {
   NSDistantObject* ret;
 
@@ -2075,16 +2102,16 @@ static int messages_received_count;
    for the Proxy to check the Proxy's connection only (using
    -includesLocalTarget), because the proxy may have come from a
    triangle connection. */
-+ (id) includesLocalTarget: (gsu32)anObj
++ (id) includesLocalTarget: (unsigned)target
 {
   id ret;
 
   /* Don't assert (is_valid); */
   NSParameterAssert (all_connections_local_targets);
   [proxiesHashGate lock];
-  ret = NSMapGet (all_connections_local_targets, (void*)anObj);
+  ret = NSMapGet (all_connections_local_targets, (void*)target);
   if (ret == nil) {
-    ret = NSMapGet (all_connections_local_cached, (void*)anObj);
+    ret = NSMapGet (all_connections_local_cached, (void*)target);
   }
   [proxiesHashGate unlock];
   return ret;
