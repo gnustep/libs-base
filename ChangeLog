@@ -1,3 +1,8 @@
+2001-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSAttributedString.m: When caching attribute dictionaries
+	we make an immutable copy of the dictionary with shallow copy.
+
 2001-06-06  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	Configuration part of constant string support with gcc-3.0
