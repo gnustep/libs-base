@@ -48,8 +48,7 @@ myHash(id obj)
     {
       Class	c = fastClass(obj);
 
-      if (c == _fastCls._NXConstantString ||
-	  c == _fastCls._NSGCString ||
+      if (c == _fastCls._NSGCString ||
 	  c == _fastCls._NSGMutableCString ||
 	  c == _fastCls._NSGString ||
 	  c == _fastCls._NSGMutableString)
@@ -60,6 +59,10 @@ myHash(id obj)
 	            _fastImp._NSString_hash(obj, @selector(hash));
 	    }
 	  return ((dictAccessToStringHack)obj)->_hash;
+	}
+      else if (c == _fastCls._NXConstantString)
+	{
+	  return _fastImp._NSString_hash(obj, @selector(hash));
 	}
     }
   return [obj hash];
