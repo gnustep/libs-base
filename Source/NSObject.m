@@ -1495,6 +1495,14 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
+ * Returns YES if the receiver is aClass or a subclass of aClass.
+ */
++ (BOOL) isSubclassOfClass: (Class)aClass
+{
+  return GSObjCIsKindOf(self, aClass);
+}
+
+/**
  * Causes the receiver to execute the method implementation corresponding
  * to aSelector and returns the result.<br />
  * The method must be one which takes no arguments and returns an object.

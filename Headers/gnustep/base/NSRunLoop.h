@@ -67,6 +67,8 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 - (void) addPort: (NSPort*)port
          forMode: (NSString*)mode;
 
+- (void) cancelPerformSelectorsWithTarget: (id)target;
+
 - (void) cancelPerformSelector: (SEL)aSelector
 			target: (id)target
 		      argument: (id)argument;
