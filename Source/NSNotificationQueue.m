@@ -435,7 +435,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 - (void) postNotification: (NSNotification*)notification
 		 forModes: (NSArray*)modes
 {
-  NSString	*mode = [NSRunLoop currentMode];
+  NSString	*mode = [[NSRunLoop currentRunLoop] currentMode];
 
   // check to see if run loop is in a valid mode
   if (mode == nil || modes == nil

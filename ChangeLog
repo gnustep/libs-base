@@ -1,3 +1,28 @@
+2002-01-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRunLoop.h: Removed previously deprecated methods.
+	Completely changed ivar layout.
+	* Headers/Foundation/NSRunLoop.m: Removed previously deprecated methods.
+	Completely changed ivar layout.  Modified most methods to work with
+	changed ivar layout.  Now stores per-mode context information in a
+	new GSRunLoopCtxt class - one instance for each mode used in each
+	runloop instance.  Rewrite select() and poll() based mechanisms
+	using the new class - should hopefully be more efficient and fix
+	minor and obscure problems with re-entrancy.
+	### WARNING ... radical change ... may be buggy ... WARNING ###
+
+2002-01-23  Kaelin Colclasure  <kaelin@acm.org>
+
+       * configure.in: Check for poll(2) system call and header file.
+       * configure: Regenerated.
+       * config.h.in: Regenerated.
+       * Source/NSRunLoop.m ([-acceptInputForMode:beforeDate:]):
+       Refactored to put all code specific to the select(2) system call
+       into a separate method.
+       ([-_pollInputForMode:withTimeout:]): New private method with two
+       implementations. If HAVE_POLL is defined, the poll version is
+       used. Otherwise, we fall back to select.
+
 2002-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* acconfig.h: Add HAVE_SA_LEN
