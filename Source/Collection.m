@@ -30,16 +30,15 @@
 
 @implementation Collection
 
-+ initialize
++ (void) initialize
 {
   if (self == [Collection class])
     {
       [self setVersion:0];	// beta release;
     }
-  return self;
 }
 
-// INITIALIZING AND FREEING;
+// INITIALIZING AND RELEASING;
 
 // This is the designated initializer of this class;
 - initWithType:(const char *)contentEncoding
@@ -66,17 +65,17 @@
   return self;
 }
 
-- free
+- (void) dealloc
 {
   // ?;
-  return [super free];
+  [super dealloc];
 }
 
 /* May be inefficient.  Could be overridden; */
-- freeObjects
+- releaseObjects
 {
   if (CONTAINS_OBJECTS)
-    [self safeMakeObjectsPerform:@selector(free)];
+    [self safeMakeObjectsPerform:@selector(release)];
   [self empty];
   return self;
 }
@@ -257,7 +256,7 @@
 }
 
 /* This must work without sending any messages to content objects.
-   Content objects already may be -free'd when this is executed. */
+   Content objects already may be dealloc'd when this is executed. */
 - empty
 {
   [self subclassResponsibility:_cmd];
@@ -319,7 +318,7 @@
     flag = NO;
   else
     flag = YES;
-  [bag free];
+  [bag release];
   return flag;
 }
 
@@ -539,7 +538,7 @@
 {
   id tmp = [[Array alloc] initWithContentsOf:self];
   [tmp withElementsCall:aFunc];
-  [tmp free];
+  [tmp release];
   return self;
 }
 
@@ -547,7 +546,7 @@
 {
   id tmp = [[Array alloc] initWithContentsOf:self];
   [tmp withElementsCall:aFunc whileTrue:flag];
-  [tmp free];
+  [tmp release];
   return self;
 }
 
@@ -1203,22 +1202,6 @@ for info about latest version.",
     "License along with this library; if not, write to the Free\n"
     "Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
   return licenseString;
-}
-
-- write: (TypedStream*)aStream
-{
-  [super write: aStream];
-  [self _writeInit:aStream];
-  [self _writeContents:aStream];
-  return self;
-}
-
-- read: (TypedStream*)aStream
-{
-  [super read: aStream];
-  [self _readInit:aStream];
-  [self _readContents:aStream];
-  return self;
 }
 
 - (void) encodeWithCoder: (Coder*)aCoder
