@@ -29,7 +29,7 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../../config.mak
 
-SUBPROJECT_NAME=Additions
+SUBPROJECT_NAME = Additions
 
 Additions_OBJC_FILES =\
 	GSObjCRuntime.m \
@@ -40,10 +40,10 @@ Additions_OBJC_FILES =\
 	GSXML.m \
 	behavior.m
 
-ifeq ($(OBJC_RUNTIME), NeXT)
+ifneq ($(OBJC_RUNTIME_LIB), gnu)
 Additions_OBJC_FILES += GSNextRuntime.m
 endif
-ifeq ($(FOUNDATION_LIB),nx)
+ifneq ($(FOUNDATION_LIB), gnu)
 Additions_OBJC_FILES += GSCompatibility.m
 else
 Additions_OBJC_FILES += Unicode.m
