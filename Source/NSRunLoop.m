@@ -378,11 +378,14 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
  * The GSRunLoopCtxt stores context information to handle polling for
  * events.  This information is associated with a particular runloop
  * mode, and persists throughout the life of the runloop instance.
+ *
+ *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 @interface	GSRunLoopCtxt : NSObject
 {
 @public
   void		*extra;		/** Copy of the RunLoop ivar.		*/
+  NSString	*mode;		/** The mode for this context.		*/
   GSIArray	performers;	/** The actions to perform regularly.	*/
   GSIArray	timers;		/** The timers set for the runloop mode */
   GSIArray	watchers;	/** The inputs set for the runloop mode */
@@ -398,13 +401,17 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   struct pollfd	*pollfds;
 #endif
 }
+- (void) endEvent: (void*)data
+             type: (RunLoopEventType)type;
 - (void) endPoll;
-- (BOOL) pollUntil: (int)milliseconds forMode: (NSString*)mode;
+- (id) initWithMode: (NSString*)theMode extra: (void*)e;
+- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
 @end
 
 @implementation	GSRunLoopCtxt
 - (void) dealloc
 {
+  RELEASE(mode);
   GSIArrayEmpty(performers);
   NSZoneFree(performers->zone, (void*)performers);
   GSIArrayEmpty(timers);
@@ -424,6 +431,37 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 }
 
 /**
+ * Remove any callback for the specified event which is set for an
+ * uncompleted poll operation.<br />
+ * This is called by nested event loops on contexts in outer loops
+ * when they handle an event ... removing the event from the outer
+ * loop ensures that it won't get handled twice, once by the inner
+ * loop and once by the outer one.
+ */
+- (void) endEvent: (void*)data
+             type: (RunLoopEventType)type
+{
+  if (completed == NO)
+    {
+      switch (type)
+	{
+	  case ET_RDESC: 
+	    NSMapRemove(_rfdMap, data);
+	    break;
+	  case ET_WDESC: 
+	    NSMapRemove(_wfdMap, data);
+	    break;
+	  case ET_EDESC: 
+	    NSMapRemove(_efdMap, data);
+	    break;
+	  default:
+	    NSLog(@"Ending an event of unkown type (%d)", type);
+	    break;
+	}
+    }
+}
+
+/**
  * Mark this poll conext as having completed, so that if we are
  * executing a re-entrant poll, the enclosing poll operations
  * know they can stop what they are doing because an inner
@@ -436,11 +474,20 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 - (id) init
 {
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"-init may not be called for GSRunLoopCtxt"];
+  return nil;
+}
+
+- (id) initWithMode: (NSString*)theMode extra: (void*)e
+{
   self = [super init];
   if (self != nil)
     {
       NSZone	*z = [self zone];
 
+      mode = [theMode copy];
+      extra = e;
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(performers, z, 8);
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
@@ -504,14 +551,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   pollfds[index].events |= event;
 }
 
-- (BOOL) pollUntil: (int)milliseconds forMode: (NSString*)mode
+/**
+ * Perform a poll for the specified runloop context.
+ * If the method has been called re-entrantly, the contexts stack
+ * will list all the contexts with polls in progress
+ * and this method must tell those outer contexts not to handle events
+ * which are handled by this context.
+ */
+- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  int poll_return;
-  int fdIndex;
-  int fdFinish;
+  int		poll_return;
+  int		fdIndex;
+  int		fdFinish;
   unsigned	i;
-  int num_inputs = 0;		/* Number of descriptors being monitored. */
-  int end_inputs = 0;		/* Highest numbered descriptor plus one. */
+  int		num_inputs = 0;	/* Number of descriptors being monitored. */
+  int		end_inputs = 0;	/* Highest numbered descriptor plus one. */
 
   i = GSIArrayCount(watchers);
   if (i == 0)
@@ -738,6 +792,13 @@ if (0) {
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
 		    (void*)(gsaddr)fd, mode);
+		  i = [contexts count];
+		  while (i-- > 0)
+		    {
+		      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		      [c endEvent: (void*)fd type: ET_EDESC];
+		    }
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -759,6 +820,13 @@ if (0) {
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
 		    (void*)(gsaddr)fd, mode);
+		  i = [contexts count];
+		  while (i-- > 0)
+		    {
+		      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		      [c endEvent: (void*)fd type: ET_WDESC];
+		    }
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -780,6 +848,13 @@ if (0) {
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
 		    (void*)(gsaddr)fd, mode);
+		  i = [contexts count];
+		  while (i-- > 0)
+		    {
+		      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		      [c endEvent: (void*)fd type: ET_RDESC];
+		    }
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -808,18 +883,18 @@ if (0) {
 
 #else
 
-- (BOOL) pollUntil: (int)milliseconds forMode: (NSString*)mode
+- (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  struct timeval timeout;
-  void *select_timeout;
-  fd_set read_fds;		/* Copy for listening to read-ready fds. */
-  fd_set exception_fds;		/* Copy for listening to exception fds. */
-  fd_set write_fds;		/* Copy for listening for write-ready fds. */
-  int select_return;
-  int fdIndex;
-  int fdFinish;
-  int num_inputs = 0;		/* Number of descriptors being monitored. */
-  int end_inputs = 0;		/* Highest numbered descriptor plus one. */
+  struct timeval	timeout;
+  void			*select_timeout;
+  int			select_return;
+  int			fdIndex;
+  int			fdFinish;
+  fd_set 		read_fds;	// Mask for read-ready fds.
+  fd_set 		exception_fds;	// Mask for exception fds.
+  fd_set 		write_fds;	// Mask for write-ready fds.
+  int			num_inputs = 0;
+  int			end_inputs = 0;
   unsigned		i;
 
   i = GSIArrayCount(watchers);
@@ -1035,6 +1110,13 @@ if (0) {
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
 		(void*)(gsaddr)fdIndex, mode);
+	      i = [contexts count];
+	      while (i-- > 0)
+		{
+		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		  [c endEvent: (void*)fd type: ET_EDESC];
+		}
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -1057,6 +1139,13 @@ if (0) {
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
 		(void*)(gsaddr)fdIndex, mode);
+	      i = [contexts count];
+	      while (i-- > 0)
+		{
+		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		  [c endEvent: (void*)fd type: ET_WDESC];
+		}
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -1079,6 +1168,13 @@ if (0) {
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
 		(void*)(gsaddr)fdIndex, mode);
+	      i = [contexts count];
+	      while (i-- > 0)
+		{
+		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		  [c endEvent: (void*)fd type: ET_RDESC];
+		}
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -1212,12 +1308,11 @@ if (0) {
   GSIArray	watchers;
   id		obj;
 
-  context = NSMapGet(_mode_2_context, mode);
+  context = NSMapGet(_contextMap, mode);
   if (context == nil)
     {
-      context = [GSRunLoopCtxt new];
-      context->extra = _extra;
-      NSMapInsert(_mode_2_context, mode, context);
+      context = [[GSRunLoopCtxt alloc] initWithMode: mode extra: _extra];
+      NSMapInsert(_contextMap, context->mode, context);
       RELEASE(context);
     }
   watchers = context->watchers;
@@ -1278,7 +1373,7 @@ if (0) {
 	  /*
 	   * Remove the requests that we are about to fire from all modes.
 	   */
-	  enumerator = NSEnumerateMapTable(_mode_2_context);
+	  enumerator = NSEnumerateMapTable(_contextMap);
 	  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
 	    {
 	      if (context != nil)
@@ -1327,14 +1422,14 @@ if (0) {
 
   if (mode == nil)
     {
-      mode = _current_mode;
+      mode = [self currentMode];
       if (mode == nil)
 	{
 	  mode = NSDefaultRunLoopMode;
 	}
     }
 
-  context = NSMapGet(_mode_2_context, mode);
+  context = NSMapGet(_contextMap, mode);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -1367,14 +1462,14 @@ if (0) {
 
   if (mode == nil)
     {
-      mode = _current_mode;
+      mode = [self currentMode];
       if (mode == nil)
 	{
 	  mode = NSDefaultRunLoopMode;
 	}
     }
 
-  context = NSMapGet(_mode_2_context, mode);
+  context = NSMapGet(_contextMap, mode);
   if (context != nil)
     {
       GSIArray	watchers = context->watchers;
@@ -1413,7 +1508,7 @@ if (0) {
 
   if (mode == nil)
     {
-      mode = _current_mode;
+      mode = [self currentMode];
       if (mode == nil)
 	{
 	  mode = NSDefaultRunLoopMode;
@@ -1456,7 +1551,7 @@ if (0) {
 {
   if (mode == nil)
     {
-      mode = _current_mode;
+      mode = [self currentMode];
       if (mode == nil)
 	{
 	  mode = NSDefaultRunLoopMode;
@@ -1534,7 +1629,8 @@ if (0) {
   self = [super init];
   if (self != nil)
     {
-      _mode_2_context = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+      _contextStack = [NSMutableArray new];
+      _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
 #if	HAVE_POLL
@@ -1562,7 +1658,8 @@ if (0) {
     objc_free(e);
   }
 #endif
-  NSFreeMapTable(_mode_2_context);
+  RELEASE(_contextStack);
+  NSFreeMapTable(_contextMap);
   RELEASE(_timedPerformers);
 }
 
@@ -1572,7 +1669,7 @@ if (0) {
  */
 - (NSString*) currentMode
 {
-  return _current_mode;
+  return _currentMode;
 }
 
 
@@ -1584,12 +1681,11 @@ if (0) {
   GSRunLoopCtxt	*context;
   GSIArray	timers;
 
-  context = NSMapGet(_mode_2_context, mode);
+  context = NSMapGet(_contextMap, mode);
   if (context == nil)
     {
-      context = [GSRunLoopCtxt new];
-      context->extra = _extra;
-      NSMapInsert(_mode_2_context, mode, context);
+      context = [[GSRunLoopCtxt alloc] initWithMode: mode extra: _extra];
+      NSMapInsert(_contextMap, context->mode, context);
       RELEASE(context);
     }
   timers = context->timers;
@@ -1603,20 +1699,18 @@ if (0) {
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
-  id			saved_mode;
-  NSDate		*when;
-  NSTimer		*min_timer = nil;
-  GSRunLoopWatcher	*min_watcher = nil;
-  CREATE_AUTORELEASE_POOL(arp);
+  GSRunLoopCtxt		*context = NSMapGet(_contextMap, mode);
+  NSDate		*when = nil;
 
-  saved_mode = _current_mode;
-  _current_mode = mode;
-
-  NS_DURING
+  if (context != nil)
     {
-      GSRunLoopCtxt	*context = NSMapGet(_mode_2_context, mode);
+      NSTimer		*min_timer = nil;
+      GSRunLoopWatcher	*min_watcher = nil;
+      NSString		*savedMode = _currentMode;
+      CREATE_AUTORELEASE_POOL(arp);
 
-      if (context != nil)
+      _currentMode = mode;
+      NS_DURING
 	{
 	  GSIArray	timers = context->timers;
 	  GSIArray	watchers = context->watchers;
@@ -1686,7 +1780,7 @@ if (0) {
 		    {
 		      nxt = [obj timedOutEvent: min_watcher->data
 					  type: min_watcher->type
-				       forMode: _current_mode];
+				       forMode: mode];
 		    }
 		  else if ([obj respondsToSelector: @selector(delegate)])
 		    {
@@ -1696,7 +1790,7 @@ if (0) {
 			{
 			  nxt = [obj timedOutEvent: min_watcher->data
 					      type: min_watcher->type
-					   forMode: _current_mode];
+					   forMode: mode];
 			}
 		    }
 		  if (nxt && [nxt timeIntervalSinceNow] > 0.0)
@@ -1721,48 +1815,47 @@ if (0) {
 		  min_watcher = nil;
 		}
 	    }
+	  _currentMode = savedMode;
 	}
-      _current_mode = saved_mode;
-    }
-  NS_HANDLER
-    {
-      _current_mode = saved_mode;
-      [localException raise];
-    }
-  NS_ENDHANDLER
+      NS_HANDLER
+	{
+	  _currentMode = savedMode;
+	  [localException raise];
+	}
+      NS_ENDHANDLER
 
-  RELEASE(arp);
+      RELEASE(arp);
 
-  /*
-   *	If there are timers - set limit date to the earliest of them.
-   *	If there are watchers, set the limit date to that of the earliest
-   *	watcher (or leave it as the date of the earliest timer if that is
-   *	before the watchers limit).
-   */
-  if (min_timer)
-    {
-      when = timerDate(min_timer);
-      if (min_watcher != nil
-	&& [min_watcher->_date compare: when] == NSOrderedAscending)
+      /*
+       * If there are timers - set limit date to the earliest of them.
+       * If there are watchers, set the limit date to that of the earliest
+       * watcher (or leave it as the date of the earliest timer if that is
+       * before the watchers limit).
+       */
+      if (min_timer != nil)
+	{
+	  when = timerDate(min_timer);
+	  if (min_watcher != nil
+	    && [min_watcher->_date compare: when] == NSOrderedAscending)
+	    {
+	      when = min_watcher->_date;
+	    }
+	}
+      else if (min_watcher != nil)
 	{
 	  when = min_watcher->_date;
 	}
-    }
-  else if (min_watcher)
-    {
-      when = min_watcher->_date;
-    }
-  else
-    {
-      return nil;	/* Nothing waiting to be done.	*/
-    }
+      else
+	{
+	  return nil;	/* Nothing waiting to be done.	*/
+	}
 
-  if (debug_run_loop)
-    {
-      printf ("\tNSRunLoop limit date %f\n",
-	[when timeIntervalSinceReferenceDate]);
+      if (debug_run_loop)
+	{
+	  printf ("\tNSRunLoop limit date %f\n",
+	    [when timeIntervalSinceReferenceDate]);
+	}
     }
-
   return when;
 }
 
@@ -1776,23 +1869,21 @@ if (0) {
 - (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: (NSDate*)limit_date
 {
-  GSRunLoopCtxt		*context = nil;
+  GSRunLoopCtxt		*context;
   NSTimeInterval	ti;
   int			timeout_ms;
-  id			saved_mode;
+  NSString		*savedMode = _currentMode;
   CREATE_AUTORELEASE_POOL(arp);
 
   NSAssert(mode, NSInvalidArgumentException);
-  saved_mode = _current_mode;
   if (mode == nil)
     {
       mode = NSDefaultRunLoopMode;
     }
-  _current_mode = mode;
+  context = NSMapGet(_contextMap, mode);
 
   NS_DURING
     {
-      GSRunLoopCtxt	*context = NSMapGet(_mode_2_context, mode);
       GSIArray		watchers;
       unsigned		i;
 
@@ -1803,7 +1894,7 @@ if (0) {
 	  GSNotifyASAP();
 	  if (debug_run_loop)
 	    printf ("\tNSRunLoop with no inputs in mode\n");
-	  _current_mode = saved_mode;
+	  _currentMode = savedMode;
 	  RELEASE(arp);
 	  NS_VOIDRETURN;
 	}
@@ -1814,15 +1905,20 @@ if (0) {
 	  /* Don't wait at all. */
 	  timeout_ms = 0;
 	}
-      else if ((ti = [limit_date timeIntervalSinceNow])
-	< LONG_MAX && ti > 0.0)
+      else if ((ti = [limit_date timeIntervalSinceNow]) > 0.0)
 	{
 	  /* Wait until the LIMIT_DATE. */
 	  if (debug_run_loop)
 	    printf ("\tNSRunLoop accept input before %f (sec from now %f)\n", 
 	      [limit_date timeIntervalSinceReferenceDate], ti);
-	  /* If LIMIT_DATE has already past, return immediately. */
-	  timeout_ms = ti * 1000;
+	  if (ti >= INT_MAX / 1000)
+	    {
+	      timeout_ms = INT_MAX;	// Far future.
+	    }
+	  else
+	    {
+	      timeout_ms = ti * 1000;
+	    }
 	}
       else if (ti <= 0.0)
 	{
@@ -1833,7 +1929,7 @@ if (0) {
 	  GSNotifyASAP();
 	  if (debug_run_loop)
 	    printf ("\tNSRunLoop limit date past, returning\n");
-	  _current_mode = saved_mode;
+	  _currentMode = savedMode;
 	  RELEASE(arp);
 	  NS_VOIDRETURN;
 	}
@@ -1845,22 +1941,32 @@ if (0) {
 	  timeout_ms = -1;
 	}
 
-      if ([context pollUntil: timeout_ms forMode: _current_mode] == NO)
+      if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
+	{
+	  [_contextStack addObject: context];
+	}
+      if ([context pollUntil: timeout_ms within: _contextStack] == NO)
 	{
 	  GSNotifyIdle();
 	}
       [self _checkPerformers: context];
       GSNotifyASAP();
-      _current_mode = saved_mode;
+      _currentMode = savedMode;
+      /*
+       * Once a poll has been completed on a context, we can remove that
+       * context from the stack even if it actually polling at an outer
+       * level of re-entrancy ... since the poll we have just done will
+       * have handled any events that the outer levels would have wanted
+       * to handle, and the polling for this context will be marked as ended.
+       */
+      [context endPoll];
+      [_contextStack removeObjectIdenticalTo: context];
     }
   NS_HANDLER
     {
-      _current_mode = saved_mode;
-      /*
-       * Perform any tidyup necessary for the poll operation in which
-       * the exception occurred.
-       */
+      _currentMode = savedMode;
       [context endPoll];
+      [_contextStack removeObjectIdenticalTo: context];
       [localException raise];
     }
   NS_ENDHANDLER
@@ -1971,7 +2077,7 @@ if (0) {
   GSRunLoopCtxt		*context;
   void			*mode;
 
-  enumerator = NSEnumerateMapTable(_mode_2_context);
+  enumerator = NSEnumerateMapTable(_contextMap);
 
   while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
     {
@@ -2027,12 +2133,12 @@ if (0) {
 	  GSRunLoopCtxt	*context;
 	  GSIArray	performers;
 
-	  context = NSMapGet(_mode_2_context, mode);
+	  context = NSMapGet(_contextMap, mode);
 	  if (context == nil)
 	    {
-	      context = [GSRunLoopCtxt new];
-	      context->extra = _extra;
-	      NSMapInsert(_mode_2_context, mode, context);
+	      context = [[GSRunLoopCtxt alloc] initWithMode: mode
+						      extra: _extra];
+	      NSMapInsert(_contextMap, context->mode, context);
 	      RELEASE(context);
 	    }
 	  performers = context->performers;

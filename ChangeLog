@@ -1,3 +1,9 @@
+2002-01-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRunLoop.h: More updates to ivars.
+	* Headers/Foundation/NSRunLoop.m: Completed re-entrancy fixes in
+	(I hope) a reasonably efficient manner.
+
 2002-01-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRunLoop.h: Removed previously deprecated methods.

@@ -34,9 +34,10 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
 @interface NSRunLoop : NSObject <GCFinalization>
 {
   @private
-  NSString		*_current_mode;
+  NSString		*_currentMode;
+  NSMapTable		*_contextMap;
+  NSMutableArray	*_contextStack;
   NSMutableArray	*_timedPerformers;
-  NSMapTable		*_mode_2_context;
   void			*_extra;
 }
 
