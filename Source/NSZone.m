@@ -77,7 +77,7 @@
 
 
 /* Define to turn off assertions. */
-#define DEBUG 0
+#define NDEBUG 1
 
 
 #include <config.h>
@@ -113,7 +113,6 @@
 #define	NF_HEAD sizeof(nf_block)
 
 typedef struct _ffree_free_link ff_link;
-typedef struct _nfree_chunk_struct nf_chunk;
 typedef struct _nfree_block_struct nf_block;
 typedef struct _ffree_block_struct ff_block;
 typedef struct _ffree_zone_struct ffree_zone;
@@ -135,20 +134,6 @@ struct _nfree_block_struct
   size_t size; // Size of block
   size_t top; // Position of next memory chunk to allocate
   char	padding[ALIGN - ((NFBPAD % ALIGN) ? (NFBPAD % ALIGN) : ALIGN)];
-};
-
-struct _nfree_chunk_unpadded
-{
-  size_t cur;
-  size_t max;
-};
-#define	NFCPAD	sizeof(struct _nfree_chunk_unpadded)
-
-struct _nfree_chunk_struct
-{
-  size_t cur;
-  size_t max;
-  char	padding[ALIGN - ((NFCPAD % ALIGN) ? (NFCPAD % ALIGN) : ALIGN)];
 };
 
 struct _ffree_block_unpadded {
@@ -336,6 +321,7 @@ struct _nfree_zone_struct
   /* Linked list of blocks in decreasing order of free space,
      except maybe for the first block. */
   nf_block *blocks;
+  size_t use;
 };
 
 
@@ -395,8 +381,7 @@ NSZone* __nszone_private_hidden_default_zone = &default_zone;
 /*
  *	Lists of zones to be used to determine if a pointer is in a zone.
  */
-static NSZone	*live_zones = 0;
-static NSZone	*dead_zones = 0;
+static NSZone	*zone_list = 0;
 
 inline NSZone*
 NSZoneFromPointer(void *ptr)
@@ -404,29 +389,35 @@ NSZoneFromPointer(void *ptr)
     NSZone	*zone;
 
     if (ptr == 0) return 0;
+
+    /*
+     *	See if we can find the zone in our list of all zones.
+     */
     [gnustep_global_lock lock];
-    /*
-     *	See if we can find the zone in our list of all active zones.
-     */
-    for (zone = live_zones; zone != 0; zone = zone->next) {
+    for (zone = zone_list; zone != 0; zone = zone->next) {
 	if ((zone->lookup)(zone, ptr) == YES) {
-	    [gnustep_global_lock unlock];
-	    return zone;
-	}
-    }
-    /*
-     *	Also check our list of 'dead' zones - ones that have been recycled
-     *	but still contain memory that is in use and has to be freed before
-     *	we can finally destroy the zone properly.
-     */
-    for (zone = dead_zones; zone != 0; zone = zone->next) {
-	if ((zone->lookup)(zone, ptr) == YES) {
-	    [gnustep_global_lock unlock];
-	    return zone;
+	    break;
 	}
     }
     [gnustep_global_lock unlock];
-    return __nszone_private_hidden_default_zone;
+    return (zone == 0) ? __nszone_private_hidden_default_zone : zone;
+}
+
+static inline void
+destroy_zone(NSZone* zone)
+{
+  if (zone_list == zone)
+    zone_list = zone->next;
+  else
+    {
+      NSZone *ptr = zone_list;
+
+      while (ptr->next != zone)
+	ptr = ptr->next;
+      if (ptr)
+        ptr->next = zone->next;
+    }
+  objc_free((void*)zone);
 }
 
 static void*
@@ -748,15 +739,13 @@ frecycle (NSZone *zone)
       [name release];
     }
   if (frecycle1(zone) == YES)
-    objc_free((void*)zone);
+    destroy_zone(zone);
   else
     {
       zone->malloc = rmalloc;
       zone->realloc = rrealloc;
       zone->free = rffree;
       zone->recycle = rrecycle;
-      zone->next = dead_zones;
-      dead_zones = zone;
     }
   [gnustep_global_lock unlock];
 }
@@ -765,22 +754,10 @@ static void
 rffree (NSZone *zone, void *ptr)
 {
   ffree(zone, ptr);
+  [gnustep_global_lock lock];
   if (frecycle1(zone))
-    {
-      [gnustep_global_lock lock];
-      if (dead_zones == zone)
-	dead_zones = zone->next;
-      else
-	{
-	  NSZone *ptr = dead_zones;
-
-	  while (ptr->next != zone)
-	    ptr = ptr->next;
-	  ptr->next = zone->next;
-	}
-      objc_free((void*)zone);
-      [gnustep_global_lock unlock];
-    }
+    destroy_zone(zone);
+  [gnustep_global_lock unlock];
 }
 
 
@@ -1266,27 +1243,27 @@ static void*
 nmalloc (NSZone *zone, size_t size)
 {
   nfree_zone *zptr = (nfree_zone*)zone;
+  size_t chunksize = roundupto(size, ALIGN);
+  size_t freesize;
+  void *chunkhead;
+  nf_block *block;
   size_t top;
-  size_t chunksize = roundupto(size+NBSZ, ALIGN);
-  nf_chunk *chunkhead;
 
   objc_mutex_lock(zptr->lock);
-  top = zptr->blocks->top;
-  /* No need to worry about (block == NULL), since a nonfreeable zone
-     always starts with a block. */
-  if (zptr->blocks->size-top >= chunksize)
+  block = zptr->blocks;
+  top = block->top;
+  freesize = block->size-top;
+  if (freesize >= chunksize)
     {
-      chunkhead = (nf_chunk*)((void*)(zptr->blocks)+top);
-      zptr->blocks->top += chunksize;
+      chunkhead = (void*)(block)+top;
+      block += chunksize;
     }
   else
     {
-      size_t freesize = zptr->blocks->size-top;
-      nf_block *block, *preblock;
+      nf_block *preblock;
 
       /* First, get the block list in decreasing free size order. */
       preblock = NULL;
-      block = zptr->blocks;
       while ((block->next != NULL)
              && (freesize < block->next->size-block->next->top))
         {
@@ -1321,13 +1298,12 @@ nmalloc (NSZone *zone, size_t size)
           block->top = NF_HEAD;
           zptr->blocks = block;
         }
-      chunkhead = (nf_chunk*)((void*)block+zptr->blocks->top);
-      zptr->blocks->top += chunksize;
+      chunkhead = (void*)block+block->top;
+      block->top += chunksize;
     }
-  chunkhead->cur = size;
-  chunkhead->max = chunksize - NBSZ;
+  zptr->use++;
   objc_mutex_unlock(zptr->lock);
-  return (void*)&chunkhead[1];
+  return chunkhead;
 }
 
 /* Return the blocks to the default zone, then deallocate mutex, and
@@ -1336,48 +1312,19 @@ static BOOL
 nrecycle1 (NSZone *zone)
 {
   nfree_zone *zptr = (nfree_zone*)zone;
-  nf_block *nextblock;
-  nf_block *block;
 
   objc_mutex_lock(zptr->lock);
-  block = zptr->blocks;
-  while (block != NULL)
+  if (zptr->use == 0)
     {
-      nf_chunk *chunk = (nf_chunk*)((void*)(block)+NF_HEAD);
-      nf_chunk *top = (nf_chunk*)((void*)(block)+block->top);
-      BOOL isEmpty = NO;
+      nf_block *nextblock;
+      nf_block *block = zptr->blocks;
 
-      nextblock = block->next;
-
-      if (chunk >= top)
-	isEmpty = YES;
-      if (chunk->max == 0)
+      while (block != NULL)
 	{
-	  nf_chunk *tmp = (nf_chunk*)((void*)(chunk)+chunk->cur);
-
-	  while (tmp < top && tmp->max == 0)
-	    {
-	      chunk->cur += tmp->cur;
-	      tmp = (nf_chunk*)((void*)(chunk)+chunk->cur);
-	    }
-	  if (tmp >= top)
-	    isEmpty = YES;
+	  nextblock = block->next;
+	  objc_free(block);
+	  block = nextblock;
 	}
-      if (isEmpty)
-	{
-	  if (zptr->blocks == block)
-	    zptr->blocks = block->next;
-	  else
-	    {
-	      nf_block *tmp = zptr->blocks;
-
-	      while (tmp->next != block)
-		tmp = tmp->next;
-	      tmp->next = block->next;
-	    }
-          objc_free(block);
-	}
-      block = nextblock;
     }
   objc_mutex_unlock(zptr->lock);
   if (zptr->blocks == 0)
@@ -1400,15 +1347,13 @@ nrecycle (NSZone *zone)
       [name release];
     }
   if (nrecycle1(zone) == YES)
-    objc_free((void*)zone);
+    destroy_zone(zone);
   else
     {
       zone->malloc = rmalloc;
       zone->realloc = rrealloc;
       zone->free = rnfree;
       zone->recycle = rrecycle;
-      zone->next = dead_zones;
-      dead_zones = zone;
     }
   [gnustep_global_lock unlock];
 }
@@ -1416,27 +1361,34 @@ nrecycle (NSZone *zone)
 static void*
 nrealloc (NSZone *zone, void *ptr, size_t size)
 {
-  if (ptr == 0)
-    return nmalloc(zone, size);
-  else
+  nfree_zone *zptr = (nfree_zone*)zone;
+  void *tmp = nmalloc(zone, size);
+
+  if (ptr != 0)
     {
-      nf_chunk *old = &((nf_chunk*)ptr)[-1];
-
-      if (old->max >= size)
+      objc_mutex_lock(zptr->lock);
+      if (tmp)
 	{
-	  old->cur = size;
-	  return ptr;
+	  nf_block *block;
+	  size_t old = 0;
+  
+	  for (block = zptr->blocks; block != NULL; block = block->next) {
+	    if (ptr >= (void*)block && ptr < ((void*)block)+block->size) {
+		old = ((void*)block)+block->size - ptr;
+		break;
+	    }
+	  }
+	  if (old > 0)
+	    {
+	      if (size < old)
+		old = size;
+	      memcpy(tmp, ptr, old);
+	    }
 	}
-      else
-	{
-	  void *tmp = nmalloc(zone, size);
-
-	  if (tmp)
-	    memcpy(tmp, ptr, old->cur);
-	  nfree(zone, ptr);	/* Book keeping	*/
-	  return tmp;
-	}
+      zptr->use--;
+      objc_mutex_unlock(zptr->lock);
     }
+  return tmp;
 }
 
 /*
@@ -1448,39 +1400,24 @@ nrealloc (NSZone *zone, void *ptr, size_t size)
 static void
 nfree (NSZone *zone, void *ptr)
 {
-  if (ptr)
-    {
-      nf_chunk *old = &((nf_chunk*)ptr)[-1];
+  nfree_zone *zptr = (nfree_zone*)zone;
 
-      if (old->max >= old->cur)
-	{
-	  old->cur = old->max + NBSZ;
-	  old->max = 0;
-	}
-      else
-        [NSException raise: NSMallocException
-	            format: @"Attempt to free freed memory"];
-    }
+  objc_mutex_lock(zptr->lock);
+  zptr->use--;
+  objc_mutex_unlock(zptr->lock);
 }
 
 static void
 rnfree (NSZone *zone, void *ptr)
 {
+  nfree_zone *zptr = (nfree_zone*)zone;
+
   nfree(zone, ptr);
-  if (nrecycle1(zone))
+  if (zptr->use == 0)
     {
       [gnustep_global_lock lock];
-      if (dead_zones == zone)
-	dead_zones = zone->next;
-      else
-	{
-	  NSZone *ptr = dead_zones;
-
-	  while (ptr->next != zone)
-	    ptr = ptr->next;
-	  ptr->next = zone->next;
-	}
-      objc_free((void*)zone);
+      nrecycle1(zone);
+      destroy_zone(zone);
       [gnustep_global_lock unlock];
     }
 }
@@ -1684,6 +1621,7 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       zone->common.name = nil;
       zone->lock = objc_mutex_allocate();
       zone->blocks = objc_malloc(startsize);
+      zone->use = 0;
       if (zone->blocks == NULL)
         {
           objc_mutex_deallocate(zone->lock);
@@ -1700,8 +1638,8 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
     }
 
     [gnustep_global_lock lock];
-    newZone->next = live_zones;
-    live_zones = newZone;
+    newZone->next = zone_list;
+    zone_list = newZone;
     [gnustep_global_lock unlock];
 
     return newZone;
@@ -1745,36 +1683,8 @@ NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
 inline void
 NSRecycleZone (NSZone *zone)
 {
-    if (!zone || zone == NSDefaultMallocZone())
-      {
-        (zone->recycle)(zone);
-	return;
-      }
-
-    [gnustep_global_lock lock];
-    if (live_zones = zone) {
-	live_zones = zone->next;
-	zone->next = 0;
-    }
-    else {
-        NSZone *ptr = live_zones;
-
-	while (ptr && ptr->next != zone) {
-	    ptr = ptr->next;
-	}
-	if (ptr == 0) {
-            if (zone->name != nil)
-                [NSException raise: NSMallocException
-                             format: @"Zone %s not available for recycling",
-                             [zone->name cString]];
-            else
-                [NSException raise: NSMallocException
-                             format: @"Zone not available for recycling"];
-	}
-	ptr->next = zone->next;
-	zone->next = 0;
-    }
-    [gnustep_global_lock unlock];
+    if (zone == 0)
+	zone == NSDefaultMallocZone();
 
     (zone->recycle)(zone);
 }
