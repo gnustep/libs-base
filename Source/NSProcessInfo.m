@@ -107,17 +107,17 @@ information."
 @implementation _NSConcreteProcessInfo
 - (id)autorelease
 {
-	return self;
+  return self;
 }
 
 - (void)release
 {
-	return;
+  return;
 }
 
 - (id)retain
 {
-	return self;
+  return self;
 }
 @end
 
@@ -150,32 +150,32 @@ static NSMutableDictionary* _gnu_environment = nil;
 static void 
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
-	int i;
+  int i;
 	
-	/* Getting the process name */
-	_gnu_processName = [NSString stringWithCString:argv[0]];
-	[_gnu_processName retain];
+  /* Getting the process name */
+  _gnu_processName = [NSString stringWithCString:argv[0]];
+  [_gnu_processName retain];
 	
-	/* Copy the argument list */
-	_gnu_arguments = [[NSMutableArray arrayWithCapacity:0] retain];
-	for (i = 1; i < argc; i++) {
-		[_gnu_arguments addObject:[NSString stringWithCString:argv[i]]];
-	}
+  /* Copy the argument list */
+  _gnu_arguments = [[NSMutableArray arrayWithCapacity:0] retain];
+  for (i = 1; i < argc; i++) {
+    [_gnu_arguments addObject:[NSString stringWithCString:argv[i]]];
+  }
 	
-	/* Copy the evironment list */
-	_gnu_environment = [[NSMutableDictionary dictionaryWithCapacity:0] retain];
-	i = 0;
-	while (env[i]) {
-		char* cp;
-		cp = strchr(env[i],'=');
-		/* Temporary set *cp to \000 ... for copying purpose */
-		*cp = '\000';
-		[_gnu_environment setObject:[NSString stringWithCString:(cp+1)]
-			forKey:[NSString stringWithCString:env[i]]];
-		/* Return the original value of environ[i] */
-		*cp = '=';
-		i++;
-	}
+  /* Copy the evironment list */
+  _gnu_environment = [[NSMutableDictionary dictionaryWithCapacity:0] retain];
+  i = 0;
+  while (env[i]) {
+    char* cp;
+    cp = strchr(env[i],'=');
+    /* Temporary set *cp to \000 ... for copying purpose */
+    *cp = '\000';
+    [_gnu_environment setObject:[NSString stringWithCString:(cp+1)]
+		      forKey:[NSString stringWithCString:env[i]]];
+    /* Return the original value of environ[i] */
+    *cp = '=';
+    i++;
+  }
 }
 
 /* Place the _gnu_process_args function in the _libc_subinit section so
@@ -184,7 +184,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
    for other formats besides ELF. */
 #ifdef __ELF__
 static void * __libobjects_subinit_args__
-	__attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
+__attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
 #else
 #undef main
 int main(int argc, char *argv[], char *env[])
@@ -201,16 +201,16 @@ int main(int argc, char *argv[], char *env[])
  *************************************************************************/
 + (NSProcessInfo *)processInfo
 {
-	// Check if the main() function was successfully called
+  // Check if the main() function was successfully called
 #ifdef NeXT
-	NSAssert(_gnu_processName && _gnu_arguments _gnu_environment,
-		_GNU_MISSING_MAIN_FUNCTION_CALL);
+  NSAssert(_gnu_processName && _gnu_arguments _gnu_environment,
+	   _GNU_MISSING_MAIN_FUNCTION_CALL);
 #endif /* NeXT */
 
-	if (!_gnu_sharedProcessInfoObject)
-		_gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+  if (!_gnu_sharedProcessInfoObject)
+    _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
 		
-	return _gnu_sharedProcessInfoObject;
+  return _gnu_sharedProcessInfoObject;
 }
 
 /*************************************************************************
@@ -218,40 +218,40 @@ int main(int argc, char *argv[], char *env[])
  *************************************************************************/
 - (NSArray *)arguments
 {
-	return [[_gnu_arguments copyWithZone:[self zone]] autorelease];
+  return [[_gnu_arguments copyWithZone:[self zone]] autorelease];
 }
 
 - (NSDictionary *)environment
 {
-	return [[_gnu_environment copyWithZone:[self zone]] autorelease];
+  return [[_gnu_environment copyWithZone:[self zone]] autorelease];
 }
 
 - (NSString *)hostName
 {
-	if (!_gnu_hostName) {
-		char *hn = NSZoneMalloc([self zone], _GNU_MAX_HOST_NAMELEN);
+  if (!_gnu_hostName) {
+    char *hn = NSZoneMalloc([self zone], _GNU_MAX_HOST_NAMELEN);
 		
-		gethostname(hn, _GNU_MAX_HOST_NAMELEN);
-		_gnu_hostName = [NSString stringWithCString:hn];
-		[_gnu_hostName retain];
-		NSZoneFree([self zone], hn);
-	}
+    gethostname(hn, _GNU_MAX_HOST_NAMELEN);
+    _gnu_hostName = [NSString stringWithCString:hn];
+    [_gnu_hostName retain];
+    NSZoneFree([self zone], hn);
+  }
 	
-	return [[_gnu_hostName copyWithZone:[self zone]] autorelease];
+  return [[_gnu_hostName copyWithZone:[self zone]] autorelease];
 }
 
 - (NSString *)processName
 {
-	return [[_gnu_processName copyWithZone:[self zone]] autorelease];
+  return [[_gnu_processName copyWithZone:[self zone]] autorelease];
 }
 
 - (NSString *)globallyUniqueString
 {
-	// $$$ The format of the string is not specified by the OpenStep 
-	// specification. It could be useful to change this format after
-	// NeXTSTEP release 4.0 comes out.
-	return [NSString stringWithFormat:@"%@:%d:[%@]",
-		[self hostName],(int)getpid(),[[NSDate date] description]];
+  // $$$ The format of the string is not specified by the OpenStep 
+  // specification. It could be useful to change this format after
+  // NeXTSTEP release 4.0 comes out.
+  return [NSString stringWithFormat:@"%@:%d:[%@]",
+		   [self hostName],(int)getpid(),[[NSDate date] description]];
 }
 
 /*************************************************************************
@@ -259,11 +259,11 @@ int main(int argc, char *argv[], char *env[])
  *************************************************************************/
 - (void)setProcessName:(NSString *)newName
 {
-	if (newName && [newName length]) {
-		[_gnu_processName autorelease];
-		_gnu_processName = [newName copyWithZone:[self zone]];
-	}
-	return;
+  if (newName && [newName length]) {
+    [_gnu_processName autorelease];
+    _gnu_processName = [newName copyWithZone:[self zone]];
+  }
+  return;
 }
 
 @end
