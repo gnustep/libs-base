@@ -132,7 +132,10 @@ static id tmp_kludge_protocol = nil;
 
 - (void) encodeWithCoder: aRmc
 {
-  assert ([_connection isValid]);
+  if (![_connection isValid])
+    [self error: "Trying to encode an invalid Proxy.\n"
+	  "You should request ConnectionBecameInvalidNotification's and\n"
+	  "remove all references to the Proxy's of invalid Connections."];
   [[self classForConnectedCoder: aRmc] 
    encodeObject: self withConnectedCoder: aRmc];
 }
@@ -173,7 +176,10 @@ enum
 
   encoder_connection = [aRmc connection];
   assert (encoder_connection);
-  assert ([encoder_connection isValid]);
+  if (![encoder_connection isValid])
+    [self error: "Trying to encode to an invalid Connection.\n"
+	  "You should request ConnectionBecameInvalidNotification's and\n"
+	  "remove all references to the Proxy's of invalid Connections."];
 
   /* Find out if anObject is a proxy or not. */
   if (class_is_kind_of (object_get_class (anObject), self))
@@ -426,6 +432,10 @@ enum
 {
   if (debug_proxy)
     printf("Proxy forwarding %s\n", sel_get_name(aSel));
+  if (![_connection isValid])
+    [self error: "Trying to send message to an invalid Proxy.\n"
+	  "You should request ConnectionBecameInvalidNotification's and\n"
+	  "remove all references to the Proxy's of invalid Connections."];
   return [_connection forwardForProxy: self
 		      selector: aSel
 		      argFrame: frame];
