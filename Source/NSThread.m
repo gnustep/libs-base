@@ -556,10 +556,10 @@ gnustep_base_thread_callback()
 
 @interface GSPerformHolder : NSObject
 {
-  id		receiver;
-  id		argument;
-  SEL		selector;
-  NSLock	*lock;		// Not retained.
+  id			receiver;
+  id			argument;
+  SEL			selector;
+  NSConditionLock	*lock;		// Not retained.
 }
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
