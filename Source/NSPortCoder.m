@@ -57,6 +57,7 @@ static BOOL debug_connected_coder = NO;
   unsigned sequence_number;
   int identifier;
   BOOL _is_by_copy;
+  BOOL _is_by_ref;
 }
 
 + newForWritingWithConnection: (NSConnection*)c
@@ -143,6 +144,11 @@ static BOOL debug_connected_coder = NO;
   return _is_by_copy;
 }
 
+- (BOOL) isByref
+{
+  return _is_by_ref;
+}
+
 - (unsigned) sequenceNumber
 {
   return sequence_number;
@@ -164,10 +170,10 @@ static BOOL debug_connected_coder = NO;
 
 
 /*
- *	These two methods are called by Coder's designated object encoder when
- *	an object is to be sent over the wire with/without bycopy.
+ *	These three methods are called by Coder's designated object encoder when
+ *	an object is to be sent over the wire with/without bycopy/byref.
  *	We make sure that if the object asks us whether it is to be sent bycopy
- *	it is told the right thing.
+ *	or byref it is told the right thing.
  */
 - (void) _doEncodeObject: anObj
 {
@@ -182,16 +188,36 @@ static BOOL debug_connected_coder = NO;
 
 - (void) _doEncodeBycopyObject: anObj
 {
-    BOOL        old = _is_by_copy;
+    BOOL        oldBycopy = _is_by_copy;
+    BOOL        oldByref = _is_by_ref;
     id          obj;
     Class       cls;
 
     _is_by_copy = YES;
+    _is_by_ref = NO;
     obj = [anObj replacementObjectForPortCoder: (NSPortCoder*)self];
     cls = [obj classForPortCoder];
     [self encodeClass: cls];
     [obj encodeWithCoder: (NSCoder*)self];
-    _is_by_copy = old;
+    _is_by_copy = oldBycopy;
+    _is_by_ref = oldByref;
+}
+
+- (void) _doEncodeByrefObject: anObj
+{
+    BOOL        oldBycopy = _is_by_copy;
+    BOOL        oldByref = _is_by_ref;
+    id          obj;
+    Class       cls;
+
+    _is_by_copy = NO;
+    _is_by_ref = YES;
+    obj = [anObj replacementObjectForPortCoder: (NSPortCoder*)self];
+    cls = [obj classForPortCoder];
+    [self encodeClass: cls];
+    [obj encodeWithCoder: (NSCoder*)self];
+    _is_by_copy = oldBycopy;
+    _is_by_ref = oldByref;
 }
 
 - (void) writeSignature
@@ -422,6 +448,12 @@ static BOOL debug_connected_coder = NO;
 }
 
 - (BOOL) isBycopy
+{
+  [self subclassResponsibility:_cmd];
+  return NO;
+}
+
+- (BOOL) isByref
 {
   [self subclassResponsibility:_cmd];
   return NO;

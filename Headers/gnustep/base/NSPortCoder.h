@@ -38,6 +38,7 @@
 - (NSPort*) decodePortObject;
 - (void) encodePortObject: (NSPort*)aPort;
 - (BOOL) isBycopy;
+- (BOOL) isByref;
 
 @end
 

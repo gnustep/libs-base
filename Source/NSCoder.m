@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
+#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSCoder.h>
 #include <gnustep/base/NSCoder.h>
 
@@ -36,7 +37,7 @@
 }
 
 - (void) encodeValueOfObjCType: (const char*)type
-   at: (const void*)address;
+   at: (const void*)address
 {
   [self subclassResponsibility:_cmd];
 }
@@ -47,18 +48,18 @@
   [self subclassResponsibility:_cmd];
 }
 
-- (void) encodeDataObject: (NSData*)data;
+- (void) encodeDataObject: (NSData*)data
 {
   [self subclassResponsibility:_cmd];
 }
 
-- (NSData*) decodeDataObject;
+- (NSData*) decodeDataObject
 {
   [self subclassResponsibility:_cmd];
   return nil;
 }
 
-- (unsigned int) versionForClassName: (NSString*)className;
+- (unsigned int) versionForClassName: (NSString*)className
 {
   [self subclassResponsibility:_cmd];
   return 0;
@@ -84,51 +85,66 @@
 	  at:where];
 }
 
-- (void) encodeBycopyObject: (id)anObject;
+- (void) encodeBycopyObject: (id)anObject
 {
   [self encodeObject:anObject];
 }
 
-- (void) encodeConditionalObject: (id)anObject;
+- (void) encodeByrefObject: (id)anObject
 {
   [self encodeObject:anObject];
 }
 
-- (void) encodeObject: (id)anObject;
+- (void) encodeBytes: (void*)d length: (unsigned)l
+{
+  const char *type = @encode(unsigned char);
+  const unsigned char *where = (const unsigned char*)d;
+
+  [self encodeValueOfObjCType:@encode(unsigned) at:&l];
+  while (l-- > 0)
+    [self encodeValueOfObjCType:type at:where++];
+}
+
+- (void) encodeConditionalObject: (id)anObject
+{
+  [self encodeObject:anObject];
+}
+
+- (void) encodeObject: (id)anObject
 {
   [self encodeValueOfObjCType:@encode(id)
 	at: &anObject];
 }
 
-- (void) encodePropertyList: (id)plist;
+- (void) encodePropertyList: (id)plist
 {
   [self notImplemented:_cmd];
 }
 
-- (void) encodePoint: (NSPoint)point;
+- (void) encodePoint: (NSPoint)point
 {
   [self encodeValueOfObjCType:@encode(NSPoint)
 	at:&point];
 }
 
-- (void) encodeRect: (NSRect)rect;
+- (void) encodeRect: (NSRect)rect
 {
   [self encodeValueOfObjCType:@encode(NSRect)
 	at:&rect];
 }
 
-- (void) encodeRootObject: (id)rootObject;
+- (void) encodeRootObject: (id)rootObject
 {
   [self encodeObject:rootObject];
 }
 
-- (void) encodeSize: (NSSize)size;
+- (void) encodeSize: (NSSize)size
 {
   [self encodeValueOfObjCType:@encode(NSSize)
 	at:&size];
 }
 
-- (void) encodeValuesOfObjCTypes: (const char*)types,...;
+- (void) encodeValuesOfObjCTypes: (const char*)types,...
 {
   va_list ap;
   va_start(ap, types);
@@ -145,7 +161,7 @@
 
 - (void) decodeArrayOfObjCType: (const char*)type
    count: (unsigned)count
-   at: (void*)address;
+   at: (void*)address
 {
   unsigned encoded_count;
   int i, size = objc_sizeof_type(type);
@@ -159,7 +175,25 @@
 	  at:where];
 }
 
-- (id) decodeObject;
+- (void*) decodeBytesWithReturnedLength: (unsigned*)l
+{
+  unsigned count;
+  const char *type = @encode(unsigned char);
+  int i;
+  unsigned char *where;
+  unsigned char *array;
+
+  [self decodeValueOfObjCType:@encode(unsigned) at:&count];
+  *l = count;
+  array = objc_malloc(count);
+  while (count-- > 0)
+    [self decodeValueOfObjCType:type at:where++];
+
+  [[[MallocAddress alloc] initWithAddress: array] autorelease];
+  return array;
+}
+
+- (id) decodeObject
 {
   id o;
   [self decodeValueOfObjCType:@encode(id)
@@ -197,7 +231,7 @@
   return size;
 }
 
-- (void) decodeValuesOfObjCTypes: (const char*)types,...;
+- (void) decodeValuesOfObjCTypes: (const char*)types,...
 {
   va_list ap;
   va_start(ap, types);
@@ -212,12 +246,12 @@
 
 // Managing Zones
 
-- (NSZone*) objectZone;
+- (NSZone*) objectZone
 {
   return NSDefaultMallocZone();
 }
 
-- (void) setObjectZone: (NSZone*)zone;
+- (void) setObjectZone: (NSZone*)zone
 {
   ;
 }

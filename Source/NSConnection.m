@@ -1018,6 +1018,10 @@ static int messages_received_count;
 	case _C_ID:
 	  if (flags & _F_BYCOPY)
 	    [op encodeBycopyObject: *(id*)datum withName: ENCODED_ARGNAME];
+#ifdef	_F_BYREF
+	  else if (flags & _F_BYREF)
+	    [op encodeByrefObject: *(id*)datum withName: ENCODED_ARGNAME];
+#endif
 	  else
 	    [op encodeObject: *(id*)datum withName: ENCODED_ARGNAME];
 	  break;
@@ -1189,6 +1193,10 @@ static int messages_received_count;
 	case _C_ID:
 	  if (flags & _F_BYCOPY)
 	    [op encodeBycopyObject:*(id*)datum withName:ENCODED_RETNAME];
+#ifdef	_F_BYREF
+	  else if (flags & _F_BYREF)
+	    [op encodeByrefObject: *(id*)datum withName: ENCODED_ARGNAME];
+#endif
 	  else
 	    [op encodeObject:*(id*)datum withName:ENCODED_RETNAME];
 	  break;

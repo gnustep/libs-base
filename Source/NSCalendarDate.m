@@ -950,9 +950,11 @@ static id long_day[7] = {@"Sunday",
 	      z = [time_zone timeZoneSecondsFromGMT];
 	      if (z < 0) {
 		z = -z;
+		z /= 60;
 	        k = VSPRINTF_LENGTH(sprintf(&(buf[j]),"-%02d%02d",z/60,z%60));
 	      }
 	      else {
+		z /= 60;
 	        k = VSPRINTF_LENGTH(sprintf(&(buf[j]),"+%02d%02d",z/60,z%60));
               }
 	      j += k;

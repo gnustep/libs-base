@@ -373,7 +373,7 @@ threads, you need to specify the thread package you are using when
 running configure:
 
 @example
-LIBS=-lpthread; ./configure --prefix=/usr/local/GNUstep
+LIBS=-lpcthread; ./configure --prefix=/usr/local/GNUstep
 @end example
 
 After this you should add the shell script @file{GNUstep.sh} in the makefile

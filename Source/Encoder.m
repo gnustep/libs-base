@@ -578,7 +578,7 @@ my_object_is_class(id object)
 }
 
 
-/* These next two methods are the designated coder methods called when
+/* These next three methods are the designated coder methods called when
    we've determined that the object has not already been
    encoded---we're not simply going to encode a cross-reference number
    to the object, we're actually going to encode an object (either a
@@ -611,10 +611,16 @@ my_object_is_class(id object)
   [encoded_object encodeWithCoder: (id)self];
 }
 
-/* This method overridden by ConnectedCoder */
+/* This method overridden by NSPortCoder */
 - (void) _doEncodeObject: anObj
 {
   [self _doEncodeBycopyObject:anObj];
+}
+
+/* This method overridden by NSPortCoder */
+- (void) _doEncodeByrefObject: anObj
+{
+  [self _doEncodeObject: anObj];
 }
 
 
@@ -622,6 +628,7 @@ my_object_is_class(id object)
 - (void) _encodeObject: anObj
    withName: (NSString*) name
    isBycopy: (BOOL) bycopy_flag
+   isByref: (BOOL) byref_flag
    isForwardReference: (BOOL) forward_ref_flag
 {
   [self encodeName:name];
@@ -681,6 +688,8 @@ my_object_is_class(id object)
 	  [self encodeIndent];
 	  if (bycopy_flag)
 	    [self _doEncodeBycopyObject:anObj];
+	  else if (byref_flag)
+	    [self _doEncodeByrefObject:anObj];
 	  else
 	    [self _doEncodeObject:anObj];	    
 	  [self encodeUnindent];
@@ -730,20 +739,42 @@ my_object_is_class(id object)
 - (void) encodeObject: anObj
    withName: (NSString*)name
 {
-  [self _encodeObject:anObj withName:name isBycopy:NO isForwardReference:NO];
+  [self _encodeObject:anObj
+	     withName:name
+	     isBycopy:NO
+	      isByref:NO
+   isForwardReference:NO];
 }
 
 
 - (void) encodeBycopyObject: anObj
    withName: (NSString*)name
 {
-  [self _encodeObject:anObj withName:name isBycopy:YES isForwardReference:NO];
+  [self _encodeObject:anObj
+	     withName:name
+	     isBycopy:YES
+	      isByref:NO
+   isForwardReference:NO];
+}
+
+- (void) encodeByrefObject: anObj
+   withName: (NSString*)name
+{
+  [self _encodeObject:anObj
+	     withName:name
+	     isBycopy:NO
+	      isByref:YES
+   isForwardReference:NO];
 }
 
 - (void) encodeObjectReference: anObj
    withName: (NSString*)name
 {
-  [self _encodeObject:anObj withName:name isBycopy:NO isForwardReference:YES];
+  [self _encodeObject:anObj
+	     withName:name
+	     isBycopy:NO
+	      isByref:NO
+   isForwardReference:YES];
 }
 
 

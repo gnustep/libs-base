@@ -44,6 +44,8 @@
    count: (unsigned)count
    at: (const void*)array;
 - (void) encodeBycopyObject: (id)anObject;
+- (void) encodeByrefObject: (id)anObject;
+- (void) encodeBytes: (void*)addr length: (unsigned)l;
 - (void) encodeConditionalObject: (id)anObject;
 - (void) encodeDataObject: (NSData*)data;
 - (void) encodeObject: (id)anObject;
@@ -61,6 +63,7 @@
 - (void) decodeArrayOfObjCType: (const char*)type
                          count: (unsigned)count
                             at: (void*)address;
+- (void*) decodeBytesWithReturnedLength: (unsigned*)l;
 - (NSData*) decodeDataObject;
 - (id) decodeObject;
 - (id) decodePropertyList;

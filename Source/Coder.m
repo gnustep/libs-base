@@ -199,6 +199,11 @@ static BOOL debug_coder = NO;
   [self encodeBycopyObject: anObject withName: NULL];
 }
 
+- (void) encodeByrefObject: (id)anObject
+{
+  [self encodeByrefObject: anObject withName: NULL];
+}
+
 - (void) encodeConditionalObject: (id)anObject
 {
   /* NeXT's implementation handles *forward* references by running
