@@ -1,5 +1,7 @@
 2003-08-23  Adam Fedor  <fedor@gnu.org>
 
+	* configure.ac: Fix mistake in checking for ffi.
+
 	* Tools/AGSIndex.m: Add NSString compatibility interface
 	when compiling on apple-apple-apple.
 	* Tools/AGSHtml.m: idem.
