@@ -1,3 +1,13 @@
+2000-08-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSConcreteNumber.m (-compare:): Add return at end to quiet
+	compiler warning.
+
+	* Source/NSFileHandle.m: Change +fileHandle... methods to use
+	abstracts class's allocWithZone.
+
+	* Source/libgnustep-base.def: Update for new/removed classes.
+
 2000-08-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Correct order of args to

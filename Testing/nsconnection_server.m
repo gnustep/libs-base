@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSDistantObject.h>
@@ -6,6 +5,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include "server.h"
 
@@ -53,61 +53,221 @@
   else
     return nil;
 }
+
 - print: (const char *)msg
 {
   printf(">>%s\n", msg);
+  fflush(stdout);
   return self;
 }
-- getLong: (out unsigned long*)i
+
+
+- (BOOL) sendBoolean: (BOOL)b
 {
-  printf(">>getLong:(out) from client %lu\n", *i);
-  *i = 3;
-  printf(">>getLong:(out) to client %lu\n", *i);
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), b, !b);
+  fflush(stdout);
+  return !b;
+}
+
+/* This causes problems, because the runtime encodes this as "*", a string! */
+- (void) getBoolean: (BOOL*)bp
+{
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), *bp, !(*bp));
+  fflush(stdout);
+  *bp = !(*bp);
+}
+
+- (unsigned char) sendUChar: (unsigned char)num
+{
+  unsigned char rnum = num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+/* This causes problems, because the runtime encodes this as "*", a string! */
+- (void) getUChar: (unsigned char *)num
+{
+  unsigned char rnum = *num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (char) sendChar: (char)num
+{
+  char rnum = num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+- (void) getChar: (char *)num
+{
+  char rnum = *num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (short) sendShort: (short)num
+{
+  short rnum = num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+- (void) getShort: (short *)num
+{
+  short rnum = *num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (int) sendInt: (int)num
+{
+  int rnum = num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+- (void) getInt: (int *)num
+{
+  int rnum = *num + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (long) sendLong: (long)num
+{
+  long rnum = num + 129;
+  printf("%s: got %ld, returning %ld\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+- (void) getLong: (long *)num
+{
+  long rnum = *num + 129;
+  printf("%s: got %ld, returning %ld\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (float) sendFloat: (float)num
+{
+  float rnum = num + 129;
+  printf("%s: got %f, returning %f\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+- (void) getFloat: (float *)num
+{
+  float rnum = *num + 129;
+  printf("%s: got %f, returning %f\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (double) sendDouble: (double)num
+{
+  double rnum = num + 129;
+  printf("%s: got %g, returning %g\n", sel_get_name(_cmd), num, rnum);
+  fflush(stdout);
+  return rnum;
+}
+
+- (void) getDouble: (double *)num
+{
+  double rnum = *num + 129;
+  printf("%s: got %g, returning %g\n", sel_get_name(_cmd), *num, rnum);
+  fflush(stdout);
+}
+
+- (small_struct) sendSmallStruct: (small_struct)str
+{
+  char rnum = str.z + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), str.z, rnum);
+  fflush(stdout);
+  str.z = rnum;
+  return str;
+}
+
+- (void) getSmallStruct: (small_struct *)str
+{
+  char rnum = str->z + 129;
+  printf("%s: got %d, returning %d\n", sel_get_name(_cmd), str->z, rnum);
+  fflush(stdout);
+  str->z = rnum;
+}
+
+- (foo) sendStruct: (foo)f
+{
+  foo f2 = {1, "horse", 987654};
+  printf("%s: got i=%d s=%s l=%lu", sel_get_name(_cmd), f.i, f.s, f.l);
+  fflush(stdout);
+  printf(" returning i=%d s=%s l=%lu\n", f2.i, f2.s, f2.l);
+  fflush(stdout);
+  return f2;
+}
+
+- (void) getStruct: (foo *)f
+{
+  foo f2 = {1, "horse", 987654};
+  printf("%s: got i=%d s=%s l=%lu,", sel_get_name(_cmd), f->i, f->s, f->l);
+  fflush(stdout);
+  printf(" returning i=%d s=%s l=%lu\n", f2.i, f2.s, f2.l);
+  fflush(stdout);
+  *f = f2;
+}
+
+- (id) sendObject: (id)str
+{
+  printf ("%s: got object (%s) returning self \n", sel_get_name(_cmd), 
+    object_get_class_name (str));
+  fflush(stdout);
   return self;
 }
+
+- (void) getObject: (id *)str
+{
+  printf ("%s: got object (%s)\n", sel_get_name(_cmd), 
+    object_get_class_name (*str));
+  fflush(stdout);
+}
+
+- (char *) sendString: (char *)str
+{
+  printf ("%s: got string (%s)", sel_get_name(_cmd), str);
+  str[0] = 'N';
+  printf(" returning (%s)\n", str);
+  fflush(stdout);
+  return str;
+}
+
+- (void) getString: (char **)str
+{
+  printf ("%s: got string (%s)", sel_get_name(_cmd), *str);
+  (*str)[0] = 'N';
+  printf(" returning (%s)\n", *str);
+  fflush(stdout);
+}
+
 - (oneway void) shout
 {
-  printf(">>Ahhhhh\n");
-  return;
+  printf ("%s: got it", sel_get_name(_cmd));
+  fflush(stdout);
 }
-- callbackNameOn: obj
-{
-  printf (">>callback name is (%s)\n", object_get_class_name (obj));
-  return self;
-}
+
 /* sender must also respond to 'bounce:count:' */
 - bounce: sender count: (int)c
 {
+  printf ("%s: got message %d, bouncing back %d", sel_get_name(_cmd), c, c-1);
+  fflush(stdout);
   if (--c)
     [sender bounce:self count:c];
   return self;
 }
-- (BOOL) doBoolean: (BOOL)b
-{
-  printf(">> got boolean '%c' (0x%x) from client\n", b, (unsigned int)b);
-  return YES;
-}
-/* This causes problems, because the runtime encodes this as "*",
-   a string! */
-- getBoolean: (BOOL*)bp
-{
-  printf(">> got boolean pointer '%c' (0x%x) from client\n", 
-	 *bp, (unsigned int)*bp);
-  return self;
-}
-/* This also causes problems, because the runtime also encodes this as "*",
-   a string! */
-- getUCharPtr: (unsigned char *)ucp
-{
-  printf(">> got unsignec char pointer '%c' (0x%x) from client\n", 
-	 *ucp, (unsigned int)*ucp);
-  return self;
-}
 
-- (id) echoObject: (id)obj
-{
-  return obj;
-}
 - (void) outputStats:obj
 {
   id	c = [obj connectionForProxy];
@@ -123,91 +283,42 @@
       id v = [o objectForKey:k];
       printf("%s - %s\n", [k cString], [[v description] cString]);
     }
+  fflush(stdout);
 }
 
-/* This isn't working yet */
-- (foo*) sendStructPtr: (foo*)f
-{
-  printf(">>reference: i=%d s=%s l=%lu\n",
-	 f->i, f->s, f->l);
-  f->i = 88;
-  return f;
-}
-- sendStruct: (foo)f
-{
-  printf(">>value: i=%d s=%s l=%lu\n",
-	 f.i, f.s, f.l);
-  f.i = 88;
-  return self;
-}
-- sendSmallStruct: (small_struct)small
-{
-  printf(">>small value struct: z=%d\n", small.z);
-  return self;
-}
-- (foo) returnStruct
-{
-  foo f = {1, "horse", 987654};
-  return f;
-}
-- (small_struct) returnSmallStruct
-{
-  small_struct f = {22};
-  return f;
-}
-- (foo) returnSetStruct: (int)x
-{
-  foo f = {1, "horse", 987654};
-  f.l = x;
-  return f;
-}
-- (small_struct) returnSetSmallStruct: (int)x
-{
-  small_struct f = {22};
-  f.z = x;
-  return f;
-}
 /* Doesn't work because GCC generates the wrong encoding: "@0@+8:+12^i+16" */
 - sendArray: (int[3])a
 {
-  printf(">> array %d %d %d\n", a[0], a[1], a[2]);
+  printf("  >> array %d %d %d\n", a[0], a[1], a[2]);
+  fflush(stdout);
   return self;
 }
+
 - sendStructArray: (struct myarray)ma
 {
-  printf(">>struct array %d %d %d\n", ma.a[0], ma.a[1], ma.a[2]);
+  printf("  >>struct array %d %d %d\n", ma.a[0], ma.a[1], ma.a[2]);
+  fflush(stdout);
   return self;
 }
 
 - sendDouble: (double)d andFloat: (float)f
 {
-  printf(">> double %f, float %f\n", d, f);
-  return self;
-}
-
-- (double*) doDoublePointer: (double*)d
-{
-  printf(">> got double %f from client\n", *d);
-  *d = 1.234567;
-  printf(">> returning double %f to client\n", *d);
-  return d;
-}
-
-- sendCharPtrPtr: (char**)sp
-{
-  printf(">> got char**, string %s\n", *sp);
+  printf("%s: got double %f, float %f\n", sel_get_name(_cmd), d, f);
+  fflush(stdout);
   return self;
 }
 
 - sendBycopy: (bycopy id)o
 {
   printf(">> bycopy class is %s\n", object_get_class_name (o));
+  fflush(stdout);
   return self;
 }
 #ifdef	_F_BYREF
 - sendByref: (byref id)o
 {
   printf(">> byref class is %s\n", object_get_class_name (o));
+  fflush(stdout);
   return self;
 }
 #endif
@@ -216,21 +327,8 @@
 {
   printf(">> manyArgs: %d %d %d %d %d %d %d %d %d %d %d %d\n",
 	 i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12);
+  fflush(stdout);
   return self;
-}
-
-- (float) returnFloat
-{
-  static float f = 2.3456789f;
-  return f;
-}
-
-- (double) returnDouble
-{
-  /* static <This is crashing gcc ss-940902 config'ed for irix5.1, 
-     but running on irix5.2> */
-  double d = 4.567891234;
-  return d;
 }
 
 - connectionBecameInvalid: notification
@@ -267,23 +365,55 @@
 }
 @end
 
-int main(int argc, char *argv[])
+void
+usage(const char *program)
 {
+  printf("Usage: %s [-d] [server_name]\n", program);
+  printf("  -d     - Debug connection\n");
+}
+
+int main(int argc, char *argv[], char **env)
+{
+  int i, debug;
   id l = [[Server alloc] init];
   id o = [[NSObject alloc] init];
-  double d;
   NSConnection *c;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  extern int optind;
+
+  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  debug = 0;
+  while ((i = getopt(argc, argv, "hd")) != EOF)
+    switch (i) 
+      {
+      case 'd':
+	debug = 1;
+	break;
+      case 'h':
+	usage(argv[0]);
+	exit(0);
+	break;
+      default:
+	usage(argv[0]);
+	exit(1);
+	break;
+      }
 
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
 
+  if (debug)
+    {
+      [NSConnection setDebug: 10];
+      [NSDistantObject setDebug: 10];
+    }
+
   c = [NSConnection defaultConnection];
   [c setRootObject: l];
 
-  if (argc > 1)
-    [c registerName: [NSString stringWithCString: argv[1]]];
+  if (optind < argc)
+    [c registerName: [NSString stringWithCString: argv[optind]]];
   else
     [c registerName: @"test2server"];
 
@@ -295,12 +425,13 @@ int main(int argc, char *argv[])
   [c setDelegate:l];
 
   [l addObject: o];
-  d = [l returnDouble];
-  printf("got double %f\n", d);
-  printf("list's hash is 0x%x\n", (unsigned)[l hash]);
-  printf("object's hash is 0x%x\n", (unsigned)[o hash]);
+  printf("  list's hash is 0x%x\n", (unsigned)[l hash]);
+  printf("  object's hash is 0x%x\n", (unsigned)[o hash]);
+  printf("Running...\n");
 
+  //[NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 2 * 60]];
   [NSRunLoop run];
+  printf("Finished\n");
 
   [arp release];
   exit(0);

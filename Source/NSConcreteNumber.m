@@ -383,6 +383,7 @@
 	    return NSOrderedSame;
 	}
     }
+  return 0; /* Quiet warnings */
 }
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale

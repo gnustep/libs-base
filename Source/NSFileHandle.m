@@ -59,49 +59,49 @@ static Class NSFileHandle_concrete_class = nil;
 
 + (id) fileHandleForReadingAtPath: (NSString*)path
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initForReadingAtPath: path]);
 }
 
 + (id) fileHandleForWritingAtPath: (NSString*)path
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initForWritingAtPath: path]);
 }
 
 + (id) fileHandleForUpdatingAtPath: (NSString*)path
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initForUpdatingAtPath: path]);
 }
 
 + (id) fileHandleWithStandardError
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initWithStandardError]);
 }
 
 + (id) fileHandleWithStandardInput
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initWithStandardInput]);
 }
 
 + (id) fileHandleWithStandardOutput
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initWithStandardOutput]);
 }
 
 + (id) fileHandleWithNullDevice
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initWithNullDevice]);
 }
@@ -287,7 +287,7 @@ NSString*	NSFileHandleOperationException =
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initAsClientAtAddress: address
 				      service: service
@@ -298,7 +298,7 @@ NSString*	NSFileHandleOperationException =
 				       service: (NSString*)service
 				      protocol: (NSString*)protocol
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initAsClientInBackgroundAtAddress: address
 						  service: service
@@ -311,7 +311,7 @@ NSString*	NSFileHandleOperationException =
 				      protocol: (NSString*)protocol
 				      forModes: (NSArray*)modes
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initAsClientInBackgroundAtAddress: address
 						  service: service
@@ -323,7 +323,7 @@ NSString*	NSFileHandleOperationException =
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
 {
-  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initAsServerAtAddress: address
 				      service: service

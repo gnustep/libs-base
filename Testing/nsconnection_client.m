@@ -9,6 +9,7 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSProcessInfo.h>
 #include <assert.h>
 #include "server.h"
 
@@ -41,158 +42,304 @@
 }
 @end
 
-int main (int argc, char *argv[])
+int con_data (id prx)
 {
-  id a;
-  id p;
-  id callback_receiver = [NSObject new];
-  id o;
-  id localObj;
-  unsigned long i = 4;
-  id c;
-  int j,k;
-  foo f = {99, "cow", 9876543};
-  foo f2;
-  small_struct ss;
-  foo *fp;
-  const char *n;
+  BOOL b;
+  unsigned char uc;
+  char c;
+  short s;
+  int i;
+  long l;
+  float flt = 2.718;
+  double dbl = 3.14159265358979323846264338327;
+  char *str;
+  id obj;
+  small_struct small = {12};
+  foo ffoo = {99, "cow", 9876543};
   int a3[3] = {66,77,88};
   struct myarray ma = {{55,66,77}};
-  double dbl = 3.14159265358979323846264338327;
-  double *dbl_ptr;
-  char *string = "Hello from the client";
-  small_struct small = {12};
-  BOOL b;
-  const char *type;
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-  Auth	*auth = [Auth new];
 
-GSDebugAllocationActive(YES);
-  [NSConnection setDebug: 10];
-  [NSDistantObject setDebug: 10];
-  //[NSPort setDebug: 10];
+  printf("Testing data sending\n");
+ 
+  printf("Boolean:\n");
+  b = YES;
+  printf("  sending %d", b);
+  b = [prx sendBoolean: b];
+  printf(" got %d\n", b);
+  b = YES;
+  printf("  sending ptr to %d", b);
+  [prx getBoolean: &b];
+  printf(" got %d\n", b);
+
+  printf("UChar:\n");
+  uc = 23;
+  printf("  sending %x", uc);
+  uc = [prx sendUChar: uc];
+  printf(" got %x\n", uc);
+  uc = 24;
+  printf("  sending ptr to %x", uc);
+  [prx getUChar: &uc];
+  printf(" got %x\n", uc);
+
+  printf("Char:\n");
+  c = 53;
+  printf("  sending %x", c);
+  c = [prx sendChar: c];
+  printf(" got %x\n", c);
+  c = 54;
+  printf("  sending ptr to %x", c);
+  [prx getChar: &c];
+  printf(" got %x\n", c);
+
+  printf("Short:\n");
+  s = 23;
+  printf("  sending %d", s);
+  s = [prx sendShort: s];
+  printf(" got %d\n", s);
+  s = 24;
+  printf("  sending ptr to %d", s);
+  [prx getShort: &s];
+  printf(" got %d\n", s);
+
+  printf("Int:\n");
+  i = 23;
+  printf("  sending %d", i);
+  i = [prx sendInt: i];
+  printf(" got %d\n", i);
+  i = 24;
+  printf("  sending ptr to %d", i);
+  [prx getInt: &i];
+  printf(" got %c\n", c);
+
+  printf("Long:\n");
+  l = 23;
+  printf("  sending %ld", l);
+  l = [prx sendLong: l];
+  printf(" got %ld\n", l);
+  l = 24;
+  printf("  sending ptr to %ld", l);
+  [prx getLong: &l];
+  printf(" got %ld\n", l);
+
+  printf("Float:\n");
+  flt = 23;
+  printf("  sending %f", flt);
+  flt = [prx sendFloat: flt];
+  printf(" got %f\n", flt);
+  flt = 24;
+  printf("  sending ptr to %f", flt);
+  [prx getFloat: &flt];
+  printf(" got %f\n", flt);
+
+  printf("Double:\n");
+  dbl = 23;
+  printf("  sending %g", dbl);
+  dbl = [prx sendDouble: dbl];
+  printf(" got %g\n", dbl);
+  dbl = 24;
+  printf("  sending ptr to %g", dbl);
+  [prx getDouble: &dbl];
+  printf(" got %g\n", dbl);
+
+  printf("  >>sending double %f, float %f\n", dbl, flt);
+  [prx sendDouble:dbl andFloat:flt];
+
+
+  printf("String:\n");
+  str = "My String 1";
+  printf("  sending (%s)", str);
+  str = [prx sendString: str];
+  printf(" got (%s)\n", str);
+  str = "My String 3";
+  printf("  sending ptr to (%s)", str);
+  [prx getString: &str];
+  printf(" got (%s)\n", str);
+  
+  printf("Small Struct:\n");
+  //printf("  sending %x", small.z);
+  //small = [prx sendSmallStruct: small];
+  //printf(" got %x\n", small.z);
+  printf("  sending ptr to %x", small.z);
+  [prx getSmallStruct: &small];
+  printf(" got %x\n", small.z);
+
+  printf("Struct:\n");
+  printf("  sending i=%d,s=%s,l=%ld", ffoo.i, ffoo.s, ffoo.l);
+  ffoo = [prx sendStruct: ffoo];
+  printf(" got %d %s %ld\n", ffoo.i, ffoo.s, ffoo.l);
+  printf("  sending ptr to i=%d,s=%s,l=%ld", ffoo.i, ffoo.s, ffoo.l);
+  [prx getStruct: &ffoo];
+  printf(" got i=%d,s=%s,l=%ld\n", ffoo.i, ffoo.s, ffoo.l);
+
+  printf("Object:\n");
+  obj = [NSObject new];
+  printf("  sending %s", [[obj description] cString]);
+  obj = [prx sendObject: obj];
+  printf(" got %s\n", [[obj description] cString]);
+  printf("  sending ptr to %s", [[obj description] cString]);
+  [prx getObject: &obj];
+  printf(" got %s\n",  [[obj description] cString]);
+
+  return 0;
+}
+
+void
+usage(const char *program)
+{
+  printf("Usage: %s [-d -t] [host] [server]\n", program);
+  printf("  -d     - Debug connection\n");
+  printf("  -t     - Data type test only\n");
+}
+
+int main (int argc, char *argv[], char **env)
+{
+  int c, i, k, j, debug, type_test;
+  id a;
+  id cobj, prx;
+  id obj = [NSObject new];
+  id o;
+  id localObj;
+  const char *n;
+  NSAutoreleasePool	*arp;
+  Auth *auth;
+  extern int optind;
+  extern char *optarg;
+
+  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  arp = [NSAutoreleasePool new];
+  auth = [Auth new];
+  GSDebugAllocationActive(YES);
+
+  debug = 0;
+  type_test = 0;
+  while ((c = getopt(argc, argv, "hdt")) != EOF)
+    switch (c) 
+      {
+      case 'd':
+	debug = 1;
+	break;
+      case 't':
+	type_test = 1;
+	break;
+      case 'h':
+	usage(argv[0]);
+	exit(0);
+	break;
+      default:
+	usage(argv[0]);
+	exit(1);
+	break;
+      }
+
+  if (debug)
+    {
+      [NSConnection setDebug: 10];
+      [NSDistantObject setDebug: 10];
+      //[NSPort setDebug: 10];
+    }
 
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
-printf("oneway %d\n", _F_ONEWAY);
-  if (argc > 1)
+
+  if (optind < argc)
     {
-      if (argc > 2)
-	p = [NSConnection rootProxyForConnectionWithRegisteredName: [NSString stringWithCString: argv[2]]
-			host: [NSString stringWithCString:argv[1]]];
+      if (optind+1 < argc)
+	prx = [NSConnection rootProxyForConnectionWithRegisteredName: 
+			      [NSString stringWithCString: argv[optind+1]]
+			host: [NSString stringWithCString:argv[optind]]];
       else
-	p = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server"
-			host:[NSString stringWithCString:argv[1]]];
+	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
+			     @"test2server"
+			host:[NSString stringWithCString:argv[optind]]];
     }
   else
-    p = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server" 
+    prx = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server" 
 		    host:nil];
-  c = [p connectionForProxy];
-  [c setDelegate:auth];
-  [c setRequestTimeout:180.0];
-  [c setReplyTimeout:180.0];
+
+  if (prx == nil)
+    {
+      printf("ERROR: Failed to connect to server\n");
+      return -1;
+    }
+
+  cobj = [prx connectionForProxy];
+  [cobj setDelegate:auth];
+  [cobj setRequestTimeout:180.0];
+  [cobj setReplyTimeout:180.0];
   localObj = [[NSObject alloc] init];
-  [p outputStats:localObj];
-  [p getLong:&i];
-  [p getLong:&i];
-  [p outputStats:localObj];
+  [prx outputStats:localObj];
   printf(">>list proxy's hash is 0x%x\n", 
-	 (unsigned)[p hash]);
+	 (unsigned)[prx hash]);
   printf(">>list proxy's self is 0x%x = 0x%x\n", 
-	 (unsigned)[p self], (unsigned)p);
-  n = [p name];
+	 (unsigned)[prx self], (unsigned)prx);
+  n = [prx name];
   printf(">>proxy's name is (%s)\n", n);
-  [p print:">>This is a message from the client."];
-  printf(">>getLong:(out) to server i = %lu\n", i);
-  [p getLong:&i];
-  printf(">>getLong:(out) from server i = %lu\n", i);
-  assert(i == 3);
-  o = [p objectAt:0];
-  printf(">>object proxy's hash is 0x%x\n", (unsigned)[o hash]);
-  [p shout];
-  [p callbackNameOn:callback_receiver];
+
+
+  [prx print:">>This is a message from the client.<<"];
+
+  con_data (prx);
+  if (type_test)
+    return 0;
+
+  o = [prx objectAt:0];
+  printf("  >>object proxy's hash is 0x%x\n", (unsigned)[o hash]);
+  [prx shout];
+
   /* this next line doesn't actually test callbacks, it tests
      sending the same object twice in the same message. */
-  [p callbackNameOn:p];
-  b = [p doBoolean:YES];
-  printf(">>BOOL value is '%c' (0x%x)\n", b, (int)b);
-#if 0
-  /* Both these cause problems because GCC encodes them as "*",
-     indistinguishable from strings. */
-  b = NO;
-  [p getBoolean:&b];
-  printf(">>BOOL reference is '%c' (0x%x)\n", b, (int)b);
-  b = NO;
-  [p getUCharPtr:&b];
-  printf(">>UCHAR reference is '%c' (0x%x)\n", b, (int)b);
-#endif
-  fp = [p sendStructPtr:&f];
-  fp->i = 11;
-  [p sendStruct:f];
-  [p sendSmallStruct:small];
-  [p sendStructArray:ma];
-#if 1
-  f2 = [p returnStruct];
-  printf(">>returned foo: i=%d s=%s l=%lu\n",
-	 f2.i, f2.s, f2.l);
-  ss = [p returnSmallStruct];
-  printf(">>returned ss: %d\n", ss.z);
+  printf("  >>send same object twice in message\n");
+  [prx sendObject: prx];
 
-  f2 = [p returnSetStruct: 99];
-  printf(">>returned foo: i=%d s=%s l=%lu\n",
-	 f2.i, f2.s, f2.l);
-  ss = [p returnSetSmallStruct: 99];
-  printf(">>returned ss: %d\n", ss.z);
-#endif
-  {
-    float f = 98.6f;
-    printf(">>sending double %f, float %f\n", dbl, f);
-    [p sendDouble:dbl andFloat:f];
-  }
-  dbl_ptr = [p doDoublePointer:&dbl];
-  printf(">>got double %f from server\n", *dbl_ptr);
-  [p sendCharPtrPtr:&string];
-  /* testing "-performSelector:" */
-  if (p != [p performSelector:sel_get_any_uid("self")])
-    [NSObject error:"trying performSelector:"];
+
+
+  printf("performSelector:\n");
+  if (prx != [prx performSelector:sel_get_any_uid("self")])
+    printf("  ERROR\n");
+  else
+    printf("  ok\n");
+
+
   /* testing "bycopy" */
   /* reverse the order on these next two and it doesn't crash,
      however, having manyArgs called always seems to crash.
      Was this problem here before object forward references?
-     Check a snapshot. 
      Hmm. It seems like a runtime selector-handling bug. */
-  if (![p isProxy])
-    [p manyArgs:1 :2 :3 :4 :5 :6 :7 :8 :9 :10 :11 :12];
-  [p sendBycopy:callback_receiver];
-  printf(">>returned float %f\n", [p returnFloat]);
-  printf(">>returned double %f\n", [p returnDouble]);
+  printf("many Arguments:\n");
+  [prx manyArgs:1 :2 :3 :4 :5 :6 :7 :8 :9 :10 :11 :12];
+
+
+  printf("Testing bycopy/byref:\n");
+  [prx sendBycopy: obj];
+
 #ifdef	_F_BYREF
-  [p sendByref:callback_receiver];
-  [p sendByref:@"hello"];
-  [p sendByref:[NSDate date]];
+  [prx sendByref: obj];
+  [prx sendByref:@"hello"];
+  [prx sendByref:[NSDate date]];
 #endif
 
-  [p addObject:localObj];
-  k = [p count];
+  [prx addObject:localObj];
+  k = [prx count];
   for (j = 0; j < k; j++)
     {
-      id remote_peer_obj = [p objectAt:j];
+      id remote_peer_obj = [prx objectAt:j];
       printf("triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
+
 #if 0
       /* xxx look at this again after we use release/retain everywhere */
       if ([remote_peer_obj isProxy])
 	[remote_peer_obj release];
 #endif
-      remote_peer_obj = [p objectAt:j];
+      remote_peer_obj = [prx objectAt:j];
       printf("repeated triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
     }
 
-  [p outputStats:localObj];
+  [prx outputStats:localObj];
 
-  o = [c statistics];
+  o = [cobj statistics];
   a = [o allKeys];
 
   for (j = 0; j < [a count]; j++)
@@ -204,40 +351,43 @@ printf("oneway %d\n", _F_ONEWAY);
     }
 
   {
-    NSDate	*d = [NSDate date];
-    NSData	*sen = [NSMutableData data];
+    NSDate	  *d = [NSDate date];
+    NSMutableData *sen = [NSMutableData data];
     id		rep;
 
     [sen setLength: 100000];
-    rep = [p echoObject: sen];
-    NSLog(@"Send: 0x%x, Reply: 0x%x, Length: %d", sen, rep, [rep length]);
-    [NSConnection setDebug: 0];
-    [NSDistantObject setDebug: 0];
-    //[NSPort setDebug: 0];
+    rep = [prx sendObject: sen];
+    printf("Send: 0x%p, Reply: 0x%p, Length: %d\n", sen, rep, [rep length]);
+    if (debug)
+      {
+	[NSConnection setDebug: 0];
+	[NSDistantObject setDebug: 0];
+	//[NSPort setDebug: 0];
+      }
     for (i = 0; i < 10000; i++)
       {
 #if 0
-	k = [p count];
+	k = [prx count];
 	for (j = 0; j < k; j++)
 	  {
-	    id remote_peer_obj = [p objectAt: j];
+	    id remote_peer_obj = [prx objectAt: j];
 	  }
 #endif
-	[p echoObject: localObj];
+	[prx sendObject: localObj];
       }
       
-    NSLog(@"Delay is %f", [d timeIntervalSinceNow]);
-exit(0);
+    printf("Delay is %f\n", [d timeIntervalSinceNow]);
   }
 
   [arp release];
+
   arp = [NSAutoreleasePool new];
-  printf("%d\n", [c retainCount]);
-  printf("%s\n", [[[c statistics] description] cString]);
+  printf("%d\n", [cobj retainCount]);
+  printf("%s\n", [[[cobj statistics] description] cString]);
 //  printf("%s\n", GSDebugAllocationList(YES));
 
   [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
-  [c invalidate];
+  [cobj invalidate];
   [arp release];
-  exit(0);
+  return 0;
 }
