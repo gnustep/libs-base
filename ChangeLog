@@ -1,3 +1,15 @@
+Tue Jan  5 16:20:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * configure.in: New stuff for making byte-order and type-size
+        information available in GSConfig.h
+        * src/NSTask.h: Set process group for child process and preliminary
+        code for keeping track of active child tasks.
+        * src/include/Foundation.h: include GSConfig.h
+        * src/include/NSObject.h: include GSConfig.h
+        * src/include/NSByteOrder.h: Use GS_WORDS_BIGENDIAN from GSConfig.h
+        * src/include/GSConfig.h.in: Add typedefs for types with known size.
+        * src/include/config.h.in: Added HAVE_SETPGID and HAVE_SETPGRP
+
 Tue Jan  5  9:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/NSTask.m: Workaround for bug in linux waitpid(), general

@@ -26,6 +26,7 @@
 #ifndef __Foundation_h_GNUSTEP_BASE_INCLUDE
 #define __Foundation_h_GNUSTEP_BASE_INCLUDE
 
+#include <GSConfig.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObject.h>
 

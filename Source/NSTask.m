@@ -30,6 +30,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSMapTable.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSNotification.h>
@@ -42,17 +43,56 @@
 
 NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
+static NSRecursiveLock  *tasksLock = nil;
+static NSMapTable       *activeTasks = 0;
+
 @interface NSTask (Private)
 - (void) _collectChild;
 - (void) _sendNotification;
+- (void) _terminatedChild: (int)status;
 @end
 
 @implementation NSTask
+
+static void handleSignal(int sig)
+{
+  int result;
+  int status;
+
+  do
+    {
+      result = waitpid(-1, &status, WNOHANG);
+      if (result > 0)
+        {
+          if (WIFEXITED(status))
+            {
+              NSTask    *t;
+              [tasksLock lock];
+              t = (NSTask*)NSMapGet(activeTasks, (void*)result);
+              [tasksLock unlock];
+              if (t)
+                {
+                  [t _terminatedChild: WEXITSTATUS(status)];
+                }
+            }
+        }
+    }
+  while (result > 0);  
+}
 
 + (void) initialize
 {
   if (self == [NSTask class])
     {
+      [gnustep_global_lock lock];
+      if (tasksLock == nil)
+        {
+          tasksLock = [NSRecursiveLock new];
+          activeTasks = NSCreateMapTable(NSIntMapKeyCallBacks,
+                NSNonOwnedPointerMapValueCallBacks, 0);
+        }
+      [gnustep_global_lock unlock];
+
       signal(SIGCHLD, SIG_IGN);
     }
 }
@@ -70,6 +110,9 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
 - (void) dealloc
 {
+  [tasksLock lock];
+  NSMapRemove(activeTasks, (void*)taskId);
+  [tasksLock unlock];
   [arguments release];
   [environment release];
   [launchPath release];
@@ -387,6 +430,14 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     }
   if (pid == 0)
     {
+#if     HAVE_SETPGRP
+      setpgrp();
+#else
+#if     HAVE_SETPGID
+      pid = getpid();
+      setpgid(pid, pid);
+#endif
+#endif
       /*
        * Set up stdin, stdout and stderr by duplicating descriptors as
        * necessary and closing the originals (to ensure we won't have a
@@ -421,6 +472,11 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     {
       taskId = pid;
       hasLaunched = YES;
+
+      [tasksLock lock];
+      NSMapInsert(activeTasks, (void*)taskId, (void*)self);
+      [tasksLock unlock];
+
       /*
        *	Close the ends of any pipes used by the child.
        */
@@ -487,26 +543,32 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
       errno = 0;
       result = waitpid(taskId, &terminationStatus, WNOHANG);
-      if (result == taskId || (result == 0 && errno == 0))
+      if (result < 0)
+        {
+          NSLog(@"waitpid %d, result %d, error %s",
+                taskId, result, strerror(errno));
+          [self _terminatedChild: -1];
+        }
+      else if (result == taskId || (result == 0 && errno == 0))
 	{
 	  if (WIFEXITED(terminationStatus))
 	    {
-	      terminationStatus = WEXITSTATUS(terminationStatus);
-	      hasCollected = YES;
-	      hasTerminated = YES;
-	      if (hasNotified == NO)
-		{
-		  [self _sendNotification];
-		}
+#ifdef  WAITDEBUG
+              NSLog(@"waitpid %d, termination status = %d",
+                        taskId, terminationStatus);
+#endif
+              [self _terminatedChild: WEXITSTATUS(terminationStatus)];
 	    }
-#ifdef  DEBUG
+#ifdef  WAITDEBUG
           else
-            NSLog(@"Termination status = %d", terminationStatus);
+            NSLog(@"waitpid %d, event status = %d",
+                        taskId, terminationStatus);
 #endif
 	}
-#ifdef  DEBUG
+#ifdef  WAITDEBUG
       else
-        NSLog(@"waitpid result %d, error %s", result, strerror(errno));
+        NSLog(@"waitpid %d, result %d, error %s",
+                taskId, result, strerror(errno));
 #endif
     }
 }
@@ -528,5 +590,20 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 			forModes: nil];
     }
 }
+
+- (void) _terminatedChild: (int)status
+{
+  [tasksLock lock];
+  NSMapRemove(activeTasks, (void*)taskId);
+  [tasksLock unlock];
+  terminationStatus = status;
+  hasCollected = YES;
+  hasTerminated = YES;
+  if (hasNotified == NO)
+    {
+      [self _sendNotification];
+    }
+}
+
 @end
 
