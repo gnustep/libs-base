@@ -146,14 +146,15 @@ static NSMutableDictionary	*_hostCache = nil;
     {
       return nil;
     }
-  if (name != localHostName && entry == (struct hostent*)NULL)
+  if ([name isEqualToString: localHostName] == NO
+    && entry == (struct hostent*)NULL)
     {
       NSLog(@"Host '%@' init failed - perhaps the name/address is wrong or "
 	@"networking is not set up on your machine", name);
       RELEASE(self);
       return nil;
     }
-  else if (localHostName == nil && entry != (struct hostent*)NULL)
+  else if (name == nil && entry != (struct hostent*)NULL)
     {
       NSLog(@"Nil hostname supplied but network database entry is not empty");
       RELEASE(self);
@@ -163,7 +164,7 @@ static NSMutableDictionary	*_hostCache = nil;
   names = [NSMutableSet new];
   addresses = [NSMutableSet new];
 
-  if (name == localHostName)
+  if ([name isEqualToString: localHostName] == YES)
     {
       extra = [hostClass _localAddresses];
     }
@@ -325,13 +326,13 @@ myHostName()
     }
   if (host == nil)
     {
-      if (name == localHostName)
+      if ([name isEqualToString: localHostName] == YES)
 	{
 	  /*
 	   * Special GNUstep extension host - we try to have a host entry
 	   * with ALL the IP addresses of any interfaces on the local machine
 	   */
-	  host = [[self alloc] _initWithHostEntry: 0 key: name];
+	  host = [[self alloc] _initWithHostEntry: 0 key: localHostName];
 	  AUTORELEASE(host);
 	}
       else
