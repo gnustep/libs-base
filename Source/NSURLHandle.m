@@ -97,31 +97,49 @@ static Class		NSURLHandleClass = 0;
    * be used in preference to any class added earlier.
    */
   [registryLock lock];
-  [registry removeObjectIdenticalTo: urlHandleSubclass];
-  [registry addObject: urlHandleSubclass];
+  NS_DURING
+    {
+      [registry removeObjectIdenticalTo: urlHandleSubclass];
+      [registry addObject: urlHandleSubclass];
+    }
+  NS_HANDLER
+    {
+      [registryLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   [registryLock unlock];
 }
 
 + (Class) URLHandleClassForURL: (NSURL*)url
 {
   unsigned	count;
+  Class		c = 0;
 
   [registryLock lock];
-  count = [registry count];
-
-  /*
-   * Find a class to handle the URL, try most recently registered first.
-   */
-  while (count-- > 0)
+  NS_DURING
     {
-      id	found = [registry objectAtIndex: count];
+      count = [registry count];
 
-      if ([found canInitWithURL: url] == YES)
+      /*
+       * Find a class to handle the URL, try most recently registered first.
+       */
+      while (count-- > 0)
 	{
-	  [registryLock unlock];
-	  return (Class)found;
+	  id	found = [registry objectAtIndex: count];
+
+	  if ([found canInitWithURL: url] == YES)
+	    {
+	      c = (Class)found;
+	    }
 	}
     }
+  NS_HANDLER
+    {
+      [registryLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   [registryLock unlock];
   return 0;
 }
@@ -404,8 +422,17 @@ static NSLock			*fileLock = nil;
 
       path = [path stringByStandardizingPath];
       [fileLock lock];
-      obj = [fileCache objectForKey: path];
-      AUTORELEASE(RETAIN(obj));
+      NS_DURING
+	{
+	  obj = [fileCache objectForKey: path];
+	  AUTORELEASE(RETAIN(obj));
+	}
+      NS_HANDLER
+	{
+	  [fileLock unlock];
+	  [localException raise];
+	}
+      NS_ENDHANDLER
       [fileLock unlock];
     }
   return obj;
@@ -451,15 +478,26 @@ static NSLock			*fileLock = nil;
       id	obj;
 
       [fileLock lock];
-      obj = [fileCache objectForKey: path];
+      NS_DURING
+	{
+	  obj = [fileCache objectForKey: path];
+	  if (obj != nil)
+	    {
+	      DESTROY(self);
+	      RETAIN(obj);
+	    }
+	}
+      NS_HANDLER
+	{
+	  [fileLock unlock];
+	  [localException raise];
+	}
+      NS_ENDHANDLER
+      [fileLock unlock];
       if (obj != nil)
 	{
-	  RELEASE(self);
-	  self = RETAIN(obj);
-	  [fileLock unlock];
-	  return self;
+	  return obj;
 	}
-      [fileLock unlock];
     }
 
   if ((self = [super initWithURL: url cached: cached]) != nil)
@@ -468,7 +506,16 @@ static NSLock			*fileLock = nil;
       if (cached == YES)
 	{
 	  [fileLock lock];
-	  [fileCache setObject: self forKey: _path];
+	  NS_DURING
+	    {
+	      [fileCache setObject: self forKey: _path];
+	    }
+	  NS_HANDLER
+	    {
+	      [fileLock unlock];
+	      [localException raise];
+	    }
+	  NS_ENDHANDLER
 	  [fileLock unlock];
 	}
     }
