@@ -40,41 +40,41 @@ INSTALL NEWS CODING-STANDARDS README ANNOUNCE BUGS
 TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE BUGS
 
 gnustep-base_TEXI_FILES = \
-version.tmpl.texi \
-gnustep-base.tmpl.texi \
-gnustep-zones.tmpl.texi
+version.texi \
+gnustep-base.texi \
+gnustep-zones.texi
 gnustep-base_DOC_INSTALL_DIR = Developer/Base/Manual
 
 coding-standards_TEXI_FILES = \
-coding-standards.tmpl.texi
+coding-standards.texi
 coding-standards_DOC_INSTALL_DIR = Developer/CodingStandards
 
-BUGS_TEXI_FILES = version.tmpl.texi
-BUGS_TEXT_MAIN = todo.tmpl.texi
+BUGS_TEXI_FILES = version.texi
+BUGS_TEXT_MAIN = todo.texi
 BUGS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-INSTALL_TEXI_FILES = version.tmpl.texi
-INSTALL_TEXT_MAIN = install.tmpl.texi
+INSTALL_TEXI_FILES = version.texi
+INSTALL_TEXT_MAIN = install.texi
 INSTALL_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-NEWS_TEXI_FILES = version.tmpl.texi
-NEWS_TEXT_MAIN = news.tmpl.texi
+NEWS_TEXI_FILES = version.texi
+NEWS_TEXT_MAIN = news.texi
 NEWS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-CODING-STANDARDS_TEXI_FILES = version.tmpl.texi
-CODING-STANDARDS_TEXT_MAIN = coding-standards.tmpl.texi
+CODING-STANDARDS_TEXI_FILES = version.texi
+CODING-STANDARDS_TEXT_MAIN = coding-standards.texi
 CODING-STANDARDS_DOC_INSTALL_DIR = Developer/CodingStandards
 
-README_TEXI_FILES = version.tmpl.texi
-README_TEXT_MAIN = readme.tmpl.texi
+README_TEXI_FILES = version.texi
+README_TEXT_MAIN = readme.texi
 README_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-ANNOUNCE_TEXI_FILES = version.tmpl.texi
-ANNOUNCE_TEXT_MAIN = announce.tmpl.texi
+ANNOUNCE_TEXI_FILES = version.texi
+ANNOUNCE_TEXT_MAIN = announce.texi
 ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
-STATUS_TEXI_FILES = version.tmpl.texi
-STATUS_TEXT_MAIN = status.tmpl.texi
+STATUS_TEXI_FILES = version.texi
+STATUS_TEXT_MAIN = status.texi
 STATUS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 -include Makefile.preamble

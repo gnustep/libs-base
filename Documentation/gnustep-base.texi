@@ -20,7 +20,7 @@ END-INFO-DIR-ENTRY
 @end ifinfo
 
 @c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
-@include version.tmpl.texi
+@include version.texi
 
 @ifinfo
 This file documents the features and implementation of The GNUstep 
