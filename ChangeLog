@@ -1,3 +1,8 @@
+2000-08-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Correct order of args to
+	lastDayOfGregorianMonth()
+
 2000-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Foundation/NSDebug.h: removed GS_IMPORT
