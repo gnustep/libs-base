@@ -19,6 +19,8 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+ 
+   AutogsdocSource	NSUser.m
    */ 
 
 #ifndef __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
@@ -38,6 +40,7 @@
  */
 GS_EXPORT void	GSSetUserName(NSString *name);
 
+GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
 GS_EXPORT NSString *GSSystemRootDirectory(void);
 GS_EXPORT NSArray  *GSStandardPathPrefixes(void);
 #endif

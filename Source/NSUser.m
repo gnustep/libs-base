@@ -53,66 +53,100 @@
 #define stringify(X) lowlevelstringify(X)
 
 static NSString	*theUserName = nil;
+/* We read these four only once */
+static NSString	*gnustep_user_root = nil;    /* GNUSTEP_USER_ROOT */
+static NSString	*gnustep_local_root = nil;   /* GNUSTEP_LOCAL_ROOT */
+static NSString	*gnustep_network_root = nil; /* GNUSTEP_NETWORK_ROOT */
+static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
 
+static void	setupPathNames();
+static NSString	*userDirectory(NSString *name, BOOL defaults);
+
+/**
+ * Sets the user name for this process.  This method is supplied to enable
+ * setuid programs to run properly as the user indicated by their effective
+ * user Id.<br />
+ * This function calls [NSUserDefaults+resetStandardUserDefaults] as well
+ * as changing the value returned by NSUserName() and modifying the user
+ * root directory for the process.
+ */
 void
 GSSetUserName(NSString* name)
 {
   if (theUserName == nil)
     {
-      theUserName = RETAIN(name);
+      NSUserName();	// Ensure we know the old user name.
     }
-  else if ([theUserName isEqualToString: name] == NO)
+  if ([theUserName isEqualToString: name] == NO)
     {
+      /*
+       * We must ensure that setupPathNames() has been called to set
+       * up the template user path from the environment variable.
+       * Then we can destroy the cached user path so that next time
+       * anything wants it, it will be regenerated from the template
+       * and the new user details.
+       */
+      setupPathNames();
+      DESTROY(gnustep_user_root);
+      /*
+       * Next we can set up the new user name, and reset the user defaults
+       * system so that standard user defaults will be those of the new
+       * user.
+       */
       ASSIGN(theUserName, name);
       [NSUserDefaults resetStandardUserDefaults];
     }
 }
 
-/*
+/**
  * Return the caller's login name as an NSString object.
  * The 'LOGNAME' environment variable is our primary source, but we use
- * other system-dependent sources if LOGNAME is not set.
+ * other system-dependent sources if LOGNAME is not set.  This function
+ * is intended to return the name under which the user logged in rather
+ * than the name associated with their numeric user ID (though the two
+ * are usually the same).  If you have a setuid program and want to
+ * change the user to reflect the uid, use GSSetUserName()
  */
 NSString *
 NSUserName(void)
 {
   if (theUserName == nil)
     {
-      const char *login_name = 0;
+      const char *loginName = 0;
 #if defined(__WIN32__)
       /* The GetUserName function returns the current user name */
       char buf[1024];
       DWORD n = 1024;
 
       if (GetEnvironmentVariable("LOGNAME", buf, 1024))
-	login_name = buf;
+	loginName = buf;
       else if (GetUserName(buf, &n))
-	login_name = buf;
+	loginName = buf;
 #else
-      login_name = getenv("LOGNAME");
+      loginName = getenv("LOGNAME");
 #if	HAVE_GETPWNAM
       /*
        * Check that LOGNAME contained legal name.
        */
-      if (login_name != 0 && getpwnam(login_name) == 0)
+      if (loginName != 0 && getpwnam(loginName) == 0)
 	{
-	  login_name = 0;
+	  loginName = 0;
 	}
 #endif	/* HAVE_GETPWNAM */
 #if	HAVE_GETLOGIN
       /*
        * Try getlogin() if LOGNAME environmentm variable didn't work.
        */
-      if (login_name == 0)
+      if (loginName == 0)
 	{
-	  login_name = getlogin();
+	  loginName = getlogin();
 	}
 #endif	/* HAVE_GETLOGIN */
 #if HAVE_GETPWUID
       /*
        * Try getting the name of the effective user as a last resort.
        */
-      if (login_name == 0)
+      if (loginName == 0)
 	{
 #if HAVE_GETEUID
 	  int uid = geteuid();
@@ -120,12 +154,12 @@ NSUserName(void)
 	  int uid = getuid();
 #endif /* HAVE_GETEUID */
 	  struct passwd *pwent = getpwuid (uid);
-	  login_name = pwent->pw_name;
+	  loginName = pwent->pw_name;
 	}
 #endif /* HAVE_GETPWUID */
 #endif
-      if (login_name)
-	GSSetUserName([NSString stringWithCString: login_name]);
+      if (loginName)
+	theUserName = [[NSString alloc] initWithCString: loginName];
       else
 	[NSException raise: NSInternalInconsistencyException
 		    format: @"Unable to determine current user name"];
@@ -133,7 +167,10 @@ NSUserName(void)
   return theUserName;
 }
 
-/* Return the caller's home directory as an NSString object. */
+/**
+ * Return the caller's home directory as an NSString object.
+ * Calls NSHomeDirectoryForUser() to do this.
+ */
 NSString *
 NSHomeDirectory(void)
 {
@@ -170,22 +207,32 @@ GSStringFromWin32EnvironmentVariable(const char * envVar)
 }
 #endif
 
-/* Return LOGIN_NAME's home directory as an NSString object. */
+/**
+ * Returns loginName's home directory as an NSString object.
+ */
 NSString *
-NSHomeDirectoryForUser(NSString *login_name)
+NSHomeDirectoryForUser(NSString *loginName)
 {
+  NSString	*s;
 #if !defined(__MINGW__)
   struct passwd *pw;
 
   [gnustep_global_lock lock];
-  pw = getpwnam ([login_name cString]);
+  pw = getpwnam ([loginName cString]);
+  if (pw == 0)
+    {
+      NSLog(@"Unable to locate home directory for '%@'", loginName);
+      s = nil;
+    }
+  else
+    {
+      s = [NSString stringWithCString: pw->pw_dir];
+    }
   [gnustep_global_lock unlock];
-  return [NSString stringWithCString: pw->pw_dir];
+  return s;
 #else
   /* Then environment variable HOMEPATH holds the home directory
      for the user on Windows NT; Win95 has no concept of home. */
-  NSString *s;
-
   [gnustep_global_lock lock];
   s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
   if (s != nil)
@@ -198,6 +245,10 @@ NSHomeDirectoryForUser(NSString *login_name)
 #endif
 }
 
+/**
+ * Returns the full username of the current user.
+ * If unable to determine this, returns the standard user name.
+ */
 NSString *
 NSFullUserName(void)
 {
@@ -212,23 +263,17 @@ NSFullUserName(void)
 #endif
 }
 
-
-/* We read these four only once */
-static NSString	*gnustep_user_root = nil;    /* GNUSTEP_USER_ROOT */
-static NSString	*gnustep_local_root = nil;   /* GNUSTEP_LOCAL_ROOT */
-static NSString	*gnustep_network_root = nil; /* GNUSTEP_NETWORK_ROOT */
-static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
-
 static void
 setupPathNames()
 {
 #if defined (__MINGW32__)
   NSString *systemDrive = GSStringFromWin32EnvironmentVariable("SystemDrive");
 #endif
-  if (gnustep_system_root == nil)
+  if (gnustep_user_root == nil)
     {
       NS_DURING
 	{
+	  BOOL	warned = NO;
 	  NSDictionary	*env;
 	  
 	  [gnustep_global_lock lock];
@@ -236,8 +281,6 @@ setupPathNames()
 	  /* Double-Locking Pattern */
 	  if (gnustep_system_root == nil)
 	    {
-	      BOOL	warned = NO;
-
 	      env = [[NSProcessInfo processInfo] environment];
 	      /* Any of the following might be nil */
 	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
@@ -262,7 +305,9 @@ setupPathNames()
 		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
 		    "- using %s\n", [gnustep_system_root lossyCString]);
 		}
-
+	    }
+	  if (gnustep_local_root == nil)
+	    {
 	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
 	      TEST_RETAIN (gnustep_local_root);
 	      if (gnustep_local_root == nil)
@@ -302,7 +347,9 @@ setupPathNames()
 		    }
 #endif
 		}
-
+	    }
+	  if (gnustep_network_root == nil)
+	    {
 	      gnustep_network_root = [env objectForKey: 
 		@"GNUSTEP_NETWORK_ROOT"];
 	      TEST_RETAIN (gnustep_network_root);
@@ -343,22 +390,10 @@ setupPathNames()
 		    }
 #endif
 		}
-
-	      gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
-	      TEST_RETAIN (gnustep_user_root);
-	      if (gnustep_user_root == nil)
-		{
-		  gnustep_user_root = [NSHomeDirectory()
-		    stringByAppendingPathComponent: @"GNUstep"];
-		  TEST_RETAIN (gnustep_user_root);
-		  if (warned == NO)
-		    {
-		      warned = YES;
-		      fprintf (stderr, 
-			"Warning - GNUSTEP_USER_ROOT is not set "
-			"- using %s\n", [gnustep_user_root lossyCString]);
-		    }
-		}
+	    }
+	  if (gnustep_user_root == nil)
+	    {
+	      gnustep_user_root = [userDirectory(NSUserName(), NO) copy];
 	    }
 
 	  [gnustep_global_lock unlock];
@@ -385,6 +420,154 @@ GSSystemRootDirectory(void)
       setupPathNames();
     }
   return gnustep_system_root;
+}
+
+/**
+ * Return the path of the defaults directory for name.<br />
+ * This uses the GNUSTEP_DEFAULTS_DIRECTORY or the GNUSTEP_USER_ROOT
+ * environment variable to determine the directory.  If the user
+ * has changed, the path for the new user will be based on a template
+ * derived from the path for the original user.
+ */
+NSString*
+GSDefaultsRootForUser(NSString *userName)
+{
+  return userDirectory(userName, YES);
+}
+
+static NSString *
+userDirectory(NSString *name, BOOL defaults)
+{
+  /*
+   * Marker objects should be something which will never
+   * appear in a normal path
+   */
+  static NSString	*uMarker = @"[{<USER>}]";
+  static NSString	*hMarker = @"[{<HOME>}]";
+  static NSString	*fileTemplate = nil;
+  static NSString	*defsTemplate = nil;
+  NSString		*template;
+  NSString		*home;
+  NSString		*path = nil;
+  NSRange		r;
+
+  NSCAssert([name length] > 0, NSInvalidArgumentException);
+
+  if (defaults == YES)
+    {
+      template = defsTemplate;
+    }
+  else
+    {
+      template = fileTemplate;
+    }
+  /**
+   * If we don't have a template set up, ensure that it's set up for
+   * the original user by pre-calling ourself for that user.
+   */
+  if (template == nil && [name isEqual: NSUserName()] == NO)
+    {
+      userDirectory(NSUserName(), defaults);
+    }
+  home = NSHomeDirectoryForUser(name);
+
+  [gnustep_global_lock lock];
+  NS_DURING
+    {
+      if (template == nil)
+	{
+	  NSString	*old;
+
+	  if (defaults == YES)
+	    {
+	      path = [[[NSProcessInfo processInfo] environment]
+		objectForKey: @"GNUSTEP_DEFAULTS_DIRECTORY"];
+	    }
+	  if (path == nil)
+	    {
+	      path = [[[NSProcessInfo processInfo] environment]
+		objectForKey: @"GNUSTEP_USER_ROOT"];
+	    }
+	  if (path == nil)
+	    {
+	      path = [NSHomeDirectory()
+		stringByAppendingPathComponent: @"GNUstep"];
+	      fprintf (stderr, 
+		"Warning - GNUSTEP_USER_ROOT is not set "
+		"- using %s\n", [path lossyCString]);
+	    }
+	  else
+	    {
+	      path = [path stringByExpandingTildeInPath];
+	    }
+	  /*
+	   * We build a template for the user root path by replacing
+	   * the user name and home directory in the original string.
+	   */
+	  old = path;
+	  if ([old hasPrefix: home] == YES)
+	    {
+	      old = [old substringFromIndex: [home length]];
+	      template = hMarker;
+	    }
+	  else
+	    {
+	      template = @"";
+	    }
+	  r = [old rangeOfString: name];
+	  while (r.length > 0)
+	    {
+	      template = [template stringByAppendingFormat:
+		@"%@%@]", [old substringToIndex: r.location], uMarker];
+	      old = [old substringFromIndex: NSMaxRange(r)];
+	      r = [old rangeOfString: name];
+	    }
+	  template = [template stringByAppendingString: old];
+	  RETAIN(template);
+	  if (defaults == YES)
+	    {
+	      defsTemplate = template;
+	    }
+	  else
+	    {
+	      fileTemplate = template;
+	    }
+	}
+      else
+	{
+	  NSMutableString	*m;
+
+	  /*
+	   * Use an existing template to create the user root
+	   * for the current user.
+	   */
+	  m = [template mutableCopy];
+	  r = [m rangeOfString: uMarker];
+	  while (r.length > 0)
+	    {
+	      [m replaceCharactersInRange: r withString: name];
+	      r.location += [name length];
+	      r.length = [m length] - r.location;
+	      r = [m rangeOfString: uMarker
+			   options: NSLiteralSearch
+			     range: r];
+	    }
+	  r = [m rangeOfString: hMarker];
+	  if (r.location == 0)
+	    {
+	      [m replaceCharactersInRange: r withString: home];
+	    }
+	  path = m;
+	  AUTORELEASE(path);
+	}
+    }
+  NS_HANDLER
+    {
+      [gnustep_global_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  return path;
 }
 
 /** Returns an array of strings which contain paths that should be in
@@ -424,7 +607,7 @@ GSStandardPathPrefixes(void)
       NSString	*str;
       unsigned	count = 0;
 
-      if (gnustep_system_root == nil)
+      if (gnustep_user_root == nil)
 	{
 	  setupPathNames();
 	}
@@ -452,6 +635,10 @@ GSStandardPathPrefixes(void)
   return prefixArray;
 }
 
+/**
+ * Returns the standard paths in which applications are stored and
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()
+ */
 NSArray *
 NSStandardApplicationPaths(void)
 {
@@ -459,6 +646,10 @@ NSStandardApplicationPaths(void)
                                              NSAllDomainsMask, YES);
 }
 
+/**
+ * Returns the standard paths in which libraries are stored and
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()
+ */
 NSArray *
 NSStandardLibraryPaths(void)
 {
@@ -466,6 +657,10 @@ NSStandardLibraryPaths(void)
                                              NSAllDomainsMask, YES);
 }
 
+/**
+ * Returns the name of a directory in which temporary files can be stored.
+ * Under GNUstep this is a location which is not readable by other users.
+ */
 NSString *
 NSTemporaryDirectory(void)
 {
@@ -561,6 +756,10 @@ NSTemporaryDirectory(void)
   return tempDirName;
 }
 
+/**
+ * Returns the root directory for the OpenStep (GNUstep) installation.
+ * This si determined by the GNUSTEP_ROOT environment variable if available.
+ */
 NSString *
 NSOpenStepRootDirectory(void)
 {
@@ -577,6 +776,9 @@ NSOpenStepRootDirectory(void)
   return root;
 }
 
+/**
+ * Returns an array of search paths to look at for resources.
+ */
 NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSSearchPathDomainMask domainMask, BOOL expandTilde)
@@ -595,7 +797,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   unsigned		i;
   unsigned		count;
 
-  if (gnustep_system_root == nil)
+  if (gnustep_user_root == nil)
     {
       setupPathNames();
     }
@@ -674,9 +876,7 @@ if (domainMask & mask) \
     {
       if (domainMask & NSUserDomainMask)
 	{
-	  path = [NSHomeDirectory() stringByAppendingPathComponent: 
-	    @"GNUstep"];
-	  [paths addObject: path];
+	  [paths addObject: gnustep_user_root];
 	}
     }
   if (directoryKey == NSDocumentationDirectory)

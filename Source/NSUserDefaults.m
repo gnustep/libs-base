@@ -63,7 +63,6 @@ static SEL	objectForKeySel;
 static SEL	addSel;
 
 /* User's Defaults database */
-static NSString	*GNU_UserDefaultsPrefix = @"GNUstep";
 static NSString	*GNU_UserDefaultsDatabase = @".GNUstepDefaults";
 
 static Class	NSArrayClass;
@@ -209,8 +208,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 /**
  * Resets the shared user defaults object to reflect the current
- * user ID.  Needed by setuid processes whiich change the user they
- * are running as.
+ * user ID.  Needed by setuid processes which change the user they
+ * are running as.<br />
+ * In GNUstep you should call GSSetUserName() when changing your
+ * effective user ID, and that class will call this function for you.
  */
 + (void) resetStandardUserDefaults
 {
@@ -570,28 +571,61 @@ static NSString	*pathForUser(NSString *user)
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSString	*home;
   NSString	*path;
+  NSString	*old;
   NSString      *libpath;
+  unsigned	desired;
+  NSDictionary	*attr;
   BOOL		isDir;
-	
-  home = NSHomeDirectoryForUser(user);
+
+  home = GSDefaultsRootForUser(user);
   if (home == nil)
     {  
       /* Probably on MINGW. Where to put it? */
-      NSLog(@"Could not get home dir. Using GNUSTEP_ROOT");
+      NSLog(@"Could not get user root. Using NSOpenStepRootDirectory()");
       home = NSOpenStepRootDirectory();
-      path = home;
     }
-  else
+  path = [home stringByAppendingPathComponent: @"Defaults"];
+
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+  desired = 0755;
+#else
+  desired = (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+#endif
+  attr = [NSDictionary dictionaryWithObjectsAndKeys: 
+    NSUserName(), NSFileOwnerAccountName,
+    [NSNumber numberWithUnsignedLong: desired], NSFilePosixPermissions,
+    nil];
+
+  if ([mgr fileExistsAtPath: home isDirectory: &isDir] == NO)
     {
-      path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
+      if ([mgr createDirectoryAtPath: home attributes: attr] == NO)
+	{
+	  NSLog(@"Directory '%@' does not exist - failed to create it.", home);
+	  return nil;
+	}
+      else
+	{
+	  NSLog(@"Directory '%@' did not exist - created it", home);
+	  isDir = YES;
+	}
     }
+  if (isDir == NO)
+    {
+      NSLog(@"ERROR - '%@' is not a directory!", home);
+      return nil;
+    }
+
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
-      NSLog(@"Directory '%@' does not exist - creating it", path);
-      if ([mgr createDirectoryAtPath: path attributes: nil] == NO)
+      if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
 	{
-	  NSLog(@"Unable to create user GNUstep directory '%@'", path);
+	  NSLog(@"Directory '%@' does not exist - failed to create it.", path);
 	  return nil;
+	}
+      else
+	{
+	  NSLog(@"Directory '%@' did not exist - created it", path);
+	  isDir = YES;
 	}
     }
   if (isDir == NO)
@@ -599,11 +633,30 @@ static NSString	*pathForUser(NSString *user)
       NSLog(@"ERROR - '%@' is not a directory!", path);
       return nil;
     }
+
   /* Create this path also. The GUI/font cache depends on it being there */
-  libpath = [path stringByAppendingPathComponent: @"Library"];
+  libpath = [home stringByAppendingPathComponent: @"Library"];
   if ([mgr fileExistsAtPath: libpath isDirectory: &isDir] == NO)
-    [mgr createDirectoryAtPath: libpath attributes: nil];
+    [mgr createDirectoryAtPath: libpath attributes: attr];
+
   path = [path stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
+  old = [home stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
+  if ([mgr fileExistsAtPath: path] == NO)
+    {
+      if ([mgr fileExistsAtPath: old] == YES)
+	{
+	  if ([mgr movePath: old toPath: path handler: nil] == YES)
+	    {
+	      NSLog(@"Moved defaults database from old location (%@) to %@",
+		old, path);
+	    }
+	}
+    }
+  if ([mgr fileExistsAtPath: old] == YES)
+    {
+      NSLog(@"Warning - ignoring old defaults database in %@", old);
+    }
+  
   return path;
 }
 
