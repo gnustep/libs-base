@@ -1100,7 +1100,7 @@ static BOOL isPlistObject(id o)
   if (isPlistObject(value) == NO)
     {
       [NSException raise: NSInvalidArgumentException
-	format: @"attempt to set non propetrty list object for key (%@)",
+	format: @"attempt to set non property list object for key (%@)",
 	defaultName];
     }
 
