@@ -653,12 +653,14 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
 							   service: port
 							  protocol: s];
-	  cert = [request objectForKey: GSHTTPSCertificateFileKey];
+	  cert = [request objectForKey: GSHTTPPropertyCertificateFileKey];
           if ([cert length] > 0)
 	    {
-	      NSString	*key = [request objectForKey: GSHTTPSKeyFileKey];
-	      NSString	*pwd = [request objectForKey: GSHTTPSKeyPasswordKey];
+	      NSString	*key;
+	      NSString	*pwd;
 
+	      key = [request objectForKey: GSHTTPPropertyKeyFileKey];
+	      pwd = [request objectForKey: GSHTTPPropertyPasswordKey];
 	      [sock sslSetCertificate: cert privateKey: key PEMpasswd: pwd];
 	    }
 	}
