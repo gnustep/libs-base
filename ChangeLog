@@ -1,3 +1,9 @@
+2002-02-10  Michael Hanni <mhanni@sprintmail.com>
+
+        * Source/NSObjCRuntime.m: changed NSAssert() to NSCAssert() from
+        last change. Also added NSException.h include to make compile
+        correctly and quietly.
+
 2002-02-10  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Source/NSObject.m: changes to enable derived object KeyValueCoding 

@@ -26,6 +26,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <mframe.h>
@@ -129,7 +130,7 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
       return NO;
     }
   //This very highly unprobable value can be used as a marker
-  NSAssert(offset!=UINT_MAX,@"Bad Offset");
+  NSCAssert(offset != UINT_MAX, @"Bad Offset");
   memcpy(data, ((void*)obj) + offset, size);
   return YES;
 }
@@ -146,7 +147,7 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
       return NO;
     }
   //This very highly unprobable value can be used as a marker
-  NSAssert(offset!=UINT_MAX,@"Bad Offset");
+  NSCAssert(offset != UINT_MAX, @"Bad Offset");
   memcpy(((void*)obj) + offset, data, size);
   return YES;
 }
