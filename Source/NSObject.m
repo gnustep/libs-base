@@ -588,6 +588,13 @@ static BOOL double_release_check_enabled = NO;
   if (self == [NSObject class])
     {
       extern void	GSBuildStrings();	// See externs.m
+
+#ifdef __MINGW__
+      // See libgnustep-base-entry.m
+      extern void gnustep_base_socket_init();	
+      gnustep_base_socket_init();	
+#endif
+      
 #ifdef __FreeBSD__
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
