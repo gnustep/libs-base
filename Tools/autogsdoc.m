@@ -1129,6 +1129,7 @@ main(int argc, char **argv, char **env)
 
 	  if ([mgr isReadableFileAtPath: src] == YES)
 	    {
+	      NSData		*d;
 	      NSMutableString	*s;
 	      NSRange		r;
 	      unsigned		l;
@@ -1270,7 +1271,9 @@ main(int argc, char **argv, char **env)
 			       options: NSLiteralSearch
 				 range: NSMakeRange(p, l - p)];
 		}
-	      [s writeToFile: dst atomically: YES];
+
+	      d = [s dataUsingEncoding: NSUTF8StringEncoding];
+	      [d writeToFile: dst atomically: YES];
 	    }
 	  else
 	    {
