@@ -35,7 +35,7 @@ main()
   [local setDelegate: del];
   loop = [NSRunLoop currentRunLoop];
   [NSPortNameServer setPortClass: [GSTcpPort class]];
-  names = [NSPortNameServer defaultPortNameServer];
+  names = [NSPortNameServer systemDefaultPortNameServer];
   [names registerPort: (NSPort*)local forName: @"GSTcpPort"];
   [loop addPort: (NSPort*)local forMode: NSDefaultRunLoopMode];
   [loop run];

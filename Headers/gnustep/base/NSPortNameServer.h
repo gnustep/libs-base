@@ -33,7 +33,7 @@
   NSMapTable	*_portMap;	/* Registered ports information.	*/
   NSMapTable	*_nameMap;	/* Registered names information.	*/
 }
-+ (id) defaultPortNameServer;
++ (id) systemDefaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;
 - (NSPort*) portForName: (NSString*)name
 		 onHost: (NSString*)host;

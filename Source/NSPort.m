@@ -110,7 +110,7 @@ Class	_concreteClass;
  */
 - (void) invalidate
 {
-  [[NSPortNameServer defaultPortNameServer] removePort: self];
+  [[NSPortNameServer systemDefaultPortNameServer] removePort: self];
   _is_valid = NO;
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification

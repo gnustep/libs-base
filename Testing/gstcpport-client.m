@@ -22,7 +22,7 @@ main()
   local = [GSTcpPort new];
   loop = [NSRunLoop currentRunLoop];
   [NSPortNameServer setPortClass: [GSTcpPort class]];
-  names = [NSPortNameServer defaultPortNameServer];
+  names = [NSPortNameServer systemDefaultPortNameServer];
   remote = [names portForName: @"GSTcpPort"];
   [loop addPort: (NSPort*)local forMode: NSDefaultRunLoopMode];
   [remote sendBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 240]
