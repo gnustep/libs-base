@@ -206,11 +206,13 @@ before-all::	../Documentation/Base \
 #
 # Clean up temporary files used while generating documentation.
 #
-after-all::
+after-clean::
 	$(RM) Base.gsdoc
 	$(RM) BaseAdditions.gsdoc
 	if [ -d Base ]; then \
+	  $(RM) Base/stamp; \
 	  rmdir Base; \
+	  $(RM) BaseAdditions/stamp; \
 	  rmdir BaseAdditions; \
 	fi
 

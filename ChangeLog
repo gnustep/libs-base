@@ -1,6 +1,7 @@
 2003-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Implement methodSignatureForSelector for zombies
+	* Source/DocMakefile: Only remove directory with stamp for 'clean'
 
 2003-07-22  Adam Fedor  <fedor@gnu.org>
 
