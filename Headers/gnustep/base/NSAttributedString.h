@@ -3,10 +3,12 @@
 
    String class with attributes
 
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,1997 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
    Date: November 1997
+   Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: April 1999
    
    This file is part of GNUStep-base
 
@@ -28,22 +30,19 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-//FIXME: 1) The NSMutableString object returned from the -mutableString method
-//       in NSMutableAttributedString is NOT tracked for changes to update
-//       NSMutableAttributedString's attributes as it should.
+/* Warning -	[-initWithString:attributes:] is the designated initialiser,
+ *		but it doesn't provide any way to perform the function of the
+ *		[-initWithAttributedString:] initialiser.
+ *		In order to work youd this, the string argument of the
+ *		designated initialiser has been overloaded such that it
+ *		is expected to accept an NSAttributedString here instead of
+ *		a string.  If you create an NSAttributedString subclass, you
+ *		must make sure that your implementation of the initialiser
+ *		copes with either an NSString or an NSAttributedString.
+ *		If it receives an NSAttributedString, it should ignore the
+ *		attributes argument and use the values from the string.
+ */
 
-//FIXME: 2) If out-of-memory exceptions are raised in some methods,
-//       inconsistencies may develop, because the two internal arrays in
-//       NSGAttributedString and NSGMutableAttributedString called
-//       attributeArray and locateArray must always be syncronized.
-
-//FIXME: 3) The method _setAttributesFrom: must be overridden by
-//          concrete subclasses of NSAttributedString which is WRONG and
-//          VERY bad! I haven't found any other way to make
-//          - initWithString:attributes: the designated initializer 
-//          in NSAttributedString and still implement
-//          - initWithAttributedString: without having to override it
-//          in the concrete subclass.
 
 #ifndef _NSXKit_H_NSAttributedString
 #define _NSXKit_H_NSAttributedString

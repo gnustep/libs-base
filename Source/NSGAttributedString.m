@@ -3,10 +3,12 @@
 
    Implementation of concrete subclass of a string class with attributes
 
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,1999 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
    Date: November 1997
+   Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: April 1999
    
    This file is part of GNUStep-base
 
@@ -28,191 +30,267 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-//FIXME: 1) The NSMutableString object returned from the -mutableString method
-//       in NSMutableAttributedString is NOT tracked for changes to update
-//       NSMutableAttributedString's attributes as it should.
-
-//FIXME: 2) If out-of-memory exceptions are raised in some methods,
-//       inconsistencies may develop, because the two internal arrays in
-//       NSGAttributedString and NSGMutableAttributedString called
-//       attributeArray and locateArray must always be syncronized.
-
-//FIXME: 3) The method _setAttributesFrom: must be overridden by
-//          concrete subclasses of NSAttributedString which is WRONG and
-//          VERY bad! I haven't found any other way to make
-//          - initWithString:attributes: the designated initializer 
-//          in NSAttributedString and still implement
-//          - initWithAttributedString: without having to override it
-//          in the concrete subclass.
+/* Warning -	[-initWithString:attributes:] is the designated initialiser,
+ *		but it doesn't provide any way to perform the function of the
+ *		[-initWithAttributedString:] initialiser.
+ *		In order to work youd this, the string argument of the
+ *		designated initialiser has been overloaded such that it
+ *		is expected to accept an NSAttributedString here instead of
+ *		a string.  If you create an NSAttributedString subclass, you
+ *		must make sure that your implementation of the initialiser
+ *		copes with either an NSString or an NSAttributedString.
+ *		If it receives an NSAttributedString, it should ignore the
+ *		attributes argument and use the values from the string.
+ */
 
 #include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
 
-@implementation NSGAttributedString
-
-void _setAttributesFrom(
-  NSAttributedString *attributedString,
-  NSRange aRange,
-  NSMutableArray *attributeArray,
-  NSMutableArray *locateArray)
+@interface	GSAttrInfo : NSObject
 {
-  //always called immediately after -initWithString:attributes:
-  NSRange effectiveRange;
-  NSDictionary *attributeDict;
-
-  if(aRange.length <= 0)
-    return;//No attributes
-
-  attributeDict = [attributedString attributesAtIndex:aRange.location
-    effectiveRange:&effectiveRange];
-  [attributeArray replaceObjectAtIndex:0 withObject:attributeDict];
-
-  while (NSMaxRange(effectiveRange) < NSMaxRange(aRange))
-  {
-    attributeDict =
-      [attributedString attributesAtIndex:NSMaxRange(effectiveRange)
-        effectiveRange:&effectiveRange];
-    [attributeArray addObject:attributeDict];
-    [locateArray addObject:
-      [NSNumber numberWithUnsignedInt:effectiveRange.location-aRange.location]];
-  }
-  return;
+@public
+  unsigned	loc;
+  NSDictionary	*attrs;
 }
 
-void _initWithString(
-  NSString *aString,
-  NSDictionary *attributes,
-  NSString **textChars,
-  NSMutableArray **attributeArray,
-  NSMutableArray **locateArray)
++ (GSAttrInfo*) newWithZone: (NSZone*)z value: (NSDictionary*)a at: (unsigned)l;
+
+@end
+
+@implementation	GSAttrInfo
+
++ (GSAttrInfo*) newWithZone: (NSZone*)z value: (NSDictionary*)a at: (unsigned)l;
 {
-  if (aString)
-    *textChars = [(*textChars) initWithString:aString];
-  else
-    *textChars = [(*textChars) init];
-  *attributeArray = [[NSMutableArray alloc] init];
-  *locateArray = [[NSMutableArray alloc] init];
-  if(!attributes)
-    attributes = [[[NSDictionary alloc] init] autorelease];
-  [(*attributeArray) addObject:attributes];
-  [(*locateArray) addObject:[NSNumber numberWithUnsignedInt:0]];
+  GSAttrInfo	*info = (GSAttrInfo*)NSAllocateObject(self, 0, z);
+
+  info->loc = l;
+  info->attrs = [a copy];
+  return info;
 }
 
-NSDictionary *_attributesAtIndexEffectiveRange(
-  unsigned int index,
-  NSRange *aRange,
-  unsigned int tmpLength,
-  NSMutableArray *attributeArray,
-  NSMutableArray *locateArray,
-  unsigned int *foundIndex)
+- (void) dealloc
 {
-  unsigned int low,high,used,cnt,foundLoc,nextLoc;
-  NSDictionary *foundDict;
-
-  if(index<0 || index >= tmpLength)
-  {
-    [NSException raise:NSRangeException format:
-      @"index is out of range in function _attributesAtIndexEffectiveRange()"];
-  }
-  
-  //Binary search for efficiency in huge attributed strings
-  used = [attributeArray count];
-  low=0;
-  high = used - 1;
-  while(low<=high)
-  {
-    cnt=(low+high)/2;
-    foundDict = [attributeArray objectAtIndex:cnt];
-    foundLoc = [[locateArray objectAtIndex:cnt] unsignedIntValue];
-    if(foundLoc > index)
-    {
-      high = cnt-1;
-    }
-    else
-    {
-      if(cnt >= used -1)
-        nextLoc = tmpLength;
-      else
-        nextLoc = [[locateArray objectAtIndex:cnt+1] unsignedIntValue];
-      if(foundLoc == index ||
-        index < nextLoc)
-      {
-        //Found
-        if(aRange)
-        {
-          aRange->location = foundLoc;
-          aRange->length = nextLoc - foundLoc;
-        }
-        if(foundIndex)
-          *foundIndex = cnt;
-        return foundDict;
-      }
-      else
-        low = cnt+1;
-    }
-  }
-  NSCAssert(NO,@"Error in binary search algorithm");
-  return nil;
+  RELEASE(attrs);
+  NSDeallocateObject(self);
 }
 
 - (Class) classForPortCoder
 {
   return [self class];
 }
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
-{
-    return self;
-}
 
-- (void) encodeWithCoder: aCoder
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
-  [super encodeWithCoder:aCoder];
-  [aCoder encodeObject:textChars];
-  [aCoder encodeObject:attributeArray];
-  [aCoder encodeObject:locateArray];
-}
-
-- initWithCoder: aCoder
-{
-  self = [super initWithCoder:aCoder];
-  textChars = [[aCoder decodeObject] retain];
-  attributeArray = [[aCoder decodeObject] retain];
-  locateArray = [[aCoder decodeObject] retain];
   return self;
 }
 
-- _setAttributesFrom:(NSAttributedString *)attributedString range:(NSRange)aRange
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  //always called immediately after -initWithString:attributes:
-  _setAttributesFrom(attributedString,aRange,attributeArray,locateArray);
+  [super encodeWithCoder: aCoder];
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &loc];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &attrs];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  self = [super initWithCoder: aCoder];
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &loc];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &attrs];
   return self;
 }
 
-- (id)initWithString:(NSString *)aString attributes:(NSDictionary *)attributes
+@end
+
+
+
+@implementation NSGAttributedString
+
+static SEL	infSel = @selector(newWithZone:value:at:);
+static IMP	infImp = 0;
+static Class	infCls = 0;
+
+void _setAttributesFrom(
+  NSAttributedString *attributedString,
+  NSRange aRange,
+  NSMutableArray *infoArray)
 {
-  self = [super initWithString:aString attributes:attributes];
-  textChars = [NSString alloc];
-  _initWithString(aString,attributes,&textChars,&attributeArray,&locateArray);
+  NSZone	*z = [infoArray zone];
+  NSRange	range;
+  NSDictionary	*attr;
+  GSAttrInfo	*info;
+  unsigned	loc;
+
+  /*
+   * remove any old attributes of the string.
+   */
+  [infoArray removeAllObjects];
+
+  if (aRange.length <= 0)
+    return;
+
+  attr = [attributedString attributesAtIndex: aRange.location
+			      effectiveRange: &range];
+  info = [GSAttrInfo newWithZone: z value: attr at: 0];
+  [infoArray addObject: info];
+  RELEASE(info);
+
+  while ((loc = NSMaxRange(range)) < NSMaxRange(aRange))
+    {
+      attr = [attributedString attributesAtIndex: loc
+				  effectiveRange: &range];
+      info = [GSAttrInfo newWithZone: z value: attr at: loc - aRange.location];
+      [infoArray addObject: info];
+      RELEASE(info);
+    }
+}
+
+NSDictionary *_attributesAtIndexEffectiveRange(
+  unsigned int index,
+  NSRange *aRange,
+  unsigned int tmpLength,
+  NSMutableArray *infoArray,
+  unsigned int *foundIndex)
+{
+  unsigned	low, high, used, cnt, nextLoc;
+  GSAttrInfo	*found = nil;
+
+  if (index >= tmpLength)
+    {
+      [NSException raise: NSRangeException
+		  format: @"index is out of range in function "
+			  @"_attributesAtIndexEffectiveRange()"];
+    }
+  
+  used = [infoArray count];
+
+  /*
+   * Binary search for efficiency in huge attributed strings
+   */
+  low = 0;
+  high = used - 1;
+  while (low <= high)
+    {
+      cnt = (low + high) / 2;
+      found = [infoArray objectAtIndex: cnt];
+      if (found->loc > index)
+	{
+	  high = cnt - 1;
+	}
+      else
+	{
+	  if (cnt >= used - 1)
+	    {
+	      nextLoc = tmpLength;
+	    }
+	  else
+	    {
+	      GSAttrInfo	*inf = [infoArray objectAtIndex: cnt + 1];
+
+	      nextLoc = inf->loc;
+	    }
+	  if (found->loc == index || index < nextLoc)
+	    {
+	      //Found
+	      if (aRange)
+		{
+		  aRange->location = found->loc;
+		  aRange->length = nextLoc - found->loc;
+		}
+	      if (foundIndex)
+		{
+		  *foundIndex = cnt;
+		}
+	      return found->attrs;
+	    }
+	  else
+	    {
+	      low = cnt + 1;
+	    }
+	}
+    }
+  NSCAssert(NO,@"Error in binary search algorithm");
+  return nil;
+}
+
++ (void) initialize
+{
+  if (infCls == 0)
+    {
+      infCls = [GSAttrInfo class];
+      infImp = [infCls methodForSelector: infSel];
+    }
+}
+
+- (Class) classForPortCoder
+{
+  return [self class];
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
   return self;
 }
 
-- (NSString *)string
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [super encodeWithCoder: aCoder];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &textChars];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &infoArray];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  self = [super initWithCoder: aCoder];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &textChars];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &infoArray];
+  return self;
+}
+
+- (id) initWithString: (NSString*)aString
+	   attributes: (NSDictionary*)attributes
+{
+  NSZone	*z = [self zone];
+
+  infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
+  if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
+    {
+      NSAttributedString	*as = (NSAttributedString*)aString;
+
+      aString = [as string];
+      _setAttributesFrom(as, NSMakeRange(0, [aString length]), infoArray);
+    }
+  else
+    {
+      GSAttrInfo	*info;
+
+      info = (*infImp)(infCls, infSel, z, attributes, 0);
+      [infoArray addObject: info];
+      RELEASE(info);
+    }
+  if (aString == nil)
+    textChars = @"";
+  else
+    textChars = [aString copyWithZone: z];
+  return self;
+}
+
+- (NSString*) string
 {
   return textChars;
 }
 
-- (NSDictionary *)attributesAtIndex:(unsigned int)index effectiveRange:(NSRange *)aRange
+- (NSDictionary*) attributesAtIndex: (unsigned)index
+		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
-    index,aRange,[self length],attributeArray,locateArray,NULL);
+    index, aRange, [self length], infoArray, NULL);
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-  [textChars release];
-  [attributeArray release];
-  [locateArray release];
+  RELEASE(textChars);
+  RELEASE(infoArray);
   [super dealloc];
 }
 
@@ -221,203 +299,245 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 
 @implementation NSGMutableAttributedString
 
++ (void) initialize
+{
+  if (infCls == 0)
+    {
+      infCls = [GSAttrInfo class];
+      infImp = [infCls methodForSelector: infSel];
+    }
+}
+
 - (Class) classForPortCoder
 {
   return [self class];
 }
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
-{
-    return self;
-}
 
-- (void) encodeWithCoder: aCoder
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
-  [super encodeWithCoder:aCoder];
-  [aCoder encodeObject:textChars];
-  [aCoder encodeObject:attributeArray];
-  [aCoder encodeObject:locateArray];
-}
-
-- initWithCoder: aCoder
-{
-  self = [super initWithCoder:aCoder];
-  textChars = [[aCoder decodeObject] retain];
-  attributeArray = [[aCoder decodeObject] retain];
-  locateArray = [[aCoder decodeObject] retain];
   return self;
 }
 
-- _setAttributesFrom:(NSAttributedString *)attributedString range:(NSRange)aRange
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  //always called immediately after -initWithString:attributes:
-  _setAttributesFrom(attributedString,aRange,attributeArray,locateArray);
+  [super encodeWithCoder: aCoder];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &textChars];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &infoArray];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  self = [super initWithCoder: aCoder];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &textChars];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &infoArray];
   return self;
 }
 
-- (id)initWithString:(NSString *)aString attributes:(NSDictionary *)attributes
+- (id) initWithString: (NSString*)aString
+	   attributes: (NSDictionary*)attributes
 {
-  self = [super initWithString:aString attributes:attributes];
-  textChars = [NSMutableString alloc];
-  _initWithString(aString,attributes,&textChars,&attributeArray,&locateArray);
+  NSZone	*z = [self zone];
+
+  infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
+  if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
+    {
+      NSAttributedString	*as = (NSAttributedString*)aString;
+
+      aString = [as string];
+      _setAttributesFrom(as, NSMakeRange(0, [aString length]), infoArray);
+    }
+  else
+    {
+      GSAttrInfo	*info;
+
+      info = (*infImp)(infCls, infSel, z, attributes, 0);
+      [infoArray addObject: info];
+      RELEASE(info);
+    }
+  if (aString == nil)
+    textChars = [[NSMutableString alloc] init];
+  else
+    textChars = [aString mutableCopyWithZone: z];
   return self;
 }
 
-- (NSString *)string
+- (NSString*) string
 {
   return textChars;
 }
 
-- (NSMutableString *)mutableString
-{
-  return textChars;
-}
-
-- (NSDictionary *)attributesAtIndex:(unsigned int)index effectiveRange:(NSRange *)aRange
+- (NSDictionary*) attributesAtIndex: (unsigned)index
+		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
-    index,aRange,[self length],attributeArray,locateArray,NULL);
+    index, aRange, [self length], infoArray, NULL);
 }
 
-- (void)setAttributes:(NSDictionary *)attributes range:(NSRange)range
+- (void) setAttributes: (NSDictionary*)attributes
+		 range: (NSRange)range
 {
-  unsigned int tmpLength,arrayIndex,arraySize,location;
-  NSRange effectiveRange;
-  NSNumber *afterRangeLocation,*beginRangeLocation;
-  NSDictionary *attrs;
-  
-  if(!attributes)
+  unsigned	tmpLength, arrayIndex, arraySize, location;
+  NSRange	effectiveRange;
+  unsigned	afterRangeLoc, beginRangeLoc;
+  NSDictionary	*attrs;
+  NSZone	*z = [self zone];
+  GSAttrInfo	*info;
+
+  if (!attributes)
     attributes = [NSDictionary dictionary];
   tmpLength = [self length];
-  if(range.location < 0 || NSMaxRange(range) > tmpLength)
-  {
-    [NSException raise:NSRangeException
-      format:@"RangeError in method -replaceCharactersInRange:withString: in class NSMutableAttributedString"];
-  }
-  arraySize = [locateArray count];
-  if(NSMaxRange(range) < tmpLength)
-  {
-    attrs = _attributesAtIndexEffectiveRange(
-      NSMaxRange(range),&effectiveRange,tmpLength,attributeArray,locateArray,&arrayIndex);
-
-    afterRangeLocation =
-      [NSNumber numberWithUnsignedInt:NSMaxRange(range)];
-    if(effectiveRange.location > range.location)
+  if (NSMaxRange(range) > tmpLength)
     {
-      [locateArray replaceObjectAtIndex:arrayIndex
-        withObject:afterRangeLocation];
+      [NSException raise: NSRangeException
+		  format: @"RangeError in method -replaceCharactersInRange: "
+			  @"withString: in class NSMutableAttributedString"];
     }
-    else
+  arraySize = [infoArray count];
+  if (NSMaxRange(range) < tmpLength)
+    {
+      attrs = _attributesAtIndexEffectiveRange(
+	NSMaxRange(range), &effectiveRange, tmpLength, infoArray, &arrayIndex);
+
+      afterRangeLoc = NSMaxRange(range);
+      if (effectiveRange.location > range.location)
+	{
+	  info = [infoArray objectAtIndex: arrayIndex];
+	  info->loc = afterRangeLoc;
+	}
+      else
+	{
+	  info = (*infImp)(infCls, infSel, z, attrs, afterRangeLoc);
+	  [infoArray insertObject: info atIndex: ++arrayIndex];
+	  RELEASE(info);
+	}
+      arrayIndex--;
+    }
+  else
+    {
+      arrayIndex = arraySize - 1;
+    }
+  
+  while (arrayIndex > 0)
+    {
+      info = [infoArray objectAtIndex: arrayIndex-1];
+      if (info->loc < range.location)
+	break;
+      [infoArray removeObjectAtIndex: arrayIndex];
+      arrayIndex--;
+    }
+
+  beginRangeLoc = range.location;
+  info = [infoArray objectAtIndex: arrayIndex];
+  location = info->loc;
+  if (location >= range.location)
+    {
+      if (location > range.location)
+	{
+	  info->loc = beginRangeLoc;
+	}
+      ASSIGN(info->attrs, attributes);
+    }
+  else
     {
       arrayIndex++;
-        //There shouldn't be anything wrong in putting an object (attrs) in
-        //an array more than once should there? The object will not change.
-      [attributeArray insertObject:attrs atIndex:arrayIndex];
-      [locateArray insertObject:afterRangeLocation atIndex:arrayIndex];
+      info = (*infImp)(infCls, infSel, z, attributes, beginRangeLoc);
+      [infoArray insertObject: info atIndex: arrayIndex];
+      RELEASE(info);
     }
-    arrayIndex--;
-  }
-  else
-    arrayIndex = arraySize - 1;
   
-  while(arrayIndex > 0 &&
-    [[locateArray objectAtIndex:arrayIndex-1] unsignedIntValue] >= range.location)
-  {
-    [locateArray removeObjectAtIndex:arrayIndex];
-    [attributeArray removeObjectAtIndex:arrayIndex];
-    arrayIndex--;
-  }
-  beginRangeLocation = [NSNumber numberWithUnsignedInt:range.location];
-  location = [[locateArray objectAtIndex:arrayIndex] unsignedIntValue];
-  if(location >= range.location)
-  {
-    if(location > range.location)
-    {
-      [locateArray replaceObjectAtIndex:arrayIndex
-        withObject:beginRangeLocation];
-    }
-    [attributeArray replaceObjectAtIndex:arrayIndex
-      withObject:attributes];
-  }
-  else
-  {
-    arrayIndex++;
-    [attributeArray insertObject:attributes atIndex:arrayIndex];
-    [locateArray insertObject:beginRangeLocation atIndex:arrayIndex];
-  }
-  
-  /* Primitive method! Sets attributes and values for a given range of characters, replacing any previous attributes
-  and values for that range.*/
+  /*
+   *	Primitive method! Sets attributes and values for a given range of
+   *	characters, replacing any previous attributes and values for that
+   *	range.
+   */
 
-  /*Sets the attributes for the characters in aRange to attributes. These new attributes replace any attributes
-  previously associated with the characters in aRange. Raises an NSRangeException if any part of aRange lies beyond
-  the end of the receiver's characters.
-  See also: - addAtributes:range:, - removeAttributes:range:*/
+  /*
+   *	Sets the attributes for the characters in aRange to attributes.
+   *	These new attributes replace any attributes previously associated
+   *	with the characters in aRange. Raises an NSRangeException if any
+   *	part of aRange lies beyond the end of the receiver's characters.
+   *	See also: - addAtributes: range: , - removeAttributes: range:
+   */
 }
 
-- (void)replaceCharactersInRange:(NSRange)range withString:(NSString *)aString
+- (void) replaceCharactersInRange: (NSRange)range
+		       withString: (NSString*)aString
 {
-  unsigned int tmpLength,arrayIndex,arraySize,cnt,location,moveLocations;
-  NSRange effectiveRange;
-  NSDictionary *attrs;
-  NSNumber *afterRangeLocation;
+  unsigned	tmpLength, arrayIndex, arraySize, cnt, location, moveLocations;
+  NSRange	effectiveRange;
+  NSDictionary	*attrs;
+  unsigned	afterRangeLoc;
+  GSAttrInfo	*info;
+  NSZone	*z = [self zone];
 
-  if(!aString)
+  if (!aString)
     aString = @"";
   tmpLength = [self length];
-  if(range.location < 0 || NSMaxRange(range) > tmpLength)
-  {
-    [NSException raise:NSRangeException
-      format:@"RangeError in method -replaceCharactersInRange:withString: in class NSMutableAttributedString"];
-  }
-  arraySize = [locateArray count];
-  if(NSMaxRange(range) < tmpLength)
-  {
-    attrs = _attributesAtIndexEffectiveRange(
-      NSMaxRange(range),&effectiveRange,tmpLength,attributeArray,locateArray,&arrayIndex);
-    
-    moveLocations = [aString length] - range.length;
-    afterRangeLocation =
-      [NSNumber numberWithUnsignedInt:NSMaxRange(range)+moveLocations];
-    
-    if(effectiveRange.location > range.location)
+  if (NSMaxRange(range) > tmpLength)
     {
-      [locateArray replaceObjectAtIndex:arrayIndex
-        withObject:afterRangeLocation];
+      [NSException raise: NSRangeException
+		  format: @"RangeError in method -replaceCharactersInRange: "
+			  @"withString: in class NSMutableAttributedString"];
     }
-    else
+  arraySize = [infoArray count];
+  if (NSMaxRange(range) < tmpLength)
     {
-      arrayIndex++;
-        //There shouldn't be anything wrong in putting an object (attrs) in
-        //an array more than once should there? The object will not change.
-      [attributeArray insertObject:attrs atIndex:arrayIndex];
-      [locateArray insertObject:afterRangeLocation atIndex:arrayIndex];
+      attrs = _attributesAtIndexEffectiveRange(
+	NSMaxRange(range), &effectiveRange, tmpLength, infoArray, &arrayIndex);
+      
+      moveLocations = [aString length] - range.length;
+      afterRangeLoc = NSMaxRange(range) + moveLocations;
+      
+      if (effectiveRange.location > range.location)
+	{
+	  info = [infoArray objectAtIndex: arrayIndex];
+	  info->loc = afterRangeLoc;
+	}
+      else
+	{
+	  info = (*infImp)(infCls, infSel, z, attrs, afterRangeLoc);
+	  [infoArray insertObject: info atIndex: ++arrayIndex];
+	  arraySize++;
+	  RELEASE(info);
+	}
+
+      /*
+       * Everything after our modified range need to be shifted.
+       */
+      if (arrayIndex + 1 < arraySize)
+	{
+	  unsigned	l = arraySize - arrayIndex - 1;
+	  NSRange	r = NSMakeRange(arrayIndex + 1, l);
+	  GSAttrInfo	*objs[l];
+	 
+	  [infoArray getObjects: objs range: r];
+	  for (cnt = 0; cnt < l; cnt++)
+	    {
+	      objs[cnt]->loc += moveLocations;
+	    }
+	}
+      arrayIndex--;
     }
-    
-    for(cnt=arrayIndex+1;cnt<arraySize;cnt++)
-    {
-      location = [[locateArray objectAtIndex:cnt] unsignedIntValue] + moveLocations;
-      [locateArray replaceObjectAtIndex:cnt
-        withObject:[NSNumber numberWithUnsignedInt:location]];
-    }
-    arrayIndex--;
-  }
   else
-    arrayIndex = arraySize - 1;
-  while(arrayIndex > 0 &&
-    [[locateArray objectAtIndex:arrayIndex] unsignedIntValue] > range.location)
-  {
-    [locateArray removeObjectAtIndex:arrayIndex];
-    [attributeArray removeObjectAtIndex:arrayIndex];
-    arrayIndex--;
-  }
-  [textChars replaceCharactersInRange:range withString:aString];
+    {
+      arrayIndex = arraySize - 1;
+    }
+
+  while (arrayIndex > 0)
+    {
+      info = [infoArray objectAtIndex: arrayIndex];
+      if (info->loc <= range.location)
+	break;
+      [infoArray removeObjectAtIndex: arrayIndex];
+      arrayIndex--;
+    }
+  [textChars replaceCharactersInRange: range withString: aString];
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-  [textChars release];
-  [attributeArray release];
-  [locateArray release];
+  RELEASE(textChars);
+  RELEASE(infoArray);
   [super dealloc];
 }
 

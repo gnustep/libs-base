@@ -2606,11 +2606,19 @@ else
 // private methods for Unicode level 3 implementation
 - (int) _baseLength
 {
-  int count=0;
-  int blen=0;
-  while (count < [self length])
-    if (!uni_isnonsp([self characterAtIndex: count++]))
-      blen++;
+  int		blen = 0;
+  unsigned	len = [self length];
+
+  if (len > 0)
+    {
+      int	count = 0;
+      SEL	caiSel = @selector(characterAtIndex:);
+      unichar	(*caiImp)() = (unichar (*)())[self methodForSelector: caiSel];
+
+      while (count < len)
+	if (!uni_isnonsp((*caiImp)(self, caiSel, count++)))
+	  blen++;
+    }
   return blen;
 } 
 
