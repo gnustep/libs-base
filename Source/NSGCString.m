@@ -1385,11 +1385,13 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
        * an empty cache value, so we MUST NOT return a hash of zero.
        */
       if (ret == 0)
-	ret = 0xffffffff;
+	ret = 0x0fffffff;
+      else
+	ret &= 0x0fffffff;
     }
   else
     {
-      ret = 0xfffffffe;	/* Hash for an empty string.	*/
+      ret = 0x0ffffffe;	/* Hash for an empty string.	*/
     }
   return ret;
 }
