@@ -288,4 +288,4 @@ AC_CHECK_LIB(nsl, main)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile doc/Makefile objects/config.h)
+AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile doc/Makefile src/objects/config.h)
