@@ -3,8 +3,8 @@
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Tue Feb 13 23:10:29 EST 1996
- * Updated: Tue Feb 13 23:10:29 EST 1996
- * Serial: 96.02.13.01
+ * Updated: Wed Mar 20 19:53:48 EST 1996
+ * Serial: 96.03.20.02
  * 
  * This file is part of the GNU Objective C Class Library.
  * 
@@ -20,9 +20,7 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
- */ 
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
 /**** Included Headers *******************************************************/
 
@@ -98,12 +96,11 @@ _NS_owned_void_p_release (void *table, void *p)
 NSString *
 _NS_owned_void_p_describe (void *table, void *p)
 {
-  /* This may not be right; I'm doing this off of the top of my head, and
-   * I'm in a hurry. */
-  return [NSString stringWithFormat:@"%0x", p];
+  return [NSString stringWithFormat:@"%#x", p];
 }
 
 /** For non-retained Objective-C objects **/
+
 unsigned int
 _NS_non_retained_id_hash (void *table, id <NSObject> o)
 {
@@ -113,8 +110,6 @@ _NS_non_retained_id_hash (void *table, id <NSObject> o)
 BOOL
 _NS_non_retained_id_is_equal (void *table, id <NSObject> o, id <NSObject> p)
 {
-  /* Once again I need a nice way to determine whether or not O
-   * responds to `isEqual:'. */
   return [o isEqual:p];
 }
 
@@ -133,16 +128,14 @@ _NS_non_retained_id_release (void *table, id <NSObject> o)
 NSString *
 _NS_non_retained_id_describe (void *table, id <NSObject> o)
 {
-  /* Once again, I need a nice way to determine whether O responds to 
-   * `describe'.  Help. */
   return [o description];
 }
 
 /** For (retainable) objects **/
+
 unsigned int
 _NS_id_hash (void *table, id <NSObject> o)
 {
-  /* See above. */
   return [o hash];
 }
 
@@ -174,6 +167,7 @@ _NS_id_describe (void *table, id <NSObject> o)
 
 
 /** For (non-owned) `void *' **/
+
 unsigned int
 _NS_non_owned_void_p_hash (void *table, void *p)
 {
@@ -205,6 +199,7 @@ _NS_non_owned_void_p_describe (void *table, void *p)
 }
 
 /** For pointers to structures and `int *' **/
+
 unsigned int
 _NS_int_p_hash (void *table, int *p)
 {
@@ -232,5 +227,6 @@ _NS_int_p_release (void *table, int *p)
 NSString *
 _NS_int_p_describe (void *table, int *p)
 {
-  return [NSString stringWithFormat:@"%d (%0x)", *p, p];
+  /* Is this useful? */
+  return [NSString stringWithFormat:@"%d (%#x)", *p, p];
 }

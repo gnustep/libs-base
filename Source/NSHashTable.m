@@ -3,8 +3,8 @@
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:54:09 EST 1994
- * Updated: Mon Feb 12 22:55:15 EST 1996
- * Serial: 96.02.12.01
+ * Updated: Mon Mar 11 01:48:31 EST 1996
+ * Serial: 96.03.11.06
  * 
  * This file is part of the GNU Objective C Class Library.
  * 
@@ -20,19 +20,17 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
- */ 
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
 /**** Included Headers *******************************************************/
 
+#include <Foundation/NSZone.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHashTable.h>
-#include <NSCallBacks.h>
-#include <Foundation/atoz.h>
 #include <objects/hash.h>
+#include "NSCallBacks.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -43,7 +41,7 @@ typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
 typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
 typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
 
-/** Standard NSHashTable callbacks **/
+/** Standard NSHashTable callbacks... **/
      
 const NSHashTableCallBacks NSIntHashCallBacks =
 {
@@ -99,103 +97,104 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   (NSHT_describe_func_t) _NS_int_p_describe
 };
 
-/** Macros **/
-
-#define NSHT_ZONE(T) \
-  ((NSZone *)((objects_hash_allocs((objects_hash_t *)(T))).user_data))
+/** Macros... **/
 
 #define NSHT_CALLBACKS(T) \
   (*((NSHashTableCallBacks *)(objects_hash_extra((objects_hash_t *)(T)))))
 
 #define NSHT_DESCRIBE(T, P) \
-  NSHT_CALLBACKS((T)).describe((T), (P))
+  (NSHT_CALLBACKS((T))).describe((T), (P))
 
-/** Dummy callbacks **/
+/** Dummy callbacks... **/
 
 size_t
-_NSHT_hash (const void *element, const void *table)
+_NSHT_hash(const void *element, NSHashTable *table)
 {
-  return (NSHT_CALLBACKS(table)).hash ((NSHashTable *)table, element);
+  return (NSHT_CALLBACKS(table)).hash((NSHashTable *)table, element);
 }
 
 int
-_NSHT_compare (const void *element1, const void *element2, const void *table)
+_NSHT_compare(const void *element1, const void *element2, NSHashTable *table)
 {
-  return !((NSHT_CALLBACKS(table)).isEqual ((NSHashTable *)table,
-					    element1,
-					    element2));
+  return !((NSHT_CALLBACKS(table)).isEqual(table, element1, element2));
 }
 
 int
-_NSHT_is_equal (const void *element1, const void *element2, const void *table)
+_NSHT_is_equal(const void *element1, const void *element2, NSHashTable *table)
 {
-  return (NSHT_CALLBACKS(table)).isEqual ((NSHashTable *) table,
-					  element1,
-					  element2);
+  return (NSHT_CALLBACKS(table)).isEqual(table, element1, element2);
 }
 
-void *
-_NSHT_retain (const void *element, const void *table)
+const void *
+_NSHT_retain(const void *element, NSHashTable *table)
 {
-  (NSHT_CALLBACKS(table)).retain ((NSHashTable *)table, element);
-  return (void*) element;
+  /* OpenStep (unlike we) does not allow for the possibility of
+   * substitution upon retaining. */
+  (NSHT_CALLBACKS(table)).retain(table, element);
+  return element;
 }
 
 void
-_NSHT_release (void *element, const void *table)
+_NSHT_release(void *element, NSHashTable *table)
 {
-  (NSHT_CALLBACKS(table)).release ((NSHashTable*)table, (void*)element);
+  (NSHT_CALLBACKS(table)).release(table, element);
   return;
 }
 
-/* These are wrappers for getting at the real callbacks. */
-const objects_callbacks_t _NSHT_callbacks = 
+NSString *
+_NSHT_describe(const void *element, const void *table)
 {
-  _NSHT_hash,
-  _NSHT_compare,
-  _NSHT_is_equal,
-  _NSHT_retain,
-  _NSHT_release,
-  0,
-  0 
+  return ((NSHT_CALLBACKS(table)).describe((NSHashTable *)table, element));
+}
+
+/* These are wrappers for getting at the real callbacks. */
+objects_callbacks_t _NSHT_callbacks = 
+{
+  (objects_hash_func_t) _NSHT_hash,
+  (objects_compare_func_t) _NSHT_compare,
+  (objects_is_equal_func_t) _NSHT_is_equal,
+  (objects_retain_func_t) _NSHT_retain,
+  (objects_release_func_t) _NSHT_release,
+  (objects_describe_func_t) _NSHT_describe,
+  0 /* Note that OpenStep decrees that '0' is the (only) forbidden value. */
 };
 
 /** Extra, extra **/
 
 /* Make a copy of a hash table's callbacks. */
-void *
-_NSHT_extra_retain (const void *extra, const void *table)
+const void *
+_NSHT_extra_retain (const NSHashTableCallBacks *callBacks, NSHashTable *table)
 {
-  /* Pick out the callbacks in EXTRA. */
-  NSHashTableCallBacks *callBacks = (NSHashTableCallBacks *)(extra);
-
-  /* Find our zone. */
-  NSZone *zone = NSHT_ZONE(table);
-
   /* A pointer to some new callbacks. */
   NSHashTableCallBacks *newCallBacks;
 
   /* Set aside space for our new callbacks in the right zone. */
-  newCallBacks = (NSHashTableCallBacks *)
-    NSZoneMalloc(zone,
-		 sizeof(NSHashTableCallBacks));
+  newCallBacks = (NSHashTableCallBacks *)NSZoneMalloc(objects_hash_zone(table),
+                                                 sizeof(NSHashTableCallBacks));
+
+  /* FIXME: Check for an invalid pointer? */
 
   /* Copy CALLBACKS into NEWCALLBACKS. */
   *newCallBacks = *callBacks;
 
-  /* Return our new EXTRA. */
-  return (void*) extra;
+  /* Return our new callbacks. */
+  return (const void *) newCallBacks;
 }
 
 void
-_NSHT_extra_release (void *extra, const void *table)
+_NSHT_extra_release(NSHashTableCallBacks *callBacks, NSHashTable *table)
 {
-  NSZone *zone = NSHT_ZONE(table);
-
-  if (extra != NULL)
-    NSZoneFree(zone, (void*)extra);
+  if (callBacks != 0)
+    NSZoneFree(objects_hash_zone(table), callBacks);
 
   return;
+}
+
+NSString *
+_NSHT_extra_describe(NSHashTableCallBacks *callBacks, NSHashTable *table)
+{
+  /* FIXME: Code this. */
+  return nil;
 }
 
 /* The idea here is that these callbacks ensure that the
@@ -203,12 +202,12 @@ _NSHT_extra_release (void *extra, const void *table)
  * remain so associated throughout the life of the table and its copies. */
 objects_callbacks_t _NSHT_extra_callbacks = 
 {
-  (objects_hash_func_t) objects_void_p_hash,
-  (objects_compare_func_t) objects_void_p_compare,
-  (objects_is_equal_func_t) objects_void_p_is_equal,
-  _NSHT_extra_retain,
-  _NSHT_extra_release,
-  0,
+  (objects_hash_func_t) objects_non_owned_void_p_hash,
+  (objects_compare_func_t) objects_non_owned_void_p_compare,
+  (objects_is_equal_func_t) objects_non_owned_void_p_is_equal,
+  (objects_retain_func_t) _NSHT_extra_retain,
+  (objects_release_func_t) _NSHT_extra_release,
+  (objects_describe_func_t) _NSHT_extra_describe,
   0
 };
 
@@ -216,71 +215,55 @@ objects_callbacks_t _NSHT_extra_callbacks =
 
 /** Creating NSHashTables **/
 
-NSHashTable *
-NSCreateHashTableWithZone (NSHashTableCallBacks callBacks,
-			   unsigned int capacity,
-			   NSZone *zone)
+inline NSHashTable *
+NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
+                          unsigned int capacity,
+                          NSZone *zone)
 {
   NSHashTable *table;
-  objects_callbacks_t callbacks;
-  objects_allocs_t allocs;
 
-  /* These callbacks just look in the TABLE's extra and uses the
-   * callbacks there.  See above for precise definitions. */
-  callbacks = _NSHT_callbacks;
-  allocs = objects_allocs_for_zone(zone);
+  /* Build the core table.  See the above for the definitions of
+   * the funny callbacks. */
+  table = objects_hash_with_zone_with_callbacks(zone, _NSHT_callbacks);
 
-  /* Then we build the table. */
-  table = objects_hash_with_allocs_with_callbacks(allocs, callbacks);
-
-  if (table != NULL)
+  /* Check to make sure our allocation has succeeded. */
+  if (table != 0)
   {
-    const void *extra;
-
     /* Resize TABLE to CAPACITY. */
     objects_hash_resize(table, capacity);
 
-    /* Set aside space for the NSHashTableExtra. */
-    extra = &callBacks;
-
-    /* Add EXTRA to TABLE.  This takes care of everything for us. */
+    /* Add CALLBACKS to TABLE.  This takes care of everything for us. */
     objects_hash_set_extra_callbacks(table, _NSHT_extra_callbacks);
-    objects_hash_set_extra(table, extra);
+    objects_hash_set_extra(table, &callBacks);
   }
 
-  /* Wah-hoo! */
+  /* Yah-hoo, kid! */
   return table;
 }
 
 NSHashTable *
-NSCreateHashTable (NSHashTableCallBacks callBacks,
-		   unsigned int capacity)
+NSCreateHashTable(NSHashTableCallBacks callBacks,
+		  unsigned int capacity)
 {
-  return NSCreateHashTableWithZone(callBacks, capacity, NULL);
+  return NSCreateHashTableWithZone(callBacks, capacity, 0);
 }
 
 /** Copying **/
 
 NSHashTable *
-NSCopyHashTableWithZone (NSHashTable *table, NSZone *zone)
+NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 {
-  objects_allocs_t allocs;
-  NSHashTable *new_table;
-
-  /* Due to the wonders of modern Libfn technology, everything we care
-   * about is automagically transferred. */
-  allocs = objects_allocs_for_zone(zone);
-  new_table = objects_hash_copy_with_allocs(table, allocs);
-
-  return new_table;
+  /* Due to the wonders of modern structure technology,
+   * everything we care about is automagically and safely destroyed. */
+  return objects_hash_copy_with_zone(table, zone);
 }
 
 /** Destroying **/
 
 void
-NSFreeHashTable (NSHashTable *table)
+NSFreeHashTable(NSHashTable *table)
 {
-  /* Due to the wonders of modern Libobjects structure technology,
+  /* Due to the wonders of modern technology,
    * everything we care about is automagically and safely destroyed. */
   objects_hash_dealloc(table);
   return;
@@ -289,7 +272,7 @@ NSFreeHashTable (NSHashTable *table)
 /** Resetting **/
 
 void
-NSResetHashTable (NSHashTable *table)
+NSResetHashTable(NSHashTable *table)
 {
   objects_hash_empty(table);
   return;
@@ -298,7 +281,7 @@ NSResetHashTable (NSHashTable *table)
 /** Comparing **/
 
 BOOL
-NSCompareHashTables (NSHashTable *table1, NSHashTable *table2)
+NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
 {
   return (objects_hash_is_equal_to_hash(table1, table2) ? YES : NO);
 }
@@ -306,7 +289,7 @@ NSCompareHashTables (NSHashTable *table1, NSHashTable *table2)
 /** Counting **/
 
 unsigned int
-NSCountHashTable (NSHashTable *table)
+NSCountHashTable(NSHashTable *table)
 {
   return (unsigned int) objects_hash_count(table);
 }
@@ -314,10 +297,10 @@ NSCountHashTable (NSHashTable *table)
 /** Retrieving **/
 
 void *
-NSHashGet (NSHashTable *table, const void *pointer)
+NSHashGet(NSHashTable *table, const void *pointer)
 {
   /* Just make the call.  You know the number. */
-  return (void*) objects_hash_element (table, pointer);
+  return (void *) objects_hash_element(table, pointer);
 }
 
 NSArray *
@@ -339,44 +322,44 @@ NSAllHashTableObjects (NSHashTable *table)
   while ((element = NSNextHashEnumeratorItem(&enumerator)) != 0)
     [array addObject:element];
 
-  /* FIXME: Should ARRAY returned be `autorelease'd? */
-  return [array autorelease];
+  /* ARRAY is already autoreleased. */
+  return (NSArray *) array;
 }
 
 /** Enumerating **/
 
 NSHashEnumerator
-NSEnumerateHashTable (NSHashTable *table)
+NSEnumerateHashTable(NSHashTable *table)
 {
-  return objects_hash_enumerator (table);
+  return objects_hash_enumerator_for_hash(table);
 }
 
 void *
-NSNextHashEnumeratorItem (NSHashEnumerator *enumerator)
+NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 {
   const void *element;
 
   /* Grab the next element. */
-  objects_hash_enumerator_next_element (enumerator, &element);
+  objects_hash_enumerator_next_element(enumerator, &element);
 
   /* Return ELEMENT. */
-  return (void*) element;
+  return (void *) element;
 }
 
 /** Adding **/
 
 void
-NSHashInsert (NSHashTable *table, const void *pointer)
+NSHashInsert(NSHashTable *table, const void *pointer)
 {
   /* Place POINTER in TABLE. */
-  objects_hash_add_element (table, pointer);
+  objects_hash_add_element(table, pointer);
 
   /* OpenStep doesn't care for any return value, so... */
   return;
 }
 
 void
-NSHashInsertKnownAbsent (NSHashTable *table, const void *element)
+NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
 {
   if (objects_hash_contains_element(table, element))
   {
@@ -384,7 +367,7 @@ NSHashInsertKnownAbsent (NSHashTable *table, const void *element)
      * information.  Not difficult to do, just something for a later
      * date. */
     [NSException raise:NSInvalidArgumentException
-                 format:@"Attempted reinsertion of \"%@\" into a hash table.",
+                 format:@"NSHashTable: illegal reinsertion of: %@",
                  NSHT_DESCRIBE(table, element)];
   }
   else
@@ -392,11 +375,12 @@ NSHashInsertKnownAbsent (NSHashTable *table, const void *element)
     objects_hash_add_element_known_absent(table, element);
   }
 
+  /* OpenStep doesn't care for any return value, so... */
   return;
 }
 
 void *
-NSHashInsertIfAbsent (NSHashTable *table, const void *element)
+NSHashInsertIfAbsent(NSHashTable *table, const void *element)
 {
   const void *old_element;
 
@@ -404,13 +388,13 @@ NSHashInsertIfAbsent (NSHashTable *table, const void *element)
   old_element = objects_hash_add_element_if_absent(table, element);
 
   /* Return the version of ELEMENT in TABLE now. */
-  return (void*) old_element;
+  return (void *) old_element;
 }
 
 /** Removing **/
 
 void
-NSHashRemove (NSHashTable *table, const void *element)
+NSHashRemove(NSHashTable *table, const void *element)
 {
   /* Remove ELEMENT from TABLE. */
   objects_hash_remove_element(table, element);
@@ -421,11 +405,8 @@ NSHashRemove (NSHashTable *table, const void *element)
 
 /** Describing **/
 
-/* FIXME: Make this nicer.  I don't know what is desired here, though.
- * If somebody has a clear idea of what this string should look like,
- * please tell me, and I'll make it happen. */
 NSString *
-NSStringFromHashTable (NSHashTable *table)
+NSStringFromHashTable(NSHashTable *table)
 {
   NSMutableString *string;
   NSHashEnumerator enumerator;
@@ -440,9 +421,8 @@ NSStringFromHashTable (NSHashTable *table)
   /* Iterate over the elements of TABLE, appending the description of
    * each to the mutable string STRING. */
   while ((pointer = NSNextHashEnumeratorItem(&enumerator)) != 0)
-    [string appendFormat:@"%@;", NSHT_DESCRIBE(table, pointer)];
+    [string appendFormat:@"%@;\n", NSHT_DESCRIBE(table, pointer)];
 
-  /* Note that this string'll need to be `retain'ed. */
-  /* FIXME: Should I `autorelease' STRING?  I think so. */
-  return (NSString *)[string autorelease];
+  /* STRING is already autoreleased. */
+  return (NSString *) string;
 }

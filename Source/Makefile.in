@@ -165,67 +165,43 @@ String.m \
 TcpPort.m \
 TextCStream.m \
 UdpPort.m \
-atoz.m \
-callbacks-id.m \
+array.m \
+array-bas.m \
+array-cbs.m \
+callbacks.m \
+cbs-char-p.m \
+cbs-id.m \
+cbs-int.m \
+cbs-int-p.m \
+cbs-void-p.m \
+hash.m \
+hash-bas.m \
+hash-cbs.m \
+list.m \
+list-bas.m \
+list-cbs.m \
+map.m \
+map-bas.m \
+map-cbs.m \
 stdobjects.m \
 mframe.m \
 objc-gnu2next.m
 
 GNU_CFILES = \
-abort.c \
-allocs.c \
-array.c \
 behavior.c \
-callbacks.c \
-callbacks-char_p.c \
-callbacks-int.c \
-callbacks-int_p.c \
-callbacks-void_p.c \
-data.c \
-hash.c \
-list.c \
-map.c \
 md5.c \
-number.c \
+numbers.c \
 objc-malloc.c \
 o_vscanf.c 
 
-GNU_BASICS_CFILES = \
-array-basics.c \
-data-basics.c \
-hash-basics.c \
-list-basics.c \
-map-basics.c
-
-GNU_BASICS_HFILES = \
-objects/array-basics.h \
-objects/data-basics.h \
-objects/hash-basics.h \
-objects/list-basics.h \
-objects/map-basics.h
-
-GNU_CALLBACKS_CFILES = \
-array-callbacks.c \
-hash-callbacks.c \
-list-callbacks.c \
-map-callbacks.c
-
-GNU_CALLBACKS_HFILES = \
-objects/array-callbacks.h \
-objects/hash-callbacks.h \
-objects/list-callbacks.h \
-objects/map-callbacks.h
-
 GNU_OTHER_SRCFILES = \
-x-basics.c.in \
-x-callbacks.c.in \
-objects/x-basics.h.in \
-objects/x-callbacks.h.in \
+x-bas.m.in \
+x-cbs.m.in \
+objects/x-bas.h.in \
+objects/x-cbs.h.in \
 md5.h
 
 GNU_OBJS = \
-	$(GNU_BASICS_CFILES:.c=$(OEXT)) \
-	$(GNU_CALLBACKS_CFILES:.c=$(OEXT)) \
 	$(GNU_MFILES:.m=$(OEXT)) \
 	$(GNU_CFILES:.c=$(OEXT))
 
@@ -308,20 +284,22 @@ objects/TextCStream.h \
 objects/Time.h \
 objects/UdpPort.h \
 objects/ValueHolding.h \
-objects/abort.h \
-objects/allocs.h \
 objects/array.h \
+objects/array-bas.h \
+objects/array-cbs.h \
 objects/behavior.h \
-objects/bitops.h \
 objects/callbacks.h \
-objects/data.h \
 objects/hash.h \
+objects/hash-bas.h \
+objects/hash-cbs.h \
 objects/list.h \
-objects/magic.h \
+objects/list-bas.h \
+objects/list-cbs.h \
 objects/map.h \
+objects/map-bas.h \
+objects/map-cbs.h \
 objects/mframe.h \
-objects/minmax.h \
-objects/number.h \
+objects/numbers.h \
 objects/objc-gnu2next.h \
 objects/objc-malloc.h \
 objects/objects.h \
@@ -472,11 +450,9 @@ Foundation/NSTimer.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
-Foundation/atoz.h \
 Foundation/objc-load.h
 
 HEADERS_INSTALL = @HEADERS_INSTALL@ \
-                  $(GNU_BASICS_HFILES) $(GNU_CALLBACKS_HFILES) \
                   objects/stdobjects.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:$(OEXT)=_pic$(OEXT))
@@ -516,7 +492,7 @@ RCS_FILES = \
 
 all: libobjects$(LIBEXT) @LIBOBJECTS_SO@
 
-libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC) 
+libobjects.so.$(OBJECTS_VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
 	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
 		-Wl,-soname,libobjects.so.$(OBJECTS_MAJOR_VERSION) \
 		$(OBJS_INSTALL_PIC)
@@ -527,7 +503,7 @@ libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC)
 	ln -s libobjects.so.$(OBJECTS_MAJOR_VERSION) \
 		libobjects.so
 
-libobjects$(LIBEXT): objects/stdobjects.h $(OBJS_INSTALL) 
+libobjects$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
 	$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL)
 	$(RANLIB) libobjects$(LIBEXT)
 
@@ -601,30 +577,28 @@ objects/stdobjects.h: $(srcdir)/../Version $(srcdir)/objects/stdobjects.h.in
 	> $(srcdir)/objects/stdobjects.h
 stdobjects$(OEXT): objects/stdobjects.h
 
-# The Xs and Ys...
+# The Xs and Ys...Don't mess with these without thinking first.
 
-objects/%-basics.h: objects/x-basics.h.in
-	sed -e "s/@XX@/$*/g" $^ > $@
+objects/%-bas.h: objects/x-bas.h.in
+	sed -e "s/@XX@/$*/g" $< > $@
 
-objects/%-callbacks.h: objects/x-callbacks.h.in
-	sed -e "s/@YY@/$*/g" $^ > $@
+objects/%-cbs.h: objects/x-cbs.h.in
+	sed -e "s/@YY@/$*/g" $< > $@
 
-%-basics.c: x-basics.c.in objects/%.h
-	sed -e "s/@XX@/$*/g" $^ > $@
+%-bas.m: x-bas.m.in objects/%.h
+	sed -e "s/@XX@/$*/g" $< > $@
 
-%-callbacks.c: x-callbacks.c.in objects/%.h
-	sed -e "s/@YY@/$*/g" $^ > $@
+%-cbs.m: x-cbs.m.in objects/%.h
+	sed -e "s/@YY@/$*/g" $< > $@
 
-array.o: array.c objects/array.h
-objects/array.h: objects/array-basics.h objects/array-callbacks.h objects/hash.h
-data.o: data.c objects/data.h
-objects/data.h: objects/data-basics.h
-hash.o: hash.c objects/hash.h
-objects/hash.h: objects/hash-basics.h objects/hash-callbacks.h
-list.o: list.c objects/list.h
-objects/list.h: objects/list-basics.h objects/list-callbacks.h objects/hash.h
-map.o: map.c objects/map.h
-objects/map.h: objects/map-basics.h objects/map-callbacks.h objects/hash.h
+array.o: array.m objects/array.h
+objects/array.h: objects/array-bas.h objects/array-cbs.h objects/hash.h
+hash.o: hash.m objects/hash.h
+objects/hash.h: objects/hash-bas.h objects/hash-cbs.h
+list.o: list.m objects/list.h
+objects/list.h: objects/list-bas.h objects/list-cbs.h objects/array.h objects/hash.h
+map.o: map.m objects/map.h
+objects/map.h: objects/map-bas.h objects/map-cbs.h objects/hash.h
 
 
 Makefile: $(srcdir)/Makefile.in ../config.status
@@ -657,8 +631,6 @@ mostlyclean:
 clean: mostlyclean
 	rm -f libobjects$(LIBEXT) *$(OEXT)
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
-	rm -f $(GNU_BASICS_CFILES) $(GNU_CALLBACKS_CFILES)
-	rm -f $(GNU_BASICS_HFILES) $(GNU_CALLBACKS_HFILES)
 distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
