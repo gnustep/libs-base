@@ -1,3 +1,8 @@
+2000-04-20  Jonathan Gapen  <jagapen@whitewater.chem.wisc.edu>
+
+	* Tools/plmerge.m: New tool to merge property lists.
+	* Tools/plser.m: Fix error message. (deserialize => serialize)
+
 2000-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Don't do chdir/chroot on sysv - it screws up

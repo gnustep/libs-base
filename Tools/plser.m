@@ -50,7 +50,7 @@ main(int argc, char** argv)
 
   if ([args count] <= 1)
     {
-      NSLog(@"No file names given to deserialize.");
+      NSLog(@"No file names given to serialize.");
     }
   else
     {
