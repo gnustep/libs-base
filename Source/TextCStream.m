@@ -58,8 +58,8 @@ static BOOL debug_textcoder = NO;
   assert(*type != '^');
   assert(*type != ':');
 
-  if (!name)
-    name = @"";
+  if (!name || [name length] == 0)
+    name = @"Anonymous";
   switch (*type)
     {
     case _C_LNG:
@@ -164,8 +164,15 @@ static BOOL debug_textcoder = NO;
 #define DECODER_FORMAT(TYPE, CONVERSION) \
 @" <%a[^>]> (" ATXSTR(TYPE) @") = %" ATXSTR(CONVERSION) @" \n"
 
-#define DECODE_ERROR(TYPE) [NSException raise: NSGenericException \
-format: @"bad format decoding " ATXSTR(TYPE)]
+#define DECODE_ERROR(TYPE)						\
+{									\
+  id line = [stream readLine];						\
+  [NSException raise: NSGenericException				\
+	       format: @"bad format decoding " ATXSTR(TYPE) @".\n"	\
+                       @"Looking at %s\n.",				\
+	               [line cStringNoCopy]];				\
+}
+  
 
 #define DECODE_DEBUG(TYPE, CONVERSION) \
 if (debug_textcoder) \
