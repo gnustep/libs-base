@@ -25,11 +25,10 @@
 
 @implementation BinaryTreeNode
 
-+ initialize
++ (void) initialize
 {
   if (self == [BinaryTreeNode class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 - init
@@ -54,24 +53,6 @@
   [aCoder decodeObjectAt:&(n->_left) withName:NULL];
   [aCoder decodeObjectAt:&(n->_parent) withName:NULL];
   return n;
-}
-
-- write: (TypedStream*)aStream
-{
-  [super write:aStream];
-  objc_write_object_reference(aStream, _right);
-  objc_write_object_reference(aStream, _left);
-  objc_write_object_reference(aStream, _parent);
-  return self;
-}
-
-- read: (TypedStream*)aStream
-{
-  [super read:aStream];
-  objc_read_object(aStream, &_right);
-  objc_read_object(aStream, &_left);
-  objc_read_object(aStream, &_parent);
-  return self;
 }
 
 - leftNode
