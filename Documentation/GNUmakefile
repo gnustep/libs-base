@@ -43,30 +43,39 @@ gnustep-base_TEXI_FILES = \
 version.tmpl.texi \
 gnustep-base.tmpl.texi \
 gnustep-zones.tmpl.texi
+gnustep-base_DOC_INSTALL_DIR = Developer/Base/Manual
 
 coding-standards_TEXI_FILES = \
 coding-standards.tmpl.texi
+coding-standards_DOC_INSTALL_DIR = Developer/CodingStandards
 
 BUGS_TEXI_FILES = version.tmpl.texi
 BUGS_TEXT_MAIN = todo.tmpl.texi
+BUGS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 INSTALL_TEXI_FILES = version.tmpl.texi
 INSTALL_TEXT_MAIN = install.tmpl.texi
+INSTALL_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 NEWS_TEXI_FILES = version.tmpl.texi
 NEWS_TEXT_MAIN = news.tmpl.texi
+NEWS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 CODING-STANDARDS_TEXI_FILES = version.tmpl.texi
 CODING-STANDARDS_TEXT_MAIN = coding-standards.tmpl.texi
+CODING-STANDARDS_DOC_INSTALL_DIR = Developer/CodingStandards
 
 README_TEXI_FILES = version.tmpl.texi
 README_TEXT_MAIN = readme.tmpl.texi
+README_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 ANNOUNCE_TEXI_FILES = version.tmpl.texi
 ANNOUNCE_TEXT_MAIN = announce.tmpl.texi
+ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 STATUS_TEXI_FILES = version.tmpl.texi
 STATUS_TEXT_MAIN = status.tmpl.texi
+STATUS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 -include Makefile.preamble
 
