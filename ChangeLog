@@ -3,7 +3,11 @@
 	* Source/NSString.m: nodeToObject() fix error in handling escape
 	sequences in strings ... only treat a backslash specially when it
 	is immediately followed by 'U' or 'u' and four hexadecimal digits.
+	ensure data ia deallocated promptly.
 	* Source/GSCompatibility.m: match changes to property list escapes
+	* Source/Additions/GSXML.m: change ownership policy so that nodes
+	are owned by theri parents, never by siblings ... prevent stack
+	overflow deallocating nodes in long documents.
 	* Tools/plist-0_9.dtd: document unicode escapes.
 
 2003-08-02  Adam Fedor  <fedor@gnu.org>

@@ -1340,7 +1340,7 @@ static NSMapTable	*nodeNames = 0;
     {
       GSXMLNode	*n = [GSXMLNode alloc];
 
-      n = [n _initFrom: ((xmlNodePtr)(lib))->next parent: self];
+      n = [n _initFrom: ((xmlNodePtr)(lib))->next parent: _parent];
       return AUTORELEASE(n);
     }
   else
@@ -1367,7 +1367,7 @@ static NSMapTable	*nodeNames = 0;
 	{
 	  GSXMLNode	*n = [GSXMLNode alloc];
 
-	  n = [n _initFrom: ptr parent: self];
+	  n = [n _initFrom: ptr parent: _parent];
 	  return AUTORELEASE(n);
 	}
     }
@@ -1476,7 +1476,7 @@ static NSMapTable	*nodeNames = 0;
     {
       GSXMLNode	*n = [GSXMLNode alloc];
 
-      n = [n _initFrom: ((xmlNodePtr)(lib))->prev parent: self];
+      n = [n _initFrom: ((xmlNodePtr)(lib))->prev parent: _parent];
       return AUTORELEASE(n);
     }
   else
@@ -1501,7 +1501,7 @@ static NSMapTable	*nodeNames = 0;
 	{
 	  GSXMLNode	*n = [GSXMLNode alloc];
 
-	  n = [n _initFrom: ptr parent: self];
+	  n = [n _initFrom: ptr parent: _parent];
 	  return AUTORELEASE(n);
 	}
     }
