@@ -2,7 +2,7 @@
    Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Date: 1997
+   Date: 1997, 2002
 
    This file is part of the GNUstep Base Library.
 
@@ -37,6 +37,9 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
+#include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSDebug.h>
 
 #include "../Tools/gdomap.h"
 
@@ -121,21 +124,24 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       NSHost*		host = [NSHost hostWithName: name];
 
-      if (host)
-	name = [host address];
-
+      if (host != nil)
+	{
+	  name = [host address];
+	}
 #ifndef	HAVE_INET_ATON
       sin->sin_addr.s_addr = inet_addr([name lossyCString]);
       if (sin->sin_addr.s_addr == INADDR_NONE)
-	return NO;
 #else
       if (inet_aton([name lossyCString], &sin->sin_addr) == 0)
-	return NO;
 #endif
+	{
+	  return NO;
+	}
     }
   else
-    sin->sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
-
+    {
+      sin->sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
+    }
   if (svc == nil)
     {
       sin->sin_port = 0;
@@ -249,52 +255,362 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return [self initWithNullDevice];
 }
 
+/**
+ * Initialise as a client socket connection ... do this by using
+ * [-initAsClientInBackgroundAtAddress:service:protocol:forModes:]
+ * and running the current run loop in NSDefaultRunLoopMode until
+ * the connection attempt succeeds, fails, or times out.
+ */
 - (id) initAsClientAtAddress: (NSString*)a
 		     service: (NSString*)s
 		    protocol: (NSString*)p
 {
-  int	net;
-  struct sockaddr_in	sin;
+  NSRunLoop	*loop;
+  NSDate	*limit;
 
-  if (s == nil)
-    {
-      NSLog(@"bad argument - service is nil");
-      RELEASE(self);
-      return nil;
-    }
-  if (getAddr(a, s, p, &sin) == NO)
-    {
-      NSLog(@"bad address-service-protocol combination");
-      RELEASE(self);
-      return nil;
-    }
-  [self setAddr: &sin];
+  self = [self initAsClientInBackgroundAtAddress: a
+					 service: s
+					protocol: p
+					forModes: nil];
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+  loop = [NSRunLoop currentRunLoop];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 300];
+  while ([limit timeIntervalSinceNow] > 0
+    && (readInfo != nil || [writeInfo count] > 0))
     {
-      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
-      RELEASE(self);
-      return nil;
+      [loop runMode: NSDefaultRunLoopMode
+	 beforeDate: limit];
     }
-
-  self = [self initWithFileDescriptor: net closeOnDealloc: YES];
-  if (self)
+  if (readInfo != nil || [writeInfo count] > 0 || readOK == NO)
     {
-      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
-	{
-	  NSLog(@"unable to make connection to %s:%d - %s",
-		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-	  RELEASE(self);
-	  return nil;
-	}
-	
-      connectOK = NO;
-      acceptOK = NO;
-      readOK = YES;
-      writeOK = YES;
+      /* Must have timed out or failed */
+      DESTROY(self);
+    }
+  else
+    {
+      [self setNonBlocking: NO];
     }
   return self;
+}
+
+/*
+ * States for socks connection negotiation
+ */
+static NSString *	GSSOCKSConnect = @"GSSOCKSConnect";
+static NSString *	GSSOCKSSendAuth = @"GSSOCKSSendAuth";
+static NSString *	GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
+static NSString *	GSSOCKSSendConn = @"GSSOCKSSendConn";
+static NSString *	GSSOCKSRecvConn = @"GSSOCKSRecvConn";
+static NSString *	GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
+
+- (void) _socksHandler: (NSNotification*)aNotification
+{
+  NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+  NSString		*name = [aNotification name];
+  NSDictionary		*info = (NSMutableDictionary*)[aNotification userInfo];
+  NSArray		*modes;
+  NSString		*error;
+  NSMutableDictionary	*i = nil;
+  NSNotification	*n = nil;
+
+  NSDebugMLLog(@"NSFileHandle", @"%@ SOCKS connection: %@",
+    self, aNotification);
+
+  [nc removeObserver: self name: name object: self];
+
+  modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
+  error = [info objectForKey: GSFileHandleNotificationError];
+
+  if (error == nil)
+    {
+      if (name == GSSOCKSConnect)
+	{
+	  NSData	*item;
+
+	  /*
+	   * Send an authorisation record to the SOCKS server.
+	   */
+	  i = [info mutableCopy];
+	  /*
+	   * Authorisation record is at least three bytes -
+	   *   socks version (5)
+	   *   authorisation method bytes to follow (1)
+	   *   say we do no authorisation (0)
+	   */
+	  item = [[NSData alloc] initWithBytes: "\5\1\0"
+					length: 3];
+	  [i setObject: item forKey: NSFileHandleNotificationDataItem];
+	  RELEASE(item);
+	  [i setObject: GSSOCKSSendAuth forKey: NotificationKey];
+	  [writeInfo addObject: i];
+	  RELEASE(i);
+	  [nc addObserver: self
+		 selector: @selector(_socksHandler:)
+		     name: GSSOCKSSendAuth
+		   object: self];
+	  [self watchWriteDescriptor];
+	}
+      else if (name == GSSOCKSSendAuth)
+	{
+	  NSMutableData	*item;
+
+	  /*
+	   * We have written the authorisation record, so we
+	   * request a response from the SOCKS server.
+	   */
+	  readMax = 2;
+	  readInfo = [info mutableCopy];
+	  [readInfo setObject: GSSOCKSRecvAuth forKey: NotificationKey];
+	  item = [[NSMutableData alloc] initWithCapacity: 0];
+	  [readInfo setObject: item forKey: NSFileHandleNotificationDataItem];
+	  RELEASE(item);
+	  [nc addObserver: self
+		 selector: @selector(_socksHandler:)
+		     name: GSSOCKSRecvAuth
+		   object: self];
+	  [self watchReadDescriptorForModes: modes];
+	}
+      else if (name == GSSOCKSRecvAuth)
+	{
+	  NSData		*response;
+	  const unsigned char	*bytes;
+
+	  response = [info objectForKey: NSFileHandleNotificationDataItem];
+	  bytes = (const unsigned char*)[response bytes];
+	  if ([response length] != 2)
+	    {
+	      error = @"authorisation response from SOCKS was not two bytes";
+	    }
+	  else if (bytes[0] != 5)
+	    {
+	      error = @"authorisation response from SOCKS had wrong version";
+	    }
+	  else if (bytes[1] != 0)
+	    {
+	      error = @"authorisation response from SOCKS had wrong method";
+	    }
+	  else
+	    {
+	      NSData		*item;
+	      char		buf[10];
+	      const char	*ptr;
+	      int		p;
+
+	      /*
+	       * Send the address information to the SOCKS server.
+	       */
+	      i = [info mutableCopy];
+	      /*
+	       * Connect command is ten bytes -
+	       *   socks version
+	       *   connect command 
+	       *   reserved byte
+	       *   address type
+	       *   address 4 bytes (big endian)
+	       *   port 2 bytes (big endian)
+	       */
+	      buf[0] = 5;	// Socks version number
+	      buf[1] = 1;	// Connect command
+	      buf[2] = 0;	// Reserved
+	      buf[3] = 1;	// Address type (IPV4)
+	      ptr = [address lossyCString];
+	      buf[4] = atoi(ptr);
+	      while (isdigit(*ptr))
+		ptr++;
+	      ptr++;
+	      buf[5] = atoi(ptr);
+	      while (isdigit(*ptr))
+		ptr++;
+	      ptr++;
+	      buf[6] = atoi(ptr);
+	      while (isdigit(*ptr))
+		ptr++;
+	      ptr++;
+	      buf[7] = atoi(ptr);
+	      p = [service intValue];
+	      buf[8] = ((p & 0xff00) >> 8);
+	      buf[9] = (p & 0xff);
+
+	      item = [[NSData alloc] initWithBytes: buf length: 10];
+	      [i setObject: item forKey: NSFileHandleNotificationDataItem];
+	      RELEASE(item);
+	      [i setObject: GSSOCKSSendConn
+		    forKey: NotificationKey];
+	      [writeInfo addObject: i];
+	      RELEASE(i);
+	      [nc addObserver: self
+		     selector: @selector(_socksHandler:)
+			 name: GSSOCKSSendConn
+		       object: self];
+	      [self watchWriteDescriptor];
+	    }
+	}
+      else if (name == GSSOCKSSendConn)
+	{
+	  NSMutableData	*item;
+
+	  /*
+	   * We have written the connect command, so we
+	   * request a response from the SOCKS server.
+	   */
+	  readMax = 4;
+	  readInfo = [info mutableCopy];
+	  [readInfo setObject: GSSOCKSRecvConn forKey: NotificationKey];
+	  item = [[NSMutableData alloc] initWithCapacity: 0];
+	  [readInfo setObject: item forKey: NSFileHandleNotificationDataItem];
+	  RELEASE(item);
+	  [nc addObserver: self
+		 selector: @selector(_socksHandler:)
+		     name: GSSOCKSRecvConn
+		   object: self];
+	  [self watchReadDescriptorForModes: modes];
+	}
+      else if (name == GSSOCKSRecvConn)
+	{
+	  NSData		*response;
+	  const unsigned char	*bytes;
+	  unsigned		len = 0;
+
+	  response = [info objectForKey: NSFileHandleNotificationDataItem];
+	  bytes = (const unsigned char*)[response bytes];
+	  if ([response length] != 4)
+	    {
+	      error = @"connect response from SOCKS had bad length";
+	    }
+	  else if (bytes[0] != 5)
+	    {
+	      error = @"connect response from SOCKS had wrong version";
+	    }
+	  else if (bytes[1] != 0)
+	    {
+	      switch (bytes[1])
+		{
+		  case 1:
+		    error = @"SOCKS server general failure";
+		    break;
+		  case 2:
+		    error = @"SOCKS server says permission denied";
+		    break;
+		  case 3:
+		    error = @"SOCKS server says network unreachable";
+		    break;
+		  case 4:
+		    error = @"SOCKS server says host unreachable";
+		    break;
+		  case 5:
+		    error = @"SOCKS server says connection refused";
+		    break;
+		  case 6:
+		    error = @"SOCKS server says connection timed out";
+		    break;
+		  case 7:
+		    error = @"SOCKS server says command not supported";
+		    break;
+		  case 8:
+		    error = @"SOCKS server says address type not supported";
+		    break;
+		  default:
+		    error = @"connect response from SOCKS was failure";
+		    break;
+		}
+	    }
+	  else if (bytes[3] == 1)
+	    {
+	      len = 4;			// Fixed size (IPV4) address 
+	    }
+	  else if (bytes[3] == 3)
+	    {
+	      len = 1 + bytes[4];	// Domain name with leading length
+	    }
+	  else if (bytes[3] == 4)
+	    {
+	      len = 16;			// Fixed size (IPV6) address 
+	    }
+	  else
+	    {
+	      error = @"SOCKS server returned unknown address type";
+	    }
+
+	  if (error == nil)
+	    {
+	      NSMutableData	*item;
+
+	      /*
+	       * We have received a success, so we must now consume the
+	       * address and port information the SOCKS server sends.
+	       */
+	      readMax = len + 2;
+	      readInfo = [info mutableCopy];
+	      [readInfo setObject: GSSOCKSRecvAddr forKey: NotificationKey];
+	      item = [[NSMutableData alloc] initWithCapacity: 0];
+	      [readInfo setObject: item
+			   forKey: NSFileHandleNotificationDataItem];
+	      RELEASE(item);
+	      [nc addObserver: self
+		     selector: @selector(_socksHandler:)
+			 name: GSSOCKSRecvAddr
+		       object: self];
+	      [self watchReadDescriptorForModes: modes];
+	    }
+	}
+      else if (name == GSSOCKSRecvAddr)
+	{
+	  /*
+	   * Success ... We read the address from the socks server so
+	   * the connection is now ready to go.
+	   */
+	  name = GSFileHandleConnectCompletionNotification;
+	  i = [info mutableCopy];
+	  [i setObject: name forKey: NotificationKey];
+	  n = [NSNotification notificationWithName: name
+					    object: self
+					  userInfo: i];
+	  RELEASE(i);
+	}
+      else
+	{
+	  /*
+	   * Argh ... unexpected notification.
+	   */
+	  error = @"unexpected notification during SOCKS connection";
+	}
+    }
+
+  /*
+   * If 'error' is non-null, we set up a notification to tell people
+   * the connection failed.
+   */
+  if (error != nil)
+    {
+      NSDebugMLLog(@"NSFileHandle", @"%@ SOCKS error: %@", self, error);
+
+      /*
+       * An error in the initial connection ... notify observers
+       * by re-posting the notification with a new name.
+       */
+      name = GSFileHandleConnectCompletionNotification;
+      i = [info mutableCopy];
+      [i setObject: name forKey: NotificationKey];
+      [i setObject: error forKey: GSFileHandleNotificationError];
+      n = [NSNotification notificationWithName: name
+					object: self
+				      userInfo: i];
+      RELEASE(i);
+    }
+
+  /*
+   * If a notification has been set up, we post it as the last thing we do.
+   */
+  if (n != nil)
+    {
+      NSNotificationQueue	*q;
+
+      q = [NSNotificationQueue defaultQueue];
+      [q enqueueNotification: n
+		postingStyle: NSPostASAP
+		coalesceMask: NSNotificationNoCoalescing
+		    forModes: modes];
+    }
 }
 
 - (id) initAsClientInBackgroundAtAddress: (NSString*)a
@@ -302,24 +618,101 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 			        protocol: (NSString*)p
 			        forModes: (NSArray*)modes
 {
-  int	net;
+  static NSString	*esocks = nil;
+  static NSString	*dsocks = nil;
+  BOOL			beenHere = NO;
+  int			net;
   struct sockaddr_in	sin;
+  NSString		*shost = nil;
+  NSString		*sport = nil;
+
+  if (beenHere == NO);
+    {
+      NSUserDefaults	*defs;
+
+      beenHere = YES;
+      defs = [NSUserDefaults standardUserDefaults];
+      dsocks = [[defs stringForKey: @"GSSOCKS"] copy];
+      if (dsocks == nil)
+	{
+	  NSDictionary	*env;
+
+	  env = [[NSProcessInfo processInfo] environment];
+	  esocks = [env objectForKey: @"SOCKS5_SERVER"];
+	  if (esocks == nil)
+	    {
+	      esocks = [env objectForKey: @"SOCKS_SERVER"];
+	    }
+	  [esocks = esocks copy];
+	}
+    }
 
   if (a == nil || [a isEqualToString: @""])
-    a = @"localhost";
+    {
+      a = @"localhost";
+    }
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");
       RELEASE(self);
       return nil;
     }
+
+  /**
+   * A protocol fo the form 'socks-...' controls socks operation,
+   * overriding defaults and environment variables.<br />
+   * If it is just 'socks-' it turns off socks for this fiel handle.<br />
+   * Otherwise, the following text must be the name of the socks server
+   * (optionally followed by :port).
+   */
+  if ([p hasPrefix: @"socks-"] == YES)
+    {
+      shost = [p substringFromIndex: 6];
+      p = @"tcp";
+    }
+  else if (dsocks != nil)
+    {
+      shost = dsocks;	// GSSOCKS user default
+    }
+  else
+    {
+      shost = esocks;	// SOCKS_SERVER environment variable.
+    }
+
+  if (shost != nil && [shost length] > 0)
+    {
+      NSRange	r;
+
+      r = [shost rangeOfString: @":"];
+      if (r.length > 0)
+	{
+	  sport = [shost substringFromIndex: NSMaxRange(r)];
+	  shost = [shost substringToIndex: r.location];
+	}
+      else
+	{
+	  sport = @"1080";
+	}
+      p = @"tcp";
+    }
+
   if (getAddr(a, s, p, &sin) == NO)
     {
       NSLog(@"bad address-service-protocol combination");
       RELEASE(self);
       return nil;
     }
-  [self setAddr: &sin];
+  [self setAddr: &sin];		// Store the address of the remote end.
+
+  if (shost != nil)
+    {
+      if (getAddr(shost, sport, p, &sin) == NO)
+	{
+	  NSLog(@"bad SOCKS host-port combination");
+	  RELEASE(self);
+	  return nil;
+	}
+    }
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
@@ -338,18 +731,39 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	if (errno != EINPROGRESS)
 	  {
 	    NSLog(@"unable to make connection to %s:%d - %s",
-		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
+	      inet_ntoa(sin.sin_addr),
+	      GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
 	    RELEASE(self);
 	    return nil;
 	  }
 	
       info = [[NSMutableDictionary alloc] initWithCapacity: 4];
       [info setObject: address forKey: NSFileHandleNotificationDataItem];
-      [info setObject: GSFileHandleConnectCompletionNotification
-	       forKey: NotificationKey];
+      if (shost == nil)
+	{
+	  [info setObject: GSFileHandleConnectCompletionNotification
+		   forKey: NotificationKey];
+	}
+      else
+	{
+	  NSNotificationCenter	*nc;
+
+	  /*
+	   * If we are making a socks connection, register self as an
+	   * observer of notifications and ensure we will manage this.
+	   */
+	  nc = [NSNotificationCenter defaultCenter];
+	  [nc addObserver: self
+		 selector: @selector(_socksHandler:)
+		     name: GSSOCKSConnect
+		   object: self];
+	  [info setObject: GSSOCKSConnect
+		   forKey: NotificationKey];
+	}
       if (modes)
-        [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
+	{
+	  [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
+	}
       [writeInfo addObject: info];
       RELEASE(info);
       [self watchWriteDescriptor];
@@ -609,7 +1023,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       closeOnDealloc = flag;
       readInfo = nil;
       writeInfo = [NSMutableArray new];
-      readPos = 0;
+      readMax = 0;
       writePos = 0;
       readOK = YES;
       writeOK = YES;
@@ -714,10 +1128,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       id	info = [writeInfo objectAtIndex: 0];
       id	operation = [info objectForKey: NotificationKey];
 
-      if (operation == GSFileHandleConnectCompletionNotification)
+      if (operation != GSFileHandleWriteCompletionNotification)
 	{
           [NSException raise: NSFileHandleOperationException
-                      format: @"connect already in progress"];
+                      format: @"connect in progress"];
 	}
     }
 }
@@ -799,7 +1213,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkRead];
   if (isNonBlocking == YES)
-    [self setNonBlocking: NO];
+    {
+      [self setNonBlocking: NO];
+    }
   d = [NSMutableData dataWithCapacity: 0];
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -831,7 +1247,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkRead];
   if (isNonBlocking == YES)
-    [self setNonBlocking: NO];
+    {
+      [self setNonBlocking: NO];
+    }
   if (len <= 65536)
     {
       char	*buf;
@@ -943,7 +1361,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkAccept];
-  readPos = 0;
+  readMax = 0;
   RELEASE(readInfo);
   readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleConnectionAcceptedNotification
@@ -958,14 +1376,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) readInBackgroundAndNotifyForModes: (NSArray*)modes
 {
+  NSMutableData	*d;
+
   [self checkRead];
-  readPos = 0;
+  readMax = -1;		// Accept any quantity of data.
   RELEASE(readInfo);
   readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleReadCompletionNotification
 	       forKey: NotificationKey];
-  [readInfo setObject: [NSMutableData dataWithCapacity: 0]
-	       forKey: NSFileHandleNotificationDataItem];
+  d = [[NSMutableData alloc] initWithCapacity: 0];
+  [readInfo setObject: d forKey: NSFileHandleNotificationDataItem];
+  RELEASE(d);
   [self watchReadDescriptorForModes: modes];
 }
 
@@ -976,14 +1397,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
 {
+  NSMutableData	*d;
+
   [self checkRead];
-  readPos = 0;
+  readMax = 0;
   RELEASE(readInfo);
   readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleReadToEndOfFileCompletionNotification
 	       forKey: NotificationKey];
-  [readInfo setObject: [NSMutableData dataWithCapacity: 0]
-	       forKey: NSFileHandleNotificationDataItem];
+  d = [[NSMutableData alloc] initWithCapacity: 0];
+  [readInfo setObject: d forKey: NSFileHandleNotificationDataItem];
+  RELEASE(d);
   [self watchReadDescriptorForModes: modes];
 }
 
@@ -995,7 +1419,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
-  readPos = 0;
+  readMax = 0;
   RELEASE(readInfo);
   readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleDataAvailableNotification
@@ -1135,7 +1559,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void) synchronizeFile
 {
   if (isStandardFile)
-    (void)sync();
+    {
+      (void)sync();
+    }
 }
 
 - (void) truncateFileAtOffset: (unsigned long long)pos
@@ -1155,9 +1581,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [info setObject: item forKey: NSFileHandleNotificationDataItem];
   [info setObject: GSFileHandleWriteCompletionNotification
 		forKey: NotificationKey];
-  if (modes)
-    [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
-
+  if (modes != nil)
+    {
+      [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
+    }
   [writeInfo addObject: info];
   RELEASE(info);
   [self watchWriteDescriptor];
@@ -1172,11 +1599,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   NSMutableDictionary	*info = readInfo;
   NSNotification	*n;
+  NSNotificationQueue	*q;
   NSArray		*modes;
   NSString		*name;
 
   [self ignoreReadDescriptor];
   readInfo = nil;
+  readMax = 0;
   modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
   name = (NSString*)[info objectForKey: NotificationKey];
 
@@ -1184,15 +1613,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   RELEASE(info);	/* Retained by the notification.	*/
 
-  [[NSNotificationQueue defaultQueue] enqueueNotification: n
-		postingStyle: NSPostASAP
-		coalesceMask: NSNotificationNoCoalescing
+  q = [NSNotificationQueue defaultQueue];
+  [q enqueueNotification: n
+	    postingStyle: NSPostASAP
+	    coalesceMask: NSNotificationNoCoalescing
 		forModes: modes];
 }
 
 - (void) postWriteNotification
 {
   NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
+  NSNotificationQueue	*q;
   NSNotification	*n;
   NSArray		*modes;
   NSString		*name;
@@ -1206,25 +1637,32 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   writePos = 0;
   [writeInfo removeObjectAtIndex: 0];	/* Retained by notification.	*/
 
-  [[NSNotificationQueue defaultQueue] enqueueNotification: n
-		postingStyle: NSPostASAP
-		coalesceMask: NSNotificationNoCoalescing
+  q = [NSNotificationQueue defaultQueue];
+  [q enqueueNotification: n
+	    postingStyle: NSPostASAP
+	    coalesceMask: NSNotificationNoCoalescing
 		forModes: modes];
   if ((writeOK || connectOK) && [writeInfo count] > 0)
-    [self watchWriteDescriptor];	/* In case of queued writes.	*/
+    {
+      [self watchWriteDescriptor];	/* In case of queued writes.	*/
+    }
 }
 
 - (BOOL) readInProgress
 {
   if (readInfo)
-    return YES;
+    {
+      return YES;
+    }
   return NO;
 }
 
 - (BOOL) writeInProgress
 {
   if ([writeInfo count] > 0)
-    return YES;
+    {
+      return YES;
+    }
   return NO;
 }
 
@@ -1234,8 +1672,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   NSArray	*modes;
 
   if (descriptor < 0)
-    return;
-
+    {
+      return;
+    }
   l = [NSRunLoop currentRunLoop];
   modes = nil;
 
@@ -1275,7 +1714,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       return;
     }
-
   l = [NSRunLoop currentRunLoop];
   modes = nil;
 
@@ -1312,8 +1750,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   NSRunLoop	*l;
 
   if (descriptor < 0)
-    return;
-
+    {
+      return;
+    }
   l = [NSRunLoop currentRunLoop];
   [self setNonBlocking: YES];
   if (modes && [modes count])
@@ -1341,14 +1780,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void) watchWriteDescriptor
 {
   if (descriptor < 0)
-    return;
-
+    {
+      return;
+    }
   if ([writeInfo count] > 0)
     {
-      NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
-      NSRunLoop*		l = [NSRunLoop currentRunLoop];
-      NSArray*			modes = nil;
-
+      NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
+      NSRunLoop			*l = [NSRunLoop currentRunLoop];
+      NSArray			*modes = nil;
 
       modes = [info objectForKey: NSFileHandleNotificationMonitorModes];
 
@@ -1381,6 +1820,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	       forMode: (NSString*)mode
 {
   NSString	*operation;
+
+  NSDebugMLLog(@"NSFileHandle", @"%@ event: %d", self, type);
 
   if (isNonBlocking == NO)
     {
@@ -1433,16 +1874,30 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  char		buf[NETBUF_SIZE];
 
 	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
-	  length = [item length];
+	  /*
+	   * We may have a maximum data size set...
+	   */
+	  if (readMax > 0)
+	    {
+	      length = readMax - [item length];
+	      if (length > sizeof(buf))
+		{
+		  length = sizeof(buf);
+		}
+	    }
+	  else
+	    {
+	      length = sizeof(buf);
+	    }
 
 #if	USE_ZLIB
 	  if (gzDescriptor != 0)
 	    {
-	      received = gzread(gzDescriptor, buf, sizeof(buf));
+	      received = gzread(gzDescriptor, buf, length);
 	    }
 	  else
 #endif
-	  received = read(descriptor, buf, sizeof(buf));
+	  received = read(descriptor, buf, length);
 	  if (received == 0)
 	    { // Read up to end of file.
 	      [self postReadNotification];
@@ -1462,7 +1917,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  else
 	    {
 	      [item appendBytes: buf length: received];
-	      if (operation == NSFileHandleReadCompletionNotification)
+	      if (readMax < 0 || (readMax > 0 && [item length] == readMax))
 		{
 		  // Read a single chunk of data
 		  [self postReadNotification];
@@ -1476,7 +1931,30 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       info = [writeInfo objectAtIndex: 0];
       operation = [info objectForKey: NotificationKey];
-      if (operation == GSFileHandleWriteCompletionNotification)
+      if (operation == GSFileHandleConnectCompletionNotification
+	|| operation == GSSOCKSConnect)
+	{ // Connection attempt completed.
+	  int	result;
+	  int	len = sizeof(result);
+
+	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
+	    (char*)&result, &len) == 0 && result != 0)
+	    {
+	      NSString	*s;
+
+	      s = [NSString stringWithFormat: @"Connect attempt failed - %s",
+		GSLastErrorStr(result)];
+	      [info setObject: s forKey: GSFileHandleNotificationError];
+	    }
+	  else
+	    {
+	      readOK = YES;
+	      writeOK = YES;
+	    }
+	  connectOK = NO;
+	  [self postWriteNotification];
+	}
+      else
 	{
 	  NSData	*item;
 	  int		length;
@@ -1520,28 +1998,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      [self postWriteNotification];
 	    }
 	}
-      else
-	{ // Connection attempt completed.
-	  int	result;
-	  int	len = sizeof(result);
-
-	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
-	    (char*)&result, &len) == 0 && result != 0)
-	    {
-		NSString	*s;
-
-		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
-		  GSLastErrorStr(result)];
-		[info setObject: s forKey: GSFileHandleNotificationError];
-	    }
-	  else
-	    {
-	      readOK = YES;
-	      writeOK = YES;
-	    }
-	  connectOK = NO;
-	  [self postWriteNotification];
-	}
     }
 }
 
@@ -1556,7 +2012,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   address = [[NSString alloc] initWithCString: (char*)inet_ntoa(sin->sin_addr)];
   service = [[NSString alloc] initWithFormat: @"%d",
-	(int)GSSwapBigI16ToHost(sin->sin_port)];
+    (int)GSSwapBigI16ToHost(sin->sin_port)];
   protocol = @"tcp";
 }
 
@@ -1565,28 +2021,40 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   int	e;
 
   if (descriptor < 0)
-    return;
-
-  if (isStandardFile)
-    return;
-
+    {
+      return;
+    }
+  if (isStandardFile == YES)
+    {
+      return;
+    }
   if (isNonBlocking == flag)
-    return;
-
+    {
+      return;
+    }
   if ((e = fcntl(descriptor, F_GETFL, 0)) >= 0)
     {
-      if (flag)
-        e |= NBLK_OPT;
+      if (flag == YES)
+	{
+	  e |= NBLK_OPT;
+	}
       else
-        e &= ~NBLK_OPT;
-
+	{
+	  e &= ~NBLK_OPT;
+	}
       if (fcntl(descriptor, F_SETFL, e) < 0)
-        NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
+	{
+	  NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
+	}
       else
-        isNonBlocking = flag;
+	{
+	  isNonBlocking = flag;
+	}
     }
-    else
+  else
+    {
       NSLog(@"unable to get non-blocking mode - %s", GSLastErrorStr(errno));
+    }
 }
 
 - (NSString*) socketAddress
