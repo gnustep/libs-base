@@ -443,17 +443,45 @@ static IMP mdInitImp;
 static IMP maAddImp;
 static IMP mdSetImp;
 
-static void
+static BOOL
 initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
 {
+  unsigned char	u;
+
   info->data = d;
   info->cursor = c;
   info->mutable = m;
   info->debImp = (void (*)())[d methodForSelector: debSel];
   info->deiImp = (unsigned int (*)())[d methodForSelector: deiSel];
-  (*info->debImp)(d, debSel, &info->didUnique, 1, c);
+  (*info->debImp)(d, debSel, &u, 1, c);
+  if (u == 0 || u == 1)
+    {
+      info->didUnique = u;		// Old (current) format
+    }
+  else
+    {
+      if (u == 'G')
+	{
+	  const unsigned char	*b = [d bytes];
+	  unsigned int		l = [d length];
+
+	  if (*c + 11 < l && memcmp(&b[*c-1], "GNUstepSer", 10) == 0)
+	    {
+	      *c += 9; 
+	      (*info->debImp)(d, debSel, &u, 1, c);
+	      NSLog(@"Serialised data version %d not supported ..."
+		@" try another version of GNUstep");
+	      return NO;
+	    }
+	}
+      NSLog(@"Bad serialised data");
+      return NO;
+    }
   if (info->didUnique)
-    GSIArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
+    {
+      GSIArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
+    }
+  return YES;
 }
 
 static void
@@ -705,8 +733,15 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   _NSDeserializerProxy	*proxy;
 
   proxy = (_NSDeserializerProxy*)NSAllocateObject(self,0,NSDefaultMallocZone());
-  initDeserializerInfo(&proxy->info, RETAIN(d), c, m);
-  return AUTORELEASE(proxy);
+  if (initDeserializerInfo(&proxy->info, RETAIN(d), c, m) == YES)
+    {
+      return AUTORELEASE(proxy);
+    }
+  else
+    {
+      DESTROY(proxy);
+      return nil;
+    }
 }
 
 - (void) dealloc
@@ -792,10 +827,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       return nil;
     }
   NSAssert(cursor != 0, NSInvalidArgumentException);
-  initDeserializerInfo(&info, data, cursor, flag);
-  o = deserializeFromInfo(&info);
-  endDeserializerInfo(&info);
-  return AUTORELEASE(o);
+  if (initDeserializerInfo(&info, data, cursor, flag) == YES)
+    {
+      o = deserializeFromInfo(&info);
+      endDeserializerInfo(&info);
+      return AUTORELEASE(o);
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 + (id) deserializePropertyListFromData: (NSData*)data
@@ -809,10 +850,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       return nil;
     }
-  initDeserializerInfo(&info, data, &cursor, flag);
-  o = deserializeFromInfo(&info);
-  endDeserializerInfo(&info);
-  return AUTORELEASE(o);
+  if (initDeserializerInfo(&info, data, &cursor, flag) == YES)
+    {
+      o = deserializeFromInfo(&info);
+      endDeserializerInfo(&info);
+      return AUTORELEASE(o);
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
@@ -830,10 +877,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       _NSDeserializerInfo   info;
       id    o;
 
-      initDeserializerInfo(&info, data, cursor, flag);
-      o = deserializeFromInfo(&info);
-      endDeserializerInfo(&info);
-      return AUTORELEASE(o);
+      if (initDeserializerInfo(&info, data, cursor, flag) == YES)
+	{
+	  o = deserializeFromInfo(&info);
+	  endDeserializerInfo(&info);
+	  return AUTORELEASE(o);
+	}
+      else
+	{
+	  return nil;
+	}
     }
   else
     {
