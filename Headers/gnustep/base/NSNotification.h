@@ -37,9 +37,6 @@
 
 @interface NSNotification : NSObject <NSCopying, NSCoding>
 {
-  NSString	*_name;
-  id		_object;
-  NSDictionary	*_info;
 }
 
 /* Creating a Notification Object */
@@ -87,11 +84,6 @@
 @end
 
 #ifndef	NO_GNUSTEP
-@interface NSNotification (GNUstep)
-- (id) initWithName: (NSString*)name
-	     object: (id)object
-	   userInfo: (NSDictionary*)info;
-@end
 
 @interface NSNotificationCenter (GNUstep)
 /*
