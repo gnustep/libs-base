@@ -226,7 +226,8 @@
   [conn setRootObject: self];
 
   hostname = [[NSUserDefaults standardUserDefaults] stringForKey: @"NSHost"];
-  if ([hostname length] == 0)
+  if ([hostname length] == 0
+    ||  [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
     {
       if ([conn registerName: GDNC_SERVICE] == NO)
 	{
