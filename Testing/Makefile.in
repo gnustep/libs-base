@@ -72,7 +72,8 @@ pipes.m \
 server.m \
 client.m \
 string.m \
-values.m
+values.m \
+nsarray.m
 
 HDRS = \
 server.h
@@ -125,6 +126,8 @@ client: client.o $(srcdir)/../libobjects.a
 string: string.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 values: values.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+nsarray: nsarray.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 
 echo-excs:
