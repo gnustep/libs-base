@@ -81,7 +81,8 @@ string.m \
 values.m \
 nsarray.m \
 nsbundle.m \
-nsdictionary.m
+nsdictionary.m \
+nsprocessinfo.m
 
 # nsarchiving.m
 
