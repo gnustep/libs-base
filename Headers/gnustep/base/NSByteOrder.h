@@ -33,8 +33,9 @@ typedef gsu32	NSSwappedFloat;
 typedef gsu64	NSSwappedDouble;
 
 typedef enum {
-  NSLittleEndian,
-  NSBigEndian
+  NS_UnknownByteOrder,
+  NS_LittleEndian,
+  NS_BigEndian
 } NSByteOrder;
 
 /*
@@ -425,7 +426,7 @@ NSSwapFloat(NSSwappedFloat num)
 static inline NSByteOrder
 NSHostByteOrder(void)
 {
-  return NSBigEndian;
+  return NS_BigEndian;
 }
 
 /*
@@ -674,7 +675,7 @@ NSSwapHostShortToLittle(unsigned short num)
 static inline NSByteOrder
 NSHostByteOrder(void)
 {
-  return NSLittleEndian;
+  return NS_LittleEndian;
 }
 
 

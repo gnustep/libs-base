@@ -1,3 +1,8 @@
+1999-08-23  Pedro Ivo Andrade Tavares  <ptavares@iname.com>
+
+        * Headers/gnustep/base/NSByteOrder.h: changed the NSByteStore struct
+        to comply to Mac OS X documentation.
+
 1999-08-22  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/gnustep-base.tmpl.texi: New with GNUstep specific
