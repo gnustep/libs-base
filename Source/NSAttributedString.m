@@ -163,47 +163,58 @@ static Class GSMutableAttributedStringClass;
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  NSString	*string = [aDecoder decodeObject];
-  unsigned	length = [string length];
-
-  if (length == 0)
+  if ([aDecoder allowsKeyedCoding])
     {
-      self = [self initWithString: string attributes: nil];
+      NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
+      NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+      
+      self = [self initWithString: string attributes: attributes];
     }
-  else
+  else 
     {
-      unsigned		index;
-      NSDictionary	*attrs;
+      NSString	*string = [aDecoder decodeObject];
+      unsigned	length = [string length];
 
-      [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
-      attrs = [aDecoder decodeObject];
-      if (index == length)
-	{
-	  self = [self initWithString: string attributes: attrs];
+      if (length == 0)
+        {
+	  self = [self initWithString: string attributes: nil];
 	}
       else
-	{
-	  NSRange	r = NSMakeRange(0, index);
-	  unsigned	last = index;
-	  NSMutableAttributedString	*m;
-
-	  m = [NSMutableAttributedString alloc];
-	  m = [m initWithString: string attributes: nil];
-	  [m setAttributes: attrs range: r];
-	  while (index < length)
+        {
+	  unsigned		index;
+	  NSDictionary	*attrs;
+	  
+	  [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+	  attrs = [aDecoder decodeObject];
+	  if (index == length)
 	    {
-	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
-					   at: &index];
-	      attrs = [aDecoder decodeObject];
-	      r = NSMakeRange(last, index - last);
-	      [m setAttributes: attrs range: r];
-	      last = index;
+	      self = [self initWithString: string attributes: attrs];
 	    }
-	  RELEASE(self);
-	  self = [m copy];
-	  RELEASE(m);
+	  else
+	    {
+	      NSRange	r = NSMakeRange(0, index);
+	      unsigned	last = index;
+	      NSMutableAttributedString	*m;
+	      
+	      m = [NSMutableAttributedString alloc];
+	      m = [m initWithString: string attributes: nil];
+	      [m setAttributes: attrs range: r];
+	      while (index < length)
+	        {
+		  [aDecoder decodeValueOfObjCType: @encode(unsigned int)
+			 		       at: &index];
+		  attrs = [aDecoder decodeObject];
+		  r = NSMakeRange(last, index - last);
+		  [m setAttributes: attrs range: r];
+		  last = index;
+		}
+	      RELEASE(self);
+	      self = [m copy];
+	      RELEASE(m);
+	    }
 	}
     }
+
   return self;
 }
 
