@@ -424,6 +424,9 @@ gnustep_base_thread_callback()
 
 @end
 
+typedef struct { @defs(NSThread) } NSThread_ivars;
+
+
 BOOL
 GSRegisterCurrentThread (void)
 {
@@ -449,7 +452,7 @@ GSRegisterCurrentThread (void)
 					NSDefaultMallocZone ());
   thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
   objc_thread_set_data (thread);
-  ((NSThread *)thread)->_active = YES;
+  ((NSThread_ivars *)thread)->_active = YES;
 
   /*
    * We post the notification after we register the thread.  
@@ -474,14 +477,14 @@ GSUnregisterCurrentThread (void)
   
   thread = GSCurrentThread();
   
-  if (thread->_active == YES)
+  if (((NSThread_ivars *)thread)->_active == YES)
     {
       NSNotification	*n;
       
       /*
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
-      thread->_active = NO;
+      ((NSThread_ivars *)thread)->_active = NO;
       
       /*
        * Let observers know this thread is exiting.
