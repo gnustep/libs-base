@@ -471,6 +471,35 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   mergeDictionaries(refs, more, flag);
 }
 
+/**
+ * Informal protocols are not explicitly marked in source, but are
+ * inferred to be those categories of NSObject that receive no
+ * implementation.  [AGSOutput] finds and accumulates them; autogsdoc
+ * passes them here, where each entry is found in the 'category'
+ * section of our refs and copied over to the protocol section.
+ */
+- (void) addInformalProtocols: (NSArray *)protocolNames
+{
+  NSString *name;
+  NSString *file;
+  NSEnumerator *pnames = [protocolNames objectEnumerator];
+
+  //PENDING, should we worry about not overriding entries?
+  while ((name = [pnames nextObject]) != nil)
+    {
+      file = [[refs objectForKey: @"category"] objectForKey: name];
+      if (file != nil)
+        {
+            [[refs objectForKey: @"protocol"] setObject: file forKey: name];
+        }
+      else
+        {
+          NSLog(@"Category entry not found for informal protocol '%@'", name);
+        }
+    }
+}
+
+
 - (NSArray*) methodsInUnit: (NSString*)aUnit
 {
   NSDictionary		*d = [refs objectForKey: @"unitmethods"];
@@ -697,6 +726,21 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   if (s != nil)
     {
       return s;
+    }
+
+  /*
+   * (If unit is a category, method was probably indexed under the class,
+   *  so check it.)
+   */
+  if ([*u length] > 0 && [*u characterAtIndex: [*u length] - 1] == ')')
+    {
+      NSString *className =
+        [*u substringToIndex: [*u rangeOfString: @"("].location];
+      s = [t objectForKey: className];
+      if (s != nil)
+        {
+          return s;
+        }
     }
 
   /**
