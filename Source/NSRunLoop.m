@@ -52,7 +52,6 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
-#include <gnustep/base/Bag.h>
 #include <gnustep/base/Heap.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSDate.h>
@@ -112,14 +111,15 @@ static int debug_run_loop = 0;
  
 @interface RunLoopWatcher: NSObject
 {
-    BOOL		invalidated;
-    void*		data;
-    id			receiver;
-    RunLoopEventType	type;
-    NSDate*		limit;
-    unsigned 		count;
+  BOOL			invalidated;
+  void			*data;
+  id			receiver;
+  RunLoopEventType	type;
+  NSDate		*limit;
+  unsigned 		count;
 }
-- (void) eventFor: (void*)info mode: (NSString*)mode;
+- (void) eventFor: (void*)info
+	     mode: (NSString*)mode;
 - (void*) getData;
 - (NSDate*) getLimit;
 - (id) getReceiver;
@@ -131,142 +131,153 @@ static int debug_run_loop = 0;
           data: (void*)data;
 - (void) invalidate;
 - (BOOL) isValid;
-- (void) setData:(void*)item;
-- (void) setLimit:(NSDate*)when;
-- (void) setReceiver:anObj;
+- (void) setData: (void*)item;
+- (void) setLimit: (NSDate*)when;
+- (void) setReceiver: (id)anObj;
 @end
 
 @implementation	RunLoopWatcher
 
 - (void) dealloc
 {
-    [self invalidate];
-    [limit release];
-    [receiver release];
-    [super dealloc];
+  [self invalidate];
+  [limit release];
+  [receiver release];
+  [super dealloc];
 }
 
 - (BOOL) decrement
 {
-    if (count > 0) {
-	count--;
-	if (count > 0) {
-	    return YES;
+  if (count > 0)
+    {
+      count--;
+      if (count > 0)
+	{
+	  return YES;
 	}
     }
-    return NO;
+  return NO;
 }
 
-- (void) eventFor: (void*)info mode: (NSString*)mode
+- (void) eventFor: (void*)info
+	     mode: (NSString*)mode
 {
-    if ([self isValid] == NO) {
-	return;
+  if ([self isValid] == NO)
+    {
+      return;
     }
 
-    if ([receiver respondsToSelector:
-		@selector(receivedEvent:type:extra:forMode:)]) {
-	[receiver receivedEvent:data type:type extra:info forMode:mode];
+  if ([receiver respondsToSelector:
+		@selector(receivedEvent:type:extra:forMode:)])
+    {
+      [receiver receivedEvent: data type: type extra: info forMode: mode];
     }
-    else {
-	switch (type) {
-	    case ET_RDESC:
-	    case ET_RPORT:
-		[receiver readyForReadingOnFileDescriptor: (int)info];
-		break;
+  else
+    {
+      switch (type)
+	{
+	  case ET_RDESC:
+	  case ET_RPORT:
+	    [receiver readyForReadingOnFileDescriptor: (int)info];
+	    break;
 
-	    case ET_WDESC:
-		[receiver readyForWritingOnFileDescriptor: (int)info];
-		break;
+	  case ET_WDESC:
+	    [receiver readyForWritingOnFileDescriptor: (int)info];
+	    break;
 	}
     }
 }
 
 - (void*) getData
 {
-    return data;
+  return data;
 }
 
 - (NSDate*) getLimit
 {
-    return limit;
+  return limit;
 }
 
 - (id) getReceiver
 {
-    return receiver;
+  return receiver;
 }
 
 - (RunLoopEventType) getType
 {
-    return type;
+  return type;
 }
 
 - (void) increment
 {
-    count++;
+  count++;
 }
 
 - initWithType: (RunLoopEventType)aType
       receiver: (id)anObj
           data: (void*)item
 {
-    self = [super init];
-    if (self) {
-	invalidated = NO;
-	switch (aType) {
-	    case ET_RDESC:	type = aType;	break;
-	    case ET_WDESC:	type = aType;	break;
-	    case ET_RPORT:	type = aType;	break;
-	    default:
-		[NSException raise:NSInvalidArgumentException
-		     format:@"NSRunLoop - unknown event type"];
+  self = [super init];
+  if (self)
+    {
+      invalidated = NO;
+      switch (aType)
+	{
+	  case ET_RDESC:	type = aType;	break;
+	  case ET_WDESC:	type = aType;	break;
+	  case ET_RPORT:	type = aType;	break;
+	  default:
+	    [NSException raise: NSInvalidArgumentException
+		        format: @"NSRunLoop - unknown event type"];
 	}
-	[self setReceiver:anObj];
-	[self setData:item];
-	[self setLimit:nil];
-	count = 0;
+      [self setReceiver: anObj];
+      [self setData: item];
+      [self setLimit: nil];
+      count = 0;
     }
-    return self;
+  return self;
 }
 
 - (void) invalidate
 {
-    invalidated = YES;
+  invalidated = YES;
 }
 
 - (BOOL) isValid
 {
-    if (invalidated == YES) {
-	return NO;
+  if (invalidated == YES)
+    {
+      return NO;
     }
-    if ([receiver respondsToSelector:@selector(isValid)] &&
-	[receiver isValid] == NO) {
-	[self invalidate];
-	return NO;
+  if ([receiver respondsToSelector: @selector(isValid)] &&
+      [receiver isValid] == NO)
+    {
+      [self invalidate];
+      return NO;
     }
-    return YES;
+  return YES;
 }
 
 - (void) setData: (void*)item
 {
-    data = item;
+  data = item;
 }
 
 - (void) setLimit: (NSDate*)when
 {
-    NSDate*	d = [when retain];
+  NSDate*	d = [when retain];
 
-    [limit release];
-    limit = d;
+  [limit release];
+  limit = d;
 }
 
-- (void) setReceiver: anObject
+- (void) setReceiver: (id)anObject
 {
-    id	obj = receiver;
+  id	obj = receiver;
 
-    receiver = [anObject retain];
+  receiver = [anObject retain];
 
-    [obj release];
+  [obj release];
 }
 
 @end
@@ -280,7 +291,7 @@ static int debug_run_loop = 0;
 @implementation	NSRunLoop (TimedPerformers)
 - (NSMutableArray*) _timedPerformers
 {
-    return _timedPerformers;
+  return _timedPerformers;
 }
 @end
 
@@ -291,23 +302,23 @@ static int debug_run_loop = 0;
  */
 @interface RunLoopPerformer: NSObject
 {
-    SEL		selector;
-    id		target;
-    id		argument;
-    unsigned	order;
-    NSArray	*modes;
-    NSTimer	*timer;
+  SEL		selector;
+  id		target;
+  id		argument;
+  unsigned	order;
+  NSArray	*modes;
+  NSTimer	*timer;
 }
 
 - (void) fire;
 - initWithSelector: (SEL)aSelector
-	    target: target
-          argument: argument
+	    target: (id)target
+          argument: (id)argument
              order: (unsigned int)order
              modes: (NSArray*)modes;
 - (BOOL) matchesSelector: (SEL)aSelector
-		  target: aTarget
-		argument: anArgument;
+		  target: (id)aTarget
+		argument: (id)anArgument;
 - (NSArray*) modes;
 - (unsigned int) order;
 - (void) setTimer: (NSTimer*)timer;
@@ -317,65 +328,73 @@ static int debug_run_loop = 0;
 
 - (void) dealloc
 {
-    [timer invalidate];
-    [target release];
-    [argument release];
-    [modes release];
-    [super dealloc];
+  [timer invalidate];
+  [target release];
+  [argument release];
+  [modes release];
+  [super dealloc];
 }
 
-- (void)fire
+- (void) fire
 {
-    if (timer != nil) {
-	timer = nil;
-	[[self retain] autorelease];
-	[[[NSRunLoop currentInstance] _timedPerformers]
+  if (timer != nil)
+    {
+      timer = nil;
+      [[self retain] autorelease];
+      [[[NSRunLoop currentInstance] _timedPerformers]
 		removeObjectIdenticalTo: self];
     }
-    [target performSelector: selector withObject: argument];
+  [target performSelector: selector withObject: argument];
 }
 
 - initWithSelector: (SEL)aSelector
-	    target: aTarget
-          argument: anArgument
+	    target: (id)aTarget
+          argument: (id)anArgument
              order: (unsigned int)theOrder
              modes: (NSArray*)theModes
 {
-    self = [super init];
-    if (self) {
-	selector = aSelector;
-	target = [aTarget retain];
-	argument = [anArgument retain];
-	order = theOrder;
-	modes = [theModes copy];
+  self = [super init];
+  if (self)
+    {
+      selector = aSelector;
+      target = [aTarget retain];
+      argument = [anArgument retain];
+      order = theOrder;
+      modes = [theModes copy];
     }
-    return self;
+  return self;
 }
 
 - (BOOL) matchesSelector: (SEL)aSelector
-		  target: aTarget
-		argument: anArgument
+		  target: (id)aTarget
+		argument: (id)anArgument
 {
-    if (selector == aSelector)
-	if (target == aTarget)
-	    if ([argument isEqual:anArgument])
-		return YES;
-    return NO;
+  if (selector == aSelector)
+    {
+      if (target == aTarget)
+	{
+	  if ([argument isEqual:anArgument])
+	    {
+	      return YES;
+	    }
+	}
+    }
+  return NO;
 }
 
 - (NSArray*) modes
 {
-    return modes;
+  return modes;
 }
 
 - (unsigned int) order
 {
-    return order;
+  return order;
 }
 
 - (void) setTimer: (NSTimer*)t
 {
-    timer = t;
+  timer = t;
 }
 @end
 
@@ -385,43 +404,45 @@ static int debug_run_loop = 0;
 					selector: (SEL)aSelector
 					  object: (id)arg
 {
-    NSMutableArray	*array;
-    int			i;
+  NSMutableArray	*array;
+  int			i;
 
-    [target retain];
-    [arg retain];
-    array = [[NSRunLoop currentInstance] _timedPerformers];
-    for (i = [array count]; i > 0; i--) {
-	if ([[array objectAtIndex: i-1] matchesSelector: aSelector
-					         target: target
-					       argument: arg]) {
-	    [array removeObjectAtIndex: i-1];
+  [target retain];
+  [arg retain];
+  array = [[NSRunLoop currentInstance] _timedPerformers];
+  for (i = [array count]; i > 0; i--)
+    {
+      if ([[array objectAtIndex: i-1] matchesSelector: aSelector
+					       target: target
+					     argument: arg])
+	{
+	  [array removeObjectAtIndex: i-1];
 	}
     }
-    [arg release];
-    [target release];
+  [arg release];
+  [target release];
 }
 
 - (void) performSelector: (SEL)aSelector
 	      withObject: (id)argument
 	      afterDelay: (NSTimeInterval)seconds
 {
-    NSMutableArray	*array;
-    RunLoopPerformer	*item;
+  NSMutableArray	*array;
+  RunLoopPerformer	*item;
 
-    array = [[NSRunLoop currentInstance] _timedPerformers];
-    item = [[RunLoopPerformer alloc] initWithSelector: aSelector
-					       target: self
-          				     argument: argument
-             					order: 0
-						modes: nil];
-    [array addObject: item];
-    [item setTimer: [NSTimer scheduledTimerWithTimeInterval: seconds
-						     target: item
-						   selector: @selector(fire)
-						   userInfo: nil
-						    repeats: NO]];
-    [item release];
+  array = [[NSRunLoop currentInstance] _timedPerformers];
+  item = [[RunLoopPerformer alloc] initWithSelector: aSelector
+					     target: self
+					   argument: argument
+					      order: 0
+					      modes: nil];
+  [array addObject: item];
+  [item setTimer: [NSTimer scheduledTimerWithTimeInterval: seconds
+						   target: item
+						 selector: @selector(fire)
+						 userInfo: nil
+						  repeats: NO]];
+  [item release];
 }
 
 - (void) performSelector: (SEL)aSelector
@@ -429,32 +450,34 @@ static int debug_run_loop = 0;
 	      afterDelay: (NSTimeInterval)seconds
 		 inModes: (NSArray*)modes
 {
-    NSRunLoop		*loop;
-    NSMutableArray	*array;
-    RunLoopPerformer	*item;
-    NSTimer		*timer;
-    int			i;
+  NSRunLoop		*loop;
+  NSMutableArray	*array;
+  RunLoopPerformer	*item;
+  NSTimer		*timer;
+  int			i;
 
-    if (modes == nil || [modes count] == 0) {
-	return;
+  if (modes == nil || [modes count] == 0)
+    {
+      return;
     }
-    loop = [NSRunLoop currentInstance];
-    array = [loop _timedPerformers];
-    item = [[RunLoopPerformer alloc] initWithSelector: aSelector
-					       target: self
-          				     argument: argument
-             					order: 0
-						modes: nil];
-    [array addObject: item];
-    timer = [NSTimer timerWithTimeInterval: seconds
-				    target: item
-				  selector: @selector(fire)
-				  userInfo: nil
-				   repeats: NO];
-    [item setTimer: timer];
-    [item release];
-    for (i = 0; i < [modes count]; i++) {
-	[loop addTimer: timer forMode: [modes objectAtIndex: i]];
+  loop = [NSRunLoop currentInstance];
+  array = [loop _timedPerformers];
+  item = [[RunLoopPerformer alloc] initWithSelector: aSelector
+					     target: self
+					   argument: argument
+					      order: 0
+					      modes: nil];
+  [array addObject: item];
+  timer = [NSTimer timerWithTimeInterval: seconds
+				  target: item
+				selector: @selector(fire)
+				userInfo: nil
+				 repeats: NO];
+  [item setTimer: timer];
+  [item release];
+  for (i = 0; i < [modes count]; i++)
+    {
+      [loop addTimer: timer forMode: [modes objectAtIndex: i]];
     }
 }
 
@@ -482,75 +505,91 @@ static int debug_run_loop = 0;
    limit-date order. */
 - (void) _addWatcher: (RunLoopWatcher*) item forMode: (NSString*)mode
 {
-    NSMutableArray	*watchers;
-    id			obj;
-    NSDate		*limit;
-    int			count;
+  NSMutableArray	*watchers;
+  id			obj;
+  NSDate		*limit;
+  int			count;
 
-    watchers = NSMapGet (_mode_2_watchers, mode);
-    if (watchers == nil) {
-	watchers = [NSMutableArray new];
-	NSMapInsert (_mode_2_watchers, mode, watchers);
-	[watchers release];
-	count = 0;
+  watchers = NSMapGet (_mode_2_watchers, mode);
+  if (watchers == nil)
+    {
+      watchers = [NSMutableArray new];
+      NSMapInsert (_mode_2_watchers, mode, watchers);
+      [watchers release];
+      count = 0;
     }
-    else {
-	count = [watchers count];
+  else
+    {
+      count = [watchers count];
     }
 
-    /* If the receiver or its delegate (if any) respond to
-       'limitDateForMode:' then we ask them for the limit date for
-	this watcher.
-     */
-    obj = [item getReceiver];
-    if ([obj respondsToSelector: @selector(limitDateForMode:)]) {
-	[item setLimit: [obj limitDateForMode:mode]];
+  /*
+   *	If the receiver or its delegate (if any) respond to
+   *	'limitDateForMode:' then we ask them for the limit date for
+   *	this watcher.
+   */
+  obj = [item getReceiver];
+  if ([obj respondsToSelector: @selector(limitDateForMode:)])
+    {
+      [item setLimit: [obj limitDateForMode:mode]];
     }
-    else if ([obj respondsToSelector: @selector(delegate)]) {
-	obj = [obj delegate];
-	if ([obj respondsToSelector: @selector(limitDateForMode:)]) {
-	    [item setLimit: [obj limitDateForMode:mode]];
+  else if ([obj respondsToSelector: @selector(delegate)])
+    {
+      obj = [obj delegate];
+      if ([obj respondsToSelector: @selector(limitDateForMode:)])
+	{
+	  [item setLimit: [obj limitDateForMode:mode]];
 	}
     }
-    limit = [item getLimit];
+  limit = [item getLimit];
 
-    /* Make sure that the items in the watchers list are ordered. */
-    if (limit == nil || count == 0) {
-	[watchers addObject:item];
+  /*
+   *	Make sure that the items in the watchers list are ordered.
+   */
+  if (limit == nil || count == 0)
+    {
+      [watchers addObject:item];
     }
-    else {
-	int	i;
+  else
+    {
+      int	i;
 
-	for (i = 0; i < count; i++) {
-	    NSDate*	when = [[watchers objectAtIndex:i] getLimit];
+      for (i = 0; i < count; i++)
+	{
+	  NSDate*	when = [[watchers objectAtIndex:i] getLimit];
 
-	    if (when == nil || [limit earlierDate:when] == when) {
-		[watchers insertObject:item atIndex:i];
-		break;
+	  if (when == nil || [limit earlierDate:when] == when)
+	    {
+	      [watchers insertObject:item atIndex:i];
+	      break;
 	    }
 	}
-	if (i == count) {
-	    [watchers addObject:item];
+      if (i == count)
+	{
+	  [watchers addObject:item];
 	}
     }
 }
 
 - (void) _checkPerformers
 {
-    RunLoopPerformer	*item;
-    NSArray		*array = [NSArray arrayWithArray: _performers];
-    int			count = [array count];
-    unsigned		pos;
-    int			i;
+  RunLoopPerformer	*item;
+  NSArray		*array = [NSArray arrayWithArray: _performers];
+  int			count = [array count];
+  unsigned		pos;
+  int			i;
 
-    for (i = 0; i < count; i++) {
-	item = (RunLoopPerformer*)[array objectAtIndex: i];
+  for (i = 0; i < count; i++)
+    {
+      item = (RunLoopPerformer*)[array objectAtIndex: i];
 
-	pos = [_performers indexOfObjectIdenticalTo: item];
-	if (pos != NSNotFound) {
-	    if ([[item modes] containsObject: _current_mode]) {
-		[_performers removeObjectAtIndex: pos];
-		[item fire];
+      pos = [_performers indexOfObjectIdenticalTo: item];
+      if (pos != NSNotFound)
+	{
+	  if ([[item modes] containsObject: _current_mode])
+	    {
+	      [_performers removeObjectAtIndex: pos];
+	      [item fire];
 	    }
 	}
     }
@@ -561,37 +600,37 @@ static int debug_run_loop = 0;
 
 + currentInstance
 {
-    return [self currentRunLoop];
+  return [self currentRunLoop];
 }
 
 + (NSString*) currentMode
 {
-    return [[NSRunLoop currentRunLoop] currentMode];
+  return [[NSRunLoop currentRunLoop] currentMode];
 }
 
 + (void) run
 {
-    [[NSRunLoop currentRunLoop] run];
+  [[NSRunLoop currentRunLoop] run];
 }
 
 + (void) runUntilDate: date
 {
-    [[NSRunLoop currentRunLoop] runUntilDate: date];
+  [[NSRunLoop currentRunLoop] runUntilDate: date];
 }
 
 + (void) runUntilDate: date forMode: (NSString*)mode
 {
-    [[NSRunLoop currentRunLoop] runUntilDate: date forMode: mode];
+  [[NSRunLoop currentRunLoop] runUntilDate: date forMode: mode];
 }
 
 + (BOOL) runOnceBeforeDate: date 
 {
-    return [[NSRunLoop currentRunLoop] runOnceBeforeDate: date];
+  return [[NSRunLoop currentRunLoop] runOnceBeforeDate: date];
 }
 
 + (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
 {
-    return [[NSRunLoop currentRunLoop] runOnceBeforeDate: date forMode: mode];
+  return [[NSRunLoop currentRunLoop] runOnceBeforeDate: date forMode: mode];
 }
 
 - (void) addEvent: (void*)data
@@ -599,30 +638,34 @@ static int debug_run_loop = 0;
           watcher: (id<RunLoopEvents>)watcher
           forMode: (NSString*)mode
 {
-    RunLoopWatcher	*info;
+  RunLoopWatcher	*info;
 
-    if (mode == nil)
-	mode = _current_mode;
-
-    info = [self _getWatcher: data type: type forMode: mode];
-
-    if (info && [info getReceiver] == watcher) {
-	/* Increment usage count for this watcher. */
-	[info increment];
+  if (mode == nil)
+    {
+      mode = _current_mode;
     }
-    else {
-	/* Remove any existing handler for another watcher. */
-	[self _removeWatcher: data type: type forMode: mode];
 
-	/* Create new object to hold information. */
-	info = [[RunLoopWatcher alloc] initWithType: type
-					   receiver: watcher
-					       data: data];
-	/* Add the object to the array for the mode and keep count. */
-	[self _addWatcher:info forMode:mode];
-	[info increment];
+  info = [self _getWatcher: data type: type forMode: mode];
 
-	[info release];		/* Now held in array.	*/
+  if (info && [info getReceiver] == (id)watcher)
+    {
+      /* Increment usage count for this watcher. */
+      [info increment];
+    }
+  else
+    {
+      /* Remove any existing handler for another watcher. */
+      [self _removeWatcher: data type: type forMode: mode];
+
+      /* Create new object to hold information. */
+      info = [[RunLoopWatcher alloc] initWithType: type
+					 receiver: watcher
+					     data: data];
+      /* Add the object to the array for the mode and keep count. */
+      [self _addWatcher:info forMode:mode];
+      [info increment];
+
+      [info release];		/* Now held in array.	*/
     }
 }
 
@@ -630,10 +673,10 @@ static int debug_run_loop = 0;
 		    object: (id <FdListening>)listener
 		   forMode: (NSString*)mode
 {
-    return [self addEvent: (void*)fd
-		     type: ET_RDESC
-		  watcher: (id<RunLoopEvents>)listener
-		  forMode: mode];
+  return [self addEvent: (void*)fd
+		   type: ET_RDESC
+		watcher: (id<RunLoopEvents>)listener
+		forMode: mode];
 }
 
   /* Add our new handler information to the array. */
@@ -641,10 +684,10 @@ static int debug_run_loop = 0;
 		     object: (id <FdSpeaking>)speaker
 		    forMode: (NSString*)mode
 {
-    return [self addEvent: (void*)fd
-		     type: ET_WDESC
-		  watcher: (id<RunLoopEvents>)speaker
-		  forMode: mode];
+  return [self addEvent: (void*)fd
+		   type: ET_WDESC
+		watcher: (id<RunLoopEvents>)speaker
+		forMode: mode];
 }
 
 - (void) removeEvent: (void*)data
@@ -652,19 +695,23 @@ static int debug_run_loop = 0;
              forMode: (NSString*)mode
 		 all: (BOOL)removeAll
 {
-    if (mode == nil)
-  	mode = _current_mode;
-  
-    if (removeAll) {
-	[self _removeWatcher: data type: type forMode: mode];
+  if (mode == nil)
+    {
+      mode = _current_mode;
     }
-    else {
-	RunLoopWatcher	*info;
+  if (removeAll)
+    {
+      [self _removeWatcher: data type: type forMode: mode];
+    }
+  else
+    {
+      RunLoopWatcher	*info;
 
-	info = [self _getWatcher: data type: type forMode: mode];
+      info = [self _getWatcher: data type: type forMode: mode];
   
-	if (info && [info decrement] == NO) {
-	    [self _removeWatcher: data type: type forMode: mode];
+      if (info && [info decrement] == NO)
+	{
+	  [self _removeWatcher: data type: type forMode: mode];
   	}
     }
 }
@@ -672,25 +719,25 @@ static int debug_run_loop = 0;
 - (void) removeReadDescriptor: (int)fd 
 		      forMode: (NSString*)mode
 {
-    return [self removeEvent:(void*)fd type: ET_RDESC forMode:mode all:NO];
+  return [self removeEvent:(void*)fd type: ET_RDESC forMode:mode all:NO];
 }
 
 - (void) removeWriteDescriptor: (int)fd
 		       forMode: (NSString*)mode
 {
-    return [self removeEvent:(void*)fd type: ET_WDESC forMode:mode all:NO];
+  return [self removeEvent:(void*)fd type: ET_WDESC forMode:mode all:NO];
 }
 
 - (BOOL) runOnceBeforeDate: date
 {
-    return [self runOnceBeforeDate: date forMode: _current_mode];
+  return [self runOnceBeforeDate: date forMode: _current_mode];
 }
 
 /* Running the run loop once through for timers and input listening. */
 
 - (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
 {
-    return [self runMode:mode beforeDate:date];
+  return [self runMode:mode beforeDate:date];
 }
 
 - (void) runUntilDate: date forMode: (NSString*)mode
@@ -719,17 +766,16 @@ static int debug_run_loop = 0;
 
 + currentRunLoop
 {
+  static NSString	*key = @"NSRunLoopThreadKey";
   NSRunLoop*	r;
   NSThread*	t;
-  NSString*	key;
 
   t = [NSThread currentThread];
-  key = @"NSRunLoopThreadKey";
-  r = [[t threadDictionary] objectForKey:key];
+  r = [[t threadDictionary] objectForKey: key];
   if (r == nil)
     {
       r = [NSRunLoop new];
-      [[t threadDictionary] setObject:r forKey:key];
+      [[t threadDictionary] setObject: r forKey: key];
       [r release];
     }
   return r;
@@ -757,11 +803,11 @@ static int debug_run_loop = 0;
 
 - (void) dealloc
 {
-    NSFreeMapTable(_mode_2_timers);
-    NSFreeMapTable(_mode_2_watchers);
-    [_performers release];
-    [_timedPerformers release];
-    [super dealloc];
+  NSFreeMapTable(_mode_2_timers);
+  NSFreeMapTable(_mode_2_watchers);
+  [_performers release];
+  [_timedPerformers release];
+  [super dealloc];
 }
 
 - (NSString*) currentMode
@@ -794,204 +840,238 @@ static int debug_run_loop = 0;
 
 - limitDateForMode: (NSString*)mode
 {
-    id			saved_mode;
-    Heap		*timers;
-    NSTimer		*min_timer = nil;
-    RunLoopWatcher	*min_watcher = nil;
-    NSArray		*watchers;
-    NSDate		*when;
+  id			saved_mode;
+  Heap			*timers;
+  NSTimer		*min_timer = nil;
+  RunLoopWatcher	*min_watcher = nil;
+  NSArray		*watchers;
+  NSDate		*when;
 
-    saved_mode = _current_mode;
-    _current_mode = mode;
+  saved_mode = _current_mode;
+  _current_mode = mode;
 
-    timers = NSMapGet(_mode_2_timers, mode);
-    if (timers) {
-	while ((min_timer = [timers minObject]) != nil) {
-	    if (![min_timer isValid]) {
-		[timers removeFirstObject];
-		min_timer = nil;
-		continue;
+  timers = NSMapGet(_mode_2_timers, mode);
+  if (timers)
+    {
+      while ((min_timer = [timers minObject]) != nil)
+	{
+	  if (![min_timer isValid])
+	    {
+	      [timers removeFirstObject];
+	      min_timer = nil;
+	      continue;
 	    }
 
-	    if ([[min_timer fireDate] timeIntervalSinceNow] > 0) {
-		break;
+	  if ([[min_timer fireDate] timeIntervalSinceNow] > 0)
+	    {
+	      break;
 	    }
 
-	    [min_timer retain];
-	    [timers removeFirstObject];
-	    /* Firing will also increment its fireDate, if it is repeating. */
-	    [min_timer fire];
-	    if ([min_timer isValid]) {
-		[timers addObject: min_timer];
+	  [min_timer retain];
+	  [timers removeFirstObject];
+	  /* Firing will also increment its fireDate, if it is repeating. */
+	  [min_timer fire];
+	  if ([min_timer isValid])
+	    {
+	      [timers addObject: min_timer];
 	    }
-	    [min_timer release];
-	    min_timer = nil;
-	    [NSNotificationQueue runLoopASAP];	/* Post notifications. */
+	  [min_timer release];
+	  min_timer = nil;
+	  [NSNotificationQueue runLoopASAP];	/* Post notifications. */
 	}
     }
 
-    /* Is this right? At the moment we invalidate and discard watchers
-       whose limit-dates have passed. */
-    watchers = NSMapGet(_mode_2_watchers, mode);
-    if (watchers) {
-	while ([watchers count] > 0) {
-	    min_watcher = (RunLoopWatcher*)[watchers objectAtIndex:0];
+  /* Is this right? At the moment we invalidate and discard watchers
+     whose limit-dates have passed. */
+  watchers = NSMapGet(_mode_2_watchers, mode);
+  if (watchers)
+    {
+      while ([watchers count] > 0)
+	{
+	  min_watcher = (RunLoopWatcher*)[watchers objectAtIndex:0];
 
-	    if (![min_watcher isValid]) {
-		[watchers removeObjectAtIndex:0];
-		min_watcher = nil;
-		continue;
+	  if (![min_watcher isValid])
+	    {
+	      [watchers removeObjectAtIndex:0];
+	      min_watcher = nil;
+	      continue;
 	    }
 
-	    when = [min_watcher getLimit];
-	    if (when == nil || [when timeIntervalSinceNow] > 0) {
-		break;
+	  when = [min_watcher getLimit];
+	  if (when == nil || [when timeIntervalSinceNow] > 0)
+	    {
+	      break;
 	    }
-	    else {
-		id	obj;
-		NSDate	*nxt = nil;
+	  else
+	    {
+	      id	obj;
+	      NSDate	*nxt = nil;
 
-		/*
- 		 *	If the receiver or its delegate wants to know about
-		 *	timeouts - inform it and give it a chance to set a
-		 *	revised limit date.
-		 */
-		obj = [min_watcher getReceiver];
-		if ([obj respondsToSelector:
-			@selector(timedOutEvent:type:forMode:)]) {
-		    nxt = [obj timedOutEvent:[min_watcher getData]
-				        type:[min_watcher getType]
-				     forMode:_current_mode];
+	      /*
+	       *	If the receiver or its delegate wants to know about
+	       *	timeouts - inform it and give it a chance to set a
+	       *	revised limit date.
+	       */
+	      obj = [min_watcher getReceiver];
+	      if ([obj respondsToSelector:
+		      @selector(timedOutEvent:type:forMode:)])
+		{
+		  nxt = [obj timedOutEvent:[min_watcher getData]
+				      type:[min_watcher getType]
+				   forMode:_current_mode];
 		}
-		else if ([obj respondsToSelector:@selector(delegate)]) {
-		    obj = [obj delegate];
-		    if ([obj respondsToSelector:
-			    @selector(timedOutEvent:type:forMode:)]) {
-			nxt = [obj timedOutEvent:[min_watcher getData]
-					    type:[min_watcher getType]
-					 forMode:_current_mode];
+	      else if ([obj respondsToSelector:@selector(delegate)])
+		{
+		  obj = [obj delegate];
+		  if ([obj respondsToSelector:
+			    @selector(timedOutEvent:type:forMode:)])
+		    {
+		      nxt = [obj timedOutEvent:[min_watcher getData]
+					  type:[min_watcher getType]
+				       forMode:_current_mode];
 		    }
 		}
-		if (nxt && [nxt timeIntervalSinceNow] > 0.0) {
-		    /*
-		     *	If the watcher has been given a revised limit date -
-		     *	re-insert it into the queue in the correct place.
-		     */
-		    [min_watcher retain];
-		    [min_watcher setLimit:nxt];
-		    [watchers removeObjectAtIndex:0];
-		    [self _addWatcher:min_watcher forMode:mode];
-		    [min_watcher release];
+	      if (nxt && [nxt timeIntervalSinceNow] > 0.0)
+		{
+		  /*
+		   *	If the watcher has been given a revised limit date -
+		   *	re-insert it into the queue in the correct place.
+		   */
+		  [min_watcher retain];
+		  [min_watcher setLimit:nxt];
+		  [watchers removeObjectAtIndex:0];
+		  [self _addWatcher:min_watcher forMode:mode];
+		  [min_watcher release];
 		}
-		else {
-		    /*
-		     *	If the watcher is now useless - invalidate it and
-		     *	remove it from the queue so that we don't need to
-		     *	check it again.
-		     */
-		    [min_watcher invalidate];
-		    [watchers removeObjectAtIndex:0];
+	      else
+		{
+		  /*
+		   *	If the watcher is now useless - invalidate it and
+		   *	remove it from the queue so that we don't need to
+		   *	check it again.
+		   */
+		  [min_watcher invalidate];
+		  [watchers removeObjectAtIndex:0];
 		}
-		min_watcher = nil;
+	      min_watcher = nil;
 	    }
 	}
     }
 
-    /*
-     *	If there are timers - set limit date to the earliest of them.
-     */
-    if (min_timer) {
-	when = [min_timer fireDate];
+  /*
+   *	If there are timers - set limit date to the earliest of them.
+   */
+  if (min_timer)
+    {
+      when = [min_timer fireDate];
     }
-    else {
-	when = nil;
-    }
-
-    /*
-     *	If there are watchers, set the limit date to that of the earliest
-     *	watcher (or leave it as the date of the earliest timer if that is
-     *	before the watchers limit).
-     *	NB. A watcher without a limit date watches forever - so it's limit
-     *	is effectively some time in the distant future.
-     */
-    if (min_watcher) {
-	NSDate*	lim;
-
-	if ([min_watcher getLimit] == nil) {	/* No limit for watcher	*/
-	    lim = [NSDate distantFuture];	/* - watches forever.	*/
-	}
-	else {
-	    lim = [min_watcher getLimit];
-	}
-
-	if (when == nil) {
-	    when = lim;
-	}
-	else {
-	    when = [when earlierDate:lim];
-	}
+  else
+    {
+      when = nil;
     }
 
-    /*
-     *	'when' will only be nil if there are neither timers nor watchers
-     *	outstanding.
-     */
-    if (when && debug_run_loop) {
-	printf ("\tNSRunLoop limit date %f\n",
+  /*
+   *	If there are watchers, set the limit date to that of the earliest
+   *	watcher (or leave it as the date of the earliest timer if that is
+   *	before the watchers limit).
+   *	NB. A watcher without a limit date watches forever - so it's limit
+   *	is effectively some time in the distant future.
+   */
+  if (min_watcher)
+    {
+      NSDate*	lim;
+
+      if ([min_watcher getLimit] == nil)	/* No limit for watcher	*/
+	{
+	  lim = [NSDate distantFuture];		/* - watches forever.	*/
+	}
+      else
+	{
+	  lim = [min_watcher getLimit];
+	}
+
+      if (when == nil)
+	{
+	  when = lim;
+	}
+      else
+	{
+	  when = [when earlierDate:lim];
+	}
+    }
+
+  /*
+   *	'when' will only be nil if there are neither timers nor watchers
+   *	outstanding.
+   */
+  if (when && debug_run_loop)
+    {
+      printf ("\tNSRunLoop limit date %f\n",
 	    [when timeIntervalSinceReferenceDate]);
     }
-    _current_mode = saved_mode;
+  _current_mode = saved_mode;
 
-    return when;
+  return when;
 }
 
 - (RunLoopWatcher*) _getWatcher: (void*)data
 			   type: (RunLoopEventType)type
 		        forMode: (NSString*)mode
 {
-    NSArray		*watchers;
-    RunLoopWatcher	*info;
-    int			count;
+  NSArray		*watchers;
+  RunLoopWatcher	*info;
+  int			count;
 
-    if (mode == nil)
-	mode = _current_mode;
-
-    watchers = NSMapGet (_mode_2_watchers, mode);
-    if (watchers == nil) {
-	return nil;
+  if (mode == nil)
+    {
+      mode = _current_mode;
     }
-    for (count = 0; count < [watchers count]; count++) {
-	info = [watchers objectAtIndex: count];
 
-	if ([info getType] == type) {
-	    if ([info getData] == data) {
-		return info;
+  watchers = NSMapGet (_mode_2_watchers, mode);
+  if (watchers == nil)
+    {
+      return nil;
+    }
+  for (count = 0; count < [watchers count]; count++)
+    {
+      info = [watchers objectAtIndex: count];
+
+      if ([info getType] == type)
+	{
+	  if ([info getData] == data)
+	    {
+	      return info;
 	    }
 	}
     }
-    return nil;
+  return nil;
 }
 
 - (void) _removeWatcher: (void*)data
                    type: (RunLoopEventType)type
                 forMode: (NSString*)mode
 {
-    NSMutableArray	*watchers;
+  NSMutableArray	*watchers;
 
-    if (mode == nil )
-	mode = _current_mode;
+  if (mode == nil)
+    {
+      mode = _current_mode;
+    }
 
-    watchers = NSMapGet (_mode_2_watchers, mode);
-    if (watchers) {
-	int	i;
+  watchers = NSMapGet (_mode_2_watchers, mode);
+  if (watchers)
+    {
+      int	i;
 
-	for (i = [watchers count]; i > 0; i--) {
-	    RunLoopWatcher*	info;
+      for (i = [watchers count]; i > 0; i--)
+	{
+	  RunLoopWatcher*	info;
 
-	    info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
-	    if ([info getType] == type && [info getData] == data) {
-		[info invalidate];
-		[watchers removeObject: info];
+	  info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
+	  if ([info getType] == type && [info getData] == data)
+	    {
+	      [info invalidate];
+	      [watchers removeObject: info];
 	    }
 	}
     }
@@ -1205,33 +1285,37 @@ static int debug_run_loop = 0;
 
 - (BOOL) runMode: (NSString*)mode beforeDate: date
 {
-    id	d;
+  id	d;
 
-    /* If date has already passed, simply return. */
-    if ([date timeIntervalSinceNow] < 0) {
-	if (debug_run_loop) {
-	    printf ("\tNSRunLoop run mode with date already past\n");
+  /* If date has already passed, simply return. */
+  if ([date timeIntervalSinceNow] < 0)
+    {
+      if (debug_run_loop)
+	{
+	  printf ("\tNSRunLoop run mode with date already past\n");
 	}
-	return NO;
+      return NO;
     }
 
-    /* Find out how long we can wait before first limit date. */
-    d = [self limitDateForMode: mode];
-    if (d == nil) {
-	if (debug_run_loop) {
-	    printf ("\tNSRunLoop run mode with nothing to do\n");
+  /* Find out how long we can wait before first limit date. */
+  d = [self limitDateForMode: mode];
+  if (d == nil)
+    {
+      if (debug_run_loop)
+	{
+	  printf ("\tNSRunLoop run mode with nothing to do\n");
 	}
-	return NO;
+      return NO;
     }
 
-    /* Use the earlier of the two dates we have. */
-    d = [[d earlierDate:date] retain];
+  /* Use the earlier of the two dates we have. */
+  d = [[d earlierDate:date] retain];
 
-    /* Wait, listening to our input sources. */
-    [self acceptInputForMode: mode beforeDate: d];
+  /* Wait, listening to our input sources. */
+  [self acceptInputForMode: mode beforeDate: d];
 
-    [d release];
-    return YES;
+  [d release];
+  return YES;
 }
 
 - (void) run
@@ -1258,31 +1342,33 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 - (void) addPort: (NSPort*)port
          forMode: (NSString*)mode
 {
-    return [self addEvent: (void*)port
-		     type: ET_RPORT
-		  watcher: (id<RunLoopEvents>)port
-		  forMode: (NSString*)mode];
+  return [self addEvent: (void*)port
+		   type: ET_RPORT
+		watcher: (id<RunLoopEvents>)port
+		forMode: (NSString*)mode];
 }
 
 - (void) cancelPerformSelector: (SEL)aSelector
 			target: target
 		      argument: argument
 {
-    RunLoopPerformer	*item;
-    int			count = [_performers count];
-    int			i;
+  RunLoopPerformer	*item;
+  int			count = [_performers count];
+  int			i;
 
-    [target retain];
-    [argument retain];
-    for (i = count; i > 0; i--) {
-	item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
+  [target retain];
+  [argument retain];
+  for (i = count; i > 0; i--)
+    {
+      item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
 
-	if ([item matchesSelector:aSelector target:target argument:argument]) {
-	    [_performers removeObjectAtIndex:(i-1)];
+      if ([item matchesSelector:aSelector target:target argument:argument])
+	{
+	  [_performers removeObjectAtIndex:(i-1)];
 	}
     }
-    [argument release];
-    [target release];
+  [argument release];
+  [target release];
 }
 
 - (void) configureAsServer
@@ -1296,38 +1382,43 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 		   order: (unsigned int)order
 		   modes: (NSArray*)modes
 {
-    RunLoopPerformer	*item;
-    int			count = [_performers count];
+  RunLoopPerformer	*item;
+  int			count = [_performers count];
 
-    item = [[RunLoopPerformer alloc] initWithSelector: aSelector
-					       target: target
-          				     argument: argument
-             					order: order
-						modes: modes];
-    /* Add new item to list - reverse ordering */
-    if (count == 0) {
-	[_performers addObject:item];
+  item = [[RunLoopPerformer alloc] initWithSelector: aSelector
+					     target: target
+					   argument: argument
+					      order: order
+					      modes: modes];
+  /* Add new item to list - reverse ordering */
+  if (count == 0)
+    {
+      [_performers addObject:item];
     }
-    else {
-	int	i;
+  else
+    {
+      int	i;
 
-	for (i = 0; i < count; i++) {
-	    if ([[_performers objectAtIndex:i] order] <= order) {
-		[_performers insertObject:item atIndex:i];
-		break;
+      for (i = 0; i < count; i++)
+	{
+	  if ([[_performers objectAtIndex:i] order] <= order)
+	    {
+	      [_performers insertObject:item atIndex:i];
+	      break;
 	    }
 	}
-	if (i == count) {
-	    [_performers addObject:item];
+      if (i == count)
+	{
+	  [_performers addObject:item];
 	}
     }
-    [item release];
+  [item release];
 }
 
 - (void) removePort: (NSPort*)port
             forMode: (NSString*)mode
 {
-    return [self removeEvent:(void*)port type: ET_RPORT forMode:mode all:NO];
+  return [self removeEvent:(void*)port type: ET_RPORT forMode:mode all:NO];
 }
 
 @end
