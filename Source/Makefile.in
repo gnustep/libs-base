@@ -66,7 +66,7 @@ FILE_AUTHORS = \
 "Kresten Krab Thorup" \
 "Adam Fedor" \
 "Mark Lakata" \
-"Jeremy Bettis"
+"Jeremy Bettis" \
 "Georg Tuparev"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
