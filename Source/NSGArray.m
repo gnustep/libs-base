@@ -450,7 +450,7 @@
   obj = _contents_array[index];
   RETAIN(anObject);
   _contents_array[index] = anObject;
-  RELEASE(anObject);
+  RELEASE(obj);
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
