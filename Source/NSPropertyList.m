@@ -42,6 +42,7 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
 
+#include "GSPrivate.h"
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @class	GSString;
@@ -167,9 +168,6 @@ static void setupWhitespace(void)
       whitespaceBitmapRep = [bitmap bytes];
     }
 }
-
-static id	GSPropertyListFromStringsFormat(NSString *string);
-
 
 #ifdef	HAVE_LIBXML
 #include	"GNUstepBase/GSXML.h"
@@ -733,7 +731,7 @@ static id parsePlItem(pldata* pld)
 	      }
 	    if (pld->ptr[pld->pos] != '>')
 	      {
-		pld->err = @"unexpected character in string";
+		pld->err = @"unexpected character (wanted '>')";
 		return nil;
 	      }
 	    pld->pos++;
@@ -773,7 +771,7 @@ static id parsePlItem(pldata* pld)
 	      }
 	    if (pld->ptr[pld->pos] != '>')
 	      {
-		pld->err = @"unexpected character in string";
+		pld->err = @"unexpected character (wanted '>')";
 		RELEASE(data);
 		return nil;
 	      }
@@ -1009,7 +1007,7 @@ nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
 }
 #endif
 
-static id
+id
 GSPropertyListFromStringsFormat(NSString *string)
 {
   NSMutableDictionary	*dict;
@@ -1026,12 +1024,17 @@ GSPropertyListFromStringsFormat(NSString *string)
       return nil;
     }
 
-  d = [string dataUsingEncoding: NSUnicodeStringEncoding];
+  d = [string dataUsingEncoding: NSASCIIStringEncoding];
+  if (d == nil)
+    {
+      [NSException raise: NSGenericException
+	format: @"Non-ascii data in string supposed to be property list"];
+    }
   _pld.ptr = (unsigned char*)[d bytes];
-  _pld.pos = 1;
-  _pld.end = length + 1;
+  _pld.pos = 0;
+  _pld.end = length;
   _pld.err = nil;
-  _pld.lin = 1;
+  _pld.lin = 0;
   _pld.opt = NSPropertyListImmutable;
   _pld.key = NO;
   _pld.old = YES;	// OpenStep style
@@ -1128,7 +1131,7 @@ GSPropertyListFromStringsFormat(NSString *string)
       RELEASE(dict);
       [NSException raise: NSGenericException
 		  format: @"Parse failed at line %d (char %d) - %@",
-	_pld.lin, _pld.pos, _pld.err];
+	_pld.lin + 1, _pld.pos + 1, _pld.err];
     }
   return AUTORELEASE(dict);
 }
@@ -1217,6 +1220,7 @@ PString(NSString *obj, NSMutableData *output)
       unichar		*from;
       unichar		*end;
       unsigned char	*ptr;
+      int		base = [output length];
       int		len = 0;
 
       if (length <= 1024)
@@ -1266,8 +1270,8 @@ PString(NSString *obj, NSMutableData *output)
 	    }
 	}
 
-      [output setLength: [output length] + len + 2];
-      ptr = [output mutableBytes] + [output length];
+      [output setLength: base + len + 2];
+      ptr = [output mutableBytes] + base;
       *ptr++ = '"';
       for (from = ustring; from < end; from++)
 	{
@@ -1295,14 +1299,29 @@ PString(NSString *obj, NSMutableData *output)
 		      {
 			unichar	c = *from;
 
-			sprintf(ptr, "\\%03o", c);
-			ptr = &ptr[4];
+			*ptr++ = '\\';
+			ptr[2] = (c & 7) + '0';
+			c >>= 3;
+			ptr[1] = (c & 7) + '0';
+			c >>= 3;
+			ptr[0] = (c & 7) + '0';
+			ptr += 3;
 		      }
 		  }
 		else
 		  {
-		    sprintf(ptr, "\\u%04x", *from);
-		    ptr = &ptr[6];
+		    unichar	c = *from;
+
+		    *ptr++ = '\\';
+		    *ptr++ = 'U';
+		    ptr[3] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    c >>= 4;
+		    ptr[2] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    c >>= 4;
+		    ptr[1] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    c >>= 4;
+		    ptr[0] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    ptr += 4;
 		  }
 		break;
 	    }
@@ -1479,10 +1498,6 @@ static const char	*indentStrings[] = {
   "\t\t\t\t\t\t"
 };
 
-#define	PLNEW	0	// New extended OpenStep property list
-#define	PLXML	1	// New MacOS-X XML property list
-#define	PLOLD	2	// Old (standard) OpenStep property list
-#define	PLDSC	3	// Just a description
 /**
  * obj is the object to be written out<br />
  * loc is the locale for formatting (or nil to indicate no formatting)<br />
@@ -1607,14 +1622,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
 	  j = [dest length];
-	  [dest setLength: j + 2*length+length/4+3]; 
+	  [dest setLength: j + 2*length+(length > 4 ? (length-1)/4+2 : 2)]; 
 	  dst = [dest mutableBytes];
 	  dst[j++] = '<';
 	  for (i = 0; i < length; i++, j++)
 	    {
 	      dst[j++] = num2char((src[i]>>4) & 0x0f);
 	      dst[j] = num2char(src[i] & 0x0f);
-	      if ((i&0x3) == 3 && i != length-1)
+	      if ((i & 3) == 3 && i < length-1)
 		{
 		  /* if we've just finished a 32-bit int, print a space */
 		  dst[++j] = ' ';
@@ -1970,13 +1985,13 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 
 @implementation	NSPropertyListSerialization
 
+static BOOL	classInitialized = NO;
+
 + (void) initialize
 {
-  static BOOL	beenHere = NO;
-
-  if (beenHere == NO)
+  if (classInitialized == NO)
     {
-      beenHere = YES;
+      classInitialized = YES;
 
 #ifdef	HAVE_LIBXML
       /*
@@ -2038,6 +2053,69 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, aFormat, dest);
     }
   return dest;
+}
+
+void
+GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
+  BOOL forDescription, unsigned step, id *str)
+{
+  NSString		*tmp;
+  NSPropertyListFormat	style;
+  NSMutableData		*dest;
+
+  if (classInitialized == NO)
+    {
+      [NSPropertyListSerialization class];
+    }
+
+  if (*str == nil)
+    {
+      *str = AUTORELEASE([GSMutableString new]);
+    }
+  else if (GSObjCClass(*str) != [GSMutableString class])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Illegal object (%@) at argument 0", *str];
+    }
+  
+  if (forDescription)
+    {
+      style = NSPropertyListOpenStepFormat;
+    }
+  else if (xml == YES)
+    {
+      style = NSPropertyListXMLFormat_v1_0;
+    }
+  else if (GSUserDefaultsFlag(NSWriteOldStylePropertyLists))
+    {
+      style = NSPropertyListOpenStepFormat;
+    }
+  else
+    {
+      style = NSPropertyListGNUstepFormat;
+    }
+
+  dest = [NSMutableData dataWithCapacity: 1024];
+  
+  if (style == NSPropertyListXMLFormat_v1_0)
+    {
+      const char	*prefix =
+	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
+	"PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
+	"\"http://www.gnustep.org/plist-0_9.xml\">\n"
+	"<plist version=\"0.9\">\n";
+
+      [dest appendBytes: prefix length: strlen(prefix)];
+      OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
+      [dest appendBytes: "</plist>" length: 8];
+    }
+  else
+    { 
+      OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
+    }
+  tmp = [[NSString alloc] initWithData: dest encoding: NSASCIIStringEncoding];
+  [*str appendString: tmp];
+  RELEASE(tmp);
 }
 
 + (BOOL) propertyList: (id)aPropertyList
@@ -2165,10 +2243,10 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      pldata	_pld;
 
 	      _pld.ptr = bytes;
-	      _pld.pos = 1;
-	      _pld.end = length + 1;
+	      _pld.pos = 0;
+	      _pld.end = length;
 	      _pld.err = nil;
-	      _pld.lin = 1;
+	      _pld.lin = 0;
 	      _pld.opt = anOption;
 	      _pld.key = NO;
 	      _pld.old = YES;	// OpenStep style
@@ -2183,7 +2261,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		{
 		  error = [NSString stringWithFormat:
 		    @"Parse failed at line %d (char %d) - %@",
-		    _pld.lin, _pld.pos, _pld.err];
+		    _pld.lin + 1, _pld.pos + 1, _pld.err];
 		}
 	    }
 	    break;
