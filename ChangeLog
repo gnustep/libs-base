@@ -1,3 +1,8 @@
+Sat Dec 12 15:40:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/Makefile.postamble: Added check that you are installing gdomap
+	as root and output warnign if not.
+
 Mon Dec  7 10:00:34 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/NSConcreteNumber.m ([NumberTemplate
