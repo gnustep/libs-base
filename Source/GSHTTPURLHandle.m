@@ -56,7 +56,6 @@ char emp[64] = {
   NSMutableData         *dat;
   GSMimeParser		*parser;
   GSMimeDocument	*document;
-  NSMutableDictionary	*headers;
   NSMutableDictionary   *pageInfo;
   NSMutableDictionary   *wProperties;
   NSData		*wData;
@@ -112,7 +111,6 @@ static NSLock			*urlLock = nil;
   RELEASE(dat);
   RELEASE(parser);
   RELEASE(document);
-  RELEASE(headers);
   RELEASE(pageInfo);
   RELEASE(wData);
   RELEASE(wProperties);
@@ -126,7 +124,6 @@ static NSLock			*urlLock = nil;
   if ((self = [super initWithURL: newUrl cached: cached]) != nil)
     {
       dat = [NSMutableData new];
-      headers = [NSMutableDictionary new];
       pageInfo = [NSMutableDictionary new];
       wProperties = [NSMutableDictionary new];
       request = [NSMutableDictionary new];
@@ -251,8 +248,7 @@ static NSLock			*urlLock = nil;
   if (connectionState != idle)
     return;
 
-  RELEASE(dat);
-  dat = [NSMutableData new];
+  [dat setLength: 0];
   RELEASE(document);
   RELEASE(parser);
   parser = [GSMimeParser new];
@@ -504,7 +500,7 @@ static NSLock			*urlLock = nil;
    */
   if (wData != nil)
     {
-      [buf appendBytes: [wData bytes] length: [wData length]];
+      [buf appendData: wData];
       DESTROY(wData);
     }
 
@@ -640,7 +636,7 @@ static NSLock			*urlLock = nil;
 	{
 	  NSMutableData	*d = [wData mutableCopy];
 
-	  [d appendBytes: [p bytes] length: [p length]];
+	  [d appendData: p];
 	  ASSIGNCOPY(wData, d);
 	  RELEASE(d);
 	}
