@@ -1,3 +1,9 @@
+Fri Mar 17 07:47:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSGString.m: Add checks to safely (and more efficiently)
+	handle deletion and insertion of zero-length ranges.
+	* Source/NSGCString.m: ditto.
+
 Thu Mar 16 11:37:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRange.m: NSRangeFromString() bugfix by karl@nfox.com
