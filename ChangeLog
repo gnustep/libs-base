@@ -1,3 +1,8 @@
+Thu Aug  5 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: prb_add() maintain server info in date order.
+	prb_del() removed, bugfixes to notice when a server dies.
+
 Tue Aug  3 12:36:54 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Source/NSInvocation.m (-initWithTarget:selector:): Hack for
