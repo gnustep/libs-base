@@ -253,9 +253,12 @@ static RunLoop *current_run_loop;
   fd_set read_fds;		/* Copy for listening to read-ready fds. */
   fd_set exception_fds;		/* Copy for listening to exception fds. */
   int select_return;
-  int fd_index;
   NSMapTable *fd_2_object;
   id saved_mode;
+  id ports;
+  int num_of_ports;
+  int port_fd_count = 128; // xxx #define this constant
+  int port_fd_array[port_fd_count];
 
   assert (mode);
   saved_mode = _current_mode;
@@ -316,6 +319,19 @@ static RunLoop *current_run_loop;
   fd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  NSObjectMapValueCallBacks, 0);
 
+  /* If a port is invalid, remove it from this mode. */
+  ports = NSMapGet (_mode_2_in_ports, mode);
+  {
+    id port;
+    int i;
+    for (i = [ports count]-1; i >= 0; i--)
+      {
+	port = [ports objectAtIndex: i];
+	if (![port isValid])
+	  [ports removeObjectAtIndex: i];
+      }
+  }
+  num_of_ports = 0;
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
@@ -323,40 +339,46 @@ static RunLoop *current_run_loop;
 
   /* Do the pre-listening set-up for the ports of this mode. */
   {
-    id ports = NSMapGet (_mode_2_in_ports, mode);
     if (ports)
       {
 	id port;
 	int i;
-
-	/* If a port is invalid, remove it from this mode. */
-	for (i = [ports count]-1; i >= 0; i--)
-	  {
-	    port = [ports objectAtIndex: i];
-	    if (![port isValid])
-	      [ports removeObjectAtIndex: i];
-	  }
+	int fd_count = port_fd_count;
+	int fd_array[port_fd_count];
 
 	/* Ask our ports for the list of file descriptors they
-	   want us to listen to; add these to FD_LISTEN_SET. */
+	   want us to listen to; add these to FD_LISTEN_SET. 
+	   Save the list of ports for later use. */
 	for (i = [ports count]-1; i >= 0; i--)
 	  {
-	    int port_fd_count = 128; // xxx #define this constant
-	    int port_fd_array[port_fd_count];
 	    port = [ports objectAtIndex: i];
 	    if ([port respondsTo: @selector(getFds:count:)])
-	      [port getFds: port_fd_array count: &port_fd_count];
+	      [port getFds: fd_array count: &fd_count];
+	    else
+	      fd_count = 0;
 	    if (debug_run_loop)
-	      printf("\tRunLoop listening to %d sockets\n", port_fd_count);
-	    while (port_fd_count--)
+	      printf("\tRunLoop listening to %d sockets\n", fd_count);
+	    num_of_ports += fd_count;
+	    if (num_of_ports > port_fd_count)
 	      {
-		FD_SET (port_fd_array[port_fd_count], &fds);
+		/* xxx Uh oh our array isn't big enough */
+		perror ("RunLoop attempt to listen to too many ports\n");
+		abort ();
+	      }
+	    while (fd_count--)
+	      {
+		int j = num_of_ports - fd_count - 1;
+		port_fd_array[j] = fd_array[fd_count];
+		FD_SET (port_fd_array[j], &fds);
 		NSMapInsert (fd_2_object, 
-			     (void*)port_fd_array[port_fd_count], port);
+			     (void*)port_fd_array[j], 
+			     port);
 	      }
 	  }
       }
   }
+  if (debug_run_loop)
+    printf("\tRunLoop listening to %d total ports\n", num_of_ports);
 
   /* Wait for incoming data, listening to the file descriptors in _FDS. */
   read_fds = fds;
@@ -383,13 +405,24 @@ static RunLoop *current_run_loop;
   
   /* Look at all the file descriptors select() says are ready for reading;
      notify the corresponding object for each of the ready fd's. */
-  for (fd_index = 0; fd_index < FD_SETSIZE; fd_index++)
-    if (FD_ISSET (fd_index, &read_fds))
+  {
+    if (ports)
       {
-	id fd_object = (id) NSMapGet (fd_2_object, (void*)fd_index);
-	assert (fd_object);
-	[fd_object readyForReadingOnFileDescriptor: fd_index];
+	int i;
+
+	for (i = num_of_ports - 1; i >= 0; i--)
+	  {
+	    if (FD_ISSET (port_fd_array[i], &read_fds))
+	      {
+		id fd_object = (id) NSMapGet (fd_2_object, 
+					      (void*)port_fd_array[i]);
+		assert (fd_object);
+		[fd_object readyForReadingOnFileDescriptor: 
+			     port_fd_array[i]];
+	      }
+	  }
       }
+  }
 
   /* Clean up before returning. */
   NSFreeMapTable (fd_2_object);
