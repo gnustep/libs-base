@@ -58,10 +58,10 @@ WINBOOL WINAPI DLLMain(HANDLE hInst, ULONG ul_reason_for_call,
 	    _CRT_INIT(hInst, ul_reason_for_call, lpReserved);
 #endif /* __MS_WIN32__ */
 
+	    printf("GNUstep Base Library: process attach\n");
+
 	    /* Initialize the GNUstep Base Library runtime structures */
 	    gnustep_base_init_runtime();
-
-	    printf("GNUstep Base Library: process attach\n");
 	}
 
     if (ul_reason_for_call == DLL_PROCESS_DETACH)
@@ -76,15 +76,15 @@ WINBOOL WINAPI DLLMain(HANDLE hInst, ULONG ul_reason_for_call,
 	    _CRT_INIT(hInst, ul_reason_for_call, lpReserved);
 #endif /* __MS_WIN32__ */
 
+	    printf("GNUstep Base Library: thread attach\n");
+
 	    /* Initialize the Library? -not for threads? */
 	    gnustep_base_init_runtime();
-
-	    printf("GNUstep Base Library: thread attach\n");
 	}
 
     if (ul_reason_for_call == DLL_THREAD_DETACH)
 	{
-	    printf("Objective-C runtime: thread detach\n");
+	    printf("GNUstep Base Library: thread detach\n");
 	}
 
     return TRUE;

@@ -113,13 +113,40 @@ main()
   }
 
   {
+    int compare(id elem1, id elem2, void* context)
+      {
+	return (int)[elem1 perform:@selector(compare:) withObject:elem2];
+      }
+
     // Deriving new arrays
     NSRange r = NSMakeRange(0, 3);
 
-    /* Still need to finish the sort* methods
-       [e sortedArrayUsingFunction: context:]
-       [e sortedArrayUsingSelector:]
-       */
+    f = [NSMutableArray array];
+    [f addObject: @"Lions"];
+    [f addObject: @"Tigers"];
+    [f addObject: @"Bears"];
+    [f addObject: @"Penguins"];
+    [f addObject: @"Giraffes"];
+
+    enumerator = [f objectEnumerator];
+    while ((i = [enumerator nextObject]))
+      printf("%s ", [i cString]);
+    printf("\n");
+
+    printf("Method: -sortedArrayUsingSelector:\n");
+    g = [f sortedArrayUsingSelector: @selector(compare:)];
+    printf("Method: -sortedArrayUsingFunction:context:\n");
+    h = [f sortedArrayUsingFunction: compare context: NULL];
+    
+    enumerator = [g objectEnumerator];
+    while ((i = [enumerator nextObject]))
+      printf("%s ", [i cString]);
+    printf("\n");
+
+    if (([g isEqualToArray: h]) && (![g isEqualToArray: f]))
+      printf("Sorted arrays are correct\n");
+    else
+      printf("Error: Sorted arrays are not correct\n");
 
     printf("Method: -subarrayWithRange:\n");
     f = [e subarrayWithRange: r];

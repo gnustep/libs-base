@@ -11,19 +11,22 @@ int main(int argc, char *argv[])
   NSString* aKey;
   NSEnumerator* enumerator;
 
+  printf("Host Name: %s\n",[[pi hostName] cString]);
+  printf("Process Name: %s\n",[[pi processName] cString]);
+  printf("Globally Unique String: %s\n",[[pi globallyUniqueString] cString]);
 
+  printf("\nProcess arguments\n");
+  printf("%d argument(s)\n", [[pi arguments] count]);
   enumerator = [[pi arguments] objectEnumerator];
   while ((aString = [enumerator nextObject]))
     printf("-->%s\n",[aString cString]);
         
+  printf("\nProcess environment\n");
+  printf("%d environment variables(s)\n", [[pi environment] count]);
   enumerator = [[pi environment] keyEnumerator];
   while ((aKey = [enumerator nextObject]))
     printf("++>%s=%s\n",[aKey cString],[[[pi environment] 
 				       objectForKey:aKey] cString]);
-        
-  printf("==>%s\n",[[pi hostName] cString]);
-  printf("==>%s\n",[[pi processName] cString]);
-  printf("==>%s\n",[[pi globallyUniqueString] cString]);
 
   exit(0);
 }

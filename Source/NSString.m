@@ -288,23 +288,47 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithContentsOfFile: (NSString*)path
-{
-   struct stat buf;
-   int fd;
-   char *s;
+  {
+  /* xxx Maybe this should use StdioStream? */
+#ifdef __WIN32__
+  NSMutableString *s = [NSMutableString stringWithCString:""];
+  DWORD dwread;
+  char bytes[1024];
+  BOOL res, done = NO;
+  HANDLE fd = CreateFile([path cString], GENERIC_READ, FILE_SHARE_READ,
+			 NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
 
-   stat ([path cString], &buf);
+  while (!done)
+    {
+      res = ReadFile(fd, bytes, 1023, &dwread, NULL);
+      bytes[dwread] = '\0';
+      if ((res) && (dwread == 0))
+	done = YES;
+      else
+	[s appendString: [NSString stringWithCString: bytes]];
+    }
+  CloseHandle(fd);
+  [self initWithString: s];
+  [s release];
+  return self;
+#else
+  int fd = open([path cString], O_RDONLY);
+  struct stat fstat_buf;
+  char* bytes = NULL;
 
-   OBJC_MALLOC (s, char, buf.st_size + 1);
-   fd = open ([path cString], O_RDONLY);
-   if ( fd < 0 )
-      [NSException raise: NSGenericException
-		   format: @"Could not open file %s", [path cString]];
+  if((fd == -1) || (fstat(fd, &fstat_buf) == -1))
+    return nil;
 
-   read (fd,(void *)s,buf.st_size);
-   s[buf.st_size] = (char)0;
-
-   return [self initWithCStringNoCopy:s length: buf.st_size freeWhenDone: YES];
+  OBJC_MALLOC(bytes, char, fstat_buf.st_size + 1);
+  if (read(fd, bytes, fstat_buf.st_size) != fstat_buf.st_size) {
+    OBJC_FREE(bytes);
+    return nil;
+  }
+  close(fd);
+  bytes[fstat_buf.st_size] = '\0';
+  return [self initWithCStringNoCopy:bytes length:fstat_buf.st_size
+	       freeWhenDone:YES];
+#endif
 }
 
 - (id) initWithData: (NSData*)data

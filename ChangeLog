@@ -1,3 +1,89 @@
+Thu Jan  9 10:45:10 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/Connection.m ([Connection
+ 	-_getReceivedReplyRmcWithSequenceNumber:]): Break if the RunLoop
+ 	returns NO.  (Reported by Richard Frith-Macdonald
+ 	<richard@brainstorm.co.uk>.)
+
+	* src/NSDictionary.m ([NSDictionary
+ 	+dictionaryWithContentsOfFile:]): Method implemented.
+	(From Scott Christley.)
+
+	* src/NSString.m ([NSString -initWithFormat:arguments:]): Increase
+ 	BUFFER_EXTRA by a factor of 500.
+
+	* src/Foundation/NSZone.h (ZoneLock): Don't prepend OBJC_MUTEX_T
+ 	with an underscore.
+
+	* src/mframe.m (mframe_build_return): Change the way values of
+ 	type smaller than int are returned---don't offset into the int.
+  	(Recommended by Richard Frith-Macdonald	<richard@brainstorm.co.uk>.)
+
+Wed Dec 04 12:39:24 1996  Scott Christley  <scottc@net-community.com>
+ 
+ 	* src/Makefile.sed.nt: remove Foundation directory if it exists
+ 	before installing header files.  Don't regenerate lex.sf.m.
+ 	* src/NSSet.m (-unionSet:): Implement method.
+ 	(-intersectSet:, -minusSet:): Implement methods.
+ 	* src/NSString.m (-initWithContentsOfFile:): Use Win32 specific
+ 	functions for file operations.
+ 	* src/md5.c: Include config header file.
+ 	* src/include/config-win32.h: vsprintf returns length on Win32.
+ 	* src/NSUser.m (NSHomeDirectoryForUser, NSUserName): Implement
+ 	Win32 specific versions.
+ 
+Thu Nov 21 12:00:44 1996  Scott Christley  <scottc@net-community.com>
+ 
+ 	* src/include/NSDictionary.h (+dictionaryWithContentsOfFile:): New
+ 	method.
+ 	* src/proplist.l (COMMENT, LINE_COMMENT): Added lexical rules for
+ 	traditional C comments and ObjC line comments.  Add carriage
+ 	return '\r' as part of whitespace rules.
+ 	* src/lex.pl.m: Regenerated with proplist.l changes.
+ 	* src/proplist.tab.m: Likewise.
+ 	* src/NSArray.m (-sortedArrayUsingSelector:): Implemented.
+ 	(-sortedArrayUsingFunction:context:): Implemented.
+ 	(-sortUsingFunction:context:): Implemented.
+ 	* checks/nsarray.m: Add tests for sorting methods.
+
+Tue Nov 19 09:06:00 1996  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/ConnectedCoder.m: Release packet after invoking
+ 	initialisation method of super which retains it.  To fix memory
+ 	leaks.
+
+	* src/Connection.m (+rootProxyAtName:onHost:): Return nil if we
+ 	can't create port.
+	(-forwardForProxy:selector:argFrame:): Modified to cooperate
+ 	better with mframe_build_return() so that the created decoder is
+ 	released reliably. Fixes a memory leak.
+	(-_getReceivedReplyRmcWithSequenceNumber:): Added code to release
+ 	allocated NSDate object on exit - fixes a memory leak.
+
+	* src/Decoder.m (-_coderCreateReferenceForObject:): Changed code
+ 	to release dummy object after insertion in array (which retains
+ 	it). fixes memory leak.
+
+	* src/Encoder.m (-initForWritingToStream:withFormatVersion:
+ 	cStreamClass:cStreamFormatVersion:): Release stream after invoking
+ 	initialisation method of super which retains it.  To fix memory
+ 	leaks.
+
+	* src/KeyedCollection.m (-dealloc): Added call to
+ 	NSDeallocateObject() to ensure that the memory used by the
+ 	enumerator is released.
+
+	* src/RunLoop.m: Changed code to get timers to work correctly and
+ 	enabled timer support by default.  Fixed all the cases I could
+ 	spot where the '_current_mode' could be left in the wrong state.
+  	Modified so that the object listening on a file descriptor need
+ 	not be the same as the object speaking on it.  Added code to
+ 	release the enumerator state information for Bags after use -
+ 	fixes memory leak.
+
+	* src/mframe.m (mframe_build_return): Modified to cooperate better
+ 	with [Connection -forwardForProxy:selector:argFrame:].
+	
 Mon Jan  6 16:06:21 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* src/NSDictionary.m ([NSDictionary -initWithContentsOfFile:]):
@@ -423,8 +509,8 @@ Wed Oct 16 10:01:23 1996  Scott Christley  <scottc@net-community.com>
 
 Tue Oct  1 12:56:09 1996  Nicholas Christopher  <nwc@gun.com>
 
-	* NSString.m: Added initWithContentsOfFile: and
-	propertyListFromStringsFileFormat:.
+	* NSString.m: Implemented -initWithContentsOfFile: and
+	-propertyListFromStringsFileFormat:.
 	* stringsfile.l, stringsfile.y: New files.
 
 Fri Oct 25 20:22:37 1996  Andrew McCallum  <mccallum@cs.cmu.edu>

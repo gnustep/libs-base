@@ -279,15 +279,21 @@ static Class NSMutableArray_concrete_class;
 
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator
 {
-  [self notImplemented:_cmd];
-  return nil;
+  int compare(id elem1, id elem2, void* context)
+    {
+      return (int)[elem1 perform:comparator withObject:elem2];
+    }
+
+    return [self sortedArrayUsingFunction:compare context:NULL];
 }
 
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
    context: (void*)context
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id sortedArray = [[self mutableCopy] autorelease];
+
+  [sortedArray sortUsingFunction:comparator context:context];
+  return [[sortedArray copy] autorelease];
 }
 
 - (NSString*) componentsJoinedByString: (NSString*)separator
@@ -563,7 +569,40 @@ static Class NSMutableArray_concrete_class;
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
    context: (void*)context
 {
-  [self notImplemented:_cmd];
+  /* Shell sort algorithm taken from SortingInAction - a NeXT example */
+#define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
+                        // 3 is a fairly good choice (Sedgewick)
+  int c,d, stride;
+  BOOL found;
+  int count = [self count];
+
+  stride = 1;
+  while (stride <= count)
+    stride = stride * STRIDE_FACTOR + 1;
+    
+  while(stride > (STRIDE_FACTOR - 1)) {
+    // loop to sort for each value of stride
+    stride = stride / STRIDE_FACTOR;
+    for (c = stride; c < count; c++) {
+      found = NO;
+      d = c - stride;
+      while ((d >= 0) && !found) {
+	// move to left until correct place
+	id a = [self objectAtIndex:d + stride];
+	id b = [self objectAtIndex:d];
+	if ((*compare)(a, b, context) == NSOrderedAscending) {
+	  [a retain];
+	  [b retain];
+	  [self replaceObjectAtIndex:d + stride withObject:b];
+	  [self replaceObjectAtIndex:d withObject:a];
+	  d -= stride;		// jump by stride factor
+	  [a release];
+	  [b release];
+	}
+	else found = YES;
+      }
+    }
+  }
 }
 
 @end

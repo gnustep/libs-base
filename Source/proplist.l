@@ -27,12 +27,14 @@ NSData * str2data(char * str);
 extern char plinput[];
 extern char *plinputptr;
 extern char *plinputlim;
+
+static int level;
 %}
 
         /* pattern definitions */
-ws              [ \t]
+ws              [ \t\r]
 nl              \n
-wsnl            [ \t\n]
+wsnl            [ \t\r\n]
 hexdigit        [0-9A-Fa-f]
 hexbyte {hexdigit}{2}
 hexword {hexbyte}{4}
@@ -42,10 +44,14 @@ noquote [$./0-9A-Z_a-z]
 unqstring       {noquote}+
 hexdata \<{ws}*({hexword}{ws}*)*{hexnum}{0,1}{ws}*\>
         /* exclusive states */
-%x QUOTE
+%x QUOTE COMMENT LINE_COMMENT
 
                 /* rules section */
 %%
+
+"/*"		{++level; BEGIN COMMENT;}
+"//"		{BEGIN LINE_COMMENT;}
+
 <QUOTE>{qstring}        {
                                   if(plleng==1) {
                                     BEGIN INITIAL;
@@ -58,6 +64,13 @@ hexdata \<{ws}*({hexword}{ws}*)*{hexnum}{0,1}{ws}*\>
                                     return_nsstr(unescstr(pltext));
                                   }
                                 }
+
+<COMMENT>"*/"		{if(!--level) BEGIN INITIAL;}
+<COMMENT>.              ;
+<COMMENT><<EOF>>	{return 0;}
+
+<LINE_COMMENT>\n	{BEGIN INITIAL;}
+<LINE_COMMENT>.         ;
 
 {unqstring}     {return_nsstr(pltext);}
 
@@ -102,7 +115,7 @@ str2data (char *str)
        (ch = *str_ptr) != '>';
        str_ptr++)
     {
-      if(ch==' ' || ch=='\n' || ch=='\t')
+      if(ch==' ' || ch=='\n' || ch=='\t' || ch=='\r')
 	continue; /* ignore whitespace */
       *buf_ptr = (char2num(ch))<<4;
       ch = *++str_ptr;
@@ -145,6 +158,7 @@ unescstr (char *src)
 		case 'a' : *dest_ptr = '\a'; break;
 		case 'b' : *dest_ptr = '\b'; break;
 		case 't' : *dest_ptr = '\t'; break;
+		case 'r' : *dest_ptr = '\r'; break;
 		case 'n' : *dest_ptr = '\n'; break;
 		case 'v' : *dest_ptr = '\v'; break;
 		case 'f' : *dest_ptr = '\f'; break;

@@ -36,6 +36,9 @@ s/@LIBOBJECTS_SO@//
 /lex.pl.m: proplist.l proplist.tab.h/,/proplist.l > $@/c\
 lex.pl.m: proplist.l proplist.tab.h\
 	touch lex.pl.m
+/lex.sf.m: stringsfile.l stringsfile.tab.h/,/stringsfile.l > $@/c\
+lex.sf.m: stringsfile.l stringsfile.tab.h\
+	touch lex.sf.m
 /lib$(LIBRARY_NAME)$(LIBEXT):/,/$(RANLIB) lib$(LIBRARY_NAME)$(LIBEXT)/c\
 lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) $(INIT_FILE_OBJ)\
 	$(AR) $(ARFLAGS) $(AROUT)lib1$(LIBEXT) $(GNU_OBJS)\
@@ -132,6 +135,7 @@ install: installdirs all\
 	$(INSTALL_DATA) $(srcdir)/gnustep/base/*.h $(includedir)/gnustep/base\
 	$(INSTALL_DATA) $(srcdir)/objc/*.h $(includedir)/objc\
 	$(INSTALL_DATA) include/config.h $(includedir)/gnustep/base/config.h\
+	IF EXIST $(includedir)\\Foundation rm -rf $(includedir)/Foundation\
 	cp -r $(includedir)/gnustep/base $(includedir)/Foundation
 /for file in $(NEXTSTEP_HEADERS); do/,/done/c\
 	for %i in ( ${NEXTSTEP_HEADERS} ) do \\\

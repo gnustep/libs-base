@@ -36,7 +36,14 @@ NSString *
 NSUserName ()
 {
 #if __WIN32__
-  return nil;
+  /* The GetUserName function returns the current user name */
+  char buf[1024];
+  DWORD n = 1024;
+
+  if (GetUserName(buf, &n))
+    return [NSString stringWithCString: buf];
+  else
+    return [NSString stringWithCString: ""];
 #elif __SOLARIS__
   int uid = geteuid(); // get the effective user id
   struct passwd *pwent = getpwuid (uid);
@@ -70,6 +77,28 @@ NSHomeDirectoryForUser (NSString *login_name)
   pw = getpwnam ([login_name cStringNoCopy]);
   return [NSString stringWithCString: pw->pw_dir];
 #else
-  return nil;
+  /* Then environment variable HOMEPATH holds the home directory
+     for the user on Windows NT; Win95 has no concept of home. */
+  char buf[1024], *nb;
+  DWORD n;
+  NSString *s;
+
+  n = GetEnvironmentVariable("HOMEPATH", buf, 1024);
+  if (n > 1024)
+    {
+      /* Buffer not big enough, so dynamically allocate it */
+      nb = (char *)malloc(sizeof(char)*(n+1));
+      n = GetEnvironmentVariable("HOMEPATH", nb, n+1);
+      nb[n] = '\0';
+      s = [NSString stringWithCString: nb];
+      free(nb);
+      return s;
+    }
+  else
+    {
+      /* null terminate it and return the string */
+      buf[n] = '\0';
+      return [NSString stringWithCString: buf];
+    }
 #endif
 }
