@@ -1,3 +1,12 @@
+2004-11-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/pl.m: Make code conform to gnu coding standards.
+	* Source/NSRunLoop.m: ([runMode:beforeDate:]) add autorelease pool
+	to retain old behavior where anything inside a runloop is
+	automatically in the scope of an autorelease pool, and will not
+	be leaked by autoreleasing.  Fixes obscure problems with the last
+	limitDateForMode changes.
+
 2004-11-18 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Tools/pl.m: Added a tool I wrote a while back which is an 
