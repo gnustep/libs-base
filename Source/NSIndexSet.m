@@ -460,7 +460,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      unsigned	count = GSIArrayCount(_other);
+      unsigned count = _other ? GSIArrayCount(_other) : 0;
 
       if (count > 0)
 	{
@@ -580,7 +580,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) addIndexes: (NSIndexSet*)aSet
 {
-  unsigned	count = GSIArrayCount(_other);
+  unsigned	count = _other ? GSIArrayCount(_other) : 0;
 
   if (count > 0)
     {
@@ -701,7 +701,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) removeIndexes: (NSIndexSet*)aSet
 {
-  unsigned	count = GSIArrayCount(_other);
+  unsigned	count = _other ? GSIArrayCount(_other) : 0;
 
   if (count > 0)
     {
