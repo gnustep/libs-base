@@ -262,8 +262,13 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 {
   NSString	*operation;
 
+  NSDebugMLLog(@"NSFileHandle", @"%@ event: %d", self, type);
+
   if (isNonBlocking == NO)
-    [self setNonBlocking: YES];
+    {
+      [self setNonBlocking: YES];
+    }
+
   if (type == ET_RDESC)
     {
       operation = [readInfo objectForKey: NotificationKey];
@@ -279,7 +284,7 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Accept attempt failed - %s",
-                      GSLastErrorStr(errno)];
+		GSLastErrorStr(errno)];
 	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -288,8 +293,8 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	      struct sockaddr_in	sin;
 	      int			size = sizeof(sin);
 
-	      h = [[GSUnixSSLHandle alloc] initWithFileDescriptor: desc
-						   closeOnDealloc: YES];
+	      h = [[UnixFileHandle alloc] initWithFileDescriptor: desc
+						  closeOnDealloc: YES];
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
 	      [h setAddr: &sin];
 	      [readInfo setObject: h
@@ -310,15 +315,36 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	  char		buf[NETBUF_SIZE];
 
 	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
-	  length = [item length];
-
-	  if (connected)
+	  /*
+	   * We may have a maximum data size set...
+	   */
+	  if (readMax > 0)
 	    {
-	      received = SSL_read(ssl, buf, sizeof(buf));
+	      length = readMax - [item length];
+	      if (length > sizeof(buf))
+		{
+		  length = sizeof(buf);
+		}
 	    }
 	  else
 	    {
-	      received = read(descriptor, buf, sizeof(buf));
+	      length = sizeof(buf);
+	    }
+
+#if	USE_ZLIB
+	  if (gzDescriptor != 0)
+	    {
+	      received = gzread(gzDescriptor, buf, length);
+	    }
+	  else
+#endif
+	  if (connected)
+	    {
+	      received = SSL_read(ssl, buf, length);
+	    }
+	  else
+	    {
+	      received = read(descriptor, buf, length);
 	    }
 	  if (received == 0)
 	    { // Read up to end of file.
@@ -339,7 +365,7 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	  else
 	    {
 	      [item appendBytes: buf length: received];
-	      if (operation == NSFileHandleReadCompletionNotification)
+	      if (readMax < 0 || (readMax > 0 && [item length] == readMax))
 		{
 		  // Read a single chunk of data
 		  [self postReadNotification];
@@ -347,13 +373,37 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	    }
 	}
     }
-  else if (type == ET_WDESC)
+  else
     {
+      extern NSString * const	GSSOCKSConnect;
       NSMutableDictionary	*info;
 
       info = [writeInfo objectAtIndex: 0];
       operation = [info objectForKey: NotificationKey];
-      if (operation == GSFileHandleWriteCompletionNotification)
+      if (operation == GSFileHandleConnectCompletionNotification
+	|| operation == GSSOCKSConnect)
+	{ // Connection attempt completed.
+	  int	result;
+	  int	len = sizeof(result);
+
+	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
+	    (char*)&result, &len) == 0 && result != 0)
+	    {
+	      NSString	*s;
+
+	      s = [NSString stringWithFormat: @"Connect attempt failed - %s",
+		GSLastErrorStr(result)];
+	      [info setObject: s forKey: GSFileHandleNotificationError];
+	    }
+	  else
+	    {
+	      readOK = YES;
+	      writeOK = YES;
+	    }
+	  connectOK = NO;
+	  [self postWriteNotification];
+	}
+      else
 	{
 	  NSData	*item;
 	  int		length;
@@ -366,6 +416,14 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	    {
 	      int	written;
 
+#if	USE_ZLIB
+	      if (gzDescriptor != 0)
+		{
+		  written = gzwrite(gzDescriptor, (char*)ptr+writePos,
+		    length-writePos);
+		}
+	      else
+#endif
 	      if (connected)
 		{
 		  written = SSL_write(ssl, (char*)ptr + writePos, 
@@ -397,28 +455,6 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	    { // Write operation completed.
 	      [self postWriteNotification];
 	    }
-	}
-      else
-	{ // Connection attempt completed.
-	  int	result;
-	  int	len = sizeof(result);
-
-	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
-	    (char*)&result, &len) == 0 && result != 0)
-	    {
-		NSString	*s;
-
-		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
-		  GSLastErrorStr(result)];
-		[info setObject: s forKey: GSFileHandleNotificationError];
-	    }
-	  else
-	    {
-	      readOK = YES;
-	      writeOK = YES;
-	    }
-	  connectOK = NO;
-	  [self postWriteNotification];
 	}
     }
 }
