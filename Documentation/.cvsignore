@@ -25,6 +25,7 @@ INSTALL
 NEWS
 README
 ANNOUNCE
+BUGS
 *.log
 *.dvi
 *.ps
