@@ -12,6 +12,9 @@ int _MB_init_runtime()
 }
 #endif
 
+#define DESCRIP(obj) [obj description]
+#define DESCRIP_FORMAT(obj) [obj descriptionWithCalendarFormat: nil]
+
 int
 main()
 {
@@ -34,25 +37,25 @@ if ([(NSDate*) [NSCalendarDate date] compare:
   {
     // Create NSDate instances
     a = [NSDate date];
-    printf("+[date] -- %s\n", [[a description] cString]);
+    printf("+[date] -- %s\n", [DESCRIP(a) cString]);
     b = [NSDate dateWithTimeIntervalSinceNow: 0];
     printf("+[dateWithTimeIntervalSinceNow: 0] -- %s\n", 
-	   [[b description] cString]);
+	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceNow: 600];
     printf("+[dateWithTimeIntervalSinceNow: 600] -- %s\n", 
-	   [[b description] cString]);
+	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSince1970: 0];
     printf("+[dateWithTimeIntervalSince1970: 0] -- %s\n", 
-	   [[b description] cString]);
+	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSince1970: -600];
     printf("+[dateWithTimeIntervalSince1970: -600] -- %s\n", 
-	   [[b description] cString]);
+	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceReferenceDate: 0];
     printf("+[dateWithTimeIntervalSinceReferenceDate: 0] -- %s\n", 
-	   [[b description] cString]);
+	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceReferenceDate: 300];
     printf("+[dateWithTimeIntervalSinceReferenceDate: 300] -- %s\n", 
-	   [[b description] cString]);
+	   [DESCRIP(b) cString]);
 
     // Comparisons
 
@@ -68,19 +71,19 @@ if ([(NSDate*) [NSCalendarDate date] compare:
 
     c = [a earlierDate: b];
     if (c == a)
-      printf("%s is earlier than %s\n", [[a description] cString],
-	     [[b description] cString]);
+      printf("%s is earlier than %s\n", [DESCRIP(a) cString],
+	     [DESCRIP(b) cString]);
     else
-      printf("ERROR: %s is not earlier than %s\n", [[a description] cString],
-	     [[b description] cString]);
+      printf("ERROR: %s is not earlier than %s\n", [DESCRIP(a) cString],
+	     [DESCRIP(b) cString]);
 
     c = [a laterDate: b];
     if (c == b)
-      printf("%s is later than %s\n", [[b description] cString],
-	     [[a description] cString]);
+      printf("%s is later than %s\n", [DESCRIP(b) cString],
+	     [DESCRIP(a) cString]);
     else
-      printf("ERROR: %s is not later than %s\n", [[b description] cString],
-	     [[a description] cString]);
+      printf("ERROR: %s is not later than %s\n", [DESCRIP(b) cString],
+	     [DESCRIP(a) cString]);
   }
 
   // NSCalendarDate tests
@@ -90,7 +93,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
 
     // Create an NSCalendarDate with current date and time
     c = [NSCalendarDate calendarDate];
-    printf("+[calendarDate] -- %s\n", [[c description] cString]);
+    printf("+[calendarDate] -- %s\n", [DESCRIP_FORMAT(c) cString]);
     printf("-[dayOfMonth] %d\n", [c dayOfMonth]);
     printf("-[dayOfWeek] %d\n", [c dayOfWeek]);
     printf("-[dayOfYear] %d\n", [c dayOfYear]);
@@ -111,7 +114,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
 
     c = [NSCalendarDate dateWithString: @"1996-10-09 0:00:01"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
-    printf("calendar date %s\n", [[c description] cString]);
+    printf("calendar date %s\n", [DESCRIP_FORMAT(c) cString]);
     printf("-[dayOfCommonEra] %d\n", [c dayOfCommonEra]);
     printf("-[dayOfMonth] %d\n", [c dayOfMonth]);
     printf("-[dayOfWeek] %d\n", [c dayOfWeek]);
@@ -149,63 +152,63 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     printf("\nY2K checks\n");
     c = [NSCalendarDate dateWithString: @"1999-12-31 23:59:59"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
-    printf("Start at %s\n", [[c description] cString]);
+    printf("Start at %s\n", [DESCRIP_FORMAT(c) cString]);
     printf("YYYY-MM-DD %d-%d-%d\n", [c yearOfCommonEra], [c monthOfYear], [c dayOfMonth]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add one second - %s\n", [[c description] cString]);
+    printf("Add one second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add another second - %s\n", [[c description] cString]);
+    printf("Add another second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
-    printf("Add an hour - %s\n", [[c description] cString]);
+    printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
-    printf("Subtract two hours - %s\n", [[c description] cString]);
+    printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
 
     printf("\nY2K is a leap year checks\n");
     c = [NSCalendarDate dateWithString: @"2000-2-28 23:59:59"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
-    printf("Start at %s\n", [[c description] cString]);
+    printf("Start at %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add one second - %s\n", [[c description] cString]);
+    printf("Add one second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add another second - %s\n", [[c description] cString]);
+    printf("Add another second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
-    printf("Add an hour - %s\n", [[c description] cString]);
+    printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
-    printf("Subtract two hours - %s\n", [[c description] cString]);
+    printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:5 minute:0 second:0];
-    printf("Add five hours - %s\n", [[c description] cString]);
+    printf("Add five hours - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:1 month:0 day:0 hour:0 minute:0 second:0];
-    printf("Add one year - %s\n", [[c description] cString]);
+    printf("Add one year - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:-1 hour:0 minute:0 second:0];
-    printf("Subtract one day - %s\n", [[c description] cString]);
+    printf("Subtract one day - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:1 month:0 day:1 hour:0 minute:0 second:0];
-    printf("Add a year and a day - %s\n", [[c description] cString]);
+    printf("Add a year and a day - %s\n", [DESCRIP_FORMAT(c) cString]);
 
     printf("\n2004 is a leap year checks\n");
     c = [NSCalendarDate dateWithString: @"2004-2-28 23:59:59"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
-    printf("Start at %s\n", [[c description] cString]);
+    printf("Start at %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add one second - %s\n", [[c description] cString]);
+    printf("Add one second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add another second - %s\n", [[c description] cString]);
+    printf("Add another second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
-    printf("Add an hour - %s\n", [[c description] cString]);
+    printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
-    printf("Subtract two hours - %s\n", [[c description] cString]);
+    printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
 
     printf("\n2100 is NOT a leap year checks\n");
     c = [NSCalendarDate dateWithString: @"2100-2-28 23:59:59"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
-    printf("Start at %s\n", [[c description] cString]);
+    printf("Start at %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add one second - %s\n", [[c description] cString]);
+    printf("Add one second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
-    printf("Add another second - %s\n", [[c description] cString]);
+    printf("Add another second - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
-    printf("Add an hour - %s\n", [[c description] cString]);
+    printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
-    printf("Subtract two hours - %s\n", [[c description] cString]);
+    printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
   }
 
   [pool release];

@@ -361,7 +361,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      if (source[sourceIdx] != format[formatIdx])
 			{
-			  NSLog(@"Expected literal '%c' but gmtt '%c'",
+			  NSLog(@"Expected literal '%c' but got '%c'",
 			    format[formatIdx], source[sourceIdx]);
 			}
 		      sourceIdx++;

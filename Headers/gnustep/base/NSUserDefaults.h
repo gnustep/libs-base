@@ -53,6 +53,7 @@ GS_EXPORT NSString* const NSMonthNameArray;
 GS_EXPORT NSString* const NSShortMonthNameArray;
 GS_EXPORT NSString* const NSTimeFormatString;
 GS_EXPORT NSString* const NSDateFormatString;
+GS_EXPORT NSString* const NSShortDateFormatString;
 GS_EXPORT NSString* const NSTimeDateFormatString;
 GS_EXPORT NSString* const NSShortTimeDateFormatString;
 GS_EXPORT NSString* const NSCurrencySymbol;
@@ -73,6 +74,13 @@ GS_EXPORT NSString* const NSNextDayDesignations;
 GS_EXPORT NSString* const NSNextNextDayDesignations;
 GS_EXPORT NSString* const NSPriorDayDesignations;
 GS_EXPORT NSString* const NSDateTimeOrdering;
+
+GS_EXPORT NSString* const NSLanguageName;
+GS_EXPORT NSString* const NSLanguageCode;
+GS_EXPORT NSString* const NSFormalName;
+#ifndef NO_GNUSTEP
+GS_EXPORT NSString* const NSLocale;
+#endif
 #endif
 
 /* General implementation notes: 

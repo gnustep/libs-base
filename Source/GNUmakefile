@@ -70,6 +70,7 @@ FILE_AUTHORS = \
 
 GNU_MFILES = \
 GSCompatibility.m \
+GSLocale.m \
 Unicode.m \
 behavior.m \
 o_array.m \
@@ -117,6 +118,7 @@ libgnustep-base.def
 
 GNU_HEADERS = \
 fast.x \
+GSLocale.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \

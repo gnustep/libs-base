@@ -248,6 +248,9 @@ NSString *NSLanguageName;
 
 NSString *NSFormalName;
 
+/* For GNUstep */
+NSString *NSLocale;
+
 
 /*
  * Keys for the NSDictionary returned by [NSConnection -statistics]
@@ -409,6 +412,8 @@ GSBuildStrings()
 	= [[GSCString alloc] initWithCString: "NSLaterTimeDesignations"];
       NSLoadedClasses
 	= [[GSCString alloc] initWithCString: "NSLoadedClasses"];
+      NSLocale
+	= [[GSCString alloc] initWithCString: "NSLocale"];
       *(NSString**)&NSMallocException
 	= [[GSCString alloc] initWithCString: "NSMallocException"];
       NSMonthNameArray

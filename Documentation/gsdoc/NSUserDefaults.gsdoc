@@ -17,6 +17,70 @@
         <declared>Foundation/NSUserDefaults.h</declared>
         <conform>NSObject</conform>
           <desc>
+	  <p>
+	  NSUserDefaults provides an interface to the defaults system,
+	  which allows an application access to global and/or application
+	  specific defualts set by the user. A particular instance of
+	  NSUserDefaults, standardUserDefaults, is provided as a
+	  convenience. Most of the information described below
+	  pertains to the standardUserDefaults. It is unlikely
+	  that you would want to instantiate your own userDefaults
+	  object, since it would not be set up in the same way as the
+	  standardUserDefaults. 
+	  </p>
+	  <p>
+	  Defaults are managed based on <em>domains</em>. Certain
+	  domains, such as <code>NSGlobalDomain</code>, are
+	  persistant. These domains have defaults that are stored
+	  externally. Other domains are volitale. The defaults in
+	  these domains remain in effect only during the existance of
+	  the application and may in fact be different for
+	  applications running at the same time. When asking for a
+	  default value from standardUserDefaults, NSUserDefaults
+	  looks through the various domains in a particular order.
+	  </p>
+	  <deflist>
+	    <term><code>NSArgumentDomain</code></term>
+	    <desc>
+	    Contains defaults read from the arguments provided to
+	    the application at startup. Volitile.
+	    </desc>
+	    <term>Application (name of the current process)</term>
+	    <desc>
+	    Application specific defaults, such as window positions. Persistant.
+	    </desc>
+	    <term><code>NSGlobalDomain</code></term>
+	    <desc>
+	    Global defaults. Persistant.
+	    </desc>
+	    <term>Language (name based on users's language)</term>
+	    <desc>
+	    Constants that help with localization to the users's
+	    language. Volitle
+	    </desc>
+	    <term><code>NSRegistrationDomain</code></term>
+	    <desc>
+	    Temporary defaults set up by the application. Volitile.
+	    </desc>
+	  </deflist>
+	  <p>
+	  The <em>Languages</em> default value is used to set up the
+	  constants for localization. GNUstep will also look for the
+	  <code>LANGUAGES</code> environment variable if it is not set
+	  in the defaults system. If it exists, it consists of an
+	  array of languages that the user prefers. At least one of
+	  the languages should have a corresponding localization file
+	  (typically located in the <file>Languages</file> directory
+	  of the GNUstep resources).
+	  </p>
+	  <p>
+	  As a special extension, on systems that support locales
+	  (e.g. GNU/Linux and Solaris), GNUstep will use information
+	  from the user specified locale, if the <em>Languages</em>
+	  default value is not found. Typically the locale is
+	  specified in the environment with the <code>LANG</code>
+	  environment variable.
+	  </p>
           </desc>
         <method type="NSUserDefaults*" factory="yes">
           <sel>standardUserDefaults</sel>

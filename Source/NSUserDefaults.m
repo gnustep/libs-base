@@ -42,6 +42,8 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSBundle.h>
+#include <base/GSLocale.h>
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
@@ -76,6 +78,7 @@ static Class	NSStringClass;
  *************************************************************************/
 static NSUserDefaults    *sharedDefaults = nil;
 static NSMutableString   *processName = nil;
+static NSMutableArray    *userLanguages = nil;
 
 /*************************************************************************
  *** Getting the Shared Instance
@@ -103,6 +106,109 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   DESTROY(sharedDefaults);
 }
 
+/* Create a locale dictionary when we have absolutely no information
+   about the locale. This method should go away, since it will never
+   be called in a properly installed system. */
++ (NSDictionary *) _unlocalizedDefaults
+{
+  NSDictionary   *registrationDefaults;
+  NSArray	 *ampm;
+  NSArray	 *long_day;
+  NSArray	 *long_month;
+  NSArray	 *short_day;
+  NSArray	 *short_month;
+  NSArray	 *earlyt;
+  NSArray	 *latert;
+  NSArray	 *hour_names;
+  NSArray	 *ymw_names;
+  
+  ampm = [NSArray arrayWithObjects: @"AM", @"PM", nil];
+  short_month = [NSArray arrayWithObjects: 
+			 @"Jan",
+			 @"Feb",
+			 @"Mar",
+			 @"Apr",
+			 @"May",
+			 @"Jun",
+			 @"Jul",
+			 @"Aug",
+			 @"Sep",
+			 @"Oct",
+			 @"Nov",
+			 @"Dec",
+			 nil];
+  long_month = [NSArray arrayWithObjects: 
+			@"January",
+			@"February",
+			@"March",
+			@"April",
+			@"May",
+			@"June",
+			@"July",
+			@"August",
+			@"September",
+			@"October",
+			@"November",
+			@"December",
+			nil];
+  short_day = [NSArray arrayWithObjects: 
+		       @"Sun",
+		       @"Mon",
+		       @"Tue",
+		       @"Wed",
+		       @"Thu",
+		       @"Fri",
+		       @"Sat",
+		       nil];
+  long_day = [NSArray arrayWithObjects: 
+		      @"Sunday",
+		      @"Monday",
+		      @"Tuesday",
+		      @"Wednesday",
+		      @"Thursday",
+		      @"Friday",
+		      @"Saturday",
+		      nil];
+  earlyt = [NSArray arrayWithObjects: 
+		    @"prior",
+		    @"last",
+		    @"past",
+		    @"ago",
+		    nil];
+  latert = [NSArray arrayWithObjects: 
+		      @"next",
+		    nil];
+  ymw_names = [NSArray arrayWithObjects: 
+		       @"year",
+		       @"month",
+		       @"week",
+		       nil];
+  hour_names = [NSArray arrayWithObjects: 
+			[NSArray arrayWithObjects: @"0", @"midnight", nil],
+			[NSArray arrayWithObjects: @"12", @"noon", @"lunch", nil],
+			[NSArray arrayWithObjects: @"10", @"morning", nil],
+			[NSArray arrayWithObjects: @"14", @"afternoon", nil],
+			[NSArray arrayWithObjects: @"19", @"dinner", nil],
+			nil];
+  registrationDefaults = [NSDictionary dictionaryWithObjectsAndKeys: 
+				       ampm, NSAMPMDesignation,
+				       long_month, NSMonthNameArray,
+				       long_day, NSWeekDayNameArray,
+				       short_month, NSShortMonthNameArray,
+				       short_day, NSShortWeekDayNameArray,
+				       @"DMYH", NSDateTimeOrdering,
+				       @"tomorrow", NSNextDayDesignations,
+				       @"nextday", NSNextNextDayDesignations,
+				       @"yesterday", NSPriorDayDesignations,
+				       @"today", NSThisDayDesignations,
+				       earlyt, NSEarlierTimeDesignations,
+				       latert, NSLaterTimeDesignations,
+				       hour_names, NSHourNameDesignations,
+				       ymw_names, NSYearMonthWeekDesignations,
+				       nil];
+  return registrationDefaults;
+}
+
 + (NSUserDefaults*) standardUserDefaults
   /*
     Returns the shared defaults object. If it doesn't exist yet, it's
@@ -112,118 +218,67 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     convenience; other instances may also be created.
     */
 {
+  BOOL added_locale, added_lang;
+  id lang;
+  NSArray *uL;
+  NSEnumerator *enumerator;
+
   if (setSharedDefaults)
     return sharedDefaults;
   setSharedDefaults = YES;
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
   sharedDefaults = [[self alloc] init];
+  if (sharedDefaults == nil)
+    {
+      NSLog(@"WARNING - unable to create shared user defaults!\n");
+      return nil;
+    }
 	
   [sharedDefaults __createStandardSearchList];
 
-  if (sharedDefaults)
+  /* Set up language constants */
+  added_locale = NO;
+  added_lang = NO;
+  uL = [[self class] userLanguages];
+  enumerator = [uL objectEnumerator];
+  while ((lang = [enumerator nextObject]))
     {
-      NSUserDefaults	*defs;
-      NSDictionary	*registrationDefaults;
-      NSArray		*ampm;
-      NSArray		*long_day;
-      NSArray		*long_month;
-      NSArray		*short_day;
-      NSArray		*short_month;
-      NSArray		*earlyt;
-      NSArray		*latert;
-      NSArray		*hour_names;
-      NSArray		*ymw_names;
-
-      defs = [NSUserDefaults standardUserDefaults];
-      ampm = [NSArray arrayWithObjects: @"AM", @"PM", nil];
-      short_month = [NSArray arrayWithObjects: 
-						@"Jan",
-						@"Feb",
-						@"Mar",
-						@"Apr",
-						@"May",
-						@"Jun",
-						@"Jul",
-						@"Aug",
-						@"Sep",
-						@"Oct",
-						@"Nov",
-						@"Dec",
-						nil];
-      long_month = [NSArray arrayWithObjects: 
-					      @"January",
-					      @"February",
-					      @"March",
-					      @"April",
-					      @"May",
-					      @"June",
-					      @"July",
-					      @"August",
-					      @"September",
-					      @"October",
-					      @"November",
-					      @"December",
-					      nil];
-      short_day = [NSArray arrayWithObjects: 
-					      @"Sun",
-					      @"Mon",
-					      @"Tue",
-					      @"Wed",
-					      @"Thu",
-					      @"Fri",
-					      @"Sat",
-					      nil];
-      long_day = [NSArray arrayWithObjects: 
-					    @"Sunday",
-					    @"Monday",
-					    @"Tuesday",
-					    @"Wednesday",
-					    @"Thursday",
-					    @"Friday",
-					    @"Saturday",
-					    nil];
-      earlyt = [NSArray arrayWithObjects: 
-					  @"prior",
-					  @"last",
-					  @"past",
-					  @"ago",
-					  nil];
-      latert = [NSArray arrayWithObjects: 
-					  @"next",
-					  nil];
-      ymw_names = [NSArray arrayWithObjects: 
-					      @"year",
-					      @"month",
-					      @"week",
-					      nil];
-      hour_names = [NSArray arrayWithObjects: 
-	  [NSArray arrayWithObjects: @"0", @"midnight", nil],
-	  [NSArray arrayWithObjects: @"12", @"noon", @"lunch", nil],
-	  [NSArray arrayWithObjects: @"10", @"morning", nil],
-	  [NSArray arrayWithObjects: @"14", @"afternoon", nil],
-	  [NSArray arrayWithObjects: @"19", @"dinner", nil],
-	  nil];
-      registrationDefaults = [NSDictionary dictionaryWithObjectsAndKeys: 
-		ampm, NSAMPMDesignation,
-		long_month, NSMonthNameArray,
-		long_day, NSWeekDayNameArray,
-		short_month, NSShortMonthNameArray,
-		short_day, NSShortWeekDayNameArray,
-		@"DMYH", NSDateTimeOrdering,
-		@"tomorrow", NSNextDayDesignations,
-		@"nextday", NSNextNextDayDesignations,
-		@"yesterday", NSPriorDayDesignations,
-		@"today", NSThisDayDesignations,
-		earlyt, NSEarlierTimeDesignations,
-		latert, NSLaterTimeDesignations,
-		hour_names, NSHourNameDesignations,
-		ymw_names, NSYearMonthWeekDesignations,
-		nil];
-      [sharedDefaults registerDefaults: registrationDefaults];
+      NSString *path;
+      NSDictionary *dict;
+      path = [NSBundle pathForGNUstepResource: lang
+		                       ofType: nil
+		                  inDirectory: @"Resources/Languages"];
+      dict = nil;
+      if (path)
+	dict = [NSDictionary dictionaryWithContentsOfFile: path];
+      if (dict)
+	{
+	  [sharedDefaults setVolatileDomain: dict forName: lang];
+	  added_lang = YES;
+	}
+      else if (added_locale == NO)
+	{
+	  NSString *locale = GSSetLocale(nil);
+	  if (locale == nil)
+	    break;
+	  /* See if we can get the dictionary from i18n functions.
+	     Note that we get the dict from the current locale regardless
+	     of what 'lang' is, since it should match anyway. */
+	  /* Also, I don't think that the i18n routines can handle more than
+	     one locale, but tell me if I'm wrong... */
+	  if (GSLanguageFromLocale(locale))
+	    lang = GSLanguageFromLocale(locale);
+	  dict = GSDomainFromDefaultLocale();
+	  if (dict)
+	    [sharedDefaults setVolatileDomain: dict forName: lang];
+	  added_locale = YES;
+	}
     }
-  else
+  if (added_lang == NO)
     {
-      NSLog(@"WARNING - unable to create shared user defaults!\n");
+      /* Ack! We should never get here */
+      NSLog(@"Improper installation: No language locale found");
+      [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
   return sharedDefaults;
 }
@@ -231,14 +286,33 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 + (NSArray*) userLanguages
 {
-  NSMutableArray	*uL = [NSMutableArray arrayWithCapacity: 5];
-  NSArray		*currLang = [[self standardUserDefaults] 
-			  stringArrayForKey: @"Languages"];
-  NSEnumerator		*enumerator;
-  id			obj;
-	
-  if (!currLang)
-    {                    // Try to build it from the env 
+  NSArray  *currLang;
+  NSString *locale;
+
+  if (userLanguages)
+    return userLanguages;
+
+  userLanguages = RETAIN([NSMutableArray arrayWithCapacity: 5]);
+  locale = GSSetLocale(@"");
+  if (sharedDefaults == nil)
+    {
+      /* Create our own defaults to get "Languages" since sharedDefaults
+	 depends on us */
+      NSUserDefaults *tempDefaults;
+      tempDefaults = [[self alloc] init];
+      if (tempDefaults)
+	{	
+	  [tempDefaults __createStandardSearchList];
+	  currLang =  [tempDefaults stringArrayForKey: @"Languages"];
+	  RELEASE(tempDefaults);
+	}
+    }
+  else
+    currLang =  [[self standardUserDefaults] stringArrayForKey: @"Languages"];
+  if (currLang == nil && locale && GSLanguageFromLocale(locale))
+    currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
+  if (currLang == nil)
+    { 
       const char	*env_list;
       NSString		*env;
 
@@ -249,19 +323,17 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	  currLang = RETAIN([env componentsSeparatedByString: @";"]);
 	}
     }
-  if (currLang)
-    [uL addObjectsFromArray: currLang];
 
-  // Check if "English" is includet
-  enumerator = [uL objectEnumerator];
-  while ((obj = [enumerator nextObject]))
-    {
-      if ([obj isEqualToString: @"English"])
-	return uL;
-    }
-  [uL addObject: @"English"];
+  if (currLang)
+    [userLanguages addObjectsFromArray: currLang];
+
+  /* Check if "English" is included. We do this to make sure all the
+     required language constants are set somewhere if they aren't set
+     in the default language */
+  if ([userLanguages containsObject: @"English"] == NO)
+    [userLanguages addObject: @"English"];
 	
-  return uL;
+  return userLanguages;
 }
 
 + (void) setUserLanguages: (NSArray*)languages
@@ -941,14 +1013,14 @@ static NSString	*pathForUser(NSString *user)
   // 2. Application
   [_searchList addObject: processName];
 
-  // 3. User's preferred languages
+  // 3. NSGlobalDomain
+  [_searchList addObject: NSGlobalDomain];
+	
+  // 4. User's preferred languages
   while ((object = [enumerator nextObject]))
     {
       [_searchList addObject: object];
     }
-	
-  // 4. NSGlobalDomain
-  [_searchList addObject: NSGlobalDomain];
 	
   // 5. NSRegistrationDomain
   [_searchList addObject: NSRegistrationDomain];
