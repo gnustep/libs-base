@@ -42,54 +42,67 @@
 
 //PENDING: may want to make these less likely to conflict
 #define UNICODE_SIZE	65536
-#define BITMAP_SIZE	UNICODE_SIZE/8
+#define UNICODE_MAX	1048576
+#define BITMAP_SIZE	8192
+#define BITMAP_MAX	131072
 
 #ifndef SETBIT
 #define SETBIT(a,i)     ((a) |= 1<<(i))
 #define CLRBIT(a,i)     ((a) &= ~(1<<(i)))
-#define ISSET(a,i)      ((((a) & (1<<(i)))) > 0) ? YES : NO;
+#define ISSET(a,i)      (((((a) & (1<<(i)))) > 0) ? YES : NO)
 #endif
+
+@class	NSDataStatic;
 
 @interface NSBitmapCharSet : NSCharacterSet
 {
-  char _data[BITMAP_SIZE];
+  const unsigned char	*_data;
+  unsigned		_length;
+  NSData		*_obj;
+  unsigned		_known;
+  unsigned		_present;
 }
 - (id) initWithBitmap: (NSData*)bitmap;
 @end
 
 @interface NSMutableBitmapCharSet : NSMutableCharacterSet
 {
-  char _data[BITMAP_SIZE];
+  unsigned char		*_data;
+  unsigned		_length;
+  NSMutableData		*_obj;
+  unsigned		_known;
+  unsigned		_present;
 }
 - (id) initWithBitmap: (NSData*)bitmap;
 @end
 
 @implementation NSBitmapCharSet
-- (id) init
-{
-  return [self initWithBitmap: NULL];
-}
-
-- (id) initWithBitmap: (NSData*)bitmap
-{
-  if ([bitmap length] != BITMAP_SIZE)
-    {
-      NSLog(@"attempt to initialize character set with invalid bitmap");
-      [self dealloc];
-      return nil;
-    }
-  [bitmap getBytes: _data length: BITMAP_SIZE];
-  return self;
-}
 
 - (NSData*) bitmapRepresentation
 {
-  return [NSData dataWithBytes: _data length: BITMAP_SIZE];
+  unsigned	i = 16;
+
+  while (i > 0 && [self hasMemberInPlane: i-1] == NO)
+    {
+      i--;
+    }
+  i *= BITMAP_SIZE;
+  if (i < _length)
+    {
+      return [NSData dataWithBytes: _data length: i];
+    }
+  return _obj;
 }
 
 - (BOOL) characterIsMember: (unichar)aCharacter
 {
-  return ISSET(_data[aCharacter/8], aCharacter % 8);
+  unsigned	byte = aCharacter/8;
+
+  if (byte < _length && ISSET(_data[byte], aCharacter % 8))
+    {
+      return YES;
+    }
+  return NO;
 }
 
 - (Class) classForCoder
@@ -97,9 +110,81 @@
   return [self class];
 }
 
+- (void) dealloc
+{
+  DESTROY(_obj);
+  [super dealloc];
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeObject: [self bitmapRepresentation]];
+}
+
+- (BOOL) hasMemberInPlane: (uint8_t)aPlane
+{
+  unsigned	bit;
+
+  if (aPlane >= 16)
+    {
+      return NO;
+    }
+  bit = (1 << aPlane);
+  if (_known & bit)
+    {
+      if (_present & bit)
+	{
+	  return YES;
+	}
+      else
+	{
+	  return NO;
+	}
+    }
+  if (aPlane * BITMAP_SIZE < _length)
+    {
+      unsigned	i = BITMAP_SIZE * aPlane;
+      unsigned	e = BITMAP_SIZE * (aPlane + 1);
+
+      while (i < e)
+	{
+	  if (_data[i] != 0)
+	    {
+	      _present |= bit;
+	      _known |= bit;
+	      return YES;
+	    }
+	  i++;
+	}
+    }
+  _present &= ~bit;
+  _known |= bit;
+  return NO;
+}
+
+- (id) init
+{
+  return [self initWithBitmap: nil];
+}
+
+- (id) initWithBitmap: (NSData*)bitmap
+{
+  unsigned	length = [bitmap length];
+
+  if ((length % BITMAP_SIZE) != 0 || length > BITMAP_MAX)
+    {
+      NSLog(@"attempt to initialize character set with invalid bitmap");
+      [self dealloc];
+      return nil;
+    }
+  if (bitmap == nil)
+    {
+      bitmap = [NSData data];
+    }
+  ASSIGNCOPY(_obj, bitmap);
+  _length = length;
+  _data = [_obj bytes];
+  return self;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -111,53 +196,34 @@
   return self;
 }
 
+- (BOOL) longCharacterIsMember: (UTF32Char)aCharacter
+{
+  unsigned	byte = aCharacter/8;
+
+  if (byte < _length && ISSET(_data[byte], aCharacter % 8))
+    {
+      return YES;
+    }
+  return NO;
+}
 @end
 
 @implementation NSMutableBitmapCharSet
 
-- (id) init
++ (void) initialize
 {
-  return [self initWithBitmap: NULL];
-}
-
-- (id) initWithBitmap: (NSData*)bitmap
-{
-  [super init];
-  if (bitmap)
-    [bitmap getBytes: _data length: BITMAP_SIZE];
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [aCoder encodeObject: [self bitmapRepresentation]];
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  NSMutableData	*rep;
-
-  rep = [aCoder decodeObject];
-  self = [self initWithBitmap: rep];
-  return self;
-}
-
-/* Need to implement the next two methods just like NSBitmapCharSet */
-- (NSData*) bitmapRepresentation
-{
-  return [NSData dataWithBytes: _data length: BITMAP_SIZE];
-}
-
-- (BOOL) characterIsMember: (unichar)aCharacter
-{
-  return ISSET(_data[aCharacter/8], aCharacter % 8);
+  if (self == [NSMutableBitmapCharSet class])
+    {
+      [self setVersion: 1];
+      GSObjCAddClassBehavior(self, [NSBitmapCharSet class]);
+    }
 }
 
 - (void) addCharactersInRange: (NSRange)aRange
 {
   unsigned i;
 
-  if (NSMaxRange(aRange) > UNICODE_SIZE)
+  if (NSMaxRange(aRange) > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
@@ -166,8 +232,17 @@
 
   for (i = aRange.location; i < NSMaxRange(aRange); i++)
     {
-      SETBIT(_data[i/8], i % 8);
+      unsigned	byte = i/8;
+
+      while (byte >= _length)
+	{
+	  [_obj setLength: _length + BITMAP_SIZE];
+	  _length += BITMAP_SIZE;
+	  _data = [_obj mutableBytes];
+	}
+      SETBIT(_data[byte], i % 8);
     }
+  _known = 0;	// Invalidate cache
 }
 
 - (void) addCharactersInString: (NSString*)aString
@@ -192,52 +267,149 @@
       for (i = 0; i < length; i++)
 	{
 	  unichar	letter;
+	  unichar	second;
+	  unsigned	byte;
 
 	  letter = (*get)(aString, @selector(characterAtIndex:), i);
-	  SETBIT(_data[letter/8], letter % 8);
+	  // Convert a surrogate pair if necessary
+	  if (letter >= 0xd800 && letter <= 0xdbff && i < length-1
+	    && (second = (*get)(aString, @selector(characterAtIndex:), i+1))
+	    >= 0xdc00 && second <= 0xdfff)
+	    {
+	      i++;
+	      letter = ((letter - 0xd800) << 10)
+		+ (second - 0xdc00) + 0x0010000;
+	    }
+	  byte = letter/8;
+	  while (byte >= _length)
+	    {
+	      [_obj setLength: _length + BITMAP_SIZE];
+	      _length += BITMAP_SIZE;
+	      _data = [_obj mutableBytes];
+	    }
+	  SETBIT(_data[byte], letter % 8);
 	}
     }
+  _known = 0;	// Invalidate cache
 }
 
-- (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
+- (NSData*) bitmapRepresentation
 {
-  unsigned	i;
-  const char	*other_bytes;
+  unsigned	i = 16;
 
-  other_bytes = [[otherSet bitmapRepresentation] bytes];
-  for (i = 0; i < BITMAP_SIZE; i++)
+  while (i > 0 && [self hasMemberInPlane: i-1] == NO)
     {
-      _data[i] = (_data[i] | other_bytes[i]);
+      i--;
     }
+  i *= BITMAP_SIZE;
+  return [NSData dataWithBytes: _data length: i];
 }
 
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet *)otherSet
 {
-  unsigned	i;
-  const char	*other_bytes;
+  unsigned		i;
+  NSData		*otherData = [otherSet bitmapRepresentation];
+  unsigned		other_length = [otherData length];
+  const unsigned char	*other_bytes = [otherData bytes];
 
-  other_bytes = [[otherSet bitmapRepresentation] bytes];
-  for (i = 0; i < BITMAP_SIZE; i++)
+  if (_length > other_length)
+    {
+      [_obj setLength: other_length];
+      _length = other_length;
+      _data = [_obj mutableBytes];
+    }
+  for (i = 0; i < _length; i++)
     {
       _data[i] = (_data[i] & other_bytes[i]);
     }
+  _known = 0;	// Invalidate cache
+}
+
+- (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
+{
+  unsigned		i;
+  NSData		*otherData = [otherSet bitmapRepresentation];
+  unsigned		other_length = [otherData length];
+  const unsigned char	*other_bytes = [otherData bytes];
+
+  if (other_length > _length)
+    {
+      [_obj setLength: other_length];
+      _length = other_length;
+      _data = [_obj mutableBytes];
+    }
+  for (i = 0; i < _length; i++)
+    {
+      _data[i] = (_data[i] | other_bytes[i]);
+    }
+  _known = 0;	// Invalidate cache
+}
+
+- (id) initWithBitmap: (NSData*)bitmap
+{
+  unsigned	length = [bitmap length];
+  id		tmp;
+
+  if ((length % BITMAP_SIZE) != 0 || length > BITMAP_MAX)
+    {
+      NSLog(@"attempt to initialize character set with invalid bitmap");
+      [self dealloc];
+      return nil;
+    }
+  if (bitmap == nil)
+    {
+      tmp = [NSMutableData new];
+    }
+  else
+    {
+      tmp = [bitmap mutableCopy];
+    }
+  DESTROY(_obj);
+  _obj = tmp;
+  _length = length;
+  _data = [_obj mutableBytes];
+  _known = 0;	// Invalidate cache
+  return self;
+}
+
+- (void) invert
+{
+  unsigned	i;
+
+  if (_length < BITMAP_MAX)
+    {
+      [_obj setLength: BITMAP_MAX];
+      _length = BITMAP_MAX;
+      _data = [_obj mutableBytes];
+    }
+  for (i = 0; i < _length; i++)
+    {
+      _data[i] = ~_data[i];
+    }
+  _known = 0;	// Invalidate cache
 }
 
 - (void) removeCharactersInRange: (NSRange)aRange
 {
   unsigned	i;
+  unsigned	limit = NSMaxRange(aRange);
 
-  if (NSMaxRange(aRange) > UNICODE_SIZE)
+  if (NSMaxRange(aRange) > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
       /* NOT REACHED */
     }
 
-  for (i = aRange.location; i < NSMaxRange(aRange); i++)
+  if (limit > _length * 8)
+    {
+      limit = _length * 8;
+    }
+  for (i = aRange.location; i < limit; i++)
     {
       CLRBIT(_data[i/8], i % 8);
     }
+  _known = 0;	// Invalidate cache
 }
 
 - (void) removeCharactersInString: (NSString*)aString
@@ -263,21 +435,27 @@
       for (i = 0; i < length; i++)
 	{
 	  unichar	letter;
+	  unichar	second;
+	  unsigned	byte;
 
 	  letter = (*get)(aString, @selector(characterAtIndex:), i);
-	  CLRBIT(_data[letter/8], letter % 8);
+	  // Convert a surrogate pair if necessary
+	  if (letter >= 0xd800 && letter <= 0xdbff && i < length-1
+	    && (second = (*get)(aString, @selector(characterAtIndex:), i+1))
+	    >= 0xdc00 && second <= 0xdfff)
+	    {
+	      i++;
+	      letter = ((letter - 0xd800) << 10)
+		+ (second - 0xdc00) + 0x0010000;
+	    }
+	  byte = letter/8;
+	  if (byte < _length)
+	    {
+	      CLRBIT(_data[byte], letter % 8);
+	    }
 	}
     }
-}
-
-- (void) invert
-{
-  unsigned	i;
-
-  for (i = 0; i < BITMAP_SIZE; i++)
-    {
-      _data[i] = ~_data[i];
-    }
+  _known = 0;	// Invalidate cache
 }
 
 @end
@@ -289,37 +467,24 @@
 static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
 static NSLock *cache_lock = nil;
 static Class abstractClass = nil;
+static Class abstractMutableClass = nil;
 
 @interface GSStaticCharSet : NSCharacterSet
 {
   const unsigned char	*_data;
+  unsigned		_length;
+  NSData		*_obj;
+  unsigned		_known;
+  unsigned		_present;
   int			_index;
 }
 @end
 
 @implementation GSStaticCharSet
 
-- (id) init
++ (void) initialize
 {
-  DESTROY(self);
-  return nil;
-}
-
-- (id) initWithIndex: (int)index bytes: (const unsigned char*)bitmap
-{
-  _index = index;
-  _data = bitmap;
-  return self;
-}
-
-- (NSData*) bitmapRepresentation
-{
-  return [NSData dataWithBytes: _data length: BITMAP_SIZE];
-}
-
-- (BOOL) characterIsMember: (unichar)aCharacter
-{
-  return ISSET(_data[aCharacter/8], aCharacter % 8);
+  GSObjCAddClassBehavior(self, [NSBitmapCharSet class]);
 }
 
 - (Class) classForCoder
@@ -330,6 +495,21 @@ static Class abstractClass = nil;
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeValueOfObjCType: @encode(int) at: &_index];
+}
+
+- (id) init
+{
+  DESTROY(self);
+  return nil;
+}
+
+- (id) initWithBitmap: (NSData*)bitmap number: (int)number
+{
+  if ((self = [(NSBitmapCharSet*)self initWithBitmap: bitmap]) != nil)
+    {
+      _index = number;
+    }
+  return self;
 }
 
 @end
@@ -343,6 +523,7 @@ static Class abstractClass = nil;
   if (one_time == NO)
     {
       abstractClass = [NSCharacterSet class];
+      abstractMutableClass = [NSMutableCharacterSet class];
       one_time = YES;
     }
   cache_lock = [GSLazyLock new];
@@ -353,13 +534,21 @@ static Class abstractClass = nil;
  * using static bitmap data.
  * Return nil if no data is supplied and the cache is empty.
  */
-+ (NSCharacterSet*) _staticSet: (unsigned char*)bytes number: (int)number
++ (NSCharacterSet*) _staticSet: (const unsigned char*)bytes
+			length: (unsigned)length
+			number: (int)number
 {
   [cache_lock lock];
   if (cache_set[number] == nil && bytes != 0)
     {
+      NSData	*bitmap;
+
+      bitmap = [[NSDataStatic alloc] initWithBytesNoCopy: (void*)bytes
+						  length: length
+					    freeWhenDone: NO];
       cache_set[number]
-	= [[GSStaticCharSet alloc] initWithIndex: number bytes: bytes];
+	= [[GSStaticCharSet alloc] initWithBitmap: bitmap number: number];
+      RELEASE(bitmap);
     }
   [cache_lock unlock];
   return cache_set[number];
@@ -367,79 +556,109 @@ static Class abstractClass = nil;
 
 + (NSCharacterSet*) alphanumericCharacterSet
 {
-  return [self _staticSet: alphanumericCharSet number: 0];
+  return [self _staticSet: alphanumericCharSet
+		   length: sizeof(alphanumericCharSet)
+		   number: 0];
 }
 
 + (NSCharacterSet*) capitalizedLetterCharacterSet
 {
-  return [self _staticSet: titlecaseLetterCharSet number: 13];
+  return [self _staticSet: titlecaseLetterCharSet
+		   length: sizeof(titlecaseLetterCharSet)
+		   number: 13];
 }
 
 + (NSCharacterSet*) controlCharacterSet
 {
-  return [self _staticSet: controlCharSet number: 1];
+  return [self _staticSet: controlCharSet
+		   length: sizeof(controlCharSet)
+		   number: 1];
 }
 
 + (NSCharacterSet*) decimalDigitCharacterSet
 {
-  return [self _staticSet: decimalDigitCharSet number: 2];
+  return [self _staticSet: decimalDigitCharSet
+		   length: sizeof(decimalDigitCharSet)
+		   number: 2];
 }
 
 + (NSCharacterSet*) decomposableCharacterSet
 {
-  return [self _staticSet: decomposableCharSet number: 3];
+  return [self _staticSet: decomposableCharSet
+		   length: sizeof(decomposableCharSet)
+		   number: 3];
 }
 
 + (NSCharacterSet*) illegalCharacterSet
 {
-  return [self _staticSet: illegalCharSet number: 4];
+  return [self _staticSet: illegalCharSet
+		   length: sizeof(illegalCharSet)
+		   number: 4];
 }
 
 + (NSCharacterSet*) letterCharacterSet
 {
-  return [self _staticSet: letterCharSet number: 5];
+  return [self _staticSet: letterCharSet
+		   length: sizeof(letterCharSet)
+		   number: 5];
 }
 
 + (NSCharacterSet*) lowercaseLetterCharacterSet
 {
-  return [self _staticSet: lowercaseLetterCharSet number: 6];
+  return [self _staticSet: lowercaseLetterCharSet
+		   length: sizeof(lowercaseLetterCharSet)
+		   number: 6];
 }
 
 + (NSCharacterSet*) nonBaseCharacterSet
 {
-  return [self _staticSet: nonBaseCharSet number: 7];
+  return [self _staticSet: nonBaseCharSet
+		   length: sizeof(nonBaseCharSet)
+		   number: 7];
 }
 
 + (NSCharacterSet*) punctuationCharacterSet
 {
-  return [self _staticSet: punctuationCharSet number: 8];
+  return [self _staticSet: punctuationCharSet
+		   length: sizeof(punctuationCharSet)
+		   number: 8];
 }
 
 + (NSCharacterSet*) symbolCharacterSet
 {
-  return [self _staticSet: symbolAndOperatorCharSet number: 9];
+  return [self _staticSet: symbolAndOperatorCharSet
+		   length: sizeof(symbolAndOperatorCharSet)
+		   number: 9];
 }
 
 // FIXME ... deprecated ... remove after next release.
 + (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   GSOnceMLog(@"symbolAndOperatorCharacterSet is deprecated ... use symbolCharacterSet");
-  return [self _staticSet: symbolAndOperatorCharSet number: 9];
+  return [self _staticSet: symbolAndOperatorCharSet
+		   length: sizeof(symbolAndOperatorCharSet)
+		   number: 9];
 }
 
 + (NSCharacterSet*) uppercaseLetterCharacterSet
 {
-  return [self _staticSet: uppercaseLetterCharSet number: 10];
+  return [self _staticSet: uppercaseLetterCharSet
+		   length: sizeof(uppercaseLetterCharSet)
+		   number: 10];
 }
 
 + (NSCharacterSet*) whitespaceAndNewlineCharacterSet
 {
-  return [self _staticSet: whitespaceAndNlCharSet number: 11];
+  return [self _staticSet: whitespaceAndNlCharSet
+		   length: sizeof(whitespaceAndNlCharSet)
+		   number: 11];
 }
 
 + (NSCharacterSet*) whitespaceCharacterSet
 {
-  return [self _staticSet: whitespaceCharSet number: 12];
+  return [self _staticSet: whitespaceCharSet
+		   length: sizeof(whitespaceCharSet)
+		   number: 12];
 }
 
 + (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
@@ -449,49 +668,26 @@ static Class abstractClass = nil;
 
 + (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
 {
-  unsigned	i;
-  unsigned	length;
-  unsigned char	*bytes;
-  NSMutableData *bitmap = [NSMutableData dataWithLength: BITMAP_SIZE];
+  NSMutableCharacterSet	*ms;
+  NSCharacterSet	*cs;
 
-  if (!aString)
-    {
-      [NSException raise: NSInvalidArgumentException
-	  format: @"Creating character set with nil string"];
-      /* NOT REACHED */
-    }
-
-  length = [aString length];
-  bytes  = [bitmap mutableBytes];
-  for (i = 0; i < length; i++)
-    {
-      unichar letter = [aString characterAtIndex: i];
-
-      SETBIT(bytes[letter/8], letter % 8);
-    }
-
-  return [self characterSetWithBitmapRepresentation: bitmap];
+  ms = [NSMutableCharacterSet new];
+  [ms addCharactersInString: aString];
+  cs = [ms copy];
+  RELEASE(ms);
+  return AUTORELEASE(cs);
 }
 
 + (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
 {
-  unsigned	i;
-  unsigned char	*bytes;
-  NSMutableData *bitmap = [NSMutableData dataWithLength: BITMAP_SIZE];
+  NSMutableCharacterSet	*ms;
+  NSCharacterSet	*cs;
 
-  if (NSMaxRange(aRange) > UNICODE_SIZE)
-    {
-      [NSException raise: NSInvalidArgumentException
-          format: @"Specified range exceeds character set"];
-      /* NOT REACHED */
-    }
-
-  bytes = (unsigned char*)[bitmap mutableBytes];
-  for (i = aRange.location; i < NSMaxRange(aRange); i++)
-    {
-      SETBIT(bytes[i/8], i % 8);
-    }
-  return [self characterSetWithBitmapRepresentation: bitmap];
+  ms = [NSMutableCharacterSet new];
+  [ms addCharactersInRange: aRange];
+  cs = [ms copy];
+  RELEASE(ms);
+  return AUTORELEASE(cs);
 }
 
 + (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile
@@ -533,9 +729,17 @@ static Class abstractClass = nil;
 - (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone))
-    return RETAIN(self);
+    {
+      return RETAIN(self);
+    }
   else
-    return NSCopyObject (self, 0, zone);
+    {
+      id	obj;
+
+      obj = [NSBitmapCharSet allocWithZone: zone];
+      obj = [obj initWithBitmap: [self bitmapRepresentation]];
+      return obj;
+    }
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -551,6 +755,20 @@ static Class abstractClass = nil;
   return NO;
 }
 
+- (id) init
+{
+  if (GSObjCClass(self) == abstractClass)
+    {
+      id	obj;
+
+      obj = [NSBitmapCharSet allocWithZone: [self zone]];
+      obj = [obj initWithBitmap: nil];
+      RELEASE(self);
+      self = obj;
+    }
+  return self;
+}
+
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   if ([self class] == abstractClass)
@@ -562,7 +780,7 @@ static Class abstractClass = nil;
        */
       DESTROY(self);
       [aCoder decodeValueOfObjCType: @encode(int) at: &index];
-      self = RETAIN([abstractClass _staticSet: 0 number: index]);
+      self = RETAIN([abstractClass _staticSet: 0 length: 0 number: index]);
     }
   else
     {
@@ -594,6 +812,7 @@ static Class abstractClass = nil;
   if ([anObject isKindOfClass: abstractClass])
     {
       unsigned	i;
+      unsigned	p;
       BOOL	(*rImp)(id, SEL, unichar);
       BOOL	(*oImp)(id, SEL, unichar);
       
@@ -602,12 +821,32 @@ static Class abstractClass = nil;
       oImp = (BOOL (*)(id,SEL,unichar))
 	[anObject methodForSelector: @selector(characterIsMember:)];
 
-      for (i = 0; i <= 0xffff; i++)
+      for (p = 0; p < 16; p++)
 	{
-	  if (rImp(self,  @selector(characterIsMember:), i)
-	    != oImp(anObject, @selector(characterIsMember:), i))
+	  if ([self hasMemberInPlane: p] == YES)
 	    {
-	      return NO;
+	      if ([anObject hasMemberInPlane: p] == YES)
+		{
+		  for (i = 0; i <= 0xffff; i++)
+		    {
+		      if (rImp(self,  @selector(characterIsMember:), i)
+			!= oImp(anObject, @selector(characterIsMember:), i))
+			{
+			  return NO;
+			}
+		    }
+		}
+	      else
+		{
+		  return NO;
+		}
+	    }
+	  else
+	    {
+	      if ([anObject hasMemberInPlane: p] == YES)
+		{
+		  return NO;
+		}
 	    }
 	}
       return YES;
@@ -652,12 +891,6 @@ static Class abstractClass = nil;
 @end
 
 @implementation NSMutableCharacterSet
-
-/* Provide a default object for allocation */
-+ (id) allocWithZone: (NSZone*)zone
-{
-  return NSAllocateObject([NSMutableBitmapCharSet self], 0, zone);
-}
 
 /* Override this from NSCharacterSet to create the correct class */
 + (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
@@ -741,6 +974,24 @@ static Class abstractClass = nil;
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
++ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
+{
+  NSMutableCharacterSet	*ms;
+
+  ms = [abstractMutableClass new];
+  [ms addCharactersInString: aString];
+  return AUTORELEASE(ms);
+}
+
++ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
+{
+  NSMutableCharacterSet	*ms;
+
+  ms = [abstractMutableClass new];
+  [ms addCharactersInRange: aRange];
+  return AUTORELEASE(ms);
+}
+
 - (void) addCharactersInRange: (NSRange)aRange
 {
   [self subclassResponsibility: _cmd];
@@ -751,12 +1002,53 @@ static Class abstractClass = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (id) copyWithZone: (NSZone*)zone
+{
+  NSData	*bitmap;
+
+  bitmap = [self bitmapRepresentation];
+  return [[NSBitmapCharSet allocWithZone: zone] initWithBitmap: bitmap];
+}
+
+- (void) formIntersectionWithCharacterSet: (NSCharacterSet*)otherSet
+{
+  [self subclassResponsibility: _cmd];
+}
+
 - (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void) formIntersectionWithCharacterSet: (NSCharacterSet*)otherSet
+- (id) init
+{
+  if (GSObjCClass(self) == abstractMutableClass)
+    {
+      id	obj;
+
+      obj = [NSMutableBitmapCharSet allocWithZone: [self zone]];
+      obj = [obj initWithBitmap: nil];
+      RELEASE(self);
+      self = obj;
+    }
+  return self;
+}
+
+- (id) initWithBitmap: (NSData*)bitmap
+{
+  if (GSObjCClass(self) == abstractMutableClass)
+    {
+      id	obj;
+
+      obj = [NSMutableBitmapCharSet allocWithZone: [self zone]];
+      obj = [obj initWithBitmap: bitmap];
+      RELEASE(self);
+      self = obj;
+    }
+  return self;
+}
+
+- (void) invert
 {
   [self subclassResponsibility: _cmd];
 }
@@ -769,24 +1061,6 @@ static Class abstractClass = nil;
 - (void) removeCharactersInString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];
-}
-
-- (void) invert
-{
-  [self subclassResponsibility: _cmd];
-}
-
-// NSCopying, NSMutableCopying
-- (id) copyWithZone: (NSZone*)zone
-{
-  NSData *bitmap;
-  bitmap = [self bitmapRepresentation];
-  return [[NSBitmapCharSet allocWithZone: zone] initWithBitmap: bitmap];
-}
-
-- (id) mutableCopyWithZone: (NSZone*)zone
-{
-  return [super mutableCopyWithZone: zone];
 }
 
 @end
