@@ -1,7 +1,9 @@
-Mon Nov 23 22:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Nov 24  4:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/Tools/GNUmakefile: removed make_services
 	* src/Tools/make_services.m: Removed - moved to gui library.
+	* src/NSBundle.m: Changed Info.plist to Info-gnustep.plist since
+	that's what GNUstep uses instead.
 
 Fri Nov 20 20:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
