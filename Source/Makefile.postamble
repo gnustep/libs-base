@@ -63,20 +63,17 @@ after-install::
 	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
 	  services=/etc/services; \
-	else \
-	  mkdir -p $(INSTALL_ROOT_DIR)/etc; \
-	  services=$(INSTALL_ROOT_DIR)/etc/services.add; \
-	fi; \
-	if [ "`$(WHOAMI)`" != root ]; then \
-	    echo "WARNING: Please add the following lines to $$services"; \
-	    echo "gdomap 538/tcp # GNUstep distrib objects"; \
-	    echo "gdomap 538/udp # GNUstep distrib objects"; \
-	else \
-	  if [ "`fgrep gdomap $$services 2>/dev/null`" = "" ]; then \
-	    echo "GNUstep addons for /etc/services written to $$services"; \
-	    set -x; \
-	    echo "gdomap 538/tcp # GNUstep distrib objects" >> $$services; \
-	    echo "gdomap 538/udp # GNUstep distrib objects" >> $$services; \
+	  if [ "`$(WHOAMI)`" != root ]; then \
+	      echo "WARNING: Please add the following lines to $$services"; \
+	      echo "gdomap 538/tcp # GNUstep distrib objects"; \
+	      echo "gdomap 538/udp # GNUstep distrib objects"; \
+	  else \
+	    if [ "`fgrep gdomap $$services 2>/dev/null`" = "" ]; then \
+	      echo "GNUstep addons for /etc/services written to $$services"; \
+	      set -x; \
+	      echo "gdomap 538/tcp # GNUstep distrib objects" >> $$services; \
+	      echo "gdomap 538/udp # GNUstep distrib objects" >> $$services; \
+	    fi; \
 	  fi; \
 	fi
 
