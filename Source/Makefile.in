@@ -67,6 +67,7 @@ FILE_AUTHORS = \
 "Adam Fedor" \
 "Mark Lakata" \
 "Jeremy Bettis"
+"Georg Tuparev"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
      
