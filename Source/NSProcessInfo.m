@@ -325,8 +325,10 @@ int main(int argc, char *argv[], char *env[])
   // $$$ The format of the string is not specified by the OpenStep 
   // specification. It could be useful to change this format after
   // NeXTSTEP release 4.0 comes out.
-  return [NSString stringWithFormat:@"%@:%d:[%@]",
-		   [self hostName],(int)getpid(),[[NSDate date] description]];
+  return [NSString stringWithFormat:@"%s:%d:[%s]",
+		   [[self hostName] cString],
+		   (int)getpid(),
+		   [[[NSDate date] description] cString]];
 }
 
 /*************************************************************************
