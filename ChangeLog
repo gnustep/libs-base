@@ -1,3 +1,11 @@
+1999-07-29  Adam Fedor  <fedor@gnu.org>
+
+	* config.guess: Updated from latest version + fix for Netwinder.
+	* config.sub: Likewise.
+
+	* Headers/gnustep/base/Foundation.h: Include NSPage.h
+	* Headers/gnustep/base/NSPortCoder.h: Remove ref to Port.h
+
 Wed Jul 28 15:53:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSObject.h: ([+isKindOfClass:]) Fixed to return NO except
