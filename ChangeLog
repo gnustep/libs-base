@@ -15,6 +15,9 @@
 	* Headers/gnustep/base/GSUnion.h: Enclose types bitmask in brackets
 	to avoid *all* types being included in the union!  Should decrease
 	memory footprint and increase speed of many classes.
+	* Source/NSString.m: ([stringByStandardizingPath]) memory leak
+	fixed and windows path check fixed ... patch by Michael Scheibler.
+	Also commented/documented the method.
 
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -2833,6 +2833,21 @@ handle_printf_atsign (FILE *stream,
 #endif  /* (__MINGW__) */  
 }
 
+/**
+ * Returns a standardised form of the receiver, with unnecessary parts
+ * removed, tilde characters expanded, and symbolic links resolved
+ * where possible.<br />
+ * If the string is an invalid path, the unmodified receiver is returned.<br />
+ * <p>
+ *   Uses -stringByExpandingTildeInPath to expand tilde expressions.<br />
+ *   Simplifies '//' and '/./' sequences.<br />
+ *   Removes any '/private' prefix.
+ * </p>
+ * <p>
+ *  For absolute paths, uses -stringByResolvingSymlinksInPath to resolve
+ *  any links, then gets rid of '/../' sequences.
+ * </p>
+ */
 - (NSString*) stringByStandardizingPath
 {
   NSMutableString	*s;
@@ -2840,12 +2855,8 @@ handle_printf_atsign (FILE *stream,
   unichar		(*caiImp)(NSString*, SEL, unsigned);
 
   /* Expand `~' in the path */
-  s = [[self stringByExpandingTildeInPath] mutableCopy];
+  s = AUTORELEASE([[self stringByExpandingTildeInPath] mutableCopy]);
   caiImp = (unichar (*)())[s methodForSelector: caiSel];
-
-  /* Remove `/private' */
-  if ([s hasPrefix: @"/private"])
-    [s deleteCharactersInRange: ((NSRange){0,7})];
 
   /* Condense `//' and '/./' */
   r = NSMakeRange(0, [s length]);
@@ -2891,6 +2902,12 @@ handle_printf_atsign (FILE *stream,
   if ([s isAbsolutePath] == NO)
     return s;
 
+  /* Remove `/private' */
+  if ([s hasPrefix: @"/private"])
+    {
+      [s deleteCharactersInRange: ((NSRange){0,7})];
+    }
+
   /*
    *	For absolute paths, we must resolve symbolic links or (on MINGW)
    *	remove '/../' sequences and their matching parent directories.
@@ -2914,7 +2931,13 @@ handle_printf_atsign (FILE *stream,
 				     options: NSBackwardsSearch
 				       range: r2];
 	      if (r.length == 0)
-		r = r2;
+		{
+		  r = r2;
+		}
+	      else
+		{
+		  r.length = r2.length - r.location - 1;
+		}
 	      r.length += 4;		/* Add the `/../' */
 	    }
 	  [s deleteCharactersInRange: r];
