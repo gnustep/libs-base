@@ -41,6 +41,7 @@
   BOOL			closeOnDealloc;
   BOOL			isStandardFile;
   BOOL			isNullDevice;
+  BOOL			isSocket;
   BOOL			isNonBlocking;
   BOOL			wasNonBlocking;
   BOOL			acceptOK;

@@ -1,4 +1,4 @@
-/** Implementation for GSUnixSSLHandle for GNUStep
+/** Implementation for GSSSLHandle for GNUStep
    Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -53,7 +53,7 @@
 #include <GSConfig.h>
 #include <Foundation/Foundation.h>
 
-#include <gnustep/base/UnixFileHandle.h>
+#include <gnustep/base/GSFileHandle.h>
 
 #if defined(__MINGW__)
 #include <winsock2.h>
@@ -89,7 +89,7 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 
 
 
-@interface	GSUnixSSLHandle : UnixFileHandle <GCFinalization>
+@interface	GSSSLHandle : GSFileHandle <GCFinalization>
 {
   SSL_CTX	*ctx;
   SSL		*ssl;
@@ -102,10 +102,10 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 		 PEMpasswd: (NSString*)PEMpasswd;
 @end
 
-@implementation	GSUnixSSLHandle
+@implementation	GSSSLHandle
 + (void) initialize
 {
-  if (self == [GSUnixSSLHandle class])
+  if (self == [GSSSLHandle class])
     {
       SSL_library_init();
     }
@@ -121,14 +121,7 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
   d = [NSMutableData dataWithCapacity: 0];
-  if (isStandardFile)
-    {
-      while ((len = read(descriptor, buf, sizeof(buf))) > 0)
-	{
-	  [d appendBytes: buf length: len];
-	}
-    }
-  else
+  if (isSocket)
     {
       if (connected)
 	{
@@ -139,10 +132,17 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	}
       else
 	{
-	  if ((len = read(descriptor, buf, sizeof(buf))) > 0)
+	  if ((len = recv(descriptor, buf, sizeof(buf), 0)) > 0)
 	    {
 	      [d appendBytes: buf length: len];
 	    }
+	}
+    }
+  else
+    {
+      while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+	{
+	  [d appendBytes: buf length: len];
 	}
     }
   if (len < 0)
@@ -201,6 +201,10 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	    {
 	      got = SSL_read(ssl, buf, chunk);
 	    }
+	  else if (isSocket)
+	    {
+	      got = recv(descriptor, buf, chunk, 0);
+	    }
 	  else
 	    {
 	      got = read(descriptor, buf, chunk);
@@ -232,11 +236,21 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
   d = [NSMutableData dataWithCapacity: 0];
-  if (connected)
+  if (isSocket)
     {
-      while ((len = SSL_read(ssl, buf, sizeof(buf))) > 0)
+      if (connected)
 	{
-	  [d appendBytes: buf length: len];
+	  while ((len = SSL_read(ssl, buf, sizeof(buf))) > 0)
+	    {
+	      [d appendBytes: buf length: len];
+	    }
+	}
+      else
+	{
+	  while ((len = recv(descriptor, buf, sizeof(buf), 0)) > 0)
+	    {
+	      [d appendBytes: buf length: len];
+	    }
 	}
     }
   else
@@ -289,12 +303,12 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	    }
 	  else
 	    { // Accept attempt completed.
-	      UnixFileHandle		*h;
+	      GSSSLHandle		*h;
 	      struct sockaddr_in	sin;
 	      int			size = sizeof(sin);
 
-	      h = [[UnixFileHandle alloc] initWithFileDescriptor: desc
-						  closeOnDealloc: YES];
+	      h = [[GSSSLHandle alloc] initWithFileDescriptor: desc
+					       closeOnDealloc: YES];
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
 	      [h setAddr: &sin];
 	      [readInfo setObject: h
@@ -338,9 +352,16 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	    }
 	  else
 #endif
-	  if (connected)
+	  if (isSocket)
 	    {
-	      received = SSL_read(ssl, buf, length);
+	      if (connected)
+		{
+		  received = SSL_read(ssl, buf, length);
+		}
+	      else
+		{
+		  received = recv(descriptor, buf, length, 0);
+		}
 	    }
 	  else
 	    {
@@ -424,10 +445,18 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 		}
 	      else
 #endif
-	      if (connected)
+	      if (isSocket)
 		{
-		  written = SSL_write(ssl, (char*)ptr + writePos, 
-		    length - writePos);
+		  if (connected)
+		    {
+		      written = SSL_write(ssl, (char*)ptr + writePos, 
+			length - writePos);
+		    }
+		  else
+		    {
+		      written = send(descriptor, (char*)ptr + writePos, 
+			length - writePos, 0);
+		    }
 		}
 	      else
 		{
@@ -554,7 +583,7 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 		str = @"SSL Error: really helpful";
 		break;
 	      default:
-		str = @"Standard Unix Error: really helpful";
+		str = @"Standard system error: really helpful";
 		break;
 	    }
 	  NSLog(@"unable to make SSL connection to %@:%@ - %@",
@@ -636,9 +665,16 @@ static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
 	{
 	  toWrite = NETBUF_SIZE;
 	}
-      if (connected)
+      if (isSocket)
 	{
-	  rval = SSL_write(ssl, (char*)ptr+pos, toWrite);
+	  if (connected)
+	    {
+	      rval = SSL_write(ssl, (char*)ptr+pos, toWrite);
+	    }
+	  else
+	    {
+	      rval = send(descriptor, (char*)ptr+pos, toWrite, 0);
+	    }
 	}
       else
 	{

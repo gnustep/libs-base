@@ -174,7 +174,7 @@ NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
 #	XML support
 #
 $(GNUSTEP_OBJ_DIR)/GSXML.o \
-$(GNUSTEP_OBJ_DIR)/UnixFileHandle.o \
+$(GNUSTEP_OBJ_DIR)/GSFileHandle.o \
 	: $(GNUSTEP_TARGET_DIR)/config.h 
 
 #

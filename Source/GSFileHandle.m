@@ -749,6 +749,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSMutableDictionary*	info;
 
+      isSocket = YES;
       [self setNonBlocking: YES];
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	{
@@ -867,6 +868,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
   if (self)
     {
+      isSocket = YES;
       connectOK = NO;
       acceptOK = YES;
       readOK = NO;
@@ -1056,6 +1058,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  unsigned long nbio = 0;
 
+	  isSocket = YES;
 	  /*
 	   * This is probably a socket ... try
 	   * using a socket specific call and see if that fails.
@@ -1266,7 +1269,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-      if ((len = recv(descriptor, buf, sizeof(buf), 0)) > 0)
+      if (isSocket)
+	{
+	  len = recv(descriptor, buf, sizeof(buf), 0);
+	}
+      else
+	{
+	  len = read(descriptor, buf, sizeof(buf));
+	}
+      if (len > 0)
 	{
 	  [d appendBytes: buf length: len];
 	}
@@ -1963,6 +1974,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	      h = [[GSFileHandle alloc] initWithFileDescriptor: desc
 						closeOnDealloc: YES];
+	      h->isSocket = YES;
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
 	      [h setAddr: &sin];
 	      [readInfo setObject: h
@@ -2006,13 +2018,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  else
 #endif
-	  if (isStandardFile)
+	  if (isSocket)
 	    {
-	      received = read(descriptor, buf, length);
+	      received = recv(descriptor, buf, length, 0);
 	    }
 	  else
 	    {
-	      received = recv(descriptor, buf, length, 0);
+	      received = read(descriptor, buf, length);
 	    }
 	  if (received == 0)
 	    { // Read up to end of file.
@@ -2091,15 +2103,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		}
 	      else
 #endif
-	      if (isStandardFile)
-		{
-		  written = write(descriptor, (char*)ptr+writePos,
-		    length-writePos);
-		}
-	      else
+	      if (isSocket)
 		{
 		  written = send(descriptor, (char*)ptr+writePos,
 		    length-writePos, 0);
+		}
+	      else
+		{
+		  written = write(descriptor, (char*)ptr+writePos,
+		    length-writePos);
 		}
 	      if (written <= 0)
 		{

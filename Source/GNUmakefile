@@ -103,9 +103,7 @@ endif
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-GNU_MFILES += GSFileHandle.m libgnustep-base-entry.m
-else
-GNU_MFILES += UnixFileHandle.m 
+GNU_MFILES += libgnustep-base-entry.m
 endif
 
 GNU_CFILES = \
@@ -120,12 +118,12 @@ libgnustep-base.def
 
 GNU_HEADERS = \
 DistributedObjects.h \
+GSFileHandle.h \
 GSLocale.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
 Unicode.h \
-UnixFileHandle.h \
 behavior.h \
 numbers.h \
 objc-gnu2next.h \
@@ -141,6 +139,7 @@ GSArray.m \
 GSAttributedString.m \
 GSCountedSet.m \
 GSDictionary.m \
+GSFileHandle.m \
 GSFormat.m \
 GSFTPURLHandle.m \
 GSHTTPURLHandle.m \

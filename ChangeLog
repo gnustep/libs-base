@@ -3,8 +3,9 @@
 	* Headers/gnustep/base/GSFileHandle.h: New version of UnixFileHandle
 	for combined unix/windoze use.
 	* Source/GSFileHandle.m: New combined unix/windows implementation.
-	* Source/NSFileHandle.m: Use GSFileHandle under windoze.
-	* Source/GNUMakefile: Build GSFileHandle under windoze.
+	* Source/NSFileHandle.m: Use GSFileHandle.
+	* Source/GNUMakefile: Build GSFileHandle.
+	* SSL/GSUnixSSLHandle.m: Update for combined GSFileHandle
 
 2002-06-29  Richard Frith-Macdonald <rfm@gnu.org>
 
