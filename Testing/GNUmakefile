@@ -44,6 +44,8 @@ server \
 client \
 string \
 values \
+gstcpport-server \
+gstcpport-client \
 nsarray \
 nsattributedstring \
 nsbundle \
@@ -86,6 +88,8 @@ create-regions
 
 # The tool Objective-C source files to be compiled
 testtool_OBJC_FILES = testtool.m
+gstcpport-client_OBJC_FILES = gstcpport-client.m
+gstcpport-server_OBJC_FILES = gstcpport-server.m
 benchmark_OBJC_FILES = benchmark.m
 containers_OBJC_FILES = containers.m
 test01_OBJC_FILES = test01.m

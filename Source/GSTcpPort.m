@@ -139,7 +139,8 @@ typedef enum {
   unsigned		wLength;	/* Ammount written so far.	*/
   NSMutableArray	*wMsgs;		/* Message in progress.		*/
   NSMutableData		*rData;		/* Buffer for incoming data	*/
-  gsu32			rLength;	/* Ammount read so far.		*/
+  gsu32			rLength;	/* Amount read so far.		*/
+  gsu32			rWant;		/* Amount desired.		*/
   NSMutableArray	*rItems;	/* Message in progress.		*/
   GSPortItemType	rType;		/* Type of data being read.	*/
   gsu32			rId;		/* Id of incoming message.	*/
@@ -147,14 +148,17 @@ typedef enum {
   GSHandleState		state;		/* State of the handle.		*/
   GSTcpPort		*recvPort;
   GSTcpPort		*sendPort;
-  int			addrNum;	/* Address number within host	*/
+  int			addrNum;	/* Address number within host.	*/
+  BOOL			caller;		/* Did we connect to other end?	*/
+  BOOL			valid;
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (int)d;
-- (BOOL) connectBeforeDate: (NSDate*)when;
+- (BOOL) connectToPort: (GSTcpPort*)aPort beforeDate: (NSDate*)when;
 - (int) descriptor;
 - (void) dispatch;
 - (void) invalidate;
+- (BOOL) isValid;
 - (void) receivedEvent: (void*)data
                   type: (RunLoopEventType)type
 		 extra: (void*)extra
@@ -222,8 +226,6 @@ decodePort(NSData *data)
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
     NSInternalInconsistencyException);
   length = GSSwapBigI32ToHost(pih->length);
-  NSCAssert(length == [data length] - sizeof(GSPortItemHeader),
-    NSInternalInconsistencyException);
   pi = (GSPortInfo*)&pih[1];
   pnum = GSSwapBigI16ToHost(pi->num);
   addr = [NSString stringWithCString: pi->addr];
@@ -272,7 +274,7 @@ encodePort(GSTcpPort *port)
   data = [NSMutableData dataWithLength: sizeof(GSPortItemHeader) + plen];
   pih = (GSPortItemHeader*)[data mutableBytes];
   pih->type = GSSwapHostI32ToBig(GSP_PORT);
-  pih->length = GSSwapHostI32ToBig(sizeof(plen));
+  pih->length = GSSwapHostI32ToBig(plen);
   pi = (GSPortInfo*)&pih[1];
   pi->num = GSSwapHostI16ToBig(pnum);
   [addr getCString: pi->addr];
@@ -342,6 +344,8 @@ static NSMapTable	*tcpHandleTable = 0;
       handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
       handle->desc = d;
       handle->wMsgs = [NSMutableArray new];
+      handle->myLock = [NSRecursiveLock new];
+      handle->valid = YES;
       NSMapInsert(tcpHandleTable, (void*)(gsaddr)d, (void*)handle);
     }
   else
@@ -352,24 +356,20 @@ static NSMapTable	*tcpHandleTable = 0;
   return AUTORELEASE(handle);
 }
 
-- (void) close
-{
-  (void)close(desc);
-}
-
-- (BOOL) connectBeforeDate: (NSDate*)when
+- (BOOL) connectToPort: (GSTcpPort*)aPort beforeDate: (NSDate*)when
 {
   NSArray		*addrs;
   struct sockaddr_in	sin;
   BOOL			gotAddr = NO;
   NSRunLoop		*l;
 
+  NSDebugLLog(@"GSTcpHandle", @"Connecting before %@", when);
   if (state != GS_H_UNCON)
     {
       NSLog(@"attempting connect on connected handle");
       return YES;	/* Already connected.	*/
     }
-  if (recvPort == nil || sendPort == nil)
+  if (recvPort == nil || aPort == nil)
     {
       NSLog(@"attempting connect with port(s) unset");
       return NO;	/* impossible.		*/
@@ -380,13 +380,13 @@ static NSMapTable	*tcpHandleTable = 0;
    * If the port has a 'forced' address, just use that. Otherwise we try
    * each of the addresses for the host in turn.
    */
-  if ([[self sendPort] address] != nil)
+  if ([aPort address] != nil)
     {
-      addrs = [NSArray arrayWithObject: [[self sendPort] address]];
+      addrs = [NSArray arrayWithObject: [aPort address]];
     }
   else
     {
-      addrs = [[[self sendPort] host] addresses];
+      addrs = [[aPort host] addresses];
     }
   while (gotAddr == NO)
     {
@@ -414,7 +414,7 @@ static NSMapTable	*tcpHandleTable = 0;
 	  gotAddr = YES;
 	}
     }
-  sin.sin_port = GSSwapHostI16ToBig([[self sendPort] portNumber]);
+  sin.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
 
   if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) < 0)
     {
@@ -425,7 +425,7 @@ static NSMapTable	*tcpHandleTable = 0;
 	      GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
 	  if (addrNum < [addrs count])
 	    {
-	      return [self connectBeforeDate: when];
+	      return [self connectToPort: aPort beforeDate: when];
 	    }
 	  else
 	    {
@@ -463,7 +463,7 @@ static NSMapTable	*tcpHandleTable = 0;
 	   * The connection attempt failed, but there are still IP addresses
 	   * that we haven't tried.
 	   */
-	  return [self connectBeforeDate: when];
+	  return [self connectToPort: aPort beforeDate: when];
 	}
       addrNum = 0;
       state = GS_H_UNCON;
@@ -472,8 +472,21 @@ static NSMapTable	*tcpHandleTable = 0;
   else
     {
       addrNum = 0;
+      caller = YES;
+      [self setSendPort: aPort];	
+      [aPort addHandle: self];
       return YES;
     }
+}
+
+- (void) dealloc
+{
+  [self gcFinalize];
+  DESTROY(rData);
+  DESTROY(rItems);
+  DESTROY(wMsgs);
+  DESTROY(myLock);
+  [super dealloc];
 }
 
 - (int) descriptor
@@ -497,16 +510,25 @@ static NSMapTable	*tcpHandleTable = 0;
   [[self recvPort] handlePortMessage: AUTORELEASE(pm)];
 }
 
+- (void) gcFinalize
+{
+  [self invalidate];
+}
+
 - (void) invalidate
 {
   [myLock lock];
-  if (desc >= 0)
+  if (valid == YES)
     { 
       int	old = desc;
 
+      NSDebugLLog(@"GSTcpHandle", @"invalidated");
+      valid = NO;
       [[NSNotificationCenter defaultCenter] removeObserver: self];
       [[self recvPort] removeHandle: self];
+      [self setRecvPort: nil];
       [[self sendPort] removeHandle: self];
+      [self setSendPort: nil];
       (void)close(desc);
       desc = -1;
       [tcpHandleLock lock];
@@ -516,14 +538,9 @@ static NSMapTable	*tcpHandleTable = 0;
   [myLock unlock];
 }
 
-- (void) gcFinalize
+- (BOOL) isValid
 {
-  [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [self close];
-  DESTROY(rData);
-  DESTROY(rItems);
-  DESTROY(wMsgs);
-  DESTROY(myLock);
+  return valid;
 }
 
 - (GSTcpPort*) recvPort
@@ -539,6 +556,8 @@ static NSMapTable	*tcpHandleTable = 0;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
+  NSDebugLLog(@"GSTcpHandle", @"Received %s event",
+    type == ET_RPORT ? "read" : "write");
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -548,17 +567,13 @@ static NSMapTable	*tcpHandleTable = 0;
       NSRunLoop	*l = [NSRunLoop currentRunLoop];
 
       [l removeEvent: data
-		type: ET_RDESC
-	     forMode: mode
-		 all: YES];
-      [l removeEvent: data
 		type: ET_WDESC
 	     forMode: mode
 		 all: YES];
       return;
     }
 
-  if (type == ET_RDESC)
+  if (type == ET_RPORT)
     {
       unsigned	want;
       void	*bytes;
@@ -566,16 +581,26 @@ static NSMapTable	*tcpHandleTable = 0;
 
       if (rData == nil)
 	{
-	  rData = [[NSData alloc] initWithCapacity: 8192];
-          [rData setLength: sizeof(GSPortItemHeader)];
+	  rData = [[NSMutableData alloc] initWithLength: 8192];
+	  rWant = sizeof(GSPortItemHeader);
 	  rLength = 0;
 	}
+      else if ([rData length] < rWant)
+	{
+	  [rData setLength: rWant];
+	}
       bytes = [rData mutableBytes];
-      want = [rData length];
+      want = rWant;
       res = read(desc, bytes + rLength, want - rLength);
       if (res <= 0)
 	{
-	  if (res == 0 || errno != EINTR)
+	  if (res == 0)
+	    {
+	      NSDebugLLog(@"GSTcpHandle", @"read attempt failed - eof");
+	      [self invalidate];
+	      return;
+	    }
+	  else if (errno != EINTR)
 	    {
 	      NSLog(@"read attempt failed - %s", strerror(errno));
 	      [self invalidate];
@@ -583,6 +608,7 @@ static NSMapTable	*tcpHandleTable = 0;
 	    }
 	  res = 0;	/* Interrupted - continue	*/
 	}
+      NSDebugLLog(@"GSTcpHandle", @"read %d bytes", res);
       rLength += res;
       if (rLength == want)
 	{
@@ -600,8 +626,38 @@ static NSMapTable	*tcpHandleTable = 0;
 		  h = (GSPortItemHeader*)bytes;
 		  rType = GSSwapBigI32ToHost(h->type);
 		  l = GSSwapBigI32ToHost(h->length);
-		  [rData setLength: l];
-		  rLength = 0;
+		  if (rType == GSP_PORT)
+		    {
+		      /*
+		       * For a port, we leave the item header in the data
+		       * so that our decode function can check length info.
+		       */
+		      rWant = rLength + l;
+		    }
+		  else if (rType == GSP_DATA && l == 0)
+		    {
+		      /*
+		       * For a zero-length data chunk, we create an empty
+		       * data object and add it to the current message.
+		       */
+		      rLength = 0;
+		      rWant = sizeof(GSPortItemHeader);
+		      [rItems addObject: [NSData data]];
+		      if (nItems == [rItems count])
+			{
+			  [self dispatch];
+			}
+		    }
+		  else
+		    {
+		      /*
+		       * If not a port or zero length data,
+		       * we discard the data read so far and fill the
+		       * data object with the data item from the msg.
+		       */
+		      rLength = 0;
+		      rWant = l;
+		    }
 		}
 		break;
 
@@ -630,6 +686,7 @@ static NSMapTable	*tcpHandleTable = 0;
 		      [rData setLength: rLength];
 		      [rItems addObject: rData];
 		      rLength = 0;
+		      rWant = sizeof(GSPortItemHeader);
 		      DESTROY(rData);
 		      if (nItems == 1)
 			{
@@ -638,8 +695,11 @@ static NSMapTable	*tcpHandleTable = 0;
 		    }
 		  else
 		    {
+		      /*
+		       * want to read another item
+		       */
 		      rLength = 0;
-		      [rData setLength: 0];
+		      rWant = sizeof(GSPortItemHeader);
 		    }
 		}
 		break;
@@ -649,6 +709,7 @@ static NSMapTable	*tcpHandleTable = 0;
 		  rType = GSP_NONE;
 		  [rItems addObject: rData];
 		  rLength = 0;
+		  rWant = sizeof(GSPortItemHeader);
 		  DESTROY(rData);
 		  if (nItems == [rItems count])
 		    {
@@ -663,8 +724,11 @@ static NSMapTable	*tcpHandleTable = 0;
 
 		  rType = GSP_NONE;
 		  p = decodePort(rData);
-		  [rData setLength: 0];
+		  /*
+		   * Set up to read another item header.
+		   */
 		  rLength = 0;
+		  rWant = sizeof(GSPortItemHeader);
 
 		  if (state == GS_H_ACCEPT)
 		    {
@@ -674,7 +738,6 @@ static NSMapTable	*tcpHandleTable = 0;
 		       */
 		      state = GS_H_CONNECTED;
 		      [self setSendPort: p];
-		      [[self recvPort] addHandle: self];
 		      [p addHandle: self];
 		    }
 		  else
@@ -714,6 +777,7 @@ static NSMapTable	*tcpHandleTable = 0;
 	      len = write(desc, [d bytes], [d length]);
 	      if (len == [d length])
 		{
+		  NSDebugLLog(@"GSTcpHandle", @"wrote %d bytes", len);
 		  state = GS_H_CONNECTED;
 		}
 	      else
@@ -747,9 +811,9 @@ static NSMapTable	*tcpHandleTable = 0;
 	  b = [wData bytes];
 	  l = [wData length];
 	  res = write(desc, b + wLength,  l - wLength);
-	  if (res <= 0)
+	  if (res < 0)
 	    {
-	      if (res == 0 || errno != EINTR)
+	      if (errno != EINTR)
 		{
 		  NSLog(@"write attempt failed - %s", strerror(errno));
 		  [self invalidate];
@@ -758,6 +822,7 @@ static NSMapTable	*tcpHandleTable = 0;
 	    }
 	  else
 	    {
+	      NSDebugLLog(@"GSTcpHandle", @"wrote %d bytes", res);
 	      wLength += res;
 	      if (wLength == l)
 		{
@@ -797,6 +862,7 @@ static NSMapTable	*tcpHandleTable = 0;
   BOOL		sent = NO;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
+  NSDebugLLog(@"GSTcpHandle", @"Sending message before %@", when);
   [wMsgs addObject: components];
 
   l = [NSRunLoop currentRunLoop];
@@ -821,15 +887,18 @@ static NSMapTable	*tcpHandleTable = 0;
       sent = YES;
     }
   RELEASE(self);
-  return NO;
+  NSDebugLLog(@"GSTcpHandle", @"Message send %d", sent);
+  return sent;
 }
 
 - (GSTcpPort*) sendPort
 {
   if (sendPort == nil)
     return nil;
+  else if (caller == YES)
+    return GS_GC_UNHIDE(sendPort);	// We called, so port is not retained.
   else
-    return GS_GC_UNHIDE(sendPort);
+    return sendPort;			// Retained port.
 }
 
 - (void) setRecvPort: (GSTcpPort*)port
@@ -844,8 +913,10 @@ static NSMapTable	*tcpHandleTable = 0;
 {
   if (port == nil)
     sendPort = nil;
-  else
+  else if (caller == YES)
     sendPort = GS_GC_HIDE(port);
+  else
+    ASSIGN(sendPort, port);
 }
 
 - (void) setState: (GSHandleState)s
@@ -936,7 +1007,6 @@ static NSMapTable	*tcpPortMap = 0;
   GSTcpPort		*port = nil;
   NSHost		*thisHost = [NSHost currentHost];
   NSMapTable		*thePorts;
-  struct sockaddr_in	sockaddr;
 
   if (aHost == nil)
     {
@@ -973,17 +1043,20 @@ static NSMapTable	*tcpPortMap = 0;
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
       port->myLock = [NSRecursiveLock new];
+      port->_is_valid = YES;
 
       if ([thisHost isEqual: aHost] == YES)
 	{
-	  int	status = 1;
+	  int	reuse = 1;	/* Should we re-use ports?	*/
 	  int	desc;
 	  BOOL	addrOk = YES;
+	  struct sockaddr_in	sockaddr;
 
 	  /*
 	   * Creating a new port on the local host - so we must create a
 	   * listener socket to accept incoming connections.
 	   */
+	  memset(&sockaddr, '\0', sizeof(sockaddr));
 	  if (addr == nil)
 	    {
 	      sockaddr.sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
@@ -1011,8 +1084,8 @@ static NSMapTable	*tcpPortMap = 0;
 	      NSLog(@"unable to create socket - %s", strerror(errno));
 	      DESTROY(port);
 	    }
-	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char *)&status,
-		sizeof(status)) < 0)
+	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse,
+		sizeof(reuse)) < 0)
 	    {
 	      (void) close(desc);
               NSLog(@"unable to set reuse on socket - %s", strerror(errno));
@@ -1129,6 +1202,16 @@ static NSMapTable	*tcpPortMap = 0;
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  NSMutableString	*desc;
+
+  desc = [NSMutableString stringWithFormat: @"Host - %@\n", host];
+  [desc appendFormat: @"Addr - %@\n", address];
+  [desc appendFormat: @"Port - %d\n", portNum];
+  return desc;
+}
+
 - (void) gcFinalize
 {
   [self invalidate];
@@ -1208,7 +1291,6 @@ static NSMapTable	*tcpPortMap = 0;
 	}
       else
 	{
-	  [handle setSendPort: self];
 	  [handle setRecvPort: recvPort];
 	  [recvPort addHandle: handle];
 	  NSMapInsert(handles, (void*)(gsaddr)sock, (void*)handle);
@@ -1220,7 +1302,7 @@ static NSMapTable	*tcpPortMap = 0;
    */
   if (handle != nil)
     {
-      if ([handle connectBeforeDate: when] == NO)
+      if ([handle connectToPort: self beforeDate: when] == NO)
 	{
 	  handle = nil;
 	}
@@ -1287,7 +1369,7 @@ static NSMapTable	*tcpPortMap = 0;
 
       handleArray = NSAllMapTableValues(handles);
       i = [handleArray count];
-      while (i > 0)
+      while (i-- > 0)
 	{
 	  GSTcpHandle	*handle = [handleArray objectAtIndex: i];
 
@@ -1330,14 +1412,32 @@ static NSMapTable	*tcpPortMap = 0;
 	       forMode: (NSString*)mode
 {
   int		desc = (int)(gsaddr)extra;
+  GSTcpHandle	*handle;
+
 
   if (desc == listener)
     {
+      struct sockaddr_in	clientname;
+      int			size = sizeof(clientname);
+
+      desc = accept(listener, (struct sockaddr*)&clientname, &size);
+      if (desc < 0)
+        {
+          [NSException raise: NSInternalInconsistencyException
+		      format: @"GSTcpPort accept(): %s", strerror(errno)];
+        }
+      /*
+       * Create a handle for the socket and set it up so we are its
+       * receiving port, and it's waiting to get the port name from
+       * the other end.
+       */
+      handle = [GSTcpHandle handleWithDescriptor: desc];
+      [handle setState: GS_H_ACCEPT];
+      [handle setRecvPort: self];
+      [self addHandle: handle];
     }
   else
     {
-      GSTcpHandle	*handle;
-
       handle = [GSTcpHandle handleWithDescriptor: desc];
       if (handle == nil)
 	{
@@ -1412,7 +1512,7 @@ static NSMapTable	*tcpPortMap = 0;
       unsigned		l;
       GSPortItemHeader	*pih;
       GSPortMsgHeader	*pmh;
-      unsigned		c;
+      unsigned		c = [components count];
       unsigned		i;
 
       /*
@@ -1428,13 +1528,23 @@ static NSMapTable	*tcpPortMap = 0;
 	} 
 
       d = [components objectAtIndex: 0];
-      l = [d length];
+      /*
+       * The Item header contains the item type and the length of the
+       * data in the item (excluding the item header itsself).
+       */
+      l = [d length] - sizeof(GSPortItemHeader);
       pih = (GSPortItemHeader*)[d mutableBytes];
       pih->type = GSSwapHostI32ToBig(GSP_HEAD);
       pih->length = GSSwapHostI32ToBig(l);
+
+      /*
+       * The message header contains the message Id and the original count
+       * of components in the message (excluding any extra component added
+       * simply to hold the header).
+       */
       pmh = (GSPortMsgHeader*)&pih[1];
       pmh->mId = GSSwapHostI32ToBig(msgId);
-      pmh->nItems = GSSwapHostI32ToBig([components count]);
+      pmh->nItems = GSSwapHostI32ToBig(c);
 
       /*
        * Now insert item header information as required.

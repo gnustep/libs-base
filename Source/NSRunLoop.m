@@ -534,8 +534,8 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
       /* Create new object to hold information. */
       info = [[GSRunLoopWatcher alloc] initWithType: type
-					 receiver: watcher
-					     data: data];
+					   receiver: watcher
+					       data: data];
       /* Add the object to the array for the mode. */
       [self _addWatcher: info forMode: mode];
       RELEASE(info);		/* Now held in array.	*/
