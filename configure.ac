@@ -1042,123 +1042,12 @@ if test $ffi_ok = no; then
 fi
 AC_SUBST(WITH_FFI)
 
-#--------------------------------------------------------------------
-# Check recent libxml for Properytlists, GSXML, GSDoc etc.
-#--------------------------------------------------------------------
-
-AC_ARG_ENABLE(xml,
-  [  --disable-xml			Compile even if XML-dependencies are not met],,
-  enable_xml=yes)
-
-if test $enable_xml = yes; then
-  # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
-  # of the success of the macro.
-  saved_LIBS="$LIBS"
-  saved_CFLAGS="$CFLAGS"
-
-  AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
-  if test $enable_libxml = yes; then
-    CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
-    INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
-    LIBS="$XML_LIBS $LIBS"
-    HAVE_LIBXML=1
-    AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
-    AC_CHECK_HEADERS(libxml/SAX2.h)
-    #--------------------------------------------------------------------
-    # Check for (optional) libxslt
-    #--------------------------------------------------------------------
-    AC_ARG_ENABLE(xslt,
-      [  --disable-xslt		Compile even if XSLT-dependency is not met],,
-      enable_xslt=yes)
-
-    if test $enable_xslt = yes; then
-      AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
-      if test "$xslt_ok" = "yes"; then
-	AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
-	if test "$xslthdr_ok" = "no"; then
-	  xslt_ok=no
-	fi
-      fi
-      if test "$xslt_ok" = "yes"; then
-	HAVE_LIBXSLT=1
-	AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
-	LIBS="-lxslt $LIBS"
-      else
-	echo
-	echo "You most likely do not want to build base without XSLT support."
-	echo "If you really want to build -base without XSLT support, add --disable-xslt"
-	echo "to the configure arguments."
-	AC_MSG_WARN([Missing support for XSLT functionality.])
-      fi
-    else
-      HAVE_LIBXSLT=0
-      AC_MSG_WARN([Disabled support for XSLT funtionality.])
-    fi
-    AC_SUBST(HAVE_LIBXSLT)
-
-  else
-    HAVE_LIBXML=0
-    # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
-    LIBS="$saved_LIBS"
-    CFLAGS="$saved_CFLAGS"
-    echo
-    echo "You most likely do not want to build base without XML support."
-    echo "For instance, MacOS-X compatible property lists require XML."
-    echo "If you really want to build -base without XML support, add --disable-xml"
-    echo "to the configure arguments."
-    AC_MSG_ERROR([Missing support for XML functionality.])
-  fi
-else
-  AC_MSG_WARN([Disabled support for XML funtionality.])
-  HAVE_LIBXML=0
-fi
-AC_SUBST(HAVE_LIBXML)
-
-#--------------------------------------------------------------------
-# Check GMP for NSDecimal
-#--------------------------------------------------------------------
-AC_ARG_WITH(gmp-include,
-  [  --with-gmp-include=PATH  include path for gmp headers],
-  gmp_incdir="$withval", gmp_incdir="no")
-
-AC_ARG_WITH(gmp-library,
-  [  --with-gmp-library=PATH  library path for gmp libraries],
-  gmp_libdir="$withval", gmp_libdir="no")
-
-libs_temp=$LIBS
-
-if test "$gmp_incdir" != "no"; then
-  CPPFLAGS="$CPPFLAGS -I$gmp_incdir"
-  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
-fi
-if test "$gmp_libdir" != "no"; then
-  LDFLAGS="$LDFLAGS -L$gmp_libdir"
-  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
-fi
-
-USE_GMP=0
-AC_CHECK_HEADERS(gmp.h)
-if test $ac_cv_header_gmp_h = yes; then
-  AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
-  if test "$gmp_ok" = no; then
-    AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
-  fi
-  if test "$gmp_ok" = yes; then
-    LIBS="-lgmp $LIBS"
-    USE_GMP=1
-  fi
-fi
-
-AC_SUBST(USE_GMP)
-
-#--------------------------------------------------------------------
-# Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
-#--------------------------------------------------------------------
-AM_LANGINFO_CODESET
 
 #--------------------------------------------------------------------
 # Check for iconv support (for Unicode conversion).
 #--------------------------------------------------------------------
+# Do this before checking for xml2,  as xml2 may require iconv.
+#
 # We need to find an iconv library that matches the installed iconv.h header
 # (if any). It is important to check header/library compatibility. It's
 # fairly common to have iconv support both in libc and from libiconv. In that
@@ -1223,6 +1112,120 @@ if test $found_iconv = no ; then
     LIBS="$old_LIBS"
   )
 fi
+
+#--------------------------------------------------------------------
+# Check recent libxml for Properytlists, GSXML, GSDoc etc.
+#--------------------------------------------------------------------
+
+AC_ARG_ENABLE(xml,
+  [  --disable-xml			Compile even if XML-dependencies are not met],,
+  enable_xml=yes)
+
+if test $enable_xml = yes; then
+  # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
+  # of the success of the macro.
+  saved_LIBS="$LIBS"
+  saved_CFLAGS="$CFLAGS"
+
+  AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
+  if test $enable_libxml = yes; then
+    CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
+    LIBS="$XML_LIBS $LIBS"
+    HAVE_LIBXML=1
+    AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
+    AC_CHECK_HEADERS(libxml/SAX2.h)
+    #--------------------------------------------------------------------
+    # Check for (optional) libxslt
+    #--------------------------------------------------------------------
+    AC_ARG_ENABLE(xslt,
+      [  --disable-xslt		Compile even if XSLT-dependency is not met],,
+      enable_xslt=yes)
+
+    if test $enable_xslt = yes; then
+      AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
+      if test "$xslt_ok" = "yes"; then
+	AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
+	if test "$xslthdr_ok" = "no"; then
+	  xslt_ok=no
+	fi
+      fi
+      if test "$xslt_ok" = "yes"; then
+	HAVE_LIBXSLT=1
+	AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
+	LIBS="-lxslt $LIBS"
+      else
+	echo
+	echo "You most likely do not want to build base without XSLT support."
+	echo "If you really want to build -base without XSLT support,"
+	echo "add --disable-xslt to the configure arguments."
+	AC_MSG_WARN([Missing support for XSLT functionality.])
+      fi
+    else
+      HAVE_LIBXSLT=0
+      AC_MSG_WARN([Disabled support for XSLT funtionality.])
+    fi
+    AC_SUBST(HAVE_LIBXSLT)
+  else
+    HAVE_LIBXML=0
+    # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
+    LIBS="$saved_LIBS"
+    CFLAGS="$saved_CFLAGS"
+    echo
+    echo "You most likely do not want to build base without XML support."
+    echo "For instance, MacOS-X compatible property lists require XML."
+    echo "If you really want to build -base without XML support,"
+    echo "add --disable-xml to the configure arguments."
+    AC_MSG_ERROR([Missing support for XML functionality.])
+  fi
+else
+  AC_MSG_WARN([Disabled support for XML funtionality.])
+  HAVE_LIBXML=0
+fi
+AC_SUBST(HAVE_LIBXML)
+
+#--------------------------------------------------------------------
+# Check GMP for NSDecimal
+#--------------------------------------------------------------------
+AC_ARG_WITH(gmp-include,
+  [  --with-gmp-include=PATH  include path for gmp headers],
+  gmp_incdir="$withval", gmp_incdir="no")
+
+AC_ARG_WITH(gmp-library,
+  [  --with-gmp-library=PATH  library path for gmp libraries],
+  gmp_libdir="$withval", gmp_libdir="no")
+
+libs_temp=$LIBS
+
+if test "$gmp_incdir" != "no"; then
+  CPPFLAGS="$CPPFLAGS -I$gmp_incdir"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
+fi
+if test "$gmp_libdir" != "no"; then
+  LDFLAGS="$LDFLAGS -L$gmp_libdir"
+  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
+fi
+
+USE_GMP=0
+AC_CHECK_HEADERS(gmp.h)
+if test $ac_cv_header_gmp_h = yes; then
+  AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
+  if test "$gmp_ok" = no; then
+    AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
+  fi
+  if test "$gmp_ok" = yes; then
+    LIBS="-lgmp $LIBS"
+    USE_GMP=1
+  fi
+fi
+
+AC_SUBST(USE_GMP)
+
+#--------------------------------------------------------------------
+# Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
+#--------------------------------------------------------------------
+AM_LANGINFO_CODESET
+
 
 AC_SUBST(INCLUDE_FLAGS)
 AC_SUBST(LDIR_FLAGS)
