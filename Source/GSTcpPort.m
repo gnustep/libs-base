@@ -1018,13 +1018,18 @@ static NSMapTable	*tcpPortMap = 0;
   NSHost		*thisHost = [NSHost currentHost];
   NSMapTable		*thePorts;
 
+  if (thisHost == nil)
+    {
+      NSLog(@"attempt to create port on host without networking set up!");
+      return nil;
+    }
   if (aHost == nil)
     {
       aHost = thisHost;
     }
   if (addr != nil && [[aHost addresses] containsObject: addr] == NO)
     {
-      NSLog(@"attempt to use address '%@' on whost without that address", addr);
+      NSLog(@"attempt to use address '%@' on host without that address", addr);
       return nil;
     }
   if (number == 0 && [thisHost isEqual: aHost] == NO)

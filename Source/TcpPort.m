@@ -493,6 +493,12 @@ static NSMapTable* port_number_2_port;
        Distributed Objects connection to another machine, they get our
        unique host address that can identify us across the network. */
     hostname = [[NSHost currentHost] name];
+    if (hostname == nil)
+      {
+	[p release];
+	[NSException raise: NSInternalInconsistencyException
+	  format: @"[TcpInPort +newForReceivingFromPortNumber:] no hostname"];
+      }
     hp = gethostbyname ([hostname cString]);
     if (!hp)
       hp = gethostbyname ("localhost");
@@ -1233,6 +1239,11 @@ static NSMapTable *out_port_bag = NULL;
   if (!hostname || ![hostname length])
     {
       hostname = [[NSHost currentHost] name];
+      if (hostname == nil)
+	{
+	  NSLog(@"No local host set upt!");
+	  return nil;
+	}
     }
   host_cstring = [hostname cString];
   hp = gethostbyname ((char*)host_cstring);

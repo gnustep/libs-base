@@ -69,13 +69,16 @@ static NSMutableDictionary	*_hostCache = nil;
     {
       return nil;
     }
-  if (name == nil)
+  if (name == nil || [name isEqual: @""] == YES)
     {
+      NSLog(@"Host init failed - empty name/address supplied");
       RELEASE(self);
       return nil;
     }
   if (entry == (struct hostent*)NULL)
     {
+      NSLog(@"Host '%@' init failed - perhaps the name/address is wrong or "
+	@"networking is not set up on your machine", name);
       RELEASE(self);
       return nil;
     }
@@ -168,9 +171,17 @@ static NSString	*myHost = nil;
       struct hostent	*h;
 
       h = gethostbyname((char*)[name cString]);
-
-      host = [[self alloc] _initWithHostEntry: h key: name];
-      AUTORELEASE(host);
+      if (h == 0)
+	{
+	  NSLog(@"Host '%@' not found using 'gethostbyname()' - perhaps "
+	    @"the hostname is wrong or networking is not set up on your "
+	    @"machine", name);
+	}
+      else
+	{
+	  host = [[self alloc] _initWithHostEntry: h key: name];
+	  AUTORELEASE(host);
+	}
     }
   [_hostCacheLock unlock];
   return host;
@@ -213,8 +224,17 @@ static NSString	*myHost = nil;
       if (addrOk == YES)
 	{
 	  h = gethostbyaddr((char*)&hostaddr, sizeof(hostaddr), AF_INET);
-	  host = [[self alloc] _initWithHostEntry: h key: address];
-	  AUTORELEASE(host);
+	  if (h == 0)
+	    {
+	      NSLog(@"Host '%@' not found using 'gethostbyaddr()' - perhaps "
+		@"the address is wrong or networking is not set up on your "
+		@"machine", address);
+	    }
+	  else
+	    {
+	      host = [[self alloc] _initWithHostEntry: h key: address];
+	      AUTORELEASE(host);
+	    }
 	}
     }
   [_hostCacheLock unlock];
