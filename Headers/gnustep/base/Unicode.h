@@ -31,6 +31,11 @@
 
 #include <Foundation/NSString.h>	/* For string encodings */
 
+/*
+ * Private API used internally by NSString etc.
+ */
+#ifndef	NO_GNUSTEP
+
 GS_EXPORT NSStringEncoding *GetAvailableEncodings();
 GS_EXPORT NSStringEncoding GetDefEncoding();
 GS_EXPORT NSString* GetEncodingName(NSStringEncoding encoding);
@@ -51,5 +56,21 @@ GS_EXPORT unichar uni_toupper(unichar ch);
 GS_EXPORT unsigned char uni_cop(unichar u);
 GS_EXPORT BOOL uni_isnonsp(unichar u);
 GS_EXPORT unichar *uni_is_decomp(unichar u);
+
+/*
+ * Options when converting strings.
+ */
+#define	GSUniTerminate	0x01
+#define	GSUniTemporary	0x02
+#define	GSUniStrict	0x04
+
+GS_EXPORT BOOL GSFromUnicode(unsigned char **dst, unsigned int *size,
+  const unichar *src, unsigned int slen, NSStringEncoding enc, NSZone *zone,
+  unsigned int options);
+GS_EXPORT BOOL GSToUnicode(unichar **dst, unsigned int *size,
+  const unsigned char *src, unsigned int slen, NSStringEncoding enc,
+  NSZone *zone, unsigned int options);
+
+#endif
 
 #endif /* __Unicode_h_OBJECTS_INCLUDE */
