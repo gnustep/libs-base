@@ -44,9 +44,15 @@
    first argument.  If this is the case then all the visible arguments
    are displaced in the arg frame by the size of a pointer.
 
+   On GNU/Linux intel, this scheme does not apply where the structures
+   are 8 bytes or smaller!  I define SMALL_STRUCT_ON_STACK to the
+   threshold above which the pointer needs to be placed on the stack.
+
    I don't know which machines work this way, so you need to alter the
    define by hand as suits you.  */
+
 #define	STRUCT_ADDR_ON_STACK	1
+#define	SMALL_STRUCT_ON_STACK	8
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || HAVE_STRING_H
@@ -200,7 +206,10 @@ mframe_dissect_call (arglist_t argframe, const char *type,
      structures before the first real argument, we need to use an offset
      into the arg frame. */
   if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
-    off = sizeof(void*);
+    int rsize = objc_sizeof_type(type);
+    if (rsize > SMALL_STRUCT_ON_STACK) {
+      off = sizeof(void*);
+    }
   }
 #endif
 
@@ -472,13 +481,14 @@ mframe_do_call (const char *encoded_types,
   NSCParameterAssert (type);
   NSCParameterAssert (sel_types_match(encoded_types, type));
 
-
 #ifdef	STRUCT_ADDR_ON_STACK
   /* On machines which pass a pointer to a location for returning
      structures before the first real argument, we need to use an offset
      into the arg frame. */
   if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
-    off = sizeof(void*);
+    if (objc_sizeof_type(type) > SMALL_STRUCT_ON_STACK) {
+      off = sizeof(void*);
+    }
   }
 #endif
 
@@ -497,10 +507,11 @@ mframe_do_call (const char *encoded_types,
   else
     argframe->arg_ptr = 0;
 
-  /* If we are passing a pointer to return a structure in, we must allocate
-     the memory for it and put it at the start of the argframe. */
-  if (off)
-    *(void**)argframe->arg_ptr = alloca (objc_sizeof_type(type));
+  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
+    /* If we are passing a pointer to return a structure in, we must allocate
+       the memory for it and put it at the start of the argframe. */
+      *(void**)argframe->arg_ptr = alloca(objc_sizeof_type(type));
+  }
 
   /* Put OBJECT and SELECTOR into the ARGFRAME. */
 
@@ -690,11 +701,13 @@ mframe_do_call (const char *encoded_types,
 	 struct's that are smaller than sizeof(void*)?  Are they also
 	 returned by reference like this? */
       /* If 'off' is non-zero, the pointer to the stored structure is at
-         the start of the arg frame rather than in retframe. */
+	 the start of the arg frame rather than in retframe. */
       if (off)
         (*encoder) (-1, *(void**)argframe->arg_ptr, tmptype, flags);
       else
-        (*encoder) (-1, *(void**)retframe, tmptype, flags);
+	{
+          (*encoder) (-1, *(void**)retframe, tmptype, flags);
+	}
       break;
 
     case _C_FLT:
@@ -903,7 +916,10 @@ mframe_build_return (arglist_t argframe,
      structures before the first real argument, we need to use an offset
      into the arg frame. */
   if (*rettype==_C_STRUCT_B || *rettype==_C_UNION_B || *rettype==_C_ARY_B) {
-    off = sizeof(void*);
+    int rsize = objc_sizeof_type(type);
+    if (rsize > SMALL_STRUCT_ON_STACK) {
+      off = sizeof(void*);
+    }
   }
 #endif
 
@@ -964,7 +980,7 @@ mframe_build_return (arglist_t argframe,
 		 like this? */
 	      if (off)
 		/* If we have been given a pointer to a location to return
-                   the structure in, us it. */
+                   the structure in, use it. */
 	        *(void**)retframe = *(void**)argframe->arg_ptr;
 	      else
 	          /* Allocate some memory to hold the struct or array. */

@@ -31,6 +31,7 @@
 #include <gnustep/base/NSString.h>
 #include <gnustep/base/StdioStream.h>
 #include <gnustep/base/TextCStream.h>
+#include <gnustep/base/NSException.h>
 
 #define DEFAULT_FORMAT_VERSION 0
 
@@ -83,10 +84,13 @@ static BOOL debug_binary_coder;
        at:d
        withName:name];
     }
-  assert(type);
-  assert(*type != '@');
-  assert(*type != '^');
-  assert(*type != ':');
+  
+  if (!type)
+    [NSException raise:NSInvalidArgumentException format:@"type is NULL"];
+
+  NSAssert(*type != '@', @"tried to encode an \"ObjC\" type");
+  NSAssert(*type != '^', @"tried to encode an \"ObjC\" type");
+  NSAssert(*type != ':', @"tried to encode an \"ObjC\" type");
 
   switch (*type)
     {
@@ -171,10 +175,12 @@ static BOOL debug_binary_coder;
    at: (void*)d 
    withName: (NSString* *)namePtr
 {
-  assert(type);
-  assert(*type != '@');
-  assert(*type != '^');
-  assert(*type != ':');
+  if (!type)
+    [NSException raise:NSInvalidArgumentException format:@"type is NULL"];
+
+  NSAssert(*type != '@', @"tried to decode an \"ObjC\" type");
+  NSAssert(*type != '^', @"tried to decode an \"ObjC\" type");
+  NSAssert(*type != ':', @"tried to decode an \"ObjC\" type");
 
   switch (*type)
     {

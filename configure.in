@@ -211,7 +211,7 @@ AC_CHECK_HEADERS(values.h)
 #--------------------------------------------------------------------
 # Header files and functions for files and filesystems
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h)
+AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h)
 AC_CHECK_FUNCS(statvfs)
 
 #--------------------------------------------------------------------

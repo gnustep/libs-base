@@ -67,7 +67,8 @@ my_object_is_class(id object)
     {
       /* This code has not yet been ported to machines for which
 	 a pointer is not the same size as an int. */
-      assert(sizeof(void*) == sizeof(unsigned)); 
+      NSAssert(sizeof(void*) == sizeof(unsigned),
+	@"Pointer and int are different sizes"); 
 
       /* Initialize some defaults. */
       default_stream_class = [MemoryStream class];
@@ -275,7 +276,7 @@ my_object_is_class(id object)
 			NSIntMapValueCallBacks, 0);
 
   xref = NSCountMapTable (const_ptr_2_xref) + 1;
-  assert (! NSMapGet (const_ptr_2_xref, (void*)xref));
+  NSAssert (! NSMapGet (const_ptr_2_xref, (void*)xref), @"xref already in Map");
   NSMapInsert (const_ptr_2_xref, ptr, (void*)xref);
   return xref;
 }
@@ -299,7 +300,7 @@ my_object_is_class(id object)
       NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 			NSIntMapValueCallBacks, 0);
   fref = ++fref_counter;
-  assert ( ! NSMapGet (object_2_fref, anObject));
+  NSAssert ( ! NSMapGet (object_2_fref, anObject), @"anObject already in Map");
   NSMapInsert (object_2_fref, anObject, (void*)fref);
   return fref;
 }
@@ -434,8 +435,8 @@ my_object_is_class(id object)
 	  /* It hasn't been encoded before; encode it. */
 	  int class_version = class_get_version (aClass);
 
-	  assert (class_name);
-	  assert (*class_name);
+	  NSAssert (class_name, @"Class doesn't have a name");
+	  NSAssert (*class_name, @"Class name is empty");
 
 	  [self encodeTag: CODER_CLASS];
 	  [self encodeValueOfCType: @encode(char*)
@@ -560,7 +561,7 @@ my_object_is_class(id object)
      encode here any forward-referenced objects that haven't been
      encoded yet.  No---the current behavior implements NeXT's
      -encodeConditionalObject: */
-  assert (interconnect_stack_height);
+  NSParameterAssert (interconnect_stack_height);
   interconnect_stack_height--;
 }
 

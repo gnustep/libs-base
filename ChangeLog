@@ -1,6 +1,45 @@
+Thu Apr 16 13:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* checks/client.m: enable testing of DO strucuture return.
+
+	* checks/server.m: fix typo in keyword
+
+	* src/KeyedCollection.m: ([-decodeContentsWithCoder:]) fixed a
+	memory leak.
+
+	* src/mframe.m: Fixed a few bugs in returning structures - now works
+	properly on GNU/Linux intel.  Can anyone figure out how to handle
+	all this stuff using autoconf?
+
+Mon Apr 20 09:23:58 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/NSLock.m: Eliminate busy waiting from NSConditionLock
+	* src/NSLock.h: add instance variable and rename "value" to
+	support changes to NSConditionLock
+	* src/NSLock.m: Raise appropriate exceptions
+	* src/NSLock.m: Prevent NSLock and NSConditionLock from being
+	locked recursively
+	* src/NSThread.m: -sleepUntilDate: implemented
+	* src/NSThread.m: remove calls to objc_get_thread_data except
+	in currentThread message
+	* src/BinaryCStream.m: Replace assert's with NS*Assert
+	* src/CStream.m.orig: Likewise
+	* src/Decoder.m: Likewise
+	* src/Encoder.m: Likewise
+	* src/MemoryStream.m: Likewise
+	* src/RawCStream.m: Likewise
+	* src/TextCStream.m: Likewise
+	* src/ostream.m.orig: Likewise
+	(patches from Quetzalcoatl Bradley <qbradley@csc.uvic.ca>).
+
+	* src/NSFileManager.h: Include pwd.h if we have it
+	* configure.in: Check for pwd.h
+	* configure: regenerate.
+	* src/include/config.h.in: Likewise.
+
 Wed Apr 15 09:54:25 1998  Adam Fedor  <fedor@doc.com>
 
-	* src/NSFIleManager.m ([NSFileManager
+	* src/NSFileManager.m ([NSFileManager
 	-fileAttributesAtPath:traverseLink:]): Add NSFileOwnerAccountName.
 	* src/externs.m: Add NSFileOwnerAccountName definition.
 	(patch provided by Marcus Mueller <znek@object-factory.com>)

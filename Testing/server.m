@@ -160,7 +160,7 @@
   return self;
 }
 #ifdef	_F_BYREF
-- sendByref: (ref id)o
+- sendByref: (byref id)o
 {
   printf(">> byref class is %s\n", object_get_class_name (o));
   return self;

@@ -28,7 +28,6 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdarg.h>
-#include <assert.h>
 
 /* Deal with memchr: */
 #if STDC_HEADERS || HAVE_STRING_H
@@ -314,7 +313,7 @@ void unchar_func(void *s, int c)
      As per above kludge, this would happen if we happen to have more than
      128 bytes left in the buffer and we try to write a string longer than
      the num bytes left in the buffer. */
-  assert(prefix + position <= [data capacity]);
+  NSAssert(prefix + position <= [data capacity], @"buffer overrun");
   if (position > eof_position)
     eof_position = position;
   [data setLength:eof_position + prefix];

@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
   [p sendStruct:f];
   [p sendSmallStruct:small];
   [p sendStructArray:ma];
-#if 0
+#if 1
   /* returning structures isn't working yet. */
   f2 = [p returnStruct];
   printf(">>returned foo: i=%d s=%s l=%lu\n",

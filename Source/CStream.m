@@ -28,7 +28,6 @@
 #include <gnustep/base/StdioStream.h>
 #include <gnustep/base/CoderPrivate.h> /* for SIGNATURE_FORMAT_STRING */
 #include <Foundation/NSException.h>
-#include <assert.h>
 
 id CStreamSignatureMalformedException = @"CStreamSignatureMalformedException";
 id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";

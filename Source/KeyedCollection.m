@@ -215,6 +215,11 @@
 	      withName: NULL];
     }
   [self initWithObjects: objs forKeys: keys count: count];
+  for (i = 0; i < count; i++)
+    {
+      [keys[i] release];
+      [objs[i] release];
+    }
   OBJC_FREE(objs);
   OBJC_FREE(keys);
 }

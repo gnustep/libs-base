@@ -69,8 +69,9 @@
 @interface NSConditionLock : NSObject <NSLocking>
 {
 @private
+   objc_condition_t condition;
    objc_mutex_t mutex;
-   int condition;
+   int condition_value;
 }
 
 // Initialize lock with condition
