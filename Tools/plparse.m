@@ -28,6 +28,44 @@
 #include	<Foundation/NSDebug.h>
 #include	<Foundation/NSAutoreleasePool.h>
 
+/*
+ * If there is any non-ascii characrer in the string,
+ * and the file data did not begin with a unicode BOM to identify
+ * it as unicode data, we return the location of the first
+ * bad character, otherwise return -1;
+ */
+static int
+firstBadCharacter(NSString *file, NSString *content)
+{
+  static NSCharacterSet	*cs = nil;
+  NSData		*d;
+  NSRange		r;
+
+  if (cs == nil)
+    {
+      cs = [NSCharacterSet characterSetWithRange: NSMakeRange(1, 127)];
+      cs = RETAIN([cs invertedSet]);
+    }
+
+  r = [content rangeOfCharacterFromSet: cs];
+  if (r.length == 0)
+    {
+      return -1;
+    }
+  d = [NSData dataWithContentsOfFile: file];
+  if ([d length] > 2)
+    {
+      const unsigned char	*ptr = (const unsigned char*)[d bytes];
+
+      if ((ptr[0] == 0xff && ptr[1] == 0xfe)			// UCS2
+	|| (ptr[0] == 0xfe && ptr[1] == 0xff)			// UCS2
+	|| (ptr[0] == 0xef && ptr[1] == 0xbb && ptr[2] == 0xbf)) // UTF8
+	{
+	  return -1;
+	}
+    }
+  return r.location;
+}
 
 /** <p>
     This tool checks that a file contains a valid text property-list.
@@ -61,12 +99,6 @@ main(int argc, char** argv, char **env)
     }
   else
     {
-      NSCharacterSet		*cs;
-
-
-      cs = [NSCharacterSet characterSetWithRange: NSMakeRange(1, 127)];
-      cs = [cs invertedSet];
-
       for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
@@ -75,14 +107,14 @@ main(int argc, char** argv, char **env)
 	    {
 	      NSString	*myString;
 	      id	result;
-	      NSRange	r;
+	      int	bad;
 
 	      myString = [NSString stringWithContentsOfFile: file];
 	      if (myString == nil)
 		GSPrintf(stderr, @"Parsing '%@' - not valid string\n", file);
-	      else if ((r = [myString rangeOfCharacterFromSet: cs]).length > 0)
+	      else if ((bad = firstBadCharacter(file, myString)) >= 0)
 		GSPrintf(stderr, @"Parsing '%@' - bad char '\\U%04x' at %d\n",
-		  file, [myString characterAtIndex: r.location], r.location);
+		  file, [myString characterAtIndex: bad], bad);
 	      else if ((result = [myString propertyList]) == nil)
 		GSPrintf(stderr, @"Parsing '%@' - nil property list\n", file);
 	      else if ([result isKindOfClass: [NSDictionary class]] == YES)
