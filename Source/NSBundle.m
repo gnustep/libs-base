@@ -128,7 +128,7 @@ bundle_resource_path(NSString *path, NSString *lang, NSString *name,
 }
 
 void
-_bundle_load_callback(Class *theClass, Category *theCategory)
+_bundle_load_callback(Class theClass, Category *theCategory)
 {
     /* Don't store categories */
     assert(_loadingBundlePos >= 0);
