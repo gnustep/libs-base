@@ -41,16 +41,6 @@
   [self invalidate];
 }
 
-- (void) invalidate
-{
-  assert (is_valid);
-
-  is_valid = NO;
-  [NotificationDispatcher
-    postNotificationName: NSPortDidBecomeInvalidNotification
-    object: self];
-}
-
 + (Class) outPacketClass
 {
   [self subclassResponsibility: _cmd];

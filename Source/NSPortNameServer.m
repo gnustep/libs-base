@@ -31,6 +31,8 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSSet.h>
 #include <Foundation/NSPortNameServer.h>
 #include <gnustep/base/TcpPort.h>
 
@@ -105,6 +107,10 @@ static NSPortNameServer	*defaultServer = nil;
 	}
       s = (NSPortNameServer*)NSAllocateObject(self, 0, NSDefaultMallocZone());
       s->data = [NSMutableData new];
+      s->portMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+		NSObjectMapValueCallBacks, 0);
+      s->nameMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
+		NSNonOwnedPointerMapValueCallBacks, 0);
       defaultServer = s;
       [serverLock unlock];
     }
@@ -177,7 +183,6 @@ static NSPortNameServer	*defaultServer = nil;
 	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
 	  if (expecting)
 	    {
-	      [self _close];
 	      [NSException raise: NSPortTimeoutException
 			  format: @"timed out writing to gdomap"]; 
 	    }
@@ -189,14 +194,12 @@ static NSPortNameServer	*defaultServer = nil;
 	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
 	  if (expecting)
 	    {
-	      [self _close];
 	      [NSException raise: NSPortTimeoutException
 			  format: @"timed out reading from gdomap"]; 
 	    }
 	  numSvrs = NSSwapBigIntToHost(*(unsigned*)[data bytes]);
 	  if (numSvrs == 0)
 	    {
-	      [self _close];
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"failed to get list of name servers on net"];
 	    }
@@ -237,7 +240,6 @@ static NSPortNameServer	*defaultServer = nil;
 				readTimeout]];
 	      if (expecting)
 		{
-		  [self _close];
 		  [NSException raise: NSPortTimeoutException
 			      format: @"timed out reading from gdomap"]; 
 		}
@@ -251,6 +253,7 @@ static NSPortNameServer	*defaultServer = nil;
 	  /*
 	   *	If we had a problem - unlock before continueing.
 	   */
+	  [self _close];
 	  [serverLock unlock];
           [localException raise];
 	}
@@ -320,6 +323,7 @@ static NSPortNameServer	*defaultServer = nil;
       /*
        *	If we had a problem - unlock before continueing.
        */
+      [self _close];
       [serverLock unlock];
       [localException raise];
     }
@@ -391,13 +395,6 @@ static NSPortNameServer	*defaultServer = nil;
 			GDO_NAME_MAX_LEN]; 
     }
 
-  msg.rtype = GDO_REGISTER;	/* Register a port.		*/
-  msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
-  msg.nsize = len;
-  [name getCString: msg.name];
-  msg.port = NSSwapHostIntToBig((unsigned)[(TcpInPort*)port portNumber]);
-  dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-
   /*
    *	Lock out other threads while doing I/O to gdomap
    */
@@ -405,6 +402,75 @@ static NSPortNameServer	*defaultServer = nil;
 
   NS_DURING
     {
+      NSMutableSet	*known = NSMapGet(portMap, port);
+
+      /*
+       *	If there is no set of names for this port - create one.
+       */
+      if (known == nil)
+	{
+	  known = [NSMutableSet new];
+	  NSMapInsert(portMap, port, known);
+	  [known release];
+	}
+
+      /*
+       *	If this port has never been registered under any name, first
+       *	send an unregister message to gdomap to ensure that any old 
+       *	names for the port (perhaps from a server that crashed without
+       *	unregistering its ports) are no longer around.
+       */
+      if ([known count] == 0)
+	{
+	  msg.rtype = GDO_UNREG;
+	  msg.ptype = GDO_TCP_GDO;
+	  msg.nsize = 0;
+	  msg.port = NSSwapHostIntToBig([(TcpInPort*)port portNumber]);
+	  dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+
+	  [self _open: nil];
+
+	  expecting = sizeof(msg);
+	  [handle writeInBackgroundAndNotify: dat
+				    forModes: modes];
+	  [loop runMode: mode
+	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
+	  if (expecting)
+	    {
+	      [NSException raise: NSPortTimeoutException
+			  format: @"timed out writing to gdomap"]; 
+	    }
+
+	  /*
+	   *	Queue a read request in our own run mode then run until the
+	   *	timeout period or until the read completes.
+	   */
+	  expecting = sizeof(unsigned);
+	  [data setLength: 0];
+	  [handle readInBackgroundAndNotifyForModes: modes];
+	  [loop runMode: mode
+	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
+	  if (expecting)
+	    {
+	      [NSException raise: NSPortTimeoutException
+			  format: @"timed out reading from gdomap"]; 
+	    }
+
+	  if ([data length] != sizeof(unsigned))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"too much data read from gdomap"]; 
+	    }
+	  [self _close];
+	}
+
+      msg.rtype = GDO_REGISTER;	/* Register a port.		*/
+      msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
+      msg.nsize = len;
+      [name getCString: msg.name];
+      msg.port = NSSwapHostIntToBig((unsigned)[(TcpInPort*)port portNumber]);
+      dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+
       [self _open: nil];
 
       /*
@@ -418,14 +484,13 @@ static NSPortNameServer	*defaultServer = nil;
 	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
       if (expecting)
 	{
-	  [self _close];
 	  [NSException raise: NSPortTimeoutException
 		      format: @"timed out writing to gdomap"]; 
 	}
 
       /*
        *	Queue a read request in our own run mode then run until the
-       *	timoeut period or until the read completes.
+       *	timeout period or until the read completes.
        */
       expecting = sizeof(unsigned);
       [data setLength: 0];
@@ -434,15 +499,9 @@ static NSPortNameServer	*defaultServer = nil;
 	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
       if (expecting)
 	{
-	  [self _close];
 	  [NSException raise: NSPortTimeoutException
 		      format: @"timed out reading from gdomap"]; 
 	}
-
-      /*
-       *	Finished with server - so close connection.
-       */
-      [self _close];
 
       if ([data length] != sizeof(unsigned))
 	{
@@ -457,17 +516,28 @@ static NSPortNameServer	*defaultServer = nil;
 	    {
 	      NSLog(@"NSPortNameServer unable to register '%@'\n", name);
 	    }
+	  else
+	    {
+	      /*
+	       *	Add this name to the set of names that the port
+	       *	is known by and to the name map.
+	       */
+	      [known addObject: name];
+	      NSMapInsert(nameMap, name, port);
+	    }
 	}
     }
   NS_HANDLER
     {
       /*
-       *	If we had a problem - unlock before continueing.
+       *	If we had a problem - close and unlock before continueing.
        */
+      [self _close];
       [serverLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
+  [self _close];
   [serverLock unlock];
 }
 
@@ -524,7 +594,6 @@ static NSPortNameServer	*defaultServer = nil;
 	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
       if (expecting)
 	{
-	  [self _close];
 	  [NSException raise: NSPortTimeoutException
 		      format: @"timed out writing to gdomap"]; 
 	}
@@ -540,7 +609,6 @@ static NSPortNameServer	*defaultServer = nil;
 	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
       if (expecting)
 	{
-	  [self _close];
 	  [NSException raise: NSPortTimeoutException
 		      format: @"timed out reading from gdomap"]; 
 	}
@@ -563,6 +631,31 @@ static NSPortNameServer	*defaultServer = nil;
 	    {
 	      NSLog(@"NSPortNameServer unable to unregister '%@'\n", name);
 	    }
+	  else
+	    {
+	      NSPort		*port;
+
+	      /*
+	       *	Find the port that was registered for this name and
+	       *	remove the mapping table entries.
+	       */
+	      port = NSMapGet(nameMap, name);
+	      if (port)
+		{
+		  NSMutableSet	*known;
+
+		  NSMapRemove(nameMap, name);
+		  known = NSMapGet(portMap, port);
+		  if (known)
+		    {
+		      [known removeObject: name];
+		      if ([known count] == 0)
+			{
+			  NSMapRemove(portMap, port);
+			}
+		    }
+		}
+	    }
 	}
     }
   NS_HANDLER
@@ -570,6 +663,7 @@ static NSPortNameServer	*defaultServer = nil;
       /*
        *	If we had a problem - unlock before continueing.
        */
+      [self _close];
       [serverLock unlock];
       [localException raise];
     }
@@ -763,3 +857,31 @@ static NSPortNameServer	*defaultServer = nil;
 
 @end
 
+@implementation	NSPortNameServer (GNUstep)
+
+/*
+ *	Remove all names for a particular port - used when a port is
+ *	invalidated.
+ */
+- (void) removePort: (NSPort*)port
+{
+  [serverLock lock];
+  NS_DURING
+    {
+      NSMutableSet	*known = (NSMutableSet*)NSMapGet(portMap, port);
+      NSString	*name;
+
+      while ((name = [known anyObject]) != nil)
+	{
+	  [self removePortForName: name];
+	}
+    }
+  NS_HANDLER
+    {
+      [serverLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [serverLock lock];
+}
+@end

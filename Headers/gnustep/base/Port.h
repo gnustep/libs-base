@@ -39,7 +39,6 @@
 @interface Port : NSPort
 {
 }
-- (void) invalidate;
 - (void) close;
 
 + (Class) outPacketClass;
