@@ -238,7 +238,12 @@ objc_thread_get_priority(void)
 void
 objc_thread_yield(void)
 {
+#if 0
+  /* Not defined in darwin? */
   pthread_yield(NULL);
+#else
+  sched_yield();
+#endif
 }
 
 /* Terminate the current thread. */

@@ -1,3 +1,8 @@
+2001-09-12  Adam Fedor  <fedor@gnu.org>
+
+	* Source/thr-pthread.m (objc_yield): Replace pthread_yield with 
+	sched_yield.
+
 2001-09-11  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Make sure to subst HAVE_PTHREAD_H into config.mak

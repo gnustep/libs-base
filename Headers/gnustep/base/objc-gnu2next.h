@@ -30,6 +30,8 @@
 
 #include <objc/objc-class.h>
 #include <stddef.h>
+#include <ctype.h>
+#include <stdio.h>
 
 typedef union {
   char *arg_ptr;
