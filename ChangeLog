@@ -1,3 +1,10 @@
+2002-03-17  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
+
+	* Source/GSAttributedString.m 
+	([GSMutableAttributedString -replaceCharactersInRange:withString:]): 
+	Only keep attribute #0 when removing it would remove all attributes.
+	(patch by Alexander Malmberg)
+
 2002-03-16  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Also configure SSL.
