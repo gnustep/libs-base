@@ -42,12 +42,12 @@
 # after-all::
 
 $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional:
-	$(MKDIRS) $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional
+	$(ECHO_CREATING)$(MKDIRS) $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional$(END_ECHO)
 
 # Things to do before installing
 before-install:: $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional
-	$(INSTALL_DATA) base.make \
-	    $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional/base.make
+	$(ECHO_NOTHING)$(INSTALL_DATA) base.make \
+	    $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional/base.make$(END_ECHO)
 
 # Things to do after installing
 # after-install::
@@ -69,19 +69,18 @@ before-install:: $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional
 
 # Things to do after distcleaning
 after-distclean::
-	rm -f config.status config.log config.cache TAGS config.mak base.make
-	rm -f Headers/Additions/GNUstepBase/config.h \
+	$(ECHO_NOTHING)\
+	rm -f config.status config.log config.cache TAGS config.mak base.make \
+	        Headers/Additions/GNUstepBase/config.h \
 		Headers/Additions/GNUstepBase/GSConfig.h \
-		Headers/Additions/GNUstepBase/preface.h
+		Headers/Additions/GNUstepBase/preface.h\
+	$(END_ECHO)
 
 # Things to do before checking
 # before-check::
 
 # Things to do after checking
 # after-check::
-
-.PHONY: 
-
 
 # Automatically run ./configure if needed to generate the makefiles
 # which we need in order to do our job.  If you need any special
