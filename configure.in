@@ -440,9 +440,6 @@ AC_CONFIG_SUBDIRS(src/mframe)
 #--------------------------------------------------------------------
 AC_OUTPUT(config.mak src/include/GSConfig.h)
 
-#echo "Running 'configure' in src/mframe"
-#(cd src/mframe; ./configure)
-
 dnl Local Variables:
 dnl comment-start: "dnl "
 dnl comment-end: ""

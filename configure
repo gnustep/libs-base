@@ -3852,6 +3852,3 @@ if test "$no_recursion" != yes; then
 fi
 
 
-#echo "Running 'configure' in src/mframe"
-#(cd src/mframe; ./configure)
-
