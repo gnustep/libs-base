@@ -1,6 +1,6 @@
 Tue Oct 19 11:28:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	* Source/NSURL.m: skipToNextField() - cope with a nil set of characters
+	* Source/NSScanner.m: skipToNextField() - cope with a nil set of characters
 	to be skipped.
 
 Fri Oct 15 01:28:16 1999  Lyndon Tremblay <humasect@coolmail.com>
