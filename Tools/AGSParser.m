@@ -127,7 +127,7 @@
   fileName = name;
   if (declared == nil)
     {
-      ASSIGN(declared, fileName);
+      ASSIGN(declared, [fileName lastPathComponent]);
     }
   unitName = nil;
   itemName = nil;
@@ -1117,6 +1117,11 @@ fail:
   pos = 0;
 }
 
+/**
+ * Set the name of the file in which classes are to be documented as
+ * being declared.  The default value of this is the last part of the
+ * path of the source file being parsed.
+ */
 - (void) setDeclared: (NSString*)name
 {
   ASSIGN(declared, name);
