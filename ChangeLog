@@ -1,3 +1,28 @@
+2003-09-13  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSCategories.h: Move declarations
+	from Source/Additions/GSCompatibility.h to here.
+	([NSObject -compare:]): Deprecate.
+	* Source/Additions/GSCompatibility.h: Move contents from here to
+	Headers/Additions/GNUstepBase/GSCategories.h.
+
+	* Source/Additions/GSCategories.m: 
+	([NSObject -compare:]): Deprecate.
+	
+	* Headers/Foundation/NSObject.h
+	([NSObject -compare:]): Deprecate.
+
+	* Source/Additions/GCDictionary.m: Include
+	GNUstepBase/GSCategories.h rather than GSCompatibility.h.
+	* Source/Additions/GCObject.m: Ditto.
+	* Source/Additions/GSMime.m: Ditto.
+	* Source/Additions/GSObjCRuntime.m: Ditto.
+	* Source/Additions/GSXML.m: Ditto.
+	* Source/Additions/Unicode.m: Ditto.
+
+	* macosx/GNUstepBase/preface.h: Update include for new header
+	structure.
+
 2003-09-11  Adam Fedor  <fedor@gnu.org>
 
 	* macosx/preface.h: Removed
