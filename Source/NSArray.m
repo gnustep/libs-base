@@ -27,6 +27,7 @@
 #include <Foundation/NSGArray.h>
 #include <limits.h>
 #include <Foundation/NSUtilities.h>
+#include <Foundation/NSException.h>
 
 @interface NSArrayEnumerator : NSEnumerator
 {
