@@ -1,3 +1,7 @@
+2000-12-22  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFFCallInvocation.m: Remove powerpc specific defs
+
 2000-12-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: Modified DO_FORWARD_INVOCATION() macro
