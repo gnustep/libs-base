@@ -4732,7 +4732,7 @@ else
 fi
 
 
-cppflags_temp=$CFLAGS
+cppflags_temp=$CPPFLAGS
 libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
