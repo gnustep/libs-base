@@ -95,6 +95,13 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 .c.o:
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $<
 
+# Grep for these names to build the legally-required "AUTHORS" file.
+FILE_AUTHORS = \
+"R. Andrew McCallum" \
+"Kresten Krab Thorup" \
+"Adam Fedor" \
+"Mark Lakata"
+
 GNU_MFILES = \
 Array.m \
 Bag.m \
@@ -509,6 +516,17 @@ NEWS: news.texi version.texi
 ADVERTISEMENT: advertisement.texi version.texi
 	$(MAKEINFO) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
+AUTHORS: Makefile.in
+	rm -f AUTHORS
+	@echo Finding file authors...
+	@echo 'For the legal record, here is a list of who wrote what:'>AUTHORS
+	@for a in $(FILE_AUTHORS) \
+	; do \
+		echo "\n\n$${a}:\n" >>AUTHORS; \
+		egrep -l "((Written by)|(Author)).*$${a}" \
+			$(DIST_FILES) >>AUTHORS; \
+	done
+
 Makefile: Makefile.in config.status
 	$(SHELL) config.status
 config.status: configure
