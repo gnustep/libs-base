@@ -1,3 +1,8 @@
+2003-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: Don't prepend HOMEDRIVE to HOMEPATH if HOMEPATH
+	already contains a drive letter.
+
 2003-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: GSObjCSetValue() correct to call
