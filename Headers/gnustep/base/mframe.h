@@ -78,4 +78,9 @@ mframe_build_return_opts (arglist_t argframe, const char *types,
 		     void(*decoder)(int,void*,const char*,int),
 		     BOOL pass_pointers);
 
+/* Copy the return value from retframe into the spcified buffer.
+ */
+BOOL
+mframe_decode_return (const char *type, void* buffer, void* retframe);
+
 #endif /* __mframe_h_GNUSTEP_BASE_INCLUDE */
