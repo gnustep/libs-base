@@ -852,7 +852,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	       * type qalifiers and sizes differ, and those where the
 	       * actual types differ.
 	       */
-	      NSWarnFLog(@"Changed type signature '%s' to '%s' for '%s'",
+	      NSDebugFLog(@"Changed type signature '%s' to '%s' for '%s'",
 		runtimeTypes, receiverTypes, runtimeName);
 	    }
 	}

@@ -30,7 +30,6 @@
 
 #include <GNUstepBase/GSObjCRuntime.h>
 
-extern BOOL sel_types_match(const char* t1, const char* t2);
 
 #define SRV_NAME @"nsmethodsignaturetest"
 
@@ -275,13 +274,13 @@ test_compare_server_signature(void)
 #define TEST_SEL(SELNAME) { \
       lclSig = [objct runtimeSignatureForSelector: @selector(SELNAME)]; \
       rmtSig = [proxy runtimeSignatureForSelector: @selector(SELNAME)]; \
-      if (!sel_types_match(lclSig, rmtSig)) \
+      if (!GSSelectorTypesMatch(lclSig, rmtSig)) \
         NSLog(@"runtime: sel:%s\nlcl:%s\nrmt:%s", \
 	      GSNameFromSelector(@selector(SELNAME)), \
 	      lclSig, rmtSig); \
       lclSig = [objct mframeSignatureForSelector: @selector(SELNAME)]; \
       rmtSig = [proxy mframeSignatureForSelector: @selector(SELNAME)]; \
-      if (!sel_types_match(lclSig, rmtSig)) \
+      if (!GSSelectorTypesMatch(lclSig, rmtSig)) \
         NSLog(@"mframe : sel:%s\nlcl:%s\nrmt:%s", \
 	      GSNameFromSelector(@selector(SELNAME)), \
 	      lclSig, rmtSig); \
@@ -336,6 +335,47 @@ test_compare_server_signature(void)
 }
 
 void
+test_GSSelectorTypesMatch(void)
+{
+  const char *pairs[][2] = { {"@@::", "@12@0:4:8"},
+			     {"@@::", "@12@+0:+4:+8"},
+			     {"@@::", "@12@-0:-4:-8"},
+			     {"@12@0:4:8", "@@::"},
+			     {"@12@+0:+4:+8", "@@::"},
+			     {"@12@-0:-4:-8", "@@::"},
+
+			     {"@12@0:4:8", "@12@+0:+4:+8"},
+			     {"@12@0:4:8", "@12@-0:-4:-8"},
+			     {"@12@+0:+4:+8", "@12@0:4:8"},
+			     {"@12@-0:-4:-8", "@12@0:4:8"},
+
+			     {"@12@0:4:8", "@16@+4:+8:+12"},
+			     {"@12@0:4:8", "@16@-4:-8:-12"},
+			     {"@12@+0:+4:+8", "@16@4:8:12"},
+			     {"@12@-0:-4:-8", "@16@4:8:12"},
+
+			     {"{_MyLargeStruct=dd}56@+8:+12@+16c+23s+26i+28l24f28d32{_MyLargeStruct=dd}40{_MySmallStruct=c}44",
+			      "{_MyLargeStruct=dd}46@+8:+12@+16c+17s+16i+20l+24f+28d24{_MyLargeStruct=dd}32{_MySmallStruct=c}45"},
+			     /* This comparison is currently not supported.  
+			     {"{_MyLargeStruct=dd}56@+8:+12@+16c+23s+26i+28l24f28d32{_MyLargeStruct=dd}40{_MySmallStruct=c}44",
+			      "{??=dd}46@+8:+12@+16c+17s+16i+20l+24f+28d24{??=dd}32{??=c}45"},
+			     */
+			     {0, 0} };
+  unsigned int i = 0;
+
+  while (pairs[i][0])
+    {
+      if (GSSelectorTypesMatch(pairs[i][0], pairs[i][1]) == NO)
+	{
+	  NSLog(@"pair %d does not match:\n%s\n%s", 
+		i, pairs[i][0], pairs[i][1]);
+	  failed = 1;
+	}
+      i++;
+    }
+}
+
+void
 run_server(void)
 {
   id obj = [MyClass new];
@@ -366,6 +406,7 @@ main(int argc, char *argv[])
     {
       test_mframe_build_signature();
       test_compare_server_signature();
+      test_GSSelectorTypesMatch();
       if (failed)
 	[NSException raise: NSInternalInconsistencyException
 		     format: @"discrepancies between gcc/mframe signatures"];

@@ -343,6 +343,14 @@ GSTypesFromSelector(SEL sel)
 }
 
 /**
+ * Compare only the type information ignoring qualifiers, the frame layout
+ * and register markers.  Unlike sel_types_match, this function also
+ * handles comparisons of types with and without any layout information.
+ */
+GS_EXPORT BOOL
+GSSelectorTypesMatch(const char *types1, const char *types2);
+
+/**
  * Returns a protocol object with the corresponding name.
  * This function searches the registered classes for any protocol
  * with the supplied name.  If one is found, it is cached in

@@ -1095,6 +1095,60 @@ GSRemoveMethodList(Class cls,
 }
 
 
+GS_STATIC_INLINE const char *
+gs_skip_type_qualifier_and_layout_info (const char *types)
+{
+  while (*types == '+'
+	 || *types == '-'
+	 || *types == _C_CONST
+	 || *types == _C_IN
+	 || *types == _C_INOUT
+	 || *types == _C_OUT
+	 || *types == _C_BYCOPY
+	 || *types == _C_BYREF
+	 || *types == _C_ONEWAY
+	 || *types == _C_GCINVISIBLE
+	 || isdigit ((unsigned char) *types))
+    {
+      types++;
+    }
+
+  return types;
+}
+
+/* See header for documentation. */
+GS_EXPORT BOOL
+GSSelectorTypesMatch(const char *types1, const char *types2)
+{
+  if (! types1 || ! types2)
+    return NO;
+
+  while (*types1 && *types2)
+    {
+      types1 = gs_skip_type_qualifier_and_layout_info (types1);
+      types2 = gs_skip_type_qualifier_and_layout_info (types2);
+
+      if (! *types1 && ! *types2)
+        return YES;
+
+      /* (Ayers) This does not account for older versions of gcc
+	 which encoded structures as {??=<types>} while new versions replaced
+	 the ?? with the structure name.  But it seems to expensive to
+	 handle that here and sel_types_match also never took this into 
+	 account.  */
+      if (*types1 != *types2)
+        return NO;
+
+      types1++;
+      types2++;
+    }
+
+  types1 = gs_skip_type_qualifier_and_layout_info (types1);
+  types2 = gs_skip_type_qualifier_and_layout_info (types2);
+
+  return (! *types1 && ! *types2);
+}
+
 /* See header for documentation. */
 GSIVar
 GSCGetInstanceVariableDefinition(Class cls, const char *name)
