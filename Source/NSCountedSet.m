@@ -24,7 +24,6 @@
 #include <config.h>
 #include <base/behavior.h>
 #include <Foundation/NSSet.h>
-#include <Foundation/NSGSet.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
@@ -36,6 +35,7 @@
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
+@class	GSCountedSet;
 
 /*
  *	Class variables for uniquing objects;
@@ -61,7 +61,7 @@ static Class NSCountedSet_concrete_class;
   if (self == [NSCountedSet class])
     {
       NSCountedSet_abstract_class = self;
-      NSCountedSet_concrete_class = [NSGCountedSet class];
+      NSCountedSet_concrete_class = [GSCountedSet class];
       behavior_class_add_class(self, [NSMutableSetNonCore class]);
       behavior_class_add_class(self, [NSSetNonCore class]);
       if ([NSThread isMultiThreaded])

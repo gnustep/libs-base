@@ -224,10 +224,10 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 #
 #	Files that include GSIMap.h will need a rebuild if it is changed.
 #
+$(GNUSTEP_OBJ_DIR)/GSCountedSet.o \
+$(GNUSTEP_OBJ_DIR)/GSSet.o \
 $(GNUSTEP_OBJ_DIR)/NSArchiver.o \
-$(GNUSTEP_OBJ_DIR)/NSGCountedSet.o \
 $(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
-$(GNUSTEP_OBJ_DIR)/NSGSet.o \
 $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 	: $(HEADER_DIR)/GSIMap.h $(HEADER_DIR)/GSUnion.h
