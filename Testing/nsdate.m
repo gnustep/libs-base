@@ -143,6 +143,7 @@ main()
     c = [NSCalendarDate dateWithString: @"1999-12-31 23:59:59"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
     printf("Start at %s\n", [[c description] cString]);
+    printf("YYYY-MM-DD %d-%d-%d\n", [c yearOfCommonEra], [c monthOfYear], [c dayOfMonth]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];
     printf("Add one second - %s\n", [[c description] cString]);
     c = [c addYear:0 month:0 day:0 hour:0 minute:0 second:1];

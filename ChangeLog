@@ -1,3 +1,7 @@
+Tue Jan  4 22:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSCalendarDate.m: ([-yearOfCommonEra]) fix rounding error.
+
 Tue Dec 21 13:27:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Fixes suggested by karl@nfox.com
