@@ -142,24 +142,24 @@
     }
 }
 
-- (void)formUnionWithCharacterSet:(NSCharacterSet *)otherSet
+- (void) formUnionWithCharacterSet: (NSCharacterSet *)otherSet
 {
   int i;
   const char *other_bytes;
 
   other_bytes = [[otherSet bitmapRepresentation] bytes];
-  for (i=0; i < BITMAP_SIZE; i++)
-      data[i] = (data[i] || other_bytes[i]);
+  for (i = 0; i < BITMAP_SIZE; i++)
+    data[i] = (data[i] | other_bytes[i]);
 }
 
-- (void)formIntersectionWithCharacterSet:(NSCharacterSet *)otherSet
+- (void) formIntersectionWithCharacterSet: (NSCharacterSet *)otherSet
 {
   int i;
   const char *other_bytes;
 
   other_bytes = [[otherSet bitmapRepresentation] bytes];
-  for (i=0; i < BITMAP_SIZE; i++)
-      data[i] = (data[i] && other_bytes[i]);
+  for (i = 0; i < BITMAP_SIZE; i++)
+    data[i] = (data[i] & other_bytes[i]);
 }
 
 - (void)removeCharactersInRange:(NSRange)aRange

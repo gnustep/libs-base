@@ -31,7 +31,7 @@ include ../Version
 include ../config.mak
 
 # The application to be compiled
-TOOL_NAME = gdnc defaults dread dwrite dremove
+TOOL_NAME = gdnc defaults dread dwrite dremove plparse sfparse
 OBJC_PROGRAM_NAME = gdomap
 
 # The source files to be compiled
@@ -41,6 +41,8 @@ defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
 dwrite_OBJC_FILES = dwrite.m
+plparse_OBJC_FILES = plparse.m
+sfparse_OBJC_FILES = sfparse.m
 
 SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m
 
