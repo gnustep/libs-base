@@ -2,7 +2,7 @@
 
 	* Version: Version 0.6.0
 
-	* configure.in: Add test for solaris libraries
+	* configure.in: Add test for solaris libraries, freebsd threads.
 	* Source/mframe/config.guess: Update to latest version	
 	* Source/mframe/config.sub: Likewise.
 	

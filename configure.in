@@ -190,6 +190,10 @@ if test $host_os = linux-gnu; then
     AC_TRY_RUN([#include "config_thread.m"], objc_threaded="-lpcthread",
 	objc_threaded="", objc_threaded="-lpcthread")
   fi
+elif test "`echo $host_os|sed 's/[[0-9]].*//'|sed s/elf//`" = freebsd; then
+  LIBS="-pthread -lobjc"
+  AC_TRY_RUN([#include "config_thread.m"], objc_threaded="-pthread",
+       objc_threaded="", objc_threaded="-pthread")
 else
   LIBS="-lobjc $LIBS $extra_LIBS"
   AC_TRY_RUN([#include "config_thread.m"], objc_threaded="-lthread",
