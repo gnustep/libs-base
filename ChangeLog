@@ -3,8 +3,9 @@
 	* Source/GSCompatibility.m: GSXMLPlMake() unused argument removed.
 	* Source/NSData.m: Unused and commented out XML plist code removed.
 	* Source/NSString.m: ditto
-	* Source/NSArray.m: Generate XML plists only when writing to file,
-	not for the -description... methods.  This is what MacOS-X does.
+	* Source/NSArray.m: Generate XML plists only when writing to file
+	or to URL, not for the -description... methods.
+	This is what MacOS-X does.
 	* Source/NSDictionary.m: ditto
 
 2001-09-05  Adam Fedor  <fedor@gnu.org>
