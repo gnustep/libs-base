@@ -1472,13 +1472,13 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      if (c == nil)
 		{
-		  NSLog(@"No unique ref to %@ '%@' not found in %@",
-		    type, r, base);
+		  NSLog(@"Location of %@ '%@' (referenced from %@) "
+		    @"not found or not unique.", type, r, base);
 		}
 	      else
 		{
-		  NSLog(@"ref to the %@ version of %@ '%@' not found in %@",
-		    c, type, r, base);
+		  NSLog(@"Location of the %@ version of %@ '%@' (referenced "
+		    @"from %@) not found.", c, type, r, base);
 		}
 	      if (tmp == nil)
 		{
