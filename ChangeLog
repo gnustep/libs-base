@@ -1,3 +1,10 @@
+2000-01-27  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (init_iface): Check to see if an
+	interface is up (using SIOCGIFFLAGS), and then get the address
+	information before checking whether the address is in the AF_INET
+	family (patch from Jonathan Gapen <jagapen@whitewater.chem.wisc.edu>).
+	
 Sun Jan 16  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Moved objc-load.c to objc-load.m and filnd-exec.c to find-exec.m
