@@ -1137,7 +1137,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	    printf ("\tNSRunLoop limit date past, returning\n");
 	  _current_mode = saved_mode;
 	  RELEASE(arp);
-	  return;
+	  NS_VOIDRETURN;
 	}
       else
 	{
@@ -1317,7 +1317,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  [self _checkPerformers];
 	  _current_mode = saved_mode;
 	  RELEASE(arp);
-	  return;
+	  NS_VOIDRETURN;
 	}
       
       /*
