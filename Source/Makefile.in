@@ -380,7 +380,8 @@ NSString.m \
 NSThread.m \
 NSTimer.m \
 NSTimeZone.m \
-NSValue.m
+NSValue.m \
+NSZone.m
 
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
@@ -392,7 +393,6 @@ NSNUMBER_MFILES = \
 	NSNumber12.m
 
 GNUSTEP_CFILES = \
-NSZone.c \
 find_exec.c \
 objc-load.c
 
@@ -567,14 +567,14 @@ dynamic-load.h: ../config.status
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
 objects/stdobjects.h: objects/stdobjects.h.in ../Version
-        rm -f $@
-        sed -e "s/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/" \
-        < $< | \
-        sed -e "s/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/" | \
-        sed -e "s/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/" | \
-        sed -e "s/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/" | \
-        sed -e "s/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/" \
-        > $@
+	rm -f $@
+	sed -e "s/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/" \
+	< $< | \
+	sed -e "s/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/" \
+	> $@
 stdobjects$(OEXT): objects/stdobjects.h
 
 # The Xs and Ys...Don't mess with these without thinking first.
