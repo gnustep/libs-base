@@ -72,6 +72,13 @@
 	      variable.  If this is not defined,
 	      <code>NSISOLatin1StringEncoding</code> is assumed.
 	    </p>
+	    <p>
+	      The default C string encoding must be a characterset containing
+	      7 or 8 bit characters, and where the characters are a superset
+	      of the 7-bit ASCII characterset.  In particular, this means
+	      that NSUTF8StringEncoding and NSUnicodeStringEncoding are not
+	      permissable.
+	    </p>
           </desc>
         </method>
 
