@@ -330,6 +330,10 @@ version.texi: Makefile
 	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) > $(srcdir)/version.texi
 	echo '@set OBJECTS_GCC_VERSION' $(OBJECTS_GCC_VERSION) \
 		>> $(srcdir)/version.texi
+	echo '@set OBJECTS_FTP_MACHINE $(OBJECTS_FTP_MACHINE) \
+		>> $(srcdir)/version.texi
+	echo '@set OBJECTS_FTP_DIRECTORY $(OBJECTS_FTP_DIRECTORY) \
+		>> $(srcdir)/version.texi
 
 info: libobjects.info TODO INSTALL NEWS README ANNOUNCE
 dvi: libobjects.texi version.texi
