@@ -16,7 +16,9 @@
       <p>
 	The GNUstep base library is a free software package implementing
         the API of the OpenStep Foundation Kit (tm), including later
-	additions.
+	additions.  This documentation package describes the core of the
+	base library, for documentation on additional classes, see the
+	BaseAdditions documentation package.
       </p>
       <index scope="project" type="title" />
       <section>

@@ -28,22 +28,13 @@ GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-DOCUMENT_NAME = Base
+DOCUMENT_NAME = Base BaseAdditions
 
 Base_DOC_INSTALL_DIR = Developer
+BaseAdditions_DOC_INSTALL_DIR = Developer
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
-GSCategories.h \
-GSIArray.h \
-GSIMap.h \
-GSMime.h \
-GSObjCRuntime.h \
-GSUnion.h \
-GSXML.h \
-behavior.h \
-Unicode.h \
-GCObject.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
@@ -108,6 +99,20 @@ NSUserDefaults.h \
 NSValue.h \
 NSZone.h
 
+BaseAdditions_AGSDOC_FILES = \
+../Documentation/BaseAdditions.gsdoc \
+GSCategories.h \
+GSIArray.h \
+GSIMap.h \
+GSMime.h \
+GSObjCRuntime.h \
+GSUnion.h \
+GSXML.h \
+behavior.h \
+Unicode.h \
+GCObject.h \
+
+
 #
 # Hack ... using the -DocumentationDirectory flag overrides the value
 # used by the make package, and puts our output in the documentation
@@ -132,6 +137,25 @@ Base_AGSDOC_FLAGS = \
 	INLINE=inline;\
 	}' -Up Base
 
+BaseAdditions_AGSDOC_FLAGS = \
+	-DocumentationDirectory ../Documentation/BaseAdditions \
+	-HeaderDirectory ../Headers/gnustep/base \
+	-Declared gnustep/base \
+	-Standards YES \
+	-ConstantsTemplate TypesAndConstants \
+	-FunctionsTemplate Functions \
+	-MacrosTemplate Functions \
+	-TypedefsTemplate TypesAndConstants \
+	-VariablesTemplate TypesAndConstants \
+	-WordMap '{\
+	FOUNDATION_EXPORT=extern;FOUNDATION_STATIC_INLINE="";\
+	GS_GEOM_SCOPE=extern;GS_GEOM_ATTR="";\
+	GS_EXPORT=extern;GS_DECLARE="";\
+	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
+	GS_ZONE_SCOPE=extern;GS_ZONE_ATTR="";\
+	INLINE=inline;\
+	}' -Up BaseAdditions
+
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../Tools/obj/autogsdoc
 
@@ -144,8 +168,12 @@ include $(GNUSTEP_MAKEFILES)/documentation.make
 #
 before-all::	../Documentation/Base \
 	../Documentation/Base/Functions.gsdoc \
-	../Documentation/Base/TypesAndConstants.gsdoc
+	../Documentation/Base/TypesAndConstants.gsdoc \
+	../Documentation/BaseAdditions \
+	../Documentation/BaseAdditions/Functions.gsdoc \
+	../Documentation/BaseAdditions/TypesAndConstants.gsdoc
 	cp ../Documentation/Base.gsdoc .
+	cp ../Documentation/BaseAdditions.gsdoc .
 
 ../Documentation/Base:
 	$(MKDIRS) ../Documentation/Base
@@ -153,13 +181,28 @@ before-all::	../Documentation/Base \
 ../Documentation/Base/Functions.gsdoc: ../Documentation/Functions.gsdoc
 	cp ../Documentation/Functions.gsdoc ../Documentation/Base
 
-../Documentation/Base/TypesAndConstants.gsdoc: ../Documentation/TypesAndConstants.gsdoc
+../Documentation/Base/TypesAndConstants.gsdoc: \
+	../Documentation/TypesAndConstants.gsdoc
 	cp ../Documentation/TypesAndConstants.gsdoc ../Documentation/Base
+
+../Documentation/BaseAdditions:
+	$(MKDIRS) ../Documentation/BaseAdditions
+
+../Documentation/BaseAdditions/Functions.gsdoc: \
+	../Documentation/Functions.gsdoc
+	cp ../Documentation/Functions.gsdoc ../Documentation/BaseAdditions
+
+../Documentation/BaseAdditions/TypesAndConstants.gsdoc: \
+	../Documentation/TypesAndConstants.gsdoc
+	cp ../Documentation/TypesAndConstants.gsdoc \
+	../Documentation/BaseAdditions
 
 #
 # Clean up temporary files used while generating documentation.
 #
 after-all::
 	$(RM) Base.gsdoc
+	$(RM) BaseAdditions.gsdoc
 	rmdir Base
+	rmdir BaseAdditions
 

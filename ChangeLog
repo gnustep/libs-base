@@ -1,3 +1,12 @@
+2003-01-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc: Refer to additions.
+	* Documentation/BaseAdditions.gsdoc: New intorduction for additions
+	* Headers/gnustep/base/GSCategories.h: Added MD5Digest NSData method
+	* Source/DocMakefile: Build additions documentation separately
+	* Source/Additions/GSCategories.m: Added MD5Digest NSData method
+	* Source/Additions/GSMime.m: Use MD5Digest NSData method.
+
 2003-01-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: ifdefed out my last change ...not sure
