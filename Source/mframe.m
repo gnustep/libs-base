@@ -433,7 +433,7 @@ mframe_do_call (const char *encoded_types,
 #else
   {
     Method_t m;
-    m = class_get_instance_method (object_get_class (object),
+    m = class_get_instance_method (object->class_pointer,
 				   selector);
     NSCParameterAssert (m);
     type = m->method_types;
