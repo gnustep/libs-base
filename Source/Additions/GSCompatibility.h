@@ -112,7 +112,7 @@
   if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
     [NSException raise: NSRangeException \
                 format: @"in %s, range { %u, %u } extends beyond size (%u)", \
-                  sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
+                  GSNameFromSelector(_cmd), RANGE.location, RANGE.length, SIZE]
 
 /* Taken from base/Headers/Foundation/NSString.h */
 typedef enum _NSGNUstepStringEncoding

@@ -125,22 +125,47 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 /**
  * GSObjCClass() return the class of an instance.
- * The argument to this function must NOT be nil.
+ * Returns a nul pointer if the argument is nil.
  */
 GS_STATIC_INLINE Class
 GSObjCClass(id obj)
 {
+  if (obj == nil)
+    return 0;
   return obj->class_pointer;
 }
 
 /**
+ * Returns the superclass of this.
+ */
+GS_STATIC_INLINE Class
+GSObjCSuper(Class this)
+{
+  return class_get_super_class(this);
+}
+
+/**
  * GSObjCIsInstance() tests to see if an id is an instance.
- * The argument to this function must NOT be nil.
+ * Returns NO if the argument is nil.
  */
 GS_STATIC_INLINE BOOL
 GSObjCIsInstance(id obj)
 {
-  return CLS_ISCLASS(obj->class_pointer);
+  if (obj == nil)
+    return NO;
+  return object_is_instance(obj);
+}
+
+/**
+ * GSObjCIsClass() tests to see if an id is a class.
+ * Returns NO if the argument is nil.
+ */
+GS_STATIC_INLINE BOOL
+GSObjCIsClass(Class cls)
+{
+  if (cls == nil)
+    return NO;
+  return object_is_class(cls);
 }
 
 /**
@@ -156,7 +181,7 @@ GSObjCIsKindOf(Class this, Class other)
 	{
 	  return YES;
 	}
-      this = class_get_super_class(this);
+      this = GSObjCSuper(this);
     }
   return NO;
 }
@@ -187,15 +212,27 @@ GSNameFromClass(Class this)
 }
 
 /**
+ * Return the name of the object's class, or a nul pointer if no object
+ * was supplied.
+ */
+GS_STATIC_INLINE const char *
+GSClassNameFromObject(id obj)
+{
+  if (obj == 0)
+    return 0;
+  return object_get_class_name(obj);
+}
+
+/**
  * Return the name of the supplied selector, or a nul pointer if no selector
  * was supplied.
  */
 GS_STATIC_INLINE const char *
-GSNameFromSelector(SEL this)
+GSNameFromSelector(SEL sel)
 {
-  if (this == 0)
+  if (sel == 0)
     return 0;
-  return sel_get_name(this);
+  return sel_get_name(sel);
 }
 
 /**
@@ -391,15 +428,6 @@ GSCGetInstanceVariableDefinition(Class class, const char *name);
 GS_EXPORT GSIVar
 GSObjCGetInstanceVariableDefinition(Class class, NSString *name);
 
-
-/**
- * Returns the superclass of this.
- */
-GS_STATIC_INLINE Class
-GSObjCSuper(Class this)
-{
-  return class_get_super_class(this);
-}
 
 /**
  * Returns the version number of this.

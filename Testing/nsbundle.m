@@ -48,9 +48,13 @@ main(int argc, char *argv[], char **env)
     printf("Looking for LoadMe bundle...\n");
     path = [path stringByDeletingLastPathComponent];
     path = [path stringByDeletingLastPathComponent];
-    path = [path stringByDeletingLastPathComponent];
-    path = [path stringByDeletingLastPathComponent];
-    path = [path stringByDeletingLastPathComponent];
+    if ([[path lastPathComponent] isEqualToString:@"Testing"] == NO)
+      {
+	/* Delete library combo */
+	path = [path stringByDeletingLastPathComponent];
+	path = [path stringByDeletingLastPathComponent];
+	path = [path stringByDeletingLastPathComponent];
+      }
     printf("  Bundle directory is %s\n", [path cString]);
     path = [NSBundle pathForResource:@"LoadMe" ofType:@"bundle"
                      inDirectory: path];
@@ -88,7 +92,7 @@ main(int argc, char *argv[], char **env)
 	printf("* ERROR: Can't find principal class\n");
       }
     else
-      printf("  Principal class is: %s\n", object_get_class_name (object));
+      printf("  Principal class is: %s\n", GSClassNameFromObject(object));
 
     printf("Testing LoadMe bundle classes...\n");
     printf("  This is LoadMe:\n");

@@ -558,14 +558,14 @@ _arg_addr(NSInvocation *inv, int index)
       s.receiver = _target;
 #endif
       if (GSObjCIsInstance(_target))
-	s.class = class_get_super_class(GSObjCClass(_target));
+	s.class = GSObjCSuper(GSObjCClass(_target));
       else
-	s.class = class_get_super_class((Class)_target);
+	s.class = GSObjCSuper((Class)_target);
       imp = objc_msg_lookup_super(&s, _selector);
     }
   else
     {
-      imp = method_get_imp(object_is_instance(_target) ?
+      imp = method_get_imp(GSObjCIsInstance(_target) ?
 	GSGetInstanceMethod(
 		    ((struct objc_class*)_target)->class_pointer, _selector)
 	: GSGetClassMethod(
@@ -608,14 +608,14 @@ _arg_addr(NSInvocation *inv, int index)
    */
   char buffer[1024];
 
-  sprintf (buffer, "<%s %p selector: %s target: %s>", \
-                (char*)object_get_class_name(self), \
+  snprintf (buffer, 1024, "<%s %p selector: %s target: %s>", \
+                GSClassNameFromObject(self), \
                 self, \
-                _selector ? [NSStringFromSelector(_selector) cString] : "nil", \
-                _target ? [NSStringFromClass([_target class]) cString] : "nil" \
+                _selector ? GSNameFromSelector(_selector) : "nil", \
+                _target ?   GSNameFromClass([_target class]) : "nil" \
                 );
 
-  return [NSString stringWithCString:buffer];
+  return [NSString stringWithCString: buffer];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -761,12 +761,12 @@ _arg_addr(NSInvocation *inv, int index)
   types = sel_get_type(aSelector);
   if (types == 0)
     {
-      types = sel_get_type(sel_get_any_typed_uid(sel_get_name(aSelector)));
+      types = sel_get_type(sel_get_any_typed_uid(GSNameFromSelector(aSelector)));
     }
   if (types == 0)
     {
       NSLog(@"Couldn't find encoding type for selector %s.",
-	   sel_get_name(aSelector));
+	   GSNameFromSelector(aSelector));
       RELEASE(self);
       return nil;
     }

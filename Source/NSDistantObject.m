@@ -1007,7 +1007,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
   Class class;
 
-  for (class = self; class!=Nil; class = class_get_super_class(class))
+  for (class = self; class!=Nil; class = GSObjCSuper(class))
     if (class==aClassObject)
       return YES;
   return NO;
@@ -1040,7 +1040,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 - (id) forward: (SEL)aSel :(arglist_t)frame
 {
   if (debug_proxy)
-    NSLog(@"NSDistantObject forwarding %s\n", sel_get_name(aSel));
+    NSLog(@"NSDistantObject forwarding %s\n", GSNameFromSelector(aSel));
 
   if (![_connection isValid])
     [NSException
