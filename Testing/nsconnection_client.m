@@ -44,14 +44,14 @@
 
 int con_data (id prx)
 {
-  BOOL b;
-  unsigned char uc;
-  char c;
-  short s;
-  int i;
-  long l;
-  float flt = 2.718;
-  double dbl = 3.14159265358979323846264338327;
+  BOOL b, br;
+  unsigned char uc, ucr;
+  char c, cr;
+  short s, sr;
+  int i, ir;
+  long l, lr;
+  float flt, fltr;
+  double dbl, dblr;
   char *str;
   id obj;
   small_struct small = {12};
@@ -64,84 +64,64 @@ int con_data (id prx)
   printf("Boolean:\n");
   b = YES;
   printf("  sending %d", b);
-  b = [prx sendBoolean: b];
-  printf(" got %d\n", b);
-  b = YES;
-  printf("  sending ptr to %d", b);
-  [prx getBoolean: &b];
-  printf(" got %d\n", b);
+  br = [prx sendBoolean: b];
+  printf(" got %d", br);
+  if (b == !br)
+    printf(" ...ok\n");
+  else
+    printf(" ********** ERROR ************\n");
+  br = b = YES;
+  printf("  sending ptr to %d", br);
+  [prx getBoolean: &br];
+  printf(" got %d", br);
+  if (b == !br)
+    printf(" ...ok\n");
+  else
+    printf(" ********** ERROR ************\n");
 
-  printf("UChar:\n");
-  uc = 23;
-  printf("  sending %x", uc);
-  uc = [prx sendUChar: uc];
-  printf(" got %x\n", uc);
-  uc = 24;
-  printf("  sending ptr to %x", uc);
-  [prx getUChar: &uc];
-  printf(" got %x\n", uc);
+#define TEST_CALL(test, send, got, sendp, var, varr, val, msg1, msg2)	\
+  printf(test);								\
+  var = val;								\
+  printf(send, var);							\
+  varr = [prx msg1 var];						\
+  printf(got, varr);							\
+  if (varr != var+ADD_CONST)						\
+    printf(" ************** ERROR *************\n");			\
+  else									\
+    printf(" ...ok\n");							\
+  varr = var = val+1;							\
+  printf(sendp, varr);							\
+  [prx msg2 &varr];							\
+  printf(got, varr);							\
+  if (varr != var+ADD_CONST)						\
+    printf(" ************** ERROR *************\n");			\
+  else									\
+    printf(" ...ok\n");
 
-  printf("Char:\n");
-  c = 53;
-  printf("  sending %x", c);
-  c = [prx sendChar: c];
-  printf(" got %x\n", c);
-  c = 54;
-  printf("  sending ptr to %x", c);
-  [prx getChar: &c];
-  printf(" got %x\n", c);
+  TEST_CALL("UChar:\n", "  sending %x", " got %x", "  sending ptr to %x",
+	    uc, ucr, 23, sendUChar:, getUChar:)
 
-  printf("Short:\n");
-  s = 23;
-  printf("  sending %d", s);
-  s = [prx sendShort: s];
-  printf(" got %d\n", s);
-  s = 24;
-  printf("  sending ptr to %d", s);
-  [prx getShort: &s];
-  printf(" got %d\n", s);
+  TEST_CALL("Char:\n", "  sending %x", " got %x", "  sending ptr to %x",
+	    c, cr, 23, sendChar:, getChar:)
 
-  printf("Int:\n");
-  i = 23;
-  printf("  sending %d", i);
-  i = [prx sendInt: i];
-  printf(" got %d\n", i);
-  i = 24;
-  printf("  sending ptr to %d", i);
-  [prx getInt: &i];
-  printf(" got %c\n", c);
+  TEST_CALL("Short:\n", "  sending %d", " got %d", "  sending ptr to %d",
+	    s, sr, 23, sendShort:, getShort:)
 
-  printf("Long:\n");
-  l = 23;
-  printf("  sending %ld", l);
-  l = [prx sendLong: l];
-  printf(" got %ld\n", l);
-  l = 24;
-  printf("  sending ptr to %ld", l);
-  [prx getLong: &l];
-  printf(" got %ld\n", l);
+  TEST_CALL("Int:\n", "  sending %d", " got %d", "  sending ptr to %d",
+	    i, ir, 23, sendInt:, getInt:)
 
-  printf("Float:\n");
-  flt = 23;
-  printf("  sending %f", flt);
-  flt = [prx sendFloat: flt];
-  printf(" got %f\n", flt);
-  flt = 24;
-  printf("  sending ptr to %f", flt);
-  [prx getFloat: &flt];
-  printf(" got %f\n", flt);
+  TEST_CALL("Long:\n", "  sending %ld", " got %ld", "  sending ptr to %ld",
+	    l, lr, 23, sendLong:, getLong:)
 
-  printf("Double:\n");
-  dbl = 23;
-  printf("  sending %g", dbl);
-  dbl = [prx sendDouble: dbl];
-  printf(" got %g\n", dbl);
-  dbl = 24;
-  printf("  sending ptr to %g", dbl);
-  [prx getDouble: &dbl];
-  printf(" got %g\n", dbl);
+  TEST_CALL("Float:\n", "  sending %f", " got %f", "  sending ptr to %f",
+	    flt, fltr, 23.2, sendFloat:, getFloat:)
 
-  printf("  >>sending double %f, float %f\n", dbl, flt);
+  TEST_CALL("Double:\n", "  sending %g", " got %g", "  sending ptr to %g",
+	    dbl, dblr, 23.2, sendDouble:, getDouble:)
+
+  flt = 2.718;
+  dbl = 3.14159265358979323846264338327;
+  printf("  sending double %f, float %f\n", dbl, flt);
   [prx sendDouble:dbl andFloat:flt];
 
 
@@ -173,6 +153,7 @@ int con_data (id prx)
 
   printf("Object:\n");
   obj = [NSObject new];
+  [prx addObject: obj];  // FIXME: Why is this needed?
   printf("  sending %s", [[obj description] cString]);
   obj = [prx sendObject: obj];
   printf(" got %s\n", [[obj description] cString]);
@@ -180,26 +161,180 @@ int con_data (id prx)
   [prx getObject: &obj];
   printf(" got %s\n",  [[obj description] cString]);
 
+  printf("Many Arguments:\n");
+  [prx manyArgs:1 :2 :3 :4 :5 :6 :7 :8 :9 :10 :11 :12];
+
+  return 0;
+}
+
+int
+con_messages (id prx)
+{
+  id obj;
+
+  obj = [NSObject new];
+
+  printf("Oneway Void message:\n");
+  [prx shout];
+  printf("  ok\n");
+
+  /* this next line doesn't actually test callbacks, it tests
+     sending the same object twice in the same message. */
+  printf("Send same object twice in message\n");
+  [prx sendObject: prx];
+  printf("  ok\n");
+
+  printf("performSelector:\n");
+  if (prx != [prx performSelector:sel_get_any_uid("self")])
+    printf("  ERROR\n");
+  else
+    printf("  ok\n");
+
+  printf("Testing bycopy/byref:\n");
+  [prx sendBycopy: obj];
+
+#ifdef	_F_BYREF
+  [prx sendByref: obj];
+  [prx sendByref:@"hello"];
+  [prx sendByref:[NSDate date]];
+#endif
+  printf("  ok\n");
+  return 0;
+}
+
+int
+con_benchmark (id prx)
+{
+  int i;
+  NSDate	  *d = [NSDate date];
+  NSMutableData *sen = [NSMutableData data];
+  id localObj;
+  id rep;
+  
+  printf("Benchmarking\n");
+  [sen setLength: 100000];
+  rep = [prx sendObject: sen];
+  printf("  Sent: 0x%p, Reply: 0x%p, Length: %d\n", sen, rep, [rep length]);
+
+  [NSConnection setDebug: 0];
+  [NSDistantObject setDebug: 0];
+  //[NSPort setDebug: 0];
+  localObj = [[NSObject alloc] init];
+  [prx addObject: localObj];  // FIXME: Why is this needed?
+  for (i = 0; i < 10000; i++)
+    {
+#if 0
+      k = [prx count];
+      for (j = 0; j < k; j++)
+	{
+	  id remote_peer_obj = [prx objectAt: j];
+	}
+#endif
+      [prx echoObject: localObj];
+    }
+  
+  printf("  Delay is %f\n", [d timeIntervalSinceNow]);
+  return 0;
+}
+
+int
+con_statistics (id prx)
+{
+  int j;
+  id localObj, cobj, a, o;
+
+  printf("------------------------------------------------------------\n");
+  printf("Printing Statistics\n");
+  localObj = [[NSObject alloc] init];
+  [prx outputStats: localObj];
+  printf("  >>list proxy's hash is 0x%d\n", [prx hash]);
+  printf("  >>list proxy's self is 0x%p = 0x%p\n", [prx self], prx);
+  printf("  >>proxy's name is (%s)\n", [prx name]);
+
+  cobj = [prx connectionForProxy];
+  o = [cobj statistics];
+  a = [o allKeys];
+
+  for (j = 0; j < [a count]; j++)
+    {
+      id k = [a objectAtIndex:j];
+      id v = [o objectForKey:k];
+
+      printf("  %s - %s\n", [k cString], [[v description] cString]);
+    }
+  printf("------------------------------------------------------------\n");
+
+  return 0;
+}
+
+int
+con_loop (id prx)
+{
+  NSAutoreleasePool *arp;
+  id cobj;
+
+  arp = [NSAutoreleasePool new];
+  cobj = [prx connectionForProxy];
+  printf("%d\n", [cobj retainCount]);
+  printf("%s\n", [[[cobj statistics] description] cString]);
+  //printf("%s\n", GSDebugAllocationList(YES));
+
+  [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 2 * 60]];
+  [cobj invalidate];
+  [arp release];
+  return 0;
+}
+
+int
+con_objects (id prx)
+{
+  int j, k;
+  id localObj;
+
+  localObj = [NSObject new];
+  [prx addObject:localObj];
+  k = [prx count];
+  for (j = 0; j < k; j++)
+    {
+      id remote_peer_obj = [prx objectAt:j];
+      printf("triangle %d object proxy's hash is 0x%x\n", 
+	     j, (unsigned)[remote_peer_obj hash]);
+
+#if 0
+      /* xxx look at this again after we use release/retain everywhere */
+      if ([remote_peer_obj isProxy])
+	[remote_peer_obj release];
+#endif
+      remote_peer_obj = [prx objectAt:j];
+      printf("repeated triangle %d object proxy's hash is 0x%x\n", 
+	     j, (unsigned)[remote_peer_obj hash]);
+    }
   return 0;
 }
 
 void
 usage(const char *program)
 {
-  printf("Usage: %s [-d -t] [host] [server]\n", program);
+  printf("Usage: %s [-ds] [t|b|m|l|o] [host] [server]\n", program);
   printf("  -d     - Debug connection\n");
-  printf("  -t     - Data type test only\n");
+  printf("  -s     - Print Statistics\n");
+  printf("  -t     - Data type test [default]\n");
+  printf("  -b     - Benchmark test\n");
+  printf("  -m     - Messaging test\n");
+  printf("  -l     - Loop test\n");
+  printf("  -o     - Objects test\n");
 }
+
+typedef enum {
+  NO_TEST, TYPE_TEST, BENCHMARK_TEST, MESSAGE_TEST,
+  LOOP_TEST, OBJECT_TEST
+} test_t;
 
 int main (int argc, char *argv[], char **env)
 {
-  int c, i, k, j, debug, type_test;
-  id a;
+  int c, debug, stats;
+  test_t type_test;
   id cobj, prx;
-  id obj = [NSObject new];
-  id o;
-  id localObj;
-  const char *n;
   NSAutoreleasePool	*arp;
   Auth *auth;
   extern int optind;
@@ -212,14 +347,30 @@ int main (int argc, char *argv[], char **env)
 
   debug = 0;
   type_test = 0;
-  while ((c = getopt(argc, argv, "hdt")) != EOF)
+  stats = 0;
+  while ((c = getopt(argc, argv, "hdtbmslo")) != EOF)
     switch (c) 
       {
       case 'd':
 	debug = 1;
 	break;
       case 't':
-	type_test = 1;
+	type_test = TYPE_TEST;
+	break;
+      case 'b':
+	type_test = BENCHMARK_TEST;
+	break;
+      case 'm':
+	type_test = MESSAGE_TEST;
+	break;
+      case 's':
+	stats = 1;
+	break;
+      case 'l':
+	type_test = LOOP_TEST;
+	break;
+      case 'o':
+	type_test = OBJECT_TEST;
 	break;
       case 'h':
 	usage(argv[0]);
@@ -230,6 +381,8 @@ int main (int argc, char *argv[], char **env)
 	exit(1);
 	break;
       }
+  if (type_test == NO_TEST)
+    type_test = TYPE_TEST;
 
   if (debug)
     {
@@ -237,10 +390,6 @@ int main (int argc, char *argv[], char **env)
       [NSDistantObject setDebug: 10];
       //[NSPort setDebug: 10];
     }
-
-#if NeXT_runtime
-  [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
-#endif
 
   if (optind < argc)
     {
@@ -267,127 +416,33 @@ int main (int argc, char *argv[], char **env)
   [cobj setDelegate:auth];
   [cobj setRequestTimeout:180.0];
   [cobj setReplyTimeout:180.0];
-  localObj = [[NSObject alloc] init];
-  [prx outputStats:localObj];
-  printf(">>list proxy's hash is 0x%x\n", 
-	 (unsigned)[prx hash]);
-  printf(">>list proxy's self is 0x%x = 0x%x\n", 
-	 (unsigned)[prx self], (unsigned)prx);
-  n = [prx name];
-  printf(">>proxy's name is (%s)\n", n);
 
+  [prx print: "This is a message from the client. Starting Tests!"];
 
-  [prx print:">>This is a message from the client.<<"];
-
-  con_data (prx);
-  if (type_test)
-    return 0;
-
-  o = [prx objectAt:0];
-  printf("  >>object proxy's hash is 0x%x\n", (unsigned)[o hash]);
-  [prx shout];
-
-  /* this next line doesn't actually test callbacks, it tests
-     sending the same object twice in the same message. */
-  printf("  >>send same object twice in message\n");
-  [prx sendObject: prx];
-
-
-
-  printf("performSelector:\n");
-  if (prx != [prx performSelector:sel_get_any_uid("self")])
-    printf("  ERROR\n");
-  else
-    printf("  ok\n");
-
-
-  /* testing "bycopy" */
-  /* reverse the order on these next two and it doesn't crash,
-     however, having manyArgs called always seems to crash.
-     Was this problem here before object forward references?
-     Hmm. It seems like a runtime selector-handling bug. */
-  printf("many Arguments:\n");
-  [prx manyArgs:1 :2 :3 :4 :5 :6 :7 :8 :9 :10 :11 :12];
-
-
-  printf("Testing bycopy/byref:\n");
-  [prx sendBycopy: obj];
-
-#ifdef	_F_BYREF
-  [prx sendByref: obj];
-  [prx sendByref:@"hello"];
-  [prx sendByref:[NSDate date]];
-#endif
-
-  [prx addObject:localObj];
-  k = [prx count];
-  for (j = 0; j < k; j++)
+  switch (type_test)
     {
-      id remote_peer_obj = [prx objectAt:j];
-      printf("triangle %d object proxy's hash is 0x%x\n", 
-	     j, (unsigned)[remote_peer_obj hash]);
-
-#if 0
-      /* xxx look at this again after we use release/retain everywhere */
-      if ([remote_peer_obj isProxy])
-	[remote_peer_obj release];
-#endif
-      remote_peer_obj = [prx objectAt:j];
-      printf("repeated triangle %d object proxy's hash is 0x%x\n", 
-	     j, (unsigned)[remote_peer_obj hash]);
+    case TYPE_TEST:
+      con_data (prx);
+      break;
+    case BENCHMARK_TEST:
+      con_benchmark (prx);
+      break;
+    case MESSAGE_TEST:
+      con_messages (prx);
+      break;
+    case LOOP_TEST:
+      con_loop (prx);
+      break;
+    case OBJECT_TEST:
+      con_objects (prx);
+      break;
+    default:
+      break;
     }
 
-  [prx outputStats:localObj];
+  if (stats)
+    con_statistics (prx);
 
-  o = [cobj statistics];
-  a = [o allKeys];
-
-  for (j = 0; j < [a count]; j++)
-    {
-      id k = [a objectAtIndex:j];
-      id v = [o objectForKey:k];
-
-      printf("%s - %s\n", [k cString], [[v description] cString]);
-    }
-
-  {
-    NSDate	  *d = [NSDate date];
-    NSMutableData *sen = [NSMutableData data];
-    id		rep;
-
-    [sen setLength: 100000];
-    rep = [prx sendObject: sen];
-    printf("Send: 0x%p, Reply: 0x%p, Length: %d\n", sen, rep, [rep length]);
-    if (debug)
-      {
-	[NSConnection setDebug: 0];
-	[NSDistantObject setDebug: 0];
-	//[NSPort setDebug: 0];
-      }
-    for (i = 0; i < 10000; i++)
-      {
-#if 0
-	k = [prx count];
-	for (j = 0; j < k; j++)
-	  {
-	    id remote_peer_obj = [prx objectAt: j];
-	  }
-#endif
-	[prx sendObject: localObj];
-      }
-      
-    printf("Delay is %f\n", [d timeIntervalSinceNow]);
-  }
-
-  [arp release];
-
-  arp = [NSAutoreleasePool new];
-  printf("%d\n", [cobj retainCount]);
-  printf("%s\n", [[[cobj statistics] description] cString]);
-//  printf("%s\n", GSDebugAllocationList(YES));
-
-  [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
-  [cobj invalidate];
   [arp release];
   return 0;
 }

@@ -1,3 +1,8 @@
+2000-08-02  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/nsconnection_client.m: Rewrite, organize.
+	* Testing/nsconnection_server.m: Likewise.
+
 2000-08-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: ([-removeHandle:]) corrected logic for releasing

@@ -17,6 +17,8 @@ typedef struct _foo {
 struct myarray {
   int a[3];
 };
+
+#define ADD_CONST 129
  
 @protocol ServerProtocol 
 - (BOOL) sendBoolean: (BOOL)b;
@@ -50,6 +52,7 @@ struct myarray {
 
 - objectAt: (unsigned)i;
 - (unsigned) count;
+- echoObject: obj;
 
 - (oneway void) shout;
 - bounce: sender count: (int)c;
