@@ -143,6 +143,16 @@ NSString *NSCurrencyString = @"NSCurrencyString";
 NSString *NSDecimalDigits = @"NSDecimalDigits";
 NSString *NSAMPMDesignation = @"NSAMPMDesignation";
 
+NSString *NSHourNameDesignations = @"NSHourNameDesignations";
+NSString *NSYearMonthWeekDesignations = @"NSYearMonthWeekDesignations";
+NSString *NSEarlierTimeDesignations = @"NSEarlierTimeDesignations";
+NSString *NSLaterTimeDesignations = @"NSLaterTimeDesignations";
+NSString *NSThisDayDesignations = @"NSThisDayDesignations";
+NSString *NSNextDayDesignations = @"NSNextDayDesignations";
+NSString *NSNextNextDayDesignations = @"NSNextNextDayDesignations";
+NSString *NSPriorDayDesignations = @"NSPriorDayDesignations";
+NSString *NSDateTimeOrdering = @"NSDateTimeOrdering";
+
 /* Standard MapTable callbacks */
 
 const NSMapTableKeyCallBacks NSIntMapKeyCallBacks = 
