@@ -2031,6 +2031,8 @@ static BOOL snuggleStart(NSString *t)
 	}
       else
 	{
+	  NSString	*up = [ud stringForKey: @"Up"];
+
 	  /*
 	   * No pre-existing file, and no blank template available ...
 	   * Generate a standard template.
@@ -2043,6 +2045,16 @@ static BOOL snuggleStart(NSString *t)
 	  [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"];
 	  [str appendString: @"<gsdoc base=\""];
 	  [str appendString: [name lastPathComponent]];
+	  /*
+	   * If a -Up default has been set, create an up link in this
+	   * template file... as long as the specified up link is not
+	   * the template file itsself.
+	   */
+	  if (up != nil && [up isEqual: [name lastPathComponent]] == NO)
+	    {
+	      [str appendString: @"\" up=\""];
+	      [str appendString: up];
+	    }
 	  [str appendString: @"\">\n"];
 	  [str appendString: @"  <head>\n"];
 	  [str appendString: @"    <title>"];
