@@ -34,6 +34,10 @@
 #define PRINT_TIMER(str) printf("  %-20s\t %6.3f \t %6.3f\n", str, \
 			[eTime timeIntervalSinceDate: sTime], \
 			[eTime timeIntervalSinceDate: sTime]/baseline)
+#define PRINT_TIMER_NO_BASELINE(str) \
+                         printf("  %-20s\t %6.3f \t %6.3f\n", str, \
+			[eTime timeIntervalSinceDate: sTime] - baseline, \
+			[eTime timeIntervalSinceDate: sTime]/baseline - 1)
 
 #define AUTO_START id pool = [NSAutoreleasePool new]
 #define AUTO_END   [pool release]
@@ -47,6 +51,19 @@ NSZone	*myZone;
 Class	rootClass;
 Class	stringClass;
 IMP	cstring;
+
+@interface MyObject : NSObject
+@end
+
+@implementation MyObject
+@end
+
+@implementation MyObject (Category)
+- (id) self
+{
+  return [super self];
+}
+@end
 
 void
 bench_object()
@@ -83,6 +100,17 @@ bench_object()
     }
   END_TIMER;
   PRINT_TIMER("Class: 10 class method calls");
+  
+  obj = [MyObject new];
+  
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT * 10; i++)
+    {
+      id i;
+      i = [obj self];
+    }
+  END_TIMER;
+  PRINT_TIMER_NO_BASELINE("Category: 10 super calls");
   
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
