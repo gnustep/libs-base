@@ -19,6 +19,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   */
 
 /* This uses some GCC specific extensions. But since the library is
    supposed to compile on GCC 2.7.2 (patched) or higher, and the only
@@ -355,7 +356,8 @@ NSCreateZone(unsigned startSize, unsigned granularity, BOOL canFree)
 {
   NSZone *zone;
   BlockHeader *block;
-  
+
+  initialize ();
   if ((startSize == 0) || (startSize > maxsblock()))
     startSize = bsize;
   else
@@ -403,6 +405,7 @@ NSCreateZone(unsigned startSize, unsigned granularity, BOOL canFree)
 NSZone*
 NSDefaultMallocZone(void)
 {
+  initialize ();
   return &defaultZone;
 }
 
@@ -514,7 +517,12 @@ NSMallocCheck(void)
 static void
 initialize(void)
 {
+  static int initialize_done = 0;
   BlockHeader *block;
+
+  if (initialize_done)
+    return;
+  initialize_done = 1;
 
   bsize = NSPageSize();
   zunit = (bsize-sizeof(ZoneTable))/sizeof(NSZone);
