@@ -40,6 +40,7 @@ LIBS = -L$(srcdir)/../src -lobjects @LIBOBJC@ @LIBS@
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
+include $(srcdir)/../Version
 
 # xxx Is this needed anymore?
 NEXT_NEXT_INCLUDES = -I/usr/include
