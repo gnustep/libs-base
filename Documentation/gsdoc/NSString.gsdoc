@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSString" prev="NSSet.html" next="NSTask.html" up="Base.html">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="NSString" prev="NSSet" next="NSTask" up="Base">
   <head>
     <title>NSString</title>
     <author name="Richard Frith-Macdonald">

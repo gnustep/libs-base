@@ -2,7 +2,7 @@
 
 	* Makefile.preamble: define GS_NEW_DO to specify whether the
 	new or the old DO code is to be used.  Change the define and
-	rebuild the library for the new DO code.
+	rebuild the library if you need the old DO code.
 	Advantages of new code -
 	  MacOS-X compatibly
 	  Should work between different processor architectures and word sizes
@@ -20,6 +20,10 @@
 	* Source/GSPortCoder.m: removed - merged into NSPortCoder.m
 	* Source/NSPortNameServer.m: Use GS_NEW_DO define to determine
 	default port class
+	* Documentation/gsdoc/NSConnection.gsdoc: Added descriptions of
+	all the methods in the new implementation.  The class is
+	perilously close to being fully documented!
+	* Documentation/gsdoc/...: updated all files to use new dtd.
 
 2000-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSCountedSet" prev="NSConnection.html" next="NSDate.html" up="Base.html">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="NSCountedSet" prev="NSConnection" next="NSDate" up="Base">
   <head>
     <title>NSCountedSet</title>
     <author name="Richard Frith-Macdonald">

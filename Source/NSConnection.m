@@ -316,7 +316,12 @@ static NSLock		*global_proxies_gate;
 
 + (NSArray*) allConnections
 {
-  return NSAllHashTableObjects(connection_table);
+  NSArray	*a;
+
+  M_LOCK(connection_table_gate);
+  a = NSAllHashTableObjects(connection_table);
+  M_UNLOCK(connection_table_gate);
+  return a;
 }
 
 + (NSConnection*) connectionWithReceivePort: (NSPort*)r
@@ -356,12 +361,12 @@ static NSLock		*global_proxies_gate;
 
       if (sendPort != nil)
 	{
-	  con = existingConnection(nil, sendPort);
+	  NSPort	*recvPort;
+
+	  recvPort = [[self defaultConnection] receivePort];
+	  con = existingConnection(recvPort, sendPort);
 	  if (con == nil)
 	    {
-	      NSPort	*recvPort;
-
-	      recvPort = [[self defaultConnection] receivePort];
 	      con = [self connectionWithReceivePort: recvPort
 					   sendPort: sendPort];
 	    }
@@ -697,35 +702,51 @@ static NSLock		*global_proxies_gate;
     NSCreateMapTable(NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
 
-  /*
-   * Some attributes are inherited from the parent if possible.
-   */
-  if (parent != nil)
-    {
-      _independentQueueing = parent->_independentQueueing;
-      _replyTimeout = parent->_replyTimeout;
-      _requestTimeout = parent->_requestTimeout;
-    }
-  else
-    {
-      _independentQueueing = NO;
-      _replyTimeout = CONNECTION_DEFAULT_TIMEOUT;
-      _requestTimeout = CONNECTION_DEFAULT_TIMEOUT;
-    }
-
   _requestDepth = 0;
   _delegate = nil;
   _refGate = [NSRecursiveLock new];
 
   /*
-   *	Set up request modes array and make sure the receiving port is
-   *	added to the run loop to get data.
+   * Some attributes are inherited from the parent if possible.
    */
-  loop = [runLoopClass currentRunLoop];
-  _runLoops = [[NSMutableArray alloc] initWithObjects: &loop count: 1];
-  _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
-  [self addRequestMode: NSDefaultRunLoopMode]; 
-  [self addRequestMode: NSConnectionReplyMode]; 
+  if (parent != nil)
+    {
+      unsigned	count;
+
+      _multipleThreads = parent->_multipleThreads;
+      _independentQueueing = parent->_independentQueueing;
+      _replyTimeout = parent->_replyTimeout;
+      _requestTimeout = parent->_requestTimeout;
+      _runLoops = [parent->_runLoops mutableCopy];
+      count = [parent->_requestModes count];
+      _requestModes = [[NSMutableArray alloc] initWithCapacity: count];
+      while (count-- > 0)
+	{
+	  [self addRequestMode: [parent->_requestModes objectAtIndex: count]];
+	}
+    }
+  else
+    {
+      _multipleThreads = NO;
+      _independentQueueing = NO;
+      _replyTimeout = CONNECTION_DEFAULT_TIMEOUT;
+      _requestTimeout = CONNECTION_DEFAULT_TIMEOUT;
+      /*
+       * Set up request modes array and make sure the receiving port
+       * is added to the run loop to get data.
+       */
+      loop = [runLoopClass currentRunLoop];
+      _runLoops = [[NSMutableArray alloc] initWithObjects: &loop count: 1];
+      _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
+      [self addRequestMode: NSDefaultRunLoopMode]; 
+      [self addRequestMode: NSConnectionReplyMode]; 
+
+      /*
+       * If we have no parent, we must handle incoming packets on our
+       * receive port ourself - so we set ourself up as the port delegate.
+       */
+      [_receivePort setDelegate: self];
+    }
 
   /* Ask the delegate for permission, (OpenStep-style and GNUstep-style). */
 
@@ -756,15 +777,6 @@ static NSLock		*global_proxies_gate;
   if ([del respondsTo: @selector(connection:didConnect:)])
     self = [del connection: parent didConnect: self];
 
-  /*
-   * If we have no parent, we must handle incoming packets on our
-   * receive port ourself - so we set ourself up as the port delegate.
-   */
-  if (parent == nil)
-    {
-      [_receivePort setDelegate: self];
-    }
-
   /* Register ourselves for invalidation notification when the
      ports become invalid. */
   nCenter = [NSNotificationCenter defaultCenter];
@@ -793,22 +805,30 @@ static NSLock		*global_proxies_gate;
 
 - (void) invalidate
 {
-  BOOL	wasValid;
-
   M_LOCK(_refGate);
-  wasValid = _isValid;
-  _isValid = NO;
-  M_UNLOCK(_refGate);
-
-  if (wasValid == NO)
+  if (_isValid == NO)
     {
+      M_UNLOCK(_refGate);
       return;
     }
+
+  M_LOCK(connection_table_gate);
+  NSHashRemove(connection_table, self);
+  [timer invalidate];
+  timer = nil;
+  M_UNLOCK(connection_table_gate);
+
+  M_LOCK(_refGate);
 
   /*
    *	Don't need notifications any more - so remove self as observer.
    */
   [[NSNotificationCenter defaultCenter] removeObserver: self];
+
+  /*
+   * Make sure we are not registered.
+   */
+  [self registerName: nil];
 
   /*
    * Withdraw from run loops.
@@ -844,22 +864,36 @@ static NSLock		*global_proxies_gate;
    *	these proxies in case they are keeping us retained when we
    *	might otherwise de deallocated.
    */
-  {
-    NSArray *targets;
-    unsigned 	i;
+  M_LOCK(_proxiesGate);
+  if (_remoteProxies != 0)
+    {
+      NSFreeMapTable(_remoteProxies);
+      _remoteProxies = 0;
+    }
+  if (_localObjects != 0)
+    {
+      NSFreeMapTable(_localObjects);
+      _localObjects = 0;
+    }
+  if (_localTargets != 0)
+    {
+      NSArray	*targets;
+      unsigned 	i;
 
-    M_LOCK(_proxiesGate);
-    targets = NSAllMapTableValues(_localTargets);
-    IF_NO_GC(RETAIN(targets));
-    for (i = 0; i < [targets count]; i++)
-      {
-	id	t = [[targets objectAtIndex: i] localForProxy];
+      targets = NSAllMapTableValues(_localTargets);
+      IF_NO_GC(RETAIN(targets));
+      i = [targets count];
+      while (i-- > 0)
+	{
+	  id	t = [[targets objectAtIndex: i] localForProxy];
 
-	[self removeLocalObject: t];
-      }
-    [targets release];
-    M_UNLOCK(_proxiesGate);
-  }
+	  [self removeLocalObject: t];
+	}
+      RELEASE(targets);
+      NSFreeMapTable(_localTargets);
+      _localTargets = 0;
+    }
+  M_UNLOCK(_proxiesGate);
 
   RELEASE(self);
 }
@@ -899,27 +933,20 @@ static NSLock		*global_proxies_gate;
 
 - (BOOL) registerName: (NSString*)name withNameServer: (NSPortNameServer*)svr
 {
-  NSArray		*names = [svr namesForPort: _receivePort];
   BOOL			result = YES;
-  unsigned		c;
 
   if (name != nil)
     {
       result = [svr registerPort: _receivePort forName: name];
     }
-  if (result == YES && (c = [names count]) > 0)
+  if (result == YES)
     {
-      unsigned	i;
-
-      for (i = 0; i < c; i++)
+      if (_registeredName != nil)
 	{
-	  NSString	*tmp = [names objectAtIndex: i];
-
-	  if ([tmp isEqualToString: name] == NO)
-	    {
-	      [svr removePort: _receivePort forName: name];
-	    }
+	  [_nameServer removePort: _receivePort forName: _registeredName];
 	}
+      ASSIGN(_registeredName, name);
+      ASSIGN(_nameServer, svr);
     }
   return result;
 }
@@ -1154,11 +1181,6 @@ static NSLock		*global_proxies_gate;
     NSLog(@"finalising 0x%x", (gsaddr)self);
 
   [self invalidate];
-  M_LOCK(connection_table_gate);
-  NSHashRemove(connection_table, self);
-  [timer invalidate];
-  timer = nil;
-  M_UNLOCK(connection_table_gate);
 
   /* Remove rootObject from root_object_map if this is last connection */
   if (_receivePort != nil && existingConnection(_receivePort, nil) == nil)
@@ -1188,24 +1210,6 @@ static NSLock		*global_proxies_gate;
     }
   DESTROY(_receivePort);
   DESTROY(_sendPort);
-
-  M_LOCK(_proxiesGate);
-  if (_remoteProxies != 0)
-    {
-      NSFreeMapTable(_remoteProxies);
-      _remoteProxies = 0;
-    }
-  if (_localObjects != 0)
-    {
-      NSFreeMapTable(_localObjects);
-      _localObjects = 0;
-    }
-  if (_localTargets != 0)
-    {
-      NSFreeMapTable(_localTargets);
-      _localTargets = 0;
-    }
-  M_UNLOCK(_proxiesGate);
 
   DESTROY(_requestQueue);
   if (_replyMap != 0)
@@ -3149,11 +3153,6 @@ static int messages_received_count;
     NSLog(@"finalising 0x%x\n", (gsaddr)self);
 
   [self invalidate];
-  [connection_table_gate lock];
-  NSHashRemove(connection_table, self);
-  [timer invalidate];
-  timer = nil;
-  [connection_table_gate unlock];
 
   /* Remove rootObject from root_object_dictionary
      if this is last connection */

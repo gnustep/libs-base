@@ -65,38 +65,38 @@
 </ul>
 <hr>
 <h2><a name="method-0">allocWithZone:</a></h2>
-+ (id) <b>allocWithZone:</b> (NSZone*)zone<br>
++ (id) <b>allocWithZone:</b> (NSZone*)zone;<br>
 
           
 <hr>
 <h2><a name="method-1">dictionary</a></h2>
-+ (id) <b>dictionary</b><br>
++ (id) <b>dictionary</b>;<br>
 
             Returns an empty dictionary.
           
 <hr>
 <h2><a name="method-2">dictionaryWithContentsOfFile:</a></h2>
-+ (id) <b>dictionaryWithContentsOfFile:</b> (NSString*)path<br>
++ (id) <b>dictionaryWithContentsOfFile:</b> (NSString*)path;<br>
 
             Returns a dictionary using the file located at path. 
             The file must be a property list containing a dictionary as its root object.
           
 <hr>
 <h2><a name="method-3">dictionaryWithDictionary:</a></h2>
-+ (id) <b>dictionaryWithDictionary:</b> (NSDictionary*)otherDictionary<br>
++ (id) <b>dictionaryWithDictionary:</b> (NSDictionary*)otherDictionary;<br>
 
             Returns a newly created dictionary with the keys and objects of otherDictionary.
             (The keys and objects are not copied.)
           
 <hr>
 <h2><a name="method-4">dictionaryWithObject:forKey:</a></h2>
-+ (id) <b>dictionaryWithObject:</b> (id)anObject <b>forKey:</b> (id)aKey<br>
++ (id) <b>dictionaryWithObject:</b> (id)anObject <b>forKey:</b> (id)aKey;<br>
 
             Returns a dictionary containing only one object (anObject) which is associated with aKey.
           
 <hr>
 <h2><a name="method-5">dictionaryWithObjects:forKey:</a></h2>
-+ (id) <b>dictionaryWithObjects:</b> (NSArray*)objects <b>forKey:</b> (NSArray*)keys<br>
++ (id) <b>dictionaryWithObjects:</b> (NSArray*)objects <b>forKey:</b> (NSArray*)keys;<br>
 
             Returns a dictionary created using the given objects and keys.
             The two arrays must have the same size.
@@ -104,14 +104,14 @@
           
 <hr>
 <h2><a name="method-6">dictionaryWithObjects:forKeys:count:</a></h2>
-+ (id) <b>dictionaryWithObjects:</b> (id*)objects <b>forKeys:</b> (id*)keys <b>count:</b> (unsigned int)count<br>
++ (id) <b>dictionaryWithObjects:</b> (id*)objects <b>forKeys:</b> (id*)keys <b>count:</b> (unsigned int)count;<br>
 
             Returns a dictionary created using the C arrays objects and keys.
             The number of elements in both C arrays must be count.
           
 <hr>
 <h2><a name="method-7">dictionaryWithObjectsAndKeys:</a></h2>
-+ (id) <b>dictionaryWithObjectsAndKeys:</b> (id)object, ...<br>
++ (id) <b>dictionaryWithObjectsAndKeys:</b> (id)object, ...;<br>
 
             Returns a dictionary created using the list given as argument.
             The list is alernately composed of objects and keys.
@@ -119,163 +119,163 @@
           
 <hr>
 <h2><a name="method-8">allKeys</a></h2>
-- (NSArray*) <b>allKeys</b><br>
+- (NSArray*) <b>allKeys</b>;<br>
 
             Returns an array containing all the dictionary's keys.
           
 <hr>
 <h2><a name="method-9">allKeysForObject:</a></h2>
-- (NSArray*) <b>allKeysForObject:</b> (id)anObject<br>
+- (NSArray*) <b>allKeysForObject:</b> (id)anObject;<br>
 
             Returns an array containing all the dictionary's keys that are associated with anObject.
           
 <hr>
 <h2><a name="method-10">allValues</a></h2>
-- (NSArray*) <b>allValues</b><br>
+- (NSArray*) <b>allValues</b>;<br>
 
             Returns an array containing all the dictionary's objects.
           
 <hr>
 <h2><a name="method-11">count</a></h2>
-- (unsigned int) <b>count</b><br>
+- (unsigned int) <b>count</b>;<br>
 
 	    Returns an unsigned integer which is the number of elements stored in the dictionary.
           
 <hr>
 <h2><a name="method-12">descriptionInStringsFileFormat</a></h2>
-- (NSString*) <b>descriptionInStringsFileFormat</b><br>
+- (NSString*) <b>descriptionInStringsFileFormat</b>;<br>
 
             
           
 <hr>
 <h2><a name="method-13">descriptionWithLocale:</a></h2>
-- (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)locale<br>
+- (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)locale;<br>
 
             
           
 <hr>
 <h2><a name="method-14">descriptionWithLocale:</a></h2>
-- (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)locale<br>
+- (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)locale;<br>
 
             
           
 <hr>
 <h2><a name="method-15">fileGroupOwnerAccountName</a></h2>
-- (NSString*) <b>fileGroupOwnerAccountName</b><br>
+- (NSString*) <b>fileGroupOwnerAccountName</b>;<br>
 
            
           
 <hr>
 <h2><a name="method-16">fileModificationDate</a></h2>
-- (NSDate*) <b>fileModificationDate</b><br>
+- (NSDate*) <b>fileModificationDate</b>;<br>
 
            
           
 <hr>
 <h2><a name="method-17">fileOwnerAccountName</a></h2>
-- (NSString*) <b>fileOwnerAccountName</b><br>
+- (NSString*) <b>fileOwnerAccountName</b>;<br>
 
             
           
 <hr>
 <h2><a name="method-18">filePosixPermissions</a></h2>
-- (unsigned long) <b>filePosixPermissions</b><br>
+- (unsigned long) <b>filePosixPermissions</b>;<br>
 
             
           
 <hr>
 <h2><a name="method-19">fileSize</a></h2>
-- (unsigned long long) <b>fileSize</b><br>
+- (unsigned long long) <b>fileSize</b>;<br>
 
            
           
 <hr>
 <h2><a name="method-20">fileSystemFileNumber</a></h2>
-- (unsigned long) <b>fileSystemFileNumber</b><br>
+- (unsigned long) <b>fileSystemFileNumber</b>;<br>
 
             
           
 <hr>
 <h2><a name="method-21">fileSystemNumber</a></h2>
-- (unsigned long) <b>fileSystemNumber</b><br>
+- (unsigned long) <b>fileSystemNumber</b>;<br>
 
             
           
 <hr>
 <h2><a name="method-22">fileType</a></h2>
-- (NSString*) <b>fileType</b><br>
+- (NSString*) <b>fileType</b>;<br>
 
             
           
 <hr>
 <h2><a name="method-23">initWithContentsOfFile:</a></h2>
-- (id) <b>initWithContentsOfFile:</b> (NSString*)path<br>
+- (id) <b>initWithContentsOfFile:</b> (NSString*)path;<br>
 
             see dictionaryWithContentOfFile:
           
 <hr>
 <h2><a name="method-24">initWithDictionary:</a></h2>
-- (id) <b>initWithDictionary:</b> (NSDictionary*)otherDictionary<br>
+- (id) <b>initWithDictionary:</b> (NSDictionary*)otherDictionary;<br>
 
             See dictionaryWithDictionary: 
           
 <hr>
 <h2><a name="method-25">initWithObjects:</a></h2>
-- (id) <b>initWithObjects:</b> (NSArray*)objects<br>
+- (id) <b>initWithObjects:</b> (NSArray*)objects;<br>
 
             See <a href="#dictionaryWithObjects:">dictionaryWithObjects:</a>            
           
 <hr>
 <h2><a name="method-26">initWithObjects:forKeys:count:</a></h2>
-- (id) <b>initWithObjects:</b> (id*)objects <b>forKeys:</b> (id*)keys <b>count:</b> (unsigned int)count<br>
+- (id) <b>initWithObjects:</b> (id*)objects <b>forKeys:</b> (id*)keys <b>count:</b> (unsigned int)count;<br>
 
             see dictionaryWithObjects: forKeys: count:
           
 <hr>
 <h2><a name="method-27">initWithObjectsAndKeys:</a></h2>
-- (id) <b>initWithObjectsAndKeys:</b> (id)object,<br>
+- (id) <b>initWithObjectsAndKeys:</b> (id)object,;<br>
 
             see dictionaryWithObjectsAndKeys:
           
 <hr>
 <h2><a name="method-28">isEqualToDictionary:</a></h2>
-- (BOOL) <b>isEqualToDictionary:</b> (NSDictionary*)otherDictionary<br>
+- (BOOL) <b>isEqualToDictionary:</b> (NSDictionary*)otherDictionary;<br>
 
             
           
 <hr>
 <h2><a name="method-29">keyEnumerator</a></h2>
-- (NSEnumerator*) <b>keyEnumerator</b><br>
+- (NSEnumerator*) <b>keyEnumerator</b>;<br>
 
             Return an enumerator object containing all the keys of the dictionary.
           
 <hr>
 <h2><a name="method-30"> keysSortedByValueUsingSelector:</a></h2>
-- (NSArray*) <b> keysSortedByValueUsingSelector:</b> (SEL)comparator<br>
+- (NSArray*) <b> keysSortedByValueUsingSelector:</b> (SEL)comparator;<br>
 
             
           
 <hr>
 <h2><a name="method-31">objectEnumerator</a></h2>
-- (NSEnumerator*) <b>objectEnumerator</b><br>
+- (NSEnumerator*) <b>objectEnumerator</b>;<br>
 
             Return an enumerator object containing all the keys of the dictionary.
           
 <hr>
 <h2><a name="method-32">objectForKey:</a></h2>
-- (id) <b>objectForKey:</b> (id)aKey<br>
+- (id) <b>objectForKey:</b> (id)aKey;<br>
 
             Returns the first object which has aKey as key.
           
 <hr>
 <h2><a name="method-33">objectsForKeys:notFoundMarker:</a></h2>
-- (NSArray*) <b>objectsForKeys:</b> (NSArray*)keys <b>notFoundMarker:</b> (id)anObject<br>
+- (NSArray*) <b>objectsForKeys:</b> (NSArray*)keys <b>notFoundMarker:</b> (id)anObject;<br>
 
             
           
 <hr>
 <h2><a name="method-34">writeToFile:atomically:</a></h2>
-- (BOOL) <b>writeToFile:</b> (NSString*)path <b>atomically:</b> (BOOL)flag<br>
+- (BOOL) <b>writeToFile:</b> (NSString*)path <b>atomically:</b> (BOOL)flag;<br>
 
             
           

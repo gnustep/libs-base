@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSNumberFormatter" prev="NSNumber.html" next="NSObject.html" up="Base.html">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="NSNumberFormatter" prev="NSNumber" next="NSObject" up="Base">
   <head>
     <title>NSNumberFormatter</title>
     <author name="Richard Frith-Macdonald">

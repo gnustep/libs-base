@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSDistantObjectRequest" prev="NSDistantObject.html" next="NSDistributedLock.html" up="Base.html">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="NSDistantObjectRequest" prev="NSDistantObject" next="NSDistributedLock" up="Base">
   <head>
     <title>NSDistantObjectRequest</title>
     <author name="Richard Frith-Macdonald">
