@@ -1,5 +1,16 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* checks/Makefile.in (SRCS): Added NSData-test.m.
+
+	* src/Decoder.m ([Decoder -decodeObjectAt:anObjPtr:name])
+ 	[CODER_OBJECT_REPEATED]: Retain the object before returning it by
+ 	reference.  (Reported by Richard Frith-Macdonald
+ 	<richard@brainstorm.co.uk>.)
+
+	* src/NSHashTable.m (NSNonRetainedObjectHashCallBacks): Renamed
+ 	from NSNonRetainedObjectsHashCallBacks to conform to spec.
+	* src/include/NSHashTable.h: Likewise.
+
 	* src/Makefile.in (UNICODE_HEADERS): New variable.
 	(DIST_FILES): Add UNICODE_HEADERS.
 	(copy-dist): Create directory for unicode.
