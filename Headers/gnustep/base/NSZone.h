@@ -34,7 +34,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <gnustep/base/config.h>
 
 @class NSString;
 
