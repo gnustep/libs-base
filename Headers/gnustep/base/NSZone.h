@@ -30,7 +30,7 @@
 
 @class NSString;
 
-typedef _objc_mutex_t ZoneLock;
+typedef objc_mutex_t ZoneLock;
 typedef struct _NSZone NSZone;
 
 struct _NSZone
