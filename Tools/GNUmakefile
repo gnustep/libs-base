@@ -46,7 +46,7 @@ ifeq ($(add),yes)
 TOOL_NAME = autogsdoc
 else
 TOOL_NAME = autogsdoc cvtenc gdnc defaults plmerge \
-		plparse sfparse pldes plser pl2link HTMLLinker
+		plparse sfparse pldes plser pl2link HTMLLinker xmlparse
 CTOOL_NAME = gdomap
 
 SUBPROJECTS = make_strings
@@ -72,6 +72,7 @@ sfparse_OBJC_FILES = sfparse.m
 pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
 HTMLLinker_OBJC_FILES = HTMLLinker.m
+xmlparse_OBJC_FILES = xmlparse.m
 
 DOCUMENT_NAME = autogsdoc HTMLLinkerDoc
 
