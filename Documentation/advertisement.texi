@@ -173,12 +173,12 @@ The current version is @value{OBJECTS_VERSION} the low number indicates
 that the library is still in flux.  A version coming soon will include
 String objects and better allocation/dealocation conventions.
 
-@section GNUStep, NEXTSTEP and OpenStep
+@section GNUStep
 
-The libobjects library already contains many of the "Common Classes" in
-NeXTSTEP: List, HashTable, Storage, NXStringTable.  In the future it
-will also contain classes compatible with the OpenStep Foundation Kit.
-Progress is already being made on this front.
+The @samp{libobjects} library already contains many of the GNUStep
+common classes: List, HashTable, Storage, NXStringTable.  In the future
+it will also contain the foundation kit classes for GNUStep.  Progress
+is already being made on this front.
 
 @section Contact:
 @example
