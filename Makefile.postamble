@@ -102,6 +102,12 @@ endif
 configure: configure.in
 	autoconf
 
+base.make: base.make.in
+	./configure
+
+config.mak: config.mak.in
+	./configure
+
 # Regenerate automatically generated files
 regenerate: stamp-regenerate
 
