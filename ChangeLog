@@ -1,3 +1,12 @@
+2004-02-04 01:10  Alexander Malmberg <alexander@malmberg.org>
+
+	* Headers/Foundation/NSObject.h (ASSIGNCOPY),
+	Source/GSDictionary.m (GSI_MAP_RETAIN_KEY),
+	Source/NSNotificationCenter.m (-init),
+	Source/NSProtocolChecker.m (-forwardInvocation:),
+	Source/Additions/GSXML.m (-initWithDocument:): Remove uses of the
+	now deprecated "casts as lvalues" gcc extension.
+
 2004-02-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Added class by Fred Kiefer to decode
