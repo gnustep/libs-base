@@ -1,3 +1,15 @@
+2002-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: Tidied init from file to ensure that everything
+	is released properly on failure, and we don't generate log messages
+	where a lower level API should be doing it.  Added some documentation.
+	* Source/NSDictionary.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSData.m: Tidied read from and write to file,
+	adding lots of logging information.  Also documented quite a bit.
+	Resolved all conflicts found with Adam's change ... generally in
+	favor of the most informative logging.
+
 2002-10-03  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSData.m (readContentsOfFile): Change NSDebugLog(s) to

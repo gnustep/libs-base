@@ -144,7 +144,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
-      NSWarnLog(@"Open (%s) attempt failed - bad path", thePath);
+      NSWarnFLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
 
@@ -153,21 +153,24 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
     {
-      NSLog(@"Open (%s) attempt failed", thePath);
+      NSWarnFLog(@"Open (%s) attempt failed - %s", thePath,
+	GSLastErrorStr(errno));
       return NO;
     }
 
   fileLength = GetFileSize(fh, &high);
   if ((fileLength == 0xFFFFFFFF) && (GetLastError() != NO_ERROR))
     {
+      NSWarnFLog(@"Failed to determine size of - %s - %s", thePath,
+	GSLastErrorStr(errno));
       CloseHandle(fh);
-      NSLog(@"Failed to determine size of - %s", thePath);
       return NO;
     }
   if (high != 0)
     {
+      NSWarnFLog(@"File to big to handle - %s - %s", thePath,
+	GSLastErrorStr(errno));
       CloseHandle(fh);
-      NSLog(@"File too big to handle - %s", thePath);
       return NO;
     }
 
@@ -178,26 +181,28 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 #endif
   if (tmp == 0)
     {
-      CloseHandle(fh);
-      NSLog(@"Malloc failed for file (%s) of length %d - %s",
+      NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
 	thePath, fileLength, GSLastErrorStr(errno));
+      CloseHandle(fh);
       return NO;
     }
   if (!ReadFile(fh, tmp, fileLength, &got, 0))
     {
       if (tmp != 0)
 	{
+	  NSWarnFLog(@"File read operation failed for %s - %s", thePath,
+	    GSLastErrorStr(errno));
 	  NSZoneFree(zone, tmp);
 	  CloseHandle(fh);
-	  NSLog(@"File read operation failed for %s", thePath);
 	  return NO;
 	}
     }
   if (got != fileLength)
     {
+      NSWarnFLog(@"File read operation short for %s - %s", thePath,
+	GSLastErrorStr(errno));
       NSZoneFree(zone, tmp);
       CloseHandle(fh);
-      NSLog(@"File read operation short for %s", thePath);
       return NO;
     }
   CloseHandle(fh);
@@ -210,7 +215,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 
   if (theFile == NULL)		/* We failed to open the file. */
     {
-      NSLog(@"Open (%s) attempt failed - %s", thePath,
+      NSWarnFLog(@"Open (%s) attempt failed - %s", thePath,
 	GSLastErrorStr(errno));
       goto failure;
     }
@@ -221,7 +226,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   c = fseek(theFile, 0L, SEEK_END);
   if (c != 0)
     {
-      NSLog(@"Seek to end of file failed - %s", GSLastErrorStr(errno));
+      NSWarnFLog(@"Seek to end of file (%s) failed - %s", thePath,
+	GSLastErrorStr(errno));
       goto failure;
     }
 
@@ -232,7 +238,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   fileLength = ftell(theFile);
   if (fileLength == -1)
     {
-      NSLog(@"Ftell failed - %s", GSLastErrorStr(errno));
+      NSWarnFLog(@"Ftell on %s failed - %s", thePath, GSLastErrorStr(errno));
       goto failure;
     }
 
@@ -243,7 +249,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   c = fseek(theFile, 0L, SEEK_SET);
   if (c != 0)
     {
-      NSLog(@"Fseek to start of file failed - %s", GSLastErrorStr(errno));
+      NSWarnFLog(@"Fseek to start of file (%s) failed - %s",
+	thePath, GSLastErrorStr(errno));
       goto failure;
     }
 
@@ -276,8 +283,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	    }
 	  if (tmp == 0)
 	    {
-	      NSLog(@"Malloc failed for file of length %d - %s",
-		fileLength + c, GSLastErrorStr(errno));
+	      NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
+		thePath, fileLength + c, GSLastErrorStr(errno));
 	      goto failure;
 	    }
 	  memcpy(tmp + fileLength, buf, c);
@@ -293,15 +300,16 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 #endif
       if (tmp == 0)
 	{
-	  NSLog(@"Malloc failed for file of length %d - %s",
-	    fileLength, GSLastErrorStr(errno));
+	  NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
+	    thePath, fileLength, GSLastErrorStr(errno));
 	  goto failure;
 	}
 
       c = fread(tmp, 1, fileLength, theFile);
       if (c != fileLength)
 	{
-	  NSLog(@"read of file contents failed - %s", GSLastErrorStr(errno));
+	  NSWarnFLog(@"read of file (%s) contents failed - %s",
+	    thePath, GSLastErrorStr(errno));
 	  goto failure;
 	}
     }
@@ -419,6 +427,10 @@ failure:
   return empty;
 }
 
+/**
+ * Returns an autoreleased data object containing data copied from bytes
+ * and with the specified length.  Invokes -initWithBytes:length:
+ */
 + (id) dataWithBytes: (const void*)bytes
 	      length: (unsigned int)length
 {
@@ -429,6 +441,11 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ * Returns an autoreleased data object encapsulating the data at bytes
+ * and with the specified length.  Invokes
+ * -initWithBytesNoCopy:length:freeWhenDone: with YES 
+ */
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
 {
@@ -439,6 +456,11 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ * Returns an autoreleased data object encapsulating the data at bytes
+ * and with the specified length.  Invokes
+ * -initWithBytesNoCopy:length:freeWhenDone:
+ */
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
 	      freeWhenDone: (BOOL)shouldFree
@@ -457,6 +479,10 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ * Returns a data object encapsulating the contents of the specified file.
+ * Invokes -initWithContentsOfFile:
+ */
 + (id) dataWithContentsOfFile: (NSString*)path
 {
   NSData	*d;
@@ -466,6 +492,11 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ * Returns a data object encapsulating the contents of the specified
+ * file mapped directly into memory.
+ * Invokes -initWithContentsOfMappedFile:
+ */
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
   NSData	*d;
@@ -480,6 +511,10 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ * Retrieves the information at the specified url and returns an NSData
+ * instance encapsulating it.
+ */
 + (id) dataWithContentsOfURL: (NSURL*)url
 {
   NSData	*d;
@@ -488,6 +523,9 @@ failure:
   return d;
 }
 
+/**
+ * Returns an autoreleased instance initialised by copying the contents of data.
+ */
 + (id) dataWithData: (NSData*)data
 {
   NSData	*d;
@@ -497,6 +535,9 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ * Returns a new empty data object.
+ */
 + (id) new
 {
   NSData	*d;
@@ -511,6 +552,11 @@ failure:
    return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
 }
 
+/**
+ * Makes a copy of bufferSize bytes of data at aBuffer, and passes it to
+ * -initWithBytesNoCopy:length:freeWhenDone: with a YES argument in order
+ * to initialise the receiver.  Returns the result.
+ */
 - (id) initWithBytes: (const void*)aBuffer
 	      length: (unsigned int)bufferSize
 {
@@ -540,6 +586,13 @@ failure:
 }
 
 /** <init /><override-subclass />
+ * Initialises the receiver.<br />
+ * The value of aBuffer is a pointer to something to be stored.<br />
+ * The value of bufferSize is the number of bytes to use.<br />
+ * The value fo shouldFree specifies whether the receiver should
+ * attempt to free the memory pointer to by aBuffer when the receiver
+ * is deallocated ... ie. it says whether the receiver <em>owns</em>
+ * the memory.
  */
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
@@ -551,8 +604,8 @@ failure:
 
 /**
  * Initialises the receiver with the contents of the specified file.<br />
- * Returns the resulting object.
- * Returns nil if the file does not exist.
+ * Returns the resulting object.<br />
+ * Returns nil if the file does not exist or can not be read for some reason.
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
@@ -567,8 +620,7 @@ failure:
 #endif
   if (readContentsOfFile(path, &fileBytes, &fileLength, zone) == NO)
     {
-      RELEASE(self);
-      self = nil;
+      DESTROY(self);
     }
   else
     {
@@ -615,6 +667,9 @@ failure:
 
 // Accessing Data 
 
+/** <override-subclass>
+ * Returns a pointer to the data encapsulated by the receiver.
+ */
 - (const void*) bytes
 {
   [self subclassResponsibility: _cmd];
@@ -667,16 +722,36 @@ failure:
   return AUTORELEASE(str);
 }
 
+/**
+ * Copies the contents of the memory encapsulated by the receiver into
+ * the specified buffer.  The buffer must be large enough to contain
+ * -length bytes of data ... if it isn't then a crash is likely to occur.<br />
+ * Invokes -getBytes:range: with the range set to the whole of the receiver.
+ */
 - (void) getBytes: (void*)buffer
 {
   [self getBytes: buffer range: NSMakeRange(0, [self length])];
 }
 
+/**
+ * Copies length bytes of data from the memory encapsulated by the receiver
+ * into the specified buffer.  The buffer must be large enough to contain
+ * length bytes of data ... if it isn't then a crash is likely to occur.<br />
+ * Invokes -getBytes:range: with the range set to iNSMakeRange(0, length)
+ */
 - (void) getBytes: (void*)buffer length: (unsigned int)length
 {
   [self getBytes: buffer range: NSMakeRange(0, length)];
 }
 
+/**
+ * Copies data from the memory encapsulated by the receiver (in the range
+ * specified by aRange) into the specified buffer.<br />
+ * The buffer must be large enough to contain the data ... if it isn't then
+ * a crash is likely to occur.<br />
+ * If aRange specifies a range which does not entirely lie within the
+ * receiver, an exception is raised.
+ */
 - (void) getBytes: (void*)buffer range: (NSRange)aRange
 {
   unsigned	size = [self length];
@@ -690,6 +765,12 @@ failure:
   return self;
 }
 
+/**
+ * Returns an NSData instance encapsulating the memory from the reciever
+ * specified by the range aRange.<br />
+ * If aRange specifies a range which does not entirely lie within the
+ * receiver, an exception is raised.
+ */
 - (NSData*) subdataWithRange: (NSRange)aRange
 {
   void		*buffer;
@@ -747,15 +828,28 @@ failure:
   return NO;
 }
 
-// Querying a Data Object
+/**
+ * Returns a boolean value indicating if the receiver and other contain
+ * identical data (using a byte by byte comparison).  Assumes that the
+ * other object is an NSData instance ... may raise an exception if it isn't.
+ */
 - (BOOL) isEqualToData: (NSData*)other
 {
   int len;
+  if (other == self)
+    {
+      return YES;
+    }
   if ((len = [self length]) != [other length])
-    return NO;
+    {
+      return NO;
+    }
   return (memcmp([self bytes], [other bytes], len) ? NO : YES);
 }
 
+/** <override-subclass>
+ * Returns the number of bytes of data encapsulated by the receiver.
+ */
 - (unsigned int) length
 {
   /* This is left to concrete subclasses to implement. */
@@ -763,9 +857,16 @@ failure:
   return 0;
 }
 
-
-// Storing Data
-
+/**
+ * <p>Writes a copy of the data encapsulated by the receiver to a file
+ * at path.  If the useAuxiliaryFile flag is YES, this writes to a
+ * temporary file and then renames that to the file at path, thus
+ * ensuring that path exists and does not contain partially written
+ * data at any point.
+ * </p>
+ * <p>On success returns YES, on failure returns NO.
+ * </p>
+ */
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile
 {
   char		thePath[BUFSIZ*2+8];
@@ -783,7 +884,7 @@ failure:
   if ([path getFileSystemRepresentation: theRealPath
 			      maxLength: sizeof(theRealPath)-1] == NO)
     {
-      NSWarnLog(@"Open (%s) attempt failed - bad path", theRealPath);
+      NSWarnMLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
 
@@ -795,7 +896,7 @@ failure:
   if ([tmppath getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
-      NSWarnLog(@"Open (%s) attempt failed - bad path", thePath);
+      NSWarnMLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
   
@@ -803,14 +904,16 @@ failure:
     FILE_ATTRIBUTE_NORMAL, NULL);
   if (fh == INVALID_HANDLE_VALUE)
     {
-      NSLog(@"Create (%s) attempt failed", thePath);
+      NSWarnMLog(@"Create (%s) attempt failed - %s", thePath,
+	GSLastErrorStr(errno));
       return NO;
     }
 
   if (!WriteFile(fh, [self bytes], [self length], &wroteBytes, 0))
     {
+      NSWarnMLog(@"Write (%s) attempt failed - %s", thePath,
+	GSLastErrorStr(errno));
       CloseHandle(fh);
-      NSLog(@"Write (%s) attempt failed", thePath);
       goto failure;
     }
   CloseHandle(fh);
@@ -826,7 +929,8 @@ failure:
       strcat(thePath, "XXXXXX");
       if ((desc = mkstemp(thePath)) < 0)
 	{
-          NSLog(@"mkstemp (%s) failed - %s", thePath, GSLastErrorStr(errno));
+          NSWarnMLog(@"mkstemp (%s) failed - %s", thePath,
+	    GSLastErrorStr(errno));
           goto failure;
 	}
       mask = umask(0);
@@ -852,7 +956,8 @@ failure:
       strcat(thePath, "XXXXXX");
       if (mktemp(thePath) == 0)
 	{
-          NSLog(@"mktemp (%s) failed - %s", thePath, GSLastErrorStr(errno));
+          NSWarnMLog(@"mktemp (%s) failed - %s", thePath,
+	    GSLastErrorStr(errno));
           goto failure;
 	}
     }
@@ -868,7 +973,7 @@ failure:
   if (theFile == NULL)          /* Something went wrong; we weren't
                                  * even able to open the file. */
     {
-      NSLog(@"Open (%s) failed - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"Open (%s) failed - %s", thePath, GSLastErrorStr(errno));
       goto failure;
     }
 
@@ -880,7 +985,7 @@ failure:
   if (c < [self length])        /* We failed to write everything for
                                  * some reason. */
     {
-      NSLog(@"Fwrite (%s) failed - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"Fwrite (%s) failed - %s", thePath, GSLastErrorStr(errno));
       goto failure;
     }
 
@@ -891,7 +996,7 @@ failure:
                                  * closing the file, but we got here,
                                  * so we need to deal with it. */
     {
-      NSLog(@"Fclose (%s) failed - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"Fclose (%s) failed - %s", thePath, GSLastErrorStr(errno));
       goto failure;
     }
 #endif
@@ -942,7 +1047,7 @@ failure:
 #endif
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
-          NSLog(@"Rename ('%s' to '%s') failed - %s",
+          NSWarnMLog(@"Rename ('%s' to '%s') failed - %s",
 	    thePath, theRealPath, GSLastErrorStr(errno));
           goto failure;
         }
@@ -961,7 +1066,10 @@ failure:
 	  [att removeObjectForKey: NSFileDeviceIdentifier];
 	  [att removeObjectForKey: NSFileType];
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
-	    NSLog(@"Unable to correctly set all attributes for '%@'", path);
+	    {
+	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
+		path);
+	    }
 	}
 #ifndef __MINGW__
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
@@ -969,7 +1077,9 @@ failure:
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
 			NSFileOwnerAccountName, NSUserName(), nil];
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
-	    NSLog(@"Unable to correctly set ownership for '%@'", path);
+	    {
+	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
+	    }
 	}
 #endif
     }
@@ -989,6 +1099,9 @@ failure:
   return NO;
 }
 
+/**
+ * Writes a copy of the contents of the receiver to the specified URL.
+ */
 - (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)flag
 {
   if ([anURL isFileURL] == YES)
@@ -2629,13 +2742,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
-      NSLog(@"Open (%s) attempt failed - bad path", thePath);
+      NSWarnMLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
   fd = open(thePath, O_RDONLY);
   if (fd < 0)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to open %s - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"unable to open %s - %s", thePath, GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
     }
@@ -2643,7 +2756,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   length = lseek(fd, 0, SEEK_END);
   if (length < 0)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to seek to eof %s - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"unable to seek to eof %s - %s",
+	thePath, GSLastErrorStr(errno));
       close(fd);
       RELEASE(self);
       return nil;
@@ -2651,7 +2765,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   /* Position at start of file. */
   if (lseek(fd, 0, SEEK_SET) != 0)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to seek to sof %s - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"unable to seek to sof %s - %s",
+	thePath, GSLastErrorStr(errno));
       close(fd);
       RELEASE(self);
       return nil;
@@ -2659,7 +2774,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
   if (bytes == MAP_FAILED)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] mapping failed for %s - %s", thePath, GSLastErrorStr(errno));
+      NSWarnMLog(@"mapping failed for %s - %s",
+	thePath, GSLastErrorStr(errno));
       close(fd);
       RELEASE(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -2909,8 +3025,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   self = [self initWithCapacity: 0];
   if (readContentsOfFile(path, &bytes, &length, zone) == NO)
     {
-      RELEASE(self);
-      self = nil;
+      DESTROY(self);
     }
   else
     {

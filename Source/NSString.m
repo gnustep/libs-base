@@ -1279,57 +1279,82 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Initialises the receiver with the contents of the file at path.<br />
+ * Invokes [NSData-initWithContentsOfFile:] to read the file, then
+ * examines the data to infer its encoding type, and converts the
+ * data to a string using -initWithData:encoding:<br />
+ * Releases the receiver and returns nil if the file could not be read
+ * and converted to a string.
+ */
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  NSStringEncoding	enc;
-  NSData		*d = [NSDataClass dataWithContentsOfFile: path];
-  unsigned int		len = [d length];
+  NSStringEncoding	enc = _DefaultStringEncoding;
+  NSData		*d;
+  unsigned int		len;
   const unichar		*test;
 
+  d = [[NSDataClass alloc] initWithContentsOfFile: path];
   if (d == nil)
-    return nil;
-
+    {
+      RELEASE(self);
+      return nil;
+    }
+  len = [d length];
   if (len == 0)
-    return @"";
-
+    {
+      return @"";
+    }
   test = [d bytes];
-  if ((test != NULL) && (len > 1)
-    && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
+  if ((test != NULL) && (len > 1))
     {
-      /* somebody set up us the BOM! */
-      enc = NSUnicodeStringEncoding;
+      if ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped))
+	{
+	  /* somebody set up us the BOM! */
+	  enc = NSUnicodeStringEncoding;
+	}
     }
-  else
+  self = [self initWithData: d encoding: enc];
+  RELEASE(d);
+  if (self == nil)
     {
-      enc = _DefaultStringEncoding;
+      NSWarnMLog(@"Contents of file '%@' are not string data", path);
     }
-  return [self initWithData: d encoding: enc];
+  return self;
 }
 
 - (id) initWithContentsOfURL: (NSURL*)url
 {
-  NSStringEncoding	enc;
+  NSStringEncoding	enc = _DefaultStringEncoding;
   NSData		*d = [NSDataClass dataWithContentsOfURL: url];
   unsigned int		len = [d length];
   const unsigned char	*test;
 
   if (d == nil)
-    return nil;
-
+    {
+      NSWarnMLog(@"Contents of URL '%@' are not readable", url);
+      RELEASE(self);
+      return nil;
+    }
   if (len == 0)
-    return @"";
-
+    {
+      RELEASE(self);
+      return @"";
+    }
   test = [d bytes];
-  if ((test != NULL) && (len > 1)
-    && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
+  if ((test != NULL) && (len > 1))
     {
-      enc = NSUnicodeStringEncoding;
+      if ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped))
+	{
+	  enc = NSUnicodeStringEncoding;
+	}
     }
-  else
+  self = [self initWithData: d encoding: enc];
+  if (self == nil)
     {
-      enc = _DefaultStringEncoding;
+      NSWarnMLog(@"Contents of URL '%@' are not string data", url);
     }
-  return [self initWithData: d encoding: enc];
+  return self;
 }
 
 - (id) init

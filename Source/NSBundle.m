@@ -1248,14 +1248,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   path = [self pathForResource: @"Info-gnustep" ofType: @"plist"];
   if (path)
-    _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
+    {
+      _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
+    }
   else
     {
       path = [self pathForResource: @"Info" ofType: @"plist"];
       if (path)
-	_infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
+	{
+	  _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
+	}
       else
-	_infoDict = RETAIN([NSDictionary dictionary]);
+	{
+	  _infoDict = RETAIN([NSDictionary dictionary]);
+	}
     }
   return _infoDict;
 }

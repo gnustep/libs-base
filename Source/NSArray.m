@@ -545,19 +545,21 @@ static SEL	rlSel;
  * <p>If there is a failure to load the file for any reason, the receiver
  * will be released and the method will return nil.
  * </p>
+ * <p>Works by invoking [NSString-initWithContentsOfFile:] and
+ * [NSString-propertyList] then checking that the result is an array.  
+ * </p>
  */
 - (id) initWithContentsOfFile: (NSString*)file
 {
   NSString 	*myString;
-  NSData	*someData;
 
-  someData = [[NSData allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: file];
   myString = [[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithData: someData encoding: NSUTF8StringEncoding];
-  RELEASE(someData);
-
-  if (myString)
+    initWithContentsOfFile: file];
+  if (myString == nil)
+    {
+      DESTROY(self);
+    }
+  else
     {
       id result;
 
@@ -574,12 +576,14 @@ static SEL	rlSel;
       if ([result isKindOfClass: NSArrayClass])
 	{
 	  self = [self initWithArray: result];
-	  return self;
+	}
+      else
+	{
+	  NSWarnMLog(@"Contents of file '%@' does not contain an array", file);
+	  DESTROY(self);
 	}
     }
-  NSWarnMLog(@"Contents of file '%@' does not contain an array", file);
-  RELEASE(self);
-  return nil;
+  return self;
 }
 
 /** <init />
