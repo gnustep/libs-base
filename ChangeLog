@@ -1,3 +1,10 @@
+Thu Jan 28 16:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/include/NSObject.h: Preliminaries for addition of GC
+	* src/include/NSZone.h: ditto
+	* src/NSObject.m: ditto
+	* src/NSZone.m: ditto
+
 Thu Jan 28 11:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/include/GSConfig.h.in: Added gsaddr type - integer with same
