@@ -1,5 +1,11 @@
 2000-11-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSTcpPort.m: ([-connectToPort:beforeDate:]) added locking to
+	prevent possible problems with two threads trying to get root object
+	of a new connection at the same time.
+
+2000-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/NSAutoreleasePool.h: Changed proivate method
 	for cleanup at end of thread.
 	* Headers/gnustep/base/NSThead.h: New ivar to mark when we are
