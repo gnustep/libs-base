@@ -237,6 +237,19 @@
           </desc>
         </method>
 
+        <method type="void">
+          <sel>externalSubset:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>externalID:</sel>
+          <arg type="NSString*">externalID</arg>
+          <sel>systemID:</sel>
+          <arg type="NSString*">systemID</arg>
+          <desc>
+          <p>Callback on external subset declaration.
+            </p>
+          </desc>
+        </method>
+
         <method type="void*">
           <sel>resolveEntity:</sel>
           <arg type="NSString*">publicID</arg>

@@ -246,6 +246,9 @@ typedef xmlNsType		GSXMLNamespaceType;
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
 - (int) hasExternalSubset;
+- (void) externalSubset: (NSString*)name
+             externalID: (NSString*)externalID
+               systemID: (NSString*)systemID;
 - (void*) resolveEntity: (NSString*)publicId
 	       systemID: (NSString*)systemID;
 - (void*) getEntity: (NSString*)name;
