@@ -1,5 +1,5 @@
 /* Interface for functions that dissect/make method calls 
-   Copyright (C) 1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Oct 1994
@@ -31,8 +31,8 @@
 
 #if NeXT_runtime
 typedef union {
-    char *arg_ptr;
-    char arg_regs[sizeof (char*)];
+  char *arg_ptr;
+  char arg_regs[sizeof (char*)];
 } *arglist_t;
 #endif
 

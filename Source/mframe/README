@@ -19,12 +19,12 @@
 
    The code in this directory was written by
    Richard Frith-Macdonald <richard@brainstorm.co.uk>.
-   Inspiration for this software came from the original mframe.m by
-   Andrew McCallum, and the libFoundation software by Ovidiu Predescu and
-   Mircea Oancea, while the algorithms used are copied from gcc and are
-   copyright the Free Software Foundation.  Many code fragments are derived
-   from gcc by way of libFoundation.
-
+   Inspiration for (and some of the code of) this software came from the
+   original mframe.m by Andrew McCallum, the gcc compiler, and the
+   libFoundation software by Ovidiu Predescu and Mircea Oancea.
+   The algorithms used are copied from gcc and are copyright the Free
+   Software Foundation.  Many code fragments are derived from gcc either
+   directly or by way of libFoundation.
 
    These files are used by the configuration script to build a
    machine/operating-system specific 'mframe.m' file containing macros used
@@ -52,7 +52,7 @@ MFRAME_SMALL_STRUCT
 	structure return via pointe, you should also define this to zero.
 
 MFRAME_STRUCT_BYREF
-	This should be defined to 1 if structure aprguments are passed
+	This should be defined to 1 if structure arguments are passed
 	by reference, 0 otherwise.
 
 MFRAME_ARGS_SIZE
@@ -70,6 +70,11 @@ MFRAME_RESULT_SIZE
 	If you can't figure out how to determine this - try using a
 	value like 128 - which will probably be far larger than required
 	(and therefore somewhat inefficient) but will msot likely work.
+
+MFRAME_FLT_IN_FRAME_AS_DBL
+	This should be defined as 1 if float parameters to functions and
+	objective-c methods are passed on the stack as double values.
+	Otherwise it should not be defined.
 
 MFRAME_STRUCT_ADDR(ARGFRAME,TYPES)
 	If a function returns a structure by copying it into a location
