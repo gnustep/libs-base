@@ -1,6 +1,6 @@
 #
 #  NSCharacterSet makefile for Objective-C Class Library
-#  Copyright (C) 1995 Free Software Foundation, Inc.
+#  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
 #
@@ -61,7 +61,7 @@ installdirs:
 	$(srcdir)/../mkinstalldirs $(charsetdir)
 install: installdirs
 	for file in $(INSTALL_FILES); do \
-	  $(INSTALL_DATA) $$file $(charsetdir)/$$file ; \
+	  $(INSTALL_DATA) $(srcdir)/$$file $(charsetdir)/$$file ; \
 	done
 uninstall:
 	for file in $(INSTALL_FILES); do \
@@ -77,3 +77,6 @@ maintainer-clean: distclean
 copy-dist: $(DIST_FILES)
 	mkdir $(srcdir)/../snap/NSCharacterSets
 	ln $(DIST_FILES) $(srcdir)/../snap/NSCharacterSets
+
+Makefile: $(srcdir)/Makefile.in
+	cd ..; $(SHELL) config.status
