@@ -1,3 +1,8 @@
+Fri Oct 15 01:28:16 1999  Lyndon Tremblay <humasect@coolmail.com>
+
+	* Source/NSURL.m: (-[scheme]) removed a hopefully accidentally placed
+	space character in a call to (-[NSString rangeOfString]).
+	
 Tue Sep 12 14:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSConnection.m: Removed pointer cross-reference support as it
