@@ -157,6 +157,7 @@ NSBundle.m \
 NSCalendarDate.m \
 NSCallBacks.m \
 NSCharacterSet.m \
+NSClassDescription.m \
 NSCoder.m \
 NSCopyObject.m \
 NSConcreteValue.m \
@@ -265,6 +266,7 @@ NSBitmapCharSet.h \
 NSBundle.h \
 NSByteOrder.h \
 NSCharacterSet.h \
+NSClassDescription.h \
 NSCoder.h \
 NSConcreteNumber.h \
 NSConcreteValue.h \
@@ -291,6 +293,7 @@ NSGSet.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
+NSKeyValueEncoding.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \

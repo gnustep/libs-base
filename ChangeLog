@@ -1,3 +1,12 @@
+2000-11-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSClassDescription.m: New MacOS-X class added.
+	* Headers/Foundation/NSClassDescription.m: New MacOS-X class added.
+	* Headers/Foundation/NSKeyvalueCoding.m: New MacOS-X protocol added.
+	* Source/NSObject.m: New MacOS-X key value coding methods added.
+	Only objects currently supported - needs work to support scalar
+	types too!
+
 2000-11-23  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSBundle.m ([NSBundle +_addFrameworkFromClass:]): fixed an

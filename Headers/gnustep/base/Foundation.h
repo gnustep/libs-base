@@ -38,6 +38,7 @@
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSClassDescription.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSDate.h>
@@ -57,6 +58,7 @@
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSInvocation.h>
+#include <Foundation/NSKeyValueCoding.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSMethodSignature.h>
