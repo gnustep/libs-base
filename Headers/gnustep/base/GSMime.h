@@ -130,7 +130,7 @@
 	       name: (NSString*)name;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
-	    subtype: (NSString*)subType
+	    subtype: (NSString*)subtype
 	       name: (NSString*)name;
 - (void) setHeader: (GSMimeHeader*)info;
 

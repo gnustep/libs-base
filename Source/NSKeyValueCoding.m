@@ -123,10 +123,11 @@
 	  if ([[self class] accessInstanceVariablesDirectly] == YES)
 	    {
 	      // _key
-	      if (GSFindInstanceVariable(self, name, &type, &size, &off) == NO)
+	      if (GSObjCFindInstanceVariable(self, name, &type, &size, &off)
+		== NO)
 		{
 		  name = &buf[4]; // key
-		  GSFindInstanceVariable(self, name, &type, &size, &off);
+		  GSObjCFindInstanceVariable(self, name, &type, &size, &off);
 		}
 	    }
 	  if (type == NULL)
@@ -147,7 +148,7 @@
 		}
 	    }
 	}
-      return GSGetValue(self, aKey, sel, type, size, off);
+      return GSObjCGetValue(self, aKey, sel, type, size, off);
     }
 }
 
@@ -197,10 +198,11 @@
 	      buf[4] = lo;
 	      buf[3] = '_';
 	      name = &buf[3];		// _key
-	      if (GSFindInstanceVariable(self, name, &type, &size, &off) == NO)
+	      if (GSObjCFindInstanceVariable(self, name, &type, &size, &off)
+		== NO)
 		{
 		  name = &buf[4];	// key
-		  GSFindInstanceVariable(self, name, &type, &size, &off);
+		  GSObjCFindInstanceVariable(self, name, &type, &size, &off);
 		}
 	    }
 	  if (type == NULL)
@@ -216,7 +218,7 @@
 		}
 	    }
 	}
-      GSSetValue(self, aKey, anObject, sel, type, size, off);
+      GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
    }
 }
 
@@ -264,16 +266,17 @@
 		  buf[3] = '_';
 		  buf[4] = lo;
 		  name = &buf[3];	// _key
-		  if (GSFindInstanceVariable(self, name, &type, &size, &off)
+		  if (GSObjCFindInstanceVariable(self, name, &type, &size, &off)
 		    == NO)
 		    {
 		      name = &buf[4];	// key
-		      GSFindInstanceVariable(self, name, &type, &size, &off);
+		      GSObjCFindInstanceVariable(self, name, &type, &size,
+			&off);
 		    }
 		}
 	    }
 	}
-      GSSetValue(self, aKey, anObject, sel, type, size, off);
+      GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
     }
 }
 
@@ -377,13 +380,13 @@
 	  buf[4] = lo;
 	  buf[3] = '_';
 	  name = &buf[3];	// _key
-	  if (GSFindInstanceVariable(self, name, &type, &size, &off) == NO)
+	  if (GSObjCFindInstanceVariable(self, name, &type, &size, &off) == NO)
 	    {
 	      name = &buf[4];	// key
-	      GSFindInstanceVariable(self, name, &type, &size, &off);
+	      GSObjCFindInstanceVariable(self, name, &type, &size, &off);
 	    }
 	}
-      return GSGetValue(self, aKey, sel, type, size, off);
+      return GSObjCGetValue(self, aKey, sel, type, size, off);
     }
 }
 
