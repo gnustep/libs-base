@@ -1,3 +1,8 @@
+2002-10-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: readContentsOfFile() fix use of atomic memory
+	on GC systems ... problem noticed by Fred.
+
 Sat Oct  5 19:53:03 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSData.m ([NSDataMappedFile

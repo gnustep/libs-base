@@ -141,6 +141,10 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   unsigned	fileLength;
 #endif
 
+#if	GS_WITH_GC == 1
+  zone = GSAtomicMallocZone();	// Use non-GC memory inside NSData
+#endif
+
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
@@ -174,11 +178,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       return NO;
     }
 
-#if	GS_WITH_GC == 1
-  tmp = NSZoneMalloc(GSAtomicMallocZone(), fileLength);
-#else
   tmp = NSZoneMalloc(zone, fileLength);
-#endif
   if (tmp == 0)
     {
       NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
@@ -267,19 +267,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	{
 	  if (tmp == 0)
 	    {
-#if	GS_WITH_GC == 1
-	      tmp = NSZoneMalloc(GSAtomicMallocZone(), c);
-#else
 	      tmp = NSZoneMalloc(zone, c);
-#endif
 	    }
 	  else
 	    {
-#if	GS_WITH_GC == 1
-	      tmp = NSZoneRealloc(GSAtomicMallocZone(), tmp, fileLength + c);
-#else
 	      tmp = NSZoneRealloc(zone, tmp, fileLength + c);
-#endif
 	    }
 	  if (tmp == 0)
 	    {
@@ -293,11 +285,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
     }
   else
     {
-#if	GS_WITH_GC == 1
-      tmp = NSZoneMalloc(GSAtomicMallocZone(), fileLength);
-#else
       tmp = NSZoneMalloc(zone, fileLength);
-#endif
       if (tmp == 0)
 	{
 	  NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
