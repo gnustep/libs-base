@@ -39,7 +39,11 @@ static Dictionary* mallocAddresses;
 
 + objectForAddress: (void*)addr
 {
-  return [mallocAddresses elementAtKey:addr].id_u;
+  elt ret_nil(arglist_t a)
+    {
+      return (elt) nil;
+    }
+  return [mallocAddresses elementAtKey:addr ifAbsentCall:ret_nil].id_u;
 }
 
 + autoreleaseMallocAddresss: (void*)addr
