@@ -32,6 +32,10 @@
 #include <objects/ConnectedCoder.h>
 #include <assert.h>
 
+#if _AIX
+#include <sys/select.h>
+#endif /* _AIX */
+
 /* Deal with bcopy: */
 #if STDC_HEADERS || HAVE_STRING_H
 #include <string.h>
