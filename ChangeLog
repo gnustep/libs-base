@@ -1,5 +1,7 @@
 2000-10-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURLHandle.m: Wrap all locking with exception handlers to
+	ensure that locks are released.
 	* Headers/gnustep/base/NSInvocation.h: Removed non-standard macros
 	* Headers/gnustep/base/behavior.h: Removed unused macro
 	CALL_METHOD_IN_CLASS()
