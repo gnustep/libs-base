@@ -1,3 +1,9 @@
+2001-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: Support (name) syntax for specifying a protocol
+	cross reference using [(name)-method]
+	* Tools/autogsdoc.m: Improve documentation of method references.
+
 2001-12-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Make initial comment an autogsdoc comment.

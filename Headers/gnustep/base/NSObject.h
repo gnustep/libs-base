@@ -1,4 +1,4 @@
-/* Interface for NSObject for GNUStep
+/**Interface for NSObject for GNUStep
    Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

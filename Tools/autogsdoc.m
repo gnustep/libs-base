@@ -154,11 +154,24 @@
     </item>
     <item>Method names (beginning with a plus or minus) are enclosed
       in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
-      eg. -init
+      eg. "-init" (without the quotes) would be wrapped in a gsdoc
+      reference element to point to the init method of the current
+      class or, if only one known class had an init method, it
+      would refer to the method of that class.
+      <br />Note the fact that the method name must be surrounded by
+      whitespace (though a comma, fullstop, or semicolon at the end
+      of the specifier will also act as a whitespace terminator).
     </item>
     <item>Method specifiers including class names (beginning and ending with
       square brackets) are enclosed in &lt;ref...&gt; ... &lt;/ref&gt; markup.
-      <br />eg. [NSObject -init]
+      <br />eg. [ NSObject-init],
+      will create a reference to the init method of NSObject, while
+      <br />[ (NSCopying)-copyWithZone:], creates a
+      reference to a method in the NSCopyIng protocol, and
+      <br />[ NSObject(TimedPerformers)-performSelector:withObject:afterDelay:],
+      creates a reference to a method in the TimedPerformers category.
+      <br />Note that no spaces must appear between the square brackets
+      in these specifiers.
     </item>
   </list>
   <p>
