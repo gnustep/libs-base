@@ -162,7 +162,7 @@
 	      _last_message_had_receivers = YES;
 	    }
 	}
-      FOR_ARRAY_END;
+      END_FOR_ARRAY (_list);
       break;
       
     case SEND_TO_FIRST_RESPONDER:
@@ -174,7 +174,7 @@
 	      return [delegate performv:aSel :argFrame];
 	    }
 	}
-      FOR_ARRAY_END;
+      END_FOR_ARRAY (_list);
       break;
       
     case SEND_UNTIL_YES:
@@ -187,7 +187,7 @@
 		return ret;
 	    }
 	}
-      FOR_ARRAY_END;
+      END_FOR_ARRAY (_list);
       break;
       
     case SEND_UNTIL_NO:
@@ -200,7 +200,7 @@
 		return ret;
 	    }
 	}
-      FOR_ARRAY_END;
+      END_FOR_ARRAY (_list);
       break;
     }
   return ret;
