@@ -1,5 +1,10 @@
 2000-11-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSConnection.m: ([-_getReplyRmc:]) added semi-busy wait
+	for when the connection is being used from multiple threads.
+
+2000-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.in: Added checks for OpenSSL
 	* Headers/gnustep/base/NSFileHandle.h: Added info for SSL handles.
 	* Source/UnixFileHandle.m: Added GSUnixSSLHandle class based on
