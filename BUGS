@@ -1,9 +1,0 @@
-TODO
-****
-
-   * Some people have reported NSZone memory allocation problems.  If
-     you encounter a problem with NSZones, switch to using the default
-     zone instead of creating one. Or better yet, fix the problem and
-     submit a patch.
-
-
