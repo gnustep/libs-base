@@ -26,6 +26,8 @@
 #ifndef __Win32_Utilities_h_GNUSTEP_BASE_INCLUDE
 #define __Win32_Utilities_h_GNUSTEP_BASE_INCLUDE
 
+#include <Foundation/NSString.h>
+
 /* TODO:
 - Win32GetUserProfileDirectory()
 Find profile directory for non-current user.

@@ -21,14 +21,15 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
   */
 
-#include "Win32_Utilities.h"
-//#include "Win32_FileManagement.h"
+#include "GNUstepBase/Win32_Utilities.h"
+//#include "GNUstepBase/Win32_FileManagement.h"
 
 /*
  * Perform any and all necessary initialisation for supporting Win32
  * Called after first part of library initialisation so some Obj-C is okay
  */
-void Win32Initialise(void)
+void 
+Win32Initialise(void)
 {
   /* We call the initialisation routines of all support modules in turn */
   Win32_Utilities_init();
@@ -38,9 +39,10 @@ void Win32Initialise(void)
 /*
  * Free and finalise all things for supporting Win32
  */
-void Win32Finalise(void)
+void 
+Win32Finalise(void)
 {
   /* We call the finalisation routines of all support modules in turn */
-  Win32_Utilities_fini(void);
+  Win32_Utilities_fini();
 // Win32_FileManagement_fini();
 }
