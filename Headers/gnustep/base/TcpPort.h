@@ -39,12 +39,8 @@
 {
   int _socket;
   struct sockaddr_in _listening_address;
-  fd_set active_fd_set;
-  NSMapTable *client_sock_2_out_port;
-  NSMapTable *client_sock_2_packet;
-  /* The RunLoops with which our file descriptors are registered. */
-  Bag *_run_loops;
-  /* xxx run loop modes are currently ignored. */
+  NSMapTable *_client_sock_2_out_port;
+  NSMapTable *_client_sock_2_packet;
 }
 
 + newForReceivingFromPortNumber: (unsigned short)n;
