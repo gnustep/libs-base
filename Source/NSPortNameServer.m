@@ -1,5 +1,5 @@
 /* Implementation of NSPortNameServer class for Distributed Objects
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -38,6 +38,7 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSPortNameServer.h>
+#include <Foundation/NSDebug.h>
 #include <base/TcpPort.h>
 #include <arpa/inet.h>
 
@@ -65,27 +66,426 @@
 @end
 
 /*
- *	Private methods for internal use only.
+ * class-wide variables.
  */
-@interface	NSPortNameServer (Private)
-- (void) _close;
-- (void) _didConnect: (NSNotification*)notification;
-- (void) _didRead: (NSNotification*)notification;
-- (void) _didWrite: (NSNotification*)notification;
-- (void) _open: (NSString*)host;
-- (void) _retry;
-@end
-
-@implementation NSPortNameServer
-
-static NSTimeInterval	writeTimeout = 5.0;
-static NSTimeInterval	readTimeout = 15.0;
-static NSTimeInterval	connectTimeout = 20.0;
+static unsigned		maxHandles = 4;
+static NSTimeInterval	timeout = 20.0;
 static NSString		*serverPort = @"gdomap";
 static NSString		*mode = @"NSPortServerLookupMode";
 static NSArray		*modes = nil;
 static NSRecursiveLock	*serverLock = nil;
 static NSPortNameServer	*defaultServer = nil;
+static NSString		*launchCmd = nil;
+
+
+
+typedef enum {
+  GSPC_NONE,
+  GSPC_LOPEN,
+  GSPC_ROPEN,
+  GSPC_RETRY,
+  GSPC_WRITE,
+  GSPC_READ1,
+  GSPC_READ2,
+  GSPC_FAIL,
+  GSPC_DONE
+} GSPortComState;
+
+@interface	GSPortCom : NSObject
+{
+  gdo_req		msg;
+  unsigned		expecting;
+  NSMutableData		*data;
+  NSFileHandle		*handle;
+  GSPortComState	state; 
+  struct in_addr	addr;
+}
+- (struct in_addr) addr;
+- (void) close;
+- (NSData*) data;
+- (void) didConnect: (NSNotification*)notification;
+- (void) didRead: (NSNotification*)notification;
+- (void) didWrite: (NSNotification*)notification;
+- (void) fail;
+- (BOOL) isActive;
+- (void) open: (NSString*)host;
+- (void) setAddr: (struct in_addr)addr;
+- (GSPortComState) state;
+- (void) startListNameServers;
+- (void) startPortLookup: (NSString*)name onHost: (NSString*)addr;
+- (void) startPortRegistration: (gsu32)portNumber withName: (NSString*)name;
+- (void) startPortUnregistration: (gsu32)portNumber withName: (NSString*)name;
+@end
+
+@implementation GSPortCom
+
+- (struct in_addr) addr
+{
+  return addr;
+}
+
+- (void) close
+{
+  if (handle != nil)
+    {
+      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+
+      [nc removeObserver: self
+		    name: GSFileHandleConnectCompletionNotification
+		  object: handle];
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: handle];
+      [nc removeObserver: self
+		    name: GSFileHandleWriteCompletionNotification
+		  object: handle];
+      [handle closeFile];
+      DESTROY(handle);
+    }
+}
+
+- (NSData*) data
+{
+  return data;
+}
+
+- (void) dealloc
+{
+  [self close];
+  TEST_RELEASE(data);
+  [super dealloc];
+}
+
+- (void) didConnect: (NSNotification*)notification
+{
+  NSDictionary    *userInfo = [notification userInfo];
+  NSString        *e;
+
+  e = [userInfo objectForKey: GSFileHandleNotificationError];
+  if (e != nil)
+    {
+      NSLog(@"NSPortNameServer failed connect to gdomap - %@", e); 
+      /*
+       * Remove our file handle, then either retry or fail.
+       */
+      [self close];
+      if (state == GSPC_LOPEN)
+	{
+	  NSLog(@"NSPortNameServer attempting to start gdomap on local host"); 
+	  [NSTask launchedTaskWithLaunchPath: launchCmd arguments: nil];
+	  [NSTimer scheduledTimerWithTimeInterval: 5.0
+				       invocation: nil
+					  repeats: NO];
+	  [[NSRunLoop currentRunLoop] runUntilDate:
+	    [NSDate dateWithTimeIntervalSinceNow: 5.0]];
+	  NSLog(@"NSPortNameServer retrying connection attempt to gdomap"); 
+	  state = GSPC_RETRY;
+	  [self open: nil];
+	}
+      else
+	{
+	  [self fail];
+	}
+    }
+  else
+    {
+      [[NSNotificationCenter defaultCenter]
+	removeObserver: self
+		  name: GSFileHandleConnectCompletionNotification
+		object: handle];
+      /*
+       * Now we have established a connection, we can write the request
+       * to the name server.
+       */
+      state = GSPC_WRITE;
+      [handle writeInBackgroundAndNotify: data
+				forModes: modes];
+      DESTROY(data);
+    }
+}
+
+- (void) didRead: (NSNotification*)notification
+{
+  NSDictionary	*userInfo = [notification userInfo];
+  NSData	*d;
+
+  d = [userInfo objectForKey: NSFileHandleNotificationDataItem];
+
+  if (d == nil || [d length] == 0)
+    {
+      [self fail];
+      NSLog(@"NSPortNameServer lost connection to gdomap"); 
+    }
+  else
+    {
+      if (data == nil)
+	{
+	  data = [d mutableCopy];
+	}
+      else
+	{
+	  [data appendData: d];
+	}
+      if ([data length] < expecting)
+	{
+	  /*
+	   *	Not enough data read yet - go read some more.
+	   */
+	  [handle readInBackgroundAndNotifyForModes: modes];
+	}
+      else if (state == GSPC_READ1 && msg.rtype == GDO_SERVERS)
+	{
+	  gsu32	numSvrs = GSSwapBigI32ToHost(*(gsu32*)[data bytes]);
+
+	  if (numSvrs == 0)
+	    {
+	      [self fail];
+	      NSLog(@"failed to get list of name servers on net");
+	    }
+	  else
+	    {
+	      /*
+	       * Now read in the addresses of the servers.
+	       */
+	      expecting += numSvrs * sizeof(struct in_addr);
+	      if ([data length] < expecting)
+		{
+		  state = GSPC_READ2;
+		  [handle readInBackgroundAndNotifyForModes: modes];
+		}
+	      else
+		{
+		  [[NSNotificationCenter defaultCenter]
+		    removeObserver: self
+			      name: NSFileHandleReadCompletionNotification
+			    object: handle];
+		  state = GSPC_DONE;
+		}
+	    }
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    removeObserver: self
+		      name: NSFileHandleReadCompletionNotification
+		    object: handle];
+	  state = GSPC_DONE;
+	}
+    }
+}
+
+- (void) didWrite: (NSNotification*)notification
+{
+  NSDictionary    *userInfo = [notification userInfo];
+  NSString        *e;
+
+  e = [userInfo objectForKey: GSFileHandleNotificationError];
+  if (e != nil)
+    {
+      [self fail];
+      NSLog(@"NSPortNameServer failed write to gdomap - %@", e); 
+    }
+  else
+    {
+      state = GSPC_READ1;
+      data = [NSMutableData new];
+      expecting = 4;
+      [handle readInBackgroundAndNotifyForModes: modes];
+    }
+}
+
+- (void) fail
+{
+  [self close];
+  if (data != nil)
+    {
+      DESTROY(data);
+    }
+  msg.rtype = 0;
+  state = GSPC_FAIL;
+}
+
+- (BOOL) isActive
+{
+  if (handle == nil)
+    return NO;
+  if (state == GSPC_FAIL)
+    return NO;
+  if (state == GSPC_NONE)
+    return NO;
+  if (state == GSPC_DONE)
+    return NO;
+  return YES;
+}
+
+- (void) open: (NSString*)hostname
+{
+  NSNotificationCenter	*nc;
+
+  NSAssert(state == GSPC_NONE || state == GSPC_RETRY, @"open in bad state");
+
+  if (state == GSPC_NONE)
+    {
+      state = GSPC_ROPEN;	/* Assume we are connection to remote system */
+      if (hostname == nil || [hostname isEqual: @""])
+	{
+	  hostname = @"localhost";
+	  state = GSPC_LOPEN;
+	}
+      else
+	{
+	  NSHost	*current = [NSHost currentHost];
+	  NSHost	*host = [NSHost hostWithName: hostname];
+
+	  if (host == nil)
+	    {
+	      host = [NSHost hostWithAddress: hostname];
+	    }
+	  if ([current isEqual: host])
+	    {
+	      state = GSPC_LOPEN;
+	    }
+	}
+    }
+
+  NS_DURING
+    {
+      handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress:
+	hostname service: serverPort protocol: @"tcp" forModes: modes];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Exception looking up port for gdomap - %@", localException);
+      if ([[localException name] isEqual: NSInvalidArgumentException])
+	{
+	  handle = nil;
+	}
+      else
+	{
+	  [self fail];
+	}
+    }
+  NS_ENDHANDLER
+
+  if (state == GSPC_FAIL)
+    return;
+
+  if (handle == nil)
+    {
+      NSLog(@"Failed to find gdomap port with name '%@',\nperhaps your "
+		@"/etc/services file is not correctly set up?\n"
+		@"Retrying with default (IANA allocated) port number 538",
+		serverPort);
+      NS_DURING
+	{
+	  handle = [NSFileHandle fileHandleAsClientInBackgroundAtAddress:
+	    hostname service: @"538" protocol: @"tcp" forModes: modes];
+	}
+      NS_HANDLER
+	{
+	  NSLog(@"Exception creating handle for gdomap - %@", localException);
+	  [self fail];
+	}
+      NS_ENDHANDLER
+      if (handle)
+	{
+	  RELEASE(serverPort);
+	  serverPort = @"538";
+	}
+    }
+
+  if (state == GSPC_FAIL)
+    return;
+
+  RETAIN(handle);
+  nc = [NSNotificationCenter defaultCenter];
+  [nc addObserver: self
+	 selector: @selector(didConnect:)
+	     name: GSFileHandleConnectCompletionNotification
+	   object: handle];
+  [nc addObserver: self
+	 selector: @selector(didRead:)
+	     name: NSFileHandleReadCompletionNotification
+	   object: handle];
+  [nc addObserver: self
+	 selector: @selector(didWrite:)
+	     name: GSFileHandleWriteCompletionNotification
+	   object: handle];
+}
+
+- (void) setAddr: (struct in_addr)anAddr
+{
+  addr = anAddr;
+}
+
+- (GSPortComState) state
+{
+  return state;
+}
+
+- (void) startListNameServers
+{
+  msg.rtype = GDO_SERVERS;	/* Get a list of name servers.	*/
+  msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
+  msg.nsize = 0;
+  msg.port = 0;
+  TEST_RELEASE(data);
+  data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+  RETAIN(data);
+  [self open: nil];
+}
+
+- (void) startPortLookup: (NSString*)name onHost: (NSString*)host
+{
+  msg.rtype = GDO_LOOKUP;	/* Find the named port.		*/
+  msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
+  msg.port = 0;
+  msg.nsize = [name cStringLength];
+  [name getCString: msg.name];
+  TEST_RELEASE(data);
+  data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+  RETAIN(data);
+  [self open: host];
+}
+
+- (void) startPortRegistration: (gsu32)portNumber withName: (NSString*)name
+{
+  msg.rtype = GDO_REGISTER;	/* Register a port.		*/
+  msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
+  msg.nsize = [name cStringLength];
+  [name getCString: msg.name];
+  msg.port = GSSwapHostI32ToBig(portNumber);
+  TEST_RELEASE(data);
+  data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+  RETAIN(data);
+  [self open: nil];
+}
+
+- (void) startPortUnregistration: (gsu32)portNumber withName: (NSString*)name
+{
+  msg.rtype = GDO_UNREG;
+  msg.ptype = GDO_TCP_GDO;
+  if (name == nil)
+    {
+      msg.nsize = 0;
+    }
+  else
+    {
+      msg.nsize = [name cStringLength];
+      [name getCString: msg.name];
+    }
+  msg.port = GSSwapHostI32ToBig(portNumber);
+  TEST_RELEASE(data);
+  data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+  RETAIN(data);
+  [self open: nil];
+}
+
+@end
+
+
+
+@implementation NSPortNameServer
 
 + (id) allocWithZone: (NSZone*)aZone
 {
@@ -98,17 +498,14 @@ static NSPortNameServer	*defaultServer = nil;
 {
   if (self == [NSPortNameServer class])
     {
-      [gnustep_global_lock lock];
-      if (serverLock == nil)
-	{
-          serverLock = [NSRecursiveLock new];
-	  modes = [[NSArray alloc] initWithObjects: &mode count: 1];
+      serverLock = [NSRecursiveLock new];
+      modes = [[NSArray alloc] initWithObjects: &mode count: 1];
 #ifdef	GDOMAP_PORT_OVERRIDE
-	  serverPort = RETAIN([NSString stringWithCString:
-		make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
+      serverPort = RETAIN([NSString stringWithCString:
+	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
-	} 
-      [gnustep_global_lock unlock];
+      launchCmd = [NSString stringWithCString:
+	make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
     }
 }
 
@@ -125,7 +522,6 @@ static NSPortNameServer	*defaultServer = nil;
 	  return defaultServer;
 	}
       s = (NSPortNameServer*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      s->_data = [NSMutableData new];
       s->_portMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 		NSObjectMapValueCallBacks, 0);
       s->_nameMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
@@ -150,15 +546,16 @@ static NSPortNameServer	*defaultServer = nil;
 - (NSPort*) portForName: (NSString*)name
 		 onHost: (NSString*)host
 {
-  gdo_req		msg;		/* Message structure.	*/
-  NSMutableData		*dat;		/* Hold message here.	*/
-  unsigned		len;
+  GSPortCom		*com = nil;
   NSRunLoop		*loop = [NSRunLoop currentRunLoop];
   struct in_addr	singleServer;
   struct in_addr	*svrs = &singleServer;
   unsigned		numSvrs;
   unsigned		count;
   unsigned		portNum = 0;
+  unsigned		len;
+  NSMutableArray	*array;
+  NSDate		*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
 
   if (name == nil)
     {
@@ -179,6 +576,9 @@ static NSPortNameServer	*defaultServer = nil;
 			GDO_NAME_MAX_LEN]; 
     }
 
+  /*
+   * get one or more host addresses in network byte order.
+   */
   if (host == nil || [host isEqual: @""])
     {
       /*
@@ -193,98 +593,48 @@ static NSPortNameServer	*defaultServer = nil;
     }
   else if ([host isEqual: @"*"])
     {
-      NSMutableData	*tmp;
-      unsigned	bufsiz;
-      unsigned	length;
-
-      msg.rtype = GDO_SERVERS;	/* Get a list of name servers.	*/
-      msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
-      msg.nsize = 0;
-      msg.port = 0;
-      dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
+      GSPortCom	*com = [GSPortCom new];
 
       [serverLock lock];
       NS_DURING
 	{
-	  [self _open: nil];
-	  _expecting = sizeof(msg);
-	  [_handle writeInBackgroundAndNotify: dat
-				     forModes: modes];
-	  [loop runMode: mode
-	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
-	  if (_expecting)
-	    {
-	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out writing to gdomap"]; 
-	    }
+	  GSPortCom	*tmp;
+	  NSData	*dat;
 
-	  _expecting = sizeof(unsigned);
-	  [_data setLength: 0];
-	  [_handle readInBackgroundAndNotifyForModes: modes];
-	  [loop runMode: mode
-	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
-	  if (_expecting)
+	  [com startListNameServers];
+	  while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
+	    {
+	      [loop runMode: mode
+		 beforeDate: limit];
+	    }
+	  [com close];
+	  if ([com state] != GSPC_DONE)
 	    {
 	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out reading from gdomap"]; 
+			  format: @"timed out listing name servers"]; 
 	    }
-	  numSvrs = NSSwapBigIntToHost(*(unsigned*)[_data bytes]);
+          /*
+           * Retain and autorelease the data item so the buffer won't disappear
+	   * when the 'com' object is destroyed.
+	   */
+          dat = AUTORELEASE(RETAIN([com data]));
+	  svrs = (struct in_addr*)([dat bytes] + 4);
+	  numSvrs = GSSwapBigI32ToHost(*(gsu32*)[dat bytes]);
 	  if (numSvrs == 0)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"failed to get list of name servers on net"];
 	    }
-
-	  /*
-	   *	Calculate size of buffer for server internet addresses and
-	   *	allocate a buffer to store them in.
-	   */
-	  bufsiz = numSvrs * sizeof(struct in_addr);
-	  tmp = [NSMutableData dataWithLength: bufsiz];
-	  svrs = (struct in_addr*)[tmp mutableBytes];
-
-	  /*
-	   *	Read the addresses from the name server if necessary
-	   *	and copy them to our newly allocated buffer.
-	   *	We may already have some/all of the data, in which case
-	   *	we don't need to do a read.
-	   */
-	  length = [_data length] - sizeof(unsigned);
-	  if (length > 0)
-	    {
-	      void	*bytes = [_data mutableBytes];
-
-	      memcpy(bytes, bytes+sizeof(unsigned), length);
-	      [_data setLength: length];
-	    }
-	  else
-	    {
-	      [_data setLength: 0];
-	    }
-
-	  if (length < bufsiz)
-	    {
-	      _expecting = bufsiz;
-	      [_handle readInBackgroundAndNotifyForModes: modes];
-	      [loop runMode: mode
-		 beforeDate: [NSDate dateWithTimeIntervalSinceNow:
-				readTimeout]];
-	      if (_expecting)
-		{
-		  [NSException raise: NSPortTimeoutException
-			      format: @"timed out reading from gdomap"]; 
-		}
-	    }
-
-	  [_data getBytes: (void*)svrs length: bufsiz];
-	  [self _close];
+	  tmp = com;
+	  com = nil;
+	  RELEASE(tmp);
 	}
       NS_HANDLER
 	{
 	  /*
 	   *	If we had a problem - unlock before continueing.
 	   */
-	  [self _close];
+	  RELEASE(com);
 	  [serverLock unlock];
           [localException raise];
 	}
@@ -309,49 +659,79 @@ static NSPortNameServer	*defaultServer = nil;
 #endif
     }
 
+  /*
+   * Ok, 'svrs'now points to one or more internet addresses in network
+   * byte order, and numSvrs tells us how many there are.
+   */
+  array = [NSMutableArray arrayWithCapacity: maxHandles];
   [serverLock lock];
   NS_DURING
     {
-      for (count = 0; count < numSvrs; count++)
+      unsigned	i;
+
+      portNum = 0;
+      count = 0;
+      do
 	{
-	  NSString	*addr;
-
-	  msg.rtype = GDO_LOOKUP;	/* Find the named port.		*/
-	  msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
-	  msg.port = 0;
-	  msg.nsize = len;
-	  [name getCString: msg.name];
-	  dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-
-	  addr = [NSString stringWithCString: (char*)inet_ntoa(svrs[count])];
-	  [self _open: addr];
-	  _expecting = sizeof(msg);
-	  [_handle writeInBackgroundAndNotify: dat
-				     forModes: modes];
-	  [loop runMode: mode
-	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
-	  if (_expecting)
+	  /*
+	   *	Make sure that all the array slots are full if possible
+	   */
+	  while (count < numSvrs && [array count] < maxHandles)
 	    {
-	      [self _close];
+	      NSString	*addr;
+
+	      com = [GSPortCom new];
+	      [array addObject: com];
+	      RELEASE(com);
+	      [com setAddr: svrs[count]];
+	      addr = [NSString stringWithCString:
+		(char*)inet_ntoa(svrs[count])];
+	      [com startPortLookup: name onHost: addr];
+	      count++;
 	    }
-	  else
+
+	  /*
+	   * Handle I/O on the file handles.
+	   */
+	  i = [array count];
+	  if (i == 0)
 	    {
-	      _expecting = sizeof(unsigned);
-	      [_data setLength: 0];
-	      [_handle readInBackgroundAndNotifyForModes: modes];
-	      [loop runMode: mode
-		 beforeDate: [NSDate dateWithTimeIntervalSinceNow:
-				readTimeout]];
-	      [self _close];
-	      if (_expecting == 0)
+	      break;	/* No servers left to try!	*/
+	    }
+	  [loop runMode: mode
+	     beforeDate: limit];
+
+	  /*
+	   * Check for completed operations.
+	   */
+	  while (portNum == 0 && i-- > 0)
+	    {
+	      com = [array objectAtIndex: i];
+	      if ([com isActive] == NO)
 		{
-		  portNum = NSSwapBigIntToHost(*(unsigned*)[_data bytes]);
-		  if (portNum != 0)
+		  [com close];
+		  if ([com state] == GSPC_DONE)
 		    {
-		      break;
+		      portNum = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
+		      if (portNum != 0)
+			{
+			  singleServer = [com addr];
+			}
 		    }
+		  [array removeObjectAtIndex: i];
 		}
 	    }
+	}
+      while (portNum == 0 && [limit timeIntervalSinceNow] > 0);
+
+      /*
+       * Make sure that any outstanding lookups are cancelled.
+       */
+      i = [array count];
+      while (i-- > 0)
+	{
+	  [[array objectAtIndex: i] fail];
+	  [array removeObjectAtIndex: i];
 	}
     }
   NS_HANDLER
@@ -359,7 +739,6 @@ static NSPortNameServer	*defaultServer = nil;
       /*
        *	If we had a problem - unlock before continueing.
        */
-      [self _close];
       [serverLock unlock];
       [localException raise];
     }
@@ -386,7 +765,7 @@ static NSPortNameServer	*defaultServer = nil;
        *	The host addresses are given to us in network byte order
        *	so we just copy the address into place.
        */
-      sin.sin_addr.s_addr = svrs[count].s_addr;
+      sin.sin_addr = singleServer;
 
       p = [TcpOutPort newForSendingToSockaddr: &sin
 			   withAcceptedSocket: 0
@@ -402,10 +781,10 @@ static NSPortNameServer	*defaultServer = nil;
 - (BOOL) registerPort: (NSPort*)port
 	      forName: (NSString*)name
 {
-  gdo_req	msg;		/* Message structure.	*/
-  NSMutableData	*dat;		/* Hold message here.	*/
-  unsigned	len;
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
+  GSPortCom	*com;
+  unsigned	len;
+  NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
 
   if (name == nil)
     {
@@ -417,7 +796,6 @@ static NSPortNameServer	*defaultServer = nil;
       [NSException raise: NSInvalidArgumentException
 		  format: @"attempt to register nil port"]; 
     }
-
   len = [name cStringLength];
   if (len == 0)
     {
@@ -430,7 +808,6 @@ static NSPortNameServer	*defaultServer = nil;
 		  format: @"name of port is too long (max %d) bytes",
 			GDO_NAME_MAX_LEN]; 
     }
-
   /*
    *	Lock out other threads while doing I/O to gdomap
    */
@@ -439,6 +816,7 @@ static NSPortNameServer	*defaultServer = nil;
   NS_DURING
     {
       NSMutableSet	*known = NSMapGet(_portMap, port);
+      GSPortCom		*tmp;
 
       /*
        *	If there is no set of names for this port - create one.
@@ -458,96 +836,44 @@ static NSPortNameServer	*defaultServer = nil;
        */
       if ([known count] == 0)
 	{
-	  msg.rtype = GDO_UNREG;
-	  msg.ptype = GDO_TCP_GDO;
-	  msg.nsize = 0;
-	  msg.port = NSSwapHostIntToBig([(TcpInPort*)port portNumber]);
-	  dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-
-	  [self _open: nil];
-
-	  _expecting = sizeof(msg);
-	  [_handle writeInBackgroundAndNotify: dat
-				     forModes: modes];
-	  [loop runMode: mode
-	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
-	  if (_expecting)
+	  com = [GSPortCom new];
+	  [com startPortUnregistration: [(TcpInPort*)port portNumber]
+			      withName: nil];
+	  while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
+	    {
+	      [loop runMode: mode
+		 beforeDate: limit];
+	    }
+	  [com close];
+	  if ([com state] != GSPC_DONE)
 	    {
 	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out writing to gdomap"]; 
+			  format: @"timed out unregistering port"]; 
 	    }
+	  tmp = com;
+	  com = nil;
+	  RELEASE(tmp);
+	}
 
-	  /*
-	   *	Queue a read request in our own run mode then run until the
-	   *	timeout period or until the read completes.
-	   */
-	  _expecting = sizeof(unsigned);
-	  [_data setLength: 0];
-	  [_handle readInBackgroundAndNotifyForModes: modes];
+      com = [GSPortCom new];
+      [com startPortRegistration: [(TcpInPort*)port portNumber]
+			withName: name];
+      while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
+	{
 	  [loop runMode: mode
-	     beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
-	  if (_expecting)
-	    {
-	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out reading from gdomap"]; 
-	    }
-
-	  if ([_data length] != sizeof(unsigned))
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"too much data read from gdomap"]; 
-	    }
-	  [self _close];
+	     beforeDate: limit];
 	}
-
-      msg.rtype = GDO_REGISTER;	/* Register a port.		*/
-      msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
-      msg.nsize = len;
-      [name getCString: msg.name];
-      msg.port = NSSwapHostIntToBig((unsigned)[(TcpInPort*)port portNumber]);
-      dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-
-      [self _open: nil];
-
-      /*
-       *	Queue a write request in our own run mode then run until the
-       *	timeout period or until the write completes.
-       */
-      _expecting = sizeof(msg);
-      [_handle writeInBackgroundAndNotify: dat
-				 forModes: modes];
-      [loop runMode: mode
-	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
-      if (_expecting)
+      [com close];
+      if ([com state] != GSPC_DONE)
 	{
 	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out writing to gdomap"]; 
-	}
-
-      /*
-       *	Queue a read request in our own run mode then run until the
-       *	timeout period or until the read completes.
-       */
-      _expecting = sizeof(unsigned);
-      [_data setLength: 0];
-      [_handle readInBackgroundAndNotifyForModes: modes];
-      [loop runMode: mode
-	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
-      if (_expecting)
-	{
-	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out reading from gdomap"]; 
-	}
-
-      if ([_data length] != sizeof(unsigned))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"too much data read from gdomap"]; 
+		      format: @"timed out registering port %@", name]; 
 	}
       else
 	{
-	  unsigned	result = NSSwapBigIntToHost(*(unsigned*)[_data bytes]);
+	  unsigned	result;
 
+	  result = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
 	  if (result == 0)
 	    {
 	      [NSException raise: NSGenericException
@@ -563,28 +889,30 @@ static NSPortNameServer	*defaultServer = nil;
 	      NSMapInsert(_nameMap, name, port);
 	    }
 	}
+      tmp = com;
+      com = nil;
+      RELEASE(tmp);
     }
   NS_HANDLER
     {
       /*
        *	If we had a problem - close and unlock before continueing.
        */
-      [self _close];
+      RELEASE(com);
       [serverLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  [self _close];
   [serverLock unlock];
   return YES;
 }
 
 - (void) removePortForName: (NSString*)name
 {
-  gdo_req	msg;		/* Message structure.	*/
-  NSMutableData	*dat;		/* Hold message here.	*/
-  unsigned	len;
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
+  GSPortCom	*com;
+  unsigned	len;
+  NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
 
   if (name == nil)
     {
@@ -605,13 +933,6 @@ static NSPortNameServer	*defaultServer = nil;
 			GDO_NAME_MAX_LEN]; 
     }
 
-  msg.rtype = GDO_UNREG;	/* Unregister a port.		*/
-  msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
-  msg.nsize = len;
-  [name getCString: msg.name];
-  msg.port = 0;
-  dat = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-
   /*
    *	Lock out other threads while doing I/O to gdomap
    */
@@ -619,55 +940,29 @@ static NSPortNameServer	*defaultServer = nil;
 
   NS_DURING
     {
-      [self _open: nil];
+      GSPortCom	*tmp;
 
-      /*
-       *	Queue a write request in our own run mode then run until the
-       *	timeout period or until the write completes.
-       */
-      _expecting = sizeof(msg);
-      [_handle writeInBackgroundAndNotify: dat
-				 forModes: modes];
-      [loop runMode: mode
-	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: writeTimeout]];
-      if (_expecting)
+      com = [GSPortCom new];
+      [com startPortUnregistration: 0 withName: name];
+      while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
+	{
+	  [loop runMode: mode
+	     beforeDate: limit];
+	}
+      [com close];
+      if ([com state] != GSPC_DONE)
 	{
 	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out writing to gdomap"]; 
-	}
-
-      /*
-       *	Queue a read request in our own run mode then run until the
-       *	timeout period or until the read completes.
-       */
-      _expecting = sizeof(unsigned);
-      [_data setLength: 0];
-      [_handle readInBackgroundAndNotifyForModes: modes];
-      [loop runMode: mode
-	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: readTimeout]];
-      if (_expecting)
-	{
-	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out reading from gdomap"]; 
-	}
-
-      /*
-       *	Finished with server - so close connection.
-       */
-      [self _close];
-
-      if ([_data length] != sizeof(unsigned))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"too much data read from gdomap"]; 
+		      format: @"timed out unregistering port"]; 
 	}
       else
 	{
-	  unsigned	result = NSSwapBigIntToHost(*(unsigned*)[_data bytes]);
+	  unsigned	result;
 
+	  result = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
 	  if (result == 0)
 	    {
-	      NSLog(@"NSPortNameServer unable to unregister '%@'\n", name);
+	      NSLog(@"NSPortNameServer unable to unregister '%@'", name);
 	    }
 	  else
 	    {
@@ -695,282 +990,22 @@ static NSPortNameServer	*defaultServer = nil;
 		}
 	    }
 	}
+      tmp = com;
+      com = nil;
+      RELEASE(tmp);
     }
   NS_HANDLER
     {
       /*
        *	If we had a problem - unlock before continueing.
        */
-      [self _close];
+      RELEASE(com);
       [serverLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
   [serverLock unlock];
 }
-@end
-
-@implementation	NSPortNameServer (Private)
-- (void) _close
-{
-  if (_handle)
-    {
-      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-
-      [nc removeObserver: self
-		    name: GSFileHandleConnectCompletionNotification
-		  object: _handle];
-      [nc removeObserver: self
-		    name: NSFileHandleReadCompletionNotification
-		  object: _handle];
-      [nc removeObserver: self
-		    name: GSFileHandleWriteCompletionNotification
-		  object: _handle];
-      [_handle closeFile];
-      RELEASE(_handle);
-      _handle = nil;
-    }
-}
-
-- (void) _didConnect: (NSNotification*)notification
-{
-  NSDictionary    *userInfo = [notification userInfo];
-  NSString        *e;
-
-  e = [userInfo objectForKey:GSFileHandleNotificationError];
-  if (e)
-    {
-      NSLog(@"NSPortNameServer failed connect to gdomap - %@", e); 
-    }
-  else
-    {
-      /*
-       *	There should now be nothing for the runloop to do so
-       *	control should return to the method that started the connection.
-       *	Set '_expecting' to zero to show that the connection worked and
-       *	stop watching for connection completion.
-       */ 
-      _expecting = 0;
-      [[NSNotificationCenter defaultCenter]
-	removeObserver: self
-		  name: GSFileHandleConnectCompletionNotification
-		object: _handle];
-    }
-}
-
-- (void) _didRead: (NSNotification*)notification
-{
-  NSDictionary	*userInfo = [notification userInfo];
-  NSData	*d;
-
-  d = [userInfo objectForKey:NSFileHandleNotificationDataItem];
-
-  if (d == nil || [d length] == 0)
-    {
-      [self _close];
-      [NSException raise: NSGenericException
-		  format: @"NSPortNameServer lost connection to gdomap"]; 
-    }
-  else
-    {
-      [_data appendData: d];
-      if ([_data length] < _expecting)
-	{
-	  /*
-	   *	Not enough data read yet - go read some more.
-	   */
-	  [_handle readInBackgroundAndNotifyForModes: modes];
-	}
-      else
-	{
-	  /*
-	   *	There should now be nothing for the runloop to do so
-	   *	control should return to the method that started the read.
-	   *	Set '_expecting' to zero to show that the data was read.
-	   */ 
-	  _expecting = 0;
-	}
-    }
-}
-
-- (void) _didWrite: (NSNotification*)notification
-{
-  NSDictionary    *userInfo = [notification userInfo];
-  NSString        *e;
-
-  e = [userInfo objectForKey:GSFileHandleNotificationError];
-  if (e)
-    {
-      [self _close];
-      [NSException raise: NSGenericException
-		  format: @"NSPortNameServer failed write to gdomap - %@", e]; 
-    }
-  else
-    {
-      /*
-       *	There should now be nothing for the runloop to do so
-       *	control should return to the method that started the write.
-       *	Set '_expecting' to zero to show that the data was written.
-       */ 
-      _expecting = 0;
-    }
-}
-
-- (void) _open: (NSString*)host
-{
-  NSNotificationCenter *nc;
-  NSRunLoop	*loop;
-  NSString	*hostname = host;
-  BOOL		isLocal = NO;
-
-  if (_handle)
-    {
-      return;		/* Connection already open.	*/
-    }
-  if (hostname == nil)
-    {
-      hostname = @"localhost";
-      isLocal = YES;
-    }
-  else
-    {
-      NSHost	*current = [NSHost currentHost];
-      NSHost	*host = [NSHost hostWithName: hostname];
-
-      if (host == nil)
-	{
-	  host = [NSHost hostWithAddress: hostname];
-	}
-      if ([current isEqual: host])
-	{
-	  isLocal = YES;
-	}
-    }
-
-  NS_DURING
-    {
-      _handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress: host
-							  service: serverPort
-							 protocol: @"tcp"
-							 forModes: modes];
-    }
-  NS_HANDLER
-    {
-      if ([[localException name] isEqual: NSInvalidArgumentException])
-	{
-	  NSLog(@"Exception looking up port for gdomap - %@\n", localException);
-	  _handle = nil;
-	}
-      else
-	{
-	  [localException raise];
-	}
-    }
-  NS_ENDHANDLER
-
-  if (_handle == nil)
-    {
-      NSLog(@"Failed to find gdomap port with name '%@',\nperhaps your "
-		@"/etc/services file is not correctly set up?\n"
-		@"Retrying with default (IANA allocated) port number 538",
-		serverPort);
-      NS_DURING
-	{
-	  _handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress: host
-							  service: @"538"
-							 protocol: @"tcp"
-							 forModes: modes];
-	}
-      NS_HANDLER
-	{
-	  [localException raise];
-	}
-      NS_ENDHANDLER
-      if (_handle)
-	{
-	  RELEASE(serverPort);
-	  serverPort = @"538";
-	}
-    }
-
-  if (_handle == nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"failed to create file handle to gdomap on %@",
-			hostname];
-    }
-
-  _expecting = 1;
-  RETAIN(_handle);
-  nc = [NSNotificationCenter defaultCenter];
-  [nc addObserver: self
-	 selector: @selector(_didConnect:)
-	     name: GSFileHandleConnectCompletionNotification
-	   object: _handle];
-  [nc addObserver: self
-	 selector: @selector(_didRead:)
-	     name: NSFileHandleReadCompletionNotification
-	   object: _handle];
-  [nc addObserver: self
-	 selector: @selector(_didWrite:)
-	     name: GSFileHandleWriteCompletionNotification
-	   object: _handle];
-  loop = [NSRunLoop currentRunLoop];
-  [loop runMode: mode
-     beforeDate: [NSDate dateWithTimeIntervalSinceNow: connectTimeout]];
-  if (_expecting)
-    {
-      static BOOL	retrying = NO;
-
-      [self _close];
-      if (isLocal == YES && retrying == NO)
-	{
-	  retrying = YES;
-	  NS_DURING
-	    {
-	      [self _retry];
-	    }
-	  NS_HANDLER
-	    {
-	      retrying = NO;
-	      [localException raise];
-	    }
-	  NS_ENDHANDLER
-	  retrying = NO;
-	}
-      else
-	{
-	  if (isLocal)
-	    {
-	      NSLog(@"NSPortNameServer failed to connect to gdomap - %s",
-		    make_gdomap_err(GNUSTEP_INSTALL_PREFIX)); 
-	    }
-	  else
-	    {
-	      NSLog(@"NSPortNameServer failed to connect to gdomap on %@",
-		    hostname);
-	    }
-	}
-    }
-}
-
-- (void) _retry
-{
-  static NSString	*cmd = nil;
-
-  if (cmd == nil)
-    cmd = [NSString stringWithCString: make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
-  NSLog(@"NSPortNameServer attempting to start gdomap on local host"); 
-  [NSTask launchedTaskWithLaunchPath: cmd arguments: nil];
-  [NSTimer scheduledTimerWithTimeInterval: 5.0
-			       invocation: nil
-				  repeats: NO];
-  [[NSRunLoop currentRunLoop] runUntilDate:
-    [NSDate dateWithTimeIntervalSinceNow: 5.0]];
-  NSLog(@"NSPortNameServer retrying connection attempt to gdomap"); 
-  [self _open: nil];
-}
-
 @end
 
 @implementation	NSPortNameServer (GNUstep)
@@ -1001,3 +1036,5 @@ static NSPortNameServer	*defaultServer = nil;
   [serverLock lock];
 }
 @end
+
+

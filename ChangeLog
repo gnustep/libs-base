@@ -1,4 +1,10 @@
-Sun Sep 20  6:07:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Sep 21 20:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/Foundation/NSPortNameServer.h: Tidied and removed a few ivars.
+	* Source/NSPortNameServer.m: Rewritten to be a bit clearer and to
+	permit parallel lookup on multiple hosts.
+
+Sun Sep 19  6:07:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* NSString.m: Fix bug in ([+stringByStandardizingPath]) with trailing
 	slash.

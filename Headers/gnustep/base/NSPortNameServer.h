@@ -1,5 +1,5 @@
 /* Interface of NSPortNameServer class for Distributed Objects
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -26,13 +26,10 @@
 
 #include	<Foundation/NSObject.h>
 
-@class	NSPort, NSString, NSMutableData, NSFileHandle;
+@class	NSPort, NSString, NSMutableArray;
 
 @interface	NSPortNameServer : NSObject
 {
-  NSFileHandle	*_handle;	/* File handle to talk to gdomap.	*/
-  NSMutableData	*_data;		/* Where to accumulated incoming data.	*/
-  unsigned	_expecting;	/* Length of data we want.		*/
   NSMapTable	*_portMap;	/* Registered ports information.	*/
   NSMapTable	*_nameMap;	/* Registered names information.	*/
 }
