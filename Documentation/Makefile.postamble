@@ -75,7 +75,8 @@ endif
 endif
 	cp -f HtmlNav/index.html $(REF_DOC_INSTALL_DIR)/..
 	cp -f HtmlNav/style.css $(REF_DOC_INSTALL_DIR)/..
-	cp -f HtmlNav/gnustep-header.png $(REF_DOC_INSTALL_DIR)/..
+	cp -f HtmlNav/gnustep-header14.jpg $(REF_DOC_INSTALL_DIR)/..
+	cp -f HtmlNav/masthead-bg.jpg $(REF_DOC_INSTALL_DIR)/..
 
 
 # Things to do before uninstalling
