@@ -1,5 +1,5 @@
 /* Implementation of release stack for delayed disposal
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -25,7 +25,6 @@
 #include <objects/AutoreleaseStack.h>
 #include <objects/ObjectRetaining.h>
 #include <objects/collhash.h>
-#include <objects/eltfuncs.h>
 #include <assert.h>
 
 /* The initial size of the released_objects array */

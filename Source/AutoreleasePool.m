@@ -1,5 +1,5 @@
 /* Implementation of release pools for delayed disposal
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -24,7 +24,6 @@
 #include <objects/stdobjects.h>
 #include <objects/AutoreleasePool.h>
 #include <objects/collhash.h>
-#include <objects/eltfuncs.h>
 #include <objects/objc-malloc.h>
 #include <objects/ObjectRetaining.h>
 
