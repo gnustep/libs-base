@@ -1,3 +1,74 @@
+Mon May 13 09:03:55 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSThread.m (NSBecomingMultiThreaded, NSThreadExiting):
+ 	Initialize the notification strings as static strings, not in
+ 	+initialize.
+	(thread_id_2_nsthread): Renamed from THREAD_LIST.  Keep the collection
+	of NSThread's as a maptable, not a NSArray that takes linear time
+ 	to search!
+	(thread_lock): Renamed from THREAD_LIST_LOCK.
+	(entered_multi_threaded_state): Renamed from
+	ENTERED_MULTI-THREADED_STATE.
+	([NSThread +initialize]): Don't initialize notification strings here.
+	Don't autorelease the lock!
+	([NSThread -init]): Initialize _thread_autorelease_pool.  Set our
+	thread data to self, for easy, efficient access to this NSThread
+ 	object later.  Put ourselves in the thread collection here, not in
+ 	+detach...
+	([NSThread +currentThread]): This will be called often and needs to be
+	fast.  Reimplemented so we don't have to acquire a lock and step
+ 	through an NSArray of threads; instead, just look ourselves up
+ 	with the objc_thread_get_data(), and furthermore, no lock
+ 	required.
+	([NSThread +detachNewThreadSelector:toTarget:withObject:]): Avoid race
+	condition, don't create new NSThread object here.
+	([NSThread +sleepUntilDate:]): Call -notImplemented:.
+	([NSThread +exit]): Properly post NSThreadExiting notification, making
+	sure not to hold the lock while we do so.  Get the NSThread object
+ 	efficiently.
+	([NSThread -threadId]): Removed unnecessary private method.
+	([NSThread -setThreadId]): Likewise.
+
+	* src/include/NSLock.h: Include renamed <objc/thr.h>, not
+ 	<objc/thread.h>.
+
+	* src/include/NSThread.h: Include renamed <objc/thr.h>, not
+ 	<objc/thread.h>.  Prepend ivars with underscore.  Formatting
+ 	cleanups.
+
+	* src/Makefile.in (gnustep/base): Use -r test for file existance,
+ 	not -e.  (Reported by Adam Fedor <fedor@mode.colorado.edu>.)
+
+	* src/BinaryCStream.m: Include <netinet/in.h> for byte-conversion;
+ 	needed on Solaris.  (Reported by Adam Fedor
+	<fedor@mode.colorado.edu>.)
+
+	* src/Makefile.in (AUTHORS): Also search for "Rewritten by"
+ 	string.
+
+Sun May 12 19:57:53 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Coder.m ([Coder -encodeConditionalObject:]): Comment
+ 	additions.
+	([Coder -decodeObject]): Likewise.
+
+	* src/Coder.m: Remove many methods from (Coder
+ 	NSCoderCompatibility), they are now included by adding the
+ 	behavior from NSCoderNonCore.
+	([Coder +initialize]): Add behavior from NSCoderNonCore.
+	([Coder -encodeArrayOfObjCType:count:at:]): Method removed.
+	([Coder -decodeArrayOfObjCType:count:at:]): Method removed.
+	([Coder -encodeProperyList:]): Method removed.
+	([Coder -decodeProperyList:]): Method removed.
+	([Coder -encodePoint:]): Method removed.
+	([Coder -decodePoint:]): Method removed.
+	([Coder -encodeSize:]): Method removed.
+	([Coder -decodeSize:]): Method removed.
+	([Coder -encodeRect:]): Method removed.
+	([Coder -decodeRect:]): Method removed.
+	([Coder -encodeValuesOfObjCTypes:]): Method removed.
+	([Coder -decodeValuesOfObjCTypes:]): Method removed.
+
 Sat May 11 20:38:10 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* After consulting other developers, change "Gnustep" to "GNUstep"
