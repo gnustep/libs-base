@@ -68,10 +68,10 @@
   [super _encodeCollectionWithCoder:aCoder];
   [aCoder encodeValueOfCType:@encode(char*) 
 	  at:&enc
-	  withName:"Set contents encoding"];
+	  withName:@"Set contents encoding"];
   [aCoder encodeValueOfCType:@encode(unsigned) 
 	  at:&(_contents_hash->size)
-	  withName:"Set contents capacity"];
+	  withName:@"Set contents capacity"];
   return;
 }
 

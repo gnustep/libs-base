@@ -42,8 +42,8 @@
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
-  [aCoder encodeObjectReference:_next withName:"Next LinkedList Node"];
-  [aCoder encodeObjectReference:_prev withName:"Prev LinkedList Node"];
+  [aCoder encodeObjectReference:_next withName:@"Next LinkedList Node"];
+  [aCoder encodeObjectReference:_prev withName:@"Prev LinkedList Node"];
 }
 
 - initWithCoder: aCoder

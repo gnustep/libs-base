@@ -41,9 +41,9 @@
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:(id)aCoder];
-  [aCoder encodeObjectReference:_right withName:"Right BinaryTree Node"];
-  [aCoder encodeObjectReference:_left withName:"Left BinaryTree Node"];
-  [aCoder encodeObjectReference:_parent withName:"Parent BinaryTree Node"];
+  [aCoder encodeObjectReference:_right withName:@"Right BinaryTree Node"];
+  [aCoder encodeObjectReference:_left withName:@"Left BinaryTree Node"];
+  [aCoder encodeObjectReference:_parent withName:@"Parent BinaryTree Node"];
 }
 
 - initWithCoder: aCoder

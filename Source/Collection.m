@@ -1303,12 +1303,12 @@ for info about latest version.",
     {
       [aCoder encodeValueOfObjCType:encoding
 	      at:elt_get_ptr_to_member(encoding, &e)
-	      withName:"Collection element"];
+	      withName:@"Collection element"];
     }
 
   [aCoder encodeValueOfCType:@encode(unsigned)
 	  at:&count
-	  withName:"Collection element count"];
+	  withName:@"Collection element count"];
   [self withElementsCall:archiveElement];
 }
 

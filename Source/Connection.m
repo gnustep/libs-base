@@ -271,7 +271,7 @@ static int messagesReceivedCount;
        work the way I wanted, we wouldn't need to do this. */
     [op encodeValueOfCType:@encode(char*) 
 	at:&type 
-	withName:"selector type"];
+	withName:@"selector type"];
 
     /* xxx This doesn't work with proxies and the NeXT runtime because
        type may be a method_type from a remote machine with a
@@ -713,7 +713,7 @@ static int messagesReceivedCount;
     type = "";
   [op encodeValueOfCType:@encode(char*)
       at:&type
-      withName:"Requested Method Type for Target"];
+      withName:@"Requested Method Type for Target"];
   [op dismiss];
   return self;
 }
@@ -728,7 +728,7 @@ static int messagesReceivedCount;
   assert(in_port);
   /* Perhaps we should turn this into a class method. */
   assert([rmc connection] == self);
-  [op encodeObject:rootObject withName:"root object"];
+  [op encodeObject:rootObject withName:@"root object"];
   [op dismiss];
   return self;
 }
