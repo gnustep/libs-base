@@ -25,11 +25,11 @@
    same architecture, and you care about time and space.
    WARNING: This encoding is *not* machine-independent. */
 
-#include <objects/stdobjects.h>
-#include <objects/RawCStream.h>
-#include <objects/NSString.h>
-#include <objects/StdioStream.h>
-#include <objects/TextCStream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/RawCStream.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/StdioStream.h>
+#include <gnustep/base/TextCStream.h>
 
 #define DEFAULT_FORMAT_VERSION 0
 

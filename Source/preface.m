@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 const char gnustep_base_version[] = STRINGIFY (GNUSTEP_BASE_VERSION);
 const char objects_gcc_version[] = STRINGIFY (GNUSTEP_BASE_GCC_VERSION);

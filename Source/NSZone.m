@@ -70,7 +70,7 @@
   
    */
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +78,7 @@
 # include <malloc.h>
 #endif
 #include <Foundation/NSZone.h>
-#include <objects/objc-malloc.h>
+#include <gnustep/base/objc-malloc.h>
 
 #define DEFAULTLISTSIZE 10
 

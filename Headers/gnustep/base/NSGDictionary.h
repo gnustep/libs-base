@@ -24,9 +24,9 @@
 #ifndef __NSGDictionary_h_OBJECTS_INCLUDE
 #define __NSGDictionary_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSDictionary.h>
-#include <objects/Dictionary.h>
+#include <gnustep/base/Dictionary.h>
 
 @interface NSGDictionary : NSDictionary
 @end

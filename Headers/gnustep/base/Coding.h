@@ -24,9 +24,9 @@
 #ifndef __Coding_h_OBJECTS_INCLUDE
 #define __Coding_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
-/* #include <objects/String.h>
+/* #include <gnustep/base/String.h>
    xxx Think about trying to get <String> back in types,
    but now there is a circular dependancy in the include files. */
 

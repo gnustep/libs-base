@@ -22,9 +22,9 @@
    */
 
 #include <Foundation/NSGDictionary.h>
-#include <objects/NSDictionary.h>
-#include <objects/behavior.h>
-#include <objects/Dictionary.h>
+#include <gnustep/base/NSDictionary.h>
+#include <gnustep/base/behavior.h>
+#include <gnustep/base/Dictionary.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 

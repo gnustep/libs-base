@@ -24,7 +24,7 @@
 #ifndef __NSString_h_OBJECTS_INCLUDE
 #define __NSString_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSRange.h>
 
 typedef unsigned short unichar;
@@ -278,8 +278,8 @@ compiler warning.
 
 #ifndef NO_GNUSTEP
 
-#include <objects/IndexedCollecting.h>
-#include <objects/String.h>
+#include <gnustep/base/IndexedCollecting.h>
+#include <gnustep/base/String.h>
 
 @interface NSString (GNU) <String,IndexedCollecting>
 @end

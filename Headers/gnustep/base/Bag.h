@@ -24,8 +24,8 @@
 #ifndef __Bag_h_INCLUDE_GNU
 #define __Bag_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/Collection.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Collection.h>
 #include <Foundation/NSMapTable.h>
 
 @interface Bag : Collection

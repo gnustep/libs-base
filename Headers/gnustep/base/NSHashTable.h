@@ -30,7 +30,7 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
-#include <objects/hash.h>
+#include <gnustep/base/hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

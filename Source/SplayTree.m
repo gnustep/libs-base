@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/SplayTree.h>
-#include <objects/IndexedCollectionPrivate.h>
+#include <gnustep/base/SplayTree.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
 
 @implementation SplayTree
 

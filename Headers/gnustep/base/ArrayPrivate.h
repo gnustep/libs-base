@@ -24,8 +24,8 @@
 #ifndef __ArrayPrivate_h_INCLUDE_GNU
 #define __ArrayPrivate_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/IndexedCollectionPrivate.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
 
 #define DEFAULT_ARRAY_CAPACITY 2
 #define DEFAULT_ARRAY_GROW_FACTOR 2

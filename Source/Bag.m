@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/Bag.h>
-#include <objects/CollectionPrivate.h>
+#include <gnustep/base/Bag.h>
+#include <gnustep/base/CollectionPrivate.h>
 
 #define DEFAULT_BAG_CAPACITY 32
 

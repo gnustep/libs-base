@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/Set.h>
-#include <objects/CollectionPrivate.h>
-#include <objects/Coder.h>
+#include <gnustep/base/Set.h>
+#include <gnustep/base/CollectionPrivate.h>
+#include <gnustep/base/Coder.h>
 #include <Foundation/NSHashTable.h>
 
 #define DEFAULT_SET_CAPACITY 32

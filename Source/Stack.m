@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/Stack.h>
-#include <objects/ArrayPrivate.h>
+#include <gnustep/base/Stack.h>
+#include <gnustep/base/ArrayPrivate.h>
 
 @implementation Stack 
   

@@ -24,9 +24,9 @@
 #ifndef __Proxy_h_OBJECTS_INCLUDE
 #define __Proxy_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Connection.h>
-#include <objects/Retaining.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Retaining.h>
 
 @class ConnectedCoder;
 

@@ -24,8 +24,8 @@
 #ifndef __StdioStream_h__OBJECTS_INCLUDE
 #define __StdioStream_h__OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Stream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Stream.h>
 #include <stdio.h>
 
 @interface StdioStream : Stream

@@ -24,7 +24,7 @@
 #ifndef __RandomGenerating_h_INCLUDE_GNU
 #define __RandomGenerating_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 @protocol RandomGenerating <NSObject, NSCoding>
 

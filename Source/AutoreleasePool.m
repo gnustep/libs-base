@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/AutoreleasePool.h>
-#include <objects/objc-malloc.h>
-#include <objects/ObjectRetaining.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/AutoreleasePool.h>
+#include <gnustep/base/objc-malloc.h>
+#include <gnustep/base/ObjectRetaining.h>
 
 /* Doesn't handle multi-threaded stuff.
    Doesn't handle exceptions. */

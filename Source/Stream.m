@@ -21,11 +21,11 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Stream.h>
-#include <objects/Coder.h>
-#include <objects/Coder.h>
-#include <objects/NSString.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/NSString.h>
 
 @implementation Stream
 

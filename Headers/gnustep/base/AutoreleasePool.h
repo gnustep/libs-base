@@ -24,8 +24,8 @@
 #ifndef __AutoreleasePool_m_OBJECTS_INCLUDE
 #define __AutoreleasePool_m_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/ObjectRetaining.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/ObjectRetaining.h>
 
 @interface AutoreleasePool : Object
 {

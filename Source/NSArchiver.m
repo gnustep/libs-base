@@ -21,11 +21,11 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSGArchiver.h>
 #include <Foundation/NSData.h>
-#include <objects/Coder.h>
+#include <gnustep/base/Coder.h>
 
 @implementation NSArchiver
 

@@ -27,8 +27,8 @@
 
 /**** Included Headers *******************************************************/
 
-#include <objects/allocs.h>
-#include <objects/callbacks.h>
+#include <gnustep/base/allocs.h>
+#include <gnustep/base/callbacks.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -72,7 +72,7 @@ struct _objects_data
 
 /** Basics **/
 
-#include <objects/data-bas.h>
+#include <gnustep/base/data-bas.h>
 
 /** Hashing **/
 

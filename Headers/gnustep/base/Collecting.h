@@ -34,10 +34,10 @@
 #ifndef __Collecting_h_INCLUDE_GNU
 #define __Collecting_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/Coding.h>
-#include <objects/Invoking.h>
-#include <objects/Enumerating.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coding.h>
+#include <gnustep/base/Invoking.h>
+#include <gnustep/base/Enumerating.h>
 
 @protocol ConstantCollecting <NSObject>
 

@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/LinkedList.h>
-#include <objects/IndexedCollectionPrivate.h>
-#include <objects/Coder.h>
+#include <gnustep/base/LinkedList.h>
+#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <gnustep/base/Coder.h>
 
 @implementation LinkedList
 

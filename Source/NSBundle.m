@@ -31,7 +31,7 @@
 
 #include <sys/stat.h>
 #include <objc/objc-api.h>
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/objc-load.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSException.h>

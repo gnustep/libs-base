@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/LinkedListEltNode.h>
-#include <objects/Coder.h>
+#include <gnustep/base/LinkedListEltNode.h>
+#include <gnustep/base/Coder.h>
 
 @implementation LinkedListEltNode
 
@@ -32,7 +32,7 @@
     [self setVersion:0];	/* beta release */
 }
 
-#include <objects/EltNode-m>
+#include <gnustep/base/EltNode-m>
 
 @end
 

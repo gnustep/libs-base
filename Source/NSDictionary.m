@@ -26,7 +26,7 @@
 #include <Foundation/NSGDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
-#include <objects/NSString.h>
+#include <gnustep/base/NSString.h>
 #include <assert.h>
 
 @implementation NSDictionary 

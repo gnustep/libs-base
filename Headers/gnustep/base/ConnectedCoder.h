@@ -24,9 +24,9 @@
 #ifndef __ConnectedCoder_h
 #define __ConnectedCoder_h
 
-#include <objects/stdobjects.h>
-#include <objects/Coder.h>
-#include <objects/Port.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/Port.h>
 
 /* ConnectedCoder identifiers */
 enum {

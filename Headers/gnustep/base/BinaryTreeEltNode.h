@@ -24,12 +24,12 @@
 #ifndef __BinaryTreeEltNode_h_INCLUDE_GNU
 #define __BinaryTreeEltNode_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/BinaryTreeNode.h>
-#include <objects/EltNodeCollector.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/BinaryTreeNode.h>
+#include <gnustep/base/EltNodeCollector.h>
 
 @interface BinaryTreeEltNode : BinaryTreeNode
-#include <objects/EltNode-h>
+#include <gnustep/base/EltNode-h>
 @end
 
 

@@ -26,8 +26,8 @@
 #ifndef __Time_h_OBJECTS_INCLUDE
 #define __Time_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Magnitude.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Magnitude.h>
 
 #ifndef WIN32
 #include <sys/time.h>

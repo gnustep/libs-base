@@ -24,7 +24,7 @@
 #ifndef __NSAutoreleasePool_h_OBJECTS_INCLUDE
 #define __NSAutoreleasePool_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 struct autorelease_array_list
 {

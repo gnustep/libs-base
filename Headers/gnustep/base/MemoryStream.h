@@ -24,9 +24,9 @@
 #ifndef __MemoryStream_h_OBJECTS_INCLUDE
 #define __MemoryStream_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Stream.h>
-#include <objects/Streaming.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Stream.h>
+#include <gnustep/base/Streaming.h>
 
 /* This protocol is preliminary and may change.
    This also may get pulled out into a separate .h file. */

@@ -24,8 +24,8 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
-#include <objects/RunLoop.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/RunLoop.h>
+#include <gnustep/base/Invocation.h>
 
 @implementation NSTimer
 

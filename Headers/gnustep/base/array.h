@@ -29,8 +29,8 @@
 
 #include <stdlib.h>
 #include <Foundation/NSZone.h>
-#include <objects/callbacks.h>
-#include <objects/hash.h>
+#include <gnustep/base/callbacks.h>
+#include <gnustep/base/hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -82,8 +82,8 @@ struct _objects_array_enumerator
 
 /** Basics **/
 
-#include <objects/array-bas.h>
-#include <objects/array-cbs.h>
+#include <gnustep/base/array-bas.h>
+#include <gnustep/base/array-cbs.h>
 
 /** Creating **/
 

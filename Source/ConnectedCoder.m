@@ -21,13 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/ConnectedCoder.h>
-#include <objects/CStream.h>
-#include <objects/Port.h>
-#include <objects/MemoryStream.h>
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/ConnectedCoder.h>
+#include <gnustep/base/CStream.h>
+#include <gnustep/base/Port.h>
+#include <gnustep/base/MemoryStream.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Proxy.h>
 #include <assert.h>
 
 #define PTR2LONG(P) (((char*)(P))-(char*)0)

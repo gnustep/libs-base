@@ -22,8 +22,8 @@
 */
 
 #include <Foundation/NSNotification.h>
-#include <objects/Notification.h>
-#include <objects/behavior.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/behavior.h>
 
 @implementation NSNotificationCenter
 

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <objects/Notification.h>
+#include <gnustep/base/Notification.h>
 
 @implementation Notification
 

@@ -24,9 +24,9 @@
 #ifndef __KeyedCollection_h_INCLUDE_GNU
 #define __KeyedCollection_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/Collection.h>
-#include <objects/KeyedCollecting.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Collection.h>
+#include <gnustep/base/KeyedCollecting.h>
 
 @interface ConstantKeyedCollection : Collection
 @end

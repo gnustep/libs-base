@@ -26,7 +26,7 @@
 
 /**** Included Headers *******************************************************/
 
-#include <objects/callbacks.h>
+#include <gnustep/base/callbacks.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -39,8 +39,8 @@
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
-#include <objects/allocs.h>
-#include <objects/callbacks.h>
+#include <gnustep/base/allocs.h>
+#include <gnustep/base/callbacks.h>
 
 /**** Function Prototypes ****************************************************/
 

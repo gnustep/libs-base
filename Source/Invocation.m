@@ -21,12 +21,12 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSValue.h>
-#include <objects/NSString.h>
-#include <objects/Connection.h>
-#include <objects/ConnectedCoder.h>
+#include <gnustep/base/NSString.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/ConnectedCoder.h>
 #include <Foundation/NSException.h>
 
 /* xxx We are currently retaining the return value.

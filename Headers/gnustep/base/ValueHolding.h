@@ -24,7 +24,7 @@
 #ifndef __ValueHolding_h_INCLUDE_GNU
 #define __ValueHolding_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 /* protocol String; */
 

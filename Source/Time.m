@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/Time.h>
-#include <objects/Array.h>
+#include <gnustep/base/Time.h>
+#include <gnustep/base/Array.h>
 
 #if HAVE_SYS_RUSAGE_H
 #include <sys/rusage.h>

@@ -27,10 +27,10 @@
 
 /**** Included Headers *******************************************************/
 
-#include <objects/bitops.h>
-#include <objects/minmax.h>
-#include <objects/abort.h>
-#include <objects/data.h>
+#include <gnustep/base/bitops.h>
+#include <gnustep/base/minmax.h>
+#include <gnustep/base/abort.h>
+#include <gnustep/base/data.h>
 #include <md5.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/

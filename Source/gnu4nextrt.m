@@ -25,7 +25,7 @@
 #error This file only needed if using NeXT runtime
 #endif /* ! NeXT_runtime */
 
-#include "objects/gnu4next.h"
+#include "gnustep/base/gnu4next.h"
 #include <objc/objc.h>
 #include <objc/objc-api.h>
 

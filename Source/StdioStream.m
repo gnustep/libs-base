@@ -21,9 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/StdioStream.h>
-#include <objects/Coder.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/StdioStream.h>
+#include <gnustep/base/Coder.h>
 #include <Foundation/NSException.h>
 #include <stdarg.h>
 

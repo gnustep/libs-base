@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/Archiver.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Archiver.h>
 #include <assert.h>
 
 /* Eventually some functionality may be moved out of Encoder and

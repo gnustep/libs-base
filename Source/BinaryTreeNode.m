@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/BinaryTreeNode.h>
-#include <objects/NSString.h>
+#include <gnustep/base/BinaryTreeNode.h>
+#include <gnustep/base/NSString.h>
 
 @implementation BinaryTreeNode
 

@@ -24,7 +24,7 @@
 #ifndef __Invoking_h__OBJECTS_INCLUDE
 #define __Invoking_h__OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 @protocol Invoking <NSObject>
 

@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
-#include <objects/AutoreleaseStack.h>
-#include <objects/ObjectRetaining.h>
-#include <objects/collhash.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/AutoreleaseStack.h>
+#include <gnustep/base/ObjectRetaining.h>
+#include <gnustep/base/collhash.h>
 #include <assert.h>
 
 /* The initial size of the released_objects array */

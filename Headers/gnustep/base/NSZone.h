@@ -31,7 +31,7 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#include <objects/config.h>
+#include <gnustep/base/config.h>
 
 @class NSString;
 

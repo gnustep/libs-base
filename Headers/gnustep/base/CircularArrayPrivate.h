@@ -24,8 +24,8 @@
 #ifndef __CircularArrayPrivate_h_INCLUDE_GNU
 #define __CircularArrayPrivate_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/ArrayPrivate.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/ArrayPrivate.h>
 
 #define CIRCULAR_TO_BASIC(INDEX) \
   ((INDEX + self->_start_index) % self->_capacity)

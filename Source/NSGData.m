@@ -21,14 +21,14 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSGData.h>
-#include <objects/NSCoder.h>
-#include <objects/behavior.h>
-#include <objects/MemoryStream.h>
-#include <objects/NSString.h>
+#include <gnustep/base/NSCoder.h>
+#include <gnustep/base/behavior.h>
+#include <gnustep/base/MemoryStream.h>
+#include <gnustep/base/NSString.h>
 
-/* This from objects/MemoryStream.h */
+/* This from gnustep/base/MemoryStream.h */
 @interface NSGData (MemoryStream)
 - _initOnMallocBuffer: (char*)b
    size: (unsigned)s		/* size of malloc'ed buffer */

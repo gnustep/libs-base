@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/RBTreeEltNode.h>
+#include <gnustep/base/RBTreeEltNode.h>
 
 @implementation RBTreeEltNode
 
@@ -31,6 +31,6 @@
     [self setVersion:0];	/* beta release */
 }
 
-#include <objects/EltNode-m>
+#include <gnustep/base/EltNode-m>
 
 @end

@@ -31,10 +31,10 @@
 #ifndef __RetainingNotifier_h
 #define __RetainingNotifier_h
 
-#include <objects/stdobjects.h>
-#include <objects/Lock.h>
-#include <objects/InvalidationListening.h>
-#include <objects/Retaining.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Lock.h>
+#include <gnustep/base/InvalidationListening.h>
+#include <gnustep/base/Retaining.h>
 
 @interface RetainingNotifier : NSObject <Retaining>
 {

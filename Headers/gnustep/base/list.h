@@ -28,9 +28,9 @@
 /**** Included Headers *******************************************************/
 
 #include <Foundation/NSZone.h>
-#include <objects/callbacks.h>
-#include <objects/hash.h>
-#include <objects/array.h>
+#include <gnustep/base/callbacks.h>
+#include <gnustep/base/hash.h>
+#include <gnustep/base/array.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -82,8 +82,8 @@ struct _objects_list_enumerator
 
 /** Basics **/
 
-#include <objects/list-bas.h>
-#include <objects/list-cbs.h>
+#include <gnustep/base/list-bas.h>
+#include <gnustep/base/list-cbs.h>
 
 /** Creating **/
 

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/LinkedListNode.h>
-#include <objects/Coder.h>
+#include <gnustep/base/LinkedListNode.h>
+#include <gnustep/base/Coder.h>
 
 @implementation LinkedListNode
 

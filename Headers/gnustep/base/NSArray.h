@@ -24,7 +24,7 @@
 #ifndef __NSArray_h_OBJECTS_INCLUDE
 #define __NSArray_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <Foundation/NSRange.h>
 #include <Foundation/NSUtilities.h>
 
@@ -103,8 +103,8 @@
 
 #ifndef NO_GNUSTEP
 
-#include <objects/IndexedCollecting.h>
-#include <objects/String.h>
+#include <gnustep/base/IndexedCollecting.h>
+#include <gnustep/base/String.h>
 
 /* Eventually we'll make a Constant version of this protocol. */
 @interface NSArray (GNU) <IndexedCollecting>

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
-#include <objects/BinaryTreeEltNode.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/BinaryTreeEltNode.h>
 
 @implementation BinaryTreeEltNode
 
@@ -32,7 +32,7 @@
     [self setVersion:0];	/* beta release */
 }
 
-#include <objects/EltNode-m>
+#include <gnustep/base/EltNode-m>
 
 @end
 

@@ -24,13 +24,13 @@
 #ifndef __Connection_h_OBJECTS_INCLUDE
 #define __Connection_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <objects/Lock.h>
-#include <objects/Collecting.h>
-#include <objects/Dictionary.h>
-#include <objects/NSString.h>
+#include <gnustep/base/Lock.h>
+#include <gnustep/base/Collecting.h>
+#include <gnustep/base/Dictionary.h>
+#include <gnustep/base/NSString.h>
 #include <Foundation/NSMapTable.h>
 
 @class Proxy;

@@ -24,12 +24,12 @@
 #ifndef __RBTreeEltNode_h_INCLUDE_GNU
 #define __RBTreeEltNode_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/RBTreeNode.h>
-#include <objects/EltNodeCollector.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/RBTreeNode.h>
+#include <gnustep/base/EltNodeCollector.h>
 
 @interface RBTreeEltNode : RBTreeNode
-#include <objects/EltNode-h>
+#include <gnustep/base/EltNode-h>
 @end
 
 #endif /* __RBTreeEltNode_h_INCLUDE_GNU */

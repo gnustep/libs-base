@@ -24,7 +24,7 @@
 #ifndef __NSRunLoop_h_OBJECTS_INCLUDE
 #define __NSRunLoop_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 @class NSTimer, NSDate;
 

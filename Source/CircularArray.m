@@ -22,8 +22,8 @@
 */ 
 
 
-#include <objects/CircularArray.h>
-#include <objects/CircularArrayPrivate.h>
+#include <gnustep/base/CircularArray.h>
+#include <gnustep/base/CircularArrayPrivate.h>
 
 @implementation CircularArray
 

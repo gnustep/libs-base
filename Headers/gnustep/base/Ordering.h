@@ -24,7 +24,7 @@
 #ifndef __Ordering_h_INCLUDE_GNU
 #define __Ordering_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <objc/objc.h>
 
 @protocol Ordering

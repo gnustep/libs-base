@@ -24,9 +24,9 @@
 #ifndef __RBTreeNode_h_INCLUDE_GNU
 #define __RBTreeNode_h_INCLUDE_GNU
 
-#include <objects/stdobjects.h>
-#include <objects/BinaryTreeNode.h>
-#include <objects/RBTree.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/BinaryTreeNode.h>
+#include <gnustep/base/RBTree.h>
 
 @interface RBTreeNode : BinaryTreeNode <RBTreeComprising>
 {

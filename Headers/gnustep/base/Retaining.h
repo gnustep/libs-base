@@ -24,7 +24,7 @@
 #ifndef __Retaining_h_OBJECTS_INCLUDE
 #define __Retaining_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 
 @protocol Retaining
 

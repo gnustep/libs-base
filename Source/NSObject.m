@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <objects/stdobjects.h>
+#include <gnustep/base/prefix.h>
 #include <stdarg.h>
 #include <Foundation/NSObject.h>
 #include <objc/Protocol.h>

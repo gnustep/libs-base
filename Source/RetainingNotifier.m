@@ -25,8 +25,8 @@
    This object is just temporary.  Eventually, we should separate 
    reference counting functionality from notification functionality */
 
-#include <objects/RetainingNotifier.h>
-#include <objects/InvalidationListening.h>
+#include <gnustep/base/RetainingNotifier.h>
+#include <gnustep/base/InvalidationListening.h>
 #include <assert.h>
 
 /* Use this for now, but GNU should switch to a GC pool

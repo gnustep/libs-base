@@ -24,8 +24,8 @@
 #ifndef __AutoreleaseStack_m_OBJECTS_INCLUDE
 #define __AutoreleaseStack_m_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/ObjectRetaining.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/ObjectRetaining.h>
 
 @interface AutoreleaseStack : Object
 {

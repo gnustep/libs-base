@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#include <objects/stdobjects.h>
-#include <objects/eltfuncs.h>
-#include <objects/collhash.h>
-#include <objects/Stream.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/eltfuncs.h>
+#include <gnustep/base/collhash.h>
+#include <gnustep/base/Stream.h>
 
 /* Is there a better (shorter) way to specify all this junk? */
 

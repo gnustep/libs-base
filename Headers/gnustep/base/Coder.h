@@ -24,10 +24,10 @@
 #ifndef __Coder_h_OBJECTS_INCLUDE
 #define __Coder_h_OBJECTS_INCLUDE
 
-#include <objects/stdobjects.h>
-#include <objects/Coding.h>
-#include <objects/Streaming.h>
-#include <objects/String.h>
+#include <gnustep/base/prefix.h>
+#include <gnustep/base/Coding.h>
+#include <gnustep/base/Streaming.h>
+#include <gnustep/base/String.h>
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSMapTable.h>
 
