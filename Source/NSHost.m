@@ -91,13 +91,13 @@ static NSMutableDictionary	*_hostCache = nil;
   struct in_addr	hostaddr;
 
 #ifndef	HAVE_INET_ATON
-  hostaddr.s_addr = inet_addr([address cString]);
+  hostaddr.s_addr = inet_addr([address UTF8String]);
   if (hostaddr.s_addr == INADDR_NONE)
     {
       NSLog(@"Attempt to lookup host entry for bad IP address (%@)", address);
     }
 #else
-  if (inet_aton([address cString], (struct in_addr*)&hostaddr.s_addr) == 0)
+  if (inet_aton([address UTF8String], (struct in_addr*)&hostaddr.s_addr) == 0)
     {
       NSLog(@"Attempt to lookup host entry for bad IP address (%@)", address);
     }
@@ -304,6 +304,7 @@ myHostName()
 
 + (NSHost*) hostWithName: (NSString*)name
 {
+  BOOL		tryByAddress = NO;
   NSHost	*host = nil;
 
   if (name == nil)
@@ -336,9 +337,14 @@ myHostName()
       else
 	{
 	  struct hostent	*h = 0;
+	  const char		*n = [name UTF8String];
 
-	  h = gethostbyname((char*)[name cString]);
-	  if (h == 0)
+	  h = gethostbyname((char*)n);
+	  if (h == 0 && sscanf(n, "%*d.%*d.%*d.%*d") == 4)
+	    {
+	      tryByAddress = YES;
+	    }
+	  else if (h == 0)
 	    {
 	      if ([name isEqualToString: myHostName()] == YES)
 		{
@@ -365,6 +371,10 @@ myHostName()
 	}
     }
   [_hostCacheLock unlock];
+  if (tryByAddress == YES)
+    {
+      return [self hostWithAddress: name];
+    }
   return host;
 }
 
@@ -400,13 +410,13 @@ myHostName()
 	  BOOL			badAddr = NO;
 
 #ifndef	HAVE_INET_ATON
-	  hostaddr.s_addr = inet_addr([address cString]);
+	  hostaddr.s_addr = inet_addr([address UTF8String]);
 	  if (hostaddr.s_addr == INADDR_NONE)
 	    {
 	      badAddr = YES;
 	    }
 #else
-	  if (inet_aton([address cString],
+	  if (inet_aton([address UTF8String],
 	    (struct in_addr*)&hostaddr.s_addr) == 0)
 	    {
 	      badAddr = YES;

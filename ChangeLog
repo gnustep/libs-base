@@ -1,3 +1,14 @@
+2004-07-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: Use UTF8String rather than cString throughout
+	as cString is deprecated.
+	* Source/NSPropertyList.m: Output property list unicode escapes
+	as \U rather than \u for MacOS-X compatibility. Fix a few bugs
+	in old style plists.
+	* Source/GSCompatibility.m: Remove plist stuff which duplicated code
+	in NSPropertyList.m, so we only have one version to worry about.
+	* Source/NSString.m ditto.
+
 2004-07-01  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Foundation/NSMethodSignature.h
