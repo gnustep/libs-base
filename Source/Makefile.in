@@ -314,8 +314,7 @@ NSNUMBER_OFILES  = \
 GNUSTEP_CFILES = \
 NSZone.c \
 find_exec.c \
-objc-load.c \
-NSUser.c
+objc-load.c
 
 GNUSTEP_OTHER_SRCFILES = \
 NSConcreteNumber.m \
@@ -361,7 +360,6 @@ Foundation/NSRange.h \
 Foundation/NSSerialization.h \
 Foundation/NSString.h \
 Foundation/NSUnarchiver.h \
-Foundation/NSUser.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
