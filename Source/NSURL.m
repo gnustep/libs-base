@@ -528,8 +528,21 @@ static void unescape(const char *from, char * to)
     {
       if ([aPath length] > 0)
 	{
-	  aUrlString = [aUrlString initWithFormat: @"%@://%@/%@",
-	    aScheme, aHost, aPath];
+	  /*
+	   * For MacOS-X compatibility, assume a path component with
+	   * a leading slash is intended to have that slash separating
+	   * the host from the path as specified in the RFC1738
+	   */
+	  if ([aPath hasPrefix: @"/"] == YES)
+	    {
+	      aUrlString = [aUrlString initWithFormat: @"%@://%@%@",
+		aScheme, aHost, aPath];
+	    }
+	  else
+	    {
+	      aUrlString = [aUrlString initWithFormat: @"%@://%@/%@",
+		aScheme, aHost, aPath];
+	    }
 	}
       else
 	{
