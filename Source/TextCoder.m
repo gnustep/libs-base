@@ -26,6 +26,7 @@
 #include <objects/MemoryStream.h>
 #include <objects/StdioStream.h>
 #include <objects/objc-malloc.h>
+#include <assert.h>
 
 #define CONCRETE_FORMAT_VERSION 0
 
@@ -133,6 +134,7 @@ if (debug_textcoder) \
 {
   char *tmpname;
 
+  assert (d);
   switch (*type)
     {
     case _C_LNG:
