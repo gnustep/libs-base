@@ -55,6 +55,7 @@
 #define sel_get_any_uid			sel_getUid
 #define objc_get_class			objc_getClass
 #define class_get_version		class_getVersion
+#define sel_register_name		sel_registerName
 #define sel_is_mapped			sel_isMapped
 
 #define class_get_class_name(CLASSPOINTER) \

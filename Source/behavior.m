@@ -54,6 +54,12 @@
 #include <base/behavior.h>
 #include <Foundation/NSException.h>
 
+/* Darwin behavior */
+#if !defined(Release3CompatibilityBuild)
+#define methods methodLists
+#define method_next obsolete
+#endif
+
 static struct objc_method *search_for_method_in_list (struct objc_method_list * list, SEL op);
 static BOOL class_is_kind_of(Class self, Class class);
 
@@ -73,6 +79,10 @@ behavior_class_add_class (Class class, Class behavior)
   NSCAssert(CLS_ISCLASS(class), NSInvalidArgumentException);
   NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
+#if NeXT_RUNTIME
+  NSCAssert(class->instance_size >= behavior->instance_size,
+	    @"Trying to add behavior with instance size larger than class");
+#else
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)
     {
@@ -85,6 +95,7 @@ behavior_class_add_class (Class class, Class behavior)
 		 @"will not have to increase the instance size\n");
       class->instance_size = behavior->instance_size;
     }
+#endif
 
   if (behavior_debug)
     {
