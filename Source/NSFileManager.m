@@ -188,7 +188,7 @@ static NSFileManager* defaultManager = nil;
   attributes:(NSDictionary*)attributes
 {
 #if defined(__WIN32__) || defined(_WIN32)
-  return CreateDirectory([path cString], NULL);
+  return CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
 #else
     const char* cpath;
     char dirpath[PATH_MAX+1];
@@ -536,7 +536,7 @@ static NSFileManager* defaultManager = nil;
 - (BOOL)fileExistsAtPath:(NSString*)path isDirectory:(BOOL*)isDirectory
 {
 #if defined(__WIN32__) || defined(_WIN32)
-  DWORD res = GetFileAttributes([path cString]);
+  DWORD res = GetFileAttributes([self fileSystemRepresentationWithPath: path]);
   if (res == -1)
     return NO;
 
@@ -941,7 +941,7 @@ static NSFileManager* defaultManager = nil;
     }
   return [[NSString stringWithCString: cpath] cString];
 #else
-    return [[[path copy] autorelease] cString];
+  return [[[path copy] autorelease] cString];
 #endif
 }
 
@@ -1091,14 +1091,15 @@ static NSFileManager* defaultManager = nil;
 
 - (void)dealloc
 {
-    while ([pathStack count])
-	[self backtrack];
+  while ([pathStack count])
+    [self backtrack];
     
-    [pathStack release];
-    [enumStack release];
-    [currentFileName release];
-    [currentFilePath release];
-    [topPath release];
+  [pathStack release];
+  [enumStack release];
+  [currentFileName release];
+  [currentFilePath release];
+  [topPath release];
+  [super dealloc];
 }
 
 // Getting attributes
