@@ -2194,8 +2194,8 @@ else
 		  buff[count] = '*';
 		}
 	    }
-	  return [NSData dataWithBytesNoCopy: buff length: count];
 	}
+      return [NSData dataWithBytesNoCopy: buff length: count];
     }
   else if (encoding == NSUnicodeStringEncoding)
     {
