@@ -56,8 +56,6 @@ esac
 # Find out if we\'re using NeXT\'s compiler.
 # if yes:
 #   add -cpp-traditional to CPP
-# if no:
-#   include implementations of List, HashTable etc.
 #--------------------------------------------------------------------
 AC_PROG_NEXTCC
 if test "$NeXTCC" != yes; then
@@ -78,9 +76,7 @@ if test "$NeXTCC" != yes; then
       echo "I'm not even sure gstep-base uses nested functions anymore"
       echo "but if it does, gstep-base will not compile. Try it"
       echo "The program this configure script used to test nested functions"
-      echo "can be found in the file 'config/config.nested.c' in this"
-      echo "distribution.  Under sparc-sun-sunos4.1.3 with gcc-2.6.1 the"
-      echo "file compiles, runs and returns exit status 0."
+      echo "can be found in the file 'config/config.nested.c'"
     else
       AC_MSG_RESULT(yes)
     fi
@@ -93,10 +89,6 @@ if test "$NeXTCC" != yes; then
                 #endif], NeXTSTEP=0, NeXTSTEP=1)
     if test $NeXTSTEP = 0; then
       AC_MSG_RESULT(no)
-      OBJS_INSTALL='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
-      HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
-      NEXT_INCLUDES='$(GNU_NEXT_INCLUDES)'
-      NeXT_runtime=0
       NeXT_cc=0
     else
       AC_MSG_RESULT(yes)
@@ -107,63 +99,25 @@ if test "$NeXTCC" != yes; then
       ac_ext=m
       AC_MSG_CHECKING(whether we are using GNU Objective C runtime)
       AC_TRY_LINK([#include "$srcdir/config/config.nextrt.m"], ;,
-                  NeXT_runtime=1, NeXT_runtime=0)
+                  NeXT_RUNTIME=1, NeXT_RUNTIME=0)
       ac_ext=$saved_ac_ext
-      if test $NeXT_runtime = 1; then
+      if test $NeXT_RUNTIME = 1; then
         AC_MSG_RESULT(no: NeXT runtime)
 	LIBOBJC=''
-        CC="$CC -fnext-runtime -DNeXT_RUNTIME"
-        # Make sure that we get NeXTs objc/*.h files
-        NEXT_INCLUDES='$(NEXT_NEXT_INCLUDES)'
-        OBJS_INSTALL='$(GNU_OBJS)'
-        HEADERS_INSTALL='$(GNU_HEADERS)'
+        CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
         NeXT_cc=0
       else
         AC_MSG_RESULT(yes)
         LIBOBJC='-lobjc'
-        CC="$CC -fgnu-runtime"
-        # Get objc/List.h, etc. files from this library.
-        NEXT_INCLUDES='$(GNU_NEXT_INCLUDES)'
-        OBJS_INSTALL='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
-        HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
+        CPPFLAGS="$CPPFLAGS -fgnu-runtime"
         NeXT_cc=0
       fi
     fi
 
 else
-
-    AC_MSG_ERROR(Sorry, $(LIBRARY_NAME) does not currently work with NeXT's cc; use gcc)
-    #----------------------------------------------------------------
-    # Find out if we have NEXTSTEP 3.2 or lower
-    #----------------------------------------------------------------
-    AC_CHECKING(NEXTSTEP version)
-    AC_TRY_CPP([#if NX_CURRENT_COMPILER_RELEASE < 320
-    #error
-    #endif], NeXT32plus=1, NeXT32plus=0)
-    if test $NeXT32plus = 0; then
-      echo "aborting"
-      echo
-      echo "It looks like your compiler is NEXTSTEP 3.2 or earlier."
-      echo "$(LIBRARY_NAME) makes extensive use of nested functions.  In 3.2,"
-      echo "NeXT's cc did not support nested functions.  To compile $(LIBRARY_NAME)"
-      echo "you can either (1) use gcc instead of NeXT's cc (no loss, since"
-      echo "gcc can compile AppKit programs without problems), or (2) upgrade"
-      echo "to the later release of NEXTSTEP when it is available."
-      exit
-    fi
-    OBJS_INSTALL='$(GNU_OBJS)'
-    HEADERS_INSTALL='$(GNU_HEADERS)'
-    LIBOBJC=''
-    NeXT_runtime=1
-    NeXT_cc=1
-    # NeXT default cpp doesn't accept nested functions
-    CC='cc -traditional-cpp'
+    AC_MSG_ERROR(Sorry, $(LIBRARY_NAME) does not work with NeXT's cc; use gcc)
 fi
-AC_SUBST(OBJS_INSTALL)
-AC_SUBST(HEADERS_INSTALL)
-AC_DEFINE_UNQUOTED(NeXT_runtime, $NeXT_runtime)
 AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
-AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
 # Miscellaneous flags

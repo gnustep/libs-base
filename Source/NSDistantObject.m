@@ -897,7 +897,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 - (const char *) selectorTypeForProxy: (SEL)selector
 {
-#if NeXT_runtime
+#if NeXT_RUNTIME
   {
     elt e;
     const char *t;

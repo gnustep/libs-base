@@ -247,7 +247,7 @@ callframe_do_call_opts (const char *encoded_types,
      as the ENCODED_TYPES string, but it will have different register
      and stack locations if the ENCODED_TYPES came from a machine of a
      different architecture. */
-#if NeXT_runtime
+#if NeXT_RUNTIME
   {
     Method m;
     m = class_getInstanceMethod(object->isa, selector);
