@@ -431,12 +431,6 @@ static int messages_received_count;
   return is_valid;
 }
 
-- (BOOL) registerName: (NSString*)name
-{
-    [self notImplemented: _cmd];
-    return NO;
-}
-
 - (void) release
 {
     /*

@@ -1,3 +1,15 @@
+Wed Oct  1 14:44:17 1997  Adam Fedor  <fedor@spanky.doc.com>
+
+	* src/NSConnection.m ([-registerName:]): Remove
+	duplicate method.
+	* src/NSDistantObject.m ([-encodeWithCoder:]): Likewise.
+	* src/Proxy.m: ([NSObject -selectorTypeForProxy]): Likewise.
+
+	* NSTimeZones: New directory.
+	* NSTimeZones/Makefile: New file.
+	* NSTimeZones/Makefile.postamble: Likewise.
+	* NSTimeZones/NSTimeZones.tar: Likewise.
+	
 Tue Sep 30 08:57:44 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/NSData.m: Remove obsolete includes.
