@@ -153,8 +153,9 @@ static BOOL debug_binary_coder;
     case _C_CHARPTR:
       {
 	unsigned length = strlen (*(char**)d);
-	length = htonl (length);
-	[stream writeBytes: &length
+	unsigned nlength;
+	nlength = htonl (length);
+	[stream writeBytes: &nlength
 		length: NUM_BYTES_STRING_LENGTH];
 	[stream writeBytes: *(char**)d
 		length: length];
