@@ -31,6 +31,8 @@
 #include <base/Array.h>
 #include <Foundation/NSException.h>
 
+extern BOOL sel_types_match(const char* t1, const char* t2);
+
 static int debug_coder = 0;
 
 @implementation Decoder

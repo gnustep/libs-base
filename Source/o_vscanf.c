@@ -79,7 +79,8 @@ extern long strtol(const char *str, char** ptr, int base);
 #define inchar()  ((c = (*inchar_func)(stream)) == EOF ? EOF : (++read_in, c))
 
 /* #define	conv_error()	return ((c == EOF || ungetc(c, s)), done) */
-#define	conv_error() return ((c == EOF || ((*unchar_func)(stream,c),c)), done)
+//#define	conv_error() return ((c == EOF || ((*unchar_func)(stream,c),c)), done)
+#define	conv_error() return (c==EOF ? done : ((*unchar_func)(stream,c), done))
 
 #define input_error()	return (done == 0 ? EOF : done)
 #define	memory_error()	return ((errno = ENOMEM), EOF)
