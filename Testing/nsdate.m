@@ -1,6 +1,9 @@
 #include <Foundation/NSDate.h>
+#include <Foundation/NSCalendarDate.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSTimeZone.h>
+#include <Foundation/GSCategories.h>
 
 #ifdef __MS_WIN32__
 int _MB_init_runtime()
@@ -96,6 +99,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
   printf("NSCalendarDate tests\n");
   {
     NSCalendarDate	*c1;
+    NSTimeZone		*gb = [NSTimeZone timeZoneWithName: @"GB"];
     int m, y, d, a;
 
     // Create an NSCalendarDate with current date and time
@@ -269,7 +273,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     c = [c addYear:0 month:0 day:0 hour:-24 minute:0 second:0];
     printf("Subtract twentyfour hours - %s\n", [DESCRIP_FORMAT(c) cString]);
 
-    c = [NSCalendarDate dateWithYear: 2002 month: 3 day: 31 hour: 1 minute: 30 second: 0 timeZone: [NSTimeZone timeZoneWithName: @"GB"]];
+    c = [NSCalendarDate dateWithYear: 2002 month: 3 day: 31 hour: 1 minute: 30 second: 0 timeZone: gb];
     printf("Build at %s\n", [[c description] cString]);
 
     c = [NSCalendarDate dateWithString: @"2002-09-27 01:59:00"
@@ -283,6 +287,36 @@ if ([(NSDate*) [NSCalendarDate date] compare:
 		      seconds: 0];
     printf("Subtract 180 %s\n", [DESCRIP_FORMAT(c1) cString]);
 
+    printf("Week of year tests ... ");
+    if ([[NSCalendarDate dateWithYear: 2002 month: 12 day: 29 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 52)
+      printf("Failed on 2002/12/29 is week 52\n");
+    if ([[NSCalendarDate dateWithYear: 2002 month: 12 day: 30 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2002/12/30 is week 1\n");
+    if ([[NSCalendarDate dateWithYear: 2002 month: 12 day: 31 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2002/12/31 is week 1\n");
+    if ([[NSCalendarDate dateWithYear: 2003 month: 1 day: 1 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2003/01/01 is week 1\n");
+    else if ([[NSCalendarDate dateWithYear: 2003 month: 1 day: 2 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2003/01/02 is week 1\n");
+    else if ([[NSCalendarDate dateWithYear: 2003 month: 1 day: 3 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2003/01/03 is week 1\n");
+    else if ([[NSCalendarDate dateWithYear: 2003 month: 1 day: 4 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2003/01/04 is week 1\n");
+    else if ([[NSCalendarDate dateWithYear: 2003 month: 1 day: 5 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 1)
+      printf("Failed on 2003/01/05 is week 1\n");
+    else if ([[NSCalendarDate dateWithYear: 2003 month: 1 day: 6 hour: 0
+      minute: 0 second: 0 timeZone: gb] weekOfYear] != 2)
+      printf("Failed on 2003/01/06 is week 2\n");
+    else
+      printf("All passed\n");
   }
 
   [pool release];

@@ -117,6 +117,7 @@ libgnustep-base.def
 GNU_HEADERS = \
 DistributedObjects.h \
 GCObject.h \
+GSCategories.h \
 GSFileHandle.h \
 GSLocale.h \
 GSObjCRuntime.h \

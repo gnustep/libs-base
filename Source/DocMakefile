@@ -34,6 +34,7 @@ Base_DOC_INSTALL_DIR = Developer
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
+GSCategories.h \
 GSIArray.h \
 GSIMap.h \
 GSMime.h \

@@ -39,6 +39,7 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDebug.h>
 #include <base/GSObjCRuntime.h>
 #include <stdio.h>
@@ -1963,7 +1964,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 }
 
 /**
- * Given a day number since the start of the era, returns the dat as a
+ * Given a day number since the start of the era, returns the date as a
  * day, month, and year.
  */
 - (void) gregorianDateFromAbsolute: (int)d
@@ -1971,16 +1972,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			     month: (int *)month
 			      year: (int *)year
 {
-  // Search forward year by year from approximate year
-  *year = d/366;
-  while (d >= absoluteGregorianDay(1, 1, (*year)+1))
-    (*year)++;
-  // Search forward month by month from January
-  (*month) = 1;
-  while (d > absoluteGregorianDay(lastDayOfGregorianMonth(*month, *year),
-    *month, *year))
-    (*month)++;
-  *day = d - absoluteGregorianDay(1, *month, *year) + 1;
+  gregorianDateFromAbsolute(d, day, month, year);
 }
 
 @end
