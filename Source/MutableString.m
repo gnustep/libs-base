@@ -23,6 +23,7 @@
 
 #include <objects/String.h>
 #include <objects/IndexedCollectionPrivate.h>
+#include <objects/NSString.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 #include <limits.h>
 

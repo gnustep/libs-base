@@ -49,7 +49,10 @@
 + (void) initialize
 {
   if (self == [String class])
-    [self setVersion:0];	/* beta release */
+    {
+      [self setVersion:0];	/* beta release */
+      /* xxx eventually: class_add_behavior_category(NSStringStuff) */
+    }
 }
 
 // INITIALIZING;
@@ -97,7 +100,7 @@
 }
 
 #if HAVE_VSPRINTF
-- initWithFormat: (String*)aFormatString arguments: (va_list)arg
+- initWithFormat: (id <String>)aFormatString arguments: (va_list)arg
 {
   char buf[128];		/* xxx horrible, disgusting, fix this */
   vsprintf(buf, [aFormatString cString], arg);
@@ -112,7 +115,7 @@
 }
 #endif /* HAVE_VSPRINTF */
 
-- initWithFormat: (String*)aFormatString, ...
+- initWithFormat: (id <String>)aFormatString, ...
 {
   va_list ap;
   va_start(ap, aFormatString);
@@ -135,17 +138,17 @@
   return [self initWithCString:""];
 }
 
-- initWithString: (String*)aString range: (IndexRange)aRange
+- initWithString: (id <String>)aString range: (IndexRange)aRange
 {
   return [self initWithCString:[aString cString] range:aRange];
 }
 
-- initWithString: (String*)aString length: (unsigned)aLength
+- initWithString: (id <String>)aString length: (unsigned)aLength
 {
   return [self initWithCString:[aString cString]];
 }
 
-- initWithString: (String*)aString
+- initWithString: (id <String>)aString
 {
   return [self initWithCString:[aString cString]];
 }
@@ -153,19 +156,19 @@
 
 // GETTING NEW, AUTORELEASED STRING OBJECTS, NO NEED TO RELEASE THESE;
 
-+ (String*) stringWithString: (String*)aString range: (IndexRange)aRange
++ stringWithString: (id <String>)aString range: (IndexRange)aRange
 {
   return [[[CString alloc] initWithString:aString range:aRange]
 	  autorelease];
 }
 
-+ (String*) stringWithString: (String*)aString
++ stringWithString: (id <String>)aString
 {
   return [[[CString alloc] initWithString:aString]
 	  autorelease];
 }
 
-+ (String*) stringWithFormat: (String*)aFormatString, ...
++ stringWithFormat: (id <String>)aFormatString, ...
 {
   va_list ap;
   id ret;
@@ -177,56 +180,56 @@
   return ret;
 }
 
-+ (String*) stringWithFormat: (String*)aFormatString arguments: (va_list)arg
++ stringWithFormat: (id <String>)aFormatString arguments: (va_list)arg
 {
   return [[[CString alloc] initWithFormat:aFormatString arguments:arg]
 	  autorelease];
 }
 
-+ (String*) stringWithCString: (const char*)cp range: (IndexRange)r
++ stringWithCString: (const char*)cp range: (IndexRange)r
 {
   return [[[CString alloc] initWithCString:cp range:r]
 	  autorelease];
 }
 
-+ (String*) stringWithCString: (const char*)aCharPtr
++ stringWithCString: (const char*)aCharPtr
 {
   return [[[CString alloc] initWithCString:aCharPtr]
 	  autorelease];
 }
 
 
-- (String*) stringByAppendingFormat: (String*)aString, ...
+- stringByAppendingFormat: (id <String>)aString, ...
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-- (String*) stringByAppendingFormat: (String*)aString arguments: (va_list)arg
+- stringByAppendingFormat: (id <String>)aString arguments: (va_list)arg
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-- (String*) stringByPrependingFormat: (String*)aString, ...
+- stringByPrependingFormat: (id <String>)aString, ...
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-- (String*) stringByPrependingFormat: (String*)aString arguments: (va_list)arg
+- stringByPrependingFormat: (id <String>)aString arguments: (va_list)arg
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-- (String*) stringByAppendingString: (String*)aString
+- stringByAppendingString: (id <String>)aString
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-- (String*) stringByPrependingString: (String*)aString
+- stringByPrependingString: (id <String>)aString
 {
   [self notImplemented:_cmd];
   return nil;
@@ -255,12 +258,12 @@
 
 - copy
 {
-  return [[[self class] alloc] initWithString:self];
+  return [[[self class] alloc] initWithString:(NSString*)self];
 }
 
 - mutableCopy
 {
-  return [[MutableCString alloc] initWithString:self];
+  return [[MutableCString alloc] initWithString:(NSString*)self];
 }
 
 // TESTING;
@@ -330,7 +333,7 @@
   return (strrchr(s, aChar) - s);
 }
 
-- (unsigned) indexOfString: (String*)aString
+- (unsigned) indexOfString: (id <String>)aString
 {
   const char *s = [self cString];
   return (strstr(s, [aString cString]) - s);

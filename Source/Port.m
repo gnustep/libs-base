@@ -26,13 +26,13 @@
 
 @implementation Port
 
-+ newRegisteredPortWithName: (String*)n
++ newRegisteredPortWithName: (id <String>)n
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-+ newPortFromRegisterWithName: (String*)n onHost: (String*)host
++ newPortFromRegisterWithName: (id <String>)n onHost: (id <String>)host
 {
   [self notImplemented:_cmd];
   return nil;
