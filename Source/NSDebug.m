@@ -45,6 +45,7 @@ typedef struct {
   /* The following are used to record actual objects */
   BOOL  is_recording;
   id    *recorded_objects;
+  id    *recorded_tags;
   unsigned int   num_recorded_objects;
   unsigned int   stack_size;
 } table_entry;
@@ -178,6 +179,7 @@ GSDebugAllocationActiveRecordingObjects(Class c)
   the_table[num_classes].peak = 0;
   the_table[num_classes].is_recording = YES;
   the_table[num_classes].recorded_objects = NULL;
+  the_table[num_classes].recorded_tags = NULL;
   the_table[num_classes].num_recorded_objects = 0;
   the_table[num_classes].stack_size = 0;
   num_classes++;
@@ -206,21 +208,33 @@ GSDebugAllocationAdd(Class c, id o)
 		}
 	      if (the_table[i].is_recording == YES)
 		{
-		  if (the_table[i].num_recorded_objects >= 
-		      the_table[i].stack_size)
+		  if (the_table[i].num_recorded_objects
+		    >= the_table[i].stack_size)
 		    {
-		      int more = the_table[i].stack_size + 128;
+		      int	more = the_table[i].stack_size + 128;
 		      id	*tmp;
+		      id	*tmp1;
       
 		      tmp = NSZoneMalloc(NSDefaultMallocZone(), 
 					 more * sizeof(id));
-
 		      if (tmp == 0)
 			{
 			  if (uniqueLock != nil)
 			    [uniqueLock unlock];
 			  return;
 			}
+
+		      tmp1 = NSZoneMalloc(NSDefaultMallocZone(), 
+					 more * sizeof(id));
+		      if (tmp1 == 0)
+			{
+			  NSZoneFree(NSDefaultMallocZone(),  tmp);
+			  if (uniqueLock != nil)
+			    [uniqueLock unlock];
+			  return;
+			}
+
+
 		      if (the_table[i].recorded_objects != NULL)
 			{
 			  memcpy(tmp, the_table[i].recorded_objects, 
@@ -228,13 +242,21 @@ GSDebugAllocationAdd(Class c, id o)
 				 * sizeof(id));
 			  NSZoneFree(NSDefaultMallocZone(), 
 				     the_table[i].recorded_objects);
+			  memcpy(tmp1, the_table[i].recorded_tags, 
+				 the_table[i].num_recorded_objects 
+				 * sizeof(id));
+			  NSZoneFree(NSDefaultMallocZone(), 
+				     the_table[i].recorded_tags);
 			}
 		      the_table[i].recorded_objects = tmp;
+		      the_table[i].recorded_tags = tmp1;
 		      the_table[i].stack_size = more;
 		    }
 		  
 		  (the_table[i].recorded_objects)
 		    [the_table[i].num_recorded_objects] = o;
+		  (the_table[i].recorded_tags)
+		    [the_table[i].num_recorded_objects] = nil;
 		  the_table[i].num_recorded_objects++;
 		}
 	      if (uniqueLock != nil)
@@ -272,6 +294,7 @@ GSDebugAllocationAdd(Class c, id o)
       the_table[num_classes].peak = 1;
       the_table[num_classes].is_recording = NO;
       the_table[num_classes].recorded_objects = NULL;
+      the_table[num_classes].recorded_tags = NULL;
       the_table[num_classes].num_recorded_objects = 0;
       the_table[num_classes].stack_size = 0;
       num_classes++;
@@ -605,6 +628,8 @@ GSDebugAllocationRemove(Class c, id o)
 	{
 	  if (the_table[i].class == c)
 	    {
+	      id	tag = nil;
+
 	      if (uniqueLock != nil)
 		[uniqueLock lock];
 	      the_table[i].count--;
@@ -616,6 +641,7 @@ GSDebugAllocationRemove(Class c, id o)
 		    {
 		      if ((the_table[i].recorded_objects)[j] == o)
 			{
+			  tag = (the_table[i].recorded_tags)[j];
 			  break;
 			}
 		    }
@@ -627,6 +653,8 @@ GSDebugAllocationRemove(Class c, id o)
 			{
 			  (the_table[i].recorded_objects)[k] = 
 			    (the_table[i].recorded_objects)[k + 1];
+			  (the_table[i].recorded_tags)[k] = 
+			    (the_table[i].recorded_tags)[k + 1];
 			}
 		      the_table[i].num_recorded_objects--;
 		    }
@@ -640,10 +668,65 @@ GSDebugAllocationRemove(Class c, id o)
 		}
 	      if (uniqueLock != nil)
 		[uniqueLock unlock];
+	      RELEASE(tag);
 	      return;
 	    }
 	}
     }
+}
+
+/**
+ * This function associates the supplied tag with a recorded
+ * object and returns the tag which was previously associated
+ * with it (if any).<br />
+ * If the object was not recorded, the method returns nil<br />
+ * The tag is retained while it is associated with the object.
+ */
+id
+GSDebugAllocationTagRecordedObject(id object, id tag)
+{
+  Class c = [object class];
+  id	o = nil;
+  int	i;
+  int	j;
+
+  if (debug_allocation == NO)
+    {
+      return nil;
+    }
+  if (uniqueLock != nil)
+    [uniqueLock lock];
+  
+  for (i = 0; i < num_classes; i++)
+    {
+      if (the_table[i].class == c)
+      {
+	  break;
+	}
+    }
+  
+  if (i == num_classes
+    || the_table[i].is_recording == NO
+    || the_table[i].num_recorded_objects == 0)
+    {
+      if (uniqueLock != nil)
+	[uniqueLock unlock];
+      return nil;
+    }
+
+  for (j = 0; j < the_table[i].num_recorded_objects; j++)
+    {
+      if (the_table[i].recorded_objects[j] == object)
+	{
+	  o = the_table[i].recorded_tags[j];
+	  the_table[i].recorded_tags[j] = RETAIN(tag);
+	  break;
+	}
+    }
+
+  if (uniqueLock != nil)
+    [uniqueLock unlock];
+  return AUTORELEASE(o);
 }
 
 /**
@@ -702,7 +785,6 @@ GSDebugAllocationListRecordedObjects(Class c)
 
   tmp = NSZoneMalloc(NSDefaultMallocZone(), 
 		     the_table[i].num_recorded_objects * sizeof(id));
-  
   if (tmp == 0)
     {
       if (uniqueLock != nil)
@@ -714,10 +796,6 @@ GSDebugAllocationListRecordedObjects(Class c)
   memcpy(tmp, the_table[i].recorded_objects, 
 	 the_table[i].num_recorded_objects * sizeof(id));
 
-  /* Then, we bravely unlock the lock */
-  if (uniqueLock != nil)
-    [uniqueLock unlock];
-  
   /* Retain all the objects - NB: if retaining one of the objects as a
      side effect releases another one of them , we are broken ... */
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
@@ -725,6 +803,10 @@ GSDebugAllocationListRecordedObjects(Class c)
       RETAIN (tmp[k]);
     }
 
+  /* Then, we bravely unlock the lock */
+  if (uniqueLock != nil)
+    [uniqueLock unlock];
+  
   /* Only then we create an array with them - this is now safe as we
      have copied the objects out, unlocked, and retained them. */
   answer = [NSArray arrayWithObjects: tmp  

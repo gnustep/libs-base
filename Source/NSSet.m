@@ -166,17 +166,26 @@ static Class NSMutableSet_concrete_class;
       self = [NSMutableSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }
-  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
-  {
-    id	objs[count];
-    unsigned	i;
 
-    for (i = 0; i < count; i++)
-      {
-	[aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
-      }
-    return [self initWithObjects: objs count: count];
-  }
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+  if (count > 0)
+    {
+      id	objs[count];
+      unsigned	i;
+
+      for (i = 0; i < count; i++)
+	{
+	  [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
+	}
+      self = [self initWithObjects: objs count: count];
+#if	GS_WITH_GC == 0
+      while (count-- > 0)
+	{
+	  [objs[count] release];
+	}
+#endif
+    }
+  return self;
 }
 
 /* <init />

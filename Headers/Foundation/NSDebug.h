@@ -133,6 +133,16 @@ GS_EXPORT void     GSDebugAllocationActiveRecordingObjects(Class c);
 GS_EXPORT NSArray *GSDebugAllocationListRecordedObjects(Class c);
 
 /**
+ * This function associates the supplied tag with a recorded
+ * object and returns the tag which was previously associated
+ * with it (if any).<br />
+ * If the object was not recorded, the method reurns nil<br />
+ * The tag is retained while it is associated with the object.<br />
+ * See also the NSDebugFRLog() and NSDebugMRLog() macros.
+ */
+GS_EXPORT id GSDebugAllocationTagRecordedObject(id object, id tag);
+
+/**
  * Used to produce a format string for logging a message with function
  * location details.
  */
@@ -288,6 +298,29 @@ GS_EXPORT BOOL NSDeallocateZombies;
     NSString *fmt = GSDebugMethodMsg( \
 	self, _cmd, __FILE__, __LINE__, format); \
     NSLog(fmt , ## args); }} while (0)
+
+/**
+ * This macro saves the name and location of the function in
+ * which the macro is used, along with a short string msg as
+ * the tag associated with a recorded object.
+ */
+#define NSDebugFRLog(object, msg) \
+  do { \
+    NSString *tag = GSDebugFunctionMsg( \
+	__PRETTY_FUNCTION__, __FILE__, __LINE__, msg); \
+    GSDebugAllocationTagRecordedObject(object, tag); } while (0)
+
+/**
+ * This macro saves the name and location of the method in
+ * which the macro is used, along with a short string msg as
+ * the tag associated with a recorded object.
+ */
+#define NSDebugMRLog(object, msg) \
+  do { \
+    NSString *tag = GSDebugMethodMsg( \
+	self, _cmd, __FILE__, __LINE__, msg); \
+    GSDebugAllocationTagRecordedObject(object, tag); } while (0)
+
 #else
 #define NSDebugLLog(level, format, args...)
 #define NSDebugLog(format, args...)
@@ -295,6 +328,8 @@ GS_EXPORT BOOL NSDeallocateZombies;
 #define NSDebugFLog(format, args...)
 #define NSDebugMLLog(level, format, args...)
 #define NSDebugMLog(format, args...)
+#define NSDebugFRLog(object, msg)
+#define NSDebugMRLog(object, msg)
 #endif
 
 
