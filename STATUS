@@ -176,16 +176,16 @@ Functions
 Memory Allocation Functions
 ---------------------------
 
-[0] Get the Virtual Memory Page Size
+[8] Get the Virtual Memory Page Size
 `unsigned NSPageSize (void)'
 `unsigned NSLogPageSize (void)'
 `unsigned NSRoundDownToMultipleOfPageSize (unsigned BYTECOUNT)'
 `unsigned NSRoundUpToMultipleOfPageSize (unsigned BYTECOUNT)'
 
-[0] Get the Amount of Real Memory
+[2] Get the Amount of Real Memory
 `unsigned NSRealMemoryAvailable (void)'
 
-[0] Allocate or Free Virtual Memory
+[8] Allocate or Free Virtual Memory
 `void *NSAllocateMemoryPages (unsigned BYTECOUNT)'
 `void NSDeallocateMemoryPages (void *POINTER, unsigned BYTECOUNT)'
 `void NSCopyMemoryPages (const void *SOURCE, void *DESTINATION, unsigned BYTECOUNT)'
@@ -322,8 +322,6 @@ Hash Table Functions
 --------------------
 
 [8]
-	NSHashTable functions have been implemented by Albin Jones.
-	However, integrating the code is not necessarily trivial
 
 Create a Table
 `NSHashTable * NSCreateHashTable(NSHashTableCallBacks CALLBACKS, unsigned CAPACITY)'
@@ -360,8 +358,6 @@ Map Table Functions
 -------------------
 
 [8]
-	NSMapTable functions have been implemented by Albin Jones.
-	However, integrating the code is not necessarily trivial
 
 Create a Table
 `NSMapTable * NSCreateMapTable(NSMapTableKeyCallBacks KEYCALLBACKS, NSMapTableValueCallBacks VALUECALLBACKS, unsigned CAPACITY)'
