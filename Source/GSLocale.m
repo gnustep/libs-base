@@ -67,14 +67,16 @@ GSSetLocale(NSString *locale)
 NSDictionary *
 GSDomainFromDefaultLocale(void)
 {
+#ifdef HAVE_LANGINFO_H
   int i;
   struct lconv *lconv;
   NSMutableDictionary *dict;
   NSMutableArray *arr;
   NSString *str1, *str2;
 
-  /* Time/Date Information */
   dict = [NSMutableDictionary dictionary];
+
+  /* Time/Date Information */
   arr = [NSMutableArray arrayWithCapacity: 7];
   for (i = 0; i < 7; i++)
     [arr addObject: GSLanginfo(DAY_1+i)];
@@ -136,6 +138,9 @@ GSDomainFromDefaultLocale(void)
     [dict setObject: str2 forKey: NSLanguageName];
 
   return dict;
+#else /* HAVE_LANGINFO_H */
+  return nil;
+#endif
 }
 
 NSString *
@@ -144,7 +149,7 @@ GSLanguageFromLocale(NSString *locale)
   NSString *language = nil;
   NSString *aliases = nil;
 
-  if (locale == nil)
+  if (locale == nil || [locale isEqual: @"C"] || [locale isEqual: @"POSIX"])
     return @"English";
 
   aliases = [NSBundle pathForGNUstepResource: @"Locale"

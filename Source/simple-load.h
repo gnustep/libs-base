@@ -87,6 +87,7 @@ __objc_dynamic_list_undefined_symbols(void)
 static char *
 __objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
 {
+#ifdef HAVE_DLADDR
   dl_symbol_t sym;
   Dl_info     info;
 
@@ -99,6 +100,9 @@ __objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
     return NULL;
 
   return info.dli_fname;
+#else
+  return NULL;
+#endif
 }
 
 #endif /* __sunos_load_h_INCLUDE */

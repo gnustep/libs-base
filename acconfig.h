@@ -9,6 +9,9 @@
 #undef VSPRINTF_RETURNS_LENGTH
 #undef VASPRINTF_RETURNS_LENGTH
 
+/* Define if you have the dladdr function.  */
+#undef HAVE_DLADDR
+
 /* Define if your system needs to have short/int word aligned */
 #undef NEED_WORD_ALIGNMENT
 

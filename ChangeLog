@@ -1,3 +1,14 @@
+2000-10-29  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for langinfo.
+	* Source/GSLocale.m (GSDomainFromDefaultLocale): Return nil
+	dict if langinfo info not available.
+
+	* acconfig.h: Add HAVE_DLADDR
+	* Headers/gnustep/base/config.h.in: Regenerate.
+	* Source/simple-load.h (__objc_dynamic_get_symbol_path): Return
+	nil if not HAVE_DLADDR.
+
 2000-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: New inline string classes added to avoid calls
