@@ -40,6 +40,7 @@
 */
 
 #include <config.h>
+#include "GSCompatibility.h"
 
 #ifdef	HAVE_LIBXML
 
@@ -3215,6 +3216,8 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 #include	<Foundation/NSObjCRuntime.h>
 #include	<Foundation/NSCoder.h>
+#include	<Foundation/NSInvocation.h>
+#include	<Foundation/NSString.h>
 
 /*
  * Build dummy implementations of the classes if libxml is not available

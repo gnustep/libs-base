@@ -30,12 +30,15 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
 #include <base/GSObjCRuntime.h>
-#include <mframe.h>
 #include <string.h>
 
 /**  Deprecated ... use GSObjCFindVariable() */
@@ -273,6 +276,18 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
  * The classes argument is an array of NSValue objects containing pointers
  * to classes previously created by the GSObjCMakeClass() function.
  */
+#ifdef NeXT_RUNTIME
+void
+GSObjCAddClasses(NSArray *classes)
+{
+  unsigned int	numClasses = [classes count];
+  unsigned int	i;
+  for (i = 0; i < numClasses; i++)
+    {
+      objc_addClass((Class)[[classes objectAtIndex: i] pointerValue]);
+    }
+}
+#else
 void
 GSObjCAddClasses(NSArray *classes)
 {
@@ -313,7 +328,7 @@ GSObjCAddClasses(NSArray *classes)
   __objc_exec_class (module);
   __objc_resolve_class_links();
 }
-
+#endif
 
 
 static int behavior_debug = 0;
@@ -540,24 +555,14 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
   NSCAssert(CLS_ISCLASS(receiver), NSInvalidArgumentException);
   NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
-#if NeXT_RUNTIME
-  if (receiver->instance_size < behavior->instance_size)
-    {
-      /* We can allow this since we're pretty sure NXConstantString is 
-	 not subclassed. */
-      if (receiver == [NXConstantString class])
-        {
-          receiver->instance_size = behavior->instance_size;
-        }
-      else
-        NSCAssert2(receiver->instance_size >= behavior->instance_size,
-  @"Trying to add behavior (%s) with instance size larger than class (%s)",
-  class_get_class_name(behavior), class_get_class_name(receiver));
-    }
-#else
   /* If necessary, increase instance_size of CLASS. */
   if (receiver->instance_size < behavior->instance_size)
     {
+#if NeXT_RUNTIME
+        NSCAssert2(receiver->instance_size >= behavior->instance_size,
+          @"Trying to add behavior (%s) with instance size larger than class (%s)",
+          class_get_class_name(behavior), class_get_class_name(receiver));
+#else
       NSCAssert(!receiver->subclass_list,
 	@"The behavior-addition code wants to increase the\n"
 	@"instance size of a class, but it cannot because you\n"
@@ -565,9 +570,9 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 	@"(1) Don't subclass it; (2) Add placeholder instance\n"
 	@"variables to the class, so the behavior-addition code\n"
 	@"will not have to increase the instance size\n");
+#endif
       receiver->instance_size = behavior->instance_size;
     }
-#endif
 
   if (behavior_debug)
     {
@@ -609,7 +614,7 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
     method_list = class_nextMethodList(behavior->class_pointer, &iterator);
     while (method_list != 0)
       {
-	GSObjCAddMethods (class->class_pointer, method_list);
+	GSObjCAddMethods (receiver->class_pointer, method_list);
 	method_list = class_nextMethodList(behavior->class_pointer, &iterator);
       }
   }

@@ -33,6 +33,7 @@
 #include <Foundation/NSThread.h>
 
 #include <gnustep/base/GCObject.h>
+#include "GSCompatibility.h"
 
 /*
  * The head of a linked list of all garbage collecting objects  is a
@@ -60,7 +61,14 @@
 static GCObject	*allObjects = nil;
 static BOOL	isCollecting = NO;
 
+#ifdef NeXT_RUNTIME
+static void *allocationLock = NULL;
+#define objc_mutex_allocate()	NULL
+#define objc_mutex_lock(lock)
+#define objc_mutex_unlock(lock)
+#else
 static objc_mutex_t allocationLock = NULL;
+#endif
 
 + (void) _becomeMultiThreaded: (NSNotification *)aNotification
 {

@@ -1,3 +1,28 @@
+2002-12-02  Adam Fedor  <fedor@gnu.org>
+
+	* Port baseadd to MacOSX.
+	* Makefile.postamble (header-links): Don't link gnustep/gui to 
+	Foundation for FOUNDATION_LIB=nx
+	* Headers/gnustep/base/NSObjCRuntime.h (FOUNDATION_EXPORT): Define
+	only if not defined already.
+	* Headers/gnustep/base/objc-gnu2next.h: Define _CLS_META, _CLS_CLASS
+	* Source/Makefile.preamble (libgnustep-baseadd_LIBRARIES_DEPEND_UPON):
+	Depend on framework Foudation if FOUNDATION_LIB=nx
+	* Source/objc-gnu2next.m: Move most functions...
+	* Source/Additions/GSNextRuntime.m: ...to here.
+	* Source/Additions/GSCompatibility.[hm]: New files.
+	* Source/Additions/GCDictionary.m: Include it.
+	* Source/Additions/GSMime.m: Idem.
+	* Source/Additions/GSXML.m: Idem.
+	* Source/Additions/GCObject.m: Idem. Null out mutex code
+	on NeXT_RUNTIME (Need a better fix).
+	* Source/Additions/GNUmakefile: Don't compile Unicode.m
+	on FOUNDATION_LIB=nx (not ported yet).
+	* Source/Additions/GSObjCRuntime.m (GSObjCAddClasses): Version
+	for NeXT_RUNTIME.
+	(GSObjCAddClassBehavior): Fixes for NeXT_RUNTIME.
+	* Source/Additions/behavior.m (behavior_class_add_class): Idem.
+
 2002-12-02  Jonathan Gapen  <jagapen@wisc.edu>
 
 	* Headers/gnustep/base/NSPort.h: Add NSSocketPort interface.

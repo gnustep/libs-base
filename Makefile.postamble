@@ -91,12 +91,14 @@ remove-header-links:
 	-rm -rf Headers/Foundation
 
 else
+ifneq ($(FOUNDATION_LIB),nx)
 header-links: $(HEADER_LINK_DEPENDS)
 	-rm -f Headers/Foundation
 	-rm -f Source/Foundation
 	$(LN_S) gnustep/base Headers/Foundation
 remove-header-links:
 	-rm -f Headers/Foundation
+endif
 endif
 
 # Automatically run ./configure if needed to generate the makefiles

@@ -34,6 +34,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSPathUtilities.h>
+#include "GSCompatibility.h"
 #include <base/Unicode.h>
 #include <stdio.h>
 #include <stdlib.h>
