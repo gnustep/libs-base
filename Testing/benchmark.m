@@ -80,7 +80,7 @@ bench_object()
     }
   END_TIMER;
   baseline = [eTime timeIntervalSinceDate: sTime];
-  PRINT_TIMER("Baseline: 10 method calls");
+  PRINT_TIMER("Baseline: 10 method calls\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
@@ -99,7 +99,7 @@ bench_object()
       i = [NSMutableDictionary class];
     }
   END_TIMER;
-  PRINT_TIMER("Class: 10 class method calls");
+  PRINT_TIMER("Class: 10 class method calls\t\t");
   
   obj = [MyObject new];
   
@@ -110,7 +110,7 @@ bench_object()
       i = [obj self];
     }
   END_TIMER;
-  PRINT_TIMER_NO_BASELINE("Category: 10 super calls");
+  PRINT_TIMER_NO_BASELINE("Category: 10 super calls\t\t");
   
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
@@ -129,7 +129,7 @@ bench_object()
       i = NSClassFromString (@"NSMutableDictionary");
     }
   END_TIMER;
-  PRINT_TIMER("Function: 10 NSClassFromStr");
+  PRINT_TIMER("Function: 10 NSClassFromStr\t\t");
 
   START_TIMER;
   myZone = NSCreateZone(2048, 2048, 1);
@@ -140,7 +140,7 @@ bench_object()
     }
   NSRecycleZone(myZone);
   END_TIMER;
-  PRINT_TIMER("Function: 1 zone alloc/free");
+  PRINT_TIMER("Function: 1 zone alloc/free\t\t");
 
   START_TIMER;
   myZone = NSCreateZone(2048, 2048, 0);
@@ -151,7 +151,7 @@ bench_object()
     }
   NSRecycleZone(myZone);
   END_TIMER;
-  PRINT_TIMER("Function: 1 zone2alloc/free");
+  PRINT_TIMER("Function: 1 zone2alloc/free\t\t");
 
   myZone = NSDefaultMallocZone();
   START_TIMER;
@@ -161,7 +161,7 @@ bench_object()
       NSZoneFree(myZone, mem);
     }
   END_TIMER;
-  PRINT_TIMER("Function: 1 def alloc/free");
+  PRINT_TIMER("Function: 1 def alloc/free\t\t");
 
   START_TIMER;
   myZone = NSCreateZone(2048, 2048, 1);
@@ -172,7 +172,7 @@ bench_object()
     }
   NSRecycleZone(myZone);
   END_TIMER;
-  PRINT_TIMER("NSObject: 1 zone all/init/rel");
+  PRINT_TIMER("NSObject: 1 zone all/init/rel\t\t");
 
   START_TIMER;
   myZone = NSCreateZone(2048, 2048, 0);
@@ -183,7 +183,7 @@ bench_object()
     }
   NSRecycleZone(myZone);
   END_TIMER;
-  PRINT_TIMER("NSObject: 1 zone2all/init/rel");
+  PRINT_TIMER("NSObject: 1 zone2all/init/rel\t\t");
 
   myZone = NSDefaultMallocZone();
   START_TIMER;
@@ -193,7 +193,7 @@ bench_object()
       [obj release];
     }
   END_TIMER;
-  PRINT_TIMER("NSObject: 1 def all/init/rel");
+  PRINT_TIMER("NSObject: 1 def all/init/rel\t\t");
 
   obj = [rootClass new];
   START_TIMER;
@@ -203,7 +203,7 @@ bench_object()
       [obj release];
     }
   END_TIMER;
-  PRINT_TIMER("NSObject: 10 retain/rel");
+  PRINT_TIMER("NSObject: 10 retain/rel\t\t");
   [obj release];
 
   obj = [rootClass new];
@@ -214,7 +214,7 @@ bench_object()
       [obj retain];
     }
   END_TIMER;
-  PRINT_TIMER("NSObject: 10 autorel/ret");
+  PRINT_TIMER("NSObject: 10 autorel/ret\t\t");
   [obj release];
 
   START_TIMER;
@@ -223,7 +223,7 @@ bench_object()
       [rootClass instancesRespondToSelector: @selector(hash)];
     }
   END_TIMER;
-  PRINT_TIMER("ObjC: 10 inst responds to sel");
+  PRINT_TIMER("ObjC: 10 inst responds to sel\t\t");
 
   mutex = objc_mutex_allocate();
   START_TIMER;
@@ -233,7 +233,7 @@ bench_object()
       objc_mutex_unlock(mutex);
     }
   END_TIMER;
-  PRINT_TIMER("ObjC: 10 objc_mutex_lock/unl");
+  PRINT_TIMER("ObjC: 10 objc_mutex_lock/unl\t\t");
   objc_mutex_deallocate(mutex);
 
   obj = [NSLock new];
@@ -244,7 +244,7 @@ bench_object()
       [obj unlock];
     }
   END_TIMER;
-  PRINT_TIMER("NSLock: 10 lock/unlock");
+  PRINT_TIMER("NSLock: 10 lock/unlock\t\t");
   [obj release];
 
 
@@ -273,7 +273,7 @@ bench_array()
       [array addObject: strings[i/10]];
     }
   END_TIMER;
-  PRINT_TIMER("NSArray (10 addObject:)");
+  PRINT_TIMER("NSArray (10 addObject:)\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT/100; i++)
@@ -281,7 +281,7 @@ bench_array()
       [array indexOfObject: strings[i]];
     }
   END_TIMER;
-  PRINT_TIMER("NSArray (1/100 indexOfObj)");
+  PRINT_TIMER("NSArray (1/100 indexOfObj)\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT/100; i++)
@@ -289,7 +289,7 @@ bench_array()
       [array indexOfObjectIdenticalTo: strings[i]];
     }
   END_TIMER;
-  PRINT_TIMER("NSArray (1/100 indexIdent)");
+  PRINT_TIMER("NSArray (1/100 indexIdent)\t\t");
 
   START_TIMER;
   for (i = 0; i < 1; i++)
@@ -297,7 +297,7 @@ bench_array()
       [array makeObjectsPerformSelector: @selector(hash)];
     }
   END_TIMER;
-  PRINT_TIMER("NSArray (once perform)");
+  PRINT_TIMER("NSArray (once perform)\t\t");
   AUTO_END;
 }
 
@@ -332,7 +332,7 @@ bench_dict()
 	}
     }
   END_TIMER;
-  PRINT_TIMER("NSDict (1 setObject:) ");
+  PRINT_TIMER("NSDict (1 setObject:) \t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
@@ -345,7 +345,7 @@ bench_dict()
         }
     }
   END_TIMER;
-  PRINT_TIMER("NSDict (10 objectFor:) ");
+  PRINT_TIMER("NSDict (10 objectFor:) \t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT*10; i++)
@@ -353,7 +353,7 @@ bench_dict()
       [dict count];
     }
   END_TIMER;
-  PRINT_TIMER("NSDictionary (10 count)");
+  PRINT_TIMER("NSDictionary (10 count)\t\t");
 
   obj2 = [dict copy];
   START_TIMER;
@@ -362,7 +362,7 @@ bench_dict()
       [dict isEqual: obj2];
     }
   END_TIMER;
-  PRINT_TIMER("NSDict (ten times isEqual:)");
+  PRINT_TIMER("NSDict (ten times isEqual:)\t\t");
   AUTO_END;
 }
 
@@ -414,7 +414,7 @@ bench_str()
       str = [stringClass stringWithCString: "hello world"];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1 cstring:) ");
+  PRINT_TIMER("NSString (1 cstring:) \t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT*10; i++)
@@ -422,7 +422,64 @@ bench_str()
       [str length];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (10 length)   ");
+  PRINT_TIMER("NSString (10 length)   \t\t");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [str copy];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (10 copy) <initWithCString:>   ");
+
+  str = @"ConstantString";
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [str copy];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (10 copy) <@'ConstantString'>   ");
+
+  str = [[NSString alloc] initWithCStringNoCopy: (char *)[str cString]
+			  length: [str length]
+			  freeWhenDone: NO];
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [str copy];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (10 copy) <NoCopy:free:NO>   ");
+
+  str = [[NSString alloc] initWithCStringNoCopy: (char *)[str cString]
+			  length: [str length]
+			  freeWhenDone: YES];
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [str copy];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (10 copy) <NoCopy:free:YES>   ");
+
+  str = [stringClass stringWithCString: "hello world"];
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [str hash];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (10 hash) <initWithCString:>   ");
+
+  str = @"ConstantString";
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [str hash];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (10 hash) <@'ConstantString'>   ");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT/100; i++)
@@ -432,7 +489,7 @@ bench_str()
       [arp release];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1/100 mkplist) ");
+  PRINT_TIMER("NSString (1/100 mkplist) \t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT/1000; i++)
@@ -440,7 +497,7 @@ bench_str()
       [plstr propertyList];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1/1000 plparse)");
+  PRINT_TIMER("NSString (1/1000 plparse)\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT/1000; i++)
@@ -455,7 +512,7 @@ bench_str()
       [arp release];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1/1000 plcomp)");
+  PRINT_TIMER("NSString (1/1000 plcomp)\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT/100; i++)
@@ -464,7 +521,7 @@ bench_str()
       [des deserializePropertyListFromData: d mutableContainers: NO];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1/100 ser/des)");
+  PRINT_TIMER("NSString (1/100 ser/des)\t\t");
 
   [NSDeserializer uniquing: YES];
   START_TIMER;
@@ -474,7 +531,7 @@ bench_str()
       [des deserializePropertyListFromData: d mutableContainers: NO];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1/100 ser/des - uniquing)");
+  PRINT_TIMER("NSString (1/100 ser/des - uniquing)\t");
   [NSDeserializer uniquing: NO];
 
   START_TIMER;
@@ -484,7 +541,7 @@ bench_str()
       [una unarchiveObjectWithData: d];
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1/100 arc/una)");
+  PRINT_TIMER("NSString (1/100 arc/una)\t\t");
 
   AUTO_END;
 }
@@ -508,7 +565,7 @@ bench_date()
       [d release];
     }
   END_TIMER;
-  PRINT_TIMER("NSCalendarDate (various)");
+  PRINT_TIMER("NSCalendarDate (various)\t\t");
   AUTO_END;
 }
 
@@ -533,7 +590,7 @@ bench_data()
       [d release];
     }
   END_TIMER;
-  PRINT_TIMER("NSData (various)");
+  PRINT_TIMER("NSData (various)\t\t\t");
   AUTO_END;
 }
 
@@ -553,7 +610,7 @@ int main(int argc, char *argv[], char **env)
   stringClass = [NSString class];
  
   pool = [NSAutoreleasePool new];
-  printf(" Test         	\t time (sec) \t index\n");
+  printf(" Test         	\t\t\t\t time (sec) \t index\n");
   bench_object();
   bench_str();
   bench_array();
