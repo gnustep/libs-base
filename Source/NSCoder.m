@@ -23,8 +23,8 @@
    */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSCoder.h>
-#include <foundation/NSGCoder.h>
+#include <Foundation/NSCoder.h>
+#include <Foundation/NSGCoder.h>
 #include <objects/NSCoder.h>
 
 @implementation NSCoder

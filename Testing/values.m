@@ -3,10 +3,10 @@
 
 */
 
-#include <foundation/NSValue.h>
-#include <foundation/NSException.h>
-#include <foundation/NSString.h>
-#include <foundation/NSGeometry.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSGeometry.h>
 
 
 int main()

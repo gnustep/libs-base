@@ -33,7 +33,7 @@
 #include <objects/Dictionary.h>
 #include <objects/Queue.h>
 #include <objects/mframe.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 #include <assert.h>
 
 @interface Connection (GettingCoderInterface)

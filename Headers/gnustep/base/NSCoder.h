@@ -21,9 +21,9 @@
 #ifndef __NSCoder_h_OBJECTS_INCLUDE
 #define __NSCoder_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
-#include <foundation/NSGeometry.h>
-#include <foundation/NSZone.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSGeometry.h>
+#include <Foundation/NSZone.h>
 
 @class NSMutableData, NSData, NSString;
 

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <foundation/NSDictionary.h>
+#include <Foundation/NSDictionary.h>
 
 @implementation NSDictionary 
 

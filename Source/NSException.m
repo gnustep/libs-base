@@ -21,12 +21,12 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 #include <assert.h>
-#include <foundation/NSException.h>
-#include <foundation/NSString.h>
-#include <foundation/NSValue.h>
-#include <foundation/NSArray.h>
-#include <foundation/NSCoder.h>
-#include <foundation/NSDictionary.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSCoder.h>
+#include <Foundation/NSDictionary.h>
 
 NSString *NSInconsistentArchiveException
 	= @"NSInconsistentArchiveException";

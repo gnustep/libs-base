@@ -21,7 +21,7 @@
 #ifndef __NSArchiver_h_OBJECTS_INCLUDE
 #define __NSArchiver_h_OBJECTS_INCLUDE
 
-#include <foundation/NSCoder.h>
+#include <Foundation/NSCoder.h>
 
 @class NSMutableData, NSData, NSString;
 

@@ -23,7 +23,7 @@
 
 #include <math.h>
 #include <objects/stdobjects.h>
-#include <foundation/NSGeometry.h>
+#include <Foundation/NSGeometry.h>
 
 /* Create Basic Structures */
 NSPoint	

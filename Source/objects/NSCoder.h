@@ -29,7 +29,7 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Coding.h>
-#include <foundation/NSGCoder.h>
+#include <Foundation/NSGCoder.h>
 
 @interface NSCoder (GNU) <Encoding, Decoding>
 @end

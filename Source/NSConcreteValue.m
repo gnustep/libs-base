@@ -21,11 +21,11 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <foundation/NSConcreteValue.h>
-#include <foundation/NSString.h>
-#include <foundation/NSException.h>
-#include <foundation/NSCoder.h>
-#include <foundation/NSZone.h>
+#include <Foundation/NSConcreteValue.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSCoder.h>
+#include <Foundation/NSZone.h>
 #include <objects/stdobjects.h>
 
 /* This is the real, general purpose value object.  I've implemented all the

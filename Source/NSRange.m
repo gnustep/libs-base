@@ -2,7 +2,7 @@
 
 */
 
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 
 NSRange	
 NSMakeRange(float location, float length)

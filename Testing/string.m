@@ -1,4 +1,4 @@
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 
 /* For demo of Strings as Collections of char's. */
 #include <objects/NSString.h>

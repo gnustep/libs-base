@@ -25,7 +25,7 @@
 #define __NSGArchiver_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <foundation/NSArchiver.h>
+#include <Foundation/NSArchiver.h>
 #include <objects/Stream.h>
 #include <objects/Dictionary.h>
 #include <objects/Stack.h>

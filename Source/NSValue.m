@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <foundation/NSConcreteValue.h>
-#include <foundation/NSCoder.h>
+#include <Foundation/NSConcreteValue.h>
+#include <Foundation/NSCoder.h>
 
 @implementation NSValue
 

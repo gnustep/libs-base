@@ -25,7 +25,7 @@
 #define __NSGArray_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <foundation/NSArray.h>
+#include <Foundation/NSArray.h>
 #include <objects/elt.h>
 
 @interface NSGArray : NSArray

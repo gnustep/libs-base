@@ -21,7 +21,7 @@
 #ifndef __NSException_h_OBJECTS_INCLUDE
 #define __NSException_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 #include <setjmp.h>
 #include <stdarg.h>
 

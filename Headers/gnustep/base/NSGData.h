@@ -25,7 +25,7 @@
 #define __NSGData_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <foundation/NSData.h>
+#include <Foundation/NSData.h>
 #include <objects/MemoryStream.h>
 
 @interface NSGData : NSData

@@ -33,7 +33,7 @@
 */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/String.h>

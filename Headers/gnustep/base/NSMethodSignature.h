@@ -21,7 +21,7 @@
 #ifndef __NSMethodSignature_h_INCLUDE_GNU
 #define __NSMethodSignature_h_INCLUDE_GNU
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 @interface NSMethodSignature : NSObject
 {

@@ -21,7 +21,7 @@
 #ifndef __NSBundle_h_OBJECTS_INCLUDE
 #define __NSBundle_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 @class NSString;
 @class NSArray;

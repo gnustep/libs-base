@@ -2,7 +2,7 @@
 #ifndef _first_server_h
 #define _first_server_h
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 @interface FirstServer : NSObject
 

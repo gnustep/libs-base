@@ -29,7 +29,7 @@
 #define __Collection_h_INCLUDE_GNU
 
 #include <objects/stdobjects.h>
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 #include <objects/Collecting.h>
 #include <objects/stdobjects.h>
 #include <objects/collhash.h>

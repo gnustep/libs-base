@@ -23,7 +23,7 @@
 
 #include <objc/objc.h>
 #include <objc/Protocol.h>
-#include <foundation/NSZone.h>
+#include <Foundation/NSZone.h>
 
 @class NSArchiver;
 @class NSCoder;

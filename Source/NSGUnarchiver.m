@@ -22,8 +22,8 @@
    */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSGUnarchiver.h>
-#include <foundation/NSGCoder.h>
+#include <Foundation/NSGUnarchiver.h>
+#include <Foundation/NSGCoder.h>
 #include <objects/behavior.h>
 
 @implementation NSGUnarchiver

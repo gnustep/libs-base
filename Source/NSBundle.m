@@ -28,11 +28,11 @@
 #include <sys/stat.h>
 #include <objc/objc-api.h>
 #include <objects/stdobjects.h>
-#include <foundation/objc-load.h>
-#include <foundation/NSBundle.h>
-#include <foundation/NSException.h>
-#include <foundation/NSString.h>
-#include <foundation/NSArray.h>
+#include <Foundation/objc-load.h>
+#include <Foundation/NSBundle.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSArray.h>
 
 /* Deal with strchr: */
 #if STDC_HEADERS || HAVE_STRING_H

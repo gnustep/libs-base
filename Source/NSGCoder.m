@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <foundation/NSGCoder.h>
+#include <Foundation/NSGCoder.h>
 #include <objects/NSCoder.h>
 #include <objects/behavior.h>
 #include <objects/Coder.h>

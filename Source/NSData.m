@@ -22,9 +22,9 @@
    */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSData.h>
-#include <foundation/NSString.h>
-#include <foundation/NSGData.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSGData.h>
 
 /* xxx Pretty messy.  Needs work. */
 

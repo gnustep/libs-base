@@ -21,7 +21,7 @@
 #ifndef __NSAutoreleasePool_h_OBJECTS_INCLUDE
 #define __NSAutoreleasePool_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 @interface NSAutoreleasePool:NSObject 
 {

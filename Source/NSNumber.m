@@ -23,10 +23,10 @@
 */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSException.h>
-#include <foundation/NSString.h>
-#include <foundation/NSConcreteNumber.h>
-#include <foundation/NSCoder.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSConcreteNumber.h>
+#include <Foundation/NSCoder.h>
 
 @implementation NSNumber
 

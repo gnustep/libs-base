@@ -23,14 +23,14 @@
 
 #include <objects/stdobjects.h>
 #include <stdarg.h>
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 #include <objc/Protocol.h>
 #include <objc/objc-api.h>
-#include <foundation/NSMethodSignature.h>
-// #include <foundation/NSArchiver.h>
-// #include <foundation/NSCoder.h>
-#include <foundation/NSInvocation.h>
-#include <foundation/NSAutoreleasePool.h>
+#include <Foundation/NSMethodSignature.h>
+// #include <Foundation/NSArchiver.h>
+// #include <Foundation/NSCoder.h>
+#include <Foundation/NSInvocation.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <objects/collhash.h>
 #include <objects/eltfuncs.h>
 #include <limits.h>
