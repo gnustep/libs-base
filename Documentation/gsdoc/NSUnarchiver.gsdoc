@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSUnarchiver" prev="NSURLHandle.html" next="NSUndoManager.html" up="Foundation.html">
+<gsdoc base="NSUnarchiver" prev="NSURLHandle.html" next="NSUndoManager.html" up="Base.html">
   <head>
     <title>NSUnarchiver</title>
     <author name="Richard Frith-Macdonald">

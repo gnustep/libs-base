@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSPortNameServer" prev="NSPortMessage.html" next="NSProcessInfo.html" up="Foundation.html">
+<gsdoc base="NSPortNameServer" prev="NSPortMessage.html" next="NSProcessInfo.html" up="Base.html">
   <head>
     <title>NSPortNameServer</title>
     <author name="Richard Frith-Macdonald">

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSCalendarDate" prev="NSBundle.html" next="NSCharacterSet.html" up="Foundation.html">
+<gsdoc base="NSCalendarDate" prev="NSBundle.html" next="NSCharacterSet.html" up="Base.html">
   <head>
     <title>NSCalendarDate</title>
     <author name="Richard Frith-Macdonald">

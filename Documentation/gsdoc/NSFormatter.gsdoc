@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSFormatter" prev="NSFileManager.html" next="NSHost.html" up="Foundation.html">
+<gsdoc base="NSFormatter" prev="NSFileManager.html" next="NSHost.html" up="Base.html">
   <head>
     <title>NSFormatter</title>
     <author name="Richard Frith-Macdonald">
