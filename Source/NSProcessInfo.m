@@ -82,6 +82,7 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSLock.h>
 
 #include "GSPrivate.h"
 

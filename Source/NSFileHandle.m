@@ -405,6 +405,19 @@ NSString * const NSFileHandleOperationException
 						 forModes: modes]);
 }
 
+/**
+ * Opens a network server socket and listens for incoming connections
+ * using the specified service and protocol.
+ * <list>
+ *   <item>
+ *     The service is the name (or number) of the port to
+ *     which the connection should be made.
+ *   </item>
+ *   <item>
+ *     The protocol may at present only be 'tcp'
+ *   </item>
+ * </list>
+ */
 + (id) fileHandleAsServerAtAddress: (NSString*)address
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
@@ -434,27 +447,50 @@ NSString * const NSFileHandleOperationException
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Returns a boolean to indicate whether a read operation of any kind is
+ * in progress on the handle.
+ */
 - (BOOL) readInProgress
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
+/**
+ * Returns the host address of the network connection represented by
+ * the file handle.  If this handle is an incoming connection which
+ * was received by a local server handle, this is the name or address
+ * of the client machine.
+ */
 - (NSString*) socketAddress
 {
   return nil;
 }
 
+/**
+ * Returns the name (or number) of the service (network port) in use for
+ * the network connection represented by the file handle.
+ */
 - (NSString*) socketService
 {
   return nil;
 }
 
+/**
+ * Returns the name of the protocol in use for the network connection
+ * represented by the file handle.
+ */
 - (NSString*) socketProtocol
 {
   return nil;
 }
 
+/**
+ * Return a flag to indicate whether compression has been turned on for
+ * the file handle ... this is only available on systems where GNUstep
+ * was built with 'zlib' support for compressing/decompressing data.
+ */
 - (BOOL) useCompression
 {
   return NO;
@@ -476,6 +512,11 @@ NSString * const NSFileHandleOperationException
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Returns a boolean to indicate whether a write operation of any kind is
+ * in progress on the handle.  An outgoing network connection attempt
+ * (as a client) is considered to be a write operation.
+ */
 - (BOOL) writeInProgress
 {
   [self subclassResponsibility: _cmd];
@@ -485,6 +526,9 @@ NSString * const NSFileHandleOperationException
 @end
 
 @implementation NSFileHandle (GNUstepOpenSSL)
+/**
+ * returns the concrete class used to implement SSL connections.
+ */
 + (Class) sslClass
 {
   if (NSFileHandle_ssl_class == 0)
@@ -502,14 +546,25 @@ NSString * const NSFileHandleOperationException
   return NSFileHandle_ssl_class;
 }
 
+/**
+ * Establishes an SSL connection to the system that the handle is talking to.
+ */
 - (BOOL) sslConnect
 {
   return NO;
 }
 
+/**
+ * Shuts down the SSL connection to the system that the handle is talking to.
+ */
 - (void) sslDisconnect
 {
 }
+
+/**
+ * Sets the certificate to be used to identify this process to the server
+ * at the opposite end of the network connection.
+ */
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
                  PEMpasswd: (NSString*)PEMpasswd
