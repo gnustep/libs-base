@@ -233,10 +233,6 @@ my_object_is_class(id object)
 
 /* These _coder... methods may be overriden by subclasses so that 
    cross-references can be kept differently.
-
-   For instance, ConnectedCoder keeps cross-references to const
-   pointers on a per-Connection basis instead of a per-Coder basis.
-   We avoid encoding/decoding the same classes and selectors over and
    over again.
 */
 - (unsigned) _coderCreateReferenceForObject: anObj

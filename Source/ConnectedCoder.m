@@ -110,20 +110,6 @@ static BOOL debug_connected_coder = NO;
 }
 
 
-/* Cache the const ptr's in the Connection, not separately for each 
-   created ConnectedCoder. */
-
-- (unsigned) _coderReferenceForConstPtr: (const void*)ptr
-{
-  return 0;
-}
-
-- (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
-{
-  return 0;
-}
-
-
 /* This is called by Coder's designated object encoder */
 - (void) _doEncodeObject: anObj
 {
@@ -215,20 +201,6 @@ static BOOL debug_connected_coder = NO;
   return cd;
 }
 
-
-
-/* Cache the const ptr's in the Connection, not separately for each 
-   created ConnectedCoder. */
-
-- (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
-{
-  return 0;
-}
-
-- (const void*) _coderConstPtrAtReference: (unsigned)xref
-{
-  return 0;
-}
 
 
 #if CONNECTION_WIDE_OBJECT_REFERENCES

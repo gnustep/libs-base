@@ -157,20 +157,6 @@ static BOOL debug_connected_coder = NO;
 }
 
 
-/* Cache the const ptr's in the Connection, not separately for each
-   created PortCoder. */
-
-- (unsigned) _coderReferenceForConstPtr: (const void*)ptr
-{
-return 0;
-}
-
-- (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
-{
-return 0;
-}
-
-
 /*
  *	These three methods are called by Coder's designated object encoder when
  *	an object is to be sent over the wire with/without bycopy/byref.
@@ -333,20 +319,6 @@ return 0;
     fprintf(stderr, "newDecoding #=%d id=%d\n",
 	    cd->sequence_number, cd->identifier);
   return cd;
-}
-
-
-/* Cache the const ptr's in the Connection, not separately for each
-   created PortCoder. */
-
-- (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
-{
-  return 0;
-}
-
-- (const void*) _coderConstPtrAtReference: (unsigned)xref
-{
-  return 0;
 }
 
 
