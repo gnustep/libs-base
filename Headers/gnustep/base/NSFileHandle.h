@@ -62,14 +62,14 @@
 
 // Asynchronous I/O operations
 
-- (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes;
 - (void) acceptConnectionInBackgroundAndNotify;
-- (void) readInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes;
 - (void) readInBackgroundAndNotify;
-- (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) readInBackgroundAndNotifyForModes: (NSArray*)modes;
 - (void) readToEndOfFileInBackgroundAndNotify;
-- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes;
+- (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes;
 - (void) waitForDataInBackgroundAndNotify;
+- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes;
 
 // Seeking within a file
 
@@ -132,6 +132,9 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 				       service: (NSString*)service
 				      protocol: (NSString*)protocol
 				      forModes: (NSArray*)modes;
+- (void) readDataInBackgroundAndNotifyLength: (unsigned)len;
+- (void) readDataInBackgroundAndNotifyLength: (unsigned)len
+				    forModes: (NSArray*)modes;
 - (BOOL) readInProgress;
 - (NSString*) socketAddress;
 - (NSString*) socketService;

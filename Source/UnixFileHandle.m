@@ -1384,9 +1384,26 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void) acceptConnectionInBackgroundAndNotify
+- (void) readDataInBackgroundAndNotifyLength: (unsigned)len
+				    forModes: (NSArray*)modes
 {
-  [self acceptConnectionInBackgroundAndNotifyForModes: nil];
+  NSMutableData	*d;
+
+  [self checkRead];
+  if (len > 0x7fffffff)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"length (%u) too large", len];
+    }
+  readMax = len;
+  RELEASE(readInfo);
+  readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
+  [readInfo setObject: NSFileHandleReadCompletionNotification
+	       forKey: NotificationKey];
+  d = [[NSMutableData alloc] initWithCapacity: readMax];
+  [readInfo setObject: d forKey: NSFileHandleNotificationDataItem];
+  RELEASE(d);
+  [self watchReadDescriptorForModes: modes];
 }
 
 - (void) readInBackgroundAndNotifyForModes: (NSArray*)modes
@@ -1405,11 +1422,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void) readInBackgroundAndNotify
-{
-  return [self readInBackgroundAndNotifyForModes: nil];
-}
-
 - (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   NSMutableData	*d;
@@ -1426,11 +1438,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void) readToEndOfFileInBackgroundAndNotify
-{
-  return [self readToEndOfFileInBackgroundAndNotifyForModes: nil];
-}
-
 - (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
@@ -1442,11 +1449,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
 	       forKey: NSFileHandleNotificationDataItem];
   [self watchReadDescriptorForModes: modes];
-}
-
-- (void) waitForDataInBackgroundAndNotify
-{
-  return [self waitForDataInBackgroundAndNotifyForModes: nil];
 }
 
 // Seeking within a file

@@ -198,42 +198,62 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Asynchronous I/O operations
 
+- (void) acceptConnectionInBackgroundAndNotify
+{
+  [self acceptConnectionInBackgroundAndNotifyForModes: nil];
+}
+
 - (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void) acceptConnectionInBackgroundAndNotify
+/**
+ * Call -readInBackgroundAndNotifyForModes: with nil modes.
+ */
+- (void) readInBackgroundAndNotify
 {
-  [self subclassResponsibility: _cmd];
+  [self readInBackgroundAndNotifyForModes: nil];
 }
 
+/**
+ * Set up an asynchonous read operation which will cause a notification to
+ * be sent when any amount of data (or end of file) is read.
+ */
 - (void) readInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void) readInBackgroundAndNotify
+/**
+ * Call -readToEndOfFileInBackgroundAndNotifyForModes: with nil modes.
+ */
+- (void) readToEndOfFileInBackgroundAndNotify
 {
-  [self subclassResponsibility: _cmd];
+  [self readToEndOfFileInBackgroundAndNotifyForModes: nil];
 }
 
+/**
+ * Set up an asynchonous read operation which will cause a notification to
+ * be sent when end of file is read.
+ */
 - (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void) readToEndOfFileInBackgroundAndNotify
-{
-  [self subclassResponsibility: _cmd];
-}
-
-- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
-{
-  [self subclassResponsibility: _cmd];
-}
-
+/**
+ * Call -waitForDataInBackgroundAndNotifyForModes: with nil modes.
+ */
 - (void) waitForDataInBackgroundAndNotify
+{
+  [self waitForDataInBackgroundAndNotifyForModes: nil];
+}
+
+/**
+ * Set up to provide a notification when data can be read from the handle.
+ */
+- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
@@ -404,6 +424,24 @@ NSString * const NSFileHandleOperationException
 				     protocol: protocol]);
 }
 
+/**
+ * Call -readDataInBackgroundAndNotifyLength:forModes: with nil modes.
+ */
+- (void) readDataInBackgroundAndNotifyLength: (unsigned)len
+{
+  [self readDataInBackgroundAndNotifyLength: len forModes: nil];
+}
+
+/**
+ * Set up an asynchonous read operation which will cause a notification to
+ * be sent when the specified amount of data (or end of file) is read.
+ */
+- (void) readDataInBackgroundAndNotifyLength: (unsigned)len
+				    forModes: (NSArray*)modes
+{
+  [self subclassResponsibility: _cmd];
+}
+
 - (BOOL) readInProgress
 {
   [self subclassResponsibility: _cmd];
@@ -430,12 +468,18 @@ NSString * const NSFileHandleOperationException
   return NO;
 }
 
-- (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
+/**
+ * Call -writeInBackgroundAndNotify:forModes: with nil modes.
+ */
+- (void) writeInBackgroundAndNotify: (NSData*)item
 {
-  [self subclassResponsibility: _cmd];
+  [self writeInBackgroundAndNotify: item forModes: nil];
 }
 
-- (void) writeInBackgroundAndNotify: (NSData*)item
+/**
+ * Write the specified data asynchronously, and notify on completion.
+ */
+- (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }

@@ -1,3 +1,11 @@
+2002-06-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileHandle.h: add async read of specific length.
+	* Source/NSFileHandle.m: Make the async wconvenience methods call
+	the core ones.
+	* Source/UnixFileHandle.m: Remove async convenience methods and add
+	one to read specified length of data.
+
 2002-06-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: add a few consistency checks to raise an exception
