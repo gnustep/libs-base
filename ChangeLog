@@ -1,3 +1,18 @@
+2003-01-26  Adam Fedor  <fedor@gnu.org>
+
+	* Compiling gdl2 on MacOSX.
+	* Headers/gnustep/base/NSObject.h (-notImplemented:,
+	-subclassResponsibility:, -shouldNotImplement:, -compare:): Move
+	to GSCategories category.
+	* Headers/gnustep/base/NSString.h (-stringByDeletingPrefix:,
+	-stringByDeletingSuffix:, -deleteSuffix:, -deletePrefix:): Idem.
+	* Source/NSObject: Move methods to Additions/GSCategories.m
+	* Source/NSString: Idem.
+
+	* Source/Additions/GSCompatibility.h (GetEncodingName): Add.
+	* Source/Additions/GSCompatibility.m (GetEncodingName): Cocoa
+	implementation.
+
 2003-01-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSCategories.m: Changed name of md5 digest method

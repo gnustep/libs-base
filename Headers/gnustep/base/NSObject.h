@@ -272,7 +272,6 @@ enum {NSNotFound = 0x7fffffff};
 
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
-- notImplemented:(SEL)aSel;
 /* - (const char *) name;
    Removed because OpenStep has -(NSString*)name; */
 @end
@@ -283,16 +282,21 @@ enum {NSNotFound = 0x7fffffff};
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 @interface NSObject (GNU)
-- (NSComparisonResult) compare: (id)anObject;
 - (id) makeImmutableCopyOnFail: (BOOL)force;
 - (Class) transmuteClassTo: (Class)aClassObject;
-- (id) subclassResponsibility: (SEL)aSel;
-- (id) shouldNotImplement: (SEL)aSel;
 + (Class) autoreleaseClass;
 + (void) setAutoreleaseClass: (Class)aClass;
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
 - (id) read: (TypedStream*)aStream;
 - (id) write: (TypedStream*)aStream;
+@end
+
+@interface NSObject (GSCategories)
+- notImplemented:(SEL)aSel;
+- (id) subclassResponsibility: (SEL)aSel;
+- (id) shouldNotImplement: (SEL)aSel;
+
+- (NSComparisonResult) compare: (id)anObject;
 @end
 
 #endif

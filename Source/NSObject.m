@@ -1877,17 +1877,6 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
-- (id) notImplemented: (SEL)aSel
-{
-  [NSException
-    raise: NSGenericException
-    format: @"method %s not implemented in %s(%s)",
-    aSel ? sel_get_name(aSel) : "(null)", 
-    object_get_class_name(self),
-    GSObjCIsInstance(self) ? "instance" : "class"];
-  return nil;
-}
-
 - (id) doesNotRecognize: (SEL)aSel
 {
   [NSException raise: NSGenericException
@@ -1955,39 +1944,6 @@ static BOOL double_release_check_enabled = NO;
 + (void) enableDoubleReleaseCheck: (BOOL)enable
 {
   double_release_check_enabled = enable;
-}
-
-/**
- * Compare the receiver with anObject to see which is greater.
- * The default implementation orders by memory location.
- */
-- (int) compare: (id)anObject
-{
-  if (anObject == self)
-    {
-      return NSOrderedSame;
-    }
-  if (anObject == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
-    }
-  if ([self isEqual: anObject])
-    {
-      return NSOrderedSame;
-    }
-  /*
-   * Ordering objects by their address is pretty useless, 
-   * so subclasses should override this is some useful way.
-   */
-  if (self > anObject)
-    {
-      return NSOrderedDescending;
-    }
-  else 
-    {
-      return NSOrderedAscending;
-    }
 }
 
 /**
@@ -2109,27 +2065,6 @@ static BOOL double_release_check_enabled = NO;
             return old_isa;
           }
   return 0;
-}
-
-- (id) subclassResponsibility: (SEL)aSel
-{
-  [NSException raise: NSGenericException
-    format: @"subclass %s(%s) should override %s", 
-	       object_get_class_name(self),
-	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSel ? sel_get_name(aSel) : "(null)"];
-  return nil;
-}
-
-- (id) shouldNotImplement: (SEL)aSel
-{
-  [NSException
-    raise: NSGenericException
-    format: @"%s(%s) should not implement %s", 
-    object_get_class_name(self), 
-    GSObjCIsInstance(self) ? "instance" : "class",
-    aSel ? sel_get_name(aSel) : "(null)"];
-  return nil;
 }
 
 + (int) streamVersion: (TypedStream*)aStream

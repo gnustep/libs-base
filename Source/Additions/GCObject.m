@@ -27,7 +27,7 @@
 
 */
 
-#include <config.h>
+#include "config.h"
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSString.h>

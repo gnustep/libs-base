@@ -27,6 +27,11 @@
 /* FIXME: Need to initialize this */
 NSRecursiveLock *gnustep_global_lock = NULL;
 
+NSString *GetEncodingName(NSStringEncoding availableEncodingValue)
+{
+return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
+}
+
 @implementation NSArray (GSCompatibility)
 
 /**

@@ -48,7 +48,7 @@
 
    */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <base/preface.h>
 #include <base/behavior.h>
