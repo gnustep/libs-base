@@ -3911,7 +3911,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*hdr;
   NSString	*val;
 
-  if ([type isEqualToString: @"multi-part"] == NO
+  if ([type isEqualToString: @"multipart"] == NO
     && [content isKindOfClass: [NSArray class]] == YES)
     {
       [NSException raise: NSInvalidArgumentException
