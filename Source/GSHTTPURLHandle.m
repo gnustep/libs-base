@@ -568,24 +568,22 @@ static void debugWrite(NSData *data)
     {
       s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
 	method, [url host], [url path]];
-      if ([[url query] length] > 0)
-	{
-	  [s appendFormat: @"?%@", [url query]];
-	}
-      [s appendFormat: @" HTTP/%@\r\n", httpVersion];
     }
   else    // no proxy
     {
       s = [[NSMutableString alloc] initWithFormat: @"%@ %@", 
 	method, [url path]];
-      if ([[url query] length] > 0)
-	{
-	  [s appendFormat: @"?%@", [url query]];
-	}
-      [s appendFormat: @" HTTP/%@\nHost: %@\r\n", httpVersion, [url host]];
     }
+  if ([[url query] length] > 0)
+    {
+      [s appendFormat: @"?%@", [url query]];
+    }
+  [s appendFormat: @" HTTP/%@\r\n", httpVersion];
 
-  [wProperties setObject: [url host] forKey: @"host"];
+  if ([wProperties objectForKey: @"host"] == nil)
+    {
+      [wProperties setObject: [url host] forKey: @"host"];
+    }
 
   if ([wData length] > 0)
     {
@@ -600,24 +598,28 @@ static void debugWrite(NSData *data)
 			  forKey: @"content-type"];
 	}
     }
-  if ([url user] != nil)
+  if ([wProperties objectForKey: @"authorisation"] == nil)
     {
-      NSString	*auth;
-
-      if ([[url password] length] > 0)
-	{ 
-	  auth = [NSString stringWithFormat: @"%@:%@", 
-	    [url user], [url password]];
-	}
-      else
+      if ([url user] != nil)
 	{
-	  auth = [NSString stringWithFormat: @"%@", [url user]];
+	  NSString	*auth;
+
+	  if ([[url password] length] > 0)
+	    { 
+	      auth = [NSString stringWithFormat: @"%@:%@", 
+		[url user], [url password]];
+	    }
+	  else
+	    {
+	      auth = [NSString stringWithFormat: @"%@", [url user]];
+	    }
+	  auth = [NSString stringWithFormat: @"Basic %@",
+	    [self encodebase64: auth]];
+	  [wProperties setObject: auth
+			  forKey: @"authorization"];
 	}
-      auth = [NSString stringWithFormat: @"Basic %@",
-	[self encodebase64: auth]];
-      [wProperties setObject: auth
-		      forKey: @"Authorization"];
     }
+
   wpEnumerator = [wProperties keyEnumerator];
   while ((key = [wpEnumerator nextObject]))
     {

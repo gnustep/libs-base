@@ -14,7 +14,9 @@
 
 	* Source/NSURLHandle.m: Implement ([-hash]) and ([-isEqual:]) based on
 	([-absoluteString]) rather than simple pointer comparison.
-	* Source/GSHTTPURLHandle.m: ([-bgdConnect]) set host header
+	* Source/GSHTTPURLHandle.m: ([-bgdConnect]) check for existing
+	headers before writing ... avoid overriding them and only set things
+	that the programmer has not bothered to set.
 	([-loadInBackGround]) use URL port if available.
 	More fixes thanks to lcampbel via savannah
 	* Headers/Foundation/NSURLHanlde.h: include NSObject.h
