@@ -1,22 +1,22 @@
 /** Concrete implementation of NSSet based on GNU Set class
    Copyright (C) 1995, 1996, 1998, 2000 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: September 1995
    Rewrite by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -223,7 +223,7 @@ static Class	mutableSetClass;
       SEL		sel = @selector(decodeValueOfObjCType:at:);
       IMP		imp = [aCoder methodForSelector: sel];
       const char	*type = @encode(id);
-      
+
       (*imp)(aCoder, sel, @encode(unsigned), &count);
 
       GSIMapInitWithZoneAndCapacity(&map, [self zone], count);

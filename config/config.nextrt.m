@@ -2,7 +2,7 @@
    runtime or not.
 
    With the NeXT runtime this file compiles and links.
-   With the GNU runtime, this file does not link. 
+   With the GNU runtime, this file does not link.
 */
 
 #include <objc/Object.h>

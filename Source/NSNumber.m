@@ -1,5 +1,5 @@
 /** NSNumber - Object encapsulation of numbers
-    
+
    Copyright (C) 1993, 1994, 1996, 2000 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -13,7 +13,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -276,7 +276,7 @@ static Class	doubleNumberClass;
     }
 }
 
-/* Returns the concrete class associated with the type encoding. Note 
+/* Returns the concrete class associated with the type encoding. Note
    that we don't allow NSNumber to instantiate any class but its own
    concrete subclasses (see check at end of method) */
 + (Class) valueClassWithObjCType: (const char*)type
@@ -307,7 +307,7 @@ static Class	doubleNumberClass;
 	return uLongLongNumberClass;
       case _C_FLT:	return floatNumberClass;
       case _C_DBL:	return doubleNumberClass;
-      default: 
+      default:
 	break;
     }
 

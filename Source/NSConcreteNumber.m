@@ -1,6 +1,6 @@
 # line 1 "NSConcreteNumber.m"	/* So gdb knows which file we are in */
 /* NSConcreteNumber - Object encapsulation of numbers
-    
+
    Copyright (C) 1993, 1994, 1996, 2000 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -14,7 +14,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -215,7 +215,7 @@
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
 #if	(TYPE_ORDER & 1) == 1
-#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT && TYPE_ORDER < 3 
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT && TYPE_ORDER < 3
 #define	PT (short)
 #elif GS_SIZEOF_CHAR < GS_SIZEOF_INT && TYPE_ORDER < 5
 #define	PT (int)
@@ -572,7 +572,7 @@
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Cannot copy value into NULL pointer"];
-      /* NOT REACHED */ 
+      /* NOT REACHED */
     }
   memcpy(value, &data, objc_sizeof_type(@encode(TYPE_TYPE)));
 }

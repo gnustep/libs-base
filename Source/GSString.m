@@ -1,9 +1,9 @@
 /** Implementation for GNUStep of NSString concrete subclasses
    Copyright (C) 1997,1998,2000 Free Software Foundation, Inc.
-   
+
    Base on code written by Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
-   
+
    Based on NSGCString and NSString
    Written by:  Andrew Kachites McCallum
    <mccallum@gnu.ai.mit.edu>
@@ -21,7 +21,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -30,7 +30,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-*/ 
+*/
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -691,7 +691,7 @@ UTF8String_c(GSStr self)
 	}
       NSZoneFree(NSDefaultMallocZone(), u);
     }
-  
+
   return r;
 }
 
@@ -1069,7 +1069,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
     }
 
   if ((encoding == intEnc)
-    || ((intEnc == NSASCIIStringEncoding) 
+    || ((intEnc == NSASCIIStringEncoding)
     && ((encoding == NSISOLatin1StringEncoding)
     || (encoding == NSISOLatin2StringEncoding)
     || (encoding == NSNEXTSTEPStringEncoding)
@@ -1570,7 +1570,7 @@ lossyCString_c(GSStr self)
 	}
       NSZoneFree(NSDefaultMallocZone(), u);
     }
-  
+
   return r;
 }
 
@@ -1774,7 +1774,7 @@ rangeOfSequence_u(GSStr self, unsigned anIndex)
     start--;
   end = start + 1;
   if (end < self->_count)
-    while ((end < self->_count) && (uni_isnonsp(self->_contents.u[end])) )
+    while ((end < self->_count) && (uni_isnonsp(self->_contents.u[end])))
       end++;
   return (NSRange){start, end-start};
 }
@@ -2054,7 +2054,7 @@ transmute(GSStr self, NSString *aString)
  * -copyWithZone:, none of its memory management related methods
  * (initializers and -dealloc) should ever be called. We guard against
  * this happening.
- */ 
+ */
 @implementation GSString
 
 + (void) initialize
@@ -2297,7 +2297,7 @@ transmute(GSStr self, NSString *aString)
 - (int) _baseLength
 {
   return _count;
-} 
+}
 
 /*
 Default copy implementation. Retain if we own the buffer and the zones
@@ -2625,7 +2625,7 @@ agree, create a new GSCInlineString otherwise.
     if (!uni_isnonsp(_contents.u[count++]))
       blen++;
   return blen;
-} 
+}
 
 /*
 Default -copy implementation. Retain if we own the buffer and the zones
@@ -2642,7 +2642,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       obj = [obj initWithCharacters: _contents.u length: _count];
       return obj;
     }
-  else 
+  else
     {
       return RETAIN(self);
     }
@@ -3321,7 +3321,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 	       * CString methods to get the characters into our buffer,
 	       * or may even be able to copy from another string directly.
 	       *
-	       * Since getCString appends a '\0' terminator, we must handle 
+	       * Since getCString appends a '\0' terminator, we must handle
 	       * that problem in copying data into our buffer.  Either by
 	       * saving and restoring the character which would be
 	       * overwritten by the nul, or by getting a character less,
@@ -3336,7 +3336,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 		  _contents.c[aRange.location + length] = tmp;
 		}
 	      else
-		{ 
+		{
 		  unsigned int	l = length - 1;
 		  unsigned int  size = 1;
 		  unichar	u;
@@ -3476,7 +3476,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   else
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
-					aRange.length, 
+					aRange.length,
 					NSDefaultMallocZone());
       sub = [sub initWithCString: self->_contents.c + aRange.location
 			  length: aRange.length];
@@ -3500,7 +3500,7 @@ agree, create a new GSUnicodeInlineString otherwise.
     }
   else
     return _count;
-} 
+}
 
 @end
 

@@ -43,7 +43,7 @@ int main()
       assert ([s1 intValue] == [s2 intValue]);
     }
   printf("\n");
-  
+
   [heap release];
   [array release];
 

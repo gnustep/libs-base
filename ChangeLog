@@ -1,3 +1,28 @@
+2005-02-22 11:12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFormat.m:
+	* Source/GSString.m:
+	* Source/GSTemplateValue.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSDecimal.m:
+	* Source/NSInvocation.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSScanner.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUserDefaults.m:
+	* Source/libgnustep-base-entry.m:
+	* Source/thr-mach.m:
+	* Source/thr-pthread.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/behavior.m:
+	Tidy up use of white space a little.
+
 2005-02-21 20:30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: Modified code to rewrite output to use correct

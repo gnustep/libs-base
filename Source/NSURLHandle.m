@@ -1,23 +1,23 @@
 /** NSURLHandle.m - Class NSURLHandle
    Copyright (C) 1999 Free Software Foundation, Inc.
-   
+
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 	Jan 1999
    Rewrite by:	Richard Frith-Macdonald <rfm@gnu.org>
    Date:	Sep 2000, June 2002
-   
+
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -53,13 +53,13 @@ NSString * const NSHTTPPropertyStatusReasonKey
 
 NSString * const NSHTTPPropertyServerHTTPVersionKey
   = @"NSHTTPPropertyServerHTTPVersionKey";
- 
+
 NSString * const NSHTTPPropertyRedirectionHeadersKey
   = @"NSHTTPPropertyRedirectionHeadersKey";
 
 NSString * const NSHTTPPropertyErrorPageDataKey
   = @"NSHTTPPropertyErrorPageDataKey";
- 
+
 /* These are GNUstep extras */
 NSString * const GSHTTPPropertyMethodKey
   = @"GSHTTPPropertyMethodKey";
@@ -72,7 +72,7 @@ NSString * const GSHTTPPropertyProxyHostKey
 
 NSString * const GSHTTPPropertyProxyPortKey
   = @"GSHTTPPropertyProxyPortKey";
- 
+
 NSString * const GSHTTPPropertyCertificateFileKey
   = @"GSHTTPPropertyCertificateFileKey";
 
@@ -276,7 +276,7 @@ static Class		NSURLHandleClass = 0;
   _status = NSURLHandleLoadFailed;
   DESTROY(_data);
   ASSIGNCOPY(_failure, reason);
-  
+
   while ((client = [enumerator nextObject]) != nil)
     {
       [client URLHandle: self resourceDidFailLoadingWithReason: _failure];
@@ -330,7 +330,7 @@ static Class		NSURLHandleClass = 0;
 {
   NSEnumerator			*enumerator;
   id <NSURLHandleClient>	client;
-  
+
   /*
    * Let clients know we are starting loading (unless this has already been
    * done).
@@ -445,7 +445,7 @@ static Class		NSURLHandleClass = 0;
   NSData	*d;
 
   [self beginLoadInBackground];
-  d = [self loadInForeground]; 
+  d = [self loadInForeground];
   if (d == nil)
     {
       [self backgroundLoadDidFailWithReason: @"foreground load returned nil"];
@@ -474,7 +474,7 @@ static Class		NSURLHandleClass = 0;
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
       [loop runUntilDate: limit];
       RELEASE(limit);
-    } 
+    }
   return _data;
 }
 

@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -381,7 +381,7 @@ static objc_mutex_t allocationLock = NULL;
  * </p>
  * <p>All container subclasses should override this method to call the super
  * implementation then, if the method returns YES, increment the reference
- * count of any contained objects and send the 
+ * count of any contained objects and send the
  * -gcIncrementRefCountOfContainedObjects
  * to each of the contained objects too.
  * </p>

@@ -9,7 +9,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -42,7 +42,7 @@ volatile int counter = 0;
 volatile int threadExitCounter;
 
 void
-wait_a_while()
+wait_a_while ()
 {
   volatile int i;
   for (i = 0; i < 5; i++)
@@ -73,7 +73,7 @@ wait_a_while()
   pool = [[NSAutoreleasePool alloc] init];
 
   makeMulti = ([ident isEqualToString: @"Make Multithreaded GS"]);
-    
+
   for (i = 0; i < 100; i++)
     {
       start = [NSDate date];
@@ -84,7 +84,7 @@ wait_a_while()
 	  [lock lock];
 
 	  temp = counter;
-	  wait_a_while();
+	  wait_a_while ();
 
 	  if (makeMulti && i == 49 )
 	    {
@@ -96,14 +96,14 @@ wait_a_while()
 
 
 	  counter =  temp + 1;
-	  wait_a_while();
+	  wait_a_while ();
 
 	  [lock unlock];
 	}
       end = [NSDate date];
       time += [end timeIntervalSinceDate: start];
     }
-  NSLog(@"End (%@/%@/%@):%f ", 
+  NSLog(@"End (%@/%@/%@):%f ",
 	[NSThread currentThread], ident, lock, time / 100 );
 
   threadExitCounter++;
@@ -183,9 +183,9 @@ test_lazyLocks()
   while (threadExitCounter < 3)
     [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 10.0]];
 
-  NSCAssert1 (counter == NUM_ITERATIONS * 1300, 
+  NSCAssert1 (counter == NUM_ITERATIONS * 1300,
 	      @"Locks broken! %d", counter );
-  
+
 }
 
 void
@@ -199,7 +199,7 @@ test_newLockAt(void)
 	    toTarget: t
 	    withObject: nil];
 
-  [cLock lockWhenCondition: YES 
+  [cLock lockWhenCondition: YES
 	 beforeDate: [NSDate dateWithTimeIntervalSinceNow: 10.0]];
   [cLock unlock];
 

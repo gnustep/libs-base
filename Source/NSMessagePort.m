@@ -1,25 +1,25 @@
 /** Implementation of network port object based on unix domain sockets
    Copyright (C) 2000 Free Software Foundation, Inc.
-   
+
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Based on code by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+   */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -131,7 +131,7 @@ static gsu32	maxDataLength = 10 * 1024 * 1024;
 /*
  * Theory of operation
  *
- * 
+ *
  */
 
 
@@ -244,7 +244,7 @@ decodePort(NSData *data)
 {
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
-  
+
   pih = (GSPortItemHeader*)[data bytes];
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
     NSInternalInconsistencyException);
@@ -272,7 +272,7 @@ newDataWithEncodedPort(NSMessagePort *port)
   const unsigned char	*name = [port _name];
 
   plen = 2 + strlen(name);
-  
+
   data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
   pih = (GSPortItemHeader*)[data mutableBytes];
   pih->type = GSSwapHostI32ToBig(GSP_PORT);
@@ -512,7 +512,7 @@ static Class	runLoopClass;
     {
       M_LOCK(myLock);
       if (valid == YES)
-	{ 
+	{
 	  NSRunLoop	*l;
 
 	  valid = NO;
@@ -1782,7 +1782,7 @@ static int unique_index = 0;
 	  [header setLength: rl];
 	  [components insertObject: header atIndex: 0];
 	  RELEASE(header);
-	} 
+	}
 
       header = [components objectAtIndex: 0];
       /*

@@ -1,21 +1,21 @@
 /** GSFTPURLHandle.m - Class GSFTPURLHandle
    Copyright (C) 2002 Free Software Foundation, Inc.
-   
+
    Written by:	Richard Frith-Macdonald <rfm@gnu.org>
    Date:	June 2002 		
-   
+
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -36,7 +36,7 @@
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSMime.h"
- 
+
 GS_EXPORT NSString * const GSTelnetNotification;
 GS_EXPORT NSString * const GSTelnetErrorKey;
 GS_EXPORT NSString * const GSTelnetTextKey;
@@ -607,7 +607,7 @@ static NSLock			*urlLock = nil;
 	{
 	  return;
 	}
-      
+
       if (state == cConnect)
 	{
 	  if ([line hasPrefix: @"2"] == YES)
@@ -748,7 +748,7 @@ static NSLock			*urlLock = nil;
 	  else if ([line hasPrefix: @"1"] == NO && [line hasPrefix: @"2"] == NO)
 	    {
 	      e = line;
-	    } 
+	    }
 	}
       else if (state == list)
 	{
@@ -787,7 +787,7 @@ static NSLock			*urlLock = nil;
 	  else if ([line hasPrefix: @"1"] == NO && [line hasPrefix: @"2"] == NO)
 	    {
 	      e = line;
-	    } 
+	    }
 	}
       else
 	{

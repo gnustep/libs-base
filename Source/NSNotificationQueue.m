@@ -254,7 +254,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       [NSException raise: NSMallocException
       		  format: @"Unable to add to notification queue"];
     }
-      
+
   item->notification = RETAIN(notification);
   item->name = [notification name];
   item->object = [notification object];
@@ -311,7 +311,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
     {
       item = (NSNotificationQueue*)NSAllocateObject(self,
 	0, NSDefaultMallocZone());
-      item = [item initWithNotificationCenter: 
+      item = [item initWithNotificationCenter:
 	[NSNotificationCenter defaultCenter]];
     }
   return item;
@@ -319,7 +319,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 
 - (id) init
 {
-  return [self initWithNotificationCenter: 
+  return [self initWithNotificationCenter:
 	  [NSNotificationCenter defaultCenter]];
 }
 
@@ -516,13 +516,13 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
     }
   switch (postingStyle)
     {
-      case NSPostNow: 
+      case NSPostNow:
 	[self _postNotification: notification forModes: modes];
 	break;
-      case NSPostASAP: 
+      case NSPostASAP:
 	add_to_queue(_asapQueue, notification, modes, _zone);
 	break;
-      case NSPostWhenIdle: 
+      case NSPostWhenIdle:
 	add_to_queue(_idleQueue, notification, modes, _zone);
 	break;
     }

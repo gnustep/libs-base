@@ -1,5 +1,5 @@
 /** GSLocale - various functions for localization
-    
+
    Copyright (C) 2000 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@gnu.org>
@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -66,8 +66,8 @@ GSSetLocale(int category, NSString *locale)
     }
   clocale = GSSetLocaleC(category, clocale);
 
-  if (clocale == NULL || strcmp(clocale, "C") == 0 
-    || strcmp(clocale, "POSIX") == 0) 
+  if (clocale == NULL || strcmp(clocale, "C") == 0
+    || strcmp(clocale, "POSIX") == 0)
     {
       clocale = NULL;
     }
@@ -182,7 +182,7 @@ GSDomainFromDefaultLocale(void)
 	       forKey: NSThousandsSeparator];
     }
 
-  
+
   /* FIXME: Get currency format from localeconv */
 
 #ifdef	LC_MESSAGES
@@ -241,7 +241,7 @@ GSLanguageFromLocale(NSString *locale)
   gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
   aliases = [gbundle pathForResource: @"Locale"
 		              ofType: @"aliases"
-		         inDirectory: @"Languages"];  
+		         inDirectory: @"Languages"];
   if (aliases != nil)
     {
       NSDictionary	*dict;
@@ -259,6 +259,6 @@ GSLanguageFromLocale(NSString *locale)
 	  language = [dict objectForKey: locale];
 	}
     }
-      
+
   return language;
 }

@@ -9,7 +9,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -307,7 +307,7 @@ test_behavior1(void)
   GSObjCAddClassBehavior(myTmplClass, [MyClass class]);
   NSCAssert([myTmplObj respondsToSelector:@selector(text)] == YES,
 	    @"Behavior failed");
-  
+
 }
 
 
@@ -325,7 +325,7 @@ test_behavior2(void)
   GSObjCAddClassBehavior(myTmplClass, [MyClass class]);
   NSCAssert([myTmplObj respondsToSelector:@selector(myClassCategory1)] == YES,
 	    @"Behavior failed");
-  
+
   NSCAssert(strcmp([myTmplObj text], "template_main") == 0,
 	    @"Overwritten existing implementation!");
 }

@@ -1,5 +1,5 @@
-/* 
-   This tool produces a desktop link file for KDE and Gnome out of a GNUstep 
+/*
+   This tool produces a desktop link file for KDE and Gnome out of a GNUstep
    property list.
    Copyright (C) 20010 Free Software Foundation, Inc.
 
@@ -96,9 +96,9 @@ main(int argc, char** argv, char **env)
     }
 
   fileContents = [NSMutableString stringWithCapacity: 200];
-  [fileContents appendString: 
+  [fileContents appendString:
     @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
-  [fileContents appendString: 
+  [fileContents appendString:
     @"Version=0.94\nCategories=GNUstep\n"];
   entry = [plist objectForKey: @"ApplicationName"];
   if (entry != nil)
@@ -153,7 +153,7 @@ main(int argc, char** argv, char **env)
       [fileContents appendString: @"\n"];
     }
 
-  if ([[fileContents dataUsingEncoding: NSUTF8StringEncoding] 
+  if ([[fileContents dataUsingEncoding: NSUTF8StringEncoding]
     writeToFile: destName atomically: YES] == NO)
     {
       GSPrintf(stderr, @"Error writing property list to '%@'\n", destName);

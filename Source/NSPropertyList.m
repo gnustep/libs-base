@@ -3,24 +3,24 @@
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    		Fred Kiefer <FredKiefer@gmx.de>
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
-   */ 
+   */
 
 #include "config.h"
 #include <string.h>
@@ -977,7 +977,7 @@ nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
 	}
       else if ([name isEqualToString: @"data"])
 	{
-	  result = [GSMimeDocument decodeBase64: 
+	  result = [GSMimeDocument decodeBase64:
 		       [content dataUsingEncoding: NSASCIIStringEncoding]];
 	  if (o == NSPropertyListMutableContainersAndLeaves)
 	    {
@@ -1300,7 +1300,7 @@ PString(NSString *obj, NSMutableData *output)
 	    {
 	      case '\t':
 	      case '\r':
-	      case '\n': 
+	      case '\n':
 		*ptr++ = *from;
 		break;
 
@@ -1396,19 +1396,19 @@ XString(NSString* obj, NSMutableData *output)
 	  c = base[rpos];
 	  switch (c)
 	    {
-	      case '&': 
+	      case '&':
 		len += 5;
 		break;
-	      case '<': 
-	      case '>': 
+	      case '<':
+	      case '>':
 		len += 4;
 		break;
-	      case '\'': 
-	      case '"': 
+	      case '\'':
+	      case '"':
 		len += 6;
 		break;
 
-	      default: 
+	      default:
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
@@ -1427,26 +1427,26 @@ XString(NSString* obj, NSMutableData *output)
 	  c = base[rpos];
 	  switch (c)
 	    {
-	      case '&': 
+	      case '&':
 		map[wpos++] = '&';
 		map[wpos++] = 'a';
 		map[wpos++] = 'm';
 		map[wpos++] = 'p';
 		map[wpos++] = ';';
 		break;
-	      case '<': 
+	      case '<':
 		map[wpos++] = '&';
 		map[wpos++] = 'l';
 		map[wpos++] = 't';
 		map[wpos++] = ';';
 		break;
-	      case '>': 
+	      case '>':
 		map[wpos++] = '&';
 		map[wpos++] = 'g';
 		map[wpos++] = 't';
 		map[wpos++] = ';';
 		break;
-	      case '\'': 
+	      case '\'':
 		map[wpos++] = '&';
 		map[wpos++] = 'a';
 		map[wpos++] = 'p';
@@ -1454,7 +1454,7 @@ XString(NSString* obj, NSMutableData *output)
 		map[wpos++] = 's';
 		map[wpos++] = ';';
 		break;
-	      case '"': 
+	      case '"':
 		map[wpos++] = '&';
 		map[wpos++] = 'q';
 		map[wpos++] = 'u';
@@ -1463,7 +1463,7 @@ XString(NSString* obj, NSMutableData *output)
 		map[wpos++] = ';';
 		break;
 
-	      default: 
+	      default:
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
@@ -1645,7 +1645,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
 	  j = [dest length];
-	  [dest setLength: j + 2*length+(length > 4 ? (length-1)/4+2 : 2)]; 
+	  [dest setLength: j + 2*length+(length > 4 ? (length-1)/4+2 : 2)];
 	  dst = [dest mutableBytes];
 	  dst[j++] = '<';
 	  for (i = 0; i < length; i++, j++)
@@ -2060,7 +2060,7 @@ static BOOL	classInitialized = NO;
 
   loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   dest = [NSMutableData dataWithCapacity: 1024];
-  
+
   if (aFormat == NSPropertyListXMLFormat_v1_0)
     {
       const char	*prefix =
@@ -2078,7 +2078,7 @@ static BOOL	classInitialized = NO;
       [NSSerializer serializePropertyList: aPropertyList intoData: dest];
     }
   else
-    { 
+    {
       OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, aFormat, dest);
     }
   return dest;
@@ -2106,7 +2106,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       [NSException raise: NSInvalidArgumentException
 		  format: @"Illegal object (%@) at argument 0", *str];
     }
-  
+
   if (forDescription)
     {
       style = NSPropertyListOpenStepFormat;
@@ -2125,7 +2125,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
 
   dest = [NSMutableData dataWithCapacity: 1024];
-  
+
   if (style == NSPropertyListXMLFormat_v1_0)
     {
       const char	*prefix =
@@ -2139,7 +2139,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       [dest appendBytes: "</plist>" length: 8];
     }
   else
-    { 
+    {
       OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
     }
   tmp = [[NSString alloc] initWithData: dest encoding: NSASCIIStringEncoding];
@@ -2212,7 +2212,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       else
 	{
 	  unsigned int		index = 0;
- 
+
 	  // Skip any leading white space.
 	  while (index < length && GS_IS_WHITESPACE(bytes[index]) == YES)
 	    {
@@ -2515,7 +2515,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned char oid;
 
       [data getBytes: &oid range: NSMakeRange(*counter,1)];
-      *counter += 1;  
+      *counter += 1;
       return oid;
     }
   else if (index_size == 2)
@@ -2523,7 +2523,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned short oid;
 
       [data getBytes: &oid range: NSMakeRange(*counter, 2)];
-      *counter += 2;  
+      *counter += 2;
 
       return NSSwapBigShortToHost(oid);
     }
@@ -2733,7 +2733,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned 	i;
       unichar	buffer[len];
 
-      [data getBytes: buffer 
+      [data getBytes: buffer
 	       range: NSMakeRange(counter, sizeof(unichar)*len)];
 
       for (i = 0; i < len; i++)
@@ -2781,8 +2781,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned char	index;
 
       [data getBytes: &index range: NSMakeRange(counter,1)];
-      result = [NSDictionary dictionaryWithObject: 
-				 [NSNumber numberWithInt: index] 
+      result = [NSDictionary dictionaryWithObject:
+				 [NSNumber numberWithInt: index]
 			     forKey: @"CF$UID"];
     }
   else if (next == 0x81)
@@ -2791,8 +2791,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
       [data getBytes: &index range: NSMakeRange(counter,2)];
       index = NSSwapBigShortToHost(index);
-      result = [NSDictionary dictionaryWithObject: 
-				 [NSNumber numberWithInt: index] 
+      result = [NSDictionary dictionaryWithObject:
+				 [NSNumber numberWithInt: index]
 			     forKey: @"CF$UID"];
     }
   else if ((next >= 0xA0) && (next < 0xAF))
@@ -2872,14 +2872,14 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
-	  result = [NSMutableDictionary dictionaryWithObjects: values 
-						      forKeys: keys 
+	  result = [NSMutableDictionary dictionaryWithObjects: values
+						      forKeys: keys
 							count: len];
 	}
       else
 	{
-	  result = [NSDictionary dictionaryWithObjects: values 
-					       forKeys: keys 
+	  result = [NSDictionary dictionaryWithObjects: values
+					       forKeys: keys
 						 count: len];
 	}
     }
@@ -2911,14 +2911,14 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
-	  result = [NSMutableDictionary dictionaryWithObjects: values 
-						      forKeys: keys 
+	  result = [NSMutableDictionary dictionaryWithObjects: values
+						      forKeys: keys
 							count: len];
 	}
       else
 	{
-	  result = [NSDictionary dictionaryWithObjects: values 
-					       forKeys: keys 
+	  result = [NSDictionary dictionaryWithObjects: values
+					       forKeys: keys
 						 count: len];
 	}
       NSZoneFree(NSDefaultMallocZone(), values);

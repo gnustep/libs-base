@@ -66,7 +66,7 @@ main ()
 	  NSLog(@"Remove %@ failed", src);
           errors++;
 	}
-      
+
     }
 
   RELEASE(arp);

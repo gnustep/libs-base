@@ -103,7 +103,7 @@
 - (void) getBoolean: (BOOL*)bp
 {
   BOOL rbp = !(*bp);
-  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd),
 	 (int)*bp, (int)rbp);
   fflush(stdout);
   *bp = rbp;
@@ -112,7 +112,7 @@
 - (unsigned char) sendUChar: (unsigned char)num
 {
   unsigned char rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd),
 	 (int)num, (int)rnum);
   fflush(stdout);
   return rnum;
@@ -122,7 +122,7 @@
 - (void) getUChar: (unsigned char *)num
 {
   unsigned char rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd),
 	 (int)(*num), (int)rnum);
   *num = rnum;
   fflush(stdout);
@@ -140,7 +140,7 @@
 - (void) getChar: (char *)num
 {
   char rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd),
 	 (int)(*num), (int)rnum);
   *num = rnum;
   fflush(stdout);
@@ -158,7 +158,7 @@
 - (void) getShort: (short *)num
 {
   short rnum = *num + ADD_CONST;
-  printf("(%s) got %hd, returning %hd\n", GSNameFromSelector(_cmd), 
+  printf("(%s) got %hd, returning %hd\n", GSNameFromSelector(_cmd),
 	 (*num), rnum);
   *num = rnum;
   fflush(stdout);
@@ -271,7 +271,7 @@
 
 - sendObject: (id)str
 {
-  printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd), 
+  printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd),
     GSClassNameFromObject(str));
   fflush(stdout);
   return str;
@@ -279,7 +279,7 @@
 
 - (void) getObject: (id *)str
 {
-  printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd), 
+  printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd),
     GSClassNameFromObject(*str));
   fflush(stdout);
 }
@@ -478,7 +478,7 @@ int main(int argc, char *argv[], char **env)
   debug = 0;
   timeout = 0;
   while ((i = getopt(argc, argv, "hdt:")) != EOF)
-    switch (i) 
+    switch (i)
       {
       case 'd':
 	debug++;

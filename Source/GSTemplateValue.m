@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -99,7 +99,7 @@
   [self setVersion: [super version]];
 }
 
-// Allocating and Initializing 
+// Allocating and Initializing
 
 - (id) initWithBytes: (const void *)value
 	    objCType: (const char *)type
@@ -110,7 +110,7 @@
   return self;
 }
 
-// Accessing Data 
+// Accessing Data
 - (void) getValue: (void *)value
 {
   if (!value)
@@ -119,7 +119,7 @@
 		  format: @"Cannot copy value into NULL buffer"];
 	/* NOT REACHED */
     }
-  memcpy( value, &data, objc_sizeof_type([self objCType]) );
+  memcpy(value, &data, objc_sizeof_type([self objCType]));
 }
 
 - (BOOL) isEqual: (id)other
@@ -227,7 +227,7 @@
   typedef __typeof__(data) _dt;
   return @encode(_dt);
 }
- 
+
 - (TYPE_NAME)TYPE_METHOD
 {
   return data;

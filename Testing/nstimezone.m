@@ -19,7 +19,7 @@ main ()
   GSPrintf(stdout, @"System time zone\n");
   system = [NSTimeZone systemTimeZone];
   GSPrintf(stdout, @"  %@\n\n", [system description]);
-  
+
   GSPrintf(stdout, @"Local time zone:\n  %@\n\n",
 	   [[NSTimeZone localTimeZone] description]);
 

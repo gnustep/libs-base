@@ -1,22 +1,22 @@
 /** NSCoder - coder object for serialization and persistance.
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -324,37 +324,37 @@
 }
 
 - (double) decodeDoubleForKey: (NSString*)aKey
-{ 
+{
   [self subclassResponsibility: _cmd];
   return 0.0;
 }
 
 - (float) decodeFloatForKey: (NSString*)aKey
-{ 
+{
   [self subclassResponsibility: _cmd];
   return 0.0;
 }
 
 - (int) decodeIntForKey: (NSString*)aKey
-{ 
+{
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (int32_t) decodeInt32ForKey: (NSString*)aKey
-{ 
+{
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (int64_t) decodeInt64ForKey: (NSString*)aKey
-{ 
+{
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (id) decodeObjectForKey: (NSString*)aKey
-{ 
+{
   [self subclassResponsibility: _cmd];
   return nil;
 }

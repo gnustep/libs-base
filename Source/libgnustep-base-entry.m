@@ -3,14 +3,14 @@
 
    Original Author:  Scott Christley <scottc@net-community.com>
    Created: 1996
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-*/ 
+*/
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -29,8 +29,8 @@
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__
 #include <stdio.h>
-WINBOOL WINAPI _CRT_INIT( HINSTANCE hinstDLL, DWORD fdwReason,
-			  LPVOID lpReserved );
+WINBOOL WINAPI _CRT_INIT(HINSTANCE hinstDLL, DWORD fdwReason,
+			  LPVOID lpReserved);
 
 // Global errno isn't defined in Microsoft's thread safe C library
 void errno()

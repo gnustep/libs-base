@@ -9,7 +9,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -251,10 +251,10 @@ test_mframe_build_signature(void)
 
       [pool release];
     }
-  
+
 }
 
-/* 
+/*
    This test is useful if the nsmethodsignatureserver is running which
    was compiled with either a different GNUstep-base version or a different
    version of gcc.  It the server isn't found the test is skipped.
@@ -284,7 +284,7 @@ test_compare_server_signature(void)
 	      GSNameFromSelector(@selector(SELNAME)), \
 	      lclSig, rmtSig); \
       }
-      
+
       TEST_SEL(void_void);
       TEST_SEL(id_void);
       TEST_SEL(char_void);
@@ -325,7 +325,7 @@ test_compare_server_signature(void)
       TEST_SEL(void_double:float:);
       TEST_SEL(largeStruct_id:char:short:int:long:float:double:largeStruct:smallStruct:);
       TEST_SEL(smallStruct_id:uchar:ushort:uint:ulong:float:double:largeStruct:smallStruct:);
-      
+
     }
   else
     {
@@ -367,7 +367,7 @@ test_GSSelectorTypesMatch(void)
     {
       if (GSSelectorTypesMatch(pairs[i][0], pairs[i][1]) == NO)
 	{
-	  NSLog(@"pair %d does not match:\n%s\n%s", 
+	  NSLog(@"pair %d does not match:\n%s\n%s",
 		i, pairs[i][0], pairs[i][1]);
 	  failed = 1;
 	}

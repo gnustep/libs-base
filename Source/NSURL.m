@@ -1,24 +1,24 @@
 /** NSUrl.m - Class NSURL
    Copyright (C) 1999 Free Software Foundation, Inc.
-   
+
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 	Jan 1999
-   
+
    Rewrite by: 	Richard Frith-Macdonald <rfm@gnu.org>
    Date: 	Jun 2002
 
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
-   This library is distributed in the hope that it will be useful, 
+
+   This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -28,8 +28,8 @@
 */
 
 /*
-Note from Manuel Guesdon: 
-* I've made some test to compare apple NSURL results 
+Note from Manuel Guesdon:
+* I've made some test to compare apple NSURL results
 and GNUstep NSURL results but as there this class is not very documented, some
 function may be incorrect
 * I've put 2 functions to make tests. You can add your own tests
@@ -267,7 +267,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       /*
        * Reduce any '/something/../' sequence to '/' and a trailing
        * "/something/.." to ""
-       */ 
+       */
       tmp = ptr;
       while ((tmp = findUp(tmp)) != 0)
 	{
@@ -302,7 +302,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	}
     }
   ptr = &ptr[strlen(ptr)];
-  
+
   if (rel->parameters != 0)
     {
       *ptr++ = ';';
@@ -339,7 +339,7 @@ static id clientForHandle(void *data, NSURLHandle *hdl)
 }
 
 /**
- * Locate a '/../ or trailing '/..' 
+ * Locate a '/../ or trailing '/..'
  */
 static char *findUp(char *str)
 {
@@ -1132,7 +1132,7 @@ static unsigned	urlAlign;
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
   NSData	*d;
-  
+
   if (shouldUseCache == YES && (d = [handle availableResourceData]) != nil)
     {
       /*

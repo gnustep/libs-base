@@ -36,8 +36,8 @@ int main ()
 			 0);
 
   for (i = 0; i < 16; i++)
-    NSHashInsert (mt, 
-		 [NSNumber numberWithInt: i], 
+    NSHashInsert (mt,
+		 [NSNumber numberWithInt: i],
 		 [NSNumber numberWithInt: i*i]);
 
   o = [NSNumber numberWithInt: 3];

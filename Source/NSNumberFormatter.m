@@ -1,4 +1,4 @@
-/** 
+/**
    NSNumberFormatter class
    Copyright (C) 2000 Free Software Foundation, Inc.
 
@@ -45,8 +45,8 @@
 				 withDefaultAttributes: (NSDictionary*)attr
 {
   // FIXME
-  return AUTORELEASE([[NSAttributedString alloc] initWithString: 
-    [self editingStringForObjectValue: anObject] attributes: attr]);  
+  return AUTORELEASE([[NSAttributedString alloc] initWithString:
+    [self editingStringForObjectValue: anObject] attributes: attr]);
 }
 
 - (NSAttributedString*) attributedStringForNil
@@ -157,7 +157,7 @@
       /* Just assume nothing else has been setup and do a simple conversion. */
       if (anObject)
 	{
-	  *anObject = [NSDecimalNumber decimalNumberWithString: string]; 
+	  *anObject = [NSDecimalNumber decimalNumberWithString: string];
 	}
       return YES;
     }
@@ -258,7 +258,7 @@
       [decoder decodeValueOfObjCType: @encode(BOOL) at: &_localizesFormat];
       [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
       [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
-      
+
       [decoder decodeValueOfObjCType: @encode(id) at: &_roundingBehavior];
       [decoder decodeValueOfObjCType: @encode(id) at: &_maximum];
       [decoder decodeValueOfObjCType: @encode(id) at: &_minimum];
@@ -304,7 +304,7 @@
 
 - (NSDecimalNumber*) minimum
 {
-  return _minimum;  
+  return _minimum;
 }
 
 - (NSString*) negativeFormat

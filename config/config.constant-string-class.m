@@ -3,9 +3,9 @@
 
    Written by: Nicola Pero <nicola@brainstorm.co.uk>
    Created: June 2001
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
@@ -33,20 +33,20 @@
    See Apple Radar 2870817 and the memcpy() in main(). */
 struct objc_class _FooConstantStringClassReference;
 #endif
-  
+
 @implementation FooConstantString
 - (char *) customString
 {
     return c_string;
 }
 @end
-  
+
 
 int main (int argc, char **argv)
 {
    /* Create a test constant string */
    FooConstantString *string = @"Antonio Valente";
-   
+
 #ifdef NeXT_RUNTIME
    /* This memcpy is needed here due to a bug in ObjC gcc when using
       next runtime. It has to be done once per program and before
@@ -63,7 +63,7 @@ int main (int argc, char **argv)
      {
        abort ();
      }
-   
+
    /* Do another, more direct test. */
    if (strcmp ([@"Jump" customString], "Jump"))
        {

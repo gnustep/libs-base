@@ -84,7 +84,7 @@ void (*_GSDebugAllocationRemoveFunc)(Class c, id o) = _GSDebugAllocationRemove;
  * This functions allows to set own function backcalls for debugging allocation
  * of objects. Useful if you intend to write your own objectalloc.
  */
-void 
+void
 GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
   void (*newRemoveObjectFunc)(Class c, id o))
 {
@@ -101,7 +101,7 @@ GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
       _GSDebugAllocationAddFunc = _GSDebugAllocationAdd;
       _GSDebugAllocationRemoveFunc = _GSDebugAllocationRemove;
     }
-  
+
   [uniqueLock unlock];
 }
 
@@ -147,7 +147,7 @@ void
 GSDebugAllocationActiveRecordingObjects(Class c)
 {
   unsigned int i;
-  
+
   GSDebugAllocationActive(YES);
 
   for (i = 0; i < num_classes; i++)
@@ -165,9 +165,9 @@ GSDebugAllocationActiveRecordingObjects(Class c)
     {
       int		more = table_size + 128;
       table_entry	*tmp;
-      
+
       tmp = NSZoneMalloc(NSDefaultMallocZone(), more * sizeof(table_entry));
-      
+
       if (tmp == 0)
 	{
 	  [uniqueLock unlock];
@@ -227,8 +227,8 @@ _GSDebugAllocationAdd(Class c, id o)
 		      int	more = the_table[i].stack_size + 128;
 		      id	*tmp;
 		      id	*tmp1;
-      
-		      tmp = NSZoneMalloc(NSDefaultMallocZone(), 
+
+		      tmp = NSZoneMalloc(NSDefaultMallocZone(),
 					 more * sizeof(id));
 		      if (tmp == 0)
 			{
@@ -236,7 +236,7 @@ _GSDebugAllocationAdd(Class c, id o)
 			  return;
 			}
 
-		      tmp1 = NSZoneMalloc(NSDefaultMallocZone(), 
+		      tmp1 = NSZoneMalloc(NSDefaultMallocZone(),
 					 more * sizeof(id));
 		      if (tmp1 == 0)
 			{
@@ -248,22 +248,22 @@ _GSDebugAllocationAdd(Class c, id o)
 
 		      if (the_table[i].recorded_objects != NULL)
 			{
-			  memcpy(tmp, the_table[i].recorded_objects, 
-				 the_table[i].num_recorded_objects 
+			  memcpy(tmp, the_table[i].recorded_objects,
+				 the_table[i].num_recorded_objects
 				 * sizeof(id));
-			  NSZoneFree(NSDefaultMallocZone(), 
+			  NSZoneFree(NSDefaultMallocZone(),
 				     the_table[i].recorded_objects);
-			  memcpy(tmp1, the_table[i].recorded_tags, 
-				 the_table[i].num_recorded_objects 
+			  memcpy(tmp1, the_table[i].recorded_tags,
+				 the_table[i].num_recorded_objects
 				 * sizeof(id));
-			  NSZoneFree(NSDefaultMallocZone(), 
+			  NSZoneFree(NSDefaultMallocZone(),
 				     the_table[i].recorded_tags);
 			}
 		      the_table[i].recorded_objects = tmp;
 		      the_table[i].recorded_tags = tmp1;
 		      the_table[i].stack_size = more;
 		    }
-		  
+		
 		  (the_table[i].recorded_objects)
 		    [the_table[i].num_recorded_objects] = o;
 		  (the_table[i].recorded_tags)
@@ -279,9 +279,9 @@ _GSDebugAllocationAdd(Class c, id o)
 	{
 	  unsigned int	more = table_size + 128;
 	  table_entry	*tmp;
-	  
+	
 	  tmp = NSZoneMalloc(NSDefaultMallocZone(), more * sizeof(table_entry));
-	  
+	
 	  if (tmp == 0)
 	    {
 	      [uniqueLock unlock];
@@ -323,7 +323,7 @@ _GSDebugAllocationAdd(Class c, id o)
  *   allocate so many objects as to eat up all your system's
  *   memory ...
  * </p>
- * <p> 
+ * <p>
  *   This function, like the ones below, returns the number of
  *   objects allocated/released from the time when
  *   GSDebugAllocationActive() was first called.  A negative
@@ -424,7 +424,7 @@ GSDebugAllocationClassList()
   unsigned int	i;
 
   [uniqueLock lock];
-  
+
   siz = sizeof(Class) * (num_classes + 1);
   ans = NSZoneMalloc(NSDefaultMallocZone(), siz);
 
@@ -653,13 +653,13 @@ _GSDebugAllocationRemove(Class c, id o)
 		    }
 		  if (j < the_table[i].num_recorded_objects)
 		    {
-		      for (k = j; 
-			   k + 1 < the_table[i].num_recorded_objects; 
+		      for (k = j;
+			   k + 1 < the_table[i].num_recorded_objects;
 			   k++)
 			{
-			  (the_table[i].recorded_objects)[k] = 
+			  (the_table[i].recorded_objects)[k] =
 			    (the_table[i].recorded_objects)[k + 1];
-			  (the_table[i].recorded_tags)[k] = 
+			  (the_table[i].recorded_tags)[k] =
 			    (the_table[i].recorded_tags)[k + 1];
 			}
 		      the_table[i].num_recorded_objects--;
@@ -700,7 +700,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
       return nil;
     }
   [uniqueLock lock];
-  
+
   for (i = 0; i < num_classes; i++)
     {
       if (the_table[i].class == c)
@@ -708,7 +708,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
 	  break;
 	}
     }
-  
+
   if (i == num_classes
     || the_table[i].is_recording == NO
     || the_table[i].num_recorded_objects == 0)
@@ -754,7 +754,7 @@ GSDebugAllocationListRecordedObjects(Class c)
     }
 
   [uniqueLock lock];
-  
+
   for (i = 0; i < num_classes; i++)
     {
       if (the_table[i].class == c)
@@ -762,7 +762,7 @@ GSDebugAllocationListRecordedObjects(Class c)
 	  break;
 	}
     }
-  
+
   if (i == num_classes)
     {
       [uniqueLock unlock];
@@ -781,16 +781,16 @@ GSDebugAllocationListRecordedObjects(Class c)
       return [NSArray array];
     }
 
-  tmp = NSZoneMalloc(NSDefaultMallocZone(), 
+  tmp = NSZoneMalloc(NSDefaultMallocZone(),
 		     the_table[i].num_recorded_objects * sizeof(id));
   if (tmp == 0)
     {
       [uniqueLock unlock];
       return nil;
     }
-  
+
   /* First, we copy the objects into a temporary buffer */
-  memcpy(tmp, the_table[i].recorded_objects, 
+  memcpy(tmp, the_table[i].recorded_objects,
 	 the_table[i].num_recorded_objects * sizeof(id));
 
   /* Retain all the objects - NB: if retaining one of the objects as a
@@ -802,12 +802,12 @@ GSDebugAllocationListRecordedObjects(Class c)
 
   /* Then, we bravely unlock the lock */
   [uniqueLock unlock];
-  
+
   /* Only then we create an array with them - this is now safe as we
      have copied the objects out, unlocked, and retained them. */
-  answer = [NSArray arrayWithObjects: tmp  
+  answer = [NSArray arrayWithObjects: tmp
 		    count: the_table[i].num_recorded_objects];
-  
+
   /* Now we release all the objects to balance the retain */
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
     {
@@ -816,8 +816,8 @@ GSDebugAllocationListRecordedObjects(Class c)
 
   /* And free the space used by them */
   NSZoneFree(NSDefaultMallocZone(), tmp);
-  
-  return answer;  
+
+  return answer;
 }
 
 
@@ -857,10 +857,10 @@ GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 void *NSFrameAddress(int offset)
 {
    switch (offset) {
-      _NS_FRAME_HACK( 0); _NS_FRAME_HACK( 1); _NS_FRAME_HACK( 2);
-      _NS_FRAME_HACK( 3); _NS_FRAME_HACK( 4); _NS_FRAME_HACK( 5);
-      _NS_FRAME_HACK( 6); _NS_FRAME_HACK( 7); _NS_FRAME_HACK( 8);
-      _NS_FRAME_HACK( 9); _NS_FRAME_HACK(10); _NS_FRAME_HACK(11);
+      _NS_FRAME_HACK(0); _NS_FRAME_HACK(1); _NS_FRAME_HACK(2);
+      _NS_FRAME_HACK(3); _NS_FRAME_HACK(4); _NS_FRAME_HACK(5);
+      _NS_FRAME_HACK(6); _NS_FRAME_HACK(7); _NS_FRAME_HACK(8);
+      _NS_FRAME_HACK(9); _NS_FRAME_HACK(10); _NS_FRAME_HACK(11);
       _NS_FRAME_HACK(12); _NS_FRAME_HACK(13); _NS_FRAME_HACK(14);
       _NS_FRAME_HACK(15); _NS_FRAME_HACK(16); _NS_FRAME_HACK(17);
       _NS_FRAME_HACK(18); _NS_FRAME_HACK(19); _NS_FRAME_HACK(20);
@@ -908,10 +908,10 @@ unsigned NSCountFrames(void)
 void *NSReturnAddress(int offset)
 {
    switch (offset) {
-      _NS_RETURN_HACK( 0); _NS_RETURN_HACK( 1); _NS_RETURN_HACK( 2);
-      _NS_RETURN_HACK( 3); _NS_RETURN_HACK( 4); _NS_RETURN_HACK( 5);
-      _NS_RETURN_HACK( 6); _NS_RETURN_HACK( 7); _NS_RETURN_HACK( 8);
-      _NS_RETURN_HACK( 9); _NS_RETURN_HACK(10); _NS_RETURN_HACK(11);
+      _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
+      _NS_RETURN_HACK(3); _NS_RETURN_HACK(4); _NS_RETURN_HACK(5);
+      _NS_RETURN_HACK(6); _NS_RETURN_HACK(7); _NS_RETURN_HACK(8);
+      _NS_RETURN_HACK(9); _NS_RETURN_HACK(10); _NS_RETURN_HACK(11);
       _NS_RETURN_HACK(12); _NS_RETURN_HACK(13); _NS_RETURN_HACK(14);
       _NS_RETURN_HACK(15); _NS_RETURN_HACK(16); _NS_RETURN_HACK(17);
       _NS_RETURN_HACK(18); _NS_RETURN_HACK(19); _NS_RETURN_HACK(20);

@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   id arp;
   int i;
   Class cstream_class;
-  
+
   if (argc > 1)
     cstream_class = objc_get_class (argv[1]);
   else
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   for (i = 0; i < 6; i++)
     {
       [array addObject: [NSNumber numberWithInt: i]];
-      [dictionary putObject: [NSNumber numberWithInt: i] 
+      [dictionary putObject: [NSNumber numberWithInt: i]
 		  atKey: [NSNumber numberWithInt: i*i]];
     }
   [array printForDebugger];
@@ -41,12 +41,12 @@ int main(int argc, char *argv[])
 
   /* Write them to a file */
 
-  /* Create an instances of the Archiver class, specify that we 
+  /* Create an instances of the Archiver class, specify that we
      want human-readable "Text"-style, instead of "Binary"-style
      coding. */
   archiver = [[Archiver alloc] initForWritingToFile: @"./coder.dat"
 			       withCStreamClass: cstream_class];
-  [archiver encodeObject: array 
+  [archiver encodeObject: array
 	    withName: @"Test Array"];
   [archiver encodeObject: dictionary
 	    withName: @"Test Dictionary"];
@@ -95,6 +95,6 @@ int main(int argc, char *argv[])
 
   /* Do the autorelease. */
   [arp release];
-  
+
   exit(0);
 }

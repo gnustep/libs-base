@@ -1548,7 +1548,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (void) setNamespace: (GSXMLNamespace *)space
 {
-  xmlSetNs (lib, [space lib]);   
+  xmlSetNs (lib, [space lib]);
 }
 
 @end
@@ -2389,7 +2389,7 @@ static NSString	*endMarker = @"At end of incremental parse";
  * </p>
  * <p>
  *   If you create a GSXMLParser passing nil as the GSSAXHandler,
- *   the parser will parse data to create a [GSXMLDocument] instance 
+ *   the parser will parse data to create a [GSXMLDocument] instance
  *   which you can then examine as a whole ... this is generally the
  *   preferred mechanism for parsing as it permits the parser to
  *   validate the parsed document againts a DTD, and your software
@@ -3384,10 +3384,10 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       SETCB(startElementNs, startElement:prefix:href:attributes:);
       SETCB(endElementNs, endElement:prefix:href:);
-#else 
+#else
       SETCB(startElement, startElement:attributes:);
       SETCB(endElement, endElement:);
-#endif 
+#endif
       SETCB(internalSubset, internalSubset:externalID:systemID:);
       SETCB(externalSubset, externalSubset:externalID:systemID:);
       SETCB(isStandalone, isStandalone);
@@ -3400,7 +3400,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       SETCB(elementDecl, elementDecl:type:);
       SETCB(unparsedEntityDecl, unparsedEntityDecl:public:system:notationName:);
       SETCB(startDocument, startDocument);
-      SETCB(endDocument, endDocument); 
+      SETCB(endDocument, endDocument);
       SETCB(reference, reference:);
       SETCB(characters, characters:);
       SETCB(ignorableWhitespace, ignoreWhitespace:);
@@ -3526,7 +3526,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 						     context: context];
 	break;
       default:
-	/* This includes: 
+	/* This includes:
 	   case XPATH_UNDEFINED:
 	   case XPATH_POINT:
 	   case XPATH_RANGE:
@@ -3681,7 +3681,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   ASSIGN (_document, d);
   _lib = xmlXPathNewContext ([_document lib]);
   ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
-  
+
   return self;
 }
 
@@ -3694,9 +3694,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   xmlXPathCompExpr *comp;
   xmlXPathObject   *res;
   GSXPathObject *result;
-  
+
   comp = xmlXPathCompile ([XPathExpression UTF8String]);
-  if (comp == NULL) 
+  if (comp == NULL)
     {
       /* Maybe an exception would be better ? */
       return nil;
@@ -3719,7 +3719,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 - (void) dealloc
 {
-  xmlXPathFreeContext (_lib);  
+  xmlXPathFreeContext (_lib);
   RELEASE (_document);
   [super dealloc];
 }
@@ -3784,7 +3784,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 		              params: (NSDictionary*)params
 {
   GSXMLDocument	*newdoc;
-  
+
   NS_DURING
     {
       NSData	*xml;
@@ -3798,7 +3798,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	}
       else
 	{
-	  newdoc = [GSXMLDocument xsltTransformXml: xml 
+	  newdoc = [GSXMLDocument xsltTransformXml: xml
 					stylesheet: ss
 					    params: params];
 	}
@@ -3808,7 +3808,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
       newdoc = nil;
     }
   NS_ENDHANDLER
-  
+
   return newdoc;
 }
 /**
@@ -3825,7 +3825,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
                               stylesheet: xsltStylesheet
 			          params: nil];
 }
-			  
+			
 /**
  * Performs an XSLT transformation on the specified file using the
  * stylesheet and parameters provided.See the libxslt documentation
@@ -3839,7 +3839,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 		             params: (NSDictionary*)params
 {
   GSXMLDocument	*newdoc;
-  
+
   NS_DURING
     {
       GSXMLParser	*xmlParser;
@@ -3860,7 +3860,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
       newdoc = nil;
     }
   NS_ENDHANDLER
-  
+
   return newdoc;
 }
 
@@ -3887,7 +3887,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 - (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
                           params: (NSDictionary*)params
 {
-  GSXMLDocument		*newdoc = nil;  
+  GSXMLDocument		*newdoc = nil;
 
   NS_DURING
     {
@@ -3913,7 +3913,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	    }
 	}
       parameters[pNum] = NULL;
-      
+
       ss = xsltParseStylesheetDoc(ssXml);
       if (xsltStylesheet != NULL)
 	{
@@ -3924,14 +3924,14 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	    {
 	      newdoc = [GSXMLDocument alloc];
 	      newdoc = [newdoc _initFrom: res
-				  parent: self 
+				  parent: self
 				 ownsLib: YES];
 	      AUTORELEASE(newdoc);
 	    }
 	}
       /*
-       * N.B. We don't want to call xsltFreeStylesheet() to free the 
-       * stylesheet xmlDocPtr because that will destroy the lib which 
+       * N.B. We don't want to call xsltFreeStylesheet() to free the
+       * stylesheet xmlDocPtr because that will destroy the lib which
        * is owned by the xsltStylesheet object.
        */
       xsltCleanupGlobals();
@@ -3951,14 +3951,14 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
   NSLog(@"libxslt is not available");
   return nil;
 }
-			  
+			
 + (GSXMLDocument*) xsltTransformFile: (NSString*)xmlFile
                           stylesheet: (NSString*)xsltStylesheet
 {
   NSLog(@"libxslt is not available");
   return nil;
 }
-			  
+			
 + (GSXMLDocument*) xsltTransformXml: (NSData*)xmlData
                          stylesheet: (NSData*)xsltStylesheet
 		             params: (NSDictionary*)params
@@ -3973,7 +3973,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
   NSLog(@"libxslt is not available");
   return nil;
 }
-			     
+			
 - (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
                           params: (NSDictionary*)params
 {
@@ -4027,7 +4027,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 + (void) forwardInvocation: (NSInvocation*)anInvocation
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
-    NSStringFromClass([self class]), 
+    NSStringFromClass([self class]),
     NSStringFromSelector([anInvocation selector]));
   return;
 }

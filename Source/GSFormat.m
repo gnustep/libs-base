@@ -1700,7 +1700,7 @@ NSDictionary *locale)
       --width;	/* Account for the character itself.  */
       if (!left)
 	PAD (' ');
-	outchar ( ((unsigned char)
+	outchar (((unsigned char)
 			  args_value[specs[nspecs_done].data_arg].pa_char));
       if (left)
 	PAD (' ');
@@ -1980,7 +1980,7 @@ printf_unknown (GSStr s, const struct printf_info *info,
 static unichar *
 group_number (unichar *w, unichar *rear_ptr, const char *grouping,
 	      NSString *thousands_sep
-	      )
+	     )
 {
   int len;
   unichar *src, *s;
@@ -2017,7 +2017,7 @@ group_number (unichar *w, unichar *rear_ptr, const char *grouping,
 #if CHAR_MIN < 0
 		   || *grouping < 0
 #endif
-		   )
+		  )
 	    {
 	      /* No further grouping to be done.
 		 Copy the rest of the number.  */

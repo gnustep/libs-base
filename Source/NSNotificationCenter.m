@@ -193,12 +193,12 @@ static void obsFree(Observation *o);
 
 #include "GNUstepBase/GSIArray.h"
 
-#define GSI_MAP_RETAIN_KEY(M, X)  
+#define GSI_MAP_RETAIN_KEY(M, X)
 #define GSI_MAP_RELEASE_KEY(M, X) ({if ((((gsaddr)X.obj) & 1) == 0) \
   RELEASE(X.obj);})
 #define GSI_MAP_HASH(M, X)        doHash(X.obj)
 #define GSI_MAP_EQUAL(M, X,Y)     doEqual(X.obj, Y.obj)
-#define GSI_MAP_RETAIN_VAL(M, X)  
+#define GSI_MAP_RETAIN_VAL(M, X)
 #define GSI_MAP_RELEASE_VAL(M, X)
 
 #define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_INT
@@ -637,7 +637,7 @@ static NSNotificationCenter *default_center = nil;
  * matching the notification, and after all of this is done, control returns
  * to the poster of the notification.  Therefore the processing in the
  * selector implementation should be short.</p>
- * 
+ *
  * <p>The notification center does not retain observer or object. Therefore,
  * you should always send removeObserver: or removeObserver:name:object: to
  * the notification center before releasing these objects.</p>
@@ -925,7 +925,7 @@ static NSNotificationCenter *default_center = nil;
 {
   if (observer == nil)
     return;
-  
+
   [self removeObserver: observer name: nil object: nil];
 }
 
@@ -935,7 +935,7 @@ static NSNotificationCenter *default_center = nil;
  * Release the notification before returning, or before we raise
  * any exception ... to avoid leaks.
  */
-- (void) _postAndRelease: (NSNotification*)notification 
+- (void) _postAndRelease: (NSNotification*)notification
 {
   Observation	*o;
   unsigned	count;
@@ -1107,7 +1107,7 @@ static NSNotificationCenter *default_center = nil;
  * Creates and posts a notification using the
  * -postNotificationName:object:userInfo: passing a nil user info argument.
  */
-- (void) postNotificationName: (NSString*)name 
+- (void) postNotificationName: (NSString*)name
 		       object: (id)object
 {
   [self postNotificationName: name object: object userInfo: nil];
@@ -1120,7 +1120,7 @@ static NSNotificationCenter *default_center = nil;
  * message sent to an observer.  This means that, if one observer raises
  * an exception, later observers in the lists will not get the notification.
  */
-- (void) postNotificationName: (NSString*)name 
+- (void) postNotificationName: (NSString*)name
 		       object: (id)object
 		     userInfo: (NSDictionary*)info
 {

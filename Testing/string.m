@@ -40,7 +40,7 @@ int main()
                       @"http:/www.foobar.org/PageWithAValid.plist"];
   data = [currentURL resourceDataUsingCache: NO];
 
-  if( data )
+  if ( data )
     printf(" YES \n");
   printf(" NO\n");
 }
@@ -60,7 +60,7 @@ int main()
   [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: us1];
   NS_HANDLER
     printf("Caught exception during string replacement (expected)\n");
-  NS_ENDHANDLER 
+  NS_ENDHANDLER
 
   [f1 appendString: us0];
   print_string(f1);
@@ -116,7 +116,7 @@ int main()
     printf("%x\n", [ext characterAtIndex: i]);
   for (i = 0; i < 9; i++)
     printf("%x,%x\n", [base characterAtIndex: i], [want characterAtIndex: i]);
-  
+
   printf("%u\n", [want isEqual: base]);
   for (i = 0; i < 1000; i++)
     [base appendString: want];

@@ -38,7 +38,7 @@
    - The default zone uses objc_malloc() and friends.  We assume that
    they're thread safe and that they return NULL if we're out of
    memory (glibc malloc does this, what about other mallocs? FIXME).
-   
+
     - The OpenStep spec says that when a zone is recycled, any memory in
    use is returned to the default zone.
    Since, in general, we have no control over the system malloc, we can't
@@ -527,13 +527,13 @@ static struct NSZoneStats
 default_stats (NSZone *zone)
 {
   struct NSZoneStats dummy;
-  
+
   /* We can't obtain statistics from the memory managed by objc_malloc(). */
   [NSException raise: NSGenericException
 	      format: @"No statistics for default zone"];
   return dummy;
 }
- 
+
 /* Search the buffer to see if there is any memory chunks large enough
    to satisfy request using first fit.  If the memory chunk found has
    a size exactly equal to the one requested, remove it from the buffer
@@ -641,7 +641,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
 
   NSAssert(chunkIsInUse(chunkhead), NSInternalInconsistencyException);
   NSAssert((realsize % MINCHUNK) == 0, NSInternalInconsistencyException);
-  
+
   chunkClrLive(chunkhead);
   if (chunksize < realsize)
     {
@@ -665,7 +665,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
       nextsize = chunkSize(nextchunk);
 
       NSAssert((nextsize % MINCHUNK) == 0, NSInternalInconsistencyException);
-      
+
       if (!chunkIsInUse(nextchunk) && (nextsize+realsize >= chunksize))
         /* Expand to next chunk. */
         {
@@ -688,7 +688,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
         /* Get new chunk and copy. */
         {
           ff_block *newchunk;
-          
+
           newchunk = get_chunk(zptr, chunksize);
           if (newchunk == NULL)
             {
@@ -754,7 +754,7 @@ frecycle1(NSZone *zone)
 	      while (tmp->next != block)
 		tmp = tmp->next;
 	      tmp->next = block->next;
-	    } 
+	    }
           objc_free((void*)block);
 	}
       block = nextblock;
@@ -810,7 +810,7 @@ fcheck (NSZone *zone)
   size_t i;
   ffree_zone *zptr = (ffree_zone*)zone;
   ff_block *block;
-  
+
   objc_mutex_lock(zptr->lock);
   /* Check integrity of each block the zone owns. */
   block = zptr->blocks;
@@ -1027,7 +1027,7 @@ get_chunk (ffree_zone *zone, size_t size)
   ff_link *link = zone->segheadlist[class];
 
   NSAssert(size%MINCHUNK == 0, NSInternalInconsistencyException);
-  
+
   while ((link != NULL) && (chunkSize((ff_block*)link) < size))
     link = link->next;
   if (link == NULL)
@@ -1090,7 +1090,7 @@ get_chunk (ffree_zone *zone, size_t size)
           NSAssert(size < chunkSize(chunk), NSInternalInconsistencyException);
           NSAssert((chunkSize(chunk) % MINCHUNK) == 0,
 	    NSInternalInconsistencyException);
-          
+
           take_chunk(zone, chunk);
 	  slack = chunkChop(chunk, size);
           put_chunk(zone, slack);
@@ -1108,12 +1108,12 @@ get_chunk (ffree_zone *zone, size_t size)
       NSAssert(chunkIsPrevInUse(chunk), NSInternalInconsistencyException);
       NSAssert(chunkIsInUse(chunkNext(chunk)),
 	NSInternalInconsistencyException);
-      
+
       take_chunk(zone, chunk);
       if (chunksize > size)
         {
           ff_block *slack;
-          
+
           slack = chunkChop(chunk, size);
           put_chunk(zone, slack);
         }
@@ -1146,7 +1146,7 @@ take_chunk (ffree_zone *zone, ff_block *chunk)
 
   NSAssert((size % MINCHUNK) == 0, NSInternalInconsistencyException);
   NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
-  
+
   if (links->prev == NULL)
     zone->segheadlist[class] = links->next;
   else
@@ -1182,20 +1182,20 @@ put_chunk (ffree_zone *zone, ff_block *chunk)
   NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
   NSAssert(chunkIsPrevInUse(chunk), NSInternalInconsistencyException);
   NSAssert(chunkIsInUse(chunkNext(chunk)), NSInternalInconsistencyException);
-  
+
   chunkMakeLink(chunk);
   if (zone->segtaillist[class] == NULL)
     {
       NSAssert(zone->segheadlist[class] == NULL,
 	NSInternalInconsistencyException);
-      
+
       zone->segheadlist[class] = zone->segtaillist[class] = links;
       links->prev = links->next = NULL;
     }
   else
     {
       ff_link *prevlink = zone->segtaillist[class];
-      
+
       NSAssert(zone->segheadlist[class] != NULL,
 	NSInternalInconsistencyException);
 
@@ -1219,7 +1219,7 @@ add_buf (ffree_zone *zone, ff_block *chunk)
   NSAssert((chunkSize(chunk) % MINCHUNK) == 0,
     NSInternalInconsistencyException);
   NSAssert(chunkSize(chunk) >= MINCHUNK, NSInternalInconsistencyException);
-  
+
   zone->bufsize++;
   zone->size_buf[bufsize] = chunkSize(chunk);
   zone->ptr_buf[bufsize] = chunk;
@@ -1239,7 +1239,7 @@ flush_buf (ffree_zone *zone)
   ff_block **ptr_buf = zone->ptr_buf;
 
   NSAssert(bufsize <= BUFFER, NSInternalInconsistencyException);
-  
+
   for (i = 0; i < bufsize; i++)
     {
       size = size_buf[i];
@@ -1426,7 +1426,7 @@ nrealloc (NSZone *zone, void *ptr, size_t size)
 	{
 	  nf_block *block;
 	  size_t old = 0;
-  
+
 	  for (block = zptr->blocks; block != NULL; block = block->next) {
 	    if (ptr >= (void*)block && ptr < ((void*)block)+block->size) {
 		old = ((void*)block)+block->size - ptr;
@@ -1540,7 +1540,7 @@ nstats (NSZone *zone)
   while (block != NULL)
     {
       size_t *chunk;
-      
+
       stats.bytes_total += block->size;
       chunk = (void*)block+NF_HEAD;
       while ((void*)chunk < (void*)block+block->top)

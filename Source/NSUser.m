@@ -1,28 +1,28 @@
 /** Implementation of login-related functions for GNUstep
    Copyright (C) 1996 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: May 1996
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSUser class reference</title>
    $Date$ $Revision$
-   */ 
+   */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -86,7 +86,7 @@ ImportPath(NSString *s, const char *c)
       ptr = [s cString];
     }
   len = strlen(ptr);
-  return [mgr stringWithFileSystemRepresentation: ptr length: len]; 
+  return [mgr stringWithFileSystemRepresentation: ptr length: len];
 }
 
 /**
@@ -297,7 +297,7 @@ static BOOL
 setupSystemRoot(NSDictionary *env)
 {
   BOOL	warned = NO;
-	  
+	
   if (gnustep_system_root == nil)
     {
       /* Any of the following might be nil */
@@ -315,7 +315,7 @@ setupSystemRoot(NSDictionary *env)
 	  gnustep_system_root
 	    = ImportPath(nil, stringify(GNUSTEP_INSTALL_PREFIX));
 	  RETAIN(gnustep_system_root);
-	  fprintf (stderr, 
+	  fprintf (stderr,
 	    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
 		    "- using %s\n", [gnustep_system_root lossyCString]);
 	}
@@ -362,7 +362,7 @@ setupLocalRoot(NSDictionary *env, BOOL warned)
 	  if (warned == NO)
 	    {
 	      warned = YES;
-	      fprintf (stderr, 
+	      fprintf (stderr,
 		"Warning - GNUSTEP_LOCAL_ROOT is not set "
 		"- using %s\n", [gnustep_local_root lossyCString]);
 	    }
@@ -411,7 +411,7 @@ setupNetworkRoot(NSDictionary *env, BOOL warned)
 	  if (warned == NO)
 	    {
 	      warned = YES;
-	      fprintf (stderr, 
+	      fprintf (stderr,
 		"Warning - GNUSTEP_NETWORK_ROOT is not set "
 		"- using %s\n", [gnustep_network_root lossyCString]);
 	    }
@@ -431,7 +431,7 @@ setupPathNames()
 	{
 	  BOOL	warned = NO;
 	  NSDictionary	*env = [[NSProcessInfo processInfo] environment];
-	  
+	
 	  [gnustep_global_lock lock];
 
 	  warned = setupSystemRoot(env);
@@ -501,7 +501,7 @@ userDirectory(NSString *name, BOOL defaults)
   if (gnustep_system_root == nil)
     {
       NSDictionary	*env = [[NSProcessInfo processInfo] environment];
-	  
+	
       [gnustep_global_lock lock];
       setupSystemRoot(env);
       [gnustep_global_lock unlock];
@@ -684,7 +684,7 @@ GSStandardPathPrefixes(void)
   NSDictionary	*env;
   NSString	*prefixes;
   NSArray	*prefixArray;
-    
+
   env = [[NSProcessInfo processInfo] environment];
   prefixes = [env objectForKey: @"GNUSTEP_PATHPREFIX_LIST"];
   if (prefixes != nil)
@@ -984,7 +984,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
    * FIXME - The following code will not respect this order for
    * NSAllApplicationsDirectory.  This should be fixed I think.
    */
-  
+
 #define ADD_PATH(mask, base_dir, add_dir) \
 if (domainMask & mask) \
 { \

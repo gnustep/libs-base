@@ -1,20 +1,20 @@
-/* 
-   pl.m 
+/*
+   pl.m
 
    This file is the main driver for the plist parsing program.
-   
+
    Copyright (C) 1996,1999,2000 Free Software Foundation, Inc.
 
    Author: Gregory John Casamento
-   Date: 17 Jan 2000 
-   
+   Date: 17 Jan 2000
+
    This file is part of GNUstep
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -24,7 +24,7 @@
    License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/ 
+*/
 
 
 #import <Foundation/Foundation.h>
@@ -42,7 +42,7 @@ void create_output(id propertyList)
     {
       const char *buffer = [[propertyList description] cString];
       NSData *outputData;
-      
+
       outputData = [NSData dataWithBytes: buffer length: strlen(buffer)];
       // setup the file handle.
       fileHandle = [NSFileHandle fileHandleWithStandardOutput];
@@ -78,7 +78,7 @@ id process_plist(NSData *inputData)
   NS_HANDLER
       NSLog([localException description]);
   NS_ENDHANDLER
-      
+
   // return the results
   return propertyList;
 }
@@ -134,7 +134,7 @@ int main (int argc, const char *argv[])
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   NSData *inputData = nil;
   id propertyList = nil;
-  
+
   // put your code here.
   if (argc == 1 || argc == 3|| argc == 5)
     {
@@ -160,7 +160,7 @@ int main (int argc, const char *argv[])
   "   - Writes an ASCII propert list to standard out, or a serialized one");
       puts("     if -output is specified.");
     }
-  
+
   [pool release];
   exit(0);       // insure the process exit status is 0
   return 0;      // ...and make main fit the ANSI spec.

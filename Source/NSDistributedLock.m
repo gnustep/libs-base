@@ -81,7 +81,7 @@ static NSFileManager	*mgr = nil;
 	  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
 	  if ([modDate isEqual: [attributes fileModificationDate]] == YES)
 	    {
-	      [NSException raise: NSGenericException 
+	      [NSException raise: NSGenericException
 		      format: @"Failed to remove lock directory '%@' - %s",
 		      _lockPath, err];
 	    }

@@ -25,7 +25,7 @@
 
 @implementation SourceEntry
 
-- initWithKey: (NSString *)k comment: (NSString *)c file: (NSString *)f 
+- initWithKey: (NSString *)k comment: (NSString *)c file: (NSString *)f
 	 line: (unsigned int)l
 {
   self=[super init];

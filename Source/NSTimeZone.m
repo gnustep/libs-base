@@ -1,24 +1,24 @@
 /** Time zone management. -*- Mode: ObjC -*-
    Copyright (C) 1997-2002 Free Software Foundation, Inc.
-  
+
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: June 1997
-  
+
    Rewrite large chunks by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: September 2002
-  
+
      This file is part of the GNUstep Base Library.
-  
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public License
    as published by the Free Software Foundation; either version 2 of
    the License, or (at your option) any later version.
-  
+
    This library is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-  
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -26,7 +26,7 @@
    <title>NSTimeZone class reference</title>
    $Date$ $Revision$
  */
-  
+
 /* Use the system time zones if available. In other cases, use an
    implementation independent of the system, since POSIX functions for
    time zones are woefully inadequate for implementing NSTimeZone.
@@ -56,10 +56,10 @@
 
    Files & File System Heirarchy info:
    ===================================
-  
+
    Default place for the NSTimeZone directory is _time_zone_path():
      {$(GNUSTEP_SYSTEM_ROOT)Libary/Libraries/Resources/TIME_ZONE_DIR}
-   
+
    LOCAL_TIME_FILE is a text file with the name of the time zone file.
 
    ZONES_DIR is a sub-directory under TIME_ZONE_DIR
@@ -72,7 +72,7 @@
    Note that full zone info is required, especially the various "GMT"
    files which are created especially for OPENSTEP compatibility.
    Zone info comes from the Olson time database.
-      
+
    FIXME?: use leap seconds? */
 
 #include "config.h"
@@ -264,14 +264,14 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   if (type == nil)
     type = @"";
   gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
-  return [gbundle pathForResource: subpath 
+  return [gbundle pathForResource: subpath
 		           ofType: type
 		      inDirectory: TIME_ZONE_DIR];
 }
 
 @interface GSPlaceholderTimeZone : NSTimeZone
 @end
-  
+
 @interface GSAbsTimeZone : NSTimeZone
 {
 @public
@@ -282,7 +282,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (id) initWithOffset: (int)anOffset;
 @end
-  
+
 @interface NSLocalTimeZone : NSTimeZone
 @end
 
@@ -299,7 +299,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	     withOffset: (int)anOffset
 		withDST: (BOOL)isDST;
 @end
-  
+
 @interface GSAbsTimeZoneDetail : NSTimeZoneDetail
 {
   GSAbsTimeZone	*zone; // Time zone which created this object.
@@ -307,7 +307,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (id) initWithTimeZone: (GSAbsTimeZone*)aZone;
 @end
-  
+
 /* Private methods for obtaining resource file names. */
 @interface NSTimeZone (Private)
 + (NSString*) getTimeZoneFile: (NSString*)name;
@@ -459,7 +459,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 
 @implementation	NSLocalTimeZone
-  
+
 - (NSString*) abbreviation
 {
   return [[NSTimeZoneClass defaultTimeZone] abbreviation];
@@ -528,7 +528,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 {
   return [[NSTimeZoneClass defaultTimeZone] timeZoneDetailArray];
 }
-  
+
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
   return [[NSTimeZoneClass defaultTimeZone] timeZoneDetailForDate: date];
@@ -678,21 +678,21 @@ static NSMapTable	*absolutes = 0;
 {
   return [NSTimeZone arrayWithObject: detail];
 }
-  
+
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
   return detail;
 }
-  
+
 - (NSString*) timeZoneName
 {
   return name;
 }
 @end
-  
-  
+
+
 @implementation GSTimeZoneDetail
-  
+
 - (void) dealloc
 {
   RELEASE(timeZone);
@@ -718,22 +718,22 @@ static NSMapTable	*absolutes = 0;
   is_dst = isDST;
   return self;
 }
-  
+
 - (BOOL) isDaylightSavingTimeZone
 {
   return is_dst;
 }
-  
+
 - (NSString*) name
 {
   return [timeZone name];
 }
- 
+
 - (NSString*) timeZoneAbbreviation
 {
   return abbrev;
 }
-  
+
 - (NSArray*) timeZoneDetailArray
 {
   return [timeZone timeZoneDetailArray];
@@ -753,12 +753,12 @@ static NSMapTable	*absolutes = 0;
 {
   return offset;
 }
-  
+
 @end
 
 
 @implementation GSAbsTimeZoneDetail
-  
+
 - (NSString*) abbreviation
 {
   return zone->name;
@@ -780,27 +780,27 @@ static NSMapTable	*absolutes = 0;
   zone = RETAIN(aZone);
   return self;
 }
-  
+
 - (BOOL) isDaylightSavingTimeZone
 {
   return NO;
 }
-  
+
 - (BOOL) isDaylightSavingTimeZoneForDate: (NSDate*)aDate
 {
   return NO;
 }
-  
+
 - (NSString*) name
 {
   return zone->name;
 }
- 
+
 - (NSString*) timeZoneAbbreviation
 {
   return zone->name;
 }
-  
+
 - (NSArray*) timeZoneDetailArray
 {
   return [zone timeZoneDetailArray];
@@ -820,7 +820,7 @@ static NSMapTable	*absolutes = 0;
 {
   return zone->offset;
 }
-  
+
 @end
 
 
@@ -867,7 +867,7 @@ static NSMapTable	*absolutes = 0;
  * Returns a dictionary containing time zone abbreviations and their
  * corresponding time zone names. More than one time zone may be associated
  * with a single abbreviation. In this case, the dictionary contains only
- * one (usually the most common) time zone name for the abbreviation.  
+ * one (usually the most common) time zone name for the abbreviation.
  */
 + (NSDictionary*) abbreviationDictionary
 {
@@ -882,9 +882,9 @@ static NSMapTable	*absolutes = 0;
 	raise: NSInternalInconsistencyException
 	format: @"Failed to open time zone abbreviation dictionary."];
     }
-  abbreviationDictionary = 
+  abbreviationDictionary =
     [[NSString stringWithContentsOfFile: path] propertyList];
-  abbreviationDictionary = 
+  abbreviationDictionary =
     [abbreviationDictionary makeImmutableCopyOnFail: NO];
   return RETAIN(abbreviationDictionary);
 }
@@ -1163,10 +1163,10 @@ static NSMapTable	*absolutes = 0;
        */
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
-      
+
       /*
        * Try to get timezone from GNUSTEP_TZ environment variable.
-       */      
+       */
       if (localZoneString == nil)
 	{
 	  localZoneString = [[[NSProcessInfo processInfo]
@@ -1220,12 +1220,12 @@ static NSMapTable	*absolutes = 0;
 		}
 	    }
 #endif
-	  if ( localZoneString != nil && [localZoneString hasPrefix: tzdir] )
+	  if (localZoneString != nil && [localZoneString hasPrefix: tzdir])
 	    {
 	      /* This must be the time zone name */
 	      localZoneString = [[localZoneString mutableCopy] autorelease];
 	      [(NSMutableString *)localZoneString deletePrefix: tzdir];
-	      if ( [localZoneString hasPrefix: @"/"] )
+	      if ([localZoneString hasPrefix: @"/"])
 	        {
 	          [(NSMutableString *)localZoneString deletePrefix: @"/"];
 	        }
@@ -1251,7 +1251,7 @@ static NSMapTable	*absolutes = 0;
        */
       {
         HKEY regkey;
-        
+
         if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
         "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0, KEY_READ, &regkey))
           {
@@ -1270,8 +1270,8 @@ static NSMapTable	*absolutes = 0;
             RegCloseKey(regkey);
           }
       }
-#endif      
-      
+#endif
+
       if (localZoneString != nil)
 	{
 	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
@@ -1608,7 +1608,7 @@ static NSMapTable	*absolutes = 0;
 }
 
 @end
-  
+
 /**
  * This class serves no useful purpose in GNUstep, and is provided
  * solely for backward compatibility with the OpenStep spec.  It is
@@ -1632,7 +1632,7 @@ static NSMapTable	*absolutes = 0;
   [self subclassResponsibility: _cmd];
   return NO;
 }
-  
+
 /**
  * DEPRECATED: Class is no longer used.
  */
@@ -1640,7 +1640,7 @@ static NSMapTable	*absolutes = 0;
 {
   return [self subclassResponsibility: _cmd];
 }
-  
+
 /**
  * DEPRECATED: Class is no longer used.
  */
@@ -1662,7 +1662,7 @@ static NSMapTable	*absolutes = 0;
 {
   NSString	*dir = nil;
 
-  /* Use the system zone info if possible, otherwise, use our installed 
+  /* Use the system zone info if possible, otherwise, use our installed
      info.  */
   if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
   	[tzdir stringByAppendingPathComponent: name]] == NO)
@@ -1758,55 +1758,55 @@ int dayOfCommonEra(NSTimeInterval when);
     	   Unfortunately name is a localized value. The keys in the registry are
     	   unlocalized names. */
 	   CHAR     achKey[255];              // buffer for subkey name
-    	DWORD    cbName;                   // size of name string 
-    	CHAR     achClass[MAX_PATH] = "";  // buffer for class name 
-    	DWORD    cchClassName = MAX_PATH;  // size of class string 
-    	DWORD    cSubKeys=0;               // number of subkeys 
-    	DWORD    cbMaxSubKey;              // longest subkey size 
-    	DWORD    cchMaxClass;              // longest class string 
-    	DWORD    cValues;                  // number of values for key 
-    	DWORD    cchMaxValue;              // longest value name 
-    	DWORD    cbMaxValueData;           // longest value data 
-    	DWORD    cbSecurityDescriptor;     // size of security descriptor 
-    	FILETIME ftLastWriteTime;          // last write time 
+    	DWORD    cbName;                   // size of name string
+    	CHAR     achClass[MAX_PATH] = "";  // buffer for class name
+    	DWORD    cchClassName = MAX_PATH;  // size of class string
+    	DWORD    cSubKeys=0;               // number of subkeys
+    	DWORD    cbMaxSubKey;              // longest subkey size
+    	DWORD    cchMaxClass;              // longest class string
+    	DWORD    cValues;                  // number of values for key
+    	DWORD    cchMaxValue;              // longest value name
+    	DWORD    cbMaxValueData;           // longest value data
+    	DWORD    cbSecurityDescriptor;     // size of security descriptor
+    	FILETIME ftLastWriteTime;          // last write time
 		
 		DWORD i, retCode;
 		BOOL	tzFound = NO;
 		
 		/* Get the class name and the value count. */
 	    retCode = RegQueryInfoKey(
-	        regDirKey,               // key handle 
-	        achClass,                // buffer for class name 
-	        &cchClassName,           // size of class string 
-	        NULL,                    // reserved 
-	        &cSubKeys,               // number of subkeys 
-	        &cbMaxSubKey,            // longest subkey size 
-	        &cchMaxClass,            // longest class string 
-	        &cValues,                // number of values for this key 
-	        &cchMaxValue,            // longest value name 
-	        &cbMaxValueData,         // longest value data 
-	        &cbSecurityDescriptor,   // security descriptor 
-	        &ftLastWriteTime);       // last write time 
+	        regDirKey,               // key handle
+	        achClass,                // buffer for class name
+	        &cchClassName,           // size of class string
+	        NULL,                    // reserved
+	        &cSubKeys,               // number of subkeys
+	        &cbMaxSubKey,            // longest subkey size
+	        &cchMaxClass,            // longest class string
+	        &cValues,                // number of values for this key
+	        &cchMaxValue,            // longest value name
+	        &cbMaxValueData,         // longest value data
+	        &cbSecurityDescriptor,   // security descriptor
+	        &ftLastWriteTime);       // last write time
 
     	if (cSubKeys && (retCode == ERROR_SUCCESS))
     	{
     		const char *cName = [name cString];
 
-			for (i=0; i<cSubKeys && !tzFound; i++) 
-			{ 
+			for (i=0; i<cSubKeys && !tzFound; i++)
+			{
 			   cbName = 255;
-			   
-			   retCode = RegEnumKeyEx(regDirKey, i, achKey, &cbName, NULL, NULL, NULL, &ftLastWriteTime);         
-			   if (retCode == ERROR_SUCCESS) 
+			
+			   retCode = RegEnumKeyEx(regDirKey, i, achKey, &cbName, NULL, NULL, NULL, &ftLastWriteTime);
+			   if (retCode == ERROR_SUCCESS)
 			   {
 			   	 char keyBuffer[16384];
 			   	 HKEY regKey;
-			       
+			
 			       if (isNT)
 			       	sprintf(keyBuffer,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\%s",achKey);
 					 else
 			       	sprintf(keyBuffer,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\%s",achKey);
-			       
+			
  		          if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyBuffer, 0, KEY_READ, &regKey))
 			       {
 				      char buf[256];
@@ -1848,7 +1848,7 @@ int dayOfCommonEra(NSTimeInterval when);
 					          StandardDate = tzi->StandardDate;
 					          DaylightDate = tzi->DaylightDate;
 					      }
-					      
+					
 					      /* Set the standard name for the time zone. */
 					      if (strlen(standardName))
 					      {
@@ -1857,7 +1857,7 @@ int dayOfCommonEra(NSTimeInterval when);
 					          timeZoneName = [[NSString stringWithCString:standardName] retain];
 
 					          /* Abbr generated here is IMHO a bit suspicous but I kept it */
-					          for(a=0,b=0;standardName[a];a++)
+					          for (a=0,b=0;standardName[a];a++)
 					          {
 					            if (isupper(standardName[a]))
 					              standardName[b++]=standardName[a];
@@ -1875,7 +1875,7 @@ int dayOfCommonEra(NSTimeInterval when);
 					          daylightZoneName = [[NSString stringWithCString:daylightName] retain];
 
 					          /* Abbr generated here is IMHO a bit suspicous but I kept it */
-					          for(a=0,b=0;daylightName[a];a++)
+					          for (a=0,b=0;daylightName[a];a++)
 					          {
 					              if (isupper(daylightName[a]))
 					                daylightName[b++]=daylightName[a];
@@ -1886,13 +1886,13 @@ int dayOfCommonEra(NSTimeInterval when);
 				      	}
 				   	}
 				      RegCloseKey(regKey);
-			   	}			       
+			   	}			
 			   }
 			}
     	}
       RegCloseKey(regDirKey);
   }
-    
+
   return self;
 }
 
@@ -1921,7 +1921,7 @@ int dayOfCommonEra(NSTimeInterval when);
   dow = dow % 7;
   if (dow < 0)
     dow += 7;
-    
+
   if (month == DaylightDate.wMonth /* April */)
     {
       daylightdate = day - dow + DaylightDate.wDayOfWeek;
@@ -2008,13 +2008,13 @@ int dayOfCommonEra(NSTimeInterval when);
 - (NSArray*) timeZoneDetailArray
 {
 	return [NSArray arrayWithObjects:
-	         [[[GSTimeZoneDetail alloc] initWithTimeZone:self 
-			    withAbbrev:timeZoneNameAbbr 
-			    withOffset:-Bias*60 - StandardBias*60 
-			    withDST:NO] autorelease], 
-		 [[[GSTimeZoneDetail alloc] initWithTimeZone:self 
-			    withAbbrev:daylightZoneNameAbbr 
-			    withOffset:-Bias*60 - DaylightBias*60 
+	         [[[GSTimeZoneDetail alloc] initWithTimeZone:self
+			    withAbbrev:timeZoneNameAbbr
+			    withOffset:-Bias*60 - StandardBias*60
+			    withDST:NO] autorelease],
+		 [[[GSTimeZoneDetail alloc] initWithTimeZone:self
+			    withAbbrev:daylightZoneNameAbbr
+			    withOffset:-Bias*60 - DaylightBias*60
 			    withDST:YES] autorelease], 0];
 }
 
@@ -2029,7 +2029,7 @@ int dayOfCommonEra(NSTimeInterval when);
     {
       offset = -Bias*60 - DaylightBias*60;
       abbr = daylightZoneNameAbbr;
-    } 
+    }
   else
     {
       offset = -Bias*60 - StandardBias*60;

@@ -1444,7 +1444,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    BOOL	done = NO;
 
 	    node = GSIMapNodeForKey(_clsMap, (GSIMapKey)(void*)c);
-	    
+	
 	    if (node != 0)
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS | _GSC_XREF,

@@ -4,15 +4,15 @@
    Author:  Scott Christley <scottc@net-community.com>
    Created: 1996
    Author:  Richard Frith-Macdonald <rfm@gnu.org>
-   
+
    This file is part of the GNUstep Objective-C Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
-   This library is distributed in the hope that it will be useful, 
+
+   This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
@@ -23,7 +23,7 @@
 
    <title>NSLock class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
 #include "config.h"
 #include <errno.h>
@@ -430,7 +430,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 // Acquiring the lock with a date condition
 - (BOOL) lockBeforeDate: (NSDate*)limit
-{ 
+{
   GSSleepInfo	ctxt;
 
   CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
@@ -480,7 +480,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 			   GSNameFromSelector(_cmd)];
 	      /* NOT REACHED */
 	    }
-	} 
+	}
     }
   while (GSSleepOrFail(&ctxt) == YES);
 
@@ -489,34 +489,34 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 #else
   NSTimeInterval atimeinterval;
   struct timespec endtime;
-  
+
   CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-  
+
   if (-1 == objc_mutex_lock(_MUTEX))
-    [NSException raise: NSConditionLockException 
+    [NSException raise: NSConditionLockException
 		 format: @"lockWhenCondition: failed to lock mutex"];
 	
   if (_condition_value == condition_to_meet)
     return YES;
-  
+
   atimeinterval = [limitDate timeIntervalSince1970];
   endtime.tv_sec =(unsigned int)atimeinterval; // 941883028;//
   endtime.tv_nsec = (unsigned int)((atimeinterval - (float)endtime.tv_sec)
 				   * 1000000000.0);
-  
+
   while (_condition_value != condition_to_meet)
     {
       switch (objc_condition_timedwait(_CONDITION, _MUTEX, &endtime))
 	{
-	  case 0: 
+	  case 0:
 	    break;
-	  case EINTR: 
+	  case EINTR:
 	    break;
-	  case ETIMEDOUT : 
+	  case ETIMEDOUT :
 	    [self unlock];
 	    return NO;
-	  default: 
-	    [NSException raise: NSConditionLockException 
+	  default:
+	    [NSException raise: NSConditionLockException
 			 format: @"objc_condition_timedwait failed"];
 	    [self unlock];
 	    return NO;

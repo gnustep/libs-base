@@ -4,51 +4,51 @@
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
    Modified by:  Richard Frith-Macdonald <rfm@gnu.org>
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSProcessInfo class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
 /*************************************************************************
  * File Name  : NSProcessInfo.m
  * Date       : 06-aug-1995
  *************************************************************************
- * Notes      : 
+ * Notes      :
  * 1) The class functionality depends on the following UNIX functions and
  * global variables: gethostname(), getpid(), and environ. For all system
  * I had the opportunity to test them they are defined and have the same
  * behavior. The same is true for the meaning of argv[0] (process name).
  * 2) The global variable _gnu_sharedProcessInfoObject should NEVER be
- * deallocate during the process runtime. Therefore I implemented a 
+ * deallocate during the process runtime. Therefore I implemented a
  * concrete NSProcessInfo subclass (_NSConcreteProcessInfo) with the only
  * purpose to override the autorelease, retain, and release methods.
- * To Do      : 
+ * To Do      :
  * 1) To test the class on more platforms;
  * Bugs       : Not known
  * Last update: 07-aug-2002
  * History    : 06-aug-1995    - Birth and the first beta version (v. 0.5);
  *              08-aug-1995    - V. 0.6 (tested on NS, SunOS, Solaris, OSF/1
- *              The use of the environ global var was changed to more 
+ *              The use of the environ global var was changed to more
  *              conventional env[] (main function) so now the class could be
  *              used on SunOS and Solaris. [GT]
  *************************************************************************
- * Acknowledgments: 
+ * Acknowledgments:
  * - Adam Fedor, Andrew McCallum, and Paul Kunz for their help;
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
@@ -59,7 +59,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_STRERROR 
+#ifdef HAVE_STRERROR
 #include <errno.h>
 #endif /* HAVE_STRERROR */
 
@@ -164,7 +164,7 @@ Please report the error to bug-gnustep@gnu.org.\n\n"
 static NSProcessInfo	*_gnu_sharedProcessInfoObject = nil;
 
 // Host name of the CPU executing the process
-static NSString		*_gnu_hostName = nil;   
+static NSString		*_gnu_hostName = nil;
 
 static char		*_gnu_arg_zero = 0;
 
@@ -184,7 +184,7 @@ static NSMutableSet	*_debug_set = nil;
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
 
-void 
+void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
   CREATE_AUTORELEASE_POOL(arp);
@@ -221,11 +221,11 @@ _gnu_process_args(int argc, char *argv[], char *env[])
               free(buffer);
 	    }
 	}
-#else      
-      fprintf(stderr, "Error: for some reason, argv not properly set up " 
+#else
+      fprintf(stderr, "Error: for some reason, argv not properly set up "
 	      "during GNUstep base initialization\n");
       abort();
-#endif      
+#endif
     }
 
   /* Getting the process name */
@@ -247,8 +247,8 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     /* Copy the zero'th argument to the argument list */
     str = [NSString stringWithCString: _gnu_arg_zero];
     obj_argv[0] = str;
-    
-    for (i = 1; i < argc; i++) 
+
+    for (i = 1; i < argc; i++)
       {
 	str = [NSString stringWithCString: argv[i]];
 
@@ -270,13 +270,13 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*values = [NSMutableArray new];
 
     i = 0;
-    while (env[i]) 
+    while (env[i])
       {
 #if defined(__MINGW__)
 	char	buf[1024];
 	char	*cp;
 	DWORD	len;
-	   
+	
 	len = ExpandEnvironmentStrings(env[i], buf, 1022);
 	if (len > 1022)
 	  {
@@ -310,7 +310,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    *cp++ = '\0';
 	    [keys addObject: [NSString stringWithCString: buf]];
 	    [values addObject: [NSString stringWithCString: cp]];
-	  } 
+	  }
 #endif
 	i++;
       }
@@ -327,7 +327,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 /*
  * We have to save program arguments and environment before main () is
  * executed, because main () could modify their values before we get a
- * chance to read them 
+ * chance to read them
  */
 static int	_gnu_noobjc_argc = 0;
 static char	**_gnu_noobjc_argv = NULL;
@@ -339,7 +339,7 @@ static char	**_gnu_noobjc_env = NULL;
  * guaranteed if +load contains only pure C code, as we have here. The
  * code in here either uses libkvm if available, or else procfs.
  */
-+ (void) load 
++ (void) load
 {
 #ifdef HAVE_KVM_ENV
   /*
@@ -389,7 +389,7 @@ static char	**_gnu_noobjc_env = NULL;
   }
 
   /* copy the environment strings */
-  for(count = 0; vectors[count]; count++)
+  for (count = 0; vectors[count]; count++)
     ;
   _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (count + 1));
   if (!_gnu_noobjc_env)
@@ -411,7 +411,7 @@ static char	**_gnu_noobjc_env = NULL;
     }
 
   /* copy the argument strings */
-  for(_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
+  for (_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
     ;
   _gnu_noobjc_argv = (char**)malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
   if (!_gnu_noobjc_argv)
@@ -429,7 +429,7 @@ static char	**_gnu_noobjc_env = NULL;
   /*
    * Now we have the problem of reading program arguments and
    * environment.  We take the environment from extern char **environ, and
-   * the program arguments from the /proc filesystem. 
+   * the program arguments from the /proc filesystem.
    */
   extern char	**environ;
   char		*proc_file_name = NULL;
@@ -437,14 +437,14 @@ static char	**_gnu_noobjc_env = NULL;
   int		c;
   int		argument;
   int		length;
-  int		position; 
+  int		position;
   int		env_terms;
   BOOL		stripTrailingNewline = NO;
 #ifdef HAVE_PROGRAM_INVOCATION_NAME
   extern char	*program_invocation_name;
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
-  
-  // Read environment 
+
+  // Read environment
 
   /* NB: This should *never* happen if your compiler tools are
      sane.  But, if you are playing with them, you could break
@@ -452,7 +452,7 @@ static char	**_gnu_noobjc_env = NULL;
   if (environ == NULL)
     {
       /* TODO: Try reading environment from /proc before aborting. */
-      fprintf(stderr, "Error: for some reason, environ == NULL " 
+      fprintf(stderr, "Error: for some reason, environ == NULL "
 	      "during GNUstep base initialization\n"
 	      "Please check the linking process\n");
       abort();
@@ -473,15 +473,15 @@ static char	**_gnu_noobjc_env = NULL;
     }
   _gnu_noobjc_env[c] = NULL;
 
-  // Read commandline 
+  // Read commandline
   proc_file_name = (char *)malloc(sizeof(char) * 2048);
   sprintf(proc_file_name, "/proc/%d/cmdline", (int) getpid());
 
   /*
-   * We read the /proc file thrice. 
+   * We read the /proc file thrice.
    * First, to know how many arguments there are and allocate memory for them.
    * Second, to know how long each argument is, and allocate memory accordingly.
-   * Third, to actually copy the arguments into memory. 
+   * Third, to actually copy the arguments into memory.
    */
   _gnu_noobjc_argc = 0;
 #ifdef HAVE_STRERROR
@@ -525,8 +525,8 @@ static char	**_gnu_noobjc_env = NULL;
     {
       c = getc(ifp);
       length++;
-      if ((c == EOF) || (c == 0)) // End of a parameter 
-	{ 
+      if ((c == EOF) || (c == 0)) // End of a parameter
+	{
 	  _gnu_noobjc_argv[argument] = (char*)malloc((sizeof(char))*length);
 	  if (_gnu_noobjc_argv[argument] == NULL)
 	    goto malloc_error;
@@ -551,8 +551,8 @@ static char	**_gnu_noobjc_env = NULL;
   while (argument < _gnu_noobjc_argc)
     {
       c = getc(ifp);
-      if ((c == EOF) || (c == 0)) // End of a parameter 
-	{ 
+      if ((c == EOF) || (c == 0)) // End of a parameter
+	{
 	  if (argument == 0 && position > 0
 	    && _gnu_noobjc_argv[argument][position-1] == '\n')
 	    {
@@ -578,17 +578,17 @@ static char	**_gnu_noobjc_env = NULL;
   free(proc_file_name);
   return;
 
- proc_fs_error: 
+ proc_fs_error:
 #ifdef HAVE_STRERROR
-  fprintf(stderr, "Couldn't open file %s when starting gnustep-base; %s\n", 
+  fprintf(stderr, "Couldn't open file %s when starting gnustep-base; %s\n",
 	   proc_file_name, strerror(errno));
-#else  /* !HAVE_FUNCTION_STRERROR */ 
-  fprintf(stderr, "Couldn't open file %s when starting gnustep-base.\n", 
+#else  /* !HAVE_FUNCTION_STRERROR */
+  fprintf(stderr, "Couldn't open file %s when starting gnustep-base.\n",
 	   proc_file_name);
 #endif /* HAVE_FUNCTION_STRERROR */
-  fprintf(stderr, "Your gnustep-base library is compiled for a kernel supporting the /proc filesystem, but it can't access it.\n"); 
+  fprintf(stderr, "Your gnustep-base library is compiled for a kernel supporting the /proc filesystem, but it can't access it.\n");
   fprintf(stderr, "You should recompile or change your kernel.\n");
-#ifdef HAVE_PROGRAM_INVOCATION_NAME 
+#ifdef HAVE_PROGRAM_INVOCATION_NAME
   fprintf(stderr, "We try to go on anyway; but the program will ignore any argument which were passed to it.\n");
   _gnu_noobjc_argc = 1;
   _gnu_noobjc_argv = malloc(sizeof(char *) * 2);
@@ -603,22 +603,22 @@ static char	**_gnu_noobjc_env = NULL;
   /*
    * There is really little sense in going on here, because NSBundle
    * will anyway crash later if we just put something like "_Unknown_"
-   * as the program name.  
+   * as the program name.
    */
   abort();
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
 #endif /* !HAVE_KVM_ENV (e.g. HAVE_PROCFS) */
- malloc_error: 
+ malloc_error:
   fprintf(stderr, "malloc() error when starting gnustep-base.\n");
   fprintf(stderr, "Free some memory and then re-run the program.\n");
   abort();
 }
 
-static void 
+static void
 _gnu_noobjc_free_vars(void)
 {
   char **p;
-  
+
   p = _gnu_noobjc_argv;
   while (*p)
     {
@@ -704,7 +704,7 @@ int main(int argc, char *argv[], char *env[])
 #endif /* !GS_PASS_ARGUMENTS */
 #endif /* __MINGW__ */
 
-#endif /* HAS_LOAD_METHOD && HAS_PROCFS */ 
+#endif /* HAS_LOAD_METHOD && HAS_PROCFS */
 
 /**
  * Returns the shared NSProcessInfo object for the current process.
@@ -784,7 +784,7 @@ int main(int argc, char *argv[], char *env[])
   count = counter++;
   [gnustep_global_lock unlock];
 
-  // $$$ The format of the string is not specified by the OpenStep 
+  // $$$ The format of the string is not specified by the OpenStep
   // specification.
   return [NSString stringWithFormat: @"%@_%x_%lx_%lx",
     host, pid, start, count];
@@ -795,7 +795,7 @@ int main(int argc, char *argv[], char *env[])
  */
 - (NSString *) hostName
 {
-  if (!_gnu_hostName) 
+  if (!_gnu_hostName)
     {
       _gnu_hostName = [[[NSHost currentHost] name] copy];
     }
@@ -1089,7 +1089,7 @@ GSEnvironmentFlag(const char *name, BOOL def)
 /**
  * Used by NSException uncaught exception handler - must not call any
  * methods/functions which might cause a recursive exception.
- */ 
+ */
 const char*
 GSArgZero(void)
 {

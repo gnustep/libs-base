@@ -1,4 +1,4 @@
-/** 
+/**
 
    <title>AGSHtml ... a class to output html for a gsdoc file</title>
    Copyright (C) 2001 Free Software Foundation, Inc.
@@ -847,7 +847,7 @@ static NSString		*mainFont = nil;
 	}
       else if ([name isEqual: @"email"] == YES)
 	{
-	  NSString	*ename; 
+	  NSString	*ename;
 
 	  ename = [prop objectForKey: @"address"];
 	  if (ename == nil)
@@ -1562,7 +1562,7 @@ static NSString		*mainFont = nil;
               linkRef = [NSMutableString stringWithCapacity: [sel length]];
               [linkRef setString:sel];
               [linkRef replaceString: @"&nbsp;" withString: @""];
-  
+
 	      s = [self makeLink: linkRef ofType: @"method" inUnit: nil isRef: NO];
 	      if (s != nil)
 		{
@@ -2227,7 +2227,7 @@ static NSString		*mainFont = nil;
       else if ([node type] == XML_ENTITY_REF_NODE)
 	{
 	  [buf appendString: @"&"];
-	  [buf appendString: [node name]]; 
+	  [buf appendString: [node name]];
 	  [buf appendString: @";"];
 	}
       else if ([node type] == XML_ELEMENT_NODE)

@@ -543,7 +543,7 @@ pty_slave(const char* name)
  * The default behavior is to inherit the parent processes
  * stdout stream.<br />
  * This method cannot be used after a task is launched ...
- * it raises an NSInvalidArgumentException. 
+ * it raises an NSInvalidArgumentException.
  */
 - (void) setStandardOutput: (id)hdl
 {
@@ -982,7 +982,7 @@ GSCheckTasks()
 static DWORD WINAPI _threadFunction(LPVOID t)
 {
   DWORD	milliseconds = 60000;
-  int	taskId = [(NSTask*)t processIdentifier]; 
+  int	taskId = [(NSTask*)t processIdentifier];
 
   for (;;)
     {
@@ -1016,7 +1016,7 @@ endSlashesDoubledFromString(NSString *aString)
 {
   int			i = [aString length] - 2;
   NSMutableString	*returnString;
-  
+
   if (![aString hasSuffix:@"\\"])
     {
       return aString;
@@ -1037,7 +1037,7 @@ quotedFromString(NSString *aString)
   NSString		*resultString;
   NSMutableArray	*components;
   int			i;
-  
+
   /* First split on "'s */
   components = [NSMutableArray arrayWithArray:
     [aString componentsSeparatedByString: @"\""]];
@@ -1075,7 +1075,7 @@ quotedFromString(NSString *aString)
   const wchar_t	*wexecutable;
   LPVOID	envp = 0;
   NSDictionary	*env;
-  
+
   if (_hasLaunched)
     {
       return;
@@ -1093,7 +1093,7 @@ quotedFromString(NSString *aString)
       [args appendString: @" "];
       [args appendString: quotedFromString(arg)];
     }
-  
+
   w_args = NSZoneMalloc(NSDefaultMallocZone(),
     sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
@@ -1106,7 +1106,7 @@ quotedFromString(NSString *aString)
       NSString		*key;
       unichar 		terminator = 0;
       CREATE_AUTORELEASE_POOL(pool);
-      
+
       // Win32 environment variables must be sorted by name
       enumerator = [[[env allKeys]
 	sortedArrayUsingSelector: @selector(compare:)] objectEnumerator];
@@ -1127,10 +1127,10 @@ quotedFromString(NSString *aString)
 		{
 		  r.length = 1024;
 		}
-	      
+	
 	      [setting getCharacters: buffer range: r];
 	      [data appendBytes: buffer length: (r.length)*sizeof(unichar)];
-	      
+	
 	      r.location += r.length;
 	    }
 	  [data appendBytes: &terminator length: 2];	// end of setting
@@ -1146,7 +1146,7 @@ quotedFromString(NSString *aString)
   start_info.hStdInput = [[self standardInput] nativeHandle];
   start_info.hStdOutput = [[self standardOutput] nativeHandle];
   start_info.hStdError = [[self standardError] nativeHandle];
-  
+
   result = CreateProcessW(wexecutable,
     w_args,
     NULL,      			/* proc attrs */
@@ -1163,7 +1163,7 @@ quotedFromString(NSString *aString)
       NSLog(@"Error launching task: %@", lpath);
       return;
     }
-  
+
   _taskId = procInfo.dwProcessId;
   _hasLaunched = YES;
   ASSIGN(_launchPath, lpath);	// Actual path used.
@@ -1242,7 +1242,7 @@ GSCheckTasks()
 		}
 	    }
 	}
-      while (result > 0);  
+      while (result > 0);
     }
   return found;
 }

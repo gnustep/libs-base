@@ -43,7 +43,7 @@
 + (id) allocWithZone: (NSZone*)aZone
 {
   [NSException raise: NSGenericException
-	      format: @"attempt to create extra port name server"]; 
+	      format: @"attempt to create extra port name server"];
   return nil;
 }
 
@@ -86,7 +86,7 @@
 - (void) dealloc
 {
   [NSException raise: NSGenericException
-	      format: @"attempt to deallocate default port name server"]; 
+	      format: @"attempt to deallocate default port name server"];
 }
 
 /**

@@ -7,16 +7,16 @@
    Rewritten by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
    to add optimisations features for faster thread access.
    Modified by: Nicola Pero <n.pero@mi.flashnet.it>
-   to add GNUstep extensions allowing to interact with threads created 
+   to add GNUstep extensions allowing to interact with threads created
    by external libraries/code (eg, a Java Virtual Machine).
-   
+
    This file is part of the GNUstep Objective-C Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -28,7 +28,7 @@
 
    <title>NSThread class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -187,14 +187,14 @@ inline static void objc_thread_add (void)
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_is_multi_threaded = 1;
   __objc_runtime_threads_alive++;
-  objc_mutex_unlock(__objc_runtime_mutex);  
+  objc_mutex_unlock(__objc_runtime_mutex);
 }
 
 inline static void objc_thread_remove (void)
 {
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_runtime_threads_alive--;
-  objc_mutex_unlock(__objc_runtime_mutex);  
+  objc_mutex_unlock(__objc_runtime_mutex);
 }
 #endif /* not HAVE_OBJC_THREAD_ADD */
 
@@ -277,7 +277,7 @@ GSDictionaryForThread(NSThread *t)
     {
       return nil;
     }
-  else 
+  else
     {
       NSMutableDictionary	*dict = t->_thread_dictionary;
 
@@ -285,7 +285,7 @@ GSDictionaryForThread(NSThread *t)
 	{
 	  dict = [t threadDictionary];
 	}
-      return dict; 
+      return dict;
     }
 }
 
@@ -453,7 +453,7 @@ gnustep_base_thread_callback(void)
 + (NSThread*) currentThread
 {
   NSThread	*t = nil;
- 
+
   if (entered_multi_threaded_state == NO)
     {
       /*
@@ -481,7 +481,7 @@ gnustep_base_thread_callback(void)
  * anArgument.  This should have no return value, and must set up an
  * autorelease pool if retain/release memory management is used.  It should
  * free this pool before it finishes execution.</p>
- * 
+ *
  * <p><strong>Note</strong>, unlike in Cocoa (and perhaps OpenStep), the
  * thread will <em>not</em> exit when the method finishes execution.  You must
  * call [Thread +exit] yourself (from the thread) to terminate it.</p> */
@@ -846,16 +846,16 @@ static NSDate *theFuture;
    *         treated as sockets so this will not WORK.
    *         Consequence, performSelectorOnMainThread methods will not
    *         work.
-   */         
+   */
 #ifndef __MINGW__
-  for (i = 0; i < count; i++ )
+  for (i = 0; i < count; i++)
     {
       [loop addEvent: (void*)inputFd
 		type: ET_RDESC
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: [m objectAtIndex: i]];
     }
-#endif  
+#endif
 }
 
 + (BOOL) isValid
@@ -912,7 +912,7 @@ static NSDate *theFuture;
 		      modes: h->modes];
     }
   [perfArray removeAllObjects];
-      
+
   [subthreadsLock unlock];
 }
 
@@ -1038,7 +1038,7 @@ static NSDate *theFuture;
 	{
 	  l = [[NSConditionLock alloc] init];
 	}
-      
+
       h = [GSPerformHolder newForReceiver: self
 				 argument: anObject
 				 selector: aSelector
@@ -1122,7 +1122,7 @@ GSRegisterCurrentThread (void)
       /*
        * Create the new thread object.
        */
-      thread = (NSThread*)NSAllocateObject (threadClass, 0, 
+      thread = (NSThread*)NSAllocateObject (threadClass, 0,
 					NSDefaultMallocZone ());
       thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
       objc_thread_set_data (thread);
@@ -1130,7 +1130,7 @@ GSRegisterCurrentThread (void)
     }
 
   /*
-   * We post the notification after we register the thread.  
+   * We post the notification after we register the thread.
    * NB. Even if we are the default thread, we do this to register the app
    * as being multi-threaded - this is so that, if this thread is unregistered
    * later, it does not leave us with a bad default thread.
@@ -1144,7 +1144,7 @@ GSRegisterCurrentThread (void)
  * <p>
  *   This function is provided to let threads started by some other
  *   software library unregister themselves from the GNUstep threading
- *   system. 
+ *   system.
  * </p>
  * <p>
  *   Calling this function causes a
@@ -1159,14 +1159,14 @@ GSUnregisterCurrentThread (void)
   NSThread *thread;
 
   thread = GSCurrentThread();
-  
+
   if (((NSThread_ivars *)thread)->_active == YES)
     {
       /*
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
       ((NSThread_ivars *)thread)->_active = NO;
-      
+
       /*
        * Let observers know this thread is exiting.
        */
@@ -1176,7 +1176,7 @@ GSUnregisterCurrentThread (void)
 	}
       [nc postNotificationName: NSThreadWillExitNotification
 			object: thread
-		      userInfo: nil]; 
+		      userInfo: nil];
 
       /*
        * destroy the thread object.

@@ -1,30 +1,30 @@
 /** Implementation of NSMethodSignature for GNUStep
    Copyright (C) 1994, 1995, 1996, 1998 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
    Rewritten:   Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: August 1998
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSMethodSignature class reference</title>
    $Date$ $Revision$
-   */ 
+   */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -47,7 +47,7 @@
     }
   newMs = AUTORELEASE([NSMethodSignature alloc]);
   newMs->_methodTypes = mframe_build_signature(t, &newMs->_argFrameLength,
-    &newMs->_numArgs, 0); 
+    &newMs->_numArgs, 0);
 
   return newMs;
 }
@@ -137,11 +137,11 @@
     {
       return NO;
     }
-  isEqual = ([self numberOfArguments] == [other numberOfArguments] 
-    && [self frameLength] == [other frameLength] 
-    && *[self methodReturnType] == *[other methodReturnType] 
+  isEqual = ([self numberOfArguments] == [other numberOfArguments]
+    && [self frameLength] == [other frameLength]
+    && *[self methodReturnType] == *[other methodReturnType]
     && [self isOneway] == [other isOneway]);
-  if(isEqual == NO)
+  if (isEqual == NO)
     {
       return NO;
     }
@@ -149,9 +149,9 @@
     {
       int i, n;
       n = [self numberOfArguments];
-      for(i = 0; i < n; i++)
+      for (i = 0; i < n; i++)
         {
-          if ( (*[self getArgumentTypeAtIndex:i] 
+          if ((*[self getArgumentTypeAtIndex:i]
 		== *[other getArgumentTypeAtIndex:i]) == NO)
             {
               return NO;

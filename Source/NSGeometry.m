@@ -1,28 +1,28 @@
 /** NSGeometry.m - geometry functions
  * Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
- * 
+ *
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
  * Date: Mar 1995
- * 
+ *
  * This file is part of the GNUstep Base Library.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSGeometry class reference</title>
    $Date$ $Revision$
- */ 
+ */
 
 /*
  *	Define IN_NSGEOMETRY_M so that the Foundation/NSGeometry.h header can
@@ -98,12 +98,12 @@ NSDivideRect(NSRect aRect,
 {
   static NSRect sRect;
   static NSRect	rRect;
-    
+
   if (!slice)
     slice = &sRect;
   if (!remainder)
     remainder = &rRect;
-    
+
   if (NSIsEmptyRect(aRect))
     {
       *slice = NSMakeRect(0,0,0,0);
@@ -118,7 +118,7 @@ NSDivideRect(NSRect aRect,
 	  {
 	    *slice = aRect;
 	    *remainder = NSMakeRect(NSMaxX(aRect),
-				    aRect.origin.y, 
+				    aRect.origin.y,
 				    0,
 				    aRect.size.height);
 	  }
@@ -126,10 +126,10 @@ NSDivideRect(NSRect aRect,
 	  {
 	    *slice = NSMakeRect(aRect.origin.x,
 				aRect.origin.y,
-				amount, 
+				amount,
 				aRect.size.height);
 	    *remainder = NSMakeRect(NSMaxX(*slice),
-				    aRect.origin.y, 
+				    aRect.origin.y,
 				    NSMaxX(aRect) - NSMaxX(*slice),
 				    aRect.size.height);
 	  }
@@ -139,17 +139,17 @@ NSDivideRect(NSRect aRect,
 	  {
 	    *slice = aRect;
 	    *remainder = NSMakeRect(aRect.origin.x,
-				    NSMaxY(aRect), 
+				    NSMaxY(aRect),
 				    aRect.size.width, 0);
 	  }
 	else
 	  {
 	    *slice = NSMakeRect(aRect.origin.x,
-				aRect.origin.y, 
+				aRect.origin.y,
 				aRect.size.width,
 				amount);
 	    *remainder = NSMakeRect(aRect.origin.x,
-				    NSMaxY(*slice), 
+				    NSMaxY(*slice),
 				    aRect.size.width,
 				    NSMaxY(aRect) - NSMaxY(*slice));
 	  }
@@ -159,7 +159,7 @@ NSDivideRect(NSRect aRect,
 	  {
 	    *slice = aRect;
 	    *remainder = NSMakeRect(aRect.origin.x,
-				    aRect.origin.y, 
+				    aRect.origin.y,
 				    0,
 				    aRect.size.height);
 	  }
@@ -170,7 +170,7 @@ NSDivideRect(NSRect aRect,
 				amount,
 				aRect.size.height);
 	    *remainder = NSMakeRect(aRect.origin.x,
-				    aRect.origin.y, 
+				    aRect.origin.y,
 				    NSMinX(*slice) - aRect.origin.x,
 				    aRect.size.height);
 	  }
@@ -180,18 +180,18 @@ NSDivideRect(NSRect aRect,
 	  {
 	    *slice = aRect;
 	    *remainder = NSMakeRect(aRect.origin.x,
-				    aRect.origin.y, 
+				    aRect.origin.y,
 				    aRect.size.width,
 				    0);
 	  }
 	else
 	  {
 	    *slice = NSMakeRect(aRect.origin.x,
-				NSMaxY(aRect) - amount, 
+				NSMaxY(aRect) - amount,
 				aRect.size.width,
 				amount);
 	    *remainder = NSMakeRect(aRect.origin.x,
-				    aRect.origin.y, 
+				    aRect.origin.y,
 				    aRect.size.width,
 				    NSMinY(*slice) - aRect.origin.y);
 	  }
@@ -286,7 +286,7 @@ NSSizeFromString(NSString* string)
 {
   NSScanner	*scanner;
   NSSize	size;
-  
+
   setupCache();
   scanner = (*scannerImp)(NSScannerClass, scannerSel, string);
   if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
@@ -324,7 +324,7 @@ NSRectFromString(NSString* string)
 {
   NSScanner	*scanner;
   NSRect	rect;
-  
+
   setupCache();
   scanner = (*scannerImp)(NSScannerClass, scannerSel, string);
   if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
@@ -337,12 +337,12 @@ NSRectFromString(NSString* string)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
     && (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.y)
     && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
-      
+
     && (*scanStringImp)(scanner, scanStringSel, @"width", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
     && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.width)
     && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
-      
+
     && (*scanStringImp)(scanner, scanStringSel, @"height", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
     && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.height)
@@ -361,11 +361,11 @@ NSRectFromString(NSString* string)
 	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.y)
 	&& (*scanStringImp)(scanner, scanStringSel, @"}", NULL)
 	&& (*scanStringImp)(scanner, scanStringSel, @",", NULL)
-	  
+	
 	&& (*scanStringImp)(scanner, scanStringSel, @"{", NULL)
 	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.size.width)
 	&& (*scanStringImp)(scanner, scanStringSel, @",", NULL)
-	  
+	
 	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.size.height)
 	&& (*scanStringImp)(scanner, scanStringSel, @"}", NULL)
 	&& (*scanStringImp)(scanner, scanStringSel, @"}", NULL))

@@ -1,29 +1,29 @@
 /** Implementation of auto release pool for delayed disposal
    Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: January 1995
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSAutoreleasePool class reference</title>
    $Date$ $Revision$
-   */ 
+   */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -58,7 +58,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 
 /* Functions for managing a per-thread cache of NSAutoreleasedPool's
-   already alloc'ed.  The cache is kept in the autorelease_thread_var 
+   already alloc'ed.  The cache is kept in the autorelease_thread_var
    structure, which is an ivar of NSThread. */
 
 static id pop_pool_from_cache (struct autorelease_thread_vars *tv);
@@ -290,7 +290,7 @@ static IMP	initImp;
 	  /* We are at the end of the chain, and need to allocate a new one. */
 	  struct autorelease_array_list *new_released;
 	  unsigned new_size = _released->size * 2;
-	  
+	
 	  new_released = (struct autorelease_array_list*)
 	    NSZoneMalloc(NSDefaultMallocZone(),
 	    sizeof(struct autorelease_array_list) + (new_size * sizeof(id)));
@@ -401,7 +401,7 @@ static IMP	initImp;
 - (void) _reallyDealloc
 {
   struct autorelease_array_list *a;
-  for (a = _released_head; a; )
+  for (a = _released_head; a;)
     {
       void *n = a->next;
       NSZoneFree(NSDefaultMallocZone(), a);

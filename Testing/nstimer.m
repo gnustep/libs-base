@@ -38,8 +38,8 @@ int main()
   id inv;
   id o;
   id d;
-  
-  inv = [NSInvocation invocationWithMethodSignature: 
+
+  inv = [NSInvocation invocationWithMethodSignature:
     [TestDouble methodSignatureForSelector: @selector(sayCount)]];
   [inv setSelector: @selector(sayCount)];
   [inv setTarget: [TestDouble class]];

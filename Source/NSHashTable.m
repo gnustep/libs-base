@@ -1,31 +1,31 @@
 /** NSHashTable implementation for GNUStep.
  * Copyright (C) 1994, 1995, 1996, 1997, 2002  Free Software Foundation, Inc.
- * 
+ *
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:54:09 EST 1994
  * Updated: Mon Mar 11 01:48:31 EST 1996
  * Serial: 96.03.11.06
  * Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
- * 
+ *
  * This file is part of the GNUstep Base Library.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
  *
  * <title>NSHashTable class reference</title>
  * $Date$ $Revision$
- */ 
+ */
 
 /**** Included Headers *******************************************************/
 
@@ -147,7 +147,7 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
   GSIMapTable   t;
   GSIMapNode    n;
   NSHashEnumerator enumerator;
-  
+
   if (table == 0)
     {
       NSWarnFLog(@"Nul table argument supplied");
@@ -187,7 +187,7 @@ NSCountHashTable(NSHashTable *table)
  * the main implementation.  See the NSHashTableCallbacks documentation
  * for more information.<br />
  * If capacity is small or 0, then the returned
- * table has a reasonable (but still small) capacity. 
+ * table has a reasonable (but still small) capacity.
  */
 NSHashTable *
 NSCreateHashTable(
@@ -438,7 +438,7 @@ void *
 NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 {
   GSIMapNode    n;
- 
+
   if (enumerator == 0)
     {
       NSWarnFLog(@"Nul enumerator argument supplied");
@@ -527,7 +527,7 @@ const NSHashTableCallBacks NSIntHashCallBacks =
 };
 
 /** For sets of pointers hashed by address. */
-const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks = 
+const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks =
 {
   (NSHT_hash_func_t) _NS_non_owned_void_p_hash,
   (NSHT_isEqual_func_t) _NS_non_owned_void_p_is_equal,
@@ -537,7 +537,7 @@ const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks =
 };
 
 /** For sets of objects without retaining and releasing. */
-const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks = 
+const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks =
 {
   (NSHT_hash_func_t) _NS_non_retained_id_hash,
   (NSHT_isEqual_func_t) _NS_non_retained_id_is_equal,
@@ -547,7 +547,7 @@ const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks =
 };
 
 /** For sets of objects; similar to [NSSet]. */
-const NSHashTableCallBacks NSObjectHashCallBacks = 
+const NSHashTableCallBacks NSObjectHashCallBacks =
 {
   (NSHT_hash_func_t) _NS_id_hash,
   (NSHT_isEqual_func_t) _NS_id_is_equal,
@@ -557,7 +557,7 @@ const NSHashTableCallBacks NSObjectHashCallBacks =
 };
 
 /** For sets of pointers with transfer of ownership upon insertion. */
-const NSHashTableCallBacks NSOwnedPointerHashCallBacks = 
+const NSHashTableCallBacks NSOwnedPointerHashCallBacks =
 {
   (NSHT_hash_func_t) _NS_owned_void_p_hash,
   (NSHT_isEqual_func_t) _NS_owned_void_p_is_equal,
@@ -568,7 +568,7 @@ const NSHashTableCallBacks NSOwnedPointerHashCallBacks =
 
 /** For sets of pointers to structs when the first field of the
  * struct is the size of an int. */
-const NSHashTableCallBacks NSPointerToStructHashCallBacks = 
+const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 {
   (NSHT_hash_func_t) _NS_int_p_hash,
   (NSHT_isEqual_func_t) _NS_int_p_is_equal,

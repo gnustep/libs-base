@@ -1,29 +1,29 @@
 /** Implementation of NSInvocation for GNUStep
    Copyright (C) 1998,2003 Free Software Foundation, Inc.
-   
+
    Author:     Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: August 1998
    Based on code by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSInvocation class reference</title>
    $Date$ $Revision$
-   */ 
+   */
 
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
@@ -219,7 +219,7 @@ _arg_addr(NSInvocation *inv, int index)
 
 
   CLEAR_RETURN_VALUE_IF_OBJECT;
-  
+
 #if	defined(USE_LIBFFI)
   if (_cframe)
     {
@@ -397,7 +397,7 @@ _arg_addr(NSInvocation *inv, int index)
   type = _info[0].type;
 
   CLEAR_RETURN_VALUE_IF_OBJECT;
-  
+
   if (*type != _C_VOID)
     {
       int	length = _info[0].size;
@@ -616,7 +616,7 @@ _arg_addr(NSInvocation *inv, int index)
                 self, \
                 _selector ? GSNameFromSelector(_selector) : "nil", \
                 _target ?   GSNameFromClass([_target class]) : "nil" \
-                );
+               );
 
   return [NSString stringWithCString: buffer];
 }
@@ -674,7 +674,7 @@ _arg_addr(NSInvocation *inv, int index)
   const char		*types;
   void			*datum;
   unsigned int		i;
-  
+
   [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
@@ -682,7 +682,7 @@ _arg_addr(NSInvocation *inv, int index)
   RELEASE(self);
   self  = [NSInvocation invocationWithMethodSignature: newSig];
   RETAIN(self);
- 
+
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
 
   [aCoder decodeValueOfObjCType: @encode(SEL) at: &_selector];
@@ -864,7 +864,7 @@ _arg_addr(NSInvocation *inv, int index)
 #if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
 #if defined(sparc) || defined(powerpc)
 		/* FIXME: This only appears on sparc and ppc machines so far.
-		structures appear to be aligned on word boundaries. 
+		structures appear to be aligned on word boundaries.
 		Hopefully there is a more general way to figure this out */
 		size = (size<sizeof(int))?4:size;
 #endif

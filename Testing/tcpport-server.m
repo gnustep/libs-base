@@ -51,7 +51,7 @@ id handle_incoming_packet (TcpInPacket *packet)
 
   packet = [[TcpOutPacket alloc] initForSendingWithCapacity: 100
 				 replyInPort: port];
-  [packet writeFormat: @"Your's was my message number %d", 
+  [packet writeFormat: @"Your's was my message number %d",
 	  message_count];
   [reply_port sendPacket: packet timeout:10.0];
   [packet release];
@@ -105,7 +105,7 @@ int main (int argc, char *argv[])
 
 	packet = [[TcpPacket alloc] initForSendingWithCapacity: 100
 				    replyPort: port];
-	[packet writeFormat: @"Your's was my message number %d", 
+	[packet writeFormat: @"Your's was my message number %d",
 		message_count];
 	[reply_port sendPacket: packet timeout: 20.0];
 	[packet release];

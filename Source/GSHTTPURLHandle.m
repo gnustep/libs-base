@@ -1,22 +1,22 @@
 /** GSHTTPURLHandle.m - Class GSHTTPURLHandle
    Copyright (C) 2000 Free Software Foundation, Inc.
-   
+
    Written by: 		Mark Allison <mark@brainstorm.co.uk>
    Integrated by:	Richard Frith-Macdonald <rfm@gnu.org>
    Date:		November 2000 		
-   
+
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -105,7 +105,7 @@ static NSString	*httpVersion = @"1.1";
  * <p>
  *   Header information from the current page may be obtained using
  *   -propertyForKey and -propertyForKeyIfAvailable.  <code>HTTP</code>
- *   status information can be retrieved as by calling either of these 
+ *   status information can be retrieved as by calling either of these
  *   methods specifying one of the following keys:
  * </p>
  * <list>
@@ -147,7 +147,7 @@ static NSString	*httpVersion = @"1.1";
  *   &quot;GET&quot; method when fetching a page, and the
  *   &quot;POST&quot; method when using -writeData:.
  *   This can be over-ridden by calling -writeProperty:forKey: with
- *   the key name &quot;GSHTTPPropertyMethodKey&quot; and specifying an 
+ *   the key name &quot;GSHTTPPropertyMethodKey&quot; and specifying an
  *   alternative method (i.e &quot;PUT&quot;).
  * </p>
  * <p>
@@ -183,7 +183,7 @@ static void debugRead(GSHTTPURLHandle *handle, NSData *data)
   int		d;
 
   [debugLock lock];
-  d = open([debugFile  fileSystemRepresentation], 
+  d = open([debugFile  fileSystemRepresentation],
 	   O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
@@ -202,7 +202,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   int		d;
 
   [debugLock lock];
-  d = open([debugFile  fileSystemRepresentation], 
+  d = open([debugFile  fileSystemRepresentation],
 	   O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
@@ -241,7 +241,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       urlCache = [NSMutableDictionary new];
       urlLock = [GSLazyLock new];
       debugLock = [GSLazyLock new];
-      debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d", 
+      debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d",
 			     NSTemporaryDirectory(),
 			     [[NSProcessInfo processInfo] processIdentifier]];
       RETAIN(debugFile);
@@ -323,7 +323,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (version == nil)
     {
       version = httpVersion;
-    } 
+    }
   [s appendFormat: @" HTTP/%@\r\n", version];
 
   if ([wProperties objectForKey: @"host"] == nil)
@@ -351,8 +351,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSString	*auth;
 
 	  if ([[u password] length] > 0)
-	    { 
-	      auth = [NSString stringWithFormat: @"%@:%@", 
+	    {
+	      auth = [NSString stringWithFormat: @"%@:%@",
 		[u user], [u password]];
 	    }
 	  else
@@ -597,7 +597,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) bgdConnect: (NSNotification*)notification
 {
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-  
+
   NSDictionary          *userInfo = [notification userInfo];
   NSMutableString	*s;
   NSString		*e;
@@ -610,7 +610,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if ([path length] == 0)
     {
       path = @"/";
-    } 
+    }
 
   /*
    * See if the connection attempt caused an error.
@@ -636,7 +636,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
    * Build HTTP request.
    */
 
-  /* 
+  /*
    * If SSL via proxy, set up tunnel first
    */
   if ([[u scheme] isEqualToString: @"https"]
@@ -655,7 +655,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       if (version == nil)
 	{
 	  version = httpVersion;
-	} 
+	}
       if ([u port] == nil)
 	{
 	  cmd = [NSString stringWithFormat: @"CONNECT %@:443 HTTP/%@\r\n\r\n",
@@ -666,7 +666,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  cmd = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/%@\r\n\r\n",
 	    [u host], [u port], version];
 	}
-      
+
       /*
        * Set up default status for if connection is lost.
        */
@@ -683,7 +683,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
       buf = [cmd dataUsingEncoding: NSASCIIStringEncoding];
       if (debug == YES) debugWrite(self, buf);
-      [sock writeInBackgroundAndNotify: buf]; 
+      [sock writeInBackgroundAndNotify: buf];
 
       when = [NSDate alloc];
       while (tunnel == YES)
@@ -742,18 +742,18 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       if ([u port] == nil)
 	{
-	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
+	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@",
 	    method, [u host], path];
 	}
       else
 	{
-	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@:%@%@", 
+	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@:%@%@",
 	    method, [u host], [u port], path];
 	}
     }
   else    // no proxy
     {
-      s = [[NSMutableString alloc] initWithFormat: @"%@ %@", 
+      s = [[NSMutableString alloc] initWithFormat: @"%@ %@",
 	method, path];
     }
 
@@ -766,7 +766,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSNotificationCenter	*nc;
   NSDictionary    	*userInfo = [notification userInfo];
   NSString        	*e;
- 
+
   if (debug == YES) NSLog(@"%@", NSStringFromSelector(_cmd));
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
@@ -1023,7 +1023,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];
 	      port = [request objectForKey: GSHTTPPropertyProxyPortKey];
-	      sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host 
+	      sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
 							       service: port
 							      protocol: s];
 	    }
@@ -1032,7 +1032,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];
 	      port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	      sock = [NSFileHandle
-		fileHandleAsClientInBackgroundAtAddress: host 
+		fileHandleAsClientInBackgroundAtAddress: host
 						service: port
 					       protocol: s];
 	    }
@@ -1080,7 +1080,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       if ([path length] == 0)
 	{
 	  path = @"/";
-	} 
+	}
       basic = [NSString stringWithFormat: @"%@ %@", method, path];
       [self bgdApply: basic];
     }
@@ -1118,7 +1118,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
  *     of a host to proxy through.
  *   </item>
  *   <item>
- *     GSHTTPPropertyProxyPortKey - specify the port number to 
+ *     GSHTTPPropertyProxyPortKey - specify the port number to
  *     connect to on the proxy host.  If not give, this defaults
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
  *   </item>

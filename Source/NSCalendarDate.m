@@ -181,7 +181,7 @@ absoluteGregorianDay(int day, int month, int year)
 
 /* Should be static, but temporarily changed to non-static until
    WIndows fixes are done.  */
-int 
+int
 dayOfCommonEra(NSTimeInterval when)
 {
   double a;
@@ -356,7 +356,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 }
 
 /**
- * Creates and returns an NSCalendarDate from the specified values 
+ * Creates and returns an NSCalendarDate from the specified values
  * by calling -initWithYear:month:day:hour:minute:second:timeZone:
  */
 + (id) dateWithYear: (int)year
@@ -564,7 +564,7 @@ static inline int getDigits(const char *from, char *to, int limit)
  *     %X   time with time representation for locale
  *   </item>
  *   <item>
- *     %y   year as a decimal number without century 
+ *     %y   year as a decimal number without century
  *   </item>
  *   <item>
  *     %Y   year as a decimal number with century
@@ -585,7 +585,7 @@ static inline int getDigits(const char *from, char *to, int limit)
  * If no millisecond is specified in the format, 0 is assumed.<br />
  * If no timezone is specified in the format, the local timezone is assumed.
  */
-- (id) initWithString: (NSString*)description 
+- (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)fmt
                locale: (NSDictionary*)locale
 {
@@ -598,7 +598,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int		sec = 0;
   NSTimeZone	*tz = nil;
   BOOL		ampm = NO;
-  BOOL		twelveHrClock = NO; 
+  BOOL		twelveHrClock = NO;
   int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
   const char	*source = [description cString];
   unsigned	sourceLen = strlen(source);
@@ -614,7 +614,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   NSMutableData	*fd;
   BOOL		changedFormat = NO;
   BOOL		error = NO;
-  
+
   if (locale == nil)
     {
       locale = GSUserDefaultsDictionaryRepresentation();
@@ -836,7 +836,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    }
 		  else
 		    {
-		      dayOfWeek = tmpIdx; 
+		      dayOfWeek = tmpIdx;
 		      had |= hadw;
 		    }
 		  RELEASE(currDay);
@@ -1108,7 +1108,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			{
 			  zone *= 100;	// Convert 2 digits to 4
 			}
-		      tz = [NSTimeZone timeZoneForSecondsFromGMT: 
+		      tz = [NSTimeZone timeZoneForSecondsFromGMT:
 			sign * ((zone / 100) * 60 + (zone % 100)) * 60];
 		    }
 		}
@@ -1149,7 +1149,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    @"specifier %c not recognized in format %@",
 		    format[formatIdx], fmt];
 	    }
-	} 
+	}
       formatIdx++;
     }
   RELEASE(fd);
@@ -1682,7 +1682,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
        */
       f = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), lf*sizeof(unichar));
     }
-  [fmt getCharacters: f]; 
+  [fmt getCharacters: f];
 
   while (i < lf)
     {
@@ -1692,7 +1692,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
       BOOL	mname = NO;
       BOOL	dname = NO;
       BOOL	twelve = NO;
-      
+
       // Only care about a format specifier
       if (f[i] == '%')
 	{
@@ -1790,7 +1790,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		    else
 		      {
 			NSString	*name;
-		       
+		
 			name = [months objectAtIndex: info->md-1];
 			v = [name length];
 			Grow(info, v);

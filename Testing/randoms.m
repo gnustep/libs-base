@@ -18,7 +18,7 @@ int main()
     printf("%f\n", [r randomDouble]);
 
   rng = [[RNGBerkeley alloc] init];
-  printf("%s chi^2 = %f\n", 
+  printf("%s chi^2 = %f\n",
 	 [rng name], [Random chiSquareOfRandomGenerator:rng]);
   [r release];
 
@@ -27,7 +27,7 @@ int main()
   for (i = 0; i < 50; i++)
     printf("%ld\n", [r nextRandom]);
 */
-  printf("%s chi^2 = %f\n", 
+  printf("%s chi^2 = %f\n",
 	 [rng name], [Random chiSquareOfRandomGenerator:rng]);
   [rng release];
 

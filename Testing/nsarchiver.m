@@ -45,9 +45,9 @@ int main()
   id apl;
   tstruct	ss;
   tstruct	tt;
-  
+
   [NSAutoreleasePool enableDoubleReleaseCheck:YES];
-  
+
   arp = [[NSAutoreleasePool alloc] init];
 
   /* Create a Set of int's */
@@ -64,7 +64,7 @@ int main()
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%s\n", [[o description] cString]);    
+      printf("%s\n", [[o description] cString]);
   }
 
   apl = [[NSAutoreleasePool alloc] init];
@@ -119,7 +119,7 @@ printf("%u\n", [arc retainCount]);
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%s\n", [[o description] cString]);    
+      printf("%s\n", [[o description] cString]);
   }
 
   obj = [ClassOne new];
@@ -174,7 +174,7 @@ printf("%u\n", [arc retainCount]);
 
   /* Do the autorelease. */
   [arp release];
-  
+
   exit(0);
 }
 

@@ -12,7 +12,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -167,11 +167,11 @@ static NSLock			*placeholderLock;
     theClass = rectValueClass;
   else if (strcmp(@encode(NSSize), type) == 0)
     theClass = sizeValueClass;
-  
+
   return theClass;
 }
 
-// Allocating and Initializing 
+// Allocating and Initializing
 
 + (NSValue*) value: (const void *)value
       withObjCType: (const char *)type
@@ -212,7 +212,7 @@ static NSLock			*placeholderLock;
   theObj = [theObj initWithBytes: &point objCType: @encode(NSPoint)];
   return AUTORELEASE(theObj);
 }
- 
+
 + (NSValue*) valueWithPointer: (const void *)pointer
 {
   NSValue	*theObj;
@@ -230,7 +230,7 @@ static NSLock			*placeholderLock;
   theObj = [theObj initWithBytes: &range objCType: @encode(NSRange)];
   return AUTORELEASE(theObj);
 }
- 
+
 + (NSValue*) valueWithRect: (NSRect)rect
 {
   NSValue	*theObj;
@@ -239,7 +239,7 @@ static NSLock			*placeholderLock;
   theObj = [theObj initWithBytes: &rect objCType: @encode(NSRect)];
   return AUTORELEASE(theObj);
 }
- 
+
 + (NSValue*) valueWithSize: (NSSize)size
 {
   NSValue	*theObj;
@@ -294,7 +294,7 @@ static NSLock			*placeholderLock;
   return nil;
 }
 
-// Accessing Data 
+// Accessing Data
 /* All the rest of these methods must be implemented by a subclass */
 - (void) getValue: (void *)value
 {
@@ -321,37 +321,37 @@ static NSLock			*placeholderLock;
   [self subclassResponsibility: _cmd];
   return 0;
 }
- 
+
 - (id) nonretainedObjectValue
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
- 
+
 - (void *) pointerValue
 {
   [self subclassResponsibility: _cmd];
   return 0;
-} 
+}
 
 - (NSRange) rangeValue
 {
   [self subclassResponsibility: _cmd];
   return NSMakeRange(0,0);
 }
- 
+
 - (NSRect) rectValue
 {
   [self subclassResponsibility: _cmd];
   return NSMakeRect(0,0,0,0);
 }
- 
+
 - (NSSize) sizeValue
 {
   [self subclassResponsibility: _cmd];
   return NSMakeSize(0,0);
 }
- 
+
 - (NSPoint) pointValue
 {
   [self subclassResponsibility: _cmd];
@@ -385,7 +385,7 @@ static NSLock			*placeholderLock;
   [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
   RELEASE(d);
 }
- 
+
 @class	NSDataStatic;		// Neede for decoding.
 
 - (id) initWithCoder: (NSCoder *)coder
@@ -512,7 +512,7 @@ static NSLock			*placeholderLock;
 	}
       /*
        * For performance, decode small values directly onto the stack,
-       * For larger values we allocate and deallocate heap space.  
+       * For larger values we allocate and deallocate heap space.
        */
       size = objc_sizeof_type(objctype);
       if (size <= 64)

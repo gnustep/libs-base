@@ -1,22 +1,22 @@
 /** NSDictionary - Dictionary object to store key/value pairs
    Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -65,7 +65,7 @@
  *  accessed from multiple threads you should enclose critical operations
  *  within locks (see [NSLock]).</p>
  */
-@implementation NSDictionary 
+@implementation NSDictionary
 
 @class	GSDictionary;
 @class	GSMutableDictionary;
@@ -309,9 +309,9 @@ static SEL	appSel;
       id	keys;
       id	objects;
 
-      keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+      keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
 					       @"NS.keys"];
-      objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+      objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
 						  @"NS.objects"];
       if (keys == nil)
 	{
@@ -348,7 +348,7 @@ static SEL	appSel;
 	  id	*vals = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
 	  unsigned	i;
 	  IMP	dec;
-	  
+	
 	  dec = [aCoder methodForSelector: @selector(decodeObject)];
 	  for (i = 0; i < count; i++)
 	    {
@@ -388,7 +388,7 @@ static SEL	appSel;
  * The n th element of the objects array is associated with the n th
  * element of the keys array.
  */
-+ (id) dictionaryWithObjects: (id*)objects 
++ (id) dictionaryWithObjects: (id*)objects
 		     forKeys: (id*)keys
 		       count: (unsigned)count
 {
@@ -410,7 +410,7 @@ static SEL	appSel;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
   unsigned	objectCount = [objects count];
-  
+
   if (objectCount != [keys count])
     {
       [NSException raise: NSInvalidArgumentException
@@ -551,7 +551,7 @@ static SEL	appSel;
  * will be released and the method will return nil.
  * </p>
  * <p>Works by invoking [NSString-initWithContentsOfFile:] and
- * [NSString-propertyList] then checking that the result is a dictionary.  
+ * [NSString-propertyList] then checking that the result is a dictionary.
  * </p>
  */
 - (id) initWithContentsOfFile: (NSString*)path
@@ -604,7 +604,7 @@ static SEL	appSel;
  * will be released and the method will return nil.
  * </p>
  * <p>Works by invoking [NSString-initWithContentsOfURL:] and
- * [NSString-propertyList] then checking that the result is a dictionary.  
+ * [NSString-propertyList] then checking that the result is a dictionary.
  * </p>
  */
 - (id) initWithContentsOfURL: (NSURL*)aURL
@@ -826,7 +826,7 @@ static SEL	appSel;
 }
 
 struct foo { NSDictionary *d; SEL s; IMP i; };
-   
+
 static int
 compareIt(id o1, id o2, void* context)
 {
@@ -1107,7 +1107,7 @@ compareIt(id o1, id o2, void* context)
       o[count + i] = (*objImp)(self, objSel, key);
       o[count + i] = [o[count + i] copyWithZone: z];
     }
-  newDictionary = [[GSDictionaryClass allocWithZone: z] 
+  newDictionary = [[GSDictionaryClass allocWithZone: z]
 	  initWithObjects: o + count
 		  forKeys: o
 		    count: count];

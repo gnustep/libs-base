@@ -14,7 +14,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -108,7 +108,7 @@ typedef struct {
  *
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
- 
+
 static SEL	eventSel;	/* Initialized in [NSRunLoop +initialize] */
 
 @interface GSRunLoopWatcher: NSObject
@@ -147,12 +147,12 @@ static SEL	eventSel;	/* Initialized in [NSRunLoop +initialize] */
       case ET_RDESC: 	type = aType;	break;
       case ET_WDESC: 	type = aType;	break;
       case ET_RPORT: 	type = aType;	break;
-      default: 
+      default:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];
     }
   receiver = anObj;
-  if ([receiver respondsToSelector: eventSel] == YES) 
+  if ([receiver respondsToSelector: eventSel] == YES)
     handleEvent = [receiver methodForSelector: eventSel];
   else
     [NSException raise: NSInvalidArgumentException
@@ -337,7 +337,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 
 static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
-  return [((GSRunLoopWatcher *)(i0.obj))->_date 
+  return [((GSRunLoopWatcher *)(i0.obj))->_date
     compare: ((GSRunLoopWatcher *)(i1.obj))->_date];
 }
 
@@ -359,14 +359,14 @@ wRetain(NSMapTable* t, const void* w)
   (*wRetImp)((id)w, wRetSel);
 }
 
-static const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
+static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 {
   wRetain,
   wRelease,
   0
 };
 #else
-#define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
+#define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks
 #endif
 
 
@@ -451,13 +451,13 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       switch (type)
 	{
-	  case ET_RDESC: 
+	  case ET_RDESC:
 	    NSMapRemove(_rfdMap, data);
 	    break;
-	  case ET_WDESC: 
+	  case ET_WDESC:
 	    NSMapRemove(_wfdMap, data);
 	    break;
-	  case ET_EDESC: 
+	  case ET_EDESC:
 	    NSMapRemove(_efdMap, data);
 	    break;
 	  default:
@@ -613,25 +613,25 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
       switch (info->type)
 	{
-	  case ET_EDESC: 
+	  case ET_EDESC:
 	    fd = (int)info->data;
 	    setPollfd(fd, POLLPRI, self);
 	    NSMapInsert(_efdMap, (void*)fd, info);
 	    break;
 
-	  case ET_RDESC: 
+	  case ET_RDESC:
 	    fd = (int)info->data;
 	    setPollfd(fd, POLLIN, self);
 	    NSMapInsert(_rfdMap, (void*)fd, info);
 	    break;
 
-	  case ET_WDESC: 
+	  case ET_WDESC:
 	    fd = (int)info->data;
 	    setPollfd(fd, POLLOUT, self);
 	    NSMapInsert(_wfdMap, (void*)fd, info);
 	    break;
 
-	  case ET_RPORT: 
+	  case ET_RPORT:
 	    if ([info->receiver isValid] == NO)
 	      {
 		/*
@@ -643,7 +643,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    else
 	      {
 		id port = info->receiver;
-		int port_fd_count = 128; // FIXME 
+		int port_fd_count = 128; // FIXME
 		int port_fd_array[port_fd_count];
 
 		if ([port respondsToSelector:
@@ -658,7 +658,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  {
 		    fd = port_fd_array[port_fd_count];
 		    setPollfd(fd, POLLIN, self);
-		    NSMapInsert(_rfdMap, 
+		    NSMapInsert(_rfdMap,
 		      (void*)port_fd_array[port_fd_count], info);
 		  }
 	      }
@@ -759,7 +759,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  int			fd = pollfds[fdIndex].fd;
 	  GSRunLoopWatcher	*watcher;
 	  BOOL			found = NO;
-	  
+	
 	  /*
 	   * The poll() call supports various error conditions - all
 	   * errors should be handled by any available handler.
@@ -850,7 +850,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  if (found == YES && --poll_return == 0)
 	    {
 	      completed = YES;
-	    }  
+	    }
 	}
       if (++fdIndex >= fdEnd)
 	{
@@ -904,7 +904,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
       select_timeout = &timeout;
     }
-  else 
+  else
     {
       timeout.tv_sec = -1;
       timeout.tv_usec = -1;
@@ -939,7 +939,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	}
       switch (info->type)
 	{
-	  case ET_EDESC: 
+	  case ET_EDESC:
 	    fd = (int)info->data;
 	    if (fd > fdEnd)
 	      fdEnd = fd;
@@ -948,7 +948,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    num_inputs++;
 	    break;
 
-	  case ET_RDESC: 
+	  case ET_RDESC:
 	    fd = (int)info->data;
 	    if (fd > fdEnd)
 	      fdEnd = fd;
@@ -957,7 +957,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    num_inputs++;
 	    break;
 
-	  case ET_WDESC: 
+	  case ET_WDESC:
 	    fd = (int)info->data;
 	    if (fd > fdEnd)
 	      fdEnd = fd;
@@ -966,7 +966,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    num_inputs++;
 	    break;
 
-	  case ET_RPORT: 
+	  case ET_RPORT:
 	    if ([info->receiver isValid] == NO)
 	      {
 		/*
@@ -995,7 +995,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		    FD_SET (port_fd_array[port_fd_count], &read_fds);
 	            if (fd > fdEnd)
 		      fdEnd = fd;
-		    NSMapInsert(_rfdMap, 
+		    NSMapInsert(_rfdMap,
 		      (void*)port_fd_array[port_fd_count], info);
 		    num_inputs++;
 		  }
@@ -1052,7 +1052,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       completed = YES;
       return NO;
     }
-      
+
   /*
    * Look at all the file descriptors select() says are ready for action;
    * notify the corresponding object for each of the ready fd's.
@@ -1577,7 +1577,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       GSRunLoopWatcher	*info;
 
       info = [self _getWatcher: data type: type forMode: mode];
-  
+
       if (info)
 	{
 	  if (info->count == 0)
@@ -1804,7 +1804,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
 		  obj = min_watcher->receiver;
-		  if ([obj respondsToSelector: 
+		  if ([obj respondsToSelector:
 		    @selector(timedOutEvent:type:forMode:)])
 		    {
 		      nxt = [obj timedOutEvent: min_watcher->data
@@ -1814,7 +1814,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  else if ([obj respondsToSelector: @selector(delegate)])
 		    {
 		      obj = [obj delegate];
-		      if (obj != nil && [obj respondsToSelector: 
+		      if (obj != nil && [obj respondsToSelector:
 			@selector(timedOutEvent:type:forMode:)])
 			{
 			  nxt = [obj timedOutEvent: min_watcher->data
@@ -1924,7 +1924,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
  * earliest limit date has passed (whichever comes first).<br />
  * If the supplied mode is nil, uses NSDefaultRunLoopMode.
  */
-- (void) acceptInputForMode: (NSString*)mode 
+- (void) acceptInputForMode: (NSString*)mode
 		 beforeDate: (NSDate*)limit_date
 {
   GSRunLoopCtxt		*context;
@@ -1980,7 +1980,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       else
 	{
 	  /* Wait until the LIMIT_DATE. */
-	  NSDebugMLLog(@"NSRunLoop", @"accept I/P before %f (sec from now %f)", 
+	  NSDebugMLLog(@"NSRunLoop", @"accept I/P before %f (sec from now %f)",
 	    [limit_date timeIntervalSinceReferenceDate], ti);
 	  if (ti >= INT_MAX / 1000)
 	    {

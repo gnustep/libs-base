@@ -52,7 +52,7 @@ autorelease_test (int depth)
     }
 
 #if 0
-  fprintf (stderr, "totalAutoreleasedObjects %d\n", 
+  fprintf (stderr, "totalAutoreleasedObjects %d\n",
 	   [NSAutoreleasePool totalAutoreleasedObjects]);
 #endif
   autorelease_test (depth-1);
@@ -103,7 +103,7 @@ my_malloc_hook (size_t size)
   return result;
 }
 
-void 
+void
 my_free_hook (void *ptr)
 {
   __free_hook = old_free_hook;
