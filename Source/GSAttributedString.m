@@ -99,6 +99,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToDictionary: (Y).obj]
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT
+#define	GSI_MAP_NOCLEAN	1
 
 #include <base/GSIMap.h>
 

@@ -3,7 +3,16 @@
 	* Source/NSString.m: ([stringByExpandingTildeInPath]) fix bug in
 	handling ~username/... format.
 	* Headers/Foundation/GSIMap.h: GSIMapCleanMap() rewrote to empty
-	the map efficiently.
+	the map efficiently.  Added an option to refrain from calling it
+	when emptying a map that doesn't need keys and values releasing.
+	* Source/GSAttributedString.m: don't clean maps on emptying.
+	* Source/GSFFCallInvocation.m: ditto
+	* Source/NSArchiver.m: ditto
+	* Source/NSConnection.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSPortCoder.m: ditto
+	* Source/NSSerializer.m: ditto
+	Changes inspired by Pierre-Tves Rivaille
 
 2002-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 

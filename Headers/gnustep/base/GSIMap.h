@@ -65,6 +65,12 @@
  *		map table whose type is that specified by the value of the
  *		preprocessor constant. This field can be used
  *		to store additional information for the map.
+ *
+ *	GSI_MAP_NOCLEAN
+ *		Define this to a non-zero integer value if the map keys and
+ *		values do not need to be released when the map is emptied.
+ *		This permits some optimisation.
+ *
  */
 
 #ifndef	GSI_MAP_HAS_VALUE
@@ -731,7 +737,19 @@ GSIMapEmptyMap(GSIMapTable map)
 {
   int	i;
 
+#ifdef	GSI_MAP_NOCLEAN
+  if (GSI_MAP_NOCLEAN)
+    {
+      map->firstNode = 0;
+      map->nodeCount = 0;
+    }
+  else
+    {
+      GSIMapCleanMap(map);
+    }
+#else
   GSIMapCleanMap(map);
+#endif
   if (map->buckets != 0)
     {
       NSZoneFree(map->zone, map->buckets);
