@@ -273,7 +273,7 @@
 	      format: @"Cannot copy value into NULL pointer"];
       /* NOT REACHED */ 
     }
-  memcpy( value, &data, objc_sizeof_type([self objCType]) );
+  memcpy(value, &data, objc_sizeof_type([self objCType]));
 }
 
 - (const char*) objCType

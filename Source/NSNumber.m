@@ -777,6 +777,10 @@ static Class	doubleNumberClass;
 
 - (BOOL) isEqual: o
 {
+  if (o == self)
+    {
+      return YES;
+    }
   if (o != nil && fastIsInstance(o)
     && fastInstanceIsKindOfClass(o, abstractClass))
     {
@@ -787,6 +791,10 @@ static Class	doubleNumberClass;
 
 - (BOOL) isEqualToNumber: (NSNumber*)o
 {
+  if (o == self)
+    {
+      return YES;
+    }
   if ([self compare: o] == NSOrderedSame)
     {
       return YES;
