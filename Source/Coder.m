@@ -1528,6 +1528,7 @@ exc_return_null(arglist_t f)
   /* xxx This won't work for decoding forward references!!! */
   id o;
   [self decodeObjectAt: &o withName: NULL];
+  return o;
 }
 
 - (id) decodePropertyList
@@ -1598,6 +1599,13 @@ exc_return_null(arglist_t f)
      cause it to conform to <Streaming>. */
   [self initForWritingToStream: mdata];
   return self;
+}
+
+- (id) initForReadingWithData: (NSData*)data
+{
+  id ret = [[self class] newReadingFromStream: data];
+  [self release];
+  return ret;
 }
 
 /* Archiving Data */
