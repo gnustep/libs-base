@@ -1,3 +1,9 @@
+2002-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Make safe to reinitialise with args.
+	* Source/Additions/GSXML.m: Correct handling of atttribute values.
+	* Tools/autogsdoc.m: Initialise NSProcessInfo explicitly.
+
 2002-10-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([-initWithContentsOfFile:]) check to see

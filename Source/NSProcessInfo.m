@@ -171,13 +171,18 @@ static NSMutableSet	*_debug_set = nil;
 void 
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  CREATE_AUTORELEASE_POOL(arp);
   int i;
 
+  if (_gnu_arg_zero != 0)
+    {
+      free(_gnu_arg_zero);
+    }
   _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
   strcpy(_gnu_arg_zero, argv[0]);
 
   /* Getting the process name */
+  IF_NO_GC(RELEASE(_gnu_processName));
   _gnu_processName = [[NSString stringWithCString: argv[0]] lastPathComponent];
   IF_NO_GC(RETAIN(_gnu_processName));
 
@@ -198,7 +203,9 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	else
           obj_argv[added++] = str;
       }
+    IF_NO_GC(RELEASE(_gnu_arguments));
     _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
+    IF_NO_GC(RELEASE(_debug_set));
     _debug_set = mySet;
   }
 	
@@ -252,12 +259,13 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 #endif
 	i++;
       }
+    IF_NO_GC(RELEASE(_gnu_environment));
     _gnu_environment = [[NSDictionary alloc] initWithObjects: values
 						     forKeys: keys];
-    [keys release];
-    [values release];
+    IF_NO_GC(RELEASE(keys));
+    IF_NO_GC(RELEASE(values));
   }
-  [arp release];
+  IF_NO_GC(RELEASE(arp));
 }
 
 #if !GS_FAKE_MAIN && (defined(HAVE_PROCFS) && defined(HAVE_LOAD_METHOD))
@@ -753,16 +761,15 @@ int main(int argc, char *argv[], char *env[])
 /**
  * Fallback method. The developer must call this method to initialize
  * the NSProcessInfo system if none of the system-specific hacks to
- * auto initiailise it are working.
+ * auto-initialize it are working.
  */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env
 {
-  if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
-    {
-      _gnu_process_args(argc, argv, env);
-    }
+  [gnustep_global_lock lock];
+  _gnu_process_args(argc, argv, env);
+  [gnustep_global_lock unlock];
 }
 
 /**

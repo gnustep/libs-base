@@ -492,13 +492,15 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
-  CREATE_AUTORELEASE_POOL(outer);
-  CREATE_AUTORELEASE_POOL(pool);
+#if GS_WITH_GC == 0
+  NSAutoreleasePool	*outer = nil;
+  NSAutoreleasePool	*pool = nil;
+#endif
 
-  RELEASE(pool);
-
-#ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+
+#if GS_WITH_GC == 0
+  outer = [NSAutoreleasePool new];
 #endif
 
 #ifndef HAVE_LIBXML
@@ -1251,7 +1253,7 @@ main(int argc, char **argv, char **env)
 			file, gDate, hDate);
 		    }
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: NO];
+		  [parser substituteEntities: YES];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
 		  if ([parser parse] == NO)
