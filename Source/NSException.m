@@ -31,10 +31,16 @@
 #include <Foundation/NSDictionary.h>
 
 static void
+_preventRecursion (NSException *exception)
+{
+}
+
+static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
+  _NSUncaughtExceptionHandler = _preventRecursion;
   fprintf(stderr, "Uncaught exception %s, reason: %s\n",
-    	[[exception name] cString], [[exception reason] cString]);
+    	[[exception name] lossyCString], [[exception reason] lossyCString]);
 /* FIXME: need to implement this:
   NSLogError("Uncaught exception %@, reason: %@",
     	[exception name], [exception reason]);
