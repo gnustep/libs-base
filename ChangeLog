@@ -1,3 +1,8 @@
+2003-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex.m: Convert nil content to empty strings before use.
+	* Tools/AGSHtml.m: ditto ... prevent some crashes.
+
 2003-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m (_gnu_process_args): Tidied patch and add

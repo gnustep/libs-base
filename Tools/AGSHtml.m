@@ -775,6 +775,7 @@ static NSMutableSet	*textNodes = nil;
 	  if (val == nil)
 	    {
 	      val = text;
+	      if (val == nil) val = @"";
 	    }
 	  [buf appendString: [self makeAnchor: val ofType: @"label" name: @""]];
 	}
@@ -844,6 +845,7 @@ static NSMutableSet	*textNodes = nil;
 			    {
 			      NSString	*content = [t content];
 
+			      if (content == nil) content = @"";
 			      str = [str stringByAppendingString: content];
 			    }
 			  t = [t next];
@@ -1180,6 +1182,7 @@ static NSMutableSet	*textNodes = nil;
 	  if (val == nil)
 	    {
 	      val = text;
+	      if (val == nil) val = @"";
 	    }
 	  [buf appendString:
 	    [self makeAnchor: val ofType: @"label" name: text]];
@@ -1219,6 +1222,7 @@ static NSMutableSet	*textNodes = nil;
 			    {
 			      NSString	*content = [t content];
 
+			      if (content == nil) content = @"";
 			      str = [str stringByAppendingString: content];
 			    }
 			  t = [t next];
@@ -1333,6 +1337,7 @@ static NSMutableSet	*textNodes = nil;
 			    {
 			      NSString	*content = [t content];
 
+			      if (content == nil) content = @"";
 			      sel = [sel stringByAppendingString: content];
 			      if (hadArg == YES)
 				{
@@ -1356,7 +1361,10 @@ static NSMutableSet	*textNodes = nil;
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      str = [str stringByAppendingString: [t content]];
+			      NSString	*content = [t content];
+			
+			      if (content == nil) content = @"";
+			      str = [str stringByAppendingString: content];
 			    }
 			  t = [t next];
 			}
@@ -1991,6 +1999,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 	{
 	  NSString	*str = [node content];
 
+	  if (str == nil) str = @"";
 	  [buf appendString: str];
 	}
       else if ([node type] == XML_ENTITY_REF_NODE)
@@ -2043,6 +2052,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 	{
 	  NSString	*text = [[node firstChild] content];
 
+	  if (text == nil) text = @"";
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>"];
 	  [buf appendString: [self protocolRef: text]];
