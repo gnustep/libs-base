@@ -34,8 +34,6 @@
 #define NSIG    32
 #endif
 
-@class	GSTcpPort;
-
 static void
 ihandler(int sig)
 {
@@ -329,10 +327,10 @@ ihandler(int sig)
    */
   if (isLocal == YES && service != GDNC_NETWORK)
     {
-      NSPort	*port = [GSTcpPort portWithNumber: 0
-					   onHost: [NSHost localHost]
-				     forceAddress: @"127.0.0.1"
-					 listener: YES];
+      NSPort	*port = [NSSocketPort portWithNumber: 0
+					      onHost: [NSHost localHost]
+					forceAddress: @"127.0.0.1"
+					    listener: YES];
       conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
     }
   else
