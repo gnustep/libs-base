@@ -12,9 +12,11 @@ Any hints?
 
 #include <gnustep/base/Queue.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 int main ()
 {
+  NSAutoreleasePool *pool = [NSAutoreleasePool new];
   Array *a;
   CircularArray *c;
   Queue *q;
@@ -42,5 +44,6 @@ int main ()
   [q insertObject: [NSObject new] atIndex: 2]; // core dump!
   printf("count: %d\n", [q count]);
 
+  [pool release];
   exit (0);
 }
