@@ -25,6 +25,7 @@
 #include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSFileHandle.h>
+#include <Foundation/NSDebug.h>
 #include <unistd.h>
 
 @implementation NSPipe
@@ -53,9 +54,14 @@
 
       if (pipe(p) == 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithFileDescriptor:p[0]];
-          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:p[1]];
+          readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]];
+          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]];
         }
+      else
+	{
+	  NSLog(@"Failed to create pipe ... %s", strerror(errno));
+	  DESTROY(self);
+	}
 #else
       HANDLE readh, writeh;
 

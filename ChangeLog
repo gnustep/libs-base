@@ -4,6 +4,8 @@
 	Chris B Vetter.
 	* Source/NSString.m: Fix memory allocation of a unichar buffer to
 	correct size.
+	* Source/NSPipe.m: Log an error if we can't open a new pipe.
+	* Source/NSTask.m: Slight tidyup
 
 2001-05-04  Nicola Pero  <n.pero@mi.flashnet.it>
 
