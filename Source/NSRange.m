@@ -65,7 +65,7 @@ NSRangeFromString(NSString* string)
     && (*scanStringImp)(scanner, scanStringSel, @"location", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
     && (*scanIntImp)(scanner, scanIntSel, &range.location)
-    && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @",", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"length", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
     && (*scanIntImp)(scanner, scanIntSel, &range.length)
@@ -79,7 +79,7 @@ NSString *
 NSStringFromRange(NSRange range)
 {
   setupCache();
-  return [NSStringClass stringWithFormat: @"{location = %d, length = %d}",
+  return [NSStringClass stringWithFormat: @"{location=%d, length=%d}",
     range.location, range.length];
 }
 

@@ -478,7 +478,32 @@ failure:
 
 - (unsigned) hash
 {
-  return [self length];
+  unsigned char	buf[64];
+  unsigned	l = [self length];
+  unsigned	ret =0;
+  
+  l = MIN(l,64);
+
+  /*
+   * hash for empty data matches hash for empty string
+   */
+  if (l == 0)
+    {
+      return 0xfffffffe;
+    }
+  
+  [self getBytes: &buf range: NSMakeRange(0, l)];
+
+  while (l-- > 0)
+    {
+      ret = (ret << 5 ) + ret + buf[l];
+    }
+  // Again, match NSString
+  if (ret == 0)
+    {
+       ret = 0xffffffff;
+    }
+  return ret;
 }
 
 - (BOOL) isEqual: anObject
