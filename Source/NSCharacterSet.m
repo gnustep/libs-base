@@ -98,7 +98,7 @@ static NSLock* cache_lock = nil;
         cache_set[number] = set;
       NS_HANDLER
 	[cache_lock unlock];
-        [exception raise];
+        [localException raise];
       NS_ENDHANDLER
     }
   else
