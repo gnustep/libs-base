@@ -32,11 +32,11 @@
 @interface NSDistantObject : NSProxy <NSCoding>
 {
 @private
-    NSConnection*	_connection;
+    NSConnection	*_connection;
     id			_object;
     BOOL		_isLocal;
     BOOL		_isVended;
-    id			_protocol;
+    Protocol		*_protocol;
 }
 
 + (NSDistantObject*) proxyWithLocal: anObject
