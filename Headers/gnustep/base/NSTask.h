@@ -76,6 +76,9 @@
  *	Obtaining task state
  */
 - (BOOL) isRunning;
+#ifndef	STRICT_OPENSTEP
+- (int) processIdentifier;
+#endif
 - (int) terminationStatus;
 
 /*
@@ -83,6 +86,10 @@
  */
 - (void) interrupt;
 - (void) launch;
+#ifndef	STRICT_OPENSTEP
+- (BOOL) resume;
+- (BOOL) suspend;
+#endif
 - (void) terminate;
 - (void) waitUntilExit;
 

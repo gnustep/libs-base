@@ -439,6 +439,11 @@ pty_slave(const char* name)
   return YES;
 }
 
+- (int) processIdentifier
+{
+  return _taskId;
+}
+
 - (int) terminationStatus
 {
   if (_hasLaunched == NO)
@@ -485,6 +490,40 @@ pty_slave(const char* name)
 - (void) launch
 {
   [self subclassResponsibility: _cmd];
+}
+
+- (BOOL) resume
+{
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+#ifndef __MINGW__
+#ifdef	HAVE_KILLPG
+  killpg(_taskId, SIGCONT);
+#else
+  kill(-_taskId, SIGCONT);
+#endif
+#endif
+  return YES;
+}
+
+- (BOOL) suspend
+{
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+#ifndef __MINGW__
+#ifdef	HAVE_KILLPG
+  killpg(_taskId, SIGTERM);
+#else
+  kill(-_taskId, SIGTERM);
+#endif
+#endif
+  return YES;
 }
 
 - (void) terminate

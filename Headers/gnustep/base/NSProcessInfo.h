@@ -37,17 +37,20 @@
 @interface NSProcessInfo: NSObject
 
 /* Getting an NSProcessInfo Object */
-+ (NSProcessInfo *)processInfo;
++ (NSProcessInfo*) processInfo;
 
 /* Returning Process Information */
-- (NSArray *)arguments;
-- (NSDictionary *)environment;
-- (NSString *)hostName;
-- (NSString *)processName;
-- (NSString *)globallyUniqueString;
+- (NSArray*) arguments;
+- (NSDictionary*) environment;
+- (NSString*) hostName;
+#ifndef	STRICT_OPENSTEP
+- (int) processIdentifier;
+#endif
+- (NSString*) processName;
+- (NSString*) globallyUniqueString;
 
 /* Specifying a Process Name */
-- (void)setProcessName:(NSString *)newName;
+- (void) setProcessName: (NSString*)newName;
 
 @end
 
@@ -59,9 +62,9 @@
 - (NSMutableSet*) debugSet;
 
 /* When non using the other argument initialization hacks... */
-+ (void)initializeWithArguments:(char**)argv
-                          count:(int)argc
-                    environment:(char**)env;
++ (void)initializeWithArguments: (char**)argv
+                          count: (int)argc
+                    environment: (char**)env;
 @end
 
 /*
