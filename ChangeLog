@@ -12,6 +12,11 @@
 	obtain handle for specific network link in use by a connection,
 	and invalidate it when the connection is iunvaliodated.
 	Fixes bug #9798
+	* Headers/Foundation/NSURLHandle.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLHandle.m: Add new property keys for setting certificate
+	information for https. Stopgap until we can clone newer MacOS-X
+	features.
 
 2004-08-23 Richard Frith-Macdonald <rfm@gnu.org>
 
