@@ -14,6 +14,8 @@
 	* Source/UdpPort.m: Likewise.
 	* Tools/gdomap.c: Likewise.
 
+	* Source/NSBinaryCStream: Use NSByteOrder functions.
+	* Source/UdpPort.m: Likewise.
 	* Source/Invocation.m (initWithTarget:selector:): Use proper cast.
 	* Source/NSFileManager.m (-isExecutableFileAtPath): Typo.
 	* Source/NSPage.m (getpagesize): New function for WIN32
