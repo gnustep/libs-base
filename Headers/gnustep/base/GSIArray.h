@@ -404,6 +404,16 @@ GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
   GSI_ARRAY_RELEASE(array, tmp);
 }
 
+/*
+ * For direct access ... unsafe if you change the array in any way while
+ * examining the contents of this buffer.
+ */
+static INLINE GSIArrayItem *
+GSIArrayItems(GSIArray array)
+{
+  return array->ptr;
+}
+
 static INLINE GSIArrayItem
 GSIArrayItemAtIndex(GSIArray array, unsigned index)
 {
