@@ -1,3 +1,10 @@
+2001-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Modify default handler to permit simple
+	exit as well as abort.
+	* Documentation/gsdoc/Base.gsdoc: documented environmnet variable
+	CRASH_ON_ABORT
+
 2001-01-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fixes for OPENSTEP compatibility in string path
