@@ -1,3 +1,10 @@
+2001-10-14  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/Unicode.m: 
+	In iconv_cstrtoustr() and iconv_ustrtocstr() report if a iconv
+	conversion cannot be found. Also added a type convert to the iconv
+	call, so that the compiler wont report a type mismatch.
+	
 2001-10-13  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSPathUtilities.h (GSSystemRootDirectory): 
@@ -866,7 +873,7 @@ Wed May  2 13:19:13 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 	([descriptionWithLocale:indent:to@]) handle unicode strings by using
 	\U escape sequences in output C string.
 
-2000-04-28  Fred Kiefer <FredKiefer@gmx.de>
+2001-04-28  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSString.m: 
 	Corrected bug in last optimization for the parsing of property
