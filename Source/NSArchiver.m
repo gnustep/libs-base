@@ -62,8 +62,15 @@ static Class NSArchiver_concrete_class;
   return self;
 }
 
+
+
 
 /* Archiving Data */
+
+- init
+{
+  return [self initForWritingWithMutableData: [[NSMutableData alloc] init]];
+}
 
 + (NSData*) archivedDataWithRootObject: (id)rootObject
 {
