@@ -1,3 +1,16 @@
+2002-01-02  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Show openssl as enabled by default in help. Check for
+	more headers.
+	* Source/NSTask.m: Move #includes to front, remove redundancies.
+
+	* Source/GSXML.m ([(non-libxml)GSXMLNode +forwardInvocation]):
+	Implement.
+
+	* Documentation/GNUmakefile: Remove gnustep-base.texi
+	* Documentation/install.texi: Update.
+	* Documentation/news.texi: Likewise.
+
 2002-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSXML.m: Tidied some methods and added autogsdoc comments.

@@ -105,7 +105,7 @@ library that implements a Foreign-Function Interface (FFI), such as the
 ffcall libraries. Use of ffcall is automatically enabled if the ffcall
 libraries are found, unless specifically disabled with @code{--disable-ffcall}.
 If disabled, the code reverts to the builtin method for stack frame handling,
-but this rarely works on non ix86 machines and is not supported.
+but this rarely works on non-ix86 machines and is not supported.
 
 You need to have the ffcall libraries, which you can
 get from @url{ftp://www.gnustep.org/pub/gnustep/libs/} or
@@ -118,11 +118,13 @@ were not in the standard library). You can get this library from
 @subsection OpenSSL
 
 GNUstep base has optional support for using the OpenSSL libraries for
-secure URL connections (with the NSURL classes). To enable this option
-you need to have the openssl libraries installed and add the option
-@code{--enable-openssl} when running the @file{configure} script. Note that
-the OpenSSL license is not compatible with GPL, so do not use this option
-if you want your programs to be GPL compatible.
+secure URL connections (with the NSURL classes). This functionality is
+compiled as a separate bundle since the OpenSSL license is not
+compatible with GPL, and in the hopes that if someone writes an openssl
+replacement, it can quickly be used by creating another bundle. The
+openssl libraries need to be installed for this to work.  To disable
+this option add @code{--disable-openssl} when running the
+@file{configure} script.
 
 @node Compilation,  , Configuration, Top
 @section Compilation
