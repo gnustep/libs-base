@@ -1,3 +1,7 @@
+2004-07-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: regenerated
+
 2004-07-14  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Use generic -with-ffi-{include,library} for finding

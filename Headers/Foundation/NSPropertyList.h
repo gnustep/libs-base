@@ -69,8 +69,6 @@ typedef enum {
 /** <strong>NSPropertyListXMLFormat_v1_0</strong>
  * portable and readable */
   NSPropertyListBinaryFormat_v1_0,
-/** <strong>NSPropertyListBinaryFormat_v1_0</strong>
- * not yet supported */
 } NSPropertyListFormat;
 
 /**
