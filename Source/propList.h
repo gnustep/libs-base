@@ -725,12 +725,12 @@ static id parsePl(pldata* pld)
     {
       NSData		*data;
       GSXMLParser	*parser;
-      char		*buf = NSZoneMalloc(NSDefaultMallocZone(), pld->end+1);
+      char		*buf = NSZoneMalloc(NSDefaultMallocZone(), pld->end);
 
       memcpy(buf, pld->ptr, pld->end);
-      buf[pld->end] = '\0';
-      data = [NSData dataWithBytesNoCopy: buf length: pld->end+1]; 
+      data = [NSData dataWithBytesNoCopy: buf length: pld->end]; 
       parser = [GSXMLParser parserWithData: data];
+      [parser substituteEntities: NO];
       if ([parser parse] == YES)
 	{
 	  if (![[[[parser doc] root] name] isEqualToString: @"plist"])

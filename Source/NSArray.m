@@ -656,14 +656,25 @@ static SEL	rlSel = @selector(removeLastObject);
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-  NSMutableString	*result;
+  extern BOOL GSMacOSXCompatiblePropertyLists();
 
-  result = [[NSGMutableCString alloc] initWithCapacity: 20*[self count]];
-  result = AUTORELEASE(result);
-  [self descriptionWithLocale: locale
-		       indent: level
-			   to: (id<GNUDescriptionDestination>)result];
-  return result;
+  if (GSMacOSXCompatiblePropertyLists() == YES)
+    {
+      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
+
+      return GSXMLPlMake(self, locale, level);
+    }
+  else
+    {
+      NSMutableString	*result;
+
+      result = [[NSGMutableCString alloc] initWithCapacity: 20*[self count]];
+      result = AUTORELEASE(result);
+      [self descriptionWithLocale: locale
+			   indent: level
+			       to: (id<GNUDescriptionDestination>)result];
+      return result;
+    }
 }
 
 static NSString	*indentStrings[] = {

@@ -182,7 +182,7 @@
 	    </p>
 	    <p>
 	      The source for the parsing process is not specified - so
-	      parsing must be done incfrementally by feeding data to the
+	      parsing must be done incrementally by feeding data to the
 	      parser.
 	    </p>
           </desc>
@@ -236,9 +236,8 @@
             </p>
 	    <p>
 	      Sets the input source for the parser to be the specified data
-	      object (which must contain a nul terminated XML document),
-	      so parsing of the entire document will be performed rather than
-	      incremental parsing.
+	      object (which must contain an XML document), so parsing of the
+	      entire document will be performed rather than incremental parsing.
 	    </p>
           </desc>
         </method>
@@ -254,7 +253,8 @@
         <method type="GSXMLDocument*">
           <sel>doc</sel>
           <desc>
-	    <p>Return GSXMLDocument object.
+	    <p>
+	      Return GSXMLDocument object.
             </p>
           </desc>
         </method>
@@ -264,7 +264,7 @@
           <desc>
 	    <p>
 	      Parse source. Return YES if parsed, otherwise NO.
-	      This method should be called once to parse the entiore document.
+	      This method should be called once to parse the entire document.
             </p>
             <example>
   GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile:@"macos.xml"];
@@ -292,8 +292,8 @@
 	      block of data from the same document.  After the whole of the
 	      document has been parsed, the method should be called with
 	      an empty or nil data object to indicate end of parsing.
-	      Once this has been done, the method may be used again to
-	      parse a new document.
+	      On this final call, the return value indicates whether the
+	      document was valid or not.
             </p>
             <example>
   GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: nil source: nil];
@@ -307,7 +307,7 @@
     }
     // Do something with document parsed
 
-    [p parse: nil];  // Ready to parse another document.
+    [p parse: nil];  // Completed parsing of document.
 
             </example>
           </desc>
@@ -318,7 +318,7 @@
           <arg type="BOOL">yesno</arg>
           <desc>
           <p>
-	    Set and return the previous value for default entity support.
+	    Set and return the previous value for entity support.
             Initially the parser always keeps entity references instead
 	    of substituting entity values in the output.
           </p>
@@ -330,8 +330,7 @@
           <arg type="BOOL">yesno</arg>
           <desc>
 	    <p>
-	      Set and return the previous value for default blanks
-	      text nodes support.
+	      Set and return the previous value for blank text nodes support.
 	      ignorableWhitespace() are only generated when running
 	      the parser in validating mode and when the current element
 	      doesn't allow CDATA or mixed content.
