@@ -20,7 +20,7 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <objc/HashTable.h>
 
 #define DEFAULT_HASH_CAPACITY 32

@@ -8,9 +8,9 @@
    extraneous stuff after the first type.
 */
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Collection.h>
-#include <gnustep/base/Invoking.h>
+#include <base/preface.h>
+#include <base/Collection.h>
+#include <base/Invoking.h>
 
 @interface Invocation : NSObject <Invoking>
 {

@@ -24,7 +24,7 @@
 (TRY_GNU_ARCHIVING && defined(GNUSTEP_BASE_MAJOR_VERSION))
 
 #if GNU_ARCHIVING
-#include <gnustep/base/Archiver.h>
+#include <base/Archiver.h>
 #endif /* GNU_ARCHIVING */
 
 
@@ -41,8 +41,8 @@
 /* Set to 1 to use text coding instead of binary coding */
 #define TEXTCSTREAM 1
 #if TEXTCSTREAM
-#include <gnustep/base/Archiver.h>
-#include <gnustep/base/TextCStream.h>
+#include <base/Archiver.h>
+#include <base/TextCStream.h>
 #endif
 
 /* The -initWithCoder methods substitutes another object for self. */

@@ -22,10 +22,10 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/BinaryTree.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/BinaryTreeNode.h>
-#include <gnustep/base/NSString.h>
+#include <base/BinaryTree.h>
+#include <base/IndexedCollectionPrivate.h>
+#include <base/BinaryTreeNode.h>
+#include <base/NSString.h>
 
 /* the sentinal */
 static id nilBinaryTreeNode;

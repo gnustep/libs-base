@@ -24,7 +24,7 @@
 #ifndef _NSDictionary_h_GNUSTEP_BASE_INCLUDE
 #define _NSDictionary_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 @class NSArray, NSString, NSEnumerator;
 
@@ -96,7 +96,7 @@
 
 #ifndef NO_GNUSTEP
 
-#include <gnustep/base/KeyedCollecting.h>
+#include <base/KeyedCollecting.h>
 #include <Foundation/NSDictionary.h>
 
 /* Eventually we'll make a Constant version of this protocol. */

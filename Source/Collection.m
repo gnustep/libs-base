@@ -22,13 +22,13 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Collection.h>
-#include <gnustep/base/CollectionPrivate.h>
+#include <base/Collection.h>
+#include <base/CollectionPrivate.h>
 #include <stdarg.h>
-#include <gnustep/base/Bag.h>		/* for -contentsEqual: */
-#include <gnustep/base/Array.h>		/* for -safeWithElementsCall: */
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/NSString.h>
+#include <base/Bag.h>		/* for -contentsEqual: */
+#include <base/Array.h>		/* for -safeWithElementsCall: */
+#include <base/Coder.h>
+#include <base/NSString.h>
 
 @implementation Enumerator
 

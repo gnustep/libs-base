@@ -44,7 +44,7 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 
-#include <gnustep/base/fast.x>
+#include <base/fast.x>
 
 typedef	unsigned char uchar;
 

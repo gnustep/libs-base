@@ -24,9 +24,9 @@
 #ifndef __IndexedCollection_h_GNUSTEP_BASE_INCLUDE
 #define __IndexedCollection_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/KeyedCollection.h>
-#include <gnustep/base/IndexedCollecting.h>
+#include <base/preface.h>
+#include <base/KeyedCollection.h>
+#include <base/IndexedCollecting.h>
 
 @interface ConstantIndexedCollection : ConstantCollection 
 @end

@@ -81,7 +81,7 @@
 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <stddef.h>
 #include <string.h>
 #include <objc/objc-api.h>

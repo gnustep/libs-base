@@ -25,8 +25,8 @@
 /**** Included Headers *******************************************************/
 
 #include <config.h>
-#include <gnustep/base/o_cbs.h>
-#include <gnustep/base/o_@YY@.h>
+#include <base/o_cbs.h>
+#include <base/o_@YY@.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

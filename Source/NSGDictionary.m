@@ -30,7 +30,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 
-#include <gnustep/base/fast.x>
+#include <base/fast.x>
 
 /*
  *	Evil hack - this structure MUST correspond to the layout of all

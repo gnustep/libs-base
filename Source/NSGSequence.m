@@ -23,8 +23,8 @@
 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coding.h>
+#include <base/preface.h>
+#include <base/Coding.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
@@ -32,8 +32,8 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSUserDefaults.h>
-#include <gnustep/base/IndexedCollection.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <base/IndexedCollection.h>
+#include <base/IndexedCollectionPrivate.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -42,8 +42,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include <gnustep/base/NSGSequence.h>
-#include <gnustep/base//Unicode.h>
+#include <base/NSGSequence.h>
+#include <base//Unicode.h>
 
 
 #define FALSE 0

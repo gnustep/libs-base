@@ -24,13 +24,13 @@
 #ifndef __Port_h_GNUSTEP_BASE_INCLUDE
 #define __Port_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coding.h>
-#include <gnustep/base/MemoryStream.h>
+#include <base/preface.h>
+#include <base/Coding.h>
+#include <base/MemoryStream.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 
 /* xxx Use something like this? */
 @protocol PacketSending

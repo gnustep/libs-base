@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Bag.h>
-#include <gnustep/base/CollectionPrivate.h>
+#include <base/Bag.h>
+#include <base/CollectionPrivate.h>
 
 #define DEFAULT_BAG_CAPACITY 32
 

@@ -24,7 +24,7 @@
 #ifndef fast_x_INCLUDE
 #define fast_x_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <objc/objc-api.h>
 
 #ifndef	INLINE

@@ -30,19 +30,19 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGString.h>
 #include <Foundation/NSCoder.h>
-#include <gnustep/base/IndexedCollection.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <base/IndexedCollection.h>
+#include <base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
-#include <gnustep/base/behavior.h>
-#include <gnustep/base/NSGSequence.h>
+#include <base/behavior.h>
+#include <base/NSGSequence.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include <gnustep/base/fast.x>
-#include <gnustep/base/Unicode.h>
+#include <base/fast.x>
+#include <base/Unicode.h>
 
 
 @implementation NSGString

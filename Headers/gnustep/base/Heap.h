@@ -24,8 +24,8 @@
 #ifndef __Heap_h_GNUSTEP_BASE_INCLUDE
 #define __Heap_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Array.h>
+#include <base/preface.h>
+#include <base/Array.h>
 
 @interface Heap : Array
 

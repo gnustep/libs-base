@@ -24,8 +24,8 @@
 #ifndef __Magnitude_h_GNUSTEP_BASE_INCLUDE
 #define __Magnitude_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Ordering.h>
+#include <base/preface.h>
+#include <base/Ordering.h>
 
 @interface Magnitude : NSObject <Ordering>
 

@@ -24,9 +24,9 @@
 #ifndef __NSGArchiver_h_GNUSTEP_BASE_INCLUDE
 #define __NSGArchiver_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSArchiver.h>
-#include <gnustep/base/Coding.h>
+#include <base/Coding.h>
 
 @interface NSGArchiver : NSArchiver
 @end

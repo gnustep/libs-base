@@ -28,11 +28,11 @@
 #ifndef __Collection_h_GNUSTEP_BASE_INCLUDE
 #define __Collection_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSObject.h>
-#include <gnustep/base/Collecting.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coding.h>
+#include <base/Collecting.h>
+#include <base/preface.h>
+#include <base/Coding.h>
 
 @interface ConstantCollection : NSObject <ConstantCollecting>
 - printForDebugger;  /* This method will disappear later. */

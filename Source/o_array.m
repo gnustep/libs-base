@@ -25,11 +25,11 @@
 /**** Included Headers *******************************************************/
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/o_cbs.h>
-#include <gnustep/base/o_array.h>
-#include <gnustep/base/o_hash.h>
+#include <base/o_cbs.h>
+#include <base/o_array.h>
+#include <base/o_hash.h>
 
 /**** Function Implementations ***********************************************/
 

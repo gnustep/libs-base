@@ -25,7 +25,7 @@
 #ifndef __NSThread_h_GNUSTEP_BASE_INCLUDE
 #define __NSThread_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <objc/thr.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>

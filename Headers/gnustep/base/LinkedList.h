@@ -24,8 +24,8 @@
 #ifndef __LinkedList_h_GNUSTEP_BASE_INCLUDE
 #define __LinkedList_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/OrderedCollection.h>
+#include <base/preface.h>
+#include <base/OrderedCollection.h>
 
 /* The <LinkedListComprising> protocol defines the interface to an object
    that may be an element in a LinkedList.

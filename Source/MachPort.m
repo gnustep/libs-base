@@ -26,10 +26,10 @@
 #if __mach__
 
 #include <config.h>
-#include <gnustep/base/MachPort.h>
+#include <base/MachPort.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
-#include <gnustep/base/Set.h>
+#include <base/Set.h>
 
 #include <mach/cthreads.h>
 #include <mach/notify.h>

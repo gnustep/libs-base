@@ -26,9 +26,9 @@
 #endif
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/Coder.h>
+#include <base/preface.h>
+#include <base/StdioStream.h>
+#include <base/Coder.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSDebug.h>
 #include <stdarg.h>

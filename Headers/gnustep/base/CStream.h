@@ -24,9 +24,9 @@
 #ifndef __CStream_h_GNUSTEP_BASE_INCLUDE
 #define __CStream_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Stream.h>
-#include <gnustep/base/CStreaming.h>
+#include <base/preface.h>
+#include <base/Stream.h>
+#include <base/CStreaming.h>
 
 @interface CStream : Stream <CStreaming>
 {

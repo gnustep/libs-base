@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/SplayTree.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <base/SplayTree.h>
+#include <base/IndexedCollectionPrivate.h>
 
 @implementation SplayTree
 

@@ -2,10 +2,10 @@
 // Fri Oct 23 03:01:09 MET DST 1998 	dave@turbocat.de
 // cStringNoCopy -> cString
 
-#include <gnustep/base/Archiver.h>
-#include <gnustep/base/BinaryCStream.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/Dictionary.h>
+#include <base/Archiver.h>
+#include <base/BinaryCStream.h>
+#include <base/Array.h>
+#include <base/Dictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSValue.h>

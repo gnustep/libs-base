@@ -22,7 +22,7 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <string.h>
 #ifndef __WIN32__
 #include <unistd.h>

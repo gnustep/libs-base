@@ -22,7 +22,7 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__

@@ -49,8 +49,8 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/behavior.h>
+#include <base/preface.h>
+#include <base/behavior.h>
 #include <Foundation/NSException.h>
 
 static int behavior_debug = 0;

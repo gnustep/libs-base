@@ -29,7 +29,7 @@
 
 #include <Foundation/NSZone.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/o_cbs.h>
+#include <base/o_cbs.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -114,8 +114,8 @@ struct _o_hash_enumerator
 /* All the structures (hashes, maps, lists, and arrays) have
  * the same basic ideas behind them. */
 
-#include <gnustep/base/o_hash_bas.h>
-#include <gnustep/base/o_hash_cbs.h>
+#include <base/o_hash_bas.h>
+#include <base/o_hash_cbs.h>
 
 /** Callbacks... **/
 

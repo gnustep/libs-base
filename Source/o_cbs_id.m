@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/o_cbs.h>
+#include <base/o_cbs.h>
 
 /**** Function Implementations ***********************************************/
 

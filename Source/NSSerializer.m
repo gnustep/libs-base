@@ -22,8 +22,8 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/fast.x>
+#include <base/preface.h>
+#include <base/fast.x>
 #include <mframe.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>

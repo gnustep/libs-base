@@ -40,8 +40,8 @@
 */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coding.h>
+#include <base/preface.h>
+#include <base/Coding.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
@@ -53,10 +53,10 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPathUtilities.h>
 
-#include <gnustep/base/IndexedCollection.h>
+#include <base/IndexedCollection.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSBundle.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <base/IndexedCollectionPrivate.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -65,15 +65,15 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include <gnustep/base/behavior.h>
+#include <base/behavior.h>
 
-#include <gnustep/base/NSGSequence.h>
-#include <gnustep/base/Unicode.h>
-#include <gnustep/base/GetDefEncoding.h>
-#include <gnustep/base/NSGString.h>
-#include <gnustep/base/NSGCString.h>
+#include <base/NSGSequence.h>
+#include <base/Unicode.h>
+#include <base/GetDefEncoding.h>
+#include <base/NSGString.h>
+#include <base/NSGCString.h>
 
-#include <gnustep/base/fast.x>
+#include <base/fast.x>
 
 
 // Uncomment when implemented

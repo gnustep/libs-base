@@ -24,7 +24,7 @@
 #ifndef __Retaining_h_GNUSTEP_BASE_INCLUDE
 #define __Retaining_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 @protocol Retaining
 

@@ -29,8 +29,8 @@
 
 #include <stdlib.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/o_cbs.h>
-#include <gnustep/base/o_hash.h>
+#include <base/o_cbs.h>
+#include <base/o_hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -81,8 +81,8 @@ struct _o_array_enumerator
 
 /** Basics **/
 
-#include <gnustep/base/o_array_bas.h>
-#include <gnustep/base/o_array_cbs.h>
+#include <base/o_array_bas.h>
+#include <base/o_array_cbs.h>
 
 /** Creating **/
 

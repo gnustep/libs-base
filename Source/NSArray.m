@@ -27,7 +27,7 @@
    */
 
 #include <config.h>
-#include <gnustep/base/behavior.h>
+#include <base/behavior.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
@@ -37,7 +37,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 
-#include <gnustep/base/fast.x>
+#include <base/fast.x>
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;

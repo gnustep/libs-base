@@ -26,7 +26,7 @@
 #ifndef __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 #define __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 #if NeXT_runtime
 

@@ -24,8 +24,8 @@
 #ifndef __UdpPort_h_GNUSTEP_BASE_INCLUDE
 #define __UdpPort_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Port.h>
+#include <base/preface.h>
+#include <base/Port.h>
 #include <sys/types.h>
 #ifndef __WIN32__
 # include <sys/socket.h>

@@ -22,8 +22,8 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/DelegatePool.h>
-#include <gnustep/base/NSString.h>
+#include <base/DelegatePool.h>
+#include <base/NSString.h>
 
 @implementation DelegatePool
 

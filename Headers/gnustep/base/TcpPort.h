@@ -24,9 +24,9 @@
 #ifndef __TcpPort_h__GNUSTEP_BASE_INCLUDE
 #define __TcpPort_h__GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Port.h>
-#include <gnustep/base/RunLoop.h>
+#include <base/preface.h>
+#include <base/Port.h>
+#include <base/RunLoop.h>
 #ifndef __WIN32__
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Time.h>
-#include <gnustep/base/Array.h>
+#include <base/Time.h>
+#include <base/Array.h>
 #include <unistd.h>    /* _SC_CLK_TCK on SunOS 4 */
 
 #if HAVE_SYS_RUSAGE_H

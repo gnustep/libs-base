@@ -25,7 +25,7 @@
 */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>

@@ -31,9 +31,9 @@
 #ifndef __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 #define __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Stream.h>
-#include <gnustep/base/Streaming.h>
+#include <base/preface.h>
+#include <base/Stream.h>
+#include <base/Streaming.h>
 
 /* This protocol is preliminary and may change.
    This also may get pulled out into a separate .h file. */

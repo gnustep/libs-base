@@ -1,7 +1,7 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 
 #define TYPE long
 

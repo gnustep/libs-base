@@ -27,8 +27,8 @@
 #ifndef __RNGAdditiveCongruential_h_GNUSTEP_BASE_INCLUDE
 #define __RNGAdditiveCongruential_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/RandomGenerating.h>
+#include <base/preface.h>
+#include <base/RandomGenerating.h>
 
 @interface RNGAdditiveCongruential : NSObject <RandomGenerating>
 {

@@ -30,11 +30,11 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/CStream.h>
-#include <gnustep/base/Port.h>
-#include <gnustep/base/MemoryStream.h>
+#include <base/preface.h>
+#include <base/Coder.h>
+#include <base/CStream.h>
+#include <base/Port.h>
+#include <base/MemoryStream.h>
 #include <Foundation/NSException.h>
 #include <Foundation/DistributedObjects.h>
 

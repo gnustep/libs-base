@@ -62,9 +62,9 @@
 
 #include <config.h>
 #include <objc/objc-api.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/fast.x>
-#include <gnustep/base/behavior.h>
+#include <base/preface.h>
+#include <base/fast.x>
+#include <base/behavior.h>
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>

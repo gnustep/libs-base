@@ -24,9 +24,9 @@
 #ifndef __KeyedCollection_h_GNUSTEP_BASE_INCLUDE
 #define __KeyedCollection_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Collection.h>
-#include <gnustep/base/KeyedCollecting.h>
+#include <base/preface.h>
+#include <base/Collection.h>
+#include <base/KeyedCollecting.h>
 
 @interface ConstantKeyedCollection : Collection
 @end

@@ -27,7 +27,7 @@
 /* This class is currently thrown together.  When it is cleaned up, it
    may no longer be concrete. */
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSDate.h>
 
 @interface NSTimer : NSObject

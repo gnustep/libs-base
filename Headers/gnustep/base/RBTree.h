@@ -24,8 +24,8 @@
 #ifndef __RBTree_h_GNUSTEP_BASE_INCLUDE
 #define __RBTree_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/BinaryTree.h>
+#include <base/preface.h>
+#include <base/BinaryTree.h>
 
 @protocol RBTreeComprising <BinaryTreeComprising>
 - (BOOL) isRed;

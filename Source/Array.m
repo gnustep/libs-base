@@ -22,11 +22,11 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/ArrayPrivate.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/OrderedCollection.h>
-#include <gnustep/base/behavior.h>
+#include <base/Array.h>
+#include <base/ArrayPrivate.h>
+#include <base/NSString.h>
+#include <base/OrderedCollection.h>
+#include <base/behavior.h>
 
 @implementation ConstantArray
 

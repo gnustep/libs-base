@@ -24,9 +24,9 @@
 #ifndef __BinaryTreeNode_h_GNUSTEP_BASE_INCLUDE
 #define __BinaryTreeNode_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/BinaryTree.h>
-#include <gnustep/base/Coding.h>
+#include <base/preface.h>
+#include <base/BinaryTree.h>
+#include <base/Coding.h>
 
 @interface BinaryTreeNode : NSObject <BinaryTreeComprising>
 {

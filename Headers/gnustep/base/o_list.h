@@ -28,9 +28,9 @@
 /**** Included Headers *******************************************************/
 
 #include <Foundation/NSZone.h>
-#include <gnustep/base/o_cbs.h>
-#include <gnustep/base/o_hash.h>
-#include <gnustep/base/o_array.h>
+#include <base/o_cbs.h>
+#include <base/o_hash.h>
+#include <base/o_array.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -81,8 +81,8 @@ struct _o_list_enumerator
 
 /** Basics **/
 
-#include <gnustep/base/o_list_bas.h>
-#include <gnustep/base/o_list_cbs.h>
+#include <base/o_list_bas.h>
+#include <base/o_list_cbs.h>
 
 /** Creating **/
 

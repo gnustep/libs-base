@@ -24,9 +24,9 @@
 #ifndef __Coding_h_GNUSTEP_BASE_INCLUDE
 #define __Coding_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
-/* #include <gnustep/base/String.h>
+/* #include <base/String.h>
    xxx Think about trying to get <String> back in types,
    but now there is a circular dependancy in the include files. */
 

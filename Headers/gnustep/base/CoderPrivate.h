@@ -24,9 +24,9 @@
 #ifndef __CoderPrivate_h_GNUSTEP_BASE_INCLUDE
 #define __CoderPrivate_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/CStreaming.h>
+#include <base/preface.h>
+#include <base/Coder.h>
+#include <base/CStreaming.h>
 
 enum {
   CODER_OBJECT_NIL = 0, 

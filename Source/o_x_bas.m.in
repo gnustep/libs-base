@@ -27,8 +27,8 @@
 #include <config.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/numbers.h>
-#include <gnustep/base/o_@XX@.h>
+#include <base/numbers.h>
+#include <base/o_@XX@.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

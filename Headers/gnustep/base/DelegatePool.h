@@ -28,8 +28,8 @@
 #ifndef __DelegatePool_h_GNUSTEP_BASE_INCLUDE
 #define __DelegatePool_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Array.h>
+#include <base/preface.h>
+#include <base/Array.h>
 
 /* Available sending behaviors */
 enum DelegatePoolSendBehavior {SEND_TO_ALL = 0, 

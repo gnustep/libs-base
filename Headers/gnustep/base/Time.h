@@ -26,8 +26,8 @@
 #ifndef __Time_h_GNUSTEP_BASE_INCLUDE
 #define __Time_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Magnitude.h>
+#include <base/preface.h>
+#include <base/Magnitude.h>
 
 #ifndef __WIN32__
 #include <sys/time.h>

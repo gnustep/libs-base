@@ -35,8 +35,8 @@
 #ifndef __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE
 #define __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Collecting.h>
+#include <base/preface.h>
+#include <base/Collecting.h>
 #include <Foundation/NSRange.h>
 
 #define	IndexRange	NSRange

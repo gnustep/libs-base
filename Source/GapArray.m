@@ -25,8 +25,8 @@
 
 
 #include <config.h>
-#include <gnustep/base/GapArray.h>
-#include <gnustep/base/GapArrayPrivate.h>
+#include <base/GapArray.h>
+#include <base/GapArrayPrivate.h>
 
 @implementation GapArray
 

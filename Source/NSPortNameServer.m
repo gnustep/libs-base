@@ -35,7 +35,7 @@
 #include <Foundation/NSSet.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSPortNameServer.h>
-#include <gnustep/base/TcpPort.h>
+#include <base/TcpPort.h>
 
 /*
  *	Protocol definition stuff for talking to gdomap process.

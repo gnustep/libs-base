@@ -43,7 +43,7 @@
 
 # Things to do before installing
 before-install::
-	$(GNUSTEP_MAKEFILES)/mkinstalldirs $(timezonedir)
+	$(MKDIRS) $(timezonedir)
 
 # Things to do after installing
 after-install::

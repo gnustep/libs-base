@@ -22,12 +22,12 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/IndexedCollection.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <base/IndexedCollection.h>
+#include <base/IndexedCollectionPrivate.h>
 #include <stdio.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/behavior.h>
+#include <base/Array.h>
+#include <base/NSString.h>
+#include <base/behavior.h>
 
 @implementation ReverseEnumerator
 

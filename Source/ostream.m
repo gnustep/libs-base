@@ -23,9 +23,9 @@
 
 #include <config.h>
 #include <stdio.h>
-#include <gnustep/base/ostream.h>
-#include <gnustep/base/MemoryStream.h>
-#include <gnustep/base/StdioStream.h>
+#include <base/ostream.h>
+#include <base/MemoryStream.h>
+#include <base/StdioStream.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 

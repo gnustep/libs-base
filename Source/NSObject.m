@@ -22,17 +22,17 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <stdarg.h>
 #include <Foundation/NSObject.h>
 #include <objc/Protocol.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSMethodSignature.h>
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/o_map.h>
+#include <base/o_map.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
@@ -40,7 +40,7 @@
 #include <Foundation/NSZone.h>
 #include <limits.h>
 
-#include <gnustep/base/fast.x>
+#include <base/fast.x>
 
 fastCls	_fastCls;	/* Structure to cache classes.	*/
 fastImp	_fastImp;	/* Structure to cache methods.	*/

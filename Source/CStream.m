@@ -22,11 +22,11 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/CStream.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/CoderPrivate.h> /* for SIGNATURE_FORMAT_STRING */
+#include <base/preface.h>
+#include <base/CStream.h>
+#include <base/NSString.h>
+#include <base/StdioStream.h>
+#include <base/CoderPrivate.h> /* for SIGNATURE_FORMAT_STRING */
 #include <Foundation/NSException.h>
 
 id CStreamSignatureMalformedException = @"CStreamSignatureMalformedException";

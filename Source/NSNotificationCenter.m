@@ -23,8 +23,8 @@
 
 #include <config.h>
 #include <Foundation/NSNotification.h>
-#include <gnustep/base/NotificationDispatcher.h>
-#include <gnustep/base/behavior.h>
+#include <base/NotificationDispatcher.h>
+#include <base/behavior.h>
 
 @implementation NSNotificationCenter
 

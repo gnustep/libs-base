@@ -24,18 +24,18 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
-#include <gnustep/base/NSGString.h>
-#include <gnustep/base/NSGCString.h>
-#include <gnustep/base/IndexedCollection.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
+#include <base/NSGString.h>
+#include <base/NSGCString.h>
+#include <base/IndexedCollection.h>
+#include <base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
-#include <gnustep/base/behavior.h>
+#include <base/behavior.h>
 
-#include <gnustep/base/Unicode.h>
-#include <gnustep/base/fast.x>
+#include <base/Unicode.h>
+#include <base/fast.x>
 
 static	SEL	csInitSel = @selector(initWithCStringNoCopy:length:fromZone:);
 static	SEL	msInitSel = @selector(initWithCapacity:);

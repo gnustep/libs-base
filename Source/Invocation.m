@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Invocation.h>
+#include <base/preface.h>
+#include <base/Invocation.h>
 #include <Foundation/DistributedObjects.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>

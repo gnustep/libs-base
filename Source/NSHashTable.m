@@ -30,7 +30,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHashTable.h>
-#include <gnustep/base/o_hash.h>
+#include <base/o_hash.h>
 #include "NSCallBacks.h"
 
 /** Macros... **/

@@ -1,7 +1,7 @@
 /* A simple demonstration of the GNU Dictionary object.
    In this example the Dictionary holds int's which are keyed by strings. */
 
-#include <gnustep/base/Dictionary.h>
+#include <base/Dictionary.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
 

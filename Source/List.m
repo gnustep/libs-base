@@ -22,7 +22,7 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <objc/List.h>
 
 /* Change this #define to 0 if you want -makeObjectsPerform: and 

@@ -23,7 +23,7 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #if 0 
 /* My Linux doesn't have <libc.h>.  Why is this necessary? 
    What is a work-around that will work for all?  -mccallum*/

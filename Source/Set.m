@@ -22,9 +22,9 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Set.h>
-#include <gnustep/base/CollectionPrivate.h>
-#include <gnustep/base/Coder.h>
+#include <base/Set.h>
+#include <base/CollectionPrivate.h>
+#include <base/Coder.h>
 #include <Foundation/NSHashTable.h>
 
 #define DEFAULT_SET_CAPACITY 32

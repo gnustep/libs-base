@@ -24,8 +24,8 @@
 #ifndef __StdioStream_h__GNUSTEP_BASE_INCLUDE
 #define __StdioStream_h__GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Stream.h>
+#include <base/preface.h>
+#include <base/Stream.h>
 #include <stdio.h>
 
 @interface StdioStream : Stream

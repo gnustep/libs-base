@@ -23,7 +23,7 @@
 
 #include <config.h>
 #include <objc/objc-api.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSArray.h>

@@ -26,7 +26,7 @@
 
 #include <config.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/o_cbs.h>
+#include <base/o_cbs.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

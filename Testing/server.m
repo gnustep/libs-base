@@ -1,4 +1,4 @@
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <stdio.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSConnection.h>
@@ -6,8 +6,8 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSRunLoop.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/BinaryCStream.h>
+#include <base/Coder.h>
+#include <base/BinaryCStream.h>
 #include    <Foundation/NSAutoreleasePool.h>
 #include "server.h"
 
