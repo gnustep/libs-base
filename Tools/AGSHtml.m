@@ -755,14 +755,21 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      [buf appendFormat: @"<a href=\"mailto:%@\"><code>", ename];
 	    }
+	  //
+	  // [node firstChild] doesn't look like it points to
+	  // the mail address.
+	  // not sure _where_ it points to though...
+	  //
+#if 0
 	  [self outputText: [node firstChild] to: buf];
+#endif
 	  if (ename == nil)
 	    {
 	      [buf appendString: @"</code>"];
 	    }
 	  else
 	    {
-	      [buf appendFormat: @"</code></a>", ename];
+	      [buf appendFormat: @"%@</code></a>", ename];
 	    }
 	}
       else if ([name isEqual: @"embed"] == YES)
@@ -1032,7 +1039,13 @@ static NSMutableSet	*textNodes = nil;
 		}
 	      if (email != nil)
 		{
-		  [buf appendString: @"("];
+		  //
+		  // Add a beautifier ' ' otherwise we'll get a
+		  //   <dt>John Doe(<a href="mailto:...
+		  // or
+		  //   <dt><a href...>John Doe</a>(<a href...
+		  //
+		  [buf appendString: @" ("];
 		  [self outputNode: email to: buf];
 		  [buf appendString: @")"];
 		}
