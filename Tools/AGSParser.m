@@ -22,6 +22,10 @@
 #include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/GSCategories.h"
 
+/**
+ *  The AGSParser class parses Objective-C header and source files
+ *  to produce a property-list which can be handled by [AGSOutput].
+ */
 @implementation	AGSParser
 
 /**

@@ -78,7 +78,10 @@ static BOOL snuggleStart(NSString *t)
  *  </p>
  * </unit>
  * And finally, here is the actual class description ... outside the chapter.
- * With a reference to escapeType() in it.
+ * This is the class description for <code>AGSOutput</code>, including some
+ * sample uses of GSDoc, such as cross-references (see [NSString]).
+ * Functions, like escapeType(), are automatically referenced (if they are
+ * found).
  */
 @implementation	AGSOutput
 
@@ -2303,7 +2306,7 @@ static BOOL snuggleStart(NSString *t)
 	  /*
 	   * If a -Up default has been set, create an up link in this
 	   * template file... as long as the specified up link is not
-	   * the template file itsself.
+	   * the template file itself.
 	   */
 	  if (up != nil && [up isEqual: [name lastPathComponent]] == NO)
 	    {
