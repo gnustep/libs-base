@@ -1,5 +1,9 @@
 2001-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Many minor cleanups and bugfixes for autogsdoc.  Alpha-test support
+	for building base library documentation using autogsdoc ... lots of
+	work remains to be done to improve the html output from autogsdoc
+	and to add autogsdoc comments to the base library source code.
 	* Tools/AGSIndex.h: improve merge control
 	* Tools/AGSIndex.m: ditto
 	* Tools/AGSHtml.h: new methods for cleaner indexing.
@@ -10,6 +14,9 @@
 	where a version of the project being built is already installed.
 	* Tools/gsdoc-0_6_7.dtd: Fix ivar support
 	* Source/GSFFCallInvocation.m: minor debug output improvement.
+	* Source/GNUmakefile: add basic instructions to build (but not install)
+	documentation using autogsdoc.  Don't want to install yet, as this is
+	very much alpha-test stuff.
 
 2001-12-13  Adam Fedor  <fedor@gnu.org>
 
