@@ -1369,7 +1369,6 @@ static NSMapTable* port_number_2_port;
 		       peeraddr: &clientname
 		       inPort: self];
       [self _addClientOutPort: op];
-      [op release];
       if (debug_tcp_port)
 	NSLog(@"%s: Accepted connection from\n %@.\n",
 		 object_get_class_name (self), [op description]);
@@ -1377,6 +1376,7 @@ static NSMapTable* port_number_2_port;
 	postNotificationName: InPortAcceptedClientNotification
 	object: self
 	userInfo: op];
+      [op release];
     }
   else
     {
@@ -1862,7 +1862,7 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Register which InPort object will listen to replies from our messages. 
      This may be nil, in which case it can get set later in -sendPacket... */
-  p->_polling_in_port = [ip retain];
+  p->_polling_in_port = ip;
 
   /* Set the port's address. */
   if (sockaddr)
@@ -2029,7 +2029,7 @@ static NSMapTable *out_port_bag = NULL;
      restriction; see the note about them at the top of this file. */
   if (_polling_in_port == nil && reply_port != nil)
     {
-      _polling_in_port = [reply_port retain];
+      _polling_in_port = reply_port;
       [_polling_in_port _addClientOutPort: self];
     }
   else if (_polling_in_port != reply_port)
@@ -2106,7 +2106,6 @@ static NSMapTable *out_port_bag = NULL;
 	}
 
       [port _connectedOutPortInvalidated: self];
-      [port release];
     }
 }
 

@@ -1,3 +1,8 @@
+Sun May 23 20:38:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/TcpPort.m: Fixed retain/release loop causing ports occasionally
+	to be kept in existence when they should disappear.
+
 Fri May 21 19:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSObject.h: Added NSExtraRefCount()
