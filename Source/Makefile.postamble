@@ -93,7 +93,8 @@ after-uninstall::
 # before-clean::
 
 # Things to do after cleaning
-# after-clean::
+after-clean::
+	rm -f libgnustep-base.def
 
 # Things to do before distcleaning
 # before-distclean::
@@ -159,28 +160,14 @@ NSConnection.m_FILE_FILTER_OUT_FLAGS = -O%
 NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
 
 #
-# Make list of class names for DLL exports. I'm not sure how to make this
-# work with the correct dependencies, so for now it should be regenerated
-# by hand when new classes get added. Then mv libgnustep-base.def.new to
-# libgnustep-base.def.in
+# Make list of class names for DLL exports. Uses the actual classes from
+# the .o files, so it should really have everything needed.
 #
-libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o Additions/$(GNUSTEP_OBJ_DIR)/*o
+libgnustep-base.def: $(OBJ_FILES_TO_LINK)
 	rm -f $@
 	rm -f _tmp.def
 	cat win32-def.top > $@
 	nm $^ | grep '^........ [T] _' | sed 's/[^_]*_//' > _tmp.def
 	cat _tmp.def | grep "_class_name_" >> $@
 	rm -rf _tmp.def
-
-#
-# Build the .def file depending on the objc runtime in use.
-# 
-ifeq ($(NX_CONST_STRING_CLASS),NXConstantString)
-libgnustep-base.def: libgnustep-base.def.in
-	sed -e 's/NSConstantString/NXConstantString/' < $<  > $@
-endif
-ifeq ($(NX_CONST_STRING_CLASS),NSConstantString)
-libgnustep-base.def: libgnustep-base.def.in
-	sed -e 's/NXConstantString/NSConstantString/' < $<  > $@
-endif
 

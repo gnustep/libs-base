@@ -1,3 +1,8 @@
+2003-10-21  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.postamble (libgnustep-base.def): Generate at
+	compile time using the proper dependencies.
+
 Tue Oct 21 18:00:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: Retain local objects on creation,
