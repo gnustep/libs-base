@@ -484,10 +484,11 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) substringFromRange: (NSRange)aRange
 {
   unichar buffer[aRange.length];
+  int count = [self length];
 
-  if (aRange.location > _count)
+  if (aRange.location > count)
     [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
+  if (aRange.length > (count - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
   [self getCharacters: buffer range: aRange];
   return [[self class] stringWithCharacters: buffer length: aRange.length];
