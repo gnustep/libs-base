@@ -329,8 +329,18 @@ static void debugWrite(NSData *data)
   contentLength = 0;
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {
+      NSNumber	*p;
+
       host = [url host];
-      port = [url scheme];
+      p = [url port];
+      if (p != nil)
+	{
+	  port = [NSString stringWithFormat: @"%u", [p unsignedIntValue]];
+	}
+      else
+	{
+	  port = [url scheme];
+	}
       if ([[url scheme] isEqualToString: @"https"])
 	{
 	  if (sslClass == 0)
@@ -574,6 +584,8 @@ static void debugWrite(NSData *data)
 	}
       [s appendFormat: @" HTTP/%@\nHost: %@\r\n", httpVersion, [url host]];
     }
+
+  [wProperties setObject: [url host] forKey: @"host"];
 
   if ([wData length] > 0)
     {

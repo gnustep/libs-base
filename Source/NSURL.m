@@ -158,10 +158,24 @@ NSString	*NSURLPartKey_query = @"query";
     return RETAIN(self);
 }
 
+- (NSString*) description
+{
+  NSString	*dscr = _urlString;
+
+  if (_baseURL != nil)
+    dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
+  return dscr;
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeObject: _urlString];
   [aCoder encodeObject: _baseURL];
+}
+
+- (unsigned int) hash
+{
+  return [[self absoluteString] hash];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -171,14 +185,13 @@ NSString	*NSURLPartKey_query = @"query";
   return self;
 }
 
-
-- (NSString*) description
+- (BOOL) isEqual: (id)other
 {
-  NSString	*dscr = _urlString;
-
-  if (_baseURL != nil)
-    dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
-  return dscr;
+  if (other == nil || [other isKindOfClass: [NSURL class]] == NO)
+    {
+      return NO;
+    }
+  return [[self absoluteString] isEqualToString: [other absoluteString]];
 }
 
 // Non Standard Function
