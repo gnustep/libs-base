@@ -1,5 +1,12 @@
 2004-03-01    <woudshoo@agilisys.com>
 
+	* Headers/Additions/GNUstepBase/GSIMap.h: Added increment ivar to GSIMapTable
+	struct for allocation size
+	(GSIMapNewNode): When above a certain size only allocate "increment" number 
+	of nodes
+	(GSIMapResize): Avoid hash table sizes that are odd
+	(GSIMapInitWithZoneAndCapacity): Put default increment size to 300000
+
 	* Source/NSThread.m ([GSPerformHolder +initialize]): #ifdef'ed out 
 	code that does not work on MinGW.
 
