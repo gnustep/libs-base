@@ -38,10 +38,11 @@
 <!--***** Character entities. *****-->
 
 <!-- General purpose characters for gsdoc. -->
-<!ENTITY copy "&#38;copy;">	<!-- copyright symbol -->
-<!ENTITY tm   "&#38;trade;">	<!-- trademark symbol -->
-<!ENTITY dots "&#38;dots;">	<!-- ellipsis (...) -->
-<!ENTITY nbsp "&#38;nbsp;">	<!-- non breakable space -->
+<!ENTITY copy "&#169;">		<!-- copyright symbol -->
+<!ENTITY tm   "&#174;">		<!-- trademark symbol -->
+<!ENTITY reg  "&#174;">
+<!ENTITY dots "&#8230;">	<!-- ellipsis (...) -->
+<!ENTITY nbsp "&#160;">		<!-- non breakable space -->
 <!ENTITY amp  "&#38;#38;">	<!-- ampersand -->
 <!ENTITY apos "&#39;">		<!-- apos -->
 <!ENTITY quot "&#34;">		<!-- quotation mark (") -->

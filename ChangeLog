@@ -1,3 +1,10 @@
+2002-10-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: ([-split:]) In links generated from class and
+	method specifications in square brackets, place a space between the
+	class and the method name.
+	* Tools/gsdoc-1_0_0.dtd: Corrected minor entity errors.
+
 2002-10-21  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/unicode/thai.h: New file.

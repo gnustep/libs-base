@@ -1961,6 +1961,14 @@ static BOOL snuggleStart(NSString *t)
 		  if (sPos > 0)
 		    {
 		      start = [tmp substringToIndex: sPos];
+		      if ([start isEqualToString: @"["] == YES)
+			{
+			  start = nil;
+			}
+		      else if ([start hasSuffix: @"["] == YES)
+			{
+			  start = [start substringToIndex: [start length] - 1];
+			}
 		    }
 		  else
 		    {
@@ -1969,6 +1977,14 @@ static BOOL snuggleStart(NSString *t)
 		  if (ePos < [tmp length])
 		    {
 		      end = [tmp substringFromIndex: ePos];
+		      if ([end isEqualToString: @"]"] == YES)
+			{
+			  end = nil;
+			}
+		      else if ([end hasPrefix: @"]"] == YES)
+			{
+			  end = [end substringFromIndex: 1];
+			}
 		    }
 		  else
 		    {
@@ -2015,6 +2031,8 @@ static BOOL snuggleStart(NSString *t)
 		      ref = [NSString stringWithFormat:
 			@"<ref type=\"method\" id=\"%@\" class=\"%@\">",
 			mName, cName];
+		      sub = [NSString stringWithFormat: @"[%@&nbsp;%@]",
+			cName, mName];
 		    }
 		  [a insertObject: ref atIndex: l++];
 		  if (sub != nil)
