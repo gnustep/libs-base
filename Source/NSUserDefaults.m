@@ -130,7 +130,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     }
 }
 
-+ (void) resetUserDefaults
++ (void) resetStandardUserDefaults
 {
   [classLock lock];
   if (sharedDefaults != nil)

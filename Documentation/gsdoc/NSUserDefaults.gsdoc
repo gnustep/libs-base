@@ -82,6 +82,14 @@
 	  environment variable.
 	  </p>
           </desc>
+        <method type="void" factory="yes">
+          <sel>resetStandardUserDefaults</sel>
+          <desc>
+	    Resets the shared user defaults object to reflect the current
+	    user ID.  Needed by setuid processes whiich change the user they
+	    are running as.
+          </desc>
+        </method>
         <method type="NSUserDefaults*" factory="yes">
           <sel>standardUserDefaults</sel>
           <desc>
