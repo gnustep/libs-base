@@ -1,11 +1,11 @@
 #ifndef second_server_h
 #define second_server_h
 
-#include <objc/Object.h>
+#include <objc/NSObject.h>
 #include <objects/Array.h>
 #include <objects/InvalidationListening.h>
 
-@interface SecondServer : Object <InvalidationListening>
+@interface SecondServer : NSObject <InvalidationListening>
 {
   Array *array;
 }
