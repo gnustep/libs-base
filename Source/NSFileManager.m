@@ -6,6 +6,7 @@
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
    Date: Feb 1997
+   Updates and fixes: Richard Frith-Macdonald
 
    This file is part of the GNUstep Base Library.
 
@@ -203,12 +204,12 @@ static NSFileManager* defaultManager = nil;
 
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
-    const char* cpath = [self fileSystemRepresentationWithPath: path];
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
     
 #if defined(__WIN32__)
-    return SetCurrentDirectory(cpath);
+  return SetCurrentDirectory(cpath);
 #else
-    return (chdir(cpath) == 0);
+  return (chdir(cpath) == 0);
 #endif
 }
 
@@ -497,9 +498,9 @@ static NSFileManager* defaultManager = nil;
 	   toPath: (NSString*)destination
 	  handler: handler
 {
-    // TODO
-    [self notImplemented: _cmd];
-    return NO;
+  // TODO
+  [self notImplemented: _cmd];
+  return NO;
 }
 
 - (BOOL) removeFileAtPath: (NSString*)path
@@ -538,10 +539,10 @@ static NSFileManager* defaultManager = nil;
     }
   else
     {
-      int	i;
+      unsigned	count = [contents count];
+      unsigned	i;
 
-      contents = [self directoryContentsAtPath: path];
-      for (i = 0; i < [contents count]; i++)
+      for (i = 0; i < count; i++)
 	{
 	  CREATE_AUTORELEASE_POOL(arp);
 	  NSString		*item;
@@ -645,7 +646,7 @@ static NSFileManager* defaultManager = nil;
   t = [d1 objectForKey: NSFileType];
   if ([t isEqual: [d2 objectForKey: NSFileType]] == NO)
     return NO;
-  if ([[d1 objectForKey: NSFileType] isEqual: NSFileTypeRegular])
+  if ([t isEqual: NSFileTypeRegular])
     {
       id	s1 = [d1 objectForKey: NSFileSize];
       id	s2 = [d2 objectForKey: NSFileSize];
@@ -660,21 +661,49 @@ static NSFileManager* defaultManager = nil;
 	}
       return NO;
     }
-  else if ([[d1 objectForKey: NSFileType] isEqual: NSFileTypeDirectory])
+  else if ([t isEqual: NSFileTypeDirectory])
     {
-      // TODO
-      [self notImplemented: _cmd];
-      return NO;
+      NSArray	*a1 = [self directoryContentsAtPath: path1];
+      NSArray	*a2 = [self directoryContentsAtPath: path2];
+      unsigned	index;
+      BOOL	ok = YES;
+
+      if ([a1 isEqual: a2] == NO)
+	return NO;
+
+      for (index = 0; ok == YES && index < [a1 count]; index++)
+	{
+	  CREATE_AUTORELEASE_POOL(pool);
+	  NSString	*n = [a1 objectAtIndex: index];
+	  NSString	*p1;
+	  NSString	*p2;
+
+	  p1 = [path1 stringByAppendingPathComponent: n];
+	  p2 = [path2 stringByAppendingPathComponent: n];
+	  d1 = [self fileAttributesAtPath: p1 traverseLink: NO];
+	  d2 = [self fileAttributesAtPath: p2 traverseLink: NO];
+	  t = [d1 objectForKey: NSFileType];
+	  if ([t isEqual: [d2 objectForKey: NSFileType]] == NO)
+	    {
+	      ok = NO;
+	    }
+	  else if ([t isEqual: NSFileTypeDirectory])
+	    {
+	      ok = [self contentsEqualAtPath: p1 andPath: p2];
+	    }
+	  RELEASE(pool);
+	}
+      return ok;
     }
   else
     return YES;
 }
 
-// Detemining access to files
+// Determining access to files
 
 - (BOOL) fileExistsAtPath: (NSString*)path
 {
-    return [self fileExistsAtPath: path isDirectory: NULL];
+  return [self fileExistsAtPath: path isDirectory: NULL];
 }
 
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
@@ -682,7 +711,9 @@ static NSFileManager* defaultManager = nil;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
 
   if (cpath == 0 || *cpath == '\0')
-    return NO;
+    {
+      return NO;
+    }
   else
     {
 #if defined(__WIN32__)
@@ -809,78 +840,77 @@ static NSFileManager* defaultManager = nil;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
 #if defined(__WIN32__)
-    long long totalsize, freesize;
-    id  values[5];
-    id	keys[5] = {
-	    NSFileSystemSize,
-	    NSFileSystemFreeSize,
-	    NSFileSystemNodes,
-	    NSFileSystemFreeNodes,
-	    NSFileSystemNumber
-	};
-    DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
-    DWORD TotalNumberClusters;
-    const char *cpath = [self fileSystemRepresentationWithPath: path];
+  long long totalsize, freesize;
+  id  values[5];
+  id	keys[5] = {
+	  NSFileSystemSize,
+	  NSFileSystemFreeSize,
+	  NSFileSystemNodes,
+	  NSFileSystemFreeNodes,
+	  NSFileSystemNumber
+      };
+  DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
+  DWORD TotalNumberClusters;
+  const char *cpath = [self fileSystemRepresentationWithPath: path];
 
-    if (!GetDiskFreeSpace(cpath, &SectorsPerCluster,
-			  &BytesPerSector, &NumberFreeClusters,
-			  &TotalNumberClusters))
-      return nil;
+  if (!GetDiskFreeSpace(cpath, &SectorsPerCluster,
+    &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
+    return nil;
 
-    totalsize = TotalNumberClusters * SectorsPerCluster * BytesPerSector;
-    freesize = NumberFreeClusters * SectorsPerCluster * BytesPerSector;
-    
-    values[0] = [NSNumber numberWithLongLong: totalsize];
-    values[1] = [NSNumber numberWithLongLong: freesize];
-    values[2] = [NSNumber numberWithLong: LONG_MAX];
-    values[3] = [NSNumber numberWithLong: LONG_MAX];
-    values[4] = [NSNumber numberWithUnsignedInt: 0];
-    
-    return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
-    
+  totalsize = TotalNumberClusters * SectorsPerCluster * BytesPerSector;
+  freesize = NumberFreeClusters * SectorsPerCluster * BytesPerSector;
+  
+  values[0] = [NSNumber numberWithLongLong: totalsize];
+  values[1] = [NSNumber numberWithLongLong: freesize];
+  values[2] = [NSNumber numberWithLong: LONG_MAX];
+  values[3] = [NSNumber numberWithLong: LONG_MAX];
+  values[4] = [NSNumber numberWithUnsignedInt: 0];
+  
+  return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
+  
 #else
 #if HAVE_SYS_VFS_H || HAVE_SYS_STATFS_H
-    struct stat statbuf;
+  struct stat statbuf;
 #if HAVE_STATVFS
-    struct statvfs statfsbuf;
+  struct statvfs statfsbuf;
 #else
-    struct statfs statfsbuf;
+  struct statfs statfsbuf;
 #endif
-    long long totalsize, freesize;
-    const char* cpath = [self fileSystemRepresentationWithPath: path];
-    
-    id  values[5];
-    id	keys[5] = {
-	    NSFileSystemSize,
-	    NSFileSystemFreeSize,
-	    NSFileSystemNodes,
-	    NSFileSystemFreeNodes,
-	    NSFileSystemNumber
-	};
-    
-    if (stat(cpath, &statbuf) != 0)
-	return nil;
-
-#if HAVE_STATVFS
-    if (statvfs(cpath, &statfsbuf) != 0)
-	return nil;
-#else
-    if (statfs(cpath, &statfsbuf) != 0)
-	return nil;
-#endif
-
-    totalsize = statfsbuf.f_bsize * statfsbuf.f_blocks;
-    freesize = statfsbuf.f_bsize * statfsbuf.f_bfree;
-    
-    values[0] = [NSNumber numberWithLongLong: totalsize];
-    values[1] = [NSNumber numberWithLongLong: freesize];
-    values[2] = [NSNumber numberWithLong: statfsbuf.f_files];
-    values[3] = [NSNumber numberWithLong: statfsbuf.f_ffree];
-    values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
-    
-    return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
-#else
+  long long totalsize, freesize;
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
+  
+  id  values[5];
+  id	keys[5] = {
+	  NSFileSystemSize,
+	  NSFileSystemFreeSize,
+	  NSFileSystemNodes,
+	  NSFileSystemFreeNodes,
+	  NSFileSystemNumber
+      };
+  
+  if (stat(cpath, &statbuf) != 0)
     return nil;
+
+#if HAVE_STATVFS
+  if (statvfs(cpath, &statfsbuf) != 0)
+    return nil;
+#else
+  if (statfs(cpath, &statfsbuf) != 0)
+    return nil;
+#endif
+
+  totalsize = statfsbuf.f_bsize * statfsbuf.f_blocks;
+  freesize = statfsbuf.f_bsize * statfsbuf.f_bfree;
+  
+  values[0] = [NSNumber numberWithLongLong: totalsize];
+  values[1] = [NSNumber numberWithLongLong: freesize];
+  values[2] = [NSNumber numberWithLong: statfsbuf.f_files];
+  values[3] = [NSNumber numberWithLong: statfsbuf.f_ffree];
+  values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
+  
+  return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
+#else
+  return nil;
 #endif
 #endif /* WIN32 */
 }
@@ -1043,11 +1073,11 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path
 {
-    return AUTORELEASE([[NSDirectoryEnumerator alloc]
-	initWithDirectoryPath: path 
-	recurseIntoSubdirectories: YES
-	followSymlinks: NO
-	prefixFiles: YES]);
+  return AUTORELEASE([[NSDirectoryEnumerator alloc]
+    initWithDirectoryPath: path 
+    recurseIntoSubdirectories: YES
+    followSymlinks: NO
+    prefixFiles: YES]);
 }
 
 - (NSArray*) subpathsAtPath: (NSString*)path
@@ -1082,7 +1112,7 @@ static NSFileManager* defaultManager = nil;
 // Symbolic-link operations
 
 - (BOOL) createSymbolicLinkAtPath: (NSString*)path
-  pathContent: (NSString*)otherPath
+		      pathContent: (NSString*)otherPath
 {
   const char* lpath = [self fileSystemRepresentationWithPath: path];
   const char* npath = [self fileSystemRepresentationWithPath: otherPath];
@@ -1139,9 +1169,9 @@ static NSFileManager* defaultManager = nil;
 }
 
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
-  length: (unsigned int)len
+					  length: (unsigned int)len
 {
-    return [NSString stringWithCString: string length: len];
+  return [NSString stringWithCString: string length: len];
 }
 
 @end /* NSFileManager */
@@ -1165,7 +1195,7 @@ static NSFileManager* defaultManager = nil;
   DIR*  dir;
     
   cpath = [[NSFileManager defaultManager]
-	fileSystemRepresentationWithPath: path];
+    fileSystemRepresentationWithPath: path];
     
   dir = opendir(cpath);
     
