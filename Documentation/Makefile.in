@@ -1,6 +1,6 @@
 #
 #  Documentation makefile for Objective-C Class Library
-#  Copyright (C) 1995 Free Software Foundation, Inc.
+#  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
 #
@@ -50,9 +50,12 @@ readme.texi \
 todo.texi \
 machines.texi
 
+TEXT_FILES = \
+TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
+
 all: 
 
-info: TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
+info: $(TEXT_FILES)
 dvi: libobjects.dvi objective-c.dvi
 
 version.texi: $(srcdir)/../Version
@@ -73,34 +76,36 @@ libobjects.dvi: libobjects.texi version.texi
 objective-c.dvi: objective-c.texi 
 	$(TEXI2DVI) $(srcdir)/objective-c.texi
 
+MAKEINFO_FLAGS = -I $(srcdir)
+
 libobjects.info: libobjects.texi todo.texi version.texi
 	@echo Sorry, makeinfo does not yet support Objective C documentation.
-	:$(MAKEINFO) $(srcdir)/libobjects.texi
+	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/libobjects.texi
 objective-c.info: objective-c.texi
 	@echo Sorry, makeinfo does not yet support Objective C documentation.
-	:$(MAKEINFO) $(srcdir)/objective-c.texi
+	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/objective-c.texi
 TODO: todo.texi version.texi
-	$(MAKEINFO) -o TODO -D TODO_ONLY \
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o TODO -D TODO_ONLY \
 	--no-header --no-split $(srcdir)/todo.texi
 INSTALL: install.texi version.texi
-	$(MAKEINFO) -o INSTALL -D INSTALL_ONLY \
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o INSTALL -D INSTALL_ONLY \
 	--no-header --no-split $(srcdir)/install.texi
 README: readme.texi version.texi
-	$(MAKEINFO) -o README -D README_ONLY \
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o README -D README_ONLY \
 	--no-header --no-split $(srcdir)/readme.texi
 ANNOUNCE: announce.texi version.texi news.texi
-	$(MAKEINFO) -o ANNOUNCE -D ANNOUNCE_ONLY \
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ANNOUNCE -D ANNOUNCE_ONLY \
 	--no-header --no-split $(srcdir)/announce.texi
 NEWS: news.texi version.texi
-	$(MAKEINFO) -o NEWS -D NEWS_ONLY \
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o NEWS -D NEWS_ONLY \
 	--no-header --no-split $(srcdir)/news.texi
 ADVERTISEMENT: advertisement.texi version.texi
-	$(MAKEINFO) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
 
 TOP_DOC_FILES = README INSTALL NEWS
 RCS_FILES =  $(TEXI_FILES) Makefile.in 
-DIST_FILES = $(RCS_FILES) texinfo.tex version.texi \
+DIST_FILES = $(RCS_FILES) texinfo.tex \
         $(TOP_DOC_FILES) ANNOUNCE ADVERTISEMENT TODO
 
 # In the future we'll want to install libobjects.info and objective-c.info.
@@ -111,6 +116,8 @@ mostlyclean:
 	rm -f *~
 
 clean: mostlyclean
+	rm -f version.texi
+	rm -f $(TEXT_FILES)
 	rm -f *.info
 	rm -f libobjects.dvi libobjects.aux libobjects.log \
 	libobjects.toc libobjects.cl \
