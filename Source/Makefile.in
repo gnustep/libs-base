@@ -374,6 +374,7 @@ NSNotificationCenter.m \
 NSNumber.m \
 NSObjCRuntime.m \
 NSObject.m \
+NSPage.m \
 NSProcessInfo.m \
 NSRange.m \
 NSRunLoop.m \
@@ -382,6 +383,7 @@ NSString.m \
 NSThread.m \
 NSTimer.m \
 NSTimeZone.m \
+NSUser.m \
 NSValue.m \
 NSZone.m
 
