@@ -106,9 +106,11 @@ make-3.75.tar.gz (You need GNU make to compile GNUstep).
 gcc-2.7.2.1-objc-970318.diff.gz (patch for multi-threaded Obj-C runtime)
   From the gstep-base distribution (gcc-2.7.2.1-objc.diff) or
   ftp://alpha.gnu.org/gnu/gnustep
+  ftp://ftp.gnustep.org/pub/gnustep/developer
   ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/developer/releases
-gdb-4.16-objc.diff.gz (A patch for easier debugging of Objective-C code).
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/developer/releases
+gdb-4.16-objc-971112.diff.gz (A patch for easier debugging of Objective-C code).
+  ftp://alpha.gnu.org/gnu/gnustep
+  ftp://ftp.gnustep.org/pub/gnustep/developer
 
 tiff-v3.4beta036-tar.gz (The TIFF library)
 tiff-970711.tar.gz
@@ -308,31 +310,17 @@ make OBJC_THREAD_FILE=thr-pthreads
 @subsection Patching and Compiling GDB
 
 @table @asis
-@item 1. Uncompress GDB, and patch it:
+@item Uncompress GDB, and patch it:
 
 @format
   cd /usr/src
   tar fvxz gdb-4.16.tar.gz
-  gunzip gdb-objc.diff.gz
+  gunzip gdb-4.16-objc-971112.diff.gz
   cd gdb-4.16
-  patch -p1 < ../gdb-objc.diff
+  patch -p1 < ../gdb-4.16-objc-971112.diff
 @end format
 
-@item 2. Fix a bug in gdb/eval.c:
-	
-At line 671, replace:
-
-@example
-nargs = (longest_to_int (exp->elts[pc + 2].longconst);
-@end example
-
-with:
-
-@example
-nargs = (longest_to_int (exp->elts[pc + 2].longconst));
-@end example
-
-@item 3. Configure, compile and install gdb:
+@item Configure, compile and install gdb:
 
 @format
   cd /usr/src/gdb-4.16
@@ -399,9 +387,9 @@ above.
 
 @subsection Building a Foundation library
 
-If you work with gnustep-base.  With this and the following packages
-you can use the various switches, shared, debug. As in 
-``make shared=no debug=yes'':
+With this and the following packages you can use the various switches,
+shared, debug. As in ``make shared=no debug=yes'' (Make sure you use the
+same switches for every package you compile). If you work with gstep-base:
 
 @example
   cd /usr/src
@@ -411,6 +399,13 @@ you can use the various switches, shared, debug. As in
   make
   su root
   make install
+@end example
+
+On some Linux systems, you may have to change the optimization level
+(particularly if you get an error compiling mframe.m):
+
+@example
+  make OPTFLAG=-O
 @end example
 
 If you work with libFoundation:
@@ -449,6 +444,30 @@ Compile the XDPS library:
   cd Testing
   make
 @end example
+
+@section Additional Installation
+
+Set up your home GNUstep directory. This is where user defaults are
+kept, and in the future, other files may be kept there.
+
+@example
+cd
+mkdir GNUstep
+@end example
+
+Next, set your local time zone.  There are three ways to do this, pick
+one:
+
+@enumerate
+@item Use the dwrite utility to set ``Local Time Zone'' to your local
+time zone.
+
+@item Set the @var{TZ} environment variable.
+
+@item Create the file
+@file{$GNUSTEP_SYSTEM_ROOT/Libraries/Resources/gnustep/NSTimeZones/localtime}
+with the name of the local time zone in it.
+@end enumerate
 
 Finally, run the tests in the Testing directory. Use the openapp utility
 that is part of the GNUstep makefile package (and stored in
