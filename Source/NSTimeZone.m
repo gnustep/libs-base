@@ -4,7 +4,7 @@
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: June 1997
   
-   Rewritw large chunks by: Richard Frith-Macdonald <rfm@gnu.org>
+   Rewrite large chunks by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: September 2002
   
      This file is part of the GNUstep Base Library.
@@ -39,13 +39,47 @@
    eventually have to change the implementation to prevent the year
    2038 problem.)
 
-   The local time zone can be specified with the user defaults
-   database, the GNUSTEP_TZ environment variable, the file LOCAL_TIME_FILE,
-   the TZ environment variable, or the fallback time zone (which is UTC),
+   The local time zone can be specified with:
+    1) the user defaults database
+    2) the GNUSTEP_TZ environment variable
+    3) the file LOCAL_TIME_FILE in _time_zone_path()
+    4) the TZ environment variable
+    5) tzset() & tznam[] for platforms which have it
+    6) Windows registry, for Win32 systems
+    7) or the fallback time zone (which is UTC)
    with the ones listed first having precedence.
 
    Any time zone must be a file name in ZONES_DIR.
 
+   Files & File System Heirarchy info:
+   ===================================
+  
+   Default place for the NSTimeZone directory is _time_zone_path():
+     {$(GNUSTEP_SYSTEM_ROOT)Libary/Libraries/Resources/TIME_ZONE_DIR}
+   
+   LOCAL_TIME_FILE is a text file with the name of the time zone file.
+
+   ZONES_DIR is a sub-directory under TIME_ZONE_DIR
+
+   (dir) ../System/Library/Libraries/Resources/..
+   (dir)     NSTimeZone
+   (file)      localtime {text; time zone eg Australia/Perth}
+   (dir)       zones
+
+   Since NSTimeZone gets the name from LOCAL_TIME_FILE it's sufficient
+   to symlink this to the time zone name used elsewhere. For example:
+   Debian uses "/etc/timezone"
+
+   A number of POSIX systems have the zone files already installed.
+   For these systems it is sufficient to symlink ZONES_DIR to the
+   platform specific location.
+   For (g)libc6 this is /usr/share/zoneinfo
+   For Solaris  this is /usr/share/lib/zoneinfo
+
+   Note that full zone info is required, especially the various "GMT"
+   files which are created especially for OPENSTEP compatibility.
+   Zone info comes from the Olson time database.
+      
    FIXME?: use leap seconds? */
 
 #include "config.h"
@@ -88,7 +122,8 @@
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY @"Local Time Zone"
 
-/* Directory that contains the time zone data. */
+/* Directory that contains the time zone data.
+   Expected in Resources directory for library bundle. */
 #define TIME_ZONE_DIR @"NSTimeZones"
 
 /* Location of time zone abbreviation dictionary.  It is a text file
@@ -114,7 +149,7 @@
 @class GSTimeZoneDetail;
 @class GSAbsTimeZoneDetail;
 
-@class	GSPlaceholderTimeZone;
+@class GSPlaceholderTimeZone;
 
 /*
  * Information for abstract placeholder class.
@@ -128,8 +163,8 @@ static NSMapTable		*placeholderMap;
  */
 struct ttinfo
 {
-  char offset[4]; // Seconds east of UTC
-  unsigned char isdst; // Daylight savings time?
+  char offset[4];         // Seconds east of UTC
+  unsigned char isdst;    // Daylight savings time?
   unsigned char abbr_idx; // Index into time zone abbreviations string
 };
 
@@ -157,6 +192,22 @@ typedef struct {
 }
 @end
 
+#ifdef WIN32
+@interface	GSWindowsTimeZone : NSTimeZone
+{
+@public
+  NSString	*timeZoneName;
+  NSString	*daylightZoneName;
+  NSString	*timeZoneNameAbbr;
+  NSString	*daylightZoneNameAbbr;
+  LONG		Bias;
+  LONG		StandardBias;
+  LONG		DaylightBias;
+  SYSTEMTIME	StandardDate;
+  SYSTEMTIME	DaylightDate;
+}
+@end
+#endif
 
 static NSTimeZone	*defaultTimeZone = nil;
 static NSTimeZone	*localTimeZone = nil;
@@ -440,12 +491,25 @@ static NSString *_time_zone_path(NSString *subpath)
 
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
 	      if (fileName == nil)
+#ifdef WIN32
+                {
+                  zone = [[GSWindowsTimeZone alloc] initWithName:name data:0];
+                  RELEASE(self);
+                  return zone;
+                }
+#else
 		{
 		  NSLog(@"Unknown time zone name `%@'.", name);
 		  return nil;
 		}
+#endif
 	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
+#ifdef WIN32
+        if (!data)
+          zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
+        else
+#endif
 	  zone = [[GSTimeZone alloc] initWithName: name data: data];
 	}
     }
@@ -548,7 +612,8 @@ static NSString *_time_zone_path(NSString *subpath)
 }
 
 @end
-  
+
+
 @implementation GSAbsTimeZone
 
 static int		uninitialisedOffset = 100000;
@@ -697,7 +762,7 @@ static NSMapTable	*absolutes = 0;
 }
 @end
   
-  
+  
 @implementation GSTimeZoneDetail
   
 - (void) dealloc
@@ -764,7 +829,6 @@ static NSMapTable	*absolutes = 0;
 @end
 
 
-
 @implementation GSAbsTimeZoneDetail
   
 - (NSString*) abbreviation
@@ -831,11 +895,20 @@ static NSMapTable	*absolutes = 0;
   
 @end
 
-
 
 /**
  * <p>
- * If the GNUstep time zone datafiles become too out of date, one
+ * The local time zone can be specified by:<br/ >
+ *  1) the user defaults database: NSGlobalDomain "Local Time Zone"<br/ >
+ *  2) the GNUSTEP_TZ environment variable<br/ >
+ *  3) the file "localtime" in System/Library/Libraries/Resources/NSTimeZone<br/ >
+ *  4) the TZ environment variable<br/ >
+ *  5) tzset() and tznam on platforms which have it<br/ >
+ *  6) Windows registry, on Win32 systems<br/ >
+ *  7) or the fallback time zone (which is UTC)<br/ >
+ * with the ones listed first having precedence.
+ * </p>
+ * <p>If the GNUstep time zone datafiles become too out of date, one
  * can download an updated database from <uref
  * url="ftp://elsie.nci.nih.gov/pub/">ftp://elsie.nci.nih.gov/pub/</uref>
  * and compile it as specified in the README file in the
@@ -856,26 +929,39 @@ static NSMapTable	*absolutes = 0;
  * wildly between OSes (this could be a big problem when
  * archiving is used between different systems).
  * </p>
+ * <p>On platforms where the zone info files are already installed
+ * elsewhere it is sufficient to use a symlink provided the GMT+/-
+ * zones are added.
+ * </p>
+ * <p>Win32:  Time zone names read from the registry are different
+ * from other GNUstep installations. Be careful when moving data
+ * between platforms in this case.
+ * </p>
  */
 @implementation NSTimeZone
 
+/**
+ * DEPRICATED.
+ */
 + (NSDictionary*) abbreviationDictionary
 {
   return fake_abbrev_dict;
 }
 
+/**
+ * Returns an abbreviation to time zone map which is quite large.
+ */
 + (NSDictionary*) abbreviationMap
 {
-  /* Instead of creating the abbreviation dictionary when the class is
-     initialized, we create it when we first need it, since the
-     dictionary can be potentially very large, considering that it's
-     almost never used. */
-
   static NSMutableDictionary *abbreviationDictionary = nil;
   FILE *file; // For the file containing the abbreviation dictionary
   char abbrev[80], name[80];
   NSString *fileName;
 
+  /* Instead of creating the abbreviation dictionary when the class is
+     initialized, we create it when we first need it, since the
+     dictionary can be potentially very large, considering that it's
+     almost never used. */
   if (abbreviationDictionary != nil)
     return abbreviationDictionary;
 
@@ -1091,21 +1177,25 @@ static NSMapTable	*absolutes = 0;
        */
       systemTimeZone = RETAIN([NSTimeZoneClass timeZoneForSecondsFromGMT: 0]);
 
+      /*
+       * Try to get timezone from user defaults database
+       */
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
+      
+      /*
+       * Try to get timezone from GNUSTEP_TZ environment variable.
+       */      
       if (localZoneString == nil)
 	{
-	  /*
-	   * Try to get timezone from GNUSTEP_TZ environment variable.
-	   */
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
+      /*
+       * Try to get timezone from LOCAL_TIME_FILE.
+       */
       if (localZoneString == nil)
 	{
-	  /*
-	   * Try to get timezone from LOCAL_TIME_FILE.
-	   */
 	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE);
 	  if (f != nil)
 	    {
@@ -1114,25 +1204,53 @@ static NSMapTable	*absolutes = 0;
 	    }
 	}
 #if HAVE_TZSET
+      /*
+       * Try to get timezone from tzset and tzname
+       */
       if (localZoneString == nil)
 	{
-	  /*
-	   * Try to get timezone from tzset and tzname
-	   */
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
 	    localZoneString = [NSString stringWithCString: tzname[0]];
 	}
 #else
+      /*
+       * Try to get timezone from standard unix environment variable.
+       */
       if (localZoneString == nil)
 	{
-	  /*
-	   * Try to get timezone from standard unix environment variable.
-	   */
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
 #endif
+
+#ifdef WIN32
+      /*
+       * Try to get timezone from windows registry.
+       */
+      {
+        HKEY regkey;
+        
+        if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
+        "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0, KEY_READ, &regkey))
+          {
+            char buf[100];
+            DWORD bufsize=100;
+            DWORD type;
+            if (ERROR_SUCCESS==RegQueryValueEx(regkey, "StandardName", 0, &type, buf, &bufsize))
+              {
+                bufsize=strlen(buf);
+                while (bufsize && isspace(buf[bufsize-1]))
+                  {
+                    bufsize--;
+                  }
+                  localZoneString = [NSString stringWithCString:buf length:bufsize];
+              }
+            RegCloseKey(regkey);
+          }
+      }
+#endif      
+      
       if (localZoneString != nil)
 	{
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
@@ -1166,10 +1284,14 @@ static NSMapTable	*absolutes = 0;
   return zone;
 }
 
+/**
+ * Returns an array of all the known regions.<br />
+ * There are 24 elements, of course, one for each time zone.
+ * Each element contains an array of NSStrings which are
+ * the region names.
+ */
 + (NSArray*) timeZoneArray
 {
-  /* We create the array only when we need it to reduce overhead. */
-
   static NSArray *regionsArray = nil;
   int index, i;
   char name[80];
@@ -1177,6 +1299,7 @@ static NSMapTable	*absolutes = 0;
   id temp_array[24];
   NSString *fileName;
 
+  /* We create the array only when we need it to reduce overhead. */
   if (regionsArray != nil)
     return regionsArray;
 
@@ -1217,7 +1340,9 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * Returns a timezone for the specified abbrevition,
+ * Returns a timezone for the specified abbrevition. The same abbreviations
+ * are used in different regions so this isn't particularly useful.<br />
+ * Calls NSTimeZone-abbreviation dictionary an so uses a lot of memory.
  */
 + (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation
 {
@@ -1240,13 +1365,14 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * Returns a timezone for the specified name, created from the supplied data.
+ * Returns a timezone for aTimeZoneName, created from the supplied
+ * time zone data. Data must be in TZ format as per the Olson database.
  */
-+ (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data
++ (NSTimeZone*) timeZoneWithName: (NSString*)aTimeZoneName data: (NSData*)data
 {
   NSTimeZone	*zone;
 
-  zone = [defaultPlaceholderTimeZone initWithName: name data: nil];
+  zone = [defaultPlaceholderTimeZone initWithName: aTimeZoneName data: data];
   return AUTORELEASE(zone);
 }
 
@@ -1274,6 +1400,9 @@ static NSMapTable	*absolutes = 0;
   return abbr;
 }
 
+/**
+ * Returns the Class for this object
+ */
 - (Class) classForCoder
 {
   return NSTimeZoneClass;
@@ -1292,6 +1421,9 @@ static NSMapTable	*absolutes = 0;
   return nil;
 }
 
+/**
+ * Returns the name of this object.
+ */
 - (NSString*) description
 {
   return [self name];
@@ -1370,6 +1502,9 @@ static NSMapTable	*absolutes = 0;
   return [self isEqualToTimeZone: other];
 }
 
+/**
+ * Returns TRUE if the time zones have the same name.
+ */
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone
 {
   if (aTimeZone == self)
@@ -1382,6 +1517,9 @@ static NSMapTable	*absolutes = 0;
   return NO;
 }
 
+/**
+ * Returns the name of the timezone
+ */
 - (NSString*) name
 {
   return [self subclassResponsibility: _cmd];
@@ -1423,16 +1561,25 @@ static NSMapTable	*absolutes = 0;
   return offset;
 }
 
+/**
+ * DEPRICATED:  see NSTimeZoneDetail
+ */
 - (NSArray*) timeZoneDetailArray
 {
   return [self subclassResponsibility: _cmd];
 }
 
+/**
+ * DEPRICATED:  see NSTimeZoneDetail
+ */
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
   return [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Returns the name of this timezone.
+ */
 - (NSString*) timeZoneName
 {
   return [self name];
@@ -1455,17 +1602,26 @@ static NSMapTable	*absolutes = 0;
     [self timeZoneSecondsFromGMT]];
 }
 
+/**
+ * DEPRICATED: Class is no longer used.
+ */
 - (BOOL) isDaylightSavingTimeZone
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
   
+/**
+ * DEPRICATED: Class is no longer used.
+ */
 - (NSString*) timeZoneAbbreviation
 {
   return [self subclassResponsibility: _cmd];
 }
   
+/**
+ * DEPRICATED: Class is no longer used.
+ */
 - (int) timeZoneSecondsFromGMT
 {
   [self subclassResponsibility: _cmd];
@@ -1482,11 +1638,17 @@ static NSMapTable	*absolutes = 0;
   return _time_zone_path (ABBREV_DICT);
 }
 
+/**
+ * Returns the path to the Regions file.
+ */
 + (NSString*) getRegionsFile
 {
   return _time_zone_path (REGIONS_FILE);
 }
 
+/**
+ * Returns the path to the named zone info file.
+ */
 + (NSString*) getTimeZoneFile: (NSString *)name
 {
   NSString	*dir;
@@ -1497,8 +1659,292 @@ static NSMapTable	*absolutes = 0;
 
 @end
 
+
+#ifdef WIN32
+/* Timezone information data as stored in the registry */
+typedef struct TZI_format {
+	LONG       Bias;
+	LONG       StandardBias;
+	LONG       DaylightBias;
+	SYSTEMTIME StandardDate;
+	SYSTEMTIME DaylightDate;
+} TZI;
 
+static inline unsigned int
+lastDayOfGregorianMonth(int month, int year)
+{
+  switch (month)
+    {
+      case 2:
+        if ((((year % 4) == 0) && ((year % 100) != 0))
+          || ((year % 400) == 0))
+          return 29;
+        else
+          return 28;
+      case 4:
+      case 6:
+      case 9:
+      case 11: return 30;
+      default: return 31;
+    }
+}
 
+/* IMPORT from NSCalendar date */
+void
+GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
+  int *hour, int *minute, int *second, int *mil);
+int dayOfCommonEra(NSTimeInterval when);
+
+@implementation GSWindowsTimeZone
+
+- (NSString*) abbreviationForDate: (NSDate*)aDate
+{
+  if ([self isDaylightSavingTimeForDate:aDate])
+    return daylightZoneNameAbbr;
+  return timeZoneNameAbbr;
+}
+
+- (NSData*) data
+{
+	return 0;
+}
+
+- (void) dealloc
+{
+  RELEASE(timeZoneName);
+  RELEASE(daylightZoneName);
+  RELEASE(timeZoneNameAbbr);
+  RELEASE(daylightZoneNameAbbr);
+  [super dealloc];
+}
+
+- (id) initWithName: (NSString*)name data: (NSData*)data
+{
+  NSString *shortName;
+  HKEY regkey;
+
+  if ([name hasSuffix:@" Standard Time"])
+    {
+      shortName = [name substringWithRange:NSMakeRange(0,[name length]-14)];
+    }
+  else
+    {
+      shortName = name;
+    }
+
+  /* Open the key in the local machine hive where the time zone data is stored. */
+  if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
+    [[NSString 
+    stringWithFormat:@"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\%@", name] cString], 0, KEY_READ, &regkey) \
+    || ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
+    [[NSString 
+    stringWithFormat:@"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\%@", shortName] cString], 0, KEY_READ, &regkey))
+    {
+      char buf[200];
+      DWORD bufsize=sizeof(buf);
+      DWORD type;
+
+      /* Read in the time zone data */
+      if (ERROR_SUCCESS==RegQueryValueEx(regkey, "TZI", 0, &type, buf, &bufsize))
+        {
+          TZI *tzi = (void*)buf;
+          Bias = tzi->Bias;
+          StandardBias = tzi->StandardBias;
+          DaylightBias = tzi->DaylightBias;
+          StandardDate = tzi->StandardDate;
+          DaylightDate = tzi->DaylightDate;
+        }
+      bufsize=sizeof(buf);
+      /* Read the standard name for the time zone. */
+      if (ERROR_SUCCESS==RegQueryValueEx(regkey, "Std", 0, &type, buf, &bufsize))
+        {
+          int a, b;
+          [timeZoneName release];
+          timeZoneName = [[NSString stringWithCString:buf] retain];
+          for(a=0,b=0;buf[a];a++)
+            {
+              if (isupper(buf[a]))
+                buf[b++]=buf[a];
+            }
+          buf[b]=0;
+          [timeZoneNameAbbr release];
+          timeZoneNameAbbr = [[NSString stringWithCString:buf] retain];
+        }
+      /* Read the daylight savings name for the time zone. */
+      if (ERROR_SUCCESS==RegQueryValueEx(regkey, "Dlt", 0, &type, buf, &bufsize))
+        {
+          int a,b;
+          [daylightZoneName release];
+          daylightZoneName = [[NSString stringWithCString:buf] retain];
+          for(a=0,b=0;buf[a];a++)
+            {
+              if (isupper(buf[a]))
+                buf[b++]=buf[a];
+            }
+          buf[b]=0;
+          [daylightZoneNameAbbr release];
+          daylightZoneNameAbbr = [[NSString stringWithCString:buf] retain];
+        }
+      RegCloseKey(regkey);
+    }
+  return self;
+}
+
+- (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate
+{
+  int year, month, day, hour, minute, second, mil;
+  int	dow;
+  int daylightdate, count, maxdate;
+  NSTimeInterval when;
+
+  if (DaylightDate.wMonth == 0)
+    return NO;
+
+  when = [aDate timeIntervalSinceReferenceDate] - Bias*60;
+
+  GSBreakTime(when, &year, &month, &day, &hour, &minute, &second, &mil);
+
+  // Before April or after October is Std
+  if (month < DaylightDate.wMonth || month > StandardDate.wMonth)
+    return NO;
+  // After April and before October is DST
+  if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
+    return YES;
+  dow = dayOfCommonEra(when);
+
+  dow = dow % 7;
+  if (dow < 0)
+    dow += 7;
+    
+  if (month == DaylightDate.wMonth /* April */)
+    {
+      daylightdate = day - dow + DaylightDate.wDayOfWeek;
+      maxdate = lastDayOfGregorianMonth(DaylightDate.wMonth, year)-7;
+      while (daylightdate > 7)
+        daylightdate-=7;
+      if (daylightdate < 1)
+        daylightdate += 7;
+      count=DaylightDate.wDay;
+      while (count>1 && daylightdate < maxdate)
+        {
+          daylightdate+=7;
+          count--;
+        }
+      if (day > daylightdate)
+        return YES;
+      if (day < daylightdate)
+        return NO;
+      if (hour > DaylightDate.wHour)
+        return YES;
+      if (hour < DaylightDate.wHour)
+        return NO;
+      if (minute > DaylightDate.wMinute)
+        return YES;
+      if (minute < DaylightDate.wMinute)
+        return NO;
+      if (second > DaylightDate.wSecond)
+        return YES;
+      if (second < DaylightDate.wSecond)
+        return NO;
+      if (mil >= DaylightDate.wMilliseconds)
+        return YES;
+      return NO;
+  }
+  if (month == StandardDate.wMonth /* October */)
+    {
+      daylightdate = day - dow + StandardDate.wDayOfWeek;
+      maxdate = lastDayOfGregorianMonth(StandardDate.wMonth, year)-7;
+      while (daylightdate > 7)
+        daylightdate-=7;
+      if (daylightdate < 1)
+        daylightdate += 7;
+      count=StandardDate.wDay;
+      while (count>1 && daylightdate < maxdate)
+        {
+          daylightdate+=7;
+          count--;
+        }
+      if (day > daylightdate)
+        return NO;
+      if (day < daylightdate)
+        return YES;
+      if (hour > StandardDate.wHour)
+        return NO;
+      if (hour < StandardDate.wHour)
+        return YES;
+      if (minute > StandardDate.wMinute)
+        return NO;
+      if (minute < StandardDate.wMinute)
+        return YES;
+      if (second > StandardDate.wSecond)
+        return NO;
+      if (second < StandardDate.wSecond)
+        return YES;
+      if (mil >= StandardDate.wMilliseconds)
+        return NO;
+      return YES;
+    }
+  return NO; // Never reached
+}
+
+- (NSString*) name
+{
+  return timeZoneName;
+}
+
+- (int) secondsFromGMTForDate: (NSDate*)aDate
+{
+  if ([self isDaylightSavingTimeForDate:aDate])
+    return -Bias*60 - DaylightBias*60;
+  return -Bias*60 - StandardBias*60;
+}
+
+- (NSArray*) timeZoneDetailArray
+{
+	return [NSArray arrayWithObjects:
+	         [[[GSTimeZoneDetail alloc] initWithTimeZone:self 
+			    withAbbrev:timeZoneNameAbbr 
+			    withOffset:-Bias*60 - StandardBias*60 
+			    withDST:NO] autorelease], 
+		 [[[GSTimeZoneDetail alloc] initWithTimeZone:self 
+			    withAbbrev:daylightZoneNameAbbr 
+			    withOffset:-Bias*60 - DaylightBias*60 
+			    withDST:YES] autorelease], 0];
+}
+
+- (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)aDate
+{
+  GSTimeZoneDetail	*detail;
+  int offset;
+  BOOL isDST = [self isDaylightSavingTimeForDate:aDate];
+  NSString *abbr;
+
+  if (isDST)
+    {
+      offset = -Bias*60 - DaylightBias*60;
+      abbr = daylightZoneNameAbbr;
+    } 
+  else
+    {
+      offset = -Bias*60 - StandardBias*60;
+      abbr = timeZoneNameAbbr;
+    }
+  detail = [GSTimeZoneDetail alloc];
+  detail = [detail initWithTimeZone: self
+                         withAbbrev: abbr
+                         withOffset: offset
+                            withDST: isDST];
+  return detail;
+}
+
+- (NSString*) timeZoneName
+{
+  return timeZoneName;
+}
+@end
+#endif // WIN32
+
+
 @implementation	GSTimeZone
 
 /**
