@@ -271,7 +271,7 @@ enum
    */
   if ((proxy = [aConnection localForObject: anObject]))
     {
-      return [proxy retain];
+      return RETAIN(proxy);
     }
 
   proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
@@ -291,7 +291,7 @@ enum
    */
   if ((proxy = [aConnection proxyForTarget: target]))
     {
-      return [proxy retain];
+      return RETAIN(proxy);
     }
 
   proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
@@ -329,15 +329,15 @@ enum
 + (NSDistantObject*) proxyWithLocal: (id)anObject
 			 connection: (NSConnection*)aConnection
 {
-  return [[placeHolder initWithLocal: anObject
-			  connection: aConnection] autorelease];
+  return AUTORELEASE([placeHolder initWithLocal: anObject
+				     connection: aConnection]);
 }
 
 + (NSDistantObject*) proxyWithTarget: (unsigned)anObject
 			  connection: (NSConnection*)aConnection
 {
-  return [[placeHolder initWithTarget: anObject
-			   connection: aConnection] autorelease];
+  return AUTORELEASE([placeHolder initWithTarget: anObject
+				      connection: aConnection]);
 }
 
 - (NSConnection*) connectionForProxy
@@ -481,7 +481,7 @@ enum
 /*
   if ([aCoder isKindOfClass: [NSPortCoder class]] == NO)
     {
-      [self release];
+      RELEASE(self);
       [NSException raise: NSGenericException
 		  format: @"NSDistantObject objects only decode with "
 			  @"NSPortCoder class"];
@@ -513,7 +513,7 @@ enum
 
         if (![[decoder_connection class] includesLocalTarget: target])
 	  {
-	    [self release];
+	    RELEASE(self);
 	    [NSException raise: @"ProxyDecodedBadTarget"
 			format: @"No local object with given target (0x%x)",
 				target];
@@ -528,8 +528,8 @@ enum
 		NSLog(@"Local object is 0x%x (0x%x)\n",
 		  (gsaddr)o, (gsaddr)o ? o->_object : 0);
 	      }
-	    [self release];
-	    return o ? [o->_object retain] : nil;
+	    RELEASE(self);
+	    return o ? RETAIN(o->_object) : nil;
 	  }
 
       case PROXY_LOCAL_FOR_SENDER:
@@ -545,9 +545,9 @@ enum
 	if (debug_proxy)
 	  NSLog(@"Receiving a proxy, was local 0x%x connection 0x%x\n",
 		  target, (gsaddr)decoder_connection);
-        [self release];
-	return [[NSDistantObject proxyWithTarget: target
-				      connection: decoder_connection] retain];
+        RELEASE(self);
+	return RETAIN([NSDistantObject proxyWithTarget: target
+					    connection: decoder_connection]);
 
       case PROXY_REMOTE_FOR_BOTH:
         /*
@@ -627,9 +627,9 @@ enum
 	  if ([proxy_connection includesProxyForTarget: target] == NO)
 	    [proxy_connection retainTarget: target];
 
-	  result = [[NSDistantObject proxyWithTarget: target
-				          connection: proxy_connection] retain];
-	  [self release];
+	  result = RETAIN([NSDistantObject proxyWithTarget: target
+						connection: proxy_connection]);
+	  RELEASE(self);
 
 	  /*
 	   *	Finally - we have a proxy via a direct connection to the
@@ -643,7 +643,7 @@ enum
 
     default:
       /* xxx This should be something different than NSGenericException. */
-      [self release];
+      RELEASE(self);
       [NSException raise: NSGenericException
 		  format: @"Bad proxy tag"];
     }
@@ -663,8 +663,9 @@ enum
    */
   if ((new_proxy = [aConnection localForObject: anObject]))
     {
-      [self release];
-      return [new_proxy retain];
+      RETAIN(new_proxy);
+      RELEASE(self);
+      return new_proxy;
     }
 
   /*
@@ -677,7 +678,7 @@ enum
   /*
    *	We register this proxy with the connection using it.
    */
-  _connection = [aConnection retain];
+  _connection = RETAIN(aConnection);
   [_connection addLocalObject: self];
 
   if (debug_proxy)
@@ -699,8 +700,9 @@ enum
    */
   if ((new_proxy = [aConnection proxyForTarget: target]))
     {
-      [self release];
-      return [new_proxy retain];
+      RETAIN(new_proxy);
+      RELEASE(self);
+      return new_proxy;
     }
 
   _object = nil;
@@ -710,7 +712,7 @@ enum
    *	We retain our connection so it can't disappear while the app
    *	may want to use it.
    */
-  _connection = [aConnection retain];
+  _connection = RETAIN(aConnection);
 
   /*
    *	We register this object with the connection using it.
@@ -808,7 +810,7 @@ enum
        */
       if (_object == nil)
 	[_connection removeProxy: self];
-      [_connection release];
+      RELEASE(_connection);
     }
 }
 

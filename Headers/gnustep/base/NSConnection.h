@@ -73,10 +73,16 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
   unsigned		_reqInCount;
   unsigned		_repOutCount;
   unsigned		_repInCount;
-  NSMapTable		*_localObjects;
-  NSMapTable		*_localTargets;
-  NSMapTable		*_remoteProxies;
-  NSMapTable		*_replyMap;
+#ifndef	_IN_CONNECTION_M
+#define	GSIMapTable	void*
+#endif
+  GSIMapTable		_localObjects;
+  GSIMapTable		_localTargets;
+  GSIMapTable		_remoteProxies;
+  GSIMapTable		_replyMap;
+#ifndef	_IN_CONNECTION_M
+#undef	GSIMapTable
+#endif
   NSTimeInterval	_replyTimeout;
   NSTimeInterval	_requestTimeout;
   NSMutableArray	*_requestModes;
