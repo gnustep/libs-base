@@ -168,90 +168,97 @@ NSStringEncoding *GetAvailableEncodings()
   return _availableEncodings;
 }
 
-NSStringEncoding GetDefEncoding()
+NSStringEncoding
+GetDefEncoding()
 {
-  char *encoding;
-  unsigned int count;
-  NSStringEncoding ret,tmp;
-  NSStringEncoding *availableEncodings;
+  char			*encoding;
+  unsigned int		count;
+  NSStringEncoding	ret;
+  NSStringEncoding	tmp;
+  NSStringEncoding	*availableEncodings;
 
   availableEncodings = GetAvailableEncodings();
 
   encoding = getenv("GNUSTEP_STRING_ENCODING");
-  if (encoding)
+  if (encoding != 0)
     {
       count = 0;
-      while (str_encoding_table[count].enc &&
-	     strcmp(str_encoding_table[count].ename,encoding))
+      while (str_encoding_table[count].enc
+	&& strcmp(str_encoding_table[count].ename,encoding))
 	{
 	  count++;
 	}
       if (str_encoding_table[count].enc)
 	{
 	  ret = str_encoding_table[count].enc;
-	  if ((ret == NSUnicodeStringEncoding) ||
-	      (ret == NSSymbolStringEncoding))
+	  if ((ret == NSUnicodeStringEncoding)
+	    || (ret == NSSymbolStringEncoding))
 	    {
-	      fprintf(stderr, "WARNING: %s - encoding not supported as default c string encoding.\n", encoding);
-	      fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-	      ret = NSASCIIStringEncoding;
+	      fprintf(stderr, "WARNING: %s - encoding not supported as "
+		"default c string encoding.\n", encoding);
+	      fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+	      ret = NSISOLatin1StringEncoding;
 	    }
 	  else /*encoding should be supported but is it implemented?*/
 	    {
 	      count = 0;
 	      tmp = 0;
-	      while ( !(availableEncodings[count] == 0) )
+	      while (availableEncodings[count] != 0)
 		{
-		  if ( !(ret == availableEncodings[count]) )
-		    tmp = 0;
+		  if (ret != availableEncodings[count])
+		    {
+		      tmp = 0;
+		    }
 		  else
 		    {
 		      tmp = ret;
 		      break;
 		    }
 		  count++;
-		};
-	      if (!tmp)
+		}
+	      if (tmp != 0)
 		{
-		  fprintf(stderr, "WARNING: %s - encoding not yet implemented.\n", encoding);
-		  fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-		  ret = NSASCIIStringEncoding;
-		};
-	    };
+		  fprintf(stderr, "WARNING: %s - encoding not yet "
+		    "implemented.\n", encoding);
+		  fprintf(stderr,
+		    "NSISOLatin1StringEncoding set as default.\n");
+		  ret = NSISOLatin1StringEncoding;
+		}
+	    }
 	}
       else /* encoding not found */
 	{
 	  fprintf(stderr, "WARNING: %s - encoding not supported.\n", encoding);
-	  fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-	  ret = NSASCIIStringEncoding;
+	  fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+	  ret = NSISOLatin1StringEncoding;
 	}
     }
   else /* environment var not found */
     {
-      /* This shouldn't be required. It really should be in UserDefaults - asf */
-      //fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment variable not found\n");
-      //fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-      ret = NSASCIIStringEncoding;
+      /* shouldn't be required. It really should be in UserDefaults - asf */
+      //fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment found\n");
+      //fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+      ret = NSISOLatin1StringEncoding;
     }
 
   // Cache the encoding
   defEnc = ret;
   return ret;
-};
+}
 
 NSString*
 GetEncodingName(NSStringEncoding encoding)
 {
   unsigned int count=0;
 
-  while (str_encoding_table[count].enc &&
-         !(str_encoding_table[count].enc == encoding))
+  while (str_encoding_table[count].enc
+    && (str_encoding_table[count].enc != encoding))
     {
       count++;
     }
 
   return [NSString stringWithCString: str_encoding_table[count].ename];
-};
+}
 
 #ifdef HAVE_ICONV
 

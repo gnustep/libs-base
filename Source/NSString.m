@@ -670,7 +670,7 @@ handle_printf_atsign (FILE *stream,
             arguments: (va_list)arg_list
 {
 #if defined(HAVE_VSPRINTF) || defined(HAVE_VASPRINTF)
-  const char *format_cp = [format cString];
+  const char *format_cp = [format lossyCString];
   int format_len = strlen (format_cp);
 #if HAVE_VASPRINTF
   char *buf;
@@ -783,7 +783,7 @@ handle_printf_atsign (FILE *stream,
             format_to_go = spec_pos+1;
           }
         /* Get a C-string (char*) from the String object, and print it. */
-        cstring = [[(id) va_arg (arg_list, id) description] cString];
+        cstring = [[(id) va_arg (arg_list, id) description] lossyCString];
         if (!cstring)
           cstring = "<null string>";
         cstring_len = strlen(cstring);
@@ -930,7 +930,7 @@ handle_printf_atsign (FILE *stream,
 	    format_to_go = spec_pos+1;
 	  }
 	/* Get a C-string (char*) from the String object, and print it. */
-	cstring = [[(id) va_arg (arg_list, id) description] cString];
+	cstring = [[(id) va_arg (arg_list, id) description] lossyCString];
 	if (!cstring)
 	  cstring = "<null string>";
 	strcat (buf+printed_len, cstring);
@@ -1940,7 +1940,14 @@ handle_printf_atsign (FILE *stream,
   count = 0;
   while (count < len)
     {
-      buffer[count]=unitochar((*caiImp)(self, caiSel, aRange.location + count));
+      buffer[count] = encode_unitochar(
+	(*caiImp)(self, caiSel, aRange.location + count),
+	_DefaultStringEncoding);
+      if (buffer[count] == 0)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"unable to convert to cString"];
+	}
       count++;
     }
   buffer[len] = '\0';
@@ -1960,17 +1967,17 @@ handle_printf_atsign (FILE *stream,
 
 - (double) doubleValue
 {
-  return atof([self cString]);
+  return atof([self lossyCString]);
 }
 
 - (float) floatValue
 {
-  return (float) atof([self cString]);
+  return (float) atof([self lossyCString]);
 }
 
 - (int) intValue
 {
-  return atoi([self cString]);
+  return atoi([self lossyCString]);
 }
 
 // Working With Encodings
