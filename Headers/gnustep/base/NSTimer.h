@@ -1,5 +1,5 @@
 /* Declarations for NSTimer for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -24,7 +24,53 @@
 #ifndef __NSTimer_include__
 #define __NSTimer_include__
 
-/* Time interval difference between two dates. */
-typedef double NSTimeInterval;	
+/* This class is currently thrown together.  When it is cleaned up, it
+   may no longer be concrete. */
+
+#include <objects/stdobjects.h>
+#include <Foundation/NSDate.h>
+
+@interface NSTimer : NSObject
+{
+  unsigned _repeats:1;
+  unsigned _is_valid:1;
+  unsigned _timer_filler:6;
+  unsigned _retain_count:24;
+  NSDate *_fire_date;
+  NSTimeInterval _interval;
+  id _target;
+  SEL _selector;
+  id _info;
+}
+
+/* Creating timer objects. */
+
++ scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+		      invocation: invocation
+			 repeats: (BOOL)f;
++ scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+			  target: object
+			selector: (SEL)selector
+                        userInfo: info
+			 repeats: (BOOL)f;
+
++ timerWithTimeInterval: (NSTimeInterval)ti
+	     invocation: invocation
+		repeats: (BOOL)f;
++ timerWithTimeInterval: (NSTimeInterval)ti
+		 target: object
+	       selector: (SEL)selector
+               userInfo: info
+	        repeats: (BOOL)f;
+
+- (void) fire;
+- (void) invalidate;
+
+- (BOOL) isValid;		/* This method not in OpenStep */
+
+- fireDate;
+- userInfo;
+
+@end
 
 #endif
