@@ -1124,18 +1124,22 @@ static BOOL double_release_check_enabled = NO;
  * where a subclass implements -forwardInvocation: to respond to
  * selectors not normally handled ... in these cases the subclass
  * may override this method to handle it.
- * <br />Raises NSInvalidArgumentException if given a null selector.
+ * <br />If given a null selector, raises NSInvalidArgumentException when
+ * in MacOS-X compatibility more, or returns NO otherwise.
  */
 + (BOOL) instancesRespondToSelector: (SEL)aSelector
 {
   if (aSelector == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-#if 0
-  return (class_get_instance_method(self, aSelector) != METHOD_NULL);
-#else
+    {
+      if (GSUserDefaultsFlag(GSMacOSXCompatible))
+	{
+	  [NSException raise: NSInvalidArgumentException
+		    format: @"%@ null selector given",
+	    NSStringFromSelector(_cmd)];
+	}
+      return NO;
+    }
   return __objc_responds_to((id)&self, aSelector);
-#endif
 }
 
 /**
@@ -1659,14 +1663,21 @@ static BOOL double_release_check_enabled = NO;
  * where a subclass implements -forwardInvocation: to respond to
  * selectors not normally handled ... in these cases the subclass
  * may override this method to handle it.
- * <br />Raises NSInvalidArgumentException if given a null selector.
+ * <br />If given a null selector, raises NSInvalidArgumentException when
+ * in MacOS-X compatibility more, or returns NO otherwise.
  */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
   if (aSelector == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
+    {
+      if (GSUserDefaultsFlag(GSMacOSXCompatible))
+	{
+	  [NSException raise: NSInvalidArgumentException
+		    format: @"%@ null selector given",
+	    NSStringFromSelector(_cmd)];
+	}
+      return NO;
+    }
   return __objc_responds_to(self, aSelector);
 }
 

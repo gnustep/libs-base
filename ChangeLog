@@ -1,3 +1,9 @@
+2003-02-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSObject.m: ([+instancesRespondToSelector:]),([-respondsToSelector])
+	Return NO when given a null selector unless in MacOS-X compatibility
+	mode.  rewritten from patch by Willem Rein Oudshoorn.
+
 2003-02-16  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.5.2
