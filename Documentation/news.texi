@@ -9,6 +9,10 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.7.1}
+
+Bug fixes.
+
 @section Noteworthy changes in version @samp{1.7.0}
 
 See gnustep-make for comments on the filesystem change. Some components

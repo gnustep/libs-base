@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.7.0, is now available.
+The GNUstep Base Library, version 1.7.1, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -23,6 +23,11 @@ portion of the OpenStep standard (the Foundation library).
 number, y, in x.y.z) are unstable releases (like 1.5.2), which even
 minor release numbers (1.4.1) are stable releases.
 
+Noteworthy changes in version `1.7.1'
+=====================================
+
+   Bug fixes.
+
 Noteworthy changes in version `1.7.0'
 =====================================
 
@@ -43,7 +48,7 @@ changes:
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.7.0.tar.gz distribution file has been placed on
+   The gnustep-base-1.7.1.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    Please log bug reports on the GNUstep project page

@@ -208,6 +208,8 @@ before-all::	../Documentation/Base \
 after-all::
 	$(RM) Base.gsdoc
 	$(RM) BaseAdditions.gsdoc
-	rmdir Base
-	rmdir BaseAdditions
+	if [ -d Base ]; then \
+	  rmdir Base; \
+	  rmdir BaseAdditions; \
+	fi
 
