@@ -6,6 +6,8 @@
 	* Headers/gnustep/base/GSObjCRuntime.h: declarations for above.
 	* Source/GSCompatibility.m: Don't use new format plists when writing
 	descriptions.
+	Also, honor NSWriteOldStylePropertyLists user default to write old
+	style property-lists rather than new style or xml style.
 
 2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
