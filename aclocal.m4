@@ -79,7 +79,7 @@ AC_CHECK_LIB(dl, dlopen, [DYNAMIC_LINKER=simple LIBS="${LIBS} -ldl"])
 
 if test $DYNAMIC_LINKER = null; then
     AC_CHECK_LIB(dld, main, [DYNAMIC_LINKER=dld LIBS="${LIBS} -ldld"])
-    AC_CHECK_HEADER(dld/defs.h, [objc_found_dld_defs=yes, objc_found_dld_defs=no])
+    AC_CHECK_HEADER(dld/defs.h, objc_found_dld_defs=yes, objc_found_dld_defs=no)
     # Try to distinguish between GNU dld and HPUX dld 
     AC_CHECK_HEADER(dl.h, [DYNAMIC_LINKER=hpux])
     if test $ac_cv_lib_dld = yes && test $objc_found_dld_defs = no && test $ac_cv_header_dl_h = no; then
