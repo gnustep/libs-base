@@ -2,6 +2,7 @@
 
 	* Headers/Foundation/GSMime.h: Add GSMimeHeader class.
 	* Source/Additions/GSMime.m: Add GSMimeHeader class.
+	Update API to use GSMimeheaders rather than dictionaries.
 
 2002-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -58,6 +58,8 @@
 #include	<string.h>
 #include	<ctype.h>
 
+static unsigned		_count = 0;
+
 static	NSCharacterSet	*specials = nil;
 
 /*
@@ -352,7 +354,7 @@ parseCharacterSet(NSString *token)
  *   <item>chunked (for HTTP/1.1)</item>
  * </list>
  */
-- (GSMimeCodingContext*) contextFor: (NSDictionary*)info
+- (GSMimeCodingContext*) contextFor: (GSMimeHeader*)info
 {
   NSString	*name;
   NSString	*value;
@@ -362,11 +364,11 @@ parseCharacterSet(NSString *token)
       return AUTORELEASE([GSMimeCodingContext new]);
     }
 
-  name = [info objectForKey: @"Name"];
+  name = [info name];
   if ([name isEqualToString: @"content-transfer-encoding"] == YES
    || [name isEqualToString: @"transfer-encoding"] == YES)
     {
-      value = [info objectForKey: @"Value"];
+      value = [[info value] lowercaseString];
       if ([value length] == 0)
 	{
 	  NSLog(@"Bad value for %@ header - assume binary encoding", name);
@@ -1031,25 +1033,25 @@ parseCharacterSet(NSString *token)
 /**
  * <p>
  *   This method is called to parse a header line <em>for the
- *   current document</em>, split its contents into an info
- *   dictionary, and add that information to the document.
+ *   current document</em>, split its contents into a GSMimeHeader
+ *   object, and add that information to the document.
  * </p>
  * <p>
- *   The standard implementation of this method scans basic
- *   information and then calls -scanHeader:named:into:
- *   to complete the parsing of the header.
+ *   The standard implementation of this method scans the header
+ *   name and then calls -scanHeaderBody:into: to complete the
+ *   parsing of the header.
  * </p>
  * <p>
  *   This method also performs consistency checks on headers scanned
  *   so it is recommended that it is not overridden, but that
- *   subclasses override -scanHeader:named:into: to
+ *   subclasses override -scanHeaderBody:into: to
  *   implement custom scanning.
  * </p>
  * <p>
  *   As a special case, for HTTP support, this method also parses
  *   lines in the format of HTTP responses as if they were headers
- *   named <code>http</code>.  The resulting header info dictionary
- *   contains -
+ *   named <code>http</code>.  The resulting header object contains
+ *   additional object values -
  * </p>
  * <deflist>
  *   <term>HttpMajorVersion</term>
@@ -1069,16 +1071,10 @@ parseCharacterSet(NSString *token)
   NSScanner		*scanner = [NSScanner scannerWithString: aHeader];
   NSString		*name;
   NSString		*value;
-  NSMutableDictionary	*info;
+  GSMimeHeader		*info;
   NSCharacterSet	*skip;
-  unsigned		count;
 
-  info = [NSMutableDictionary dictionary];
-
-  /*
-   * Store the raw header string in the info dictionary.
-   */
-  [info setObject: [scanner string] forKey: @"RawHeader"];
+  info = AUTORELEASE([GSMimeHeader new]);
 
   /*
    * Special case - permit web response status line to act like a header.
@@ -1102,13 +1098,11 @@ parseCharacterSet(NSString *token)
     }
 
   /*
-   * Store the Raw header name and a lowercase version too.
+   * Set the header name.
    */
-  name = [name stringByTrimmingTailSpaces];
-  [info setObject: name forKey: @"BaseName"];
-  name = [name lowercaseString];
-  [info setObject: name forKey: @"Name"];
-
+  [info setName: name];
+  name = [info name];
+  
   skip = RETAIN([scanner charactersToBeSkipped]);
   [scanner setCharactersToBeSkipped: nil];
   [scanner scanCharactersFromSet: skip intoString: 0];
@@ -1116,15 +1110,9 @@ parseCharacterSet(NSString *token)
   RELEASE(skip);
 
   /*
-   * Set remainder of header as a base value.
-   */
-  [info setObject: [[scanner string] substringFromIndex: [scanner scanLocation]]
-	   forKey: @"BaseValue"];
-
-  /*
    * Break header fields out into info dictionary.
    */
-  if ([self scanHeader: scanner named: name into: info] == NO)
+  if ([self scanHeaderBody: scanner into: info] == NO)
     {
       return NO;
     }
@@ -1137,7 +1125,7 @@ parseCharacterSet(NSString *token)
       int	majv = 0;
       int	minv = 0;
 
-      value = [info objectForKey: @"BaseValue"];
+      value = [info value];
       if ([value length] == 0)
 	{
 	  NSLog(@"Missing value for mime-version header");
@@ -1177,8 +1165,7 @@ parseCharacterSet(NSString *token)
 	}
       else if ([type isEqualToString: @"multipart"] == YES)
 	{
-	  NSDictionary	*par = [info objectForKey: @"Parameters"];
-	  NSString	*tmp = [par objectForKey: @"boundary"];
+	  NSString	*tmp = [info parameterForKey: @"boundary"];
 
 	  supported = YES;
 	  if (tmp != nil)
@@ -1201,44 +1188,7 @@ parseCharacterSet(NSString *token)
       [document deleteHeaderNamed: name];	// Should be unique
     }
 
-  /*
-   * Ensure that info dictionary is immutable by making a copy
-   * of all keys and objects and placing them in a new dictionary.
-   */
-  count = [info count];
-  {
-    id		keys[count];
-    id		objects[count];
-    unsigned	index;
-
-    [[info allKeys] getObjects: keys];
-    for (index = 0; index < count; index++)
-      {
-	keys[index] = [keys[index] copy];
-	objects[index] = [[info objectForKey: keys[index]] copy];
-      }
-    info = [NSDictionary dictionaryWithObjects: objects
-				       forKeys: keys
-					 count: count];
-    for (index = 0; index < count; index++)
-      {
-	RELEASE(objects[index]);
-	RELEASE(keys[index]);
-      }
-  }
-
   return [document addHeader: info];
-}
-
-/**
- * Returns YES if the parser is expecting to read mime headers,
- * Returns NO is the parser has already been passed all the
- * data containing headers, and is now waiting for the body of
- * the mime message (or has been passed all data).
- */
-- (BOOL) parsedHeaders
-{
-  return inBody;
 }
 
 /**
@@ -1270,11 +1220,6 @@ parseCharacterSet(NSString *token)
  *   <term>content-disposition</term>
  *   <desc>
  *     <deflist>
- *     <term>Parameters</term>
- *     <desc>
- *       A dictionary containing parameters as key-value pairs
- *       in lowercase
- *     </desc>
  *     <term>Value</term>
  *     <desc>
  *       The content disposition (excluding parameters) as a
@@ -1285,11 +1230,6 @@ parseCharacterSet(NSString *token)
  *   <term>content-type</term>
  *   <desc>
  *     <deflist>
- *       <term>Parameters</term>
- *       <desc>
- *         A dictionary containing parameters as key-value pairs
- *         in lowercase.
- *       </desc>
  *       <term>SubType</term>
  *       <desc>The MIME subtype lowercase</desc>
  *       <term>Type</term>
@@ -1329,18 +1269,18 @@ parseCharacterSet(NSString *token)
  *   </desc>
  * </deflist>
  */
-- (BOOL) scanHeader: (NSScanner*)scanner
-	      named: (NSString*)name
-	       into: (NSMutableDictionary*)info
+- (BOOL) scanHeaderBody: (NSScanner*)scanner
+		   into: (GSMimeHeader*)info
 {
+  NSString		*name = [info name];
   NSString		*value = nil;
-  NSMutableDictionary	*parameters = nil;
 
   /*
    *	Now see if we are interested in any of it.
    */
   if ([name isEqualToString: @"http"] == YES)
     {
+      int	loc = [scanner scanLocation];
       int	major;
       int	minor;
       int	status;
@@ -1379,16 +1319,16 @@ parseCharacterSet(NSString *token)
       value = [[scanner string] substringFromIndex: [scanner scanLocation]];
       [info setObject: value
 	       forKey: NSHTTPPropertyStatusReasonKey];
-      value = nil;
+      value = [[scanner string] substringFromIndex: loc];
       /*
        * Get rid of preceeding headers in case this is a continuation.
        */
       hdrs = [document allHeaders];
       for (count = 0; count < [hdrs count]; count++)
 	{
-	  NSDictionary	*h = [hdrs objectAtIndex: count];
+	  GSMimeHeader	*h = [hdrs objectAtIndex: count];
 
-	  [document deleteHeader: [h objectForKey: @"RawHeader"]];
+	  [document deleteHeader: h];
 	}
     }
   else if ([name isEqualToString: @"content-transfer-encoding"] == YES
@@ -1451,12 +1391,7 @@ parseCharacterSet(NSString *token)
 		{
 		  paramValue = @"";
 		}
-	      if (parameters == nil)
-		{
-		  parameters = [NSMutableDictionary dictionary];
-		}
-	      paramName = [paramName lowercaseString];
-	      [parameters setObject: paramValue forKey: paramName];
+	      [info setParameter: paramValue forKey: paramName];
 	    }
 	  else
 	    {
@@ -1504,12 +1439,7 @@ parseCharacterSet(NSString *token)
 		{
 		  paramValue = @"";
 		}
-	      if (parameters == nil)
-		{
-		  parameters = [NSMutableDictionary dictionary];
-		}
-	      paramName = [paramName lowercaseString];
-	      [parameters setObject: paramValue forKey: paramName];
+	      [info setParameter: paramValue forKey: paramName];
 	    }
 	  else
 	    {
@@ -1521,12 +1451,9 @@ parseCharacterSet(NSString *token)
 
   if (value != nil)
     {
-      [info setObject: value forKey: @"Value"];
+      [info setValue: value];
     }
-  if (parameters != nil)
-    {
-      [info setObject: parameters forKey: @"Parameters"];
-    }
+  
   return YES;
 }
 
@@ -1668,6 +1595,23 @@ parseCharacterSet(NSString *token)
     }
 }
 
+/**
+ * This method may be called to tell the parser that it should not expect
+ * to parse any headers, and that the data it will receive is body data.<br />
+ * If the parse is already in the body, or is complete, this method has
+ * no effect.<br />
+ * This is for use when some other utility has been used to parse headers,
+ * and you have set the headers of the document owned by the parser
+ * accordingly.  You can then use the GSMimeParser to read the body data
+ * into the document.
+ */
+- (void) setNoHeaders
+{
+  if (complete == NO)
+    {
+      inBody = YES;
+    }
+}
 @end
 
 @implementation	GSMimeParser (Private)
@@ -1827,7 +1771,7 @@ parseCharacterSet(NSString *token)
 
   if (context == nil)
     {
-      NSDictionary	*hdr;
+      GSMimeHeader	*hdr;
 
       expect = 0;
       /*
@@ -1836,7 +1780,7 @@ parseCharacterSet(NSString *token)
       hdr = [document headerNamed: @"content-length"];
       if (hdr != nil)
 	{
-	  expect = [[hdr objectForKey: @"BaseValue"] intValue];
+	  expect = [[hdr value] intValue];
 	}
 
       /*
@@ -1847,7 +1791,7 @@ parseCharacterSet(NSString *token)
 	{
 	  hdr = [document headerNamed: @"content-transfer-encoding"];
 	}
-      else if ([[hdr objectForKey: @"Value"] isEqual: @"chunked"] == YES)
+      else if ([[[hdr value] lowercaseString] isEqual: @"chunked"] == YES)
 	{
 	  /*
 	   * Chunked transfer encoding overrides any content length spec.
@@ -1874,7 +1818,7 @@ parseCharacterSet(NSString *token)
     }
   else if (boundary == nil)
     {
-      NSDictionary	*typeInfo;
+      GSMimeHeader	*typeInfo;
       NSString		*type;
 
       typeInfo = [document headerNamed: @"content-type"];
@@ -1927,7 +1871,7 @@ parseCharacterSet(NSString *token)
 		   * Assume that any non-text content type is best
 		   * represented as NSData.
 		   */
-		  [document setContent: AUTORELEASE([data copy])];
+		  [document setContent: data];
 		}
 	    }
 	  result = YES;
@@ -2004,26 +1948,26 @@ parseCharacterSet(NSString *token)
 	       */
 	      d = [NSData dataWithBytes: &bytes[sectionStart]
 				 length: lineStart - sectionStart];
-	      if ([child parse: d] == YES || [child parse: nil] == YES)
+	      if ([child parse: d] == YES)
 		{
-		  NSMutableArray	*a;
+		  /*
+		   * The parser wants more data, so pass a nil data item
+		   * to tell it that it has had all there is.
+		   */
+		  [child parse: nil];
+		}
+	      if ([child isComplete] == YES)
+		{
 		  GSMimeDocument	*doc;
 
 		  /*
 		   * Store the document produced by the child, and
 		   * create a new parser for the next section.
 	           */
-		  a = [document content];
-		  if (a == nil)
-		    {
-		      a = [NSMutableArray new];
-		      [document setContent: a];
-		      RELEASE(a);
-		    }
 		  doc = [child document];
 		  if (doc != nil)
 		    {
-		      [a addObject: doc];
+		      [document addContent: doc];
 		    }
 		  RELEASE(child);
 		  child = [GSMimeParser new];
@@ -2183,33 +2127,10 @@ static NSCharacterSet	*tokenSet = nil;
     }
 }
 
-- (void) dealloc
-{
-  RELEASE(name);
-  RELEASE(value);
-  RELEASE(params);
-  [super dealloc];
-}
-
-- (id) init
-{
-  RELEASE(self);
-  NSLog(@"You should initialise GSMime using initWithName:value:params:");
-  return nil;
-}
-
-- (id) initWithName: (NSString*)n value: (NSString*)v params: (NSDictionary*)p
-{
-  [self setName: n];
-  [self setValue: v];
-  [self setParams: p];
-  return self;
-}
-
 /**
  * Makes the value into a quoted string if necessary.
  */
-- (NSString*) makeQuoted: (NSString*)v
++ (NSString*) makeQuoted: (NSString*)v
 {
   NSRange	r;
   unsigned	pos = 0;
@@ -2256,7 +2177,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Convert the supplied string to a standardized token by making it
  * lowercase and removing all illegal characters.
  */
-- (NSString*) makeToken: (NSString*)t
++ (NSString*) makeToken: (NSString*)t
 {
   NSRange	r;
 
@@ -2276,6 +2197,48 @@ static NSCharacterSet	*tokenSet = nil;
   return t;
 }
 
+- (void) dealloc
+{
+  RELEASE(name);
+  RELEASE(value);
+  RELEASE(objects);
+  RELEASE(params);
+  [super dealloc];
+}
+
+- (NSString*) description
+{
+  NSMutableString	*desc;
+
+  desc = [NSMutableString stringWithFormat: @"GSMimeHeader <%0x> -\n", self];
+  [desc appendFormat: @"  name: %@\n", [self name]];
+  [desc appendFormat: @"  value: %@\n", [self value]];
+  [desc appendFormat: @"  params: %@\n", [self parameters]];
+  return desc;
+}
+
+- (id) init
+{
+  return [self initWithName: @"unknown" value: @"none" parameters: nil];
+}
+
+/**
+ * <init />
+ * Initialise a GSMimeHeader supplying a name, a value and a dictionary
+ * of any parameters occurring after the value.
+ */
+- (id) initWithName: (NSString*)n
+	      value: (NSString*)v
+	 parameters: (NSDictionary*)p
+{
+  objects = [NSMutableDictionary new];
+  params = [NSMutableDictionary new];
+  [self setName: n];
+  [self setValue: v];
+  [self setParameters: p];
+  return self;
+}
+
 /**
  * Returns the name of this header ... a lowercase string.
  */
@@ -2285,37 +2248,71 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Return extra information specific to a particular header type.
+ */
+- (id) objectForKey: (NSString*)k
+{
+  return [objects objectForKey: k];
+}
+
+/**
+ * Return the named parameter value.
+ */
+- (NSString*) parameterForKey: (NSString*)k
+{
+  NSString	*p = [params objectForKey: k];
+
+  if (p == nil)
+    {
+      k = [GSMimeHeader makeToken: k];
+      p = [params objectForKey: k];
+    }
+  return p;	
+}
+
+/**
  * Returns the parameters of this header ... a dictionary whose keys
  * are all lowercase strings, and whosre value is a string which may
  * contain mixed case.
  */
-- (NSDictionary*) params
+- (NSDictionary*) parameters
 {
   return AUTORELEASE([params copy]);
 }
 
 /**
- * Sets the name of this header ... converts to lowercase.
+ * Sets the name of this header ... converts to lowercase and removes
+ * illegal characters.  If given a nil or empty string argument,
+ * sets the name to 'unknown'.
  */
 - (void) setName: (NSString*)s
 {
-  s = [self makeToken: s];
-
+  s = [GSMimeHeader makeToken: s];
+  if ([s length] == 0)
+    {
+      s = @"unknown";
+    }
   ASSIGN(name, s);
 }
 
 /**
- * Sets a parameter of this header ... converts name to lowercase.<br />
+ * Method to store specific information for particular types of
+ * header.
+ */
+- (void) setObject: (id)o forKey: (NSString*)k
+{
+  [objects setObject: o forKey: k];
+}
+
+/**
+ * Sets a parameter of this header ... converts name to lowercase and
+ * removes illegal characters.<br />
  * If a nil parameter name is supplied, removes any parameter with the
  * specified key.
  */
-- (void) setParam: (NSString*)v forKey: (NSString*)k
+- (void) setParameter: (NSString*)v forKey: (NSString*)k
 {
-  if (params == nil)
-    {
-      params = [NSMutableDictionary new];
-    }
-  k = [self makeToken: k];
+  k = [GSMimeHeader makeToken: k];
   if (v == nil)
     {
       [params removeObjectForKey: k];
@@ -2327,9 +2324,10 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Sets all parameters of this header ... converts names to lowercase.
+ * Sets all parameters of this header ... converts names to lowercase
+ * and removes illegal characters from them.
  */
-- (void) setParams: (NSDictionary*)d
+- (void) setParameters: (NSDictionary*)d
 {
   NSMutableDictionary	*m = [NSMutableDictionary new];
   NSEnumerator		*e = [d keyEnumerator];
@@ -2337,23 +2335,28 @@ static NSCharacterSet	*tokenSet = nil;
 
   while ((k = [e nextObject]) != nil)
     {
-      [m setObject: [d objectForKey: k] forKey: [self makeToken: k]];
+      [m setObject: [d objectForKey: k] forKey: [GSMimeHeader makeToken: k]];
     }
   DESTROY(params);
   params = m;
 }
 
 /**
- * Sets the value of this header (without changing parameters)
+ * Sets the value of this header (without changing parameters)<br />
+ * If given a nil argument, set an empty string value.
  */
 - (void) setValue: (NSString*)s
 {
+  if (s == nil)
+    {
+      s = @"";
+    }
   ASSIGN(value, s);
 }
 
 /**
  * Returns the full text of the header, built from its component parts,
- * and inclufding a terminating CR-LF
+ * and including a terminating CR-LF
  */
 - (NSString*) text
 {
@@ -2368,7 +2371,7 @@ static NSCharacterSet	*tokenSet = nil;
   l = [t length];
   while ((k = [e nextObject]) != nil)
     {
-      NSString	*v = [self makeQuoted: [params objectForKey: k]];
+      NSString	*v = [GSMimeHeader makeQuoted: [params objectForKey: k]];
       unsigned	kl = [k length];
       unsigned	vl = [v length];
 
@@ -2405,34 +2408,9 @@ static NSCharacterSet	*tokenSet = nil;
  * </p>
  * <p>
  *   The class keeps track of all the document headers, and provides
- *   methods for modifying the headers that apply to a document and
- *   for looking at the header structures, by providing an info
- *   dictionary containing the various parts of a header.
+ *   methods for modifying and examining the headers that apply to a
+ *   document.
  * </p>
- * <p>
- *   The common dictionary keys used for elements provided for
- *   <em>all</em> headers are -
- * </p>
- * <deflist>
- *   <term>RawHeader</term>
- *   <desc>This is the unmodified text of the header
- *   </desc>
- *   <term>BaseName</term>
- *   <desc>This is the header name.
- *   </desc>
- *   <term>BaseValue</term>
- *   <desc>This is the text after the header name and colon.
- *   </desc>
- *   <term>Name</term>
- *   <desc>This is a lowercase representation of the header name.
- *   </desc>
- *   <term>Value</term>
- *   <desc>This is the value of the header (normally lower case).
- *     It may only be a small subset of the information in the header
- *     with other information being split into separate fields
- *     depending on the type of header.
- *   </desc>
- * </deflist>
  */
 @implementation	GSMimeDocument
 
@@ -2464,31 +2442,50 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Adds a part to a multipart document
+ */
+- (BOOL) addContent: (GSMimeDocument*)newContent
+{
+  BOOL	result = YES;
+
+  if (content == nil)
+    {
+      content = [NSMutableArray new];
+    }
+  if ([content isKindOfClass: [NSMutableArray class]] == YES)
+    {
+      [content addObject: newContent];
+    }
+  else
+    {
+      result = NO;
+    }
+  return result;
+}
+
+/**
  * <p>
  *   This method may be called to add a header to the document.
  *   The header must be a mutable dictionary object that contains
  *   at least the fields that are standard for all headers.
  * </p>
  */
-- (BOOL) addHeader: (NSDictionary*)info
+- (BOOL) addHeader: (GSMimeHeader*)info
 {
-  NSString	*name = [info objectForKey: @"Name"];
+  NSString	*name = [info name];
 
-  if (name == nil)
+  if (name == nil || [name isEqual: @"unknown"] == YES)
     {
-      NSLog(@"addHeader: supplied with header info without 'Name' field");
+      NSLog(@"setHeader: supplied with header without valid name");
       return NO;
     }
-
-  info = [info copy];
   [headers addObject: info];
-  RELEASE(info);
   return YES;
 }
 
 /**
  * <p>
- *   This method returns an array containing NSDictionary objects
+ *   This method returns an array containing GSMimeHeader objects
  *   representing the headers associated with the document.
  * </p>
  * <p>
@@ -2531,18 +2528,16 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * This method removes all occurrances of headers whose raw data
- * exactly matches the supplied string.
+ * This method removes all occurrances of header objects identical to
+ * the one supplied as an argument.
  */
-- (void) deleteHeader: (NSString*)aHeader
+- (void) deleteHeader: (GSMimeHeader*)aHeader
 {
   unsigned	count = [headers count];
 
   while (count-- > 0)
     {
-      NSDictionary	*info = [headers objectAtIndex: count];
-
-      if ([aHeader isEqualToString: [info objectForKey: @"RawHeader"]] == YES)
+      if ([aHeader isEqual: [headers objectAtIndex: count]] == YES)
 	{
 	  [headers removeObjectAtIndex: count];
 	}
@@ -2551,7 +2546,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * This method removes all occurrances of headers whose name
- * exactly matches the supplied string.
+ * matches the supplied string.
  */
 - (void) deleteHeaderNamed: (NSString*)name
 {
@@ -2560,9 +2555,9 @@ static NSCharacterSet	*tokenSet = nil;
   name = [name lowercaseString];
   while (count-- > 0)
     {
-      NSDictionary	*info = [headers objectAtIndex: count];
+      GSMimeHeader	*info = [headers objectAtIndex: count];
 
-      if ([name isEqualToString: [info objectForKey: @"Name"]] == YES)
+      if ([name isEqualToString: [info name]] == YES)
 	{
 	  [headers removeObjectAtIndex: count];
 	}
@@ -2582,31 +2577,23 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * This method returns the info dictionary for the first header
- * whose name equals the supplied argument.
+ * This method returns the first header whose name equals the supplied argument.
  */
-- (NSDictionary*) headerNamed: (NSString*)name
+- (GSMimeHeader*) headerNamed: (NSString*)name
 {
-  unsigned		count = [headers count];
-  unsigned		index;
+  NSArray	*a = [self headersNamed: name];
 
-  name = [name lowercaseString];
-  for (index = 0; index < count; index++)
+  if ([a count] > 0)
     {
-      NSDictionary	*info = [headers objectAtIndex: index];
-      NSString		*other = [info objectForKey: @"Name"];
-
-      if ([name isEqualToString: other] == YES)
-	{
-	  return info;
-	}
-    } 
+      return [a objectAtIndex: 0];
+    }
   return nil;
 }
 
 /**
- * This method returns an array of info dictionaries for all headers
- * whose names equal the supplied argument.
+ * This method returns an array of HSMimeHeader objects for all headers
+ * whose names equal the supplied argument.  For some special cases, the
+ * method will try to generate headers if they are not present.
  */
 - (NSArray*) headersNamed: (NSString*)name
 {
@@ -2614,18 +2601,37 @@ static NSCharacterSet	*tokenSet = nil;
   unsigned		index;
   NSMutableArray	*array;
 
-  name = [name lowercaseString];
+  name = [GSMimeHeader makeToken: name];
   array = [NSMutableArray array];
   for (index = 0; index < count; index++)
     {
-      NSDictionary	*info = [headers objectAtIndex: index];
-      NSString		*other = [info objectForKey: @"Name"];
+      GSMimeHeader	*info = [headers objectAtIndex: index];
 
-      if ([name isEqualToString: other] == YES)
+      if ([name isEqualToString: [info name]] == YES)
 	{
 	  [array addObject: info];
 	}
     } 
+  if ([array count] == 0)
+    {
+      /*
+       * If we have been asked for a Content-ID and there is none set,
+       * we can generate one unique within this document.
+       */
+      if ([name isEqualToString: @"content-id"] == YES)
+	{
+	  NSString	*val;
+	  GSMimeHeader	*hdr;
+
+	  val = [NSString stringWithFormat: @"GSMime%08x%08x", self, _count++];
+	  hdr = [[GSMimeHeader alloc] initWithName: name
+					     value: val
+					parameters: nil];
+	  [self addHeader: hdr];
+	  [array addObject: hdr];
+	  RELEASE(hdr);
+	}
+    }
   return array;
 }
 
@@ -2643,8 +2649,27 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (BOOL) setContent: (id)newContent
 {
-  ASSIGN(content, newContent);
-  return YES;
+  BOOL	result = YES;
+
+  if ([newContent isKindOfClass: [NSString class]] == YES)
+    {
+      ASSIGNCOPY(content, newContent);
+    }
+  else if ([newContent isKindOfClass: [NSData class]] == YES)
+    {
+      ASSIGNCOPY(content, newContent);
+    }
+  else if ([newContent isKindOfClass: [NSArray class]] == YES)
+    {
+      newContent = [newContent mutableCopy];
+      ASSIGN(content, newContent);
+      RELEASE(newContent);
+    }
+  else
+    {
+      result = NO;
+    }
+  return result;
 }
 
 /**
@@ -2652,30 +2677,27 @@ static NSCharacterSet	*tokenSet = nil;
  * Any other headers with the same name will be removed from
  * the document.
  */
-- (BOOL) setHeader: (NSDictionary*)info
+- (BOOL) setHeader: (GSMimeHeader*)info
 {
-  NSString	*name = [info objectForKey: @"Name"];
-  unsigned	count = [headers count];
+  NSString	*name = [info name];
 
-  if (name == nil)
+  if (name != nil)
     {
-      NSLog(@"setHeader: supplied with header info without 'Name' field");
-      return NO;
-    }
+      unsigned	count = [headers count];
 
-  /*
-   * Remove any existing headers with this name.
-   */
-  while (count-- > 0)
-    {
-      NSDictionary	*tmp = [headers objectAtIndex: count];
-
-      if ([name isEqualToString: [tmp objectForKey: @"Name"]] == YES)
+      /*
+       * Remove any existing headers with this name.
+       */
+      while (count-- > 0)
 	{
-	  [headers removeObjectAtIndex: count];
+	  GSMimeHeader	*tmp = [headers objectAtIndex: count];
+
+	  if ([name isEqualToString: [tmp name]] == YES)
+	    {
+	      [headers removeObjectAtIndex: count];
+	    }
 	}
     }
-
   return [self addHeader: info];
 }
 

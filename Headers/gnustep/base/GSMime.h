@@ -57,16 +57,22 @@
 {
   NSString              *name;
   NSString              *value;
+  NSMutableDictionary   *objects;
   NSMutableDictionary   *params;
 }
-- (id) initWithName: (NSString*)n value: (NSString*)v params: (NSDictionary*)p;
-- (NSString*) makeQuoted: (NSString*)v;
-- (NSString*) makeToken: (NSString*)t;
++ (NSString*) makeQuoted: (NSString*)v;
++ (NSString*) makeToken: (NSString*)t;
+- (id) initWithName: (NSString*)n
+	      value: (NSString*)v
+	 parameters: (NSDictionary*)p;
 - (NSString*) name;
-- (NSDictionary*) params;
+- (id) objectForKey: (NSString*)k;
+- (NSString*) parameterForKey: (NSString*)k;
+- (NSDictionary*) parameters;
 - (void) setName: (NSString*)s;
-- (void) setParam: (NSString*)v forKey: (NSString*)k;
-- (void) setParams: (NSDictionary*)d;
+- (void) setObject: (id)o  forKey: (NSString*)k;
+- (void) setParameter: (NSString*)v forKey: (NSString*)k;
+- (void) setParameters: (NSDictionary*)d;
 - (void) setValue: (NSString*)s;
 - (NSString*) text;
 - (NSString*) value;
@@ -81,15 +87,16 @@
 
 + (GSMimeDocument*) mimeDocument;
 
-- (BOOL) addHeader: (NSDictionary*)info;
+- (BOOL) addContent: (id)newContent;
+- (BOOL) addHeader: (GSMimeHeader*)info;
 - (NSArray*) allHeaders;
 - (id) content;
-- (void) deleteHeader: (NSString*)aHeader;
+- (void) deleteHeader: (GSMimeHeader*)aHeader;
 - (void) deleteHeaderNamed: (NSString*)name;
-- (NSDictionary*) headerNamed: (NSString*)name;
+- (GSMimeHeader*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
 - (BOOL) setContent: (id)newContent;
-- (BOOL) setHeader: (NSDictionary*)info;
+- (BOOL) setHeader: (GSMimeHeader*)info;
 
 @end
 
@@ -114,7 +121,7 @@
 
 + (GSMimeParser*) mimeParser;
 
-- (GSMimeCodingContext*) contextFor: (NSDictionary*)info;
+- (GSMimeCodingContext*) contextFor: (GSMimeHeader*)info;
 - (NSData*) data;
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
@@ -126,13 +133,11 @@
 - (BOOL) isInHeaders;
 - (BOOL) parse: (NSData*)d;
 - (BOOL) parseHeader: (NSString*)aHeader;
-- (BOOL) parsedHeaders;
-- (BOOL) scanHeader: (NSScanner*)scanner
-	      named: (NSString*)name
-	       into: (NSMutableDictionary*)info;
+- (BOOL) scanHeaderBody: (NSScanner*)scanner into: (GSMimeHeader*)info;
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
+- (void) setNoHeaders;
 @end
 
 #endif

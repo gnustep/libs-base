@@ -223,7 +223,7 @@ static void debugWrite(NSData *data)
   [parser parse: d];
   if ([parser isComplete] == YES)
     {
-      NSDictionary	*info;
+      GSMimeHeader	*info;
       NSString		*val;
 
       connectionState = idle;
@@ -273,7 +273,7 @@ static void debugWrite(NSData *data)
   [p parse: dat];
   if ([p isInBody] == YES || [d length] == 0)
     {
-      NSDictionary	*info;
+      GSMimeHeader	*info;
       NSString		*val;
 
       [p parse: nil];
