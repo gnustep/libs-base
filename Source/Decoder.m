@@ -462,7 +462,9 @@
 
 - (void) finishDecodingInterconnectedObjects
 {
+#if 0
   SEL awake_sel = sel_get_any_uid("awakeAfterUsingCoder:");
+#endif
   
   assert (interconnect_stack_height);
 
