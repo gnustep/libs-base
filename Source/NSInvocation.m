@@ -588,11 +588,21 @@
 	      CASE_TYPE(_C_ULNG, unsigned long);
 	      CASE_TYPE(_C_INT, int);
 	      CASE_TYPE(_C_UINT, unsigned int);
-	      CASE_TYPE(_C_SHT, short);
-	      CASE_TYPE(_C_USHT, unsigned short);
-	      CASE_TYPE(_C_CHR, char);
-	      CASE_TYPE(_C_UCHR, unsigned char);
-	      CASE_TYPE(_C_FLT, float);
+	      case _C_SHT:
+		*(short*)datum = (short)va_arg(ap, int);
+		break;
+	      case _C_USHT:
+		*(unsigned short*)datum = (unsigned short)va_arg(ap, int);
+		break;
+	      case _C_CHR:
+		*(char*)datum = (char)va_arg(ap, int);
+		break;
+	      case _C_UCHR:
+		*(unsigned char*)datum = (unsigned char)va_arg(ap, int);
+		break;
+	      case _C_FLT:
+		*(float*)datum = (float)va_arg(ap, double);
+		break;
 	      CASE_TYPE(_C_DBL, double);
 	      CASE_TYPE(_C_PTR, void*);
 	      case _C_STRUCT_B:
