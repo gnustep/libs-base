@@ -1,5 +1,11 @@
 2005-03-31  Adam Fedor  <fedor@gnu.org>
 
+	* ANNOUNCE, NEWS, Documentation/news.texi,
+	Documentation/ReleaseNotes.gsdoc: Merge in release info from
+	1.10.2 release branch.
+
+2005-03-31  Adam Fedor  <fedor@gnu.org>
+
 	* Source/NSBundle.m (_find_framework): New function.
 	([NSBundle +_addFrameworkFromClass:]): Use it. Based on patch
 	from Sheldon Gill.

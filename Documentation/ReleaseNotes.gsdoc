@@ -19,6 +19,54 @@
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.10.2</heading>
+	<p>
+	</p>
+	  <deflist>
+	    <term>NSContainsRect behavior change</term>
+	    <desc>
+	      The definition of NSContainsRect has changed to
+	      correspond with the current Mac OS X/Cocoa definition. The
+	      sides of the bRect can touch aRect.
+	    </desc>
+	    <term>Unichar file paths</term>
+	    <desc>
+	      Windows supports unichar file paths, but there isn't
+	      really an API for handling this. GNUstep-specific
+	      methods for dealing with this have been
+	      added, <code>NSFileManager's
+	      -localFromOpenStepPath</code> and
+	      <code>openStepPathFromLocal</code> and equivalent methods for
+	      <code>NSString</code>. In most cases the Base library should
+	      handle this problem internally, but it's possible that there
+	      are cases where the developer wants to handle the file name
+	      explicitly with system-specific functions.
+	    </desc>
+	    <term>NSDictionaryErnumerator</term>
+	    <desc>
+	      Some ivars in NSDictionaryEnumerator have changed types,
+	      but the total storage space has not changed. This may
+	      cause problems if you access ivars directly, perhaps
+	      through a subclass.
+	    </desc>
+	    <term>NSNotification -setImmutablePost</term>
+	    <desc>
+	      This GNUstep extension method was removed.
+	    </desc>
+	    <term>NSPort extension methods</term>
+	    <desc>
+	      Unimplemented GNUstep extension methods <code>-close</code>,
+	      <code>-outPackedClass</code>,
+	      and <code>+outPackedClass</code> were removed.
+	    </desc>
+	    <term>NSTimeZone -abbreviationDictionary</term>
+	    <desc>
+	      <code>NSTimeZone</code>'s abbreviation dictionary is now
+	      a proper one-to-one dictionary.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.10.1</heading>
 	<p>
 	</p>
