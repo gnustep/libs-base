@@ -111,6 +111,7 @@
 - (NSArray*) headersNamed: (NSString*)name;
 - (GSMimeHeader*) makeContentID;
 - (NSMutableData*) rawMimeData;
+- (NSMutableData*) rawMimeData: (BOOL)isOuter;
 - (void) setContent: (id)newContent;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
