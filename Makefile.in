@@ -88,10 +88,10 @@ distclean-top:
 	rm -f Makefile config.status config.log config.cache TAGS
 maintainer-clean-top:
 
-mostlyclean: mostlyclean-top mostlyclean-subdirs
-clean: clean-top clean-subdirs
-distclean: distclean-top distclean-subdirs
-maintainer-clean: maintainer-clean-top maintainer-clean-subdirs
+mostlyclean: mostlyclean-subdirs mostlyclean-top
+clean: clean-subdirs clean-top
+distclean: distclean-subdirs distclean-top
+maintainer-clean: maintainer-clean-subdirs maintainer-clean-top
 
 snap: $(DIST_FILES)
 	rm -rf snap
