@@ -356,6 +356,7 @@ static int messages_received_count;
     }
 
   newConn = [[Connection alloc] _superInit];
+  newConn->is_valid = 1;
   if (debug_connection)
     fprintf(stderr, "Created new connection 0x%x\n\t%s\n\t%s\n", 
 	    (unsigned)newConn, 
@@ -415,10 +416,15 @@ static int messages_received_count;
 			  selector: @selector(portIsInvalid:)
 			  name: PortBecameInvalidNotification
 			  object: ip];
-  [NotificationDispatcher addObserver: newConn
-			  selector: @selector(portIsInvalid:)
-			  name: PortBecameInvalidNotification
-			  object: op];
+  if (op)
+    [NotificationDispatcher addObserver: newConn
+			    selector: @selector(portIsInvalid:)
+			    name: PortBecameInvalidNotification
+			    object: op];
+  /* if OP is nil, making this notification request would have 
+     registered us to receive all PortBecameInvalidNotification
+     requests, independent of which port posted them.  This isn't 
+     what we want. */
 
   /* xxx This is weird, though.  When will newConn ever get dealloc'ed?
      connectionArray will retain it, but connectionArray will never get
@@ -450,6 +456,7 @@ static int messages_received_count;
   id rmc;
 
   assert(in_port);
+  assert (is_valid);
   rmc = [[self encodingClass] newForWritingWithConnection: self
 			      sequenceNumber: [self _newMsgNumber]
 			      identifier: METHOD_REQUEST];
@@ -462,6 +469,7 @@ static int messages_received_count;
   id rmc = [[self encodingClass] newForWritingWithConnection: self
 				 sequenceNumber: n
 				 identifier: METHOD_REPLY];
+  assert (is_valid);
   return rmc;
 }
 
@@ -499,6 +507,7 @@ static int messages_received_count;
     retval_t retframe;
     int seq_num;
   
+    assert (is_valid);
     op = [self newSendingRequestRmc];
     seq_num = [op sequenceNumber];
 
@@ -595,6 +604,8 @@ static int messages_received_count;
 	}
     }
 
+  assert (is_valid);
+
   /* Save this for later */
   reply_sequence_number = [aRmc sequenceNumber];
   
@@ -621,6 +632,7 @@ static int messages_received_count;
   int seq_num = [self _newMsgNumber];
 
   assert(in_port);
+  assert (is_valid);
   op = [[self encodingClass]
 	newForWritingWithConnection: self
 	sequenceNumber: seq_num
@@ -641,6 +653,7 @@ static int messages_received_count;
 			sequenceNumber: [rmc sequenceNumber]
 			identifier: ROOTPROXY_REPLY];
   assert (in_port);
+  assert (is_valid);
   /* Perhaps we should turn this into a class method. */
   assert([rmc connection] == self);
   [op encodeObject: rootObject withName: @"root object"];
@@ -652,6 +665,7 @@ static int messages_received_count;
   id op;
 
   assert(in_port);
+  assert (is_valid);
   op = [[self encodingClass]
 	newForWritingWithConnection: self
 	sequenceNumber: [self _newMsgNumber]
@@ -661,10 +675,11 @@ static int messages_received_count;
 
 - (void) _service_shutdown: rmc forConnection: receiving_connection
 {
+  assert (is_valid);
   [self invalidate];
   if (receiving_connection == self)
     [self error: "connection waiting for request was shut down"];
-  [self dealloc];		// xxx release instead?
+  [self dealloc];		// xxx release instead?  YES!!
   [rmc dismiss];
 }
 
@@ -675,6 +690,7 @@ static int messages_received_count;
   int seq_num;
 
   assert(in_port);
+  assert (is_valid);
   seq_num = [self _newMsgNumber];
   op = [[self encodingClass]
 	newForWritingWithConnection: self
@@ -704,6 +720,7 @@ static int messages_received_count;
   struct objc_method* m;
 
   assert(in_port);
+  assert (is_valid);
   assert([rmc connection] == self);
   op = [[self encodingClass]
 	newForWritingWithConnection: [rmc connection]
@@ -750,6 +767,7 @@ static int messages_received_count;
 {
   int n;
 
+  assert (is_valid);
   [sequenceNumberGate lock];
   n = message_count++;
   [sequenceNumberGate unlock];
@@ -762,6 +780,7 @@ static int messages_received_count;
 {
   id rmc;
 
+  assert (is_valid);
   rmc = [[self decodingClass] newDecodingWithConnection: self
 			      timeout: to];
   /* If this times out, rmc will be nil. */
@@ -774,6 +793,7 @@ static int messages_received_count;
   id rmc;
   unsigned count;
 
+  assert (is_valid);
   for (;;)
     {
 #if 0
@@ -849,6 +869,7 @@ static int messages_received_count;
   id rmc, aRmc;
   unsigned count, i;
 
+  assert (is_valid);
  again:
 
   /* Get a rmc */
@@ -958,6 +979,7 @@ static int messages_received_count;
 
 - (void) addLocalObject: anObj
 {
+  assert (is_valid);
   [proxiesHashGate lock];
   /* xxx Do we need to check to make sure it's not already there? */
   /* This retains anObj. */
@@ -972,6 +994,8 @@ static int messages_received_count;
 {
   id c;
   int i, count = [connection_array count];
+
+  /* Don't assert (is_valid); */
   for (i = 0; i < count; i++)
     {
       c = [connection_array objectAtIndex:i];
@@ -982,6 +1006,7 @@ static int messages_received_count;
 
 - (void) removeLocalObject: anObj
 {
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   /* This also releases anObj */
   NSMapRemove (local_targets, (void*)anObj);
@@ -992,6 +1017,8 @@ static int messages_received_count;
 - (void) removeProxy: (Proxy*)aProxy
 {
   unsigned target = [aProxy targetForProxy];
+
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   /* This also releases aProxy */
   NSMapRemove (remote_proxies, (void*)target);
@@ -1002,6 +1029,7 @@ static int messages_received_count;
 {
   id c;
 
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   c = NSAllMapTableValues (local_targets);
   [proxiesHashGate unlock];
@@ -1012,6 +1040,7 @@ static int messages_received_count;
 {
   id c;
 
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   c = NSAllMapTableValues (remote_proxies);
   [proxiesHashGate unlock];
@@ -1021,6 +1050,8 @@ static int messages_received_count;
 - (Proxy*) proxyForTarget: (unsigned)target
 {
   Proxy *p;
+
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   p = NSMapGet (remote_proxies, (void*)target);
   [proxiesHashGate unlock];
@@ -1032,6 +1063,7 @@ static int messages_received_count;
 {
   unsigned target = [aProxy targetForProxy];
 
+  assert (is_valid);
   assert(aProxy->isa == [Proxy class]);
   assert([aProxy connectionForProxy] == self);
   [proxiesHashGate lock];
@@ -1044,6 +1076,8 @@ static int messages_received_count;
 - (BOOL) includesProxyForTarget: (unsigned)target
 {
   BOOL ret;
+
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   ret = NSMapGet (remote_proxies, (void*)target) ? YES : NO;
   [proxiesHashGate unlock];
@@ -1053,6 +1087,8 @@ static int messages_received_count;
 - (BOOL) includesLocalObject: anObj
 {
   BOOL ret;
+
+  /* Don't assert (is_valid); */
   [proxiesHashGate lock];
   ret = NSMapGet (local_targets, (void*)anObj) ? YES : NO;
   [proxiesHashGate unlock];
@@ -1068,6 +1104,8 @@ static int messages_received_count;
 + (BOOL) includesLocalObject: anObj
 {
   BOOL ret;
+
+  /* Don't assert (is_valid); */
   assert (all_connections_local_targets);
   [proxiesHashGate lock];
   ret = NSMapGet (all_connections_local_targets, (void*)anObj) ? YES : NO;
@@ -1081,6 +1119,7 @@ static int messages_received_count;
 {
   id oldRootObject = [self rootObjectForInPort: aPort];
 
+  assert ([aPort isValid]);
   /* xxx This retains aPort?  How will aPort ever get dealloc'ed? */
   if (oldRootObject != anObj)
     {
@@ -1102,6 +1141,7 @@ static int messages_received_count;
 + rootObjectForInPort: (Port*)aPort
 {
   id ro;
+
   [root_object_dictionary_gate lock];
   ro = [root_object_dictionary objectAtKey:aPort];
   [root_object_dictionary_gate unlock];
@@ -1205,6 +1245,8 @@ static int messages_received_count;
 - (unsigned) _encoderCreateReferenceForConstPtr: (const void*)ptr
 {
   unsigned xref;
+
+  assert (is_valid);
   /* This must match the assignment of xref in _decoderCreateRef... */
   xref = NSCountMapTable (outgoing_const_ptr_2_xref) + 1;
   assert (! NSMapGet (outgoing_const_ptr_2_xref, (void*)xref));
@@ -1213,12 +1255,15 @@ static int messages_received_count;
 
 - (unsigned) _encoderReferenceForConstPtr: (const void*)ptr
 {
+  assert (is_valid);
   return (unsigned) NSMapGet (outgoing_const_ptr_2_xref, ptr);
 }
 
 - (unsigned) _decoderCreateReferenceForConstPtr: (const void*)ptr
 {
   unsigned xref;
+
+  assert (is_valid);
   /* This must match the assignment of xref in _encoderCreateRef... */
   xref = NSCountMapTable (incoming_xref_2_const_ptr) + 1;
   NSMapInsert (incoming_xref_2_const_ptr, (void*)xref, ptr);
@@ -1227,6 +1272,7 @@ static int messages_received_count;
 
 - (const void*) _decoderConstPtrAtReference: (unsigned)xref
 {
+  assert (is_valid);
   return NSMapGet (incoming_xref_2_const_ptr, (void*)xref);
 }
 
@@ -1249,27 +1295,52 @@ static int messages_received_count;
 /* Shutting down and deallocating. */
 
 /* We register this method with NotificationDispatcher for when a port dies. */
-- portIsInvalid: anObj
+- (void) portIsInvalid: notification
 {
-  if (anObj == in_port || anObj == out_port)
-    [self invalidate];
-  /* xxx What else? */
-  return nil;
+  id port = [notification object];
+
+  assert (is_valid);
+  if (debug_connection)
+    fprintf (stderr, "Received port invalidation notification for "
+	     "connection 0x%x\n\t%s\n", (unsigned)self,
+	     [[port description] cStringNoCopy]);
+  /* We shouldn't be getting any port invalidation notifications,
+     except from our own ports; this is how we registered ourselves
+     with the NotificationDispatcher in 
+     +newForInPort:outPort:ancestorConnection. */
+  assert (port == in_port || port == out_port);
+  [self invalidate];
+  /* xxx Anything else? */
 }
 
 /* xxx This needs locks */
 - (void) invalidate
 {
-  if (!is_valid)
-    return;
-  /* xxx Note: this is causing us to send a shutdown message
-     to the connection that shut *us* down.  Don't do that. 
-     Well, perhaps it's a good idea just in case other side didn't really
-     send us the shutdown; this way we let them know we're going away */
-  [self shutdown];
-  [NotificationDispatcher 
-    postNotificationName: ConnectionBecameInvalidNotification
-    object: self];
+  if (is_valid)
+    {
+      is_valid = 0;
+
+      /* xxx Note: this is causing us to send a shutdown message
+	 to the connection that shut *us* down.  Don't do that. 
+	 Well, perhaps it's a good idea just in case other side didn't really
+	 send us the shutdown; this way we let them know we're going away */
+#if 0
+      [self shutdown];
+#endif
+
+      if (debug_connection)
+	fprintf(stderr, "Invalidating connection 0x%x\n\t%s\n\t%s\n", 
+		(unsigned)self,
+		[[in_port description] cStringNoCopy], 
+		[[out_port description] cStringNoCopy]);
+    
+      [NotificationDispatcher 
+	postNotificationName: ConnectionBecameInvalidNotification
+	object: self];
+      /* xxx Anything else? */
+      /* xxx Yes, somehow Proxies of connections with invalid ports
+	 are being asked to encode themselves. */
+    }
 }
 
 /* This needs locks */
