@@ -1,3 +1,7 @@
+2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: Implemented subclass registry.
+
 2000-09-19  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/gnustep/base/Unicode.h:
