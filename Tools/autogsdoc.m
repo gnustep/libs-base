@@ -1779,10 +1779,8 @@ main(int argc, char **argv, char **env)
 @"    </chapter>\n"
 @"  </body>\n"
 @"</gsdoc>\n"];
-      [tocSkel replaceOccurrencesOfString: @"[prjName]" withString: project
-                                  options: 0
-                                    range: NSMakeRange(0, [tocSkel length])];
-
+      [tocSkel replaceString: @"[prjName]" withString: project];
+      
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
       [idxIndex setString: @"<HTML>\n  <BODY>\n"
@@ -1806,10 +1804,8 @@ main(int argc, char **argv, char **env)
 @"    <FRAME src=\"[prjName].html\" name=\"mainFrame\">\n"
 @"  </FRAMESET>\n"
 @"</HTML>\n"];
-      [frameset replaceOccurrencesOfString: @"[prjName]" withString: project
-                                   options: 0
-                                     range: NSMakeRange(0, [frameset length])];
-
+      [frameset replaceString: @"[prjName]" withString: project];
+      
       // generate the table of contents gsdoc files
       for (i = 0; i < [idxTypes count]; i++)
         {
@@ -1824,12 +1820,8 @@ main(int argc, char **argv, char **env)
           typeU = [@"Class" isEqualToString: typeU] ?
             [typeU stringByAppendingString: @"es"] :
             [typeU stringByAppendingString: @"s"];
-          [contents replaceOccurrencesOfString: @"[typeL]" withString: typeL
-                                       options: 0
-                                      range: NSMakeRange(0,[contents length])];
-          [contents replaceOccurrencesOfString: @"[typeU]" withString: typeU
-                                       options: 0
-                                      range: NSMakeRange(0,[contents length])];
+          [contents replaceString: @"[typeL]" withString: typeL];
+          [contents replaceString: @"[typeU]" withString: typeU];
           gsdocFile = [[typeU stringByAppendingString: @"TOC"]
                        stringByAppendingPathExtension: @"gsdoc"];
           htmlFile = [[typeU stringByAppendingString: @"TOC"]
@@ -1894,10 +1886,7 @@ main(int argc, char **argv, char **env)
 @"    </chapter>\n"
 @"  </body>\n"
 @"</gsdoc>\n"];
-          [prjFileContents replaceOccurrencesOfString: @"[prjName]"
-                                           withString: project
-                                              options: 0
-                              range: NSMakeRange(0, [prjFileContents length])];
+          [prjFileContents replaceString: @"[prjName]" withString: project];
           [prjFileContents writeToFile:
             [documentationDirectory stringByAppendingPathComponent: prjFile]
                             atomically: YES];
