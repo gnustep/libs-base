@@ -329,7 +329,7 @@ NSCTemplateValue.m \
 dld-load.h \
 hpux-load.h \
 null-load.h \
-foundation/NSDate.h \
+Foundation/NSDate.h \
 NSDate.m \
 simple-load.h 
 
@@ -339,36 +339,36 @@ GNUSTEP_OBJS = \
 	$(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 
 GNUSTEP_HEADERS = \
-foundation/NSArchiver.h \
-foundation/NSArray.h \
-foundation/NSArrayEnumerator.h \
-foundation/NSAutoreleasePool.h \
-foundation/NSBundle.h \
-foundation/NSCString.h \
-foundation/NSCoder.h \
-foundation/NSConcreteNumber.h \
-foundation/NSConcreteValue.h \
-foundation/NSData.h \
-foundation/NSDictionary.h \
-foundation/NSException.h \
-foundation/NSGeometry.h \
-foundation/NSGArchiver.h \
-foundation/NSGArray.h \
-foundation/NSGCoder.h \
-foundation/NSGData.h \
-foundation/NSGUnarchiver.h \
-foundation/NSInvocation.h \
-foundation/NSMethodSignature.h \
-foundation/NSObjCRuntime.h \
-foundation/NSObject.h \
-foundation/NSRange.h \
-foundation/NSSerialization.h \
-foundation/NSString.h \
-foundation/NSUnarchiver.h \
-foundation/NSUtilities.h \
-foundation/NSValue.h \
-foundation/NSZone.h \
-foundation/objc-load.h
+Foundation/NSArchiver.h \
+Foundation/NSArray.h \
+Foundation/NSArrayEnumerator.h \
+Foundation/NSAutoreleasePool.h \
+Foundation/NSBundle.h \
+Foundation/NSCString.h \
+Foundation/NSCoder.h \
+Foundation/NSConcreteNumber.h \
+Foundation/NSConcreteValue.h \
+Foundation/NSData.h \
+Foundation/NSDictionary.h \
+Foundation/NSException.h \
+Foundation/NSGeometry.h \
+Foundation/NSGArchiver.h \
+Foundation/NSGArray.h \
+Foundation/NSGCoder.h \
+Foundation/NSGData.h \
+Foundation/NSGUnarchiver.h \
+Foundation/NSInvocation.h \
+Foundation/NSMethodSignature.h \
+Foundation/NSObjCRuntime.h \
+Foundation/NSObject.h \
+Foundation/NSRange.h \
+Foundation/NSSerialization.h \
+Foundation/NSString.h \
+Foundation/NSUnarchiver.h \
+Foundation/NSUtilities.h \
+Foundation/NSValue.h \
+Foundation/NSZone.h \
+Foundation/objc-load.h
 
 INSTALL_HEADERS = @INSTALL_HEADERS@ objects/config.h objects/stdobjects.h
 INSTALL_OBJS = @INSTALL_OBJS@ 
@@ -441,7 +441,7 @@ install: installdirs all
 	for file in $(INSTALL_HEADERS); do \
 	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
 	done
-	(cd $(includedir)/foundation; ln -s ../objects/README .)
+	(cd $(includedir)/Foundation; ln -s ../objects/README .)
 	(cd $(includedir)/objc; ln -s ../objects/README .)
 	$(INSTALL_DATA) libobjects.info $(infodir)
 
@@ -449,7 +449,7 @@ installdirs:
 	$(srcdir)/mkinstalldirs $(libdir) $(infodir) \
 	 $(includedir)/objects \
 	 $(includedir)/objc \
-	 $(includedir)/foundation
+	 $(includedir)/Foundation
 
 uninstall:
 	rm -f $(libdir)/libobjects.a
@@ -573,7 +573,7 @@ mostlyclean:
 	rm -f  core \
 	*~ \
 	objects/*~ \
-	foundation/*~ \
+	Foundation/*~ \
 	objc/*~
 
 clean: mostlyclean
@@ -604,7 +604,7 @@ dist: $(DIST_FILES)
 	mkdir `cat .fname`
 	mkdir `cat .fname`/objects
 	mkdir `cat .fname`/objc
-	mkdir `cat .fname`/foundation
+	mkdir `cat .fname`/Foundation
 	# previously did this: -ln (DIST_FILES) `cat .fname`
 	for file in $(DIST_FILES); do \
 	  ln $$file `cat .fname`/$$file ; \
