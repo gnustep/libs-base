@@ -1,5 +1,7 @@
 2002-04-22  Adam Fedor  <fedor@gnu.org>
 
+	* Tools/gdomap.c (gdomap_log): For LOG_INFO, write to 1, not 0.
+
 	* Tools/make_strings: New tool from Alexander Malmberg
 	<alexander@malmberg.org>
 
