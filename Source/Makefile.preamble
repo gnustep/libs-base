@@ -83,10 +83,8 @@ endif
 ifeq ($(shared),yes)
 libgnustep-base_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) 
 endif
-ifeq ($(FOUNDATION_LIB),nx)
-libgnustep-baseadd_LIBRARIES_DEPEND_UPON += -framework Foundation
-endif
 
+#
 # Flags dealing with installing and uninstalling
 #
 
