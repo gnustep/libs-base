@@ -40,28 +40,40 @@
     switch (*type) {
     case _C_CHR:
 	theClass = [NSCharNumber class];
+	break;
     case _C_UCHR:
 	theClass = [NSUCharNumber class];
+	break;
     case _C_SHT:
 	theClass = [NSShortNumber class];
+	break;
     case _C_USHT:
 	theClass = [NSUShortNumber class];
+	break;
     case _C_INT:
 	theClass = [NSIntNumber class];
+	break;
     case _C_UINT:
 	theClass = [NSUIntNumber class];
+	break;
     case _C_LNG:
 	theClass = [NSLongNumber class];
+	break;
     case _C_ULNG:
 	theClass = [NSULongNumber class];
+	break;
     case 'q':
 	theClass = [NSLongLongNumber class];
+	break;
     case 'Q':
 	theClass = [NSULongLongNumber class];
+	break;
     case _C_FLT:
 	theClass = [NSFloatNumber class];
+	break;
     case _C_DBL:
 	theClass = [NSDoubleNumber class];
+	break;
     default:
 	break;
     }
