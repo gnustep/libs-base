@@ -73,8 +73,8 @@ after-distclean::
 	rm -f Headers/gnustep/base/config.h \
 		Headers/gnustep/base/GSConfig.h \
 		Headers/gnustep/base/preface.h
-	cd Headers; rm -f Foundation
-	cd Source; rm -f Foundation
+	-cd Headers; rm -f Foundation
+	-cd Source; rm -f Foundation
 
 # Things to do before checking
 # before-check::
