@@ -1199,9 +1199,9 @@ static int messages_received_count;
 /* NSConnection calls this to service the incoming method request. */
 - (void) _service_forwardForProxy: aRmc
 {
-  char *forward_type;
-  id op = nil;
-  int reply_sequence_number;
+  char	*forward_type = 0;
+  id	op = nil;
+  int	reply_sequence_number;
 
   void decoder (int argnum, void *datum, const char *type)
     {
@@ -1275,8 +1275,8 @@ static int messages_received_count;
 	 sel_types_match() work the way I wanted, we wouldn't need
 	 to do this. */
       [aRmc decodeValueOfCType: @encode(char*)
-	    at: &forward_type
-	    withName: NULL];
+			    at: &forward_type
+		      withName: NULL];
 
       if (debug_connection > 1)
         NSLog(@"Handling message from 0x%x\n", (gsaddr)self);
@@ -1290,20 +1290,31 @@ static int messages_received_count;
   NS_HANDLER
     {
       BOOL is_exception = YES;
+
       /* Try to clean up a little. */
-      if (op)
-	[op release];
+      DESTROY(op);
 
       /* Send the exception back to the client. */
       if (is_valid)
 	{
-	  op=[self newSendingReplyRmcWithSequenceNumber: reply_sequence_number];
-	  [op encodeValueOfCType: @encode(BOOL)
-	      at: &is_exception
-	      withName: @"Exceptional reply flag"];
-	  [op encodeBycopyObject: localException
-	      withName: @"Exception object"];
-	  [op dismiss];
+	  NS_DURING
+	    {
+	      op = [self newSendingReplyRmcWithSequenceNumber:
+		reply_sequence_number];
+	      [op encodeValueOfCType: @encode(BOOL)
+				  at: &is_exception
+			    withName: @"Exceptional reply flag"];
+	      [op encodeBycopyObject: localException
+			    withName: @"Exception object"];
+	      [op dismiss];
+	    }
+	  NS_HANDLER
+	    {
+	      DESTROY(op);
+	      NSLog(@"Exception when sending exception back to client - %@",
+		localException);
+	    }
+	  NS_ENDHANDLER;
 	}
     }
   NS_ENDHANDLER;
@@ -1589,13 +1600,15 @@ static int messages_received_count;
 	 for a reply, we are waiting for requests---so service it now.
 	 If REPLY_DEPTH is non-zero, we may still want to service it now
 	 if independent_queuing is NO. */
-      if (reply_depth == 0 || independent_queueing == NO)
+      if (request_depth == 0 || independent_queueing == NO)
 	{
+	  request_depth++;
 	  [conn _service_forwardForProxy: rmc];
+	  request_depth--;
 	  /* Service any requests that were queued while we
 	     were waiting for replies.
 	     xxx Is this the right place for this check? */
-	  if (reply_depth == 0)
+	  if (request_depth == 0)
 	    [self _handleQueuedRmcRequests];
 	}
       else
@@ -1645,10 +1658,12 @@ static int messages_received_count;
   while (is_valid && ([received_request_rmc_queue count] > 0))
     {
       rmc = [received_request_rmc_queue objectAtIndex: 0];
+      RETAIN(rmc);
       [received_request_rmc_queue removeObjectAtIndex: 0];
       [received_request_rmc_queue_gate unlock];
       [self _handleRmc: rmc];
       [received_request_rmc_queue_gate lock];
+      RELEASE(rmc);
     }
   RELEASE(self);
   [received_request_rmc_queue_gate unlock];
@@ -1696,7 +1711,6 @@ static int messages_received_count;
   id rmc;
   id timeout_date = nil;
 
-  reply_depth++;
   while (!(rmc = [self _getReceivedReplyRmcFromQueueWithSequenceNumber: sn]))
     {
       if (!timeout_date)
@@ -1708,7 +1722,6 @@ static int messages_received_count;
     }
   if (timeout_date)
     [timeout_date release];
-  reply_depth--;
   if (rmc == nil)
     [NSException raise: NSPortTimeoutException
 		 format: @"timed out waiting for reply"];
@@ -2306,7 +2319,7 @@ static int messages_received_count;
       send_port_class = default_send_port_class;
     }
   independent_queueing = NO;
-  reply_depth = 0;
+  request_depth = 0;
   delegate = nil;
   /*
    *	Set up request modes array and make sure the receiving port is
