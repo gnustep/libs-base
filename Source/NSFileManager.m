@@ -817,7 +817,8 @@ static NSFileManager* defaultManager = nil;
  * Copies the file or directory at source to destination, using a
  * handler object which should respond to
  * [NSObject-fileManager:willProcessPath:] and
- * [NSObject-fileManager:shouldProceedAfterError:] messages.
+ * [NSObject-fileManager:shouldProceedAfterError:] messages.<br />
+ * Will not copy to a destination which already exists.
  */
 - (BOOL) copyPath: (NSString*)source
 	   toPath: (NSString*)destination
@@ -826,6 +827,10 @@ static NSFileManager* defaultManager = nil;
   NSDictionary	*attrs;
   NSString	*fileType;
 
+  if ([self fileExistsAtPath: destination] == YES)
+    {
+      return NO;
+    }
   attrs = [self fileAttributesAtPath: source traverseLink: NO];
   if (attrs == nil)
     {
@@ -899,6 +904,7 @@ static NSFileManager* defaultManager = nil;
  * handler object which should respond to
  * [NSObject-fileManager:willProcessPath:] and
  * [NSObject-fileManager:shouldProceedAfterError:] messages.
+ * Will not move to a destination which already exists.<br />
  */
 - (BOOL) movePath: (NSString*)source
 	   toPath: (NSString*)destination 
@@ -910,6 +916,10 @@ static NSFileManager* defaultManager = nil;
   NSString* destinationParent;
   unsigned int sourceDevice, destinationDevice;
 
+  if ([self fileExistsAtPath: destination] == YES)
+    {
+      return NO;
+    }
   fileExists = [self fileExistsAtPath: source isDirectory: &sourceIsDir];
   if (!fileExists)
     {
