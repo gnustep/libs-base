@@ -966,6 +966,10 @@ AC_SUBST(WITH_FFI)
 # Check recent libxml for Properytlists, GSXML, GSDoc etc.
 #--------------------------------------------------------------------
 
+AC_ARG_ENABLE(xml,
+  [  --disable-xml			Compile even if XML-dependencies are not met],,
+  enable_xml=yes)
+
 # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
 # of the success of the macro.
 saved_LIBS="$LIBS"
@@ -984,6 +988,15 @@ else
   # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
   LIBS="$saved_LIBS"
   CFLAGS="$saved_CFLAGS"
+  if test $enable_xml = yes; then
+    echo
+    echo "You most likely do not want to build base without XML support."
+    echo "For instance, MacOS-X compatible property lists require XML."
+    echo "If you really want to build -base without XML support, add --disable-xml"
+    echo "to the configure arguments."
+    AC_MSG_ERROR([Missing support for XML functionality.])
+  fi
+  AC_MSG_WARN([Missing support for XML funtionality.])
 fi
 AC_SUBST(HAVE_LIBXML)
 

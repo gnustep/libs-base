@@ -2079,6 +2079,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     {
       switch (format)
 	{
+#ifdef	HAVE_LIBXML
 	  case NSPropertyListXMLFormat_v1_0:
 	    {
 	      GSXMLParser	*parser;
@@ -2102,6 +2103,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		}
 	    }
 	    break;
+#endif
 
 	  case NSPropertyListOpenStepFormat:
 	    {
