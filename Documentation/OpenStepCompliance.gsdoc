@@ -20,7 +20,7 @@
       bugs in the current implementation that we are not aware of.
       </p>
       <p>
-      The following classes conform to the OpenStep specification
+      The following classes conform to the OpenStep specification:
       </p>
       <list>
 	<item>NSArchiver</item>
@@ -54,6 +54,7 @@
 	<item>NSNotificationCenter</item>
 	<item>NSNotificationQueue</item>
 	<item>NSNumber</item>
+	<item>NSObject</item>
 	<item>NSProcessInfo</item>
 	<item>NSProxy</item>
 	<item>NSRecursiveLock</item>
@@ -75,7 +76,7 @@
       <p>
       The following OpenStep classes are not implemented. The usefulness
       of these classes it marginal so it is likely that we will never
-      implement these classes.  However, we would be pleaqsed to accept
+      implement these classes.  However, we would be pleased to accept
       their contribution should anyone care to implement them and assign
       the copyright to the Free Software Foundation.
       </p>
