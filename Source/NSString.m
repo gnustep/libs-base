@@ -222,6 +222,8 @@ pathSepMember(unichar c)
 @implementation NSString
 
 static NSStringEncoding _DefaultStringEncoding;
+static const unichar byteOrderMark = 0xFFFE;
+static const unichar byteOrderMarkSwapped = 0xFEFF;
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
@@ -998,8 +1000,7 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding
 {
-  if ((encoding == [NSString defaultCStringEncoding])
-    || (encoding == NSASCIIStringEncoding))
+  if (encoding == NSASCIIStringEncoding)
     {
       unsigned	len = [data length];
 
@@ -1091,19 +1092,26 @@ handle_printf_atsign (FILE *stream,
 {
   NSStringEncoding	enc;
   NSData		*d = [NSDataClass dataWithContentsOfFile: path];
-  const unsigned char	*test;
+  unsigned int		len = [d length];
+  const unichar		*test;
 
   if (d == nil)
     return nil;
-  if ([d length] < 2)
+
+  if (len == 0)
     return @"";
+
   test = [d bytes];
-  if (test != 0 &&
-    (((test[0]==0xFF) && (test[1]==0xFE))
-    || ((test[1]==0xFF) && (test[0]==0xFE))))
-    enc = NSUnicodeStringEncoding;
+  if ((test != NULL) && (len > 1)
+       && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
+    {
+      /* somebody set up us the BOM! */
+      enc = NSUnicodeStringEncoding;
+    }
   else
-    enc = [NSString defaultCStringEncoding];
+    {
+      enc = [NSString defaultCStringEncoding];
+    }
   return [self initWithData: d encoding: enc];
 }
 
@@ -1111,19 +1119,25 @@ handle_printf_atsign (FILE *stream,
 {
   NSStringEncoding	enc;
   NSData		*d = [NSDataClass dataWithContentsOfURL: url];
+  unsigned int		len = [d length];
   const unsigned char	*test;
 
   if (d == nil)
     return nil;
-  if ([d length] < 2)
+
+  if (len == 0)
     return @"";
+
   test = [d bytes];
-  if (test != 0
-    && (((test[0]==0xFF) && (test[1]==0xFE))
-    || ((test[1]==0xFF) && (test[0]==0xFE))))
-    enc = NSUnicodeStringEncoding;
+  if ((test != NULL) && (len > 1)
+       && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
+    {
+      enc = NSUnicodeStringEncoding;
+    }
   else
-    enc = [NSString defaultCStringEncoding];
+    {
+      enc = [NSString defaultCStringEncoding];
+    }
   return [self initWithData: d encoding: enc];
 }
 
@@ -3094,7 +3108,7 @@ handle_printf_atsign (FILE *stream,
 					 length: count
 				   freeWhenDone: YES];
 	}
-      else if (enc == NSASCIIStringEncoding || enc == _DefaultStringEncoding)
+      else if (enc == NSASCIIStringEncoding)
 	{
 	  unsigned char	*chars;
 

@@ -3,6 +3,12 @@
 	* Source/NSString.m: Implement ([-localizedStringWithFormat:]).
 	Fix ([-localizedCompare:]) and ([-localizedCaseInsensitiveCompare:]).
 	(They will work when ([-compare:options:range:locale:]) works.)
+	Fix ([-initWithContentsOfFile:]) and ([-initWithContentsOfURL:]) so
+	that they deal with 1 byte of data, and clarify Unicode BOM test with
+	new class variables byteOrderMark and byteOrderMarkSwapped.
+	In ([-initWithData:encoding:]) and ([-initWithCoder:]), don't treat
+	the default C string encoding the same as ASCII.  GCC 3.0 supports
+	UTF-8 as a C string encoding, so this behavior is undesirable.
 
 2001-03-19  Jonathan Gapen  <jagapen@home.com>
 
