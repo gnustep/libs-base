@@ -64,6 +64,18 @@
 #define CONTAINS_OBJECTS \
   (ENCODING_IS_OBJECT([self contentType]))
 
+/* Used inside a method for sending "-retain" if necessary */
+#define RETAIN_ELT(ELT) \
+  if (CONTAINS_OBJECTS) [ELT.id_u retain]
+
+/* Used inside a method for sending "-release" if necessary */
+#define RELEASE_ELT(ELT) \
+  if (CONTAINS_OBJECTS) [ELT.id_u release]
+
+/* Used inside a method for sending "-autorelease" if necessary */
+#define AUTORELEASE_ELT(ELT) \
+  ({if (CONTAINS_OBJECTS) ((elt)[ELT.id_u autorelease]) else ELT;})
+
 
 /* Error Handling */
 
