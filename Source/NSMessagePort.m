@@ -439,11 +439,13 @@ static Class	runLoopClass;
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
+
   while (valid == YES && state == GS_H_TRYCON
     && [when timeIntervalSinceNow] > 0)
     {
       [l runMode: NSConnectionReplyMode beforeDate: when];
     }
+
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
@@ -977,6 +979,7 @@ static Class	runLoopClass;
 	      else
 		{
 		  // NSLog(@"No messages to write on 0x%x.", self);
+		  M_UNLOCK(myLock);
 		  return;
 		}
 	    }
@@ -1022,8 +1025,6 @@ static Class	runLoopClass;
 		    }
 		  else
 		    {
-		      NSRunLoop	*l = [runLoopClass currentRunLoop];
-
 		      /*
 		       * message completed - remove from list.
 		       */
@@ -1033,15 +1034,6 @@ static Class	runLoopClass;
 		      wData = nil;
 		      wItem = 0;
 		      [wMsgs removeObjectAtIndex: 0];
-
-		      [l removeEvent: data
-				type: ET_WDESC
-			     forMode: mode
-				 all: NO];
-		      [l removeEvent: data
-				type: ET_EDESC
-			     forMode: mode
-				 all: NO];
 		    }
 		}
 	    }
@@ -1071,6 +1063,11 @@ static Class	runLoopClass;
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSConnectionReplyMode];
+
   while (valid == YES
     && [wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
     && [when timeIntervalSinceNow] > 0)
@@ -1079,10 +1076,16 @@ static Class	runLoopClass;
       [l runMode: NSConnectionReplyMode beforeDate: when];
       M_LOCK(myLock);
     }
-  /*
-   * NB. We will remove ourself from the run loop when the message send
-   * is completed, so we don't need to do it here.
-   */
+
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_WDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_EDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+
   if ([wMsgs indexOfObjectIdenticalTo: components] == NSNotFound)
     {
       sent = YES;

@@ -1,3 +1,10 @@
+2004-01-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m:
+	* Source/NSMessagePort.m: Fixed return form method without unlocking
+	a lock ... could cause a hang.  Also, tidied up add/romve watchers
+	in runloops.
+
 2004-01-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSKeyedArchiver.h: Update ivars for unarchiver.
