@@ -83,6 +83,15 @@ make
 make install
 @end example
 
+If you are running on a NeXT machine, @samp{gcc} probably configured
+itself to use the NeXT Objective C runtime by default.  Currently
+GNUstep only supports the GNU runtime.  To make @samp{gcc} use the GNU
+runtime, set @samp{CFLAGS} before you runtime configure.  For example: 
+
+@example
+CFLAGS=-fgnu-runtime ./configure 
+@end example
+
 If your system supports dynamically loaded shared libraries, you can
 request the building and installation of a @samp{.so} version of the
 library by passing @samp{--enable-shared} to @samp{configure}.  If in
@@ -103,20 +112,6 @@ Configure the package for your system.  In the directory that this file
 is in, type @samp{./configure}.  If you're using @samp{csh} on an old
 version of System V, you might need to type @samp{sh configure} instead
 to prevent @samp{csh} from trying to execute @samp{configure} itself.
-
-If you are compiling the library for a NeXT machine, you have the choice
-of using either the GNU or the NeXT Objective C runtime.  You can
-specify this by setting CFLAGS.  For example:
-@smallexample
-CFLAGS=-fgnu-runtime ./configure 
-@end smallexample
-
-If your system supports dynamically loaded shared libraries, you can
-request the building and installation of a @samp{.so} version of the
-library by passing @samp{--enable-shared} to @samp{configure}.  If in
-doubt, do not include this option.  In order to the build to be
-successful, your version of @samp{make} must support `percent'-style
-pattern rules; if you have trouble, use GNU make.
 
 The @samp{configure} shell script attempts to guess correct values for
 various system-dependent variables used during compilation, and creates
