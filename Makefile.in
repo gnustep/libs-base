@@ -108,7 +108,7 @@ snapshot: snap
 	mv snap `cat .name`
 	tar -chvf `cat .name`.tar `cat .name`
 	rm -f `cat .name`.tar.gz
-	gzip `cat .name`.tar
+	gzip -9 `cat .name`.tar
 	rm -rf `cat .name`
 
 dist: snap
@@ -116,7 +116,7 @@ dist: snap
 	tar -chvf libobjects-$(OBJECTS_VERSION).tar \
 		libobjects-$(OBJECTS_VERSION)
 	rm -f libobjects-$(OBJECTS_VERSION).tar.gz
-	gzip libobjects-$(OBJECTS_VERSION).tar
+	gzip -9 libobjects-$(OBJECTS_VERSION).tar
 	rm -rf libobjects-$(OBJECTS_VERSION)
 
 rcs-list-locked: 
