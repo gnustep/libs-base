@@ -347,6 +347,7 @@
     {
       unichar	*start = 0;
       BOOL	isDocumentation = NO;
+      BOOL	skippedFirstLine = NO;
       NSRange	r;
 
       pos += 2;	/* Skip opening part */
@@ -365,6 +366,7 @@
 	  if ([self skipSpaces] < length && buffer[pos] == '\n')
 	    {
 	      pos++;
+	      skippedFirstLine = YES;
 	    }
 	}
 
@@ -414,11 +416,14 @@
 	   * asterisk on each line should be stripped.
 	   * Otherwise we take the comment verbatim.
 	   */
-	  while (ptr < end && *ptr != '\n')
+	  if (skippedFirstLine == NO)
 	    {
-	      ptr++;
+	      while (ptr < end && *ptr != '\n')
+		{
+		  ptr++;
+		}
+	      ptr++;	// Step past the end of the first line.
 	    }
-	  ptr++;	// Step past the end of the first line.
 	  while (ptr < end)
 	    {
 	      unichar	c = *ptr++;
