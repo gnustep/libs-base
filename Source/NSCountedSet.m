@@ -115,13 +115,13 @@ static Class NSCountedSet_concrete_class;
 
 - initWithCoder: aCoder
 {
-  [self notImplemented:_cmd];
-  return self;
+  [self subclassResponsibility:_cmd];
+  return nil;
 }
 
 - (void) encodeWithCoder: aCoder
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 @end
