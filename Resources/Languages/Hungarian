@@ -24,7 +24,7 @@
   NSNextDayDesignations = (holnap);
   NSNextNextDayDesignations = ("holnaput\u00e1n");
   NSPriorDayDesignations = (tegnap);
-  NSShortDateFormatString = "%Y/%m/%d/; /* 1974/11/25 */
+  NSShortDateFormatString = "%Y/%m/%d/"; /* 1974/11/25 */
   NSShortMonthNameArray = (jan, feb, "m\u00e1rc", "\u00e1pr", "m\u00e1j", "j\u00fan", "j\u00fal", aug, szept, okt, nov, dec);
   NSShortTimeDateFormatString = "%Y %b. %d. %H:%M"; /* 1974. nov. 20. 17:33 */
   NSShortWeekDayNameArray = (V, H, K, Sze, Cs, P, Szo); 
