@@ -30,6 +30,7 @@
 #include <objects/Connection.h>
 #include <objects/Coder.h>
 #include <objects/ConnectedCoder.h>
+#include <objects/String.h>
 #include <assert.h>
 
 #if _AIX
