@@ -1,5 +1,18 @@
 #include <stdio.h>
 #include <objects/TcpPort.h>
+#include <objects/RunLoop.h>
+#include <objects/Invocation.h>
+#include <Foundation/NSDate.h>
+
+id handle_incoming_packet (id packet)
+{
+  fprintf (stdout, "received >");
+  fwrite ([packet streamBuffer] + [packet streamBufferPrefix],
+	  [packet streamEofPosition], 1, stdout);
+  fprintf (stdout, "<\n");
+  [packet release];
+  return nil;
+}
 
 int main (int argc, char *argv[])
 {
@@ -17,6 +30,13 @@ int main (int argc, char *argv[])
 			   onHost: @"localhost"];
 
   in_port = [TcpInPort newForReceiving];
+
+  [in_port setPacketInvocation:
+	     [[[ObjectFunctionInvocation alloc]
+		initWithObjectFunction: handle_incoming_packet]
+	       autorelease]];
+
+  [in_port addToRunLoop: [RunLoop currentInstance] forMode: nil];
   
   for (i = 0; i < 10; i++)
     {
@@ -26,17 +46,7 @@ int main (int argc, char *argv[])
       [out_port sendPacket: packet withTimeout: 20 * 1000];
       [packet release];
 
-      packet = [in_port receivePacketWithTimeout: 1000];
-      if (packet)
-	{
-	  fprintf (stdout, "received >");
-	  fwrite ([packet streamBuffer] + [packet streamBufferPrefix],
-		  [packet streamEofPosition], 1, stdout);
-	  fprintf (stdout, "<\n");
-	  [packet release];
-	}
-
-      sleep (2);
+      [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
     }
 
   [out_port close];
