@@ -59,7 +59,9 @@
 #define GREGORIAN_REFERENCE 730486
 
 @class	GSTimeZone;
-@class	NSConcreteAbsoluteTimeZone;
+@class	GSAbsTimeZone;
+
+static NSString	*cformat = @"%Y-%m-%d %H:%M:%S %z";
 
 static NSTimeZone	*localTZ = nil;
 
@@ -85,7 +87,11 @@ static NSString* (*dstAbrIMP)(id, SEL, id);
 static inline int
 offset(NSTimeZone *tz, NSDate *d)
 {
-  if (tz == localTZ)
+  if (tz == nil)
+    {
+      return 0;
+    }
+  if (tz == localTZ && offIMP != 0)
     {
       return (*offIMP)(tz, offSEL, d);
     }
@@ -93,11 +99,11 @@ offset(NSTimeZone *tz, NSDate *d)
     {
       Class	c = GSObjCClass(tz);
 
-      if (c == dstClass)
+      if (c == dstClass && dstOffIMP != 0)
 	{
 	  return (*dstOffIMP)(tz, offSEL, d);
 	}
-      if (c == absClass)
+      if (c == absClass && absOffIMP != 0)
 	{
 	  return (*absOffIMP)(tz, offSEL, d);
 	}
@@ -113,7 +119,11 @@ offset(NSTimeZone *tz, NSDate *d)
 static inline NSString*
 abbrev(NSTimeZone *tz, NSDate *d)
 {
-  if (tz == localTZ)
+  if (tz == nil)
+    {
+      return @"GMT";
+    }
+  if (tz == localTZ && abrIMP != 0)
     {
       return (*abrIMP)(tz, abrSEL, d);
     }
@@ -121,11 +131,11 @@ abbrev(NSTimeZone *tz, NSDate *d)
     {
       Class	c = GSObjCClass(tz);
 
-      if (c == dstClass)
+      if (c == dstClass && dstAbrIMP != 0)
 	{
 	  return (*dstAbrIMP)(tz, abrSEL, d);
 	}
-      if (c == absClass)
+      if (c == absClass && absAbrIMP != 0)
 	{
 	  return (*absAbrIMP)(tz, abrSEL, d);
 	}
@@ -274,7 +284,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
       localTZ = RETAIN([NSTimeZone localTimeZone]);
 
       dstClass = [GSTimeZone class];
-      absClass = [NSConcreteAbsoluteTimeZone class];
+      absClass = [GSAbsTimeZone class];
 
       offSEL = @selector(secondsFromGMTForDate:);
       offIMP = (int (*)(id,SEL,id))
@@ -393,7 +403,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 {
   // +++ What is the locale?
   return [self initWithString: description
-	       calendarFormat: @"%Y-%m-%d %H:%M:%S %z"
+	       calendarFormat: cformat
 		       locale: nil];
 }
 
@@ -1162,13 +1172,13 @@ static inline int getDigits(const char *from, char *to, int limit)
   // Assign time zone detail
   if (aTimeZone == nil)
     {
-      _time_zone = RETAIN(localTZ);
+      _time_zone = localTZ;	// retain is a no-op for the local timezone.
     }
   else
     {
       _time_zone = RETAIN(aTimeZone);
     }
-  _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+  _calendar_format = cformat;
   _seconds_since_ref = s;
 
   /*
@@ -1210,11 +1220,11 @@ static inline int getDigits(const char *from, char *to, int limit)
   _seconds_since_ref = seconds;
   if (_calendar_format == nil)
     {
-      _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+      _calendar_format = cformat;
     }
   if (_time_zone == nil)
     {
-      _time_zone = RETAIN(localTZ);
+      _time_zone = localTZ;	// retain is a no-op for the local timezone.
     }
   return self;
 }
@@ -1387,8 +1397,8 @@ static inline int getDigits(const char *from, char *to, int limit)
 }
 
 #define UNIX_REFERENCE_INTERVAL -978307200.0
-- (NSString *)descriptionWithCalendarFormat: (NSString *)format
-				     locale: (NSDictionary *)locale
+- (NSString*) descriptionWithCalendarFormat: (NSString*)format
+				     locale: (NSDictionary*)locale
 {
   char buf[1024];
   const char *f;
@@ -1666,10 +1676,16 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       newDate = (NSCalendarDate*)NSCopyObject(self, 0, zone);
 
-      if (newDate)
+      if (newDate != nil)
 	{
-	  newDate->_calendar_format = [_calendar_format copyWithZone: zone];
-	  newDate->_time_zone = RETAIN(_time_zone);
+	  if (_calendar_format != cformat)
+	    {
+	      newDate->_calendar_format = [_calendar_format copyWithZone: zone];
+	    }
+	  if (_time_zone != localTZ)
+	    {
+	      newDate->_time_zone = RETAIN(_time_zone);
+	    }
 	}
     }
   return newDate;
@@ -1866,7 +1882,7 @@ static inline int getDigits(const char *from, char *to, int limit)
    */
   s = GSTime(day, month, year, hour, minute, second, mil);
   c = [NSCalendarDate alloc];
-  c->_calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+  c->_calendar_format = cformat;
   c->_time_zone = RETAIN([self timeZone]);
   c->_seconds_since_ref = s;
 
