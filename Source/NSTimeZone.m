@@ -108,7 +108,7 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GSConfig.h"
 
-#ifdef HAVE_TZFILE_H
+#ifdef HAVE_TZHEAD
 #include <tzfile.h>
 #else
 #define NOID
@@ -1226,7 +1226,7 @@ static NSMapTable	*absolutes = 0;
           /* Get the zone name from the localtime file, assuming the file
 	     is a symlink to the time zone. Getting the actual data (which
 	     is easier) doesn't help, since we won't know the name itself.  */
-#if defined(HAVE_TZFILE_H) && defined(TZDEFAULT)
+#if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
 	  tzdir = RETAIN([NSString stringWithCString: TZDIR]);
 	  localZoneString = [NSString stringWithCString: TZDEFAULT];
 	  localZoneString = [localZoneString stringByResolvingSymlinksInPath];

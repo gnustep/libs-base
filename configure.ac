@@ -62,7 +62,7 @@ AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 # specific target_os options
 #--------------------------------------------------------------------
 INCLUDE_FLAGS="$CPPFLAGS"
-LIBS="$LDFLAGS $LIBS"
+LDIR_FLAGS="$LDFLAGS"
 # This is just for configuring. Later, in config.make, INCLUDE_FLAGS
 # goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
@@ -547,6 +547,13 @@ dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 AC_CHECK_HEADERS(time.h sys/time.h tzfile.h sys/rusage.h ucbinclude/sys/resource.h)
 AC_CHECK_FUNCS(time ctime tzset)
 
+# Check if tzfile contains the proper definitions
+if test $ac_cv_header_tzfile_h = yes; then
+  AC_EGREP_HEADER(tzhead, tzfile.h, 
+	AC_DEFINE(HAVE_TZHEAD,1,
+                  [ Define if tzfile.h includes the proper definitions]),)
+fi
+
 #--------------------------------------------------------------------
 # These headers/functions needed by GSTcpPort.m
 #--------------------------------------------------------------------
@@ -900,6 +907,25 @@ AC_SUBST(GS_FAKE_MAIN)
 AC_MSG_RESULT($enable_fake_main)
 
 #--------------------------------------------------------------------
+# Simple way to add a bunch of paths to the flags
+#--------------------------------------------------------------------
+AC_ARG_WITH(include-flags,
+    [  --with-include-flags=FLAGS specify all include flags at once],
+    include_flags="$withval", include_flags="no")
+if test ${include_flags} != "no"; then
+    CPPFLAGS="$CPPFLAGS ${include_flags}"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS ${include_flags}"
+fi
+
+AC_ARG_WITH(library-flags,
+    [  --with-library-flags=FLAGS specify all library flags at once],
+    library_flags="$withval", library_flags="no")
+if test ${library_flags} != "no"; then
+    LDFLAGS="$LDFLAGS ${library_flags}"
+    LDIR_FLAGS="$LDIR_FLAGS ${library_flags}"
+fi
+
+#--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
 # We enable ffcall by default now.
 #--------------------------------------------------------------------
@@ -930,15 +956,16 @@ AC_ARG_WITH(ffi-include,
     [  --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers],
     ffi_incdir="$withval", ffi_incdir="no")
 if test ${ffi_incdir} != "no"; then
-    CPPFLAGS="-I${ffi_incdir} $CPPFLAGS"
-    INCLUDE_FLAGS="-I${ffi_incdir} $INCLUDE_FLAGS"
+    CPPFLAGS="$CPPFLAGS -I${ffi_incdir}"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS -I${ffi_incdir}"
 fi
 
 AC_ARG_WITH(ffi-library,
     [  --with-ffi-library=PATH library path for ffi (ffcall/libffi) libraries],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
-    LIBS="-L${ffi_libdir} $LIBS"
+    LDFLAGS="$LDFLAGS -L${ffi_libdir}"
+    LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}"
 fi
 
 AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
@@ -969,13 +996,13 @@ if test $enable_libffi = yes; then
   AC_DEFINE(USE_LIBFFI,1,
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
-  LIBS="$LIBS -lffi"
+  LIBS="-lffi $LIBS"
   AC_MSG_RESULT(libffi)
 elif test $enable_ffcall = yes; then
   AC_DEFINE(USE_FFCALL,1,
             [Define if using the ffcall library for invocations])
   WITH_FFI=ffcall
-  LIBS="$LIBS -lcallback -lavcall"
+  LIBS="-lcallback -lavcall $LIBS"
   AC_MSG_RESULT(ffcall)
 else
   AC_MSG_RESULT(none)
@@ -1021,7 +1048,7 @@ if test $enable_xml = yes; then
   if test $enable_libxml = yes; then
     CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
-    LIBS="$LIBS $XML_LIBS"
+    LIBS="$XML_LIBS $LIBS"
     HAVE_LIBXML=1
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
     AC_CHECK_HEADERS(libxml/SAX2.h)
@@ -1029,7 +1056,7 @@ if test $enable_xml = yes; then
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
     AC_ARG_ENABLE(xslt,
-      [  --disable-xslt				Compile even if XSLT-dependency is not met],,
+      [  --disable-xslt		Compile even if XSLT-dependency is not met],,
       enable_xslt=yes)
 
     if test $enable_xslt = yes; then
@@ -1043,7 +1070,7 @@ if test $enable_xml = yes; then
       if test "$xslt_ok" = "yes"; then
 	HAVE_LIBXSLT=1
 	AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
-	LIBS="$LIBS -lxslt"
+	LIBS="-lxslt $LIBS"
       else
 	echo
 	echo "You most likely do not want to build base without XSLT support."
@@ -1086,7 +1113,6 @@ AC_ARG_WITH(gmp-library,
   [  --with-gmp-library=PATH  library path for gmp libraries],
   gmp_libdir="$withval", gmp_libdir="no")
 
-cppflags_temp="$CPPFLAGS"
 libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
@@ -1094,7 +1120,8 @@ if test "$gmp_incdir" != "no"; then
   INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
-  LIBS="$LIBS -L$gmp_libdir"
+  LDFLAGS="$LDFLAGS -L$gmp_libdir"
+  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
 fi
 
 USE_GMP=0
@@ -1105,15 +1132,11 @@ if test $ac_cv_header_gmp_h = yes; then
     AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
   fi
   if test "$gmp_ok" = yes; then
-    LIBS="$LIBS -lgmp"
+    LIBS="-lgmp $LIBS"
     USE_GMP=1
   fi
 fi
 
-if test "$USE_GMP" = "0"; then
-  CPPFLAGS="$cppflags_temp";
-  LIBS="$libs_temp";
-fi
 AC_SUBST(USE_GMP)
 
 #--------------------------------------------------------------------
@@ -1151,14 +1174,14 @@ if test $found_iconv = no ; then
   AC_ARG_WITH(libiconv-library,
     [  --with-libiconv-library=PATH  library path for libiconv libraries],
     libiconv_libdir="$withval", libiconv_libdir="no")
-  ldflags_temp="$LDFLAGS"
 
   if test "$libiconv_libdir" != "no"; then
     LDFLAGS="$LDFLAGS -L$libiconv_libdir"
+    LDIR_FLAGS="$LDIR_FLAGS -L$libiconv_libdir"
   fi
 
   old_LIBS="$LIBS"
-  LIBS="$LIBS -liconv"
+  LIBS="-liconv $LIBS"
   AC_LINK_IFELSE([[#include <iconv.h>
   int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
   ,
@@ -1168,7 +1191,6 @@ if test $found_iconv = no ; then
     found_iconv=yes
   ,
     found_iconv=no
-    LDFLAGS="$ldflags_temp"
     LIBS="$old_LIBS"
   )
 fi
@@ -1177,7 +1199,7 @@ if test $found_iconv = no ; then
   # -liconv didn't work. Try giconv.h and -lgiconv.
   # BSDs install this lib as libgiconv.
   old_LIBS="$LIBS"
-  LIBS="$LIBS -lgiconv"
+  LIBS="-lgiconv $LIBS"
   AC_LINK_IFELSE([[#include <giconv.h>
   int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
   ,
@@ -1191,6 +1213,21 @@ if test $found_iconv = no ; then
 fi
 
 AC_SUBST(INCLUDE_FLAGS)
+AC_SUBST(LDIR_FLAGS)
+
+#--------------------------------------------------------------------
+# Configure flags from sub-configure runs, so they show up in our
+# help file.
+#--------------------------------------------------------------------
+AC_ARG_ENABLE(openssl,
+  [  --disable-openssl		Disable support for openssl in URL classes],,
+  enable_openssl=yes)
+AC_ARG_WITH(openssl-include,
+  [  --with-openssl-include=PATH  include path for openssl headers],
+  openssl_incdir="$withval", openssl_incdir="no")
+AC_ARG_WITH(openssl-library,
+  [  --with-openssl-library=PATH  library path for openssl libraries],
+  openssl_libdir="$withval", openssl_libdir="no")
 
 AC_CONFIG_SUBDIRS(Source/mframe SSL)
 

@@ -85,6 +85,25 @@ esac
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/signal.h sys/param.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
 #--------------------------------------------------------------------
+# Simple way to add a bunch of paths to the flags
+#--------------------------------------------------------------------
+AC_ARG_WITH(include-flags,
+    [  --with-include-flags=FLAGS specify all include flags at once],
+    include_flags="$withval", include_flags="no")
+if test ${include_flags} != "no"; then
+    CPPFLAGS="${include_flags} $CPPFLAGS"
+    SSLFLAGS="${include_flags}"
+fi
+
+AC_ARG_WITH(library-flags,
+    [  --with-library-flags=FLAGS specify all library flags at once],
+    library_flags="$withval", library_flags="no")
+if test ${library_flags} != "no"; then
+    LIBS="${library_flags} $LIBS"
+    SSLLIBS="${library_flags}"
+fi
+
+#--------------------------------------------------------------------
 # Check OpenSSL for HTTPS support.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(openssl,
