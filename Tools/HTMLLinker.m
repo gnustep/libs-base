@@ -60,13 +60,15 @@
  * right.  It would probably be impossible.
  *
  * The HTML linker will only fixup links which have the attribute
- * 'rel' set to 'dynamic', as in the following example -
+ * 'rel' set to 'dynamical', as in the following example -
  *
  * <a href="NSObject_Protocol.html#-class" rel="dynamic">
  *
- * All other links will be ignored and not fixed up.  This is so that you
- * can clearly mark the links you want to be dynamically fixed up by the
- * linker; other links will not be touched.
+ * All other links will be ignored and not fixed up.  This is so that
+ * you can clearly mark the links you want to be dynamically fixed up
+ * by the linker; other links will not be touched.  If you want the
+ * linker to attempt to fixup all links, pass the -FixupAllLinks YES
+ * option to the linker.
  *
  * The linker might perform 'link checking' if run with the
  * '-CheckLinks YES' option.  link checking means that when a link is
@@ -95,6 +97,65 @@
  * correct.  */
 
 #include <Foundation/Foundation.h>
+
+/* For convenience, cached for the whole tool.  */
+
+/* [NSFileManager defaultManager]  */
+static NSFileManager *fileManager = nil;
+
+/* [[NSFileManager defaulManager] currentDirectoryPath]  */
+static NSString *currentPath = nil;
+
+/* Enumerate all .html files in a directory and subdirectories.  */
+@interface HTMLDirectoryEnumerator : NSEnumerator
+{
+  NSDirectoryEnumerator *e;
+  NSString *basePath;
+}
+
+- (id)initWithBasePath: (NSString *)path;
+
+@end
+
+@implementation HTMLDirectoryEnumerator : NSEnumerator
+
+- (id)initWithBasePath: (NSString *)path
+{
+  ASSIGN (e, [fileManager enumeratorAtPath: path]);
+  ASSIGN (basePath, path);
+  return [super init];
+}
+
+- (void)dealloc
+{
+  RELEASE (e);
+  RELEASE (basePath);
+  [super dealloc];
+}
+
+- (id)nextObject
+{
+  NSString *s;
+  
+  while ((s = [e nextObject]) != nil)
+    {
+      NSString *extension = [s pathExtension];
+      
+      if ([extension isEqualToString: @"html"]  
+	  || [extension isEqualToString: @"HTML"]
+	  || [extension isEqualToString: @"htm"]  
+	  || [extension isEqualToString: @"HTM"])
+	{
+	  /* NSDirectoryEnumerator returns the relative path, we
+	     return the absolute.  */
+	  return [basePath stringByAppendingPathComponent: s];
+	}
+    }
+
+  return nil;
+}
+
+@end
 
 /* 
  * An object representing a file which can be a destination of links.  
@@ -137,13 +198,17 @@
   BOOL verbose;
   BOOL checkLinks;
   NSMutableDictionary *files;
+  NSMutableDictionary *pathMappings;
 }
 
 - (id)initWithVerboseFlag: (BOOL)v
 	   checkLinksFlag: (BOOL)f;
 
 /* Register the file as available for resolving references.  */
-- (void)registerFile: (DestinationFile *)file;
+- (void)registerFile: (NSString *)pathOnDisk;
+
+/* Register a new path mapping.  */
+- (void)registerPathMappings: (NSDictionary *)dict;
 
 /* Resolve the link 'link' by fixing it up using the registered
    destination files.  Return the resolved link.  'logFile' is only
@@ -181,12 +246,16 @@
 - (NSArray *)names;
 
 /* Fix up all the links in the HTML code by feeding each of them to
-   the provided HTMLLinker; return the fixed up HTML code.  logFile is
-   the file we are fixing up; it's only used when a warning is issued
-   because there is problem in the linking - the warning message is
-   displayed as being about links in the file logFile.  */
+   the provided HTMLLinker; return the fixed up HTML code.  If
+   fixupAllLinks is 'NO', only fixup links with rel="dynamical"; if
+   fixupAllLinks is 'YES', attempt to fixup all links in the HTML
+   code.  logFile is the file we are fixing up; it's only used when a
+   warning is issued because there is problem in the linking - the
+   warning message is displayed as being about links in the file
+   logFile.  */
 - (NSString *)resolveLinksUsingHTMLLinker: (HTMLLinker *)linker
-				  logFile: (NSString *)logFile;
+				  logFile: (NSString *)logFile
+			    fixupAllLinks: (BOOL)fixupAllLinks;
 @end
 
 
@@ -384,6 +453,7 @@
 
 - (NSString *)resolveLinksUsingHTMLLinker: (HTMLLinker *)linker
 				  logFile: (NSString *)logFile
+			    fixupAllLinks: (BOOL)fixupAllLinks
 {
   /* We represent the output as a linked list.  Each element in the
      linked list represents a string; concatenating all the strings in
@@ -643,7 +713,8 @@
 		    }
 		}
 	    }
-	  if (href != nil  &&  [rel isEqualToString: @"dynamical"])
+	  if (href != nil  &&  (fixupAllLinks 
+				|| [rel isEqualToString: @"dynamical"]))
 	    {
 	      /* Ok - fixup the link.  */
 	      NSString *link;
@@ -788,18 +859,100 @@
   verbose = v;
   checkLinks = f;
   files = [NSMutableDictionary new];
+  pathMappings = [NSMutableDictionary new];
   return [super init];
 }
 
 - (void)dealloc
 {
   RELEASE (files);
+  RELEASE (pathMappings);
   [super dealloc];
 }
 
-- (void)registerFile: (DestinationFile *)file
+- (void)registerFile: (NSString *)pathOnDisk
 {
-  [files setObject: file  forKey: [[file fullName] lastPathComponent]];
+  NSString *fullPath = pathOnDisk;
+  DestinationFile *file;
+
+  /* We only accept absolute paths.  */
+  if (![pathOnDisk isAbsolutePath])
+    {
+      pathOnDisk = [currentPath stringByAppendingPathComponent: pathOnDisk];
+    }
+
+  /* Check if it's a directory; if it is, enumerate all HTML files
+     inside it, and add all of them.  */
+  {
+    BOOL isDir;
+    
+    if (![fileManager fileExistsAtPath: pathOnDisk  isDirectory: &isDir])
+      {
+	if (verbose)
+	  {
+	    /* FIXME - Perhaps we should not actually ignore it but
+               act as if it were there.  */
+	    NSLog (@"Warning - destination file '%@' not found - ignored", 
+		   pathOnDisk);
+	  }
+	return;
+      }
+    else
+      {
+	if (isDir)
+	  {
+	    HTMLDirectoryEnumerator *e;
+	    NSString *filename;
+	   
+	    e = [HTMLDirectoryEnumerator alloc];
+	    e = [e initWithBasePath: pathOnDisk];
+	    
+	    while ((filename = [e nextObject]) != nil)
+	      {
+		[self registerFile: filename];
+	      }
+	    return;
+	  }
+      }
+  }
+
+  /* Manage pathMappings: try to match any of the pathMappings against
+     pathOnDisk, and perform the path mapping if we can match.  */
+  {
+    NSEnumerator *e = [pathMappings keyEnumerator];
+    NSString *key;
+    
+    while ((key = [e nextObject]))
+      {
+	if ([pathOnDisk hasPrefix: key])
+	  {
+	    NSString *value = [pathMappings objectForKey: key];
+	    
+	    fullPath = [pathOnDisk substringFromIndex: [key length]];
+	    fullPath = [value stringByAppendingPathComponent: fullPath];
+	    break;
+	  }
+      }
+  }
+
+  /* Save the file properly prepared into our dictionary of
+     destination files.  */
+  file = [[DestinationFile alloc] initWithFullName: fullPath
+				  pathOnDisk: pathOnDisk];
+  [files setObject: file  forKey: [pathOnDisk lastPathComponent]]; 
+  RELEASE (file);
+}
+
+- (void)registerPathMappings: (NSDictionary *)dict
+{
+  NSEnumerator *e = [dict keyEnumerator];
+  NSString *key;
+  
+  while ((key = [e nextObject])) 
+    {
+      NSString *value = [dict objectForKey: key];
+      [pathMappings setObject: value  forKey: key];
+    }
 }
 
 - (NSString *)resolveLink: (NSString *)link
@@ -809,6 +962,12 @@
   NSString *nameLink;
   NSString *relocatedFileLink;
   DestinationFile *file;
+
+  /* Do nothing if this is evidently *not* a dynamical link to fixup.  */
+  if ([link hasPrefix: @"mailto:"] || [link hasPrefix: @"news:"])
+    {
+      return link;
+    }
   
   {
     /* Break the link string into fileLink (everything which is before
@@ -840,43 +999,60 @@
       }
   }
   
-  /* Now lookup fileLink.  First, extract the path-less filename,
-     because it might have already been fixed up by a previous run of
-     the linker.  */
-  fileLink = [fileLink lastPathComponent];
+  /* Now lookup fileLink.  */
   
-  /* Now simply look it up in our list of files.  */
-  file = [files objectForKey: fileLink];
-
-  /* Not found - leave it unfixed.  */
-  if (file == nil)
+  /* If it's "", it means a reference to something inside the same
+     file.  Leave it untouched - no fixup needed.  Normally these
+     should not be marked as need linker fixup anyway.  */
+  if ([fileLink isEqualToString: @""])
     {
-      if (verbose || checkLinks)
+      if (checkLinks)
 	{
-	  NSString *m;
-	  
-	  m = [NSString stringWithFormat: 
-			  @"%@: Unresolved reference to file '%@'\n",
-			logFile, fileLink];
-	  fprintf (stderr, [m lossyCString]);
+	  /* FIXME - not really the linker's task, but we might want
+	     to add checking of intra-document links.  */
 	}
       
       relocatedFileLink = fileLink;
     }
   else
     {
-      relocatedFileLink = [file fullName];
-
-      if (checkLinks)
+      /* First, extract the path-less filename, because it might have
+	 already been fixed up by a previous run of the linker.  */
+      fileLink = [fileLink lastPathComponent];
+      
+      /* Now simply look it up in our list of files.  */
+      file = [files objectForKey: fileLink];
+      
+      /* Not found - leave it unfixed.  */
+      if (file == nil)
 	{
-	  if (![file checkAnchorName: nameLink])
+	  if (verbose || checkLinks)
 	    {
 	      NSString *m;
 	      
 	      m = [NSString stringWithFormat: 
-			      @"%@: Unresolved reference to '%@' in file '%@'\n", 
-			    logFile, nameLink, fileLink];
+			      @"%@: Unresolved reference to file '%@'\n",
+			    logFile, fileLink];
 	      fprintf (stderr, [m lossyCString]);
+	    }
+	  
+	  relocatedFileLink = fileLink;
+	}
+      else
+	{
+	  relocatedFileLink = [file fullName];
+	  
+	  if (checkLinks)
+	    {
+	      if (![file checkAnchorName: nameLink])
+		{
+		  NSString *m;
+		  
+		  m = [NSString stringWithFormat: 
+				  @"%@: Unresolved reference to '%@' in file '%@'\n", 
+				logFile, nameLink, fileLink];
+		  fprintf (stderr, [m lossyCString]);
+		}
 	    }
 	}
     }
@@ -906,7 +1082,10 @@ static void print_help_and_exit ()
   printf ("  --help: print this message;\n");
   printf ("  --version: print version information;\n");
   printf ("  -Verbose YES: print verbose messages;\n");
-  printf ("  -CheckLinks YES: check links as they are fixed up;\n");
+  printf ("  -CheckLinks NO: do not check links as they are fixed up;\n");
+  printf ("  -FixupAllLinks YES: attempt to fixup all links (not only dynamical ones);\n");
+  printf ("  -PathMappingsFile file: read path mappings from file (a dictionary);\n");
+  printf ("  -PathMappings '{\"/usr/doc\"=\"/Doc\";}': use the supplied path mappings;\n");
   exit (0);
 }
 
@@ -926,7 +1105,7 @@ int main (int argc, char** argv, char** env)
   NSArray *args;
   NSMutableArray *inputFiles;
   unsigned i, count;
-  BOOL verbose, checkLinks;
+  BOOL verbose, checkLinks, fixupAllLinks;
   HTMLLinker *linker;
   BOOL destinations;
 
@@ -934,20 +1113,93 @@ int main (int argc, char** argv, char** env)
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
 
+  /* Set up the cache.  */
+  fileManager = [NSFileManager defaultManager];
+  currentPath = [fileManager currentDirectoryPath];
+
+  /* Read basic defaults.  */
   userDefs = [NSUserDefaults standardUserDefaults];
+
+  /* defaults are - 
+     -Verbose NO
+     -CheckLinks YES
+     -FixupAllLinks NO
+  */
+  [userDefs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
+					      @"YES", @"CheckLinks", nil]];
 
   verbose = [userDefs boolForKey: @"Verbose"];
   checkLinks = [userDefs boolForKey: @"CheckLinks"];
+  fixupAllLinks = [userDefs boolForKey: @"FixupAllLinks"];
 
+  /* Create the linker object.  */
   linker = [[HTMLLinker alloc] initWithVerboseFlag: verbose
 			       checkLinksFlag: checkLinks];
 
+  /*
+     To specify that a destination directory on disk is to be referred to
+     with a different path, you can use -PathMapping, as in
+     
+     -PathMapping '{
+                "/opt/gnustep/System/Documentation/Base"="/Documentation/Base";
+                "/opt/gnustep/System/Documentation/Gui"="/Documentation/Gui";
+                }'
+		
+     which causes all links to destination files which have the path
+     beginnig with /opt/gnustep/System/Documentation/Base to be resolved as
+     being to files with a path beginning with /Documentation/Base.
+     
+     This is only useful if you are serving HTML files off from a web server,
+     where the actual path on disk is not the same as the path seen by the
+     web browser.
+     
+     -PathMappingFile filename
+     
+     causes path mappings to be read from filename, which should contain
+     them in dictionary format.
+  */
+
+  /* Read path mappings from PathMappingsFile if specified.  */
+  {
+    NSString *pathMapFile = [userDefs stringForKey: @"PathMappingsFile"];
+    
+    if (pathMapFile != nil)
+      {
+	NSDictionary *mappings;
+	
+	mappings = [NSDictionary dictionaryWithContentsOfFile: pathMapFile];
+	
+	if (mappings == nil)
+	  {
+	    NSLog (@"Warning - %@ does not contain a dictionary - ignored", 
+		   pathMapFile);
+	  }
+	else
+	  {
+	    [linker registerPathMappings: mappings];
+	  }
+      }
+  }
+  
+  /* Add PathMappings specified on the command line if any.  */
+  {
+    NSDictionary *paths = [userDefs dictionaryForKey: @"PathMappings"];
+    
+    if (paths != nil)
+      {
+	[linker registerPathMappings: paths];
+      }
+  }
+  
   /* All non-options on the command line are:
-
+     
      input files if they come before --Destinations
-
+     
      destination files if they come after --Destinations
-
+     
+     Directories as input files or destination files means 'all .html, .htm,
+     .HTML, .HTM files in the directory and subdirectories'.
+     
   */
   args = [[NSProcessInfo processInfo] arguments];
 
@@ -995,23 +1247,38 @@ int main (int argc, char** argv, char** env)
 	{
 	  if (destinations)
 	    {
-	      DestinationFile *d;
-
-	      if (![arg isAbsolutePath])
-		{
-		  /* Not sure what to do here ... will think about it 
-		     tomorrow.  */
-		  NSLog (@"Warning - %@ is not an absolute filename!", arg);
-		}
-	      
-	      d = [[DestinationFile alloc] initWithFullName: arg
-					   pathOnDisk: arg];
-	      [linker registerFile: d];
-	      RELEASE (d);
+	      [linker registerFile: arg];
 	    }
 	  else
 	    {
-	      [inputFiles addObject: arg];
+	      BOOL isDir;
+	      
+	      if (![fileManager fileExistsAtPath: arg
+				isDirectory: &isDir])
+		{
+		  NSLog (@"Warning - input file '%@' not found - ignored", 
+			 arg);
+		}
+	      else
+		{
+		  if (isDir)
+		    {
+		      HTMLDirectoryEnumerator *e;
+		      NSString *filename;
+		      
+		      e = [HTMLDirectoryEnumerator alloc];
+		      e = [e initWithBasePath: arg];
+		      
+		      while ((filename = [e nextObject]) != nil)
+			{
+			  [inputFiles addObject: filename];
+			}
+		    }
+		  else
+		    {
+		      [inputFiles addObject: arg];
+		    }
+		}
 	    }
 	}
     }
@@ -1035,7 +1302,8 @@ int main (int argc, char** argv, char** env)
       
       parser = [[HTMLParser alloc] initWithCode: inputFileContents];
       inputFileContents = [parser resolveLinksUsingHTMLLinker: linker
-				  logFile: inputFile];
+				  logFile: inputFile
+				  fixupAllLinks: fixupAllLinks];
       [inputFileContents writeToFile: inputFile
 			 atomically: YES];
       RELEASE (parser);
