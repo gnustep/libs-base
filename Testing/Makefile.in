@@ -183,14 +183,14 @@ bundles: $(BUNDLE_NAME).bundle/$(BUNDLE_NAME)
 
 $(DYNAMIC_OFILES): $(DYNAMIC_MFILES) $(DYNAMIC_HFILES)
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(DYNAMIC_CFLAGS) $(ALL_OBJCFLAGS) \
-		$*.m -o $*.o
+		$(srcdir)/$*.m -o $*.o
 
 $(BUNDLE_NAME).bundle/$(BUNDLE_NAME): $(DYNAMIC_OFILES)
 	-mkdir $(BUNDLE_NAME).bundle
 	-mkdir $(BUNDLE_NAME).bundle/English.lproj
 	$(DYNAMIC_BUNDLER_LINKER) -o $(BUNDLE_NAME).bundle/$(BUNDLE_NAME) \
 		$(DYNAMIC_OFILES)
-	cp NXStringTable.example $(BUNDLE_NAME).bundle/English.lproj
+	cp $(srcdir)/NXStringTable.example $(BUNDLE_NAME).bundle/English.lproj
 
 mostlyclean:
 	rm -f core *~ test08.data textcoder.txt
