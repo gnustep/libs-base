@@ -3,7 +3,7 @@
 @c set the vars OBJECTS_VERSION and GCC_VERSION
 @include version.texi
 
-The GNU Objective C Class Library (libobjects) is a library of
+The Gnustep Base Library (libobjects) is a library of
 general-purpose, non-graphical Objective C objects written by R. Andrew
 McCallum.  What `libg++' is to GNU's C++, `libobjects' is to GNU's
 Objective C.
