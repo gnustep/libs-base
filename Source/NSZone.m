@@ -417,6 +417,7 @@ NSZoneFromPointer(void *ptr)
   NSZone	*zone;
 
   if (ptr == 0) return 0;
+  if (zone_list == 0) return 0;
 
   /*
    *	See if we can find the zone in our list of all zones.
