@@ -95,8 +95,7 @@ Many optimizations, such as retaining instead of copying, and using pointers
 to another strings _contents buffer, are valid only if this flag is set.
 
 GSCString, an abstract class that stores the string as 8-bit data in the
-internal encoding. GSCString and its subclasses are used only if
-intEnc==defEnc.
+internal encoding.
 */
 @interface GSCString : GSString
 {
@@ -451,6 +450,89 @@ setup(void)
 	}
       return self;
     }
+}
+
+- (id) initWithFormat: (NSString*)format
+               locale: (NSDictionary*)locale
+	    arguments: (va_list)argList
+{
+  unsigned char	buf[2048];
+  GSStr_t	f;
+  unichar	fbuf[1024];
+  unichar	*fmt = fbuf;
+  size_t	len;
+  GSStr		me;
+
+
+  /*
+   * First we provide an array of unichar characters containing the
+   * format string.  For performance reasons we try to use an on-stack
+   * buffer if the format string is small enough ... it almost always
+   * will be.
+   */
+  len = [format length];
+  if (len >= 1024)
+    {
+      fmt = objc_malloc((len+1)*sizeof(unichar));
+    }
+  [format getCharacters: fmt];
+  fmt[len] = '\0';
+
+  /*
+   * Now set up 'f' as a GSMutableString object whose initial buffer is
+   * allocated on the stack.  The GSFormat function can write into it.
+   */
+  f.isa = GSMutableStringClass;
+  f._zone = NSDefaultMallocZone();
+  f._contents.c = buf;
+  f._capacity = sizeof(buf);
+  f._count = 0;
+  f._flags.wide = 0;
+  f._flags.free = 0;
+  GSFormat(&f, fmt, argList, locale);
+  if (fmt != fbuf)
+    {
+      objc_free(fmt);
+    }
+
+  /*
+   * Don't use noCopy because f._contents.u may be memory on the stack,
+   * and even if it wasn't f._capacity may be greater than f._count so
+   * we could be wasting quite a bit of space.  Better to accept a
+   * performance hit due to copying data (and allocating/deallocating
+   * the temporary buffer) for large strings.  For most strings, the
+   * on-stack memory will have been used, so we will get better performance.
+   */
+  if (f._flags.wide == 1)
+    {
+      me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
+	f._count*sizeof(unichar), GSObjCZone(self));
+      me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
+      me->_count = f._count;
+      me->_flags.wide = 1;
+      me->_flags.free = 1;
+      memcpy(me->_contents.u, f._contents.u, f._count*sizeof(unichar));
+    }
+  else
+    {
+      me = (GSStr)NSAllocateObject(GSCInlineStringClass, f._count,
+	GSObjCZone(self));
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+      me->_count = f._count;
+      me->_flags.wide = 0;
+      me->_flags.free = 1;
+      memcpy(me->_contents.c, f._contents.c, f._count);
+    }
+
+  /*
+   * If the string had to grow beyond the initial buffer size, we must
+   * release any allocated memory.
+   */
+  if (f._flags.free == 1)
+    {
+      NSZoneFree(f._zone, f._contents.c);
+    }
+  return (id)me;
 }
 
 /*
@@ -3019,6 +3101,32 @@ agree, create a new GSUnicodeInlineString otherwise.
   _contents.c = chars;
   _flags.wide = 0;
 
+  return self;
+}
+
+- (id) initWithFormat: (NSString*)format
+               locale: (NSDictionary*)locale
+	    arguments: (va_list)argList
+{
+  unichar	fbuf[1024];
+  unichar	*fmt = fbuf;
+  size_t	len;
+
+  /*
+   * First we provide an array of unichar characters containing the
+   * format string.  For performance reasons we try to use an on-stack
+   * buffer if the format string is small enough ... it almost always
+   * will be.
+   */
+  len = [format length];
+  if (len >= 1024)
+    {
+      fmt = objc_malloc((len+1)*sizeof(unichar));
+    }
+  [format getCharacters: fmt];
+  fmt[len] = '\0';
+
+  GSFormat((GSStr)self, fmt, argList, locale);
   return self;
 }
 

@@ -5,6 +5,7 @@
 	so it works when the default character encoding is not the same as
 	the internal 8-bit encoding.
 	* Source/GSString.m: New function to externalize a string.
+	implementations of init with format for concrete classes.
 
 2004-06-03  David Ayers  <d.ayers@inode.at>
 
