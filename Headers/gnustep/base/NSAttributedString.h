@@ -48,6 +48,7 @@
 #ifndef _NSXKit_H_NSAttributedString
 #define _NSXKit_H_NSAttributedString
 
+#ifndef	STRICT_OPENSTEP
 #include <Foundation/NSString.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
@@ -110,6 +111,8 @@
 - (void)endEditing;
 
 @end //NSMutableAttributedString
+
+#endif //STRICT_OPENSTEP
 
 #endif //_NSXKit_H_NSAttributedString
 

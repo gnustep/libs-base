@@ -76,9 +76,11 @@
 - (void) encodeClassName: (NSString*)trueName
            intoClassName: (NSString*)inArchiveName;
 
+#ifndef	STRICT_OPENSTEP
 /* Substituting Objects */
 - (void) replaceObject: (id)object
 	    withObject: (id)newObject;
+#endif
 @end
 
 #ifndef	NO_GNUSTEP
@@ -197,8 +199,10 @@
 - (void) decodeClassName: (NSString*)nameInArchive 
 	     asClassName: (NSString*)trueName;
 
+#ifndef	STRICT_OPENSTEP
 /* Substituting objects */
 - (void) replaceObject: (id)anObject withObject: (id)replacement;
+#endif
 @end
 
 #ifndef	NO_GNUSTEP

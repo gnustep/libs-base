@@ -189,7 +189,7 @@
     }
 }
 
-- (void) getObjects: (id*)aBuffer range: (IndexRange)aRange
+- (void) getObjects: (id*)aBuffer range: (NSRange)aRange
 {
     unsigned i, j = 0, e = aRange.location + aRange.length;
 
