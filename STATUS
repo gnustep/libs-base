@@ -15,10 +15,7 @@ Classes
 (Many classes do not raise the proper NSExceptions yet.)
 
 * NSArchiver::			[8]
-	Missing class name substitution methods.
-	Coder could be much more efficient and compressed by
-	 implementing interesting idea I had about not writing out the
-	 xref tags for encoded objects. 
+	Doesn't yet call -awakeAfterUsingCoder:.
 
 * NSArray::			[8]
 
@@ -99,7 +96,8 @@ Classes
 
 * NSNotificationCenter::	[9]
 
-* NSNotificationQueue::		[?]
+* NSNotificationQueue::		[4]
+	Needs integration with NSRunLoop, and efficiency improvements
 
 * NSNumber::			[9]
 
@@ -113,8 +111,8 @@ Classes
 
 * NSRecursiveLock::		[8]
 
-* NSRunLoop::			[0]
-	But Allan Clearwaters is working on it
+* NSRunLoop::			[8]
+	NSTimer's not yet working, but everything else should be
 
 * NSScanner::			[0]
 
@@ -126,13 +124,14 @@ Classes
 	Careful, relationship with GNU String is tricky; this could
 	 also use fixing.
 
-* NSThread::			[0]
+* NSThread::			[8]
 
 * NSTimeZone::			[8]
 
 * NSTimeZoneDetail::		[8]
 
-* NSTimer::			[0]
+* NSTimer::			[4]
+	Working out bugs with returning doubles.
 
 * NSUnarchiver::		[8]
 	See NSArchvier
