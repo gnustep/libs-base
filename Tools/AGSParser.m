@@ -671,7 +671,15 @@
 	   */
 	  if ([d objectForKey: @"Name"] == nil)
 	    {
-	      [self log: @"parse declaration with no name - %@", d];
+	      NSString	*t = [d objectForKey: @"BaseType"];
+
+	      /*
+	       * Don't bother to warn about nameless enumerations.
+	       */
+	      if ([t isEqual: @"enum ..."] == NO)
+		{
+		  [self log: @"parse declaration with no name - %@", d];
+		}
 	      return nil;
 	    }
 	}

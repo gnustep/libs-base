@@ -2,29 +2,29 @@
    Copyright (C) 1995-2001 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
-   		EMBL & Academia Naturalis, 
+   		EMBL & Academia Naturalis,
                 Heidelberg, Germany
    Modified by:  Richard Frith-Macdonald <rfm@gnu.org>
-  
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSUserDefaults class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
 #include <config.h>
 #include <base/preface.h>
@@ -61,9 +61,6 @@
 static SEL	nextObjectSel;
 static SEL	objectForKeySel;
 static SEL	addSel;
-
-/* User's Defaults database */
-static NSString	*GNU_UserDefaultsDatabase = @".GNUstepDefaults";
 
 static Class	NSArrayClass;
 static Class	NSDataClass;
@@ -172,7 +169,7 @@ static void updateCache(NSUserDefaults *self)
  *   environment variable.
  * </p>
  * <p>
- *   The first change to a persistent domain after a -synchronize 
+ *   The first change to a persistent domain after a -synchronize
  *   will cause an NSUserDefaultsDidChangeNotification to be posted
  *   (as will any change caused by reading new values from disk),
  *   so your application can keep track of changes made to the
@@ -254,10 +251,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSArray	 *latert;
   NSArray	 *hour_names;
   NSArray	 *ymw_names;
-  
+
   ampm = [NSArray arrayWithObjects: @"AM", @"PM", nil];
 
-  short_month = [NSArray arrayWithObjects: 
+  short_month = [NSArray arrayWithObjects:
     @"Jan",
     @"Feb",
     @"Mar",
@@ -272,7 +269,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     @"Dec",
     nil];
 
-  long_month = [NSArray arrayWithObjects: 
+  long_month = [NSArray arrayWithObjects:
     @"January",
     @"February",
     @"March",
@@ -287,7 +284,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     @"December",
     nil];
 
-  short_day = [NSArray arrayWithObjects: 
+  short_day = [NSArray arrayWithObjects:
     @"Sun",
     @"Mon",
     @"Tue",
@@ -297,7 +294,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     @"Sat",
     nil];
 
-  long_day = [NSArray arrayWithObjects: 
+  long_day = [NSArray arrayWithObjects:
     @"Sunday",
     @"Monday",
     @"Tuesday",
@@ -307,7 +304,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     @"Saturday",
     nil];
 
-  earlyt = [NSArray arrayWithObjects: 
+  earlyt = [NSArray arrayWithObjects:
     @"prior",
     @"last",
     @"past",
@@ -318,7 +315,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
   ymw_names = [NSArray arrayWithObjects: @"year", @"month", @"week", nil];
 
-  hour_names = [NSArray arrayWithObjects: 
+  hour_names = [NSArray arrayWithObjects:
     [NSArray arrayWithObjects: @"0", @"midnight", nil],
     [NSArray arrayWithObjects: @"12", @"noon", @"lunch", nil],
     [NSArray arrayWithObjects: @"10", @"morning", nil],
@@ -326,7 +323,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     [NSArray arrayWithObjects: @"19", @"dinner", nil],
     nil];
 
-  registrationDefaults = [NSDictionary dictionaryWithObjectsAndKeys: 
+  registrationDefaults = [NSDictionary dictionaryWithObjectsAndKeys:
     ampm, NSAMPMDesignation,
     long_month, NSMonthNameArray,
     long_day, NSWeekDayNameArray,
@@ -348,8 +345,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 /**
  * Returns the shared defaults object. If it doesn't exist yet, it's
  * created. The defaults are initialized for the current user.
- * The search list is guaranteed to be standard only the first time 
- * this method is invoked. The shared instance is provided as a 
+ * The search list is guaranteed to be standard only the first time
+ * this method is invoked. The shared instance is provided as a
  * convenience; other instances may also be created.
  */
 + (NSUserDefaults*) standardUserDefaults
@@ -381,7 +378,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       [classLock unlock];
       return nil;
     }
-	
+
   [sharedDefaults __createStandardSearchList];
 
   /* Set up language constants */
@@ -461,7 +458,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
       tempDefaults = [[self alloc] init];
       if (tempDefaults != nil)
-	{	
+	{
 	  NSMutableArray	*sList;
 
 	  /*
@@ -494,12 +491,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       /* Check for language as the first part of the locale string */
       NSRange under = [locale rangeOfString: @"_"];
       if (under.location)
-        currLang = [NSArray arrayWithObject: 
+        currLang = [NSArray arrayWithObject:
 	             [locale substringToIndex: under.location]];
     }
 #endif
   if (currLang == nil)
-    { 
+    {
       const char	*env_list;
       NSString		*env;
 
@@ -542,14 +539,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 + (void) setUserLanguages: (NSArray*)languages
 {
   NSMutableDictionary	*globDict;
-	
-  globDict = [[[self standardUserDefaults] 
+
+  globDict = [[[self standardUserDefaults]
     persistentDomainForName: NSGlobalDomain] mutableCopy];
   if (languages == nil)          // Remove the entry
     [globDict removeObjectForKey: @"NSLanguages"];
   else
     [globDict setObject: languages forKey: @"NSLanguages"];
-  [[self standardUserDefaults] 
+  [[self standardUserDefaults]
     setPersistentDomain: globDict forName: NSGlobalDomain];
   RELEASE(globDict);
   return;
@@ -566,8 +563,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   return [self initWithUser: NSUserName()];
 }
 
-static NSString	*pathForUser(NSString *user) 
+static NSString	*pathForUser(NSString *user)
 {
+  NSString	*database = @".GNUstepDefaults";
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSString	*home;
   NSString	*path;
@@ -578,7 +576,7 @@ static NSString	*pathForUser(NSString *user)
 
   home = GSDefaultsRootForUser(user);
   if (home == nil)
-    {  
+    {
       /* Probably on MINGW. Where to put it? */
       NSLog(@"Could not get user root. Using NSOpenStepRootDirectory()");
       home = NSOpenStepRootDirectory();
@@ -590,7 +588,7 @@ static NSString	*pathForUser(NSString *user)
 #else
   desired = (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
 #endif
-  attr = [NSDictionary dictionaryWithObjectsAndKeys: 
+  attr = [NSDictionary dictionaryWithObjectsAndKeys:
     NSUserName(), NSFileOwnerAccountName,
     [NSNumber numberWithUnsignedLong: desired], NSFilePosixPermissions,
     nil];
@@ -633,8 +631,8 @@ static NSString	*pathForUser(NSString *user)
       return nil;
     }
 
-  path = [path stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
-  old = [home stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
+  path = [path stringByAppendingPathComponent: database];
+  old = [home stringByAppendingPathComponent: database];
   if ([mgr fileExistsAtPath: path] == NO)
     {
       if ([mgr fileExistsAtPath: old] == YES)
@@ -650,7 +648,7 @@ static NSString	*pathForUser(NSString *user)
     {
       NSLog(@"Warning - ignoring old defaults database in %@", old);
     }
-  
+
   /*
    * Try to create standard directory hierarchy if necessary
    */
@@ -676,9 +674,9 @@ static NSString	*pathForUser(NSString *user)
 - (id) initWithUser: (NSString*)userName
 {
   NSString	*path = pathForUser(userName);
-	
+
   if (path == nil)
-    {  
+    {
       RELEASE(self);
       return nil;
     }
@@ -687,43 +685,33 @@ static NSString	*pathForUser(NSString *user)
 
 /**
  * <init />
- * Initializes defaults for the specified path. Returns an object with 
+ * Initializes defaults for the specified path. Returns an object with
  * an empty search list.
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  [super init];
-	
-  // Find the user's home folder and build the paths (executed only once)
-  if (_defaultsDatabase == nil)
-    {
-      if (path != nil && [path isEqual: @""] == NO)
-	{
-	  _defaultsDatabase = [path copy];
-	}
-      else
-	{
-	  _defaultsDatabase = [pathForUser(NSUserName()) copy];
-	}
+  self = [super init];
 
-      if ([[_defaultsDatabase lastPathComponent] isEqual: 
-	GNU_UserDefaultsDatabase] == YES)
-	{
-	  path = [_defaultsDatabase stringByDeletingLastPathComponent];
-	}
-      else
-	{
-	  path = [pathForUser(NSUserName()) stringByDeletingLastPathComponent];
-	}
-    }
+  /*
+   * Global variable.
+   */
   if (processName == nil)
     {
       processName = RETAIN([[NSProcessInfo processInfo] processName]);
     }
 
+  if (path != nil && [path isEqual: @""] == NO)
+    {
+      _defaultsDatabase = [path copy];
+    }
+  else
+    {
+      _defaultsDatabase = [pathForUser(NSUserName()) copy];
+    }
+
   // Create an empty search list
   _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
-	
+
   // Initialize _persDomains from the archived user defaults (persistent)
   _persDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
   if ([self synchronize] == NO)
@@ -748,7 +736,7 @@ static NSString	*pathForUser(NSString *user)
           return self;
         }
     }
-	
+
   // Check and if not existent add the Application and the Global domains
   if (![_persDomains objectForKey: processName])
     {
@@ -764,10 +752,10 @@ static NSString	*pathForUser(NSString *user)
 	forKey: NSGlobalDomain];
       [self __changePersistentDomain: NSGlobalDomain];
     }
-	
+
   // Create volatile defaults and add the Argument and the Registration domains
   _tempDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
-  [_tempDomains setObject: [self __createArgumentDictionary] 
+  [_tempDomains setObject: [self __createArgumentDictionary]
 		   forKey: NSArgumentDomain];
   [_tempDomains
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
@@ -811,7 +799,7 @@ static NSString	*pathForUser(NSString *user)
 - (NSArray*) arrayForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
-	
+
   if (obj != nil && [obj isKindOfClass: NSArrayClass])
     return obj;
   return nil;
@@ -824,7 +812,7 @@ static NSString	*pathForUser(NSString *user)
 - (BOOL) boolForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
-	
+
   if (obj != nil)
     return [obj boolValue];
   return NO;
@@ -837,7 +825,7 @@ static NSString	*pathForUser(NSString *user)
 - (NSData*) dataForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
-	
+
   if (obj != nil && [obj isKindOfClass: NSDataClass])
     return obj;
   return nil;
@@ -850,7 +838,7 @@ static NSString	*pathForUser(NSString *user)
 - (NSDictionary*) dictionaryForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
-	
+
   if (obj != nil && [obj isKindOfClass: NSDictionaryClass])
     return obj;
   return nil;
@@ -863,7 +851,7 @@ static NSString	*pathForUser(NSString *user)
 - (float) floatForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
-	
+
   if (obj != nil)
     return [obj floatValue];
   return 0.0;
@@ -876,7 +864,7 @@ static NSString	*pathForUser(NSString *user)
 - (int) integerForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
-	
+
   if (obj != nil)
     return [obj intValue];
   return 0;
@@ -896,7 +884,7 @@ static NSString	*pathForUser(NSString *user)
   id		dN;
   IMP		pImp;
   IMP		tImp;
-	
+
   [_lock lock];
   enumerator = [_searchList objectEnumerator];
   nImp = [enumerator methodForSelector: nextObjectSel];
@@ -907,7 +895,7 @@ static NSString	*pathForUser(NSString *user)
   while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
     {
       id	dict;
-      
+
       dict = (*pImp)(_persDomains, objectForKeySel, dN);
       if (dict != nil && (object = [dict objectForKey: defaultName]))
 	break;
@@ -927,7 +915,7 @@ static NSString	*pathForUser(NSString *user)
 - (void) removeObjectForKey: (NSString*)defaultName
 {
   id	obj;
-	
+
   [_lock lock];
   obj = [[_persDomains objectForKey: processName] objectForKey: defaultName];
   if (obj != nil)
@@ -958,7 +946,7 @@ static NSString	*pathForUser(NSString *user)
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
   id	obj = (value)?@"YES": @"NO";
-	
+
   [self setObject: obj forKey: defaultName];
   return;
 }
@@ -968,7 +956,7 @@ static NSString	*pathForUser(NSString *user)
  * <br />Calls -setObject:forKey: to make the change.
  */
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
-{	
+{
   char	buf[32];
 
   sprintf(buf,"%g",value);
@@ -1028,12 +1016,12 @@ static NSString	*pathForUser(NSString *user)
 - (NSArray*) stringArrayForKey: (NSString*)defaultName
 {
   id	arr = [self arrayForKey: defaultName];
-	
+
   if (arr != nil)
     {
       NSEnumerator	*enumerator = [arr objectEnumerator];
       id		obj;
-		
+
       while ((obj = [enumerator nextObject]))
 	{
 	  if ([obj isKindOfClass: NSStringClass] == NO)
@@ -1053,7 +1041,7 @@ static NSString	*pathForUser(NSString *user)
 - (NSString*) stringForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
-	
+
   if (obj != nil && [obj isKindOfClass: NSStringClass])
     return obj;
   return nil;
@@ -1133,17 +1121,17 @@ static NSString	*pathForUser(NSString *user)
  * if this is the first change to a persistent-domain since the
  * last -synchronize.
  */
-- (void) setPersistentDomain: (NSDictionary*)domain 
+- (void) setPersistentDomain: (NSDictionary*)domain
 		     forName: (NSString*)domainName
 {
   id	dict;
-	
+
   [_lock lock];
   dict = [_tempDomains objectForKey: domainName];
   if (dict)
     {
       [_lock unlock];
-      [NSException raise: NSInvalidArgumentException 
+      [NSException raise: NSInvalidArgumentException
 		   format: @"Persistant domain %@ already exists", domainName];
       return;
     }
@@ -1233,7 +1221,7 @@ static NSString	*pathForUser(NSString *user)
 	  [_lock unlock];
 	  return NO;
 	}
-      
+
       attributes = [attr filePosixPermissions];
       // We enforce the permission mode 0600 on the defaults database
 #if	!(defined(S_IRUSR) && defined(S_IWUSR))
@@ -1245,7 +1233,7 @@ static NSString	*pathForUser(NSString *user)
 	{
 	  NSMutableDictionary	*enforced_attributes;
 	  NSNumber		*permissions;
-	  
+
 	  enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
 	    [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
 
@@ -1253,7 +1241,7 @@ static NSString	*pathForUser(NSString *user)
 	  [enforced_attributes setObject: permissions
 				  forKey: NSFilePosixPermissions];
 
-	  [mgr changeFileAttributes: enforced_attributes 
+	  [mgr changeFileAttributes: enforced_attributes
 			     atPath: _defaultsDatabase];
 	}
     }
@@ -1269,7 +1257,7 @@ static NSString	*pathForUser(NSString *user)
       desired = (S_IRUSR|S_IWUSR);
 #endif
       permissions = [NSNumber numberWithUnsignedLong: desired];
-      attr = [NSDictionary dictionaryWithObjectsAndKeys: 
+      attr = [NSDictionary dictionaryWithObjectsAndKeys:
 	NSUserName(), NSFileOwnerAccountName,
 	permissions, NSFilePosixPermissions,
 	nil];
@@ -1288,7 +1276,7 @@ static NSString	*pathForUser(NSString *user)
       IMP		nextImp;
       IMP		pImp;
       id		obj, dict;
-		
+
       nextImp = [enumerator methodForSelector: nextObjectSel];
       pImp = [_persDomains methodForSelector: objectForKeySel];
       while ((obj = (*nextImp)(enumerator, nextObjectSel)) != nil)
@@ -1321,7 +1309,7 @@ static NSString	*pathForUser(NSString *user)
 	  RELEASE(_persDomains);
 	  _persDomains = newDict;
 	  updateCache(self);
-	  [[NSNotificationCenter defaultCenter] 
+	  [[NSNotificationCenter defaultCenter]
 	    postNotificationName: NSUserDefaultsDidChangeNotification
 			  object: self];
 	}
@@ -1347,17 +1335,17 @@ static NSString	*pathForUser(NSString *user)
   [_lock unlock];
 }
 
-- (void) setVolatileDomain: (NSDictionary*)domain 
+- (void) setVolatileDomain: (NSDictionary*)domain
 		   forName: (NSString*)domainName
 {
   id	dict;
-	
+
   [_lock lock];
   dict = [_persDomains objectForKey: domainName];
   if (dict)
     {
       [_lock unlock];
-      [NSException raise: NSInvalidArgumentException 
+      [NSException raise: NSInvalidArgumentException
 		  format: @"Volatile domain %@ already exists", domainName];
       return;
     }
@@ -1412,7 +1400,7 @@ static NSString	*pathForUser(NSString *user)
       IMP			pImp;
       IMP			tImp;
       IMP			addImp;
-	
+
       pImp = [_persDomains methodForSelector: objectForKeySel];
       tImp = [_tempDomains methodForSelector: objectForKeySel];
 
@@ -1469,19 +1457,19 @@ static NSString	*pathForUser(NSString *user)
   NSArray	*uL;
   NSEnumerator	*enumerator;
   id		object;
-	
+
   [_lock lock];
   // Note: The search list should exist!
-	
+
   // 1. NSArgumentDomain
   [_searchList addObject: NSArgumentDomain];
-	
+
   // 2. Application
   [_searchList addObject: processName];
 
   // 3. NSGlobalDomain
   [_searchList addObject: NSGlobalDomain];
-	
+
   // 4. User's preferred languages
   uL = [[self class] userLanguages];
   enumerator = [uL objectEnumerator];
@@ -1489,10 +1477,10 @@ static NSString	*pathForUser(NSString *user)
     {
       [_searchList addObject: object];
     }
-	
+
   // 5. NSRegistrationDomain
   [_searchList addObject: NSRegistrationDomain];
-	
+
   [_lock unlock];
   return;
 }
@@ -1511,7 +1499,7 @@ static NSString	*pathForUser(NSString *user)
   argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
   [enumerator nextObject];	// Skip process name.
   done = ((key = [enumerator nextObject]) == nil);
-	
+
   while (!done)
     {
       if ([key hasPrefix: @"-"])
@@ -1555,7 +1543,7 @@ static NSString	*pathForUser(NSString *user)
 		 passed, otherwise the whole library is useless in a
 		 foreign environment. */
 	      NSObject *plist_val;
-	      
+
 	      NS_DURING
 		{
 		  plist_val = [val propertyList];
@@ -1565,7 +1553,7 @@ static NSString	*pathForUser(NSString *user)
 		  plist_val = val;
 		}
 	      NS_ENDHANDLER
-		
+
 	      /* Make sure we don't crash being caught adding nil to
                  a dictionary. */
 	      if (plist_val == nil)
@@ -1598,11 +1586,11 @@ static NSString	*pathForUser(NSString *user)
     {
       _changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
       updateCache(self);
-      [[NSNotificationCenter defaultCenter] 
+      [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
 		      object: self];
     }
-	
+
   enumerator = [_changedDomains objectEnumerator];
   nImp = [enumerator methodForSelector: nextObjectSel];
   while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
