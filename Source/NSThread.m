@@ -45,8 +45,38 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSConnection.h>
 
+@class	GSPerformHolder;
+
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
+
+static NSArray *
+commonModes()
+{
+  static NSArray	*modes = nil;
+
+  if (modes == nil)
+    {
+      [gnustep_global_lock lock];
+      if (modes == nil)
+	{
+	  Class	c = NSClassFromString(@"NSApplication");
+	  SEL	s = @selector(allRunLoopModes);
+
+	  if (c != 0 && [c respondsToSelector: s])
+	    {
+	      modes = RETAIN([c performSelector: s]);
+	    }
+	  else
+	    {
+	      modes = [[NSArray alloc] initWithObjects:
+		NSDefaultRunLoopMode, NSConnectionReplyMode, nil];
+	    }
+	}
+      [gnustep_global_lock unlock];
+    }
+  return modes;
+}
 
 #if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME)
 /* We need to access these private vars in the objc runtime - because
@@ -208,6 +238,9 @@ gnustep_base_thread_callback()
   if (entered_multi_threaded_state == NO)
     {
       entered_multi_threaded_state = YES;
+
+      [GSPerformHolder class];	// Force initialization
+
       if (nc == nil)
 	{
 	  nc = [NSNotificationCenter defaultCenter];
@@ -557,25 +590,94 @@ gnustep_base_thread_callback()
 
 
 
+/**
+ * This class performs a dual function ...
+ * <p>
+ *   As a class, it is responsible for handling incoming events from
+ *   the main run loop on a special inputFd.  This consumes any bytes
+ *   written to wake the main run loop.<br />
+ *   During initialisation, the default run loop is set up to watch
+ *   for data arriving on inputFd.
+ * </p>
+ * <p>
+ *   As instances, each  instance retains perform receiver and argument
+ *   values as long as they are needed, and handles locking to support
+ *   mthods which want to block until an action has been performed.
+ * </p>
+ * <p>
+ *   The initialize method of this class is called before any new threads
+ *   run.
+ * </p>
+ */
 @interface GSPerformHolder : NSObject
 {
   id			receiver;
   id			argument;
   SEL			selector;
+  NSArray		*modes;
   NSConditionLock	*lock;		// Not retained.
 }
++ (BOOL) isValid;
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
 			   selector: (SEL)s
+			      modes: (NSArray*)m
 			       lock: (NSConditionLock*)l;
++ (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+                 extra: (void*)extra
+               forMode: (NSString*)mode;
++ (NSDate*) timedOutEvent: (void*)data
+                     type: (RunLoopEventType)type
+                  forMode: (NSString*)mode;
 - (void) fire;
 @end
 
 @implementation GSPerformHolder
 
+static NSLock *subthreadsLock = nil;
+static int inputFd = -1;
+static int outputFd = -1;
+static NSMutableArray *perfArray = nil;
+static NSDate *theFuture;
+
++ (void) initialize
+{
+  int		fd[2];
+  NSRunLoop	*loop = GSRunLoopForThread(defaultThread);
+  NSArray	*m = commonModes();
+  unsigned	count = [m count];
+  unsigned	i;
+
+  theFuture = RETAIN([NSDate distantFuture]);
+
+  pipe(fd);
+
+  subthreadsLock = [[NSLock alloc] init];
+
+  perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
+
+  inputFd = fd[0];
+  outputFd = fd[1];
+
+  for (i = 0; i < count; i++ )
+    {
+      [loop addEvent: (void*)inputFd
+		type: ET_RDESC
+	     watcher: (id<RunLoopEvents>)self
+	     forMode: [m objectAtIndex: i]];
+    }
+}
+
++ (BOOL) isValid
+{
+  return YES;
+}
+
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
 			   selector: (SEL)s
+			      modes: (NSArray*)m
 			       lock: (NSConditionLock*)l
 {
   GSPerformHolder	*h;
@@ -584,21 +686,62 @@ gnustep_base_thread_callback()
   h->receiver = RETAIN(r);
   h->argument = RETAIN(a);
   h->selector = s;
-  if (l != nil)
-    {
-      h->lock = l;
-      [h->lock lock];		// Lock until fire.
-    } 
+  h->modes = RETAIN(m);
+  h->lock = l;
+
+  [subthreadsLock lock];
+  [perfArray addObject: h];
+  write(outputFd, "0", 1);
+  [subthreadsLock unlock];
+
   return h;
+}
+
++ (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+                 extra: (void*)extra
+               forMode: (NSString*)mode
+{
+  NSRunLoop	*loop = [NSRunLoop currentRunLoop];
+  unsigned	c;
+  char		dummy;
+
+  read(inputFd, &dummy, 1);
+
+  [subthreadsLock lock];
+
+  c = [perfArray count];
+  while (c-- > 0)
+    {
+      GSPerformHolder	*h = [perfArray objectAtIndex: c];
+
+      [loop performSelector: @selector(fire)
+		     target: h
+		   argument: nil
+		      order: 0
+		      modes: h->modes];
+    }
+  [perfArray removeAllObjects];
+      
+  [subthreadsLock unlock];
+}
+
++ (NSDate*) timedOutEvent: (void*)data
+                     type: (RunLoopEventType)type
+                  forMode: (NSString*)mode
+{
+  return theFuture;
 }
 
 - (void) dealloc
 {
   DESTROY(receiver);
   DESTROY(argument);
+  DESTROY(modes);
   if (lock != nil)
     {
-      [lock unlock];
+      [lock lock];
+      [lock unlockWithCondition: 1];
       lock = nil;
     }
   NSDeallocateObject(self);
@@ -614,205 +757,19 @@ gnustep_base_thread_callback()
   [receiver performSelector: selector withObject: argument];
   DESTROY(receiver);
   DESTROY(argument);
+  DESTROY(modes);
   if (lock == nil)
     {
       RELEASE(self);
     }
   else
     {
-      [lock unlock];
+      [lock lock];
+      [lock unlockWithCondition: 1];
       lock = nil;
     }
 }
 @end
-
-static NSLock *subthreadsLock = nil;
-static int inputFd = -1;
-static int outputFd = -1;
-
-static NSMutableArray *perfArray = nil;
-static NSMutableArray *perfModesArray = nil;
-static NSDate *theFuture;
-
-@interface GSAppKitInterThreadRunLoopWatcher : NSObject <RunLoopEvents>
-{
-  NSRunLoop *mainThreadRunLoop;
-  char dummyBuffer[100];
-}
-- (id)  init;
-- (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-                 extra: (void*)extra
-               forMode: (NSString*)mode;
-
-- (BOOL) isValid;
-- (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode;
-@end
-
-@implementation NSRunLoop (InterThreadCommunication)
-- (void) _willBecomeMultiThreaded: (NSNotification *) not
-{
-  GSAppKitInterThreadRunLoopWatcher *watcher;
-  int fd[2];
-  NSArray *allModes;
-
-  [[NSNotificationCenter defaultCenter] 
-    removeObserver: self
-    name: NSWillBecomeMultiThreadedNotification
-    object: nil];
-  
-
-  if (NSClassFromString(@"NSApplication") &&
-      [NSClassFromString(@"NSApplication") respondsToSelector: 
-			  @selector(allRunLoopModes)])
-    {
-      allModes = [NSClassFromString(@"NSApplication")
-				   allRunLoopModes];
-    }
-  else
-    {
-      allModes = [NSArray arrayWithObjects:
-			    NSDefaultRunLoopMode,
-			  NSConnectionReplyMode, nil];
-      
-    }
-
-  watcher = [[GSAppKitInterThreadRunLoopWatcher alloc] init];
-  
-  theFuture = RETAIN([NSDate distantFuture]);
-
-  socketpair(PF_UNIX, SOCK_STREAM, 0, fd);
-
-  subthreadsLock = [[NSLock alloc] init];
-
-  perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
-  perfModesArray = [[NSMutableArray alloc] initWithCapacity: 10];
-
-  inputFd = fd[0];
-  outputFd = fd[1];
-
-#if defined(LIB_FOUNDATION_LIBRARY)
-  {
-    id fileDescriptor = [[[NSPosixFileDescriptor alloc]
-        initWithFileDescriptor: fd[1]]
-        autorelease];
-
-    // Invoke limitDateForMode: to setup the current
-    // mode of the run loop (the doc says that this
-    // method and acceptInputForMode: beforeDate: are
-    // the only ones that setup the current mode).
-
-    [self limitDateForMode: NSDefaultRunLoopMode];
-
-    [fileDescriptor setDelegate: watcher];
-    [fileDescriptor monitorFileActivity: NSPosixReadableActivity];
-  }
-#elif defined(NeXT_PDO)
-  {
-    id fileDescriptor = [[[NSFileHandle alloc]
-        initWithFileDescriptor: fd[1]]
-        autorelease];
-
-    [[NSNotificationCenter defaultCenter] addObserver: watcher
-        selector: @selector(activityOnFileHandle:)
-        name: NSFileHandleDataAvailableNotification
-        object: fileDescriptor];
-    [fileDescriptor waitForDataInBackgroundAndNotifyForModes:
-		      allModes];
-  }
-#else
-  {
-    int i;
-    int count = [allModes count];
-    for (i = 0; i < count; i++ )
-      {
-	[self addEvent: (void*)fd[1]
-	      type: ET_RDESC
-	      watcher: (id<RunLoopEvents>)watcher
-	      forMode: [allModes objectAtIndex: i]];
-      }
-  }
-#endif
-}
-
-@end
-
-
-@implementation GSAppKitInterThreadRunLoopWatcher
-//  GSAppKitInterThreadRunLoopWatcher must be initialized from
-//  the main thread
-- (id) init
-{
-  self = [super init];
-  if (self)
-    {
-      mainThreadRunLoop = [NSRunLoop currentRunLoop];
-    }
-  return self;
-}
-
-
-#if LIB_FOUNDATION_LIBRARY
-- (void) activity: (NSPosixFileActivities)activity
-posixFileDescriptor: (NSPosixFileDescriptor*)fileDescriptor
-{
-  [self receivedEvent: 0 type: 0 extra: 0 forMode: nil];
-}
-#elif defined(NeXT_PDO)
-- (void) activityOnFileHandle: (NSNotification*)notification
-{
-  id fileDescriptor = [notification object];
-  id runLoopMode = [[NSRunLoop currentRunLoop] currentMode];
-
-  [fileDescriptor waitForDataInBackgroundAndNotifyForModes:
-	[NSArray arrayWithObject: runLoopMode]];
-  [self receivedEvent: 0 type: 0 extra: 0 forMode: nil];
-}
-#endif
-
-- (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-                 extra: (void*)extra
-               forMode: (NSString*)mode
-{
-  int messageReceived = 0;
-  int i;
-  [subthreadsLock lock];
-  while (messageReceived != [perfArray count])
-    {
-      messageReceived += read(outputFd, dummyBuffer, 100);
-    }
-
-  for (i = 0; i < messageReceived; i++)
-    {
-      [[NSRunLoop currentRunLoop]
-	performSelector: @selector(fire)
-	target: [perfArray objectAtIndex: i]
-	argument: nil
-	order: 0
-	modes: [perfModesArray objectAtIndex: i]];
-    }
-  [perfArray removeAllObjects];
-  [perfModesArray removeAllObjects];
-      
-  [subthreadsLock unlock];
-}
-
-- (BOOL) isValid
-{
-  return YES;
-}
-
-- (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode
-{
-  return theFuture;
-}
-@end
-
 
 @implementation	NSObject (NSMainThreadPerformAdditions)
 
@@ -842,10 +799,16 @@ posixFileDescriptor: (NSPosixFileDescriptor*)fileDescriptor
 - (void) performSelectorOnMainThread: (SEL)aSelector
 			  withObject: (id)anObject
 		       waitUntilDone: (BOOL)aFlag
-			       modes: (NSArray*)modes
+			       modes: (NSArray*)anArray
 {
-  NSThread	*t = GSCurrentThread();
+  NSThread	*t;
 
+  if ([anArray count] == 0)
+    {
+      return;
+    }
+
+  t = GSCurrentThread();
   if (t == defaultThread)
     {
       if (aFlag == YES)
@@ -854,18 +817,17 @@ posixFileDescriptor: (NSPosixFileDescriptor*)fileDescriptor
 	}
       else
 	{
-	  [[NSRunLoop currentRunLoop] 
-	    performSelector: aSelector
-	    target: self
-	    argument: anObject
-	    order: 0
-	    modes: modes];
+	  [GSRunLoopForThread(t) performSelector: aSelector
+					  target: self
+					argument: anObject
+					   order: 0
+					   modes: anArray];
 	}
     }
   else
     {
       GSPerformHolder	*h;
-      NSConditionLock *l = nil;
+      NSConditionLock	*l = nil;
 
       if (aFlag == YES)
 	{
@@ -873,19 +835,14 @@ posixFileDescriptor: (NSPosixFileDescriptor*)fileDescriptor
 	}
       
       h = [GSPerformHolder newForReceiver: self
-			   argument: anObject
-			   selector: aSelector
-			   lock: l];
-
-      [subthreadsLock lock];
-      [perfArray addObject: h];
-      [perfModesArray addObject: modes];
-      write(inputFd, "0", 1);
-      [subthreadsLock unlock];
+				 argument: anObject
+				 selector: aSelector
+				    modes: anArray
+				     lock: l];
 
       if (aFlag == YES)
 	{
-	  [l lockBeforeDate: [NSDate distantFuture]];
+          [l lockWhenCondition: 1];
 	  RELEASE(h);
 	  [l unlock];
 	  RELEASE(l);
