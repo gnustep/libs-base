@@ -119,6 +119,7 @@ extern NSString* const NSDateTimeOrdering;
   NSMutableString	*defaultsDatabase;
   NSMutableString	*defaultsDatabaseLockName;
   NSDistributedLock	*defaultsDatabaseLock;
+  NSDate		*lastSync;
   NSTimer		*tickingTimer;   // for synchronization
 }
 

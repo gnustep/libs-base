@@ -1,3 +1,8 @@
+Thu May 20 20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUserDefaults.m: Don't load defaults unless we need to.
+	* Source/include/NSUserDefaults.h: Keep modification timestamp.
+
 Thu May 20 10:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/GSeq.h:  Add support for comparison and search.
