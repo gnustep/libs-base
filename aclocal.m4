@@ -28,11 +28,9 @@ AC_DEFUN(OBJC_CON_AUTOLOAD,
 #
 # If this system supports autoloading of constructors, that means that gcc
 # doesn't have to do it for us via collect2. This routine tests for this
-# in a very roundabout way by intentionally trying to link a program that
-# will give a link error, and examining the output to see if collect2 gave
-# the error (which means the system does not autoload constructors)
-# The only problem is this test might incorrectly return yes if it fails
-# for some other reason besides a link problem.
+# in a very roundabout way by compiling a program with a constructor and
+# testing the file, via nm, for certain symbols that collect2 includes to
+# handle loading of constructors.
 #
 # Makes the following substitutions:
 #	Defines CON_AUTOLOAD (whether constructor functions are autoloaded)
@@ -42,16 +40,18 @@ AC_MSG_CHECKING(loading of constructor functions)
 AC_CACHE_VAL(objc_cv_con_autoload,
 [dnl 
 cat > conftest.constructor.c <<EOF
-extern void undefined_function();
+void cons_functions() __attribute__ ((constructor));
+void cons_functions() {}
 int main()
 {
-  undefined_function();
+  return 0;
 }
 EOF
-if test -n "`${CC-cc} -o conftest.constructor conftest.constructor.c 2>&1 | grep collect2`"; then
-  objc_cv_con_autoload=no
-else
+${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
+if test -n "`nm conftest | grep _ctors_aux`"; then 
   objc_cv_con_autoload=yes
+else
+  objc_cv_con_autoload=no
 fi
 ])
 if test $objc_cv_con_autoload = yes; then
