@@ -325,23 +325,32 @@ static Class* NXConnectionProxyClass;
   return o;
 }
 
-- (void) _doEncodeObject: anObj
+- (void) _doEncodeObject: anObj isByCopy: (BOOL)bc
 {
   BOOL f = NO;
   Class *c;
   id o;
 
   assert([[self connection] class] == [NXConnection class]);
-  /* xxx We have yet to set isBycopy correctly */
   o = [anObj encodeRemotelyFor:(NXConnection*)[self connection]
 	     freeAfterEncoding:&f
-	     isBycopy:NO];
+	     isBycopy:bc];
   c = [o classForConnectedCoder:self];
   [self encodeClass:c];
   [c encodeObject:o withConnectedCoder:self];
   if (f)
     [anObj free];
   [o free];
+}
+
+- (void) _doEncodeBycopyObject: anObj
+{
+  [self _doEncodeObject:anObj isByCopy:YES];
+}
+
+- (void) _doEncodeObject: anObj
+{
+  [self _doEncodeObject:anObj isByCopy:NO];
 }
 
 @end
