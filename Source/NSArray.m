@@ -368,6 +368,11 @@ static Class NSMutableArray_concrete_class;
     aBuffer[j++] = [self objectAtIndex: i];
 }
 
+- (unsigned) hash
+{
+    return [self count];
+}
+
 - (unsigned) indexOfObjectIdenticalTo:anObject
 {
   unsigned i, c = [self count];

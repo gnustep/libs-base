@@ -30,10 +30,10 @@
 
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
 - initWithObjects: (id*)objects
-	  forKeys: (NSObject**)keys
+	  forKeys: (id*)keys
 	    count: (unsigned)count;
 - (unsigned) count;
-- objectForKey: (NSObject*)aKey;
+- objectForKey: (id)aKey;
 - (NSEnumerator*) keyEnumerator;
 - (NSEnumerator*) objectEnumerator;
 @end
@@ -51,6 +51,8 @@
 + dictionaryWithObjectsAndKeys: (id)object, ...;
 - initWithContentsOfFile: (NSString*)path;
 - initWithDictionary: (NSDictionary*)otherDictionary;
+- initWithDictionary: (NSDictionary*)otherDictionary
+	   copyItems: (BOOL)shouldCopy;
 - initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 - initWithObjectsAndKeys: (id)object, ...;
 
@@ -74,8 +76,8 @@
 
 @interface NSMutableDictionary: NSDictionary
 - initWithCapacity: (unsigned)numItems;
-- (void) setObject:anObject forKey:(NSObject *)aKey;
-- (void) removeObjectForKey:(NSObject *)aKey;
+- (void) setObject:anObject forKey:(id)aKey;
+- (void) removeObjectForKey:(id)aKey;
 @end
 
 @interface NSMutableDictionary (NonCore)
