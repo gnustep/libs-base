@@ -107,7 +107,7 @@ typedef double NSTimeInterval;
 @end
 
 NSTimeInterval GSTimeNow();	/* Get time since reference date*/
-NSTimeInterval GSTime(int day, int mon, int year, int hour, int min, int sec);
+NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 #endif
 
 
