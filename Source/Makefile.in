@@ -546,6 +546,7 @@ install: installdirs all
 	done
 	$(INSTALL_DATA) include/config.h $(includedir)/gnustep/base/config.h
 	cd $(includedir); rm -f Foundation; ln -s ./gnustep/base ./Foundation
+	cd $(includedir); rm -f objc; ln -s ./gnustep/base ./objc
 	cd $(includedir)/objc; rm -f README; ln -s ../include/README .
 
 installdirs:
