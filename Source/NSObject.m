@@ -190,12 +190,12 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
   struct objc_protocol_list* proto_list;
 
   for (proto_list = ((struct objc_class*)self)->class_pointer->protocols;
-       proto_list; proto_list = proto_list_>next)
+       proto_list; proto_list = proto_list->next)
     {
-      for (i=0; i < proto_list_>count; i++)
+      for (i=0; i < proto_list->count; i++)
       {
 	/* xxx We should add conformsToProtocol to Protocol class. */
-        if ([proto_list_>list[i] conformsTo: aProtocol])
+        if ([proto_list->list[i] conformsTo: aProtocol])
           return YES;
       }
     }

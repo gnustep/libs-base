@@ -301,7 +301,7 @@ handle_printf_atsign (FILE *stream,
 {
 #if HAVE_VSPRINTF
 #define BUFFER_EXTRA 1024
-  const char *format_cp = [format cStringNoCopy]);
+  const char *format_cp = [format cStringNoCopy];
   int format_len = strlen (format_cp);
   char buf[format_len + BUFFER_EXTRA]; /* xxx horrible disgusting, fix this! */
   int printed_len;
