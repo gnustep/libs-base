@@ -359,9 +359,9 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 
       case _C_STRUCT_B:
 	{
-	  struct { int x; double y; } fooalign;
 	  int acc_size = 0;
-	  int acc_align = __alignof__(fooalign);
+	  int def_align = objc_alignof_type(typePtr-1);
+	  int acc_align = def_align;
 
 	  /*
 	   *	Skip "<name>=" stuff.
@@ -385,7 +385,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 		}
 	      acc_size = ROUND(acc_size, local.align);
 	      acc_size += local.size;
-	      acc_align = MAX(local.align, __alignof__(fooalign));
+	      acc_align = MAX(local.align, def_align);
 	    }
 	  /*
 	   *	Continue accumulating structure size.
