@@ -1,3 +1,10 @@
+2003-01-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/unicode/latin9.h: Latin9 string encoding tables
+	* Source/Additions/Unicode.m: Added built-in support for the Latin9
+	character encoding ... contains the Euro symbol ... nice for
+	european users.
+
 2003-01-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Support MacOS-X style initialisation using a path
