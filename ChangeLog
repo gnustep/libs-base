@@ -1,3 +1,10 @@
+2001-01-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: ([-decodeData:fromrange:intoData:withContext:])
+	Added destination data cpacity information to context so that
+	correct positioning can be maintained over a sequence of calls
+	using a chunked http context.
+ 
 2001-01-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSXML.m: ([-GSXMLDocument setRoot:]) set root node to be

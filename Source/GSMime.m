@@ -236,13 +236,14 @@ parseCharacterSet(NSString *token)
   unsigned	pos;
   enum {
     ChunkSize,		// Reading chunk size
-    ChunkExt,		// Reading cjhunk extensions
+    ChunkExt,		// Reading chunk extensions
     ChunkEol1,		// Reading end of line after size;ext
     ChunkData,		// Reading chunk data
     ChunkEol2,		// Reading end of line after data
     ChunkFoot,		// Reading chunk footer after newline
     ChunkFootA		// Reading chunk footer
   } state;
+  unsigned	size;	// Size of buffer required.
   NSMutableData	*data;
 }
 @end
@@ -546,7 +547,15 @@ parseCharacterSet(NSString *token)
 
       ctxt = (GSMimeChunkedDecoderContext*)con;
 
-      dst = beg = 0;
+      beg = 0;
+      /*
+       * Make sure buffer is big enough, and set up output pointers.
+       */
+      [dData setLength: ctxt->size];
+      dst = (unsigned char*)[dData mutableBytes];
+      dst = dst + size;
+      beg = dst;
+
       while ([ctxt atEnd] == NO && src < end)
 	{
 	  switch (ctxt->state)
@@ -597,7 +606,8 @@ parseCharacterSet(NSString *token)
 		     * the buffer for another chunk.
 		     */
 		    size += (dst - beg);
-		    [dData setLength: size + val];
+		    ctxt->size = size + val;
+		    [dData setLength: ctxt->size];
 		    dst = (unsigned char*)[dData mutableBytes];
 		    dst += size;
 		    beg = dst;
