@@ -17,7 +17,7 @@ To compile and install @samp{libgnustep-base}:
 
 Here is a quick-and-dirty example of installation commands:
 
-First install the GNU Objective C runtime patch, objc.patch, possibly
+First install the GNU Objective C runtime patch (objc.patch), possibly
 like this:
 
 @example
@@ -25,7 +25,7 @@ cd gcc-2.7.2
 patch -p0 <../gnustep-base/objc.patch
 @end example
 
-then
+and make and install gcc; then configure and make libgnustep-base:
 
 @example
 ./configure --prefix=/usr/local
