@@ -60,6 +60,21 @@
  *	Define a structure to hold information that is held locally
  *	(before the start) in each object.
  */ 
+
+typedef struct obj_layout_unpadded {
+#if	defined(REFCNT_LOCAL)
+    unsigned	retained;
+#endif
+#if	defined(CACHE_ZONE)
+    NSZone	*zone;
+#endif
+} unp;
+
+/*
+ *	Now do the REAL version - using the other version to determine
+ *	what padding (if any) is required to get the alignment of the
+ *	structure correct.
+ */
 struct obj_layout {
 #if	defined(REFCNT_LOCAL)
     unsigned	retained;
@@ -67,6 +82,7 @@ struct obj_layout {
 #if	defined(CACHE_ZONE)
     NSZone	*zone;
 #endif
+    char	padding[__alignof(double) - sizeof(unp)%__alignof__(double)];
 };
 typedef	struct obj_layout *obj;
 
@@ -439,24 +455,12 @@ static BOOL double_release_check_enabled = NO;
 
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
-  void *retFrame;
-  NSMethodSignature *sig;
   NSInvocation *inv;
-  int retLength;
 
   inv = [[[NSInvocation alloc] initWithArgframe: argFrame
 				       selector: aSel] autorelease];
-  /* is this right? */
-  sig = [inv methodSignature];
-  retLength = [sig methodReturnLength];
-  /* Make sure we have something even if we are returnign void */
-  if (retLength == 0)
-    retLength = sizeof(void*);
-
-  retFrame = (void*) alloca(retLength);
   [self forwardInvocation:inv];
-  [inv getReturnValue: retFrame];
-  return retFrame;
+  return [inv returnFrame: argFrame];
 }
 
 - (void) forwardInvocation: (NSInvocation*)anInvocation

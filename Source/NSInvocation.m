@@ -1,9 +1,11 @@
-/* Implementation for GNUstep NSInvocation object
-   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: May 1993
-
+/* Implementation of NSInvocation for GNUStep
+   Copyright (C) 1998 Free Software Foundation, Inc.
+   
+   Written:     Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: August 1998
+   Based on code by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
+   
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -15,57 +17,547 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-
+   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/ 
+   */ 
 
-#include <config.h>
-#include <gnustep/base/preface.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
-#include <Foundation/NSMethodSignature.h>
-#include <gnustep/base/Invocation.h>
-#include <gnustep/base/behavior.h>
+#include <gnustep/base/mframe.h>
 
 @implementation NSInvocation
 
-+ (void) initialize
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)signature
 {
-  if (self == [NSInvocation class])
-    class_add_behavior (self, [MethodInvocation class]);
+    return [[[NSInvocation alloc] initWithMethodSignature: signature]
+	autorelease];
 }
 
-+ (NSInvocation*) invocationWithObjCTypes: (const char*) types
+- (void) dealloc
 {
-  return [[self alloc] initWithArgframe: NULL type: types];
+    if (argsRetained) {
+	[target release];
+	argsRetained = NO;
+	if (argframe && sig) {
+	    int	i;
+
+	    for (i = 3; i <= numArgs; i++) {
+		if (*info[i].type == _C_CHARPTR) {
+		    char	*str;
+
+		    mframe_get_arg(argframe, &info[i], &str);
+		    objc_free(str);
+		}
+		else if (*info[i].type == _C_ID) {
+		    id		obj;
+
+		    mframe_get_arg(argframe, &info[i], &obj);
+		    [obj release];
+		}
+	    }
+	}
+    }
+    if (argframe) {
+	mframe_destroy_argframe([sig methodType], argframe);
+    }
+    if (retval) {
+	objc_free(retval);
+    }
+    [sig release];
+    [super dealloc];
 }
 
-+ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms
+#if 0
+- (void)_verifySignature
 {
-  return [self invocationWithObjCTypes: [ms methodType]];
+    const char* types;
+    struct objc_method_description* mth;
+
+    if(!target)
+	THROW([NullTargetException new]);
+
+    if(!selector)
+	THROW([NullSelectorException new]);
+
+    mth = (struct objc_method_description*)
+	(CLS_ISCLASS(((struct objc_class*)target)->class_pointer) ?
+	      class_get_instance_method(
+		    ((struct objc_class*)target)->class_pointer, selector)
+	    : class_get_class_method(
+		    ((struct objc_class*)target)->class_pointer, selector));
+    selector = mth ? mth->name : (SEL)0;
+
+    if(!selector)
+	THROW([NullSelectorException new]);
+
+    types = mth->types;
+    if(!types)
+	THROW([[CouldntGetTypeForSelector alloc] initForSelector:selector]);
+
+    if(sig) {
+	if(!sel_types_match(types, [sig types]))
+	    THROW([[TypesDontMatchException alloc]
+			    initWithTypes:types :[sig types]]);
+    }
+    else sig = [[NSMethodSignature sigWithObjCTypes:types] retain];
 }
+#endif
+
+/*
+ *      Accessing message elements.
+ */
+
+- (void) getArgument: (void*)buffer
+	     atIndex: (int)index
+{
+    if ((unsigned)index >= numArgs) {
+        [NSException raise: NSInvalidArgumentException
+                    format: @"bad invocation argument index"];
+    }
+    if (index == 0) {
+	*(id*)buffer = target;
+    }
+    else if (index == 1) {
+	*(SEL*)buffer = selector;
+    }
+    else {
+	index++;	/* Allow offset for return type info.	*/
+	mframe_get_arg(argframe, &info[index], buffer);
+    }		
+}
+
+- (void) getReturnValue: (void*)buffer
+{
+    const char	*type;
+
+    type = [sig methodReturnType];
+
+    if (*info[0].type != _C_VOID) {
+	int	length = info[0].size;
+#if WORDS_BIGENDIAN
+	if (length < sizeof(void*))
+	    length = sizeof(void*);
+#endif
+	memcpy(buffer, retval, length);
+    }
+}
+
+- (SEL) selector
+{
+    return selector;
+}
+
+- (void) setArgument: (void*)buffer
+	     atIndex: (int)index
+{
+    if ((unsigned)index >= numArgs) {
+        [NSException raise: NSInvalidArgumentException
+                    format: @"bad invocation argument index"];
+    }
+    if (index == 0) {
+	[self setTarget: *(id*)buffer];
+    }
+    else if (index == 1) {
+	[self setSelector: *(SEL*)buffer];
+    }
+    else {
+	int		i = index+1;	/* Allow for return type in 'info' */
+	const char	*type = info[i].type;
+
+	if (argsRetained && (*type == _C_ID || *type == _C_CHARPTR)) {
+	    if (*type == _C_ID) {
+		id	old;
+
+		mframe_get_arg(argframe, &info[i], &old);
+		mframe_set_arg(argframe, &info[i], buffer);
+		[*(id*)buffer retain];
+		if (old != nil) {
+		    [old release];
+		}
+	    }
+	    else {
+		char	*oldstr;
+		char	*newstr = *(char**)buffer;
+
+		mframe_get_arg(argframe, &info[i], &oldstr);
+		if (newstr == 0) {
+		    mframe_set_arg(argframe, &info[i], buffer);
+		}
+		else {
+		    char	*tmp = objc_malloc(strlen(newstr)+1);
+
+		    strcpy(tmp, newstr);
+		    mframe_set_arg(argframe, &info[i], tmp);
+		}
+		if (oldstr != 0) {
+		    objc_free(oldstr);
+		}
+	    }
+	}
+	else {
+	    mframe_set_arg(argframe, &info[i], buffer);
+	}
+    }		
+}
+
+- (void) setReturnValue: (void*)buffer
+{
+    const char	*type;
+
+    type = info[0].type;
+
+    if (*type != _C_VOID) {
+	int	length = info[0].size;
+
+#if WORDS_BIGENDIAN
+	if (length < sizeof(void*))
+	    length = sizeof(void*);
+#endif
+	memcpy(retval, buffer, length);
+    }
+}
+
+- (void) setSelector: (SEL)aSelector
+{
+    selector = aSelector;
+}
+
+- (void) setTarget: (id)anObject
+{
+    if (argsRetained) {
+	[anObject retain];
+	[target release];
+    }
+    target = anObject;
+}
+
+- (id) target
+{
+    return target;
+}
+
+/*
+ *      Managing arguments.
+ */
+
+- (BOOL) argumentsRetained
+{
+    return argsRetained;
+}
+
+- (void)retainArguments
+{
+    if (argsRetained) {
+	return;
+    }
+    else {
+	int	i;
+
+	argsRetained = YES;
+	[target retain];
+	if (argframe == 0) {
+	    return;
+	}
+	for (i = 3; i <= numArgs; i++) {
+	    if (*info[i].type == _C_ID || *info[i].type == _C_CHARPTR) {
+		if (*info[i].type == _C_ID) {
+		    id	old;
+
+		    mframe_get_arg(argframe, &info[i], &old);
+		    if (old != nil) {
+			[old retain];
+		    }
+		}
+		else {
+		    char	*str;
+
+		    mframe_get_arg(argframe, &info[i], &str);
+		    if (str != 0) {
+			char	*tmp = objc_malloc(strlen(str)+1);
+
+			strcpy(tmp, str);
+		        mframe_set_arg(argframe, &info[i], &tmp);
+		    }
+		}
+	    }
+	}
+    }		
+}
+
+/*
+ *      Dispatching an Invocation.
+ */
+
+- (void) invoke
+{
+    [self invokeWithTarget: target];
+}
+
+- (void) invokeWithTarget:(id)anObject
+{
+    id		old_target;
+    retval_t	returned;
+    IMP		imp;
+    int		stack_argsize;
+
+    /*
+     *	A message to a nil object returns nil.
+     */
+    if (anObject == nil) {
+	memset(retval, '\0', info[0].size);	/* Clear return value */
+	return;
+    }
+
+    NSAssert(selector != 0, @"you must set the selector before invoking");
+
+    /*
+     *	Temporarily set new target and copy it (and the selector) into the
+     *	argframe.
+     */
+    old_target = [target retain];
+    [self setTarget: anObject];
+
+    mframe_set_arg(argframe, &info[1], &target);
+
+    mframe_set_arg(argframe, &info[2], &selector);
+
+    imp = method_get_imp(object_is_instance(target) ?
+	      class_get_instance_method(
+		    ((struct objc_class*)target)->class_pointer, selector)
+	    : class_get_class_method(
+		    ((struct objc_class*)target)->class_pointer, selector));
+    /*
+     *	If fast lookup failed, we may be forwarding or something ...
+     */
+    if (imp == 0)
+	imp = objc_msg_lookup(target, selector);
+
+    [self setTarget: old_target];
+    [old_target release];
+
+    stack_argsize = [sig frameLength];
+
+    returned = __builtin_apply((void(*)(void))imp, argframe, stack_argsize);
+    if (info[0].size) {
+	mframe_decode_return(info[0].type, retval, returned);
+    }
+}
+
+/*
+ *      Getting the method signature.
+ */
 
 - (NSMethodSignature*) methodSignature
 {
-#if 0
-  /* xxx This isn't really needed by the our implementation anyway. */
-  [self notImplemented: _cmd];
-#else
-  SEL mysel = [self selector];
-  const char * my_sel_type;
-  if (mysel)
-    {
-      my_sel_type = sel_get_type(mysel);
-      if (my_sel_type)
-	return [NSMethodSignature signatureWithObjCTypes: my_sel_type];
-      else
-	return nil;
-    }
-#endif
-  return nil;
+    return sig;
 }
 
-/* All other methods come from the MethodInvocation behavior. */
+- (NSString*)description
+{
+    /* Don't use -[NSString stringWithFormat:] method because it can cause
+       infinite recursion. */
+    char buffer[1024];
+
+    sprintf (buffer, "<%s %p selector: %s target: %s>", \
+                (char*)object_get_class_name(self), \
+                self, \
+                selector ? [NSStringFromSelector(selector) cString] : "nil", \
+                target ? [NSStringFromClass([target class]) cString] : "nil" \
+                );
+
+    return [NSString stringWithCString:buffer];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    const char	*types = [sig methodType];
+    int		i;
+
+    [aCoder encodeValueOfObjCType: @encode(char*)
+			       at: &types
+			 withName: @"invocation types"];
+
+    [aCoder encodeBycopyObject: target
+		      withName: @"target"];
+
+    [aCoder encodeValueOfObjCType: info[2].type
+			       at: &selector
+		         withName: @"selector"];
+
+    for (i = 3; i <= numArgs; i++) {
+	const char	*type = info[i].type;
+	void		*datum;
+
+	datum = mframe_arg_addr(argframe, &info[i]);
+
+	if (*type == _C_ID)
+	    [aCoder encodeBycopyObject: *(id*)datum withName: @"arg"];
+	else
+            [aCoder encodeValueOfObjCType: type at: datum withName: @"arg"];
+    }
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    NSMethodSignature	*newSig;
+    const char	*types;
+    void	*datum;
+    int		i;
+
+    [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
+    newSig = [NSMethodSignature signatureWithObjCTypes: types];
+    self = [self initWithMethodSignature: newSig];
+ 
+    target = [aCoder decodeObject];
+
+    [aCoder decodeValueOfObjCType: @encode(SEL) at: &selector];
+
+    for (i = 3; i <= numArgs; i++) {
+	const char	*type = info[i].type;
+
+	datum = mframe_arg_addr(argframe, &info[i]);
+	if (*type == _C_ID)
+	    *(id*)datum = [aCoder decodeObject];
+	else
+            [aCoder decodeValueOfObjCType: type at: datum];
+    }
+    argsRetained = YES;
+}
+
+
 
 @end
+
+@implementation NSInvocation (GNUstep)
+
+- initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
+{
+    const char		*types;
+    NSMethodSignature	*newSig;
+
+    types = sel_get_type(aSelector);
+    if (types == 0) {
+	types = sel_get_type(sel_get_any_typed_uid(sel_get_name(aSelector)));
+    }
+    if (types == 0) {
+        [NSException raise: NSInvalidArgumentException
+		    format: @"Couldn't find encoding type for selector %s.",
+			 sel_get_name(aSelector)];
+    }
+    newSig = [NSMethodSignature signatureWithObjCTypes: types];
+    self = [self initWithMethodSignature: newSig];
+    if (self) {
+	[self setSelector: aSelector];
+	/*
+	 *	Copy the argframe we were given.
+	 */
+	if (frame) {
+	    int	i;
+
+	    mframe_get_arg(frame, &info[1], &target);
+	    for (i = 1; i <= numArgs; i++) {
+		mframe_cpy_arg(argframe, frame, &info[i]);
+	    }
+	}
+    }
+    return self;
+}
+
+/*
+ *	This is the designated initialiser.
+ */
+- initWithMethodSignature: (NSMethodSignature*)aSignature
+{
+    sig = [aSignature retain];
+    numArgs = [aSignature numberOfArguments];
+    info = [aSignature methodInfo];
+    argframe = mframe_create_argframe([sig methodType], &retval);
+    if (retval == 0 && info[0].size > 0) {
+	retval = objc_malloc(info[0].size);
+    }
+    return self;
+}
+
+- initWithSelector: (SEL)aSelector
+{
+    return [self initWithArgframe: 0 selector: aSelector];
+}
+
+- initWithTarget: anObject selector: (SEL)aSelector, ...
+{
+    va_list	ap;
+
+    self = [self initWithArgframe: 0 selector: aSelector];
+    if (self) {
+	int	i;
+
+	[self setTarget: anObject];
+	va_start (ap, aSelector);
+	for (i = 3; i <= numArgs; i++) {
+	    const char	*type = info[i].type;
+	    unsigned	size = info[i].size;
+	    void	*datum;
+
+	    datum = mframe_arg_addr(argframe, &info[i]);
+
+#define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break
+	    switch (*type) {
+		case _C_ID:
+		    *(id*)datum = va_arg (ap, id);
+		    if (argsRetained)
+			[*(id*)datum retain];
+		    break;
+		case _C_CHARPTR:
+		    *(char**)datum = va_arg (ap, char*);
+		    if (argsRetained) {
+			char	*old = *(char**)datum;
+
+			if (old != 0) {
+			    char	*tmp = objc_malloc(strlen(old)+1);
+
+			    strcpy(tmp, old);
+			    *(char**)datum = tmp;
+			}
+		    }
+		    break;
+		CASE_TYPE(_C_CLASS, Class);
+		CASE_TYPE(_C_SEL, SEL);
+		CASE_TYPE(_C_LNG, long);
+		CASE_TYPE(_C_ULNG, unsigned long);
+		CASE_TYPE(_C_INT, int);
+		CASE_TYPE(_C_UINT, unsigned int);
+		CASE_TYPE(_C_SHT, short);
+		CASE_TYPE(_C_USHT, unsigned short);
+		CASE_TYPE(_C_CHR, char);
+		CASE_TYPE(_C_UCHR, unsigned char);
+		CASE_TYPE(_C_FLT, float);
+		CASE_TYPE(_C_DBL, double);
+		CASE_TYPE(_C_PTR, void*);
+		default:
+		{
+		    memcpy(datum, va_arg(ap, typeof(char[size])), size);
+		} /* default */
+	    }
+	}
+    }
+    return self;
+}
+
+- (void*) returnFrame: (arglist_t)argFrame
+{
+    return mframe_handle_return(info[0].type, retval, argFrame);
+}
+@end
+
+@implementation NSInvocation (BackwardCompatibility)
+
+- (void) invokeWithObject: (id)obj
+{
+    [self invokeWithTarget: (id)obj];
+}
+
+@end
+
