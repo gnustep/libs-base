@@ -1,3 +1,7 @@
+2003-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix to understand __attribute__() in declaration.
+
 2003-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSIndex.m: Convert nil content to empty strings before use.
