@@ -300,7 +300,12 @@ static int messages_received_count;
     }
   if (c == nil)
     {
-      c = [NSConnection new];
+      NSPort	*newPort;
+
+      c = [self alloc];
+      c = [c initWithReceivePort: newPort sendPort: nil];
+      RELEASE(newPort);
+      return c;
       [d setObject: c forKey: tkey];
       RELEASE(c);
     }
@@ -343,13 +348,11 @@ static int messages_received_count;
 
 + (id) new
 {
-  NSPort	*newPort;
-  NSConnection	*newConn;
-
-  newConn = [self alloc];
-  newConn = [newConn initWithReceivePort: newPort sendPort: nil];
-  RELEASE(newPort);
-  return newConn;
+  /*
+   * Undocumented feature of OPENSTEP/MacOS-X
+   * +new returns the default connection.
+   */
+  return RETAIN([self defaultConnection]);
 }
 
 + (id) currentConversation
@@ -442,12 +445,12 @@ static int messages_received_count;
 
 - (id) init
 {
-  NSPort	*newPort;
-
-  newPort = [default_receive_port_class newForReceiving];
-  self = [self initWithReceivePort: newPort sendPort: nil];
-  RELEASE(newPort);
-  return self;
+  /*
+   * Undocumented feature of OPENSTEP/MacOS-X
+   * -init returns the default connection.
+   */
+  RELEASE(self);
+  return [NSConnection defaultConnection];
 }
 
 /*
@@ -513,12 +516,12 @@ static int messages_received_count;
    *	is done before the deallocation completes.
    */
   {
-    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+    CREATE_AUTORELEASE_POOL(arp);
 
     [[NSNotificationCenter defaultCenter]
       postNotificationName: NSConnectionDidDieNotification
 		    object: self];
-    [arp release];
+    RELEASE(arp);
   }
 }
 
@@ -1637,7 +1640,7 @@ static int messages_received_count;
   id rmc;
 
   [received_request_rmc_queue_gate lock];
-  [self retain];
+  RETAIN(self);
   while (is_valid && ([received_request_rmc_queue count] > 0))
     {
       rmc = [received_request_rmc_queue objectAtIndex: 0];
@@ -1646,7 +1649,7 @@ static int messages_received_count;
       [self _handleRmc: rmc];
       [received_request_rmc_queue_gate lock];
     }
-  [self release];
+  RELEASE(self);
   [received_request_rmc_queue_gate unlock];
 }
 
