@@ -175,7 +175,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding","ISO-8859-13",0,0},
   {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding","ISO-8859-14",0,0},
   {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",1,1},
-  {NSUTF7StringEncoding, "NSUTF7StringEncoding","",0,0},
+  {NSUTF7StringEncoding, "NSUTF7StringEncoding","UTF-7",0,0},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding","EUC-CN",0,0},
   {NSGSM0338StringEncoding, "NSGSM0338StringEncoding","",0,1},
   {NSBIG5StringEncoding, "NSBIG5StringEncoding","BIG5",0,0},
