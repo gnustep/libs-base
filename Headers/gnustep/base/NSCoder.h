@@ -77,4 +77,13 @@
 
 @end
 
+#ifndef NO_GNUSTEP
+
+#include <objects/Coding.h>
+#include <Foundation/NSCoder.h>
+@interface NSCoder (GNU) <Encoding, Decoding>
+@end
+
+#endif /* NO_GNUSTEP */
+
 #endif	/* __NSCoder_h_OBJECTS_INCLUDE */
