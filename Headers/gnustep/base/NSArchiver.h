@@ -30,31 +30,60 @@
 
 @interface NSArchiver : NSCoder
 
-// Initializing an archiver
-
+/* Initializing an archiver */
 - (id) initForWritingWithMutableData: (NSMutableData*)mdata;
 
-// Archiving Data
-
+/* Archiving Data */
 + (NSData*) archivedDataWithRootObject: (id)rootObject;
 + (BOOL) archiveRootObject: (id)rootObject toFile: (NSString*)path;
 
-// Getting data from the archiver
-
+/* Getting data from the archiver */
 + unarchiveObjectWithData: (NSData*) data;
 + unarchiveObjectWithFile: (NSString*) path;
-
 - (NSMutableData*) archiverData;
 
-// Substituting Classes
-
+/* Substituting Classes */
 + (NSString*) classNameEncodedForTrueClassName: (NSString*) trueName;
 - (void) enocdeClassName: (NSString*)trueName
            intoClassName: (NSString*)inArchiveName;
-+ (NSString*) classNameDecodedForArchiveClassName: (NSString*) inArchiveName;
-+ (void) decodeClassName: (NSString*) inArchiveName
-             asClassName:(NSString *)trueName;
 
+@end
+
+
+@interface NSUnarchiver : NSCoder
+
+/* Initializing an unarchiver */
+- (id) initForReadingWithData: (NSData*)data;
+
+/* Decoding objects */
++ (id) unarchiveObjectWithData: (NSData*)data;
++ (id) unarchiveObjectWithFile: (NSString*)path;
+
+/* Managing */
+- (BOOL) isAtEnd;
+- (NSZone*) objectZone;
+- (void) setObjectZone: (NSZone*)zone;
+- (unsigned int) systermVersion;
+
+/* Substituting Classes */
++ (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive;
++ (void) decodeClassName: (NSString*)nameInArchive
+	     asClassName: (NSString*)trueName;
+- (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive;
+- (void) decodeClassName: (NSString*)nameInArchive 
+	     asClassName: (NSString*)trueName;
+
+@end
+
+
+/* Exceptions */
+extern NSString *NSInconsistentArchiveException;
+
+
+/* NSObject extensions for archiving */
+@interface NSObject (NSArchiver)
+- (Class) classForArchiver;
+- replacementObjectForArchiver: (NSArchiver*) archiver;
 @end
 
 #endif	/* __NSArchiver_h_OBJECTS_INCLUDE */
