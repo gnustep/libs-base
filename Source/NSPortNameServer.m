@@ -39,6 +39,7 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDebug.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 /*

@@ -1,3 +1,8 @@
+2000-08-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortNameServer.m: include netinet/in.h as needed on
+	FreeBSD to define values used in arpa/inet.h
+
 2000-08-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost: ([_initWithHostEntry:key:]) workaround for buggy
