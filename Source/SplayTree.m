@@ -127,7 +127,7 @@
   [super removeElement:anElement];
   if (parent && parent != [self nilNode])
     [self splayNode:parent];
-  return anElement;
+  return AUTORELEASE_ELT(anElement);
 }
 
 @end

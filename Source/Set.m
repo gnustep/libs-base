@@ -209,6 +209,7 @@
 {
   if (coll_hash_value_for_key(_contents_hash, anElement).void_ptr_u == 0)
     coll_hash_add(&_contents_hash, anElement, 1);
+  RETAIN_ELT(anElement);
   return self;
 }
 
@@ -221,7 +222,7 @@
     coll_hash_remove(_contents_hash, oldElement);
   else
     RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-  return oldElement;
+  return AUTORELEASE_ELT(oldElement);
 }
 
 /* This must work without sending any messages to content objects */

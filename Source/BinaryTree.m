@@ -380,6 +380,7 @@ static id nilBinaryTreeNode;
 	[theParent setRightNode:newElement.id_u];
     }
   _count++;
+  RETAIN_ELT(newElement);
   return self;
 }
 
@@ -418,6 +419,7 @@ static id nilBinaryTreeNode;
       [newElement.id_u setParentNode:[self nilNode]];
     }
   _count++;
+  RETAIN_ELT(newElement);
   return self;
 }
 
@@ -449,6 +451,7 @@ static id nilBinaryTreeNode;
       [newElement.id_u setParentNode:[self nilNode]];
     }
   _count++;
+  RETAIN_ELT(newElement);
   return self;
 }
 
@@ -523,7 +526,7 @@ static id nilBinaryTreeNode;
   [oldElement.id_u setLeftNode:[self nilNode]];
   [oldElement.id_u setParentNode:[self nilNode]];
   _count--;
-  return oldElement;
+  return AUTORELEASE_ELT(oldElement);
 }
 
 - withElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag
