@@ -31,10 +31,6 @@
 
 typedef unsigned short Character;
 
-/* Values for comparisonFlags arguments */
-#define STRING_EXACT_MATCH = 0x0
-#define STRING_IGNORE_CASE = 0x1
-
 @class String;
 @class ConstantString;
 @class MutableString;
@@ -52,10 +48,11 @@ typedef unsigned short Character;
 - initWithString: (String*)aString;
 - initWithFormat: (String*)aFormatString, ...;
 - initWithFormat: (String*)aFormatString arguments: (va_list)arg;
-- initWithCString: (char*)aCharPtr range: (IndexRange)aRange;
-- initWithCString: (char*)aCharPtr length: (unsigned)aLength;
-- initWithCString: (char*)aCharPtr;
-- initWithCStringNoCopy: (char*)cp length: (unsigned)l freeWhenDone: (BOOL)f;
+- initWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
+- initWithCString: (const char*)aCharPtr length: (unsigned)aLength;
+- initWithCString: (const char*)aCharPtr;
+- initWithCStringNoCopy: (const char*)cp length: (unsigned)l
+   freeWhenDone: (BOOL)f;
 - initWithStream: (Stream*)aStream;
 - initWithStream: (Stream*)aStream length: (unsigned)aLength;
 
@@ -75,13 +72,16 @@ typedef unsigned short Character;
 + (String*) stringWithString: (String*)aString;
 + (String*) stringWithFormat: (String*)aFormatString, ...;
 + (String*) stringWithFormat: (String*)aFormatString arguments: (va_list)arg;
-+ (String*) stringWithCString: (char*)cp range: (IndexRange)r noCopy: (BOOL)f;
-+ (String*) stringWithCString: (char*)aCharPtr range: (IndexRange)aRange;
-+ (String*) stringWithCString: (char*)aCharPtr length: (unsigned)aLength;
-+ (String*) stringWithCString: (char*)aCharPtr;
++ (String*) stringWithCString: (const char*)cp range: (IndexRange)r
+   noCopy: (BOOL)f;
++ (String*) stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
++ (String*) stringWithCString: (const char*)aCharPtr length: (unsigned)aLength;
++ (String*) stringWithCString: (const char*)aCharPtr;
 
 - (String*) stringByAppendingFormat: (String*)aString, ...;
+- (String*) stringByAppendingFormat: (String*)aString arguments: (va_list)arg;
 - (String*) stringByPrependingFormat: (String*)aString, ...;
+- (String*) stringByPrependingFormat: (String*)aString arguments: (va_list)arg;
 - (String*) stringByAppendingString: (String*)aString;
 - (String*) stringByPrependingString: (String*)aString;
 
@@ -98,18 +98,12 @@ typedef unsigned short Character;
 - (BOOL) isEqual: anObject;
 - (unsigned) hash;
 - (int) compare: anObject;
-- (int) compare: anObject comparisonFlags: (int)f;
 - copy;
 - (IndexRange) range;
-- (unsigned) indexOfString: (String*)aString comparisonFlags: (int)f;
 - (unsigned) indexOfString: (String*)aString;
-- (unsigned) indexOfChar: (char)aChar comparisonFlags: (int)f;
 - (unsigned) indexOfChar: (char)aChar;
-- (unsigned) indexOfLastChar: (char)aChar comparisonFlags: (int)f;
 - (unsigned) indexOfLastChar: (char)aChar;
-- (unsigned) indexOfCharacter: (Character)aChar comparisonFlags: (int)f;
 - (unsigned) indexOfCharacter: (Character)aChar;
-- (unsigned) indexOfLastCharacter: (Character)aChar comparisonFlags: (int)f;
 - (unsigned) indexOfLastCharacter: (Character)aChar;
 
 // FOR FILE NAMES (don't use the name "path", gnu will not use it for this);
@@ -120,56 +114,23 @@ typedef unsigned short Character;
 - (BOOL) isAbsolute;
 - (BOOL) isRelative;
 
-// GETTING VALUES;
-- (int) intValue;
-- (float) floatValue;
-- (double) doubleValue;
-- (const char *) cStringValue;
-- (String *) stringValue;
-
 @end
 
 @protocol MutableString <String, ValueHolding>
 
++ (MutableString*) stringWithCapacity: (unsigned)capacity;
 - initWithCapacity: (unsigned)capacity;
 
-- (void) setCString: (char *)buffer range: (IndexRange)aRange;
-- (void) setCString: (char *)buffer length: (unsigned)aLength;
-- (void) setCString: (char *)buffer;
-- (void) setString: (String*)string;
-
-- (void) appendFormat: (String*)format, ...;
-- (void) appendString: (String*)string;
-
-- (void) removeRange: (IndexRange)range;
+/* This from IndexedCollecting: - removeRange: (IndexRange)range; */
 - (void) insertString: (String*)string atIndex: (unsigned)index;
 
-// REPLACING;
+- (void) setString: (String*)string;
+- (void) appendString: (String*)string;
 - (void) replaceRange: (IndexRange)range withString: (String*)string;
-- (void) replaceAllStrings: (String*)oldString with: (String*)newString;
-- (void) replaceFirstString: (String*)oldString with: (String*)newString;
-- (void) replaceFirstString: (String*)oldString 
-    afterIndex: (unsigned)index 
-    with: (String*)newString;
-
-- capitalize;
-- makeLowercase;
-- makeUppercase;
-- trimBlanks;
-
-/* Value Holding protocol */
-
-// SETTING VALUES;
-- setIntValue: (int)anInt;
-- setFloatValue: (float)aFloat;
-- setDoubleValue: (double)aDouble;
-- setCStringValue: (const char *)aCString;
-- setStringValue: (String*)aString;
-
-/* Don't forget about appendContentsOf: and prependContentsOf:
-   from IndexedCollecting */
 
 @end
+
+/* Abstract string classes */
 
 @interface String : IndexedCollection <String>
 @end
@@ -177,22 +138,27 @@ typedef unsigned short Character;
 @interface MutableString : String <MutableString>
 @end
 
-@interface ConcreteString : MutableString
+/* Some concrete string classes */
+
+@interface CString : String
 {
   char * _contents_chars;
   int _count;
 }
 @end
 
-@interface MutableConcreteString : ConcreteString
+@interface MutableCString : MutableString
 {
+  char * _contents_chars;
+  int _count;
   int _capacity;
 }
 @end
 
-@interface ConstantString : ConcreteString
+@interface ConstantString : CString
 @end
 
+/* The compiler makes @""-strings into NXConstantString's */
 @interface NXConstantString : ConstantString
 @end
 
