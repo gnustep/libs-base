@@ -267,7 +267,21 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 + (NSArray *) allBundles
 {
-  return [self notImplemented: _cmd];
+  NSMapEnumerator	enumerate;
+  NSMutableArray	*array = [NSMutableArray arrayWithCapacity: 2];
+  void			*key;
+  NSBundle		*bundle;
+
+  enumerate = NSEnumerateMapTable(_bundles);
+  while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
+    {
+      if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
+	{
+	  /* FIXME - must ignore frameworks here */
+	  [array addObject: bundle];
+	}
+    }
+  return array;
 }
 
 + (NSArray *) allFrameworks

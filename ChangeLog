@@ -1,3 +1,8 @@
+Wed Apr 14  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSBundle: ([+allBundles]) implemented (ignoring the frameworks
+	issue).
+
 Tue Apr 13 22:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle.m: Updated to use Info.plist if Info-gnustep.plist
