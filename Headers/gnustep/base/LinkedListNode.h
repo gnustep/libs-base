@@ -1,8 +1,8 @@
 /* Interface for Objective-C LinkedListNode object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -32,8 +32,8 @@
 {
   id <LinkedListComprising> _next;
   id <LinkedListComprising> _prev;
+  id _linked_list;
 }
 @end
 
 #endif /* __LinkedListNode_h_INCLUDE_GNU */
-

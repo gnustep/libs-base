@@ -1,5 +1,5 @@
 /* Interface for Objective-C Sequential Collection object.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -28,12 +28,54 @@
 #include <objects/KeyedCollection.h>
 #include <objects/IndexedCollecting.h>
 
-@interface IndexedCollection : KeyedCollection 
+@interface ConstantIndexedCollection : ConstantCollection 
+@end
+
+@interface IndexedCollection : ConstantIndexedCollection
+@end
+
+@interface ReverseEnumerator : Enumerator
 @end
 
 /* Put this on category instead of class to avoid bogus complaint from gcc */
-@interface IndexedCollection (IndexedCollectionProtocol) <IndexedCollecting>
+@interface ConstantIndexedCollection (Protocol) <ConstantIndexedCollecting>
 @end
+@interface IndexedCollection (Protocol) <IndexedCollecting>
+@end
+
+#define FOR_INDEXED_COLLECTION(ACOLL, ELT) \
+{ \
+   void *_es = [ACOLL newEnumState]; \
+   while ((ELT = [ACOLL nextObjectWithEnumState: &_es])) \
+     {
+
+#define END_FOR_INDEXED_COLLECTION(ACOLL) \
+     } \
+   [ACOLL freeEnumState: &_es]; \
+}
+
+#define FOR_INDEXED_COLLECTION_REVERSE(ACOLL, ELT) \
+{ \
+   void *_es = [ACOLL newEnumState]; \
+   while ((ELT = [ACOLL prevObjectWithEnumState: &_es])) \
+     {
+
+#define END_FOR_INDEXED_COLLECTION_REVERSE(ACOLL) \
+     } \
+   [ACOLL freeEnumState: &_es]; \
+}
+
+#define FOR_INDEXED_COLLECTION_WHILE_TRUE(ACOLL, ELT, FLAG) \
+{ \
+   void *_es = [ACOLL newEnumState]; \
+   while (FLAG && (ELT = [ACOLL nextObjectWithEnumState: &_es])) \
+     {
+
+#define END_FOR_INDEXED_COLLECTION_WHILE_TRUE(ACOLL) \
+     } \
+   [ACOLL freeEnumState: &_es]; \
+}
+
 
 /* The only subclassResponsibilities in IndexedCollection are:
 

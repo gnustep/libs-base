@@ -1,8 +1,8 @@
 /* Implementation for Objective-C Queue object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
    
    This file is part of the GNU Objective C Class Library.
    
@@ -26,40 +26,22 @@
 
 @implementation Queue
   
-+ (void) initialize
+- (void) enqueueObject: newObject
 {
-  if (self == [Queue class])
-    [self setVersion:0];	/* beta release */
-}
-
-- enqueueElement: (elt)newElement
-{
-  [self prependElement:newElement];
-  return self;
-}
-
-/* Overriding */
-- addElement: (elt)anElement
-{
-  [self enqueueElement:anElement];
-  return self;
-}
-
-- (elt) dequeueElement
-{
-  return [self removeLastElement];
-}
-
-// OBJECT-COMPATIBLE MESSAGE NAMES;
-
-- enqueueObject: newObject
-{
-  return [self enqueueElement:newObject];
+  [self prependObject: newObject];
 }
 
 - dequeueObject
 {
-  return [self dequeueElement].id_u;
+  id ret = [[self lastObject] retain];
+  [self removeLastObject];
+  return [ret autorelease];
+}
+
+/* Overriding */
+- (void) addObject: newObject
+{
+  [self enqueueObject: newObject];
 }
 
 @end

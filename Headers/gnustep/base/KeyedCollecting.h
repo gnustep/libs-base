@@ -1,5 +1,5 @@
 /* Protocol for Objective-C objects holding (keyElement,contentElement) pairs.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -38,84 +38,44 @@
 
 @protocol ConstantKeyedCollecting <ConstantCollecting>
 
+// INITIALIZING;
+- initWithObjects: (id*)objects forKeys: (id*)keys count: (unsigned)c;
+
 // GETTING ELEMENTS AND KEYS;
-- objectAtKey: (elt)aKey;
-- keyObjectOfObject: aContentObject;
+- objectAtKey: aKey;
+- keyOfObject: aContentObject;
 
 // TESTING;
-- (BOOL) includesKey: (elt)aKey;
+- (BOOL) containsKey: aKey;
 
 // ENUMERATIONS;
-- withKeyObjectsCall: (void(*)(id))aFunc;
-- withKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc;
-- withKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
+- (id <Enumerating>) keyEnumerator;
+- withKeyObjectsInvoke: (id <Invoking>)anInvocation;
+- withKeyObjectsInvoke: (id <Invoking>)anInvocation
     whileTrue: (BOOL *)flag;
 
-// NON-OBJECT ELEMENT METHOD NAMES;
+// LOW-LEVEL ENUMERATING;
+- nextObjectAndKey: (id*)keyPtr withEnumState: (void**)enumState;
 
-// INITIALIZING;
-- initWithType: (const char *)contentsEncoding
-    keyType: (const char *)keyEncoding;
-- initKeyType: (const char *)keyEncoding;
-
-// GETTING ELEMENTS AND KEYS;
-- (elt) elementAtKey: (elt)aKey;
-- (elt) elementAtKey: (elt)aKey ifAbsentCall: (elt(*)(arglist_t))excFunc;
-- (elt) keyElementOfElement: (elt)aContentObject;
-- (elt) keyElementOfElement: (elt)aContentObject
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-
-// TESTING;
-- (const char *) keyType;
-
-// ENUMERATING;
-- (BOOL) getNextKey: (elt*)aKeyPtr content: (elt*)anElementPtr 
-  withEnumState: (void**)enumState;
-- withKeyElementsCall: (void(*)(elt))aFunc;
-- withKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc;
-- withKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc 
-    whileTrue: (BOOL *)flag;
+// COPYING;
+- shallowCopyValuesAs: (Class)aCollectingClass;
+- shallowCopyKeysAs: (Class)aCollectingClass;
+- copyValuesAs: (Class)aCollectingClass;
+- copyKeysAs: (Class)aCollectingClass;
 
 @end
 
 @protocol KeyedCollecting <ConstantKeyedCollecting, Collecting>
 
 // ADDING;
-- putObject: newContentObject atKey: (elt)aKey;
+- (void) putObject: newContentObject atKey: aKey;
 
 // REPLACING AND SWAPPING;
-- replaceObjectAtKey: (elt)aKey with: newContentObject;
-- swapAtKeys: (elt)key1 : (elt)key2;
+- (void) replaceObjectAtKey: aKey with: newContentObject;
+- (void) swapObjectsAtKeys: key1 : key2;
 
 // REMOVING;
-- removeObjectAtKey: (elt)aKey;
-
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithKeyObjectsCall: (void(*)(id))aFunc;
-- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc;
-- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
-    whileTrue: (BOOL *)flag;
-
-
-// NON-OBJECT ELEMENT METHOD NAMES;
-
-// ADDING;
-- putElement: (elt)newContentElement atKey: (elt)aKey;
-
-// REPLACING;
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement;
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-
-// REMOVING;
-- (elt) removeElementAtKey: (elt)aKey;
-- (elt) removeElementAtKey: (elt)aKey ifAbsentCall: (elt(*)(arglist_t))excFunc;
-
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithKeyElementsCall: (void(*)(elt))aFunc;
-- safeWithKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc;
-- safeWithKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc 
-    whileTrue: (BOOL *)flag;
+- (void) removeObjectAtKey: aKey;
 
 @end
 

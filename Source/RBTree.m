@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Red-Black Tree collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -37,7 +37,6 @@ static id nilRBNode;
 {
   if (self == [RBTree class])
     {
-      [self setVersion:0];	/* beta release */
       nilRBNode = [[RBTreeNode alloc] init];
       [nilRBNode setBlack];
     }
@@ -48,68 +47,67 @@ static id nilRBNode;
   return nilRBNode;
 }
 
-- sortAddElement: (elt)newElement byCalling: (int(*)(elt,elt))aFunc
+- (void) sortAddObject: newObject
 {
   id y;
 
-  [super sortAddElement:newElement byCalling:aFunc];
-  [newElement.id_u setRed];
-  while (newElement.id_u != _contents_root 
-	 && [[newElement.id_u parentNode] isRed])
+  [super sortAddObject: newObject];
+  [newObject setRed];
+  while (newObject != _contents_root 
+	 && [[newObject parentNode] isRed])
     {
-      if ([newElement.id_u parentNode] == 
-	  [[[newElement.id_u parentNode] parentNode] leftNode])
+      if ([newObject parentNode] == 
+	  [[[newObject parentNode] parentNode] leftNode])
 	{
-	  y = [[[newElement.id_u parentNode] parentNode] leftNode];
+	  y = [[[newObject parentNode] parentNode] leftNode];
 	  if ([y isRed])
 	    {
-	      [[newElement.id_u parentNode] setBlack];
+	      [[newObject parentNode] setBlack];
 	      [y setBlack];
-	      [[[newElement.id_u parentNode] parentNode] setRed];
-	      newElement.id_u = [[newElement.id_u parentNode] parentNode];
+	      [[[newObject parentNode] parentNode] setRed];
+	      newObject = [[newObject parentNode] parentNode];
 	    }
 	  else 
 	    {
-	      if (newElement.id_u == [[newElement.id_u parentNode] rightNode])
+	      if (newObject == [[newObject parentNode] rightNode])
 		{
-		  newElement.id_u = [newElement.id_u parentNode];
-		  [self leftRotateAroundNode:newElement.id_u];
+		  newObject = [newObject parentNode];
+		  [self leftRotateAroundNode:newObject];
 		}
-	      [[newElement.id_u parentNode] setBlack];
-	      [[[newElement.id_u parentNode] parentNode] setRed];
+	      [[newObject parentNode] setBlack];
+	      [[[newObject parentNode] parentNode] setRed];
 	      [self rightRotateAroundNode:
-		    [[newElement.id_u parentNode] parentNode]];
+		    [[newObject parentNode] parentNode]];
 	    }
 	}
       else
 	{
-	  y = [[[newElement.id_u parentNode] parentNode] rightNode];
+	  y = [[[newObject parentNode] parentNode] rightNode];
 	  if ([y isRed])
 	    {
-	      [[newElement.id_u parentNode] setBlack];
+	      [[newObject parentNode] setBlack];
 	      [y setBlack];
-	      [[[newElement.id_u parentNode] parentNode] setRed];
-	      newElement.id_u = [[newElement.id_u parentNode] parentNode];
+	      [[[newObject parentNode] parentNode] setRed];
+	      newObject = [[newObject parentNode] parentNode];
 	    }
 	  else 
 	    {
-	      if (newElement.id_u == [[newElement.id_u parentNode] leftNode])
+	      if (newObject == [[newObject parentNode] leftNode])
 		{
-		  newElement.id_u = [newElement.id_u parentNode];
-		  [self rightRotateAroundNode:newElement.id_u];
+		  newObject = [newObject parentNode];
+		  [self rightRotateAroundNode:newObject];
 		}
-	      [[newElement.id_u parentNode] setBlack];
-	      [[[newElement.id_u parentNode] parentNode] setRed];
+	      [[newObject parentNode] setBlack];
+	      [[[newObject parentNode] parentNode] setRed];
 	      [self leftRotateAroundNode:
-		    [[newElement.id_u parentNode] parentNode]];
+		    [[newObject parentNode] parentNode]];
 	    }
 	}
     }
   [_contents_root setBlack];
-  return self;
 }
 
-- _RBTreeDeleteFixup: x
+- (void) _RBTreeDeleteFixup: x
 {
   id w;
 
@@ -185,18 +183,17 @@ static id nilRBNode;
 	}
     }
   [x setBlack];
-  return self;
 }
 
-- (elt) removeElement: (elt)oldElement
+- (void) removeObject: oldObject
 {
   id x, y;
 
-  if ([oldElement.id_u leftNode] == [self nilNode] 
-      || [oldElement.id_u rightNode] == [self nilNode])
-    y = oldElement.id_u;
+  if ([oldObject leftNode] == [self nilNode] 
+      || [oldObject rightNode] == [self nilNode])
+    y = oldObject;
   else
-    y = [self successorOfElement:oldElement].id_u;
+    y = [self successorOfObject: oldObject];
 
   if ([y leftNode] != [self nilNode])
     x = [y leftNode];
@@ -215,63 +212,38 @@ static id nilRBNode;
 	[[y parentNode] setRightNode:x];
     }
 
-  if (y != oldElement.id_u)
+  if (y != oldObject)
     {
-      /* put y in the place of oldElement.id_u */
-      [y setParentNode:[oldElement.id_u parentNode]];
-      [y setLeftNode:[oldElement.id_u leftNode]];
-      [y setRightNode:[oldElement.id_u rightNode]];
-      if (oldElement.id_u == [[oldElement.id_u parentNode] leftNode])
-	[[oldElement.id_u parentNode] setLeftNode:y];
+      /* put y in the place of oldObject */
+      [y setParentNode:[oldObject parentNode]];
+      [y setLeftNode:[oldObject leftNode]];
+      [y setRightNode:[oldObject rightNode]];
+      if (oldObject == [[oldObject parentNode] leftNode])
+	[[oldObject parentNode] setLeftNode:y];
       else
-	[[oldElement.id_u parentNode] setRightNode:oldElement.id_u];
-      [[oldElement.id_u leftNode] setParentNode:y];
-      [[oldElement.id_u rightNode] setParentNode:y];
+	[[oldObject parentNode] setRightNode:oldObject];
+      [[oldObject leftNode] setParentNode:y];
+      [[oldObject rightNode] setParentNode:y];
     }
 
   if (NODE_IS_BLACK(y))
     [self _RBTreeDeleteFixup:x];
 
-  [oldElement.id_u setRightNode:[self nilNode]];
-  [oldElement.id_u setLeftNode:[self nilNode]];
-  [oldElement.id_u setParentNode:[self nilNode]];
   _count--;
-  return AUTORELEASE_ELT(oldElement);
+
+  /* Release ownership of the object. */
+#if 0
+  [oldObject setRightNode: [self nilNode]];
+  [oldObject setLeftNode: [self nilNode]];
+  [oldObject setParentNode: [self nilNode]];
+#else
+  [oldObject setLeftNode: NO_OBJECT];
+  [oldObject setRightNode: NO_OBJECT];
+  [oldObject setParentNode: NO_OBJECT];
+#endif
+  [oldObject setBinaryTree: NO_OBJECT];
+  [oldObject release];
 }
-
-/* Override methods that could violate assumptions of RBTree structure.
-   Perhaps I shouldn't DISALLOW this, let users have the power to do 
-   whatever they want.  I mention this in the QUESTIONS section of the
-   TODO file. */
-
-/***
-Or perhaps instead of calling INSERTION_ERROR we could fix up the RB 
-property of the tree.
-
-- insertElement: (elt)newElement before: (elt)oldElement
-{
-  INSERTION_ERROR();
-  return self;
-}
-
-- insertElement: (elt)newElement after: (elt)oldElement
-{
-  INSERTION_ERROR();
-  return self;
-}
-
-- insertElement: (elt)newElement atIndex: (unsigned)index
-{
-  INSERTION_ERROR();
-  return self;
-}
-
-- appendElement: (elt)newElement
-{
-  INSERTION_ERROR();
-  return self;
-}
-****/
 
 @end
 

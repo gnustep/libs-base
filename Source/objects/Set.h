@@ -1,5 +1,5 @@
 /* Interface for Objective-C Set collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -26,24 +26,23 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Collection.h>
+#include <Foundation/NSHashTable.h>
 
 @interface Set : Collection
 {
-  coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
+  NSHashTable *_contents_hash;	// a hashtable to hold the contents;
 }
 
 // MANAGING CAPACITY;
 + (unsigned) defaultCapacity;
 
 // INITIALIZING AND FREEING;
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity;
 - initWithCapacity: (unsigned)aCapacity;
 
 // SET OPERATIONS;
-- intersectWithCollection: (id <Collecting>)aCollection;
-- unionWithCollection: (id <Collecting>)aCollection;
-- differenceWithCollection: (id <Collecting>)aCollection;
+- (void) intersectWithCollection: (id <Collecting>)aCollection;
+- (void) unionWithCollection: (id <Collecting>)aCollection;
+- (void) differenceWithCollection: (id <Collecting>)aCollection;
 
 - shallowCopyIntersectWithCollection: (id <Collecting>)aCollection;
 - shallowCopyUnionWithCollection: (id <Collecting>)aCollection;

@@ -1,5 +1,5 @@
 /* Interface for Objective-C Dictionary collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -26,18 +26,14 @@
 
 #include <objects/stdobjects.h>
 #include <objects/KeyedCollection.h>
+#include <Foundation/NSMapTable.h>
 
 @interface Dictionary : KeyedCollection
 {
-  coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
-  int (*_comparison_function)(elt,elt);
+  NSMapTable *_contents_hash;
 }
 
-- initWithType: (const char *)contentEncoding
-    keyType: (const char *)keyEncoding
-    capacity: (unsigned)aCapacity;
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity;
+- initWithCapacity: (unsigned)aCapacity;
 
 @end
 

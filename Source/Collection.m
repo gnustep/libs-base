@@ -27,363 +27,192 @@
 #include <objects/Bag.h>		/* for -contentsEqual: */
 #include <objects/Array.h>		/* for -safeWithElementsCall: */
 #include <objects/Coder.h>
+#include <objects/NSString.h>
 
-@implementation Collection
+@implementation Enumerator
 
-+ (void) initialize
+- initWithCollection: coll
 {
-  if (self == [Collection class])
-    {
-      [self setVersion:0];	// beta release;
-    }
-}
-
-// INITIALIZING AND RELEASING;
-
-// This is the designated initializer of this class;
-- initWithType:(const char *)contentEncoding
-{
-  [super init];
-  if (!elt_get_comparison_function(contentEncoding))
-    [self error:"There is no elt comparison function for type encoding %s",
-	  contentEncoding];
+  collection = [coll retain];
+  enum_state = [coll newEnumState];
   return self;
 }
 
+- nextObject
+{
+  return [collection nextObjectWithEnumState: enum_state];
+}
+
+- (void) dealloc
+{
+  [collection freeEnumState: enum_state];
+  [collection release];
+}
+
+@end
+
+@implementation ConstantCollection
+
+
+// INITIALIZING AND RELEASING;
+
 - init
 {
-  // default contents are objects;
-  return [self initWithType:@encode(id)];
+  return [self initWithObjects: NULL count: 0];
+}
+
+// This is the designated initializer of this class;
+- initWithObjects: (id*)objc count: (unsigned)c
+{
+  [self subclassResponsibility: _cmd];
+  return self;
+}
+
+- initWithObjects: firstObject, ...
+{
+  va_list ap;
+  va_start(ap, firstObject);
+  self = [self initWithObjects:firstObject rest:ap];
+  va_end(ap);
+  return self;
+}
+
+#define INITIAL_OBJECTS_SIZE 10
+- initWithObjects: firstObject rest: (va_list)ap
+{
+  id *objects;
+  int i = 0;
+  int s = INITIAL_OBJECTS_SIZE;
+
+  OBJC_MALLOC(objects, id, s);
+  if (firstObject != nil)
+    {
+      objects[i++] = firstObject;
+      while ((objects[i++] = va_arg(ap, id)))
+	{
+	  if (i >= s)
+	    {
+	      s *= 2;
+	      OBJC_REALLOC(objects, id, s);
+	    }
+	}
+    }
+  self = [self initWithObjects:objects count:i-1];
+  OBJC_FREE(objects);
+  return self;
 }
 
 /* Subclasses can override this for efficiency.  For example, Array can 
    init itself with enough capacity to hold aCollection. */
 - initWithContentsOf: (id <Collecting>)aCollection
 {
-  [self initWithType:[aCollection contentType]];
-  [self addContentsOf:aCollection];
-  return self;
-}
-
-- (void) _safeWithElementsCallNoRetain: (void(*)(elt))aFunc
-{
-  int c = [self count];
-  elt *elts = (elt*) (*objc_malloc) (c * sizeof(elt));
+  int count = [aCollection count];
+  id contents_array[count];
+  id o;
   int i = 0;
-  void *es = [self newEnumState];
-  elt e;
-  while ([self getNextElement:&e withEnumState:&es])
-    {
-      elts[i++] = e;
-    }
-  [self freeEnumState:&es];
-  assert (c == i);
-  for (i = 0; i < c; i++)
-    aFunc(elts[i]);
-  (*objc_free) (elts);
-}
 
-- (void) _releaseContents
-{
-  int c = [self count];
-  elt *elts = (elt*) (*objc_malloc) (c * sizeof(elt));
-  int i = 0;
-  void *es = [self newEnumState];
-  elt e;
-  while ([self getNextElement:&e withEnumState:&es])
+  FOR_COLLECTION(aCollection, o)
     {
-      elts[i++] = e;
+      contents_array[i++] = o;
     }
-  [self freeEnumState:&es];
-  assert (c == i);
-  for (i = 0; i < c; i++)
-    [elts[i].id_u release];
-  (*objc_free) (elts);
+  END_FOR_COLLECTION(aCollection);
+  return [self initWithObjects: contents_array count: count];
 }
 
 - (void) dealloc
 {
-  if (CONTAINS_OBJECTS)
-    [self _releaseContents];
+  /* xxx Get rid of this since Set, Bag, Dictionary, and String
+     subclasses don't want to use it? */
+  [self _collectionReleaseContents];
   [self _collectionDealloc];
   [super dealloc];
 }
 
-/* May be inefficient.  Could be overridden; */
-- empty
-{
-  if ([self isEmpty])
-    return self;
-  if (CONTAINS_OBJECTS)
-    [self _releaseContents];
-  [self _empty];
-  return self;
-}
-
-// ADDING;
-
-- addElement: (elt)newElement
-{
-  return [self subclassResponsibility:_cmd];
-}
-
-- addElementIfAbsent: (elt)newElement
-{
-  if (![self includesElement:newElement])
-    return [self addElement:newElement];
-  return nil;
-}
-
-- addContentsOf: (id <Collecting>)aCollection
-{
-  id (*addElementImp)(id,SEL,elt) = (id(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(addElement:));
-
-  void doIt(elt e) 
-    {
-      (*addElementImp)(self, @selector(addElement:), e);
-    }
-
-  [aCollection withElementsCall:doIt];
-  return self;
-}
-
-- addContentsOfIfAbsent: (id <Collecting>)aCollection
-{
-  id (*addElementImp)(id,SEL,elt) = (id(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(addElement:));
-  BOOL (*includesElementImp)(id,SEL,elt) = (BOOL(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(includesElement:));
-
-  void doIt(elt e) 
-    {
-      if (!((*includesElementImp)(self, @selector(includesElement), e)))
-	(*addElementImp)(self, @selector(addElement:), e);
-    }
-
-  [aCollection withElementsCall:doIt];
-  return self;
-}
-
-- addElementsCount: (unsigned)count, ...
-{
-  va_list ap;
-
-  // could use objc_msg_lookup here also;
-  va_start(ap, count);
-  while (count--)
-    [self addElement:va_arg(ap, elt)];
-  va_end(ap);
-  return self;
-}
-
-
-// REMOVING AND REPLACING;
-
-- (elt) removeElement: (elt)oldElement
-{
-  elt err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(oldElement);
-    }
-  return [self removeElement:oldElement ifAbsentCall:err];
-}
-
-- (elt) removeElement: (elt)oldElement ifAbsentCall: (elt(*)(arglist_t))excFunc
-{
-  return [self subclassResponsibility:_cmd];
-}
-  
-
-- removeAllOccurrencesOfElement: (elt)oldElement
-{
-  BOOL (*includesElementImp)(id,SEL,elt) = (BOOL(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(includesElement:));
-  elt (*removeElementImp)(id,SEL,elt) = (elt(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(removeElement:));
-
-  while ((*includesElementImp)(self, @selector(includesElement:), oldElement))
-    {
-      (*removeElementImp)(self, @selector(removeElement:), oldElement);
-    }
-  return self;
-}
-
-- removeContentsIn: (id <Collecting>)aCollection
-{
-  BOOL (*includesElementImp)(id,SEL,elt) = (BOOL(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(includesElement:));
-  elt (*removeElementImp)(id,SEL,elt) = (elt(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(removeElement:));
-
-  void doIt(elt e)
-    {
-      if ((*includesElementImp)(self, @selector(includesElement:), e))
-	(*removeElementImp)(self, @selector(removeElement:), e);
-    }
-
-  [aCollection withElementsCall:doIt];
-  return self;
-}
-
-- removeContentsNotIn: (id <Collecting>)aCollection
-{
-  BOOL (*includesElementImp)(id,SEL,elt) = (BOOL(*)(id,SEL,elt))
-    objc_msg_lookup(aCollection, @selector(includesElement:));
-  elt (*removeElementImp)(id,SEL,elt) = (elt(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(removeElement:));
-
-  void doIt(elt e)
-    {
-      if (!(*includesElementImp)(aCollection, @selector(includesElement:), e))
-	(*removeElementImp)(self, @selector(removeElement:), e);
-    }
-
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
-// remember this has to be overridden for IndexedCollection's;
-- (elt) replaceElement: (elt )oldElement with: (elt )newElement
-    ifAbsentCall: (elt(*)(arglist_t))excFunc
-{
-  elt err(arglist_t argFrame)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  elt ret;
-  ret = [self removeElement:oldElement ifAbsentCall:err];
-  [self addElement:newElement];
-  return ret;
-}
-
-- (elt) replaceElement: (elt )oldElement with: (elt)newElement
-{
-  elt err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(oldElement);
-    }
-  return [self replaceElement:oldElement with:newElement
-	       ifAbsentCall:err];
-}
-
-- replaceAllOccurrencesOfElement: (elt)oldElement with: (elt)newElement
-{
-  BOOL (*includesElementImp)(id,SEL,elt) = (BOOL(*)(id,SEL,elt))
-    objc_msg_lookup(self, @selector(includesElement:));
-  elt (*replaceElementImp)(id,SEL,elt,elt) = (elt(*)(id,SEL,elt,elt))
-    objc_msg_lookup(self, @selector(replaceElement:with:));
-
-  if (ELEMENTS_EQUAL(oldElement, newElement))
-    return self;
-  while ((*includesElementImp)(self,@selector(includesElement:),oldElement))
-    (*replaceElementImp)(self,@selector(replaceElement:with:),
-			 oldElement, newElement);
-  return self;
-}
-
-/* This is pretty inefficient?  Try to come up with something better. */
-- uniqueContents
-{
-  // Use objc_msg_lookup here also;
-  void doIt(elt e)
-    {
-      while ([self occurrencesOfElement:e] > 1)
-	[self removeElement:e];
-    }
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
-// TESTING;
+
+// QUERYING COUNTS;
 
 - (BOOL) isEmpty
 {
   return ([self count] == 0);
 }
 
-// Potentially inefficient, may be overridden in subclasses;
-- (BOOL) includesElement: (elt)anElement
+// Inefficient, so should be overridden in subclasses;
+- (unsigned) count
 {
-  int (*cf)(elt,elt) = [self comparisonFunction];
-  BOOL test(elt e)
-    {
-      if (!((*cf)(anElement, e)))
-	return YES;
-      else
-	return NO;
-    }
+  unsigned n = 0;
+  id o;
 
-  return [self trueForAnyElementsByCalling:test];
+  FOR_COLLECTION(self, o)
+    {
+      n++;
+    }
+  END_FOR_COLLECTION(self);
+  return n;
 }
+
+// Potentially inefficient, may be overridden in subclasses;
+- (BOOL) containsObject: anObject
+{
+  id o;
+  FOR_COLLECTION (self, o)
+    {
+      if ([anObject isEqual: o])
+	return YES;
+    }
+  END_FOR_COLLECTION(self);
+  return NO;
+}
+
+- (unsigned) occurrencesOfObject: anObject
+{
+  unsigned count = 0;
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      if ([anObject isEqual: o])
+	count++;
+    }
+  END_FOR_COLLECTION(self);
+  return count;
+}
+
+
+// COMPARISON WITH OTHER COLLECTIONS;
 
 - (BOOL) isSubsetOf: (id <Collecting>)aCollection
 {
-  BOOL test(elt e) 
-    { 
-      return [aCollection includesElement:e]; 
+  id o;
+  FOR_COLLECTION (self, o)
+    {
+      if (![aCollection containsObject: o])
+	return NO;
     }
-  return [self trueForAllElementsByCalling:test];
+  END_FOR_COLLECTION (self);
+  return YES;
 }
  
-- (BOOL) contentsEqual: (id <Collecting>)aCollection
+- (BOOL) isDisjointFrom: (id <Collecting>)aCollection
 {
-  id bag;
-  BOOL flag;
+  // Use objc_msg_lookup here also;
+  BOOL flag = YES;
+  id o;
 
-  // Could use objc_msg_lookup here also;
-  void doIt(elt e)
+  FOR_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if ([bag includesElement:e])
-	[bag removeElement:e];
-      else
+      if (![aCollection containsObject: o])
 	flag = NO;
     }
-
-  if ([self count] != [aCollection count]
-      || ([self comparisonFunction] != [aCollection comparisonFunction]))
-    return NO;
-  bag = [[Bag alloc] initWithContentsOf:aCollection];
-  flag = YES;
-  [self withElementsCall:doIt whileTrue:&flag];
-  if ((!flag) || [bag count])
-    flag = NO;
-  else
-    flag = YES;
-  [bag release];
-  return flag;
+  END_FOR_COLLECTION_WHILE_TRUE(self);
+  return !flag;
 }
 
-/* This is what I'd like the -compare: implementation in Object.m to 
-   look like. */
-- (int) _objectCompare: anObject
-{
-  if (self == anObject)
-    return 0;
-  if (self > anObject)
-    return 1;
-  else
-    return -1;
-}
-
-// Fix this ;
-// How do we want to compare unordered contents?? ;
+// xxx How do we want to compare unordered contents?? ;
 - (int) compareContentsOf: (id <Collecting>)aCollection
 {
   if ([self contentsEqual:aCollection])
     return 0;
   if (self > aCollection)
-    return 1;
-  return -1;
-}
-
-// Deal with this in IndexedCollection also ;
-// How do we want to compare collections? ;
-- (int) compare: anObject
-{
-  if ([self isEqual:anObject])
-    return 0;
-  if (self > anObject)
     return 1;
   return -1;
 }
@@ -399,198 +228,274 @@
     return NO;
 }
 
-- (BOOL) isDisjointFrom: (id <Collecting>)aCollection
+// Deal with this in IndexedCollection also ;
+// How do we want to compare collections? ;
+- (int) compare: anObject
 {
-  // Use objc_msg_lookup here also;
-  BOOL flag = YES;
-  void doIt(elt e)
-    {
-      if (![aCollection includesElement:e])
-	flag = NO;
-    }
-  [self withElementsCall:doIt whileTrue:&flag];
-  return !flag;
+  if ([self isEqual:anObject])
+    return 0;
+  if (self > anObject)
+    return 1;
+  return -1;
 }
 
-- (BOOL) trueForAllElementsByCalling: (BOOL(*)(elt))aFunc
+- (BOOL) contentsEqual: (id <Collecting>)aCollection
 {
-  BOOL flag = YES;
-  void doIt(elt e)
+  id bag, o;
+  BOOL flag;
+
+  if ([self count] != [aCollection count])
+    return NO;
+  bag = [[Bag alloc] initWithContentsOf:aCollection];
+  flag = YES;
+  FOR_COLLECTION_WHILE_TRUE (self, o, flag)
     {
-      if (!((*aFunc)(e)))
+      if ([bag containsObject: o])
+	[bag removeObject: o];
+      else
 	flag = NO;
     }
-  [self withElementsCall:doIt whileTrue:&flag];
+  END_FOR_COLLECTION_WHILE_TRUE(self);
+  if ((!flag) || [bag count])
+    flag = NO;
+  else
+    flag = YES;
+  [bag release];
   return flag;
 }
 
-- (BOOL) trueForAllObjectsByCalling: (BOOL(*)(id))aFunc
+
+// PROPERTIES OF CONTENTS;
+
+- (BOOL) trueForAllObjectsByInvoking: (id <Invoking>)anInvocation
 {
   BOOL flag = YES;
-  void doIt(elt e)
+  id o;
+
+  FOR_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if (!((*aFunc)(e.id_u)))
+      [anInvocation invokeWithObject: o];
+      if (![anInvocation returnValueIsTrue])
 	flag = NO;
     }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt whileTrue:&flag];
+  END_FOR_COLLECTION_WHILE_TRUE(self);
   return flag;
 }
 
-- (BOOL) trueForAnyElementsByCalling: (BOOL(*)(elt))aFunc;
+- (BOOL) trueForAnyObjectsByInvoking: (id <Invoking>)anInvocation;
 {
   BOOL flag = YES;
-  void doIt(elt e)
+  id o;
+
+  FOR_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if ((*aFunc)(e))
+      [anInvocation invokeWithObject: o];
+      if ([anInvocation returnValueIsTrue])
 	flag = NO;
     }
-  [self withElementsCall:doIt whileTrue:&flag];
+  END_FOR_COLLECTION_WHILE_TRUE(self);
   return !flag;
 }
 
-- (BOOL) trueForAnyObjectsByCalling: (BOOL(*)(id))aFunc;
+- detectObjectByInvoking: (id <Invoking>)anInvocation;
 {
   BOOL flag = YES;
-  void doIt(elt e)
+  id detectedObject;
+  id o;
+
+  FOR_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if ((*aFunc)(e.id_u))
-	flag = NO;
+      if ([anInvocation invokeWithObject: o])
+	{
+	  flag = NO;
+	  detectedObject = o;
+	}
     }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt whileTrue:&flag];
-  return !flag;
+  END_FOR_COLLECTION_WHILE_TRUE(self);
+  if (flag)
+    return NO_OBJECT;
+  else
+    return detectedObject;
 }
 
-// Inefficient, so should be overridden in subclasses;
-- (unsigned) count
+- maxObject
 {
-  unsigned n = 0;
-  void doIt(elt e)
+  id o, max;
+  BOOL firstTime = YES;
+
+  if (![self count])
+    return NO_OBJECT;
+  FOR_COLLECTION(self, o)
     {
-      n++;
+      if (firstTime)
+	{
+	  firstTime = NO;
+	  max = o;
+	}
+      else
+	{
+	  if ([o compare: max] > 0)
+	    max = o;
+	}
     }
-  [self withElementsCall:doIt];
-  return n;
+  END_FOR_COLLECTION(self);
+  return max;
 }
 
-- (unsigned) occurrencesOfElement: (elt)anElement
+- minObject
 {
-  unsigned count = 0;
-  int (*cf)(elt,elt) = [self comparisonFunction];
-  void doIt(elt e) 
+  id o, min;
+  BOOL firstTime = YES;
+
+  if (![self count])
+    return NO_OBJECT;
+  FOR_COLLECTION(self, o)
     {
-      if (!((*cf)(anElement, e)))
-	count++;
+      if (firstTime)
+	{
+	  firstTime = NO;
+	  min = o;
+	}
+      else
+	{
+	  if ([o compare: min] < 0)
+	    min = o;
+	}
     }
-  [self withElementsCall:doIt];
-  return count;
+  END_FOR_COLLECTION(self);
+  return min;
 }
 
-- (unsigned) occurrencesOfObject: anObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self occurrencesOfElement:anObject];
-}
+/* Consider adding:
+   - maxObjectByInvoking: (id <Invoking>)anInvocation;
+   - minObjectByInvoking: (id <Invoking>)anInvocation;
+   */
 
-- (BOOL) contentsAreObjects
-{
-  return CONTAINS_OBJECTS;
-}
-
-/* The two default implementations below are used by the node collection 
-   objects: the collections whose contents are required to be objects
-   conforming to some <...Comprising> protocol. */
-
-/* some subclasses will have to override this for correctness */
-- (const char *) contentType
-{
-  /* objects are the default */
-  return @encode(id);
-}
-
-/* some subclasses will have to override this for correctness */
-- (int(*)(elt,elt)) comparisonFunction
-{
-  /* objects are the default */
-  return elt_compare_objects;
-}
-
+
 // ENUMERATING;
 
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- (id <Enumerating>) objectEnumerator
 {
-  [self subclassResponsibility:_cmd];
-  return NO;
+  return [[[Enumerator alloc] initWithCollection: self]
+	   autorelease];
 }
+
+- (void) withObjectsInvoke: (id <Invoking>)anInvocation
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      [anInvocation invokeWithObject: o];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+- (void) withObjectsInvoke: (id <Invoking>)anInvocation whileTrue:(BOOL *)flag;
+{
+  id o;
+
+  FOR_COLLECTION_WHILE_TRUE(self, o, *flag)
+    {
+      [anInvocation invokeWithObject: o];
+    }
+  END_FOR_COLLECTION_WHILE_TRUE(self);
+}
+
+- (void) makeObjectsPerform: (SEL)aSel
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      [o perform: aSel];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+- (void) makeObjectsPerform: (SEL)aSel withObject: argObject
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      [o perform: aSel withObject: argObject];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+
+
+// FILTERED ENUMERATING;
+
+- (void) withObjectsTrueByInvoking: (id <Invoking>)testInvocation
+    invoke: (id <Invoking>)anInvocation
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      [testInvocation invokeWithObject: o];
+      if ([testInvocation returnValueIsTrue])
+	[anInvocation invokeWithObject: o];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+- (void) withObjectsFalseByInvoking: (id <Invoking>)testInvocation
+    invoke: (id <Invoking>)anInvocation
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      [testInvocation invokeWithObject: o];
+      if (![testInvocation returnValueIsTrue])
+	[anInvocation invokeWithObject: o];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+- (void) withObjectsTransformedByInvoking: (id <Invoking>)transInvocation
+    invoke: (id <Invoking>)anInvocation
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      [transInvocation invokeWithObject: o];
+      [anInvocation invokeWithObject: [transInvocation objectReturnValue]];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+
+
+// LOW-LEVEL ENUMERATING;
 
 - (void*) newEnumState
 {
   return (void*)0;
 }
 
-- freeEnumState: (void**)enumState
+- nextObjectWithEnumState: (void**)enumState;
 {
-  *enumState = (void*)0;
-  return self;
-}
-
-// Getting objects one at a time.  Pass *enumState == 0 to start.;
-- (BOOL) getNextObject:(id *)anObjectPtr withEnumState: (void**)enumState;
-{
-  elt o;
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  if ([self getNextElement:&o withEnumState:enumState])
-    {
-      *anObjectPtr = o.id_u;
-      return YES;
-    }
+  [self subclassResponsibility: _cmd];
   return NO;
 }
 
-- withElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag
+- (void) freeEnumState: (void**)enumState
 {
-  void *enumState = [self newEnumState];
-  elt e;
-
-  while (*flag && [self getNextElement:&e withEnumState:&enumState])
-    (*aFunc)(e);
-  [self freeEnumState:&enumState];
-  return self;
+  *enumState = (void*)0;
 }
 
-- withElementsCall: (void(*)(elt))aFunc
-{
-  BOOL flag = YES;
-  return [self withElementsCall:aFunc whileTrue:&flag];
-}
 
-- safeWithElementsCall: (void(*)(elt))aFunc
-{
-  id tmp = [[Array alloc] initWithContentsOf:self];
-  [tmp withElementsCall:aFunc];
-  [tmp release];
-  return self;
-}
-
-- safeWithElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag
-{
-  id tmp = [[Array alloc] initWithContentsOf:self];
-  [tmp withElementsCall:aFunc whileTrue:flag];
-  [tmp release];
-  return self;
-}
-
+
 // COPYING;
 
 - allocCopy
 {
-#if NeXT_runtime
-  return object_copy(self, 0);
-#else
-  return object_copy(self);
-#endif
+  return NSCopyObject (self, 0, [self zone]);
 }
 
 // the copy to be filled by -shallowCopyAs: etc... ;
@@ -607,8 +512,7 @@
   if (aCollectionClass == [self species])
     return [self emptyCopy];
   else
-    return [[(id)aCollectionClass alloc] 
-	    initWithType:[self contentType]];
+    return [[(id)aCollectionClass alloc] init];
 }
 
 - shallowCopy
@@ -619,6 +523,7 @@
 - shallowCopyAs: (Class)aCollectionClass
 {
   id newColl = [self emptyCopyAs:aCollectionClass];
+  //#warning fix this addContentsOf for ConstantCollection
   [newColl addContentsOf:self];
   return newColl;
 }
@@ -631,14 +536,14 @@
 - copyAs: (id <Collecting>)aCollectionClass
 {
   id newColl = [self emptyCopyAs:aCollectionClass];
-  void addCopy(elt e)
+  id o;
+
+  FOR_COLLECTION(self, o)
     {
-      [newColl addElement:[e.id_u copy]];
+      //#warning fix this addObject for ConstantCollection
+      [newColl addObject:[o copy]];
     }
-  if (CONTAINS_OBJECTS)
-    [self withElementsCall:addCopy];
-  else
-    [newColl addContentsOf:self];
+  END_FOR_COLLECTION(self);
   return newColl;
 }
 
@@ -647,587 +552,20 @@
   return [self copyAs:[self species]];
 }
 
-// This method shouldn't be necessary any more;
-// (Yuck---replaceElement: is inefficient for many subclasses;
-// Also, override this in KeyedCollection and IndexedCollection;)
-- deepen
-{
-  // could use objc_msg_lookup here too;
-  void doIt(elt o)
-    {
-      [self replaceElement:o with:[[o.id_u shallowCopy] deepen]];
-    }
-
-  [self error:"Collections don't use -deepen.  Use -copy instead."];
-  if (!CONTAINS_OBJECTS)
-    return self;
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
 - species
 {
   return [self class];
 }
 
-
-// FILTERED ENUMERATING;
-
-- withElementsTrueByCalling: (BOOL(*)(elt))testFunc 
-    call: (void(*)(elt))destFunc
-{
-  void doIt(elt e)
-    {
-      if ((*testFunc)(e))
-	(*destFunc)(e);
-    }
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- withObjectsTrueByCalling: (BOOL(*)(id))testFunc 
-    call: (void(*)(id))destFunc
-{
-  void doIt(elt e)
-    {
-      if ((*testFunc)(e.id_u))
-	(*destFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- withElementsFalseByCalling: (BOOL(*)(elt))testFunc 
-    call: (void(*)(elt))destFunc
-{
-  void doIt(elt e)
-    {
-      if (!(*testFunc)(e))
-	(*destFunc)(e);
-    }
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- withObjectsFalseByCalling: (BOOL(*)(id))testFunc 
-    call: (void(*)(id))destFunc
-{
-  void doIt(elt e)
-    {
-      if (!(*testFunc)(e.id_u))
-	(*destFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- withElementsTransformedByCalling: (elt(*)(elt))transFunc
-    call: (void(*)(elt))destFunc
-{
-  void doIt(elt e)
-    {
-      (*destFunc)((*transFunc)(e));
-    }
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- withObjectsTransformedByCalling: (id(*)(id))transFunc
-    call: (void(*)(id))destFunc
-{
-  void doIt(elt e)
-    {
-      (*destFunc)((*transFunc)(e.id_u));
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-
-// NON-COPYING ENUMERATORS;
-
-- (elt) detectElementByCalling: (BOOL(*)(elt))aFunc 
-    ifNoneCall: (elt(*)(arglist_t))excFunc
-{
-  BOOL flag = YES;
-  elt detectedElement;
-  void doIt(elt e)
-    {
-      if ((*aFunc)(e)) {
-	flag = NO;
-	detectedElement = e;
-      }
-    }
-  [self withElementsCall:doIt whileTrue:&flag];
-  if (flag)
-    RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-  else
-    return detectedElement;
-}
-
-- (elt) detectElementByCalling: (BOOL(*)(elt))aFunc
-{
-  elt err(arglist_t argFrame)
-    {
-      return NO_ELEMENT_FOUND_ERROR();
-    }
-  return [self detectElementByCalling:aFunc ifNoneCall:err];
-}
-
-- (elt) maxElementByCalling: (int(*)(elt,elt))aFunc
-{
-  elt max;
-  BOOL firstTime = YES;
-  void doIt(elt e)
-    {
-      if (firstTime)
-	{
-	  firstTime = NO;
-	  max = e;
-	}
-      else
-	{
-	  if ((*aFunc)(e,max) > 0)
-	    max = e;
-	}
-    }
-  if (![self count])
-    NO_ELEMENT_FOUND_ERROR();
-  [self withElementsCall:doIt];
-  return max;
-}
-
-- (elt) maxElement
-{
-  return [self maxElementByCalling:COMPARISON_FUNCTION];
-}
-
-- (elt) minElementByCalling: (int(*)(elt,elt))aFunc
-{
-  elt min;
-  BOOL firstTime = YES;
-  void doIt(elt e)
-    {
-      if (firstTime)
-	{
-	  firstTime = NO;
-	  min = e;
-	}
-      else
-	{
-	  if ((*aFunc)(e,min) < 0)
-	    min = e;
-	}
-    }
-  if (![self count])
-    NO_ELEMENT_FOUND_ERROR();
-  [self withElementsCall:doIt];
-  return min;
-}
-
-- (elt) minElement
-{
-  return [self minElementByCalling:COMPARISON_FUNCTION];
-}
-
-- (elt) injectElement: (elt)initialData byCalling: (elt(*)(elt,elt))aFunc
-{
-  void doIt(elt e)
-    {
-	initialData = (*aFunc)(initialData, e);
-    }
-  [self withElementsCall:doIt];
-  return initialData;
-}
-
-- injectObject: (id)initialObject byCalling: (id(*)(id,id))aFunc
-{
-  void doIt(elt e)
-    {
-	initialObject = (*aFunc)(initialObject, e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return initialObject;
-}
-
-
-- maxObjectByCalling: (int(*)(id,id))aFunc
-{
-  id max;
-  BOOL firstTime = YES;
-  void doIt(id e)
-    {
-      if (firstTime)
-	{
-	  firstTime = NO;
-	  max = e;
-	}
-      else
-	{
-	  if ((*aFunc)(e,max) > 0)
-	    max = e;
-	}
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  if (![self count])
-    NO_ELEMENT_FOUND_ERROR();
-  [self withObjectsCall:doIt];
-  return max;
-}
-
-- maxObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self maxElement].id_u;
-}
-
-- minObjectByCalling: (int(*)(id,id))aFunc
-{
-  id min;
-  BOOL firstTime = YES;
-  void doIt(id e)
-    {
-      if (firstTime)
-	{
-	  firstTime = NO;
-	  min = e;
-	}
-      else
-	{
-	  if ((*aFunc)(e,min) < 0)
-	    min = e;
-	}
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  if (![self count])
-    NO_ELEMENT_FOUND_ERROR();
-  [self withObjectsCall:doIt];
-  return min;
-}
-
-- minObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self minElement].id_u;
-}
-
-
-
-// OBJECT-COMPATIBLE MESSAGE NAMES
-
-// ADDING;
-
-- addObject: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self addElement:newObject];
-}
-
-- addObjectIfAbsent: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self addElementIfAbsent:newObject];
-}
-
-- addObjectsCount: (unsigned)count, ...
-{
-  va_list ap;
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  // could use objc_msg_lookup here also;
-  va_start(ap, count);
-  while (count--)
-    [self addElement:va_arg(ap, id)];
-  va_end(ap);
-  return self;
-}
-
-// REMOVING AND REPLACING;
-
-- removeObject: oldObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeElement:oldObject].id_u;
-}
-
-- removeObject: oldObject ifAbsentCall: (id(*)(arglist_t))excFunc
-{
-  elt elt_err(arglist_t argFrame)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeElement:oldObject ifAbsentCall:elt_err].id_u;
-}
-
-- removeAllOccurrencesOfObject: oldObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeAllOccurrencesOfElement:oldObject];
-}
-
-- replaceObject: oldObject with: newObject
-    ifAbsentCall: (id(*)(arglist_t))excFunc
-{
-  elt elt_err(arglist_t argFrame)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self replaceElement:oldObject with: newObject 
-	       ifAbsentCall:elt_err].id_u;
-}
-  
-- replaceObject: oldObject with: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self replaceElement:oldObject with:newObject].id_u;
-}
-
-- replaceAllOccurrencesOfObject: oldObject with: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self replaceAllOccurrencesOfElement:oldObject with:newObject];
-}
-
-// TESTING;
-
-- (BOOL) includesObject: anObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self includesElement:anObject];
-}
-
-
-// ENUMERATING
-
-- withObjectsCall: (void(*)(id))aFunc
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsCall:doIt];
-}
-
-/* xxx a temporary implementation until the collection overhaul gets done. */
-- (void) withObjectsInvoke: anInvocation
-{
-  void doIt(elt e)
-    {
-      [anInvocation invokeWithObject: e.id_u];
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-}
-
-- safeWithObjectsCall: (void(*)(id))aFunc
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self safeWithElementsCall:doIt];
-}
-
-- withObjectsCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsCall:doIt whileTrue:flag];
-}
-
-- safeWithObjectsCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self safeWithElementsCall:doIt whileTrue:flag];
-}
-
-- makeObjectsPerform: (SEL)aSel
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel];
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- safeMakeObjectsPerform: (SEL)aSel
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel];
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
-- safeMakeObjectsPerform: (SEL)aSel with: argObject
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel with:argObject];
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
-- makeObjectsPerform: (SEL)aSel with: argObject
-{
-  void doIt(elt e)
-    {
-      /* xxx change these to objc runtime functions,
-	 in case object doesn't responds to "perform" methods. */
-      [e.id_u perform:aSel with:argObject];
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-/* xxx What about adding "-askObjectsPerform: (SEL)aSel with: argObject"
-   that doesn't perform is object doesn't respond to aSel */
-
-- withObjectsPerform: (SEL)aSel in: selObject
-{
-  id (*aSelImp)(id,SEL,id) = (id(*)(id,SEL,id))
-    objc_msg_lookup(selObject, aSel);
-  void doIt(elt e)
-    {
-      aSelImp(selObject, aSel, e.id_u);
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- safeWithObjectsPerform: (SEL)aSel in: selObject
-{
-  id (*aSelImp)(id,SEL,id) = (id(*)(id,SEL,id))
-    objc_msg_lookup(selObject, aSel);
-  void doIt(elt e)
-    {
-      aSelImp(selObject, aSel, e.id_u);
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
-- withObjectsPerform: (SEL)aSel in: selObject with: argObject
-{
-  id (*aSelImp)(id,SEL,id,id) = (id(*)(id,SEL,id,id))
-    objc_msg_lookup(selObject, aSel);
-  void doIt(elt e)
-    {
-      aSelImp(selObject, aSel, e.id_u, argObject);
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withElementsCall:doIt];
-  return self;
-}
-
-- safeWithObjectsPerform: (SEL)aSel in: selObject with: argObject
-{
-  id (*aSelImp)(id,SEL,id,id) = (id(*)(id,SEL,id,id))
-    objc_msg_lookup(selObject, aSel);
-  void doIt(elt e)
-    {
-      aSelImp(selObject, aSel, e.id_u, argObject);
-    }
-
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithElementsCall:doIt];
-  return self;
-}
-
-
-// NON-COPYING ENUMERATORS;
-
-- detectObjectByCalling: (BOOL(*)(id))aFunc 
-{
-  id err(arglist_t argFrame)
-    {
-      return NO_ELEMENT_FOUND_ERROR();
-    }
-  return [self detectObjectByCalling:aFunc ifNoneCall:err];
-}
-
-- detectObjectByCalling: (BOOL(*)(id))aFunc 
-    ifNoneCall: (id(*)(arglist_t))excFunc
-{
-  elt err(arglist_t argFrame)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  BOOL test(elt e)
-    {
-      return (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self detectElementByCalling:test ifNoneCall:err].id_u;
-}
-
-// This printing stuff will change when we get Stream objects;
-
-- printElement: (elt)anElement
-{
-  elt_fprintf_elt(stdout, [self contentType], anElement);
-  return self;
-}
-
-- printForDebugger
-{
-  void doIt(elt e)
-    {
-      [self printElement:e];
-      printf(" ");
-    }
-  [self withElementsCall:doIt];
-  printf(" :%s\n", [self name]);
-  return self;
-}
-
-- _libobjectsMethodNotYetImplemented: (SEL)aSel
-{
-  [self error:"method %s in libobjects not yet implemented.\n\
-Contact mccallum@gnu.ai.mit.edu (R. Andrew McCallum)\n\
-for info about latest version.",
-   sel_get_name(aSel)];
-  return self;
-}
+
+// EXTRAS;
 
 - (const char *) libobjectsLicense
 {
   const char *licenseString = 
-    "Copyright (C) 1993,1994,1994 Free Software Foundation, Inc.\n"
+    "Copyright (C) 1993,1994,1995,1996 Free Software Foundation, Inc.\n"
     "\n"
-    "Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>\n"
-    "Date: May 1993\n"
+    "Chief Maintainer: Andrew McCallum <mccallum@gnu.ai.mit.edu>\n"
     "\n"
     "This object is part of the GNU Objective C Class Library.\n"
     "\n"
@@ -1247,21 +585,17 @@ for info about latest version.",
   return licenseString;
 }
 
-- write: (TypedStream *)aStream 
-{ 
-  [super write: aStream]; 
-  [self _writeInit:aStream]; 
-  [self _writeContents:aStream]; 
-  return self; 
-} 
- 
-- read: (TypedStream *)aStream 
-{ 
-  [super read: aStream]; 
-  [self _readInit:aStream]; 
-  [self _readContents:aStream]; 
-  return self; 
-} 
+- printForDebugger
+{
+  id o;
+  FOR_COLLECTION(self, o)
+    {
+      printf("%s ", [[o description] cStringNoCopy]);
+    }
+  END_FOR_COLLECTION(self);
+  printf(": %s\n", [self name]);
+  return self;
+}
 
 - (void) encodeWithCoder: aCoder
 {
@@ -1278,8 +612,8 @@ for info about latest version.",
 
 @end
 
-
-@implementation Collection (ArchivingHelpers)
+
+@implementation ConstantCollection (ArchivingHelpers)
 
 - (void) _encodeCollectionWithCoder: aCoder
 {
@@ -1294,99 +628,211 @@ for info about latest version.",
   return [super initWithCoder:aCoder];
 }
 
-- _writeInit: (TypedStream*)aStream
-{
-  // there are no instance vars;
-  return self;
-}
-
-- _readInit: (TypedStream*)aStream
-{
-  // there are no instance vars;
-  return self;
-}
-
-- (void) _encodeContentsWithCoder: (Coder*)aCoder
+- (void) _encodeContentsWithCoder: (id <Encoding>)aCoder
 {
   unsigned int count = [self count];
-  const char *encoding = [self contentType];
-  void archiveElement(elt e)
+  id o;
+
+  [aCoder encodeValueOfCType: @encode(unsigned)
+	  at: &count
+	  withName: @"Collection content count"];
+  FOR_COLLECTION(self, o)
     {
-      [aCoder encodeValueOfObjCType:encoding
-	      at:elt_get_ptr_to_member(encoding, &e)
+      [aCoder encodeObject: o
 	      withName:@"Collection element"];
     }
-
-  [aCoder encodeValueOfCType:@encode(unsigned)
-	  at:&count
-	  withName:@"Collection element count"];
-  [self withElementsCall:archiveElement];
+  END_FOR_COLLECTION(self);
 }
 
-- (void) _decodeContentsWithCoder: (Coder*)aCoder
+- (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
 {
+  id *content_array;
   unsigned int count, i;
-  elt newElement;  
-  const char *encoding = [self contentType];
+  id o;
 
   [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:NULL];
+  OBJC_MALLOC(content_array, id, count);
   for (i = 0; i < count; i++)
-    {
-      [aCoder decodeValueOfObjCType:encoding
-	      at:elt_get_ptr_to_member(encoding, &newElement)
-	      withName:NULL];
-      [self addElement:newElement];
-    }
-}
-
-- _writeContents: (TypedStream*)aStream
-{
-  unsigned int count = [self count];
-  const char *encoding = [self contentType];
-  void archiveElement(elt e)
-    {
-      objc_write_type(aStream, encoding,
-		      elt_get_ptr_to_member(encoding, &e));
-    }
-
-  objc_write_type(aStream, @encode(unsigned int), &count);
-  [self withElementsCall:archiveElement];
-  return self;
-}
-
-- _readContents: (TypedStream*)aStream
-{
-  unsigned int count, i;
-  elt newElement;  
-  const char *encoding = [self contentType];
-
-  objc_read_type(aStream, @encode(unsigned int), &count);
-  for (i = 0; i < count; i++)
-    {
-      objc_read_type(aStream, encoding, 
-		     elt_get_ptr_to_member(encoding, &newElement));
-      [self addElement:newElement];
-    }
-  return self;
+    [aCoder decodeObjectAt: &(content_array[i])
+	    withName:NULL];
+  [self initWithObjects: content_array count: count];
 }
 
 @end
 
-@implementation Collection (DeallocationHelpers)
+
+@implementation ConstantCollection (DeallocationHelpers)
 
 /* This must work without sending any messages to content objects.
    Content objects already may be dealloc'd when this is executed. */
-- _empty
+- (void) _collectionEmpty
 {
   [self subclassResponsibility:_cmd];
-  return self;
+}
+
+- (void) _collectionReleaseContents
+{
+  int c = [self count];
+  id *array = (id*) (*objc_malloc) (c * sizeof(id));
+  int i = 0;
+  void *es = [self newEnumState];
+  id o;
+  while ((o = [self nextObjectWithEnumState:&es]))
+    {
+      array[i++] = o;
+    }
+  [self freeEnumState: &es];
+  assert (c == i);
+  for (i = 0; i < c; i++)
+    [array[i] release];
+  (*objc_free) (array);
 }
 
 - (void) _collectionDealloc
 {
   return;
+}
+
+@end
+
+
+@implementation Collection
+
+// ADDING;
+
+- (void) addObject: anObject
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void) addObjectIfAbsent: newObject;
+{
+  if (![self containsObject: newObject])
+    [self addObject: newObject];
+}
+
+- (void) addContentsOf: (id <Collecting>)aCollection
+{
+  id o;
+
+  FOR_COLLECTION(aCollection, o)
+    {
+      [self addObject: o];
+    }
+  END_FOR_COLLECTION(aCollection);
+}
+
+- (void) addContentsIfAbsentOf: (id <Collecting>)aCollection
+{
+  id o;
+
+  FOR_COLLECTION(aCollection, o)
+    {
+      if (![self containsObject:o])
+	[self addObject: o];
+    }
+  END_FOR_COLLECTION(aCollection);
+}
+
+- (void) addWithObjects: (id*)objc count: (unsigned)c
+{
+  [self notImplemented: _cmd];
+}
+
+- (void) addObjects: firstObject, ...
+{
+  [self notImplemented: _cmd];
+}
+
+- (void) addObjects: firstObject rest: (va_list)ap
+{
+  [self notImplemented: _cmd];
+}
+
+
+// REMOVING AND REPLACING;
+
+- (void) removeObject: oldObject
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) removeAllOccurrencesOfObject: oldObject
+{
+  while ([self containsObject: oldObject])
+    [self removeObject: oldObject];
+}
+
+- (void) removeContentsIn: (id <ConstantCollecting>)aCollection
+{
+  id o;
+
+  FOR_COLLECTION(aCollection, o)
+    {
+      [self removeObject: o];
+    }
+  END_FOR_COLLECTION(aCollection);
+}
+
+- (void) removeContentsNotIn: (id <ConstantCollecting>)aCollection
+{
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      if (![aCollection containsObject: o])
+	[self removeObject: o];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+- (void) uniqueContents
+{
+  id cp = [self shallowCopy];
+  int count;
+  id o;
+
+  FOR_COLLECTION(self, o)
+    {
+      count = [self occurrencesOfObject: o];
+      if (!count)
+	continue;
+      while (count--)
+	[self removeObject: o];
+    }
+  END_FOR_COLLECTION(self);
+}
+
+/* May be inefficient.  Could be overridden; */
+- (void) empty
+{
+  if ([self isEmpty])
+    return;
+  [self _collectionReleaseContents];
+  [self _collectionEmpty];
+}
+
+
+// REPLACING;
+
+- (void) replaceObject: oldObject withObject: newObject
+{
+  if ([newObject isEqual: newObject])
+    return;
+  [oldObject retain];
+  [self removeObject: oldObject];
+  [self addObject: newObject];
+  [oldObject release];
+}
+
+- (void) replaceAllOccurrencesOfObject: oldObject withObject: newObject
+{
+  if ([oldObject isEqual: newObject])
+    return;
+  while ([self containsObject: oldObject])
+    [self replaceObject: oldObject withObject: newObject];
 }
 
 @end

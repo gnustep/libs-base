@@ -1,8 +1,8 @@
 /* Protocol for Objective-C objects that hold collections of elements.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -35,54 +35,61 @@
 #define __Collecting_h_INCLUDE_GNU
 
 #include <objects/stdobjects.h>
-#include <objc/Object.h>
-#include <objects/elt.h>
+#include <objects/Coding.h>
+#include <objects/Invoking.h>
+#include <objects/Enumerating.h>
 
 @protocol ConstantCollecting
 
 // INITIALIZING;
 - init;
+- initWithObjects: (id*)objc count: (unsigned)c;
+- initWithObjects: firstObject, ...;
+- initWithObjects: firstObject rest: (va_list)ap;
 - initWithContentsOf: (id <ConstantCollecting>)aCollection;
 
-// TESTING;
+// QUERYING COUNTS;
 - (BOOL) isEmpty;
-- (BOOL) includesObject: anObject;
+- (unsigned) count;
+- (BOOL) containsObject: anObject;
+- (unsigned) occurrencesOfObject: anObject;
+
+// COMPARISON WITH OTHER COLLECTIONS;
 - (BOOL) isSubsetOf: (id <ConstantCollecting>)aCollection;
 - (BOOL) isDisjointFrom: (id <ConstantCollecting>)aCollection;
-- (int) compare: anObject;
 - (BOOL) isEqual: anObject;
+- (int) compare: anObject;
 - (BOOL) contentsEqual: (id <ConstantCollecting>)aCollection;
-- (unsigned) count;
-- (unsigned) occurrencesOfObject: anObject;
-- (BOOL) trueForAllObjectsByCalling: (BOOL(*)(id))aFunc;
-- (BOOL) trueForAnyObjectsByCalling: (BOOL(*)(id))aFunc;
-- detectObjectByCalling: (BOOL(*)(id))aFunc;
-- detectObjectByCalling: (BOOL(*)(id))aFunc 
-    ifNoneCall: (id(*)(arglist_t))excFunc;
+
+// PROPERTIES OF CONTENTS;
+- (BOOL) trueForAllObjectsByInvoking: (id <Invoking>)anInvocation;
+- (BOOL) trueForAnyObjectsByInvoking: (id <Invoking>)anInvocation;
+- detectObjectByInvoking: (id <Invoking>)anInvocation;
 - maxObject;
-- maxObjectByCalling: (int(*)(id,id))aFunc;
 - minObject;
-- minObjectByCalling: (int(*)(id,id))aFunc;
 
 // ENUMERATING
-- (void*) newEnumState;
-- (BOOL) getNextObject:(id *)anObjectPtr withEnumState: (void**)enumState;
-- freeEnumState: (void**)enumState;
-- withObjectsCall: (void(*)(id))aFunc;
-- withObjectsCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
-- injectObject: initialArgObject byCalling:(id(*)(id,id))aFunc;
-- makeObjectsPerform: (SEL)aSel;
-- makeObjectsPerform: (SEL)aSel with: argObject;
+- (id <Enumerating>) objectEnumerator;
+- (void) withObjectsInvoke: (id <Invoking>)anInvocation;
+- (void) withObjectsInvoke: (id <Invoking>)anInvocation whileTrue:(BOOL *)flag;
+- (void) makeObjectsPerform: (SEL)aSel;
+- (void) makeObjectsPerform: (SEL)aSel withObject: argObject;
 
 // FILTERED ENUMERATING;
-- withObjectsTrueByCalling: (BOOL(*)(id))testFunc 
-    call: (void(*)(id))destFunc;
-- withObjectsFalseByCalling: (BOOL(*)(id))testFunc 
-    call: (void(*)(id))destFunc;
-- withObjectsTransformedByCalling: (id(*)(id))transFunc
-    call: (void(*)(id))destFunc;
+- (void) withObjectsTrueByInvoking: (id <Invoking>)testInvocation
+    invoke: (id <Invoking>)anInvocation;
+- (void) withObjectsFalseByInvoking: (id <Invoking>)testInvocation
+    invoke: (id <Invoking>)anInvocation;
+- (void) withObjectsTransformedByInvoking: (id <Invoking>)transInvocation
+    invoke: (id <Invoking>)anInvocation;
 
-// COPYING 
+// LOW-LEVEL ENUMERATING;
+- (void*) newEnumState;
+- nextObjectWithEnumState: (void**)enumState;
+- (void) freeEnumState: (void**)enumState;
+
+// COPYING;
+- allocCopy;
 - emptyCopy;
 - emptyCopyAs: (Class)aCollectionClass;
 - shallowCopy;
@@ -91,98 +98,34 @@
 - copyAs: (Class)aCollectionClass;
 - species;
 
-// NON-OBJECT ELEMENT METHOD NAMES;
-
-// INITIALIZING;
-- initWithType:(const char *)contentEncoding;
-
-// TESTING;
-- (BOOL) includesElement: (elt)anElement;
-- (unsigned) occurrencesOfElement: (elt)anElement;
-- (elt) detectElementByCalling: (BOOL(*)(elt))aFunc;
-- (elt) detectElementByCalling: (BOOL(*)(elt))aFunc 
-    ifNoneCall: (elt(*)(arglist_t))excFunc;
-- (elt) maxElement;
-- (elt) maxElementByCalling: (int(*)(elt,elt))aFunc;
-- (elt) minElement;
-- (elt) minElementByCalling: (int(*)(elt,elt))aFunc;
-- (BOOL) trueForAllElementsByCalling: (BOOL(*)(elt))aFunc;
-- (BOOL) trueForAnyElementsByCalling: (BOOL(*)(elt))aFunc;
-- (const char *) contentType;
-- (BOOL) contentsAreObjects;
-- (int(*)(elt,elt)) comparisonFunction;
-
-// ENUMERATING;
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState;
-- withElementsCall: (void(*)(elt))aFunc;
-- withElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag;
-- (elt) injectElement: (elt)initialElement byCalling: (elt(*)(elt,elt))aFunc;
-
-// FILTERED ENUMERATING;
-- withElementsTrueByCalling: (BOOL(*)(elt))testFunc 
-    call: (void(*)(elt))destFunc;
-- withElementsFalseByCalling: (BOOL(*)(elt))testFunc 
-    call: (void(*)(elt))destFunc;
-- withElementsTransformedByCalling: (elt(*)(elt))transFunc
-    call: (void(*)(elt))destFunc;
-
 @end
 
 
 @protocol Collecting <ConstantCollecting>
 
 // ADDING;
-- addObject: newObject;
-- addObjectIfAbsent: newObject;
-- addContentsOf: (id <ConstantCollecting>)aCollection;
-- addContentsOfIfAbsent: (id <ConstantCollecting>)aCollection;
-- addObjectsCount: (unsigned)count, ...;
+- (void) addObject: newObject;
+- (void) addObjectIfAbsent: newObject;
+- (void) addContentsOf: (id <ConstantCollecting>)aCollection;
+- (void) addContentsIfAbsentOf: (id <ConstantCollecting>)aCollection;
+- (void) addWithObjects: (id*)objc count: (unsigned)c;
+- (void) addObjects: firstObject, ...;
+- (void) addObjects: firstObject rest: (va_list)ap;
 
 // REMOVING;
-- removeObject: oldObject;
-- removeObject: oldObject ifAbsentCall: (id(*)(arglist_t))excFunc;
-- removeAllOccurrencesOfObject: oldObject;
-- removeContentsIn: (id <ConstantCollecting>)aCollection;
-- removeContentsNotIn: (id <ConstantCollecting>)aCollection;
-- uniqueContents;
-- empty;
+- (void) removeObject: oldObject;
+- (void) removeAllOccurrencesOfObject: oldObject;
+- (void) removeContentsIn: (id <ConstantCollecting>)aCollection;
+- (void) removeContentsNotIn: (id <ConstantCollecting>)aCollection;
+- (void) uniqueContents;
+- (void) empty;
 
 // REPLACING;
-- replaceObject: oldObject with: newObject;
-- replaceObject: oldObject with: newObject 
-    ifAbsentCall:(id(*)(arglist_t))excFunc;
-- replaceAllOccurrencesOfObject: oldObject with: newObject;
-
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeMakeObjectsPerform: (SEL)aSel;
-- safeMakeObjectsPerform: (SEL)aSel with: argObject;
-- safeWithObjectsCall: (void(*)(id))aFunc;
-- safeWithObjectsCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
-
-
-// NON-OBJECT ELEMENT METHOD NAMES;
-
-// ADDING;
-- addElement: (elt)newElement;
-- addElementIfAbsent: (elt)newElement;
-- addElementsCount: (unsigned)count, ...;
-
-// REMOVING;
-- (elt) removeElement: (elt)oldElement;
-- (elt) removeElement: (elt)oldElement 
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-- removeAllOccurrencesOfElement: (elt)oldElement;
-
-// REPLACING;
-- (elt) replaceElement: (elt)oldElement with: (elt)newElement;
-- (elt) replaceElement: (elt)oldElement with: (elt)newElement
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-- replaceAllOccurrencesOfElement: (elt)oldElement with: (elt)newElement;
-
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithElementsCall: (void(*)(elt))aFunc;
-- safeWithElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag;
+- (void) replaceObject: oldObject withObject: newObject;
+- (void) replaceAllOccurrencesOfObject: oldObject withObject: newObject;
 
 @end
+
+#define NO_OBJECT nil
 
 #endif /* __Collecting_h_INCLUDE_GNU */

@@ -1,5 +1,5 @@
 /* Implementation for Objective-C LinkedList collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -27,19 +27,20 @@
 
 @implementation LinkedList
 
-+ (void) initialize
-{
-  if (self == [LinkedList class])
-    [self setVersion:0];	/* beta release */
-}
-
 /* This is the designated initializer of this class */
 - init
 {
-  [super initWithType:@encode(id)];
   _count = 0;
   _first_link = nil;
+  _last_link = nil;
   return self;
+}
+
+- initWithObjects: (id*)objs count: (unsigned)c
+{
+  [self init];
+  while (c--)
+    [self prependObject: objs[c]];
 }
 
 /* Archiving must mimic the above designated initializer */
@@ -49,10 +50,11 @@
   [super _initCollectionWithCoder:aCoder];
   _count = 0;
   _first_link = nil;
+  _last_link = nil;
   return self;
 }
 
-- (void) _encodeContentsWithCoder: aCoder
+- (void) _encodeContentsWithCoder: (id <Encoding>)aCoder
 {
   [aCoder startEncodingInterconnectedObjects];
   [super _encodeContentsWithCoder:aCoder];
@@ -63,256 +65,301 @@
    We shouldn't do an -addElement.  finishEncodingInterconnectedObjects
    should take care of all that. */
 
-- (void) _decodeContentsWithCoder: (Coder*)aCoder
+- (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
 {
   [aCoder startDecodingInterconnectedObjects];
   [super _decodeContentsWithCoder:aCoder];
   [aCoder finishDecodingInterconnectedObjects];
 }
 
-- _readInit: (TypedStream*)aStream
-{
-  [super _readInit:aStream];
-  _count = 0;
-  _first_link = nil;
-  return self;
-}
-
 /* Empty copy must empty an allocCopy'ed version of self */
 - emptyCopy
 {
   LinkedList *copy = [super emptyCopy];
-  copy->_count = 0;
   copy->_first_link = nil;
+  copy->_last_link = nil;
+  copy->_count = 0;
   return copy;
 }
 
 /* This must work without sending any messages to content objects */
-- _empty
+- (void) _empty
 {
   _count = 0;
   _first_link = nil;
-  return self;
-}
-
-/* Override the designated initializer for our superclass IndexedCollection
-   to make sure we have object values. */
-- initWithType: (const char *)contentEncoding
-{
-  if (!ENCODING_IS_OBJECT(contentEncoding))
-    [self error:"LinkedList contents must be objects conforming to "
-	  "<LinkedListComprising> protocol"];
-  [self init];
-  return self;
+  _last_link = nil;
 }
 
 /* These next four methods are the only ones that change the values of
    the instance variables _count, _first_link, except for
-   "-initDescription:". */
+   "-init". */
 
-- (elt) removeElement: (elt)oldElement
+- (void) removeObject: oldObject
 {
-  if (_first_link == oldElement.id_u)
+  assert ([oldObject linkedList] == self);
+  if (_first_link == oldObject)
     {
       if (_count > 1)
-	_first_link = [oldElement.id_u nextLink];
+	_first_link = [oldObject nextLink];
       else
 	_first_link = nil;
     }
-  [[oldElement.id_u nextLink] setPrevLink:[oldElement.id_u prevLink]];
-  [[oldElement.id_u prevLink] setNextLink:[oldElement.id_u nextLink]];
+  else
+    [[oldObject prevLink] setNextLink:[oldObject nextLink]];
+  if (_last_link == oldObject)
+    {
+      if (_count > 1)
+	_last_link = [oldObject prevLink];
+      else
+	_first_link = nil;
+    }
+  else
+    [[oldObject nextLink] setPrevLink:[oldObject prevLink]];
   _count--;
-  return AUTORELEASE_ELT(oldElement);
+  [oldObject setNextLink: NO_OBJECT];
+  [oldObject setPrevLink: NO_OBJECT];
+  [oldObject release];
 }
   
-- insertElement: (elt)newElement after: (elt)oldElement
+- (void) insertObject: newObject after: oldObject
 {
+  /* Make sure we actually own the oldObject. */
+  assert ([oldObject linkedList] == self);
+
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setLinkedList: self];
+
+  /* Insert it. */
   if (_count == 0)
     {
-      /* link to self */
-      _first_link = newElement.id_u;
-      [newElement.id_u setNextLink:newElement.id_u];
-      [newElement.id_u setPrevLink:newElement.id_u];
+      _first_link = newObject;
+      _last_link = newObject;
+      [newObject setNextLink: NO_OBJECT];
+      [newObject setPrevLink: NO_OBJECT];
     }
   else
     {
-      [newElement.id_u setNextLink:[oldElement.id_u nextLink]];
-      [newElement.id_u setPrevLink:oldElement.id_u];
-      [[oldElement.id_u nextLink] setPrevLink:newElement.id_u];
-      [oldElement.id_u setNextLink:newElement.id_u];
+      if (oldObject == _last_link)
+	_last_link = newObject;
+      [newObject setNextLink: [oldObject nextLink]];
+      [newObject setPrevLink: oldObject];
+      [[oldObject nextLink] setPrevLink: newObject];
+      [oldObject setNextLink: newObject];
     }
   _count++;
-  return self;
 }
 
-- insertElement: (elt)newElement before: (elt)oldElement
+- (void) insertObject: newObject before: oldObject
 {
-  if (oldElement.id_u == _first_link)
-      _first_link = newElement.id_u;
+  /* Make sure we actually own the oldObject. */
+  assert ([oldObject linkedList] == self);
+
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setLinkedList: self];
+
+  /* Insert it. */
   if (_count == 0)
     {
-      /* Link to self */
-      [newElement.id_u setNextLink:newElement.id_u];
-      [newElement.id_u setPrevLink:newElement.id_u];
+      _first_link = newObject;
+      _last_link = newObject;
+      [newObject setNextLink: NO_OBJECT];
+      [newObject setPrevLink: NO_OBJECT];
     }
   else
     {
-      [newElement.id_u setPrevLink:[oldElement.id_u prevLink]];
-      [newElement.id_u setNextLink:oldElement.id_u];
-      [[oldElement.id_u prevLink] setNextLink:newElement.id_u];
-      [oldElement.id_u setPrevLink:newElement.id_u];
+      if (oldObject == _first_link)
+	_first_link = newObject;
+      [newObject setPrevLink: [oldObject prevLink]];
+      [newObject setNextLink: oldObject];
+      [[oldObject prevLink] setNextLink: newObject];
+      [oldObject setPrevLink: newObject];
     }
   _count++;
-  RETAIN_ELT(newElement);
-  return self;
 }
 
-- (elt) replaceElement: (elt)oldElement with: (elt)newElement
+- (void) replaceObject: oldObject with: newObject
 {
-  RETAIN_ELT(newElement);
-  if (oldElement.id_u == _first_link)
-    _first_link = newElement.id_u;
-  [newElement.id_u setNextLink:[oldElement.id_u nextLink]];
-  [newElement.id_u setPrevLink:[oldElement.id_u prevLink]];
-  [[oldElement.id_u prevLink] setNextLink:newElement.id_u];
-  [[oldElement.id_u nextLink] setPrevLink:newElement.id_u];
-  return AUTORELEASE_ELT(oldElement);
+  /* Make sure we actually own the oldObject. */
+  assert ([oldObject linkedList] == self);
+
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setLinkedList: self];
+
+  /* Do the replacement. */
+  if (oldObject == _first_link)
+    _first_link = newObject;
+  [newObject setNextLink:[oldObject nextLink]];
+  [newObject setPrevLink:[oldObject prevLink]];
+  [[oldObject prevLink] setNextLink:newObject];
+  [[oldObject nextLink] setPrevLink:newObject];
+
+  /* Release ownership of the oldObject. */
+  [oldObject setNextLink: NO_OBJECT];
+  [oldObject setPrevLink: NO_OBJECT];
+  [oldObject setLinkedList: NO_OBJECT];
+  [oldObject release];
 }
 
 /* End of methods that change the instance variables. */
+
 
-
-- appendElement: (elt)newElement
+- (void) appendObject: newObject
 {
-  if (_count)
-    [self insertElement:newElement after:[self lastElement]];
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setLinkedList: self];
+
+  /* Insert it. */
+  if (_count == 0)
+    {
+      _first_link = newObject;
+      _last_link = newObject;
+      [newObject setNextLink: NO_OBJECT];
+      [newObject setPrevLink: NO_OBJECT];
+    }
   else
-    [self insertElement:newElement after:nil];
-  return self;
+    [self insertObject: newObject after: _last_link];
 }
 
-- prependElement: (elt)newElement
+- prependElement: newObject
 {
-  [self insertElement:newElement before:_first_link];
-  return self;
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setLinkedList: self];
+
+  /* Insert it. */
+  if (_count == 0)
+    {
+      _first_link = newObject;
+      _last_link = newObject;
+      [newObject setNextLink: NO_OBJECT];
+      [newObject setPrevLink: NO_OBJECT];
+    }
+  else
+    [self insertObject: newObject before: _first_link];
 }
 
-- insertElement: (elt)newElement atIndex: (unsigned)index
+- insertElement: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, (_count+1));
-  if (index == _count)
-    [self insertElement:newElement after:[self lastElement]];
+
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setLinkedList: self];
+
+  /* Insert it. */
+  if (_count == 0)
+    {
+      _first_link = newObject;
+      _last_link = newObject;
+      [newObject setNextLink: NO_OBJECT];
+      [newObject setPrevLink: NO_OBJECT];
+    }
+  else if (index == _count)
+    [self insertObject: newObject after: _last_link];
   else
-    [self insertElement:newElement before:[self elementAtIndex:index]];
+    [self insertObject:newObject before: [self objectAtIndex: index]];
   return self;
 }
 
-- (elt) removeElementAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  return [self removeElement:[self elementAtIndex:index]];
+  [self removeObject: [self objectAtIndex: index]];
 }
 
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
-  id <LinkedListComprising> aLink;
+  id <LinkedListComprising> link;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
+
   if (index < _count / 2)
-    for (aLink = _first_link;
+    for (link = _first_link;
 	 index;
-	 aLink = [aLink nextLink], index--)
+	 link = [link nextLink], index--)
       ;
   else
-    for (aLink = [_first_link prevLink], index = _count - index - 1;
+    for (link = _last_link, index = _count - index - 1;
 	 index;
-	 aLink = [aLink prevLink], index--)
+	 link = [link prevLink], index--)
       ;
-  return aLink;
+  return link;
 }
 
-- (elt) firstElement
+- firstObject
 {
   return _first_link;
 }
 
-- (elt) lastElement
+- lastObject
 {
-  if (_count)
-    return [_first_link prevLink];
-  else
-    return NO_ELEMENT_FOUND_ERROR();
+  return _last_link;
 }
 
-- (elt) successorOfElement: (elt)oldElement
+- successorOfObject: oldObject
 {
-  id nextElement = [oldElement.id_u nextLink];
-  if (_first_link == nextElement)
-    return nil;
-  else
-    return (elt)nextElement;
+  /* Make sure we actually own the oldObject. */
+  assert ([oldObject linkedList] == self);
+
+  return [oldObject nextLink];
 }
 
-- (elt) predecessorOfElement: (elt)oldElement
+- predecessorOfObject: oldObject
 {
-  if (_first_link == oldElement.id_u)
-    return nil;
-  else
-    return (elt)[oldElement.id_u prevLink];
+  /* Make sure we actually own the oldObject. */
+  assert ([oldObject linkedList] == self);
+
+  return [oldObject prevLink];
 }
 
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- nextObjectWithEnumState: (void**)enumState
 {
+  /* *enumState points to the next object to be returned. */
+  id ret;
+
   if (*enumState == _first_link)
-    return NO;
+    return NO_OBJECT;
   else if (!(*enumState))
     *enumState = _first_link;
-  *anElementPtr = *enumState;
+  ret = (id) *enumState;
   *enumState = [(id)(*enumState) nextLink];
-  return YES;
+  return ret;
 }
 
-- (BOOL) getPrevElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- prevObjectWithEnumState: (void**)enumState
 {
-  if (*enumState == _first_link)
-    return NO;
-  if (!(*enumState))
-    *enumState = _first_link;
+  id ret;
+
+  if (*enumState == _last_link)
+    return NO_OBJECT;
+  else if (!(*enumState))
+    *enumState = _last_link;
+  ret = (id) *enumState;
   *enumState = [(id)(*enumState) prevLink];
-  *anElementPtr = *enumState;
-  return YES;
+  return ret;
 }
-
-- withElementsCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  id link;
-  unsigned i;
-
-  for (link = _first_link, i = 0;
-       *flag && i < _count;
-       link = [link nextLink], i++)
-    {
-      (*aFunc)(link);
-    }
-  return self;
-}
-
-- withElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  id link;
-  unsigned i;
-
-  if (!_first_link)
-    return self;
-  for (link = [_first_link prevLink], i = 0;
-       *flag && i < _count;
-       link = [link prevLink], i++)
-    {
-      (*aFunc)(link);
-    }
-  return self;
-}
-
 
 - (unsigned) count
 {

@@ -1,5 +1,5 @@
 /* Interface for Objective-C Array collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -26,13 +26,19 @@
 
 #include <objects/stdobjects.h>
 #include <objects/IndexedCollection.h>
+#include <objects/OrderedCollecting.h>
 
-@interface Array : IndexedCollection
+@interface ConstantArray : IndexedCollection
 {
   @public
-  int (*_comparison_function)(elt,elt);
-  elt *_contents_array;
+  id *_contents_array;
   unsigned int _count;
+}
+@end
+
+@interface Array : ConstantArray
+{
+  @public
   unsigned int _capacity;
   unsigned int _grow_factor;
 }
@@ -40,14 +46,16 @@
 + (unsigned) defaultCapacity;
 + (unsigned) defaultGrowFactor;
 
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity;
 - initWithCapacity: (unsigned) aCapacity;
 
-- setCapacity: (unsigned)newCapacity;
+- (void) setCapacity: (unsigned)newCapacity;
 - (unsigned) growFactor;
-- setGrowFactor: (unsigned)aNum;
+- (void) setGrowFactor: (unsigned)aNum;
 
+@end
+
+/* Put this on category instead of class to avoid bogus complaint from gcc */
+@interface Array (Ordering)  <OrderedCollecting>
 @end
 
 #define FOR_ARRAY(ARRAY, ELEMENT_VAR)                                  \

@@ -1,8 +1,8 @@
 /* Interface for Objective-C BinaryTreeNode object
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -33,6 +33,7 @@
   id _left;
   id _right;
   id _parent;
+  id _binary_tree;
 }
 @end
 
