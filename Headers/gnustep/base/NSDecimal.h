@@ -57,15 +57,15 @@ typedef enum {
 #define NSDecimalNoScale 128
 
 typedef struct {
-  char	exponent;	/* Signed exponent - -128 to 127	*/
+  signed char	exponent;	/* Signed exponent - -128 to 127	*/
   BOOL	isNegative;	/* Is this negative?			*/
   BOOL	validNumber;	/* Is this a valid number?		*/
 #ifdef HAVE_GMP
   mp_size_t size;
   mp_limb_t lMantissa[NSDecimalMaxSize];
 #else
-  char	length;		/* digits in mantissa.			*/
-  char  cMantissa[NSDecimalMaxDigit];
+  unsigned char	length;		/* digits in mantissa.			*/
+  unsigned char cMantissa[NSDecimalMaxDigit];
 #endif
 } NSDecimal;
 
