@@ -54,7 +54,9 @@
 {
   /* Remove from the queues notifications that match NOTIFICATION, according
      the the MASK. */
-  void remove_matching_from_queue (id q)
+  /* xxx This method should be made much more efficient.  Currently, it
+     could be a big bottleneck. */
+  void remove_matching_from_queue (Queue *q)
     {
       int i;
       for (i = [q count] - 1; i >= 0; i--)
