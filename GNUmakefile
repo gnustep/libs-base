@@ -42,9 +42,7 @@ DIST_FILES = \
 	README.ULTRIX README.ucblib \
 	COPYING COPYING.LIB ChangeLog \
 	configure Version \
-	config.guess mkinstalldirs install-sh config.sub \
-	gcc-2.7.2-objc.diff \
-	gcc-2.7.2.1-objc.diff
+	config.guess mkinstalldirs install-sh config.sub
 
 #
 # The list of subproject directories

@@ -74,31 +74,33 @@ after-distclean::
 
 configure: configure.in
 	autoconf
+	autoheader
 
-snap: $(DIST_FILES)
-	rm -rf snap
-	mkdir snap
+# Regenerate automatically generated files
+regenerate: stamp-regenerate
+
+stamp-regenerate: ChangeLog configure
 	for i in $(SUBPROJECTS); do \
-	  (cd $$i; $(MAKE) $(MAKEDEFINES) copy-dist); \
+	  (cd $$i; $(MAKE) $(MAKEDEFINES) regenerate); \
 	done
-	mkdir snap/config
-	for file in $(DIST_FILES); do \
-	  ln $$file snap/$$file ; \
-	done
+	touch stamp-regenerate
 
-snapshot: snap
-	ln README.first snap
+snapshot: 
+	@echo Making $(PACKAGE_NAME) snapshot
+	cvs export -r snapshot-`date +%y%m%d` $(PACKAGE_NAME)
 	rm -f .name
 	echo $(PACKAGE_NAME)-`date +%y%m%d` >.name
 	rm -rf `cat .name`
-	mv snap `cat .name`
+	mv $(PACKAGE_NAME) `cat .name`
 	tar -chvf `cat .name`.tar `cat .name`
 	rm -f `cat .name`.tar.gz
 	gzip -9 `cat .name`.tar
 	rm -rf `cat .name`
 
-dist: snap
-	mv snap $(PACKAGE_NAME)-$(VERSION)
+dist: 
+	@echo Making $(PACKAGE_NAME) release $(VERSION)
+	cvs export -r release-`echo $(VERSION) | tr . -` $(PACKAGE_NAME)
+	mv $(PACKAGE_NAME) $(PACKAGE_NAME)-$(VERSION)
 	tar -chvf $(PACKAGE_NAME)-$(VERSION).tar \
 		$(PACKAGE_NAME)-$(VERSION)
 	rm -f $(PACKAGE_NAME)-$(VERSION).tar.gz
@@ -106,9 +108,11 @@ dist: snap
 	rm -rf $(PACKAGE_NAME)-$(VERSION)
 
 snapshot-rtag:
+	@echo Tagging current base HEAD for snapshot `date +%y%m%d`
 	cvs rtag snapshot-`date +%y%m%d` $(PACKAGE_NAME)
 
 dist-rtag:
+	@echo Tagging current base HEAD for release $(VERSION)
 	cvs rtag release-`echo $(VERSION) | tr . -` $(PACKAGE_NAME)
 
 rdiff:

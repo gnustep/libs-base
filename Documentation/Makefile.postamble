@@ -234,6 +234,9 @@ GNUstep-HOWTO: version.tmpl.texi gnustep-howto.tmpl.texi
 #	texi2html -expandinfo $(MAKEINFO_FLAGS) $<.html.texi
 #	mv -f $<.html.html $*.html
 
+regenerate: $(DIST_FILES)
+	mv $(TOP_DOC_FILES) ..
+
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/doc
 	ln $(DIST_FILES) ../snap/doc

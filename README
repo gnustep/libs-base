@@ -1,0 +1,135 @@
+Readme
+******
+
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), event loops, and
+random number generators.
+
+   It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard.  In many cases, the `NS*' classes are
+implemented as wrappers around more featureful GNU classes.
+
+   Here is some introductory info to get you started:
+
+Initial reading
+===============
+
+   The file `NEWS' has the library's feature history.
+
+   The file `GNUstep-HOWTO' give instructions for installing the
+library.
+
+Preparing to write code
+=======================
+
+   The documentation isn't much to speak of so far.  Better
+documentation will be forthcoming, but the library needs to settle
+first.  For now I recommend reading the header files.  The headers for
+the classes are in `./src/include'.
+
+   The FAQ contains an outline of the class heirarchy, as well as a
+list of the differences between GNUstep and NeXT's implementation of
+OpenStep, and GNUstep's improvements over NeXT's implementation.
+
+Overview of the classes
+=======================
+
+   Here is partial list of non-OpenStep classes, grouped by
+functionality.
+
+   There are several GNU-specific protocols also.  You can recognize the
+protocols by their name: they all end with "ing".
+
+   * The collection objects all conform to the `Collecting' protocol.
+     Reading `src/include/Collecting.h' is a good place to start.
+     Protocols for collections that store their contents with keys and
+     with indices can be found in `src/incliude/KeyedCollecting.h' and
+     `src/include/IndexedCollecting.h' respectively.  Examples of
+     generic collections are `Set' and `Bag'.  The keyed collections are
+     `Dictionary' and `MappedCollector'.  The classes `Array', `Queue',
+     `GapArray', `LinkedList', `BinaryTree', `RBTree' and `SplayTree'
+     are all indexed collections.
+
+   * The string objects conform to the `String' protocol.  `CString'
+     provides an interface to strings based on ASCII bytes, and is
+     currently the only concrete subclass of String.  The interface
+     between GNU `String' and OpenStep's `NSString' needs cleaning up
+     and will change.  For now, I recommend using `NSString'.
+
+   * The public magnitude classes are `Time' and `Random'.  The
+     `Random' class works in conjunction with pseudo-random number
+     generators that conform to the `RandomGenerating' protocol.  The
+     conforming class `RNGBerkeley' provides identical behavior to the
+     BSD random() function.  The class `RNGAdditiveCongruential' is an
+     implementation of the additive congruential method.
+
+   * Stream objects provide a consistent interface for reading and
+     writing bytes.  Read `src/include/Stream.h' to get the general
+     idea.  `StdioStream' objects work with files, file descriptors,
+     FILE pointers and pipes to/from executables.  `MemoryStream'
+     objects work with memory buffers.
+
+   * CStream objects provide a way to write C variables to Stream
+     objects.  Read `src/include/CStream.h' to understand the interface
+     of the abstract superclass.  `TextCStream' writes C variables in a
+     human-readable ASCII format that can be manipulated with a text
+     editor or with your choice of text-processing programs, like `awk'
+     or `perl'.  `BinaryCStream' writes C variables in a compact,
+     illegible stream of bytes.  `TextCStream' and `BinaryCStream' each
+     write in machine-independant formats--so you can write on one
+     machine architecture, and successfully read on another.
+     `RawCStream' is like `BinaryCStream' accept it is
+     machine-dependant; it useful for efficient Distributed Objects
+     connections on the same machine.
+
+   * Coders provide a formatted way of writing Objective C objects to
+     CStream objects.  After a coder is initialized with a stream, the
+     coder can encode/decode interconnected webs of Objective C objects
+     and C types and successfully keep track of complex
+     interconnections between objects.  See `src/include/Coder.h' for
+     the abstract superclass interface; see `src/include/Coding.h' for
+     the protocol adopted by objects that read and write themselves
+     using coders.  `Archiver' and `Unarchiver' are concrete subclasses
+     that are used for writing/reading with files.
+
+     `Coder's and `CStream's and `Stream's can be mixed and matched so
+     that programmers can choose the destination and the format
+     separately.
+
+   * The distributed object support classes are `NSConnection',
+     `NSProxy', `ConnectedCoder', `Port' and `TcpPort'.  This version
+     of the distributed objects only works with sockets.  A Mach port
+     back-end should be on the way.
+
+Test Programs
+=============
+
+     Some of the programs I've used to test the library are in
+`./checks'.  Many of them are pretty messy, (desperately trying to
+tickle that late night bug), but at least they show some code that works
+when the library compiles correctly.  I'm looking for a volunteer to
+write some nicely organized test cases using `dejagnu'.  Any takers?
+
+How can you help?
+=================
+
+        * Read the projects and questions in the `TODO' file.  If you
+          can volunteer for any of the projects, or if you have any
+          useful comments send me email!
+
+        * Give me feedback!  Tell me what you like; tell me what you
+          think could be better.  Send me bug reports.
+
+        * Donate classes.  If you write classes that fit in the
+          libgnustep-base framework, I'd be happy to include them.
+
+          Happy hacking!
+                 Andrew McCallum
+                 mccallum@gnu.org
+          
+                 Adam Fedor
+                 fedor@gnu.org
+

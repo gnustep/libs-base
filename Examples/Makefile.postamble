@@ -71,6 +71,8 @@
 # Things to do after checking
 # after-check::
 
+regenerate:
+
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/examples
 	for f in $(DIST_FILES); do \

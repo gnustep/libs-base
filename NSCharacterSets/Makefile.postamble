@@ -78,6 +78,8 @@ after-uninstall::
 # Things to do after checking
 # after-check::
 
+regenerate:
+
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/NSCharacterSets
 	for file in $(DIST_FILES); do \

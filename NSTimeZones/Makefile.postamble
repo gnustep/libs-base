@@ -79,6 +79,8 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
+regenerate:
+
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/NSTimeZones
 	for file in $(DIST_FILES); do \

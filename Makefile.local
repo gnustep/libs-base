@@ -1,3 +1,0 @@
-install-lib: libobjects.a
-	$(INSTALL_DATA) libobjects.a $(libdir)/libobjects.a
-	$(RANLIB) $(libdir)/libobjects.a

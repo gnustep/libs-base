@@ -76,6 +76,8 @@ tasks: ../doc/todo.texi
 	(cd ../doc; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) TODO)
 	cp ../doc/TODO ./tasks
 
+regenerate:
+
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/admin
 	for f in $(DIST_FILES); do \

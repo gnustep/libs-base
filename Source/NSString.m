@@ -548,7 +548,7 @@ handle_printf_atsign (FILE *stream,
   unsigned int len = [d length];
 
   if (d == nil) return nil;
-  if(((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE)))
+  if(test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
     enc = NSUnicodeStringEncoding;
   else
     enc = [NSString defaultCStringEncoding];

@@ -73,14 +73,14 @@ gstep-make
 gstep-base or libFoundation
 gstep-gui
 gstep-xpds
-FoundationExt (optional).
+FoundationExt.
 @end display
 
 @section Getting the files
 
 Most of the files needed by GNUstep are available from the following ftp 
-sites. Except for gcc, gdb, make and libtiff, alpha.gnu.org and 
-zarquon should contain the latest versions of all the required
+sites. Except for gcc, gdb, make and libtiff, alpha.gnu.org
+should contain the latest versions of all the required
 packages.
 
 @table @samp
@@ -91,8 +91,10 @@ GNUstep public releases
 TIFF library
 @item ftp://alpha.gnu.org/gnu/gnustep		
 GNUstep developer releases
+@ignore
 @item ftp://ftp.gnustep.org/pub/gnustep	
 All GNUstep releases
+@end ignore
 @item ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep	
 All GNUstep releases
 @end table
@@ -103,7 +105,7 @@ version, in order to compile GNUstep.
 @example
 gcc-2.8.0.tar.gz (The GCC compiler)
   ftp://ftp.gnu.org/pub/gnu or from other GNU mirror sites.
-  You may also use egcs-1.0.1.tar.gz, from ftp://ftp.cygnus.com/pub/egcs
+  You can also use egcs-1.0.1.tar.gz, from ftp://ftp.cygnus.com/pub/egcs
 
 gdb-4.16.tar.gz (The gdb debugger)
 make-3.75.tar.gz (You need GNU make to compile GNUstep).
@@ -120,7 +122,7 @@ tiff-970711.tar.gz
     
 pcthreads-1.1.0.tar.gz (PCThreads for Linux/GNU Inel x86 systems)
   ftp://alpha.gnu.org/gnu/gnustep
-  
+
 gstep-make-0.4.0.tar.gz (Makefile package)
 dgs-970711.tar.gz (The Display Ghostscript distribution)
 gstep-base-0.4.0.tar.gz (Foundation)
@@ -235,7 +237,7 @@ GNUstep system root as the prefix when you configure the package.
 ./configure --prefix=$GNUSTEP_SYSTEM_ROOT
 @end example
 
-@subsection Patching and Compiling GCC
+@subsection Compiling GCC
 
 The following commands assume that all the aforementioned files have been
 copied to the /usr/src directory on your machine.
@@ -268,10 +270,6 @@ copied to the /usr/src directory on your machine.
 @end format
 
 @item 4. Compile gcc
-
-make
-
-or
 
 make bootstrap
 

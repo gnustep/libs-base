@@ -49,7 +49,7 @@
 #ifndef __WIN32__
 #include <unistd.h>		/* for gethostname() */
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
-#include <arpa/inet.h>		/* for inet_ntoa() */
+#include <netinet/in.h>		/* for inet_ntoa() */
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/file.h>
