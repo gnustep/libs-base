@@ -73,7 +73,7 @@ typedef struct {
   maxElements = (numSlots > 0) ? numSlots : 1;
   elementSize = sizeInBytes;
   description = elemDesc;
-  dataPtr = (void*) (*objc_malloc)(maxElements * elementSize);
+  dataPtr = (void*) objc_malloc (maxElements * elementSize);
   bzero(dataPtr, numElements * elementSize);
   return self;
 }
