@@ -49,10 +49,6 @@ before-all::  $(GENERATED_HFILES)
 # Unfortunately the way the header files are placed in relationship
 # to the source we must install the GNU header manually
 after-install::
-	for file in $(BASE_HEADERS); do \
-	  $(INSTALL_DATA) ../Headers/gnustep/base/$$file \
-	    $(GNUSTEP_HEADERS)/gnustep/Foundation/$$file ; \
-	done
 	for file in $(GNU_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/gnustep/base/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \

@@ -193,28 +193,6 @@ else
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
 fi
 
-# Check to see if the libobjc library is in our GNUSTEP_SYSTEM_ROOT.
-# If so, there are probably other libraries that we want there also, so
-# leave the proper includes in CPPFLAGS and LDFLAGS
-AC_MSG_CHECKING(for alternate objc library)
-AC_CACHE_VAL(gs_cv_objc_libdir,
-[dnl
-gs_cv_objc_libdir=NONE
-if test -f $GNUSTEP_HDIR/objc/objc.h; then
-  if test -f $GNUSTEP_LDIR/libobjc.a -o -f $GNUSTEP_LDIR/libobjc.so; then
-    gs_cv_objc_libdir=$GNUSTEP_LDIR
-  else
-    gs_cv_objc_libdir=NONE
-  fi
-fi
-])
-AC_MSG_RESULT($gs_cv_objc_libdir)
-
-if test "$gs_cv_objc_libdir" != "NONE"; then
-  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Headers"
-  LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR"
-fi
-
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
 #--------------------------------------------------------------------
@@ -863,7 +841,7 @@ AC_ARG_WITH(gmp-library,
   [  --with-gmp-library=PATH  library path for gmp libraries],
   gmp_libdir="$withval", gmp_libdir="no")
 
-cppflags_temp=$CFLAGS
+cppflags_temp=$CPPFLAGS
 libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
