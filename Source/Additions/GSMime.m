@@ -3875,6 +3875,17 @@ static NSCharacterSet	*tokenSet = nil;
 	  RELEASE(hdr);
 	}
     }
+  else
+    {
+      /*
+       * Inner documents should not contain the mime version header.
+       */
+      hdr = [self headerNamed: @"mime-version"];
+      if (hdr != nil)
+	{
+	  [self deleteHeader: hdr];
+	}
+    }
 
   if ([content isKindOfClass: [NSArray class]] == YES)
     {

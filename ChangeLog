@@ -2,6 +2,8 @@
 
 	* Tools/gdomap.c: Added some checks that getting/setting uid/gid
 	worked as expected and moved getpwnam() call to where it works.
+	* Source/Additions/GSMime.m: ([GSMimeDocument-rawMimeData:]) bugfix
+	to remove mjime version header from inner documents.
 
 2003-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 
