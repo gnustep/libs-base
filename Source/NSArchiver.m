@@ -39,7 +39,6 @@
 #include <Foundation/NSArchiver.h>
 #undef	_IN_NSARCHIVER_M
 
-#include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
@@ -64,7 +63,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 - (id) init
 {
   return [self initForWritingWithMutableData:
-	[[_fastCls._NSMutableDataMalloc allocWithZone: [self zone]] init]];
+    [[_fastCls._NSMutableDataMalloc allocWithZone: [self zone]] init]];
 }
 
 - (id) initForWritingWithMutableData: (NSMutableData*)anObject
@@ -74,7 +73,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
     {
       NSZone		*zone = [self zone];
 
-      data = [anObject retain];
+      data = RETAIN(anObject);
       if ([self directDataAccess] == YES)
         {
 	  dst = data;
@@ -112,7 +111,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 - (void) dealloc
 {
-  [data release];
+  RELEASE(data);
   if (clsMap)
     {
       FastMapEmptyMap(clsMap);
@@ -152,28 +151,26 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
     {
       return nil;
     }
-    archiver = [[self allocWithZone: z] initForWritingWithMutableData: d];
-    if (archiver)
-      {
-	NS_DURING
-	  {
-	    [archiver encodeRootObject: rootObject];
-	    d = [[archiver->data copy] autorelease];
-	  }
-	NS_HANDLER
-	  {
-	    [archiver release];
-	    [localException raise];
-	  }
-	NS_ENDHANDLER
-	[archiver release];
-      }
-    else
-      {
-	d = nil;
-      }
+  archiver = [[self allocWithZone: z] initForWritingWithMutableData: d];
+  RELEASE(d);
+  d = nil;
+  if (archiver)
+    {
+      NS_DURING
+	{
+	  [archiver encodeRootObject: rootObject];
+	  d = AUTORELEASE([archiver->data copy]);
+	}
+      NS_HANDLER
+	{
+	  RELEASE(archiver);
+	  [localException raise];
+	}
+      NS_ENDHANDLER
+      RELEASE(archiver);
+    }
 
-    return d;
+  return d;
 }
 
 + (BOOL) archiveRootObject: (id)rootObject
