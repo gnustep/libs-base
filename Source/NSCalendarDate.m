@@ -1043,7 +1043,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			  sign = -1;
 			  sourceIdx++;
 			}
-		      found += getDigits(&source[sourceIdx], tmpStr, 4);
+		      found = getDigits(&source[sourceIdx], tmpStr, 4);
 		      if (found > 0)
 			{
 			  sourceIdx += found;
