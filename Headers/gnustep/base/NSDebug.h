@@ -111,6 +111,43 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
 #endif
 
+/**
+ * Enable/disable zombies.
+ * <p>When an object is deallocated, its isa pointer is normally modified
+ * to the hexadecimal value 0xdeadface, so that any attempt to send a
+ * message to the deallocated object will cause a crash, and examination
+ * of the object within the debugger will show the 0xdeadface value ...
+ * making it obvious why the program crashed.
+ * </p>
+ * <p>Turning on zombies changes this behavior so that the isa pointer
+ * is modified to be that of the NSZombie class.  When messages are
+ * sent to the object, intead of crashing, NSZombie will use NSLog() to
+ * produce an error message.  By default the memory used by the object
+ * will not really be freed, so error messages will continue to
+ * be generated whenever a message is sent to the object, and the object
+ * instance variables will remain available for examination by the debugger.
+ * </p>
+ * The default value of this boolean is NO, but this can be controlled
+ * by the NSZombieEnabled environment variable.
+ */
+GS_EXPORT BOOL NSZombieEnabled;
+
+/**
+ * Enable/disable object deallocation.
+ * <p>If zombies are enabled, objects are by default <em>not</em>
+ * deallocated, and memory leaks.  The NSDeallocateZombies variable
+ * lets you say that the the memory used by zombies should be freed.
+ * </p>
+ * <p>Doing this makes the behavior of zombies similar to that when zombies
+ * are not enabled ... the memory occupied by the zombie may be re-used for
+ * other purposes, at which time the isa pointer may be overwritten and the
+ * zombie behavior will cease.
+ * </p>
+ * The default value of this boolean is NO, but this can be controlled
+ * by the NSDeallocateZombies environment variable.
+ */
+GS_EXPORT BOOL NSDeallocateZombies;
+
 
 
 /* Debug logging which can be enabled/disabled by defining GSDIAGNOSE

@@ -1,3 +1,11 @@
+2002-03-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h: Added function to fetch boolean value from env
+	* Source/NSException.m: Use new function.
+	* Source/NSProcesInfo.m: Implement new function.
+	* Source/NSObject.m: Implement NSZombie functionality.
+	* Headers/Foundation/NSDebug.h: Document NSZombie functionality.
+
 2002-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Implement code to watch for child process exit

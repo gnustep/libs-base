@@ -42,8 +42,10 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSMapTable.h>
 #include <limits.h>
 
+#include "GSPrivate.h"
 
 
 #ifndef NeXT_RUNTIME
@@ -61,6 +63,68 @@ static Class	NSConstantStringClass;
 
 static BOOL deallocNotifications = NO;
 
+/*
+ * allocationLock is needed when running multi-threaded for retain/release
+ * to work reliably.
+ * We also use it for protecting the map table of zombie information.
+ */
+static objc_mutex_t allocationLock = NULL;
+
+
+BOOL	NSZombieEnabled = NO;
+BOOL	NSDeallocateZombies = NO;
+
+@class	NSZombie;
+static Class		zombieClass;
+static NSMapTable	zombieMap;
+
+static void GSMakeZombie(NSObject *o)
+{
+  Class	c = ((id)o)->class_pointer;
+
+  ((id)o)->class_pointer = zombieClass;
+  if (NSDeallocateZombies == NO)
+    {
+      if (allocationLock == 0)
+	{
+	  objc_mutex_lock(allocationLock);
+	}
+      NSMapInsert(zombieMap, (void*)o, (void*)c);
+      if (allocationLock == 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	}
+    }
+}
+
+static void GSLogZombie(id o, SEL sel)
+{
+  Class	c = 0;
+
+  if (NSDeallocateZombies == NO)
+    {
+      if (allocationLock == 0)
+	{
+	  objc_mutex_lock(allocationLock);
+	}
+      c = NSMapGet(zombieMap, (void*)o);
+      if (allocationLock == 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	}
+    }
+  if (c == 0)
+    {
+      NSLog(@"Deallocated object (0x%x) sent %@",
+	o, NSStringFromSelector(sel));
+    }
+  else
+    {
+      NSLog(@"Deallocated %@ (0x%x) sent %@",
+	NSStringFromClass(c), o, NSStringFromSelector(sel));
+    }
+}
+
 
 /*
  *	Reference count and memory management
@@ -75,12 +139,6 @@ static BOOL deallocNotifications = NO;
  *	correct zone to free memory very fast.
  */
 
-
-/*
- * retain_counts_gate is needed when running multi-threaded for retain/release
- * to work reliably.
- */
-static objc_mutex_t retain_counts_gate = NULL;
 
 #if	GS_WITH_GC == 0 && !defined(NeXT_RUNTIME)
 #define	REFCNT_LOCAL	1
@@ -165,11 +223,11 @@ NSExtraRefCount(id anObject)
 void
 NSIncrementExtraRefCount(id anObject)
 {
-  if (retain_counts_gate != 0)
+  if (allocationLock != 0)
     {
-      objc_mutex_lock(retain_counts_gate);
+      objc_mutex_lock(allocationLock);
       ((obj)anObject)[-1].retained++;
-      objc_mutex_unlock (retain_counts_gate);
+      objc_mutex_unlock (allocationLock);
     }
   else
     {
@@ -178,11 +236,11 @@ NSIncrementExtraRefCount(id anObject)
 }
 
 #define	NSIncrementExtraRefCount(X) ({ \
-  if (retain_counts_gate != 0) \
+  if (allocationLock != 0) \
     { \
-      objc_mutex_lock(retain_counts_gate); \
+      objc_mutex_lock(allocationLock); \
       ((obj)(X))[-1].retained++;            \
-      objc_mutex_unlock(retain_counts_gate); \
+      objc_mutex_unlock(allocationLock); \
     } \
   else \
     { \
@@ -193,17 +251,17 @@ NSIncrementExtraRefCount(id anObject)
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
-  if (retain_counts_gate != 0)
+  if (allocationLock != 0)
     {
-      objc_mutex_lock(retain_counts_gate);
+      objc_mutex_lock(allocationLock);
       if (((obj)anObject)[-1].retained-- == 0)
 	{
-	  objc_mutex_unlock(retain_counts_gate);
+	  objc_mutex_unlock(allocationLock);
 	  return YES;
 	}
       else
 	{
-	  objc_mutex_unlock(retain_counts_gate);
+	  objc_mutex_unlock(allocationLock);
 	  return NO;
 	}
     }
@@ -245,9 +303,9 @@ NSIncrementExtraRefCount (id anObject)
 {
   GSIMapNode	node;
 
-  if (retain_counts_gate != 0)
+  if (allocationLock != 0)
     {
-      objc_mutex_lock(retain_counts_gate);
+      objc_mutex_lock(allocationLock);
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node != 0)
 	{
@@ -257,7 +315,7 @@ NSIncrementExtraRefCount (id anObject)
 	{
 	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
 	}
-      objc_mutex_unlock(retain_counts_gate);
+      objc_mutex_unlock(allocationLock);
     }
   else
     {
@@ -278,13 +336,13 @@ NSDecrementExtraRefCountWasZero (id anObject)
 {
   GSIMapNode	node;
 
-  if (retain_counts_gate != 0)
+  if (allocationLock != 0)
     {
-      objc_mutex_lock(retain_counts_gate);
+      objc_mutex_lock(allocationLock);
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node == 0)
 	{
-	  objc_mutex_unlock(retain_counts_gate);
+	  objc_mutex_unlock(allocationLock);
 	  return YES;
 	}
       NSCAssert(node->value.uint > 0, NSInternalInconsistencyException);
@@ -292,7 +350,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 	{
 	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
 	}
-      objc_mutex_unlock(retain_counts_gate);
+      objc_mutex_unlock(allocationLock);
     }
   else
     {
@@ -316,9 +374,9 @@ NSExtraRefCount (id anObject)
   GSIMapNode	node;
   unsigned	ret;
 
-  if (retain_counts_gate != 0)
+  if (allocationLock != 0)
     {
-      objc_mutex_lock(retain_counts_gate);
+      objc_mutex_lock(allocationLock);
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node == 0)
 	{
@@ -328,7 +386,7 @@ NSExtraRefCount (id anObject)
 	{
 	  ret = node->value.uint;
 	}
-      objc_mutex_unlock(retain_counts_gate);
+      objc_mutex_unlock(allocationLock);
     }
   else
     {
@@ -501,8 +559,19 @@ NSDeallocateObject(NSObject *anObject)
 #ifndef	NDEBUG
       GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
 #endif
-      ((id)anObject)->class_pointer = (void*) 0xdeadface;
-      NSZoneFree(z, o);
+      if (NSZombieEnabled == YES)
+	{
+	  GSMakeZombie(anObject);
+	  if (NSDeallocateZombies == YES)
+	    {
+	      NSZoneFree(z, o);
+	    }
+	}
+      else
+	{
+	  ((id)anObject)->class_pointer = (void*) 0xdeadface;
+	  NSZoneFree(z, o);
+	}
     }
   return;
 }
@@ -545,8 +614,19 @@ NSDeallocateObject(NSObject *anObject)
 #ifndef	NDEBUG
       GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
 #endif
-      ((id)anObject)->class_pointer = (void*) 0xdeadface;
-      NSZoneFree(z, anObject);
+      if (NSZombieEnabled == YES)
+	{
+	  GSMakeZombie(anObject);
+	  if (NSDeallocateZombies == YES)
+	    {
+	      NSZoneFree(z, anObject);
+	    }
+	}
+      else
+	{
+	  ((id)anObject)->class_pointer = (void*) 0xdeadface;
+	  NSZoneFree(z, anObject);
+	}
     }
   return;
 }
@@ -562,7 +642,7 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
   return YES;
 #else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
-	  || GSObjCZone(anObject) == requestedZone);
+    || GSObjCZone(anObject) == requestedZone);
 #endif
 }
 
@@ -587,9 +667,9 @@ static BOOL double_release_check_enabled = NO;
 
 + (void) _becomeMultiThreaded: (NSNotification)aNotification
 {
-  if (retain_counts_gate == 0)
+  if (allocationLock == 0)
     {
-      retain_counts_gate = objc_mutex_allocate();
+      allocationLock = objc_mutex_allocate();
     }
 }
 
@@ -630,6 +710,14 @@ static BOOL double_release_check_enabled = NO;
 
       // Create the global lock
       gnustep_global_lock = [[NSRecursiveLock alloc] init];
+
+      // Zombie management stuff.
+      zombieClass = [NSZombie class];
+      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+      NSZombieEnabled = GSEnvironmentFlag("NSZombieEnabled", NO);
+      NSDeallocateZombies = GSEnvironmentFlag("NSDeallocateZombies", NO);
+
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
@@ -1539,6 +1627,31 @@ _fastMallocBuffer(unsigned size)
 - (id) retain
 {
   return self;
+}
+@end
+
+
+
+@interface	NSZombie
+- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame;
+- (void) forwardInvocation: (NSInvocation*)anInvocation;
+@end
+
+@implementation	NSZombie
+- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
+{
+  GSLogZombie(self, aSel);
+  return 0;
+}
+- (void) forwardInvocation: (NSInvocation*)anInvocation
+{
+  unsigned	size = [[anInvocation methodSignature] methodReturnLength];
+  unsigned char	v[size];
+
+  memset(v, '\0', size);
+  GSLogZombie(self, [anInvocation selector]);
+  [anInvocation setReturnValue: (void*)v];
+  return;
 }
 @end
 

@@ -80,7 +80,12 @@ NSDictionary	*GSUserDefaultsDictionaryRepresentation();
 /*
  * Get one of several potentially useful flags.
  */
-BOOL		GSUserDefaultsFlag(GSUserDefaultFlagType type);
+BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
+
+/**
+ * Get a flag from an environment variable - return def if not defined.
+ */
+BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 
 #endif /* __GSPrivate_h_ */
 

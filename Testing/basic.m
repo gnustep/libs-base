@@ -9,6 +9,7 @@ int main ()
   id	o = [NSObject new];
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
 
+  [o release];
   o = [NSString stringWithFormat: @"/proc/%d/status", getpid()];
   NSLog(@"'%@'", o);
   o = [NSString stringWithContentsOfFile: o];

@@ -33,7 +33,8 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDictionary.h>
 #include <stdio.h>
-#include <stdlib.h>		// for getenv()
+
+#include "GSPrivate.h"
 
 static void
 _preventRecursion (NSException *exception)
@@ -43,7 +44,6 @@ _preventRecursion (NSException *exception)
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  const char	*c = getenv("CRASH_ON_ABORT");
   BOOL		a;
 
   _NSUncaughtExceptionHandler = _preventRecursion;
@@ -60,33 +60,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 #else
   a = NO;		// exit() by default.
 #endif
-  if (c != 0)
-    {
-      /*
-       * Use the CRASH_ON_ABORT environment variable ... if it's defined
-       * then we use abort(), unless it's 'no', 'false', or '0, in which
-       * case we use exit()
-       */
-      if (c[0] == '0' && c[1] == 0)
-	{
-	  a = NO;
-	}
-      else if ((c[0] == 'n' || c[0] == 'N') && (c[1] == 'o' || c[1] == 'O')
-	&& c[2] == 0)
-	{
-	  a = NO;
-	}
-      else if ((c[0] == 'f' || c[0] == 'F') && (c[1] == 'a' || c[1] == 'A')
-	&& (c[2] == 'l' || c[2] == 'L') && (c[3] == 's' || c[3] == 'S')
-	&& (c[4] == 'e' || c[4] == 'E') && c[5] == 0)
-	{
-	  a = NO;
-	}
-      else
-	{
-	  a = YES;
-	}
-    }
+  a = GSEnvironmentFlag("CRASH_ON_ABORT", a);
   if (a == YES)
     {
       abort();
