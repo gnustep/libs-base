@@ -1,3 +1,7 @@
 Makefile
 
-textcoding.txt
+test?? 
+pipes server client string values nsarray nsbundle nsdictionary nsset
+nsprocessinfo nsarchiver
+
+textcoding.txt nsarchiver.dat
