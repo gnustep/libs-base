@@ -52,7 +52,7 @@ enum {
 @end
 
 #define SIGNATURE_FORMAT_STRING \
-@"GNU Objective C (%s %d.%d.%d), [%s] version %d\n"
+@"GNU Objective C (%s %d.%d.%d) [%s %d]\n"
 
 #define WRITE_SIGNATURE_FORMAT_ARGS \
 STRINGIFY(OBJECTS_PACKAGE_NAME), \
