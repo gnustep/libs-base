@@ -471,9 +471,11 @@ _bundle_name_first_match(NSString* directory, NSString* name)
        * linked into the bundle (then, the dynamic linker
        * automatically drags in the framework when the bundle is
        * loaded).  But then, the classes in the framework should be
-       * removed from the list of classes in the bundle.
+       * removed from the list of classes in the bundle. Check that
+       * _loadingBundle != bundle which happens on Windows machines when
+       * loading in Frameworks.
        */
-      if (_loadingBundle != nil)
+      if (_loadingBundle != nil && _loadingBundle != bundle)
 	{
 	  [(NSMutableArray *)[_loadingBundle _bundleClasses]
 			     removeObjectsInArray: [bundle _bundleClasses]];

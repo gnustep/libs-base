@@ -1,5 +1,10 @@
 2003-09-07  Adam Fedor  <fedor@gnu.org>
 
+	* Source/NSBundle.m (+_addFrameworkFromClass:): Check
+	_loadingBundle != bundle when removing classes.
+
+2003-09-07  S.J.Chun <chunsj@embian.com>
+
 	* Source/Unicode.m: Added Korean encoding
 	* Headers/Foundation/NSString.h: Added Korean encoding
 	* Source/Additions/GSCompatibility.h: Idem.
