@@ -107,7 +107,7 @@ setupCache()
 }
 
 static xmlParserInputPtr
-loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
+loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 
 /* Internal interfaces */
 
@@ -2167,7 +2167,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 #define	HANDLER	(GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private)
 
 static xmlParserInputPtr
-loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctx)
+loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctx)
 {
   extern xmlParserInputPtr	xmlNewInputFromFile();
   NSString			*file;

@@ -1,3 +1,19 @@
+2002-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Fix function prototype ... gets rid of
+	compiler warning.
+	* Source/GNUmakefile: remove o_vscanf.c ... unused
+	* Source/o_vscanf.c: remove unused file.
+	* Source/mframe.m: Fix compiler warning about unused function.
+	* Source/GSFormat.m: Fix compiler warning about unused var.
+	* Source/NSDebug.m: Fix compiler warning about unused var.
+	* Source/externs.m: Fix compiler warnings ... move some exceptions
+	to source files relating to where they are declared.
+	* Source/NSArchiver.m: define exception.
+	* Source/NSConnection.m: define exception.
+	* Source/NSPort.m: define exception.
+	* Tools/gdomap.c: Remove unused variable (log_perror).
+
 2002-05-07  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Make all AC_DEFINES define 1

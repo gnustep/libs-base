@@ -242,6 +242,6 @@
 
 
 /* Exceptions */
-GS_EXPORT NSString* const NSInconsistentArchiveException;
+GS_EXPORT NSString * const NSInconsistentArchiveException;
 
 #endif	/* __NSArchiver_h_GNUSTEP_BASE_INCLUDE */

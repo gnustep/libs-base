@@ -797,7 +797,7 @@ handle_printf_atsign (FILE *stream,
   int printed_len = 0;
   NSString *ret;
 
-#if ! HAVE_REGISTER_PRINTF_FUNCTION
+#ifndef HAVE_REGISTER_PRINTF_FUNCTION
   NSZone *z = GSObjCZone(self);
 
   /* If the available libc doesn't have `register_printf_function()', then
@@ -967,7 +967,7 @@ handle_printf_atsign (FILE *stream,
 #endif /* !HAVE_REGISTER_PRINTF_FUNCTION */
 
   ret = [self initWithCString: buf];
-#if ! HAVE_REGISTER_PRINTF_FUNCTION
+#ifndef HAVE_REGISTER_PRINTF_FUNCTION
   NSZoneFree(z, buf);
 #else
   free(buf);
@@ -979,7 +979,7 @@ handle_printf_atsign (FILE *stream,
   char buf[format_len + BUFFER_EXTRA];
   int printed_len = 0;
 
-#if ! HAVE_REGISTER_PRINTF_FUNCTION
+#ifndef HAVE_REGISTER_PRINTF_FUNCTION
   /* If the available libc doesn't have `register_printf_function()', then
      the `%@' printf directive isn't available with printf() and friends.
      Here we make a feable attempt to handle it. */

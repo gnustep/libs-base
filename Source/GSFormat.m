@@ -1085,7 +1085,9 @@ NSDictionary *locale)
 	int left = specs[nspecs_done].info.left;
 	int showsign = specs[nspecs_done].info.showsign;
 	int group = specs[nspecs_done].info.group;
+#if defined(LONG_LONG_MAX) && (LONG_MAX != LONG_LONG_MAX)
 	int is_long_double = specs[nspecs_done].info.is_long_double;
+#endif
 	int is_short = specs[nspecs_done].info.is_short;
 	int is_char = specs[nspecs_done].info.is_char;
 	int is_long = specs[nspecs_done].info.is_long;
@@ -1708,7 +1710,7 @@ NSDictionary *locale)
 
     LABEL (form_string):
       {
-	size_t len;
+	size_t len = 0;
 
 	/* The string argument could in fact be `char *' or `wchar_t *'.
 	   But this should not make a difference here.  */

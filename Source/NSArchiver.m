@@ -51,6 +51,8 @@
 
 typedef	unsigned char	uchar;
 
+NSString * const NSInconsistentArchiveException =
+  @"NSInconsistentArchiveException";
 
 #define	PREFIX		"GNUstep archive"
 

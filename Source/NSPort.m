@@ -38,6 +38,8 @@
 
 @implementation NSPort
 
+NSString * const NSPortTimeoutException = @"NSPortTimeoutException";
+
 Class	NSPort_abstract_class;
 Class	NSPort_concrete_class;
 

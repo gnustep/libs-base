@@ -79,19 +79,13 @@ NSString *NSConnectionReplyMode;
 /* Exceptions */
 NSString * const NSCharacterConversionException;
 
-NSString * const NSFailedAuthenticationException;
-
 NSString * const NSGenericException;
-
-NSString * const NSInconsistentArchiveException;
 
 NSString * const NSInternalInconsistencyException;
 
 NSString * const NSInvalidArgumentException;
 
 NSString * const NSMallocException;
-
-NSString * const NSPortTimeoutException;
 
 NSString * const NSRangeException;
 
@@ -308,12 +302,14 @@ GSBuildStrings()
   if (SClass == 0)
     {
       SClass = [NSString class];
+
       /*
        * Ensure that NSString is initialized ... because we are called
        * from [NSObject +initialize] which might be executing as a
        * result of a call to [NSString +initialize] !
        */
       [SClass initialize];
+
       InPortAcceptedClientNotification
 	= [[SClass alloc] initWithCString:
 	"InPortAcceptedClientNotification"];
@@ -365,9 +361,6 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSDefaultRunLoopMode"];
       NSEarlierTimeDesignations
 	= [[SClass alloc] initWithCString: "NSEarlierTimeDesignations"];
-      NSFailedAuthenticationException
-	= [[SClass alloc] initWithCString:
-	"NSFailedAuthenticationException"];
       NSFileDeviceIdentifier
 	= [[SClass alloc] initWithCString: "NSFileDeviceIdentifier"];
       NSFileGroupOwnerAccountName
@@ -424,9 +417,6 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSGlobalDomain"];
       NSHourNameDesignations
 	= [[SClass alloc] initWithCString: "NSHourNameDesignations"];
-      NSInconsistentArchiveException
-	= [[SClass alloc] initWithCString:
-	"NSInconsistentArchiveException"];
       *(NSString**)&NSInternalInconsistencyException
 	= [[SClass alloc] initWithCString:
 	"NSInternalInconsistencyException"];
@@ -458,8 +448,6 @@ GSBuildStrings()
       NSPortDidBecomeInvalidNotification
 	= [[SClass alloc] initWithCString:
 	"NSPortDidBecomeInvalidNotification"];
-      NSPortTimeoutException
-	= [[SClass alloc] initWithCString: "NSPortTimeoutException"];
       NSPositiveCurrencyFormatString
         = [[SClass alloc] initWithCString:
 	"NSPositiveCurrencyFormatString"];

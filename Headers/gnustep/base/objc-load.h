@@ -12,7 +12,7 @@
 #include <objc/objc-api.h>
 #include <Foundation/NSString.h>
 
-#if HAVE_DLADDR
+#ifdef HAVE_DLADDR
 #define LINKER_GETSYMBOL 1
 #else
 #define LINKER_GETSYMBOL 0

@@ -235,9 +235,9 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 /*
  *	NSRunLoop mode, NSNotification name and NSException strings.
  */
-GS_EXPORT NSString	*NSConnectionReplyMode;
-GS_EXPORT NSString	*NSConnectionDidDieNotification;
-GS_EXPORT NSString	*NSConnectionDidInitializeNotification;	/* OPENSTEP */
-GS_EXPORT NSString	*NSFailedAuthenticationException;	/* MacOS-X  */
+GS_EXPORT NSString * const NSConnectionReplyMode;
+GS_EXPORT NSString * const NSConnectionDidDieNotification;
+GS_EXPORT NSString * const NSConnectionDidInitializeNotification; /* OPENSTEP */
+GS_EXPORT NSString * const NSFailedAuthenticationException; /* MacOS-X  */
 
 #endif /* __NSConnection_h_GNUSTEP_BASE_INCLUDE */
