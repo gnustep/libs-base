@@ -1605,7 +1605,7 @@ static NSMapTable* port_number_2_port;
 	 was delayed too long. */
       if (_port_socket > 0)
 	{
-#ifdef	__WIN32__
+#if	!defined(__CYGWIN__) && defined(__WIN32__)
           closesocket (_port_socket);
 #else
           close (_port_socket);
@@ -2096,7 +2096,7 @@ static NSMapTable *out_port_bag = NULL;
 	 getting it.  This may help Connection invalidation confusion. */
       if (_port_socket > 0)
 	{
-#ifdef	__WIN32__
+#if	!defined(__CYGWIN__) && defined(__WIN32__)
           if (closesocket (_port_socket) < 0)
 #else
           if (close (_port_socket) < 0)
