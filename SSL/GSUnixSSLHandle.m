@@ -24,25 +24,35 @@
 
 #include <config.h>
 
+#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
+#ifndef __WIN32__
+#define __WIN32__
+#endif
+#endif
+
+#ifdef __MINGW32__
+#ifndef __MINGW__
+#define __MINGW__
+#endif
+#ifndef __WIN32__
+#define __WIN32__
+#endif
+#endif
+
+#if defined(__WIN32__)
+#include <windows.h>
+#define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
+#endif
+
   /* Because openssl uses `id' as variable name sometime,
      while it is an Objective-C reserved keyword. */
   #define id id_x_
   #include <openssl/ssl.h>
   #undef id
 
-#include <base/preface.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/UnixFileHandle.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSByteOrder.h>
+#include <Foundation/Foundation.h>
+
+#include <gnustep/base/UnixFileHandle.h>
 
 #if defined(__MINGW__)
 #include <winsock2.h>

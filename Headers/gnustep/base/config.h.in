@@ -226,9 +226,6 @@
 /* Define if you have the <objc/objc.h> header file.  */
 #undef HAVE_OBJC_OBJC_H
 
-/* Define if you have the <openssl/ssl.h> header file.  */
-#undef HAVE_OPENSSL_SSL_H
-
 /* Define if you have the <poll.h> header file.  */
 #undef HAVE_POLL_H
 

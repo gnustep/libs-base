@@ -108,7 +108,6 @@ after-distclean::
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/GSConfig.h
 	rm -rf $(GNUSTEP_TARGET_CPU)
-	rm -rf SSL.bundle
 
 # Things to do before checking
 # before-check::
@@ -173,7 +172,6 @@ NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
 #
 #	Files that need a rebuild if config.h is changed.
 #	XML support
-#	SSL support
 #
 $(GNUSTEP_OBJ_DIR)/GSXML.o \
 $(GNUSTEP_OBJ_DIR)/UnixFileHandle.o \
