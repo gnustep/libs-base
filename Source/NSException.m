@@ -20,13 +20,15 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-#include <assert.h>
+
+#include <gnustep/base/preface.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSValue.h>
 #include <Foundation/NSDictionary.h>
+#include <assert.h>
 
 NSString *NSGenericException
 	= @"NSGenericException";
@@ -175,12 +177,12 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 void 
 _NSAddHandler( NSHandler *handler )
 {
-    if (!e_queue) {
-    	e_queue = [[NSMutableArray arrayWithCapacity:8] retain];
-    }
+    if (!e_queue)
+      e_queue = [[NSMutableArray alloc] initWithCapacity:8];
 
     [e_queue addObject:
-	[NSValue value:&handler withObjCType:@encode(NSHandler *)]];
+	       [NSValue value: &handler
+			withObjCType: @encode(NSHandler*)]];
 }
 
 void 
