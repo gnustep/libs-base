@@ -1,3 +1,10 @@
+2001-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Changed ([+setUserLanguages:]) to use
+	NSLanguages.
+	* Documentation/gsdoc/NSUserDefaults.gsdoc: documented the
+	([+setUserlanguages:]) method.
+
 2001-03-04  Jonathan Gapen  <jagapen@home.com>
 
 	* Documentation/gsdoc/NSCharacterSet.gsdoc: Documented some methods.

@@ -152,7 +152,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
   int      i;
   av_alist alist;
-  NSInvocation_t *inv = _inv;
+  NSInvocation_t *inv = (NSInvocation_t*)_inv;
   void *retval = inv->_retval;
 
   /* Do an av call starting with the return type */

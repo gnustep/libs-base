@@ -381,10 +381,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSMutableDictionary	*globDict = [[self standardUserDefaults] 
 			    persistentDomainForName: NSGlobalDomain];
 	
-  if (!languages)          // Remove the entry
-    [globDict removeObjectForKey: @"Languages"];
+  if (languages == nil)          // Remove the entry
+    [globDict removeObjectForKey: @"NSLanguages"];
   else
-    [globDict setObject: languages forKey: @"Languages"];
+    [globDict setObject: languages forKey: @"NSLanguages"];
   [[self standardUserDefaults] 
     setPersistentDomain: globDict forName: NSGlobalDomain];
   return;
