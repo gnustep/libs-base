@@ -3706,6 +3706,35 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Deletes all ocurrances of parts identical to aPart from the receiver.<br />
+ * Recursively deletes from enclosed documents as necessary.
+ */
+- (void) deleteContent: (GSMimeDocument*)aPart
+{
+  if (aPart != nil)
+    {
+      if ([content isKindOfClass: [NSMutableArray class]] == YES)
+	{
+	  unsigned	count = [content count];
+
+	  while (count-- > 0)
+	    {
+	      GSMimeDocument	*part = [content objectAtIndex: count];
+
+	      if (part == aPart)
+		{
+		  [content removeObjectAtIndex: count];
+		}
+	      else
+		{
+		  [part deleteContent: part];	// Recursive.
+		}
+	    }
+	}
+    }
+}
+
+/**
  * This method removes all occurrances of header objects identical to
  * the one supplied as an argument.
  */
