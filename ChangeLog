@@ -1,17 +1,23 @@
+Mon Dec 13 13:31:00 1999  Chris Ball <cball@fmco.com>
+
+	* Source/NSTimeZone.m: Replaced the original, correct comment and
+		removed Richard's replacement incorrect comment.
+
 Fri Dec  9 17:00:00 1999  Chris Ball <cball@fmco.com>
 
 	Sorry, I did a commit one directory to deep.
 	* Source/NSArray.m: NSMutableArray's compared against a garbage pointer
-				on removal.  This causes real problems on SMP machines.
+		on removal.  This causes real problems on SMP machines.
 	* Source/NSGarray.m
 	* Source/NSCalendarDate.m: DateByAddingYears lost timeZone info.
-				InitWithString didn't deal with adjacent format specifiers.
+		InitWithString didn't deal with adjacent format specifiers.
 	* Source/NSDate.m: addTimeInterval messed up timeZone if used with
-				calendarDate
-	* Source/NSLock.m: Trylock was broken and lockBeforeDate was unimplemented
+		calendarDate
+	* Source/NSLock.m: Trylock was broken and lockBeforeDate was 
+		unimplemented
 	* Source/NSObject.m: The release code was broken for SMP machine use.
 	* Source/NSTimeZone.m: The GMT+-** files are in the root directory on
-				OpenStep and are in Etc/ on GNUstep so check both.
+		OpenStep and are in Etc/ on GNUstep so check both.
 
 Mon Dec 13 12:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

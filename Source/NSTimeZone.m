@@ -976,9 +976,9 @@ static NSMapTable	*absolutes = 0;
   NSString *path = [NSBundle pathForGNUstepResource: fileName
 					     ofType: @""
 				        inDirectory: TIME_ZONE_DIR];
-
   /*
-   * Hack for OPENSTEP storing zones in Etc?
+   * OpenStep does NOT put all the GMT+-* timezones in the Etc directory so all
+   * the OpenStep software will fail to work without this extra hack.
    */
   if (path == nil) 
     {
