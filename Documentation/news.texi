@@ -28,7 +28,7 @@ gracefully handled.
 <Eric.Norum@@usask.ca>.
 
 @item NSCharacterSet has a new caching scheme, and is now faster than
-NeXT's implementation.
+NeXT's implementation, thanks to Adam Fedor.
 
 @item Preliminary thread-safety work has been done.  NSObject and
 NSAutoreleasePool should be thread-safe.
