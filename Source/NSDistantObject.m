@@ -480,7 +480,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	     *	remote system, we must tell the other end to retain its
 	     *	local object for our use.
 	     */
-	    if ([proxy_connection includesProxyForTarget: target] == NO)
+	    if ([proxy_connection includesProxyForTarget: (id)target] == NO)
 		[proxy_connection retainTarget: target];
 
 	    result = [[NSDistantObject proxyWithTarget: (id)target
@@ -585,7 +585,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 
 - (Class) classForPortCoder
 {
-    return [self classForCoder];
+    return [self class];
 }
 
 - replacementObjectForPortCoder: (NSPortCoder*)aRmc;
