@@ -433,10 +433,10 @@ static void UpdateTable(NSArray *source_table,NSString *filename)
 
 static void HandleLanguage(NSString *language_name,NSMutableDictionary *source_entries)
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSEnumerator *e;
   NSString *table_name;
   NSString *filename;
+  CREATE_AUTORELEASE_POOL(arp);
 
   if (verbose)
     printf("Updating language '%s'.\n", [language_name cString]);
@@ -449,13 +449,17 @@ static void HandleLanguage(NSString *language_name,NSMutableDictionary *source_e
       UpdateTable([source_entries objectForKey: table_name],filename);
     }
 
+#if GS_WITH_GC == 0
   DESTROY(arp);
+#endif
 }
 
 
 int main(int argc, char **argv)
 {
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
 
   NSMutableDictionary *source_entries;
 
@@ -464,88 +468,92 @@ int main(int argc, char **argv)
   int error;
 
   {
-    int i,j;
+    int i, j;
     char *c;
-    for (j=i=1;i<argc;i++)
+    for (j = i = 1; i < argc; i++)
       {
 	c=argv[i];
-	if (!strcmp(c,"--help"))
+	if (!strcmp (c,"--help"))
 	  {
-	    printf("Syntax: %s [--help] [--verbose] [--aggressive-import] [--aggressive-match] [-L languages] files.[hmc...]\n",argv[0]);
+	    printf ("Syntax: %s [--help] [--verbose] [--aggressive-import] [--aggressive-match] [-L languages] files.[hmc...]\n",
+		    argv[0]);
 	    printf("\n");
-	    printf("Example: %s -L \"English Swedish German\" *.[hm]\n",argv[0]);
+	    printf("Example: %s -L \"English Swedish German\" *.[hm]\n",
+		   argv[0]);
 	    return 0;
 	  }
-	else if (!strcmp(c,"--verbose"))
+	else if (!strcmp (c,"--verbose"))
 	  {
-	    verbose=1;
+	    verbose = 1;
 	  }
-	else if (!strcmp(c,"--aggressive-import"))
+	else if (!strcmp (c,"--aggressive-import"))
 	  {
-	    aggressive_import=1;
-	    aggressive_match=1;
+	    aggressive_import = 1;
+	    aggressive_match = 1;
 	  }
-	else if (!strcmp(c,"--aggressive-match"))
+	else if (!strcmp (c,"--aggressive-match"))
 	  {
-	    aggressive_match=1;
+	    aggressive_match = 1;
 	  }
-	else if (!strcmp(c,"-L"))
+	else if (!strcmp (c,"-L"))
 	  {
 	    char *d,*d2;
-	    if (++i==argc)
+	    if (++i == argc)
 	      {
-		NSLog(@"syntax error\n");
+		NSLog (@"syntax error\n");
 		return 1;
 	      }
-	    d=argv[i];
+	    d = argv[i];
 	    while (1)
 	      {
-		d2=strchr(d,' ');
+		d2 = strchr (d,' ');
 		if (d2)
 		  *d2=0;
 		[languages addObject: [NSString stringWithCString: d]];
-		d=d2+1;
+		d = d2 + 1;
 		if (!d2)
 		  break;
 	      }
 	  }
 	else
 	  {
-	    argv[j++]=c;
+	    argv[j++] = c;
 	  }
       }
-    argc=j;
+    argc = j;
   }
 
   if (![languages count])
     {
-      NSLog(@"No languages specified!\n");
+      NSLog (@"No languages specified!\n");
       return 1;
     }
-  if (argc==1)
+  if (argc == 1)
     {
-      NSLog(@"No files specified!\n");
+      NSLog (@"No files specified!\n");
       return 1;
     }
 
-  source_entries=[[NSMutableDictionary alloc] init];
-  error=0;
+  source_entries = [[NSMutableDictionary alloc] init];
+  error = 0;
   {
     int i;
-    for (i=1;i<argc;i++)
-      error+=ParseFile(argv[i],source_entries);
+    for (i = 1; i < argc; i++)
+      error += ParseFile (argv[i], source_entries);
   }
 
   if (!error)
     {
-      int i,c=[languages count];
-      for (i=0;i<c;i++)
+      int i, c = [languages count];
+      for (i = 0; i < c; i++)
 	{
-	  HandleLanguage([languages objectAtIndex: i],source_entries);
+	  HandleLanguage ([languages objectAtIndex: i], source_entries);
 	}
     }
 
+#if GS_WITH_GC == 0
   DESTROY(arp);
+#endif
   if (error)
     return 1;
   else
