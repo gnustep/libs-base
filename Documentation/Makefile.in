@@ -48,7 +48,8 @@ news.texi \
 objective-c.texi \
 readme.texi \
 todo.texi \
-machines.texi
+machines.texi \
+faq.texi
 
 TEXT_FILES = \
 TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
