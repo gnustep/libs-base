@@ -253,7 +253,7 @@ objc/README
 
 GNUSTEP_HEADERS = \
 foundation/NSObject.h \
-foundation/zone.h \
+foundation/NSZone.h \
 foundation/README
 
 INSTALL_HEADERS = @INSTALL_HEADERS@
