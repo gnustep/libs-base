@@ -156,8 +156,9 @@ my_object_is_class(id object)
   //  [s retain];
   stream = s;
   object_table = nil;
+  in_progress_table = [[Set alloc] initWithType:@encode(unsigned)];
   const_ptr_table = [[Dictionary alloc] initWithType:@encode(void*) 
-	       keyType:@encode(unsigned)];
+					keyType:@encode(unsigned)];
   root_object_tables = nil;
   forward_object_tables = nil;
   return self;
@@ -918,7 +919,8 @@ exc_return_null(arglist_t f)
 		at:&xref 
 		withName:"Object cross-reference number"];
 	}
-      else if (forward_ref_flag)
+      else if (forward_ref_flag
+	       || [in_progress_table containsElement:xref])
 	{
 	  [self encodeTag:CODER_OBJECT_FORWARD_REFERENCE];
 	  [self encodeValueOfSimpleType:@encode(unsigned)
@@ -927,7 +929,7 @@ exc_return_null(arglist_t f)
 	}
       else
 	{
-	  [self _internalCoderPutObject:anObj atReference:xref];
+	  [in_progess_table addElement:xref];
 	  [self encodeTag:CODER_OBJECT];
 	  [self encodeValueOfSimpleType:@encode(unsigned)
 		at:&xref 
@@ -938,6 +940,8 @@ exc_return_null(arglist_t f)
 	  else
 	    [self _doEncodeObject:anObj];	    
 	  [self encodeUnindent];
+	  [self _internalCoderPutObject:anObj atReference:xref];
+	  [in_progess_table removeElement:xref];
 	}
     }
   [self encodeUnindent];
@@ -1168,6 +1172,7 @@ exc_return_null(arglist_t f)
 {
   /* xxx No. [self _finishDecodeRootObject]; */
   [const_ptr_table release];
+  [in_progress_table release];
   [object_table release];
   [forward_object_tables release];
   [root_object_tables release];
