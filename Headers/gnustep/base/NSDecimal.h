@@ -26,6 +26,12 @@
 
 #ifndef	STRICT_OPENSTEP
 
+#ifdef HAVE_GMP
+#include <gmp.h>
+#endif
+
+#include <Foundation/NSObject.h>
+
 typedef	enum {
   NSRoundDown,
   NSRoundUp,
@@ -45,16 +51,22 @@ typedef enum {
  *	Give a precision of at least 38 decimal digits
  *	requires 128 bits.
  */
-#define NSDecimalMaxSize (16/sizeof(int))
+#define NSDecimalMaxSize (16/sizeof(mp_limb_t))
 
-#define NSDecimalNoScale -1
+#define NSDecimalMaxDigit 38
+#define NSDecimalNoScale 128
 
 typedef struct {
   char	exponent;	/* Signed exponent - -128 to 127	*/
-  char	length;		/* digits in mantissa.			*/
   BOOL	isNegative;	/* Is this negative?			*/
   BOOL	validNumber;	/* Is this a valid number?		*/
-  unsigned int mantissa[NSDecimalMaxSize];
+#ifdef HAVE_GMP
+  mp_size_t size;
+  mp_limb_t lMantissa[NSDecimalMaxSize];
+#else
+  char	length;		/* digits in mantissa.			*/
+  char  cMantissa[NSDecimalMaxDigit];
+#endif
 } NSDecimal;
 
 static inline BOOL
@@ -98,6 +110,32 @@ NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power,
 
 GS_EXPORT NSString*
 NSDecimalString(const NSDecimal *decimal, NSDictionary *locale);
+
+
+// GNUstep extensions to make the implementation of NSDecimalNumber totaly 
+// independent for NSDecimals internal representation
+
+// Give back the biggest NSDecimal
+GS_EXPORT void
+NSDecimalMax(NSDecimal *result);
+
+// Give back the smallest NSDecimal
+GS_EXPORT void
+NSDecimalMin(NSDecimal *result);
+
+// Give back the value of a NSDecimal as a double
+GS_EXPORT double
+NSDecimalDouble(NSDecimal *number);
+
+// Create a NSDecimal with a mantissa, exponent and a negative flag
+GS_EXPORT void
+NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa, 
+		      short exponent, BOOL negative);
+
+// Create a NSDecimal from a string using the local
+GS_EXPORT void
+NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
+		    NSDictionary *locale);
 
 #endif
 #endif
