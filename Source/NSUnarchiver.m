@@ -667,33 +667,55 @@ static Class NSDataMallocClass;
 	    {
 	      unsigned	cver;
 	      NSString	*className;
+	      gsu16	nameLength;
 
 	      if (xref != GSIArrayCount(clsMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 				format: @"extra class crossref - %d", xref];
 		}
-	      (*desImp)(src, desSel, &c, @encode(Class), &cursor, nil);
+
+	      /*
+	       * A class is encoded as a 16-bit length, a sequence of
+	       * characters providing its name, then a version number.
+	       */
+	      (*desImp)(src, desSel, &nameLength, @encode(gsu16), &cursor, nil);
+	      if (nameLength == 0)
+		{
+		  className = nil;
+		}
+	      else
+		{
+		  char	name[nameLength+1];
+
+		  [src deserializeBytes: name
+				 length: nameLength
+			       atCursor: &cursor];
+		  name[nameLength] = '\0';
+		  className = [[NSString alloc] initWithUTF8String: name];
+		}
 	      (*desImp)(src, desSel, &cver, @encode(unsigned), &cursor, nil);
-	      if (c == 0)
+	      if (className == 0)
 		{
 		  NSLog(@"[%s %s] decoded nil class",
 		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
 		  className = @"_NSUnarchiverUnknownClass";
-		}
-	      else
-		{
-		  className = NSStringFromClass(c);
 		}
 	      classInfo = [objDict objectForKey: className];
 	      if (classInfo == nil)
 		{
 		  classInfo = [NSUnarchiverObjectInfo
 		    newWithName: className];
+		  c = NSClassFromString(className);
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
 		  RELEASE(classInfo);
 		}
+	      else
+		{
+		  c = classInfo->class;
+		}
+	      RELEASE(className);
 	      classInfo->version = cver;
 	      GSIArrayAddItem(clsMap, (GSIArrayItem)classInfo);
 	      *(Class*)address = mapClassObject(classInfo);
