@@ -44,10 +44,6 @@ static NSAutoreleasePool *current_pool = nil;
    `release' message.  Memory use grows, and grows, and... */
 static BOOL autorelease_enabled = YES;
 
-/* When this is `YES', every call to addObject, checks to make sure 
-   isn't being set up to release itself too many times. */
-static BOOL double_release_check_enabled = NO;
-
 /* When the released_count gets over this value, we call error:.
    In the future, I may change this to raise an exception or call 
    a function instead. */
@@ -109,24 +105,16 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
   if (!autorelease_enabled)
     return;
 
-  if (double_release_check_enabled)
-    {
-      unsigned release_count = [[self class] autoreleaseCountForObject:anObj];
-      unsigned retain_count = [anObj retainCount];
-      if (release_count > retain_count + 1)
-	[self error:"Autorelease would release object too many times."];
-    }
-
   if (released_count >= pool_count_warning_threshhold)
     [self error:"AutoreleasePool count threshhold exceeded."];
 
-  released_count++;
   if (released_count == released_size)
     {
       released_size *= 2;
       OBJC_REALLOC(released, id, released_size);
     }
   released[released_count] = anObj;
+  released_count++;
 }
 
 - init
@@ -154,13 +142,24 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 {
   int i;
 
+  /* Make debugging easier by checking to see if we already dealloced the
+     object before trying to release it.  Also, take the object out of the
+     released list just before releasing it, so if we are doing 
+     "double_release_check"ing, then autoreleaseCountForObject: won't find the 
+     object we are currently releasing. */
+  for (i = 0; i < released_count; i++)
+    {
+      id anObject = released[i];
+      if (anObject->isa == (void*) 0xdeadface)
+	[self error:"Autoreleasing deallocated object. Debug after setting [NSObject enableDoubleReleaseCheck:YES] to check for release errors."];
+      released[i]=0;
+      [anObject release];
+    }
+  OBJC_FREE(released);
   if (parent)
     current_pool = parent;
   else
     current_pool = [[NSAutoreleasePool alloc] init];
-  for (i = 0; i < released_count; i++)
-    [released[i] release];
-  OBJC_FREE(released);
   NSDeallocateObject(self);
 }
 
@@ -173,11 +172,6 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 + (void) enableRelease: (BOOL)enable
 {
   autorelease_enabled = enable;
-}
-
-+ (void) enableDoubleReleaseCheck: (BOOL)enable
-{
-  double_release_check_enabled = enable;
 }
 
 + (void) setPoolCountThreshhold: (unsigned)c
