@@ -455,9 +455,9 @@ static Class NSDataMallocClass;
 			 count: (unsigned)expected
 			    at: (void*)buf
 {
-  int		i;
+  unsigned int	i;
   int		offset = 0;
-  int		size = objc_sizeof_type(type);
+  unsigned int	size = (unsigned int)objc_sizeof_type(type);
   unsigned char	info;
   unsigned	count;
 

@@ -378,7 +378,7 @@ typedef struct {
   int s;
 #endif /* __MINGW__ */
   struct sockaddr_in	addr;	/* Address of process making request.	*/
-  int			pos;	/* Position reading data.		*/
+  unsigned int		pos;	/* Position reading data.		*/
   union {
     gdo_req		r;
     unsigned char	b[GDO_REQ_SIZE];
@@ -410,7 +410,7 @@ delRInfo(SOCKET s)
 delRInfo(int s)
 #endif /* __MINGW__ */
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < _rInfoCount; i++)
     {
@@ -441,7 +441,7 @@ getRInfo(SOCKET s, int make)
 getRInfo(int s, int make)
 #endif
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < _rInfoCount; i++)
     {
@@ -483,7 +483,7 @@ delWInfo(SOCKET s)
 delWInfo(int s)
 #endif /* __MINGW__ */
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < _wInfoCount; i++)
     {
@@ -514,7 +514,7 @@ getWInfo(SOCKET s, int make)
 getWInfo(int s, int make)
 #endif
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < _wInfoCount; i++)
     {
@@ -838,7 +838,7 @@ static void
 prb_add(struct in_addr *p)
 {
   prb_type	*n = 0;
-  int		i;
+  unsigned int	i;
 
   if (is_local_host(*p) != 0)
     {
@@ -911,13 +911,13 @@ prb_add(struct in_addr *p)
 static void
 prb_del(struct in_addr *p)
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < prb_used; i++)
     {
       if (memcmp(&prb[i]->sin, p, IASIZE) == 0)
 	{
-	  int	j;
+	  unsigned int	j;
 
 	  free(prb[i]);
 	  for (j = i + 1; j < prb_used; j++)
@@ -1005,7 +1005,7 @@ static void
 dump_stats()
 {
   int	tcp_pending = 0;
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < _wInfoCount; i++)
     {
@@ -1046,7 +1046,7 @@ dump_tables()
 	}
       else
 	{
-	  int	i;
+	  unsigned int	i;
 
 	  for (i = 0; i < prb_used; i++)
 	    {
@@ -1540,12 +1540,12 @@ load_iface(const char* from)
 	  bcok[interfaces] = 0;
 	  bcst[interfaces].s_addr = inet_addr("0.0.0.0");
 	}
-      if (addr[interfaces].s_addr == -1)
+      if (addr[interfaces].s_addr == (unsigned long)-1)
 	{
 	  sprintf(ebuf, "'%s' is not as valid address", buf);
 	  gdomap_log(LOG_ERR);
 	}
-      else if (mask[interfaces].s_addr == -1)
+      else if (mask[interfaces].s_addr == (unsigned long)-1)
 	{
 	  sprintf(ebuf, "'%s' is not as valid netmask", ptr);
 	  gdomap_log(LOG_ERR);
@@ -2008,7 +2008,7 @@ init_probe()
 	      if ((p->addr.s_addr & mask[iface].s_addr) ==
 		    (addr[iface].s_addr & mask[iface].s_addr))
 		{
-		  int	len = elen;
+		  unsigned int	len = elen;
 
 		  p->direct = 1;
 		  /* Kick off probe.	*/
@@ -2044,7 +2044,7 @@ init_probe()
 	  for (j = low + 1; j < high; j++)
 	    {
 	      struct in_addr	a;
-	      int	len = elen;
+	      unsigned int	len = elen;
 
 	      a.s_addr = htonl(net + j);
 	      if (is_local_host(a))
@@ -2098,7 +2098,7 @@ init_probe()
 	    {
 	      if (p->direct == 0)
 		{
-		  int	len = elen;
+		  unsigned int	len = elen;
 
 		  if (is_local_host(p->addr))
 		    {
@@ -2865,8 +2865,8 @@ handle_request(int desc)
     }
   else if (type == GDO_SERVERS)
     {
-      int	i;
-      int	j;
+      unsigned int	i;
+      unsigned int	j;
 
       free(wi->buf);
       wi->buf = (char*)malloc(sizeof(unsigned long)
@@ -2984,7 +2984,7 @@ handle_request(int desc)
 	  struct in_addr	laddr;
 	  struct in_addr	raddr;
 	  struct in_addr	*other;
-	  int			elen;
+	  unsigned int		elen;
 	  void			*rbuf = ri->buf.r.name;
 	  void			*wbuf;
 	  int			i;
@@ -4351,7 +4351,7 @@ printf(
 		  prb = (plentry*)malloc(sizeof(plentry));
 		  memset((char*)prb, '\0', sizeof(plentry));
 		  prb->addr.s_addr = inet_addr(buf);
-		  if (prb->addr.s_addr == -1)
+		  if (prb->addr.s_addr == (unsigned long)-1)
 		    {
 		      fprintf(stderr, "'%s' is not as valid address\n", buf);
 		      free(prb);

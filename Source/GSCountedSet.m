@@ -206,7 +206,7 @@
 
 - (id) initWithObjects: (id*)objs count: (unsigned)c
 {
-  int i;
+  unsigned int	i;
 
   self = [self initWithCapacity: c];
   if (self == nil)
@@ -273,7 +273,7 @@
 
       while (node != 0)
 	{
-	  if (node->value.uint <= level)
+	  if (node->value.uint <= (unsigned int)level)
 	    {
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);

@@ -588,8 +588,8 @@ handle_printf_atsign (FILE *stream,
 {
   if (length > 0)
     {
-      int	i;
-      BOOL	isAscii = YES;
+      unsigned int	i;
+      BOOL		isAscii = YES;
 
       if (chars == 0)
 	{
@@ -1562,9 +1562,9 @@ handle_printf_atsign (FILE *stream,
 			    options: (unsigned int)mask
 			      range: (NSRange)aRange
 {
-  int		i;
-  int		start;
-  int		stop;
+  unsigned int	i;
+  unsigned int	start;
+  unsigned int	stop;
   int		step;
   NSRange	range;
   unichar	(*cImp)(id, SEL, unsigned int);
@@ -3511,7 +3511,7 @@ handle_printf_atsign (FILE *stream,
 
   if (len > 0)
     {
-      int	count = 0;
+      unsigned int	count = 0;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
@@ -4955,9 +4955,9 @@ static id parsePlItem(pldata* pld)
 	if (pld->pos < pld->end && pld->ptr[pld->pos] == '*')
 	  {
 	    const unichar	*ptr;
-	    unsigned	min;
-	    unsigned	len = 0;
-	    int		i;
+	    unsigned		min;
+	    unsigned		len = 0;
+	    unsigned		i;
 
 	    pld->pos++;
 	    min = pld->pos;

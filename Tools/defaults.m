@@ -46,7 +46,7 @@ main(int argc, char** argv, char **env)
   NSString		*value;
   NSString		*user = nil;
   BOOL			found = NO;
-  int			i;
+  unsigned int		i;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];

@@ -442,16 +442,16 @@ AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
   objc_compiler_supports_constant_string_class=no)
 )
 if test $objc_compiler_supports_constant_string_class = yes; then
-  NX_CONST_STRING_CPPFLAGS="-fconstant-string-class=NSConstantString"
+  NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
   NX_CONST_STRING_CLASS=NSConstantString
   AC_MSG_RESULT(yes)
 else
-  NX_CONST_STRING_CPPFLAGS=""
+  NX_CONST_STRING_OBJCFLAGS=""
   NX_CONST_STRING_CLASS=NXConstantString
   AC_MSG_RESULT(no)
 fi
 
-AC_SUBST(NX_CONST_STRING_CPPFLAGS)
+AC_SUBST(NX_CONST_STRING_OBJCFLAGS)
 AC_SUBST(NX_CONST_STRING_CLASS)
 
 CPPFLAGS="$saved_CPPFLAGS"

@@ -798,7 +798,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		  unsigned	c,d, stride;
 		  BOOL		found;
 		  NSComparisonResult	(*comp)(id, SEL, id) = 0;
-		  int		count = numKeys;
+		  unsigned int	count = numKeys;
 		  #ifdef	GSWARN
 		  BOOL		badComparison = NO;
 		  #endif

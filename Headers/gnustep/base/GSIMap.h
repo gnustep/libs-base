@@ -752,7 +752,7 @@ GSIMapCleanMap(GSIMapTable map)
   if (map->nodeCount > 0)
     {
       GSIMapBucket	bucket = map->buckets;
-      int		i;
+      unsigned int	i;
       GSIMapNode	startNode = 0;
       GSIMapNode	prevNode = 0;
       GSIMapNode	node;
@@ -792,7 +792,7 @@ GSIMapCleanMap(GSIMapTable map)
 static INLINE void
 GSIMapEmptyMap(GSIMapTable map)
 {
-  int	i;
+  unsigned int	i;
 
 #ifdef	GSI_MAP_NOCLEAN
   if (GSI_MAP_NOCLEAN)

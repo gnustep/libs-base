@@ -27,7 +27,7 @@ ifeq ($(FOUNDATION_LIB),gnu)
 #
 # FIXME - macro names
 #
-  CONFIG_SYSTEM_INCL += @NX_CONST_STRING_CPPFLAGS@
+  AUXILIARY_OBJCFLAGS += @NX_CONST_STRING_OBJCFLAGS@
   ifeq ($(shared),no)
     CONFIG_SYSTEM_LIBS += @LIBS@
   endif

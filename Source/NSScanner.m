@@ -339,7 +339,7 @@ typedef struct {
  * Internal version used by scanRadixUnsignedInt: and scanHexInt: .
  */
 - (BOOL) scanUnsignedInt_: (unsigned int *)value
-		    radix: (int)radix
+		    radix: (unsigned int)radix
 		gotDigits: (BOOL)gotDigits
 {
   unsigned int	num = 0;
@@ -429,7 +429,7 @@ typedef struct {
  */
 - (BOOL) scanRadixUnsignedInt: (unsigned int *)value
 {
-  int		radix;
+  unsigned int	radix;
   BOOL		gotDigits = NO;
   unsigned int	saveScanLocation = _scanLocation;
 

@@ -1514,7 +1514,7 @@ chop(NSTimeInterval since, GSTimeZone *zone)
   gss32			*trans = zone->trans;
   unsigned		hi = zone->n_trans;
   unsigned		lo = 0;
-  int			i;
+  unsigned int		i;
 
   if (hi == 0 || trans[0] > when)
     {
@@ -1556,7 +1556,7 @@ chop(NSTimeInterval since, GSTimeZone *zone)
        * was later than our date, we step back to find the last
        * transition before our date.
        */
-      if (i == zone->n_trans || trans[i] > when)
+      if (i > 0 && (i == zone->n_trans || trans[i] > when))
 	{
 	  i--;
 	}

@@ -80,9 +80,9 @@ enum _NSRectEdge
   NSMaxYEdge
 };
 
-static const NSPoint NSZeroPoint;  /* A zero point. */
-static const NSRect NSZeroRect;    /* A zero origin rectangle. */
-static const NSSize NSZeroSize;    /* A zero size rectangle. */
+static const NSPoint NSZeroPoint __attribute__((unused));  /* Zero point. */
+static const NSRect NSZeroRect __attribute__((unused));    /* Zero rectangle. */
+static const NSSize NSZeroSize __attribute__((unused));    /* Zero size. */
 
 /**** Function Prototypes ****************************************************/
 

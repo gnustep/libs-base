@@ -110,7 +110,7 @@ _NSLog_standard_printf_handler (NSString* message)
 #ifdef	HAVE_SYSLOG
 
   if (GSUserDefaultsFlag(GSLogSyslog) == YES
-    || write(_NSLogDescriptor, buf, len) != len)
+    || write(_NSLogDescriptor, buf, len) != (int)len)
     {
       int	mask;
       /* We NULL-terminate the string in order to feed it to

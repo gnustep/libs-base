@@ -31,7 +31,7 @@
 int
 convert_unicode(NSArray *args)
 {
-  int i;
+  unsigned int i;
 
   for (i = 2; i < [args count]; i++)
     {
@@ -71,7 +71,7 @@ convert_unicode(NSArray *args)
 int
 convert_utf8(NSArray *args)
 {
-  int i;
+  unsigned int i;
 
   for (i = 2; i < [args count]; i++)
     {

@@ -745,12 +745,12 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
     {									      \
       unsigned i;							      \
       									      \
-      if (s->len+(Len) >= s->size) {					      \
-      	s->size += s->size/2 > (Len)? s->size/2: (Len);			      \
+      if (s->len+((unsigned)(Len)) >= s->size) {			      \
+      	s->size += s->size/2 > ((unsigned)(Len))? s->size/2: (unsigned)(Len); \
 	s->buf = NSZoneRealloc(s->z, s->buf, s->size*sizeof(s->buf[0]));      \
       }									      \
-      for (i=0; i < (Len); i++) s->buf[s->len++] = (String)[i];		      \
-      done += (Len);							      \
+      for (i=0; i < ((unsigned)(Len)); i++) s->buf[s->len++] = (String)[i];   \
+      done += (unsigned)(Len);						      \
     }									      \
   while (0)
 
@@ -1127,10 +1127,12 @@ NSDictionary *locale)
 	  }
 
 	/* Maybe the buffer is too small.  */
-	if (MAX (prec, width) + 32 > sizeof (work_buffer) / sizeof (unichar))
-	  workend = ((unichar *) alloca ((MAX (prec, width) + 32)
-					* sizeof (unichar))
-		     + (MAX (prec, width) + 32));
+	if ((unsigned)(MAX (prec, width) + 32)
+	  > sizeof (work_buffer) / sizeof (unichar))
+	  {
+	    workend = ((unichar *) alloca ((MAX (prec, width) + 32)
+	      * sizeof (unichar)) + (MAX (prec, width) + 32));
+	  }
 
 	/* Process format specifiers.  */
 	while (1)
@@ -1735,7 +1737,7 @@ NSDictionary *locale)
 	    unsigned		slen = strlen(str);
 	    NSStringEncoding	enc = GetDefEncoding();
 
-	    len = prec != -1 ? prec : slen;
+	    len = prec != -1 ? (unsigned)prec : slen;
 	    if (len > slen)
 	      len = slen;
 
@@ -1819,7 +1821,7 @@ NSDictionary *locale)
 	    NSRange r;
 
 	    len = [dsc length];
-	    if (prec >= 0 && prec < len) len = prec;
+	    if (prec >= 0 && prec < (int)len) len = prec;
 
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */

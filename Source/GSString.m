@@ -1048,7 +1048,7 @@ fillHole(ivars self, unsigned index, unsigned size)
   self->_count -= size;
 #ifndef STABLE_MEMCPY
   {
-    int i;
+    unsigned int i;
 
     if (self->_flags.wide == 1)
       {
@@ -1399,7 +1399,7 @@ lossyCString_u(ivars self)
 }
 
 static inline void
-makeHole(ivars self, int index, int size)
+makeHole(ivars self, unsigned int index, unsigned int size)
 {
   unsigned	want;
 
@@ -1474,21 +1474,23 @@ makeHole(ivars self, int index, int size)
 #ifndef STABLE_MEMCPY
       if (self->_flags.wide == 1)
 	{
-	  int i;
+	  unsigned int i;
 
-	  for (i = self->_count; i >= index; i--)
+	  for (i = self->_count; i > index; i--)
 	    {
 	      self->_contents.u[i+size] = self->_contents.u[i];
 	    }
+	  self->_contents.u[index+size] = self->_contents.u[index];
 	}
       else
 	{
-	  int i;
+	  unsigned int i;
 
-	  for (i = self->_count; i >= index; i--)
+	  for (i = self->_count; i > index; i--)
 	    {
 	      self->_contents.c[i+size] = self->_contents.c[i];
 	    }
+	  self->_contents.c[index+size] = self->_contents.c[index];
 	}
 #else
       if (self->_flags.wide == 1)
@@ -2439,8 +2441,8 @@ transmute(ivars self, NSString *aString)
 // private method for Unicode level 3 implementation
 - (int) _baseLength
 {
-  int count = 0;
-  int blen = 0;
+  unsigned int count = 0;
+  unsigned int blen = 0;
 
   while (count < _count)
     if (!uni_isnonsp(_contents.u[count++]))
@@ -3033,7 +3035,7 @@ transmute(ivars self, NSString *aString)
     }
   else if (offset > 0)
     {
-      makeHole((ivars)self, NSMaxRange(aRange), offset);
+      makeHole((ivars)self, NSMaxRange(aRange), (unsigned int)offset);
     }
 
   if (length > 0)
@@ -3107,7 +3109,7 @@ transmute(ivars self, NSString *aString)
 
 - (void) setString: (NSString*)aString
 {
-  int	len = (aString == nil) ? 0 : [aString length];
+  unsigned int	len = (aString == nil) ? 0 : [aString length];
   ivars	other;
 
   if (len == 0)
@@ -3118,7 +3120,7 @@ transmute(ivars self, NSString *aString)
   other = transmute((ivars)self, aString);
   if (_count < len)
     {
-      makeHole((ivars)self, _count, len - _count);
+      makeHole((ivars)self, _count, (unsigned int)(len - _count));
     }
   else
     {
@@ -3228,8 +3230,8 @@ transmute(ivars self, NSString *aString)
 {
   if (_flags.wide == 1)
     {
-      int count = 0;
-      int blen = 0;
+      unsigned int count = 0;
+      unsigned int blen = 0;
 
       while (count < _count)
 	if (!uni_isnonsp(_contents.u[count++]))

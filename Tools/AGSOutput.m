@@ -1453,7 +1453,7 @@ static BOOL snuggleStart(NSString *t)
   a = [self split: str];
   for (i = 0; i < [a count]; i++)
     {
-      int	j;
+      unsigned int	j;
 
       str = [a objectAtIndex: i];
 

@@ -37,19 +37,19 @@
 typedef struct {
   Class	class;
   /* The following are used for statistical info */
-  int	count;
-  int	lastc;
-  int	total;
-  int   peak;
+  unsigned int	count;
+  unsigned int	lastc;
+  unsigned int	total;
+  unsigned int   peak;
   /* The following are used to record actual objects */
   BOOL  is_recording;
   id    *recorded_objects;
-  int   num_recorded_objects;
-  int   stack_size;
+  unsigned int   num_recorded_objects;
+  unsigned int   stack_size;
 } table_entry;
 
-static	int	num_classes = 0;
-static	int	table_size = 0;
+static	unsigned int	num_classes = 0;
+static	unsigned int	table_size = 0;
 
 static table_entry*	the_table = 0;
 
@@ -131,7 +131,7 @@ GSDebugAllocationActive(BOOL active)
 void
 GSDebugAllocationActiveRecordingObjects(Class c)
 {
-  unsigned i;
+  unsigned int i;
   
   GSDebugAllocationActive(YES);
 
@@ -189,7 +189,7 @@ GSDebugAllocationAdd(Class c, id o)
 {
   if (debug_allocation)
     {
-      int	i;
+      unsigned int	i;
 
       for (i = 0; i < num_classes; i++)
 	{
@@ -245,7 +245,7 @@ GSDebugAllocationAdd(Class c, id o)
 	[uniqueLock lock];
       if (num_classes >= table_size)
 	{
-	  int		more = table_size + 128;
+	  unsigned int	more = table_size + 128;
 	  table_entry	*tmp;
 	  
 	  tmp = NSZoneMalloc(NSDefaultMallocZone(), more * sizeof(table_entry));
@@ -305,7 +305,7 @@ GSDebugAllocationAdd(Class c, id o)
 int
 GSDebugAllocationCount(Class c)
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < num_classes; i++)
     {
@@ -337,7 +337,7 @@ GSDebugAllocationCount(Class c)
 int
 GSDebugAllocationTotal(Class c)
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < num_classes; i++)
     {
@@ -364,7 +364,7 @@ GSDebugAllocationTotal(Class c)
 int
 GSDebugAllocationPeak(Class c)
 {
-  int	i;
+  unsigned int	i;
 
   for (i = 0; i < num_classes; i++)
     {
@@ -390,7 +390,7 @@ GSDebugAllocationClassList()
 {
   Class *ans;
   size_t siz;
-  int	i;
+  unsigned int	i;
 
   if (uniqueLock != nil)
     [uniqueLock lock];
@@ -439,9 +439,9 @@ GSDebugAllocationList(BOOL changeFlag)
 static const char*
 _GSDebugAllocationList(BOOL difference)
 {
-  int		pos = 0;
-  int		i;
-  static int	siz = 0;
+  unsigned int	pos = 0;
+  unsigned int	i;
+  static unsigned int	siz = 0;
   static char	*buf = 0;
 
   for (i = 0; i < num_classes; i++)
@@ -536,9 +536,9 @@ GSDebugAllocationListAll()
 static const char*
 _GSDebugAllocationListAll(void)
 {
-  int		pos = 0;
-  int		i;
-  static int	siz = 0;
+  unsigned int	pos = 0;
+  unsigned int	i;
+  static unsigned int	siz = 0;
   static char	*buf = 0;
 
   for (i = 0; i < num_classes; i++)
@@ -592,7 +592,7 @@ GSDebugAllocationRemove(Class c, id o)
 {
   if (debug_allocation)
     {
-      int	i;
+      unsigned int	i;
 
       for (i = 0; i < num_classes; i++)
 	{
@@ -653,7 +653,7 @@ NSArray *
 GSDebugAllocationListRecordedObjects(Class c)
 {
   NSArray *answer;
-  unsigned i, k;
+  unsigned int i, k;
   id *tmp;
 
   if (debug_allocation == NO)

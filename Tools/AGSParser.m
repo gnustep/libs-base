@@ -166,7 +166,7 @@
     {
       NSNumber	*num = [lines objectAtIndex: where];
 
-      if ([num intValue] <= pos)
+      if ([num intValue] <= (int)pos)
 	{
 	  break;
 	}

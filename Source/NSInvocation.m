@@ -146,7 +146,7 @@ _arg_addr(NSInvocation *inv, int index)
       _argsRetained = NO;
       if (_cframe && _sig)
 	{
-	  int	i;
+	  unsigned int	i;
 
 	  for (i = 3; i <= _numArgs; i++)
 	    {
@@ -368,7 +368,7 @@ _arg_addr(NSInvocation *inv, int index)
     }
   else
     {
-      int	i;
+      unsigned int	i;
 
       _argsRetained = YES;
       IF_NO_GC(RETAIN(_target));
@@ -518,7 +518,7 @@ _arg_addr(NSInvocation *inv, int index)
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   const char	*types = [_sig methodType];
-  int		i;
+  unsigned int	i;
 
   [aCoder encodeValueOfObjCType: @encode(char*)
 			     at: &types];
@@ -567,7 +567,7 @@ _arg_addr(NSInvocation *inv, int index)
   NSMethodSignature	*newSig;
   const char		*types;
   void			*datum;
-  int			i;
+  unsigned int		i;
 
   [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
@@ -666,7 +666,7 @@ _arg_addr(NSInvocation *inv, int index)
     }
   if (self)
     {
-      int	i;
+      unsigned int	i;
 
       [self setTarget: anObject];
       [self setSelector: aSelector];
@@ -793,7 +793,7 @@ _arg_addr(NSInvocation *inv, int index)
        */
       if (frame)
 	{
-	  int	i;
+	  unsigned int	i;
 
 	  mframe_get_arg(frame, &_info[1], &_target);
 	  for (i = 1; i <= _numArgs; i++)

@@ -202,7 +202,7 @@ typedef enum {
   gsu32			rId;		/* Id of incoming message.	*/
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
-  int			addrNum;	/* Address number within host.	*/
+  unsigned int		addrNum;	/* Address number within host.	*/
 @public
   NSRecursiveLock	*myLock;	/* Lock for this handle.	*/
   BOOL			caller;		/* Did we connect to other end?	*/
@@ -1087,7 +1087,7 @@ static Class	runLoopClass;
 #else
 	      len = write(desc, [d bytes], [d length]);
 #endif
-	      if (len == [d length])
+	      if (len == (int)[d length])
 		{
 		  RELEASE(defaultAddress);
 		  defaultAddress = RETAIN([NSString stringWithCString:
@@ -1680,7 +1680,8 @@ static Class		tcpPortClass;
   /*
    * Make sure there is enough room in the provided array.
    */
-  NSAssert(*count > NSCountMapTable(handles), NSInternalInconsistencyException);
+  NSAssert(*count > (int)NSCountMapTable(handles),
+    NSInternalInconsistencyException);
 
   /*
    * Put in our listening socket.

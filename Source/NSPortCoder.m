@@ -380,7 +380,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			 count: (unsigned)expected
 			    at: (void*)buf
 {
-  int		i;
+  unsigned int	i;
   int		offset = 0;
   int		size = objc_sizeof_type(type);
   unsigned char	info;
