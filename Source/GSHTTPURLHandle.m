@@ -720,7 +720,7 @@ static void debugWrite(NSData *data)
 
 - (BOOL) writeData: (NSData*)d
 {
-  ASSIGN(wData, d);
+  [self writeProperty: d forKey: GSHTTPPropertyBodyKey];
   [self loadInForeground];
   return YES;
 }
@@ -732,7 +732,11 @@ static void debugWrite(NSData *data)
       [NSException raise: NSInvalidArgumentException
 		  format: @"%@ with invalid key", NSStringFromSelector(_cmd)];
     }
-  if ([propertyKey hasPrefix: @"GSHTTPProperty"])
+  if ([propertyKey isEqual: GSHTTPPropertyBodyKey] == YES)
+    {
+      ASSIGN(wData, property);
+    }
+  else if ([propertyKey hasPrefix: @"GSHTTPProperty"])
     {
       if (property == nil)
 	{
