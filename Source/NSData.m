@@ -1468,9 +1468,12 @@ failure:
 {
   [aCoder encodeValueOfObjCType: @encode(unsigned long)
 			     at: &length];
-  [aCoder encodeArrayOfObjCType: @encode(unsigned char)
-			  count: length
-			     at: bytes];
+  if (length)
+    {
+      [aCoder encodeArrayOfObjCType: @encode(unsigned char)
+			      count: length
+				 at: bytes];
+    }
 }
 
 /* Basic methods	*/
@@ -2214,23 +2217,25 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    unsigned	l;
-    void*		b;
+  unsigned	l;
+  void		*b;
 
-    [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
-    if (l) {
-	[self initWithCapacity: l];
-	if (bytes == 0) {
-	    NSLog(@"[NSMutableDataMalloc -initWithCoder:] unable to allocate %lu bytes", l);
-	    [self release];
-	    return nil;
+  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
+  if (l)
+    {
+      [self initWithCapacity: l];
+      if (bytes == 0)
+	{
+	  NSLog(@"[NSMutableDataMalloc -initWithCoder:] unable to allocate %lu bytes", l);
+	  [self release];
+	  return nil;
 	}
-	[aCoder decodeArrayOfObjCType: @encode(unsigned char)
-				count: l
-				   at: bytes];
-	length = l;
+      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+			      count: l
+				 at: bytes];
+      length = l;
     }
-    return self;
+  return self;
 }
 
 - (id) initWithLength: (unsigned)size
