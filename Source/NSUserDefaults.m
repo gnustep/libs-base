@@ -1123,6 +1123,7 @@ static NSString	*pathForUser(NSString *user)
       if ([key hasPrefix: @"-"])
 	{
 	  NSString	*old = nil;
+
 	  /* anything beginning with a '-' is a defaults key and we must strip
 	      the '-' from it.  As a special case, we leave the '- in place
 	      for '-GS...' and '--GS...' for backward compatibility. */
@@ -1132,27 +1133,34 @@ static NSString	*pathForUser(NSString *user)
 	    }
 	  key = [key substringFromIndex: 1];
 	  val = [enumerator nextObject];
-	  if (!val)
+	  if (val == nil)
 	    {            // No more args
 	      [argDict setObject: @"" forKey: key];		// arg is empty.
-	      if (old)
-		[argDict setObject: @"" forKey: old];
+	      if (old != nil)
+		{
+		  [argDict setObject: @"" forKey: old];
+		}
 	      done = YES;
 	      continue;
 	    }
-	  else if ([val hasPrefix: @"-"])
+	  else if ([val hasPrefix: @"-"] == YES)
 	    {  // Yet another argument
 	      [argDict setObject: @"" forKey: key];		// arg is empty.
-	      if (old)
-		[argDict setObject: @"" forKey: old];
+	      if (old != nil)
+		{
+		  [argDict setObject: @"" forKey: old];
+		}
 	      key = val;
 	      continue;
 	    }
 	  else
 	    {                            // Real parameter
+	      val = [val propertyList];
 	      [argDict setObject: val forKey: key];
-	      if (old)
-		[argDict setObject: val forKey: old];
+	      if (old != nil)
+		{
+		  [argDict setObject: val forKey: old];
+		}
 	    }
 	}
       done = ((key = [enumerator nextObject]) == nil);

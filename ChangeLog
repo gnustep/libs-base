@@ -2,6 +2,9 @@
 
 	* Documentation/gsdoc/Base.gsdoc: Documented all the uses of
 	environment variables I could find.
+	* Source/NSUserDefaults.m: __createArgumentDictionary ... handle
+	property lists as arguments correctly.
+	* Source/NSUser.m: Added GSTooldDirectory to listable paths.
 
 2001-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
