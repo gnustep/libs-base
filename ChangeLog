@@ -1,3 +1,9 @@
+Tue Oct 27 08:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Corrected all the collection classes to return the count of objects
+	in the collection as the ([-hash]) in conformance with the latest
+	documentation.
+
 Mon Oct 26 10:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	src/NSGCString.m: Implemented ([-copy]) and ([-copyWithZone:]) to
