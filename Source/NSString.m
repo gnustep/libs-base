@@ -3675,6 +3675,10 @@ handle_printf_atsign (FILE *stream,
 #if	HAVE_LIBXML
 #include	<Foundation/GSXML.h>
 
+#ifndef __XML_TREE_H__
+static int      XML_ELEMENT_NODE;
+#endif
+
 static void
 decodeBase64Unit(const char* ptr, unsigned char *out)
 {
@@ -4270,6 +4274,14 @@ nodeToObject(GSXMLNode* node)
 static void
 setupPl()
 {
+#if	HAVE_LIBXML
+#ifndef __XML_TREE_H__
+  /*
+   * Cache XML node information.
+   */
+  XML_ELEMENT_NODE = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
+#endif
+#endif
   plAlloc = (id (*)(id, SEL, NSZone*))
     [NSStringClass methodForSelector: @selector(allocWithZone:)];
   plInit = (id (*)(id, SEL, unichar*, unsigned))
