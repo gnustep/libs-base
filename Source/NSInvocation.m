@@ -643,6 +643,7 @@ _arg_addr(NSInvocation *inv, int index)
     {
       NSLog(@"Couldn't find encoding type for selector %s.",
 	   sel_get_name(aSelector));
+      RELEASE(self);
       return nil;
     }
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
@@ -809,6 +810,11 @@ _arg_addr(NSInvocation *inv, int index)
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
+  if (aSignature == nil)
+    {
+      RELEASE(self);
+      return nil;
+    }
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
