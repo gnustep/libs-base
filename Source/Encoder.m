@@ -245,6 +245,7 @@ my_object_is_class(id object)
     }
   xref = NSCountMapTable (object_2_xref) + 1;
   NSMapInsert (object_2_xref, anObj, (void*)xref);
+  return xref;
 }
 
 - (unsigned) _coderReferenceForObject: anObject
@@ -272,6 +273,7 @@ my_object_is_class(id object)
   xref = NSCountMapTable (const_ptr_2_xref) + 1;
   assert (! NSMapGet (const_ptr_2_xref, (void*)xref));
   NSMapInsert (const_ptr_2_xref, ptr, (void*)xref);
+  return xref;
 }
 
 - (unsigned) _coderReferenceForConstPtr: (const void*)ptr
