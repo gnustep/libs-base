@@ -1,3 +1,19 @@
+2000-10-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Implement ([-substringWithRange:]) and
+	([-substringFromRange:]) equally.  The 'from' method is the
+	'official OpenStep' one, the 'with' method is a MacOS-X compatibility
+	addition.
+	* Source/NSAttributedString.m: Added ([-attributedSubstringWithRange:])
+	in the expectation that Apple will rename the method and remove
+	([-attributedSubstringFromRange:])
+	* Source/NSScanner.m: Use substringWithRange.
+	* Source/NSProxy.m: Implement ([-forward::]) to use
+	([-forwardInvocation:]).  Implement ([-conformsToProtocol:]) to raise
+	exception, Implement ([-respondsToSelector:]) to raise exception.
+	* Source/NSDistantObject.m: Implement ([-conformsToProtocol:]) to
+	forward to remote.  Implement ([-respondsToSelector:]) to forward.
+
 2000-10-24  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSAttributedString.m: Added begin/endEditing to all

@@ -732,7 +732,7 @@ typedef struct {
 
 	      range.location = start;
 	      range.length = _scanLocation - start;
-	      *value = [_string substringFromRange: range];
+	      *value = [_string substringWithRange: range];
 	    }
 	  return YES;
 	}
@@ -795,7 +795,7 @@ typedef struct {
 
       range.location = start;
       range.length = _scanLocation - start;
-      *value = [_string substringFromRange: range];
+      *value = [_string substringWithRange: range];
     }
   return YES;
 }
@@ -827,7 +827,7 @@ typedef struct {
       return NO;
     }
   if (value)
-    *value = [_string substringFromRange: range];
+    *value = [_string substringWithRange: range];
   _scanLocation += range.length;
   return YES;
 }
@@ -860,7 +860,7 @@ typedef struct {
       return NO;
     }
   if (value)
-    *value = [_string substringFromRange: range];
+    *value = [_string substringWithRange: range];
   _scanLocation += range.length;
   return YES;
 }

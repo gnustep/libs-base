@@ -86,7 +86,9 @@
 
 - (id) autorelease
 {
-  [NSAutoreleasePool addObject:self];
+#if	GS_WITH_GC == 0
+  [NSAutoreleasePool addObject: self];
+#endif
   return self;
 }
 
@@ -95,22 +97,13 @@
   return object_get_class(self);
 }
 
-#if 0
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  NSInvocation		*inv;
-  NSMethodSignature	*sig;
-  BOOL			result;
-
-  sig = [self methodSignatureForSelector:@selector(conformsToProtocol:)];
-  inv = [NSInvocation invocationWithMethodSignature:sig];
-  [inv setSelector:@selector(conformsToProtocol:)];
-  [inv setArgument:aProtocol atIndex:2];
-  [self forwardInvocation:inv];
-  [inv getReturnValue: &result];
-  return result;
+  [NSException raise: NSGenericException
+    format: @"subclass %s should override %s", object_get_class_name(self),
+    sel_get_name(_cmd)];
+  return NO;
 }
-#endif
 
 - (void) dealloc
 {
@@ -121,6 +114,16 @@
 {
   return [NSString stringWithFormat: @"<%s %lx>",
 	object_get_class_name(self), (unsigned long)self];
+}
+
+- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
+{
+  NSInvocation *inv;
+
+  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
+				       selector: aSel]);
+  [self forwardInvocation:inv];
+  return [inv returnFrame: argFrame];
 }
 
 - (void) forwardInvocation: (NSInvocation*)anInvocation
@@ -241,32 +244,27 @@
 
 - (void) release
 {
+#if	GS_WITH_GC == 0
   if (_retain_count-- == 0)
     {
       [self dealloc];
     }
+#endif
 }
 
-#if 0
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-  NSInvocation*       inv;
-  NSMethodSignature*  sig;
-  BOOL		result;
-
-  sig = [self methodSignatureForSelector:@selector(respondsToSelector:)];
-  inv = [NSInvocation invocationWithMethodSignature:sig];
-  [inv setSelector:@selector(respondsToSelector:)];
-  [inv setArgument:(void*)aSelector atIndex:2];
-  [self forwardInvocation:inv];
-  [inv getReturnValue: &result];
-  return result;
+  [NSException raise: NSGenericException
+    format: @"subclass %s should override %s", object_get_class_name(self),
+    sel_get_name(_cmd)];
+  return NO;
 }
-#endif
 
 - (id) retain
 {
+#if	GS_WITH_GC == 0
   _retain_count++;
+#endif
   return self;
 }
 

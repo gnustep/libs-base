@@ -1066,6 +1066,40 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     return strRangeUsNs((id)self, aString, mask, aRange);
 }
 
+static inline NSString*
+substring_c(ivars self, NSRange aRange)
+{
+  GSCSubString	*sub;
+
+  sub = [GSCSubStringClass allocWithZone: NSDefaultMallocZone()];
+  sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
+			    length: aRange.length
+		      freeWhenDone: NO];
+  if (sub != nil)
+    {
+      sub->_parent = RETAIN((id)self);
+      AUTORELEASE(sub);
+    }
+  return sub;
+}
+
+static inline NSString*
+substring_u(ivars self, NSRange aRange)
+{
+  GSUSubString	*sub;
+
+  sub = [GSUSubStringClass allocWithZone: NSDefaultMallocZone()];
+  sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
+			       length: aRange.length
+			 freeWhenDone: NO];
+  if (sub != nil)
+    {
+      sub->_parent = RETAIN((id)self);
+      AUTORELEASE(sub);
+    }
+  return sub;
+}
+
 /*
  * Function to examine the given string and see if it is one of our concrete
  * string classes.  Converts the mutable string (self) from 8-bit to 16-bit
@@ -1427,22 +1461,16 @@ transmute(ivars self, NSString *aString)
   return defEnc;
 }
 
+- (NSString*) substringFromRange: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  return substring_c((ivars)self, aRange);
+}
+
 - (NSString*) substringWithRange: (NSRange)aRange
 {
-  GSCSubString	*sub;
-
   GS_RANGE_CHECK(aRange, _count);
-
-  sub = [GSCSubStringClass allocWithZone: NSDefaultMallocZone()];
-  sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
-			    length: aRange.length
-		      freeWhenDone: NO];
-  if (sub != nil)
-    {
-      sub->_parent = RETAIN(self);
-      AUTORELEASE(sub);
-    }
-  return sub;
+  return substring_c((ivars)self, aRange);
 }
 
 // private method for Unicode level 3 implementation
@@ -1695,22 +1723,16 @@ transmute(ivars self, NSString *aString)
   return NSUnicodeStringEncoding;
 }
 
+- (NSString*) substringFromRange: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  return substring_u((ivars)self, aRange);
+}
+
 - (NSString*) substringWithRange: (NSRange)aRange
 {
-  GSUSubString	*sub;
-
   GS_RANGE_CHECK(aRange, _count);
-
-  sub = [GSUStringClass allocWithZone: NSDefaultMallocZone()];
-  sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
-			       length: aRange.length
-			 freeWhenDone: NO];
-  if (sub != nil)
-    {
-      sub->_parent = RETAIN(self);
-      AUTORELEASE(sub);
-    }
-  return sub;
+  return substring_u((ivars)self, aRange);
 }
 
 // private method for Unicode level 3 implementation
@@ -2265,6 +2287,22 @@ transmute(ivars self, NSString *aString)
     }
   else
     return defEnc;
+}
+
+- (NSString*) substringFromRange: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  
+  if (_flags.wide == 1)
+    {
+      return [GSUStringClass stringWithCharacters:
+	self->_contents.u + aRange.location length: aRange.length];
+    }
+  else
+    {
+      return [GSCStringClass stringWithCString:
+	self->_contents.c + aRange.location length: aRange.length];
+    }
 }
 
 - (NSString*) substringWithRange: (NSRange)aRange
