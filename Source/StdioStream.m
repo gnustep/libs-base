@@ -26,8 +26,7 @@
 #include <gnustep/base/Coder.h>
 #include <Foundation/NSException.h>
 #include <stdarg.h>
-
-/* xxx I should test return values of all functions on the FILE*. */
+#include <errno.h>
 
 enum {
   STREAM_READONLY = 0,
@@ -105,14 +104,26 @@ o_vscanf (void *stream,
 - initWithFilename: (id <String>)name fmode: (const char *)m
 {
   FILE *afp = fopen([name cStringNoCopy], (char*)m);
-  /* xxx Add error checking. */
+  if (!afp)
+    {
+      /* xxxFIXME: should be NSLog */
+      perror("Stream");
+      [super dealloc];
+      return nil;
+    }
   return [self initWithFilePointer:afp fmode:m];
 }
 
 - initWithFileDescriptor: (int)fd fmode: (const char *)m
 {
   FILE *afp = fdopen(fd, (char*)m);
-  /* xxx Add error checking. */
+  if (!afp)
+    {
+      /* xxxFIXME: should be NSLog */
+      perror("Stream");
+      [super dealloc];
+      return nil;
+    }
   return [self initWithFilePointer:afp fmode:m];
 }
 
@@ -137,40 +148,35 @@ o_vscanf (void *stream,
 
 - (int) writeBytes: (const void*)b length: (int)len
 {
-  /* xxx Check error conditions. */
   int ret = fwrite (b, 1, len, fp);
-  if (ret != len)
-    printf ("Write bytes differ.\n");
-  assert (ret == len);
+  if (ferror(fp))
+    {
+      [NSException raise: StreamException
+        format: @"%s", strerror(errno)];
+    }
+  else if (ret != len)
+    {
+      [NSException raise: StreamException
+        format: @"Write bytes differ"];
+    }
   return ret;
 }
 
 - (int) readBytes: (void*)b length: (int)len
 {
-  /* xxx Check error conditions. */
   int ret = fread (b, 1, len, fp);
-#if 0  /* No.  Sometimes we don't get as much as we asked for, and that ok. */
-  if (ret != len)
+  if (ferror(fp))
     {
-      printf ("Read bytes differ.\n");
-      if (feof (fp))
-	[NSException raise: NSGenericException
-		     format: @"Tried to read from eof"];
+      [NSException raise: StreamException
+        format: @"%s", strerror(errno)];
     }
-  assert (ret == len);
-#endif
   return ret;
 }
 
-- (int) writeFormat: (id <String>)format, ...
+- (int) writeFormat: (id <String>)format
+	  arguments: (va_list)arg
 {
-  int ret;
-  va_list ap;
-
-  va_start(ap, format);
-  ret = vfprintf(fp, [format cStringNoCopy], ap);
-  va_end(ap);
-  return ret;
+  return vfprintf(fp, [format cStringNoCopy], arg);
 }
 
 static int
@@ -232,9 +238,9 @@ stdio_unchar_func(void *s, int c)
   rewind(fp);
 }
 
-- (void) setStreamPosition: (unsigned)i
+- (void) setStreamPosition: (unsigned)i seekMode: (seek_mode_t)m
 {
-  fseek(fp, i, 0);
+  fseek(fp, i, m + SEEK_SET - STREAM_SEEK_FROM_START);
 }
 
 - (unsigned) streamPosition

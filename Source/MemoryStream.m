@@ -24,6 +24,7 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/MemoryStream.h>
 #include <gnustep/base/Coder.h>
+#include <Foundation/NSException.h>
 #include <stdarg.h>
 #include <assert.h>
 
@@ -53,6 +54,11 @@ enum {
 };
 
 #define DEFAULT_MEMORY_STREAM_SIZE 64
+
+#define MEMORY_CHECK(buffer)			\
+  if (!buffer)					\
+      [NSException raise: StreamException	\
+        format: @"Virtual memory exhausted"]
 
 extern int
 o_vscanf (void *stream, 
@@ -90,6 +96,7 @@ static BOOL debug_memory_stream = NO;
 {
   char *b;
   OBJC_MALLOC(b, char, s);
+  MEMORY_CHECK(b);
   return [self _initOnMallocBuffer:b size:s eofPosition:i
 	       prefix:p position:i];
 }
@@ -139,6 +146,7 @@ static BOOL debug_memory_stream = NO;
     {
       size = MAX(prefix+position+l, size*2);
       buffer = objc_realloc (buffer, size);
+      MEMORY_CHECK(buffer);
     }
   memcpy(buffer+prefix+position, b, l);
   position += l;
@@ -198,10 +206,10 @@ void unchar_func(void *s, int c)
 }
 
 #if HAVE_VSPRINTF
-- (int) writeFormat: (id <String>)format, ...
+- (int) writeFormat: (id <String>)format
+	  arguments: (va_list)arg
 {
   int ret;
-  va_list ap;
 
   /* xxx Using this ugliness we at least let ourselves safely print
      formatted strings up to 128 bytes long.
@@ -211,9 +219,7 @@ void unchar_func(void *s, int c)
   if (size - (prefix + position) < 128)
     [self setStreamBufferCapacity:size*2];
 
-  va_start(ap, format);
-  ret = vsprintf(buffer+prefix+position, [format cStringNoCopy], ap);
-  va_end(ap);
+  ret = vsprintf(buffer+prefix+position, [format cStringNoCopy], arg);
   position += ret;
   /* xxx Make sure we didn't overrun our buffer.
      As per above kludge, this would happen if we happen to have more than
@@ -243,9 +249,20 @@ void unchar_func(void *s, int c)
   return ret;
 }
 
-- (void) setStreamPosition: (unsigned)i
+- (void) setStreamPosition: (unsigned)i  seekMode: (seek_mode_t)mode
 {
-  position = i;
+  switch (mode)
+    {
+    case STREAM_SEEK_FROM_START:
+      position = i;
+      break;
+    case STREAM_SEEK_FROM_CURRENT:
+      position += i;
+      break;
+    case STREAM_SEEK_FROM_END:
+      position = eofPosition + i;
+      break;
+    }
 }
 
 - (unsigned) streamPosition
@@ -287,6 +304,7 @@ void unchar_func(void *s, int c)
   if (s > prefix + eofPosition)
     {
       buffer = objc_realloc (buffer, s);
+      MEMORY_CHECK(buffer);
       size = s;
     }
 }
