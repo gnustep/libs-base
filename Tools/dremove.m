@@ -45,7 +45,7 @@ main(int argc, char** argv)
     if (proc == nil) {
 	NSLog(@"unable to get process information!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
 
     args = [proc arguments];
@@ -73,7 +73,7 @@ main(int argc, char** argv)
 "    default key pairs to be removed.  Domain names and default keys must be\n"
 "    separated by spaces.\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -85,7 +85,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no name supplied for -u option!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -98,7 +98,7 @@ main(int argc, char** argv)
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
 
     if ([args count] == i) {
@@ -123,7 +123,7 @@ main(int argc, char** argv)
 	    if (*start == '\0') {
 		printf("dremove: invalid input\n");
 		[pool release];
-		exit(0);
+		exit(EXIT_SUCCESS);
 	    }
 	    owner = [NSString stringWithCString: start];
 	    start = ptr;
@@ -141,7 +141,7 @@ main(int argc, char** argv)
 	    if (*start == '\0') {
 		printf("dremove: invalid input\n");
 		[pool release];
-		exit(0);
+		exit(EXIT_SUCCESS);
 	    }
 	    name = [NSString stringWithCString: start];
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
@@ -163,7 +163,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no key supplied for -g option.\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
 	domain = [[defs persistentDomainForName: owner] mutableCopy];
 	if (domain == nil || [domain objectForKey: name] == nil) {
@@ -182,7 +182,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no domain supplied for -o option.\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
         [defs removePersistentDomainForName: owner];
     }
@@ -204,7 +204,7 @@ main(int argc, char** argv)
 	    NSLog(@"got app name '%s' but no variable name.\n",
 			    [[args objectAtIndex: 0] cString]);
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -215,7 +215,7 @@ main(int argc, char** argv)
     }
 
     [pool release];
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 

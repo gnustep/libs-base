@@ -283,7 +283,7 @@ gdomap_log (int prio)
 	  fprintf (stderr, "exiting.\n");
 	  fflush (stderr);
 	}
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 }
 #else
@@ -302,7 +302,7 @@ gdomap_log (int prio)
     {
       fprintf (stderr, "exiting.\n");
       fflush (stderr);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 }
 #endif
@@ -1083,7 +1083,7 @@ init_iface()
     {
       sprintf(ebuf, "Failed to get a socket. Error %s\n", WSAGetLastError());
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   memset((void*)InterfaceList, '\0', sizeof(InterfaceList));
@@ -1092,7 +1092,7 @@ init_iface()
     {
       sprintf(ebuf, "Failed WSAIoctl. Error %s\n", WSAGetLastError());
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   nNumInterfaces = nBytesReturned / sizeof(INTERFACE_INFO);
@@ -1190,7 +1190,7 @@ init_iface()
   if ((desc = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
       perror("socket for init_iface");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 #if	defined(__svr4__)
     {
@@ -1237,7 +1237,7 @@ init_iface()
 	  gdomap_log(LOG_INFO);
 	}
       close(desc);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   /*
    * We cannot know the number of interfaces in advance, thus we
@@ -1305,7 +1305,7 @@ init_iface()
 "gdomap to manually set the interface addresses and masks to be used.");
 	          gdomap_log(LOG_INFO);
 		  close(desc);
-	          exit(1);
+	          exit(EXIT_FAILURE);
 	        }
 	      addr[interfaces] =
 		((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
@@ -1377,7 +1377,7 @@ init_iface()
       sprintf(ebuf, "I can't find any network interfaces on this platform - "
 	"use the '-a' flag to load interface details from a file instead.");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -1397,7 +1397,7 @@ load_iface(const char* from)
     {
       sprintf(ebuf, "Unable to open address config - '%s'", from);
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   while (fgets(buf, sizeof(buf), fptr) != 0)
@@ -1451,7 +1451,7 @@ load_iface(const char* from)
     {
       sprintf(ebuf, "No network interfaces found");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   num_iface++;
   addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
@@ -1648,7 +1648,7 @@ init_ports()
     {
       sprintf(ebuf, "Unable to create UDP socket");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   else if (debug)
     {
@@ -1685,7 +1685,7 @@ init_ports()
     {
       sprintf(ebuf, "Unable to handle UDP socket non-blocking");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 #else /* !__MINGW__ */
   if ((r = fcntl(udp_desc, F_GETFL, 0)) >= 0)
@@ -1695,14 +1695,14 @@ init_ports()
 	{
 	  sprintf(ebuf, "Unable to set UDP socket non-blocking");
 	  gdomap_log(LOG_CRIT);
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
     }
   else
     {
       sprintf(ebuf, "Unable to handle UDP socket non-blocking");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 #endif
  /*
@@ -1726,7 +1726,7 @@ init_ports()
 "privilege (poor option and last resort!!!)");
 	  gdomap_log(LOG_INFO);
 	}
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   /*
@@ -1741,7 +1741,7 @@ init_ports()
     {
       sprintf(ebuf, "Unable to create TCP socket");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   else if (debug)
     {
@@ -1769,7 +1769,7 @@ init_ports()
     {
       sprintf(ebuf, "Unable to handle TCP socket non-blocking");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 #else /* !__MINGW__ */
   if ((r = fcntl(tcp_desc, F_GETFL, 0)) >= 0)
@@ -1779,14 +1779,14 @@ init_ports()
 	{
 	  sprintf(ebuf, "Unable to set TCP socket non-blocking");
 	  gdomap_log(LOG_CRIT);
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
     }
   else
     {
       sprintf(ebuf, "Unable to handle TCP socket non-blocking");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 #endif /* __MINGW__ */
 
@@ -1807,13 +1807,13 @@ init_ports()
 "privilege (poor option and last resort!!!)");
 	  gdomap_log(LOG_INFO);
 	}
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   if (listen(tcp_desc, QUEBACKLOG) < 0)
     {
       sprintf(ebuf, "Unable to listen for connections on TCP socket");
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   /*
@@ -2281,7 +2281,7 @@ handle_io()
 			    {
 			      sprintf(ebuf, "Fatal error on socket.");
 			      gdomap_log(LOG_CRIT);
-			      exit(1);
+			      exit(EXIT_FAILURE);
 			    }
 			}
 		    }
@@ -2299,7 +2299,7 @@ handle_io()
 	    {
 	      sprintf(ebuf, "Interrupted in select.");
 	      gdomap_log(LOG_CRIT);
-	      exit(1);
+	      exit(EXIT_FAILURE);
 	    }
 	}
       else if (rval == 0)
@@ -4178,7 +4178,7 @@ main(int argc, char** argv)
 	    printf("Kill with SIGUSR1 to obtain a dump of all known peers\n");
 	    printf("in /tmp/gdomap.dump\n");
 	    printf("\n");
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 
 	  case 'C':
 	    printf("\n");
@@ -4223,7 +4223,7 @@ printf(
 "network interfaces and masks, please send me example code so that I can\n"
 "implement it in gdomap.\n");
 	    printf("\n");
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 
 	  case 'L':
 	    lookupf = optarg;
@@ -4248,7 +4248,7 @@ printf(
 		fprintf(stderr, "Registration will take place locally.\n");
 	      }
 	    doregister(optarg, port, ptype);
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 
 	  case 'T':
 	    if (strcmp(optarg, "tcp_gdo") == 0)
@@ -4282,7 +4282,7 @@ printf(
 		fprintf(stderr, "Operation will take place locally.\n");
 	      }
 	    unregister(optarg, port, ptype);
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 
 	  case 'a':
 	    load_iface(optarg);
@@ -4301,7 +4301,7 @@ printf(
 		{
 		  fprintf(stderr, "Unable to open probe config - '%s'\n",
 			      optarg);
-		  exit(1);
+		  exit(EXIT_FAILURE);
 		}
 	      while (fgets(buf, sizeof(buf), fptr) != 0)
 		{
@@ -4418,7 +4418,7 @@ printf(
 	  default:
 	    printf("%s - GNU Distributed Objects name server\n", argv[0]);
 	    printf("-H	for help\n");
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
   if (donamesf || lookupf)
@@ -4445,14 +4445,14 @@ printf(
       if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
 	{
 	  fprintf(stderr, "gdomap - spawn '%s' failed - bye.\n", argv[0]);
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
       if (debug)
         {
 	  sprintf(ebuf, "initialisation complete.");
 	  gdomap_log(LOG_DEBUG);
         }
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 #else
   if (nofork == 0)
@@ -4465,7 +4465,7 @@ printf(
 	{
 	  case -1:
 	    fprintf(stderr, "gdomap - fork failed - bye.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 
 	  case 0:
 	    /*
@@ -4484,7 +4484,7 @@ printf(
 		sprintf(ebuf, "initialisation complete.");
 		gdomap_log(LOG_DEBUG);
 	      }
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -4506,21 +4506,21 @@ printf(
       sprintf(ebuf, "failed to open stdin from /dev/null (%s)\n",
 	strerror(errno));
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   if (open("/dev/null", O_WRONLY) != 1)
     {
       sprintf(ebuf, "failed to open stdout from /dev/null (%s)\n",
 	strerror(errno));
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   if (is_daemon && open("/dev/null", O_WRONLY) != 2)
     {
       sprintf(ebuf, "failed to open stderr from /dev/null (%s)\n",
 	strerror(errno));
       gdomap_log(LOG_CRIT);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   if (debug)
     {
@@ -4560,7 +4560,7 @@ printf(
 "127.0.0.1 - you need to change the 'MAX_IFACE' constant in gdomap.c and "
 "rebuild it.");
 	  gdomap_log(LOG_CRIT);
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
     }
 
@@ -4581,7 +4581,7 @@ printf(
 	    {
 	      sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
 	      gdomap_log(LOG_CRIT);
-	      exit(1);
+	      exit(EXIT_FAILURE);
 	    }
 	  fprintf(fptr, "%d\n", (int) getpid());
 	  fclose(fptr);

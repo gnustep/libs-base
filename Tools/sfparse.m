@@ -118,7 +118,7 @@ main(int argc, char** argv, char **env)
     {
       GSPrintf(stderr, @"defaults: unable to get process information!\n");
       [pool release];
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   args = [proc arguments];
