@@ -1178,6 +1178,7 @@
 	      month = 1;
 	      year++;
 	    }
+	  i = [self lastDayOfGregorianMonth: month year: year];
 	}
     }
   else
@@ -1286,21 +1287,24 @@
   if (eday < sday)
     {
       diff--;
-      if (emonth > 1)
-        extra = [end lastDayOfGregorianMonth: emonth-1 year: eyear];
-      else
-        extra = 31;
+      extra = [end lastDayOfGregorianMonth: smonth year: syear];
     }
   if (months)
     *months = sign*diff;
   else
     {
-      while (diff--) {
-        if (emonth - diff >= 1)
-          extra += [end lastDayOfGregorianMonth: emonth-diff year: eyear];
-      else
-          extra += [end lastDayOfGregorianMonth: emonth-diff+12 year: eyear-1];
-      }
+      while (diff--)
+	{
+	  int tmpmonth = emonth - diff - 1;
+	  int tmpyear = eyear;
+
+          while (tmpmonth < 1)
+	    {
+	      tmpmonth += 12;
+	      tmpyear--;
+	    }
+          extra += [end lastDayOfGregorianMonth: tmpmonth year: tmpyear];
+        }
     }
 
   /* Calculate day difference and leave any remaining hours in 'extra' */
