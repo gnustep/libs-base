@@ -25,6 +25,8 @@
 #ifndef h_zone_NS_h
 #define h_zone_NS_h
 
+#include <gnustep/base/preface.h>
+
 #if NeXT_runtime
 
 #include <objc/zone.h>

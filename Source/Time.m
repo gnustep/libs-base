@@ -65,6 +65,7 @@ int gettimeofday(tvp, tzp)
 #endif /* _SEQUENT_ */
 
 #ifdef __WIN32__
+#include <time.h>
 /* Win32 does not provide gettimeofday() */
 int gettimeofday(tvp, tzp)
   struct timeval *tvp;
@@ -72,6 +73,7 @@ int gettimeofday(tvp, tzp)
 {
   TIME_ZONE_INFORMATION sys_time_zone;
   SYSTEMTIME sys_time;
+  struct tm timem;
 
   // Get the time zone information
   GetTimeZoneInformation(&sys_time_zone);
@@ -79,11 +81,27 @@ int gettimeofday(tvp, tzp)
   // Get the local time
   GetLocalTime(&sys_time);
 
-  tvp->tv_usec = sys_time.wMilliseconds;
-  tvp->tv_sec = sys_time.wSecond;
-  tvp->tv_sec = tvp->tv_sec + (sys_time.wMinute * 60);
-  tvp->tv_sec = tvp->tv_sec + (sys_time.wHour * 60 * 60);
-  tvp->tv_sec = tvp->tv_sec + (sys_time.wDay * 60 * 60 * 24);
+  timem.tm_sec = sys_time.wSecond;
+  timem.tm_min = sys_time.wMinute;
+  timem.tm_hour = sys_time.wHour;
+  timem.tm_yday = 0;
+  timem.tm_mday = sys_time.wDay;
+  timem.tm_year = sys_time.wYear - 1900;
+  timem.tm_wday = sys_time.wDayOfWeek;
+  timem.tm_mon = sys_time.wMonth - 1;
+
+  if (tvp)
+    {
+      tvp->tv_usec = sys_time.wMilliseconds;
+      tvp->tv_sec = mktime(&timem);
+    }
+
+  if (tzp)
+    {
+      tzp->tz_minuteswest = sys_time_zone.Bias;
+      tzp->tz_dsttime = sys_time_zone.StandardBias != sys_time_zone.Bias;
+    }
+
   return 0;
 }
 

@@ -62,6 +62,7 @@
 
 + (NSTimeInterval) timeIntervalSinceReferenceDate
 {
+#ifndef __WIN32__
   volatile NSTimeInterval interval;
   struct timeval tp;
   struct timezone tzp;
@@ -75,6 +76,31 @@
   assert (interval < 0);
 
   return interval;
+#else
+  TIME_ZONE_INFORMATION sys_time_zone;
+  SYSTEMTIME sys_time;
+  NSCalendarDate *d;
+  NSTimeInterval t;
+
+  // Get the time zone information
+  GetTimeZoneInformation(&sys_time_zone);
+
+  // Get the system time
+  GetLocalTime(&sys_time);
+
+  // Use an NSCalendar object to make it easier
+  d = [NSCalendarDate alloc];
+  [d initWithYear: sys_time.wYear
+     month: sys_time.wMonth
+     day: sys_time.wDay
+     hour: sys_time.wHour
+     minute: sys_time.wMinute
+     second: sys_time.wSecond
+     timeZone: [NSTimeZone defaultTimeZone]];
+  t = [d timeIntervalSinceReferenceDate];
+  [d release];
+  return t;
+#endif /* __WIN32__ */
 }
 
 // Allocation and initializing
