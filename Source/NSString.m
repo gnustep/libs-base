@@ -783,6 +783,7 @@ handle_printf_atsign (FILE *stream,
     {
       start = aRange.location; stop = NSMaxRange(aRange); step = 1;
     }
+  range.location = 0;
   range.length = 0;
   for (i = start; i != stop; i+=step)
     {
@@ -2286,12 +2287,17 @@ else
   NSString *substring = nil;
 
   range = [self rangeOfString:@"." options:NSBackwardsSearch];
-  if (range.length == 0 
-      || range.location < ([self rangeOfCharacterFromSet: pathSeps()
-				 options: NSBackwardsSearch]).location)
+  if (range.length == 0) 
     substring = nil;
   else
-    substring = [self substringFromIndex:range.location + 1];
+    {
+      NSRange range2 = [self rangeOfCharacterFromSet: pathSeps()
+				 options: NSBackwardsSearch];
+      if (range2.length > 0 && range.location < range2.location)
+	substring = nil;
+      else
+	substring = [self substringFromIndex:range.location + 1];
+    }
 
   if (!substring)
     substring = [[NSString new] autorelease];
