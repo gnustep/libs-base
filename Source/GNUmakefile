@@ -313,6 +313,7 @@ NSEnumerator.m \
 NSException.m \
 NSFileHandle.m \
 NSFileManager.m \
+NSFormatter.m \
 NSGeometry.m \
 NSGArchiver.m \
 NSGArray.m \
@@ -413,6 +414,7 @@ Foundation/NSEnumerator.h \
 Foundation/NSException.h \
 Foundation/NSFileHandle.h \
 Foundation/NSFileManager.h \
+Foundation/NSFormatter.h \
 Foundation/NSGeometry.h \
 Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
