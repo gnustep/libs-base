@@ -210,11 +210,13 @@ static NSLock			*urlLock = nil;
       [dat appendData: d];
     }
   [p parse: dat];
-  if ([p isInBody] == YES)
+  if ([p isInBody] == YES || [d length] == 0)
     {
-      NSDictionary	*info = [[p document] headerNamed: @"http"];
+      NSDictionary	*info;
       NSString		*val;
 
+      [p parse: nil];
+      info = [[p document] headerNamed: @"http"];
       val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
       if (val != nil)
 	[pageInfo setObject: val forKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -228,13 +230,6 @@ static NSLock			*urlLock = nil;
 	            name: NSFileHandleReadCompletionNotification
                   object: sock];
       [dat setLength: 0];
-      tunnel = NO;
-    }
-  else if ([d length] == 0)
-    {
-      [nc removeObserver: self
-	            name: NSFileHandleReadCompletionNotification
-                  object: sock];
       tunnel = NO;
     }
   else
