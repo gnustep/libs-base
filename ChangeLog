@@ -1,3 +1,9 @@
+Mon Feb 25 15:26:38 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSBundle.m ([-initWithPath:]): Return nil if the path
+	can't be read.  Fixed memory leak in case of nil argument.
+	* Headers/gnustep/base/NSBundle.h: Documented some methods.
+	
 2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: Move xml and mime classes into an additional
