@@ -474,6 +474,8 @@ static SEL	appSel;
 	      id o1 = (*myObj)(self, objSel, k);
 	      id o2 = (*otherObj)(other, objSel, k);
 
+	      if (o1 == o2)
+		continue;
 	      if ([o1 isEqual: o2] == NO)
 		return NO;
 	    }
@@ -534,9 +536,9 @@ static SEL	appSel;
 
 - (NSArray*) allKeysForObject: (id)anObject
 {
-  unsigned	c = [self count];
+  unsigned	c;
 
-  if (c == 0)
+  if (anObject == nil || (c = [self count]) == 0)
     {
       return nil;
     }
@@ -553,7 +555,9 @@ static SEL	appSel;
       c = 0;
       while ((k = (*nxtObj)(e, nxtSel)) != nil)
 	{
-	  if ((*eqObj)(anObject, eqSel, (*myObj)(self, objSel, k)))
+	  id	o = (*myObj)(self, objSel, k);
+
+	  if (o == anObject || (*eqObj)(anObject, eqSel, o))
 	    {
 	      a[c++] = k;
 	    }
