@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <objects/SocketPort.h>
+#include <objects/String.h>
 
 #define MSG "Hello from a client SocketPort."
 #define BUFFER_SIZE 80
@@ -13,9 +14,10 @@ int main(int argc, char *argv[])
   id rp;
 
   if (argc > 1)
-    remotePort = [SocketPort newRemoteWithNumber:3 onHost:argv[1]];
+    remotePort = [SocketPort newRemoteWithNumber:3 
+			     onHost:[String stringWithCString:argv[1]]];
   else
-    remotePort = [SocketPort newRemoteWithNumber:3 onHost:""];
+    remotePort = [SocketPort newRemoteWithNumber:3 onHost:@""];
 
   strcpy(b, MSG);
   [localPort sendPacket:b length:strlen(b)
