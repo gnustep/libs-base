@@ -70,26 +70,41 @@
   int c = [self count];
   elt *elts = (elt*) (*objc_malloc) (c * sizeof(elt));
   int i = 0;
-  void fill_elts(elt e)
+  void *es = [self newEnumState];
+  elt e;
+  while ([self getNextElement:&e withEnumState:&es])
     {
       elts[i++] = e;
     }
-  [self withElementsCall:fill_elts];
+  [self freeEnumState:&es];
+  assert (c == i);
   for (i = 0; i < c; i++)
     aFunc(elts[i]);
   (*objc_free) (elts);
 }
 
-static void
-send_release(elt e)
+- (void) _releaseContents
 {
-  [e.id_u release];
+  int c = [self count];
+  elt *elts = (elt*) (*objc_malloc) (c * sizeof(elt));
+  int i = 0;
+  void *es = [self newEnumState];
+  elt e;
+  while ([self getNextElement:&e withEnumState:&es])
+    {
+      elts[i++] = e;
+    }
+  [self freeEnumState:&es];
+  assert (c == i);
+  for (i = 0; i < c; i++)
+    [elts[i].id_u release];
+  (*objc_free) (elts);
 }
 
 - (void) dealloc
 {
   if (CONTAINS_OBJECTS)
-    [self _safeWithElementsCallNoRetain:send_release];
+    [self _releaseContents];
   [self _collectionDealloc];
   [super dealloc];
 }
@@ -100,7 +115,7 @@ send_release(elt e)
   if ([self isEmpty])
     return self;
   if (CONTAINS_OBJECTS)
-    [self _safeWithElementsCallNoRetain:send_release];
+    [self _releaseContents];
   [self _empty];
   return self;
 }
