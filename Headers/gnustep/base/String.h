@@ -1,5 +1,5 @@
 /* Some preliminary ideas about what a String class might look like.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -32,7 +32,7 @@
 #include <objects/stdobjects.h>
 #include <objects/IndexedCollection.h>
 #include <objects/ValueHolding.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 #include <stdarg.h>
 
 typedef unsigned short Character;

@@ -21,7 +21,7 @@
 #ifndef __NSRange_h_OBJECTS_INCLUDE
 #define __NSRange_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 typedef struct _NSRange 
 {

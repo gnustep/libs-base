@@ -22,7 +22,7 @@
 */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSUtilities.h>
+#include <Foundation/NSUtilities.h>
 
 @implementation NSEnumerator
 

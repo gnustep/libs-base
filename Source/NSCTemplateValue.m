@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <foundation/NSConcreteValue.h>
-#include <foundation/NSString.h>
-#include <foundation/NSException.h>
-#include <foundation/NSCoder.h>
+#include <Foundation/NSConcreteValue.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSCoder.h>
 #include <objects/stdobjects.h>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER

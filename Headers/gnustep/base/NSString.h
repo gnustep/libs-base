@@ -22,7 +22,7 @@
 #define __NSString_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <foundation/NSRange.h>
+#include <Foundation/NSRange.h>
 
 typedef unsigned short unichar;
 
@@ -269,7 +269,7 @@ compiler warning.
 @end
 
 /* Because the compiler thinks that @".." strings are NXConstantString's. */
-#include <foundation/NSCString.h>
+#include <Foundation/NSCString.h>
 @interface NXConstantString : NSCString
 @end
 

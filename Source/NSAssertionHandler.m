@@ -20,8 +20,8 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
-#include <foundation/NSException.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
 
 @implementation NSAssertionHandler
 

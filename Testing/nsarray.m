@@ -1,4 +1,4 @@
-#include <foundation/NSArray.h>
+#include <Foundation/NSArray.h>
 
 int
 main()

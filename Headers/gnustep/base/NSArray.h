@@ -22,8 +22,8 @@
 #define __NSArray_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <foundation/NSRange.h>
-#include <foundation/NSUtilities.h>
+#include <Foundation/NSRange.h>
+#include <Foundation/NSUtilities.h>
 
 @class NSString;
 

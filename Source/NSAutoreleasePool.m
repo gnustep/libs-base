@@ -22,7 +22,7 @@
    */ 
 
 #include <objects/stdobjects.h>
-#include <foundation/NSAutoreleasePool.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 #include <objects/collhash.h>
 #include <objects/eltfuncs.h>

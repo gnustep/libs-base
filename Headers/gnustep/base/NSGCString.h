@@ -25,7 +25,7 @@
 #define __NSCString_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 
 /* NSCString and NSMutableCString must have the same initial ivar layout
    because of class_add_behavior() in NSMutableCString's +initialize. */

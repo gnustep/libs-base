@@ -74,7 +74,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include <foundation/NSZone.h>
+#include <Foundation/NSZone.h>
 #include <objects/objc-malloc.h>
 
 #define DEFAULTLISTSIZE 10

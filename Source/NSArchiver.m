@@ -22,9 +22,9 @@
    */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSArchiver.h>
-#include <foundation/NSGArchiver.h>
-#include <foundation/NSGData.h>
+#include <Foundation/NSArchiver.h>
+#include <Foundation/NSGArchiver.h>
+#include <Foundation/NSGData.h>
 #include <objects/NSCoder.h>
 
 @implementation NSArchiver

@@ -22,8 +22,8 @@
    */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSGArchiver.h>
-#include <foundation/NSGCoder.h>
+#include <Foundation/NSGArchiver.h>
+#include <Foundation/NSGCoder.h>
 #include <objects/behavior.h>
 
 @implementation NSGArchiver

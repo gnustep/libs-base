@@ -22,11 +22,11 @@
    */
 
 #include <objects/stdobjects.h>
-#include <foundation/NSGData.h>
+#include <Foundation/NSGData.h>
 #include <objects/NSCoder.h>
 #include <objects/behavior.h>
 #include <objects/MemoryStream.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSString.h>
 
 /* This from objects/MemoryStream.h */
 @interface NSGData (MemoryStream)

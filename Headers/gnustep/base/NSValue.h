@@ -21,8 +21,8 @@
 #ifndef __NSValue_h_OBJECTS_INCLUDE
 #define __NSValue_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
-#include <foundation/NSGeometry.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSGeometry.h>
 
 @class NSString;
 

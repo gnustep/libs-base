@@ -25,7 +25,7 @@
 #ifndef __NSConcreteValue_OBJECT_INCLUDE
 #define __NSConcreteValue_OBJECT_INCLUDE
 
-#include <foundation/NSValue.h>
+#include <Foundation/NSValue.h>
 
 @interface NSConcreteValue : NSValue
 {

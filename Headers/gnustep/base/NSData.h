@@ -21,9 +21,9 @@
 #ifndef __NSData_h_OBJECTS_INCLUDE
 #define __NSData_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
-#include <foundation/NSRange.h>
-#include <foundation/NSSerialization.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSRange.h>
+#include <Foundation/NSSerialization.h>
 
 @interface NSData : NSObject <NSCopying, NSMutableCopying>
 

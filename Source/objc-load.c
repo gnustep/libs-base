@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <objc/objc-api.h>
 #include <objc/list.h>
-#include <foundation/objc-load.h>
+#include <Foundation/objc-load.h>
 
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"

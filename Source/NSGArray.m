@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#include <foundation/NSGArray.h>
+#include <Foundation/NSGArray.h>
 #include <objects/NSArray.h>
 #include <objects/behavior.h>
 #include <objects/Array.h>

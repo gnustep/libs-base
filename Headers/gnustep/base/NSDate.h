@@ -21,7 +21,7 @@
 #ifndef __NSDate_h_OBJECTS_INCLUDE
 #define __NSDate_h_OBJECTS_INCLUDE
 
-#include <foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 typedef double	NSTimeInterval;
 

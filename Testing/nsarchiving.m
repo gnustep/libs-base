@@ -1,6 +1,6 @@
-#include <foundation/NSArchiver.h>
-#include <foundation/NSArray.h>
-#include <foundation/NSString.h>
+#include <Foundation/NSArchiver.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSString.h>
 
 int
 main ()
