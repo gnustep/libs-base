@@ -78,6 +78,8 @@ typedef xmlNsType		GSXMLNamespaceType;
 
 - (void) save: (NSString*) filename;
 
+- (NSString *) stringValue;
+
 @end
 
 
