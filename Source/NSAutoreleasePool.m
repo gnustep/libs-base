@@ -153,7 +153,8 @@ static IMP	initImp;
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
     _parent = tv->current_pool;
     _child = nil;
-    [tv->current_pool _setChildPool: self];
+    if (_parent)
+      [_parent _setChildPool: self];
     tv->current_pool = self;
   }
 
@@ -225,6 +226,7 @@ static IMP	initImp;
 {
   NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
 
+NSAssert(anObj, NSInvalidArgumentException);
   if (pool)
     [pool addObject: anObj];
   else
@@ -242,6 +244,7 @@ static IMP	initImp;
 
 - (void) addObject: anObj
 {
+NSAssert(anObj, NSInvalidArgumentException);
   /* If the global, static variable AUTORELEASE_ENABLED is not set,
      do nothing, just return. */
   if (!autorelease_enabled)
@@ -342,8 +345,10 @@ static IMP	initImp;
 		@"to check for release errors."];
 #endif
 	    released->objects[i] = nil;
+NSAssert(anObject, NSInternalInconsistencyException);
 	    [anObject release];
 	  }
+	released->count = 0;
 	released = released->next;
       }
   }

@@ -33,17 +33,19 @@
       userInfo: info
 {
   [super init];
-  _name = [name copy];
-  _object = [object retain];
-  _info = [info retain];
+  _name = [name copyWithZone: NSDefaultMallocZone()];
+  _object = (object != nil) ? RETAIN(object) : nil;
+  _info = (info != nil) ? RETAIN(info) : nil;
   return self;
 }
 
 - (void) dealloc
 {
-  [_name release];
-  [_object release];
-  [_info release];
+  RELEASE(_name);
+  if (_object)
+    RELEASE(_object);
+  if (_info)
+    RELEASE(_info);
   [super dealloc];
 }
 
@@ -54,18 +56,14 @@
 		object: object
 	      userInfo: info
 {
-  return [[[self alloc] initWithName: name 
-			object: object 
-			userInfo: info]
-	   autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()] initWithName: name 
+    object: object userInfo: info] autorelease];
 }
 
 + notificationWithName: (NSString*)name
 		object: object
 {
-  return [self notificationWithName: name 
-	       object: object 
-	       userInfo: nil];
+  return [self notificationWithName: name object: object userInfo: nil];
 }
 
 

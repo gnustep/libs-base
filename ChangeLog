@@ -1,3 +1,14 @@
+Thu May  6 21:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUnarchiver.m: Don't retain/release unless necessary.
+	* Source/NSUserDefaults.m: ditto
+	* Source/NSNotification.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSBundle.m: ditto
+	* Source/NSRunLoop.m: ditto
+	* Source/NSAutoreleasePool.m: Bugfix in dealloc - would leave count
+	of retained objects set high - caused deallocs of nil objects.
+
 Thu May  6 17:06:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSString.m: Minor optimisations - use ([-allocWithZone:])

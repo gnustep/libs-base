@@ -227,21 +227,16 @@ static SEL dValSel = @selector(decodeValueOfObjCType:at:);
 }
 - (void) dealloc
 {
-  [original release];
+  RELEASE(original);
   if (name)
     {
-      [name release];
+      RELEASE(name);
     }
   NSDeallocateObject(self);
 }
 - (void) mapToClass: (Class)c withName: (NSString*)n
 {
-  if (n != name)
-    {
-      [n retain];
-      [name release];
-      name = n;
-    }
+  ASSIGN(name, n);
   class = c;
 }
 @end
@@ -321,11 +316,11 @@ mapClassName(NSUnarchiverObjectInfo *info)
     }
   NS_HANDLER
     {
-      [unarchiver release];
+      RELEASE(unarchiver);
       [localException raise];
     }
   NS_ENDHANDLER
-  [unarchiver release];
+  RELEASE(unarchiver);
 
   return obj;
 }
@@ -343,8 +338,8 @@ mapClassName(NSUnarchiverObjectInfo *info)
 
 - (void) dealloc
 {
-  [data release];
-  [objDict release];
+  RELEASE(data);
+  RELEASE(objDict);
   if (clsMap)
     {
       NSZone	*z = clsMap->zone;
@@ -514,7 +509,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		   *	order to give the appearance that it's actually a
 		   *	new object.
 		   */
-		  [obj retain];
+		  RETAIN(obj);
 		}
 	      else
 		{
@@ -601,7 +596,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		  classInfo = [NSUnarchiverObjectInfo newWithName: className];
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
-		  [classInfo release];
+		  RELEASE(classInfo);
 		}
 	      classInfo->version = cver;
 	      FastArrayAddItem(clsMap, (FastArrayItem)classInfo);
@@ -965,7 +960,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
 							 length: l
 						       fromZone: zone];
-	  [d autorelease];
+	  AUTORELEASE(d);
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];
@@ -1053,7 +1048,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       /*
        *	A newly allocated object needs to be autoreleased.
        */
-      return [obj autorelease];
+      return AUTORELEASE(obj);
     }
 }
 
@@ -1108,7 +1103,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	{
 	  info = [NSUnarchiverClassInfo newWithName: nameInArchive];
 	  [clsDict setObject: info forKey: nameInArchive];
-	  [info release];
+	  RELEASE(info);
 	}
       [info mapToClass: c withName: trueName];
     }
@@ -1146,7 +1141,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	{
 	  info = [NSUnarchiverObjectInfo newWithName: nameInArchive];
 	  [objDict setObject: info forKey: nameInArchive];
-	  [info release];
+	  RELEASE(info);
 	}
       [info mapToClass: c withName: trueName];
     }
@@ -1208,8 +1203,8 @@ mapClassName(NSUnarchiverObjectInfo *info)
     {
       Class	c;
 
-      [data release];
-      data = [anObject retain];
+      RELEASE(data);
+      data = RETAIN(anObject);
       c = fastClass(data);
       if (src != self)
 	{
@@ -1311,7 +1306,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
       if (obj)
 	{
-	  [obj release];
+	  RELEASE(obj);
 	}
     }
   [self decodeArrayOfObjCType: type count: count at: buf];
@@ -1335,7 +1330,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
       if (obj)
 	{
-	  [obj release];
+	  RELEASE(obj);
 	}
     }
   (*dValImp)(self, dValSel, type, buf);
@@ -1355,7 +1350,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
       if (obj)
 	{
-	  [obj release];
+	  RELEASE(obj);
 	}
     }
   (*dValImp)(self, dValSel, type, buf);
@@ -1374,7 +1369,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
       if (obj)
 	{
-	  [obj release];
+	  RELEASE(obj);
 	}
     }
   (*dValImp)(self, dValSel, @encode(id), (void*)anObject);
