@@ -1625,6 +1625,8 @@ static NSMapTable	*tcpPortMap = 0;
 		  memcpy(b+h, [o bytes], l);
 		  pih->type = GSSwapHostI32ToBig(GSP_DATA);
 		  pih->length = GSSwapHostI32ToBig(l);
+		  [components removeObjectAtIndex: i--];
+		  c--;
 		}
 	      else
 		{
@@ -1655,6 +1657,8 @@ static NSMapTable	*tcpPortMap = 0;
 		  b += hLength;
 		  hLength += dLength;
 		  memcpy(b, [d bytes], dLength);
+		  [components removeObjectAtIndex: i--];
+		  c--;
 		}
 	      else
 		{
