@@ -142,6 +142,12 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 {
   Class	c = fastClass(object);
 
+  if (fastIsClass(c) == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Class (%@) in property list - expected instance",
+				[c description]];
+    }
   if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString ||
 	c == _fastCls._NXConstantString)
     {
@@ -258,7 +264,8 @@ serializeToInfo(id object, _NSSerializerInfo* info)
   else
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Unknown class in property list"];
+		  format: @"Unknown class (%@) in property list",
+				[c description]];
     }
 }
 

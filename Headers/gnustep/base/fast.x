@@ -130,6 +130,12 @@ fastIsInstance(id obj)
     return CLS_ISCLASS(obj->class_pointer);
 }
 
+static INLINE BOOL
+fastIsClass(Class c)
+{
+    return CLS_ISCLASS(c);
+}
+
 static INLINE Class
 fastClass(NSObject* obj)
 {
