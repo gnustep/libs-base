@@ -23,6 +23,7 @@
 
 #include <objects/stdobjects.h>
 #include <objects/ConnectedCoder.h>
+#include <objects/CStream.h>
 #include <objects/SocketPort.h>
 #include <objects/MemoryStream.h>
 #include <objects/Connection.h>
@@ -108,8 +109,7 @@ static BOOL debug_connected_coder = NO;
 	eofPosition:len-2
 	prefix:2
 	position:0];
-  newsp = [[self coderReadingFromStream: ms] 
-	    retain];
+  newsp = [self newReadingFromStream: ms];
   newsp->remotePort = rp;
   newsp->connection = [Connection newForInPort:inPort
 				  outPort:newsp->remotePort
@@ -136,13 +136,15 @@ static BOOL debug_connected_coder = NO;
       int sent_len;
       id ip, op;
       char *b;
+      id stream;
 
       ip = [connection inPort];
       if (!ip) [self error:"no inPort"];
       op = [connection outPort];
       if (!op) [self error:"no outPort"];
-      buffer_len = [(MemoryStream*)cstream streamBufferLength];
-      b = [(MemoryStream*)cstream streamBuffer];
+      stream = [cstream stream];
+      buffer_len = [(MemoryStream*)stream streamBufferLength];
+      b = [(MemoryStream*)stream streamBuffer];
       /* Put the packet length in the first two bytes */
       b[0] = buffer_len % 0x100;
       b[1] = buffer_len / 0x100;
@@ -305,7 +307,7 @@ exc_return_null(arglist_t f)
 @end
 
 
-@implementation Object (ConnectedCoderCallbacks)
+@implementation NSObject (ConnectedCoderCallbacks)
 
 /* By default, Object's encode themselves as proxies across Connection's */
 - classForConnectedCoder:aRmc
