@@ -28,24 +28,10 @@
 
 @implementation Stream
 
-- initWithMode: (int)m
-{
-  [super init];
-  mode = m;
-  return self;
-}
-
 - init
 {
-  return [self initWithMode:STREAM_READWRITE];
+  return [super init];
 }
-
-#if 0
-- (void) close
-{
-  /* nothing needed */
-}
-#endif
 
 - (int) writeByte: (unsigned char)b
 {
@@ -121,29 +107,18 @@
   return YES;
 }
 
-- (int) streamMode
+- (BOOL) isWritable
 {
-  return mode;
+  [self notImplemented:_cmd];
+  return NO;
 }
-
-#if 0 /* Put this into a StreamStream class? */
-- initWithStream: (Stream *)s mode: (int)m
-{
-  if (m == STREAM_READONLY && [s streamMode] == STREAM_READONLY
-      || m == STREAM_WRITEONLY && [s streamMode] == STREAM_WRITEONLY)
-    [self error:"Streams read/write modes conflict"];
-  [super initWithMode:m];
-  otherStream = s;
-  return self;
-}
-#endif
 
 - (void) encodeWithCoder: anEncoder
 {
   [self notImplemented:_cmd];
 }
 
-+ newWithCoder: aDecoder
+- initWithCoder: aDecoder
 {
   [self notImplemented:_cmd];
   return self;
