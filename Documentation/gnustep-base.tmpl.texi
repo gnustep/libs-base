@@ -176,7 +176,11 @@ Normally, memory is allocated in zones.  Most memory is allocated from a
 default area (returned by the NSDefaultMallocZone()) function.  In  some cases
 where you want to ensure that a group of objects are all located in roughly the
 same area of memory (for performance reasons) you might create a special zone
-and allocate the objects fromn that area.
+large enough to accomodate the objects you wish to create, and allocate the
+objects from that area.  This will minimise the paging that your application
+needs to do in accessing those objects frequently. With the low price of RAM
+in modern systems, paging is likely to be much less of a problem nowadays, and
+the need for zoning memory is much lower than it used to be.
 
 At a low-level, memory allocation is performed by two functions -
 NSAllocateObject() and NSDeallocateObject(), but you need never normally deal
@@ -189,8 +193,25 @@ some functionality of that class (such as caching of frequently used objects).
 Generally, objects are created using the methods +alloc, -copy, -mutableCopy
 and are destroyed using -dealloc.  The allocation methods are covers for the
 more versatile +allocWithZone:, -copyWithZone: and -mutableCopyWithZone:
-methods.  NSObject also provides +new, which is simply a cover for the
+methods (which specify the zone from which the memory is to be allocated,
+rather than forcing you to use the default zone).
+NSObject also provides +new, which is simply a cover for the
 combination of a +alloc and a -init.
+
+The -dealloc method returns the memory occupied by the object to the zone from
+which it was originally allocated, it can use the -zone method to determine
+which zone this is.
+
+Explicit memory allocation and deallocation is efficient - but when you pass
+objects around inside a program (and especially from/to libraries etc) it
+quickly becomes difficult and/or inefficient to keep track of who owns an
+object and should be responsible for calling it's deallocation method.
+
+To take this problem away, some mechanism is needed.  The OpenStep specification
+provides a reference counting mechanism along with a set of conventions that
+make memory management easy.  In addition to this, the GNU Objective-C compiler
+and the GNUstep system provide a memory sweeping garbage collection mechanism
+(using the Boehm conservative garbage collection library).
 
 @node Reference Counting, Memory Allocation, Garbage Collection, Memory Management
 @section Reference Counting
@@ -198,7 +219,7 @@ combination of a +alloc and a -init.
 The reference counting scheme for object allocation/deallocation is quite
 simple.  Objects are normally created with a reference count of 1.  An objects
 reference count may be increased by callsing -retain, and decreased by calling
--release.  If a -releae would make the reference count become zero, the
+-release.  If a -release would make the reference count become zero, the
 -dealloc method is automatically called to destroy the object - freeing its
 memory.
 
