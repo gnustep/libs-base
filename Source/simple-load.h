@@ -50,7 +50,7 @@ __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 static dl_symbol_t 
 __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 {
-    return dlsym(handle, symbol);
+    return dlsym(handle, (char*)symbol);
 }
 
 /* remove the code from memory associated with the module 'handle' */
