@@ -3009,8 +3009,11 @@ handle_printf_atsign (FILE *stream,
       length = newLength - length;	// What we want to add.
       if (length <= (padLength - padIndex))
 	{
+	  NSRange	r;
+
+	  r = NSMakeRange(padIndex, length);
 	  return [self stringByAppendingString:
-	    [padString substringWithRange: NSMakeRange(padIndex, length)]];
+	    [padString substringWithRange: r]];
 	}
       else
 	{
@@ -3018,9 +3021,11 @@ handle_printf_atsign (FILE *stream,
 
 	  if (padIndex > 0)
 	    {
-	      [m appendString:
-		[padString substringWithRange: NSMakeRange(padIndex, length)]];
-	      length -= (padLength - padIndex);
+	      NSRange	r;
+
+	      r = NSMakeRange(padIndex, padLength - padIndex);
+	      [m appendString: [padString substringWithRange: r]];
+	      length -= r.length;
 	    }
 	  /*
 	   * In case we have to append a small string lots of times,
