@@ -1,3 +1,9 @@
+2000-09-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSURLHandle.h: tidy up.
+	* Source/NSURLHandle.m: Implement class and add simple implementation
+	of a concrete subclass for handling file URLs.
+
 2000-09-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSXML.h: Added ([-parser:]) and removed

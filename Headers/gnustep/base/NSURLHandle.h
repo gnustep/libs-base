@@ -24,6 +24,10 @@
 #ifndef _NSURLHandle_h__
 #define _NSURLHandle_h__
 
+@class NSData;
+@class NSString;
+@class NSMutableArray;
+@class NSMutableData;
 @class NSURLHandle;
 @class NSURL;
 
@@ -57,48 +61,40 @@ typedef enum
 //=============================================================================
 @interface NSURLHandle: NSObject
 {
+  NSMutableData		*_data;
   NSMutableArray	*_clients;
-  id			_data; 
+  NSString		*_failure; 
   NSURLHandleStatus	_status;
 }
 
++ (NSURLHandle*) cachedHandleForURL: (NSURL*)url;
++ (BOOL) canInitWithURL: (NSURL*)url;
 + (void) registerURLHandleClass: (Class)urlHandleSubclass;
 + (Class) URLHandleClassForURL: (NSURL*)url;
 
-- (id) initWithURL: (NSURL*)url
-	    cached: (BOOL)cached;
-
-- (NSURLHandleStatus) status;
-- (NSString*) failureReason;
-
 - (void) addClient: (id <NSURLHandleClient>)client;
-- (void) removeClient: (id <NSURLHandleClient>)client;
-
-- (void) loadInBackground;
-- (void) cancelLoadInBackground;
-
-- (NSData*) resourceData;
 - (NSData*) availableResourceData;
-
-- (void) flushCachedData;
-
 - (void) backgroundLoadDidFailWithReason: (NSString*)reason;
+- (void) beginLoadInBackground;
+- (void) cancelLoadInBackground;
 - (void) didLoadBytes: (NSData*)newData
 	 loadComplete: (BOOL)loadComplete;
-
-
-+ (BOOL) canInitWithURL: (NSURL*)url;
-+ (NSURLHandle*) cachedHandleForURL: (NSURL*)url;
-
+- (void) endLoadInBackground;
+- (NSString*) failureReason;
+- (void) flushCachedData;
+- (id) initWithURL: (NSURL*)url
+	    cached: (BOOL)cached;
+- (void) loadInBackground;
+- (NSData*) loadInForeground;
 - (id) propertyForKey: (NSString*)propertyKey;
 - (id) propertyForKeyIfAvailable: (NSString*)propertyKey;
+- (void) removeClient: (id <NSURLHandleClient>)client;
+- (NSData*) resourceData;
+- (NSURLHandleStatus) status;
+- (BOOL) writeData: (NSData*)data;
 - (BOOL) writeProperty: (id)propertyValue
 		forKey: (NSString*)propertyKey;
-- (BOOL) writeData: (NSData*)data;
 
-- (NSData*) loadInForeground;
-- (void) beginLoadInBackground;
-- (void) endLoadInBackground;
 
 @end
 
