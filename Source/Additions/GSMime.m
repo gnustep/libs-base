@@ -57,6 +57,7 @@ static unsigned		_count = 0;
 
 static NSString *makeUniqueString();
 
+static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822specials = nil;
 static	NSCharacterSet	*rfc2045specials = nil;
 
@@ -1582,7 +1583,7 @@ parseCharacterSet(NSString *token)
 
   skip = RETAIN([scanner charactersToBeSkipped]);
   [scanner setCharactersToBeSkipped: nil];
-  scanned = [scanner scanCharactersFromSet: skip intoString: 0];
+  scanned = [scanner scanCharactersFromSet: whitespace intoString: 0];
   [scanner setCharactersToBeSkipped: skip];
   RELEASE(skip);
   return scanned;
@@ -2671,6 +2672,7 @@ static NSCharacterSet	*tokenSet = nil;
 	@"/?="]];
       [m removeCharactersInString: @"."];
       rfc2045specials = [m copy];
+      whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
     }
 }
 
