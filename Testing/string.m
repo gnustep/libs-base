@@ -22,7 +22,6 @@ int main()
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   id s = @"This is a test string";
   id s2, s3;
-  int a;
   unichar	u0[5] = { 0xFE66, 'a', 'b', 'c', 'd'};
   unichar	u1[6] = { '1', '2', '.', '3', '4', 0xFE66};
   unichar	u2[7] = { 'a', 'b', 0xFE66, 'a', 'b', 'c', 'd'};
@@ -127,6 +126,17 @@ int main()
   while (*encs != 0)
     printf("Encoding %x\n", *encs++);
 }
+
+  GSPrintf(stdout, @"\nStandardize Paths\n");
+  s2 = @"../";
+  GSPrintf(stdout, @"%@ becomes %@\n",
+  	s2, [s2 stringByStandardizingPath]);
+  s2 = @"/usr/bin/../lib";
+  GSPrintf(stdout, @"%@ becomes %@\n",
+  	s2, [s2 stringByStandardizingPath]);
+  s2 = @"~/Public/../GNUstep";
+  GSPrintf(stdout, @"%@ becomes %@\n",
+  	s2, [s2 stringByStandardizingPath]);
 
   [arp release];
   exit(0);

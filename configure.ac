@@ -983,8 +983,9 @@ fi
 
 have_forward_hook=yes
 AC_MSG_CHECKING("for forwarding callback in runtime")
-AC_EGREP_HEADER(__objc_msg_forward, objc/objc-api.h, AC_MSG_RESULT(yes), 
-	        AC_MSG_RESULT(no); have_forward_hook=no)
+AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
+	have_forward_hook=yes, have_forward_hook=no)
+AC_MSG_RESULT($have_forward_hook)
 if test $have_forward_hook = no; then
   enable_libffi=no
   enable_ffcall=no
