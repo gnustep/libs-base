@@ -375,7 +375,6 @@ hpux-load.h \
 null-load.h \
 simple-load.h \
 NSCallBacks.h \
-gdomap.c gdomap.h \
 tzfile.h
 
 BASE_HEADERS = \

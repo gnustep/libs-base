@@ -255,8 +255,9 @@ unsigned short	next_port = IPPORT_USERRESERVED;
 typedef struct {
     unsigned char*	name;	/* Service name registered.	*/
     unsigned int	port;	/* Port it was mapped to.	*/
-    unsigned char	size;	/* Number of bytes in name.	*/
-    unsigned char	type;	/* Type of port registered.	*/
+    unsigned short	size;	/* Number of bytes in name.	*/
+    unsigned char	net;	/* Type of port registered.	*/
+    unsigned char	svc;	/* Type of port registered.	*/
 } map_ent;
 
 int	map_used = 0;
@@ -289,7 +290,8 @@ map_add(unsigned char* n, unsigned char l, unsigned int p, unsigned char t)
     m->port = p;
     m->name = (char*)malloc(l);
     m->size = l;
-    m->type = t;
+    m->net = (t & GDO_NET_MASK);
+    m->svc = (t & GDO_SVC_MASK);
     mcopy(m->name, n, l);
 
     if (map_used >= map_size) {
@@ -839,8 +841,8 @@ handle_accept()
 	mcopy((char*)&r_info[desc].addr, (char*)&sa, sizeof(sa));
 
 	if (debug) {
-	    fprintf(stderr, "accept from %s to chan %d\n",
-		inet_ntoa(sa.sin_addr), desc);
+	    fprintf(stderr, "accept from %s(%d) to chan %d\n",
+		inet_ntoa(sa.sin_addr), ntohs(sa.sin_port), desc);
 	}
 	/*
 	 *	Ensure that the connection is non-blocking.
@@ -1044,11 +1046,12 @@ handle_request(int desc)
 
     if (debug > 1) {
 	if (desc == udp_desc) {
-	    fprintf(stderr, "request type '%c' on UDP chan\n", type);
+	    fprintf(stderr, "request type '%c' on UDP chan", type);
 	}
 	else {
-	    fprintf(stderr, "request type '%c' from chan %d\n", type, desc);
+	    fprintf(stderr, "request type '%c' from chan %d", type, desc);
 	}
+	fprintf(stderr, " - name: '%.*s' port: %d\n", size, buf, port);
     }
 
     if (ptype != GDO_TCP_GDO && ptype != GDO_TCP_FOREIGN &&
@@ -1083,37 +1086,38 @@ handle_request(int desc)
 	    clear_chan(desc);		/* Only local progs may register. */
 	    return;
 	}
+
+	/*
+	 *	What should we do if we already have the name registered?
+	 *	Simple algorithm -
+	 *		We check to see if we can bind to the old port,
+	 *		and if we can we assume that the original process
+	 *		has gone away and permit a new registration for the
+	 *		same name.
+	 *		This is not foolproof - if the machine has more
+	 *		than one IP address, we could bind to the port on
+	 *		one address even though the server is using it on
+	 *		another.
+	 *		Also - the operating system is not guaranteed to
+	 *		let us bind to the port if another process has only
+	 *		recently stopped using it.
+	 *		Also - what if an old server used the port that the
+	 *		new one is using?  In this case the registration
+	 *		attempt will be refused even though it shouldn't be!
+	 *		On the other hand - the occasional registration
+	 *		failure MUST be better than permitting a process to
+	 *		grab a name already in use! If a server fails to
+	 *		register a name/port combination, it can always be
+	 *		coded to retry on a different port.
+	 */
 	m = map_by_name(buf, size);
 	if (m) {
 	    int	sock = -1;
 
-	    /*
-	     *	What should we do here?
-	     *	Simple algorithm -
-	     *		We check to see if we can bind to the old port,
-	     *		and if we can we assume that the original process
-	     *		has gone away and permit a new registration for the
-	     *		same name.
-	     *		This is not foolproof - if the machine has more
-	     *		than one IP address, we could bind to the port on
-	     *		one address even though the server is using it on
-	     *		another.
-	     *		Also - the operating system is not guaranteed to
-	     *		let us bind to the port if another process has only
-	     *		recently stopped using it.
-	     *		Also - what if an old server used the port that the
-	     *		new one is using?  In this case the registration
-	     *		attempt will be refused even though it shouldn't be!
-	     *		On the other hand - the occasional registration
-	     *		failure MUST be better than permitting a process to
-	     *		grab a name already in use! If a server fails to
-	     *		register a name/port combination, it can always be
-	     *		coded to retry on a different port.
-	     */
-	    if (ptype == GDO_TCP_GDO || ptype == GDO_TCP_FOREIGN) {
+	    if ((ptype & GDO_NET_MASK) == GDO_NET_TCP) {
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	    }
-	    else if (ptype == GDO_UDP_GDO || ptype == GDO_UDP_FOREIGN) {
+	    else if ((ptype & GDO_NET_MASK) == GDO_NET_UDP) {
 		sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	    }
 
@@ -1129,7 +1133,7 @@ handle_request(int desc)
 		else {
 		    struct sockaddr_in	sa;
 		    int			result;
-		    short		p = m->port;
+		    short			p = m->port;
 
 		    mzero(&sa, sizeof(sa));
 		    sa.sin_family = AF_INET;
@@ -1138,10 +1142,12 @@ handle_request(int desc)
 		    result = bind(sock, (void*)&sa, sizeof(sa));
 		    if (result == 0) {
 			if (debug > 1) {
-			    fprintf(stderr, "re-register name from %d to %d\n",
+			    fprintf(stderr, "re-register from %d to %d\n",
 				m->port, port);
 			}
 			m->port = port;
+			m->net = (ptype & GDO_NET_MASK);
+			m->svc = (ptype & GDO_SVC_MASK);
 			port = htonl(m->port);
 			*(unsigned long*)w_info[desc].buf = port;
 		    }
@@ -1149,7 +1155,7 @@ handle_request(int desc)
 		close(sock);
 	    }
 	}
-	else if (port == 0) {	/* Port not provided in request.	*/
+	else if (port == 0) {	/* Port not provided!	*/
 	    fprintf(stderr, "port not provided in request\n");
 	}
 	else {		/* Use port provided in request.	*/
@@ -1160,11 +1166,11 @@ handle_request(int desc)
     }
     else if (type == GDO_LOOKUP) {
 	m = map_by_name(buf, size);
-	if (m != 0 && m->type != ptype) {
+	if (m != 0 && (m->net | m->svc) != ptype) {
 	    if (debug > 1) {
 		fprintf(stderr, "requested service is of wrong type\n");
 	    }
-	    m = 0;	/* Name existas but is of wrong type.	*/
+	    m = 0;	/* Name exists but is of wrong type.	*/
 	}
 	if (m) {
 	    int	sock = -1;
@@ -1178,10 +1184,10 @@ handle_request(int desc)
 	     *	one address even though the server is using it on
 	     *	another.
 	     */
-	    if (ptype == GDO_TCP_GDO || ptype == GDO_TCP_FOREIGN) {
+	    if ((ptype & GDO_NET_MASK) == GDO_NET_TCP) {
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	    }
-	    else if (ptype == GDO_UDP_GDO || ptype == GDO_UDP_FOREIGN) {
+	    else if ((ptype & GDO_NET_MASK) == GDO_NET_UDP) {
 		sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	    }
 
@@ -1233,19 +1239,14 @@ handle_request(int desc)
 	}
 	m = map_by_name(buf, size);
 	if (m) {
-	    if (m->type != ptype) {
+	    if ((m->net | m->svc) != ptype) {
 		if (debug) {
 	            fprintf(stderr, "Attempt to unregister with wrong type\n");
 		}
 	    }
-	    else if (r_info[desc].addr.sin_port == m->port) {
+	    else {
 		*(unsigned long*)w_info[desc].buf = htonl(m->port);
 	        map_del(m);
-	    }
-	    else {
-		if (debug) {
-		    fprintf(stderr, "Illegal attempt to un-register!\n");
-		}
 	    }
 	}
 	else {

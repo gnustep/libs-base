@@ -70,7 +70,10 @@ after-uninstall::
 # before-distclean::
 
 # Things to do after distcleaning
-# after-distclean::
+after-distclean::
+	rm -f include/config.h include/dynamic-load.h \
+		Foundation gnustep/base \
+		NSNumber[0-9]*.m NSValue[0-9]*.m
 
 # Things to do before checking
 # before-check::

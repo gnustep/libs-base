@@ -1110,11 +1110,12 @@ static int debug_run_loop = 0;
     }
 
     /* Use the earlier of the two dates we have. */
-    d = [d earlierDate:date];
+    d = [[d earlierDate:date] retain];
 
     /* Wait, listening to our input sources. */
     [self acceptInputForMode: mode beforeDate: d];
 
+    [d release];
     return YES;
 }
 

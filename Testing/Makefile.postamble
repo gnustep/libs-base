@@ -63,7 +63,8 @@
 # before-distclean::
 
 # Things to do after distcleaning
-# after-distclean::
+after-distclean::
+	rm -f cstream.dat fref.dat nsarchiver.dat
 
 # Things to do before checking
 # before-check::

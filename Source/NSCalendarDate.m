@@ -74,9 +74,29 @@ static id long_month[12] = {@"January",
 			    @"October",
 			    @"November",
 			    @"December"};
+static id short_day[7] = {@"Sun",
+			  @"Mon",
+			  @"Tue",
+			  @"Wed",
+			  @"Thu",
+			  @"Fri",
+			  @"Sat"};
+static id long_day[7] = {@"Sunday",
+			 @"Monday",
+			 @"Tuesday",
+			 @"Wednesday",
+			 @"Thursday",
+			 @"Friday",
+			 @"Saturday"};
+
+@interface NSCalendarDate (Private)
+
+- (void)getYear:(int *)year month:(int *)month day:(int *)day
+	   hour:(int *)hour minute:(int *)minute second:(int *)second;
+
+@end
 
 @implementation NSCalendarDate
-
 
 //
 // Getting an NSCalendar Date
@@ -345,11 +365,13 @@ static id long_month[12] = {@"January",
 	    second:(unsigned int)second
 	  timeZone:(NSTimeZone *)aTimeZone
 {
-  int a;
+  int	a;
+  int	c;
   NSTimeInterval s;
 
   a = [self absoluteGregorianDay: day month: month year: year];
 
+  // Calculate date as GMT
   a -= GREGORIAN_REFERENCE;
   s = (double)a * 86400;
   s += hour * 3600;
@@ -361,7 +383,69 @@ static id long_month[12] = {@"January",
 		timeZoneDetailForDate:
 		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]];
 
-  return [self initWithTimeIntervalSinceReferenceDate: s];
+  // Adjust date so it is correct for time zone.
+  s -= [time_zone timeZoneSecondsFromGMT];
+  self = [self initWithTimeIntervalSinceReferenceDate: s];
+
+  /* Now permit up to five cycles of adjustment to allow for daylight savings.
+     NB. this depends on it being OK to call the
+      [-initWithTimeIntervalSinceReferenceDate:] method repeatedly! */
+
+  for (c = 0; c < 5 && self != nil; c++)
+    {
+      int	y, m, d, h, mm, ss;
+      NSTimeZoneDetail	*z;
+
+      [self getYear: &y month: &m day: &d hour: &h minute: &mm second: &ss];
+      if (y==year && m==month && d==day && h==hour && mm==minute && ss==second)
+	return self;
+
+      /* Has the time-zone detail changed?  If so - adjust time for it,
+	 other wise -  try to adjust to the correct time. */
+      z = [aTimeZone
+		timeZoneDetailForDate:
+		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]];
+      if (z != time_zone)
+	{
+	  NSTimeInterval	oldOffset;
+	  NSTimeInterval	newOffset;
+
+	  oldOffset = [time_zone timeZoneSecondsFromGMT];
+	  time_zone = z;
+	  newOffset = [time_zone timeZoneSecondsFromGMT];
+	  s += oldOffset - newOffset;
+	}
+      else
+	{
+	  NSTimeInterval	move;
+
+	  /* Do we need to go back or forwards in time?
+	     Shift at most two hours - we know of no daylight savings time
+	     which is an offset of more than two hourts */
+	  if (y > year)
+	    move = -7200.0;
+	  else if (y < year)
+	    move = +7200.0;
+	  else if (m > month)
+	    move = -7200.0;
+	  else if (m < month)
+	    move = +7200.0;
+	  else if (d > day)
+	    move = -7200.0;
+	  else if (d < day)
+	    move = +7200.0;
+	  else if (h > hour || h < hour)
+	    move = (hour - h)*3600.0;
+	  else if (mm > minute || mm < minute)
+	    move = (minute - mm)*60.0;
+	  else
+	    move = (second - ss);
+
+	  s += move;
+	}
+      self = [self initWithTimeIntervalSinceReferenceDate: s];
+    }
+  return self;
 }
 
 // Default initializer
@@ -428,7 +512,16 @@ static id long_month[12] = {@"January",
 
 - (int)dayOfWeek
 {
-  return 0;
+  int	d = [self dayOfCommonEra];
+
+  /* The era started on a sunday.
+     Did we always have a seven day week?
+     Did we lose week days changing from Julian to Gregorian?
+     AFAIK seven days a week is ok for all reasonable dates.  */
+  d = d % 7;
+  if (d < 0)
+    d += 7;
+  return d;
 }
 
 - (int)dayOfYear
@@ -531,7 +624,12 @@ static id long_month[12] = {@"January",
 		     minute:(unsigned int)minute
 		     second:(unsigned int)second
 {
-  return self;
+  return [self dateByAddingYears: year
+		          months: month
+			    days: day
+			   hours: hour
+		         minutes: minute
+		         seconds: second];
 }
 
 // Getting String Descriptions of Dates
@@ -555,16 +653,17 @@ static id long_month[12] = {@"January",
   const char *f = [format cString];
   int lf = strlen(f);
   BOOL mtag = NO, dtag = NO, ycent = NO;
-  BOOL mname = NO;
-  int yd = 0, md = 0, dd = 0, hd = 0, mnd = 0, sd = 0;
-  int nhd;
-  int i, j, k;
+  BOOL mname = NO, dname = NO;
+  double s;
+  int yd = 0, md = 0, dd = 0, mnd = 0, sd = 0, dom = -1, dow = -1, doy = -1;
+  int hd = 0, nhd;
+  int i, j, k, z;
 
   // If the format is nil then return an empty string
   if (!format)
     return @"";
 
-  [self getYear: &yd month: &md day: &dd hour: &hd minute: &mnd second: &sd];
+  [self getYear: &yd month: &md day: &dom hour: &hd minute: &mnd second: &sd];
   nhd = hd;
 
   // The strftime specifiers
@@ -572,7 +671,9 @@ static id long_month[12] = {@"January",
   // %A   full weekday name according to locale
   // %b   abbreviated month name according to locale
   // %B   full month name according to locale
-  // %d   day of month as decimal number
+  // %d   day of month as decimal number (leading zero)
+  // %e   day of month as decimal number (leading space)
+  // %F   milliseconds (000 to 999)
   // %H   hour as a decimal number using 24-hour clock
   // %I   hour as a decimal number using 12-hour clock
   // %j   day of year as a decimal number
@@ -585,6 +686,7 @@ static id long_month[12] = {@"January",
   // %w   day of the week as decimal number (Sunday = 0)
   // %y   year as a decimal number without century
   // %Y   year as a decimal number with century
+  // %z   time zone offset (HHMM)
   // %Z   time zone
   // %%   literal % character
 
@@ -638,23 +740,53 @@ static id long_month[12] = {@"January",
 	      j += k;
 	      break;
 
-	      // is it the day
+	    case 'd':	// day of month
+	      ++i;
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dom));
+	      j += k;
+	      break;
+
+	    case 'e':	// day of month
+	      ++i;
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%2d", dom));
+	      j += k;
+	      break;
+
+	    case 'F':	// milliseconds
+	      s = ([self dayOfCommonEra] - GREGORIAN_REFERENCE) * 86400.0;
+	      s -= (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]);
+	      s = abs(s);
+	      s -= floor(s);
+	      ++i;
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%03d", (int)s*1000));
+	      j += k;
+	      break;
+
+	    case 'j':	// day of year
+	      if (doy < 0) doy = [self dayOfYear];
+	      ++i;
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", doy));
+	      j += k;
+	      break;
+
+	      // is it the week-day
 	    case 'a':
+	      dname = YES;
 	    case 'A':
 	      dtag = YES;   // Day is character string
-	    case 'd':
-	    case 'j':
 	    case 'w':
 	      ++i;
+	      if (dow < 0) dow = [self dayOfWeek];
 	      if (dtag)
 		{
 		  // +++ Translate to locale character string
-		  /* Was: k = sprintf(&(buf[j]), ""); */
-		  buf[j] = '\0';
-		  k = 0;
+		  if (dname)
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [short_day[dow] cString]));
+		  else
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [long_day[dow] cString]));
 		}
 	      else
-		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dd));
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
 	      j += k;
 	      break;
 
@@ -698,6 +830,19 @@ static id long_month[12] = {@"January",
 	      ++i;
 	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
 			  [[time_zone timeZoneAbbreviation] cStringNoCopy]));
+	      j += k;
+	      break;
+
+	    case 'z':
+	      ++i;
+	      z = [time_zone timeZoneSecondsFromGMT];
+	      if (z < 0) {
+		z = -z;
+	        k = VSPRINTF_LENGTH(sprintf(&(buf[j]),"-%02d%02d",z/60,z%60));
+	      }
+	      else {
+	        k = VSPRINTF_LENGTH(sprintf(&(buf[j]),"+%02d%02d",z/60,z%60));
+              }
 	      j += k;
 	      break;
 
@@ -812,6 +957,239 @@ static id long_month[12] = {@"January",
 		   month: *month year: *year])
     (*month)++;
   *day = d - [self absoluteGregorianDay: 1 month: *month year: *year] + 1;
+}
+
+@end
+
+
+@implementation NSCalendarDate (OPENSTEP)
+
+- (NSCalendarDate *)dateByAddingYears:(int)years
+			       months:(int)months
+				 days:(int)days
+			        hours:(int)hours
+			      minutes:(int)minutes
+			      seconds:(int)seconds
+{
+  int		i, year, month, day, hour, minute, second;
+
+  [self getYear: &year
+	  month: &month
+	    day: &day
+	   hour: &hour
+	 minute: &minute
+	 second: &second];
+
+  second += seconds;
+  minute += second/60;
+  second %= 60;
+  if (second < 0)
+    {
+      minute--;
+      second += 60;
+    }
+
+  minute += minutes;
+  hour += minute/60;
+  minute %= 60;
+  if (minute < 0)
+    {
+      hour--;
+      minute += 60;
+    }
+
+  hour += hours;
+  day += hour/24;
+  hour %= 24;
+  if (hour < 0)
+    {
+      day--;
+      hour += 24;
+    }
+
+  day += days;
+  if (day > 0)
+    {
+      i = [self lastDayOfGregorianMonth: month year: year];
+      while (day > i)
+	{
+	  day -= i;
+	  if (month < 12)
+	    month++;
+	  else
+	    {
+	      month = 0;
+	      year++;
+	    }
+	}
+    }
+  else
+    while (day < 0)
+      {
+        if (month == 1)
+	  {
+	    year--;
+	    month = 12;
+	  }
+	else
+          month--;
+        day += [self lastDayOfGregorianMonth: month year: year];
+      }
+
+  month += months;      
+  while (month > 12)
+    {
+      year++;
+      month -= 12;
+    }
+  while (month < 1)
+    {
+      year--;
+      month += 12;
+    }
+
+  year += years;
+
+  return [NSCalendarDate dateWithYear:year
+			        month:month
+			          day:day
+			         hour:hour
+			       minute:minute
+			       second:second
+			     timeZone:nil];
+}
+
+- (void) years: (int*)years
+	months: (int*)months
+          days: (int*)days
+         hours: (int*)hours
+       minutes: (int*)minutes
+       seconds: (int*)seconds
+     sinceDate: (NSDate*)date
+{
+  NSCalendarDate	*start;
+  NSCalendarDate	*end;
+  NSCalendarDate	*tmp;
+  int			diff;
+  int			extra;
+  int			sign;
+  int			syear, smonth, sday, shour, sminute, ssecond;
+  int			eyear, emonth, eday, ehour, eminute, esecond;
+
+  /* FIXME What if the two dates are in different time zones?
+    How about daylight savings time?
+   */
+  if ([date isKindOfClass: [NSCalendarDate class]])
+    tmp = (NSCalendarDate*)[date retain];
+  else
+    tmp = [[NSCalendarDate alloc] initWithTimeIntervalSinceReferenceDate:
+		[date timeIntervalSinceReferenceDate]];
+
+  end = (NSCalendarDate*)[self laterDate: tmp];
+  if (end == self)
+    {
+      start = tmp;
+      sign = 1;
+    }
+  else
+    {
+      start = self;
+      sign = -1;
+    }
+
+  [start getYear: &syear
+	   month: &smonth
+	     day: &sday
+	    hour: &shour
+	  minute: &sminute
+	  second: &ssecond];
+  [end getYear: &eyear
+	 month: &emonth
+	   day: &eday
+	  hour: &ehour
+	minute: &eminute
+	second: &esecond];
+
+  /* Calculate year difference and leave any remaining months in 'extra' */
+  diff = eyear - syear;
+  extra = 0;
+  if (emonth < smonth)
+    {
+      diff--;
+      extra += 12;
+    }
+  if (years)
+    *years = sign*diff;
+  else
+    extra += diff*12;
+
+  /* Calculate month difference and leave any remaining days in 'extra' */
+  diff = emonth - smonth + extra;
+  extra = 0;
+  if (eday < sday)
+    {
+      diff--;
+      if (emonth > 1)
+        extra = [end lastDayOfGregorianMonth: emonth-1 year: eyear];
+      else
+        extra = 31;
+    }
+  if (months)
+    *months = sign*diff;
+  else
+    {
+      while (diff--) {
+        if (emonth - diff >= 1)
+          extra += [end lastDayOfGregorianMonth: emonth-diff year: eyear];
+      else
+          extra += [end lastDayOfGregorianMonth: emonth-diff+12 year: eyear-1];
+      }
+    }
+
+  /* Calculate day difference and leave any remaining hours in 'extra' */
+  diff = eday - sday + extra;
+  extra = 0;
+  if (ehour < shour)
+    {
+      diff--;
+      extra = 24;
+    }
+  if (days)
+    *days = sign*diff;
+  else
+    extra += diff*24;
+
+  /* Calculate hour difference and leave any remaining minutes in 'extra' */
+  diff = ehour - shour + extra;
+  extra = 0;
+  if (eminute < sminute)
+    {
+      diff--;
+      extra = 60;
+    }
+  if (hours)
+    *hours = sign*diff;
+  else
+    extra += diff*60;
+
+  /* Calculate minute difference and leave any remaining seconds in 'extra' */
+  diff = eminute - sminute + extra;
+  extra = 0;
+  if (esecond < ssecond)
+    {
+      diff--;
+      extra = 60;
+    }
+  if (minutes)
+    *minutes = sign*diff;
+  else
+    extra += diff*60;
+
+  diff = esecond - ssecond + extra;
+  if (seconds)
+    *seconds = sign*diff;
+
+  [tmp release];
 }
 
 @end

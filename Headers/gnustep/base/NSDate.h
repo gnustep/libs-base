@@ -213,4 +213,22 @@ typedef double NSTimeInterval;
 
 @end
 
+@interface NSCalendarDate (OPENSTEP)
+
+- (NSCalendarDate *)dateByAddingYears:(int)years
+			       months:(int)months
+				 days:(int)days
+			        hours:(int)hours
+			      minutes:(int)minutes
+			      seconds:(int)seconds;
+
+- (void) years: (int*)years
+	months: (int*)months
+          days: (int*)days
+         hours: (int*)hours
+       minutes: (int*)minutes
+       seconds: (int*)seconds
+     sinceDate: (NSDate*)date;
+@end
+
 #endif  /* __NSDate_h_GNUSTEP_BASE_INCLUDE */

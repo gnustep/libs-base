@@ -462,7 +462,7 @@ enum
 
 - (unsigned) retainCount
 {
-  return _retain_count;
+  return _retain_count + 1;
 }
 
 - autorelease

@@ -81,7 +81,8 @@
 #include	<sys/ipc.h>
 #include	<sys/shm.h>
 
-#define	VM_ACCESS	0644		/* self read/write - other readonly */
+#define	VM_RDONLY	0644		/* self read/write - other readonly */
+#define	VM_ACCESS	0666		/* read/write access for all */
 @class	NSDataShared;
 @class	NSMutableDataShared;
 #endif
@@ -1334,7 +1335,18 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (bytes)
     {
-      shmdt(bytes);
+      struct shmid_ds	buf;
+
+      if (shmctl(shmid, IPC_STAT, &buf) < 0)
+        NSLog(@"[NSDataShared -dealloc] shared memory control failed - %s",
+		strerror(errno));
+      else if (buf.shm_nattch == 1)
+	if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
+          NSLog(@"[NSDataShared -dealloc] shared memory delete failed - %s",
+		strerror(errno));
+      if (shmdt(bytes) < 0)
+        NSLog(@"[NSDataShared -dealloc] shared memory detach failed - %s",
+		strerror(errno));
       bytes = 0;
       length = 0;
       shmid = -1;
@@ -1352,7 +1364,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   shmid = -1;
   if (aBuffer && bufferSize)
     {
-      shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
+      shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_RDONLY);
       if (shmid == -1)			/* Created memory? */
 	{
 	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %u - %s",
@@ -1363,7 +1375,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	}
 
     bytes = shmat(shmid, 0, 0);
-    shmctl(shmid, IPC_RMID, &buf);	/* Mark for later deletion. */
     if (bytes == (void*)-1)
       {
 	NSLog(@"[-initWithBytes:length:] shared mem attach failed for %u - %s",
@@ -1670,7 +1681,15 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (bytes)
     {
-      shmdt(bytes);
+      struct shmid_ds	buf;
+
+      if (shmctl(shmid, IPC_STAT, &buf) < 0)
+        NSLog(@"[NSMutableDataShared -dealloc] shared memory control failed - %s", strerror(errno));
+      else if (buf.shm_nattch == 1)
+	if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
+          NSLog(@"[NSMutableDataShared -dealloc] shared memory delete failed - %s", strerror(errno));
+      if (shmdt(bytes) < 0)
+        NSLog(@"[NSMutableDataShared -dealloc] shared memory detach failed - %s", strerror(errno));
       bytes = 0;
       length = 0;
       capacity = 0;
@@ -1710,8 +1729,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
       bytes = shmat(shmid, 0, 0);
       e = errno;
-      shmctl(shmid, IPC_RMID, &buf);	/* Mark for later deletion. */
-
       if (bytes == (void*)-1)
 	{
 	  NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory attach failed for %u - %s", bufferSize, strerror(e));
@@ -1774,13 +1791,22 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 		    format:@"Unable to create shared memory segment - %s.",
 		    strerror(errno)];
       tmp = shmat(newid, 0, 0);
-      if (shmctl(newid, IPC_RMID, &buf) == 0)	/* Mark for later deletion. */
       if ((int)tmp == -1)			/* Attached memory? */
 	[NSException raise:NSMallocException
 		    format:@"Unable to attach to shared memory segment."];
       memcpy(tmp, bytes, length);
       if (bytes)
-	shmdt(bytes);
+	{
+          struct shmid_ds	buf;
+
+          if (shmctl(shmid, IPC_STAT, &buf) < 0)
+            NSLog(@"[NSMutableDataShared -setCapacity:] shared memory control failed - %s", strerror(errno));
+          else if (buf.shm_nattch == 1)
+	    if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
+              NSLog(@"[NSMutableDataShared -setCapacity:] shared memory delete failed - %s", strerror(errno));
+	  if (shmdt(bytes) < 0)				/* Detach memory. */
+              NSLog(@"[NSMutableDataShared -setCapacity:] shared memory detach failed - %s", strerror(errno));
+	}
       bytes = tmp;
       shmid = newid;
       capacity = size;

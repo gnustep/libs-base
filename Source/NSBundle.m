@@ -35,6 +35,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 #include <assert.h>
 #include <sys/stat.h>
@@ -365,8 +366,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
         format: @"Bundle for path %@ released too many times", _path];
     }
   
-  NSParameterAssert(_retainCount >= 0);
-  if (_retainCount == 0)
+  if ([self retainCount]
+	- [[[self class] autoreleaseClass] autoreleaseCountForObject:self] == 0)
     {
       /* Cache all bundles */
       if (_bundleType == NSBUNDLE_APPLICATION
@@ -380,18 +381,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	[self dealloc];
       return;
     }
-  _retainCount--;
-}
-
-- retain
-{
-  _retainCount++;
-  return self;
-}
-
-- (unsigned) retainCount
-{
-  return _retainCount;
+  [super release];
 }
 
 - (void) dealloc

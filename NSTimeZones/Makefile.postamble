@@ -69,7 +69,8 @@ after-uninstall::
 # before-distclean::
 
 # Things to do after distcleaning
-# after-distclean::
+after-distclean::
+	rm -rf NSTimeZones
 
 # Things to do before checking
 # before-check::

@@ -85,6 +85,9 @@ main()
     c = [NSCalendarDate calendarDate];
     printf("+[calendarDate] -- %s\n", [[c description] cString]);
     printf("-[dayOfMonth] %d\n", [c dayOfMonth]);
+    printf("-[dayOfWeek] %d\n", [c dayOfWeek]);
+    printf("-[dayOfYear] %d\n", [c dayOfYear]);
+    printf("-[hourOfDay] %d\n", [c hourOfDay]);
     printf("-[monthOfYear] %d\n", [c monthOfYear]);
     printf("-[yearOfCommonEra] %d\n", [c yearOfCommonEra]);
 
@@ -118,6 +121,23 @@ main()
     printf("calendar date %s\n", [[e description] cString]);
     printf("-[timeIntervalSinceReferenceDate] %f\n", 
 	   [e timeIntervalSinceReferenceDate]);
+    printf("NSCalendrical time tests\n");
+    {
+      NSCalendarDate *momsBDay = [NSCalendarDate dateWithYear:1936
+	month:1 day:8 hour:7 minute:30 second:0
+	timeZone:[NSTimeZone timeZoneWithName:@"EST"]];
+      NSCalendarDate *dob = [NSCalendarDate dateWithYear:1965
+	month:12 day:7 hour:17 minute:25 second:0
+	timeZone:[NSTimeZone timeZoneWithName:@"EST"]];
+      int	years, months, days;
+
+      [dob years:&years months:&months days:&days hours:0
+		minutes:0 seconds:0 sinceDate:momsBDay];
+      printf("%d, %d, %d\n", years, months, days);
+      [dob years:0 months:&months days:&days hours:0
+		minutes:0 seconds:0 sinceDate:momsBDay];
+      printf("%d, %d\n", months, days);
+    }
   }
 
   [pool release];

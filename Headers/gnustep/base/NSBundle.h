@@ -40,7 +40,6 @@ extern NSString* NSLoadedClasses;
     NSArray*    _bundleClasses;
     Class       _principalClass;
     id          _infoDict;
-    unsigned int _retainCount;
     unsigned int _bundleType;
     BOOL	_codeLoaded;
     unsigned int _version;
