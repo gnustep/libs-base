@@ -413,8 +413,8 @@ install: installdirs all
 	for file in $(HEADERS_INSTALL); do \
 	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
 	done
-	cd $(includedir)/Foundation; ln -s ../objects/README .
-	cd $(includedir)/objc; ln -s ../objects/README .
+	cd $(includedir)/Foundation; rm -f README; ln -s ../objects/README .
+	cd $(includedir)/objc; rm -f README; ln -s ../objects/README .
 
 installdirs:
 	$(srcdir)/../mkinstalldirs \
