@@ -26,11 +26,20 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSArray.h>
+#include <objects/Array.h>
 
 @interface NSGArray : NSArray
+{
+  char _NSGArray_placeholder[(sizeof(struct ConstantArray)
+			      - sizeof(struct NSArray))];
+}
 @end
 
 @interface NSGMutableArray : NSMutableArray
+{
+  char _NSGMutableArray_placeholder[(sizeof(struct Array) 
+				     - sizeof(struct NSMutableArray))];
+}
 @end
 
 #endif /* __NSGArray_h_OBJECTS_INCLUDE */
