@@ -72,7 +72,6 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
     case DLL_PROCESS_ATTACH:
       {
 	WNDCLASS wc;
-	WSADATA lpWSAData;
 
 #ifdef __MS_WIN32__
 	/* Initialize the Microsoft C stdio DLL */
@@ -97,15 +96,6 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
 
 	if (!RegisterClass(&wc))
 	  NSLog(@"Error: Could not register WIN32 socket handler class.\n");
-
-	// Create a window which will recieve the socket handling events
-	gnustep_base_wnd = CreateWindow("GNUstepBaseSocketHandler",
-					"", WS_OVERLAPPEDWINDOW,
-					CW_USEDEFAULT, CW_USEDEFAULT,
-					CW_USEDEFAULT, CW_USEDEFAULT,
-					NULL, NULL, hInst, NULL);
-	if (!gnustep_base_wnd)
-	  NSLog(@"Error: Could not create WIN32 socket handler window.\n");
 
 	break;
       }
@@ -179,6 +169,7 @@ gnustep_base_socket_handler(HWND hWnd, UINT message,
       NSLog(@"Got an FD_CLOSE\n");
       break;
     default:
+    	break;
     }
 
   return 0;
