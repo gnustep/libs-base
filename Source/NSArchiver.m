@@ -87,14 +87,14 @@ static Class	NSMutableDataMallocClass;
   return self;
 }
 
-- (id) initForWritingWithMutableData: (NSMutableData*)anObject
+- (id) initForWritingWithMutableData: (NSMutableData*)mdata
 {
   self = [super init];
   if (self)
     {
       NSZone		*zone = [self zone];
 
-      _data = RETAIN(anObject);
+      _data = RETAIN(mdata);
       if ([self directDataAccess] == YES)
         {
 	  _dst = _data;
@@ -951,24 +951,25 @@ static Class	NSMutableDataMallocClass;
   return YES;
 }
 
-- (void) serializeHeaderAt: (unsigned)locationInData
-		   version: (unsigned)v
-		   classes: (unsigned)cc
-		   objects: (unsigned)oc
-		  pointers: (unsigned)pc
+- (void) serializeHeaderAt: (unsigned)positionInData
+		   version: (unsigned)systemVersion
+		   classes: (unsigned)classCount
+		   objects: (unsigned)objectCount
+		  pointers: (unsigned)pointerCount
 {
   unsigned	headerLength = strlen(PREFIX)+36;
   char		header[headerLength+1];
   unsigned	dataLength = [_data length];
 
-  sprintf(header, "%s%08x:%08x:%08x:%08x:", PREFIX, v, cc, oc, pc);
+  sprintf(header, "%s%08x:%08x:%08x:%08x:", PREFIX, systemVersion, classCount,
+    objectCount, pointerCount);
 
-  if (locationInData + headerLength <= dataLength)
+  if (positionInData + headerLength <= dataLength)
     {
-      [_data replaceBytesInRange: NSMakeRange(locationInData, headerLength)
+      [_data replaceBytesInRange: NSMakeRange(positionInData, headerLength)
 		      withBytes: header];
     }
-  else if (locationInData == dataLength)
+  else if (positionInData == dataLength)
     {
       [_data appendBytes: header length: headerLength];
     }

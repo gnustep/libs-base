@@ -1,3 +1,11 @@
+2002-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSArchiver.h: tidyups
+	* Source/NSDictionary.m: tidyups
+	* Tools/AGSParser.m: a couple of declaration parsing fixes added,
+	along with quite a bit of debugging.  Function declaration parsing
+	not yet working.
+
 2002-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCentre.m: Use NSHost user default
