@@ -26,7 +26,6 @@
 #include <Foundation/NSException.h>
 #include <objects/RunLoop.h>
 #include <objects/Invocation.h>
-#include <nan.h>
 
 @implementation NSTimer
 
@@ -125,7 +124,6 @@
       while (ti < now)		// xxx remove this
 	ti += _interval;
       [_fire_date release];
-      assert (ti != NAN);
       _fire_date = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
     }
 }
