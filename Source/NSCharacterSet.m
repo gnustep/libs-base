@@ -25,6 +25,7 @@
 */
 
 #include "config.h"
+#include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSBitmapCharSet.h"
 #include "Foundation/NSException.h"
@@ -46,18 +47,6 @@ static Class abstractClass = nil;
 
 @implementation NSCharacterSet
 
-+ (void) _becomeThreaded: (NSNotification*)notification
-{
-  if (cache_lock == nil)
-    {
-      cache_lock = [NSLock new];
-      [[NSNotificationCenter defaultCenter]
-	removeObserver: self
-		  name: NSWillBecomeMultiThreadedNotification
-		object: nil];
-    }
-}
-
 + (void) initialize
 {
   static BOOL one_time = NO;
@@ -67,18 +56,7 @@ static Class abstractClass = nil;
       abstractClass = [NSCharacterSet class];
       one_time = YES;
     }
-  if ([NSThread isMultiThreaded])
-    {
-      [self _becomeThreaded: nil];
-    }
-  else
-    {
-      [[NSNotificationCenter defaultCenter]
-        addObserver: self
-        selector: @selector(_becomeThreaded:)
-        name: NSWillBecomeMultiThreadedNotification
-        object: nil];
-    }
+  cache_lock = [GSLazyLock new];
 }
 
 /* Provide a default object for allocation */

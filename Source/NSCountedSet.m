@@ -25,6 +25,7 @@
    */
 
 #include "config.h"
+#include "GNUstepBase/GSLock.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSArray.h"
@@ -46,10 +47,6 @@ static IMP		uniqueImp = 0;
 static IMP		lockImp = 0;
 static IMP		unlockImp = 0;
 static BOOL		uniquing = NO;
-
-@interface	NSCountedSet (GSThreading)
-+ (void) _becomeThreaded: (id)notification;
-@end
 
 /**
  * <p>
@@ -73,18 +70,9 @@ static Class NSCountedSet_concrete_class;
     {
       NSCountedSet_abstract_class = self;
       NSCountedSet_concrete_class = [GSCountedSet class];
-      if ([NSThread isMultiThreaded])
-	{
-	  [self _becomeThreaded: nil];
-	}
-      else
-	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_becomeThreaded:)
-		   name: NSWillBecomeMultiThreadedNotification
-		 object: nil];
-	}
+      uniqueLock = [GSLazyLock new];
+      lockImp = [uniqueLock methodForSelector: @selector(lock)];
+      unlockImp = [uniqueLock methodForSelector: @selector(unlock)];
     }
 }
 
@@ -296,18 +284,6 @@ static Class NSCountedSet_concrete_class;
     }
 #endif
   return o;
-}
-@end
-
-@implementation	NSCountedSet (GSThreading)
-/*
- * If we are multi-threaded, we must guard access to the uniquing set.
- */
-+ (void) _becomeThreaded: (id)notification
-{
-  uniqueLock = [NSLock new];
-  lockImp = [uniqueLock methodForSelector: @selector(lock)];
-  unlockImp = [uniqueLock methodForSelector: @selector(unlock)];
 }
 @end
 

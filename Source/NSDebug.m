@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include <stdio.h>
+#include "GNUstepBase/GSLock.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSString.h"
@@ -70,32 +71,13 @@ void (*_GSDebugAllocationRemoveFunc)(Class c, id o) = _GSDebugAllocationRemove;
 
 @interface GSDebugAlloc : NSObject
 + (void) initialize;
-+ (void) _becomeThreaded: (NSNotification*)notification;
 @end
 
 @implementation GSDebugAlloc
-
 + (void) initialize
 {
-  if ([NSThread isMultiThreaded])
-    {
-      [self _becomeThreaded: nil];
-    }
-  else
-    {
-      [[NSNotificationCenter defaultCenter]
-	addObserver: self
-	selector: @selector(_becomeThreaded:)
-	name: NSWillBecomeMultiThreadedNotification
-	object: nil];
-    }
+  uniqueLock = [GSLazyRecursiveLock new];
 }
-
-+ (void) _becomeThreaded: (NSNotification*)notification
-{
-  uniqueLock = [NSRecursiveLock new];
-}
-
 @end
 
 /**

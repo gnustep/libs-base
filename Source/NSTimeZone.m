@@ -50,6 +50,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSLock.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,7 +266,6 @@ static NSString *_time_zone_path(NSString *subpath)
   
 /* Private methods for obtaining resource file names. */
 @interface NSTimeZone (Private)
-+ (void) _becomeThreaded: (NSNotification*)notification;
 + (NSString*) getAbbreviationFile;
 + (NSString*) getRegionsFile;
 + (NSString*) getTimeZoneFile: (NSString*)name;
@@ -1015,18 +1015,7 @@ static NSMapTable	*absolutes = 0;
       localTimeZone = [[NSLocalTimeZone alloc] init];
 
       fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
-      if ([NSThread isMultiThreaded])
-	{
-	  [self _becomeThreaded: nil];
-	}
-      else
-	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_becomeThreaded:)
-		   name: NSWillBecomeMultiThreadedNotification
-		 object: nil];
-	}
+      zone_mutex = [GSLazyRecursiveLock new];
     }
 }
 
@@ -1487,21 +1476,6 @@ static NSMapTable	*absolutes = 0;
 
 
 @implementation NSTimeZone (Private)
-
-/*
- *	When the system becomes multithreaded, we set a flag to say so
- */
-+ (void) _becomeThreaded: (NSNotification*)notification
-{
-  if (zone_mutex == nil)
-    {
-      zone_mutex = [NSRecursiveLock new];
-    }
-  [[NSNotificationCenter defaultCenter]
-    removeObserver: self
-	      name: NSWillBecomeMultiThreadedNotification
-	    object: nil];
-}
 
 + (NSString*) getAbbreviationFile
 {

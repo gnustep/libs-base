@@ -45,6 +45,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSLock.h"
 #include "Foundation/NSAttributedString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSRange.h"
@@ -427,34 +428,15 @@ _attributesAtIndexEffectiveRange(
   return nil;
 }
 
-/*
- * If we are multi-threaded, we must guard access to the uniquing set.
- */
-+ (void) _becomeThreaded: (id)notification
-{
-  attrLock = [NSLock new];
-  lockSel = @selector(lock);
-  unlockSel = @selector(unlock);
-  lockImp = [attrLock methodForSelector: lockSel];
-  unlockImp = [attrLock methodForSelector: unlockSel];
-}
-
 + (void) initialize
 {
   _setup();
 
-  if ([NSThread isMultiThreaded])
-    {
-      [self _becomeThreaded: nil];
-    }
-  else
-    {
-      [[NSNotificationCenter defaultCenter]
-	addObserver: self
-	   selector: @selector(_becomeThreaded:)
-	       name: NSWillBecomeMultiThreadedNotification
-	     object: nil];
-    }
+  attrLock = [GSLazyLock new];
+  lockSel = @selector(lock);
+  unlockSel = @selector(unlock);
+  lockImp = [attrLock methodForSelector: lockSel];
+  unlockImp = [attrLock methodForSelector: unlockSel];
 }
 
 - (id) initWithString: (NSString*)aString

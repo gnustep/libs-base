@@ -2,6 +2,15 @@
 
 	* Source/NSConection.m: Simplify code by using GSLazyLock and
 	GSRecursiveLazylock.  Removed unused include of float.h
+	* Source/GSAttributedString.m:
+	* Source/GSTcpPort.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSCountedSet.m:
+	* Source/NSDebug.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTimeZone.m:
+	Simplify by using lazy locking.
 
 2004-02-07  Adam Fedor  <fedor@gnu.org>
 
