@@ -1,3 +1,8 @@
+Wed Dec 15 17:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Foundation/NSObject.h: dealloc notification stuff for Helge
+	* Source/NSObject.m: dealloc notification stuff for Helge
+
 Wed Dec 15  2:18:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/UnixFileHandle.m: Chck to see if we are given a bad address.

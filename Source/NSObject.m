@@ -661,6 +661,23 @@ static BOOL double_release_check_enabled = NO;
   NSDeallocateObject (self);
 }
 
+static BOOL deallocNotifications = NO;
+
+- (BOOL) deallocNotificationsActive
+{
+  return deallocNotifications;
+}
+
+- (void) setDeallocNotificationsActive: (BOOL)flag
+{
+  deallocNotifications = flag;
+}
+
+- (BOOL) _dealloc
+{
+  return YES;
+}
+
 - free
 {
   [NSException raise: NSGenericException
@@ -1029,7 +1046,12 @@ static BOOL double_release_check_enabled = NO;
     }
 
   if (NSDecrementExtraRefCountWasZero(self))
-    [self dealloc];
+    {
+      if (deallocNotifications == NO || [self _dealloc] == YES)
+	{
+	  [self dealloc];
+	}
+    }
 #endif
 }
 

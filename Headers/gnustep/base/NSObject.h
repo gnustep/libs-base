@@ -184,13 +184,24 @@ extern NSRecursiveLock *gnustep_global_lock;
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output;
 - (Class)transmuteClassTo:(Class)aClassObject;
-- subclassResponsibility:(SEL)aSel;
-- shouldNotImplement:(SEL)aSel;
+- subclassResponsibility: (SEL)aSel;
+- shouldNotImplement: (SEL)aSel;
 + (Class) autoreleaseClass;
 + (void) setAutoreleaseClass: (Class)aClass;
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
 - read: (TypedStream*)aStream;
 - write: (TypedStream*)aStream;
+/*
+ * If the 'deallocActivationsActive' flag is set, the _dealloc method will be
+ * called during the final release of an object, and the dealloc method will
+ * then be called only if _dealloc returns YES.
+ * You can override the _dealloc implementation to perform some action before
+ * an object is deallocated (or disable deallocation by returning NO).
+ * The default implementation simply returns YES.
+ */
+- (BOOL) deallocNotificationsActive;
+- (void) setDeallocNotificationsActive: (BOOL)flag;
+- (BOOL) _dealloc;
 @end
 
 /*
