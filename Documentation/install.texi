@@ -122,9 +122,18 @@ library). You can get this library from
 Support for the libffi library has also been added, although it is not
 as well tested as ffcall. Current versions of libffi are only
 distributed with gcc version 3.x, although it is not installed by
-default. To install it, after you have built gcc, go to the libffi
-build directory and type 'make install'. To enable this in the
-gnustep-base library, use the configure option @code{--enable-libffi}.
+default. To install it, after you have built gcc, do something like:
+@example
+mkdir newlibffi
+cd newlibffi
+../gcc-3.2.1/libffi/configure
+make
+ffitest
+sudo make install
+@end example
+
+ To enable this in the gnustep-base library, use the configure option
+@code{--enable-libffi}.
 
 @node OpenSSL,  , FFI Library, Configuration
 @subsection OpenSSL
