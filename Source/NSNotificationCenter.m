@@ -735,8 +735,7 @@ static NSNotificationCenter *default_center = nil;
                  object: (id)object
 {
   if (name == nil && object == nil && observer == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Attempt to remove nil observer/name/object"];
+      return;
 
   /*
    *	NB. The removal algorithm depends on an implementation characteristic
