@@ -399,6 +399,10 @@ static id dummyObject;
 	   ala decodeClassName:intoClassName: here. */
 
 	ret = objc_lookup_class (class_name);
+	/* Ensure that the [+initialize] method has been called for the
+	   class by calling one of it's methods */
+	if (ret != Nil)
+	  ret = [ret class];
 	if (ret == Nil)
 	  [NSException raise: NSGenericException
 		       format: @"Couldn't find class `%s'", class_name];
