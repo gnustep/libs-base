@@ -35,6 +35,7 @@ Additions_OBJC_FILES =\
 	GCObject.m \
 	GCArray.m \
 	GCDictionary.m \
+	GSLock.m \
 	GSMime.m \
 	GSXML.m \
 	behavior.m

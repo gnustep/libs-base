@@ -1,3 +1,10 @@
+Sun Oct 26 14:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSLock.m: New lazy locking classes as discussed
+	on the developer list.
+	* Headers/Additions/GNUstepBase/GSLock.h: Declare new classes.
+	Please try them out and provide feedback.
+
 Sat Oct 25 18:47:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Judicious addition on spaces to fix test arguments.
