@@ -1,3 +1,8 @@
+Tue Mar 12 07:37:44 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Additions/GSXML.m ([GSXMLNode -properties]): Fixed return
+	type.
+
 2002-03-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSInvocation.h:
