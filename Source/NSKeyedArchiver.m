@@ -791,22 +791,38 @@ willReplaceObject: (id)anObject
 {
   const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
   NSPoint	aPoint;
-  sscanf(val, "{%f, %f}", &aPoint.x, &aPoint.y);
+  if (val == 0)
+    aPoint = NSMakePoint(0, 0);
+  else if (sscanf(val, "{%f, %f}", &aPoint.x, &aPoint.y) != 2)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@]: bad value - '%s'",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
   return aPoint;
 }
 - (NSRect) decodeRectForKey: (NSString*)aKey
 {
   const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
   NSRect	aRect;
-  sscanf(val, "{{%f, %f}, {%f, %f}}",
-    &aRect.origin.x, &aRect.origin.y, &aRect.size.height, &aRect.size.height);
+  if (val == 0)
+    aRect = NSMakeRect(0, 0, 0, 0);
+  else if (sscanf(val, "{{%f, %f}, {%f, %f}}",
+    &aRect.origin.x, &aRect.origin.y, &aRect.size.height, &aRect.size.height)
+  != 4)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@]: bad value - '%s'",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
   return aRect;
 }
 - (NSSize) decodeSizeForKey: (NSString*)aKey
 {
   const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
   NSSize	aSize;
-  sscanf(val, "{%f, %f}", &aSize.height, &aSize.height);
+  if (val == 0)
+    aSize = NSMakeSize(0, 0);
+  else if (sscanf(val, "{%f, %f}", &aSize.height, &aSize.height) != 2)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@]: bad value - '%s'",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
   return aSize;
 }
 @end
