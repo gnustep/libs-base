@@ -34,6 +34,7 @@
 #include <objects/CStreaming.h>
 #include <objects/CStream.h>
 #include <objects/TextCStream.h>
+#include <objects/BinaryCStream.h>
 #include <objects/StdioStream.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSGeometry.h>
@@ -95,7 +96,7 @@ my_object_is_class(id object)
   if (self == [Coder class])
     {
       default_stream_class = [MemoryStream class];
-      default_cstream_class = [TextCStream class];
+      default_cstream_class = [BinaryCStream class];
       assert(sizeof(void*) == sizeof(unsigned)); 
     }
 }
