@@ -57,6 +57,7 @@
   BOOL		commentsRead;
   BOOL		haveSource;
   BOOL		inInstanceVariables;
+  BOOL		inArgList;
   BOOL		documentAllInstanceVariables;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
@@ -72,7 +73,7 @@
 
 - (NSMutableDictionary*) info;
 - (id) init;	/** <init> Simple initialiser */
-- (NSMutableDictionary*) parseDeclIsSource: (BOOL)isSource;
+- (NSMutableDictionary*) parseDeclaration;
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;
 - (NSMutableDictionary*) parseImplementation;
