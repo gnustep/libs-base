@@ -346,6 +346,8 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
    need mutex protection, since it is simply a pointer that gets read
    and set. */
 static id autorelease_class = nil;
+static SEL autorelease_sel = @selector(addObject:);
+static IMP autorelease_imp = 0;
 
 /* When this is `YES', every call to release/autorelease, checks to
    make sure isn't being set up to release itself too many times.
@@ -367,6 +369,7 @@ static BOOL double_release_check_enabled = NO;
       retain_counts_gate = objc_mutex_allocate ();
 #endif
       autorelease_class = [NSAutoreleasePool class];
+      autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
       _fastBuildCache();
     }
   return;
@@ -594,7 +597,7 @@ static BOOL double_release_check_enabled = NO;
 	  @"%d release(s) versus %d retain(s)", release_count, retain_count];
     }
 
-  [autorelease_class addObject:self];
+  (*autorelease_imp)(autorelease_class, autorelease_sel, self);
   return self;
 }
 
@@ -921,6 +924,7 @@ static BOOL double_release_check_enabled = NO;
 + (void) setAutoreleaseClass: (Class)aClass
 {
   autorelease_class = aClass;
+  autorelease_imp = [self instanceMethodForSelector: autorelease_sel];
 }
 
 + (Class) autoreleaseClass

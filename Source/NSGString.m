@@ -48,6 +48,11 @@
 
 @implementation NSGString
 
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject (self, 0, z);
+}
+
 - (void)dealloc
 {
   if (_zone)
@@ -318,6 +323,11 @@
 // @class NSMutableString;
 
 // @protocol NSMutableString <NSString>
+
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject (self, 0, z);
+}
 
 + (void) initialize
 {
