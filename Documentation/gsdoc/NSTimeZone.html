@@ -1,0 +1,168 @@
+<html><head>
+<title>NSTimeZone</title>
+</head>
+<body>
+<a href="NSThread.html">[Previous]</a>
+<a href="Foundation.html">[Up]</a>
+<a href="NSTimer.html">[Next]</a>
+<h1>NSTimeZone</h1>
+<h3>Authors</h3>
+<dl>
+<dt><a href="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 28 February, 2000</p>
+<h2><a name="cont-0">NSTimeZone</a></h2>
+<h2><a name="NSTimeZone">NSTimeZone</a></h2>
+<p><b>Declared in:</b> Foundation/NSTimeZone.h</p>
+<p><b>Inherits from:</b> NSObject</p>
+<p><b>Conforms to:</b> NSCoding
+</p>
+<hr>
+
+          
+<ul>
+<li><a href="NSTimeZone.html#method-0">+abbreviationDictionary</a>
+<li><a href="NSTimeZone.html#method-1">+defaultTimeZone</a>
+<li><a href="NSTimeZone.html#method-3">+knownTimeZoneNames</a>
+<li><a href="NSTimeZone.html#method-2">+localTimeZone</a>
+<li><a href="NSTimeZone.html#method-4">+resetSystemTimeZone</a>
+<li><a href="NSTimeZone.html#method-5">+setDefaultTimeZone:</a>
+<li><a href="NSTimeZone.html#method-6">+systemTimeZone</a>
+<li><a href="NSTimeZone.html#method-7">+timeZoneForSecondsFromGMT:</a>
+<li><a href="NSTimeZone.html#method-8">+timeZoneWithAbbreviation:</a>
+<li><a href="NSTimeZone.html#method-9">+timeZoneWithName:</a>
+<li><a href="NSTimeZone.html#method-10">+timeZoneWithName:</a>
+<li><a href="NSTimeZone.html#method-11">-abbreviation</a>
+<li><a href="NSTimeZone.html#method-12">-abbreviationForDate:</a>
+<li><a href="NSTimeZone.html#method-13">-data</a>
+<li><a href="NSTimeZone.html#method-14">-description</a>
+<li><a href="NSTimeZone.html#method-16">-initWithName:</a>
+<li><a href="NSTimeZone.html#method-15">-initWithName:</a>
+<li><a href="NSTimeZone.html#method-17">-isDaylightSavingTime</a>
+<li><a href="NSTimeZone.html#method-18">-isDaylightSavingTimeForDate:</a>
+<li><a href="NSTimeZone.html#method-19">-isEqualToTimeZone:</a>
+<li><a href="NSTimeZone.html#method-20">-name</a>
+<li><a href="NSTimeZone.html#method-21">-secondsFromGMT</a>
+<li><a href="NSTimeZone.html#method-22">-secondsFromGMTForDate:</a>
+</ul>
+<hr>
+<h2><a name="method-0">abbreviationDictionary</a></h2>
++ (NSDictionary*) <b>abbreviationDictionary</b><br>
+
+          
+<hr>
+<h2><a name="method-1">defaultTimeZone</a></h2>
++ (NSTimeZone*) <b>defaultTimeZone</b><br>
+
+          
+<hr>
+<h2><a name="method-2">localTimeZone</a></h2>
++ (NSTimeZone*) <b>localTimeZone</b><br>
+
+          
+<hr>
+<h2><a name="method-3">knownTimeZoneNames</a></h2>
++ (NSArray*) <b>knownTimeZoneNames</b><br>
+
+          
+<hr>
+<h2><a name="method-4">resetSystemTimeZone</a></h2>
++ (void) <b>resetSystemTimeZone</b><br>
+
+          
+<hr>
+<h2><a name="method-5">setDefaultTimeZone:</a></h2>
++ (void) <b>setDefaultTimeZone:</b> (NSTimeZone*)aTimeZone<br>
+
+          
+<hr>
+<h2><a name="method-6">systemTimeZone</a></h2>
++ (NSTimeZone*) <b>systemTimeZone</b><br>
+
+          
+<hr>
+<h2><a name="method-7">timeZoneForSecondsFromGMT:</a></h2>
++ (NSTimeZone*) <b>timeZoneForSecondsFromGMT:</b> (int)seconds<br>
+
+          
+<hr>
+<h2><a name="method-8">timeZoneWithAbbreviation:</a></h2>
++ (NSTimeZone*) <b>timeZoneWithAbbreviation:</b> (NSString*)abbreviation<br>
+
+          
+<hr>
+<h2><a name="method-9">timeZoneWithName:</a></h2>
++ (NSTimeZone*) <b>timeZoneWithName:</b> (NSString*)aTimeZoneName<br>
+
+          
+<hr>
+<h2><a name="method-10">timeZoneWithName:</a></h2>
++ (NSTimeZone*) <b>timeZoneWithName:</b> (NSString*)aTimeZoneName<br>
+
+          
+<hr>
+<h2><a name="method-11">abbreviation</a></h2>
+- (NSString*) <b>abbreviation</b><br>
+
+          
+<hr>
+<h2><a name="method-12">abbreviationForDate:</a></h2>
+- (NSString*) <b>abbreviationForDate:</b> (NSDate*)aDate<br>
+
+          
+<hr>
+<h2><a name="method-13">data</a></h2>
+- (NSData*) <b>data</b><br>
+
+          
+<hr>
+<h2><a name="method-14">description</a></h2>
+- (NSString*) <b>description</b><br>
+
+          
+<hr>
+<h2><a name="method-15">initWithName:</a></h2>
+- (id) <b>initWithName:</b> (NSString*)aName<br>
+
+          
+<hr>
+<h2><a name="method-16">initWithName:</a></h2>
+- (id) <b>initWithName:</b> (NSString*)aName<br>
+
+          
+<hr>
+<h2><a name="method-17">isDaylightSavingTime</a></h2>
+- (BOOL) <b>isDaylightSavingTime</b><br>
+
+          
+<hr>
+<h2><a name="method-18">isDaylightSavingTimeForDate:</a></h2>
+- (BOOL) <b>isDaylightSavingTimeForDate:</b> (NSDate*)aDate<br>
+
+          
+<hr>
+<h2><a name="method-19">isEqualToTimeZone:</a></h2>
+- (BOOL) <b>isEqualToTimeZone:</b> (NSTimeZone*)aTimeZone<br>
+
+          
+<hr>
+<h2><a name="method-20">name</a></h2>
+- (NSString*) <b>name</b><br>
+
+          
+<hr>
+<h2><a name="method-21">secondsFromGMT</a></h2>
+- (int) <b>secondsFromGMT</b><br>
+
+          
+<hr>
+<h2><a name="method-22">secondsFromGMTForDate:</a></h2>
+- (int) <b>secondsFromGMTForDate:</b> (NSDate*)aDate<br>
+
+          
+<hr>
+</body>
+
+</html>

@@ -1,0 +1,258 @@
+<html><head>
+<title>NSConnection</title>
+</head>
+<body>
+<a href="NSConditionLock.html">[Previous]</a>
+<a href="Foundation.html">[Up]</a>
+<a href="NSCountedSet.html">[Next]</a>
+<h1>NSConnection</h1>
+<h3>Authors</h3>
+<dl>
+<dt><a href="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 28 February, 2000</p>
+<h2><a name="cont-0">NSConnection</a></h2>
+<h2><a name="NSConnection">NSConnection</a></h2>
+<p><b>Declared in:</b> Foundation/NSConnection.h</p>
+<p><b>Inherits from:</b> NSObject</p>
+<p><b>Conforms to:</b> NSObject
+</p>
+<hr>
+
+          
+<ul>
+<li><a href="NSConnection.html#method-0">+allConnections</a>
+<li><a href="NSConnection.html#method-1">+connectionWithReceivePort:</a>
+<li><a href="NSConnection.html#method-2">+connectionWithRegisteredName:</a>
+<li><a href="NSConnection.html#method-3">+currentConversation</a>
+<li><a href="NSConnection.html#method-4">+defaultConnection</a>
+<li><a href="NSConnection.html#method-5">+rootProxyForConnectionWithRegisteredName:</a>
+<li><a href="NSConnection.html#method-6">-addRequestMode:</a>
+<li><a href="NSConnection.html#method-7">-addRunLoop:</a>
+<li><a href="NSConnection.html#method-34">-authenticateComponents:</a>
+<li><a href="NSConnection.html#method-35">-authenticationDataForComponents:</a>
+<li><a href="NSConnection.html#method-36">-connection:shouldMakeNewConnection:</a>
+<li><a href="NSConnection.html#method-8">-delegate</a>
+<li><a href="NSConnection.html#method-9">-enableMultipleThreads</a>
+<li><a href="NSConnection.html#method-10">-independentConversationQueueing</a>
+<li><a href="NSConnection.html#method-11">-initWithReceivePort:</a>
+<li><a href="NSConnection.html#method-12">-invalidate</a>
+<li><a href="NSConnection.html#method-13">-isValid</a>
+<li><a href="NSConnection.html#method-14">-localObjects</a>
+<li><a href="NSConnection.html#method-37">-makeNewConnection:</a>
+<li><a href="NSConnection.html#method-15">-multipleThreadsEnabled</a>
+<li><a href="NSConnection.html#method-16">-receivePort</a>
+<li><a href="NSConnection.html#method-17">-registerName:</a>
+<li><a href="NSConnection.html#method-18">-remoteObjects</a>
+<li><a href="NSConnection.html#method-19">-removeRequestMode:</a>
+<li><a href="NSConnection.html#method-20">-removeRunLoop:</a>
+<li><a href="NSConnection.html#method-21">-replyTimeout</a>
+<li><a href="NSConnection.html#method-22">-requestModes</a>
+<li><a href="NSConnection.html#method-23">-requestTimeout</a>
+<li><a href="NSConnection.html#method-24">-rootObject</a>
+<li><a href="NSConnection.html#method-25">-rootProxy</a>
+<li><a href="NSConnection.html#method-26">-runInNewThread</a>
+<li><a href="NSConnection.html#method-27">-sendPort</a>
+<li><a href="NSConnection.html#method-28">-setDelegate:</a>
+<li><a href="NSConnection.html#method-29">-setIndependentConversationQueueing:</a>
+<li><a href="NSConnection.html#method-30">-setReplyTimeout:</a>
+<li><a href="NSConnection.html#method-31">-setRequestTimeout:</a>
+<li><a href="NSConnection.html#method-32">-setRootObject:</a>
+<li><a href="NSConnection.html#method-33">-statistics</a>
+</ul>
+<hr>
+<h2><a name="method-0">allConnections</a></h2>
++ (NSArray*) <b>allConnections</b><br>
+
+          
+<hr>
+<h2><a name="method-1">connectionWithReceivePort:</a></h2>
++ (NSConnection*) <b>connectionWithReceivePort:</b> (NSPort*)receivePort<br>
+
+          
+<hr>
+<h2><a name="method-2">connectionWithRegisteredName:</a></h2>
++ (NSConnection*) <b>connectionWithRegisteredName:</b> (NSString*)name<br>
+
+          
+<hr>
+<h2><a name="method-3">currentConversation</a></h2>
++ (id) <b>currentConversation</b><br>
+
+          
+<hr>
+<h2><a name="method-4">defaultConnection</a></h2>
++ (NSConnection*) <b>defaultConnection</b><br>
+
+          
+<hr>
+<h2><a name="method-5">rootProxyForConnectionWithRegisteredName:</a></h2>
++ (NSDistantObject*) <b>rootProxyForConnectionWithRegisteredName:</b> (NSString*)name<br>
+
+          
+<hr>
+<h2><a name="method-6">addRequestMode:</a></h2>
+- (void) <b>addRequestMode:</b> (NSString*)mode<br>
+
+          
+<hr>
+<h2><a name="method-7">addRunLoop:</a></h2>
+- (void) <b>addRunLoop:</b> (NSRunLoop*)runloop<br>
+
+          
+<hr>
+<h2><a name="method-8">delegate</a></h2>
+- (id) <b>delegate</b><br>
+
+          
+<hr>
+<h2><a name="method-9">enableMultipleThreads</a></h2>
+- (void) <b>enableMultipleThreads</b><br>
+
+          
+<hr>
+<h2><a name="method-10">independentConversationQueueing</a></h2>
+- (BOOL) <b>independentConversationQueueing</b><br>
+
+          
+<hr>
+<h2><a name="method-11">initWithReceivePort:</a></h2>
+- (id) <b>initWithReceivePort:</b> (NSPort*)receivePort<br>
+
+          
+<hr>
+<h2><a name="method-12">invalidate</a></h2>
+- (void) <b>invalidate</b><br>
+
+          
+<hr>
+<h2><a name="method-13">isValid</a></h2>
+- (BOOL) <b>isValid</b><br>
+
+          
+<hr>
+<h2><a name="method-14">localObjects</a></h2>
+- (NSArray*) <b>localObjects</b><br>
+
+          
+<hr>
+<h2><a name="method-15">multipleThreadsEnabled</a></h2>
+- (BOOL) <b>multipleThreadsEnabled</b><br>
+
+          
+<hr>
+<h2><a name="method-16">receivePort</a></h2>
+- (NSPort*) <b>receivePort</b><br>
+
+          
+<hr>
+<h2><a name="method-17">registerName:</a></h2>
+- (BOOL) <b>registerName:</b> (NSString*)name<br>
+
+          
+<hr>
+<h2><a name="method-18">remoteObjects</a></h2>
+- (NSArray*) <b>remoteObjects</b><br>
+
+          
+<hr>
+<h2><a name="method-19">removeRequestMode:</a></h2>
+- (void) <b>removeRequestMode:</b> (NSString*)mode<br>
+
+          
+<hr>
+<h2><a name="method-20">removeRunLoop:</a></h2>
+- (void) <b>removeRunLoop:</b> (NSRunLoop*)runloop<br>
+
+          
+<hr>
+<h2><a name="method-21">replyTimeout</a></h2>
+- (NSTimeInterval) <b>replyTimeout</b><br>
+
+          
+<hr>
+<h2><a name="method-22">requestModes</a></h2>
+- (NSArray*) <b>requestModes</b><br>
+
+          
+<hr>
+<h2><a name="method-23">requestTimeout</a></h2>
+- (NSTimeInterval) <b>requestTimeout</b><br>
+
+          
+<hr>
+<h2><a name="method-24">rootObject</a></h2>
+- (id) <b>rootObject</b><br>
+
+          
+<hr>
+<h2><a name="method-25">rootProxy</a></h2>
+- (NSDistantObject*) <b>rootProxy</b><br>
+
+          
+<hr>
+<h2><a name="method-26">runInNewThread</a></h2>
+- (void) <b>runInNewThread</b><br>
+
+          
+<hr>
+<h2><a name="method-27">sendPort</a></h2>
+- (NSPort*) <b>sendPort</b><br>
+
+          
+<hr>
+<h2><a name="method-28">setDelegate:</a></h2>
+- (void) <b>setDelegate:</b> (id)anObject<br>
+
+          
+<hr>
+<h2><a name="method-29">setIndependentConversationQueueing:</a></h2>
+- (void) <b>setIndependentConversationQueueing:</b> (BOOL)flag<br>
+
+          
+<hr>
+<h2><a name="method-30">setReplyTimeout:</a></h2>
+- (void) <b>setReplyTimeout:</b> (NSTimeInterval)seconds<br>
+
+          
+<hr>
+<h2><a name="method-31">setRequestTimeout:</a></h2>
+- (void) <b>setRequestTimeout:</b> (NSTimeInterval)seconds<br>
+
+          
+<hr>
+<h2><a name="method-32">setRootObject:</a></h2>
+- (void) <b>setRootObject:</b> (id)anObject<br>
+
+          
+<hr>
+<h2><a name="method-33">statistics</a></h2>
+- (NSDictionary*) <b>statistics</b><br>
+
+          
+<hr>
+<h2><a name="method-34">authenticateComponents:</a></h2>
+- (BOOL) <b>authenticateComponents:</b> (NSArray*)components<br>
+
+          
+<hr>
+<h2><a name="method-35">authenticationDataForComponents:</a></h2>
+- (NSData*) <b>authenticationDataForComponents:</b> (NSArray*)components<br>
+
+          
+<hr>
+<h2><a name="method-36">connection:shouldMakeNewConnection:</a></h2>
+- (BOOL) <b>connection:</b> (NSConnection*)parentConnection <b>shouldMakeNewConnection:</b> (NSConnection*)newConnnection<br>
+
+          
+<hr>
+<h2><a name="method-37">makeNewConnection:</a></h2>
+- (BOOL) <b>makeNewConnection:</b> (NSConnection*)newConnection<br>
+
+          
+<hr>
+</body>
+
+</html>
