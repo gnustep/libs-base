@@ -393,6 +393,9 @@
 	for (i = 0; i < _count; i++) {
 	    char	val = _contents_chars[i];
 
+	    if (isalnum(val) || strchr("$./_", val)) {
+		continue;
+	    }
 	    switch (val) {
 		case '\a':
 		case '\b':
@@ -407,10 +410,10 @@
 		    break;
 
 		default:
-		    if (val == ' ') {
+		    if (val == ' ' || isprint(val)) {
 			needQuote = YES;
 		    }
-		    else if (isprint(val) == 0) {
+		    else {
 			length += 3;
 		    }
 		    break;
