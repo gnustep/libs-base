@@ -25,7 +25,7 @@
  */ 
 
 #ifndef __NSMapTable_h_OBJECTS_INCLUDE
-#define __NSMaptable_h_OBJECTS_INCLUDE 1
+#define __NSMapTable_h_OBJECTS_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -142,4 +142,3 @@ void NSMapRemove (NSMapTable *table, const void *key);
 NSString *NSStringFromMapTable (NSMapTable *table);
 
 #endif /* __NSMapTable_h_OBJECTS_INCLUDE */
-

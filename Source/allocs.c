@@ -36,7 +36,7 @@ static objects_allocs_t __objects_allocs_standard =
   (objects_calloc_func_t) calloc,
   (objects_realloc_func_t) realloc,
   (objects_free_func_t) free,
-  (void *) 0
+  (const void *) 0
 };
 
 /**** Function Implementations ***********************************************/
@@ -60,15 +60,15 @@ objects_calloc (objects_allocs_t allocs, size_t n, size_t s)
 }
 
 void *
-objects_realloc (objects_allocs_t allocs, void *p, size_t s)
+objects_realloc (objects_allocs_t allocs, const void *p, size_t s)
 {
-  return (*(allocs.realloc)) (p, s, allocs.user_data);
+  return (*(allocs.realloc)) ((void*)p, s, allocs.user_data);
 }
 
 void
-objects_free (objects_allocs_t allocs, void *p)
+objects_free (objects_allocs_t allocs, const void *p)
 {
-  (*(allocs.free)) (p, allocs.user_data);
+  (*(allocs.free)) ((void*)p, allocs.user_data);
   return;
 }
 
