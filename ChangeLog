@@ -1,3 +1,8 @@
+2003-01-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Support MacOS-X style initialisation using a path
+	with a leading slash.
+
 2003-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSCategories.m: Additional ([weekOfYear]) method
