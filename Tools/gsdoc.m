@@ -756,7 +756,9 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 - (NSString *) parseBody: (xmlNodePtr)node
 {
   NSMutableString	*text = [NSMutableString string];
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
   BOOL			needContents = NO;
   NSMutableArray	*back = [NSMutableArray arrayWithCapacity: 2];
   NSMutableArray	*body = [NSMutableArray arrayWithCapacity: 4];
@@ -882,7 +884,9 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 
 - (NSString *) parseChapter: (xmlNodePtr)node contents: (NSMutableArray *)array
 {
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
   NSMutableString	*text = [NSMutableString string];
   const char		*type = node->name;
   const char		*next;
@@ -4777,7 +4781,9 @@ main(int argc, char **argv, char **env)
 		    }
 		  NS_ENDHANDLER
 		}
+#if GS_WITH_GC == 0
 	      DESTROY(arp);
+#endif
 	    }
 	}
     }

@@ -353,7 +353,6 @@
 #include "AGSIndex.h"
 #include "AGSHtml.h"
 
-
 int
 main(int argc, char **argv, char **env)
 {
@@ -537,7 +536,9 @@ main(int argc, char **argv, char **env)
 
       up = [defs stringForKey: @"Up"];
 
+#if GS_WITH_GC == 0
       pool = [NSAutoreleasePool new];
+#endif
 
       parser = [AGSParser new];
       [parser setWordMap: [defs dictionaryForKey: @"WordMap"]];
@@ -564,11 +565,13 @@ main(int argc, char **argv, char **env)
 	  NSDate		*gDate = nil;
 	  unsigned		j;
 
+#if GS_WITH_GC == 0
 	  if (pool != nil)
 	    {
 	      RELEASE(pool);
 	      pool = [NSAutoreleasePool new];
 	    }
+#endif
 
 	  /*
 	   * Note the name of the header file without path or extension.
@@ -775,7 +778,9 @@ main(int argc, char **argv, char **env)
 	      [gFiles addObject: [hfile lastPathComponent]];
 	    }
 	}
+#if GS_WITH_GC == 0
       DESTROY(pool);
+#endif
       DESTROY(parser);
       DESTROY(output);
     }
@@ -794,11 +799,13 @@ main(int argc, char **argv, char **env)
 	  NSDictionary	*attrs;
 	  NSDate	*gDate = nil;
 
+#if GS_WITH_GC == 0
 	  if (arp != nil)
 	    {
 	      RELEASE(arp);
 	      arp = [NSAutoreleasePool new];
 	    }
+#endif
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
 	  gsdocfile = [documentationDirectory
@@ -870,7 +877,9 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 	}
+#if GS_WITH_GC == 0
       DESTROY(arp);
+#endif
 
       /*
        * Save project references if they have been modified.
@@ -898,8 +907,7 @@ main(int argc, char **argv, char **env)
       NSMutableDictionary	*projects;
       NSString			*systemProjects;
       NSString			*localProjects;
-
-      pool = [NSAutoreleasePool new];
+      CREATE_AUTORELEASE_POOL (pool);
 
       localProjects = [defs stringForKey: @"LocalProjects"];
       if (localProjects == nil)
@@ -1047,7 +1055,9 @@ main(int argc, char **argv, char **env)
        */
       [globalRefs mergeRefs: [projectRefs refs] override: YES];
 
+#if GS_WITH_GC == 0
       RELEASE(pool);
+#endif
     }
 
   /*
@@ -1056,7 +1066,9 @@ main(int argc, char **argv, char **env)
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
     {
+#if GS_WITH_GC == 0
       pool = [NSAutoreleasePool new];
+#endif
 
       for (i = 0; i < count; i++)
 	{
@@ -1069,11 +1081,13 @@ main(int argc, char **argv, char **env)
 	  NSDate	*gDate = nil;
 	  NSDate	*hDate = nil;
 
+#if GS_WITH_GC == 0
 	  if (pool != nil)
 	    {
 	      RELEASE(pool);
 	      pool = [NSAutoreleasePool new];
 	    }
+#endif
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
 	  gsdocfile = [documentationDirectory
@@ -1160,7 +1174,9 @@ main(int argc, char **argv, char **env)
 		gsdocfile);
 	    }
 	}
+#if GS_WITH_GC == 0
       RELEASE(pool);
+#endif
     }
 
   /*
@@ -1170,7 +1186,9 @@ main(int argc, char **argv, char **env)
   count = [hFiles count];
   if (count > 0)
     {
+#if GS_WITH_GC == 0
       pool = [NSAutoreleasePool new];
+#endif
 
       for (i = 0; i < count; i++)
 	{
@@ -1178,11 +1196,14 @@ main(int argc, char **argv, char **env)
 	  NSString	*src;
 	  NSString	*dst;
 
+#if GS_WITH_GC == 0
 	  if (pool != nil)
 	    {
 	      RELEASE(pool);
 	      pool = [NSAutoreleasePool new];
 	    }
+#endif
+
 	  file = [file lastPathComponent];
 
 	  src = file;
@@ -1351,7 +1372,9 @@ main(int argc, char **argv, char **env)
 	      NSLog(@"No readable documentation at '%@' ... skipping", src);
 	    }
 	}
+#if GS_WITH_GCC == 0
       RELEASE(pool);
+#endif
     }
 
   RELEASE(outer);

@@ -1268,7 +1268,9 @@ static BOOL snuggleStart(NSString *t)
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf
 {
+#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
+#endif
   unsigned	l = [str length];
   NSRange	r = NSMakeRange(0, l);
   unsigned	i = 0;

@@ -1106,7 +1106,6 @@ static void print_version_and_exit ()
 
 int main (int argc, char** argv, char** env)
 {
-  CREATE_AUTORELEASE_POOL(pool);
   NSUserDefaults *userDefs;
   NSArray *args;
   NSMutableArray *inputFiles;
@@ -1114,6 +1113,7 @@ int main (int argc, char** argv, char** env)
   BOOL warn, fixupAllLinks;
   NSString *linksMarker;
   HTMLLinker *linker;
+  CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
