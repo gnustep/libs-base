@@ -113,9 +113,12 @@ typedef	enum {
 #else
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
-    ET_EDESC,	/* Watch for descriptor with out-of-band data.	*/
 #endif
-    ET_RPORT	/* Watch for message arriving on port.		*/
+    ET_RPORT,	/* Watch for message arriving on port.		*/
+/* For binary compatibility we have an extra ifdef... */
+#ifndef __MINGW_
+    ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
+#endif
 } RunLoopEventType;
 
 /**
