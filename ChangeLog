@@ -1,7 +1,12 @@
+2002-12-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: ([removeObjectsFromIndices:numIndices:])
+	bugfix for sorting by Kelvin Sherlock.
+
 2002-12-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Fix race condition firing perform holder.
-	Fix supplied by {hilip Derrin.
+	Fix supplied by Philip Derrin.
 
 2002-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 

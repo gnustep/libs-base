@@ -91,24 +91,24 @@ main()
       printf("Index of identical object is %d\n", p);
 
     NSCParameterAssert([c lastObject]);
-    printf("Classname at index 2 is %s\n", [[c objectAtIndex:2] name]);
+    printf("Class at index 2 is %s\n", [[[c objectAtIndex:2] description] cString]);
 
     printf("Forward enumeration\n");
     enumerator = [e objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Reverse enumeration\n");
     enumerator = [e reverseObjectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
   }
 
   {
     // Sending messages to elements
-    [c makeObjectsPerform:@selector(name)];
+    [c makeObjectsPerform:@selector(description)];
 
     //[c makeObjectsPerform:@selector(isEqual:) withObject: @"NSArray"];
   }
@@ -173,7 +173,7 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     if ([f isEqualToArray: c])
@@ -234,7 +234,7 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Method -insertObject: [NSMutableArray class] atIndex: 2\n");
@@ -242,7 +242,7 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
   }
@@ -268,7 +268,7 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Method -removeObject: [NSObject class]\n");
@@ -276,7 +276,7 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Method -removeObjectIdenticalTo: [NSArray class]\n");
@@ -284,7 +284,7 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Method -removeObjectAtIndex: 2\n");
@@ -292,19 +292,19 @@ main()
 
     enumerator = [f objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Method -removeObjectsFromIndices: {7,4,1,3,5,0,6} "
 	   "numIndices: 6\n");
     enumerator = [g objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
     [g removeObjectsFromIndices: ind numIndices: 7];
     enumerator = [g objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     if ([f isEqualToArray: g])
@@ -316,12 +316,12 @@ main()
     printf("Receiver array\n");
     enumerator = [h objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
     printf("Removing objects in this array\n");
     enumerator = [c objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     [h removeObjectsInArray: c];
@@ -343,19 +343,19 @@ main()
     printf("Method -replaceObjectAtIndex: 2 withObject:[NSString class]\n");
     enumerator = [c objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
     [c replaceObjectAtIndex: 2 withObject:[NSString class]];
     enumerator = [c objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
 
     printf("Method -setArray:\n");
     [h setArray: f];
     enumerator = [h objectEnumerator];
     while ((i = [enumerator nextObject]))
-      printf("%s ", [i name]);
+      printf("%s ", [[i description] cString]);
     printf("\n");
     if ([h isEqualToArray: h])
       printf("-setArray worked properly\n");

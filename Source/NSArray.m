@@ -1519,7 +1519,7 @@ static int compare(id elem1, id elem2, void* context)
 	  unsigned	val = indices[from++];
 
 	  i = to;
-	  while (i > 0 && sorted[i] > val)
+	  while (i > 0 && sorted[i-1] > val)
 	    {
 	      i--;
 	    }
