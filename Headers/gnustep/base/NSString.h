@@ -18,7 +18,7 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSString_h_GNUSTEP_BASE_INCLUDE
@@ -241,16 +241,16 @@ enum {
 + (NSString*) stringWithString: (NSString*) aString;
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 + (NSString*) stringWithFormat: (NSString*)format
-   arguments: (va_list)argList;
+		     arguments: (va_list)argList;
 - (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary;
+	       locale: (NSDictionary*)dictionary;
 - (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary
-   arguments: (va_list)argList;
+	       locale: (NSDictionary*)dictionary
+	    arguments: (va_list)argList;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (BOOL) writeToFile: (NSString*)filename
-   atomically: (BOOL)useAuxiliaryFile;
+	  atomically: (BOOL)useAuxiliaryFile;
 - (double) doubleValue;
 + (NSStringEncoding*)availableStringEncodings;
 + (NSString*)localizedNameOfStringEncoding:(NSStringEncoding)encoding;
@@ -259,7 +259,7 @@ enum {
          contentsEnd:(unsigned int *)contentsEndIndex
             forRange:(NSRange)aRange;
 - (NSRange)lineRangeForRange:(NSRange)aRange;
-
+- (const char*) lossyCString;
 #endif
 
 #ifndef NO_GNUSTEP
@@ -312,7 +312,14 @@ compiler warning.
 @interface NSMutableString : NSString <NSMutableString>
 @end
 
-/* Because the compiler thinks that @".." strings are NXConstantString's. */
+/*
+ * Because the compiler thinks that @".." strings are NXConstantString's.
+ * NB. An NXConstantString has a length and a pointer to char as it's ivars
+ * but an NSGCString also has a hash value - the code has to be careful not
+ * to use the _hash ivar if the class is actually an NXConstantString.
+ * If you modify and NSGCString method to use the _hash ivar, you must
+ * override that method in NXConstantString, to avoid using the ivar.
+ */
 #include <Foundation/NSGString.h>
 #include <Foundation/NSGCString.h>
 @interface NXConstantString : NSGCString

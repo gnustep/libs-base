@@ -18,7 +18,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
 /*
@@ -85,9 +85,6 @@ static Class	plDictionary;
 static id	(*plSet)(id, SEL, id, id);
 static id	(*plInit)(id, SEL, void*, unsigned) = 0;
 static id	(*plAlloc)(Class, SEL, NSZone*);
-#ifndef GS_WITH_GC
-static id	(*plAutorelease)(id, SEL);
-#endif
 #if	GSPLUNI
 static SEL	plSel = @selector(initWithCharacters:length:);
 #else
@@ -103,10 +100,6 @@ static void setupPl(Class c)
 	[c methodForSelector: @selector(allocWithZone:)];
       plInit = (id (*)(id, SEL, void*, unsigned))
 	[c instanceMethodForSelector: plSel];
-#ifndef GS_WITH_GC
-      plAutorelease = (id (*)(id, SEL))
-	[c instanceMethodForSelector: @selector(autorelease)];
-#endif
       plArray = [NSGMutableArray class];
       plAdd = (id (*)(id, SEL, id))
 	[plArray instanceMethodForSelector: @selector(addObject:)];
@@ -366,9 +359,6 @@ static inline id parseQuotedString(pldata* pld)
 	}
       obj = (*plAlloc)(plCls, @selector(allocWithZone:), NSDefaultMallocZone());
       obj = (*plInit)(obj, plSel, (void*)chars, pld->pos - start - shrink);
-#ifndef GS_WITH_GC
-      (*plAutorelease)(obj, @selector(autorelease));
-#endif
     }
   pld->pos++;
   return obj;
@@ -388,9 +378,6 @@ static inline id parseUnquotedString(pldata *pld)
     }
   obj = (*plAlloc)(plCls, @selector(allocWithZone:), NSDefaultMallocZone());
   obj = (*plInit)(obj, plSel, (void*)&pld->ptr[start], pld->pos-start);
-#ifndef GS_WITH_GC
-  (*plAutorelease)(obj, @selector(autorelease));
-#endif
   return obj;
 }
 
@@ -405,8 +392,8 @@ static id parsePlItem(pldata* pld)
 	{
 	  NSMutableDictionary	*dict;
 
-	  dict = [[[plDictionary allocWithZone: NSDefaultMallocZone()]
-	    initWithCapacity: 0] autorelease];
+	  dict = [[plDictionary allocWithZone: NSDefaultMallocZone()]
+	    initWithCapacity: 0];
 	  pld->pos++;
 	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '}')
 	    {
@@ -417,30 +404,48 @@ static id parsePlItem(pldata* pld)
 	      if (key == nil)
 		return nil;
 	      if (skipSpace(pld) == NO)
-		return nil;
+		{
+		  RELEASE(key);
+		  return nil;
+		}
 	      if (pld->ptr[pld->pos] != '=')
 		{
 		  pld->err = @"unexpected character (wanted '=')";
+		  RELEASE(key);
 		  return nil;
 		}
 	      pld->pos++;
 	      val = parsePlItem(pld);
 	      if (val == nil)
-		return nil;
+		{
+		  RELEASE(key);
+		  return nil;
+		}
 	      if (skipSpace(pld) == NO)
-		return nil;
+		{
+		  RELEASE(key);
+		  RELEASE(val);
+		  return nil;
+		}
 	      if (pld->ptr[pld->pos] == ';')
-		pld->pos++;
+		{
+		  pld->pos++;
+		}
 	      else if (pld->ptr[pld->pos] != '}')
 		{
 		  pld->err = @"unexpected character (wanted ';' or '}')";
+		  RELEASE(key);
+		  RELEASE(val);
 		  return nil;
 		}
 	      (*plSet)(dict, @selector(setObject:forKey:), val, key);
+	      RELEASE(key);
+	      RELEASE(val);
 	    }
 	  if (pld->pos >= pld->end)
 	    {
 	      pld->err = @"unexpected end of string when parsing dictionary";
+	      RELEASE(dict);
 	      return nil;
 	    }
 	  pld->pos++;
@@ -451,8 +456,8 @@ static id parsePlItem(pldata* pld)
 	{
 	  NSMutableArray	*array;
 
-	  array = [[[plArray allocWithZone: NSDefaultMallocZone()]
-	    initWithCapacity: 0] autorelease];
+	  array = [[plArray allocWithZone: NSDefaultMallocZone()]
+	    initWithCapacity: 0];
 	  pld->pos++;
 	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != ')')
 	    {
@@ -460,21 +465,31 @@ static id parsePlItem(pldata* pld)
 
 	      val = parsePlItem(pld);
 	      if (val == nil)
-		return nil;
+		{
+		  return nil;
+		}
 	      if (skipSpace(pld) == NO)
-		return nil;
+		{
+		  RELEASE(val);
+		  return nil;
+		}
 	      if (pld->ptr[pld->pos] == ',')
-		pld->pos++;
+		{
+		  pld->pos++;
+		}
 	      else if (pld->ptr[pld->pos] != ')')
 		{
 		  pld->err = @"unexpected character (wanted ',' or ')')";
+		  RELEASE(val);
 		  return nil;
 		}
 	      (*plAdd)(array, @selector(addObject:), val);
+	      RELEASE(val);
 	    }
 	  if (pld->pos >= pld->end)
 	    {
 	      pld->err = @"unexpected end of string when parsing array";
+	      RELEASE(array);
 	      return nil;
 	    }
 	  pld->pos++;
@@ -488,7 +503,7 @@ static id parsePlItem(pldata* pld)
 	  unsigned char	buf[BUFSIZ];
 	  unsigned	len = 0;
 
-	  data = [NSMutableData dataWithCapacity: 0];
+	  data = [[NSMutableData alloc] initWithCapacity: 0];
 	  pld->pos++;
 	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '>')
 	    {
@@ -515,11 +530,13 @@ static id parsePlItem(pldata* pld)
 	  if (pld->pos >= pld->end)
 	    {
 	      pld->err = @"unexpected end of string when parsing data";
+	      RELEASE(data);
 	      return nil;
 	    }
 	  if (pld->ptr[pld->pos] != '>')
 	    {
 	      pld->err = @"unexpected character in string";
+	      RELEASE(data);
 	      return nil;
 	    }
 	  if (len > 0)
@@ -542,8 +559,8 @@ static id parseSfItem(pldata* pld)
 {
   NSMutableDictionary	*dict;
 
-  dict = [[[plDictionary allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: 0] autorelease];
+  dict = [[plDictionary allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: 0];
   while (skipSpace(pld) == YES)
     {
       id	key;
@@ -558,40 +575,55 @@ static id parseSfItem(pldata* pld)
       if (skipSpace(pld) == NO)
 	{
 	  pld->err = @"incomplete final entry (no semicolon?)";
+	  RELEASE(key);
 	  return nil;
 	}
       if (pld->ptr[pld->pos] == ';')
 	{
 	  pld->pos++;
 	  (*plSet)(dict, @selector(setObject:forKey:), @"", key);
+	  RELEASE(key);
 	}
       else if (pld->ptr[pld->pos] == '=')
 	{
 	  pld->pos++;
 	  if (skipSpace(pld) == NO)
-	    return nil;
+	    {
+	      RELEASE(key);
+	      return nil;
+	    }
 	  if (pld->ptr[pld->pos] == '"')
 	    val = parseQuotedString(pld);
 	  else
 	    val = parseUnquotedString(pld);
 	  if (val == nil)
-	    return nil;
+	    {
+	      RELEASE(key);
+	      return nil;
+	    }
 	  if (skipSpace(pld) == NO)
 	    {
 	      pld->err = @"missing final semicolon";
+	      RELEASE(key);
+	      RELEASE(val);
 	      return nil;
 	    }
 	  (*plSet)(dict, @selector(setObject:forKey:), val, key);
+	  RELEASE(key);
+	  RELEASE(val);
 	  if (pld->ptr[pld->pos] == ';')
 	    pld->pos++;
 	  else
 	    {
 	      pld->err = @"unexpected character (wanted ';')";
+	      RELEASE(dict);
 	      return nil;
 	    }
 	}
       else
 	{
+	  RELEASE(key);
+	  RELEASE(dict);
 	  pld->err = @"unexpected character (wanted '=' or ';')";
 	  return nil;
 	}

@@ -26,7 +26,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
 #include <config.h>
@@ -110,13 +110,16 @@
 {
   Class	c;
   if (anObject == self)
-    return YES;
+    {
+      return YES;
+    }
   if (anObject == nil)
-    return NO;
+    {
+      return NO;
+    }
   c = fastClassOfInstance(anObject);
   if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString
-    || c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
-    || c == _fastCls._NXConstantString)
+    || c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString)
     {
       NSGString	*other = (NSGString*)anObject;
       NSRange	r = {0, _count};
@@ -146,13 +149,28 @@
 	}
       return NO;
     }
+  else if (c == _fastCls._NXConstantString)
+    {
+      NSGString	*other = (NSGString*)anObject;
+      NSRange	r = {0, _count};
+
+      if (strCompUsCs(self, other, 0, r) == NSOrderedSame)
+	return YES;
+      return NO;
+    }
   else if (c == nil)
-    return NO;
+    {
+      return NO;
+    }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
-    return _fastImp._NSString_isEqualToString_(self,
-		@selector(isEqualToString:), anObject);
+    {
+      return _fastImp._NSString_isEqualToString_(self,
+	@selector(isEqualToString:), anObject);
+    }
   else
-    return NO;
+    {
+      return NO;
+    }
 }
 
 // Initializing Newly Allocated Strings
@@ -388,7 +406,7 @@
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
@@ -411,7 +429,7 @@
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 
@@ -506,18 +524,23 @@ static inline void
 stringIncrementCountAndMakeHoleAt(NSGMutableStringStruct *self, 
 				  int index, int size)
 {
- #ifndef STABLE_MEMCPY
-  {
-    int i;
-    for (i = self->_count; i >= index; i--)
-      self->_contents_chars[i+size] = self->_contents_chars[i];
-  }
- #else
-  memcpy(self->_contents_chars + index, 
-	 self->_contents_chars + index + size,
-	 2*(self->_count - index));
- #endif /* STABLE_MEMCPY */
-  (self->_count) += size;
+  if (self->_count || size)
+	{
+	  NSCAssert(index+size<=self->_count,@"index+size>length");
+	  NSCAssert(self->_count+size<=self->_capacity,@"length+size>capacity");
+#ifndef STABLE_MEMCPY
+	  {
+		int i;
+		for (i = self->_count; i >= index; i--)
+		  self->_contents_chars[i+size] = self->_contents_chars[i];
+	  }
+#else
+	  memcpy(self->_contents_chars + index, 
+			 self->_contents_chars + index + size,
+			 2*(self->_count - index));
+#endif /* STABLE_MEMCPY */
+	  (self->_count) += size;
+	};
   (self->_hash) = 0;
 }
 
@@ -525,18 +548,22 @@ static inline void
 stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self, 
 				  int index, int size)
 {
-  (self->_count) -= size;
- #ifndef STABLE_MEMCPY
-  {
-    int i;
-    for (i = index; i <= self->_count; i++)
-      self->_contents_chars[i] = self->_contents_chars[i+size];
-  }
- #else
-  memcpy(self->_contents_chars + index + size,
-	 self->_contents_chars + index, 
-	 2*(self->_count - index));
- #endif // STABLE_MEMCPY
+  if (self->_count || size)
+	{
+	  NSCAssert(index+size<=self->_count,@"index+size>length");
+	  (self->_count) -= size;
+#ifndef STABLE_MEMCPY
+	  {
+		int i;
+		for (i = index; i <= self->_count; i++)
+		  self->_contents_chars[i] = self->_contents_chars[i+size];
+	  }
+#else
+	  memcpy(self->_contents_chars + index + size,
+			 self->_contents_chars + index, 
+			 2*(self->_count - index));
+#endif // STABLE_MEMCPY
+	};
   (self->_hash) = 0;
 }
 

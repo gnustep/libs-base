@@ -20,7 +20,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
 #include <config.h>
@@ -338,6 +338,15 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return (const char*)r;
 }
 
+- (const char *) lossyCString
+{
+  unsigned char	*r = (unsigned char*)_fastMallocBuffer(_count+1);
+
+  memcpy(r, _contents_chars, _count);
+  r[_count] = '\0';
+  return (const char*)r;
+}
+
 - (void) getCString: (char*)buffer
 {
   memcpy(buffer, _contents_chars, _count);
@@ -453,8 +462,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return NO;
   c = fastClassOfInstance(anObject);
 
-  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
-    || c == _fastCls._NXConstantString)
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString)
     {
       NSGCString	*other = (NSGCString*)anObject;
 
@@ -465,6 +473,16 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       if (other->_hash == 0)
          other->_hash = _fastImp._NSString_hash(other, @selector(hash));
       if (_hash != other->_hash)
+	return NO;
+      if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
+	return NO;
+      return YES;
+    }
+  else if (c == _fastCls._NXConstantString)
+    {
+      NSGCString	*other = (NSGCString*)anObject;
+
+      if (_count != other->_count)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
@@ -494,8 +512,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (aString == nil)
     return NO;
   c = fastClassOfInstance(aString);
-  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
-    || c == _fastCls._NXConstantString)
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString)
     {
       NSGCString	*other = (NSGCString*)aString;
 
@@ -506,6 +523,16 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       if (other->_hash == 0)
          other->_hash = _fastImp._NSString_hash(other, @selector(hash));
       if (_hash != other->_hash)
+	return NO;
+      if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
+	return NO;
+      return YES;
+    }
+  else if (c == _fastCls._NXConstantString)
+    {
+      NSGCString	*other = (NSGCString*)aString;
+
+      if (_count != other->_count)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
@@ -700,7 +727,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
@@ -723,7 +750,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
@@ -1137,6 +1164,22 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 @implementation NXConstantString
 
++ (id) allocWithZone: (NSZone*)z
+{
+  [NSException raise: NSGenericException
+	      format: @"Attempt to allocate an NXConstantString"];
+  return nil;
+}
+
+- (id) initWithCStringNoCopy: (char*)byteString
+		      length: (unsigned int)length
+		    fromZone: (NSZone*)zone
+{
+  [NSException raise: NSGenericException
+	      format: @"Attempt to init an NXConstantString"];
+  return nil;
+}
+
 /*
  *	NXConstantString overrides [-dealloc] so that it is never deallocated.
  *	If we pass an NXConstantString to another process or record it in an
@@ -1213,4 +1256,139 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return (unichar)_contents_chars[index];
 }
 
+- (unsigned) hash
+{
+  return _fastImp._NSString_hash(self, @selector(hash));
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  Class	c;
+  if (anObject == self)
+    {
+      return YES;
+    }
+  if (anObject == nil)
+    {
+      return NO;
+    }
+  c = fastClassOfInstance(anObject);
+
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
+    {
+      NXConstantString	*other = (NXConstantString*)anObject;
+
+      if (_count != other->_count)
+	return NO;
+      if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
+	return NO;
+      return YES;
+    }
+  else if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    {
+      if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
+	return YES;
+      return NO;
+    }
+  else if (c == nil)
+    {
+      return NO;
+    }
+  else if (fastClassIsKindOfClass(c, _fastCls._NSString))
+    {
+      return _fastImp._NSString_isEqualToString_(self,
+	@selector(isEqualToString:), anObject);
+    }
+  else
+    {
+      return NO;
+    }
+}
+
+- (BOOL) isEqualToString: (NSString*)aString
+{
+  Class	c;
+
+  if (aString == self)
+    {
+      return YES;
+    }
+  if (aString == nil)
+    {
+      return NO;
+    }
+  c = fastClassOfInstance(aString);
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
+    {
+      NXConstantString	*other = (NXConstantString*)aString;
+
+      if (_count != other->_count)
+	return NO;
+      if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
+	return NO;
+      return YES;
+    }
+  else if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    {
+      if (strCompCsUs(self, aString, 0, (NSRange){0,_count}) == NSOrderedSame)
+	return YES;
+      return NO;
+    }
+  else if (c == nil)
+    {
+      return NO;
+    }
+  else if (fastClassIsKindOfClass(c, _fastCls._NSString))
+    {
+      return _fastImp._NSString_isEqualToString_(self,
+	@selector(isEqualToString:), aString);
+    }
+  else
+    {
+      return NO;
+    }
+}
+
+- (id) mutableCopy
+{
+  NSGMutableCString	*obj;
+
+  obj = (NSGMutableCString*)NSAllocateObject(_fastCls._NSGMutableCString,
+		0, NSDefaultMallocZone());
+  if (obj)
+    {
+      obj = (*msInitImp)(obj, msInitSel, _count);
+      if (obj)
+	{
+	  NXConstantString	*tmp = (NXConstantString*)obj;
+
+	  memcpy(tmp->_contents_chars, _contents_chars, _count);
+	  tmp->_count = _count;
+	  tmp->_hash = 0;
+	}
+    }
+  return obj;
+}
+
+- (id) mutableCopyWithZone: (NSZone*)z
+{
+  NSGMutableCString	*obj;
+
+  obj = (NSGMutableCString*)NSAllocateObject(_fastCls._NSGMutableCString, 0, z);
+  if (obj)
+    {
+      obj = (*msInitImp)(obj, msInitSel, _count);
+      if (obj)
+	{
+	  NXConstantString	*tmp = (NXConstantString*)obj;
+
+	  memcpy(tmp->_contents_chars, _contents_chars, _count);
+	  tmp->_count = _count;
+	  tmp->_hash = 0;		// No hash available yet.
+	}
+    }
+  return obj;
+}
 @end

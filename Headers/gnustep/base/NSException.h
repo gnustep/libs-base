@@ -18,7 +18,7 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSException_h_GNUSTEP_BASE_INCLUDE
@@ -65,6 +65,7 @@ extern NSString *NSInternalInconsistencyException;
 extern NSString *NSInvalidArgumentException;
 extern NSString *NSMallocException;
 extern NSString *NSRangeException;
+extern NSString *NSCharacterConversionException;
 
 /* Exception handler definitions */
 typedef struct _NSHandler 
