@@ -153,10 +153,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
       [anObject release];
     }
   OBJC_FREE(released);
-  if (parent)
-    current_pool = parent;
-  else
-    current_pool = [[NSAutoreleasePool alloc] init];
+  current_pool = parent;
   NSDeallocateObject(self);
 }
 
