@@ -64,7 +64,6 @@
 #include <Foundation/NSDebug.h>
 #include <base/GSFormat.h>
 #include <limits.h>
-#include <string.h>		// for strstr()
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -1376,18 +1375,27 @@ handle_printf_atsign (FILE *stream,
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
+  unichar	ch;
   unichar	(*caiImp)(NSString*, SEL, unsigned);
+  NSCharacterSet *nbSet = [NSCharacterSet nonBaseCharacterSet];
 
   if (anIndex >= length)
     [NSException raise: NSRangeException format:@"Invalid location."];
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
-  start = anIndex;
-  while (uni_isnonsp((*caiImp)(self, caiSel, start)) && start > 0)
-    start--;
-  end=start+1;
-  if (end < length)
-    while ((end < length) && (uni_isnonsp((*caiImp)(self, caiSel, end))) )
-      end++;
+
+  for (start = anIndex; start > 0; start--)
+    {
+      ch = (*caiImp)(self, caiSel, start);
+      if ([nbSet characterIsMember: ch] == NO)
+        break;
+    }
+  for (end = start+1; end < length; end++)
+    {
+      ch = (*caiImp)(self, caiSel, end);
+      if ([nbSet characterIsMember: ch] == NO)
+        break;
+    }
+
   return NSMakeRange(start, end-start);
 }
 
@@ -1882,7 +1890,7 @@ handle_printf_atsign (FILE *stream,
   NSMutableData	*m;
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
-    allowLossyConversion: NO];
+              allowLossyConversion: NO];
   if (d == nil)
     {
       [NSException raise: NSCharacterConversionException
@@ -1900,7 +1908,7 @@ handle_printf_atsign (FILE *stream,
   NSMutableData	*m;
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
-    allowLossyConversion: YES];
+         allowLossyConversion: YES];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
   AUTORELEASE(m);
@@ -1913,7 +1921,7 @@ handle_printf_atsign (FILE *stream,
   NSMutableData	*m;
 
   d = [self dataUsingEncoding: NSUTF8StringEncoding
-    allowLossyConversion: NO];
+         allowLossyConversion: NO];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
   AUTORELEASE(m);
@@ -1925,7 +1933,7 @@ handle_printf_atsign (FILE *stream,
   NSData	*d;
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
-    allowLossyConversion: YES];
+         allowLossyConversion: NO];
   return [d length];
 }
 
@@ -2038,10 +2046,10 @@ handle_printf_atsign (FILE *stream,
 
 /*
       Should be path to localizable.strings file.
-      Until we have it, just make shure that bundle
+      Until we have it, just make sure that bundle
       is initialized.
 */
-  ourbundle = [NSBundle bundleWithPath: rootPath];
+  ourbundle = [NSBundle gnustepBundle];
 
   ourname = GetEncodingName(encoding);
   return [ourbundle localizedStringForKey: ourname
