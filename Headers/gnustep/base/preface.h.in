@@ -115,6 +115,11 @@ extern const char o_NeXT_cc_version[];
 #define XSTRINGIFY(s) #s
 #endif
 
+#ifndef OBJC_STRINGIFY
+#define OBJC_STRINGIFY(s) OBJC_XSTRINGIFY(s)
+#define OBJC_XSTRINGIFY(s) @#s
+#endif
+
 #ifndef PTR2LONG
 #define PTR2LONG(P) (((char*)(P))-(char*)0)
 #endif
