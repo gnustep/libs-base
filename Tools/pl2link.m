@@ -96,16 +96,21 @@ main(int argc, char** argv, char **env)
     }
 
   fileContents = [NSMutableString stringWithCapacity: 200];
-  [fileContents appendString: @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
-  entry = [plist objectForKey: @"ApplicationRelease"];
-  if (entry != nil)
-    [fileContents appendFormat: @"Version=%@\n", entry];
+  [fileContents appendString: 
+    @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
+  [fileContents appendString: 
+    @"Version=0.94\nCategories=GNUstep\n"];
   entry = [plist objectForKey: @"ApplicationName"];
   if (entry != nil)
     {
       [fileContents appendFormat: @"Name=%@\n", entry];
       if (destName == nil)
 	destName = [entry stringByAppendingString: @".desktop"];
+    }
+  entry = [plist objectForKey: @"ApplicationDescription"];
+  if (entry != nil)
+    {
+      [fileContents appendFormat: @"Comment=%@\n", entry];
     }
   entry = [plist objectForKey: @"NSIcon"];
   if (entry != nil)
@@ -120,6 +125,7 @@ main(int argc, char** argv, char **env)
     {
       [fileContents appendFormat: @"Exec=openapp %@.app\n", entry];
       [fileContents appendFormat: @"#TryExec=%@.app\n", entry];
+      [fileContents appendFormat: @"FilePattern=%@.app;%@\n", entry, entry];
     }
 
   list = [plist objectForKey: @"NSTypes"];
