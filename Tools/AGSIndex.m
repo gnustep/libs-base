@@ -84,6 +84,29 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
     }
 }
 
+static void
+setDirectory(NSMutableDictionary *dict, NSString *path)
+{
+  NSArray	*a = [dict allKeys];
+  NSEnumerator	*e = [a objectEnumerator];
+  NSString	*k;
+
+  while ((k = [e nextObject]) != nil)
+    {
+      id	o = [dict objectForKey: k];
+
+      if ([o isKindOfClass: [NSString class]] == YES)
+	{
+	  o = [path stringByAppendingPathComponent: [o lastPathComponent]];
+	  [dict setObject: o forKey: k];
+	}
+      else if ([o isKindOfClass: [NSDictionary class]] == YES)
+	{
+	  setDirectory(o, path);
+	}
+    }
+}
+
 @implementation	AGSIndex
 
 + (void) initialize
@@ -314,6 +337,16 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src)
 - (NSMutableDictionary*) refs
 {
   return refs;
+}
+
+- (void) setDirectory: (NSString*)path
+{
+  if (path != nil)
+    {
+      CREATE_AUTORELEASE_POOL(pool);
+      setDirectory(refs, path);
+      RELEASE(pool);
+    }
 }
 
 - (void) setGlobalRef: (NSString*)ref

@@ -35,6 +35,7 @@
 - (void) makeRefs: (GSXMLNode*)node;
 - (void) mergeRefs: (NSDictionary*)more;
 - (NSMutableDictionary*) refs;
+- (void) setDirectory: (NSString*)path;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
 - (void) setUnitRef: (NSString*)ref type: (NSString*)type;
 - (NSDictionary*) unitRef: (NSString*)ref type: (NSString*)type;

@@ -474,7 +474,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  else
 	    {
 	      sel = @"-";
-	      str = [NSString stringWithFormat: @"- (%@)",
+	      str = [NSString stringWithFormat: @"- (%@) ",
 		[self typeRef: str]];
 	    }
 	  children = nil;
