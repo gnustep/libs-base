@@ -8,6 +8,10 @@
    Date: Feb 1997
    Updates and fixes: Richard Frith-Macdonald
 
+   Author: Nicola Pero <n.pero@mi.flashnet.it>
+   Date: Apr 2001
+   Rewritten NSDirectoryEnumerator
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -53,18 +57,6 @@
 #if HAVE_WINDOWS_H
 #  include <windows.h>
 #endif
-
-#if !defined(_POSIX_VERSION)
-# if defined(NeXT)
-#  define DIR_enum_item struct direct
-# endif
-#endif
-
-#if !defined(DIR_enum_item)
-# define DIR_enum_item struct dirent
-#endif
-
-#define DIR_enum_state DIR
 
 #if	defined(__MINGW__)
 #define	WIN32ERR	((DWORD)0xFFFFFFFF)
@@ -748,13 +740,13 @@ static NSFileManager* defaultManager = nil;
     {
       NSArray	*a1 = [self directoryContentsAtPath: path1];
       NSArray	*a2 = [self directoryContentsAtPath: path2];
-      unsigned	index;
+      unsigned	index, count = [a1 count];
       BOOL	ok = YES;
 
       if ([a1 isEqual: a2] == NO)
 	return NO;
 
-      for (index = 0; ok == YES && index < [a1 count]; index++)
+      for (index = 0; ok == YES && index < count; index++)
 	{
 	  NSString	*n = [a1 objectAtIndex: index];
 	  NSString	*p1;
@@ -1159,11 +1151,15 @@ static NSFileManager* defaultManager = nil;
    */
   if ([self fileExistsAtPath: path isDirectory: &is_dir] == NO || is_dir == NO)
     return nil;
-    
+
+  /* We initialize the directory enumerator with justContents == YES, 
+     which tells the NSDirectoryEnumerator code that we only enumerate 
+     the contents non-recursively once, and exit.  NSDirectoryEnumerator 
+     can perform some optms using this assumption. */
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path 
-				       recurseIntoSubdirectories: NO
-						  followSymlinks: NO
-						     prefixFiles: NO];
+					   recurseIntoSubdirectories: NO
+					   followSymlinks: NO
+					   justContents: YES];
   content = [NSMutableArray arrayWithCapacity: 128];
 
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
@@ -1180,10 +1176,10 @@ static NSFileManager* defaultManager = nil;
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path
 {
   return AUTORELEASE([[NSDirectoryEnumerator alloc]
-    initWithDirectoryPath: path 
-    recurseIntoSubdirectories: YES
-    followSymlinks: NO
-    prefixFiles: YES]);
+		       initWithDirectoryPath: path 
+		       recurseIntoSubdirectories: YES
+		       followSymlinks: NO
+		       justContents: NO]);
 }
 
 - (NSArray*) subpathsAtPath: (NSString*)path
@@ -1193,23 +1189,24 @@ static NSFileManager* defaultManager = nil;
   BOOL			isDir;
   IMP			nxtImp;
   IMP			addImp;
-    
+  
   if (![self fileExistsAtPath: path isDirectory: &isDir] || !isDir)
     return nil;
-    
-  direnum = [[NSDirectoryEnumerator alloc]
-	initWithDirectoryPath: path 
-	recurseIntoSubdirectories: YES
-	followSymlinks: NO
-	prefixFiles: YES];
+
+  direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path 
+					   recurseIntoSubdirectories: YES
+					   followSymlinks: NO
+					   justContents: NO];
   content = [NSMutableArray arrayWithCapacity: 128];
-    
+  
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
   addImp = [content methodForSelector: @selector(addObject:)];
-
+  
   while ((path = (*nxtImp)(direnum, @selector(nextObject))) != nil)
-    (*addImp)(content, @selector(addObject:), path);
-
+    {
+      (*addImp)(content, @selector(addObject:), path);
+    }
+  
   RELEASE(direnum);
 
   return content;
@@ -1252,7 +1249,7 @@ static NSFileManager* defaultManager = nil;
 {
 #ifdef __MINGW__
   /* If path is in Unix format, transmorgrify it so Windows functions
-     can handle it */
+     can handle it */  
   NSString *newpath = path;
   const char *c_path = [path cString];
   if (c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
@@ -1283,8 +1280,9 @@ static NSFileManager* defaultManager = nil;
     }
   /* FIXME: Should we translate relative paths? */
   return [newpath cString];
-#endif
+#else
   return [path cString];
+#endif
 }
 
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
@@ -1297,127 +1295,82 @@ static NSFileManager* defaultManager = nil;
 
 /*
  * NSDirectoryEnumerator implementation
+ *
+ * The Objective-C interface hides a traditional C implementation.
+ * This was the only way I could get near the speed of standard unix
+ * tools for big directories.
  */
+
+typedef	struct	_GSEnumeratedDirectory {
+  char *path;
+  DIR *pointer;
+} GSEnumeratedDirectory;
+
+
+inline void gsedRelease(GSEnumeratedDirectory X)
+{
+  free(X.path);
+  closedir(X.pointer);
+}
+
+#define GSI_ARRAY_TYPES       0
+#define GSI_ARRAY_EXTRA       GSEnumeratedDirectory
+
+#define GSI_ARRAY_RELEASE(X)   gsedRelease(X.ext)
+#define GSI_ARRAY_RETAIN(X)
+
+#include <base/GSIArray.h>
+
+/* The return value of this function is to be freed by using NSZoneFree().
+   The function takes for granted that path and file are correct
+   filesystem paths; that path does not end with a path separator, and
+   file does not begin with a path separator. */
+inline char *append_file_to_path (const char *path, const char *file)
+{
+  unsigned path_length = strlen(path);
+  unsigned file_length = strlen(file);
+  unsigned total_length = path_length + 1 + file_length;
+  char *result;
+
+  if (path_length == 0)
+    {
+      /* return strdup(file); */
+      result = NSZoneMalloc(NSDefaultMallocZone(), 
+			    sizeof(char) * file_length  + 1);
+      memcpy(result, file, sizeof(char) * file_length);
+      result[file_length] = '\0';
+      return result;
+    }
+
+  result = NSZoneMalloc(NSDefaultMallocZone(), 
+			sizeof(char) * total_length  + 1);
+  
+  memcpy(result, path, sizeof(char) * path_length);
+  
+#ifdef __MINGW__
+  result[path_length] = '\\';
+#else
+  result[path_length] = '/';
+#endif
+
+  memcpy(&result[path_length + 1], file, sizeof(char) * file_length);
+  
+  result[total_length] = '\0';
+
+  return result;  
+}
+
+static SEL swfsSel = 0;
 
 @implementation NSDirectoryEnumerator
 
-// Implementation dependent methods
-
-/* 
-  recurses into directory `path' 
-	- pushes relative path (relative to root of search) on _pathStack
-	- pushes system dir enumerator on enumPath 
-*/
-- (void) recurseIntoDirectory: (NSString*)path relativeName: (NSString*)name
++ (void) initialize
 {
-  const char* cpath;
-  DIR*  dir;
-    
-  cpath = [[NSFileManager defaultManager]
-    fileSystemRepresentationWithPath: path];
-    
-  dir = opendir(cpath);
-    
-  if (dir)
+  if (self == [NSDirectoryEnumerator class])
     {
-      [_pathStack addObject: name];
-      [_enumStack addObject: [NSValue valueWithPointer: dir]];
-    }
-  else
-    NSLog(@"Failed to recurse into directory '%@' - %s",
-	path, strerror(errno));
-}
-
-/*
-  backtracks enumeration to the previous dir
-  	- pops current dir relative path from _pathStack
-	- pops system dir enumerator from _enumStack
-	- sets currentFile* to nil
-*/
-- (void) backtrack
-{
-  closedir((DIR*)[[_enumStack lastObject] pointerValue]);
-  [_enumStack removeLastObject];
-  [_pathStack removeLastObject];
-  DESTROY(_currentFileName);
-  DESTROY(_currentFilePath);
-  DESTROY(_fileAttributes);
-}
-
-/*
-  finds the next file according to the top enumerator
-  	- if there is a next file it is put in currentFile
-	- if the current file is a directory and if isRecursive calls 
-	    recurseIntoDirectory: currentFile
-	- if the current file is a symlink to a directory and if isRecursive 
-	    and isFollowing calls recurseIntoDirectory: currentFile
-	- if at end of current directory pops stack and attempts to
-	    find the next entry in the parent
-	- sets currentFile to nil if there are no more files to enumerate
-*/
-- (void) findNextFile
-{
-  NSFileManager*	manager = [NSFileManager defaultManager];
-  DIR_enum_state*  	dir;
-  DIR_enum_item*	dirbuf;
-  struct stat		statbuf;
-  const char*		cpath;
-    
-  DESTROY(_currentFileName);
-  DESTROY(_currentFilePath);
-  DESTROY(_fileAttributes);
-    
-  while ([_pathStack count])
-    {
-      dir = (DIR*)[[_enumStack lastObject] pointerValue];
-      dirbuf = readdir(dir);
-      if (dirbuf)
-	{
-	  /* Skip "." and ".." directory entries */
-	  if (strcmp(dirbuf->d_name, ".") == 0 || 
-	    strcmp(dirbuf->d_name, "..") == 0)
-	    continue;
-	  // Name of current file
-	  _currentFileName = [manager
-		   stringWithFileSystemRepresentation: dirbuf->d_name
-		   length: strlen(dirbuf->d_name)];
-	  _currentFileName = RETAIN([[_pathStack lastObject]
-		stringByAppendingPathComponent: _currentFileName]);
-	  // Full path of current file
-	  _currentFilePath = RETAIN([_topPath
-		stringByAppendingPathComponent: _currentFileName]);
-	  // Check if directory
-	  cpath = [manager fileSystemRepresentationWithPath: _currentFilePath];
-  	  if (_flags.isRecursive == YES)
-	    {
-	      // Do not follow links
-#ifdef S_IFLNK
-	      if (!_flags.isFollowing)
-		{
-		  if (lstat(cpath, &statbuf) != 0)
-		    break;
-		  // If link then return it as link
-		  if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
-		    break;
-		}
-	      else
-#endif
-		{
-		  if (stat(cpath, &statbuf) != 0)
-		    break;
-		}
-	      if (S_IFDIR == (S_IFMT & statbuf.st_mode))
-		{
-		  [self recurseIntoDirectory: _currentFilePath 
-				relativeName: _currentFileName];
-		}
-	    }
-	  break;	// Got a file name - break out of loop
-	}
-      else
-	{
-	  [self backtrack];
-	}
+      /* Initialize the default manager which we access directly */
+      [NSFileManager defaultManager];
+      swfsSel = @selector(stringWithFileSystemRepresentation:length:);
     }
 }
 
@@ -1426,31 +1379,57 @@ static NSFileManager* defaultManager = nil;
 - (id) initWithDirectoryPath: (NSString*)path 
    recurseIntoSubdirectories: (BOOL)recurse
 	      followSymlinks: (BOOL)follow
-		 prefixFiles: (BOOL)prefix
+		justContents: (BOOL)justContents
 {
-  _pathStack = [NSMutableArray new];
-  _enumStack = [NSMutableArray new];
+  DIR*  dir_pointer;
+  const char *topPath;
+  
+  _stringWithFileSysImp = (NSString *(*)(id, SEL, char *, unsigned))
+    [defaultManager methodForSelector: swfsSel];
+  
+  _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
+  GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
+  
   _flags.isRecursive = recurse;
   _flags.isFollowing = follow;
+  _flags.justContents = justContents;
+  topPath = [defaultManager fileSystemRepresentationWithPath: path];
+  _top_path = NSZoneMalloc(NSDefaultMallocZone(), 
+                           sizeof(char) * (strlen(topPath) + 1));
+  memcpy(_top_path, topPath, sizeof(char) * (strlen(topPath) + 1));
   
-  _topPath = RETAIN(path);
-  [self recurseIntoDirectory: path relativeName: @""];
-
+  dir_pointer = opendir(_top_path);
+  
+  if (dir_pointer)
+    {
+      GSIArrayItem item;
+      
+      /* item.ext.path = strdup(""); */
+      item.ext.path = NSZoneMalloc(NSDefaultMallocZone(), sizeof(char) * 2);
+      memcpy(item.ext.path, "", sizeof(char) * 2);
+      
+      item.ext.pointer = dir_pointer;
+      
+      GSIArrayAddItem(_stack, item);
+    }
+  else
+    {
+      NSLog(@"Failed to recurse into directory '%@' - %s",
+	    path, strerror(errno));
+    }
+  
   return self;
 }
 
 - (void) dealloc
 {
-  while ([_pathStack count])
-    [self backtrack];
-    
-  RELEASE(_pathStack);
-  RELEASE(_enumStack);
-  RELEASE(_topPath);
-  TEST_RELEASE(_currentFileName);
-  TEST_RELEASE(_currentFilePath);
-  TEST_RELEASE(_fileAttributes);
-  TEST_RELEASE(_directoryAttributes);
+  GSIArrayEmpty(_stack);
+  NSZoneFree([self zone], _stack);
+  NSZoneFree(NSDefaultMallocZone(), _top_path);
+  if (_current_file_path != NULL)
+    {
+      NSZoneFree(NSDefaultMallocZone(), _current_file_path);
+    }
   [super dealloc];
 }
 
@@ -1458,42 +1437,150 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*) directoryAttributes
 {
-  if (_directoryAttributes == nil)
-    {
-      _directoryAttributes = [[NSFileManager defaultManager]
-	fileAttributesAtPath: _topPath
-		traverseLink: _flags.isFollowing];
-      IF_NO_GC(RETAIN(_directoryAttributes));
-    }
-  return _directoryAttributes;
+  NSString *topPath;
+  
+  topPath = _stringWithFileSysImp(defaultManager, swfsSel, _top_path, 
+				  strlen(_top_path));
+
+  return [defaultManager fileAttributesAtPath: topPath
+			 traverseLink: _flags.isFollowing];
 }
 
 - (NSDictionary*) fileAttributes
 {
-  if (_fileAttributes == nil)
-    {
-      _fileAttributes = [[NSFileManager defaultManager]
-	fileAttributesAtPath: _currentFilePath
-		traverseLink: _flags.isFollowing];
-      IF_NO_GC(RETAIN(_fileAttributes));
-    }
-  return _fileAttributes;
+  NSString *currentFilePath;
+  
+  currentFilePath = _stringWithFileSysImp(defaultManager, swfsSel, 
+					  _current_file_path, 
+					  strlen(_current_file_path));
+
+  return [defaultManager fileAttributesAtPath: currentFilePath
+			 traverseLink: _flags.isFollowing];
 }
 
 // Skipping subdirectories
 
 - (void) skipDescendents
 {
-  if ([_pathStack count])
-    [self backtrack];
+  if (GSIArrayCount(_stack) > 0)
+    {
+      GSIArrayRemoveLastItem(_stack);
+      if (_current_file_path != NULL)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), _current_file_path);
+	  _current_file_path = NULL;
+	}
+    }
 }
 
 // Enumerate next
 
 - (id) nextObject
 {
-  [self findNextFile];
-  return _currentFileName;
+  /*
+    finds the next file according to the top enumerator
+    - if there is a next file it is put in currentFile
+    - if the current file is a directory and if isRecursive calls 
+    recurseIntoDirectory: currentFile
+    - if the current file is a symlink to a directory and if isRecursive 
+    and isFollowing calls recurseIntoDirectory: currentFile
+    - if at end of current directory pops stack and attempts to
+    find the next entry in the parent
+    - sets currentFile to nil if there are no more files to enumerate
+  */
+  struct dirent *dirbuf;
+  struct stat statbuf;
+  char *current_file_name = NULL;
+
+  if (_current_file_path != NULL)
+    {
+      NSZoneFree(NSDefaultMallocZone(), _current_file_path);
+      _current_file_path = NULL;
+    }
+
+  while (GSIArrayCount(_stack) > 0)
+    {
+      GSEnumeratedDirectory dir = GSIArrayLastItem(_stack).ext;
+      
+      dirbuf = readdir(dir.pointer);
+      if (dirbuf)
+	{
+	  /* Skip "." and ".." directory entries */
+	  if (strcmp(dirbuf->d_name, ".") == 0 
+	      || strcmp(dirbuf->d_name, "..") == 0)
+	    continue;
+	  
+	  // Name of current file
+	  current_file_name = append_file_to_path(dir.path, dirbuf->d_name);
+	  
+	  /* TODO - can this one can be removed ? */
+	  if (!_flags.justContents)
+	    {
+	      _current_file_path = append_file_to_path(_top_path, 
+						       current_file_name);
+	    }
+  	  if (_flags.isRecursive == YES)
+	    {
+	      // Do not follow links
+#ifdef S_IFLNK
+	      if (!_flags.isFollowing)
+		{
+		  if (lstat(_current_file_path, &statbuf) != 0)
+		    break;
+		  // If link then return it as link
+		  if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
+		    break;
+		}
+	      else
+#endif
+		{
+		  if (stat(_current_file_path, &statbuf) != 0)
+		    break;
+		}
+	      if (S_IFDIR == (S_IFMT & statbuf.st_mode))
+		{
+		  DIR*  dir_pointer;
+		  
+		  dir_pointer = opendir(_current_file_path);
+		  
+		  if (dir_pointer)
+		    {
+		      GSIArrayItem item;
+		      
+		      item.ext.path = current_file_name;
+		      item.ext.pointer = dir_pointer;
+      
+		      GSIArrayAddItem(_stack, item);
+		    }
+		  else
+		    {
+		      NSLog(@"Failed to recurse into directory '%s' - %s",
+			    _current_file_path, strerror(errno));
+		    }
+		}
+	    }
+	  break;	// Got a file name - break out of loop
+	}
+      else
+	{
+	  GSIArrayRemoveLastItem(_stack);
+	  if (_current_file_path != NULL)
+	    {
+	      NSZoneFree(NSDefaultMallocZone(), _current_file_path);
+	      _current_file_path = NULL;
+	    }
+	}
+    }
+  if (current_file_name == NULL)
+    {
+      return nil;
+    }
+  else
+    {
+      return _stringWithFileSysImp(defaultManager, swfsSel, 
+				   current_file_name, 
+				   strlen(current_file_name));
+    }
 }
 
 @end /* NSDirectoryEnumerator */
@@ -1501,10 +1588,15 @@ static NSFileManager* defaultManager = nil;
 @implementation NSDirectoryEnumerator (PrivateMethods)
 - (NSDictionary*) _attributesForCopy
 {
-  return [[NSFileManager defaultManager]
-    _attributesAtPath: _currentFilePath
-	 traverseLink: _flags.isFollowing
-	      forCopy: YES];
+  NSString *currentFilePath;
+  
+  currentFilePath = _stringWithFileSysImp(defaultManager, swfsSel, 
+					  _current_file_path, 
+					  strlen(_current_file_path));
+
+  return [defaultManager _attributesAtPath: currentFilePath
+			 traverseLink: _flags.isFollowing
+			 forCopy: YES];
 }
 @end
 

@@ -1,4 +1,4 @@
-/* 
+/* -*-objc-*-
    NSFileManager.h
 
    Copyright (C) 1997,1999 Free Software Foundation, Inc.
@@ -120,24 +120,23 @@
 
 @interface NSDirectoryEnumerator : NSEnumerator
 {
-  NSMutableArray	*_enumStack;
-  NSMutableArray	*_pathStack;
-  NSString		*_currentFileName;
-  NSString		*_currentFilePath;
-  NSString		*_topPath;
-  NSDictionary		*_directoryAttributes;
-  NSDictionary		*_fileAttributes;
-  struct {
-      BOOL		isRecursive: 1;
-      BOOL		isFollowing: 1;
-   } _flags;
+  void *_stack; /* GSIArray */
+  char *_top_path;
+  char *_current_file_path;
+  NSString *(*_stringWithFileSysImp)(id, SEL, char *, unsigned);
+  struct 
+  {
+    BOOL isRecursive: 1;
+    BOOL isFollowing: 1;
+    BOOL justContents: 1;
+  } _flags;
 }
 
 // Initializing
 - (id) initWithDirectoryPath: (NSString*)path 
    recurseIntoSubdirectories: (BOOL)recurse
-	      followSymlinks: (BOOL)follow
-		 prefixFiles: (BOOL)prefix;
+              followSymlinks: (BOOL)follow
+                justContents: (BOOL)justContents;
 
 // Getting attributes
 - (NSDictionary*) directoryAttributes;
