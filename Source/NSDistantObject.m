@@ -979,14 +979,6 @@ enum
     }
 }
 
-/**
- * Dummy method ... returns the receiver.
- */
-- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder
-{
-  return self;
-}
-
 static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
   Class class;
