@@ -1,3 +1,7 @@
+2002-12-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix bug handling repeated opeing braces.
+
 2002-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSIndex.m: Fix error indexing vararg methods.

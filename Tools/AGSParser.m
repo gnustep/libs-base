@@ -3443,6 +3443,7 @@ fail:
 	    break;
 
 	  case '{':
+	    pos--;
 	    [self skipBlock];
 	    return pos;
 
