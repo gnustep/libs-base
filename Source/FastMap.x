@@ -243,10 +243,11 @@ FastMapRemangleBuckets(FastMapTable map,
 	while ((node = old_buckets->firstNode) != 0) {
 	    FastMapBucket	bkt;
 
-	    FastMapRemoveNodeFromBucket(old_buckets++, node);
+	    FastMapRemoveNodeFromBucket(old_buckets, node);
 	    bkt = FastMapPickBucket(node->key, new_buckets, new_bucketCount);
 	    FastMapAddNodeToBucket(bkt, node);
 	}
+	old_buckets++;
     }
 }
 
