@@ -39,6 +39,7 @@ id	myServer;
 {
   myServer = [anObject retain];
   NSLog(@"Got %d", [myServer doIt]);  
+  exit(0);
 }
 
 + (void) startup
