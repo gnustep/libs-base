@@ -1,3 +1,38 @@
+Mon Feb 12 20:50:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/invocation.m: New file.
+	* checks/Makefile.in (SRCS): Add invocation.m.
+
+	* checks/nsarchiver.m: Add test case from Scott Christley.
+
+	* src/Collection.m ([Collection -withObjectsInvoke:]): New method.
+	* src/objects/Collection.h: Declare new method.
+
+	* src/Invocation.m ([Invocation -invoke]): Terminate copy of
+ 	encoding string.  Deal with void return type.
+	([Invocation -invokeWithElement:]): Method removed.
+	([Invocation -invokeWithObject:]): Make is -subclassResponsibility.
+	([Invocation -getReturnValue:]): Make sure return_value is non-NULL.
+	([ArgframeInvocation -initWithArgframe:type:]): Use objc_calloc.
+	([MethodInvocation -initWithArgframe:selector:]): Try hard to get a
+	selector with a type string.
+	([MethodInvocation -initWithTarget:selector:...]): New method.
+	([MethodInvocation -invoke]): Get the target and selector properly.
+	([MethodInvocation -invokeWithObject:]): New method.
+	* src/objects/Invocation.h: Declare new methods.
+
+	* src/NSArchiver.m ([NSUnarchiver +allocWithZone:]): New method.
+
+	* src/Coder.m ([Coder -decodeObject]): Return the object.
+	([Coder -initForReadingWithData:]): New method.
+
+Thu Feb  1 17:04:17 1996  Andrew McCallum  <mccallum@eeyore.cs.rochester>
+
+        * NSData.m, NSDictionary.m, NSEnumerator.m, NSMutableData.m,
+ 	Port.m, MutableString.m, NSArray.m:
+        Use -subclassResponsibility instead of -notImplemented
+        where appropriate.
+
 Wed Jan 31 22:29:57 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* Makefile.in (DIST_FILES): Add file STATUS.
