@@ -103,6 +103,13 @@ LAMBDA(BOOL, (id _o), {if ([_o perform:SELECTOR]) return YES; else return NO;})
          _a < _b ? _a : _b; })
 #endif
 
+#ifndef ABS
+#define ABS(a) \
+       ({typedef _ta = (a);   \
+         _ta _a = (a);        \
+         _a < 0 ? -_a : _a; })
+#endif
+
 #ifndef STRINGIFY
 #define STRINGIFY(s) XSTRINGIFY(s)
 #define XSTRINGIFY(s) #s
