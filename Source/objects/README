@@ -5,4 +5,4 @@ The complete list of include file directories belonging to libobjects
 is:
 	../objects
 	../objc
-	../foundation
+	../Foundation
