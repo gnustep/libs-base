@@ -2885,6 +2885,49 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Search the content of this document to locate all parts whose content-type
+ * name or content-disposition name matches the specified key.
+ * Do <em>NOT</em> recurse into other documents.<br />
+ * Return nil if no match is found, an array of matching GSMimeDocument
+ * instances otherwise.
+ */ 
+- (NSArray*) contentsByName: (NSString*)key
+{
+  NSMutableArray	*a = nil;
+
+  if ([content isKindOfClass: [NSArray class]] == YES)
+    {
+      NSEnumerator	*e = [content objectEnumerator];
+      GSMimeDocument	*d;
+
+      while ((d = [e nextObject]) != nil)
+	{
+	  GSMimeHeader	*hdr;
+	  BOOL		match = YES;
+
+	  hdr = [d headerNamed: @"content-type"];
+	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == NO)
+	    {
+	      hdr = [d headerNamed: @"content-disposition"];
+	      if ([[hdr parameterForKey: @"name"] isEqualToString: key] == NO)
+		{
+		  match = NO;
+		}
+	    }
+	  if (match == YES)
+	    {
+	      if (a == nil)
+		{
+		  a = [NSMutableArray arrayWithCapacity: 4];
+		}
+	      [a addObject: d];
+	    }
+	}
+    }
+  return a;
+}
+
+/**
  * Return the content as an NSData object (unless it is multipart)
  */
 - (NSData*) convertToData
