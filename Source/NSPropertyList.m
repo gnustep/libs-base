@@ -1027,7 +1027,6 @@ GSPropertyListFromStringsFormat(NSString *string)
   NSMutableDictionary	*dict;
   pldata		_pld;
   pldata		*pld = &_pld;
-  unsigned		length;
   NSData		*d;
 
   /*

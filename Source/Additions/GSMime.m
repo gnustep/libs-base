@@ -60,6 +60,7 @@
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
 static	NSCharacterSet	*rfc2045Specials = nil;
+static	Class		NSArrayClass = 0;
 
 /*
  *	Name -		decodebase64()
@@ -650,6 +651,14 @@ wordData(NSString *word)
     }
   RELEASE(parser);
   return AUTORELEASE(newDocument);
+}
+
++ (void) initialize
+{
+  if (NSArrayClass == 0)
+    {
+      NSArrayClass = [NSArray class];
+    }
 }
 
 /**
@@ -2635,6 +2644,10 @@ static NSCharacterSet	*tokenSet = nil;
       tokenSet = [ms copy];
       RELEASE(ms);
       nonToken = RETAIN([tokenSet invertedSet]);
+      if (NSArrayClass == 0)
+	{
+	  NSArrayClass = [NSArray class];
+	}
     }
 }
 
@@ -3379,6 +3392,10 @@ static NSCharacterSet	*tokenSet = nil;
       [m removeCharactersInString: @"."];
       rfc2045Specials = [m copy];
       whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
+      if (NSArrayClass == 0)
+	{
+	  NSArrayClass = [NSArray class];
+	}
     }
 }
 
@@ -3543,7 +3560,7 @@ static NSCharacterSet	*tokenSet = nil;
     {
       key = [NSString stringWithFormat: @"<%@>", key];
     }
-  if ([content isKindOfClass: [NSArray class]] == YES)
+  if ([content isKindOfClass: NSArrayClass] == YES)
     {
       NSEnumerator	*e = [content objectEnumerator];
       GSMimeDocument	*d;
@@ -3565,6 +3582,35 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Search the content of this document to locate a part whose content ID
+ * matches the specified key.  Recursively descend into other documents.<br />
+ * Wraps the supplied key in angle brackets if they are not present.<br />
+ * Return nil if no match is found, the matching GSMimeDocument otherwise.
+ */ 
+- (id) contentByLocation: (NSString*)key
+{
+  if ([content isKindOfClass: NSArrayClass] == YES)
+    {
+      NSEnumerator	*e = [content objectEnumerator];
+      GSMimeDocument	*d;
+
+      while ((d = [e nextObject]) != nil)
+	{
+	  if ([[d contentLocation] isEqualToString: key] == YES)
+	    {
+	      return d;
+	    }
+	  d = [d contentByLocation: key];
+	  if (d != nil)
+	    {
+	      return d;
+	    }
+	}
+    }
+  return nil;
+}
+
+/**
  * Search the content of this document to locate a part whose content-type
  * name or content-disposition name matches the specified key.
  * Recursively descend into other documents.<br />
@@ -3573,7 +3619,7 @@ static NSCharacterSet	*tokenSet = nil;
 - (id) contentByName: (NSString*)key
 {
 
-  if ([content isKindOfClass: [NSArray class]] == YES)
+  if ([content isKindOfClass: NSArrayClass] == YES)
     {
       NSEnumerator	*e = [content objectEnumerator];
       GSMimeDocument	*d;
@@ -3618,6 +3664,16 @@ static NSCharacterSet	*tokenSet = nil;
 - (NSString*) contentID
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-id"];
+
+  return [hdr value];
+}
+
+/**
+ * Convenience method to fetch the content location from the header.
+ */
+- (NSString*) contentLocation
+{
+  GSMimeHeader	*hdr = [self headerNamed: @"content-location"];
 
   return [hdr value];
 }
@@ -3716,7 +3772,7 @@ static NSCharacterSet	*tokenSet = nil;
 {
   NSMutableArray	*a = nil;
 
-  if ([content isKindOfClass: [NSArray class]] == YES)
+  if ([content isKindOfClass: NSArrayClass] == YES)
     {
       NSEnumerator	*e = [content objectEnumerator];
       GSMimeDocument	*d;
@@ -3816,7 +3872,7 @@ static NSCharacterSet	*tokenSet = nil;
   c->headers = [[NSMutableArray allocWithZone: z] initWithArray: headers
 						      copyItems: YES];
 
-  if ([content isKindOfClass: [NSArray class]] == YES)
+  if ([content isKindOfClass: NSArrayClass] == YES)
     {
       c->content = [[NSMutableArray allocWithZone: z] initWithArray: content
 							  copyItems: YES];
@@ -4123,7 +4179,7 @@ static NSCharacterSet	*tokenSet = nil;
 	}
     }
 
-  if ([content isKindOfClass: [NSArray class]] == YES)
+  if ([content isKindOfClass: NSArrayClass] == YES)
     {
       count = [content count];
       partData = [NSMutableArray arrayWithCapacity: count];
@@ -4540,7 +4596,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  ASSIGNCOPY(content, newContent);
 	}
     }
-  else if ([newContent isKindOfClass: [NSArray class]] == YES)
+  else if ([newContent isKindOfClass: NSArrayClass] == YES)
     {
       if (newContent != content)
 	{
@@ -4670,7 +4726,7 @@ static NSCharacterSet	*tokenSet = nil;
 
   if ([type isEqualToString: @"multipart"] == NO
     && [type isEqualToString: @"application"] == NO
-    && [content isKindOfClass: [NSArray class]] == YES)
+    && [content isKindOfClass: NSArrayClass] == YES)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ -%@] content doesn't match content-type",

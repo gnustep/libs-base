@@ -1,3 +1,7 @@
+2004-08-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Add content location methods.
+
 2004-08-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Various minor optimisations ... uppercaseString
