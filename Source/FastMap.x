@@ -1,4 +1,4 @@
-/* A fast map table implementation for NSObjects
+/* A fast map/hash table implementation for NSObjects
  * Copyright (C) 1998  Free Software Foundation, Inc.
  * 
  * Author:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -29,10 +29,71 @@
 /*
  *	This file should be INCLUDED in files wanting to use the FastMap
  *	functions - these are all declared inline for maximum performance.
+ *
+ *	The file including this one may predefine some macros to alter
+ *	the behaviour (default macros assume the items are NSObjects
+ *	that are to be retained in the table) ...
+ *
+ *	FAST_MAP_HAS_VALUE
+ *		If defined as 0, then this becomes a hash table rather than
+ *		a map table.
+ *
+ *	FAST_MAP_RETAIN_KEY()
+ *		Macro to retain the key item in a map or hash table.
+ *
+ *	FAST_MAP_RETAIN_VAL()
+ *		Macro to retain the value item in a map table.
+ *
+ *	FAST_MAP_RELEASE_KEY()
+ *		Macro to release the key item in a map or hash table.
+ *
+ *	FAST_MAP_RELEASE_VAL()
+ *		Macro to release the value item in a map table.
+ *
+ *	FAST_MAP_HASH()
+ *		Macro to get the hash of a key item.
+ *
+ *	FAST_MAP_EQUAL()
+ *		Macro to compare two key items for equality - produces zero
+ *		if the items are not equal.
  */
+
+#ifndef	FAST_MAP_HAS_VALUE
+#define	FAST_MAP_HAS_VALUE	1
+#endif
+
+#ifndef	FAST_MAP_RETAIN_KEY
+#define	FAST_MAP_RETAIN_KEY(X)	[(X).o retain]
+#endif
+
+#ifndef	FAST_MAP_RELEASE_KEY
+#define	FAST_MAP_RELEASE_KEY(X)	[(X).o release]
+#endif
+
+#ifndef	FAST_MAP_RETAIN_VAL
+#define	FAST_MAP_RETAIN_VAL(X)	[(X).o retain]
+#endif
+
+#ifndef	FAST_MAP_RELEASE_VAL
+#define	FAST_MAP_RELEASE_VAL(X)	[(X).o release]
+#endif
+
+#ifndef	FAST_MAP_HASH
+#define	FAST_MAP_HASH(X)	[(X).o hash]
+#endif
+
+#ifndef	FAST_MAP_EQUAL(X,Y)
+#define	FAST_MAP_EQUAL(X,Y)	[(X).o isEqual: (Y).o]
+#endif
 
 /* To easily un-inline functions for debugging */
 #define INLINE inline
+
+typedef	union {
+    NSObject	*o;
+    long int	i;
+    void	*p;
+} FastMapItem;
 
 typedef struct _FastMapTable FastMapTable_t;
 typedef struct _FastMapBucket FastMapBucket_t;
@@ -47,8 +108,10 @@ typedef FastMapEnumerator_t *FastMapEnumerator;
 struct	_FastMapNode {
     FastMapNode	nextInBucket;	/* Linked list of bucket.	*/
     FastMapNode	nextInMap;	/* For enumerating.		*/
-    NSObject	*key;
-    NSObject	*value;
+    FastmapItem	key;
+#if	FAST_MAP_HAS_VALUE
+    FastmapItem	value;
+#endif
 };
 
 struct	_FastMapBucket {
@@ -70,13 +133,13 @@ struct	_FastMapEnumerator {
 };
 
 static INLINE FastMapBucket
-FastMapPickBucket(NSObject *key, FastMapBucket buckets, size_t bucketCount)
+FastMapPickBucket(FastMapItem key, FastMapBucket buckets, size_t bucketCount)
 {
-    return buckets + [key hash] % bucketCount;
+    return buckets + FAST_MAP_HASH(key) % bucketCount;
 }
 
 static INLINE FastMapBucket
-FastMapBucketForKey(FastMapTable map, NSObject *key)
+FastMapBucketForKey(FastMapTable map, FastMapItem key)
 {
     return FastMapPickBucket(key, map->buckets, map->bucketCount);
 }
@@ -182,8 +245,9 @@ FastMapRemangleBuckets(FastMapTable map,
     }
 }
 
+#if	FAST_MAP_HAS_VALUE
 static INLINE FastMapNode
-FastMapNewNodeNoRetain(FastMapTable map, NSObject *key, NSObject *value)
+FastMapNewNode(FastMapTable map, FastMapItem key, FastMapItem value)
 {
     FastMapNode	node;
 
@@ -197,30 +261,48 @@ FastMapNewNodeNoRetain(FastMapTable map, NSObject *key, NSObject *value)
     }
     return node;
 }
+#else
+static INLINE FastMapNode
+FastMapNewNode(FastMapTable map, FastMapItem key)
+{
+    FastMapNode	node;
+
+    node = (FastMapNode)NSZoneMalloc(map->zone, sizeof(FastMapNode_t));
+
+    if (node != 0) {
+	node->key = key;
+	node->nextInBucket = 0;
+	node->nextInMap = 0;
+    }
+    return node;
+}
+#endif
 
 static INLINE void
 FastMapFreeNode(FastMapNode node)
 {
     if (node != 0) {
-	[node->key release];
-	[node->value release];
+	FAST_MAP_RELEASE_KEY(node->key);
+#if	FAST_MAP_HAS_VALUE
+	FAST_MAP_RELEASE_VAL(node->value);
+#endif
 	NSZoneFree(NSZoneFromPointer(node), node);
     }
 }
 
 static INLINE FastMapNode 
-FastMapNodeForKeyInBucket(FastMapBucket bucket, NSObject *key)
+FastMapNodeForKeyInBucket(FastMapBucket bucket, FastMapItem key)
 {
     FastMapNode	node = bucket->firstNode;
 
-    while ((node != 0) && [node->key isEqual: key] == NO) {
+    while ((node != 0) && FAST_MAP_EQUAL(node->key, key) == NO) {
 	node = node->nextInBucket;
     }
     return node;
 }
 
 static INLINE FastMapNode 
-FastMapNodeForKey(FastMapTable map, NSObject *key)
+FastMapNodeForKey(FastMapTable map, FastMapItem key)
 {
     FastMapBucket	bucket;
     FastMapNode		node;
@@ -344,12 +426,13 @@ FastMapEnumeratorNextNode(FastMapEnumerator enumerator)
     return node;
 }
 
+#if	FAST_MAP_HAS_VALUE
 static INLINE FastMapNode
-FastMapAddPairNoRetain(FastMapTable map, NSObject *key, NSObject *value)
+FastMapAddPairNoRetain(FastMapTable map, FastMapItem key, FastMapItem value)
 {
     FastMapNode node;
 
-    node = FastMapNewNodeNoRetain(map, key, value);
+    node = FastMapNewNode(map, key, value);
 
     if (node != 0) {
 	FastMapRightSizeMap(map, map->nodeCount);
@@ -359,13 +442,13 @@ FastMapAddPairNoRetain(FastMapTable map, NSObject *key, NSObject *value)
 }
 
 static INLINE FastMapNode
-FastMapAddPair(FastMapTable map, NSObject *key, NSObject *value)
+FastMapAddPair(FastMapTable map, FastMapItem key, FastMapItem value)
 {
     FastMapNode node;
 
-    [key retain];
-    [value retain];
-    node = FastMapNewNodeNoRetain(map, key, value);
+    FAST_MAP_RETAIN_KEY(key);
+    FAST_MAP_RETAIN_VAL(value);
+    node = FastMapNewNode(map, key, value);
 
     if (node != 0) {
 	FastMapRightSizeMap(map, map->nodeCount);
@@ -373,9 +456,39 @@ FastMapAddPair(FastMapTable map, NSObject *key, NSObject *value)
     }
     return node;
 }
+#else
+static INLINE FastMapNode
+FastMapAddKeyNoRetain(FastMapTable map, FastMapItem key)
+{
+    FastMapNode node;
+
+    node = FastMapNewNode(map, key);
+
+    if (node != 0) {
+	FastMapRightSizeMap(map, map->nodeCount);
+	FastMapAddNodeToMap(map, node);
+    }
+    return node;
+}
+
+static INLINE FastMapNode
+FastMapAddKey(FastMapTable map, FastMapItem key)
+{
+    FastMapNode node;
+
+    FAST_MAP_RETAIN_KEY(key);
+    node = FastMapNewNode(map, key, value);
+
+    if (node != 0) {
+	FastMapRightSizeMap(map, map->nodeCount);
+	FastMapAddNodeToMap(map, node);
+    }
+    return node;
+}
+#endif
 
 static INLINE void
-FastMapRemoveKey(FastMapTable map, NSObject *key)
+FastMapRemoveKey(FastMapTable map, FastMapItem key)
 {
     FastMapBucket	bucket = FastMapBucketForKey(map, key);
 
