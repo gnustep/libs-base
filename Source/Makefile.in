@@ -71,15 +71,17 @@ FILE_AUTHORS = \
 "Peter Burka"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
-     
+
+SHAREDLIB_CFLAGS = @SHAREDLIB_CFLAGS@
+SHAREDLIB_ARFLAGS = @SHAREDLIB_ARFLAGS@
 NEXT_NEXT_INCLUDES = -I/usr/include
 OBJECTS_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
 ALL_INCLUDE_FLAGS = -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
 ALL_CPPFLAGS = $(ALL_INCLUDE_FLAGS) $(CPPFLAGS)
-ALL_CFLAGS = $(CFLAGS)
-ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
+ALL_CFLAGS = $(CFLAGS) $(SHAREDLIB_CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) $(SHAREDLIB_CFLAGS) -Wno-protocol
 
 # definitions to be passed to subdir Makefile's
 MAKEDEFINES = CC='$(CC)' CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' \
@@ -416,15 +418,18 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: libobjects.a
+all: @LIBOBJECTS_A_OR_SO@
+
+libobjects.so: objects/stdobjects.h $(OBJS_INSTALL) 
+	$(CC) $(SHAREDLIB_ARFLAGS) -o libobjects.so $(OBJS_INSTALL)
 
 libobjects.a: objects/stdobjects.h $(OBJS_INSTALL) 
 	$(AR) $(ARFLAGS) libobjects.a $(OBJS_INSTALL)
 	$(RANLIB) libobjects.a
 
 install: installdirs all
-	$(INSTALL_DATA) libobjects.a $(libdir)/libobjects.a
-	$(RANLIB) $(libdir)/libobjects.a
+	$(INSTALL_DATA) $(LIBOBJECTS_A_OR_SO) $(libdir)
+	-$(RANLIB) $(libdir)/libobjects.a
 	for file in $(HEADERS_INSTALL); do \
 	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
 	done
