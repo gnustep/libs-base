@@ -63,7 +63,7 @@
 
 + (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-#ifndef __WIN32__
+#if !defined(__WIN32__) && !defined(_WIN32)
   volatile NSTimeInterval interval;
   struct timeval tp;
 

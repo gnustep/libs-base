@@ -27,8 +27,6 @@
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/NSString.h>
 
-NSString* StreamException = @"StreamException";
-
 @implementation Stream
 
 /* This is the designated initializer. */

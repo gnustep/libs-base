@@ -152,12 +152,15 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     while (env[i]) 
       {
 	cp = strchr(env[i],'=');
-	/* Temporary set *cp to \0 for copying purposes */
-	*cp = '\0';
-	[keys addObject: [NSString stringWithCString:env[i]]];
-	[values addObject: [NSString stringWithCString:cp+1]];
-	/* Return the original value of environ[i] */
-	*cp = '=';
+	if (cp != NULL)
+	  {
+	    /* Temporary set *cp to \0 for copying purposes */
+	    *cp = '\0';
+	    [keys addObject: [NSString stringWithCString:env[i]]];
+	    [values addObject: [NSString stringWithCString:cp+1]];
+	    /* Return the original value of environ[i] */
+	    *cp = '=';
+	  }
 	i++;
       }
     _gnu_environment = [[NSDictionary alloc] initWithObjects:values
@@ -260,7 +263,21 @@ __attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
 #else
 static void * __gnustep_base_subinit_args__
 __attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
-#endif
+#endif /* linux */
+
+#else
+#ifdef __MINGW32__
+/* For Windows32API Library, we know the global variables */
+extern int __argc;
+extern char** __argv;
+extern char** _environ;
+
++ (void)initialize
+{
+  if (self == [NSProcessInfo class])
+    _gnu_process_args(__argc, __argv, _environ);
+}
+
 #else
 #undef main
 int main(int argc, char *argv[], char *env[])
@@ -285,7 +302,8 @@ int main(int argc, char *argv[], char *env[])
   /* Call the user defined main function */
   return gnustep_base_user_main (argc, argv, env);
 }
-#endif
+#endif /* __MINGW32__ */
+#endif /* __ELF__ */
 
 /*************************************************************************
  *** Getting an NSProcessInfo Object

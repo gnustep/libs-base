@@ -56,34 +56,6 @@ static NSString* GNU_UserDefaultsDatabese = @"./GNUStep/.GNUstepDefaults";
 static NSString* GNU_UserDefaultsDatabeseLock = @"./GNUStep/.GNUstepUDLock";
 
 /*************************************************************************
- *** C O N S T A N T S
- *************************************************************************/
-/* Standard domains */
-NSString* NSArgumentDomain = @"NSArgumentDomain";
-NSString* NSGlobalDomain = @"NSGlobalDomain";
-NSString* NSRegistrationDomain = @"NSRegistrationDomain";
-
-/* Public notification */
-NSString *NSUserDefaultsChanged = @"NSUserDefaultsChanged";
-
-/* Keys for language-dependent information */
-NSString *NSWeekDayNameArray = @"NSWeekDayNameArray";
-NSString *NSShortWeekDayNameArray = @"NSShortWeekDayNameArray";
-NSString *NSMonthNameArray = @"NSMonthNameArray";
-NSString *NSShortMonthNameArray = @"NSShortMonthNameArray";
-NSString *NSTimeFormatString = @"NSTimeFormatString";
-NSString *NSDateFormatString = @"NSDateFormatString";
-NSString *NSTimeDateFormatString = @"NSTimeDateFormatString";
-NSString *NSShortTimeDateFormatString = @"NSShortTimeDateFormatString";
-NSString *NSCurrencySymbol = @"NSCurrencySymbol";
-NSString *NSDecimalSeparator = @"NSDecimalSeparator";
-NSString *NSThousandsSeparator = @"NSThousandsSeparator";
-NSString *NSInternationalCurrencyString = @"NSInternationalCurrencyString";
-NSString *NSCurrencyString = @"NSCurrencyString";
-NSString *NSDecimalDigits = @"NSDecimalDigits";
-NSString *NSAMPMDesignation = @"NSAMPMDesignation";
-
-/*************************************************************************
  *** Local method definitions
  *************************************************************************/
 @interface NSUserDefaults (__local_NSUserDefaults)

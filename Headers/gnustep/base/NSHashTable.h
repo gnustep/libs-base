@@ -81,6 +81,13 @@ extern const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
  * struct is the size of an int. */
 extern const NSHashTableCallBacks NSPointerToStructHashCallBacks;
 
+/* These are to increase readabilty locally. */
+typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
+typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
+typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
+typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
+typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
+
 /**** Function Prototypes ****************************************************/
 
 /** Creating an NSHashTable... **/

@@ -48,6 +48,8 @@
 - initWithPipeTo: (NSString*)systemCommand;
 - initWithPipeFrom: (NSString*)systemCommand;
 
+- (void) rewindStream;
+
 @end
 
 #endif /* __StdioStream_h__GNUSTEP_BASE_INCLUDE */

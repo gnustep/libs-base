@@ -31,12 +31,12 @@ VPATH = @srcdir@
 # Installation locations
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-bindir = $(exec_prefix)/bin
+bindir = @bindir@
 libdir = @libdir@
 gnustep_libdir = $(libdir)/gnustep
 includedir = @includedir@
 
-CC = @CC@ -pipe
+CC = @CC@ @PIPE@
 LIBS = @LIBS@
 RANLIB = @RANLIB@
 INSTALL = @INSTALL@
@@ -51,6 +51,7 @@ TEXI2DVI = texi2dvi
 LEX = flex
 LEXFLAGS =
 YACC = bison
+DLLTOOL = @DLLTOOL@
 
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
@@ -223,8 +224,9 @@ proplist.y \
 stringsfile.l \
 stringsfile.tab.h \
 stringsfile.y \
-win32-entry.c \
-win32-def.top
+win32-entry.m \
+win32-def.top \
+libgnustep-base.def
 
 GNU_OBJS = \
 	$(GNU_MFILES:.m=${OEXT}) \
@@ -426,7 +428,8 @@ NSTimeZone.m \
 NSUser.m \
 NSUserDefaults.m \
 NSValue.m \
-NSZone.m
+NSZone.m \
+externs.m
 
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
@@ -554,12 +557,13 @@ DIST_FILES = \
         $(GNUSTEP_OTHER_SRCFILES) \
 	$(UNICODE_HEADERS)
 
+IMPORT_LIBRARY=@IMPORT_LIBRARY@
 
 # Targets
 
 all: \
 gnustep/base Foundation \
-lib$(LIBRARY_NAME)$(LIBEXT) \
+@STATIC_LIBRARY@ \
 @SHARED_LIBRARY@ \
 gdomap
 
@@ -576,6 +580,42 @@ lib$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC)
 lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
 	$(AR) $(ARFLAGS) $(AROUT)lib$(LIBRARY_NAME)$(LIBEXT) $(OBJS_INSTALL)
 	$(RANLIB) lib$(LIBRARY_NAME)$(LIBEXT)
+
+lib$(LIBRARY_NAME)_s$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
+	$(AR) $(ARFLAGS) $(AROUT)lib$(LIBRARY_NAME)_s$(LIBEXT) $(OBJS_INSTALL)
+	$(RANLIB) lib$(LIBRARY_NAME)_s$(LIBEXT)
+
+lib$(LIBRARY_NAME).def: FORCE
+	nm @STATIC_LIBRARY@ \
+		| grep '^........ [T] _' \
+		| sed 's/[^_]*_//' >> lib$(LIBRARY_NAME).lst
+	cat win32-def.top lib$(LIBRARY_NAME).lst > lib$(LIBRARY_NAME).def
+	rm lib$(LIBRARY_NAME).lst
+
+lib$(LIBRARY_NAME).dll: @STATIC_LIBRARY@ win32-entry$(OEXT)
+	# Link DLL.
+	$(CC) -dll -Wl,--base-file -Wl,lib$(LIBRARY_NAME).base \
+		-o lib$(LIBRARY_NAME).dll win32-entry.o @STATIC_LIBRARY@ \
+		-lmoldname -lobjc -lkernel32 -lwsock32 -ladvapi32 -luser32
+	$(DLLTOOL) --dllname lib$(LIBRARY_NAME).dll \
+		--def lib$(LIBRARY_NAME).def --base-file \
+		lib$(LIBRARY_NAME).base --output-exp lib$(LIBRARY_NAME).exp
+	$(CC) -dll -Wl,--base-file -Wl,lib$(LIBRARY_NAME).base \
+		lib$(LIBRARY_NAME).exp \
+		-o lib$(LIBRARY_NAME).dll win32-entry.o @STATIC_LIBRARY@ \
+		-lmoldname -lobjc -lkernel32 -lwsock32 -ladvapi32 -luser32
+	$(DLLTOOL) --dllname lib$(LIBRARY_NAME).dll \
+		--def lib$(LIBRARY_NAME).def \
+		--base-file lib$(LIBRARY_NAME).base \
+		--output-exp lib$(LIBRARY_NAME).exp
+	$(CC) -dll lib$(LIBRARY_NAME).exp \
+		-o lib$(LIBRARY_NAME).dll win32-entry.o @STATIC_LIBRARY@ \
+		-lmoldname -lobjc -lkernel32 -lwsock32 -ladvapi32 -luser32
+	# Build the import library to link to:
+	$(DLLTOOL) --dllname lib$(LIBRARY_NAME).dll \
+		--def lib$(LIBRARY_NAME).def \
+		--output-lib $(IMPORT_LIBRARY)
+	ar r lib$(LIBRARY_NAME)$(LIBEXT) externs$(OEXT)
 
 # Local links to the include files
 gnustep/base: $(HEADERS_INSTALL)
@@ -597,21 +637,16 @@ Foundation: ../configure $(HEADERS_INSTALL)
 	rm -rf Foundation
 	$(LN_S) $(srcdir)/include Foundation
 
-install: installdirs all
-	# Install the Distributed Objects name server
-	$(INSTALL_PROGRAM) -o root -m 04755 gdomap $(bindir)
-	# Install the library
-	$(INSTALL_DATA) lib$(LIBRARY_NAME)$(LIBEXT) $(libdir)
-	$(RANLIB) $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT); \
-	if [ -n "@SHARED_LIBRARY@" ]; then \
-	  $(INSTALL_DATA) lib$(LIBRARY_NAME).so.$(VERSION) $(libdir) ; \
-	  rm -f $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
-	  rm -f $(libdir)/lib$(LIBRARY_NAME).so ; \
-	  $(LN_S) $(libdir)/lib$(LIBRARY_NAME).so.$(VERSION) \
-		$(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
-	  $(LN_S) $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
-		$(libdir)/lib$(LIBRARY_NAME).so ; \
-	fi
+install: all installdirs install-headers install-lib install-apps
+
+installdirs:
+	$(srcdir)/../mkinstalldirs \
+		$(bindir) \
+		$(libdir) \
+		$(includedir)/gnustep/base \
+		$(includedir)/objc
+
+install-headers: all
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file \
@@ -623,11 +658,29 @@ install: installdirs all
 	    $(includedir)/objc/`basename $$file` ; \
 	done
 
-installdirs:
-	$(srcdir)/../mkinstalldirs \
-		$(libdir) \
-		$(includedir)/gnustep/base \
-		$(includedir)/objc
+install-lib: all
+	# Install the library
+	$(INSTALL_DATA) lib$(LIBRARY_NAME)$(LIBEXT) $(libdir)
+	$(RANLIB) $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT); \
+	if [ -n "@SHARED_LIBRARY@" ]; then \
+	  if [ -e lib$(LIBRARY_NAME).so.$(VERSION) ] ; then \
+	    $(INSTALL_DATA) lib$(LIBRARY_NAME).so.$(VERSION) $(libdir) ; \
+	    rm -f $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
+	    rm -f $(libdir)/lib$(LIBRARY_NAME).so ; \
+	    $(LN_S) $(libdir)/lib$(LIBRARY_NAME).so.$(VERSION) \
+		$(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
+	    $(LN_S) $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+		$(libdir)/lib$(LIBRARY_NAME).so ; \
+	  fi \
+	fi
+	# Install the DLL if it exists
+	if [ -e lib$(LIBRARY_NAME).dll ]; then \
+	  $(INSTALL_DATA) lib$(LIBRARY_NAME).dll $(bindir) ; \
+	fi
+
+install-apps: gdomap
+	# Install the Distributed Objects name server
+	-$(INSTALL_PROGRAM) -o root -m 04755 gdomap $(bindir)
 
 uninstall:
 	rm -f $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT)
@@ -748,6 +801,8 @@ mostlyclean:
 	objc/*~
 clean: mostlyclean
 	rm -f lib$(LIBRARY_NAME)$(LIBEXT) *${OEXT}
+	rm -f lib$(LIBRARY_NAME)_s$(LIBEXT)
+	rm -f lib$(LIBRARY_NAME).dll
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 	rm -f gdomap
 distclean: clean

@@ -103,9 +103,6 @@ static NSBundle* _loadingBundle = nil;
 static NSLock* load_lock = nil;
 static BOOL _strip_after_loading = NO;
 
-NSString* NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
-NSString* NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
-NSString* NSLoadedClasses = @"NSLoadedClasses";
 static NSString* platform = 
 #ifdef PLATFORM_OS
   @PLATFORM_OS;
@@ -156,6 +153,9 @@ _bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
 static NSString *
 _bundle_path_for_name(NSString* path, NSString* name)
 {
+#ifdef __WIN32__
+  return nil;
+#else
   DIR *thedir;
   struct dirent *entry;
   NSString *fullname;
@@ -179,6 +179,7 @@ _bundle_path_for_name(NSString* path, NSString* name)
     return nil;
 
   return [path stringByAppendingPathComponent: fullname];
+#endif
 }
 
 @interface NSBundle (Private)
@@ -643,6 +644,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	    subPath: bundlePath];
   enumerate = [paths objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
+#ifdef __WIN32__
+#else
   while((path = [enumerate nextObject]))
     {
       DIR *thedir;
@@ -667,7 +670,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  closedir(thedir);
 	}
     }
-
+#endif
   return resources;
 }
 

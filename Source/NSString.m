@@ -71,6 +71,19 @@
 // #define DEFAULT_ENCODING NSISOLatin1StringEncoding
 // #define DEFAULT_ENCODING NSCyrillicStringEncoding
 
+#if defined(__WIN32__) || defined(_WIN32)
+
+#define PATH_COMPONENT @"\\"
+#define PATH_COMPONENT_LEN 1
+#define PATH_COMPONENT2 @"/"
+#define PATH_COMPONENT_LEN2 1
+
+#else
+
+#define PATH_COMPONENT @"/"
+#define PATH_COMPONENT_LEN 1
+
+#endif /* Path components */
 
 @implementation NSString
 
@@ -496,13 +509,15 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithContentsOfFile: (NSString*)path
   {
   /* xxx Maybe this should use StdioStream? */
-#ifdef __WIN32__
+#if defined(__WIN32__) || defined(_WIN32)
   NSMutableString *s = [NSMutableString stringWithCString:""];
   DWORD dwread;
   char bytes[1024];
   BOOL res, done = NO;
   HANDLE fd = CreateFile([path cString], GENERIC_READ, FILE_SHARE_READ,
 			 NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
+  if (fd == -1)
+    return nil;
 
   while (!done)
     {
@@ -606,22 +621,23 @@ handle_printf_atsign (FILE *stream,
 
 - (NSArray*) componentsSeparatedByString: (NSString*)separator
 {
-  NSRange search;
+  NSRange search, complete;
   NSRange found;
   NSMutableArray *array = [NSMutableArray array];
 
   search = NSMakeRange (0, [self length]);
+  complete = search;
   found = [self rangeOfString: separator];
   while (found.length)
     {
       NSRange current;
+
       current = NSMakeRange (search.location,
 			     found.location - search.location);
       [array addObject: [self substringFromRange: current]];
+
       search = NSMakeRange (found.location + found.length,
-			    search.length - (found.location +
-					     found.length -
-					     search.location) );
+			    complete.length - found.location - found.length);
       found = [self rangeOfString: separator 
 		    options: 0
 		    range: search];
@@ -677,7 +693,7 @@ handle_printf_atsign (FILE *stream,
   NSRange range;
 
   /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
-  assert(NSMaxRange(aRange) < [self length]);
+  assert(NSMaxRange(aRange) <= [self length]);
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
@@ -1615,79 +1631,6 @@ else
 - (NSString*) description
 {
   return self;
-#if 0
-  const char *src = [self cString];
-  char *dest;
-  char *src_ptr,*dest_ptr;
-  int len,quote;
-  unsigned char ch;
-  NSString *ret;
-
-  /* xxx Really should make this work with unichars. */
-
-#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
-#define noquote(ch) (inrange(ch,'a','z') || inrange(ch,'A','Z') || inrange(ch,'0','9') || ((ch)=='_') || ((ch)=='.') || ((ch)=='$'))
-#define charesc(ch) (inrange(ch,07,014) || ((ch)=='\"') || ((ch)=='\\'))
-#define numesc(ch) (((ch)<=06) || inrange(ch,015,037) || ((ch)>0176))
-
-  for (src_ptr = (char*)src, len=0,quote=0;
-       (ch=*src_ptr);
-       src_ptr++, len++)
-    {
-      if (!noquote(ch))
-	{
-	  quote=1;
-	  if (charesc(ch))
-	    len++;
-	  else if (numesc(ch))
-	    len+=3;
-	}
-    }
-  if (quote)
-    len+=2;
-
-  dest = (char*) objc_malloc (len+1);
-
-  src_ptr = (char*) src;
-  dest_ptr = dest;
-  if (quote)
-    *(dest_ptr++) = '\"';
-  for (; (ch=*src_ptr); src_ptr++,dest_ptr++)
-    {
-      if (charesc(ch))
-	{
-	  *(dest_ptr++) = '\\';
-	  switch (ch)
-	    {
-	    case '\a': *dest_ptr = 'a'; break;
-	    case '\b': *dest_ptr = 'b'; break;
-	    case '\t': *dest_ptr = 't'; break;
-	    case '\n': *dest_ptr = 'n'; break;
-	    case '\v': *dest_ptr = 'v'; break;
-	    case '\f': *dest_ptr = 'f'; break;
-	    default: *dest_ptr = ch;  /* " or \ */
-	    }
-	}
-      else if (numesc(ch))
-	{
-	  *(dest_ptr++) = '\\';
-	  *(dest_ptr++) = '0' + ((ch>>6)&07);
-	  *(dest_ptr++) = '0' + ((ch>>3)&07);
-	  *dest_ptr = '0' + (ch&07);
-	}
-      else
-	{  /* copy literally */
-	  *dest_ptr = ch;
-	}
-    }
-  if (quote)
-    *(dest_ptr++) = '\"';
-  *dest_ptr = '\0';
-
-  ret = [NSString stringWithCString:dest];
-  objc_free (dest);
-  return ret;
-#endif
 }
 
 
@@ -1887,22 +1830,44 @@ else
   NSRange range;
   NSString *substring = nil;
 
-  range = [self rangeOfString:@"/" options:NSBackwardsSearch];
+  range = [self rangeOfString: PATH_COMPONENT options:NSBackwardsSearch];
   if (range.length == 0)
-      substring = [[self copy] autorelease];
-  else if (range.location == [self length] - 1)
+    substring = [[self copy] autorelease];
+  else if (range.location == ([self length] - PATH_COMPONENT_LEN))
     {
       if (range.location == 0)
-	  substring = [[NSString new] autorelease];
+	substring = [[NSString new] autorelease];
       else
-	  substring = [[self substringToIndex:range.location] 
-				lastPathComponent];
+	substring = [[self substringToIndex:range.location] 
+		      lastPathComponent];
     }
   else
-      substring = [self substringFromIndex:range.location+1];
+    substring = [self substringFromIndex:range.location + PATH_COMPONENT_LEN];
+
+#ifdef PATH_COMPONENT2
+  if (substring == self)
+    {
+      NSRange range2 = [self rangeOfString: PATH_COMPONENT2
+			     options:NSBackwardsSearch];
+      if (range2.length == 0)
+	substring = [[self copy] autorelease];
+      else if (range2.location == ([self length] - PATH_COMPONENT_LEN2))
+	{
+	  if (range2.location == 0)
+	    substring = [[NSString new] autorelease];
+	  else
+	    substring = [[self substringToIndex:range2.location] 
+			  lastPathComponent];
+	}
+      else
+	substring = [self substringFromIndex:
+			    range2.location + PATH_COMPONENT_LEN2];
+    }
+#endif /* PATH_COMPONENT2 */
 
   return substring;
 }
+
 /* Returns a new string containing the path extension of the receiver. The
    path extension is a suffix on the last path component which starts with
    a '.' (for example .tiff is the pathExtension for /foo/bar.tiff). Returns
@@ -1914,11 +1879,27 @@ else
 
   range = [self rangeOfString:@"." options:NSBackwardsSearch];
   if (range.length == 0 
-	|| range.location 
-	    < ([self rangeOfString:@"/" options:NSBackwardsSearch]).location)
-      substring =  [[NSString new] autorelease];
+      || range.location < ([self rangeOfString: PATH_COMPONENT
+				 options:NSBackwardsSearch]).location)
+    substring = nil;
   else
-      substring = [self substringFromIndex:range.location+1];
+    substring = [self substringFromIndex:range.location + PATH_COMPONENT_LEN];
+
+#ifdef PATH_COMPONENT2
+  if (!substring)
+    {
+      if (range.length == 0 
+	  || range.location < ([self rangeOfString: PATH_COMPONENT2
+				     options:NSBackwardsSearch]).location)
+	substring = nil;
+      else
+	substring = [self substringFromIndex:
+			    range.location + PATH_COMPONENT_LEN2];
+    }
+#endif
+
+  if (!substring)
+    substring = [[NSString new] autorelease];
   return substring;
 }
 
@@ -1992,7 +1973,7 @@ else
   else if (range.location > 1)
       substring = [self substringToIndex:range.location-1];
   else
-      substring = @"/";
+      substring = PATH_COMPONENT;
   return substring;
 }
 

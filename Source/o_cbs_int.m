@@ -28,24 +28,6 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_cbs.h>
 
-/**** Type, Constant, and Macro Definitions **********************************/
-
-/* FIXME: This isn't right.  Fix it. */
-#define _OBJECTS_NOT_AN_INT_MARKER (const void *)(-1)
-
-const void *o_not_an_int_marker = _OBJECTS_NOT_AN_INT_MARKER;
-
-o_callbacks_t o_callbacks_for_int = 
-{
-  (o_hash_func_t) o_int_hash,
-  (o_compare_func_t) o_int_compare,
-  (o_is_equal_func_t) o_int_is_equal,
-  (o_retain_func_t) o_int_retain,
-  (o_release_func_t) o_int_release,
-  (o_describe_func_t) o_int_describe,
-  _OBJECTS_NOT_AN_INT_MARKER
-};
-
 /**** Function Implementations ***********************************************/
 
 /* FIXME: We (like OpenStep) make the big assumption here that

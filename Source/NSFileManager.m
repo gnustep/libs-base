@@ -26,6 +26,8 @@
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSLock.h>
 
 /* determine directory reading files */
 
@@ -59,7 +61,9 @@
 # include <limits.h>			/* for PATH_MAX */
 # include <utime.h>
 #else
+#ifndef __WIN32__
 # include <sys/param.h>			/* for MAXPATHLEN */
+#endif
 #endif
 
 #ifndef PATH_MAX
@@ -85,7 +89,10 @@
 #endif
 
 #include <errno.h>
+
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 
 /* include usual headers */
 
@@ -110,11 +117,23 @@ static NSFileManager* defaultManager = nil;
 
 + (NSFileManager*)defaultManager
 {
-    if (!defaultManager) {
-	// THREAD
-	defaultManager = [[self alloc] init];
+  if (!defaultManager)
+    {
+      NS_DURING
+	{
+	  [gnustep_global_lock lock];
+	  defaultManager = [[self alloc] init];
+	  [gnustep_global_lock unlock];
+	}
+      NS_HANDLER
+	{
+	  // unlock then re-raise the exception
+	  [gnustep_global_lock unlock];
+	  [localException raise];
+	}
+      NS_ENDHANDLER
     }
-    return defaultManager;
+  return defaultManager;
 }
 
 // Directory operations
@@ -123,12 +142,19 @@ static NSFileManager* defaultManager = nil;
 {
     const char* cpath = [self fileSystemRepresentationWithPath:path];
     
+#if defined(__WIN32__) || defined(_WIN32)
+    return SetCurrentDirectory(cpath);
+#else
     return (chdir(cpath) == 0);
+#endif
 }
 
 - (BOOL)createDirectoryAtPath:(NSString*)path
   attributes:(NSDictionary*)attributes
 {
+#if defined(__WIN32__) || defined(_WIN32)
+  return CreateDirectory([path cString], NULL);
+#else
     const char* cpath;
     char dirpath[PATH_MAX+1];
     struct stat statbuf;
@@ -168,7 +194,7 @@ static NSFileManager* defaultManager = nil;
 	else {
 	    // make new directory
 	    if (mkdir(dirpath, 0777) != 0)
-		return NO; // could not create component
+	      return NO; // could not create component
 	    // if last directory and attributes then change
 	    if (cur == len && attributes)
 		return [self changeFileAttributes:attributes 
@@ -178,21 +204,27 @@ static NSFileManager* defaultManager = nil;
 	dirpath[cur] = '/';
 	cur++;
     } while (cur < len);
-    
+
     return YES;
+#endif /* WIN32 */
 }
 
 - (NSString*)currentDirectoryPath
 {
     char path[PATH_MAX];
-    
+
+#if defined(__WIN32__) || defined(_WIN32)
+    if (GetCurrentDirectory(PATH_MAX, path) > PATH_MAX)
+      return nil;
+#else
 #ifdef HAVE_GETCWD
     if (getcwd(path, PATH_MAX-1) == NULL)
 	return nil;
 #else
     if (getwd(path) == NULL)
 	return nil;
-#endif
+#endif /* HAVE_GETCWD */
+#endif /* WIN32 */
 
     return [self stringWithFileSystemRepresentation:path length:strlen(path)];
 }
@@ -280,6 +312,20 @@ static NSFileManager* defaultManager = nil;
 
 - (BOOL)fileExistsAtPath:(NSString*)path isDirectory:(BOOL*)isDirectory
 {
+#if defined(__WIN32__) || defined(_WIN32)
+  DWORD res = GetFileAttributes([path cString]);
+  if (res == -1)
+    return NO;
+
+  if (isDirectory)
+    {
+      if (res & FILE_ATTRIBUTE_DIRECTORY)
+	*isDirectory = YES;
+      else
+	*isDirectory = NO;
+    }
+  return YES;
+#else
     struct stat statbuf;
     const char* cpath = [self fileSystemRepresentationWithPath:path];
 
@@ -291,6 +337,7 @@ static NSFileManager* defaultManager = nil;
     }
     
     return YES;
+#endif /* WIN32 */
 }
 
 - (BOOL)isReadableFileAtPath:(NSString*)path
@@ -349,7 +396,7 @@ static NSFileManager* defaultManager = nil;
 	    NSFilePosixPermissions,
 	    NSFileType
 	};
-    
+
     if (stat(cpath, &statbuf) != 0)
 	return nil;
     
@@ -380,14 +427,47 @@ static NSFileManager* defaultManager = nil;
 	values[8] = NSFileTypeSocket;
     else
 	values[8] = NSFileTypeUnknown;
-	
+
     return [[[NSDictionary alloc]
-	initWithObjects:values forKeys:keys count:9]
+	initWithObjects:values forKeys:keys count:5]
 	autorelease];
 }
 
 - (NSDictionary*)fileSystemAttributesAtPath:(NSString*)path
 {
+#if defined(__WIN32__) || defined(_WIN32)
+    long long totalsize, freesize;
+    id  values[5];
+    id	keys[5] = {
+	    NSFileSystemSize,
+	    NSFileSystemFreeSize,
+	    NSFileSystemNodes,
+	    NSFileSystemFreeNodes,
+	    NSFileSystemNumber
+	};
+    DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
+    DWORD TotalNumberClusters;
+    const char *cpath = [self fileSystemRepresentationWithPath: path];
+
+    if (!GetDiskFreeSpace(cpath, &SectorsPerCluster,
+			  &BytesPerSector, &NumberFreeClusters,
+			  &TotalNumberClusters))
+      return nil;
+
+    totalsize = TotalNumberClusters * SectorsPerCluster * BytesPerSector;
+    freesize = NumberFreeClusters * SectorsPerCluster * BytesPerSector;
+    
+    values[0] = [NSNumber numberWithLongLong: totalsize];
+    values[1] = [NSNumber numberWithLongLong: freesize];
+    values[2] = [NSNumber numberWithLong: LONG_MAX];
+    values[3] = [NSNumber numberWithLong: LONG_MAX];
+    values[4] = [NSNumber numberWithUnsignedInt: 0];
+    
+    return [[[NSDictionary alloc]
+	initWithObjects:values forKeys:keys count:5]
+	autorelease];
+    
+#else
 #if HAVE_SYS_VFS_H || HAVE_SYS_STATFS_H
     struct stat statbuf;
 #if HAVE_STATVFS
@@ -433,6 +513,7 @@ static NSFileManager* defaultManager = nil;
 #else
     return nil;
 #endif
+#endif /* WIN32 */
 }
 
 - (BOOL)changeFileAttributes:(NSDictionary*)attributes atPath:(NSString*)path
@@ -441,7 +522,8 @@ static NSFileManager* defaultManager = nil;
     NSNumber* num;
     NSDate* date;
     BOOL allOk = YES;
-    
+
+#ifndef __WIN32__
     num = [attributes objectForKey:NSFileOwnerAccountNumber];
     if (num) {
 	allOk &= (chown(cpath, [num intValue], -1) == 0);
@@ -451,6 +533,7 @@ static NSFileManager* defaultManager = nil;
     if (num) {
 	allOk &= (chown(cpath, -1, [num intValue]) == 0);
     }
+#endif
     
     num = [attributes objectForKey:NSFilePosixPermissions];
     if (num) {
@@ -551,7 +634,11 @@ static NSFileManager* defaultManager = nil;
     const char* lpath = [self fileSystemRepresentationWithPath:path];
     const char* npath = [self fileSystemRepresentationWithPath:otherPath];
     
+#ifdef __WIN32__
+    return NO;
+#else
     return (symlink(lpath, npath) == 0);
+#endif
 }
 
 - (NSString*)pathContentOfSymbolicLinkAtPath:(NSString*)path
@@ -570,7 +657,27 @@ static NSFileManager* defaultManager = nil;
 
 - (const char*)fileSystemRepresentationWithPath:(NSString*)path
 {
+#if defined(__WIN32__) || defined(_WIN32)
+  char cpath[4];
+  char *fspath = [path cString];
+
+  // Check if path specifies drive number or is current drive
+  if (fspath[0] && (fspath[1] == ':'))
+    {
+      cpath[0] = fspath[0];
+      cpath[1] = fspath[1];
+      cpath[2] = '\\';
+      cpath[3] = '\0';
+    }
+  else
+    {
+      cpath[0] = '\\';
+      cpath[1] = '\0';
+    }
+  return [[NSString stringWithCString: cpath] cString];
+#else
     return [[[path copy] autorelease] cString];
+#endif
 }
 
 - (NSString*)stringWithFileSystemRepresentation:(const char*)string
@@ -596,6 +703,8 @@ static NSFileManager* defaultManager = nil;
 */
 - (void)recurseIntoDirectory:(NSString*)path relativeName:(NSString*)name
 {
+#ifdef __WIN32__
+#else
     const char* cpath;
     DIR*  dir;
     
@@ -608,6 +717,7 @@ static NSFileManager* defaultManager = nil;
 	[pathStack addObject:name];
 	[enumStack addObject:[NSValue valueWithPointer:dir]];
     }
+#endif
 }
 
 /*
@@ -618,7 +728,10 @@ static NSFileManager* defaultManager = nil;
 */
 - (void)backtrack
 {
+#ifdef __WIN32__
+#else
     closedir((DIR*)[[enumStack lastObject] pointerValue]);
+#endif
     [enumStack removeLastObject];
     [pathStack removeLastObject];
     [currentFileName release];
@@ -639,6 +752,8 @@ static NSFileManager* defaultManager = nil;
 */
 - (void)findNextFile
 {
+#ifdef __WIN32__
+#else
     NSFileManager*	manager = [NSFileManager defaultManager];
     DIR_enum_state*  	dir;
     DIR_enum_item*	dirbuf;
@@ -688,6 +803,7 @@ static NSFileManager* defaultManager = nil;
 	else
 	    [self backtrack];
     }
+#endif
 }
 
 // Initializing
@@ -772,38 +888,3 @@ static NSFileManager* defaultManager = nil;
 - (NSNumber*)filePosixPermissions;
   {return [self objectForKey:NSFilePosixPermissions];}
 @end
-
-/*
- * File attributes names
- */
-
-/* File Attributes */
-
-NSString* NSFileSize = @"NSFileSize";
-NSString* NSFileModificationDate = @"NSFileModificationDate";
-NSString* NSFileOwnerAccountNumber = @"NSFileOwnerAccountNumber";
-NSString* NSFileGroupOwnerAccountNumber = @"NSFileGroupOwnerAccountNumber";
-NSString* NSFileReferenceCount = @"NSFileReferenceCount";
-NSString* NSFileIdentifier = @"NSFileIdentifier";
-NSString* NSFileDeviceIdentifier = @"NSFileDeviceIdentifier";
-NSString* NSFilePosixPermissions = @"NSFilePosixPermissions";
-NSString* NSFileType = @"NSFileType";
-
-/* File Types */
-
-NSString* NSFileTypeDirectory = @"NSFileTypeDirectory";
-NSString* NSFileTypeRegular = @"NSFileTypeRegular";
-NSString* NSFileTypeSymbolicLink = @"NSFileTypeSymbolicLink";
-NSString* NSFileTypeSocket = @"NSFileTypeSocket";
-NSString* NSFileTypeFifo = @"NSFileTypeFifo";
-NSString* NSFileTypeCharacterSpecial = @"NSFileTypeCharacterSpecial";
-NSString* NSFileTypeBlockSpecial = @"NSFileTypeBlockSpecial";
-NSString* NSFileTypeUnknown = @"NSFileTypeUnknown";
-
-/* FileSystem Attributes */
-
-NSString* NSFileSystemSize = @"NSFileSystemSize";
-NSString* NSFileSystemFreeSize = @"NSFileSystemFreeSize";
-NSString* NSFileSystemNodes = @"NSFileSystemNodes";
-NSString* NSFileSystemFreeNodes = @"NSFileSystemFreeNodes";
-NSString* NSFileSystemNumber = @"NSFileSystemNumber";

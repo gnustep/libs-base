@@ -51,8 +51,16 @@ int lstat(char *path, struct stat *buf) { return (-1); }
 
 #define DEFAULT_PATH ".:~/bin::/usr/local/bin:/usr/new:/usr/ucb:/usr/bin:/bin:/usr/hosts"
 
+#if defined(__WIN32__) || defined(_WIN32)
+#define PATH_SEPARATOR ';'
+#define PATH_COMPONENT "\\"
+#else
+#define PATH_SEPARATOR ':'
+#define PATH_COMPONENT "/"
+#endif
+
 /* ABSOLUTE_FILENAME_P (fname): True if fname is an absolute filename */
-#ifdef atarist
+#if defined(atarist) || defined(__WIN32__) || defined(_WIN32)
 #define ABSOLUTE_FILENAME_P(fname)	((fname[0] == '/') || \
 	(fname[0] && (fname[1] == ':')))
 #else
@@ -131,7 +139,7 @@ objc_find_executable (const char *file)
 	next = name;
 	
 	/* copy directory name into [name] */
-	while (*p && *p != ':') *next++ = *p++;
+	while (*p && *p != PATH_SEPARATOR) *next++ = *p++;
 	*next = 0;
 	if (*p) p++;
 
@@ -144,7 +152,7 @@ objc_find_executable (const char *file)
 	    cwd_in_path = 1;
 	}
 	
-	strcat (name, "/");
+	strcat (name, PATH_COMPONENT);
 	strcat (name, file);
 	      
 /*
@@ -152,6 +160,33 @@ objc_find_executable (const char *file)
 */
 	if (find_full_path (name) == 0)
 	    return copy_of (name);
+
+	/* Also add common executable extensions on windows */
+#if defined(__WIN32__) || defined(_WIN32)
+	{
+	  int fl = strlen(name);
+
+	  strcat (name, ".com");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+
+	  strcat (name, ".exe");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+
+	  strcat (name, ".bat");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+
+	  strcat (name, ".cmd");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+	}
+#endif
     }
 
     /*
@@ -165,7 +200,7 @@ objc_find_executable (const char *file)
 #else
 	getwd (name);
 #endif
-	strcat (name, "/");
+	strcat (name, PATH_COMPONENT);
 	strcat (name, file);
 
 /*
@@ -173,6 +208,33 @@ objc_find_executable (const char *file)
 */
 	if (find_full_path (name) == 0)
 	    return copy_of (name);
+
+	/* Also add common executable extensions on windows */
+#if defined(__WIN32__) || defined(_WIN32)
+	{
+	  int fl = strlen(name);
+
+	  strcat (name, ".com");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+
+	  strcat (name, ".exe");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+
+	  strcat (name, ".bat");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+
+	  strcat (name, ".cmd");
+	  if (find_full_path (name) == 0)
+	    return copy_of (name);
+	  name[fl] = '\0';
+	}
+#endif
     }
 
     return 0;

@@ -1,3 +1,110 @@
+Sat Sep 13 10:05:57 1997  Scott Christley  <scottc@net-community.com>
+
+	* The GNU tools for building a DLL on Windows only allow functions
+	and not data to be exported; therefore, all global variables were
+	moved into a separate file, externs.m, and added to the import
+	library for the DLL so that those variables would be accessible
+	outside of the DLL.
+	* configure.in (PIPE): Make the -pipe a configure option.
+	(DLLTOOL): Add support for building DLLs.
+	(disable-static): New configure option to disable the building
+	of the static library when building a shared library.
+	(pcthread, pthread, m): Add checks for pcthread and math libraries.
+	(sys/stat.h, sys/vfs.h, sys/statfs.h, statvfs): Add checks
+	for filesystem related headers and functions.
+	(getcwd): Remove duplicate check.
+	* src/win32-entry.c: Rename to win32-entry.m
+	* src/externs.m: New file.
+	* src/libgnustep-base.def: New file.
+	* src/Connection.m: Move all global variables to externs.m.
+	* src/NSArchive.m: Likewise.
+	* src/NSBundle.m: Likewise.
+	Comment out code that would not compile on WIN32.
+	* src/NSException.m: Likewise.
+	(dealloc): Release instance variables.
+	* src/NSFileManager.m: Likewise.
+	Add WIN32 specific code.
+	* src/NSHashTable.m: Likewise.
+	* src/NSMapTable.m: Likewise.
+	* src/NSThread.m: Likewise.
+ 	(-init): Set the thread data first.
+	* src/NSUserDefaults.m: Likewise.
+	* src/Stream.m: Likewise.
+	* src/TcpPort.m: Likewise.
+	* src/o_cbs_char_p.m: Likewise.
+	* src/o_cbs_id.m: Likewise.
+	* src/o_cbs_int.m: Likewise.
+	* src/o_cbs_int_p.m: Likewise.
+	* src/o_cbs_void_p.m: Likewise.
+
+	* checks/Makefile.in: Do not link with math library.
+	* checks/NSData-test.m: Correct directory for include files.
+	* checks/diningPhilosophers.m (WIN32): Check different macro.
+	* checks/nsattributedstring.m (main): New function.
+	* checks/nsbundle.m: Do not include for MINGW32.
+
+	* src/Makefile.in: Add support for building a DLL.  Break
+	out the single install target into multiple targets.
+
+	* src/NSCalendarDate.m (-descriptionWithCalendarFormat:locale:):
+	Add character string month names.
+	(short_month, long_month): New static arrays.
+	* src/NSDate.m (+timeIntervalSinceReferenceDate): Also test _WIN32.
+
+	* src/NSCharacterSet.m (NSCharacterSet_PATH): Don't specify
+	full path, just bundle directory.
+
+	* src/NSDictionary.m (-initWithContentsOfFile:): Make sure
+	the returned object is an NSDictionary.
+
+	* src/NSObject.m (initialize): Create global lock.
+	(-performSelector:, -performSelector:WithObject:)
+	(-performSelector:withObject:withObject:): New methods.
+	* src/include/NSObject.h: Add prototype for global lock.
+	(-performSelector:, -performSelector:WithObject:)
+	(-performSelector:withObject:withObject:): New methods.
+
+	* src/NSProcessInfo.m (_gnu_process_args): Check if NULL.
+	For MINGW32, have NSProcessInfo access the global variables directly.
+
+	* src/NSString.m:  Add support for different path components
+	that are supported on WIN32.
+	(rangeOfCharacterFromSet:options:mask:): Correct assert.
+	(-componentsSeparatedByString:): Correct calculation of search range.
+
+	* src/NSUser.m: Check _WIN32 macro as well.
+	* src/Time.m: Likewise.
+
+	* src/RunLoop.m (_AIX): Include header file.
+	UNIX is vastly different from WIN32 so separate the functionality
+ 	into different methods.  Move all global variables to externs.m.
+	(-acceptWIN32InputForMode:beforeDate:): New method.
+	(-acceptUNIXInputForMode:beforeDate:): New method.
+	(-acceptInputForMode:beforeDate:): Call the appropriate method
+	depending upon whether a UNIX or WIN32 system.
+
+	* src/StdioStream.m: Comment out code that would not compile on WIN32.
+	* src/include/StdioStream.h (-rewindStream): Add prototype.
+
+	* src/find_exec.c: Handle the different path separator in the 
+	PATH environment variable and the different path component
+	which is supported on WIN32.  Also add common WIN32 extensions to 
+	the filename when searching for the executed file.
+
+	* src/include/NSDate.h (-initWithTimeIntervalSince1970:): ADd
+	missing method prototype.
+
+	* src/include/NSHashTable.h: Move typedefs that were in NSHashTable.m
+	to here so that externs.m has access to them.
+	* src/include/NSMapTable.h: Move typedefs that were in NSMapTable.m
+	to here so that externs.m has access to them.
+
+	* src/include/UdpPort.h (WIN32): Use __WIN32__ macro instead.
+
+	* src/include/fake-main.h: Do not redefine main on MINGW32.
+
+	* src/include/preface.h.in: Add WIN32 specific definition.
+
 Fri Sep 12 12:27:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSString.m: Added [-classForPortCoder:]) method for

@@ -114,11 +114,6 @@ int main()
 	int i;
 	id p[5];
 
-#ifdef WIN32
-	// Initialize ourselves in Obj-C runtime
-	init_diningPhilosophers();
-#endif
-
 	// Create the locks
 	for (i = 0;i < 5; ++i)
 	{

@@ -11,10 +11,10 @@
 ******************************************************************************/
 
 #include    <stdio.h>
-#include    <objc/NSData.h>
-#include    <objc/NSException.h>
-#include    <objc/NSRange.h>
-#include    <objc/NSSerialization.h>
+#include    <Foundation/NSData.h>
+#include    <Foundation/NSException.h>
+#include    <Foundation/NSRange.h>
+#include    <Foundation/NSSerialization.h>
 
 /*  Data for stuffing into *Data objects.  I like printable data, as it
 *   gives a quick visual check mechanism, but it has the disadvantage

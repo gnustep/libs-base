@@ -122,6 +122,9 @@ extraRefCount (id anObject)
 {
   if (self == [NSObject class])
     {
+      // Create the global lock
+      gnustep_global_lock = [[NSRecursiveLock alloc] init];
+
       retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
 					    o_callbacks_for_int);
       retain_counts_gate = objc_mutex_allocate ();
@@ -743,6 +746,53 @@ extraRefCount (id anObject)
 {
   // [super awake];
   return self;
+}
+
+@end
+
+
+@implementation NSObject (OPENSTEP)
+
+/* OPENSTEP Object class extensions
+   as distinquished from the OpenStep specification. */
+
+- performSelector: (SEL)aSelector
+{
+  IMP msg = objc_msg_lookup(self, aSelector);
+  if (!msg)
+    {
+      [NSException
+	raise: NSGenericException
+	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
+  return (*msg)(self, aSelector);
+}
+
+- performSelector: (SEL)aSelector withObject: anObject
+{
+  IMP msg = objc_msg_lookup(self, aSelector);
+  if (!msg)
+    {
+      [NSException
+	raise: NSGenericException
+	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
+  return (*msg)(self, aSelector, anObject);
+}
+
+- performSelector: (SEL)aSelector withObject: object1 withObject: object2
+{
+  IMP msg = objc_msg_lookup(self, aSelector);
+  if (!msg)
+    {
+      [NSException
+	raise: NSGenericException
+	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+      return nil;
+    }
+  return (*msg)(self, aSelector, object1, object2);
 }
 
 @end

@@ -1913,18 +1913,3 @@ static NSMapTable *out_port_bag = NULL;
 }
 
 @end
-
-
-
-/* Notification Strings. */
-
-NSString *
-InPortClientBecameInvalidNotification = 
-@"InPortClientBecameInvalidNotification";
-
-NSString *
-InPortAcceptedClientNotification = 
-@"InPortAcceptedClientNotification";
-
-
-

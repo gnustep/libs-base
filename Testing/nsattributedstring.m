@@ -31,7 +31,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
-#include "NSAttributedString.h"
+#include <Foundation/NSAttributedString.h>
 #include <stdio.h>
 
 void printAttrString(NSAttributedString *attrStr)
@@ -112,4 +112,11 @@ void testAttributedString(void)
   printAttrString(muAttrString2);
 
   printAttrString([muAttrString2 attributedSubstringFromRange:NSMakeRange(10,7)]);
+}
+
+/* xxx umm this file needs a main */
+int
+main()
+{
+  exit(0);
 }

@@ -27,7 +27,7 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Port.h>
 #include <sys/types.h>
-#ifndef WIN32
+#ifndef __WIN32__
 # include <sys/socket.h>
 # include <netinet/in.h>
 #endif /* !WIN32 */

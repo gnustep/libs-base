@@ -1476,17 +1476,3 @@ static int messages_received_count;
 }
 
 @end
-
-
-/* Notification Strings. */
-
-NSString *ConnectionBecameInvalidNotification 
-= @"ConnectionBecameInvalidNotification";
-
-NSString *ConnectionWasCreatedNotification 
-= @"ConnectionWasCreatedNotification";
-
-
-/* RunLoop modes */
-NSString *RunLoopConnectionReplyMode
-= @"RunLoopConnectionReplyMode";

@@ -31,6 +31,10 @@
 #include <stdarg.h>
 #include <unistd.h>   /* SEEK_* on SunOS 4 */
 
+#ifdef __WIN32__
+#define fdopen _fdopen
+#endif
+
 enum {
   STREAM_READONLY = 0,
   STREAM_READWRITE,
@@ -138,16 +142,24 @@ o_vscanf (void *stream,
 
 - initWithPipeTo: (NSString*) systemCommand
 {
+#ifdef __WIN32__
+  return nil;
+#else
   return [self initWithFilePointer:
 	       popen([systemCommand cStringNoCopy], "w")
 	       fmode:"w"];
+#endif
 }
 
 - initWithPipeFrom: (NSString*) systemCommand
 {
+#ifdef __WIN32__
+  return nil;
+#else
   return [self initWithFilePointer:
 	       popen([systemCommand cStringNoCopy], "r")
 	       fmode:"r"];
+#endif
 }
 
 - init

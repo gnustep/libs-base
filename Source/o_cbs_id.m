@@ -29,24 +29,6 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_cbs.h>
 
-/**** Type, Constant, and Macro Definitions **********************************/
-
-/* FIXME: Is this right?!? */
-#define _OBJECTS_NOT_AN_ID_MARKER (const void *)(-1)
-
-const void *o_not_an_id_marker = _OBJECTS_NOT_AN_ID_MARKER;
-
-o_callbacks_t o_callbacks_for_id = 
-{
-  (o_hash_func_t) o_id_hash,
-  (o_compare_func_t) o_id_compare,
-  (o_is_equal_func_t) o_id_is_equal,
-  (o_retain_func_t) o_id_retain,
-  (o_release_func_t) o_id_release,
-  (o_describe_func_t) o_id_describe,
-  _OBJECTS_NOT_AN_ID_MARKER
-};
-
 /**** Function Implementations ***********************************************/
 
 /* FIXME: It sure would be nice if we had a way of checking whether

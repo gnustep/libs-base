@@ -27,11 +27,13 @@
 #include <objc/objc.h>
 #include <objc/Protocol.h>
 #include <Foundation/NSZone.h>
+#include <gnustep/base/fake-main.h>
 
 @class NSArchiver;
 @class NSCoder;
 @class NSPortCoder;
 @class NSMethodSignature;
+@class NSRecursiveLock;
 @class NSString;
 @class NSInvocation;
 @class Protocol;
@@ -116,6 +118,11 @@
 - (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
 @end
 
+/* Global lock to be used by classes when operating on any global
+   data that invoke other methods which also access global; thus,
+   creating the potential for deadlock. */
+extern NSRecursiveLock *gnustep_global_lock;
+
 NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
 void NSDeallocateObject(NSObject *anObject);
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
@@ -149,6 +156,12 @@ enum {NSNotFound = 0x7fffffff};
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
 - read: (TypedStream*)aStream;
 - write: (TypedStream*)aStream;
+@end
+
+@interface NSObject (OPENSTEP)
+- performSelector: (SEL)aSelector;
+- performSelector: (SEL)aSelector withObject: anObject;
+- performSelector: (SEL)aSelector withObject: object1 withObject: object2;
 @end
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */

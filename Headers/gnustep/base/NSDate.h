@@ -56,6 +56,7 @@ typedef double NSTimeInterval;
 - (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		       sinceDate: (NSDate*)anotherDate;
 - (NSDate*) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
+- (NSDate*) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 // Converting to NSCalendar
