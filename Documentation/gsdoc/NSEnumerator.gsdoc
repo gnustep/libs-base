@@ -16,15 +16,17 @@
       <class name="NSEnumerator" super="NSObject">
         <declared>Foundation/NSUtilities.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSArray*"><sel>allObjects</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSArray*">
+          <sel>allObjects</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>nextObject</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>nextObject</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

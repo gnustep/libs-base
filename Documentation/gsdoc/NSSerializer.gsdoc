@@ -16,15 +16,19 @@
       <class name="NSSerializer" super="NSObject">
         <declared>Foundation/NSSerialization.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSData*" factory="yes"><sel>serializePropertyList:</sel><arg type="id">aPropertyList</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSData*" factory="yes">
+          <sel>serializePropertyList:</sel>
+          <arg type="id">aPropertyList</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void" factory="yes"><sel>serializePropertyList:</sel><arg type="id">aPropertyList</arg>
-        <desc>
-        </desc>
+        <method type="void" factory="yes">
+          <sel>serializePropertyList:</sel>
+          <arg type="id">aPropertyList</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

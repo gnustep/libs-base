@@ -16,31 +16,39 @@
       <class name="NSDistributedLock" super="NSObject">
         <declared>Foundation/NSDistributedLock.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSDistributedLock*" factory="yes"><sel>lockWithPath:</sel><arg type="NSString*">aPath</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSDistributedLock*" factory="yes">
+          <sel>lockWithPath:</sel>
+          <arg type="NSString*">aPath</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>breakLock</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>breakLock</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDistributedLock*"><sel>initWithPath:</sel><arg type="NSString*">aPath</arg>
-        <desc>
-        </desc>
+        <method type="NSDistributedLock*">
+          <sel>initWithPath:</sel>
+          <arg type="NSString*">aPath</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDate*"><sel>lockDate</sel>
-        <desc>
-        </desc>
+        <method type="NSDate*">
+          <sel>lockDate</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>tryLock</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>tryLock</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>unlock</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>unlock</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

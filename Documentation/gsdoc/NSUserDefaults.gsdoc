@@ -16,127 +16,192 @@
       <class name="NSUserDefaults" super="NSObject">
         <declared>Foundation/NSUserDefaults.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSUserDefaults*" factory="yes"><sel>standardUserDefaults</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSUserDefaults*" factory="yes">
+          <sel>standardUserDefaults</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>arrayForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>arrayForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>boolForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>boolForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>dataForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>dataForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>dictionaryForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>dictionaryForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>dictionaryRepresentation</sel>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>dictionaryRepresentation</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="float"><sel>floatForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="float">
+          <sel>floatForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>init</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>init</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithUser:</sel><arg type="NSString*">username</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithUser:</sel>
+          <arg type="NSString*">username</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="int"><sel>integerForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="int">
+          <sel>integerForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>objectForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>objectForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>persistentDomainForName:</sel><arg type="NSString*">domainName</arg>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>persistentDomainForName:</sel>
+          <arg type="NSString*">domainName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>persistentDomainNames</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>persistentDomainNames</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>registerDefaults:</sel><arg type="NSDictionary*">dictionary</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>registerDefaults:</sel>
+          <arg type="NSDictionary*">dictionary</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeObjectForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeObjectForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removePersistentDomainForName:</sel><arg type="NSString*">domainName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removePersistentDomainForName:</sel>
+          <arg type="NSString*">domainName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeVolatileDomainForName:</sel><arg type="NSString*">domainName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeVolatileDomainForName:</sel>
+          <arg type="NSString*">domainName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>searchList</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>searchList</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setBool:</sel><arg type="BOOL">value</arg><sel>forKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setBool:</sel>
+          <arg type="BOOL">value</arg>
+          <sel>forKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setFloat:</sel><arg type="float">value</arg><sel>forKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setFloat:</sel>
+          <arg type="float">value</arg>
+          <sel>forKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setInteger:</sel><arg type="int">value</arg><sel>forKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setInteger:</sel>
+          <arg type="int">value</arg>
+          <sel>forKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setObject:</sel><arg type="id">value</arg><sel>forKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setObject:</sel>
+          <arg type="id">value</arg>
+          <sel>forKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setPersistentDomain:</sel><arg type="NSDictionary*">domain</arg><sel>forName:</sel><arg type="NSString*">domainName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setPersistentDomain:</sel>
+          <arg type="NSDictionary*">domain</arg>
+          <sel>forName:</sel>
+          <arg type="NSString*">domainName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setSearchList:</sel><arg type="NSArray*">array</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setSearchList:</sel>
+          <arg type="NSArray*">array</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setVolatileDomain:</sel><arg type="NSDictionary*">domain</arg><sel>forName:</sel><arg type="NSString*">domainName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setVolatileDomain:</sel>
+          <arg type="NSDictionary*">domain</arg>
+          <sel>forName:</sel>
+          <arg type="NSString*">domainName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>stringArrayForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>stringArrayForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>stringForKey:</sel><arg type="NSString*">defaultName</arg>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>stringForKey:</sel>
+          <arg type="NSString*">defaultName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>synchronize</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>synchronize</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>volatileDomainForName:</sel><arg type="NSString*">domainName</arg>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>volatileDomainForName:</sel>
+          <arg type="NSString*">domainName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>volatileDomainNames</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>volatileDomainNames</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

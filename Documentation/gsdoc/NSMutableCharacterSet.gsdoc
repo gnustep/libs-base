@@ -16,35 +16,48 @@
       <class name="NSMutableCharacterSet" super="NSCharacterSet">
         <declared>Foundation/NSCharacterSet.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="void"><sel>addCharactersInRange:</sel><arg type="NSRange">aRange</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="void">
+          <sel>addCharactersInRange:</sel>
+          <arg type="NSRange">aRange</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>addCharactersInString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>addCharactersInString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>formIntersectionWithCharacterSet:</sel><arg type="NSCharacterSet*">otherSet</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>formIntersectionWithCharacterSet:</sel>
+          <arg type="NSCharacterSet*">otherSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>formUnionWithCharacterSet:</sel><arg type="NSCharacterSet*">otherSet</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>formUnionWithCharacterSet:</sel>
+          <arg type="NSCharacterSet*">otherSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>invert</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>invert</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeCharactersInRange:</sel><arg type="NSRange">aRange</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeCharactersInRange:</sel>
+          <arg type="NSRange">aRange</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeCharactersInString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeCharactersInString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

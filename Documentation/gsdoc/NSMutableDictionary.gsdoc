@@ -16,43 +16,60 @@
       <class name="NSMutableDictionary" super="NSDictionary">
         <declared>Foundation/NSDictionary.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>allocWithZone:</sel><arg type="NSZone*">zone</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>allocWithZone:</sel>
+          <arg type="NSZone*">zone</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>dictionaryWithCapacity:</sel><arg type="unsigned int">numItems</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>dictionaryWithCapacity:</sel>
+          <arg type="unsigned int">numItems</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>addEntriesFromDictionary:</sel><arg type="NSDictionary*">otherDictionary</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>addEntriesFromDictionary:</sel>
+          <arg type="NSDictionary*">otherDictionary</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithCapacity:</sel><arg type="unsigned int">numItems</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithCapacity:</sel>
+          <arg type="unsigned int">numItems</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeAllObjects</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeAllObjects</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeObjectForKey:</sel><arg type="id">aKey</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeObjectForKey:</sel>
+          <arg type="id">aKey</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeObjectsForKeys:</sel><arg type="NSArray*">keyArray</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeObjectsForKeys:</sel>
+          <arg type="NSArray*">keyArray</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setDictionary:</sel><arg type="NSDictionary*">otherDictionary</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setDictionary:</sel>
+          <arg type="NSDictionary*">otherDictionary</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

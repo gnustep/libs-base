@@ -16,159 +16,217 @@
       <class name="NSConnection" super="NSObject">
         <declared>Foundation/NSConnection.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSArray*" factory="yes"><sel>allConnections</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSArray*" factory="yes">
+          <sel>allConnections</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSConnection*" factory="yes"><sel>connectionWithReceivePort:</sel><arg type="NSPort*">receivePort</arg>
-        <desc>
-        </desc>
+        <method type="NSConnection*" factory="yes">
+          <sel>connectionWithReceivePort:</sel>
+          <arg type="NSPort*">receivePort</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSConnection*" factory="yes"><sel>connectionWithRegisteredName:</sel><arg type="NSString*">name</arg>
-        <desc>
-        </desc>
+        <method type="NSConnection*" factory="yes">
+          <sel>connectionWithRegisteredName:</sel>
+          <arg type="NSString*">name</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>currentConversation</sel>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>currentConversation</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSConnection*" factory="yes"><sel>defaultConnection</sel>
-        <desc>
-        </desc>
+        <method type="NSConnection*" factory="yes">
+          <sel>defaultConnection</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDistantObject*" factory="yes"><sel>rootProxyForConnectionWithRegisteredName:</sel><arg type="NSString*">name</arg>
-        <desc>
-        </desc>
+        <method type="NSDistantObject*" factory="yes">
+          <sel>rootProxyForConnectionWithRegisteredName:</sel>
+          <arg type="NSString*">name</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>addRequestMode:</sel><arg type="NSString*">mode</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>addRequestMode:</sel>
+          <arg type="NSString*">mode</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>addRunLoop:</sel><arg type="NSRunLoop*">runloop</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>addRunLoop:</sel>
+          <arg type="NSRunLoop*">runloop</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>delegate</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>delegate</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>enableMultipleThreads</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>enableMultipleThreads</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>independentConversationQueueing</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>independentConversationQueueing</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithReceivePort:</sel><arg type="NSPort*">receivePort</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithReceivePort:</sel>
+          <arg type="NSPort*">receivePort</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>invalidate</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>invalidate</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isValid</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isValid</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>localObjects</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>localObjects</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>multipleThreadsEnabled</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>multipleThreadsEnabled</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>receivePort</sel>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>receivePort</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>registerName:</sel><arg type="NSString*">name</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>registerName:</sel>
+          <arg type="NSString*">name</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>remoteObjects</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>remoteObjects</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeRequestMode:</sel><arg type="NSString*">mode</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeRequestMode:</sel>
+          <arg type="NSString*">mode</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeRunLoop:</sel><arg type="NSRunLoop*">runloop</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeRunLoop:</sel>
+          <arg type="NSRunLoop*">runloop</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeInterval"><sel>replyTimeout</sel>
-        <desc>
-        </desc>
+        <method type="NSTimeInterval">
+          <sel>replyTimeout</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>requestModes</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>requestModes</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeInterval"><sel>requestTimeout</sel>
-        <desc>
-        </desc>
+        <method type="NSTimeInterval">
+          <sel>requestTimeout</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>rootObject</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>rootObject</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDistantObject*"><sel>rootProxy</sel>
-        <desc>
-        </desc>
+        <method type="NSDistantObject*">
+          <sel>rootProxy</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>runInNewThread</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>runInNewThread</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>sendPort</sel>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>sendPort</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setDelegate:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setDelegate:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setIndependentConversationQueueing:</sel><arg type="BOOL">flag</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setIndependentConversationQueueing:</sel>
+          <arg type="BOOL">flag</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setReplyTimeout:</sel><arg type="NSTimeInterval">seconds</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setReplyTimeout:</sel>
+          <arg type="NSTimeInterval">seconds</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setRequestTimeout:</sel><arg type="NSTimeInterval">seconds</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setRequestTimeout:</sel>
+          <arg type="NSTimeInterval">seconds</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setRootObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setRootObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>statistics</sel>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>statistics</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>authenticateComponents:</sel><arg type="NSArray*">components</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>authenticateComponents:</sel>
+          <arg type="NSArray*">components</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>authenticationDataForComponents:</sel><arg type="NSArray*">components</arg>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>authenticationDataForComponents:</sel>
+          <arg type="NSArray*">components</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>connection:</sel><arg type="NSConnection*">parentConnection</arg><sel>shouldMakeNewConnection:</sel><arg type="NSConnection*">newConnnection</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>connection:</sel>
+          <arg type="NSConnection*">parentConnection</arg>
+          <sel>shouldMakeNewConnection:</sel>
+          <arg type="NSConnection*">newConnnection</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>makeNewConnection:</sel><arg type="NSConnection*">newConnection</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>makeNewConnection:</sel>
+          <arg type="NSConnection*">newConnection</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

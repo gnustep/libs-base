@@ -16,43 +16,53 @@
       <class name="NSProcessInfo" super="NSObject">
         <declared>Foundation/NSProcessinfo.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSProcessInfo*" factory="yes"><sel>processInfo</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSProcessInfo*" factory="yes">
+          <sel>processInfo</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>arguments</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>arguments</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>environment</sel>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>environment</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>globallyUniqueString</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>globallyUniqueString</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>hostName</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>hostName</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="unsigned int"><sel>operatingSystem</sel>
-        <desc>
-        </desc>
+        <method type="unsigned int">
+          <sel>operatingSystem</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>operatingSystemName</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>operatingSystemName</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>processName</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>processName</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setProcessName:</sel><arg type="NSString*">newName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setProcessName:</sel>
+          <arg type="NSString*">newName</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

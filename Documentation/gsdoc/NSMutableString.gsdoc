@@ -16,39 +16,57 @@
       <class name="NSMutableString" super="NSString">
         <declared>Foundation/NSString.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="NSMutableString*" factory="yes"><sel>stringWithCapacity:</sel><arg type="unsigned int">capacity</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSMutableString*" factory="yes">
+          <sel>stringWithCapacity:</sel>
+          <arg type="unsigned int">capacity</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>appendFormat:</sel><arg type="NSString*">format,</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>appendFormat:</sel>
+          <arg type="NSString*">format,</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>appendString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>appendString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>deleteCharactersInRange:</sel><arg type="NSRange">aRange</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>deleteCharactersInRange:</sel>
+          <arg type="NSRange">aRange</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithCapacity:</sel><arg type="unsigned int">capacity</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithCapacity:</sel>
+          <arg type="unsigned int">capacity</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>insertString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>insertString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>replaceCharactersInRange:</sel><arg type="NSRange">aRange</arg><sel>withString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>replaceCharactersInRange:</sel>
+          <arg type="NSRange">aRange</arg>
+          <sel>withString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

@@ -16,35 +16,60 @@
       <class name="NSNotificationCenter" super="NSObject">
         <declared>Foundation/NSNotification.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSNotificationCenter*" factory="yes"><sel>defaultCenter</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSNotificationCenter*" factory="yes">
+          <sel>defaultCenter</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>addObserver:</sel><arg type="id">anObserver</arg><sel>selector:</sel><arg type="SEL">aSelector</arg><sel>name:</sel><arg type="NSString*">notificationName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>addObserver:</sel>
+          <arg type="id">anObserver</arg>
+          <sel>selector:</sel>
+          <arg type="SEL">aSelector</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">notificationName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>postNotification:</sel><arg type="NSNotification*">notification</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>postNotification:</sel>
+          <arg type="NSNotification*">notification</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>postNotificationName:</sel><arg type="NSString*">notificationName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>postNotificationName:</sel>
+          <arg type="NSString*">notificationName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>postNotificationName:</sel><arg type="NSString*">notificationName</arg><sel>object:</sel><arg type="id">anObject</arg><sel>userInfo:</sel><arg type="NSDictionary*">userInfo</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>postNotificationName:</sel>
+          <arg type="NSString*">notificationName</arg>
+          <sel>object:</sel>
+          <arg type="id">anObject</arg>
+          <sel>userInfo:</sel>
+          <arg type="NSDictionary*">userInfo</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeObserver:</sel><arg type="id">anObserver</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeObserver:</sel>
+          <arg type="id">anObserver</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeObserver:</sel><arg type="id">anObserver</arg><sel>name:</sel><arg type="NSString*">notificationName</arg><sel>object:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeObserver:</sel>
+          <arg type="id">anObserver</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">notificationName</arg>
+          <sel>object:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

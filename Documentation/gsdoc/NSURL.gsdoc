@@ -16,83 +16,114 @@
       <class name="NSURL" super="NSObject">
         <declared>Foundation/NSURL.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>URLWithString:</sel><arg type="NSString*">URLString</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>URLWithString:</sel>
+          <arg type="NSString*">URLString</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>URLWithString:</sel><arg type="NSString*">URLString</arg><sel>relativeToURL:</sel><arg type="NSURL*">baseURL</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>URLWithString:</sel>
+          <arg type="NSString*">URLString</arg>
+          <sel>relativeToURL:</sel>
+          <arg type="NSURL*">baseURL</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>fileURLWithPath:</sel><arg type="NSString*">path</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>fileURLWithPath:</sel>
+          <arg type="NSString*">path</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>loadResourceDataNotifyingClient:</sel><arg type="id">client</arg><sel>usingCache:</sel><arg type="BOOL">shouldUseCache</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>loadResourceDataNotifyingClient:</sel>
+          <arg type="id">client</arg>
+          <sel>usingCache:</sel>
+          <arg type="BOOL">shouldUseCache</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>parameterString</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>parameterString</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>password</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>password</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>path</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>path</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSNumber*"><sel>port</sel>
-        <desc>
-        </desc>
+        <method type="NSNumber*">
+          <sel>port</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>propertyForKey:</sel><arg type="NSString*">propertyKey</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>propertyForKey:</sel>
+          <arg type="NSString*">propertyKey</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>query</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>query</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>relativePath</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>relativePath</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>relativeString</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>relativeString</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>resourceDataUsingCache:</sel><arg type="BOOL">shouldUseCache</arg>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>resourceDataUsingCache:</sel>
+          <arg type="BOOL">shouldUseCache</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>resourceSpecifier</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>resourceSpecifier</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>scheme</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>scheme</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>setProperty:</sel><arg type="id">property</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>setProperty:</sel>
+          <arg type="id">property</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>setResourceData:</sel><arg type="NSData*">data</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>setResourceData:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSURL*"><sel>standardizedURL</sel>
-        <desc>
-        </desc>
+        <method type="NSURL*">
+          <sel>standardizedURL</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>user</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>user</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

@@ -16,19 +16,22 @@
       <class name="NSDirectoryEnumerator" super="NSEnumerator">
         <declared>Foundation/NSFileManager.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSDictionary*"><sel>directoryAttributes</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSDictionary*">
+          <sel>directoryAttributes</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>fileAttributes</sel>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>fileAttributes</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>skipDescendents</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>skipDescendents</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

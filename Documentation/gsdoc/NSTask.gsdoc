@@ -16,95 +16,127 @@
       <class name="NSTask" super="NSObject">
         <declared>Foundation/NSTask.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSTask*" factory="yes"><sel>launchedTaskWithLaunchPath:</sel><arg type="NSString*">path</arg><sel>arguments:</sel><arg type="NSArray*">arguments</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSTask*" factory="yes">
+          <sel>launchedTaskWithLaunchPath:</sel>
+          <arg type="NSString*">path</arg>
+          <sel>arguments:</sel>
+          <arg type="NSArray*">arguments</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>arguments</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>arguments</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>currentDirectoryPath</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>currentDirectoryPath</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDictionary*"><sel>environment</sel>
-        <desc>
-        </desc>
+        <method type="NSDictionary*">
+          <sel>environment</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>init</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>init</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>interrupt</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>interrupt</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isRunning</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isRunning</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>launch</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>launch</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>launchPath</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>launchPath</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setArguments:</sel><arg type="NSArray*">arguments</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setArguments:</sel>
+          <arg type="NSArray*">arguments</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setCurrentDirectoryPath:</sel><arg type="NSString*">path</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setCurrentDirectoryPath:</sel>
+          <arg type="NSString*">path</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setEnvironment:</sel><arg type="NSDictionary*">environmentDictionary</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setEnvironment:</sel>
+          <arg type="NSDictionary*">environmentDictionary</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setLaunchPath:</sel><arg type="NSString*">path</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setLaunchPath:</sel>
+          <arg type="NSString*">path</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setStandardError:</sel><arg type="id">file</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setStandardError:</sel>
+          <arg type="id">file</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setStandardInput:</sel><arg type="id">file</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setStandardInput:</sel>
+          <arg type="id">file</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setStandardOutput:</sel><arg type="id">file</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setStandardOutput:</sel>
+          <arg type="id">file</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>standardError</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>standardError</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>standardInput</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>standardInput</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>standardOutput</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>standardOutput</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>terminate</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>terminate</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="int"><sel>terminationStatus</sel>
-        <desc>
-        </desc>
+        <method type="int">
+          <sel>terminationStatus</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>waitUntilExit</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>waitUntilExit</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

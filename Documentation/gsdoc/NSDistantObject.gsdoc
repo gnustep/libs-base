@@ -16,31 +16,46 @@
       <class name="NSDistantObject" super="NSProxy">
         <declared>Foundation/NSDistantObject.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="NSDistantObject*" factory="yes"><sel>proxyWithLocal:</sel><arg type="id">anObject</arg><sel>connection:</sel><arg type="NSConnection*">aConnection</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSDistantObject*" factory="yes">
+          <sel>proxyWithLocal:</sel>
+          <arg type="id">anObject</arg>
+          <sel>connection:</sel>
+          <arg type="NSConnection*">aConnection</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDistantObject*" factory="yes"><sel>proxyWithTarget:</sel><arg type="id">remoteObject</arg>
-        <desc>
-        </desc>
+        <method type="NSDistantObject*" factory="yes">
+          <sel>proxyWithTarget:</sel>
+          <arg type="id">remoteObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSConnection*"><sel>connectionForProxy</sel>
-        <desc>
-        </desc>
+        <method type="NSConnection*">
+          <sel>connectionForProxy</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithLocal:</sel><arg type="id">anObject</arg><sel>connection:</sel><arg type="NSConnection*">aConnection</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithLocal:</sel>
+          <arg type="id">anObject</arg>
+          <sel>connection:</sel>
+          <arg type="NSConnection*">aConnection</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithTarget:</sel><arg type="id">remoteObject</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithTarget:</sel>
+          <arg type="id">remoteObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setProtocolForProxy:</sel><arg type="Protocol*">aProtocol</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setProtocolForProxy:</sel>
+          <arg type="Protocol*">aProtocol</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

@@ -16,115 +16,173 @@
       <class name="NSSet" super="NSObject">
         <declared>Foundation/NSSet.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>allocWithZone:</sel><arg type="NSZone*">zone</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>allocWithZone:</sel>
+          <arg type="NSZone*">zone</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>set</sel>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>set</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>setWithArray:</sel><arg type="NSArray*">anArray</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>setWithArray:</sel>
+          <arg type="NSArray*">anArray</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>setWithObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>setWithObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>setWithObjects:</sel><arg type="id">anObject</arg><vararg/>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>setWithObjects:</sel>
+          <arg type="id">anObject</arg><vararg/>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>setWithObjects:</sel><arg type="id*">objects</arg><sel>count:</sel><arg type="unsigned int">count</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>setWithObjects:</sel>
+          <arg type="id*">objects</arg>
+          <sel>count:</sel>
+          <arg type="unsigned int">count</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>setWithArray:</sel><arg type="NSSet*">aSet</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>setWithArray:</sel>
+          <arg type="NSSet*">aSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>allObjects</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>allObjects</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>anyObject</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>anyObject</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>containsObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>containsObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="unsigned int"><sel>count</sel>
-        <desc>
-        </desc>
+        <method type="unsigned int">
+          <sel>count</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>description</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>description</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">locale</arg>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>descriptionWithLocale:</sel>
+          <arg type="NSDictionary*">locale</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithArray:</sel><arg type="NSArray*">array</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithArray:</sel>
+          <arg type="NSArray*">array</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithObjects:</sel><arg type="id">anObject</arg><vararg/>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithObjects:</sel>
+          <arg type="id">anObject</arg><vararg/>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithObjects:</sel><arg type="id*">objects</arg><sel>count:</sel><arg type="unsigned int">count</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithObjects:</sel>
+          <arg type="id*">objects</arg>
+          <sel>count:</sel>
+          <arg type="unsigned int">count</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithSet:</sel><arg type="NSSet*">otherSet</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithSet:</sel>
+          <arg type="NSSet*">otherSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithSet:</sel><arg type="NSSet*">otherSet</arg><sel>copyItems:</sel><arg type="BOOL">flag</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithSet:</sel>
+          <arg type="NSSet*">otherSet</arg>
+          <sel>copyItems:</sel>
+          <arg type="BOOL">flag</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>intersectsSet:</sel><arg type="NSSet*">otherSet</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>intersectsSet:</sel>
+          <arg type="NSSet*">otherSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isEqualToSet:</sel><arg type="NSSet*">otherSet</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isEqualToSet:</sel>
+          <arg type="NSSet*">otherSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isSubsetOfSet:</sel><arg type="NSSet*">otherSet</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isSubsetOfSet:</sel>
+          <arg type="NSSet*">otherSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>makeObjectsPerform:</sel><arg type="SEL">aSelector</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>makeObjectsPerform:</sel>
+          <arg type="SEL">aSelector</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>makeObjectsPerformSelector:</sel><arg type="SEL">aSelector</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>makeObjectsPerformSelector:</sel>
+          <arg type="SEL">aSelector</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>makeObjectsPerformSelector:</sel><arg type="SEL">aSelector</arg><sel>withObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>makeObjectsPerformSelector:</sel>
+          <arg type="SEL">aSelector</arg>
+          <sel>withObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>makeObjectsPerform:</sel><arg type="SEL">aSelector</arg><sel>withObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>makeObjectsPerform:</sel>
+          <arg type="SEL">aSelector</arg>
+          <sel>withObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>member:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>member:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSEnumerator*"><sel>objectEnumerator</sel>
-        <desc>
-        </desc>
+        <method type="NSEnumerator*">
+          <sel>objectEnumerator</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>
