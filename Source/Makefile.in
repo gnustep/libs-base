@@ -384,7 +384,6 @@ NSGSet.m \
 NSGSequence.m \
 NSGString.m \
 NSHashTable.m \
-NSHost.m \
 NSInvocation.m \
 NSLock.m \
 NSLog.m \
@@ -430,7 +429,8 @@ dld-load.h \
 hpux-load.h \
 null-load.h \
 simple-load.h \
-NSCallBacks.h 
+NSCallBacks.h \
+NSHost.m 
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=${OEXT}) \
