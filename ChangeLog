@@ -11,8 +11,11 @@ Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	(my pre-marriage name)              (my post-marriage name)
 	...and more...
 
+	* Makefile.in: Include Makeconf.
+
 	* doc/Makefile.in (TEXI_FILES): Rename libobjects.texi to
- 	gnustep-base.texi.
+ 	gnustep-base.texi.  Add base-desc.texi.
+	* doc/base-desc.texi: New file.
 
 	* src/include/*.h: Rename all #ifndef macro names to
 	...GNUSTEP_BASE_INCLUDE.
