@@ -114,7 +114,7 @@ main()
 
   {
     // Deriving new arrays
-    NSRange r = NSMakeRange(1, 3);
+    NSRange r = NSMakeRange(0, 3);
 
     /* Still need to finish the sort* methods
        [e sortedArrayUsingFunction: context:]
@@ -143,12 +143,12 @@ main()
     // Joining string elements
     printf("Method: -componentsJoinedByString:\n");
     i = [c componentsJoinedByString: @"/"];
-    if ([i isEqual: @"NSMutableArray/NSArray/NSObject"])
+    if ([i isEqual: @"NSObject/NSArray/NSMutableArray"])
       printf("%s is correct\n", [i cString]);
     else
       {
 	printf("Error: %s is not correct\n", [i cString]);
-	printf("Should be NSMutableArray/NSArray/NSObject\n");
+	printf("Should be NSObject/NSArray/NSMutableArray\n");
       }
   }
 
@@ -209,7 +209,7 @@ main()
 
   {
     // Removing objects
-    unsigned int ind[6] = {7, 4, 1, 3, 5, 0};
+    unsigned int ind[7] = {7, 4, 1, 3, 5, 0, 6};
 
     printf("Method -removeAllObjects\n");
     printf("Array count is %d\n", [h count]);
@@ -252,12 +252,13 @@ main()
       printf("%s ", [i name]);
     printf("\n");
 
-    printf("Method -removeObjectsFromIndices: {7,4,1,3,5,0} numIndices: 6\n");
+    printf("Method -removeObjectsFromIndices: {7,4,1,3,5,0,6} "
+	   "numIndices: 6\n");
     enumerator = [g objectEnumerator];
     while ((i = [enumerator nextObject]))
       printf("%s ", [i name]);
     printf("\n");
-    [g removeObjectsFromIndices: ind numIndices: 6];
+    [g removeObjectsFromIndices: ind numIndices: 7];
     enumerator = [g objectEnumerator];
     while ((i = [enumerator nextObject]))
       printf("%s ", [i name]);
