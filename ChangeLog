@@ -1,3 +1,16 @@
+Wed Jan  5 14:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSTimeZone.m: Changed order of lookup to determine the local
+	timezone:
+	1. User defaults with key 'Local Time Zone'
+	2. GNUSTEP_TZ environment variable
+	3. $GNUSTEP_SYSTEM_ROOT/Libraries/Resources/NSTimeZones/localtime
+	4. TZ environment variable
+	5. Use UTC
+	This means that the TZ environment variable can now safely be used for
+	non-GNUstep timezones as long as GNUSTEP_TZ is defined (or a localtime)
+	file exists.
+
 Wed Jan  5 10:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* NSTimeZones/NSTimeZones.tar: Made a revised set of timezones with
