@@ -1,3 +1,11 @@
+2002-03-12  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSString.h: Add extra ivars needed by Darwin
+	to NXConstantString.
+	* Source/GSString.m: ([NXConstantString +initialize]): Remove constant
+	string class reference setup for Darwin.
+	* Source/NSProcessInfo.m (main): Put it here.
+	
 Tue Mar 12 11:13:51 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Additions/GSXML.m ([-isEqualTo:]): Renamed everywhere to
