@@ -426,11 +426,15 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
       if (complete == NO && [parser isInHeaders] == NO)
 	{
+	  GSMimeHeader	*info;
 	  NSString	*enc;
 	  NSString	*len;
+	  NSString	*status;
 	  float		ver;
 
-	  ver = [[[document headerNamed: @"http"] value] floatValue];
+	  info = [document headerNamed: @"http"];
+	  ver = [[info value] floatValue];
+	  status = [info objectForKey: NSHTTPPropertyStatusCodeKey];
 	  len = [[document headerNamed: @"content-length"] value];
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
 	  if (enc == nil)
@@ -438,7 +442,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
 
-	  if ([enc isEqualToString: @"chunked"] == YES)	
+	  if ([status isEqual: @"204"] || [status isEqual: @"304"])
+	    {
+	      complete = YES;	// No body expected.
+	    }
+	  else if ([enc isEqualToString: @"chunked"] == YES)	
 	    {
 	      complete = NO;	// Read chunked body data
 	    }
