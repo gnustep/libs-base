@@ -127,7 +127,7 @@ id	GSUnique(id anObject);
  * Setting the count to zero will remove the object from the global set.
  */
 void	GSUPurge(unsigned count);
-void	GSUSet(id anObject, unsigned count);
+id	GSUSet(id anObject, unsigned count);
 
 #include <base/KeyedCollecting.h>
 

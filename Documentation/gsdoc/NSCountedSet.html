@@ -194,12 +194,12 @@ Standards: NotOpenStep NotMacOS-X<br>
 	
 <hr>
 <h2><a name="function-14">GSUSet</a></h2>
-<b>Prototype:</b> void GSUSet(id anObject, unsigned int count)<br>
+<b>Prototype:</b> id GSUSet(id anObject, unsigned int count)<br>
 
 	  This function sets the count for the specified object.  If the
 	  count for the object is set to zero then the object is removed
           from the global uniquing set.  The object is added to the set
-	  if necessary.
+	  if necessary.  The object returned is the one stored in the set.
 	  The function handles locking as necessary.  It can be used to
           alter the set even when uniquing is turned off.
 	
