@@ -353,16 +353,21 @@ FastArrayClear(FastArray array)
 }
 
 static INLINE void
-FastArrayEmpty(FastArray array)
+FastArrayRemoveAllItems(FastArray array)
 {
-#ifdef	FAST_ARRAY_NO_RELEASE
-  array->count = 0;
-#else
+#ifndef	FAST_ARRAY_NO_RELEASE
   while (array->count--)
     {
       FAST_ARRAY_RELEASE(array->ptr[array->count]);
     }
 #endif
+  array->count = 0;
+}
+
+static INLINE void
+FastArrayEmpty(FastArray array)
+{
+  FastArrayRemoveAllItems(array);
   FastArrayClear(array);
 }
 
