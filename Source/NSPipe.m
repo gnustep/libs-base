@@ -31,22 +31,22 @@
 
 // Allocating and Initializing a FileHandle Object
 
-+ (id)pipe
++ (id) pipe
 {
-    return [[[self alloc] init] autorelease];
+  return AUTORELEASE([[self alloc] init]);
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-    [readHandle release];
-    [writeHandle release];
-    [super dealloc];
+  RELEASE(readHandle);
+  RELEASE(writeHandle);
+  [super dealloc];
 }
 
-- (id)init
+- (id) init
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
 #ifndef __MINGW__
       int	p[2];
@@ -69,12 +69,12 @@
   return self;
 }
 
-- fileHandleForReading
+- (id) fileHandleForReading
 {
   return readHandle;
 }
 
-- fileHandleForWriting
+- (id) fileHandleForWriting
 {
   return writeHandle;
 }
