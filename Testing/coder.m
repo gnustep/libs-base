@@ -1,10 +1,10 @@
 /* A demonstration of writing and reading GNU Objective C objects to a file. */
 // Fri Oct 23 03:01:09 MET DST 1998 	dave@turbocat.de
 
-#include <base/Archiver.h>
-#include <base/BinaryCStream.h>
-#include <base/Array.h>
-#include <base/Dictionary.h>
+#include <GNUstepBase/Archiver.h>
+#include <GNUstepBase/BinaryCStream.h>
+#include <GNUstepBase/Array.h>
+#include <GNUstepBase/Dictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSValue.h>

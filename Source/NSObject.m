@@ -25,7 +25,7 @@
    */ 
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include <stdarg.h>
 #include "Foundation/NSObject.h"
 #include <objc/Protocol.h>
@@ -44,7 +44,7 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSMapTable.h"
 #include <limits.h>
-#include "gnustep/base/GSLocale.h"
+#include "GNUstepBase/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -206,7 +206,7 @@ typedef	struct obj_layout *obj;
 #define GSI_MAP_VTYPES  GSUNION_INT
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 static GSIMapTable_t	retain_counts = {0};
 

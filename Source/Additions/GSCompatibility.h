@@ -29,9 +29,9 @@
 #include <string.h>
 #include <Foundation/Foundation.h>
 #include <CoreFoundation/CFString.h>
-#include "gnustep/base/preface.h"
-#include "gnustep/base/GSObjCRuntime.h"
-#include "gnustep/base/GNUstep.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSObjCRuntime.h"
+#include "GNUstepBase/GNUstep.h"
 
 @class NSMutableSet;
 
@@ -39,11 +39,11 @@
  * Macros
  */
 
-// Following are also defined in gnustep-base/Headers/gnustep/base/NSObject.h
+// Following are also defined in base/Headers/Foundation/NSObject.h
 #define IF_NO_GC(x)	\
     x
 
-// Following are also defined in gnustep-base/Headers/gnustep/base/NSDebug.h
+// Following are also defined in base/Headers/Foundation/NSDebug.h
 #ifdef DEBUG
 #define NSDebugLLog(level, format, args...) \
     do { if (GSDebugSet(level) == YES) \
@@ -114,7 +114,7 @@
                 format: @"in %s, range { %u, %u } extends beyond size (%u)", \
                   sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
 
-/* Taken from gnustep-base/Headers/gnustep/base/NSString.h */
+/* Taken from base/Headers/Foundation/NSString.h */
 typedef enum _NSGNUstepStringEncoding
 {
 /* NB. Must not have an encoding with value zero - so we can use zero to

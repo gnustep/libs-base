@@ -25,7 +25,7 @@
    */ 
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSPathUtilities.h"
@@ -38,7 +38,7 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 
 #include "GSPrivate.h"
 

@@ -40,8 +40,8 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSUserDefaults.h"
-#include "gnustep/base/preface.h"
-#include "gnustep/base/GSObjCRuntime.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif

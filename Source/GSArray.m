@@ -25,9 +25,9 @@
    */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSArray.h"
-#include "gnustep/base/GSObjCRuntime.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSDebug.h"

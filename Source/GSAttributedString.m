@@ -44,7 +44,7 @@
  */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSAttributedString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSRange.h"
@@ -103,7 +103,7 @@ static	NSDictionary	*blank;
 #define GSI_MAP_VTYPES	GSUNION_INT
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 static NSLock		*attrLock = nil;
 static GSIMapTable_t	attrMap;

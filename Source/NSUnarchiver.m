@@ -38,7 +38,7 @@
 #define	GSI_ARRAY_RELEASE(A, X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
-#include "gnustep/base/GSIArray.h"
+#include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSUNARCHIVER_M
 #include "Foundation/NSArchiver.h"

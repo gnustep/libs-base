@@ -25,7 +25,7 @@
    */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSInvocation.h"
 #include "Foundation/NSProxy.h"
 #include "Foundation/NSMethodSignature.h"

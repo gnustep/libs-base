@@ -48,18 +48,17 @@ before-all::  $(GENERATED_HFILES)
 #
 # Unfortunately the way the header files are placed in relationship
 # to the source we must install the GNU header manually
+# Ayers 2003-07-31: This statement should be reevaluated!
 after-install::
 	for file in $(GNU_HEADERS); do \
-	  $(INSTALL_DATA) ../Headers/gnustep/base/$$file \
-	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
+	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
+	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	for file in $(UNICODE_HEADERS); do \
-	  $(INSTALL_DATA) ../Headers/gnustep/$$file \
-	    $(GNUSTEP_HEADERS)/gnustep/$$file ; \
+	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
+	  $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GSConfig.h \
-	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
-	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/mframe.h \
 	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
 	  services=/etc/services; \
@@ -83,13 +82,12 @@ after-install::
 # Things to do after uninstalling
 after-uninstall::
 	for file in $(GNU_HEADERS); do \
-	  rm -f $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
+	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	for file in $(UNICODE_HEADERS); do \
-	  rm -f $(GNUSTEP_HEADERS)/gnustep/$$file ; \
+	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GSConfig.h
-	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/mframe.h
 
 # Things to do before cleaning
 # before-clean::
@@ -131,19 +129,19 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-$(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR)/preface.h
+$(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR_BASE)/preface.h
 
 #
 # The config.h file is specific to a target
 #
 $(GNUSTEP_TARGET_DIR)/config.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	-mv $(HEADER_DIR)/config.h $(GNUSTEP_TARGET_DIR)
+	-mv $(HEADER_DIR_BASE)/config.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/config.h
 
 $(GNUSTEP_TARGET_DIR)/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	-mv $(HEADER_DIR)/GSConfig.h $(GNUSTEP_TARGET_DIR)
+	-mv $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/GSConfig.h
 
 $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
@@ -200,7 +198,7 @@ $(GNUSTEP_OBJ_DIR)/NSPortCoder.o \
 $(GNUSTEP_OBJ_DIR)/NSRunLoop.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-	: $(HEADER_DIR)/GSIArray.h $(HEADER_DIR)/GSUnion.h
+	: $(HEADER_DIR_BASE)/GSIArray.h $(HEADER_DIR_BASE)/GSUnion.h
 
 #
 #	Files that include GSIMap.h will need a rebuild if it is changed.
@@ -218,7 +216,7 @@ $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSObject.o \
 $(GNUSTEP_OBJ_DIR)/NSPortCoder.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
-	: $(HEADER_DIR)/GSIMap.h $(HEADER_DIR)/GSUnion.h
+	: $(HEADER_DIR_BASE)/GSIMap.h $(HEADER_DIR_BASE)/GSUnion.h
 
 #
 #	Files that include NSObjCRuntime.h will need a rebuild if it is changed.
@@ -234,7 +232,7 @@ $(GNUSTEP_OBJ_DIR)/NSObject.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSString.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-        : $(HEADER_DIR)/NSObjCRuntime.h
+        : $(HEADER_DIR_FND)/NSObjCRuntime.h
 
 #
 #	Files that include GSeq.h will need a rebuild if it is changed.
@@ -247,7 +245,7 @@ $(GNUSTEP_OBJ_DIR)/GSString.o \
 #	NSGeometry.m needs a recompile if NSGeometry.h is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
-	: $(HEADER_DIR)/NSGeometry.h
+	: $(HEADER_DIR_FND)/NSGeometry.h
 
 
 #
@@ -281,5 +279,6 @@ TAGS: $(DIST_FILES)
 
 regenerate: $(DIST_FILES)
 	mv AUTHORS ..
+
 
 FORCE:

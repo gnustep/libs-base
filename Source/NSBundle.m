@@ -31,8 +31,8 @@
 */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
-#include "Foundation/objc-load.h"
+#include "GNUstepBase/preface.h"
+#include "objc-load.h"
 #include "Foundation/NSBundle.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"

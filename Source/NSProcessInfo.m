@@ -54,7 +54,7 @@
  *************************************************************************/
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -90,7 +90,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSHost.h"
 #include "Foundation/NSLock.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 
 #include "GSPrivate.h"
 

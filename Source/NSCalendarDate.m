@@ -41,7 +41,7 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSObjCRuntime.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

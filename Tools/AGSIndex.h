@@ -22,7 +22,7 @@
 
    */
 
-#include        <gnustep/base/GSXML.h>
+#include        <GNUstepBase/GSXML.h>
 
 @interface AGSIndex : NSObject
 {

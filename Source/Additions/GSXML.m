@@ -44,7 +44,7 @@
 
 #ifdef	HAVE_LIBXML
 
-#include "gnustep/base/GSXML.h"
+#include "GNUstepBase/GSXML.h"
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSData.h>
 #include <Foundation/NSValue.h>

@@ -26,7 +26,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSProcessInfo.h>
-#include <gnustep/base/GSXML.h>
+#include <GNUstepBase/GSXML.h>
 
 @interface GSXMLParser (Loader)
 + (NSString*) loadEntity: (NSString*)publicId

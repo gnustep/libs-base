@@ -36,7 +36,7 @@
 (TRY_GNU_ARCHIVING && defined(GNUSTEP_BASE_MAJOR_VERSION))
 
 #if GNU_ARCHIVING
-#include <base/Archiver.h>
+#include <GNUstepBase/Archiver.h>
 #endif /* GNU_ARCHIVING */
 
 

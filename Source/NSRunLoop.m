@@ -29,7 +29,7 @@
 */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSDate.h"
 #include "Foundation/NSValue.h"
@@ -329,7 +329,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 #define GSI_ARRAY_RETAIN(A, X)	
 #endif
 
-#include "gnustep/base/GSIArray.h"
+#include "GNUstepBase/GSIArray.h"
 
 static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {

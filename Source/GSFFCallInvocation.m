@@ -24,7 +24,7 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSDistantObject.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSInvocation.h"
+#include "GSInvocation.h"
 #include <config.h>
 #include <objc/objc-api.h>
 #include <avcall.h>
@@ -115,7 +115,7 @@ ReturnTypeEqualsReturnType (vacallReturnTypeInfo *a, vacallReturnTypeInfo *b)
 #define GSI_MAP_RELEASE_VAL(M, X)
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 /* This determines the number of precomputed
    callback data entries.  The list is indexed

@@ -28,7 +28,7 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/GSObjCRuntime.h>
+#include <GNUstepBase/GSObjCRuntime.h>
 
 GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);

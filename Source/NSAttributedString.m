@@ -47,8 +47,8 @@
  */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
-#include "gnustep/base/Unicode.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/Unicode.h"
 
 #include "Foundation/NSAttributedString.h"
 #include "Foundation/NSException.h"

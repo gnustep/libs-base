@@ -28,7 +28,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSObjCRuntime.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER

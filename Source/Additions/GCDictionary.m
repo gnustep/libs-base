@@ -31,8 +31,8 @@
 #include <Foundation/Foundation.h>
 #endif
 
-#include "gnustep/base/GSObjCRuntime.h"
-#include "gnustep/base/GCObject.h"
+#include "GNUstepBase/GSObjCRuntime.h"
+#include "GNUstepBase/GCObject.h"
 #include "GSCompatibility.h"
 
 typedef struct {

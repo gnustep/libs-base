@@ -25,14 +25,14 @@
    */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSObject.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSBundle.h"
-#include "Foundation/GSFileHandle.h"
+#include "GNUstepBase/GSFileHandle.h"
 
 // GNUstep Notification names
 

@@ -31,7 +31,7 @@
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSDebug.h"
 
-#include "gnustep/base/GSObjCRuntime.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
@@ -44,7 +44,7 @@
 #define	GSI_MAP_RETAIN_KEY(M, X)	((id)(X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 
-#include	"gnustep/base/GSIMap.h"
+#include	"GNUstepBase/GSIMap.h"
 
 @interface GSDictionary : NSDictionary
 {

@@ -27,7 +27,7 @@
 
 #include <ffi.h>
 #include "Foundation/NSMethodSignature.h"
-#include "gnustep/base/DistributedObjects.h"
+#include "GNUstepBase/DistributedObjects.h"
 
 typedef struct _cifframe_t {
   ffi_cif cif;

@@ -509,9 +509,9 @@
 #include "AGSOutput.h"
 #include "AGSIndex.h"
 #include "AGSHtml.h"
-#include "gnustep/base/GNUstep.h"
+#include "GNUstepBase/GNUstep.h"
 #ifdef NeXT_Foundation_LIBRARY
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 #endif
 
 int

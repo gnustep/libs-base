@@ -14,7 +14,7 @@
 #include <ctype.h>
 #include <locale.h>
 #include <Foundation/Foundation.h>
-#include <base/GSLocale.h>
+#include <GNUstepBase/GSLocale.h>
 
 #define MAXSTRING 100
 

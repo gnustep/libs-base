@@ -27,7 +27,7 @@
    */ 
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include <mframe.h>
 
 #include "Foundation/NSMethodSignature.h"

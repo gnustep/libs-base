@@ -1,5 +1,5 @@
 #include <Foundation/Foundation.h>
-#include <gnustep/base/GCObject.h>
+#include <GNUstepBase/GCObject.h>
 #include <stdio.h>
 
 

@@ -22,7 +22,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 #include "config.h"
-#include "gnustep/base/GSLocale.h"
+#include "GNUstepBase/GSLocale.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSLock.h"

@@ -21,8 +21,8 @@
    */
 
 #include "AGSOutput.h"
-#include "gnustep/base/GNUstep.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSCategories.h"
 
 @interface AGSOutput (Private)
 - (NSString*) mergeMarkup: (NSString*)markup

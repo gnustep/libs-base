@@ -27,7 +27,7 @@
 */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -52,7 +52,7 @@
 #include "Foundation/NSUtilities.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSLocale.h"
+#include "GNUstepBase/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif

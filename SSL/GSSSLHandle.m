@@ -22,7 +22,7 @@
    */
 
 
-#include <config.h>
+#include "config.h"
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #ifndef __WIN32__
@@ -53,7 +53,7 @@
 #include <GSConfig.h>
 #include <Foundation/Foundation.h>
 
-#include <gnustep/base/GSFileHandle.h>
+#include <GNUstepBase/GSFileHandle.h>
 
 #if defined(__MINGW__)
 #include <winsock2.h>

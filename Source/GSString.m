@@ -33,7 +33,7 @@
 */ 
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSArray.h"
@@ -45,15 +45,15 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
-#include "gnustep/base/GSFormat.h"
-#include "gnustep/base/GSObjCRuntime.h"
+#include "GNUstepBase/GSObjCRuntime.h"
+#include "GSFormat.h"
 #include <limits.h>
 
 #include "GSPrivate.h"
 
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include "gnustep/base/Unicode.h"
+#include "GNUstepBase/Unicode.h"
 
 #ifdef NeXT_RUNTIME
 /* Used by the Darwin/NeXT ObjC Runtime

@@ -24,13 +24,13 @@
 
 #include "config.h"
 
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSObject.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSFileHandle.h"
-#include "Foundation/GSFileHandle.h"
+#include "GNUstepBase/GSFileHandle.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSNotification.h"

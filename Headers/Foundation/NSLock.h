@@ -33,7 +33,7 @@
 
 #include <Foundation/NSObject.h>
 #ifdef NeXT_RUNTIME
-#include <base/thr-mach.h>
+#include <GNUstepBase/thr-mach.h>
 #endif
 
 /*

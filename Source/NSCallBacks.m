@@ -29,7 +29,7 @@
 /**** Included Headers *******************************************************/
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "NSCallBacks.h"
 #include "Foundation/NSObject.h"
 #include "Foundation/NSString.h"

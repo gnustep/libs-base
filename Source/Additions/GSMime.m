@@ -52,8 +52,8 @@
 
 #include "config.h"
 #include	<Foundation/Foundation.h>
-#include	"gnustep/base/GSMime.h"
-#include	"gnustep/base/GSCategories.h"
+#include	"GNUstepBase/GSMime.h"
+#include	"GNUstepBase/GSCategories.h"
 #include	<string.h>
 #include	<ctype.h>
 #include 	"GSCompatibility.h"

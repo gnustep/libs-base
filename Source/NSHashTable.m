@@ -56,7 +56,7 @@
  (M->extra.retain)((NSHashTable*)M, X.ptr)
 #define GSI_MAP_ENUMERATOR	NSHashEnumerator
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 /**
  * Returns an array of all the objects in the table.

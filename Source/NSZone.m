@@ -86,7 +86,7 @@
 #define IN_NSZONE_M 1
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include <stddef.h>
 #include <string.h>
 #include "Foundation/NSObjCRuntime.h"

@@ -40,7 +40,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSCharacterSet.h"
@@ -60,8 +60,8 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSFormat.h"
-#include "gnustep/base/GSLocale.h"
+#include "GNUstepBase/GSLocale.h"
+#include "GSFormat.h"
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -98,7 +98,7 @@ typedef unsigned long long uintmax_t;
 #endif
 #endif
 
-#include "gnustep/base/Unicode.h"
+#include "GNUstepBase/Unicode.h"
 
 struct printf_info
 {

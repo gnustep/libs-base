@@ -26,8 +26,8 @@
    */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
-#include "gnustep/base/DistributedObjects.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/DistributedObjects.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSMethodSignature.h"

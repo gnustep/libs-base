@@ -1,4 +1,4 @@
-/* Headers/gnustep/base/config.h.in.  Generated from configure.ac by autoheader.  */
+/* Headers/Additions/GNUstepBase/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if nested functions are broken on this compiler */
 #undef BROKEN_NESTED_FUNCTIONS

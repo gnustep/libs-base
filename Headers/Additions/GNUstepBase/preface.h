@@ -26,7 +26,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <base/objc-gnu2next.h>
+#include <GNUstepBase/objc-gnu2next.h>
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #ifndef __WIN32__
@@ -91,11 +91,11 @@
 #endif
 
 /* The following group of lines maintained by the gstep-base configure */
-#define GNUSTEP_BASE_VERSION            @VERSION@
-#define GNUSTEP_BASE_MAJOR_VERSION      @MAJOR_VERSION@
-#define GNUSTEP_BASE_MINOR_VERSION      @MINOR_VERSION@
-#define GNUSTEP_BASE_SUBMINOR_VERSION   @SUBMINOR_VERSION@
-#define GNUSTEP_BASE_GCC_VERSION        @GCC_VERSION@
+#define GNUSTEP_BASE_VERSION            1.7.2
+#define GNUSTEP_BASE_MAJOR_VERSION      1
+#define GNUSTEP_BASE_MINOR_VERSION      7
+#define GNUSTEP_BASE_SUBMINOR_VERSION   2
+#define GNUSTEP_BASE_GCC_VERSION        2.8.0
 
 #if 0
 extern const char o_version[];

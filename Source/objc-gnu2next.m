@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include <stdio.h>
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "mframe.h"
 
 id next_objc_msg_sendv(id object, SEL op, void* frame)

@@ -27,7 +27,7 @@
 #include "callframe.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
-#include "gnustep/base/GSInvocation.h"
+#include "GSInvocation.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;

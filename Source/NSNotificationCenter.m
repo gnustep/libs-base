@@ -191,7 +191,7 @@ static void obsFree(Observation *o);
 #define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
 
-#include "gnustep/base/GSIArray.h"
+#include "GNUstepBase/GSIArray.h"
 
 #define GSI_MAP_RETAIN_KEY(M, X)  
 #define GSI_MAP_RELEASE_KEY(M, X) ({if ((((gsaddr)X.obj) & 1) == 0) \
@@ -206,7 +206,7 @@ static void obsFree(Observation *o);
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	void*
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 /*
  * An NC table is used to keep track of memory allocated to store
