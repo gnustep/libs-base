@@ -3612,7 +3612,7 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
-      c->content = [content copy];
+      c->content = [content copyWithZone: z];
     }
   return c;
 }
