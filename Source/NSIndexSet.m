@@ -710,6 +710,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 - (void) removeIndexesInRange: (NSRange)aRange
 {
   unsigned	pos;
+  NSRange	r;
 
   if (NSNotFound - aRange.length < aRange.location)
     {
@@ -717,95 +718,103 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 		  format: @"[%@-%@]: Bad range",
         NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  if (aRange.length == 0 || _array == 0 || GSIArrayCount(_array) == 0)
+  if (aRange.length == 0 || _array == 0
+    || (pos = posForIndex(_array, aRange.location)) >= GSIArrayCount(_array))
     {
       return;	// Already empty
     }
-  pos = posForIndex(_array, aRange.location);
+
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (r.location <= aRange.location)
+    {
+      if (r.location == aRange.location)
+        {
+   	  if (NSMaxRange(r) <= NSMaxRange(aRange))
+	    {
+	      /*
+	       * Found range is entirely within range to remove,
+	       * leaving next range to check at current position.
+	       */
+	      GSIArrayRemoveItemAtIndex(_array, pos);
+	    }
+	  else
+	    {
+	      /*
+	       * Range to remove is entirely within found range and
+	       * overlaps the start of the found range ... shrink it
+	       * and trhen we are finished.
+	       */
+	      r.location += aRange.length;
+	      r.length -= aRange.length;
+	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	      return;
+	    }
+	}
+      else
+	{
+   	  if (NSMaxRange(r) <= NSMaxRange(aRange))
+	    {
+	      /*
+	       * Range to remove overlaps the end of the found range.
+	       * May also overlap next range ... so shorten found
+	       * range and move on.
+	       */
+	      r.length = aRange.location - r.location;
+	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	      pos++;
+	    }
+	  else
+	    {
+	      NSRange	next = r;
+
+	      /*
+	       * Range to remove is entirely within found range and
+	       * overlaps the middle of the found range ... split it.
+	       * Then we are finished.
+	       */
+	      next.location = NSMaxRange(aRange);
+	      next.length = NSMaxRange(r) - next.location;
+	      r.length = aRange.location - r.location;
+	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	      pos++;
+	      GSIArrayInsertItem(_array, (GSIArrayItem)next, pos);
+	      return;
+	    }
+	}
+    }
 
   /*
-   * Remove any ranges contained entirely in the one to be removed.
+   * At this point we are guaranteed that, if there is a range at pos,
+   * it does not start before aRange.location
    */
   while (pos < GSIArrayCount(_array))
     {
       NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
 
-      if (r.location < aRange.location || NSMaxRange(r) > NSMaxRange(aRange))
-	{
-	  break;
-	}
-      GSIArrayRemoveItemAtIndex(_array, pos);
-    }
-
-  if (pos < GSIArrayCount(_array))
-    {
-      NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
-
-      if (r.location <= aRange.location)
+      if (NSMaxRange(r) <= NSMaxRange(aRange))
 	{
 	  /*
-	   * The existing range might overlap or mcontain the range to remove.
+	   * Found range is entirely within range to remove ...
+	   * delete it.
 	   */
-	  if (NSMaxRange(r) >= NSMaxRange(aRange))
+	  GSIArrayRemoveItemAtIndex(_array, pos);
+	}
+      else
+	{
+	  if (r.location < NSMaxRange(aRange))
 	    {
 	      /*
-	       * Range to remove is contained in the range we found ...
+	       * Range to remove overlaps start of found range ...
+	       * shorten it.
 	       */
-	      if (r.location == aRange.location)
-		{
-		  /*
-		   * Remove from start of range.
-		   */
-		  r.length -= aRange.length;
-		  r.location += aRange.length;
-		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-		}
-	      else if (NSMaxRange(r) == NSMaxRange(aRange))
-		{
-		  /*
-		   * Remove from end of range.
-		   */
-		  r.length -= aRange.length;
-		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-		}
-	      else
-		{
-		  NSRange	t;
-		  unsigned	p;
-
-		  /*
-		   * Split the range.
-		   */
-		  p = NSMaxRange(aRange);
-		  t = NSMakeRange(p, NSMaxRange(r) - p);
-		  GSIArrayInsertItem(_array, (GSIArrayItem)t, pos+1);
-		  r.length = aRange.location - r.location;
-		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-		}
-	    }
-	  else if (NSMaxRange(r) >= aRange.location)
-	    {
-	      /*
-	       * The range to remove overlaps the one we found.
-	       */
-	      r.length = aRange.location - r.location;
+	      r.length = NSMaxRange(r) - NSMaxRange(aRange);
+	      r.location = NSMaxRange(aRange);
 	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-
-	      if (++pos < GSIArrayCount(_array))
-		{
-		  NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
-
-		  if (r.location < NSMaxRange(aRange))
-		    {
-		      /*
-		       * and also overlaps the following range.
-		       */
-		      r.length -= NSMaxRange(aRange) - r.location;
-		      r.location = NSMaxRange(aRange);
-		      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-		    }
-		}
 	    }
+	  /*
+	   * Found range extends beyond range to remove ... finished.
+	   */
+	  return;
 	}
     }
 }
