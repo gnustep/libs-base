@@ -116,6 +116,7 @@
 <li ><a href ="NSObject.html#method-18">+setVersion:</a>
 <li ><a href ="NSObject.html#method-19">+superclass</a>
 <li ><a href ="NSObject.html#method-20">+version</a>
+<li ><a href ="NSObject.html#method-47">-_dealloc</a>
 <li ><a href ="NSObject.html#method-21">-awakeAfterUsingCoder:</a>
 <li ><a href ="NSObject.html#method-22">-classForArchiver</a>
 <li ><a href ="NSObject.html#method-23">-classForCoder</a>
@@ -123,6 +124,7 @@
 <li ><a href ="NSObject.html#method-25">-connection:handleRequest:</a>
 <li ><a href ="NSObject.html#method-26">-copy</a>
 <li ><a href ="NSObject.html#method-27">-dealloc</a>
+<li ><a href ="NSObject.html#method-45">-deallocNotificationsActive</a>
 <li ><a href ="NSObject.html#method-28">-description</a>
 <li ><a href ="NSObject.html#method-29">-descriptionWithLocale:</a>
 <li ><a href ="NSObject.html#method-30">-descriptionWithLocale:indent:</a>
@@ -140,6 +142,7 @@
 <li ><a href ="NSObject.html#method-42">-replacementObjectForArchiver:</a>
 <li ><a href ="NSObject.html#method-43">-replacementObjectForCoder:</a>
 <li ><a href ="NSObject.html#method-44">-replacementObjectForPortCoder:</a>
+<li ><a href ="NSObject.html#method-46">-setDeallocNotificationsActive:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">alloc</a></h3>
@@ -625,6 +628,69 @@ Standards:  GNUstep<br>
 - (id) <b>replacementObjectForPortCoder:</b> (NSPortCoder*)aCoder;<br>
 
           
+ <hr>
+<h3><a name ="method-45">deallocNotificationsActive</a></h3>
+- (BOOL) <b>deallocNotificationsActive</b>;<br>
+
+	    <p>
+
+	      Returns a boolean indicating whether deallocation notification
+	      has been turned on.
+	    </p>
+
+	    <p>
+
+	      If deallocation notification is turned on, whenever an objects
+	      retain count reaches zero (and it would normally be deallocated)
+	      the <em>_dealloc</em> methiod is called and the object is only
+	      deallocated if that method returns YES.
+	    </p>
+
+          
+ <hr>
+<h3><a name ="method-46">setDeallocNotificationsActive:</a></h3>
+- (void) <b>setDeallocNotificationsActive:</b> (BOOL)flag;<br>
+
+	    <p>
+
+	      Turns on (or off) deallocation notification.
+	    </p>
+
+	    <p>
+
+	      If deallocation notification is turned on, whenever an objects
+	      retain count reaches zero (and it would normally be deallocated)
+	      the <em>_dealloc</em> methiod is called and the object is only
+	      deallocated if that method returns YES.
+	    </p>
+
+          
+ <hr>
+<h3><a name ="method-47">_dealloc</a></h3>
+- (BOOL) <b>_dealloc</b>;<br>
+
+	    <p>
+
+	      Returns a boolean indicating whether the receiver should be
+	      deallocated or not.  The default implementation returns YES.
+	    </p>
+
+	    <p>
+
+	      This method is called when an objects retain count reaches
+	      zero (if deallocation notifications are active).
+	    </p>
+
+	    <p>
+
+	      This method is provided so that you can take some sort of
+	      action when objects are deallocated ... normally you would
+	      override this method in your classes, but you could also
+	      override it in a category of NSObject - and perform some
+	      action whenever <em>any</em> object is deallocated.
+	    </p>
+
+	  
  <hr>
 </body>
 
