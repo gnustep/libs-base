@@ -244,7 +244,7 @@ my_object_is_class(id object)
 			  NSIntMapValueCallBacks, 0);
     }
   xref = NSCountMapTable (object_2_xref) + 1;
-  NSMapInsert (const_ptr_2_xref, anObj, (void*)xref);
+  NSMapInsert (object_2_xref, anObj, (void*)xref);
 }
 
 - (unsigned) _coderReferenceForObject: anObject
@@ -623,7 +623,11 @@ my_object_is_class(id object)
 	  /* Register the object as being in progress of encoding. */
 	  if (!in_progress_table)
 	    in_progress_table = 
-	      NSCreateMapTable (NSObjectMapKeyCallBacks, 
+	      /* This is "NonOwnedPointer", and not "Object", because
+		 with "Object" we would get an infinite loop with distributed
+		 objects when we try to put a Proxy in in the table, and
+		 send the proxy the -hash method. */ 
+	      NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks, 
 				NSIntMapValueCallBacks, 0);
 	  NSMapInsert (in_progress_table, anObj, (void*)1);
 
