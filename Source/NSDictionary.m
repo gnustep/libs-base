@@ -329,43 +329,47 @@ static SEL	appSel = @selector(appendString:);
 - (id) initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy
 {
   unsigned	c = [other count];
-  id		os[c];
-  id		ks[c];
-  id		k;
-  NSEnumerator	*e = [other keyEnumerator];
-  unsigned	i = 0;
-  IMP		nxtObj = [e methodForSelector: nxtSel];
-  IMP		otherObj = [other methodForSelector: objSel];
 
-  if (shouldCopy)
+  if (c > 0)
     {
-      NSZone	*z = [self zone];
+      id		os[c];
+      id		ks[c];
+      id		k;
+      NSEnumerator	*e = [other keyEnumerator];
+      unsigned		i = 0;
+      IMP		nxtObj = [e methodForSelector: nxtSel];
+      IMP		otherObj = [other methodForSelector: objSel];
 
-      while ((k = (*nxtObj)(e, nxtSel)) != nil)
+      if (shouldCopy)
 	{
-	  ks[i] = k;
-	  os[i] = [(*otherObj)(other, objSel, k) copyWithZone: z];
-	  i++;
-	}
-      self = [self initWithObjects: os forKeys: ks count: i];
+	  NSZone	*z = [self zone];
+
+	  while ((k = (*nxtObj)(e, nxtSel)) != nil)
+	    {
+	      ks[i] = k;
+	      os[i] = [(*otherObj)(other, objSel, k) copyWithZone: z];
+	      i++;
+	    }
+	  self = [self initWithObjects: os forKeys: ks count: i];
 #if	!GS_WITH_GC
-      while (i > 0)
-	{
-	  [os[--i] release];
-	}
+	  while (i > 0)
+	    {
+	      [os[--i] release];
+	    }
 #endif
-      return self;
-    }
-  else
-    {
-      while ((k = (*nxtObj)(e, nxtSel)) != nil)
-	{
-	  ks[i] = k;
-	  os[i] = (*otherObj)(other, objSel, k);
-	  i++;
 	}
-      return [self initWithObjects: os forKeys: ks count: c];
+      else
+	{
+	  while ((k = (*nxtObj)(e, nxtSel)) != nil)
+	    {
+	      ks[i] = k;
+	      os[i] = (*otherObj)(other, objSel, k);
+	      i++;
+	    }
+	  self = [self initWithObjects: os forKeys: ks count: c];
+	}
     }
+  return self;
 }
 
 - (id) initWithContentsOfFile: (NSString*)path
@@ -418,24 +422,31 @@ static SEL	appSel = @selector(appendString:);
 
 - (BOOL) isEqualToDictionary: (NSDictionary*)other
 {
+  unsigned	count;
+
   if (other == self)
-    return YES;
-
-  if ([self count] == [other count])
     {
-      NSEnumerator	*e = [self keyEnumerator];
-      IMP		nxtObj = [e methodForSelector: nxtSel];
-      IMP		myObj = [self methodForSelector: objSel];
-      IMP		otherObj = [other methodForSelector: objSel];
-      id		k;
-
-      while ((k = (*nxtObj)(e, @selector(nextObject))) != nil)
+      return YES;
+    }
+  count = [self count];
+  if (count == [other count])
+    {
+      if (count > 0)
 	{
-	  id o1 = (*myObj)(self, objSel, k);
-	  id o2 = (*otherObj)(other, objSel, k);
+	  NSEnumerator	*e = [self keyEnumerator];
+	  IMP		nxtObj = [e methodForSelector: nxtSel];
+	  IMP		myObj = [self methodForSelector: objSel];
+	  IMP		otherObj = [other methodForSelector: objSel];
+	  id		k;
 
-	  if ([o1 isEqual: o2] == NO)
-	    return NO;
+	  while ((k = (*nxtObj)(e, @selector(nextObject))) != nil)
+	    {
+	      id o1 = (*myObj)(self, objSel, k);
+	      id o2 = (*otherObj)(other, objSel, k);
+
+	      if ([o1 isEqual: o2] == NO)
+		return NO;
+	    }
 	}
       return YES;
     }
@@ -944,7 +955,7 @@ static NSString	*indentStrings[] = {
 {
   unsigned	c = [keyArray count];
 
-  if (c)
+  if (c > 0)
     {
       id	keys[c];
       IMP	remObj = [self methodForSelector: remSel];
@@ -959,13 +970,16 @@ static NSString	*indentStrings[] = {
 
 - (void) addEntriesFromDictionary: (NSDictionary*)other
 {
-  id		k;
-  NSEnumerator	*e = [other keyEnumerator];
-  IMP		nxtObj = [e methodForSelector: nxtSel];
-  IMP		setObj = [self methodForSelector: setSel];
+  if (other != nil)
+    {
+      id		k;
+      NSEnumerator	*e = [other keyEnumerator];
+      IMP		nxtObj = [e methodForSelector: nxtSel];
+      IMP		setObj = [self methodForSelector: setSel];
 
-  while ((k = (*nxtObj)(e, nxtSel)) != nil)
-    (*setObj)(self, setSel, [other objectForKey: k], k);
+      while ((k = (*nxtObj)(e, nxtSel)) != nil)
+	(*setObj)(self, setSel, [other objectForKey: k], k);
+    }
 }
 
 - (void) setDictionary: (NSDictionary*)otherDictionary
