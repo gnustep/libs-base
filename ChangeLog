@@ -1,3 +1,13 @@
+2001-10-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m: Change #import to #include
+	* Source/NSProtocolChecker.m: Change #import to #include
+	* Testing/containers.m: Change #import to #include
+	* Tools/AGSOutput.h: Return string rather than writing to file
+	* Tools/AGSOutput.m: Return string rather than writing to file
+	* Tools/autogsdoc.m: Hnalde file writing.
+	* Tools/plmerge.m: Change #import to #include
+
 2001-10-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/GNUmakefile: Addend new files.
