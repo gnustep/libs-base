@@ -126,7 +126,7 @@ static NSString			*myHostName = nil;
   names = [NSMutableSet new];
   addresses = [NSMutableSet new];
 
-  if (name == nil)
+  if (name == localHostName)
     {
       extra = [hostClass _localAddresses];
     }
@@ -236,7 +236,7 @@ static NSString			*myHostName = nil;
 	{
 	  myHostName = [[NSString alloc] initWithCString: buf];
 	}
-      _hostCacheLock = [[NSLock alloc] init];
+      _hostCacheLock = [[NSRecursiveLock alloc] init];
       _hostCache = [NSMutableDictionary new];
     }
 }
