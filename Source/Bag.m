@@ -26,11 +26,10 @@
 
 @implementation Bag
 
-+ initialize
++ (void) initialize
 {
   if (self == [Bag class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 // INITIALIZING AND FREEING;
@@ -68,18 +67,6 @@
 {
   coll_hash_empty(_contents_hash);
   _count = 0;
-  return self;
-}
-
-- freeObjects
-{
-  if (CONTAINS_OBJECTS)
-    {
-      [self makeObjectsPerform:@selector(free)];
-      [self empty];
-    }
-  else
-    [self empty];
   return self;
 }
 

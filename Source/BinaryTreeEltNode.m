@@ -26,11 +26,10 @@
 
 @implementation BinaryTreeEltNode
 
-+ initialize
++ (void) initialize
 {
   if (self == [BinaryTreeEltNode class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 #include <objects/EltNode-m>

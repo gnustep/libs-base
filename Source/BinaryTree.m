@@ -33,14 +33,13 @@ static id nilBinaryTreeNode;
 
 @implementation BinaryTree
 
-+ initialize
++ (void) initialize
 {
   if (self == [BinaryTree class])
     {
       [self setVersion:0];	/* beta release */
       nilBinaryTreeNode = [[BinaryTreeNode alloc] init];
     }
-  return self;
 }
 
 /* This is the designated initializer of this class */

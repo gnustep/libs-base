@@ -27,11 +27,10 @@
 
 @implementation CircularArray
 
-+ initialize
++ (void) initialize
 {
   if (self == [CircularArray class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 /* This is the designated initializer of this class */
