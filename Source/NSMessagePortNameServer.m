@@ -7,6 +7,8 @@
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSPort.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSValue.h"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -104,13 +106,20 @@ static void clean_up_names(void)
   [serverLock lock];
   if (!base_path)
     {
+      NSNumber		*p = [NSNumber numberWithInt: 0700];
+      NSDictionary	*attr;
+
       path = NSTemporaryDirectory();
+      attr = [NSDictionary dictionaryWithObject: p
+				     forKey: NSFilePosixPermissions];
 
       path = [path stringByAppendingPathComponent: @"NSMessagePort"];
-      mkdir([path fileSystemRepresentation], 0700);
+      [[NSFileManager defaultManager] createDirectoryAtPath: path
+				      attributes: attr];
 
       path = [path stringByAppendingPathComponent: @"names"];
-      mkdir([path fileSystemRepresentation], 0700);
+      [[NSFileManager defaultManager] createDirectoryAtPath: path
+				      attributes: attr];
 
       base_path = RETAIN(path);
     }

@@ -1,3 +1,13 @@
+2004-03-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSMessagePort.m:
+	* NSMessagePortNameServer.m: Use base library methods for file
+	management rather than unix syscalls.
+
+2004-03-27 Alexander Malmberg <alexander@malmberg.org>
+
+	* NSUser.m: Plug some security loopholes in temporary directory
+
 2004-03-27 Mark Allison <mark@brainstorm.co.uk>
 
 	* Headers/Additions/GNUstepBase/GSXML.h:
