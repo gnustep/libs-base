@@ -34,6 +34,8 @@
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME
 #include <objc/objc-list.h>
+#else
+#include <objc/objc-load.h>
 #endif
 #include <config.h>
 #include <Foundation/objc-load.h>

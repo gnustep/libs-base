@@ -1,3 +1,7 @@
+2001-07-11  Adam Fedor  <fedor@gnu.org>
+
+	* Source/objc-load.m: Include objc-load.h on NeXT systems.
+
 2001-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: ([fileSystemRepresentationWithPath:])
