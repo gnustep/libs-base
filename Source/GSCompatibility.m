@@ -881,7 +881,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	}
       else
 	{
-	  PString([obj description], dest);
+	  Append([obj description], dest);
 	}
     }
 }
