@@ -101,4 +101,23 @@
 
 @end
 
+#ifndef STRICT_OPENSTEP
+
+#include <objects/IndexedCollecting.h>
+#include <objects/String.h>
+
+/* Eventually we'll make a Constant version of this protocol. */
+@interface NSArray (GNU) <IndexedCollecting>
+@end
+
+@interface NSMutableArray (GNU)
++ (unsigned) defaultCapacity;
++ (unsigned) defaultGrowFactor;
+- setCapacity: (unsigned)newCapacity;
+- (unsigned) growFactor;
+- setGrowFactor: (unsigned)aNum;
+@end
+
+#endif /* STRICT_OPENSTEP */
+
 #endif /* __NSArray_h_OBJECTS_INCLUDE */
