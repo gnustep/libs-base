@@ -1,3 +1,9 @@
+2000-11-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: Altered all GSTcpHandle debug output to include
+	current thread.  Added locking for read/write operations on handle.
+	Hopefully all thread-safe now :-)
+
 2000-11-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: ([-_getReplyRmc:]) added semi-busy wait

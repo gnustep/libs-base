@@ -451,7 +451,8 @@ static Class	runLoopClass;
   BOOL			gotAddr = NO;
   NSRunLoop		*l;
 
-  NSDebugMLLog(@"GSTcpHandle", @"Connecting before %@", when);
+  NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x in thread 0x%x before %@",
+    self, GSCurrentThread(), when);
   if (state != GS_H_UNCON)
     {
       NSLog(@"attempting connect on connected handle");
@@ -596,6 +597,8 @@ static Class	runLoopClass;
 
 /*
  * Method to pass an incoming message to the recieving port.
+ * Our lock must be locked on entry to this method, and we
+ * unlock it temporarily while actually sending the message.
  */ 
 - (void) dispatch
 {
@@ -609,9 +612,14 @@ static Class	runLoopClass;
   [pm setMsgid: rId];
   rId = 0;
   DESTROY(rItems);
-  NSDebugMLLog(@"GSTcpHandle", @"got message %@", pm);
+  NSDebugMLLog(@"GSTcpHandle", @"got message %@ on 0x%x in thread 0x%x",
+    pm, self, GSCurrentThread());
+  RETAIN(rp);
+  DO_UNLOCK(myLock);
   [rp handlePortMessage: pm];
+  DO_LOCK(myLock);
   RELEASE(pm);
+  RELEASE(rp);
 }
 
 - (void) gcFinalize
@@ -642,7 +650,8 @@ static Class	runLoopClass;
 		type: ET_EDESC
 	     forMode: nil
 		 all: YES];
-      NSDebugMLLog(@"GSTcpHandle", @"invalidated", 0);
+      NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x in thread 0x%x",
+	self, GSCurrentThread());
       [[self recvPort] removeHandle: self];
       [[self sendPort] removeHandle: self];
     }
@@ -667,8 +676,8 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
-    type == ET_RPORT ? "read" : "write", self);
+  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x in thread 0x%x",
+    type == ET_RPORT ? "read" : "write", self, GSCurrentThread());
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -683,6 +692,8 @@ static Class	runLoopClass;
 		 all: YES];
       return;
     }
+
+  DO_LOCK(myLock);
 
   if (type == ET_RPORT)
     {
@@ -725,20 +736,25 @@ static Class	runLoopClass;
 	{
 	  if (res == 0)
 	    {
-	      NSDebugMLLog(@"GSTcpHandle", @"read attempt failed - eof", 0);
+	      NSDebugMLLog(@"GSTcpHandle", @"read eof on 0x%x in thread 0x%x",
+		self, GSCurrentThread());
+	      DO_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
 	    }
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
-	      NSDebugMLLog(@"GSTcpHandle", @"read attempt failed - %s",
-		strerror(errno));
+	      NSDebugMLLog(@"GSTcpHandle",
+		@"read failed - %s on 0x%x in thread 0x%x",
+		strerror(errno), self, GSCurrentThread());
+	      DO_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
 	    }
 	  res = 0;	/* Interrupted - continue	*/
 	}
-      NSDebugMLLog(@"GSTcpHandle", @"read %d bytes", res);
+      NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on 0x%x in thread 0x%x",
+	res, self, GSCurrentThread());
       rLength += res;
 
       while (valid == YES && rLength >= rWant)
@@ -759,10 +775,11 @@ static Class	runLoopClass;
 		  l = GSSwapBigI32ToHost(h->length);
 		  if (rType == GSP_PORT)
 		    {
-		      if (l > 32)
+		      if (l > 128)
 			{
 			  NSLog(@"%@ - unreasonable length (%u) for port",
 			    self, l);
+			  DO_UNLOCK(myLock);
 			  [self invalidate];
 			  return;
 			}
@@ -795,6 +812,7 @@ static Class	runLoopClass;
 			  if (nItems == [rItems count])
 			    {
 			      [self dispatch];
+			      bytes = [rData mutableBytes];
 			    }
 			}
 		      else
@@ -803,6 +821,7 @@ static Class	runLoopClass;
 			    {
 			      NSLog(@"%@ - unreasonable length (%u) for data",
 				self, l);
+			      DO_UNLOCK(myLock);
 			      [self invalidate];
 			      return;
 			    }
@@ -825,6 +844,7 @@ static Class	runLoopClass;
 			{
 			  NSLog(@"%@ - unreasonable length (%u) for data",
 			    self, l);
+			  DO_UNLOCK(myLock);
 			  [self invalidate];
 			  return;
 			}
@@ -843,6 +863,7 @@ static Class	runLoopClass;
 		  else
 		    {
 		      NSLog(@"%@ - bad data received on port handle", self);
+		      DO_UNLOCK(myLock);
 		      [self invalidate];
 		      return;
 		    }
@@ -889,6 +910,7 @@ static Class	runLoopClass;
 		      if (nItems == 1)
 			{
 			  [self dispatch];
+			  bytes = [rData mutableBytes];
 			}
 		    }
 		  else
@@ -924,6 +946,7 @@ static Class	runLoopClass;
 		  if (nItems == [rItems count])
 		    {
 		      [self dispatch];
+		      bytes = [rData mutableBytes];
 		    }
 		}
 		break;
@@ -963,6 +986,7 @@ static Class	runLoopClass;
 		      if (nItems == [rItems count])
 			{
 			  [self dispatch];
+			  bytes = [rData mutableBytes];
 			}
 		    }
 		}
@@ -972,7 +996,6 @@ static Class	runLoopClass;
     }
   else if (type == ET_WDESC)
     {
-      DO_LOCK(myLock);
       if (state == GS_H_TRYCON)	/* Connection attempt.	*/
 	{
 	  int	res;
@@ -994,7 +1017,9 @@ static Class	runLoopClass;
 		  RELEASE(defaultAddress);
 		  defaultAddress = RETAIN([NSString stringWithCString:
 		    inet_ntoa(sockAddr.sin_addr)]);
-		  NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes", len);
+		  NSDebugMLLog(@"GSTcpHandle",
+		    @"wrote %d bytes on 0x%x in thread 0x%x",
+		    len, self, GSCurrentThread());
 		  state = GS_H_CONNECTED;
 		}
 	      else
@@ -1041,8 +1066,9 @@ static Class	runLoopClass;
 	    }
 	  else
 	    {
-	      NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes on 0x%x",
-		res, self);
+	      NSDebugMLLog(@"GSTcpHandle",
+		@"wrote %d bytes on 0x%x in thread 0x%x",
+		res, self, GSCurrentThread());
 	      wLength += res;
 	      if (wLength == l)
 		{
@@ -1068,8 +1094,9 @@ static Class	runLoopClass;
 		      /*
 		       * message completed - remove from list.
 		       */
-		      NSDebugMLLog(@"GSTcpHandle", @"completed 0x%x on 0x%x",
-			components, self);
+		      NSDebugMLLog(@"GSTcpHandle",
+			@"completed 0x%x on 0x%x in thread 0x%x",
+			components, self, GSCurrentThread());
 		      wData = nil;
 		      wItem = 0;
 		      [wMsgs removeObjectAtIndex: 0];
@@ -1082,8 +1109,9 @@ static Class	runLoopClass;
 		}
 	    }
 	}
-      DO_UNLOCK(myLock);
     }
+
+  DO_UNLOCK(myLock);
 }
 
 - (BOOL) sendMessage: (NSArray*)components beforeDate: (NSDate*)when
@@ -1092,8 +1120,9 @@ static Class	runLoopClass;
   BOOL		sent = NO;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
-  NSDebugMLLog(@"GSTcpHandle", @"Sending message 0x%x %@ on 0x%x(%d) before %@",
-    components, components, self, desc, when);
+  NSDebugMLLog(@"GSTcpHandle",
+    @"Sending message 0x%x %@ on 0x%x(%d) in thread 0x%x before %@",
+    components, components, self, desc, GSCurrentThread(), when);
   [wMsgs addObject: components];
 
   l = [runLoopClass currentRunLoop];
@@ -1118,8 +1147,9 @@ static Class	runLoopClass;
       sent = YES;
     }
   RELEASE(self);
-  NSDebugMLLog(@"GSTcpHandle", @"Message send 0x%x on 0x%x status %d",
-    components, self, sent);
+  NSDebugMLLog(@"GSTcpHandle",
+    @"Message send 0x%x on 0x%x in thread 0x%x status %d",
+    components, self, GSCurrentThread(), sent);
   return sent;
 }
 
@@ -1725,7 +1755,6 @@ static Class		tcpPortClass;
   int		desc = (int)(gsaddr)extra;
   GSTcpHandle	*handle;
 
-
   if (desc == listener)
     {
       struct sockaddr_in	sockAddr;
@@ -1734,21 +1763,23 @@ static Class		tcpPortClass;
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc < 0)
         {
-          [NSException raise: NSInternalInconsistencyException
-		      format: @"GSTcpPort accept(): %s", strerror(errno)];
+	  NSDebugMLLog(@"NSPort", @"accept failed - handled in other thread?");
         }
-      /*
-       * Create a handle for the socket and set it up so we are its
-       * receiving port, and it's waiting to get the port name from
-       * the other end.
-       */
-      handle = [GSTcpHandle handleWithDescriptor: desc];
-      memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
-      handle->defaultAddress = RETAIN([NSString stringWithCString:
-	inet_ntoa(sockAddr.sin_addr)]);
+      else
+	{
+	  /*
+	   * Create a handle for the socket and set it up so we are its
+	   * receiving port, and it's waiting to get the port name from
+	   * the other end.
+	   */
+	  handle = [GSTcpHandle handleWithDescriptor: desc];
+	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
+	  handle->defaultAddress = RETAIN([NSString stringWithCString:
+	    inet_ntoa(sockAddr.sin_addr)]);
 
-      [handle setState: GS_H_ACCEPT];
-      [self addHandle: handle forSend: NO];
+	  [handle setState: GS_H_ACCEPT];
+	  [self addHandle: handle forSend: NO];
+	}
     }
   else
     {
