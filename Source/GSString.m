@@ -1427,7 +1427,7 @@ transmute(ivars self, NSString *aString)
   return defEnc;
 }
 
-- (NSString*) substringFromRange: (NSRange)aRange
+- (NSString*) substringWithRange: (NSRange)aRange
 {
   GSCSubString	*sub;
 
@@ -1695,7 +1695,7 @@ transmute(ivars self, NSString *aString)
   return NSUnicodeStringEncoding;
 }
 
-- (NSString*) substringFromRange: (NSRange)aRange
+- (NSString*) substringWithRange: (NSRange)aRange
 {
   GSUSubString	*sub;
 
@@ -2267,7 +2267,7 @@ transmute(ivars self, NSString *aString)
     return defEnc;
 }
 
-- (NSString*) substringFromRange: (NSRange)aRange
+- (NSString*) substringWithRange: (NSRange)aRange
 {
   GS_RANGE_CHECK(aRange, _count);
   
