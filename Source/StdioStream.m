@@ -24,6 +24,7 @@
 #include <objects/stdobjects.h>
 #include <objects/StdioStream.h>
 #include <objects/Coder.h>
+#include <Foundation/NSException.h>
 #include <stdarg.h>
 
 /* xxx I should test return values of all functions on the FILE*. */
@@ -134,12 +135,27 @@ objects_vscanf (void *stream,
 
 - (int) writeBytes: (const void*)b length: (int)len
 {
-  return fwrite(b, 1, len, fp);
+  /* xxx Check error conditions. */
+  int ret = fwrite (b, 1, len, fp);
+  if (ret != len)
+    printf ("Write bytes differ.\n");
+  assert (ret == len);
+  return ret;
 }
 
 - (int) readBytes: (void*)b length: (int)len
 {
-  return fread(b, 1, len, fp);
+  /* xxx Check error conditions. */
+  int ret = fread (b, 1, len, fp);
+  if (ret != len)
+    {
+      printf ("Read bytes differ.\n");
+      if (feof (fp))
+	[NSException raise: NSGenericException
+		     format: @"Tried to read from eof"];
+    }
+  assert (ret == len);
+  return ret;
 }
 
 - (int) writeFormat: (id <String>)format, ...
