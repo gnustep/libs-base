@@ -9,6 +9,8 @@ typedef struct _small_struct {
 } small_struct;
 
 typedef struct _foo {
+  char c;
+  double d;
   int i;
   char *s;
   unsigned long l;

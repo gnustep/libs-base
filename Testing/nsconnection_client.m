@@ -48,6 +48,7 @@
 
 int con_data (id prx)
 {
+  id	pool;
   BOOL b, br;
   unsigned char uc, ucr;
   char c, cr;
@@ -59,7 +60,7 @@ int con_data (id prx)
   char *str;
   id obj;
   small_struct small = {12};
-  foo ffoo = {99, "cow", 9876543};
+  foo ffoo = {'Z', 1234.5678, 99, "cow", 9876543};
   int a3[3] = {66,77,88};
   struct myarray ma = {{55,66,77}};
 
@@ -85,6 +86,7 @@ int con_data (id prx)
   printf("  error is ok (due to incorrect encoding by gcc)\n");
 
 #define TEST_CALL(test, send, got, sendp, var, varr, val, msg1, msg2)	\
+  pool = [NSAutoreleasePool new];					\
   printf(test);								\
   var = val;								\
   printf(send, var);							\
@@ -101,9 +103,11 @@ int con_data (id prx)
   if (varr != (var+ADD_CONST))					\
     printf(" *** ERROR ***\n");						\
   else									\
-    printf(" ...ok\n");
+    printf(" ...ok\n");							\
+  [pool release];
 
 #define TEST_FCALL(test, send, got, sendp, var, varr, val, msg1, msg2)	\
+  pool = [NSAutoreleasePool new];					\
   printf(test);								\
   var = val;								\
   printf(send, var);							\
@@ -120,7 +124,8 @@ int con_data (id prx)
   if (varr - (var+ADD_CONST) > 1e-3)					\
     printf(" *** ERROR ***\n");						\
   else									\
-    printf(" ...ok\n");
+    printf(" ...ok\n");							\
+  [pool release];
 
   TEST_CALL("UChar:\n", "  sending %d", " got %d", "  sending ptr to %d",
 	    uc, ucr, 23, sendUChar:, getUChar:)
@@ -151,16 +156,22 @@ int con_data (id prx)
   [prx sendDouble:dbl andFloat:flt];
 
 
+  pool = [NSAutoreleasePool new];
   printf("String:\n");
   str = "My String 1";
   printf("  sending (%s)", str);
   str = [prx sendString: str];
   printf(" got (%s)\n", str);
+  [pool release];
+
+  pool = [NSAutoreleasePool new];
   str = "My String 3";
   printf("  sending ptr to (%s)", str);
   [prx getString: &str];
   printf(" got (%s)\n", str);
+  [pool release];
   
+  pool = [NSAutoreleasePool new];
   printf("Small Struct:\n");
   //printf("  sending %x", small.z);
   //small = [prx sendSmallStruct: small];
@@ -168,15 +179,23 @@ int con_data (id prx)
   printf("  sending ptr to %x", small.z);
   [prx getSmallStruct: &small];
   printf(" got %x\n", small.z);
+  [pool release];
 
+  pool = [NSAutoreleasePool new];
   printf("Struct:\n");
-  printf("  sending i=%d,s=%s,l=%ld", ffoo.i, ffoo.s, ffoo.l);
+  printf("  sending c='%c',d=%g,i=%d,s=%s,l=%ld",
+    ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
   ffoo = [prx sendStruct: ffoo];
-  printf(" got %d %s %ld\n", ffoo.i, ffoo.s, ffoo.l);
-  printf("  sending ptr to i=%d,s=%s,l=%ld", ffoo.i, ffoo.s, ffoo.l);
+  printf(" got c='%c',d=%g,i=%d,s=%s,l=%ld\n",
+    ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
+  printf("  sending ptr to  c='%c',d=%g,i=%d,s=%s,l=%ld",
+    ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
   [prx getStruct: &ffoo];
-  printf(" got i=%d,s=%s,l=%ld\n", ffoo.i, ffoo.s, ffoo.l);
+  printf(" got c='%c',d=%g,i=%d,s=%s,l=%ld\n",
+    ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
+  [pool release];
 
+  pool = [NSAutoreleasePool new];
   printf("Object:\n");
   obj = [NSObject new];
   [prx addObject: obj];  // FIXME: Why is this needed?
@@ -186,6 +205,7 @@ int con_data (id prx)
   printf("  sending ptr to %s", [[obj description] cString]);
   [prx getObject: &obj];
   printf(" got %s\n",  [[obj description] cString]);
+  [pool release];
 
   printf("Many Arguments:\n");
   [prx manyArgs:1 :2 :3 :4 :5 :6 :7 :8 :9 :10 :11 :12];
