@@ -44,13 +44,17 @@ doctemplatesdir = $(GNUSTEP_RESOURCES)/DocTemplates
 DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
 
 # The application to be compiled
-TOOL_NAME = autogsdoc cvtenc gdnc gsdoc defaults plmerge \
+ifeq ($(add),yes)
+TOOL_NAME = autogsdoc
+else
+TOOL_NAME = autogsdoc cvtenc gdnc defaults plmerge \
 		plparse sfparse pldes plser pl2link HTMLLinker
 CTOOL_NAME = gdomap
 
-TEST_TOOL_NAME = locale_alias
-
 SUBPROJECTS = make_strings
+endif
+
+TEST_TOOL_NAME = locale_alias
 
 # The source files to be compiled
 autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m

@@ -22,6 +22,7 @@
 
 #include	<Foundation/Foundation.h>
 #include        "AGSIndex.h"
+#include 	"gnustep/base/GNUstep.h"
 
 static int      XML_ELEMENT_NODE;
 static int      XML_TEXT_NODE;

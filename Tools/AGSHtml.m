@@ -22,6 +22,7 @@
 
 #include	<Foundation/Foundation.h>
 #include        "AGSHtml.h"
+#include "gnustep/base/GNUstep.h"
 
 static int      XML_ELEMENT_NODE;
 static int      XML_ENTITY_REF_NODE;

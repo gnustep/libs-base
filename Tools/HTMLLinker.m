@@ -22,6 +22,7 @@
  */
 
 #include <Foundation/Foundation.h>
+#include        "gnustep/base/GNUstep.h"
 
 /* For convenience, cached for the whole tool.  */
 

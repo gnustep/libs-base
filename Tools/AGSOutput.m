@@ -21,6 +21,7 @@
    */
 
 #include "AGSOutput.h"
+#include "gnustep/base/GNUstep.h"
 
 @interface AGSOutput (Private)
 - (NSString*) mergeMarkup: (NSString*)markup

@@ -1,3 +1,14 @@
+2002-12-30  Adam Fedor  <fedor@gnu.org>
+
+	* SSL/GNUmakefile: Don't compile if base=no
+
+	* Tools/AGSIndex.h: Include gnustep/base/GSXML.h.
+	* Tools/AGSHtml.m: Include GNUstep.h
+	* Tools/AGSInde.m, Tools/AGSOutput.m, Tools/AGSParser.m,
+	Tools/HTMLLinker.m: Idem.
+	* Tools/GNUmakegile: Only compile autogsdoc when add=yes
+	* Tools/Makefile.preamble: Include -lgnustep-baseadd when add=yes
+
 Mon Dec 30 18:19:55 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.ac: Recognize apple OBJC_RUNTIME_LIB.
