@@ -22,7 +22,6 @@
 */ 
 
 #include <objects/OrderedCollection.h>
-#include <objects/OrderedCollectionPrivate.h>
 #include <stdio.h>
 #include <objects/Array.h>
 #include <objects/NSString.h>
@@ -82,37 +81,31 @@
   [self insertObject: newObject atIndex: 0];
 }
 
-- (void) appendObject: newObject
-{
-  [self notImplemented: _cmd];
-}
-
-- (void) prependObject: newObject
-{
-  [self notImplemented: _cmd];
-}
-
 - (void) appendContentsOf: (id <ConstantCollecting>) aCollection
 {
+  id o;
+
   assert (aCollection != self);
   /* xxx Could be more efficient. */
   FOR_COLLECTION(aCollection, o)
     {
-      [self appendElement: o];
+      [self appendObject: o];
     }
-  END_FOR_COLLECTION;
+  END_FOR_COLLECTION(aCollection);
 }
 
 - (void) prependContentsOf: (id <ConstantCollecting>)aCollection
 {
+  id o;
+
   assert (aCollection != self);
-  if ([aCollection conformsTo: @protocol(IndexedCollecting)])
+  if ([(id)aCollection conformsTo: @protocol(IndexedCollecting)])
     {
-      FOR_REVERSE_INDEXED_COLLECTION(self, o)
+      FOR_INDEXED_COLLECTION_REVERSE(self, o)
 	{
 	  [self prependObject: o];
 	}
-      END_FOR_REVERSE_INDEXED_COLLECTION;
+      END_FOR_INDEXED_COLLECTION_REVERSE(self);
     }
   else
     {
@@ -120,7 +113,7 @@
 	{
 	  [self prependObject: o];
 	}
-      END_FOR_COLLECTION;
+      END_FOR_COLLECTION(self);
     }
 }
 
@@ -139,7 +132,7 @@
     toIndex: (unsigned)r
 {
   unsigned i ,j;
-  elt x;
+  id x;
 
   if (p < r)
     {
@@ -151,10 +144,10 @@
 	{
 	  do 
 	    j = j - 1; 
-	  while ([[self elementAtIndex:j] compare: x] > 0);
+	  while ([[self objectAtIndex: j] compare: x] > 0);
 	  do 
 	    i = i + 1; 
-	  while ([[self elementAtIndex:i] compare: x] < 0);
+	  while ([[self objectAtIndex: i] compare: x] < 0);
 	  if (i < j)
 	    [self swapAtIndeces: i : j];
 	  else
@@ -164,7 +157,6 @@
       [self quickSortContentsFromIndex: p toIndex: j];
       [self quickSortContentsFromIndex: j+1 toIndex: r];
     }
-  return self;
 }
 
 - (void) sortContents
