@@ -1184,7 +1184,7 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
   can't deal with our leftoverRange case, so we need to use a bit of
   complexity instead. */
   unsigned int len;
-  
+
   /* TODO: this is an extremely ugly hack to work around buggy iconvs
   that return -1/E2BIG for buffers larger than 0x40000acf */
   if (maxLength > 0x40000000)
@@ -3831,13 +3831,10 @@ agree, create a new GSUnicodeInlineString otherwise.
        * The hash caching in our concrete string classes uses zero to denote
        * an empty cache value, so we MUST NOT return a hash of zero.
        */
+      ret &= 0x0fffffff;
       if (ret == 0)
 	{
 	  ret = 0x0fffffff;
-	}
-      else
-	{
-	  ret &= 0x0fffffff;
 	}
     }
   else

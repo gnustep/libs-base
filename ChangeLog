@@ -1,3 +1,9 @@
+2004-05-03 22:12  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSString.m (-hash),
+	Source/GSString.m ([NSConstantString -hash]): Fix guard against
+	returning a zero hash.
+
 2004-04-29 23:00  Alexander Malmberg <alexander@malmberg.org>
 
 	* configure.ac: Test for iconv support by compiling a program that
