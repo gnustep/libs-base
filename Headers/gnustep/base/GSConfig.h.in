@@ -139,13 +139,13 @@ typedef	@GS_ADDR@ gsaddr;
 /*
  *	Do we have zlib for file handle compression?
  */
-#define HAVE_ZLIB	@HAVE_ZLIB@
+#define USE_ZLIB	@USE_ZLIB@
 
 /*
  *	Do we have the GNU Multiple-precision library for NSDecimal?
  */
-//#define HAVE_GMP	@HAVE_GMP@
-#define HAVE_GMP	0
+//#define USE_GMP	@USE_GMP@
+#define USE_GMP	0
 
 /*
  * Macros to deal with hiding an object from the garbage collector

@@ -9560,7 +9560,7 @@ _ACEOF
 fi
 done
 
-HAVE_ZLIB=0
+USE_ZLIB=0
 
 for ac_header in zlib.h
 do
@@ -9740,7 +9740,7 @@ fi
   if test "$zlib_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lz"
-    HAVE_ZLIB=1
+    USE_ZLIB=1
   fi
 fi
 
@@ -11606,7 +11606,7 @@ if test "$gmp_libdir" != "no"; then
   LIBS="$LIBS -L$gmp_libdir"
 fi
 
-HAVE_GMP=0
+USE_GMP=0
 
 for ac_header in gmp.h
 do
@@ -11849,11 +11849,11 @@ fi
   if test "$gmp_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lgmp"
-    HAVE_GMP=1
+    USE_GMP=1
   fi
 fi
 
-if test "$HAVE_GMP" = "0"; then
+if test "$USE_GMP" = "0"; then
   CPPFLAGS="$cppflags_temp";
   LIBS="$libs_temp";
 fi
@@ -12733,7 +12733,7 @@ s,@DYNAMIC_LINKER@,$DYNAMIC_LINKER,;t t
 s,@NX_CONST_STRING_CPPFLAGS@,$NX_CONST_STRING_CPPFLAGS,;t t
 s,@NX_CONST_STRING_CLASS@,$NX_CONST_STRING_CLASS,;t t
 s,@HAVE_PTHREAD_H@,$HAVE_PTHREAD_H,;t t
-s,@HAVE_ZLIB@,$HAVE_ZLIB,;t t
+s,@USE_ZLIB@,$USE_ZLIB,;t t
 s,@HAVE_PTS_STREAM_MODULES@,$HAVE_PTS_STREAM_MODULES,;t t
 s,@GS_PASS_ARGUMENTS@,$GS_PASS_ARGUMENTS,;t t
 s,@GS_FAKE_MAIN@,$GS_FAKE_MAIN,;t t
@@ -12743,7 +12743,7 @@ s,@XML_CONFIG@,$XML_CONFIG,;t t
 s,@XML_CFLAGS@,$XML_CFLAGS,;t t
 s,@XML_LIBS@,$XML_LIBS,;t t
 s,@HAVE_LIBXML@,$HAVE_LIBXML,;t t
-s,@HAVE_GMP@,$HAVE_GMP,;t t
+s,@USE_GMP@,$USE_GMP,;t t
 s,@SYSTEM_DEFS@,$SYSTEM_DEFS,;t t
 s,@subdirs@,$subdirs,;t t
 s,@VERSION@,$VERSION,;t t

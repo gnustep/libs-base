@@ -31,7 +31,7 @@
 
 #include <GSConfig.h>
 
-#if	HAVE_ZLIB
+#if	USE_ZLIB
 #include <zlib.h>
 #endif
 
@@ -54,7 +54,7 @@
   NSString		*address;
   NSString		*service;
   NSString		*protocol;
-#if	HAVE_ZLIB
+#if	USE_ZLIB
   gzFile		gzDescriptor;
 #endif
 }

@@ -29,7 +29,7 @@
 
 #include <GSConfig.h>
 
-#if	HAVE_GMP
+#if	USE_GMP
 #include <gmp.h>
 #endif
 
@@ -63,7 +63,7 @@ typedef struct {
   signed char	exponent;	/* Signed exponent - -128 to 127	*/
   BOOL	isNegative;	/* Is this negative?			*/
   BOOL	validNumber;	/* Is this a valid number?		*/
-#if	HAVE_GMP
+#if	USE_GMP
   mp_size_t size;
   mp_limb_t lMantissa[NSDecimalMaxSize];
 #else

@@ -50,7 +50,7 @@
   The mantissa part (I know D. Knuth does not like this term, but it is used 
   in the specification so we stay with it) consists of up to 38 digits, this 
   are stored as an integer (in decimal representation or limps depending on the
-  HAVE_GMP flag). And the exponent is stored in a signed character. As a result
+  USE_GMP flag). And the exponent is stored in a signed character. As a result
   the numbers that can be represented are the ranges from -9(38 times)*10**127
   to  -1*10**-128, the number 0 and 1*10**-128 to 9(38 times)*10**127.
   This means we have more big numbers than one would expect (almost up to 10**165)
@@ -62,7 +62,7 @@
   
  */
 
-#if	HAVE_GMP
+#if	USE_GMP
 
 // Define GSDecimal as using a character vector
 typedef struct {
@@ -1025,7 +1025,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
   GSDecimalCompact(result);
 }
 
-#if	HAVE_GMP
+#if	USE_GMP
 
 static void CharvecToDecimal(const GSDecimal *m, NSDecimal *n)
 {

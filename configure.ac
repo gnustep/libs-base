@@ -607,17 +607,17 @@ AC_CHECK_FUNCS(mmap)
 # These used by UnixFileHandle.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(inet_aton)
-HAVE_ZLIB=0
+USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
   AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
   if test "$zlib_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lz"
-    HAVE_ZLIB=1
+    USE_ZLIB=1
   fi
 fi
-AC_SUBST(HAVE_ZLIB)
+AC_SUBST(USE_ZLIB)
 
 #--------------------------------------------------------------------
 # These functions needed by NSTask.m
@@ -929,7 +929,7 @@ if test "$gmp_libdir" != "no"; then
   LIBS="$LIBS -L$gmp_libdir"
 fi
 
-HAVE_GMP=0
+USE_GMP=0
 AC_CHECK_HEADERS(gmp.h)
 if test $ac_cv_header_gmp_h = yes; then
   AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
@@ -939,15 +939,15 @@ if test $ac_cv_header_gmp_h = yes; then
   if test "$gmp_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lgmp"
-    HAVE_GMP=1
+    USE_GMP=1
   fi
 fi
 
-if test "$HAVE_GMP" = "0"; then
+if test "$USE_GMP" = "0"; then
   CPPFLAGS="$cppflags_temp";
   LIBS="$libs_temp";
 fi
-AC_SUBST(HAVE_GMP)
+AC_SUBST(USE_GMP)
 
 #--------------------------------------------------------------------
 # Check for iconv support (for Unicode conversion).
