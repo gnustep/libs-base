@@ -1,5 +1,10 @@
 2001-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSScanner.m: ([scanHexInt:]) fix for scanning number
+	consisting just of a zero.  Reported by Tom Koelman
+
+2001-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Changes for constant string support with gcc-3.0
 	* configure.in: Just substitute NXCONST
 	* Headers/gnustep/base/GSConfig.h.in: Use NXCONST to redefine
