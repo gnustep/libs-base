@@ -38,13 +38,12 @@ include $(srcdir)/Version
 
 SUBDIRS = src doc checks examples NSCharacterSets admin
 
-RCS_FILES = \
-	Makefile.in Makeconf configure.in aclocal.m4 \
-	configure.bat Makefile.sed.nt INSTALL.WIN32 \
-	config/config.nested.c config/config.nextcc.h config/config.nextrt.m 
+RCS_FILES =
 
 DIST_FILES = \
-	$(RCS_FILES) \
+	Makefile.in Makeconf configure.in aclocal.m4 acconfig.h \
+	configure.bat Makefile.sed.nt INSTALL.WIN32 \
+	config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
 	README.ULTRIX README.foundation README.ucblib \
 	STATUS RELEASE-NOTES \
 	COPYING COPYING.LIB ChangeLog \
