@@ -1520,12 +1520,6 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [buf appendString: @"</blockquote>\n"];
     }
 
-  if (node != nil && [[node name] isEqual: @"desc"] == YES)
-    {
-      [self outputNode: node to: buf];
-      node = [node next];
-    }
-
   t = node;
   while (t != nil && [[t name] isEqual: @"standards"] == NO)
     {
@@ -1556,6 +1550,12 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [self decIndent];
       [buf appendString: indent];
       [buf appendString: @"</blockquote>\n"];
+    }
+
+  if (node != nil && [[node name] isEqual: @"desc"] == YES)
+    {
+      [self outputNode: node to: buf];
+      node = [node next];
     }
 
   a = [localRefs methodsInUnit: unit];
