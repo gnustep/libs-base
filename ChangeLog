@@ -3,6 +3,10 @@
 	* Source/behavior.m: behavior_class_add_methods() bugfix to ensure
 	that despatch table is updated properly.
 	search_for_method_in_list() deleted ... use version in gnu runtime.
+	* Source/NSUserDefaults.m: Removed use of distributed lock ... we
+	use atomic writes to file, so we don't need it.  Also restructured
+	a little to reduce file accesses when synchronising.  Also tidied
+	comments a little for autogsdoc.
 
 2001-12-29  Adam Fedor  <fedor@gnu.org>
 
