@@ -1,3 +1,7 @@
+2004-08-17  David Ayers  <d.ayers@inode.at>
+
+	* Testing/nsmethodsignature.m: Add more testing utilities.
+	
 2004-08-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileHandle.m: Add methods to get local socket info

@@ -23,10 +23,16 @@
 
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSMethodSignature.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSConnection.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSDebug.h>
 
 #include <GNUstepBase/GSObjCRuntime.h>
+
+extern BOOL sel_types_match(const char* t1, const char* t2);
+
+#define SRV_NAME @"nsmethodsignaturetest"
 
 struct _MyLargeStruct
 {
@@ -116,6 +122,8 @@ typedef struct _MySmallStruct MySmallStruct;
 		   largeStruct:(MyLargeStruct)_lstr
 		   smallStruct:(MySmallStruct)_sstr;
 
+-(const char *)runtimeSignatureForSelector:(SEL)selector;
+-(const char *)mframeSignatureForSelector:(SEL)selector;
 @end
 
 @implementation MyClass
@@ -194,6 +202,18 @@ typedef struct _MySmallStruct MySmallStruct;
 		   largeStruct:(MyLargeStruct)_lstr
 		   smallStruct:(MySmallStruct)_sstr { return _sstr; }
 
+-(const char *)runtimeSignatureForSelector:(SEL)selector
+{
+  GSMethod meth = GSGetMethod(isa, selector, YES, YES);
+  return meth->method_types;
+}
+
+-(const char *)mframeSignatureForSelector:(SEL)selector
+{
+  const char *types = [self runtimeSignatureForSelector: selector];
+  NSMethodSignature *sig = [NSMethodSignature signatureWithObjCTypes: types];
+  return [sig methodType];
+}
 @end
 
 /*------------------------------------*/
@@ -236,17 +256,116 @@ test_mframe_build_signature(void)
   
 }
 
+/* 
+   This test is useful if the nsmethodsignatureserver is running which
+   was compiled with either a different GNUstep-base version or a different
+   version of gcc.  It the server isn't found the test is skipped.
+*/
+void
+test_compare_server_signature(void)
+{
+  id objct = [MyClass new];
+  id proxy = [NSConnection rootProxyForConnectionWithRegisteredName: SRV_NAME
+			   host: @"*"];
+  if (proxy)
+    {
+      const char *rmtSig;
+      const char *lclSig;
+
+#define TEST_SEL(SELNAME) { \
+      lclSig = [objct runtimeSignatureForSelector: @selector(SELNAME)]; \
+      rmtSig = [proxy runtimeSignatureForSelector: @selector(SELNAME)]; \
+      if (!sel_types_match(lclSig, rmtSig)) \
+        NSLog(@"runtime: sel:%s\nlcl:%s\nrmt:%s", \
+	      GSNameFromSelector(@selector(SELNAME)), \
+	      lclSig, rmtSig); \
+      lclSig = [objct mframeSignatureForSelector: @selector(SELNAME)]; \
+      rmtSig = [proxy mframeSignatureForSelector: @selector(SELNAME)]; \
+      if (!sel_types_match(lclSig, rmtSig)) \
+        NSLog(@"mframe : sel:%s\nlcl:%s\nrmt:%s", \
+	      GSNameFromSelector(@selector(SELNAME)), \
+	      lclSig, rmtSig); \
+      }
+      
+      TEST_SEL(void_void);
+      TEST_SEL(id_void);
+      TEST_SEL(char_void);
+      TEST_SEL(uchar_void);
+      TEST_SEL(schar_void);
+      TEST_SEL(short_void);
+      TEST_SEL(ushort_void);
+      TEST_SEL(sshort_void);
+      TEST_SEL(int_void);
+      TEST_SEL(uint_void);
+      TEST_SEL(sint_void);
+      TEST_SEL(long_void);
+      TEST_SEL(ulong_void);
+      TEST_SEL(slong_void);
+      TEST_SEL(float_void);
+      TEST_SEL(double_void);
+      TEST_SEL(largeStruct_void);
+      TEST_SEL(smallStruct_void);
+
+      TEST_SEL(void_id:);
+      TEST_SEL(void_char:);
+      TEST_SEL(void_uchar:);
+      TEST_SEL(void_schar:);
+      TEST_SEL(void_short:);
+      TEST_SEL(void_ushort:);
+      TEST_SEL(void_sshort:);
+      TEST_SEL(void_int:);
+      TEST_SEL(void_uint:);
+      TEST_SEL(void_sint:);
+      TEST_SEL(void_long:);
+      TEST_SEL(void_ulong:);
+      TEST_SEL(void_slong:);
+      TEST_SEL(void_float:);
+      TEST_SEL(void_double:);
+      TEST_SEL(void_largeStruct:);
+      TEST_SEL(void_smallStruct:);
+      TEST_SEL(void_float:double:);
+      TEST_SEL(void_double:float:);
+      TEST_SEL(largeStruct_id:char:short:int:long:float:double:largeStruct:smallStruct:);
+      TEST_SEL(smallStruct_id:uchar:ushort:uint:ulong:float:double:largeStruct:smallStruct:);
+      
+    }
+  else
+    {
+      NSLog(@"Skipping test_compare_server_signature: proxy not found.");
+    }
+}
+
+void
+run_server(void)
+{
+  id obj = [MyClass new];
+  NSConnection *conn = [NSConnection defaultConnection];
+
+  [conn setRootObject: obj];
+  if ([conn registerName: SRV_NAME] == NO)
+    {
+      NSLog(@"Failed to register name: " SRV_NAME );
+      abort();
+    }
+  [[NSRunLoop currentRunLoop] run];
+}
 
 int
 main(int argc, char *argv[])
 {
   NSAutoreleasePool *pool;
-  //  [NSAutoreleasePool enableDoubleReleaseCheck:YES];
   pool = [[NSAutoreleasePool alloc] init];
+
+  if ([[[[NSProcessInfo processInfo] arguments] lastObject] isEqual: @"srv"])
+    {
+      run_server();
+      abort();
+    }
 
   NS_DURING
     {
       test_mframe_build_signature();
+      test_compare_server_signature();
       if (failed)
 	[NSException raise: NSInternalInconsistencyException
 		     format: @"discrepancies between gcc/mframe signatures"];
