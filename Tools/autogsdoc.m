@@ -20,428 +20,449 @@
 
 <chapter>
   <heading>The autogsdoc tool</heading>
-  <p>
-    The autogsdoc tool is a command-line utility for parsing ObjectiveC
-    source code (header files and optionally source files) in order to
-    generate documentation covering the public interface of the various
-    classes, categories, and protocols in the source.
-  </p>
-  <p>
-    The simple way to use this is to run the command with one or more
-    header file names as arguments ... the tool will automatically
-    parse corresponding source files in the same directory as the
-    headers (or the current directory, or the directory specified
-    using the DocumentationDirectory default), and produce gsdoc
-    and html files as output.
-  </p>
-  <p>
-    Even without any human assistance, this tool will produce skeleton
-    documents listing the methods in the classes found in the source
-    files, but more importantly it can take specially formatted comments
-    from the source files and insert those comments into the gsdoc output.
-  </p>
-  <p>
-    Any comment beginning with slash and <em>two</em> asterisks rather than
-    the common slash and single asterisk, is taken to be gsdoc markup, to
-    be use as the description of the class or method following it.  This
-    comment text is reformatted and then inserted into the output.<br />
-    Where multiple comments are associatd with the same item, they are
-    joined together with a line break (&lt;br /&gt;) between each if
-    necessary.
-  </p>
-  <p>
-    The tool can easily be used to document programs as well as libraries,
-    simply by giving it the name of the source file containing the main()
-    function of the program - it takes the special comments from that
-    function and handles them specially, inserting them as a section at
-    the end of the first chapter of the document (it creates the first
-    chapter if necessary).
-  </p>
-  <p>
-    There are some cases where special extra processing is performed,
-    predominantly in the first comment found in the source file,
-    from which various chunks of gsdoc markup may be extracted and
-    placed into appropriate locations in the output document -
-  </p>
-  <list>
-    <item><strong>AutogsdocSource</strong>
-      In any line where <code>AutogsdocSource</code>: is found, the remainder
-      of the line is taken as a source file name to be used instead of
-      making the assumption that each .h file processed uses a .m file
-      of the same name.  You may supply multiple <code>AutogsdocSource</code>:
-      lines where a header file declares items which are defined in
-      multiple source files.<br />
-      If a file name is absolute, it is used just as supplied.<br />
-      If on the other hand, it is a relative path, the software looks for
-      the source file first relative to the location of the header file,
-      and if not found there, relative to the current directory in which
-      autogsdoc is running, and finally relative to the directory
-      specified by the DocumentationDirectory default.
-    </item>
-    <item><strong>&lt;abstract&gt;</strong>
-      An abstract of the content of the document ... placed in the head
-      of the gsdoc output.
-    </item>
-    <item><strong>&lt;author&gt;</strong>
-      A description of the author of the code - may be repeated to handle
-      the case where a document has multiple authors.  Placed in the
-      head of the gsdoc output.<br />
-      As an aid to readability of the source, some special additional
-      processing is performed related to the document author -<br />
-      Any line of the form '<code>Author</code>: name &lt;email-address&gt;',
-      or '<code>By</code>: name &lt;email-address&gt;',
-      or '<code>Author</code>: name' or '<code>By</code>: name'
-      will be recognised and converted to an <em>author</em> element,
-      possibly containing an <em>email</em> element.
-    </item>
-    <item><strong>&lt;back&gt;</strong>
-      Placed in the gsdoc output just before the end of the body of the
-      document - intended to be used for appendices, index etc.
-    </item>
-    <item><strong>&lt;chapter&gt;</strong>
-      Placed immediately before any generated class documentation ...
-      intended to be used to provide overall description of how the
-      code being documented works.<br />Any documentation for the main()
-      function of a program is inserted as a section at the end of this
-      chapter.
-    </item>
-    <item><strong>&lt;copy&gt;</strong>
-      Copyright of the content of the document ... placed in the head
-      of the gsdoc output.<br />
-      As an aid to readability of the source, some special additional
-      processing is performed -<br />
-      Any line of the form 'Copyright (C) text' will be recognised and
-      converted to a <em>copy</em> element.
-    </item>
-    <item><strong>&lt;date&gt;</strong>
-      Date of the revision of the document ... placed in the head
-      of the gsdoc output.  If this is omitted the tool will try to
-      construct a value from the RCS Date tag (if available).
-    </item>
-    <item><strong>&lt;front&gt;</strong>
-      Inserted into the document at the start of the body ... intended
-      to provide for introduction or contents pages etc.
-    </item>
-    <item><strong>&lt;title&gt;</strong>
-      Title of the document ... placed in the head of the gsdoc output.
-      If this is omitted the tool will generate a (probably poor)
-      title of its own - so you should include this markup manually.
-    </item>
-    <item>
-      <strong>NB</strong>This markup may be used within
-      class, category, or protocol documentation ... if so, it is
-      extracted and wrapped round the rest of the documentation for
-      the class as the classes chapter.
-      The rest of the class documentation is normally
-      inserted at the end of the chapter, but may instead be substituted
-      in in place of the &lt;unit /&gt; pseudo-element within the
-      &lt;chapter&gt; element.
-    </item>
-    <item><strong>&lt;version&gt;</strong>
-      Version identifier of the document ... placed in the head
-      of the gsdoc output.  If this is omitted the tool will try to
-      construct a value from the RCS Revision tag (if available).
-    </item>
-  </list>
-  <p>
-    In comments being used to provide text for a method description, the
-    following markup is removed from the text and handled specially -
-  </p>
-  <list>
-    <item><strong>&lt;init /&gt;</strong>
-      The method is marked as being the designated initialiser for the class.
-    </item>
-    <item><strong>&lt;override-subclass /&gt;</strong>
-      The method is marked as being one which subclasses must override
-      (eg an abstract method).
-    </item>
-    <item><strong>&lt;override-never /&gt;</strong>
-      The method is marked as being one which subclasses should <em>NOT</em>
-      override.
-    </item>
-    <item><strong>&lt;standards&gt; ... &lt;/standards&gt;</strong>
-      The markup is removed from the description and placed <em>after</em>
-      it in the gsdoc output - so that the method is described as
-      conforming (or not conforming) to the specified standards.
-    </item>
-  </list>
-  <p>
-    Generally, the text in comments is reformatted to standardise and
-    indent it nicely ... the reformatting is <em>not</em> performed on
-    any text inside an &lt;example&gt; element.<br />
-    When the text is reformatted, it is broken into whitespace separated
-    'words' which are then subjected to some extra processing ...
-  </p>
-  <list>
-    <item>Certain well known constants such as YES, NO, and nil are
-      enclosed in &lt;code&gt; ... &lt;/code&gt; markup.
-    </item>
-    <item>The names of method arguments within method descriptions are
-      enclosed in &lt;var&gt; ... &lt;/var&gt; markup.
-    </item>
-    <item>Method names (beginning with a plus or minus) are enclosed
-      in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
-      eg. "-init" (without the quotes) would be wrapped in a gsdoc
-      reference element to point to the init method of the current
-      class or, if only one known class had an init method, it
-      would refer to the method of that class.
-      <br />Note the fact that the method name must be surrounded by
-      whitespace (though a comma, fullstop, or semicolon at the end
-      of the specifier will also act as a whitespace terminator).
-    </item>
-    <item>Method specifiers including class names (beginning and ending with
-      square brackets) are enclosed in &lt;ref...&gt; ... &lt;/ref&gt; markup.
-      <br />eg. <code>[</code>NSObject-init<code>]</code>,
-      will create a reference to the init method of NSObject (either the
-      class proper, or any of its categories), while
-      <br /><code>[</code>(NSCopying)-copyWithZone:<code>]</code>, creates a
-      reference to a method in the NSCopyIng protocol.
-      <br />Note that no spaces must appear between the square brackets
-      in these specifiers.
-      <br />Protocol names are enclosed in round brackets rather than
-      the customary angle brackets, because gsdoc is an XML language, and
-      XML treats angle brackets specially.
-    </item>
-    <item>Function names (ending with '()') other than 'main()' are enclosed
-      in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
-      eg. "NSLogv()" (without the quotes) would be wrapped in a gsdoc
-      reference element to point to the documentation of the NSLog function.
-      <br />Note the fact that the function name must be surrounded by
-      whitespace (though a comma, fullstop, or semicolon at the end
-      of the specifier will also act as a whitespace terminator).
-    </item>
-  </list>
-  <p>
-    The tools accepts certain user defaults (which can of course be
-    supplied as command-line arguments as usual) -
-  </p>
-  <list>
-    <item><strong>Clean</strong>
-      If this boolean value is set to YES, then rather than generating
-      documentation, the tool removes all gsdoc files generated in the
-      project, and all html files generated from them (as well as any
-      which would be generated from gsdoc files listed explicitly),
-      and finally removes the project index file.<br />
-      The only exception to this is that template gsdoc files (ie those
-      specifield using ConstantsTemplate, FunctionsTemplate arguments etc)
-      are not deleted unless the CleanTemplates flag is set.
-    </item>
-    <item><strong>CleanTemplates</strong>
-      This flag specifies whether template gsdoc files are to be removed
-      along with other files when the Clean option is specified.
-      The default is for them not to be removed ... since these templates
-      may have been produced manually and just had data inserted into them.
-    </item>
-    <item><strong>ConstantsTemplate</strong>
-      Specify the name of a template document into which documentation
-      about constants should be inserted from all files in the project.<br />
-      This is useful if constants in the source code are scattered around many
-      files, and you need to group them into one place.<br />
-      You are responsible for ensuring that the basic template document
-      (into which individual constant documentation is inserted) contains
-      all the other information you want, but as a convenience autogsdoc
-      will generate a simple template (which you may then edit) for you
-      if the file does not exist.
-      <br />Insertion takes place immediately before the <em>back</em>
-      element (or if that does not exist, immediately before the end
-      of the <em>body</em> element) in the template.
-    </item>
-    <item><strong>Declared</strong>
-      Specify where headers are to be documented as being found.<br />
-      The actual name produced in the documentation is formed by appending
-      the last component of the header file name to the value of this
-      default.<br />
-      If this default is not specified, the full name of the header file
-      (as supplied on the command line), with the HeaderDirectory
-      default prepended, is used.<br />
-      A typical usage of this might be <code>-Declared Foundation</code>
-      when generating documentation for the GNUstep base library.  This
-      would result in the documentation saying that NSString is declared
-      in <code>Foundation/NSString.h</code>
-    </item>
-    <item><strong>DocumentAllInstanceVariables</strong>
-      This flag permits you to generate documentation for all instance
-      variables.  Normally, only those explicitly declared 'public' or
-      'protected' will be documented.
-    </item>
-    <item><strong>DocumentationDirectory</strong>
-      May be used to specify the directory in which generated
-      documentation is to be placed.  If this is not set, output
-      is placed in the current directory.  This directory is also
-      used as a last resort to locate source files (not headers).
-    </item>
-    <item><strong>Files</strong>
-      Specifies the name of a file containing a list of file names as
-      a property list array <em>(name1,name2,...)</em> format.  If this
-      is present, filenames in the program argument list are ignored and
-      the names in this file are used as the list of names to process.
-    </item>
-    <item><strong>FunctionsTemplate</strong>
-      Specify the name of a template document into which documentation
-      about functions should be inserted from all files in the project.<br />
-      This is useful if function source code is scattered around many
-      files, and you need to group it into one place.<br />
-      You are responsible for ensuring that the basic template document
-      (into which individual function documentation is inserted) contains
-      all the other information you want, but as a convenience autogsdoc
-      will generate a simple template (which you may then edit) for you
-      if the file does not exist.
-      <br />Insertion takes place immediately before the <em>back</em>
-      element (or if that does not exist, immediately before the end
-      of the <em>body</em> element) in the template.
-    </item>
-    <item><strong>GenerateHtml</strong>
-      May be used to specify if HTML output is to be generated.
-      Defaults to YES.
-    </item>
-    <item><strong>HeaderDirectory</strong>
-      May be used to specify the directory to be searched for header files.
-      When supplied, this value is prepended to relative header names,
-      otherwise the relative header names are interpreted relative to
-      the current directory.<br />
-      Header files specified as absolute paths are not influenced by this
-      default.
-    </item>
-    <item><strong>IgnoreDependencies</strong>
-      A boolean value which may be used to specify that the program should
-      ignore file modification times and regenerate files anyway.  Provided
-      for use in conjunction with the <code>make</code> system, which is
-      expected to manage dependency checking itsself.
-    </item>
-    <item><strong>LocalProjects</strong>
-      This value is used to control the automatic inclusion of local
-      external projects into the indexing system for generation of
-      cross-references in final document output.<br />
-      If set to 'None', then no local project references are done,
-      otherwise, the 'Local' GNUstep documentation directory is recursively
-      searched for files with a <code>.igsdoc</code> extension, and the
-      indexing information from those files is used.<br />
-      The value of this string is also used to generate the filenames in
-      the cross reference ... if it is an empty string, the path to use
-      is assumed to be a file in the same directory where the igsdoc
-      file was found, otherwise it is used as a prefix to the name in
-      the index.<br />
-      NB. Local projects with the same name as the project currently
-      being documented will <em>not</em> be included by this mechanism.
-      If you wish to include such projects, you must do so explicitly
-      using <em>-Projects</em>
-    </item>
-    <item><strong>MacrosTemplate</strong>
-      Specify the name of a template document into which documentation
-      about macros should be inserted from all files in the project.<br />
-      This is useful if macro code is scattered around many
-      files, and you need to group it into one place.<br />
-      You are responsible for ensuring that the basic template document
-      (into which individual macro documentation is inserted) contains
-      all the other information you want, but as a convenience autogsdoc
-      will generate a simple template (which you may then edit) for you
-      if the file does not exist.
-      <br />Insertion takes place immediately before the <em>back</em>
-      element (or if that does not exist, immediately before the end
-      of the <em>body</em> element) in the template.
-    </item>
-    <item><strong>Project</strong>
-      May be used to specify the name of this project ... determines the
-      name of the index reference file produced as part of the documentation
-      to provide information enabling other projects to cross-reference to
-      items in this project.
-    </item>
-    <item><strong>Projects</strong>
-      This value may be supplied as a dictionary containing the paths to
-      the igsdoc index/reference files used by external projects, along
-      with values to be used to map the filenames found in the indexes.<br />
-      For example, if a project index (igsdoc) file says that the class
-      <code>Foo</code> is found in the file <code>Foo</code>, and the
-      path associated with that project index is <code>/usr/doc/proj</code>,
-      Then generated html output may reference the class as being in
-      <code>/usr/doc/prj/Foo.html</code>
-    </item>
-    <item><strong>ShowDependencies</strong>
-      A boolean value which may be used to specify that the program should
-      log which files are being regenerated because of their dependencies
-      on other files.
-    </item>
-    <item><strong>Standards</strong>
-      A boolean value used to specify whether the program should insert
-      information about standards complience into ythe documentation.
-      This should only be used when documenting the GNUstep libraries
-      and tools themselves as it assumes that the code being documented
-      is part of GNUstep and possibly complies with the OpenStep standard
-      or implements MacOS-X compatible methods.
-    </item>
-    <item><strong>SystemProjects</strong>
-      This value is used to control the automatic inclusion of system
-      external projects into the indexing system for generation of
-      cross-references in final document output.<br />
-      If set to 'None', then no system project references are done,
-      otherwise, the 'System' GNUstep documentation directory is recursively
-      searched for files with a <code>.igsdoc</code> extension, and the
-      indexing information from those files is used.<br />
-      The value of this string is also used to generate the filenames in
-      the cross reference ... if it is an empty string, the path to use
-      is assumed to be a file in the same directory where the igsdoc
-      file was found, otherwise it is used as a prefix to the name in
-      the index.<br />
-      NB. System projects with the same name as the project currently
-      being documented will <em>not</em> be included by this mechanism.
-      If you wish to include such projects, you must do so explicitly
-      using <em>-Projects</em>
-    </item>
-    <item><strong>TypedefsTemplate</strong>
-      Specify the name of a template document into which documentation
-      about typedefs should be inserted from all files in the project.<br />
-      This is useful if typedef source code is scattered around many
-      files, and you need to group it into one place.<br />
-      You are responsible for ensuring that the basic template document
-      (into which individual typedef documentation is inserted) contains
-      all the other information you want, but as a convenience autogsdoc
-      will generate a simple template (which you may then edit) for you
-      if the file does not exist.
-      <br />Insertion takes place immediately before the <em>back</em>
-      element (or if that does not exist, immediately before the end
-      of the <em>body</em> element) in the template.
-    </item>
-    <item><strong>Up</strong>
-      A string used to supply the name to be used in the 'up' link from
-      generated gsdoc documents.  This should normally be the name of a
-      file which contains an index of the contents of a project.<br />
-      If this is missing or set to an empty string, then no 'up' link
-      will be provided in the documents.
-    </item>
-    <item><strong>VariablesTemplate</strong>
-      Specify the name of a template document into which documentation
-      about variables should be inserted from all files in the project.<br />
-      This is useful if variable source code is scattered around many
-      files, and you need to group it into one place.<br />
-      You are responsible for ensuring that the basic template document
-      (into which individual variable documentation is inserted) contains
-      all the other information you want, but as a convenience autogsdoc
-      will generate a simple template (which you may then edit) for you
-      if the file does not exist.
-      <br />Insertion takes place immediately before the <em>back</em>
-      element (or if that does not exist, immediately before the end
-      of the <em>body</em> element) in the template.
-    </item>
-    <item><strong>Verbose</strong>
-      A boolean used to specify whether you want verbose debug/warning
-      output to be produced.
-    </item>
-    <item><strong>Warn</strong>
-      A boolean used to specify whether you want standard warning
-      output (eg report of undocumented methods) produced.
-    </item>
-    <item><strong>WordMap</strong>
-      This value is a dictionary used to map identifiers/keywords found
-      in the source files  to other words.  Generally you will not have
-      to use this, but it is sometimes helpful to avoid the parser being
-      confused by the use of C preprocessor macros.  You can effectively
-      redefine the macro to something less confusing.<br />
-      The value you map the identifier to must be one of -<br />
-      Another identifier,<br />
-      An empty string - the value is ignored,<br />
-      Two slashes ('//') - the rest of the line is ignored.<br />
-    </item>
-  </list>
+  <section>
+    <heading>overview</heading>
+    <p>
+      The autogsdoc tool is a command-line utility for parsing ObjectiveC
+      source code (header files and optionally source files) in order to
+      generate documentation covering the public interface of the various
+      classes, categories, and protocols in the source.
+    </p>
+    <p>
+      The simple way to use this is to run the command with one or more
+      header file names as arguments ... the tool will automatically
+      parse corresponding source files in the same directory as the
+      headers (or the current directory, or the directory specified
+      using the DocumentationDirectory default), and produce gsdoc
+      and html files as output.
+    </p>
+    <p>
+      Even without any human assistance, this tool will produce skeleton
+      documents listing the methods in the classes found in the source
+      files, but more importantly it can take specially formatted comments
+      from the source files and insert those comments into the gsdoc output.
+    </p>
+    <p>
+      Any comment beginning with slash and <em>two</em> asterisks rather than
+      the common slash and single asterisk, is taken to be gsdoc markup, to
+      be use as the description of the class or method following it.  This
+      comment text is reformatted and then inserted into the output.<br />
+      Where multiple comments are associatd with the same item, they are
+      joined together with a line break (&lt;br /&gt;) between each if
+      necessary.
+    </p>
+    <p>
+      The tool can easily be used to document programs as well as libraries,
+      simply by giving it the name of the source file containing the main()
+      function of the program - it takes the special comments from that
+      function and handles them specially, inserting them as a section at
+      the end of the first chapter of the document (it creates the first
+      chapter if necessary).
+    </p>
+  </section>
+  <section>
+    <heading>Extra markup</heading>
+    <p>
+      There are some cases where special extra processing is performed,
+      predominantly in the first comment found in the source file,
+      from which various chunks of gsdoc markup may be extracted and
+      placed into appropriate locations in the output document -
+    </p>
+    <list>
+      <item><strong>AutogsdocSource</strong>
+	In any line where <code>AutogsdocSource</code>: is found, the remainder
+	of the line is taken as a source file name to be used instead of
+	making the assumption that each .h file processed uses a .m file
+	of the same name.  You may supply multiple <code>AutogsdocSource</code>:
+	lines where a header file declares items which are defined in
+	multiple source files.<br />
+	If a file name is absolute, it is used just as supplied.<br />
+	If on the other hand, it is a relative path, the software looks for
+	the source file first relative to the location of the header file,
+	and if not found there, relative to the current directory in which
+	autogsdoc is running, and finally relative to the directory
+	specified by the DocumentationDirectory default.
+      </item>
+      <item><strong>&lt;abstract&gt;</strong>
+	An abstract of the content of the document ... placed in the head
+	of the gsdoc output.
+      </item>
+      <item><strong>&lt;author&gt;</strong>
+	A description of the author of the code - may be repeated to handle
+	the case where a document has multiple authors.  Placed in the
+	head of the gsdoc output.<br />
+	As an aid to readability of the source, some special additional
+	processing is performed related to the document author -<br />
+	Any line of the form '<code>Author</code>: name &lt;email-address&gt;',
+	or '<code>By</code>: name &lt;email-address&gt;',
+	or '<code>Author</code>: name' or '<code>By</code>: name'
+	will be recognised and converted to an <em>author</em> element,
+	possibly containing an <em>email</em> element.
+      </item>
+      <item><strong>&lt;back&gt;</strong>
+	Placed in the gsdoc output just before the end of the body of the
+	document - intended to be used for appendices, index etc.
+      </item>
+      <item><strong>&lt;chapter&gt;</strong>
+	Placed immediately before any generated class documentation ...
+	intended to be used to provide overall description of how the
+	code being documented works.<br />Any documentation for the main()
+	function of a program is inserted as a section at the end of this
+	chapter.
+      </item>
+      <item><strong>&lt;copy&gt;</strong>
+	Copyright of the content of the document ... placed in the head
+	of the gsdoc output.<br />
+	As an aid to readability of the source, some special additional
+	processing is performed -<br />
+	Any line of the form 'Copyright (C) text' will be recognised and
+	converted to a <em>copy</em> element.
+      </item>
+      <item><strong>&lt;date&gt;</strong>
+	Date of the revision of the document ... placed in the head
+	of the gsdoc output.  If this is omitted the tool will try to
+	construct a value from the RCS Date tag (if available).
+      </item>
+      <item><strong>&lt;front&gt;</strong>
+	Inserted into the document at the start of the body ... intended
+	to provide for introduction or contents pages etc.
+      </item>
+      <item><strong>&lt;title&gt;</strong>
+	Title of the document ... placed in the head of the gsdoc output.
+	If this is omitted the tool will generate a (probably poor)
+	title of its own - so you should include this markup manually.
+      </item>
+      <item>
+	<strong>NB</strong>This markup may be used within
+	class, category, or protocol documentation ... if so, it is
+	extracted and wrapped round the rest of the documentation for
+	the class as the classes chapter.
+	The rest of the class documentation is normally
+	inserted at the end of the chapter, but may instead be substituted
+	in in place of the &lt;unit /&gt; pseudo-element within the
+	&lt;chapter&gt; element.
+      </item>
+      <item><strong>&lt;version&gt;</strong>
+	Version identifier of the document ... placed in the head
+	of the gsdoc output.  If this is omitted the tool will try to
+	construct a value from the RCS Revision tag (if available).
+      </item>
+    </list>
+  </section>
+  <section>
+    <heading>Method markup</heading>
+    <p>
+      In comments being used to provide text for a method description, the
+      following markup is removed from the text and handled specially -
+    </p>
+    <list>
+      <item><strong>&lt;init /&gt;</strong>
+	The method is marked as being the designated initialiser for the class.
+      </item>
+      <item><strong>&lt;override-subclass /&gt;</strong>
+	The method is marked as being one which subclasses must override
+	(eg an abstract method).
+      </item>
+      <item><strong>&lt;override-never /&gt;</strong>
+	The method is marked as being one which subclasses should <em>NOT</em>
+	override.
+      </item>
+      <item><strong>&lt;standards&gt; ... &lt;/standards&gt;</strong>
+	The markup is removed from the description and placed <em>after</em>
+	it in the gsdoc output - so that the method is described as
+	conforming (or not conforming) to the specified standards.
+      </item>
+    </list>
+  </section>
+  <section>
+    <heading>Automated markup</heading>
+    <p>
+      Generally, the text in comments is reformatted to standardise and
+      indent it nicely ... the reformatting is <em>not</em> performed on
+      any text inside an &lt;example&gt; element.<br />
+      When the text is reformatted, it is broken into whitespace separated
+      'words' which are then subjected to some extra processing ...
+    </p>
+    <list>
+      <item>Certain well known constants such as YES, NO, and nil are
+	enclosed in &lt;code&gt; ... &lt;/code&gt; markup.
+      </item>
+      <item>The names of method arguments within method descriptions are
+	enclosed in &lt;var&gt; ... &lt;/var&gt; markup.
+      </item>
+      <item>Method names (beginning with a plus or minus) are enclosed
+	in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
+	eg. "-init" (without the quotes) would be wrapped in a gsdoc
+	reference element to point to the init method of the current
+	class or, if only one known class had an init method, it
+	would refer to the method of that class.
+	<br />Note the fact that the method name must be surrounded by
+	whitespace to be recognized (though a comma, fullstop, or semicolon
+	at the end of the specifier will act like whitespace).
+      </item>
+      <item>Method specifiers including class names (beginning and ending with
+	square brackets) are enclosed in &lt;ref...&gt; ... &lt;/ref&gt; markup.
+	<br />eg. <code>[</code>NSObject-init<code>]</code>,
+	will create a reference to the init method of NSObject (either the
+	class proper, or any of its categories), while
+	<br /><code>[</code>(NSCopying)-copyWithZone:<code>]</code>, creates a
+	reference to a method in the NSCopyIng protocol.
+	<br />Note that no spaces must appear between the square brackets
+	in these specifiers.
+	<br />Protocol names are enclosed in round brackets rather than
+	the customary angle brackets, because gsdoc is an XML language, and
+	XML treats angle brackets specially.
+      </item>
+      <item>Class names (and also protocol and category names) enclosed
+	in square brackets are also cross referenced.
+	<br />Protocol names are enclosed in round brackets rather than
+	the customary angle brackets, because gsdoc is an XML language, and
+	XML treats angle brackets specially.
+      </item>
+      <item>Function names (ending with '()') other than 'main()' are enclosed
+	in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
+	eg. "NSLogv()" (without the quotes) would be wrapped in a gsdoc
+	reference element to point to the documentation of the NSLog function.
+	<br />Note the fact that the function name must be surrounded by
+	whitespace (though a comma, fullstop, or semicolon at the end
+	of the specifier will also act as a whitespace terminator).
+      </item>
+    </list>
+  </section>
+  <section>
+    <heading>Arguments and Defaults</heading>
+    <p>
+      The tools accepts certain user defaults (which can of course be
+      supplied as command-line arguments as usual) -
+    </p>
+    <list>
+      <item><strong>Clean</strong>
+	If this boolean value is set to YES, then rather than generating
+	documentation, the tool removes all gsdoc files generated in the
+	project, and all html files generated from them (as well as any
+	which would be generated from gsdoc files listed explicitly),
+	and finally removes the project index file.<br />
+	The only exception to this is that template gsdoc files (ie those
+	specifield using "-ConstantsTemplate ...", "-FunctionsTemplate ..."
+        arguments etc) are not deleted unless the CleanTemplates flag is set.
+      </item>
+      <item><strong>CleanTemplates</strong>
+	This flag specifies whether template gsdoc files are to be removed
+	along with other files when the Clean option is specified.
+	The default is for them not to be removed ... since these templates
+	may have been produced manually and just had data inserted into them.
+      </item>
+      <item><strong>ConstantsTemplate</strong>
+	Specify the name of a template document into which documentation
+	about constants should be inserted from all files in the project.<br />
+	This is useful if constants in the source code are scattered around many
+	files, and you need to group them into one place.<br />
+	You are responsible for ensuring that the basic template document
+	(into which individual constant documentation is inserted) contains
+	all the other information you want, but as a convenience autogsdoc
+	will generate a simple template (which you may then edit) for you
+	if the file does not exist.
+	<br />Insertion takes place immediately before the <em>back</em>
+	element (or if that does not exist, immediately before the end
+	of the <em>body</em> element) in the template.
+      </item>
+      <item><strong>Declared</strong>
+	Specify where headers are to be documented as being found.<br />
+	The actual name produced in the documentation is formed by appending
+	the last component of the header file name to the value of this
+	default.<br />
+	If this default is not specified, the full name of the header file
+	(as supplied on the command line), with the HeaderDirectory
+	default prepended, is used.<br />
+	A typical usage of this might be <code>"-Declared Foundation"</code>
+	when generating documentation for the GNUstep base library.  This
+	would result in the documentation saying that NSString is declared
+	in <code>Foundation/NSString.h</code>
+      </item>
+      <item><strong>DocumentAllInstanceVariables</strong>
+	This flag permits you to generate documentation for all instance
+	variables.  Normally, only those explicitly declared 'public' or
+	'protected' will be documented.
+      </item>
+      <item><strong>DocumentationDirectory</strong>
+	May be used to specify the directory in which generated
+	documentation is to be placed.  If this is not set, output
+	is placed in the current directory.  This directory is also
+	used as a last resort to locate source files (not headers).
+      </item>
+      <item><strong>Files</strong>
+	Specifies the name of a file containing a list of file names as
+	a property list array <em>(name1,name2,...)</em> format.  If this
+	is present, filenames in the program argument list are ignored and
+	the names in this file are used as the list of names to process.
+      </item>
+      <item><strong>FunctionsTemplate</strong>
+	Specify the name of a template document into which documentation
+	about functions should be inserted from all files in the project.<br />
+	This is useful if function source code is scattered around many
+	files, and you need to group it into one place.<br />
+	You are responsible for ensuring that the basic template document
+	(into which individual function documentation is inserted) contains
+	all the other information you want, but as a convenience autogsdoc
+	will generate a simple template (which you may then edit) for you
+	if the file does not exist.
+	<br />Insertion takes place immediately before the <em>back</em>
+	element (or if that does not exist, immediately before the end
+	of the <em>body</em> element) in the template.
+      </item>
+      <item><strong>GenerateHtml</strong>
+	May be used to specify if HTML output is to be generated.
+	Defaults to YES.
+      </item>
+      <item><strong>HeaderDirectory</strong>
+	May be used to specify the directory to be searched for header files.
+	When supplied, this value is prepended to relative header names,
+	otherwise the relative header names are interpreted relative to
+	the current directory.<br />
+	Header files specified as absolute paths are not influenced by this
+	default.
+      </item>
+      <item><strong>IgnoreDependencies</strong>
+	A boolean value which may be used to specify that the program should
+	ignore file modification times and regenerate files anyway.  Provided
+	for use in conjunction with the <code>make</code> system, which is
+	expected to manage dependency checking itsself.
+      </item>
+      <item><strong>LocalProjects</strong>
+	This value is used to control the automatic inclusion of local
+	external projects into the indexing system for generation of
+	cross-references in final document output.<br />
+	If set to 'None', then no local project references are done,
+	otherwise, the 'Local' GNUstep documentation directory is recursively
+	searched for files with a <code>.igsdoc</code> extension, and the
+	indexing information from those files is used.<br />
+	The value of this string is also used to generate the filenames in
+	the cross reference ... if it is an empty string, the path to use
+	is assumed to be a file in the same directory where the igsdoc
+	file was found, otherwise it is used as a prefix to the name in
+	the index.<br />
+	NB. Local projects with the same name as the project currently
+	being documented will <em>not</em> be included by this mechanism.
+	If you wish to include such projects, you must do so explicitly
+	using <em>"-Projects ..."</em>
+      </item>
+      <item><strong>MacrosTemplate</strong>
+	Specify the name of a template document into which documentation
+	about macros should be inserted from all files in the project.<br />
+	This is useful if macro code is scattered around many
+	files, and you need to group it into one place.<br />
+	You are responsible for ensuring that the basic template document
+	(into which individual macro documentation is inserted) contains
+	all the other information you want, but as a convenience autogsdoc
+	will generate a simple template (which you may then edit) for you
+	if the file does not exist.
+	<br />Insertion takes place immediately before the <em>back</em>
+	element (or if that does not exist, immediately before the end
+	of the <em>body</em> element) in the template.
+      </item>
+      <item><strong>Project</strong>
+	May be used to specify the name of this project ... determines the
+	name of the index reference file produced as part of the documentation
+	to provide information enabling other projects to cross-reference to
+	items in this project.
+      </item>
+      <item><strong>Projects</strong>
+	This value may be supplied as a dictionary containing the paths to
+	the igsdoc index/reference files used by external projects, along
+	with values to be used to map the filenames found in the indexes.<br />
+	For example, if a project index (igsdoc) file says that the class
+	<code>Foo</code> is found in the file <code>Foo</code>, and the
+	path associated with that project index is <code>/usr/doc/proj</code>,
+	Then generated html output may reference the class as being in
+	<code>/usr/doc/prj/Foo.html</code>
+      </item>
+      <item><strong>ShowDependencies</strong>
+	A boolean value which may be used to specify that the program should
+	log which files are being regenerated because of their dependencies
+	on other files.
+      </item>
+      <item><strong>Standards</strong>
+	A boolean value used to specify whether the program should insert
+	information about standards complience into ythe documentation.
+	This should only be used when documenting the GNUstep libraries
+	and tools themselves as it assumes that the code being documented
+	is part of GNUstep and possibly complies with the OpenStep standard
+	or implements MacOS-X compatible methods.
+      </item>
+      <item><strong>SystemProjects</strong>
+	This value is used to control the automatic inclusion of system
+	external projects into the indexing system for generation of
+	cross-references in final document output.<br />
+	If set to 'None', then no system project references are done,
+	otherwise, the 'System' GNUstep documentation directory is recursively
+	searched for files with a <code>.igsdoc</code> extension, and the
+	indexing information from those files is used.<br />
+	The value of this string is also used to generate the filenames in
+	the cross reference ... if it is an empty string, the path to use
+	is assumed to be a file in the same directory where the igsdoc
+	file was found, otherwise it is used as a prefix to the name in
+	the index.<br />
+	NB. System projects with the same name as the project currently
+	being documented will <em>not</em> be included by this mechanism.
+	If you wish to include such projects, you must do so explicitly
+	using <em>"-Projects ..."</em>
+      </item>
+      <item><strong>TypedefsTemplate</strong>
+	Specify the name of a template document into which documentation
+	about typedefs should be inserted from all files in the project.<br />
+	This is useful if typedef source code is scattered around many
+	files, and you need to group it into one place.<br />
+	You are responsible for ensuring that the basic template document
+	(into which individual typedef documentation is inserted) contains
+	all the other information you want, but as a convenience autogsdoc
+	will generate a simple template (which you may then edit) for you
+	if the file does not exist.
+	<br />Insertion takes place immediately before the <em>back</em>
+	element (or if that does not exist, immediately before the end
+	of the <em>body</em> element) in the template.
+      </item>
+      <item><strong>Up</strong>
+	A string used to supply the name to be used in the 'up' link from
+	generated gsdoc documents.  This should normally be the name of a
+	file which contains an index of the contents of a project.<br />
+	If this is missing or set to an empty string, then no 'up' link
+	will be provided in the documents.
+      </item>
+      <item><strong>VariablesTemplate</strong>
+	Specify the name of a template document into which documentation
+	about variables should be inserted from all files in the project.<br />
+	This is useful if variable source code is scattered around many
+	files, and you need to group it into one place.<br />
+	You are responsible for ensuring that the basic template document
+	(into which individual variable documentation is inserted) contains
+	all the other information you want, but as a convenience autogsdoc
+	will generate a simple template (which you may then edit) for you
+	if the file does not exist.
+	<br />Insertion takes place immediately before the <em>back</em>
+	element (or if that does not exist, immediately before the end
+	of the <em>body</em> element) in the template.
+      </item>
+      <item><strong>Verbose</strong>
+	A boolean used to specify whether you want verbose debug/warning
+	output to be produced.
+      </item>
+      <item><strong>Warn</strong>
+	A boolean used to specify whether you want standard warning
+	output (eg report of undocumented methods) produced.
+      </item>
+      <item><strong>WordMap</strong>
+	This value is a dictionary used to map identifiers/keywords found
+	in the source files  to other words.  Generally you will not have
+	to use this, but it is sometimes helpful to avoid the parser being
+	confused by the use of C preprocessor macros.  You can effectively
+	redefine the macro to something less confusing.<br />
+	The value you map the identifier to must be one of -<br />
+	Another identifier,<br />
+	An empty string - the value is ignored,<br />
+	Two slashes ('//') - the rest of the line is ignored.<br />
+      </item>
+    </list>
+  </section>
   <section>
     <heading>Inter-document linkage</heading>
     <p>

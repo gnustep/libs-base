@@ -189,7 +189,7 @@
  * class of the object to be aClass etc.  The allocated memory will
  * be extraBytes larger than the space actually needed to hold the
  * instance variables of the object.<br />
- * This function is used by the [NSObject-allocWithZone:] mnethod.
+ * This function is used by the [NSObject+allocWithZone:] mnethod.
  */
 GS_EXPORT NSObject *
 NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
@@ -206,7 +206,8 @@ NSDeallocateObject(NSObject *anObject);
  * memory allocated from zone.  The allocated memory will be extraBytes
  * longer than that necessary to actually store the instance variables
  * of the copied object.<br />
- * This is used by the [NSObject-copyWithZone:] method.
+ * This is used by the NSObject implementation of the
+ * [(NSCopying)-copyWithZone:] method.
  */
 GS_EXPORT NSObject *
 NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
