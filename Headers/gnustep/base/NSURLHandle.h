@@ -24,6 +24,8 @@
 #ifndef _NSURLHandle_h__
 #define _NSURLHandle_h__
 
+#include <Foundation/NSObject.h>
+
 @class NSData;
 @class NSString;
 @class NSMutableArray;
