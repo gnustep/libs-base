@@ -30,7 +30,7 @@
 	  support both versions.  In some cases the newer MacOS APIs are
 	  incompatible with OpenStep, and GNUstep usually supports the richer
 	  version. See the
-	  <uref url="OpenStepCompliance">OpenStep Compliance</uref> section
+	  <uref url="OpenStepCompliance.html">OpenStep Compliance</uref> section
 	  for more information on OpenStep Compliance.
 	</p>
 	<p>

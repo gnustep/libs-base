@@ -35,6 +35,7 @@ BaseAdditions_DOC_INSTALL_DIR = Developer
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
+../Documentation/OpenStepCompliance.gsdoc \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
