@@ -1,3 +1,8 @@
+2000-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: ([-directoryContentsAtPath:])
+	Don't follow symbolic links
+
 2000-05-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (+initialize): Check if /proc/self/exe returns
