@@ -45,18 +45,19 @@ typedef double NSTimeInterval;
 
 // Allocation and initializing
 
-+ (NSDate*) date;
-+ (NSDate*) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
-+ (NSDate*) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
-+ (NSDate*) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
-+ (NSDate*) distantFuture;
-+ (NSDate*) distantPast;
++ (id) date;
++ (id) dateWithString: (NSString*)description;
++ (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
++ (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
++ (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
++ (id) distantFuture;
++ (id) distantPast;
 
 - (id) initWithString: (NSString*)description;
-- (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
-		       sinceDate: (NSDate*)anotherDate;
-- (NSDate*) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
-- (NSDate*) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
+- (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
+		  sinceDate: (NSDate*)anotherDate;
+- (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
+- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 // Converting to NSCalendar
@@ -73,7 +74,7 @@ typedef double NSTimeInterval;
 
 // Adding and getting intervals
 
-- (NSDate*) addTimeInterval: (NSTimeInterval)seconds;
+- (id) addTimeInterval: (NSTimeInterval)seconds;
 - (NSTimeInterval) timeIntervalSince1970;
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate;
 - (NSTimeInterval) timeIntervalSinceNow;
@@ -136,19 +137,19 @@ typedef double NSTimeInterval;
 }
 
 // Getting an NSCalendar Date
-+ (NSCalendarDate *)calendarDate;
-+ (NSCalendarDate *)dateWithString:(NSString *)description
-		    calendarFormat:(NSString *)format;
-+ (NSCalendarDate *)dateWithString:(NSString *)description
-		    calendarFormat:(NSString *)format
-			    locale:(NSDictionary *)dictionary;
-+ (NSCalendarDate *)dateWithYear:(int)year
-			   month:(unsigned int)month
-			     day:(unsigned int)day
-			    hour:(unsigned int)hour
-			  minute:(unsigned int)minute
-			  second:(unsigned int)second
-			timeZone:(NSTimeZone *)aTimeZone;
++ (id)calendarDate;
++ (id)dateWithString:(NSString *)description
+      calendarFormat:(NSString *)format;
++ (id)dateWithString:(NSString *)description
+      calendarFormat:(NSString *)format
+	      locale:(NSDictionary *)dictionary;
++ (id)dateWithYear:(int)year
+	     month:(unsigned int)month
+	       day:(unsigned int)day
+	      hour:(unsigned int)hour
+	    minute:(unsigned int)minute
+	    second:(unsigned int)second
+	  timeZone:(NSTimeZone *)aTimeZone;
 
 // Initializing an NSCalendar Date
 - (id)initWithString:(NSString *)description;
