@@ -95,6 +95,7 @@
 
 typedef	unsigned char	*uptr;
 int	debug = 0;		/* Extra debug logging.			*/
+int	nobcst = 0;		/* turn off broadcast probing.		*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
 int	noprobe = 0;		/* turn off probe for unknown servers.	*/
 int	interval = 600;		/* Minimum time (sec) between probes.	*/
@@ -184,6 +185,8 @@ static plentry	*plist = 0;
  */
 int interfaces = 0;		/* Number of interfaces.	*/
 struct in_addr	*addr;		/* Address of each interface.	*/
+unsigned char	*bcok;		/* Broadcast OK for interface?	*/
+struct in_addr	*bcst;		/* Broadcast for interface.	*/
 struct in_addr	*mask;		/* Netmask of each interface.	*/
 
 static int
@@ -208,7 +211,7 @@ is_local_net(struct in_addr a)
 
   for (i = 0; i < interfaces; i++)
     {
-      if ((mask[i].s_addr&&addr[i].s_addr) == (mask[i].s_addr&&a.s_addr))
+      if ((mask[i].s_addr && addr[i].s_addr) == (mask[i].s_addr && a.s_addr))
 	{
 	  return 1;
 	}
@@ -625,7 +628,7 @@ prb_tim(long when)
   when -= 1800;
   for (i = prb_used - 1; i >= 0; i--)
     {
-      if (prb[i]->when < when && prb[i]->when < last_probe)
+      if (noprobe == 0 && prb[i]->when < when && prb[i]->when < last_probe)
 	{
 	  prb_del(&prb[i]->sin);
 	}
@@ -751,7 +754,13 @@ init_iface()
       close(desc);
       exit(1);
     }
+  if (addr != 0) free(addr);
   addr = (struct in_addr*)malloc(num_iface*IASIZE);
+  if (bcok != 0) free(bcok);
+  bcok = (char*)malloc(num_iface*sizeof(char));
+  if (bcst != 0) free(bcst);
+  bcst = (struct in_addr*)malloc(num_iface*IASIZE);
+  if (mask != 0) free(mask);
   mask = (struct in_addr*)malloc(num_iface*IASIZE);
 
   final = (struct ifreq*)&ifc.ifc_buf[ifc.ifc_len];
@@ -764,6 +773,17 @@ init_iface()
         }
       else if (ifreq.ifr_flags & IFF_UP)
         {  /* interface is up */
+	  int	broadcast = 0;
+	  int	pointopoint = 0;
+
+	  if (ifreq.ifr_flags & IFF_BROADCAST)
+	    {
+	      broadcast = 1;
+	    }
+	  if (ifreq.ifr_flags & IFF_POINTOPOINT)
+	    {
+	      pointopoint = 1;
+	    }
           if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
             {
               perror("SIOCGIFADDR");
@@ -782,6 +802,33 @@ init_iface()
 	        }
 	      addr[interfaces] =
 		((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
+	      bcok[interfaces] = (broadcast | pointopoint);
+	      if (pointopoint)
+		{
+		  if (ioctl(desc, SIOCGIFDSTADDR, (char*)&ifreq) < 0)
+		    {
+		      perror("SIOCGIFDSTADDR");
+		      bcok[interfaces] = 0;
+		    }
+		  else
+		    {
+		      bcst[interfaces]
+			= ((struct sockaddr_in *)&ifreq.ifr_dstaddr)->sin_addr;
+		    }
+		}
+	      else
+		{
+		  if (ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
+		    {
+		      perror("SIOCGIFBRDADDR");
+		      bcok[interfaces] = 0;
+		    }
+		  else
+		    {
+		      bcst[interfaces]
+			= ((struct sockaddr_in*)&ifreq.ifr_broadaddr)->sin_addr;
+		    }
+		}
 	      if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
 	        {
 	          perror("SIOCGIFNETMASK");
@@ -1035,6 +1082,15 @@ init_ports()
     {
       fprintf(stderr, "Warning - unable to set 're-use' on UDP socket\n");
     }
+  if (nobcst == 0)
+    {
+      r = 1;
+      if ((setsockopt(udp_desc,SOL_SOCKET,SO_BROADCAST,(char*)&r,sizeof(r)))<0)
+	{
+	  nobcst++;
+	  fprintf(stderr, "Warning - unable to use 'broadcast' for probes\n");
+	}
+    }
   if ((r = fcntl(udp_desc, F_GETFL, 0)) >= 0)
     {
       r |= NBLK_OPT;
@@ -1192,6 +1248,10 @@ init_probe()
   int	iface;
   int	i;
 
+  if (noprobe > 0)
+    {
+      return;
+    }
   if (debug > 2)
     {
       fprintf(stderr, "Initiating probe requests.\n");
@@ -1224,13 +1284,15 @@ init_probe()
 
   for (i = 0; i < nlist_size; i++)
     {
+      int		broadcast = 0;
+      int		elen = 0;
       struct in_addr	*other;
-      int		elen;
       struct in_addr	sin;
       int		high;
       int		low;
       unsigned long	net;
       int		j;
+      struct in_addr	b;
 
       /*
        *	Build up a list of addresses that we serve on this network.
@@ -1239,31 +1301,42 @@ init_probe()
 	{
 	  if ((addr[iface].s_addr & mask[iface].s_addr) == nlist[i])
 	    {
-	      unsigned long ha;		/* full host address.	*/
-	      unsigned long hm;		/* full netmask.	*/
-
-	      ha = ntohl(addr[iface].s_addr);
-	      hm = ntohl(mask[iface].s_addr);
-
-	      /*
-	       *	Make sure that our netmasks are restricted
-	       *	to class-c networks and subnets of those
-	       *	networks - we don't want to be probing
-	       *	more than a couple of hundred hosts!
-	       */
-	      if ((mask[iface].s_addr | class_c_mask.s_addr)
-		    != mask[iface].s_addr)
+	      if (bcok[iface])
 		{
-		  fprintf(stderr, "gdomap - warning - netmask %s will be " 
-			"treated as 255.255.255.0 for %s\n",
-			inet_ntoa(mask[iface]), inet_ntoa(addr[iface]));
-		  hm |= ~255;
+		  /*
+		   * Simple broadcast for this address.
+		   */
+		  b.s_addr = bcst[iface].s_addr;
+		  broadcast = 1;
 		}
-	      sin = addr[iface];
-	      net = ha & hm & ~255;		/* class-c net number.	*/
-	      low = ha & hm & 255;		/* low end of subnet.	*/
-	      high = low | (255 & ~hm);	/* high end of subnet.	*/
-	      elen = other_addresses_on_net(sin, &other);
+	      else
+		{
+		  unsigned long ha;		/* full host address.	*/
+		  unsigned long hm;		/* full netmask.	*/
+
+		  ha = ntohl(addr[iface].s_addr);
+		  hm = ntohl(mask[iface].s_addr);
+
+		  /*
+		   *	Make sure that our netmasks are restricted
+		   *	to class-c networks and subnets of those
+		   *	networks - we don't want to be probing
+		   *	more than a couple of hundred hosts!
+		   */
+		  if ((mask[iface].s_addr | class_c_mask.s_addr)
+			!= mask[iface].s_addr)
+		    {
+		      fprintf(stderr, "gdomap - warning - netmask %s will be " 
+			    "treated as 255.255.255.0 for %s\n",
+			    inet_ntoa(mask[iface]), inet_ntoa(addr[iface]));
+		      hm |= ~255;
+		    }
+		  sin = addr[iface];
+		  net = ha & hm & ~255;		/* class-c net number.	*/
+		  low = ha & hm & 255;		/* low end of subnet.	*/
+		  high = low | (255 & ~hm);	/* high end of subnet.	*/
+		  elen = other_addresses_on_net(sin, &other);
+		}
 	      break;
 	    }
 	}
@@ -1297,6 +1370,13 @@ init_probe()
 		  queue_probe(&p->addr, &sin, len, other, 0);
 		}
 	    }
+	}
+      else if (broadcast)
+	{
+	  /*
+	   *	Now broadcast probe on this network.
+	   */
+	  queue_probe(&b, &sin, 0, 0, 0);
 	}
       else
 	{
@@ -1651,6 +1731,11 @@ handle_recv()
       if (debug)
 	{
 	  fprintf(stderr, "recvfrom %s\n", inet_ntoa(addr->sin_addr));
+	}
+      if (is_local_host(addr->sin_addr) == 1)
+	{
+	  fprintf(stderr, "recvfrom packet from self discarded\n");
+	  return;
 	}
       handle_request(udp_desc);
     }
@@ -2860,7 +2945,7 @@ int
 main(int argc, char** argv)
 {
   extern char	*optarg;
-  char	*options = "CHL:M:P:R:T:U:a:c:dfi:pI:";
+  char	*options = "CHI:L:M:P:R:T:U:a:bc:dfi:p";
   int		c;
   int		ptype = GDO_TCP_GDO;
   int		port = 0;
@@ -2886,6 +2971,7 @@ main(int argc, char** argv)
 	    printf("GNU Distributed Objects name server\n");
 	    printf("-C		help about configuration\n");
 	    printf("-H		general help\n");
+	    printf("-I		pid file to write pid\n");
 	    printf("-L name		perform lookup for name then quit.\n");
 	    printf("-M name		machine name for L (default local)\n");
 	    printf("-P number	port number required for R option.\n");
@@ -2895,12 +2981,12 @@ main(int argc, char** argv)
 	    printf("		tcp_foreign, udp_foreign.\n");
 	    printf("-U name		unregister name locally then quit.\n");
 	    printf("-a file		use config file for interface list.\n");
+	    printf("-p		disable udp broadcast for probe\n");
 	    printf("-c file		use config file for probe.\n");
 	    printf("-d		extra debug logging.\n");
 	    printf("-f		avoid fork() to make debugging easy\n");
 	    printf("-i seconds	re-probe at this interval (roughly), min 60\n");
-	    printf("-p		obsolete no-op\n");
-	    printf("-I		pid file to write pid\n");
+	    printf("-p		disable probing for other servers\n");
 	    printf("\n");
 	    exit(0);
 
@@ -3004,6 +3090,10 @@ printf(
 
 	  case 'a':
 	    load_iface(optarg);
+	    break;
+
+	  case 'b':
+	    nobcst++;
 	    break;
 
 	  case 'c':
@@ -3170,7 +3260,6 @@ printf(
   if (pidfile) {
     {
       FILE	*fptr = fopen(pidfile, "a");
-      int pid;
 
       if (fptr == 0)
 	{
