@@ -127,6 +127,50 @@ enum {
   NSOpenStepUnicodeReservedBase = 0xF400
 };
 
+/**
+ * <p>
+ *   <code>NSString</code> objects represent an immutable string of Unicode 3.0
+ *   characters.  These may be accessed individually as type
+ *   <code>unichar</code>, an unsigned short.<br/>
+ *   The [NSMutableString] subclass represents a modifiable string.  Both are
+ *   implemented as part of a class cluster and the instances you receive may
+ *   actually be of unspecified concrete subclasses.
+ * </p>
+ * <p>
+ *   A constant <code>NSString</code> can be created using the following syntax:
+ *   <code>@"..."</code>, where the contents of the quotes are the
+ *   string, using only ASCII characters.
+ * </p>
+ * <p>
+ *   A variable string can be created using a C printf-like <em>format</em>,
+ *   as in <code>[NSString stringWithFormat: @"Total is %f", t]</code>.
+ * </p>
+ * <p>
+ *   To create a concrete subclass of <code>NSString</code>, you must have your
+ *   class inherit from <code>NSString</code> and override at least the two
+ *   primitive methods - -length and -characterAtIndex:
+ * </p>
+ * <p>
+ *   In general the rule is that your subclass must override any
+ *   initialiser that you want to use with it.  The GNUstep
+ *   implementation relaxes that to say that, you may override
+ *   only the <em>designated initialiser</em> and the other
+ *   initialisation methods should work.
+ * </p>
+ * <p>
+ *   Where an NSString instance method returns an NSString object,
+ *   the class of the actual object returned may be any subclass
+ *   of NSString.  The actual value returned may be a new
+ *   autoreleased object, an autoreleased copy of the receiver,
+ *   or the receiver itsself.  While the abstract base class
+ *   implementations of methods (other than initialisers) will
+ *   avoid returning mutable strings by returning an autoreleased
+ *   copy of a mutable receiver, concrete subclasses may behave
+ *   differently, so code should not rely upon the mutability of
+ *   returned strings nor upon their lifetime being create than
+ *   that of the receiver which returned them.
+ * </p>
+ */
 @interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings

@@ -110,6 +110,7 @@ static NSLock			*placeholderLock;
 
 static SEL	cMemberSel = 0;
 
+#define	IMMUTABLE(S)	AUTORELEASE([(S) copyWithZone: NSDefaultMallocZone()])
 
 #define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
 
@@ -200,37 +201,6 @@ surrogatePairValue(unichar high, unichar low)
 }
 
 
-/**
- * <p>
- *   <code>NSString</code> objects represent an immutable string of Unicode 3.0
- *   characters.  These may be accessed individually as type
- *   <code>unichar</code>, an unsigned short.<br/>
- *   The [NSMutableString] subclass represents a modifiable string.  Both are
- *   implemented as part of a class cluster and the instances you receive may
- *   actually be of unspecified concrete subclasses.
- * </p>
- * <p>
- *   A constant <code>NSString</code> can be created using the following syntax:
- *   <code>@"..."</code>, where the contents of the quotes are the
- *   string, using only ASCII characters.
- * </p>
- * <p>
- *   A variable string can be created using a C printf-like <em>format</em>,
- *   as in <code>[NSString stringWithFormat: @"Total is %f", t]</code>.
- * </p>
- * <p>
- *   To create a concrete subclass of <code>NSString</code>, you must have your
- *   class inherit from <code>NSString</code> and override at least the two
- *   primitive methods - -length and -characterAtIndex:
- * </p>
- * <p>
- *   In general the rule is that your subclass must override any
- *   initialiser that you want to use with it.  The GNUstep
- *   implementation relaxes that to say that, you may override
- *   only the <em>designated initialiser</em> and the other
- *   initialisation methods should work.
- * </p>
- */
 @implementation NSString
 //  NSString itself is an abstract class which provides factory
 //  methods to generate objects of unspecified subclasses.
@@ -2237,9 +2207,9 @@ handle_printf_atsign (FILE *stream,
       unsigned	oIndex = 0;
 
       if (!sLength)
-	return self;
+	return IMMUTABLE(self);
       if (!oLength)
-	return aString;
+	return IMMUTABLE(aString);
 
       scImp = (unichar (*)(NSString*,SEL,unsigned))
 	[self methodForSelector: caiSel];
@@ -2496,7 +2466,7 @@ handle_printf_atsign (FILE *stream,
   unsigned	len = [self length];
 
   if (len == 0)
-    return self;
+    return IMMUTABLE(self);
   if (whitespaceBitmapRep == NULL)
     setupWhitespace();
 
@@ -2551,7 +2521,7 @@ handle_printf_atsign (FILE *stream,
 
   if (len == 0)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   if (uc == nil)
     {
@@ -2562,7 +2532,7 @@ handle_printf_atsign (FILE *stream,
 				  range: ((NSRange){0, len})];
   if (start.length == 0)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
@@ -2588,7 +2558,7 @@ handle_printf_atsign (FILE *stream,
 
   if (len == 0)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   if (lc == nil)
     {
@@ -2599,7 +2569,7 @@ handle_printf_atsign (FILE *stream,
 				  range: ((NSRange){0, len})];
   if (start.length == 0)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
@@ -3519,7 +3489,8 @@ handle_printf_atsign (FILE *stream,
  * Returns a string created by expanding the initial tilde ('~') and any
  * following username to be the home directory of the current user or the
  * named user.<br />
- * Returns the receiver if it was not possible to expand it.
+ * Returns the receiver or an immutable copy if it was not possible to
+ * expand it.
  */
 - (NSString*) stringByExpandingTildeInPath
 {
@@ -3529,11 +3500,11 @@ handle_printf_atsign (FILE *stream,
 
   if ((length = [self length]) == 0)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   if ([self characterAtIndex: 0] != 0x007E)
     {
-      return self;
+      return IMMUTABLE(self);
     }
 
   /*
@@ -3542,7 +3513,7 @@ handle_printf_atsign (FILE *stream,
    */
   if (length > 1 && [self characterAtIndex: 1] == 0x0040)
     {
-      return self;
+      return IMMUTABLE(self);
     }
 
   first_slash_range = [self rangeOfCharacterFromSet: pathSeps()
@@ -3580,14 +3551,14 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      return self;
+      return IMMUTABLE(self);
     }
 }
 
 /**
  * Returns a string where a prefix of the current user's home directory is
- * abbreviated by '~', or returns the receiver if it was not found to have
- * the home directory as a prefix.
+ * abbreviated by '~', or returns the receiver (or an immutable copy) if
+ * it was not found to have the home directory as a prefix.
  */
 - (NSString*) stringByAbbreviatingWithTildeInPath
 {
@@ -3595,7 +3566,7 @@ handle_printf_atsign (FILE *stream,
 
   if (![self hasPrefix: homedir])
     {
-      return self;
+      return IMMUTABLE(self);
     }
   if ([self length] == [homedir length])
     {
@@ -3632,7 +3603,7 @@ handle_printf_atsign (FILE *stream,
     }
   if (newLength == length)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   else if (newLength < length)
     {
@@ -3792,7 +3763,7 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) stringByResolvingSymlinksInPath
 {
 #if defined(__MINGW__)
-  return self;
+  return IMMUTABLE(self);
 #else
   #ifndef MAX_PATH
   #define MAX_PATH 1024
@@ -3801,7 +3772,7 @@ handle_printf_atsign (FILE *stream,
 #ifdef HAVE_REALPATH
 
   if (realpath([self fileSystemRepresentation], new_buf) == 0)
-    return self;
+    return IMMUTABLE(self);
 #else
   char		extra[MAX_PATH];
   char		*dest;
@@ -3814,7 +3785,7 @@ handle_printf_atsign (FILE *stream,
   if (name[0] != '/')
     {
       if (!getcwd(new_buf, MAX_PATH))
-        return self;			/* Couldn't get directory.	*/
+        return IMMUTABLE(self);			/* Couldn't get directory.	*/
       dest = strchr(new_buf, '\0');
     }
   else
@@ -3867,30 +3838,30 @@ handle_printf_atsign (FILE *stream,
             *dest++ = '/';
 
           if (&dest[len] >= &new_buf[MAX_PATH])
-	    return self;	/* Resolved name would be too long.	*/
+	    return IMMUTABLE(self);	/* Resolved name too long.	*/
 
           memcpy(dest, start, len);
           dest += len;
           *dest = '\0';
 
           if (lstat(new_buf, &st) < 0)
-            return self;	/* Unable to stat file.		*/
+            return IMMUTABLE(self);	/* Unable to stat file.		*/
 
           if (S_ISLNK(st.st_mode))
             {
               char buf[MAX_PATH];
 
               if (++num_links > MAXSYMLINKS)
-		return self;	/* Too many symbolic links.	*/
+		return IMMUTABLE(self);	/* Too many symbolic links.	*/
 
               n = readlink(new_buf, buf, MAX_PATH);
               if (n < 0)
-		return self;	/* Couldn't resolve links.	*/
+		return IMMUTABLE(self);	/* Couldn't resolve links.	*/
 
               buf[n] = '\0';
 
               if ((n + strlen(end)) >= MAX_PATH)
-		return self;	/* Path would be too long.	*/
+		return IMMUTABLE(self);	/* Path would be too long.	*/
 
 	      /*
 	       * Concatenate the resolved name with the string still to
@@ -4118,7 +4089,7 @@ handle_printf_atsign (FILE *stream,
     }
   if (start == 0 && end == length)
     {
-      return self;
+      return IMMUTABLE(self);
     }
   if (start == end)
     {
