@@ -25,6 +25,7 @@
     </chapter>
     <back>
       <index scope="project" type="class" />
+      <index scope="project" type="category" />
       <index scope="project" type="protocol" />
     </back>
   </body>
