@@ -1,0 +1,89 @@
+/* Getting callbacks from @YY@ structures.
+ * Copyright (C) 1995, 1996  Free Software Foundation, Inc.
+ * 
+ * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
+ * Created: Mon Dec 11 02:44:09 EST 1995
+ * Updated: Sat Feb 10 10:08:59 EST 1996
+ * Serial: 96.02.10.01
+ * 
+ * This file is part of the GNU Objective C Class Library.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * 
+ */ 
+
+/**** Included Headers *******************************************************/
+
+#include <objects/callbacks.h>
+#include <objects/@YY@.h>
+
+/**** Type, Constant, and Macro Definitions **********************************/
+
+#define __@YY@__ 1
+
+/**** Function Implementations ***********************************************/
+
+#ifdef __map__
+
+/** Callbacks **/
+
+/* Returns the callbacks associated with YY's keys. */
+objects_callbacks_t
+objects_@YY@_key_callbacks (objects_@YY@_t * yy)
+{
+  return yy->key_callbacks;
+}
+
+/* Returns the ``bogus'' marker associated with YY's keys. */
+void *
+objects_@YY@_not_a_key_marker (objects_@YY@_t *yy)
+{
+  return (yy->key_callbacks).not_an_item_marker;
+}
+
+/* Returns the callbacks associated with YY's values. */
+objects_callbacks_t
+objects_@YY@_value_callbacks (objects_@YY@_t *yy)
+{
+  return yy->value_callbacks;
+}
+
+/* Returns the ``bogus'' marker associated with YY's values. */
+void *
+objects_@YY@_not_a_value_marker (objects_@YY@_t *yy)
+{
+  return (yy->value_callbacks).not_an_item_marker;
+}
+
+#else /* !__map__ */
+
+/** Callbacks **/
+
+/* Returns the callbacks associated with YY's elements. */
+objects_callbacks_t
+objects_@YY@_element_callbacks (objects_@YY@_t *yy)
+{
+  return yy->callbacks;
+}
+
+/* Returns the ``bogus'' marker associated with YY's elements. */
+void *
+objects_@YY@_not_an_element_marker (objects_@YY@_t *yy)
+{
+  return (yy->callbacks).not_an_item_marker;
+}
+
+#endif /* __map__ */
+
