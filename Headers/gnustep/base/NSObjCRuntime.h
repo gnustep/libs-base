@@ -58,4 +58,7 @@ extern BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
 extern BOOL GSSetInstanceVariable(id obj, NSString *name, void* data);
 #endif
 
+#define FOUNDATION_EXPORT
+#define FOUNDATION_STATIC_INLINE static inline
+
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */
