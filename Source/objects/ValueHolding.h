@@ -37,11 +37,11 @@
 @end
 
 @protocol ValueSetting
-- setIntValue: (int)anInt;
-- setFloatValue: (float)aFloat;
-- setDoubleValue: (double)aDouble;
-- setCStringValue: (const char *)aCString;
-- setStringValue: (String*)aString;
+- (void) setIntValue: (int)anInt;
+- (void) setFloatValue: (float)aFloat;
+- (void) setDoubleValue: (double)aDouble;
+- (void) setCStringValue: (const char *)aCString;
+- (void) setStringValue: (String*)aString;
 @end
 
 @protocol ValueHolding <ValueGetting, ValueSetting>
