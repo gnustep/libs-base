@@ -107,7 +107,7 @@ handle_printf_atsign (FILE *stream,
   /* xxx This implementation may not pay pay attention to as much 
      of printf_info as it should. */
 
-  string_object = va_arg (*ap_pointer, void*);
+  string_object = va_arg (*ap_pointer, id);
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
 		[string_object cStringNoCopy]);
