@@ -34,7 +34,7 @@
 #include <objects/Retaining.h>
 #include <objc/List.h>
 
-@interface RetainingNotifier : Object <Retaining>
+@interface RetainingNotifier : NSObject <Retaining>
 {
   Lock *refGate;
   List *notificationList;

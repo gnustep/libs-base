@@ -29,18 +29,16 @@
 #define __Collection_h_INCLUDE_GNU
 
 #include <objects/stdobjects.h>
-#include <objc/Object.h>
+#include <foundation/NSObject.h>
 #include <objects/Collecting.h>
 #include <objects/stdobjects.h>
 #include <objects/collhash.h>
 #include <objects/Coding.h>
 #include <objects/Coder.h>
 
-@interface Collection : Object <Collecting, Coding>
+@interface Collection : NSObject <Collecting, Coding>
 {
 }
-
-+ initialize;
 
 - printElement: (elt)anElement;
 - printForDebugger;

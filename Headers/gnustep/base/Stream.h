@@ -34,7 +34,7 @@ enum
   STREAM_READWRITE
 };
 
-@interface Stream : Object
+@interface Stream : NSObject
 {
   int mode;
 }

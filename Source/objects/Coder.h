@@ -31,7 +31,7 @@
 @class Dictionary;
 @class Stack;
 
-@interface Coder : Object
+@interface Coder : NSObject
 {
   int format_version;
   int concrete_format_version;

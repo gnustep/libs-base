@@ -50,7 +50,7 @@
 #include <objects/stdobjects.h>
 #include <objects/RandomGenerating.h>
 
-@interface RNGBerkeley : Object <RandomGenerating>
+@interface RNGBerkeley : NSObject <RandomGenerating>
 {
   int foo[2];
   long int randtbl[32];  /* Size must match DEG_3 + 1 from RNGBerkeley.m */
