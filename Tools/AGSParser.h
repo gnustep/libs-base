@@ -1,3 +1,5 @@
+#ifndef	_INCLUDED_AGSPARSER_H
+#define	_INCLUDED_AGSPARSER_H
 /**
 
    <title>AGSParser ... a tool to get documention info from ObjC source</title>
@@ -81,4 +83,4 @@
 - (unsigned) skipUnit;
 - (unsigned) skipWhiteSpace;
 @end
-
+#endif
