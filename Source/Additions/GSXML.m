@@ -3348,10 +3348,15 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     }
 
   res = xmlXPathCompiledEval (comp, ((xmlXPathContext*)_lib));
-  
-  result = [GSXPathObject _newWithNativePointer: res  context: self];
-  AUTORELEASE (result);
-
+  if (res == NULL)
+    {
+      result = nil;
+    }
+  else
+    {
+      result = [GSXPathObject _newWithNativePointer: res  context: self];
+      AUTORELEASE (result);
+    }
   xmlXPathFreeCompExpr (comp);
 
   return result;
