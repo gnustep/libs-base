@@ -1,3 +1,13 @@
+Wed Dec  3 16:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSDictionary.m: Removed filesystem methods - conflict with
+	versions in NSFileManger.
+	* src/include/NSDictionary.h: Ditto
+	* src/NSFileManager.m: Updated dictionary access methods to MacOS spec
+	* src/include/NSFileManager.h: Ditto.
+	* src/include/NSUserDefaults.h: Made constant strings 'const'.
+	* src/include/externs.m: Made constant strings 'const'.
+
 Thu Dec  3 11:00:46 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* aclocal.m4: Add OBJC_CON_AUTOLOAD and OBJC_SYS_AUTOLOAD
