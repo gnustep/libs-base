@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <Foundation/NSString.h>
+#include <base/Unicode.h>
 
 struct _ucc_ {unichar from; char to;};
 
@@ -32,6 +33,128 @@ struct _ucc_ {unichar from; char to;};
 #include "unicode/caseconv.h"
 #include "unicode/cop.h"
 #include "unicode/decomp.h"
+
+#ifdef HAVE_ICONV
+#include <iconv.h>
+#include <errno.h>
+
+// The rest of the GNUstep code stores UNICODE in internal byte order,
+// so we do the same
+#ifdef WORDS_BIGENDIAN
+#define UNICODE_ENC "UNICODEBIG"
+#else
+#define UNICODE_ENC "UNICODELITTLE"
+#endif
+
+
+static char *
+iconv_stringforencoding(NSStringEncoding enc)
+{
+  switch (enc)
+    {
+      case NSASCIIStringEncoding: 
+	return "ASCII";
+      case NSISOLatin1StringEncoding: 
+	return "LATIN1";
+      case NSISOLatin2StringEncoding: 
+	return "LATIN2";
+      case NSUnicodeStringEncoding: 
+	return UNICODE_ENC;
+      case NSJapaneseEUCStringEncoding: 
+	return "EUC-JP";
+      case NSUTF8StringEncoding:
+	return "UTF-8";
+      case NSShiftJISStringEncoding:
+	return "SHIFT-JIS";
+      case NSWindowsCP1250StringEncoding:
+	return "CP1250";
+      case NSWindowsCP1251StringEncoding:
+	return "CP1251";
+      case NSWindowsCP1252StringEncoding:
+	return "CP1252";
+      case NSWindowsCP1253StringEncoding:
+	return "CP1253";
+      case NSWindowsCP1254StringEncoding:
+	return "CP1254";
+      case NSISO2022JPStringEncoding:
+	return "ISO-2022-JP";
+      case NSMacOSRomanStringEncoding:
+	return "MACINTOSH";
+
+      // GNUstep extensions
+      case NSCyrillicStringEncoding:
+	return "CYRILLIC";
+      case NSKOI8RStringEncoding: 
+	return "KOI8-R";
+      case NSISOLatin3StringEncoding: 
+	return "LATIN3";
+      case NSISOLatin4StringEncoding: 
+	return "LATIN4";
+      case NSArabicStringEncoding: 
+	return "ARABIC";
+      case NSGreekStringEncoding: 
+	return "GREEK";
+      case NSHebrewStringEncoding:
+	return "HEBREW";
+      case NSGB2312StringEncoding:
+	return "GB2312";
+      default:
+	return "";
+    }
+}
+
+int
+iconv_strtoustr(unichar *u2, int size2, const char *s1, int size1, NSStringEncoding enc)
+{
+  iconv_t conv;
+  int usize = sizeof(unichar)*size2;
+  char *u1 = (char*)u2;
+  int ret_val;
+
+  conv = iconv_open(UNICODE_ENC, iconv_stringforencoding(enc));
+  if (conv == (iconv_t)-1)
+    {
+      return 0;
+    }
+
+  ret_val = iconv(conv, &s1, &size1, &u1, &usize);
+  // close the converter
+  iconv_close(conv);
+  if (ret_val == -1)
+    {
+      return 0;
+    }
+
+  return u1 - (char*)u2;
+}
+
+int
+iconv_ustrtostr(char *s2, int size2, unichar *u1, int size1, NSStringEncoding enc)
+{
+  iconv_t conv;
+  int usize = sizeof(unichar)*size1;
+  char *s1 = s2;
+  const char *u2 = (const char*)u1;
+  int ret_val;
+
+  conv = iconv_open(iconv_stringforencoding(enc), UNICODE_ENC);
+  if (conv == (iconv_t)-1)
+    {
+      return 0;
+    }
+
+  ret_val = iconv(conv, &u2, &usize, &s2, &size2);
+  // close the converter
+  iconv_close(conv);
+  if (ret_val == -1)
+    {
+      return 0;
+    }
+
+  return s2 - s1;
+}
+
+#endif
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
@@ -75,7 +198,18 @@ encode_chartouni(char c, NSStringEncoding enc)
 #endif
 
       default:
+#ifdef HAVE_ICONV
+      {
+	unichar u;
+	
+	if (iconv_strtoustr(&u, 1, &c, 1, enc) > 0)
+	  return u;
+	else
+	  return 0;
+      }
+#else 
 	return 0;
+#endif 
     }
 }
 
@@ -88,6 +222,11 @@ encode_unitochar(unichar u, NSStringEncoding enc)
   switch (enc)
     {
       case NSNonLossyASCIIStringEncoding:
+	if (u < 128)
+	  return (char)u;
+	else
+	  return '*';
+
       case NSASCIIStringEncoding:
 	if (u < 128)
 	  return (char)u;
@@ -143,7 +282,19 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 #endif
 
       default:
+#ifdef HAVE_ICONV
+      {
+	char c[4];
+	int r = iconv_ustrtostr(c, 4, &u, 1, enc);
+
+	if (r > 0)
+	  return c[0];
+	else
+	  return 0;
+      }
+#else
 	return 0;
+#endif 
     }
 }
 
@@ -179,33 +330,23 @@ unitochar(unichar u)
 int
 strtoustr(unichar *u1, const char *s1, int size)
 {
-  int count;
-
   if (defEnc == GSUndefinedEncoding)
     {
       defEnc = [NSString defaultCStringEncoding];
     }
-  for (count = 0; (count < size) && (s1[count] != 0); count++)
-    {
-      u1[count] = encode_chartouni(s1[count], defEnc);
-    }
-  return count;
+
+  return encode_strtoustr(u1, s1, size, defEnc);
 }
  
 int
 ustrtostr(char *s2, unichar *u1, int size)
 {
-  int count;
-
   if (defEnc == GSUndefinedEncoding)
     {
       defEnc = [NSString defaultCStringEncoding];
     }
-  for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
-    {
-      s2[count] = encode_unitochar(u1[count], defEnc);
-    }
-  return count;
+
+  return encode_ustrtostr(s2, u1, size, defEnc);
 }
  
 int
@@ -213,24 +354,214 @@ encode_strtoustr(unichar *u1, const char *s1, int size, NSStringEncoding enc)
 {
   int count;
 
+  switch (enc)
+    {
+      case NSNonLossyASCIIStringEncoding:
+      case NSASCIIStringEncoding:
+      case NSISOLatin1StringEncoding:
+	for (count = 0; (count < size) && (s1[count] != 0); count++)
+	  {
+	    u1[count] = (unichar)((unc)s1[count]);
+	  }
+	return count;
+
+      case NSNEXTSTEPStringEncoding:
+	for (count = 0; (count < size) && (s1[count] != 0); count++)
+	  {
+	    unc c = (unc)s1[count];
+
+	    if (c < Next_conv_base)
+	      u1[count] = (unichar)c;
+	    else
+	      u1[count] = Next_char_to_uni_table[c - Next_conv_base];
+	  }
+	return count;
+
+      case NSCyrillicStringEncoding:
+	for (count = 0; (count < size) && (s1[count] != 0); count++)
+	  {
+	    unc c = (unc)s1[count];
+
+	    if (c < Cyrillic_conv_base)
+	      u1[count] = (unichar)c;
+	    else
+	      u1[count] = Cyrillic_char_to_uni_table[c - Cyrillic_conv_base];
+	  }
+	return count;
+
+      case NSISOLatin2StringEncoding:
+	for (count = 0; (count < size) && (s1[count] != 0); count++)
+	  {
+	    unc c = (unc)s1[count];
+
+	    if (c < Latin2_conv_base)
+	      u1[count] = (unichar)c;
+	    else
+	      u1[count] = Latin2_char_to_uni_table[c - Latin2_conv_base];
+	  }
+	return count;
+	    
+#if 0
+      case NSSymbolStringEncoding:
+	for (count = 0; (count < size) && (s1[count] != 0); count++)
+	  {
+	    unc c = (unc)s1[count];
+
+	    if (c < Symbol_conv_base)
+		u1[count] = (unichar)c;
+	    else
+		u1[count] = Symbol_char_to_uni_table[c - Symbol_conv_base];
+	  }
+	return count;    
+#endif
+
+      default:
+#ifdef HAVE_ICONV
+	return iconv_strtoustr(u1, size, s1, size, enc);
+#else 
+	return 0;
+#endif 
+    }
+/*
   for (count = 0; (count < size) && (s1[count] != 0); count++)
     {
       u1[count] = encode_chartouni(s1[count], enc);
     }
   return count;
+*/
 }
 
 int
 encode_ustrtostr(char *s2, unichar *u1, int size, NSStringEncoding enc)
 {
   int count;
+  unichar u;
 
+  switch (enc)
+    {
+      case NSNonLossyASCIIStringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < 128)
+	      s2[count] = (char)u;
+	    else
+	      s2[count] =  '*';
+	  }
+	return count;
+
+      case NSASCIIStringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < 128)
+	      s2[count] = (char)u;
+	    else
+	      s2[count] =  0;
+	  }
+	return count;
+
+      case NSISOLatin1StringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < 256)
+	      s2[count] = (char)u;
+	    else
+	      s2[count] = 0;
+	  }
+	return count;
+
+      case NSNEXTSTEPStringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < (unichar)Next_conv_base)
+	      s2[count] = (char)u;
+	    else
+	      {
+		int res;
+		int i = 0;
+
+		while (((res = u - Next_uni_to_char_table[i++].from) > 0)
+		       && (i < Next_uni_to_char_table_size));
+		s2[count] = res ? 0 : Next_uni_to_char_table[--i].to;
+	      }
+	  }
+	return count;
+
+      case NSCyrillicStringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < (unichar)Cyrillic_conv_base)
+	      s2[count] = (char)u;
+	    else
+	      {
+		int res;
+		int i = 0;
+
+		while (((res = u - Cyrillic_uni_to_char_table[i++].from) > 0)
+		       && (i < Cyrillic_uni_to_char_table_size));
+		s2[count] = res ? 0 : Cyrillic_uni_to_char_table[--i].to;
+	      }
+	  }
+	return count;
+
+      case NSISOLatin2StringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < (unichar)Latin2_conv_base)
+	      s2[count] = (char)u;
+	    else
+	      {
+		int res;
+		int i = 0;
+
+		while (((res = u - Latin2_uni_to_char_table[i++].from) > 0)
+		       && (i < Latin2_uni_to_char_table_size));
+		s2[count] = res ? 0 : Latin2_uni_to_char_table[--i].to;
+	      }
+	  }
+	return count;
+
+#if 0
+      case NSSymbolStringEncoding:
+        for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+	  {
+	    u = u1[count];
+	    if (u < (unichar)Symbol_conv_base)
+	      s2[count] = (char)u;
+	    else
+	      {
+		int res;
+		int i = 0;
+
+		while (((res = u - Symbol_uni_to_char_table[i++].from) > 0)
+		       && (i < Symbol_uni_to_char_table_size));
+		s2[count] = res ? '*' : Symbol_uni_to_char_table[--i].to;
+	      }
+	  }
+	return count;
+#endif
+
+      default:
+#ifdef HAVE_ICONV
+	return iconv_ustrtostr(s2, size, u1, size, enc);
+#else
+	return 0;
+#endif 
+    }
+/*
   for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
     {
       s2[count] = encode_unitochar(u1[count], enc);
     }
   return count;
+*/
 }
+
 
 unichar
 uni_tolower(unichar ch)
