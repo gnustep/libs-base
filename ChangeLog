@@ -4,6 +4,7 @@
 	* Source/GSSet.m: ([allObjects]) Fix stack overflow for large sets.
 	* Source/NSTask.m: Fix error testing for task which has been lost.
 	* Source/NSArray.m: Fix possible stack overflows
+	* Source/NSTimer.m: Log uncaught exceptions when timer fires.
 	Thanks to Andre Levey for reporting these.
 
 2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
