@@ -26,6 +26,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSPortCoder.h>
 #include <gnustep/base/Coding.h>
 
 #include <gnustep/base/fast.x>
@@ -155,12 +156,24 @@ myEqual(NSObject *self, NSObject *other)
 					  at: &count
 				    withName: @"Dictionary content count"];
 
-    while (node != 0) {
-	[(id<Encoding>)aCoder encodeObject: node->key.o
-				  withName: @"Dictionary key"];
-	[(id<Encoding>)aCoder encodeObject: node->value.o
-				  withName: @"Dictionary content"];
-	node = node->nextInMap;
+    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
+        [(NSPortCoder*)aCoder isBycopy]) {
+	while (node != 0) {
+	    [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
+					    withName: @"Dictionary key"];
+	    [(id<Encoding>)aCoder encodeBycopyObject: node->value.o
+					    withName: @"Dictionary content"];
+	    node = node->nextInMap;
+	}
+    }
+    else {
+	while (node != 0) {
+	    [(id<Encoding>)aCoder encodeObject: node->key.o
+				      withName: @"Dictionary key"];
+	    [(id<Encoding>)aCoder encodeObject: node->value.o
+				      withName: @"Dictionary content"];
+	    node = node->nextInMap;
+	}
     }
 }
 
