@@ -33,13 +33,13 @@ NSRecursiveLock *gnustep_global_lock = NULL;
 
 NSString *GetEncodingName(NSStringEncoding availableEncodingValue)
 {
-    // Deprecated
-    return GSEncodingName(availableEncodingValue);
+  // Deprecated
+  return GSEncodingName(availableEncodingValue);
 }
 
 NSString *GSEncodingName(NSStringEncoding availableEncodingValue)
 {
-return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
+  return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
 }
 
 NSMutableDictionary *GSCurrentThreadDictionary()
@@ -218,47 +218,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 	}
       else
 	{
-}
-
-@end
-
-@implementation NSBundle(GSCompatibility)
-
-// In NSBundle.m
-+ (NSString *) pathForGNUstepResource: (NSString *)name
-                                        ofType: (NSString *)ext
-                                   inDirectory: (NSString *)bundlePath
-{
-    NSString	*path = nil;
-    NSString	*bundle_path = nil;
-    NSArray	*paths;
-    NSBundle	*bundle;
-    NSEnumerator	*enumerator;
-
-    /* Gather up the paths */
-    // Originally, looks up in GSLibrariesDirectory, i.e. "Libraries"
-    paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-                                                NSAllDomainsMask, YES);
-
-    enumerator = [paths objectEnumerator];
-    while ((path == nil) && (bundle_path = [enumerator nextObject]))
-    {
-        bundle = [self bundleWithPath: bundle_path];
-        path = [bundle pathForResource: name
-                                ofType: ext
-                           inDirectory: bundlePath];
-    }
-
-    // New for OSX: looks in framework
-    if(path == nil){
-        if([bundlePath hasPrefix:@"Resources/"])
-            bundlePath = [bundlePath substringFromIndex:10];
-        path = [[NSBundle bundleForClass:[GCObject class]] pathForResource: name
-                                ofType: ext
-                           inDirectory: bundlePath];
-    }
-
-    return path;
 	  return NO;
 	}
     }
@@ -358,6 +317,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
   
   return [[[NSString alloc] initWithCString:  (char*)inet_ntoa(sin.sin_addr)] 
 	   autorelease];
+}
+
 @end
 
 
@@ -464,6 +425,47 @@ selector ? sel_get_name(selector) : "(null)",
 - (BOOL) isInstance
 {
     return GSObjCIsInstance(self);
+}
+
+@end
+
+@implementation NSBundle(GSCompatibility)
+
+// In NSBundle.m
++ (NSString *) pathForGNUstepResource: (NSString *)name
+                                        ofType: (NSString *)ext
+                                   inDirectory: (NSString *)bundlePath
+{
+    NSString	*path = nil;
+    NSString	*bundle_path = nil;
+    NSArray	*paths;
+    NSBundle	*bundle;
+    NSEnumerator	*enumerator;
+
+    /* Gather up the paths */
+    // Originally, looks up in GSLibrariesDirectory, i.e. "Libraries"
+    paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+                                                NSAllDomainsMask, YES);
+
+    enumerator = [paths objectEnumerator];
+    while ((path == nil) && (bundle_path = [enumerator nextObject]))
+    {
+        bundle = [self bundleWithPath: bundle_path];
+        path = [bundle pathForResource: name
+                                ofType: ext
+                           inDirectory: bundlePath];
+    }
+
+    // New for OSX: looks in gnustep framework
+    if(path == nil){
+        if([bundlePath hasPrefix:@"Resources/"])
+            bundlePath = [bundlePath substringFromIndex:10];
+        path = [[NSBundle bundleForClass:[GCObject class]] pathForResource: name
+                                ofType: ext
+                           inDirectory: bundlePath];
+    }
+
+    return path;
 }
 
 @end

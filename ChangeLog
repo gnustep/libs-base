@@ -1,3 +1,14 @@
+2003-04-02  Stephane Corthesy <stephane@sente.ch>
+
+	* Source/Additions/GSCompatibility.m: Fix up incorrectly applied 
+	patch.
+	* Source/Additions/Unicode.m (GSEncodingName): Don't define if
+	NeXT_Foundation_Library.
+
+2003-04-02  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/Foundation.h: Revert previous change
+
 22003-04-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: ([-content]) fix to produce string

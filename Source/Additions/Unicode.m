@@ -593,6 +593,7 @@ GSIsByteEncoding(NSStringEncoding encoding)
 /**
  * Returns the standard name for the specified encoding.
  */
+#ifndef NeXT_Foundation_LIBRARY
 NSString*
 GSEncodingName(NSStringEncoding encoding)
 {
@@ -602,6 +603,7 @@ GSEncodingName(NSStringEncoding encoding)
     }
   return [NSString stringWithCString: encodingTable[encoding]->ename];
 }
+#endif
 
 /**
  * <strong>deprecated</strong> Use GSEncodingName()
