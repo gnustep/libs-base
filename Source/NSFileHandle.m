@@ -48,77 +48,73 @@ static Class NSFileHandle_concrete_class = nil;
 
 + (Class)_concreteClass
 {
-    return NSFileHandle_concrete_class;
+  return NSFileHandle_concrete_class;
 }
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return NSAllocateObject ([self _concreteClass], 0, z);
 }
 
 // Allocating and Initializing a FileHandle Object
 
-+ (id)fileHandleForReadingAtPath: (NSString*)path
++ (id) fileHandleForReadingAtPath: (NSString*)path
 {
-    return [[[[self _concreteClass] alloc]
-	initForReadingAtPath: path] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initForReadingAtPath: path]);
 }
 
-+ (id)fileHandleForWritingAtPath: (NSString*)path
++ (id) fileHandleForWritingAtPath: (NSString*)path
 {
-    return [[[[self _concreteClass] alloc]
-	initForWritingAtPath: path] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initForWritingAtPath: path]);
 }
 
-+ (id)fileHandleForUpdatingAtPath: (NSString*)path
++ (id) fileHandleForUpdatingAtPath: (NSString*)path
 {
-    return [[[[self _concreteClass] alloc]
-	initForUpdatingAtPath: path] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initForUpdatingAtPath: path]);
 }
 
-+ (id)fileHandleWithStandardError
++ (id) fileHandleWithStandardError
 {
-    return [[[[self _concreteClass] alloc]
-	initWithStandardError] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc] initWithStandardError]);
 }
 
-+ (id)fileHandleWithStandardInput
++ (id) fileHandleWithStandardInput
 {
-    return [[[[self _concreteClass] alloc]
-	initWithStandardInput] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc] initWithStandardInput]);
 }
 
-+ (id)fileHandleWithStandardOutput
++ (id) fileHandleWithStandardOutput
 {
-    return [[[[self _concreteClass] alloc]
-	initWithStandardOutput] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc] initWithStandardOutput]);
 }
 
-+ (id)fileHandleWithNullDevice
++ (id) fileHandleWithNullDevice
 {
-    return [[[[self _concreteClass] alloc]
-	initWithNullDevice] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc] initWithNullDevice]);
 }
 
-- (id)initWithFileDescriptor: (int)desc
+- (id) initWithFileDescriptor: (int)desc
 {
-    return [self initWithFileDescriptor: desc closeOnDealloc: NO];
+  return [self initWithFileDescriptor: desc closeOnDealloc: NO];
 }
 
-- (id)initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
+- (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (id)initWithNativeHandle: (void*)hdl
+- (id) initWithNativeHandle: (void*)hdl
 {
-    return [self initWithNativeHandle: hdl closeOnDealloc: NO];
+  return [self initWithNativeHandle: hdl closeOnDealloc: NO];
 }
 
 // This is the designated initializer.
 
-- (id)initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
+- (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -126,13 +122,13 @@ static Class NSFileHandle_concrete_class = nil;
 
 // Returning file handles
 
-- (int)fileDescriptor
+- (int) fileDescriptor
 {
   [self subclassResponsibility: _cmd];
   return -1;
 }
 
-- (void*)nativeHandle
+- (void*) nativeHandle
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -140,25 +136,25 @@ static Class NSFileHandle_concrete_class = nil;
 
 // Synchronous I/O operations
 
-- (NSData*)availableData
+- (NSData*) availableData
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (NSData*)readDataToEndOfFile
+- (NSData*) readDataToEndOfFile
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (NSData*)readDataOfLength: (unsigned int)len
+- (NSData*) readDataOfLength: (unsigned int)len
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (void)writeData: (NSData*)item
+- (void) writeData: (NSData*)item
 {
   [self subclassResponsibility: _cmd];
 }
@@ -166,42 +162,42 @@ static Class NSFileHandle_concrete_class = nil;
 
 // Asynchronous I/O operations
 
-- (void)acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)acceptConnectionInBackgroundAndNotify
+- (void) acceptConnectionInBackgroundAndNotify
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)readInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) readInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)readInBackgroundAndNotify
+- (void) readInBackgroundAndNotify
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)readToEndOfFileInBackgroundAndNotify
+- (void) readToEndOfFileInBackgroundAndNotify
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)waitForDataInBackgroundAndNotify
+- (void) waitForDataInBackgroundAndNotify
 {
   [self subclassResponsibility: _cmd];
 }
@@ -209,19 +205,19 @@ static Class NSFileHandle_concrete_class = nil;
 
 // Seeking within a file
 
-- (unsigned long long)offsetInFile
+- (unsigned long long) offsetInFile
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (unsigned long long)seekToEndOfFile
+- (unsigned long long) seekToEndOfFile
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (void)seekToFileOffset: (unsigned long long)pos
+- (void) seekToFileOffset: (unsigned long long)pos
 {
   [self subclassResponsibility: _cmd];
 }
@@ -229,17 +225,17 @@ static Class NSFileHandle_concrete_class = nil;
 
 // Operations on file
 
-- (void)closeFile
+- (void) closeFile
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)synchronizeFile
+- (void) synchronizeFile
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)truncateFileAtOffset: (unsigned long long)pos
+- (void) truncateFileAtOffset: (unsigned long long)pos
 {
   [self subclassResponsibility: _cmd];
 }
@@ -277,81 +273,81 @@ NSString*	NSFileHandleOperationException =
 
 @implementation NSFileHandle (GNUstepExtensions)
 
-+ (id)fileHandleAsClientAtAddress: (NSString*)address
-			  service: (NSString*)service
-			 protocol: (NSString*)protocol
++ (id) fileHandleAsClientAtAddress: (NSString*)address
+			   service: (NSString*)service
+			  protocol: (NSString*)protocol
 {
-    return [[[[self _concreteClass] alloc]
-	initAsClientAtAddress: address
-		      service: service
-		     protocol: protocol] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initAsClientAtAddress: address
+		  service: service
+		 protocol: protocol]);
 }
 
-+ (id)fileHandleAsClientInBackgroundAtAddress: (NSString*)address
-				      service: (NSString*)service
-				     protocol: (NSString*)protocol
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
+				       service: (NSString*)service
+				      protocol: (NSString*)protocol
 {
-    return [[[[self _concreteClass] alloc]
-	initAsClientInBackgroundAtAddress: address
-				  service: service
-				 protocol: protocol
-				 forModes: nil] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initAsClientInBackgroundAtAddress: address
+			      service: service
+			     protocol: protocol
+			     forModes: nil]);
 }
 
-+ (id)fileHandleAsClientInBackgroundAtAddress: (NSString*)address
-				      service: (NSString*)service
-				     protocol: (NSString*)protocol
-				     forModes: (NSArray*)modes
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
+				       service: (NSString*)service
+				      protocol: (NSString*)protocol
+				      forModes: (NSArray*)modes
 {
-    return [[[[self _concreteClass] alloc]
-	initAsClientInBackgroundAtAddress: address
-				  service: service
-				 protocol: protocol
-				 forModes: modes] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initAsClientInBackgroundAtAddress: address
+			      service: service
+			     protocol: protocol
+			     forModes: modes]);
 }
 
-+ (id)fileHandleAsServerAtAddress: (NSString*)address
-			  service: (NSString*)service
-			 protocol: (NSString*)protocol
++ (id) fileHandleAsServerAtAddress: (NSString*)address
+			   service: (NSString*)service
+			  protocol: (NSString*)protocol
 {
-    return [[[[self _concreteClass] alloc]
-	initAsServerAtAddress: address
-		      service: service
-		     protocol: protocol] autorelease];
+  return AUTORELEASE([[[self _concreteClass] alloc]
+    initAsServerAtAddress: address
+		  service: service
+		 protocol: protocol]);
 }
 
-- (BOOL)readInProgress
+- (BOOL) readInProgress
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
-- (NSString*)socketAddress
+- (NSString*) socketAddress
 {
-    return nil;
+  return nil;
 }
 
-- (NSString*)socketService
+- (NSString*) socketService
 {
-    return nil;
+  return nil;
 }
 
-- (NSString*)socketProtocol
+- (NSString*) socketProtocol
 {
-    return nil;
+  return nil;
 }
 
-- (void)writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
-{
-  [self subclassResponsibility: _cmd];
-}
-
-- (void)writeInBackgroundAndNotify: (NSData*)item;
+- (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (BOOL)writeInProgress
+- (void) writeInBackgroundAndNotify: (NSData*)item;
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (BOOL) writeInProgress
 {
   [self subclassResponsibility: _cmd];
   return NO;
