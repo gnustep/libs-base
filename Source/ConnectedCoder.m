@@ -180,6 +180,36 @@ static BOOL debug_connected_coder = NO;
   return cd;
 }
 
++ newDecodingWithPacket: (Packet*)packet
+	     connection: (Connection*)c
+{
+  ConnectedDecoder *cd;
+  id in_port;
+  id reply_port;
+
+  in_port = [c inPort];
+
+  /* Create the new ConnectedDecoder */
+  cd = [self newReadingFromStream: packet];
+  reply_port = [packet replyOutPort];
+  cd->connection = [Connection newForInPort: in_port
+			       outPort: reply_port
+			       ancestorConnection: c];
+
+  /* Decode the ConnectedDecoder's ivars. */
+  [cd decodeValueOfCType: @encode(typeof(cd->sequence_number))
+      at: &(cd->sequence_number)
+      withName: NULL];
+  [cd decodeValueOfCType: @encode(typeof(cd->identifier))
+      at: &(cd->identifier)
+      withName: NULL];
+
+  if (debug_connected_coder)
+    fprintf(stderr, "newDecoding #=%d id=%d\n", 
+	    cd->sequence_number, cd->identifier);
+  return cd;
+}
+
 
 
 /* Cache the const ptr's in the Connection, not separately for each 
