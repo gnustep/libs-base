@@ -1,3 +1,8 @@
+2001-08-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: ([-decodeData:fromRange:intoData:withContext:])
+	One line fix suggested by Stephen Brandon
+
 2001-08-03  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSObject.m: Don't decl __objc_responds_to on Darwin

@@ -513,7 +513,7 @@ parseCharacterSet(NSString *token)
 		}
 	      else
 		{
-		  ctxt->buf[ctxt->pos++] = '=';
+		  ctxt->buf[ctxt->pos++] = *src;
 		  if (ctxt->pos == 3)
 		    {
 		      int	c;
