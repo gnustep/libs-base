@@ -4,6 +4,11 @@
 	* Source/cifframe.m:
 	Fix error in returning data via pointer arguments ... was writing to
 	wrong memory location.
+	* Headers/gnustep/base/NSPortCoder.h: Add array for pointers
+	* Source/GSFFCallInvocation.m: minor tidy up.
+	* Source/NSArchiver.m: Structure encoding/decoding fixes.
+	* Source/NSData.m: Structure encoding/decoding fixes.
+	* Source/NSUnarchiver.m: Structure encoding/decoding fixes.
 
 2003-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
