@@ -31,13 +31,6 @@
 @class NSMutableData, NSData, NSString;
 
 @interface NSCoder : NSObject
-@end
-
-@interface NSCoderNonCore : NSCoder
-@end
-
-@interface NSCoder (Methods)
-
 // Encoding Data
 
 - (void) encodeArrayOfObjCType: (const char*)type

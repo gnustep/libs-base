@@ -1,3 +1,7 @@
+2001-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Tidyup by removing 'NonCore' categories.
+
 2001-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	General tidyups to simplify code and to make class names

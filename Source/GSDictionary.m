@@ -46,9 +46,6 @@
 
 #include	<base/GSIMap.h>
 
-@class	NSDictionaryNonCore;
-@class	NSMutableDictionaryNonCore;
-
 @interface GSDictionary : NSDictionary
 {
 @public
