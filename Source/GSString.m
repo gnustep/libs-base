@@ -2618,34 +2618,54 @@ transmute(ivars self, NSString *aString)
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
+  NSString	*sub;
+
   GS_RANGE_CHECK(aRange, _count);
-  
+
   if (_flags.wide == 1)
     {
-      return [GSUnicodeStringClass stringWithCharacters:
-	self->_contents.u + aRange.location length: aRange.length];
+      sub = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
+	_count*sizeof(unichar), NSDefaultMallocZone());
+      sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
+				   length: aRange.length
+			     freeWhenDone: NO];
     }
   else
     {
-      return [GSCStringClass stringWithCString:
-	self->_contents.c + aRange.location length: aRange.length];
+      sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
+	_count, NSDefaultMallocZone());
+      sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
+				length: aRange.length
+			  freeWhenDone: NO];
     }
+  AUTORELEASE(sub);
+  return sub;
 }
 
 - (NSString*) substringWithRange: (NSRange)aRange
 {
+  NSString	*sub;
+
   GS_RANGE_CHECK(aRange, _count);
-  
+
   if (_flags.wide == 1)
     {
-      return [GSUnicodeStringClass stringWithCharacters:
-	self->_contents.u + aRange.location length: aRange.length];
+      sub = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
+	_count*sizeof(unichar), NSDefaultMallocZone());
+      sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
+				   length: aRange.length
+			     freeWhenDone: NO];
     }
   else
     {
-      return [GSCStringClass stringWithCString:
-	self->_contents.c + aRange.location length: aRange.length];
+      sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
+	_count, NSDefaultMallocZone());
+      sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
+				length: aRange.length
+			  freeWhenDone: NO];
     }
+  AUTORELEASE(sub);
+  return sub;
 }
 
 // private method for Unicode level 3 implementation
