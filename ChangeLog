@@ -1,13 +1,3 @@
-Sat Feb 14 15:50:40 1998  Adam Fedor  <fedor@ultra.doc.com>
-
-	* src/NXStringTable_scan.c src/lex.pl.m src/lex.sf.m
-	src/proplist.tab.h src/proplist.tab.m src/stringsfile.tab.h
-	src/stringsfile.tab.m: Add regenerated files to repository.
-
-Sat Feb 14 13:41:39 1998  Scott Christley  <scottc@net-community.com>
-
-	* src/include/config.h.in: Create and add back into repository.
-
 Thu Feb 12 13:31:00 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSDictionary.m ([-copy]): New method.
