@@ -14,6 +14,7 @@ print_string(NSString* s)
 }
 
 #include <Foundation/NSString.h>
+#include <Foundation/NSGeometry.h>
 
 
 int main()
@@ -24,6 +25,9 @@ int main()
   int a;
 
   print_string(s);
+
+  s2 = NSStringFromPoint(NSMakePoint(1.374, 5.100));
+  print_string(s2);
 
   s2 = [s copy];
   print_string(s2);

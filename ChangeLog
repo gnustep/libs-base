@@ -1,3 +1,9 @@
+2000-09-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSGeometry.m: Add code to parse MacOS-X format strings.
+	Also produce MacOS-X format strings if the GSMacOSXCompatibleGeometry
+	or GSMacOSXCompatible default is YES (the former overrides the latter).
+
 2000-09-01  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/gnustep/base/NSString.h:
@@ -17,9 +23,9 @@
 
 	* Tools/gsdoc-0_6_6.dtd: added prjref element which enable explicit 
 		links between projects
-	* Tools/gsdoc.m: 	handle prjref
-				remove extensions from files  in gsdocrefs 
-					(one day we'll generate other formats :-)
+	* Tools/gsdoc.m:  handle prjref
+			 remove extensions from files  in gsdocrefs 
+			(one day we'll generate other formats :-)
 
 2000-08-23  Fred Kiefer <FredKiefer@gmx.de>
 
@@ -68,6 +74,12 @@
 		added index generation
 	* Tools/gsdoc.gsdoc: added parameters documentation
 	
+2000-08-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/gsdoc/NSString.gsdoc: add documentation for replacing
+	strings within the reciever.
+	* Documentation/gsdoc/NSMutableString.gsdoc: ditto
+
 2000-08-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/all.h: Moved to Old as obsolete file.
