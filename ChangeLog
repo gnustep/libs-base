@@ -1,5 +1,8 @@
 2004-06-03  David Ayers  <d.ayers@inode.at>
 
+	* Source/Additions/GSObjCRuntime.m (BDBGPrintf) New macro.
+	(GSObjCAddClassBehavior, GSObjCAddMethods): Use new macro.
+	
 	* Source/GSSet.m (-[GSMutableSet unionSet:]): Remove redundant
 	test.
 	
