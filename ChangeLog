@@ -1,3 +1,9 @@
+2003-02-15 15:53  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSRunLoop.m (-performSelector:target:argument:order:modes:):
+	Order the performers correctly (lower order values first). Correct
+	the documentation.
+
 2003-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Fix memory leak when making absolute
