@@ -343,6 +343,17 @@ static int messages_received_count;
   return newRemote;
 }
 
+/* xxx This method is an anomaly, just until we get a proper name
+   server for port objects.  Richard Frith-MacDonald is working on a
+   name server. */
+- (BOOL) registerName: (NSString*)name
+{
+  id old_in_port = in_port;
+  in_port = [default_in_port_class newForReceivingFromRegisteredName: name];
+  [old_in_port release];
+  return YES;
+}
+
 
 
 /* This is the designated initializer for Connection */
@@ -444,9 +455,21 @@ static int messages_received_count;
   newConn->reply_depth = 0;
   newConn->delegate = nil;
 
-  /* Here ask the delegate for permission. */
-  /* delegate is responsible for freeing newConn if it returns something
-     different. */
+  /* Here ask the delegate for permission, (once OpenStep-style, once
+     GNUstep-style). */
+  /* Here is the OpenStep version, which just allows the returning of BOOL */
+  if ([[ancestor delegate] respondsTo:@selector(makeNewConnection:sender:)])
+    {
+      if (![[ancestor delegate] makeNewConnection: newConn 
+				sender: [ancestor delegate]])
+	{
+	  [newConn release];
+	  return nil;
+	}
+    }
+  /* Here is the GNUstep version, which allows the delegate to specify
+     a substitute.  Note: The delegate is responsible for freeing
+     newConn if it returns something different. */
   if ([[ancestor delegate] respondsTo:@selector(connection:didConnect:)])
     newConn = [[ancestor delegate] connection:ancestor
 	       didConnect:newConn];
