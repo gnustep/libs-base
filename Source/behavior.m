@@ -55,9 +55,11 @@
 #include <Foundation/NSException.h>
 
 /* Darwin behavior */
+#if NeXT_RUNTIME
 #if !defined(Release3CompatibilityBuild)
 #define methods methodLists
 #define method_next obsolete
+#endif
 #endif
 
 static struct objc_method *search_for_method_in_list (struct objc_method_list * list, SEL op);
