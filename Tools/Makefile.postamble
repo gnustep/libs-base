@@ -89,5 +89,5 @@ copy-dist: $(DIST_FILES)
 	done
 
 documentation: gsdoc
-	  $(GNUSTEP_OBJ_DIR)/gsdoc gsdoc
+	$(GNUSTEP_OBJ_DIR)/gsdoc gsdoc
 
