@@ -1,3 +1,9 @@
+2002-08-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: ([-replacementObjectForPortCoder:])
+	Documented method and removed unused/unwanted code dealing with
+	NSDistantObject (NSDistantObject overrides the method).
+
 2002-08-20  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSObject.m: Fix silly typo.
