@@ -149,4 +149,8 @@
   return _info;
 }
 
+- (int)compare:(NSTimer*)anotherTimer
+{
+    return [_fire_date compare: anotherTimer->_fire_date];
+}
 @end
