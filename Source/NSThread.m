@@ -1,12 +1,9 @@
-/* 
-   NSThread.m
-
-   Control of executable units within a shared virtual memory space
-
+/* Control of executable units within a shared virtual memory space
    Copyright (C) 1996 Free Software Foundation, Inc.
 
-   Author:  Scott Christley <scottc@net-community.com>
-   Date: 1996
+   Original Author:  Scott Christley <scottc@net-community.com>
+   Rewritten by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
+   Created: 1996
    
    This file is part of the GNUstep Objective-C Library.
 
@@ -20,182 +17,172 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   If you are interested in a warranty or support for this source code,
-   contact Scott Christley <scottc@net-community.com> for more information.
-   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
 #include <Foundation/NSThread.h>
-#include <Foundation/NSArray.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
+#include <gnustep/base/o-map.h>
+#include <gnustep/base/Notification.h>
 
 // Notifications
-NSString *NSBecomingMultiThreaded;
-NSString *NSThreadExiting;
+NSString *NSBecomingMultiThreaded = @"NSBecomingMultiThreadedNotification";
+NSString *NSThreadExiting = @"NSThreadExitingNotification";
 
 // Class variables
-NSRecursiveLock *THREAD_LIST_LOCK;
-NSMutableArray *THREAD_LIST;
-BOOL ENTERED_MULTI_THREADED_STATE;
+
+#define USING_THREAD_COLLECTION 0
+#if USING_THREAD_COLLECTION
+/* For managing the collection of all NSThread objects.  Note, however,
+   threads that have not yet called +currentThread will not be in the
+   collection.
+   xxx Do we really need this collection anyway?  
+   How about getting rid of it? */
+static NSRecursiveLock *thread_lock;
+static o_map_t thread_id_2_nsthread;
+#endif
+
+/* Flag indicating whether the objc runtime ever went multi-threaded. */
+static BOOL entered_multi_threaded_state;
 
 @implementation NSThread
 
-// Private methods to set/get thread id
-- (_objc_thread_t)threadId
-{
-  return thread_id;
-}
-
-- (void)setThreadId:(_objc_thread_t)threadId
-{
-  thread_id = threadId;
-}
-
 // Class initialization
-+ (void)initialize
++ (void) initialize
 {
   if (self == [NSThread class])
     {
-      // Initial version
-      [self setVersion:1];
-
-      // Allocate global/class variables
-      NSBecomingMultiThreaded = [NSString
-				  stringWithCString:"Entering multi-threaded state"];
-      NSThreadExiting = [NSString
-			  stringWithCString:"Thread is exiting"];
-      THREAD_LIST = [NSArray array];
-      THREAD_LIST_LOCK = [[NSRecursiveLock alloc] init];
-      [THREAD_LIST_LOCK autorelease];
-      ENTERED_MULTI_THREADED_STATE = NO;
+#if USING_THREAD_COLLECTION
+      thread_id_2_nsthread = o_map_of_non_owned_void_p ();
+      thread_lock = [[[NSRecursiveLock alloc] init]
+		      autorelease];
+#endif
+      entered_multi_threaded_state = NO;
     }
 }
 
+
 // Initialization
+
 - init
 {
   [super init];
 
-  // Thread specific variables
-  thread_dictionary = [NSMutableDictionary dictionary];
-  // xxx_current_autorelease_pool = nil;
+  /* initialize our ivars. */
+  _thread_dictionary = [NSMutableDictionary dictionary];
+  _thread_autorelease_pool = nil;
+
+  /* Make it easy and fast to get this NSThread object from the thread. */
+  objc_thread_set_data (self);
+
+#if USING_THREAD_COLLECTION
+  /* Register ourselves in the maptable of all threads. */
+  // Lock the thread list so it doesn't change on us
+  [thread_lock lock];
+  // Save the thread in our thread map; NOTE: this will not retain it
+  o_map_at_key_put_value_known_absent (thread_id_2_nsthread, tid, t);
+  [thread_lock unlock];
+#endif
+
   return self;
 }
 
+
 // Creating an NSThread
-+ (NSThread *)currentThread
+
++ (NSThread*) currentThread
 {
-  NSThread *t;
-  _objc_thread_t tid;
-  id e;
+  id t = (id) objc_thread_get_data ();
 
-  // Get current thread id from runtime
-  tid = objc_thread_id();
+  /* If an NSThread object for this thread has already been created
+     and stashed away, return it.  This depends on the objc runtime
+     initializing objc_thread_get_data() to 0 for newly-created
+     threads. */
+  if (t)
+    return t;
 
-  // Lock the thread list so it doesn't change on us
-  [THREAD_LIST_LOCK lock];
-
-  // Enumerate through thread list to find the current thread
-  e = [THREAD_LIST objectEnumerator];
-  while ((t = [e nextObject]))
-    {
-      if ([t threadId] == tid)
-	{
-	  [THREAD_LIST_LOCK unlock];
-	  return t;
-	}
-    }
-
-  // Something is wrong if we get here
-  [THREAD_LIST_LOCK unlock];
-  return nil;
+  /* We haven't yet created an NSThread object for this thread; create
+     it.  (Doing this here instead of in +detachNewThread.. not only
+     avoids the race condition, it also nicely provides an NSThread on
+     request for the single thread that exists at application
+     start-up, and for thread's created by calling
+     objc_thread_detach() directly.) */
+  t = [[NSThread alloc] init];
+  return t;
 }
 
-+ (void)detachNewThreadSelector:(SEL)aSelector
-		       toTarget:(id)aTarget
-withObject:(id)anArgument
++ (void) detachNewThreadSelector:(SEL)aSelector
+		        toTarget:(id)aTarget
+                      withObject:(id)anArgument
 {
-  NSThread *t = [[NSThread alloc] init];
-  _objc_thread_t tid;
-
-  // Lock the thread list so it doesn't change on us
-  [THREAD_LIST_LOCK lock];
-
   // Have the runtime detach the thread
-  tid = objc_thread_detach(aSelector, aTarget, anArgument);
-  if (!tid)
-    {
-      // Couldn't detach!
-      [THREAD_LIST_LOCK unlock];
-      return;
-    }
+  objc_thread_detach (aSelector, aTarget, anArgument);
 
-  // Save the thread in our thread list
-  [t setThreadId:tid];
-  [THREAD_LIST addObject:t];
-  [THREAD_LIST_LOCK unlock];
+  /* NOTE we can't create the new NSThread object for this thread here
+     because there would be a race condition.  The newly created
+     thread might ask for its NSThread object before we got to create
+     it. */
 }
 
+
 // Querying a thread
-+ (BOOL)isMultiThreaded
+
++ (BOOL) isMultiThreaded
 {
-  return ENTERED_MULTI_THREADED_STATE;
+  return entered_multi_threaded_state;
 }
 
-- (NSMutableDictionary *)threadDictionary
+- (NSMutableDictionary*) threadDictionary
 {
-  return thread_dictionary;
+  return _thread_dictionary;
 }
 
 // Delaying a thread
-+ (void)sleepUntilDate:(NSDate *)date
++ (void) sleepUntilDate: (NSDate*)date
 {
-  // Do we need some runtime/OS support for this?
+  // xxx Do we need some runtime/OS support for this?
+  [self notImplemented: _cmd];
 }
 
 // Terminating a thread
 // What happens if the thread doesn't call +exit?
-+ (void)exit
++ (void) exit
 {
   NSThread *t;
-  _objc_thread_t tid;
-  id e;
-  BOOL found;
 
-  // Get current thread id from runtime
-  tid = objc_thread_id();
+  // the the current NSThread
+  t = objc_thread_get_data ();
+  assert (t);
 
-  // Lock the thread list so it doesn't change on us
-  [THREAD_LIST_LOCK lock];
+  // Post the notification
+  [NotificationDispatcher
+    postNotificationName: NSThreadExiting
+    object: t];
 
-  // Enumerate through thread list to find the current thread
-  e = [THREAD_LIST objectEnumerator];
-  found = NO;
-  while ((t = [e nextObject]) && (!found))
-    {
-      if ([t threadId] == tid)
-	found = YES;
-    }
+#if USING_THREAD_COLLECTION
+  { 
+    _objc_thread_t tid;
+    // Get current thread id from runtime
+    tid = objc_thread_id();
+    // Lock the thread list so it doesn't change on us
+    [thread_lock lock];
+    // Remove the thread from the map
+    o_map_remove_key (thread_id_2_nsthread, tid);
+    // Unlock the thread list
+    [thread_lock unlock];
+  }
+#endif
 
-  // I hope we found it
-  if (found)
-    {
-      // Remove the thread from the list
-      [THREAD_LIST removeObject: t];
+  // Release the thread object
+  [t release];
 
-      // Release the thread object
-      [t release];
-    }
-
-  // Unlock the thread list
-  [THREAD_LIST_LOCK unlock];
+  // xxx Clean up any outstanding NSAutoreleasePools here.
 
   // Tell the runtime to exit the thread
-  objc_thread_exit();
+  objc_thread_exit ();
 }
 
 @end
