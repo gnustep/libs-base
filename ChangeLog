@@ -1,3 +1,9 @@
+Fri Mar 10 10:45:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* GSDoc/gsdoc-0_6_5.dtd: Altered to add standard conformance to
+	individual methods and to make standards rigorous.
+	* GSDoc/gsdoc.m: Updated for changes to dtd.
+
 Thu Mar 09 18:07:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSAttributedString.m: Varius bugfixes.

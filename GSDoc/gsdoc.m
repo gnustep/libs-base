@@ -248,6 +248,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 - (NSString*) parseList: (xmlNodePtr)node;
 - (NSString*) parseMacro: (xmlNodePtr)node;
 - (NSString*) parseMethod: (xmlNodePtr)node;
+- (NSArray*) parseStandards: (xmlNodePtr)node;
 - (NSString*) parseText: (xmlNodePtr)node;
 - (void) setEntry: (NSString*)entry
 	  withRef: (NSString*)ref
@@ -1732,6 +1733,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   NSMutableString	*lText = [NSMutableString string];
   NSMutableString	*sText = [NSMutableString string];
   NSString	*desc = nil;
+  NSArray	*standards = nil;
 
   if (ref == nil)
     {
@@ -1788,18 +1790,16 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  break;	/* Just a selector	*/
 	}
     }
+  if (node != 0 && strcmp(node->name, "desc") == 0)
+    {
+      desc = [self parseDesc: node];
+      node = node->next;
+    }
   if (node != 0)
     {
-      if (strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	}
-      else
-	{
-	  NSLog(@"Unexpected node in method definition - %s", node->name);
-	  return nil;
-	}
+      standards = [self parseStandards: node];
     }
+
   if (factory)
     {
       NSString	*s = [@"+" stringByAppendingString: sText];
@@ -1826,6 +1826,18 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       [text appendString: @"Your subclass must <em>not</em> override this "
 	@"method.<br>\r\n"];
     }
+  if ([standards count] > 0)
+    {
+      unsigned	i;
+
+      [text appendString: @"Standards:"];
+      for (i = 0; i < [standards count]; i++)
+	{
+	  [text appendString: @" "];
+	  [text appendString: [standards objectAtIndex: i]];
+	}
+      [text appendString: @"<br>\r\n"];
+    }
 
   if (desc != nil)
     {
@@ -1834,6 +1846,30 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   [text appendString: @"\r\n<hr>\r\n"];
 
   return text;
+}
+
+- (NSArray*) parseStandards: (xmlNodePtr)node
+{
+  if (node != 0)
+    {
+      if (strcmp(node->name, "standards") == 0)
+	{
+	  NSMutableArray	*a = [NSMutableArray array];
+
+	  node = node->childs;
+	  while (node != 0 && node->name != 0)
+	    {
+	      [a addObject: [NSString stringWithCString: node->name]];
+	      node = node->next;
+	    }
+	  return a;
+	}
+      else
+	{
+	  NSLog(@"Unexpected node in method definition - %s", node->name);
+	}
+    }
+  return nil;
 }
 
 - (NSString*) parseText: (xmlNodePtr)node
