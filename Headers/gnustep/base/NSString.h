@@ -33,7 +33,9 @@ typedef unsigned short unichar;
 @class NSCharacterSet;
 @class NSData;
 @class NSDictionary;
+#ifndef STRICT_OPENSTEP
 @class NSURL;
+#endif
 
 #define NSMaximumStringLength	(INT_MAX-1)
 #define NSHashStringLength	63
@@ -238,15 +240,15 @@ enum {
 + (id) stringWithFormat: (NSString*)format
 	      arguments: (va_list)argList;
 + (id) stringWithString: (NSString*) aString;
-+ (id)stringWithContentsOfURL:(NSURL *)anURL;
-+ (id)stringWithUTF8String:(const char *)bytes;
++ (id) stringWithContentsOfURL: (NSURL*)anURL;
++ (id) stringWithUTF8String: (const char*)bytes;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary
 	    arguments: (va_list)argList;
-- (id)initWithUTF8String:(const char *)bytes;
-- (id)initWithContentsOfURL:(NSURL *)anURL;
+- (id) initWithUTF8String: (const char *)bytes;
+- (id) initWithContentsOfURL: (NSURL*)anURL;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (NSComparisonResult)compare:(NSString *)string 

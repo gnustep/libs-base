@@ -1,3 +1,17 @@
+2000-09-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSData.h: Added URL methods.
+	* Headers/gnustep/base/GSXML.h: Reorganized init methods in line with
+	Manuels ideas but with naming consistent with other classes.
+	* Source/NSData.m: Added URL methods.
+	* Source/NSURL.m: First attempt (untested) at code to load data.
+	tolerate URLs where the network part is missing and the '//' left out.
+	* Source/GSXML.m: Reorganized init methods in line with
+	Manuels ideas but with naming consistent with other classes.
+	* Source/propList.h: Update for change in GSXMLParser API.
+	* Documentation/gsdoc/GSXMLParser.gsdoc: update for new initialisation
+	methods.
+
 2000-09-21  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check for rint.

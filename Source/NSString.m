@@ -57,6 +57,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSBundle.h>
+#include <Foundation/NSURL.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>

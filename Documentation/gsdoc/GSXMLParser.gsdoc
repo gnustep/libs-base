@@ -22,26 +22,40 @@
             <p>
 	      The XML parser object is the pivotal part of parsing an XML
 	      document - it will either build a tree representing the
-              document, or will cooperate with a GSSAXHandler object to
-              provide parsing without the overhead of building a tree.
-            </p>
-          </desc>
-
-
-        <method type="GSXMLParser*" factory="yes">
-          <sel>parser:</sel>
-          <arg type="id">source</arg>
-          <desc>
-	    <p>Creation of a new Parser by calling initWithSAXHandler:source:
+              document (if initialized without a GSSAXHandler), or will
+	      cooperate with a GSSAXHandler object to provide parsing
+	      without the overhead of building a tree.
             </p>
 	    <p>
-	      Source must be <code>NSString</code> (file name),
-	      <code>NSData</code> (raw document contnets),
-	      <code>NSURL</code> (not yet implemented),
-	      or <code>nil</code> (for incremental parsing).
+	      The parser may be initialized with an input source (in which
+	      case it will expect to be asked to parse the entire input in
+	      a single operation), or without.  If it is initialised without
+	      an input source, incremental parsing can be done by feeding
+	      successive parts of the XML document into the parser as
+	      NSData objects.
+	    </p>
+          </desc>
+
+        <method type="GSXMLParser*" factory="yes">
+          <sel>parser</sel>
+          <desc>
+	    <p>
+	      Creation of a new Parser (for incremental parsing)
+	      by calling initWithSAXHandler:
+            </p>
+	  </desc>
+	</method>
+
+        <method type="GSXMLParser*" factory="yes">
+          <sel>parserWithContentsOfFile:</sel>
+          <arg type="NSString*">path</arg>
+          <desc>
+	    <p>
+	      Creation of a new Parser by calling
+	      initWithSAXHandler:withContentsOfFile:
             </p>
             <example>
-  GSXMLParser       *p = [GSXMLParser parser: @"macos.xml"];
+  GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile: @"macos.xml"];
 
   if ([p parse])
     {
@@ -53,35 +67,60 @@
     }
 
             </example>
+          </desc>
+        </method>
 
+        <method type="GSXMLParser*" factory="yes">
+          <sel>parserWithContentsOfURL:</sel>
+          <arg type="NSURL*">url</arg>
+          <desc>
+	    <p>
+	      Creation of a new Parser by calling
+	      initWithSAXHandler:withContentsOfURL:
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLParser*" factory="yes">
+          <sel>parserWithData:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+	    <p>Creation of a new Parser by calling
+	      initWithSAXHandler:withData:
+            </p>
           </desc>
         </method>
 
         <method type="GSXMlParser*" factory="yes">
           <sel>parserWithSAXHandler:</sel>
           <arg type="GSSAXHandler*">handler</arg>
-          <sel>source:</sel>
-          <arg type="id">source</arg>
           <desc>
 	    <p>
-	      Creation of a new Parser by calling initWithSAXHandler:source:
+	      Creation of a new Parser by calling initWithSAXHandler:
             </p>
-	    <p>
-	      Source must be <code>NSString</code> (file name),
-	      <code>NSData</code> (raw document contnets),
-	      <code>NSURL</code> (not yet implemented),
-	      or <code>nil</code> (for incremental parsing).
-	    </p>
 	    <p>
 	      If the handler object supplied is nil, the parser will build
 	      a tree representing the parsed file rather than attempting
 	      to get the handler to deal with the parsed elements and entities.
 	    </p>
+          </desc>
+        </method>
+
+        <method type="GSXMlParser*" factory="yes">
+          <sel>parserWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+          <sel>withContentsOfFile:</sel>
+          <arg type="NSString*">path</arg>
+          <desc>
+	    <p>
+	      Creation of a new Parser by calling
+	      initWithSAXHandler:withContentsOfFile:
+            </p>
             <example>
   NSAutoreleasePool *arp = [[NSAutoreleasePool alloc] init];
   GSSAXHandler *h = [GSDebugSAXHandler handler];
   GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: h
-						    source: @"macos.xml"];
+					withContentsOfFile: @"macos.xml"];
 
   if ([p parse])
     {
@@ -91,6 +130,32 @@
 
   [arp release];
             </example>
+          </desc>
+        </method>
+
+        <method type="GSXMlParser*" factory="yes">
+          <sel>parserWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+          <sel>withContentsOfURL:</sel>
+          <arg type="NSURL*">url</arg>
+          <desc>
+	    <p>
+	      Creation of a new Parser by calling
+	      initWithSAXHandler:withContentsOfURL:
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMlParser*" factory="yes">
+          <sel>parserWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+          <sel>withData:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+	    <p>
+	      Creation of a new Parser by calling
+	      initWithSAXHandler:withData:
+            </p>
           </desc>
         </method>
 
@@ -106,29 +171,74 @@
         <method type="id" init="yes">
           <sel>initWithSAXHandler:</sel>
           <arg type="GSSAXHandler*">handler</arg>
-          <sel>source:</sel>
-          <arg type="id">source</arg>
           <desc>
 	    <p>
 	       Initialisation of a new Parser with SAX handler (if not nil).
             </p>
 	    <p>
-               The source object is intended to be any reasonable value,
-               but for initial implementation may be an NSData object
-               containing raw XML text, or the name of a file to parse.
-	    </p>
-	    <p>
-	      In the future, it is intended that this method will also
-              support NSYRL objects.
-	    </p>
-	    <p>
-	      If the source object is <code>nil</code> then the parser will
-	      be initialised for incremental parsing.
-	    </p>
-	    <p>
 	      If the handler object supplied is nil, the parser will build
 	      a tree representing the parsed file rather than attempting
 	      to get the handler to deal with the parsed elements and entities.
+	    </p>
+	    <p>
+	      The source for the parsing process is not specified - so
+	      parsing must be done incfrementally by feeding data to the
+	      parser.
+	    </p>
+          </desc>
+        </method>
+
+        <method type="id">
+          <sel>initWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+	  <sel>withContentsOfFile:</sel>
+	  <arg type="NSString*">path</arg>
+          <desc>
+	    <p>
+	      Initialisation of a new Parser with SAX handler (if not nil)
+	      by calling initWithSAXHandler:
+            </p>
+	    <p>
+	      Sets the input source for the parser to be the specified file -
+	      so parsing of the entire file will be performed rather than
+	      incremental parsing.
+	    </p>
+          </desc>
+        </method>
+
+        <method type="id">
+          <sel>initWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+	  <sel>withContentsOfURL:</sel>
+	  <arg type="NSURL*">url</arg>
+          <desc>
+	    <p>
+	      Initialisation of a new Parser with SAX handler (if not nil)
+	      by calling initWithSAXHandler:
+            </p>
+	    <p>
+	      Sets the input source for the parser to be the specified URL -
+	      so parsing of the entire document will be performed rather than
+	      incremental parsing.
+	    </p>
+          </desc>
+        </method>
+
+        <method type="id">
+          <sel>initWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+	  <sel>withData:</sel>
+	  <arg type="NSData*">data</arg>
+          <desc>
+	    <p>
+	      Initialisation of a new Parser with SAX handler (if not nil)
+	      by calling initWithSAXHandler:
+            </p>
+	    <p>
+	      Sets the input source for the parser to be the specified data
+	      object (which must contain a nul terminated XML document),
+	      so parsing of the entire document will be performed rather than
+	      incremental parsing.
 	    </p>
           </desc>
         </method>
@@ -157,7 +267,7 @@
 	      This method should be called once to parse the entiore document.
             </p>
             <example>
-  GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
+  GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile:@"macos.xml"];
 
   if ([p parse])
     {
@@ -207,9 +317,10 @@
           <sel>substituteEntites:</sel>
           <arg type="BOOL">yesno</arg>
           <desc>
-          <p>Set and return the previous value for default entity support.
-             Initially the parser always keep entity references instead of substituting
-          entity values in the output.
+          <p>
+	    Set and return the previous value for default entity support.
+            Initially the parser always keeps entity references instead
+	    of substituting entity values in the output.
           </p>
           </desc>
         </method>
@@ -218,10 +329,13 @@
           <sel>keepBlanks:</sel>
           <arg type="BOOL">yesno</arg>
           <desc>
-          <p>Set and return the previous value for default blanks text nodes support.
-          ignorableWhitespace() are only generated when running the parser in validating mode
-          and when the current element doesn't allow CDATA or mixed content.
-          </p>
+	    <p>
+	      Set and return the previous value for default blanks
+	      text nodes support.
+	      ignorableWhitespace() are only generated when running
+	      the parser in validating mode and when the current element
+	      doesn't allow CDATA or mixed content.
+	    </p>
           </desc>
         </method>
 
@@ -236,7 +350,8 @@
           <sel>doValidityChecking:</sel>
           <arg type="BOOL">yesno</arg>
           <desc>
-          <p>Sets whether the document needs to be validated.
+	    <p>
+	      Sets whether the document needs to be validated.
             </p>
           </desc>
         </method>
@@ -244,7 +359,8 @@
         <method type="int">
           <sel>errNo</sel>
           <desc>
-          <p>Return error code.
+	    <p>
+	      Return error code.
             </p>
           </desc>
         </method>
@@ -253,7 +369,8 @@
           <sel>setExternalEntityLoader</sel>
           <arg type="void*">function</arg>
           <desc>
-          <p>Set a external entity loader.
+	    <p>
+	      Set a external entity loader.
             </p>
           </desc>
         </method>
