@@ -360,8 +360,8 @@ config.status: configure
 configure: configure.in
 	cd $(srcdir); autoconf
 
-TAGS: $(SRCS)
-	etags $(SRCS)
+TAGS: $(DIST_FILES)
+	etags $(DIST_FILES)
 
 mostlyclean:
 	rm -f  core \
