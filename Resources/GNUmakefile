@@ -32,6 +32,7 @@ resourcedir = $(GNUSTEP_RESOURCES)
 languagedir = $(GNUSTEP_RESOURCES)/Languages
 
 LANGUAGES = \
+Languages/Dutch \
 Languages/English \
 Languages/French  \
 Languages/German  \

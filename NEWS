@@ -1,7 +1,23 @@
 News
 ****
 
-The currently released version of the library is `1.0.0'.
+The currently released version of the library is `1.0.1'.
+
+Noteworthy changes in version `1.0.1'
+=====================================
+
+   * Many fixes to work better with Darwin (still not there).
+
+   * Fixes to work with BSD Unix
+
+   * Added some missing methods, better conformance to MacOSX Docs.
+
+   * Added support for invoking super implementation (mostly for
+     writting bridges from other languages).
+
+   * Works better with gcc 3.x, newer kernels.
+
+   * More memory debugging support.
 
 Noteworthy changes in version `1.0.0'
 =====================================

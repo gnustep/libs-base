@@ -9,7 +9,11 @@ GNUstep-HOWTO is located in the gnustep-make package or at
 
    If you are installing the GNUstep libraries individually, make sure
 you have installed the GNUstep Makefile package (gnustep-make) already.
-When you configure this library, make sure you use the same
+In addition you should probably install an Objective-C library
+(gnustep-objc), as well some other libraries (notable ffcall). See the
+GNUstep-HOWTO for more information.
+
+   When you configure this library, make sure you use the same
 configuration options as with gstep-make. Some additional options to
 configure are described below.
 
