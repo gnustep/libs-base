@@ -1,5 +1,5 @@
 /* Implementation of NSAllocateObject() for GNUStep
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -23,11 +23,11 @@
 
 #include <objects/stdobjects.h>
 
-NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
+NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
   id new = nil;
   int size = aClass->instance_size + extraBytes;
-  if (CLS_ISCLASS(aClass))
+  if (CLS_ISCLASS (aClass))
     new = NSZoneMalloc (zone, size);
   if (new != nil)
     {
