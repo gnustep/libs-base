@@ -1842,10 +1842,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      if (*src == '\\')
 		{
 		  src++;
-		}
-	      if (flags.buggyQuotes == 1 && *src != '\\' && *src != '"')
-		{
-		  *dst++ = '\\';	// Buggy use of escape in quotes.
+		  if (flags.buggyQuotes == 1 && *src != '\\' && *src != '"')
+		    {
+		      *dst++ = '\\';	// Buggy use of escape in quotes.
+		    }
 		}
 	      *dst++ = *src++;
 	    }
@@ -1893,7 +1893,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  */
 - (void) setBuggyQuotes: (BOOL)flag
 {
-  if (flag == YES)
+  if (flag)
     {
       flags.buggyQuotes = 1;
     }
@@ -2245,6 +2245,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      lineStart += bLength;
 	      sectionStart = lineStart;
 	      child = [GSMimeParser new];
+	      if (flags.buggyQuotes == 1)
+		{
+		  [child setBuggyQuotes: YES];
+		}
 	    }
 	  else
 	    {
@@ -2311,6 +2315,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    }
 		  RELEASE(child);
 		  child = [GSMimeParser new];
+		  if (flags.buggyQuotes == 1)
+		    {
+		      [child setBuggyQuotes: YES];
+		    }
 		}
 	      else
 		{
@@ -2320,6 +2328,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  NSLog(@"Failed to decode section of multipart");
 		  RELEASE(child);
 		  child = [GSMimeParser new];
+		  if (flags.buggyQuotes == 1)
+		    {
+		      [child setBuggyQuotes: YES];
+		    }
 		}
 
 	      /*
