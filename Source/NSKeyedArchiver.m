@@ -404,6 +404,11 @@ static NSMapTable	*globalClassMap = 0;
     }
 }
 
+- (BOOL) allowsKeyedCoding
+{
+  return YES;
+}
+
 - (NSString*) classNameForClass: (Class)aClass
 {
   return (NSString*)NSMapGet(_clsMap, (void*)aClass);
