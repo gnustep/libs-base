@@ -94,7 +94,6 @@
 - emptyCopyAs: (Class)aCollectionClass;
 - shallowCopy;
 - shallowCopyAs: (Class)aCollectionClass;
-- copy;
 - copyAs: (Class)aCollectionClass;
 - species;
 
