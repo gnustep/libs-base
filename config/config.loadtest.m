@@ -1,3 +1,8 @@
+/* Dummy NXConstantString impl for so libobjc that doesn't include it */
+#include <objc/NXConstStr.h>
+@implementation NXConstantString
+@end
+
 @interface Test 
 static int test_result;
 +(void) load;
