@@ -1,3 +1,8 @@
+Tue Jul 17 09:59:41 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Makefile.postamble (after-distclean): Do not abort if 
+	we can not remove Foundation.
+
 2001-07-16  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: New definitions for sel
