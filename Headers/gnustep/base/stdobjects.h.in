@@ -105,16 +105,6 @@ LAMBDA(BOOL, (id _o), {if ([_o perform:SELECTOR]) return YES; else return NO;})
 #define LONG2PTR(L) (((char*)0)+(L))
 #endif
 
-/* A kludgy way to ensure that stdobjects.o is linked.  
-   This is needed to make sure that the Object category for implementing
-   -autorelease is linked.
-   Anyone have any less kludgy ideas? */
-
-static char * __BASE_FILE__ ## _link_stdobjects_o()
-{
-  return objects_version;
-}
-
 #endif /* __stdobjects_h_OBJECTS_INCLUDE */
 
 
