@@ -1,3 +1,11 @@
+2001-10-28  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSFileManager.m (_attributesAtPath:traverseLink:forCopy:): 
+	Make NSLog message into fprintf to avoid recursion.
+
+	* Source/NSUserDefaults.m (pathForUser): Create ~/GNUstep/Library
+	if it doesn't exist.
+
 2001-10-26  Adam Fedor  <fedor@gnu.org>
 
 	* configure (z): Check for gzseek in zlib since older zlibs don't
