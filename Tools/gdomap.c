@@ -3594,7 +3594,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       rval = tryHost(GDO_SERVERS, 0, 0, ptype, &sin, &num, (uptr*)&b);
       if (rval != 0 && host == local_hostname)
 	{
-	  fprintf(stderr, "failed to contact gdomap\n");
+	  fprintf(stderr, "failed to contact gdomap (%s)\n", strerror(errno));
 	  return -1;
 	}
       if (rval == 0)
@@ -3646,7 +3646,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       rval = tryHost(op, len, name, ptype, &sin, &port, 0);
       if (rval != 0 && host == local_hostname)
 	{
-	  fprintf(stderr, "failed to contact gdomap\n");
+	  fprintf(stderr, "failed to contact gdomap (%s)\n", strerror(errno));
 	  return -1;
 	}
       nameFail(rval);
@@ -3756,7 +3756,7 @@ donames()
   rval = tryHost(GDO_NAMES, 0, 0, 0, &sin, &num, (uptr*)&b);
   if (rval != 0)
     {
-      fprintf(stderr, "failed to contact gdomap\n");
+      fprintf(stderr, "failed to contact gdomap (%s)\n", strerror(errno));
       return;
     }
   if (num == 0)
