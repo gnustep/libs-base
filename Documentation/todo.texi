@@ -317,3 +317,74 @@ of union alternative is controlled by a previous structure component.
 (See gcc @samp{PROJECTS} file.)
 
 @end itemize
+
+@section Albin's To Do List
+
+I'm sure that there're other things to do, but these are the ones I know now:
+
+@subsection General
+
+@itemize @bullet
+@item Make thread-safe all of my code that should be.
+@item Fully annotate all of my headers.
+@item Document my work and the use of its fruit.
+@end itemize
+
+@subsection Critical
+
+@itemize @bullet
+@item Code:
+@itemize +
+@item (@file{src/array.m}) @samp{objects_array_check}
+@item (@file{src/array.m}) @samp{objects_array_map_elements}
+@item (@file{src/cbs-char-p.m}) @samp{objects_char_p_describe}
+@item (@file{src/cbs-int-p.m}) @samp{objects_int_p_describe}
+@item (@file{src/cbs-int.m}) @samp{objects_int_describe}
+@item (@file{src/hash.m}) @samp{_objects_hash_hash}
+@item (@file{src/hash.m}) @samp{objects_hash_check}
+@item (@file{src/hash.m}) @samp{objects_hash_description}
+@item (@file{src/list.m}) @samp{objects_list_is_equal_to_list}
+@item (@file{src/map.m}) @samp{_objects_map_hash}
+@item (@file{src/map.m}) @samp{objects_map_check}
+@item (@file{src/map.m}) @samp{objects_map_description}
+@end itemize
+
+@item Correct:
+@itemize +
+@item (@file{src/array.m}) @samp{objects_array_dealloc}
+@item (@file{src/cbs-int.m}) @samp{_OBJECTS_NOT_AN_INT_MARKER}
+@end itemize
+
+@item Improve the error handling of:
+@itemize +
+@item (@file{src/array.m}) @samp{_objects_array_insert_bucket}
+@item (@file{src/hash.m}) @samp{objects_hash_add_element_known_absent}
+@item (@file{src/list.m}) @samp{objects_list_at_index_insert_element}
+@item (@file{src/map.m}) @samp{objects_map_at_key_put_value_known_absent}
+@end itemize
+@end itemize
+
+@subsection Not So Critical
+
+@itemize @bullet
+@item Strengthen my resolve on the correctness of:
+@itemize +
+@item (@file{src/cbs-char-p.m}) @samp{_OBJECTS_NOT_A_CHAR_P_MARKER}
+@item (@file{src/cbs-id.m}) @samp{_OBJECTS_NOT_AN_ID_MARKER}
+@item (@file{src/cbs-int-p.m}) @samp{_OBJECTS_NOT_AN_INT_P_MARKER}
+@item (@file{src/cbs-int-p.m}) @samp{objects_int_p_is_equal}
+@item (@file{src/cbs-void-p.m}) @samp{_OBJECTS_NOT_A_VOID_P_MARKER}
+@item (@file{src/hash.m}) @samp{objects_hash_rightsize}
+@item (@file{src/hash.m}) @samp{objects_hash_all_elements}
+@item (@file{src/map.m}) @samp{objects_map_rightsize}
+@item (@file{src/map.m}) @samp{objects_map_all_keys}
+@item (@file{src/map.m}) @samp{objects_map_all_values}
+@end itemize
+
+@item Improve the effeciency of:
+@itemize +
+@item (@file{src/array.m}) @samp{_objects_array_insert_bucket}
+@item (@file{src/hash.m}) @samp{objects_hash_minus_hash}
+@item (@file{src/list.m}) @samp{objects_list_at_index_insert_list}
+@end itemize
+@end itemize

@@ -3,8 +3,8 @@
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:56:03 EST 1994
- * Updated: Sat Feb 10 15:55:51 EST 1996
- * Serial: 96.02.10.02
+ * Updated: Thu Mar 21 15:13:46 EST 1996
+ * Serial: 96.03.21.06
  * 
  * This file is part of the GNU Objective C Class Library.
  * 
@@ -20,9 +20,7 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
- */ 
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
 #ifndef __NSHashTable_h_OBJECTS_INCLUDE
 #define __NSHashTable_h_OBJECTS_INCLUDE 1
@@ -36,77 +34,165 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
+/* Hash table type. */
 typedef objects_hash_t NSHashTable;
-typedef objects_hash_enumerator_t NSHashEnumerator;
-typedef struct _NSHashTableCallBacks NSHashTableCallBacks;
 
+/* Private type for enumerating. */
+typedef objects_hash_enumerator_t NSHashEnumerator;
+
+/* Callback functions. */
+typedef struct _NSHashTableCallBacks NSHashTableCallBacks;
 struct _NSHashTableCallBacks
 {
-  unsigned int (*hash) (NSHashTable *, const void *);
-  BOOL (*isEqual) (NSHashTable *, const void *, const void *);
-  void (*retain) (NSHashTable *, const void *);
-  void (*release) (NSHashTable *, void *);
-  NSString *(*describe) (NSHashTable *, const void *);
+  /* Hashing function. NOTE: Elements with equal values must have
+   * equal hash function values. */
+  unsigned int (*hash)(NSHashTable *, const void *);
+
+  /* Comparison function. */
+  BOOL (*isEqual)(NSHashTable *, const void *, const void *);
+
+  /* Retaining function called when adding elements to table. */
+  void (*retain)(NSHashTable *, const void *);
+
+  /* Releasing function called when a data element is
+   * removed from the table. */
+  void (*release)(NSHashTable *, void *);
+
+  /* Description function. */
+  NSString *(*describe)(NSHashTable *, const void *);
 };
 
+/* For sets of pointer-sized or smaller quantities. */
 extern const NSHashTableCallBacks NSIntHashCallBacks;
+
+/* For sets of pointers hashed by address. */
 extern const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
+
+/* For sets of objects without retaining and releasing. */
 extern const NSHashTableCallBacks NSNonRetainedObjectsHashCallBacks;
+
+/* For sets of objects; similar to NSSet. */
 extern const NSHashTableCallBacks NSObjectsHashCallBacks;
+
+/* For sets of pointers with transfer of ownership upon insertion. */
 extern const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
+
+/* For sets of pointers to structs when the first field of the
+ * struct is the size of an int. */
 extern const NSHashTableCallBacks NSPointerToStructHashCallBacks;
 
 /**** Function Prototypes ****************************************************/
 
-/** Creating an NSHashTable **/
+/** Creating an NSHashTable... **/
 
-NSHashTable *NSCreateHashTable (NSHashTableCallBacks callBacks,
-                                unsigned int capacity);
+/* Returns a (pointer to) an NSHashTable space for which is allocated
+ * in the default zone.  If CAPACITY is small or 0, then the returned
+ * table has a reasonable (but still small) capacity. */
+NSHashTable *
+NSCreateHashTable(NSHashTableCallBacks callBacks,
+                  unsigned int capacity);
 
-NSHashTable *NSCreateHashTableWithZone (NSHashTableCallBacks callBacks,
-                                        unsigned int capacity,
-                                        NSZone *zone);
+/* Just like 'NSCreateHashTable()', but the returned hash table is created
+ * in the memory zone ZONE, rather than in the default zone.  (Of course,
+ * if you send 0 for ZONE, then the hash table will be created in the
+ * default zone.) */
+NSHashTable *
+NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
+                          unsigned int capacity,
+                          NSZone *zone);
 
-NSHashTable *NSCopyHashTableWithZone (NSHashTable *table, NSZone *zone);
+/* Returns a hash table, space for which is allocated in ZONE, which
+ * has (newly retained) copies of TABLE's keys and values.  As always,
+ * if ZONE is 0, then the returned hash table is allocated in the
+ * default zone. */
+NSHashTable *
+NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone);
 
-/** Freeing an NSHashTable **/
+/** Freeing an NSHashTable... **/
 
-void NSFreeHashTable (NSHashTable * table);
+/* Releases all the keys and values of TABLE (using the callbacks
+ * specified at the time of TABLE's creation), and then proceeds
+ * to deallocate the space allocated for TABLE itself. */
+void
+NSFreeHashTable(NSHashTable *table);
 
-void NSResetHashTable (NSHashTable * table);
+/* Releases every element of TABLE, while preserving
+ * TABLE's "capacity". */
+void
+NSResetHashTable(NSHashTable *table);
 
-/** Comparing two NSHashTables **/
+/** Comparing two NSHashTables... **/
 
-BOOL NSCompareHashTables (NSHashTable *table1, NSHashTable *table2);
+/* Returns 'YES' if and only if every element of TABLE1 is an element
+ * of TABLE2, and vice versa. */
+BOOL
+NSCompareHashTables(NSHashTable *table1, NSHashTable *table2);
 
-/** Getting the number of items in an NSHashTable **/
+/** Getting the number of items in an NSHashTable... **/
 
-unsigned int NSCountHashTable (NSHashTable *table);
+/* Returns the total number of elements in TABLE. */
+unsigned int
+NSCountHashTable(NSHashTable *table);
 
-/** Retrieving items from an NSHashTable **/
+/** Retrieving items from an NSHashTable... **/
 
-void *NSHashGet (NSHashTable *table, const void *pointer);
+/* Returns the element of TABLE equal to POINTER, if POINTER is a
+ * member of TABLE.  If not, then 0 (the only completely
+ * forbidden element) is returned. */
+void *
+NSHashGet(NSHashTable *table, const void *pointer);
 
-NSArray *NSAllHashTableObjects (NSHashTable *table);
+/* Returns an NSArray which contains all of the elements of TABLE.
+ * WARNING: Call this function only when the elements of TABLE
+ * are objects. */
+NSArray *
+NSAllHashTableObjects(NSHashTable *table);
 
-NSHashEnumerator NSEnumerateHashTable (NSHashTable *table);
+/* Returns an NSHashEnumerator structure (a pointer to) which
+ * can be passed repeatedly to the function 'NSNextHashEnumeratorItem()'
+ * to enumerate the elements of TABLE. */
+NSHashEnumerator
+NSEnumerateHashTable(NSHashTable *table);
 
-void *NSNextHashEnumeratorItem (NSHashEnumerator *enumerator);
+/* Return 0 if ENUMERATOR has completed its enumeration of
+ * its hash table's elements.  If not, then the next element is
+ * returned. */
+void *
+NSNextHashEnumeratorItem(NSHashEnumerator *enumerator);
 
-/** Adding an item to an NSHashTable **/
+/** Adding an item to an NSHashTable... **/
 
-void NSHashInsert (NSHashTable *table, const void *pointer);
+/* Inserts the item POINTER into the hash table TABLE.
+ * If POINTER is already an element of TABLE, then its previously
+ * incarnation is released from TABLE, and POINTER is put in its place.
+ * Raises an NSInvalidArgumentException if POINTER is 0. */
+void
+NSHashInsert(NSHashTable *table, const void *pointer);
 
-void NSHashInsertKnownAbsent (NSHashTable *table, const void *pointer);
+/* Just like 'NSHashInsert()', with one exception: If POINTER is already
+ * in TABLE, then an NSInvalidArgumentException is raised. */
+void
+NSHashInsertKnownAbsent(NSHashTable *table, const void *pointer);
 
-void *NSHashInsertIfAbsent (NSHashTable *table, const void *pointer);
+/* If POINTER is already in TABLE, the pre-existing item is returned.
+ * Otherwise, 0 is returned, and this is just like 'NSHashInsert()'. */
+void *
+NSHashInsertIfAbsent(NSHashTable *table, const void *pointer);
 
-/** Removing an item from an NSHashTable **/
+/** Removing an item from an NSHashTable... **/
 
-void NSHashRemove (NSHashTable *table, const void *pointer);
+/* Releases POINTER from TABLE.  It is not
+ * an error if POINTER is not already in TABLE. */
+void
+NSHashRemove(NSHashTable *table, const void *pointer);
 
-/** Getting an NSString representation of an NSHashTable **/
+/** Getting an NSString representation of an NSHashTable... **/
 
-NSString *NSStringFromHashTable (NSHashTable *table);
+/* Returns an NSString which describes TABLE.  The returned string
+ * is produced by iterating over the elements of TABLE,
+ * appending the string "X;\n", where X is the description of
+ * the element (obtained from the callbacks, of course). */
+NSString *
+NSStringFromHashTable(NSHashTable *table);
 
 #endif /* __NSHashTable_h_OBJECTS_INCLUDE */

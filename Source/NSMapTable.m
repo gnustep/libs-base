@@ -3,8 +3,8 @@
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:59:57 EST 1994
- * Updated: Sat Feb 10 16:00:25 EST 1996
- * Serial: 96.02.10.01
+ * Updated: Sun Mar 17 18:37:12 EST 1996
+ * Serial: 96.03.17.31
  * 
  * This file is part of the GNU Objective C Class Library.
  * 
@@ -20,9 +20,7 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
- */ 
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
 /**** Included Headers *******************************************************/
 
@@ -31,9 +29,8 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSMapTable.h>
-#include <NSCallBacks.h>
-#include <Foundation/atoz.h>
 #include <objects/map.h>
+#include "NSCallBacks.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -145,10 +142,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
   (NSMT_describe_func_t) _NS_owned_void_p_describe
 };
 
-/** Macros **/
-
-#define NSMT_ZONE(T) \
-  ((NSZone *)((objects_map_allocs((objects_map_t *)(T))).user_data))
+/** Macros... **/
 
 #define NSMT_EXTRA(T) \
   ((_NSMT_extra_t *)(objects_map_extra((objects_map_t *)(T))))
@@ -165,7 +159,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 #define NSMT_DESCRIBE_VALUE(T, P) \
   NSMT_VALUE_CALLBACKS((T)).describe((T), (P))
 
-/** Dummy callbacks **/
+/** Dummy callbacks... **/
 
 size_t
 _NSMT_key_hash (const void *element, const void *table)
@@ -200,101 +194,119 @@ _NSMT_key_retain (const void *element, const void *table)
 }
 
 void
-_NSMT_key_release (void *element, const void *table)
+_NSMT_key_release (void *element, void *table)
 {
   NSMT_KEY_CALLBACKS(table).release ((NSMapTable*)table, element);
   return;
 }
 
+NSString *
+_NSMT_key_describe(const void *element, void *table)
+{
+  return nil;
+}
+
 void *
 _NSMT_value_retain (const void *element, const void *table)
 {
-  NSMT_VALUE_CALLBACKS(table).retain ((NSMapTable *)table, element);
-  return (void*) element;
+  NSMT_VALUE_CALLBACKS(table).retain((NSMapTable *)table, element);
+  return (void *) element;
 }
 
 void
 _NSMT_value_release (void *element, const void *table)
 {
-  NSMT_VALUE_CALLBACKS(table).release ((NSMapTable*)table, element);
+  NSMT_VALUE_CALLBACKS(table).release((NSMapTable *)table, element);
   return;
+}
+
+NSString *
+_NSMT_value_describe(const void *element, const void *table)
+{
+  /* FIXME: Code this. */
+  return nil;
 }
 
 /* These are wrappers for getting at the real callbacks. */
 objects_callbacks_t _NSMT_key_callbacks = 
 {
-  _NSMT_key_hash,
-  _NSMT_key_compare,
-  _NSMT_key_is_equal,
-  _NSMT_key_retain,
-  _NSMT_key_release,
-  0,
-  0 
+  (objects_hash_func_t) _NSMT_key_hash,
+  (objects_compare_func_t) _NSMT_key_compare,
+  (objects_is_equal_func_t) _NSMT_key_is_equal,
+  (objects_retain_func_t) _NSMT_key_retain,
+  (objects_release_func_t) _NSMT_key_release,
+  (objects_describe_func_t) _NSMT_key_describe,
+  0 /* This gets changed...See just below. */
 };
 
-objects_callbacks_t
-_NSMT_callbacks_for_key_callbacks (NSMapTableKeyCallBacks keyCallBacks)
+static inline objects_callbacks_t
+_NSMT_callbacks_for_key_callbacks(NSMapTableKeyCallBacks keyCallBacks)
 {
-  objects_callbacks_t cb = _NSMT_key_callbacks;
+  objects_callbacks_t cbs = _NSMT_key_callbacks;
 
-  cb.not_an_item_marker = keyCallBacks.notAKeyMarker;
+  cbs.not_an_item_marker = keyCallBacks.notAKeyMarker;
 
-  return cb;
+  return cbs;
 }
 
 objects_callbacks_t _NSMT_value_callbacks = 
 {
-  (objects_hash_func_t) objects_void_p_hash,
-  (objects_compare_func_t) objects_void_p_compare,
-  (objects_is_equal_func_t) objects_void_p_is_equal,
-  _NSMT_value_retain,
-  _NSMT_value_release,
-  0,
-  0
+  (objects_hash_func_t) objects_non_owned_void_p_hash,
+  (objects_compare_func_t) objects_non_owned_void_p_compare,
+  (objects_is_equal_func_t) objects_non_owned_void_p_is_equal,
+  (objects_retain_func_t) _NSMT_value_retain,
+  (objects_release_func_t) _NSMT_value_release,
+  (objects_describe_func_t) _NSMT_value_describe,
+  0 /* Not needed, really, for OpenStep...And so, ignored here. */
 };
 
 /** Extra, extra **/
 
 /* Make a copy of a hash table's callbacks. */
-void *
-_NSMT_extra_retain(const void *extra, const void *table)
+const void *
+_NSMT_extra_retain(_NSMT_extra_t *extra, NSMapTable *table)
 {
   /* A pointer to some space for new callbacks. */
   _NSMT_extra_t *new_extra;
 
   /* Set aside space for our new callbacks in the right zone. */
-  new_extra = (_NSMT_extra_t *)NSZoneMalloc(NSMT_ZONE(table),
-                                           sizeof(_NSMT_extra_t));
+  new_extra = (_NSMT_extra_t *)NSZoneMalloc(objects_map_zone(table),
+                                            sizeof(_NSMT_extra_t));
 
   /* Copy the old callbacks into NEW_EXTRA. */
-  *new_extra = *((_NSMT_extra_t *)(extra));
+  *new_extra = *extra;
 
   /* Return our new EXTRA. */
   return new_extra;
 }
 
 void
-_NSMT_extra_release(void *extra, const void *table)
+_NSMT_extra_release(void *extra, NSMapTable *table)
 {
-  NSZone *zone = NSMT_ZONE(table);
-
   if (extra != 0)
-    NSZoneFree(zone, extra);
+    NSZoneFree(objects_map_zone(table), extra);
 
   return;
 }
 
-/* The idea here is that these callbacks ensure that the
- * NSMapTableCallbacks which are associated with a given NSMapTable
+NSString *
+_NSMT_extra_describe(const void *extra, NSMapTable *table)
+{
+  /* FIXME: Code this. */
+  return nil;
+}
+
+/* The basic idea here is that these callbacks ensure that the
+ * NSMapTable...Callbacks which are associated with a given NSMapTable
  * remain so throughout the life of the table and its copies. */
 objects_callbacks_t _NSMT_extra_callbacks = 
 {
-  (objects_hash_func_t) objects_void_p_hash,
-  (objects_compare_func_t) objects_void_p_compare,
-  (objects_is_equal_func_t) objects_void_p_is_equal,
-  _NSMT_extra_retain,
-  _NSMT_extra_release,
-  0,
+  (objects_hash_func_t) objects_non_owned_void_p_hash,
+  (objects_compare_func_t) objects_non_owned_void_p_compare,
+  (objects_is_equal_func_t) objects_non_owned_void_p_is_equal,
+  (objects_retain_func_t) _NSMT_extra_retain,
+  (objects_release_func_t)_NSMT_extra_release,
+  (objects_describe_func_t)_NSMT_extra_describe,
   0
 };
 
@@ -302,7 +314,7 @@ objects_callbacks_t _NSMT_extra_callbacks =
 
 /** Creating an NSMapTable **/
 
-NSMapTable *
+inline NSMapTable *
 NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
 			 NSMapTableValueCallBacks valueCallBacks,
 			 unsigned capacity,
@@ -310,18 +322,14 @@ NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
 {
   NSMapTable *table;
   objects_callbacks_t key_callbacks, value_callbacks;
-  objects_allocs_t allocs;
 
   /* Transform the callbacks we were given. */
   key_callbacks = _NSMT_callbacks_for_key_callbacks(keyCallBacks);
   value_callbacks = _NSMT_value_callbacks;
   
-  /* Get some useful allocs. */
-  allocs = objects_allocs_for_zone(zone);
-
   /* Create a map table. */
-  table = objects_map_with_allocs_with_callbacks(allocs, key_callbacks,
-                                                 value_callbacks);
+  table = objects_map_with_zone_with_callbacks(zone, key_callbacks,
+                                               value_callbacks);
 
   /* Adjust the capacity of TABLE. */
   objects_map_resize(table, capacity);
@@ -358,11 +366,9 @@ NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
 NSMapTable *
 NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 {
-  objects_allocs_t allocs;
   NSMapTable *new_table;
 
-  allocs = objects_allocs_for_zone(zone);
-  new_table = objects_map_copy_with_allocs(table, allocs);
+  new_table = objects_map_copy_with_zone(table, zone);
 
   return new_table;
 }
@@ -383,7 +389,7 @@ NSResetMapTable(NSMapTable *table)
   return;
 }
 
-/** Comparing two NSMapTables **/
+/** Comparing two NSMapTables... **/
 
 BOOL
 NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
@@ -408,7 +414,8 @@ NSMapMember(NSMapTable *table, const void *key,
   int i;
 
   /* Check for K in TABLE. */
-  i = objects_map_key_and_value_at_key (table, key, originalKey, value);
+  i = objects_map_key_and_value_at_key(table, (const void **)originalKey,
+                                       (const void **)value, key);
 
   /* Indicate our state of success. */
   return i ? YES : NO;
@@ -417,13 +424,13 @@ NSMapMember(NSMapTable *table, const void *key,
 void *
 NSMapGet(NSMapTable *table, const void *key)
 {
-  return (void*) objects_map_value_at_key (table, key);
+  return (void *) objects_map_value_at_key(table, key);
 }
 
 NSMapEnumerator
 NSEnumerateMapTable(NSMapTable *table)
 {
-  return objects_map_enumerator(table);
+  return objects_map_enumerator_for_map(table);
 }
 
 BOOL
@@ -433,9 +440,9 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
   int i;
 
   /* Get the next pair. */
-  i = objects_map_enumerator_next_key_and_value (enumerator, 
-						 (const void**)key, 
-						 (const void**)value);
+  i = objects_map_enumerator_next_key_and_value(enumerator, 
+						(const void **)key, 
+						(const void **)value);
 
   /* Indicate our success or failure. */
   return i ? YES : NO;
@@ -446,17 +453,17 @@ NSAllMapTableKeys(NSMapTable *table)
 {
   NSMutableArray *keyArray;
   NSMapEnumerator enumerator;
-  id key;
+  id key = nil;
 
   /* Create our mutable key array. */
-  keyArray = [NSMutableArray arrayWithCapacity: NSCountMapTable (table)];
+  keyArray = [NSMutableArray arrayWithCapacity:NSCountMapTable(table)];
 
   /* Get an enumerator for TABLE. */
-  enumerator = NSEnumerateMapTable (table);
+  enumerator = NSEnumerateMapTable(table);
 
   /* Step through TABLE... */
-  while (NSNextMapEnumeratorPair (&enumerator, (void**)&key, 0))
-    [keyArray addObject: key];
+  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), 0))
+    [keyArray addObject:key];
 
   return keyArray;
 }
@@ -466,7 +473,7 @@ NSAllMapTableValues(NSMapTable *table)
 {
   NSMapEnumerator enumerator;
   NSMutableArray *valueArray;
-  id value;
+  id value = nil;
 
   /* Create our mutable value array. */
   valueArray = [NSMutableArray arrayWithCapacity:NSCountMapTable(table)];
@@ -475,19 +482,19 @@ NSAllMapTableValues(NSMapTable *table)
   enumerator = NSEnumerateMapTable(table);
 
   /* Step through TABLE... */
-  while (NSNextMapEnumeratorPair (&enumerator, 0, (void**)&value))
+  while (NSNextMapEnumeratorPair(&enumerator, 0, (void **)(&value)))
     [valueArray addObject:value];
 
   return valueArray;
 }
 
-/** Adding items to an NSMapTable **/
+/** Adding items to an NSMapTable... **/
 
 void
 NSMapInsert(NSMapTable *table, const void *key, const void *value)
 {
   /* Put KEY -> VALUE into TABLE. */
-  objects_map_at_key_put_value (table, key, value);
+  objects_map_at_key_put_value(table, key, value);
 
   return;
 }
@@ -495,15 +502,13 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
 void *
 NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
 {
-  void *old_key;
-
   if (objects_map_contains_key (table, key))
-    return (void*) objects_map_key (table, key);
+    return (void *) objects_map_key_at_key(table, key);
   else
   {
     /* Put KEY -> VALUE into TABLE. */
     objects_map_at_key_put_value_known_absent (table, key, value);
-    return NULL;
+    return 0;
   }
 }
 
@@ -513,10 +518,13 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
   /* Is the key already in the table? */
   if (objects_map_contains_key(table, key))
   {
-    /* Ooh.  Bad.  The docs say to raise an exception! */
-    /* FIXME: I should make this much more informative.  */
+    /* FIXME: I should make this give the user/programmer more
+     * information.  Not difficult to do, just something for a later
+     * date. */
     [NSException raise:NSInvalidArgumentException
-                 format:@"That key's already in the table."];
+                 format:@"NSMapTable: illegal reinsertion of: %@ -> %@",
+                 NSMT_DESCRIBE_KEY(table, key),
+                 NSMT_DESCRIBE_VALUE(table, value)];
   }
   else
   {
@@ -565,6 +573,5 @@ NSStringFromMapTable(NSMapTable *table)
      (valueCallBacks.describe)(table, value)];
 
   /* Note that this string'll need to be `retain'ed. */
-  /* FIXME: Should I be `autorelease'ing it? */
-  return [string autorelease];
+  return string;
 }

@@ -1,37 +1,42 @@
 /* Interface for NSObject for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
-
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: 1995
-   
-   This file is part of the GNU Objective C Class Library.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-   
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-   
-   You should have received a copy of the GNU Library General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */ 
+ * Copyright (C) 1995 Free Software Foundation, Inc.
+ * 
+ * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+ * Date: 1995
+ * 
+ * This file is part of the GNU Objective C Class Library.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
 #ifndef __NSRange_h_OBJECTS_INCLUDE
 #define __NSRange_h_OBJECTS_INCLUDE
 
+/**** Included Headers *******************************************************/
+
 #include <Foundation/NSObject.h>
 
-typedef struct _NSRange 
+/**** Type, Constant, and Macro Definitions **********************************/
+
+typedef struct _NSRange NSRange;
+struct _NSRange
 {
   unsigned int location;
   unsigned int length;
-} NSRange;
+};
 
+/**** Function Prototypes ****************************************************/
 
 static inline unsigned
 NSMaxRange(NSRange range) __attribute__ ((unused));
@@ -51,13 +56,19 @@ NSLocationInRange(unsigned location, NSRange range)
   return (location >= range.location) && (location < NSMaxRange(range));
 }
 
-extern NSRange NSMakeRange(float location, float length);
+/* Create an NSRange having the specified LOCATION and LENGTH. */
+extern NSRange
+NSMakeRange(float location, float length);
 
-extern NSRange NSUnionRange(NSRange range1, NSRange range2);
+extern NSRange
+NSUnionRange(NSRange range1, NSRange range2);
 
-extern NSRange NSIntersectionRange(NSRange range1, NSRange range2);
+extern NSRange
+NSIntersectionRange(NSRange range1, NSRange range2);
 
 @class NSString;
-extern NSString *NSStringFromRange(NSRange range);
+
+extern NSString *
+NSStringFromRange(NSRange range);
 
 #endif /* __NSRange_h_OBJECTS_INCLUDE */
