@@ -782,8 +782,6 @@ static NSString	*pathForUser(NSString *user)
   return [self initWithContentsOfFile: path];
 }
 
-BOOL read_only = NO;
-
 /**
  * <init />
  * Initializes defaults for the specified path. Returns an object with
