@@ -1221,7 +1221,7 @@ fi
 # $GNUSTEP_HDIR are used before the standard ones
 #
 CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
 
 #--------------------------------------------------------------------
 # Check if Objective-C is installed

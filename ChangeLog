@@ -1,3 +1,8 @@
+2001-10-17  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in (GNUSTEP_LDIR): Look for libobjc in
+	.../$LIBRARY_COMBO first.
+
 2001-10-16  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GNUmakefile: Strip drive names from paths.
