@@ -1,3 +1,8 @@
+Wed Oct 15 12:23:37 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* SSL/Makefile.postamble: Removed regenerate, TAGS and FORCE
+	rules.
+
 Wed Oct 15 12:17:24 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Makefile.postamble: Removed regenerate, TAGS and FORCE
