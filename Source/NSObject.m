@@ -49,6 +49,10 @@ static coll_cache_ptr retain_counts = NULL;
 /* The Class responsible for handling autorelease's */
 static id autorelease_class = nil;
 
+/* When this is `YES', every call to release/autorelease, checks to make sure
+   isn't being set up to release itself too many times. */
+static BOOL double_release_check_enabled = NO;
+
 BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
 {
   if (!requestedZone || [anObject zone] == requestedZone)
@@ -282,6 +286,15 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - autorelease
 {
+  if (double_release_check_enabled)
+    {
+      unsigned release_count;
+      unsigned retain_count = [self retainCount];
+      release_count = [autorelease_class autoreleaseCountForObject:self];
+      if (release_count > retain_count)
+        [self error:"Autorelease would release object too many times."];
+    }
+
   [autorelease_class addObject:self];
   return self;
 }
@@ -352,6 +365,15 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (oneway void) release
 {
+  if (double_release_check_enabled)
+    {
+      unsigned release_count;
+      unsigned retain_count = [self retainCount];
+      release_count = [autorelease_class autoreleaseCountForObject:self];
+      if (release_count > retain_count)
+        [self error:"Release would release object too many times."];
+    }
+
   if (NSDecrementExtraRefCountWasZero(self))
     [self dealloc];
   return;
@@ -543,6 +565,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 + (Class) autoreleaseClass
 {
   return autorelease_class;
+}
+
++ (void) enableDoubleReleaseCheck: (BOOL)enable
+{
+  double_release_check_enabled = enable;
 }
 
 - (int)compare:anotherObject;
