@@ -45,6 +45,39 @@ static o_map_t thread_id_2_nsthread;
 /* Flag indicating whether the objc runtime ever went multi-threaded. */
 static BOOL entered_multi_threaded_state;
 
+inline NSThread*
+GSCurrentThread()
+{
+  id t = (id) objc_thread_get_data ();
+
+  /* If an NSThread object for this thread has already been created
+     and stashed away, return it.  This depends on the objc runtime
+     initializing objc_thread_get_data() to 0 for newly-created
+     threads. */
+  if (t)
+    return t;
+
+  /* We haven't yet created an NSThread object for this thread; create
+     it.  (Doing this here instead of in +detachNewThread.. not only
+     avoids the race condition, it also nicely provides an NSThread on
+     request for the single thread that exists at application
+     start-up, and for thread's created by calling
+     objc_thread_detach() directly.) */
+  t = [[NSThread alloc] init];
+  return t;
+}
+
+NSMutableDictionary*
+GSCurrentThreadDictionary()
+{
+  NSThread		*thread = GSCurrentThread();
+  NSMutableDictionary	*dict = thread->_thread_dictionary;
+
+  if (dict == nil)
+    dict = [thread threadDictionary];
+  return dict; 
+}
+
 void gnustep_base_thread_callback()
 {
   /* Post a notification if this is the first new thread to be created.
@@ -115,23 +148,7 @@ void gnustep_base_thread_callback()
 
 + (NSThread*) currentThread
 {
-  id t = (id) objc_thread_get_data ();
-
-  /* If an NSThread object for this thread has already been created
-     and stashed away, return it.  This depends on the objc runtime
-     initializing objc_thread_get_data() to 0 for newly-created
-     threads. */
-  if (t)
-    return t;
-
-  /* We haven't yet created an NSThread object for this thread; create
-     it.  (Doing this here instead of in +detachNewThread.. not only
-     avoids the race condition, it also nicely provides an NSThread on
-     request for the single thread that exists at application
-     start-up, and for thread's created by calling
-     objc_thread_detach() directly.) */
-  t = [[NSThread alloc] init];
-  return t;
+  return GSCurrentThread();
 }
 
 + (void) detachNewThreadSelector:(SEL)aSelector

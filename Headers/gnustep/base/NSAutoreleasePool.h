@@ -41,7 +41,7 @@ struct autorelease_thread_vars
 
   /* The total number of objects autoreleased since the thread was
      started, or since -resetTotalAutoreleasedObjects was called
-     in this thread. */
+     in this thread. (if compiled in) */
   unsigned total_objects_count;
 
   /* A cache of NSAutoreleasePool's already alloc'ed.  Caching old pools
@@ -90,6 +90,11 @@ struct autorelease_array_list
 + (void) enableRelease: (BOOL)enable;
 + (void) setPoolCountThreshhold: (unsigned)c;
 + (unsigned) autoreleaseCountForObject: anObject;
+/*
+ * The next two methods have no effect unless you define COUNT_ALL to be
+ * 1 in NSAutoreleasepool.m - doing so incurs a thread lookup overhead
+ * each time an object is autoreleased.
+ */
 + (void) resetTotalAutoreleasedObjects;
 + (unsigned) totalAutoreleasedObjects;
 #endif

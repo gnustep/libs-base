@@ -34,11 +34,14 @@ extern id NSDefaultRunLoopMode;
 
 @interface NSRunLoop : NSObject <GCFinalization>
 {
-  @private id _current_mode;
-  @private NSMapTable *_mode_2_timers;
-  @private NSMapTable *_mode_2_watchers;
-  @private NSMutableArray *_performers;
-  @private NSMutableArray *_timedPerformers;
+  @private
+  id		_current_mode;
+  NSMapTable	*_mode_2_timers;
+  NSMapTable	*_mode_2_watchers;
+  NSMutableArray *_performers;
+  NSMutableArray *_timedPerformers;
+  NSMapTable	*_rfdMap;
+  NSMapTable	*_wfdMap;
 }
 
 + (NSRunLoop*) currentRunLoop;

@@ -43,6 +43,7 @@ typedef struct {
   Class	class;
   int	count;
   int	lastc;
+  int	total;
 } table_entry;
 
 static	int	num_classes = 0;
@@ -73,6 +74,7 @@ GSDebugAllocationAdd(Class c)
 	  if (the_table[i].class == c)
 	    {
 	      the_table[i].count++;
+	      the_table[i].total++;
 	      return;
 	    }
 	}
@@ -95,6 +97,7 @@ GSDebugAllocationAdd(Class c)
       the_table[num_classes].class = c;
       the_table[num_classes].count = 1;
       the_table[num_classes].lastc = 0;
+      the_table[num_classes].total = 1;
       num_classes++;
     }
 }
@@ -138,7 +141,11 @@ GSDebugAllocationList(BOOL difference)
 
       if (difference)
 	{
+#if 1
+	  val = the_table[i].total;
+#else
 	  val -= the_table[i].lastc;
+#endif
 	}
       if (val != 0)
 	{
@@ -181,9 +188,71 @@ GSDebugAllocationList(BOOL difference)
 
 	  if (difference)
 	    {
+#if 1
+	      val = the_table[i].total;
+#else
 	      val -= the_table[i].lastc;
+#endif
 	    }
 	  the_table[i].lastc = the_table[i].count;
+
+	  if (val != 0)
+	    {
+	      sprintf(&buf[pos], "%s\t%d\n", the_table[i].class->name, val);
+	      pos += strlen(&buf[pos]);
+	    }
+	}
+    }
+  return buf;
+}
+
+const char*
+GSDebugAllocationListAll()
+{
+  int		pos = 0;
+  int		i;
+  static int	siz = 0;
+  static char	*buf = 0;
+
+  if (debug_allocation == NO)
+    {
+      return "Debug allocation system is not active!\n";
+    }
+  for (i = 0; i < num_classes; i++)
+    {
+      int	val = the_table[i].total;
+
+      if (val != 0)
+	{
+	  pos += 11 + strlen(the_table[i].class->name);
+	}
+    }
+  if (pos == 0)
+    {
+      return "I can find NO allocated object!\n";
+    }
+  pos++;
+
+  if (pos > siz)
+    {
+      if (pos & 0xff)
+	{
+	  pos = ((pos >> 8) + 1) << 8;
+	}
+      siz = pos;
+      if (buf)
+	{
+	  objc_free(buf);
+	}
+      buf = objc_malloc(siz);
+    }
+
+  if (buf)
+    {
+      pos = 0;
+      for (i = 0; i < num_classes; i++)
+	{
+	  int	val = the_table[i].total;
 
 	  if (val != 0)
 	    {

@@ -65,4 +65,12 @@ typedef enum
 extern NSString *NSBecomingMultiThreaded;
 extern NSString *NSThreadExiting;
 
+#ifndef	NO_GNUSTEP
+/*
+ *	Get current thread and it's dictionary.
+ */
+extern NSThread			*GSCurrentThread();
+extern NSMutableDictionary	*GSCurrentThreadDictionary();
+#endif
+
 #endif /* __NSThread_h_GNUSTEP_BASE_INCLUDE */

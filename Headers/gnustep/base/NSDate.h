@@ -34,9 +34,7 @@ typedef double NSTimeInterval;
 @class NSTimeZoneDetail;
 
 @interface NSDate : NSObject <NSCoding,NSCopying>
-
 {
-  NSTimeInterval seconds_since_ref;
 }
 
 // Getting current time
@@ -97,6 +95,19 @@ typedef double NSTimeInterval;
 
 @end
 
+#ifndef	NO_GNUSTEP
+/*
+ *	Our concrete base class - NSCalendar date must share the ivar layout.
+ */
+@interface NSGDate : NSDate
+{
+@public
+  NSTimeInterval seconds_since_ref;
+}
+@end
+#endif
+
+
 
 @interface NSTimeZone : NSObject
 
@@ -141,8 +152,9 @@ typedef double NSTimeInterval;
 @interface NSCalendarDate : NSDate
 
 {
-  NSString *calendar_format;
-  NSTimeZoneDetail *time_zone;
+  NSTimeInterval	seconds_since_ref;
+  NSString		*calendar_format;
+  NSTimeZoneDetail	*time_zone;
 }
 
 // Getting an NSCalendar Date

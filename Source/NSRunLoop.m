@@ -72,7 +72,10 @@
 #include <limits.h>
 #include <string.h>		/* for memset() */
 
-static int debug_run_loop = 0;
+static int	debug_run_loop = 0;
+
+static SEL	isValidSel = @selector(isValid);
+
 
 /*
  *	The 'RunLoopWatcher' class was written to permit the (relatively)
@@ -93,7 +96,7 @@ static int debug_run_loop = 0;
  *	to exist and can handle a callback.
  *
  *	The 'type' variable indentifies the type of event watched for.
- *	NSRunLoops [-acceptInputForMode:beforeDate:] method MUST contain
+ *	NSRunLoops [-acceptInputForMode: beforeDate: ] method MUST contain
  *	code to watch for events of each type.
  *
  *	The 'limit' variable contains a date after which the event is useless
@@ -102,7 +105,7 @@ static int debug_run_loop = 0;
  *
  *	To set this variable, the method adding the RunLoopWatcher to the
  *	runloop must ask the 'receiver' (or its delegate) to supply a date
- *	using the '[-limitDateForMode:]' message.
+ *	using the '[-limitDateForMode: ]' message.
  *
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
@@ -112,6 +115,7 @@ static int debug_run_loop = 0;
 @public
   BOOL			invalidated;
   BOOL			handleEvent;	// New-style event handling
+  BOOL			(*handleIsValid)();
   void			*data;
   id			receiver;
   RunLoopEventType	type;
@@ -153,12 +157,12 @@ static int debug_run_loop = 0;
     {
       switch (type)
 	{
-	  case ET_RDESC:
-	  case ET_RPORT:
+	  case ET_RDESC: 
+	  case ET_RPORT: 
 	    [receiver readyForReadingOnFileDescriptor: (int)(gsaddr)info];
 	    break;
 
-	  case ET_WDESC:
+	  case ET_WDESC: 
 	    [receiver readyForWritingOnFileDescriptor: (int)(gsaddr)info];
 	    break;
 	}
@@ -178,20 +182,22 @@ static int debug_run_loop = 0;
 
   switch (aType)
     {
-      case ET_RDESC:	type = aType;	break;
-      case ET_WDESC:	type = aType;	break;
-      case ET_RPORT:	type = aType;	break;
-      default:
+      case ET_RDESC: 	type = aType;	break;
+      case ET_WDESC: 	type = aType;	break;
+      case ET_RPORT: 	type = aType;	break;
+      default: 
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];
     }
   receiver = RETAIN(anObj);
-  if ([receiver respondsToSelector:
+  if ([receiver respondsToSelector: 
 		@selector(receivedEvent:type:extra:forMode:)])
     handleEvent = YES;
   else
     handleEvent = NO;
   data = item;
+  if ([receiver respondsToSelector: isValidSel])
+    handleIsValid = (BOOL(*)())[receiver methodForSelector: isValidSel];
   return self;
 }
 
@@ -206,8 +212,7 @@ static int debug_run_loop = 0;
     {
       return NO;
     }
-  if ([receiver respondsToSelector: @selector(isValid)] &&
-      [receiver isValid] == NO)
+  if (handleIsValid != 0 && (*handleIsValid)(receiver, isValidSel) == NO)
     {
       [self invalidate];
       return NO;
@@ -313,7 +318,7 @@ static int debug_run_loop = 0;
     {
       if (target == aTarget)
 	{
-	  if ([argument isEqual:anArgument])
+	  if ([argument isEqual: anArgument])
 	    {
 	      return YES;
 	    }
@@ -450,7 +455,7 @@ static int debug_run_loop = 0;
   NSDate		*limit;
   int			count;
 
-  watchers = NSMapGet (_mode_2_watchers, mode);
+  watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers == nil)
     {
       watchers = [NSMutableArray new];
@@ -465,7 +470,7 @@ static int debug_run_loop = 0;
 
   /*
    *	If the receiver or its delegate (if any) respond to
-   *	'limitDateForMode:' then we ask them for the limit date for
+   *	'limitDateForMode: ' then we ask them for the limit date for
    *	this watcher.
    */
   obj = item->receiver;
@@ -492,7 +497,7 @@ static int debug_run_loop = 0;
    */
   if (limit == nil || count == 0)
     {
-      [watchers addObject:item];
+      [watchers addObject: item];
     }
   else
     {
@@ -503,15 +508,15 @@ static int debug_run_loop = 0;
 	  RunLoopWatcher	*watcher = [watchers objectAtIndex: i];
 	  NSDate		*when = watcher->limit;
 
-	  if (when == nil || [limit earlierDate:when] == when)
+	  if (when == nil || [limit earlierDate: when] == when)
 	    {
-	      [watchers insertObject:item atIndex:i];
+	      [watchers insertObject: item atIndex: i];
 	      break;
 	    }
 	}
       if (i == count)
 	{
-	  [watchers addObject:item];
+	  [watchers addObject: item];
 	}
     }
 }
@@ -607,7 +612,7 @@ static int debug_run_loop = 0;
 					 receiver: watcher
 					     data: data];
       /* Add the object to the array for the mode. */
-      [self _addWatcher:info forMode:mode];
+      [self _addWatcher: info forMode: mode];
       RELEASE(info);		/* Now held in array.	*/
     }
 }
@@ -669,13 +674,13 @@ static int debug_run_loop = 0;
 - (void) removeReadDescriptor: (int)fd 
 		      forMode: (NSString*)mode
 {
-  return [self removeEvent:(void*)fd type: ET_RDESC forMode:mode all:NO];
+  return [self removeEvent: (void*)fd type: ET_RDESC forMode: mode all: NO];
 }
 
 - (void) removeWriteDescriptor: (int)fd
 		       forMode: (NSString*)mode
 {
-  return [self removeEvent:(void*)fd type: ET_WDESC forMode:mode all:NO];
+  return [self removeEvent: (void*)fd type: ET_WDESC forMode: mode all: NO];
 }
 
 - (BOOL) runOnceBeforeDate: date
@@ -687,7 +692,7 @@ static int debug_run_loop = 0;
 
 - (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
 {
-  return [self runMode:mode beforeDate:date];
+  return [self runMode: mode beforeDate: date];
 }
 
 - (void) runUntilDate: date forMode: (NSString*)mode
@@ -715,27 +720,64 @@ static int debug_run_loop = 0;
 
 @implementation NSRunLoop
 
-+ (NSRunLoop*) currentRunLoop
-{
-  static NSString	*key = @"NSRunLoopThreadKey";
-  NSRunLoop*	r;
-  NSThread*	t;
+static NSDate	*theFuture;
 
-  t = [NSThread currentThread];
-  r = [[t threadDictionary] objectForKey: key];
-  if (r == nil)
-    {
-      r = [NSRunLoop new];
-      [[t threadDictionary] setObject: r forKey: key];
-      RELEASE(r);
-    }
-  return r;
+#if	GS_WITH_GC == 0
+static SEL	wRelSel = @selector(release);
+static SEL	wRetSel = @selector(retain);
+static IMP	wRelImp;
+static IMP	wRetImp;
+
+static void
+wRelease(void* t, id w)
+{
+  (*wRelImp)(w, wRelSel);
 }
+
+static id
+wRetain(void* t, id w)
+{
+  return (*wRetImp)(w, wRetSel);
+}
+
+const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
+{
+  (NSMT_retain_func_t) wRetain,
+  (NSMT_release_func_t) wRelease,
+  (NSMT_describe_func_t) 0
+};
+#else
+#define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
+#endif
 
 + (void) initialize
 {
   if (self == [NSRunLoop class])
-    [self currentRunLoop];
+    {
+      [self currentRunLoop];
+      theFuture = RETAIN([NSDate distantFuture]);
+#if	GS_WITH_GC == 0
+      wRelImp = [[RunLoopWatcher class] instanceMethodForSelector: wRelSel];
+      wRetImp = [[RunLoopWatcher class] instanceMethodForSelector: wRetSel];
+#endif
+    }
+}
+
++ (NSRunLoop*) currentRunLoop
+{
+  static NSString	*key = @"NSRunLoopThreadKey";
+  NSMutableDictionary	*d;
+  NSRunLoop*	r;
+
+  d = GSCurrentThreadDictionary();
+  r = [d objectForKey: key];
+  if (r == nil)
+    {
+      r = [NSRunLoop new];
+      [d setObject: r forKey: key];
+      RELEASE(r);
+    }
+  return r;
 }
 
 /* This is the designated initializer. */
@@ -747,8 +789,12 @@ static int debug_run_loop = 0;
 				     NSObjectMapValueCallBacks, 0);
   _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
 					   NSObjectMapValueCallBacks, 0);
-  _performers = [[NSMutableArray alloc] initWithCapacity:8];
-  _timedPerformers = [[NSMutableArray alloc] initWithCapacity:8];
+  _performers = [[NSMutableArray alloc] initWithCapacity: 8];
+  _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
+  _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+				  WatcherMapValueCallBacks, 0);
+  _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+				  WatcherMapValueCallBacks, 0);
   return self;
 }
 
@@ -764,6 +810,8 @@ static int debug_run_loop = 0;
 {
   NSFreeMapTable(_mode_2_timers);
   NSFreeMapTable(_mode_2_watchers);
+  NSFreeMapTable(_rfdMap);
+  NSFreeMapTable(_wfdMap);
 }
 
 - (NSString*) currentMode
@@ -779,11 +827,11 @@ static int debug_run_loop = 0;
 {
   Heap *timers;
 
-  timers = NSMapGet (_mode_2_timers, mode);
+  timers = NSMapGet(_mode_2_timers, mode);
   if (!timers)
     {
       timers = [Heap new];
-      NSMapInsert (_mode_2_timers, mode, timers);
+      NSMapInsert(_mode_2_timers, mode, timers);
       RELEASE(timers);
     }
   /* xxx Should we make sure it isn't already there? */
@@ -844,7 +892,7 @@ static int debug_run_loop = 0;
     {
       while ([watchers count] > 0)
 	{
-	  min_watcher = (RunLoopWatcher*)[watchers objectAtIndex:0];
+	  min_watcher = (RunLoopWatcher*)[watchers objectAtIndex: 0];
 
 	  if (![min_watcher isValid])
 	    {
@@ -869,17 +917,17 @@ static int debug_run_loop = 0;
 	       *	revised limit date.
 	       */
 	      obj = min_watcher->receiver;
-	      if ([obj respondsToSelector:
+	      if ([obj respondsToSelector: 
 		      @selector(timedOutEvent:type:forMode:)])
 		{
 		  nxt = [obj timedOutEvent: min_watcher->data
 				      type: min_watcher->type
 				   forMode: _current_mode];
 		}
-	      else if ([obj respondsToSelector:@selector(delegate)])
+	      else if ([obj respondsToSelector: @selector(delegate)])
 		{
 		  obj = [obj delegate];
-		  if ([obj respondsToSelector:
+		  if ([obj respondsToSelector: 
 			    @selector(timedOutEvent:type:forMode:)])
 		    {
 		      nxt = [obj timedOutEvent: min_watcher->data
@@ -907,7 +955,7 @@ static int debug_run_loop = 0;
 		   *	check it again.
 		   */
 		  [min_watcher invalidate];
-		  [watchers removeObjectAtIndex:0];
+		  [watchers removeObjectAtIndex: 0];
 		}
 	      min_watcher = nil;
 	    }
@@ -939,7 +987,7 @@ static int debug_run_loop = 0;
 
       if (min_watcher->limit == nil)		/* No limit for watcher	*/
 	{
-	  lim = [NSDate distantFuture];		/* - watches forever.	*/
+	  lim = theFuture;		/* - watches forever.	*/
 	}
       else
 	{
@@ -952,7 +1000,7 @@ static int debug_run_loop = 0;
 	}
       else
 	{
-	  when = [when earlierDate:lim];
+	  when = [when earlierDate: lim];
 	}
     }
 
@@ -983,7 +1031,7 @@ static int debug_run_loop = 0;
       mode = _current_mode;
     }
 
-  watchers = NSMapGet (_mode_2_watchers, mode);
+  watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers == nil)
     {
       return nil;
@@ -1014,7 +1062,7 @@ static int debug_run_loop = 0;
       mode = _current_mode;
     }
 
-  watchers = NSMapGet (_mode_2_watchers, mode);
+  watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers)
     {
       int	i;
@@ -1023,7 +1071,7 @@ static int debug_run_loop = 0;
 	{
 	  RunLoopWatcher*	info;
 
-	  info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
+	  info = (RunLoopWatcher*)[watchers objectAtIndex: (i-1)];
 	  if (info->type == type && info->data == data)
 	    {
 	      [info invalidate];
@@ -1051,8 +1099,6 @@ static int debug_run_loop = 0;
   fd_set write_fds;		/* Copy for listening for write-ready fds. */
   int select_return;
   int fd_index;
-  NSMapTable *rfd_2_object;
-  NSMapTable *wfd_2_object;
   id saved_mode;
   int num_inputs = 0;
 
@@ -1068,8 +1114,8 @@ static int debug_run_loop = 0;
       timeout.tv_usec = 0;
       select_timeout = &timeout;
     }
-  else if ((ti = [limit_date timeIntervalSinceNow]) < LONG_MAX
-	    && ti > 0.0)
+  else if ((ti = [limit_date timeIntervalSinceNow])
+	< LONG_MAX && ti > 0.0)
     {
       /* Wait until the LIMIT_DATE. */
       if (debug_run_loop)
@@ -1103,27 +1149,29 @@ static int debug_run_loop = 0;
       select_timeout = NULL;
     }
 
-  /* Get ready to listen to file descriptors.
-     Initialize the set of FDS we'll pass to select(), and create
-     an empty map for keeping track of which object is associated
-     with which file descriptor. */
+  /*
+   *	Get ready to listen to file descriptors.
+   *	Initialize the set of FDS we'll pass to select(), and make sure we
+   *	have empty maps for keeping track of which watcher is associated
+   *	with which file descriptor.
+   *	The maps may not have been emptied if a previous call to this
+   *	method was terminated by an exception.
+   */
   memset(&fds, '\0', sizeof(fds));
   memset(&write_fds, '\0', sizeof(write_fds));
-  rfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
-				  NSObjectMapValueCallBacks, 0);
-  wfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
-				  NSObjectMapValueCallBacks, 0);
+  NSResetMapTable(_rfdMap);
+  NSResetMapTable(_wfdMap);
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
       NSMutableArray	*watchers;
 
-      watchers = NSMapGet (_mode_2_watchers, mode);
+      watchers = NSMapGet(_mode_2_watchers, mode);
       if (watchers) {
 	  int	i;
 
 	  for (i = [watchers count]; i > 0; i--) {
-	      RunLoopWatcher*	info = [watchers objectAtIndex:(i-1)];
+	      RunLoopWatcher*	info = [watchers objectAtIndex: (i-1)];
 	      int fd;
 
 	      if ([info isValid] == NO) {
@@ -1131,21 +1179,21 @@ static int debug_run_loop = 0;
 		continue;
               }
 	      switch (info->type) {
-		case ET_WDESC:
+		case ET_WDESC: 
 	          fd = (int)info->data;
 	          FD_SET (fd, &write_fds);
-	          NSMapInsert (wfd_2_object, (void*)fd, info);
+	          NSMapInsert(_wfdMap, (void*)fd, info);
 	          num_inputs++;
 		  break;
 
-		case ET_RDESC:
+		case ET_RDESC: 
 	          fd = (int)info->data;
 	          FD_SET (fd, &fds);
-	          NSMapInsert (rfd_2_object, (void*)fd, info);
+	          NSMapInsert(_rfdMap, (void*)fd, info);
 	          num_inputs++;
 		  break;
 
-		case ET_RPORT:
+		case ET_RPORT: 
 		  {
 		    id	port = info->receiver;
 		    int port_fd_count = 128; // xxx #define this constant
@@ -1160,7 +1208,7 @@ static int debug_run_loop = 0;
 		    while (port_fd_count--)
 		      {
 			FD_SET (port_fd_array[port_fd_count], &fds);
-			NSMapInsert (rfd_2_object, 
+			NSMapInsert(_rfdMap, 
 				     (void*)port_fd_array[port_fd_count],
 				    info);
 			num_inputs++;
@@ -1204,42 +1252,50 @@ static int debug_run_loop = 0;
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  perror ("[NSRunLoop acceptInputForMode:beforeDate:] select()");
+	  perror ("[NSRunLoop acceptInputForMode: beforeDate: ] select()");
 	  abort ();
 	}
     }
   if (select_return == 0)
     {
-      NSFreeMapTable (rfd_2_object);
-      NSFreeMapTable (wfd_2_object);
+      NSResetMapTable(_rfdMap);
+      NSResetMapTable(_wfdMap);
       [NSNotificationQueue runLoopIdle];
       [self _checkPerformers];
       _current_mode = saved_mode;
       return;
     }
   
-  /* Look at all the file descriptors select() says are ready for reading;
-     notify the corresponding object for each of the ready fd's. */
+  /*
+   *	Look at all the file descriptors select() says are ready for reading;
+   *	notify the corresponding object for each of the ready fd's.
+   *	NB. It is possible for a watcher to be missing from the map - if
+   *	the event handler of a previous watcher has 'run' the loop again
+   *	before returning.
+   */
   for (fd_index = 0; fd_index < FD_SETSIZE; fd_index++)
     {
       if (FD_ISSET (fd_index, &write_fds))
         {
-	  id watcher = (id) NSMapGet (wfd_2_object, (void*)fd_index);
-	  NSAssert(watcher, NSInternalInconsistencyException);
+	  RunLoopWatcher	*watcher;
+
+	  watcher = NSMapGet(_wfdMap, (void*)fd_index);
 	  [watcher eventFor: (void*)(gsaddr)fd_index mode: _current_mode];
-          [NSNotificationQueue runLoopASAP];
+	  [NSNotificationQueue runLoopASAP];
         }
       if (FD_ISSET (fd_index, &read_fds))
         {
-	  id watcher = (id) NSMapGet (rfd_2_object, (void*)fd_index);
-	  NSAssert(watcher, NSInternalInconsistencyException);
+	  RunLoopWatcher	*watcher;
+
+	  watcher = (RunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd_index);
 	  [watcher eventFor: (void*)(gsaddr)fd_index mode: _current_mode];
-          [NSNotificationQueue runLoopASAP];
+	  [NSNotificationQueue runLoopASAP];
         }
     }
+
   /* Clean up before returning. */
-  NSFreeMapTable (rfd_2_object);
-  NSFreeMapTable (wfd_2_object);
+  NSResetMapTable(_rfdMap);
+  NSResetMapTable(_wfdMap);
 
   [self _checkPerformers];
   [NSNotificationQueue runLoopASAP];
@@ -1283,7 +1339,7 @@ static int debug_run_loop = 0;
 
 - (void) run
 {
-  [self runUntilDate: [NSDate distantFuture]];
+  [self runUntilDate: theFuture];
 }
 
 - (void) runUntilDate: date
@@ -1323,11 +1379,11 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
   RETAIN(argument);
   for (i = count; i > 0; i--)
     {
-      item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
+      item = (RunLoopPerformer*)[_performers objectAtIndex: (i-1)];
 
-      if ([item matchesSelector:aSelector target:target argument:argument])
+      if ([item matchesSelector: aSelector target: target argument: argument])
 	{
-	  [_performers removeObjectAtIndex:(i-1)];
+	  [_performers removeObjectAtIndex: (i-1)];
 	}
     }
   RELEASE(argument);
@@ -1356,7 +1412,7 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
   /* Add new item to list - reverse ordering */
   if (count == 0)
     {
-      [_performers addObject:item];
+      [_performers addObject: item];
     }
   else
     {
@@ -1364,15 +1420,15 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 
       for (i = 0; i < count; i++)
 	{
-	  if ([[_performers objectAtIndex:i] order] <= order)
+	  if ([[_performers objectAtIndex: i] order] <= order)
 	    {
-	      [_performers insertObject:item atIndex:i];
+	      [_performers insertObject: item atIndex: i];
 	      break;
 	    }
 	}
       if (i == count)
 	{
-	  [_performers addObject:item];
+	  [_performers addObject: item];
 	}
     }
   RELEASE(item);
@@ -1381,7 +1437,7 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 - (void) removePort: (NSPort*)port
             forMode: (NSString*)mode
 {
-  return [self removeEvent:(void*)port type: ET_RPORT forMode:mode all:NO];
+  return [self removeEvent: (void*)port type: ET_RPORT forMode: mode all: NO];
 }
 
 @end
