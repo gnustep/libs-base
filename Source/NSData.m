@@ -88,6 +88,10 @@
 @class	NSDataMappedFile;
 #endif
 
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+
 #if	HAVE_SHMCTL
 #include	<sys/ipc.h>
 #include	<sys/shm.h>
