@@ -6,6 +6,7 @@ main ()
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSIndexSet		*s;
   NSMutableIndexSet	*m;
+  NSMutableIndexSet	*o;
   unsigned int		buf[2];
   NSRange		r;
 
@@ -178,6 +179,30 @@ main ()
   printf("Can remove range 0-10 from mutable set...");
   [m removeIndexesInRange: NSMakeRange(0, 11)];
   printf(" %s\n", [m isEqual: [NSIndexSet indexSet]] == YES ? "passed" : "failed");
+
+  o = [NSMutableIndexSet indexSet];
+  [m addIndex: 3];
+  [m addIndex: 4];
+  [m addIndex: 6];
+  [m addIndex: 7];
+  [o addIndex: 3];
+  [o addIndex: 7];
+  printf("Can remove range 4-6 from mutable set containing 3,4,6,7 ...");
+  [m removeIndexesInRange: NSMakeRange(4, 3)];
+  printf(" %s\n", [m isEqual: o] == YES ? "passed" : "failed");
+
+  [m addIndex: 3];
+  [m addIndex: 4];
+  [m addIndex: 6];
+  [m addIndex: 7];
+  [m addIndex: 8];
+  [m addIndex: 9];
+  [o addIndex: 3];
+  [o removeIndex: 7];
+  [o addIndex: 9];
+  printf("Can remove range 4-8 from mutable set containing 3,4,6,7,8,9 ...");
+  [m removeIndexesInRange: NSMakeRange(4, 5)];
+  printf(" %s\n", [m isEqual: o] == YES ? "passed" : "failed");
 
 //  NSLog(@"%@", m);
   [arp release];

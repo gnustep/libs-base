@@ -1,3 +1,10 @@
+2004-06-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexSet.m: Rewrite range removal to fix bug reported
+	by Fred Kiefer.
+	* Testing/nsindexset.m: Add test for deletion of range which has
+	partial overlap with two others.
+
 2004-06-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexSet.m: Remove some redundant code for clarity.
