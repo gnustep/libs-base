@@ -1311,16 +1311,20 @@ handle_printf_atsign (FILE *stream,
 
 // Determining Composed Character Sequences
 
- - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
 {
-  unsigned int start, end;
+  unsigned	start;
+  unsigned	end;
+  unsigned	length = [self length];
 
-  start=anIndex;
+  if (anIndex >= length)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  start = anIndex;
   while (uni_isnonsp([self characterAtIndex: start]) && start > 0)
     start--;
   end=start+1;
-  if (end < [self length])
-    while ((end < [self length]) && (uni_isnonsp([self characterAtIndex: end])) )
+  if (end < length)
+    while ((end < length) && (uni_isnonsp([self characterAtIndex: end])) )
       end++;
   return NSMakeRange(start, end-start);
 }
