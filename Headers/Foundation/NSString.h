@@ -114,6 +114,15 @@ enum {
 + (id) stringWithContentsOfFile:(NSString *)path;
 
 // Initializing Newly Allocated Strings
+#ifndef	STRICT_OPENSTEP
+- (id) initWithBytes: (const void*)bytes
+	      length: (unsigned int)length
+	    encoding: (NSStringEncoding)encoding ;
+- (id) initWithBytesNoCopy: (const void*)bytes
+		    length: (unsigned int)length
+		  encoding: (NSStringEncoding)encoding 
+	      freeWhenDone: (BOOL)flag;
+#endif
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag;
