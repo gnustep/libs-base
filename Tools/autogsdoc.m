@@ -294,7 +294,11 @@
       in the source files  to other words.  Generally you will not have
       to use this, but it is sometimes helpful to avoid the parser being
       confused by the use of C preprocessor macros.  You can effectively
-      redefine the macro to something less confusing.
+      redefine the macro to something less confusing.<br />
+      The value you map the identifier to must be one of -<br />
+      Another identifier,<br />
+      An empty string - the value is ignored,<br />
+      Two slashes ('//') - the rest of the line is ignored.<br />
     </item>
   </list>
   <section>

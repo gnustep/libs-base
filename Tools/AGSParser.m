@@ -1155,6 +1155,11 @@ try:
 	    }
 	  else if ([val length] > 0)
 	    {
+	      if ([val isEqualToString: @"//"] == YES)
+		{
+		  [self skipRemainderOfLine];
+		  return [self parseIdentifier];
+		}
 	      return val;	// Got mapped identifier.
 	    }
 	  goto try;		// Mapping removed the identifier.

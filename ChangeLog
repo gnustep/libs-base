@@ -1,3 +1,9 @@
+2002-04-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Interpret a mapping to '//' in the WordMap as
+	meaning that the resto of the line containing the mapped value
+	should be ignored.
+
 2002-04-24  Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Tools/make_strings/GNUmakefile - modified to prevent build
