@@ -27,7 +27,7 @@ int main()
   [s3 release];
   [s2 release];
 
-  s2 = [s copyWithZone: NS_NOZONE];
+  s2 = [s copyWithZone: NSDefaultMallocZone ()];
   print_string(s2);
 
   s2 = [s stringByAppendingString:@" with something added"];
