@@ -1,3 +1,9 @@
+Tue May 30 19:54:25 2000  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSProcessInfo.m ([NSProcessInfo +load]): If environ ==
+	NULL, abort with an informative message rather than crashing
+	without explanations.
+
 2000-05-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Protect all use of map tables of bundles
