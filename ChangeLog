@@ -1,3 +1,30 @@
+2002-02-10  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Source/NSObject.m: changes to enable derived object KeyValueCoding 
+		process chnages (EOGenericRecord for example).
+               o added:
+                _infoForInstanceVariableNamed:retType:retSize:retOffset:
+                _getValueForKey:selector:type:size:offset:
+                _setValueForKey:object:selector:type:size:offset:
+                _handleQueryWithUnboundKey:
+                _handleTakeValue:forUnboundKey:
+               o modified:
+                storedValueForKey:
+                takeStoredValue:forKey:
+                valueForKey:
+                takeValue:forKey:
+                To use added method.
+        * Source/NSObjCRuntime.m:
+               o added NSAssert in GSGetInstanceVariable() and 
+                 GSSetInstanceVariable()
+	* Headers/gnustep/base/NSKeyValueCoding: 
+               o added:
+                _infoForInstanceVariableNamed:retType:retSize:retOffset:
+                _getValueForKey:selector:type:size:offset:
+                _setValueForKey:object:selector:type:size:offset:
+                _handleQueryWithUnboundKey:
+                _handleTakeValue:forUnboundKey:
+
 Sat Feb  9 01:45:48 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSBundle.m ([+bundleForTool:]): Removed.  We switch to a
