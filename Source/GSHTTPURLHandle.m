@@ -78,7 +78,6 @@ char emp[64] = {
     reading,
   } connectionState;
 }
-- (NSString*) encodebase64: (NSString*)s;
 - (void) setDebug: (BOOL)flag;
 @end
 
@@ -701,7 +700,7 @@ static void debugWrite(NSData *data)
 	      auth = [NSString stringWithFormat: @"%@", [url user]];
 	    }
 	  auth = [NSString stringWithFormat: @"Basic %@",
-	    [self encodebase64: auth]];
+	    [GSMimeDocument encodeBase64String: auth]];
 	  [wProperties setObject: auth
 			  forKey: @"authorization"];
 	}
@@ -935,15 +934,5 @@ static void debugWrite(NSData *data)
   return YES;
 }
 
-- (NSString*) encodebase64: (NSString*)s
-{
-  NSData	*d;
-
-  d = [s dataUsingEncoding: NSASCIIStringEncoding
-      allowLossyConversion: YES];
-  d = [GSMimeDocument encodeBase64: d];
-  s = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding]; 
-  return AUTORELEASE(s);
-}
 @end
 
