@@ -672,7 +672,7 @@ static NSString	*pathForUser(NSString *user)
       // Retry for a couple of seconds in case we are locked out.
       for (attempts = 0; done == NO && attempts < 10; attempts++)
 	{
-	  [runLoop runMode: [runLoop currentMode]
+	  [runLoop runMode: NSDefaultRunLoopMode
 		beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.2]];
 	  if ([self synchronize] == YES)
 	    {
