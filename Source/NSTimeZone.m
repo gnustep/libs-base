@@ -539,6 +539,7 @@ decode (const void *ptr)
   
 @implementation GSAbsTimeZone
 
+static int		uninitialisedOffset = 100000;
 static NSMapTable	*absolutes = 0;
 
 + (void) initialize
@@ -557,11 +558,14 @@ static NSMapTable	*absolutes = 0;
 
 - (void) dealloc
 {
-  if (zone_mutex != nil)
-    [zone_mutex lock];
-  NSMapRemove(absolutes, (void*)(gsaddr)offset);
-  if (zone_mutex != nil)
-    [zone_mutex unlock];
+  if (offset != uninitialisedOffset)
+    {
+      if (zone_mutex != nil)
+	[zone_mutex lock];
+      NSMapRemove(absolutes, (void*)(gsaddr)offset);
+      if (zone_mutex != nil)
+	[zone_mutex unlock];
+    }
   RELEASE(name);
   RELEASE(detail);
   [super dealloc];
@@ -577,6 +581,12 @@ static NSMapTable	*absolutes = 0;
   GSAbsTimeZone	*z;
   int		extra;
   int		sign = anOffset >= 0 ? 1 : -1;
+
+  /*
+   * Set the uninitialised offset so that dealloc before full
+   * initialisation won't remove the timezeone for offset 0 from cache.
+   */
+  offset = uninitialisedOffset;
 
   /*
    * Round the offset to the nearest minute, (for MacOS-X compatibility)
@@ -617,8 +627,10 @@ static NSMapTable	*absolutes = 0;
 	  int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
 	  int	h = i / 60;
 	  int	m = i % 60;
+	  char	buf[9];
 
-	  name = [[NSString alloc] initWithFormat: @"GMT%c%02d%02d", s, h, m];
+	  sprintf(buf, "GMT%c%02d%02d", s, h, m);
+	  name = [[NSString alloc] initWithCString: buf];
 	}
       else
 	{
