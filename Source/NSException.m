@@ -21,17 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 #include <assert.h>
-#include "NSException.h"
-#include "NSObjectPrivate.h"
-#include "NSString.h"
-#include "NSValue.h"
-#include "NSArray.h"
-#include "NSCoder.h"
-#include "NSDictionary.h"
-#include "object_zone.h"
+#include <foundation/NSException.h>
+#include <foundation/NSString.h>
+#include <foundation/NSValue.h>
+#include <foundation/NSArray.h>
+#include <foundation/NSCoder.h>
+#include <foundation/NSDictionary.h>
 
-// FIXME: GNU gcc doesn't have static strings yet...
-/*
 NSString *NSInconsistentArchiveException
 	= @"NSInconsistentArchiveException";
 NSString *NSGenericException
@@ -41,13 +37,6 @@ NSString *NSInternalInconsistencyException
 NSString *NSInvalidArgumentException = @"NSInvalidArgumentException";
 NSString *NSMallocException = @"NSMallocException";
 NSString *NSRangeException = @"NSRangeException";
-*/
-NSString *NSInconsistentArchiveException;
-NSString *NSGenericException;
-NSString *NSInternalInconsistencyException;
-NSString *NSInvalidArgumentException;
-NSString *NSMallocException;
-NSString *NSRangeException;
 
 /* FIXME: Not thread safe - probably need one for each thread. */
 static NSMutableArray *e_queue;
