@@ -1,5 +1,5 @@
 /* NSAssertionHandler - Object encapsulation of assertions
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997 Free Software Foundation, Inc.
    
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Apr 1995
@@ -55,26 +55,25 @@
   /* NOT REACHED */
 }
 
-- (void)handleFailureInMethod:(SEL)aSelector 
-   object:object 
-   file:(NSString *)fileName 
-   lineNumber:(int)line 
-   description:(NSString *)format,...
+- (void) handleFailureInMethod: (SEL) aSelector
+                        object: object
+                          file: (NSString *) fileName
+                    lineNumber: (int) line
+                   description: (NSString *) format,...
 {
   va_list ap;
 
   va_start(ap, format);
   // FIXME: should be NSLog;
   fprintf(stderr, "Assertion failed in %s, method %s, file %s:%d. ",
-	  object_get_class_name(object), sel_get_name(aSelector),
-	  [fileName cString], line);
+            object_get_class_name(object), sel_get_name(aSelector),
+            [fileName cString], line);
   vfprintf(stderr, [format cString], ap);
   fprintf(stderr, "\n");
+
+  [NSException raise: NSInternalInconsistencyException 
+	       format: format arguments: ap];
   va_end(ap);
-    
-  [NSException raise:NSInternalInconsistencyException
-	       format:@"Assertion failed in %s, method %s",
-	       object_get_class_name(object), sel_get_name(aSelector)];
   /* NOT REACHED */
 }
 
