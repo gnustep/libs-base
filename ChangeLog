@@ -1,3 +1,11 @@
+2003-04-07 13:21  Alexander Malmberg <alexander@malmberg.org>
+
+	* configure.ac:	Link directly to the foreign function interfaces
+	section in the build guide in the error message for missing ffi
+	library.
+
+	* configure: Regenerate.
+
 2003-04-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSCategories.h (GS_USEIDLIST and
