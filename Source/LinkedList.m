@@ -27,11 +27,10 @@
 
 @implementation LinkedList
 
-+ initialize
++ (void) initialize
 {
   if (self == [LinkedList class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 /* This is the designated initializer of this class */

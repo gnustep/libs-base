@@ -26,11 +26,10 @@
 
 @implementation LinkedListNode
 
-+ initialize
++ (void) initialize
 {
   if (self == [LinkedListNode class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 - init
