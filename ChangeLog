@@ -6,6 +6,8 @@
 	* Source/Additions/GSMime.m: Provide a method to generate and return
 	a string suitable for use as a boundary.  Make tolerant of multipart
 	messages with 'application' as the message type.
+	Added ([-setBuggyQuotes:]) method for parsing stuff produced by
+	microsoft ;-(
 
 2002-11-25  Richard Frith-Macdonald <rfm@gnu.org>
 
