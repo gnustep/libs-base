@@ -13,6 +13,9 @@
 	classes.
 	* Source/GSCompatibility.m: Partial write of code to generate MacOS-X
 	compatible (XML) property-list text.
+	* Tools/gsdoc.m: Major (3 hours) effort to get code back to something
+	vaguely like conformance with coding standards!  Hope nothing got
+	broken.
 
 2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
