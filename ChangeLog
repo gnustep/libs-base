@@ -1,3 +1,11 @@
+Thu Jan 18 15:53:41 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/GNUmakefile: Simplified name to gnustep-base.
+	* gnustep-base.spec.in: Changed Group to Development/Libraries.
+	* gnustep-base-debug.spec.in: Idem.
+	* NSTimeZones/NSTimeZones.tar: Removed hard links to avoid rpm
+	problems with hard links.
+
 2001-01-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: New method ([-_addName:]) to add a name to a host.
