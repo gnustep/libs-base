@@ -1,3 +1,11 @@
+2004-02-27    <woudshoo@agilisys.com>
+
+	* Tools/gdomap.c: when using MinGW do not try to chdir to /tmp
+	because it does not always exist.
+
+	* Source/NSBundle.m ([NSBundle +mainBundle]): on WIN32 strip .exe 
+	extension from executable name when constructing mainBundle path.
+
 2004-02-26  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h
