@@ -26,12 +26,14 @@
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>
 #include	<Foundation/NSUserDefaults.h>
-#include        <errno.h>
+#include	<Foundation/NSDebug.h>
+#include	<Foundation/NSAutoreleasePool.h>
 
 
 int
 main(int argc, char** argv)
 {
+    NSAutoreleasePool	*pool = [NSAutoreleasePool new];
     NSUserDefaults	*defs;
     NSProcessInfo	*proc;
     NSArray		*args;
@@ -44,6 +46,7 @@ main(int argc, char** argv)
     proc = [NSProcessInfo processInfo];
     if (proc == nil) {
 	NSLog(@"unable to get process information!\n");
+	[pool release];
 	exit(0);
     }
 
@@ -71,6 +74,7 @@ main(int argc, char** argv)
 "    read the standard input for a series of lines listing domain name and\n"
 "    default key pairs to be removed.  Domain names and default keys must be\n"
 "    separated by spaces.\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -82,6 +86,7 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no name supplied for -u option!\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -94,6 +99,7 @@ main(int argc, char** argv)
     }
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
+	[pool release];
 	exit(0);
     }
 
@@ -118,6 +124,7 @@ main(int argc, char** argv)
 	    }
 	    if (*start == '\0') {
 		printf("dremove: invalid input\n");
+		[pool release];
 		exit(0);
 	    }
 	    owner = [NSString stringWithCString: start];
@@ -135,6 +142,7 @@ main(int argc, char** argv)
 	    }
 	    if (*start == '\0') {
 		printf("dremove: invalid input\n");
+		[pool release];
 		exit(0);
 	    }
 	    name = [NSString stringWithCString: start];
@@ -156,6 +164,7 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no key supplied for -g option.\n");
+	    [pool release];
 	    exit(0);
 	}
 	domain = [[defs persistentDomainForName: owner] mutableCopy];
@@ -174,6 +183,7 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no domain supplied for -o option.\n");
+	    [pool release];
 	    exit(0);
 	}
         [defs removePersistentDomainForName: owner];
@@ -195,6 +205,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"got app name '%s' but no variable name.\n",
 			    [[args objectAtIndex: 0] cString]);
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -205,6 +216,7 @@ main(int argc, char** argv)
 	NSLog(@"unable to write to defaults database - %s\n", strerror(errno));
     }
 
+    [pool release];
     exit(0);
 }
 

@@ -26,11 +26,13 @@
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>
 #include	<Foundation/NSUserDefaults.h>
+#include	<Foundation/NSAutoreleasePool.h>
 
 
 int
 main(int argc, char** argv)
 {
+    NSAutoreleasePool	*pool = [NSAutoreleasePool new];
     NSUserDefaults	*defs;
     NSProcessInfo	*proc;
     NSArray		*args;
@@ -44,6 +46,7 @@ main(int argc, char** argv)
     proc = [NSProcessInfo processInfo];
     if (proc == nil) {
 	NSLog(@"unable to get process information!\n");
+	[pool release];
 	exit(0);
     }
 
@@ -78,6 +81,7 @@ main(int argc, char** argv)
 	    printf(
 "dread [-u uname] key\n"
 "    read default named 'key' from the global domain.\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -85,6 +89,7 @@ main(int argc, char** argv)
     i = 0;
     if ([args count] <= i) {
 	NSLog(@"too few arguments supplied!\n");
+	[pool release];
 	exit(0);
     }
     
@@ -94,12 +99,14 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no name supplied for -u option!\n");
+	    [pool release];
 	    exit(0);
 	}
     }
 
     if ([args count] <= i) {
 	NSLog(@"too few arguments supplied!\n");
+	[pool release];
 	exit(0);
     }
 
@@ -110,6 +117,7 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no key supplied for -g option!\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -120,6 +128,7 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no key supplied for -n option!\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -130,6 +139,7 @@ main(int argc, char** argv)
 	}
 	else {
 	    NSLog(@"no domain name supplied for -o option!\n");
+	    [pool release];
 	    exit(0);
 	}
     }
@@ -156,6 +166,7 @@ main(int argc, char** argv)
     }
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
+	[pool release];
 	exit(0);
     }
     /* We don't want dwrite in the defaults database - so remove it. */
@@ -218,6 +229,7 @@ main(int argc, char** argv)
 	printf("dread: couldn't read default\n");
     }
 
+    [pool release];
     exit(0);
 }
 
