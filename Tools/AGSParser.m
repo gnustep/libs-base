@@ -1800,6 +1800,15 @@ fail:
       name = [name stringByAppendingFormat: @"(%@)", category];
       unitName = name;
       [dict setObject: @"category" forKey: @"Type"];
+      if ([category caseInsensitiveCompare: @"Private"] == NSOrderedSame)
+	{
+	  NSString	*c;
+
+	  c = @"<em>Warning</em> this category is <em>private</em>, which "
+	    @"means that the methods are for internal use by the package. "
+	    @"You should not use them in external code.";
+	  [self appendComment: c to: dict];
+	}
     }
   else if (buffer[pos] == ':')
     {
