@@ -46,6 +46,8 @@
 
 #include "GSPrivate.h"
 
+int _NSLogDescriptor = 2;	// Default descriptor for logging
+
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
@@ -78,7 +80,8 @@ _NSLog_standard_printf_handler (NSString* message)
  
 #ifdef	HAVE_SYSLOG
 
-  if (GSUserDefaultsFlag(GSLogSyslog) == YES || write(2, buf, len) != len)
+  if (GSUserDefaultsFlag(GSLogSyslog) == YES
+    || write(_NSLogDescriptor, buf, len) != len)
     {
       int	mask;
 
@@ -98,7 +101,7 @@ _NSLog_standard_printf_handler (NSString* message)
       syslog(mask, "%s",  buf);
     }
 #else
-  write(2, buf, len);
+  write(_NSLogDescriptor, buf, len);
 #endif
 }
 

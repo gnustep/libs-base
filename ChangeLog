@@ -2,8 +2,13 @@
 
 	* Headers/Foundation/GSMime.h: Tidy up and add convenience methods.
 	* Source/Additions/GSMime.m: Tidy up and add convenience methods.
+	Added methods to convert content between string and data for ease
+	of use from java.
 	* Source/NSBundle.m: ([+allBundles]) Don't enumeraste if map table
 	has not been created yet.
+	* Source/NSLog.m: Allow output descriptor to be changed.
+	* Source/NSProcessInfo.m: Add method to change log output to go to
+	another file for applications where stderr has been hijacked.
 
 2002-05-26  Fred Kiefer <FredKiefer@gmx.de>
 

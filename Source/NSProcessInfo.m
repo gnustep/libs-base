@@ -67,6 +67,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
+
 #include <GSConfig.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
@@ -760,6 +762,28 @@ int main(int argc, char *argv[], char *env[])
   return _debug_set;
 }
 
+/**
+ * Set the file to which NSLog output should be directed.<br />
+ * Returns YES on success, NO on failure.<br />
+ * By default logging goes to standard error.
+ */
+- (BOOL) setLogFile: (NSString*)path
+{
+  extern int	_NSLogDescriptor;
+  int		desc;
+
+  desc = open([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
+  if (desc >= 0)
+    {
+      if (_NSLogDescriptor >= 0 && _NSLogDescriptor != 2)
+	{
+	  close(_NSLogDescriptor);
+	}
+      _NSLogDescriptor = desc;
+      return YES;
+    }
+  return NO;
+}
 @end
 
 /**

@@ -78,7 +78,7 @@ enum {
 
 @interface	NSProcessInfo (GNUstep)
 - (NSMutableSet*) debugSet;
-
+- (BOOL) setLogFile: (NSString*)path;
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env;
