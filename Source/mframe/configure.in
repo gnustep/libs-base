@@ -24,7 +24,7 @@ AC_INIT(mframe.head)
 #   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
 #--------------------------------------------------------------------
-# Use config.guess, config.sub and install.sh provided by gnustep-make
+# Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
 AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
 
