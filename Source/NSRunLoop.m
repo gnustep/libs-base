@@ -1192,6 +1192,39 @@ if (0) {
 
 @implementation NSObject (TimedPerformers)
 
+/**
+ * Cancels any perform operations set up for the specified target
+ * in the current run loop.
+ */
++ (void) cancelPreviousPerformRequestsWithTarget: (id)target
+{
+  NSMutableArray	*perf = [[NSRunLoop currentRunLoop] _timedPerformers];
+  unsigned		count = [perf count];
+
+  if (count > 0)
+    {
+      GSTimedPerformer	*array[count];
+
+      IF_NO_GC(RETAIN(target));
+      [perf getObjects: array];
+      while (count-- > 0)
+	{
+	  GSTimedPerformer	*p = array[count];
+
+	  if (p->target == target)
+	    {
+	      [perf removeObjectAtIndex: count];
+	    }
+	}
+      RELEASE(target);
+    }
+}
+
+/**
+ * Cancels any perform operations set up for the specified target
+ * in the current loop, but only if the vaslue of aSelector and argument
+ * with which the performs were set up exactly match those supplied.
+ */
 + (void) cancelPreviousPerformRequestsWithTarget: (id)target
 					selector: (SEL)aSelector
 					  object: (id)arg
@@ -2087,6 +2120,45 @@ if (0) {
 		forMode: (NSString*)mode];
 }
 
+/**
+ * Cancels any perform operations set up for the specified target
+ * in the receiver.
+ */
+- (void) cancelPerformSelectorsWithTarget: (id) target
+{
+  NSMapEnumerator	enumerator;
+  GSRunLoopCtxt		*context;
+  void			*mode;
+
+  enumerator = NSEnumerateMapTable(_contextMap);
+
+  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
+    {
+      if (context != nil)
+	{
+	  GSIArray	performers = context->performers;
+	  unsigned	count = GSIArrayCount(performers);
+
+	  while (count--)
+	    {
+	      GSRunLoopPerformer	*p;
+
+	      p = GSIArrayItemAtIndex(performers, count).obj;
+	      if (p->target == target)
+		{
+		  GSIArrayRemoveItemAtIndex(performers, count);
+		}
+	    }
+	}
+    }
+  NSEndMapTableEnumeration(&enumerator);
+}
+
+/**
+ * Cancels any perform operations set up for the specified target
+ * in the receiver, but only if the vaslue of aSelector and argument
+ * with which the performs were set up exactly match those supplied.
+ */
 - (void) cancelPerformSelector: (SEL)aSelector
 			target: (id) target
 		      argument: (id) argument

@@ -138,6 +138,7 @@
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
 + (BOOL) instancesRespondToSelector: (SEL)aSelector;
++ (BOOL) isSubclassOfClass: (Class)aClass;
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
 + (id) setVersion: (int)aVersion;
@@ -306,6 +307,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 #include <Foundation/NSDate.h>
 @interface NSObject (TimedPerformers)
++ (void) cancelPreviousPerformRequestsWithTarget: (id)obj;
 + (void) cancelPreviousPerformRequestsWithTarget: (id)obj
 					selector: (SEL)s
 					  object: (id)arg;
