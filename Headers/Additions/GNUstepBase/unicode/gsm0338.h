@@ -318,7 +318,11 @@ _ucc_ GSM0338_lossy[] =
   {0x03A4,0x54},	/* Tau		*/
   {0x03A5,0x55},	/* Upsilon	*/
   {0x03A7,0x58},	/* Chi		*/
-  {0x2019,0x27}		/* right single quote		*/
+  {0x2014,0x2D},	/* Em-dash		*/
+  {0x2018,0x27},	/* left single quote	*/
+  {0x2019,0x27},	/* right single quote	*/
+  {0x201C,0x22},	/* left double quote	*/
+  {0x201D,0x22}		/* right double quote	*/
 };
 
 #define	GSM0338_lsize	(sizeof(GSM0338_lossy)/sizeof(_ucc_))
