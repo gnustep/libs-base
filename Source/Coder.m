@@ -157,8 +157,8 @@ my_object_is_class(id object)
 
 /* Initialization. */
 
-/* This is the designated sub-initializer.  
-   Don't call it yourself.
+/* This is the designated initializer.  
+   But, don't call it yourself.
    Do override it and call [super...] in subclasses. */
 - _initWithCStream: (id <CStreaming>) cs
     formatVersion: (int) version
@@ -181,6 +181,22 @@ my_object_is_class(id object)
   return self;
 }
 
+/* This is the designated sub-initializer for all "writing" coders. */
+- initForWritingToStream: (id <Streaming>) s
+       withFormatVersion: (int) version
+            cStreamClass: (Class) cStreamClass
+    cStreamFormatVersion: (int) cStreamFormatVersion
+{
+  [self _initWithCStream: [[cStreamClass alloc] 
+			    initForWritingToStream: s
+			    withFormatVersion: cStreamFormatVersion]
+	formatVersion: version
+	isDecoding: NO];
+  [self writeSignature];
+  return self;
+}
+
+/* This is the designated sub-initializer for all "reading" coders. */
 + coderReadingFromStream: (id <Streaming>) stream
 {
   id cs = [CStream cStreamReadingFromStream: stream];
@@ -199,54 +215,43 @@ my_object_is_class(id object)
   return [new_coder autorelease];
 }
 
-+ coderReadingFromFile: (id <String>) filename
-{
-  return [self coderReadingFromStream: 
-		 [[[StdioStream alloc] initWithFilename:filename fmode:"r"]
-		   autorelease]];
-}
-
-- initForReadingFromStream: (id <Streaming>) stream
-	     formatVersion: (int)version
-{
-  [self notImplemented:_cmd];
-  [self _initWithCStream: [[[[[self class] defaultCStreamClass] alloc]
-			     initForWritingToStream: stream]
-			    autorelease]
-	formatVersion: version
-	isDecoding: YES];
-  /* Model this after [CStream -initForReading...] */
-  return self;
-}
-
-- initForReadingFromStream: (id <Streaming>) s
-{
-  return [self initForReadingFromStream: s
-	       formatVersion: DEFAULT_FORMAT_VERSION];
-}
-
-- initForReadingFromFile: (id <String>) filename
-{
-  return [self initForReadingFromStream: 
-		 [StdioStream streamWithFilename: filename
-			      fmode: "r"]];
-}
+/* ..Writing... methods */
 
 - initForWritingToStream: (id <Streaming>) s
-	   formatVersion: (int) version
+	withCStreamClass: (Class) cStreamClass
 {
-  [self _initWithCStream: [[[self class] defaultCStreamClass] 
-			    cStreamWritingToStream: s]
-	formatVersion: version
-	isDecoding: NO];
-  [self writeSignature];
-  return self;
+  return [self initForWritingToStream: s
+	       withFormatVersion: DEFAULT_FORMAT_VERSION
+	       cStreamClass: cStreamClass
+	       cStreamFormatVersion: [cStreamClass defaultFormatVersion]];
 }
 
 - initForWritingToStream: (id <Streaming>) s
 {
   return [self initForWritingToStream: s
-	       formatVersion: DEFAULT_FORMAT_VERSION];
+	       withCStreamClass: [[self class] defaultCStreamClass]];
+}
+
+- initForWritingToFile: (id <String>) filename
+     withFormatVersion: (int) version
+          cStreamClass: (Class) cStreamClass
+  cStreamFormatVersion: (int) cStreamFormatVersion
+{
+  return [self initForWritingToStream: [StdioStream 
+					 streamWithFilename: filename
+					 fmode: "w"]
+	       withFormatVersion: version
+	       cStreamClass: cStreamClass
+	       cStreamFormatVersion: cStreamFormatVersion];
+}
+
+- initForWritingToFile: (id <String>) filename
+      withCStreamClass: (Class) cStreamClass
+{
+  return [self initForWritingToStream: [StdioStream 
+					 streamWithFilename: filename
+					 fmode: "w"]
+	       withCStreamClass: cStreamClass];
 }
 
 - initForWritingToFile: (id <String>) filename
@@ -269,24 +274,58 @@ my_object_is_class(id object)
 			      fmode: "w"]];
 }
 
-- init
++ (BOOL) encodeRootObject: anObject
+		 withName: (id <String>) name
+		 toStream: (id <Streaming>)stream
 {
-  [self shouldNotImplement:_cmd];
-  return self;
+  id c = [[Coder alloc] initForWritingToStream: stream];
+  [c encodeRootObject: anObject withName: name];
+  [c closeCoder];
+  [c release];
+  return YES;
 }
 
-+ decodeObjectFromStream: (id <Streaming>)stream
++ (BOOL) encodeRootObject: anObject 
+  	         withName: (id <String>) name
+                   toFile: (id <String>) filename
+{
+  return [self encodeRootObject: anObject
+	       withName: name
+	       toStream: [StdioStream streamWithFilename: filename
+				      fmode: "w"]];
+}
+
+/* ..Reading... methods */
+
++ coderReadingFromFile: (id <String>) filename
+{
+  return [self coderReadingFromStream: 
+		 [StdioStream streamWithFilename: filename 
+			      fmode: "r"]];
+}
+
++ decodeObjectWithName: (id <String> *) name
+	    fromStream: (id <Streaming>)stream;
 {
   id c, o;
   c = [self coderReadingFromStream:stream];
-  [c decodeObjectAt: &o withName: NULL];
+  [c decodeObjectAt: &o withName: name];
   return [o autorelease];
 }
 
-+ decodeObjectFromFile: (id <String>) filename
++ decodeObjectWithName: (id <String> *) name
+	      fromFile: (id <String>) filename;
 {
-  return [self decodeObjectFromStream:
+  return [self decodeObjectWithName: name
+	       fromStream:
 		 [StdioStream streamWithFilename:filename fmode: "r"]];
+}
+
+- init
+{
+  /* Or should we provide some kind of default? */
+  [self shouldNotImplement:_cmd];
+  return self;
 }
 
 
