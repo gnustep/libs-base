@@ -123,8 +123,8 @@ main(int argc, char** argv, char **env)
 	  printf(
 "A property list is a method of providing structured information consisting\n"
 "of strings, arrays, dictionaries, and binary data.\n\n"
-"The defaults system allows you to work with a human-readable form of a
-property list which is set as the value of a default.\n\n");
+"The defaults system allows you to work with a human-readable form of a\n"
+"property list which is set as the value of a default.\n\n");
 	  printf(
 "In a property list, strings appear as plain text (as long as they contain\n"
 "no special characters), and inside quotation marks otherwise.\n"

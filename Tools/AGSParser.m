@@ -2572,7 +2572,7 @@ fail:
 	      while (r.length > 0)
 		{
 		  /*
-		   * Look for 'AtogsdocSource:' lines.
+		   * Look for 'AutogsdocSource:' lines.
 		   */
 		  r = [comment rangeOfString: @"AutogsdocSource:"
 				     options: NSCaseInsensitiveSearch

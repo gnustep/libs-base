@@ -217,7 +217,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
  */
 - (void) makeRefs: (GSXMLNode*)node
 {
-  GSXMLNode	*children = [node children];
+  GSXMLNode	*children = [node firstChild];
   GSXMLNode	*next = [node next];
   BOOL		newUnit = NO;
 
@@ -345,7 +345,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 		{
 		  if ([[tmp name] isEqual: @"sel"] == YES)
 		    {
-		      GSXMLNode	*t = [tmp children];
+		      GSXMLNode	*t = [tmp firstChild];
 
 		      while (t != nil)
 			{
