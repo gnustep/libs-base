@@ -74,6 +74,39 @@ static BOOL snuggleStart(NSString *t)
  */
 @implementation	AGSOutput
 
+- (NSString*) checkComment: (NSString*)comment
+		      unit: (NSString*)unit
+		      info: (NSDictionary*)d
+{
+  if ([comment length] == 0)
+    {
+      comment = @"<em>Description forthcoming.</em>";
+      if (verbose == YES)
+	{
+	  NSString	*name = [d objectForKey: @"Name"];
+	  NSString	*type = [d objectForKey: @"Type"];
+
+	  if (unit == nil)
+	    {
+	      NSLog(@"No comments for %@ %@", type, name);
+	    }
+	  else
+	    {
+	      if ([d objectForKey: @"ReturnType"] != nil)
+		{
+		  NSLog(@"No comments for [%@ %@]", unit, name);
+		}
+	      else
+		{
+		  NSLog(@"No comments for instance variable %@ in %@",
+		    name, unit);
+		}
+	    }
+	}
+    }
+  return comment;
+}
+
 - (void) dealloc
 {
   DESTROY(identifier);
@@ -623,10 +656,7 @@ static BOOL snuggleStart(NSString *t)
     }
 
   [str appendString: @"        <desc>\n"];
-  if ([comment length] == 0)
-    {
-      comment = @"<em>Description forthcoming.</em>";
-    }
+  comment = [self checkComment: comment unit: nil info: d];
   [self reformat: comment withIndent: 10 to: str];
   [str appendString: @"        </desc>\n"];
   if (standards != nil)
@@ -768,10 +798,7 @@ static BOOL snuggleStart(NSString *t)
     }
 
   [str appendString: @"        <desc>\n"];
-  if ([comment length] == 0)
-    {
-      comment = @"<em>Description forthcoming.</em>";
-    }
+  comment = [self checkComment: comment unit: nil info: d];
   [self reformat: comment withIndent: 10 to: str];
   [str appendString: @"        </desc>\n"];
   if (standards != nil)
@@ -785,7 +812,9 @@ static BOOL snuggleStart(NSString *t)
 /**
  * Output the gsdoc code for an instance variable.
  */
-- (void) outputInstanceVariable: (NSDictionary*)d to: (NSMutableString*)str
+- (void) outputInstanceVariable: (NSDictionary*)d
+			     to: (NSMutableString*)str
+			    for: (NSString*)unit
 {
   NSString	*type = [d objectForKey: @"Type"];
   NSString	*validity = [d objectForKey: @"Validity"];
@@ -805,10 +834,7 @@ static BOOL snuggleStart(NSString *t)
   [str appendString: @"\">\n"];
 
   [str appendString: @"          <desc>\n"];
-  if ([comment length] == 0)
-    {
-      comment = @"<em>Description forthcoming.</em>";
-    }
+  comment = [self checkComment: comment unit: unit info: d];
   [self reformat: comment withIndent: 12 to: str];
   [str appendString: @"          </desc>\n"];
   if (standards != nil)
@@ -981,10 +1007,7 @@ static BOOL snuggleStart(NSString *t)
     }
 
   [str appendString: @"          <desc>\n"];
-  if ([comment length] == 0)
-    {
-      comment = @"<em>Description forthcoming.</em>";
-    }
+  comment = [self checkComment: comment unit: unit info: d];
   [self reformat: comment withIndent: 12 to: str];
   [str appendString: @"          </desc>\n"];
   if (standards != nil)
@@ -999,8 +1022,9 @@ static BOOL snuggleStart(NSString *t)
 {
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*type = [d objectForKey: @"Type"];
-  NSDictionary	*methods = [d objectForKey: @"Methods"];
-  NSDictionary	*ivars = [d objectForKey: @"InstanceVariables"];
+  NSString	*kind = type;
+  NSMutableDictionary	*methods = [d objectForKey: @"Methods"];
+  NSMutableDictionary	*ivars = [d objectForKey: @"InstanceVariables"];
   NSString	*comment = [d objectForKey: @"Comment"];
   NSString	*unitName = nil;
   NSArray	*names;
@@ -1015,7 +1039,27 @@ static BOOL snuggleStart(NSString *t)
 
   if ([[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
-      NSLog(@"Warning ... unit %@ is not implemented where expected", name);
+      if ([name hasPrefix:  @"NSObject("] == YES)
+	{
+	  NSEnumerator		*e = [methods objectEnumerator];
+	  NSMutableDictionary	*m;
+
+	  /*
+	   * Assume an unimplemented category of NSObject is an
+	   * informal protocol, and stop warnings being issued
+	   * about unimplemented methods.
+	   */
+	  unitName = name;
+	  kind = @"informal protocol";
+	  while ((m = [e nextObject]) != nil)
+	    {
+	      [m setObject: @"YES" forKey: @"Implemented"];
+	    }
+	}
+      else
+	{
+	  NSLog(@"Warning ... unit %@ is not implemented where expected", name);
+	}
     }
   else
     {
@@ -1104,7 +1148,7 @@ static BOOL snuggleStart(NSString *t)
     {
       unit = [NSString stringWithFormat:
         @"    <chapter>\n      <heading>Software documentation "
-	@"for the %@ %@</heading>\n    </chapter>\n", name, type];
+	@"for the %@ %@</heading>\n    </chapter>\n", name, kind];
     }
 
   /*
@@ -1177,10 +1221,7 @@ static BOOL snuggleStart(NSString *t)
 
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"<desc>\n"];
-  if ([comment length] == 0)
-    {
-      comment = @"<em>Description forthcoming.</em>";
-    }
+  comment = [self checkComment: comment unit: nil info: d];
   [self reformat: comment withIndent: ind + 2 to: str];
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"</desc>\n"];
@@ -1190,7 +1231,9 @@ static BOOL snuggleStart(NSString *t)
     {
       NSString	*vName = [names objectAtIndex: i];
 
-      [self outputInstanceVariable: [ivars objectForKey: vName] to: str];
+      [self outputInstanceVariable: [ivars objectForKey: vName]
+				to: str
+			       for: unitName];
     }
 
   names = [[methods allKeys] sortedArrayUsingSelector: @selector(compare:)];
@@ -1346,6 +1389,11 @@ static BOOL snuggleStart(NSString *t)
     }
   RELEASE(arp);
   return ind;
+}
+
+- (void) setVerbose: (BOOL)flag
+{
+  verbose = flag;
 }
 
 - (NSArray*) split: (NSString*)str

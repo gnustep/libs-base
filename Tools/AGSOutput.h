@@ -32,8 +32,12 @@
   NSCharacterSet	*spaces;	// All blank characters
   NSCharacterSet	*spacenl;	// Blanks excluding newline
   NSArray		*args;		// Not retained.
+  BOOL			verbose;
 }
 
+- (NSString*) checkComment: (NSString*)comment
+		      unit: (NSString*)unit
+		      info: (NSDictionary*)d;
 - (unsigned) fitWords: (NSArray*)a
 		 from: (unsigned)start
 		   to: (unsigned)end
@@ -44,7 +48,9 @@
 	       kind: (NSString*)kind
 		 to: (NSMutableString*)str;
 - (void) outputFunction: (NSDictionary*)d to: (NSMutableString*)str;
-- (void) outputInstanceVariable: (NSDictionary*)d to: (NSMutableString*)str;
+- (void) outputInstanceVariable: (NSDictionary*)d
+			     to: (NSMutableString*)str
+			    for: (NSString*)unit;
 - (void) outputMethod: (NSDictionary*)d
 		   to: (NSMutableString*)str
 		  for: (NSString*)unit;
@@ -52,6 +58,7 @@
 - (unsigned) reformat: (NSString*)str
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf;
+- (void) setVerbose: (BOOL)flag;
 - (NSArray*) split: (NSString*)str;
 @end
 #endif
