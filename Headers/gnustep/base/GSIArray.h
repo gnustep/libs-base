@@ -278,7 +278,7 @@ GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item,
   /*
    *	Binary search for an item equal to the one to be inserted.
    */
-  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+  for (index = upper/2; upper != lower; index = (upper+lower)/2)
     {
       NSComparisonResult comparison;
 

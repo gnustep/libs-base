@@ -1,4 +1,5 @@
 #include <Foundation/NSString.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 
 // Fri Oct 23 02:58:47 MET DST 1998 	dave@turbocat.de
@@ -34,6 +35,15 @@ int main()
   NSMutableString	*f1 = [NSMutableString stringWithString: @"ab"];
   NSStringEncoding	*encs;
 
+{
+  unichar	buf[] = { '\243' };
+  NSString	*str = [NSString stringWithCharacters: buf
+			 length: sizeof(buf)/sizeof(unichar)];
+  NSData	*gsm  = [str dataUsingEncoding: NSGSM0338StringEncoding];
+
+  NSLog(@"GSM: %*.*s", [gsm length], [gsm length], [gsm bytes]);
+  return 0;
+}
   NS_DURING
   [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: us1];
   NS_HANDLER
@@ -104,6 +114,7 @@ int main()
   while (*encs != 0)
     printf("Encoding %x\n", *encs++);
 }
+
   [arp release];
   exit(0);
 }
