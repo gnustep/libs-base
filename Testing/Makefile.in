@@ -93,12 +93,17 @@ diningPhilosophers.m \
 nsmaptable.m \
 nshashtable.m \
 tcpport-server.m \
-tcpport-client.m
+tcpport-client.m \
+nsnotification.m
 
 # nsarchiving.m
 
-tcpport: tcpport-server tcpport-client
-remote: server client
+tcpport: FORCE
+	(cd ../src; $(MAKE))
+	$(MAKE) tcpport-server tcpport-client
+remote: FORCE
+	(cd ../src; $(MAKE))
+	$(MAKE) server client
 
 HDRS = \
 server.h
@@ -170,3 +175,5 @@ copy-dist: $(DIST_FILES)
 
 Makefile: $(srcdir)/Makefile.in
 	cd ..; $(SHELL) config.status
+
+FORCE:
