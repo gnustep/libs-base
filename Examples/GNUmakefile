@@ -31,14 +31,10 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 # The tools to be compiled
 TEST_TOOL_NAME = \
-dictionary \
-stdio-stream \
-textcoding
+	dictionary
 
 # The Objective-C source files to be compiled
 dictionary_OBJC_FILES = dictionary.m
-stdio-stream_OBJC_FILES = stdio-stream.m
-textcoding_OBJC_FILES = textcoding.m
 
 SRCS = $(TEST_TOOL_NAME:=.m)
 
@@ -47,10 +43,10 @@ HDRS =
 DIST_FILES = $(SRCS) $(HDRS) GNUmakefile Makefile.postamble Makefile.preamble \
 custom-zone.m
 
--include Makefile.preamble
+include Makefile.preamble
 
--include GNUmakefile.local
+include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/test-tool.make
 
--include Makefile.postamble
+include Makefile.postamble
