@@ -82,7 +82,7 @@
 #define	FAST_MAP_HASH(X)	[(X).o hash]
 #endif
 
-#ifndef	FAST_MAP_EQUAL(X,Y)
+#ifndef	FAST_MAP_EQUAL
 #define	FAST_MAP_EQUAL(X,Y)	[(X).o isEqual: (Y).o]
 #endif
 
@@ -108,9 +108,9 @@ typedef FastMapEnumerator_t *FastMapEnumerator;
 struct	_FastMapNode {
     FastMapNode	nextInBucket;	/* Linked list of bucket.	*/
     FastMapNode	nextInMap;	/* For enumerating.		*/
-    FastmapItem	key;
+    FastMapItem	key;
 #if	FAST_MAP_HAS_VALUE
-    FastmapItem	value;
+    FastMapItem	value;
 #endif
 };
 

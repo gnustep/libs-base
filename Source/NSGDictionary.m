@@ -94,9 +94,9 @@
 				    withName: @"Dictionary content count"];
 
     while (node != 0) {
-	[(id<Encoding>)aCoder encodeObject: node->key
+	[(id<Encoding>)aCoder encodeObject: node->key.o
 				  withName: @"Dictionary key"];
-	[(id<Encoding>)aCoder encodeObject: node->value
+	[(id<Encoding>)aCoder encodeObject: node->value.o
 				  withName: @"Dictionary content"];
 	node = node->nextInMap;
     }
@@ -116,7 +116,7 @@
     while (count-- > 0) {
 	[(id<Decoding>)aCoder decodeObjectAt: &key withName: NULL];
 	[(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
-	FastMapAddPairNoRetain(&map, key, value);
+	FastMapAddPairNoRetain(&map, (FastMapItem)key, (FastMapItem)value);
     }
     
     return self;
@@ -127,15 +127,15 @@
     int	i;
     FastMapInitWithZoneAndCapacity(&map, [self zone], c);
     for (i = 0; i < c; i++) {
-	FastMapNode	node = FastMapNodeForKey(&map, keys[i]);
+	FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
 
 	if (node) {
 	    [objs[i] retain];
-	    [node->value release];
-	    node->value = objs[i];
+	    [node->value.o release];
+	    node->value.o = objs[i];
 	}
 	else {
-	    FastMapAddPair(&map, keys[i], objs[i]);
+	    FastMapAddPair(&map, (FastMapItem)keys[i], (FastMapItem)objs[i]);
 	}
     }
     return self;
@@ -155,10 +155,10 @@
 
 - (id) objectForKey: aKey
 {
-    FastMapNode	node = FastMapNodeForKey(&map, aKey);
+    FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)aKey);
 
     if (node)
-	return node->value;
+	return node->value.o;
     return nil;
 }
 
@@ -183,21 +183,21 @@
 
 - (void) setObject:anObject forKey:(NSObject *)aKey
 {
-    FastMapNode	node = FastMapNodeForKey(&map, aKey);
+    FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)aKey);
 
     if (node) {
 	[anObject retain];
-	[node->value release];
-	node->value = anObject;
+	[node->value.o release];
+	node->value.o = anObject;
     }
     else {
-	FastMapAddPair(&map, aKey, anObject);
+	FastMapAddPair(&map, (FastMapItem)aKey, (FastMapItem)anObject);
     }
 }
 
 - (void) removeObjectForKey:(NSObject *)aKey
 {
-    FastMapRemoveKey(&map, aKey);
+    FastMapRemoveKey(&map, (FastMapItem)aKey);
 }
 
 @end
@@ -220,7 +220,7 @@
 	return nil;
     }
     node = node->nextInMap;
-    return old->key;
+    return old->key.o;
 }
 
 - (void) dealloc
@@ -241,7 +241,7 @@
 	return nil;
     }
     node = node->nextInMap;
-    return old->value;
+    return old->value.o;
 }
 
 @end
