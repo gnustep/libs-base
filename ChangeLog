@@ -1,3 +1,12 @@
+Thu Oct 30 14:32:28 1997  Adam Fedor  <fedor@spanky.doc.com>
+
+	* Makefile (GNUSTEP_INSTALLATION_DIR): New variable.
+	* checks/Makefile (TOOL_NAME): Remove duplicate nsattributedstring.
+	* src/Makefile: Add libgnustep-base_ prefix to appropriate
+	variables. 
+
+	* src/NSProxy.m: Add limits.h for Solaris.
+
 Tue Oct 28 10:05:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSData.m: Added [-replacementObjectForPortCoder:] method to
