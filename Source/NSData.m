@@ -1185,28 +1185,21 @@ failure:
 	}
       case _C_STRUCT_B:
 	{
-	  int offset = 0;
+	  struct objc_struct_layout layout;
 
-	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	  for (;;)
+	  objc_layout_structure (type, &layout);
+	  while (objc_layout_structure_next_member (&layout))
 	    {
+	      int		offset;
+	      int		align;
+	      const char	*ftype;
+
+	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
+
 	      [self deserializeDataAt: ((char*)data) + offset
-			   ofObjCType: type
+			   ofObjCType: ftype
 			     atCursor: cursor
 			      context: callback];
-	      offset += objc_sizeof_type(type);
-	      type = objc_skip_typespec(type);
-	      if (*type != _C_STRUCT_E)
-		{
-		  int	align = objc_alignof_type(type);
-		  int	rem = offset % align;
-
-		  if (rem != 0)
-		    {
-		      offset += align - rem;
-		    }
-		}
-	      else break;
 	    }
 	  return;
         }
@@ -1968,25 +1961,21 @@ failure:
         }
       case _C_STRUCT_B:
 	{
-	  int offset = 0;
-	  int align, rem;
+	  struct objc_struct_layout layout;
 
-	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	  for (;;)
+	  objc_layout_structure (type, &layout);
+	  while (objc_layout_structure_next_member (&layout))
 	    {
+	      int		offset;
+	      int		align;
+	      const char	*ftype;
+
+	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
+
 	      [self serializeDataAt: ((char*)data) + offset
-			 ofObjCType: type
+			 ofObjCType: ftype
 			    context: callback];
-	      offset += objc_sizeof_type(type);
-	      type = objc_skip_typespec(type);
-	      if (*type != _C_STRUCT_E)
-		{
-		  align = objc_alignof_type(type);
-		  if ((rem = offset % align))
-		    offset += align - rem;
-                }
-	      else break;
-            }
+	    }
 	  return;
         }
       case _C_PTR:
@@ -2394,28 +2383,21 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_STRUCT_B:
 	{
-	  int	offset = 0;
+	  struct objc_struct_layout layout;
 
-	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	  for (;;)
+	  objc_layout_structure (type, &layout);
+	  while (objc_layout_structure_next_member (&layout))
 	    {
+	      int		offset;
+	      int		align;
+	      const char	*ftype;
+
+	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
+
 	      [self deserializeDataAt: ((char*)data) + offset
-			   ofObjCType: type
+			   ofObjCType: ftype
 			     atCursor: cursor
 			      context: callback];
-	      offset += objc_sizeof_type(type);
-	      type = objc_skip_typespec(type);
-	      if (*type != _C_STRUCT_E)
-		{
-		  int	align = objc_alignof_type(type);
-		  int	rem = offset % align;
-
-		  if (rem != 0)
-		    {
-		      offset += align - rem;
-		    }
-		}
-	      else break;
 	    }
 	  return;
         }
@@ -3188,27 +3170,20 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_STRUCT_B:
 	{
-	  int offset = 0;
+	  struct objc_struct_layout layout;
 
-	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	  for (;;)
+	  objc_layout_structure (type, &layout);
+	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      [self serializeDataAt: ((char*)data) + offset
-			 ofObjCType: type
-			    context: callback];
-	      offset += objc_sizeof_type(type);
-	      type = objc_skip_typespec(type);
-	      if (*type != _C_STRUCT_E)
-		{
-		  unsigned	align = objc_alignof_type(type);
-		  unsigned	rem = offset % align;
+	      int		offset;
+	      int		align;
+	      const char	*ftype;
 
-		  if (rem != 0)
-		    {
-		      offset += align - rem;
-		    }
-		}
-	      else break;
+	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
+
+	      [self serializeDataAt: ((char*)data) + offset
+			 ofObjCType: ftype
+			    context: callback];
 	    }
 	  return;
 	}

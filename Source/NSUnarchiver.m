@@ -746,29 +746,19 @@ static Class NSDataMallocClass;
 
       case _GSC_STRUCT_B:
 	{
-	  int offset = 0;
+	  struct objc_struct_layout layout;
 
 	  typeCheck(*type, _GSC_STRUCT_B);
-	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	  for (;;)
+	  objc_layout_structure (type, &layout);
+	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      (*dValImp)(self, dValSel, type, (char*)address + offset);
-	      offset += objc_sizeof_type(type);
-	      type = objc_skip_typespec(type);
-	      if (*type == _C_STRUCT_E)
-		{
-		  break;
-		}
-	      else
-		{
-		  int	align = objc_alignof_type(type);
-		  int	rem = offset % align;
+	      int		offset;
+	      int		align;
+	      const char	*ftype;
 
-		  if (rem != 0)
-		    {
-		      offset += align - rem;
-		    }
-		}
+	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
+
+	      (*dValImp)(self, dValSel, ftype, (char*)address + offset);
 	    }
 	  return;
 	}
