@@ -28,8 +28,8 @@
 
 @protocol Invoking <NSObject>
 
-- invoke;
-- invokeWithObject: anObject;
+- (void) invoke;
+- (void) invokeWithObject: anObject;
 
 - objectReturnValue;
 - (int) intReturnValue;
