@@ -877,11 +877,16 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       {
 	struct sigaction	act;
 
-	if (sigaction(SIGPIPE, 0, &act) == 0 && act.sa_handler == SIG_DFL)
+	if (sigaction(SIGPIPE, 0, &act) == 0)
 	  {
-	    if (sigaction(SIGPIPE, &act, 0) != 0)
+	    if (act.sa_handler == SIG_DFL)
 	      {
-		fprintf(stderr, "Unable to ignore SIGPIPE\n");
+		// Not ignored or handled ... so we ignore it.
+		act.sa_handler = SIG_IGN;
+		if (sigaction(SIGPIPE, &act, 0) != 0)
+		  {
+		    fprintf(stderr, "Unable to ignore SIGPIPE\n");
+		  }
 	      }
 	  }
 	else
