@@ -4,6 +4,8 @@
 	conversion when initialising a date at a daylight savings time
 	boundary, and attempt to improve the code for adding offsets to
 	dates.
+	* Source/Makefile.postamble: patch to fix some warnings in
+	uninstall (by David Ayers).
 
 2002-09-27  Richard Frith-Macdonald <rfm@gnu.org>
 
