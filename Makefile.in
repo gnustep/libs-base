@@ -216,6 +216,7 @@ objects/MappedCollector.h \
 objects/MemoryStream.h \
 objects/NSArray.h \
 objects/NSCoder.h \
+objects/NSDictionary.h \
 objects/NSString.h \
 objects/Ordering.h \
 objects/Port.h \
@@ -303,6 +304,7 @@ NSGArchiver.m \
 NSGArray.m \
 NSGCoder.m \
 NSGData.m \
+NSGDictionary.m \
 NSGUnarchiver.m \
 NSNumber.m \
 NSObject.m \
@@ -356,6 +358,7 @@ Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
 Foundation/NSGCoder.h \
 Foundation/NSGData.h \
+Foundation/NSGDictionary.h \
 Foundation/NSGUnarchiver.h \
 Foundation/NSInvocation.h \
 Foundation/NSMethodSignature.h \
