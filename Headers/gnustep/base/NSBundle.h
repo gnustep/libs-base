@@ -39,6 +39,33 @@ GS_EXPORT NSString* NSBundleDidLoadNotification;
 GS_EXPORT NSString* NSShowNonLocalizedStrings;
 GS_EXPORT NSString* NSLoadedClasses;
 
+/**
+   <p>
+   NSBundle provides methods for locating and handling application (and tool)
+   resources at runtime. Resources includes any time of file that the
+   application might need, such as images, nim (gorm or gmodel) files,
+   localization files, and any other type of file that an application
+   might need to use to function. Resources also include executable
+   code, which can be dynamically linked into the application at
+   runtime. These files and executable code are commonly put together
+   into a directory called a bundle.
+   </p>
+   <p>
+   NSBundle knows how these bundles are organized and can search for
+   files inside a bundle. NSBundle also handles locating the
+   executable code, linking this in and initializing any classes that
+   are located in the code. NSBundle also handles Frameworks, which are
+   basically a bundle that contains a library archive. The
+   organization of a framework is a little difference, but in most
+   respects there is no difference between a bundle and a framework.
+   <p>
+   These is one special bundle, called the mainBundle, which is
+   basically the application itself. The mainBundle is always loaded
+   (of course), but you can still perform other operations on the
+   mainBundle, such as searching for files, just as with any other
+   bundle.
+   </p>
+*/
 @interface NSBundle : NSObject
 {
   NSString	*_path;
@@ -101,11 +128,20 @@ GS_EXPORT NSString* NSLoadedClasses;
  * application or a tool, it's better if you use +mainBundle.  */
 + (NSBundle*) bundleWithPath: (NSString*)path;
 
-/** Search for a file with name and extension ext in the bundle
- * rooted at bundlePath.  */
+/**
+  Returns an absolute path for a resource name with the extension
+  ext in the specified bundlePath.  See also
+  -pathForResource:ofType:inDirectory: for more information on
+  searching a bundle.  
+ */
 + (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath;
+
+/**
+  This method has been depreciated. Version numbers were never implemented
+  so this method behaves exactly like +pathForResource:ofType:inDirectory:.
+ */
 + (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath
@@ -123,27 +159,125 @@ GS_EXPORT NSString* NSLoadedClasses;
 /** Return the path to the bundle - an absolute path.  */
 - (NSString*) bundlePath;
 
+/** Returns the class in the bundle with the given name. If no class
+    of this name exists in the bundle, then Nil is returned.
+ */
 - (Class) classNamed: (NSString*)className;
+
+/** Returns the principal class of the bundle. This is the class
+    specified by the NSPrincipalClass key in the Info-gnustep property
+    list contained in the bundle. If this key is not found, the
+    class returned is arbitrary, although it is typically the first
+    class compiled into the archive.
+ */
 - (Class) principalClass;
 
++ (NSArray*) pathsForResourcesOfType: (NSString*)extension
+			 inDirectory: (NSString*)bundlePath;
+
+/**
+  <p>
+   Returns an array of paths for all resources with the specified
+   extension and residing in the bundlePath directory. If extension is
+   nil or empty, all bundle resources are returned.
+   </p>
+ */
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath;
+
+/**
+  <p>
+   Returns an absolute path for a resource name with the extension ext
+   in the specified bundlePath. Directories in the bundle are searched
+   in the following order:
+   </p>
+   <example>
+     root path/Resources/bundlePath
+     root path/Resources/bundlePath/"language.lproj"
+     root path/bundlePath
+     root path/bundlePath/"language.lproj"
+   </example>
+   <p>
+   where lanuage.lproj can be any localized language directory inside
+   the bundle.
+   </p>
+   <p>
+   If ext is nil or empty, then the first file with name and any
+   extension is returned.
+   </p>
+   <p>
+   Use of the version argument is depreciated. Specifiying a version
+   doesn't do anything useful.
+   </p>
+*/
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath;
+
+/**
+   Returns an absolute path for a resource name with the extension ext
+   in the receivers bundle path. 
+   See -pathForResource:ofType:inDirectory:.
+ */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext;
+
+/**
+   Returns the value for the key found in the strings file tableName,
+   or Localizable.strings if tableName is nil.
+ */
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value
 			      table: (NSString*)tableName;
+
+/** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
 
+/** Returns the bundle version. */
 - (unsigned) bundleVersion;
+
+/** Set the bundle version */
 - (void) setBundleVersion: (unsigned)version;
 
 #ifndef STRICT_OPENSTEP
++ (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray;
++ (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
+			       forPreferences: (NSArray *)preferencesArray;
+
+- (NSArray*) pathsForResourcesOfType: (NSString*)extension
+			 inDirectory: (NSString*)bundlePath
+		     forLocalization: (NSString*)localizationName;
+- (NSString*) pathForResource: (NSString*)name
+		       ofType: (NSString*)ext
+		  inDirectory: (NSString*)bundlePath
+	      forLocalization: (NSString*)localizationName;
+
+/** Returns the info property list associated with the bundle. */
 - (NSDictionary*) infoDictionary;
+
+/** Returns a localized info property list based on the preferred
+    localization or the most appropriate localization if the preferred
+    one cannot be found.
+*/
+- (NSDictionary *)localizedInfoDictionary;
+
+/** Returns all the localizations in the bundle. */
+- (NSArray *)localizations;
+
+/** Returns the list of localizations that the bundle uses to search
+    for information. This is based on the user's preferences.
+*/
+- (NSArray *)preferredLocalizations;
+
+/** Loads any executable code contained in the bundle into the
+    application. Load will be called implicitly if any information
+    about the bundle classes is requested, such as -principalClass or
+    -classNamed:. 
+ */
 - (BOOL) load;
+
+/** Returns the path to the executable code in the bundle */
+- (NSString *)executablePath;
 #endif
 
 @end
@@ -151,7 +285,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 #ifndef	 NO_GNUSTEP
 @interface NSBundle (GNUstep)
 
-/** The following method is an experimental GNUstep extension, and
+/** This method is an experimental GNUstep extension, and
  *  might change.  At the moment, search on the standard GNUstep
  *  directories (starting from GNUSTEP_USER_ROOT, and going on to
  *  GNUSTEP_SYSTEM_ROOT) for a directory
@@ -427,5 +561,3 @@ GS_EXPORT NSString* NSLoadedClasses;
 #endif /* NO_GNUSTEP */
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */
-
-
