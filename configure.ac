@@ -645,9 +645,9 @@ AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
 	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
 #--------------------------------------------------------------------
-# This function needed by NSThread.m
+# One of these function needed by NSThread.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(usleep)
+AC_CHECK_FUNCS(nanosleep usleep)
 
 #--------------------------------------------------------------------
 # This function needed by NSDebug.m and NSProcessInfo.m
