@@ -40,12 +40,6 @@
  */
 GS_EXPORT void  GSSetUserName(NSString *aName);
 
-/** 
- * Try to locate file/directory (aName).(anExtension) in paths.
- * Will return the first found or nil if nothing is found.
- */
-GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension);
-
 GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
 
 GS_EXPORT NSString *GSSystemRootDirectory(void)  GS_ATTRIB_DEPRECATED;
