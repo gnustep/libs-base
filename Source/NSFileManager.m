@@ -1824,7 +1824,7 @@ static NSFileManager* defaultManager = nil;
       return @"";
     }
   if (len >= 2
-    && ((ptr[1] == '/' && ptr[0] == '/') || (ptr[1] == '\\' && ptr[0] == '\\'))
+    && ((ptr[1] == '/' && ptr[0] == '/') || (ptr[1] == '\\' && ptr[0] == '\\')))
     {
       /*
        * Convert '//<servername>/' to '~@<servername>/' sequences.
