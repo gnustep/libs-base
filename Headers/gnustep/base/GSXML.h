@@ -31,9 +31,6 @@
 #ifndef __GSXML_H__
 #define __GSXML_H__
 
-#define GSXML_DEBUG 1
-//#undef  GSXML_DEBUG
-
 #include <libxml/tree.h>
 #include <libxml/entities.h>
 
@@ -209,19 +206,11 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) setExternalEntityLoader: (void*)function;
 - (BOOL) substituteEntities: (BOOL)yesno;
 
-//libxml base functions
-- (BOOL) createCreatePushParserCtxt;
-- (void) parseChunk: (NSData*)data;
-
 @end
 
 @interface GSHTMLParser : GSXMLParser
 {
 }
-
-//libxml base functions
-- (BOOL) createCreatePushParserCtxt;
-- (void) parseChunk: (NSData*)data;
 @end
 
 @interface GSSAXHandler : NSObject
@@ -230,7 +219,6 @@ typedef xmlNsType		GSXMLNamespaceType;
   GSXMLParser	*parser;
 }
 + (GSSAXHandler*) handler;
-- (BOOL) initLib;
 - (void*) lib;
 - (GSXMLParser*) parser;
 @end
@@ -303,7 +291,6 @@ typedef xmlNsType		GSXMLNamespaceType;
 @end
 
 @interface GSHTMLSAXHandler : GSSAXHandler
-- (BOOL) initLib;
 @end
 
 #endif __GSXML_H__
