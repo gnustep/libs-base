@@ -100,8 +100,13 @@ static Class NSMutableSet_concrete_class;
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSSet_abstract_class)
-    return NSAllocateObject(NSSet_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 /* This is the designated initializer */
@@ -473,8 +478,13 @@ static Class NSMutableSet_concrete_class;
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSMutableSet_abstract_class)
-    return NSAllocateObject(NSMutableSet_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSMutableSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 - (id) copyWithZone: (NSZone*)z

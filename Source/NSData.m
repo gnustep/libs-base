@@ -110,6 +110,8 @@ static SEL	appendSel = @selector(appendBytes:length:);
 static Class	dataStatic;
 static Class	dataMalloc;
 static Class	mutableDataMalloc;
+static Class	NSDataAbstract;
+static Class	NSMutableDataAbstract;
 static IMP	appendImp;
 
 static BOOL
@@ -326,6 +328,8 @@ failure:
 {
   if (self == [NSData class])
     {
+      NSDataAbstract = self;
+      NSMutableDataAbstract = [NSMutableData class];
       dataMalloc = [NSDataMalloc class];
       dataStatic = [NSDataStatic class];
       mutableDataMalloc = [NSMutableDataMalloc class];
@@ -335,7 +339,14 @@ failure:
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject(dataMalloc, 0, z);
+  if (self == NSDataAbstract)
+    {
+      return NSAllocateObject(dataMalloc, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 + (id) data
@@ -1269,7 +1280,14 @@ failure:
 @implementation NSMutableData
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject(mutableDataMalloc, 0, z);
+  if (self == NSMutableDataAbstract)
+    {
+      return NSAllocateObject(mutableDataMalloc, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 + (id) data

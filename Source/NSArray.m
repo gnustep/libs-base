@@ -83,8 +83,13 @@ static SEL	rlSel = @selector(removeLastObject);
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSArray_abstract_class)
-    return NSAllocateObject(NSArray_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSArray_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 + (id) array
@@ -779,8 +784,13 @@ static NSString	*indentStrings[] = {
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSMutableArray_abstract_class)
-    return NSAllocateObject(NSMutableArray_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSMutableArray_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 /* The NSCopying Protocol */

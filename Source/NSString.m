@@ -99,6 +99,7 @@ static NSStringEncoding _availableEncodings[] = {
 };
 
 static Class	NSString_class;		/* For speed	*/
+static Class	NSMutableString_class;		/* For speed	*/
 
 /*
  *	Include sequence handling code with instructions to generate search
@@ -237,6 +238,7 @@ handle_printf_atsign (FILE *stream,
     {
       _DefaultStringEncoding = GetDefEncoding();
       NSString_class = self;
+      NSMutableString_class = [NSMutableString class];
       NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableString class];
@@ -258,9 +260,14 @@ handle_printf_atsign (FILE *stream,
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if ([self class] == [NSString class])
-    return NSAllocateObject (NSString_concrete_class, 0, z);
-  return [super allocWithZone: z];
+  if (self == NSString_class)
+    {
+      return NSAllocateObject (NSString_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject (self, 0, z);
+    }
 }
 
 // Creating Temporary Strings
@@ -2658,9 +2665,14 @@ handle_printf_atsign (FILE *stream,
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if ([self class] == [NSMutableString class])
-    return NSAllocateObject(NSMutableString_concrete_class, 0, z);
-  return [super allocWithZone: z];
+  if (self == NSMutableString_class)
+    {
+      return NSAllocateObject(NSMutableString_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 // Creating Temporary Strings

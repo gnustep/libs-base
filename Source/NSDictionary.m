@@ -75,8 +75,13 @@ static SEL	appSel = @selector(appendString:);
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSDictionary_abstract_class)
-    return NSAllocateObject(NSDictionary_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSDictionary_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 /* This is the designated initializer */
@@ -843,8 +848,13 @@ static NSString	*indentStrings[] = {
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSMutableDictionary_abstract_class)
-    return NSAllocateObject(NSMutableDictionary_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSMutableDictionary_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 - (id) copyWithZone: (NSZone*)z

@@ -41,9 +41,13 @@ Class	NSPort_concrete_class;
 + (id) allocWithZone: (NSZone*)aZone
 {
   if (self == NSPort_abstract_class)
-    return NSAllocateObject(NSPort_concrete_class, 0, aZone);
+    {
+      return NSAllocateObject(NSPort_concrete_class, 0, aZone);
+    }
   else
-    return [super allocWithZone: aZone];
+    {
+      return NSAllocateObject(self, 0, aZone);
+    }
 }
 
 + (void) initialize

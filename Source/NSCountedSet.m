@@ -82,8 +82,13 @@ static Class NSCountedSet_concrete_class;
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSCountedSet_abstract_class)
-    return NSAllocateObject(NSCountedSet_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSCountedSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 - (unsigned int) countForObject: (id)anObject
