@@ -76,6 +76,16 @@
  * Get the type encoding for a named ivar,
  * and copy a value into an ivar.
  */
+GS_EXPORT BOOL GSObjCFindInstanceVariable(id obj, const char *name,
+  const char **type, unsigned int *size, int *offset);
+GS_EXPORT void GSObjCGetVariable(id obj, int offset, unsigned int size,
+  void *data);
+GS_EXPORT void GSObjCSetVariable(id obj, int offset, unsigned int size,
+  const void *data);
+
+/*
+ * The next three are old (deprecated) names for the same thing.
+ */
 GS_EXPORT BOOL GSFindInstanceVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset);
 GS_EXPORT void GSGetVariable(id obj, int offset, unsigned int size, void *data);
