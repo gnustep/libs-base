@@ -2336,16 +2336,15 @@ fi
 #--------------------------------------------------------------------
 # specific target_os options
 #--------------------------------------------------------------------
-# CPPFLAGS are not used anywhere except during configuration. If they
-# are needed, they should have been set when configuring gnustep-make
-# INCLUDE_FLAGS will go into base.make(CONFIG_SYSTEM_INCL)
-INCLUDE_FLAGS=""
+INCLUDE_FLAGS="$CPPFLAGS"
+LIBS="$LDFLAGS $LIBS"
+# This is just for configuring. Later, in config.make, INCLUDE_FLAGS
+# goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -L/usr/pkg/lib";;
-
 esac
 
 #----------------------------------------------------------------
@@ -5849,22 +5848,43 @@ echo $ECHO_N "checking loading of constructor functions... $ECHO_C" >&6
 if test "${objc_cv_con_autoload+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  cat > conftest.constructor.c <<EOF
-void cons_functions() __attribute__ ((constructor));
-void cons_functions() {}
-int main()
-{
-  return 0;
-}
-EOF
-${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
+  if test "$cross_compiling" = yes; then
+  objc_cv_con_autoload=no
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+static int loaded = 0;
+	void cons_functions() __attribute__ ((constructor));
+	void cons_functions() { loaded = 1; }
+	int main()
+	{
+  	  return ( (loaded == 1) ? 0 : 1);
+	}
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  objc_cv_con_autoload=yes
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+( exit $ac_status )
+objc_cv_con_autoload=no
+fi
+rm -f core core.* *.core conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
 case "$target_os" in
     cygwin*)	objc_cv_con_autoload=yes;;
-    *)	if test -n "`nm conftest${ac_exeext} | grep global_ctors`"; then
-  	  objc_cv_con_autoload=yes
-	else
-  	  objc_cv_con_autoload=no
-	fi ;;
 esac
 
 fi
@@ -6329,18 +6349,25 @@ echo "$as_me:$LINENO: result: $DYNAMIC_LINKER" >&5
 echo "${ECHO_T}$DYNAMIC_LINKER" >&6
 
 if test $DYNAMIC_LINKER = simple; then
-  echo "$as_me:$LINENO: checking checking if dladdr() is available" >&5
-echo $ECHO_N "checking checking if dladdr() is available... $ECHO_C" >&6
-  old_LDFLAGS="$LDFLAGS"
-  case "$target_os" in
-    linux-gnu*) LDFLAGS="$old_LDFLAGS -ldl";;
-    solaris*) LDFLAGS="$old_LDFLAGS -ldl";;
-    sysv4.2*) LDFLAGS="$old_LDFLAGS -ldl";;
-  esac
-  cat >conftest.$ac_ext <<_ACEOF
+
+echo "$as_me:$LINENO: checking for dladdr in -ldl" >&5
+echo $ECHO_N "checking for dladdr in -ldl... $ECHO_C" >&6
+if test "${ac_cv_lib_dl_dladdr+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
-#include <dlfcn.h>
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char dladdr ();
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
      extern "C"
@@ -6350,7 +6377,7 @@ echo $ECHO_N "checking checking if dladdr() is available... $ECHO_C" >&6
 int
 main ()
 {
-dladdr(0,0);
+dladdr ();
   ;
   return 0;
 }
@@ -6367,21 +6394,26 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_DLADDR 1
-_ACEOF
-
-	      echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
+  ac_cv_lib_dl_dladdr=yes
 else
   echo "$as_me: failed program was:" >&5
 cat conftest.$ac_ext >&5
-echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+ac_cv_lib_dl_dladdr=no
 fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-  LDFLAGS="$old_LDFLAGS"
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_dl_dladdr" >&5
+echo "${ECHO_T}$ac_cv_lib_dl_dladdr" >&6
+if test $ac_cv_lib_dl_dladdr = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDL 1
+_ACEOF
+
+  LIBS="-ldl $LIBS"
+
+fi
+
 fi
 
 
@@ -9767,7 +9799,6 @@ else
 fi
 
   if test "$zlib_ok" = yes; then
-    base_libs="$LIBS"
     LIBS="$LIBS -lz"
     USE_ZLIB=1
   fi
@@ -11901,7 +11932,6 @@ fi
 
   fi
   if test "$gmp_ok" = yes; then
-    base_libs="$LIBS"
     LIBS="$LIBS -lgmp"
     USE_GMP=1
   fi
@@ -12003,11 +12033,11 @@ if test "${with_libiconv_library+set}" = set; then
 else
   libiconv_libdir="no"
 fi;
-  cppflags_temp="$CPPFLAGS"
+  ldflags_temp="$LDFLAGS"
 
   if test "$libiconv_libdir" != "no"; then
-    CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
-    INCLUDE_FLAGS="$INCLUDE_FLAGS  -L$libiconv_libdir"
+    LDFLAGS="$LDFLAGS -L$libiconv_libdir"
+    LIBS="$LIBS  -L$libiconv_libdir"
   fi
 
   # BSDs install this lib as libgiconv
@@ -12149,7 +12179,7 @@ _ACEOF
 
     fi
   fi
-  CPPFLAGS="$cppflags_temp"
+  LDFLAGS="$ldflags_temp"
 fi
 
 

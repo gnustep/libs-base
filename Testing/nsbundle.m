@@ -39,7 +39,7 @@ main(int argc, char *argv[], char **env)
     printf("  Executable is in %s\n", [path cString]);
     path = [NSBundle _absolutePathOfExecutable: path];
     if (!path) {
-	fprintf(stderr, "* ERROR: Can't find executable\n");
+	fprintf(stdout, "* ERROR: Can't find executable\n");
 	exit(1);
     }
     printf("  Full directory is %s\n", [path cString]);
@@ -54,7 +54,7 @@ main(int argc, char *argv[], char **env)
     path = [NSBundle pathForResource:@"LoadMe" ofType:@"bundle"
                      inDirectory: path];
     if (!path) {
-	fprintf(stderr, "* ERROR: Can't find LoadMe bundle\n");
+	fprintf(stdout, "* ERROR: Can't find LoadMe bundle\n");
 	exit(1);
     }
     printf("  Found LoadMe in: %s\n\n", [path cString]);
@@ -62,12 +62,12 @@ main(int argc, char *argv[], char **env)
     printf("Initializing LoadMe bundle...\n");
     bundle = [[NSBundle alloc] initWithPath:path];
     if (!bundle) {
-	fprintf(stderr, "* ERROR: Can't init LoadMe bundle\n");
+	fprintf(stdout, "* ERROR: Can't init LoadMe bundle\n");
 	exit(1);
     }
     path = [bundle pathForResource:@"NXStringTable" ofType:@"example"];
     if (!path) {
-	fprintf(stderr, "* ERROR: Can't find example in LoadMe bundle\n");
+	fprintf(stdout, "* ERROR: Can't find example in LoadMe bundle\n");
 	exit(1);
     }
     printf("  Found example file: %s\n\n", [path cString]);
@@ -77,29 +77,43 @@ main(int argc, char *argv[], char **env)
     	object = [bundle principalClass];
     NS_HANDLER
 	object = nil;
-	fprintf(stderr, "  ERROR: %s\n", [[localException reason] cString]);
-        fprintf(stderr, "  Either there is a problem with dynamic loading,\n");
-	fprintf(stderr, "  or there is no dynamic loader on your system\n");
+	fprintf(stdout, "  ERROR: %s\n", [[localException reason] cString]);
+        fprintf(stdout, "  Either there is a problem with dynamic loading,\n");
+	fprintf(stdout, "  or there is no dynamic loader on your system\n");
 	exit(1);
     NS_ENDHANDLER
-    if (!object) {
-	fprintf(stderr, "* ERROR: Can't find principal class\n");
-	exit(1);
-    }
-    printf("  Principal class is: %s\n", object_get_class_name (object));
+    if (!object) 
+      {
+	printf("* ERROR: Can't find principal class\n");
+      }
+    else
+      printf("  Principal class is: %s\n", object_get_class_name (object));
 
     printf("Testing LoadMe bundle classes...\n");
     printf("  This is LoadMe:\n");
     object = [[[bundle classNamed:@"LoadMe"] alloc] init];
-    [object afterLoad];
-    [object release];
+    if (!object)
+      {
+	printf("* ERROR: Can't find LoadMe class\n");
+      }
+    else
+      {
+	[object afterLoad];
+	[object release];
+      }
 
     printf("\n  This is SecondClass:\n");
     object = [[[bundle classNamed:@"SecondClass"] alloc] init];
-    [object printName];
-    [object printMyName];
-    [object release];
-
+    if (!object)
+      {
+	printf("* ERROR: Can't find SecondClass class\n");
+      }
+    else
+      {
+	[object printName];
+	[object printMyName];
+	[object release];
+      }
     [arp release];
     return 0;
 }

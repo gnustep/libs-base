@@ -53,23 +53,6 @@
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"
 
-/* From the objc runtime -- needed when invalidating the dtable */
-#ifndef NeXT_RUNTIME
-extern void __objc_install_premature_dtable(Class);
-extern void sarray_free(struct sarray*);
-#ifndef HAVE_OBJC_GET_UNINSTALLED_DTABLE
-#ifndef objc_EXPORT
-#define objc_EXPORT export
-#endif
-objc_EXPORT void *__objc_uninstalled_dtable;
-static void *
-objc_get_uninstalled_dtable()
-{
-  return __objc_uninstalled_dtable;
-}
-#endif
-#endif /* ! NeXT */
-
 /* Declaration from NSBundle.m */
 const char *objc_executable_location (void);
 

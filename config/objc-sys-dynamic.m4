@@ -26,18 +26,7 @@ AC_MSG_CHECKING([for dynamic linker type])
 AC_MSG_RESULT([$DYNAMIC_LINKER])
 
 if test $DYNAMIC_LINKER = simple; then
-  AC_MSG_CHECKING([checking if dladdr() is available])
-  old_LDFLAGS="$LDFLAGS"
-  case "$target_os" in
-    linux-gnu*) LDFLAGS="$old_LDFLAGS -ldl";;
-    solaris*) LDFLAGS="$old_LDFLAGS -ldl";;
-    sysv4.2*) LDFLAGS="$old_LDFLAGS -ldl";;
-  esac
-  AC_TRY_LINK([#include <dlfcn.h>], dladdr(0,0);, 
-	      AC_DEFINE(HAVE_DLADDR,1, [Define if you have dladdr])
-	      AC_MSG_RESULT([yes]),
-	      AC_MSG_RESULT([no]))
-  LDFLAGS="$old_LDFLAGS"
+  AC_CHECK_LIB(dl, dladdr)
 fi
 
 AC_SUBST(DYNAMIC_LINKER)dnl

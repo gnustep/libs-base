@@ -1,3 +1,16 @@
+2003-05-29  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Pass on original CPPFLAGS to config.mak.
+	* config/objc-con-autoload.m4: Test for constructors directly.
+	* config/objc-sys-dynamic.m4: Check for dl lib if we are using dladdr.
+
+	* Source/objc-load.m (objc_get_uninstalled_dtable): Remove unused.
+
+	* Source/Additions/GSXML.m (unparsedEntityDeclFunction): Add block
+	around START so it will compile on GCC 2.
+
+	* Testing/nsbundle.m: Errors to stdout.
+
 2003-05-26  Adam Fedor  <fedor@gnu.org>
 
 	* Testing/Makefile.postamble (check): Define to run all
