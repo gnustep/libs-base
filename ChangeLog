@@ -1,3 +1,10 @@
+2004-03-05    <Wim Oudshoorn <Wim.Oudshoorn@agilisys.com>>
+
+	* Source/NSCalendarDate.m ([NSCalendarDate -descriptionWithCalendarFormat:locale:]): 
+	Fixed problem with repeated %b %B %b %B and the like. 
+	Fixed problem with missing characters after unrecognixed modifiers.
+	Added support for %c %X and %x.
+
 2004-03-02  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSCalendarDate.m (dayOfCommonEra): Make non-static.
