@@ -1,3 +1,22 @@
+Mon Dec 13 12:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Fixes for cball's changes (who is cball?, and why didn't s/he produce
+	a ChangeLog entry or conform to GNU indentation?  It took me hours to
+	tidy this up).
+	* Source/NSDate.m: ([NSGDate -addTimeInterval:]) removed bogus
+	implementation of method (inherits from NSDate).
+	* Source/NSCalendarDate.m: Added implementation of ([-addTimeInterval:])
+	with specific code for NSCalendarDate.  Reformatted code to GNUstep
+	style.
+	* Source/NSGArray.m: ([-removeObjectIdenticalTo:]) and
+	([-removeObjectIdenticalTo:inRange:]) reverted to correct code.
+	([-removeObject:]) and ([-removeObjectIdenticalTo:inRange:]) removed
+	changes and added fixes so that methods are safe where multiple objects
+	equal to the object to be removed are present in the array.
+	* Source/NSArray.m: Similar fixes for object removal.
+	* Source/NSObject.m: Rewritten mutex code so that mutexes are not used
+	for retain/release unless the app is multi-threaded.
+
 Wed Dec  1 19:36:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: When sorting, treat illegal return values from the

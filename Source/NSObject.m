@@ -39,6 +39,8 @@
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSThread.h>
+#include <Foundation/NSNotification.h>
 #include <limits.h>
 
 #include <base/fast.x>
@@ -102,6 +104,12 @@ void	_fastBuildCache()
  *	allocated is stored with the object - this makes lookup of the
  *	correct zone to free memory very fast.
  */
+
+/*
+ * retain_counts_gate is needed when running multi-threaded for retain/release
+ * to work reliably.
+ */
+static objc_mutex_t retain_counts_gate = NULL;
 
 #if	GS_WITH_GC == 0
 #define	REFCNT_LOCAL	1
@@ -182,33 +190,62 @@ NSExtraRefCount(id anObject)
   return ((obj)anObject)[-1].retained;
 }
 
-static objc_mutex_t retain_counts_gate = NULL;
-
 void
 NSIncrementExtraRefCount(id anObject)
 {
-  objc_mutex_lock (retain_counts_gate);
-  ((obj)anObject)[-1].retained++;
-  objc_mutex_unlock (retain_counts_gate);
+  if (retain_counts_gate != 0)
+    {
+      objc_mutex_lock(retain_counts_gate);
+      ((obj)anObject)[-1].retained++;
+      objc_mutex_unlock (retain_counts_gate);
+    }
+  else
+    {
+      ((obj)anObject)[-1].retained++;
+    }
 }
 
-#define	NSIncrementExtraRefCount(X)       \
-    objc_mutex_lock (retain_counts_gate); \
-	((obj)(X))[-1].retained++;            \
-    objc_mutex_unlock (retain_counts_gate)
+#define	NSIncrementExtraRefCount(X) ({ \
+  if (retain_counts_gate != 0) \
+    { \
+      objc_mutex_lock(retain_counts_gate); \
+      ((obj)(X))[-1].retained++;            \
+      objc_mutex_unlock(retain_counts_gate); \
+    } \
+  else \
+    { \
+      ((obj)X)[-1].retained++; \
+    } \
+})
 
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
-  objc_mutex_lock (retain_counts_gate);
-  if (((obj)anObject)[-1].retained-- == 0)
+  if (retain_counts_gate != 0)
+    {
+      objc_mutex_lock(retain_counts_gate);
+      if (((obj)anObject)[-1].retained-- == 0)
 	{
-	  objc_mutex_unlock (retain_counts_gate);
+	  objc_mutex_unlock(retain_counts_gate);
 	  return YES;
-	} else {
-	  objc_mutex_unlock (retain_counts_gate);
+	}
+      else
+	{
+	  objc_mutex_unlock(retain_counts_gate);
 	  return NO;
 	}
+    }
+  else
+    {
+      if (((obj)anObject)[-1].retained-- == 0)
+	{
+	  return YES;
+	}
+      else
+	{
+	  return NO;
+	}
+    }
 }
 
 
@@ -218,22 +255,31 @@ NSDecrementExtraRefCountWasZero(id anObject)
 
 /* The maptable of retain counts on objects */
 static o_map_t *retain_counts = NULL;
-/* The mutex lock to protect multi-threaded use of `retain_counts' */
-static objc_mutex_t retain_counts_gate = NULL;
 
 void
 NSIncrementExtraRefCount (id anObject)
 {
   o_map_node_t *node;
-  extern o_map_node_t *o_map_node_for_key (o_map_t *m, const void *k);
+  extern o_map_node_t *o_map_node_for_key(o_map_t *m, const void *k);
 
-  objc_mutex_lock (retain_counts_gate);
-  node = o_map_node_for_key (retain_counts, anObject);
-  if (node)
-    ((int)(node->value))++;
+  if (retain_counts_gate != 0)
+    {
+      objc_mutex_lock(retain_counts_gate);
+      node = o_map_node_for_key (retain_counts, anObject);
+      if (node)
+	((int)(node->value))++;
+      else
+	o_map_at_key_put_value_known_absent (retain_counts, anObject, (void*)1);
+      objc_mutex_unlock(retain_counts_gate);
+    }
   else
-    o_map_at_key_put_value_known_absent (retain_counts, anObject, (void*)1);
-  objc_mutex_unlock (retain_counts_gate);
+    {
+      node = o_map_node_for_key (retain_counts, anObject);
+      if (node)
+	((int)(node->value))++;
+      else
+	o_map_at_key_put_value_known_absent (retain_counts, anObject, (void*)1);
+    }
 }
 
 BOOL
@@ -243,17 +289,35 @@ NSDecrementExtraRefCountWasZero (id anObject)
   extern o_map_node_t *o_map_node_for_key (o_map_t *m, const void *k);
   extern void o_map_remove_node (o_map_node_t *node);
 
-  objc_mutex_lock (retain_counts_gate);
-  node = o_map_node_for_key (retain_counts, anObject);
-  if (!node)
+  if (retain_counts_gate != 0)
     {
-      objc_mutex_unlock (retain_counts_gate);
-      return YES;
+      objc_mutex_lock(retain_counts_gate);
+      node = o_map_node_for_key (retain_counts, anObject);
+      if (!node)
+	{
+	  objc_mutex_unlock(retain_counts_gate);
+	  return YES;
+	}
+      NSAssert((int)(node->value) > 0, NSInternalInconsistencyException);
+      if (!--((int)(node->value)))
+	{
+	  o_map_remove_node (node);
+	}
+      objc_mutex_unlock(retain_counts_gate);
     }
-  NSAssert((int)(node->value) > 0, NSInternalInconsistencyException);
-  if (!--((int)(node->value)))
-    o_map_remove_node (node);
-  objc_mutex_unlock (retain_counts_gate);
+  else
+    {
+      node = o_map_node_for_key (retain_counts, anObject);
+      if (!node)
+	{
+	  return YES;
+	}
+      NSAssert((int)(node->value) > 0, NSInternalInconsistencyException);
+      if (!--((int)(node->value)))
+	{
+	  o_map_remove_node (node);
+	}
+    }
   return NO;
 }
 
@@ -262,11 +326,26 @@ NSExtraRefCount (id anObject)
 {
   unsigned ret;
 
-  objc_mutex_lock (retain_counts_gate);
-  ret = (unsigned) o_map_value_at_key (retain_counts, anObject);
-  if (ret == (unsigned)o_map_not_a_key_marker(retain_counts) ||
-      ret == (unsigned)o_map_not_a_value_marker(retain_counts)) ret = 0;
-  objc_mutex_unlock (retain_counts_gate);
+  if (retain_counts_gate != 0)
+    {
+      objc_mutex_lock(retain_counts_gate);
+      ret = (unsigned) o_map_value_at_key(retain_counts, anObject);
+      if (ret == (unsigned)o_map_not_a_key_marker(retain_counts)
+	|| ret == (unsigned)o_map_not_a_value_marker(retain_counts))
+	{
+	  ret = 0;
+	}
+      objc_mutex_unlock(retain_counts_gate);
+    }
+  else
+    {
+      ret = (unsigned) o_map_value_at_key(retain_counts, anObject);
+      if (ret == (unsigned)o_map_not_a_key_marker(retain_counts)
+	|| ret == (unsigned)o_map_not_a_value_marker(retain_counts))
+	{
+	  ret = 0;
+	}
+    }
   return ret;	/* ExtraRefCount + 1	*/
 }
 
@@ -501,8 +580,17 @@ static IMP autorelease_imp = 0;
    This does not need mutex protection. */
 static BOOL double_release_check_enabled = NO;
 
+
 
 @implementation NSObject
+
++ (void) _becomeMultiThreaded: (NSNotification)aNotification
+{
+  if (retain_counts_gate == 0)
+    {
+      retain_counts_gate = objc_mutex_allocate();
+    }
+}
 
 + (void) initialize
 {
@@ -529,16 +617,16 @@ static BOOL double_release_check_enabled = NO;
       retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
 					    o_callbacks_for_int);
 #endif
-	  /*
-	   * retain_counts_gate is needed on SMP machines for release to work
-	   * reliably.
-	   */
-      retain_counts_gate = objc_mutex_allocate ();
       fastMallocOffset = fastMallocClass->instance_size % ALIGN;
 #else
       fastMallocOffset = 0;
 #endif
       _fastBuildCache();
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	   selector: @selector(_becomeMultiThreaded:)
+	       name: NSWillBecomeMultiThreadedNotification
+	     object: nil];
     }
   return;
 }
@@ -674,13 +762,13 @@ static BOOL double_release_check_enabled = NO;
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s %lx>",
+  return [NSString stringWithFormat: @"<%s: %lx>",
 	object_get_class_name(self), (unsigned long)self];
 }
 
 + (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s>", object_get_class_name(self)];
+  return [NSString stringWithCString: object_get_class_name(self)];
 }
 
 - (void) descriptionTo: (id<GNUDescriptionDestination>)output
@@ -781,7 +869,7 @@ static BOOL double_release_check_enabled = NO;
 
 /* NSObject protocol */
 
-- autorelease
+- (id) autorelease
 {
 #if	GS_WITH_GC == 0
   if (double_release_check_enabled)

@@ -1115,18 +1115,6 @@ GSTimeNow()
 
 // Adding and getting intervals
 
-- (id) addTimeInterval: (NSTimeInterval)seconds
-{
-  /* xxx We need to check for overflow? */
-	id newObj = [[self class] dateWithTimeIntervalSinceReferenceDate:
-		         _seconds_since_ref + seconds];
-	
-	if ([self isKindOfClass: [NSCalendarDate class]])
-		[newObj setTimeZone: [(NSCalendarDate *) self timeZoneDetail]];
-	
-	return newObj;
-}
-
 - (NSTimeInterval) timeIntervalSince1970
 {
   return _seconds_since_ref - UNIX_REFERENCE_INTERVAL;
