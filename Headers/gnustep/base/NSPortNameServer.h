@@ -44,7 +44,9 @@
 
 #ifndef	NO_GNUSTEP
 @interface	NSPortNameServer (GNUstep)
+- (NSArray*) namesForPort: (NSPort*)port;	/* return all names for port */
 - (void) removePort: (NSPort*)port;		/* remove all names for port */
+- (void) removePort: (NSPort*)port forName: (NSString*)name;
 @end
 #endif
 

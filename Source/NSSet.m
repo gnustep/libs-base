@@ -222,7 +222,7 @@ static Class NSMutableSet_concrete_class;
 }
 
 /* Same as NSArray */
-- initWithObjects: firstObject, ...
+- (id) initWithObjects: firstObject, ...
 {
   va_list ap;
   va_start(ap, firstObject);
@@ -232,12 +232,12 @@ static Class NSMutableSet_concrete_class;
 }
 
 /* Override superclass's designated initializer */
-- init
+- (id) init
 {
   return [self initWithObjects: NULL count: 0];
 }
 
-- initWithArray: (NSArray*)other
+- (id) initWithArray: (NSArray*)other
 {
   unsigned	count = [other count];
 

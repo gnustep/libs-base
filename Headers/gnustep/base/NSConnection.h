@@ -95,6 +95,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (BOOL) independentConversationQueueing;
 - (void) invalidate;
 - (BOOL) isValid;
+- (BOOL) registerName: (NSString*)name;
 - (NSArray *) remoteObjects;
 - (void) removeRequestMode: (NSString*)mode;
 - (void) removeRunLoop: (NSRunLoop *)runloop;

@@ -558,7 +558,7 @@ typedef enum {
   unsigned		portNum = 0;
   unsigned		len;
   NSMutableArray	*array;
-  NSDate		*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
+  NSDate		*limit;
 
   if (name == nil)
     {
@@ -578,6 +578,8 @@ typedef enum {
 		  format: @"name of port is too long (max %d) bytes",
 			GDO_NAME_MAX_LEN]; 
     }
+
+  limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
 
   /*
    * get one or more host addresses in network byte order.
@@ -626,7 +628,7 @@ typedef enum {
 	  if (numSvrs == 0)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
-			  format: @"failed to get list of name servers on net"];
+			  format: @"failed to get list of name servers"];
 	    }
 	  tmp = com;
 	  com = nil;
@@ -715,7 +717,8 @@ typedef enum {
 		  [com close];
 		  if ([com state] == GSPC_DONE)
 		    {
-		      portNum = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
+		      portNum
+			= GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
 		      if (portNum != 0)
 			{
 			  singleServer = [com addr];
@@ -787,7 +790,7 @@ typedef enum {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
   GSPortCom	*com;
   unsigned	len;
-  NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
+  NSDate	*limit;
 
   if (name == nil)
     {
@@ -811,6 +814,8 @@ typedef enum {
 		  format: @"name of port is too long (max %d) bytes",
 			GDO_NAME_MAX_LEN]; 
     }
+
+  limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
   /*
    *	Lock out other threads while doing I/O to gdomap
    */
@@ -1014,6 +1019,27 @@ typedef enum {
 @implementation	NSPortNameServer (GNUstep)
 
 /*
+ * Return the names under which the port is currently registered.
+ */
+- (NSArray*) namesForPort: (NSPort*)port
+{
+  NSArray	*names;
+
+  if (port == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"attempt to get names for nil port"]; 
+    }
+  /*
+   *	Lock out other threads while grabbing port names.
+   */
+  [serverLock lock];
+  names = [(NSSet*)NSMapGet(_portMap, port) allObjects];
+  [serverLock unlock];
+  return names;
+}
+
+/*
  *	Remove all names for a particular port - used when a port is
  *	invalidated.
  */
@@ -1023,7 +1049,7 @@ typedef enum {
   NS_DURING
     {
       NSMutableSet	*known = (NSMutableSet*)NSMapGet(_portMap, port);
-      NSString	*name;
+      NSString		*name;
 
       while ((name = [known anyObject]) != nil)
 	{
@@ -1036,7 +1062,31 @@ typedef enum {
       [localException raise];
     }
   NS_ENDHANDLER
+  [serverLock unlock];
+}
+
+/*
+ * Remove name for port iff it is registered.
+ */
+- (void) removePort: (NSPort*)port forName: (NSString*)name
+{
   [serverLock lock];
+  NS_DURING
+    {
+      NSMutableSet	*known = (NSMutableSet*)NSMapGet(_portMap, port);
+
+      if ([known member: name] != nil)
+	{
+	  [self removePortForName: name];
+	}
+    }
+  NS_HANDLER
+    {
+      [serverLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [serverLock unlock];
 }
 @end
 
