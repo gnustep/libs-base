@@ -38,33 +38,32 @@
 #define class_pointer isa
 
 #define class_create_instance(CLASS) class_createInstance(CLASS, 0)
-#define sel_get_name(ASEL) sel_getName(ASEL)
-#define sel_get_uid(METHODNAME) sel_getUid(METHODNAME)
+
+#define sel_get_name		sel_getName
+#define sel_get_uid		sel_getUid
+#define sel_eq(s1, s2) 		(s1 == s2)
 
 /* FIXME: Any equivalent for this ? */
 #define sel_get_type(SELECTOR) \
      (NULL)
      
-#define class_get_instance_method(CLASSPOINTER, SEL) \
-     class_getInstanceMethod(CLASSPOINTER, SEL)
-#define class_get_class_method(CLASSPOINTER, SEL) \
-     class_getClassMethod(CLASSPOINTER, SEL)
+#define class_get_instance_method	class_getInstanceMethod
+#define class_get_class_method 		class_getClassMethod
+#define class_add_method_list		class_addMethods
+#define method_get_sizeof_arguments	method_getSizeOfArguments
+#define objc_lookup_class		objc_lookUpClass
+#define sel_get_any_uid			sel_getUid
+#define objc_get_class			objc_getClass
+#define class_get_version		class_getVersion
+#define sel_is_mapped			sel_isMapped
+
 #define class_get_class_name(CLASSPOINTER) \
      (((struct objc_class*)(CLASSPOINTER))->name)
-#define method_get_sizeof_arguments(METHOD) \
-     method_getSizeOfArguments(METHOD)
-#define objc_lookup_class(CLASSNAME) \
-     objc_lookUpClass(CLASSNAME)
-#define sel_get_any_uid(SELNAME) \
-     sel_getUid(SELNAME)
 #define object_get_class(OBJECT) \
     (((struct objc_class*)(OBJECT))->isa)
 #define class_get_super_class(CLASSPOINTER) \
     (((struct objc_class*)(CLASSPOINTER))->super_class)
-#define objc_get_class(CLASSNAME) \
-    objc_lookUpClass(CLASSNAME)	/* not exactly right */
-#define class_get_version(CLASSPOINTER) \
-    (((struct objc_class*)(CLASSPOINTER))->version)
+
 #define __objc_responds_to(OBJECT,SEL) \
     class_getInstanceMethod(object_get_class(OBJECT), SEL)
 #define CLS_ISCLASS(CLASSPOINTER) \
@@ -73,6 +72,7 @@
     ((((struct objc_class*)(CLASSPOINTER))->info) & CLS_META)
 #define objc_msg_lookup(OBJ,SEL) \
     (class_getInstanceMethod(object_get_class(OBJ), SEL)->method_imp)
+
 
 #define OBJC_READONLY 1
 #define OBJC_WRITEONLY 2

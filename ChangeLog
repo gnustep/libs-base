@@ -1,3 +1,8 @@
+2001-04-30  Adam Fedor  <fedor@gnu.org>
+
+	* Source/behavior.m: Rewrite to work with NeXT runtime.
+	* Headers/gnustep/base/objc-gnu2next.h: Add some extra translations.
+
 2001-04-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: parseQuotedString() handle \U escape sequences

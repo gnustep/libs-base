@@ -49,35 +49,15 @@
    */
 
 #include <config.h>
+#include <stdio.h>
 #include <base/preface.h>
 #include <base/behavior.h>
 #include <Foundation/NSException.h>
 
-static int behavior_debug = 0;
-
-#ifndef HAVE_OBJC_GET_UNINSTALLED_DTABLE
-#ifndef objc_EXPORT
-#define objc_EXPORT export
-#endif
-objc_EXPORT void *__objc_uninstalled_dtable;
-static void *
-objc_get_uninstalled_dtable()
-{
-  return __objc_uninstalled_dtable;
-}
-#endif
-
-static Method_t search_for_method_in_list (MethodList_t list, SEL op);
-static void __objc_send_initialize(Class class);
-#if 0
-static void __objc_init_protocols (struct objc_protocol_list* protos);
-static void __objc_class_add_protocols (Class class,
-                                        struct objc_protocol_list* protos);
-#endif
+static struct objc_method *search_for_method_in_list (struct objc_method_list * list, SEL op);
 static BOOL class_is_kind_of(Class self, Class class);
 
-/* xxx consider using sendmsg.c:__objc_update_dispatch_table_for_class,
-   but, I think it will be slower than the current method. */
+static int behavior_debug = 0;
 
 void
 behavior_set_debug(int i)
@@ -93,9 +73,6 @@ behavior_class_add_class (Class class, Class behavior)
   NSCAssert(CLS_ISCLASS(class), NSInvalidArgumentException);
   NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
-  __objc_send_initialize(class);
-  __objc_send_initialize(behavior);
-
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)
     {
@@ -108,16 +85,6 @@ behavior_class_add_class (Class class, Class behavior)
 		 @"will not have to increase the instance size\n");
       class->instance_size = behavior->instance_size;
     }
-
-#if 0
-  /* xxx Do protocols */
-  if (behavior->protocols)
-    {
-      /* xxx Make sure they are not already there before adding. */
-      __objc_init_protocols (behavior->protocols);
-      __objc_class_add_protocols (class, behavior->protocols);
-    }
-#endif
 
   if (behavior_debug)
     {
@@ -158,10 +125,6 @@ class_add_behavior (Class class, Class behavior)
   behavior_class_add_class (class, behavior);
 }
 
-/* Need objc_lookup_class_category (const char *class_name
-                                    const char *category_name)
-				    */
-
 void
 behavior_class_add_category (Class class, struct objc_category *category)
 {
@@ -177,7 +140,7 @@ behavior_class_add_methods (Class class,
 			    struct objc_method_list *methods)
 {
   static SEL initialize_sel = 0;
-  MethodList_t mlist;
+  struct objc_method_list *mlist;
 
   if (!initialize_sel)
     initialize_sel = sel_register_name ("initialize");
@@ -186,49 +149,32 @@ behavior_class_add_methods (Class class,
   for (mlist = methods; mlist; mlist = mlist->method_next)
     {
       int counter;
-      MethodList_t new_list;
+      struct objc_method_list *new_list;
 
-      counter = mlist->method_count - 1;
+      counter = mlist->method_count ? mlist->method_count - 1 : 1;
 
-      /* xxx This is a little wasteful of memory, since not necessarily 
+      /* This is a little wasteful of memory, since not necessarily 
 	 all methods will go in here. */
-      new_list = (MethodList_t)
-	objc_malloc (sizeof(MethodList) +
+      new_list = (struct objc_method_list *)
+	objc_malloc (sizeof(struct objc_method_list) +
 		     sizeof(struct objc_method[counter+1]));
       new_list->method_count = 0;
+      new_list->method_next = NULL;
 
       while (counter >= 0)
         {
-          Method_t method = &(mlist->method_list[counter]);
+          struct objc_method *method = &(mlist->method_list[counter]);
 
 	  if (behavior_debug)
 	    fprintf(stderr, "   processing method [%s]\n", 
 		    sel_get_name(method->method_name));
 
 	  if (!search_for_method_in_list(class->methods, method->method_name)
-	      && method->method_name->sel_id != initialize_sel->sel_id)
+	      && !sel_eq(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
 		 put the BEHAVIOR method in there.  Thus, behavior
 		 methods override the superclasses' methods. */
-
-	      /* If dtable is already installed, go ahead and put it in 
-		 the dtable sarray, but if it isn't, let 
-		 __objc_install_dispatch_table_for_class do it. */
-
-	      if (class->dtable != objc_get_uninstalled_dtable())
-		{
-		  sarray_at_put_safe (class->dtable,
-				      (sidx) method->method_name->sel_id,
-				      method->method_imp);
-		  if (behavior_debug)
-		    fprintf(stderr, "\tinstalled method\n");
-		}
-	      else
-		{
-		  if (behavior_debug)
-		    fprintf(stderr, "\tappended method\n");
-		}
 	      new_list->method_list[new_list->method_count] = *method;
 	      (new_list->method_count)++;
 	    }
@@ -236,8 +182,14 @@ behavior_class_add_methods (Class class,
         }
       if (new_list->method_count)
 	{
+#if NeXT_RUNTIME
+	  /* Not sure why this doesn't work for GNU runtime */
+	  class_add_method_list(class, new_list);
+#else
 	  new_list->method_next = class->methods;
 	  class->methods = new_list;
+	  //__objc_update_dispatch_table_for_class (class);
+#endif
 	}
       else
 	{
@@ -246,66 +198,13 @@ behavior_class_add_methods (Class class,
     }
 }
 
-/* Should implement this too:
-class_add_behavior_category(), 
-and perhaps something like:
-class_add_methods_if_not_there_or_inherited() */
-
-#if 0
-/* This is like class_add_method_list(), except is doesn't balk at 
-   duplicates; it simply ignores them.  Thus, a method implemented 
-   in CLASS overrides a method implemented in BEHAVIOR. */
-
-void
-class_add_behavior_method_list (Class class, MethodList_t list)
-{
-  int i;
-  static SEL initialize_sel = 0;
-  if (!initialize_sel)
-    initialize_sel = sel_register_name ("initialize");
-
-  /* Passing of a linked list is not allowed.  Do multiple calls.  */
-  NSCAssert(!list->method_next, NSInvalidArgumentException);
-
-  /* Check for duplicates.  */
-  for (i = 0; i < list->method_count; ++i)
-    {
-      Method_t method = &list->method_list[i];
-
-      if (method->method_name)  /* Sometimes these are NULL */
-	{
-	  if (search_for_method_in_list (class->methods, method->method_name)
-	      && method->method_name->sel_id != initialize_sel->sel_id)
-	    {
-	      /* Duplication. Print a error message an change the method name
-		 to NULL. */
-	      fprintf (stderr, "attempt to add a existing method: %s\n",
-		       sel_get_name(method->method_name));
-	      method->method_name = 0;
-	    }
-	  else
-	    {
-	      /* Behavior method not implemented in class.  Add it. */
-	      sarray_at_put_safe (class->dtable,
-				  (sidx) method->method_name->sel_id,
-				  method->method_imp);
-	    }
-	}
-    }
-
-  /* Add the methods to the class's method list.  */
-  list->method_next = class->methods;
-  class->methods = list;
-}
-#endif
-
 /* Given a linked list of method and a method's name.  Search for the named
    method's method structure.  Return a pointer to the method's method
    structure if found.  NULL otherwise. */
-static Method_t
-search_for_method_in_list (MethodList_t list, SEL op)
+static struct objc_method *
+search_for_method_in_list (struct objc_method_list *list, SEL op)
 {
-  MethodList_t method_list = list;
+  struct objc_method_list *method_list = list;
 
   if (! sel_is_mapped (op))
     return NULL;
@@ -318,10 +217,10 @@ search_for_method_in_list (MethodList_t list, SEL op)
       /* Search the method list.  */
       for (i = 0; i < method_list->method_count; ++i)
         {
-          Method_t method = &method_list->method_list[i];
+          struct objc_method *method = &method_list->method_list[i];
 
           if (method->method_name)
-            if (method->method_name->sel_id == op->sel_id)
+            if (sel_eq(method->method_name, op))
               return method;
         }
 
@@ -332,102 +231,6 @@ search_for_method_in_list (MethodList_t list, SEL op)
 
   return NULL;
 }
-
-/* Send +initialize to class if not already done */
-static void __objc_send_initialize(Class class)
-{
-  /* This *must* be a class object */
-  NSCAssert(CLS_ISCLASS(class), NSInvalidArgumentException);
-  NSCAssert(!CLS_ISMETA(class), NSInvalidArgumentException);
-
-  if (!CLS_ISINITIALIZED(class))
-    {
-      CLS_SETINITIALIZED(class);
-      CLS_SETINITIALIZED(class->class_pointer);
-
-      if(class->super_class)
-        __objc_send_initialize(class->super_class);
-
-      {
-        MethodList_t method_list = class->class_pointer->methods;
-        SEL op = sel_register_name ("initialize");
-
-        /* If not found then we'll search the list.  */
-        while (method_list)
-          {
-            int i;
-
-            /* Search the method list.  */
-            for (i = 0; i < method_list->method_count; ++i)
-              {
-                Method_t method = &method_list->method_list[i];
-
-
-                if (method->method_name->sel_id == op->sel_id)
-                  (*method->method_imp)((id) class, op);
-              }
-
-            /* The method wasn't found.  Follow the link to the next list of
-               methods.  */
-            method_list = method_list->method_next;
-          }
-      }
-    }
-}
-
-#if 0
-static void
-__objc_init_protocols (struct objc_protocol_list* protos)
-{
-  int i;
-  static Class proto_class = 0;
-
-  if (! protos)
-    return;
-
-  if (!proto_class)
-    proto_class = objc_lookup_class("Protocol");
-
-  if (!proto_class)
-    {
-      unclaimed_proto_list = list_cons (protos, unclaimed_proto_list);
-      return;
-    }
-
-  for(i = 0; i < protos->count; i++)
-    {
-      struct objc_protocol* aProto = protos->list[i];
-      if (((size_t)aProto->class_pointer) == PROTOCOL_VERSION)
-        {
-          /* assign class pointer */
-          aProto->class_pointer = proto_class;
-
-          /* init super protocols */
-          __objc_init_protocols (aProto->protocol_list);
-        }
-      else if (protos->list[i]->class_pointer != proto_class)
-        {
-          fprintf (stderr,
-                   "Version %d doesn't match runtime protocol version %d\n",
-                   (int)((char*)protos->list[i]->class_pointer-(char*)0),
-                   PROTOCOL_VERSION);
-          abort ();
-        }
-    }
-}
-
-static void __objc_class_add_protocols (Class class,
-                                        struct objc_protocol_list* protos)
-{
-  /* Well... */
-  if (! protos)
-    return;
-
-  /* Add it... */
-  protos->next = class->protocols;
-  class->protocols = protos;
-}
-#endif /* 0 */
 
 static BOOL class_is_kind_of(Class self, Class aClassObject)
 {
