@@ -277,9 +277,9 @@ decodePort(NSData *data, NSString *defaultAddress)
     }
 
   return [NSSocketPort portWithNumber: pnum
-			    onHost: host
-		      forceAddress: nil
-			  listener: NO];
+			       onHost: host
+			 forceAddress: nil
+			     listener: NO];
 }
 
 static NSData*
@@ -1381,9 +1381,9 @@ static unsigned	wordAlign;
  * remote host, the port will use the first address that works.
  */
 + (NSSocketPort*) portWithNumber: (gsu16)number
-		       onHost: (NSHost*)aHost
-		 forceAddress: (NSString*)addr
-		     listener: (BOOL)shouldListen
+			  onHost: (NSHost*)aHost
+		    forceAddress: (NSString*)addr
+			listener: (BOOL)shouldListen
 {
   unsigned		i;
   NSSocketPort		*port = nil;
@@ -1466,6 +1466,7 @@ static unsigned	wordAlign;
 		  addrOk = NO;
 		}
 	    }
+	  sockaddr.sin_port = GSSwapHostI16ToBig(number);
 
 	  /*
            * Need size of buffer for getsockbyname() later.
