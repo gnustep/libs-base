@@ -1,3 +1,17 @@
+2001-09-05  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Define BROKEN_NESTED_FUNCTIONS if compiler sucks.
+	* Source/NSArray.m (-sortedArrayUsingSelector:): Remove nested
+	function.
+	([NSMutableArray -sortUsingSelector:]): Likewise.
+	* Source/NSConnection.m (-forwardForProxy:selector:argFrame:): 
+	Use external encode/decode functions if BROKEN_NESTED_FUNCTIONS.
+	(-forwardInvocation:forProxy:): Likewise.
+	(-_service_forwardForProxy:): Likewise.
+	* Source/mframe.m (mframe_build_return_opts): Remove and
+	consolidate nested functions.
+	(mframe_handle_return): Likewise.
+	
 2001-08-31  Adam Fedor  <fedor@gnu.org>
 
 	* Resources/French/Localizable.strings: Update (from

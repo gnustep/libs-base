@@ -1249,6 +1249,57 @@ mframe_do_call (const char *encoded_types,
   mframe_do_call_opts(encoded_types, decoder, encoder, NO);
 }
 
+  /* For returning strucutres etc */
+  typedef struct { id many[8];} __big;
+static  __big return_block (void* data)
+    {
+      return *(__big*)data;
+    }
+  /* For returning a char (or unsigned char) */
+static  char return_char (char data)
+    {
+      return data;
+    }
+  /* For returning a double */
+static  double return_double (double data)
+    {
+      return data;
+    }
+  /* For returning a float */
+static  float return_float (float data)
+    {
+      return data;
+    }
+  /* For returning a short (or unsigned short) */
+static  short return_short (short data)
+    {
+      return data;
+    }
+static  retval_t apply_block(void* data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_block, args, sizeof(void*));
+    }
+static  retval_t apply_char(char data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_char, args, sizeof(void*));
+    }
+static  retval_t apply_float(float data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_float, args, sizeof(float));
+    }
+static  retval_t apply_double(double data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_double, args, sizeof(double));
+    }
+static  retval_t apply_short(short data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_short, args, sizeof(void*));
+    }
 
 /* mframe_build_return()
 
@@ -1287,57 +1338,6 @@ mframe_build_return_opts (arglist_t argframe,
   /* A pointer into the ARGFRAME; points at individual arguments. */
   void *datum;
   const char *rettype;
-  /* For returning strucutres etc */
-  typedef struct { id many[8];} __big;
-  __big return_block (void* data)
-    {
-      return *(__big*)data;
-    }
-  /* For returning a char (or unsigned char) */
-  char return_char (char data)
-    {
-      return data;
-    }
-  /* For returning a double */
-  double return_double (double data)
-    {
-      return data;
-    }
-  /* For returning a float */
-  float return_float (float data)
-    {
-      return data;
-    }
-  /* For returning a short (or unsigned short) */
-  short return_short (short data)
-    {
-      return data;
-    }
-  retval_t apply_block(void* data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_block, args, sizeof(void*));
-    }
-  retval_t apply_char(char data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_char, args, sizeof(void*));
-    }
-  retval_t apply_float(float data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_float, args, sizeof(float));
-    }
-  retval_t apply_double(double data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_double, args, sizeof(double));
-    }
-  retval_t apply_short(short data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_short, args, sizeof(void*));
-    }
 
   if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B)
     {
@@ -1763,56 +1763,6 @@ void*
 mframe_handle_return(const char* type, void* retval, arglist_t argframe)
 {
   retval_t	retframe;
-  typedef struct { id many[8];} __big;
-  __big return_block (void* data)
-  {
-    return *(__big*)data;
-  }
-  /* For returning a char (or unsigned char) */
-  char return_char (char data)
-  {
-    return data;
-  }
-  /* For returning a double */
-  double return_double (double data)
-  {
-    return data;
-  }
-  /* For returning a float */
-  float return_float (float data)
-  {
-    return data;
-  }
-  /* For returning a short (or unsigned short) */
-  short return_short (short data)
-  {
-    return data;
-  }
-  retval_t apply_block(void* data)
-  {
-    void* args = __builtin_apply_args();
-    return __builtin_apply((apply_t)return_block, args, sizeof(void*));
-  }
-  retval_t apply_char(char data)
-  {
-    void* args = __builtin_apply_args();
-    return __builtin_apply((apply_t)return_char, args, sizeof(void*));
-  }
-  retval_t apply_float(float data)
-  {
-    void* args = __builtin_apply_args();
-    return __builtin_apply((apply_t)return_float, args, sizeof(float));
-  }
-  retval_t apply_double(double data)
-  {
-    void* args = __builtin_apply_args();
-    return __builtin_apply((apply_t)return_double, args, sizeof(double));
-  }
-  retval_t apply_short(short data)
-  {
-    void* args = __builtin_apply_args();
-    return __builtin_apply((apply_t)return_short, args, sizeof(void*));
-  }
 
   retframe = alloca(MFRAME_RESULT_SIZE);
 

@@ -595,14 +595,14 @@ static SEL	rlSel;
    [self makeObjectsPerformSelector: aSelector withObject: argument];
 }
 
+static int compare(id elem1, id elem2, void* context)
+{
+  return (int)[elem1 performSelector: (SEL)context withObject: elem2];
+}
+
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator
 {
-  int compare(id elem1, id elem2, void* context)
-    {
-      return (int)[elem1 performSelector: comparator withObject: elem2];
-    }
-
-  return [self sortedArrayUsingFunction: compare context: NULL];
+  return [self sortedArrayUsingFunction: compare context: (void *)comparator];
 }
 
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
@@ -1293,12 +1293,7 @@ static NSString	*indentStrings[] = {
 
 - (void) sortUsingSelector: (SEL)comparator
 {
-  int compare(id elem1, id elem2, void* context)
-    {
-      return (int)[elem1 performSelector: comparator withObject: elem2];
-    }
-
-  [self sortUsingFunction: compare context: NULL];
+  [self sortUsingFunction: compare context: (void *)comparator];
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 

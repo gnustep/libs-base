@@ -57,6 +57,8 @@ AC_EXEEXT
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LIBS="$LIBS -L/usr/local/lib";;
+  darwin1.3*)	CPPFLAGS="$CPPFLAGS -force_cpusubtype_ALL";;
+
 esac
 
 #----------------------------------------------------------------
@@ -67,6 +69,7 @@ AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
     gcc_nested=1, gcc_nested=0, gcc_nested=1)
 if test $gcc_nested = 0; then
   AC_MSG_RESULT(no)
+  AC_DEFINE(BROKEN_NESTED_FUNCTIONS)
   echo
   echo "The GCC 'nested functions' feature does not seem to be working on"
   echo "this machine. "
@@ -496,10 +499,6 @@ AC_CHECK_FUNCS(syslog)
 # Check for pthread.h (only when building on Darwin machines)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h)
-if test $ac_cv_header_pthread_h = yes ; then
-  HAVE_PTHREAD_H=yes
-  AC_DEFINE(HAVE_PTHREAD_H)
-fi
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
