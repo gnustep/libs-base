@@ -371,7 +371,7 @@ setup()
 
       me = (ivars)NSAllocateObject(GSCInlineStringClass, length,
 	GSObjCZone(self));
-      me->_contents.c = (char*)&((GSCInlineString*)me)[1];
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
       memcpy(me->_contents.c, chars, length);
@@ -402,7 +402,7 @@ setup()
       ivars	me;
 
       me = (ivars)NSAllocateObject(GSCStringClass, 0, GSObjCZone(self));
-      me->_contents.c = chars;
+      me->_contents.c = (unsigned char*)chars;
       me->_count = length;
       me->_flags.wide = 0;
       if (flag == YES)
@@ -461,7 +461,7 @@ setup()
        */
       me = (ivars)NSAllocateObject(GSCInlineStringClass,
 	length, GSObjCZone(self));
-      me->_contents.c = (char*)&((GSCInlineString*)me)[1];
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
       memcpy(me->_contents.c, ((ivars)string)->_contents.c, length);
@@ -680,7 +680,7 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 static inline char*
 cString_c(ivars self)
 {
-  char *r;
+  unsigned char *r;
 
   if (self->_count == 0)
     {
@@ -688,7 +688,7 @@ cString_c(ivars self)
     }
   if (defEnc == intEnc)
     {
-      r = (char*)_fastMallocBuffer(self->_count+1);
+      r = (unsigned char*)_fastMallocBuffer(self->_count+1);
 
       if (self->_count > 0)
 	{
@@ -925,7 +925,7 @@ doubleValue_c(ivars self)
   else
     {
       unsigned	len = self->_count < 32 ? self->_count : 31;
-      char	buf[len+1];
+      unsigned char	buf[len+1];
 
       memcpy(buf, self->_contents.c, len);
       buf[len] = '\0';
