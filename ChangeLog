@@ -1,3 +1,7 @@
+2002-06-15  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSProcessInfo.m: Include sys/fcntl for Solaris.
+
 2002-06-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/pathxml.m4: Adjust path to headers.

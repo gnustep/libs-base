@@ -68,6 +68,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
+#ifdef HAVE_SYS_FCNTL_H
+#include <sys/fcntl.h>
+#endif
 
 #include <GSConfig.h>
 #include <Foundation/NSString.h>
