@@ -43,6 +43,8 @@
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSNull.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
@@ -1130,6 +1132,53 @@ compare(id elem1, id elem2, void* context)
   return [data writeToURL: url atomically: useAuxiliaryFile];
 }
 
+/**
+ * This overrides NSObjects implementation of this method.
+ * This method returns an array of objects returned by 
+ * invoking -valueForKey: for each item in the receiver, 
+ * substituting NSNull for nil.
+ * A special case: the key "count" is not forwarded to each object
+ * of the receiver but returns the number of objects of the receiver.<br/>
+ */
+- (id) valueForKey: (NSString*)key
+{
+  id result=nil;
+
+  if ([key isEqualToString: @"count"] == YES)
+    {
+      result = [NSNumber numberWithUnsignedInt: [self count]];
+    }
+  else
+    {
+      NSMutableArray *results = nil;
+      NSNull* null=nil;
+
+      int i, count = [self count];
+      volatile id object = nil;
+      
+      results = [NSMutableArray array];
+      
+      for(i = 0; i < count; i++)
+        {
+          id result;
+          
+          object = [self objectAtIndex: i];
+          result = [object valueForKey: key];
+          if (!result)
+            {
+              if (!null)
+                null=[NSNull null];
+              result = null;
+            }
+          
+          [results addObject: result];
+        }
+      
+      result=results;
+    }
+  return result;
+}
+
 @end
 
 
@@ -1723,6 +1772,22 @@ compare(id elem1, id elem2, void* context)
 #endif
 }
 
+/**
+ * Call setValue:forKey: on each of the receiver's items 
+ * with the value and key.
+ */
+- (void) setValue: (id)value forKey: (NSString*)key
+{
+  int i, count = [self count];
+  volatile id object = nil;
+      
+  for(i = 0; i < count; i++)
+    {
+      object = [self objectAtIndex: i];
+      [object setValue: value
+              forKey: key];
+    }
+}
 @end
 
 @interface NSArrayEnumerator : NSEnumerator

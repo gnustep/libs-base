@@ -1,3 +1,8 @@
+2004-01-06  Manuel Guesdon <mguesdon@orange-concept.com>
+	* Headers/Foundation/NSArray.h/.m: added -setValue:forKey:
+		and -valueForKey: to comply to Mac OS X v10.3 and 
+		later documentation.
+
 2003-12-30  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSGeometry.h 

@@ -101,6 +101,7 @@
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #ifndef	STRICT_OPENSTEP
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
+- (id) valueForKey: (NSString*)key;
 #endif
 @end
 
@@ -141,6 +142,10 @@
 - (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
 		   context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
+
+#ifndef       STRICT_OPENSTEP
+- (void) setValue: (id)value forKey: (NSString*)key;
+#endif
 
 @end
 
