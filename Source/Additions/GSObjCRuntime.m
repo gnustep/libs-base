@@ -792,7 +792,7 @@ GSGetInstanceMethodNotInherited (Class class, SEL sel)
 
 /* See header for documentation. */
 GSMethod
-GSGetClassMethodNotInhertited (Class class, SEL sel)
+GSGetClassMethodNotInherited (Class class, SEL sel)
 {
   return search_for_method_in_class (class->class_pointer, sel);
 }

@@ -2,6 +2,7 @@
 
 	* Source/Additions/GSObjCRuntime.m
 	(GSObjCMethodNames): Unify implementation for both runtimes.
+	(GSGetClassMethodNotInherited): Fix typo.
 
 2004-06-05  David Ayers  <d.ayers@inode.at>
 
