@@ -2,7 +2,6 @@ Sat Dec  1 10:11:18 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Makefile.postamble (base.make): Depend on configure.
 	(config.mak): Idem.
-	(configure): Run autoreconf, not autoconf.
 
 Sat Dec  1 09:29:43 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
