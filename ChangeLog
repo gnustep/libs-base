@@ -1,4 +1,4 @@
-2001-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+2001-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/gnustep/base/DistributedObjects.h:
         * Source/GSFFCallInvocation.m:
@@ -8,9 +8,8 @@
         * Source/callframe.m:
 	Modifications to callframe handling to store pointers to data to
 	be freed in order to be able to tidy up after an exception ...
-	Appears to cure memory leak in ffcall code on server side.
-	No fix yest for mframe or ffi code, or for client side leak
-	when an exception occurs in the server.
+	Appears to cure memory leak in ffcall code.
+	No fix yest for mframe or ffi code.
 
 2001-09-20  Richard Frith-Macdonald <rfm@gnu.org>
 

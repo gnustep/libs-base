@@ -1537,19 +1537,14 @@ static void retDecoder(DOContext *ctxt)
       if (is_exception == YES)
 	{
 	  /* Decode the exception object, and raise it. */
-	  id exc;
-	  [coder decodeValueOfObjCType: @encode(id) at: &exc];
+	  id exc = [coder decodeObject];
+
 	  ctxt->decoder = nil;
-	  [ctxt->connection _doneInRmc: coder];
+	  [ctxt->connection _doneInReply: coder];
 	  if (ctxt->datToFree != 0)
 	    {
 	      NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
 	      ctxt->datToFree = 0;
-	    }
-	  if (ctxt->objToFree != nil)
-	    {
-	      NSDeallocateObject(ctxt->objToFree);
-	      ctxt->objToFree = nil;
 	    }
 	  [exc raise];
 	}
