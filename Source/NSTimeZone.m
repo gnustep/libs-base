@@ -167,7 +167,7 @@ struct ttinfo
   char offset[4];         // Seconds east of UTC
   unsigned char isdst;    // Daylight savings time?
   unsigned char abbr_idx; // Index into time zone abbreviations string
-};
+} __attribute__((packed));
 
 /*
  * And this is the structure used in the time zone instances.
