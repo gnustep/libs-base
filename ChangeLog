@@ -1,3 +1,6 @@
+2004-05-21 Roland Schwingel <roland.schwingel@onevision.de>
+	* Source/NSTimeZone.m: Fix errors in handling of windows registry.
+
 2004-05-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for SAX2

@@ -96,6 +96,7 @@
 #include "Foundation/NSDate.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSException.h"
+#include "Foundation/NSFileManager.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSObject.h"
 #include "Foundation/NSProcessInfo.h"
@@ -490,7 +491,7 @@ static NSString *_time_zone_path(NSString *subpath)
 		}
 
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
-	      if (fileName == nil)
+	      if (fileName == nil || ![[NSFileManager defaultManager] fileExistsAtPath:fileName])
 #ifdef WIN32
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName:name data:0];
@@ -1234,8 +1235,8 @@ static NSMapTable	*absolutes = 0;
         if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
         "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0, KEY_READ, &regkey))
           {
-            char buf[100];
-            DWORD bufsize=100;
+            char buf[255];
+            DWORD bufsize=255;
             DWORD type;
             if (ERROR_SUCCESS==RegQueryValueEx(regkey, "StandardName", 0, &type, buf, &bufsize))
               {
@@ -1720,73 +1721,164 @@ int dayOfCommonEra(NSTimeInterval when);
 
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
-  NSString *shortName;
-  HKEY regkey;
-
-  if ([name hasSuffix:@" Standard Time"])
-    {
-      shortName = [name substringWithRange:NSMakeRange(0,[name length]-14)];
-    }
-  else
-    {
-      shortName = name;
-    }
+  HKEY     regDirKey;
+  BOOL     isNT = NO,regFound=NO;
 
   /* Open the key in the local machine hive where the time zone data is stored. */
-  if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
-    [[NSString 
-    stringWithFormat:@"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\%@", name] cString], 0, KEY_READ, &regkey) \
-    || ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
-    [[NSString 
-    stringWithFormat:@"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\%@", shortName] cString], 0, KEY_READ, &regkey))
+  if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", 0, KEY_READ, &regDirKey))
+  {
+    isNT=YES;
+    regFound=YES;
+  }
+  else
+  {
+    if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", 0, KEY_READ, &regDirKey))
     {
-      char buf[200];
-      DWORD bufsize=sizeof(buf);
-      DWORD type;
-
-      /* Read in the time zone data */
-      if (ERROR_SUCCESS==RegQueryValueEx(regkey, "TZI", 0, &type, buf, &bufsize))
-        {
-          TZI *tzi = (void*)buf;
-          Bias = tzi->Bias;
-          StandardBias = tzi->StandardBias;
-          DaylightBias = tzi->DaylightBias;
-          StandardDate = tzi->StandardDate;
-          DaylightDate = tzi->DaylightDate;
-        }
-      bufsize=sizeof(buf);
-      /* Read the standard name for the time zone. */
-      if (ERROR_SUCCESS==RegQueryValueEx(regkey, "Std", 0, &type, buf, &bufsize))
-        {
-          int a, b;
-          [timeZoneName release];
-          timeZoneName = [[NSString stringWithCString:buf] retain];
-          for(a=0,b=0;buf[a];a++)
-            {
-              if (isupper(buf[a]))
-                buf[b++]=buf[a];
-            }
-          buf[b]=0;
-          [timeZoneNameAbbr release];
-          timeZoneNameAbbr = [[NSString stringWithCString:buf] retain];
-        }
-      /* Read the daylight savings name for the time zone. */
-      if (ERROR_SUCCESS==RegQueryValueEx(regkey, "Dlt", 0, &type, buf, &bufsize))
-        {
-          int a,b;
-          [daylightZoneName release];
-          daylightZoneName = [[NSString stringWithCString:buf] retain];
-          for(a=0,b=0;buf[a];a++)
-            {
-              if (isupper(buf[a]))
-                buf[b++]=buf[a];
-            }
-          buf[b]=0;
-          [daylightZoneNameAbbr release];
-          daylightZoneNameAbbr = [[NSString stringWithCString:buf] retain];
-        }
-      RegCloseKey(regkey);
+    	regFound=YES;
     }
+  }
+
+  if (regFound)
+  {
+    	/* Iterate over all subKeys in the registry to find the right one.
+    	   Unfortunately name is a localized value. The keys in the registry are
+    	   unlocalized names. */
+	   CHAR     achKey[255];              // buffer for subkey name
+    	DWORD    cbName;                   // size of name string 
+    	CHAR     achClass[MAX_PATH] = "";  // buffer for class name 
+    	DWORD    cchClassName = MAX_PATH;  // size of class string 
+    	DWORD    cSubKeys=0;               // number of subkeys 
+    	DWORD    cbMaxSubKey;              // longest subkey size 
+    	DWORD    cchMaxClass;              // longest class string 
+    	DWORD    cValues;                  // number of values for key 
+    	DWORD    cchMaxValue;              // longest value name 
+    	DWORD    cbMaxValueData;           // longest value data 
+    	DWORD    cbSecurityDescriptor;     // size of security descriptor 
+    	FILETIME ftLastWriteTime;          // last write time 
+		
+		DWORD i, retCode;
+		BOOL	tzFound = NO;
+		
+		/* Get the class name and the value count. */
+	    retCode = RegQueryInfoKey(
+	        regDirKey,               // key handle 
+	        achClass,                // buffer for class name 
+	        &cchClassName,           // size of class string 
+	        NULL,                    // reserved 
+	        &cSubKeys,               // number of subkeys 
+	        &cbMaxSubKey,            // longest subkey size 
+	        &cchMaxClass,            // longest class string 
+	        &cValues,                // number of values for this key 
+	        &cchMaxValue,            // longest value name 
+	        &cbMaxValueData,         // longest value data 
+	        &cbSecurityDescriptor,   // security descriptor 
+	        &ftLastWriteTime);       // last write time 
+
+    	if (cSubKeys && (retCode == ERROR_SUCCESS))
+    	{
+    		const char *cName = [name cString];
+
+			for (i=0; i<cSubKeys && !tzFound; i++) 
+			{ 
+			   cbName = 255;
+			   
+			   retCode = RegEnumKeyEx(regDirKey, i, achKey, &cbName, NULL, NULL, NULL, &ftLastWriteTime);         
+			   if (retCode == ERROR_SUCCESS) 
+			   {
+			   	 char keyBuffer[16384];
+			   	 HKEY regKey;
+			       
+			       if (isNT)
+			       	sprintf(keyBuffer,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\%s",achKey);
+					 else
+			       	sprintf(keyBuffer,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\%s",achKey);
+			       
+ 		          if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyBuffer, 0, KEY_READ, &regKey))
+			       {
+				      char buf[256];
+				      char standardName[256];
+				      char daylightName[256];
+				      DWORD bufsize;
+				      DWORD type;
+
+						/* check standardname */
+						standardName[0]='\0';
+				      bufsize=sizeof(buf);
+				      if (ERROR_SUCCESS==RegQueryValueEx(regKey, "Std", 0, &type, buf, &bufsize))
+				      {
+				      	strcpy(standardName,buf);
+				      	if (strcmp(standardName,cName) == 0)
+				      		tzFound = YES;
+				   	}
+		
+						/* check daylightname */
+						daylightName[0]='\0';
+				      bufsize=sizeof(buf);
+				      if (ERROR_SUCCESS==RegQueryValueEx(regKey, "Dlt", 0, &type, buf, &bufsize))
+				      {
+				      	strcpy(daylightName,buf);
+				      	if (strcmp(daylightName,cName) == 0)
+				      		tzFound = YES;
+				   	}
+
+						if (tzFound)
+						{
+					      /* Read in the time zone data */
+					      bufsize=sizeof(buf);
+					      if (ERROR_SUCCESS==RegQueryValueEx(regKey, "TZI", 0, &type, buf, &bufsize))
+					      {
+					          TZI *tzi = (void*)buf;
+					          Bias = tzi->Bias;
+					          StandardBias = tzi->StandardBias;
+					          DaylightBias = tzi->DaylightBias;
+					          StandardDate = tzi->StandardDate;
+					          DaylightDate = tzi->DaylightDate;
+					      }
+					      
+					      /* Set the standard name for the time zone. */
+					      if (strlen(standardName))
+					      {
+					          int a, b;
+					          [timeZoneName release];
+					          timeZoneName = [[NSString stringWithCString:standardName] retain];
+
+					          /* Abbr generated here is IMHO a bit suspicous but I kept it */
+					          for(a=0,b=0;standardName[a];a++)
+					          {
+					            if (isupper(standardName[a]))
+					              standardName[b++]=standardName[a];
+					          }
+					          standardName[b]=0;
+					          [timeZoneNameAbbr release];
+					          timeZoneNameAbbr = [[NSString stringWithCString:standardName] retain];
+					      }
+
+					      /* Set the daylight savings name for the time zone. */
+					      if (strlen(daylightName))
+					      {
+					          int a,b;
+					          [daylightZoneName release];
+					          daylightZoneName = [[NSString stringWithCString:daylightName] retain];
+
+					          /* Abbr generated here is IMHO a bit suspicous but I kept it */
+					          for(a=0,b=0;daylightName[a];a++)
+					          {
+					              if (isupper(daylightName[a]))
+					                daylightName[b++]=daylightName[a];
+					          }
+					          daylightName[b]=0;
+					          [daylightZoneNameAbbr release];
+					          daylightZoneNameAbbr = [[NSString stringWithCString:daylightName] retain];
+				      	}
+				   	}
+				      RegCloseKey(regKey);
+			   	}			       
+			   }
+			}
+    	}
+      RegCloseKey(regDirKey);
+  }
+    
   return self;
 }
 
