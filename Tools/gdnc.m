@@ -1018,7 +1018,7 @@ main(int argc, char** argv, char** env)
       debugging = YES;
     }
   RELEASE(pool);
-#ifdef __MINGW__
+
   if (shouldFork)
     {
       char	**a = malloc((argc+2) * sizeof(char*));
@@ -1026,16 +1026,14 @@ main(int argc, char** argv, char** env)
       memcpy(a, argv, argc*sizeof(char*));
       a[argc] = "-f";
       a[argc+1] = 0;
+#ifdef __MINGW__
       if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
 	{
 	  fprintf(stderr, "gdnc - spawn failed - bye.\n");
 	  exit(EXIT_FAILURE);
 	}
       exit(EXIT_SUCCESS);
-    }
 #else
-  if (shouldFork)
-    {
       is_daemon = 1;
       switch (fork())
 	{
@@ -1057,43 +1055,48 @@ main(int argc, char** argv, char** env)
 	  default:
 	    exit(EXIT_SUCCESS);
 	}
-    }
 
-  /*
-   *	Ensure we don't have any open file descriptors which may refer
-   *	to sockets bound to ports we may try to use.
-   *
-   *	Use '/dev/null' for stdin and stdout.
-   */
-  for (c = 0; c < FD_SETSIZE; c++)
-    {
-      if (is_daemon || (c != 2))
+      /*
+       *	Ensure we don't have any open file descriptors which may refer
+       *	to sockets bound to ports we may try to use.
+       *
+       *	Use '/dev/null' for stdin and stdout.
+       */
+      for (c = 0; c < FD_SETSIZE; c++)
 	{
-	  (void)close(c);
+	  if (is_daemon || (c != 2))
+	    {
+	      (void)close(c);
+	    }
 	}
-    }
-  if (open("/dev/null", O_RDONLY) != 0)
-    {
-      sprintf(ebuf, "failed to open stdin from /dev/null (%s)\n",
-	strerror(errno));
+      if (open("/dev/null", O_RDONLY) != 0)
+	{
+	  sprintf(ebuf, "failed to open stdin from /dev/null (%s)\n",
+	    strerror(errno));
+	  gdnc_log(LOG_CRIT);
+	  exit(EXIT_FAILURE);
+	}
+      if (open("/dev/null", O_WRONLY) != 1)
+	{
+	  sprintf(ebuf, "failed to open stdout from /dev/null (%s)\n",
+	    strerror(errno));
+	  gdnc_log(LOG_CRIT);
+	  exit(EXIT_FAILURE);
+	}
+      if (is_daemon && open("/dev/null", O_WRONLY) != 2)
+	{
+	  sprintf(ebuf, "failed to open stderr from /dev/null (%s)\n",
+	    strerror(errno));
+	  gdnc_log(LOG_CRIT);
+	  exit(EXIT_FAILURE);
+	}
+      execve([[[NSBundle mainBundle] executablePath] cString], a, env);
+      sprintf(ebuf, "failed to exec to '%s' (%s)\n",
+	argv[0], strerror(errno));
       gdnc_log(LOG_CRIT);
       exit(EXIT_FAILURE);
-    }
-  if (open("/dev/null", O_WRONLY) != 1)
-    {
-      sprintf(ebuf, "failed to open stdout from /dev/null (%s)\n",
-	strerror(errno));
-      gdnc_log(LOG_CRIT);
-      exit(EXIT_FAILURE);
-    }
-  if (is_daemon && open("/dev/null", O_WRONLY) != 2)
-    {
-      sprintf(ebuf, "failed to open stderr from /dev/null (%s)\n",
-	strerror(errno));
-      gdnc_log(LOG_CRIT);
-      exit(EXIT_FAILURE);
-    }
 #endif /* !MINGW */
+    }
 
   {
 #if GS_WITH_GC == 0

@@ -852,8 +852,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
           the _mainBundle.  Please note that we do *not* autorelease
           mainBundle, because we don't want it to be ever released.  */
       _mainBundle = [self alloc];
-      /* Please note that _mainBundle can perfectly well be nil.  */
-      _mainBundle = [_mainBundle initWithPath:path];
+      /* Please note that _mainBundle should *not* be nil.  */
+      _mainBundle = [_mainBundle initWithPath: path];
+      NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
     }
   
   [load_lock unlock];
@@ -912,7 +913,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (id) initWithPath: (NSString*)path
 {
-  [super init];
+  self = [super init];
 
   if (!path || [path length] == 0) 
     {
@@ -945,8 +946,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (bundle_directory_readable(path) == NO)
     {
       NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
-      [self dealloc];
-      return nil;
+      // if this is not the main bundle ... deallocate and return.
+      if (self != _mainBundle)
+	{
+	  [self dealloc];
+	  return nil;
+	}
     }
 
   _path = [path copy];
@@ -1553,9 +1558,18 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   _strip_after_loading = flag;
 }
 
-- (NSString *)executablePath
+- (NSString *) executablePath
 {
   NSString *object, *path;
+
+  if (!_mainBundle) 
+    {
+      [NSBundle mainBundle];
+    }
+  if (self == _mainBundle)
+    {
+      return _executable_path;
+    }
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)
     {
