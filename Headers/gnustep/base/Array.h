@@ -28,7 +28,7 @@
 #include <objects/IndexedCollection.h>
 #include <objects/OrderedCollecting.h>
 
-@interface ConstantArray : IndexedCollection
+@interface ConstantArray : ConstantIndexedCollection
 {
   @public
   id *_contents_array;
