@@ -53,58 +53,11 @@ clients. [2, exceptions] (980220)
 Change many NSParameterAssert()'s into NSAssert()'s with
 explanations. [2, exceptions] (970101)
 
-@item
-Many implementations could be made more efficient.  The library hasn't
-been efficiency tuned very much.  Overridding more methods in certain
-classes could make things more efficient (especially EltNodeCollector).
-SplayTree's could be done using top-down splaying.  collhash could be
-completely reimplemented.  [5-8] (970101)
-
-@item Separate Constant and non-Constant collections for the rest of the
-GNU connection classes the same way I did for Array. (970101)
-
-@item Make sure the GNU Archiver/Unarchiver handle
--encodeConditionalObject: and -decodeObject: correctly. (970101)
-
-@item Make sure that Encoder's properly release their CStream and
-Stream's.  It seems that the Stream is not getting -delloc'ed, and
-therefore may not be closed, and therefore may be missing data at the
-end.  (970101)
-
 @end itemize
 
 
 
 @ignore
-
-@section McCallum's To Do's
-
-@itemize @bullet
-
-@item Make sure the GNU Archiver/Unarchiver handle
--encodeConditionalObject: and -decodeObject: correctly.
-
-@item Reorganize some of the Categories to make a minimal NSObject-using
-program smaller.  Currently it is huge becuase it pulls in archiving and
-therefore many of the collection classes.  (But perhaps this doesn't
-matter, since we recommend using shared libraries anyway.)
-
-@item Make sure that Encoder's properly release their CStream and
-Stream's.  It seems that the Stream is not getting -delloc'ed, and
-therefore may not be closed, and therefore may be missing data at the
-end. 
-
-@item Do low-level frobbing of TCP to reduce delays.
-
-@item Make UdpPort work; make MachPort work.
-
-@item Finish Collection heirarchy clean ups.  We need non-mutable
-version for many of the classes.
-
-@item Possibly change implementation of @code{-(int)compare:anObject}
-for Collection.  How should non-Indexed collections be ordered?
-
-@end itemize
 
 @c ==================================================================
 @section Questions
