@@ -155,10 +155,7 @@ distclean: clean
 realclean: distclean
 	rm -f TAGS
 
-dist-dir: $(srcdir)/../.fname
-	@echo Run make dist from the parent directory.
-
-dist: $(DISTFILES) dist-dir
+copy-dist: $(DISTFILES)
 	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/checks
 	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/checks
 
