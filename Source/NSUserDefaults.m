@@ -107,10 +107,85 @@ static void updateCache(NSUserDefaults *self)
 - (void) __timerTicked: (NSTimer*)tim;
 @end
 
+/**
+ * <p>
+ *   NSUserDefaults provides an interface to the defaults system,
+ *   which allows an application access to global and/or application
+ *   specific defualts set by the user. A particular instance of
+ *   NSUserDefaults, standardUserDefaults, is provided as a
+ *   convenience. Most of the information described below
+ *   pertains to the standardUserDefaults. It is unlikely
+ *   that you would want to instantiate your own userDefaults
+ *   object, since it would not be set up in the same way as the
+ *   standardUserDefaults.
+ * </p>
+ * <p>
+ *   Defaults are managed based on <em>domains</em>. Certain
+ *   domains, such as <code>NSGlobalDomain</code>, are
+ *   persistant. These domains have defaults that are stored
+ *   externally. Other domains are volitale. The defaults in
+ *   these domains remain in effect only during the existance of
+ *   the application and may in fact be different for
+ *   applications running at the same time. When asking for a
+ *   default value from standardUserDefaults, NSUserDefaults
+ *   looks through the various domains in a particular order.
+ * </p>
+ * <deflist>
+ *   <term><code>NSArgumentDomain</code> ... volatile</term>
+ *   <desc>
+ *     Contains defaults read from the arguments provided
+ *     to the application at startup.
+ *   </desc>
+ *   <term>Application (name of the current process) ... persistent</term>
+ *   <desc>
+ *     Contains application specific defaults,
+ *     such as window positions.</desc>
+ *   <term><code>NSGlobalDomain</code> ... persistent</term>
+ *   <desc>
+ *     Global defaults applicable to all applications.
+ *   </desc>
+ *   <term>Language (name based on users's language) ... volatile</term>
+ *   <desc>
+ *     Constants that help with localization to the users's
+ *     language.
+ *   </desc>
+ *   <term><code>NSRegistrationDomain</code> ... volatile</term>
+ *   <desc>
+ *     Temporary defaults set up by the application.
+ *   </desc>
+ * </deflist>
+ * <p>
+ *   The <em>NSLanguages</em> default value is used to set up the
+ *   constants for localization. GNUstep will also look for the
+ *   <code>LANGUAGES</code> environment variable if it is not set
+ *   in the defaults system. If it exists, it consists of an
+ *   array of languages that the user prefers. At least one of
+ *   the languages should have a corresponding localization file
+ *   (typically located in the <file>Languages</file> directory
+ *   of the GNUstep resources).
+ * </p>
+ * <p>
+ *   As a special extension, on systems that support locales
+ *   (e.g. GNU/Linux and Solaris), GNUstep will use information
+ *   from the user specified locale, if the <em>NSLanguages</em>
+ *   default value is not found. Typically the locale is
+ *   specified in the environment with the <code>LANG</code>
+ *   environment variable.
+ * </p>
+ * <p>
+ *   The first change to a persistent domain after a -synchronize 
+ *   will cause an NSUserDefaultsDidChangeNotification to be posted
+ *   (as will any change caused by reading new values from disk),
+ *   so your application can keep track of changes made to the
+ *   defaults by other software.
+ * </p>
+ * <p>
+ *   NB. The GNUstep implementation differs from the Apple one in
+ *   that it is thread-safe while Apples (as of MacOS-X 10.1) is not.
+ * </p>
+ */
 @implementation NSUserDefaults: NSObject
-/*************************************************************************
- *** Getting the Shared Instance
- *************************************************************************/
+
 static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 + (void) initialize
@@ -132,6 +207,11 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     }
 }
 
+/**
+ * Resets the shared user defaults object to reflect the current
+ * user ID.  Needed by setuid processes whiich change the user they
+ * are running as.
+ */
 + (void) resetStandardUserDefaults
 {
   [classLock lock];
@@ -352,7 +432,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   return AUTORELEASE(sharedDefaults);
 }
 
-
+/**
+ * Returns the array of user languages preferences.  Uses the
+ * <em>NSLanguages</em> user default if available, otherwise
+ * tries to infer setup from operating system information etc
+ * (in particular, uses the <em>LANGUAGES</em> environment variable).
+ */
 + (NSArray*) userLanguages
 {
   NSArray	*currLang = nil;
@@ -449,6 +534,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   return AUTORELEASE(userLanguages);
 }
 
+/**
+ * Sets the array of user languages preferences.  Places the specified
+ * array in the <em>NSLanguages</em> user default.
+ */
 + (void) setUserLanguages: (NSArray*)languages
 {
   NSMutableDictionary	*globDict;
@@ -652,9 +741,10 @@ static NSString	*pathForUser(NSString *user)
   return desc;
 }
 
-/*************************************************************************
- *** Getting and Setting a Default
- *************************************************************************/
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSArray object.  Returns nil if it is not.
+ */
 - (NSArray*) arrayForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -664,6 +754,10 @@ static NSString	*pathForUser(NSString *user)
   return nil;
 }
 
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is a boolean.  Returns NO if it is not.
+ */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
@@ -673,6 +767,10 @@ static NSString	*pathForUser(NSString *user)
   return NO;
 }
 
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSData object.  Returns nil if it is not.
+ */
 - (NSData*) dataForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -682,6 +780,10 @@ static NSString	*pathForUser(NSString *user)
   return nil;
 }
 
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSDictionary object.  Returns nil if it is not.
+ */
 - (NSDictionary*) dictionaryForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -691,6 +793,10 @@ static NSString	*pathForUser(NSString *user)
   return nil;
 }
 
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is a float.  Returns 0.0 if it is not.
+ */
 - (float) floatForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
@@ -700,6 +806,10 @@ static NSString	*pathForUser(NSString *user)
   return 0.0;
 }
 
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an integer.  Returns 0 if it is not.
+ */
 - (int) integerForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
@@ -709,6 +819,12 @@ static NSString	*pathForUser(NSString *user)
   return 0;
 }
 
+/**
+ * Looks up a value for a specified default using.
+ * The lookup is performed by accessing the domains in the order
+ * given in the search list.
+ * <br />Returns nil if defaultName cannot be found.
+ */
 - (id) objectForKey: (NSString*)defaultName
 {
   NSEnumerator	*enumerator;
@@ -741,6 +857,10 @@ static NSString	*pathForUser(NSString *user)
   return AUTORELEASE(object);
 }
 
+/**
+ * Removes the default with the specified name from the application
+ * domain.
+ */
 - (void) removeObjectForKey: (NSString*)defaultName
 {
   id	obj;
@@ -768,6 +888,10 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Sets a boolean value for defaultName in the application domain.
+ * <br />Calls -setObject:forKey: to make the change.
+ */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
   id	obj = (value)?@"YES": @"NO";
@@ -776,6 +900,10 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Sets a float value for defaultName in the application domain.
+ * <br />Calls -setObject:forKey: to make the change.
+ */
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
 {	
   char	buf[32];
@@ -785,6 +913,10 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Sets an integer value for defaultName in the application domain.
+ * <br />Calls -setObject:forKey: to make the change.
+ */
 - (void) setInteger: (int)value forKey: (NSString*)defaultName
 {
   char	buf[32];
@@ -794,6 +926,12 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Sets an object value for defaultName in the application domain.
+ * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
+ * if this is the first change to a persistent-domain since the
+ * last -synchronize.
+ */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
   if (value && defaultName && ([defaultName length] > 0))
@@ -820,6 +958,10 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Calls -arrayForKey: to get an array value for defaultName and checks
+ * that the array contents are string objects ... if not, returns nil.
+ */
 - (NSArray*) stringArrayForKey: (NSString*)defaultName
 {
   id	arr = [self arrayForKey: defaultName];
@@ -841,6 +983,10 @@ static NSString	*pathForUser(NSString *user)
   return nil;
 }
 
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSString.  Returns nil if it is not.
+ */
 - (NSString*) stringForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -872,9 +1018,9 @@ static NSString	*pathForUser(NSString *user)
   [_lock unlock];
 }
 
-/*************************************************************************
- *** Maintaining Persistent Domains
- *************************************************************************/
+/**
+ * Returns the persistent domain specified by domainName.
+ */
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName
 {
   NSDictionary	*copy;
@@ -885,6 +1031,9 @@ static NSString	*pathForUser(NSString *user)
   return AUTORELEASE(copy);
 }
 
+/**
+ * Returns an array listing the name of all the persistent domains.
+ */
 - (NSArray*) persistentDomainNames
 {
   NSArray	*keys;
@@ -895,6 +1044,13 @@ static NSString	*pathForUser(NSString *user)
   return keys;
 }
 
+/**
+ * Removes the persistent domain specified by domainName from the
+ * user defaults.
+ * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
+ * if this is the first change to a persistent-domain since the
+ * last -synchronize.
+ */
 - (void) removePersistentDomainForName: (NSString*)domainName
 {
   [_lock lock];
@@ -907,6 +1063,13 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Replaces the persistent-domain specified by domainname with
+ * domain ... a dictionary containing keys and defaults values.
+ * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
+ * if this is the first change to a persistent-domain since the
+ * last -synchronize.
+ */
 - (void) setPersistentDomain: (NSDictionary*)domain 
 		     forName: (NSString*)domainName
 {
@@ -929,6 +1092,13 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+/**
+ * Ensures that the in-memory and on-disk representations of the defaults
+ * are in sync.  You may call this yourself, but probably don't need to
+ * since it is invoked at intervals whenever a runloop is running.<br />
+ * If any persistent domain is changed by reading new values from disk,
+ * an NSUserDefaultsDidChangeNotification is posted.
+ */
 - (BOOL) synchronize
 {
   NSFileManager		*mgr = [NSFileManager defaultManager];
@@ -1090,7 +1260,7 @@ static NSString	*pathForUser(NSString *user)
 	  updateCache(self);
 	  [[NSNotificationCenter defaultCenter] 
 	    postNotificationName: NSUserDefaultsDidChangeNotification
-			  object: nil];
+			  object: self];
 	}
       else
 	{
@@ -1146,6 +1316,9 @@ static NSString	*pathForUser(NSString *user)
   return AUTORELEASE(copy);
 }
 
+/**
+ * Returns an array listing the name of all the volatile domains.
+ */
 - (NSArray*) volatileDomainNames
 {
   NSArray	*keys;
@@ -1156,9 +1329,11 @@ static NSString	*pathForUser(NSString *user)
   return keys;
 }
 
-/*************************************************************************
- *** Making Advanced Use of Defaults
- *************************************************************************/
+/**
+ * Returns a dictionary representing the current state of the defaults
+ * system ... this is a merged version of all the domains in the
+ * search list.
+ */
 - (NSDictionary*) dictionaryRepresentation
 {
   NSDictionary	*rep;
@@ -1199,6 +1374,13 @@ static NSString	*pathForUser(NSString *user)
   return AUTORELEASE(rep);
 }
 
+/**
+ * Merges the contents of the dictionary newVals into the registration
+ * domain.  Registration defaults may be added to or replaced using this
+ * method, but may never be removed.  Thus, setting registration defaults
+ * at any point in your program guarantees that the defaults will be
+ * available thereafter.
+ */
 - (void) registerDefaults: (NSDictionary*)newVals
 {
   NSMutableDictionary	*regDefs;
@@ -1355,7 +1537,7 @@ static NSString	*pathForUser(NSString *user)
       updateCache(self);
       [[NSNotificationCenter defaultCenter] 
 	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: nil];
+		      object: self];
     }
 	
   enumerator = [_changedDomains objectEnumerator];
