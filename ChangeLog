@@ -1,3 +1,7 @@
+2001-04-16  Adam Fedor  <fedor@gnu.org>
+
+	* aclocal.m4: Detect the xm2-config script.
+
 2001-04-14  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* configure.in: fixed fake main for 'new' FreeBSD targets.

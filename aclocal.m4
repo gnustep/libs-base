@@ -271,7 +271,12 @@ AC_ARG_ENABLE(xmltest,
     fi
   fi
 
-  AC_PATH_PROG(XML_CONFIG, xml-config, no)
+  AC_PATH_PROG(XML2_CONFIG, xml2-config, no)
+  if test "$XML2_CONFIG" = "no" ; then
+    AC_PATH_PROG(XML_CONFIG, xml-config, no)
+  else
+    XML_CONFIG=$XML2_CONFIG
+  fi
   min_xml_version=ifelse([$1], ,2.0.0, [$1])
   AC_MSG_CHECKING(for libxml - version >= $min_xml_version)
   no_xml=""
