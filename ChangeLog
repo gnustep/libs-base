@@ -1,3 +1,16 @@
+Fri Oct 31 17:00:29 1997  Adam Fedor  <fedor@doc.com>
+
+	* GNUmakefile (DIST_FILES): Update files.
+	* src/GNUmakefile: Likewise.
+	* checks/GNUmakefile: Likewise.
+	* examples/GNUmakefile: Likewise.
+	* doc/GNUmakefile: Likewise.
+	* admin/GNUmakefile: Likewise.
+	* NSCharacterSets/GNUmakefile: Likewise.
+	* NSTimeZones/GNUmakefile: Likewise.
+	* Tools/GNUmakefile: Likewise.
+	* Tools/Makefile.postamble (copy-dist): New target.
+	
 Fri Oct 31 15:16:46 1997  Adam Fedor  <fedor@doc.com>
 
 	* NSBundle.README: Removed obsolete file.

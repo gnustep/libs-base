@@ -34,7 +34,7 @@ example.patch \
 volunteers \
 tasks
 
-RCS_FILES = Makefile Makefile.postamble
+RCS_FILES = GNUmakefile Makefile.postamble
 DIST_FILES = $(RCS_FILES) $(ADMIN_FILES)
 
 -include Makefile.preamble

@@ -35,6 +35,13 @@ dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
 dwrite_OBJC_FILES = dwrite.m
 
+SOURCES = gdomap.c dread.m dremove.m dwrite.m
+
+HEADERS = gdomap.h
+
+DIST_FILES = GNUmakefile Makefile.preamble Makefile.postamble \
+$(SOURCES) $(HEADERS)
+
 -include Makefile.preamble
 
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/objc.make
