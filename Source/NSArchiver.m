@@ -205,10 +205,8 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       case _C_UINT:	info = _GSC_UINT | _GSC_S_INT;	break;
       case _C_LNG:	info = _GSC_LNG | _GSC_S_LNG;	break;
       case _C_ULNG:	info = _GSC_ULNG | _GSC_S_LNG; break;
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:	info = _GSC_LNG_LNG | _GSC_S_LNG_LNG;	break;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG | _GSC_S_LNG_LNG;	break;
-#endif
       case _C_FLT:	info = _GSC_FLT;	break;
       case _C_DBL:	info = _GSC_DBL;	break;
       default:		info = _GSC_NONE;	break;
@@ -537,7 +535,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned long), nil);
 	return;
 
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
 	(*_tagImp)(_dst, tagSel, _GSC_LNG_LNG | _GSC_S_LNG_LNG);
 	(*_serImp)(_dst, serSel, (void*)buf, @encode(long long), nil);
@@ -548,7 +545,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	(*_serImp)(_dst, serSel, (void*)buf, @encode(unsigned long long), nil);
 	return;
 
-#endif
       case _C_FLT:
 	(*_tagImp)(_dst, tagSel, _GSC_FLT);
 	(*_serImp)(_dst, serSel, (void*)buf, @encode(float), nil);

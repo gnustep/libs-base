@@ -7,6 +7,17 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{0.6.5}
+
+@itemize @bullet
+@item Better debugging information.
+@item Timezone information rewritten to work more like GNUstep wants it
+rather than strict Posix.
+@item Added support for FreeBSD native POSIX threads
+@item Better garbage collection support.
+@item Lots of optimizations and bug fixes.
+@end itemize
+
 @section Noteworthy changes in version @samp{0.6.0}
 
 Most of the changes to the Base Library are bug fixes and updates to

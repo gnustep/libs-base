@@ -65,6 +65,7 @@ extern	void		GSDebugAllocationRemove(Class c);
 extern	BOOL		GSDebugAllocationActive(BOOL active);
 extern	int		GSDebugAllocationCount(Class c);
 extern	const char*	GSDebugAllocationList(BOOL changeFlag);
+extern	const char*	GSDebugAllocationListAll();
 
 extern	NSString*	GSDebugFunctionMsg(const char *func, const char *file,
 				int line, NSString *fmt);

@@ -64,10 +64,8 @@ typeToName1(char type)
       case _C_UINT:	return "unsigned int";
       case _C_LNG:	return "long";
       case _C_ULNG:	return "unsigned long";
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:	return "long long";
       case _C_ULNG_LNG:	return "unsigned long long";
-#endif
       case _C_FLT:	return "float";
       case _C_DBL:	return "double";
       case _C_PTR:	return "pointer";
@@ -110,10 +108,8 @@ typeToName2(char type)
       case _GSC_UINT:	return "unsigned int";
       case _GSC_LNG:	return "long";
       case _GSC_ULNG:	return "unsigned long";
-#ifdef	_GSC_LNG_LNG
       case _GSC_LNG_LNG:	return "long long";
       case _GSC_ULNG_LNG:	return "unsigned long long";
-#endif
       case _GSC_FLT:	return "float";
       case _GSC_DBL:	return "double";
       case _GSC_PTR:	return "pointer";

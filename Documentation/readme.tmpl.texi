@@ -14,13 +14,6 @@ The file @samp{NEWS} has the library's feature history.
 The file @samp{GNUstep-HOWTO} 
 give instructions for installing the library.
 
-@section Preparing to write code
-
-The documentation isn't much to speak of so far.  Better documentation
-will be forthcoming, but the library needs to settle first.  For now I
-recommend reading the header files.  
-The headers for the classes are in @file{./src/include}.
-
 @section How can you help?
 
 @itemize @bullet
@@ -28,10 +21,6 @@ The headers for the classes are in @file{./src/include}.
 @item
 Give us feedback!  Tell us what you like; tell us what you think
 could be better.  Send bug reports to @email{bug-gnustep@@gnu.org}.
-
-@item
-Donate classes.  If you write classes that fit in the libgnustep-base
-framework, I'd be happy to include them.
 
 @end itemize
 

@@ -615,14 +615,16 @@ failure:
 
       if ([mgr fileExistsAtPath: path])
 	{
-	  att = [[mgr fileAttributesAtPath:path traverseLink:YES] mutableCopy];
+	  att = [[mgr fileAttributesAtPath: path
+			      traverseLink: YES] mutableCopy];
 	  IF_NO_GC(TEST_AUTORELEASE(att));
 	}
 
       c = rename(thePath, theRealPath);
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
-          NSLog(@"Rename (%s) failed - %s", thePath, strerror(errno));
+          NSLog(@"Rename ('%s' to '%s') failed - %s",
+	    thePath, theRealPath, strerror(errno));
           goto failure;
         }
 
@@ -656,6 +658,13 @@ failure:
 
   /* Just in case the failure action needs to be changed. */
  failure:
+  /*
+   * Attempt to tidy up by removing temporary file on failure.
+   */
+  if (useAuxiliaryFile)
+    {
+      unlink(thePath);
+    }
   return NO;
 }
 
@@ -837,7 +846,6 @@ failure:
 	  *(unsigned long*)data = NSSwapBigLongToHost(nl);
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -849,7 +857,6 @@ failure:
 	  *(unsigned long long*)data = NSSwapBigLongLongToHost(nl);
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf;
@@ -1420,7 +1427,6 @@ failure:
 	  [self appendBytes: &nl length: sizeof(unsigned long)];
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -1430,7 +1436,6 @@ failure:
 	  [self appendBytes: &nl length: sizeof(unsigned long long)];
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
@@ -1903,7 +1908,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(unsigned long*)data = NSSwapBigLongToHost(nl);
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -1913,7 +1917,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(unsigned long long*)data = NSSwapBigLongLongToHost(nl);
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf;
@@ -2836,7 +2839,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nl, sizeof(unsigned long));
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -2846,7 +2848,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nl, sizeof(unsigned long long));
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);

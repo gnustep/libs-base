@@ -756,57 +756,54 @@ init_iface()
   final = (struct ifreq*)&ifc.ifc_buf[ifc.ifc_len];
   for (ifr = ifc.ifc_req; ifr < final; ifr++)
     {
-      if (ifr->ifr_addr.sa_family == AF_INET)
-	{	/* IP interface */
-	  ifreq = *ifr;
-	  if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0)
-	    {
-	      perror("SIOCGIFFLAGS");
-	    }
-	  else if (ifreq.ifr_flags & IFF_UP)
-	    {	/* active interface */
-	      if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
-		{
-		  perror("SIOCGIFADDR");
-		}
-	      else
-		{
-		  if (interfaces >= MAX_IFACE)
-		    {
-		      fprintf(stderr,
+      ifreq = *ifr;
+      if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0)
+        {
+          perror("SIOCGIFFLAGS");
+        }
+      else if (ifreq.ifr_flags & IFF_UP)
+        {  /* interface is up */
+          if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
+            {
+              perror("SIOCGIFADDR");
+            }
+          else if (ifreq.ifr_addr.sa_family == AF_INET)
+            {	/* IP interface */
+	      if (interfaces >= MAX_IFACE)
+	        {
+	          fprintf(stderr,
 "You have too many network interfaces on your machine (in which case you need\n"
 "to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or your\n"
 "system is buggy, and you need to use the '-a' command line flag for\n"
 "gdomap to manually set the interface addresses and masks to be used.\n");
-		      close(desc);
-		      exit(1);
-		    }
-		  addr[interfaces] =
-			((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
-		  if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
-		    {
-		      perror("SIOCGIFNETMASK");
-		      /*
-		       *	If we can't get a netmask - assume a class-c
-		       *	network.
-		       */
-		      mask[interfaces] = class_c_mask;
-		    }
-		  else
-		    {
+	          close(desc);
+	          exit(1);
+	        }
+	      addr[interfaces] =
+		((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
+	      if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
+	        {
+	          perror("SIOCGIFNETMASK");
+		  /*
+		   *	If we can't get a netmask - assume a class-c
+		   *	network.
+		   */
+		   mask[interfaces] = class_c_mask;
+		}
+              else
+                {
 /*
  *	Some systems don't have ifr_netmask
  */
 #ifdef	ifr_netmask
-		      mask[interfaces] =
-		        ((struct sockaddr_in *)&ifreq.ifr_netmask)->sin_addr;
+                  mask[interfaces] =
+                    ((struct sockaddr_in *)&ifreq.ifr_netmask)->sin_addr;
 #else
-		      mask[interfaces] =
-		        ((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
+                  mask[interfaces] =
+                    ((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
 #endif
-		    }
-		  interfaces++;
-		}
+                }
+              interfaces++;
 	    }
 	}
     }
