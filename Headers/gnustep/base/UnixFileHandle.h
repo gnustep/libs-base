@@ -52,8 +52,11 @@
 
 - (id)initAsClientAtAddress:address
 		    service:service
-		   protocol:protocol
-		   forModes:modes;
+		   protocol:protocol;
+- (id)initAsClientInBackgroundAtAddress:address
+				service:service
+			       protocol:protocol
+			       forModes:modes;
 - (id)initAsServerAtAddress:address
 		    service:service
 		   protocol:protocol;
