@@ -34,5 +34,13 @@
 
 @end
 
+
+
+@interface NSData (GSCategories)
+
+- (NSData*) MD5Digest;
+
+@end
+
 #endif	/* NO_GNUSTEP */
 #endif	/* INCLUDED_GS_CATEGORIES_H */

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.0//EN" "http://www.gnustep.org/gsdoc-1_0_0.xml">
+<gsdoc base="BaseAdditions">
+  <head>
+    <title>GNUstep Base Additions</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>Base Additions</heading>
+      <p>
+	The GNUstep base additions package comes with the GNUstep base
+	package, and provides additional non-standard classes and
+	additional features for standard classes.  It is also intended
+	to be built standalone for use on systems where the GNUstep
+	base is not installed, but where an alernative Foundation is
+	available.
+      </p>
+      <index scope="project" type="title" />
+    </chapter>
+    <back>
+      <index scope="project" type="class" />
+      <index scope="project" type="protocol" />
+    </back>
+  </body>
+</gsdoc>
