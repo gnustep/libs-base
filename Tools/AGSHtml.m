@@ -1153,7 +1153,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([n isEqual: @"example"] == YES)
 	{
-	  [buf appendString: @"\n<pre>\n"];
+	  [buf appendString: @"<pre>\n"];
 	  [self outputText: [node children] to: buf];
 	  [buf appendString: @"\n</pre>\n"];
 	  return [node next];
@@ -1165,7 +1165,10 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([textNodes member: n] != nil)
 	{
-	  return [self outputText: node to: buf];
+	  [buf appendString: indent];
+	  node = [self outputText: node to: buf];
+	  [buf appendString: @"\n"];
+	  return node;
 	}
       else
 	{
@@ -1174,7 +1177,10 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
     }
 
-  return [self outputText: node to: buf];
+  [buf appendString: indent];
+  node = [self outputText: node to: buf];
+  [buf appendString: @"\n"];
+  return node;
 }
 
 /**
