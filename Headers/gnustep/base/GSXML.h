@@ -131,6 +131,7 @@
 	      content: (NSString*)content;
 - (NSString*) name;
 - (GSXMLNode*) next;
+- (GSXMLNode*) nextElement;
 - (GSXMLNamespace*) ns;
 - (GSXMLNamespace*) nsDef;  /* namespace definitions on this node */
 - (GSXMLNode*) parent;
