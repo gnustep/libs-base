@@ -234,8 +234,13 @@
 {
   assert (address_2_fref);
   if (!fref_2_object)
+    /* xxx Or should this be NSObjectMapValueCallBacks, so we make
+       sure the object doesn't get released before we can resolve
+       references with it? */
     fref_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
-				      NSObjectMapValueCallBacks, 0);
+				      NSNonOwnedPointerMapValueCallBacks, 0);
+  /* There should only be one object for each fref. */
+  assert (!NSMapGet (fref_2_object, (void*)fref));
   NSMapInsert (fref_2_object, (void*)fref, anObj);
 }
 
