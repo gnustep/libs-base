@@ -407,8 +407,7 @@ static Class NSMutableArray_concrete_class;
 
 - (NSString*) descriptionWithIndent: (unsigned)level
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [self description];
 }
 
 /* The NSCopying Protocol */

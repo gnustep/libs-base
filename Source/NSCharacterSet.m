@@ -28,6 +28,7 @@
 #include <Foundation/NSLock.h>
 
 static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
+
 static NSString* gnustep_libdir =
 #ifdef GNUSTEP_INSTALL_LIBDIR
   @GNUSTEP_INSTALL_LIBDIR;
@@ -80,12 +81,12 @@ static NSLock* cache_lock = nil;
 	path = [gstep_base_bundle pathForResource:setname
 				  ofType:@"dat"
 				  inDirectory:NSCharacterSet_PATH];
-        /* This is for testing purposes */
+        /* This is for testing purposes only! Look in uninstalled dir */
         if (path == nil || [path length] == 0)
 	  {
-	    path = [gstep_base_bundle pathForResource:setname
-				      ofType:@"dat"
-				      inDirectory:@"../NSCharacterSets"];
+	    path = [@"../NSCharacterSets" stringByAppendingPathComponent:
+		       setname];
+	    path = [path stringByAppendingPathExtension: @"dat"];
 	  }
 
         if (path == nil || [path length] == 0)

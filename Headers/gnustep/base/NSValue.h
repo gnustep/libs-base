@@ -40,6 +40,10 @@
 + (NSValue*) valueWithRect: (NSRect)rect;
 + (NSValue*) valueWithSize: (NSSize)size;
 
+#ifndef STRICT_OPENSTEP
++ valueFromString: (NSString *)string;
+#endif
+
 // Accessing Data 
 
 - (void) getValue: (void*)value;

@@ -404,6 +404,8 @@ handle_printf_atsign (FILE *stream,
 		va_arg(arg_list, int);
 		break;
 	      case 's':
+		if (*(spec_pos - 1) == '*')
+		  va_arg(arg_list, int*);
 		va_arg(arg_list, char*);
 		break;
 	      case 'f': case 'e': case 'E': case 'g': case 'G':
@@ -1672,7 +1674,7 @@ else
   int len, count;
 
   /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
-  assert(aRange.location + aRange.length <= [self cStringLength]);
+  assert(NSMaxRange(aRange) <= [self cStringLength]);
   if (maxLength < aRange.length)
     {
       len = maxLength;
@@ -1904,7 +1906,7 @@ else
 }
 
 /* Returns a new string with the path component given in aString
-   appended to the receiver.  Raises an exception if aString contains
+   appended to the receiver.  Raises an exception if aString starts with
    a '/'.  Checks the receiver to see if the last letter is a '/', if it
    is not, a '/' is appended before appending aString */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString
@@ -1916,7 +1918,7 @@ else
       return [[self copy] autorelease];
 
   range = [aString rangeOfString:@"/"];
-  if (range.length != 0)
+  if (range.length != 0 && range.location == 0)
       [NSException raise: NSGenericException
 		     format: @"attempt to append illegal path component"];
 
@@ -1931,7 +1933,7 @@ else
 }
 
 /* Returns a new string with the path extension given in aString
-   appended to the receiver.  Raises an exception if aString contains
+   appended to the receiver.  Raises an exception if aString starts with
    a '.'.  Checks the receiver to see if the last letter is a '.', if it
    is not, a '.' is appended before appending aString */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString
@@ -1943,7 +1945,7 @@ else
     return [[self copy] autorelease];
 
   range = [aString rangeOfString:@"."];
-  if (range.length != 0)
+  if (range.length != 0 && range.location == 0)
     [NSException raise: NSGenericException
 	     format: @"attempt to append illegal path extension"];
 
