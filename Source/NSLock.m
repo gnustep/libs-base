@@ -27,6 +27,7 @@
 #include <base/preface.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSDebug.h>
 
 // Exceptions
 
@@ -89,11 +90,14 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (void) gcFinalize
 {
-  // Ask the runtime to deallocate the mutex
-  // If there are outstanding locks then it will block
-  if (objc_mutex_deallocate(_mutex) == -1)
+  if (_mutex != 0)
     {
-      NSWarnMLog(@"objc_mutex_deallocate() failed");
+      // Ask the runtime to deallocate the mutex
+      // If there are outstanding locks then it will block
+      if (objc_mutex_deallocate(_mutex) == -1)
+	{
+	  NSWarnMLog(@"objc_mutex_deallocate() failed");
+	}
     }
 }
 
@@ -172,7 +176,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   if (objc_mutex_unlock(_mutex) == -1)
     {
       [NSException raise: NSLockException
-        format: @"unlock: failed to unlock mutex"];
+		  format: @"unlock: failed to unlock mutex"];
       /* NOT REACHED */
     }
 }
@@ -194,22 +198,26 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Initialize lock with condition
 - (id) initWithCondition: (int)value
 {
-  [super init];
-  
-  _condition_value = value;
+  self = [super init];
+  if (self != nil)
+    {
+      _condition_value = value;
 
-  // Allocate the mutex from the runtime
-  _condition = objc_condition_allocate ();
-  if (!_condition)
-    {
-      NSLog(@"Failed to allocate a condition");
-      return nil;
-    }
-  _mutex = objc_mutex_allocate ();
-  if (!_mutex)
-    {
-      NSLog(@"Failed to allocate a mutex");
-      return nil;
+      // Allocate the mutex from the runtime
+      _condition = objc_condition_allocate ();
+      if (_condition == 0)
+	{
+	  NSLog(@"Failed to allocate a condition");
+	  RELEASE(self);
+	  return nil;
+	}
+      _mutex = objc_mutex_allocate ();
+      if (_mutex == 0)
+	{
+	  NSLog(@"Failed to allocate a mutex");
+	  RELEASE(self);
+	  return nil;
+	}
     }
   return self;
 }
@@ -222,15 +230,22 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (void) gcFinalize
 {
-  // Ask the runtime to deallocate the mutex
-  // If there are outstanding locks then it will block
-  if (objc_condition_deallocate(_condition) == -1)
+  if (_condition != 0)
     {
-      NSWarnMLog(@"objc_condition_deallocate() failed");
+      // Ask the runtime to deallocate the condition
+      if (objc_condition_deallocate(_condition) == -1)
+	{
+	  NSWarnMLog(@"objc_condition_deallocate() failed");
+	}
     }
-  if (objc_mutex_deallocate(_mutex) == -1)
+  if (_mutex != 0)
     {
-      NSWarnMLog(@"objc_mutex_deallocate() failed");
+      // Ask the runtime to deallocate the mutex
+      // If there are outstanding locks then it will block
+      if (objc_mutex_deallocate(_mutex) == -1)
+	{
+	  NSWarnMLog(@"objc_mutex_deallocate() failed");
+	}
     }
 }
 
@@ -459,14 +474,17 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Designated initializer
 - (id) init
 {
-  [super init];
-  
-  // Allocate the mutex from the runtime
-  _mutex = objc_mutex_allocate();
-  if (!_mutex)
+  self = [super init];
+  if (self != nil)
     {
-      NSLog(@"Failed to allocate a mutex");
-      return nil;
+      // Allocate the mutex from the runtime
+      _mutex = objc_mutex_allocate();
+      if (_mutex == 0)
+	{
+	  NSLog(@"Failed to allocate a mutex");
+	  RELEASE(self);
+	  return nil;
+	}
     }
   return self;
 }
@@ -479,11 +497,14 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (void) gcFinalize
 {
-  // Ask the runtime to deallocate the mutex
-  // If there are outstanding locks then it will block
-  if (objc_mutex_deallocate(_mutex) == -1)
+  if (_mutex != 0)
     {
-      NSWarnMLog(@"objc_mutex_deallocate() failed");
+      // Ask the runtime to deallocate the mutex
+      // If there are outstanding locks then it will block
+      if (objc_mutex_deallocate(_mutex) == -1)
+	{
+	  NSWarnMLog(@"objc_mutex_deallocate() failed");
+	}
     }
 }
 
