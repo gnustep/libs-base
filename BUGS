@@ -1,15 +1,16 @@
 TODO
 ****
 
-   * NSZone memory allocation may not work correctly. If you encounter
-     a problem with NSZones, switch to using the default zone instead
-     of creating one.
+   * Some people have reported NSZone memory allocation problems.  If
+     you encounter a problem with NSZones, switch to using the default
+     zone instead of creating one. Or better yet, fix the problem and
+     submit a patch.
 
-   * Invocations (and by extension, Distributed Objects) work well only
-     on ix86 platforms. In particular, they don't work well on PPC and
-     Sparc platforms.
+   * Invocations (and by extension, Distributed Objects) have been well
+     tested only on ix86 platforms. In particular, there are still
+     minor problems on PPC and Sparc platforms.
 
-   * Distributed Objects aren't thread safe. Don't use DO between
-     threads in a multi-theaded app.
+   * Distributed Objects is now thread safe, but it hasn't been well
+     tested.
 
 

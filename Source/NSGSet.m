@@ -25,7 +25,9 @@
 #include <config.h>
 #include <Foundation/NSSet.h>
 #include <base/behavior.h>
+#include <base/fast.x>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
@@ -65,9 +67,12 @@
 
 - (id) initWithSet: (NSSet*)d
 {
-  [super init];
-  set = (NSGSet*)RETAIN(d);
-  node = set->map.firstNode;
+  self = [super init];
+  if (self != nil)
+    {
+      set = (NSGSet*)RETAIN(d);
+      node = set->map.firstNode;
+    }
   return self;
 }
 
@@ -94,11 +99,18 @@
 
 @implementation NSGSet
 
+static Class	arrayClass;
+static Class	setClass;
+static Class	mutableSetClass;
+
 + (void) initialize
 {
   if (self == [NSGSet class])
     {
       class_add_behavior(self, [NSSetNonCore class]);
+      arrayClass = [NSArray class];
+      setClass = [NSGSet class];
+      mutableSetClass = [NSGMutableSet class];
     }
 }
 
@@ -111,46 +123,6 @@
 {
   GSIMapEmptyMap(&map);
   [super dealloc];
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  unsigned	count = map.nodeCount;
-  GSIMapNode	node = map.firstNode;
-  SEL		sel = @selector(encodeObject:);
-  IMP		imp = [aCoder methodForSelector: sel];
-
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-  while (node != 0)
-    {
-      (*imp)(aCoder, sel, node->key.obj);
-      node = node->nextInMap;
-    }
-}
-
-- (unsigned) hash
-{
-  return map.nodeCount;
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  unsigned	count;
-  id		value;
-  SEL		sel = @selector(decodeValueOfObjCType:at:);
-  IMP		imp = [aCoder methodForSelector: sel];
-  const char	*type = @encode(id);
-
-  (*imp)(aCoder, sel, @encode(unsigned), &count);
-
-  GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
-  while (count-- > 0)
-    {
-      (*imp)(aCoder, sel, type, &value);
-      GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
-    }
-
-  return self;
 }
 
 /* Designated initialiser */
@@ -199,6 +171,247 @@
 
 @end
 
+@implementation	NSGSet (NonCore)
+
+- (NSArray*) allObjects
+{
+  id		objs[map.nodeCount];
+  GSIMapNode	node = map.firstNode;
+  unsigned	i = 0;
+
+  while (node != 0)
+    {
+      objs[i++] = node->key.obj;
+      node = node->nextInMap;
+    }
+  return AUTORELEASE([[arrayClass allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objs count: i]);
+}
+
+- (id) anyObject
+{
+  if (map.nodeCount > 0)
+    return map.firstNode->key.obj;
+  else
+    return nil;
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  unsigned	count = map.nodeCount;
+  GSIMapNode	node = map.firstNode;
+  SEL		sel = @selector(encodeObject:);
+  IMP		imp = [aCoder methodForSelector: sel];
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  while (node != 0)
+    {
+      (*imp)(aCoder, sel, node->key.obj);
+      node = node->nextInMap;
+    }
+}
+
+- (unsigned) hash
+{
+  return map.nodeCount;
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  unsigned	count;
+  id		value;
+  SEL		sel = @selector(decodeValueOfObjCType:at:);
+  IMP		imp = [aCoder methodForSelector: sel];
+  const char	*type = @encode(id);
+
+  (*imp)(aCoder, sel, @encode(unsigned), &count);
+
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
+  while (count-- > 0)
+    {
+      (*imp)(aCoder, sel, type, &value);
+      GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
+    }
+
+  return self;
+}
+
+- (BOOL) intersectsSet: (NSSet*) otherSet
+{
+  Class	c;
+
+  /*
+   *  If this set is empty, or the other is nil, this method should return NO.
+   */
+  if (map.nodeCount == 0)
+    return NO;
+  if (otherSet == nil)
+    return NO;
+
+  // Loop for all members in otherSet
+  c = fastClass(otherSet);
+  if (c == setClass || c == mutableSetClass)
+    {
+      GSIMapNode	node = ((NSGSet*)otherSet)->map.firstNode;
+
+      while (node != 0)
+	{
+	  if (GSIMapNodeForKey(&map, node->key) != 0)
+	    {
+	      return YES;
+	    }
+	  node = node->nextInMap;
+	}
+    }
+  else
+    {
+      NSEnumerator	*e;
+      id		o;
+
+      e = [otherSet objectEnumerator];
+      while ((o = [e nextObject])) // 1. pick a member from otherSet.
+	{
+	  if (GSIMapNodeForKey(&map, (GSIMapKey)o) != 0)
+	    {
+	      return YES;
+	    }
+	}
+    }
+  return NO;
+}
+
+- (BOOL) isSubsetOfSet: (NSSet*) otherSet
+{
+  GSIMapNode	node = map.firstNode;
+
+  // -1. members of this set(self) <= that of otherSet
+  if (map.nodeCount > [otherSet count])
+    return NO;
+
+  // 0. Loop for all members in this set(self).
+  while (node != 0)
+    {
+      // 1. check the member is in the otherSet.
+      if ([otherSet member: node->key.obj])
+       {
+         // 1.1 if true -> continue, try to check the next member.
+         node = node->nextInMap;
+       }
+      else
+       {
+         // 1.2 if false -> return NO;
+         return NO;
+       }
+    }
+  // 2. return YES; all members in this set are also in the otherSet.
+  return YES;
+}
+
+- (BOOL) isEqualToSet: (NSSet*)other
+{
+  if (other == nil)
+    {
+      return NO;
+    }
+  else if (other == self)
+    {
+      return YES;
+    }
+  else
+    {
+      Class	c = fastClass(other);
+
+      if (c == setClass || c == mutableSetClass)
+	{
+	  if (map.nodeCount != ((NSGSet*)other)->map.nodeCount)
+	    {
+	      return NO;
+	    }
+	  else
+	    {
+	      GSIMapNode	node = map.firstNode;
+
+	      while (node != 0)
+		{
+		  if (GSIMapNodeForKey(&(((NSGSet*)other)->map), node->key)
+		    == 0)
+		    {
+		      return NO;
+		    }
+		  node = node->nextInMap;
+		}
+	    }
+	}
+      else
+	{
+	  if (map.nodeCount != [other count])
+	    {
+	      return NO;
+	    }
+	  else
+	    {
+	      GSIMapNode	node = map.firstNode;
+
+	      while (node != 0)
+		{
+		  if ([other member: node->key.obj] == nil)
+		    {
+		      return NO;
+		    }
+		  node = node->nextInMap;
+		}
+	    }
+	}
+      return YES;
+    }
+}
+
+- (void) makeObjectsPerform: (SEL)aSelector
+{
+  GSIMapNode	node = map.firstNode;
+
+  while (node != 0)
+    {
+      [node->key.obj performSelector: aSelector];
+      node = node->nextInMap;
+    }
+}
+
+- (void) makeObjectsPerformSelector: (SEL)aSelector
+{
+  GSIMapNode	node = map.firstNode;
+
+  while (node != 0)
+    {
+      [node->key.obj performSelector: aSelector];
+      node = node->nextInMap;
+    }
+}
+
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
+{
+  GSIMapNode	node = map.firstNode;
+
+  while (node != 0)
+    {
+      [node->key.obj performSelector: aSelector withObject: argument];
+      node = node->nextInMap;
+    }
+}
+
+- (void) makeObjectsPerform: (SEL)aSelector withObject: argument
+{
+  GSIMapNode	node = map.firstNode;
+
+  while (node != 0)
+    {
+      [node->key.obj performSelector: aSelector withObject: argument];
+      node = node->nextInMap;
+    }
+}
+
+@end
+
 @implementation NSGMutableSet
 
 + (void) initialize
@@ -217,6 +430,34 @@
   return self;
 }
 
+- (id) initWithObjects: (id*)objects
+		 count: (unsigned)count
+{
+  self = [self initWithCapacity: count];
+
+  while (count--)
+    {
+      id	anObject = objects[count];
+
+      if (anObject == nil)
+	{
+	  NSLog(@"Tried to init a set with a nil object");
+	  continue;
+	}
+      else
+	{
+	  GSIMapNode node;
+
+	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+	  if (node == 0)
+	    {
+	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	    }
+	}
+    }
+  return self;
+}
+
 - (void) addObject: (NSObject*)anObject
 {
   GSIMapNode node;
@@ -224,7 +465,7 @@
   if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to add nil to  set"];
+		  format: @"Tried to add nil to set"];
     }
   node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
   if (node == 0)
@@ -246,6 +487,98 @@
 - (void) removeAllObjects
 {
   GSIMapCleanMap(&map);
+}
+
+@end
+
+@implementation NSGMutableSet (NonCore)
+
+- (void) addObjectsFromArray: (NSArray*)array
+{
+  unsigned	count = [array count];
+
+  while (count--)
+    {
+      id	anObject = [array objectAtIndex: count];
+
+      if (anObject == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Tried to add nil to set"];
+	}
+      else
+	{
+	  GSIMapNode node;
+
+	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+	  if (node == 0)
+	    {
+	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	    }
+	}
+    }
+}
+
+- (void) unionSet: (NSSet*) other
+{
+  if (other != self)
+    {
+      NSEnumerator	*e = [other objectEnumerator];
+      id		anObject;
+
+      while ((anObject = [e nextObject]) != nil)
+	{
+	  GSIMapNode node;
+
+	  if (anObject == nil)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to add nil to set"];
+	    }
+	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+	  if (node == 0)
+	    {
+	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	    }
+	}
+    }
+}
+
+- (void) intersectSet: (NSSet*) other
+{
+  if (other != self)
+    {
+      GSIMapNode	node = map.firstNode;
+
+      while (node != 0)
+	{
+	  GSIMapNode	next = node->nextInMap;
+
+	  if ([other containsObject: node->key.obj] == NO)
+	    {
+	      GSIMapRemoveKey(&map, node->key);
+	    }
+	  node = next;
+	}
+    }
+}
+
+- (void) minusSet: (NSSet*) other
+{
+  if (other == self)
+    {
+      GSIMapCleanMap(&map);
+    }
+  else
+    {
+      NSEnumerator	*e = [other objectEnumerator];
+      id		anObject;
+
+      while ((anObject = [e nextObject]) != nil)
+	{
+	  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+	}
+    }
 }
 
 @end

@@ -1,3 +1,200 @@
+2000-08-06  Adam Fedor  <fedor@gnu.org>
+
+	* Version 0.6.6 released.
+
+	* Source/NSTimer.m (-compare:): Add return to quiet warning. 
+
+2000-08-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortNameServer.m: include netinet/in.h as needed on
+	FreeBSD to define values used in arpa/inet.h
+
+2000-08-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost: ([_initWithHostEntry:key:]) workaround for buggy
+	host entries with missing h_aliases
+	
+2000-08-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Updated to latest (July 31st) info
+
+2000-08-02  Adam Fedor  <fedor@gnu.org>
+
+	* Version: Update version number
+	* Documentation/announce.tmpl.texi: Update
+	* Documentation/readme.tmpl.texi: Likewise.
+	* Documentation/news.tmpl.texi: Likewise.
+	* Documentation/todo.tmpl.texi: Likewise.
+	* ANNOUNCE, BUGS, NEWS, README: Regenerate
+
+2000-08-02  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/nsconnection_client.m: Rewrite, organize.
+	* Testing/nsconnection_server.m: Likewise.
+
+2000-08-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: ([-removeHandle:]) corrected logic for releasing
+	self when port was created and retained by an incoming connection.
+
+2000-08-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSConcreteNumber.m (-compare:): Add return at end to quiet
+	compiler warning.
+
+	* Source/NSFileHandle.m: Change +fileHandle... methods to use
+	abstracts class's allocWithZone.
+
+	* Source/libgnustep-base.def: Update for new/removed classes.
+
+2000-08-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Correct order of args to
+	lastDayOfGregorianMonth()
+	* Source/NSPortCoder.m: Handle classes encoded as objects specially.
+	* Source/NSArchiver.m: ditto.
+	* Source/NNSUnarchiver.m: ditto.
+
+2000-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Foundation/NSDebug.h: removed GS_IMPORT
+	* Source/Foundation/NSObjCRuntime.h: ditto
+	* Source/Foundation/GSConfig.h.in: ditto
+
+2000-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: implement -cStringLength correctly in terms of
+	other methods of the abstract class, rather than making the subclass
+	do it.  Cache [-characterAtIndex:] implementation for speed
+	throughout.
+	* Source/Unicode.m: Remove uslen() function - unused and unsafe.
+	Tidied code and optimised a little.
+	* Source/Foundation/Unicode.h: Remove uslen()
+	* Source/NSNumber.m: Check for nul argument to [-compare:]
+	* Source/NSDate.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSConcreteNumber.m: ditto
+	* Source/NSTimer.m: ditto
+
+2000-07-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/nconnection.m: Trivial test of basic inter-thread use of
+	DO taken from example code in Applde documentation.
+
+2000-07-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Varous cluster classes - Bugfix to let allocWithZone work for
+	new concrete subclasses in the cluster.
+	* Source/NSPortCoder.m: Accept classes when asked to decode object.
+	* Source/NSUnarchiver.m: ditto.
+
+2000-07-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Don't create/use locks until the app
+	goes multi-threaded.
+	* Source/GSTcpPort.m: ditto.
+
+2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: Fix stupid error in last bugfix
+	* Source/Foundation/GSConfig.h.in: define GS_SIZEOF_VOIDP
+	* configure.in: provide GS_SIZEOF_VOIDP
+
+2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: clarify code for getting current thread.
+
+2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Foundation/NSDebug.h: Bugfix reported by Frederic.De.Jaeger
+	to prevent incorrect processor handling of cases where logging format
+	string has no arguments.
+
+2000-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: When given bad data on a socket, log a message
+	and invalidate the socket handle rather than raising an exception
+	and crashing.  Should make system more robust in the face of attacks.
+
+2000-07-24  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSTcpPort.m
+	(-sendBeforeDate:msgid:components:from:reserved:]): Correct typo.
+
+2000-07-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Testing directory tidied to reflect removal of old classes.
+	* Source/NSTimer.m: Tidied a little.
+
+2000-07-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Old DO code removed along with associated libObjects classes that it
+	required - library slimmed down.
+
+2000-07-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSGCString.m: implement methods to get numeric values.
+	* Source/NSGString.m: implement methods to get numeric values.
+
+2000-07-19  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/news.tmpl.texi: Update.
+	* Documentation/todo.tmpl.texi: Update.
+
+2000-07-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/Makefile.postamble: Improve warning messages for gdomap install
+	* Source/NSProcessInfo.m: Change __MINGW32__ to __MINGW__
+	* Source/GSTcpPort.m: improve encoding of local port for send over wire
+
+2000-07-17  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSZone.m: Remove duplicate function definitions (when 
+	GS_WITH_GC is 1) already defined in NSZone.h.
+
+2000-07-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/externs.m: Some evil casts to avoid compiler warnings about
+	assigning to constant variables when we initiallise them.
+	* Source/NSGSet.m: implemented [-anyObject] and [-allObjects]
+	* Source/NSSet.m: Fix to encode subclasses as abstract class.
+	Remove unused methods for set/get concrete class
+	* Source/NSCountedSet.m: ditto
+	* Source/NSNumber.m: Use explicitly signed types for portability -
+	particularly for systems (eg PPC) where char is not signed by default.
+	* Source/NSConcrete.m: ditto.
+	* Source/NSConcreteNumber.m: ditto.
+	* Source/Foundation/NSValue.h: ditto
+	* Source/Foundation/NSConcreteNumber.h: ditto
+	* Source/NSArray.m: Remove unused methods for set/get concrete class
+	* Source/NSDictionary.m: ditto.
+	* Source/NSString.m: ditto.
+	* Source/NSAttributedString.m: ditto.
+	* Source/NSHost.m: store names and addresses in sets for improved
+	performance (comparisons).
+	Encode host as an address other than loopback if possible.
+	Add code for a new '+localHost' method to try to get ALL
+	names/addresses of current host.
+	* Source/NSPortNameServer.m: Use new localHost method.
+	* Source/GSTcpPort.m: Use new localHost method.
+
+2000-07-16  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/GNUmakefile (gdomap): Make as a C-tool rather than an
+	Objective-C program (no need for libobjc).
+
+2000-07-07  Jonathan Gapen <jagapen@home.com>
+
+	* Source/NSString.m: (-initWithFormat:), (-initWithFormat:locale:),
+	(-initWithFormat:arguments:) now implemented by calling
+	(-initWithFormat:locale:arguments:)
+	* Source/externs.m: Add strings defined in MacOS X documentation,
+	and useful strings from OPENSTEP 4.2.
+
+2000-07-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: set size for return buffer of getsockbyname()
+
 2000-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Minor optimisation in select(), also update

@@ -37,7 +37,7 @@ DTD_FILES = gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd
 # The application to be compiled
 TOOL_NAME = gdnc gsdoc defaults plmerge \
 		plparse sfparse pldes plser
-OBJC_PROGRAM_NAME = gdomap
+CTOOL_NAME = gdomap
 
 # The source files to be compiled
 gdomap_C_FILES = gdomap.c
@@ -64,7 +64,7 @@ include Makefile.preamble
 
 -include GNUmakefile.local
 
-include $(GNUSTEP_MAKEFILES)/objc.make
+include $(GNUSTEP_MAKEFILES)/ctool.make
 include $(GNUSTEP_MAKEFILES)/tool.make
 
 include Makefile.postamble

@@ -1,6 +1,8 @@
 /* Test whether each thread has their own exception handlers. */
 
+#ifndef _REENTRANT
 #define _REENTRANT
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

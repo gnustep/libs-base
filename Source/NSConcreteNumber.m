@@ -45,7 +45,7 @@
 #elif TYPE_ORDER == 1
 #  define NumberTemplate	NSCharNumber
 #  define TYPE_FORMAT	@"%c"
-#  define TYPE_TYPE	char
+#  define TYPE_TYPE	signed char
 #elif TYPE_ORDER == 2
 #  define NumberTemplate	NSUCharNumber
 #  define TYPE_FORMAT	@"%c"
@@ -53,7 +53,7 @@
 #elif TYPE_ORDER == 3
 #  define NumberTemplate	NSShortNumber
 #  define TYPE_FORMAT	@"%hd"
-#  define TYPE_TYPE	short
+#  define TYPE_TYPE	signed short
 #elif TYPE_ORDER == 4
 #  define NumberTemplate	NSUShortNumber
 #  define TYPE_FORMAT	@"%hu"
@@ -61,7 +61,7 @@
 #elif TYPE_ORDER == 5
 #  define NumberTemplate	NSIntNumber
 #  define TYPE_FORMAT	@"%d"
-#  define TYPE_TYPE	int
+#  define TYPE_TYPE	signed int
 #elif TYPE_ORDER == 6
 #  define NumberTemplate	NSUIntNumber
 #  define TYPE_FORMAT	@"%u"
@@ -69,7 +69,7 @@
 #elif TYPE_ORDER == 7
 #  define NumberTemplate	NSLongNumber
 #  define TYPE_FORMAT	@"%ld"
-#  define TYPE_TYPE	long
+#  define TYPE_TYPE	signed long
 #elif TYPE_ORDER == 8
 #  define NumberTemplate	NSULongNumber
 #  define TYPE_FORMAT	@"%lu"
@@ -77,7 +77,7 @@
 #elif TYPE_ORDER == 9
 #  define NumberTemplate	NSLongLongNumber
 #  define TYPE_FORMAT	@"%lld"
-#  define TYPE_TYPE	long long
+#  define TYPE_TYPE	signed long long
 #elif TYPE_ORDER == 10
 #  define NumberTemplate	NSULongLongNumber
 #  define TYPE_FORMAT	@"%llu"
@@ -144,9 +144,9 @@
   return (BOOL)data;
 }
 
-- (char) charValue
+- (signed char) charValue
 {
-  return (char)data;
+  return (signed char)data;
 }
 
 - (double) doubleValue
@@ -159,24 +159,24 @@
   return (float)data;
 }
 
-- (int) intValue
+- (signed int) intValue
 {
-  return (int)data;
+  return (signed int)data;
 }
 
-- (long long) longLongValue
+- (signed long long) longLongValue
 {
-  return (long long)data;
+  return (signed long long)data;
 }
 
-- (long) longValue
+- (signed long) longValue
 {
-  return (long)data;
+  return (signed long)data;
 }
 
-- (short) shortValue
+- (signed short) shortValue
 {
-  return (short)data;
+  return (signed short)data;
 }
 
 - (unsigned char) unsignedCharValue
@@ -206,177 +206,184 @@
 
 - (NSComparisonResult) compare: (NSNumber*)other
 {
-  GSNumberInfo	*info;
-
   if (other == self)
     {
       return NSOrderedSame;
     }
-  info = GSNumberInfoFromObject(other);
-
-  switch (info->typeLevel)
+  else if (other == nil)
     {
-      case 0:
-	{
-	  BOOL	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 1:
-	{
-	  char	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 2:
-	{
-	  unsigned char	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 3:
-	{
-	  short	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 4:
-	{
-	  unsigned short	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 5:
-	{
-	  int	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 6:
-	{
-	  unsigned int	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 7:
-	{
-	  long	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 8:
-	{
-	  unsigned long	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 9:
-	{
-	  long long	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 10:
-	{
-	  unsigned long long	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 11:
-	{
-	  float	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      case 12:
-	{
-	  double	oData;
-
-	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	  if (data == oData)
-	    return NSOrderedSame;
-	  else if (data < oData)
-	    return NSOrderedAscending;
-	  else
-	    return NSOrderedDescending;
-	}
-      default:
-	[NSException raise: NSInvalidArgumentException
-		    format: @"number type value for comparison"];
-	return NSOrderedSame;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
     }
+  else
+    {
+      GSNumberInfo	*info = GSNumberInfoFromObject(other);
+
+      switch (info->typeLevel)
+	{
+	  case 0:
+	    {
+	      BOOL	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 1:
+	    {
+	      signed char	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 2:
+	    {
+	      unsigned char	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 3:
+	    {
+	      signed short	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 4:
+	    {
+	      unsigned short	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 5:
+	    {
+	      signed int	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 6:
+	    {
+	      unsigned int	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 7:
+	    {
+	      signed long	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 8:
+	    {
+	      unsigned long	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 9:
+	    {
+	      signed long long	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 10:
+	    {
+	      unsigned long long	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 11:
+	    {
+	      float	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  case 12:
+	    {
+	      double	oData;
+
+	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	      if (data == oData)
+		return NSOrderedSame;
+	      else if (data < oData)
+		return NSOrderedAscending;
+	      else
+		return NSOrderedDescending;
+	    }
+	  default:
+	    [NSException raise: NSInvalidArgumentException
+			format: @"number type value for comparison"];
+	    return NSOrderedSame;
+	}
+    }
+  return 0; /* Quiet warnings */
 }
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale

@@ -32,7 +32,6 @@ unichar chartouni(char c);
 char unitochar(unichar u);
 int strtoustr(unichar * u1,const char *s1,int size);
 int ustrtostr(char *s2,unichar *u1,int size);
-int uslen (unichar *u);
 unichar uni_tolower(unichar ch);
 unichar uni_toupper(unichar ch);
 unsigned char uni_cop(unichar u);

@@ -89,27 +89,6 @@ static Class NSAttributedString_concrete_class;
 static Class NSMutableAttributedString_abstract_class;
 static Class NSMutableAttributedString_concrete_class;
 
-//Internal methods
-+ (void) _setConcreteClass: (Class)c
-{
-  NSAttributedString_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteClass: (Class)c
-{
-  NSMutableAttributedString_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSAttributedString_concrete_class;
-}
-
-+ (Class) _mutableConcreteClass
-{
-  return NSMutableAttributedString_concrete_class;
-}
-
 + (void) initialize
 {
   if (self == [NSAttributedString class])
@@ -133,7 +112,7 @@ static Class NSMutableAttributedString_concrete_class;
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSAttributedString_abstract_class)
-    return NSAllocateObject([self _concreteClass], 0, z);
+    return NSAllocateObject(NSAttributedString_concrete_class, 0, z);
   else
     return NSAllocateObject(self, 0, z);
 }
@@ -166,7 +145,7 @@ static Class NSMutableAttributedString_concrete_class;
 {
   if ([self isKindOfClass: [NSMutableAttributedString class]]
     || NSShouldRetainWithZone(self, zone) == NO)
-    return [[[[self class] _concreteClass] allocWithZone: zone]
+    return [[NSAttributedString_concrete_class allocWithZone: zone]
       initWithAttributedString: self];
   else
     return RETAIN(self);
@@ -175,7 +154,7 @@ static Class NSMutableAttributedString_concrete_class;
 //NSMutableCopying protocol
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[[[self class] _mutableConcreteClass] allocWithZone: zone]
+  return [[NSMutableAttributedString_concrete_class allocWithZone: zone]
     initWithAttributedString: self];
 }
 
@@ -498,7 +477,7 @@ static Class NSMutableAttributedString_concrete_class;
 + allocWithZone: (NSZone*)z
 {
   if (self == NSMutableAttributedString_abstract_class)
-    return NSAllocateObject([self _mutableConcreteClass], 0, z);
+    return NSAllocateObject(NSMutableAttributedString_concrete_class, 0, z);
   else
     return NSAllocateObject(self, 0, z);
 }

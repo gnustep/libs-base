@@ -98,6 +98,7 @@ typeToName2(char type)
 {
   switch (type & _GSC_MASK)
     {
+      case _GSC_CID:	return "class (encoded as id)";
       case _GSC_CLASS:	return "class";
       case _GSC_ID:	return "object";
       case _GSC_SEL:	return "selector";
@@ -455,9 +456,12 @@ mapClassName(NSUnarchiverObjectInfo *info)
       (*tagImp)(src, tagSel, &ainfo, 0, &cursor);
       if (info != (ainfo & _GSC_MASK))
         {
-          [NSException raise: NSInternalInconsistencyException
-                      format: @"expected %s and got %s",
-                        typeToName2(info), typeToName2(ainfo)];
+	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CID)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"expected %s and got %s",
+			    typeToName2(info), typeToName2(ainfo)];
+	    }
         }
 
       for (i = 0; i < count; i++)
@@ -558,7 +562,10 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  NSUnarchiverObjectInfo	*classInfo;
 	  Class		dummy;
 
-	  typeCheck(*type, _GSC_CLASS);
+	  if (*type != _C_ID)
+	    {
+	      typeCheck(*type, _GSC_CLASS);
+	    }
 	  /*
 	   *	Special case - a zero crossref value size is a nil pointer.
 	   */
@@ -980,84 +987,6 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	}
     }
   return [NSData data];
-}
-
-/*
- *	The [-decodeObject] method is implemented purely for performance -
- *	It duplicates the code for handling objects in the
- *	[-decodeValueOfObjCType:at:] method above, but differs in that the
- *	resulting object is autoreleased when it comes from this method.
- */
-- (id) decodeObject
-{
-  unsigned char	info;
-  unsigned	xref;
-  id		obj;
-
-  (*tagImp)(src, tagSel, &info, &xref, &cursor);
-  if ((info & _GSC_MASK) != _GSC_ID)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"expected object and got %s", typeToName2(info)];
-    }
-
-  /*
-   *	Special case - a zero crossref value is a nil pointer.
-   */
-  if ((info & _GSC_SIZE) == 0)
-    {
-      return nil;
-    }
-
-  if (info & _GSC_XREF)
-    {
-      if (xref >= GSIArrayCount(objMap))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"object crossref missing - %d",
-			    xref];
-	}
-      obj = GSIArrayItemAtIndex(objMap, xref).obj;
-      /*
-       *	If it's a cross-reference, we don't need to autorelease it
-       *	since we didn't create it.
-       */
-      return obj;
-    }
-  else
-    {
-      Class	c;
-      id	rep;
-
-      if (xref != GSIArrayCount(objMap))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"extra object crossref - %d",
-			    xref];
-	}
-      (*dValImp)(self, dValSel, @encode(Class), &c);
-
-      obj = [c allocWithZone: zone];
-      GSIArrayAddItem(objMap, (GSIArrayItem)obj);
-
-      rep = [obj initWithCoder: self];
-      if (rep != obj)
-	{
-	  obj = rep;
-	  GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
-	}
-
-      rep = [obj awakeAfterUsingCoder: self];
-      if (rep != obj)
-	{
-	  obj = rep;
-	  GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
-	}
-      /*
-       *	A newly allocated object needs to be autoreleased.
-       */
-      return AUTORELEASE(obj);
-    }
 }
 
 - (BOOL) isAtEnd

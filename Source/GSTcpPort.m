@@ -37,6 +37,7 @@
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSThread.h>
 #include <Foundation/NSDebug.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,6 +51,13 @@
 #include <sys/file.h>
 
 extern	int	errno;
+
+static	BOOL	multi_threaded = NO;
+
+/*
+ * Largest chunk of data possible in DO
+ */
+static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 #if 0
 #define	DO_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
@@ -151,7 +159,6 @@ typedef enum {
 
 @interface GSTcpHandle : NSObject <GCFinalization, RunLoopEvents>
 {
-  NSLock		*myLock;	/* Lock for this handle.	*/
   int			desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
   NSMutableData		*wData;		/* Data object being written.	*/
@@ -167,10 +174,12 @@ typedef enum {
   GSHandleState		state;		/* State of the handle.		*/
   int			addrNum;	/* Address number within host.	*/
 @public
+  NSLock		*myLock;	/* Lock for this handle.	*/
   BOOL			caller;		/* Did we connect to other end?	*/
   BOOL			valid;
   GSTcpPort		*recvPort;
   GSTcpPort		*sendPort;
+  struct sockaddr_in	clientname;	/* Far end of connection.	*/
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (int)d;
@@ -292,6 +301,10 @@ newDataWithEncodedPort(GSTcpPort *port)
 		}
 	    }
 	}
+      if (addr == nil)
+	{
+	  addr = @"127.0.0.1";	/* resign ourselves to this	*/
+	}
     }
   plen = [addr cStringLength] + 3;
   data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
@@ -350,7 +363,10 @@ static Class	runLoopClass;
   handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
-  handle->myLock = [NSRecursiveLock new];
+  if (multi_threaded == YES)
+    {
+      handle->myLock = [NSRecursiveLock new];
+    }
   handle->valid = YES;
   return AUTORELEASE(handle);
 }
@@ -404,7 +420,8 @@ static Class	runLoopClass;
 
       if (addrNum >= [addrs count])
 	{
-	  NSLog(@"run out of addresses to try (tried %d)", addrNum);
+	  NSLog(@"run out of addresses to try (tried %d) for port %@",
+	    addrNum, aPort);
 	  return NO;
 	}
       addr = [[addrs objectAtIndex: addrNum++] cString];
@@ -498,6 +515,12 @@ static Class	runLoopClass;
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"Handle (%d) to %s:%d",
+    desc, inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port)];
+}
+
 - (int) descriptor
 {
   return desc;
@@ -525,6 +548,7 @@ static Class	runLoopClass;
 
 - (void) gcFinalize
 {
+  [self invalidate];
   (void)close(desc);
   desc = -1;
 }
@@ -534,7 +558,22 @@ static Class	runLoopClass;
   DO_LOCK(myLock);
   if (valid == YES)
     { 
+      NSRunLoop	*l;
+
       valid = NO;
+      l = [runLoopClass currentRunLoop];
+      [l removeEvent: (void*)(gsaddr)desc
+		type: ET_RDESC
+	     forMode: nil
+		 all: YES];
+      [l removeEvent: (void*)(gsaddr)desc
+		type: ET_WDESC
+	     forMode: nil
+		 all: YES];
+      [l removeEvent: (void*)(gsaddr)desc
+		type: ET_EDESC
+	     forMode: nil
+		 all: YES];
       NSDebugMLLog(@"GSTcpHandle", @"invalidated", 0);
       [[self recvPort] removeHandle: self];
       [[self sendPort] removeHandle: self];
@@ -653,37 +692,75 @@ static Class	runLoopClass;
 		  l = GSSwapBigI32ToHost(h->length);
 		  if (rType == GSP_PORT)
 		    {
+		      if (l > 32)
+			{
+			  NSLog(@"%@ - unreasonable length (%u) for port",
+			    self, l);
+			  [self invalidate];
+			  return;
+			}
 		      /*
 		       * For a port, we leave the item header in the data
 		       * so that our decode function can check length info.
 		       */
 		      rWant += l;
 		    }
-		  else if (rType == GSP_DATA && l == 0)
+		  else if (rType == GSP_DATA)
 		    {
-		      NSData	*d;
+		      if (l == 0)
+			{
+			  NSData	*d;
 
-		      /*
-		       * For a zero-length data chunk, we create an empty
-		       * data object and add it to the current message.
-		       */
-		      rType = GSP_NONE;	/* ready for a new item	*/
-		      rLength -= rWant;
-		      if (rLength > 0)
-			{
-			  memcpy(bytes, bytes + rWant, rLength);
+			  /*
+			   * For a zero-length data chunk, we create an empty
+			   * data object and add it to the current message.
+			   */
+			  rType = GSP_NONE;	/* ready for a new item	*/
+			  rLength -= rWant;
+			  if (rLength > 0)
+			    {
+			      memcpy(bytes, bytes + rWant, rLength);
+			    }
+			  rWant = sizeof(GSPortItemHeader);
+			  d = [mutableDataClass new];
+			  [rItems addObject: d];
+			  RELEASE(d);
+			  if (nItems == [rItems count])
+			    {
+			      [self dispatch];
+			    }
 			}
-		      rWant = sizeof(GSPortItemHeader);
-		      d = [mutableDataClass new];
-		      [rItems addObject: d];
-		      RELEASE(d);
-		      if (nItems == [rItems count])
+		      else
 			{
-			  [self dispatch];
+			  if (l > maxDataLength)
+			    {
+			      NSLog(@"%@ - unreasonable length (%u) for data",
+				self, l);
+			      [self invalidate];
+			      return;
+			    }
+			  /*
+			   * If not a port or zero length data,
+			   * we discard the data read so far and fill the
+			   * data object with the data item from the msg.
+			   */
+			  rLength -= rWant;
+			  if (rLength > 0)
+			    {
+			      memcpy(bytes, bytes + rWant, rLength);
+			    }
+			  rWant = l;
 			}
 		    }
-		  else
+		  else if (rType == GSP_HEAD)
 		    {
+		      if (l > maxDataLength)
+			{
+			  NSLog(@"%@ - unreasonable length (%u) for data",
+			    self, l);
+			  [self invalidate];
+			  return;
+			}
 		      /*
 		       * If not a port or zero length data,
 		       * we discard the data read so far and fill the
@@ -695,6 +772,12 @@ static Class	runLoopClass;
 			  memcpy(bytes, bytes + rWant, rLength);
 			}
 		      rWant = l;
+		    }
+		  else
+		    {
+		      NSLog(@"%@ - bad data received on port handle", self);
+		      [self invalidate];
+		      return;
 		    }
 		}
 		break;
@@ -1004,14 +1087,79 @@ static NSRecursiveLock	*tcpPortLock = nil;
 static NSMapTable	*tcpPortMap = 0;
 static Class		tcpPortClass;
 
+/*
+ *	When the system becomes multithreaded, we set a flag to say so and
+ *	make sure that port and handle locking is enabled.
+ */
++ (void) _becomeThreaded: (NSNotification*)notification
+{
+  if (multi_threaded == NO)
+    {
+      NSMapEnumerator	pEnum;
+      NSMapTable	*m;
+      void		*dummy;
+
+      multi_threaded = YES;
+      if (tcpPortLock == nil)
+	{
+	  tcpPortLock = [NSRecursiveLock new];
+	}
+      pEnum = NSEnumerateMapTable(tcpPortMap);
+      while (NSNextMapEnumeratorPair(&pEnum, &dummy, (void**)&m))
+	{
+	  NSMapEnumerator	mEnum;
+	  GSTcpPort		*p;
+
+	  mEnum = NSEnumerateMapTable(m);
+	  while (NSNextMapEnumeratorPair(&mEnum, &dummy, (void**)&p))
+	    {
+	      if ([p isValid] == YES)
+		{
+		  NSMapEnumerator	hEnum;
+		  GSTcpHandle		*h;
+
+		  if (p->myLock == nil)
+		    {
+		      p->myLock = [NSRecursiveLock new];
+		    }
+		  hEnum = NSEnumerateMapTable(p->handles);
+		  while (NSNextMapEnumeratorPair(&hEnum, &dummy, (void**)&h))
+		    {
+		      if ([h isValid] == YES && h->myLock == nil)
+			{
+			  h->myLock = [NSRecursiveLock new];
+			}
+		    }
+		}
+	    }
+	}
+    }
+  [[NSNotificationCenter defaultCenter]
+    removeObserver: self
+	      name: NSWillBecomeMultiThreadedNotification
+	    object: nil];
+}
+
 + (void) initialize
 {
   if (self == [GSTcpPort class])
     {
       tcpPortClass = self;
-      tcpPortLock = [NSRecursiveLock new];
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
-			NSNonOwnedPointerMapValueCallBacks, 0);
+	NSNonOwnedPointerMapValueCallBacks, 0);
+
+      if ([NSThread isMultiThreaded])
+	{
+	  [self _becomeThreaded: nil];
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_becomeThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
     }
 }
 
@@ -1064,7 +1212,7 @@ static Class		tcpPortClass;
 {
   unsigned		i;
   GSTcpPort		*port = nil;
-  NSHost		*thisHost = [NSHost currentHost];
+  NSHost		*thisHost = [NSHost localHost];
   NSMapTable		*thePorts;
 
   if (thisHost == nil)
@@ -1106,10 +1254,13 @@ static Class		tcpPortClass;
       port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-      port->myLock = [NSRecursiveLock new];
+      if (multi_threaded == YES)
+	{
+	  port->myLock = [NSRecursiveLock new];
+	}
       port->_is_valid = YES;
 
-      if (shouldListen == YES && [thisHost isEqual: aHost] == YES)
+      if (shouldListen == YES && [thisHost isEqual: aHost])
 	{
 	  int	reuse = 1;	/* Should we re-use ports?	*/
 	  int	desc;
@@ -1121,6 +1272,7 @@ static Class		tcpPortClass;
 	   * listener socket to accept incoming connections.
 	   */
 	  memset(&sockaddr, '\0', sizeof(sockaddr));
+	  sockaddr.sin_family = AF_INET;
 	  if (addr == nil)
 	    {
 	      sockaddr.sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
@@ -1137,6 +1289,11 @@ static Class		tcpPortClass;
 		  addrOk = NO;
 		}
 	    }
+
+	  /*
+           * Need size of buffer for getsockbyname() later.
+	   */
+	  i = sizeof(sockaddr);
 
 	  if (addrOk == NO)
 	    {
@@ -1184,12 +1341,11 @@ static Class		tcpPortClass;
 	       */
 	      port->listener = desc;
 	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
-
 	      /*
 	       * Make sure we have the map table for this port.
 	       */
 	      thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
-		    (void*)(gsaddr)port->portNum);
+		(void*)(gsaddr)port->portNum);
 	      if (thePorts == 0)
 		{
 		  /*
@@ -1505,6 +1661,7 @@ static Class		tcpPortClass;
        * the other end.
        */
       handle = [GSTcpHandle handleWithDescriptor: desc];
+      memcpy(&handle->clientname, &clientname, sizeof(clientname));
       [handle setState: GS_H_ACCEPT];
       [self addHandle: handle forSend: NO];
     }
@@ -1535,8 +1692,15 @@ static Class		tcpPortClass;
   DO_LOCK(myLock);
   if ([handle sendPort] == self)
     {
-      if (handle->caller == YES)
+      if (handle->caller != YES)
 	{
+	  /*
+	   * This is a handle for a send port, and the handle was not formed
+	   * by calling the remote process, so this port object must have
+	   * been created to deal with an incoming connection and will have
+	   * been retained - we must therefore release this port since the
+	   * handle no longer uses it.
+	   */
 	  AUTORELEASE(self);
 	}
       handle->sendPort = nil;
@@ -1674,7 +1838,7 @@ static Class		tcpPortClass;
 		   * word boundary, so we work with an aligned buffer
 		   * and use memcmpy()
 		   */
-		  if ((*hLength % __alignof__(gsu32)) != 0)
+		  if ((hLength % __alignof__(gsu32)) != 0)
 		    {
 		      GSPortItemHeader	itemHeader;
 

@@ -1,7 +1,24 @@
 News
 ****
 
-The currently released version of the library is `0.6.5'.
+The currently released version of the library is `0.6.6'.
+
+Noteworthy changes in version `0.6.6'
+=====================================
+
+   * Lots of new documentation.
+
+   * Completely rewritten Distributed Object to be much more compatible
+     with the MacOS-X API (and incidentally, closer to the original
+     OpenStep standard).
+
+   * Support to compile library as a DLL on Windows (still cygwin only).
+
+   * Removed lots of obsolete classes.
+
+   * New tools for handling property lists.
+
+   * More optimization of classes.
 
 Noteworthy changes in version `0.6.5'
 =====================================
