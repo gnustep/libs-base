@@ -113,7 +113,9 @@ int main(int argc, char *argv[])
       id remote_peer_obj = [p objectAt:j];
       printf("triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
-      [remote_peer_obj release];
+      /* xxx look at this again after we use release/retain everywhere */
+      if ([remote_peer_obj isProxy])
+	[remote_peer_obj release];
       remote_peer_obj = [p objectAt:j];
       printf("repeated triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
