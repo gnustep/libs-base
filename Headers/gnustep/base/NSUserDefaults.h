@@ -25,13 +25,8 @@
 #ifndef __NSUserDefaults_h_OBJECTS_INCLUDE
 #define __NSUserDefaults_h_OBJECTS_INCLUDE
 
-#ifdef NeXT
-#import <foundation/NSObject.h>
-#import <foundation/NSString.h>
-#else  
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
-#endif  /* NeXT */
 
 @class NSArray;
 @class NSMutableArray;
