@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSAutoreleasePool_h_OBJECTS_INCLUDE
-#define __NSAutoreleasePool_h_OBJECTS_INCLUDE
+#ifndef __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
+#define __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 
@@ -58,4 +58,4 @@ struct autorelease_array_list
 
 @end
 
-#endif /* __NSAutoreleasePool_h_OBJECTS_INCLUDE */
+#endif /* __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE */

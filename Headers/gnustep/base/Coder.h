@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Coder_h_OBJECTS_INCLUDE
-#define __Coder_h_OBJECTS_INCLUDE
+#ifndef __Coder_h_GNUSTEP_BASE_INCLUDE
+#define __Coder_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
@@ -145,4 +145,4 @@
 
 extern id CoderSignatureMalformedException;
 
-#endif /* __Coder_h_OBJECTS_INCLUDE */
+#endif /* __Coder_h_GNUSTEP_BASE_INCLUDE */

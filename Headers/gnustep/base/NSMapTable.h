@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */ 
 
-#ifndef __NSMapTable_h_OBJECTS_INCLUDE
-#define __NSMapTable_h_OBJECTS_INCLUDE 1
+#ifndef __NSMapTable_h_GNUSTEP_BASE_INCLUDE
+#define __NSMapTable_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -252,4 +252,4 @@ NSMapRemove(NSMapTable *table, const void *key);
  * from the respective callbacks, of course). */
 NSString *NSStringFromMapTable (NSMapTable *table);
 
-#endif /* __NSMapTable_h_OBJECTS_INCLUDE */
+#endif /* __NSMapTable_h_GNUSTEP_BASE_INCLUDE */

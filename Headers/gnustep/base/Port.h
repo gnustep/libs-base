@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Port_h_OBJECTS_INCLUDE
-#define __Port_h_OBJECTS_INCLUDE
+#ifndef __Port_h_GNUSTEP_BASE_INCLUDE
+#define __Port_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
@@ -122,4 +122,4 @@ extern NSString *PortBecameInvalidNotification;
 
 @end
 
-#endif /* __Port_h_OBJECTS_INCLUDE */
+#endif /* __Port_h_GNUSTEP_BASE_INCLUDE */

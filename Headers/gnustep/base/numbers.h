@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __numbers_h_OBJECTS_INCLUDE
-#define __numbers_h_OBJECTS_INCLUDE 1
+#ifndef __numbers_h_GNUSTEP_BASE_INCLUDE
+#define __numbers_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -81,5 +81,5 @@ _o_number_serialized(void);
 size_t
 _o_next_power_of_two(size_t bound);
 
-#endif /* __numbers_h_OBJECTS_INCLUDE */
+#endif /* __numbers_h_GNUSTEP_BASE_INCLUDE */
 

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Proxy_h_OBJECTS_INCLUDE
-#define __Proxy_h_OBJECTS_INCLUDE
+#ifndef __Proxy_h_GNUSTEP_BASE_INCLUDE
+#define __Proxy_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Connection.h>
@@ -79,4 +79,4 @@
 - classForConnectedCoder: aRmc;
 @end
 
-#endif /* __Proxy_h_OBJECTS_INCLUDE */
+#endif /* __Proxy_h_GNUSTEP_BASE_INCLUDE */

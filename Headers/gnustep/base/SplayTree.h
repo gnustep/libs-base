@@ -31,8 +31,8 @@
 */
    
 
-#ifndef __SplayTree_h_INCLUDE_GNU
-#define __SplayTree_h_INCLUDE_GNU
+#ifndef __SplayTree_h_GNUSTEP_BASE_INCLUDE
+#define __SplayTree_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/BinaryTree.h>
@@ -45,4 +45,4 @@
 
 @end
 
-#endif /* __SplayTree_h_INCLUDE_GNU */
+#endif /* __SplayTree_h_GNUSTEP_BASE_INCLUDE */

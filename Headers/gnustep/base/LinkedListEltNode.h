@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __LinkedListEltNode_h_INCLUDE_GNU
-#define __LinkedListEltNode_h_INCLUDE_GNU
+#ifndef __LinkedListEltNode_h_GNUSTEP_BASE_INCLUDE
+#define __LinkedListEltNode_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/LinkedListNode.h>
@@ -32,4 +32,4 @@
 #include <gnustep/base/EltNode-h>
 @end
 
-#endif /* __LinkedListEltNode_h_INCLUDE_GNU */
+#endif /* __LinkedListEltNode_h_GNUSTEP_BASE_INCLUDE */

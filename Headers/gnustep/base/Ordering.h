@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __Ordering_h_INCLUDE_GNU
-#define __Ordering_h_INCLUDE_GNU
+#ifndef __Ordering_h_GNUSTEP_BASE_INCLUDE
+#define __Ordering_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <objc/objc.h>
@@ -44,4 +44,4 @@
 
 @end
 
-#endif /* __Ordering_h_INCLUDE_GNU */
+#endif /* __Ordering_h_GNUSTEP_BASE_INCLUDE */

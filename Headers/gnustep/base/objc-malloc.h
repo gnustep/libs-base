@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __objc_malloc_h_INCLUDE_GNU
-#define __objc_malloc_h_INCLUDE_GNU
+#ifndef __objc_malloc_h_GNUSTEP_BASE_INCLUDE
+#define __objc_malloc_h_GNUSTEP_BASE_INCLUDE
 
 /* I do this to make substituting Boehm's Garbage Collection easy. */
 extern void *(*objc_malloc)(size_t);
@@ -48,4 +48,4 @@ extern void (*objc_free)(void *);
 extern id MemoryExhaustedException;
 #endif
 
-#endif /* __objc_malloc_h_INCLUDE_GNU */
+#endif /* __objc_malloc_h_GNUSTEP_BASE_INCLUDE */

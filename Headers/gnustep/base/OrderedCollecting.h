@@ -32,8 +32,8 @@
    may be accessed, inserted, replaced and removed by their index.  
 */
 
-#ifndef __OrderedCollecting_h_OBJECTS_INCLUDE
-#define __OrderedCollecting_h_OBJECTS_INCLUDE
+#ifndef __OrderedCollecting_h_GNUSTEP_BASE_INCLUDE
+#define __OrderedCollecting_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollecting.h>
@@ -63,4 +63,4 @@
 
 @end
 
-#endif /* __OrderedCollecting_h_OBJECTS_INCLUDE */
+#endif /* __OrderedCollecting_h_GNUSTEP_BASE_INCLUDE */

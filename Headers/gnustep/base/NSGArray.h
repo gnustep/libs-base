@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#ifndef __NSGArray_h_OBJECTS_INCLUDE
-#define __NSGArray_h_OBJECTS_INCLUDE
+#ifndef __NSGArray_h_GNUSTEP_BASE_INCLUDE
+#define __NSGArray_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSArray.h>
@@ -42,4 +42,4 @@
 }
 @end
 
-#endif /* __NSGArray_h_OBJECTS_INCLUDE */
+#endif /* __NSGArray_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSString_h_OBJECTS_INCLUDE
-#define __NSString_h_OBJECTS_INCLUDE
+#ifndef __NSString_h_GNUSTEP_BASE_INCLUDE
+#define __NSString_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 
@@ -284,4 +284,4 @@ compiler warning.
 @end
 #endif /* NO_GNUSTEP */
 
-#endif /* __NSString_h_OBJECTS_INCLUDE */
+#endif /* __NSString_h_GNUSTEP_BASE_INCLUDE */

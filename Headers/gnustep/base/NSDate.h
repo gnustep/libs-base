@@ -18,8 +18,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#ifndef __NSDate_h_OBJECTS_INCLUDE
-#define __NSDate_h_OBJECTS_INCLUDE
+#ifndef __NSDate_h_GNUSTEP_BASE_INCLUDE
+#define __NSDate_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
 
@@ -129,4 +129,4 @@ typedef double NSTimeInterval;
 
 @end
 
-#endif  /* __NSDate_h_OBJECTS_INCLUDE */
+#endif  /* __NSDate_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __AutoreleasePool_m_OBJECTS_INCLUDE
-#define __AutoreleasePool_m_OBJECTS_INCLUDE
+#ifndef __AutoreleasePool_m_GNUSTEP_BASE_INCLUDE
+#define __AutoreleasePool_m_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/ObjectRetaining.h>
@@ -50,4 +50,4 @@ void objc_retain_object (id anObj);
 void objc_release_object (id anObj);
 unsigned objc_retain_count (id anObj);
 
-#endif /* __AutoreleasePool_m_OBJECTS_INCLUDE */
+#endif /* __AutoreleasePool_m_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __MemoryStream_h_OBJECTS_INCLUDE
-#define __MemoryStream_h_OBJECTS_INCLUDE
+#ifndef __MemoryStream_h_GNUSTEP_BASE_INCLUDE
+#define __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Stream.h>
@@ -69,4 +69,4 @@
    position: (unsigned)i;	/* current position for reading/writing */
 @end
 
-#endif /* __MemoryStream_h_OBJECTS_INCLUDE */
+#endif /* __MemoryStream_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __SocketPort_h_INCLUDE_GNU
-#define __SocketPort_h_INCLUDE_GNU
+#ifndef __SocketPort_h_GNUSTEP_BASE_INCLUDE
+#define __SocketPort_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Port.h>
@@ -57,4 +57,4 @@ typedef struct sockaddr_in sockport_t;
 
 @end
 
-#endif /* __SocketPort_h_INCLUDE_GNU */
+#endif /* __SocketPort_h_GNUSTEP_BASE_INCLUDE */

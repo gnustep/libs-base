@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __Array_h_INCLUDE_GNU
-#define __Array_h_INCLUDE_GNU
+#ifndef __Array_h_GNUSTEP_BASE_INCLUDE
+#define __Array_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
@@ -70,4 +70,4 @@
 
 #define END_FOR_ARRAY(ARRAY) }}
 
-#endif /* __Array_h_INCLUDE_GNU */
+#endif /* __Array_h_GNUSTEP_BASE_INCLUDE */

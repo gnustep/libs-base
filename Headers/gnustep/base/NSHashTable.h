@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __NSHashTable_h_OBJECTS_INCLUDE
-#define __NSHashTable_h_OBJECTS_INCLUDE 1
+#ifndef __NSHashTable_h_GNUSTEP_BASE_INCLUDE
+#define __NSHashTable_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -195,4 +195,4 @@ NSHashRemove(NSHashTable *table, const void *pointer);
 NSString *
 NSStringFromHashTable(NSHashTable *table);
 
-#endif /* __NSHashTable_h_OBJECTS_INCLUDE */
+#endif /* __NSHashTable_h_GNUSTEP_BASE_INCLUDE */

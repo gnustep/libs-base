@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSException_h_OBJECTS_INCLUDE
-#define __NSException_h_OBJECTS_INCLUDE
+#ifndef __NSException_h_GNUSTEP_BASE_INCLUDE
+#define __NSException_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSString.h>
 #include <setjmp.h>
@@ -209,4 +209,4 @@ extern void _NSRemoveHandler( NSHandler *handler );
 #define NSCParameterAssert(condition)			\
     _NSCAssertArgs((condition), @"Invalid parameter not satisfying: %s", #condition)
 
-#endif /* __NSException_h_OBJECTS_INCLUDE */
+#endif /* __NSException_h_GNUSTEP_BASE_INCLUDE */

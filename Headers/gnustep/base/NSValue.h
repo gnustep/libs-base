@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSValue_h_OBJECTS_INCLUDE
-#define __NSValue_h_OBJECTS_INCLUDE
+#ifndef __NSValue_h_GNUSTEP_BASE_INCLUDE
+#define __NSValue_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSGeometry.h>
@@ -102,4 +102,4 @@
 - initValue:(const void *)value withObjCType:(const char *)type;
 @end
 
-#endif /* __NSValue_h_OBJECTS_INCLUDE */
+#endif /* __NSValue_h_GNUSTEP_BASE_INCLUDE */

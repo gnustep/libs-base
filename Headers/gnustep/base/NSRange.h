@@ -20,8 +20,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __NSRange_h_OBJECTS_INCLUDE
-#define __NSRange_h_OBJECTS_INCLUDE
+#ifndef __NSRange_h_GNUSTEP_BASE_INCLUDE
+#define __NSRange_h_GNUSTEP_BASE_INCLUDE
 
 /**** Included Headers *******************************************************/
 
@@ -71,4 +71,4 @@ NSIntersectionRange(NSRange range1, NSRange range2);
 extern NSString *
 NSStringFromRange(NSRange range);
 
-#endif /* __NSRange_h_OBJECTS_INCLUDE */
+#endif /* __NSRange_h_GNUSTEP_BASE_INCLUDE */

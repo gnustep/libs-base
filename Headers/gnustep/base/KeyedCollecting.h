@@ -30,8 +30,8 @@
    enumerated and copied.  
 */
 
-#ifndef __KeyedCollecting_h_OBJECTS_INCLUDE
-#define __KeyedCollecting_h_OBJECTS_INCLUDE
+#ifndef __KeyedCollecting_h_GNUSTEP_BASE_INCLUDE
+#define __KeyedCollecting_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Collecting.h>
@@ -79,4 +79,4 @@
 
 @end
 
-#endif /* __KeyedCollecting_h_OBJECTS_INCLUDE */
+#endif /* __KeyedCollecting_h_GNUSTEP_BASE_INCLUDE */

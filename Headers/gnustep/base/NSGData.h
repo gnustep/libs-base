@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#ifndef __NSGData_h_OBJECTS_INCLUDE
-#define __NSGData_h_OBJECTS_INCLUDE
+#ifndef __NSGData_h_GNUSTEP_BASE_INCLUDE
+#define __NSGData_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSData.h>
@@ -64,4 +64,4 @@
 @interface NSGMutableData (GNU) <MemoryStreaming>
 @end
 
-#endif /* __NSGData_h_OBJECTS_INCLUDE */
+#endif /* __NSGData_h_GNUSTEP_BASE_INCLUDE */

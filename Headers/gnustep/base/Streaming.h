@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Streaming_h__OBJECTS_INCLUDE
-#define __Streaming_h__OBJECTS_INCLUDE
+#ifndef __Streaming_h__GNUSTEP_BASE_INCLUDE
+#define __Streaming_h__GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/String.h>
@@ -64,5 +64,5 @@
 @end
 
 
-#endif /* __Streaming_h__OBJECTS_INCLUDE */
+#endif /* __Streaming_h__GNUSTEP_BASE_INCLUDE */
 

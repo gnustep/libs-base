@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __CStreaming_h__OBJECTS_INCLUDE
-#define __CStreaming_h__OBJECTS_INCLUDE
+#ifndef __CStreaming_h__GNUSTEP_BASE_INCLUDE
+#define __CStreaming_h__GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Streaming.h>
@@ -56,5 +56,5 @@
 
 @end
 
-#endif /* __CStreaming_h__OBJECTS_INCLUDE */
+#endif /* __CStreaming_h__GNUSTEP_BASE_INCLUDE */
 

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __RBTree_h_INCLUDE_GNU
-#define __RBTree_h_INCLUDE_GNU
+#ifndef __RBTree_h_GNUSTEP_BASE_INCLUDE
+#define __RBTree_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/BinaryTree.h>
@@ -37,4 +37,4 @@
 
 @end
 
-#endif /* __RBTree_h_INCLUDE_GNU */
+#endif /* __RBTree_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __InvalidationListening_h_OBJECTS_INCLUDE
-#define __InvalidationListening_h_OBJECTS_INCLUDE
+#ifndef __InvalidationListening_h_GNUSTEP_BASE_INCLUDE
+#define __InvalidationListening_h_GNUSTEP_BASE_INCLUDE
 
 /* This protocol is just temporary.  It will disappear when GNU writes
    a more general notification system.
@@ -34,4 +34,4 @@
 
 @end
 
-#endif /* __InvalidationListening_h_OBJECTS_INCLUDE */
+#endif /* __InvalidationListening_h_GNUSTEP_BASE_INCLUDE */

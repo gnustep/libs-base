@@ -23,12 +23,12 @@
    See NSUser.c for additional information. */
 
 
-#ifndef __NSUser_h_INCLUDE_GNU
-#define __NSUser_h_INCLUDE_GNU
+#ifndef __NSUser_h_GNUSTEP_BASE_INCLUDE
+#define __NSUser_h_GNUSTEP_BASE_INCLUDE
 
 extern char * NSUserName (void);
 extern char * NSHomeDirectory (void);
 extern char * NSDirectoryForUser (char * userName);
 
-#endif /* __NSUser_h_INCLUDE_GNU */
+#endif /* __NSUser_h_GNUSTEP_BASE_INCLUDE */
 

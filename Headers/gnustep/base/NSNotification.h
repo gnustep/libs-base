@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef __NSNotification_h_OBJECTS_INCLUDE
-#define __NSNotification_h_OBJECTS_INCLUDE
+#ifndef __NSNotification_h_GNUSTEP_BASE_INCLUDE
+#define __NSNotification_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Notification.h>
@@ -94,4 +94,4 @@
 		     userInfo: (NSDictionary*)user_info;
 @end
 
-#endif /*__NSNotification_h_OBJECTS_INCLUDE */
+#endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */

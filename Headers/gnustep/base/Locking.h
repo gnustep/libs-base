@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Locking_h_INCLUDE_GNU
-#define __Locking_h_INCLUDE_GNU
+#ifndef __Locking_h_GNUSTEP_BASE_INCLUDE
+#define __Locking_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <objc/Protocol.h>
@@ -32,4 +32,4 @@
 - (void) unlock;
 @end
 
-#endif /* __Locking_h_INCLUDE_GNU */
+#endif /* __Locking_h_GNUSTEP_BASE_INCLUDE */

@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __array_h_OBJECTS_INCLUDE
-#define __array_h_OBJECTS_INCLUDE 1
+#ifndef __array_h_GNUSTEP_BASE_INCLUDE
+#define __array_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -245,4 +245,4 @@ o_array_check(o_array_t *array);
 o_hash_t *
 o_hash_init_from_array(o_hash_t *hash, o_array_t *array);
 
-#endif /* __array_h_OBJECTS_INCLUDE */
+#endif /* __array_h_GNUSTEP_BASE_INCLUDE */

@@ -26,8 +26,8 @@
    Base class for smarter binary trees.
 */
 
-#ifndef __BinaryTree_h_INCLUDE_GNU
-#define __BinaryTree_h_INCLUDE_GNU
+#ifndef __BinaryTree_h_GNUSTEP_BASE_INCLUDE
+#define __BinaryTree_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
@@ -74,4 +74,4 @@
 @end
 
 
-#endif /* __BinaryTree_h_INCLUDE_GNU */
+#endif /* __BinaryTree_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __AutoreleaseStack_m_OBJECTS_INCLUDE
-#define __AutoreleaseStack_m_OBJECTS_INCLUDE
+#ifndef __AutoreleaseStack_m_GNUSTEP_BASE_INCLUDE
+#define __AutoreleaseStack_m_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/ObjectRetaining.h>
@@ -119,4 +119,4 @@ void objc_release_stack_objects();
 */
 
 
-#endif /* __AutoreleaseStack_m_OBJECTS_INCLUDE */
+#endif /* __AutoreleaseStack_m_GNUSTEP_BASE_INCLUDE */
