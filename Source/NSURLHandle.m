@@ -35,23 +35,27 @@ how it should work...
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSURLHandle.h>
 #include <Foundation/NSURL.h>
+#include <Foundation/NSMapTable.h>
 
 //=============================================================================
 @implementation NSURLHandle
 
+static NSMapTable	*cache = 0;
 static NSMutableArray	*registry = nil;
 
 + (void) initialize
 {
   if (self == [NSURLHandle class])
     {
+      cache = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	NSObjectMapValueCallBacks, 0);
       registry = [NSMutableArray new];
     }
 }
 
 + (void) registerURLHandleClass: (Class)_urlHandleSubclass
 {
-  if ([registry indexOfObjectIdenticalTo: _urlHandleSubclass] != NSNotFound)
+  if ([registry indexOfObjectIdenticalTo: _urlHandleSubclass] == NSNotFound)
     {
       [registry addObject: _urlHandleSubclass];
     }
@@ -76,9 +80,19 @@ static NSMutableArray	*registry = nil;
 - (id) initWithURL: (NSURL*)_url
 	    cached: (BOOL)_cached
 {
-  Class		concreteSubclass = [NSURLHandle URLHandleClassForURL: _url];
+  Class		concreteSubclass;
   NSURLHandle	*instance;
 
+  if (_cached == YES)
+    {
+      instance = (id)NSMapGet(cache, (void*)_url);
+      if (instance != nil)
+	{
+	  RELEASE(self);
+	  return instance;
+	}
+    }
+  concreteSubclass = [NSURLHandle URLHandleClassForURL: _url];
   if (concreteSubclass == 0)
     {
       NSLog(@"Attempt to init NSURLHandle with unsupported URL schema");
@@ -86,7 +100,12 @@ static NSMutableArray	*registry = nil;
     }
   RELEASE(self);
   instance = [concreteSubclass alloc];
-  return [instance initWithURL: _url cached: _cached];
+  instance = [instance initWithURL: _url cached: _cached];
+  if (instance != nil)
+    {
+      NSMapInsert(cache, (void*)_url, (void*)instance);
+    }
+  return instance;
 }
 
 //-----------------------------------------------------------------------------
@@ -152,8 +171,7 @@ static NSMutableArray	*registry = nil;
 //-----------------------------------------------------------------------------
 - (void) flushCachedData
 {
-  //FIXME
-  [self notImplemented: _cmd];
+  NSResetMapTable(cache);
 }
 
 //-----------------------------------------------------------------------------
@@ -182,9 +200,7 @@ static NSMutableArray	*registry = nil;
 //-----------------------------------------------------------------------------
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)_url
 {
-  //FIXME
-  [self notImplemented: _cmd];
-  return nil;
+  return (NSURLHandle*) NSMapGet(cache, (void*)_url);
 }
 
 //-----------------------------------------------------------------------------
