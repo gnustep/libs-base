@@ -339,7 +339,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 - autorelease
 {
   /* xxx Problems here if the Connection goes away? */
-  [autorelease_class autoreleaseObject:self];
+  [[NSObject autoreleaseClass] addObject:self];
   return self;
 }
 
