@@ -244,7 +244,7 @@ NSLogv (NSString* format, va_list args)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
 
 #if defined(__MINGW__)
-  pid = (int)GetCurrentProcessId(),
+  pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();
 #endif
