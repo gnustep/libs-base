@@ -26,6 +26,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
+#include <include/fast.x>
 #include <mframe.h>
 
 @implementation NSInvocation
@@ -451,7 +452,7 @@
         if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
           {
 	    *(void**)datum = _fastMallocBuffer(info[i].size);
-            [aCoder decodeValueOfObjCType: type at: *(void**)datum];
+            [aCoder decodeValueOfObjCType: t at: *(void**)datum];
           }
       }
 #endif
