@@ -295,14 +295,19 @@ NSIsEmptyRect(NSRect aRect)
     return (!((NSWidth(aRect) > 0) && (NSHeight(aRect) > 0)));
 }
 
-/* FIXME: what to do for flipped coordinates? */
 BOOL 	
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped)
 {
-    return ((aPoint.x > NSMinX(aRect))
-	        && (aPoint.y > NSMinY(aRect))
+    if (flipped)
+    	return ((aPoint.x >= NSMinX(aRect))
+	        && (aPoint.y >= NSMinY(aRect))
 		&& (aPoint.x < NSMaxX(aRect))
 		&& (aPoint.y < NSMaxY(aRect)));
+    else
+    	return ((aPoint.x >= NSMinX(aRect))
+	        && (aPoint.y > NSMinY(aRect))
+		&& (aPoint.x < NSMaxX(aRect))
+		&& (aPoint.y <= NSMaxY(aRect)));
 }
 
 BOOL 	

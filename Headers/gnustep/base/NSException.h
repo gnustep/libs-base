@@ -24,11 +24,10 @@
 #ifndef __NSException_h_OBJECTS_INCLUDE
 #define __NSException_h_OBJECTS_INCLUDE
 
-#include <Foundation/NSObject.h>
+#include <Foundation/NSString.h>
 #include <setjmp.h>
 #include <stdarg.h>
 
-@class NSString;
 @class NSDictionary;
 
 @interface NSException : NSObject <NSCoding, NSCopying>
