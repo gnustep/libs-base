@@ -69,7 +69,7 @@ ADDITIONAL_INCLUDE_DIRS = -I../Headers/Additions -I../Headers \
 ADDITIONAL_LDFLAGS = 
 
 # Additional library directories the linker should search
-ADDITIONAL_LIB_DIRS = -L./$(GNUSTEP_OBJ_DIR)
+ADDITIONAL_LIB_DIRS = -L$(GNUSTEP_OBJ_DIR)
 
 ifeq ($(GNUSTEP_TARGET_OS),mingw32)
 libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
@@ -90,6 +90,6 @@ ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/Foundation \
    $(GNUSTEP_HEADERS)/GNUstepBase/unicode \
    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 
-HEADER_DIR_BASE=$(srcdir)/../Headers/Additions/GNUstepBase
-HEADER_DIR_FND =$(srcdir)/../Headers/Foundation
+HEADER_DIR_BASE = ../Headers/Additions/GNUstepBase
+HEADER_DIR_FND = ../Headers/Foundation
 
