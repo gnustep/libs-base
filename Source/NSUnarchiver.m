@@ -1012,7 +1012,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       obj = FastArrayItemAtIndex(objMap, xref).obj;
       /*
        *	If it's a cross-reference, we don't need to autorelease it
-       *	since we don't own it.
+       *	since we didn't create it.
        */
       return obj;
     }
@@ -1298,16 +1298,11 @@ mapClassName(NSUnarchiverObjectInfo *info)
 {
   if (name)
     {
-      (*dValImp)(self, dValSel, @encode(id), (void*)name);
+      *name = [self decodeObject];
     }
   else
     {
-      id	obj;
-      (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
-      if (obj)
-	{
-	  RELEASE(obj);
-	}
+      (void)[self decodeObject];
     }
   [self decodeArrayOfObjCType: type count: count at: buf];
 }
@@ -1322,16 +1317,11 @@ mapClassName(NSUnarchiverObjectInfo *info)
 {
   if (name)
     {
-      (*dValImp)(self, dValSel, @encode(id), (void*)name);
+      *name = [self decodeObject];
     }
   else
     {
-      id	obj;
-      (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
-      if (obj)
-	{
-	  RELEASE(obj);
-	}
+      (void)[self decodeObject];
     }
   (*dValImp)(self, dValSel, type, buf);
 }
@@ -1342,16 +1332,11 @@ mapClassName(NSUnarchiverObjectInfo *info)
 {
   if (name)
     {
-      (*dValImp)(self, dValSel, @encode(id), (void*)name);
+      *name = [self decodeObject];
     }
   else
     {
-      id	obj;
-      (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
-      if (obj)
-	{
-	  RELEASE(obj);
-	}
+      (void)[self decodeObject];
     }
   (*dValImp)(self, dValSel, type, buf);
 }
@@ -1361,16 +1346,11 @@ mapClassName(NSUnarchiverObjectInfo *info)
 {
   if (name)
     {
-      (*dValImp)(self, dValSel, @encode(id), (void*)name);
+      *name = [self decodeObject];
     }
   else
     {
-      id	obj;
-      (*dValImp)(self, dValSel, @encode(id), (void*)&obj);
-      if (obj)
-	{
-	  RELEASE(obj);
-	}
+      (void)[self decodeObject];
     }
   (*dValImp)(self, dValSel, @encode(id), (void*)anObject);
 }

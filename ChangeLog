@@ -1,3 +1,8 @@
+Wed May 26 12:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUnarchiver.m: Fixed libobjects compatibility methods to
+	use decodeObject to get the name from the archive.
+
 Sun May 23 20:38:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/TcpPort.m: Fixed retain/release loop causing ports occasionally
