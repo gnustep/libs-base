@@ -60,16 +60,15 @@ AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 #--------------------------------------------------------------------
 # specific target_os options
 #--------------------------------------------------------------------
-# CPPFLAGS are not used anywhere except during configuration. If they
-# are needed, they should have been set when configuring gnustep-make
-# INCLUDE_FLAGS will go into base.make(CONFIG_SYSTEM_INCL)
-INCLUDE_FLAGS=""
+INCLUDE_FLAGS="$CPPFLAGS"
+LIBS="$LDFLAGS $LIBS"
+# This is just for configuring. Later, in config.make, INCLUDE_FLAGS
+# goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -L/usr/pkg/lib";;
-
 esac
 
 #----------------------------------------------------------------
@@ -618,7 +617,6 @@ AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
   AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
   if test "$zlib_ok" = yes; then
-    base_libs="$LIBS"
     LIBS="$LIBS -lz"
     USE_ZLIB=1
   fi
@@ -959,7 +957,6 @@ if test $ac_cv_header_gmp_h = yes; then
     AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
   fi
   if test "$gmp_ok" = yes; then
-    base_libs="$LIBS"
     LIBS="$LIBS -lgmp"
     USE_GMP=1
   fi
@@ -981,11 +978,11 @@ if test $ac_cv_func_iconv = no; then
   AC_ARG_WITH(libiconv-library,
     [  --with-libiconv-library=PATH  library path for libiconv libraries],
     libiconv_libdir="$withval", libiconv_libdir="no")
-  cppflags_temp="$CPPFLAGS"
+  ldflags_temp="$LDFLAGS"
 
   if test "$libiconv_libdir" != "no"; then
-    CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
-    INCLUDE_FLAGS="$INCLUDE_FLAGS  -L$libiconv_libdir"
+    LDFLAGS="$LDFLAGS -L$libiconv_libdir"
+    LIBS="$LIBS  -L$libiconv_libdir"
   fi
 
   # BSDs install this lib as libgiconv
@@ -999,7 +996,7 @@ if test $ac_cv_func_iconv = no; then
       AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     fi
   fi
-  CPPFLAGS="$cppflags_temp"
+  LDFLAGS="$ldflags_temp"
 fi
 
 AC_SUBST(INCLUDE_FLAGS)

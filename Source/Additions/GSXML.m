@@ -2707,7 +2707,8 @@ unparsedEntityDeclFunction(void *ctx, const unsigned char *name,
 		       public: UTF8Str(publicId)
 		       system: UTF8Str(systemId)
 		 notationName: UTF8Str(notationName)];
-  START(unparsedEntityDecl:public:system:notationName:, void, (id,SEL,id,id,id,id));
+  {
+    START(unparsedEntityDecl:public:system:notationName:, void, (id,SEL,id,id,id,id));
 
   if (imp != treeImp)
     {
@@ -2718,6 +2719,7 @@ unparsedEntityDeclFunction(void *ctx, const unsigned char *name,
     {
       TREEFUN(unparsedEntityDecl, (ctx,name,publicId,systemId,notationName));
     }
+  }
 }
 
 static void

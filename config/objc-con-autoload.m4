@@ -15,23 +15,18 @@ AC_DEFUN(OBJC_CON_AUTOLOAD,
 [dnl
 AC_MSG_CHECKING(loading of constructor functions)
 AC_CACHE_VAL(objc_cv_con_autoload,
-[dnl 
-cat > conftest.constructor.c <<EOF
-void cons_functions() __attribute__ ((constructor));
-void cons_functions() {}
-int main()
-{
-  return 0;
-}
-EOF
-${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
+[dnl
+AC_TRY_RUN([static int loaded = 0;
+	void cons_functions() __attribute__ ((constructor));
+	void cons_functions() { loaded = 1; }
+	int main()
+	{
+  	  return ( (loaded == 1) ? 0 : 1);
+	}],
+	objc_cv_con_autoload=yes, objc_cv_con_autoload=no, 
+	objc_cv_con_autoload=no)
 case "$target_os" in
     cygwin*)	objc_cv_con_autoload=yes;;
-    *)	if test -n "`nm conftest${ac_exeext} | grep global_ctors`"; then 
-  	  objc_cv_con_autoload=yes
-	else
-  	  objc_cv_con_autoload=no 
-	fi ;;
 esac
 ])
 if test $objc_cv_con_autoload = yes; then
