@@ -1,5 +1,5 @@
 /* Implementation Objective-C object providing randoms in uniform distribution
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -33,7 +33,7 @@
 #include <limits.h>
 #include <assert.h>
 
-#define ABS(x) ((x) < 0 ? -x : x)
+#define ABS(x) ((x) < 0 ? -x : x) 
 
 typedef union {
   float f;
