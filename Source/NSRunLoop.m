@@ -2190,11 +2190,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 }
 
 /**
- * Sets up repeated sending of aSelector to target with argument.<br />
- * The selector is sent in each runloop iteration until cancelled.<br />
+ * Sets up sending of aSelector to target with argument.<br />
+ * The selector is sent before the next runloop iteration (unless
+ * cancelled before then).<br />
  * The target and argument objects are <em>not</em> retained.<br />
  * The order value is used to determine the order in which messages
- * are sent if multiple messages have been set up.
+ * are sent if multiple messages have been set up. Messages with a lower
+ * order value are sent first.
  */
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
@@ -2239,7 +2241,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      GSRunLoopPerformer	*p;
 
 	      p = GSIArrayItemAtIndex(performers, i).obj;
-	      if (p->order <= order)
+	      if (p->order > order)
 		{
 		  GSIArrayInsertItem(performers, (GSIArrayItem)item, i);
 		  break;
