@@ -3,6 +3,7 @@
 #include <objects/SocketPort.h>
 #include <objects/BinaryCStream.h>
 #include <objects/Connection.h>
+#include <objects/Proxy.h>
 #include <objects/String.h>
 #include <objects/Notification.h>
 #include <objects/RunLoop.h>
@@ -151,7 +152,7 @@
 
 - (float) returnFloat
 {
-  static float f = 2.3456789;
+  static float f = 2.3456789f;
   return f;
 }
 
