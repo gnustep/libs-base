@@ -136,6 +136,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   unsigned	pos;
   NSRange	r;
 
+  if (NSNotFound - aRange.length < aRange.location)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: Bad range",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   if (_array == 0 || GSIArrayCount(_array) == 0
     || (pos = posForIndex(_array, aRange.location)) >= GSIArrayCount(_array))
     {
@@ -221,6 +227,18 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   unsigned	i = 0;
   NSRange	r;
 
+  if (aBuffer == 0 || aRange == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: nul pointer argument",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if (NSNotFound - aRange->length < aRange->location)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: Bad range",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   if (_array == 0 || GSIArrayCount(_array) == 0
     || (pos = posForIndex(_array, aRange->location)) >= GSIArrayCount(_array))
     {
@@ -440,6 +458,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   unsigned	p1;
   unsigned	p2;
 
+  if (NSNotFound - aRange.length < aRange.location)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: Bad range",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   if (aRange.length == 0 || _array == 0 || GSIArrayCount(_array) == 0)
     {
       return NO;	// Empty
@@ -549,6 +573,16 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) addIndexesInRange: (NSRange)aRange
 {
+  if (NSNotFound - aRange.length < aRange.location)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: Bad range",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if (aRange.length == 0)
+    {
+      return;
+    }
   if (_array == 0)
     {
       _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
@@ -560,6 +594,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
+      unsigned	p1 = posForIndex(_array, aRange.location);
+      unsigned	p2 = posForIndex(_array, NSMaxRange(aRange)-1);
+
       [self notImplemented:_cmd];
     }
 }
@@ -591,6 +628,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) removeIndexesInRange: (NSRange)aRange
 {
+  if (NSNotFound - aRange.length < aRange.location)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@]: Bad range",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   [self notImplemented:_cmd];
 }
 

@@ -351,17 +351,24 @@ static SEL	appSel;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
   unsigned	objectCount = [objects count];
-  id		os[objectCount];
-  id		ks[objectCount];
   
   if (objectCount != [keys count])
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"init with obj and key arrays of different sizes"];
     }
-  [objects getObjects: os];
-  [keys getObjects: ks];
-  return [self initWithObjects: os forKeys: ks count: objectCount];
+  else
+    {
+      GS_BEGINIDBUF(o, objectCount*2)
+
+      [objects getObjects: o];
+      [keys getObjects: o + objectCount];
+      self = [self initWithObjects: o
+			   forKeys: o + objectCount
+			     count: objectCount];
+      GS_ENDIDBUF()
+    }
+  return self;
 }
 
 /**
@@ -429,13 +436,12 @@ static SEL	appSel;
 
   if (c > 0)
     {
-      id		os[c];
-      id		ks[c];
       id		k;
       NSEnumerator	*e = [other keyEnumerator];
       unsigned		i = 0;
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		otherObj = [other methodForSelector: objSel];
+      GS_BEGINIDBUF(o, c*2)
 
       if (shouldCopy)
 	{
@@ -443,15 +449,15 @@ static SEL	appSel;
 
 	  while ((k = (*nxtObj)(e, nxtSel)) != nil)
 	    {
-	      ks[i] = k;
-	      os[i] = [(*otherObj)(other, objSel, k) copyWithZone: z];
+	      o[i] = k;
+	      o[c + i] = [(*otherObj)(other, objSel, k) copyWithZone: z];
 	      i++;
 	    }
-	  self = [self initWithObjects: os forKeys: ks count: i];
+	  self = [self initWithObjects: o + c forKeys: o count: i];
 #if	!GS_WITH_GC
-	  while (i > 0)
+	  while (i-- > 0)
 	    {
-	      [os[--i] release];
+	      [o[c + i] release];
 	    }
 #endif
 	}
@@ -459,12 +465,13 @@ static SEL	appSel;
 	{
 	  while ((k = (*nxtObj)(e, nxtSel)) != nil)
 	    {
-	      ks[i] = k;
-	      os[i] = (*otherObj)(other, objSel, k);
+	      o[i] = k;
+	      o[c + i] = (*otherObj)(other, objSel, k);
 	      i++;
 	    }
-	  self = [self initWithObjects: os forKeys: ks count: c];
+	  self = [self initWithObjects: o + c forKeys: o count: c];
 	}
+      GS_ENDIDBUF()
     }
   return self;
 }
@@ -656,16 +663,19 @@ static SEL	appSel;
     {
       NSEnumerator	*e = [self keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
-      id		k[c];
       unsigned		i;
+      id		result;
+      GS_BEGINIDBUF(k, c)
 
       for (i = 0; i < c; i++)
 	{
 	  k[i] = (*nxtObj)(e, nxtSel);
 	  NSAssert (k[i], NSInternalInconsistencyException);
 	}
-      return AUTORELEASE([[NSArray_class allocWithZone: NSDefaultMallocZone()]
-	initWithObjects: k count: c]);
+      result = [[NSArray_class allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: k count: c];
+      GS_ENDIDBUF()
+      return AUTORELEASE(result);
     }
 }
 
@@ -684,15 +694,18 @@ static SEL	appSel;
     {
       NSEnumerator	*e = [self objectEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
-      id		k[c];
+      id		result;
       unsigned		i;
+      GS_BEGINIDBUF(k, c)
 
       for (i = 0; i < c; i++)
 	{
 	  k[i] = (*nxtObj)(e, nxtSel);
 	}
-      return AUTORELEASE([[NSArray_class allocWithZone: NSDefaultMallocZone()]
-	initWithObjects: k count: c]);
+      result = [[NSArray_class allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: k count: c];
+      GS_ENDIDBUF()
+      return AUTORELEASE(result);
     }
 }
 
@@ -715,7 +728,8 @@ static SEL	appSel;
       IMP		myObj = [self methodForSelector: objSel];
       BOOL		(*eqObj)(id, SEL, id);
       id		k;
-      id		a[c];
+      id		result;
+      GS_BEGINIDBUF(a, [self count])
 
       eqObj = (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
       c = 0;
@@ -729,9 +743,16 @@ static SEL	appSel;
 	    }
 	}
       if (c == 0)
-	return nil;
-      return AUTORELEASE([[NSArray_class allocWithZone: NSDefaultMallocZone()]
-	initWithObjects: a count: c]);
+	{
+	  result = nil;
+	}
+      else
+	{
+	  result = [[NSArray_class allocWithZone: NSDefaultMallocZone()]
+	    initWithObjects: a count: c];
+	}
+      GS_ENDIDBUF()
+      return AUTORELEASE(result);
     }
 }
 
@@ -769,20 +790,28 @@ compareIt(id o1, id o2, void* context)
   else
     {
       unsigned	i;
-      id	obuf[c];
       IMP	myObj = [self methodForSelector: objSel];
+      id	result;
+      GS_BEGINIDBUF(obuf, c)
 
       [keys getObjects: obuf];
       for (i = 0; i < c; i++)
 	{
 	  id o = (*myObj)(self, objSel, obuf[i]);
 
-	  if (o)
-	    obuf[i] = o;
+	  if (o == nil)
+	    {
+	      obuf[i] = marker;
+	    }
 	  else
-	    obuf[i] = marker;
+	    {
+	      obuf[i] = o;
+	    }
 	}
-      return [NSArray_class arrayWithObjects: obuf count: c];
+      result = [[NSArray_class allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: obuf count: c];
+      GS_ENDIDBUF()
+      return AUTORELEASE(result);
     }
 }
 
@@ -977,31 +1006,32 @@ compareIt(id o1, id o2, void* context)
 {
   /* a deep copy */
   unsigned	count = [self count];
-  id		keys[count];
-  id		objects[count];
   NSDictionary	*newDictionary;
   unsigned	i;
   id		key;
   NSEnumerator	*enumerator = [self keyEnumerator];
   IMP		nxtImp = [enumerator methodForSelector: nxtSel];
   IMP		objImp = [self methodForSelector: objSel];
+  GS_BEGINIDBUF(o, count*2)
 
   for (i = 0; (key = (*nxtImp)(enumerator, nxtSel)); i++)
     {
-      keys[i] = key;
-      objects[i] = (*objImp)(self, objSel, key);
-      objects[i] = [objects[i] copyWithZone: z];
+      o[i] = key;
+      o[count + i] = (*objImp)(self, objSel, key);
+      o[count + i] = [o[count + i] copyWithZone: z];
     }
   newDictionary = [[GSDictionaryClass allocWithZone: z] 
-	  initWithObjects: objects
-		  forKeys: keys
+	  initWithObjects: o + count
+		  forKeys: o
 		    count: count];
 #if	!GS_WITH_GC
-  while (i > 0)
+  while (i-- > 0)
     {
-      [objects[--i] release];
+      [o[count + i] release];
     }
 #endif
+  GS_ENDIDBUF()
+
   return newDictionary;
 }
 
@@ -1071,14 +1101,15 @@ compareIt(id o1, id o2, void* context)
 
   if (c > 0)
     {
-      id	keys[c];
       IMP	remObj = [self methodForSelector: remSel];
+      GS_BEGINIDBUF(keys, c)
 
       [keyArray getObjects: keys];
       while (c--)
 	{
 	  (*remObj)(self, remSel, keys[c]);
 	}
+      GS_ENDIDBUF()
     }
 }
 
