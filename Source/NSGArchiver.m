@@ -1,5 +1,5 @@
 /* Concrete NSArchiver for GNUStep based on GNU Coder class
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: April 1995
@@ -191,6 +191,12 @@
 - (const char *) defaultDecoderClassname
 {
   return "NSGUnarchiver";
+}
+
+- (NSMutableData*) archiverData
+{
+  [self notImplemented: _cmd];
+  return nil;
 }
 
 #undef self
