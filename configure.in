@@ -147,10 +147,6 @@ else
   AC_MSG_RESULT([not found])
 fi
 
-#
-
-#
-AC_MSG_CHECKING(for objc threading flags)
 #--------------------------------------------------------------------
 # Check for thread flags for libobjc.
 #--------------------------------------------------------------------
