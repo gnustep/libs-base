@@ -1,3 +1,10 @@
+Tue Oct 30 14:33:48 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Testing/benchmark.m (bench_object): Added test showing that a
+	call to super in a category method - no matter if a class or an
+	instance method - has the same big performance hit that a class
+	method invocation has - at least with the current GNU runtime.
+
 2001-10-28  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSFileManager.m (_attributesAtPath:traverseLink:forCopy:): 
