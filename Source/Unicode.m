@@ -859,6 +859,7 @@ tables:
 			spos++;
 			break;
 		      }
+		    i++;
 		  }
 	      }
 	    dpos++;
