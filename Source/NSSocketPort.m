@@ -104,7 +104,7 @@ static	BOOL	multi_threaded = NO;
  */
 static gsu32	maxDataLength = 10 * 1024 * 1024;
 
-#if 1
+#if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"lock %@ in %@",X,[NSThread currentThread]); [X lock];}
 #define	M_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"unlock %@ in %@",X,[NSThread currentThread]); [X unlock];}
 #else
