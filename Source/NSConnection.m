@@ -1784,7 +1784,7 @@ static void retEncoder (DOContext *ctxt)
 }
 
 /*
- * NSDistantObject's -forward: : method calls this to send the message
+ * NSDistantObject's -forward:: method calls this to send the message
  * over the wire.
  */
 - (retval_t) forwardForProxy: (NSDistantObject*)object
@@ -1916,7 +1916,7 @@ static void retEncoder (DOContext *ctxt)
  * NSDistantObject's -forwardInvocation: method calls this to send the message
  * over the wire.
  */
-- (void) forwardInvocation: (NSInvocation *)inv 
+- (void) forwardInvocation: (NSInvocation*)inv 
 		  forProxy: (NSDistantObject*)object 
 {
   NSPortCoder	*op;

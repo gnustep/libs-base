@@ -1,3 +1,9 @@
+2002-07-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpHandle.m: Always use runloop in NSConnectionReplyMode
+	to avoid other NSDefaultRunLoopMode events being triggered while
+	executing a DO method.  **EXPERIMENTAL**
+
 2002-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version: 1.4.0

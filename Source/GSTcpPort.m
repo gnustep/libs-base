@@ -37,6 +37,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSConnection.h>
 #include <Foundation/NSDebug.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -421,7 +422,7 @@ static Class	runLoopClass;
       return nil;
     }
 #endif
-  handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
+  handle = (GSTcpHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
   if (multi_threaded == YES)
@@ -550,22 +551,22 @@ static Class	runLoopClass;
   [l addEvent: (void*)(gsaddr)desc
 	 type: ET_WDESC
       watcher: self
-      forMode: NSDefaultRunLoopMode];
+      forMode: NSConnectionReplyMode];
   [l addEvent: (void*)(gsaddr)desc
 	 type: ET_EDESC
       watcher: self
-      forMode: NSDefaultRunLoopMode];
+      forMode: NSConnectionReplyMode];
   while (state == GS_H_TRYCON && [when timeIntervalSinceNow] > 0)
     {
-      [l runMode: NSDefaultRunLoopMode beforeDate: when];
+      [l runMode: NSConnectionReplyMode beforeDate: when];
     }
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
+	 forMode: NSConnectionReplyMode
 	     all: NO];
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_EDESC
-	 forMode: NSDefaultRunLoopMode
+	 forMode: NSConnectionReplyMode
 	     all: NO];
 
   if (state == GS_H_TRYCON)
@@ -1181,12 +1182,12 @@ static Class	runLoopClass;
   [l addEvent: (void*)(gsaddr)desc
 	 type: ET_WDESC
       watcher: self
-      forMode: NSDefaultRunLoopMode];
+      forMode: NSConnectionReplyMode];
   while ([wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
     && [when timeIntervalSinceNow] > 0)
     {
       DO_UNLOCK(myLock);
-      [l runMode: NSDefaultRunLoopMode beforeDate: when];
+      [l runMode: NSConnectionReplyMode beforeDate: when];
       DO_LOCK(myLock);
     }
   /*
@@ -1407,7 +1408,7 @@ static Class		tcpPortClass;
 
   if (port == nil)
     {
-      port = (GSTcpPort*)NSAllocateObject(self,0,NSDefaultMallocZone());
+      port = (GSTcpPort*)NSAllocateObject(self, 0, NSDefaultMallocZone());
       port->listener = -1;
       port->host = RETAIN(aHost);
       port->address = [addr copy];
