@@ -44,7 +44,7 @@
   Stack *root_object_tables;         /* Stack of Dicts for interconnt'd objs */
   Stack *forward_object_tables;      /* Stack of Dictionaries for frwd refs */
   Set *in_progress_table;            /* objects started r/w, but !finished */
-  int interconnected_stack_height    /* number of nested root objects */
+  int interconnected_stack_height;   /* number of nested root objects */
 
     /* Not all these ivars are really necessary.  I fixed a bug with
        a quick fix; now I need to go back and clean it up. -mccallum */
