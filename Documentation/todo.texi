@@ -14,12 +14,10 @@ help is greatly appreciated.  Send email to
 
 @item Write a test-suite for the library.  Use dejagnu.
 
-@item Write a proper name server for SocketPort's.  Currently we're just
+@item Write a proper name server for Port's.  Currently we're just
 hashing the name to a socket port number---we could get unwanted hash
 collisions.  This will also allow us to name a SocketPort after it's
 been created.
-
-@item Make SocketPort more reliable than UDP.
 
 @ignore
 @item Add some features to the compiler:  
@@ -36,20 +34,9 @@ argument to @@encode() and get a type string like the selector types.
 @end enumerate
 @end ignore
 
-@item GNU Notification registration classes, notification classes.  
-
-@item GNU Exception classes.
-
-@item Write more/better random number generators.  Make them conform to
-the protocol <RandomGenerating>.  See RNGAdditiveCongruential.
-
-@item Write user-visible random number classes in the spirit of the
-@samp{Random} class.  Look at Smalltalk's ProbabilityDistribution
-classes, and think about replacing the @samp{Random} class with
-something more like these.  How about Poisson and Gaussian distributions
-also?
-
-@item Write some code to deal with `%@@' in printf-style format strings.
+@item Write some code to deal with `%@@' in printf-style format strings
+for systems that do not have the GNU C library.  Those with the GNU C
+Library can just use @samp{register_printf_function}.
 
 @item Implement efficient SmallInt and SmallFloat classes in the same
 sort of way that Smalltalk does.  Talk to me.  mccallum@@gnu.ai.mit.edu.
@@ -61,43 +48,46 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 @end itemize
 
 
-@section My To Do's
+@section McCallum's To Do's
 
 @itemize @bullet
 
+@item Make a GNU analogue to NSException; (by putting in Muller's
+patch).
+
 @item Make my NS... classes raise the NSExceptions they are supposed to.
 
-@item Resolve the method type conflicts between GNUStep and the
-Collection classes.
+@item In remote object messaging, send exceptions back to the requestor.
+
+@item Do low-level frobbing of TCP to reduce delays.
+
+@item Make UdpPort work; make MachPort work.
+
+@item Write NSRunLoop class, on top of GNU RunLoop.
+
+@item Finish NotificationQueue, and make it interoperate with the
+RunLoop properly.
+
+@item Make the NSTimer's work and interoperate with the run loop
+properly. 
+
+@item Clean up and finish the String object situation.
 
 @item Fix many memory allocation inconsistencies.  Methods that return
 malloced buffers should autorelease those buffers, (like readFormat:).
 
-@item Remove (Stream*) types on args.
-
 @item Many code fixes and cleanups, indicated with @samp{xxx} in the
 source.
 
-@item Make a GNU analogue to NSException.
+@item Add Coding methods to all the collection classes.
 
-@item In remote object messaging, send exceptions back to the requestor.
-I'm waiting for gcc 2.7 exceptions.
+@item Clean up the behavior code.  Make sure that classes with behavior
+added can be subclassed properly... accounting for size.
 
-@item Separate Coder's "-..Simple.." methods into another class.
+@item Clean and comment mframe.m.
 
-@item Add Coding methods to all the other collection classes.
-
-@item
-Once we have SmallInt and SmallFloat classes, overhaul the collection
-heirarchy to get rid of the (elt) stuff.  Probably will get rid of
-function pointer passing and nested functions too.
-
-@item
-Think about restructuring the Collection heirarchy.  We need an abstract
-class for collections that are ordered, but whose order is fixed by the
--compare: method, i.e. not user-settable.  We need non-mutable version
-of the classes.  The implementation of this stuff is crying out for
-multiple inheritance or protocols-with-implementation!
+@item Finish Collection heirarchy clean ups.  We need non-mutable
+version for many of the classes.
 
 @item
 Possibly change @code{-(int)compare:anObject} for Collection.  How
@@ -112,13 +102,10 @@ Finish Time.m.  Many methods are not yet implemented.
 
 @item
 Many implementations could be made more efficient.  Libobjects hasn't
-been efficiency tuned at all.  Overridding more methods in certain
+been efficiency tuned very much.  Overridding more methods in certain
 classes could make things more efficient (especially EltNodeCollector).
 SplayTree's could be done using top-down splaying.  collhash could be
 completely reimplemented.  ...and a lot more...
-
-@item
-Fix bugs that arise when double's are included in the elt union.  
 
 @item
 Fix all the subclassResponsibility comments in objects/*.h
@@ -145,83 +132,6 @@ method names are interfering with info's notion of menu item names and
 node names.  Help.  Any ideas?  (Kresten?)
 
 @item
-I need to read through al the enumState code again and clean it up.
-Perhaps we'd like an Iterator class to use as a wrapper around the
-enumState functionality?  The NIH Class Library organizes things this
-way. 
-
-@item
-Should we keep the -safe... enumeration methods?  They sure do add a
-lot of clutter to the protocols.  If we got rid of them people would
-have to alloc an Array, copy the contents, and free the Array
-themselves. 
-
-@item
-What would people think about removing the ...Object methods, and just
-having the ...Element methods instead?  It might be a bit more difficult
-to use, but it would reduce clutter significantly.  The ...Element
-methods are more efficient to use anyway, since most ...Object methods
-are wrappers around ...Element calls.  I'm not sure what I think we
-should do.
-
-Here's an idea: Define the ...Object methods as macros.  But we need a
-new macro scheme that works for methods instead of functions.  We would
-need something with the following functionality:
-@smallexample
-#define [REC replaceObject: OLDOBJ with: NEWOBJ] \
-        ([REC replaceElement:(elt)(OLDOBJ) with:(elt)(NEWOBJ)].id_u)
-@end smallexample
-The issue of macros for methods has been mentioned in email
-found in the gnu-objc-issues archive, in the file @samp{preprocessor}.
-
-@item
-It would be nice to have more error checking on the types going in and
-out of a collection.  When some code tries to put a float into a
-collector initialized to hold integers, it would be nice to catch that.
-Perhaps just some macros that will do the appropriate checks?  It would
-also be nice if elt's returned from methods were automatically casted to
-the correct type.
-
-It might be good to use something like this (from the gcc
-PROJECTS file):
-@example
-* A way of defining a structure containing a union, in which the choice
-of union alternative is controlled by a previous structure component.
-
-Here is a possible syntax for this.
-
-struct foo @{
-  enum @{ INT, DOUBLE @} code;
-  auto union @{ case INT: int i; case DOUBLE: double d;@} value : code;
-@};
-@end example
-
-This has the disadvantage that now elt's will take up more than one
-word. 
-
-What I would prefer is something more radical:  Some efficient way to
-enable int's, float's to receive Objective-C messages.  Then I wouldn't
-have to worry about any of these horrible elt typing issues; I wouldn't
-have to worry about all the ...Object ...Element method name
-duplication; I wouldn't have to worry about the inefficiency of having
-all the ...Object methods just be covers for the ...Element methods.
-Lots of other Objective-C code would find this useful too.  It has
-the advantage of fixing the previous question also (about removing the
-...Element ...Object method duplication).  We need Objective-C objects
-that can live on the stack.
-
-For now, I've worked out a ObjC++ solution to this with constructors and
-casting operators.  Now I'm just waiting for Kresten to finish ObjC++.
-
-@item
-Perhaps we should put more safety checks into LinkedList,
-BinaryTree, etc:  Check that node is not already part of another
-collection (by checking that neighbor pointers are nil?)  In method
-"insertObject:newObject after:oldObject" make sure that oldObject is a
-member of self.  ...It seems that there is a lot of potential for
-nasty bugs with mistakes like these.
-
-@item
 HashTable.m (-initKeyDesc:valueDesc:capacity:)  I tried to make it
 portable, but I didn't try very hard.  Anyone want to send in fixes?
 
@@ -234,33 +144,6 @@ even get called.  <<ObjC insiders: This is a less well-expressed
 version of what we've just been discussing in email.>>
 
 @item
-The situation with LinkedListNode and LinkedListEltNode, (and the
-analagous classes for BinaryTree's and RBTree's) are just crying out
-for multiple inheritance.  Anyone have ideas that are prettier than my
-quick fix using #include ?  Anyone have an alternate organization that
-doesn't need multiple inheritance?
-
-@item
-Somes classes, like RBTree, depend on a certain ordering of elements
-to maintain internal consistency.  How should we define the behavior
-of methods whose names imply that the user can set the ordering of
-elements independent of these constraints? (like -appendElement: or
--insertElement:atIndex: for instance).  I see three possibilities:
-@enumerate
- @item The methods do what they say.  Give the user the power to
-override the default ordering.
- @item The methods do not do what they say, but call addElement:
-instead.  This lets the class maintain its internal consistency, but
-it has the potential to be a bit confusing to the user.  What would
-happen if the user sent a sort message to such a class, for instance?
- @item The methods trigger a -shouldNotImplement: error.  This solution
-perhaps best expresses the reality of the situation, but it's a bit
-strange for a class to signal an error on a method which is in a
-protocol the class conforms to.
-@end enumerate
-  Currently I'm using solution #1 (in most classes?).
-
-@item
 I created libobjects.texi by copying libg++.texi.  Some of the text
 is taken verbatim.  Is this a problem?
 
@@ -270,10 +153,13 @@ suggestions for changes, please say so now, not after it's all been
 written. 
 
 @item
-Does anyone really miss the ability to set the comparison function
-independent of the element encoding?  If it's really important we can
-come up with ways to do this and still be able to archive comparison
-functions.
+Does anyone really need the ability to set the collection element
+comparison function independent of the -compare: method?
+
+@item
+How about adding flexibity in the method name that a LinkedList sends a
+LinkedListNode to get/set the link ivars.  This would enable us to add a
+node to more than one linked list.
 
 @item
 Something like this needed?
@@ -293,31 +179,8 @@ limited to 12 characters forever and ever---disgusting.
 
 @end itemize
 
-@c ==================================================================
-@section Changes I'd like in the Objective-C runtime and gcc:
 
-@itemize @bullet
-
-@item
-Make OBJC_MALLOC() and friends public.  Have the runtime and
-Object.m use them.  See objc-malloc.[hm].
-
-@item
-Give hash.[hc] functionality more like collhash.[hc], i.e.:
-Add hash_node_for_key() to hash.h and hash.c.
-Change hash_next() so that more than one enumeration of the contents
-can happen concurrently.
-How about removing cache as a parameter to the hashing functions in
-hash.h and hash.c.  Do the masking on the result of the hash function.
-This seems much neater to me.
-
-@item
-Add a way of defining a structure containing a union, in which the choice
-of union alternative is controlled by a previous structure component.
-(See gcc @samp{PROJECTS} file.)
-
-@end itemize
-
+
 @section Albin's To Do List
 
 I'm sure that there're other things to do, but these are the ones I know now:
