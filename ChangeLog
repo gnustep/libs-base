@@ -1,3 +1,9 @@
+2003-06-19  Andrew Ruder <aeruder@yahoo.com>
+
+	* Source/Additions/Unicode.m: Increase size of table by one to
+	avoid error if all possible character encodings were supported.
+	Never happens ... but might conceivably do so one day.
+
 2003-06-18  Kazunobu Kuriyama  <kazunobu.kuriyama@nifty.com>
 
 	* configure.ac: Add --with--ffcall-include=PATH and

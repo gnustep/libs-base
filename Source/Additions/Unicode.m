@@ -323,7 +323,7 @@ GetAvailableEncodings()
 	   * for iconv to support unicode.
 	   */
 	  GSSetupEncodingTable();
-	  encodings = objc_malloc(sizeof(NSStringEncoding) * encTableSize);
+	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
 	  for (i = 0; i < encTableSize; i++)
 	    {
