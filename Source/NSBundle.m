@@ -275,7 +275,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		    mutableCopy]);
 	  [system appendString: @"/Libraries"];
 
-	  _gnustep_bundle = [NSBundle bundleWithPath: system];
+	  _gnustep_bundle = RETAIN([NSBundle bundleWithPath: system]);
 	}
     }
 }
@@ -458,7 +458,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 {
   if (_codeLoaded == YES || self == _mainBundle || self == _gnustep_bundle) 
     {
-      if ([self retainCount] == 0)
+      if ([self retainCount] == 1)
 	{
 	  if (self == NSMapGet(_releasedBundles, _path))
 	    {
@@ -481,12 +481,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       NSMapRemove(_bundles, _path);
       RELEASE(_path);
     }
-  if (_bundleClasses)
-    RELEASE(_bundleClasses);
-  if (_infoDict)
-    RELEASE(_infoDict);
-  if (_localizations)
-    RELEASE(_localizations);
+  TEST_RELEASE(_bundleClasses);
+  TEST_RELEASE(_infoDict);
+  TEST_RELEASE(_localizations);
   [super dealloc];
 }
 
@@ -945,11 +942,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     */
   pInfo = [NSProcessInfo processInfo];
   env = [pInfo environment];
-  user = AUTORELEASE([[env objectForKey: @"GNUSTEP_USER_ROOT"]
-	    mutableCopy]);
+  user = AUTORELEASE([[env objectForKey: @"GNUSTEP_USER_ROOT"] mutableCopy]);
   [user appendString: @"/Libraries"];
-  local = AUTORELEASE([[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
-	    mutableCopy]);
+  local = AUTORELEASE([[env objectForKey: @"GNUSTEP_LOCAL_ROOT"] mutableCopy]);
   [local appendString: @"/Libraries"];
 
   if (user)
