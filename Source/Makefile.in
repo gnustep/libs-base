@@ -489,7 +489,7 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-objects/stdobjects.h: $(srcdir)/../Version objects/stdobjects.h.in
+objects/stdobjects.h: $(srcdir)/../Version $(srcdir)/objects/stdobjects.h.in
 	rm -f $(srcdir)/objects/stdobjects.h
 	sed -e 's/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/' \
 	< $(srcdir)/objects/stdobjects.h.in | \
