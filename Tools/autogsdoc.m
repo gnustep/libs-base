@@ -33,6 +33,8 @@
         Extract special comments describing the public interfaces of classes,
         categories, protocols, functions, and macros from Objective C source
         code (header files and optionally source files) into GSDoc XML files.
+        (Note that since C is a subset of Objective C, this tool can operate
+        to document functions and other C structures in plain C source.)
       </item>
       <item>
         Convert GSDoc XML files, whether generated from source code or written
@@ -931,7 +933,8 @@ main(int argc, char **argv, char **env)
 	{
 	  [sFiles addObject: arg];
 	}
-      else if ([arg hasSuffix: @".m"] == YES)
+      else if (([arg hasSuffix: @".m"] == YES)
+               || ([arg hasSuffix: @".c"] == YES))
 	{
 	  [sFiles addObject: arg];
 	}
@@ -1151,15 +1154,15 @@ main(int argc, char **argv, char **env)
 
   if ([sFiles count] == 0 && [gFiles count] == 0 && [hFiles count] == 0)
     {
-      NSLog(@"No .h, .m, or .gsdoc filename arguments found ... giving up");
+      NSLog(@"No .h, .m, .c, .gsdoc, or .html filename arguments found ... giving up");
       return 1;
     }
 
   /*
    * 5) Start with "source files".. for each one (hereafter called a
    *    "header file"):
-   *    a) Parse declarations (in .h or .m) using an AGSParser object.
-   *    b) Determine (possibly multiple) dependent .m files corresponding to
+   *    a) Parse declarations (in .h or .m/.c) using an AGSParser object.
+   *    b) Determine (possibly multiple) dependent .m/.c files corresponding to
    *       a .h and parse them.
    *    c) Feed parser results to an AGSOutput instance.
    */
@@ -1307,7 +1310,7 @@ main(int argc, char **argv, char **env)
 
 	      /*
 	       * Try to parse header to see what needs documenting.
-	       * If the header given was actually a .m file, this will
+	       * If the header given was actually a .m/.c file, this will
 	       * parse that file for declarations rather than definitions.
 	       */
 	      if ([mgr isReadableFileAtPath: hfile] == NO)
