@@ -27,6 +27,9 @@
 
 #include <config.h>
 #include <base/preface.h>
+#ifdef	HAVE_FLOAT_H
+#include <float.h>
+#endif
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -820,8 +823,11 @@ static BOOL	multi_threaded = NO;
     {
       _multipleThreads = NO;
       _independentQueueing = NO;
-      _replyTimeout = CONNECTION_DEFAULT_TIMEOUT;
-      _requestTimeout = CONNECTION_DEFAULT_TIMEOUT;
+#ifndef	DBL_MAX
+#define	DBL_MAX	100000000.0
+#endif
+      _replyTimeout = DBL_MAX;
+      _requestTimeout = DBL_MAX;
       /*
        * Set up request modes array and make sure the receiving port
        * is added to the run loop to get data.
@@ -2369,7 +2375,8 @@ static void callEncoder (DOContext *ctxt)
   NSPortCoder		*rmc;
   GSIMapNode		node;
   NSDate		*timeout_date = nil;
-  NSTimeInterval	delay_interval = 0.0001;
+  NSTimeInterval	last_interval = 0.0001;
+  NSTimeInterval	delay_interval = last_interval;
   NSDate		*delay_date = nil;
   NSRunLoop		*runLoop = [runLoopClass currentRunLoop];
 
@@ -2389,7 +2396,8 @@ static void callEncoder (DOContext *ctxt)
 	}
       if (_multipleThreads == YES)
 	{
-	  NSDate	*limit_date;
+	  NSDate		*limit_date;
+	  NSTimeInterval	next_interval;
 
 	  /*
 	   * If multiple threads are using this connections, another
@@ -2401,7 +2409,9 @@ static void callEncoder (DOContext *ctxt)
 	   */
 	  RELEASE(delay_date);
 	  delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-	  delay_interval *= 2;
+	  next_interval = last_interval + delay_interval;
+	  last_interval = delay_interval;
+	  delay_interval = next_interval;
 	  delay_date
 	    = [delay_date initWithTimeIntervalSinceNow: delay_interval];
 

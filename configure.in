@@ -462,9 +462,9 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS(string.h memory.h)
 
 #--------------------------------------------------------------------
-# Following header check needed BinaryCStream.h
+# Following header check needed NSConnection.h
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(values.h)
+AC_CHECK_HEADERS(float.h)
 
 #--------------------------------------------------------------------
 # Header files and functions for files and filesystems

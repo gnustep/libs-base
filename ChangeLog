@@ -1,3 +1,12 @@
+2001-10-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Increase default timeouts to max value.
+	Improve algorithm for polling for messages when waiting for a reply
+	in multithreaded mode ... use fibonacci sequence for delays rather
+	than doubling each time.
+	* Headers/Foundation/NSConnection.h: Remove default timeout constant.
+	* configure.in: Check for float.h, not for values.h
+
 2001-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: Updated to latest info.
