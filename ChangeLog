@@ -1,3 +1,10 @@
+2001-12-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSValue.m: Fix coding/decoding to use serialization code to
+	maintain byte order and word size compatibility.
+	* Source/GSValue.m: ditto
+	* Testing/values.m: added encoding/decoding tests.
+
 Sat Dec  1 10:11:18 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Makefile.postamble (base.make): Depend on configure.

@@ -32,6 +32,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSDebug.h>
 
 @interface	GSPlaceholderValue : NSValue
@@ -363,6 +364,7 @@ static NSLock			*placeholderLock;
   unsigned	size;
   char		*data;
   const char	*objctype = [self objCType];
+  NSMutableData	*d;
 
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
@@ -370,8 +372,10 @@ static NSLock			*placeholderLock;
   size = objc_sizeof_type(objctype);
   data = (void *)NSZoneMalloc(GSObjCZone(self), size);
   [self getValue: (void*)data];
-  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
-  [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
+  d = [NSMutableData new];
+  [d serializeDataAt: data ofObjCType: objctype context: nil];
+  [coder encodeValueOfObjCType: @encode(id) at: &d];
+  RELEASE(d);
   NSZoneFree(NSDefaultMallocZone(), data);
 }
 
@@ -381,6 +385,9 @@ static NSLock			*placeholderLock;
   Class		c;
   id		o;
   unsigned	size;
+  NSData	*d;
+  char		*data;
+  unsigned	cursor = 0;
 
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
   objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
@@ -389,26 +396,17 @@ static NSLock			*placeholderLock;
 			    at: (void*)objctype];
   c = [abstractClass valueClassWithObjCType: objctype];
   o = [c alloc];
-  /*
-   * Special case classes can decode themselves.
-   */
-  if (c == pointValueClass || c == rangeValueClass
-    || c == rectValueClass || c == sizeValueClass)
-    {
-      o = [o initWithCoder: coder];
-    }
-  else
-    {
-      char	*data;
 
-      size = objc_sizeof_type(objctype);
-      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
-      [coder decodeArrayOfObjCType: @encode(unsigned char)
-			     count: size
-				at: data];
-      o = [o initWithBytes: data objCType: objctype];
-      NSZoneFree(NSDefaultMallocZone(), data);
-    }
+  size = objc_sizeof_type(objctype);
+  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+  [coder decodeValueOfObjCType: @encode(id) at: &d];
+  [d deserializeDataAt: data
+	    ofObjCType: objctype
+	      atCursor: &cursor
+	       context: nil];
+  o = [o initWithBytes: data objCType: objctype];
+  RELEASE(d);
+  NSZoneFree(NSDefaultMallocZone(), data);
   NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
   RELEASE(self);
   self = o;
@@ -444,6 +442,9 @@ static NSLock			*placeholderLock;
   Class		c;
   id		o;
   unsigned	size;
+  NSData	*d;
+  char		*data;
+  unsigned	cursor = 0;
 
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
   objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
@@ -452,26 +453,17 @@ static NSLock			*placeholderLock;
 			    at: (void*)objctype];
   c = [abstractClass valueClassWithObjCType: objctype];
   o = [c alloc];
-  /*
-   * Special case classes can decode themselves.
-   */
-  if (c == pointValueClass || c == rangeValueClass
-    || c == rectValueClass || c == sizeValueClass)
-    {
-      o = [o initWithCoder: coder];
-    }
-  else
-    {
-      char	*data;
 
-      size = objc_sizeof_type(objctype);
-      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
-      [coder decodeArrayOfObjCType: @encode(unsigned char)
-			     count: size
-				at: data];
-      o = [o initWithBytes: data objCType: objctype];
-      NSZoneFree(NSDefaultMallocZone(), data);
-    }
+  size = objc_sizeof_type(objctype);
+  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+  [coder decodeValueOfObjCType: @encode(id) at: &d];
+  [d deserializeDataAt: data
+	    ofObjCType: objctype
+	      atCursor: &cursor
+	       context: nil];
+  o = [o initWithBytes: data objCType: objctype];
+  RELEASE(d);
+  NSZoneFree(NSDefaultMallocZone(), data);
   NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
   self = o;
   return self;

@@ -243,7 +243,7 @@
 }
 
 // NSCoding
-- (void) encodeWithCoder: (NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder*)coder
 {
 #if	TYPE_ORDER == 0
   [NSException raise: NSInternalInconsistencyException
@@ -252,18 +252,8 @@
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Attempt to encode a pointer to void object"];
 #else
-  const char	*objctype = @encode(TYPE_NAME);
-  unsigned	size = strlen(objctype)+1;
-  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
-  [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  [coder encodeValueOfObjCType: @encode(TYPE_NAME) at: &data];
+  [super encodeWithCoder: coder];
 #endif
-}
-
-- (id) initWithCoder: (NSCoder *)coder
-{
-  [coder decodeValueOfObjCType: @encode(TYPE_NAME) at: &data];
-  return self;
 }
 
 @end
