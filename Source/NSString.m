@@ -36,6 +36,7 @@
 #include <foundation/NSString.h>
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
+#include <objects/String.h>
 #include <limits.h>
 
 @implementation NSString
@@ -45,6 +46,7 @@
   static done = 0;
   if (!done)
     {
+      class_add_behavior([NSString class], [String class]);
       class_add_behavior([NSString class], [IndexedCollection class]);
       done = 1;
     }

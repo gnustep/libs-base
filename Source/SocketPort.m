@@ -93,7 +93,7 @@ name_to_port_number (const char *name)
   return self;
 }
 
-+ newPortFromRegisterWithName: (String*)name onHost: (String*)h
++ newPortFromRegisterWithName: (id <String>)name onHost: (id <String>)h
 {
   id p;
   int n;
@@ -108,7 +108,7 @@ name_to_port_number (const char *name)
   return p;
 }
 
-+ newRegisteredPortWithName: (String*)name
++ newRegisteredPortWithName: (id <String>)name
 {
   int n;
 
@@ -241,7 +241,7 @@ s1.sin_addr.s_addr == s2.sin_addr.s_addr)
   return sp;
 }
 
-+ newRemoteWithNumber: (int)n onHost: (String*)h
++ newRemoteWithNumber: (int)n onHost: (id <String>)h
 {
   struct sockaddr_in remote_addr;
   struct hostent *hp;

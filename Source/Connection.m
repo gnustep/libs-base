@@ -33,7 +33,7 @@
 #include <objects/Dictionary.h>
 #include <objects/Queue.h>
 #include <objects/mframe.h>
-#include <objects/String.h>
+#include <foundation/NSString.h>
 #include <assert.h>
 
 @interface Connection (GettingCoderInterface)
@@ -448,7 +448,7 @@ static int messagesReceivedCount;
    if we're connecting to another Connection that already registered 
    with that name. */
 
-+ (Connection*) newRegisteringAtName: (String*)n withRootObject: anObj
++ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj
 {
   id newPort;
   id newConn;
@@ -460,12 +460,12 @@ static int messagesReceivedCount;
   return newConn;
 }
 
-+ (Proxy*) rootProxyAtName: (String*)n
++ (Proxy*) rootProxyAtName: (id <String>)n
 {
   return [self rootProxyAtName:n onHost:@""];
 }
 
-+ (Proxy*) rootProxyAtName: (String*)n onHost: (String*)h
++ (Proxy*) rootProxyAtName: (id <String>)n onHost: (id <String>)h
 {
   id p = [default_port_class newPortFromRegisterWithName:n onHost:h];
   return [self rootProxyAtPort:p];
