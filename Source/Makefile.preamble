@@ -63,7 +63,7 @@ endif
 ifeq ($(GNUSTEP_TARGET_OS),cygwin)
 libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
 endif
-ifeq ($(findstring darwin1, $(GNUSTEP_TARGET_OS)), darwin1)
+ifeq ($(findstring darwin, $(GNUSTEP_TARGET_OS)), darwin)
 libgnustep-base_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) \
 	-flat_namespace
 endif

@@ -1807,8 +1807,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      GSIArrayRemoveAllItems(_objAry);
 	      GSIArrayRemoveAllItems(_ptrAry);
 	    }
-	  GSIArrayAddItem(_clsAry, (GSIArrayItem)nil);
-	  GSIArrayAddItem(_objAry, (GSIArrayItem)nil);
+	  GSIArrayAddItem(_clsAry, (GSIArrayItem)(void*)0);
+	  GSIArrayAddItem(_objAry, (GSIArrayItem)(void*)0);
 	  GSIArrayAddItem(_ptrAry, (GSIArrayItem)(void*)0);
 	}
       NS_HANDLER
