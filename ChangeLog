@@ -1,3 +1,8 @@
+2002-06-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Include NSInvocation.h to avoid
+	compiler warning.
+
 2002-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fix a few errors which crept in to the map
