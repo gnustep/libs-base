@@ -173,6 +173,7 @@
   else
     coll_hash_add(&_contents_hash, aKey, 
 		  newContentElement);
+  ELT_RETAIN(newContentElement);
   return self;
 }
 
@@ -188,7 +189,7 @@
     {
       ret = node->value;
       coll_hash_remove(_contents_hash, aKey);
-      return ret;
+      return ELT_AUTORELEASE(ret);
     }
   else
     RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);

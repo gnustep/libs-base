@@ -103,7 +103,7 @@
   res = _contents_array[GAP_TO_BASIC (index)];
   gapFillHoleAt (self, index);
   decrementCount(self);
-  return res;
+  return AUTORELEASE_ELT(res);
 }
 
 - (elt) removeFirstElement
@@ -111,7 +111,7 @@
   elt res = _contents_array[GAP_TO_BASIC (0)];
   gapFillHoleAt (self, 0);
   decrementCount(self);
-  return res;
+  return AUTORELEASE_ELT(res);
 }
 
 - (elt) removeLastElement
@@ -128,6 +128,7 @@
 - appendElement: (elt)newElement
 {
   incrementCount(self);
+  RETAIN_ELT(newElement);
   gapMakeHoleAt (self, _count-1);
   _contents_array[_count-1] = newElement;
   return self;
@@ -145,6 +146,7 @@
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   incrementCount(self);
+  RETAIN_ELT(newElement);
   gapMakeHoleAt (self, index);
   _contents_array[index] = newElement;
   return self;
@@ -155,9 +157,10 @@
   elt ret;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
+  RETAIN_ELT(newElement)
   ret = _contents_array[GAP_TO_BASIC(index)];
   _contents_array[GAP_TO_BASIC(index)] = newElement;
-  return self;
+  return AUTORELEASE_ELT(ret);
 }
 
 - swapAtIndeces: (unsigned)index1 : (unsigned)index2
@@ -173,23 +176,6 @@
   _contents_array[index2] = tmp;
   return self;
 }
-
-/* Let IndexedCollection take care of this
-- shallowCopyReplaceFrom: (unsigned)start to: (unsigned)stop 
-    using: (id <Collecting>)replaceCollection
-{
-  id newColl = [self shallowCopy];
-  unsigned index = start;
-  BOOL cont = YES;
-  void doIt (elt e)
-    {
-      [newColl replaceElementAtIndex: index with: e];
-      cont = (index++ != stop);
-    }
-  [replaceCollection withElementsCall: doIt whileTrue: &cont];
-  return newColl;
-}
-*/
 
 @end
 
