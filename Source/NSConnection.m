@@ -434,12 +434,11 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
- * Not used in GNUstep
+ * Return the current conversation ... not implemented in GNUstep
  */
 + (id) currentConversation
 {
-  [self notImplemented: _cmd];
-  return self;
+  return nil;
 }
 
 /**
@@ -1104,6 +1103,14 @@ static NSLock	*cached_proxies_gate = nil;
     }
 #endif
 
+  /*
+   * Invalidate the current conversation so we don't leak.
+   */
+  if ([_sendPort isValid] == YES)
+    {
+      [[_sendPort conversation: _receivePort] invalidate];
+    }
+
   RELEASE(self);
 }
 
@@ -1258,7 +1265,7 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
- * Removes mode from the run loop modes used to recieve incoming messages.
+ * Removes mode from the run loop modes used to receive incoming messages.
  */
 - (void) removeRequestMode: (NSString*)mode
 {

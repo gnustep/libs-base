@@ -1624,7 +1624,34 @@ static unsigned	wordAlign;
   M_UNLOCK(myLock);
 }
 
-- (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort beforeDate: (NSDate*)when
+- (id) conversation: (NSPort*)recvPort
+{
+  NSMapEnumerator	me;
+  SOCKET		sock;
+  GSTcpHandle		*handle = nil;
+
+  M_LOCK(myLock);
+  /*
+   * Enumerate all our socket handles, and look for one with port.
+   */
+  me = NSEnumerateMapTable(handles);
+  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+    {
+      if ([handle recvPort] == recvPort)
+	{
+	  RETAIN(handle);
+	  NSEndMapTableEnumeration(&me);
+	  M_UNLOCK(myLock);
+	  return AUTORELEASE(handle);
+	}
+    }
+  NSEndMapTableEnumeration(&me);
+  M_UNLOCK(myLock);
+  return nil;
+}
+
+- (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort
+		    beforeDate: (NSDate*)when
 {
   NSMapEnumerator	me;
   SOCKET		sock;

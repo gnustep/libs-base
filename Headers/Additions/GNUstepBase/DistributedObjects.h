@@ -25,7 +25,7 @@
 #define __DistributedObjects_h
 
 /*
- *	For internal use by the GNUstep base library.
+ *	For <strong>INTERNAL</strong> use by the GNUstep base library.
  *	This file should not be installed.  The only reason why it is
  *	located here, is to allow target specific headers (like mframe.h), 
  *	which are located according to dis/enabled-flattened,
@@ -43,10 +43,7 @@
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSPortCoder.h>
-
-@class	NSDistantObject;
-@class	NSConnection;
-@class	NSPort;
+#include <Foundation/NSPort.h>
 
 /*
  *	Distributed Objects identifiers
@@ -67,9 +64,9 @@ enum {
 
 
 /*
- *	Category containing the methods by which the public interface to
- *	NSConnection must be extended in order to allow it's use by
- *	by NSDistantObject et al for implementation of Distributed objects.
+ * Category containing the methods by which the public interface to
+ * NSConnection must be extended in order to allow it's use by
+ * by NSDistantObject et al for implementation of Distributed objects.
  */
 @interface NSConnection (Internal)
 - (NSDistantObject*) includesLocalTarget: (unsigned)target;
@@ -77,6 +74,10 @@ enum {
 - (NSDistantObject*) locateLocalTarget: (unsigned)target;
 - (NSDistantObject*) proxyForTarget: (unsigned)target;
 - (void) retainTarget: (unsigned)target;
+@end
+
+@interface NSPort (Internal)
+- (id) conversation: (NSPort*)receivePort;
 @end
 
 /*

@@ -556,7 +556,8 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"NSMessagePort_details", @"received %s event on 0x%x in thread 0x%x",
+  NSDebugMLLog(@"NSMessagePort_details",
+    @"received %s event on 0x%x in thread 0x%x",
     type == ET_RPORT ? "read" : "write", self, GSCurrentThread());
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
@@ -641,7 +642,8 @@ static Class	runLoopClass;
 	    }
 	  res = 0;	/* Interrupted - continue	*/
 	}
-      NSDebugMLLog(@"NSMessagePort_details", @"read %d bytes on 0x%x in thread 0x%x",
+      NSDebugMLLog(@"NSMessagePort_details",
+	@"read %d bytes on 0x%x in thread 0x%x",
 	res, self, GSCurrentThread());
       rLength += res;
 
@@ -751,7 +753,8 @@ static Class	runLoopClass;
 		    }
 		  else
 		    {
-		      NSLog(@"%@ - bad data received on port handle, rType=%i", self, rType);
+		      NSLog(@"%@ - bad data received on port handle, rType=%i",
+			self, rType);
 		      M_UNLOCK(myLock);
 		      [self invalidate];
 		      return;
@@ -1233,7 +1236,10 @@ static int unique_index = 0;
 {
   unsigned		i;
   NSMessagePort		*port = nil;
-  NSData *theName = [[NSData alloc] initWithBytes: socketName  length: strlen(socketName)+1];
+  NSData		*theName;
+
+  theName = [[NSData alloc] initWithBytes: socketName
+				   length: strlen(socketName)+1];
 
   M_LOCK(messagePortLock);
 
@@ -1307,7 +1313,8 @@ static int unique_index = 0;
 	       * Make sure we have the map table for this port.
 	       */
 	      NSMapInsert(messagePortMap, (void*)theName, (void*)port);
-	      NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@", port);
+	      NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@",
+		port);
 	    }
 	}
       else
@@ -1421,12 +1428,39 @@ static int unique_index = 0;
   M_UNLOCK(myLock);
 }
 
-- (GSMessageHandle*) handleForPort: (NSMessagePort*)recvPort beforeDate: (NSDate*)when
+- (id) conversation: (NSPort*)recvPort
+{
+  NSMapEnumerator	me;
+  int			sock;
+  GSMessageHandle	*handle = nil;
+
+  M_LOCK(myLock);
+  /*
+   * Enumerate all our socket handles, and look for one with port.
+   */
+  me = NSEnumerateMapTable(handles);
+  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+    {
+      if ([handle recvPort] == recvPort)
+	{
+	  RETAIN(handle);
+	  NSEndMapTableEnumeration(&me);
+	  M_UNLOCK(myLock);
+	  return AUTORELEASE(handle);
+	}
+    }
+  NSEndMapTableEnumeration(&me);
+  M_UNLOCK(myLock);
+  return nil;
+}
+
+- (GSMessageHandle*) handleForPort: (NSMessagePort*)recvPort
+			beforeDate: (NSDate*)when
 {
   NSMapEnumerator	me;
   int			sock;
   int			opt = 1;
-  GSMessageHandle		*handle = nil;
+  GSMessageHandle	*handle = nil;
 
   M_LOCK(myLock);
   /*
@@ -1496,7 +1530,8 @@ static int unique_index = 0;
 
   if (d == nil)
     {
-      NSDebugMLLog(@"NSMessagePort", @"No delegate to handle incoming message", 0);
+      NSDebugMLLog(@"NSMessagePort",
+	@"No delegate to handle incoming message", 0);
       return;
     }
   if ([d respondsToSelector: @selector(handlePortMessage:)] == NO)
@@ -1546,8 +1581,9 @@ static int unique_index = 0;
 	      i = [handleArray count];
 	      while (i-- > 0)
 		{
-		  GSMessageHandle	*handle = [handleArray objectAtIndex: i];
+		  GSMessageHandle	*handle;
 
+		  handle = [handleArray objectAtIndex: i];
 		  [handle invalidate];
 		}
 	      /*
@@ -1598,7 +1634,8 @@ static int unique_index = 0;
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc < 0)
         {
-	  NSDebugMLLog(@"NSMessagePort", @"accept failed - handled in other thread?");
+	  NSDebugMLLog(@"NSMessagePort",
+	    @"accept failed - handled in other thread?");
         }
       else
 	{
