@@ -90,6 +90,7 @@
 
 @end
 
+#ifndef NO_GNUSTEP
 @interface NSData (GNUstepExtensions)
 + (id) dataWithShmID: (int)anID length: (unsigned) length;
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
@@ -133,7 +134,7 @@
 - (void*) relinquishAllocatedBytes;
 - (void*) relinquishAllocatedBytesFromZone: (NSZone*)aZone;
 @end
-
+#endif
 
 @interface NSMutableData :  NSData
 
@@ -178,6 +179,7 @@
 
 @end
 
+#ifndef	NO_GNUSTEP
 @interface NSMutableData (GNUstepExtensions)
 /*
  *	Capacity management - GNUstep gives you control over the size of
@@ -198,6 +200,7 @@
 - (void) serializeCrossRef: (unsigned)xref;
 
 @end
+#endif
 
 /*
   Local Variables:
