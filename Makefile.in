@@ -90,10 +90,9 @@ clean: mostlyclean-top clean-subdirs
 distclean: clean-top distclean-subdirs
 maintainer-clean: distclean-top maintainer-clean-subdirs
 
-dist: $(DIST_FILES)
+snap: $(DIST_FILES)
 	rm -rf snap
 	mkdir snap
-	# beginning of top-level copy-dist section
 	for i in $(SUBDIRS); do \
 	  (cd $$i; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) copy-dist); \
 	done
@@ -101,10 +100,21 @@ dist: $(DIST_FILES)
 	for file in $(DIST_FILES); do \
 	  ln $$file snap/$$file ; \
 	done
-	# end of top-level copy-dist section
+
+snapshot: snap
+	rm -f .name
+	echo libobjects-`date +%y%m%d` >.name
+	mv snap `cat .name`
+	tar -chvf `cat .name`.tar `cat .name`
+	rm -f `cat .name`.tar.gz
+	gzip `cat .name`.tar
+	rm -rf `cat .name`
+
+dist: snap
 	mv snap libobjects-$(OBJECTS_VERSION)
 	tar -chvf libobjects-$(OBJECTS_VERSION).tar \
 		libobjects-$(OBJECTS_VERSION)
+	rm -f libobjects-$(OBJECTS_VERSION).tar.gz
 	gzip libobjects-$(OBJECTS_VERSION).tar
 	rm -rf libobjects-$(OBJECTS_VERSION)
 
