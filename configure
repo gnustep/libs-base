@@ -4163,6 +4163,23 @@ else
   sys_proc_fs=no;
   echo "$ac_t""no" 1>&6
 fi
+# Linux (and others?) /proc contains a symlink to the executable
+# file from which the process loaded its code.  This can be used
+# by NSBundle.m to locate the main bundle.
+if test $sys_proc_fs = yes; then
+  echo $ac_n "checking link to executable in /proc""... $ac_c" 1>&6
+echo "configure:4172: checking link to executable in /proc" >&5
+  if test -L /proc/self/exe; then
+    cat >> confdefs.h <<\EOF
+#define HAVE_PROC_FS_EXE_LINK 1
+EOF
+
+    echo "$ac_t""yes" 1>&6
+  else
+    echo "$ac_t""no" 1>&6
+  fi
+fi
+
 
 #--------------------------------------------------------------------
 # Tools for making a DLL.
