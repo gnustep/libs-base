@@ -605,95 +605,100 @@ GetDefEncoding()
 	  /* Take it from the system locale information.  */
 	  encoding = nl_langinfo(CODESET);
 	  if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
-	      || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
-	      || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
+	    || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
+	    || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
 	    defEnc = NSASCIIStringEncoding;
 	  else if (strcmp(encoding, "EUC-JP") == 0 /* glibc */
-		   || strcmp(encoding, "eucJP") == 0 /* HP-UX IRIX OSF/1 Solaris NetBSD */
-		   || strcmp(encoding, "IBM-eucJP") == 0 /* AIX */)
+	    /* HP-UX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "eucJP") == 0
+	    || strcmp(encoding, "IBM-eucJP") == 0 /* AIX */)
 	    defEnc = NSJapaneseEUCStringEncoding;
 	  else if (strcmp(encoding, "UTF-8") == 0 /* glibc AIX OSF/1 Solaris */
-		   || strcmp(encoding, "utf8") == 0 /* HP-UX */)
+	    || strcmp(encoding, "utf8") == 0 /* HP-UX */)
 	    defEnc = NSUTF8StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-1") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-1") == 0 /* AIX IRIX OSF/1 Solaris NetBSD */
-		   || strcmp(encoding, "iso88591") == 0 /* HP-UX */)
+	    /* AIX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-1") == 0
+	    || strcmp(encoding, "iso88591") == 0 /* HP-UX */)
 	    defEnc = NSISOLatin1StringEncoding;
 	  else if (strcmp(encoding, "IBM-932") == 0 /* AIX */
-		   || strcmp(encoding, "SJIS") == 0 /* HP-UX OSF/1 NetBSD */
-		   || strcmp(encoding, "PCK") == 0 /* Solaris */)
+	    || strcmp(encoding, "SJIS") == 0 /* HP-UX OSF/1 NetBSD */
+	    || strcmp(encoding, "PCK") == 0 /* Solaris */)
 	    defEnc = NSShiftJISStringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-2") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-2") == 0 /* AIX IRIX OSF/1 Solaris NetBSD */
-		   || strcmp(encoding, "iso88592") == 0 /* HP-UX */)
+	    /* AIX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-2") == 0
+	    || strcmp(encoding, "iso88592") == 0 /* HP-UX */)
 	    defEnc = NSISOLatin2StringEncoding;
 	  else if (strcmp(encoding, "CP1251") == 0 /* glibc */
-		   || strcmp(encoding, "ansi-1251") == 0 /* Solaris */)
+	    || strcmp(encoding, "ansi-1251") == 0 /* Solaris */)
 	    defEnc = NSWindowsCP1251StringEncoding;
 	  else if (strcmp(encoding, "CP1252") == 0 /*  */
-		   || strcmp(encoding, "IBM-1252") == 0 /* AIX */)
+	    || strcmp(encoding, "IBM-1252") == 0 /* AIX */)
 	    defEnc = NSWindowsCP1252StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-5") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-5") == 0 /* AIX IRIX OSF/1 Solaris NetBSD */
-		   || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
+	    /* AIX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-5") == 0
+	    || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
 	    defEnc = NSISOCyrillicStringEncoding;
 	  else if (strcmp(encoding, "KOI8-R") == 0 /* glibc */
-		   || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
+	    || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
 	    defEnc = NSKOI8RStringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-3") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-3") == 0 /* Solaris */)
+	    || strcmp(encoding, "ISO8859-3") == 0 /* Solaris */)
 	    defEnc = NSISOLatin3StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-4") == 0 /*  */
-		   || strcmp(encoding, "ISO8859-4") == 0 /* OSF/1 Solaris NetBSD */)
+	    || strcmp(encoding, "ISO8859-4") == 0 /* OSF/1 Solaris NetBSD */)
 	    defEnc = NSISOLatin4StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-6") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
-		   || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
+	    || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
+	    || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
 	    defEnc = NSISOArabicStringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-7") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
-		   || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
+	    || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
+	    || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
 	    defEnc = NSISOGreekStringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-8") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
-		   || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
+	    || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
+	    || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
 	    defEnc = NSISOHebrewStringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-9") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
-		   || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
+	    || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
+	    || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
 	    defEnc = NSISOLatin5StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-10") == 0 /*  */
-		   || strcmp(encoding, "ISO8859-10") == 0 /*  */)
+	    || strcmp(encoding, "ISO8859-10") == 0 /*  */)
 	    defEnc = NSISOLatin6StringEncoding;
 	  else if (strcmp(encoding, "TIS-620") == 0 /* glibc AIX */
-		   || strcmp(encoding, "tis620") == 0 /* HP-UX */
-		   || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
-		   || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
+	    || strcmp(encoding, "tis620") == 0 /* HP-UX */
+	    || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
+	    || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
 	    defEnc = NSISOThaiStringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-13") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-13") == 0 /*  */
-		   || strcmp(encoding, "IBM-921") == 0 /* AIX */)
+	    || strcmp(encoding, "ISO8859-13") == 0 /*  */
+	    || strcmp(encoding, "IBM-921") == 0 /* AIX */)
 	    defEnc = NSISOLatin7StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-14") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-14") == 0 /*  */)
+	    || strcmp(encoding, "ISO8859-14") == 0 /*  */)
 	    defEnc = NSISOLatin8StringEncoding;
 	  else if (strcmp(encoding, "ISO-8859-15") == 0 /* glibc */
-		   || strcmp(encoding, "ISO8859-15") == 0 /* AIX OSF/1 Solaris NetBSD */
-		   || strcmp(encoding, "iso885915") == 0 /* HP-UX */)
+	    /* AIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-15") == 0
+	    || strcmp(encoding, "iso885915") == 0 /* HP-UX */)
 	    defEnc = NSISOLatin9StringEncoding;
 	  else if (strcmp(encoding, "GB2312") == 0 /* glibc */
-		   || strcmp(encoding, "gb2312") == 0 /* Solaris */
-		   || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
-		   || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
-		   || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
+	    || strcmp(encoding, "gb2312") == 0 /* Solaris */
+	    || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
+	    || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
+	    || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
 	    defEnc = NSGB2312StringEncoding;
 	  else if (strcmp(encoding, "BIG5") == 0 /* glibc Solaris NetBSD */
-		   || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
+	    || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
 	    defEnc = NSBIG5StringEncoding;
 	  else if (strcmp(encoding, "EUC-KR") == 0 /* glibc */
-		   || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
-		   || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
-		   || strcmp(encoding, "5601") == 0 /* Solaris */)
+	    || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
+	    || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
+	    || strcmp(encoding, "5601") == 0 /* Solaris */)
 	    defEnc = NSKoreanEUCStringEncoding;
 	  else
 #endif
