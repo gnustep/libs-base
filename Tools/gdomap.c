@@ -426,6 +426,44 @@ map_by_name(uptr n, int s)
 }
 
 /*
+ *	Name -		map_by_port()
+ *	Purpose -	Search the map for an entry for a particular port
+ */
+static map_ent*
+map_by_port(unsigned p, unsigned char t)
+{
+  int	index;
+
+  if (debug > 2)
+    {
+      fprintf(stderr, "Searching map for %u:%x\n", p, t);
+    }
+  for (index = 0; index < map_used; index++)
+    {
+      map_ent	*e = map[index];
+
+      if (e->port == p && (e->net | e->svc) == t)
+	{
+	  break;
+	}
+    }
+  if (index < map_used)
+    {
+      if (debug > 2)
+	{
+	  fprintf(stderr, "Found port %d with name %.*s\n",
+		map[index]->port, map[index]->name);
+	}
+      return(map[index]);
+    }
+  if (debug > 2)
+    {
+      fprintf(stderr, "Failed to find map entry for %u:%x\n", p, t);
+    }
+  return(0);
+}
+
+/*
  *	Name -		map_del()
  *	Purpose -	Remove a mapping entry from the map and release
  *			the memory it uses.
@@ -1885,27 +1923,39 @@ handle_request(int desc)
 	  clear_chan(desc);
 	  return;
 	}
-      m = map_by_name(buf, size);
-      if (m)
+      if (port == 0 || size > 0)
 	{
-	  if ((m->net | m->svc) != ptype)
+	  m = map_by_name(buf, size);
+	  if (m)
 	    {
-	      if (debug)
+	      if ((m->net | m->svc) != ptype)
 		{
-		  fprintf(stderr, "Attempt to unregister with wrong type\n");
+		  if (debug)
+		    {
+		      fprintf(stderr, "Attempted unregister with wrong type\n");
+		    }
+		}
+	      else
+		{
+		  *(unsigned long*)w_info[desc].buf = htonl(m->port);
+		  map_del(m);
 		}
 	    }
 	  else
 	    {
-	      *(unsigned long*)w_info[desc].buf = htonl(m->port);
-	      map_del(m);
+	      if (debug > 1)
+		{
+		  fprintf(stderr, "requested service not found\n");
+		}
 	    }
 	}
       else
 	{
-	  if (debug > 1)
+	  *(unsigned long*)w_info[desc].buf = 0;
+	  while ((m = map_by_port(port, ptype)) != 0) 
 	    {
-	      fprintf(stderr, "requested service not found\n");
+	      *(unsigned long*)w_info[desc].buf = htonl(m->port);
+	      map_del(m);
 	    }
 	}
     }
@@ -2783,13 +2833,13 @@ doregister(const char *name, int port, int ptype)
 }
 
 static void
-unregister(const char *name, int ptype)
+unregister(const char *name, int port, int ptype)
 {
   struct sockaddr_in	sin;
   int			found;
   int			i;
 
-  found = nameServer(name, 0, GDO_UNREG, ptype, &sin, 0, 1);
+  found = nameServer(name, 0, GDO_UNREG, ptype, &sin, port, 1);
   for (i = 0; i < found; i++)
     {
       printf("Unregistered %s on '%s' port %d\n", name,
@@ -2943,7 +2993,7 @@ printf(
 		fprintf(stderr, "-M flag is ignored for unregistration.\n");
 		fprintf(stderr, "Operation will take place locally.\n");
 	      }
-	    unregister(optarg, ptype);
+	    unregister(optarg, port, ptype);
 	    exit(0);
 
 	  case 'a':
