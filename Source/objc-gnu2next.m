@@ -401,6 +401,7 @@ inline const char*
 objc_skip_offset (const char* type)
 {
   if (*type == '+') type++;
+  if (*type == '-') type++;
   while(isdigit(*++type));
   return type;
 }
@@ -507,7 +508,9 @@ sel_types_match (const char* t1, const char* t2)
   while (*t1 && *t2)
     {
       if (*t1 == '+') t1++;
+      if (*t1 == '-') t1++;
       if (*t2 == '+') t2++;
+      if (*t2 == '-') t2++;
       while (isdigit(*t1)) t1++;
       while (isdigit(*t2)) t2++;
       /* xxx Remove these next two lines when qualifiers are put in

@@ -1,3 +1,11 @@
+2000-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe.m: Update to handle '-' in stack position information
+	in type encodings.
+	* Source/Invocation.m: ditto
+	* Source/objc-gnu2next.m: ditto
+	* Source/mframe/*/generic: ditto
+
 2000-04-08  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSString.m: Include NSISOLatin2StringEncoding coding.

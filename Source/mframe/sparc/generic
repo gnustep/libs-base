@@ -65,6 +65,10 @@ struct sparc_args {
     { \
       (TYPE)++; \
     } \
+  if (*(TYPE) == '-') \
+    { \
+      (TYPE)++; \
+    } \
   while (isdigit(*(TYPE))) \
     { \
       (TYPE)++; \

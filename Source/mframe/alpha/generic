@@ -80,6 +80,10 @@ typedef struct alpha_args {
     { \
       (TYPE)++; \
     } \
+  if (*(TYPE) == '-') \
+    { \
+      (TYPE)++; \
+    } \
   while (isdigit(*(TYPE))) \
     { \
       (TYPE)++; \
