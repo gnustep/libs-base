@@ -419,8 +419,11 @@ static NSLock	*global_proxies_gate;
       c = [self alloc];
       port = [NSPort port];
       c = [c initWithReceivePort: port sendPort: nil];
-      [d setObject: c forKey: tkey];
-      RELEASE(c);
+      if (c != nil)
+	{
+	  [d setObject: c forKey: tkey];
+	  RELEASE(c);
+	}
     }
   return c;
 }
