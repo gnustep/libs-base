@@ -187,7 +187,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       free(_gnu_arg_zero);
     }
 
-  if (argv != 0)
+  if (argv != 0 && argv[0] != 0)
     {
       _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
       strcpy(_gnu_arg_zero, argv[0]);
@@ -214,7 +214,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    }
 	}
 #else      
-      fprintf(stderr, "Error: for some reason, argv == NULL " 
+      fprintf(stderr, "Error: for some reason, argv not properly set up " 
 	      "during GNUstep base initialization\n");
       abort();
 #endif      
