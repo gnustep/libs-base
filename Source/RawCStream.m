@@ -75,8 +75,6 @@ static BOOL debug_binary_coder;
    at: (const void*)d 
    withName: (id <String>) name
 {
-  unsigned char size;
-
   if (debug_binary_coder)
     {
       [[[self class] debugStderrCoder] 
@@ -172,16 +170,12 @@ static BOOL debug_binary_coder;
    at: (void*)d 
    withName: (id <String> *)namePtr
 {
-  char encoded_type;
-  unsigned char encoded_size;
-  unsigned char encoded_sign = 0;
-
   assert(type);
   assert(*type != '@');
   assert(*type != '^');
   assert(*type != ':');
 
-  switch (encoded_type)
+  switch (*type)
     {
     case _C_CHARPTR:
       {
