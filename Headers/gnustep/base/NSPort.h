@@ -26,7 +26,7 @@
 
 #include	<Foundation/NSObject.h>
 
-@class	NSArray;
+@class	NSMutableArray;
 @class	NSConnection;
 @class	NSDate;
 @class	NSRunLoop;
