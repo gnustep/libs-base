@@ -103,6 +103,7 @@ static NSStringEncoding _availableEncodings[] = {
     NSISOHebrewStringEncoding,
     NSGB2312StringEncoding,
     NSGSM0338StringEncoding,
+    NSBIG5StringEncoding,
     0
 };
 #else
@@ -136,6 +137,7 @@ static NSStringEncoding _availableEncodings[] = {
 //    NSISOHebrewStringEncoding,
 //    NSGB2312StringEncoding,
     NSGSM0338StringEncoding,
+    NSBIG5StringEncoding,
     0
 };
 #endif 
@@ -178,6 +180,7 @@ const struct _strenc_ str_encoding_table[]=
   {NSUTF7StringEncoding, "NSUTF7StringEncoding"},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding"},
   {NSGSM0338StringEncoding, "NSGSM0338StringEncoding"},
+  {NSBIG5StringEncoding, "NSBIG5StringEncoding"},
 
   {0, "Unknown encoding"}
 };
@@ -378,6 +381,9 @@ iconv_stringforencoding(NSStringEncoding enc)
 
       case NSGB2312StringEncoding:
 	return "EUC-CN";
+
+      case NSBIG5StringEncoding:
+	return "BIG5";
       default:
 	return "";
     }

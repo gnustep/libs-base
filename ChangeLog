@@ -1,5 +1,12 @@
 2002-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Unicode.m: Added BIG5 encoding
+	* Headers/Foundation/NSString.h: Added BIG5 encoding
+	* Resources/Languages/Locale.aliases: added traditional chinese
+	Extensions for traditional chinese requested by Yen-Ju Chen
+
+2002-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GNUmakefile: Include ../../base.make
 	* SSL/GNUmakefile: Include ../base.make
 	from the makefiles directory for builting standalone.
