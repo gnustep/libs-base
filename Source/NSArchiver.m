@@ -139,7 +139,8 @@ static Class NSUnarchiver_concrete_class;
 
 + (void) initialize
 {
-  NSUnarchiver_concrete_class = [NSGUnarchiver class];
+  if (self == [NSUnarchiver class])
+    NSUnarchiver_concrete_class = [NSGUnarchiver class];
 }
 
 // Initializing an unarchiver
