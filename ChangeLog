@@ -1,3 +1,7 @@
+Thu Nov 22 00:52:57 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* GNUmakefile (CVS_MODULE_NAME): Define.
+
 2001-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSOutput.m:
