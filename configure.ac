@@ -992,6 +992,7 @@ if test $enable_xml = yes; then
     LIBS="$LIBS $XML_LIBS"
     HAVE_LIBXML=1
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
+    AC_CHECK_HEADERS(libxml/SAX2.h)
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
     #--------------------------------------------------------------------

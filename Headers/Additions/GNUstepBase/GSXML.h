@@ -176,6 +176,7 @@
 			     withData: (NSData*)data;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
+- (int) columnNumber;
 - (GSXMLDocument*) document;
 - (BOOL) doValidityChecking: (BOOL)yesno;
 - (int) errNo;
@@ -189,11 +190,14 @@
 		 withData: (NSData*)data;
 
 - (BOOL) keepBlanks: (BOOL)yesno;
+- (int) lineNumber;
 - (NSString*) messages;
 - (BOOL) parse;
 - (BOOL) parse: (NSData*)data;
+- (NSString*) publicID;
 - (void) saveMessages: (BOOL)yesno;
 - (BOOL) substituteEntities: (BOOL)yesno;
+- (NSString*) systemID;
 
 @end
 
@@ -228,6 +232,9 @@
 		type: (int)type;
 - (void) endDocument;
 - (void) endElement: (NSString*)elementName;
+- (void) endElement: (NSString*)elementName
+             prefix: (NSString*)prefix
+	       href: (NSString*)href;
 - (void) entityDecl: (NSString*)name
                type: (int)type
              public: (NSString*)publicId
@@ -269,6 +276,10 @@
 - (void) reference: (NSString*)name;
 - (void) startDocument;
 - (void) startElement: (NSString*)elementName
+           attributes: (NSMutableDictionary*)elementAttributes;
+- (void) startElement: (NSString*)elementName
+	       prefix: (NSString*)prefix
+		 href: (NSString*)href
            attributes: (NSMutableDictionary*)elementAttributes;
 - (void) unparsedEntityDecl: (NSString*)name
 		     public: (NSString*)publicId

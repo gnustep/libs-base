@@ -1,3 +1,12 @@
+2004-05-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for SAX2
+	* Headers/Additions/GNUstepBase/GSXML.h: Add SAX2 methods
+	* Headers/Additions/GNUstepBase/config.h.in: Add SAX2 header
+	* Source/Additions/GSXML.m: Add SAX2 methods and remove
+	use of deprecated functionality if recent (SAX2) API is
+	available to use instead.
+
 2004-05-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:
