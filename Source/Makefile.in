@@ -444,6 +444,7 @@ include/NSMethodSignature.h \
 include/NSNotification.h \
 include/NSObjCRuntime.h \
 include/NSObject.h \
+include/NSPathUtilities.h \
 include/NSProcessInfo.h \
 include/NSRange.h \
 include/NSRunLoop.h \
