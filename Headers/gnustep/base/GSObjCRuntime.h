@@ -104,9 +104,9 @@ GS_EXPORT void GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
  */
 GS_EXPORT BOOL GSFindInstanceVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset);
-GS_EXPORT void GSGetInstanceVariable(id obj, int offset, unsigned int size,
+GS_EXPORT void GSGetVariable(id obj, int offset, unsigned int size,
   void *data);
-GS_EXPORT void GSSetInstanceVariable(id obj, int offset, unsigned int size,
+GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
   const void *data);
 GS_EXPORT id GSGetValue(NSObject *self, NSString *key, SEL sel,
   const char *type, unsigned size, int offset);

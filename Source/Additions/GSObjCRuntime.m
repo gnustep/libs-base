@@ -96,7 +96,7 @@ GSObjCFindVariable(id obj, const char *name,
 
 /**  Deprecated ... use GSObjCGetVariable() */
 void
-GSGetInstanceVariable(id obj, int offset, unsigned int size, void *data)
+GSGetVariable(id obj, int offset, unsigned int size, void *data)
 {
   GSObjCGetVariable(obj, offset, size, data);
 }
@@ -114,7 +114,7 @@ GSObjCGetVariable(id obj, int offset, unsigned int size, void *data)
 
 /**  Deprecated ... use GSObjCSetVariable() */
 void
-GSSetInstanceVariable(id obj, int offset, unsigned int size, const void *data)
+GSSetVariable(id obj, int offset, unsigned int size, const void *data)
 {
   GSObjCSetVariable(obj, offset, size, data);
 }
