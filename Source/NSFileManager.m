@@ -113,6 +113,10 @@
 #include <sys/file.h>
 #endif
 
+#if HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+
 #include <errno.h>
 
 #ifdef HAVE_SYS_STAT_H
