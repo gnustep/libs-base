@@ -3,7 +3,7 @@ AC_INIT(src/Collection.m)
 # configure.in for GNU Objective-C library
 # Process this file with autoconf to produce a configure script.
 #
-#   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+#   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 #
 #   Written by:  R. Andrew McCallum <mccallum@cs.rochester.edu>
 #   Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -39,7 +39,7 @@ AC_PROG_CPP
 #   include implementations of List, HashTable etc. objects 
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether we are using NeXT's compiler)
-AC_TRY_CPP([#include "config/config.nextcc.h"], NeXTCC=0, NeXTCC=1)
+AC_TRY_CPP([#include "$srcdir/config/config.nextcc.h"], NeXTCC=0, NeXTCC=1)
 # Was using this too: -o `basename $CC` = "gcc" -o `basename $CC` = "xgcc"
 if test $NeXTCC = 0; then
     AC_MSG_RESULT(no)
@@ -48,7 +48,7 @@ if test $NeXTCC = 0; then
     #----------------------------------------------------------------
     AC_C_CROSS
     AC_MSG_CHECKING(whether nested functions work)
-    AC_TRY_RUN([#include "config/config.nested.c"],
+    AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
 	       gcc_nested=1, gcc_nested=0, 
                gcc_nested=1)
     if test $gcc_nested = 0; then
@@ -88,7 +88,7 @@ if test $NeXTCC = 0; then
       saved_ac_ext=$ac_ext
       ac_ext=m
       AC_MSG_CHECKING(whether we are using GNU Objective C runtime)
-      AC_TRY_LINK([#include "config/config.nextrt.m"], ;,
+      AC_TRY_LINK([#include "$srcdir/config/config.nextrt.m"], ;,
                   NeXT_runtime=1, NeXT_runtime=0)
       ac_ext=$saved_ac_ext
       if test $NeXT_runtime = 1; then
@@ -239,15 +239,9 @@ AC_CHECK_LIB(nsl, main)
 # Make a shared library?
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(shared, "Build libobjects as a shared library",
-        LIBOBJECTS_A_OR_SO='libobjects.so.$(OBJECTS_VERSION)'
-	USING_SHAREDLIB_CFLAGS='$(SHAREDLIB_CFLAGS)'
-	USING_SHAREDLIB_ARFLAGS='$(SHAREDLIB_ARFLAGS)',
-    LIBOBJECTS_A_OR_SO=libobjects.a
-    USING_SHAREDLIB_CFLAGS=
-    USING_SHAREDLIB_ARFLAGS=)
-AC_SUBST(LIBOBJECTS_A_OR_SO)
-AC_SUBST(USING_SHAREDLIB_CFLAGS)
-AC_SUBST(USING_SHAREDLIB_ARFLAGS)
+        LIBOBJECTS_SO='libobjects.so.$(OBJECTS_VERSION)',
+    LIBOBJECTS_SO=)
+AC_SUBST(LIBOBJECTS_SO)
 
 
 #--------------------------------------------------------------------
