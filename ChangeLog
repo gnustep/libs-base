@@ -1,7 +1,9 @@
-Mon Feb  1  9:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Feb  1 11:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSArray.m: ([-initWithContentsOfFile:]) Fixed memory leak.
 	* src/NSDictionary.m: ([-initWithContentsOfFile:]) Fixed memory leak.
+	* src/NSData.m: Tidied indentation and 64-bit clean serialization of
+	strings, classes, and selectors.
 
 Sat Jan 30  5:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
