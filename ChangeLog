@@ -4,6 +4,8 @@
 	* Tools/gsdoc.m: Adjust path to headers.  Add warning about
 	deprecation.
 	Patch by e.sammer <eric@linuxstep.org>
+	* Source/NSObject.m: Added some compatibility methods in a
+	categpory of Object.
 
 2002-06-13  Richard Frith-Macdonald <rfm@gnu.org>
 
