@@ -3,6 +3,7 @@
 #include <objects/Connection.h>
 #include <objects/Proxy.h>
 #include <objects/BinaryCoder.h>
+#include <objects/String.h>
 #include <assert.h>
 #include "server.h"
 
@@ -36,9 +37,11 @@ int main(int argc, char *argv[])
 #endif
 
   if (argc > 1)
-    p = [Connection rootProxyAtName:"test2server" onHost:argv[1]];
+    p = [Connection rootProxyAtName:@"test2server" 
+		    onHost:[String stringWithCString:argv[1]]];
   else
-    p = [Connection rootProxyAtName:"test2server" onHost:""];
+    p = [Connection rootProxyAtName:@"test2server" 
+		    onHost:nil];
   c = [p connectionForProxy];
 
   type = [c _typeForSelector:sel_get_any_uid("name") 
