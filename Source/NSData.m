@@ -108,18 +108,21 @@ static Class NSMutableData_concrete_class;
   return [self initWithBytesNoCopy:buf length:length];
 }
 
-/* This is the designated initializer for NSData */
+/* This is the (internal) designated initializer for NSData.  This routine
+   should only be called by known subclasses of NSData. Other subclasses
+   should just use [super init]. */
+- (id) _initWithBytesNoCopy: (void*)bytes
+   length: (unsigned int)length
+{
+    return [super init];
+}
+
 - (id) initWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
-  /* FIXME: Shouldn't this call [super init], rather than
-   * [self notImplemented:]?  Otherwise, how are subclasses supposed
-   * to initialize their NSObject instance variables?  Although I
-   * notice that the concrete subclasses are doing strange things; so
-   * maybe this doesn't matter. */
   /* xxx Eventually we'll have to be aware of malloc'ed memory
      vs vm_allocate'd memory, etc. */
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -129,7 +132,7 @@ static Class NSMutableData_concrete_class;
   /* FIXME: It seems so; mutable subclasses need to deal gracefully
    * with NULL pointers and/or 0 length data objects, though.  Which
    * they do. */
-  return [self initWithBytesNoCopy:NULL length:0];
+  return [self _initWithBytesNoCopy:NULL length:0];
 }
 
 - (id) initWithContentsOfFile: (NSString *)path
@@ -489,13 +492,12 @@ static Class NSMutableData_concrete_class;
 	       length:capacity];
 }
 
-/* This is the designated initializer */
 - (id) initWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
   /* xxx Eventually we'll have to be aware of malloc'ed memory
      vs vm_allocate'd memory, etc. */
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
