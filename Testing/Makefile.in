@@ -83,7 +83,8 @@ nsbundle.m \
 nsdictionary.m \
 nsset.m \
 nsprocessinfo.m \
-nsarchiver.m
+nsarchiver.m \
+invocation.m
 
 # nsarchiving.m
 
@@ -162,6 +163,8 @@ nsset: nsset.o ../src/libobjects.a
 nsprocessinfo: nsprocessinfo.o ../src/libobjects.a
 	$(LINK_CMD)
 nsarchiver: nsarchiver.o ../src/libobjects.a
+	$(LINK_CMD)
+invocation: invocation.o ../src/libobjects.a
 	$(LINK_CMD)
 
 install:
