@@ -1,3 +1,9 @@
+2005-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: (isAbsolutePath) always treat a path beginning
+	with '/' as absolute except when in windows mode or on windows and
+	not in unix mode.
+
 2005-03-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/pathxml.m4: Fix to get --with-xml-prefix= to work for
