@@ -1,63 +1,68 @@
-@ifclear GSTEP-BASE-MAIN
-@include version.tmpl.texi
+@c -*-texinfo-*-
+@ifclear GLOBAL-TODO
+@chapter TODO
+
+@ifset TEXT-ONLY
+@include version.texi
+@end ifset
+
 @end ifclear
-
-@chapter Todo
-
-@section Projects Looking for Volunteers
-
-If you think you can do one of these projects, please let me know.  Your
-help is greatly appreciated.  Send email to
-@samp{fedor@@gnu.org}. 
 
 @itemize @bullet
 
+@item Make gstep-base 64bit clean [5, 64bit machine] (980629)
+
+@item Make gstep-base smaller. Perhaps we can get rid of classes that
+aren't strictly part of OpenStep and put them in an extensions-type
+library. [5] (980629)
+
 @item Fix NSLog so it conforms to specs.  Need to check that write to
 stderr went ok, and if not write to syslog. Also need to serealize
-output (with threads).
+output (with threads). [3, OpenStep specs, threads] (980220)
 
 @item Simplify NSException and NSAssertionHandler and make sure they
 don't cause race conditions (if an exception is raised while processing
-an exception.
+an exception. [4, exceptions, threads] (980220)
 
-@item Fix all the places marked FIXME or xxx.
+@item Fix all the places marked FIXME or xxx. [3-9] (980629)
 
-@item Need to improve the testsuite and actually run it on gstep-base.
+@item Write a real testsuite for gstep-base and possibly other
+libraries, perhaps using guile. [5, Guile, gstep-guile] (980629)
 
 @item Change all the assert()'s (especially in the archiving code) to
 NSAssert()'s.  This will help make D.O. servers more safe from bad
-clients. 
+clients. [2, exceptions] (980220)
 
 @item Make NS... classes raise the NSExceptions they are supposed to.
-Change many NSParameterAssert()'s into NSAssert()'s with explanations.
+Change many NSParameterAssert()'s into NSAssert()'s with
+explanations. [2, exceptions] (970101)
 
 @item
 Many implementations could be made more efficient.  The library hasn't
 been efficiency tuned very much.  Overridding more methods in certain
 classes could make things more efficient (especially EltNodeCollector).
 SplayTree's could be done using top-down splaying.  collhash could be
-completely reimplemented.  ...and a lot more...
+completely reimplemented.  [5-8] (970101)
 
-@ignore
-@item Add some features to the compiler:  
-@enumerate
-@item You can't add __attribute__'s to methods.  I want to use: 
-@smallexample
-   - (int) writeFormat: (const char *)format, ... 
-       __attribute__ ((format (printf, 1, 2)));
-   - (int) readFormat: (const char *)format, ...
-       __attribute__ ((format (scanf, 1, 2)));
-@end smallexample
-@item I would like to be able to use a function name/pointer as an
-argument to @@encode() and get a type string like the selector types.
-@end enumerate
-@end ignore
+@item Separate core and non-core code in NSDictionary, NSSet, etc, the
+same way I did for NSArray. (970101)
 
-@item Implement efficient SmallInt and SmallFloat classes in the same
-sort of way that Smalltalk does.  Talk to me.  mccallum@@gnu.ai.mit.edu.
+@item Separate Constant and non-Constant collections for the rest of the
+GNU connection classes the same way I did for Array. (970101)
+
+@item Make sure the GNU Archiver/Unarchiver handle
+-encodeConditionalObject: and -decodeObject: correctly. (970101)
+
+@item Make sure that Encoder's properly release their CStream and
+Stream's.  It seems that the Stream is not getting -delloc'ed, and
+therefore may not be closed, and therefore may be missing data at the
+end.  (970101)
 
 @end itemize
 
+
+
+@ignore
 
 @section McCallum's To Do's
 
@@ -215,3 +220,7 @@ I'm sure that there're other things to do, but these are the ones I know now:
 @item (@file{src/list.m}) @samp{objects_list_at_index_insert_list}
 @end itemize
 @end itemize
+
+@end ignore
+
+
