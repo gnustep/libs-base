@@ -520,7 +520,7 @@ static id parsePlItem(pldata* pld)
 		  byte |= char2num(pld->ptr[pld->pos]);
 		  pld->pos++;
 		  buf[len++] = byte;
-		  if (len > sizeof(buf))
+		  if (len == sizeof(buf))
 		    {
 		      [data appendBytes: buf length: len];
 		      len = 0;

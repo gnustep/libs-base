@@ -1,3 +1,13 @@
+Tue Dec 21 13:27:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Fixes suggested by karl@nfox.com
+	* Source/propList.h: Bugfix parsing larger lists.
+	* Source/NSProcessInfo.m: Avoid use of freopen()
+	* Source/GSeq.h: for ranges not found, return NSNotFound as the
+	location rather than 0 - for compatibility with Apple.
+	* NSDeserializer.m: Return nil if given nil data or an object that
+	is not a data object.
+
 1999-12-19  David Lazaro  <khelekir@encomix.es>
 
 	* configure.in (objc_thread_lib): Added support for FreeBSD native
