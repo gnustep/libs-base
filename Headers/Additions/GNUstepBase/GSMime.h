@@ -160,6 +160,7 @@
     unsigned int	complete:1;
     unsigned int	hadErrors:1;
     unsigned int	buggyQuotes:1;
+    unsigned int	wantEndOfLine:1;
   } flags;
   NSData		*boundary;
   GSMimeDocument	*document;
