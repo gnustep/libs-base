@@ -1,3 +1,8 @@
+Tue Feb 22 15:03:46 2000  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Headers/Foundation/NSPort.h: Fixed typo: changed `@class
+	NSArray` to `@class NSMutableArray` to make it compile.
+
 Tue Feb 22 07:31:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: Reinstated '-p' flag to disable probes and added
