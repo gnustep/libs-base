@@ -1715,7 +1715,6 @@ parseCharacterSet(NSString *token)
   else							// Token
     {
       NSCharacterSet		*specials;
-      NSCharacterSet		*skip;
       NSString			*value;
 
       if (isHttp == YES)
@@ -1730,11 +1729,7 @@ parseCharacterSet(NSString *token)
       /*
        * Move past white space.
        */
-      skip = RETAIN([scanner charactersToBeSkipped]);
-      [scanner setCharactersToBeSkipped: nil];
-      [scanner scanCharactersFromSet: skip intoString: 0];
-      [scanner setCharactersToBeSkipped: skip];
-      RELEASE(skip);
+      [self scanPastSpace: scanner];
 
       /*
        * Scan value terminated by any special character.
