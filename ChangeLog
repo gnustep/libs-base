@@ -1,3 +1,8 @@
+2001-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/autogsdoc.m: Simplify file processing and cleanup so that
+	spurious linkage and indexing is not done when run on a single file.
+
 Fri Dec 21 13:50:50 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSBundle.m ([+bundleForLibrary:]): New method.

@@ -277,6 +277,10 @@
       The 'prev' and 'next' links will be set up to link the documents
       in the order in which they are processed.
     </p>
+    <p>
+      Where autogsdoc is used with only a single file name, no ne of the
+      above linkage is set up.
+    </p>
   </section>
 </chapter>
 <back>
@@ -296,7 +300,6 @@ int
 main(int argc, char **argv, char **env)
 {
   NSProcessInfo		*proc;
-  NSArray		*args;
   unsigned		i;
   NSUserDefaults	*defs;
   NSFileManager		*mgr;
@@ -316,9 +319,9 @@ main(int argc, char **argv, char **env)
   NSString		*up = nil;
   NSString		*prev = nil;
   BOOL			showDependencies = YES;
-  BOOL			haveAutoIndex = NO;
   BOOL			modifiedRefs = NO;
   NSDate		*rDate = nil;
+  NSMutableArray	*files = nil;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
 
@@ -377,6 +380,36 @@ main(int argc, char **argv, char **env)
     {
       NSLog(@"unable to get process information!");
       exit(1);
+    }
+
+  /*
+   * Build an array of files to be processed.
+   */
+  files = AUTORELEASE([[proc arguments] mutableCopy]);
+  [files removeObjectAtIndex: 0];
+  for (i = 0; i < [files count]; i++)
+    {
+      NSString *arg = [files objectAtIndex: i];
+
+      if ([arg hasPrefix: @"-"])
+	{
+	  // Skip this and next value ... it is a default.
+	  [files removeObjectAtIndex: i];
+	  [files removeObjectAtIndex: i];
+	}
+      else if ([arg hasSuffix: @".h"] == NO
+	&& [arg hasSuffix: @".m"] == NO
+	&& [arg hasSuffix: @".gsdoc"] == NO)
+	{
+	  // Skip this value ... not a known file type.
+	  NSLog(@"Unknown argument '%@' ... ignored", arg);
+	  [files removeObjectAtIndex: i];
+	}
+    }
+  if ([files count] < 1)
+    {
+      NSLog(@"No filename arguments found ... giving up");
+      return 1;
     }
 
   mgr = [NSFileManager defaultManager];
@@ -530,307 +563,294 @@ main(int argc, char **argv, char **env)
   RELEASE(pool);
 
   pool = [NSAutoreleasePool new];
-  args = [proc arguments];
-  for (i = 1; i < [args count]; i++)
+  for (i = 0; i < [files count]; i++)
     {
-      NSString *arg = [args objectAtIndex: i];
+      NSString		*arg = [files objectAtIndex: i];
+      NSString		*gsdocfile;
+      NSString		*hfile;
+      NSString		*sfile;
+      NSString		*ddir;
+      NSString		*hdir;
+      NSString		*sdir;
+      NSString		*file;
+      NSString		*generated;
+      BOOL		isSource = [arg hasSuffix: @".m"];
+      BOOL		isDocumentation = [arg hasSuffix: @".gsdoc"];
+      NSDictionary	*attrs;
+      NSDate		*sDate;
+      NSDate		*gDate;
 
-      if ([arg hasPrefix: @"-"])
+      if (pool != nil)
 	{
-	  i++;		// Skip next value ... it is a default.
+	  RELEASE(pool);
+	  pool = [NSAutoreleasePool new];
 	}
-      else if ([arg hasSuffix: @".h"] == YES
-	|| [arg hasSuffix: @".m"] == YES
-	|| [arg hasSuffix: @".gsdoc"] == YES)
+      file = [[arg lastPathComponent] stringByDeletingPathExtension];
+      hdir = [arg stringByDeletingLastPathComponent];
+      if ([hdir length] == 0)
 	{
-	  NSString	*gsdocfile;
-	  NSString	*hfile;
-	  NSString	*sfile;
-	  NSString	*ddir;
-	  NSString	*hdir;
-	  NSString	*sdir;
-	  NSString	*file;
-	  NSString	*generated;
-	  BOOL		isSource = [arg hasSuffix: @".m"];
-	  BOOL		isDocumentation = [arg hasSuffix: @".gsdoc"];
-	  NSDictionary	*attrs;
-	  NSDate	*sDate;
-	  NSDate	*gDate;
+	  hdir = headerDirectory;
+	  sdir = sourceDirectory;
+	}
+      else if ([hdir isAbsolutePath] == YES)
+	{
+	  sdir = hdir;
+	}
+      else
+	{
+	  sdir = [sourceDirectory stringByAppendingPathComponent: hdir];
+	  hdir = [headerDirectory stringByAppendingPathComponent: hdir];
+	}
+      ddir = documentationDirectory;
 
-	  if (pool != nil)
+      hfile = [hdir stringByAppendingPathComponent: file];
+      hfile = [hfile stringByAppendingPathExtension: @"h"];
+      sfile = [sdir stringByAppendingPathComponent: file];
+      sfile = [sfile stringByAppendingPathExtension: @"m"];
+      gsdocfile = [ddir stringByAppendingPathComponent: file];
+      gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
+
+      /*
+       * When were the files last modified?
+       */
+      attrs = [mgr fileAttributesAtPath: hfile traverseLink: YES];
+      sDate = [attrs objectForKey: NSFileModificationDate];
+      AUTORELEASE(RETAIN(sDate));
+      attrs = [mgr fileAttributesAtPath: sfile traverseLink: YES];
+      if (attrs != nil)
+	{
+	  NSDate	*d;
+
+	  d = [attrs objectForKey: NSFileModificationDate];
+	  if (sDate == nil || [d earlierDate: sDate] == sDate)
 	    {
-	      RELEASE(pool);
-	      pool = [NSAutoreleasePool new];
+	      sDate = d;
+	      AUTORELEASE(RETAIN(sDate));
 	    }
-	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
-	  hdir = [arg stringByDeletingLastPathComponent];
-	  if ([hdir length] == 0)
+	}
+
+      /*
+       * If me have multiple files to process, we want one to point to all
+       * the others and be an 'up' link for them ... if the first file is
+       * '.gsdoc' file, we assume it performs that indexing function,
+       * otherwise we generate an index.
+       * If there is only one file to process, we don't have an index file.
+       */
+      if (i == 0 && [files count] > 1)
+	{
+	  if (isDocumentation == YES)
 	    {
-	      hdir = headerDirectory;
-	      sdir = sourceDirectory;
-	    }
-	  else if ([hdir isAbsolutePath] == YES)
-	    {
-	      sdir = hdir;
+	      ASSIGN(up, file);
 	    }
 	  else
 	    {
-	      sdir = [sourceDirectory stringByAppendingPathComponent: hdir];
-	      hdir = [headerDirectory stringByAppendingPathComponent: hdir];
+	      NSString	*upFile = [documentationDirectory
+		stringByAppendingPathComponent: @"index.gsdoc"];
+
+	      if ([mgr isReadableFileAtPath: upFile] == NO)
+		{
+		  NSString	*upString = [NSString stringWithFormat:
+		    @"<?xml version=\"1.0\"?>\n"
+		    @"<!DOCTYPE gsdoc PUBLIC "
+		    @"\"-//GNUstep//DTD gsdoc 0.6.7//EN\" "
+		    @"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"
+		    @"<gsdoc base=\"index\" next=\"%@\">\n"
+		    @"  <head>\n"
+		    @"    <title>%@ project reference</title>\n"
+		    @"    <author name=\"autogsdoc\"></author>\n"
+		    @"  </head>\n"
+		    @"  <body>\n"
+		    @"    <chapter>\n"
+		    @"      <heading>%@ project reference</heading>\n"
+		    @"    </chapter>\n"
+		    @"    <back>\n"
+		    @"      <index scope=\"project\" type=\"title\" />\n"
+		    @"    </back>\n"
+		    @"  </body>\n"
+		    @"</gsdoc>\n",
+		      file, project, project];
+
+		  if ([upString writeToFile: upFile atomically: YES] == NO)
+		    {
+		      NSLog(@"Unable to write %@", upFile);
+		    }
+		}
+	      ASSIGN(up, @"index");
+	      [files insertObject: upFile atIndex: 0];
+	      i++;	// Step past inserted auto-generated file.
 	    }
-	  ddir = documentationDirectory;
+	}
 
-	  hfile = [hdir stringByAppendingPathComponent: file];
-	  hfile = [hfile stringByAppendingPathExtension: @"h"];
-	  sfile = [sdir stringByAppendingPathComponent: file];
-	  sfile = [sfile stringByAppendingPathExtension: @"m"];
-	  gsdocfile = [ddir stringByAppendingPathComponent: file];
-	  gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
-
+      if (isDocumentation == NO)
+	{
 	  /*
-	   * When were the files last modified?
+	   * The file we are processing is not a gsdoc file ... so
+	   * we need to try to generate the gsdoc from source code.
 	   */
-	  attrs = [mgr fileAttributesAtPath: hfile traverseLink: YES];
-	  sDate = [attrs objectForKey: NSFileModificationDate];
-	  AUTORELEASE(RETAIN(sDate));
-	  attrs = [mgr fileAttributesAtPath: sfile traverseLink: YES];
-	  if (attrs != nil)
+	  attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
+	  gDate = [attrs objectForKey: NSFileModificationDate];
+	  AUTORELEASE(RETAIN(gDate));
+
+	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
 	    {
-	      NSDate	*d;
-
-	      d = [attrs objectForKey: NSFileModificationDate];
-	      if (sDate == nil || [d earlierDate: sDate] == sDate)
+	      if (showDependencies == YES)
 		{
-		  sDate = d;
-		  AUTORELEASE(RETAIN(sDate));
+		  NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
+		    file, sDate, gDate);
 		}
-	    }
+	      [parser reset];
 
-	  if (up == nil)
-	    {
-	      if (isDocumentation == YES)
+	      if (isSource == NO)
 		{
-		  ASSIGN(up, file);
-		}
-	      else
-		{
-		  NSString	*upFile = [documentationDirectory
-		    stringByAppendingPathComponent: @"index.gsdoc"];
-
-		  if ([mgr isReadableFileAtPath: upFile] == NO)
+		  /*
+		   * Try to parse header to see what needs documenting.
+		   */
+		  if ([mgr isReadableFileAtPath: hfile] == NO)
 		    {
-		      NSString	*upString = [NSString stringWithFormat:
-			@"<?xml version=\"1.0\"?>\n"
-			@"<!DOCTYPE gsdoc PUBLIC "
-			@"\"-//GNUstep//DTD gsdoc 0.6.7//EN\" "
-			@"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"
-			@"<gsdoc base=\"index\" next=\"%@\">\n"
-			@"  <head>\n"
-			@"    <title>%@ project reference</title>\n"
-			@"    <author name=\"autogsdoc\"></author>\n"
-			@"  </head>\n"
-			@"  <body>\n"
-			@"    <chapter>\n"
-			@"      <heading>%@ project reference</heading>\n"
-			@"    </chapter>\n"
-			@"    <back>\n"
-			@"      <index scope=\"project\" type=\"title\" />\n"
-			@"    </back>\n"
-			@"  </body>\n"
-			@"</gsdoc>\n",
-			  file, project, project];
-
-		      if ([upString writeToFile: upFile atomically: YES] == NO)
-			{
-			  NSLog(@"Unable to write %@", upFile);
-			}
+		      NSLog(@"No readable header at '%@' ... skipping",
+			hfile);
+		      continue;
 		    }
-		  haveAutoIndex = YES;
-		  ASSIGN(up, @"index");
+		  if (declared != nil)
+		    {
+		      [parser setDeclared:
+			[declared stringByAppendingPathComponent:
+			  [hfile lastPathComponent]]];
+		    }
+		  [parser parseFile: hfile isSource: NO];
 		}
-	    }
+	      else if (isSource == YES)
+		{
+		  /*
+		   * Try to parse source *as-if-it-was-a-header*
+		   * to see what needs documenting.
+		   */
+		  if ([mgr isReadableFileAtPath: sfile] == NO)
+		    {
+		      NSLog(@"No readable source at '%@' ... skipping",
+			sfile);
+		      continue;
+		    }
+		  if (declared != nil)
+		    {
+		      [parser setDeclared:
+			[declared stringByAppendingPathComponent:
+			  [sfile lastPathComponent]]];
+		    }
+		  [parser parseFile: sfile isSource: NO];
+		}
 
-	  if (isDocumentation == NO)
-	    {
 	      /*
-	       * The file we are processing is not a gsdoc file ... so
-	       * we need to try to generate the gsdoc from source code.
+	       * If we can read a source file, parse it for any
+	       * additional information on items found in the header.
 	       */
-	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	      gDate = [attrs objectForKey: NSFileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
-
-	      if (gDate == nil || [sDate earlierDate: gDate] == gDate)
+	      if ([mgr isReadableFileAtPath: sfile] == YES)
 		{
-		  if (showDependencies == YES)
-		    {
-		      NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
-			file, sDate, gDate);
-		    }
-		  [parser reset];
+		  [parser parseFile: sfile isSource: YES];
+		}
 
-		  if (isSource == NO)
-		    {
-		      /*
-		       * Try to parse header to see what needs documenting.
-		       */
-		      if ([mgr isReadableFileAtPath: hfile] == NO)
-			{
-			  NSLog(@"No readable header at '%@' ... skipping",
-			    hfile);
-			  continue;
-			}
-		      if (declared != nil)
-			{
-			  [parser setDeclared:
-			    [declared stringByAppendingPathComponent:
-			      [hfile lastPathComponent]]];
-			}
-		      [parser parseFile: hfile isSource: NO];
-		    }
-		  else if (isSource == YES)
-		    {
-		      /*
-		       * Try to parse source *as-if-it-was-a-header*
-		       * to see what needs documenting.
-		       */
-		      if ([mgr isReadableFileAtPath: sfile] == NO)
-			{
-			  NSLog(@"No readable source at '%@' ... skipping",
-			    sfile);
-			  continue;
-			}
-		      if (declared != nil)
-			{
-			  [parser setDeclared:
-			    [declared stringByAppendingPathComponent:
-			      [sfile lastPathComponent]]];
-			}
-		      [parser parseFile: sfile isSource: NO];
-		    }
-
-		  /*
-		   * If we can read a source file, parse it for any
-		   * additional information on items found in the header.
-		   */
-		  if ([mgr isReadableFileAtPath: sfile] == YES)
-		    {
-		      [parser parseFile: sfile isSource: YES];
-		    }
-
-		  /*
-		   * Set up linkage for this file.
-		   */
-		  [[parser info] setObject: file forKey: @"base"];
+	      /*
+	       * Set up linkage for this file.
+	       */
+	      [[parser info] setObject: file forKey: @"base"];
+	      /*
+	       * Only produce linkage if there are multiple files.
+	       */
+	      if ([files count] > 1)
+		{
 		  [[parser info] setObject: up forKey: @"up"];
 		  if (prev != nil)
 		    {
 		      [[parser info] setObject: prev forKey: @"prev"];
 		    }
 		  ASSIGN(prev, file);
-		  if (i < [args count] - 1)
+		  if (i < [files count] - 1)
 		    {
-		      unsigned	j = i + 1;
+		      NSString	*name = [files objectAtIndex: i + 1];
 
-		      while (j < [args count])
-			{
-			  NSString	*name = [args objectAtIndex: j++];
-
-			  if ([name hasSuffix: @".h"]
-			    || [name hasSuffix: @".m"]
-			    || [name hasSuffix: @".gsdoc"])
-			    {
-			      name = [[name lastPathComponent]
-				stringByDeletingPathExtension];
-			      [[parser info] setObject: name
-						forKey: @"next"];
-			      break;
-			    }
-			}
-		    }
-
-		  generated = [output output: [parser info]];
-
-		  if ([generated writeToFile: gsdocfile
-				  atomically: YES] == NO)
-		    {
-		      NSLog(@"Sorry unable to write %@", gsdocfile);
-		    }
-		  else
-		    {
-		      gDate = [NSDate date];	// Just generated.
+		      name = [[name lastPathComponent]
+			stringByDeletingPathExtension];
+		      [[parser info] setObject: name forKey: @"next"];
 		    }
 		}
-	    }
-	  else
-	    {
-	      /*
-	       * Our source file is a gsdoc file ... so it may be located
-	       * in the source (input) directory rather than the documentation
-	       * (output) directory.
-	       */
-	      if ([mgr isReadableFileAtPath: gsdocfile] == NO)
+
+	      generated = [output output: [parser info]];
+
+	      if ([generated writeToFile: gsdocfile
+			      atomically: YES] == NO)
 		{
-		  gsdocfile = [sdir stringByAppendingPathComponent: file];
-		  gsdocfile = [gsdocfile stringByAppendingPathExtension:
-		    @"gsdoc"];
+		  NSLog(@"Sorry unable to write %@", gsdocfile);
 		}
-	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	      gDate = [attrs objectForKey: NSFileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
-	    }
-
-	  /*
-	   * Now we try to process the gsdoc data to make index info
-	   * unless the project index is already more up to date than
-	   * this file.
-	   */
-	  if ([gDate earlierDate: rDate] == rDate)
-	    {
-	      if (showDependencies == YES)
+	      else
 		{
-		  NSLog(@"%@: gsdoc %@, index %@ ==> regenerate",
-		    file, sDate, gDate);
-		}
-	      if ([mgr isReadableFileAtPath: gsdocfile] == YES)
-		{
-		  GSXMLParser	*parser;
-		  AGSIndex		*locRefs;
-
-		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: NO];
-		  [parser doValidityChecking: YES];
-		  [parser keepBlanks: NO];
-		  if ([parser parse] == NO)
-		    {
-		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
-		    }
-		  if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
-		    {
-		      NSLog(@"not a gsdoc document - because name node is %@",
-			[[[parser doc] root] name]);
-		      return 1;
-		    }
-
-		  locRefs = AUTORELEASE([AGSIndex new]);
-		  [locRefs makeRefs: [[parser doc] root]];
-
-		  /*
-		   * accumulate index info in project references
-		   */
-		  [prjRefs mergeRefs: [locRefs refs] override: NO];
-		  modifiedRefs = YES;
-		}
-	      else if (isDocumentation)
-		{
-		  NSLog(@"No readable documentation at '%@' ... skipping",
-		    gsdocfile);
+		  gDate = [NSDate date];	// Just generated.
 		}
 	    }
 	}
       else
 	{
-	  NSLog(@"Unknown argument '%@' ... ignored", arg);
+	  /*
+	   * Our source file is a gsdoc file ... so it may be located
+	   * in the source (input) directory rather than the documentation
+	   * (output) directory.
+	   */
+	  if ([mgr isReadableFileAtPath: gsdocfile] == NO)
+	    {
+	      gsdocfile = [sdir stringByAppendingPathComponent: file];
+	      gsdocfile = [gsdocfile stringByAppendingPathExtension:
+		@"gsdoc"];
+	    }
+	  attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
+	  gDate = [attrs objectForKey: NSFileModificationDate];
+	  AUTORELEASE(RETAIN(gDate));
+	}
+
+      /*
+       * Now we try to process the gsdoc data to make index info
+       * unless the project index is already more up to date than
+       * this file.
+       */
+      if ([gDate earlierDate: rDate] == rDate)
+	{
+	  if (showDependencies == YES)
+	    {
+	      NSLog(@"%@: gsdoc %@, index %@ ==> regenerate",
+		file, sDate, gDate);
+	    }
+	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
+	    {
+	      GSXMLParser	*parser;
+	      AGSIndex		*locRefs;
+
+	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
+	      [parser substituteEntities: NO];
+	      [parser doValidityChecking: YES];
+	      [parser keepBlanks: NO];
+	      if ([parser parse] == NO)
+		{
+		  NSLog(@"WARNING %@ is not a valid document", gsdocfile);
+		}
+	      if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+		{
+		  NSLog(@"not a gsdoc document - because name node is %@",
+		    [[[parser doc] root] name]);
+		  return 1;
+		}
+
+	      locRefs = AUTORELEASE([AGSIndex new]);
+	      [locRefs makeRefs: [[parser doc] root]];
+
+	      /*
+	       * accumulate index info in project references
+	       */
+	      [prjRefs mergeRefs: [locRefs refs] override: NO];
+	      modifiedRefs = YES;
+	    }
+	  else if (isDocumentation)
+	    {
+	      NSLog(@"No readable documentation at '%@' ... skipping",
+		gsdocfile);
+	    }
 	}
     }
   /*
@@ -840,135 +860,112 @@ main(int argc, char **argv, char **env)
   RELEASE(pool);
 
   pool = [NSAutoreleasePool new];
-  for (i = (haveAutoIndex ? 0 : 1); i < [args count]; i++)
+  for (i = 0; i < [files count]; i++)
     {
-      NSString *arg;
+      NSString		*arg = [files objectAtIndex: i];
+      NSString		*gsdocfile;
+      NSString		*htmlfile;
+      NSString		*ddir;
+      NSString		*file;
+      NSString		*generated;
+      NSDictionary	*attrs;
+      NSDate		*gDate;
+      NSDate		*hDate;
 
-      if (i == 0)
+      if (pool != nil)
 	{
-	  arg = @"index.gsdoc";		// Auto generated.
+	  RELEASE(pool);
+	  pool = [NSAutoreleasePool new];
 	}
-      else
-	{
-	  arg = [args objectAtIndex: i];
-	}
+      file = [[arg lastPathComponent] stringByDeletingPathExtension];
+      ddir = documentationDirectory;
 
-      if ([arg hasPrefix: @"-"])
-	{
-	  i++;		// Skip next value ... it is a default.
-	}
-      else if ([arg hasSuffix: @".h"] == YES
-	|| [arg hasSuffix: @".m"] == YES
-	|| [arg hasSuffix: @".gsdoc"]== YES)
-	{
-	  NSString	*gsdocfile;
-	  NSString	*htmlfile;
-	  NSString	*ddir;
-	  NSString	*file;
-	  NSString	*generated;
-	  NSDictionary	*attrs;
-	  NSDate	*gDate;
-	  NSDate	*hDate;
+      gsdocfile = [ddir stringByAppendingPathComponent: file];
+      gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
+      htmlfile = [ddir stringByAppendingPathComponent: file];
+      htmlfile = [htmlfile stringByAppendingPathExtension: @"html"];
 
-	  if (pool != nil)
+      /*
+       * If the gsdoc file name was specified as a source file,
+       * it may be in the source directory rather than the documentation
+       * directory.
+       */
+      if ([mgr isReadableFileAtPath: gsdocfile] == NO
+	&& [arg hasSuffix: @".gsdoc"] == YES)
+	{
+	  NSString	*sdir = [arg stringByDeletingLastPathComponent];
+
+	  if ([sdir length] == 0)
 	    {
-	      RELEASE(pool);
-	      pool = [NSAutoreleasePool new];
+	      sdir = sourceDirectory;
 	    }
-	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
-	  ddir = documentationDirectory;
-
-	  gsdocfile = [ddir stringByAppendingPathComponent: file];
+	  else if ([sdir isAbsolutePath] == NO)
+	    {
+	      sdir = [sourceDirectory stringByAppendingPathComponent: sdir];
+	    }
+	  gsdocfile = [sdir stringByAppendingPathComponent: file];
 	  gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
-	  htmlfile = [ddir stringByAppendingPathComponent: file];
-	  htmlfile = [htmlfile stringByAppendingPathExtension: @"html"];
+	}
 
-	  /*
-	   * If the gsdoc file name was specified as a source file,
-	   * it may be in the source directory rather than the documentation
-	   * directory.
-	   */
-	  if ([mgr isReadableFileAtPath: gsdocfile] == NO
-	    && [arg hasSuffix: @".gsdoc"] == YES)
+      /*
+       * When were the files last modified?
+       */
+      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
+      gDate = [attrs objectForKey: NSFileModificationDate];
+      AUTORELEASE(RETAIN(gDate));
+      attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
+      hDate = [attrs objectForKey: NSFileModificationDate];
+      AUTORELEASE(RETAIN(hDate));
+
+      if ([mgr isReadableFileAtPath: gsdocfile] == YES)
+	{
+	  if (hDate == nil || [gDate earlierDate: hDate] == hDate)
 	    {
-	      NSString	*sdir = [arg stringByDeletingLastPathComponent];
+	      GSXMLParser	*parser;
+	      AGSIndex	*locRefs;
+	      AGSHtml	*html;
 
-	      if ([sdir length] == 0)
+	      if (showDependencies == YES)
 		{
-		  sdir = sourceDirectory;
+		  NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
+		    file, gDate, hDate);
 		}
-	      else if ([sdir isAbsolutePath] == NO)
+	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
+	      [parser substituteEntities: NO];
+	      [parser doValidityChecking: YES];
+	      [parser keepBlanks: NO];
+	      if ([parser parse] == NO)
 		{
-		  sdir = [sourceDirectory stringByAppendingPathComponent: sdir];
+		  NSLog(@"WARNING %@ is not a valid document", gsdocfile);
 		}
-	      gsdocfile = [sdir stringByAppendingPathComponent: file];
-	      gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
-	    }
-
-	  /*
-	   * When were the files last modified?
-	   */
-	  attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	  gDate = [attrs objectForKey: NSFileModificationDate];
-	  AUTORELEASE(RETAIN(gDate));
-	  attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
-	  hDate = [attrs objectForKey: NSFileModificationDate];
-	  AUTORELEASE(RETAIN(hDate));
-
-	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
-	    {
-	      if (hDate == nil || [gDate earlierDate: hDate] == hDate)
+	      if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
 		{
-		  GSXMLParser	*parser;
-		  AGSIndex	*locRefs;
-		  AGSHtml	*html;
-
-		  if (showDependencies == YES)
-		    {
-		      NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
-			file, gDate, hDate);
-		    }
-		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: NO];
-		  [parser doValidityChecking: YES];
-		  [parser keepBlanks: NO];
-		  if ([parser parse] == NO)
-		    {
-		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
-		    }
-		  if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
-		    {
-		      NSLog(@"not a gsdoc document - because name node is %@",
-			[[[parser doc] root] name]);
-		      return 1;
-		    }
-
-		  locRefs = AUTORELEASE([AGSIndex new]);
-		  [locRefs makeRefs: [[parser doc] root]];
-
-		  /*
-		   * We perform final output
-		   */
-		  html = AUTORELEASE([AGSHtml new]);
-		  [html setGlobalRefs: indexer];
-		  [html setProjectRefs: prjRefs];
-		  [html setLocalRefs: locRefs];
-		  generated = [html outputDocument: [[parser doc] root]];
-		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
-		    {
-		      NSLog(@"Sorry unable to write %@", htmlfile);
-		    }
+		  NSLog(@"not a gsdoc document - because name node is %@",
+		    [[[parser doc] root] name]);
+		  return 1;
 		}
-	    }
-	  else
-	    {
-	      NSLog(@"No readable documentation at '%@' ... skipping",
-		gsdocfile);
+
+	      locRefs = AUTORELEASE([AGSIndex new]);
+	      [locRefs makeRefs: [[parser doc] root]];
+
+	      /*
+	       * We perform final output
+	       */
+	      html = AUTORELEASE([AGSHtml new]);
+	      [html setGlobalRefs: indexer];
+	      [html setProjectRefs: prjRefs];
+	      [html setLocalRefs: locRefs];
+	      generated = [html outputDocument: [[parser doc] root]];
+	      if ([generated writeToFile: htmlfile atomically: YES] == NO)
+		{
+		  NSLog(@"Sorry unable to write %@", htmlfile);
+		}
 	    }
 	}
       else
 	{
-	  NSLog(@"Unknown argument '%@' ... ignored", arg);
+	  NSLog(@"No readable documentation at '%@' ... skipping",
+	    gsdocfile);
 	}
     }
 
