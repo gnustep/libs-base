@@ -98,10 +98,10 @@ ADVERTISEMENT: advertisement.texi version.texi
 	$(MAKEINFO) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
 
-TOP_DOC_FILES = README TODO INSTALL NEWS
+TOP_DOC_FILES = README INSTALL NEWS
 RCS_FILES =  $(TEXI_FILES) Makefile.in 
 DIST_FILES = $(RCS_FILES) texinfo.tex version.texi \
-        $(TOP_DOC_FILES) ANNOUNCE ADVERTISEMENT
+        $(TOP_DOC_FILES) ANNOUNCE ADVERTISEMENT TODO
 
 # In the future we'll want to install libobjects.info and objective-c.info.
 install:
@@ -129,6 +129,7 @@ copy-dist: $(DIST_FILES)
 	mkdir ../snap/doc
 	ln $(DIST_FILES) ../snap/doc
 	ln $(TOP_DOC_FILES) ../snap
+	ln TODO ../snap/admin/tasks
 
 Makefile: Makefile.in
 	cd ..; $(SHELL) config.status
