@@ -485,7 +485,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 /*
  * The following dummy class is here solely as a workaround for pre 3.3
  * versions of gcc where protocols didn't work properly unless implemented
- * in the source where the '@protocol()' directiver is used.
+ * in the source where the '@protocol()' directive is used.
  */
 @interface NSDistributedNotificationCenterDummy : NSObject <GDNCProtocol>
 - (void) addObserver: (unsigned long)anObserver
