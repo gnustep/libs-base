@@ -1301,6 +1301,7 @@ init_probe()
 	{
 	  if ((addr[iface].s_addr & mask[iface].s_addr) == nlist[i])
 	    {
+	      sin = addr[iface];
 	      if (bcok[iface])
 		{
 		  /*
@@ -1331,7 +1332,6 @@ init_probe()
 			    inet_ntoa(mask[iface]), inet_ntoa(addr[iface]));
 		      hm |= ~255;
 		    }
-		  sin = addr[iface];
 		  net = ha & hm & ~255;		/* class-c net number.	*/
 		  low = ha & hm & 255;		/* low end of subnet.	*/
 		  high = low | (255 & ~hm);	/* high end of subnet.	*/
