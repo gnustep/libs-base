@@ -10,6 +10,8 @@
 	style property-lists rather than new style or xml style.
 	* Source/NSUser.m: Use USERPROFILE for default home directory on
 	windoze.
+	* Source/NSArray.m: Write non-xml property lists as ascii.
+	* Source/NSDictionary.m: Write non-xml property lists as ascii.
 
 2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
