@@ -3,6 +3,8 @@
 	* Source/NSUserDefaults.m: Modified to operate on a read-only
 	filesystem where the defaults database is missing.  Application
 	defaults and command line settings should still work.
+	* Source/GSDictionary.m: fix for keyed archioving reported by
+	Marc Ordinas i Llopis
 
 2004-04-02 Richard Frith-Macdonald <rfm@gnu.org>
 
