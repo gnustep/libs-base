@@ -1,3 +1,8 @@
+2001-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Never init nocopy with null pointer - increase
+	chance of double initialisation being detected.
+
 2001-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/callframe.m: callframe_do_call_opts(),
