@@ -1,7 +1,7 @@
 2002-07-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Ensure mime-version header appears
-	before other headers.
+	before other headers. Fix bug in terminatimg mime data.
 
 2002-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
