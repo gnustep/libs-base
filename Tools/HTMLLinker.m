@@ -18,83 +18,8 @@
    */
 
 /*
- * This tool implements a HTML linker.
- *
- * A HTML linker is able to fixup ahref links from one HTML document
- * to other HTML ones.
- *
- * It's a pretty generic tool.  Think it in this way - say that you
- * have a collection of HTML files, all in the same directory, with
- * working links from one file to the other one.
- *
- * Now you move the files around, scattering them in many directories
- * - of course the links no longer work!
- *
- * But if you run the HTML linker on the files, the HTML linker will
- * modify all links inside the files, resolving each of them to point
- * to the actual full path of the required file.  The links will work
- * again.
- *
- * In the real world, it's more complicated than this because you
- * normally put the HTML files across different directories from the
- * very beginning.  The HTML linker becomes helpful because you can
- * create links between these files as if they were in the same
- * directory ... and then - at the end - run the HTML linker to
- * actually fixup the links and make them work.  If you move around
- * the files or mess in any way with their paths, you can always fixup
- * the links afterwards by rerunning the linker - you don't need to
- * regenerate the HTML files.
- *
- * This is exactly what (auto)gsdoc does when generating the HTML - it
- * creates links from one class to another one as if they were in the
- * same directory, ignoring the issue of the real full paths on disk
- * (and whether the documentation for the other classes actually
- * exists :-).
- *
- * When the documentation is installed, the HTML linker is run, and it
- * will actually fix up the links to point to the real full paths on
- * disk (and warn about any unresolved reference).  Note that when you
- * install the documentation, files end up in different dirs of
- * GNUSTEP_LOCAL_ROOT or GNUSTEP_SYSTEM_ROOT or GNUSTEP_USER_ROOT
- * ... without the linker it would be a pain to keep cross-references
- * right.  It would probably be impossible.
- *
- * The HTML linker will only fixup links which have the attribute
- * 'rel' set to 'dynamical', as in the following example -
- *
- * <a href="NSObject_Protocol.html#-class" rel="dynamic">
- *
- * All other links will be ignored and not fixed up.  This is so that
- * you can clearly mark the links you want to be dynamically fixed up
- * by the linker; other links will not be touched.  If you want the
- * linker to attempt to fixup all links, pass the -FixupAllLinks YES
- * option to the linker.
- *
- * The linker might perform 'link checking' if run with the
- * '-CheckLinks YES' option.  link checking means that when a link is
- * fixed up, the linker checks that the destination file actually
- * contains the appropriate <a name="xxx"> tag.  For example, when
- * fixing up <a href="NSObject_Protocol.html#-class" rel="dynamic">,
- * the linker will check that the NSObject_Protocol.html file will
- * actually contain a <a name="-class"> tag somewhere, and issue a
- * warning otherwise.
- *
- * If you run the linker without 'link checking' it will not even need
- * to read the destination file, which (of course) gives better
- * performance.
- *
- * Last, please notice that when using the HTML linker in practice,
- * the tool works with two kind of files -
- *
- * 'input files' - files whose links need to be fixed up.  These files
- * are *modified* by the linker.  The old version of the file is
- * (atomically) replaced with the fixed up one.
- *
- * 'destination files' - files which can be the destination of links
- * in the input files.  These files are untouched during processing;
- * but they might be read when the linker is run with 'link checking'
- * enabled, to check that the links in the input files are actually
- * correct.  */
+ * See the HTMLLinker.html file for documentation on how to use the tool.
+ */
 
 #include <Foundation/Foundation.h>
 
@@ -1135,29 +1060,6 @@ int main (int argc, char** argv, char** env)
   /* Create the linker object.  */
   linker = [[HTMLLinker alloc] initWithVerboseFlag: verbose
 			       checkLinksFlag: checkLinks];
-
-  /*
-     To specify that a destination directory on disk is to be referred to
-     with a different path, you can use -PathMapping, as in
-     
-     -PathMapping '{
-                "/opt/gnustep/System/Documentation/Base"="/Documentation/Base";
-                "/opt/gnustep/System/Documentation/Gui"="/Documentation/Gui";
-                }'
-		
-     which causes all links to destination files which have the path
-     beginnig with /opt/gnustep/System/Documentation/Base to be resolved as
-     being to files with a path beginning with /Documentation/Base.
-     
-     This is only useful if you are serving HTML files off from a web server,
-     where the actual path on disk is not the same as the path seen by the
-     web browser.
-     
-     -PathMappingFile filename
-     
-     causes path mappings to be read from filename, which should contain
-     them in dictionary format.
-  */
 
   /* Read path mappings from PathMappingsFile if specified.  */
   {
