@@ -2,6 +2,7 @@
 
 	* Tools/gdnc.m: Change name of dummy class to avoid Darwin linker
 	problems.
+	* Testing/nsundomanager.m: Trivial test added
 
 2004-12-21  Adam Fedor  <fedor@gnu.org>
 
