@@ -198,8 +198,18 @@
 
 - (NSString*) componentsJoinedByString: (NSString*)separator
 {
-  [self notImplemented:_cmd];
-  return 0;
+  int i, c = [self count];
+  id s = [NSMutableString stringWithCapacity:2]; /* arbitrary capacity */
+  
+  if (!c)
+    return s;
+  [s appendString:[[self objectAtIndex:0] description]];
+  for (i = 1; i < c; i++)
+    {
+      [s appendString:separator];
+      [s appendString:[[self objectAtIndex:i] description]];
+    }
+  return s;
 }
 
 
