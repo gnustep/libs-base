@@ -1,3 +1,12 @@
+2003-09-05  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/Additions/GNUstepBase/behavior.h: GS_EXPORT functions.
+
+2003-09-04 18:41  Alexander Malmberg <alexander@malmberg.org>
+
+	* Headers/Foundation/NSDistributedLock.h, Source/NSDistributedLock.m:
+	Change return type of -initWithPath: to id.
+
 2003-09-03  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (main): Don't chdir to /tmp on MinGW.
