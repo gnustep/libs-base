@@ -1,4 +1,9 @@
-2003-05-06  Richard Frith-Macdonald <rfm@gnu.org>
+2003-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/xmlparse.m: new utility to parse/validate xml, for testing
+	gsdoc and new style property lists etc.
+
+2003-05-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: ([-initWithCStringNocopy:length:freeWhenDone:])
 	check encodings and convert to unicode if necessary. Thanks to
