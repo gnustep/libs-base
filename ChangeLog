@@ -3,7 +3,7 @@
 	* Tools/gdomap.c: Fixes to last modifications - provided by
 	Chris B Vetter.
 
-2001-06-04  Nicola Pero  <n.pero@mi.flashnet.it>
+2001-05-04  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSObject.m (GSGetValue): Call handleQueryWithUnboundKey:
 	rather than handleTakeValue:forUnboundKey: when no property
