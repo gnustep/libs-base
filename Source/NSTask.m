@@ -806,6 +806,24 @@ GSCheckTasks()
 		      found = YES;
 		    }
 		}
+	      else if (WIFSIGNALED(status))
+		{
+		  NSTask    *t;
+
+		  [tasksLock lock];
+		  t = (NSTask*)NSMapGet(activeTasks, (void*)result);
+		  [tasksLock unlock];
+		  if (t)
+		    {
+		      [t _terminatedChild: WTERMSIG(status)];
+		      found = YES;
+		    }
+		}
+	      else
+		{
+		  NSLog(@"Warning ... task %d neither exited nor signalled",
+		    result);
+		}
 	    }
 	}
       while (result > 0);  
@@ -1054,6 +1072,14 @@ GSCheckTasks()
                         _taskId, _terminationStatus);
 #endif
               [self _terminatedChild: WEXITSTATUS(_terminationStatus)];
+	    }
+	  else if (WIFSIGNALED(_terminationStatus))
+	    {
+#ifdef  WAITDEBUG
+              NSLog(@"waitpid %d, termination status = %d",
+                        _taskId, _terminationStatus);
+#endif
+              [self _terminatedChild: WTERMSIG(_terminationStatus)];
 	    }
 #ifdef  WAITDEBUG
           else

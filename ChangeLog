@@ -1,3 +1,9 @@
+2001-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Bugfix to send out task termination notification
+	and clean up correctly when a task is killed by a signal rather than
+	exiting cleanly.
+
 2001-04-09  Adam Fedor  <fedor@gnu.org>
 
 	* 1.0 branch merged into main.
