@@ -1,3 +1,17 @@
+2003-10-24  David Ayers  <d.ayers@inode.at>
+
+	* Source/GSArray.m:
+	(-[GSMutableArray _raiseRangeExceptionWithIndex:from:]): Declare
+	private method obtained through behavior additions.
+	(-[GSArray _raiseRangeExceptionWithIndex:from:]): Use 'unsigned' in
+	favor of 'int' for index and count.  Move private method to the
+	top of implementation context to avoid warnings.
+	(-[GSMutableArray insertObject:atIndex:]): Use 'unsigned' in favor
+	of 'int' for index.
+	(-[GSMutableArray replaceObjectAtIndex:withObject:]): Correct
+	selector name and parameter of method call.
+	(-[GSMutableArray sortUsingFunction:context:]): Correct prototype.
+
 Fri Oct 24 07:55:00 2003  Stefan Urbanek <stefanu@altair.des.elf.stuba.sk>
 
 	* Source/GSArray.m: make exception messages more informative.
