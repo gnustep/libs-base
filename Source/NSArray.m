@@ -127,6 +127,8 @@ static Class NSMutableArray_concrete_class;
 
 + arrayWithObject: anObject
 {
+  [NSException raise:NSInvalidArgumentException
+	       format:@"Tried to add nil"];
   return [[[[self _concreteClass] alloc] initWithObjects:&anObject count:1]
 	  autorelease];
 }
