@@ -241,7 +241,7 @@ static void _gnu_noobjc_free_vars(void)
 	_gnu_noobjc_env = 0;
 }
 
-static void * __libobjects_subinit_args__
+static void * __gnustep_base_subinit_args__
 __attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
 
 + (void)initialize {
@@ -254,7 +254,7 @@ __attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
 }
 
 #else
-static void * __libobjects_subinit_args__
+static void * __gnustep_base_subinit_args__
 __attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
 #endif
 #else
@@ -264,7 +264,7 @@ int main(int argc, char *argv[], char *env[])
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */
-  return LibobjectsMain(argc,argv);
+  return gnustep_base_user_main (argc,argv);
 }
 #endif
 
