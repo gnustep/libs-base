@@ -187,6 +187,17 @@ $(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
 	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
 
 #
+#	Files where optimisation breaks the code!
+#	These have to filter the optimisation flag out.
+#
+$(GNUSTEP_OBJ_DIR)/mframe.o : mframe.m
+	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
+$(GNUSTEP_OBJ_DIR)/NSConnection.o : NSConnection.m
+	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
+$(GNUSTEP_OBJ_DIR)/NSInvocation.o : NSInvocation.m
+	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
+
+#
 #	Files that need a rebuild if GSConfig.h is changed.
 #
 $(GNUSTEP_OBJ_DIR)/mframe.o \

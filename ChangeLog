@@ -1,3 +1,8 @@
+Wed Aug 25 11:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Makefile.postamble: Added rules to build some files without
+	optimisation, to avoid optimiser breaking them.
+
 Sat Aug 21  6:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: Fix for probing for other gdomap processes on the
