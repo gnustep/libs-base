@@ -83,10 +83,6 @@
 #include <sys/errno.h>
 #endif /* !__WIN32__ */
 
-/* On some systems FD_ZERO is a macro that uses bzero().
-   Just define it to use GCC's builtin memset(). */
-#define bzero(PTR, LEN) memset (PTR, 0, LEN)
-
 static int debug_tcp_port = 0;
 
 
@@ -204,7 +200,7 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
 
   for (;;) {
     to = &timeout;
-    FD_ZERO(&fds);
+    memset(&fds, '\0', sizeof(fds));
     FD_SET(desc, &fds);
 
     rval = select(FD_SETSIZE, &fds, 0, 0, to);
@@ -289,7 +285,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 
   for (;;) {
     to = &timeout;
-    FD_ZERO(&fds);
+    memset(&fds, '\0', sizeof(fds));
     FD_SET(desc, &fds);
 
     rval = select(FD_SETSIZE, 0, &fds, 0, to);

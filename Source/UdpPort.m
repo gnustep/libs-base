@@ -224,7 +224,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
       timeout.tv_sec = milliseconds / 1000;
       timeout.tv_usec = (milliseconds % 1000) * 1000;
-      FD_ZERO(&ready);
+      memset(&ready, '\0', sizeof(ready));
       FD_SET(_port_socket, &ready);
       if ((r = select(_port_socket + 1, &ready, 0, 0, &timeout)) < 0)
 	{
