@@ -166,72 +166,10 @@ AC_SUBST(NeXT_runtime)
 AC_SUBST(NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
-
 #--------------------------------------------------------------------
-# Check for dynamic linking
-#
-# the name we assign to DYNAMIC_LINKER cooresponds to the interface that
-# is inluded in objc-load.c (i.e. #include "${DYNAMIC_LINKER}-load.h")
+# Setup dynamic linking 
 #--------------------------------------------------------------------
-DYNAMIC_LINKER=null
-AC_CHECK_LIB(dl, dlopen, DYNAMIC_LINKER=simple LIBS="${LIBS} -ldl")
-
-DLD_INCLUDE=''
-if test $DYNAMIC_LINKER = null; then
-    AC_CHECK_LIB(dld, main, DYNAMIC_LINKER=dld LIBS="${LIBS} -ldld")
-    AC_CHECK_HEADER(dld/defs.h, found_dld_defs=yes, found_dld_defs=no)
-    # Try to distinguish between GNU dld and HPUX dld 
-    AC_CHECK_HEADER(dl.h, DYNAMIC_LINKER=hpux)
-    # Check in non-standard places
-    if test $ac_cv_lib_dld = no; then
-        AC_MSG_CHECKING(for dld in user directory)
-        if test -f ${srcdir}/../dld/libdld.a; then
-            DYNAMIC_LINKER=dld
-	    found_dld_defs=yes
-            DLD_INCLUDE="-I$(OSDIR)/.."
-            LIBS="${LIBS} -L$(OSDIR)/../dld -ldld"
-            AC_MSG_RESULT(yes)
-        else
-            AC_MSG_RESULT(no)
-        fi
-    fi
-    if test $ac_cv_lib_dld = yes && test $found_dld_defs = no && test $ac_cv_header_dl_h = no; then
-        AC_MSG_WARN(Could not find dld/defs.h header)
-        echo
-        echo "objc-load needs the the dld/defs.h header to get information"
-        echo "about how to use GNU dld"
-        echo
-    fi
-fi
-AC_SUBST(DYNAMIC_LINKER)
-AC_SUBST(DLD_INCLUDE)
-
-# These determine how the NSBundle example makefile is setup
-# They don't always work...
-if test $DYNAMIC_LINKER = dld; then
-    DYNAMIC_BUNDLER_LINKER="ld -r"
-    DYNAMIC_LDFLAGS="-static"
-    DYNAMIC_CFLAGS=""
-elif test $DYNAMIC_LINKER = simple; then
-    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib"
-    DYNAMIC_LDFLAGS=""
-    DYNAMIC_CFLAGS="-fPIC"
-elif test $DYNAMIC_LINKER = hpux; then
-    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib -Xlinker -b"
-    DYNAMIC_LDFLAGS="-Xlinker -E"
-    DYNAMIC_CFLAGS="-fPIC"
-elif test $DYNAMIC_LINKER = null; then
-    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib -Xlinker -r"
-    DYNAMIC_LDFLAGS=""
-    DYNAMIC_CFLAGS=""
-else
-    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib -Xlinker -r"
-    DYNAMIC_LDFLAGS=""
-    DYNAMIC_CFLAGS=""
-fi
-AC_SUBST(DYNAMIC_BUNDLER_LINKER)
-AC_SUBST(DYNAMIC_LDFLAGS)
-AC_SUBST(DYNAMIC_CFLAGS)
+OBJC_SYS_DYNAMIC_FLAGS()
 
 #--------------------------------------------------------------------
 # Find some programs

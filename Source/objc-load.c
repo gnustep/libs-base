@@ -162,7 +162,7 @@ objc_load_module(
 	return 1;
     }
 
-#ifndef __ELF__
+#if !defined(__ELF__) && !defined(SYS_AUTOLOAD)
     /* Get the constructor list and load in the objects */
     ctor_list = (void_fn *)__objc_dynamic_find_symbol(handle, CTOR_LIST);
     if (!ctor_list) {

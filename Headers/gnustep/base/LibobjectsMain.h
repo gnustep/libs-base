@@ -44,7 +44,7 @@
      -mccallum 
 */
 
-#ifndef __ELF__
+#if !defined(__ELF__) && !defined(SYS_AUTOLOAD)
 #define main LibobjectsMain
 extern int LibobjectsMain(/* int argc, char *argv[] */);
 #endif /* __ELF__ */
