@@ -309,8 +309,8 @@ compiler warning.
 @end
 
 /* Because the compiler thinks that @".." strings are NXConstantString's. */
-#include <gnustep/base/NSGString.h>
-#include <gnustep/base/NSGCString.h>
+#include <Foundation/NSGString.h>
+#include <Foundation/NSGCString.h>
 @interface NXConstantString : NSGCString
 @end
 

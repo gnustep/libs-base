@@ -75,7 +75,7 @@
       if (_hash == 0)
         _fastImp._NSGString_hash(self, @selector(hash));
       if (other->_hash == 0)
-        _fastImp._NSGString_hash(self, @selector(hash));
+        _fastImp._NSGString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
       return [self isEqualToString: other];
