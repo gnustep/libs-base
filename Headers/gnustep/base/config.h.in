@@ -229,6 +229,9 @@
 /* Define if you have the <signal.h> header file.  */
 #undef HAVE_SIGNAL_H
 
+/* Define if you have the <stdint.h> header file.  */
+#undef HAVE_STDINT_H
+
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H
 
@@ -240,6 +243,9 @@
 
 /* Define if you have the <sys/file.h> header file.  */
 #undef HAVE_SYS_FILE_H
+
+/* Define if you have the <sys/inttypes.h> header file.  */
+#undef HAVE_SYS_INTTYPES_H
 
 /* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
