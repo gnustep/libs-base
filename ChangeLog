@@ -37,7 +37,7 @@ Thu Feb  5 10:12:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 Thu Feb  5 10:48:35 1998  Adam Fedor  <fedor@ultra.doc.com>
 
-	* GNUmakefile (GNUSTEP_MAKEFILE_DIR): New variable. Use it to
+	* GNUmakefile (GNUSTEP_MAKEFILES): New variable. Use it to
 	include makefiles.
 	* Likewise for all sub-directory GNUmakefile files.
 

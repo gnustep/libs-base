@@ -25,9 +25,9 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILE_DIR = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
+GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
-include $(GNUSTEP_MAKEFILE_DIR)/common.make
+include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
@@ -162,7 +162,7 @@ DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 
 -include Makefile.preamble
 
-include $(GNUSTEP_MAKEFILE_DIR)/test-tool.make
-include $(GNUSTEP_MAKEFILE_DIR)/bundle.make
+include $(GNUSTEP_MAKEFILES)/test-tool.make
+include $(GNUSTEP_MAKEFILES)/bundle.make
 
 -include Makefile.postamble

@@ -23,9 +23,9 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILE_DIR = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
+GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
-include $(GNUSTEP_MAKEFILE_DIR)/common.make
+include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
@@ -52,6 +52,6 @@ INSTALL_FILES = $(CHARSET_FILES) README.CharSet
 
 # We don't actually build anything in this directory so
 # just include the common makefile rules
-include $(GNUSTEP_MAKEFILE_DIR)/rules.make
+include $(GNUSTEP_MAKEFILES)/rules.make
 
 -include Makefile.postamble
