@@ -27,14 +27,14 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "Foundation/NSObjCRuntime.h"
 #include "GSConfig.h"
-#include "Foundation/NSConcreteNumber.h"
+#include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSCoder.h"
+#include "NSConcreteNumber.h"
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 12 corresponding to each number type */

@@ -270,7 +270,6 @@ NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
 NSCoder.h \
-NSConcreteNumber.h \
 NSConnection.h \
 NSData.h \
 NSDate.h \
