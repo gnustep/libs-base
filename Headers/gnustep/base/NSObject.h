@@ -252,40 +252,8 @@ enum {NSNotFound = 0x7fffffff};
    creating the potential for deadlock. */
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
-/*
- * The GNUDescriptionDestination protocol declares methods used to
- * append a property-list description string to some output destination
- * so that property-lists can be converted to strings in a stream avoiding
- * the use of ridiculous amounts of memory for deeply nested data structures.
- */
-@protocol       GNUDescriptionDestination
-- (void) appendFormat: (NSString*)str, ...;
-- (void) appendString: (NSString*)str;
-@end
-
 @interface NSObject (GNU)
 - (NSComparisonResult) compare: (id)anObject;
-/*
- * Default description methods -
- * [descriptionWithLocale:] calls [description]
- * [descriptionWithLocale:indent:] calls [descriptionWithLocale:]
- * [descriptionWithLocale:indent:to:] calls [descriptionWithLocale:indent:]
- * So - to have working descriptions, it is only necessary to implement the
- * [description] method, and to have efficient property-list generation, it
- * is necessary to override [descriptionWithLocale:indent:to:]
- */
-- (NSString*) descriptionWithLocale: (NSDictionary*)aLocale;
-+ (NSString*) descriptionWithLocale: (NSDictionary*)aLocale;
-- (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
-			     indent: (unsigned)level;
-+ (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
-			     indent: (unsigned)level;
-- (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
-			    to: (id<GNUDescriptionDestination>)output;
-+ (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
-			    to: (id<GNUDescriptionDestination>)output;
 - (id) makeImmutableCopyOnFail: (BOOL)force;
 - (Class) transmuteClassTo: (Class)aClassObject;
 - (id) subclassResponsibility: (SEL)aSel;

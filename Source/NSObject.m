@@ -2017,27 +2017,6 @@ static BOOL double_release_check_enabled = NO;
   return [self descriptionWithLocale: aLocale];
 }
 
-/**
- * Uses the [NSString] implementation.
- */
-- (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
-			    to: (id<GNUDescriptionDestination>)output
-{
-  NSString	*tmp =  [(id)self descriptionWithLocale: aLocale];
-
-  [tmp descriptionWithLocale: aLocale indent: level to: output];
-}
-
-+ (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
-			    to: (id<GNUDescriptionDestination>)output
-{
-  NSString	*tmp =  [(id)self descriptionWithLocale: aLocale];
-
-  [tmp descriptionWithLocale: aLocale indent: level to: output];
-}
-
 - (BOOL) _dealloc
 {
   return YES;

@@ -47,6 +47,7 @@
 #include "GSPrivate.h"
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+extern void     GSPropertyListMake(id, NSDictionary*, BOOL, unsigned, id*);
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
@@ -977,104 +978,11 @@ static int compare(id elem1, id elem2, void* context)
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-  NSMutableString	*result;
+  NSString	*result = nil;
 
-  result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
-  result = AUTORELEASE(result);
-  [self descriptionWithLocale: locale
-		       indent: level
-			   to: (id<GNUDescriptionDestination>)result];
+  GSPropertyListMake(self, locale, NO, level == 1 ? 3 : 2, &result);
+
   return result;
-}
-
-static NSString	*indentStrings[] = {
-  @"",
-  @"    ",
-  @"\t",
-  @"\t    ",
-  @"\t\t",
-  @"\t\t    ",
-  @"\t\t\t",
-  @"\t\t\t    ",
-  @"\t\t\t\t",
-  @"\t\t\t\t    ",
-  @"\t\t\t\t\t",
-  @"\t\t\t\t\t    ",
-  @"\t\t\t\t\t\t"
-};
-
-- (void) descriptionWithLocale: (NSDictionary*)locale
-		        indent: (unsigned int)level
-			    to: (id<GNUDescriptionDestination>)result
-{
-  unsigned		count = [self count];
-  unsigned		last = count - 1;
-  NSString		*plists[count];
-  unsigned		i;
-  IMP			appImp;
-
-  appImp = [(NSObject*)result methodForSelector: appSel];
-
-  [self getObjects: plists];
-
-  if (locale == nil)
-    {
-      (*appImp)(result, appSel, @"(");
-      for (i = 0; i < count; i++)
-	{
-	  id	item = plists[i];
-
-	  [item descriptionWithLocale: nil indent: 0 to: result];
-	  if (i != last)
-	    {
-	      (*appImp)(result, appSel, @", ");
-	    }
-	}
-      (*appImp)(result, appSel, @")");
-    }
-  else
-    {
-      NSString	*iBaseString;
-      NSString	*iSizeString;
-
-      if (level < sizeof(indentStrings)/sizeof(id))
-	{
-	  iBaseString = indentStrings[level];
-	}
-      else
-	{
-	  iBaseString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
-	}
-      level++;
-      if (level < sizeof(indentStrings)/sizeof(id))
-	{
-	  iSizeString = indentStrings[level];
-	}
-      else
-	{
-	  iSizeString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
-	}
-
-      (*appImp)(result, appSel, @"(\n");
-      for (i = 0; i < count; i++)
-	{
-	  id	item = plists[i];
-
-	  (*appImp)(result, appSel, iSizeString);
-     
-	  [item descriptionWithLocale: locale indent: level to: result];
-	  if (i == last)
-	    {
-	      (*appImp)(result, appSel, @"\n");
-	    }
-	  else
-	    {
-	      (*appImp)(result, appSel, @",\n");
-	    }
-	}
-      (*appImp)(result, appSel, iBaseString);
-      (*appImp)(result, appSel, @")");
-    }
 }
 
 /**
@@ -1102,27 +1010,16 @@ static NSString	*indentStrings[] = {
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc;
-  NSString	*desc;
-
-  loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSString	*desc = nil;
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc);
-
-      desc = GSXMLPlMake(self, loc);
+      GSPropertyListMake(self, loc, YES, 2, &desc);
     }
   else
     {
-      NSMutableString	*result;
-
-      result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
-      result = AUTORELEASE(result);
-      [self descriptionWithLocale: loc
-			   indent: 0
-			       to: (id<GNUDescriptionDestination>)result];
-      desc = result;
+      GSPropertyListMake(self, loc, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]
@@ -1137,27 +1034,16 @@ static NSString	*indentStrings[] = {
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc;
-  NSString	*desc;
-
-  loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSString	*desc = nil;
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc);
-
-      desc = GSXMLPlMake(self, loc);
+      GSPropertyListMake(self, loc, YES, 2, &desc);
     }
   else
     {
-      NSMutableString	*result;
-
-      result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
-      result = AUTORELEASE(result);
-      [self descriptionWithLocale: loc
-			   indent: 0
-			       to: (id<GNUDescriptionDestination>)result];
-      desc = result;
+      GSPropertyListMake(self, loc, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]

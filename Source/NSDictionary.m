@@ -47,6 +47,8 @@
 @class	GSMutableDictionary;
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+extern void	GSPropertyListMake(id, NSDictionary*, BOOL, unsigned, id*);
+
 
 static Class NSArray_class;
 static Class NSDictionaryClass;
@@ -740,27 +742,16 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc;
-  NSString	*desc;
-
-  loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSString	*desc = nil;
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc);
-
-      desc = GSXMLPlMake(self, loc);
+      GSPropertyListMake(self, loc, YES, 2, &desc);
     }
   else
     {
-      NSMutableString	*result;
-
-      result = AUTORELEASE([[NSMutableString alloc] initWithCapacity:
-	20*[self count]]);
-      [self descriptionWithLocale: loc
-			   indent: 0
-			       to: (id<GNUDescriptionDestination>)result];
-      desc = result;
+      GSPropertyListMake(self, loc, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]
@@ -775,27 +766,16 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc;
-  NSString	*desc;
-
-  loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSString	*desc = nil;
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc);
-
-      desc = GSXMLPlMake(self, loc);
+      GSPropertyListMake(self, loc, YES, 2, &desc);
     }
   else
     {
-      NSMutableString	*result;
-
-      result = AUTORELEASE([[NSMutableString alloc] initWithCapacity:
-	20*[self count]]);
-      [self descriptionWithLocale: loc
-			   indent: 0
-			       to: (id<GNUDescriptionDestination>)result];
-      desc = result;
+      GSPropertyListMake(self, loc, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]
@@ -809,30 +789,23 @@ compareIt(id o1, id o2, void* context)
 
 - (NSString*) descriptionInStringsFileFormat
 {
-  NSMutableString	*result;
+  NSMutableString	*result = nil;
   NSEnumerator		*enumerator = [self keyEnumerator];
   IMP			nxtObj = [enumerator methodForSelector: nxtSel];
   IMP			myObj = [self methodForSelector: objSel];
-  IMP			appImp;
   id                    key;
 
-  result = AUTORELEASE([[NSMutableString alloc] initWithCapacity: 1024]);
-  appImp = [(NSObject*)result methodForSelector: appSel];
   while ((key = (*nxtObj)(enumerator, nxtSel)) != nil)
     {
       id val = (*myObj)(self, objSel, key);
 
-      [key descriptionWithLocale: nil
-			  indent: 0
-                              to: (id<GNUDescriptionDestination>)result];
+      GSPropertyListMake(key, nil, NO, 0, &result);
       if (val != nil && [val isEqualToString: @""] == NO)
         {
-	  (*appImp)(result, appSel, @" = ");
-          [val descriptionWithLocale: nil
-			      indent: 0
-                                  to: (id<GNUDescriptionDestination>)result];
+	  [result appendString: @" = "];
+	  GSPropertyListMake(val, nil, NO, 0, &result);
         }
-      (*appImp)(result, appSel, @";\n");
+      [result appendString: @";\n"];
     }
 
   return result;
@@ -846,209 +819,10 @@ compareIt(id o1, id o2, void* context)
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-  NSMutableString	*result;
+  NSMutableString	*result = nil;
 
-  result = AUTORELEASE([[NSMutableString alloc] initWithCapacity:
-    20*[self count]]);
-  [self descriptionWithLocale: locale
-		       indent: level
-			   to: (id<GNUDescriptionDestination>)result];
+  GSPropertyListMake(self, locale, NO, level == 1 ? 3 : 2, &result);
   return result;
-}
-
-static NSString	*indentStrings[] = {
-  @"",
-  @"    ",
-  @"\t",
-  @"\t    ",
-  @"\t\t",
-  @"\t\t    ",
-  @"\t\t\t",
-  @"\t\t\t    ",
-  @"\t\t\t\t",
-  @"\t\t\t\t    ",
-  @"\t\t\t\t\t",
-  @"\t\t\t\t\t    ",
-  @"\t\t\t\t\t\t"
-};
-
-- (void) descriptionWithLocale: (NSDictionary*)locale
-			indent: (unsigned int)level
-			    to: (id<GNUDescriptionDestination>)result
-{
-  IMP			myObj = [self methodForSelector: objSel];
-  unsigned		i;
-  NSArray		*keyArray = [self allKeys];
-  unsigned		numKeys = [keyArray count];
-  NSString		*plists[numKeys];
-  NSString		*keys[numKeys];
-  IMP			appImp;
-
-  appImp = [(NSObject*)result methodForSelector: appSel];
-
-  [keyArray getObjects: keys];
-
-  if (locale == nil)
-    {
-      for (i = 0; i < numKeys; i++)
-	{
-	  plists[i] = (*myObj)(self, objSel, keys[i]);
-	}
-
-      (*appImp)(result, appSel, @"{");
-      for (i = 0; i < numKeys; i++)
-	{
-	  id	o = plists[i];
-
-	  [keys[i] descriptionWithLocale: nil indent: 0 to: result];
-	  (*appImp)(result, appSel, @" = ");
-	  [o descriptionWithLocale: nil indent: 0 to: result];
-	  (*appImp)(result, appSel, @"; ");
-	}
-      (*appImp)(result, appSel, @"}");
-    }
-  else
-    {
-      NSString	*iBaseString;
-      NSString	*iSizeString;
-      BOOL	canCompare = YES;
-      Class	lastClass = 0;
-
-      if (level < sizeof(indentStrings)/sizeof(id))
-	{
-	  iBaseString = indentStrings[level];
-	}
-      else
-	{
-	  iBaseString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
-	}
-      level++;
-      if (level < sizeof(indentStrings)/sizeof(id))
-	{
-	  iSizeString = indentStrings[level];
-	}
-      else
-	{
-	  iSizeString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
-	}
-
-      for (i = 0; i < numKeys; i++)
-	{
-	  if (GSObjCClass(keys[i]) == lastClass)
-	    continue;
-	  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
-	    {
-	      canCompare = NO;
-	      break;
-	    }
-	  lastClass = GSObjCClass(keys[i]);
-	}
-
-      if (canCompare == YES)
-	{
-	  /*
-	   * Shell sort algorithm taken from SortingInAction - a NeXT example
-	   * good value for stride factor is not well-understood
-	   * 3 is a fairly good choice (Sedgewick)
-	   */
-#define STRIDE_FACTOR 3
-	  unsigned	c,d, stride;
-	  BOOL		found;
-	  NSComparisonResult	(*comp)(id, SEL, id) = 0;
-	  int		count = numKeys;
-#ifdef	GSWARN
-	  BOOL		badComparison = NO;
-#endif
-
-	  stride = 1;
-	  while (stride <= count)
-	    {
-	      stride = stride * STRIDE_FACTOR + 1;
-	    }
-	  lastClass = 0;
-	  while (stride > (STRIDE_FACTOR - 1))
-	    {
-	      // loop to sort for each value of stride
-	      stride = stride / STRIDE_FACTOR;
-	      for (c = stride; c < count; c++)
-		{
-		  found = NO;
-		  if (stride > c)
-		    {
-		      break;
-		    }
-		  d = c - stride;
-		  while (!found)	// move to left until correct place
-		    {
-		      id			a = keys[d + stride];
-		      id			b = keys[d];
-		      Class			x;
-		      NSComparisonResult	r;
-
-		      x = GSObjCClass(a);
-		      if (x != lastClass)
-			{
-			  lastClass = x;
-			  comp = (NSComparisonResult (*)(id, SEL, id))
-			    [a methodForSelector: @selector(compare:)];
-			}
-		      r = (*comp)(a, @selector(compare:), b);
-		      if (r < 0)
-			{
-#ifdef	GSWARN
-			  if (r != NSOrderedAscending)
-			    {
-			      badComparison = YES;
-			    }
-#endif
-			  keys[d + stride] = b;
-			  keys[d] = a;
-			  if (stride > d)
-			    {
-			      break;
-			    }
-			  d -= stride;		// jump by stride factor
-			}
-		      else
-			{
-#ifdef	GSWARN
-			  if (r != NSOrderedDescending && r != NSOrderedSame)
-			    {
-			      badComparison = YES;
-			    }
-#endif
-			  found = YES;
-			}
-		    }
-		}
-	    }
-#ifdef	GSWARN
-	  if (badComparison == YES)
-	    {
-	      NSWarnMLog(@"Detected bad return value from comparison");
-	    }
-#endif
-	}
-
-      for (i = 0; i < numKeys; i++)
-	{
-	  plists[i] = (*myObj)(self, objSel, keys[i]);
-	}
-
-      (*appImp)(result, appSel, @"{\n");
-      for (i = 0; i < numKeys; i++)
-	{
-	  id	o = plists[i];
-
-	  (*appImp)(result, appSel, iSizeString);
-	  [keys[i] descriptionWithLocale: nil indent: 0 to: result];
-	  (*appImp)(result, appSel, @" = ");
-	  [o descriptionWithLocale: locale indent: level to: result];
-	  (*appImp)(result, appSel, @";\n");
-	}
-      (*appImp)(result, appSel, iBaseString);
-      (*appImp)(result, appSel, @"}");
-    }
 }
 
 /**
