@@ -83,6 +83,20 @@
   return self;
 }
 
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    [aCoder encodeObject: [self bitmapRepresentation]];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    NSMutableData	*rep;
+
+    rep = [aCoder decodeObject];
+    self = [self initWithBitmap: rep];
+    return self;
+}
+
 /* Need to implement the next two methods just like NSBitmapCharSet */
 - (NSData *)bitmapRepresentation
 {
