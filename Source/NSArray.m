@@ -29,65 +29,29 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
 
-@interface NSArrayEnumerator : NSEnumerator
-{
-  id array;
-  int next_index;
-}
+@class NSArrayEnumerator;
+@class NSArrayEnumeratorReverse;
+
+@interface NSArrayNonCore : NSArray
 @end
-
-@interface NSArrayEnumeratorReverse : NSArrayEnumerator
+@interface NSMutableArrayNonCore : NSMutableArray
 @end
-
-@implementation NSArrayEnumerator
-
-- initWithArray: (NSArray*)anArray
-{
-  [super init];
-  array = anArray;
-  [array retain];
-  next_index = 0;
-  return self;
-}
-
-- (id) nextObject
-{
-  if (next_index >= [array count])
-    return nil;
-  return [array objectAtIndex:next_index++];
-}
-
-- (void) dealloc
-{
-  [array release];
-  [super dealloc];
-}
-
-@end
-
-@implementation NSArrayEnumeratorReverse
-
-- initWithArray: (NSArray*)anArray
-{
-  [super init];
-  array = anArray;
-  [array retain];
-  next_index = [array count]-1;
-  return self;
-}
-
-- (id) nextObject
-{
-  if (next_index < 0)
-    return nil;
-  return [array objectAtIndex:next_index--];
-}
-
-
-@implementation NSArray
 
 static Class NSArray_concrete_class;
 static Class NSMutableArray_concrete_class;
+
+
+@implementation NSArray
+
++ (void) initialize
+{
+  if (self == [NSArray class])
+    {
+      NSArray_concrete_class = [NSGArray class];
+      NSMutableArray_concrete_class = [NSGMutableArray class];
+      behavior_class_add_class (self, [NSArrayNonCore class]);
+    }
+}
 
 + (void) _setConcreteClass: (Class)c
 {
@@ -109,16 +73,34 @@ static Class NSMutableArray_concrete_class;
   return NSMutableArray_concrete_class;
 }
 
-+ (void) initialize
-{
-  NSArray_concrete_class = [NSGArray class];
-  NSMutableArray_concrete_class = [NSGMutableArray class];
-}
-
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  return NSAllocateObject ([self _concreteClass], 0, z);
 }
+
+/* This is the designated initializer for NSArray. */
+- initWithObjects: (id*)objects count: (unsigned)count
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (unsigned) count
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- objectAtIndex: (unsigned)index
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+@end
+
+
+@implementation NSArrayNonCore
 
 + array
 {
@@ -170,13 +152,6 @@ static Class NSMutableArray_concrete_class;
 }
 
 
-
-/* This is the designated initializer for NSArray. */
-- initWithObjects: (id*)objects count: (unsigned)count
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
 
 /* Not very pretty... */
 #define INITIAL_OBJECTS_SIZE 10
@@ -235,18 +210,6 @@ static Class NSMutableArray_concrete_class;
   return [self initWithObjects:objects count:c];
 }
 
-
-- (unsigned) count
-{
-  [self subclassResponsibility:_cmd];
-  return 0;
-}
-
-- objectAtIndex: (unsigned)index
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
 
 - (unsigned) indexOfObjectIdenticalTo:anObject
 {
@@ -435,17 +398,18 @@ static Class NSMutableArray_concrete_class;
 
 @end
 
-@implementation NSMutableArray: NSArray
+
+@implementation NSMutableArray
+
++ (void) initialize
+{
+  if (self == [NSMutableArray class])
+    behavior_class_add_class (self, [NSMutableArrayNonCore class]);
+}
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _mutableConcreteClass], 0, z);
-}
-
-+ arrayWithCapacity: (unsigned)numItems
-{
-  return [[[self alloc] initWithCapacity:numItems] 
-	  autorelease];
+  return NSAllocateObject ([self _mutableConcreteClass], 0, z);
 }
 
 /* This is the desgnated initializer for NSMutableArray */
@@ -453,24 +417,6 @@ static Class NSMutableArray_concrete_class;
 {
   [self subclassResponsibility:_cmd];
   return nil;
-}
-
-#if 0
-/* Not in OpenStep. */
-- (void) addObjects: (id*)objects count: (unsigned)count
-{
-}
-#endif
-
-/* Override our superclass's designated initializer to go our's */
-- initWithObjects: (id*)objects count: (unsigned)count
-{
-  /* xxx Could be made more efficient by increasing capacity all at once. */
-  int i;
-  self = [self initWithCapacity:count];
-  for (i = 0; i < count; i++)
-    [self addObject:objects[i]];
-  return self;
 }
 
 - (void) addObject: anObject
@@ -491,6 +437,28 @@ static Class NSMutableArray_concrete_class;
 - (void) removeObjectAtIndex: (unsigned)index
 {
   [self subclassResponsibility:_cmd];
+}
+
+@end
+
+
+@implementation NSMutableArrayNonCore
+
++ arrayWithCapacity: (unsigned)numItems
+{
+  return [[[self alloc] initWithCapacity:numItems] 
+	  autorelease];
+}
+
+/* Override our superclass's designated initializer to go our's */
+- initWithObjects: (id*)objects count: (unsigned)count
+{
+  /* xxx Could be made more efficient by increasing capacity all at once. */
+  int i;
+  self = [self initWithCapacity: count];
+  for (i = 0; i < count; i++)
+    [self addObject:objects[i]];
+  return self;
 }
 
 - (void) removeLastObject
@@ -527,17 +495,17 @@ static Class NSMutableArray_concrete_class;
   /* xxx Could be made more efficient by increasing capacity all at once. */
   int i, c = [otherArray count];
   for (i = 0; i < c; i++)
-    [self addObject:[otherArray objectAtIndex:i]];
+    [self addObject: [otherArray objectAtIndex: i]];
 }
 
 - (void) setArray:(NSArray *)otherArray
 {
   [self removeAllObjects];
-  [self addObjectsFromArray:otherArray];
+  [self addObjectsFromArray: otherArray];
 }
 
 - (void) removeObjectsFromIndices: (unsigned*)indices 
-   numIndices: (unsigned)count
+		       numIndices: (unsigned)count
 {
   int compare_unsigned(const void *u1, const void *u2)
     {
@@ -563,3 +531,61 @@ static Class NSMutableArray_concrete_class;
 }
 
 @end
+
+
+@interface NSArrayEnumerator : NSEnumerator
+{
+  id array;
+  int next_index;
+}
+@end
+
+@implementation NSArrayEnumerator
+
+- initWithArray: (NSArray*)anArray
+{
+  [super init];
+  array = anArray;
+  [array retain];
+  next_index = 0;
+  return self;
+}
+
+- (id) nextObject
+{
+  if (next_index >= [array count])
+    return nil;
+  return [array objectAtIndex:next_index++];
+}
+
+- (void) dealloc
+{
+  [array release];
+  [super dealloc];
+}
+
+@end
+
+
+@interface NSArrayEnumeratorReverse : NSArrayEnumerator
+@end
+
+@implementation NSArrayEnumeratorReverse
+
+- initWithArray: (NSArray*)anArray
+{
+  [super init];
+  array = anArray;
+  [array retain];
+  next_index = [array count]-1;
+  return self;
+}
+
+- (id) nextObject
+{
+  if (next_index < 0)
+    return nil;
+  return [array objectAtIndex:next_index--];
+}
+
+
