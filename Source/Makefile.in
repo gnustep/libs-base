@@ -214,7 +214,8 @@ GNU_OTHER_SRCFILES = \
 x-basics.c.in \
 x-callbacks.c.in \
 objects/x-basics.h.in \
-objects/x-callbacks.h.in
+objects/x-callbacks.h.in \
+md5.h
 
 GNU_OBJS = \
 	$(GNU_BASICS_CFILES:.c=$(OEXT)) \
@@ -233,6 +234,7 @@ objects/BinaryTreeNode.h \
 objects/CircularArray.h \
 objects/CircularArrayPrivate.h \
 objects/Coder.h \
+objects/CoderPrivate.h \
 objects/Coding.h \
 objects/Collecting.h \
 objects/Collection.h \
@@ -299,6 +301,7 @@ objects/abort.h \
 objects/allocs.h \
 objects/array.h \
 objects/behavior.h \
+objects/bitops.h \
 objects/callbacks.h \
 objects/data.h \
 objects/hash.h \
@@ -306,6 +309,7 @@ objects/list.h \
 objects/magic.h \
 objects/map.h \
 objects/mframe.h \
+objects/minmax.h \
 objects/number.h \
 objects/objc-gnu2next.h \
 objects/objc-malloc.h \
