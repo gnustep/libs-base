@@ -1,3 +1,9 @@
+Tue Feb 27 05:07:24 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.in (Version): source it as ./Version rather than
+	Version (suggested by Juliusz Chroboczek <jch@pps.jussieu.fr>).
+	* configure: Regenerated.
+
 2001-02-26  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSConcreteNumber.m (NumberTemplate): added precision to float
