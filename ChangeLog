@@ -1,3 +1,8 @@
+2002-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Altered logging format for compatibility with
+	MacOS-X (and easier collating).  Thanks to report by lcampbell
+
 2002-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: GSFromUnicode(), GSToUnicode(), bugfix - ensure
