@@ -28,7 +28,7 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#if !HAS_STRERROR
+#if !HAVE_STRERROR
 static const char*
 strerror(int eno)
 {
