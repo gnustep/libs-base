@@ -1,3 +1,11 @@
+2002-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: 1.4.0
+	* Source/NSFileManager.m: Don't standardise path before conferting to
+	filesystem representation ... that would follow links automatically,
+	and we mustn't do that.
+	* Tools/gdomap.c: Security enhancement ... call setgroups()
+
 2002-07-03  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.3.4
