@@ -204,7 +204,7 @@ static BOOL debug_binary_coder;
       {
 	char buf[64];
 	char *s = buf;
-	sprintf(buf, "%lf", *(double*)d);
+	sprintf(buf, "%f", *(double*)d);
 	[self encodeValueOfCType: @encode(char*)
 	      at: &s
 	      withName: @"BinaryCStream double"];
