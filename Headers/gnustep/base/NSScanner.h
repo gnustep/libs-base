@@ -1,5 +1,5 @@
 /* Definitions for NSScanner class
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996,1999 Free Software Foundation, Inc.
 
    Author:  Eric Norum <eric@skatter.usask.ca>
    Created: 1996
@@ -25,65 +25,74 @@
 #define __NSScanner_h_GNUSTEP_INCLUDE
 
 #include <base/preface.h>
+#include <Foundation/NSDecimal.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
 
-//
-// NSScanner class
-//
+/*
+ * NSScanner class
+ */
 @interface NSScanner : NSObject <NSCopying>
 {
 @private
-   NSString        *string;
-   unsigned int    len;
-   NSCharacterSet  *charactersToBeSkipped;
-   NSDictionary    *locale;
-   unsigned int    scanLocation;
-   BOOL            caseSensitive;
+  NSString		*string;
+  NSCharacterSet	*charactersToBeSkipped;
+  BOOL			(*skipImp)(NSCharacterSet*, SEL, unichar);
+  NSDictionary		*locale;
+  unsigned int		scanLocation;
+  unichar		decimal;
+  BOOL			caseSensitive;
+  BOOL			isUnicode;
 }
 
 /*
  * Creating an NSScanner
  */
-+ localizedScannerWithString:(NSString *)aString;
-+ scannerWithString:(NSString *)aString;
-- initWithString:(NSString *)aString;
++ (id) localizedScannerWithString: (NSString*)aString;
++ (id) scannerWithString: (NSString*)aString;
+- (id) initWithString: (NSString*)aString;
 
 /*
  * Getting an NSScanner's string
  */
-- (NSString *)string;
+- (NSString*) string;
 
 /*
  * Configuring an NSScanner
  */
-- (unsigned)scanLocation;
-- (void)setScanLocation:(unsigned int)anIndex;
-- (BOOL)caseSensitive;
-- (void)setCaseSensitive:(BOOL)flag;
-- (NSCharacterSet *)charactersToBeSkipped;
-- (void)setCharactersToBeSkipped:(NSCharacterSet *)aSet;
-- (NSDictionary *)locale;
-- (void)setLocale:(NSDictionary *)localeDictionary;
+- (unsigned) scanLocation;
+- (void) setScanLocation: (unsigned int)anIndex;
+
+- (BOOL) caseSensitive;
+- (void) setCaseSensitive: (BOOL)flag;
+
+- (NSCharacterSet*) charactersToBeSkipped;
+- (void) setCharactersToBeSkipped: (NSCharacterSet *)aSet;
+
+- (NSDictionary*)locale;
+- (void)setLocale:(NSDictionary*)localeDictionary;
 
 /*
  * Scanning a string
  */
-- (BOOL)scanInt:(int *)value;
-- (BOOL)scanInt:(int *)value;
-- (BOOL)scanHexInt:(unsigned int *)value;
-- (BOOL)scanRadixUnsignedInt:(unsigned int *)value;
-- (BOOL)scanLongLong:(long long *)value;
-- (BOOL)scanFloat:(float *)value;
-- (BOOL)scanDouble:(double *)value;
-- (BOOL)scanString:(NSString *)string intoString:(NSString **)value;
-- (BOOL)scanCharactersFromSet:(NSCharacterSet *)aSet
-                   intoString:(NSString **)value;
-- (BOOL)scanUpToString:(NSString *)string intoString:(NSString **)value;
-- (BOOL)scanUpToCharactersFromSet:(NSCharacterSet *)aSet 
-                       intoString:(NSString **)value;
-- (BOOL)isAtEnd;
+- (BOOL) scanInt: (int*)value;
+- (BOOL) scanInt: (int*)value;
+- (BOOL) scanHexInt: (unsigned int*)value;
+- (BOOL) scanRadixUnsignedInt: (unsigned int*)value;
+- (BOOL) scanLongLong: (long long*)value;
+- (BOOL) scanFloat: (float*)value;
+- (BOOL) scanDouble: (double*)value;
+- (BOOL) scanString: (NSString*)string intoString: (NSString**)value;
+- (BOOL) scanCharactersFromSet: (NSCharacterSet*)aSet
+		    intoString: (NSString**)value;
+- (BOOL) scanUpToString: (NSString*)string intoString: (NSString**)value;
+- (BOOL) scanUpToCharactersFromSet: (NSCharacterSet*)aSet 
+			intoString: (NSString**)value;
+- (BOOL) isAtEnd;
 
+#ifndef	STRICT_OPENSTEP
+- (BOOL) scanDecimal: (NSDecimal*)value;
+#endif
 @end
 
 #endif /* __NSScanner_h_GNUSTEP_INCLUDE */
