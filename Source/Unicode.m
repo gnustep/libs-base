@@ -52,7 +52,7 @@ struct _ucc_ {unichar from; char to;};
 // The rest of the GNUstep code stores UNICODE in internal byte order,
 // so we do the same. This should be UCS-2-INTERNAL for libiconv
 #ifdef WORDS_BIGENDIAN
-#define UNICODE_INT "UNICODEBIGL"
+#define UNICODE_INT "UNICODEBIG"
 #else
 #define UNICODE_INT "UNICODELITTLE"
 #endif
