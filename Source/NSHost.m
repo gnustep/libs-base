@@ -41,7 +41,9 @@
 #include <winsock.h>
 #else
 #include <netdb.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -50,6 +50,9 @@
 #if HAVE_POLL_H
 #include <poll.h>
 #endif
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <time.h>
 #include <limits.h>
 #include <string.h>		/* for memset() */
@@ -565,10 +568,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   unsigned	i;
 
   i = GSIArrayCount(watchers);
-  if (i == 0)
-    {
-      return NO;
-    }
 
   /*
    * Get ready to listen to file descriptors.
@@ -879,14 +878,10 @@ if (0) {
   fd_set 		exception_fds;	// Mask for exception fds.
   fd_set 		write_fds;	// Mask for write-ready fds.
   int			num_inputs = 0;
-  int			fdEnd = 0;
+  int			fdEnd = -1;
   unsigned		i;
 
   i = GSIArrayCount(watchers);
-  if (i == 0)
-    {
-      return NO;
-    }
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
   if (milliseconds == 0)
@@ -1013,6 +1008,7 @@ if (0) {
       timeout.tv_usec = 0;
       select_timeout = &timeout;
     }
+
   select_return = select (fdEnd, &read_fds, &write_fds,
     &exception_fds, select_timeout);
 
@@ -1839,9 +1835,10 @@ if (0) {
 
 /**
  * Listen to input sources.<br />
- * If limit_date is nil, then don't wait; just poll inputs and return,
- * otherwise block until input is available or until all input limit dates
- * have passed (whichever comes first).<br />
+ * If limit_date is nil or in the past, then don't wait;
+ * just poll inputs and return,
+ * otherwise block until input is available or until the
+ * earliest limit date has passed (whichever comes first).<br />
  * If the supplied mode is nil, uses NSDefaultRunLoopMode.
  */
 - (void) acceptInputForMode: (NSString*)mode 
@@ -1869,9 +1866,45 @@ if (0) {
       if (context == nil || (watchers = context->watchers) == 0
 	|| (i = GSIArrayCount(watchers)) == 0)
 	{
-	  GSCheckTasks();
-	  GSNotifyASAP();
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
+	  GSNotifyASAP();
+	  GSNotifyIdle();
+	  ti = [limit_date timeIntervalSinceNow];
+	  /*
+	   * Pause for as long as possible (up to the limit date)
+	   */
+	  if (ti > 0.0)
+	    {
+#if	defined(HAVE_USLEEP)
+	      if (ti >= INT_MAX / 1000000)
+		{
+		  ti = INT_MAX;
+		}
+	      else
+		{
+		  ti *= 1000000;
+		}
+	      usleep (ti);
+#elif	defined(__MINGW__)
+	      if (ti >= INT_MAX / 1000)
+		{
+		  ti = INT_MAX;
+		}
+	      else
+		{
+		  ti *= 1000;
+		}
+	      Sleep (ti);
+#else
+	      sleep (ti);
+#endif
+	    }
+	  GSCheckTasks();
+	  if (context != nil)
+	    {
+	      [self _checkPerformers: context];
+	    }
+	  GSNotifyASAP();
 	  _currentMode = savedMode;
 	  RELEASE(arp);
 	  NS_VOIDRETURN;

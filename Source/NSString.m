@@ -67,7 +67,9 @@
 #include <base/GSFormat.h>
 #include <limits.h>
 #include <sys/stat.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>

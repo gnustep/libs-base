@@ -40,7 +40,7 @@
 #include <Foundation/NSUserDefaults.h>
 
 #include <stdlib.h>		// for getenv()
-#if !defined(__WIN32__)
+#if HAVE_UNISTD_H
 #include <unistd.h>		// for getlogin()
 #endif
 #if	HAVE_PWD_H

@@ -32,7 +32,7 @@
 #ifdef __WIN32__
 #include <malloc.h>
 #endif
-#ifndef __MINGW__
+#if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <stdio.h>

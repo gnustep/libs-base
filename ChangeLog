@@ -8,6 +8,8 @@
 	invocation is retaining its contents.
 	* configure.in: Disable ffi and warn about it.
 	* configure: regenerated
+	* Source/NSRunLoop.m: ([acceptInputForMode:beforeDate:]) block until
+	limit date even if no I/O is possible.
 
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 

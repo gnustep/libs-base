@@ -32,7 +32,9 @@
 
 #include <config.h>
 #include <base/preface.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <Foundation/NSThread.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>

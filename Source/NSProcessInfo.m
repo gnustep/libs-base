@@ -56,7 +56,9 @@
 
 #include <config.h>
 #include <base/preface.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #ifdef HAVE_STRERROR 
 #include <errno.h>
