@@ -41,6 +41,12 @@ int main ()
   struct objc_struct_layout layout;
   unsigned i;
 
+  NSLog(@"Orig: %@", [NSUserDefaults userLanguages]);
+  [NSUserDefaults setUserLanguages: [NSArray arrayWithObject: @"Bletch"]];
+  NSLog(@"Set: %@", [NSUserDefaults userLanguages]);
+  [NSUserDefaults setUserLanguages: [NSArray arrayWithObject: @"English"]];
+  NSLog(@"Set: %@", [NSUserDefaults userLanguages]);
+
   printf("size = %d\n", objc_sizeof_type(@encode(struct aa)));
   printf("pos = %d\n", (void*)&bb[1] - (void*)&bb[0]);
 
