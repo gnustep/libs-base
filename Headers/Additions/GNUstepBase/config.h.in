@@ -58,8 +58,8 @@
 /* Define to 1 if you have the `getpwuid' function. */
 #undef HAVE_GETPWUID
 
-/* Define if you have this header */
-#undef HAVE_GICONV_H
+/* Define if you have this function */
+#undef HAVE_GICONV
 
 /* Define to 1 if you have the <gmp.h> header file. */
 #undef HAVE_GMP_H
@@ -91,12 +91,6 @@
 /* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
 
-/* Define to 1 if you have the `giconv' library (-lgiconv). */
-#undef HAVE_LIBGICONV
-
-/* Define to 1 if you have the `iconv' library (-liconv). */
-#undef HAVE_LIBICONV
-
 /* Define to 1 if you have the `kvm' library (-lkvm). */
 #undef HAVE_LIBKVM
 
@@ -106,7 +100,7 @@
 /* Define if libxml available */
 #undef HAVE_LIBXML
 
-/* Define if libxml/SAX2.h available */
+/* Define to 1 if you have the <libxml/SAX2.h> header file. */
 #undef HAVE_LIBXML_SAX2_H
 
 /* Define if libxslt available */
@@ -405,6 +399,9 @@
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
+
+/* Define if you can access the kernel via kvm_open */
+#undef have_kvm_env
 
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */

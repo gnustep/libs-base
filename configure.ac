@@ -824,7 +824,25 @@ fi
 #--------------------------------------------------------------------
 # If /proc doesn't work, try kvm (on FreeBSD, for instance)
 #--------------------------------------------------------------------
+have_kvm_env=0
+save_LIBS="$LIBS"
 AC_CHECK_LIB(kvm, kvm_getenvv)
+if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
+  AC_MSG_CHECKING(if we can access kernel memory)
+  AC_TRY_RUN([#include "$srcdir/config/config.kvmopen.c"],
+	have_kvm_env=1,
+	have_kvm_env=0,
+	have_kvm_env=0)
+  AC_DEFINE_UNQUOTED(have_kvm_env, $have_kvm_env,
+		   [Define if you can access the kernel via kvm_open])
+  if test $have_kvm_env = 1; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+  # Reset LIBS since we don't need kvm
+  LIBS="$save_LIBS"
+fi
 
 #--------------------------------------------------------------------
 # Include redefinition of main () only if needed.
@@ -868,7 +886,7 @@ GS_FAKE_MAIN=0
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
 elif test "$enable_pass_arguments" = "no"; then
-  if test "$objc_load_method_worked" = yes -a "$ac_cv_sys_procfs" = yes; then
+  if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 \); then
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1

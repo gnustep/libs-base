@@ -26,6 +26,7 @@
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
 include $(GNUSTEP_MAKEFILES)/common.make
+include ../../config.mak
 
 DOCUMENT_NAME = General
 
@@ -45,6 +46,7 @@ OpenStepCompliance.gsdoc \
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../../Tools/obj/autogsdoc
+BASE_MAKE_LOADED=yes
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 

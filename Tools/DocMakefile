@@ -25,6 +25,7 @@
 MAKEFILE_NAME = DocMakefile
 
 include $(GNUSTEP_MAKEFILES)/common.make
+include ../config.mak
 
 DOCUMENT_NAME = BaseTools
 
@@ -72,6 +73,7 @@ BaseTools_AGSDOC_FLAGS = \
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../Tools/obj/autogsdoc
+BASE_MAKE_LOADED=yes
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 
