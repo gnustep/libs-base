@@ -1,5 +1,5 @@
 /* Implementation of connection object for remote object messaging
-   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -1000,8 +1000,9 @@ static int messages_received_count;
       if (!timeout_date)
 	timeout_date = [[NSDate alloc] 
 			 initWithTimeIntervalSinceNow: in_timeout];
-      [RunLoop runOnceBeforeDate: timeout_date 
-	       forMode: RunLoopConnectionReplyMode];
+      if ([RunLoop runOnceBeforeDate: timeout_date 
+		   forMode: RunLoopConnectionReplyMode] == NO)
+	break;
     }
   reply_depth--;
   return rmc;
