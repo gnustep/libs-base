@@ -165,11 +165,66 @@ AC_SUBST(NeXT_runtime)
 AC_SUBST(NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
+
+#--------------------------------------------------------------------
+# Check for dynamic linking
+#
+# the name we assign to DYNAMIC_LINKER cooresponds to the interface that
+# is inluded in objc-load.c (i.e. #include "${DYNAMIC_LINKER}-load.h")
+#--------------------------------------------------------------------
+DYNAMIC_LINKER=null
+AC_CHECK_LIB(dl, dlopen, DYNAMIC_LINKER=simple LIBS="${LIBS} -ldl")
+
+DLD_INCLUDE=''
+if test $DYNAMIC_LINKER = null; then
+    AC_CHECK_LIB(dld, dld_init, DYNAMIC_LINKER=dld LIBS="${LIBS} -ldld")
+    # Check in non-standard places
+    if test $ac_cv_lib_dld = no; then
+        AC_MSG_CHECKING(for dld in user directory)
+        if test -f ${srcdir}/../dld/libdld.a; then
+            DYNAMIC_LINKER=dld
+            DLD_INCLUDE="-I$(OSDIR)/.."
+            LIBS="${LIBS} -L$(OSDIR)/../dld -ldld"
+            AC_MSG_RESULT(yes)
+        else
+            AC_MSG_RESULT(no)
+        fi
+    fi
+    if test $ac_cv_lib_dld = yes && test $ac_cv_header_dld_defs = no; then
+        AC_MSG_WARN(Could not find dld/defs.h header)
+        echo
+        echo "objc-load needs the the dld/defs.h header to get information"
+        echo "about how to use libdld"
+        echo
+    fi
+fi
+AC_SUBST(DYNAMIC_LINKER)
+AC_SUBST(DLD_INCLUDE)
+
+# These determine how the NSBundle example makefile is setup
+# They don't always work...
+if test $DYNAMIC_LINKER = dld; then
+    DYNAMIC_BUNDLER_LINKER="ld -r"
+    DYNAMIC_LDFLAGS="-static"
+elif test $DYNAMIC_LINKER = simple; then
+    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib"
+    DYNAMIC_LDFLAGS=""
+elif test $DYNAMIC_LINKER = null; then
+    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib -Xlinker -r"
+    DYNAMIC_LDFLAGS=""
+else
+    DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib -Xlinker -r"
+    DYNAMIC_LDFLAGS=""
+fi
+AC_SUBST(DYNAMIC_BUNDLER_LINKER)
+AC_SUBST(DYNAMIC_LDFLAGS)
+
 #--------------------------------------------------------------------
 # Find some programs
 #--------------------------------------------------------------------
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AC_LN_S
 
 #--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
