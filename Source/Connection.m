@@ -34,6 +34,7 @@
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Connection.h>
+#include <Foundation/NSConnection.h>
 #include <gnustep/base/Proxy.h>
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/TcpPort.h>
@@ -460,7 +461,7 @@ static int messages_received_count;
   /* Here is the OpenStep version, which just allows the returning of BOOL */
   if ([[ancestor delegate] respondsTo:@selector(makeNewConnection:sender:)])
     {
-      if (![[ancestor delegate] makeNewConnection: newConn 
+      if (![[ancestor delegate] makeNewConnection: (NSConnection*)newConn 
 				sender: [ancestor delegate]])
 	{
 	  [newConn release];
