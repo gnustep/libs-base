@@ -32,10 +32,14 @@
 - (void) encodeValueOfCType: (const char*) type 
          at: (const void*) d 
          withName: (id <String>) name;
-
 - (void) decodeValueOfCType: (const char*) type 
          at: (void*) d 
          withName: (id <String> *) namePtr;
+
+- (void) encodeWithName: (id <String>) name
+	 valuesOfCTypes: (const char *) types, ...;
+- (void) decodeWithName: (id <String> *)name
+	 valuesOfCTypes: (const char *)types, ...;
 
 - (void) encodeName: (id <String>) name;
 - (void) decodeName: (id <String> *) name;
