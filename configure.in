@@ -1,4 +1,4 @@
-AC_INIT(Collection.m)
+AC_INIT(src/Collection.m)
 
 # configure.in for GNU Objective-C library
 # Process this file with autoconf to produce a configure script.
