@@ -114,7 +114,6 @@
 
 - (NSComparisonResult) compare: (NSNumber*)otherNumber;
 - (BOOL) isEqualToNumber: (NSNumber*)otherNumber;
-
 @end
 
 #ifndef	NO_GNUSTEP
@@ -131,22 +130,8 @@
  * Cache info for internal use by NSNumber concrete subclasses.
  */
 typedef struct {
-  int			typeOrder;
-  int			typeNext;
-  NSComparisonResult	(*compValue)(NSNumber*, SEL, NSNumber*);
-  BOOL			(*boolValue)(NSNumber*, SEL);
-  char			(*charValue)(NSNumber*, SEL);
-  unsigned char		(*unsignedCharValue)(NSNumber*, SEL);
-  short			(*shortValue)(NSNumber*, SEL);
-  unsigned short	(*unsignedShortValue)(NSNumber*, SEL);
-  int			(*intValue)(NSNumber*, SEL);
-  unsigned int		(*unsignedIntValue)(NSNumber*, SEL);
-  long			(*longValue)(NSNumber*, SEL);
-  unsigned long		(*unsignedLongValue)(NSNumber*, SEL);
-  long long		(*longLongValue)(NSNumber*, SEL);
-  unsigned long long	(*unsignedLongLongValue)(NSNumber*, SEL);
-  float			(*floatValue)(NSNumber*, SEL);
-  double		(*doubleValue)(NSNumber*, SEL);
+  int		typeLevel;
+  void		(*getValue)(NSNumber*, SEL, void*);
 } GSNumberInfo;
 
 GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
