@@ -108,6 +108,10 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 @implementation GSFileHandle
 
+/**
+ * Encapsulates low level read operation to get data from the operating
+ * system.
+ */
 - (int) read: (void*)buf length: (int)len
 {
 #if	USE_ZLIB
@@ -128,6 +132,10 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
   return len;
 }
 
+/**
+ * Encapsulates low level write operation to send data to the operating
+ * system.
+ */
 - (int) write: (const void*)buf length: (int)len
 {
 #if	USE_ZLIB
