@@ -28,7 +28,9 @@
 */
 
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSThread.h>
 
 #include <gnustep/base/GCObject.h>
 
@@ -46,25 +48,49 @@
 
 
 /**
- * The GCObject class is both the base class for all garbage collected
- * objects, and an infrastructure for handling garbage collection.<br />
- * It maintains a list of all garbage collectable objects and provides
+ * <p>The GCObject class is both the base class for all garbage collected
+ * objects, and an infrastructure for handling garbage collection.
+ * </p>
+ * <p>It maintains a list of all garbage collectable objects and provides
  * a method to run a garbage collection pass on those objects.
+ * </p>
  */
 @implementation GCObject
 
 static GCObject	*allObjects = nil;
 static BOOL	isCollecting = NO;
 
+static objc_mutex_t allocationLock = NULL;
+
++ (void) _becomeMultiThreaded: (NSNotification *)aNotification
+{
+  if (allocationLock == 0)
+    {
+      allocationLock = objc_mutex_allocate();
+    }
+}
+
+/**
+ * Allocates an instance of the class and links it into the list of
+ * all garbage collectable objects.  Returns the new instance.<br />
+ */
 + (id) allocWithZone: (NSZone*)zone
 {
   GCObject	*o = [super allocWithZone: zone];
 
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
   o->gc.next = allObjects;
   o->gc.previous = allObjects->gc.previous;
   allObjects->gc.previous->gc.next = o;
   allObjects->gc.previous = o;
   o->gc.flags.refCount = 1;
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
 
   return o;
 }
@@ -102,8 +128,16 @@ static BOOL	isCollecting = NO;
   GCObject	*object;
   GCObject	*last;
 
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
   if (isCollecting == YES)
     {
+      if (allocationLock != 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	}
       return;	// Don't allow recursion.
     }
   isCollecting = YES;
@@ -160,6 +194,10 @@ static BOOL	isCollecting = NO;
 	}
     }
   isCollecting = NO;
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
 }
 
 + (void) initialize
@@ -170,6 +208,18 @@ static BOOL	isCollecting = NO;
 	NSAllocateObject([_GCObjectList class], 0, NSDefaultMallocZone());
       allObjects->gc.next = allObjects;
       allObjects->gc.previous = allObjects;
+      if ([NSThread isMultiThreaded] == YES)
+	{
+	  [self _becomeMultiThreaded: nil];
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_becomeMultiThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
     }
 }
 
@@ -182,14 +232,22 @@ static BOOL	isCollecting = NO;
 }
 
 /**
- * Called to remove anObject from the list of garbage collectable objects.
- * Subclasses should call this is their -dealloc methods.
+ * Called to remove anObject from the list of garbage collectable objects.<br />
+ * This method is provided so that classes which are not subclasses of
+ * GCObject (but which have the same initial instance variable layout) can
+ * use multiple inheritance (behaviors) to act as GCObject instances, but
+ * can have their own -dealloc methods.<br />
+ * These classes should call this in their own -dealloc methods.
  */
 + (void) gcObjectWillBeDeallocated: (GCObject*)anObject
 {
   GCObject	*p;
   GCObject	*n;
 
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
   // p = anObject->gc.previous;
   // n = anObject->gc.next;
   // p->gc.next = n;
@@ -198,29 +256,80 @@ static BOOL	isCollecting = NO;
   n = [anObject gcNextObject];
   [p gcSetNextObject: n];
   [n gcSetPreviousObject: p];
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
 }
 
+/**
+ * Copies the receiver (using the NSCopyObject() function) and links
+ * the resulting object into the list of all garbage collactable
+ * objects.  Returns the newly created object.
+ */
 - (id) copyWithZone: (NSZone*)zone
 {
   GCObject	*o = (GCObject*)NSCopyObject(self, 0, zone);
 
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
   o->gc.next = allObjects;
   o->gc.previous = allObjects->gc.previous;
   allObjects->gc.previous->gc.next = o;
   allObjects->gc.previous = o;
   o->gc.flags.refCount = 1;
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
   return o;
 }
 
-/* 
+/**
+ * Removes the receiver from the list of garbage collectable objects and
+ * then calls the superclass implementation to complete deallocation of
+ * th receiver and freeing of the memory it uses.<br />
+ * Subclasses should call this at the end of their -dealloc methods as usual.
+ */
+- (void) dealloc
+{
+  GCObject	*p;
+  GCObject	*n;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
+  // p = anObject->gc.previous;
+  // n = anObject->gc.next;
+  // p->gc.next = n;
+  // n->gc.previous = p;
+  p = [self gcPreviousObject];
+  n = [self gcNextObject];
+  [p gcSetNextObject: n];
+  [n gcSetPreviousObject: p];
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
+  [super dealloc];
+}
+
+/**
  * Decrements the garbage collection reference count for the receiver.<br />
  */
 - (void) gcDecrementRefCount
 {
+  /*
+   * No locking needed since this is only called when garbage collecting
+   * and the collection method handles locking.
+   */
   gc.flags.refCount--;
 }
 
-/* 
+/**
  * <p>Marks the receiver as not having been visited in the current garbage
  * collection process (first pass of collection).
  * </p>
@@ -232,18 +341,26 @@ static BOOL	isCollecting = NO;
  */
 - (void) gcDecrementRefCountOfContainedObjects
 {
+  /*
+   * No locking needed since this is only called when garbage collecting
+   * and the collection method handles locking.
+   */
   gc.flags.visited = 0;
 }
 
-/* 
+/**
  * Increments the garbage collection reference count for the receiver.<br />
  */
 - (void) gcIncrementRefCount
 {
+  /*
+   * No locking needed since this is only called when garbage collecting
+   * and the collection method handles locking.
+   */
   gc.flags.refCount++;
 }
 
-/*
+/**
  * <p>Checks to see if the receiver has already been visited in the
  * current garbage collection process, and either marks the receiver as
  * visited (and returns YES) or returns NO to indicate that it had already
@@ -258,6 +375,10 @@ static BOOL	isCollecting = NO;
  */
 - (BOOL) gcIncrementRefCountOfContainedObjects
 {
+  /*
+   * No locking needed since this is only called when garbage collecting
+   * and the collection method handles locking.
+   */
   if (gc.flags.visited == 1)
     {
       return NO;
@@ -266,21 +387,47 @@ static BOOL	isCollecting = NO;
   return YES;
 }
 
+/**
+ * Decrements the receivers reference count, and if zero, rmoveis it
+ * from the list of garbage collectable objects and deallocates it.
+ */
 - (oneway void) release
 {
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
   if (gc.flags.refCount > 0 && gc.flags.refCount-- == 1)
     {
       [GCObject gcObjectWillBeDeallocated: self];
       [self dealloc];
     }
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
 }
 
+/**
+ * Increments the receivers reference count and returns the receiver.
+ */
 - (id) retain
 {
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+    }
   gc.flags.refCount++;
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
   return self;
 }
 
+/**
+ * Returns the receivers reference count.
+ */
 - (unsigned int) retainCount
 {
   return gc.flags.refCount;
@@ -288,6 +435,16 @@ static BOOL	isCollecting = NO;
 
 @end
 
+/**
+ * This category implements accessor methods for the instance variables
+ * used for garbage collecting.  If/when we can ensure that all garbage
+ * collecting classes use the same initial ivar layout, we can remove
+ * these methods and the garbage collector can access the ivars directly,
+ * making a pretty big performance improvement during collecting.<br />
+ * NB. These methods must *only* be used by the garbage collecting process
+ * or in methods called from the garbage collector.  Anything else is not
+ * thread-safe.
+ */
 @implementation GCObject (Extra)
 
 - (BOOL) gcAlreadyVisited

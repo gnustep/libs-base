@@ -1,3 +1,8 @@
+2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GCObject.m: Attempt to make garbage collecting
+	thread-safe.
+
 2002-11-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Treat '-' on its own as an argument
