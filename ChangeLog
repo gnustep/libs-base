@@ -1,3 +1,9 @@
+2004-02-26  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSCategories.h
+	([NSLock gcFinalize]): Declare.
+	([NSRecursiveLock gcFinalize]): Ditto.
+	
 2004-02-25  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h:
