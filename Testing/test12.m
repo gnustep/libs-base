@@ -29,7 +29,7 @@ int main()
 */
   printf("%s chi^2 = %f\n", 
 	 [rng name], [Random chiSquareOfRandomGenerator:rng]);
-  [r free];
+  [rng free];
 
   exit(0);
 }
