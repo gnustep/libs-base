@@ -25,7 +25,7 @@
 #define __TcpPort_h__GNUSTEP_BASE_INCLUDE
 
 #include <base/Port.h>
-#include <base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #ifdef __MINGW32__
 # include <winsock.h>
 #else
