@@ -1,5 +1,5 @@
 /* Concrete implementation of NSArray 
-   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -29,8 +29,14 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 
+static SEL	eqSel = @selector(isEqual:);
+
+@class	NSGArrayEnumerator;
+@class	NSGArrayEnumeratorReverse;
+
 @interface NSGArray : NSArray
 {
+@public
   id		*_contents_array;
   unsigned	_count;
 }
@@ -38,6 +44,7 @@
 
 @interface NSGMutableArray : NSMutableArray
 {
+@public
   id		*_contents_array;
   unsigned	_count;
   unsigned	_capacity;
@@ -166,15 +173,14 @@
    */
   if (_count > 1)
     {
-      static SEL	sel = @selector(isEqual:);
       BOOL		(*imp)(id,SEL,id);
       unsigned		i;
 
-      imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: sel];
+      imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: eqSel];
 
       for (i = 0; i < _count; i++)
 	{
-	  if ((*imp)(anObject, sel, _contents_array[i]))
+	  if ((*imp)(anObject, eqSel, _contents_array[i]))
 	    {
 	      return i;
 	    }
@@ -413,6 +419,33 @@
   RELEASE(_contents_array[_count]);
 }
 
+- (void) removeObject: (id)anObject
+{
+  unsigned	index = _count;
+
+  if (index > 0)
+    {
+      BOOL		(*imp)(id,SEL,id);
+
+      imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: eqSel];
+      while (index-- > 0)
+	{
+	  if ((*imp)(anObject, eqSel, _contents_array[index]) == YES)
+	    {
+	      id	obj = _contents_array[index];
+	      unsigned	pos = index;
+
+	      while (++pos < _count)
+		{
+		  _contents_array[pos-1] = _contents_array[pos];
+		}
+	      _count--;
+	      RELEASE(obj);
+	    }
+	}
+    }
+}
+
 - (void) removeObjectAtIndex: (unsigned)index
 {
   id	obj;
@@ -431,6 +464,27 @@
       index++;
     }
   RELEASE(obj);	/* Adjust array BEFORE releasing object.	*/
+}
+
+- (void) removeObjectIdenticalTo: (id)anObject
+{
+  unsigned	index = _count;
+
+  while (index-- > 0)
+    {
+      if (_contents_array[index] == anObject)
+	{
+	  id		obj = _contents_array[index];
+	  unsigned	pos = index;
+
+	  while (++pos < _count)
+	    {
+	      _contents_array[pos-1] = _contents_array[pos];
+	    }
+	  _count--;
+	  RELEASE(obj);
+	}
+    }
 }
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
@@ -467,29 +521,102 @@
   while (stride <= count)
     stride = stride * STRIDE_FACTOR + 1;
     
-  while(stride > (STRIDE_FACTOR - 1)) {
-    // loop to sort for each value of stride
-    stride = stride / STRIDE_FACTOR;
-    for (c = stride; c < count; c++) {
-      found = NO;
-      if (stride > c)
-	break;
-      d = c - stride;
-      while (!found) {
-	// move to left until correct place
-	id a = _contents_array[d + stride];
-	id b = _contents_array[d];
-	if ((*compare)(a, b, context) == NSOrderedAscending) {
-	  _contents_array[d+stride] = b;
-	  _contents_array[d] = a;
-	  if (stride > d)
+  while (stride > (STRIDE_FACTOR - 1))
+    {
+      // loop to sort for each value of stride
+      stride = stride / STRIDE_FACTOR;
+      for (c = stride; c < count; c++)
+	{
+	  found = NO;
+	  if (stride > c)
 	    break;
-	  d -= stride;		// jump by stride factor
+	  d = c - stride;
+	  while (!found)
+	    {
+	      // move to left until correct place
+	      id a = _contents_array[d + stride];
+	      id b = _contents_array[d];
+	      if ((*compare)(a, b, context) == NSOrderedAscending)
+		{
+		  _contents_array[d+stride] = b;
+		  _contents_array[d] = a;
+		  if (stride > d)
+		    break;
+		  d -= stride;		// jump by stride factor
+		}
+	      else
+		found = YES;
+	    }
 	}
-	else found = YES;
-      }
     }
-  }
 }
 
+- (NSEnumerator*) objectEnumerator
+{
+  return AUTORELEASE([[NSGArrayEnumerator allocWithZone: NSDefaultMallocZone()]
+    initWithArray: self]);
+}
+
+- (NSEnumerator*) reverseObjectEnumerator
+{
+  return AUTORELEASE([[NSGArrayEnumeratorReverse allocWithZone:
+    NSDefaultMallocZone()] initWithArray: self]);
+}
+
+@end
+
+
+
+@interface NSGArrayEnumerator : NSEnumerator
+{
+  NSGArray	*array;
+  unsigned	pos;
+}
+- (id) initWithArray: (NSGArray*)anArray;
+@end
+
+@implementation NSGArrayEnumerator
+
+- (id) initWithArray: (NSGArray*)anArray
+{
+  [super init];
+  array = anArray;
+  RETAIN(array);
+  pos = 0;
+  return self;
+}
+
+- (id) nextObject
+{
+  if (pos >= array->_count)
+    return nil;
+  return array->_contents_array[pos++];
+}
+
+- (void) dealloc
+{
+  RELEASE(array);
+  [super dealloc];
+}
+
+@end
+
+@interface NSGArrayEnumeratorReverse : NSGArrayEnumerator
+@end
+
+@implementation NSGArrayEnumeratorReverse
+
+- (id) initWithArray: (NSGArray*)anArray
+{
+  [super initWithArray: anArray];
+  pos = array->_count;
+  return self;
+}
+
+- (id) nextObject
+{
+  if (pos == 0)
+    return nil;
+  return array->_contents_array[--pos];
+}
 @end

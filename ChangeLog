@@ -1,3 +1,10 @@
+Tue Sep 14 20:44:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: Huge amounts of optimisation.
+	Memory leak fixed in ([-initWithFile:]).
+	* Source/NSGArray.m: Optimisations of less-used methods, including
+	implementation of fast enumerators.
+
 Tue Sep 14 15:11:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimer.m: minor optimisations
