@@ -34,7 +34,7 @@
 @interface NSGArchiver (GNU) <Encoding>
 @end
 
-@interface NSGUnarchiver : NSArchiver
+@interface NSGUnarchiver : NSUnarchiver
 @end
 
 @interface NSGUnarchiver (GNU) <Decoding>
