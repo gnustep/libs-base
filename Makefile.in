@@ -33,6 +33,7 @@ MAKEDEFINES =
 
 #### End of system configuration section. ####
 
+include $(srcdir)/Makeconf
 include $(srcdir)/Version
 
 SUBDIRS = src doc checks examples NSCharacterSets admin
