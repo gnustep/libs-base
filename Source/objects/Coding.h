@@ -1,5 +1,5 @@
 /* Protocol for GNU Objective-C objects that can write/read to a coder
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -25,116 +25,94 @@
 #define __Coding_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
+#include <objects/String.h>
 
-@class Coder;			/* xxx remove this eventually */
-@class Stream;			/* xxx remove this eventually */
+/* xxx Think about trying to get <String> back in types,
+   but now there is a circular dependancy in the include files. */
 
 @protocol CommonCoding
-
 - (BOOL) isDecoding;
-
-+ (int) coderFormatVersion;
-+ (int) coderConcreteFormatVersion;
-+ (const char *) coderSignature;
-
-- doInitOnStream: (Stream *)s isDecoding: (BOOL)f;
-/* Internal designated initializer.  Override it, but don't call it yourself.
-   This method name may change. */
-
++ (int) defaultFormatVersion;
 @end
 
 @protocol Encoding <CommonCoding>
 
-- initEncodingOnStream: (Stream *)s;
-- initEncoding;
-
-- (void) encodeValueOfType: (const char*)type 
+- (void) encodeValueOfObjCType: (const char*)type 
    at: (const void*)d 
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 
-- (void) encodeWithName: (const char *)name
-   valuesOfTypes: (const char *)types, ...;
+- (void) encodeWithName: (id /*<String>*/)name
+   valuesOfObjCTypes: (const char *)types, ...;
 
-- (void) encodeArrayOfType: (const char *)type
+- (void) encodeArrayOfObjCType: (const char *)type
    at: (const void *)d
    count: (unsigned)c
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 
 - (void) encodeObject: anObj
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 - (void) encodeObjectBycopy: anObj
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 
 - (void) encodeRootObject: anObj
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 - (void) encodeObjectReference: anObj
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 - (void) startEncodingInterconnectedObjects;
 - (void) finishEncodingInterconnectedObjects;
 
 - (void) encodeAtomicString: (const char*)sp
-   withName: (const char*)name;
+   withName: (id /*<String>*/)name;
 
 - (void) encodeClass: aClass;
 
 /* For inserting a name into a TextCoder stream */
-- (void) encodeName: (const char*)n;
+- (void) encodeName: (id /*<String>*/) n;
 
-/* For subclasses that want to keep track of recursion */
+/* For classes that want to keep track of recursion */
 - (void) encodeIndent;
 - (void) encodeUnindent;
 
-/* Implemented by concrete subclasses */
-- (void) encodeValueOfSimpleType: (const char*)type 
-   at: (const void*)d 
-   withName: (const char *)name;
 - (void) encodeBytes: (const char *)b
    count: (unsigned)c
-   withName: (const char *)name;
+   withName: (id /*<String>*/)name;
 
 @end
 
 @protocol Decoding <CommonCoding>
 
-- initDecodingOnStream: (Stream *)s;
-- initDecoding;
-
-- (void) decodeValueOfType: (const char*)type
+- (void) decodeValueOfObjCType: (const char*)type
    at: (void*)d 
-   withName: (const char **)namePtr;
+   withName: (id /*<String>*/ *) namePtr;
 
-- (void) decodeWithName: (const char **)name
-   valuesOfTypes: (const char *)types, ...;
+- (void) decodeWithName: (id /*<String>*/*)name
+   valuesOfObjCTypes: (const char *) types, ...;
 
-- (void) decodeArrayOfType: (const char *)type
+- (void) decodeArrayOfObjCType: (const char *)type
    at: (void *)d
    count: (unsigned)c
-   withName: (const char **)name;
+   withName: (id /*<String>*/*)name;
 
 - (void) decodeObjectAt: (id*)anObjPtr
-   withName: (const char **)name;
+   withName: (id /*<String>*/*)name;
 
 - (void) startDecodingInterconnectedObjects;
 - (void) finishDecodingInterconnectedObjects;
 
-- (const char *) decodeAtomicStringWithName: (const char **)name;
+- (const char *) decodeAtomicStringWithName: (id /*<String>*/*) name;
 
 - decodeClass;
 
 /* For inserting a name into a TextCoder stream */
-- (void) decodeName: (const char**)n;
+- (void) decodeName: (id /*<String>*/ *)n;
 
-/* For subclasses that want to keep track of recursion */
+/* For classes that want to keep track of recursion */
 - (void) decodeIndent;
 - (void) decodeUnindent;
 
-/* Implemented by concrete subclasses */
-- (void) decodeValueOfSimpleType: (const char*)type 
-   at: (void*)d 
-   withName: (const char **)namePtr;
 - (void) decodeBytes: (char *)b
    count: (unsigned*)c
-   withName: (const char **)name;
+   withName: (id /*<String>*/ *) name;
 
 @end
 
