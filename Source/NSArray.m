@@ -795,8 +795,10 @@ compare(id elem1, id elem2, void* context)
   NSComparisonResult (*imp)(id, SEL, id);
 
   if (context == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"compare null selector given"];
+    {
+      [NSException raise: NSInvalidArgumentException
+		   format: @"compare null selector given"];
+    }
 
   imp = (NSComparisonResult (*)(id, SEL, id))
     [elem1 methodForSelector: context];
@@ -805,7 +807,6 @@ compare(id elem1, id elem2, void* context)
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to compare"];
-      return 0;
     }
 
   return (*imp)(elem1, context, elem2);
