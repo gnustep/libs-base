@@ -35,6 +35,8 @@
 
 #define DEFAULT_SIZE 256
 
+#define CONNECTED_CODER_FORMAT_VERSION 0
+
 static BOOL debug_connected_coder = NO;
 
 @implementation ConnectedEncoder
@@ -48,7 +50,7 @@ static BOOL debug_connected_coder = NO;
    sequenceNumber: (int)n
    identifier: (int)i
 {
-  Packet* packet = [[[[c portClass] packetClass] alloc]
+  Packet* packet = [[[[c outPort] packetClass] alloc]
 		     initForSendingWithCapacity: DEFAULT_SIZE
 		     replyPort: [c inPort]];
   [super initForWritingToStream: packet];
@@ -61,6 +63,7 @@ static BOOL debug_connected_coder = NO;
   [self encodeValueOfCType: @encode(typeof(identifier))
 	at: &identifier
 	withName: @"ConnectedCoder sequence number"];
+  return self;
 }
 
 + newForWritingWithConnection: (Connection*)c
@@ -136,8 +139,11 @@ static BOOL debug_connected_coder = NO;
 		     getClassname: (char *) name
 		    formatVersion: (int*) version
 {
-  return;
+  const char *classname = class_get_class_name (self);
+  strcpy (name, classname);
+  *version = CONNECTED_CODER_FORMAT_VERSION;
 }
+
 
 + newDecodingWithConnection: (Connection*)c
    timeout: (int) timeout
