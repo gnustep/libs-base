@@ -1,3 +1,8 @@
+Mon Dec  3 16:32:31 2001  Adam Fedor  <fedor@yogi.doc.com>
+
+	* Source/GSHTTPURLHandle.m: Include sys/fcntl.h for O_WRONLY, etc
+ 	(on Solaris).
+
 2001-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: Add flags for SSL and rules to build bundle
