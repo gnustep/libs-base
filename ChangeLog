@@ -1,5 +1,8 @@
 2001-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSHtml.m: Provide list of methods in each class.
+	* Tools/AGSIndex.m: New method to list methods in a unit.
+	* Tools/AGSIndex.h: New method to list methods in a unit.
 	* Tools/AGSOutput.m: Support (name) syntax for specifying a protocol
 	cross reference using [(name)-method]
 	* Tools/autogsdoc.m: Improve documentation of method references.

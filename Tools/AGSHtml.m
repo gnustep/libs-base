@@ -1179,6 +1179,8 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf
 {
+  NSMutableArray	*a;
+
   node = [node children];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
     {
@@ -1202,6 +1204,31 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     {
       [self outputNode: node to: buf];
       node = [node next];
+    }
+  a = [localRefs methodsInUnit: unit];
+  if ([a count] > 0)
+    {
+      NSEnumerator	*e;
+      NSString		*s;
+
+      [a sortUsingSelector: @selector(compare:)];
+      [buf appendString: indent];
+      [buf appendString: @"<h2>Methods</h2>\n"];
+      [buf appendString: indent];
+      [buf appendString: @"<ul>\n"];
+      [self incIndent];
+      e = [a objectEnumerator];
+      while ((s = [e nextObject]) != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<li>"];
+	  [buf appendString: [self makeLink: s ofType: @"method" isRef: YES]];
+	  [buf appendString: s];
+	  [buf appendString: @"</a></li>\n"];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</ul>\n"];
     }
   while (node != nil && [[node name] isEqual: @"method"] == YES)
     {
