@@ -225,20 +225,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	{
 	  NSString	*str;
 
-	  str = [env objectForKey: @"GNUSTEP_TARGET_DIR"];
-	  if (str)
+	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
+	    gnustep_target_dir = [str retain];
+	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
 	    gnustep_target_dir = [str retain];
 	
-	  str = [env objectForKey: @"GNUSTEP_TARGET_CPU"];
-	  if (str)
+	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
+	    gnustep_target_cpu = [str retain];
+	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
 	    gnustep_target_cpu = [str retain];
 	
-	  str = [env objectForKey: @"GNUSTEP_TARGET_OS"];
-	  if (str)
+	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
+	    gnustep_target_os = [str retain];
+	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
 	    gnustep_target_os = [str retain];
 	
-	  str = [env objectForKey: @"LIBRARY_COMBO"];
-	  if (str)
+	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	    library_combo = [str retain];
 	}
     }
