@@ -15,6 +15,7 @@
 #include    <Foundation/NSException.h>
 #include    <Foundation/NSRange.h>
 #include    <Foundation/NSSerialization.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 /*  Data for stuffing into *Data objects.  I like printable data, as it
 *   gives a quick visual check mechanism, but it has the disadvantage
@@ -381,10 +382,13 @@ int
 main(int    argc,
      char   **argv)
 {
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+
     /*  Test NSMutableData. */
     TestNSMutableData();
 
     /*  Test NSData.    */
     TestNSData();
+    [arp release];
     return 0;
 }

@@ -8,6 +8,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/BinaryCStream.h>
+#include    <Foundation/NSAutoreleasePool.h>
 #include "server.h"
 
 @implementation Server
@@ -244,6 +245,7 @@ int main(int argc, char *argv[])
   id o = [[NSObject alloc] init];
   double d;
   NSConnection *c;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   [BinaryCStream setDebugging:YES];
 
@@ -271,5 +273,6 @@ int main(int argc, char *argv[])
 
   [NSRunLoop run];
 
+  [arp release];
   exit(0);
 }

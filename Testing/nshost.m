@@ -1,6 +1,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSHost.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 void
 displayHost(NSHost* h)
@@ -23,6 +24,7 @@ main ()
   NSHost*	a;
   NSHost*	c;
   NSHost*	n;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   c = [NSHost currentHost];
   displayHost(c);
@@ -40,5 +42,6 @@ main ()
   displayHost(n);
   printf("c:%lx, n:%lx, a:%lx\n", c, n, a);
 
+  [arp release];
   exit (0);
 }

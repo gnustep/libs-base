@@ -5,6 +5,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/BinaryCStream.h>
 #include <assert.h>
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
   small_struct small = {12};
   BOOL b;
   const char *type;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   [Coder setDebugging:YES];
   [BinaryCStream setDebugging:YES];
@@ -171,5 +173,6 @@ int main(int argc, char *argv[])
   [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
   [c invalidate];
 
+  [arp release];
   exit(0);
 }

@@ -32,6 +32,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSAttributedString.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <stdio.h>
 
 // These are normally defined in the AppKit
@@ -122,6 +123,8 @@ void testAttributedString(void)
 int
 main()
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   testAttributedString();
+  [arp release];
   exit(0);
 }

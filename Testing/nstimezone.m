@@ -4,15 +4,18 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSDictionary.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 int
 main ()
 {
   id detail;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   printf("time zones for PST:\n%@\n",
 	 [[[NSTimeZone abbreviationMap] objectForKey: @"PST"] description]);
   printf("time zones:\n%@\n", [[NSTimeZone timeZoneArray] description]);
   printf("local time zone:\n%@\n", [[NSTimeZone localTimeZone] description]);
+  [arp release];
   return 0;
 }

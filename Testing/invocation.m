@@ -5,6 +5,7 @@
 #include <gnustep/base/Archiver.h>
 #include <Foundation/NSValue.h>
 #include <gnustep/base/TextCStream.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 @interface NSNumber (printing)
 - (void) print;
@@ -30,6 +31,7 @@ int main()
   id array;
   int i;
   BOOL b;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   /* Create a simple invocation, and get it's return value. */
   obj = [NSObject new];
@@ -99,6 +101,7 @@ int main()
     [inv invoke];
   }
 
+  [arp release];
   exit(0);
 }
 

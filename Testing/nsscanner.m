@@ -12,6 +12,7 @@
  */
 
 #include <Foundation/NSScanner.h>
+#include    <Foundation/NSAutoreleasePool.h>
 #include <limits.h>
 #include <float.h>
 #include <math.h>
@@ -858,6 +859,7 @@ main (int argc, char **argv)
 {
 	extern char *optarg;
 	int c;
+        NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
 	while ((c = getopt (argc, argv, "e:")) != EOF) {
 		switch (c) {
@@ -877,5 +879,6 @@ main (int argc, char **argv)
 	testScanUpToString ();
 	testScanCharactersFromSet ();
 	testScanUpToCharactersFromSet ();
+    [arp release];
     return 0;
 }

@@ -1,6 +1,7 @@
 #include <Foundation/NSSet.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 void original_test ();
 void intersects_set_test();
@@ -9,11 +10,13 @@ void is_subset_of_set_test ();
 int
 main ()
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   original_test ();
   intersects_set_test ();
   is_subset_of_set_test ();
 
   printf("Test passed\n");
+  [arp release];
   exit (0);
 }
 

@@ -1,6 +1,7 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSString.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 typedef struct {
   char	c;
@@ -178,6 +179,7 @@ main ()
     NSMethodSignature	*sig;
     Target		*t;
     id			p;
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
     t = [Target new];
     p = [[MyProxy alloc] initWithTarget: t];
@@ -392,6 +394,7 @@ main ()
     la = [p loopLargePtr: laptr];
     printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
+    [arp release];
     return 0;
 }
 

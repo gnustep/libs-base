@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSValue.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 int main ()
 {
@@ -8,6 +9,7 @@ int main ()
   NSHashEnumerator he;
   int i;
   void *v;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   /* Test with ints */
 
@@ -55,5 +57,6 @@ int main ()
   NSFreeHashTable (mt);
 #endif
 
+  [arp release];
   exit (0);
 }

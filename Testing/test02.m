@@ -1,7 +1,9 @@
 #include <gnustep/base/all.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 int main()
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   id dict = [Dictionary new];
 
   id translator = [Dictionary new];
@@ -31,6 +33,7 @@ int main()
   [dict release];
   [translator release];
 
+  [arp release];
   exit(0);
 
 }

@@ -2,6 +2,7 @@
 
 /* For demo of Strings as Collections of char's. */
 #include <Foundation/NSString.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 void
 print_string(NSString* s)
@@ -14,6 +15,7 @@ print_string(NSString* s)
 
 int main()
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   id s = @"This is a test string";
   id s2, s3;
 
@@ -59,5 +61,6 @@ int main()
   }
 #endif  
 
+  [arp release];
   exit(0);
 }
