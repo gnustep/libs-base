@@ -1,3 +1,8 @@
+Tue Jul 20 10:12:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSString.m: Update code for standardising paths - now
+	conforms to MacOS-X spec (more or less).
+
 Thu Jul 15  6:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Headers/Foundation/NSURL.h: Tidied
