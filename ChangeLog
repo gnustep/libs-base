@@ -1,9 +1,13 @@
-Wed Sep 29 15:33:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Sep 29 21:34:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Source/NSData.m: More GC updates (atomic data buffer)
+	* Source/NSGString.m: ditto
+	* Source/NSGCString.m: ditto
 	* Source/NSObject.m: More GC updates
 	* Source/NSZone.m: ditto
 	* Source/mframe.m: ditto
 	* Source/objc-gnu2next.m: ditto
+	* Headers/Foundation/GSIMap.h: ditto
 
 Tue Sep 28 20:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

@@ -341,6 +341,16 @@ GSIMapMoreNodes(GSIMapTable map)
   GSIMapNode	*newArray;
   size_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
 
+#if	GS_WITH_GC == 1
+  /*
+   * Our nodes may be allocated from the atomic zone - but we don't want
+   * them freed - so we must keep the array of pointers to memory chunks in
+   * the default zone
+   */
+  if (map->zone == GSAtomicMallocZone())
+    newArray = (GSIMapNode*)NSZoneMalloc(NSDefaultMallocZone(), arraySize);
+  else
+#endif
   newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
   if (newArray)
     {
@@ -507,20 +517,18 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
    *	around powers of two - we don't want lots of keys falling into a single
    *	bucket.
    */
-  if (size == 8) size++;
+  if (size == 8)
+    size++;
 
   /*
    *	Make a new set of buckets for this map
    */
   new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
-		sizeof(GSIMapBucket_t));
+    sizeof(GSIMapBucket_t));
   if (new_buckets != 0)
     {
-      GSIMapRemangleBuckets(map,
-				  map->buckets,
-				  map->bucketCount,
-				  new_buckets,
-				  size);
+      GSIMapRemangleBuckets(map, map->buckets, map->bucketCount, new_buckets,
+	size);
 
       if (map->buckets != 0)
 	{
