@@ -1119,26 +1119,35 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		  break;
 
 		case ET_RPORT: 
-		  {
-		    id	port = info->receiver;
-		    int port_fd_count = 128; // xxx #define this constant
-		    int port_fd_array[port_fd_count];
+		  if ([info->receiver isValid] == NO)
+		    {
+		      /*
+		       * We must remove an invalidated port.
+		       */
+		      info->_invalidated = YES;
+		      GSIArrayRemoveItemAtIndex(watchers, i);
+		    }
+		  else
+		    {
+		      id	port = info->receiver;
+		      int port_fd_count = 128; // xxx #define this constant
+		      int port_fd_array[port_fd_count];
 
-		    if ([port respondsTo: @selector(getFds:count:)])
-		      [port getFds: port_fd_array count: &port_fd_count];
-		    if (debug_run_loop)
-		      printf("\tNSRunLoop listening to %d sockets\n",
-			    port_fd_count);
+		      if ([port respondsTo: @selector(getFds:count:)])
+			[port getFds: port_fd_array count: &port_fd_count];
+		      if (debug_run_loop)
+			printf("\tNSRunLoop listening to %d sockets\n",
+			      port_fd_count);
 
-		    while (port_fd_count--)
-		      {
-			FD_SET (port_fd_array[port_fd_count], &fds);
-			NSMapInsert(_rfdMap, 
-				     (void*)port_fd_array[port_fd_count],
-				    info);
-			num_inputs++;
-		      }
-		  }
+		      while (port_fd_count--)
+			{
+			  FD_SET (port_fd_array[port_fd_count], &fds);
+			  NSMapInsert(_rfdMap, 
+				       (void*)port_fd_array[port_fd_count],
+				      info);
+			  num_inputs++;
+			}
+		    }
 		  break;
 	      }
 	  }
@@ -1249,7 +1258,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 			eventSel, watcher->data, watcher->type,
 			(void*)(gsaddr)fd_index, _current_mode);
 		}
-	      else if (watcher->type == ET_RDESC || watcher->type == ET_RPORT)
+	      else if (watcher->type == ET_RDESC)
 		{
 		  [watcher->receiver readyForReadingOnFileDescriptor:
 				(int)(gsaddr)fd_index];

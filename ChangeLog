@@ -1,3 +1,10 @@
+Fri Feb 25 12:56:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSPort.m: provide default implementations for methods dealing
+	with adding connections to run loop.
+	* Source/NSRunLoop.m: Check to see if ports have been invalidated and
+	remove them from run loop if they have.
+
 Thu Feb 24 21:05:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle.m: ([-initWithPath:]) added code suggested by
