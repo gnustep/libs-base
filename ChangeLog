@@ -1,3 +1,11 @@
+2002-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Minor speedup.
+	* Tools/AGSParser.m: Rewrite handling of standards information to fix
+	bug in NO_GNUSTEP handling.
+	* Source/GNUmakefile: Don't document concrete number stuff ... not
+	public.
+
 Sun Jan  6 22:33:55 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/HTMLLinker.m: Rewritten to fixup links by link name rather
