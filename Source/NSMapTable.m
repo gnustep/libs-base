@@ -251,7 +251,7 @@ NSMapTable *
 NSCreateMapTableWithZone(
   NSMapTableKeyCallBacks keyCallBacks,
   NSMapTableValueCallBacks valueCallBacks,
-  unsigned capacity,
+  unsigned int capacity,
   NSZone *zone)
 {
   GSIMapTable	table;
