@@ -79,16 +79,6 @@
   return self;
 }
 
-/* Empty copy must empty an allocCopy'ed version of self */
-- emptyCopy
-{
-  NSGCString *copy = [super emptyCopy];
-  OBJC_MALLOC(copy->_contents_chars, char, _count+1);
-  copy->_count = 0;
-  copy->_contents_chars[0] = '\0';
-  return copy;
-}
-
 - (const char *) cString
 {
   char *r;
@@ -288,16 +278,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 /* For IndexedCollecting protocol */
-
-/* Empty copy must empty an allocCopy'ed version of self */
-- emptyCopy
-{
-  NSGMutableCString *copy = [super emptyCopy];
-  OBJC_MALLOC(copy->_contents_chars, char, _count+1);
-  copy->_count = 0;
-  copy->_contents_chars[0] = '\0';
-  return copy;
-}
 
 - (char) charAtIndex: (unsigned)index
 {
