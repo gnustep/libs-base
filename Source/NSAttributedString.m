@@ -33,7 +33,7 @@
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
  *		but it doesn't provide any way to perform the function of the
  *		[-initWithAttributedString:] initialiser.
- *		In order to work youd this, the string argument of the
+ *		In order to work round this, the string argument of the
  *		designated initialiser has been overloaded such that it
  *		is expected to accept an NSAttributedString here instead of
  *		a string.  If you create an NSAttributedString subclass, you
@@ -205,34 +205,41 @@ static Class NSMutableAttributedString_concrete_class;
 
   if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
     {
-      [NSException raise: NSRangeException format: 
-	@"RangeError in method -attributesAtIndex: longestEffectiveRange: inRange: in class NSAttributedString"];
+      [NSException raise: NSRangeException
+		  format: @"RangeError in method -attributesAtIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
     }
   attrDictionary = [self attributesAtIndex: index effectiveRange: aRange];
-  if (!aRange)
+  if (aRange == 0)
     return attrDictionary;
   
   while (aRange->location > rangeLimit.location)
     {
       //Check extend range backwards
-      tmpDictionary =
-	[self attributesAtIndex: aRange->location-1
-	  effectiveRange: &tmpRange];
+      tmpDictionary = [self attributesAtIndex: aRange->location-1
+			       effectiveRange: &tmpRange];
       if ([tmpDictionary isEqualToDictionary: attrDictionary])
-	aRange->location = tmpRange.location;
+	{
+	  aRange->length = NSMaxRange(*aRange) - tmpRange.location;
+	  aRange->location = tmpRange.location;
+	}
       else
-	break;
+	{
+	  break;
+	}
     }
   while (NSMaxRange(*aRange) < NSMaxRange(rangeLimit))
     {
       //Check extend range forwards
-      tmpDictionary =
-	[self attributesAtIndex: NSMaxRange(*aRange)
-	  effectiveRange: &tmpRange];
+      tmpDictionary = [self attributesAtIndex: NSMaxRange(*aRange)
+			       effectiveRange: &tmpRange];
       if ([tmpDictionary isEqualToDictionary: attrDictionary])
-	aRange->length = NSMaxRange(tmpRange) - aRange->location;
+	{
+	  aRange->length = NSMaxRange(tmpRange) - aRange->location;
+	}
       else
-	break;
+	{
+	  break;
+	}
     }
   *aRange = NSIntersectionRange(*aRange,rangeLimit);//Clip to rangeLimit
   return attrDictionary;
@@ -246,65 +253,78 @@ static Class NSMutableAttributedString_concrete_class;
   id attrValue;
 
   tmpDictionary = [self attributesAtIndex: index effectiveRange: aRange];
-  //Raises exception if index is out of range, so that I don't have to test this...
 
-  if (!attributeName)
+  if (attributeName == nil)
     {
-      if (aRange)
-	*aRange = NSMakeRange(0,[self length]);
-	//If attributeName is nil, then the attribute will not exist in the
-	//entire text - therefore aRange of the entire text must be correct
-      
+      if (aRange != 0)
+	{
+	  *aRange = NSMakeRange(0,[self length]);
+	  /*
+	   * If attributeName is nil, then the attribute will not exist in the
+	   * entire text - therefore aRange of the entire text must be correct
+	   */
+        }
       return nil;
     }
   attrValue = [tmpDictionary objectForKey: attributeName];  
   return attrValue;
 }
 
-- (id) attribute: (NSString*)attributeName atIndex: (unsigned int)index
-  longestEffectiveRange: (NSRange*)aRange inRange: (NSRange)rangeLimit
+- (id) attribute: (NSString*)attributeName
+	 atIndex: (unsigned int)index
+  longestEffectiveRange: (NSRange*)aRange
+	 inRange: (NSRange)rangeLimit
 {
-  NSDictionary *tmpDictionary;
-  id attrValue,tmpAttrValue;
-  NSRange tmpRange;
+  NSDictionary	*tmpDictionary;
+  id		attrValue;
+  id		tmpAttrValue;
+  NSRange	tmpRange;
 
   if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
     {
-      [NSException raise: NSRangeException format: 
-	@"RangeError in method -attribute: atIndex: longestEffectiveRange: inRange: in class NSAttributedString"];
+      [NSException raise: NSRangeException
+		  format: @"RangeError in method -attribute:atIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
     }
   
-  attrValue = [self attribute: attributeName atIndex: index effectiveRange: aRange];
-  //Raises exception if index is out of range, so that I don't have to test this...
+  attrValue = [self attribute: attributeName
+		      atIndex: index
+	       effectiveRange: aRange];
 
-  if (!attributeName)
-    return nil;//attribute: atIndex: effectiveRange: handles this case...
-  if (!aRange)
+  if (attributeName == nil)
+    return nil;
+  if (aRange == 0)
     return attrValue;
   
   while (aRange->location > rangeLimit.location)
     {
       //Check extend range backwards
-      tmpDictionary =
-	[self attributesAtIndex: aRange->location-1
-	  effectiveRange: &tmpRange];
+      tmpDictionary = [self attributesAtIndex: aRange->location-1
+			       effectiveRange: &tmpRange];
       tmpAttrValue = [tmpDictionary objectForKey: attributeName];
       if (tmpAttrValue == attrValue)
-	aRange->location = tmpRange.location;
+	{
+	  aRange->length = NSMaxRange(*aRange) - tmpRange.location;
+	  aRange->location = tmpRange.location;
+	}
       else
-	break;
+	{
+	  break;
+	}
     }
   while (NSMaxRange(*aRange) < NSMaxRange(rangeLimit))
     {
       //Check extend range forwards
-      tmpDictionary =
-	[self attributesAtIndex: NSMaxRange(*aRange)
-	  effectiveRange: &tmpRange];
+      tmpDictionary = [self attributesAtIndex: NSMaxRange(*aRange)
+			       effectiveRange: &tmpRange];
       tmpAttrValue = [tmpDictionary objectForKey: attributeName];
       if (tmpAttrValue == attrValue)
-	aRange->length = NSMaxRange(tmpRange) - aRange->location;
+	{
+	  aRange->length = NSMaxRange(tmpRange) - aRange->location;
+	}
       else
-	break;
+	{
+	  break;
+	}
     }
   *aRange = NSIntersectionRange(*aRange,rangeLimit);//Clip to rangeLimit
   return attrValue;
@@ -328,9 +348,9 @@ static Class NSMutableAttributedString_concrete_class;
     return YES;
 
   ownDictionary = [self attributesAtIndex: 0
-    effectiveRange: &ownEffectiveRange];
+			   effectiveRange: &ownEffectiveRange];
   otherDictionary = [otherString attributesAtIndex: 0
-    effectiveRange: &otherEffectiveRange];
+				    effectiveRange: &otherEffectiveRange];
   result = YES;
     
   while (YES)
@@ -343,14 +363,15 @@ static Class NSMutableAttributedString_concrete_class;
 	}
       if (NSMaxRange(ownEffectiveRange) < NSMaxRange(otherEffectiveRange))
 	{
-	  ownDictionary = [self
-	    attributesAtIndex: NSMaxRange(ownEffectiveRange)
-	    effectiveRange: &ownEffectiveRange];
+	  ownDictionary = [self attributesAtIndex: NSMaxRange(ownEffectiveRange)
+				   effectiveRange: &ownEffectiveRange];
 	}
       else
 	{
 	  if (NSMaxRange(otherEffectiveRange) >= length)
-	    break;//End of strings
+	    {
+	      break;//End of strings
+	    }
 	  otherDictionary = [otherString
 	    attributesAtIndex: NSMaxRange(otherEffectiveRange)
 	    effectiveRange: &otherEffectiveRange];

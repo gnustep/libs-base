@@ -1,3 +1,8 @@
+Thu Mar 09 18:07:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSAttributedString.m: Varius bugfixes.
+	* Source/NSGAttributedString.m: ditto.
+
 2000-03-07  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Remove obsolete header checks for Time class.
