@@ -148,6 +148,9 @@
 /* Define if libxml available */
 #undef HAVE_LIBXML
 
+/* Define if openssl available */
+#undef HAVE_OPENSSL
+
 #undef HAVE_PTS_STREAM_MODULES
 #undef HAVE_UINTMAX_T
 

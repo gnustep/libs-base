@@ -1,3 +1,10 @@
+2001-02-27  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Fix openssl config so it defines HAVE_OPENSSL only
+	if all headers and libs available.
+	* configure, acconfig.h, Headers/gnustep/base/config.h.in: Regen.
+	* Source/UnixFileHandle.m: Use HAVE_OPENSSL.
+
 2001-02-27  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSLock.m: Commented out extra token after #endif
