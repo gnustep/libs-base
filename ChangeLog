@@ -1,5 +1,11 @@
 2000-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/gdomap.c: Become an unpriveliged user after binding to
+	port 538 (for which we need to be root).  This should relieve
+	some security considerations.
+
+2000-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNumber.m: Added private methods from concrete class.
 
 2000-03-17  Adam Fedor  <fedor@gnu.org>
