@@ -8,6 +8,7 @@
 	* Source/GSFFCallInvocation.m: minor tidy up.
 	* Source/NSArchiver.m: Structure encoding/decoding fixes.
 	* Source/NSData.m: Structure encoding/decoding fixes.
+	* Source/NSPortCoder.m: Structure encoding/decoding fixes.
 	* Source/NSUnarchiver.m: Structure encoding/decoding fixes.
 
 2003-04-09  Richard Frith-Macdonald <rfm@gnu.org>
