@@ -526,6 +526,8 @@ static Class	runLoopClass;
 - (void) gcFinalize
 {
   [self invalidate];
+  (void)close(desc);
+  desc = -1;
 }
 
 - (void) invalidate
@@ -533,9 +535,22 @@ static Class	runLoopClass;
   DO_LOCK(myLock);
   if (valid == YES)
     { 
+      NSRunLoop	*l;
+
       valid = NO;
-      (void)close(desc);
-      desc = -1;
+      l = [runLoopClass currentRunLoop];
+      [l removeEvent: (void*)(gsaddr)desc
+		type: ET_RDESC
+	     forMode: nil
+		 all: YES];
+      [l removeEvent: (void*)(gsaddr)desc
+		type: ET_WDESC
+	     forMode: nil
+		 all: YES];
+      [l removeEvent: (void*)(gsaddr)desc
+		type: ET_EDESC
+	     forMode: nil
+		 all: YES];
       NSDebugMLLog(@"GSTcpHandle", @"invalidated", 0);
       [[self recvPort] removeHandle: self];
       [[self sendPort] removeHandle: self];
