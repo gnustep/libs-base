@@ -148,6 +148,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return [self mutableCopyWithZone: NS_NOZONE];
 }
 
++ (Class) superclass
+{
+  return class_get_super_class(self);
+}
+
 - (Class) superclass
 {
   return object_get_super_class(self);
