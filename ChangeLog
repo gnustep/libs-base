@@ -1,5 +1,24 @@
 2004-12-12  Adam Fedor  <fedor@gnu.org>
 
+	* Changes so additions compiles on older Mac OS X 10.1.5
+	* Source/Additions/GCArray.m (-copyWithZone:): Use more standard
+	array initialization method.
+	(mutableCopyWithZone:,	[GCMutableArray -copyWithZone:], 
+	[GCMutableArray -mutableCopyWithZone:]): Idem.
+	
+	* Source/Additions/GSCategories.m ([NSData -hexadecimalRepresentation]):
+	Use identically functioning, but older, standard data initialization.
+	* Source/Additions/GSCategories.m ([NSMutableString 
+	-replaceString:withString:]): Rewrite to use older, standard 
+	methods.
+
+	* Tools/AGSHtml.m ([AGSHtml -outputNode:to:]): Use GNUstep addition
+	method to replace string.
+	* Tools/autogsdoc.m (main): Idem.
+	(Patch from Markus Hitter).
+
+2004-12-12  Adam Fedor  <fedor@gnu.org>
+
 	* configure.ac: Avoid improper use of -fXXX-runtime. Add -x objective-c
 	when testing Objective-C programs (Followup for bug #11188).
 

@@ -1561,8 +1561,8 @@ static NSString		*mainFont = nil;
               // get rid of nbsps put in for readability above
               linkRef = [NSMutableString stringWithCapacity: [sel length]];
               [linkRef setString:sel];
-              [linkRef replaceOccurrencesOfString:@"&nbsp;" withString:@""
-                  options: 0 range: NSMakeRange(0, [sel length])];
+              [linkRef replaceString: @"&nbsp;" withString: @""];
+  
 	      s = [self makeLink: linkRef ofType: @"method" inUnit: nil isRef: NO];
 	      if (s != nil)
 		{

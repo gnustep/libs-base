@@ -57,11 +57,26 @@ static Class	gcClass = 0;
 
 - (id) copyWithZone: (NSZone*)zone
 {
+  GCArray *result;
+  id *objects;
+  unsigned i, c = [self count];
+
   if (NSShouldRetainWithZone(self, zone))
     {
       return [self retain];
     }
-  return [[GCArray allocWithZone: zone] initWithArray: self copyItems: YES];
+
+  objects = NSZoneMalloc(zone, c * sizeof(id));
+  /* FIXME: Check if malloc return 0 */
+  [self getObjects: objects];
+  for (i = 0; i < c; i++)
+    {
+      objects[i] = [objects[i] copy];
+    }
+  result = [[GCArray allocWithZone: zone] initWithObjects: objects count: c];
+  NSZoneFree(zone, objects);
+    
+  return result;
 }
 
 - (unsigned int) count
@@ -189,8 +204,7 @@ static Class	gcClass = 0;
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[GCMutableArray allocWithZone: zone]
-    initWithArray: self copyItems: NO];
+    return [[GCMutableArray allocWithZone: zone] initWithArray: self];
 }
 
 - (id) objectAtIndex: (unsigned int)index
@@ -233,8 +247,21 @@ static Class	gcClass = 0;
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return [[GCArray allocWithZone: zone] 
-    initWithArray: self copyItems: YES];
+  GCArray *result;
+  id *objects;
+  unsigned i, c = [self count];
+  
+  objects = NSZoneMalloc(zone, c * sizeof(id));
+  /* FIXME: Check if malloc return 0 */
+  [self getObjects: objects];
+  for (i = 0; i < c; i++)
+    {
+      objects[i] = [objects[i] copy];
+    }
+  result = [[GCArray allocWithZone: zone] initWithObjects: objects count: c];
+  NSZoneFree(zone, objects);
+  
+  return result;
 }
 
 - (id) init
@@ -345,8 +372,7 @@ static Class	gcClass = 0;
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[GCMutableArray allocWithZone: zone] 
-    initWithArray: self copyItems: NO];
+    return [[GCMutableArray allocWithZone: zone] initWithArray: self];
 }
 
 - (void) removeAllObjects

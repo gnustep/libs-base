@@ -135,7 +135,7 @@
       dst[dpos++] = hexChars[c & 0x0f];
     }
   data = [NSData allocWithZone: NSDefaultMallocZone()];
-  data = [data initWithBytesNoCopy: dst length: dlen freeWhenDone: YES];
+  data = [data initWithBytesNoCopy: dst length: dlen];
   string = [[NSString alloc] initWithData: data
 				 encoding: NSASCIIStringEncoding];
   RELEASE(data);
@@ -1070,10 +1070,12 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by
 {
-  [self replaceOccurrencesOfString: replace
-			withString: by
-			   options: 0
-			     range: NSMakeRange(0, [self length])];
+    NSRange range = [self rangeOfString: replace];
+
+    while (range.location != NSNotFound) {
+        [self replaceCharactersInRange: range withString: by];
+        range = [self rangeOfString: replace];
+    }
 }
 
 /**
