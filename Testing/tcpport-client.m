@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <gnustep/base/TcpPort.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
 #include <Foundation/NSDate.h>
 
@@ -36,18 +36,18 @@ int main (int argc, char *argv[])
 		initWithObjectFunction: handle_incoming_packet]
 	       autorelease]];
 
-  [[RunLoop currentInstance] addPort: in_port
-			     forMode: RunLoopDefaultMode];
+  [[NSRunLoop currentRunLoop] addPort: in_port
+			      forMode: NSDefaultRunLoopMode];
   
   for (i = 0; i < 10; i++)
     {
       packet = [[TcpOutPacket alloc] initForSendingWithCapacity: 100
 				     replyInPort: in_port];
       [packet writeFormat: @"Here is message number %d", i];
-      [out_port sendPacket: packet];
+      [out_port sendPacket: packet timeout: 10.0];
       [packet release];
 
-      [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+      [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
     }
 
   [out_port close];

@@ -68,6 +68,12 @@ static BOOL entered_multi_threaded_state;
 
 // Initialization
 
+- (void)dealloc
+{
+  [_thread_dictionary release];
+  [super dealloc];
+}
+
 - init
 {
   [super init];
@@ -120,7 +126,17 @@ static BOOL entered_multi_threaded_state;
 		        toTarget:(id)aTarget
                       withObject:(id)anArgument
 {
-  entered_multi_threaded_state = YES;
+  /* Post a notification if this is the first new thread to be created.
+     Won't work properly if threads are not all created by this class.
+     xxx Should the notification be done before the new thread starts,
+     or after? */
+  if (!entered_multi_threaded_state)
+    {
+      entered_multi_threaded_state = YES;
+      [NotificationDispatcher
+	postNotificationName: NSBecomingMultiThreaded
+	object: nil];
+    }
 
   // Have the runtime detach the thread
   objc_thread_detach (aSelector, aTarget, anArgument);
@@ -139,10 +155,15 @@ static BOOL entered_multi_threaded_state;
   return entered_multi_threaded_state;
 }
 
+/* Thread dictionary
+   NB. This cannot be autoreleased, since we cannot be sure that the
+   autorelease pool for the thread will continue to exist for the entire
+   life of the thread!
+ */
 - (NSMutableDictionary*) threadDictionary
 {
   if (!_thread_dictionary)
-    _thread_dictionary = [NSMutableDictionary dictionary];
+    _thread_dictionary = [NSMutableDictionary new];
   return _thread_dictionary;
 }
 
@@ -189,18 +210,6 @@ static BOOL entered_multi_threaded_state;
 
   // Tell the runtime to exit the thread
   objc_thread_exit ();
-}
-
-/* Not in OpenStep. */
-- (NSHandler*)exceptionHandler
-{
-  return _exception_handler;
-}
-
-/* Not in OpenStep. */
-- (void)setExceptionHandler: (NSHandler*)handler
-{
-  _exception_handler = handler;
 }
 
 @end

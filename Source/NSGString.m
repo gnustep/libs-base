@@ -44,6 +44,16 @@
 
 @implementation NSGString
 
+- (void)dealloc
+{
+  if (_free_contents)
+    {
+      OBJC_FREE(_contents_chars);
+      _free_contents = NO;
+    }
+  [super dealloc];
+}
+
 // Initializing Newly Allocated Strings
 
 /* This is the designated initializer for this class. */
@@ -69,29 +79,15 @@
   return [self initWithCharactersNoCopy:s length:length freeWhenDone:YES];
 }
 
-// xxx Folowing two methods should not be in this class.
-
-// xxx This is not NoCopy.
 - (id) initWithCStringNoCopy: (char*)byteString
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
-{  unichar *s;
-  OBJC_MALLOC(s, unichar, length+1);
-  if (byteString)
-    strtoustr(s, byteString, length);
-  s[length] = (unichar)0;
-  return [self initWithCharactersNoCopy:s length:length freeWhenDone:flag];
-}
-
-- (id) initWithCString: (const char*)byteString  length: (unsigned int)length
 {
-  unichar *s;
-// xxx int cnt from strtoustr gets real length !!!
-  OBJC_MALLOC(s, unichar, length+1);
-  if (byteString)
-    strtoustr(s, byteString, length);
-  s[length] = (unichar)0;
-  return [self initWithCharactersNoCopy:s length:length freeWhenDone:YES];
+  id a = [[NSGCString alloc] initWithCStringNoCopy: byteString
+   length: length
+   freeWhenDone: flag];
+  [self release];
+  return a;
 }
 
 // Getting a String's Length
@@ -141,6 +137,16 @@
   return _count;
 }
 
+- (NSStringEncoding) fastestEncoding
+{
+  return NSUnicodeStringEncoding;
+}
+
+- (NSStringEncoding) smallestEncoding
+{
+  return NSUnicodeStringEncoding;
+}
+
 // private method for Unicode level 3 implementation
 - (int) _baseLength
 {
@@ -174,16 +180,25 @@
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];  // *** added this
-  [aCoder encodeValueOfObjCType:@encode(unichar*) at:&_contents_chars 
-	  withName:@"Concrete String content_chars"];
+  [aCoder encodeValueOfObjCType:@encode(int) at:&_count
+ 	  withName:@"Concrete String count"];
+  [aCoder encodeArrayOfObjCType:@encode(unichar)
+ 	  count:_count
+ 	  at:_contents_chars
+  	  withName:@"Concrete String content_chars"];
 }
 
 - initWithCoder: aCoder
 {
   [super initWithCoder:aCoder];
-  [aCoder decodeValueOfObjCType:@encode(unichar*) at:&_contents_chars
-	  withName:NULL];
-  _count = uslen(_contents_chars);
+  [aCoder decodeValueOfObjCType:@encode(int) at:&_count
+  	  withName:NULL];
+  OBJC_MALLOC(_contents_chars, unichar, _count+1);
+  [aCoder decodeArrayOfObjCType:@encode(unichar)
+          count:_count
+ 	  at:_contents_chars
+ 	  withName:NULL];
+  _contents_chars[_count] = 0;
   _free_contents = YES;
   return self;
 }
@@ -313,6 +328,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   stringIncrementCountAndMakeHoleAt((NSGMutableStringStruct*)self, index, c);
     [aString getCharacters:u];
   memcpy(_contents_chars + index,u, 2*c);
+  OBJC_FREE(u);
   _contents_chars[_count] = 0;
 }
 
@@ -370,8 +386,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 {
   [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity
 	  withName:@"String capacity"];
-  [aCoder encodeValueOfObjCType:@encode(unichar*) at:&_contents_chars 
-	  withName:@"String content_chars"];
+  [aCoder encodeValueOfObjCType:@encode(int) at:&_count
+	  withName:@"Concrete String count"];
+  [aCoder encodeArrayOfObjCType:@encode(unichar)
+	  count:_count
+	  at:_contents_chars
+	  withName:@"Concrete String content_chars"];
 }
 
 - initWithCoder: aCoder    //  *** changed to unichar
@@ -380,10 +400,15 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   
   [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap withName:NULL];
   [self initWithCapacity:cap];
-  [aCoder decodeValueOfObjCType:@encode(unichar*) at:&_contents_chars
+  [aCoder decodeValueOfObjCType:@encode(int) at:&_count
 	  withName:NULL];
-  _count = uslen(_contents_chars);
+  [aCoder decodeArrayOfObjCType:@encode(unichar)
+          count:_count
+	  at:_contents_chars
+	  withName:NULL];
+  _contents_chars[_count] = 0;
   _capacity = cap;
+  _free_contents = YES;
   return self;
 }
 

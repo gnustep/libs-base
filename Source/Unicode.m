@@ -1,4 +1,4 @@
-/* Support functions for Unicode implementation
+  /* Support functions for Unicode implementation
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by: Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>
@@ -144,8 +144,24 @@ int strtoustr(unichar * u1,const char *s1,int size)
 int ustrtostr(char *s2,unichar *u1,int size)
   {
    int count;
-   for(count=0;count<size;count++)
+   for(count=0;(u1[count]!=(unichar)0)&(count<size);count++)
     s2[count]=unitochar(u1[count]);
+   return(count);
+  }
+ 
+int encode_strtoustr(unichar * u1,const char *s1,int size, NSStringEncoding enc)
+ {
+   int count;
+  for(count=0;(s1[count]!=0)&(count<size);count++)
+    u1[count]=encode_chartouni(s1[count],enc);
+  return count;
+ }
+
+int encode_ustrtostr(char *s2,unichar *u1,int size, NSStringEncoding enc)
+  {
+   int count;
+   for(count=0;(u1[count]!=(unichar)0)&(count<size);count++)
+    s2[count]=encode_unitochar(u1[count],enc);
    return(count);
   }
 

@@ -144,6 +144,7 @@
   _count--;
   [oldObject setNextLink: NO_OBJECT];
   [oldObject setPrevLink: NO_OBJECT];
+  [oldObject setLinkedList: NO_OBJECT];
   [oldObject release];
 }
   

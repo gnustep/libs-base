@@ -2,7 +2,7 @@
 #define _server_h
 
 #include <gnustep/base/preface.h>
-#include <gnustep/base/Connection.h>
+#include <Foundation/NSConnection.h>
 #include <gnustep/base/Array.h>
 
 typedef struct _small_struct {
@@ -31,6 +31,7 @@ struct myarray {
 - (BOOL) doBoolean: (BOOL)b;
 - getBoolean: (BOOL*)bp;
 - getUCharPtr: (unsigned char *)ucp;
+- (oneway void) outputStats:obj;
 - (foo*) sendStructPtr: (foo*)f;
 - sendStruct: (foo)f;
 - sendSmallStruct: (small_struct)small;

@@ -1,0 +1,1100 @@
+/* Implementation for UnixFileHandle for GNUStep
+   Copyright (C) 1997 Free Software Foundation, Inc.
+
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: 1997
+
+   This file is part of the GNUstep Base Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   */
+
+#include <gnustep/base/preface.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSFileHandle.h>
+#include <Foundation/UnixFileHandle.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSNotificationQueue.h>
+#include <Foundation/NSHost.h>
+
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/fcntl.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <errno.h>
+
+/*
+ *	Stuff for setting the sockets into non-blocking mode.
+ */
+#ifdef	__POSIX_SOURCE
+#define NBLK_OPT     O_NONBLOCK
+#else
+#define NBLK_OPT     FNDELAY
+#endif
+
+// Maximum data in single I/O operation
+#define	NETBUF_SIZE	4096
+
+static UnixFileHandle*	fh_stdin = nil;
+static UnixFileHandle*	fh_stdout = nil;
+static UnixFileHandle*	fh_stderr = nil;
+
+// Key to info dictionary for operation mode.
+static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
+
+static BOOL
+getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
+{
+  const char*		proto = "tcp";
+  struct servent*	sp;
+
+  if (svc == nil)
+    return NO;
+
+  if (pcl)
+    proto = [pcl cStringNoCopy];
+
+  memset(sin, '\0', sizeof(*sin));
+  sin->sin_family = AF_INET;
+
+  /*
+   *	If we were given a hostname, we use any address for that host.
+   *	Otherwise we expect the given name to be an address unless it is
+   *	a nul (any address).
+   */
+  if (name)
+    {
+      NSHost*		host = [NSHost hostWithName:name];
+
+      if (host)
+	name = [host address];
+
+#ifndef	HAVE_INET_ATON
+      sin->sin_addr.s_addr = htonl(inet_addr([name cStringNoCopy]));
+#else
+      if (inet_aton([name cStringNoCopy], &sin->sin_addr.s_addr) == 0)
+	return NO;
+#endif
+    }
+  else
+    sin->sin_addr.s_addr = htonl(INADDR_ANY);
+
+  if ((sp = getservbyname([svc cStringNoCopy], proto)) == 0)
+    {
+      const char*     ptr = [svc cStringNoCopy];
+      int             val = atoi(ptr);
+
+      while (isdigit(*ptr))
+	ptr++;
+
+      if (*ptr == '\0' && val <= 0xffff)
+	{
+	  short       v = val;
+
+	  sin->sin_port = htons(v);
+	  return YES;
+        }
+      else
+	return NO;
+    }
+  else
+    {
+      sin->sin_port = sp->s_port;
+      return YES;
+    }
+}
+
+
+@implementation UnixFileHandle
+
++ allocWithZone:(NSZone*)z
+{
+  return NSAllocateObject ([self class], 0, z);
+}
+
+- (void)dealloc
+{
+  if (self == fh_stdin)
+    fh_stdin = nil;
+  if (self == fh_stdout)
+    fh_stdout = nil;
+  if (self == fh_stderr)
+    fh_stderr = nil;
+
+  [self ignoreReadDescriptor];
+  [self ignoreWriteDescriptor];
+
+  if (closeOnDealloc == YES)
+    {
+      close(descriptor);
+      descriptor = -1;
+    }
+  else if (isNonBlocking != wasNonBlocking)
+    [self setNonBlocking:wasNonBlocking];
+
+  [readInfo release];
+  [writeInfo release];
+  [super dealloc];
+}
+
+// Initializing a UnixFileHandle Object
+
+- (id)init
+{
+    return [self initWithNullDevice];
+}
+
+- (id)initAsClientAtAddress:address
+		    service:service
+		   protocol:protocol
+		   forModes:modes
+{
+  int	net;
+  struct sockaddr_in	sin;
+
+  if (address == nil)
+    {
+      [self release];
+      return nil;
+    }
+
+  if (getAddr(address, service, protocol, &sin) == NO)
+    {
+      [self release];
+      return nil;
+    }
+
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+    {
+      [self release];
+      return nil;
+    }
+
+  self = [self initWithFileDescriptor:net closeOnDealloc:YES];
+  if (self)
+    {
+      NSMutableDictionary*	info;
+
+      [self setNonBlocking:YES];
+      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+	if (errno != EINPROGRESS)
+	  {
+	    [self release];
+	    return nil;
+	  }
+	
+      info = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+      [info setObject:address forKey:NSFileHandleNotificationDataItem];
+      [info setObject:GSFileHandleConnectCompletionNotification
+	        forKey:NotificationKey];
+      if (modes)
+        [info setObject:modes forKey:NSFileHandleNotificationMonitorModes];
+      [writeInfo addObject:info];
+      [info release];
+      [self watchWriteDescriptor];
+    }
+  connectOK = YES;
+  readOK = NO;
+  writeOK = NO;
+  return self;
+}
+
+- (id)initAsServerAtAddress:address
+		    service:service
+		   protocol:protocol
+{
+  int	status = 1;
+  int	net;
+  struct sockaddr_in	sin;
+
+  if (getAddr(address, service, protocol, &sin) == NO)
+    {
+      [self release];
+      return nil;
+    }
+
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+    {
+      [self release];
+      return nil;
+    }
+
+  setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+
+  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+    {
+      (void) close(net);
+      [self release];
+      return nil;
+    }
+
+  if (listen(net, 5) < 0)
+    {
+      (void) close(net);
+      [self release];
+      return nil;
+    }
+
+  self = [self initWithFileDescriptor:net closeOnDealloc:YES];
+  acceptOK = YES;
+  readOK = NO;
+  writeOK = NO;
+  return self;
+}
+
+- (id)initForReadingAtPath:(NSString*)path
+{
+  int	d = open([path cString], O_RDONLY);
+
+  if (d < 0)
+    {
+      [self release];
+      return nil;
+    }
+  else
+    {
+      self = [self initWithFileDescriptor:d closeOnDealloc:YES];
+      writeOK = NO;
+      return self;
+    }
+}
+
+- (id)initForWritingAtPath:(NSString*)path
+{
+  int	d = open([path cString], O_WRONLY);
+
+  if (d < 0)
+    {
+      [self release];
+      return nil;
+    }
+  else
+    {
+      self = [self initWithFileDescriptor:d closeOnDealloc:YES];
+      readOK = NO;
+      return self;
+    }
+}
+
+- (id)initForUpdatingAtPath:(NSString*)path
+{
+  int	d = open([path cString], O_RDWR);
+
+  if (d < 0)
+    {
+      [self release];
+      return nil;
+    }
+  else
+    {
+      return [self initWithFileDescriptor:d closeOnDealloc:YES];
+    }
+}
+
+- (id)initWithStandardError
+{
+  if (fh_stderr)
+    {
+      [fh_stderr retain];
+      [self release];
+    }
+  else
+    {
+      [self initWithFileDescriptor:2 closeOnDealloc:NO];
+      fh_stderr = self;
+    }
+  self = fh_stderr;
+  readOK = NO;
+  return self;
+  return self;
+}
+
+- (id)initWithStandardInput
+{
+  if (fh_stdin)
+    {
+      [fh_stdin retain];
+      [self release];
+    }
+  else
+    {
+      [self initWithFileDescriptor:0 closeOnDealloc:NO];
+      fh_stdin = self;
+    }
+  self = fh_stdin;
+  writeOK = NO;
+  return self;
+}
+
+- (id)initWithStandardOutput
+{
+  if (fh_stdout)
+    {
+      [fh_stdout retain];
+      [self release];
+    }
+  else
+    {
+      [self initWithFileDescriptor:1 closeOnDealloc:NO];
+      fh_stdout = self;
+    }
+  self = fh_stdout;
+  readOK = NO;
+  return self;
+}
+
+- (id)initWithNullDevice
+{
+  self = [self initWithFileDescriptor:open("/dev/null", O_RDWR)
+		       closeOnDealloc:YES];
+  if (self) {
+    isNullDevice = YES;
+  }
+  return self;
+}
+
+- (id)initWithFileDescriptor:(int)desc closeOnDealloc:(BOOL)flag
+{
+  self = [super init];
+  if (self)
+    {
+      struct stat sbuf;
+      int	  e;
+
+      if (fstat(desc, &sbuf) < 0)
+          [NSException raise: NSFileHandleOperationException
+                      format: @"unable to get status of descriptor - %s",
+                      strerror(errno)];
+      if (S_ISREG(sbuf.st_mode))
+        isStandardFile = YES;
+      else
+        isStandardFile = NO;
+
+      if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
+        if (e & NBLK_OPT)
+	  wasNonBlocking = YES;
+	else
+	  wasNonBlocking = NO;
+
+      isNonBlocking = wasNonBlocking;
+      descriptor = desc;
+      closeOnDealloc = flag;
+      readInfo = nil;
+      writeInfo = [[NSMutableArray array] retain];
+      readPos = 0;
+      writePos = 0;
+      readOK = YES;
+      writeOK = YES;
+    }
+  return self;
+}
+
+- (id)initWithNativeHandle:(void*)hdl
+{
+    return [self initWithFileDescriptor:(int)hdl closeOnDealloc:NO];
+}
+
+- (id)initWithNativeHandle:(void*)hdl closeOnDealloc:(BOOL)flag
+{
+  return [self initWithFileDescriptor:(int)hdl closeOnDealloc:flag];
+}
+
+- (void)checkAccept
+{
+  if (acceptOK == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"accept not permitted in this file handle"];
+    }
+  if (readInfo)
+    {
+      id	operation = [readInfo objectForKey:NotificationKey];
+
+      if (operation == NSFileHandleConnectionAcceptedNotification)
+        {
+          [NSException raise: NSFileHandleOperationException
+                      format: @"accept already in progress"];
+	}
+      else
+	{
+          [NSException raise: NSFileHandleOperationException
+                      format: @"read already in progress"];
+	}
+    }
+}
+
+- (void)checkConnect
+{
+  if (connectOK == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"connect not permitted in this file handle"];
+    }
+  if ([writeInfo count] > 0)
+    {
+      id	info = [writeInfo objectAtIndex:0];
+      id	operation = [info objectForKey:NotificationKey];
+
+      if (operation == GSFileHandleConnectCompletionNotification)
+	{
+          [NSException raise: NSFileHandleOperationException
+                      format: @"connect already in progress"];
+	}
+      else
+	{
+          [NSException raise: NSFileHandleOperationException
+                      format: @"write already in progress"];
+	}
+    }
+}
+
+- (void)checkRead
+{
+  if (readOK == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"read not permitted on this file handle"];
+    }
+  if (readInfo)
+    {
+      id	operation = [readInfo objectForKey:NotificationKey];
+
+      if (operation == NSFileHandleConnectionAcceptedNotification)
+        {
+          [NSException raise: NSFileHandleOperationException
+                      format: @"accept already in progress"];
+	}
+      else
+	{
+          [NSException raise: NSFileHandleOperationException
+                      format: @"read already in progress"];
+	}
+    }
+}
+
+- (void)checkWrite
+{
+  if (writeOK == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"write not permitted in this file handle"];
+    }
+  if ([writeInfo count] > 0)
+    {
+      id	info = [writeInfo objectAtIndex:0];
+      id	operation = [info objectForKey:NotificationKey];
+
+      if (operation == GSFileHandleConnectCompletionNotification)
+	{
+          [NSException raise: NSFileHandleOperationException
+                      format: @"connect already in progress"];
+	}
+    }
+}
+
+// Returning file handles
+
+- (int)fileDescriptor
+{
+  if (isNullDevice)
+    return -1;
+  return descriptor;
+}
+
+- (void*)nativeHandle
+{
+  return (void*)0;
+}
+
+// Synchronous I/O operations
+
+- (NSData*)availableData
+{
+  char			buf[NETBUF_SIZE];
+  NSMutableData*	d = [NSMutableData dataWithCapacity:0];
+  int			len;
+
+  if (isStandardFile)
+    {
+      while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+        {
+	  [d appendBytes:buf length:len];
+        }
+    }
+  else
+    {
+      if ((len = read(descriptor, buf, sizeof(buf))) > 0)
+        {
+	  [d appendBytes:buf length:len];
+        }
+    }
+  if (len < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to read from descriptor - %s",
+                  strerror(errno)];
+    }
+  return d;
+}
+
+- (NSData*)readDataToEndOfFile
+{
+  char			buf[NETBUF_SIZE];
+  NSMutableData*	d = [NSMutableData dataWithCapacity:0];
+  int			len;
+
+  while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+    {
+      [d appendBytes:buf length:len];
+    }
+  if (len < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to read from descriptor - %s",
+                  strerror(errno)];
+    }
+  return d;
+}
+
+- (NSData*)readDataOfLength:(unsigned int)len
+{
+  NSMutableData*	d = [NSMutableData dataWithCapacity:len];
+  int			pos;
+
+  if ((pos = read(descriptor, [d mutableBytes], len)) < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to read from descriptor - %s",
+                  strerror(errno)];
+    }
+  [d setLength:pos];
+  return d;
+}
+
+- (void)writeData:(NSData*)item
+{
+  int		rval = 0;
+  const void*	ptr = [item bytes];
+  unsigned int	len = [item length];
+  unsigned int	pos = 0;
+
+  while (pos < len)
+    {
+      int	toWrite = len - pos;
+
+      if (toWrite > NETBUF_SIZE)
+        toWrite = NETBUF_SIZE;
+      rval = write(descriptor, (char*)ptr+pos, toWrite);
+      if (rval < 0)
+        break;
+      pos += rval;
+    }
+  if (rval < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to write to descriptor - %s",
+                  strerror(errno)];
+    }
+}
+
+
+// Asynchronous I/O operations
+
+- (void)acceptConnectionInBackgroundAndNotifyForModes:(NSArray*)modes
+{
+  [self checkAccept];
+  readPos = 0;
+  [readInfo release];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+  [readInfo setObject:NSFileHandleConnectionAcceptedNotification
+	       forKey:NotificationKey];
+  [self watchReadDescriptorForModes:modes];
+}
+
+- (void)acceptConnectionInBackgroundAndNotify
+{
+  [self acceptConnectionInBackgroundAndNotifyForModes:nil];
+}
+
+- (void)readInBackgroundAndNotifyForModes:(NSArray*)modes
+{
+  [self checkRead];
+  readPos = 0;
+  [readInfo release];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+  [readInfo setObject:NSFileHandleReadCompletionNotification
+	       forKey:NotificationKey];
+  [readInfo setObject:[NSMutableData dataWithCapacity:0]
+	       forKey:NSFileHandleNotificationDataItem];
+  [self watchReadDescriptorForModes:modes];
+}
+
+- (void)readInBackgroundAndNotify
+{
+  return [self readInBackgroundAndNotifyForModes:nil];
+}
+
+- (void)readToEndOfFileInBackgroundAndNotifyForModes:(NSArray*)modes
+{
+  [self checkRead];
+  readPos = 0;
+  [readInfo release];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+  [readInfo setObject:NSFileHandleReadToEndOfFileCompletionNotification
+	       forKey:NotificationKey];
+  [readInfo setObject:[NSMutableData dataWithCapacity:0]
+	       forKey:NSFileHandleNotificationDataItem];
+  [self watchReadDescriptorForModes:modes];
+}
+
+- (void)readToEndOfFileInBackgroundAndNotify
+{
+  return [self readToEndOfFileInBackgroundAndNotifyForModes:nil];
+}
+
+// Seeking within a file
+
+- (unsigned long long)offsetInFile
+{
+  off_t	result = -1;
+
+  if (isStandardFile)
+    result = lseek(descriptor, 0, SEEK_CUR);
+  if (result < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %s",
+                  strerror(errno)];
+    }
+  return (unsigned long long)result;
+}
+
+- (unsigned long long)seekToEndOfFile
+{
+  off_t	result = -1;
+
+  if (isStandardFile)
+    result = lseek(descriptor, 0, SEEK_END);
+  if (result < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %s",
+                  strerror(errno)];
+    }
+  return (unsigned long long)result;
+}
+
+- (void)seekToFileOffset:(unsigned long long)pos
+{
+  off_t	result = -1;
+
+  if (isStandardFile)
+    result = lseek(descriptor, (off_t)pos, SEEK_SET);
+  if (result < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %s",
+                  strerror(errno)];
+    }
+}
+
+
+// Operations on file
+
+- (void)closeFile
+{
+  NSNotification*	n;
+
+  /* Ensure that any notifications we queued are destroyed with us. */
+  n = [NSNotification notificationWithName:@"any" object:self userInfo:nil];
+  [[NSNotificationQueue defaultQueue] dequeueNotificationsMatching:n
+		coalesceMask:NSNotificationCoalescingOnSender];
+
+  [self ignoreReadDescriptor];
+  [self ignoreWriteDescriptor];
+
+  [readInfo release];
+  readInfo = nil;
+  [writeInfo removeAllObjects];
+
+  (void)close(descriptor);
+  descriptor = -1;
+}
+
+- (void)synchronizeFile
+{
+  if (isStandardFile)
+    (void)sync();
+}
+
+- (void)truncateFileAtOffset:(unsigned long long)pos
+{
+  if (isStandardFile)
+    (void)ftruncate(descriptor, pos);
+   [self seekToFileOffset:pos];
+}
+
+- (void)writeInBackgroundAndNotify:(NSData*)item forModes:(NSArray*)modes
+{
+  NSMutableDictionary*	info;
+
+  [self checkWrite];
+
+  info = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+  [info setObject:item forKey:NSFileHandleNotificationDataItem];
+  [info setObject:GSFileHandleWriteCompletionNotification
+		forKey:NotificationKey];
+  if (modes)
+    [info setObject:modes forKey:NSFileHandleNotificationMonitorModes];
+
+  [writeInfo addObject:info];
+  [info release];
+  [self watchWriteDescriptor];
+}
+
+- (void)writeInBackgroundAndNotify:(NSData*)item;
+{
+  [self writeInBackgroundAndNotify:item forModes:nil];
+}
+
+- (void)postReadNotification
+{
+  NSMutableDictionary*	info = readInfo;
+  NSNotification*	n;
+  NSArray*		modes;
+  NSString*		name;
+
+  [self ignoreReadDescriptor];
+  readInfo = nil;
+  modes = (NSArray*)[info objectForKey:NSFileHandleNotificationMonitorModes];
+  name = (NSString*)[info objectForKey:NotificationKey];
+
+  n = [NSNotification notificationWithName:name object:self userInfo:info];
+
+  [info release];	/* Retained by the notification.	*/
+
+  [[NSNotificationQueue defaultQueue] enqueueNotification:n
+		postingStyle:NSPostASAP
+		coalesceMask:NSNotificationNoCoalescing
+		forModes:modes];
+}
+
+- (void)postWriteNotification
+{
+  NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+  NSNotification*	n;
+  NSArray*		modes;
+  NSString*		name;
+
+  [self ignoreWriteDescriptor];
+  modes = (NSArray*)[info objectForKey:NSFileHandleNotificationMonitorModes];
+  name = (NSString*)[info objectForKey:NotificationKey];
+
+  n = [NSNotification notificationWithName:name object:self userInfo:info];
+
+  writePos = 0;
+  [writeInfo removeObjectAtIndex:0];	/* Retained by notification.	*/
+
+  [[NSNotificationQueue defaultQueue] enqueueNotification:n
+		postingStyle:NSPostASAP
+		coalesceMask:NSNotificationNoCoalescing
+		forModes:modes];
+  [self watchWriteDescriptor];	/* In case of queued writes.	*/
+}
+
+- (BOOL)readInProgress
+{
+  if (readInfo)
+    return YES;
+  return NO;
+}
+
+- (BOOL)writeInProgress
+{
+  if ([writeInfo count] > 0)
+    return YES;
+  return NO;
+}
+
+- (void)ignoreReadDescriptor
+{
+  NSRunLoop*	l = [NSRunLoop currentRunLoop];
+  NSArray*	modes = nil;
+
+  if (descriptor < 0)
+    return;
+
+  if (readInfo)
+    modes = (NSArray*)[readInfo objectForKey:NSFileHandleNotificationMonitorModes];
+
+  if (modes && [modes count])
+    {
+      int		i;
+
+      for (i = 0; i < [modes count]; i++)
+	{
+	  [l removeEvent: (void*)descriptor
+		    type: ET_RDESC
+		 forMode: [modes objectAtIndex:i]];
+        }
+    }
+  else
+    [l removeEvent: (void*)descriptor
+	      type: ET_RDESC
+	   forMode: NSDefaultRunLoopMode];
+}
+
+- (void)ignoreWriteDescriptor
+{
+  NSRunLoop*	l = [NSRunLoop currentRunLoop];
+  NSArray*	modes = nil;
+
+  if (descriptor < 0)
+    return;
+
+  if ([writeInfo count] > 0)
+    {
+      NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+
+      modes=(NSArray*)[info objectForKey:NSFileHandleNotificationMonitorModes];
+    }
+
+  if (modes && [modes count])
+    {
+      int		i;
+
+      for (i = 0; i < [modes count]; i++)
+	{
+	  [l removeEvent: (void*)descriptor
+		    type: ET_WDESC
+		 forMode: [modes objectAtIndex:i]];
+        }
+    }
+  else
+    [l removeEvent: (void*)descriptor
+	      type: ET_WDESC
+	   forMode: NSDefaultRunLoopMode];
+}
+
+- (void)watchReadDescriptorForModes:(NSArray*)modes;
+{
+  NSRunLoop*	l = [NSRunLoop currentRunLoop];
+
+  [self setNonBlocking:YES];
+  if (modes && [modes count])
+    {
+      int		i;
+
+      for (i = 0; i < [modes count]; i++)
+	{
+	  [l addEvent: (void*)descriptor
+		 type: ET_RDESC
+	      watcher: self
+	      forMode: [modes objectAtIndex:i]];
+        }
+      [readInfo setObject:modes forKey:NSFileHandleNotificationMonitorModes];
+    }
+  else
+    {
+      [l addEvent: (void*)descriptor
+	     type: ET_RDESC
+	  watcher: self
+	  forMode: NSDefaultRunLoopMode];
+    }
+}
+
+- (void)watchWriteDescriptor
+{
+  if ([writeInfo count] > 0)
+    {
+      NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+      NSRunLoop*		l = [NSRunLoop currentRunLoop];
+      NSArray*			modes = nil;
+
+
+      modes = [info objectForKey:NSFileHandleNotificationMonitorModes];
+
+      [self setNonBlocking:YES];
+      if (modes && [modes count])
+	{
+	  int		i;
+
+	  for (i = 0; i < [modes count]; i++)
+	    {
+	      [l addEvent: (void*)descriptor
+		     type: ET_WDESC
+		  watcher: self
+		  forMode: [modes objectAtIndex:i]];
+	    }
+	}
+      else
+	{
+	  [l addEvent: (void*)descriptor
+		 type: ET_WDESC
+	      watcher: self
+	      forMode: NSDefaultRunLoopMode];
+	}
+    }
+}
+
+- (void)receivedEvent: (void*)data
+                 type: (RunLoopEventType)type
+		extra: (void*)extra
+	      forMode: (NSString*)mode
+{
+  NSString*	operation;
+
+  if (type == ET_RDESC) {
+    operation = [readInfo objectForKey:NotificationKey];
+    if (operation == NSFileHandleConnectionAcceptedNotification) {
+      struct sockaddr_in	buf;
+      int			desc;
+      int			blen = sizeof(buf);
+      NSFileHandle*		hdl;
+
+      desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
+      if (desc < 0) {
+	NSString*	s;
+
+	s = [NSString stringWithFormat:@"Accept attempt failed - %s",
+                      strerror(errno)];
+	[readInfo setObject:s forKey:GSFileHandleNotificationError];
+      }
+      else { // Accept attempt completed.
+	hdl = [[NSFileHandle alloc] initWithFileDescriptor:desc];
+	[readInfo setObject:hdl forKey:NSFileHandleNotificationFileHandleItem];
+	[hdl release];
+      }
+      [self postReadNotification];
+    }
+    else {
+      NSMutableData*	item;
+      int		length;
+      int		received = 0;
+      char		buf[NETBUF_SIZE];
+
+      item = [readInfo objectForKey:NSFileHandleNotificationDataItem];
+      length = [item length];
+
+      received = read(descriptor, buf, sizeof(buf));
+      if (received == 0) { // Read up to end of file.
+	[self postReadNotification];
+      }
+      else if (received < 0) {
+	if (errno != EAGAIN) {
+	  NSString*	s;
+
+	  s = [NSString stringWithFormat:@"Read attempt failed - %s",
+                          strerror(errno)];
+	  [readInfo setObject:s forKey:GSFileHandleNotificationError];
+	  [self postReadNotification];
+	}
+      }
+      else {
+	[item appendBytes:buf length:received];
+	if (operation == NSFileHandleReadCompletionNotification) {
+	  // Read a single chunk of data
+	  [self postReadNotification];
+	}
+      }
+    }
+  }
+  else if (type == ET_WDESC) {
+    NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+
+    operation = [info objectForKey:NotificationKey];
+    if (operation == GSFileHandleWriteCompletionNotification) {
+      NSData*		item;
+      int		length;
+      const void*	ptr;
+
+      item = [info objectForKey:NSFileHandleNotificationDataItem];
+      length = [item length];
+      ptr = [item bytes];
+      if (writePos < length) {
+	int	written;
+
+	written = write(descriptor, (char*)ptr+writePos, length - writePos);
+	if (written <= 0) {
+	  if (errno != EAGAIN) {
+	    NSString*	s;
+
+	    s = [NSString stringWithFormat:@"Write attempt failed - %s",
+			      strerror(errno)];
+	    [info setObject:s forKey:GSFileHandleNotificationError];
+	    [self postWriteNotification];
+	  }
+	}
+	else {
+	  writePos += written;
+	}
+      }
+      if (writePos >= length) { // Write operation completed.
+	[self postWriteNotification];
+      }
+    }
+    else { // Connection attempt completed.
+      connectOK = NO;
+      readOK = YES;
+      writeOK = YES;
+      [self postWriteNotification];
+    }
+  }
+}
+
+- (NSDate*)timedOutEvent: (void*)data
+		    type: (RunLoopEventType)type
+		 forMode: (NSString*)mode
+{
+    return nil;		/* Don't restart timed out events	*/
+}
+
+- (void)setNonBlocking:(BOOL)flag
+{
+  int	e;
+
+  if (isStandardFile)
+    return;
+
+  if (isNonBlocking == flag)
+    return;
+
+  if ((e = fcntl(descriptor, F_GETFL, 0)) >= 0)
+    {
+      if (flag)
+        e |= NBLK_OPT;
+      else
+        e &= ~NBLK_OPT;
+
+      if (fcntl(descriptor, F_SETFL, e) < 0)
+        [NSException raise: NSFileHandleOperationException
+                      format: @"could not change non-blocking mode"];
+      isNonBlocking = flag;
+    }
+    else
+      [NSException raise: NSFileHandleOperationException
+                      format: @"could not change non-blocking mode"];
+}
+
+@end
+

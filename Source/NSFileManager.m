@@ -382,7 +382,7 @@ static NSFileManager* defaultManager = nil;
 	values[8] = NSFileTypeUnknown;
 	
     return [[[NSDictionary alloc]
-	initWithObjects:values forKeys:keys count:5]
+	initWithObjects:values forKeys:keys count:9]
 	autorelease];
 }
 
@@ -661,11 +661,11 @@ static NSFileManager* defaultManager = nil;
 	    currentFileName = [manager
 		   stringWithFileSystemRepresentation:dirbuf->d_name
 		   length:strlen(dirbuf->d_name)];
-	    currentFileName = [[pathStack lastObject]
-		stringByAppendingPathComponent:currentFileName];
+	    currentFileName = [[[pathStack lastObject]
+		stringByAppendingPathComponent:currentFileName] retain];
 	    // Full path of current file
-	    currentFilePath = [topPath
-		stringByAppendingPathComponent:currentFileName];
+	    currentFilePath = [[topPath
+		stringByAppendingPathComponent:currentFileName] retain];
 	    // Check if directory
 	    cpath = [manager fileSystemRepresentationWithPath:currentFilePath];
 	    // Do not follow links

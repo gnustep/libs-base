@@ -27,10 +27,10 @@
 #include <objc/objc.h>
 #include <objc/Protocol.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/fake-main.h>
 
 @class NSArchiver;
 @class NSCoder;
+@class NSPortCoder;
 @class NSMethodSignature;
 @class NSString;
 @class NSInvocation;
@@ -109,6 +109,11 @@
 - (Class) classForCoder;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 
+@end
+
+@interface NSObject (NSPortCoder)
+- (Class) classForPortCoder: (NSPortCoder*)anEncoder;
+- (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
 @end
 
 NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);

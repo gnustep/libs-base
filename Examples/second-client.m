@@ -2,7 +2,7 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/Invocation.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
   NS_ENDHANDLER
 
   /* Run, exiting as soon as there are 30 minutes with no requests */
-  [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30 * 60]];
+  [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30 * 60]];
   
   /* Clean up, to let the server know we're going away; (although
      this isn't strictly necessary because the remote port will

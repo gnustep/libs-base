@@ -2,7 +2,7 @@
 #include <gnustep/base/Connection.h>
 #include "first-server.h"
 #include <Foundation/NSString.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #include <sys/file.h>
 
 
@@ -55,8 +55,8 @@ int main()
   NSString*	m;
   id r;
 
-  r = [RunLoop currentInstance];
-  m = [RunLoop currentMode];
+  r = [NSRunLoop currentInstance];
+  m = [NSRunLoop currentMode];
   myIo = [[MyIo alloc] initForRunLoop: r andMode: m];
 
   [r addReadDescriptor: 0 object: myIo forMode: m];

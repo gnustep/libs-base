@@ -33,18 +33,18 @@
 + allocWithZone: (NSZone*)zone;
 + dictionary;
 + dictionaryWithContentsOfFile:(NSString *)path;
-+ dictionaryWithObjects: (id*)objects forKeys: (NSObject**)keys
++ dictionaryWithObjects: (id*)objects forKeys: (id*)keys
 		  count: (unsigned)count;
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-+ dictionaryWithObjectsAndKeys:(id)firstObject, ...;
++ dictionaryWithObjectsAndKeys: (id)object, ...;
 - initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-- initWithObjects: (id*)objects forKeys: (NSObject**)keys
+- initWithObjects: (id*)objects forKeys: (id*)keys
 	    count: (unsigned)count;
 - initWithDictionary: (NSDictionary*)otherDictionary;
 - initWithContentsOfFile: (NSString*)path;
 
 - (unsigned) count;
-- objectForKey: (NSObject*)aKey;
+- objectForKey: aKey;
 - (NSEnumerator*) keyEnumerator;
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 - (NSString*) description;
@@ -63,8 +63,8 @@
 + dictionaryWithCapacity: (unsigned)numItems;
 - initWithCapacity: (unsigned)numItems;
 
-- (void) setObject: anObject forKey: (NSObject*)aKey;
-- (void) removeObjectForKey: (NSObject*)aKey;
+- (void) setObject: anObject forKey: aKey;
+- (void) removeObjectForKey: aKey;
 - (void) removeAllObjects;
 - (void) removeObjectsForKeys: (NSArray*)keyArray;
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;

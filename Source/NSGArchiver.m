@@ -78,6 +78,13 @@
 #define const_ptr_2_xref (((Archiver*)self)->const_ptr_2_xref)
 #define fref_counter (((Archiver*)self)->fref_counter)
 
+- init
+{
+/* initialise with autoreleased mutable data so we don't leak memory */
+  return [self initForWritingWithMutableData:
+	[[[NSMutableData alloc] init] autorelease]];
+}
+
 /* Unlike the GNU version, this cannot be called recursively. */
 - (void) encodeRootObject: anObj
     withName: (NSString*)name
@@ -193,9 +200,22 @@
   return "NSGUnarchiver";
 }
 
+/* if anyone asks for an archivers data we assume that they have finished
+   archiving and want to read from the data area, so we rewind the stream
+   and give it to them.  Attempting to use the archiver after this will
+   mess up in a big way.  NB. If the archiver was not writing to an
+   NSData object, we can't give one out, so we return nil. */
 - (NSMutableData*) archiverData
 {
-  [self notImplemented: _cmd];
+  id	s = [cstream stream];
+  if ([s isKindOfClass:[NSData class]])
+    {
+      if ([s respondsTo:@selector(rewindStream)])
+	{
+	  [s rewindStream];
+        }
+      return (NSMutableData*)s;
+    }
   return nil;
 }
 

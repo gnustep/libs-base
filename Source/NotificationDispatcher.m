@@ -53,7 +53,6 @@
   id _name;
   id _object;
 }
-
 - initWithName: n object: o;
 - (NSString*) notificationName;
 - notificationObject;
@@ -99,6 +98,18 @@
 {
   [_name release];
   [super dealloc];
+}
+
+- (BOOL)isEqual:other
+{
+  if ([self class] != [other class])
+    return NO;
+  if (_object != [other notificationObject])
+    return NO;
+  if (_name != [other notificationName] &&
+      ![_name isEqual: [other notificationName]])
+    return NO;
+  return YES;
 }
 
 - (NSString*) notificationName
@@ -265,6 +276,12 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	   this way the array will be completely released when the
 	   map table is done with it. */
 	[nr_array release];
+      }
+    /* If the observer is already watching this request, do nothing. */
+    if ([nr_array containsObject:nr])
+      {
+  	[_lock unlock];
+	return;
       }
     [nr_array appendObject: nr];
   }
@@ -545,6 +562,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   id notification_object = [notification object];
   id nr;
   LinkedList *nr_list;
+  NSMutableArray*	array;
 
   /* Make sure the notification has a name. */
   if (!notification_name)
@@ -553,15 +571,25 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
   [_lock lock];
 
+  array = [[NSMutableArray arrayWithCapacity:10] retain];
+
   /* Post the notification to all the observers that specified neither
      NAME or OBJECT. */
   if ([_anonymous_nr_list count])
     {
       FOR_COLLECTION (_anonymous_nr_list, nr)
 	{
-	  [nr postNotification: notification];
+	  [array addObject:nr];
 	}
       END_FOR_COLLECTION (_anonymous_nr_list);
+      while ([array count] > 0)
+	{
+	  nr = [array objectAtIndex:0];
+
+	  if ([nr linkedList] != NO_OBJECT) /* Has request been removed? */
+	    [nr postNotification:notification];
+	  [array removeObjectAtIndex:0];
+	}
     }
 
   /* Post the notification to all the observers that specified OBJECT,
@@ -573,9 +601,17 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	{
 	  FOR_COLLECTION (nr_list, nr)
 	    {
-	      [nr postNotification: notification];
+	      [array addObject:nr];
 	    }
 	  END_FOR_COLLECTION (nr_list);
+	  while ([array count] > 0)
+	    {
+	      nr = [array objectAtIndex:0];
+
+	      if ([nr linkedList] != NO_OBJECT) /* Has request been removed? */
+		[nr postNotification:notification];
+	      [array removeObjectAtIndex:0];
+	    }
 	}
     }
 
@@ -589,10 +625,20 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	{
 	  id nr_object = [nr notificationObject];
 	  if (!nr_object || nr_object == notification_object)
-	    [nr postNotification: notification];
+	    [array addObject:nr];
 	}
       END_FOR_COLLECTION (nr_list);
+      while ([array count] > 0)
+	{
+	  nr = [array objectAtIndex:0];
+
+	  if ([nr linkedList] != NO_OBJECT) /* Has request been removed? */
+	    [nr postNotification:notification];
+	  [array removeObjectAtIndex:0];
+	}
     }
+
+  [array release];
 
   [_lock unlock];
 }

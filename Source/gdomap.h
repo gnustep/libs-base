@@ -1,5 +1,5 @@
 /* Include for communications with GNUstep Distributed Objects name server
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1996
@@ -32,17 +32,23 @@
  *	The communications protocol is identical for both TCP and UDP and
  *	consists of a simple request-response sequence.
  *
- *	Each request is a single 260 byte message consisting of -
+ *	Each request is a single 264 byte message consisting of -
  *		a single byte request type,
  *		a single byte giving name length,
- *		a two byte port number in network byte order may be
+ *		a single byte specifying the type of port being registered
+ *		or looked up, or a nul byte for probe operations.
+ *		a single nul byte.
+ *		a four byte port number in network byte order must be
  *		present for register operations, otherwise this is zero.
  *		a service name of 0 to 255 bytes (or an IP address in
  *		network byte order for probe operations)
- *		The total is always sent in a packet of 260 bytes with
- *		everything after the service name cleared to nul bytes.
+ *		0 to 254 nul bytes padding the service name to 255.
+ *		a terminating nul byte.
+ *		The total is always sent in a packet of 262 bytes with
+ *		everything after the service name (except the final byte)
+ *		cleared to nul bytes.
  *
- *	Each response consists of at least 2 bytes and depends on the
+ *	Each response consists of at least 4 bytes and depends on the
  *	corresponding request type and where it came from as follows -
  *
  *	Request type	Effect
@@ -51,12 +57,11 @@
  *			Response is the port number in network byte order,
  *			or zero if the named server was not registered.
  *
- *	GDO_REGISTER	Registers the given server name and returns port number.
+ *	GDO_REGISTER	Registers the given server name with a port number.
  *			This service is only available to processes on the
  *			same host as the name server.
  *			Response is the port number in network byte order,
- *			or zero if the named server was already registered
- *			or if a port could not be allocated.
+ *			or zero if the named server was already registered.
  *
  *	GDO_UNREG	Un-register the server name and return old port number.
  *			This service is only available to a process on the
@@ -66,7 +71,7 @@
  *			or zero if the name could not be un-registered.
  *
  *	GDO_SERVERS	Return a list of the known servers on the local net.
- *			Response is an unsigned short (in network byte order)
+ *			Response is an unsigned long (in network byte order)
  *			saying how many servers the name server knows about,
  *			followed by a list of their IP addresses in network
  *			byte order.
@@ -94,13 +99,6 @@
  *	    usually do a read as a single operation since it doesn't have
  *	    to read a little, figure out request length, allocate a buffer,
  *	    and read the rest.
- *
- *	    The packet size is 1 byte longer than the data actually used.
- *	    This means that the server can check that the last byte is a
- *	    nul (a little integrity check does no harm). The final byte
- *	    is also intended as a place holder for a possible extension
- *	    to denote the type of port that is to be associated with the
- *	    server name.  At present this is assumed to be TCP or UDP.
  *
  *	    The server name length (bytes) is specified - no assumptions
  *	    should be made about whether the name contains nul characters
@@ -142,8 +140,6 @@
 
 #define	GDOMAP_PORT	(538)	/* The well-known port for name server.	*/
 
-#define	GDO_REQ_SIZE	260	/* The size of a request packet.	*/
-
 /*
  *	Request type codes
  */
@@ -154,159 +150,25 @@
 #define	GDO_PROBE	'P'
 #define	GDO_PREPLY	'p'
 
-/* Include for communications with GNUstep Distributed Objects name server
-   Copyright (C) 1996 Free Software Foundation, Inc.
-
-   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Created: October 1996
-
-   This file is part of the GNUstep Base Library.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */
+/*
+ *	Port type codes
+ */
+#define	GDO_TCP_GDO	'T'	/* tcp/ip distributed object server.	*/
+#define	GDO_UDP_GDO	'U'	/* udp/ip distributed object server.	*/
+#define	GDO_TCP_FOREIGN	't'	/* tcp/ip simple socket connection.	*/
+#define	GDO_UDP_FOREIGN	'u'	/* udp/ip simple socket connection.	*/
 
 /*
- *	About the GNU Distributed Objects name-server
- *
- *	The name server is intended to work with both the UDP and the TCP
- *	protocols.  It is intended that the TCP interface be used by
- *	GNUstep programs, while the UDP interface is intended primarily
- *	for communication between name servers on different machines.
- *
- *	The communications protocol is identical for both TCP and UDP and
- *	consists of a simple request-response sequence.
- *
- *	Each request is a single 260 byte message consisting of -
- *		a single byte request type,
- *		a single byte giving name length,
- *		a two byte port number in network byte order may be
- *		present for register operations, otherwise this is zero.
- *		a service name of 0 to 255 bytes (or an IP address in
- *		network byte order for probe operations)
- *		The total is always sent in a packet of 260 bytes with
- *		everything after the service name cleared to nul bytes.
- *
- *	Each response consists of at least 2 bytes and depends on the
- *	corresponding request type and where it came from as follows -
- *
- *	Request type	Effect
- *
- *	GDO_LOOKUP	Looks up the server name and returns its port number.
- *			Response is the port number in network byte order,
- *			or zero if the named server was not registered.
- *
- *	GDO_REGISTER	Registers the given server name and returns port number.
- *			This service is only available to processes on the
- *			same host as the name server.
- *			Response is the port number in network byte order,
- *			or zero if the named server was already registered
- *			or if a port could not be allocated.
- *
- *	GDO_UNREG	Un-register the server name and return old port number.
- *			This service is only available to a process on the
- *			same host as this name server and which sent the
- *			request from the port associated with the name.
- *			Response is the old port number in network byte order,
- *			or zero if the name could not be un-registered.
- *
- *	GDO_SERVERS	Return a list of the known servers on the local net.
- *			Response is an unsigned short (in network byte order)
- *			saying how many servers the name server knows about,
- *			followed by a list of their IP addresses in network
- *			byte order.
- *			NB. This response may not be possible over UDP as the
- *			response length may exceed the maximum UDP packet size.
- *
- *	The following are used for communications between name servers -
- *
- *	GDO_PROBE	Requests a response
- *			For a request from a name server via UDP there is no
- *			response, but a GDO_REPLY request is sent.
- *			For a request from a non-name-server, or a TCP
- *			connect, the response is the port number of this
- *			server in network byte order.
- *
- *	GDO_PREPLY	Replies to a GDO_PROBE via UDP from a name server.
- *			No response is sent.
- *
- *
- *	HOW IT WORKS AND WHY (implementation notes)
- *
- *	1.  The fixed size of a request packet was chosen for maximum
- *	    ease and speed of implementation of a non-blocking name server.
- *	    The server knows how much it needs to read and can therefore
- *	    usually do a read as a single operation since it doesn't have
- *	    to read a little, figure out request length, allocate a buffer,
- *	    and read the rest.
- *
- *	    The packet size is 1 byte longer than the data actually used.
- *	    This means that the server can check that the last byte is a
- *	    nul (a little integrity check does no harm). The final byte
- *	    is also intended as a place holder for a possible extension
- *	    to denote the type of port that is to be associated with the
- *	    server name.  At present this is assumed to be TCP or UDP.
- *
- *	    The server name length (bytes) is specified - no assumptions
- *	    should be made about whether the name contains nul characters
- *	    or indeed about the name at all.  This is future-proofing.
- *
- *	2.  Why UDP as well as TCP?
- *	    The OpenStep specification says that a connection may be
- *	    established to any host on the local network which supplys a
- *	    named service if the host name is specified as '*'
- *
- *	    This means that the application must poll to see if it can
- *	    find a server with the name it wants.  The polling could take
- *	    a huge amount of time!
- *
- *	    To make this all easier - the server is capable of supplying
- *	    a list of those hosts on the local network which it knows to
- *	    have (or have had) a name server running on them.
- *
- *	    The application then need only poll those name servers to find
- *	    the service it wants.
- *
- *	    However - to give the application a list of hosts, the name
- *	    server must have got the information from somewhere.
- *	    To gather the information the server has to poll the machines
- *	    on the net which would take ages using TCP since attempts to
- *	    talk to machines which are down or do not exist will take a
- *	    while to time out.
- *
- *	    To make things speedy, the server sends out GDO_PROBE requests
- *	    on UDP to all the machines on the net when it starts up.
- *	    Each machine which has a name server notes that the new name
- *	    server has started up and sends back a GDOPREPLY packet so
- *	    that the new name server will know about it.
- *
- *	    Things are never perfect though - if a name server dies, the
- *	    other name servers won't know, and will continute to tell
- *	    applications that it is there.
+ *	Structure to hold a request.
  */
+typedef	struct	{
+    unsigned char	rtype;
+    unsigned char	nsize;
+    unsigned char	ptype;
+    unsigned char	dummy;
+    unsigned int	port;
+    char		name[256];
+} gdo_req;
 
-#define	GDOMAP_PORT	(538)	/* The well-known port for name server.	*/
-
-#define	GDO_REQ_SIZE	260	/* The size of a request packet.	*/
-
-/*
- *	Request type codes
- */
-#define	GDO_REGISTER	'R'
-#define	GDO_LOOKUP	'L'
-#define	GDO_UNREG	'U'
-#define	GDO_SERVERS	'S'
-#define	GDO_PROBE	'P'
-#define	GDO_PREPLY	'p'
+#define	GDO_REQ_SIZE	264	/* The size of a request packet.	*/
 

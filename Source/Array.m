@@ -130,7 +130,6 @@
   [coder decodeValueOfCType:@encode(unsigned)
 	 at:&_capacity
 	 withName:NULL];
-  OBJC_MALLOC(_contents_array, id, _capacity);
   return self;
 }
 
@@ -183,9 +182,18 @@
 
 - (void) appendObject: newObject
 {
-  incrementCount(self);
-  [newObject retain];
-  _contents_array[_count-1] = newObject;
+	/*	Check to make sure that anObject is not nil, first.	*/
+	if (newObject == nil)
+	{
+		[NSException  raise: NSInvalidArgumentException
+					 format: @"Array: object to add is nil"
+		];
+	}
+
+	/*	Now we can add it.	*/
+	incrementCount(self);
+	[newObject retain];
+	_contents_array[_count-1] = newObject;
 }
 
 - (void) prependObject: newObject
@@ -199,6 +207,15 @@
 - (void) insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
+
+	/*	Check to make sure that anObject is not nil, first.	*/
+	if (newObject == nil)
+	{
+		[NSException  raise: NSInvalidArgumentException
+					 format: @"Array: object to insert is nil"
+		];
+	}
+
   incrementCount(self);
   [newObject retain];
   makeHoleAt(self, index);

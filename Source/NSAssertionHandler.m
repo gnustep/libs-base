@@ -20,8 +20,10 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
+
 #include <Foundation/NSException.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSThread.h>
 
@@ -50,18 +52,19 @@ static NSString *dict_key = @"_NSAssertionHandler";
    lineNumber:(int)line 
    description:(NSString *)format,...
 {
+  id message;
   va_list ap;
 
   va_start(ap, format);
-  // FIXME: should be NSLog;
-  fprintf(stderr, "Assertion failed in %s, file %s:%d. ",
-	  [functionName cString], [fileName cString], line);
-  vfprintf(stderr, [format cString], ap);
-  fprintf(stderr, "\n");
+  message =
+    [NSString
+      stringWithFormat: @"Assertion failed in %@, file %@:%d. %@",
+      functionName, fileName, line, format];
+  NSLogv(message, ap);
   va_end(ap);
-    
+
   [NSException raise:NSInternalInconsistencyException
-	       format:@"Assertion failed in %s", [functionName cString]];
+	       format: message arguments: ap];
   /* NOT REACHED */
 }
 
@@ -71,18 +74,19 @@ static NSString *dict_key = @"_NSAssertionHandler";
                     lineNumber: (int) line
                    description: (NSString *) format,...
 {
+  id message;
   va_list ap;
 
   va_start(ap, format);
-  // FIXME: should be NSLog;
-  fprintf(stderr, "Assertion failed in %s, method %s, file %s:%d. ",
-            object_get_class_name(object), sel_get_name(aSelector),
-            [fileName cString], line);
-  vfprintf(stderr, [format cString], ap);
-  fprintf(stderr, "\n");
+  message =
+    [NSString
+      stringWithFormat: @"Assertion failed in %s, method %s, file %@:%d. %@",
+      object_get_class_name(object), sel_get_name(aSelector),
+      fileName, line, format];
+  NSLogv(message, ap);
 
   [NSException raise: NSInternalInconsistencyException 
-	       format: format arguments: ap];
+	       format: message arguments: ap];
   va_end(ap);
   /* NOT REACHED */
 }

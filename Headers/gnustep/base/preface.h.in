@@ -57,6 +57,10 @@
  /* #include <objc/objc-list.h> */
 #endif
 
+#ifndef __WIN32__
+#include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
+#endif
+
 #include <Foundation/NSObject.h>
 #include <Foundation/NSObjCRuntime.h>
 

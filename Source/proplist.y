@@ -45,8 +45,9 @@ object:         NSSTRING
 array:          '(' objlist ')'
                                 {$$ = $2;}
                 |       '(' ')'
-                                {$$ = [[NSArray array] autorelease];}
+                                {$$ = [NSArray array];}
                 ;
+
 objlist:                objlist ',' object
                                 {
                                   $$ = $1;
@@ -63,20 +64,24 @@ initWithCapacity:1] autorelease];
 dictionary:     '{' keyval_list '}'
                                 {$$ = $2;}
                 |       '{' '}'
-                                {$$ = [[NSDictionary dictionary]
-autorelease];}
+                                {$$ = [NSDictionary dictionary];}
                 ;
 keyval_list:    keyval_list keyval_pair
                                 {
                                   $$ = $1;
                                   [$$ addEntriesFromDictionary:$2];
+				  [$2 release];
                                 }
                 |       keyval_pair
+				{
+                                  $$ = $1;
+				  [$$ autorelease];
+				}
                 ;
 keyval_pair:    NSSTRING '=' object ';'
                                 {
-                                  $$ = [[[NSMutableDictionary alloc]
-initWithCapacity:1] autorelease];
+                                  $$ = [[NSMutableDictionary alloc]
+initWithCapacity:1];
                                   [$$ setObject:$3 forKey:$1];
                                 }
                 ;

@@ -12,6 +12,12 @@ int main()
 {
   id set;
   id arp;
+  id arc;
+  id una;
+  id xxx;
+  id apl;
+  
+  [NSAutoreleasePool enableDoubleReleaseCheck:YES];
   
   arp = [[NSAutoreleasePool alloc] init];
 
@@ -26,6 +32,20 @@ int main()
     while ((o = [e nextObject]))
       printf("%s\n", [o cStringNoCopy]);    
   }
+
+  apl = [[NSAutoreleasePool alloc] init];
+  arc = [[NSArchiver new] autorelease];
+printf("%u\n", [arc retainCount]);
+  [arc retain];
+printf("%u\n", [arc retainCount]);
+  [arc release];
+printf("%u\n", [arc retainCount]);
+  [arc encodeRootObject: set];
+  /* Intentionally dodgy code - autorelease before init to see if init copes. */
+  una = [[[NSUnarchiver alloc] autorelease] initForReadingWithData: [arc archiverData]];
+  xxx = [una decodeObject];
+  [xxx release];
+  [apl release];
 
   /* Write it to a file */
   [NSArchiver archiveRootObject: set toFile: @"./nsarchiver.dat"];

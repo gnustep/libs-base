@@ -5,45 +5,9 @@
 *
 * Author    :   John W. M. Stevens
 
-  Notes     :   See below by date.
-
 ...............................................................................
 15 April 1997
 
-NSRange.m
-
-1) NSMakeRange does an implicit type cast from a float to an
-   unsigned long.  This is a nasty spot for hard to find errors.
-
-2) NSMakeRange, in doing the above, automatically converts negative
-   numbers to unsigned ints, and (of course) produces some very large
-   ints if one of the numbers happens to be a negative number.
-
-NSData.m
-
-1) To properly throw an NSRangeException Error in the NSMutableRange
-   replaceBytesInRange method, the NSRange location and length values
-   must be checked against the NSMutableData size attribute.
-
-   Unfortunately, we once again have a type mismatch (see the notes
-   on NSRange.m), as the NSMutableData size attribute is a signed int.
-   Is there any reason not to convert the NSMutableData (NSData) size
-   attribute to an unsigned int?  Should the NSRange values be converted
-   to signed ints?
-
-2) Checking only the summation of location and length (NSMaxRange)
-   against the size of the NSData buffer could generate some false
-   OK's, as the summation of 2's complement -2.0 and 2.0 converted
-   to unsigned ints is of course zero, yet the location value is
-   clearly out of range (being less than zero).
-
-3) Note that with the current implementation of NSData's getBytes
-   family of methods, the methods getBytes and getBytes:length could
-   throw the NSRangeException.  Obviously, it is highly unlikely that
-   getBytes would throw this exception, but it is possible that
-   getBytes:length could, and the documentation does not specify
-   that getBytes:length should return any exceptions.  In my opinion,
-   this is an acceptable deviation from the standard.
 ******************************************************************************/
 
 #include    <stdio.h>
@@ -94,7 +58,7 @@ TestNSMutableData(void)
     *   zero.
     */
 NS_DURING
-    range = NSMakeRange(-2.0, (float) strlen( subString ));
+    range = NSMakeRange(-2, strlen( subString ));
     [nsMutData replaceBytesInRange: range
                withBytes          : subString ];
 NS_HANDLER
@@ -108,7 +72,7 @@ NS_ENDHANDLER
 
     /*  Attempt to force another Range exception.   */
 NS_DURING
-    range = NSMakeRange(41.0, (float) strlen( subString ));
+    range = NSMakeRange(41, strlen( subString ));
     [nsMutData replaceBytesInRange: range
                withBytes          : subString ];
 NS_HANDLER
@@ -122,7 +86,7 @@ NS_ENDHANDLER
 
     /*  Attempt to force another Range exception.   */
 NS_DURING
-    range = NSMakeRange(42.0, (float) strlen( subString ));
+    range = NSMakeRange(42, strlen( subString ));
     [nsMutData replaceBytesInRange: range
                withBytes          : subString ];
 NS_HANDLER
@@ -152,7 +116,7 @@ NS_ENDHANDLER
     *   zero.
     */
 NS_DURING
-    range = NSMakeRange(-2.0, (float) strlen( subString ));
+    range = NSMakeRange(-2, strlen( subString ));
     [nsMutData resetBytesInRange: range];
 NS_HANDLER
     fprintf(stderr,
@@ -165,7 +129,7 @@ NS_ENDHANDLER
 
     /*  Attempt to force another Range exception.   */
 NS_DURING
-    range = NSMakeRange(41.0, (float) strlen( subString ));
+    range = NSMakeRange(41, strlen( subString ));
     [nsMutData resetBytesInRange: range];
 NS_HANDLER
     fprintf(stderr,
@@ -178,7 +142,7 @@ NS_ENDHANDLER
 
     /*  Attempt to force another Range exception.   */
 NS_DURING
-    range = NSMakeRange(42.0, (float) strlen( subString ));
+    range = NSMakeRange(42, strlen( subString ));
     [nsMutData resetBytesInRange: range];
 NS_HANDLER
     fprintf(stderr,
@@ -276,7 +240,7 @@ NS_ENDHANDLER
     /*  Attempt to force another Range exception.   */
 NS_DURING
     /*  Get piece.  */
-    range = NSMakeRange(41.0, (float) strlen( subString ));
+    range = NSMakeRange(41, strlen( subString ));
     [nsData getBytes: bfr
             range   : range];
 
@@ -294,7 +258,7 @@ NS_ENDHANDLER
 
     /*  Attempt to force another Range exception.   */
 NS_DURING
-    range = NSMakeRange(42.0, (float) strlen( subString ));
+    range = NSMakeRange(42, strlen( subString ));
     [nsData getBytes: bfr
             range   : range];
 
@@ -353,7 +317,7 @@ NS_ENDHANDLER
     /*  Attempt to force another Range exception.   */
 NS_DURING
     /*  Get buffer piece.   */
-    range = NSMakeRange(41.0, (float) strlen( subString ));
+    range = NSMakeRange(41, strlen( subString ));
     newNsData = [nsData subdataWithRange: range];
 
     /*  Print buffer piece. */
@@ -372,7 +336,7 @@ NS_ENDHANDLER
     /*  Attempt to force another Range exception.   */
 NS_DURING
     /*  Get buffer piece.   */
-    range = NSMakeRange(42.0, (float) strlen( subString ));
+    range = NSMakeRange(42, strlen( subString ));
     newNsData = [nsData subdataWithRange: range];
 
     /*  Print buffer piece. */

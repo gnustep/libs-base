@@ -197,6 +197,18 @@ AC_PROG_RANLIB
 AC_LN_S
 
 #--------------------------------------------------------------------
+# Generic settings needed by NSZone.m
+#--------------------------------------------------------------------
+AC_TYPE_SIZE_T
+AC_C_INLINE
+
+#--------------------------------------------------------------------
+# Following needed by NSTimeZone.m
+#--------------------------------------------------------------------
+AC_C_BIGENDIAN
+AC_CHECK_SIZEOF(int)
+
+#--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
 AC_HEADER_STDC
@@ -240,9 +252,13 @@ if [ $HAVE_VSPRINTF ] ; then
 		VSPRINTF_RETURNS_LENGTH=1,
 		VSPRINTF_RETURNS_LENGTH=0,
 		VSPRINTF_RETURNS_LENGTH=1)
-    AC_DEFINE(VSPRINTF_RETURNS_LENGTH)
+    AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH)
 fi
 
+#--------------------------------------------------------------------
+# This function needed by NSFileManager.m and find_exec.c
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(getcwd)
 
 #--------------------------------------------------------------------
 # DIR definitions needed by NSBundle.m
@@ -250,7 +266,12 @@ fi
 AC_HEADER_DIRENT
 
 #--------------------------------------------------------------------
-# This function needed by objc-malloc.c
+# This function is needed by NSFileManager.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(getcwd)
+
+#--------------------------------------------------------------------
+# This function needed by NSPage.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(valloc)
 
@@ -260,7 +281,18 @@ AC_CHECK_FUNCS(valloc)
 AC_CHECK_FUNCS(times)
 
 #--------------------------------------------------------------------
-# This function needed by StdioStream.m
+# These functions needed by NSData.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(shmctl)
+AC_CHECK_FUNCS(mmap)
+
+#--------------------------------------------------------------------
+# This function needed by UnixFileHandle.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(inet_aton)
+
+#--------------------------------------------------------------------
+# This function needed by NSDebug.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(strerror)
 

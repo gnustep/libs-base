@@ -33,7 +33,7 @@ typedef double NSTimeInterval;
 @class NSTimeZone;
 @class NSTimeZoneDetail;
 
-@interface NSDate : NSObject
+@interface NSDate : NSObject <NSCoding,NSCopying>
 
 {
   NSTimeInterval seconds_since_ref;
@@ -56,7 +56,6 @@ typedef double NSTimeInterval;
 - (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		       sinceDate: (NSDate*)anotherDate;
 - (NSDate*) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
-- (NSDate*) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 // Converting to NSCalendar
@@ -88,10 +87,8 @@ typedef double NSTimeInterval;
 
 @end
 
-@interface NSTimeZone : NSObject
 
-//Initializing the class
-+ (void)initialize;
+@interface NSTimeZone : NSObject
 
 //Creating and Initializing an NSTimeZone
 + (NSTimeZoneDetail *)defaultTimeZone;
@@ -108,20 +105,17 @@ typedef double NSTimeInterval;
 + (NSDictionary *)abbreviationDictionary;
 - (NSString *)timeZoneName;
 
+/* Returns an dictionary that maps abbreviations to the array
+   containing all the time zone names that use the abbreviation.
+   Not in OpenStep. */
++ (NSDictionary *)abbreviationMap;
+
 //Getting Arrays of Time Zones
 + (NSArray *)timeZoneArray;
 - (NSArray *)timeZoneDetailArray;
 
 @end
 
-@interface NSTimeZone (NSCoding) <NSCoding>
-- (void)encodeWithCoder:(NSCoder *)aCoder;
-- (id)initWithCoder:(NSCoder *)aDecoder;
-@end
-
-@interface NSTimeZone (NSCopying) <NSCopying>
-- (id)copyWithZone:(NSZone *)zone;
-@end
 
 @interface NSTimeZoneDetail : NSTimeZone
 
@@ -130,11 +124,8 @@ typedef double NSTimeInterval;
 - (NSString *)timeZoneAbbreviation;
 - (int)timeZoneSecondsFromGMT;
 
-// comparing
-- (BOOL)isEqual:anObject;
-- (unsigned int)hash;
-
 @end
+
 
 @interface NSCalendarDate : NSDate
 
@@ -208,6 +199,7 @@ typedef double NSTimeInterval;
 - (NSTimeZoneDetail *)timeZoneDetail;
 
 @end
+
 
 @interface NSCalendarDate (GregorianDate)
 

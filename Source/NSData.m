@@ -22,11 +22,15 @@
    */
 
 #include <gnustep/base/preface.h>
+#include <gnustep/base/MallocAddress.h>
+#include <Foundation/byte_order.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSGData.h>
+#include <Foundation/NSHData.h>
 #include <string.h>		/* for memset() */
+#include <unistd.h>             /* SEEK_* on SunOS 4 */
 
 /* xxx Pretty messy.  Needs work. */
 
@@ -57,8 +61,13 @@ static Class NSMutableData_concrete_class;
 
 + (void) initialize
 {
+#if 0
   NSData_concrete_class = [NSGData class];
   NSMutableData_concrete_class = [NSGMutableData class];
+#else
+  NSData_concrete_class = [NSHData class];
+  NSMutableData_concrete_class = [NSHMutableData class];
+#endif
 }
 
 // Allocating and Initializing a Data Object
@@ -247,7 +256,6 @@ static Class NSMutableData_concrete_class;
   char *dest;
   int length = [self length];
   int i,j;
-  id ret;
 
 #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
@@ -264,9 +272,7 @@ static Class NSMutableData_concrete_class;
     }
   dest[j++] = '>';
   dest[j] = '\0';
-  ret = [NSString stringWithCString: dest];
-  free(dest);
-  return ret;
+  return [NSString stringWithCString: dest];
 }
 
 - (void)getBytes: (void*)buffer
@@ -285,13 +291,33 @@ static Class NSMutableData_concrete_class;
 - (void)getBytes: (void*)buffer
    range: (NSRange)aRange
 {
-  if (NSMaxRange(aRange) > [self length])
+  auto	int	size;
+
+  // Check for 'out of range' errors.  This code assumes that the
+  // NSRange location and length types will remain unsigned (hence
+  // the lack of a less-than-zero check).
+  size = [self length];
+  if (aRange.location >= size ||
+      aRange.length   >= size ||
+      NSMaxRange( aRange ) > size)
+  {
     /* FIXME: I think that this is the proper way to raise this
      * exception.  Maybe not, though.  Does GNUStep have a standard
      * format that ``internal'' exceptions like this one should have?
      * If not, then maybe it should.  It would help debugging. */
-    [NSException raise:NSRangeException
-                format:@"Out of bounds of Data."];
+
+	/* Raise an exception.
+	*	I, too, do not know if GNUStep has a standard
+	*	format.  I do feel, however, that more info is
+	*	better.  Note that the previous check did not
+	*	check both ends of the range.
+	*/
+	[NSException raise    : NSRangeException
+		     format   : @"Range: (%u, %u) Size: %d",
+		     		aRange.location,
+				aRange.length,
+				size];
+  }
   else
     /* FIXME: I guess we're guaranteed that memcpy() exists? */
     memcpy(buffer, [self bytes] + aRange.location, aRange.length);
@@ -430,50 +456,208 @@ static Class NSMutableData_concrete_class;
 
 // Deserializing Data
 
-- (unsigned int) deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor
+- (unsigned int)deserializeAlignedBytesLengthAtCursor:(unsigned int*)cursor
 {
-  [self notImplemented:_cmd];
-  return 0;
+    return *cursor;
 }
 
-- (void)deserializeBytes: (void*)buffer
-   length: (unsigned int)bytes
-   atCursor: (unsigned int*)cursor
+- (void)deserializeBytes:(void*)buffer
+  length:(unsigned int)bytes
+  atCursor:(unsigned int*)cursor
 {
-  [self notImplemented:_cmd];
+    NSRange range = { *cursor, bytes };
+    [self getBytes:buffer range:range];
+    *cursor += bytes;
 }
 
-- (void)deserializeDataAt: (void*)data
-   ofObjCType: (const char*)type
-   atCursor: (unsigned int*)cursor
-   context: (id <NSObjCTypeSerializationCallBack>)callback
+- (void)deserializeDataAt:(void*)data
+  ofObjCType:(const char*)type
+  atCursor:(unsigned int*)cursor
+  context:(id <NSObjCTypeSerializationCallBack>)callback
 {
-  [self notImplemented:_cmd];
+    if(!type || !data)
+	return;
+
+    switch(*type) {
+	case _C_ID: {
+	    [callback deserializeObjectAt:data ofObjCType:type
+		    fromData:self atCursor:cursor];
+	    break;
+	}
+	case _C_CHARPTR: {
+	    int length = [self deserializeIntAtCursor:cursor];
+	    id adr = nil;
+
+	    if (length == -1) {
+		*(const char**)data = NULL;
+		return;
+	    }
+	    else {
+		OBJC_MALLOC (*(char**)data, char, length+1);
+		adr = [MallocAddress autoreleaseMallocAddress:*(void**)data];
+	    }
+
+	    [self deserializeBytes:*(char**)data length:length atCursor:cursor];
+	    (*(char**)data)[length] = '\0';
+	    [adr retain];
+
+	    break;
+	}
+	case _C_ARY_B: {
+	    int i, count, offset, itemSize;
+	    const char* itemType;
+
+	    count = atoi(type + 1);
+	    itemType = type;
+	    while(isdigit(*++itemType));
+		itemSize = objc_sizeof_type(itemType);
+
+		for(i = offset = 0; i < count; i++, offset += itemSize)
+		    [self deserializeDataAt:(char*)data + offset
+				    ofObjCType:itemType
+				    atCursor:cursor
+				    context:callback];
+	    break;
+	}
+	case _C_STRUCT_B: {
+	    int offset = 0;
+	    int align, rem;
+
+	    while(*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+	    while(1) {
+		[self deserializeDataAt:((char*)data) + offset
+			ofObjCType:type
+			atCursor:cursor
+			context:callback];
+		offset += objc_sizeof_type(type);
+		type = objc_skip_typespec(type);
+		if(*type != _C_STRUCT_E) {
+		    align = objc_alignof_type(type);
+		    if((rem = offset % align))
+			offset += align - rem;
+		}
+		else break;
+	    }
+	    break;
+        }
+        case _C_PTR: {
+	    id adr;
+
+	    OBJC_MALLOC (*(char**)data, char, objc_sizeof_type(++type));
+	    adr = [MallocAddress autoreleaseMallocAddress:*(void**)data];
+
+	    [self deserializeDataAt:*(char**)data
+		    ofObjCType:type
+		    atCursor:cursor
+		    context:callback];
+
+	    [adr retain];
+
+	    break;
+        }
+	case _C_CHR:
+	case _C_UCHR: {
+	    [self deserializeBytes:data
+		  length:sizeof(unsigned char)
+		  atCursor:cursor];
+	    break;
+	}
+        case _C_SHT:
+	case _C_USHT: {
+	    unsigned short ns;
+
+	    [self deserializeBytes:&ns
+		  length:sizeof(unsigned short)
+		  atCursor:cursor];
+	    *(unsigned short*)data = network_short_to_host (ns);
+	    break;
+	}
+        case _C_INT:
+	case _C_UINT: {
+	    unsigned int ni;
+
+	    [self deserializeBytes:&ni
+		  length:sizeof(unsigned int)
+		  atCursor:cursor];
+	    *(unsigned int*)data = network_int_to_host (ni);
+	    break;
+	}
+        case _C_LNG:
+	case _C_ULNG: {
+	    unsigned int nl;
+
+	    [self deserializeBytes:&nl
+		  length:sizeof(unsigned long)
+		  atCursor:cursor];
+	    *(unsigned long*)data = network_long_to_host (nl);
+	    break;
+	}
+        case _C_FLT: {
+	    network_float nf;
+
+	    [self deserializeBytes:&nf
+		  length:sizeof(float)
+		  atCursor:cursor];
+	    *(float*)data = network_float_to_host (nf);
+	    break;
+	}
+        case _C_DBL: {
+	    network_double nd;
+
+	    [self deserializeBytes:&nd
+		  length:sizeof(double)
+		  atCursor:cursor];
+	    *(double*)data = network_double_to_host (nd);
+	    break;
+	}
+        default:
+	    [NSException raise:NSGenericException
+                format:@"Unknown type to deserialize - '%s'", type];
+    }
 }
 
-
-- (int) deserializeIntAtCursor: (unsigned int*)cursor
+- (int)deserializeIntAtCursor:(unsigned int*)cursor
 {
-  [self notImplemented:_cmd];
-  return 0;
+    unsigned int ni, result;
+
+    [self deserializeBytes:&ni length:sizeof(unsigned int) atCursor:cursor];
+    result = network_int_to_host (ni);
+    return result;
 }
 
-- (int) deserializeIntAtLocation: (unsigned int)location
+- (int)deserializeIntAtIndex:(unsigned int)index
 {
-  [self notImplemented:_cmd];
-  return 0;
+    unsigned int ni, result;
+
+    [self deserializeBytes:&ni length:sizeof(unsigned int) atCursor:&index];
+    result = network_int_to_host (ni);
+    return result;
 }
 
-- (void)deserializeInts: (int*)intBuffer
-   count: (unsigned int)numInts
-   atCursor: (unsigned int*)cursor
+- (void)deserializeInts:(int*)intBuffer
+  count:(unsigned int)numInts
+  atCursor:(unsigned int*)cursor
 {
-  [self notImplemented:_cmd];
+    unsigned i;
+
+    [self deserializeBytes:&intBuffer
+	  length:numInts * sizeof(unsigned int)
+	  atCursor:cursor];
+    for (i = 0; i < numInts; i++)
+	intBuffer[i] = network_int_to_host (intBuffer[i]);
 }
 
-- (void)deserializeInts: (int*)intBuffer
+- (void)deserializeInts:(int*)intBuffer
+  count:(unsigned int)numInts
+  atIndex:(unsigned int)index
 {
-  [self notImplemented:_cmd];
+    unsigned i;
+
+    [self deserializeBytes:&intBuffer
+		    length:numInts * sizeof(int)
+		    atCursor:&index];
+    for (i = 0; i < numInts; i++)
+	intBuffer[i] = network_int_to_host (intBuffer[i]);
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -579,50 +763,190 @@ static Class NSMutableData_concrete_class;
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
 {
+  auto	int	size;
+
+  // Check for 'out of range' errors.  This code assumes that the
+  // NSRange location and length types will remain unsigned (hence
+  // the lack of a less-than-zero check).
+  size = [self length];
+  if (aRange.location >= size ||
+      aRange.length   >= size ||
+      NSMaxRange( aRange ) > size)
+  {
+	// Raise an exception.
+	[NSException raise    : NSRangeException
+		     format   : @"Range: (%u, %u) Size: %d",
+		     		aRange.location,
+				aRange.length,
+				size];
+  }
   memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
 }
 
 - (void) resetBytesInRange: (NSRange)aRange
 {
+  auto	int	size;
+
+  // Check for 'out of range' errors.  This code assumes that the
+  // NSRange location and length types will remain unsigned (hence
+  // the lack of a less-than-zero check).
+  size = [self length];
+  if (aRange.location >= size ||
+      aRange.length   >= size ||
+      NSMaxRange( aRange ) > size)
+  {
+	// Raise an exception.
+	[NSException raise    : NSRangeException
+		     format   : @"Range: (%u, %u) Size: %d",
+		     		aRange.location,
+				aRange.length,
+				size];
+  }
   memset((char*)[self bytes] + aRange.location, 0, aRange.length);
 }
 
 // Serializing Data
 
-- (void) serializeAlignedBytesLength: (unsigned int)length
+- (void)serializeAlignedBytesLength:(unsigned int)length
 {
-  [self notImplemented:_cmd];
 }
 
-- (void) serializeDataAt: (const void*)data
-	      ofObjCType: (const char*)type
-		 context: (id <NSObjCTypeSerializationCallBack>)callback
+- (void)serializeDataAt:(const void*)data
+  ofObjCType:(const char*)type
+  context:(id <NSObjCTypeSerializationCallBack>)callback
 {
-  [self notImplemented:_cmd];
+    if(!data || !type)
+	    return;
+
+    switch(*type) {
+        case _C_ID: {
+	    [callback serializeObjectAt:(id*)data
+			ofObjCType:type
+			intoData:self];
+	    break;
+	}
+        case _C_CHARPTR: {
+	    int len;
+
+	    if(!*(void**)data) {
+		[self serializeInt:-1];
+		return;
+	    }
+	    len = strlen(*(void**)data);
+	    [self serializeInt:len];
+	    [self appendBytes:*(void**)data length:len];
+
+	    break;
+	}
+        case _C_ARY_B: {
+            int i, offset, itemSize, count = atoi(type + 1);
+            const char* itemType = type;
+
+            while(isdigit(*++itemType));
+		itemSize = objc_sizeof_type(itemType);
+
+		for(i = offset = 0; i < count; i++, offset += itemSize)
+		    [self serializeDataAt:(char*)data + offset
+			    ofObjCType:itemType
+			    context:callback];
+
+		break;
+        }
+        case _C_STRUCT_B: {
+            int offset = 0;
+            int align, rem;
+
+            while(*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+            while(1) {
+                [self serializeDataAt:((char*)data) + offset
+			ofObjCType:type
+			context:callback];
+                offset += objc_sizeof_type(type);
+                type = objc_skip_typespec(type);
+                if(*type != _C_STRUCT_E) {
+                    align = objc_alignof_type(type);
+                    if((rem = offset % align))
+                        offset += align - rem;
+                }
+                else break;
+            }
+            break;
+        }
+	case _C_PTR:
+	    [self serializeDataAt:*(char**)data
+		    ofObjCType:++type context:callback];
+	    break;
+        case _C_CHR:
+	case _C_UCHR:
+	    [self appendBytes:data length:sizeof(unsigned char)];
+	    break;
+	case _C_SHT:
+	case _C_USHT: {
+	    unsigned short ns = host_short_to_network (*(unsigned short*)data);
+	    [self appendBytes:&ns length:sizeof(unsigned short)];
+	    break;
+	}
+	case _C_INT:
+	case _C_UINT: {
+	    unsigned int ni = host_int_to_network (*(unsigned int*)data);
+	    [self appendBytes:&ni length:sizeof(unsigned int)];
+	    break;
+	}
+	case _C_LNG:
+	case _C_ULNG: {
+	    unsigned long nl = host_long_to_network (*(unsigned long*)data);
+	    [self appendBytes:&nl length:sizeof(unsigned long)];
+	    break;
+	}
+	case _C_FLT: {
+	    network_float nf = host_float_to_network (*(float*)data);
+	    [self appendBytes:&nf length:sizeof(float)];
+	    break;
+	}
+	case _C_DBL: {
+	    network_double nd = host_double_to_network (*(double*)data);
+	    [self appendBytes:&nd length:sizeof(double)];
+	    break;
+	}
+	default:
+	    [NSException raise:NSGenericException
+                format:@"Unknown type to deserialize - '%s'", type];
+    }
 }
 
-- (void) serializeInt: (int)value
+- (void)serializeInt:(int)value
 {
-  [self notImplemented:_cmd];
+    unsigned int ni = host_int_to_network (value);
+    [self appendBytes:&ni length:sizeof(unsigned int)];
 }
 
-- (void) serializeInt: (int)value
-	      atIndex: (unsigned int)location
+- (void)serializeInt:(int)value atIndex:(unsigned int)index
 {
-  [self notImplemented:_cmd];
+    unsigned int ni = host_int_to_network (value);
+    NSRange range = { index, sizeof(int) };
+    [self replaceBytesInRange:range withBytes:&ni];
 }
 
-- (void) serializeInts: (int*)intBuffer
-		 count: (unsigned int)numInts
+- (void)serializeInts:(int*)intBuffer count:(unsigned int)numInts
 {
-  [self notImplemented:_cmd];
+    unsigned i;
+    SEL selector = @selector (serializeInt:);
+    IMP imp = [self methodForSelector:selector];
+
+    for (i = 0; i < numInts; i++)
+	(*imp)(self, selector, intBuffer[i]);
 }
 
-- (void) serializeInts: (int*)intBuffer
-		 count: (unsigned int)numInts
-	       atIndex: (unsigned int)location
+- (void)serializeInts:(int*)intBuffer
+  count:(unsigned int)numInts
+  atIndex:(unsigned int)index
 {
-  [self notImplemented:_cmd];
+    unsigned i;
+    SEL selector = @selector (serializeInt:atIndex:);
+    IMP imp = [self methodForSelector:selector];
+
+    for (i = 0; i < numInts; i++)
+	(*imp)(self, selector, intBuffer[i], index++);
 }
 
 @end

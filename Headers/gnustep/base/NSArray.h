@@ -95,6 +95,7 @@
 - (void) setArray:(NSArray *)otherArray;
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
 	context: (void*)context;
+- (void) sortUsingSelector: (SEL) aSelector;
 
 @end
 

@@ -24,7 +24,7 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
 
 @implementation NSTimer
@@ -87,7 +87,7 @@
   id t = [self timerWithTimeInterval: ti
 	       invocation: invocation
 	       repeats: f];
-  [[RunLoop currentInstance] addTimer: t forMode: RunLoopDefaultMode];
+  [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
   return t;
 }
 
@@ -102,7 +102,7 @@
 	       selector: selector
 	       userInfo: info
 	       repeats: f];
-  [[RunLoop currentInstance] addTimer: t forMode: RunLoopDefaultMode];
+  [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
   return t;
 }
 

@@ -34,7 +34,6 @@
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Connection.h>
-#include <Foundation/NSConnection.h>
 #include <gnustep/base/Proxy.h>
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/TcpPort.h>
@@ -461,7 +460,7 @@ static int messages_received_count;
   /* Here is the OpenStep version, which just allows the returning of BOOL */
   if ([[ancestor delegate] respondsTo:@selector(makeNewConnection:sender:)])
     {
-      if (![[ancestor delegate] makeNewConnection: (NSConnection*)newConn 
+      if (![[ancestor delegate] makeNewConnection: (Connection*)newConn 
 				sender: [ancestor delegate]])
 	{
 	  [newConn release];
@@ -645,22 +644,20 @@ static int messages_received_count;
 		}
 	    }
 	  [ip decodeValueOfObjCType: type at: datum withName: NULL];
-	  /* -decodeValueOfCType:at:withName: malloc's new memory
+	  /* -decodeValueOfObjcCType:at:withName: malloc's new memory
 	     for char*'s.  We need to make sure it gets freed eventually
 	     so we don't have a memory leak.  Request here that it be
 	     autorelease'ed. */
 	  if (*type == _C_CHARPTR)
 	    [MallocAddress autoreleaseMallocAddress: *(char**)datum];
+          else if (*type == _C_ID)
+            [*(id*)datum autorelease];
 	}
 
       retframe = mframe_build_return (argframe, type, out_parameters,
 				      decoder);
-      /* Make sure we processed all arguments, and dismissed the IP. 
-         IP is always set to -1 after being dismissed; the only places
-	 this is done is in this function DECODER().  IP will be nil
-	 if mframe_build_return() never called DECODER(), i.e. when 
-	 we are just returning (void).*/
-      assert (ip == (id)-1 || ip == nil);
+      /* Make sure we processed all arguments, and dismissed the IP. */
+      assert (ip == (id)-1);
       return retframe;
     }
   }
@@ -676,19 +673,24 @@ static int messages_received_count;
 
   void decoder (int argnum, void *datum, const char *type)
     {
+      /* We need this "dismiss" to happen here and not later so that Coder
+	 "-awake..." methods will get sent before the __builtin_apply! */
+      if (argnum == -1 && datum == 0 && type == 0)
+	{
+	  [aRmc dismiss];
+	  return;
+	}
       [aRmc decodeValueOfObjCType:type
 	    at:datum
 	    withName:NULL];
-      /* -decodeValueOfCType:at:withName: malloc's new memory
+      /* -decodeValueOfObjCType:at:withName: malloc's new memory
 	 for char*'s.  We need to make sure it gets freed eventually
 	 so we don't have a memory leak.  Request here that it be
 	 autorelease'ed. */
       if (*type == _C_CHARPTR)
 	[MallocAddress autoreleaseMallocAddress: *(char**)datum];
-      /* We need this "dismiss" to happen here and not later so that Coder
-	 "-awake..." methods will get sent before the __builtin_apply! */
-      if (argnum == numargs-1)
-	[aRmc dismiss];
+      else if (*type == _C_ID)
+        [*(id*)datum autorelease];
     }
 
   void encoder (int argnum, void *datum, const char *type, int flags)
@@ -1033,6 +1035,8 @@ static int messages_received_count;
 		   forMode: RunLoopConnectionReplyMode] == NO)
 	break;
     }
+  if (timeout_date)
+    [timeout_date release];
   reply_depth--;
   return rmc;
 }

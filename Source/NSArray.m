@@ -151,32 +151,60 @@ static Class NSMutableArray_concrete_class;
   return [na autorelease];
 }
 
-
-
-/* Not very pretty... */
-#define INITIAL_OBJECTS_SIZE 10
-- initWithObjects: firstObject rest: (va_list)ap
+- initWithObjects: firstObject rest: (va_list) ap
 {
-  id *objects;
-  int i = 0;
-  int s = INITIAL_OBJECTS_SIZE;
+	register	int			i;
+	register	int			curSize;
+	auto		int			prevSize;
+	auto		int			newSize;
+	auto		id			*objsArray;
+	auto		id			tmpId;
 
-  OBJC_MALLOC(objects, id, s);
-  if (firstObject != nil)
-    {
-      objects[i++] = firstObject;
-      while ((objects[i++] = va_arg(ap, id)))
+	/*	Now, if the first object is nil, we have an error.	*/
+	if (firstObject == nil)
 	{
-	  if (i >= s)
-	    {
-	      s *= 2;
-	      OBJC_REALLOC(objects, id, s);
-	    }
+		[NSException  raise: NSInvalidArgumentException
+					 format: @"initWithObjects: first object id was nil"
+		];
 	}
-    }
-  self = [self initWithObjects:objects count:i-1];
-  OBJC_FREE(objects);
-  return self;
+
+	/*	Do initial allocation.	*/
+	prevSize = 1;
+	curSize  = 2;
+	OBJC_MALLOC(objsArray, id, curSize);
+	objsArray[0] = firstObject;
+
+	/*	Loop through adding objects to array until a nil is
+	*	found.
+	*/
+	for (i = 1;
+		 (tmpId = va_arg(ap, id)) != nil;
+		 i++)
+	{
+		/*	Put id into array.	*/
+		objsArray[i++] = tmpId;
+
+		/*	If the index equals the current size, increase size.	*/
+		if (i == curSize)
+		{
+			/*	Fibonacci series.  Supposedly, for this application,
+			*	the fibonacci series will be more memory efficient.
+			*/
+			newSize  = prevSize + curSize;
+			prevSize = curSize;
+			curSize  = newSize;
+
+			/*	Reallocate object array.	*/
+			OBJC_REALLOC(objsArray, id, curSize);
+		}
+	}
+	va_end( ap );
+
+	/*	Put object ids into NSArray.	*/
+	self = [self initWithObjects: objsArray
+						   count: i];
+	OBJC_FREE( objsArray );
+	return( self );
 }
 
 - initWithObjects: firstObject, ...
@@ -197,7 +225,6 @@ static Class NSMutableArray_concrete_class;
   return [self autorelease];
 }
 
-
 - initWithArray: (NSArray*)array
 {
   int i, c;
@@ -207,7 +234,9 @@ static Class NSMutableArray_concrete_class;
   OBJC_MALLOC(objects, id, c);
   for (i = 0; i < c; i++)
     objects[i] = [array objectAtIndex:i];
-  return [self initWithObjects:objects count:c];
+  self = [self initWithObjects:objects count:c];
+  OBJC_FREE(objects);
+  return self;
 }
 
 
@@ -394,6 +423,11 @@ static Class NSMutableArray_concrete_class;
 
 /* The NSCopying Protocol */
 
+- (id) copy
+{
+    return [self copyWithZone:NSDefaultMallocZone()];
+}
+
 - copyWithZone: (NSZone*)zone
 {
   /* a deep copy */
@@ -443,7 +477,7 @@ static Class NSMutableArray_concrete_class;
 
 - (void) addObject: anObject
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
@@ -564,6 +598,16 @@ static Class NSMutableArray_concrete_class;
   int i, c = [otherArray count];
   for (i = 0; i < c; i++)
     [self removeObject:[otherArray objectAtIndex:i]];
+}
+
+- (void) sortUsingSelector: (SEL)comparator
+{
+  int compare(id elem1, id elem2, void* context)
+    {
+      return (int)[elem1 perform:comparator withObject:elem2];
+    }
+
+    [self sortUsingFunction:compare context:NULL];
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 

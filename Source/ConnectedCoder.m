@@ -22,6 +22,7 @@
    */ 
 
 #include <gnustep/base/preface.h>
+#include <gnustep/base/RunLoop.h>
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/CStream.h>
 #include <gnustep/base/Port.h>
@@ -81,7 +82,7 @@ static BOOL debug_connected_coder = NO;
 - (void) dismiss
 {
   id packet = [cstream stream];
-  [[connection outPort] sendPacket: packet];
+  [[connection outPort] sendPacket: packet timeout:15.0];
   if (debug_connected_coder)
     fprintf(stderr, "dismiss 0x%x: #=%d i=%d %d\n", 
 	    (unsigned)self, sequence_number, identifier, 

@@ -102,6 +102,19 @@ NSDecrementExtraRefCountWasZero (id anObject)
   return NO;
 }
 
+static unsigned
+extraRefCount (id anObject)
+{
+  unsigned ret;
+
+  objc_mutex_lock (retain_counts_gate);
+  ret = (unsigned) o_map_value_at_key (retain_counts, anObject);
+  if (ret == (unsigned)o_map_not_a_key_marker(retain_counts) ||
+      ret == (unsigned)o_map_not_a_value_marker(retain_counts)) ret = 0;
+  objc_mutex_unlock (retain_counts_gate);
+  return ret;	/* ExtraRefCount + 1	*/
+}
+
 
 @implementation NSObject
 
@@ -225,8 +238,13 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  [self notImplemented:_cmd];
-  return nil;
+    struct objc_method* mth =
+	    (object_is_instance(self) ?
+		  class_get_instance_method(self->isa, aSelector)
+		: class_get_class_method(self->isa, aSelector));
+
+    return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
+		: nil;
 }
 
 - (NSString*) description
@@ -299,7 +317,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
   if (double_release_check_enabled)
     {
       unsigned release_count;
-      unsigned retain_count = [self retainCount];
+      unsigned retain_count = extraRefCount(self);
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
         [NSException
@@ -400,7 +418,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
   if (double_release_check_enabled)
     {
       unsigned release_count;
-      unsigned retain_count = [self retainCount];
+      unsigned retain_count = extraRefCount(self);
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
         [NSException raise: NSGenericException
@@ -437,12 +455,11 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 - (unsigned) retainCount
 {
-  unsigned ret;
+  unsigned release_count;
+  unsigned retain_count = extraRefCount(self) + 1;
+  release_count = [autorelease_class autoreleaseCountForObject:self];
 
-  objc_mutex_lock (retain_counts_gate);
-  ret = (unsigned) o_map_value_at_key (retain_counts, self);
-  objc_mutex_unlock (retain_counts_gate);
-  return ret;
+  return retain_count - release_count;
 }
 
 + (unsigned) retainCount
@@ -538,6 +555,14 @@ NSDecrementExtraRefCountWasZero (id anObject)
 + (IMP)instanceMethodFor:(SEL)aSel
 {
   return [self instanceMethodForSelector:aSel];
+}
+
++ (NSMethodSignature*)instanceMethodSignatureForSelector:(SEL)aSelector
+{
+    struct objc_method* mth = class_get_instance_method(self, aSelector);
+
+    return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
+		: nil;
 }
 
 - (IMP)methodFor:(SEL)aSel

@@ -1,3 +1,714 @@
+Fri Aug 29 13:25:51 1997  Adam Fedor  <fedor@doc.com>
+
+	* src/Makefile.in: Add LIBS macro.
+	* src/UnixFileHandle.m: Add include for Solaris.
+	* src/NSHData.m: Include errno.h
+
+Thu Aug 28 16:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* configure.in: Added check for presence of inet_aton().
+
+	* src/Array.m: Added NSSerializer.m
+
+	* src/NSConnection.m: ([-_initCollectionWithCoder:]): Removed redundant
+	OBJC_MALLOC() which was causing a memory leak.
+
+	* src/Collection.m: ([-_decodeContentsWithCoder:]): Added code to
+	release newly decoded contents to avoid massive memory leak.
+
+	* src/Dictionary.m: Restructured deallocation process so that the
+	dictionary gets deallocated properly rather than just it's contents
+	being released.
+
+	* src/Makefile.in: Added NSDebug.m and NSDebug.h
+
+	* src/NSAllocateObject.m: Minor modification to permit counting of
+	the number of instances of any object allocated.
+
+	* src/NSDeallocateObject.m: Minor modification to permit counting of
+	the number of instances of any object deallocated.
+
+	* src/Debug.m: Added functions for monitoring allocation and
+	deallocation of objects.  Also an implementation of strerror()
+	for systems which don't have it.
+
+	* src/NSHost.m: minor portability fixes.
+
+	* src/NSPort.m: ([-isValid]): implemented this method.
+
+	* src/NSSerializer.m: Misc tidying up and minor fixes.
+
+	* src/Port.m: Removed retain/release methods - these are handled
+	by NSObject.
+
+	* src/StdioStream.m: Moved implementation of strerror() to NSDebug.m.
+
+	* src/TcpPort.m: Various alterations to try to ensure that ports
+	are automatically retained and released correctly.
+
+	* src/UnixFileHandle.m: Various alterations to try to ensure that things
+	are always released correctly.
+
+	* src/include/NSDebug.h: Interface for debugging facilities.
+
+	* src/include/NSPort.h: Added variable to handle invalidation.
+
+	* src/include/NSSerialization.h: Fixed some errors introduced in last
+	change.
+
+	* src/include/Port.h: Avoid use of bitfields - some compiler versions
+	seem to mess up.
+
+	* src/include/config.h.in: Added some constants for NSHData and
+	UnixFileHandle.
+
+Tue Aug 19 09:45:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Dictionary.m: Added [-description] to perform OpenStep style
+	description of dictionary contents (for property-list strings).
+
+	* src/Makefile.in: Added NSSerializer.m
+
+	* src/NSConnection.m: Implemented [+defaultConnection] method.
+
+	* src/NSHData.m: Fixed bug in resizing buffer - when going from
+	malloced-memory to shared-memory the buffer contents were not being
+	copied!
+
+	* src/NSSerializer.m: Implementation of the NSSerializer and
+	NSDeserializer classes for handling property-lists.
+
+	* src/include/NSConnection.h: Added [-makeNewConnection:sender:].
+
+	* src/include/NSDictionary.h: Added [+dictionaryWithObjectsAndKeys:].
+
+	* src/include/NSSerialisation.h: Added interface definitions for the
+	NSSerializer and NSDeserializer clases.
+
+	* src/proplist.l: Fixed pattern definition for matching NSData items
+	and relaxed rules a little to permit newlines. Also fixed severe
+	memory leaks.
+
+	* src/proplist.y: Fixed excessive number of autoreleases and
+	restructured slightly so that temporary objects are released
+	immediately rather than being autoreleased at the end of the
+	parse - should avoid out-of-memory problems when parsing huge
+	property-lists.
+
+Thu Aug 14 14:00:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+        * checks/Makefile.in: Renamed client and server to oldclient and
+	oldserver. Created new versions for OpenStep D.O.  Added nsdata and
+	nshost.
+
+        * checks/NSData-test.m: Updated in line with current NSRange code.
+
+        * checks/client.m: Revised version for OPENSTEP D.O.
+
+        * checks/nsarchiver.m: Added a couple of checks to do with allocation.
+
+        * checks/nsarray.m: Added some retain count checks.
+
+        * checks/nsdata.m: Test memory mapped file initialisation.
+
+        * checks/nshost.m: Basic tests for nshost class.
+
+        * checks/nstimer.m: Changed to use NSRunLoop.
+
+        * checks/oldclient.m: Old version for GNU D.O.
+
+        * checks/oldserver.h: Old version for GNU D.O.
+
+        * checks/oldserver.m: Old version for GNU D.O.
+
+        * checks/server.h: Revised version for OPENSTEP D.O.
+
+        * checks/server.m: Revised version for OPENSTEP D.O.
+
+        * checks/tcpport-client.m: Modified for changed tcpport.
+
+        * checks/tcpport-server.m: Modified for changed tcpport.
+
+	* configure.in: Added checks for mapped file and shared memory support.
+
+	* examples/first-server.m: Include NSRunLoop.h rather than RunLoop.h.
+
+	* examples/second-client.m: Include NSRunLoop.h rather than RunLoop.h.
+
+	* src/ConnectedCoder.m: ([ConnectedEncoder -dismiss]): Changed the
+	method used to send an encoded packet.
+
+	* src/Connection.m: ([Connection -_service_forwardForProxy:]): Fixed
+	another memory leak.
+
+	* src/Dictionary.m: Added [-allKeys] and [-allValues]
+
+	* src/Invocation.m: Added methods to encode bycopy over OPENSTEP D.O.
+
+	* src/Makefile.in: Updated for new OPENSTEP D.O. classes etc.
+
+	* src/NSConnection.m: New implementation for OPENSTEP D.O.
+
+	* src/NSData.m: Altered to use NSHData as default concrete class and
+	added serialization stuff from libFoundation.
+
+	* src/NSDate.m: Added methods to ensure that NSDate objects are sent
+	over the wire bycopy.
+
+	* src/NSDistantObject: New implementation of this OPENSTEP class based
+	on code from Proxy.m
+
+	* src/NSFileHandle.m: Changed notification names for GNUstep extensions
+	to have a GS prefix rather than an NS prefix.
+
+	* src/NSGArchiver.m: Changed to work using NSHData objects.
+
+	* src/NSHData.m: New version of NSData which supports memory mapped
+	files and shared memory for large objects.
+
+	* src/NSHost.m: A few minor changes to get this to compile without
+	warnings under Linux.
+
+	* src/NSPort.m: Implementation of this OPENSTEP class as a base class
+	for real port objects.
+
+	* src/NSPortCoder.m: New implementation of this OPENSTEP class based on
+	the code from ConnectedCoder.m
+
+	* src/NSProxy.m: New implementation of this class.
+
+	* src/NSRange.m: (NSMakeRange()): added check for possible integer
+	overflow.
+
+	* src/NSRunLoop.m: Complete implementation of OPENSTEP API based on
+	the code from RunLoop.m with some rewriting and lots of additions.
+
+	* src/NSTimer.m: Altered to use NSRunLoop instead of RunLoop
+
+	* src/Port.m: Changed to use timeouts when sending packets, use the
+	OpenStep notification names, and be encoded bycopy with NSConnection.
+
+	* src/RunLoop.m: removed this file - NSRunLoop does everything.
+
+	* src/TcpPort.m: Alterations for revised version of nameserver
+	protocol and to perform timeouts when sending data.
+
+	* src/UnixFileHandle.m: Updated for changes in notification names and
+	NSRunLoop class.
+
+	* src/gdomap.c: Improved startup time, changed nameserver protocol to
+	permit 4-byte port IDs (eg mach ports) and to permit the nameserver
+	to be used by non-Distributed-Objects applications.
+
+	* src/gdomap.c: Imroved nameserver protocol.
+
+	* src/include/DistributedObjects.h: New header file to contain
+	interface information which is only for internal used by the
+	distributed objects system.
+
+	* src/include/NSConnection.h: New interface definition file.
+
+	* src/include/NSData.h: Corrected a few methods to conform to OpenStep.
+
+	* src/include/NSDictionary.h: Changed methods to require NSObject keys
+	rather than NSStrings.
+
+	* src/include/NSDistantObject.h: New interface definition file.
+
+	* src/include/NSFileHandle.h: Changed notification names for extensions.
+
+	* src/include/NSHData.h: New interface definition file.
+
+	* src/include/NSPort.h: New interface definition file.
+
+	* src/include/NSPortCoder.h: New interface definition file.
+
+	* src/include/NSProxy.h: New interface definition file.
+
+	* src/include/NSRunLoop.h: Complete interface for NSRunLoop class.
+
+	* src/include/NSSerialization.h: Fixed typos in method names.
+
+	* src/include/Port.h: Changed Port to inherit from NSPort and added
+	a timeout to the method for sending data.
+
+	* src/include/RunLoop.h: Removed RunLoop stuff and changed it to use
+	NSRunLoop instead.
+
+	* src/include/UnixFileHandle.h: Changed gnustep extension notification
+	names and altered class to work with new NSRunLoop.
+
+	* src/include/byte_order.h: Incorporated this file from libFoundation.
+
+	* src/mframe.m: (mframe_do_call()): modified this to tell the decoder
+	function when it has finished so that the decoder can cleanup safely.
+
+Thu Aug 28 16:36:03 1997  Adam Fedor  <fedor@spanky.doc.com>
+
+	* src/NSUser.m (NSUserName): Check for login_name in other places
+	(bug submitted by Manuel Guesdon <mguesdon@sbuilders.com>. 
+
+Tue Jul 15 13:55:19 1997 Gregor Hoffleit <flight@mathi.uni-heidelberg.DE>
+
+	* configure.in: Check for getcwd and pthread library.
+
+	* src/find_exec.c: Use getcwd if available.
+
+Fri Jul 11 13:55:19 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* checks/Makefile.in: Added nsfilehandle.m and improved 'clean'
+
+	* checks/nsfilehandle.m: Rudimentary tests for NSFileHandle class.
+
+	* src/LinkedList.m ([LinkedList -removeObject:]): Clear the pointer
+	to the list in the removed list element so it know it is no longer
+	in a list.
+
+	* src/Makefile.in: Added NSFileHandle, UnixFileHandle and
+	NSNotificationQueue.  Fixed link libraries for gdomap.
+
+	* src/NSDate.m: Added code to ensure that NSDate objects are always
+	sent over the wire bycopy.
+
+	* src/NSFileHandle.m: Implemented this OPENSTEP class in full.
+
+	* src/NSFileManager.m ([NSFileManager -fileAttributesAtPath:traverseLink:): 
+	Fixed to return full list of attributes.
+	([NSFileManager -findNextFile): Fixed retain/release problem.
+
+	* src/NSNotificationQueue.m: Imported class from libFoundation and
+	modified for gstep-base with a few bug fixes and thread stuff.
+
+	* src/NSPipe.m: Implemented this OPENSTEP class in full.
+
+	* src/NSThread.m: Modified to ensure that a threads dictionary
+	persists until the end of the thread!
+
+	* src/NSNotificationDispatcher.m: Modified to avoid multiple identical
+	notification observer requests and fixed posting of notifications so
+	that observer requests can be safely removed by notification handlers.
+
+	* src/RunLoop.m: Modifications for NSNotificationQueue, per-thread
+	default run-loops, and safer file descriptor watching.
+
+	* src/TcpPort.m: Added include for solaris.
+
+	* src/UnixFileHandle.m: Wrote this class as a concrete implementation
+	of NSFileHandle.
+
+	* src/gdomap.c: Modified to make autolaunch of this daemon work
+	more reliably.  Also modified to make probes for other servers
+	take place asynchronously.
+
+	* src/gdomap.h: Tidied comments up a bit.
+
+	* src/include/NSFileHandle.h: Added this OPENSTEP include file.
+
+	* src/include/NSNotificationQueue.h: Added this from libFoundation.
+
+	* src/include/UnixFileHandle.h: Added header file for UnixFileHandle.
+
+	* src/mframe.m: Hacked this about to get all return types working for
+	DO under linux on i386 family.  Requires more work and compiler or
+	Objective-C runtime support for a more general solution.
+
+Mon Jul  7 02:40:45 1997  Geoffrey Berry  <gcb@acpub.duke.edu>
+
+	* src/NSString.m ([NSString -componentsSeparatedByString:]):
+	Fixed calculation of new search range.
+
+Mon Jun 9 16:05:26 1997  ANOQ of the sun <anoq@vip.cybercity.dk>
+
+	* src/NSAttributedString.m: New file.
+	* src/NSGAttributedString.m: New file.
+	* src/include/NSAttributedString.m: New file.
+	* src/include/NSGAttributedString.m: New file.
+	* src/Makefile.in: Add new files into lists.
+
+	* checks/nsattributedstring.m: New file.
+	* checks/Makefile.in: Add new file into list.
+
+Wed Jun  4 01:04:50 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/include/preface.h.in: Include <sys/param.h>.
+
+	* src/include/NSDate.h (NSTimeZone): Added new method
+	-abbreviationMap.
+
+	* src/NSCalendarDate.m: Adjust for time zone detail.
+	([NSCalendarDate
+ 	-initWithYear:month:day:hour:minute:second:timeZone:]): Set time
+ 	zone detail properly.
+	([NSCalendarDate -descriptionWithCalendarFormat:locale:]): Add
+ 	case for '%Z'.
+	([NSCalendarDate -initWithString:calendarFormat:locale:]): Use
+ 	local time zone, not default time zone detail.
+	([NSCalendarDate -initWithTimeIntervalSinceReferenceDate:]):
+ 	Adjust for time zone detail.
+
+	* src/tzfile.h: New file.
+
+	* configure.in: Add check for endianness and int size.
+
+	* src/NSTimeZone.m: New implementation.
+
+	* src/include/NSDate.h (NSTimeZone): Remove unnecessary method
+ 	declarations.
+	(NSTimeZoneDetail): Likewise.
+
+Sun June 02 22:14:21 1997  Stevo Crvenkovski  <stevoc@lotus.mpt.com.mk>
+
+	* src/NSGCString.m ([NSGCString -isEqualToString]):
+	 C string implementation from old NSString.m moved here
+	 and changed to check for class.
+	* src/NSGCString.m ([NSGCString -setString]):
+	 Changed to avoid compiler warning.
+	* src/NSGSequence.m ([NSGSequence -compare]):
+	 Changed for speed.
+	* src/NSString.m ([NSString -isEqualToString]):
+	 New implementation, mutch faster.
+	* src/NSString.m ([NSString -commonPrefixWithString]):
+	 Implemented recognition of composed characters.
+	* src/NSString.m ([NXConstantString -characterAtIndex]):
+	 Method implemented.
+
+Thu May 15 08:59:13 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* configure.in: Add check for getcwd().
+
+	* src/NSString.m ([NSString +initialize]): Removed casts for
+	register_printf_function.
+	(handle_printf_atsign): Set argument types for GNU libc.
+
+Sun May 21 23:12:24 1997  Stevo Crvenkovski  <stevoc@lotus.mpt.com.mk>
+
+	* src/NSGSequence.m ([NSGSequence -decompose]):
+	 Reorganized code and changed to handle empty strings.
+	* src/NSGSequence.m ([NSGSequence -order]):
+	 Added code to handle case when consecutive nonspacing
+	 characters have same canonical ordering priority.
+	* src/NSString.m ([NSString
+	-rangeOfComposedCharacterSequenceAtIndex:]):
+	 Changed to recognize end of string when last character
+	 is nonspacing.
+	* src/NSString.m ([NSString -compare:options:range:]):
+	 Handle empty strings.
+	* src/NSString.m ([NSString -hash]): Unicode version
+	implemented and commented out for more testing.
+	* src/NSString.m ([NSString -_normalizedString]):
+	 New private method for Unicode.
+	* src/NSString.h ([NSString -_normalizedString]):
+	 New private method for Unicode declared.
+
+Tue May 20 09:29:47 1997  Adam Fedor  <fedor@doc.com>
+
+	* configure.in (VSPRINTF_RETURNS_LENGTH): Define as actual value
+	of variable.. 
+
+	* checks/Makefile.in (LDFLAGS): Include DYNAMIC_LDFLAGS
+	(BUNDLE_NAME.bundle): Add new Resources directory.
+	* checks/nsbundle.m: Remove obsolete NSArgv.
+
+	* src/MemoryStream.m ([MemoryStream -writeFormat:arguments]): Make 
+	sure buffer has at least 128 bytes free space.
+
+	* src/NSBundle.m ([NSBundle -load]): New method.
+	([NSBundle -principalClass]): Use it.
+	([NSBundle +_bundleResourcePathsWithRootPath:subPath:]): New class
+	method (was an instance method). Add search in GNUSTEP_LIBRARY_PATH.
+	([NSBundle 
+	+pathForResource:ofType:inRootPath:inDirectory:withVersion:]): New
+	generalized search method.
+	([NSBundle +pathForResource:ofType:inDirectory:withVersion:]): Use it.
+	([NSBundle +pathForResource:ofType:inDirectory:]): Likewise.
+	([NSBundle -pathForResource:ofType:]): Likewise.
+	([NSBundle -pathForResource:ofType:inDirectory:]): Likewise.
+
+	* src/include/NSBundle.h: New method definitions.
+
+	* src/BinaryCStream.m: Include sys/types.h for SunOS4 definitions.
+	* src/NSData.m: Include unistd.h for SunOS4 definitions.
+	* src/StdioStream.m: Likewise.
+	* src/Time.m: Likewise.
+
+Wen May 14 01:07:16 1997  Stevo Crvenkovski  <stevoc@lotus.mpt.com.mk>
+
+	* src/NSGCString.m ([NSGCString
+	 -initWithCharactersNoCopy:length:freeWhenDone:]):
+	 Changed to invoke instance of NSGString.
+	* src/NSGString.m ([NSGString
+	 -initWithCStringNoCopy:length:freeWhenDone:]):
+	 Changed to invoke instance of NSGCString.
+	* src/NSGString.m ([NSGString
+	 -initWithCStringNoCopy:length:]):
+	 Method removed - it is in NSString.
+
+Sun May 11 10:12:11 1997  Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>
+
+	* src/NSGCString.m ([NSGCString -fastestEncoding:]): Method
+	implemented. 
+	* src/NSGCString.m ([NSGCString -smallestEncoding:]): Method
+	implemented. 
+	* src/NSGCString.m ([NSGMutableCString -setString:]): C string
+	implementation moved here from old version of NSString.
+
+	* src/NSGString.m ([NSGString -fastestEncoding:]): Method implemented.
+	* src/NSGString.m ([NSGString -smallestEncoding:]): Method implemented.
+
+	* src/NSString.m ([NSString -initWithData:encoding:]): Method
+	implemented. 
+	* src/NSString.m ([NSString -canBeConvertedToEncoding:]): Method
+	implemented. 
+	* src/NSString.m ([NSString -dataUsingEncoding:]): Method implemented.
+	* src/NSString.m ([NSString -dataUsingEncoding:
+	allowLossyConversion]): partial implementation of method.
+	* src/NSString.m ([NSString -fastestEncoding:]): Method implemented.
+ 	* src/NSString.m ([NSString -smallestEncoding:]): Method implemented.
+	* src/NSString.m ([NSString -stringByExpandingTildeInPath:]):
+	changed for Unicode.
+	* src/NSString.m ([NSString -writeToFile:
+	atomically:useAuxiliaryFile:]): Method implemented.
+	* src/NSString.m ([NXConstantString -fastestEncoding:]): Method
+	implemented. 
+	* src/NSString.m ([NXConstantString -smallestEncoding:]): Method
+	implemented. 
+
+	* src/Unicode.m (ustrtostr): changed to detect end of string.
+	* src/Unicode.m (encode_strtoustr): New function.
+	* src/Unicode.m (encode_ustrtostr): New function.	
+
+Tue May 13 23:36:59 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/NSString.m ([NSString -initWithFormat:arguments:]): Skip
+	arguments dealt with in vsprintf().
+
+Sun May 11 10:12:11 1997  Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>
+
+	* src/NSString.m ([NSString -stringByAppendingString]): Changed to 
+	avoid calling wrong subclass.
+	([NSString -capitalizedString]): Likewise.
+	([NSString -lowercaseString]): Likewise.
+	([NSString -uppercaseString]): Likewise.
+
+Mon May 12 11:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Collection.m ([Collection -copyAs:]): Modified so that copied
+	objects are released once the new collection has retained them. This
+	ensures that when the new collection is deallocated, the copied
+	objects it contains are deallocated as well.
+
+	* src/NSArray.m ([NSArray -initWithArray:]): Free temporary C
+	array opf objects when we are done with it - fixes memory leak.
+	([NSArray -copy:]) Added method to ensure copyWithZone: is called.
+	([NSArray -sortUsingSelector:]) Added method.
+
+	* src/NSDate.m ([NSDate -copyWithZone:]): Sometimes just retain
+	a date.
+
+	* src/NSObject.m ([NSObject -retainCount]): Take autorelease stuff
+	into account in determining retain count for an object.
+	Added new function 'extraRefCount()' to do what -retainCount used to.
+	Modified -release and -autorelease to use extraRefCount().
+
+	* src/include/NSArray.h: Added -sortUsingSelector:
+
+Thu May  8 02:10:35 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/NSString.m: Removed the redefinition of
+	HAVE_REGISTER_PRINTF_FUNCTION.
+
+	* src/NSZone.m (BUFFER): Reduced buffer size to 4.
+
+	* src/NSAssertionHandler.m: Include "NSObjCRuntime.h".
+	Use NSLog() to log errors.
+	Reason for exception now identical to log messages.
+
+	* configure.in: AC_TYPE_SIZE_T, AC_C_INLINE added.
+
+	* src/include/NSZone.h: Removed inline keywords for functions that
+	are potentially fluid.
+
+	* src/NSThread.m ([NSThread
+	+detachNewThreadSelector:toTarget:withObject:]): Post
+	NSBecomingMultiThreaded.
+
+	* src/StdioStream.m: Define _REENTRANT.
+	([StdioStream -initWithFilename:fmode:]): Use NSLog() to log
+ 	errors.
+	([StdioStream -initWithFileDescriptor:fmode:]): Likewise.
+
+	* src/NSThread.m: Removed [-exceptionHandler] and
+	[-setExceptionHandler].
+	* src/include/NSThread.h: Likewise.
+
+	* src/NSException.m: Use member variables directly to obtain and
+	set exception handlers.
+
+	* src/Makefile.in (FILE_AUTHORS): Added new person.
+
+	* src/include/NSPage.h: Changed e-mail address.
+
+Thu May  8 15:45:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Proxy.m: (+newForRemoteTarget:connection:)
+	When an existing proxy is substituted for a newly allocated one
+	we must retain it.
+
+	* src/Proxy.m: (+newWithCoder:)
+	When an object is substituted for a local proxy we must retain it.
+
+	* src/Connection.m: (forwardForProxy:selector:argframe:)
+	Ensure that objects created by the decoder are autoreleased.
+
+	* src/Connection.m: (_service_forwardForProxy:)
+	Ensure that objects created by the decoder are autoreleased.
+
+	* src/Connection.m: (_getReceivedReplyRmcWithSequenceNumber:)
+	Ensure that a newly allocated NSdate objects is released on return
+	from this method. Fixes a memory leak.
+
+	* src/NSGCString.m:
+	Added an implementation of dealloc which will cause the string
+	contents to be released correctly - fixing a major memory leak.
+
+	* src/NSString.m (handle_printf_atsign())
+	Modified so that the '%@' format prints an objects description as it
+	should according to the OpenStep spec.
+
+	* src/NSString.m (- initWithFormat:arguments:)
+	Modified so that the '%@' format prints an objects description as it
+	should according to the OpenStep spec.
+
+	* src/NSString.m (- componentsSeparatedByString:)
+	Fixed to produce the final component of the string.
+
+	* src/NSString.m (- rangeOfString:options:range:)
+	Return a range of length 0 if passed an empty string.
+
+	* src/NSString.m (- lastPathComponent)
+	Do autorelease for newly created substrings.
+
+	* src/NSString.m (- pathExtention)
+	Do autorelease for newly created substrings.
+
+	* src/NSString.m (- stringByAppendingPathComponent:)
+	Added code to handle empty or illegal path components.
+
+	* src/NSString.m (- stringByAppendingPathExtension:)
+	Added code to handle empty or illegal path extensions.
+
+	* src/NSString.m (- stringByDeletingLastPathComponent:)
+	Fixed some special cases - autorelease for newly created substrings.
+
+	* src/NSString.m (- stringByExpandingTildeInPath:)
+	Do autorelease for newly created substrings.
+
+	* src/NSString.m (- stringByAbbreviatingWithTildeInPath:)
+	Do autorelease for newly created substrings.	
+
+Wed May  7 15:45:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* checks/server.m: Removed line which released object which should
+	already have been autoreleased by D.O. mechanism.
+
+	* src/Coder.m: ([Coder -init]): Modified so that subclasses can be
+	initialised using 'init'.
+	([Coder -initForReadingWithData:]) Check to see if 'self' has been
+	autoreleased.  If it has - be graceful and don't release self again
+	but autorelease the newly created object.  I know that this should
+	not be necessary, but it's defensive programming.
+
+	* src/Makefile: Changed 'make distclean' to remove links to the
+	header files directory so that it's easy to make a clean setup
+	for generating patches.
+
+	* src/NSArchiver.m: ([NSArchiver -init]): Modified to say that the
+	subclass should handle this.
+	([NSArchiver +archivedDataWithRootObject:]): Added a release to fix
+	memory leak.
+
+	* src/NSGArchiver.m: Added implementation of init method.
+	([NSGArchiver -archiverData]): Addep partial implementation of this
+	method - only works if the archiver was initialised with an
+	NSMutableData object, returns nul otherwise.  This probably covers
+	pretty much all the cases where you would want to use this method.
+
+	* src/NSObject.m: ([NSObject -returnCount]): Fixed this to return
+	zero for the cases where the object is not in the retain count map.
+
+	* src/include/NSRunLoop.h: Added protocol declarations etc so that
+	you don't need to include RunLoop.h
+
+Tue May  6 14:50:35 1997  John Stevens <jstevens@bamboo.verinet.com>
+
+	* src/Array.m ([Array -appendObject:]): Check for nil object.
+	([Array -insetObject:atIndex:]): Likewise.
+
+	* src/NSArray.m ([NSArray -initWithObjects:rest:]): Good varargs
+	implementation. 
+
+	* src/NSData.m: ([NSData -getBytes:range:]): Check range.
+	([NData -replaceBytesInRange:withByte:]): Likewise.
+	([NSData -resetBytesInTange:]): Likewise.
+
+Mon May  5 16:00:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Connection.m: ([Connection -forwardForProxy:selector:argFrame:]):
+	Added code to autorelease newly created objects to avoid memory leak.
+	([Connection -_service_forwardForProxy:]): Added code to autorelease
+	newly created objects to avoid memory leak.
+	([Connection -_getReceivedReplyRmcWithSequenceNumber:]): Release
+	locally created NSDate object before returning from method.
+
+	* src/NSGString.m: ([NSGCString -dealloc:]): Added implementation so
+	that allocated memory can be freed.
+	([NSGCString -initWithCoder:]): Set flag to say that contents should
+	be freed when object is deallocated.
+
+	* src/NSGSequence.m:
+	Added +sequenceWithCharactersNoCopy:length:freeWhenDone:.
+	Added -dealloc so that Sequence contents can be freed.
+	([NSGSequence -initWithCharactersNoCopy:length:freeWhenDone:]):
+	Modified to release sequence contents if necessary (when the
+	designated initialiser is called more than once).
+	([NSGSequence -decompose]): Fixed memory leak in this method.
+	([NSGSequence -lowercase]): Fixed memory leak in this method.
+	([NSGSequence -uppercase]): Fixed memory leak in this method.
+
+	* src/NSGString.m: Added -dealloc so that string contents can be freed.
+	([NSGString -encodeWithCoder]): Fixed to encode array of unichar.
+	([NSGString -initWithCoder]): Fixed to expect encoded array of unichar.
+
+	* src/NSGMutableString.m: ([NSGMutableString -insertString:atIndex:]):
+	Fixed memory leak.
+	([NSGMutableString -encodeWithCoder:]): Encode array of unichar.
+	([NSGMutableString -initWithCoder]): Expect encoded array of unichar.
+
+	* src/NSString.m: ([NSString -compare:options:range]): Fixed a memory
+	leak.
+	([NSString -commonPrefixWithString:options:]): Fixed a memory leak.
+
+	* src/Proxy.m: ([Proxy +newForRemoteTarget:connection:]): When we
+	return an existing Proxy, retain it.
+	([Proxy +newWithCoder:connection:]): When we return a local object,
+	retain it.
+
+	* src/RunLoop.m: ([RunLoop -removeReadDescriptor:forMode:]): free
+	enumeration state on return.
+	([RunLoop -removeWriteDescriptor:forMode:]): free enumeration state
+	on return.
+	([RunLoop -acceptInputForMode:beforeDate:]): free enumeration states
+	when done with them.
+
+	* src/include/NSGSequence.h: Added class method
+	+sequenceWithCharactersNoCopy:length:freeWhenDone:.
+
+	* src/NSDate.m: Added implementations for methods -
+	-copyWithZone:, -encodeWithCoder: -initWithCoder:.
+
+	* src/include/NSDate.h: Added protocol conformance for NScopying
+	and NSCoding.
+
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
 	* src/Makefile.in (GNUSTEP_OTHER_SRCFILES): Add gdomap.c and

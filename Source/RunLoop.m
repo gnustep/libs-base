@@ -29,8 +29,6 @@
    It is still in the early stages of development, and will most likely
    evolve quite a bit more before the interface settles.
 
-   Handling NSTimers is implemented, but currently disabled.
-
    Does it strike anyone else that NSNotificationCenter,
    NSNotificationQueue, NSNotification, NSRunLoop, the "notifications"
    a run loop sends the objects on which it is listening, NSEvent, and
@@ -64,6 +62,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSTimer.h>
+#include <Foundation/NSNotificationQueue.h>
 #ifndef __WIN32__
 #include <sys/time.h>
 #endif /* !__WIN32__ */
@@ -138,6 +137,9 @@
   Bag		*fd_listeners;
   FdInfo	*info;
 
+  if (mode == nil)
+    mode = _current_mode;
+
   /* Remove any existing handler for the specified descriptor. */
   [self removeReadDescriptor: fd forMode: mode];
 
@@ -165,6 +167,9 @@
   Bag		*fd_speakers;
   FdInfo	*info;
 
+  if (mode == nil)
+    mode = _current_mode;
+
   /* Remove any existing handler for the specified descriptor. */
   [self removeWriteDescriptor: fd forMode: mode];
 
@@ -190,6 +195,9 @@
 {
   Bag*	fd_listeners;
 
+  if (mode == nil)
+    mode = _current_mode;
+
   fd_listeners = NSMapGet (_mode_2_fd_listeners, mode);
   if (fd_listeners)
     {
@@ -203,6 +211,7 @@
 	      [fd_listeners removeObject: info];
 	    }
 	}
+      [fd_listeners freeEnumState: &es];
     }
 }
 
@@ -210,6 +219,9 @@
 		      forMode: (NSString*)mode
 {
   Bag*	fd_speakers;
+
+  if (mode == nil)
+    mode = _current_mode;
 
   fd_speakers = NSMapGet (_mode_2_fd_speakers, mode);
   if (fd_speakers)
@@ -224,6 +236,7 @@
 	      [fd_speakers removeObject: info];
 	    }
 	}
+      [fd_speakers freeEnumState: &es];
     }
 }
 @end
@@ -363,6 +376,7 @@ static RunLoop *current_run_loop;
 	}
       [min_timer release];
       min_timer = nil;
+      [NSNotificationQueue runLoopASAP];	/* Post notifications. */
     }
   _current_mode = saved_mode;
   if (min_timer == nil)
@@ -392,22 +406,14 @@ static RunLoop *current_run_loop;
   fd_set write_fds;		/* Copy for listening for write-ready fds. */
   int select_return;
   int fd_index;
-  NSMapTable *fd_2_object;
+  NSMapTable *rfd_2_object;
+  NSMapTable *wfd_2_object;
   id saved_mode;
+  int num_inputs = 0;
 
   assert (mode);
   saved_mode = _current_mode;
   _current_mode = mode;
-
-  /* xxx No, perhaps this isn't the right thing to do. */
-#if 0
-  /* If there are no input sources to listen to, just return. */
-  if (NSCountMapTable (_fd_2_object) == 0)
-    {
-      _current_mode = saved_mode;
-      return;
-    }
-#endif
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
   if (!limit_date)
@@ -457,7 +463,9 @@ static RunLoop *current_run_loop;
      with which file descriptor. */
   FD_ZERO (&fds);
   FD_ZERO (&write_fds);
-  fd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
+  rfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
+				  NSObjectMapValueCallBacks, 0);
+  wfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  NSObjectMapValueCallBacks, 0);
 
 
@@ -474,8 +482,10 @@ static RunLoop *current_run_loop;
 	      int	fd = [info getFd];
 
 	      FD_SET (fd, &write_fds);
-	      NSMapInsert (fd_2_object, (void*)fd, [info getReceiver]);
+	      NSMapInsert (wfd_2_object, (void*)fd, [info getReceiver]);
+	      num_inputs++;
 	  }
+	  [fdInfo freeEnumState: &es];
       }
       fdInfo = NSMapGet (_mode_2_fd_listeners, mode);
       if (fdInfo) {
@@ -486,8 +496,10 @@ static RunLoop *current_run_loop;
 	      int	fd = [info getFd];
 
 	      FD_SET (fd, &fds);
-	      NSMapInsert (fd_2_object, (void*)fd, [info getReceiver]);
+	      NSMapInsert (rfd_2_object, (void*)fd, [info getReceiver]);
+	      num_inputs++;
 	  }
+	  [fdInfo freeEnumState: &es];
       }
   }
 
@@ -521,8 +533,9 @@ static RunLoop *current_run_loop;
 	    while (port_fd_count--)
 	      {
 		FD_SET (port_fd_array[port_fd_count], &fds);
-		NSMapInsert (fd_2_object, 
+		NSMapInsert (rfd_2_object, 
 			     (void*)port_fd_array[port_fd_count], port);
+		num_inputs++;
 	      }
 	  }
       }
@@ -531,7 +544,19 @@ static RunLoop *current_run_loop;
   /* Wait for incoming data, listening to the file descriptors in _FDS. */
   read_fds = fds;
   exception_fds = fds;
-  select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
+
+  /* Detect if the RunLoop is idle, and if necessary - dispatch the
+     notifications from NSNotificationQueue's idle queue? */
+  if (num_inputs == 0 && [NSNotificationQueue runLoopMore])
+    {
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 0;
+      select_timeout = &timeout;
+      select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
+			  select_timeout);
+    }
+  else
+    select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
 			  select_timeout);
 
   if (debug_run_loop)
@@ -547,7 +572,10 @@ static RunLoop *current_run_loop;
     }
   else if (select_return == 0)
     {
-      NSFreeMapTable (fd_2_object);
+      NSFreeMapTable (rfd_2_object);
+      NSFreeMapTable (wfd_2_object);
+      [NSNotificationQueue runLoopIdle];
+      [NSNotificationQueue runLoopASAP];
       _current_mode = saved_mode;
       return;
     }
@@ -558,19 +586,23 @@ static RunLoop *current_run_loop;
     {
       if (FD_ISSET (fd_index, &write_fds))
         {
-	  id fd_object = (id) NSMapGet (fd_2_object, (void*)fd_index);
+	  id fd_object = (id) NSMapGet (wfd_2_object, (void*)fd_index);
 	  assert (fd_object);
 	  [fd_object readyForWritingOnFileDescriptor: fd_index];
+          [NSNotificationQueue runLoopASAP];
         }
       if (FD_ISSET (fd_index, &read_fds))
         {
-	  id fd_object = (id) NSMapGet (fd_2_object, (void*)fd_index);
+	  id fd_object = (id) NSMapGet (rfd_2_object, (void*)fd_index);
 	  assert (fd_object);
 	  [fd_object readyForReadingOnFileDescriptor: fd_index];
+          [NSNotificationQueue runLoopASAP];
         }
     }
   /* Clean up before returning. */
-  NSFreeMapTable (fd_2_object);
+  NSFreeMapTable (rfd_2_object);
+  NSFreeMapTable (wfd_2_object);
+
   _current_mode = saved_mode;
 }
 
@@ -597,10 +629,6 @@ static RunLoop *current_run_loop;
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode
 	beforeDate: d];
-
-  /* xxx Is this where we detect if the RunLoop is idle, and whether
-     we should dispatch the notifications from NotificationQueue's
-     idle queue? */
 
   return YES;
 }

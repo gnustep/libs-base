@@ -30,6 +30,7 @@
 
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSCoder.h>
 #ifndef __WIN32__
 #include <time.h>
 #endif /* !__WIN32__ */
@@ -141,6 +142,43 @@
   if (!dp)
     dp = [[self alloc] initWithTimeIntervalSinceReferenceDate: DISTANT_PAST];
   return dp;
+}
+
+- (id) copyWithZone:(NSZone*)zone
+{
+  if (NSShouldRetainWithZone(self, zone))
+    return [self retain];
+  else
+    return [super copyWithZone: zone];
+}
+
+- (Class) classForConnectedCoder: aRmc
+{
+  /* Make sure that Connection's always send us bycopy,
+     i.e. as our own class, not a Proxy class. */
+  return [self class];
+}
+
+- (Class) classForPortCoder: aRmc
+{
+  return [self class];
+}
+- replacementObjectForPortCoder: aRmc
+{
+  return self;
+}
+
+- (void) encodeWithCoder:(NSCoder*)coder
+{
+  [super encodeWithCoder:coder];
+  [coder encodeValueOfObjCType:"d" at:&seconds_since_ref];
+}
+
+- (id) initWithCoder:(NSCoder*)coder
+{
+  self = [super initWithCoder:coder];
+  [coder decodeValueOfObjCType:"d" at:&seconds_since_ref];
+  return self;
 }
 
 - (id) init

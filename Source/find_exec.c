@@ -32,6 +32,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <gnustep/base/config.h>
+
 #ifdef __WIN32__
 #include <limits.h>
 #define S_IFLNK 0120000
@@ -134,13 +136,9 @@ objc_find_executable (const char *file)
 	if (*p) p++;
 
 	if (name[0] == '.' && name[1] == 0) {
-#ifndef NeXT
+#ifdef HAVE_GETCWD
 	    getcwd (name, MAXPATHLEN);
 #else
-	  /*
-	    Reported by Gregor Hoffleit <flight@mathi.uni-heidelberg.DE>
-	    Date: Fri, 12 Jan 96 16:00:42 +0100
-	    */
 	    getwd (name);
 #endif
 	    cwd_in_path = 1;
@@ -162,7 +160,7 @@ objc_find_executable (const char *file)
     if (!cwd_in_path) {
 	char  name[MAXPATHLEN];
 
-#ifndef NeXT
+#ifdef HAVE_GETCWD
 	getcwd (name, MAXPATHLEN);
 #else
 	getwd (name);

@@ -32,9 +32,8 @@
 #ifndef __WIN32__
 #if HAVE_VALUES_H
 #include <values.h>		// This gets BITSPERBYTE on Solaris
-#else
-#include <sys/types.h>
 #endif
+#include <sys/types.h>
 #include <netinet/in.h>		// for byte-conversion
 #endif /* !__WIN32__ */
 

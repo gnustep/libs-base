@@ -1,4 +1,4 @@
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
 #include <Foundation/NSTimer.h>
 
@@ -52,6 +52,6 @@ int main()
   [NSTimer scheduledTimerWithTimeInterval: 3.0
 	   invocation: inv
 	   repeats: YES];
-  [RunLoop run];
+  [NSRunLoop run];
   exit (0);
 }
