@@ -543,6 +543,11 @@ static IMP	initImp;
   return self;
 }
 
+/**
+ * Destroys all the autorelease pools in the thread.
+ * You should not call this directly, it's called automatically
+ * when a thread exits.
+ */
 + (void) _endThread: (NSThread*)thread
 {
   struct autorelease_thread_vars *tv;
