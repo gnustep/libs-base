@@ -1318,6 +1318,84 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
    within the GNUstep directory structure specified by the environment
    variables. */
 
+/* Return a bundle which accesses the first existing directory from the list 
+   GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
+   GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
+   GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
+   GNUSTEP_SYSTEM_ROOT/Libraries/Resources/libraryName/
+ */
++ (NSBundle *) bundleForLibrary: (NSString *)libraryName
+{
+  NSArray *paths;
+  NSEnumerator *enumerator;
+  NSString *path;
+  NSString *tail;
+  NSFileManager *fm = [NSFileManager defaultManager];
+  
+  if (libraryName == nil)
+    {
+      return nil;
+    }
+  
+  tail = [@"Resources" stringByAppendingPathComponent: libraryName];
+
+  paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
+					       NSAllDomainsMask, YES);
+  
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      BOOL isDir;
+      path = [path stringByAppendingPathComponent: tail];
+      
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  return [NSBundle bundleWithPath: path];
+	}
+    }
+  
+  return nil;
+}
+
+/* Return a bundle which accesses the first existing directory from the list 
+   GNUSTEP_USER_ROOT/Tools/Resources/libraryName/
+   GNUSTEP_NETWORK_ROOT/Tools/Resources/libraryName/
+   GNUSTEP_LOCAL_ROOT/Tools/Resources/libraryName/
+   GNUSTEP_SYSTEM_ROOT/Tools/Resources/libraryName/
+ */
++ (NSBundle *) bundleForTool: (NSString *)toolName
+{
+  NSArray *paths;
+  NSEnumerator *enumerator;
+  NSString *path;
+  NSString *tail;
+  NSFileManager *fm = [NSFileManager defaultManager];
+  
+  if (toolName == nil)
+    {
+      return nil;
+    }
+  
+  tail = [@"Resources" stringByAppendingPathComponent: toolName];
+
+  paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
+					       NSAllDomainsMask, YES);
+  
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      BOOL isDir;
+      path = [path stringByAppendingPathComponent: tail];
+      
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  return [NSBundle bundleWithPath: path];
+	}
+    }
+  
+  return nil;
+}
+
 + (NSString *) _absolutePathOfExecutable: (NSString *)path
 {
   NSFileManager *mgr;
