@@ -1346,6 +1346,8 @@ handle_printf_atsign (FILE *stream,
   if (aRange.length > ([self length] - aRange.location))
     [NSException raise: NSRangeException format:@"Invalid location+length."];
 
+  if (aRange.length == 0)
+    return NSOrderedSame;
   if((([self length] - aRange.location == 0) && (![aString length])))
     return NSOrderedSame;
   if(![self length])
