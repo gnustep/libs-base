@@ -1,4 +1,4 @@
-# configure.in for GNU Objective-C library
+# configure.ac for GNU Objective-C library
 # Process this file with autoconf to produce a configure script.
 #
 #   Copyright (C) 1993,1994, 1995, 1996, 1997 Free Software Foundation, Inc.
@@ -667,10 +667,10 @@ INCLUDE_STDINT="#include <stdint.h>"
 else
 if test $ac_cv_header_sys_inttypes_h = yes; then
 INCLUDE_STDINT="#include <sys/inttypes.h>"
-endif
-endif
+fi
+fi
 
-if test $INCLUDE_STDINT = no; then
+if test "$INCLUDE_STDINT"="no"; then
 INCLUDE_STDINT=""
 DEFINE_INT8_T="#define int8_t gss8"
 DEFINE_UINT8_T="#define uint8_t gsu8"
