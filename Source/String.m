@@ -356,10 +356,7 @@
 
 - (void) getCString: (char*)buffer range: (IndexRange)aRange
 {
-  
-  memcpy(buffer, 
-	 ([self cString] + aRange.start), 
-	 (aRange.end - aRange.start));
+  memcpy(buffer, ([self cString] + aRange.location), aRange.length);
 }
 
 - (IndexRange) range
