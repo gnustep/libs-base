@@ -1211,7 +1211,14 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		  /* get the codepoint */
 		  for (i = 1; i < sle; i++)
 		    {
+		      if (src[spos + i] < 0x80 || src[spos + i] >= 0xc0)
+			break;
 		      u = (u << 6) | (src[spos + i] & 0x3f);
+		    }
+		  if (i < sle)
+		    {
+		      result = NO;
+		      break;
 		    }
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
@@ -1270,7 +1277,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
       case NSISOLatin1StringEncoding:
-      case NSUnicodeStringEncoding: 	  
+      case NSUnicodeStringEncoding:
 	while (spos < slen)
 	  {
 	    if (dpos >= bsize)
@@ -1835,7 +1842,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	goto bases;
 
       case NSISOLatin1StringEncoding:
-      case NSUnicodeStringEncoding: 	  
+      case NSUnicodeStringEncoding:
 	base = 256;
 	goto bases;
 
