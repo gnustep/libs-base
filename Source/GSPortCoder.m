@@ -1641,6 +1641,11 @@ typeCheck(char t1, char t2)
 
 @implementation	GSPortCoder (Private)
 
+- (NSArray*) _components
+{
+  return _comp;
+}
+
 - (void) _deserializeHeaderAt: (unsigned*)pos
 		      version: (unsigned*)v
 		      classes: (unsigned*)c

@@ -94,5 +94,9 @@
 
 @end
 
+@interface	NSPortCoder (Private)
+- (NSArray*) _components;
+@end
+
 
 #endif /* __GSPortCoder_h */

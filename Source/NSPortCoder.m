@@ -272,8 +272,6 @@ static BOOL debug_connected_coder = NO;
 			       outPort: reply_port
 			       ancestorConnection: c];
 
-  [cd->connection setNotOwned];
-
   /* Decode the PortDecoder's ivars. */
   [cd decodeValueOfCType: @encode(typeof(cd->sequence_number))
       at: &(cd->sequence_number)
@@ -304,8 +302,6 @@ static BOOL debug_connected_coder = NO;
   cd->connection = [NSConnection newForInPort: in_port
 			       outPort: reply_port
 			       ancestorConnection: c];
-
-  [cd->connection setNotOwned];
 
   /* Decode the PortDecoder's ivars. */
   [cd decodeValueOfCType: @encode(typeof(cd->sequence_number))

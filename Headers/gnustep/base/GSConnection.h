@@ -1,9 +1,9 @@
 /* Interface for GNU Objective-C version of NSConnection
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,2000 Free Software Foundation, Inc.
    
    Original by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Version for OPENSTEP by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Created: August 1997
+   Created: August 1997, updated June 2000
    
    This file is part of the GNUstep Base Library.
 
@@ -57,46 +57,56 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 @interface NSConnection : NSObject
 {
 @private
-  BOOL is_valid;
-  BOOL independent_queueing;
-  unsigned request_depth;
-  NSPort *receive_port;
-  NSPort *send_port;
-  unsigned message_count;
-  unsigned req_out_count;
-  unsigned req_in_count;
-  unsigned rep_out_count;
-  unsigned rep_in_count;
-  NSMapTable *local_objects;
-  NSMapTable *local_targets;
-  NSMapTable *remote_proxies;
-  NSTimeInterval reply_timeout;
-  NSTimeInterval request_timeout;
-  Class receive_port_class;
-  Class send_port_class;
-  Class encoding_class;
-  id delegate;
-  NSMutableArray *request_modes;
+  BOOL			is_valid;
+  BOOL			independent_queueing;
+  unsigned		request_depth;
+  NSPort		*receive_port;
+  NSPort		*send_port;
+  unsigned		message_count;
+  unsigned		req_out_count;
+  unsigned		req_in_count;
+  unsigned		rep_out_count;
+  unsigned		rep_in_count;
+  NSMapTable		*local_objects;
+  NSMapTable		*local_targets;
+  NSMapTable		*remote_proxies;
+  NSTimeInterval	reply_timeout;
+  NSTimeInterval	request_timeout;
+  id			delegate;
+  NSMutableArray	*request_modes;
+  NSMutableArray	*run_loops;
 }
 
 + (NSArray*) allConnections;
++ (NSConnection*) connectionWithReceivePort: (NSPort*)r
+                                   sendPort: (NSPort*)s;
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
                                           host: (NSString*)h;
-+ (id)currentConversation;
++ (NSConnection*) connectionWithRegisteredName: (NSString*)n
+                                          host: (NSString*)h
+			       usingNameServer: (NSPortNameServer*)s;
++ (id) currentConversation;
 + (NSConnection*) defaultConnection;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)name
                                                          host: (NSString*)host;
++ (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)name
+  host: (NSString*)host usingNameServer: (NSPortNameServer*)s;
+
 
 - (void) addRequestMode: (NSString*)mode;
-- (void) addRunLoop: (NSRunLoop *)runloop;
+- (void) addRunLoop: (NSRunLoop*)runloop;
 - (id) delegate;
 - (void) enableMultipleThreads;
-- (BOOL) multipleThreadsEnabled;
 - (BOOL) independentConversationQueueing;
+- (id) initWithReceivePort: (NSPort*)r
+		  sendPort: (NSPort*)s;
 - (void) invalidate;
 - (BOOL) isValid;
+- (NSArray*)localObjects;
+- (BOOL) multipleThreadsEnabled;
+- (NSPort*) receivePort;
 - (BOOL) registerName: (NSString*)name;
-- (NSArray *) remoteObjects;
+- (NSArray*) remoteObjects;
 - (void) removeRequestMode: (NSString*)mode;
 - (void) removeRunLoop: (NSRunLoop *)runloop;
 - (NSTimeInterval) replyTimeout;
@@ -104,6 +114,8 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (NSTimeInterval) requestTimeout;
 - (id) rootObject;
 - (NSDistantObject*) rootProxy;
+- (void) runInNewThread;
+- (NSPort*) sendPort;
 - (void) setDelegate: anObj;
 - (void) setIndependentConversationQueueing: (BOOL)flag;
 - (void) setReplyTimeout: (NSTimeInterval)seconds;
@@ -115,45 +127,12 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 
 /*
- *	This catagory contains methods which were not in the original
- *	OpenStep specification, but which are in OPENSTEP.
- *	Some methods are not yet implemented.
- */
-@interface NSConnection (OPENSTEP)
-+ (NSConnection*) connectionWithReceivePort: (NSPort*)r
-                                   sendPort: (NSPort*)s;
-- initWithReceivePort: (NSPort*)r
-             sendPort: (NSPort*)s;
-- (NSPort*) receivePort;
-- (void) runInNewThread;
-- (NSPort*) sendPort;
-@end
-
-
-/*
  *	This catagory contains legacy methods from the original GNU 'Connection'
  *	class, and useful extensions to NSConnection.
  */
 @interface NSConnection (GNUstepExtensions) <GCFinalization>
 
 - (void) gcFinalize;
-
-/* Setting and getting class configuration */
-+ (Class) defaultReceivePortClass;
-+ (void) setDefaultReceivePortClass: (Class) aPortClass;
-+ (Class) defaultSendPortClass;
-+ (void) setDefaultSendPortClass: (Class) aPortClass;
-+ (Class) defaultProxyClass;
-+ (void) setDefaultProxyClass: (Class) aClass;
-+ (int) defaultOutTimeout;
-+ (void) setDefaultOutTimeout: (int)to;
-+ (int) defaultInTimeout;
-+ (void) setDefaultInTimeout: (int)to;
-
-/* Querying the state of all the connections */
-+ (int) messagesReceived;
-+ (unsigned) connectionsCount;
-+ (unsigned) connectionsCountWithInPort: (NSPort*)aPort;
 
 /* Registering your server object on the network.
    These methods create a new connection object that must be "run" in order
@@ -173,18 +152,20 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 				atPort: (int)portn
 			withRootObject: anObj;
 
-+ (NSConnection*) connectionByOutPort: (NSPort*)aPort;
 /* Get a proxy to a remote server object.
    A new connection is created if necessary. */
-+ (NSDistantObject*) rootProxyAtName: (NSString*)name onHost: (NSString*)host;
++ (NSDistantObject*) rootProxyAtName: (NSString*)name
+			      onHost: (NSString*)host;
 + (NSDistantObject*) rootProxyAtName: (NSString*)name;
 + (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort;
-+ (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort withInPort: (NSPort*)anInPort;
++ (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort
+			  withInPort: (NSPort*)anInPort;
 
 /* This is the designated initializer for the NSConnection class.
    You don't need to call it yourself. */
-+ (NSConnection*) newForInPort: (NSPort*)anInPort outPort: (NSPort*)anOutPort
-   ancestorConnection: (NSConnection*)ancestor;
++ (NSConnection*) newForInPort: (NSPort*)anInPort
+		       outPort: (NSPort*)anOutPort
+	    ancestorConnection: (NSConnection*)ancestor;
 
 /* Make a connection object start listening for incoming requests.  After 
    after DATE. */
@@ -193,10 +174,6 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 /* Same as above, but never time out. */
 - (void) runConnection;
 
-/* When you get an invalidation notification from a connection, use
-   this method in order to find out if any of the proxy objects you're
-   using are going away. */
-- (id) proxies;
 
 
 /* For getting the root object of a connection or port */
@@ -207,16 +184,6 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
    that already has one. */
 + (void) setRootObject: anObj forInPort: (NSPort*)aPort;
 
-/* Querying and setting some instance variables */
-- (Class) receivePortClass;
-- (Class) sendPortClass;
-- (void) setReceivePortClass: (Class)aPortClass;
-- (void) setSendPortClass: (Class)aPortClass;
-- (Class) proxyClass;
-- (Class) encodingClass;
-- (Class) decodingClass;
-
-
 /* Only subclassers and power-users need worry about these */
 - (void) addProxy: (NSDistantObject*)aProxy;
 - (id) includesProxyForTarget: (gsu32)target;
@@ -225,13 +192,12 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 // It seems to be a non pure-OPENSTEP definition...
 //
 // new def :
-- (NSArray*)localObjects;
 - (void) addLocalObject: anObj;
 - (id) includesLocalObject: anObj;
 - (void) removeLocalObject: anObj;
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
-    selector: (SEL)sel 
-    argFrame: (arglist_t)frame;
+		    selector: (SEL)sel 
+		    argFrame: (arglist_t)frame;
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 
 @end
@@ -254,7 +220,8 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
  *	[connection:shouldMakeNewConnection:]
  *	It is obsolete - don't use it.
  */
-- (NSConnection*) connection: ancestorConn didConnect: newConn;
+- (NSConnection*) connection: (NSConnection*)ancestorConn
+		  didConnect: (NSConnection*)newConn;
 /*
  *	If the delegate responds to this method, it will be used to ask the
  *	delegate's permission to establish a new connection from the old one.
@@ -288,9 +255,9 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
  */
 
 
-- (BOOL)authenticateComponents: (NSArray *)components
-                      withData: (NSData *)authenticationData;
-- (NSData *)authenticationDataForComponents: (NSArray *)components;
+- (BOOL) authenticateComponents: (NSArray*)components
+		       withData: (NSData*)authenticationData;
+- (NSData*) authenticationDataForComponents: (NSArray*)components;
 
 @end
 
@@ -300,14 +267,7 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
  *	NSRunLoop mode, NSNotification name and NSException strings.
  */
 GS_EXPORT NSString	*NSConnectionReplyMode;
-GS_EXPORT NSString *NSConnectionDidDieNotification;
-GS_EXPORT NSString *NSConnectionDidInitializeNotification;	/* OPENSTEP	*/
-
-/*
- *	For compatibility with old GNU DO code -
- */
-#define	RunLoopConnectionReplyMode NSConnectionReplyMode
-#define	ConnectionBecameInvalidNotification NSConnectionDidDieNotification
-#define	ConnectionWasCreatedNotification NSConnectionDidInitializeNotification
+GS_EXPORT NSString	*NSConnectionDidDieNotification;
+GS_EXPORT NSString	*NSConnectionDidInitializeNotification;	/* OPENSTEP*/
 
 #endif /* __NSConnection_h_GNUSTEP_BASE_INCLUDE */

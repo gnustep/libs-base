@@ -1,3 +1,18 @@
+2000-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Various minor tidyups for distributed objects - and included development
+	code for NSConnection rewrite.
+	* Headers/gnustep/base/DistributedObjects.h: removed obsolete methods
+	* Headers/gnustep/base/GSConnection.h: temporary (development) class
+	* Headers/gnustep/base/GSPortCoder.h: private method for GSConnection
+	* Headers/gnustep/base/NSConnection.h: tidied
+	* Source/GSConnection.m: temporary (development) class
+	* Source/GSPortCoder.m: private method for GSConnection
+	* Source/NSConnection.m: tidied a little - retain/release fixes
+	* Source/NSDistantObject.m: tidied a little - use OPENSTEP method
+	for creating new connection.
+	* Source/NSPortCoder.m: tidied to work without GNU specific code.
+
 2000-06-27  Adam Fedor  <fedor@gnu.org>
 
 	* Fixes on solaris/gcc 2.8.0
