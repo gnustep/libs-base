@@ -478,6 +478,12 @@ static SEL	appSel;
 
   someData = [[NSData allocWithZone: NSDefaultMallocZone()]
     initWithContentsOfFile: path];
+  if (someData == nil)
+    {
+      /* NSData should have already logged an error message */
+      RELEASE(self);
+      return nil;
+    }
   myString = [[NSString allocWithZone: NSDefaultMallocZone()]
     initWithData: someData encoding: NSUTF8StringEncoding];
   RELEASE(someData);
