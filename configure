@@ -13878,8 +13878,56 @@ _ACEOF
 
   WITH_FFI=libffi
   LIBS="-lffi $LIBS"
-  echo "$as_me:$LINENO: result: libffi" >&5
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <ffi.h>
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ffi_ok="yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ffi_ok="no"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+  if test $ffi_ok = yes; then
+    echo "$as_me:$LINENO: result: libffi" >&5
 echo "${ECHO_T}libffi" >&6
+  fi
 elif test $enable_ffcall = yes; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -13888,16 +13936,69 @@ _ACEOF
 
   WITH_FFI=ffcall
   LIBS="-lcallback -lavcall $LIBS"
-  echo "$as_me:$LINENO: result: ffcall" >&5
-echo "${ECHO_T}ffcall" >&6
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <callback.h>
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ffi_ok="yes"
 else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ffi_ok="no"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+  if test $ffi_ok = yes; then
+    echo "$as_me:$LINENO: result: ffcall" >&5
+echo "${ECHO_T}ffcall" >&6
+  fi
+else
+  ffi_ok=no
+fi
+
+if test $ffi_ok = no; then
   echo "$as_me:$LINENO: result: none" >&5
 echo "${ECHO_T}none" >&6
   echo
   if test $have_forward_hook = no; then
     echo "You do not have an up-to-date libobjc library installed"
   else
-    echo "You do not have either ffcall or libffi installed"
+    echo "You do not have either ffcall or libffi installed, or configure needs"
+    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"
   fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."

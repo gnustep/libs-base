@@ -997,20 +997,31 @@ if test $enable_libffi = yes; then
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
   LIBS="-lffi $LIBS"
-  AC_MSG_RESULT(libffi)
+  AC_TRY_LINK([#include <ffi.h>], ,ffi_ok="yes", ffi_ok="no")
+  if test $ffi_ok = yes; then
+    AC_MSG_RESULT(libffi)
+  fi
 elif test $enable_ffcall = yes; then
   AC_DEFINE(USE_FFCALL,1,
             [Define if using the ffcall library for invocations])
   WITH_FFI=ffcall
   LIBS="-lcallback -lavcall $LIBS"
-  AC_MSG_RESULT(ffcall)
+  AC_TRY_LINK([#include <callback.h>], , ffi_ok="yes", ffi_ok="no")
+  if test $ffi_ok = yes; then
+    AC_MSG_RESULT(ffcall)
+  fi
 else
+  ffi_ok=no
+fi
+
+if test $ffi_ok = no; then
   AC_MSG_RESULT(none)
   echo
   if test $have_forward_hook = no; then
     echo "You do not have an up-to-date libobjc library installed"
   else
-    echo "You do not have either ffcall or libffi installed"
+    echo "You do not have either ffcall or libffi installed, or configure needs"
+    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"
   fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."

@@ -1,3 +1,8 @@
+2004-11-29  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check for libffi or callback/avcall libs
+	(Patch from Matt Rice). Fixes bug #11134.
+
 2004-11-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: make respond to --help as to -H
