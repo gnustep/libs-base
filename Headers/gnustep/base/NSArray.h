@@ -23,65 +23,65 @@
 
 #include <objects/stdobjects.h>
 #include <foundation/NSRange.h>
+#include <foundation/NSUtilities.h>
 
 @class NSString;
 
-@interface NSArray: NSObject
+@interface NSArray: NSObject <NSCopying, NSMutableCopying>
 
-+ allocWithZone:(NSZone *)zone;
 + array;
-+ arrayWithObject:anObject;
-+ arrayWithObjects:firstObj, ...;
-- initWithObjects:(id *)objects count:(unsigned)count;
-- initWithObjects:firstObj, ...;
-- initWithArray:(NSArray *)array;
++ arrayWithObject: anObject;
++ arrayWithObjects: firstObj, ...;
+- initWithObjects: (id*) objects count: (unsigned) count;
+- initWithObjects: firstObj, ...;
+- initWithArray: (NSArray*)array;
 
-- (unsigned)count;
-- objectAtIndex:(unsigned)index;
+- (unsigned) count;
+- objectAtIndex: (unsigned)index;
     
-- (unsigned)indexOfObjectIdenticalTo:anObject;
-- (unsigned)indexOfObject:anObject;
-- (BOOL)containsObject:anObject;
-- (BOOL)isEqualToArray:(NSArray *)otherArray;
+- (unsigned) indexOfObjectIdenticalTo: anObject;
+- (unsigned) indexOfObject: anObject;
+- (BOOL) containsObject: anObject;
+- (BOOL) isEqualToArray: (NSArray*)otherArray;
 - lastObject;
 
-- (void)makeObjectsPerform:(SEL)aSelector;
-- (void)makeObjectsPerform:(SEL)aSelector withObject:argument;
+- (void) makeObjectsPerform: (SEL) aSelector;
+- (void) makeObjectsPerform: (SEL)aSelector withObject: argument;
     
-- (NSArray *)sortedArrayUsingSelector:(SEL)comparator;
-- (NSArray *)sortedArrayUsingFunction:(int (*)(id, id, void *))comparator 
-	context:(void *)context;
-- (NSString *)componentsJoinedByString:(NSString *)separator;
+- (NSArray*) sortedArrayUsingSelector: (SEL)comparator;
+- (NSArray*) sortedArrayUsingFunction: (int (*)(id, id, void*))comparator 
+	context: (void*)context;
+- (NSString*) componentsJoinedByString: (NSString*)separator;
 
-- firstObjectCommonWithArray:(NSArray *)otherArray;
-- (NSArray *)subarrayWithRange:(NSRange)range;
-//- (id <NSEnumerator>)objectEnumerator;
-//- (id <NSEnumerator>)reverseObjectEnumerator;
-- (NSString *)description;
-- (NSString *)descriptionWithIndent:(unsigned)level;
+- firstObjectCommonWithArray: (NSArray*) otherArray;
+- (NSArray*) subarrayWithRange: (NSRange)range;
+- (NSEnumerator*)  objectEnumerator;
+- (NSEnumerator*) reverseObjectEnumerator;
+- (NSString*) description;
+- (NSString*) descriptionWithIndent: (unsigned)level;
 
 @end
 
 @interface NSMutableArray: NSArray
 
-+ allocWithZone:(NSZone *)zone;
-+ arrayWithCapacity:(unsigned)numItems;
-- initWithCapacity:(unsigned)numItems;
++ arrayWithCapacity: (unsigned)numItems;
+- initWithCapacity: (unsigned)numItems;
 
-- (void)addObject:anObject;
-- (void)replaceObjectAtIndex:(unsigned)index withObject:anObject;
-- (void)removeLastObject;
-- (void)insertObject:anObject atIndex:(unsigned)index;
-- (void)removeObjectAtIndex:(unsigned)index;
+- (void) addObject: anObject;
+- (void) replaceObjectAtIndex: (unsigned)index withObject: anObject;
+- (void) removeLastObject;
+- (void) insertObject: anObject atIndex: (unsigned)index;
+- (void) removeObjectAtIndex: (unsigned)index;
     
-- (void)removeObjectIdenticalTo:anObject;
-- (void)removeObject:anObject;
-- (void)removeAllObjects;
-- (void)addObjectsFromArray:(NSArray *)otherArray;
-- (void)removeObjectsFromIndices:(unsigned *)indices numIndices:(unsigned)count;
-- (void)removeObjectsInArray:(NSArray *)otherArray;
-- (void)sortUsingFunction:(int (*)(id, id, void *))compare 
-	context:(void *)context;
+- (void) removeObjectIdenticalTo: anObject;
+- (void) removeObject: anObject;
+- (void) removeAllObjects;
+- (void) addObjectsFromArray: (NSArray*)otherArray;
+- (void) removeObjectsFromIndices: (unsigned*)indices 
+   numIndices: (unsigned)count;
+- (void) removeObjectsInArray: (NSArray*)otherArray;
+- (void) sortUsingFunction: (int(*)(id,id,void*))compare 
+	context: (void*)context;
 
 @end
 
