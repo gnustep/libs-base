@@ -183,13 +183,10 @@ $(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
 #
 #       Files where optimisation breaks the code!
 #       These have to filter the optimisation flag out.
-#
-$(GNUSTEP_OBJ_DIR)/mframe.o : mframe.m
-	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
-$(GNUSTEP_OBJ_DIR)/NSConnection.o : NSConnection.m
-	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
-$(GNUSTEP_OBJ_DIR)/NSInvocation.o : NSInvocation.m
-	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<
+#       [You need gnustep-make >= 1.2.0 to compile this code]
+mframe.m_FILE_FILTER_OUT_FLAGS = -O%
+NSConnection.m_FILE_FILTER_OUT_FLAGS = -O%
+NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
 
 #
 #	Files that need a rebuild if config.h is changed.
