@@ -578,19 +578,38 @@ static NSMapTable	*tcpHandleTable = 0;
       unsigned	want;
       void	*bytes;
       int	res;
+#define	RDBLOCK	8192
 
+      /*
+       * Make sure we have a buffer big enough to hold all the data we are
+       * expecting, or RDBLOCK bytes, whichever is greater.
+       */
       if (rData == nil)
 	{
-	  rData = [[NSMutableData alloc] initWithLength: 8192];
+	  rData = [[NSMutableData alloc] initWithLength: RDBLOCK];
 	  rWant = sizeof(GSPortItemHeader);
 	  rLength = 0;
+	  want = RDBLOCK;
 	}
-      else if ([rData length] < rWant)
+      else
 	{
-	  [rData setLength: rWant];
+	  want = [rData length];
+	  if (want < rWant)
+	    {
+	      want = rWant;
+	      [rData setLength: want];
+	    }
+	  if (want < RDBLOCK)
+	    {
+	      want = RDBLOCK;
+	      [rData setLength: want];
+	    }
 	}
+
+      /*
+       * Now try to fill the buffer with data.
+       */
       bytes = [rData mutableBytes];
-      want = rWant;
       res = read(desc, bytes + rLength, want - rLength);
       if (res <= 0)
 	{
@@ -610,7 +629,9 @@ static NSMapTable	*tcpHandleTable = 0;
 	}
       NSDebugLLog(@"GSTcpHandle", @"read %d bytes", res);
       rLength += res;
-      if (rLength == want)
+
+
+      while (valid == YES && rLength >= rWant)
 	{
 	  switch (rType)
 	    {
@@ -632,7 +653,7 @@ static NSMapTable	*tcpHandleTable = 0;
 		       * For a port, we leave the item header in the data
 		       * so that our decode function can check length info.
 		       */
-		      rWant = rLength + l;
+		      rWant += l;
 		    }
 		  else if (rType == GSP_DATA && l == 0)
 		    {
@@ -640,7 +661,11 @@ static NSMapTable	*tcpHandleTable = 0;
 		       * For a zero-length data chunk, we create an empty
 		       * data object and add it to the current message.
 		       */
-		      rLength = 0;
+		      rLength -= rWant;
+		      if (rLength > 0)
+			{
+			  memcpy(bytes, bytes + rWant, rLength);
+			}
 		      rWant = sizeof(GSPortItemHeader);
 		      [rItems addObject: [NSData data]];
 		      if (nItems == [rItems count])
@@ -655,7 +680,11 @@ static NSMapTable	*tcpHandleTable = 0;
 		       * we discard the data read so far and fill the
 		       * data object with the data item from the msg.
 		       */
-		      rLength = 0;
+		      rLength -= rWant;
+		      if (rLength > 0)
+			{
+			  memcpy(bytes, bytes + rWant, rLength);
+			}
 		      rWant = l;
 		    }
 		}
@@ -677,17 +706,23 @@ static NSMapTable	*tcpHandleTable = 0;
 		  rItems = [[NSMutableArray alloc] initWithCapacity: nItems];
 		  if (rLength > sizeof(GSPortMsgHeader))
 		    {
+		      NSData	*d;
+
 		      /*
 		       * The first data item of the message was included in
 		       * the header - so add it to the rItems array.
 		       */
-		      rLength -= sizeof(GSPortMsgHeader);
-		      memcpy(bytes, bytes + sizeof(GSPortMsgHeader), rLength);
-		      [rData setLength: rLength];
-		      [rItems addObject: rData];
-		      rLength = 0;
+		      rWant -= sizeof(GSPortMsgHeader);
+		      d = [NSData dataWithBytes: bytes + sizeof(GSPortMsgHeader)
+					 length: rWant];
+		      rWant += sizeof(GSPortMsgHeader);
+		      rLength -= rWant;
+		      if (rLength > 0)
+			{
+			  memcpy(bytes, bytes + rWant, rLength);
+			}
 		      rWant = sizeof(GSPortItemHeader);
-		      DESTROY(rData);
+		      [rItems addObject: rData];
 		      if (nItems == 1)
 			{
 			  [self dispatch];
@@ -698,7 +733,11 @@ static NSMapTable	*tcpHandleTable = 0;
 		      /*
 		       * want to read another item
 		       */
-		      rLength = 0;
+		      rLength -= rWant;
+		      if (rLength > 0)
+			{
+			  memcpy(bytes, bytes + rWant, rLength);
+			}
 		      rWant = sizeof(GSPortItemHeader);
 		    }
 		}
@@ -706,11 +745,16 @@ static NSMapTable	*tcpHandleTable = 0;
 
 	      case GSP_DATA:
 		{
+		  NSData	*d;
+
 		  rType = GSP_NONE;
+		  d = [NSData dataWithBytes: bytes length: rWant];
 		  [rItems addObject: rData];
-		  rLength = 0;
-		  rWant = sizeof(GSPortItemHeader);
-		  DESTROY(rData);
+		  rLength -= rWant;
+		  if (rLength > 0)
+		    {
+		      memcpy(bytes, bytes + rWant, rLength);
+		    }
 		  if (nItems == [rItems count])
 		    {
 		      [self dispatch];
@@ -727,7 +771,11 @@ static NSMapTable	*tcpHandleTable = 0;
 		  /*
 		   * Set up to read another item header.
 		   */
-		  rLength = 0;
+		  rLength -= rWant;
+		  if (rLength > 0)
+		    {
+		      memcpy(bytes, bytes + rWant, rLength);
+		    }
 		  rWant = sizeof(GSPortItemHeader);
 
 		  if (state == GS_H_ACCEPT)
