@@ -45,7 +45,8 @@ echo Making $diff
 # Make the diff
 echo Diffing...
 rm -f /tmp/$diff
-(cd /tmp; diff -u -r ${module}-${secondlastdist} ${module}-${lastdist} > $diff)
+(cd /tmp; \
+ diff -u -N -r ${module}-${secondlastdist} ${module}-${lastdist} > $diff)
 # Remove the dist dirs
 rm -rf /tmp/${module}-${secondlastdist} /tmp/${module}-${lastdist}
 
