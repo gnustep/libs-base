@@ -46,6 +46,10 @@ GS_EXPORT unichar encode_chartouni(unsigned char c, NSStringEncoding enc);
 GS_EXPORT unsigned char encode_unitochar(unichar u, NSStringEncoding enc);
 GS_EXPORT unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
 
+/**
+ *  The next two functions are deprecated and will be removed in a future
+ *  release.  Use GSFromUnicode() and GSToUnicode() instead.
+ */
 GS_EXPORT int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl, 
   NSStringEncoding enc, BOOL strict);
 GS_EXPORT int encode_cstrtoustr(unichar *dst, int dl, const char *str, int sl, 
