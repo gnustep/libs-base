@@ -1846,6 +1846,7 @@ transmute(ivars self, NSString *aString)
 
 /*
  * Try to initialise a 'C' string.
+ * Only ever called if defEnc==intEnc
  */
 - (id) initWithCStringNoCopy: (char*)chars
 		      length: (unsigned int)length
@@ -1861,7 +1862,7 @@ transmute(ivars self, NSString *aString)
 		  format: @"re-initialisation of string"];
     }
   _count = length;
-  _contents.c = chars; /* TODO: broken if defEnc!=intEnc */
+  _contents.c = chars;
   _flags.wide = 0;
   if (flag == YES)
     {
@@ -1876,6 +1877,7 @@ transmute(ivars self, NSString *aString)
 /*
  * The GSCString class is the basic implementation of a concrete
  * 8-bit string class, storing immutable data in a single buffer.
+ * It is only ever used when defEnc==intEnc
  */
 @implementation GSCString
 - (const char *) UTF8String
@@ -1935,7 +1937,7 @@ transmute(ivars self, NSString *aString)
       NSString	*obj;
 
       obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
+      obj = [obj initWithCString: _contents.c length: _count];
       return obj;
     }
   else 
@@ -2059,7 +2061,7 @@ transmute(ivars self, NSString *aString)
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
     NSDefaultMallocZone());
-  obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
+  obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
 
@@ -2068,7 +2070,7 @@ transmute(ivars self, NSString *aString)
   GSMutableString	*obj;
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
-  obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
+  obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
 
@@ -2143,7 +2145,7 @@ transmute(ivars self, NSString *aString)
   _count = length;
   _contents.c = (unsigned char*)&self[1];
   if (_count > 0)
-    memcpy(_contents.c, chars, length); /* TODO: broken if defEnc!=intEnc */
+    memcpy(_contents.c, chars, length);
   _flags.wide = 0;
   return self;
 }
@@ -2168,7 +2170,7 @@ transmute(ivars self, NSString *aString)
   NSString	*obj;
 
   obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-  obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
+  obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
 - (void) dealloc
@@ -2491,12 +2493,14 @@ transmute(ivars self, NSString *aString)
 
 
 /*
- * The GSMutableStrinc class shares a common initial ivar layout with
+ * The GSMutableString class shares a common initial ivar layout with
  * the GSString class, but adds a few of its own.  It uses _flags.wide
  * to determine whether it should use 8-bit or 16-bit characters and
  * is capable of changing that flag (and its underlying storage) to
  * move from an 8-bit to a 16-bit representation is that should be
  * necessary because wide characters have been placed in the string.
+ * If defEnc!=intEnc, GSMutableString objects will always have
+ * _flags.wide set, since ite cannot have been initialised as a C String.
  */
 @implementation GSMutableString
 
@@ -2524,11 +2528,28 @@ transmute(ivars self, NSString *aString)
       fmt = objc_malloc((len+1)*sizeof(unichar));
       [format getCharacters: fmt];
       fmt[len] = '\0';
+      /*
+       * If the buffer can't be freed, replace it with one which can before
+       * we attempt to append to the string (and possibly extend buffer)
+       */
+      if (_flags.free == NO)
+	{
+	  unichar	*u;
+
+	  if (_zone == 0)
+	    {
+	      _zone = [self zone];
+	    }
+	  u = NSZoneMalloc(_zone, _capacity * sizeof(unichar));
+	  memcpy(u, _contents.u, _count * sizeof(unichar));
+	  _contents.u = u;
+	  _flags.free = YES;
+	}
       f.z = _zone;
       f.buf = _contents.u;
       f.len = _count;
       f.size = _capacity;
-      GSFormat(&f, fmt, ap, nil); /* TODO: _zone might be nil, and _flags.free might be NO */
+      GSFormat(&f, fmt, ap, nil);
       _contents.u = f.buf;
       _count = f.len;
       _capacity = f.size;
@@ -2610,7 +2631,7 @@ transmute(ivars self, NSString *aString)
     {
       copy = NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      copy = [copy initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
+      copy = [copy initWithCString: _contents.c length: _count];
     }
   return copy;
 }
@@ -2628,7 +2649,7 @@ transmute(ivars self, NSString *aString)
   else
     {
       copy = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      copy = [copy initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
+      copy = [copy initWithCString: _contents.c length: _count];
     }
   return copy;
 }
@@ -2845,7 +2866,7 @@ transmute(ivars self, NSString *aString)
 {
   _count = length;
   _capacity = length;
-  _contents.c = byteString; /* TODO: broken if intEnc!=defEnc */
+  _contents.c = byteString;
   _flags.wide = 0;
   if (flag == YES && byteString != 0)
     {
@@ -2929,7 +2950,7 @@ transmute(ivars self, NSString *aString)
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
+    obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
 
@@ -2942,7 +2963,7 @@ transmute(ivars self, NSString *aString)
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
+    obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
 
@@ -3173,7 +3194,7 @@ transmute(ivars self, NSString *aString)
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location /* TODO: broken if intEnc!=defEnc */
+      sub = [sub initWithCString: self->_contents.c + aRange.location
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -3199,7 +3220,7 @@ transmute(ivars self, NSString *aString)
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 					aRange.length, 
 					NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location /* TODO: broken if intEnc!=defEnc */
+      sub = [sub initWithCString: self->_contents.c + aRange.location
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -3626,7 +3647,7 @@ transmute(ivars self, NSString *aString)
 
 - (const char*) cString
 {
-  return _self->_contents.c; /* TODO: broken if intEnc!=defEnc */
+  return _self->_contents.c;
 }
 
 - (id) retain
