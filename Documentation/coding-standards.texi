@@ -58,8 +58,9 @@ into another language, under the above conditions for modified versions.
 * Introduction::                
 * ChangeLog Entries::           
 * Coding Style::                
-* Memory Management::              
+* Memory Management::           
 * Error Handling::              
+* Variable Declaration::        
 * Contributing::                
 @end menu
 
@@ -68,7 +69,7 @@ into another language, under the above conditions for modified versions.
 @section Introduction
 
 This document explains the official coding standards which developers
-for GNUstep base should follow. Note that these standards are in addition
+for GNUstep should follow. Note that these standards are in addition
 to GNU coding standards, not a replacement of them.
 
 To summarize, always add a ChangeLog message whenever your commit a
@@ -292,7 +293,7 @@ in use.
 @end itemize
 
 @c ******************************************************************
-@node Error Handling, Contributing, Memory Management, Top
+@node Error Handling, Variable Declaration, Memory Management, Top
 @section Error Handling
 
 Initialization methods (e.g. -init) should, upon failure to
@@ -331,7 +332,21 @@ Java has the "finally" block which is specifically designed for this task. A
 similar mechanism exists in libFoundation with the CLEANUP and FINALLY
 blocks.
 
-@node Contributing,  , Error Handling, Top
+@c ******************************************************************
+@node Variable Declaration, Contributing, Error Handling, Top
+@section Variable Declaration
+
+All variables should be decalred at the beginning of a block. The new
+C99 standard (and gcc 3.X) allow variables to be declared anywhere in 
+a block, including after executable code. However, in order to be compatible
+with older compilers, all GNUstep programs should keep the old behavior.
+
+Certainly we would consider it a bug to introduce code into the
+GNUstep libraries which stopped them compiling with one of the
+commonly used compilers.
+
+
+@node Contributing,  , Variable Declaration, Top
 @section Contributing
 
 Contributing code is not difficult. Here are
@@ -340,7 +355,7 @@ some general guidelines:
 @itemize @bullet
 
 @item
-FSF must maintain the right to accept or reject potential contributions.
+We maintain the right to accept or reject potential contributions.
 Generally, the only reasons for rejecting contributions are cases where
 they duplicate existing or nearly-released code, contain unremovable
 specific machine dependencies, or are somehow incompatible with the
@@ -348,7 +363,7 @@ rest of the library.
 
 @item
 Acceptance of contributions means that the code is accepted for adaptation
-into libgnustep-base.  FSF must reserve the right to make various editorial changes
+into GNUstep.  We reserve the right to make various editorial changes
 in code. Very often, this merely entails formatting, maintenance of various
 conventions, etc. Contributors are always given authorship credit and shown
 the final version for approval.
@@ -364,7 +379,7 @@ support is strongly encouraged.
 
 @end itemize
 
-Extensions, comments, and suggested modifications of existing libgnustep-base
+Extensions, comments, and suggested modifications of existing GNUstep
 features are also very welcome.
 
 @bye
