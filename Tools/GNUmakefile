@@ -88,7 +88,10 @@ include Makefile.preamble
 include $(GNUSTEP_MAKEFILES)/ctool.make
 include $(GNUSTEP_MAKEFILES)/tool.make
 include $(GNUSTEP_MAKEFILES)/test-tool.make
+
+ifeq ($(doc),yes)
 include $(GNUSTEP_MAKEFILES)/documentation.make
+endif
 
 include Makefile.postamble
 
