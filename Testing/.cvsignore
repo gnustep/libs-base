@@ -5,4 +5,4 @@ pipes server client string values nsarray nsbundle nsdictionary nsset
 nsprocessinfo nsarchiver invocation diningPhilosophers nsmaptable nshashtable
 tcpport-server tcpport-client
 
-textcoding.txt nsarchiver.dat
+textcoding.txt nsarchiver.dat invocation.txt
