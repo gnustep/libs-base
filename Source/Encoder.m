@@ -2,7 +2,7 @@
    Copyright (C) 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Created: February 1996
+   Created: February 1996, with core from Coder, created 1994.
    
    This file is part of the GNU Objective C Class Library.
 
