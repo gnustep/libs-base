@@ -438,7 +438,7 @@ main(int argc, char **argv, char **env)
 	      NSString		*p;
 
 	      tmp = [AGSIndex new];
-	      [tmp mergeRefs: dict];
+	      [tmp mergeRefs: dict override: NO];
 	      RELEASE(dict);
 	      /*
 	       * Adjust path to external project files ...
@@ -449,7 +449,7 @@ main(int argc, char **argv, char **env)
 		  p = [k stringByDeletingLastPathComponent];
 		}
 	      [tmp setDirectory: p];
-	      [indexer mergeRefs: [tmp refs]];
+	      [indexer mergeRefs: [tmp refs] override: NO];
 	      RELEASE(tmp);
 	    }
 	}
@@ -664,7 +664,7 @@ main(int argc, char **argv, char **env)
 	      /*
 	       * accumulate index info in project references
 	       */
-	      [prjRefs mergeRefs: [locRefs refs]];
+	      [prjRefs mergeRefs: [locRefs refs] override: NO];
 	    }
 	  else if (isDocumentation)
 	    {
@@ -681,7 +681,7 @@ main(int argc, char **argv, char **env)
   /*
    * accumulate project index info into global index
    */
-  [indexer mergeRefs: [prjRefs refs]];
+  [indexer mergeRefs: [prjRefs refs] override: YES];
 
   for (i = 1; i < [args count]; i++)
     {
