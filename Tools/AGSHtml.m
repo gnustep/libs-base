@@ -1135,8 +1135,9 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*t = [prop objectForKey: @"type"];
 	  NSString	*v = [prop objectForKey: @"validity"];
 	  NSString	*s;
-	  GSXMLNode	*tmp = children;
+	  GSXMLNode	*tmp;
 
+	  tmp = children = firstElement(children);
 	  [buf appendString: indent];
 	  [buf appendString: @"<h3>"];
 	  s = [self makeLink: n ofType: @"ivariable" inUnit: nil isRef: NO];
@@ -1162,7 +1163,7 @@ static NSMutableSet	*textNodes = nil;
 	      children = [children nextElement];
 	    }
 	  /*
-	   * List standards with which method complies
+	   * List standards with which ivar complies
 	   */
 	  if ([[children name] isEqual: @"standards"])
 	    {
