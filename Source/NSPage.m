@@ -68,7 +68,7 @@ getpagesize(void)
 #define getpagesize vm_page_size
 #endif
 
-#if __BEOS__
+#ifdef __BEOS__
 #include <kernel/OS.h>
 #define getpagesize()  B_PAGE_SIZE
 #endif
@@ -142,12 +142,12 @@ NSRealMemoryAvailable ()
   if ((sysinfo(&info)) != 0)
     return 0;
   return (unsigned) info.freeram;
-#elif __MINGW__
+#elif defined(__MINGW__)
   MEMORYSTATUS memory;
   
   GlobalMemoryStatus(&memory);
   return (unsigned)memory.dwAvailPhys;
-#elif __BEOS__
+#elif defined(__BEOS__)
   system_info info;
   
   if (get_system_info(&info) != B_OK)

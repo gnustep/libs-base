@@ -1,3 +1,9 @@
+2003-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m:
+	* Source/NSPage.m:
+	Mingw fixes ... problems reported by Fred.
+
 2003-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConcreteNumber.m: ([compare:]) explicitly cast to promote

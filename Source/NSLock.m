@@ -162,11 +162,15 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	{
 	  return NO;
 	}
+#if defined(__MINGW__)
+      Sleep(250);	// 0.25 second
+#else
       /*
        * This should probably be more accurate like usleep(250)
        * but usleep is known to NOT be thread safe under all architectures.
        */
       sleep(1);
+#endif
     }
   return YES;
 }
@@ -386,11 +390,15 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	{
 	  return NO;
 	}
+#if defined(__MINGW__)
+      Sleep(250);	// 0.25 second
+#else
       /*
        * This should probably be more accurate like usleep(250)
        * but usleep is known to NOT be thread safe under all architectures.
        */
       sleep(1);
+#endif
     }
   return YES;
 }
@@ -560,11 +568,15 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	{
 	  return NO;
 	}
+#if defined(__MINGW__)
+      Sleep(250);	// 0.25 second
+#else
       /*
        * This should probably be more accurate like usleep(250)
        * but usleep is known to NOT be thread safe under all architectures.
        */
       sleep(1);
+#endif
     }
   return YES;
 }
