@@ -77,6 +77,137 @@
 - (unsigned int) systemVersion;
 - (unsigned int) versionForClassName: (NSString*)className;
 
+#ifndef	STRICT_OPENSTEP
+/*
+ * MacOS-X adds some typedefs that GNUstep already has by another name.
+ */
+#include <GSConfig.h>
+#define	uint8_t	gsu8
+#define	int32_t	gss32
+#define	int64_t	gss64
+
+
+/** <override-subclass />
+ * Returns a flag indicating whether the receiver supported keyed coding.
+ * the default implementation returns NO.  Subclasses supporting keyed
+ * coding must override this to return YES.
+ */
+- (BOOL) allowsKeyedCoding;
+
+/** <override-subclass />
+ * Returns a class indicating whether an encoded value corresponding
+ * to aKey exists.
+ */
+- (BOOL) containsValueForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns a boolean value associated with aKey.  This value must previously
+ * have been encoded using -encodeBool:forKey:
+ */
+- (BOOL) decodeBoolForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns a pointer to a byte array associated with aKey.<br />
+ * Returns the length of the data in aLength.<br />
+ * This value must previously have been encoded using
+ * -encodeBytes:length:forKey:
+ */
+- (const uint8_t*) decodeBytesForKey: (NSString*)aKey
+		      returnedLength: (unsigned*)alength;
+
+/** <override-subclass />
+ * Returns a double value associated with aKey.  This value must previously
+ * have been encoded using -encodeDouble:forKey: or -encodeFloat:forKey:
+ */
+- (double) decodeDoubleForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns a float value associated with aKey.  This value must previously
+ * have been encoded using -encodeFloat:forKey: or -encodeDouble:forKey:<br />
+ * Precision may be lost (or an exception raised if the value will not fit
+ * in a float) if the value was encoded using -encodeDouble:forKey:,
+ */
+- (float) decodeFloatForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns an integer value associated with aKey.  This value must previously
+ * have been encoded using -encodeInt:forKey:, -encodeInt32:forKey:, or
+ * -encodeInt64:forKey:.<br />
+ * An exception will be raised if the value does not fit in an integer.
+ */
+- (int) decodeIntForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns a 32-bit integer value associated with aKey.  This value must
+ * previously have been encoded using -encodeInt:forKey:,
+ * -encodeInt32:forKey:, or -encodeInt64:forKey:.<br />
+ * An exception will be raised if the value does not fit in a 32-bit integer.
+ */
+- (int32_t) decodeInt32ForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns a 64-bit integer value associated with aKey.  This value must
+ * previously have been encoded using -encodeInt:forKey:,
+ * -encodeInt32:forKey:, or -encodeInt64:forKey:.
+ */
+- (int64_t) decodeInt64ForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Returns an object value associated with aKey.  This value must
+ * previously have been encoded using -encodeObject:forKey: or
+ * -encodeConditionalObject:forKey:
+ */
+- (id) decodeObjectForKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes aBool and associates the encoded value with aKey.
+ */
+- (void) encodeBool: (BOOL) aBool forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes the data of the specified length and pointed to by aPointeraBool,
+ * and associates the encoded value with aKey.
+ */
+- (void) encodeBytes: (const uint8_t*)aPointer
+	      length: (unsigned)length
+	      forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes anObject and associates the encoded value with aKey, but only
+ * if anObject has already been encoded using -encodeObject:forKey:
+ */
+- (void) encodeConditionalObject: (id)anObject forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes aDouble and associates the encoded value with aKey.
+ */
+- (void) encodeDouble: (double)aDouble forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes aFloat and associates the encoded value with aKey.
+ */
+- (void) encodeFloat: (float)aFloat forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes anInteger and associates the encoded value with aKey.
+ */
+- (void) encodeInt: (int)anInteger forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes anInteger and associates the encoded value with aKey.
+ */
+- (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes anInteger and associates the encoded value with aKey.
+ */
+- (void) encodeInt64: (int64_t)anInteger forKey: (NSString*)aKey;
+
+/** <override-subclass />
+ * Encodes anObject and associates the encoded value with aKey.
+ */
+- (void) encodeObject: (id)anObject forKey: (NSString*)aKey;
+#endif
 @end
 
 #ifndef NO_GNUSTEP

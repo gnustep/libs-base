@@ -436,39 +436,44 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else if ([obj isKindOfClass: [NSNumber class]])
     {
-      double	val = [obj doubleValue];
+      const char	*t = [obj objCType];
 
-      if (val == 1.0)
+      if (*t ==  'c' || *t == 'C')
 	{
-	  if (x == PLXML)
+	  BOOL	val = [obj boolValue];
+
+	  if (val == YES)
 	    {
-	      Append(@"<true/>\n", dest);
-	    }
-	  else if (x == PLNEW)
-	    {
-	      Append(@"<*BY>", dest);
+	      if (x == PLXML)
+		{
+		  Append(@"<true/>\n", dest);
+		}
+	      else if (x == PLNEW)
+		{
+		  Append(@"<*BY>", dest);
+		}
+	      else
+		{
+		  PString([obj description], dest);
+		}
 	    }
 	  else
 	    {
-	      PString([obj description], dest);
+	      if (x == PLXML)
+		{
+		  Append(@"<false/>\n", dest);
+		}
+	      else if (x == PLNEW)
+		{
+		  Append(@"<*BN>", dest);
+		}
+	      else
+		{
+		  PString([obj description], dest);
+		}
 	    }
 	}
-      else if (val == 0.0)
-	{
-	  if (x == PLXML)
-	    {
-	      Append(@"<false/>\n", dest);
-	    }
-	  else if (x == PLNEW)
-	    {
-	      Append(@"<*BN>", dest);
-	    }
-	  else
-	    {
-	      PString([obj description], dest);
-	    }
-	}
-      else if (rint(val) == val)
+      else if (strchr("sSiIlLqQ", *t) != 0)
 	{
 	  if (x == PLXML)
 	    {
@@ -601,7 +606,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  NSEnumerator	*e;
 
-	  Append(@"<array>", dest);
+	  Append(@"<array>\n", dest);
 	  e = [obj objectEnumerator];
 	  while ((obj = [e nextObject]))
 	    {
@@ -700,6 +705,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      Append(@"<key>", dest);
 	      XString(key, dest);
 	      Append(@"</key>\n", dest);
+	      Append(iSizeString, dest);
 	      OAppend(val, loc, level, step, x, dest);
 	    }
 	  Append(iBaseString, dest);

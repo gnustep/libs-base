@@ -1,3 +1,19 @@
+2004-01-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPropertyList.h: serialisation/deserialisation.
+	* Source/NSPropertyList.m: serialisation/deserialisation code partly
+	implemented.
+	* Headers/Foundation/NSCoder.h: Add keyed coding methods.
+	* Source/NSCoder.m: ditto
+	* Headers/Foundation/NSKeyedArchiver.h: new keyed archiver/unarchiver.
+	* Source/NSKeyedArchiver.m: New MacOS-X compatible class implementation.
+	* Source/NSKeyedUnarchiver.m: Stub for new class implementation.
+	* Source/GNUmakefile: build new keyed archiving stuff.
+	* Source/GSCompatibility.m: fix indentation error in xml output.
+	improve output of numeric values in xml format.
+	* Source/Additions/GSMime.m: ([-setContentType:) make argument more
+	strongly typed. ([-encodeBase64:])tweak buffer size.
+
 2004-01-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: All code conditional on USE_FFCALL should

@@ -64,6 +64,7 @@ NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
+NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSLock.h \
 NSMapTable.h \
@@ -79,6 +80,7 @@ NSPort.h \
 NSPortCoder.h \
 NSPortMessage.h \
 NSPortNameServer.h \
+NSPropertyList.h \
 NSProcessInfo.h \
 NSProtocolChecker.h \
 NSProxy.h \

@@ -294,6 +294,116 @@
     + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
 }
 
+
+// Keyed archiving extensions
+
+- (BOOL) allowsKeyedCoding
+{
+  return NO;
+}
+
+- (BOOL) containsValueForKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (BOOL) decodeBoolForKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (const uint8_t*) decodeBytesForKey: (NSString*)aKey
+		      returnedLength: (unsigned*)alength
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (double) decodeDoubleForKey: (NSString*)aKey
+{ 
+  [self subclassResponsibility: _cmd];
+  return 0.0;
+}
+
+- (float) decodeFloatForKey: (NSString*)aKey
+{ 
+  [self subclassResponsibility: _cmd];
+  return 0.0;
+}
+
+- (int) decodeIntForKey: (NSString*)aKey
+{ 
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (int32_t) decodeInt32ForKey: (NSString*)aKey
+{ 
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (int64_t) decodeInt64ForKey: (NSString*)aKey
+{ 
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (id) decodeObjectForKey: (NSString*)aKey
+{ 
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (void) encodeBool: (BOOL) aBool forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeBytes: (const uint8_t*)aPointer
+	      length: (unsigned)length
+	      forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeConditionalObject: (id)anObject forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeDouble: (double)aDouble forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeFloat: (float)aFloat forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeInt: (int)anInteger forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeInt64: (int64_t)anInteger forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeObject: (id)anObject forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
 @end
 
 @implementation NSCoder (GNUstep)
@@ -378,4 +488,6 @@
 {
   [self encodeValueOfObjCType: @encode(id) at: anObject withName: name];
 }
+
+
 @end
