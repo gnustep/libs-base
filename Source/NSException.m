@@ -144,7 +144,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
    <p>
    The local variable localException is the name of the exception
    object you can use in the NS_HANDLER section.
-   The easiest way to cause an exeption is using the +raise:format:
+   The easiest way to cause an exeption is using the +raise:format:,...
    method.
    </p>
 */
