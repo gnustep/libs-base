@@ -511,7 +511,7 @@ exc_return_null(arglist_t f)
 #else
 	  sel_types = sel_get_type(sel);
 #endif
-#if 0
+#if 1 /* xxx Yipes,... careful... */
 	  /* xxx Think about something like this. */
 	  if (!sel_types)
 	    sel_types = sel_get_type(sel_get_any_uid(sel_get_name(sel)));
@@ -1235,12 +1235,12 @@ exc_return_null(arglist_t f)
 
 - (void) encodeWithCoder: (Coder*)anEncoder
 {
-  /* Do nothing */
+  return;
 }
 
 + newWithCoder: (Coder*)aDecoder
 {
-  return class_create_instance(self);
+  return NSAllocateObject(self, 0, NULL);
 }
 
 
@@ -1260,14 +1260,6 @@ exc_return_null(arglist_t f)
 + (void) encodeObject: anObject withConnectedCoder: aRmc
 {
   [anObject encodeWithCoder:aRmc];
-}
-
-
-/* @implementation Object (IsProxy) */
-
-- (BOOL) isProxy
-{
-  return NO;
 }
 
 @end
