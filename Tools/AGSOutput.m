@@ -2066,10 +2066,14 @@ static BOOL snuggleStart(NSString *t)
   start = [str rangeOfString: tmp];
   if (start.length == 0)
     {
-      start = [str rangeOfString: @"</body>"];
+      start = [str rangeOfString: @"<back>"];
       if (start.length == 0)
 	{
-	  NSLog(@"No </body> markup in %@ document", kind);
+	  start = [str rangeOfString: @"</body>"];
+	}
+      if (start.length == 0)
+	{
+	  NSLog(@"No <back> or </body> markup in %@ document", kind);
 	  return NO;
 	}
       [str insertString: tmp atIndex: start.location];
