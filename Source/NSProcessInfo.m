@@ -71,12 +71,12 @@
 #include <sys/fcntl.h>
 #endif
 
-#ifdef HAVE_LIBKVM
+#ifdef HAVE_KVM_ENV
 #include <kvm.h>
 #include <fcntl.h>
 #include <sys/param.h>
 #include <sys/sysctl.h>
-#endif /* HAVE_LIBKVM */
+#endif /* HAVE_KVM_ENV */
 
 #include "GSConfig.h"
 #include "Foundation/NSString.h"
@@ -315,7 +315,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RELEASE(arp));
 }
 
-#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_LIBKVM)) && (defined(HAVE_LOAD_METHOD)))
+#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV)) && (defined(HAVE_LOAD_METHOD)))
 /*
  * We have to save program arguments and environment before main () is
  * executed, because main () could modify their values before we get a
@@ -333,7 +333,7 @@ static char	**_gnu_noobjc_env = NULL;
  */
 + (void) load 
 {
-#ifdef HAVE_LIBKVM
+#ifdef HAVE_KVM_ENV
   /*
    * Use the kvm library to open the kernel and read the environment and
    * arguments. As we are not running as root we cannot open the memory
@@ -410,7 +410,7 @@ static char	**_gnu_noobjc_env = NULL;
   _gnu_noobjc_argv[i] = NULL;
 
   return;
-#else /* !HAVE_LIBKVM (i.e. HAVE_PROCFS).  */
+#else /* !HAVE_KVM_ENV (i.e. HAVE_PROCFS).  */
   /*
    * Now we have the problem of reading program arguments and
    * environment.  We take the environment from extern char **environ, and
@@ -592,7 +592,7 @@ static char	**_gnu_noobjc_env = NULL;
    */
   abort();
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
-#endif /* !HAVE_LIBKVM (e.g. HAVE_PROCFS) */
+#endif /* !HAVE_KVM_ENV (e.g. HAVE_PROCFS) */
  malloc_error: 
   fprintf(stderr, "malloc() error when starting gnustep-base.\n");
   fprintf(stderr, "Free some memory and then re-run the program.\n");
@@ -633,7 +633,7 @@ _gnu_noobjc_free_vars(void)
       _gnu_noobjc_free_vars();
     }
 }
-#else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_LIBKVM */
+#else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_KVM_ENV */
 
 #ifdef __MINGW__
 /* For WindowsAPI Library, we know the global variables (argc, etc) */

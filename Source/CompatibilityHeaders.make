@@ -34,7 +34,7 @@ after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$$OLD_DIR; \
 	for I in $$LIST ; do \
 	  (echo "#warning $$I is now included using the path <$$NEW_DIR/$$I>";\
- 	  echo "#include <$$NEW_DIR/$$I>" ) \
+	  echo "#include <$$NEW_DIR/$$I>" ) \
 	  > $(GNUSTEP_HEADERS)/$$OLD_DIR/$$I; \
 	done
 
@@ -43,7 +43,7 @@ after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$$OLD_DIR; \
 	for I in $$LIST ; do \
 	  (echo "#warning $$I is now included using the path <$$NEW_DIR/$$I>";\
- 	  echo "#include <$$NEW_DIR/$$I>" ) \
+	  echo "#include <$$NEW_DIR/$$I>" ) \
 	  > $(GNUSTEP_HEADERS)/$$OLD_DIR/$$I;\
 	done
 
@@ -56,3 +56,25 @@ after-install::
 	  > $(GNUSTEP_HEADERS)/$$OLD_DIR/$$I; \
 	done
 
+
+before-uninstall::
+	-@OLD_DIR=Foundation; NEW_DIR=GNUstepBase; \
+	LIST="GSXML.h GSMime.h" ;\
+	for I in $$LIST ; do \
+	  rm -f $(GNUSTEP_HEADERS)/$$OLD_DIR/$$I; \
+	done;
+
+	-@OLD_DIR=gnustep/unicode; NEW_DIR=GNUstepBase/unicode; \
+	LIST="caseconv.h cop.h cyrillic.h latin2.h decomp.h nextstep.h" ;\
+	for I in $$LIST ; do \
+	  rm -f $(GNUSTEP_HEADERS)/$$OLD_DIR/$$I; \
+	done; \
+	rmdir $(GNUSTEP_HEADERS)/$$OLD_DIR
+
+	-@OLD_DIR=gnustep/base; NEW_DIR=GNUstepBase; \
+	LIST="$(GNU_HEADERS)" ;\
+	for I in $$LIST ; do \
+	  rm -f $(GNUSTEP_HEADERS)/$$OLD_DIR/$$I; \
+	done; \
+	rmdir $(GNUSTEP_HEADERS)/$$OLD_DIR; \
+	rmdir $(GNUSTEP_HEADERS)/gnustep

@@ -20,6 +20,11 @@
 	base library, for documentation on additional classes, see the
 	BaseAdditions documentation package.
       </p>
+      <p>
+      	Read the
+	<uref url="../ReleaseNotes/ReleaseNotes.html">Release Notes</uref>
+	for the current release.
+      </p>
       <index scope="project" type="title" />
       <section>
 	<heading>Compatibility</heading>

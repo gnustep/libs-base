@@ -79,6 +79,9 @@
 /* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
+/* Define if you can access the kernel via kvm_open */
+#undef HAVE_KVM_ENV
+
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
 
@@ -399,9 +402,6 @@
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
-
-/* Define if you can access the kernel via kvm_open */
-#undef have_kvm_env
 
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */

@@ -1,3 +1,13 @@
+2004-06-14  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Fix kvm test. Define HAVE_KVM_ENV
+	* Headers/Additions/GNUstepBase/config.h.in, configure: Regenerate
+	* Source/NSProcessInfo: Use it.
+
+	* Makefile.postamble (after-uninstall): Remove base.make
+	* Source/CompatibilityHeaders.make (before-uninstall): Remove headers
+	* Tools/Makefile.postamble (before-uninstall): Remove dtds, man files.
+
 2004-06-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDictionary.m: MacOS-X compatibility fix for keyed encoding
