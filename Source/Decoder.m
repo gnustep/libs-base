@@ -28,7 +28,7 @@
 #include <base/CStream.h>
 #include <base/Stream.h>
 #include <base/StdioStream.h>
-#include <base/Array.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 
 extern BOOL sel_types_match(const char* t1, const char* t2);
@@ -135,15 +135,15 @@ static id dummyObject;
 {
   if (!xref_2_object)
     {
-      xref_2_object = [Array new];
+      xref_2_object = [NSArray new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
-      [xref_2_object appendObject: dummyObject];
+      [xref_2_object addObject: dummyObject];
     }
   if (debug_coder)
     fprintf (stderr, "Decoder registering object xref %u\n",
 	     [xref_2_object count] - 1);
-  [xref_2_object appendObject: anObj]; // xxx but this will retain anObj.  NO.
+  [xref_2_object addObject: anObj]; // xxx but this will retain anObj.  NO.
   /* This return value should be the same as the index of anObj 
      in xref_2_object. */
   return ([xref_2_object count] - 1);
@@ -169,7 +169,7 @@ static id dummyObject;
 - (void) _coderPushRootObjectTable
 {
   if (!xref_2_object_root)
-    xref_2_object_root = [Array new];
+    xref_2_object_root = [NSArray new];
 }
 
 - (void) _coderPopRootObjectTable
@@ -186,12 +186,12 @@ static id dummyObject;
 {
   if (!xref_2_object_root)
     {
-      xref_2_object_root = [Array new];
+      xref_2_object_root = [NSArray new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
-      [xref_2_object_root appendObject: dummyObject];
+      [xref_2_object_root addObject: dummyObject];
     }
-  [xref_2_object_root appendObject: anObj];
+  [xref_2_object_root addObject: anObj];
   /* This return value should be the same as the index of anObj 
      in xref_2_object_root. */
   return ([xref_2_object_root count] - 1);

@@ -48,13 +48,8 @@
 
 + newForReceivingFromPortNumber: (unsigned short)n;
 
-/* Get a packet from the net and return it.  If no packet is received 
-   within MILLISECONDS, then return nil.  The caller is responsible 
-   for releasing the packet. */
-- newPacketReceivedBeforeDate: date;
-
 - (int) portNumber;
-- (id <Collecting>) connectedOutPorts;
+- (id) connectedOutPorts;
 - (unsigned) numberOfConnectedOutPorts;
 
 @end

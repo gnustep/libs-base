@@ -29,7 +29,6 @@
 #include <Foundation/NSPort.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
-#include <base/Invocation.h>
 
 /* xxx Use something like this? */
 @protocol PacketSending
@@ -64,7 +63,7 @@
    packet arrives, INVOCATION will be invoked with the new packet
    as an argument.  The INVOCATION is responsible for releasing
    the packet. */
-- (void) setReceivedPacketInvocation: (id <Invoking>)invocation;
+- (void) setReceivedPacketInvocation: (id)invocation;
 
 /* An alternative to the above way for receiving packets from this port.
    Get a packet from the net and return it.  If no packet is received 

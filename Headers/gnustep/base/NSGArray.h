@@ -25,7 +25,6 @@
 #define __NSGArray_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSArray.h>
-#include <base/Array.h>
 
 @interface NSGArray : NSArray
 {

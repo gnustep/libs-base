@@ -28,7 +28,6 @@
 #include <objc/Protocol.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSMethodSignature.h>
-#include <base/Invocation.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>

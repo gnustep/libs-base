@@ -32,10 +32,9 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSRange.h>
+#include <Foundation/NSException.h>
 #include <base/NSGString.h>
 #include <base/NSGCString.h>
-#include <base/IndexedCollection.h>
-#include <base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
 #include <base/behavior.h>
 
@@ -561,10 +560,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return NO;
 }
 
-
-// FOR IndexedCollection SUPPORT;
-
-- objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return [NSNumber numberWithChar: _contents_chars[index]];
@@ -1122,11 +1118,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
 }
 
-/* For IndexedCollecting Protocol and other GNU libobjects conformity. */
-
-/* xxx This should be made to return void, but we need to change
-   IndexedCollecting and its conformers */
-- (void) removeRange: (IndexRange)range
+- (void) removeRange: (NSRange)range
 {
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
 				    range.location, range.length);
@@ -1148,8 +1140,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return self;
 }
 
-/* For IndexedCollecting protocol */
-
 - (char) charAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
@@ -1157,8 +1147,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 
-// FOR IndexedCollection and OrderedCollection SUPPORT;
-
 - (void) insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);

@@ -561,7 +561,7 @@ static NSMapTable* port_number_2_port;
   return [self newForReceivingFromPortNumber: 0];
 }
 
-- (id <Collecting>) connectedOutPorts
+- (id) connectedOutPorts
 {
   NSMapEnumerator me = NSEnumerateMapTable (_client_sock_2_out_port);
   int count = NSCountMapTable (_client_sock_2_out_port);
@@ -585,41 +585,6 @@ static NSMapTable* port_number_2_port;
 {
   NSAssert(_is_valid, NSInternalInconsistencyException);
   return &_listening_address;
-}
-
-/* Usually, you would run the run loop to get packets, but if you
-   want to wait for one directly from a port, you can use this method. */
-- newPacketReceivedBeforeDate: date
-{
-  NSString*	saved_mode = [NSRunLoop currentMode];
-  id saved_packet_invocation;
-  id packet = nil;
-  id handle_packet (id p)
-    {
-      packet = p;
-      return nil;
-    }
-
-  /* Swap in our own temporary handler. */
-  saved_packet_invocation = _packet_invocation;
-  _packet_invocation = [[ObjectFunctionInvocation alloc]
-			 initWithObjectFunction: handle_packet];
-
-  /* Make sure we're in the run loop, and run it, waiting for the
-     incoming packet. */
-  [[NSRunLoop currentRunLoop] addPort: self
-			      forMode: saved_mode];
-  while ([NSRunLoop runOnceBeforeDate: date]
-	 && !packet)
-    ;
-
-  /* Clean up, getting ready to return. Swap back in the old packet
-     handler, and decrement the number of times we've been added to
-     this run loop. */ 
-  _packet_invocation = saved_packet_invocation;
-  [[NSRunLoop currentRunLoop] removePort: self
-			         forMode: saved_mode];
-  return packet;
 }
 
 
