@@ -367,7 +367,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       /* Check for language as the first part of the locale string */
       NSRange under = [locale rangeOfString: @"_"];
       if (under.location)
-	currLang = [locale substringToIndex: under.location];
+        currLang = [NSArray arrayWithObject: 
+	             [locale substringToIndex: under.location]];
     }
 #endif
   if (currLang == nil)
