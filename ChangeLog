@@ -1,5 +1,10 @@
 2002-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/GNUmakefile: revert ... can't build if base library isn't
+	installed.
+
+2002-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLog.m: Lots of documentation added.
 	* Tools/GNUmakefile: build autogsdoc documentation automatically
 	if possible.
