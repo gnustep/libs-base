@@ -71,10 +71,12 @@
  *	class with an underscore prepended.
  */
 typedef struct {
-    /*
-     *	String classes
-     */
+    Class	_NSArray;
+    Class	_NSMutableArray;
+    Class	_NSDictionary;
+    Class	_NSMutableDictionary;
     Class	_NSString;
+    Class	_NSMutableString;
     Class	_NSGString;
     Class	_NSGMutableString;
     Class	_NSGCString;
@@ -129,78 +131,79 @@ extern void	*_fastMallocBuffer(unsigned size);
 static INLINE BOOL
 fastIsInstance(id obj)
 {
-    return CLS_ISCLASS(obj->class_pointer);
+  return CLS_ISCLASS(obj->class_pointer);
 }
 
 static INLINE BOOL
 fastIsClass(Class c)
 {
-    return CLS_ISCLASS(c);
+  return CLS_ISCLASS(c);
 }
 
 static INLINE Class
 fastClass(NSObject* obj)
 {
-    return ((id)obj)->class_pointer;
+  return ((id)obj)->class_pointer;
 }
 
 static INLINE Class
 fastClassOfInstance(NSObject* obj)
 {
-    if (fastIsInstance((id)obj))
-        return fastClass(obj);
-    return Nil;
+  if (fastIsInstance((id)obj))
+    return fastClass(obj);
+  return Nil;
 }
 
 static INLINE Class
 fastSuper(Class cls)
 {
-    return cls->super_class;
+  return cls->super_class;
 }
 
 static INLINE BOOL
 fastClassIsKindOfClass(Class c0, Class c1)
 {
-    while (c0 != Nil) {
-	if (c0 == c1)
-	    return YES;
-        c0 = class_get_super_class(c0);
+  while (c0 != Nil)
+    {
+      if (c0 == c1)
+        return YES;
+      c0 = class_get_super_class(c0);
     }
-    return NO;
+  return NO;
 }
 
 static INLINE BOOL
 fastInstanceIsKindOfClass(NSObject *obj, Class c)
 {
-    Class	ic = fastClassOfInstance(obj);
+  Class	ic = fastClassOfInstance(obj);
 
-    if (ic == Nil)
-	return NO;
-    return fastClassIsKindOfClass(ic, c);
+  if (ic == Nil)
+    return NO;
+  return fastClassIsKindOfClass(ic, c);
 }
 
 static INLINE const char*
 fastClassName(Class c)
 {
-    return c->name;
+  return c->name;
 }
 
 static INLINE int
 fastClassVersion(Class c)
 {
-    return c->version;
+  return c->version;
 }
 
 static INLINE const char*
 fastSelectorName(SEL s)
 {
-    return sel_get_name(s);
+  return sel_get_name(s);
 }
 
 static INLINE const char*
 fastSelectorTypes(SEL s)
 {
-    return sel_get_type(s);
+  return sel_get_type(s);
 }
 
 /*
@@ -213,5 +216,6 @@ fastSelectorTypes(SEL s)
  *	for normal use.
  */
 extern NSZone	*fastZone(NSObject* obj);
+
 
 #endif
