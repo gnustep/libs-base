@@ -1,7 +1,7 @@
 2004-02-17  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Foundation/NSLock.h: Make types of _mutex and _condition
-	opaic to avoid including private thr-mach.h header.
+	opaque to avoid including private thr-mach.h header.
 	* Headers/Foundation/NSThread.h: Do not include private thr-mach.h
 	header.
 	* Source/thr-mach.h: Moved here from
