@@ -48,6 +48,28 @@
 #include <base/Unicode.h>
 
 /*
+ *	Include sequence handling code with instructions to generate search
+ *	and compare functions for NSString objects.
+ */
+#define	GSEQ_STRCOMP	strCompUsNs
+#define	GSEQ_STRRANGE	strRangeUsNs
+#define	GSEQ_O	GSEQ_NS
+#define	GSEQ_S	GSEQ_US
+#include <GSeq.h>
+
+#define	GSEQ_STRCOMP	strCompUsUs
+#define	GSEQ_STRRANGE	strRangeUsUs
+#define	GSEQ_O	GSEQ_US
+#define	GSEQ_S	GSEQ_US
+#include <GSeq.h>
+
+#define	GSEQ_STRCOMP	strCompUsCs
+#define	GSEQ_STRRANGE	strRangeUsCs
+#define	GSEQ_O	GSEQ_CS
+#define	GSEQ_S	GSEQ_US
+#include <GSeq.h>
+
+/*
  *	Include property-list parsing code configured for unicode characters.
  */
 #define	GSPLUNI	1
@@ -91,20 +113,37 @@
   if (anObject == nil)
     return NO;
   c = fastClassOfInstance(anObject);
-  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString ||
-      c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString ||
-      c == _fastCls._NXConstantString)
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString
+    || c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
     {
       NSGString	*other = (NSGString*)anObject;
+      NSRange	r = {0, _count};
 
+      /*
+       * First see if the has is the same - if not, we can't be equal.
+       */
       if (_hash == 0)
         _hash = _fastImp._NSString_hash(self, @selector(hash));
       if (other->_hash == 0)
         other->_hash = _fastImp._NSString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
-      return _fastImp._NSString_isEqualToString_(self,
-		@selector(isEqualToString:), other);
+
+      /*
+       * Do a compare depending on the type of the other string.
+       */
+      if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+	{
+	  if (strCompUsUs(self, other, 0, r) == NSOrderedSame)
+	    return YES;
+	}
+      else
+	{
+	  if (strCompUsCs(self, other, 0, r) == NSOrderedSame)
+	    return YES;
+	}
+      return NO;
     }
   else if (c == nil)
     return NO;
@@ -385,6 +424,36 @@
     while ((end < _count) && (uni_isnonsp(_contents_chars[end])) )
       end++;
   return NSMakeRange(start, end-start);
+}
+
+- (NSComparisonResult) compare: (NSString*)aString
+		       options: (unsigned int)mask
+			 range: (NSRange)aRange
+{
+  Class	c = fastClass(aString);
+
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    return strCompUsUs(self, aString, mask, aRange);
+  else if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
+    return strCompUsCs(self, aString, mask, aRange);
+  else
+    return strCompUsNs(self, aString, mask, aRange);
+}
+
+- (NSRange) rangeOfString: (NSString *) aString
+		  options: (unsigned int) mask
+		    range: (NSRange) aRange
+{
+  Class	c = fastClass(aString);
+
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    return strRangeUsUs(self, aString, mask, aRange);
+  else if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
+    return strRangeUsCs(self, aString, mask, aRange);
+  else
+    return strRangeUsNs(self, aString, mask, aRange);
 }
 
 @end
