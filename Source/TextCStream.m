@@ -326,7 +326,10 @@ if (debug_textcoder) \
 		   format: @"type %s not yet implemented", type];
     }
   if (namePtr)
-    *namePtr = [NSString stringWithCStringNoCopy: tmpname];
+    *namePtr = [[[NSString alloc] initWithCStringNoCopy: tmpname
+				  length: strlen (tmpname)
+				  freeWhenDone: YES]
+		 autorelease];
   else
     (*objc_free) (tmpname);
 }
@@ -382,14 +385,16 @@ if (debug_textcoder) \
 
 - (void) decodeName: (NSString* *) name
 {
-  const char *n;
+  char *n;
   if (name)
     {
       if ([stream readFormat: @" <%a[^>]> \n", &n] != 1)
 	[NSException raise: NSGenericException
 		     format: @"bad format"];
-      *name = [NSString stringWithCStringNoCopy: n
-			freeWhenDone: YES];
+      *name = [[[NSString alloc] initWithCStringNoCopy: n
+				 length: strlen (n)
+				 freeWhenDone: YES]
+		autorelease];
       if (debug_textcoder)
 	fprintf(stderr, "got name <%s>\n", n);
     }
