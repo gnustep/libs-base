@@ -28,6 +28,9 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 -include config.mak
+
+GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 srcdir = .

@@ -364,6 +364,18 @@ iconv_stringforencoding(NSStringEncoding enc)
 	return "ISO-8859-7";
       case NSISOHebrewStringEncoding:
 	return "ISO-8859-8";
+
+      case NSISOLatin5StringEncoding: 
+	return "ISO-8859-9";
+      case NSISOLatin6StringEncoding: 
+	return "ISO-8859-10";
+      case NSISOLatin7StringEncoding: 
+	return "ISO-8859-13";
+      case NSISOLatin8StringEncoding: 
+	return "ISO-8859-14";
+      case NSISOLatin9StringEncoding: 
+	return "ISO-8859-15";
+
       case NSGB2312StringEncoding:
 	return "EUC-CN";
       default:
