@@ -603,8 +603,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 #endif
 	  if (_executable_path == nil || [_executable_path length] == 0)
 	    {
+	      const char	*tmp;
+
 	      _executable_path =
 		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+	      tmp = [_executable_path UTF8String];
+	      _executable_path = [[NSFileManager defaultManager]
+		stringWithFileSystemRepresentation: tmp length: strlen(tmp)];
 	      _executable_path = 
 		[self _absolutePathOfExecutable: _executable_path];
 	      NSAssert(_executable_path, NSInternalInconsistencyException);
