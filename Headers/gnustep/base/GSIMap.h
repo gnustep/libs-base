@@ -31,12 +31,6 @@
 #define INLINE inline
 #endif
 
-/* To turn assertions on, comment out the following four lines */
-#ifndef	NS_BLOCK_ASSERTIONS
-#define	NS_BLOCK_ASSERTIONS	1
-#define	GSI_MAP_BLOCKED_ASSERTIONS	1
-#endif
-
 /*
  *	This file should be INCLUDED in files wanting to use the GSIMap
  *	functions - these are all declared inline for maximum performance.
@@ -761,9 +755,4 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
   GSIMapRightSizeMap(map, capacity);
   GSIMapMoreNodes(map);
 }
-
-#ifdef	GSI_MAP_BLOCKED_ASSERTIONS
-#undef	NS_BLOCK_ASSERTIONS
-#undef	GSI_MAP_BLOCKED_ASSERTIONS
-#endif
 
