@@ -274,7 +274,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
   timer = nil;
   [target performSelector: selector withObject: argument];
-  [[[NSRunLoop currentInstance] _timedPerformers]
+  [[[NSRunLoop currentRunLoop] _timedPerformers]
     removeObjectIdenticalTo: self];
 }
 
@@ -311,7 +311,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 					selector: (SEL)aSelector
 					  object: (id)arg
 {
-  NSMutableArray	*perf = [[NSRunLoop currentInstance] _timedPerformers];
+  NSMutableArray	*perf = [[NSRunLoop currentRunLoop] _timedPerformers];
   unsigned		count = [perf count];
 
   if (count > 0)
@@ -340,7 +340,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 	      withObject: (id)argument
 	      afterDelay: (NSTimeInterval)seconds
 {
-  NSRunLoop		*loop = [NSRunLoop currentInstance];
+  NSRunLoop		*loop = [NSRunLoop currentRunLoop];
   GSTimedPerformer	*item;
 
   item = [[GSTimedPerformer alloc] initWithSelector: aSelector
@@ -361,7 +361,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
   if (count > 0)
     {
-      NSRunLoop		*loop = [NSRunLoop currentInstance];
+      NSRunLoop		*loop = [NSRunLoop currentRunLoop];
       NSString		*marray[count];
       GSTimedPerformer	*item;
       unsigned		i;
@@ -581,26 +581,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   [[self currentRunLoop] run];
 }
 
-+ (void) runUntilDate: date
-{
-  [[self currentRunLoop] runUntilDate: date];
-}
-
-+ (void) runUntilDate: date forMode: (NSString*)mode
-{
-  [[self currentRunLoop] runUntilDate: date forMode: mode];
-}
-
-+ (BOOL) runOnceBeforeDate: date 
-{
-  return [[self currentRunLoop] runOnceBeforeDate: date];
-}
-
-+ (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
-{
-  return [[self currentRunLoop] runOnceBeforeDate: date forMode: mode];
-}
-
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
           watcher: (id<RunLoopEvents>)watcher
@@ -668,11 +648,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     }
 }
 
-- (BOOL) runOnceBeforeDate: date
-{
-  return [self runOnceBeforeDate: date forMode: _current_mode];
-}
-
 /* Running the run loop once through for timers and input listening. */
 
 - (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
@@ -680,7 +655,12 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   return [self runMode: mode beforeDate: date];
 }
 
-- (void) runUntilDate: date forMode: (NSString*)mode
+- (BOOL) runOnceBeforeDate: date
+{
+  return [self runOnceBeforeDate: date forMode: _current_mode];
+}
+
+- (void) runUntilDate: (NSDate*)date forMode: (NSString*)mode
 {
   double	ti = [date timeIntervalSinceNow];
   BOOL		mayDoMore = YES;
@@ -693,6 +673,26 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
       mayDoMore = [self runMode: mode beforeDate: date];
       ti = [date timeIntervalSinceNow];
     }
+}
+
++ (void) runUntilDate: (NSDate*)date forMode: (NSString*)mode
+{
+  [[self currentRunLoop] runUntilDate: date forMode: mode];
+}
+
++ (void) runUntilDate: (NSDate*)date
+{
+  [[self currentRunLoop] runUntilDate: date];
+}
+
++ (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
+{
+  return [[self currentRunLoop] runOnceBeforeDate: date forMode: mode];
+}
+
++ (BOOL) runOnceBeforeDate: (NSDate*)date 
+{
+  return [[self currentRunLoop] runOnceBeforeDate: date];
 }
 
 @end
@@ -1341,7 +1341,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   RELEASE(arp);
 }
 
-- (BOOL) runMode: (NSString*)mode beforeDate: date
+- (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   id	d;
 
@@ -1402,7 +1402,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   [self runUntilDate: theFuture];
 }
 
-- (void) runUntilDate: date
+- (void) runUntilDate: (NSDate*)date
 {
   [self runUntilDate: date forMode: _current_mode];
 }

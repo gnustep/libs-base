@@ -2326,6 +2326,7 @@ static BOOL	multi_threaded = NO;
   NSDate		*timeout_date = nil;
   NSTimeInterval	delay_interval = 0.001;
   NSDate		*delay_date = nil;
+  NSRunLoop		*runLoop = [runLoopClass currentRunLoop];
 
   if (debug_connection > 5)
     NSLog(@"Waiting for reply sequence %d on %x:%x",
@@ -2377,8 +2378,8 @@ static BOOL	multi_threaded = NO;
 	   * were waiting for the final timeout, then we must break out
 	   * of the loop.
 	   */
-	  if ([runLoopClass runOnceBeforeDate: limit_date
-				      forMode: NSConnectionReplyMode] == NO)
+	  if ([runLoop runMode: NSConnectionReplyMode
+		    beforeDate: limit_date] == NO)
 	    {
 	      if (limit_date == timeout_date)
 		{
@@ -2393,8 +2394,8 @@ static BOOL	multi_threaded = NO;
 	  /*
 	   * Normal operation - wait for data to be recieved or for a timeout.
 	   */
-	  if ([runLoopClass runOnceBeforeDate: timeout_date
-				      forMode: NSConnectionReplyMode] == NO)
+	  if ([runLoop runMode: NSConnectionReplyMode
+		    beforeDate: timeout_date] == NO)
 	    {
 	      M_LOCK(_queueGate);
 	      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);

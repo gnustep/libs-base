@@ -1886,6 +1886,7 @@ NSDictionary *locale)
 
 all_done:
   /* Unlock the stream.  */
+  return;
 }
 
 /* Handle an unknown format specifier.  This prints out a canonicalized
