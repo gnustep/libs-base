@@ -344,7 +344,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			  forKey: @"content-type"];
 	}
     }
-  if ([wProperties objectForKey: @"authorisation"] == nil)
+  if ([wProperties objectForKey: @"authorization"] == nil)
     {
       if ([u user] != nil)
 	{
