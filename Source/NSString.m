@@ -161,10 +161,12 @@ static void setupWhitespace()
       NSData *bitmap;
 
 /*
+  We can not use whitespaceAndNewlineCharacterSet here as this would lead
+  to a recursion, as this also reads in a property list.
+      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+*/
       whitespace = [NSCharacterSet characterSetWithCharactersInString:
 				    @" \t\r\n\f\b"];
-*/
-      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
 
       bitmap = RETAIN([whitespace bitmapRepresentation]);
       whitespaceBitmapRep = [bitmap bytes];
