@@ -1,6 +1,6 @@
 #
 #  Tests makefile for Objective-C Class Library
-#  Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+#  Copyright (C) 1993, 1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@cs.rochester.edu>
 #  Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -38,7 +38,7 @@ DYNAMIC_BUNDLER_LINKER=@DYNAMIC_BUNDLER_LINKER@
 DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
 DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
 DEFS = @DEFS@
-LIBS = -L$(srcdir)/../src -lobjects @LIBOBJC@ @LIBS@ -lm
+LIBS = -L../src -lobjects @LIBOBJC@ @LIBS@ -lm
 
 #### End of system configuration section. ####
 
@@ -113,60 +113,60 @@ DIST_FILES = $(RCS_FILES)
 all: $(EXCS) bundles
 
 # This works for GNU make, but not others.
-# %: %.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+# %: %.o $(srcdir)/../src/libobjects.a
 # 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
 # How can I do this in a better way than the ugliness below?
 # (but also have it work on old-style /bin/make)
 
 LINK_CMD = $(CC) $(ALL_CFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-test01: test01.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test01: test01.o ../src/libobjects.a
 	$(LINK_CMD)
-test02: test02.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test02: test02.o ../src/libobjects.a
 	$(LINK_CMD)
-test03: test03.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test03: test03.o ../src/libobjects.a
 	$(LINK_CMD)
-test04: test04.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test04: test04.o ../src/libobjects.a
 	$(LINK_CMD)
-test05: test05.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test05: test05.o ../src/libobjects.a
 	$(LINK_CMD)
-test06: test06.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test06: test06.o ../src/libobjects.a
 	$(LINK_CMD)
-test07: test07.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test07: test07.o ../src/libobjects.a
 	$(LINK_CMD)
-test08: test08.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test08: test08.o ../src/libobjects.a
 	$(LINK_CMD)
-test09: test09.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test09: test09.o ../src/libobjects.a
 	$(LINK_CMD)
-test10: test10.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test10: test10.o ../src/libobjects.a
 	$(LINK_CMD)
-test11: test11.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test11: test11.o ../src/libobjects.a
 	$(LINK_CMD)
-test12: test12.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test12: test12.o ../src/libobjects.a
 	$(LINK_CMD)
-test13: test13.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+test13: test13.o ../src/libobjects.a
 	$(LINK_CMD)
-pipes: pipes.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+pipes: pipes.o ../src/libobjects.a
 	$(LINK_CMD)
-server: server.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+server: server.o ../src/libobjects.a
 	$(LINK_CMD)
-client: client.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+client: client.o ../src/libobjects.a
 	$(LINK_CMD)
-string: string.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+string: string.o ../src/libobjects.a
 	$(LINK_CMD)
-values: values.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+values: values.o ../src/libobjects.a
 	$(LINK_CMD)
-nsarray: nsarray.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+nsarray: nsarray.o ../src/libobjects.a
 	$(LINK_CMD)
-nsbundle: nsbundle.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+nsbundle: nsbundle.o ../src/libobjects.a
 	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-nsdictionary: nsdictionary.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+nsdictionary: nsdictionary.o ../src/libobjects.a
 	$(LINK_CMD)
-nsset: nsset.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+nsset: nsset.o ../src/libobjects.a
 	$(LINK_CMD)
-nsprocessinfo: nsprocessinfo.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+nsprocessinfo: nsprocessinfo.o ../src/libobjects.a
 	$(LINK_CMD)
 
-#nsarchiving: nsarray.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
+#nsarchiving: nsarray.o ../src/libobjects.a
 #	$(LINK_CMD)
 
 install:
@@ -206,8 +206,8 @@ realclean: distclean
 	rm -f TAGS
 
 copy-dist: $(DIST_FILES)
-	mkdir $(srcdir)/../snap/checks
-	ln $(DIST_FILES) $(srcdir)/../snap/checks
+	mkdir ../snap/checks
+	ln $(DIST_FILES) ../snap/checks
 
 Makefile: Makefile.in
-	cd $(srcdir)/..; $(SHELL) config.status
+	cd ..; $(SHELL) config.status
