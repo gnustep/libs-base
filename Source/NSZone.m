@@ -24,7 +24,7 @@
 
     - Allocation and deallocation should be reasonably efficient.
 
-    - Finding the zone containing a given pointer should be very
+    - Finding the zone containing a given pointer should be reasonably
     efficient, since objects in Objective-C use that information to
     deallocate themselves. */
 
@@ -49,7 +49,8 @@
    - For memory chunks in freeable zones, the pointer to the zone is
    preceded by the size, which also contains other information for
    boundary tags.  This adds 4 bytes for freeable zones, for a total
-   of a minimum of 8 byte overhead for every memory chunk in the zone.
+   of a minimum of 8 byte overhead for every memory chunk in the zone
+   (assuming we're on a 32 bit machine).
 
    - For nonfreeable zones, worst-like fit is used.  This is OK since
    we don't have to worry about memory fragmentation. */
@@ -63,11 +64,19 @@
    I haven't the foggiest idea why anyone would prefer it to GCC ;),
    it should be OK.
 
-   - We cannot use malloc() and friends (or objc_malloc() and friends)
-   for memory allocated from zones if we want a fast
-   NSZoneFromPointer(), since we would have to search all the zones to
-   see if they contained the pointer.
+   - We cannot interchangeably use malloc() and friends (or
+   objc_malloc() and friends) for memory allocated from zones if we
+   want a fast NSZoneFromPointer(), since we would have to search all
+   the zones to see if they contained the pointer.  We could
+   accomplish this if we abandon the current scheme of finding zone
+   pointers and use a centralized table, which would also probably
+   save space, though it would be slower.
 
+   - If a garbage collecting malloc is used for objc_malloc(), then
+   that garbage collector must be able to mark from interior pointers,
+   since the actual memory returned to the user in the default zone is
+   offset from the memory returned from objc_malloc().
+   
    - These functions should be thread safe, but I haven't really
    tested them extensively in multithreaded cases. */
 
@@ -228,7 +237,7 @@ default_malloc (NSZone *zone, size_t size)
   mem = objc_malloc(ZPTRSZ+size);
   if (mem == NULL)
     [NSException raise: NSMallocException
-		 format: @"Default zone has run out of memory"];
+                 format: @"Default zone has run out of memory"];
   *mem = zone;
   return mem+1;
 }
@@ -241,7 +250,7 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
   mem = objc_realloc(mem, size+ZPTRSZ);
   if ((size != 0) && (mem == NULL))
     [NSException raise: NSMallocException
-		 format: @"Default zone has run out of memory"];
+                 format: @"Default zone has run out of memory"];
   return mem+1;
 }
 
@@ -256,7 +265,7 @@ default_recycle (NSZone *zone)
 {
   /* Recycle the default zone?  Thou hast got to be kiddin'. */
   [NSException raise: NSGenericException
-	       format: @"Trying to recycle default zone"];
+               format: @"Trying to recycle default zone"];
 }
 
 static BOOL
@@ -306,35 +315,35 @@ fmalloc (NSZone *zone, size_t size)
     /* Use memory chunk in buffer. */
     {
       if (size_buf[i] == chunksize)
-	/* Exact fit. */
-	{
-	  zptr->bufsize--;
-	  bufsize = zptr->bufsize;
-	  chunkhead = ptr_buf[i];
-	  size_buf[i] = size_buf[bufsize];
-	  ptr_buf[i] = ptr_buf[bufsize];
+        /* Exact fit. */
+        {
+          zptr->bufsize--;
+          bufsize = zptr->bufsize;
+          chunkhead = ptr_buf[i];
+          size_buf[i] = size_buf[bufsize];
+          ptr_buf[i] = ptr_buf[bufsize];
 
-	  assert(*chunkhead & INUSE);
-	  assert((*chunkhead & ~SIZE_BITS)%MINCHUNK == 0);
-	}
+          assert(*chunkhead & INUSE);
+          assert((*chunkhead & ~SIZE_BITS)%MINCHUNK == 0);
+        }
       else
-	/* Break off chunk. */
-	{
-	  NSZone **zoneptr; // Pointer to zone preceding memory chunk
+        /* Break off chunk. */
+        {
+          NSZone **zoneptr; // Pointer to zone preceding memory chunk
 
-	  chunkhead = ptr_buf[i];
+          chunkhead = ptr_buf[i];
 
-	  assert(*chunkhead & INUSE);
-	  assert((*chunkhead & ~SIZE_BITS)%MINCHUNK == 0);
-	  assert(chunksize < size_buf[i]);
-	  
-	  size_buf[i] -= chunksize;
-	  ptr_buf[i] = (void*)chunkhead+chunksize;
-	  *(ptr_buf[i]) = size_buf[i] | PREVUSE | INUSE;
-	  zoneptr = (NSZone**)(ptr_buf[i]+1);
-	  *zoneptr = zone;
-	  *chunkhead = chunksize | (*chunkhead & PREVUSE) | INUSE;
-	}
+          assert(*chunkhead & INUSE);
+          assert((*chunkhead & ~SIZE_BITS)%MINCHUNK == 0);
+          assert(chunksize < size_buf[i]);
+          
+          size_buf[i] -= chunksize;
+          ptr_buf[i] = (void*)chunkhead+chunksize;
+          *(ptr_buf[i]) = size_buf[i] | PREVUSE | INUSE;
+          zoneptr = (NSZone**)(ptr_buf[i]+1);
+          *zoneptr = zone;
+          *chunkhead = chunksize | (*chunkhead & PREVUSE) | INUSE;
+        }
     }
   else
     /* Get memory from segregate fit allocator. */
@@ -342,16 +351,16 @@ fmalloc (NSZone *zone, size_t size)
       flush_buf(zptr);
       chunkhead = get_chunk(zptr, chunksize);
       if (chunkhead == NULL)
-	{
-	  objc_mutex_unlock(zptr->lock);
-	  if (zone->name != nil)
-	    [NSException raise: NSMallocException
-			 format: @"Zone %s has run out of memory",
-			 [zone->name cString]];
-	  else
-	    [NSException raise: NSMallocException
-			 format: @"Out of memory"];
-	}
+        {
+          objc_mutex_unlock(zptr->lock);
+          if (zone->name != nil)
+            [NSException raise: NSMallocException
+                         format: @"Zone %s has run out of memory",
+                         [zone->name cStringNoCopy]];
+          else
+            [NSException raise: NSMallocException
+                         format: @"Out of memory"];
+        }
 
       assert(*chunkhead & INUSE);
       assert((*chunkhead & ~SIZE_BITS)%MINCHUNK == 0);
@@ -382,8 +391,8 @@ frealloc (NSZone *zone, void *ptr, size_t size)
     }
   if (ptr == NULL)
     return fmalloc(zone, size);
-  objc_mutex_lock(zptr->lock);
   chunkhead = ptr-(SZSZ+ZPTRSZ);
+  objc_mutex_lock(zptr->lock);
   realsize = *chunkhead & ~SIZE_BITS;
 
   assert(*chunkhead & INUSE);
@@ -410,44 +419,44 @@ frealloc (NSZone *zone, void *ptr, size_t size)
       assert(nextsize%MINCHUNK == 0);
       
       if (!(*nextchunk & INUSE) && (nextsize+realsize >= chunksize))
-	/* Expand to next chunk. */
-	{
-	  take_chunk(zptr, nextchunk);
-	  if (nextsize+realsize == chunksize)
-	    {
-	      farchunk = (void*)nextchunk+nextsize;
-	      *farchunk |= PREVUSE;
-	    }
-	  else
-	    {
-	      slack = (void*)chunkhead+chunksize;
-	      *slack = ((nextsize+realsize)-chunksize) | PREVUSE;
-	      put_chunk(zptr, slack);
-	    }
-	  *chunkhead = chunksize | (*chunkhead & PREVUSE) | INUSE;
-	}
+        /* Expand to next chunk. */
+        {
+          take_chunk(zptr, nextchunk);
+          if (nextsize+realsize == chunksize)
+            {
+              farchunk = (void*)nextchunk+nextsize;
+              *farchunk |= PREVUSE;
+            }
+          else
+            {
+              slack = (void*)chunkhead+chunksize;
+              *slack = ((nextsize+realsize)-chunksize) | PREVUSE;
+              put_chunk(zptr, slack);
+            }
+          *chunkhead = chunksize | (*chunkhead & PREVUSE) | INUSE;
+        }
       else
-	/* Get new chunk and copy. */
-	{
-	  size_t *newchunk;
-	  
-	  newchunk = get_chunk(zptr, chunksize);
-	  if (newchunk == NULL)
-	    {
-	      objc_mutex_unlock(zptr->lock);
-	      if (zone->name != nil)
-		[NSException raise: NSMallocException
-			     format: @"Zone %s has run out of memory",
-			     [zone->name cString]];
-	      else
-		[NSException raise: NSMallocException
-			     format: @"Out of memory"];
-	    }
-	  memcpy((void*)newchunk+SZSZ+ZPTRSZ, (void*)chunkhead+SZSZ+ZPTRSZ,
-		 chunksize-SZSZ-ZPTRSZ);
-	  add_buf(zptr, chunkhead);
-	  chunkhead = newchunk;
-	}
+        /* Get new chunk and copy. */
+        {
+          size_t *newchunk;
+          
+          newchunk = get_chunk(zptr, chunksize);
+          if (newchunk == NULL)
+            {
+              objc_mutex_unlock(zptr->lock);
+              if (zone->name != nil)
+                [NSException raise: NSMallocException
+                             format: @"Zone %s has run out of memory",
+                             [zone->name cStringNoCopy]];
+              else
+                [NSException raise: NSMallocException
+                             format: @"Out of memory"];
+            }
+          memcpy((void*)newchunk+SZSZ+ZPTRSZ, (void*)chunkhead+SZSZ+ZPTRSZ,
+                 realsize-SZSZ-ZPTRSZ);
+          add_buf(zptr, chunkhead);
+          chunkhead = newchunk;
+        }
       /* FIXME: consider other cases where we can get more memory. */
     }
   objc_mutex_unlock(zptr->lock);
@@ -465,8 +474,9 @@ ffree (NSZone *zone, void *ptr)
 
 /* Recycle the zone.  According to OpenStep, we need to return live
    objects to the default zone, but there is no easy way to return
-   them in the current implementation, and doing so will prevent easy
-   customization. */
+   them, especially since the default zone may have been customized.
+   So not returning memory to the default zone is a feature, not a
+   bug (or so I think). */
 static void
 frecycle (NSZone *zone)
 {
@@ -507,36 +517,36 @@ fcheck (NSZone *zone)
       blocksize = block->size;
       pos = FF_HEAD;
       while (pos < blocksize-(SZSZ+ZPTRSZ))
-	{
-	  size_t chunksize;
+        {
+          size_t chunksize;
 
-	  chunk = (void*)block+pos;
-	  chunksize = *chunk & ~SIZE_BITS;
-	  nextchunk = (void*)chunk+chunksize;
-	  if (*chunk & INUSE)
-	    /* Check whether this is a valid used chunk. */
-	    {
-	      NSZone **zoneptr;
+          chunk = (void*)block+pos;
+          chunksize = *chunk & ~SIZE_BITS;
+          nextchunk = (void*)chunk+chunksize;
+          if (*chunk & INUSE)
+            /* Check whether this is a valid used chunk. */
+            {
+              NSZone **zoneptr;
 
-	      zoneptr = (NSZone**)(chunk+1);
-	      if ((*zoneptr != zone) || !(*nextchunk & PREVUSE))
-		goto inconsistent;
-	    }
-	  else
-	    /* Check whether this is a valid free chunk. */
-	    {
-	      size_t *footer;
+              zoneptr = (NSZone**)(chunk+1);
+              if ((*zoneptr != zone) || !(*nextchunk & PREVUSE))
+                goto inconsistent;
+            }
+          else
+            /* Check whether this is a valid free chunk. */
+            {
+              size_t *footer;
 
-	      footer = nextchunk-1;
-	      if ((*footer != chunksize) || (*nextchunk & PREVUSE))
-		goto inconsistent;
-	    }
-	  pos += chunksize;
-	}
+              footer = nextchunk-1;
+              if ((*footer != chunksize) || (*nextchunk & PREVUSE))
+                goto inconsistent;
+            }
+          pos += chunksize;
+        }
       chunk = (void*)block+pos;
       /* Check whether the block ends properly. */
       if (((*chunk & ~SIZE_BITS) != 0) || !(*chunk & INUSE))
-	goto inconsistent;
+        goto inconsistent;
       block = block->next;
     }
   /* Check the integrity of the segregated list. */
@@ -544,19 +554,19 @@ fcheck (NSZone *zone)
     {
       chunk = zptr->segheadlist[i];
       while (chunk != NULL)
-	{
-	  size_t *nextchunk;
+        {
+          size_t *nextchunk;
 
-	  nextchunk = ((ff_link*)(chunk+1))->next;
-	  /* Isn't this one ugly if statement? */
-	  if ((*chunk & INUSE)
-	      || (segindex(*chunk & ~SIZE_BITS) != i)
-	      || ((nextchunk != NULL)
-		  && (chunk != ((ff_link*)(nextchunk+1))->prev))
-	      || ((nextchunk == NULL) && (chunk != zptr->segtaillist[i])))
-	    goto inconsistent;
-	  chunk = nextchunk;
-	}
+          nextchunk = ((ff_link*)(chunk+1))->next;
+          /* Isn't this one ugly if statement? */
+          if ((*chunk & INUSE)
+              || (segindex(*chunk & ~SIZE_BITS) != i)
+              || ((nextchunk != NULL)
+                  && (chunk != ((ff_link*)(nextchunk+1))->prev))
+              || ((nextchunk == NULL) && (chunk != zptr->segtaillist[i])))
+            goto inconsistent;
+          chunk = nextchunk;
+        }
     }
   /* Check the buffer. */
   if (zptr->bufsize >= BUFFER)
@@ -565,7 +575,7 @@ fcheck (NSZone *zone)
     {
       chunk = zptr->ptr_buf[i];
       if ((zptr->size_buf[i] != (*chunk & ~SIZE_BITS)) || !(*chunk & INUSE))
-	goto inconsistent;
+        goto inconsistent;
     }
   objc_mutex_unlock(zptr->lock);
   return YES;
@@ -575,6 +585,8 @@ inconsistent: // Jump here if an inconsistency was found.
   return NO;
 }
 
+/* Obtain statistics about the zone.  Doesn't have to be particularly
+   efficient. */
 static struct NSZoneStats
 fstats (NSZone *zone)
 {
@@ -600,22 +612,22 @@ fstats (NSZone *zone)
       stats.bytes_total += blocksize;
       chunk = (void*)block+FF_HEAD;
       while ((void*)chunk < (void*)block+(blocksize-ZPTRSZ-SZSZ))
-	{
-	  size_t chunksize;
+        {
+          size_t chunksize;
 
-	  chunksize = *chunk & ~SIZE_BITS;
-	  if (*chunk & INUSE)
-	    {
-	      stats.chunks_used++;
-	      stats.bytes_used += chunksize;
-	    }
-	  else
-	    {
-	      stats.chunks_free++;
-	      stats.bytes_free += chunksize;
-	    }
-	  chunk = (void*)chunk+chunksize;
-	}
+          chunksize = *chunk & ~SIZE_BITS;
+          if (*chunk & INUSE)
+            {
+              stats.chunks_used++;
+              stats.bytes_used += chunksize;
+            }
+          else
+            {
+              stats.chunks_free++;
+              stats.bytes_free += chunksize;
+            }
+          chunk = (void*)chunk+chunksize;
+        }
       block = block->next;
     }
   /* Go through buffer. */
@@ -632,6 +644,8 @@ fstats (NSZone *zone)
   return stats;
 }
 
+/* Calculate the which segregation class a certain size should be
+   in. */
 static inline size_t
 segindex (size_t size)
 {
@@ -677,52 +691,52 @@ get_chunk (ffree_zone *zone, size_t size)
     {
       class++;
       while ((class < MAX_SEG) && (zone->segheadlist[class] == NULL))
-	class++;
+        class++;
       if (class == MAX_SEG)
-	/* Absolutely no memory in segregated list. */
-	{
-	  size_t blocksize;
-	  ff_block *block;
+        /* Absolutely no memory in segregated list. */
+        {
+          size_t blocksize;
+          ff_block *block;
 
-	  blocksize = roundupto(size+FF_HEAD+SZSZ+ZPTRSZ, zone->common.gran);
-	  block = objc_malloc(blocksize);
-	  if (block == NULL)
-	    return NULL;
+          blocksize = roundupto(size+FF_HEAD+SZSZ+ZPTRSZ, zone->common.gran);
+          block = objc_malloc(blocksize);
+          if (block == NULL)
+            return NULL;
 
-	  block->size = blocksize;
-	  block->next = zone->blocks;
-	  zone->blocks = block;
-	  chunk = (void*)block+(blocksize-SZSZ-ZPTRSZ);
-	  if (FF_HEAD+size+SZSZ+ZPTRSZ < blocksize)
-	    {
-	      *chunk = INUSE;
-	      chunk = (void*)block+(FF_HEAD+size);
-	      *chunk = (blocksize-size-FF_HEAD-SZSZ-ZPTRSZ) | PREVUSE;
-	      put_chunk(zone, chunk);
+          block->size = blocksize;
+          block->next = zone->blocks;
+          zone->blocks = block;
+          chunk = (void*)block+(blocksize-SZSZ-ZPTRSZ);
+          if (FF_HEAD+size+SZSZ+ZPTRSZ < blocksize)
+            {
+              *chunk = INUSE;
+              chunk = (void*)block+(FF_HEAD+size);
+              *chunk = (blocksize-size-FF_HEAD-SZSZ-ZPTRSZ) | PREVUSE;
+              put_chunk(zone, chunk);
 
-	      assert((*chunk & ~SIZE_BITS)%MINCHUNK == 0);
-	    }
-	  else
-	    *chunk = PREVUSE | INUSE;
-	  chunk = (void*)block+FF_HEAD;
-	}
+              assert((*chunk & ~SIZE_BITS)%MINCHUNK == 0);
+            }
+          else
+            *chunk = PREVUSE | INUSE;
+          chunk = (void*)block+FF_HEAD;
+        }
       else
-	{
-	  size_t *slack;
+        {
+          size_t *slack;
 
-	  chunk = zone->segheadlist[class];
+          chunk = zone->segheadlist[class];
 
-	  assert(class < MAX_SEG);
-	  assert(!(*chunk & INUSE));
-	  assert(*chunk & PREVUSE);
-	  assert(size < (*chunk & ~SIZE_BITS));
-	  assert((*chunk & ~SIZE_BITS)%MINCHUNK == 0);
-	  
-	  take_chunk(zone, chunk);
-	  slack = (void*)chunk+size;
-	  *slack = ((*chunk & ~SIZE_BITS)-size) | PREVUSE;
-	  put_chunk(zone, slack);
-	}
+          assert(class < MAX_SEG);
+          assert(!(*chunk & INUSE));
+          assert(*chunk & PREVUSE);
+          assert(size < (*chunk & ~SIZE_BITS));
+          assert((*chunk & ~SIZE_BITS)%MINCHUNK == 0);
+          
+          take_chunk(zone, chunk);
+          slack = (void*)chunk+size;
+          *slack = ((*chunk & ~SIZE_BITS)-size) | PREVUSE;
+          put_chunk(zone, slack);
+        }
     }
   else
     {
@@ -735,22 +749,22 @@ get_chunk (ffree_zone *zone, size_t size)
       
       take_chunk(zone, chunk);
       if (chunksize > size)
-	{
-	  size_t *slack;
-	  
-	  slack = (void*)chunk+size;
-	  *slack = (chunksize-size) | PREVUSE;
-	  put_chunk(zone, slack);
-	}
+        {
+          size_t *slack;
+          
+          slack = (void*)chunk+size;
+          *slack = (chunksize-size) | PREVUSE;
+          put_chunk(zone, slack);
+        }
       else
-	{
-	  size_t *nextchunk = (void*)chunk+chunksize;
+        {
+          size_t *nextchunk = (void*)chunk+chunksize;
 
-	  assert(!(*nextchunk & PREVUSE));
-	  assert(chunksize == size);
-	  
-	  *nextchunk |= PREVUSE;
-	}
+          assert(!(*nextchunk & PREVUSE));
+          assert(chunksize == size);
+          
+          *nextchunk |= PREVUSE;
+        }
     }
   *chunk = size | PREVUSE | INUSE;
   zoneptr = (NSZone**)(chunk+1);
@@ -824,7 +838,7 @@ put_chunk (ffree_zone *zone, size_t *chunk)
 
 /* Add the given pointer to the buffer.  If the buffer becomes full,
    flush it.  The given pointer must always be one that points to used
-   memory. */
+   memory (i.e. chunks with headers that declare them as used). */
 static inline void
 add_buf (ffree_zone *zone, size_t *chunk)
 {
@@ -863,34 +877,34 @@ flush_buf (ffree_zone *zone)
 
       nextchunk = (void*)chunk+size;
       if (!(*chunk & PREVUSE))
-	/* Coalesce with previous chunk. */
-	{
-	  size_t prevsize = *(chunk-1);
+        /* Coalesce with previous chunk. */
+        {
+          size_t prevsize = *(chunk-1);
 
-	  assert(prevsize%MINCHUNK == 0);
+          assert(prevsize%MINCHUNK == 0);
 
-	  size += prevsize;
-	  chunk = (void*)chunk-prevsize;
+          size += prevsize;
+          chunk = (void*)chunk-prevsize;
 
-	  assert(!(*chunk & INUSE));
-	  assert(*chunk & PREVUSE);
-	  assert((*chunk & ~SIZE_BITS) == prevsize);
-	  
-	  take_chunk(zone, chunk);
-	}
+          assert(!(*chunk & INUSE));
+          assert(*chunk & PREVUSE);
+          assert((*chunk & ~SIZE_BITS) == prevsize);
+          
+          take_chunk(zone, chunk);
+        }
       if (!(*nextchunk & INUSE))
-	/* Coalesce with next chunk. */
-	{
-	  size_t nextsize = *nextchunk & ~SIZE_BITS;
+        /* Coalesce with next chunk. */
+        {
+          size_t nextsize = *nextchunk & ~SIZE_BITS;
 
-	  assert(chunksize%MINCHUNK == 0);
-	  assert(*nextchunk & PREVUSE);
-	  assert(!(*nextchunk & INUSE));
-	  assert((void*)chunk+chunksize == nextchunk);
-	  
-	  take_chunk(zone, nextchunk);
-	  size += nextsize;
-	}
+          assert(chunksize%MINCHUNK == 0);
+          assert(*nextchunk & PREVUSE);
+          assert(!(*nextchunk & INUSE));
+          assert((void*)chunk+chunksize == nextchunk);
+          
+          take_chunk(zone, nextchunk);
+          size += nextsize;
+        }
       *chunk = size | PREVUSE;
       put_chunk(zone, chunk);
       nextchunk = (void*)chunk+size;
@@ -941,39 +955,39 @@ nmalloc (NSZone *zone, size_t size)
       preblock = NULL;
       block = zptr->blocks;
       while ((block->next != NULL)
-	     && (freesize < block->next->size-block->next->top))
-	{
-	  preblock = block;
-	  block = block->next;
-	}
+             && (freesize < block->next->size-block->next->top))
+        {
+          preblock = block;
+          block = block->next;
+        }
       if (preblock != NULL)
-	{
-	  preblock->next = zptr->blocks;
-	  zptr->blocks = zptr->blocks->next;
-	  preblock->next->next = block;
-	}
+        {
+          preblock->next = zptr->blocks;
+          zptr->blocks = zptr->blocks->next;
+          preblock->next->next = block;
+        }
       if (zptr->blocks->size-zptr->blocks->top < chunksize)
-	/* Get new block. */
-	{
-	  size_t blocksize = roundupto(chunksize+NF_HEAD, zone->gran);
+        /* Get new block. */
+        {
+          size_t blocksize = roundupto(chunksize+NF_HEAD, zone->gran);
 
-	  block = objc_malloc(blocksize);
-	  if (block == NULL)
-	    {
-	      objc_mutex_unlock(zptr->lock);
-	      if (zone->name != nil)
-		[NSException raise: NSMallocException
-			     format: @"Zone %s has run out of memory",
-			     [zone->name cString]];
-	      else
-		[NSException raise: NSMallocException
-			     format: @"Out of memory"];
-	    }
-	  block->next = zptr->blocks;
-	  block->size = blocksize;
-	  block->top = NF_HEAD;
-	  zptr->blocks = block;
-	}
+          block = objc_malloc(blocksize);
+          if (block == NULL)
+            {
+              objc_mutex_unlock(zptr->lock);
+              if (zone->name != nil)
+                [NSException raise: NSMallocException
+                             format: @"Zone %s has run out of memory",
+                             [zone->name cStringNoCopy]];
+              else
+                [NSException raise: NSMallocException
+                             format: @"Out of memory"];
+            }
+          block->next = zptr->blocks;
+          block->size = blocksize;
+          block->top = NF_HEAD;
+          zptr->blocks = block;
+        }
       chunkhead = (void*)block+zptr->blocks->top;
       *chunkhead = zone;
       zptr->blocks->top += chunksize;
@@ -1007,11 +1021,11 @@ nrealloc (NSZone *zone, void *ptr, size_t size)
 {
   if (zone->name != nil)
     [NSException raise: NSGenericException
-		 format: @"Trying to reallocate in nonfreeable zone %s",
-		 [zone->name cString]];
+                 format: @"Trying to reallocate in nonfreeable zone %s",
+                 [zone->name cStringNoCopy]];
   else
     [NSException raise: NSGenericException
-		 format: @"Trying to reallocate in nonfreeable zone"];
+                 format: @"Trying to reallocate in nonfreeable zone"];
   return NULL; // Useless return
 }
 
@@ -1020,13 +1034,15 @@ nfree (NSZone *zone, void *ptr)
 {
   if (zone->name != nil)
     [NSException raise: NSGenericException
-		 format: @"Trying to free memory from nonfreeable zone %s",
-		 [zone->name cString]];
+                 format: @"Trying to free memory from nonfreeable zone %s",
+                 [zone->name cStringNoCopy]];
   else
     [NSException raise: NSGenericException
-		 format: @"Trying to free memory from nonfreeable zone"];
+                 format: @"Trying to free memory from nonfreeable zone"];
 }
 
+/* Check integrity of a nonfreeable zone.  Doesn't have to
+   particularly efficient. */
 static BOOL
 ncheck (NSZone *zone)
 {
@@ -1038,10 +1054,10 @@ ncheck (NSZone *zone)
   while (block != NULL)
     {
       if (block->size < block->top)
-	{
-	  objc_mutex_unlock(zptr->lock);
-	  return NO;
-	}
+        {
+          objc_mutex_unlock(zptr->lock);
+          return NO;
+        }
       block = block->next;
     }
   /* FIXME: Do more checking? */
@@ -1049,6 +1065,8 @@ ncheck (NSZone *zone)
   return YES;
 }
 
+/* Return statistics for a nonfreeable zone.  Doesn't have to
+   particularly efficient. */
 static struct NSZoneStats
 nstats (NSZone *zone)
 {
@@ -1070,16 +1088,16 @@ nstats (NSZone *zone)
       stats.bytes_total += block->size;
       chunk = (void*)block+NF_HEAD;
       while ((void*)chunk < (void*)block+block->top)
-	{
-	  stats.chunks_used++;
-	  stats.bytes_used += *chunk;
-	  chunk = (void*)chunk+(*chunk);
-	}
+        {
+          stats.chunks_used++;
+          stats.bytes_used += *chunk;
+          chunk = (void*)chunk+(*chunk);
+        }
       if (block->size != block->top)
-	{
-	  stats.chunks_free++;
-	  stats.bytes_free += block->size-block->top;
-	}
+        {
+          stats.chunks_free++;
+          stats.bytes_free += block->size-block->top;
+        }
       block = block->next;
     }
   objc_mutex_unlock(zptr->lock);
@@ -1109,8 +1127,8 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
 
       zone = objc_malloc(sizeof(ffree_zone));
       if (zone == NULL)
-	[NSException raise: NSMallocException
-		     format: @"No memory to create zone"];
+        [NSException raise: NSMallocException
+                     format: @"No memory to create zone"];
       zone->common.malloc = fmalloc;
       zone->common.realloc = frealloc;
       zone->common.free = ffree;
@@ -1121,19 +1139,19 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       zone->common.name = nil;
       zone->lock = objc_mutex_allocate();
       for (i = 0; i < MAX_SEG; i++)
-	{
-	  zone->segheadlist[i] = NULL;
-	  zone->segtaillist[i] = NULL;
-	}
+        {
+          zone->segheadlist[i] = NULL;
+          zone->segtaillist[i] = NULL;
+        }
       zone->bufsize = 0;
       zone->blocks = objc_malloc(startsize);
       if (zone->blocks == NULL)
-	{
-	  objc_mutex_deallocate(zone->lock);
-	  objc_free(zone);
-	  [NSException raise: NSMallocException
-		       format: @"No memory to create zone"];
-	}
+        {
+          objc_mutex_deallocate(zone->lock);
+          objc_free(zone);
+          [NSException raise: NSMallocException
+                       format: @"No memory to create zone"];
+        }
       block = zone->blocks;
       block->next = NULL;
       block->size = startsize;
@@ -1153,8 +1171,8 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
 
       zone = objc_malloc(sizeof(nfree_zone));
       if (zone == NULL)
-	[NSException raise: NSMallocException
-		     format: @"No memory to create zone"];
+        [NSException raise: NSMallocException
+                     format: @"No memory to create zone"];
       zone->common.malloc = nmalloc;
       zone->common.realloc = nrealloc;
       zone->common.free = nfree;
@@ -1166,12 +1184,12 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       zone->lock = objc_mutex_allocate();
       zone->blocks = objc_malloc(startsize);
       if (zone->blocks == NULL)
-	{
-	  objc_mutex_deallocate(zone->lock);
-	  objc_free(zone);
-	  [NSException raise: NSMallocException
-		       format: @"No memory to create zone"];
-	}
+        {
+          objc_mutex_deallocate(zone->lock);
+          objc_free(zone);
+          [NSException raise: NSMallocException
+                       format: @"No memory to create zone"];
+        }
       block = zone->blocks;
       block->next = NULL;
       block->size = startsize;
@@ -1245,6 +1263,20 @@ inline NSString*
 NSZoneName (NSZone *zone)
 {
   return zone->name;
+}
+
+/* Not in OpenStep. */
+inline void
+NSZoneRegisterRegion (NSZone *zone, void *low, void *high)
+{
+  return; // Do nothing in this implementation.
+}
+
+/* Not in OpenStep. */
+inline void
+NSDeregisterZone (NSZone *zone)
+{
+  return; // Do nothing in this implementation
 }
 
 /* Not in OpenStep. */

@@ -94,6 +94,13 @@ extern inline NSString* NSZoneName (NSZone *zone)
 { return zone->name; }
 
 /* Not in OpenStep */
+extern inline void NSZoneRegisterRegion (NSZone *zone, void *low, void *high)
+{ return; } // Currently a null op.
+
+extern inline void NSDeregisterZone (NSZone *zone) // Not in OpenStep
+{ return; } // Currently a null op.
+
+/* Not in OpenStep */
 extern void* NSZoneRegisterChunk (NSZone *zone, void *chunk);
 
 extern size_t NSZoneChunkOverhead (void); // Not in OpenStep
