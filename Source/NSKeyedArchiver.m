@@ -745,7 +745,7 @@ static NSDictionary *makeReference(unsigned ref)
 
   final = [NSMutableDictionary new];
   [final setObject: NSStringFromClass([self class]) forKey: @"$archiver"];
-  [final setObject: @"100000" forKey: @"$version"];
+  [final setObject: [NSNumber numberWithInt: 100000] forKey: @"$version"];
   [final setObject: _enc forKey: @"$top"];
   [final setObject: _obj forKey: @"$objects"];
   data = [NSPropertyListSerialization dataFromPropertyList: final
