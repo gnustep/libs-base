@@ -44,7 +44,7 @@
      -mccallum 
 */
 
-#if !defined(__ELF__) && !defined(SYS_AUTOLOAD)
+#if (!defined(__ELF__) && !defined(SYS_AUTOLOAD)) || defined(__FreeBSD__)
 #ifndef __MINGW32__
 #define main gnustep_base_user_main
 extern int gnustep_base_user_main (/* int argc, char *argv[] */);
