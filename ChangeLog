@@ -1,3 +1,12 @@
+2003-03-17  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/LoadMe.m (afterLoad): Use description, not name.
+	* Testing/nsfilemanager.m: Print some output. Clean up.
+	* Testing/scanner.m, nstimezone.m, release.m: Idem.
+
+	* config/config.vsprintf, config/config.vasprintf: Rewrite to
+	properly call a variable argument function.
+
 2003-03-14  Adam Fedor  <fedor@Eldorado.local.>
 
 	* Testing/nsarray.m (compare): Un-nest function.
