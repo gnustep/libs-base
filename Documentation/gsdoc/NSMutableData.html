@@ -91,31 +91,45 @@
 <h3><a name ="method-8">mutableBytes</a></h3>
 - (void*) <b>mutableBytes</b>;<br>
 
-	    Returns a pointer to the data storage of the receiver.<br>
-	    Modifications to the memory pointed to by this pointer will
-	    change the contents of the object.  It is important that
-	    your code should not try to modify the memory beyond the
-	    number of bytes given by the <code>-length</code> method.<br>
-	    NB. if the object is released, or any method that changes its
-	    size or content is called, then the pointer previously returned
-	    by this method may cease to be valid.<br>
-	    This is a 'primitive' method ... you need to implement it
-	    if you write a subclass of NSMutableData.
+	    <p>
+
+	      Returns a pointer to the data storage of the receiver.<br>
+	      Modifications to the memory pointed to by this pointer will
+	      change the contents of the object.  It is important that
+	      your code should not try to modify the memory beyond the
+	      number of bytes given by the <code>-length</code> method.
+	    </p>
+
+	    <p>
+
+	      NB. if the object is released, or any method that changes its
+	      size or content is called, then the pointer previously returned
+	      by this method may cease to be valid.
+	    </p>
+
+	    <p>
+
+	      This is a 'primitive' method ... you need to implement it
+	      if you write a subclass of NSMutableData.
+	    </p>
+
           
  <hr>
 <h3><a name ="method-9">replaceBytesInRange:withBytes:</a></h3>
 - (void) <b>replaceBytesInRange:</b> (NSRange)range <b>withBytes:</b> (const void*)bytes;<br>
 
-	    Replaces the bytes of data in the specified range with a 
-	    copy of the new bytes supplied.<br>
-	    If the location of the range specified lies beyond the end
-	    of the data (<code>[self length] &#60; range.location</code>)
-	    then a range exception is raised.<br>
-	    Otherwise, if the range specified extends beyond the end
-	    of the data, then the size of the data is increased to
-	    accomodate the new bytes.<br>
-	    This is a 'primitive' method ... you need to implement it
-	    if you write a subclass of NSMutableData.
+	    <p>
+
+	      Replaces the bytes of data in the specified range with a 
+	      copy of the new bytes supplied.<br>
+	      If the location of the range specified lies beyond the end
+	      of the data (<code>[self length] &#60; range.location</code>)
+	      then a range exception is raised.<br>
+	      Otherwise, if the range specified extends beyond the end
+	      of the data, then the size of the data is increased to
+	      accomodate the new bytes.<br>
+	    </p>
+
           
  <hr>
 <h3><a name ="method-10">resetBytesInRange:</a></h3>
@@ -160,6 +174,19 @@
  <hr>
 <h3><a name ="method-18">setLength:</a></h3>
 - (void) <b>setLength:</b> (unsigned int)length;<br>
+
+	    <p>
+
+	      Sets the length of the NSMutableData object.
+	      If the length is increased, the newly allocated data area
+	      is filled with zero bytes.
+	    </p>
+
+	    <p>
+
+	      This is a 'primitive' method ... you need to implement it
+	      if you write a subclass of NSMutableData.
+	    </p>
 
           
  <hr>

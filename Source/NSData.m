@@ -563,12 +563,24 @@ failure:
 - (NSString*) description
 {
   NSString	*str;
-  const char	*src = [self bytes];
+  const char	*src;
   char		*dest;
-  int		length = [self length];
-  int		i,j;
-  NSZone	*z = [self zone];
+  int		length;
+  int		i;
+  int		j;
+  NSZone	*z;
+  extern BOOL	GSMacOSXCompatiblePropertyLists();
 
+  if (GSMacOSXCompatiblePropertyLists() == YES)
+    {
+      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
+
+      return GSXMLPlMake(self, nil, 0);
+    }
+
+  src = [self bytes];
+  length = [self length];
+  z = [self zone];
 #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
   /* we can just build a cString and convert it to an NSString */
@@ -578,16 +590,20 @@ failure:
   dest = (char*) NSZoneMalloc(z, 2*length+length/4+3);
 #endif
   if (dest == 0)
-    [NSException raise: NSMallocException
-		format: @"No memory for description of NSData object"];
+    {
+      [NSException raise: NSMallocException
+		  format: @"No memory for description of NSData object"];
+    }
   dest[0] = '<';
-  for (i=0,j=1; i<length; i++,j++)
+  for (i = 0, j = 1; i < length; i++, j++)
     {
       dest[j++] = num2char((src[i]>>4) & 0x0f);
       dest[j] = num2char(src[i] & 0x0f);
       if ((i&0x3) == 3 && i != length-1)
-	/* if we've just finished a 32-bit int, print a space */
-	dest[++j] = ' ';
+	{
+	  /* if we've just finished a 32-bit int, print a space */
+	  dest[++j] = ' ';
+	}
     }
   dest[j++] = '>';
   dest[j] = '\0';

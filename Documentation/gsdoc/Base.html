@@ -71,11 +71,67 @@
 <dl>
 <dt>GSMacOSXCompatibleGeometry
 <dd>
-	      Specifies whether the functions for producing strings describing
-	      geometrical structures (NSStringFromPoint(), NSStringFromSize(),
-	      and NSStringFromRect()) should produce strings conforming to the
-	      OpenStep specification or to MacOS-X behavior.  The functions
-	      for parsing those strings should cope with both cases anyway.
+	      <p>
+
+		Specifies whether the functions for producing strings
+		describing geometric structures (NSStringFromPoint(),
+		NSStringFromSize(), and NSStringFromRect()) should produce
+		strings conforming to the OpenStep specification or to
+		MacOS-X behavior.  The functions for parsing those strings
+		should cope with both cases anyway.
+	      </p>
+
+	    
+<dt>GSMacOSXCompatiblePropertyLists
+<dd>
+	      <p>
+
+		Specifies whether text property-list output should be in
+		the default MacOS-X format (XML), or in the more human
+		readable (but less powerful) original OpenStep format.
+	      </p>
+
+	      <p>
+
+		Reading of property lists is supported in either format,
+		but <em>only</em> if GNUstep is built with the libxml
+		library (which is needed to handle XML parsing).
+	      </p>
+
+	      <p>
+
+		NB. MacOS-X generates illegal XML for some strings - those
+		which contain characters not legal in XML.  GNUstep always
+		generates legal XML, at the cost of a certain degree of
+		compatibility.  GNUstep XML property lists use a backslash
+		to escape illegal chatracters, and consequently any string
+		containing either a backslash or an illegal character will
+		be written differently to the same string on MacOS-X.
+	      </p>
+
+	    
+<dt>NSWriteOldStylePropertyLists
+<dd>
+	      <p>
+
+		Specifies whether text property-list output should be in
+		the default MacOS-X format (XML), or in the more human
+		readable (but less powerful) original OpenStep format.
+	      </p>
+
+	      <p>
+
+		If, GSMacOSXCompatible is YES, this default is treated
+		as being NO if it is not set, otherwise, this default
+		is treated as YES.
+	      </p>
+
+	      <p>
+
+		This default is <em>NOT</em> used if
+		GSMacOSXCompatiblePropertyLists is specified.
+	      </p>
+
 	    
 </dl>
 <h4><a name ="cont-4">Environment variables</a></h4>

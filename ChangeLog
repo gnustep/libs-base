@@ -1,3 +1,8 @@
+2001-07-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Finish off and enable XML property list code
+	* Source/GSCompatibility.m: ditto
+
 2001-07-16  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSUserDefaults.m ([NSUserDefaults +userLanguages]): Put
