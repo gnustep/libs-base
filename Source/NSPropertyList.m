@@ -2301,7 +2301,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       unsigned char	postfix[32];
 
       // FIXME: Get more of the details
-      [data getBytes: postfix range: NSMakeRange(length-32, 32)];
+      [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
       size = postfix[6];
       if (size < 1 || size > 2)
 	{
@@ -2517,16 +2517,17 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     {
       // Short string
       unsigned len = next - 0x50;
-      unsigned char buffer[len];
+      unsigned char buffer[len+1];
 
       [data getBytes: buffer range: NSMakeRange(counter, len)];
+      buffer[len] = '\0';
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
-	  result = [NSMutableString stringWithCString: buffer length: len];
+	  result = [NSMutableString stringWithUTF8String: buffer];
 	}
       else
 	{
-	  result = [NSString stringWithCString: buffer length: len];
+	  result = [NSString stringWithUTF8String: buffer];
 	}
     }
   else if (next == 0x5F)
