@@ -1,3 +1,7 @@
+Thu Sep 26 01:28:33 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Tools/make_strings/GNUmakefile: Do not include ctool.make.
+
 2002-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Added ([-previousElement]) to match the
