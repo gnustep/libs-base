@@ -2,6 +2,9 @@
 
         * Source/NSTask.m: handleSignal() ... reset signal handler for
 	systems that don't have BSD signal semantics.
+	Report by jan trembulak
+	* Source/GSString.m: getCString_c(), getCString_u() reverse logic
+	of returning remaining range ... report by Michael Scheibler
 
 2001-06-15  Adam Fedor  <fedor@gnu.org>
 

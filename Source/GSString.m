@@ -889,8 +889,8 @@ getCString_c(ivars self, char *buffer, unsigned int maxLength,
       len = maxLength;
       if (leftoverRange != 0)
 	{
-	  leftoverRange->location = 0;
-	  leftoverRange->length = 0;
+	  leftoverRange->location = aRange.location + maxLength;
+	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
   else
@@ -898,8 +898,8 @@ getCString_c(ivars self, char *buffer, unsigned int maxLength,
       len = aRange.length;
       if (leftoverRange != 0)
 	{
-	  leftoverRange->location = aRange.location + maxLength;
-	  leftoverRange->length = aRange.length - maxLength;
+	  leftoverRange->location = 0;
+	  leftoverRange->length = 0;
 	}
     }
 
@@ -923,8 +923,8 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
       len = maxLength;
       if (leftoverRange != 0)
 	{
-	  leftoverRange->location = 0;
-	  leftoverRange->length = 0;
+	  leftoverRange->location = aRange.location + maxLength;
+	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
   else
@@ -932,8 +932,8 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
       len = aRange.length;
       if (leftoverRange != 0)
 	{
-	  leftoverRange->location = aRange.location + maxLength;
-	  leftoverRange->length = aRange.length - maxLength;
+	  leftoverRange->location = 0;
+	  leftoverRange->length = 0;
 	}
     }
 
