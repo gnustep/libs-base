@@ -93,9 +93,15 @@
 
 typedef	union {
     NSObject	*o;
-    long int	i;
+    Class	c;
+    int		i;
+    unsigned	I;
+    long 	l;
+    unsigned long	L;
     void	*p;
-    unsigned	u;
+    const void	*P;
+    char	*s;
+    const char	*S;
 } FastMapItem;
 
 typedef struct _FastMapTable FastMapTable_t;
