@@ -36,7 +36,7 @@
 #
 
 # Things to do before compiling
-before-all:: gnustep/base Foundation $(GENERATED_HFILES)
+before-all::  Foundation $(GENERATED_HFILES)
 
 # Things to do after compiling
 # after-all::
