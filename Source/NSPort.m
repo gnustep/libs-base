@@ -22,6 +22,7 @@
    */
 
 #include <config.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
@@ -38,17 +39,17 @@ NSString *NSPortTimeoutException
 
 + (NSPort*) port
 {
-  return [[[NSPort alloc] init] autorelease];
+  return AUTORELEASE([NSPort new]);
 }
 
 + (NSPort*) portWithMachPort: (int)machPort
 {
-  return [[[NSPort alloc] initWithMachPort: machPort] autorelease];
+  return AUTORELEASE([[NSPort alloc] initWithMachPort: machPort]);
 }
 
 - (id) copyWithZone: (NSZone*)aZone
 {
-  return [self retain];
+  return RETAIN(self);
 }
 
 - (id) delegate
@@ -75,7 +76,7 @@ NSString *NSPortTimeoutException
 
 - (id) initWithMachPort: (int)machPort
 {
-  [self notImplemented: _cmd];
+  [self shouldNotImplement: _cmd];
   return nil;
 }
 
@@ -96,10 +97,10 @@ NSString *NSPortTimeoutException
   return is_valid;
 }
 
-- (id) machPort
+- (int) machPort
 {
-  [self notImplemented: _cmd];
-  return nil;
+  [self shouldNotImplement: _cmd];
+  return 0;
 }
 
 - (void) release
@@ -126,7 +127,37 @@ NSString *NSPortTimeoutException
 
 - (void) setDelegate: anObject
 {
+  NSAssert([anObject respondsToSelector: @selector(handlePortMessage:)],
+	NSInvalidArgumentException);
   delegate = anObject;
+}
+
+- (void) addConnection: (NSConnection*)aConnection
+             toRunLoop: (NSRunLoop*)aLoop
+               forMode: (NSString*)aMode
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) removeConnection: (NSConnection*)aConnection
+              fromRunLoop: (NSRunLoop*)aLoop
+                  forMode: (NSString*)aMode
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (unsigned) reservedSpaceLength
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (void) sendBeforeDate: (NSDate*)when
+             components: (NSArray*)components
+                   from: (NSPort*)receivingPort
+               reserved: (unsigned) length
+{
+  [self subclassResponsibility: _cmd];
 }
 
 @end

@@ -26,29 +26,46 @@
 
 #include	<Foundation/NSObject.h>
 
-@class	NSMutableSet;
+@class	NSArray;
+@class	NSConnection;
+@class	NSDate;
+@class	NSRunLoop;
+@class	NSString;
 
 extern NSString *NSPortTimeoutException; /* OPENSTEP */
 
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
-    BOOL	is_valid;
-    id		delegate;
+  BOOL	is_valid;
+  id	delegate;
 }
 
 + (NSPort*) port;
 + (NSPort*) portWithMachPort: (int)machPort;
 
-- delegate;
+- (id) delegate;
 
-- init;
-- initWithMachPort: (int)machPort;
+- (id) init;
+- (id) initWithMachPort: (int)machPort;
 
 - (void) invalidate;
 - (BOOL) isValid;
-- machPort;
-- (void) setDelegate: anObject;
+- (int) machPort;
+- (void) setDelegate: (id)anObject;
 
+#ifndef	STRICT_OPENSTEP
+- (void) addConnection: (NSConnection*)aConnection
+	     toRunLoop: (NSRunLoop*)aLoop
+	       forMode: (NSString*)aMode;
+- (void) removeConnection: (NSConnection*)aConnection
+	      fromRunLoop: (NSRunLoop*)aLoop
+		  forMode: (NSString*)aMode;
+- (unsigned) reservedSpaceLength;
+- (void) sendBeforeDate: (NSDate*)when
+	     components: (NSArray*)components
+		   from: (NSPort*)receivingPort
+	       reserved: (unsigned) length;
+#endif
 @end
 
 #ifndef	NO_GNUSTEP

@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 0.5.0, is now available.
+The GNUstep Base Library, version 0.5.5, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -14,8 +14,7 @@ network ports, remote object messaging support (distributed objects),
 event loops, and random number generators.
 
    It provides functionality that aims to implement the non-graphical
-portion of the OpenStep standard.  In many cases, the `NS*' classes are
-implemented as wrappers around more featureful GNU classes.
+portion of the OpenStep standard (the Foundation library).
 
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
@@ -23,8 +22,8 @@ implemented as wrappers around more featureful GNU classes.
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gstepbase-0.5.0.tar.gz distribution file has been placed on
-`ftp.gnu.org' in `pub/gnu'.
+   The gstepbase-0.5.5.tar.gz distribution file has been placed on
+`ftp.gnu.org' in `pub/gnu/gstep'.
 
    The library requires gcc 2.8.0 or higher.  Significant sections of
 the library do not work with the NeXT runtime, so we recommend using

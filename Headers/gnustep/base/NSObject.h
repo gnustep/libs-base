@@ -231,7 +231,10 @@ extern NSRecursiveLock *gnustep_global_lock;
 #define	AUTORELEASE(object)	((id)object)
 
 #define	ASSIGN(object,value)	(object = value)
+#define	ASSIGNCOPY(object,value)	(object = [value copy])
 #define	DESTROY(object) 	(object = nil)
+
+#define	CREATE_AUTORELEASE_POOL(X)	
 
 #else
 
@@ -269,7 +272,7 @@ if (__value != object) \
   { \
     if (__value) \
       { \
-	[__value copy]; \
+	__value = [__value copy]; \
       } \
     if (object) \
       { \
@@ -285,6 +288,10 @@ if (__value != object) \
  *	object later.
  */
 #define	DESTROY(object) 	([object release], object = nil)
+
+#define	CREATE_AUTORELEASE_POOL(X)	\
+  NSAutoreleasePool *(X) = [NSAutoreleasePool new]
+
 #endif
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */

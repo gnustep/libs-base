@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <Foundation/NSObject.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSDictionary.h>
@@ -11,7 +12,10 @@
 #include <assert.h>
 #include "server.h"
 
-int main(int argc, char *argv[])
+@class	TcpInPort;
+@class	PortDecoder;
+
+int main (int argc, char *argv[])
 {
   id a;
   id p;
@@ -36,13 +40,18 @@ int main(int argc, char *argv[])
   const char *type;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
+GSDebugAllocationActive(YES);
+  [NSConnection setDebug: 10];
+  [NSDistantObject setDebug: 10];
+  [TcpInPort setDebug: 10];
+
   [Coder setDebugging:YES];
   [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
-
+printf("oneway %d\n", _F_ONEWAY);
   if (argc > 1)
     {
       if (argc > 2)
@@ -60,12 +69,16 @@ int main(int argc, char *argv[])
   [c setReplyTimeout:180.0];
   localObj = [[NSObject alloc] init];
   [p outputStats:localObj];
+fprintf(stderr, "XXXXXXXXXXXXXXXXA %d\n", GSDebugAllocationCount([PortDecoder class]));
+  [p getLong:&i];
+fprintf(stderr,"XXXXXXXXXXXXXXXXB %d\n", GSDebugAllocationCount([PortDecoder class]));
   [p getLong:&i];
   [p outputStats:localObj];
+fprintf(stderr,"XXXXXXXXXXXXXXXXC %d\n", GSDebugAllocationCount([PortDecoder class]));
   type = [c typeForSelector:sel_get_any_uid("name") 
 	    remoteTarget:[p targetForProxy]];
+printf("XXXXXXXXXXXXXXXXD %d\n", GSDebugAllocationCount([PortDecoder class]));
   printf(">>type = %s\n", type);
-
   printf(">>list proxy's hash is 0x%x\n", 
 	 (unsigned)[p hash]);
   printf(">>list proxy's self is 0x%x = 0x%x\n", 
@@ -149,9 +162,11 @@ int main(int argc, char *argv[])
       id remote_peer_obj = [p objectAt:j];
       printf("triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
+#if 0
       /* xxx look at this again after we use release/retain everywhere */
       if ([remote_peer_obj isProxy])
 	[remote_peer_obj release];
+#endif
       remote_peer_obj = [p objectAt:j];
       printf("repeated triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
@@ -170,9 +185,14 @@ int main(int argc, char *argv[])
       printf("%s - %s\n", [k cString], [[v description] cString]);
     }
 
+  [arp release];
+  arp = [NSAutoreleasePool new];
+  printf("%d\n", [c retainCount]);
+  printf("%s\n", [[[c statistics] description] cString]);
+//  printf("%s\n", GSDebugAllocationList(YES));
+
   [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
   [c invalidate];
-
   [arp release];
   exit(0);
 }

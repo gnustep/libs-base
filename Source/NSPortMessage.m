@@ -32,21 +32,21 @@
 
 - (void) dealloc
 {
-    [components release];
-    [super dealloc];
+  RELEASE(components);
+  [super dealloc];
 }
 
 /*	PortMessages MUST be initialised with ports and data.	*/
 - (id) init
 {
-    [self notImplemented: _cmd];
-    return nil;
+  [self shouldNotImplement: _cmd];
+  return nil;
 }
 
 - (id) initWithMachMessage: (void*)buffer
 {
-    [self notImplemented: _cmd];
-    return nil;
+  [self shouldNotImplement: _cmd];
+  return nil;
 }
 
 /*	This is the designated initialiser.	*/
@@ -54,47 +54,61 @@
 	    receivePort: (NSPort*)anotherPort
 	     components: (NSArray*)items
 {
-    self = [super init];
-    if (self) {
-	components = [[NSMutableArray allocWithZone: [self zone]]
-			initWithCapacity: [items count] + 2];
-	[components addObject: aPort];
-	[components addObject: anotherPort];
-	[components addObjectsFromArray: items];
+  self = [super init];
+  if (self)
+    {
+      components = [[NSMutableArray allocWithZone: [self zone]]
+				 initWithCapacity: [items count] + 2];
+      [components addObject: aPort];
+      [components addObject: anotherPort];
+      [components addObjectsFromArray: items];
     }
-    return self;
+  return self;
 }
 
-- (void) sendBeforeDate: (NSDate*)when
+- (void) addComponent: (id)aComponent
 {
-    [self notImplemented: _cmd];
+  NSAssert([aComponent isKindOfClass: [NSData class]]
+	|| [aComponent isKindOfClass: [NSPort class]],
+	NSInvalidArgumentException);
+  [components addObject: aComponent];
 }
 
 - (NSArray*) components
 {
-    NSRange	r = NSMakeRange(2, [components count]-2);
+  NSRange	r = NSMakeRange(2, [components count]-2);
 
-    return [components subarrayWithRange: r];
-}
-
-- (NSPort*) sendPort
-{
-    return [components objectAtIndex: 0];
-}
-
-- (NSPort*) receivePort
-{
-    return [components objectAtIndex: 1];
-}
-
-- (void) setMsgid: (unsigned)anId
-{
-    msgid = anId;
+  return [components subarrayWithRange: r];
 }
 
 - (unsigned) msgid
 {
-    return msgid;
+  return msgid;
+}
+
+- (NSPort*) receivePort
+{
+  return [components objectAtIndex: 1];
+}
+
+- (void) sendBeforeDate: (NSDate*)when
+{
+  NSPort	*port = [self sendPort];
+
+  [port sendBeforeDate: when
+	    components: [self components]
+		  from: [self receivePort]
+	      reserved: [port reservedSpaceLength]];
+}
+
+- (NSPort*) sendPort
+{
+  return [components objectAtIndex: 0];
+}
+
+- (void) setMsgid: (unsigned)anId
+{
+  msgid = anId;
 }
 @end
 

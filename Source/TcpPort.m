@@ -44,6 +44,10 @@
 #include <base/Invocation.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSHashTable.h>
+#include <Foundation/NSHost.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSPortMessage.h>
 #include <Foundation/NSPortNameServer.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,6 +111,698 @@ static int debug_tcp_port = 0;
 
 
 /* Private interfaces */
+
+@class	GSTcpPort;
+
+typedef struct {
+  gsu32	sendAddr;
+  gsu32	recvAddr;
+  gsu16	sendPort;
+  gsu16	recvPort;
+  gsu32	mesgId;
+  gsu32	mesgElems;
+  gsu32	remaining;
+} GSTcpHeader;
+
+@interface GSTcpHandle : NSObject <GCFinalization>
+{
+  int		desc;		// Unix file descriptor.
+  NSLock	*myLock;	// Lock for This handle.
+  unsigned	rLength;	// Length of item read so far.
+  NSPortMessage	*rMsg;		// Message in progress.
+  unsigned	rItem;		// Index of current message item.
+  NSMutableData	*rHeader;	// Buffer for item data.
+  unsigned	wLength;
+  NSPortMessage	*wMsg;
+  unsigned	wItem;
+  NSHashTable	*ports;
+}
+
++ (GSTcpHandle*) handleWithDescriptor: (int)descriptor;
+- (void) addPort: (GSTcpPort*)p;
+- (void) invalidate;
+- (void) readData;
+- (void) removePort: (GSTcpPort*)p;
+- (void) writeData;
+@end
+
+@implementation	GSTcpHandle
+
+static NSRecursiveLock	*tcpHandleLock = nil;
+static NSHashTable	*tcpHandleTable = 0;
+
++ (id) allocWithZone: (NSZone*)zone
+{
+  [NSException raise: NSGenericException
+	      format: @"attempt to alloc a GSTcpHandle!"];
+  return nil;
+}
+
++ (void) initialize
+{
+  if (tcpHandleLock == nil)
+    {
+      [gnustep_global_lock lock];
+      if (tcpHandleLock == nil)
+        {
+          tcpHandleLock = [NSRecursiveLock new];
+	  tcpHandleTable =
+		NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0); 
+        }
+      [gnustep_global_lock unlock];
+    }
+}
+
++ (GSTcpHandle*) handleWithDescriptor: (int)descriptor
+{
+  static GSTcpHandle	*dummy = nil;
+  GSTcpHandle		*handle;
+
+  if (descriptor < 0)
+    {
+      NSLog(@"illegal descriptor (%d) for Tcp Handle", descriptor);
+      return nil;
+    }
+
+  [tcpHandleLock lock];
+  if (dummy == nil)
+    dummy = (GSTcpHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+
+  dummy->desc = descriptor;
+  handle = (GSTcpHandle*)NSHashGet(tcpHandleTable, (void*)dummy);
+
+  if (handle == nil)
+    {
+      int	e;
+      BOOL	ok = YES;
+
+      if ((e = fcntl(descriptor, F_GETFL, 0)) >= 0)
+	{
+	  e |= NBLK_OPT;
+	  if (fcntl(descriptor, F_SETFL, e) < 0)
+	    {
+	      NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
+	      ok = NO;
+	    }
+	}
+      else
+	{
+	  NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
+	  ok = NO;
+	}
+
+      if (ok)
+	{
+	  handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
+	  handle->desc = descriptor;
+	  handle->ports = 
+                NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
+	  NSHashInsert(tcpHandleTable, (void*)handle);
+	  AUTORELEASE(handle);
+	}
+    }
+  [tcpHandleLock unlock];
+  return handle;
+}
+
+- (void) addPort: (GSTcpPort*)p
+{
+  [myLock lock];
+  NSHashInsert(ports, (void*)p);
+  [myLock unlock];
+}
+
+- (void) gcFinalize
+{
+  [myLock lock];
+
+  [tcpHandleLock lock];
+  NSHashRemove(tcpHandleTable, (void*)self);
+  [tcpHandleLock unlock];
+
+  (void) close(desc);
+  desc = -1;
+
+  NSFreeHashTable(ports);
+  RELEASE(rHeader);
+  RELEASE(rMsg);
+  RELEASE(wMsg);
+
+  [myLock unlock];
+  RELEASE(myLock);
+}
+
+- (unsigned) hash
+{
+  return (unsigned)desc;
+}
+
+- (void) invalidate
+{
+  [myLock lock];
+  [myLock unlock];
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  if (anObject == self)
+    return YES;
+  if ([anObject class] == [self class]
+    && ((GSTcpHandle*)anObject)->desc == desc)
+    return YES;
+  return NO;
+}
+
+- (void) readData
+{
+  int		result;
+  unsigned	want;
+  void		*bytes = 0;
+
+  [myLock lock];
+
+  do
+    {
+      /*
+       * Get address and length of buffer for incoming data if we don't already
+       * have it from an earlier iteration of the loop.  Create the buffer if
+       * necessary.
+       */
+      if (bytes == 0)
+	{
+	  if (rHeader == nil)
+	    {
+	      if (rItem == 0)
+		want = sizeof(GSTcpHeader);
+	      else
+		want = 6;
+
+	      rHeader = [[NSMutableData alloc] initWithLength: want];
+	      bytes = [rHeader mutableBytes];
+	      rLength = 0;
+	    }
+	  else
+	    {
+	      want = [rHeader length];
+	      bytes = [rHeader mutableBytes];
+	    }
+	}
+
+      /*
+       * Now we attempt to fill the buffer.
+       */
+      result = read(desc, bytes + rLength, want - rLength);
+      if (result == 0)
+	{
+	  NSLog(@"Unexpected EOF on descriptor %d", desc);
+	  [self invalidate];
+	}
+      else if (result < 0)
+	{
+	  if (errno != EAGAIN)
+	    {
+	      NSLog(@"Error reading on descriptor %d - %s",
+		desc, strerror(errno));
+	      [self invalidate];
+	    }
+	}
+      else
+	{
+	  rLength += result;
+	  if (rLength == want)
+	    {
+	      if (rItem == 0)
+		{
+		  if (want == sizeof(GSTcpHeader))
+		    {
+		    }
+		  else
+		    {
+		    }
+		}
+	      else
+		{
+		}
+	    }
+	}
+    }
+  while (result > 0);
+
+  [myLock unlock];
+}
+
+- (void) release
+{
+  if ([self retainCount] == 1)
+    {
+      [super retain];
+      [self gcFinalize];
+      [super release];
+    }
+  [super release];
+}
+
+- (void) removePort: (GSTcpPort*)p
+{
+  [myLock lock];
+  NSHashRemove(ports, (void*)p);
+  [myLock unlock];
+}
+
+- (void) writeData
+{
+  [myLock lock];
+  [myLock unlock];
+}
+@end
+
+
+
+@interface GSTcpPort : NSPort <GCFinalization>
+{
+  NSRecursiveLock	*myLock;
+  struct sockaddr_in	addr;
+  int			listener;
+  NSHashTable		*handles;
+}
+
++ (GSTcpPort*) portWithNumber: (gsu16)number
+		       onHost: (NSHost*)host
+		   beforeDate: (NSDate*)limit;
++ (GSTcpPort*) portWithAddress: (struct sockaddr_in*)address
+		     andHandle: (GSTcpHandle*)handle
+		    beforeDate: (NSDate*)limit;
+
+- (void) addHandle: (GSTcpHandle*)h;
+- (void) removeHandle: (GSTcpHandle*)h;
+@end
+
+@implementation	GSTcpPort
+
+static NSRecursiveLock	*tcpPortLock = nil;
+static NSMapTable	*tcpPortMap = 0;
+static GSTcpPort	*dummyPort = nil;
+
++ (void) initialize
+{
+  if (tcpPortLock == nil)
+    {
+      [gnustep_global_lock lock];
+      if (tcpPortLock == nil)
+        {
+          tcpPortLock = [NSRecursiveLock new];
+	  tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+			    NSNonOwnedPointerMapValueCallBacks, 0);
+	  dummyPort = (GSTcpPort*)NSAllocateObject(self, 0,
+		NSDefaultMallocZone());
+        }
+      [gnustep_global_lock unlock];
+    }
+}
+
++ (GSTcpPort*) portWithAddress: (struct sockaddr_in*)sockaddr
+		     andHandle: (GSTcpHandle*)handle
+		    beforeDate: (NSDate*)limit
+{
+  GSTcpPort		*port = nil;
+  NSMapTable		*thePorts;
+
+  [tcpPortLock lock];
+
+  thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
+		(void*)(gsaddr)sockaddr->sin_port);
+
+  if (thePorts == 0)
+    {
+      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
+      NSMapInsert(tcpPortMap, 
+			(void*)(gsaddr)sockaddr->sin_port,
+			(void*)thePorts);
+    }
+
+  port = (GSTcpPort*)NSMapGet(tcpPortMap,
+		(void*)(gsaddr)sockaddr->sin_addr.s_addr);
+
+  if (port == nil)
+    {
+      port = (GSTcpPort*)NSAllocateObject(self,0,NSDefaultMallocZone());
+
+      port->listener = -1;
+      memcpy(&port->addr, sockaddr, sizeof(port->addr));
+      port->myLock = [NSRecursiveLock new];
+      port->handles = NSCreateHashTable(NSObjectHashCallBacks, 0); 
+      NSMapInsert(thePorts, (void*)(gsaddr)sockaddr->sin_addr.s_addr,
+	(void*)port);
+      AUTORELEASE(port);
+    }
+
+  if (port != nil && handle != nil)
+    {
+      NSHashInsert(port->handles, (void*)handle);
+      [handle addPort: port];
+    }
+
+  [tcpPortLock unlock];
+  return port;
+}
+
++ (GSTcpPort*) portWithNumber: (gsu16)number
+		       onHost: (NSHost*)host
+		   beforeDate: (NSDate*)limit
+{
+  unsigned		i;
+  GSTcpPort		*port = nil;
+  NSHost		*thisHost = [NSHost currentHost];
+  NSArray		*addresses;
+  NSMapTable		*thePorts;
+
+  if (host == nil)
+    {
+      host = thisHost;
+    }
+  addresses = [host addresses];
+  if ([addresses count] == 0)
+    {
+      NSLog(@"attempt to get port on host with no IP address");
+      return nil;
+    }
+
+  [tcpPortLock lock];
+
+  memset(&dummyPort->addr, '\0', sizeof(dummyPort->addr));
+  dummyPort->addr.sin_family = AF_INET;
+  dummyPort->addr.sin_port = GSSwapHostI16ToBig(number);
+
+  /*
+   *	Get the map table of ports with the specified number.
+   */
+  thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
+	(void*)(gsaddr)dummyPort->addr.sin_port);
+
+  if (thePorts)
+    {
+      /*
+       * Check to see if we have a port for any one of the hosts IP addresses.
+       */
+      for (i = 0; port == nil && i < [addresses count]; i++)
+	{
+	  const char *a = [[addresses objectAtIndex: i] cString];
+
+#ifndef HAVE_INET_ATON
+	  dummyPort->sin_addr.s_addr = inet_addr(a);
+#else
+	  if (inet_aton(a, &dummyPort->addr.sin_addr) == 0)
+	    {
+	      NSLog(@"attempt to get port on host with bad address - '%s'", a);
+	      continue;
+	    }
+#endif
+	  port = (GSTcpPort*)NSMapGet(thePorts,
+		(void*)(gsaddr)dummyPort->addr.sin_addr.s_addr);
+	  if (port != nil)
+	    {
+	      break;
+	    }
+	}
+    }
+
+
+  if (port == nil)
+    {
+      if (host == thisHost)
+	{
+	  int	status = 1;
+	  int	desc;
+
+	  port = (GSTcpPort*)NSAllocateObject(self,0,NSDefaultMallocZone());
+	  port->listener = -1;
+	  port->handles =
+		NSCreateHashTable(NSObjectHashCallBacks, 0); 
+
+	  port->addr.sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
+
+	  if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+	    {
+	      NSLog(@"unable to create socket - %s", strerror(errno));
+	      DESTROY(port);
+	    }
+	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char *)&status,
+		sizeof(status)) < 0)
+	    {
+	      (void) close(desc);
+              NSLog(@"unable to set reuse on socket - %s", strerror(errno));
+              DESTROY(port);
+	    }
+	  else if (bind(desc, (struct sockaddr *)&port->addr,
+		sizeof(port->addr)) < 0)
+	    {
+	      NSLog(@"unable to bind to port %s:%d - %s",
+		inet_ntoa(port->addr.sin_addr), number, strerror(errno));
+	      (void) close(desc);
+              DESTROY(port);
+	    }
+	  else if (listen(desc, 5) < 0)
+	    {
+	      NSLog(@"unable to listen on port - %s", strerror(errno));
+	      (void) close(desc);
+	      DESTROY(port);
+	    }
+	  else if (getsockname(desc, (struct sockaddr*)&port->addr, &i) < 0)
+	    {
+	      NSLog(@"unable to get socket name - %s", strerror(errno));
+	      (void) close(desc);
+	      DESTROY(port);
+	    }
+	  else
+	    {
+	      port->listener = desc;
+	      port->myLock = [NSRecursiveLock new];
+
+	      /*
+	       * Ok - now add the port for all the IP addresses it listens on.
+	       */
+	      for (i = 0; i < [addresses count]; i++)
+		{
+		  const char	*a = [[addresses objectAtIndex: i] cString];
+		  gsaddr	val;
+
+#ifndef HAVE_INET_ATON
+		  dummyPort->addr.sin_addr.s_addr = inet_addr(a);
+#else
+		  if (inet_aton(a, &dummyPort->addr.sin_addr) == 0)
+		    {
+		      continue;
+		    }
+#endif
+		  val = (gsaddr)dummyPort->addr.sin_addr.s_addr;
+
+		  if (thePorts == 0)
+		    {
+		      /*
+		       * No known ports within this port number -
+		       * create the map table to add the new port to.
+		       */ 
+		      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
+				      NSNonOwnedPointerMapValueCallBacks, 0);
+		      NSMapInsert(tcpPortMap, 
+			(void*)(gsaddr)port->addr.sin_port,
+			(void*)thePorts);
+		    }
+		  NSMapInsert(thePorts, (void*)val, (void*)port);
+		}
+	    }
+	}
+      else if (number != 0) /* Can't connect to port zero	*/
+	{
+	  for (i = 0; port == nil && i < [addresses count]; i++)
+	    {
+	      int	desc;
+	      const char *a = [[addresses objectAtIndex: i] cString];
+
+	      port = (GSTcpPort*)NSAllocateObject(self,0,NSDefaultMallocZone());
+	      port->listener = -1;
+
+#ifndef HAVE_INET_ATON
+	      port->addr.sin_addr.s_addr = inet_addr(a);
+#else
+	      if (inet_aton(a, &port->addr.sin_addr) == 0)
+		{
+		  NSLog(@"opening port on host with bad address - '%s'", a);
+		  continue;
+		}
+#endif
+
+	      if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+		{
+		  NSLog(@"unable to create socket - %s", strerror(errno));
+		  DESTROY(port);
+		}
+	      else if (connect(desc, (struct sockaddr*)&port->addr,
+		  sizeof(port->addr)) < 0)
+		{
+		  NSLog(@"unable to make connection to %s:%d - %s", a,
+		    GSSwapBigI16ToHost(port->addr.sin_port), strerror(errno));
+		  DESTROY(port);
+		}
+	      else
+		{
+		  GSTcpHandle	*handle;
+
+		  port->myLock = [NSRecursiveLock new];
+		  port->handles =
+			NSCreateHashTable(NSObjectHashCallBacks, 0); 
+		  handle = [GSTcpHandle handleWithDescriptor: desc];
+		  NSHashInsert(port->handles, (void*)handle);
+		  if (thePorts == 0)
+		    {
+		      /*
+		       * No known ports within this port number -
+		       * create the map table to add the new port to.
+		       */ 
+		      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
+				      NSNonOwnedPointerMapValueCallBacks, 0);
+		      NSMapInsert(tcpPortMap, 
+			(void*)(gsaddr)port->addr.sin_port,
+			(void*)thePorts);
+		    }
+		  NSMapInsert(thePorts,
+		    (void*)(gsaddr)port->addr.sin_addr.s_addr, (void*)port);
+		}
+	    }
+	}
+      AUTORELEASE(port);
+    }
+
+  [tcpPortLock unlock];
+  return port;
+}
+
+- (void) addHandle: (GSTcpHandle*)h
+{
+  [myLock lock];
+  NSHashInsert(handles, (void*)h);
+  [myLock unlock];
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);
+}
+
+- (void) gcFinalize
+{
+  [self invalidate];
+}
+
+- (unsigned) hash
+{
+  return (unsigned)(addr.sin_addr.s_addr ^ addr.sin_port);
+}
+
+- (void) invalidate
+{
+  [myLock lock];
+
+  if ([self isValid])
+    {
+      NSMapTable	*thePorts;
+      NSArray	*handleArray;
+      unsigned	i;
+
+      [tcpPortLock lock];
+      thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)addr.sin_port);
+      if (thePorts)
+	{
+	  gsaddr	val;
+
+	  if (listener == -1)
+	    {
+	      val = (gsaddr)addr.sin_addr.s_addr;
+	      NSMapRemove(thePorts, (void*)val);
+	    }
+	  else
+	    {
+	      unsigned	i;
+	      NSArray	*addresses = [[NSHost currentHost] addresses];
+
+	      for (i = 0; i < [addresses count]; i++)
+		{
+		  const char	*a = [[addresses objectAtIndex: i] cString];
+
+#ifndef HAVE_INET_ATON
+		  addr,sin_addr.s_addr = inet_addr(a);
+#else
+		  if (inet_aton(a, &addr.sin_addr) == 0)
+		    {
+		      continue;
+		    }
+#endif
+		  val = (gsaddr)addr.sin_addr.s_addr;
+		  NSMapRemove(thePorts, (void*)val);
+		}
+	    }
+	}
+      [tcpPortLock unlock];
+
+      if (listener >= 0)
+	{
+	  (void)close(listener);
+	  listener = -1;
+	}
+
+      handleArray = NSAllHashTableObjects(handles);
+      i = [handleArray count];
+      while (i > 0)
+	{
+	  GSTcpHandle	*handle = [handleArray objectAtIndex: i];
+
+	  [handle removePort: self];
+	}
+      NSFreeHashTable(handles);
+
+      [super invalidate];
+    }
+  [myLock unlock];
+  RELEASE(myLock);
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  if (anObject == self)
+    return YES;
+  if ([anObject class] == [self class])
+    {
+      GSTcpPort	*o = (GSTcpPort*)anObject;
+
+      if (o->addr.sin_port == addr.sin_port &&
+	o->addr.sin_addr.s_addr == addr.sin_addr.s_addr)
+	return YES;
+    }
+  return NO;
+}
+
+- (void) release
+{
+  if ([self retainCount] == 1)
+    {
+      [super retain];
+      [self gcFinalize];
+      [super release];
+    }
+  [super release];
+}
+
+- (void) removeHandle: (GSTcpHandle*)h
+{
+  [myLock lock];
+  NSHashRemove(handles, (void*)h);
+  [myLock unlock];
+}
+
+@end
+
+
 
 @interface TcpInPort (Private)
 - (int) _port_socket;

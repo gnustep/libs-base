@@ -1,7 +1,25 @@
 News
 ****
 
-The currently released version of the library is `0.5.0'.
+The currently released version of the library is `0.5.5'.
+
+Noteworthy changes in version `0.5.5'
+=====================================
+
+   Too many changes to mention in detail, but here is a list of a few:
+
+   * Many base classes have been rewritten with tonnes of performance
+     improvements that in many cases make it as fast as or faster than
+     the NeXT implementation.
+
+   * DO and archiving has received many improvements that help it work
+     on a variety of different platforms.
+
+   * Configuration and compilation has been greatly improved and fool
+     proofed.
+
+   * There are several new tools for handling services, defaults, and
+     pasteboards.
 
 Noteworthy changes in version `0.5.1'
 =====================================
