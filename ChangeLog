@@ -1,3 +1,8 @@
+2003-12-25 Gregory John Casamento <greg_casamento@yahoo.com> & 
+
+	* Source/NSBundle.m: Corrected spelling of "Warning" and 
+	"deprecated" in the pathForGNUstepResource:... method.
+
 2003-12-25  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tools/pl2link.m: Adopted to current OpenDesktop specification.
