@@ -49,6 +49,9 @@
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/GSCategories.h"
+
+#include <objc/Protocol.h>
+
 #include <string.h>
 
 @class	NSNull;
@@ -848,6 +851,186 @@ GSObjCGetInstanceVariableDefinition(Class class, NSString *name)
   return GSCGetInstanceVariableDefinition(class, [name cString]);
 }
 
+typedef struct {
+  @defs(Protocol)
+} *pcl;
+
+GS_STATIC_INLINE unsigned int
+gs_string_hash(const char *s)
+{
+  unsigned int val = 0;
+  while (*s != 0)
+    {
+      val = (val << 5) + val + *s++;
+    }
+  return val;
+}
+
+GS_STATIC_INLINE pcl
+gs_find_protocol_named_in_protocol_list(const char *name, 
+					struct objc_protocol_list *pcllist)
+{
+  pcl p = NULL;
+  size_t i;
+
+  while (pcllist != NULL)
+    {
+      for (i=0; i<pcllist->count; i++)
+	{
+	  p = (pcl)pcllist->list[i];
+	  if (strcmp(p->protocol_name, name) == 0)
+	    {
+	      return p;
+	    }
+	}
+      pcllist = pcllist->next;
+    }
+  return NULL;
+}
+
+GS_STATIC_INLINE pcl
+gs_find_protocol_named(const char *name)
+{
+  pcl p = NULL;
+  Class cls;
+#ifdef NeXT_RUNTIME
+  Class *clsList, *clsListStart;
+  unsigned int num;
+
+  /* Setting the clearCache flag is a noop for the Apple runtime.  */
+  num = GSClassList(NULL, 0, NO);
+  clsList = objc_malloc(sizeof(Class) * (num + 1));
+  GSClassList(clsList, num, NO);
+
+  clsListStart = clsList;
+
+  while(p == NULL && (cls = *clsList++))
+    {
+      p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
+    }
+
+  objc_free(clsListStart);
+
+#else
+  void *iterator = NULL;
+
+  while(p == NULL && (cls = objc_next_class(&iterator)))
+    {
+      p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
+    }
+
+#endif
+  return p;
+}
+
+#define GSI_MAP_HAS_VALUE 1
+#define GSI_MAP_RETAIN_KEY(M, X)
+#define GSI_MAP_RETAIN_VAL(M, X)
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RELEASE_VAL(M, X)
+#define GSI_MAP_HASH(M, X)    (gs_string_hash(X.ptr))
+#define GSI_MAP_EQUAL(M, X,Y) (strcmp(X.ptr, Y.ptr) == 0)
+#define GSI_MAP_NOCLEAN 1
+
+#define GSI_MAP_KTYPES GSUNION_PTR
+#define GSI_MAP_VTYPES GSUNION_PTR
+
+#include "GNUstepBase/GSIMap.h"
+
+static GSIMapTable_t protocol_by_name;
+static BOOL protocol_by_name_init = NO;
+static volatile objc_mutex_t protocol_by_name_lock = NULL;
+
+/* Not sure about the semantics of inlining
+   functions with static variables.  */
+static void
+gs_init_protocol_lock(void)
+{
+  if (protocol_by_name_lock == NULL)
+    {
+      GSAllocateMutexAt((void *)&protocol_by_name_lock);
+      objc_mutex_lock(protocol_by_name_lock);
+      if (protocol_by_name_init == NO)
+	{
+	  GSIMapInitWithZoneAndCapacity (&protocol_by_name,
+					 NSDefaultMallocZone(),
+					 128);
+	  protocol_by_name_init = YES;
+	}
+      objc_mutex_unlock(protocol_by_name_lock);
+    }
+}
+
+void
+GSRegisterProtocol(Protocol *proto)
+{
+  if (protocol_by_name_init == NO)
+    {
+      gs_init_protocol_lock();
+    }
+  
+  if (proto != nil)
+    {
+      GSIMapNode node;
+      pcl p;
+
+      p = (pcl)proto;
+      objc_mutex_lock(protocol_by_name_lock);
+      node = GSIMapNodeForKey(&protocol_by_name,
+			      (GSIMapKey) p->protocol_name);
+      if (node == 0)
+	{
+	  GSIMapAddPairNoRetain(&protocol_by_name, 
+				(GSIMapKey) (void *) p->protocol_name,
+				(GSIMapVal) (void *) p);
+	}
+      objc_mutex_unlock(protocol_by_name_lock);
+    }
+}
+
+Protocol *
+GSProtocolFromName(const char *name)
+{
+  GSIMapNode node;
+  pcl p;
+
+  if (protocol_by_name_init == NO)
+    {
+      gs_init_protocol_lock();
+    }
+
+  node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) name);
+  if (node)
+    {
+      p = node->value.ptr;
+    }
+  else
+    {
+      objc_mutex_lock(protocol_by_name_lock);
+      node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) name);
+
+      if (node)
+	{
+	  p = node->value.ptr;
+	}
+      else
+	{
+	  p = gs_find_protocol_named(name);
+	  if (p)
+	    {
+	      /* Use the protocol's name to save us from allocating 
+		 a copy of the parameter 'name'.  */
+	      GSIMapAddPairNoRetain(&protocol_by_name, 
+				    (GSIMapKey) (void *) p->protocol_name,
+				    (GSIMapVal) (void *) p);
+	    }
+	}
+      objc_mutex_unlock(protocol_by_name_lock);
+
+    }
+
+  return (Protocol *)p;
+}
 
 
 /**

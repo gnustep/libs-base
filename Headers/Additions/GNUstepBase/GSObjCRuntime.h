@@ -337,6 +337,24 @@ GSTypesFromSelector(SEL this)
   return sel_get_type(this);
 }
 
+/**
+ * Returns a protocol object with the corresponding name.
+ * This function searches the registered classes for any protocol
+ * with the supplied name.  If one is found, it is cached in
+ * for future requests.  If efficiency is a factor then use
+ * GSRegisterProtocol() to insert a protocol explicitly into the cache
+ * used by this function.  If no protocol is found this function returns
+ * nil.
+ */
+GS_EXPORT Protocol *
+GSProtocolFromName(const char *name);
+
+/**
+ * Registers proto in the cache used by GSProtocolFromName().
+ */
+GS_EXPORT void
+GSRegisterProtocol(Protocol *proto);
+
 
 /*
  * Unfortunately the definition of the symbol 'Method' "IVar(_t)"

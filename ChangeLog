@@ -1,10 +1,22 @@
+2004-05-09  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	* Source/Additions//GSObjCRuntime.m
+	(GSProtocolFromName): New function.
+	(GSRegisterProtocol): Ditto.
+	(gs_string_hash): New internal function.
+	(gs_find_protocol_named_in_protocol_list): Ditto.
+	(gs_find_protocol_named): Ditto.
+	(gs_init_protocol_lock): Ditto.
+	
 2004-05-07 23:48  Alexander Malmberg <alexander@malmberg.org>
 
 	* Resources/Languages/Hungarian: Add a missing ".
 
 2004-05-06  David Ayers  <d.ayers@inode.at>
 
-	* Headers/Additions/GNUstepBase/GSObjCRuntime.h/m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	* Source/Additions//GSObjCRuntime.m
 	(GSClassList): New function.
 	
 2004-05-07 Richard Frith-Macdonald <rfm@gnu.org>
@@ -14,7 +26,8 @@
 
 2004-05-06  David Ayers  <d.ayers@inode.at>
 
-	* Headers/Additions/GNUstepBase/GSObjCRuntime.h/m
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	* Source/Additions//GSObjCRuntime.m
 	(GSAllocateMutexAt): New function.
 	(_GSObjCRuntimeInitializer): Define local support class.
 
