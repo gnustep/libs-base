@@ -94,7 +94,7 @@ NSString * const GSHTTPPropertyProxyPortKey
  *     <code>file:</code> (local file I/O)
  *   </item>
  *   <item>
- *     <code>http:</code> and <code>shttp:</code> (webserver) access.
+ *     <code>http:</code> and <code>https:</code> (webserver) access.
  *   </item>
  *   <item>
  *     <code>ftp:</code> (FTP server) access.
