@@ -1101,14 +1101,7 @@ static BOOL deallocNotifications = NO;
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-#if 0
-  if (GSObjCIsInstance(self))
-    return (class_get_instance_method(GSObjCClass(self), aSelector)!=METHOD_NULL);
-  else
-    return (class_get_class_method(GSObjCClass(self), aSelector)!=METHOD_NULL);
-#else
   return __objc_responds_to(self, aSelector);
-#endif
 }
 
 - (id) retain

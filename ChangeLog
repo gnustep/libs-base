@@ -1,3 +1,12 @@
+2001-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Removed some unused obsolete code.
+	* Source/NSProxy.m: Modified ([methodSignatureForSelector:]) and
+	([respondsToSelector:]) to work for existing methods and raise
+	exception for non-existant methods.  The MacOS-X docs says they raise
+	exceptions, but I think it makes sense for them to work for methods
+	that are actually implemented in the proxy.
+
 2001-05-11  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSArchiver.m ([NSArchiver -encodeValueOfObjCType:at:]): Use
