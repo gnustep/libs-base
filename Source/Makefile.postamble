@@ -216,7 +216,7 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 #
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-	: FastArray.x
+	: include/FastArray.x include/GSUnion.h
 
 #
 #	Files that include FastMap.x will need a rebuild if it is changed.
@@ -226,7 +226,7 @@ $(GNUSTEP_OBJ_DIR)/NSGCountedSet.o \
 $(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
 $(GNUSTEP_OBJ_DIR)/NSGSet.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
-	: FastMap.x
+	: include/FastMap.x include/GSUnion.h
 
 #
 #	Files that include fast.x will need a rebuild if it is changed.

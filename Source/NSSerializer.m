@@ -47,18 +47,19 @@
 #define	FAST_MAP_RELEASE_KEY(X)	
 #define	FAST_MAP_RETAIN_VAL(X)	X
 #define	FAST_MAP_RELEASE_VAL(X)	
-#define	FAST_MAP_HASH(X)	[(X).o hash]
-#define	FAST_MAP_EQUAL(X,Y)	[(X).o isEqualToString: (Y).o]
+#define	FAST_MAP_HASH(X)	[(X).obj hash]
+#define	FAST_MAP_EQUAL(X,Y)	[(X).obj isEqualToString: (Y).obj]
 
-#include "FastMap.x"
+#include <base/FastMap.x>
 
 /*
  *	Setup for inline operation of string arrays.
  */
 #define	FAST_ARRAY_RETAIN(X)	X
 #define	FAST_ARRAY_RELEASE(X)	
+#define	FAST_ARRAY_TYPES	GSUNION_OBJ
 
-#include "FastArray.x"
+#include <base/FastArray.x>
 
 /*
  *	Define constants for data types and variables to hold them.
@@ -154,7 +155,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
       FastMapNode	node;
 
       if (info->shouldUnique)
-	node = FastMapNodeForKey(&info->map, (FastMapItem)object);
+	node = FastMapNodeForKey(&info->map, (FastMapKey)object);
       else
 	node = 0;
       if (node == 0)
@@ -170,12 +171,12 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  [object getCString: (*info->datImp)(info->data, datSel) + dlen];
 	  if (info->shouldUnique)
 	    FastMapAddPair(&info->map,
-		(FastMapItem)object, (FastMapItem)info->count++);
+		(FastMapKey)object, (FastMapVal)info->count++);
 	}
       else
 	{
 	  (*info->appImp)(info->data, appSel, &st_xref, 1);
-	  (*info->serImp)(info->data, serSel, node->value.I);
+	  (*info->serImp)(info->data, serSel, node->value.uint);
 	}
     }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
@@ -183,7 +184,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
       FastMapNode	node;
 
       if (info->shouldUnique)
-	node = FastMapNodeForKey(&info->map, (FastMapItem)object);
+	node = FastMapNodeForKey(&info->map, (FastMapKey)object);
       else
 	node = 0;
       if (node == 0)
@@ -199,12 +200,12 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
 	  if (info->shouldUnique)
 	    FastMapAddPair(&info->map,
-		(FastMapItem)object, (FastMapItem)info->count++);
+		(FastMapKey)object, (FastMapVal)info->count++);
 	}
       else
 	{
 	  (*info->appImp)(info->data, appSel, &st_xref, 1);
-	  (*info->serImp)(info->data, serSel, node->value.I);
+	  (*info->serImp)(info->data, serSel, node->value.uint);
 	}
     }
   else if (fastClassIsKindOfClass(c, ArrayClass))
@@ -390,7 +391,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       case ST_XREF:
 	{
-	  return [FastArrayItemAtIndex(&info->array, size).o retain];
+	  return [FastArrayItemAtIndex(&info->array, size).obj retain];
 	}
 
       case ST_CSTRING:

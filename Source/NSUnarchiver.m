@@ -32,8 +32,9 @@
  */
 #define	FAST_ARRAY_RETAIN(X)	X
 #define	FAST_ARRAY_RELEASE(X)	
+#define	FAST_ARRAY__TYPES	GSUNION_OBJ
 
-#include "FastArray.x"
+#include <base/FastArray.x>
 
 #define	_IN_NSUNARCHIVER_M
 #include <Foundation/NSArchiver.h>
@@ -507,7 +508,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 				  format: @"object crossref missing - %d",
 					xref];
 		    }
-		  obj = FastArrayItemAtIndex(objMap, xref).o;
+		  obj = FastArrayItemAtIndex(objMap, xref).obj;
 		  /*
 		   *	If it's a cross-reference, we need to retain it in
 		   *	order to give the appearance that it's actually a
@@ -572,7 +573,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"class crossref missing - %d", xref];
 		}
-	      classInfo = (NSUnarchiverObjectInfo*)FastArrayItemAtIndex(clsMap, xref).o;
+	      classInfo = (NSUnarchiverObjectInfo*)FastArrayItemAtIndex(clsMap, xref).obj;
 	      *(Class*)address = mapClassObject(classInfo);
 	      return;
 	    }
@@ -640,7 +641,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"sel crossref missing - %d", xref];
 		}
-	      sel = FastArrayItemAtIndex(ptrMap, xref).C;
+	      sel = FastArrayItemAtIndex(ptrMap, xref).sel;
 	    }
 	  else
 	    {
@@ -717,7 +718,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"ptr crossref missing - %d", xref];
 		}
-	      *(void**)address = FastArrayItemAtIndex(ptrMap, xref).p;
+	      *(void**)address = FastArrayItemAtIndex(ptrMap, xref).ptr;
 	    }
 	  else
 	    {
@@ -766,7 +767,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"string crossref missing - %d", xref];
 		}
-	      *(char**)address = FastArrayItemAtIndex(ptrMap, xref).s;
+	      *(char**)address = FastArrayItemAtIndex(ptrMap, xref).str;
 	    }
 	  else
 	    {
@@ -1013,7 +1014,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		      format: @"object crossref missing - %d",
 			    xref];
 	}
-      obj = FastArrayItemAtIndex(objMap, xref).o;
+      obj = FastArrayItemAtIndex(objMap, xref).obj;
       /*
        *	If it's a cross-reference, we don't need to autorelease it
        *	since we don't own it.
@@ -1155,9 +1156,11 @@ mapClassName(NSUnarchiverObjectInfo *info)
 {
   unsigned i;
 
+  if (replacement == anObject)
+    return;
   for (i = FastArrayCount(objMap) - 1; i > 0; i--)
     {
-      if (FastArrayItemAtIndex(objMap, i).o == anObject)
+      if (FastArrayItemAtIndex(objMap, i).obj == anObject)
 	{
 	  FastArraySetItemAtIndex(objMap, (FastArrayItem)replacement, i);
 	  return;

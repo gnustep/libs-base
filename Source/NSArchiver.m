@@ -1,7 +1,7 @@
 /* Implementation of NSArchiver for GNUstep
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,1999 Free Software Foundation, Inc.
    
-   Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
    
    This file is part of the GNUstep Base Library.
@@ -30,10 +30,10 @@
 #define	FAST_MAP_RELEASE_KEY(X)	
 #define	FAST_MAP_RETAIN_VAL(X)	X
 #define	FAST_MAP_RELEASE_VAL(X)	
-#define	FAST_MAP_HASH(X)	((X).I)
-#define	FAST_MAP_EQUAL(X,Y)	((X).I == (Y).I)
+#define	FAST_MAP_HASH(X)	((X).uint)
+#define	FAST_MAP_EQUAL(X,Y)	((X).uint == (Y).uint)
 
-#include "FastMap.x"
+#include <base/FastMap.x>
 
 #define	_IN_NSARCHIVER_M
 #include <Foundation/NSArchiver.h>
@@ -317,7 +317,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  {
 	    FastMapNode	node;
 
-	    node = FastMapNodeForKey(ptrMap, (FastMapItem)*(void**)buf);
+	    node = FastMapNodeForKey(ptrMap, (FastMapKey)*(void**)buf);
 	    if (isInPreparatoryPass == YES)
 	      {
 		/*
@@ -327,13 +327,13 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		if (node == 0)
 		  {
 		    FastMapAddPair(ptrMap,
-			(FastMapItem)*(void**)buf, (FastMapItem)0);
+			(FastMapKey)*(void**)buf, (FastMapVal)0);
 		    type++;
 		    buf = *(char**)buf;
 		    (*eValImp)(self, eValSel, type, buf);
 		  }
 	      }
-	    else if (node == 0 || node->value.I == 0)
+	    else if (node == 0 || node->value.uint == 0)
 	      {
 		/*
 		 *	Second pass, unwritten pointer - write it.
@@ -341,13 +341,13 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		if (node == 0)
 		  {
 		    node = FastMapAddPair(ptrMap,
-			(FastMapItem)*(void**)buf, (FastMapItem)++xRefP);
+			(FastMapKey)*(void**)buf, (FastMapVal)++xRefP);
 		  }
 		else
 		  {
-		    node->value.I = ++xRefP;
+		    node->value.uint = ++xRefP;
 		  }
-		(*xRefImp)(dst, xRefSel, _GSC_PTR, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_PTR, node->value.uint);
 		type++;
 		buf = *(char**)buf;
 		(*eValImp)(self, eValSel, type, buf);
@@ -357,7 +357,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		/*
 		 *	Second pass, write a cross-reference number.
 		 */
-		(*xRefImp)(dst, xRefSel, _GSC_PTR | _GSC_XREF, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_PTR|_GSC_XREF, node->value.uint);
 	      }
 	  }
 	return;
@@ -386,11 +386,12 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    FastMapNode	node;
 	    BOOL	done = NO;
 
-	    node = FastMapNodeForKey(clsMap, (FastMapItem)(void*)c);
+	    node = FastMapNodeForKey(clsMap, (FastMapKey)(void*)c);
 	    
 	    if (node != 0)
 	      {
-		(*xRefImp)(dst, xRefSel, _GSC_CLASS | _GSC_XREF, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CLASS | _GSC_XREF,
+		  node->value.uint);
 		return;
 	      }
 	    while (done == NO)
@@ -405,11 +406,11 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 				format: @"negative class version"];
 		  }
 		node = FastMapAddPair(clsMap,
-			(FastMapItem)(void*)c, (FastMapItem)++xRefC);
+			(FastMapKey)(void*)c, (FastMapVal)++xRefC);
 		/*
 		 *	Encode tag and crossref number.
 		 */
-		(*xRefImp)(dst, xRefSel, _GSC_CLASS, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CLASS, node->value.uint);
 		/*
 		 *	Encode class, and version.
 		 */
@@ -423,7 +424,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		 *	[super initWithCoder:ccc]
 		 */
 		if (s == c || s == 0 ||
-			FastMapNodeForKey(clsMap, (FastMapItem)(void*)s) != 0)
+			FastMapNodeForKey(clsMap, (FastMapKey)(void*)s) != 0)
 		  {
 		    done = YES;
 		  }
@@ -450,13 +451,13 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	else
 	  {
 	    SEL		s = *(SEL*)buf;
-	    FastMapNode	node = FastMapNodeForKey(ptrMap, (FastMapItem)(void*)s);
+	    FastMapNode	node = FastMapNodeForKey(ptrMap, (FastMapKey)(void*)s);
 
 	    if (node == 0)
 	      {
 		node = FastMapAddPair(ptrMap,
-			(FastMapItem)(void*)s, (FastMapItem)++xRefP);
-		(*xRefImp)(dst, xRefSel, _GSC_SEL, node->value.I);
+			(FastMapKey)(void*)s, (FastMapVal)++xRefP);
+		(*xRefImp)(dst, xRefSel, _GSC_SEL, node->value.uint);
 		/*
 		 *	Encode selector.
 		 */
@@ -464,7 +465,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      }
 	    else
 	      {
-		(*xRefImp)(dst, xRefSel, _GSC_SEL | _GSC_XREF, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_SEL|_GSC_XREF, node->value.uint);
 	      }
 	  }
 	return;
@@ -481,17 +482,18 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  {
 	    FastMapNode	node;
 
-	    node = FastMapNodeForKey(ptrMap, (FastMapItem)*(char**)buf);
+	    node = FastMapNodeForKey(ptrMap, (FastMapKey)*(char**)buf);
 	    if (node == 0)
 	      {
 		node = FastMapAddPair(ptrMap,
-			(FastMapItem)*(char**)buf, (FastMapItem)++xRefP);
-		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR, node->value.I);
+			(FastMapKey)*(char**)buf, (FastMapVal)++xRefP);
+		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR, node->value.uint);
 		(*serImp)(dst, serSel, buf, type, nil);
 	      }
 	    else
 	      {
-		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR|_GSC_XREF, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR|_GSC_XREF,
+		  node->value.uint);
 	      }
 	  }
 	return;
@@ -627,7 +629,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
        *	If we have already conditionally encoded this object, we can
        *	ignore it this time.
        */
-      node = FastMapNodeForKey(cIdMap, (FastMapItem)anObject);
+      node = FastMapNodeForKey(cIdMap, (FastMapKey)anObject);
       if (node != 0)
 	{
 	  return;
@@ -637,13 +639,13 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
        *	If we have unconditionally encoded this object, we can ignore
        *	it now.
        */
-      node = FastMapNodeForKey(uIdMap, (FastMapItem)anObject);
+      node = FastMapNodeForKey(uIdMap, (FastMapKey)anObject);
       if (node != 0)
 	{
 	  return;
 	}
 
-      FastMapAddPair(cIdMap, (FastMapItem)anObject, (FastMapItem)0);
+      FastMapAddPair(cIdMap, (FastMapKey)anObject, (FastMapVal)0);
     }
   else if (anObject == nil)
     {
@@ -655,14 +657,14 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
       if (repMap->nodeCount)
 	{
-	  node = FastMapNodeForKey(repMap, (FastMapItem)anObject);
+	  node = FastMapNodeForKey(repMap, (FastMapKey)anObject);
 	  if (node)
 	    {
-	      anObject = (id)node->value.p;
+	      anObject = (id)node->value.ptr;
 	    }
 	}
 
-      node = FastMapNodeForKey(cIdMap, (FastMapItem)anObject);
+      node = FastMapNodeForKey(cIdMap, (FastMapKey)anObject);
       if (node != 0)
 	{
 	  (*eObjImp)(self, eObjSel, nil);
@@ -723,16 +725,16 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       /*
        *	Substitute replacement object if required.
        */
-      node = FastMapNodeForKey(repMap, (FastMapItem)anObject);
+      node = FastMapNodeForKey(repMap, (FastMapKey)anObject);
       if (node)
 	{
-	  anObject = (id)node->value.p;
+	  anObject = (id)node->value.ptr;
 	}
 
       /*
        *	See if the object has already been encoded.
        */
-      node = FastMapNodeForKey(uIdMap, (FastMapItem)anObject);
+      node = FastMapNodeForKey(uIdMap, (FastMapKey)anObject);
 
       if (isInPreparatoryPass)
 	{
@@ -742,14 +744,14 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	       *	Remove object from map of conditionally encoded objects
 	       *	and add it to the map of unconditionay encoded ones.
 	       */
-	      FastMapRemoveKey(cIdMap, (FastMapItem)anObject);
-	      FastMapAddPair(uIdMap, (FastMapItem)anObject, (FastMapItem)0);
+	      FastMapRemoveKey(cIdMap, (FastMapKey)anObject);
+	      FastMapAddPair(uIdMap, (FastMapKey)anObject, (FastMapVal)0);
 	      [anObject encodeWithCoder: self];
 	    }
 	  return;
 	}
 
-      if (node == 0 || node->value.I == 0)
+      if (node == 0 || node->value.uint == 0)
 	{
 	  Class	cls;
 	  id	obj;
@@ -757,26 +759,26 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  if (node == 0)
 	    {
 	      node = FastMapAddPair(uIdMap,
-			(FastMapItem)anObject, (FastMapItem)++xRefO);
+			(FastMapKey)anObject, (FastMapVal)++xRefO);
 	    }
 	  else
 	    {
-	      node->value.I = ++xRefO;
+	      node->value.uint = ++xRefO;
 	    }
 
 	  obj = [anObject replacementObjectForArchiver: self];
 	  cls = [anObject classForArchiver];
 
-	  (*xRefImp)(dst, xRefSel, _GSC_ID, node->value.I);
+	  (*xRefImp)(dst, xRefSel, _GSC_ID, node->value.uint);
 	  if (namMap->nodeCount)
 	    {
 	      FastMapNode	node;
 
-	      node = FastMapNodeForKey(namMap, (FastMapItem)cls);
+	      node = FastMapNodeForKey(namMap, (FastMapKey)cls);
 
 	      if (node)
 		{
-		  cls = (Class)node->value.p;
+		  cls = (Class)node->value.ptr;
 		}
 	    }
 	  (*eValImp)(self, eValSel, @encode(Class), &cls);
@@ -784,7 +786,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	}
       else if(!isInPreparatoryPass)
 	{
-	  (*xRefImp)(dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.I);
+	  (*xRefImp)(dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
 	}
     }
 }
@@ -802,10 +804,10 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       Class		c;
 
       c = objc_get_class([trueName cString]);
-      node = FastMapNodeForKey(namMap, (FastMapItem)c);
+      node = FastMapNodeForKey(namMap, (FastMapKey)c);
       if (node)
 	{
-	  c = (Class)node->value.p;
+	  c = (Class)node->value.ptr;
 	  return [NSString stringWithCString: fastClassName(c)];
 	}
     }
@@ -831,14 +833,14 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Can't find class '%@'.", inArchiveName];
     }
-  node = FastMapNodeForKey(namMap, (FastMapItem)tc);
+  node = FastMapNodeForKey(namMap, (FastMapKey)tc);
   if (node == 0)
     {
-      FastMapAddPair(namMap, (FastMapItem)(void*)tc, (FastMapItem)(void*)ic);
+      FastMapAddPair(namMap, (FastMapKey)(void*)tc, (FastMapVal)(void*)ic);
     }
   else
     {
-      node->value.p = (void*)ic;
+      node->value.ptr = (void*)ic;
     }
 }
 
@@ -857,14 +859,14 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       [NSException raise: NSInternalInconsistencyException
 		  format: @"attempt to remap object to nil"];
     }
-  node = FastMapNodeForKey(namMap, (FastMapItem)object);
+  node = FastMapNodeForKey(namMap, (FastMapKey)object);
   if (node == 0)
     {
-      FastMapAddPair(namMap, (FastMapItem)object, (FastMapItem)newObject);
+      FastMapAddPair(namMap, (FastMapKey)object, (FastMapVal)newObject);
     }
   else
     {
-      node->value.p = (void*)newObject;
+      node->value.ptr = (void*)newObject;
     }
 }
 @end

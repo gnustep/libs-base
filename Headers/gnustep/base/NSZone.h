@@ -58,6 +58,10 @@ struct _NSZone
 
 void *GSOutOfMemory(size_t size, BOOL retry);
 
+/* Default zone.  Name is hopelessly long so that no one will ever
+   want to use it. ;) Private variable. */
+extern NSZone* __nszone_private_hidden_default_zone;
+
 #ifndef	GS_WITH_GC
 #define	GS_WITH_GC	0
 #endif
@@ -65,14 +69,15 @@ void *GSOutOfMemory(size_t size, BOOL retry);
 
 #include <gc.h>
 
+#define
 extern inline NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
-{ return 0; }
+{ return __nszone_private_hidden_default_zone; }
 
 extern inline NSZone* NSDefaultMallocZone (void)
-{ return 0; }
+{ return __nszone_private_hidden_default_zone; }
 
 extern inline NSZone* NSZoneFromPointer (void *ptr)
-{ return 0; }
+{ return __nszone_private_hidden_default_zone; }
 
 extern inline void* NSZoneMalloc (NSZone *zone, size_t size)
 {
@@ -133,10 +138,6 @@ extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
 }
 
 #else	/* GS_WITH_GC */
-
-/* Default zone.  Name is hopelessly long so that no one will ever
-   want to use it. ;) Private variable. */
-extern NSZone* __nszone_private_hidden_default_zone;
 
 extern NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
