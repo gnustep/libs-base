@@ -453,7 +453,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
   t = [refs objectForKey: type];
   t = [t objectForKey: ref];
-  return [t objectForKey: unit];
+  return [t objectForKey: u];
 }
 
 @end

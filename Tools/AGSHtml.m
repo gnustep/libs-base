@@ -731,7 +731,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	      [buf appendString: indent];
 	      [buf appendString: @"<h3>"];
 	      s = [self makeLink: sel ofType: @"method" inUnit: nil isRef: NO];
-	      if (s == nil)
+	      if (s != nil)
 		{
 		  [buf appendString: s];
 		  [buf appendString: [sel substringFromIndex: 1]];
@@ -1222,7 +1222,8 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 	{
 	  [buf appendString: indent];
 	  [buf appendString: @"<li>"];
-	  [buf appendString: [self makeLink: s ofType: @"method" isRef: YES]];
+	  [buf appendString:
+	    [self makeLink: s ofType: @"method" inUnit: unit isRef: YES]];
 	  [buf appendString: s];
 	  [buf appendString: @"</a></li>\n"];
 	}
