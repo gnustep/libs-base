@@ -1,3 +1,8 @@
+2000-11-12  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSArray.m: Corrected [NSMutableArray arrayWithObject:] to
+	return obj instead of self.
+	
 Fri Nov 10 12:30:27 2000  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	Added some GNUstep extensions to NSThread to allow JIGS to
