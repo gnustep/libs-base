@@ -46,38 +46,56 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- _initCollectionWithCoder: aCoder
-{
-  [super _initCollectionWithCoder:aCoder];
-  _count = 0;
-  _first_link = nil;
-  _last_link = nil;
-  return self;
-}
-
-- (void) _encodeContentsWithCoder: (id <Encoding>)aCoder
-{
-  [aCoder startEncodingInterconnectedObjects];
-  [super _encodeContentsWithCoder:aCoder];
-  [aCoder finishEncodingInterconnectedObjects];
-}
-
-/* xxx See Collection _decodeContentsWithCoder:.
-   We shouldn't do an -addElement.  finishEncodingInterconnectedObjects
-   should take care of all that. */
-
-- (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
+- (void) encodeWithCoder: coder
 {
   id l;
 
-  [aCoder startDecodingInterconnectedObjects];
-  [super _decodeContentsWithCoder:aCoder];
-  [aCoder finishDecodingInterconnectedObjects];
+  [super encodeWithCoder: coder];
+  [coder encodeValueOfCType: @encode (typeof (_count))
+	 at: &_count
+	 withName: @"LinkedList count"];
   FOR_COLLECTION (self, l)
     {
-      [l setLinkedList: self];
+      [coder encodeObject: l
+	     withName: @"LinkedList element"];
     }
   END_FOR_COLLECTION (self);
+  [coder encodeObjectReference: _first_link
+	 withName: @"LinkedList first link"];
+  [coder encodeObjectReference: _last_link
+	 withName: @"LinkedList last link"];
+}
+
+- initWithCoder: coder
+{
+  int i;
+  // id link;
+
+  self = [super initWithCoder: coder];
+  [coder decodeValueOfCType: @encode (typeof (_count))
+	 at: &_count
+	 withName: NULL];
+  /* We don't really care about storing the elements decoded, because
+     we access them through their own link pointers. */
+  for (i = 0; i < _count; i++)
+    [coder decodeObjectAt: NULL
+	   withName: NULL];
+  [coder decodeObjectAt: &_first_link
+	 withName: NULL];
+  [coder decodeObjectAt: &_last_link
+	 withName: NULL];
+#if 0
+  /* xxx Not necessary, since the links encode this?  
+     But should we rely on the links encoding this?
+     BUT! Look out: the next link pointers may not be set until
+     the last finishDecoding... method is run... */
+  FOR_COLLECTION (self, link)
+    {
+      [link setLinkedList: self];
+    }
+  END_FOR_COLLECTION (self);
+#endif
+  return self;
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */
