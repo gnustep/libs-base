@@ -33,6 +33,8 @@ main(int argc, char *argv[], char **env)
 #endif
     arp = [NSAutoreleasePool new];
     
+    printf("  GNUstep bundle directory is %s\n", [[[NSBundle gnustepBundle] bundlePath] cString]);
+
     main = [NSBundle mainBundle];
     printf("Looking for main bundle...\n");
     if (!main) {
