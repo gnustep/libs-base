@@ -767,6 +767,9 @@ elif test "$enable_pass_arguments" = "no"; then
     AC_DEFINE(HAVE_PROC_FS_EXE_LINK)
   fi
 fi
+case "$target_os" in
+    mingw*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
+esac
 AC_SUBST(GS_FAKE_MAIN)
 AC_MSG_RESULT($enable_fake_main)
 

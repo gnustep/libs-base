@@ -764,7 +764,7 @@ main(int argc, char** argv, char** env)
       shouldFork = NO;
     }
   RELEASE(pool);
-
+#ifndef __MINGW__  /* Don't fork on Win32 */
   if (shouldFork)
     {
       switch (fork())
@@ -788,6 +788,7 @@ main(int argc, char** argv, char** env)
 	    exit(0);
 	}
     }
+#endif /* !MINGW */
 
   {
     CREATE_AUTORELEASE_POOL(pool);

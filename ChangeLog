@@ -1,3 +1,20 @@
+2000-09-15  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Turn off enable_fake_main if on MinGW.
+
+	* Source/WindowsFileHandle.m: New class.
+	* Source/NSFileHandle.m: Use it on MinGW
+	* Source/NSTask.m: Break into concrete subclasses for
+	Unix and Windows.
+
+	* Source/NSProcessInfo.m: on MinGW, don't try to redefine 
+	__argv, __argc, etc.
+	* Source/libgnustep_base_entry.m: Renamed from win32-entry.m
+
+	* Tools/gdnc.m: Don't fork on MinGW
+	* Tools/gdomap.c: Define MINGW ifdef MINGW32.
+
+
 2000-09-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSXML.m: made method names more consistent.

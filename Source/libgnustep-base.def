@@ -27,6 +27,7 @@
 ;
 LIBRARY libgnustep-base
 EXPORTS
+__objc_class_name_GSBaseDefaultObserver
 __objc_class_name_GSTcpHandle
 __objc_class_name_GSTcpPort
 __objc_class_name_NSArchiver
@@ -56,7 +57,6 @@ __objc_class_name_NSConnection
 __objc_class_name_NSCountedSet
 __objc_class_name_NSData
 __objc_class_name_NSDataMalloc
-__objc_class_name_NSDataMappedFile
 __objc_class_name_NSDataStatic
 __objc_class_name_NSMutableData
 __objc_class_name_NSMutableDataMalloc
@@ -67,6 +67,8 @@ __objc_class_name_NSDate
 __objc_class_name_NSGDate
 __objc_class_name_NSDateFormatter
 __objc_class_name_GSDebugAlloc
+__objc_class_name_NSDecimalNumber
+__objc_class_name_NSDecimalNumberHandler
 __objc_class_name_NSDictionary
 __objc_class_name_NSDictionaryNonCore
 __objc_class_name_NSMutableDictionary
@@ -126,6 +128,7 @@ __objc_class_name_NSUIntNumber
 __objc_class_name_NSLongNumber
 __objc_class_name_NSULongNumber
 __objc_class_name_NSLongLongNumber
+__objc_class_name_NSNumberFormatter
 __objc_class_name_NSObject
 __objc_class_name__FastMallocBuffer
 __objc_class_name_NSPipe
@@ -153,6 +156,7 @@ __objc_class_name_NSSet
 __objc_class_name_NSSetNonCore
 __objc_class_name_NSMutableString
 __objc_class_name_NSString
+__objc_class_name_NSConcreteWindowsTask
 __objc_class_name_NSTask
 __objc_class_name_NSThread
 __objc_class_name_NSConcreteAbsoluteTimeZone
@@ -178,4 +182,4 @@ __objc_class_name_NSPointValue
 __objc_class_name_NSPointerValue
 __objc_class_name_NSRectValue
 __objc_class_name_NSSizeValue
-__objc_class_name_UnixFileHandle
+__objc_class_name_WindowsFileHandle
