@@ -88,7 +88,7 @@ if test $DYNAMIC_LINKER = null; then
     AC_CHECK_HEADER(dld/defs.h, objc_found_dld_defs=yes, objc_found_dld_defs=no)
     # Try to distinguish between GNU dld and HPUX dld 
     AC_CHECK_HEADER(dl.h, [DYNAMIC_LINKER=hpux])
-    if test "$ac_cv_lib_dld" = yes && test "$objc_found_dld_defs" = no && test "$ac_cv_header_dl_h" = no; then
+    if test "$objc_cv_lib_dld" = yes && test "$objc_found_dld_defs" = no && test "$objc_cv_header_dl_h" = no; then
         AC_MSG_WARN(Could not find dld/defs.h header)
         echo
         echo "Currently, the dld/defs.h header is needed to get information"
