@@ -60,7 +60,9 @@
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
 static	NSCharacterSet	*rfc2045Specials = nil;
+static  NSMapTable	*charsets = 0;
 static	Class		NSArrayClass = 0;
+static	Class		documentClass = 0;
 
 /*
  *	Name -		decodebase64()
@@ -659,6 +661,10 @@ wordData(NSString *word)
     {
       NSArrayClass = [NSArray class];
     }
+  if (documentClass == 0)
+    {
+      documentClass = [GSMimeDocument class];
+    }
 }
 
 /**
@@ -1129,7 +1135,7 @@ wordData(NSString *word)
   if (self != nil)
     {
       data = [[NSMutableData alloc] init];
-      document = [[GSMimeDocument alloc] init];
+      document = [[documentClass alloc] init];
       _defaultEncoding = NSASCIIStringEncoding;
     }
   return self;
@@ -1947,18 +1953,17 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  */
 - (void) setDefaultCharset: (NSString*)aName
 {
-  _defaultEncoding = [GSMimeDocument encodingFromCharset: aName];
+  _defaultEncoding = [documentClass encodingFromCharset: aName];
 }
 
-/**       
- * Method to inform the parser that body parts with no content-type
- * header (which are treated as text/plain) should use the specified
- * NSStringEncoding rather than the default 
- */
 - (void) setDefaultEncoding: (NSStringEncoding)encoding
-{   
-  _defaultEncoding = encoding;
-}   
+{
+  NSString	*charset;
+
+  charset = [documentClass charsetFromEncoding: encoding];
+  [self setDefaultCharset: charset];
+}
+
 
 /**
  * Method to inform the parser that the data it is parsing is an HTTP
@@ -2063,7 +2068,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    }
 	  *src = '\0';
 	  charset = [NSString stringWithCString: tmp];
-	  enc = [GSMimeDocument encodingFromCharset: charset];
+	  enc = [documentClass encodingFromCharset: charset];
 	  src++;
 	  if (*src == 0)
 	    {
@@ -2277,7 +2282,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 			      [document setHeader: typeInfo];
 			      RELEASE(typeInfo);
 			    }
-			  charset = [GSMimeDocument charsetFromEncoding:
+			  charset = [documentClass charsetFromEncoding:
 			    stringEncoding];
 			  [typeInfo setParameter: charset
 					  forKey: @"charset"];
@@ -2289,7 +2294,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 		      charset = [typeInfo parameterForKey: @"charset"];
 		      stringEncoding
-			= [GSMimeDocument encodingFromCharset: charset];
+			= [documentClass encodingFromCharset: charset];
 		    }
 		  /*
 		   * Assume that content type is best represented as NSString.
@@ -3324,72 +3329,22 @@ static NSCharacterSet	*tokenSet = nil;
  */
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset
 {
-  if (charset == nil)
+  NSStringEncoding	enc = NSASCIIStringEncoding;
+  
+  if (charset != nil)
     {
-      return NSASCIIStringEncoding;	// Default character set.
+      enc = (NSStringEncoding)NSMapGet(charsets, charset);
+      if (enc == 0)
+	{
+	  charset = [charset lowercaseString];
+	  enc = (NSStringEncoding)NSMapGet(charsets, charset);
+	  if (enc == 0)
+	    {
+	      enc = NSASCIIStringEncoding;	// Default character set.
+	    }
+	}
     }
-
-  charset = [charset lowercaseString];
-
-  /*
-   * Try the three most popular charactersets first - for efficiency.
-   */
-  if ([charset isEqualToString: @"us-ascii"] == YES)
-    return NSASCIIStringEncoding;
-  if ([charset isEqualToString: @"iso-8859-1"] == YES)
-    return NSISOLatin1StringEncoding;
-  if ([charset isEqualToString: @"utf-8"] == YES)
-    return NSUTF8StringEncoding;
-
-  /*
-   * Now try all remaining character sets in alphabetical order.
-   */
-  if ([charset isEqualToString: @"ascii"] == YES)
-    return NSASCIIStringEncoding;
-  if ([charset isEqualToString: @"iso-8859-2"] == YES)
-    return NSISOLatin2StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-3"] == YES)
-    return NSISOLatin3StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-4"] == YES)
-    return NSISOLatin4StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-5"] == YES)
-    return NSISOCyrillicStringEncoding;
-  if ([charset isEqualToString: @"iso-8859-6"] == YES)
-    return NSISOArabicStringEncoding;
-  if ([charset isEqualToString: @"iso-8859-7"] == YES)
-    return NSISOGreekStringEncoding;
-  if ([charset isEqualToString: @"iso-8859-8"] == YES)
-    return NSISOHebrewStringEncoding;
-  if ([charset isEqualToString: @"iso-8859-9"] == YES)
-    return NSISOLatin5StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-10"] == YES)
-    return NSISOLatin6StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-13"] == YES)
-    return NSISOLatin7StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-14"] == YES)
-    return NSISOLatin8StringEncoding;
-  if ([charset isEqualToString: @"iso-8859-15"] == YES)
-    return NSISOLatin9StringEncoding;
-  if ([charset isEqualToString: @"windows-1250"] == YES)
-    return NSWindowsCP1250StringEncoding;
-  if ([charset isEqualToString: @"windows-1251"] == YES)
-    return NSWindowsCP1251StringEncoding;
-  if ([charset isEqualToString: @"windows-1252"] == YES)
-    return NSWindowsCP1252StringEncoding;
-  if ([charset isEqualToString: @"windows-1253"] == YES)
-    return NSWindowsCP1253StringEncoding;
-  if ([charset isEqualToString: @"windows-1254"] == YES)
-    return NSWindowsCP1254StringEncoding;
-  if ([charset isEqualToString: @"iso-10646-ucs-2"] == YES)
-    return NSUnicodeStringEncoding;
-  if ([charset isEqualToString: @"iso-10646"] == YES)
-    return NSUnicodeStringEncoding;
-  if ([charset isEqualToString: @"big5"] == YES)
-    return NSBIG5StringEncoding;
-  if ([charset isEqualToString: @"shift_JIS"] == YES)
-    return NSShiftJISStringEncoding;
-
-  return NSASCIIStringEncoding;		// Default character set.
+  return enc;
 }
 
 + (void) initialize
@@ -3417,6 +3372,55 @@ static NSCharacterSet	*tokenSet = nil;
       if (NSArrayClass == 0)
 	{
 	  NSArrayClass = [NSArray class];
+	}
+      if (charsets == 0)
+	{
+	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
+	    NSIntMapValueCallBacks, 0);
+	  NSMapInsert(charsets, (void*)@"ascii",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-2",
+	    (void*)NSISOLatin2StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-3",
+	    (void*)NSISOLatin3StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-4",
+	    (void*)NSISOLatin4StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-5",
+	    (void*)NSISOCyrillicStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-6",
+	    (void*)NSISOArabicStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-7",
+	    (void*)NSISOGreekStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-8",
+	    (void*)NSISOHebrewStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-9",
+	    (void*)NSISOLatin5StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-10",
+	    (void*)NSISOLatin6StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-13",
+	    (void*)NSISOLatin7StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-14",
+	    (void*)NSISOLatin8StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-15",
+	    (void*)NSISOLatin9StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1250",
+	    (void*)NSWindowsCP1250StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1251",
+	    (void*)NSWindowsCP1251StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1252",
+	    (void*)NSWindowsCP1252StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1253",
+	    (void*)NSWindowsCP1253StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1254",
+	    (void*)NSWindowsCP1254StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-10646",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"big5",
+	    (void*)NSBIG5StringEncoding);
+	  NSMapInsert(charsets, (void*)@"shift_JIS",
+	    (void*)NSShiftJISStringEncoding);
 	}
     }
 }
