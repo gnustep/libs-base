@@ -89,7 +89,7 @@ nsset.m \
 nsprocessinfo.m \
 nsarchiver.m \
 invocation.m \
-diningPhilophers.m
+diningPhilosophers.m
 
 # nsarchiving.m
 
@@ -113,7 +113,7 @@ SecondClass.h
 DYNAMIC_OFILES = $(DYNAMIC_MFILES:.m=$(OEXT))
 
 RCS_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
-	Makefile.in NXStringTable.example Makefile.sed.nt
+	Makefile.in NXStringTable.example
 DIST_FILES = $(RCS_FILES) 
 
 # type 'make bundles' if you also want to check bundles.
