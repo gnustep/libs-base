@@ -62,6 +62,12 @@ static NSLock	*uniqueLock;
 static const char*	_GSDebugAllocationList(BOOL difference);
 static const char*	_GSDebugAllocationListAll(void);
 
+void _GSDebugAllocationAdd(Class c, id o);
+void _GSDebugAllocationRemove(Class c, id o);
+
+void (*_GSDebugAllocationAddFunc)(Class c, id o) = _GSDebugAllocationAdd;
+void (*_GSDebugAllocationRemoveFunc)(Class c, id o) = _GSDebugAllocationRemove;
+
 @interface GSDebugAlloc : NSObject
 + (void) initialize;
 + (void) _becomeThreaded: (NSNotification*)notification;
@@ -91,6 +97,37 @@ static const char*	_GSDebugAllocationListAll(void);
 }
 
 @end
+
+/**
+ * This functions allows to set own function backcalls for debugging allocation
+ * of objects. Useful if you intend to write your own objectalloc.
+ */
+void 
+GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
+  void (*newRemoveObjectFunc)(Class c, id o))
+{
+  if (uniqueLock != nil)
+    {
+      [uniqueLock lock];
+    }
+
+  if (newAddObjectFunc && newRemoveObjectFunc)
+    {	   	
+      _GSDebugAllocationAddFunc = newAddObjectFunc;
+      _GSDebugAllocationRemoveFunc = newRemoveObjectFunc;
+    }
+  else
+    {
+      // Back to default
+      _GSDebugAllocationAddFunc = _GSDebugAllocationAdd;
+      _GSDebugAllocationRemoveFunc = _GSDebugAllocationRemove;
+    }
+  
+  if (uniqueLock != nil)
+    {
+      [uniqueLock unlock];
+    }
+}
 
 /**
  * This function activates or deactivates object allocation debugging.<br />
@@ -189,6 +226,12 @@ GSDebugAllocationActiveRecordingObjects(Class c)
 
 void
 GSDebugAllocationAdd(Class c, id o)
+{
+	(*_GSDebugAllocationAddFunc)(c,o);
+}
+
+void
+_GSDebugAllocationAdd(Class c, id o)
 {
   if (debug_allocation)
     {
@@ -455,11 +498,15 @@ GSDebugAllocationList(BOOL changeFlag)
       return "Debug allocation system is not active!\n";
     }
   if (uniqueLock != nil)
-    [uniqueLock lock];
+    {
+      [uniqueLock lock];
+    }
   ans = _GSDebugAllocationList(changeFlag);
   d = [NSData dataWithBytes: ans length: strlen(ans) + 1];
   if (uniqueLock != nil)
-    [uniqueLock unlock];
+    {
+      [uniqueLock unlock];
+    }
   return (const char*)[d bytes];
 }
 
@@ -555,11 +602,15 @@ GSDebugAllocationListAll()
       return "Debug allocation system is not active!\n";
     }
   if (uniqueLock != nil)
-    [uniqueLock lock];
+    {
+      [uniqueLock lock];
+    }
   ans = _GSDebugAllocationListAll();
   d = [NSData dataWithBytes: ans length: strlen(ans)+1];
   if (uniqueLock != nil)
-    [uniqueLock unlock];
+    {
+      [uniqueLock unlock];
+    }
   return (const char*)[d bytes];
 }
 
@@ -619,6 +670,12 @@ _GSDebugAllocationListAll(void)
 
 void
 GSDebugAllocationRemove(Class c, id o)
+{
+	(*_GSDebugAllocationRemoveFunc)(c,o);
+}
+
+void
+_GSDebugAllocationRemove(Class c, id o)
 {
   if (debug_allocation)
     {
