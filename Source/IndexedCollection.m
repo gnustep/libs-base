@@ -26,12 +26,13 @@
 #include <stdio.h>
 #include <objects/Array.h>
 #include <objects/NSString.h>
+#include <objects/behavior.h>
 
 @implementation ReverseEnumerator
 
 - nextObject
 {
-  return [collection prevObjectWithEnumState: enum_state];
+  return [collection prevObjectWithEnumState: &enum_state];
 }
 
 @end
@@ -45,6 +46,7 @@
 - objectAtIndex: (unsigned)index
 {
   [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - firstObject
@@ -263,12 +265,24 @@
 
 - prevObjectWithEnumState: (void**)enumState
 {
-  /* *(unsigned*)enumState-1 is the index of the element 
-     that will be returned */
-  if (!(*enumState))
-    *(unsigned*)enumState = [self count]-1;
+  /* *(int*)enumState is the index of the element that was returned
+     last time -prevObjectWithEnumState: or -nextObjectWithEnumState
+     was called.  In -newEnumState, *(int*)enumState is initialized to
+     -2; The implementation of -newEnumState can be found below. */
+
+  /* If there are not objects in this collection, or we are being
+     asked for the object before the first object, return nil. */
+  if ([self isEmpty] || (*(int*)enumState) == 0)
+    return NO_OBJECT;
+
+  if (*(int*)enumState == -2)
+    /* enumState was just initialized by -newEnumState, start
+       at the end of the sequence. */
+    *(int*)enumState = [self count]-1;
   else
-    (*(unsigned*)enumState)--;
+    /* ...otherwise go to the previous index.*/
+    (*(int*)enumState)--;
+
   return [self objectAtIndex:(*(unsigned*)enumState)];
 }
 
@@ -279,31 +293,50 @@
 - shallowCopyRange: (IndexRange)aRange
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 - shallowCopyInReverse
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 - shallowCopyInReverseRange: (IndexRange)aRange
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 
 // OVERRIDE SOME COLLECTION METHODS;
 
+- (void*) newEnumState
+{
+  return (void*) -2;
+}
+
 - nextObjectWithEnumState: (void**)enumState
 {
-  id ret;
-  /* *(unsigned*)enumState is the index of the element that will be returned */
-  if ([self isEmpty]
-      || (*(unsigned*)enumState) > [self count]-1)
+  /* *(int*)enumState is the index of the element that was returned
+     last time -prevObjectWithEnumState: or -nextObjectWithEnumState
+     was called.  In -newEnumState, *(int*)enumState is initialized to
+     -2. */
+
+  /* If there are not objects in this collection, or we are being
+     asked for the object after the last object, return nil. */
+  if ([self isEmpty] || (*(int*)enumState) > [self count]-1)
     return NO_OBJECT;
-  ret = [self objectAtIndex:(*(unsigned*)enumState)];
-  *(unsigned*)enumState = *(unsigned*)enumState + 1;
-  return ret;
+
+  if (*(int*)enumState == -2)
+    /* enumState was just initialized by -newEnumState, start
+       at the beginning of the sequence. */
+    *(int*)enumState = 0;
+  else
+    /* ...otherwise go the next index. */
+    (*(int*)enumState)++;
+
+  return [self objectAtIndex:(*(unsigned*)enumState)];
 }
 
 /* is this what we want? */
@@ -334,7 +367,7 @@
 
 // REPLACING;
 
-- replaceObjectAtIndex: (unsigned)index withObject: newObject
+- (void) replaceObjectAtIndex: (unsigned)index withObject: newObject
 {
   [self subclassResponsibility: _cmd];
 }
@@ -359,7 +392,7 @@
 
 - (void) removeRange: (IndexRange)aRange
 {
-  int count;
+  int count = aRange.length;
 
   CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
   CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
