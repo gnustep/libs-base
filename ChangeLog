@@ -1,5 +1,9 @@
 2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
 
+	* Tools/gsdoc.gsdoc: aded examples on how to use AutoDoc and GSDoc.
+	
+2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
+
 	* Tools/GNUmakefile: added DocTemplates
 	* Tools/Makefile.postamble: added DocTemplates
 	* Tools/indextemplate.gsdoc: New file. Use it as template for 
