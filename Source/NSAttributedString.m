@@ -121,7 +121,12 @@ static Class NSMutableAttributedString_concrete_class;
 //NSCopying protocol
 - copyWithZone: (NSZone*)zone
 {
-  return [[[self class] allocWithZone:zone] initWithAttributedString:self];
+  if ([self isKindOfClass: [NSMutableAttributedString class]] ||
+        NSShouldRetainWithZone(self, zone) == NO)
+    return [[[[self class] _concreteClass] allocWithZone:zone]
+        initWithAttributedString:self];
+  else
+    return [self retain];
 }
 
 //NSMutableCopying protocol
@@ -331,6 +336,16 @@ static Class NSMutableAttributedString_concrete_class;
   }
   return result;
 }
+
+- (BOOL) isEqual: (id)anObject
+{
+  if (anObject == self)
+    return YES;
+  if ([anObject isKindOf:[NSAttributedString class]])
+    return [self isEqualToAttributedString:anObject];
+  return NO;
+}
+
 
 //Extracting a substring
 - (NSAttributedString *)attributedSubstringFromRange:(NSRange)aRange
