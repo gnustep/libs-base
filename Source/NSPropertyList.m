@@ -38,6 +38,7 @@
 #include "Foundation/NSPropertyList.h"
 #include "Foundation/NSSerialization.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSTimeZone.h"
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
@@ -962,8 +963,16 @@ nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
 	    {
 	      content = @"";
 	    }
-	  result = [NSCalendarDate dateWithString: content
-				   calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
+	  if ([content hasSuffix: @"Z"] == YES && [content length] == 20)
+	    {
+	      result = [NSCalendarDate dateWithString: content
+				       calendarFormat: @"%Y-%m-%dT%H:%M:%SZ"];
+	    }
+	  else
+	    {
+	      result = [NSCalendarDate dateWithString: content
+				       calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
+	    }
 	}
       else if ([name isEqualToString: @"data"])
 	{
@@ -1653,11 +1662,17 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else if ([obj isKindOfClass: [NSDate class]])
     {
+      static NSTimeZone	*z = nil;
+
+      if (z == nil)
+	{
+	  z = RETAIN([NSTimeZone timeZoneForSecondsFromGMT: 0]);
+	}
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
 	  [dest appendBytes: "<date>" length: 6];
-	  obj = [obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
-	    timeZone: nil locale: nil];
+	  obj = [obj descriptionWithCalendarFormat: @"%Y-%m-%dT%H:%M:%SZ"
+	    timeZone: z locale: nil];
 	  obj = [obj dataUsingEncoding: NSASCIIStringEncoding];
 	  [dest appendData: obj];
 	  [dest appendBytes: "</date>\n" length: 8];
@@ -1666,7 +1681,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  [dest appendBytes: "<*D" length: 3];
 	  obj = [obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
-	    timeZone: nil locale: nil];
+	    timeZone: z locale: nil];
 	  obj = [obj dataUsingEncoding: NSASCIIStringEncoding];
 	  [dest appendData: obj];
 	  [dest appendBytes: ">" length: 1];
@@ -1674,7 +1689,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       else
 	{
 	  obj = [obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
-	    timeZone: nil locale: nil];
+	    timeZone: z locale: nil];
 	  PString(obj, dest);
 	}
     }
