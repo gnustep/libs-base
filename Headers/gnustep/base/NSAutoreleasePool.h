@@ -32,7 +32,7 @@
 
 /* Each thread has its own copy of these variables.
    A pointer to this structure is an ivar of NSThread. */
-struct autorelease_thread_vars
+typedef struct autorelease_thread_vars
 {
   /* The current, default NSAutoreleasePool for the calling thread;
      the one that will hold objects that are arguments to
@@ -49,7 +49,7 @@ struct autorelease_thread_vars
   id *pool_cache;
   int pool_cache_size;
   int pool_cache_count;
-};
+} thread_vars_struct;
 
 /* Initialize an autorelease_thread_vars structure for a new thread.
    This function is called in NSThread each time an NSThread is created.
@@ -60,13 +60,13 @@ struct autorelease_thread_vars
 
 /* Each pool holds its objects-to-be-released in a linked-list of 
    these structures. */
-struct autorelease_array_list
+typedef struct autorelease_array_list
 {
   struct autorelease_array_list *next;
   unsigned size;
   unsigned count;
   id objects[0];
-};
+} array_list_struct;
 
 
 @interface NSAutoreleasePool : NSObject 

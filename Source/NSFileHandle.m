@@ -38,6 +38,18 @@
 #include <Foundation/UnixFileHandle.h>
 #endif
 
+// GNUstep Notification names
+
+NSString * const GSFileHandleConnectCompletionNotification
+  = @"GSFileHandleConnectCompletionNotification";
+NSString * const GSFileHandleWriteCompletionNotification
+  = @"GSFileHandleWriteCompletionNotification";
+
+// GNUstep key for getting error message.
+
+NSString * const GSFileHandleNotificationError
+  = @"GSFileHandleNotificationError";
+
 static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
 static Class NSFileHandle_ssl_class = nil;
@@ -269,28 +281,28 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Keys for accessing userInfo dictionary in notification handlers.
 
-NSString*	NSFileHandleNotificationDataItem =
-		@"NSFileHandleNotificationDataItem";
-NSString*	NSFileHandleNotificationFileHandleItem =
-		@"NSFileHandleNotificationFileHandleItem";
-NSString*	NSFileHandleNotificationMonitorModes =
-		@"NSFileHandleNotificationMonitorModes";
+NSString * const NSFileHandleNotificationDataItem
+  = @"NSFileHandleNotificationDataItem";
+NSString * const NSFileHandleNotificationFileHandleItem
+  = @"NSFileHandleNotificationFileHandleItem";
+NSString * const NSFileHandleNotificationMonitorModes
+  = @"NSFileHandleNotificationMonitorModes";
 
 // Notification names
 
-NSString*	NSFileHandleConnectionAcceptedNotification =
-		@"NSFileHandleConnectionAcceptedNotification";
-NSString*	NSFileHandleDataAvailableNotification =
-		@"NSFileHandleDataAvailableNotification";
-NSString*	NSFileHandleReadCompletionNotification =
-		@"NSFileHandleReadCompletionNotification";
-NSString*	NSFileHandleReadToEndOfFileCompletionNotification =
-		@"NSFileHandleReadToEndOfFileCompletionNotification";
+NSString * const NSFileHandleConnectionAcceptedNotification
+  = @"NSFileHandleConnectionAcceptedNotification";
+NSString * const NSFileHandleDataAvailableNotification
+  = @"NSFileHandleDataAvailableNotification";
+NSString * const NSFileHandleReadCompletionNotification
+  = @"NSFileHandleReadCompletionNotification";
+NSString * const NSFileHandleReadToEndOfFileCompletionNotification
+  = @"NSFileHandleReadToEndOfFileCompletionNotification";
 
 // Exceptions
 
-NSString*	NSFileHandleOperationException =
-		@"NSFileHandleOperationException";
+NSString * const NSFileHandleOperationException
+  = @"NSFileHandleOperationException";
 
 
 // GNUstep class extensions
@@ -344,23 +356,6 @@ NSString*	NSFileHandleOperationException =
 				     protocol: protocol]);
 }
 
-+ (Class) sslClass
-{
-  if (NSFileHandle_ssl_class == 0)
-    {
-      NSBundle	*bundle;
-      NSString	*path;
-
-      path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-	NSSystemDomainMask, NO) lastObject];
-      path = [path stringByAppendingPathComponent: @"Bundles"];
-      path = [path stringByAppendingPathComponent: @"SSL.bundle"];
-      bundle = [NSBundle bundleWithPath: path];
-      NSFileHandle_ssl_class = [bundle principalClass];
-    }
-  return NSFileHandle_ssl_class;
-}
-
 - (BOOL) readInProgress
 {
   [self subclassResponsibility: _cmd];
@@ -403,16 +398,38 @@ NSString*	NSFileHandleOperationException =
   return NO;
 }
 
-// GNUstep Notification names
+@end
 
-NSString*	GSFileHandleConnectCompletionNotification =
-		@"GSFileHandleConnectCompletionNotification";
-NSString*	GSFileHandleWriteCompletionNotification =
-		@"GSFileHandleWriteCompletionNotification";
+@implementation NSFileHandle (GNUstepOpenSSL)
++ (Class) sslClass
+{
+  if (NSFileHandle_ssl_class == 0)
+    {
+      NSBundle	*bundle;
+      NSString	*path;
 
-// GNUstep key for getting error message.
+      path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	NSSystemDomainMask, NO) lastObject];
+      path = [path stringByAppendingPathComponent: @"Bundles"];
+      path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+      bundle = [NSBundle bundleWithPath: path];
+      NSFileHandle_ssl_class = [bundle principalClass];
+    }
+  return NSFileHandle_ssl_class;
+}
 
-NSString*	GSFileHandleNotificationError =
-		@"GSFileHandleNotificationError";
+- (BOOL) sslConnect
+{
+  return NO;
+}
+
+- (void) sslDisconnect
+{
+}
+- (void) sslSetCertificate: (NSString*)certFile
+                privateKey: (NSString*)privateKey
+                 PEMpasswd: (NSString*)PEMpasswd
+{
+}
 @end
 

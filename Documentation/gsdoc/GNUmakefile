@@ -77,7 +77,6 @@ Base_GSDOC_FILES = Base.gsdoc \
 	NSNull.gsdoc \
 	NSNumber.gsdoc \
 	NSNumberFormatter.gsdoc \
-	NSObject.gsdoc \
 	NSPort.gsdoc \
 	NSPortCoder.gsdoc \
 	NSPortMessage.gsdoc \
@@ -95,23 +94,11 @@ Base_GSDOC_FILES = Base.gsdoc \
 	NSThread.gsdoc \
 	NSTimeZone.gsdoc \
 	NSTimer.gsdoc \
-	NSURL.gsdoc \
-	NSURLHandle.gsdoc \
 	NSUnarchiver.gsdoc \
 	NSUndoManager.gsdoc \
 	NSUserDefaults.gsdoc \
 	NSValue.gsdoc \
-	NSFunctions.gsdoc \
-	GSMime.gsdoc \
-	GSMimeDocument.gsdoc \
-	GSMimeParser.gsdoc \
-	GSXML.gsdoc \
-	GSSAXHandler.gsdoc \
-	GSXMLAttribute.gsdoc \
-	GSXMLDocument.gsdoc \
-	GSXMLNamespace.gsdoc \
-	GSXMLNode.gsdoc \
-	GSXMLParser.gsdoc
+	NSFunctions.gsdoc
 
 Base_DOC_INSTALL_DIR = Developer/Base/Reference
 

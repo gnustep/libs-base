@@ -2,6 +2,29 @@
 
 	* Source/NSLog.m: patch by Jeff Teunissen to avoid adding date/time
 	info when using syslog.
+	* Source/NSURL.m: Fix loading codde to set self as client of handle.
+	* Tools/AGSParser.m: Fix to avoid warnings about unimplemented protocols
+	* Headers/gnustep/base/GSXML.h:
+	* Headers/gnustep/base/NSArchiver.h:
+	* Headers/gnustep/base/NSAutoreleasePool.h:
+	* Headers/gnustep/base/NSCoder.h:
+	* Headers/gnustep/base/NSDictionary.h:
+	* Headers/gnustep/base/NSFileHandle.h:
+	* Headers/gnustep/base/NSNotification.h:
+	* Headers/gnustep/base/NSRunLoop.h:
+	* Headers/gnustep/base/NSURL.h:
+	* Headers/gnustep/base/NSURLHandle.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSArray.m:
+	* Source/NSCoder.m:
+	* Source/NSFileHandle.m:
+	* Source/NSNotification.m:
+	* Source/NSRunLoop.m:
+	* Source/NSURLHandle.m:
+	* Source/NSUnarchiver.m:
+	* Source/externs.m:
+	* Source/Additions/GSXML.m:
+	Tidied for documentation purposes ... no substantial code changes
 
 Wed Jun  5 17:46:47 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 

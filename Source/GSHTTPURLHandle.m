@@ -1,9 +1,9 @@
 /** GSHTTPURLHandle.m - Class GSHTTPURLHandle
    Copyright (C) 2000 Free Software Foundation, Inc.
    
-   Written by: 	Mark Allison <mark@brainstorm.co.uk>
-   Integrated:	Richard Frith-Macdonald <rfm@gnu.org>
-   Date:	November 2000 		
+   Written by: 		Mark Allison <mark@brainstorm.co.uk>
+   Integrated by:	Richard Frith-Macdonald <rfm@gnu.org>
+   Date:		November 2000 		
    
    This file is part of the GNUstep Library.
    
@@ -82,7 +82,86 @@ char emp[64] = {
 - (void) setDebug: (BOOL)flag;
 @end
 
-
+/**
+ * <p>
+ *   This is a <em>PRIVATE</em> subclass of NSURLHandle.
+ *   It is documented here in order to give you information about the
+ *   default behavior of an NSURLHandle created to deal with a URL
+ *   that has either the <code>http</code> or <code>https</code> scheme.
+ *   The name and/or other implementation details of this class
+ *   may be changed at any time.
+ * </p>
+ * <p>
+ *   A GSHTTPURLHandle instance is used to manage connections to
+ *   <code>http</code> and <code>https</code> URLs.
+ *    Secure connections are handled automatically
+ *   (using openSSL) for URLs with the scheme <code>https</code>.
+ *   Connection via proxy server is supported, as is proxy tunneling
+ *   for secure connections.  Basic parsing of <code>http</code>
+ *   headers is performed to extract <code>http</code> status
+ *   information, cookies etc.  Cookies are
+ *   retained and automatically sent during subsequent requests where
+ *   the cookie is valid.
+ * </p>
+ * <p>
+ *   Header information from the current page may be obtained using
+ *   -propertyForKey and -propertyForKeyIfAvailable.  <code>HTTP</code>
+ *   status information can be retrieved as by calling either of these 
+ *   methods specifying one of the following keys:
+ * </p>
+ * <list>
+ *   <item>
+ *     NSHTTPPropertyStatusCodeKey - numeric status code
+ *   </item>
+ *   <item>
+ *     NSHTTPPropertyStatusReasonKey - text describing status
+ *   </item>
+ *   <item>
+ *     NSHTTPPropertyServerHTTPVersionKey - <code>http</code>
+ *     version supported by remote server
+ *   </item>
+ * </list>
+ * <p>
+ *   According to MacOS-X headers, the following should also
+ *   be supported, but currently are not:
+ * </p>
+ * <list>
+ *   <item>NSHTTPPropertyRedirectionHeadersKey</item>
+ *   <item>NSHTTPPropertyErrorPageDataKey</item>
+ * </list>
+ * <p>
+ *   The omission of these headers is not viewed as important at
+ *   present, since the MacOS-X public beta implementation doesn't
+ *   work either.
+ * </p>
+ * <p>
+ *   Other calls to -propertyForKey and -propertyForKeyIfAvailable may
+ *   be made specifying a <code>http</code> header field name.
+ *   For example specifying a key name of &quot;Content-Length&quot;
+ *   would return the value of the &quot;Content-Length&quot; header
+ *   field.
+ * </p>
+ * <p>
+ *   [GSHTTPURLHandle-writeProperty:forKey:]
+ *   can be used to specify the parameters
+ *   for the <code>http</code> request.  The default request uses the
+ *   &quot;GET&quot; method when fetching a page, and the
+ *   &quot;POST&quot; method when using -writeData:.
+ *   This can be over-ridden by calling -writeProperty:forKey: with
+ *   the key name &quot;GSHTTPPropertyMethodKey&quot; and specifying an 
+ *   alternative method (i.e &quot;PUT&quot;).
+ * </p>
+ * <p>
+ *   A Proxy may be specified by calling -writeProperty:forKey:
+ *   with the keys &quot;GSHTTPPropertyProxyHostKey&quot; and
+ *   &quot;GSHTTPPropertyProxyPortKey&quot; to set the host and port
+ *   of the proxy server respectively.  The GSHTTPPropertyProxyHostKey
+ *   property can be set to either the IP address or the hostname of
+ *   the proxy server.  If an attempt is made to load a page via a
+ *   secure connection when a proxy is specified, GSHTTPURLHandle will
+ *   attempt to open an SSL Tunnel through the proxy.
+ * </p>
+ */
 @implementation GSHTTPURLHandle
 
 static NSMutableDictionary	*urlCache = nil;
@@ -715,6 +794,30 @@ static void debugWrite(NSData *data)
     }
 }
 
+/**
+ *  If necessary, this method calls -loadInForeground to send a
+ *  request to the webserver, and get a page back.  It then returns
+ *  the property for the specified key -
+ * <list>
+ *   <item>
+ *     NSHTTPPropertyStatusCodeKey - numeric status code returned
+ *     by the last request.
+ *   </item>
+ *   <item>
+ *     NSHTTPPropertyStatusReasonKey - text describing status of
+ *     the last request
+ *   </item>
+ *   <item>
+ *     NSHTTPPropertyServerHTTPVersionKey - <code>http</code>
+ *     version supported by remote server
+ *   </item>
+ *   <item>
+ *     Other keys are taken to be the names of <code>http</code>
+ *     headers and the corresponding header value (or nil if there
+ *     is none) is returned.
+ *   </item>
+ * </list>
+ */
 - (id) propertyForKey: (NSString*) propertyKey
 {
   if (document == nil)
@@ -761,12 +864,44 @@ static void debugWrite(NSData *data)
   debug = flag;
 }
 
+/**
+ * Writes the specified data as the body of an <code>http</code>
+ * or <code>https</code> request to the web server.
+ * Returns YES on success,
+ * NO on failure.  By default, this method performs a POST operation.
+ * On completion, the resource data for this handle is set to the
+ * page returned by the request.
+ */
 - (BOOL) writeData: (NSData*)d
 {
   ASSIGN(wData, d);
   return YES;
 }
 
+/**
+ * Sets a property to be used in the next request made by this handle.
+ * The property is set as a header in the next request, unless it is
+ * one of the following -
+ * <list>
+ *   <item>
+ *     GSHTTPPropertyBodyKey - set an NSData item to be sent to
+ *     the server as the body of the request.
+ *   </item>
+ *   <item>
+ *     GSHTTPPropertyMethodKey - override the default method of
+ *     the request (eg. &quot;PUT&quot;).
+ *   </item>
+ *   <item>
+ *     GSHTTPPropertyProxyHostKey - specify the name or IP address
+ *     of a host to proxy through.
+ *   </item>
+ *   <item>
+ *     GSHTTPPropertyProxyPortKey - specify the port number to 
+ *     connect to on the proxy host.  If not give, this defaults
+ *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
+ *   </item>
+ * </list>
+ */
 - (BOOL) writeProperty: (id) property forKey: (NSString*) propertyKey
 {
   if (propertyKey == nil || [propertyKey isKindOfClass: [NSString class]] == NO)

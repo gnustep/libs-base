@@ -3,8 +3,8 @@
    
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 	Jan 1999
-   Update:	Richard Frith-Macdonald <rfm@gnu.org>
-   Date:	Sep 2000
+   Updaten by:	Richard Frith-Macdonald <rfm@gnu.org>
+   Date:	Sep 2000, June 2002
    
    This file is part of the GNUstep Library.
    
@@ -43,12 +43,71 @@
 @class	GSFileURLHandle;
 @class	GSHTTPURLHandle;
 
+/*
+ * Keys for NSURLHandle
+ */
+NSString * const NSHTTPPropertyStatusCodeKey
+  = "@NSHTTPPropertyStatusCodeKey";
+
+NSString * const NSHTTPPropertyStatusReasonKey
+  = @"NSHTTPPropertyStatusReasonKey";
+
+NSString * const NSHTTPPropertyServerHTTPVersionKey
+  = @"NSHTTPPropertyServerHTTPVersionKey";
+ 
+NSString * const NSHTTPPropertyRedirectionHeadersKey
+  = @"NSHTTPPropertyRedirectionHeadersKey";
+
+NSString * const NSHTTPPropertyErrorPageDataKey
+  = @"NSHTTPPropertyErrorPageDataKey";
+ 
+/* These are GNUstep extras */
+NSString * const GSHTTPPropertyMethodKey
+  = @"GSHTTPPropertyMethodKey";
+
+NSString * const GSHTTPPropertyProxyHostKey
+  = @"GSHTTPPropertyProxyHostKey";
+
+NSString * const GSHTTPPropertyProxyPortKey
+  = @"GSHTTPPropertyProxyPortKey";
+ 
+
+/**
+ * <p>
+ *   An NSURLHandle instance is used to manage the resource data
+ *   corresponding to an NSURL object. A single NSURLHandle can
+ *   be used to manage multiple NSURL objects as long as those
+ *   objects all refer to the same resource.
+ * </p>
+ * <p>
+ *   Different NSURLHandle subclasses are used to manage different
+ *   types of URL (usually based on the scheme of the URL), and you
+ *   can register new subclasses to extend (or replace) the
+ *   standard ones.
+ * </p>
+ * <p>
+ *   GNUstep comes with private subclasses to handle the common
+ *   URL schemes -
+ * </p>
+ * <list>
+ *   <item>
+ *     <code>file:</code> (local file I/O)
+ *   </item>
+ *   <item>
+ *     <code>http:</code> and <code>shttp:</code> (webserver) access.
+ *   </item>
+ * </list>
+ */
 @implementation NSURLHandle
 
 static NSLock		*registryLock = nil;
 static NSMutableArray	*registry = nil;
 static Class		NSURLHandleClass = 0;
 
+/**
+ * Return a handle for the specified URL from the cache if possible.
+ * If the cache does not contain a matching handle, returns nil.
+ */
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url
 {
   /*
@@ -75,6 +134,11 @@ static Class		NSURLHandleClass = 0;
     }
 }
 
+/** <override-subclass />
+ * Implemented by subclasses to say which URLs they can handle.
+ * This method is used to determine which subclasses can be used
+ * to handle a particular URL.
+ */
 + (BOOL) canInitWithURL: (NSURL*)url
 {
   /*
@@ -95,6 +159,9 @@ static Class		NSURLHandleClass = 0;
     }
 }
 
+/**
+ * Used to register a subclass as being available to handle URLs.
+ */
 + (void) registerURLHandleClass: (Class)urlHandleSubclass
 {
   /*
@@ -117,6 +184,11 @@ static Class		NSURLHandleClass = 0;
   [registryLock unlock];
 }
 
+/**
+ * Returns the most recently registered NSURLHandle subclass that
+ * responds to -canInitWithURL: with YES.
+ * If there is no such subclass, returns nil.
+ */
 + (Class) URLHandleClassForURL: (NSURL*)url
 {
   unsigned	count;
@@ -151,8 +223,9 @@ static Class		NSURLHandleClass = 0;
   return c;
 }
 
-/*
- * Add a client object, making sure that it doesn't occur more than once.
+/**
+ * Add a client object, making sure that it doesn't occur more than once.<br />
+ * The client object will receive messages notifying it of events on the handle.
  */
 - (void) addClient: (id <NSURLHandleClient>)client
 {
@@ -162,6 +235,11 @@ static Class		NSURLHandleClass = 0;
   RELEASE((id)client);
 }
 
+/**
+ * Returns the resource data that is currently available for the
+ * handle.  This may be a partially loaded resource or may be
+ * empty of no data has been loaded yet.
+ */
 - (NSData*) availableResourceData
 {
   if (_status == NSURLHandleLoadInProgress)
@@ -171,6 +249,12 @@ static Class		NSURLHandleClass = 0;
   return _data;
 }
 
+/**
+ * This method should be called when a background load fails.<br />
+ * The method passes the failure notification to the clients of
+ * the handle - so subclasses should call super's implementation
+ * at the end of their implementation of this method.
+ */
 - (void) backgroundLoadDidFailWithReason: (NSString*)reason
 {
   NSEnumerator			*enumerator = [_clients objectEnumerator];
@@ -186,6 +270,11 @@ static Class		NSURLHandleClass = 0;
     }
 }
 
+/**
+ * This method is called by when a background load begins.
+ * Subclasses should call super's implementation at
+ * the end of their implementation of this method.
+ */
 - (void) beginLoadInBackground
 {
   _status = NSURLHandleLoadInProgress;
@@ -196,6 +285,12 @@ static Class		NSURLHandleClass = 0;
     withObject: self];
 }
 
+/**
+ * This method should be called to cancel a load currently in
+ * progress.  The method calls -endLoadInBackground
+ * Subclasses should call super's implementation at
+ * the end of their implementation of this method.
+ */
 - (void) cancelLoadInBackground
 {
   [_clients makeObjectsPerformSelector:
@@ -212,8 +307,8 @@ static Class		NSURLHandleClass = 0;
   [super dealloc];
 }
 
-/*
- * Mathod called by subclasses during process of loading a resource.
+/**
+ * Method called by subclasses during process of loading a resource.
  * The base class maintains a copy of the data being read in and
  * accumulates separate parts of the data.
  */
@@ -276,12 +371,22 @@ static Class		NSURLHandleClass = 0;
     }
 }
 
+/**
+ * This method is called to stop any background loading process.
+ * -cancelLoadInBackground uses this method to cancel loading.
+ * Subclasses should call super's implementation at
+ * the end of their implementation of this method.
+ */
 - (void) endLoadInBackground
 {
   _status = NSURLHandleNotLoaded;
   DESTROY(_data);
 }
 
+/**
+ * Returns the failure reason for the last failure to load
+ * the resource data.
+ */
 - (NSString*) failureReason
 {
   if (_status == NSURLHandleLoadFailed)
@@ -290,6 +395,9 @@ static Class		NSURLHandleClass = 0;
     return nil;
 }
 
+/**
+ * Flushes any cached resource data.
+ */
 - (void) flushCachedData
 {
   DESTROY(_data);
@@ -300,6 +408,11 @@ static Class		NSURLHandleClass = 0;
   return [self initWithURL: nil cached: NO];
 }
 
+/** <init />
+ * Initialises a handle with the specified URL.<br />
+ * The flag determines whether the handle will cache resource data
+ * and respond to requests from equivalent URLs for the cached data.
+ */
 - (id) initWithURL: (NSURL*)url
 	    cached: (BOOL)cached
 {
@@ -308,8 +421,10 @@ static Class		NSURLHandleClass = 0;
   return self;
 }
 
-/*
- * Do a background load by using loadInForeground -
+/**
+ * Starts (or queues) loading of the handle's resource data
+ * in the background (asynchronously).<br />
+ * The default implementation uses loadInForeground -
  * if this method is not overridden, loadInForeground MUST be.
  */
 - (void) loadInBackground
@@ -328,8 +443,10 @@ static Class		NSURLHandleClass = 0;
     }
 }
 
-/*
- * Do a foreground load by using loadInBackground -
+/**
+ * Loads the handle's resource data in the foreground (synchronously).<br />
+ * The default implementation starts a background load and waits for
+ * it to complete -
  * if this method is not overridden, loadInBackground MUST be.
  */
 - (NSData*) loadInForeground
@@ -348,23 +465,39 @@ static Class		NSURLHandleClass = 0;
   return _data;
 }
 
+/** <override-subclass />
+ * Returns the property for the specified key, or nil if the
+ * key does not exist.
+ */
 - (id) propertyForKey: (NSString*)propertyKey
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/** <override-subclass />
+ * Returns the property for the specified key, but only if the
+ * handle does not need to do any work to retrieve it.
+ */
 - (id) propertyForKeyIfAvailable: (NSString*)propertyKey
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ * Removes an object from them list of clients notified of
+ * resource loading events by the URL handle.
+ */
 - (void) removeClient: (id <NSURLHandleClient>)client
 {
   [_clients removeObjectIdenticalTo: client];
 }
 
+/**
+ * Returns the resource data belonging to the handler.
+ * Calls -loadInForeground if necessary.
+ */
 - (NSData*) resourceData
 {
   if (_status == NSURLHandleLoadSucceeded)
@@ -387,17 +520,42 @@ static Class		NSURLHandleClass = 0;
     }
 }
 
+/**
+ * Returns the current status of the handle.
+ */
 - (NSURLHandleStatus) status
 {
   return _status;
 }
 
+/**
+ * <p>
+ *   Writes resource data to the handle.  Returns YES on success,
+ *   NO on failure.
+ * </p>
+ * <p>
+ *   The GNUstep implementation for HTTP/HTTPS sets the specified data as
+ *   information to be POSTed to the URL next time it is loaded.
+ * </p>
+ */
 - (BOOL) writeData: (NSData*)data
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
+/**
+ * <p>
+ *   Sets a property for handle.
+ *   Returns YES on success, NO on failure.
+ * </p>
+ * <p>
+ *   The GNUstep implementation sets the property as a header
+ *   to be sent the next time the URL is loaded, and recognizes
+ *   some special property keys which control the behavior of
+ *   the next load.
+ * </p>
+ */
 - (BOOL) writeProperty: (id)propertyValue
 		forKey: (NSString*)propertyKey
 {
@@ -414,6 +572,19 @@ static Class		NSURLHandleClass = 0;
 }
 @end
 
+/**
+ * <p>
+ *   This is a <em>PRIVATE</em> subclass of NSURLHandle.
+ *   It is documented here in order to give you information about the
+ *   default behavior of an NSURLHandle created to deal with a URL
+ *   that has the FILE scheme.  The name and/or other
+ *   implementation details of this class may be changed at any time.
+ * </p>
+ * <p>
+ *   A GSFileURLHandle instance is used to manage files on the local
+ *   file-system of your machine.
+ * </p>
+ */
 @implementation	GSFileURLHandle
 
 static NSMutableDictionary	*fileCache = nil;
@@ -538,6 +709,11 @@ static NSLock			*fileLock = nil;
   return d;
 }
 
+/**
+ * Gets file attribute information for the file represented by
+ * the handle, using the same dictionary keys as the
+ * <ref class="NSFileManager">NSFileManager</ref> class.
+ */
 - (id) propertyForKey: (NSString*)propertyKey
 {
   NSDictionary	*dict;
@@ -554,6 +730,10 @@ static NSLock			*fileLock = nil;
   return [_attributes objectForKey: propertyKey];
 }
 
+/**
+ * Writes the specified data as the contents of the file
+ * represented by the handle.
+ */
 - (BOOL) writeData: (NSData*)data
 {
   if ([data writeToFile: _path atomically: YES] == YES)
@@ -564,6 +744,11 @@ static NSLock			*fileLock = nil;
   return NO;
 }
 
+/**
+ * Changes the attributes of the file represented by this handle.
+ * This method uses the same dictionary keys as the
+ * <ref class="NSFileManager">NSFileManger</ref> class.
+ */
 - (BOOL) writeProperty: (id)propertyValue
 		forKey: (NSString*)propertyKey
 {

@@ -196,10 +196,8 @@
 + (GSSAXHandler*) handler;
 - (void*) lib;
 - (GSXMLParser*) parser;
-@end
 
-@interface GSSAXHandler (Callbacks)
-
+/* callbacks ... */
 - (void) attribute: (NSString*)name
 	     value: (NSString*)value;
 - (void) attributeDecl: (NSString*)nameElement
@@ -243,7 +241,7 @@
                systemID: (NSString*)systemID;
 - (int) isStandalone;
 - (NSString*) loadEntity: (NSString*)publicId
-		      at: (NSString*)locationURL;
+		      at: (NSString*)location;
 - (void) namespaceDecl: (NSString*)name
 		  href: (NSString*)href
 		prefix: (NSString*)prefix;
