@@ -15,9 +15,17 @@ print_string(NSString* s)
 int main()
 {
   id s = @"This is a test string";
-  id s2;
+  id s2, s3;
 
   print_string(s);
+
+  s2 = [s copy];
+  print_string(s2);
+  s3 = [s2 mutableCopy];
+  [s2 release];
+  s2 = [s3 copy];
+  [s3 release];
+  [s2 release];
 
   s2 = [s copyWithZone: NS_NOZONE];
   print_string(s2);
