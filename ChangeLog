@@ -10,6 +10,8 @@
 	* Source/NSObject.m: ([+initialize]) call GSSetLocaleC() after other
 	initialisation, to try to ensure that locale stuff is set up early
 	before any attempt is made to use locale dependent code.
+	* Source/NSString.m: ([-stringByExpandingTildeInPath:]) fix suggested
+	by David Wetzel.
 
 2001-04-22  Nicola Pero  <n.pero@mi.flashnet.it>
 

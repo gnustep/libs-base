@@ -2551,14 +2551,19 @@ handle_printf_atsign (FILE *stream,
   if (first_slash_range.location != 1)
     {
       /* It is of the form `~username/blah/...' */
-      int uname_len;
-      NSString *uname;
+      int	uname_len;
+      NSString	*uname;
 
       if (first_slash_range.length != 0)
-	uname_len = first_slash_range.length - 1;
+	{
+	  uname_len = first_slash_range.length - 1;
+	}
       else
-	/* It is actually of the form `~username' */
-	uname_len = [self length] - 1;
+	{
+	  /* It is actually of the form `~username' */
+	  uname_len = [self length] - 1;
+	  first_slash_range.location = [self length];
+	}
       uname = [self substringWithRange: ((NSRange){1, uname_len})];
       homedir = NSHomeDirectoryForUser (uname);
     }
