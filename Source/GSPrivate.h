@@ -76,7 +76,8 @@ GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Should free memory?
+    unsigned int	free: 1;	// Set if the instance owns the
+					// _contents buffer
     unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
