@@ -49,7 +49,8 @@
 - nextObject
 {
   id k;
-  return [dictionary nextObjectAndKey: &k withEnumState: &enum_state];
+  [dictionary nextObjectAndKey: &k withEnumState: &enum_state];
+  return k;
 }
 
 - (void) dealloc
@@ -80,7 +81,14 @@
 + (void) initialize
 {
   if (self == [NSGDictionary class])
-    class_add_behavior([NSGDictionary class], [Dictionary class]);
+    behavior_class_add_class (self, [Dictionary class]);
+}
+
+- objectForKey: aKey
+{
+  /* xxx Should I change the method name in Dictionary?
+     I don't really want to; I think "at" is better. */
+  return [self objectAtKey: aKey];
 }
 
 /* 
@@ -99,12 +107,8 @@
 
 + (void) initialize
 {
-  static int done = 0;
-  if (!done)
-    {
-      done = 1;
-      class_add_behavior([NSGMutableDictionary class], [NSGDictionary class]);
-    }
+  if (self == [NSGMutableDictionary class])
+    behavior_class_add_class (self, [NSGDictionary class]);
 }
 
 /* This is the designated initializer */
@@ -115,13 +119,6 @@
 - (void) setObject:anObject forKey:(NSString *)aKey
 {
   [self putObject: anObject atKey: aKey];
-}
-
-- objectForKey: aKey
-{
-  /* xxx Should I change the method name in Dictionary?
-     I don't really want to; I think "at" is better. */
-  return [self objectAtKey: aKey];
 }
 
 - (void) removeObjectForKey:(NSString *)aKey
