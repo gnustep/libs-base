@@ -4,7 +4,7 @@
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
    Updated by:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Date: 1997
+   Date: 1998
    
    This file is part of the GNUstep Base Library.
 
@@ -38,27 +38,22 @@
 		  intoData: (NSMutableData*)data;
 @end
 
-@interface NSSerializer: NSObject <NSObjCTypeSerializationCallBack>
-{
-}
+@interface NSSerializer: NSObject
 + (NSData*) serializePropertyList: (id)propertyList;
 + (void) serializePropertyList: (id)propertyList
 		      intoData: (NSMutableData*)d;
 @end
 
-@interface NSDeserializer: NSObject <NSObjCTypeSerializationCallBack>
-{
-    BOOL	mutableContainer;
-}
+@interface NSDeserializer: NSObject
 + (id) deserializePropertyListFromData: (NSData*)data
 			      atCursor: (unsigned int*)cursor
 		     mutableContainers: (BOOL)flag;
 + (id) deserializePropertyListFromData: (NSData*)data
 		     mutableContainers: (BOOL)flag;
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
-			      atCursor: (unsigned*)cursor
-			        length: (unsigned)length
-		     mutableContainers: (BOOL)flag;
+				    atCursor: (unsigned*)cursor
+				      length: (unsigned)length
+			   mutableContainers: (BOOL)flag;
 
 @end
 

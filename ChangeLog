@@ -1,3 +1,11 @@
+Thu Nov 19 16:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/include/NSSerializer.h: Removed erroneous protocol conformance
+	for NSSerializer and NSDeserializer.
+	* src/NSSerializer.m: Complete rewrite - full OpenStep compatibility
+	and huge speed increase.
+	* doc/todo.tmpl.texi: Update todo list.
+
 Thu Nov 19 12:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSData.m: ([-encodeWithCoder:]) bugfix for case where data object

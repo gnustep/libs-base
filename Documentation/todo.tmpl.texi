@@ -12,16 +12,11 @@
 
 @item Implement Formatter classes (NSDateFormatter, etc) [5] (980722).
 
+@item Implement NSDecimalNumber stuff [5] (981119).
+
 @item Check that every class implements coding (correctly). [2, NSCoder] (980721).
 
 @item Check that every class implements copying (correctly) - i.e. non-mutable classes should just retain, etc. [1, NSCopying] (980721).
-
-@item   Implement [NSDeserializer +deserializePropertyListLazilyFromData:atCursor:length:mutableContainers:]
-[3 NSProxy]  (980712)
-
-@item   Implement [NSDeserialiser - deserializeObjectAt:ofObjCType:fromData:atCursor:] [1] (980712)
-
-@item   Implement [NSSerialiser - serializeObjectAt:ofObjCType:fromData:] [1] (980712)
 
 @item   Improve initWithFormat releated methods for NSString and find out how to implemente the locale stuff [4 OPENSTEP/Rhapsody]  (980712)
 
@@ -41,7 +36,7 @@ an exception. [4, exceptions, threads] (980220)
 
 @item Fix all the places marked FIXME or xxx. [3-9] (980629)
 
-@item Write tests for various classes using the testsuite build
+@item Write tests for various classes using the testsuite built
 by Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}. Contact
 him for details. [3, guile] (980629)
 
