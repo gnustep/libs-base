@@ -1,3 +1,8 @@
+2003-12-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fix error setting sigpipe handling where
+	sigaction is available.
+
 2003-11-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumber.m: Raise exception if user code incorrectly tries
