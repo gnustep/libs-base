@@ -10,16 +10,15 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Collection.h>
+#include <objects/Invoking.h>
 
-@interface Invocation : NSObject
+@interface Invocation : NSObject <Invoking>
 {
-  char *encoding;
+  char *return_type;		/* may actually contain full argframe type */
   unsigned return_size;
   void *return_value;
 }
 - initWithReturnType: (const char *)encoding;
-- (void) invoke;
-- (void) invokeWithObject: anObj;
 - (const char *) returnType;
 - (unsigned) returnSize;
 - (void) getReturnValue: (void*) addr;
@@ -28,10 +27,15 @@
 @interface ArgframeInvocation : Invocation
 {
   arglist_t argframe;
-  /* char *function_encoding; Using return_encoding */
+  BOOL args_retained;
+  /* Use return_type to hold full argframe type. */
 }
 - initWithArgframe: (arglist_t)frame type: (const char *)e;
 - initWithType: (const char *)e;
+
+- (void) retainArguments;
+- (BOOL) argumentsRetained;
+
 - (const char *) argumentTypeAtIndex: (unsigned)i;
 - (unsigned) argumentSizeAtIndex: (unsigned)i;
 - (void) getArgument: (void*)addr atIndex: (unsigned)i;
@@ -40,6 +44,11 @@
 @end
 
 @interface MethodInvocation : ArgframeInvocation
+{
+  id *target_pointer;
+  SEL *sel_pointer;
+}
+
 - initWithArgframe: (arglist_t)frame selector: (SEL)s;
 - initWithSelector: (SEL)s;
 - initWithTarget: target selector: (SEL)s, ...;
@@ -50,30 +59,33 @@
 - (void) setTarget: t;
 @end
 
+/* Same as MethodInvocation, except that when sent 
+   [ -invokeWithObject: anObj], anObj does not become the target
+   for the invocation's selector, it becomes the first object 
+   argument of the selector. */
+@interface ObjectMethodInvocation : MethodInvocation
+{
+  id *arg_object_pointer;
+}
+@end
+
 @interface VoidFunctionInvocation : Invocation
 {
   void (*function)();
 }
-- initWithFunction: (void(*)())f;
+- initWithVoidFunction: (void(*)())f;
 @end
 
-#if 0
 
-@interface VoidObjectFunctionInvocation : Invocation
-{
-  void (*function)(id);
-  id object;
-}
-- initWithFunction: (void(*)())f;
-@end
-
-@interface ObjectObjectFunctionInvocation : Invocation
+@interface ObjectFunctionInvocation : Invocation
 {
   id (*function)(id);
 }
-- initWithFunction: (void(*)())f;
+- initWithObjectFunction: (id(*)(id))f;
 @end
 
+
+#if 0
 @interface FunctionInvocation : ArgframeInvocation
 {
   void (*function)();
@@ -82,7 +94,6 @@
     argframe: (arglist_t)frame type: (const char *)e;
 - initWithFunction: (void(*)())f;
 @end
-
 #endif
 
 #endif /* __Invocation_h_OBJECTS_INCLUDE */
