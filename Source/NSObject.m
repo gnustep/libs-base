@@ -710,24 +710,31 @@ static BOOL deallocNotifications = NO;
 
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  int i;
   struct objc_protocol_list* proto_list;
 
-  for (proto_list = ((struct objc_class*)self)->class_pointer->protocols;
+  for (proto_list = ((struct objc_class*)self)->protocols;
        proto_list; proto_list = proto_list->next)
     {
-      for (i=0; i < proto_list->count; i++)
+      int i;
+      
+      for (i = 0; i < proto_list->count; i++)
       {
 	/* xxx We should add conformsToProtocol to Protocol class. */
         if ([proto_list->list[i] conformsTo: aProtocol])
-          return YES;
+	  {
+	    return YES;
+	  }
       }
     }
-
+  
   if ([self superclass])
-    return [[self superclass] conformsToProtocol: aProtocol];
+    {
+      return [[self superclass] conformsToProtocol: aProtocol];
+    }
   else
-    return NO;
+    {
+      return NO;
+    }
 }
 
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
