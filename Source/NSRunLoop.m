@@ -294,11 +294,12 @@ static inline BOOL timerInvalidated(NSTimer* timer)
       target = RETAIN(aTarget);
       argument = RETAIN(anArgument);
       timer = [[NSTimer allocWithZone: NSDefaultMallocZone()]
-	initWithTimeInterval: delay
-	  targetOrInvocation: self
-		    selector: @selector(fire)
-		    userInfo: nil
-		     repeats: NO];
+	initWithFireDate: nil
+		interval: delay
+		  target: self
+		selector: @selector(fire)
+		userInfo: nil
+		 repeats: NO];
     }
   return self;
 }
@@ -1662,8 +1663,10 @@ if (0) {
 }
 
 
-/* Adding timers.  They are removed when they are invalid. */
-
+/**
+ * Adds a timer to the loop in the specified mode.<br />
+ * Timers are removed automatically when they are invalid.<br />
+ */
 - (void) addTimer: (NSTimer*)timer
 	  forMode: (NSString*)mode
 {

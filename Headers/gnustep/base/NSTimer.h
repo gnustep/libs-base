@@ -66,23 +66,23 @@
 			   repeats: (BOOL)f;
 
 - (void) fire;
+- (NSDate*) fireDate;
 - (void) invalidate;
+- (id) userInfo;
+
 
 #ifndef	STRICT_OPENSTEP
+- (id) initWithFireDate: (NSDate*)fd
+	       interval: (NSTimeInterval)ti
+		 target: (id)object
+	       selector: (SEL)selector
+	       userInfo: (id)info
+		repeats: (BOOL)f;
 - (BOOL) isValid;
+- (void) setFireDate: (NSDate*)fireDate;
 - (NSTimeInterval) timeInterval;
 #endif
 
-- (NSDate*) fireDate;
-- (id) userInfo;
-
-#ifndef	NO_GNUSTEP
-- (id) initWithTimeInterval: (NSTimeInterval)ti
-	 targetOrInvocation: (id)object
-		   selector: (SEL)selector
-		   userInfo: (id)info
-		    repeats: (BOOL)f;
-#endif
 @end
 
 #endif

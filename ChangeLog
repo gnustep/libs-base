@@ -10,6 +10,7 @@
 	systems guarantee that the rename() system call is atomic.
 	* Source/NSArray.m: New MacOS-X methods ([-initWithArray:copyItems:])
 	([-exchangeObjectAtIndex:withObjectAtIndex:])
+	* Source/NSTimer.m: Update for compatibility with latest MacOS-X
  
 2002-08-25  Richard Frith-Macdonald <rfm@gnu.org>
 
