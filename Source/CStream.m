@@ -58,10 +58,10 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 {
   /* Careful: the string should not contain newlines. */
   [stream writeFormat: SIGNATURE_FORMAT_STRING,
-	  STRINGIFY(OBJECTS_PACKAGE_NAME),
-	  OBJECTS_MAJOR_VERSION,
-	  OBJECTS_MINOR_VERSION,
-	  OBJECTS_SUBMINOR_VERSION,
+	  STRINGIFY(GNUSTEP_BASE_PACKAGE_NAME),
+	  GNUSTEP_BASE_MAJOR_VERSION,
+	  GNUSTEP_BASE_MINOR_VERSION,
+	  GNUSTEP_BASE_SUBMINOR_VERSION,
 	  object_get_class_name(self),
 	  format_version];
 }
