@@ -671,7 +671,7 @@
 - (void) _collectionReleaseContents
 {
   int c = [self count];
-  id *array = (id*) (*objc_malloc) (c * sizeof(id));
+  id *array = (id*) alloca (c * sizeof(id));
   int i = 0;
   void *es = [self newEnumState];
   id o;
@@ -683,7 +683,6 @@
   assert (c == i);
   for (i = 0; i < c; i++)
     [array[i] release];
-  (*objc_free) (array);
 }
 
 - (void) _collectionDealloc
