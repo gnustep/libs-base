@@ -559,7 +559,7 @@ gnustep_base_thread_callback()
   id		receiver;
   id		argument;
   SEL		selector;
-  NSLock	*lock;
+  NSLock	*lock;		// Not retained.
 }
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
@@ -583,7 +583,7 @@ gnustep_base_thread_callback()
   h->selector = s;
   if (l != nil)
     {
-      h->lock = RETAIN(l);
+      h->lock = l;
       [h->lock lock];		// Lock until fire.
     } 
   return h;
@@ -596,15 +596,21 @@ gnustep_base_thread_callback()
   if (lock != nil)
     {
       [lock unlock];
-      DESTROY(lock);
+      lock = nil;
     }
   NSDeallocateObject(self);
 }
 
 - (void) fire
 {
+  if (receiver == nil)
+    {
+      return;	// Already fired!
+    }
   [GSRunLoopForThread(defaultThread) cancelPerformSelectorsWithTarget: self];
   [receiver performSelector: selector withObject: argument];
+  DESTROY(receiver);
+  DESTROY(argument);
   if (lock == nil)
     {
       RELEASE(self);
@@ -612,7 +618,7 @@ gnustep_base_thread_callback()
   else
     {
       [lock unlock];
-      DESTROY(lock);
+      lock = nil;
     }
 }
 @end
@@ -678,8 +684,10 @@ gnustep_base_thread_callback()
       if (aFlag == YES)
 	{
 	  [l lockBeforeDate: [NSDate distantFuture]];
+	  RELEASE(h);
+	  [l unlock];
+	  RELEASE(l);
 	}
-      RELEASE(h);
     }
 }
 
