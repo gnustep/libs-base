@@ -8,6 +8,7 @@
 	* Headers/gnustep/base/NSValue.h:
 	* Headers/gnustep/base/Foundation.h:
 	Tidied use of GSCategories.
+	* Source/NSFileManager.m: ([linkPath:toPath:handler:]) implemented.
 
 2003-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 

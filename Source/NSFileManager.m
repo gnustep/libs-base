@@ -203,6 +203,11 @@
 	    toPath: (NSString*)destination
 	   handler: (id)handler;
 
+/* Recursively links the contents of source directory to destination. */
+- (BOOL) _linkPath: (NSString*)source
+	    toPath: (NSString*)destination
+	   handler: handler;
+
 /* encapsulates the will Process check for existence of selector. */
 - (void) _sendToHandler: (id) handler
         willProcessPath: (NSString*) path;
@@ -872,10 +877,7 @@ static NSFileManager* defaultManager = nil;
 	  return NO;
 	}
     }
-  if (attrs != nil)
-    {
-      [self changeFileAttributes: attrs atPath: destination];
-    }
+  [self changeFileAttributes: attrs atPath: destination];
   return YES;
 }
 
@@ -951,18 +953,109 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Links the file or directory at source to destination, using a
+ * <p>Links the file or directory at source to destination, using a
  * handler object which should respond to
  * [NSObject-fileManager:willProcessPath:] and
  * [NSObject-fileManager:shouldProceedAfterError:] messages.
+ * </p>
+ * <p>If the destination is a directory, the source path is linked
+ * into that directory, otherwise the destination must not exist,
+ * but its parent directory must exist and the source will be linked
+ * into the parent as the name specified by the destination.
+ * </p>
+ * <p>If the source is a symbolic link, it is copied to the destination.<br />
+ * If the source is a directory, it is copied to the destination and its
+ * contents are linked into the new directory.<br />
+ * Otherwise, a hard link is made from the destination to the source.
+ * </p>
  */
 - (BOOL) linkPath: (NSString*)source
 	   toPath: (NSString*)destination
 	  handler: (id)handler
 {
-  // TODO
-  [self notImplemented: _cmd];
-  return NO;
+#ifdef HAVE_LINK
+  NSDictionary	*attrs;
+  NSString	*fileType;
+  BOOL		isDir;
+
+  if ([self fileExistsAtPath: destination isDirectory: &isDir] == YES
+    && isDir == YES)
+    {
+      destination = [destination stringByAppendingPathComponent:
+	[source lastPathComponent]];
+    }
+  
+  attrs = [self fileAttributesAtPath: source traverseLink: NO];
+  if (attrs == nil)
+    {
+      return NO;
+    }
+
+  [self _sendToHandler: handler willProcessPath: destination]; 
+
+  fileType = [attrs fileType];
+  if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
+    {
+      /* If destination directory is a descendant of source directory linking
+	  isn't possible because of recursion. */
+      if ([[destination stringByAppendingString: @"/"]
+	hasPrefix: [source stringByAppendingString: @"/"]])
+	{
+	  return NO;
+	}
+
+      if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
+	{
+          return [self _proceedAccordingToHandler: handler
+					 forError: _lastError
+					   inPath: destination
+					 fromPath: source
+					   toPath: destination];
+	}
+
+      if ([self _linkPath: source toPath: destination handler: handler] == NO)
+	{
+	  return NO;
+	}
+    }
+  else if ([fileType isEqual: NSFileTypeSymbolicLink])
+    {
+      NSString	*path;
+
+      path = [self pathContentOfSymbolicLinkAtPath: source];
+      if ([self createSymbolicLinkAtPath: destination
+			     pathContent: path] == NO)
+	{
+	  if ([self _proceedAccordingToHandler: handler
+				      forError: @"cannot create symbolic link"
+					inPath: source
+				      fromPath: source
+					toPath: destination] == NO)
+	    {
+	      return NO;
+	    }
+	}
+    }
+  else
+    {
+      if (link([source fileSystemRepresentation],
+	[destination fileSystemRepresentation]) < 0)
+	{
+	  if ([self _proceedAccordingToHandler: handler
+				      forError: @"cannot create hard link"
+					inPath: source
+				      fromPath: source
+					toPath: destination] == NO)
+	    {
+	      return NO;
+	    }
+	}
+    }
+  [self changeFileAttributes: attrs atPath: destination];
+  return YES;
+#else
+  return NO;	// Links not supported on this platform
+#endif
 }
 
 /**
@@ -2475,6 +2568,98 @@ static SEL swfsSel = 0;
   RELEASE(pool);
 
   return YES;
+}
+
+- (BOOL) _linkPath: (NSString*)source
+	    toPath: (NSString*)destination
+	   handler: handler
+{
+#ifdef HAVE_LINK
+  NSDirectoryEnumerator	*enumerator;
+  NSString		*dirEntry;
+  CREATE_AUTORELEASE_POOL(pool);
+
+  enumerator = [self enumeratorAtPath: source];
+  while ((dirEntry = [enumerator nextObject]))
+    {
+      NSString		*sourceFile;
+      NSString		*fileType;
+      NSString		*destinationFile;
+      NSDictionary	*attributes;
+
+      attributes = [enumerator fileAttributes];
+      fileType = [attributes fileType];
+      sourceFile = [source stringByAppendingPathComponent: dirEntry];
+      destinationFile
+	= [destination stringByAppendingPathComponent: dirEntry];
+
+      [self _sendToHandler: handler willProcessPath: sourceFile];
+
+      if ([fileType isEqual: NSFileTypeDirectory] == YES)
+	{
+	  if ([self createDirectoryAtPath: destinationFile
+			       attributes: attributes] == NO)
+	    {
+              if ([self _proceedAccordingToHandler: handler
+					  forError: _lastError
+					    inPath: destinationFile
+					  fromPath: sourceFile
+					    toPath: destinationFile] == NO)
+                {
+                  return NO;
+                }
+	    }
+	  else
+	    {
+	      [enumerator skipDescendents];
+	      if ([self _linkPath: sourceFile
+			   toPath: destinationFile
+			  handler: handler] == NO)
+		{
+		  return NO;
+		}
+	    }
+	}
+      else if ([fileType isEqual: NSFileTypeSymbolicLink])
+	{
+	  NSString	*path;
+
+	  path = [self pathContentOfSymbolicLinkAtPath: sourceFile];
+	  if ([self createSymbolicLinkAtPath: destinationFile
+				 pathContent: path] == NO)
+	    {
+              if ([self _proceedAccordingToHandler: handler
+		forError: @"cannot create symbolic link"
+		inPath: sourceFile
+		fromPath: sourceFile
+		toPath: destinationFile] == NO)
+                {
+                  return NO;
+                }
+	    }
+	}
+      else
+	{
+	  if (link([sourceFile fileSystemRepresentation],
+	    [destinationFile fileSystemRepresentation]) < 0)
+	    {
+              if ([self _proceedAccordingToHandler: handler
+		forError: @"cannot create hard link"
+		inPath: sourceFile
+		fromPath: sourceFile
+		toPath: destinationFile] == NO)
+                {
+                  return NO;
+                }
+	    }
+	}
+      [self changeFileAttributes: attributes atPath: destinationFile];
+    }
+  RELEASE(pool);
+  return YES;
+#else
+  return NO;
+#endif
 }
 
 - (void) _sendToHandler: (id) handler

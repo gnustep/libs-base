@@ -6,7 +6,7 @@
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
-/* Define if your system terminates the final argument in /proc/10983/cmdline */
+/* Define if your system terminates the final argument in /proc/$$/cmdline */
 #undef CMDLINE_TERMINATED
 
 /* Define if constructors are automatically loaded */
@@ -39,6 +39,9 @@
 
 /* Define to 1 if you have the `geteuid' function. */
 #undef HAVE_GETEUID
+
+/* Define to 1 if you have the `getgrgid' function. */
+#undef HAVE_GETGRGID
 
 /* Define to 1 if you have the `getlogin' function. */
 #undef HAVE_GETLOGIN
@@ -93,6 +96,9 @@
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the `link' function. */
+#undef HAVE_LINK
 
 /* Define if your Obj-C compiler calls +load methods before main */
 #undef HAVE_LOAD_METHOD
