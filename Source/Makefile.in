@@ -164,9 +164,9 @@ TcpPort.m \
 TextCStream.m \
 Time.m \
 UdpPort.m \
-array.m \
-array-bas.m \
-array-cbs.m \
+o-array.m \
+o-array-bas.m \
+o-array-cbs.m \
 behavior.m \
 callbacks.m \
 cbs-char-p.m \
@@ -174,15 +174,15 @@ cbs-id.m \
 cbs-int.m \
 cbs-int-p.m \
 cbs-void-p.m \
-hash.m \
-hash-bas.m \
-hash-cbs.m \
-list.m \
-list-bas.m \
-list-cbs.m \
-map.m \
-map-bas.m \
-map-cbs.m \
+o-hash.m \
+o-hash-bas.m \
+o-hash-cbs.m \
+o-list.m \
+o-list-bas.m \
+o-list-cbs.m \
+o-map.m \
+o-map-bas.m \
+o-map-cbs.m \
 preface.m \
 mframe.m \
 objc-gnu2next.m \
@@ -282,21 +282,21 @@ include/TextCStream.h \
 include/Time.h \
 include/UdpPort.h \
 include/ValueHolding.h \
-include/array.h \
-include/array-bas.h \
-include/array-cbs.h \
+include/o-array.h \
+include/o-array-bas.h \
+include/o-array-cbs.h \
 include/behavior.h \
 include/callbacks.h \
 include/fake-main.h \
-include/hash.h \
-include/hash-bas.h \
-include/hash-cbs.h \
-include/list.h \
-include/list-bas.h \
-include/list-cbs.h \
-include/map.h \
-include/map-bas.h \
-include/map-cbs.h \
+include/o-hash.h \
+include/o-hash-bas.h \
+include/o-hash-cbs.h \
+include/o-list.h \
+include/o-list-bas.h \
+include/o-list-cbs.h \
+include/o-map.h \
+include/o-map-bas.h \
+include/o-map-cbs.h \
 include/mframe.h \
 include/numbers.h \
 include/objc-gnu2next.h \
@@ -592,26 +592,26 @@ o_vscanf$(OEXT): o_vscanf.c
 o_vscanf_pic$(OEXT): o_vscanf.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
-include/%-bas.h: include/x-bas.h.in
+include/o-%-bas.h: include/x-bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
 
-include/%-cbs.h: include/x-cbs.h.in
+include/o-%-cbs.h: include/x-cbs.h.in
 	sed -e "s/@YY@/$*/g" $< > $@
 
-%-bas.m: x-bas.m.in include/%.h
+o-%-bas.m: x-bas.m.in include/o-%.h
 	sed -e "s/@XX@/$*/g" $< > $@
 
-%-cbs.m: x-cbs.m.in include/%.h
+o-%-cbs.m: x-cbs.m.in include/o-%.h
 	sed -e "s/@YY@/$*/g" $< > $@
 
-array.o: array.m include/array.h
-include/array.h: include/array-bas.h include/array-cbs.h include/hash.h
-hash.o: hash.m include/hash.h
-include/hash.h: include/hash-bas.h include/hash-cbs.h
-list.o: list.m include/list.h
-include/list.h: include/list-bas.h include/list-cbs.h include/array.h include/hash.h
-map.o: map.m include/map.h
-include/map.h: include/map-bas.h include/map-cbs.h include/hash.h
+o-array.o: o-array.m include/o-array.h
+include/o-array.h: include/o-array-bas.h include/o-array-cbs.h include/o-hash.h
+o-hash.o: o-hash.m include/o-hash.h
+include/o-hash.h: include/o-hash-bas.h include/o-hash-cbs.h
+o-list.o: o-list.m include/o-list.h
+include/o-list.h: include/o-list-bas.h include/o-list-cbs.h include/o-array.h include/o-hash.h
+o-map.o: o-map.m include/o-map.h
+include/o-map.h: include/o-map-bas.h include/o-map-cbs.h include/o-hash.h
 
 
 Makefile: $(srcdir)/Makefile.in ../config.status
