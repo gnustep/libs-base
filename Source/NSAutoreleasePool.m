@@ -343,7 +343,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   for (a = _released_head; a; )
     {
       void *n = a->next;
-      (*objc_free) (a);
+      objc_free (a);
       a = n;
     }
   [super dealloc];

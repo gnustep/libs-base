@@ -164,7 +164,7 @@ list_cons(void* head, struct objc_list* tail)
 {
   struct objc_list* cell;
 
-  cell = (struct objc_list*)(*objc_malloc)(sizeof(struct objc_list));
+  cell = (struct objc_list*)objc_malloc(sizeof(struct objc_list));
   cell->head = head;
   cell->tail = tail;
   return cell;
@@ -209,11 +209,11 @@ list_remove_head(struct objc_list** list)
     {
       struct objc_list* tail = (*list)->tail; /* fetch next */
       *(*list) = *tail;/* copy next to list head */
-      (*objc_free)(tail);/* free next */
+      objc_free(tail);/* free next */
     }
   else/* only one element in list */
     {
-      (*objc_free)(*list);
+      objc_free(*list);
       (*list) = 0;
     }
 }
@@ -265,7 +265,7 @@ list_free(struct objc_list* list)
   if(list)
     {
       list_free(list->tail);
-      (*objc_free)(list);
+      objc_free(list);
     }
 }
 

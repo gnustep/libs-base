@@ -1,3 +1,30 @@
+Sat Jan  3 14:05:32 1998  Scott Christley  <scottc@net-community.com>
+
+	* confdefs.h: Delete transient file.
+
+	* src/include/Foundation.h: New file.
+	* src/include/NSEnumerator.h: New file.
+	* src/GNUmakefile: Install new header files.
+	* src/include/NSUtilities.h: Move NSEnumerator interface
+	to NSEnumerator.h file.
+
+	* src/NSObject.m (-copyWithZone:): Eliminate semicolon.
+
+	* Fix memory allocation function usage.  (As reported by
+	Matthias Klose <Matthias.Klose@cs.tu-berlin.de>).
+	* src/Connection.m (-_service_forwardForProxy:): Use
+	function instead of function pointer.
+	* src/Decoder.m (-decodeClass, -decodeSelectorWithName:): Likewise.
+	* src/Invocation.m (-initWithReturnType:): Likewise.
+	(-_initArgframeFrom:withType:retainArgs:): Likewise.
+	(-_deallocArgFrame): Likewise.
+	* src/NSAutoreleasePool.m (-reallyDealloc): Likewise.
+	* src/NSConnection.m (-_service_forwardForProxy:): Likewise.
+	* src/TextCStream.m (-decodeValueOfCType:at:withName:): Likewise.
+	* src/include/objc-gnu2next.h (list_cons): Likewise.
+	(list_remove_head, list_free): Likewise.
+	* src/include/preface.h.in (OBJC_FREE): Likewise.
+
 Fri Jan  2 13:04:53 1998  Adam Fedor  <fedor@doc.com>
 
 	* doc/Makefile.postamble: Generate html,texi from tmpl.texi files.

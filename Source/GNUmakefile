@@ -382,6 +382,7 @@ NSCallBacks.h \
 tzfile.h
 
 BASE_HEADERS = \
+Foundation/Foundation.h \
 Foundation/byte_order.h \
 Foundation/DistributedObjects.h \
 Foundation/NSArchiver.h \
@@ -401,6 +402,7 @@ Foundation/NSDebug.h \
 Foundation/NSDictionary.h \
 Foundation/NSDistantObject.h \
 Foundation/NSDistributedLock.h \
+Foundation/NSEnumerator.h \
 Foundation/NSException.h \
 Foundation/NSFileHandle.h \
 Foundation/NSFileManager.h \

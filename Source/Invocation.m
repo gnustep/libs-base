@@ -65,7 +65,7 @@
     {
       /* Work around bug in objc_sizeof_type; it doesn't handle void type */
       return_size = objc_sizeof_type (enc);
-      return_value = (*objc_calloc) (1, return_size);
+      return_value = objc_calloc (1, return_size);
     }
   else
     {
@@ -329,9 +329,9 @@ my_method_get_next_argument (arglist_t argframe,
   /* allocate the argframe */
   stack_argsize = types_get_size_of_stack_arguments (type);
   reg_argsize = types_get_size_of_register_arguments(type);
-  argframe = (arglist_t) (*objc_calloc) (1 ,sizeof(char*) + reg_argsize);
+  argframe = (arglist_t) objc_calloc (1 ,sizeof(char*) + reg_argsize);
   if (stack_argsize)
-    argframe->arg_ptr = (*objc_calloc) (1, stack_argsize);
+    argframe->arg_ptr = objc_calloc (1, stack_argsize);
   else
     argframe->arg_ptr = 0;
 
@@ -461,8 +461,8 @@ my_method_get_next_argument (arglist_t argframe,
   if (argframe)
     {
       if (argframe->arg_ptr)
-	(*objc_free) (argframe->arg_ptr);
-      (*objc_free) (argframe);
+	objc_free (argframe->arg_ptr);
+      objc_free (argframe);
     }
 }
 

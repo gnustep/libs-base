@@ -95,7 +95,7 @@ extern const char o_NeXT_cc_version[];
    ((VAR) = (TYPE *) objc_realloc ((VAR), (unsigned)(NUM)*sizeof(TYPE)))
 #define OBJC_CALLOC(VAR, TYPE, NUM) \
    ((VAR) = (TYPE *) objc_calloc ((unsigned)(NUM), sizeof(TYPE)))
-#define OBJC_FREE(PTR) (*objc_free)((PTR))
+#define OBJC_FREE(PTR) objc_free (PTR)
 
 #ifndef MAX
 #define MAX(a,b) \
