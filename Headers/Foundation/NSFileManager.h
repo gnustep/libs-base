@@ -76,6 +76,10 @@
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path;
+#ifndef NO_GNUSTEP
+- (NSString*) localFromOpenStepPath:(NSString*)path;
+- (NSString*) openStepPathFromLocal:(NSString*)localPath;
+#endif
 - (BOOL) isExecutableFileAtPath: (NSString*)path;
 - (BOOL) isDeletableFileAtPath: (NSString*)path;
 - (BOOL) isReadableFileAtPath: (NSString*)path;
@@ -155,9 +159,9 @@
 @interface NSDirectoryEnumerator : NSEnumerator
 {
   void *_stack; /* GSIArray */
-  char *_top_path;
-  char *_current_file_path;
-  NSString *(*_stringWithFileSysImp)(id, SEL, char *, unsigned);
+  NSString *_topPath;
+  NSString *_currentFilePath;
+  NSString *(*_openStepPathFromLocalImp)(id, SEL, id);
   struct 
   {
     BOOL isRecursive: 1;

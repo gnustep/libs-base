@@ -1,3 +1,25 @@
+2004-12-26  Adam Fedor  <fedor@gnu.org>
+
+	* Add support for systems that support unichar file paths (e.g.
+	Windows).
+	* Headers/Foundation/NSFileManager.h (-localFromOpenStepPath:,
+	_openStepPathFromLocal:): New methods.
+	(NSDirectoryEnumerator): Updated ivars.
+	* Source/NSFileManager.m: Idem.
+	(-changeCurrentDirectoryPath, changeFileAttributes:, 
+	currentDirectoryPath, etc): Update for Windows unichar paths.
+	* Headers/Foundation/NSString.h: (-unicharString,
+	-localFromOpenStepPath:, _openStepPathFromLocal:): New methods.
+	* Source/NSString.m: Idem.
+	* Source/GSFileHandle.m (-initForReadingAtPath:, 
+	-initForWritingAtPath, -initForUpdatingAtPath:): Update for Windows
+	unichar paths.
+	* Source/NSData.m (readContentsOfFile, -writeToFile:,
+	initWithContentsOfMappedFile:): Idem.
+	* Source/NSTask.m (NSConcreteWindowsTask): Update for Windows
+	unichar paths.
+	(Patch from Roland Schwingle <roland.schwingel@onevision.de>)
+	
 2004-12-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdnc.m: Change name of dummy class to avoid Darwin linker

@@ -2609,6 +2609,31 @@ handle_printf_atsign (FILE *stream,
 // Getting C Strings
 
 /**
+ * Returns a pointer to a null terminated string of 16-bit unichar
+ * The memory pointed to is not owned by the caller, so the
+ * caller must copy its contents to keep it.  Raises an
+ */
+- (const unichar*) unicharString
+{
+	NSData   *returnData = nil;
+	int      len         = [self length];
+	unichar	buf[64];
+	unichar  *uniStr    = (len < 64) ? buf : 
+	             NSZoneMalloc(NSDefaultMallocZone(), (len+1) * sizeof(unichar));
+					 
+	if (uniStr != NULL)
+	{
+		[self getCharacters:uniStr];
+		uniStr[len] = L'\0';
+		returnData = [NSData dataWithBytes:uniStr length:(len+1)*sizeof(unichar)];
+		if (uniStr != buf)
+			NSZoneFree(NSDefaultMallocZone(), uniStr);
+
+		return ((const unichar*)[returnData bytes]);
+	}
+	return(NULL);		
+}
+/**
  * Returns a pointer to a null terminated string of 8-bit characters in the
  * default encoding.  The memory pointed to is not owned by the caller, so the
  * caller must copy its contents to keep it.  Raises an
@@ -3195,6 +3220,39 @@ handle_printf_atsign (FILE *stream,
 
   return [fm fileSystemRepresentationWithPath: self];
 }
+/**
+ * Converts this string, which is assumed to be a path in Unix notation ('/'
+ * is file separator, '.' is extension separator) to a string path expressed
+ * in the convention for the host operating system. 
+ */
+- (NSString*) localFromOpenStepPath
+{
+  static NSFileManager *fm = nil;
+
+	if (fm == nil)
+	{
+		fm = RETAIN([NSFileManager defaultManager]);
+	}
+
+	return [fm localFromOpenStepPath: self];
+}	
+/**
+ * Converts this string, which is assumed to be a path in the convention 
+ * for the host operating system to a string path expressed
+ * in Unix notation ('/' is file separator, '.' is extension separator). 
+ */
+- (NSString*) openStepPathFromLocal
+{
+  static NSFileManager *fm = nil;
+
+	if (fm == nil)
+	{
+		fm = RETAIN([NSFileManager defaultManager]);
+	}
+
+	return [fm openStepPathFromLocal: self];
+}	
+
 
 /**
  * Converts this string, which is assumed to be a path in Unix notation ('/'
@@ -3211,6 +3269,7 @@ handle_printf_atsign (FILE *stream,
   strcpy(buffer, ptr);
   return YES;
 }
+
 
 /**
  * Returns a string containing the last path component of the receiver.<br />

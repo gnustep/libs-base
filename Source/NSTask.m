@@ -1064,14 +1064,14 @@ quotedFromString(NSString *aString)
 - (void) launch
 {
   DWORD		tid;
-  STARTUPINFO	start_info;
+  STARTUPINFOW	start_info;
   NSString      *lpath;
   NSString      *arg;
   NSEnumerator  *arg_enum;
   NSMutableString *args;
-  char		*c_args;
+  wchar_t		*w_args;
   int		result;
-  const char	*executable;
+  const wchar_t	*wexecutable;
   
   if (_hasLaunched)
     {
@@ -1079,10 +1079,10 @@ quotedFromString(NSString *aString)
     }
 
   lpath = [self _fullLaunchPath];
-  executable = [lpath fileSystemRepresentation];
+  wexecutable = [[lpath localFromOpenStepPath] unicharString];
 
   args = [[NSMutableString alloc] initWithString:
-    quotedFromString([NSString stringWithCString: executable])];
+    quotedFromString([NSString stringWithCharacters:wexecutable length:wcslen(wexecutable)])];
   arg_enum = [[self arguments] objectEnumerator];
   while ((arg = [arg_enum nextObject]))
     {
@@ -1090,8 +1090,8 @@ quotedFromString(NSString *aString)
       [args appendString: quotedFromString(arg)];
     }
   
-  c_args = NSZoneMalloc(NSDefaultMallocZone(), [args cStringLength]+1);
-  [args getCString: c_args];
+  w_args = NSZoneMalloc(NSDefaultMallocZone(),sizeof(wchar_t) *([args length]+1));
+  [args getCharacters: (unichar*)w_args];
 
   memset (&start_info, 0, sizeof(start_info));
   start_info.cb = sizeof(start_info);
@@ -1100,20 +1100,20 @@ quotedFromString(NSString *aString)
   start_info.hStdOutput = [[self standardOutput] nativeHandle];
   start_info.hStdError = [[self standardError] nativeHandle];
   
-  result = CreateProcess(executable,
-			 c_args,
+  result = CreateProcessW(wexecutable,
+			 w_args,
 			 NULL,      /* proc attrs */
 			 NULL,      /* thread attrs */
 			 1,         /* inherit handles */
 			 0,         /* creation flags */
 			 NULL,      /* env block */
-			 [[self currentDirectoryPath] fileSystemRepresentation],
+			 [[[self currentDirectoryPath] localFromOpenStepPath] unicharString],
 			 &start_info,
 			 &procInfo);
-  NSZoneFree(NSDefaultMallocZone(), c_args);
+  NSZoneFree(NSDefaultMallocZone(), w_args);
   if (result == 0)
     {
-      NSLog(@"Error launching task: %s", executable);
+      NSLog(@"Error launching task: %@", lpath);
       return;
     }
   

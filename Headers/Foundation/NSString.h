@@ -276,6 +276,9 @@ enum {
 - (NSString*) lowercaseString;
 - (NSString*) uppercaseString;
 
+#ifndef NO_GNUSTEP
+- (const unichar*) unicharString;
+#endif
 // Getting C Strings
 - (const char*) cString;
 - (unsigned int) cStringLength;
@@ -306,6 +309,10 @@ enum {
 			  caseSensitive: (BOOL)flag
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes;
+#ifndef NO_GNUSTEP
+- (NSString*) localFromOpenStepPath;
+- (NSString*) openStepPathFromLocal;
+#endif
 - (const char*) fileSystemRepresentation;
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size;
