@@ -7,6 +7,18 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{0.6.6}
+
+@itemize @bullet
+@item Lots of new documentation.
+@item Completely rewritten Distributed Object to be much more compatible with 
+the MacOS-X API (and incidentally, closer to the original OpenStep standard). 
+@item Support to compile library as a DLL on Windows (still cygwin only).
+@item Removed lots of obsolete classes.
+@item New tools for handling property lists.
+@item More optimization of classes.
+@end itemize
+
 @section Noteworthy changes in version @samp{0.6.5}
 
 @itemize @bullet
