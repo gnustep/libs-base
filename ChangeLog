@@ -1,3 +1,8 @@
+2005-02-14 08:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Pass environment settings for mingw based on
+	anonymous bug submission (bug #11360)
+
 2005-02-10 01:05  Alexander Malmberg  <alexander@malmberg.org>
 
 	* Tools/gdnc.m (main): Remove the program name from the arguments
