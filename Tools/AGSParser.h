@@ -3,9 +3,9 @@
 /**
 
    <title>AGSParser ... a tool to get documention info from ObjC source</title>
-   Copyright (C) <copy>2001 Free Software Foundation, Inc.</copy>
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
-   <author name="Richard Frith-Macdonald"></author> <richard@brainstorm.co.uk>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
 
    This file is part of the GNUstep Project

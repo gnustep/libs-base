@@ -1,9 +1,9 @@
 /**
 
    <title>AGSParser ... a tool to get documention info from ObjC source</title>
-   Copyright (C) <copy>2001 Free Software Foundation, Inc.</copy>
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
-   <author name="Richard Frith-Macdonald"></author> <richard@brainstorm.co.uk>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
 
    This file is part of the GNUstep Project
@@ -1410,14 +1410,14 @@ fail:
 	  if (commentsRead == NO && comment != nil)
 	    {
 	      unsigned		commentLength = [comment length];
-	      NSMutableArray	*authors = nil;
+	      NSMutableArray	*authors;
 	      NSEnumerator	*enumerator;
 	      NSArray		*keys;
 	      NSString		*key;
 
+	      authors = (NSMutableArray*)[info objectForKey: @"authors"];
 	      /*
-	       * Scan through for authors unless we got them from
-	       * the interface.
+	       * Scan through for more authors
 	       */
 	      r = NSMakeRange(0, commentLength);
 	      while (r.length > 0)
@@ -1451,7 +1451,10 @@ fail:
 			      [info setObject: authors forKey: @"authors"];
 			      RELEASE(authors);
 			    }
-			  [authors addObject: author];
+			  if ([authors containsObject: author] == NO)
+			    {
+			      [authors addObject: author];
+			    }
 			}
 		      else
 			{
@@ -1459,29 +1462,108 @@ fail:
 			}
 		    }
 		}
-	      if (authors == nil)
+	      /*
+	       * In addition to fully specified author elements in the
+	       * comment, we look for lines of the formats -
+	       * Author: name <email>
+	       * Author: name
+	       * By: name <email>
+	       * By: name
+	       */
+	      r = NSMakeRange(0, commentLength);
+	      while (r.length > 0)
 		{
+		  NSString	*term = @"\n";
+		  NSRange	a;
+		  NSRange	b;
+
 		  /*
-		   * Extract RCS keyword information for author
-		   * if it is available.
+		   * Look for 'Author:' or 'By:' and use whichever we
+		   * find first.
 		   */
-		  r = [comment rangeOfString: @"$Author:"];
+		  a = [comment rangeOfString: @"author:"
+				     options: NSCaseInsensitiveSearch
+				       range: r];
+		  b = [comment rangeOfString: @"by:"
+				     options: NSCaseInsensitiveSearch
+				       range: r];
+		  if (a.length > 0)
+		    {
+		      if (b.length > 0 && b.location < a.location)
+			{
+			  r = b;
+			}
+		      else
+			{
+			  r = a;
+			  /*
+			   * A line '$Author$' is an RCS tag and is
+			   * terminated by the second dollar rather than
+			   * by a newline.
+			   */
+			  if (r.location > 0
+			    && [comment characterAtIndex: r.location-1] == '$')
+			    {
+			      term = @"$";
+			    }
+			}
+		    }
+		  else
+		    {
+		      r = b;
+		    }
+
 		  if (r.length > 0)
 		    {
 		      unsigned	i = NSMaxRange(r);
+		      NSString	*line;
 		      NSString	*author;
 
 		      r = NSMakeRange(i, commentLength - i);
-		      r = [comment rangeOfString: @"$"
+		      r = [comment rangeOfString: term
 					 options: NSLiteralSearch
 					   range: r];
+		      if (r.length == 0)
+			{
+			  r.location = commentLength;
+			}
+		      r = NSMakeRange(i, NSMaxRange(r) - i);
+		      line = [comment substringWithRange: r];
+		      line = [line stringByTrimmingSpaces];
+		      i = NSMaxRange(r);
+		      r = [line rangeOfString: @"<"];
 		      if (r.length > 0)
 			{
-			  r = NSMakeRange(i, r.location - i);
-			  author = [comment substringWithRange: r];
-			  author = [author stringByTrimmingSpaces];
-			  authors = [NSMutableArray arrayWithObject: author];
+			  NSString	*name;
+			  NSString	*mail;
+
+			  name = [line substringToIndex: r.location];
+			  name = [name stringByTrimmingSpaces];
+			  mail = [line substringFromIndex: r.location+1];
+			  r = [mail rangeOfString: @">"];
+			  if (r.length > 0)
+			    {
+			      mail = [mail substringToIndex: r.location];
+			    }
+			  author = [NSString stringWithFormat:
+			    @"<author name=\"%@\"><email address=\"%@\">"
+			    @"%@</email></author>", name, mail, mail];
+			}
+		      else
+			{
+			  author = [NSString stringWithFormat:
+			    @"<author name=\"%@\"></author>", line];
+			}
+		      r = NSMakeRange(i, commentLength - i);
+		      if (authors == nil)
+			{
+			  authors = [NSMutableArray new];
 			  [info setObject: authors forKey: @"authors"];
+			  RELEASE(authors);
+			}
+		      if ([authors containsObject: author] == NO)
+			{
+			  [authors addObject: author];
 			}
 		    }
 		}
@@ -1532,6 +1614,43 @@ fail:
 		      else
 			{
 			  [self log: @"unterminated %@ in comment", s];
+			}
+		    }
+		}
+
+	      /*
+	       * If no <copy> ... </copy> then try Copyright:
+	       */
+	      if ([info objectForKey: @"copy"] == nil)
+		{
+		  r = NSMakeRange(0, commentLength);
+		  while (r.length > 0)
+		    {
+		      /*
+		       * Look for 'Copyright:'
+		       */
+		      r = [comment rangeOfString: @"copyright (c)"
+					 options: NSCaseInsensitiveSearch
+					   range: r];
+		      if (r.length > 0)
+			{
+			  unsigned	i = NSMaxRange(r);
+			  NSString	*line;
+
+			  r = NSMakeRange(i, commentLength - i);
+			  r = [comment rangeOfString: @"\n"
+					     options: NSLiteralSearch
+					       range: r];
+			  if (r.length == 0)
+			    {
+			      r.location = commentLength;
+			    }
+			  r = NSMakeRange(i, NSMaxRange(r) - i);
+			  line = [comment substringWithRange: r];
+			  line = [line stringByTrimmingSpaces];
+			  line = [NSString stringWithFormat:
+			    @"<copy>%@</copy>", line];
+			  [info setObject: line forKey: @"copy"];
 			}
 		    }
 		}

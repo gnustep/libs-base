@@ -3,10 +3,9 @@
 /** 
 
    <title>AGSHtml ... a class to output html for a gsdoc file</title>
-   Copyright <copy>(C) 2001 Free Software Foundation, Inc.</copy>
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
-   Written by:  <author name="Richard Frith-Macdonald">
-   <email>richard@brainstorm.co.uk</email></author>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
 
    This file is part of the GNUstep Project

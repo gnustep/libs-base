@@ -1,10 +1,9 @@
 /** 
 
    <title>AGSHtml ... a class to output html for a gsdoc file</title>
-   Copyright <copy>(C) 2001 Free Software Foundation, Inc.</copy>
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
-   Written by:  <author name="Richard Frith-Macdonald">
-   <email>richard@brainstorm.co.uk</email></author>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
 
    This file is part of the GNUstep Project
@@ -400,7 +399,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	  else
 	    {
-	      [buf appendFormat: @"<a href=\"%@\"><code>", ename];
+	      [buf appendFormat: @"<a href=\"mailto:%@\"><code>", ename];
 	    }
 	  [self outputText: [node children] to: buf];
 	  if (ename == nil)
@@ -598,8 +597,8 @@ static NSMutableSet	*textNodes = nil;
 	  if ([[children name] isEqual: @"copy"] == YES)
 	    {
 	      [buf appendString: indent];
-	      [buf appendString: @"<p>Copyright: "];
-	      [self outputNode: [children children] to: buf];
+	      [buf appendString: @"<p>Copyright: (C) "];
+	      [self outputText: [children children] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = firstElement([children next]);
 	    }

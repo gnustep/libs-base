@@ -1,10 +1,9 @@
 /** This tool produces gsdoc files from source files.
 
    <title>Autogsdoc ... a tool to make documentation from source code</title>
-   Copyright <copy>(C) 2001 Free Software Foundation, Inc.</copy>
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
-   Written by:  <author name="Richard Frith-Macdonald">
-   <email>richard@brainstorm.co.uk</email></author>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
 
    This file is part of the GNUstep Project
@@ -62,7 +61,13 @@
     <item><strong>&lt;author&gt;</strong>
       A description of the author of the code - may be repeated to handle
       the case where a document has multiple authors.  Placed in the
-      head of the gsdoc output.
+      head of the gsdoc output.<br />
+      As an aid to readability of the source, some special additional
+      processing is performed related to the document author -<br />
+      Any line of the form 'Author: name &lt;email-address&gt;', or
+      'By: name &lt;email-address&gt;', or 'Author: name' or 'By: name'
+      will be recognised and converted to an <em>author</em> element,
+      possibly containing an <em>email</em> element.
     </item>
     <item><strong>&lt;back&gt;</strong>
       Placed in the gsdoc output just before the end of the body of the
@@ -75,7 +80,11 @@
     </item>
     <item><strong>&lt;copy&gt;</strong>
       Copyright of the content of the document ... placed in the head
-      of the gsdoc output.
+      of the gsdoc output.<br />
+      As an aid to readability of the source, some special additional
+      processing is performed -<br />
+      Any line of the form 'Copyright (C) text' will be recognised and
+      converted to a <em>copy</em> element.
     </item>
     <item><strong>&lt;date&gt;</strong>
       Date of the revision of the document ... placed in the head
@@ -316,7 +325,7 @@ main(int argc, char **argv, char **env)
   sourceDirectory = [defs stringForKey: @"SourceDirectory"];
   if (sourceDirectory == nil)
     {
-      sourceDirectory = headerDirectory;
+      sourceDirectory = @".";
     }
 
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
