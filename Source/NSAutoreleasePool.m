@@ -212,7 +212,21 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 + (void) addObject: anObj
 {
-  [ARP_THREAD_VARS->current_pool addObject: anObj];
+  NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
+
+  if (pool)
+    [pool addObject: anObj];
+  else
+    {
+      NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+
+      if (anObj)
+	NSLog(@"autorelease called without pool for object (%x) of class %s\n",
+                anObj, [NSStringFromClass([anObj class]) cString]);
+      else
+	NSLog(@"autorelease called without pool for nil object.\n");
+      [arp release];
+    }
 }
 
 - (void) addObject: anObj
