@@ -320,6 +320,7 @@ _setAttributesFrom(
   if (aRange.length == 0)
     {
       attr = blank;
+      range = aRange; /* Set to satisfy the loop condition below. */
     }
   else
     {
