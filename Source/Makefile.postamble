@@ -53,6 +53,10 @@ after-install::
 	  $(INSTALL_DATA) ../Headers/gnustep/base/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
 	done
+	for file in $(UNICODE_HEADERS); do \
+	  $(INSTALL_DATA) ../Headers/gnustep/$$file \
+	    $(GNUSTEP_HEADERS)/gnustep/$$file ; \
+	done
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h \
 	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h \
@@ -83,6 +87,9 @@ after-install::
 after-uninstall::
 	for file in $(GNU_HEADERS); do \
 	  rm $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
+	done
+	for file in $(UNICODE_HEADERS); do \
+	  rm $(GNUSTEP_HEADERS)/gnustep/$$file ; \
 	done
 
 # Things to do before cleaning
