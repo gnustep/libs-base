@@ -36,7 +36,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS += -DHAVE_LIBXML=$(HAVE_LIBXML)
+ADDITIONAL_CPPFLAGS +=
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS += -Wall
