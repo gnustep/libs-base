@@ -57,6 +57,7 @@
 + (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data;
 - (NSString*) abbreviation;
 - (NSString*) abbreviationForDate: (NSDate*)when;
+- (NSData*) data;
 - (id) initWithName: (NSString*)name;
 - (id) initWithName: (NSString*)name data: (NSData*)data;
 - (BOOL) isDaylightSavingTime;

@@ -106,8 +106,9 @@
 #define ZONES_DIR @"zones/"
 
 
-@class NSConcreteAbsoluteTimeZone;
-@class NSConcreteTimeZoneDetail;
+@class GSAbsTimeZone;
+@class GSTimeZoneDetail;
+@class GSAbsTimeZoneDetail;
 
 @class	GSPlaceholderTimeZone;
 
@@ -117,25 +118,38 @@
 static GSPlaceholderTimeZone	*defaultPlaceholderTimeZone;
 static NSMapTable		*placeholderMap;
 
-/* Temporary structure for holding time zone details. */
+/*
+ * Temporary structure for holding time zone details.
+ * This is the format in the data object.
+ */
 struct ttinfo
 {
   char offset[4]; // Seconds east of UTC
-  BOOL isdst; // Daylight savings time?
-  char abbr_idx; // Index into time zone abbreviations string
+  unsigned char isdst; // Daylight savings time?
+  unsigned char abbr_idx; // Index into time zone abbreviations string
 };
+
+/*
+ * And this is the structure used in the time zone instances.
+ */
+typedef struct {
+  gss32		offset;
+  BOOL		isdst;
+  unsigned char	abbr_idx;
+  char		pad[2];
+  NSString	*abbreviation;
+} TypeInfo;
 
 @interface	GSTimeZone : NSTimeZone
 {
 @public
   NSString	*timeZoneName;
-  NSMutableData	*md;
+  NSData	*timeZoneData;
   unsigned int	n_trans;
   unsigned int	n_types;
   gss32		*trans;
+  TypeInfo	*types;
   unsigned char	*idxs;
-  NSString	**abbrevs;
-  struct ttinfo	*types;
 }
 @end
 
@@ -201,11 +215,12 @@ decode (const void *ptr)
 @interface GSPlaceholderTimeZone : NSTimeZone
 @end
   
-@interface NSConcreteAbsoluteTimeZone : NSTimeZone
+@interface GSAbsTimeZone : NSTimeZone
 {
-  NSString *name;
-  id detail;
-  int offset; // Offset from UTC in seconds.
+@public
+  NSString	*name;
+  id		detail;
+  int		offset; // Offset from UTC in seconds.
 }
 
 - (id) initWithOffset: (int)anOffset;
@@ -214,8 +229,7 @@ decode (const void *ptr)
 @interface NSLocalTimeZone : NSTimeZone
 @end
 
-
-@interface NSConcreteTimeZoneDetail : NSTimeZoneDetail
+@interface GSTimeZoneDetail : NSTimeZoneDetail
 {
   NSTimeZone	*timeZone; // Time zone which created this object.
   NSString	*abbrev; // Abbreviation for time zone detail.
@@ -227,6 +241,14 @@ decode (const void *ptr)
 	     withAbbrev: (NSString*)anAbbrev
 	     withOffset: (int)anOffset
 		withDST: (BOOL)isDST;
+@end
+  
+@interface GSAbsTimeZoneDetail : NSTimeZoneDetail
+{
+  GSAbsTimeZone	*zone; // Time zone which created this object.
+}
+
+- (id) initWithTimeZone: (GSAbsTimeZone*)aZone;
 @end
   
 /* Private methods for obtaining resource file names. */
@@ -317,8 +339,14 @@ decode (const void *ptr)
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
   NSTimeZone	*zone;
+  unsigned	length = [name length];
 
-  if ([name isEqual: @"NSLocalTimeZone"])
+  if (length == 0)
+    {
+      NSLog(@"Disallowed null time zone name");
+      return nil;
+    }
+  if (length == 15 && [name isEqual: @"NSLocalTimeZone"])
     {
       zone = RETAIN(localTimeZone);
       DESTROY(self);
@@ -327,49 +355,75 @@ decode (const void *ptr)
 
   /*
    * Return a cached time zone if possible.
+   * NB. if data of cached zone does not match new data ... don't use cache
    */
   if (zone_mutex != nil)
     {
       [zone_mutex lock];
     }
   zone = [zoneDictionary objectForKey: name];
+  if (data != [zone data] && [data isEqual: [zone data]] == NO)
+    {
+      zone = nil;
+    }
   IF_NO_GC(RETAIN(zone));
   if (zone_mutex != nil)
     {
       [zone_mutex unlock];
     }
+
   if (zone == nil)
     {
-      if ([name hasPrefix: @"NSAbsoluteTimeZone:"] == YES)
-	{
-	  int	i = [[name substringFromIndex: 19] intValue];
+      unichar	c;
+      unsigned	i;
 
-	  zone = [[NSConcreteAbsoluteTimeZone alloc] initWithOffset: i];
+      if (length == 8 && [name hasPrefix: @"GMT"] == YES
+	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-'))
+	{
+	  c = [name characterAtIndex: 4];
+	  if (c >= '0' && c <= '9')
+	    {
+	      i = c - '0';
+	      c = [name characterAtIndex: 5];
+	      if (c >= '0' && c <= '9')
+		{
+		  i = i * 10 + (c - '0');
+		  c = [name characterAtIndex: 6];
+		  if (c >= '0' && c <= '9')
+		    {
+		      i = i * 6 + (c - '0');
+		      c = [name characterAtIndex: 7];
+		      if (c >= '0' && c <= '9')
+			{
+			  i = i * 10 + (c - '0');
+			  zone = [[GSAbsTimeZone alloc] initWithOffset: i*60];
+			}
+		    }
+		}
+	    }
 	}
-      else
+
+      if (zone == nil && length > 19
+	&& [name hasPrefix: @"NSAbsoluteTimeZone:"] == YES)
+	{
+	  i = [[name substringFromIndex: 19] intValue];
+
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i];
+	}
+
+      if (zone == nil)
 	{
 	  if (data == nil)
 	    {
-	      NSString	*fileName;
-	      unsigned	length;
+	      NSString		*fileName;
+	      const char	*str = [name UTF8String];
 
-	      length = [name length];
-	      if (length == 0)
+	      /* Make sure that only time zone files are accessed.
+		 FIXME: Make this more robust. */
+	      if ((str)[0] == '/' || strchr(str, '.') != NULL)
 		{
-		  NSLog(@"Disallowed null time zone name");
+		  NSLog(@"Disallowed time zone name `%@'.", name);
 		  return nil;
-		}
-	      else
-		{
-		  const char	*str = [name lossyCString];
-
-		  /* Make sure that only time zone files are accessed.
-		     FIXME: Make this more robust. */
-		  if ((str)[0] == '/' || strchr(str, '.') != NULL)
-		    {
-		      NSLog(@"Disallowed time zone name `%@'.", name);
-		      return nil;
-		    }
 		}
 
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
@@ -415,6 +469,11 @@ decode (const void *ptr)
 - (id) autorelease
 {
   return self;
+}
+
+- (NSData*) data
+{
+  return [[NSTimeZoneClass defaultTimeZone] data];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -478,13 +537,13 @@ decode (const void *ptr)
 
 @end
   
-@implementation NSConcreteAbsoluteTimeZone
+@implementation GSAbsTimeZone
 
 static NSMapTable	*absolutes = 0;
 
 + (void) initialize
 {
-  if (self == [NSConcreteAbsoluteTimeZone class])
+  if (self == [GSAbsTimeZone class])
     {
       absolutes = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
@@ -515,13 +574,36 @@ static NSMapTable	*absolutes = 0;
 
 - (id) initWithOffset: (int)anOffset
 {
-  NSConcreteAbsoluteTimeZone	*z;
+  GSAbsTimeZone	*z;
+  int		extra;
+  int		sign = anOffset >= 0 ? 1 : -1;
+
+  /*
+   * Round the offset to the nearest minute, (for MacOS-X compatibility)
+   * and ensure it is no more than 18 hours.
+   */
+  anOffset *= sign;
+  extra = anOffset % 60;
+  if (extra < 30)
+    {
+      anOffset -= extra;
+    }
+  else
+    {
+      anOffset += 60 - extra;
+    }
+  if (anOffset > 64800)
+    {
+      RELEASE(self);
+      return nil;
+    }
+  anOffset *= sign;
 
   if (zone_mutex != nil)
     {
       [zone_mutex lock];
     }
-  z = (NSConcreteAbsoluteTimeZone*)NSMapGet(absolutes, (void*)(gsaddr)anOffset);
+  z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(gsaddr)anOffset);
   if (z != nil)
     {
       IF_NO_GC(RETAIN(z));
@@ -529,11 +611,25 @@ static NSMapTable	*absolutes = 0;
     }
   else
     {
-      name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
-	anOffset];
-      detail = [[NSConcreteTimeZoneDetail alloc]
-	initWithTimeZone: self withAbbrev: name
-	  withOffset: anOffset withDST: NO];
+      if (anOffset % 60 == 0)
+	{
+	  char	s = (anOffset >= 0) ? '+' : '-';
+	  int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
+	  int	h = i / 60;
+	  int	m = i % 60;
+
+	  name = [[NSString alloc] initWithFormat: @"GMT%c%02d%02d", s, h, m];
+	}
+      else
+	{
+	  /*
+	   * Should never happen now we round to the minute
+	   * for MacOS-X compatibnility.
+	   */
+	  name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
+	    anOffset];
+	}
+      detail = [[GSAbsTimeZoneDetail alloc] initWithTimeZone: self];
       offset = anOffset;
       z = self;
       NSMapInsert(absolutes, (void*)(gsaddr)anOffset, (void*)z);
@@ -571,10 +667,14 @@ static NSMapTable	*absolutes = 0;
   return detail;
 }
   
+- (NSString*) timeZoneName
+{
+  return name;
+}
 @end
   
   
-@implementation NSConcreteTimeZoneDetail
+@implementation GSTimeZoneDetail
   
 - (void) dealloc
 {
@@ -639,6 +739,76 @@ static NSMapTable	*absolutes = 0;
   
 @end
 
+
+
+@implementation GSAbsTimeZoneDetail
+  
+- (NSString*) abbreviation
+{
+  return zone->name;
+}
+
+- (NSString*) abbreviationForDate: (NSDate*)aDate
+{
+  return zone->name;
+}
+
+- (void) dealloc
+{
+  RELEASE(zone);
+  [super dealloc];
+}
+
+- (id) initWithTimeZone: (GSAbsTimeZone*)aZone
+{
+  zone = RETAIN(aZone);
+  return self;
+}
+  
+- (BOOL) isDaylightSavingTimeZone
+{
+  return NO;
+}
+  
+- (BOOL) isDaylightSavingTimeZoneForDate: (NSDate*)aDate
+{
+  return NO;
+}
+  
+- (NSString*) name
+{
+  return zone->name;
+}
+ 
+- (NSString*) timeZoneAbbreviation
+{
+  return zone->name;
+}
+  
+- (NSArray*) timeZoneDetailArray
+{
+  return [zone timeZoneDetailArray];
+}
+
+- (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
+{
+  return self;
+}
+
+- (int) timeZoneSecondsFromGMT
+{
+  return zone->offset;
+}
+
+- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+{
+  return zone->offset;
+}
+  
+@end
+
+
+
 /**
  * <p>
  * If the GNUstep time zone datafiles become too out of date, one
@@ -646,17 +816,17 @@ static NSMapTable	*absolutes = 0;
  * url="ftp://elsie.nci.nih.gov/pub/">ftp://elsie.nci.nih.gov/pub/</uref>
  * and compile it as specified in the README file in the
  * NSTimeZones directory.
- *
- * Time zone names in NSDates should be GMT, MET etc. not
+ * </p>
+ * <p>Time zone names in NSDates should be GMT, MET etc. not
  * Europe/Berlin, America/Washington etc.
- *
+ * </p>
  * The problem with this is that various time zones may use the
  * same abbreviation (e.g. Australia/Brisbane and
  * America/New_York both use EST), and some time zones
  * may have different rules for daylight saving time even if the
  * abbreviation and offsets from UTC are the same.
- *
- * The problems with depending on the OS for providing time zone
+ * </p>
+ * <p>The problems with depending on the OS for providing time zone
  * info are that some methods for the NSTimeZone classes might be
  * difficult to implement, and also that time zone names may vary
  * wildly between OSes (this could be a big problem when
@@ -1010,14 +1180,19 @@ static NSMapTable	*absolutes = 0;
   return regionsArray;
 }
 
+/**
+ * Return a timezone for the specified offset from GMT.<br />
+ * The timezone returned does <em>not</em> use daylight savings time.
+ * The actual timezone returned has an offset rounded to the nearest
+ * minute.<br />
+ * Time zones with an offset of more than +/- 18 hours  are disallowed,
+ * and nil is returned.
+ */
 + (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds
 {
   NSTimeZone	*zone;
 
-  /* We simply return the following because an existing time zone with
-     the given offset might not always have the same offset (daylight
-     savings time, change in standard time, etc.). */
-  zone = [[NSConcreteAbsoluteTimeZone alloc] initWithOffset: seconds];
+  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds];
   return AUTORELEASE(zone);
 }
 
@@ -1089,6 +1264,14 @@ static NSMapTable	*absolutes = 0;
   return RETAIN(self);
 }
 
+/**
+ * Returns the data with which the receiver was initialised.
+ */
+- (NSData*) data
+{
+  return nil;
+}
+
 - (NSString*) description
 {
   return [self name];
@@ -1113,11 +1296,21 @@ static NSMapTable	*absolutes = 0;
   return self;
 }
 
+/**
+ * Initialise a timezone with the supplied name.  May return a cached
+ * timezone object rather than the newly created one.
+ */
 - (id) initWithName: (NSString*)name
 {
   return [self initWithName: name data: nil];
 }
 
+/**
+ * Initialises a time zone object using the supplied data object.<br />
+ * This method is intended for internal use by the NSTimeZone
+ * class cluster.
+ * Don't use it ... use -initWithName: instead.
+ */
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
   [self notImplemented: _cmd];
@@ -1161,7 +1354,10 @@ static NSMapTable	*absolutes = 0;
 {
   if (aTimeZone == self)
     return YES;
-  if ([[self name] isEqual: [aTimeZone name]] == YES)
+  if ([[self name] isEqual: [aTimeZone name]] == NO)
+    return NO;
+  if (([self data] == nil && [aTimeZone data] == nil)
+    || [[self name] isEqual: [aTimeZone name]] == YES)
     return YES;
   return NO;
 }
@@ -1174,7 +1370,9 @@ static NSMapTable	*absolutes = 0;
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
   if ([aCoder isByref] == NO)
-    return self;
+    {
+      return self;
+    }
   return [super replacementObjectForPortCoder: aCoder];
 }
 
@@ -1222,7 +1420,11 @@ static NSMapTable	*absolutes = 0;
 
 @end
   
-
+/**
+ * This class serves no useful purpose in GNUstep, and is provided
+ * solely for backward compatibility with the OpenStep spec.  It is
+ * missing entirely from MacOS-X.
+ */
 @implementation NSTimeZoneDetail
 
 - (NSString*) description
@@ -1306,7 +1508,7 @@ static NSMapTable	*absolutes = 0;
  * We locate the index of the highest transition before the date, or zero
  * if there is no transition before it.
  */
-static struct ttinfo*
+static TypeInfo*
 chop(NSTimeInterval since, GSTimeZone *zone)
 {
   gss32			when = (gss32)since;
@@ -1320,7 +1522,7 @@ chop(NSTimeInterval since, GSTimeZone *zone)
       unsigned	n_types = zone->n_types;
 
       /*
-       * If and the first transition is greater than our date,
+       * If the first transition is greater than our date,
        * we locate the first non-DST transition and use that offset,
        * or just use the first transition.
        */
@@ -1364,39 +1566,44 @@ chop(NSTimeInterval since, GSTimeZone *zone)
 }
 
 static NSTimeZoneDetail*
-newDetailInZoneForType(GSTimeZone *zone, struct ttinfo *type)
+newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 {
-  NSConcreteTimeZoneDetail	*detail;
+  GSTimeZoneDetail	*detail;
 
-  detail = [NSConcreteTimeZoneDetail alloc];
+  detail = [GSTimeZoneDetail alloc];
   detail = [detail initWithTimeZone: zone
-			 withAbbrev: zone->abbrevs[(int)type->abbr_idx]
-			 withOffset: decode(type->offset)
-			    withDST: type->isdst > 0 ? YES : NO];
+			 withAbbrev: type->abbreviation
+			 withOffset: type->offset
+			    withDST: type->isdst];
   return detail;
 }
 
 - (NSString*) abbreviationForDate: (NSDate*)aDate
 {
-  struct ttinfo	*type = chop([aDate timeIntervalSince1970], self);
+  TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
 
-  return abbrevs[(int)type->abbr_idx];
+  return type->abbreviation;
+}
+
+- (NSData*) data
+{
+  return timeZoneData;
 }
 
 - (void) dealloc
 {
   RELEASE(timeZoneName);
-  if (abbrevs != 0)
+  RELEASE(timeZoneData);
+  if (types != 0)
     {
       unsigned	i;
 
       for (i = 0; i < n_types; i++)
 	{
-	  TEST_RELEASE(abbrevs[i]);
+	  RELEASE(types[i].abbreviation);
 	}
-      NSZoneFree(NSDefaultMallocZone(), abbrevs);
+      NSZoneFree(NSDefaultMallocZone(), types);
     }
-  RELEASE(md);
   [super dealloc];
 }
 
@@ -1405,11 +1612,12 @@ newDetailInZoneForType(GSTimeZone *zone, struct ttinfo *type)
   static NSString	*fileException = @"GSTimeZoneFileException";
 
   timeZoneName = [name copy];
-  md = [data mutableCopy];
+  timeZoneData = [data copy];
   NS_DURING
     {
-      void		*bytes = [md mutableBytes];
-      unsigned		length = [md length];
+      const void	*bytes = [timeZoneData bytes];
+      unsigned		length = [timeZoneData length];
+      void		*buf;
       unsigned		pos = 0;
       unsigned		i, charcnt;
       unsigned char	*abbr;
@@ -1428,55 +1636,87 @@ newDetailInZoneForType(GSTimeZone *zone, struct ttinfo *type)
 		      format: @"TZ_MAGIC is incorrect"];
 	}
       n_trans = GSSwapBigI32ToHost(*(gss32*)header->tzh_timecnt);
-      if (pos + 5*n_trans > length)
+      n_types = GSSwapBigI32ToHost(*(gss32*)header->tzh_typecnt);
+      charcnt = GSSwapBigI32ToHost(*(gss32*)header->tzh_charcnt);
+
+      i = pos;
+      i += sizeof(gss32)*n_trans;
+      if (i > length)
 	{
 	  [NSException raise: fileException
 		      format: @"Transitions list is truncated"];
 	}
-
-      /* Read in transitions. */
-      trans = (gss32*)(bytes + pos);
-      for (i = 0; i < n_trans; i++)
+      i += n_trans;
+      if (i > length)
 	{
-	  trans[i] = GSSwapBigI32ToHost(*(gss32*)(bytes + pos));
-	  pos += 4;
+	  [NSException raise: fileException
+		      format: @"Transition indexes are truncated"];
 	}
-      idxs = (unsigned char*)(bytes + pos);
-      pos += n_trans;
-
-      n_types = GSSwapBigI32ToHost(*(gss32*)header->tzh_typecnt);
-      if (pos + n_types*sizeof(struct ttinfo) > length)
+      i += sizeof(struct ttinfo)*n_types;
+      if (i > length)
 	{
 	  [NSException raise: fileException
 		      format: @"Types list is truncated"];
 	}
-      types = (struct ttinfo*)(bytes + pos);
-      pos += n_types*sizeof(struct ttinfo);
-
-      charcnt = decode(header->tzh_charcnt);
-      charcnt = GSSwapBigI32ToHost(*(gss32*)header->tzh_charcnt);
-      if (pos + charcnt > length)
+      if (i + charcnt > length)
 	{
 	  [NSException raise: fileException
 		      format: @"Abbreviations list is truncated"];
 	}
-      abbr = (char*)(bytes + pos);
 
       /*
-       * Create an NSString object to hold each abbreviation.
+       * Now calculate size we need to store the information
+       * for efficient access ... not the same saze as the data
+       * we received.
        */
-      abbrevs = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*charcnt);
-      memset(abbrevs, '\0', sizeof(id)*charcnt);
+      i = n_trans * (sizeof(gss32)+1) + n_types * sizeof(TypeInfo);
+      buf = NSZoneMalloc(NSDefaultMallocZone(), i);
+      types = (TypeInfo*)buf;
+      buf += (n_types * sizeof(TypeInfo));
+      trans = (gss32*)buf;
+      buf += (n_trans * sizeof(gss32));
+      idxs = (unsigned char*)buf;
+
+      /* Read in transitions. */
+      for (i = 0; i < n_trans; i++)
+	{
+	  trans[i] = GSSwapBigI32ToHost(*(gss32*)(bytes + pos));
+	  pos += sizeof(gss32);
+	}
+      for (i = 0; i < n_trans; i++)
+	{
+	  idxs[i] = *(unsigned char*)(bytes + pos);
+	  pos++;
+	}
       for (i = 0; i < n_types; i++)
 	{
-	  struct ttinfo     *inf = types + i;
-	  int               loc = inf->abbr_idx;
+	  struct ttinfo	*ptr = (struct ttinfo*)(bytes + pos);
 
-	  if (abbrevs[loc] == nil)
-	    {
-	      abbrevs[loc] = [[NSString alloc] initWithCString: abbr + loc];
-	    }
+	  types[i].isdst = (ptr->isdst != 0 ? YES : NO);
+	  types[i].abbr_idx = ptr->abbr_idx;
+	  types[i].offset = decode(ptr->offset);
+	  pos += sizeof(struct ttinfo);
 	}
+      abbr = (char*)(bytes + pos);
+      {
+	id	abbrevs[charcnt];
+
+	memset(abbrevs, '\0', sizeof(id)*charcnt);
+	for (i = 0; i < n_types; i++)
+	  {
+	    int	loc = types[i].abbr_idx;
+
+	    if (abbrevs[loc] == nil)
+	      {
+		abbrevs[loc] = [[NSString alloc] initWithCString: abbr + loc];
+	      }
+	    else
+	      {
+		RETAIN(abbrevs[loc]);
+	      }
+	    types[i].abbreviation = abbrevs[loc];
+	  }
+      }
 
       if (zone_mutex != nil)
 	{
@@ -1503,9 +1743,9 @@ newDetailInZoneForType(GSTimeZone *zone, struct ttinfo *type)
 
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate
 {
-  struct ttinfo	*type = chop([aDate timeIntervalSince1970], self);
+  TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
 
-  return type->isdst > 0 ? YES : NO;
+  return type->isdst;
 }
 
 - (NSString*) name
@@ -1515,9 +1755,9 @@ newDetailInZoneForType(GSTimeZone *zone, struct ttinfo *type)
 
 - (int) secondsFromGMTForDate: (NSDate*)aDate
 {
-  struct ttinfo	*type = chop([aDate timeIntervalSince1970], self);
+  TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
 
-  return decode(type->offset);
+  return type->offset;
 }
 
 - (NSArray*) timeZoneDetailArray
@@ -1540,7 +1780,7 @@ newDetailInZoneForType(GSTimeZone *zone, struct ttinfo *type)
 
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)aDate
 {
-  struct ttinfo		*type;
+  TypeInfo		*type;
   NSTimeZoneDetail	*detail;
 
   type = chop([aDate timeIntervalSince1970], self);
