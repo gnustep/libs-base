@@ -31,6 +31,7 @@ extern NSString *NSStringFromSelector(SEL aSelector);
 extern SEL NSSelectorFromString(NSString *aSelectorName);
 extern Class NSClassFromString(NSString *aClassName);
 extern NSString *NSStringFromClass(Class aClass);
+extern const char *NSGetSizeAndAlignment(const char *typePtr, unsigned int *sizep, unsigned int *alignp);
 
 /* Logging */
 /* OpenStep spec states that log messages go to stderr, but just in case
