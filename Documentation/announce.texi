@@ -32,19 +32,15 @@ distribution.
 
 @section Where can you get it?  How can you compile it?
 
+@ifset OBJECTS_FTP_MACHINE
 The libobjects-@value{OBJECTS_VERSION}.tar.gz distribution file has been
-placed on @samp{prep.ai.mit.edu} in @samp{/pub/gnu}, and will be
-appearing on the usual mirror sites.  
-
-@ignore
-The library is available by anonymous ftp at URL:
-@smallexample
-ftp://prep.ai.mit.edu/pub/gnu/libobjects-@value{OBJECTS_VERSION}.tar.gz
-@end smallexample
-Since @samp{prep} is heavily loaded, you are encouraged to use GNU
-mirror sites.  A partial list of mirror sites is at the end of this
-message.
-@end ignore
+placed on @samp{@value{OBJECTS_FTP_MACHINE}} in
+@samp{@value{OBJECTS_FTP_DIRECTORY}}.
+@end ifset
+@ifclear OBJECTS_FTP_MACHINE
+The libobjects-@value{OBJECTS_VERSION}.tar.gz distribution file has not
+been made available by anonymous ftp.
+@end ifclear
 
 The library requires gcc @value{OBJECTS_GCC_VERSION} or higher.  The
 library does not work with the NEXTSTEP 3.2 compiler because that
@@ -59,6 +55,8 @@ configurations:
   mips-sgi-irix5.2
   sparc-sun-sunos4.1.3
   m68k-next-nextstep3.0
+  rs6000-ibm-aix3.2
+  sparc-sun-solaris2.3
 @end smallexample
 
 Some previous snapshots of the library worked with these configurations,
@@ -67,7 +65,6 @@ but they haven't been tested recently:
   i386-unknown-linux
   i386-sun-solaris2.4
   i386-unknown-sysv4.0
-  sparc-sun-solaris2.3
 @end smallexample
 
 It is known not to work with:
