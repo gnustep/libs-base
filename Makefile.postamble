@@ -100,12 +100,12 @@ remove-header-links:
 endif
 
 configure: configure.in
-	autoconf
+	autoreconf
 
-base.make: base.make.in
+base.make: base.make.in configure
 	./configure
 
-config.mak: config.mak.in
+config.mak: config.mak.in configure
 	./configure
 
 # Regenerate automatically generated files
