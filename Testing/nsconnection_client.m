@@ -238,8 +238,22 @@ int
 con_messages (id prx)
 {
   id obj;
+  Protocol	*pc = @protocol(ClientProtocol);
+  Protocol	*ps = @protocol(ServerProtocol);
 
   obj = [NSObject new];
+
+  printf("Conforms to protocol (remote) should be 1: %d\n",
+    [prx conformsToProtocol: ps]);
+  printf("Conforms to protocol (remote) should be 0: %d\n",
+    [prx conformsToProtocol: pc]);
+
+  [prx setProtocolForProxy: ps];
+
+  printf("Conforms to protocol (local) should be 1: %d\n",
+    [prx conformsToProtocol: ps]);
+  printf("Conforms to protocol (local) should be 0: %d\n",
+    [prx conformsToProtocol: pc]);
 
   printf("Oneway Void message:\n");
   [prx shout];

@@ -1,3 +1,11 @@
+2004-04-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: ([-conformsToProtocol:]) rewritten with
+	various hacks to check locally set protocol (if present) or forward
+	a request to the remote system to check a protocol by name.
+	Works round the fact that the gnu runtime protocol code accesses the
+	ivars of the other protocol directly and so can't work via a proxy.
+
 2004-04-17 01:17  Alexander Malmberg <alexander@malmberg.org>
 
 	* Headers/Foundation/NSObject.h, Source/NSObject.m,

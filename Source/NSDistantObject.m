@@ -54,6 +54,36 @@ typedef struct {
   @defs(NSDistantObject)
 } NSDO;
 
+@interface Object (NSConformsToProtocolNamed)
+- (BOOL) _conformsToProtocolNamed: (char*)aName;
+@end
+@interface NSObject (NSConformsToProtocolNamed)
+- (BOOL) _conformsToProtocolNamed: (char*)aName;
+@end
+/*
+ * Evil hack ... if a remote system wants to know if we conform
+ * to a protocol we pretend we have a local protocol with the same name.
+ */
+typedef struct {
+    @defs(Protocol)
+} Proto;
+@implementation Object (NSConformsToProtocolNamed)
+- (BOOL) _conformsToProtocolNamed: (char*)aName
+{
+  Proto	p;
+  p.protocol_name = (char*)aName;
+  return [self conformsTo: (Protocol*)&p];
+}
+@end
+@implementation NSObject (NSConformsToProtocolNamed)
+- (BOOL) _conformsToProtocolNamed: (char*)aName
+{
+  Proto	p;
+  p.protocol_name = (char*)aName;
+  return [self conformsToProtocol: (Protocol*)&p];
+}
+@end
+
 @interface NSConnection (DistantObjectHacks)
 - (void) aquireProxyForTarget: (unsigned)target;
 - (NSDistantObject*) retainOrAddLocal: (NSDistantObject*)aProxy
@@ -874,29 +904,21 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
   return object_get_class (self);
 }
 
+/**
+ * If a protocol has been set for the receiver, this method tests to
+ * see that the set protocol conforms to aProtocol. Otherwise, the
+ * remote object is checked to see whether it conforms to aProtocol.
+ */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
-  BOOL m = NO;
-  id inv, sig;
-  DO_FORWARD_INVOCATION(conformsToProtocol:, aProtocol);
-  return m;
-#else
-  arglist_t	args;
-  void		*retframe;
-
-  BOOL retframe_bool (void *rframe)
+  if (_protocol != nil)
     {
-      __builtin_return (rframe);
+      return [_protocol conformsTo: aProtocol];
     }
-
-  /*
-   *	Try forwarding the message.
-   */
-  args = __builtin_apply_args();
-  retframe = [self forward: _cmd : args];
-  return retframe_bool(retframe);
-#endif
+  else
+    {
+      return [(id)self _conformsToProtocolNamed: (char*)[aProtocol name]];
+    }
 }
 
 - (BOOL) respondsToSelector: (SEL)aSelector
