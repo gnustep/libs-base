@@ -39,17 +39,13 @@ int main (int argc, char *argv[])
     port = [TcpInPort newForReceivingFromRegisteredName: @"tcpport-test"];
 
   [NotificationDispatcher
-    addObserver: nil
-    invocation: [[[ObjectFunctionInvocation alloc] 
-		   initWithObjectFunction: announce_broken_connection]
-		  autorelease]
+    addInvocation: [[ObjectFunctionInvocation alloc] 
+		     initWithObjectFunction: announce_broken_connection]
     name: InPortClientBecameInvalidNotification
     object: port];
   [NotificationDispatcher
-    addObserver: nil
-    invocation: [[[ObjectFunctionInvocation alloc] 
-		   initWithObjectFunction: announce_new_connection]
-		  autorelease]
+    addInvocation: [[ObjectFunctionInvocation alloc] 
+		     initWithObjectFunction: announce_new_connection]
     name: InPortAcceptedClientNotification
     object: port];
 
