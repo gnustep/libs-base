@@ -828,7 +828,7 @@ static NSString	*indentStrings[] = {
   NSMutableArray	*obj = [self allocWithZone: NSDefaultMallocZone()];
 
   obj = [obj initWithObjects: &anObject count: 1];
-  return AUTORELEASE(self);
+  return AUTORELEASE(obj);
 }
 
 - (Class) classForCoder
