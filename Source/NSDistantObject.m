@@ -302,26 +302,37 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-    const char	*types = 0;
-
-    if (_protocol) {
-	struct objc_method_description* mth;
-
-	mth = [_protocol descriptionForInstanceMethod: aSelector];
-	if (mth == 0) {
-	    mth = [_protocol descriptionForClassMethod: aSelector];
-	}
-	if (mth != 0) {
-	    types = mth->types;
-	}
+    if (_isLocal) {
+	return [_object methodSignatureForSelector: aSelector];
     }
     else {
-	types = [self selectorTypeForProxy: aSelector];
+	if (_protocol) {
+	    const char	*types = 0;
+
+	    struct objc_method_description* mth;
+
+	    mth = [_protocol descriptionForInstanceMethod: aSelector];
+	    if (mth == 0) {
+		mth = [_protocol descriptionForClassMethod: aSelector];
+	    }
+	    if (mth != 0) {
+		types = mth->types;
+	    }
+	    if (types == 0) {
+		return nil;
+	    }
+	    return [NSMethodSignature signatureWithObjCTypes: types];
+	}
+	else {
+	    arglist_t	args;
+
+	    /*
+	     *	No protocol - so try forwarding the message.
+	     */
+	    args = __builtin_apply_args();
+	    __builtin_return([self forward: _cmd : args]);
+	}
     }
-    if (types == 0) {
-	return nil;
-    }
-    return [NSMethodSignature signatureWithObjCTypes: types];
 }
 
 - (void) setProtocolForProxy: (Protocol*)aProtocol
