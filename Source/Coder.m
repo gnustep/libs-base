@@ -37,6 +37,7 @@
 #include <gnustep/base/TextCStream.h>
 #include <gnustep/base/BinaryCStream.h>
 #include <gnustep/base/StdioStream.h>
+#include <gnustep/base/Archiver.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSData.h>
@@ -337,7 +338,7 @@ static BOOL debug_coder = NO;
 + (NSData*) archivedDataWithRootObject: (id)rootObject
 {
   id d = [[NSMutableData alloc] init];
-  id a = [[NSArchiver alloc] initForWritingWithMutableData:d];
+  id a = [[Archiver alloc] initForWritingWithMutableData:d];
   [a encodeRootObject:rootObject];
   return [d autorelease];
 }
