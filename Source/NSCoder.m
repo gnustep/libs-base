@@ -201,8 +201,8 @@
   id o;
   id d;
   [self decodeValueOfObjCType:@encode(id) at:&d];
-  o = [NSSerializer deserializePropertyListFromData: d
-				  mutableContainers: NO];
+  o = [NSDeserializer deserializePropertyListFromData: d
+				    mutableContainers: NO];
   [d release];
   return o;
 }
