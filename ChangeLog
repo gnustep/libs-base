@@ -12,12 +12,13 @@ Wed Jul 29  9:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* src/NSAttributedString.m: ([-copy]) removed.
 	* src/NSString.m: ([-copy]) removed.
 	* src/NSObject.m: ([-copyWithZone:]) modified to conform strictly
-	to Rhapsody docs.
+	to Rhapsody docs.  Added ([+instanceMethodSignatureForSelector:]).
 	* src/include/IndexedCollectionPrivate.h: fixed include for NSString.h
 	* src/Makefile.postamble: modified rule for building srcdir-include
 	stuff so that it works for me.
 	* src/NSException.m: ([-copyWithZone:]) typecast to get rid of warning.
 	* src/NSValue.m: ([-copyWithZone:]) typecast to get rid of warning.
+	* src/NSDistantObject.m: fixed ([-classForPortCoder]) for Protocol.
 
 Tue Jul 28 12:57:54 1998  Adam Fedor  <fedor@ultra.doc.com>
 
