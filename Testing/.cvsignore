@@ -3,6 +3,7 @@ Makefile
 test?? 
 pipes server client string values nsarray nsbundle nsdictionary nsset
 nsprocessinfo nsarchiver invocation diningPhilosophers nsmaptable nshashtable
-tcpport-server tcpport-client coder cstream float
+tcpport-server tcpport-client coder cstream float prepend randoms
+nstimer nsnotification nxst fref heap
 
 *.txt *.dat
