@@ -34,6 +34,8 @@
 #define NSIG    32
 #endif
 
+@class	GSTcpPort;
+
 static void
 ihandler(int sig)
 {
@@ -300,14 +302,13 @@ ihandler(int sig)
 {
   NSString	*hostname;
   NSString	*service = GDNC_SERVICE;
+  BOOL		isLocal = NO;
 
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
   observersForNames = [NSMutableDictionary new];
   observersForObjects = [NSMutableDictionary new];
-  conn = [NSConnection defaultConnection];
-  [conn setRootObject: self];
 
   if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSNetwork"] == YES)
     {
@@ -315,6 +316,32 @@ ihandler(int sig)
     }
   hostname = [[NSUserDefaults standardUserDefaults] stringForKey: @"NSHost"];
   if ([hostname length] == 0
+    || [hostname isEqualToString: @"localhost"] == YES
+    || [hostname isEqualToString: @"127.0.0.1"] == YES)
+    {
+      isLocal = YES;
+    }
+
+  /*
+   * If this is the local server for the current host,
+   * use the loopback network interface.  Otherwise
+   * create a public connection.
+   */
+  if (isLocal == YES && service != GDNC_NETWORK)
+    {
+      NSPort	*port = [GSTcpPort portWithNumber: 0
+					   onHost: [NSHost localHost]
+				     forceAddress: @"127.0.0.1"
+					 listener: YES];
+      conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
+    }
+  else
+    {
+      conn = [NSConnection defaultConnection];
+    }
+  [conn setRootObject: self];
+
+  if (isLocal == YES
     || [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
     {
       if ([conn registerName: service] == NO)
