@@ -165,6 +165,7 @@ NSRange.m \
 NSValue.m
 
 GNU_CFILES = \
+behavior.c \
 collhash.c \
 objc-malloc.c \
 o_vscanf.c
@@ -249,6 +250,7 @@ objects/String.h \
 objects/TextCoder.h \
 objects/Time.h \
 objects/ValueHolding.h \
+objects/behavior.h \
 objects/collhash.h \
 objects/config.h \
 objects/elt.h \
