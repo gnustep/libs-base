@@ -281,7 +281,7 @@ enum {NSNotFound = 0x7fffffff};
    creating the potential for deadlock. */
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
-@interface NSObject (GNU)
+@interface NSObject (GNUstep)
 - (id) makeImmutableCopyOnFail: (BOOL)force;
 - (Class) transmuteClassTo: (Class)aClassObject;
 + (Class) autoreleaseClass;

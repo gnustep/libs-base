@@ -2088,7 +2088,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 
 
-@implementation NSObject (GNU)
+@implementation NSObject (GNUstep)
 
 /* GNU Object class compatibility */
 
