@@ -1,3 +1,9 @@
+2001-07-19  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/readme.texi: Explain the license for GNUstep more
+	clearly.
+	* README: Regen.
+
 Thu Jul 19 12:41:22 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* config/config.objc.m: New file.
