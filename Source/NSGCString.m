@@ -28,6 +28,7 @@
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/MallocAddress.h>
 #include <Foundation/NSValue.h>
+#include <objects/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 @implementation NSGCString
@@ -37,7 +38,7 @@
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  /* assert(!flag);	/* xxx need to make a subclass to handle this. */
+  /* assert(!flag);	xxx need to make a subclass to handle this. */
   _count = length;
   _contents_chars = byteString;
   _free_contents = flag;
