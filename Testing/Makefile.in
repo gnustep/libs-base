@@ -109,7 +109,8 @@ RCS_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 	Makefile.in NXStringTable.example
 DIST_FILES = $(RCS_FILES) 
 
-all: $(EXCS) bundles
+# type 'make bundles' if you also want to check bundles.
+all: $(EXCS)
 
 # This works for GNU make, but not others.
 # %: %.o $(srcdir)/../src/libobjects.a
