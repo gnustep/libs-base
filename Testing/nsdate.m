@@ -216,7 +216,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
 
     c = [NSCalendarDate dateWithString: @"2002-03-31 00:30:00 GB"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"];
-    printf("\nSavings time checks at %s\n", [DESCRIP_FORMAT(c) cString]);
+    printf("\nSavings time begins at %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
     printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-1 minute:0 second:0];
@@ -237,6 +237,33 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     printf("Add four hours - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-24 minute:0 second:0];
     printf("Subtract twentyfour hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+
+    c = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00 GB"
+			calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"];
+    printf("\nSavings time ends at %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
+    printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-1 minute:0 second:0];
+    printf("Subtract an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:2 minute:0 second:0];
+    printf("Add two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
+    printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:3 minute:0 second:0];
+    printf("Add three hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-4 minute:0 second:0];
+    printf("Subtract four hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:3 minute:0 second:0];
+    printf("Add three hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-4 minute:0 second:0];
+    printf("Subtract four hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:4 minute:0 second:0];
+    printf("Add four hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-24 minute:0 second:0];
+    printf("Subtract twentyfour hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+
+    c = [NSCalendarDate dateWithYear: 2002 month: 3 day: 31 hour: 1 minute: 30 second: 0 timeZone: [NSTimeZone timeZoneWithName: @"GB"]];
+    printf("Build at %s\n", [[c description] cString]);
 
     c = [NSCalendarDate dateWithString: @"2002-09-27 01:59:00"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
