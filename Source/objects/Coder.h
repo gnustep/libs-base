@@ -1,5 +1,5 @@
 /* Interface for GNU Objective-C coder object for use serializing
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -38,7 +38,6 @@
   int concrete_format_version;
   Stream *stream;
   BOOL is_decoding;
-  BOOL doing_root_object;
   Dictionary *object_table;	     /* read/written objects */
   Dictionary *const_ptr_table;       /* read/written const *'s */
   Dictionary *root_object_table;     /* table of interconnected objects */
