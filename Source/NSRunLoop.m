@@ -62,6 +62,7 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSDebug.h>
 
 #include <sys/types.h>
 #ifndef __WIN32__
@@ -1239,13 +1240,20 @@ static int debug_run_loop = 0;
 
   if (select_return < 0)
     {
-      /* Some exceptional condition happened. */
-      /* xxx We can do something with exception_fds, instead of
-	 aborting here. */
-      perror ("[TcpInPort receivePacketWithTimeout:] select()");
-      abort ();
+      if (errno == EINTR)
+	{
+	  select_return = 0;
+	}
+      else
+	{
+	  /* Some exceptional condition happened. */
+	  /* xxx We can do something with exception_fds, instead of
+	     aborting here. */
+	  perror ("[NSRunLoop receivePacketWithTimeout:] select()");
+	  abort ();
+	}
     }
-  else if (select_return == 0)
+  if (select_return == 0)
     {
       NSFreeMapTable (rfd_2_object);
       NSFreeMapTable (wfd_2_object);
