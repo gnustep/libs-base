@@ -2331,6 +2331,41 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return address;
 }
 
+- (NSString*) socketLocalAddress
+{
+  NSString	*str = nil;
+  struct sockaddr_in sin;
+  int		size = sizeof(sin);
+
+  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+    {
+      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
+    }
+  else
+    {
+      str = [NSString stringWithCString: (char*)inet_ntoa(sin.sin_addr)];
+    }
+  return str;
+}
+
+- (NSString*) socketLocalService
+{
+  NSString	*str = nil;
+  struct sockaddr_in sin;
+  int		size = sizeof(sin);
+  
+  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+    {
+      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
+    }
+  else
+    {
+      str = [NSString stringWithFormat: @"%d",
+	(int)GSSwapBigI16ToHost(sin.sin_port)];
+    }
+  return str;
+}
+
 - (NSString*) socketProtocol
 {
   return protocol;
