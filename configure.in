@@ -202,9 +202,14 @@ if test SOCKET_H = 0 -o IN_H = 0 ; then
 fi
 
 #--------------------------------------------------------------------
-# These functions needed by StdioStream.m
+# This function needed by StdioStream.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(vsprintf)
+
+#--------------------------------------------------------------------
+# This function needed by objc-malloc.c
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(valloc)
 
 #--------------------------------------------------------------------
 # These libraries needed by the check programs for distributed objects
