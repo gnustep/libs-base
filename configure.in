@@ -221,6 +221,13 @@ fi
 # This function needed by StdioStream.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(vsprintf)
+if [ $HAVE_VSPRINTF ] ; then
+    AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
+		VSPRINTF_RETURNS_LENGTH=1,
+		VSPRINTF_RETURNS_LENGTH=0,
+		VSPRINTF_RETURNS_LENGTH=1)
+    AC_DEFINE(VSPRINTF_RETURNS_LENGTH)
+fi
 
 #--------------------------------------------------------------------
 # This function needed by objc-malloc.c
