@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	     j, (unsigned)[remote_peer_obj hash]);
     }
   [c runConnectionWithTimeout:1500];
-  [c release];
+  [c invalidate];
 
   exit(0);
 }
