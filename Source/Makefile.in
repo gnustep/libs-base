@@ -486,7 +486,7 @@ DIST_FILES = \
         $(GNUSTEP_OTHER_SRCFILES)
 
 RCS_FILES = \
-        Makefile.in \
+        Makefile.in Makefile.sed.nt \
         objects/config.h.in objects/stdobjects.h.in \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
