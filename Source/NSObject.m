@@ -28,6 +28,7 @@
 #include <objc/Protocol.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSMethodSignature.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
@@ -144,19 +145,19 @@ extraRefCount (id anObject)
   return NSAllocateObject (self, 0, z);
 }
 
++ (id) copyWithZone: (NSZone*)z
+{
+  return self;
+}
+
 + (id) new
 {
   return [[self alloc] init];
 }
 
-- copyWithZone:(NSZone *)zone
-{
-  return NSCopyObject (self, 0, zone);
-}
-
 - (id) copy
 {
-  return [self copyWithZone: NSDefaultMallocZone()];
+  return [(id)self copyWithZone: NSDefaultMallocZone()];
 }
 
 - (void) dealloc
@@ -176,14 +177,9 @@ extraRefCount (id anObject)
   return self;
 }
 
-- mutableCopyWithZone:(NSZone *)zone
-{
-  return [self copyWithZone:zone];
-}
-
 - (id) mutableCopy
 {
-  return [self mutableCopyWithZone: NSDefaultMallocZone()];
+  return [(id)self mutableCopyWithZone: NSDefaultMallocZone()];
 }
 
 + (Class) superclass
