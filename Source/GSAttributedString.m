@@ -805,18 +805,24 @@ SANITY();
     }
 
   moveLocations = [aString length] - range.length;
-  if (effectiveRange.location == range.location
-    && effectiveRange.length == range.length
-    && (moveLocations + range.length) == 0)
+  /*
+   * If we are replacing a range with a zero length string and the
+   * range we are using matches the range replaced, then we must
+   * remove it from the array to avoid getting a zero length range.
+   */
+  if ((moveLocations + range.length) == 0)
     {
-      /*
-       * If we are replacing a range with a zero length string and the
-       * range we are using matches the range replaced, then we must
-       * remove it from the array to avoid getting a zero length range.
-       */
-      arrayIndex--;
-      REMOVEAT(arrayIndex);
-      arraySize--;
+      attrs = _attributesAtIndexEffectiveRange(start, &effectiveRange,
+        tmpLength, _infoArray, &arrayIndex);
+      arrayIndex++;
+
+      if (effectiveRange.location == range.location
+        && effectiveRange.length == range.length)
+        {
+          arrayIndex--;
+          REMOVEAT(arrayIndex);
+          arraySize--;
+        }
     }
 
   /*

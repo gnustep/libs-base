@@ -1,3 +1,9 @@
+2001-04-22  Georg Fleischmann
+
+	* Source/GSAttributedString.m:
+	([replaceCharactersInRange:withString:])
+	recalculate effective range after removing attributes.
+
 2001-04-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSLocale.m: Only call setlocale() in GSSetLocaleC()
