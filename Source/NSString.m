@@ -3870,11 +3870,194 @@ handle_printf_atsign (FILE *stream,
   return [super replacementObjectForPortCoder: aCoder];
 }
 
+/**
+ * <p>Attempts to interpret the receiver as a <em>property list</em>
+ * and returns the result.  If the receiver does not contain a
+ * string representation of a <em>property list</em> then the method
+ * returns nil.
+ * </p>
+ * <p>There are three readable <em>property list</em> storage formats -
+ * The binary format used by [NSSerializer] does not concern us here,
+ * but there are two 'human readable' formats, the <em>traditional</em>
+ * OpenStep format (which is extended in GNUstep) and the <em>XML</em> format.
+ * </p>
+ * <p>The [NSArray-descriptionWithLocale:indent:] and
+ * [NSDictionary-descriptionWithLocale:indent:] methods
+ * both generate strings containing traditional style <em>property lists</em>,
+ * but [NSArray-writeToFile:atomically:] and
+ * [NSDictionary-writeToFile:atomically:] generate either traditional or
+ * XML style <em>property lists</em> depending on the value of the
+ * GSMacOSXCompatible and NSWriteOldStylePropertyLists user defaults.<br />
+ * If GSMacOSXCompatible is YES then XML <em>property lists</em> are
+ * written unless NSWriteOldStylePropertyLists is also YES.<br />
+ * By default GNUstep writes old style data and always supports reading of
+ * either style.
+ * </p>
+ * <p>The traditional format is more compact and more easily readable by
+ * people, but (without the GNUstep extensions) cannot represent date and
+ * number objects (except as strings).  The XML format is more verbose and
+ * less readable, but can be fed into modern XML tools and thus used to
+ * pass data to non-OpenStep applications more readily.
+ * </p>
+ * <p>The traditional format is strictly ascii encoded, with any unicode
+ * characters represented by escape sequences.  The XML format is encoded
+ * as UTF8 data.
+ * </p>
+ * <p>Both the traditional format and the XML format permit comments to be
+ * placed in <em>property list</em> documents.  In traditional format the
+ * comment notations used in ObjectiveC programming are supported, while
+ * in XML format, the standard SGML comment sequences are used.
+ * </p>
+ * A <em>property list</em> may only be one of the following classes - 
+ * <deflist>
+ *   <term>[NSArray]</term>
+ *   <desc>
+ *     An array which is either empty or contains only <em>property list</em>
+ *     objects.<br />
+ *     An array is delimited by round brackets and its contents are comma
+ *     <em>separated</em> (there is no comma after the last array element).
+ *     <example>
+ *       ( "one", "two", "three" )
+ *     </example>
+ *     In XML format, an array is an element whose name is <code>array</code>
+ *     and whose content is the array content.
+ *     <example>
+ *       &lt;array&gt;&lt;string&gt;one&lt;/string&gt;&lt;string&gt;two&lt;/string&gt;&lt;string&gt;three&lt;/string&gt;&lt;/array&gt;
+ *     </example>
+ *   </desc>
+ *   <term>[NSData]</term>
+ *   <desc>
+ *     An array is represented as a series of pairs of hexadecimal characters
+ *     (each pair representing a byte of data) enclosed in angle brackets.
+ *     Spaces are ignored).
+ *     <example>
+ *       &lt; 54637374 696D67 &gt;
+ *     </example>
+ *     In XML format, a data object is an element whose name is
+ *     <code>data</code> and whose content is a stream of base64 encoded bytes.
+ *   </desc>
+ *   <term>[NSDate]</term>
+ *   <desc>
+ *     Date objects were not traditionally allowed in <em>property lists</em>
+ *     but were added when the XML format was intoroduced.  GNUstep provides
+ *     an extension to the traditional <em>property list</em> format to
+ *     support date objects, but older code will not read
+ *     <em>property lists</em> containing this extension.<br />
+ *     This format consists of an asterisk follwed by the letter 'D' then a
+ *     date/time in YYYY-MM-DD HH:MM:SS +/-ZZZZ format, all enclosed within
+ *     angle brackets.
+ *     <example>
+ *       &lt;*D2002-03-22 11:30:00 +0100&gt;
+ *     </example>
+ *     In XML format, a date object is an element whose name is
+ *     <code>date</code> and whose content is a date in the above format.
+ *     <example>
+ *       &lt;date&gt;2002-03-22 11:30:00 +0100&lt;/date&gt;
+ *     </example>
+ *   </desc>
+ *   <term>[NSDictionary]</term>
+ *   <desc>
+ *     A dictionary which is either empty or contains only <em>string</em>
+ *     keys and <em>property list</em> objects.<br />
+ *     A dictionary is delimited by curly brackets and its contents are
+ *     semicolon <em>terminated</em> (there is a semicolon after each value).
+ *     Each item in the dictionary is a key/value pair with an equals sign
+ *     after the key and before the value.
+ *     <example>
+ *       {
+ *         "key1" = "value1";
+ *       }
+ *     </example>
+ *     In XML format, a dictionary is an element whose name is
+ *     <code>dictionary</code> and whose content consists of pairs of
+ *     strings and other <em>property list</em> objects.
+ *     <example>
+ *       &lt;dictionary&gt;
+ *         &lt;string&gt;key1&lt;/string&gt;
+ *         &lt;string&gt;value1&lt;/string&gt;
+ *       &lt;/dictionary&gt;
+ *     </example>
+ *   </desc>
+ *   <term>[NSNumber]</term>
+ *   <desc>
+ *     Number objects were not traditionally allowed in <em>property lists</em>
+ *     but were added when the XML format was intoroduced.  GNUstep provides
+ *     an extension to the traditional <em>property list</em> format to
+ *     support number objects, but older code will not read
+ *     <em>property lists</em> containing this extension.<br />
+ *     Numbers are stored in a variety of formats depending on their values.
+ *     <list>
+ *       <item>boolean ... either <code>&lt;*BY&gt;</code> for YES or
+ *         <code>&lt;*BN&gt;</code> for NO.<br />
+ *         In XML format this is either <code>&lt;true /&gt;</code> or
+ *         <code>&lt;false /&gt;</code>
+ *       </item>
+ *       <item>integer ... <code>&lt;*INNN&gt;</code> where NNN is an
+ *         integer.<br />
+ *         In XML format this is <code>&lt;integer&gt;NNN&lt;integer&gt;</code>
+ *       </item>
+ *       <item>real ... <code>&lt;*RNNN&gt;</code> where NNN is a real
+ *         number.<br />
+ *         In XML format this is <code>&lt;real&gt;NNN&lt;real&gt;</code>
+ *       </item>
+ *     </list>
+ *   </desc>
+ *   <term>[NSString]</term>
+ *   <desc>
+ *     A string is either stored literally (if it contains no spaces or special
+ *     characters), or is stored as a quoted string with special characters
+ *     escaped where necessary.<br />
+ *     Escape conventions are similar to those normally used in ObjectiveC
+ *     programming, using a backslash followed by -
+ *     <list>
+ *      <item><strong>\</strong> a backslash character</item>
+ *      <item><strong>"</strong> a quote character</item>
+ *      <item><strong>b</strong> a backspace character</item>
+ *      <item><strong>n</strong> a newline character</item>
+ *      <item><strong>r</strong> a carriage return character</item>
+ *      <item><strong>t</strong> a tab character</item>
+ *      <item><strong>OOO</strong> (three octal digits)
+ *	  an arbitrary ascii character</item>
+ *      <item><strong>UXXXX</strong> (where X is a hexadecimal digit)
+ *	  a an arbitrary unicode character</item>
+ *     </list>
+ *     <example>
+ *       "hello world &amp; others"
+ *     </example>
+ *     In XML format, the string is simply stored in UTF8 format as the
+ *     content of a <code>string</code> element, and the only character
+ *     escapes  required are those used by XML such as the
+ *     '&amp;lt;' markup representing a '&lt;' character.
+ *     <example>
+ *       &lt;string&gt;hello world &amp;amp; others&lt;/string&gt;"
+ *     </example>
+ *   </desc>
+ * </deflist>
+ */
 - (id) propertyList
 {
   return GSPropertyList(self);
 }
 
+/**
+ * <p>Reads a <em>property list</em> (see -propertyList) from a simplified
+ * file format.  This format is a traditional style property list file
+ * containing a single dictionary, but with the leading '{' and trailing
+ * '}' characters omitted.
+ * </p>
+ * <p>That is to say, the file contains only semicolon separated key/value
+ * pairs (and optionally comments).  As a convenience, it is possible to
+ * omit the equals sign and the value, so an entry consists of a key string
+ * followed by a semicolon.  In this case, the value for that key is
+ * assumed to be an empty string.
+ * </p>
+ * <example>  
+ *   // Strings file entries follow -
+ *   key1 = " a string value";
+ *   key2;	// This key has an empty string as a value.
+ *   "Another key" = "a longer string value for th third key";
+ * </example>  
+ */
 - (NSDictionary*) propertyListFromStringsFileFormat
 {
   return GSPropertyListFromStringsFormat(self);
