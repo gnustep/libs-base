@@ -1,9 +1,12 @@
 /* A simple demonstration of the GNU Dictionary object.
    In this example the Dictionary holds int's which are keyed by strings. */
 
-#include <gnustep/base/stdall.h>
+#include <gnustep/base/all.h>
 #include <gnustep/base/Dictionary.h>
 
+#warning This file has not been updated for the new collection classes
+
+#if 0
 int main()
 {
   id d;
@@ -38,3 +41,9 @@ int main()
 
   exit(0);
 }
+#else
+int main()
+{
+  exit (0);
+}
+#endif  /* 0 */
