@@ -4,6 +4,8 @@
 	Release them on invalidation.  Ensure timer is invalidated on
 	deallocation. Documented timer methods.
 	Changes based on bug report by Andy Ruder <aeruder@yahoo.com>
+	* Source/NSURL.m: Fixed one possible nul pointer indirection,
+	and added some comments about the internal data structure.
 
 2002-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
