@@ -38,7 +38,23 @@
 #include <gnustep/base/Unicode.h>
 #include <gnustep/base/fast.x>
 
+static	SEL	csInitSel = @selector(initWithCStringNoCopy:length:fromZone:);
+static	SEL	msInitSel = @selector(initWithCapacity:);
+static	IMP	csInitImp;	/* designated initialiser for cString	*/
+static	IMP	msInitImp;	/* designated initialiser for mutable	*/
+
 @implementation NSGCString
+
++ (void) initialize
+{
+  static int done = 0;
+  if (!done)
+    {
+      done = 1;
+      csInitImp = [NSGCString instanceMethodForSelector: csInitSel];
+      msInitImp = [NSGMutableCString instanceMethodForSelector: msInitSel];
+    }
+}
 
 + allocWithZone: (NSZone*)z
 {
@@ -52,32 +68,37 @@
 
 - (void)dealloc
 {
-    if (_zone) {
-	NSZoneFree(_zone, (void*)_contents_chars);
-	_zone = 0;
+  if (_zone)
+    {
+      NSZoneFree(_zone, (void*)_contents_chars);
+      _zone = 0;
     }
-    [super dealloc];
+  [super dealloc];
 }
 
 - (unsigned) hash
 {
   if (_hash == 0)
-    _hash = _fastImp._NSString_hash(self, @selector(hash));
+    {
+      _hash = _fastImp._NSString_hash(self, @selector(hash));
+    }
   return _hash;
 }
 
-/* This is the GNUstep designated initializer for this class. */
+/*
+ *	This is the GNUstep designated initializer for this class.
+ *	NB. this does NOT change the '_hash' instance variable, so the copy
+ *	methods can safely allocate a new object, copy the _hash into place,
+ *	and then invoke this method to complete the copy operation.
+ */
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned int)length
 		    fromZone: (NSZone*)zone
 {
-    self = [super init];
-    if (self) {
-	_count = length;
-	_contents_chars = byteString;
-	_zone = byteString ? zone : 0;
-    }
-    return self;
+  _count = length;
+  _contents_chars = byteString;
+  _zone = byteString ? zone : 0;
+  return self;
 }
 
 /* This is the OpenStep designated initializer for this class. */
@@ -85,42 +106,41 @@
 		      length: (unsigned int)length
 		freeWhenDone: (BOOL)flag
 {
-    self = [super init];
-    if (self) {
-	_count = length;
-	_contents_chars = byteString;
-	if (flag) {
-	    _zone = NSZoneFromPointer(byteString);
-	}
-	else {
-	    _zone = 0;
-	}
+  NSZone	*z;
+
+  if (flag)
+    {
+      z = NSZoneFromPointer(byteString);
     }
-    return self;
+  else
+    {
+      z = 0;
+    }
+  return (*csInitImp)(self, csInitSel, byteString, length, z);
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		       fromZone: (NSZone*)zone
 {
-    NSZone	*z = zone ? zone : fastZone(self);
-    id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
-							   length: length
-						         fromZone: z];
-    [self release];
-    return a;
+  NSZone	*z = zone ? zone : fastZone(self);
+  id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
+							 length: length
+						       fromZone: z];
+  [self release];
+  return a;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
+			 length: (unsigned int)length
+		   freeWhenDone: (BOOL)flag
 {
-    NSZone	*z = fastZone(self);
-    id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
-							   length: length
-						     freeWhenDone: flag];
-    [self release];
-    return a;
+  NSZone	*z = fastZone(self);
+  id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
+							 length: length
+						   freeWhenDone: flag];
+  [self release];
+  return a;
 }
 
 - (id) init
@@ -135,9 +155,10 @@
 
 - (void) _collectionDealloc
 {
-    if (_zone) {
-	NSZoneFree(_zone, (void*)_contents_chars);
-	_zone = 0;
+  if (_zone)
+    {
+      NSZoneFree(_zone, (void*)_contents_chars);
+      _zone = 0;
     }
 }
 
@@ -158,7 +179,7 @@
 
 - replacementObjectForPortCoder:(NSPortCoder*)aCoder
 {
-    return self;
+  return self;
 }
 
 - (void) encodeWithCoder: aCoder
@@ -171,23 +192,112 @@
 
 - initWithCoder: aCoder
 {
-    [aCoder decodeValueOfObjCType:@encode(unsigned)
-			       at:&_count];
-    if (_count > 0) {
-	_zone = fastZone(self);
-	_contents_chars = NSZoneMalloc(_zone, _count);
-	[aCoder decodeArrayOfObjCType:@encode(unsigned char)
-				count:_count
-				   at:_contents_chars];
+  [aCoder decodeValueOfObjCType:@encode(unsigned)
+			     at:&_count];
+  if (_count > 0)
+    {
+      _zone = fastZone(self);
+      _contents_chars = NSZoneMalloc(_zone, _count);
+      [aCoder decodeArrayOfObjCType:@encode(unsigned char)
+			      count:_count
+				 at:_contents_chars];
     }
-    return self;
+  return self;
+}
+
+- copy
+{
+  NSZone	*z = NSDefaultMallocZone();
+
+  if (NSShouldRetainWithZone(self, z) == NO)
+    {
+      NSGCString	*obj;
+      char		*tmp;
+
+      obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
+      tmp = NSZoneMalloc(z, _count);
+      memcpy(tmp, _contents_chars, _count);
+      obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
+      if (_hash && obj)
+        {
+	  obj->_hash = _hash;
+	}
+      return obj;
+    }
+  else 
+    {
+      return [self retain];
+    }
+}
+
+- copyWithZone: (NSZone*)z
+{
+  if (NSShouldRetainWithZone(self, z) == NO)
+    {
+      NSGCString	*obj;
+      char		*tmp;
+
+      obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
+      tmp = NSZoneMalloc(z, _count);
+      memcpy(tmp, _contents_chars, _count);
+      obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
+      if (_hash && obj)
+        {
+	  obj->_hash = _hash;
+	}
+      return obj;
+    }
+  else 
+    {
+      return [self retain];
+    }
+}
+
+- mutableCopy
+{
+  NSGMutableCString	*obj;
+
+  obj = (NSGMutableCString*)NSAllocateObject(_fastCls._NSGMutableCString,
+		0, NSDefaultMallocZone());
+  if (obj)
+    {
+      obj = (*msInitImp)(obj, msInitSel, _count);
+      if (obj)
+	{
+	  NSGCString	*tmp = (NSGCString*)obj;	// Same ivar layout!
+
+	  memcpy(tmp->_contents_chars, _contents_chars, _count);
+	  tmp->_count = _count;
+	  tmp->_hash = _hash;
+	}
+    }
+  return obj;
+}
+
+- mutableCopyWithZone: (NSZone*)z
+{
+  NSGMutableCString	*obj;
+
+  obj = (NSGMutableCString*)NSAllocateObject(_fastCls._NSGMutableCString, 0, z);
+  if (obj)
+    {
+      obj = (*msInitImp)(obj, msInitSel, _count);
+      if (obj)
+	{
+	  NSGCString	*tmp = (NSGCString*)obj;	// Same ivar layout!
+
+	  memcpy(tmp->_contents_chars, _contents_chars, _count);
+	  tmp->_count = _count;
+	  tmp->_hash = _hash;
+	}
+    }
+  return obj;
 }
 
 - (const char *) cString
 {
-  char *r;
+  char *r = NSZoneMalloc(NSDefaultMallocZone(), _count+1);
 
-  OBJC_MALLOC(r, char, _count+1);
   memcpy(r, _contents_chars, _count);
   r[_count] = '\0';
   [NSData dataWithBytesNoCopy:r length: _count+1];
@@ -210,9 +320,9 @@
 }
 
 - (void) getCString: (char*)buffer
-   maxLength: (unsigned int)maxLength
-   range: (NSRange)aRange
-   remainingRange: (NSRange*)leftoverRange
+	  maxLength: (unsigned int)maxLength
+	      range: (NSRange)aRange
+     remainingRange: (NSRange*)leftoverRange
 {
   int len;
 
@@ -554,11 +664,28 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 /* This is the designated initializer for this class */
 - initWithCapacity: (unsigned)capacity
 {
-  [super init];
   _count = 0;
-  _capacity = MAX(capacity, 3);
-  _zone = fastZone(self);
-  _contents_chars = NSZoneMalloc(_zone, _capacity);
+  _capacity = capacity;
+  if (capacity)
+    {
+      _zone = fastZone(self);
+      _contents_chars = NSZoneMalloc(_zone, _capacity);
+    }
+  return self;
+}
+
+- (id) initWithCStringNoCopy: (char*)byteString
+		      length: (unsigned int)length
+		    fromZone: (NSZone*)zone
+{
+  self = (*msInitImp)(self, msInitSel, 0);
+  if (self)
+    {
+      _count = length;
+      _capacity = length;
+      _contents_chars = byteString;
+      _zone = byteString ? zone : 0;
+    }
   return self;
 }
 
@@ -566,24 +693,97 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 			 length: (unsigned int)length
 		       fromZone: (NSZone*)zone
 {
-    NSZone	*z = zone ? zone : fastZone(self);
-    id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
-							   length: length
-						         fromZone: z];
-    [self release];
-    return a;
+  NSZone	*z = zone ? zone : fastZone(self);
+  id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
+							 length: length
+						       fromZone: z];
+  [self release];
+  return a;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
+			 length: (unsigned int)length
+		   freeWhenDone: (BOOL)flag
 {
-    NSZone	*z = fastZone(self);
-    id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
+  NSZone	*z = fastZone(self);
+  id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
 							   length: length
 						     freeWhenDone: flag];
-    [self release];
-    return a;
+  [self release];
+  return a;
+}
+
+- copy
+{
+  char		*tmp;
+  NSGCString	*obj;
+  NSZone	*z = NSDefaultMallocZone();
+
+  obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
+  tmp = NSZoneMalloc(z, _count);
+  memcpy(tmp, _contents_chars, _count);
+  obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
+  if (_hash && obj)
+    {
+      NSGMutableCString	*tmp = (NSGMutableCString*)obj;	// Same ivar layout
+
+      tmp->_hash = _hash;
+    }
+  return obj;
+}
+
+- copyWithZone: (NSZone*)z
+{
+  char		*tmp;
+  NSGCString	*obj;
+
+  obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
+  tmp = NSZoneMalloc(z, _count);
+  memcpy(tmp, _contents_chars, _count);
+  obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
+  if (_hash && obj)
+    {
+      NSGMutableCString	*tmp = (NSGMutableCString*)obj;	// Same ivar layout
+
+      tmp->_hash = _hash;
+    }
+  return obj;
+}
+
+- mutableCopy
+{
+  NSGMutableCString	*obj;
+
+  obj = (NSGMutableCString*)NSAllocateObject(_fastCls._NSGMutableCString,
+		0, NSDefaultMallocZone());
+  if (obj)
+    {
+      obj = (*msInitImp)(obj, msInitSel, _count);
+      if (obj)
+	{
+	  memcpy(obj->_contents_chars, _contents_chars, _count);
+	  obj->_count = _count;
+	  obj->_hash = _hash;
+	}
+    }
+  return obj;
+}
+
+- mutableCopyWithZone: (NSZone*)z
+{
+  NSGMutableCString	*obj;
+
+  obj = (NSGMutableCString*)NSAllocateObject(_fastCls._NSGMutableCString, 0, z);
+  if (obj)
+    {
+      obj = (*msInitImp)(obj, msInitSel, _count);
+      if (obj)
+	{
+	  memcpy(obj->_contents_chars, _contents_chars, _count);
+	  obj->_count = _count;
+	  obj->_hash = _hash;
+	}
+    }
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
@@ -607,7 +807,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   if (_count + c >= _capacity)
     {
       _capacity = MAX(_capacity*2, _count+c+1);
-      NSZoneRealloc(_zone, _contents_chars, _capacity);
+      _contents_chars = NSZoneRealloc(_zone, _contents_chars, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
   save = _contents_chars[index+c];	// getCString will put a nul here.
@@ -668,7 +868,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 - (id) init
 {
   return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
-};
+}
 
 /* For IndexedCollecting Protocol and other GNU libobjects conformity. */
 
@@ -711,7 +911,8 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   if (_count >= _capacity)
     {
       _capacity *= 2;
-      NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
+      _contents_chars =
+		NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[index] = [newObject charValue];
