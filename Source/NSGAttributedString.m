@@ -627,6 +627,7 @@ SANITY();
       info = NEWINFO(z, attrs, NSMaxRange(range));
       INSOBJECT(info, arrayIndex);
       arraySize++;
+SANITY();
     }
   else if (NSMaxRange(effectiveRange) < NSMaxRange(range))
     {
@@ -649,7 +650,10 @@ SANITY();
 		  arraySize--;
 		  info = n;
 		}
-	      break;
+	      else
+		{
+		  break;
+		}
 	    }
 	}
       info->loc = NSMaxRange(range);
