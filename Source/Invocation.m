@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Invocation object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -238,6 +238,14 @@ my_method_get_next_argument (arglist_t argframe,
   [self initWithArgframe:NULL selector:s];
   return self;
 }
+
+- initWithSelector: (SEL)s arguments: receiver, ...
+{
+  [self initWithSelector:s];
+  [self notImplemented:_cmd];
+  return self;
+}
+
 
 - (void) invoke
 {
