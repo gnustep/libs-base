@@ -131,6 +131,8 @@ property list which is set as the value of a default.\n\n");
 "Special characters inside a quoted string are 'escaped' by a backslash.\n"
 "This escape mechanism is used to permit the double quote mark to appear\n"
 "inside a quoted string.\n"
+"Unicode characters are represented as four digit hexadecimal numbers\n"
+"prefixed by \\U\n"
 "Arrays appear as a comma separated list of items delimited by brackets.\n"
 "Dictionaries appear as a series of key-value pairs, each pair is followed\n"
 "by a semicolon and the whole dictionary is delimited by curly brackets.\n"

@@ -2,6 +2,9 @@
 
 	* Source/NSAttributedString.m: ([addAttributes:range:]) corrected
 	bogus range check (report by Michael Scheibler)
+	* Source/NSString.m: setupQuotables() a slash should force a string
+	to be quoted ... property lists can otherwise confuse strings with
+	leading slashes as comments.
 
 2001-07-11  Adam Fedor  <fedor@gnu.org>
 
