@@ -1,5 +1,5 @@
 /* Interface to concrete implementation of NSArchiver
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: April 1995
@@ -26,31 +26,18 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSArchiver.h>
-#include <objects/Stream.h>
-#include <objects/Dictionary.h>
-#include <objects/Stack.h>
 #include <objects/Coding.h>
 
 @interface NSGArchiver : NSArchiver
-{
-  /* For now, these must match the instance variables in foundation/NSGCoder.h.
-     This will change. */
-  int format_version;
-  int concrete_format_version;
-  Stream *stream;
-  BOOL is_decoding;
-  BOOL doing_root_object;
-  Dictionary *object_table;	     /* read/written objects */
-  Dictionary *const_ptr_table;       /* read/written const *'s */
-  Stack *root_object_tables;         /* Stack of Dicts for interconnt'd objs */
-  Stack *forward_object_tables;      /* Stack of Dictionaries for frwd refs */
-
-  NSZone *object_zone;
-}
-
 @end
 
 @interface NSGArchiver (GNU) <Encoding>
+@end
+
+@interface NSGUnarchiver : NSArchiver
+@end
+
+@interface NSGUnarchiver (GNU) <Decoding>
 @end
 
 #endif /* __NSGArchiver_h_OBJECTS_INCLUDE */
