@@ -43,6 +43,7 @@ enum DelegatePoolSendBehavior {SEND_TO_ALL = 0,
   @public
   unsigned char _send_behavior;
   Array *_list;
+  BOOL _last_message_had_receivers;
 }
 
 // CREATING AND FREEING;
@@ -61,7 +62,11 @@ enum DelegatePoolSendBehavior {SEND_TO_ALL = 0,
 - delegatePoolSetSendBehavior: (unsigned char)b;
 
 // FOR PASSING ALL OTHER MESSAGES TO DELEGATES;
+// RETURNS 0 IF NO OBJECTS RESPOND;
 - forward:(SEL)aSel :(arglist_t)argFrame;
+
+// FOR FINDING OUT IF ANY OBJECTS IN THE POOL RESPONDED TO THE LAST MSG;
+- (BOOL) delegatePoolLastMessageHadReceivers;
 
 @end
 
