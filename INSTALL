@@ -81,8 +81,8 @@ FFI Library
    GNUstep's NSInvocations and Distributed Objects code involves
 detailed manipulation of the stack and function calls using a library
 that implements a Foreign-Function Interface (FFI), such as the ffcall
-libraries. Use of ffcall is automatically enabled if the ffcall
-libraries are found, unless specifically disabled with
+or libffi libraries. Use of ffcall is automatically enabled if the
+ffcall libraries are found, unless specifically disabled with
 `--disable-ffcall'.  If disabled, the code reverts to the builtin
 method for stack frame handling, but this rarely works on non-ix86
 machines and is not supported.
@@ -90,9 +90,16 @@ machines and is not supported.
    You need to have the ffcall libraries, which you can get from
 <ftp://www.gnustep.org/pub/gnustep/libs/> or
 <http://clisp.cons.org/~haible/>. You also need to have a special
-version of the Objective-C library (before gcc 3.0 the required hooks
-were not in the standard library). You can get this library from
-<ftp://www.gnustep.org/pub/gnustep/libs/libobjc-1.2.0.tar.gz>.
+version of the Objective-C library if you are not using gcc 3.x (before
+gcc 3.0 the required hooks were not in the standard library). You can
+get this library from <ftp://www.gnustep.org/pub/gnustep/libs>.
+
+   Support for the libffi library has also been added, although it is
+still experimental. Current versions of libffi are only distributed
+with gcc version 3.x, although it is not installed by default. To
+install it, after you have built gcc, go to the libffi build directory
+and type 'make install'. To enable this in the gnustep-base library,
+use the configure option `--enable-libffi'.
 
 OpenSSL
 -------

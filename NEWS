@@ -1,7 +1,25 @@
 News
 ****
 
-The currently released version of the library is `1.3.0'.
+The currently released version of the library is `1.3.2'.
+
+Noteworthy changes in version `1.3.2'
+=====================================
+
+   * Corrections for handling Windows file paths, etc
+
+   * Other fixes for Windows - DO now works on Windows
+
+   * New localization/internationalization tool make_strings
+
+   * Experimental libffi support.
+
+   * Handle running tools/apps on other hosts
+
+   * Updated files and new tool for handling different encodings
+     (cvtenc).
+
+   * Unicode and UTF8 handling improvements.
 
 Noteworthy changes in version `1.3.0'
 =====================================
