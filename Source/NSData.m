@@ -102,13 +102,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   void		*tmp = 0;
   int		c;
 
-  /* FIXME: I believe that we should take the name of the file to be
-   * the cString of the path provided.  It is unclear, however, that
-   * this is correct for fully internationalized functionality.  If
-   * the cString <--> Unicode translation isn't completely
-   * bidirectional, this simple translation might not be the proper
-   * one. */
-
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
@@ -347,9 +340,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (void)getBytes: (void*)buffer
 	  length: (unsigned int)length
 {
-  /* FIXME: Is this static NSRange creation preferred to the
-   * documented NSMakeRange()? */
-  [self getBytes:buffer range:((NSRange){0, length})];
+  [self getBytes:buffer range: NSMakeRange(0, length)];
 }
 
 - (void)getBytes: (void*)buffer
@@ -447,11 +438,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
       NSLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
-  /* FIXME: The docs say nothing about the raising of any exceptions,
-   * but if someone can provide evidence as to the proper handling of
-   * bizarre situations here, I'll add whatever functionality is
-   * needed.  For the time being, I'm returning the success or failure
-   * of the write as a boolean YES or NO. */
 
   if (useAuxiliaryFile)
     {
@@ -484,9 +470,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   /* Now we try and write the NSData's bytes to the file.  Here `c' is
    * the number of bytes which were successfully written to the file
    * in the fwrite() call. */
-  /* FIXME: Do we need the `sizeof(char)' here? Is there any system
-   * where sizeof(char) isn't just 1?  Or is it guaranteed to be 8
-   * bits? */
   c = fwrite([self bytes], sizeof(char), [self length], theFile);
 
   if (c < [self length])        /* We failed to write everything for
