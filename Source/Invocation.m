@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <objects/stdobjects.h>
 #include <objects/Invocation.h>
 
 /* Deal with strrchr: */
@@ -55,10 +56,21 @@
 - initWithReturnType: (const char *)enc
 {
   int l = strlen(enc);
-  OBJC_MALLOC(encoding, char, l);
+  OBJC_MALLOC(encoding, char, l + 1);
   memcpy(encoding, enc, l);
-  return_size = objc_sizeof_type(encoding);
-  return_value = NULL;
+  encoding[l] = '\0';
+  enc = objc_skip_type_qualifiers (encoding);
+  if (*enc != 'v')
+    {
+      /* Work around bug in objc_sizeof_type; it doesn't handle void type */
+      return_size = objc_sizeof_type (enc);
+      return_value = (*objc_malloc) (return_size);
+    }
+  else
+    {
+      return_size = 0;
+      return_value = NULL;
+    }
   return self;
 }
 - (void) invoke
@@ -68,12 +80,7 @@
 
 - (void) invokeWithObject: anObj
 {
-  [self invoke];
-}
-
-- (void) invokeWithElement: (elt)anElt
-{
-  [self invoke];
+  [self subclassResponsibility:_cmd];
 }
 
 - (const char *) returnType
@@ -88,7 +95,10 @@
 
 - (void) getReturnValue: (void *)addr
 {
-  memcpy(addr, return_value, return_size);
+  if (return_value)
+    memcpy (addr, return_value, return_size);
+  /* xxx what if it hasn't been invoked yet, and there isn't 
+     a return value yet. */
 }
 
 - (void) dealloc
@@ -159,9 +169,9 @@ my_method_get_next_argument (arglist_t argframe,
   /* allocate the argframe */
   stack_argsize = types_get_size_of_stack_arguments(type);
   reg_argsize = types_get_size_of_register_arguments(type);
-  argframe = (arglist_t) (*objc_malloc)(sizeof(char*) + reg_argsize);
+  argframe = (arglist_t) (*objc_calloc)(1 ,sizeof(char*) + reg_argsize);
   if (stack_argsize)
-    argframe->arg_ptr = (*objc_malloc)(stack_argsize);
+    argframe->arg_ptr = (*objc_calloc)(1, stack_argsize);
   else
     argframe->arg_ptr = 0;
 
@@ -197,7 +207,7 @@ my_method_get_next_argument (arglist_t argframe,
 
 - (unsigned) argumentSizeAtIndex: (unsigned)i
 {
-  return objc_sizeof_type([self argumentTypeAtIndex:i]);
+  return objc_sizeof_type ([self argumentTypeAtIndex:i]);
 }
 
 - (void) getArgument: (void*)addr atIndex: (unsigned)i
@@ -208,7 +218,7 @@ my_method_get_next_argument (arglist_t argframe,
   do
     datum = my_method_get_next_argument(argframe, &tmptype);
   while (i--);
-  memcpy(addr, datum, objc_sizeof_type(tmptype));
+  memcpy (addr, datum, objc_sizeof_type(tmptype));
 }
 
 - (void) setArgumentAtIndex: (unsigned)i 
@@ -220,7 +230,7 @@ my_method_get_next_argument (arglist_t argframe,
   do
     datum = my_method_get_next_argument(argframe, &tmptype);
   while (i--);
-  memcpy(datum, addr, objc_sizeof_type(tmptype));
+  memcpy (datum, addr, objc_sizeof_type(tmptype));
 }
 
 @end
@@ -229,20 +239,40 @@ my_method_get_next_argument (arglist_t argframe,
 
 - initWithArgframe: (arglist_t)frame selector: (SEL)sel
 {
-  [self initWithArgframe:frame type:sel_get_type(sel)];
+  const char *sel_type;
+  if (! (sel_type = sel_get_type (sel)) )
+    sel_type = sel_get_type ( sel_get_any_typed_uid (sel_get_name (sel)));
+  [self initWithArgframe: frame type: sel_type];
   return self;
 }
 
 - initWithSelector: (SEL)s
 {
-  [self initWithArgframe:NULL selector:s];
+  [self initWithArgframe: NULL selector: s];
+  [self setArgumentAtIndex: 1 toValueAt: &s];
   return self;
 }
 
-- initWithSelector: (SEL)s arguments: receiver, ...
+- initWithTarget: target selector: (SEL)s, ...
 {
+  const char *tmptype;
+  void *datum;
+  void *arg_datum;
+  va_list ap;
+
   [self initWithSelector:s];
-  [self notImplemented:_cmd];
+  tmptype = encoding;
+  datum = my_method_get_next_argument(argframe, &tmptype);
+  *((id*)datum) = target;
+  datum = my_method_get_next_argument(argframe, &tmptype);
+  *((SEL*)datum) = s;
+  datum = my_method_get_next_argument(argframe, &tmptype);
+  va_start (ap, s);
+  while (datum)
+    {
+      memcpy (datum, va_arg (ap, void*), objc_sizeof_type(tmptype));
+      datum = my_method_get_next_argument (argframe, &tmptype);
+    }
   return self;
 }
 
@@ -251,22 +281,44 @@ my_method_get_next_argument (arglist_t argframe,
 {
   void *ret;
   IMP imp;
+  id target;
+  id cl;
+  SEL sel;
 
-  imp = get_imp([self target], [self selector]);
+  /* xxx This could be more efficient by using my_method_get_next_argument
+     instead of -target and -selector.  Or, even better, caching the
+     memory offsets of the target and selector in the argframe. */
+
+  target = [self target];
+  if (target == nil)
+    return;
+
+  cl = object_get_class (target);
+  sel = [self selector];
+  imp = get_imp (cl, sel);
   assert(imp);
   ret = __builtin_apply((void(*)(void))imp,
 			argframe, 
 			types_get_size_of_stack_arguments(encoding));
-  if (*encoding == 'd')
-    memcpy(return_value, (char*)ret + 2*sizeof(void*), return_size);
-  else
-    memcpy(return_value, ret, return_size);
+  if (return_value)
+    {
+      if (*encoding == 'd')
+	memcpy(return_value, (char*)ret + 2*sizeof(void*), return_size);
+      else
+	memcpy(return_value, ret, return_size);
+    }
 }
 
 - (void) invokeWithTarget: t
 {
+  /* xxx Could be more efficient. */
   [self setArgumentAtIndex:0 toValueAt:&t];
   [self invoke];
+}
+
+- (void) invokeWithObject: anObj
+{
+  [self invokeWithTarget: anObj];
 }
 
 - (SEL) selector
@@ -291,13 +343,33 @@ my_method_get_next_argument (arglist_t argframe,
 - target
 {
   id t;
-  [self getArgument:&t atIndex:1];
+  [self getArgument:&t atIndex:0];
   return t;
 }
 
 - (void) setTarget: t
 {
   [self setArgumentAtIndex:0 toValueAt:&t];
+}
+
+@end
+
+@implementation VoidFunctionInvocation
+
+#if 0
+- initWithFunction: (void(*)())f
+    argframe: (arglist_t)frame type: (const char *)e
+{
+  [super initWithArgframe: frame type: e];
+  function = f;
+  return self;
+}
+#endif
+
+- initWithFunction: (void(*)())f
+{
+  [super initWithReturnType: "v"];
+  function = f;
 }
 
 @end
