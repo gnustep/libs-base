@@ -1,3 +1,23 @@
+2000-06-11  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/preface.h.in: Define MINGW if MINW32.
+	* Headers/gnustep/base/TcpPort.h: Change WIN32 to MINGW since
+	CYGWIN has  unix-like services.
+	* Headers/gnustep/base/UdpPort.h: Likewise.
+	* Source/GSTcpPort.m, Source/NSData.m, Source/NSDate.m, 
+	Source/NSFileManager.m, Source/NSHost.m, Source/NSLog.m,
+	Source/NSPage.m, Source/NSProcessInfo.m, Source/NSString.m,
+	Source/NSThread.m, Source/NSUser.m, Source/UdpPort.m,
+	Source/UnixFileHandle.m, : Likewise.
+
+	* Source/Makefile.postamble: touch generated h files so they aren'y
+	re-copied every compile.
+
+	* Source/NSBundle.m (_absolutePathOfExecutable:): New method.
+	(mainBundle): Use it.
+	* Source/NSTask.m (launch): Likewise.
+	* Source/find_exec.m: Removed.
+	
 2000-06-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSeq.h: Reverted bogus change.

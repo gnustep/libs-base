@@ -41,7 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#if	!defined(__WIN32__) || defined(__CYGWIN__)
+#ifndef __MINGW__
 #include <unistd.h>		/* for gethostname() */
 #include <netinet/in.h>		/* for inet_ntoa() */
 #include <fcntl.h>
@@ -63,14 +63,14 @@ extern	int	errno;
 #define NBLK_OPT     FNDELAY
 #endif
 
-#endif /* !__WIN32__ */
+#endif /* !__MINGW__ */
 #include <string.h>		/* for memset() and strchr() */
-#if	!defined(__WIN32__) || defined(__CYGWIN__)
+#ifndef __MINGW__
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <errno.h>
-#endif /* !__WIN32__ */
+#endif /* !__MINGW__ */
 
 #ifndef INADDR_NONE
 #define	INADDR_NONE	-1

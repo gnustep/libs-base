@@ -120,17 +120,17 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
   void		*tmp = 0;
   int		c;
 
+#if defined(__MINGW__)
+  return NO;
+#endif
+
   if ([path getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
       NSDebugLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
-#if	defined(__WIN32__)
   theFile = fopen(thePath, "rb");
-#else
-  theFile = fopen(thePath, "r");
-#endif
 
   if (theFile == NULL)		/* We failed to open the file. */
     {
@@ -541,6 +541,10 @@ failure:
   FILE *theFile;
   int c;
 
+#if defined(__MINGW__)
+      return NO;
+#endif
+
   if ([path getFileSystemRepresentation: theRealPath
 			      maxLength: sizeof(theRealPath)-1] == NO)
     {
@@ -568,11 +572,7 @@ failure:
   else
     {
       strcpy(thePath, theRealPath);
-#if	defined(__WIN32__)
       theFile = fopen(thePath, "wb");
-#else
-      theFile = fopen(thePath, "w");
-#endif
     }
 #else
   if (useAuxiliaryFile)
@@ -594,11 +594,7 @@ failure:
     }
 
   /* Open the file (whether temp or real) for writing. */
-#if	defined(__WIN32__)
   theFile = fopen(thePath, "wb");
-#else
-  theFile = fopen(thePath, "w");
-#endif
 #endif
 
   if (theFile == NULL)          /* Something went wrong; we weren't

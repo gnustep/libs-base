@@ -97,7 +97,7 @@ NSLogv (NSString* format, va_list args)
   if (_NSLog_printf_handler == NULL)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
 
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   pid = (int)GetCurrentProcessId(),
 #else
   pid = (int)getpid();

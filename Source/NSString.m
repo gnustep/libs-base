@@ -117,7 +117,7 @@ static Class	NSString_class;		/* For speed	*/
 #define	GSPLUNI	1
 #include "propList.h"
 
-#if defined(__WIN32__)
+#if defined(__MINGW__)
 static unichar		pathSepChar = (unichar)'\\';
 static NSString		*pathSepString = @"\\";
 static NSString		*rootPath = @"C:\\";
@@ -138,7 +138,7 @@ pathSeps()
 {
   if (myPathSeps == nil)
     {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
 #else
       myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
@@ -2121,7 +2121,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   return self;
 #else 
   const int	MAX_PATH = 1024;
@@ -2268,7 +2268,7 @@ handle_printf_atsign (FILE *stream,
 	strcpy(new_buf, &new_buf[8]);
     }
   return [NSString stringWithCString: new_buf];
-#endif  /* (__WIN32__) */  
+#endif  /* (__MINGW__) */  
 }
 
 - (NSString*) stringByStandardizingPath
@@ -2317,10 +2317,10 @@ handle_printf_atsign (FILE *stream,
     return s;
 
   /*
-   *	For absolute paths, we must resolve symbolic links or (on win32)
+   *	For absolute paths, we must resolve symbolic links or (on MINGW)
    *	remove '/../' sequences and their matching parent directories.
    */
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   /* Condense `/../' */
   r = NSMakeRange(0, [s length]);
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
@@ -2400,7 +2400,7 @@ handle_printf_atsign (FILE *stream,
   if ([self length] == 0)
     return NO;
 
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   if ([self indexOfString: @":"] != NSNotFound)
     return YES;
 #else

@@ -36,8 +36,8 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
 
-#if	defined(__WIN32__) && !defined(__CYGWIN__)
-#include <Windows32/Sockets.h>
+#if defined(__MINGW__)
+#include <winsock.h>
 #else
 #include <time.h>
 #include <sys/time.h>
@@ -46,7 +46,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#endif /* __WIN32__ */
+#endif /* __MINGW__ */
 
 #include <sys/file.h>
 #include <sys/stat.h>

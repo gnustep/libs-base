@@ -37,14 +37,14 @@
 #include <sys/select.h>
 #endif /* _AIX */
 
-#ifdef __WIN32__
+#ifdef __MINGW__
 #include <winsock.h>
 #else 
 #include <unistd.h>
 #include <netdb.h>
 #include <time.h>
 #include <sys/time.h>
-#endif /* !__WIN32__ */
+#endif /* !__MINGW__ */
 
 /* For IRIX machines, which don't define this */
 #ifndef        IPPORT_USERRESERVED
@@ -262,11 +262,11 @@ static NSMapTable *port_number_2_in_port = NULL;
 {
   if (_is_valid)
     {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       closesocket (_port_socket);
 #else
       close (_port_socket);
-#endif	/* __WIN32__ */
+#endif	/* __MINGW__ */
       [super invalidate];
     }
 }

@@ -25,7 +25,7 @@
 #include <base/preface.h>
 #include <Foundation/NSZone.h>
 #include <string.h>
-#ifndef __WIN32__
+#ifndef __MINGW__
 #include <unistd.h>
 #endif
 #include <stdio.h>
@@ -38,7 +38,7 @@
 #include <linux/sys.h>
 #endif
 
-#ifdef __WIN32__
+#ifdef __MINGW__
 #include <malloc.h>
 static size_t 
 getpagesize(void)

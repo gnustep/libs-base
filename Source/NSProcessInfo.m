@@ -184,7 +184,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     i = 0;
     while (env[i]) 
       {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
 	char	buf[1024];
 	char	*cp;
 	DWORD	len;
@@ -486,7 +486,7 @@ extern char** _environ;
 #undef main
 int main(int argc, char *argv[], char *env[])
 {
-#if	defined(__WIN32__) && !defined(__CYGWIN__)
+#if defined(__MINGW__)
   WSADATA lpWSAData;
 
   // Initialize Windows Sockets
@@ -495,7 +495,7 @@ int main(int argc, char *argv[], char *env[])
       printf("Could not startup Windows Sockets\n");
       exit(1);
     }
-#endif /* __WIN32__ */
+#endif /* __MINGW__ */
 
 #ifdef __MS_WIN32__
   _MB_init_runtime();
@@ -566,7 +566,7 @@ int main(int argc, char *argv[], char *env[])
 {
   int	pid;
 
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();
