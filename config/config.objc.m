@@ -5,7 +5,9 @@
 @end
 #endif
 
-@interface Test 
+#include <objc/Object.h>
+
+@interface Test : Object
 +(int) testResult;
 @end
 
