@@ -51,7 +51,7 @@ DIST_FILES = \
 	configure Version \
 	config.guess mkinstalldirs install-sh \
 	NSBundle.README \
-	gcc-2.7.2-objc.diff
+	gcc-2.7.2-objc.diff \
 	gcc-2.7.2.1-objc.diff
 
 all: src
