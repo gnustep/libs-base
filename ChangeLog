@@ -1,3 +1,7 @@
+2003-07-11  David Ayers  <d.ayers@inode.at>
+
+	* Source/GNUmakefile:  Make GNUstep.h public.
+
 2003-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSPort.h: Tweak for mingw and correct conditional

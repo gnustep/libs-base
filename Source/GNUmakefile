@@ -113,6 +113,7 @@ GCObject.h \
 GSCategories.h \
 GSObjCRuntime.h \
 Unicode.h \
+GNUstep.h \
 behavior.h \
 objc-gnu2next.h
 
