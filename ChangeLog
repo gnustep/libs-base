@@ -1,3 +1,9 @@
+2004-04-23  David Ayers  <d.ayers@inode.at>
+
+	* Source/Additions/GSLock.m ([GSLazyLock -init])
+	([GSLazyRecursiveLock -init]): Always invoke supers init
+	so dealloc does not fail on Cocoa.
+	
 2004-04-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: ([-conformsToProtocol:]) rewritten with

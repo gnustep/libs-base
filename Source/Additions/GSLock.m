@@ -86,6 +86,8 @@
 
 - (id) init
 {
+  self = [super init];
+
   if ([NSThread isMultiThreaded] == YES)
     {
       RELEASE(self);
@@ -93,7 +95,6 @@
     }
   else
     {
-      self = [super init];
       if (self != nil)
 	{
 	  [[NSNotificationCenter defaultCenter]
@@ -236,6 +237,8 @@
 
 - (id) init
 {
+  self = [super init];
+
   if ([NSThread isMultiThreaded] == YES)
     {
       RELEASE(self);
@@ -243,7 +246,6 @@
     }
   else
     {
-      self = [super init];
       if (self != nil)
 	{
 	  [[NSNotificationCenter defaultCenter]
