@@ -1,3 +1,8 @@
+Fri Jul 23 21:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/UnixFileHandle.m: Tidy a little and make sure that
+	non-blocking mode is reset when a descriptor is closed.
+
 Thu Jul 22 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimeZone.m:  ([-initWithOffset:]) bugfix by Kai Henningsen
