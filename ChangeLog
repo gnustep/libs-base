@@ -2,6 +2,7 @@
 
 	* Source/Additions/GSXML.m: Add methods for converting XML escape
 	sequences in NSStrings.
+	* NSTimeZones/NSTimeZones.tar: updated
 
 2004-10-02 Richard Frith-Macdonald <rfm@gnu.org>
 
