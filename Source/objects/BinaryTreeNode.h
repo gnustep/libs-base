@@ -1,5 +1,5 @@
 /* Interface for Objective-C BinaryTreeNode object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -28,7 +28,7 @@
 #include <objects/BinaryTree.h>
 #include <objects/Coding.h>
 
-@interface BinaryTreeNode : NSObject <BinaryTreeComprising, Coding>
+@interface BinaryTreeNode : NSObject <BinaryTreeComprising>
 {
   id _left;
   id _right;
