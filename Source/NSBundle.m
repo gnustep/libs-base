@@ -338,7 +338,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
       
       /* Try creating the bundle.  */
       bundle = [[self alloc] initWithPath: bundlePath];
-      
+
       if (bundle == nil)
 	{
 	  /* TODO: We couldn't locate the framework in the expected
@@ -384,6 +384,15 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 }
 
 @end
+
+/*
+  Mirko:
+
+  The gnu-runtime calls the +load method of each class before the
+  _bundle_load_callback() is called and we can't provide the list of classes
+  ready for this method.
+
+ */
 
 void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
@@ -900,13 +909,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (BOOL) load
 {
-  if (self == _mainBundle || self == _gnustep_bundle) 
+  if (self == _mainBundle || self == _gnustep_bundle)
     {
       _codeLoaded = YES;
       return YES;
     }
-
   [load_lock lock];
+
   if (!_codeLoaded)
     {
       NSString       *object, *path;
@@ -937,15 +946,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       _loadingBundle = self;
       _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
       _loadingFrameworks = RETAIN([NSMutableArray arrayWithCapacity: 2]);
+
+      /* This code is executed twice if a class linked in the bundle call a
+	 NSBundle method inside +load (-principalClass). To avoid this we set
+	 _codeLoaded before loading the bundle. */
+      _codeLoaded = YES;
+
       if (objc_load_module([object fileSystemRepresentation], 
 			   stderr, _bundle_load_callback, NULL, NULL))
 	{
+	  _codeLoaded = NO;
 	  DESTROY(_loadingFrameworks);
 	  DESTROY(_currentFrameworkName);
 	  [load_lock unlock];
 	  return NO;
 	}
-      _codeLoaded = YES;
 
       /* We now construct the list of bundles from frameworks linked with
 	 this one */
