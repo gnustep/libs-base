@@ -25,15 +25,15 @@
       <chapter>
         <heading>Introduction</heading>
         <p>
-          The GSDoc markup language is an XML language designed specifically
-          for writing documentation for the
+          The GNUstep documentation markup language (GSDoc) is an XML language
+          designed specifically for writing documentation for the
           <uref url="http://www.gnustep.org">GNUstep project</uref>.
           In practice, that means that it is designed for writing about
           software, and in particular, for writing about Objective-C classes.
         </p>
         <p>
-          This is also an example, as well as a test case, of the new
-          GNUstep documentation markup language (GSDoc).
+          This document itself is an example, as well as a test case, of GSDoc
+          itself.
         </p>
         <section>
           <heading>Why another documentation language?</heading>
