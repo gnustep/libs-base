@@ -995,7 +995,9 @@ static NSString	*indentStrings[] = {
   [self initWithCapacity: count];
   setObj = [self methodForSelector: setSel];
   while (count--)
-    (*setObj)(self, setSel, objects[count], keys[count]);
+    {
+      (*setObj)(self, setSel, objects[count], keys[count]);
+    }
   return self;
 }
 
@@ -1007,7 +1009,9 @@ static NSString	*indentStrings[] = {
   IMP		remObj = [self methodForSelector: remSel];
 
   while ((k = (*nxtObj)(e, nxtSel)) != nil)
-    (*remObj)(self, remSel, k);
+    {
+      (*remObj)(self, remSel, k);
+    }
 }
 
 - (void) removeObjectsForKeys: (NSArray*)keyArray
@@ -1029,15 +1033,18 @@ static NSString	*indentStrings[] = {
 
 - (void) addEntriesFromDictionary: (NSDictionary*)other
 {
-  if (other != nil)
+  if (other != nil && other != self)
     {
       id		k;
       NSEnumerator	*e = [other keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
+      IMP		getObj = [other methodForSelector: objSel];
       IMP		setObj = [self methodForSelector: setSel];
 
       while ((k = (*nxtObj)(e, nxtSel)) != nil)
-	(*setObj)(self, setSel, [other objectForKey: k], k);
+	{
+	  (*setObj)(self, setSel, (*getObj)(other, objSel, k), k);
+	}
     }
 }
 

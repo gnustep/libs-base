@@ -145,6 +145,7 @@ preface.h
 
 BASE_MFILES = \
 GSArray.m \
+GSAttributedString.m \
 GSCountedSet.m \
 GSHTTPURLHandle.m \
 GSMime.m \
@@ -182,7 +183,6 @@ NSFileHandle.m \
 NSFileManager.m \
 NSFormatter.m \
 NSGeometry.m \
-NSGAttributedString.m \
 NSGDictionary.m \
 NSHashTable.m \
 NSHost.m \
@@ -296,7 +296,6 @@ NSFileHandle.h \
 NSFileManager.h \
 NSFormatter.h \
 NSGeometry.h \
-NSGAttributedString.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
