@@ -131,17 +131,6 @@ if test $NeXTCC = 0; then
         NeXT_cc=0
       fi
     fi
-    #----------------------------------------------------------------
-    # Make sure we can find the -lobjc runtime library
-    #----------------------------------------------------------------
-    if test $NeXT_runtime = 0; then
-      AC_CHECK_LIB(objc, main, HAVE_LIBOBJC=1, HAVE_LIBOBJC=0)
-      if test $HAVE_LIBOBJC = 0; then
-        AC_MSG_ERROR(Couldn't find GCC Objective C runtime library, libobjc.a)
-      else
-        LIBS="-lobjc $LIBS"
-      fi
-    fi
 
 else
 
@@ -175,7 +164,6 @@ else
 fi
 AC_SUBST(OBJS_INSTALL)
 AC_SUBST(HEADERS_INSTALL)
-AC_SUBST(LIBOBJC)
 AC_DEFINE_UNQUOTED(NeXT_runtime, $NeXT_runtime)
 AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)

@@ -1,3 +1,7 @@
+1999-04-08  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Remove test for libobjc.a
+
 Thu Apr 8 12:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: Make copying behavior consistent with OPENSTEP.
