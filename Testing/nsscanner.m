@@ -9,7 +9,6 @@
  *
  * Eric Norum <eric@skatter.usask.ca>
  *
- * $Date$      $Revision$
  */
 
 #include <Foundation/NSScanner.h>
