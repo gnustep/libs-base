@@ -1,6 +1,6 @@
 /** Implementation for GSMIME
 
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000,2001 Free Software Foundation, Inc.
 
    Written by: Richard frith-Macdonald <rfm@gnu.org>
    Date: October 2000
@@ -20,6 +20,37 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   <title>The MIME parsing system</title>
+   <chapter>
+      <heading>Mime Parser</heading>
+      <p>
+        The GNUstep Mime parser.  This is collection Objective-C classes
+        for representing MIME (and HTTP) documents and managing conversions
+        to and from convenient internal formats.
+      </p>
+      <p>
+        Eventually the goal is to center round three classes -
+      </p>
+      <deflist>
+        <term>document</term>
+        <desc>
+          A container for the actual data (and headers) of a mime/http document.        </desc>
+        <term>parser</term>
+        <desc>
+          An object that can be fed data and will parse it into a document.
+          This object also provides various utility methods  and an API
+          that permits overriding in order to extend the functionality to
+          cope with new document types.
+        </desc>
+        <term>unparser</term>
+        <desc>
+          An object to take a mime/http document and produce a data object
+          suitable for transmission.
+        </desc>
+      </deflist>
+   </chapter>
+   $Date$ $Revision$
 */
 
 #include	<Foundation/NSArray.h>
@@ -299,28 +330,51 @@ parseCharacterSet(NSString *token)
 - (BOOL) _unfoldHeader;
 @end
 
+/**
+ * <p>
+ *   This class provides support for parsing MIME messages
+ *   into GSMimeDocument objects.  Each parser object maintains
+ *   an associated document into which data is stored.
+ * </p>
+ * <p>
+ *   You supply the document to be parsed as one or more data
+ *   items passed to the <code>Parse:</code> method, and (if
+ *   the method always returns <code>YES</code>, you give it
+ *   a final <code>nil</code> argument to mark the end of the
+ *   document.
+ * </p>
+ * <p>
+ *   On completion of parsing a valid document, the
+ *   <code>document</code> method returns the resulting parsed document.
+ * </p>
+ */
 @implementation	GSMimeParser
 
+/**
+ * Create and return a parser.
+ */
 + (GSMimeParser*) mimeParser
 {
   return AUTORELEASE([[self alloc] init]);
 }
 
-- (NSData*) data
-{
-  return data;
-}
-
-- (void) dealloc
-{
-  RELEASE(data);
-  RELEASE(child);
-  RELEASE(context);
-  RELEASE(boundary);
-  RELEASE(document);
-  [super dealloc];
-}
-
+/**
+ * Return a coding context object to be used for decoding data
+ * according to the scheme specified in the header.
+ * <p>
+ *   The default implementation supports the following transfer
+ *   encodings specified in either a <code>transfer-encoding</code>
+ *   of <code>content-transfer-encoding</code> header -
+ * </p>
+ * <list>
+ *   <item>base64</item>
+ *   <item>quoted-printable</item>
+ *   <item>binary</item>
+ *   <item>7bit</item>
+ *   <item>8bit</item>
+ *   <item>chunked (for HTTP/1.1)</item>
+ * </list>
+ */
 - (GSMimeCodingContext*) contextFor: (NSDictionary*)info
 {
   NSString	*name;
@@ -371,6 +425,47 @@ parseCharacterSet(NSString *token)
   return AUTORELEASE([GSMimeBinaryDecoderContext new]);
 }
 
+/**
+ * Return the data accumulated in the parser.  If the parser is
+ * still parsing headers, this will be the header data read so far.
+ * If the parse has parsed the body of the message, this will be
+ * the data of the body, with any transfer encoding removed.
+ */
+- (NSData*) data
+{
+  return data;
+}
+
+- (void) dealloc
+{
+  RELEASE(data);
+  RELEASE(child);
+  RELEASE(context);
+  RELEASE(boundary);
+  RELEASE(document);
+  [super dealloc];
+}
+
+/**
+ * <p>
+ *   Decodes the raw data from the specified range in the source
+ *   data object and appends it to the destination data object.
+ *   The context object provides information about the content
+ *   encoding type in use, and the state of the decoding operation.
+ * </p>
+ * <p>
+ *   This method may be called repeatedly to incrementally decode
+ *   information as it arrives on some communications channel.
+ *   It should be called with a nil source data item (or with
+ *   the atEnd flag of the context set to YES) in order to flush
+ *   any information held in the context to the output data
+ *   object.
+ * </p>
+ * <p>
+ *   You may override this method in order to implement
+ *   additional coding schemes.
+ * </p>
+ */
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
@@ -768,21 +863,35 @@ parseCharacterSet(NSString *token)
   return desc;
 }
 
+/**
+ * Returns the object into which raw mime data is being parsed.
+ */
 - (GSMimeDocument*) document
 {
   return document;
 }
 
+/**
+ * Returns YES if the document parsing is known to be completed.
+ */
 - (BOOL) isComplete
 {
   return complete;
 }
 
+/**
+ * Returns YES if all the document headers have been parsed but
+ * the document body parsing may not yet be complete.
+ */
 - (BOOL) isInBody
 {
   return inBody;
 }
 
+/**
+ * Returns YES if parsing of the document headers has not yet
+ * been completed.
+ */
 - (BOOL) isInHeaders
 {
   if (inBody == YES)
@@ -803,6 +912,22 @@ parseCharacterSet(NSString *token)
   return self;
 }
 
+/**
+ * <p>
+ *   This method is called repeatedly to pass raw mime data into
+ *   the parser.  It returns <code>YES</code> as long as it wants
+ *   more data to complete parsing of a document, and <code>NO</code>
+ *   if parsing is complete, either due to having reached the end of
+ *   a document or due to an error.
+ * </p>
+ * <p>
+ *   Since it is not always possible to determine if the end of a
+ *   MIME document has been reached from its content, the method
+ *   may need to be called with a nil argument after you have
+ *   passed all the data to it ... this tells it that the data
+ *   is complete.
+ * </p>
+ */
 - (BOOL) parse: (NSData*)d
 {
   if (complete == YES)
@@ -913,6 +1038,42 @@ parseCharacterSet(NSString *token)
     }
 }
 
+/**
+ * <p>
+ *   This method is called to parse a header line <em>for the
+ *   current document</em>, split its contents into an info
+ *   dictionary, and add that information to the document.
+ * </p>
+ * <p>
+ *   The standard implementation of this method scans basic
+ *   information and then calls -scanHeader:named:into:
+ *   to complete the parsing of the header.
+ * </p>
+ * <p>
+ *   This method also performs consistency checks on headers scanned
+ *   so it is recommended that it is not overridden, but that
+ *   subclasses override -scanHeader:named:into: to
+ *   implement custom scanning.
+ * </p>
+ * <p>
+ *   As a special case, for HTTP support, this method also parses
+ *   lines in the format of HTTP responses as if they were headers
+ *   named <code>http</code>.  The resulting header info dictionary
+ *   contains -
+ * </p>
+ * <deflist>
+ *   <term>HttpMajorVersion</term>
+ *   <desc>The first part of the version number</desc>
+ *   <term>HttpMinorVersion</term>
+ *   <desc>The second part of the version number</desc>
+ *   <term>NSHTTPPropertyServerHTTPVersionKey</term>
+ *   <desc>The full HTTP protocol version number</desc>
+ *   <term>NSHTTPPropertyStatusCodeKey</term>
+ *   <desc>The HTTP status code</desc>
+ *   <term>NSHTTPPropertyStatusReasonKey</term>
+ *   <desc>The text message (if any) after the status code</desc>
+ * </deflist>
+ */
 - (BOOL) parseHeader: (NSString*)aHeader
 {
   NSScanner		*scanner = [NSScanner scannerWithString: aHeader];
@@ -973,7 +1134,7 @@ parseCharacterSet(NSString *token)
   /*
    * Break header fields out into info dictionary.
    */
-  if ([self scanHeader: scanner named: name inTo: info] == NO)
+  if ([self scanHeader: scanner named: name into: info] == NO)
     {
       return NO;
     }
@@ -1079,18 +1240,111 @@ parseCharacterSet(NSString *token)
   return [document addHeader: info];
 }
 
+/**
+ * Returns YES if the parser is expecting to read mime headers,
+ * Returns NO is the parser has already been passed all the
+ * data containing headers, and is now waiting for the body of
+ * the mime message (or has been passed all data).
+ */
 - (BOOL) parsedHeaders
 {
   return inBody;
 }
 
-/*
- * Parse an unloaded and decoded header line, splitting information
- * into an 'info' dictionary.
+/**
+ * <p>
+ *   This method is called to parse a header line and split its
+ *   contents into an info dictionary.
+ * </p>
+ * <p>
+ *   On entry, the dictionary is already partially filled,
+ *   the name argument is a lowercase representation of the
+ *   header name, and the scanner is set to a scan location
+ *   immediately after the colon in the header string.
+ * </p>
+ * <p>
+ *   If the header is parsed successfully, the method should
+ *   return YES, otherwise NO.
+ * </p>
+ * <p>
+ *   You should not call this method directly yourself, but may
+ *   override it to support parsing of new headers.
+ * </p>
+ * <p>
+ *   You should be aware of the parsing that the standard
+ *   implementation performs, and that <em>needs</em> to be
+ *   done for certain headers in order to permit the parser to
+ *   work generally -
+ * </p>
+ * <deflist>
+*
+*    <term>content-disposition</term>
+*    <desc>
+*      <deflist>
+*	<term>Parameters</term>
+*	<desc>
+*	  A dictionary containing parameters as key-value pairs
+*	  in lowercase
+*	</desc>
+*	<term>Value</term>
+*	<desc>
+*	  The content disposition (excluding parameters) as a
+*	  lowercase string.
+*	</desc>
+*      </deflist>
+*    </desc>
+*    <term>content-type</term>
+*    <desc>
+*      <deflist>
+*	<term>Parameters</term>
+*	<desc>
+*	  A dictionary containing parameters as key-value pairs
+*	  in lowercase.
+*	</desc>
+*	<term>SubType</term>
+*	<desc>The MIME subtype lowercase</desc>
+*	<term>Type</term>
+*	<desc>The MIME type lowercase</desc>
+*	<term>value</term>
+*	<desc>The full MIME type (xxx/yyy) in lowercase</desc>
+*      </deflist>
+*    </desc>
+*
+*    <term>content-transfer-encoding</term>
+*    <desc>
+*      <deflist>
+*	<term>Value</term>
+*	<desc>The transfer encoding type in lowercase</desc>
+*      </deflist>
+*    </desc>
+*
+*    <term>http</term>
+*    <desc>
+*      <deflist>
+*	<term>HttpVersion</term>
+*	<desc>The HTTP protocol version number</desc>
+*	<term>HttpMajorVersion</term>
+*	<desc>The first component of the version number</desc>
+*	<term>HttpMinorVersion</term>
+*	<desc>The second component of the version number</desc>
+*	<term>HttpStatus</term>
+*	<desc>The response status value (numeric code)</desc>
+*	<term>Value</term>
+*	<desc>The text message (if any)</desc>
+*      </deflist>
+*    </desc>
+*    <term>transfer-encoding</term>
+*    <desc>
+*      <deflist>
+*	<term>Value</term>
+*	<desc>The transfer encoding type in lowercase</desc>
+*      </deflist>
+*    </desc>
+ * </deflist>
  */
 - (BOOL) scanHeader: (NSScanner*)scanner
 	      named: (NSString*)name
-	       inTo: (NSMutableDictionary*)info
+	       into: (NSMutableDictionary*)info
 {
   NSString		*value = nil;
   NSMutableDictionary	*parameters = nil;
@@ -1289,6 +1543,11 @@ parseCharacterSet(NSString *token)
   return YES;
 }
 
+/**
+ * A convenience method to scan past any whitespace in the scanner
+ * in preparation for scanning something more interesting that
+ * comes after it.  Returns YES if any space was read, NO otherwise.
+ */
 - (BOOL) scanPastSpace: (NSScanner*)scanner
 {
   NSCharacterSet	*skip;
@@ -1302,6 +1561,13 @@ parseCharacterSet(NSString *token)
   return scanned;
 }
 
+/**
+ * A convenience method to use a scanner (that is set up to scan a
+ * header line) to scan in a special character that terminated a
+ * token previously scanned.  If the token was terminated by
+ * whitespace and no other special character, the string returned
+ * will contain a single space character.
+ */
 - (NSString*) scanSpecial: (NSScanner*)scanner
 {
   unsigned		location;
@@ -1326,8 +1592,14 @@ parseCharacterSet(NSString *token)
     }
 }
 
-/*
- *	Get a mime field value - token or quoted string.
+/**
+ * A convenience method to use a scanner (that is set up to scan a
+ * header line) to scan a header token - either a quoted string or
+ * a simple word.
+ * <list>
+ *   <item>Leading whitespace is ignored.</item>
+ *   <item>Backslash escapes in quoted text are converted</item>
+ * </list>
  */
 - (NSString*) scanToken: (NSScanner*)scanner
 {
@@ -1895,6 +2167,44 @@ parseCharacterSet(NSString *token)
 
 
 
+/**
+ * <p>
+ *   This class is intended to provide a wrapper for MIME messages
+ *   permitting easy access to the contents of a message and
+ *   providing a basis for parsing an unparsing messages that
+ *   have arrived via email or as a web document.
+ * </p>
+ * <p>
+ *   The class keeps track of all the document headers, and provides
+ *   methods for modifying the headers that apply to a document and
+ *   for looking at the header structures, by providing an info
+ *   dictionary containing the various parts of a header.
+ * </p>
+ * <p>
+ *   The common dictionary keys used for elements provided for
+ *   <em>all</em> headers are -
+ * </p>
+ * <deflist>
+ *   <term>RawHeader</term>
+ *   <desc>This is the unmodified text of the header
+ *   </desc>
+ *   <term>BaseName</term>
+ *   <desc>This is the header name.
+ *   </desc>
+ *   <term>BaseValue</term>
+ *   <desc>This is the text after the header name and colon.
+ *   </desc>
+ *   <term>Name</term>
+ *   <desc>This is a lowercase representation of the header name.
+ *   </desc>
+ *   <term>Value</term>
+ *   <desc>This is the value of the header (normally lower case).
+ *     It may only be a small subset of the information in the header
+ *     with other information being split into separate fields
+ *     depending on the type of header.
+ *   </desc>
+ * </deflist>
+ */
 @implementation	GSMimeDocument
 
 + (void) initialize
@@ -1916,11 +2226,21 @@ parseCharacterSet(NSString *token)
     }
 }
 
+/**
+ * Create an empty MIME document.
+ */
 + (GSMimeDocument*) mimeDocument
 {
   return AUTORELEASE([[self alloc] init]);
 }
 
+/**
+ * <p>
+ *   This method may be called to add a header to the document.
+ *   The header must be a mutable dictionary object that contains
+ *   at least the fields that are standard for all headers.
+ * </p>
+ */
 - (BOOL) addHeader: (NSDictionary*)info
 {
   NSString	*name = [info objectForKey: @"Name"];
@@ -1937,11 +2257,33 @@ parseCharacterSet(NSString *token)
   return YES;
 }
 
+/**
+ * <p>
+ *   This method returns an array containing NSDictionary objects
+ *   representing the headers associated with the document.
+ * </p>
+ * <p>
+ *   The order of the headers in the array is the order of the
+ *   headers in the document.
+ * </p>
+ */
 - (NSArray*) allHeaders
 {
   return [NSArray arrayWithArray: headers];
 }
 
+/**
+ * This returns the content data of the document in the
+ * appropriate format for the type of data -
+ * <deflist>
+ *   <term>text</term>
+ *   <desc>an NSString object</desc>
+ *   <term>binary</term>
+ *   <desc>an NSData object</desc>
+ *   <term>multipart</term>
+ *   <desc>an NSArray object containing GSMimeDocument objects</desc>
+ * </deflist>
+ */
 - (id) content
 {
   return content;
@@ -1959,6 +2301,10 @@ parseCharacterSet(NSString *token)
   [super dealloc];
 }
 
+/**
+ * This method removes all occurrances of headers whose raw data
+ * exactly matches the supplied string.
+ */
 - (void) deleteHeader: (NSString*)aHeader
 {
   unsigned	count = [headers count];
@@ -1974,6 +2320,10 @@ parseCharacterSet(NSString *token)
     }
 }
 
+/**
+ * This method removes all occurrances of headers whose name
+ * exactly matches the supplied string.
+ */
 - (void) deleteHeaderNamed: (NSString*)name
 {
   unsigned	count = [headers count];
@@ -2002,6 +2352,10 @@ parseCharacterSet(NSString *token)
   return desc;
 }
 
+/**
+ * This method returns the info dictionary for the first header
+ * whose name equals the supplied argument.
+ */
 - (NSDictionary*) headerNamed: (NSString*)name
 {
   unsigned		count = [headers count];
@@ -2021,6 +2375,10 @@ parseCharacterSet(NSString *token)
   return nil;
 }
 
+/**
+ * This method returns an array of info dictionaries for all headers
+ * whose names equal the supplied argument.
+ */
 - (NSArray*) headersNamed: (NSString*)name
 {
   unsigned		count = [headers count];
@@ -2051,12 +2409,20 @@ parseCharacterSet(NSString *token)
   return self;
 }
 
+/**
+ * Sets a new value for the content of the document.
+ */
 - (BOOL) setContent: (id)newContent
 {
   ASSIGN(content, newContent);
   return YES;
 }
 
+/**
+ * This method may be called to set a header in the document.
+ * Any other headers with the same name will be removed from
+ * the document.
+ */
 - (BOOL) setHeader: (NSDictionary*)info
 {
   NSString	*name = [info objectForKey: @"Name"];

@@ -493,7 +493,10 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: indent];
 	  [buf appendString: @"<p>\n"];
 	  [self incIndent];
-	  [self outputBlock: children to: buf inPara: YES];
+	  while (children != nil)
+	    {
+	      children = [self outputBlock: children to: buf inPara: YES];
+	    }
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</p>\n"];
@@ -693,7 +696,10 @@ static NSMutableSet	*textNodes = nil;
 	      if (desc != nil)
 		{
 		  [self incIndent];
-		  [self outputBlock: desc to: buf inPara: NO];
+		  while (desc != nil)
+		    {
+		      desc = [self outputBlock: desc to: buf inPara: NO];
+		    }
 		  [self decIndent];
 		}
 	      [buf appendString: indent];
@@ -720,10 +726,15 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	  if ([[children name] isEqual: @"abstract"] == YES)
 	    {
+	      GSXMLNode	*tmp = [children children];
+
 	      [buf appendString: indent];
 	      [buf appendString: @"<blockquote>\n"];
 	      [self incIndent];
-	      [self outputBlock: [children children] to: buf inPara: NO];
+	      while (tmp != nil)
+		{
+		  tmp = [self outputBlock: tmp to: buf inPara: NO];
+		}
 	      [self decIndent];
 	      [buf appendString: indent];
 	      [buf appendString: @"</blockquote>\n"];
@@ -1285,10 +1296,15 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       [self incIndent];
       while (children != nil)
 	{
+	  GSXMLNode	*tmp = [children children];
+
 	  [buf appendString: indent];
 	  [buf appendString: @"<li>\n"];
 	  [self incIndent];
-	  [self outputBlock: [children children] to: buf inPara: NO];
+	  while (tmp != nil)
+	    {
+	      tmp = [self outputBlock: tmp to: buf inPara: NO];
+	    }
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</li>\n"];
@@ -1305,10 +1321,15 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       [self incIndent];
       while (children != nil)
 	{
+	  GSXMLNode	*tmp = [children children];
+
 	  [buf appendString: indent];
 	  [buf appendString: @"<li>\n"];
 	  [self incIndent];
-	  [self outputBlock: [children children] to: buf inPara: NO];
+	  while (tmp != nil)
+	    {
+	      tmp = [self outputBlock: tmp to: buf inPara: NO];
+	    }
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</li>\n"];
@@ -1325,6 +1346,8 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       [self incIndent];
       while (children != nil)
 	{
+	  GSXMLNode	*tmp;
+
 	  [buf appendString: indent];
 	  [buf appendString: @"<dt>"];
 	  [self outputText: [children children] to: buf];
@@ -1333,7 +1356,11 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>\n"];
 	  [self incIndent];
-	  [self outputBlock: [children children] to: buf inPara: NO];
+	  tmp = [children children];
+	  while (tmp != nil)
+	    {
+	      tmp = [self outputBlock: tmp to: buf inPara: NO];
+	    }
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</dd>\n"];
@@ -1350,6 +1377,8 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       [self incIndent];
       while (children != nil)
 	{
+	  GSXMLNode	*tmp;
+
 	  [buf appendString: indent];
 	  [buf appendString: @"<dt>"];
 	  [self outputText: [children children] to: buf];
@@ -1358,7 +1387,11 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>\n"];
 	  [self incIndent];
-	  [self outputBlock: [children children] to: buf inPara: NO];
+	  tmp = [children children];
+	  while (tmp != nil)
+	    {
+	      tmp = [self outputBlock: tmp to: buf inPara: NO];
+	    }
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</dd>\n"];

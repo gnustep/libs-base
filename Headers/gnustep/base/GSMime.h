@@ -107,7 +107,7 @@
 - (BOOL) parsedHeaders;
 - (BOOL) scanHeader: (NSScanner*)scanner
 	      named: (NSString*)name
-	       inTo: (NSMutableDictionary*)info;
+	       into: (NSMutableDictionary*)info;
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
