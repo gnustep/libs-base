@@ -372,7 +372,7 @@ if (debug_textcoder) \
       *name = [NSString stringWithCStringNoCopy: n
 			freeWhenDone: YES];
       if (debug_textcoder)
-	fprintf(stderr, "got name <%s>\n", *n);
+	fprintf(stderr, "got name <%s>\n", n);
     }
   else
     {
