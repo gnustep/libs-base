@@ -314,6 +314,10 @@
 	work for me etc.  In particular, replaced code for thread
 	synchronisation to use win32 Event rather than pipe.
 
+2005-02-22  Adam Fedor  <fedor@gnu.org>
+
+	* Branched freeze-1_10_2 for Version: 1.10.2
+
 2005-02-22 14:00 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc:
