@@ -68,9 +68,9 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 /*
  * The whole of the GNUstep code stores UNICODE in internal byte order,
  * so we do the same. We have switched to using UTF16 so the defines here
- * recognise this. We try the generic UTF16 first, followed by the endian
- * specifi versions. If not we try the original defines and then back to
- * UCS-2-INTERNAL.
+ * recognise this. We use the endian specific versions of UTF16 so that
+ * iconv does not introduce a BOM where we do not want it.
+ * If UTF16 does not work, we revert to UCS-2-INTERNAL.
  */
 #ifdef WORDS_BIGENDIAN
 #define UNICODE_UTF16 "UTF-16BE"
@@ -89,13 +89,7 @@ static const char *
 internal_unicode_enc(void)
 {
   iconv_t conv;
-  unicode_enc = "UTF-16";
-  conv = iconv_open(unicode_enc, "ASCII");
-  if (conv != (iconv_t)-1)
-    {
-      iconv_close(conv);
-      return unicode_enc;
-    }
+
   unicode_enc = UNICODE_UTF16;
   conv = iconv_open(unicode_enc, "ASCII");
   if (conv != (iconv_t)-1)
