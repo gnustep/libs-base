@@ -32,7 +32,7 @@
 #define _GNUstep_H_NSLock
 
 #include <Foundation/NSObject.h>
-#include <objc/thread.h>
+#include <objc/thr.h>
 
 //
 // NSLocking protocol
