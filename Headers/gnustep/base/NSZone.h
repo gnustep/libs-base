@@ -26,7 +26,7 @@
 #define h_zone_NS_h
 
 #if NeXT_runtime
-#import <objc/zone.h>
+#include <objc/zone.h>
 #define NSZone NXZone
 #else
 #include <stdio.h>
