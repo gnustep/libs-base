@@ -23,6 +23,8 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSMethodSignature.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
 
 static int
 types_get_size_of_arguments(const char *types)
@@ -69,7 +71,7 @@ types_get_number_of_arguments (const char *types)
     [NSException raise:NSInvalidArgumentException
 		 format:@"Index too high."];
   [self notImplemented:_cmd];
-  return 0;
+  return (NSArgumentInfo){0,0,""};
 }
 
 - (unsigned) frameLength
