@@ -257,6 +257,11 @@ bench_str()
   NSString *str;
   id plist;
   NSString *plstr;
+  Class	arc = [NSArchiver class];
+  Class	una = [NSUnarchiver class];
+  Class	ser = [NSSerializer class];
+  Class	des = [NSDeserializer class];
+  Class md = [NSMutableDictionary class];
 
   AUTO_START;
 
@@ -334,6 +339,25 @@ bench_str()
     }
   END_TIMER;
   PRINT_TIMER("NSString (plcomp)");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT/100; i++)
+    {
+      NSData	*d = [ser serializePropertyList: plist];
+      id 	p = [des deserializePropertyListFromData: d
+				       mutableContainers: NO];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (ser/des)");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT/100; i++)
+    {
+      NSData	*d = [arc archivedDataWithRootObject: plist];
+      id 	p = [una unarchiveObjectWithData: d];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (arc/una)");
 
   AUTO_END;
 }
