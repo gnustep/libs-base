@@ -66,18 +66,18 @@ int main(int argc, char *argv[])
       }
   }
 
-  /* Cause an exception, and watch it return to us. */
+  /* Cause an exception in the server, and watch it return to us. */
   NS_DURING
     {
       [remote_array objectAtIndex: 99];
     }
   NS_HANDLER
     {
-      printf("Caught our exception\n"
-	     "NAME: %@\n"
-	     "REASON: %@\n",
-	     [localException name],
-	     [localException reason]);
+      printf("Exceptions are working; caught exception:\n"
+	     "NAME: %s\n"
+	     "REASON: %s\n",
+	     [[localException name] cStringNoCopy],
+	     [[localException reason] cStringNoCopy]);
       [localException release];
     }
   NS_ENDHANDLER

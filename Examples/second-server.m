@@ -12,8 +12,9 @@ id announce_new_port (id notification)
 {
   id in_port = [notification object];
   id out_port = [notification userInfo];
-  printf ("{%@}\n\tconnected to\n\t{%@}\n",
-	  [out_port description], [in_port description]);
+  printf ("{%s}\n\tconnected to\n\t{%s}\n",
+	  [[out_port description] cStringNoCopy],
+	  [[in_port description] cStringNoCopy]);
   printf ("Now servicing %d connection(s).\n",
 	  [in_port numberOfConnectedOutPorts]);
   return nil;
@@ -25,8 +26,9 @@ id announce_broken_port (id notification)
 {
   id in_port = [notification object];
   id out_port = [notification userInfo];
-  printf ("{%@}\n\tdisconnected from\n\t{%@}\n",
-	  [out_port description], [in_port description]);
+  printf ("{%s}\n\tdisconnected from\n\t{%s}\n",
+	  [[out_port description] cStringNoCopy],
+	  [[in_port description] cStringNoCopy]);
   printf ("Now servicing %d connection(s).\n",
 	  [in_port numberOfConnectedOutPorts]);
   return nil;
@@ -125,11 +127,18 @@ int main(int argc, char *argv[])
     object: nil];
 
   if (argc > 1)
-    c = [Connection newRegisteringAtName: [String stringWithCString: argv[1]]
+    {
+      c = [Connection newRegisteringAtName: [String stringWithCString: argv[1]]
 		      withRootObject:s];
+      printf("Regsitered server object on localhost with "
+	     "name `%s'\n", argv[1]);
+    }
   else
-    c = [Connection newRegisteringAtName: @"secondserver" withRootObject: s];
-  printf("Regsitered server object on localhost with name `secondserver'\n");
+    {
+      c = [Connection newRegisteringAtName: @"secondserver" withRootObject: s];
+      printf("Regsitered server object on localhost with "
+	     "name `secondserver'\n");
+    }
 
   [c setDelegate:s];
   [NotificationDispatcher
