@@ -1,3 +1,8 @@
+2001-08-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gsdoc.m: ([-initWithFileName:]) call xmlKeepBlanksDefault(0)
+	to handle change in recent libxml whitespace handling.
+
 2001-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: Tidy method lookup code.

@@ -250,6 +250,7 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
       NSString			*s;
       NSFileManager		*m;
 
+      xmlKeepBlanksDefault(0);
       xmlDoValidityCheckingDefaultValue = 1;
       ldr = xmlGetExternalEntityLoader();
       if (ldr != (xmlExternalEntityLoader)loader)
