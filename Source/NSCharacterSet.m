@@ -94,7 +94,7 @@ static NSLock* cache_lock = nil;
 
         set = [self characterSetWithBitmapRepresentation: 
 	        [NSData dataWithContentsOfFile: path]];
-        cache_set[number] = set;
+        cache_set[number] = [set retain];
       NS_HANDLER
 	[cache_lock unlock];
         [localException raise];
