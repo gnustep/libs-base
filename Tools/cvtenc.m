@@ -229,6 +229,11 @@ main(int argc, char** argv, char **env)
 		      myData = [[NSData alloc] initWithBytesNoCopy: c
 							    length: o];
 		    }
+		  else if (eIn == YES)
+		    {
+		      myData = [myString dataUsingEncoding: iEnc
+				      allowLossyConversion: NO];
+		    }
 		  else
 		    {
 		      myData = [myString dataUsingEncoding: oEnc
