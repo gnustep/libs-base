@@ -2100,15 +2100,19 @@ else
   || (encoding==NSSymbolStringEncoding)
   || (encoding==NSCyrillicStringEncoding))
   {
-    unsigned char *buff;
     char t;
-    OBJC_MALLOC(buff, char, len+1);
+    unsigned char *buff;
+
+    buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
     if(!flag)
       for(count=0; count<len; count++)
         if((t = encode_unitochar([self characterAtIndex: count], encoding)))
           buff[count] = t;
         else
-          return nil;
+          {
+            NSZoneFree(NSDefaultMallocZone(), buff);
+            return nil;
+          }
     else /* lossy */
       for(count=0; count<len; count++)
         if((t = encode_unitochar([self characterAtIndex: count], encoding)))
@@ -2127,19 +2131,20 @@ else
     simple replacement for character */
             buff[count] = '*';
         };
-     buff[count]=0;
-     return [NSData dataWithBytes: (char *)buff length: count];
+      buff[count]=0;
+      return [NSData dataWithBytesNoCopy: buff length: count+1];
     }
     else
       if(encoding==NSUnicodeStringEncoding)
       {
         unichar *buff;
-        OBJC_MALLOC(buff, unichar, len+2);
+
+        buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*(len+2));
         buff[0]=0xFEFF;
         for(count=0; count<len; count++)
           buff[count+1]=[self characterAtIndex: count];
         buff[count+1]= (unichar)0;
-  return [NSData dataWithBytes: (char *)buff length: 2*(count+1)];
+        return [NSData dataWithBytesNoCopy: buff length: 2*(len+2)];
       }
       else /* UTF8 or EUC */
         [self notImplemented:_cmd];
