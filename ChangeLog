@@ -1,3 +1,10 @@
+2005-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Tidy variable and function names to fit
+	GNUstep conventions.  Simplify code a little.  Don't attempt to parse
+	per-user config file if its name is nil or empty string.
+	Support parsing old config options for backward compatibility.
+
 2005-03-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Ensure last line of base64 encoded data
