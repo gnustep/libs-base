@@ -1,3 +1,11 @@
+2003-12-06 12:34  Alexander Malmberg <alexander@malmberg.org>
+
+	* Headers/Foundation/NSGeometry.h (NSContainsRect): Return NO
+	if bRect is empty.
+
+	* Source/NSGeometry.m (NSIntegralRect): Calculate the new width
+	and height correctly.
+
 2003-12-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fix error setting sigpipe handling where
