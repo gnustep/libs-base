@@ -630,6 +630,8 @@ static int messages_received_count;
       last_argnum = type_get_number_of_arguments(type) - 1;
       retframe = mframe_build_return (argframe, type, out_parameters,
 				      decoder);
+      /* Make sure we processed all arguments, and dismissed the IP. */
+      assert (ip == (id)-1);
       return retframe;
     }
   }
