@@ -27,15 +27,10 @@
 #include <config.h>
 #include <objc/objc-api.h>
 #include "cifframe.h"
+#include "mframe.h"
 
 #ifndef INLINE
 #define INLINE inline
-#endif
-
-#if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
-typedef long long smallret_t;
-#else
-typedef int smallret_t;
 #endif
 
 typedef struct _NSInvocation_t {
@@ -224,24 +219,34 @@ static IMP gs_objc_msg_forward (SEL sel)
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
-  int i, offset;
+  int i;
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
   _cframe = frame;
   ((cifframe_t *)_cframe)->cif = *cif;
-  ((cifframe_t *)_cframe)->values = vals;
 
-  /* Insert the values into the value array.
-     FIXME: I don't think this is correct for structures. */
-  offset = 0;
+#if MFRAME_STRUCT_BYREF 
+  /* Fix up some of the values. Do this on all processors that pass
+     structs by reference. Is there an automatic way to determine this? */
   for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
     {
-      ((cifframe_t *)_cframe)->values[i] = *vals + offset;
-      
-      offset += MAX(((cifframe_t *)_cframe)->arg_types[i]->size, 
-		    sizeof(smallret_t));
+      const char *t = _info[i+1].type;
+
+      if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
+	{
+	  memcpy(((cifframe_t *)_cframe)->values[i], *(void **)vals[i], 
+		 ((cifframe_t *)_cframe)->arg_types[i]->size);
+	}
+      else
+	{
+	  memcpy(((cifframe_t *)_cframe)->values[i], vals[i], 
+		 ((cifframe_t *)_cframe)->arg_types[i]->size);
+	}
     }
+#else
+  ((cifframe_t *)_cframe)->values = vals;
+#endif
   _retval = retp;
   return self;
 }
@@ -253,21 +258,13 @@ static IMP gs_objc_msg_forward (SEL sel)
 void
 GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
-  int			i;
   NSInvocation_t	*inv = (NSInvocation_t*)_inv;
-
-  /* Some arguments need to be promoted to be passed correctly */
-  for (i = 2; i < inv->_numArgs; i++)
-    {
-      const char	*type = inv->_info[i+1].type;
-      cifframe_encode_arg(type, cifframe_arg_addr(inv->_cframe, i));
-    }
 
   /* Do it */
   ffi_call(inv->_cframe, imp, (inv->_retval), 
 	   ((cifframe_t *)inv->_cframe)->values);
 
-  /* Don't decode the return value here */
+  /* Don't decode the return value here (?) */
 }
 
 - (void) invokeWithTarget: (id)anObject
@@ -350,8 +347,8 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   NSMethodSignature	*sig;
   Method_t              fwdInvMethod;
   
-  memcpy(&obj, *args, sizeof(id));
-  memcpy(&selector, *args+sizeof(id *), sizeof(SEL));
+  obj      = *(id *)args[0];
+  selector = *(SEL *)args[1];
 
   fwdInvMethod = gs_method_for_receiver_and_selector
     (obj, @selector (forwardInvocation:));

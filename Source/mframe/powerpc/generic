@@ -54,7 +54,7 @@ typedef struct rs6000_args
   (CUM).stack_position = 0; \
   (CUM).regs_position = \
     ((*(RTYPE)==_C_STRUCT_B || *(RTYPE)==_C_UNION_B || *(RTYPE)==_C_ARY_B) ? \
-        4 + sizeof(void*) : 4); \
+        sizeof(void*) : 4); \
 })
 
 #define MFRAME_ARG_ENCODING(CUM, TYPE, STACK, DEST) \

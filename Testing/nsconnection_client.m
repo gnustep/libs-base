@@ -190,6 +190,7 @@ int con_data (id prx)
   printf("Many Arguments:\n");
   [prx manyArgs:1 :2 :3 :4 :5 :6 :7 :8 :9 :10 :11 :12];
 
+  printf("Done\n");
   return 0;
 }
 
@@ -268,6 +269,7 @@ con_messages (id prx)
 #endif
   printf("  ok\n");
 
+  printf("Done\n");
   return 0;
 }
 
@@ -300,6 +302,7 @@ con_benchmark (id prx)
     }
   
   printf("  Delay is %f\n", [d timeIntervalSinceNow]);
+  printf("Done\n");
   return 0;
 }
 

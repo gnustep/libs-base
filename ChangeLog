@@ -1,3 +1,14 @@
+2002-04-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFFIInvocation.m
+	(-initWithCallback:returnp:values:frame:signature:): Simplify
+	setting values. Structs passed by ref when MFRAME_STRUCT_BYREF.
+	(GSFFIInvokeWithTargetAndImp): Encoding values unneedded now.
+
+	* Source/mframe/powerpc/generic: Fix offset for structs.
+	* Source/mframe/powerpc/linux-gnu: Idem.
+	* Source/mframe/powerpc/darwin: Idem.
+	
 2002-04-22  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (gdomap_log): For LOG_INFO, write to 1, not 0.
