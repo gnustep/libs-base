@@ -269,7 +269,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 
       if (d != nil)
 	{
-//NSLog(@"Read - '%@'", d);
+//  NSLog(@"Read - '%@'", d);
 	  [ibuf appendData: d];
 	}
       old = len = [ibuf length];
@@ -487,6 +487,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
     sentType,		// Sent data type
     sentPasv,		// Requesting host/port information for data link
     data,		// Establishing or using data connection
+    list,		// listing directory
   } state;
 }
 - (void) _control: (NSNotification*)n;
@@ -721,6 +722,23 @@ static NSLock			*urlLock = nil;
 	}
       else if (state == data)
 	{
+	  if ([line hasPrefix: @"550"] == YES && wData == nil)
+	    {
+	      state = list;
+	      [cHandle putTelnetLine:
+		[NSString stringWithFormat: @"NLST %@", [url path]]];
+	    }
+	  else if ([line hasPrefix: @"1"] == NO && [line hasPrefix: @"2"] == NO)
+	    {
+	      e = line;
+	    } 
+	}
+      else if (state == list)
+	{
+	  if ([line hasPrefix: @"1"] == NO && [line hasPrefix: @"2"] == NO)
+	    {
+	      e = line;
+	    } 
 	}
       else
 	{
@@ -826,11 +844,29 @@ static NSLock			*urlLock = nil;
 	}
       else
 	{
+	  NSNotificationCenter	*nc;
+	  NSData		*tmp;
+
+	  nc = [NSNotificationCenter defaultCenter];
+	  if (dHandle != nil)
+	    {
+	      [nc removeObserver: self name: nil object: dHandle];
+	      [dHandle closeFile];
+	      DESTROY(dHandle);
+	    }
+	  [nc removeObserver: self
+			name: GSTelnetNotification
+		      object: cHandle];
+	  DESTROY(cHandle);
+	  state = idle;
+
 	  /*
 	   * Tell superclass that we have successfully loaded the data.
 	   */
-	  [self didLoadBytes: wData loadComplete: YES];
-	  DESTROY(wData);
+	  tmp = wData;
+	  wData = nil;
+	  [self didLoadBytes: tmp loadComplete: YES];
+	  DESTROY(tmp);
 	}
     }
 }
@@ -904,16 +940,37 @@ static NSLock			*urlLock = nil;
 }
 
 /**
- * Writes the specified data as the <code>ftp</code> file.
- * Returns YES on success,
- * NO on failure.
- * On completion, the resource data for this handle is set to the
- * data written.
+ * We cannot get/set any properties for FTP
  */
-- (BOOL) writeData: (NSData*)d
+- (id) propertyForKey: (NSString*)propertyKey
 {
-  ASSIGN(wData, d);
+  return nil;
+}
+
+/**
+ * We cannot get/set any properties for FTP
+ */
+- (id) propertyForKeyIfAvailable: (NSString*)propertyKey
+{
+  return nil;
+}
+
+/**
+ * Sets the specified data to be written to the URL on the next load.
+ */
+- (BOOL) writeData: (NSData*)data
+{
+  ASSIGN(wData, data);
   return YES;
+}
+
+/**
+ * We cannot get/set any properties for FTP
+ */
+- (BOOL) writeProperty: (id)propertyValue
+		forKey: (NSString*)propertyKey
+{
+  return NO;
 }
 
 @end
