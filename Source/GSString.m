@@ -226,6 +226,8 @@ setup()
 
   if (beenHere == NO)
     {
+      extern NSStringEncoding	GetDefEncoding();
+
       beenHere = YES;
 
       /*
@@ -262,7 +264,7 @@ setup()
       /*
        * Cache the default string encoding.
        */
-      defEnc = [NSString defaultCStringEncoding];
+      defEnc = GetDefEncoding();
     }
 }
 

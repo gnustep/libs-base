@@ -12,6 +12,8 @@
 	default cString encoding ... the default cString encoding must
 	consist of 7 or 8 bit characters, and must contain ASCII as a
 	subset.  We really should think of a generalised test for that.
+	Use GetDefEncoding() throughout rather than defaultCStringEncoding.
+	* Source/GSString.m: Use GetDefEncoding() to get c string encoding.
 
 2001-04-11  Nicola Pero  <nicola@brainstorm.co.uk>
 	
