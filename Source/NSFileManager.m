@@ -49,6 +49,9 @@
 #endif
 
 #include <unistd.h>
+#if HAVE_WINDOWS_H
+#  include <windows.h>
+#endif
 
 #if !defined(_POSIX_VERSION)
 # if defined(NeXT)
@@ -68,16 +71,17 @@
 
 /* determine filesystem max path length */
 
-#ifdef _POSIX_VERSION
+#if defined(_POSIX_VERSION) || defined(__WIN32__)
 # include <limits.h>			/* for PATH_MAX */
-# include <utime.h>
+# if defined(__MINGW32__)
+#   include <sys/utime.h>
+# else
+#   include <utime.h>
+# endif
 #else
-#ifdef __MINGW__
-# include <limits.h>
-# include <sys/utime.h>
-#else
-# include <sys/param.h>			/* for MAXPATHLEN */
-#endif
+# if HAVE_SYS_PARAM_H
+#  include <sys/param.h>		/* for MAXPATHLEN */
+# endif
 #endif
 
 #ifndef PATH_MAX
@@ -218,12 +222,36 @@ static NSFileManager* defaultManager = nil;
 		    attributes: (NSDictionary*)attributes
 {
 #if defined(__MINGW__)
-  BOOL	ok;
+  NSEnumerator *paths = [[path pathComponents] objectEnumerator];
+  NSString *subPath;
 
-  ok = CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
-  if (ok == NO)
-    ASSIGN(_lastError, @"Could not create directory");
-  return ok;
+  while ((subPath = [paths nextObject]))
+    {
+      BOOL isDir = NO;
+      if (completePath == nil)
+	completePath = subPath;
+      else
+	completePath = [completePath stringByAppendingPathComponent:subPath];
+
+      if ([self fileExistsAtPath:completePath isDirectory:&isDir]) 
+	{
+	  if (!isDir) 
+	    NSLog(@"WARNING: during creation of directory %@:"
+		  " sub path %@ exists, but is not a directory !",
+		  path, completePath);
+        }
+      else 
+	{
+	  const char *cpath;
+	  cpath = [self fileSystemRepresentationWithPath: completePath];
+	  if (CreateDirectory(cpath, NULL) == FALSE)
+	    return NO;
+        }
+    }
+
+  // change attributes of last directory
+  return [self changeFileAttributes:a ttributes atPath: path];
+
 #else
   const char	*cpath;
   char		dirpath[PATH_MAX+1];
@@ -852,23 +880,25 @@ static NSFileManager* defaultManager = nil;
 
 - (BOOL) isDeletableFileAtPath: (NSString*)path
 {
-  if (path == nil)
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
+
+  if (cpath == 0 || *cpath == '\0')
     return NO;
   else
     {
-      const char *cpath;
       // TODO - handle directories
-    
-      cpath = [self fileSystemRepresentationWithPath: 
-	[path stringByDeletingLastPathComponent]];
-    
-      if (access(cpath, X_OK || W_OK) != 0)
-	return NO;
+#if defined(__MINGW__)
+      DWORD res= GetFileAttributes(cpath);
 
+      if (res == WIN32ERR)
+        return NO;
+      return (res & FILE_ATTRIBUTE_READONLY) ? NO : YES;
+#else
       cpath = [self fileSystemRepresentationWithPath: 
 	[path stringByDeletingLastPathComponent]];
     
       return  (access(cpath, X_OK || W_OK) != 0);
+#endif
     }
 }
 
@@ -1160,18 +1190,19 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) createSymbolicLinkAtPath: (NSString*)path
 		      pathContent: (NSString*)otherPath
 {
+#if HAVE_SYMLINK
   const char* lpath = [self fileSystemRepresentationWithPath: path];
   const char* npath = [self fileSystemRepresentationWithPath: otherPath];
     
-#ifdef __MINGW__
-  return NO;
-#else
   return (symlink(lpath, npath) == 0);
+#else
+  return NO;
 #endif
 }
 
 - (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path
 {
+#if HAVE_READLINK
   char  lpath[PATH_MAX];
   const char* cpath = [self fileSystemRepresentationWithPath: path];
   int   llen = readlink(cpath, lpath, PATH_MAX-1);
@@ -1180,6 +1211,9 @@ static NSFileManager* defaultManager = nil;
     return [self stringWithFileSystemRepresentation: lpath length: llen];
   else
     return nil;
+#else
+  return nil;
+#endif
 }
 
 // Converting file-system representations
