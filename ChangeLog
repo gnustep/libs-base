@@ -1,3 +1,9 @@
+Sat Jul 10 13:52:20 1999  Adam Fedor  <fedor@ultra.doc.com>
+
+	* Makefile.postamble: Create Foundation link in Source directory
+	* Source/Makefile.postamble: Remove link to Foundation
+	(work around bug in make?)
+
 Thu Jul  8 22:21:54 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Changes for new directory layout.
