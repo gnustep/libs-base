@@ -1,3 +1,9 @@
+2004-02-02 Roland Schwingel <roland.schwingel@onevision.de>
+
+	* Source/NSString.m: ([stringByAbbreviatingWithTildeInPath]) fix bug
+	appending last path component.
+	([localizedNameOfStringEncoding:]) fix load of locliisation bundle.
+
 2004-02-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Headers/Foundation/NSPropertyList.h:

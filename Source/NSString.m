@@ -2856,7 +2856,7 @@ handle_printf_atsign (FILE *stream,
       Until we have it, just make sure that bundle
       is initialized.
 */
-  ourbundle = [NSBundle gnustepBundle];
+  ourbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
 
   ourname = GetEncodingName(encoding);
   return [ourbundle localizedStringForKey: ourname
@@ -3517,7 +3517,7 @@ handle_printf_atsign (FILE *stream,
       return @"~";
     }
   return [@"~" stringByAppendingPathComponent:
-    [self substringFromIndex: [homedir length] + 1]];
+    [self substringFromIndex: [homedir length]]];
 }
 
 /**
