@@ -120,6 +120,7 @@
 - (NSArray*) contentsByName: (NSString*)key;
 - (NSData*) convertToData;
 - (NSString*) convertToText;
+- (void) deleteContent: (GSMimeDocument*)aPart;
 - (void) deleteHeader: (GSMimeHeader*)aHeader;
 - (void) deleteHeaderNamed: (NSString*)name;
 - (GSMimeHeader*) headerNamed: (NSString*)name;
