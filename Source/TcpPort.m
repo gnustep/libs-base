@@ -2086,6 +2086,8 @@ static NSMapTable *out_port_bag = NULL;
 	 the socket_2_port in +newForSendingToSockaddr:... */
       NSMapRemove (socket_2_port, (void*)_port_socket);
 
+      [port _connectedOutPortInvalidated: self];
+
       /* This also posts a NSPortDidBecomeInvalidNotification. */
       [super invalidate];
 
@@ -2093,19 +2095,17 @@ static NSMapTable *out_port_bag = NULL;
 	 getting it.  This may help Connection invalidation confusion. */
       if (_port_socket > 0)
 	{
-    #ifdef	__WIN32__
+#ifdef	__WIN32__
           if (closesocket (_port_socket) < 0)
-    #else
+#else
           if (close (_port_socket) < 0)
-    #endif /* __WIN32 */
+#endif /* __WIN32 */
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 	          format: @"[TcpOutPort -invalidate:] close(): %s",
 	          strerror(errno)];
 	    }
 	}
-
-      [port _connectedOutPortInvalidated: self];
     }
 }
 
