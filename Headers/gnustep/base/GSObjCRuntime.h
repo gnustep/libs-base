@@ -73,44 +73,64 @@
  * Get the type encoding for a named ivar,
  * and copy a value into an ivar.
  */
-GS_EXPORT BOOL GSObjCFindVariable(id obj, const char *name,
-  const char **type, unsigned int *size, int *offset);
-GS_EXPORT void GSObjCGetVariable(id obj, int offset, unsigned int size,
-  void *data);
-GS_EXPORT void GSObjCSetVariable(id obj, int offset, unsigned int size,
-  const void *data);
-GS_EXPORT NSArray* GSObjCMethodNames(id obj);
-GS_EXPORT NSArray* GSObjCVariableNames(id obj);
+GS_EXPORT BOOL
+GSObjCFindVariable(id obj, const char *name,
+		   const char **type, unsigned int *size, int *offset);
 
-GS_EXPORT void GSObjCAddClassBehavior(Class receiver, Class behavior);
+GS_EXPORT void
+GSObjCGetVariable(id obj, int offset, unsigned int size, void *data);
 
-GS_EXPORT NSValue*
+GS_EXPORT void
+GSObjCSetVariable(id obj, int offset, unsigned int size, const void *data);
+
+GS_EXPORT NSArray *
+GSObjCMethodNames(id obj);
+
+GS_EXPORT NSArray *
+GSObjCVariableNames(id obj);
+
+GS_EXPORT void
+GSObjCAddClassBehavior(Class receiver, Class behavior);
+
+GS_EXPORT NSValue *
 GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars);
-GS_EXPORT void GSObjCAddClasses(NSArray *classes);
+
+GS_EXPORT void
+GSObjCAddClasses(NSArray *classes);
 
 /*
  * Functions for key-value encoding ... they access values in an object
  * either by selector or directly, but do so using NSNumber for the
  * scalar types of data.
  */
-GS_EXPORT id GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int offset);
-GS_EXPORT void GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int offset);
+GS_EXPORT id
+GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
+	       const char *type, unsigned size, int offset);
+
+GS_EXPORT void
+GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
+	       const char *type, unsigned size, int offset);
 
 /*
  * The next five are old (deprecated) names for the same thing.
  */
-GS_EXPORT BOOL GSFindInstanceVariable(id obj, const char *name,
-  const char **type, unsigned int *size, int *offset);
-GS_EXPORT void GSGetVariable(id obj, int offset, unsigned int size,
-  void *data);
-GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
-  const void *data);
-GS_EXPORT id GSGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int offset);
-GS_EXPORT void GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int offset);
+GS_EXPORT BOOL
+GSFindInstanceVariable(id obj, const char *name,
+		       const char **type, unsigned int *size, int *offset);
+
+GS_EXPORT void
+GSGetVariable(id obj, int offset, unsigned int size, void *data);
+
+GS_EXPORT void
+GSSetVariable(id obj, int offset, unsigned int size, const void *data);
+
+GS_EXPORT id
+GSGetValue(NSObject *self, NSString *key, SEL sel,
+	   const char *type, unsigned size, int offset);
+
+GS_EXPORT void
+GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
+	   const char *type, unsigned size, int offset);
 
 #include <gnustep/base/objc-gnu2next.h>
 
@@ -197,7 +217,7 @@ GSClassFromName(const char *name)
  * Return the name of the supplied class, or a nul pointer if no class
  * was supplied.
  */
-GS_STATIC_INLINE const char*
+GS_STATIC_INLINE const char *
 GSNameFromClass(Class this)
 {
   if (this == 0)
@@ -209,7 +229,7 @@ GSNameFromClass(Class this)
  * Return the name of the supplied selector, or a nul pointer if no selector
  * was supplied.
  */
-GS_STATIC_INLINE const char*
+GS_STATIC_INLINE const char *
 GSNameFromSelector(SEL this)
 {
   if (this == 0)
@@ -250,7 +270,7 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
     }
   else
     {
-      SEL	s;
+      SEL s;
 
       if (types == 0)
 	{
@@ -281,7 +301,7 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
  * May return a nul pointer if the selector was a nul pointer or if it
  * was not typed.
  */
-GS_STATIC_INLINE const char*
+GS_STATIC_INLINE const char *
 GSTypesFromSelector(SEL this)
 {
   if (this == 0)
@@ -311,15 +331,18 @@ GSObjCVersion(Class this)
 #include <Foundation/Foundation.h>
 #endif
 
-GS_EXPORT NSZone *GSObjCZone(NSObject *obj);
+GS_EXPORT NSZone *
+GSObjCZone(NSObject *obj);
 
 /**
  * Quickly return autoreleased data storage area.
  */
-GS_EXPORT void	*GSAutoreleasedBuffer(unsigned size);
+GS_EXPORT void *
+GSAutoreleasedBuffer(unsigned size);
 
 /* Getting a system error message on a variety of systems */
-GS_EXPORT const char *GSLastErrorStr(long error_id);
+GS_EXPORT const char *
+GSLastErrorStr(long error_id);
 
 
 

@@ -1,4 +1,10 @@
-2003-06-06  David Ayers <d.ayers@inode.at>
+2003-06-07  David Ayers  <d.ayers@inode.at>
+
+	* Headers/gnustep/base/GSObjCRuntime.h
+	* Source/Additions/GSObjCRuntime.m : White space patch to better
+	conform with GNU coding standards and improve readability.
+
+2003-06-06  David Ayers  <d.ayers@inode.at>
 
 	* Source/GSArray.m: Change syntax of include <> to "" for
 	local headers. Change base/ to gnustep/base/ in includes.
