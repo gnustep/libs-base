@@ -474,7 +474,7 @@ OBJS_INSTALL = @OBJS_INSTALL@
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:${OEXT}=_pic${OEXT})
 
 DIST_FILES = \
-        Makefile.in AUTHORS Makefile.sed.nt\
+        Makefile.in AUTHORS Makefile.sed.nt \
         include/config.h.in include/preface.h.in \
 	include/config-win32.h include/config-win32.sed \
         $(GNU_MFILES) \
