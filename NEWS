@@ -1,7 +1,28 @@
 News
 ****
 
-The currently released version of the library is `1.3.2'.
+The currently released version of the library is `1.3.3'.
+
+Noteworthy changes in version `1.3.3'
+=====================================
+
+   Note there are interface and binary changes in this release that
+require you to recompile all applications and tools that use
+gnustep-base.
+
+   * Rewrite of NSURL (NOTE: Requires recompilation of all apps!)
+
+   * NSMapTable fix (also requires recompilation).
+
+   * Hack to avoid bug in gcc 3.1
+
+   * MacOSX compatibility changes: -dealloc, NSLog
+
+   * Add NSZombie class.
+
+   * GC improvements
+
+   * Support for system-wide .GNUsteprc
 
 Noteworthy changes in version `1.3.2'
 =====================================
