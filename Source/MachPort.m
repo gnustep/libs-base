@@ -1,8 +1,8 @@
 /* Implementation of Machport-based port object for use with Connection
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: September 1994
+   Created: September 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -19,13 +19,16 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */ 
+   */
+
+/* This old code really needs work; it does not currently compile. */
+
+#if __mach__
 
 #include <objects/MachPort.h>
 #include <objects/Connection.h>
 #include <objects/Lock.h>
 #include <objects/Set.h>
-#include <objc/hash.h>
 
 #include <mach/cthreads.h>
 #include <mach/notify.h>
@@ -47,7 +50,7 @@ static Lock *portDictionaryGate;
 
 /* This not tested */
 static int 
-worry (any_t arg)
+listen_for_invalidation (any_t arg)
 {
   kern_return_t r;
   notification_t m;
@@ -88,11 +91,11 @@ worry (any_t arg)
 }
 
 /* This not tested */
-+ worryAboutPortInvalidation
++ listenForPortInvalidation
 {
-  MachPort *worryPort = [MachPort new];
-  task_set_special_port(task_self(), TASK_NOTIFY_PORT, [worryPort machPort]);
-  cthread_detach(cthread_fork((any_t)worry, (any_t)0));
+  MachPort *listenPort = [MachPort new];
+  task_set_special_port(task_self(), TASK_NOTIFY_PORT, [listenPort mach_port]);
+  cthread_detach(cthread_fork((any_t)listen_for_invalidation, (any_t)0));
   return self;
 }
 
@@ -108,7 +111,7 @@ worry (any_t arg)
       return aPort;
     }
   aPort = [[self alloc] init];
-  aPort->machPort = p;
+  aPort->mach_port = p;
   aPort->deallocate = f;
   [portDictionary addElement:aPort atKey:(int)p];
   [portDictionaryGate unlock];
@@ -132,24 +135,26 @@ worry (any_t arg)
   return [self newFromMachPort:p];
 }
 
-- encodeUsing: aPortal
+- (void) encodeWithCoder: aCoder
 {
-  [aPortal encodeData:&deallocate ofType:@encode(BOOL)];
-  [aPortal encodeMachPort:machPort];
-  return self;
+  [aCoder encodeValueOfCType: @encode(BOOL)
+	  at: &deallocate
+	  withName: @""];
+  [aCoder encodeMachPort: mach_port];
 }
 
-- decodeUsing: aPortal
++ newWithCoder: aCoder
 {
   BOOL f;
   port_t mp;
   MachPort *p;
 
-  [aPortal decodeData:&f ofType:@encode(BOOL)];
-  [aPortal decodeMachPort:&mp];
-  /* Is this right?  Can we return a different object than 'self' */
+  [aCoder decodeValueOfCType: @encode(BOOL)
+	  at: &f
+	  withName: NULL];
+  [aCoder decodeMachPort: &mp];
+
   p = [MachPort newFromMachPort:mp dealloc:f];
-  [self release];
   return p;
 }
 
@@ -180,10 +185,11 @@ worry (any_t arg)
   return self;
 }
 
-- (port_t) machPort
+- (mach_port_t) machPort
 {
-  return machPort;
+  return mach_port;
 }
 
 @end
 
+#endif /* __mach__ */
