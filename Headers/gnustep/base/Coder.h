@@ -148,8 +148,7 @@
 /* These methods here temporarily until ObjC runtime category bug fixed */
 - classForConnectedCoder:aRmc;
 + (void) encodeObject: anObject withConnectedCoder: aRmc;
-- (BOOL) isProxy;
 
 @end
 
-#endif __Coder_h
+#endif /* __Coder_h */
