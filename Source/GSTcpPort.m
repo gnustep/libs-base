@@ -1555,6 +1555,7 @@ static Class		tcpPortClass;
 {
   [self gcFinalize];
   DESTROY(host);
+  TEST_RELEASE(address);
   [super dealloc];
 }
 
