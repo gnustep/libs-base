@@ -53,13 +53,18 @@ endif
 #
 after-install::
 ifeq ($(HAVE_LIBXML),1)
-	rm -rf $(REF_DOC_INSTALL_DIR)
-	$(MKDIRS) $(REF_DOC_INSTALL_DIR)
+	rm -rf $(REF_DOC_INSTALL_DIR)/Base/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
+	$(MKDIRS) $(REF_DOC_INSTALL_DIR)/Base/Reference
+	$(MKDIRS) $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
 	(cd Base; $(TAR) cf - .) | \
-	  (cd $(REF_DOC_INSTALL_DIR); $(TAR) xf -)
+	  (cd $(REF_DOC_INSTALL_DIR)/Base/Reference; $(TAR) xf -)
+	(cd BaseAdditions; $(TAR) cf - .) | \
+	  (cd $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference; $(TAR) xf -)
 ifneq ($(CHOWN_TO),)
 	$(CHOWN) -R $(CHOWN_TO) \
-	  $(REF_DOC_INSTALL_DIR)
+	  $(REF_DOC_INSTALL_DIR/Base)
+	  $(REF_DOC_INSTALL_DIR/BaseAdditions)
 endif
 endif
 

@@ -93,7 +93,49 @@
  * Extension methods for the NSData class
  */
 @implementation NSData (GSCategories)
-  
+
+/**
+ * Returns an NSString object containing an ASCII hexadecimal representation
+ * of the receiver.  This means that the returned object will contain
+ * exactly twice as many characters as there are bytes as the receiver,
+ * as each byte in the receiver is represented by two hexadecimal digits.<br />
+ * The high order four bits of each byte is encoded before the low
+ * order four bits.  Capital letters 'A' to 'F' are used to represent
+ * values from 10 to 15.<br />
+ * If you need the hexadecimal representation as raw byte data, use code
+ * like -
+ * <example>
+ *   hexData = [[sourceData hexadecimalRepresentation]
+ *     dataUsingEncoding: NSASCIIStringEncoding];
+ * </example>
+ */
+- (NSString*) hexadecimalRepresentation
+{
+  static const char	*hexChars = "0123456789ABCDEF";
+  unsigned		slen = [self length];
+  unsigned		dlen = slen * 2;
+  const unsigned char	*src = (const unsigned char *)[self bytes];
+  char			*dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
+  unsigned		spos = 0;
+  unsigned		dpos = 0;
+  NSData		*data;
+  NSString		*string;
+
+  while (spos < slen)
+    {
+      unsigned char	c = src[spos++];
+
+      dst[dpos++] = hexChars[(c >> 4) & 0x0f];
+      dst[dpos++] = hexChars[c & 0x0f];
+    }
+  data = [NSData allocWithZone: NSDefaultMallocZone()];
+  data = [data initWithBytesNoCopy: dst length: dlen freeWhenDone: YES];
+  string = [[NSString alloc] initWithData: data
+				 encoding: NSASCIIStringEncoding];
+  RELEASE(data);
+  return AUTORELEASE(string);
+}
+
 struct MD5Context
 {
   unsigned long buf[4];
@@ -354,9 +396,19 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 
 /**
  * Creates an MD5 digest of the information stored in the receiver and
- * returns it as an autoreleased 16 byte NSData object.
+ * returns it as an autoreleased 16 byte NSData object.<br />
+ * If you need to produce a digest of string information, you need to
+ * decide what character encoding is to be used and convert your string
+ * to a data object of that encoding type first using the
+ * [NSString-dataUsingEncoding:] method -
+ * <example>
+ *   myDigest = [[myString dataUsingEncoding: NSUTF8StringEncoding] md5Digest];
+ * </example>
+ * If you need to use the digest in a human readable form, you will
+ * probably want it to be seen as 32 hexadecimal digits, and can do that
+ * using the -hexadecimalRepresentation method.
  */
-- (NSData*) MD5Digest
+- (NSData*) md5Digest
 {
   struct MD5Context	ctx;
   unsigned char		digest[16];

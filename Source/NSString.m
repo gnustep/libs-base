@@ -1505,21 +1505,48 @@ handle_printf_atsign (FILE *stream,
   return array;
 }
 
+/**
+ * Returns a substring of the receiver from character at the specified
+ * index to the end of the string.<br />
+ * So, supplying an index of 3 would return a substring consisting of
+ * the entire string apart from the first three character (those would
+ * be at index 0, 1, and 2).<br />
+ * If the supplied index is greater than or equal to the length of the
+ * receiver an exception is raised.
+ */ 
 - (NSString*) substringFromIndex: (unsigned int)index
 {
   return [self substringWithRange: ((NSRange){index, [self length]-index})];
 }
 
+/**
+ * Returns a substring of the receiver from the start of the
+ * string to (but not including) the specified index position.<br />
+ * So, supplying an index of 3 would return a substring consisting of
+ * the first three characters of the receiver.<br />
+ * If the supplied index is greater than the length of the receiver
+ * an exception is raised.
+ */ 
 - (NSString*) substringToIndex: (unsigned int)index
 {
   return [self substringWithRange: ((NSRange){0,index})];;
 }
 
+/**
+ * An obsolete name for -substringWithRange: ... deprecated.
+ */
 - (NSString*) substringFromRange: (NSRange)aRange
 {
   return [self substringWithRange: aRange];
 }
 
+/**
+ * Returns a substring of the receiver containing the characters
+ * in aRange.<br />
+ * If aRange specifies any character position not
+ * present in the receiver, an exception is raised.<br />
+ * If aRange has a length of zero, an empty string is returned.
+ */
 - (NSString*) substringWithRange: (NSRange)aRange
 {
   unichar	*buf;
