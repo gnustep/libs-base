@@ -760,7 +760,7 @@ wordData(NSString *word)
   if (dData == nil || [con isKindOfClass: [GSMimeCodingContext class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ -%@:] bad destination data for decode",
+		  format: @"[%@ -%@] bad destination data for decode",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   GS_RANGE_CHECK(aRange, len);
@@ -3283,7 +3283,7 @@ static NSCharacterSet	*tokenSet = nil;
   else
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ -%@:] passed bad content",
+		  format: @"[%@ -%@] passed bad content",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
 }
@@ -3310,7 +3310,7 @@ static NSCharacterSet	*tokenSet = nil;
   if (name == nil || [name isEqual: @"unknown"] == YES)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ -%@:] header with invalid name",
+		  format: @"[%@ -%@] header with invalid name",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   if ([name isEqualToString: @"mime-version"] == YES
@@ -3867,6 +3867,22 @@ static NSCharacterSet	*tokenSet = nil;
 	  GSMimeDocument	*part = [content objectAtIndex: i];
 
 	  [partData addObject: [part rawMimeData: NO]]; 
+
+	  /*
+	   * If any part of a multipart document is not 7bit then
+	   * the document as a whole must not be 7bit either.
+	   */ 
+	  if (is7bit == YES)
+	    {
+	      NSString		*v;
+
+	      enc = [part headerNamed: @"content-transfer-encoding"];
+	      v = [enc value];
+	      if ([v isEqual: @"7bit"] == NO)
+		{
+		  is7bit = NO;
+		}
+	    }
 	}
     }
 
@@ -3893,7 +3909,7 @@ static NSCharacterSet	*tokenSet = nil;
       else
 	{
 	  [NSException raise: NSInternalInconsistencyException
-		      format: @"[%@ -%@:] with bad content",
+		      format: @"[%@ -%@] with bad content",
 	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	}
       type = [self headerNamed: @"content-type"];
@@ -3904,25 +3920,29 @@ static NSCharacterSet	*tokenSet = nil;
       NSString	*v;
 
       enc = [self headerNamed: @"content-transfer-encoding"];
+      v = [enc value];
+      if (is7bit == NO && [v isEqual: @"7bit"] == YES)
+	{
+	  enc = nil;	// Force a reset from 7bit to 8bit
+	}
       if (enc == nil)
         {
 	  enc = [GSMimeHeader alloc];
 	  enc = [enc initWithName: @"content-transfer-encoding"
-			    value: @"7bit"
+			    value: ((is7bit == YES) ? @"7bit" : @"8bit")
 		       parameters: nil];
-	  [self addHeader: enc];
+	  [self setHeader: enc];
 	  RELEASE(enc);
 	}
       else
 	{
-	  v = [enc value];
-	  if ((is7bit = [v isEqual: @"7bit"]) == NO
-	    && [v isEqual: @"8bit"] == NO && [v isEqual: @"binary"] == NO)
+	  if ([v isEqual: @"7bit"] == NO
+	    && [v isEqual: @"8bit"] == NO
+	    && [v isEqual: @"binary"] == NO)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
-		format: @"[%@ -%@:] %@ illegal for multipart",
-		NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-		v];
+		format: @"[%@ -%@] %@ illegal for multipart",
+		NSStringFromClass([self class]), NSStringFromSelector(_cmd), v];
 	    }
 	}
       v = [type parameterForKey: @"boundary"];
@@ -4040,7 +4060,7 @@ static NSCharacterSet	*tokenSet = nil;
 	      if (v != nil && ([v isEqual: @"8bit"] || [v isEqual: @"binary"]))
 	        {
 		  [NSException raise: NSInternalInconsistencyException
-		    format: @"[%@ -%@:] bad part encoding for 7bit container",
+		    format: @"[%@ -%@] bad part encoding for 7bit container",
 		    NSStringFromClass([self class]),
 		    NSStringFromSelector(_cmd)];
 		}
@@ -4122,7 +4142,7 @@ static NSCharacterSet	*tokenSet = nil;
   else
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ -%@:] passed bad content",
+		  format: @"[%@ -%@] passed bad content",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
 }
@@ -4231,7 +4251,7 @@ static NSCharacterSet	*tokenSet = nil;
     && [content isKindOfClass: [NSArray class]] == YES)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ -%@:] content doesn't match content-type",
+		  format: @"[%@ -%@] content doesn't match content-type",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
 
