@@ -24,10 +24,6 @@
 #if	HAVE_LIBXML
 #include	<Foundation/GSXML.h>
 
-static char base64[]
-  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-
 static void
 decodeBase64Unit(const char* ptr, unsigned char *out)
 {
@@ -72,52 +68,6 @@ decodeBase64(const char *source)
   objc_free(sourceBuffer);
 
   return data;
-}
-
-
-static char*
-encodeBase64(NSData *source)
-{
-  int length = [source length];
-  int enclen = length / 3;
-  int remlen = length - 3 * enclen;
-  int destlen = 4 * ((length - 1) / 3) + 5;
-  unsigned char *sourceBuffer = malloc(length);
-  unsigned char *destBuffer = malloc(destlen);
-  int sourceIndex = 0, destIndex = 0;
-
-  [source getBytes:sourceBuffer];
-  destBuffer[destlen - 1] = '\0';
-
-  for (sourceIndex = 0; sourceIndex < length - 2; sourceIndex += 3, destIndex += 4)
-    {
-      destBuffer[destIndex] = base64[sourceBuffer[sourceIndex] >> 2];
-      destBuffer[destIndex + 1] = base64[((sourceBuffer[sourceIndex] << 4) | (sourceBuffer[sourceIndex + 1] >> 4)) & 0x3f];
-      destBuffer[destIndex + 2] = base64[((sourceBuffer[sourceIndex + 1] << 2) | (sourceBuffer[sourceIndex + 2] >> 6)) & 0x3f];
-      destBuffer[destIndex + 3] = base64[sourceBuffer[sourceIndex + 2] & 0x3f];
-    }
-
-  if (remlen == 1)
-    {
-      destBuffer[destIndex] = base64[sourceBuffer[sourceIndex] >> 2];
-      destBuffer[destIndex + 1] = (sourceBuffer[sourceIndex] << 4) & 0x30;
-      destBuffer[destIndex + 1] = base64[destBuffer[destIndex + 1]];
-      destBuffer[destIndex + 2] = '=';
-      destBuffer[destIndex + 3] = '=';
-    }
-  else if (remlen == 2)
-    {
-      destBuffer[destIndex] = base64[sourceBuffer[sourceIndex] >> 2];
-      destBuffer[destIndex + 1] = (sourceBuffer[sourceIndex] << 4) & 0x30;
-      destBuffer[destIndex + 1] |= sourceBuffer[sourceIndex + 1] >> 4;
-      destBuffer[destIndex + 1] = base64[destBuffer[destIndex + 1]];
-      destBuffer[destIndex + 2] = (sourceBuffer[sourceIndex + 1] << 2) & 0x3c;
-      destBuffer[destIndex + 2] = base64[destBuffer[destIndex + 2]];
-      destBuffer[destIndex + 3] = '=';
-    }
-
-  free(sourceBuffer);
-  return destBuffer;
 }
 
 #endif
@@ -715,7 +665,7 @@ nodeToObject(GSXMLNode* node)
   else if ([name isEqualToString: @"date"])
     {
       return [NSCalendarDate dateWithString: content
-                             calendarFormat: @"%Y-%m-%d %H:%M:%S"];
+                             calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
     }
   else if ([name isEqualToString: @"data"])
     {

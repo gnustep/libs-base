@@ -11,6 +11,8 @@
 	NSString class +initialize method may not have completed when this
 	is done - so NSString won't have cached its cocrete and abstract
 	classes.
+	* Source/GSCompatibility.m: Partial write of code to generate MacOS-X
+	compatible (XML) property-list text.
 
 2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
