@@ -1,5 +1,10 @@
 2001-01-19  Nicola Pero  <nicola@brainstorm.co.uk>
 
+	* gnustep-base.spec.in: Updated copyright and attempt at improving
+	description.
+
+2001-01-19  Nicola Pero  <nicola@brainstorm.co.uk>
+
 	* config/config.loadtest.m: Added dummy NXConstStr implementation 
 	for libobjc which do not include it. 
 	* configure.in: Simplified check for thread flags.  gnustep-make
