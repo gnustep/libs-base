@@ -294,7 +294,7 @@ else
 #     64-bit ints not supported - but we need a dummy type for byte-swapping
 #     of 64-bit values arriving from another system.
       GS_SINT64="struct { gsu8 a[8]; }"
-      GS_SINT64="struct { gsu8 a[9]; }"
+      GS_UINT64="struct { gsu8 a[8]; }"
       GS_HAVE_I64=0
     fi
   fi
@@ -369,7 +369,7 @@ if test $ac_cv_sizeof_long = 4; then
 else
   if test $ac_cv_sizeof_long = 8; then
     _GSC_S_LNG=_GSC_I64
-v  else
+  else
     if test $ac_cv_sizeof_long = 16; then
       _GSC_S_LNG=_GSC_I128
     fi

@@ -1,3 +1,8 @@
+2003-03-11  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Fix some typos (Reported by
+	Alexander Malmberg <alexander@malmberg.org>).
+
 2003-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSSet.h: Added a few non-openstep declarations
