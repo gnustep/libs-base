@@ -88,7 +88,14 @@ static BOOL snuggleStart(NSString *t)
 
 	  if (unit == nil)
 	    {
-	      NSLog(@"Warning - No comments for %@ %@", type, name);
+	      if (type == nil)
+	        {
+		  NSLog(@"Warning - No comments for %@", name);
+		}
+	      else
+	        {
+		  NSLog(@"Warning - No comments for %@ %@", type, name);
+		}
 	    }
 	  else
 	    {
