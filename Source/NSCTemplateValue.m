@@ -1,4 +1,5 @@
-/* NSValue.h - Object encapsulation for C types.
+# line 1 "NSCTemplateValue.m"	/* So gdb knows which file we are in */
+/* NSCTemplateValue - Object encapsulation for C types.
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
