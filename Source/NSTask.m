@@ -209,14 +209,15 @@ pty_slave(const char* name)
 
 @implementation NSTask
 
-+ (id)allocWithZone:(NSZone*)zone
++ (id) allocWithZone: (NSZone*)zone
 {
-    NSTask *task;
-    if (self == [NSTask class])
-      task = (NSTask *)NSAllocateObject([NSConcreteTask class], 0, zone);
-    else
-      task = (NSTask *)NSAllocateObject(self, 0, zone);
-    return task;
+  NSTask *task;
+
+  if (self == [NSTask class])
+    task = (NSTask *)NSAllocateObject([NSConcreteTask class], 0, zone);
+  else
+    task = (NSTask *)NSAllocateObject(self, 0, zone);
+  return task;
 }
 
 + (void) initialize
