@@ -611,7 +611,7 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
     case 'z':
     case 'Z':
       /* ints are size_ts.  */
-      assert (sizeof (size_t) <= sizeof (unsigned long long int));
+      NSCParameterAssert (sizeof (size_t) <= sizeof (unsigned long long int));
 #if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = sizeof (size_t) > sizeof (unsigned long int);
@@ -620,7 +620,7 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
       spec->info.is_long = sizeof (size_t) > sizeof (unsigned int);
       break;
     case 't':
-      assert (sizeof (ptrdiff_t) <= sizeof (long long int));
+      NSCParameterAssert (sizeof (ptrdiff_t) <= sizeof (long long int));
 #if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = (sizeof (ptrdiff_t) > sizeof (long int));
@@ -629,7 +629,7 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
       spec->info.is_long = sizeof (ptrdiff_t) > sizeof (int);
       break;
     case 'j':
-      assert (sizeof (uintmax_t) <= sizeof (unsigned long long int));
+      NSCParameterAssert (sizeof (uintmax_t) <= sizeof (unsigned long long int));
 #if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = (sizeof (uintmax_t)
