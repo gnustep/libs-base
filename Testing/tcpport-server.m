@@ -28,7 +28,7 @@ id announce_broken_connection (id notification)
 
 static id port = nil;
 
-id handle_incoming_packet (id packet)
+id handle_incoming_packet (TcpInPacket *packet)
 {
   static unsigned message_count = 0;
   id reply_port;
@@ -38,14 +38,14 @@ id handle_incoming_packet (id packet)
   fwrite ([packet streamBuffer] + [packet streamBufferPrefix],
 	  [packet streamEofPosition], 1, stdout);
   fprintf (stdout, "<\n");
-  reply_port = [packet replyPort];
+  reply_port = [packet replyOutPort];
   [packet release];
 
-  packet = [[TcpPacket alloc] initForSendingWithCapacity: 100
-			      replyPort: port];
+  packet = [[TcpOutPacket alloc] initForSendingWithCapacity: 100
+				 replyInPort: port];
   [packet writeFormat: @"Your's was my message number %d", 
 	  message_count];
-  [reply_port sendPacket: packet withTimeout: 20 * 1000];
+  [reply_port sendPacket: packet];
   [packet release];
   return nil;
 }
@@ -72,7 +72,7 @@ int main (int argc, char *argv[])
   printf ("Waiting for connections.\n");
 
 #if 1
-  [port setPacketInvocation:
+  [port setReceivedPacketInvocation:
 	  [[[ObjectFunctionInvocation alloc]
 	     initWithObjectFunction: handle_incoming_packet]
 	    autorelease]];
