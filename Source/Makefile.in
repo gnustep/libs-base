@@ -308,7 +308,6 @@ NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
-NSGUnarchiver.m \
 NSMethodSignature.m \
 NSNumber.m \
 NSObjCRuntime.m \
@@ -318,7 +317,6 @@ NSRange.m \
 NSSet.m \
 NSString.m \
 NSTimeZone.m \
-NSUnarchiver.m \
 NSValue.m
 
 NSVALUE_MFILES = \
@@ -370,7 +368,6 @@ Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
 Foundation/NSGSet.h \
-Foundation/NSGUnarchiver.h \
 Foundation/NSInvocation.h \
 Foundation/NSMethodSignature.h \
 Foundation/NSObjCRuntime.h \
@@ -380,7 +377,6 @@ Foundation/NSRange.h \
 Foundation/NSSerialization.h \
 Foundation/NSSet.h \
 Foundation/NSString.h \
-Foundation/NSUnarchiver.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
