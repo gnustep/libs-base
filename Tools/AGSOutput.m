@@ -1150,7 +1150,7 @@ static BOOL snuggleStart(NSString *t)
   NSArray	*protocols;
   NSString	*standards = nil;
   NSString	*tmp;
-  NSString	*unit;
+  NSString	*unit = nil;
   NSRange	r;
   unsigned	ind;
   unsigned	i;
@@ -1270,7 +1270,7 @@ static BOOL snuggleStart(NSString *t)
 				    withString: @"chapter>"];
 	}
     }
-  else
+  if (unit == nil)
     {
       unit = [NSString stringWithFormat:
         @"    <chapter>\n      <heading>Software documentation "
