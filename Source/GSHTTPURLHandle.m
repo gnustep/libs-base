@@ -38,7 +38,7 @@
 #include <Foundation/GSMime.h>
 #include <string.h>
 
-static NSString	*httpVersion = @"1.0";
+static NSString	*httpVersion = @"1.1";
 
 char emp[64] = {
     'A','B','C','D','E','F','G','H','I','J','K','L','M',
@@ -162,7 +162,7 @@ static NSLock			*urlLock = nil;
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   [parser parse: d];
-  if ([d length] == 0)
+  if ([parser isComplete] == YES)
     {
       NSDictionary	*info;
       NSString		*val;
@@ -215,6 +215,16 @@ static NSLock			*urlLock = nil;
   str = [str initWithData: dat encoding: NSASCIIStringEncoding];
   range = [str rangeOfString: @"\n\n" 
 	             options: NSCaseInsensitiveSearch];
+  if (range.length == 0)
+    {
+      range = [str rangeOfString: @"\r\n\r\n" 
+			 options: NSCaseInsensitiveSearch];
+      if (range.length == 0)
+	{
+	  range = [str rangeOfString: @"\r\r" 
+			     options: NSCaseInsensitiveSearch];
+	}
+    }
   if ([d length] == 0 || range.length > 0)
     {
       [nc removeObserver: self
@@ -375,12 +385,12 @@ static NSLock			*urlLock = nil;
 
       if ([url port] == nil)
 	{
-	  cmd = [NSString stringWithFormat: @"CONNECT %@:443 HTTP/%@\n\n",
+	  cmd = [NSString stringWithFormat: @"CONNECT %@:443 HTTP/%@\r\n\r\n",
 	    [url host], httpVersion];
 	}
       else
 	{
-	  cmd = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/%@\n\n",
+	  cmd = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/%@\r\n\r\n",
 	    [url host], [url port], httpVersion];
 	}
       
@@ -409,30 +419,35 @@ static NSLock			*urlLock = nil;
 	  return;
 	}
     }
+
+  /*
+   * Set up request - differs for proxy version unless tunneling via ssl.
+   */
   if ([request objectForKey: GSHTTPPropertyMethodKey] == nil)
     {
       [request setObject: @"GET" forKey: GSHTTPPropertyMethodKey];
     }
-  if ([request objectForKey: GSHTTPPropertyProxyHostKey] != nil)
+  if ([request objectForKey: GSHTTPPropertyProxyHostKey] != nil
+    && [[url scheme] isEqualToString: @"https"] == NO)
     {
-      s = [[NSMutableString alloc] initWithFormat: @"\n%@ http://%@%@", 
+      s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
 	[request objectForKey: GSHTTPPropertyMethodKey],
 	[url host], [url path]];
       if ([[url query] length] > 0)
 	{
 	  [s appendFormat: @"?%@", [url query]];
 	}
-      [s appendFormat: @" HTTP/%@\n", httpVersion];
+      [s appendFormat: @" HTTP/%@\r\n", httpVersion];
     }
   else    // no proxy
     {
-      s = [[NSMutableString alloc] initWithFormat: @"\n%@ %@", 
+      s = [[NSMutableString alloc] initWithFormat: @"%@ %@", 
 	[request objectForKey: GSHTTPPropertyMethodKey], [url path]];
       if ([[url query] length] > 0)
 	{
 	  [s appendFormat: @"?%@", [url query]];
 	}
-      [s appendFormat: @" HTTP/%@\nHost: %@\n", [url host], httpVersion];
+      [s appendFormat: @" HTTP/%@\nHost: %@\r\n", httpVersion, [url host]];
     }
 
   while ((key = [wpEnumerator nextObject]))
