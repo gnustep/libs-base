@@ -35,7 +35,6 @@
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSNotification.h>
-#include <Foundation/NSUserDefaults.h>
 
 extern BOOL	GSMacOSXCompatibleGeometry();	// Compatibility mode
 

@@ -36,11 +36,11 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
+#include "GSUserDefaults.h"
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
@@ -834,7 +834,7 @@ static NSString	*indentStrings[] = {
   NSDictionary	*loc;
   NSString	*desc;
 
-  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  loc = GSUserDefaultsDictionaryRepresentation();
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
@@ -863,7 +863,7 @@ static NSString	*indentStrings[] = {
   NSDictionary	*loc;
   NSString	*desc;
 
-  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  loc = GSUserDefaultsDictionaryRepresentation();
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {

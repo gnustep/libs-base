@@ -25,7 +25,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSDecimal.h>
 #include <Foundation/NSDecimalNumber.h>
-#include <Foundation/NSUserDefaults.h>
+#include "GSUserDefaults.h"
 
 static NSDecimalNumberHandler *handler;
  
@@ -224,9 +224,9 @@ static NSDecimalNumber *one;
   return self;
 }
 
-- (id)initWithMantissa:(unsigned long long)mantissa 
-	      exponent:(short)exponent 
-	    isNegative:(BOOL)flag
+- (id) initWithMantissa: (unsigned long long)mantissa 
+	       exponent: (short)exponent 
+	     isNegative: (BOOL)flag
 {
   NSDecimal decimal;
 
@@ -234,16 +234,14 @@ static NSDecimalNumber *one;
   return [self initWithDecimal: decimal];
 }
 
-- (id)initWithString:(NSString *)numberValue
+- (id) initWithString: (NSString*)numberValue
 {
-  NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
-
   return [self initWithString: numberValue 
-	       locale: [defs dictionaryRepresentation]];
+		       locale: GSUserDefaultsDictionaryRepresentation()];
 }
 
-- (id)initWithString:(NSString *)numberValue 
-	      locale:(NSDictionary *)locale;
+- (id) initWithString: (NSString*)numberValue 
+	       locale: (NSDictionary*)locale;
 {
   NSDecimal decimal;
 
@@ -251,7 +249,7 @@ static NSDecimalNumber *one;
   return [self initWithDecimal: decimal];
 }
 
-- (NSString *)descriptionWithLocale:(NSDictionary *)locale
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   return NSDecimalString(&data, locale);
 }

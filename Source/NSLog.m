@@ -39,6 +39,8 @@
 
 #include <unistd.h>
 
+#include "GSUserDefaults.h"
+
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
@@ -67,7 +69,7 @@ _NSLog_standard_printf_handler (NSString* message)
  
 #ifdef	HAVE_SYSLOG
 
-  if (write(2, buf, len) != len)
+  if (GSUserDefaultsFlag(GSLogSyslog) == YES || write(2, buf, len) != len)
     {
       int	mask;
 

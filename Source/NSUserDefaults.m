@@ -47,9 +47,14 @@
 #include <Foundation/NSLock.h>
 #include <base/GSLocale.h>
 
+#include "GSUserDefaults.h"
+
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
 
+/*************************************************************************
+ *** Class variables
+ *************************************************************************/
 static SEL	nextObjectSel;
 static SEL	objectForKeySel;
 static SEL	addSel;
@@ -65,7 +70,30 @@ static Class	NSDictionaryClass;
 static Class	NSMutableDictionaryClass;
 static Class	NSStringClass;
 
+static NSUserDefaults    *sharedDefaults = nil;
+static NSMutableString   *processName = nil;
+static NSMutableArray    *userLanguages = nil;
 static NSRecursiveLock	*classLock = nil;
+
+/*
+ * Caching some defaults.
+ */
+static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
+
+static void updateCache(NSUserDefaults *self)
+{
+  if (self == sharedDefaults)
+    {
+      flags[GSMacOSXCompatible]
+	= [self boolForKey: @"GSMacOSXCompatible"];
+      flags[GSOldStyleGeometry]
+	= [self boolForKey: @"GSOldStyleGeometry"];
+      flags[GSLogSyslog]
+	= [self boolForKey: @"GSLogSyslog"];
+      flags[NSWriteOldStylePropertyLists]
+	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
+    }
+}
 
 /*************************************************************************
  *** Local method definitions
@@ -78,13 +106,6 @@ static NSRecursiveLock	*classLock = nil;
 @end
 
 @implementation NSUserDefaults: NSObject
-/*************************************************************************
- *** Class variables
- *************************************************************************/
-static NSUserDefaults    *sharedDefaults = nil;
-static NSMutableString   *processName = nil;
-static NSMutableArray    *userLanguages = nil;
-
 /*************************************************************************
  *** Getting the Shared Instance
  *************************************************************************/
@@ -1072,6 +1093,7 @@ static NSString	*pathForUser(NSString *user)
 	{
 	  RELEASE(_persDomains);
 	  _persDomains = newDict;
+	  updateCache(self);
 	  [[NSNotificationCenter defaultCenter] 
 	    postNotificationName: NSUserDefaultsDidChangeNotification
 			  object: nil];
@@ -1336,8 +1358,10 @@ static NSString	*pathForUser(NSString *user)
   if (!_changedDomains)
     {
       _changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
+      updateCache(self);
       [[NSNotificationCenter defaultCenter] 
-	postNotificationName: NSUserDefaultsDidChangeNotification object: nil];
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: nil];
     }
 	
   enumerator = [_changedDomains objectEnumerator];
@@ -1363,3 +1387,32 @@ static NSString	*pathForUser(NSString *user)
   [self synchronize];
 }
 @end
+
+NSDictionary*
+GSUserDefaultsDictionaryRepresentation()
+{
+  NSDictionary	*defs;
+
+  [classLock lock];
+  if (sharedDefaults == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  defs = [sharedDefaults dictionaryRepresentation];
+  [classLock unlock];
+  return defs;
+}
+
+/*
+ * Get one of several potentially useful flags.
+ */
+BOOL
+GSUserDefaultsFlag(GSUserDefaultFlagType type)
+{
+  if (sharedDefaults == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  return flags[type];
+}
+
