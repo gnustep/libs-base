@@ -1,5 +1,5 @@
 /* NSCharacterSet - Character set holder
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Apr 1995
@@ -74,15 +74,13 @@ static NSLock* cache_lock = nil;
       NS_DURING
 	path = [NSBundle pathForResource:setname
 			ofType:@"dat"
-			inDirectory:NSCharacterSet_PATH
-			withVersion:0];
+			inDirectory:NSCharacterSet_PATH];
         /* This is for testing purposes */
         if (path == nil || [path length] == 0)
 	  {
 	    path = [NSBundle pathForResource:setname
 			ofType:@"dat"
-			inDirectory:@"../NSCharacterSets"
-			withVersion:0];
+			inDirectory:@"../NSCharacterSets"];
 	  }
 
         if (path == nil || [path length] == 0)
