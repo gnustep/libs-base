@@ -102,6 +102,15 @@ static Class NSMutableAttributedString_concrete_class;
   return [super initWithCoder:aDecoder];
 }
 
+- (Class) classForPortCoder: (NSPortCoder*)aCoder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
+
 //NSCopying protocol
 - copyWithZone: (NSZone*)zone
 {

@@ -188,6 +188,11 @@ static void unchar_func(void *s, int c)
     return (const void*)buffer;
 }
 
+- classForPortCoder: (NSPortCoder*)aCoder
+{
+    return object_get_class (self);
+}
+
 - (id) copyWithZone: (NSZone*)zone
 {
   NSHData*	obj = [[NSHData class] allocWithZone:zone];
@@ -1040,6 +1045,10 @@ static void unchar_func(void *s, int c)
 	   autorelease];
 }
 
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
 
 - (void) rewindStream
 {

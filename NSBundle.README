@@ -71,4 +71,4 @@ set-up correctly, or that the GNUstep Base Library did not link in the
 correct header file to use dynamic linking. Diagnosing and fixing
 these problems is not trivial and requires some knowledge of dynamic
 linking, object file formats and the Objective-C runtime. Contact Adam
-Fedor <fedor@boulder.colorado.edu> for help.
+Fedor <fedor@doc.com> for help.

@@ -830,6 +830,60 @@ static int debug_run_loop = 0;
     return when;
 }
 
+- (RunLoopWatcher*) _getWatcher: (void*)data
+			   type: (RunLoopEventType)type
+		        forMode: (NSString*)mode
+{
+    NSArray		*watchers;
+    RunLoopWatcher	*info;
+    int			count;
+
+    if (mode == nil)
+	mode = _current_mode;
+
+    watchers = NSMapGet (_mode_2_watchers, mode);
+    if (watchers == nil) {
+	return nil;
+    }
+    for (count = 0; count < [watchers count]; count++) {
+	info = [watchers objectAtIndex: count];
+
+	if ([info getType] == type) {
+	    if ([info getData] == data) {
+		return info;
+	    }
+	}
+    }
+    return nil;
+}
+
+- (void) _removeWatcher: (void*)data
+                   type: (RunLoopEventType)type
+                forMode: (NSString*)mode
+{
+    NSMutableArray	*watchers;
+
+    if (mode == nil )
+	mode = _current_mode;
+
+    watchers = NSMapGet (_mode_2_watchers, mode);
+    if (watchers) {
+	int	i;
+
+	for (i = [watchers count]; i > 0; i--) {
+	    RunLoopWatcher*	info;
+
+	    info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
+	    if ([info getType] == type && [info getData] == data) {
+		[info invalidate];
+		[watchers removeObject: info];
+	    }
+	}
+    }
+}
+
+
+
 
 /* Listen to input sources.
    If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
@@ -908,59 +962,6 @@ static int debug_run_loop = 0;
 				  NSObjectMapValueCallBacks, 0);
   wfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  NSObjectMapValueCallBacks, 0);
-
-- (RunLoopWatcher*) _getWatcher: (void*)data
-			   type: (RunLoopEventType)type
-		        forMode: (NSString*)mode
-{
-    NSArray		*watchers;
-    RunLoopWatcher	*info;
-    int			count;
-
-    if (mode == nil)
-	mode = _current_mode;
-
-    watchers = NSMapGet (_mode_2_watchers, mode);
-    if (watchers == nil) {
-	return nil;
-    }
-    for (count = 0; count < [watchers count]; count++) {
-	info = [watchers objectAtIndex: count];
-
-	if ([info getType] == type) {
-	    if ([info getData] == data) {
-		return info;
-	    }
-	}
-    }
-    return nil;
-}
-
-- (void) _removeWatcher: (void*)data
-                   type: (RunLoopEventType)type
-                forMode: (NSString*)mode
-{
-    NSMutableArray	*watchers;
-
-    if (mode == nil )
-	mode = _current_mode;
-
-    watchers = NSMapGet (_mode_2_watchers, mode);
-    if (watchers) {
-	int	i;
-
-	for (i = [watchers count]; i > 0; i--) {
-	    RunLoopWatcher*	info;
-
-	    info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
-	    if ([info getType] == type && [info getData] == data) {
-		[info invalidate];
-		[watchers removeObject: info];
-	    }
-	}
-    }
-}
-
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {

@@ -2326,6 +2326,17 @@ else
 
 @implementation NXConstantString
 
+/*
+ *	NXConstantString overrides [-dealloc] so that it is never deallocated.
+ *	If we pass an NXConstantString to another process it will never get
+ *	deallocated in the other process - causing a memory leak.  So we tell
+ *	the DO system to use the super class instead.
+ */
+- (Class)classForPortCoder: (NSPortCoder*)aCoder
+{
+  return [self superclass];
+}
+
 - (void)dealloc
 {
 }
