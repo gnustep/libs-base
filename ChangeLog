@@ -1,3 +1,9 @@
+2003-07-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: Partially reverted last
+	change ... seemed to cause problems on some systems.
+	* Tools/gdnc.m: ditto.
+
 2003-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Implement methodSignatureForSelector for zombies
