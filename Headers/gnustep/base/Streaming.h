@@ -37,6 +37,8 @@
 
 - (int) writeFormat: (id <String>)format, ...;
 - (int) readFormat: (id <String>)format, ...;
+- (int) writeFormat: (id <String>)format arguments: (va_list)arg;
+- (int) readFormat: (id <String>)format arguments: (va_list)arg;
 
 - (void) writeLine: (id <String>)l;
 - (id <String>) readLine;
