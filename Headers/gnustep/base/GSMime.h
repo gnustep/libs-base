@@ -111,7 +111,6 @@
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
-
 @end
 
 #endif

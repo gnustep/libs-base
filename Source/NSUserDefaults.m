@@ -349,6 +349,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
   RETAIN(sharedDefaults);
+  updateCache(sharedDefaults);
   [classLock unlock];
   return AUTORELEASE(sharedDefaults);
 }

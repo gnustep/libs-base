@@ -63,6 +63,7 @@
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSURL.h>
 #include	<Foundation/NSURLHandle.h>
+#include	<Foundation/NSDebug.h>
 #include	<Foundation/GSMime.h>
 #include	<string.h>
 #include	<ctype.h>
@@ -223,17 +224,31 @@ parseCharacterSet(NSString *token)
   return NSASCIIStringEncoding;
 }
 
+/**
+ * The most rudimentary context ... this is used for decoding plain
+ * text and binary dat (ie data which is not really decoded at all)
+ * and all other decoding work is done by a subclass.
+ */
 @implementation	GSMimeCodingContext
+/**
+ * Returns the current value of the 'atEnd' flag.
+ */
 - (BOOL) atEnd
 {
   return atEnd;
 }
 
+/**
+ * Copying is implemented as a simple retain.
+ */
 - (id) copyWithZone: (NSZone*)z
 {
   return RETAIN(self);
 }
 
+/**
+ * Sets the current value of the 'atEnd' flag.
+ */
 - (void) setAtEnd: (BOOL)flag
 {
   atEnd = flag;
@@ -297,33 +312,6 @@ parseCharacterSet(NSString *token)
 
 
 
-@interface	GSMimeBinaryDecoderContext : GSMimeCodingContext
-@end
-@implementation	GSMimeBinaryDecoderContext
-- (id) autorelease
-{
-  return self;
-}
-- (id) copyWithZone: (NSZone*)z
-{
-  return self;
-}
-- (void) dealloc
-{
-  NSLog(@"Error - attempt to deallocate GSMimeBinaryDecoderContext");
-}
-- (id) retain
-{
-  return self;
-}
-- (void) release
-{
-}
-@end
-
-
-
-
 @interface GSMimeParser (Private)
 - (BOOL) _decodeBody: (NSData*)data;
 - (NSString*) _decodeHeader;
@@ -369,9 +357,9 @@ parseCharacterSet(NSString *token)
  * <list>
  *   <item>base64</item>
  *   <item>quoted-printable</item>
- *   <item>binary</item>
- *   <item>7bit</item>
- *   <item>8bit</item>
+ *   <item>binary (no coding actually performed)</item>
+ *   <item>7bit (no coding actually performed)</item>
+ *   <item>8bit (no coding actually performed)</item>
  *   <item>chunked (for HTTP/1.1)</item>
  * </list>
  */
@@ -382,7 +370,7 @@ parseCharacterSet(NSString *token)
 
   if (info == nil)
     {
-      return AUTORELEASE([GSMimeBinaryDecoderContext new]);
+      return AUTORELEASE([GSMimeCodingContext new]);
     }
 
   name = [info objectForKey: @"Name"];
@@ -393,7 +381,7 @@ parseCharacterSet(NSString *token)
       if ([value length] == 0)
 	{
 	  NSLog(@"Bad value for %@ header - assume binary encoding", name);
-	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
+	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
       if ([value isEqualToString: @"base64"] == YES)
 	{
@@ -405,15 +393,15 @@ parseCharacterSet(NSString *token)
 	}
       else if ([value isEqualToString: @"binary"] == YES)
 	{
-	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
+	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
       else if ([value characterAtIndex: 0] == '7')
 	{
-	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
+	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
       else if ([value characterAtIndex: 0] == '8')
 	{
-	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
+	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
       else if ([value isEqualToString: @"chunked"] == YES)
 	{
@@ -422,7 +410,7 @@ parseCharacterSet(NSString *token)
     }
 
   NSLog(@"contextFor: - unknown header (%@) ... assumed binary encoding", name);
-  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
+  return AUTORELEASE([GSMimeCodingContext new]);
 }
 
 /**
@@ -828,7 +816,7 @@ parseCharacterSet(NSString *token)
 	    }
 	}
       /*
-       * Append any data.
+       * Correct size of output buffer.
        */	
       [dData setLength: size + dst - beg];
     }
@@ -840,7 +828,6 @@ parseCharacterSet(NSString *token)
       [dData setLength: size + (end - src)];
       dst = (unsigned char*)[dData mutableBytes];
       memcpy(&dst[size], src, (end - src));
-      [dData setLength: size + end - src];
     }
 
   /*
@@ -923,19 +910,22 @@ parseCharacterSet(NSString *token)
  * <p>
  *   Since it is not always possible to determine if the end of a
  *   MIME document has been reached from its content, the method
- *   may need to be called with a nil argument after you have
+ *   may need to be called with a nil or empty argument after you have
  *   passed all the data to it ... this tells it that the data
  *   is complete.
  * </p>
  */
 - (BOOL) parse: (NSData*)d
 {
+  unsigned	l = [d length];
+
   if (complete == YES)
     {
       return NO;	/* Already completely parsed! */
     }
-  if ([d length] > 0)
+  if (l > 0)
     {
+      NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
       if (inBody == NO)
 	{
 	  [data appendBytes: [d bytes] length: [d length]];
@@ -961,6 +951,11 @@ parseCharacterSet(NSString *token)
 		    {
 		      return NO;	/* Header not parsed properly.	*/
 		    }
+		  NSDebugMLLog(@"GSMime", @"Parsed header '%@'", header);
+		}
+	      else
+		{
+		  NSDebugMLLog(@"GSMime", @"Parsed end of headers");
 		}
 	    }
 	  /*
@@ -996,6 +991,7 @@ parseCharacterSet(NSString *token)
 			   * This is an intermediary response ... so we have
 			   * to restart the parsing operation!
 			   */
+			  NSDebugMLLog(@"GSMime", @"Parsed http continuation");
 			  inBody = NO;
 			}
 		    }
@@ -1007,13 +1003,18 @@ parseCharacterSet(NSString *token)
 	{
 	  if (inBody == YES)
 	    {
-	      [self _decodeBody: d];
+	      /*
+	       * We can't just re-call -parse: ...
+	       * that would lead to recursion.
+	       */
+	      return [self _decodeBody: d];
 	    }
 	  else
 	    {
 	      return [self parse: d];
 	    }
 	}
+
       return YES;	/* Want more data for body */
     }
   else
@@ -1277,69 +1278,66 @@ parseCharacterSet(NSString *token)
  *   work generally -
  * </p>
  * <deflist>
-*
-*    <term>content-disposition</term>
-*    <desc>
-*      <deflist>
-*	<term>Parameters</term>
-*	<desc>
-*	  A dictionary containing parameters as key-value pairs
-*	  in lowercase
-*	</desc>
-*	<term>Value</term>
-*	<desc>
-*	  The content disposition (excluding parameters) as a
-*	  lowercase string.
-*	</desc>
-*      </deflist>
-*    </desc>
-*    <term>content-type</term>
-*    <desc>
-*      <deflist>
-*	<term>Parameters</term>
-*	<desc>
-*	  A dictionary containing parameters as key-value pairs
-*	  in lowercase.
-*	</desc>
-*	<term>SubType</term>
-*	<desc>The MIME subtype lowercase</desc>
-*	<term>Type</term>
-*	<desc>The MIME type lowercase</desc>
-*	<term>value</term>
-*	<desc>The full MIME type (xxx/yyy) in lowercase</desc>
-*      </deflist>
-*    </desc>
-*
-*    <term>content-transfer-encoding</term>
-*    <desc>
-*      <deflist>
-*	<term>Value</term>
-*	<desc>The transfer encoding type in lowercase</desc>
-*      </deflist>
-*    </desc>
-*
-*    <term>http</term>
-*    <desc>
-*      <deflist>
-*	<term>HttpVersion</term>
-*	<desc>The HTTP protocol version number</desc>
-*	<term>HttpMajorVersion</term>
-*	<desc>The first component of the version number</desc>
-*	<term>HttpMinorVersion</term>
-*	<desc>The second component of the version number</desc>
-*	<term>HttpStatus</term>
-*	<desc>The response status value (numeric code)</desc>
-*	<term>Value</term>
-*	<desc>The text message (if any)</desc>
-*      </deflist>
-*    </desc>
-*    <term>transfer-encoding</term>
-*    <desc>
-*      <deflist>
-*	<term>Value</term>
-*	<desc>The transfer encoding type in lowercase</desc>
-*      </deflist>
-*    </desc>
+ *   <term>content-disposition</term>
+ *   <desc>
+ *     <deflist>
+ *     <term>Parameters</term>
+ *     <desc>
+ *       A dictionary containing parameters as key-value pairs
+ *       in lowercase
+ *     </desc>
+ *     <term>Value</term>
+ *     <desc>
+ *       The content disposition (excluding parameters) as a
+ *       lowercase string.
+ *     </desc>
+ *     </deflist>
+ *   </desc>
+ *   <term>content-type</term>
+ *   <desc>
+ *     <deflist>
+ *       <term>Parameters</term>
+ *       <desc>
+ *         A dictionary containing parameters as key-value pairs
+ *         in lowercase.
+ *       </desc>
+ *       <term>SubType</term>
+ *       <desc>The MIME subtype lowercase</desc>
+ *       <term>Type</term>
+ *       <desc>The MIME type lowercase</desc>
+ *       <term>value</term>
+ *       <desc>The full MIME type (xxx/yyy) in lowercase</desc>
+ *     </deflist>
+ *   </desc>
+ *   <term>content-transfer-encoding</term>
+ *   <desc>
+ *     <deflist>
+ *     <term>Value</term>
+ *     <desc>The transfer encoding type in lowercase</desc>
+ *     </deflist>
+ *   </desc>
+ *   <term>http</term>
+ *   <desc>
+ *     <deflist>
+ *     <term>HttpVersion</term>
+ *     <desc>The HTTP protocol version number</desc>
+ *     <term>HttpMajorVersion</term>
+ *     <desc>The first component of the version number</desc>
+ *     <term>HttpMinorVersion</term>
+ *     <desc>The second component of the version number</desc>
+ *     <term>HttpStatus</term>
+ *     <desc>The response status value (numeric code)</desc>
+ *     <term>Value</term>
+ *     <desc>The text message (if any)</desc>
+ *     </deflist>
+ *   </desc>
+ *   <term>transfer-encoding</term>
+ *   <desc>
+ *     <deflist>
+ *      <term>Value</term>
+ *      <desc>The transfer encoding type in lowercase</desc>
+ *     </deflist>
+ *   </desc>
  * </deflist>
  */
 - (BOOL) scanHeader: (NSScanner*)scanner
@@ -1833,9 +1831,10 @@ parseCharacterSet(NSString *token)
 
 - (BOOL) _decodeBody: (NSData*)d
 {
-  BOOL	result = NO;
+  unsigned	l = [d length];
+  BOOL		result = NO;
 
-  rawBodyLength += [d length];
+  rawBodyLength += l;
 
   if (context == nil)
     {
@@ -1868,7 +1867,10 @@ parseCharacterSet(NSString *token)
 	}
       context = [self contextFor: hdr];
       RETAIN(context);
+      NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
     }
+
+  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
 
   if ([context atEnd] == YES)
     {
@@ -1908,6 +1910,7 @@ parseCharacterSet(NSString *token)
 	      inBody = NO;
 	      complete = YES;
 
+	      NSDebugMLLog(@"GSMime", @"Parse body complete");
 	      /*
 	       * If no content type is supplied, we assume text.
 	       */
@@ -2162,7 +2165,6 @@ parseCharacterSet(NSString *token)
     }
   return unwrappingComplete;
 }
-
 @end
 
 
