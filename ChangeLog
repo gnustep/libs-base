@@ -13,6 +13,7 @@
 	and consistency.  Moved implementation from NSObject.m to
 	GSObjCRuntime.m so this is available for use withing the Additions
 	library when built standalone.
+	Add a couple of trivial functions to list ivars and methods.
 
 2003-02-19  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 

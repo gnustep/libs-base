@@ -79,6 +79,8 @@ GS_EXPORT void GSObjCGetVariable(id obj, int offset, unsigned int size,
   void *data);
 GS_EXPORT void GSObjCSetVariable(id obj, int offset, unsigned int size,
   const void *data);
+GS_EXPORT NSArray* GSObjCMethodNames(id obj);
+GS_EXPORT NSArray* GSObjCVariableNames(id obj);
 
 GS_EXPORT void GSObjCAddClassBehavior(Class receiver, Class behavior);
 
