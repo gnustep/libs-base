@@ -370,7 +370,7 @@ static BOOL debug_binary_coder;
 	/* xxx Do we need to allocate space just like char* ?  No. */
 	int acc_size = 0;
 	int align;
-	char *save_type = type;
+	const char *save_type = type;
 
 	while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
 	[self decodeName:namePtr];
