@@ -138,6 +138,11 @@ static BOOL debug_memory_stream = NO;
   return [self initWithCapacity: DEFAULT_MEMORY_STREAM_SIZE];
 }
 
+- (void) setFreeWhenDone: (BOOL)f
+{
+  free_when_done = f;
+}
+
 - (BOOL) isWritable
 {
   return YES;
