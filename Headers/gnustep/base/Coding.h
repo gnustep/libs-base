@@ -33,6 +33,13 @@
 - (void) encodeWithCoder: (Coder*)anEncoder;
 + newWithCoder: (Coder*)aDecoder;
 
+/* xxx To avoid conflict with OpenStep, change names to:
+   encodeOnCoder: ?
+
+   encodeToCoder:
+   newFromCoder:
+*/
+
 /* NOTE:  
 
    This is +newWithCoder: and not -initWithCoder: because many classes
