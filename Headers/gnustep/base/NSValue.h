@@ -132,6 +132,7 @@
  */
 typedef struct {
   int			typeOrder;
+  int			typeNext;
   NSComparisonResult	(*compValue)(NSNumber*, SEL, NSNumber*);
   BOOL			(*boolValue)(NSNumber*, SEL);
   char			(*charValue)(NSNumber*, SEL);

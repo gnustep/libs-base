@@ -35,6 +35,7 @@
 #include <Foundation/NSCoder.h>
 
 @interface NSNumber (Private)
+- (int) _typeNext;
 - (int) _typeOrder;
 @end
 
@@ -64,6 +65,7 @@ GSNumberInfoFromObject(NSNumber *o)
   if (info == 0)
     {
       info = (GSNumberInfo*)objc_malloc(sizeof(GSNumberInfo));
+      info->typeNext = [o _typeNext];
       info->typeOrder = [o _typeOrder];
       info->compValue = (NSComparisonResult (*)(NSNumber*, SEL, NSNumber*))
 	[o methodForSelector: @selector(compare:)];
@@ -812,6 +814,11 @@ static Class	doubleNumberClass;
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+- (int) _typeNext
+{
+  return 12;
 }
 
 - (int) _typeOrder

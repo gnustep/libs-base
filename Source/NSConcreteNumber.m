@@ -24,12 +24,13 @@
 */
 
 #include <config.h>
+#include <GSConfig.h>
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSPortCoder.h>
-#include <base/Coder.h>
+#include <Foundation/NSCoder.h>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 12 cooresponding to each number type */
@@ -37,61 +38,105 @@
 #  define NumberTemplate	NSBoolNumber
 #  define TYPE_METHOD	boolValue
 #  define TYPE_FORMAT	@"%u"
+#  define NEXT_ORDER	1
+#  define NEXT_TYPE	char
+#  define NEXT_METHOD	charValue
 #elif TYPE_ORDER == 1
 #  define NumberTemplate	NSCharNumber
 #  define TYPE_METHOD	charValue
 #  define TYPE_FORMAT	@"%c"
+#  define NEXT_ORDER	3
+#  define NEXT_TYPE	short
+#  define NEXT_METHOD	shortValue
 #elif TYPE_ORDER == 2
 #  define NumberTemplate	NSUCharNumber
 #  define TYPE_METHOD	unsignedCharValue
 #  define TYPE_FORMAT	@"%c"
+#  define NEXT_ORDER	3
+#  define NEXT_TYPE	short
+#  define NEXT_METHOD	shortValue
 #elif TYPE_ORDER == 3
 #  define NumberTemplate	NSShortNumber
 #  define TYPE_METHOD	shortValue
 #  define TYPE_FORMAT	@"%hd"
+#  define NEXT_ORDER	5
+#  define NEXT_TYPE	int
+#  define NEXT_METHOD	intValue
 #elif TYPE_ORDER == 4
 #  define NumberTemplate	NSUShortNumber
 #  define TYPE_METHOD	unsignedShortValue
 #  define TYPE_FORMAT	@"%hu"
+#  define NEXT_ORDER	5
+#  define NEXT_TYPE	int
+#  define NEXT_METHOD	intValue
 #elif TYPE_ORDER == 5
 #  define NumberTemplate	NSIntNumber
 #  define TYPE_METHOD	intValue
 #  define TYPE_FORMAT	@"%d"
+#  define NEXT_ORDER	7
+#  define NEXT_TYPE	long
+#  define NEXT_METHOD	longValue
 #elif TYPE_ORDER == 6
 #  define NumberTemplate	NSUIntNumber
 #  define TYPE_METHOD	unsignedIntValue
 #  define TYPE_FORMAT	@"%u"
+#  define NEXT_ORDER	7
+#  define NEXT_TYPE	long
+#  define NEXT_METHOD	longValue
 #elif TYPE_ORDER == 7
 #  define NumberTemplate	NSLongNumber
 #  define TYPE_METHOD	longValue
 #  define TYPE_FORMAT	@"%ld"
+#  define NEXT_ORDER	9
+#  define NEXT_TYPE	long long
+#  define NEXT_METHOD	longLongValue
 #elif TYPE_ORDER == 8
 #  define NumberTemplate	NSULongNumber
 #  define TYPE_METHOD	unsignedLongValue
 #  define TYPE_FORMAT	@"%lu"
+#  define NEXT_ORDER	9
+#  define NEXT_TYPE	long long
+#  define NEXT_METHOD	longLongValue
 #elif TYPE_ORDER == 9
 #  define NumberTemplate	NSLongLongNumber
 #  define TYPE_METHOD	longLongValue
 #  define TYPE_FORMAT	@"%lld"
+#  define NEXT_ORDER	11
+#  define NEXT_TYPE	float
+#  define NEXT_METHOD	floatValue
 #elif TYPE_ORDER == 10
 #  define NumberTemplate	NSULongLongNumber
 #  define TYPE_METHOD	unsignedLongLongValue
 #  define TYPE_FORMAT	@"%llu"
+#  define NEXT_ORDER	11
+#  define NEXT_TYPE	float
+#  define NEXT_METHOD	floatValue
 #elif TYPE_ORDER == 11
 #  define NumberTemplate	NSFloatNumber
 #  define TYPE_METHOD	floatValue
 #  define TYPE_FORMAT	@"%f"
+#  define NEXT_ORDER	12
+#  define NEXT_TYPE	double
+#  define NEXT_METHOD	doubleValue
 #elif TYPE_ORDER == 12
 #  define NumberTemplate	NSDoubleNumber
 #  define TYPE_METHOD	doubleValue
 #  define TYPE_FORMAT	@"%g"
+#  define NEXT_ORDER	12
+#  define NEXT_TYPE	double
+#  define NEXT_METHOD	doubleValue
 #endif
 
 @interface NSNumber (Private)
+- (int) _typeNext;
 - (int) _typeOrder;
 @end
 
 @implementation NumberTemplate (Private)
+- (int) _typeNext
+{
+  return NEXT_ORDER;
+}
 - (int) _typeOrder
 {
   return TYPE_ORDER;
@@ -219,7 +264,11 @@
       return NSOrderedSame;
     }
   info = GSNumberInfoFromObject(other);
-  if (TYPE_ORDER >= info->typeOrder)
+
+  /*
+   * If the two types are the same, or the other type can be promoted to ours.
+   */
+  if (TYPE_ORDER == info->typeOrder || TYPE_ORDER >= info->typeNext)
     {
       typedef __typeof__(data) _dt;
       _dt other_data = (*(info->TYPE_METHOD))(other, @selector(TYPE_METHOD));
@@ -237,10 +286,36 @@
 	  return NSOrderedDescending;
 	}
     }
+
+  /*
+   * If we and the other object both promote to the same type
+   */
+  if (NEXT_ORDER == info->typeNext)
+    {
+      int	res;
+
+      res = ((NEXT_TYPE)data)
+	- (*(info->NEXT_METHOD))(other, @selector(NEXT_METHOD));
+      if (res == 0)
+	{
+	  return NSOrderedSame;
+	}
+      else if (res < 0)
+	{
+	  return  NSOrderedAscending;
+	}
+      else
+	{
+	  return  NSOrderedDescending;
+	}
+    }
   else
     {
       NSComparisonResult	r;
 
+      /*
+       * We must be promoted to match the other.
+       */
       r = (*(info->compValue))(other, @selector(compare:), self); 
 
       if (r == NSOrderedAscending)
