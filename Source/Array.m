@@ -26,11 +26,10 @@
 
 @implementation Array
 
-+ initialize
++ (void) initialize
 {
   if (self == [Array class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 // MANAGING CAPACITY;
@@ -140,22 +139,10 @@
   return self;
 }
 
-- free
+- (void) dealloc
 {
   OBJC_FREE(_contents_array);
-  return [super free];
-}
-
-- freeObjects
-{
-  if (CONTAINS_OBJECTS)
-    {
-      [self makeObjectsPerform:@selector(free)];
-      [self empty];
-    }
-  else
-    [self empty];
-  return self;
+  [super dealloc];
 }
 
 - initWithContentsOf: (id <Collecting>)aCollection
