@@ -26,6 +26,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 #include <gnustep/base/Coding.h>
 
@@ -203,6 +204,16 @@ myEqual(NSObject *self, NSObject *other)
     for (i = 0; i < c; i++) {
 	FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
 
+	if (keys[i] == nil) {
+	    [NSException raise: NSInvalidArgumentException
+			format: @"Tried to init dictionary with nil key"];
+	}
+	if (objs[i] == nil) {
+	    [NSException raise: NSInvalidArgumentException
+			format: @"Tried to init dictionary with nil value"];
+	}
+
+	node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
 	if (node) {
 	    [objs[i] retain];
 	    [node->value.o release];
@@ -229,10 +240,12 @@ myEqual(NSObject *self, NSObject *other)
 
 - (id) objectForKey: aKey
 {
-    FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)aKey);
+    if (aKey != nil) {
+	FastMapNode	node  = FastMapNodeForKey(&map, (FastMapItem)aKey);
 
-    if (node)
-	return node->value.o;
+	if (node)
+	    return node->value.o;
+    }
     return nil;
 }
 
@@ -257,8 +270,17 @@ myEqual(NSObject *self, NSObject *other)
 
 - (void) setObject: (NSObject*)anObject forKey: (NSObject *)aKey
 {
-    FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)aKey);
+    FastMapNode	node;
 
+    if (aKey == nil) {
+	[NSException raise: NSInvalidArgumentException
+		    format: @"Tried to add nil key to dictionary"];
+    }
+    if (anObject == nil) {
+	[NSException raise: NSInvalidArgumentException
+		    format: @"Tried to add nil value to dictionary"];
+    }
+    node = FastMapNodeForKey(&map, (FastMapItem)aKey);
     if (node) {
 	[anObject retain];
 	[node->value.o release];
@@ -276,7 +298,9 @@ myEqual(NSObject *self, NSObject *other)
 
 - (void) removeObjectForKey: (NSObject *)aKey
 {
-    FastMapRemoveKey(&map, (FastMapItem)aKey);
+    if (aKey) {
+	FastMapRemoveKey(&map, (FastMapItem)aKey);
+    }
 }
 
 @end
