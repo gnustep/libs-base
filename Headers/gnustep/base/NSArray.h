@@ -101,7 +101,7 @@
 
 @end
 
-#ifndef STRICT_OPENSTEP
+#ifndef NO_GNUSTEP
 
 #include <objects/IndexedCollecting.h>
 #include <objects/String.h>
@@ -118,6 +118,6 @@
 - setGrowFactor: (unsigned)aNum;
 @end
 
-#endif /* STRICT_OPENSTEP */
+#endif /* NO_GNUSTEP */
 
 #endif /* __NSArray_h_OBJECTS_INCLUDE */
