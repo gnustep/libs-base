@@ -1,3 +1,11 @@
+2001-10-26  Adam Fedor  <fedor@gnu.org>
+
+	* configure (z): Check for gzseek in zlib since older zlibs don't
+	have it. Fix check for LLONG_MAX (check if includes exist), same
+	with uintmax_t
+	* Source/GSFormat.h: Include stdint.h or inttypes.h if we have it.
+	Proper check for LONG_LONG_MAX or LLONG_MAX.
+
 2001-10-25  Adam Fedor  <fedor@gnu.org>
 
 	* aclocal.m4 (AC_SYS_PROCFS): Typo fix, use AC_ARG_ENABLE. Make

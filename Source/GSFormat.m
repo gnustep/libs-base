@@ -74,50 +74,31 @@
 #else
 typedef gsu32 wint_t;
 #endif
-#ifdef HAVE_UINTMAX_T
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#else
+#endif
+#ifdef HAVE_SYS_INTTYPES_H
+#include <sys/inttypes.h>
+#endif
+#ifndef HAVE_UINTMAX_T
 typedef unsigned long long uintmax_t;
 #endif
 
 /* BSD and Solaris have this */
-#ifdef HANDLE_LLONG_MAX
+#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
 #define LONG_LONG_MAX LLONG_MAX
 #define LONG_LONG_MIN LLONG_MIN
 #define ULONG_LONG_MAX ULLONG_MAX
 #else
-  /* Darwin 1.0 CPP can't handle this */
-# ifndef HANDLE_LONG_LONG_MAX
-# undef LONG_LONG_MAX
-# endif
+/* Darwin 1.0 CPP can't handle this */
+#ifndef HANDLE_LONG_LONG_MAX
+#undef LONG_LONG_MAX
+#endif
 #endif
 
 #include <base/behavior.h>
 
 #include <base/Unicode.h>
-
-//#define NDEBUG 1
-//#include <assert.h>
-//#include <bits/libc-lock.h>
-//#include <ctype.h>
-//#include <errno.h>
-//#include <features.h>
-//#include <langinfo.h>
-//#include <libioP.h>
-//#include <limits.h>
-//#include <locale/localeinfo.h>
-//#include <stdarg.h>
-//#include <stddef.h>
-//#include <stdint.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include <sys/cdefs.h>
-//#include <sys/param.h>
-//#include <wchar.h>
-//
-//#include "../locale/localeinfo.h"
-
 
 struct printf_info
 {

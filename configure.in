@@ -558,7 +558,7 @@ AC_CHECK_FUNCS(inet_aton)
 HAVE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
-  AC_CHECK_LIB(z, gzopen, zlib_ok=yes, zlib_ok=no)
+  AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
   if test "$zlib_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lz"
@@ -582,7 +582,7 @@ esac
 AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES)
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
-AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h)
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
 #--------------------------------------------------------------------
 # This function needed by NSThread.m
@@ -597,8 +597,13 @@ AC_CHECK_FUNCS(strerror)
 #--------------------------------------------------------------------
 # This type needed by GSFormat
 #--------------------------------------------------------------------
-AC_MSG_CHECKING([whether stdint.h defines uintmax_t])
-AC_TRY_COMPILE([#include <stdint.h>],
+AC_MSG_CHECKING([whether stdint.h or inttypes.h defines uintmax_t])
+AC_TRY_COMPILE([#ifdef HAVE_STDINT_H
+		#include <stdint.h>
+		#endif
+		#ifdef HAVE_SYS_INTTYPES_H
+		#include <sys/inttypes.h>
+		#endif],
 	       [int i = sizeof(uintmax_t); ],
 	       uintmax_t=1, uintmax_t=0)
 if test $uintmax_t = 1; then
@@ -609,7 +614,9 @@ else
 fi
 
 AC_MSG_CHECKING([whether precompiler handles LONG_LONG_MAX])
-AC_TRY_CPP([#include <stdint.h>
+AC_TRY_CPP([#ifdef HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
 	#include <limits.h>
 	#if defined(LONG_LONG_MAX)
 	#if LONG_MAX != LONG_LONG_MAX
@@ -626,10 +633,9 @@ fi
 #
 # Solaris and *BSD use LLONG_MAX instead
 #
-AC_MSG_CHECKING([whether to use LLONG_MAX instead])
+AC_MSG_CHECKING([whether we have LLONG_MAX])
 
 AC_TRY_CPP([#include <limits.h>
-	#include <machine/limits.h>
 	#if defined(LLONG_MAX)
 	#if LONG_MAX != LLONG_MAX
 	#endif

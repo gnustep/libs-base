@@ -33,7 +33,7 @@
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
 
 /* BSD and Solaris have this */
-#ifdef HANDLE_LLONG_MAX
+#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
 #define LONG_LONG_MAX LLONG_MAX
 #define LONG_LONG_MIN LLONG_MIN
 #define ULONG_LONG_MAX ULLONG_MAX
