@@ -6,6 +6,8 @@ Thu Jun 17 12:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Source/NSPort.m: ditto
 	* Source/NSPortNameServer.m: ditto
 	* Source/NSSerializer.m: ditto
+	* Source/Port.m: ditto
+	* Source/TcpPort.m: ditto
 
 Mon Jun 14 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

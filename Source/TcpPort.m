@@ -35,13 +35,12 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/TcpPort.h>
-#include <base/Array.h>
-#include <base/NotificationDispatcher.h>
-#include <base/NSException.h>
+#include <Foundation/TcpPort.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSByteOrder.h>
-#include <base/Invocation.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSHashTable.h>
@@ -1273,8 +1272,7 @@ static NSMapTable* port_number_2_port;
        NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port);
        i++)
     out_ports[i] = out_port;
-  return [[[Array alloc] initWithObjects: out_ports count: count]
-	   autorelease];
+  return [NSArray arrayWithObjects: out_ports count: count];
 }
 
 - (unsigned) numberOfConnectedOutPorts
@@ -1372,7 +1370,7 @@ static NSMapTable* port_number_2_port;
       if (debug_tcp_port)
 	NSLog(@"%s: Accepted connection from\n %@.\n",
 		 object_get_class_name (self), [op description]);
-      [NotificationDispatcher
+      [[NSNotificationCenter defaultCenter]
 	postNotificationName: InPortAcceptedClientNotification
 	object: self
 	userInfo: op];
@@ -1554,7 +1552,7 @@ static NSMapTable* port_number_2_port;
 #if 0
   /* xxx Should this be earlier, so that the notification recievers
      can still use _client_sock_2_out_port before the out port P is removed? */
-  [NotificationDispatcher
+  [[NSNotificationCenter defaultCenter]
     postNotificationName: InPortClientBecameInvalidNotification
     object: self
     userInfo: p];
