@@ -576,15 +576,20 @@ static inline int getDigits(const char *from, char *to, int limit)
  *     %Z   time zone abbreviation
  *   </item>
  * </list>
+ * If no year is specified in the format, the current year is assumed.<br />
+ * If no month is specified in the format, January is assumed.<br />
+ * If no day is specified in the format, 1 is assumed.<br />
+ * If no hour is specified in the format, 0 is assumed.<br />
+ * If no minute is specified in the format, 0 is assumed.<br />
+ * If no second is specified in the format, 0 is assumed.<br />
+ * If no millisecond is specified in the format, 0 is assumed.<br />
+ * If no timezone is specified in the format, the local timezone is assumed.
  */
 - (id) initWithString: (NSString*)description 
        calendarFormat: (NSString*)fmt
                locale: (NSDictionary*)locale
 {
   int		milliseconds = 0;
-  /* Default to gregorian year one ... there is no year zero and
-   * the algorithms we use look odd for earlier dates.
-   */
   int		year = 1;
   int		month = 1;
   int		day = 1;
@@ -1167,15 +1172,15 @@ static inline int getDigits(const char *from, char *to, int limit)
 
       if (julianWeeks != -1)
 	{
-	  NSTimeZone	*gmtZone;
+	  NSTimeZone		*gmtZone;
 	  NSCalendarDate	*d;
-	  int		currDay;
+	  int			currDay;
 
 	  gmtZone = [NSTimeZone timeZoneForSecondsFromGMT: 0];
 
 	  if ((had & (hadY|hadw)) != (hadY|hadw))
 	    {
-	      NSCalendarDate	*now = [NSCalendarDate  date];
+	      NSCalendarDate	*now = [[NSCalendarDate alloc] init];
 
 	      [now setTimeZone: gmtZone];
 	      if ((had | hadY) == 0)
@@ -1188,16 +1193,18 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  dayOfWeek = [now dayOfWeek];
 		  had |= hadw;
 		}
+	      RELEASE(now);
 	    }
 
-	  d  = [NSCalendarDate dateWithYear: year
-				      month: 1
-					day: 1
-				       hour: 0
-				     minute: 0
-				     second: 0
-				   timeZone: gmtZone];
+	  d = [[NSCalendarDate alloc] initWithYear: year
+					     month: 1
+					       day: 1
+					      hour: 0
+					    minute: 0
+					    second: 0
+					  timeZone: gmtZone];
 	  currDay = [d dayOfWeek];
+	  RELEASE(d);
 
 	  /*
 	   * The julian weeks are either sunday relative or monday relative
@@ -1218,6 +1225,17 @@ static inline int getDigits(const char *from, char *to, int limit)
 	    }
 	  day = dayOfWeek + (julianWeeks * 7 - (currDay - 1));
 	  had |= hadD;
+	}
+
+      /*
+       * If the year has not been set ... use this year ... as on MacOS-X
+       */
+      if ((had | hadY) == 0)
+	{
+	  NSCalendarDate	*now = [[NSCalendarDate alloc] init];
+
+	  year = [now yearOfCommonEra];
+	  RELEASE(now);
 	}
 
       self = [self initWithYear: year
