@@ -240,8 +240,10 @@ typeCheck(char t1, char t2)
 @public
   Class		class;
   unsigned	version;
+  NSString	*name;
 }
 + (id) newWithClass: (Class)c andVersion: (unsigned)v;
+- (NSString*) className;
 @end
 
 @implementation	GSClassInfo
@@ -257,8 +259,17 @@ typeCheck(char t1, char t2)
     }
   return info;
 }
+- (NSString*) className
+{
+  if (name == nil)
+    {
+      name = RETAIN(NSStringFromClass(class));
+    }
+  return name;
+}
 - (void) dealloc
 {
+  TEST_RELEASE(name);
   NSDeallocateObject(self);
 }
 @end
@@ -278,8 +289,6 @@ typeCheck(char t1, char t2)
 		    classes: (unsigned)c
 		    objects: (unsigned)o
 		   pointers: (unsigned)p;
-- (id) _setupForDecoding;
-- (id) _setupForEncoding;
 @end
 
 
@@ -622,7 +631,6 @@ typeCheck(char t1, char t2)
 	  while ((info & _GSC_MASK) == _GSC_CLASS)
 	    {
 	      unsigned	cver;
-	      NSString	*className;
 
 	      if (xref != GSIArrayCount(_clsAry))
 		{
@@ -637,14 +645,9 @@ typeCheck(char t1, char t2)
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"decoded nil class"];
 		}
-	      className = NSStringFromClass(c);
-	      classInfo = [_cInfo objectForKey: className];
-	      if (classInfo == nil)
-		{
-		  classInfo = [GSClassInfo newWithClass: c andVersion: cver];
-		  [_cInfo setObject: classInfo forKey: className];
-		  RELEASE(classInfo);
-		}
+	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
+              [_cInfo addObject: classInfo];
+	      RELEASE(classInfo);
 	      GSIArrayAddItem(_clsAry, (GSIArrayItem)classInfo);
 	      *(Class*)address = classInfo->class;
 	      /*
@@ -985,6 +988,12 @@ typeCheck(char t1, char t2)
 
 - (void) dispatch
 {
+  /*
+   * Get ready for re-use
+   * Make sure that we don't retain the connection - or it might never be
+   * released if it is keeping this coder in a cache.
+   */
+  DESTROY(_conn);
 }
 
 - (void) encodeArrayOfObjCType: (const char*)type
@@ -1610,24 +1619,180 @@ typeCheck(char t1, char t2)
                   sendPort: (NSPort*)send
                 components: (NSArray*)comp
 {
-  self = [super init];
-  if (self != nil)
+  BOOL	firstTime;
+
+  _conn = RETAIN([NSConnection connectionWithReceivePort: recv
+						sendPort: send]);
+  if (_comp == nil)
     {
+      firstTime = YES;
       _version = [super systemVersion];
       _zone = NSDefaultMallocZone();
-      _conn = RETAIN([NSConnection connectionWithReceivePort: recv
-						    sendPort: send]);
+    }
+  else
+    {
+      NSAssert(recv == [_conn receivePort] && send == [_conn sendPort],
+	NSInvalidArgumentException);
+      /*
+       * Re-initialising - destroy old components.
+       */
+      firstTime = NO;
+    }
 
-      if (comp == nil)
+  if (comp == nil)
+    {
+      NS_DURING
 	{
-	  _comp = [NSMutableArray new];
-	  self = [self _setupForEncoding];
+	  _encodingRoot = NO;
+	  _initialPass = NO;
+	  _xRefC = 0;
+	  _xRefO = 0;
+	  _xRefP = 0;
+
+	  _cursor = [send reservedSpaceLength];
+	  if (firstTime == YES)
+	    {
+	      /*
+	       * Set up mutable data object to encode into - reserve space at
+	       * the start for use by the port when the encoded data is sent.
+	       * Make the data item the first component of the array.
+	       */
+	      _comp = [NSMutableArray new];
+	      _dst = [_fastCls._NSMutableDataMalloc allocWithZone: _zone];
+	      _dst = [_dst initWithLength: _cursor];
+	      [_comp addObject: _dst];
+	      RELEASE(_dst);
+
+	      /*
+	       * Cache method implementations for writing into data object etc
+	       */
+	      _eSerImp = [_dst methodForSelector: eSerSel];
+	      _eTagImp = [_dst methodForSelector: eTagSel];
+	      _xRefImp = [_dst methodForSelector: xRefSel];
+	      _eObjImp = [self methodForSelector: eObjSel];
+	      _eValImp = [self methodForSelector: eValSel];
+
+	      /*
+	       *	Set up map tables.
+	       */
+	      _clsMap
+		= (GSIMapTable)NSZoneMalloc(_zone, sizeof(GSIMapTable_t)*4);
+	      _cIdMap = &_clsMap[1];
+	      _uIdMap = &_clsMap[2];
+	      _ptrMap = &_clsMap[3];
+	      GSIMapInitWithZoneAndCapacity(_clsMap, _zone, 100);
+	      GSIMapInitWithZoneAndCapacity(_cIdMap, _zone, 10);
+	      GSIMapInitWithZoneAndCapacity(_uIdMap, _zone, 200);
+	      GSIMapInitWithZoneAndCapacity(_ptrMap, _zone, 100);
+	    }
+	  else
+	    {
+	      unsigned	count;
+
+	      /*
+	       * If re-initialising, we just need to empty the old stuff.
+	       */
+	      count = [_comp count];
+	      while (count-- > 1)
+		{
+		  [_comp removeObjectAtIndex: count];
+		}
+	      [_dst setLength: _cursor];
+	      GSIMapCleanMap(_clsMap);
+	      GSIMapCleanMap(_cIdMap);
+	      GSIMapCleanMap(_uIdMap);
+	      GSIMapCleanMap(_ptrMap);
+	    }
+
+	  /*
+	   *	Write dummy header
+	   */
+	  [self _serializeHeaderAt: _cursor
+			   version: 0
+			   classes: 0
+			   objects: 0
+			  pointers: 0];
 	}
-	else
+      NS_HANDLER
 	{
-	  _comp = [comp mutableCopy];
-	  self = [self _setupForDecoding];
+	  NSLog(@"Exception setting up port coder for encoding - %@",
+	    localException);
+	  DESTROY(self);
 	}
+      NS_ENDHANDLER
+    }
+  else
+    {
+      RELEASE(_comp);
+      _comp = [comp mutableCopy];
+      NS_DURING
+	{
+	  unsigned	sizeC;
+	  unsigned	sizeO;
+	  unsigned	sizeP;
+
+	  if (firstTime == YES)
+	    {
+	      _dValImp = [self methodForSelector: dValSel];
+	    }
+	  _src = [_comp objectAtIndex: 0];
+	  _dDesImp = [_src methodForSelector: dDesSel];
+	  _dTagImp = (void (*)(id, SEL, unsigned char*, unsigned*, unsigned*))
+	    [_src methodForSelector: dTagSel];
+
+	  /*
+	   *	_cInfo is a dictionary of objects for keeping track of the
+	   *	version numbers that the classes were encoded with.
+	   */
+	  if (firstTime == YES)
+	    {
+	      _cInfo
+		= [[NSMutableArray allocWithZone: _zone] initWithCapacity: 16];
+	    }
+	  else
+	    {
+	      [_cInfo removeAllObjects];
+	    }
+
+	  /*
+	   *	Read header including version and crossref table sizes.
+	   */
+	  _cursor = 0;
+	  [self _deserializeHeaderAt: &_cursor
+			     version: &_version
+			     classes: &sizeC
+			     objects: &sizeO
+			    pointers: &sizeP];
+
+	  /*
+	   *	Allocate and initialise arrays to build crossref maps in.
+	   */
+	  if (firstTime == YES)
+	    {
+	      _clsAry = NSZoneMalloc(_zone, sizeof(GSIArray_t)*3);
+	      _objAry = &_clsAry[1];
+	      _ptrAry = &_clsAry[2];
+	      GSIArrayInitWithZoneAndCapacity(_clsAry, _zone, sizeC);
+	      GSIArrayInitWithZoneAndCapacity(_objAry, _zone, sizeO);
+	      GSIArrayInitWithZoneAndCapacity(_ptrAry, _zone, sizeP);
+	    }
+	  else
+	    {
+	      GSIArrayRemoveAllItems(_clsAry);
+	      GSIArrayRemoveAllItems(_objAry);
+	      GSIArrayRemoveAllItems(_ptrAry);
+	    }
+	  GSIArrayAddItem(_clsAry, (GSIArrayItem)0);
+	  GSIArrayAddItem(_objAry, (GSIArrayItem)0);
+	  GSIArrayAddItem(_ptrAry, (GSIArrayItem)0);
+	}
+      NS_HANDLER
+	{
+	  NSLog(@"Exception setting up port coder for decoding - %@",
+	    localException);
+	  DESTROY(self);
+	}
+      NS_ENDHANDLER
     }
   return self;
 }
@@ -1661,11 +1826,15 @@ typeCheck(char t1, char t2)
 {
   GSClassInfo	*info;
   unsigned	version = NSNotFound;
+  unsigned	count = [_cInfo count];
 
-  info = [_cInfo objectForKey: className];
-  if (info != nil)
+  while (--count > 0)
     {
-      version = info->version;
+      info = [_cInfo objectAtIndex: count];
+      if ([[info className] isEqual: className] == YES)
+	{
+	  version = info->version;
+	}
     }
   return version;
 }
@@ -1732,123 +1901,6 @@ typeCheck(char t1, char t2)
       [NSException raise: NSInternalInconsistencyException
 		  format: @"serializeHeader:at: bad location"];
     }
-}
-
-- (id) _setupForDecoding
-{
-  NS_DURING
-    {
-      unsigned	sizeC;
-      unsigned	sizeO;
-      unsigned	sizeP;
-
-      _dValImp = [self methodForSelector: dValSel];
-      _src = [_comp objectAtIndex: 0];
-      _dDesImp = [_src methodForSelector: dDesSel];
-      _dTagImp = (void (*)(id, SEL, unsigned char*, unsigned*, unsigned*))
-	[_src methodForSelector: dTagSel];
-
-      /*
-       *	_cInfo is a dictionary of objects for keeping track of the
-       *	version numbers that the classes were encoded with.
-       */
-      _cInfo
-	= [[NSMutableDictionary allocWithZone: _zone] initWithCapacity: 200];
-
-      /*
-       *	Read header including version and crossref table sizes.
-       */
-      _cursor = 0;
-      [self _deserializeHeaderAt: &_cursor
-			 version: &_version
-			 classes: &sizeC
-			 objects: &sizeO
-			pointers: &sizeP];
-
-      /*
-       *	Allocate and initialise arrays to build crossref maps in.
-       */
-      _clsAry = NSZoneMalloc(_zone, sizeof(GSIArray_t)*3);
-      GSIArrayInitWithZoneAndCapacity(_clsAry, _zone, sizeC);
-      GSIArrayAddItem(_clsAry, (GSIArrayItem)0);
-
-      _objAry = &_clsAry[1];
-      GSIArrayInitWithZoneAndCapacity(_objAry, _zone, sizeO);
-      GSIArrayAddItem(_objAry, (GSIArrayItem)0);
-
-      _ptrAry = &_clsAry[2];
-      GSIArrayInitWithZoneAndCapacity(_ptrAry, _zone, sizeP);
-      GSIArrayAddItem(_ptrAry, (GSIArrayItem)0);
-    }
-  NS_HANDLER
-    {
-      NSLog(@"Exception setting up port coder for decoding - %@",
-	localException);
-      DESTROY(self);
-    }
-  NS_ENDHANDLER
-  return self;
-}
-
-- (id) _setupForEncoding
-{
-  NS_DURING
-    {
-      /*
-       * Set up mutable data object to encode into - reserve space at the
-       * start for use by the port when the encoded data is sent.
-       * Make the data item the first component of the array.
-       */
-      _cursor = [[_conn sendPort] reservedSpaceLength];
-      _dst = [_fastCls._NSMutableDataMalloc allocWithZone: fastZone(self)];
-      _dst = [_dst initWithLength: _cursor];
-      [_comp addObject: _dst];
-      RELEASE(_dst);
-
-      /*
-       * Cache method implementations for writing into data object etc
-       */
-      _eSerImp = [_dst methodForSelector: eSerSel];
-      _eTagImp = [_dst methodForSelector: eTagSel];
-      _xRefImp = [_dst methodForSelector: xRefSel];
-      _eObjImp = [self methodForSelector: eObjSel];
-      _eValImp = [self methodForSelector: eValSel];
-
-      _encodingRoot = NO;
-      _initialPass = NO;
-      _xRefC = 0;
-      _xRefO = 0;
-      _xRefP = 0;
-
-      /*
-       *	Set up map tables.
-       */
-      _clsMap = (GSIMapTable)NSZoneMalloc(_zone, sizeof(GSIMapTable_t)*4);
-      _cIdMap = &_clsMap[1];
-      _uIdMap = &_clsMap[2];
-      _ptrMap = &_clsMap[3];
-      GSIMapInitWithZoneAndCapacity(_clsMap, _zone, 100);
-      GSIMapInitWithZoneAndCapacity(_cIdMap, _zone, 10);
-      GSIMapInitWithZoneAndCapacity(_uIdMap, _zone, 200);
-      GSIMapInitWithZoneAndCapacity(_ptrMap, _zone, 100);
-
-      /*
-       *	Write dummy header
-       */
-      [self _serializeHeaderAt: _cursor
-		       version: 0
-		       classes: 0
-		       objects: 0
-		      pointers: 0];
-    }
-  NS_HANDLER
-    {
-      NSLog(@"Exception setting up port coder for encoding - %@",
-	localException);
-      DESTROY(self);
-    }
-  NS_ENDHANDLER
-  return self;
 }
 
 @end

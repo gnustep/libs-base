@@ -595,6 +595,7 @@ static BOOL double_release_check_enabled = NO;
 {
   if (self == [NSObject class])
     {
+      extern void	GSBuildStrings();	// See externs.m
 #ifdef __FreeBSD__
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
@@ -621,6 +622,7 @@ static BOOL double_release_check_enabled = NO;
       fastMallocOffset = 0;
 #endif
       _fastBuildCache();
+      GSBuildStrings();
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
 	   selector: @selector(_becomeMultiThreaded:)

@@ -175,6 +175,21 @@ printf("oneway %d\n", _F_ONEWAY);
       printf("%s - %s\n", [k cString], [[v description] cString]);
     }
 
+  {
+    NSDate	*d = [NSDate date];
+
+    [NSConnection setDebug: 0];
+    [NSDistantObject setDebug: 0];
+    [NSPort setDebug: 0];
+    for (j = 0; j < 10000; j++)
+      {
+	[p echoObject: localObj];
+      }
+      
+    NSLog(@"Delay is %f", [d timeIntervalSinceNow]);
+exit(0);
+  }
+
   [arp release];
   arp = [NSAutoreleasePool new];
   printf("%d\n", [c retainCount]);

@@ -107,6 +107,7 @@
  *	these are set up at process startup or in [NSData +initialize]
  */
 static SEL	appendSel = @selector(appendBytes:length:);
+static Class	dataStatic;
 static Class	dataMalloc;
 static Class	mutableDataMalloc;
 static IMP	appendImp;
@@ -326,6 +327,7 @@ failure:
   if (self == [NSData class])
     {
       dataMalloc = [NSDataMalloc class];
+      dataStatic = [NSDataStatic class];
       mutableDataMalloc = [NSMutableDataMalloc class];
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
@@ -395,6 +397,15 @@ failure:
   d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
   d = [d initWithBytes: [data bytes] length: [data length]];
   return AUTORELEASE(d);
+}
+
++ (id) new
+{
+  NSData	*d;
+
+  d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+  d = [d initWithBytesNoCopy: 0 length: 0 fromZone: NSDefaultMallocZone()];
+  return d;
 }
 
 - (id) init
@@ -1333,6 +1344,15 @@ failure:
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
   d = [d initWithLength: length];
   return AUTORELEASE(d);
+}
+
++ (id) new
+{
+  NSMutableData	*d;
+
+  d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
+  d = [d initWithCapacity: 0];
+  return d;
 }
 
 - (const void*) bytes

@@ -22,86 +22,69 @@
    */ 
 
 #include <config.h>
-#include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
+
+
+#include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSMapTable.h>
 #include "NSCallBacks.h"
 #include <Foundation/NSHashTable.h>
-#include <Foundation/NSLock.h>
 
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,
    creating the potential for deadlock. */
+@class	NSRecursiveLock;
 NSRecursiveLock *gnustep_global_lock = nil;
 
 /*
  * Connection Notification Strings.
  */
-NSString* const NSConnectionDidDieNotification
-  = @"NSConnectionDidDieNotification";
-NSString* const NSConnectionDidInitializeNotification
-  = @"NSConnectionDidInitializeNotification";
+NSString *NSConnectionDidDieNotification;
+NSString *NSConnectionDidInitializeNotification;
 
 /*
  * NSThread Notifications
  */
-NSString* const NSWillBecomeMultiThreadedNotification
-  = @"NSWillBecomeMultiThreadedNotification";
-NSString* const NSThreadWillExitNotification
-  = @"NSThreadWillExitNotification";
+NSString *NSWillBecomeMultiThreadedNotification;
+NSString *NSThreadWillExitNotification;
 
 /*
  * Port Notifications
  */
-NSString* const PortBecameInvalidNotification =
-@"PortBecameInvalidNotification";
-NSString* const InPortClientBecameInvalidNotification = 
-@"InPortClientBecameInvalidNotification";
-NSString* const InPortAcceptedClientNotification = 
-@"InPortAcceptedClientNotification";
+NSString *PortBecameInvalidNotification;
+NSString *InPortClientBecameInvalidNotification;
+NSString *InPortAcceptedClientNotification;
 
-NSString* const NSPortDidBecomeInvalidNotification
-  = @"NSPortDidBecomeInvalidNotification";
+NSString *NSPortDidBecomeInvalidNotification;
 
 
 /* RunLoop modes */
-NSString* const NSDefaultRunLoopMode
-  = @"NSDefaultRunLoopMode";
-NSString* const NSConnectionReplyMode
-  = @"NSConnectionReplyMode";
+NSString *NSDefaultRunLoopMode;
+NSString *NSConnectionReplyMode;
 
 
 /* Exceptions */
-NSString* const NSCharacterConversionException
-  = @"NSCharacterConversionException";
-NSString* const NSFailedAuthenticationException
-  = @"NSFailedAuthenticationException";
-NSString* const NSGenericException
-  = @"NSGenericException";
-NSString* const NSInconsistentArchiveException
-  = @"NSInconsistentArchiveException";
-NSString* const NSInternalInconsistencyException
-  = @"NSInternalInconsistencyException";
-NSString* const NSInvalidArgumentException
-  = @"NSInvalidArgumentException";
-NSString* const NSMallocException
-  = @"NSMallocException";
-NSString* const NSPortTimeoutException
-  = @"NSPortTimeoutException";
-NSString* const NSRangeException
-  = @"NSRangeException";
+NSString *NSCharacterConversionException;
+NSString *NSFailedAuthenticationException;
+NSString *NSGenericException;
+NSString *NSInconsistentArchiveException;
+NSString *NSInternalInconsistencyException;
+NSString *NSInvalidArgumentException;
+NSString *NSMallocException;
+NSString *NSPortTimeoutException;
+NSString *NSRangeException;
 
 /* Exception handler */
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
 /* NSBundle */
-NSString* const NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
-NSString* const NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
-NSString* const NSLoadedClasses = @"NSLoadedClasses";
+NSString *NSBundleDidLoadNotification;
+NSString *NSShowNonLocalizedStrings;
+NSString *NSLoadedClasses;
 
 /* Stream */
-NSString* const StreamException = @"StreamException";
+NSString *StreamException;
 
 /*
  * File attributes names
@@ -109,141 +92,271 @@ NSString* const StreamException = @"StreamException";
 
 /* File Attributes */
 
-NSString* const NSFileDeviceIdentifier
-  = @"NSFileDeviceIdentifier";
-NSString* const NSFileGroupOwnerAccountName
-  = @"NSFileGroupOwnerAccountName";
-NSString* const NSFileGroupOwnerAccountNumber
-  = @"NSFileGroupOwnerAccountNumber";
-NSString* const NSFileModificationDate
-  = @"NSFileModificationDate";
-NSString* const NSFileOwnerAccountName
-  = @"NSFileOwnerAccountName";
-NSString* const NSFileOwnerAccountNumber
-  = @"NSFileOwnerAccountNumber";
-NSString* const NSFilePosixPermissions
-  = @"NSFilePosixPermissions";
-NSString* const NSFileReferenceCount
-  = @"NSFileReferenceCount";
-NSString* const NSFileSize
-  = @"NSFileSize";
-NSString* const NSFileSystemFileNumber
-  = @"NSFileSystemFileNumber";
-NSString* const NSFileSystemNumber
-  = @"NSFileSystemNumber";
-NSString* const NSFileType
-  = @"NSFileType";
+NSString *NSFileDeviceIdentifier;
+NSString *NSFileGroupOwnerAccountName;
+NSString *NSFileGroupOwnerAccountNumber;
+NSString *NSFileModificationDate;
+NSString *NSFileOwnerAccountName;
+NSString *NSFileOwnerAccountNumber;
+NSString *NSFilePosixPermissions;
+NSString *NSFileReferenceCount;
+NSString *NSFileSize;
+NSString *NSFileSystemFileNumber;
+NSString *NSFileSystemNumber;
+NSString *NSFileType;
 
 /* File Types */
 
-NSString* const NSFileTypeDirectory
-  = @"NSFileTypeDirectory";
-NSString* const NSFileTypeRegular
-  = @"NSFileTypeRegular";
-NSString* const NSFileTypeSymbolicLink
-  = @"NSFileTypeSymbolicLink";
-NSString* const NSFileTypeSocket
-  = @"NSFileTypeSocket";
-NSString* const NSFileTypeFifo
-  = @"NSFileTypeFifo";
-NSString* const NSFileTypeCharacterSpecial
-  = @"NSFileTypeCharacterSpecial";
-NSString* const NSFileTypeBlockSpecial
-  = @"NSFileTypeBlockSpecial";
-NSString* const NSFileTypeUnknown
-  = @"NSFileTypeUnknown";
+NSString *NSFileTypeDirectory;
+NSString *NSFileTypeRegular;
+NSString *NSFileTypeSymbolicLink;
+NSString *NSFileTypeSocket;
+NSString *NSFileTypeFifo;
+NSString *NSFileTypeCharacterSpecial;
+NSString *NSFileTypeBlockSpecial;
+NSString *NSFileTypeUnknown;
 
 /* FileSystem Attributes */
 
-NSString* const NSFileSystemSize
-  = @"NSFileSystemSize";
-NSString* const NSFileSystemFreeSize
-  = @"NSFileSystemFreeSize";
-NSString* const NSFileSystemNodes
-  = @"NSFileSystemNodes";
-NSString* const NSFileSystemFreeNodes
-  = @"NSFileSystemFreeNodes";
+NSString *NSFileSystemSize;
+NSString *NSFileSystemFreeSize;
+NSString *NSFileSystemNodes;
+NSString *NSFileSystemFreeNodes;
 
 /* Standard domains */
-NSString* const NSArgumentDomain
-  = @"NSArgumentDomain";
-NSString* const NSGlobalDomain
-  = @"NSGlobalDomain";
-NSString* const NSRegistrationDomain
-  = @"NSRegistrationDomain";
+NSString *NSArgumentDomain;
+NSString *NSGlobalDomain;
+NSString *NSRegistrationDomain;
 
 /* Public notification */
-NSString* const NSUserDefaultsDidChangeNotification
-  = @"NSUserDefaultsDidChangeNotification";
+NSString *NSUserDefaultsDidChangeNotification;
 
 /* Keys for language-dependent information */
-NSString* const NSWeekDayNameArray
-  = @"NSWeekDayNameArray";
-NSString* const NSShortWeekDayNameArray
-  = @"NSShortWeekDayNameArray";
-NSString* const NSMonthNameArray
-  = @"NSMonthNameArray";
-NSString* const NSShortMonthNameArray
-  = @"NSShortMonthNameArray";
-NSString* const NSTimeFormatString
-  = @"NSTimeFormatString";
-NSString* const NSDateFormatString
-  = @"NSDateFormatString";
-NSString* const NSTimeDateFormatString
-  = @"NSTimeDateFormatString";
-NSString* const NSShortTimeDateFormatString
-  = @"NSShortTimeDateFormatString";
-NSString* const NSCurrencySymbol
-  = @"NSCurrencySymbol";
-NSString* const NSDecimalSeparator
-  = @"NSDecimalSeparator";
-NSString* const NSThousandsSeparator
-  = @"NSThousandsSeparator";
-NSString* const NSInternationalCurrencyString
-  = @"NSInternationalCurrencyString";
-NSString* const NSCurrencyString
-  = @"NSCurrencyString";
-NSString* const NSDecimalDigits
-  = @"NSDecimalDigits";
-NSString* const NSAMPMDesignation
-  = @"NSAMPMDesignation";
+NSString *NSWeekDayNameArray;
+NSString *NSShortWeekDayNameArray;
+NSString *NSMonthNameArray;
+NSString *NSShortMonthNameArray;
+NSString *NSTimeFormatString;
+NSString *NSDateFormatString;
+NSString *NSTimeDateFormatString;
+NSString *NSShortTimeDateFormatString;
+NSString *NSCurrencySymbol;
+NSString *NSDecimalSeparator;
+NSString *NSThousandsSeparator;
+NSString *NSInternationalCurrencyString;
+NSString *NSCurrencyString;
+NSString *NSDecimalDigits;
+NSString *NSAMPMDesignation;
 
-NSString* const NSHourNameDesignations
-  = @"NSHourNameDesignations";
-NSString* const NSYearMonthWeekDesignations
-  = @"NSYearMonthWeekDesignations";
-NSString* const NSEarlierTimeDesignations
-  = @"NSEarlierTimeDesignations";
-NSString* const NSLaterTimeDesignations
-  = @"NSLaterTimeDesignations";
-NSString* const NSThisDayDesignations
-  = @"NSThisDayDesignations";
-NSString* const NSNextDayDesignations
-  = @"NSNextDayDesignations";
-NSString* const NSNextNextDayDesignations
-  = @"NSNextNextDayDesignations";
-NSString* const NSPriorDayDesignations
-  = @"NSPriorDayDesignations";
-NSString* const NSDateTimeOrdering
-  = @"NSDateTimeOrdering";
+NSString *NSHourNameDesignations;
+NSString *NSYearMonthWeekDesignations;
+NSString *NSEarlierTimeDesignations;
+NSString *NSLaterTimeDesignations;
+NSString *NSThisDayDesignations;
+NSString *NSNextDayDesignations;
+NSString *NSNextNextDayDesignations;
+NSString *NSPriorDayDesignations;
+NSString *NSDateTimeOrdering;
 
 /*
  * Keys for the NSDictionary returned by [NSConnection -statistics]
  */
 /* These in OPENSTEP 4.2 */
-NSString* const NSConnectionRepliesReceived
-  = @"NSConnectionRepliesReceived";
-NSString* const NSConnectionRepliesSent
-  = @"NSConnectionRepliesSent";
-NSString* const NSConnectionRequestsReceived
-  = @"NSConnectionRequestsReceived";
-NSString* const NSConnectionRequestsSent
-  = @"NSConnectionRequestsSent";
+NSString *NSConnectionRepliesReceived;
+NSString *NSConnectionRepliesSent;
+NSString *NSConnectionRequestsReceived;
+NSString *NSConnectionRequestsSent;
 /* These Are GNUstep extras */
-NSString* const NSConnectionLocalCount
-  = @"NSConnectionLocalCount";
-NSString* const NSConnectionProxyCount
-  = @"NSConnectionProxyCount";
+NSString *NSConnectionLocalCount;
+NSString *NSConnectionProxyCount;
+
+/*
+ *	Setup function called when NSObject is initialised.
+ *	We make all the constant strings not be NXConstantString so they can
+ *	cache their hash values and be used much more efficiently as keys in
+ *	dictionaries etc.
+ */
+void
+GSBuildStrings()
+{
+  static BOOL	beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      beenHere = YES;
+      InPortAcceptedClientNotification
+	= [[NSString alloc] initWithCString:
+	"InPortAcceptedClientNotification"];
+      InPortClientBecameInvalidNotification
+	= [[NSString alloc] initWithCString:
+	"InPortClientBecameInvalidNotification"];
+      NSAMPMDesignation
+	= [[NSString alloc] initWithCString: "NSAMPMDesignation"];
+      NSArgumentDomain
+	= [[NSString alloc] initWithCString: "NSArgumentDomain"];
+      NSBundleDidLoadNotification
+	= [[NSString alloc] initWithCString: "NSBundleDidLoadNotification"];
+      NSCharacterConversionException
+	= [[NSString alloc] initWithCString: "NSCharacterConversionException"];
+      NSConnectionDidDieNotification
+	= [[NSString alloc] initWithCString: "NSConnectionDidDieNotification"];
+      NSConnectionDidInitializeNotification
+	= [[NSString alloc] initWithCString:
+	"NSConnectionDidInitializeNotification"];
+      NSConnectionLocalCount
+	= [[NSString alloc] initWithCString: "NSConnectionLocalCount"];
+      NSConnectionProxyCount
+	= [[NSString alloc] initWithCString: "NSConnectionProxyCount"];
+      NSConnectionRepliesReceived
+	= [[NSString alloc] initWithCString: "NSConnectionRepliesReceived"];
+      NSConnectionRepliesSent
+	= [[NSString alloc] initWithCString: "NSConnectionRepliesSent"];
+      NSConnectionReplyMode
+	= [[NSString alloc] initWithCString: "NSConnectionReplyMode"];
+      NSConnectionRequestsReceived
+	= [[NSString alloc] initWithCString: "NSConnectionRequestsReceived"];
+      NSConnectionRequestsSent
+	= [[NSString alloc] initWithCString: "NSConnectionRequestsSent"];
+      NSCurrencyString
+	= [[NSString alloc] initWithCString: "NSCurrencyString"];
+      NSCurrencySymbol
+	= [[NSString alloc] initWithCString: "NSCurrencySymbol"];
+      NSDateFormatString
+	= [[NSString alloc] initWithCString: "NSDateFormatString"];
+      NSDateTimeOrdering
+	= [[NSString alloc] initWithCString: "NSDateTimeOrdering"];
+      NSDecimalDigits
+	= [[NSString alloc] initWithCString: "NSDecimalDigits"];
+      NSDecimalSeparator
+	= [[NSString alloc] initWithCString: "NSDecimalSeparator"];
+      NSDefaultRunLoopMode
+	= [[NSString alloc] initWithCString: "NSDefaultRunLoopMode"];
+      NSEarlierTimeDesignations
+	= [[NSString alloc] initWithCString: "NSEarlierTimeDesignations"];
+      NSFailedAuthenticationException
+	= [[NSString alloc] initWithCString: "NSFailedAuthenticationException"];
+      NSFileDeviceIdentifier
+	= [[NSString alloc] initWithCString: "NSFileDeviceIdentifier"];
+      NSFileGroupOwnerAccountName
+	= [[NSString alloc] initWithCString: "NSFileGroupOwnerAccountName"];
+      NSFileGroupOwnerAccountNumber
+	= [[NSString alloc] initWithCString: "NSFileGroupOwnerAccountNumber"];
+      NSFileModificationDate
+	= [[NSString alloc] initWithCString: "NSFileModificationDate"];
+      NSFileOwnerAccountName
+	= [[NSString alloc] initWithCString: "NSFileOwnerAccountName"];
+      NSFileOwnerAccountNumber
+	= [[NSString alloc] initWithCString: "NSFileOwnerAccountNumber"];
+      NSFilePosixPermissions
+	= [[NSString alloc] initWithCString: "NSFilePosixPermissions"];
+      NSFileReferenceCount
+	= [[NSString alloc] initWithCString: "NSFileReferenceCount"];
+      NSFileSize
+	= [[NSString alloc] initWithCString: "NSFileSize"];
+      NSFileSystemFileNumber
+	= [[NSString alloc] initWithCString: "NSFileSystemFileNumber"];
+      NSFileSystemFreeNodes
+	= [[NSString alloc] initWithCString: "NSFileSystemFreeNodes"];
+      NSFileSystemFreeSize
+	= [[NSString alloc] initWithCString: "NSFileSystemFreeSize"];
+      NSFileSystemNodes
+	= [[NSString alloc] initWithCString: "NSFileSystemNodes"];
+      NSFileSystemNumber
+	= [[NSString alloc] initWithCString: "NSFileSystemNumber"];
+      NSFileSystemSize
+	= [[NSString alloc] initWithCString: "NSFileSystemSize"];
+      NSFileType
+	= [[NSString alloc] initWithCString: "NSFileType"];
+      NSFileTypeBlockSpecial
+	= [[NSString alloc] initWithCString: "NSFileTypeBlockSpecial"];
+      NSFileTypeCharacterSpecial
+	= [[NSString alloc] initWithCString: "NSFileTypeCharacterSpecial"];
+      NSFileTypeDirectory
+	= [[NSString alloc] initWithCString: "NSFileTypeDirectory"];
+      NSFileTypeFifo
+	= [[NSString alloc] initWithCString: "NSFileTypeFifo"];
+      NSFileTypeRegular
+	= [[NSString alloc] initWithCString: "NSFileTypeRegular"];
+      NSFileTypeSocket
+	= [[NSString alloc] initWithCString: "NSFileTypeSocket"];
+      NSFileTypeSymbolicLink
+	= [[NSString alloc] initWithCString: "NSFileTypeSymbolicLink"];
+      NSFileTypeUnknown
+	= [[NSString alloc] initWithCString: "NSFileTypeUnknown"];
+      NSGenericException
+	= [[NSString alloc] initWithCString: "NSGenericException"];
+      NSGlobalDomain
+	= [[NSString alloc] initWithCString: "NSGlobalDomain"];
+      NSHourNameDesignations
+	= [[NSString alloc] initWithCString: "NSHourNameDesignations"];
+      NSInconsistentArchiveException
+	= [[NSString alloc] initWithCString: "NSInconsistentArchiveException"];
+      NSInternalInconsistencyException
+	= [[NSString alloc] initWithCString:
+	"NSInternalInconsistencyException"];
+      NSInternationalCurrencyString
+	= [[NSString alloc] initWithCString: "NSInternationalCurrencyString"];
+      NSInvalidArgumentException
+	= [[NSString alloc] initWithCString: "NSInvalidArgumentException"];
+      NSLaterTimeDesignations
+	= [[NSString alloc] initWithCString: "NSLaterTimeDesignations"];
+      NSLoadedClasses
+	= [[NSString alloc] initWithCString: "NSLoadedClasses"];
+      NSMallocException
+	= [[NSString alloc] initWithCString: "NSMallocException"];
+      NSMonthNameArray
+	= [[NSString alloc] initWithCString: "NSMonthNameArray"];
+      NSNextDayDesignations
+	= [[NSString alloc] initWithCString: "NSNextDayDesignations"];
+      NSNextNextDayDesignations
+	= [[NSString alloc] initWithCString: "NSNextNextDayDesignations"];
+      NSPortDidBecomeInvalidNotification
+	= [[NSString alloc] initWithCString:
+	"NSPortDidBecomeInvalidNotification"];
+      NSPortTimeoutException
+	= [[NSString alloc] initWithCString: "NSPortTimeoutException"];
+      NSPriorDayDesignations
+	= [[NSString alloc] initWithCString: "NSPriorDayDesignations"];
+      NSRangeException
+	= [[NSString alloc] initWithCString: "NSRangeException"];
+      NSRegistrationDomain
+	= [[NSString alloc] initWithCString: "NSRegistrationDomain"];
+      NSShortMonthNameArray
+	= [[NSString alloc] initWithCString: "NSShortMonthNameArray"];
+      NSShortTimeDateFormatString
+	= [[NSString alloc] initWithCString: "NSShortTimeDateFormatString"];
+      NSShortWeekDayNameArray
+	= [[NSString alloc] initWithCString: "NSShortWeekDayNameArray"];
+      NSShowNonLocalizedStrings
+	= [[NSString alloc] initWithCString: "NSShowNonLocalizedStrings"];
+      NSThisDayDesignations
+	= [[NSString alloc] initWithCString: "NSThisDayDesignations"];
+      NSThousandsSeparator
+	= [[NSString alloc] initWithCString: "NSThousandsSeparator"];
+      NSThreadWillExitNotification
+	= [[NSString alloc] initWithCString: "NSThreadWillExitNotification"];
+      NSTimeDateFormatString
+	= [[NSString alloc] initWithCString: "NSTimeDateFormatString"];
+      NSTimeFormatString
+	= [[NSString alloc] initWithCString: "NSTimeFormatString"];
+      NSUserDefaultsDidChangeNotification
+	= [[NSString alloc] initWithCString:
+	"NSUserDefaultsDidChangeNotification"];
+      NSWeekDayNameArray
+	= [[NSString alloc] initWithCString: "NSWeekDayNameArray"];
+      NSWillBecomeMultiThreadedNotification
+	= [[NSString alloc] initWithCString:
+	"NSWillBecomeMultiThreadedNotification"];
+      NSYearMonthWeekDesignations
+	= [[NSString alloc] initWithCString: "NSYearMonthWeekDesignations"];
+      PortBecameInvalidNotification
+	= [[NSString alloc] initWithCString: "PortBecameInvalidNotification"];
+      StreamException
+	= [[NSString alloc] initWithCString: "StreamException"];
+    }
+}
+
+
 
 /* Standard MapTable callbacks */
 

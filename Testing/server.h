@@ -51,6 +51,7 @@ struct myarray {
 : (int)i7 : (int)i8 : (int)i9 : (int)i10 : (int)i11 : (int)i12;
 - (float) returnFloat;
 - (double) returnDouble;
+- (id) echoObject: (id)obj;
 @end
 
 #if NeXT_runtime

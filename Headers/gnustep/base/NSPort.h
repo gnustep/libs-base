@@ -62,9 +62,14 @@ GS_EXPORT NSString *NSPortTimeoutException; /* OPENSTEP */
 		  forMode: (NSString*)aMode;
 - (unsigned) reservedSpaceLength;
 - (BOOL) sendBeforeDate: (NSDate*)when
+		  msgid: (int)msgid
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (unsigned) length;
+	       reserved: (unsigned)length;
+- (BOOL) sendBeforeDate: (NSDate*)when
+	     components: (NSMutableArray*)components
+		   from: (NSPort*)receivingPort
+	       reserved: (unsigned)length;
 #endif
 @end
 
