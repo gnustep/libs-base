@@ -258,6 +258,13 @@ selectCharacterSet(NSString *str, NSData **d)
     return @"us-ascii";	// Default character set.
   if ((*d = [str dataUsingEncoding: NSISOLatin1StringEncoding]) != nil)
     return @"iso-8859-1";
+
+  /*
+   * What's the point of trying loads of charactersets ... utf-8 is
+   * well-known nowadays, so if we can't use ascii or latin1 we may
+   * as well go straight to utf-8
+   */
+#if 0
   if ((*d = [str dataUsingEncoding: NSISOLatin2StringEncoding]) != nil)
     return @"iso-8859-2";
   if ((*d = [str dataUsingEncoding: NSISOLatin3StringEncoding]) != nil)
@@ -292,7 +299,7 @@ selectCharacterSet(NSString *str, NSData **d)
     return @"windows-1253";
   if ((*d = [str dataUsingEncoding: NSWindowsCP1254StringEncoding]) != nil)
     return @"windows-1254";
-
+#endif
   *d = [str dataUsingEncoding: NSUTF8StringEncoding];
   return @"utf-8";		// Catch-all character set.
 }
