@@ -858,7 +858,7 @@ if test $ac_cv_func_iconv = no; then
   if test x"$av_cv_lib_giconv_main" = xyes; then
     LIBS="$LIBS -lgiconv"
     AC_SUBST(LIBS)
-    SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+    SYSTEM_DEFS="-DHAVE_ICONV -DHAVE_GICONV_H $SYSTEM_DEFS"
   else
     AC_CHECK_LIB(iconv, main)
     if test x"$av_cv_lib_iconv_main" = xyes; then

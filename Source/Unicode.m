@@ -42,7 +42,11 @@ struct _ucc_ {unichar from; char to;};
 #include "unicode/decomp.h"
 
 #ifdef HAVE_ICONV
+#ifdef HAVE_GICONV_H
+#include <giconv.h>
+#else
 #include <iconv.h>
+#endif
 #include <errno.h>
 
 // The rest of the GNUstep code stores UNICODE in internal byte order,
