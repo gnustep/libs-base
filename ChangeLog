@@ -1,10 +1,16 @@
+2003-07-09 15:54  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/Additions/Unicode.m (GSToUnicode, GSFromUnicode): Make sure
+	dst isn't set to NULL in GSToUnicode, too. Make sure it is set if
+	an allocated buffer turns out not to need resizing.
+
 2003-07-09 02:41  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/GSString.m (getCString_u): Rewrite to correctly handle
 	all encodings, the range argument, and the leftoverRange attribute.
 
-	* Source/Unicode.m (GSToUnicode): Clarify the documentation (and fix
-	a few typos in it).
+	* Source/Additions/Unicode.m (GSToUnicode): Clarify the documentation
+	(and fix a few typos in it).
 	(GSFromUnicode): Clarify the documentation. Signal failure correctly
 	from the utf8 encoder. Make sure dst isn't set to NULL if zone is
 	NULL but *size is 0.
