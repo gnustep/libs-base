@@ -188,26 +188,91 @@
 
 - (id) initWithCoder: (NSCoder*)decoder
 {
-  [decoder decodeValueOfObjCType: @encode(BOOL) at: &_hasThousandSeparators];
-  [decoder decodeValueOfObjCType: @encode(BOOL) at: &_allowsFloats];
-  [decoder decodeValueOfObjCType: @encode(BOOL) at: &_localizesFormat];
-  [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
-  [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
-
-  [decoder decodeValueOfObjCType: @encode(id) at: &_roundingBehavior];
-  [decoder decodeValueOfObjCType: @encode(id) at: &_maximum];
-  [decoder decodeValueOfObjCType: @encode(id) at: &_minimum];
-  [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForNil];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForNotANumber];
-  [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForZero];
-  [decoder decodeValueOfObjCType: @encode(id) at: &_negativeFormat];
-  [decoder decodeValueOfObjCType: @encode(id) at: &_positiveFormat];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributesForPositiveValues];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributesForNegativeValues];
-
+  if ([decoder allowsKeyedCoding])
+    {
+      if ([decoder containsValueForKey: @"NS.allowsfloats"])
+        {
+	  [self setAllowsFloats: [decoder decodeBoolForKey: @"NS.allowsfloats"]];
+	}
+      if ([decoder containsValueForKey: @"NS.decimal"])
+        {
+	  [self setDecimalSeparator: [decoder decodeObjectForKey: @"NS.decimal"]];
+	}
+      if ([decoder containsValueForKey: @"NS.hasthousands"])
+        {
+	  [self setHasThousandSeparators: [decoder decodeBoolForKey: @"NS.hasthousands"]];
+	}
+      if ([decoder containsValueForKey: @"NS.localized"])
+        {
+	  [self setLocalizesFormat: [decoder decodeBoolForKey: @"NS.localized"]];
+	}
+      if ([decoder containsValueForKey: @"NS.max"])
+        {
+	  [self setMaximum: [decoder decodeObjectForKey: @"NS.max"]];
+	}
+      if ([decoder containsValueForKey: @"NS.min"])
+        {
+	  [self setMinimum: [decoder decodeObjectForKey: @"NS.min"]];
+	}
+      if ([decoder containsValueForKey: @"NS.nan"])
+        {
+	  [self setAttributedStringForNotANumber: [decoder decodeObjectForKey: @"NS.nan"]];
+	}
+      if ([decoder containsValueForKey: @"NS.negativeattrs"])
+        {
+	  [self setTextAttributesForNegativeValues: [decoder decodeObjectForKey: @"NS.negativeattrs"]];
+	}
+      if ([decoder containsValueForKey: @"NS.negativeformat"])
+        {
+	  [self setNegativeFormat: [decoder decodeObjectForKey: @"NS.negativeformat"]];
+	}
+      if ([decoder containsValueForKey: @"NS.nil"])
+        {
+	  [self setAttributedStringForNil: [decoder decodeObjectForKey: @"NS.nil"]];
+	}
+      if ([decoder containsValueForKey: @"NS.positiveattrs"])
+        {
+	  [self setTextAttributesForPositiveValues: [decoder decodeObjectForKey: @"NS.positiveattrs"]];
+	}
+      if ([decoder containsValueForKey: @"NS.positiveformat"])
+        {
+	  [self setPositiveFormat: [decoder decodeObjectForKey: @"NS.positiveformat"]];
+	}
+      if ([decoder containsValueForKey: @"NS.rounding"])
+        {
+	  [self setRoundingBehavior: [decoder decodeObjectForKey: @"NS.rounding"]];
+	}
+      if ([decoder containsValueForKey: @"NS.thousand"])
+        {
+	  [self setThousandSeparator: [decoder decodeObjectForKey: @"NS.thousand"]];
+	}
+      if ([decoder containsValueForKey: @"NS.zero"])
+        {
+	  [self setAttributedStringForZero: [decoder decodeObjectForKey: @"NS.zero"]];
+	}
+    }
+  else
+    {
+      [decoder decodeValueOfObjCType: @encode(BOOL) at: &_hasThousandSeparators];
+      [decoder decodeValueOfObjCType: @encode(BOOL) at: &_allowsFloats];
+      [decoder decodeValueOfObjCType: @encode(BOOL) at: &_localizesFormat];
+      [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
+      [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
+      
+      [decoder decodeValueOfObjCType: @encode(id) at: &_roundingBehavior];
+      [decoder decodeValueOfObjCType: @encode(id) at: &_maximum];
+      [decoder decodeValueOfObjCType: @encode(id) at: &_minimum];
+      [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForNil];
+      [decoder decodeValueOfObjCType: @encode(id)
+	                          at: &_attributedStringForNotANumber];
+      [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForZero];
+      [decoder decodeValueOfObjCType: @encode(id) at: &_negativeFormat];
+      [decoder decodeValueOfObjCType: @encode(id) at: &_positiveFormat];
+      [decoder decodeValueOfObjCType: @encode(id)
+	                          at: &_attributesForPositiveValues];
+      [decoder decodeValueOfObjCType: @encode(id)
+	                          at: &_attributesForNegativeValues];
+    }
   return self;
 }
 

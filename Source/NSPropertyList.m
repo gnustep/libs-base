@@ -57,7 +57,8 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSPropertyListMutabilityOptions	mutability;
   const unsigned char	*_bytes;
   NSData		*data;
-  unsigned		size;		// Number of bytes per table entry
+  unsigned		offset_size;	// Number of bytes per table entry
+  unsigned		index_size;	// Number of bytes per table entry
   unsigned		table_start;	// Start address of object table
   unsigned		table_len;	// Length of object table
 }
@@ -2437,12 +2438,19 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
       // FIXME: Get more of the details
       [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
-      size = postfix[6];
+      offset_size = postfix[6];
+      index_size = postfix[7];
       table_start = 256*256*postfix[29] + 256*postfix[30] + postfix[31];
-      if (size < 1 || size > 3)
+      if (offset_size < 1 || offset_size > 3)
 	{
 	  [NSException raise: NSGenericException
-		      format: @"Unknown table size %d", size];
+		      format: @"Unknown table size %d", offset_size];
+	  DESTROY(self);	// Bad format
+	}
+      else if (index_size < 1 || index_size > 3)
+	{
+	  [NSException raise: NSGenericException
+		      format: @"Unknown table size %d", index_size];
 	  DESTROY(self);	// Bad format
 	}
       else if (table_start > length - 32)
@@ -2469,7 +2477,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 		   format: @"Object table index out of bounds %d.", index];
     }
 
-  if (size == 1)
+  if (offset_size == 1)
     {
       unsigned char offset;
 	
@@ -2477,7 +2485,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
       return offset;
     }
-  else if (size == 2)
+  else if (offset_size == 2)
     {
       unsigned short offset;
 	
@@ -2487,12 +2495,12 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else
     {
-      unsigned char buffer[size];
+      unsigned char buffer[offset_size];
       int i;
       unsigned num = 0;
 	
-      [data getBytes: &buffer range: NSMakeRange(table_start + size*index, size)];
-      for (i = 0; i < size; i++)
+      [data getBytes: &buffer range: NSMakeRange(table_start + offset_size*index, offset_size)];
+      for (i = 0; i < offset_size; i++)
         {
 	  num = num*256 + buffer[i];
 	}
@@ -2503,7 +2511,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (unsigned) readObjectIndexAt: (unsigned*)counter
 {
-  if (size == 1)
+  if (index_size == 1)
     {
       unsigned char oid;
 
@@ -2511,24 +2519,33 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       *counter += 1;  
       return oid;
     }
-  else if ((size == 2) || (size == 3))
+  else if (index_size == 2)
     {
       unsigned short oid;
 
-      [data getBytes: &oid range: NSMakeRange(*counter,sizeof(short))];
-      *counter += sizeof(short);  
+      [data getBytes: &oid range: NSMakeRange(*counter, 2)];
+      *counter += 2;  
 
       return NSSwapBigShortToHost(oid);
     }
   else
     {
-      [NSException raise: NSGenericException
-		   format: @"Unkown table size %d", size];
+      unsigned char buffer[index_size];
+      int i;
+      unsigned num = 0;
+	
+      [data getBytes: &buffer range: NSMakeRange(*counter, index_size)];
+      *counter += index_size;
+      for (i = 0; i < index_size; i++)
+        {
+	  num = num*256 + buffer[i];
+	}
+      return num;
     }
   return 0;
 }
 
-- (unsigned) readCountAt: (unsigned*) counter
+- (unsigned long) readCountAt: (unsigned*) counter
 {
   unsigned char c;
 
@@ -2551,11 +2568,26 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       *counter += 2;
       return NSSwapBigShortToHost(count);
     }
+  else if ((c > 0x11) && (c <= 0x13))
+    {
+      unsigned len = 1 << (c - 0x10);
+      unsigned char buffer[len];
+      int i;
+      unsigned num = 0;
+	
+      [data getBytes: &buffer range: NSMakeRange(*counter, len)];
+      *counter += len;
+      for (i = 0; i < len; i++)
+        {
+	  num = num*256 + buffer[i];
+	}
+      return num;
+    }
   else
     {
       //FIXME
       [NSException raise: NSGenericException
-		   format: @"Unkown coutn type %d", c];
+		   format: @"Unknown count type %d", c];
     }
 
   return 0;
@@ -2589,7 +2621,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if ((next >= 0x10) && (next < 0x1F))
     {
       // integer number
-      unsigned		len = next - 0x10 + 1;
+      unsigned		len = 1 << (next - 0x10);
       int		num = 0;
       unsigned		i;
       unsigned char	buffer[16];
@@ -2645,7 +2677,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if (next == 0x4F)
     {
       // long data
-      unsigned len;
+      unsigned long len;
 
       len = [self readCountAt: &counter];
       if (mutability == NSPropertyListMutableContainersAndLeaves)
@@ -2678,7 +2710,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if (next == 0x5F)
     {
       // long string
-      unsigned len;
+      unsigned long len;
       char *buffer;
 
       len = [self readCountAt: &counter];
@@ -2722,7 +2754,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if (next == 0x6F)
     {
       // long unicode string
-      unsigned	len;
+      unsigned	long len;
       unsigned	i;
       unichar	*buffer;
 
@@ -2791,7 +2823,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if (next == 0xAF)
     {
       // big array
-      unsigned	len;
+      unsigned	long len;
       unsigned	i;
       id	*objects;
 
@@ -2855,7 +2887,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if (next == 0xDF)
     {
       // big dictionary
-      unsigned	len;
+      unsigned	long len;
       unsigned	i;
       id	*keys;
       id	*values;
