@@ -1937,7 +1937,7 @@ failure:
 {
   bytes = aBuffer;
   length = bufferSize;
-  return self;  
+  return self;
 }
 
 - (Class) classForCoder
