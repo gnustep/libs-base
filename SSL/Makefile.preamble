@@ -48,7 +48,9 @@ ADDITIONAL_OBJCFLAGS = $(SSLFLAGS)
 ADDITIONAL_CFLAGS = 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS = -I../Headers/gnustep -I../Headers
+ADDITIONAL_INCLUDE_DIRS = -I./$(GNUSTEP_TARGET_DIR) \
+ -I../Source/$(GNUSTEP_TARGET_DIR) \
+ -I../Headers/gnustep -I../Headers
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS = 
