@@ -137,7 +137,11 @@ fi
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(for gdomap network details)
 AC_MSG_CHECKING(for variable length socket addresses)
-AC_TRY_COMPILE([#include <net/if.h>],
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if.h>
+],
 	       [struct ifreq s; s.ifr_addr.sa_len = 0;],
 	       sa_len=1, sa_len=0)
 if test $sa_len = 1; then
