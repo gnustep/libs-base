@@ -352,5 +352,37 @@ willReplaceObject: (id)anObject
 
 @end
 
+@interface NSCoder (NSGeometryKeyedCoding)
+/**
+ * Encodes an NSPoint object.
+ */
+- (void) encodePoint: (NSPoint)aPoint forKey: (NSString*)aKey;
+
+/**
+ * Encodes an NSRect object.
+ */
+- (void) encodeRect: (NSRect)aRect forKey: (NSString*)aKey;
+
+/**
+ * Encodes an NSSize object.
+ */
+- (void) encodeSize: (NSSize)aSize forKey: (NSString*)aKey;
+
+/**
+ * Decodes an NSPoint object.
+ */
+- (NSPoint) decodePointForKey: (NSString*)aKey;
+
+/**
+ * Decodes an NSRect object.
+ */
+- (NSRect) decodeRectForKey: (NSString*)aKey;
+
+/**
+ * Decodes an NSSize object.
+ */
+- (NSSize) decodeSizeForKey: (NSString*)aKey;
+@end
+
 #endif	/* STRICT_OPENSTEP */
 #endif	/* __NSKeyedArchiver_h_GNUSTEP_BASE_INCLUDE*/

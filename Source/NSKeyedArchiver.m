@@ -765,3 +765,49 @@ willReplaceObject: (id)anObject
 }
 @end
 
+
+
+@implementation NSCoder (NSGeometryKeyedCoding)
+- (void) encodePoint: (NSPoint)aPoint forKey: (NSString*)aKey
+{
+  NSString	*val;
+  val = [NSString stringWithFormat: @"{%g, %g}", aPoint.x, aPoint.y];
+  [self encodeObject: val forKey: aKey];
+}
+- (void) encodeRect: (NSRect)aRect forKey: (NSString*)aKey
+{
+  NSString	*val;
+  val = [NSString stringWithFormat: @"{{%g, %g}, {%g, %g}}",
+    aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height];
+  [self encodeObject: val forKey: aKey];
+}
+- (void) encodeSize: (NSSize)aSize forKey: (NSString*)aKey
+{
+  NSString	*val;
+  val = [NSString stringWithFormat: @"{%g, %g}", aSize.width, aSize.height];
+  [self encodeObject: val forKey: aKey];
+}
+- (NSPoint) decodePointForKey: (NSString*)aKey
+{
+  const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
+  NSPoint	aPoint;
+  sscanf(val, "{%f, %f}", &aPoint.x, &aPoint.y);
+  return aPoint;
+}
+- (NSRect) decodeRectForKey: (NSString*)aKey
+{
+  const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
+  NSRect	aRect;
+  sscanf(val, "{{%f, %f}, {%f, %f}}",
+    &aRect.origin.x, &aRect.origin.y, &aRect.size.height, &aRect.size.height);
+  return aRect;
+}
+- (NSSize) decodeSizeForKey: (NSString*)aKey
+{
+  const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
+  NSSize	aSize;
+  sscanf(val, "{%f, %f}", &aSize.height, &aSize.height);
+  return aSize;
+}
+@end
+
