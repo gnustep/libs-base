@@ -48,7 +48,7 @@
  * NSLock class
  * Simplest lock for protecting critical sections of code
  */
-@interface NSLock : NSObject <NSLocking>
+@interface NSLock : NSObject <NSLocking, GCFinalization>
 {
 @private
   objc_mutex_t	_mutex;
@@ -66,7 +66,7 @@
  * NSConditionLock
  * Allows locking and unlocking to be based upon a condition
  */
-@interface NSConditionLock : NSObject <NSLocking>
+@interface NSConditionLock : NSObject <NSLocking, GCFinalization>
 {
 @private
   objc_condition_t	_condition;
@@ -112,7 +112,7 @@
  * thread must also unlock it (n) times before another thread 
  * can acquire the lock.
  */
-@interface NSRecursiveLock : NSObject <NSLocking>
+@interface NSRecursiveLock : NSObject <NSLocking, GCFinalization>
 {
 @private
   objc_mutex_t	_mutex;

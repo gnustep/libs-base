@@ -1,3 +1,9 @@
+2000-09-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSLock.h: conform to GCFinalization protocol.
+	* Source/NSLock.m: deallocate mutex in gcFinalize.  Don't raise an
+	exception if mutex deallocation fails.
+
 2000-09-13  Adam Fedor  <fedor@gnu.org>
 
 	* Remove dependance on Source/Foundation link, additional MINGW ports.
