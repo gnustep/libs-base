@@ -208,6 +208,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
+  [self setAddr: &sin];
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
@@ -229,7 +230,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       connectOK = NO;
       readOK = YES;
       writeOK = YES;
-      [self setAddr: &sin];
     }
   return self;
 }
@@ -254,6 +254,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
+  [self setAddr: &sin];
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
@@ -288,7 +289,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       connectOK = YES;
       readOK = NO;
       writeOK = NO;
-      [self setAddr: &sin];
     }
   return self;
 }
