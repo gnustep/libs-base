@@ -96,9 +96,9 @@ static id tmp_kludge_protocol = nil;
   return self;
 }
 #else
-+ (Class*) class
++ (Class) class
 {
-  return (Class*)self;
+  return (Class)self;
 }
 #endif
 

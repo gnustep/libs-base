@@ -26,7 +26,7 @@
 #include <objects/ConnectedCoder.h>
 #include <assert.h>
 
-static Class* NXConnectionProxyClass;
+static Class NXConnectionProxyClass;
 
 /* Just to make -encodeRemotelyFor:... work */
 @interface NXConnectedCoder : ConnectedCoder
@@ -54,13 +54,13 @@ static Class* NXConnectionProxyClass;
   return self;
 }
 
-+ setDefaultProxyClass: (Class*)aClass
++ setDefaultProxyClass: (Class)aClass
 {
   NXConnectionProxyClass = aClass;
   return self;
 }
 
-+ (Class*) defaultProxyClass
++ (Class) defaultProxyClass
 {
   return NXConnectionProxyClass;
 }
@@ -223,13 +223,13 @@ static Class* NXConnectionProxyClass;
   return [self setRootObject:anObj];
 }
 
-- (Class*) proxyClass
+- (Class) proxyClass
 {
   /* we might replace this with a per-Connection proxy class. */
   return NXConnectionProxyClass;
 }
 
-- (Class*) coderClass
+- (Class) coderClass
 {
   return [NXConnectedCoder class];
 }

@@ -56,8 +56,8 @@ my_object_is_class(id object)
       && CLS_ISMETA(((Class)object)->isa)
       && ((Class)object)->isa != ((Class)object)->isa)
 #else
-      && CLS_ISMETA(((Class*)object)->class_pointer)
-      && ((Class*)object)->class_pointer != ((Class*)object)->class_pointer)
+      && CLS_ISMETA(((Class)object)->class_pointer)
+      && ((Class)object)->class_pointer != ((Class)object)->class_pointer)
 #endif
     return YES;
   else

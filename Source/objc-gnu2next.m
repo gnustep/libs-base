@@ -72,7 +72,7 @@ objc_sizeof_type(const char* type)
     break;
 
   case _C_CLASS:
-    return sizeof(Class*);
+    return sizeof(Class);
     break;
 
   case _C_SEL:
@@ -179,7 +179,7 @@ objc_alignof_type(const char* type)
     break;
 
   case _C_CLASS:
-    return __alignof__(Class*);
+    return __alignof__(Class);
     break;
     
   case _C_SEL:
