@@ -92,16 +92,17 @@
 #endif
 
 typedef	union {
-    id		o;
-    Class	c;
-    int		i;
-    unsigned	I;
-    long 	l;
-    unsigned long	L;
-    void	*p;
-    const void	*P;
-    char	*s;
-    const char	*S;
+  id		o;
+  Class		c;
+  SEL		C;
+  int		i;
+  unsigned	I;
+  long 		l;
+  unsigned long	L;
+  void		*p;
+  const void	*P;
+  char		*s;
+  const char	*S;
 } FastMapItem;
 
 typedef struct _FastMapTable FastMapTable_t;
@@ -115,93 +116,99 @@ typedef FastMapNode_t *FastMapNode;
 typedef FastMapEnumerator_t *FastMapEnumerator;
 
 struct	_FastMapNode {
-    FastMapNode	nextInBucket;	/* Linked list of bucket.	*/
-    FastMapNode	nextInMap;	/* For enumerating.		*/
-    FastMapItem	key;
+  FastMapNode	nextInBucket;	/* Linked list of bucket.	*/
+  FastMapNode	nextInMap;	/* For enumerating.		*/
+  FastMapItem	key;
 #if	FAST_MAP_HAS_VALUE
-    FastMapItem	value;
+  FastMapItem	value;
 #endif
 };
 
 struct	_FastMapBucket {
-    size_t	nodeCount;	/* Number of nodes in bucket.	*/
-    FastMapNode	firstNode;	/* The linked list of nodes.	*/
+  size_t	nodeCount;	/* Number of nodes in bucket.	*/
+  FastMapNode	firstNode;	/* The linked list of nodes.	*/
 };
 
 struct	_FastMapTable {
-    NSZone		*zone;
-    size_t		nodeCount;	/* Number of nodes in map.	*/
-    FastMapNode		firstNode;	/* List for enumerating.	*/
-    size_t		bucketCount;	/* Number of buckets in map.	*/
-    FastMapBucket	buckets;	/* Array of buckets.		*/
-    FastMapNode		freeNodes;	/* List of unused nodes.	*/
-    size_t		chunkCount;	/* Number of chunks in array.	*/
-    FastMapNode		*nodeChunks;	/* Chunks of allocated memory.	*/
+  NSZone	*zone;
+  size_t	nodeCount;	/* Number of nodes in map.	*/
+  FastMapNode	firstNode;	/* List for enumerating.	*/
+  size_t	bucketCount;	/* Number of buckets in map.	*/
+  FastMapBucket	buckets;	/* Array of buckets.		*/
+  FastMapNode	freeNodes;	/* List of unused nodes.	*/
+  size_t	chunkCount;	/* Number of chunks in array.	*/
+  FastMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
 };
 
 struct	_FastMapEnumerator {
-    FastMapTable	map;		/* the map being enumerated.	*/
-    FastMapNode		node;		/* The next node to use.	*/
+  FastMapTable	map;		/* the map being enumerated.	*/
+  FastMapNode	node;		/* The next node to use.	*/
 };
 
 static INLINE FastMapBucket
 FastMapPickBucket(FastMapItem key, FastMapBucket buckets, size_t bucketCount)
 {
-    return buckets + FAST_MAP_HASH(key) % bucketCount;
+  return buckets + FAST_MAP_HASH(key) % bucketCount;
 }
 
 static INLINE FastMapBucket
 FastMapBucketForKey(FastMapTable map, FastMapItem key)
 {
-    return FastMapPickBucket(key, map->buckets, map->bucketCount);
+  return FastMapPickBucket(key, map->buckets, map->bucketCount);
 }
 
 static INLINE void
 FastMapLinkNodeIntoBucket(FastMapBucket bucket, FastMapNode node)
 {
-    node->nextInBucket = bucket->firstNode;
-    bucket->firstNode = node;
+  node->nextInBucket = bucket->firstNode;
+  bucket->firstNode = node;
 }
 
 static INLINE void
 FastMapUnlinkNodeFromBucket(FastMapBucket bucket, FastMapNode node)
 {
-    if (node == bucket->firstNode) {
-	bucket->firstNode = node->nextInBucket;
+  if (node == bucket->firstNode)
+    {
+      bucket->firstNode = node->nextInBucket;
     }
-    else {
-	FastMapNode	tmp = bucket->firstNode;
+  else
+    {
+      FastMapNode	tmp = bucket->firstNode;
 
-	while (tmp->nextInBucket != node) {
-	    tmp = tmp->nextInBucket;
+      while (tmp->nextInBucket != node)
+	{
+	  tmp = tmp->nextInBucket;
 	}
-	tmp->nextInBucket = node->nextInBucket;
+      tmp->nextInBucket = node->nextInBucket;
     }
-    node->nextInBucket = 0;
+  node->nextInBucket = 0;
 }
 
 static INLINE void
 FastMapLinkNodeIntoMap(FastMapTable map, FastMapNode node)
 {
-    node->nextInMap = map->firstNode;
-    map->firstNode = node;
+  node->nextInMap = map->firstNode;
+  map->firstNode = node;
 }
 
 static INLINE void
 FastMapUnlinkNodeFromMap(FastMapTable map, FastMapNode node)
 {
-    if (node == map->firstNode) {
-	map->firstNode = node->nextInMap;
+  if (node == map->firstNode)
+    {
+      map->firstNode = node->nextInMap;
     }
-    else {
-	FastMapNode	tmp = map->firstNode;
+  else
+    {
+      FastMapNode	tmp = map->firstNode;
 
-	while (tmp->nextInMap != node) {
-	    tmp = tmp->nextInMap;
+      while (tmp->nextInMap != node)
+	{
+	  tmp = tmp->nextInMap;
 	}
-	tmp->nextInMap = node->nextInMap;
+      tmp->nextInMap = node->nextInMap;
     }
-    node->nextInMap = 0;
+  node->nextInMap = 0;
 }
 
 static INLINE void
@@ -214,27 +221,27 @@ FastMapAddNodeToBucket(FastMapBucket bucket, FastMapNode node)
 static INLINE void
 FastMapAddNodeToMap(FastMapTable map, FastMapNode node)
 {
-    FastMapBucket	bucket;
+  FastMapBucket	bucket;
 
-    bucket = FastMapBucketForKey(map, node->key);
-    FastMapAddNodeToBucket(bucket, node);
-    FastMapLinkNodeIntoMap(map, node);
-    map->nodeCount++;
+  bucket = FastMapBucketForKey(map, node->key);
+  FastMapAddNodeToBucket(bucket, node);
+  FastMapLinkNodeIntoMap(map, node);
+  map->nodeCount++;
 }
 
 static INLINE void
 FastMapRemoveNodeFromBucket(FastMapBucket bucket, FastMapNode node)
 {
-    bucket->nodeCount--;
-    FastMapUnlinkNodeFromBucket(bucket, node);
+  bucket->nodeCount--;
+  FastMapUnlinkNodeFromBucket(bucket, node);
 }
 
 static INLINE void
 FastMapRemoveNodeFromMap(FastMapTable map, FastMapBucket bkt, FastMapNode node)
 {
-    map->nodeCount--;
-    FastMapUnlinkNodeFromMap(map, node);
-    FastMapRemoveNodeFromBucket(bkt, node);
+  map->nodeCount--;
+  FastMapUnlinkNodeFromMap(map, node);
+  FastMapRemoveNodeFromBucket(bkt, node);
 }
 
 static INLINE void
@@ -244,53 +251,62 @@ FastMapRemangleBuckets(FastMapTable map,
 			      FastMapBucket new_buckets,
 			      size_t new_bucketCount)
 {
-    while (old_bucketCount-- > 0) {
-	FastMapNode	node;
+  while (old_bucketCount-- > 0)
+    {
+      FastMapNode	node;
 
-	while ((node = old_buckets->firstNode) != 0) {
-	    FastMapBucket	bkt;
+      while ((node = old_buckets->firstNode) != 0)
+	{
+	  FastMapBucket	bkt;
 
-	    FastMapRemoveNodeFromBucket(old_buckets, node);
-	    bkt = FastMapPickBucket(node->key, new_buckets, new_bucketCount);
-	    FastMapAddNodeToBucket(bkt, node);
+	  FastMapRemoveNodeFromBucket(old_buckets, node);
+	  bkt = FastMapPickBucket(node->key, new_buckets, new_bucketCount);
+	  FastMapAddNodeToBucket(bkt, node);
 	}
-	old_buckets++;
+      old_buckets++;
     }
 }
 
 static INLINE void
 FastMapMoreNodes(FastMapTable map)
 {
-    FastMapNode	*newArray;
-    size_t	arraySize = (map->chunkCount+1)*sizeof(FastMapNode);
+  FastMapNode	*newArray;
+  size_t	arraySize = (map->chunkCount+1)*sizeof(FastMapNode);
 
-    newArray = (FastMapNode*)NSZoneMalloc(map->zone, arraySize);
+  newArray = (FastMapNode*)NSZoneMalloc(map->zone, arraySize);
     
-    if (newArray) {
-	FastMapNode	newNodes;
-	size_t		chunkCount;
-	size_t		chunkSize;
+  if (newArray)
+    {
+      FastMapNode	newNodes;
+      size_t		chunkCount;
+      size_t		chunkSize;
 
-	memcpy(newArray,map->nodeChunks,(map->chunkCount)*sizeof(FastMapNode));
-	if (map->nodeChunks != 0)
-	    NSZoneFree(map->zone, map->nodeChunks);
-	map->nodeChunks = newArray;
+      memcpy(newArray,map->nodeChunks,(map->chunkCount)*sizeof(FastMapNode));
+      if (map->nodeChunks != 0)
+	{
+	  NSZoneFree(map->zone, map->nodeChunks);
+	}
+      map->nodeChunks = newArray;
 
-	if (map->chunkCount == 0) {
-	    chunkCount = map->bucketCount > 1 ? map->bucketCount : 2;
+      if (map->chunkCount == 0)
+	{
+	  chunkCount = map->bucketCount > 1 ? map->bucketCount : 2;
 	}
-	else {
-	    chunkCount = ((map->nodeCount>>2)+1)<<1;
+      else
+	{
+	  chunkCount = ((map->nodeCount>>2)+1)<<1;
 	}
-	chunkSize = chunkCount * sizeof(FastMapNode_t);
-	newNodes = (FastMapNode)NSZoneMalloc(map->zone, chunkSize);
-	if (newNodes) {
-	    map->nodeChunks[map->chunkCount++] = newNodes;
-	    newNodes[--chunkCount].nextInMap = map->freeNodes;
-	    while (chunkCount--) {
-		newNodes[chunkCount].nextInMap = &newNodes[chunkCount+1];
+      chunkSize = chunkCount * sizeof(FastMapNode_t);
+      newNodes = (FastMapNode)NSZoneMalloc(map->zone, chunkSize);
+      if (newNodes)
+	{
+	  map->nodeChunks[map->chunkCount++] = newNodes;
+	  newNodes[--chunkCount].nextInMap = map->freeNodes;
+	  while (chunkCount--)
+	    {
+	      newNodes[chunkCount].nextInMap = &newNodes[chunkCount+1];
 	    }
-	    map->freeNodes = newNodes;
+	  map->freeNodes = newNodes;
 	}
     }
 }
@@ -299,118 +315,126 @@ FastMapMoreNodes(FastMapTable map)
 static INLINE FastMapNode
 FastMapNewNode(FastMapTable map, FastMapItem key, FastMapItem value)
 {
-    FastMapNode	node = map->freeNodes;
+  FastMapNode	node = map->freeNodes;
 
-    if (node == 0) {
-	FastMapMoreNodes(map);
-	node = map->freeNodes;
-	if (node == 0) {
-	    return 0;
+  if (node == 0)
+    {
+      FastMapMoreNodes(map);
+      node = map->freeNodes;
+      if (node == 0)
+	{
+	  return 0;
 	}
     }
 
-    map->freeNodes = node->nextInMap;
-    node->key = key;
-    node->value = value;
-    node->nextInBucket = 0;
-    node->nextInMap = 0;
+  map->freeNodes = node->nextInMap;
+  node->key = key;
+  node->value = value;
+  node->nextInBucket = 0;
+  node->nextInMap = 0;
 
-    return node;
+  return node;
 }
 #else
 static INLINE FastMapNode
 FastMapNewNode(FastMapTable map, FastMapItem key)
 {
-    FastMapNode	node = map->freeNodes;
+  FastMapNode	node = map->freeNodes;
 
-    if (node == 0) {
-	FastMapMoreNodes(map);
-	node = map->freeNodes;
-	if (node == 0) {
-	    return 0;
+  if (node == 0)
+    {
+      FastMapMoreNodes(map);
+      node = map->freeNodes;
+      if (node == 0)
+	{
+	  return 0;
 	}
     }
 
-    map->freeNodes = node->nextInMap;
-    node->key = key;
-    node->nextInBucket = 0;
-    node->nextInMap = 0;
-    return node;
+  map->freeNodes = node->nextInMap;
+  node->key = key;
+  node->nextInBucket = 0;
+  node->nextInMap = 0;
+  return node;
 }
 #endif
 
 static INLINE void
 FastMapFreeNode(FastMapTable map, FastMapNode node)
 {
-    FAST_MAP_RELEASE_KEY(node->key);
+  FAST_MAP_RELEASE_KEY(node->key);
 #if	FAST_MAP_HAS_VALUE
-    FAST_MAP_RELEASE_VAL(node->value);
+  FAST_MAP_RELEASE_VAL(node->value);
 #endif
-    node->nextInMap = map->freeNodes;
-    map->freeNodes = node;
+  node->nextInMap = map->freeNodes;
+  map->freeNodes = node;
 }
 
 static INLINE FastMapNode 
 FastMapNodeForKeyInBucket(FastMapBucket bucket, FastMapItem key)
 {
-    FastMapNode	node = bucket->firstNode;
+  FastMapNode	node = bucket->firstNode;
 
-    while ((node != 0) && FAST_MAP_EQUAL(node->key, key) == NO) {
-	node = node->nextInBucket;
+  while ((node != 0) && FAST_MAP_EQUAL(node->key, key) == NO)
+    {
+      node = node->nextInBucket;
     }
-    return node;
+  return node;
 }
 
 static INLINE FastMapNode 
 FastMapNodeForKey(FastMapTable map, FastMapItem key)
 {
-    FastMapBucket	bucket;
-    FastMapNode		node;
+  FastMapBucket	bucket;
+  FastMapNode	node;
 
-    bucket = FastMapBucketForKey(map, key);
-    node = FastMapNodeForKeyInBucket(bucket, key);
-    return node;
+  bucket = FastMapBucketForKey(map, key);
+  node = FastMapNodeForKeyInBucket(bucket, key);
+  return node;
 }
 
 static INLINE void
 FastMapResize(FastMapTable map, size_t new_capacity)
 {
-    FastMapBucket	new_buckets;
-    size_t		size = 1;
-    size_t		old = 1;
+  FastMapBucket	new_buckets;
+  size_t	size = 1;
+  size_t	old = 1;
 
-    /*
-     *	Find next size up in the fibonacci series
-     */
-    while (size < new_capacity) {
-	size_t	tmp = old;
-	old = size;
-	size += tmp;
+  /*
+   *	Find next size up in the fibonacci series
+   */
+  while (size < new_capacity)
+    {
+      size_t	tmp = old;
+      old = size;
+      size += tmp;
     }
-    /*
-     *	Avoid 8 - since hash functions frequently generate uneven distributions
-     *	around powers of two - we don't want lots of keys falling into a single
-     *	bucket.
-     */
-    if (size == 8) size++;
+  /*
+   *	Avoid 8 - since hash functions frequently generate uneven distributions
+   *	around powers of two - we don't want lots of keys falling into a single
+   *	bucket.
+   */
+  if (size == 8) size++;
 
-    /*
-     *	Make a new set of buckets for this map
-     */
-    new_buckets = (FastMapBucket)NSZoneCalloc(map->zone, size,
+  /*
+   *	Make a new set of buckets for this map
+   */
+  new_buckets = (FastMapBucket)NSZoneCalloc(map->zone, size,
 		sizeof(FastMapBucket_t));
-    if (new_buckets != 0) {
-	FastMapRemangleBuckets(map,
+  if (new_buckets != 0)
+    {
+      FastMapRemangleBuckets(map,
 				  map->buckets,
 				  map->bucketCount,
 				  new_buckets,
 				  size);
 
-	if (map->buckets != 0) {
-	    NSZoneFree(map->zone, map->buckets);
+      if (map->buckets != 0)
+	{
+	  NSZoneFree(map->zone, map->buckets);
 	}
-	map->buckets = new_buckets;
-	map->bucketCount = size;
+      map->buckets = new_buckets;
+      map->bucketCount = size;
     }
 }
 
@@ -422,8 +446,9 @@ FastMapRightSizeMap(FastMapTable map, size_t capacity)
    * provide evidence of its goodness, please get in touch with me, Albin
    * L. Jones <Albin.L.Jones@Dartmouth.EDU>. */
 
-    if (3 * capacity >= 4 * map->bucketCount) {
-	FastMapResize(map, (3 * capacity)/4 + 1);
+  if (3 * capacity >= 4 * map->bucketCount)
+    {
+      FastMapResize(map, (3 * capacity)/4 + 1);
     }
 }
 
@@ -458,100 +483,106 @@ FastMapRightSizeMap(FastMapTable map, size_t capacity)
 static INLINE FastMapEnumerator_t
 FastMapEnumeratorForMap(FastMapTable map)
 {
-    FastMapEnumerator_t	enumerator;
+  FastMapEnumerator_t	enumerator;
 
-    enumerator.map = map;
-    enumerator.node = map->firstNode;
+  enumerator.map = map;
+  enumerator.node = map->firstNode;
 
-    return enumerator;
+  return enumerator;
 }
 
 static INLINE FastMapNode 
 FastMapEnumeratorNextNode(FastMapEnumerator enumerator)
 {
-    FastMapNode node;
+  FastMapNode node;
 
-    node = enumerator->node;
+  node = enumerator->node;
 
-    if (node != 0)
-	enumerator->node = node->nextInMap;
+  if (node != 0)
+    enumerator->node = node->nextInMap;
 
-    /* Send back NODE. */
-    return node;
+  /* Send back NODE. */
+  return node;
 }
 
 #if	FAST_MAP_HAS_VALUE
 static INLINE FastMapNode
 FastMapAddPairNoRetain(FastMapTable map, FastMapItem key, FastMapItem value)
 {
-    FastMapNode node;
+  FastMapNode node;
 
-    node = FastMapNewNode(map, key, value);
+  node = FastMapNewNode(map, key, value);
 
-    if (node != 0) {
-	FastMapRightSizeMap(map, map->nodeCount);
-	FastMapAddNodeToMap(map, node);
+  if (node != 0)
+    {
+      FastMapRightSizeMap(map, map->nodeCount);
+      FastMapAddNodeToMap(map, node);
     }
-    return node;
+  return node;
 }
 
 static INLINE FastMapNode
 FastMapAddPair(FastMapTable map, FastMapItem key, FastMapItem value)
 {
-    FastMapNode node;
+  FastMapNode node;
 
-    FAST_MAP_RETAIN_KEY(key);
-    FAST_MAP_RETAIN_VAL(value);
-    node = FastMapNewNode(map, key, value);
+  FAST_MAP_RETAIN_KEY(key);
+  FAST_MAP_RETAIN_VAL(value);
+  node = FastMapNewNode(map, key, value);
 
-    if (node != 0) {
-	FastMapRightSizeMap(map, map->nodeCount);
-	FastMapAddNodeToMap(map, node);
+  if (node != 0)
+    {
+      FastMapRightSizeMap(map, map->nodeCount);
+      FastMapAddNodeToMap(map, node);
     }
-    return node;
+  return node;
 }
 #else
 static INLINE FastMapNode
 FastMapAddKeyNoRetain(FastMapTable map, FastMapItem key)
 {
-    FastMapNode node;
+  FastMapNode node;
 
-    node = FastMapNewNode(map, key);
+  node = FastMapNewNode(map, key);
 
-    if (node != 0) {
-	FastMapRightSizeMap(map, map->nodeCount);
-	FastMapAddNodeToMap(map, node);
+  if (node != 0)
+    {
+      FastMapRightSizeMap(map, map->nodeCount);
+      FastMapAddNodeToMap(map, node);
     }
-    return node;
+  return node;
 }
 
 static INLINE FastMapNode
 FastMapAddKey(FastMapTable map, FastMapItem key)
 {
-    FastMapNode node;
+  FastMapNode node;
 
-    FAST_MAP_RETAIN_KEY(key);
-    node = FastMapNewNode(map, key);
+  FAST_MAP_RETAIN_KEY(key);
+  node = FastMapNewNode(map, key);
 
-    if (node != 0) {
-	FastMapRightSizeMap(map, map->nodeCount);
-	FastMapAddNodeToMap(map, node);
+  if (node != 0)
+    {
+      FastMapRightSizeMap(map, map->nodeCount);
+      FastMapAddNodeToMap(map, node);
     }
-    return node;
+  return node;
 }
 #endif
 
 static INLINE void
 FastMapRemoveKey(FastMapTable map, FastMapItem key)
 {
-    FastMapBucket	bucket = FastMapBucketForKey(map, key);
+  FastMapBucket	bucket = FastMapBucketForKey(map, key);
 
-    if (bucket != 0) {
-	FastMapNode	node = FastMapNodeForKeyInBucket(bucket, key);
+  if (bucket != 0)
+    {
+      FastMapNode	node = FastMapNodeForKeyInBucket(bucket, key);
 
-	if (node != 0) {
-	    FastMapRemoveNodeFromMap(map, bucket, node);
-	    FastMapFreeNode(map, node);
+      if (node != 0)
+	{
+	  FastMapRemoveNodeFromMap(map, bucket, node);
+	  FastMapFreeNode(map, node);
 	}
     }
 }
@@ -559,58 +590,63 @@ FastMapRemoveKey(FastMapTable map, FastMapItem key)
 static INLINE void
 FastMapCleanMap(FastMapTable map)
 {
-    FastMapBucket	bucket = map->buckets;
-    int			i;
+  FastMapBucket	bucket = map->buckets;
+  int		i;
 
-    for (i = 0; i < map->bucketCount; i++) {
-	while (bucket->nodeCount != 0) {
-	    FastMapNode	node = bucket->firstNode;
+  for (i = 0; i < map->bucketCount; i++)
+    {
+      while (bucket->nodeCount != 0)
+	{
+	  FastMapNode	node = bucket->firstNode;
 
-	    FastMapRemoveNodeFromBucket(bucket, node);
-	    FastMapFreeNode(map, node);
+	  FastMapRemoveNodeFromBucket(bucket, node);
+	  FastMapFreeNode(map, node);
 	}
-	bucket++;
+      bucket++;
     }
-    map->firstNode = 0;
-    map->nodeCount = 0;
+  map->firstNode = 0;
+  map->nodeCount = 0;
 }
 
 static INLINE void
 FastMapEmptyMap(FastMapTable map)
 {
-    int			i;
+  int	i;
 
-    FastMapCleanMap(map);
-    if (map->buckets != 0) {
-	NSZoneFree(map->zone, map->buckets);
-	map->buckets = 0;
-	map->bucketCount = 0;
+  FastMapCleanMap(map);
+  if (map->buckets != 0)
+    {
+      NSZoneFree(map->zone, map->buckets);
+      map->buckets = 0;
+      map->bucketCount = 0;
     }
-    if (map->nodeChunks != 0) {
-	for (i = 0; i < map->chunkCount; i++) {
-	    NSZoneFree(map->zone, map->nodeChunks[i]);
+  if (map->nodeChunks != 0)
+    {
+      for (i = 0; i < map->chunkCount; i++)
+	{
+	  NSZoneFree(map->zone, map->nodeChunks[i]);
 	}
-	map->chunkCount = 0;
-	NSZoneFree(map->zone, map->nodeChunks);
-	map->nodeChunks = 0;
+      map->chunkCount = 0;
+      NSZoneFree(map->zone, map->nodeChunks);
+      map->nodeChunks = 0;
     }
-    map->freeNodes = 0;
-    map->zone = 0;
+  map->freeNodes = 0;
+  map->zone = 0;
 }
 
 static INLINE FastMapTable 
 FastMapInitWithZoneAndCapacity(FastMapTable map, NSZone *zone, size_t capacity)
 {
-    map->zone = zone;
-    map->nodeCount = 0;
-    map->bucketCount = 0;
-    map->firstNode = 0;
-    map->buckets = 0;
-    map->nodeChunks = 0;
-    map->freeNodes = 0;
-    map->chunkCount = 0;
-    FastMapRightSizeMap(map, capacity);
-    FastMapMoreNodes(map);
+  map->zone = zone;
+  map->nodeCount = 0;
+  map->bucketCount = 0;
+  map->firstNode = 0;
+  map->buckets = 0;
+  map->nodeChunks = 0;
+  map->freeNodes = 0;
+  map->chunkCount = 0;
+  FastMapRightSizeMap(map, capacity);
+  FastMapMoreNodes(map);
 }
 
 

@@ -164,11 +164,11 @@
   unsigned		(*xRefImp)(id, SEL, unsigned*);
   IMP			dValImp;	/* Method to decode data with.	*/
 #ifndef	_IN_NSUNARCHIVER_M
-#define	GSUnarchiverArray	void*
+#define	FastArray	void*
 #endif
-  GSUnarchiverArray	clsMap;		/* Class crossreference map.	*/
-  GSUnarchiverArray	objMap;		/* Object crossreference map.	*/
-  GSUnarchiverArray	ptrMap;		/* Pointer crossreference map.	*/
+  FastArray		clsMap;		/* Class crossreference map.	*/
+  FastArray		objMap;		/* Object crossreference map.	*/
+  FastArray		ptrMap;		/* Pointer crossreference map.	*/
 #ifndef	_IN_NSUNARCHIVER_M
 #undef	GSUnarchiverArray
 #endif
