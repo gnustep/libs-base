@@ -1,3 +1,9 @@
+2003-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([GSXPathContext-evaluateExpression:])
+	Test for NULL return from libxml and return nil rather than trying
+	to dereference the null pointer.
+
 2003-05-19  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.7.0.
