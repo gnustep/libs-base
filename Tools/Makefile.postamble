@@ -15,11 +15,11 @@
 # after-all::
 
 # Things to do before installing
-before-install::
-	$(INSTALL) -m 05755 gdomap $(GNUSTEP_SYSTEM_ROOT)/Tools
+# before-install::
 
 # Things to do after installing
-# after-install::
+after-install::
+	$(INSTALL) -m 05755 gdomap $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR)
 
 # Things to do before uninstalling
 # before-uninstall::

@@ -230,7 +230,8 @@
       id object;
       string = [key description];
 
-      if ([string rangeOfCharacterFromSet: quotables].length > 0)
+      if ([string length] == 0
+	|| [string rangeOfCharacterFromSet: quotables].length > 0)
       	[desc appendFormat: @"%*s%s = ", level, "", [string quotedCString]];
       else
 	[desc appendFormat: @"%*s%s = ", level, "", [string cStringNoCopy]];
@@ -246,7 +247,8 @@
 	  /* This should be a string or number, so decide if we need to 
 	     quote it */
 	  string = [object description];
-	  if ([string rangeOfCharacterFromSet: quotables].length > 0)
+	  if ([string length] == 0
+		|| [string rangeOfCharacterFromSet: quotables].length > 0)
 	    [desc appendFormat: @"%s;\n", [string quotedCString]];
 	  else
 	    [desc appendFormat: @"%s;\n", [string cStringNoCopy]];

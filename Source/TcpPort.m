@@ -64,8 +64,8 @@
 
 #define	GDOMAP	1	/* 1 = Use name server.	*/
 #define	stringify_it(X)	#X
-#define	make_gdomap_cmd(X)	stringify_it(X) "/Tools/gdomap &"
-#define	make_gdomap_err(X)	"check that " stringify_it(X) "/Tools/gdomap is running and owned by root."
+#define	make_gdomap_cmd(X)	stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap &"
+#define	make_gdomap_err(X)	"check that " stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap is running and owned by root."
 
 #endif /* !__WIN32__ */
 #include <string.h>		/* for memset() and strchr() */
