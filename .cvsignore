@@ -1,5 +1,3 @@
-
-
 .date .name .patch* .snap*
 =* *errs *.tar.gz *.patch *-patch
 config.cache config.guess config.log config.status
@@ -7,3 +5,4 @@ config.mak
 base.make
 gnustep-base.spec
 gnustep-base-debug.spec
+autom4te.cache
