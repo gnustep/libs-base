@@ -4,7 +4,8 @@ Mon Jun 14 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Source/NSCTemplateValue.m: Update for MacOS-X and for GC
 	* Source/NSNumber.m: Update for MacOS-X and for GC
 	* Source/NSConcreteNumber.m: Update for MacOS-X and for GC
-	* Source/include/NSValue.m: Update for MacOS-X and for GC
+	* Source/NSValue.m: Update for MacOS-X and for GC
+	* Source/include/NSValue.h: Update for MacOS-X and for GC
 
 Sat Jun 12 15:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
