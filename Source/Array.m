@@ -133,7 +133,7 @@
 }
 
 /* This must work without sending any messages to content objects */
-- empty
+- _empty
 {
   _count = 0;
   return self;
@@ -141,6 +141,7 @@
 
 - (void) dealloc
 {
+  [self empty];
   OBJC_FREE(_contents_array);
   [super dealloc];
 }
