@@ -1,6 +1,6 @@
 #
 #  Examples makefile for Objective-C Class Library
-#  Copyright (C) 1993 Free Software Foundation, Inc.
+#  Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@cs.rochester.edu>
 #  Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -118,10 +118,7 @@ distclean: clean
 realclean: distclean
 	rm -f TAGS
 
-dist-dir: $(srcdir)/../.fname
-	@echo Run make dist from the parent directory.
-
-dist: $(DISTFILES) dist-dir
+copy-dist: $(DISTFILES) 
 	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/examples
 	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/examples
 

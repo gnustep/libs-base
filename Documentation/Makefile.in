@@ -108,12 +108,9 @@ realclean: distclean
 	rm -f libobjects.info version.texi \
 		README TODO INSTALL NEWS ANNOUNCE
 
-dist-dir: $(srcdir)/../.fname
-	@echo Run "make dist" from the parent directory.
-
 TOP_FILES = ../TODO ../INSTALL ../README ../ANNOUNCE ../NEWS ../ADVERTISEMENT
 
-dist: $(DISTFILES) dist-dir $(TOP_FILES)
+copy-dist: $(DISTFILES) $(TOP_FILES)
 	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/doc
 	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/doc
 	ln $(TOP_FILES) $(srcdir)/../`cat $(srcdir)/../.fname`
