@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Load version variables
+. Version
+
+cat gstep-base-$(VERSION).tar.gz \
+	 | rsh alpha.gnu.ai.mit.edu \
+	  '(cd ~ftp/gnu; \
+	    rm -f gstep-base*; \
+	    cat > gstep-base-$(VERSION).tar.gz)'
