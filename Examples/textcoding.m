@@ -47,6 +47,9 @@ int main()
 
   /* Write them to a file */
 
+  /* Create an instances of the Coder class, specify that we 
+     want human-readable "Text"-style, instead of "Binary"-style
+     coding. */
   coder = [[Coder alloc] initForWritingToFile: @"./textcoding.txt"
 	    withCStreamClass: [TextCStream class]];
   [coder encodeObject:set withName:@"Test Set"];
