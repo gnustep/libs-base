@@ -819,6 +819,7 @@ handle_printf_atsign (FILE *stream,
   char *src_ptr,*dest_ptr;
   int len,quote;
   unsigned char ch;
+  NSString *ret;
 
   /* xxx Really should make this work with unichars. */
 
@@ -843,7 +844,7 @@ handle_printf_atsign (FILE *stream,
   if (quote)
     len+=2;
 
-  dest = (char*) malloc (len+1);
+  dest = (char*) objc_malloc (len+1);
 
   src_ptr = (char*) src;
   dest_ptr = dest;
@@ -881,7 +882,9 @@ handle_printf_atsign (FILE *stream,
     *(dest_ptr++) = '\"';
   *dest_ptr = '\0';
 
-  return [NSString stringWithCString:dest];
+  ret = [NSString stringWithCString:dest];
+  objc_free (dest);
+  return ret;
 }
 
 - (BOOL) writeToFile: (NSString*)filename
