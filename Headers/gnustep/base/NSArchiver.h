@@ -30,6 +30,7 @@
 
 @interface NSArchiver : NSCoder
 {
+@private
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_dst;		/* Serialization destination.	*/
   IMP		_serImp;	/* Method to serialize with.	*/
@@ -137,6 +138,7 @@
 
 @interface NSUnarchiver : NSCoder
 {
+@private
   NSData		*data;		/* Data to write into.		*/
   Class			dataClass;	/* What sort of data is it?	*/
   id			src;		/* Deserialization source.	*/

@@ -881,7 +881,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 #if	GS_HAVE_I64
 	  bigval = val;
 #else
-	  val = GSSwapBigI64ToHost(val);
+	  bigval = GSSwapBigI64ToHost(val);
 #endif
 	  break;
 	}

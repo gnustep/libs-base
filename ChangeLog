@@ -1,3 +1,15 @@
+2000-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSConnection.m: Improved coder caching and added code for
+	multiple thread support.
+	* Source/GSPortCoder.m: Improved performance of class version
+	lookup and tidied.
+	* Source/GSTcpPort.m: Ensure we don't remain in the run loop any
+	longer than necessary.
+	* Source/NSArchiver.m: minor tidyup
+	* Source/NSDistantObject.m: minor performance tweak
+	* Source/NSUnarchiver.m: minor tidyup.
+
 2000-07-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSConnection.m: Cache coders fro performance.

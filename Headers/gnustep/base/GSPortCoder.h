@@ -72,7 +72,7 @@
 #ifndef	_IN_PORT_CODER_M
 #undef	GSIArray
 #endif
-  NSMutableArray	*_cInfo;	/* Class version information.	*/
+  NSMutableDictionary	*_cInfo;	/* Class version information.	*/
   unsigned		_cursor;	/* Position in data buffer.	*/
   unsigned		_version;	/* Version of archiver used.	*/
   NSZone		*_zone;		/* Zone for allocating objs.	*/
