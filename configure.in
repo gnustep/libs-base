@@ -960,7 +960,7 @@ AC_CONFIG_SUBDIRS(Source/mframe)
 # Record the version
 #--------------------------------------------------------------------
 if test -f "Version"; then
-  . Version
+  . ./Version
 fi
 AC_SUBST(VERSION)
 AC_SUBST(MAJOR_VERSION)
