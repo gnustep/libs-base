@@ -83,6 +83,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSLock.h>
+#include "gnustep/base/GSCategories.h"
 
 #include "GSPrivate.h"
 

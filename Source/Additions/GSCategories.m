@@ -507,6 +507,31 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 
 @end
 
+/**
+ * GNUstep specific (non-standard) additions to the NSNumber class.
+ */
+@implementation NSNumber(GSCategories)
+
++ (NSValue*) valueFromString: (NSString*)string
+{
+  /* FIXME: implement this better */
+  const char *str;
+
+  str = [string cString];
+  if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0 
+      || strchr(str, 'E') >= 0)
+    return [NSNumber numberWithDouble: atof(str)];
+  else if (strchr(str, '-') >= 0)
+    return [NSNumber numberWithInt: atoi(str)];
+  else
+    return [NSNumber numberWithUnsignedInt: atoi(str)];
+  return [NSNumber numberWithInt: 0];
+}
+
+@end
+
+
+
 /** 
  * Extension methods for the NSObject class
  */
@@ -579,8 +604,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 
 @end
 
-/** 
- * Extension methods for the NSObject class
+/**
+ * GNUstep specific (non-standard) additions to the NSString class.
  */
 @implementation NSString (GSCategories)
 
@@ -606,8 +631,139 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   return [self substringToIndex: ([self length] - [suffix length])];
 }
 
+/**
+ * Returns a string formed by removing leading white space from the
+ * receiver.
+ */
+- (NSString*) stringByTrimmingLeadSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	start = 0;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      SEL caiSel = @selector(characterAtIndex:);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+	{
+	  start++;
+	}
+      if (start > 0)
+	{
+	  return [self substringFromIndex: start];
+	}
+    }
+  return self;
+}
+
+/**
+ * Returns a string formed by removing trailing white space from the
+ * receiver.
+ */
+- (NSString*) stringByTrimmingTailSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	end = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      SEL caiSel = @selector(characterAtIndex:);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (end > 0)
+	{
+	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
+	    {
+	      break;
+	    }
+	  end--;
+	}
+      if (end < length)
+	{
+	  return [self substringToIndex: end];
+	}
+    }
+  return self;
+}
+
+/**
+ * Returns a string formed by removing both leading and trailing
+ * white space from the receiver.
+ */
+- (NSString*) stringByTrimmingSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	start = 0;
+      unsigned	end = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      SEL caiSel = @selector(characterAtIndex:);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+	{
+	  start++;
+	}
+      while (end > start)
+	{
+	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
+	    {
+	      break;
+	    }
+	  end--;
+	}
+      if (start > 0 || end < length)
+	{
+          if (start < end)
+	    {
+	      return [self substringFromRange:
+		NSMakeRange(start, end - start)];
+	    }
+          else
+	    {
+	      return [NSString string];
+	    }
+	}
+    }
+  return self;
+}
+
+/**
+ * Returns a string in which any (and all) occurrances of
+ * replace in the receiver have been replaced with by.
+ * Returns the receiver if replace
+ * does not occur within the receiver.  NB. an empty string is
+ * not considered to exist within the receiver.
+ */
+- (NSString*) stringByReplacingString: (NSString*)replace
+			   withString: (NSString*)by
+{
+  NSRange range = [self rangeOfString: replace];
+
+  if (range.length > 0)
+    {
+      NSMutableString	*tmp = [self mutableCopy];
+      NSString		*str;
+
+      [tmp replaceString: replace withString: by];
+      str = AUTORELEASE([tmp copy]);
+      RELEASE(tmp);
+      return str;
+    }
+  else
+    return self;
+}
+
 @end
 
+/**
+ * GNUstep specific (non-standard) additions to the NSMutableString class.
+ */
 @implementation NSMutableString (GSCategories)
 
 /**
@@ -631,6 +787,83 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   NSCAssert2([self hasPrefix: prefix],
     @"'%@' does not have the prefix '%@'", self, prefix);
   [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
+}
+
+/**
+ * Replaces all occurrances of the string replace with the string by
+ * in the receiver.<br />
+ * Has no effect if replace does not occur within the
+ * receiver.  NB. an empty string is not considered to exist within
+ * the receiver.<br />
+ * Calls - replaceOccurrencesOfString:withString:options:range: passing
+ * zero for the options and a range from 0 with the length of the receiver.
+ */
+- (void) replaceString: (NSString*)replace
+	    withString: (NSString*)by
+{
+  [self replaceOccurrencesOfString: replace
+			withString: by
+			   options: 0
+			     range: NSMakeRange(0, [self length])];
+}
+
+/**
+ * Removes all leading white space from the receiver.
+ */
+- (void) trimLeadSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	start = 0;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      SEL caiSel = @selector(characterAtIndex:);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+	{
+	  start++;
+	}
+      if (start > 0)
+	{
+	  [self deleteCharactersInRange: NSMakeRange(0, start)];
+	}
+    }
+}
+
+/**
+ * Removes all trailing white space from the receiver.
+ */
+- (void) trimTailSpaces
+{
+  unsigned	length = [self length];
+
+  if (length > 0)
+    {
+      unsigned	end = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      SEL caiSel = @selector(characterAtIndex:);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (end > 0 && isspace((*caiImp)(self, caiSel, end - 1)))
+	{
+	  end--;
+	}
+      if (end < length)
+	{
+	  [self deleteCharactersInRange: NSMakeRange(end, length - end)];
+	}
+    }
+}
+
+/**
+ * Removes all leading or trailing white space from the receiver.
+ */
+- (void) trimSpaces
+{
+  [self trimTailSpaces];
+  [self trimLeadSpaces];
 }
 
 @end

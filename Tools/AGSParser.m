@@ -22,9 +22,7 @@
 
 #include "AGSParser.h"
 #include "gnustep/base/GNUstep.h"
-#ifdef NeXT_Foundation_LIBRARY
 #include "gnustep/base/GSCategories.h"
-#endif
 
 @implementation	AGSParser
 

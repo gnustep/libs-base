@@ -1,3 +1,18 @@
+2003-03-30  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSString.h: (stringByTrimmingLeadSpaces,
+	stringByTrimmingTailSpaces, stringByTrimmingSpaces, 
+	stringByReplacingString:withString:, replaceString:withString:,
+	trimLeadSpaces, trimTailSpaces, trimSpaces): Move to GSCategories.h
+	* Headers/gnustep/base/NSValue.h (valueFromString): Idem.
+	* Source/NSNumber.m (valueFromString:): Move to GSCategories.m
+	* Source/NSString.m: Idem as above.
+	* Source/Additions/GSCategories.m: Methods moved here.
+	* Source/Additions/GSCompatibility.h: Rearrange, add
+	NSDistantObject, NSFileHandle category, GSCurrentThreadDictionary().
+	* Source/Additions/GSCompatibility.m: Add GSCurrentThreadDictionary
+	NSDistantObject, and NSFileHandle methods.
+
 2003-03-28 20:48  Alexander Malmberg <alexander@malmberg.org>
 
 	* configure.ac: Fail the configure if neither ffcall nor ffi is

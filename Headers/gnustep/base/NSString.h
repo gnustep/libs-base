@@ -366,21 +366,8 @@ extern struct objc_class _NSConstantStringClassReference;
 
 #ifndef NO_GNUSTEP
 
-@interface NSString (GNUstep)
-- (NSString*) stringByReplacingString: (NSString*)replace
-			   withString: (NSString*)by;
-- (NSString*) stringByTrimmingLeadSpaces;
-- (NSString*) stringByTrimmingTailSpaces;
-- (NSString*) stringByTrimmingSpaces;
-@end
-
 @interface NSMutableString (GNUstep)
 - (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-	    withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
 @end
 #endif /* NO_GNUSTEP */
 
