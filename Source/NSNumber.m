@@ -182,6 +182,95 @@
   return [NSNumber numberWithInt: 0];
 }
 
+- (id)initWithBool:(BOOL)value
+{
+    [self dealloc];
+    return self=[[NSBoolNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithChar:(char)value
+{
+    [self dealloc];
+    return self=[[NSCharNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithDouble:(double)value
+{
+    [self dealloc];
+    return self=[[NSDoubleNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithFloat:(float)value
+{
+    [self dealloc];
+    return self=[[NSFloatNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithInt:(int)value
+{
+    [self dealloc];
+    return self=[[NSIntNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithLong:(long)value
+{
+    [self dealloc];
+    return self=[[NSLongNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithLongLong:(long long)value
+{
+    [self dealloc];
+    return self=[[NSLongLongNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithShort:(short)value
+{
+    [self dealloc];
+    return self=[[NSShortNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithUnsignedChar:(unsigned char)value
+{
+    [self dealloc];
+    return self=[[NSUCharNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithUnsignedInt:(unsigned int)value
+{
+    [self dealloc];
+    return self=[[NSUIntNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithUnsignedLong:(unsigned long)value
+{
+    [self dealloc];
+    return self=[[NSULongNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithUnsignedLongLong:(unsigned long long)value
+{
+    [self dealloc];
+    return self=[[NSULongLongNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (id)initWithUnsignedShort:(unsigned short)value
+{
+    [self dealloc];
+    return self=[[NSUShortNumber alloc] initValue:&value withObjCType:NULL];
+}
+
+- (NSString*) description
+{
+    return [self descriptionWithLocale: nil];
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+{
+    [self subclassResponsibility:_cmd];
+    return nil;
+}
+
 /* All the rest of these methods must be implemented by a subclass */
 - (BOOL)boolValue
 {
@@ -233,8 +322,7 @@
 
 - (NSString *)stringValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+    return [self descriptionWithLocale: nil];
 }
 
 - (unsigned char)unsignedCharValue
@@ -273,6 +361,18 @@
     return 0;
 }
 
+- (unsigned) hash
+{
+    [self subclassResponsibility:_cmd];
+    return 0;
+}
+
+- (BOOL)isEqualToNumber:(NSNumber *)otherNumber
+{
+    [self subclassResponsibility:_cmd];
+    return NO;
+}
+
 // NSCoding (done by subclasses)
 - (void)encodeWithCoder:(NSCoder *)coder
 {
@@ -284,11 +384,6 @@
     [NSException raise:NSInconsistentArchiveException
 	format:@"Cannot unarchive from NSNumber class - Need NSValueDecoder."];
     return self;
-}
-
-- description
-{
-  return [self stringValue];
 }
 
 @end

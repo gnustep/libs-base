@@ -1,4 +1,4 @@
-/* Interface for NSArray for GNUStep
+/* Interface for NSValue for GNUStep
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -74,6 +74,20 @@
 + (NSNumber*) numberWithUnsignedLongLong: (unsigned long long)value;
 + (NSNumber*) numberWithUnsignedShort: (unsigned short)value;
 
+- (id)initWithBool:(BOOL)value;
+- (id)initWithChar:(char)value;
+- (id)initWithDouble:(double)value;
+- (id)initWithFloat:(float)value;
+- (id)initWithInt:(int)value;
+- (id)initWithLong:(long)value;
+- (id)initWithLongLong:(long long)value;
+- (id)initWithShort:(short)value;
+- (id)initWithUnsignedChar:(unsigned char)value;
+- (id)initWithUnsignedInt:(unsigned int)value;
+- (id)initWithUnsignedLong:(unsigned long)value;
+- (id)initWithUnsignedLongLong:(unsigned long long)value;
+- (id)initWithUnsignedShort:(unsigned short)value;
+
 // Accessing Data 
 
 - (BOOL) boolValue;
@@ -91,7 +105,11 @@
 - (unsigned long) unsignedLongValue;
 - (unsigned short) unsignedShortValue;
 
+- (NSString*) description;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+
 - (NSComparisonResult) compare: (NSNumber*)otherNumber;
+- (BOOL) isEqualToNumber: (NSNumber*)otherNumber;
 
 @end
 

@@ -720,6 +720,7 @@ static NSMapTable* port_number_2_port;
   p->_port_socket = socket (AF_INET, SOCK_STREAM, 0);
   if (p->_port_socket < 0)
     {
+      [p release];
       [NSException raise: NSInternalInconsistencyException
 	  format: @"[TcpInPort +newForReceivingFromPortNumber:] socket(): %s",
 	  strerror(errno)];
@@ -779,6 +780,7 @@ static NSMapTable* port_number_2_port;
 	  }
 	}
 	if (ok == NO) {
+	  [p release];
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"[TcpInPort +newForReceivingFromPortNumber:] bind(): %s",
 	    strerror(errno)];
@@ -796,6 +798,7 @@ static NSMapTable* port_number_2_port;
 			 &size)
 	    < 0)
 	  {
+	    [p release];
 	    [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort +newForReceivingFromPortNumber:] getsockname(): %s",
 	      strerror(errno)];
@@ -811,6 +814,7 @@ static NSMapTable* port_number_2_port;
        unique host address that can identify us across the network. */
     if (gethostname (hostname, len) < 0)
       {
+	[p release];
 	[NSException raise: NSInternalInconsistencyException
 	  format: @"[TcpInPort +newForReceivingFromPortNumber:] gethostname(): %s",
 	  strerror(errno)];
@@ -832,6 +836,7 @@ static NSMapTable* port_number_2_port;
   /* xxx Make this "10" a class variable? */
   if (listen (p->_port_socket, 10) < 0)
     {
+      [p release];
       [NSException raise: NSInternalInconsistencyException
 	format: @"[TcpInPort +newForReceivingFromPortNumber:] listen(): %s",
 	strerror(errno)];
@@ -860,7 +865,7 @@ static NSMapTable* port_number_2_port;
   if (p) {
     int	port = [p portNumber];
 
-    if (nameServer([name cStringNoCopy], 0, GDO_REGISTER, &sin, port, 1) == 0) {
+    if (nameServer([name cString], 0, GDO_REGISTER, &sin, port, 1) == 0) {
       [p release];
       return nil;
     }
@@ -868,7 +873,7 @@ static NSMapTable* port_number_2_port;
   return p;
 #else
   return [self newForReceivingFromPortNumber: 
-		 name_2_port_number ([name cStringNoCopy])];
+		 name_2_port_number ([name cString])];
 #endif	/* GDOMAP */
 }
 
@@ -990,7 +995,7 @@ static NSMapTable* port_number_2_port;
 	fprintf (stderr, 
 		 "%s: Accepted connection from\n %s.\n",
 		 object_get_class_name (self),
-		 [[op description] cStringNoCopy]);
+		 [[op description] cString]);
       [NotificationDispatcher
 	postNotificationName: InPortAcceptedClientNotification
 	object: self
@@ -1154,7 +1159,7 @@ assert(type == ET_RPORT);
     fprintf (stderr, 
 	     "%s: Closed connection from\n %s\n",
 	     object_get_class_name (self),
-	     [[p description] cStringNoCopy]);
+	     [[p description] cString]);
 
   packet = NSMapGet (_client_sock_2_packet, (void*)s);
   if (packet)
@@ -1198,6 +1203,12 @@ assert(type == ET_RPORT);
       id out_ports[count];
       int i;
 
+      /* These are here, and not in -dealloc, to prevent 
+	 +newForReceivingFromPortNumber: from returning invalid sockets. */
+      NSMapRemove (socket_2_port, (void*)_port_socket);
+      NSMapRemove (port_number_2_port,
+		   (void*)(int) ntohs(_listening_address.sin_port));
+
       for (i = 0; 
 	   NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port);
 	   i++)
@@ -1213,17 +1224,14 @@ assert(type == ET_RPORT);
 	 getting it.  This may help Connection invalidation confusion. 
 	 However, then the process might run out of FD's if the close()
 	 was delayed too long. */
+      if (_port_socket > 0)
+	{
 #ifdef	__WIN32__
-      closesocket (_port_socket);
+          closesocket (_port_socket);
 #else
-      close (_port_socket);
+          close (_port_socket);
 #endif	/* __WIN32__ */
-
-      /* These are here, and not in -dealloc, to prevent 
-	 +newForReceivingFromPortNumber: from returning invalid sockets. */
-      NSMapRemove (socket_2_port, (void*)_port_socket);
-      NSMapRemove (port_number_2_port,
-		   (void*)(int) ntohs(_listening_address.sin_port));
+	}
 
       /* This also posts a NSPortDidBecomeInvalidNotification. */
       [super invalidate];
@@ -1414,15 +1422,20 @@ static NSMapTable *out_port_bag = NULL;
 		      != sockaddr->sin_addr.s_addr))
 		[self error:"Can't change reply port of an out port once set"];
 #else
-	      /* If someone is trying to change the port of this socket, the
-		old one must have died - invalidate it. */
 	      if ((p->_remote_in_port_address.sin_port
 		   != sockaddr->sin_port)
 		  || (p->_remote_in_port_address.sin_addr.s_addr
 		      != sockaddr->sin_addr.s_addr))
 		{
-		  [p invalidate];
-		  p = nil;
+	          NSString *od = [p description];
+
+	          NSMapRemove (out_port_bag, (void*)p);
+	          memcpy (&(p->_remote_in_port_address), 
+		          sockaddr,
+		          sizeof (p->_remote_in_port_address));
+	          NSMapInsert (out_port_bag, (void*)p, (void*)p);
+	          NSLog(@"Out port changed from %@ to %@\n", od,
+			    [p description]);
 		}
 #endif
 	    }
@@ -1434,7 +1447,7 @@ static NSMapTable *out_port_bag = NULL;
 		      sizeof (p->_remote_in_port_address));
 	      if (debug_tcp_port)
 		printf ("TcpOutPort setting remote address\n%s\n",
-			[[self description] cStringNoCopy]);
+			[[self description] cString]);
 	    }
 	}
       if (p)
@@ -1456,6 +1469,7 @@ static NSMapTable *out_port_bag = NULL;
       p->_port_socket = socket (AF_INET, SOCK_STREAM, 0);
       if (p->_port_socket < 0)
 	{
+	  [p release];
 	  [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] socket(): %s",
 	      strerror(errno)];
@@ -1478,9 +1492,7 @@ static NSMapTable *out_port_bag = NULL;
 	 time being, and may get set later by calling
 	 +newForSendingToSockaddr..  with a non-zero socket, and a
 	 non-NULL sockaddr. */
-      p->_remote_in_port_address.sin_family = 0;
-      p->_remote_in_port_address.sin_port = 0;
-      p->_remote_in_port_address.sin_addr.s_addr = 0;
+      memset (&(p->_remote_in_port_address), '\0', sizeof(*sockaddr));
     }
 
   /* xxx Do I need to bind(_port_socket) to this address?  I don't think so. */
@@ -1494,18 +1506,12 @@ static NSMapTable *out_port_bag = NULL;
 
       if (connect (p->_port_socket,
 		   (struct sockaddr*)&(p->_remote_in_port_address), 
-		   sizeof(p->_remote_in_port_address)) 
-	  < 0)
+		   sizeof(p->_remote_in_port_address)) < 0)
 	{
-#if 0
-	    close(p->_port_socket);
-	    [NSException raise: NSInternalInconsistencyException
+	  [p release];
+	  [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] connect(): %s",
 	      strerror(errno)];
-#else
-	[p release];
-	return nil;
-#endif
 	}
 
       /*
@@ -1565,7 +1571,7 @@ static NSMapTable *out_port_bag = NULL;
 	*first_dot = '\0';
     }
   else
-    host_cstring = [hostname cStringNoCopy];
+    host_cstring = [hostname cString];
   hp = gethostbyname ((char*)host_cstring);
   if (!hp)
     [self error: "unknown host: \"%s\"", host_cstring];
@@ -1589,7 +1595,7 @@ static NSMapTable *out_port_bag = NULL;
   int			i;
   id			c = nil;
 
-  found = nameServer([name cStringNoCopy], [hostname cStringNoCopy],
+  found = nameServer([name cString], [hostname cString],
 	GDO_LOOKUP, sin, 0, 100);
   for (i = 0; c == nil && i < found; i++)
     {
@@ -1600,8 +1606,7 @@ static NSMapTable *out_port_bag = NULL;
   return c;
 #else
   return [self newForSendingToPortNumber: 
-		 name_2_port_number ([name cStringNoCopy])
-	       onHost: hostname];;
+		 name_2_port_number ([name cString]) onHost: hostname];;
 #endif	/* GDOMAP */
 }
 
@@ -1700,22 +1705,6 @@ static NSMapTable *out_port_bag = NULL;
 
       _polling_in_port = nil;
 
-      /* This also posts a NSPortDidBecomeInvalidNotification. */
-      [super invalidate];
-
-      /* xxx Perhaps should delay this close() to keep another port from
-	 getting it.  This may help Connection invalidation confusion. */
-    #ifdef	__WIN32__
-      if (closesocket (_port_socket) < 0)
-    #else
-      if (close (_port_socket) < 0)
-    #endif /* __WIN32 */
-	{
-	  [NSException raise: NSInternalInconsistencyException
-	      format: @"[TcpOutPort -invalidate:] close(): %s",
-	      strerror(errno)];
-	}
-
       /* This is here, and not in -dealloc, because invalidated
 	 but not dealloc'ed ports should not be returned from
 	 the out_port_bag in +newForSendingToSockaddr:... */
@@ -1724,6 +1713,25 @@ static NSMapTable *out_port_bag = NULL;
 	 but not dealloc'ed ports should not be returned from
 	 the socket_2_port in +newForSendingToSockaddr:... */
       NSMapRemove (socket_2_port, (void*)_port_socket);
+
+      /* This also posts a NSPortDidBecomeInvalidNotification. */
+      [super invalidate];
+
+      /* xxx Perhaps should delay this close() to keep another port from
+	 getting it.  This may help Connection invalidation confusion. */
+      if (_port_socket > 0)
+	{
+    #ifdef	__WIN32__
+          if (closesocket (_port_socket) < 0)
+    #else
+          if (close (_port_socket) < 0)
+    #endif /* __WIN32 */
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+	          format: @"[TcpOutPort -invalidate:] close(): %s",
+	          strerror(errno)];
+	    }
+	}
 
       [port _connectedOutPortInvalidated: self];
       [port release];

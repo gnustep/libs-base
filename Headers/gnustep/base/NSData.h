@@ -94,6 +94,16 @@
 + (id) dataWithShmID: (int)anID length: (unsigned) length;
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
 + (id) dataWithStaticBytes: (const void*)bytes length: (unsigned) length;
+/*
+ *	-relinquishAllocatedBytes
+ *	For an NSData object with a malloced buffer, returns that buffer and
+ *	removes it from the NSData object, otherwise returns a nul pointer.
+ *	Use with care, preferably when no-one else has retained the NSData
+ *	object - or they will find it's buffer disappearing unexpectedly.
+ *	Once you have used this method, you own the malloced data and are
+ *	responsible for freeing it.
+ */
+- (void*) relinquishAllocatedBytes;
 @end
 
 

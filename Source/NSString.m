@@ -2016,13 +2016,14 @@ else
     unsigned char *buff;
     char t;
     OBJC_MALLOC(buff, char, len+1);
-    for(count=0; count<len; count++)
-      if(!flag)
+    if(!flag)
+      for(count=0; count<len; count++)
         if((t = encode_unitochar([self characterAtIndex: count], encoding)))
           buff[count] = t;
         else
           return nil;
-      else /* lossy */
+    else /* lossy */
+      for(count=0; count<len; count++)
         if((t = encode_unitochar([self characterAtIndex: count], encoding)))
           buff[count] = t;
         else
@@ -2039,7 +2040,7 @@ else
     simple replacement for character */
             buff[count] = '*';
         };
-        buff[count]=0;
+     buff[count]=0;
      return [NSData dataWithBytes: (char *)buff length: count];
     }
     else

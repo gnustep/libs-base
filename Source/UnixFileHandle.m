@@ -631,9 +631,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   NSMutableData*	d;
   int			pos;
+  char			*buf;
 
   [self checkRead];
-  d = [NSMutableData dataWithCapacity:len];
+  buf = objc_malloc(len);
+  d = [NSMutableData dataWithBytesNoCopy: buf length: len];
   if ((pos = read(descriptor, [d mutableBytes], len)) < 0)
     {
       [NSException raise: NSFileHandleOperationException
