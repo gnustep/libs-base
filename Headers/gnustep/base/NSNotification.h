@@ -36,8 +36,8 @@
      size of Notification.  Thus, behavior_class_add_class() will not
      have to increase the instance size of NSNotification, and
      NSNotification can safely be subclassed. */
-  char _NSNotification_placeholder[(sizeof(struct NSObject)
-				    - sizeof(struct Notification))];
+  char _NSNotification_placeholder[(sizeof(struct Notification)
+				    - sizeof(struct NSObject))];
 }
 @end
 

@@ -387,9 +387,12 @@ above.
 
 @subsection Building a Foundation library
 
-With this and the following packages you can use the various switches,
+With this and the following packages that use the GNUstep makefile
+package you can use the various switches,
 shared, debug. As in ``make shared=no debug=yes'' (Make sure you use the
-same switches for every package you compile). If you work with gstep-base:
+same switches for every package you compile, and also when you install). 
+
+If you work with gstep-base:
 
 @example
   cd /usr/src
