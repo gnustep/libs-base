@@ -1,6 +1,4 @@
-#include <Foundation/NSString.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
+#include <Foundation/Foundation.h>
 
 // Fri Oct 23 02:58:47 MET DST 1998 	dave@turbocat.de
 // cStringNoCopy -> cString
@@ -35,6 +33,19 @@ int main()
   NSMutableString	*f1 = [NSMutableString stringWithString: @"ab"];
   NSStringEncoding	*encs;
 
+{
+  NSURL *currentURL;
+  NSData *data;
+
+  currentURL = [NSURL URLWithString:
+                      @"http:/www.foobar.org/PageWithAValid.plist"];
+  data = [currentURL resourceDataUsingCache: NO];
+
+  if( data )
+    printf(" YES \n");
+  printf(" NO\n");
+  exit(0);
+}
 #if 0
 {	// GSM test
   unichar	buf[] = { 163, '[', ']', '{', '}', '\\', '^', '|', '~', '_' };

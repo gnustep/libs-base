@@ -1,3 +1,9 @@
+2002-09-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpHandle.m: ([-handleForPort:beforeDate:]) fix bug where
+	we could end up using the last (non-matching) handle rather than
+	creating a new one.
+
 2002-09-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpHandle.m: ([-connectToPort:beforeDate:]) Added more
