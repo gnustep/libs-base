@@ -1,5 +1,5 @@
 /* Implementation of object for waiting on several input sources
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: March 1996
@@ -20,6 +20,10 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
+
+/* October 1996 - extensions to permit file descriptors to be watched
+   for being readable or writable added by Richard Frith-Macdonald
+   (richard@brainstorm.co.uk) */
 
 /* This is the beginning of a RunLoop implementation.
    It is still in the early stages of development, and will most likely
@@ -318,7 +322,7 @@ static RunLoop *current_run_loop;
 {
   /* Linux doesn't always return double from methods, even though
      I'm using -lieee. */
-#if 1
+#if 0
   assert (mode);
   return nil;
 #else
@@ -331,28 +335,44 @@ static RunLoop *current_run_loop;
 
   timers = NSMapGet (_mode_2_timers, mode);
   if (!timers)
-    return nil;
-
-  /* Does this properly handle timers that have been sent -invalidate? */
-  while ((min_timer = [timers minObject])
-	 && ([[min_timer fireDate] timeIntervalSinceNow] > 0))
     {
+      _current_mode = saved_mode;
+      return nil;
+    }
+  
+  /* Does this properly handle timers that have been sent -invalidate? */
+  while ((min_timer = [timers minObject]) != nil)
+    {
+      if (![min_timer isValid])
+	{
+	  [timers removeFirstObject];
+	  min_timer = nil;
+	  continue;
+	}
+
+      if ([[min_timer fireDate] timeIntervalSinceNow] > 0)
+	break;
+
       [min_timer retain];
       [timers removeFirstObject];
       /* Firing will also increment its fireDate, if it is repeating. */
+      [min_timer fire];
       if ([min_timer isValid])
 	{
-	  [min_timer fire];
-	  if ([[min_timer fireDate] timeIntervalSinceNow] < 0)
+	  if ([[min_timer fireDate] timeIntervalSinceNow] > 0)
 	    [timers addObject: min_timer];
 	}
       [min_timer release];
+      min_timer = nil;
     }
+  _current_mode = saved_mode;
+  if (min_timer == nil)
+    return nil;
+
   if (debug_run_loop)
-    printf ("\tRunLoop limit date %f\n", 
+    printf ("\tRunLoop limit date %f\n",
 	    [[min_timer fireDate] timeIntervalSinceReferenceDate]);
 
-  _current_mode = saved_mode;
   return [min_timer fireDate];
 #endif
 }
@@ -384,7 +404,10 @@ static RunLoop *current_run_loop;
 #if 0
   /* If there are no input sources to listen to, just return. */
   if (NSCountMapTable (_fd_2_object) == 0)
-    return;
+    {
+      _current_mode = saved_mode;
+      return;
+    }
 #endif
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
@@ -407,6 +430,7 @@ static RunLoop *current_run_loop;
 	{
 	  if (debug_run_loop)
 	    printf ("\tRunLoop limit date past, returning\n");
+          _current_mode = saved_mode;
 	  return;
 	}
       timeout.tv_sec = ti;
@@ -417,6 +441,7 @@ static RunLoop *current_run_loop;
     {
       /* The LIMIT_DATE has already past; return immediately without
 	 polling any inputs. */
+      _current_mode = saved_mode;
       return;
     }
   else
@@ -524,6 +549,7 @@ static RunLoop *current_run_loop;
   else if (select_return == 0)
     {
       NSFreeMapTable (fd_2_object);
+      _current_mode = saved_mode;
       return;
     }
   
