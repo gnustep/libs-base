@@ -508,7 +508,7 @@ gnustep/base:
 	ln -s . gnustep
 	ln -s ./include base
 	# Make necessary links to source headers if compiling in seperate dir
-	if [ ! -e ./include/Collection.h ]; then \
+	if [ ! -r ./include/Collection.h ]; then \
 	  ln -s ../$(srcdir)/include ./include/base; \
 	  (cd include; ln -s . gnustep); \
 	fi
