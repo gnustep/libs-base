@@ -3,28 +3,27 @@
 #include <objects/SocketPort.h>
 #include <objects/BinaryCStream.h>
 #include <objects/Connection.h>
-#include <objc/List.h>
 #include <objects/String.h>
+#include <objects/Notification.h>
 #include "server.h"
 
 @implementation Server
 - init
 {
-  theList = [[List alloc] init];
+  the_array = [[Array alloc] init];
   return self;
 }
 - (unsigned) count
 {
-  return [theList count];
+  return [the_array count];
 }
-- addObject: o
+- (void) addObject: o
 {
-  [theList addObject:o];
-  return self;
+  [the_array addObject:o];
 }
 - objectAt: (unsigned)i
 {
-  return [theList objectAt:i];
+  return [the_array objectAt:i];
 }
 - print: (const char *)msg
 {
@@ -45,7 +44,7 @@
 }
 - callbackNameOn: obj
 {
-  printf(">>callback name is (%s)\n", [obj name]);
+  printf (">>callback name is (%s)\n", object_get_class_name (obj));
   return self;
 }
 /* sender must also respond to 'bounce:count:' */
@@ -137,7 +136,7 @@
 
 - sendBycopy: (bycopy id)o
 {
-  printf(">> bycopy class is %s\n", [o name]);
+  printf(">> bycopy class is %s\n", object_get_class_name (o));
   [o release];
   return self;
 }
@@ -168,17 +167,17 @@
   if ([anObj isKindOf:[Connection class]])
     {
       id objList;
-      int i, j, count, listCount = [theList count];
+      int i, j, count, listCount = [the_array count];
       objList = [anObj proxies];
       count = [objList count];
       /* This contortion avoids List's calling -isEqual: on the proxy */
       for (i = 0; i < count; i++)
-	for (j = 0; j < [theList count]; j++)
-	  if ([theList objectAt:j] == [objList objectAtIndex:i])
-	    [theList removeObjectAt:j];
+	for (j = 0; j < [the_array count]; j++)
+	  if ([the_array objectAt:j] == [objList objectAtIndex:i])
+	    [the_array removeObjectAtIndex: j];
       [objList release];
-      if (listCount != [theList count])
-	printf("$$$$$ senderIsInvalid: removed from theList\n");
+      if (listCount != [the_array count])
+	printf("$$$$$ senderIsInvalid: removed from the_array\n");
     }
   else
     {
@@ -189,13 +188,17 @@
 - (Connection*) connection: ancestor didConnect: newConn
 {
   printf("%s\n", sel_get_name(_cmd));
-  [newConn registerForInvalidationNotification:self];
-  [newConn setDelegate:self];
+  [NotificationDispatcher
+    addObserver: self
+    selector: @selector(connectionBecameInvalid:)
+    name: ConnectionBecameInvalidNotification
+    object: newConn];
+  [newConn setDelegate: self];
   return newConn;
 }
 @end
 
-int main()
+int main(int argc, char *argv[])
 {
   id l = [[Server alloc] init];
   id o = [[NSObject alloc] init];
@@ -207,11 +210,20 @@ int main()
 #if NeXT_runtime
   [Proxy setProtocolForProxies:@protocol(AllProxies)];
 #endif
-  c = [Connection newRegisteringAtName:@"test2server" withRootObject:l];
-  [c registerForInvalidationNotification:l];
+  if (argc > 1)
+    c = [Connection newRegisteringAtName: 
+		      [NSString stringWithCString: argv[1]]
+		    withRootObject:l];
+  else
+    c = [Connection newRegisteringAtName:@"test2server" withRootObject:l];
+  [NotificationDispatcher
+    addObserver: l
+    selector: @selector(connectionBecameInvalid:)
+    name: ConnectionBecameInvalidNotification
+    object: c];
   [c setDelegate:l];
 
-  [l addObject:o];
+  [l addObject: o];
   d = [l returnDouble];
   printf("got double %f\n", d);
   printf("list's hash is 0x%x\n", (unsigned)[l hash]);
