@@ -419,7 +419,12 @@ static Class NSMutableSet_concrete_class;
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-  return [[self allObjects] descriptionWithLocale: locale];
+  return [self descriptionWithLocale: locale indent: 0];
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale indent: (unsigned)i
+{
+  return [[self allObjects] descriptionWithLocale: locale indent: i];
 }
 
 @end
