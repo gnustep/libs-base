@@ -1,5 +1,5 @@
 /* Implementation for GNUStep of NSStrings with C-string backing
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -76,7 +76,7 @@
 /* Empty copy must empty an allocCopy'ed version of self */
 - emptyCopy
 {
-  NSGCString *copy = [super allocCopy];
+  NSGCString *copy = [super emptyCopy];
   OBJC_MALLOC(copy->_contents_chars, char, _count+1);
   copy->_count = 0;
   copy->_contents_chars[0] = '\0';
