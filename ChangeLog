@@ -1,5 +1,11 @@
-Tue Apr 13 21:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Apr 13 22:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Source/NSBundle.m: Updated to use Info.plist if Info-gnustep.plist
+	is not available.  Also updated to look in alternative directories
+	for the object file to load... If not in the machine/os/lib-combo
+	subdirectory, tries the machine/os directory and then the top-level
+	directory.  Also updated to cope with the case where the NSExecutable
+	entry of the Info.plist specifies a path rather than a simple file name.
 	* Source/NSUser.m: Implemented NSFullUserName()
 
 Mon Apr 12 13:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>

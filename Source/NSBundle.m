@@ -38,6 +38,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSFileManager.h>
 
 #include <sys/stat.h>
 
@@ -125,23 +126,42 @@ objc_executable_location( void )
 static NSString *
 bundle_object_name(NSString *path, NSString* executable)
 {
-    NSString *name, *subpath;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSString	*name, *path0, *path1, *path2;
 
-    if (executable)
-      {
-	subpath = [path stringByAppendingPathComponent: gnustep_target_dir];
-	subpath = [subpath stringByAppendingPathComponent: library_combo];
-	name = [subpath stringByAppendingPathComponent: executable];
-      }
-    else
-      {
-	name = [[path lastPathComponent] stringByDeletingPathExtension];
-	subpath = [path stringByAppendingPathComponent: gnustep_target_dir];
-	subpath = [subpath stringByAppendingPathComponent: library_combo];
-	name = [subpath stringByAppendingPathComponent:name];
-      }
-    return name;
-} 
+  if (executable)
+    {
+      NSString	*exepath;
+
+      name = [executable lastPathComponent];
+      exepath = [executable stringByDeletingLastPathComponent];
+      if ([exepath isEqualToString: @""] == NO)
+	{
+	  if ([exepath isAbsolutePath] == YES)
+	    path = exepath;
+	  else
+	    path = [path stringByAppendingPathComponent: exepath];
+	}
+    }
+  else
+    {
+      name = [[path lastPathComponent] stringByDeletingPathExtension];
+      path = [path stringByDeletingLastPathComponent];
+    }
+  path0 = [path stringByAppendingPathComponent: name];
+  path = [path stringByAppendingPathComponent: gnustep_target_dir];
+  path1 = [path stringByAppendingPathComponent: name];
+  path = [path stringByAppendingPathComponent: library_combo];
+  path2 = [path stringByAppendingPathComponent: executable];
+
+  if ([mgr isReadableFileAtPath: path2] == YES)
+    return path2;
+  else if ([mgr isReadableFileAtPath: path1] == YES)
+    return path1;
+  else if ([mgr isReadableFileAtPath: path0] == YES)
+    return path0;
+  return path2;
+}
 
 /* Construct a path from components */
 static NSString * 
@@ -791,7 +811,13 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   if (path)
     _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
   else
-    _infoDict = [[NSDictionary dictionary] retain];
+    {
+      path = [self pathForResource: @"Info" ofType: @"plist"];
+      if (path)
+	_infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
+      else
+	_infoDict = [[NSDictionary dictionary] retain];
+    }
   return _infoDict;
 }
 
