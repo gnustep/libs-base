@@ -1,10 +1,23 @@
+Sun Mar 24 17:04:24 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/UdpPort.m (name_2_port_number): Function renamed from
+ 	name_to_port_number, and changed to better use
+ 	IPPORT_USERRESERVED.
+	([UdpInPort +newForReceivingFromPortNumber:]): Overhauled and
+	commented.
+
+Fri Mar 22 08:39:03 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSObject.m ([NSObject +initialize]): Use
+ 	NSNonOwnedPointerOrNullMapKeyCallBacks, not
+ 	NSNonRetainedObjectsMapKeyCallBacks; keying on addresses, and
+ 	avoiding a call to -isEqual, is better.
+
 Thu Mar 21 20:17:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* src/BinaryCStream.m ([BinaryCStream
  	-encodeValueOfCType:at:withName:name]): [_C_CHARPTR]: Write the
  	string with the host LENGTH, not the network LENGTH!
-
-	* src/Foundation/NSZone.h: Declare new functions.
 
 	* src/NSGSet.m ([NSGSet -isEqual:]): Make this just compare the
  	id's, not call [super isEqual:].  I did this to prevent an
@@ -24,9 +37,10 @@ Thu Mar 21 20:17:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	(GNUSTEP_MFILES): Added NSZone.m.
 	* NSZone.m: Renamed from NSZone.c.
 	(NSZoneSetName, NSZoneName): New functions; unimplemented.
+	* src/Foundation/NSZone.h: Declare new functions.
 
 	* src/Makefile.in (objects/stdobjects.h): Create it in the build
- 	directory, not $(srcdir).  (Thanks to Albin Jones.)
+ 	directory, not $(srcdir).  (Reported by Albin Jones.)
 
 Thu Mar 21 13:13:35 EST 1996  Albin L. Jones  <Albin.L.Jones@Dartmouth.EDU>
 
