@@ -30,10 +30,12 @@ unichar chartouni(char c);
 char unitochar(unichar u);
 unichar encode_chartouni(char c, NSStringEncoding enc);
 char encode_unitochar(unichar u, NSStringEncoding enc);
+unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
 int strtoustr(unichar * u1,const char *s1,int size);
 int ustrtostr(char *s2,unichar *u1,int size);
 int encode_strtoustr(unichar* u1,const char*s1,int size, NSStringEncoding enc);
 int encode_ustrtostr(char *s2, unichar *u1, int size, NSStringEncoding enc);
+int encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc);
 
 unichar uni_tolower(unichar ch);
 unichar uni_toupper(unichar ch);
