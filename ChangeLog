@@ -1,8 +1,11 @@
-2002-04-17  Richard Frith-Macdonald <rfm@gnu.org>
+2002-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: re-order headers so config.h is used on windoze
 	* Source/NSFileManager.m: ([-fileSystemRepresentationWithPath:])
 	modified to handle MSYS paths with '/drive/' prefix.
+	* Source/GSTcpPort.m: ([-invalidate]) call superclass implementation
+	at start, so flag gets set to say we are not valid, and we avoid any
+	recursive calls.
 
 2002-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
