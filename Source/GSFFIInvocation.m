@@ -374,19 +374,34 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
                   object_get_class_name (obj), sel_get_name(selector));
     }
        
-  selector = gs_find_by_receiver_best_typed_sel (obj, selector);
-  sig = nil;
+  sig = [obj methodSignatureForSelector: selector];
+
+  /*
+   * If we got a method signature from the receiving object,
+   * ensure that the selector we are using matches the types.
+   */
+  if (sig != nil)
+    {
+      const char	*receiverTypes = [sig methodType];
+      const char	*runtimeTypes = sel_get_type (selector);
+
+      if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
+	{
+	  const char	*runtimeName = sel_get_name (selector);
+
+	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
+	  if (selector == 0)
+	    {
+	      selector = sel_register_typed_name (runtimeName, receiverTypes);
+	    }
+	}
+    }
   
-  if (sel_get_type (selector))
+  if (sig == nil && sel_get_type (selector) != 0)
     {
       sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
     }
 
-  if (!sig)
-    {
-      sig = [obj methodSignatureForSelector: selector];
-    }
-  
   NSCAssert1(sig, @"No signature for selector %@", 
     NSStringFromSelector(selector));
     

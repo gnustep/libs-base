@@ -1238,21 +1238,74 @@ static BOOL double_release_check_enabled = NO;
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  const char	*types;
-  struct objc_method *mth;
+  const char		*types;
+  struct objc_method	*mth;
+  Class			c;
 
   if (aSelector == 0)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  mth = (GSObjCIsInstance(self)
-    ? GSGetInstanceMethod(GSObjCClass(self), aSelector)
-    : GSGetClassMethod((Class)self, aSelector));
+  if (GSObjCIsInstance(self))
+    {
+      c = GSObjCClass(self);
+      mth = GSGetInstanceMethod(c, aSelector);
+    }
+  else
+    {
+      c = (Class)self;
+      mth = GSGetClassMethod((Class)self, aSelector);
+    }
+
   if (mth == 0)
     {
-      return nil;
+      return nil; // Method not implemented
     }
   types = mth->method_types;
+
+  /*
+   * If there are protocols that this class conforms to,
+   * the method may be listed in a protocol with more
+   * detailed type information than in the class itsself
+   * and we must therefore use the information from the
+   * protocol.
+   * This is because protocols also carry information
+   * used by the Distributed Objects system, which the
+   * runtime does not maintain in classes.
+   */
+  if (c->protocols != 0)
+    {
+      struct objc_protocol_list	*protocols = c->protocols;
+      BOOL			found = NO;
+
+      while (found == NO && protocols != 0)
+	{
+	  unsigned	i = 0;
+
+	  while (found == NO && i < protocols->count)
+	    {
+	      Protocol				*p;
+	      struct objc_method_description	*pmth;
+
+	      p = protocols->list[i++];
+	      if (c == (Class)self)
+		{
+		  pmth = [p descriptionForClassMethod: aSelector];
+		}
+	      else
+		{
+		  pmth = [p descriptionForInstanceMethod: aSelector];
+		}
+	      if (pmth != 0)
+		{
+		  types = pmth->types;
+		  found = YES;
+		}
+	    }
+	  protocols = protocols->next;
+	}
+    }
+
   if (types == 0)
     {
       return nil;

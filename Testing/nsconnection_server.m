@@ -8,6 +8,8 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
+
+#define	IN_SERVER	1
 #include "server.h"
 
 #include "wgetopt.h"
@@ -353,6 +355,13 @@
 - sendDouble: (double)d andFloat: (float)f
 {
   printf("(%s) got double %f, float %f\n", sel_get_name(_cmd), d, f);
+  fflush(stdout);
+  return self;
+}
+
+- quietBycopy: (bycopy id)o
+{
+  printf("  >> quiet bycopy class is %s\n", object_get_class_name (o));
   fflush(stdout);
   return self;
 }

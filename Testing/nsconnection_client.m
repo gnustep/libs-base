@@ -17,6 +17,14 @@
 
 #include "wgetopt.h"
 
+/*
+ * Dummy declaration with different bycopy/byref info from the one
+ * in the server ... we expect the info from the server to be used.
+ */
+@interface	Dummy : NSObject
+- (id) quietBycopy: (id byref)a;
+@end
+
 @interface	Auth : NSObject
 @end
 
@@ -275,6 +283,7 @@ con_messages (id prx)
 
   printf("Testing bycopy/byref:\n");
   [prx sendBycopy: obj];
+  [prx quietBycopy: obj];
 
 #ifdef	_F_BYREF
   [prx sendByref: obj];
