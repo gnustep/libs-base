@@ -1,5 +1,5 @@
 /* Interface for NSBundle for GNUStep
-   Copyright (C) 1995, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
@@ -29,6 +29,7 @@
 @class NSString;
 @class NSArray;
 @class NSDictionary;
+@class NSMutableDictionary;
 
 extern NSString* NSBundleDidLoadNotification;
 extern NSString* NSShowNonLocalizedStrings;
@@ -36,13 +37,14 @@ extern NSString* NSLoadedClasses;
 
 @interface NSBundle : NSObject
 {
-    NSString	*_path;
-    NSArray*    _bundleClasses;
-    Class       _principalClass;
-    id          _infoDict;
-    unsigned int _bundleType;
-    BOOL	_codeLoaded;
-    unsigned int _version;
+  NSString	*_path;
+  NSArray	*_bundleClasses;
+  Class		_principalClass;
+  NSDictionary	*_infoDict;
+  NSMutableDictionary	*_localizations;
+  unsigned	_bundleType;
+  BOOL		_codeLoaded;
+  unsigned	_version;
 }
 
 + (NSArray *) allBundles;
@@ -91,11 +93,17 @@ extern NSString* NSLoadedClasses;
 + (NSString*) _gnustep_target_dir;
 + (NSString*) _gnustep_target_os;
 + (NSString*) _library_combo;
++ (NSBundle*) gnustepBundle;
 + (NSString *) pathForGNUstepResource: (NSString *)name
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath;
 
 @end
+#define GSLocalizedString(key, comment) \
+  [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:nil]
+#define GSLocalizedStringFromTable(key, tbl, comment) \
+  [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
+
 #endif
 
 #define NSLocalizedString(key, comment) \

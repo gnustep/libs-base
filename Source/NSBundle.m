@@ -83,6 +83,7 @@ static NSMapTable* _releasedBundles = NULL;
    where to store the class names. 
 */
 static NSBundle* _loadingBundle = nil;
+static NSBundle* _gnustep_bundle = nil;
 static NSRecursiveLock* load_lock = nil;
 static BOOL _strip_after_loading = NO;
 
@@ -242,7 +243,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       env = [[NSProcessInfo processInfo] environment];
       if (env)
 	{
-	  NSString	*str;
+	  NSMutableString	*system;
+	  NSString		*str;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
 	    gnustep_target_dir = [str retain];
@@ -261,6 +263,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	
 	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	    library_combo = [str retain];
+
+	  system = [[[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
+		    mutableCopy] autorelease];
+	  [system appendString: @"/Libraries"];
+
+	  _gnustep_bundle = [NSBundle bundleWithPath: system];
 	}
     }
 }
@@ -887,19 +895,24 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 @implementation NSBundle (GNUstep)
 
-/* This is a convenience method for searching for resource files
+/* These are convenience methods for searching for resource files
    within the GNUstep directory structure specified by the environment
    variables. */
+
++ (NSBundle *) gnustepBundle
+{
+  return _gnustep_bundle;
+}
 
 + (NSString *) pathForGNUstepResource: (NSString *)name
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath;
 {
-  NSString *user_path, *local_path, *system_path;
-  NSBundle *user_bundle = nil, *local_bundle = nil, *system_bundle = nil;
+  NSString *path;
+  NSBundle *user_bundle = nil, *local_bundle = nil;
   NSProcessInfo *pInfo;
   NSDictionary *env;
-  NSMutableString *user, *local, *system;
+  NSMutableString *user, *local;
 
   /*
     The path of where to search for the resource files
@@ -916,39 +929,34 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   local = [[[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
 	    mutableCopy] autorelease];
   [local appendString: @"/Libraries"];
-  system = [[[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
-	    mutableCopy] autorelease];
-  [system appendString: @"/Libraries"];
 
   if (user)
     user_bundle = [NSBundle bundleWithPath: user];
   if (local)
     local_bundle = [NSBundle bundleWithPath: local];
-  if (system)
-    system_bundle = [NSBundle bundleWithPath: system];
 
   /* Gather up the paths */
 
   /* Search user first */
-  user_path = [user_bundle pathForResource: name
+  path = [user_bundle pathForResource: name
 			   ofType: ext
 			   inDirectory: bundlePath];
-  if (user_path)
-    return user_path;
+  if (path)
+    return path;
 
   /* Search local second */
-  local_path = [local_bundle pathForResource: name
+  path = [local_bundle pathForResource: name
 			     ofType: ext
 			     inDirectory: bundlePath];
-  if (local_path)
-    return local_path;
+  if (path)
+    return path;
 
   /* Search system last */
-  system_path = [system_bundle pathForResource: name
+  path = [_gnustep_bundle pathForResource: name
 			       ofType: ext
 			       inDirectory: bundlePath];
-  if (system_path)
-    return system_path;
+  if (path)
+    return path;
 
   /* Didn't find it */
   return nil;
