@@ -1193,7 +1193,6 @@ static NSFileManager* defaultManager = nil;
   DESTROY(currentFileName);
   DESTROY(currentFilePath);
   DESTROY(fileAttributes);
-  flags.shouldSkip = NO;
 }
 
 /*
@@ -1240,24 +1239,27 @@ static NSFileManager* defaultManager = nil;
 		stringByAppendingPathComponent: currentFileName]);
 	  // Check if directory
 	  cpath = [manager fileSystemRepresentationWithPath: currentFilePath];
-	  // Do not follow links
-	  if (!flags.isFollowing)
+  	  if (flags.isRecursive == YES)
 	    {
-	      if (lstat(cpath, &statbuf) != 0)
-		break;
-	      // If link then return it as link
-	      if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
-		break;
-	    }
-	  else
-	    {
-	      if (stat(cpath, &statbuf) != 0)
-		break;
-	    }
-	  if (S_IFDIR == (S_IFMT & statbuf.st_mode))
-	    {
-	      [self recurseIntoDirectory: currentFilePath 
-			    relativeName: currentFileName];
+	      // Do not follow links
+	      if (!flags.isFollowing)
+		{
+		  if (lstat(cpath, &statbuf) != 0)
+		    break;
+		  // If link then return it as link
+		  if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
+		    break;
+		}
+	      else
+		{
+		  if (stat(cpath, &statbuf) != 0)
+		    break;
+		}
+	      if (S_IFDIR == (S_IFMT & statbuf.st_mode))
+		{
+		  [self recurseIntoDirectory: currentFilePath 
+				relativeName: currentFileName];
+		}
 	    }
 	  break;	// Got a file name - break out of loop
 	}
@@ -1266,7 +1268,6 @@ static NSFileManager* defaultManager = nil;
 	  [self backtrack];
 	}
     }
-  flags.shouldSkip = NO;
 }
 
 // Initializing

@@ -1,6 +1,7 @@
-Mon Jun 21 12:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Jun 21 20:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSFileManager.m: Fixed error recursing into directory.
+	* Source/include/NSFileManager.h: tidied.
 
 Mon Jun 21  9:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

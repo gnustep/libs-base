@@ -130,7 +130,6 @@
   struct {
       BOOL		isRecursive: 1;
       BOOL		isFollowing: 1;
-      BOOL		shouldSkip: 1;
    } flags;
 }
 
