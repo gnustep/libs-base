@@ -2,6 +2,8 @@
 
 	* Source/NSDistributedLock.m: Document and tidy.
 	* Source/NSTimeZone.m: Don't set system zone prematurely.
+	* Source/NSString.m: Don't bother to cache constant string
+	class.  Document it.
 
 2002-10-01  Adam Fedor  <fedor@gnu.org>
 
