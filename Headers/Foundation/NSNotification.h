@@ -86,21 +86,12 @@
 #ifndef	NO_GNUSTEP
 
 /**
- * Defines some extensions for maximising posting performance - these options
- * are NOT adjustable for the default notification center.
- *
+ * Defines an extension for maximising posting performance - this option
+ * is NOT adjustable for the default notification center.
  */
 @interface NSNotificationCenter (GNUstep)
 
 /**
- * You can turn on 'immutability' if you KNOW that the posting of a
- * notification will never result in an attempt to modify the center.
- * In this case, the center can optimise delivery of notifications.
- */
-- (BOOL) setImmutableInPost: (BOOL)flag;
-
-/**
- *
  * You can disable locking in a multi-threaded program if you KNOW that only
  * one thread will ever use the notification center.
  */

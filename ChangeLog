@@ -1,3 +1,14 @@
+2004-11-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Initialise harmless uninitialised variable
+	to avoid compiler warning in
+	([propertyListFromData:mutabilityOption:format:errorDescription:])
+	fixing bug report #11093
+	* Source/NSMessagePort.m: ifndef toi fix harmless compiler warning
+	reported as bug #11092
+	* NSNotificationCenter.[hm]: Remove non-functional setImmutableInPost
+	method to fix bug report #11080
+
 2004-11-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Fix to ensure that a main bundle exists.
