@@ -33,6 +33,7 @@
 #include <foundation/NSAutoreleasePool.h>
 #include <objects/collhash.h>
 #include <objects/eltfuncs.h>
+#include <limits.h>
 
 extern void (*_objc_error)(id object, const char *format, va_list);
 extern int errno;
@@ -287,6 +288,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return self;
 }
 
++ autorelease
+{
+  return self;
+}
+
 - (Class) class
 {
   return object_get_class(self);
@@ -353,6 +359,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return;
 }
 
++ (oneway void) release
+{
+  return;
+}
+
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
   return ((object_is_instance(self)
@@ -366,6 +377,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return self;
 }
 
++ retain
+{
+  return self;
+}
+
 - (unsigned) retainCount
 {
   coll_node_ptr n;
@@ -375,6 +391,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
     return n->value.unsigned_int_u;
   else
     return 0;
+}
+
++ (unsigned) retainCount
+{
+  return UINT_MAX;
 }
 
 - self
