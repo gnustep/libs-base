@@ -8,6 +8,8 @@
 	are unable to determine the current thread.  Don't attempt to use
 	NSLog() or similar ... since chances are, without a thread object,
 	that would just crash.
+	In GSRegisterCurrentThread(), add code to handle the case where the
+	NSThread class has not been initialised.
 
 2002-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 

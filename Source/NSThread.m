@@ -479,17 +479,34 @@ GSRegisterCurrentThread (void)
    */
   objc_thread_add ();
 
-  /*
-   * Create the new thread object.
-   */
-  thread = (NSThread*)NSAllocateObject (threadClass, 0, 
+  if (threadClass == 0)
+    {
+      /*
+       * If the threadClass has not been set, NSThread has not been
+       * initialised, and there is no default thread.  So we must
+       * initialise now ... which will make the current thread the default.
+       */
+      NSCAssert(entered_multi_threaded_state == NO,
+	NSInternalInconsistencyException);
+      thread = [NSThread currentThread];
+    }
+  else
+    {
+      /*
+       * Create the new thread object.
+       */
+      thread = (NSThread*)NSAllocateObject (threadClass, 0, 
 					NSDefaultMallocZone ());
-  thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
-  objc_thread_set_data (thread);
-  ((NSThread_ivars *)thread)->_active = YES;
+      thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
+      objc_thread_set_data (thread);
+      ((NSThread_ivars *)thread)->_active = YES;
+    }
 
   /*
    * We post the notification after we register the thread.  
+   * NB. Even if we are the default thread, we do this to register the app
+   * as being multi-threaded - this is so that, if this thread is unregistered
+   * later, it does not leave us with a bad default thread.
    */
   gnustep_base_thread_callback();
 
