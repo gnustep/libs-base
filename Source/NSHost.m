@@ -32,12 +32,11 @@
 #include <Foundation/NSSet.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
-#include <netdb.h>
-/* #include <libc.h>*/
 
 #if defined(__MINGW__)
 #include <winsock.h>
 #else
+#include <netdb.h>
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/socket.h>

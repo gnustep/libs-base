@@ -42,15 +42,57 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#ifndef __MINGW__
 #include <unistd.h>		/* for gethostname() */
-#include <netinet/in.h>		/* for inet_ntoa() */
+
+#ifndef __MINGW__
+#include <sys/param.h>		/* for MAXHOSTNAMELEN */
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>		/* for inet_ntoa() */
+#endif /* !__MINGW__ */
+#include <errno.h>
+#include <limits.h>
+#include <string.h>		/* for strchr() */
+#include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#include <arpa/inet.h>
+#ifdef __MINGW__
+#include <winsock.h>
+#include <wininet.h>
+#include <process.h>
+#include <sys/time.h>
+#else
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <netdb.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/file.h>
+/*
+ *	Stuff for setting the sockets into non-blocking mode.
+ */
+#ifdef	__POSIX_SOURCE
+#define NBLK_OPT     O_NONBLOCK
+#else
+#define NBLK_OPT     FNDELAY
+#endif
 
-extern	int	errno;
+#include <netinet/in.h>
+#include <net/if.h>
+#if	!defined(SIOCGIFCONF) || defined(__CYGWIN__)
+#include <sys/ioctl.h>
+#ifndef	SIOCGIFCONF
+#include <sys/sockio.h>
+#endif
+#endif
+
+#if	defined(__svr4__)
+#include <sys/stropts.h>
+#endif
+#endif /* !__MINGW__ */
+
+#ifdef __MINGW__
+#define close closesocket
+#endif
 
 static	BOOL	multi_threaded = NO;
 
@@ -69,24 +111,6 @@ static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 #define	GS_CONNECTION_MSG	0
 #define	NETBLOCK	8192
-
-/*
- *	Stuff for setting the sockets into non-blocking mode.
- */
-#ifdef	__POSIX_SOURCE
-#define NBLK_OPT     O_NONBLOCK
-#else
-#define NBLK_OPT     FNDELAY
-#endif
-
-#endif /* !__MINGW__ */
-#include <string.h>		/* for memset() and strchr() */
-#ifndef __MINGW__
-#include <time.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <errno.h>
-#endif /* !__MINGW__ */
 
 #ifndef INADDR_NONE
 #define	INADDR_NONE	-1
@@ -340,12 +364,23 @@ static Class	runLoopClass;
 {
   GSTcpHandle	*handle;
   int		e;
+#ifdef __MINGW__
+  unsigned long dummy;
+#endif /* __MINGW__ */
 
   if (d < 0)
     {
       NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
       return nil;
     }
+#ifdef __MINGW__
+  dummy = 1;
+  if (ioctlsocket(udp_desc, FIONBIO, &dummy) < 0)
+    {
+      NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
+      return nil;
+    }
+#else /* !__MINGW__ */
   if ((e = fcntl(d, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -355,6 +390,7 @@ static Class	runLoopClass;
 	  return nil;
 	}
     }
+#endif
   else
     {
       NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
@@ -375,6 +411,13 @@ static Class	runLoopClass;
 {
   if (self == [GSTcpHandle class])
     {
+#ifdef __MINGW__
+      WORD wVersionRequested;
+      WSADATA wsaData;
+
+      wVersionRequested = MAKEWORD(2, 0);
+      WSAStartup(wVersionRequested, &wsaData);
+#endif
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableData class];
       portMessageClass = [NSPortMessage class];
@@ -445,7 +488,11 @@ static Class	runLoopClass;
 
   if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) < 0)
     {
+#ifdef __MINGW__
+      if (WSAGetLastError() != WSAEINPROGRESS)
+#else
       if (errno != EINPROGRESS)
+#endif
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
 	      inet_ntoa(sin.sin_addr),

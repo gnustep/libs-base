@@ -69,6 +69,9 @@
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD
 
+/* Define if you have the geteuid function.  */
+#undef HAVE_GETEUID
+
 /* Define if you have the inet_aton function.  */
 #undef HAVE_INET_ATON
 

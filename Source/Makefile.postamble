@@ -103,8 +103,7 @@ after-uninstall::
 
 # Things to do after distcleaning
 after-distclean::
-	rm -f Foundation/config.h Foundation/GSConfig.h Foundation/dynamic-load.h \
-		Foundation/preface.h mframe/mframe.h Foundation base \
+	rm -f mframe/mframe.h Foundation \
 		NSNumber[0-9]*.m NSValue[0-9]*.m o_*_bas.m
 	rm -rf $(GNUSTEP_TARGET_CPU)
 
@@ -113,10 +112,6 @@ after-distclean::
 
 # Things to do after checking
 # after-check::
-
-# Local links to the include files
-Foundation: 
-	$(LN_S) $(srcdir)/../Headers/gnustep/base Foundation
 
 # Creation of NSValue and NSNumber concrete classes from templates
 $(NSVALUE_MFILES) : NSCTemplateValue.m
@@ -134,19 +129,19 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-$(GNUSTEP_OBJ_DIR)/preface${OEXT}: Foundation/preface.h
+$(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR)/preface.h
 
 #
 # The config.h file is specific to a target
 #
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv Foundation/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv $(HEADER_DIR)/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv Foundation/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv $(HEADER_DIR)/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: mframe/config.status
@@ -154,26 +149,26 @@ $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: mframe/config.status
 	-mv mframe/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
 
-Foundation/o_%_bas.h: Foundation/o_x_bas.h.in
+$(HEADER_DIR)/o_%_bas.h: $(HEADER_DIR)/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
 
-Foundation/o_%_cbs.h: Foundation/o_x_cbs.h.in
+$(HEADER_DIR)/o_%_cbs.h: $(HEADER_DIR)/o_x_cbs.h.in
 	sed -e "s/@YY@/$*/g" $< > $@
 
-o_%_bas.m: o_x_bas.m.in Foundation/o_%.h
+o_%_bas.m: o_x_bas.m.in $(HEADER_DIR)/o_%.h
 	sed -e "s/@XX@/$*/g" $< > $@
 
-o_%_cbs.m: o_x_cbs.m.in Foundation/o_%.h
+o_%_cbs.m: o_x_cbs.m.in $(HEADER_DIR)/o_%.h
 	sed -e "s/@YY@/$*/g" $< > $@
 
-$(GNUSTEP_OBJ_DIR)/o_array.o: o_array.m Foundation/o_array.h
-Foundation/o_array.h: Foundation/o_array_bas.h Foundation/o_array_cbs.h Foundation/o_hash.h
-$(GNUSTEP_OBJ_DIR)/o_hash.o: o_hash.m Foundation/o_hash.h
-Foundation/o_hash.h: Foundation/o_hash_bas.h Foundation/o_hash_cbs.h
-$(GNUSTEP_OBJ_DIR)/o_list.o: o_list.m Foundation/o_list.h
-Foundation/o_list.h: Foundation/o_list_bas.h Foundation/o_list_cbs.h Foundation/o_array.h Foundation/o_hash.h
-$(GNUSTEP_OBJ_DIR)/o_map.o: o_map.m Foundation/o_map.h
-Foundation/o_map.h: Foundation/o_map_bas.h Foundation/o_map_cbs.h Foundation/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_array.o: o_array.m $(HEADER_DIR)/o_array.h
+$(HEADER_DIR)/o_array.h: $(HEADER_DIR)/o_array_bas.h $(HEADER_DIR)/o_array_cbs.h $(HEADER_DIR)/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_hash.o: o_hash.m $(HEADER_DIR)/o_hash.h
+$(HEADER_DIR)/o_hash.h: $(HEADER_DIR)/o_hash_bas.h $(HEADER_DIR)/o_hash_cbs.h
+$(GNUSTEP_OBJ_DIR)/o_list.o: o_list.m $(HEADER_DIR)/o_list.h
+$(HEADER_DIR)/o_list.h: $(HEADER_DIR)/o_list_bas.h $(HEADER_DIR)/o_list_cbs.h $(HEADER_DIR)/o_array.h $(HEADER_DIR)/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_map.o: o_map.m $(HEADER_DIR)/o_map.h
+$(HEADER_DIR)/o_map.h: $(HEADER_DIR)/o_map_bas.h $(HEADER_DIR)/o_map_cbs.h $(HEADER_DIR)/o_hash.h
 
 #
 #	Files that include mframe.h will need a rebuild if it is changed.
@@ -216,7 +211,7 @@ $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSRunLoop.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-	: Foundation/GSIArray.h Foundation/GSUnion.h
+	: $(HEADER_DIR)/GSIArray.h $(HEADER_DIR)/GSUnion.h
 
 #
 #	Files that include GSIMap.h will need a rebuild if it is changed.
@@ -227,7 +222,7 @@ $(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
 $(GNUSTEP_OBJ_DIR)/NSGSet.o \
 $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
-	: Foundation/GSIMap.h Foundation/GSUnion.h
+	: $(HEADER_DIR)/GSIMap.h $(HEADER_DIR)/GSUnion.h
 
 #
 #	Files that include fast.x will need a rebuild if it is changed.
@@ -244,7 +239,7 @@ $(GNUSTEP_OBJ_DIR)/NSObject.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSString.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-        : Foundation/fast.x
+        : $(HEADER_DIR)/fast.x
 
 #
 #	Files that include propList.h will need a rebuild if it is changed.
@@ -266,7 +261,7 @@ $(GNUSTEP_OBJ_DIR)/NSGCString.o \
 #	NSGeometry.m needs a recompile if NSGeometry.h is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
-	: Foundation/NSGeometry.h
+	: $(HEADER_DIR)/NSGeometry.h
 
 
 #

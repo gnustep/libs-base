@@ -343,11 +343,11 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 
 GENERATED_HFILES = \
 dynamic-load.h \
-Foundation/preface.h \
-Foundation/o_array.h \
-Foundation/o_hash.h \
-Foundation/o_list.h \
-Foundation/o_map.h \
+$(HEADER_DIR)/preface.h \
+$(HEADER_DIR)/o_array.h \
+$(HEADER_DIR)/o_hash.h \
+$(HEADER_DIR)/o_list.h \
+$(HEADER_DIR)/o_map.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
