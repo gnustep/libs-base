@@ -1,3 +1,8 @@
+Fri Apr 23 23:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSCalendarDate.m: Applied bugfixes by Jeremy Bettis
+	<jeremy@hksys.com> to better cope with month ends.
+
 Fri Apr 23 15:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle.m: Improved localisation - avoid possibility of
