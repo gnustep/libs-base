@@ -78,7 +78,7 @@
 {
   char *r;
 
-  OBJC_MALLOC(r, char, _count);
+  OBJC_MALLOC(r, char, _count+1);
   memcpy(r, _contents_chars, _count);
   r[_count] = '\0';
   [[[MallocAddress alloc] initWithAddress:r] autorelease];
