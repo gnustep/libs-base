@@ -466,6 +466,22 @@ userDirectory(NSString *name, BOOL defaults)
   home = NSHomeDirectoryForUser(name);
   file = [home stringByAppendingPathComponent: @".GNUsteprc"];
   manager = [NSFileManager defaultManager];
+  /*
+   * If there is no per-user  startup file, look in the one in the
+   * configured system root directory.  NB. Don't use the environment
+   * variable ... that could have been changed!
+   */
+  if ([manager isReadableFileAtPath: file] == NO)
+    {
+      NSString	*root;
+
+      root = [NSString stringWithCString: stringify(GNUSTEP_INSTALL_PREFIX)];
+#if defined (__MINGW32__)
+      root = [GSStringFromWin32EnvironmentVariable("SystemDrive")
+	stringByAppendingString: gnustep_system_root];
+#endif
+      file = [root stringByAppendingPathComponent: @".GNUsteprc"];
+    }
   if ([manager isReadableFileAtPath: file] == YES)
     {
       NSArray	*lines;
