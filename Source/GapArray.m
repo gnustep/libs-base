@@ -4,7 +4,7 @@
    Written by:  Kresten Krab Thorup <krab@iesd.auc.dk>
    Dept. of Mathematics and Computer Science, Aalborg U., Denmark
 
-   Overhauled by: R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Overhauled by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 
    This file is part of the Gnustep Base Library.
 

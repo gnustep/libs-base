@@ -3,7 +3,7 @@
    
    This file is part of the Gnustep Base Library.
 
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
    
    This library is free software; you can redistribute it and/or

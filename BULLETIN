@@ -2,7 +2,7 @@
 
 The Gnustep Base Library (libobjects) is a library of
 general-purpose, non-graphical Objective C objects written by
-R. Andrew McCallum and designed in the Smalltalk tradition.  It
+Andrew Kachites McCallum and designed in the Smalltalk tradition.  It
 includes collection objects for maintaining groups of objects and C
 types, byte streams for I/O to various destinations, coders for
 formating objects and C types to byte streams, ports for network
@@ -19,26 +19,26 @@ groups of objects and C types, byte streams for I/O to various
 destinations, coders for formating objects and C types to byte
 streams, ports for network packet transmission, remote object
 messaging support, pseudo-random number generators, and time handling
-facilities.  It is being written by R. Andrew McCallum.
+facilities.  It is being written by Andrew Kachites McCallum.
 
 
 * Gnustep Base Library (libobjects)
 
-R. Andrew McCallum is writing the Gnustep Base Library, a
+Andrew Kachites McCallum is writing the Gnustep Base Library, a
 library of general-purpose, non-graphical Objective C objects designed
 in the Smalltalk tradition.  It includes collection objects for
 maintaining groups of objects and C types, byte streams for I/O to
 various destinations, coders for formating objects and C types to byte
 streams, ports for network packet transmission, remote object
 messaging support, pseudo-random number generators, and time handling
-facilities.  It is being written by R. Andrew McCallum.
+facilities.  It is being written by Andrew Kachites McCallum.
 
 
 * Gnustep Base Library
 
 The Gnustep Base Library (@code{libobjects}) is a library of
 general-purpose, non-graphical Objective C objects written by
-R. Andrew McCallum.  It includes collection objects for maintaining
+Andrew Kachites McCallum.  It includes collection objects for maintaining
 groups of objects and C types, streams for I/O to various
 destinations, coders for formating objects and C types to streams,
 ports for network packet transmission, distributed objects (remote
@@ -51,7 +51,7 @@ facilities.  Contact @samp{mccallum@gnu.ai.mit.edu}.
 
 The Gnustep Base Library (libobjects) is a library of
 general-purpose, non-graphical Objective C objects written by
-R. Andrew McCallum.  What `libg++' is to GNU's C++, `libobjects' is to
+Andrew Kachites McCallum.  What `libg++' is to GNU's C++, `libobjects' is to
 GNU's Objective C.
 
 The library features collection objects for maintaining groups of
@@ -108,7 +108,7 @@ Here is the simple description:
 
 The Gnustep Base Library (@code{libobjects}) is a library of
 general-purpose, non-graphical Objective C objects written by
-R. Andrew McCallum.  It includes collection objects for maintaining
+Andrew Kachites McCallum.  It includes collection objects for maintaining
 groups of objects and C types, streams for I/O to various
 destinations, coders for formating objects and C types to streams,
 ports for network packet transmission, distributed objects (remote

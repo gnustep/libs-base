@@ -1,7 +1,7 @@
 /* Implementation of Objective-C Lock object
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
    
    This file is part of the Gnustep Base Library.

@@ -68,7 +68,7 @@ be placed in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
 
 @display
 Happy Hacking!
-       R. Andrew McCallum
+       Andrew Kachites McCallum
        mccallum@@gnu.ai.mit.edu
 @end display
 

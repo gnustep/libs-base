@@ -10,7 +10,7 @@ END-INFO-DIR-ENTRY
 @end ifinfo
 
 @ifinfo
-Copyright @copyright{} 1994 R. Andrew McCallum and Free Software
+Copyright @copyright{} 1994 Andrew Kachites McCallum and Free Software
 Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
@@ -31,11 +31,11 @@ into another language, under the above conditions for modified versions.
 @titlepage
 @finalout
 @title The GNU Objective-C Language Manual
-@author R. Andrew McCallum
+@author Andrew Kachites McCallum
 @page
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1994 R. Andrew McCallum and Free Software
+Copyright @copyright{} 1994 Andrew Kachites McCallum and Free Software
 Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
