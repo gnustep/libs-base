@@ -1185,29 +1185,32 @@ static BOOL snuggleStart(NSString *t)
       unitName = name;
     }
 
-  r = [comment rangeOfString: @"<standards>"];
-  if (comment != nil && r.length > 0)
+  if (comment != nil)
     {
-      unsigned  i = r.location;
-
-      r = NSMakeRange(i, [comment length] - i);
-      r = [comment rangeOfString: @"</standards>"
-		     options: NSLiteralSearch
-		       range: r];
+      r = [comment rangeOfString: @"<standards>"];
       if (r.length > 0)
 	{
-	  NSMutableString	*m;
+	  unsigned  i = r.location;
 
-	  r = NSMakeRange(i, NSMaxRange(r) - i);
-	  standards = [comment substringWithRange: r];
-	  m = [comment mutableCopy];
-	  [m deleteCharactersInRange: r];
-	  comment = m;
-	  AUTORELEASE(m);
-	}
-      else
-	{
-	  NSLog(@"unterminated <standards> in comment for %@", name);
+	  r = NSMakeRange(i, [comment length] - i);
+	  r = [comment rangeOfString: @"</standards>"
+			 options: NSLiteralSearch
+			   range: r];
+	  if (r.length > 0)
+	    {
+	      NSMutableString	*m;
+
+	      r = NSMakeRange(i, NSMaxRange(r) - i);
+	      standards = [comment substringWithRange: r];
+	      m = [comment mutableCopy];
+	      [m deleteCharactersInRange: r];
+	      comment = m;
+	      AUTORELEASE(m);
+	    }
+	  else
+	    {
+	      NSLog(@"unterminated <standards> in comment for %@", name);
+	    }
 	}
     }
   if (standards == nil)
@@ -1219,49 +1222,53 @@ static BOOL snuggleStart(NSString *t)
    * Make sure we have a 'unit' part and a class 'desc' part (comment)
    * to be output.
    */
-  r = [comment rangeOfString: @"<unit>"];
-  if (comment != nil && r.length > 0)
+  if (comment != nil)
     {
-      unsigned	pos = r.location;
+      r = [comment rangeOfString: @"<unit>"];
+      if (r.length > 0)
+	{
+	  unsigned	pos = r.location;
 
-      r = [comment rangeOfString: @"</unit>"];
-      if (r.length == 0 || r.location < pos)
-	{
-	  NSLog(@"Unterminated <unit> in comment for %@", name);
-	  return;
-	}
-      
-      if (pos == 0)
-	{
-	  if (NSMaxRange(r) == [comment length])
+	  r = [comment rangeOfString: @"</unit>"];
+	  if (r.length == 0 || r.location < pos)
 	    {
-	      unit = comment;
-	      comment = nil;
+	      NSLog(@"Unterminated <unit> in comment for %@", name);
+	      return;
+	    }
+	  
+	  if (pos == 0)
+	    {
+	      if (NSMaxRange(r) == [comment length])
+		{
+		  unit = comment;
+		  comment = nil;
+		}
+	      else
+		{
+		  unit = [comment substringToIndex: NSMaxRange(r)];
+		  comment = [comment substringFromIndex: NSMaxRange(r)];
+		}
 	    }
 	  else
 	    {
-	      unit = [comment substringToIndex: NSMaxRange(r)];
-	      comment = [comment substringFromIndex: NSMaxRange(r)];
-	    }
-	}
-      else
-	{
-	  if (NSMaxRange(r) == [comment length])
-	    {
-	      unit = [comment substringFromIndex: pos];
-	      comment = [comment substringToIndex: pos];
-	    }
-	  else
-	    {
-	      unsigned	end = NSMaxRange(r);
+	      if (NSMaxRange(r) == [comment length])
+		{
+		  unit = [comment substringFromIndex: pos];
+		  comment = [comment substringToIndex: pos];
+		}
+	      else
+		{
+		  unsigned	end = NSMaxRange(r);
 
-	      r = NSMakeRange(pos, end-pos);
-	      unit = [comment substringWithRange: r];
-	      comment = [[comment substringToIndex: pos]
-		stringByAppendingString: [comment substringFromIndex: end]];
+		  r = NSMakeRange(pos, end-pos);
+		  unit = [comment substringWithRange: r];
+		  comment = [[comment substringToIndex: pos]
+		    stringByAppendingString: [comment substringFromIndex: end]];
+		}
 	    }
+	  unit = [unit stringByReplacingString: @"unit>"
+				    withString: @"chapter>"];
 	}
-      unit = [unit stringByReplacingString: @"unit>" withString: @"chapter>"];
     }
   else
     {
