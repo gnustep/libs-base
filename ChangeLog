@@ -3,6 +3,9 @@
 	* Source/NSData.m: readContentsOfFile() hack added to permit reading
 	of files like those in the /proc filesystem which don't support
 	lengths.
+	* Source/NSString.m: ([-initWithFormat:locale:]) use dummy local
+	variable to try to get compilation to work on alpha ... untested
+	as I don't have an alpha system.
 
 2001-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
