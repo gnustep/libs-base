@@ -1,3 +1,10 @@
+2001-11-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Put a limit of around a second on how long
+	the delay between polling for incoming packets can grow to ...
+	improve response on heavily loaded systems.
+	* Source/GSHTTPURLHandle.m: ditto
+
 2001-11-24  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSURL.h
