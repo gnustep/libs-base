@@ -365,7 +365,8 @@ handle_printf_atsign (FILE *stream,
 	/* Temporarily terminate the string before the `%@'. */
 	*atsign_pos = '\0';
 	/* Print the part before the '%@' */
-	printed_len += vsprintf (buf+printed_len, format_to_go, arg_list);
+	printed_len += VSPRINTF_LENGTH (vsprintf (buf+printed_len,
+						  format_to_go, arg_list));
 	/* Get a C-string (char*) from the String object, and print it. */
 	cstring = [(id) va_arg (arg_list, id) cStringNoCopy];
 	strcat (buf+printed_len, cstring);
@@ -374,12 +375,13 @@ handle_printf_atsign (FILE *stream,
 	format_to_go = atsign_pos + 2;
       }
     /* Print the rest of the string after the last `%@'. */
-    printed_len += vsprintf (buf+printed_len, format_to_go, arg_list);
+    printed_len += VSPRINTF_LENGTH (vsprintf (buf+printed_len,
+					      format_to_go, arg_list));
   }
 #else
   /* The available libc has `register_printf_function()', so the `%@' 
      printf directive is handled by printf and friends. */
-  printed_len = vsprintf (buf, format_cp, arg_list);
+  printed_len = VSPRINTF_LENGTH (vsprintf (buf, format_cp, arg_list));
 #endif /* !HAVE_REGISTER_PRINTF_FUNCTION */
 
   /* Raise an exception if we overran our buffer. */
