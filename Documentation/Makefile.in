@@ -49,6 +49,7 @@ objective-c.texi \
 readme.texi \
 todo.texi \
 machines.texi \
+gnustep-faq.texi \
 faq.texi
 
 TEXT_FILES = \
@@ -103,6 +104,9 @@ NEWS: news.texi version.texi
 ADVERTISEMENT: advertisement.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
+GNUstep-FAQ: gnustep-faq.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ \
+	--no-header --no-split $(srcdir)/gnustep-faq.texi
 
 TOP_DOC_FILES = README INSTALL NEWS
 RCS_FILES =  $(TEXI_FILES) Makefile.in 
