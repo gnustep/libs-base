@@ -1,3 +1,13 @@
+2002-08-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Base.gsdoc: Moved to Documentation.
+	* Source/GNUmakefile: Removed documentation building code.
+	* Source/DocMakefile: New file for building refetrence documentation.
+	* Documentation/Base.gsdoc: New from source directory.
+	* Documentation/GNUmakefile: Set up installation directory name.
+	* Documentation/Makefile.postamble: Use ../Source/DocMakefile to build
+	library reference documentation and deal with installation.
+
 2002-08-15  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add NetBSD header/ldflag support (Patch from

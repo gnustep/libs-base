@@ -38,20 +38,38 @@
 # Things to do before compiling
 # before-all::
 
-# Things to do after compiling
-# after-all::
+# After building local documentation, we need to run the special makefile
+# in the source directory to generate library reference documentation from
+# the source code.
+after-all::
+ifeq ($(HAVE_LIBXML),1)
+	$(MAKE) -C ../Source -f DocMakefile
+endif
 
 # Things to do before installing
 # before-install::
 
-# Things to do after installing
-# after-install::
+# Install the library reference documentaion manually
+#
+after-install::
+ifeq ($(HAVE_LIBXML),1)
+	rm -rf $(REF_DOC_INSTALL_DIR)
+	$(MKDIRS) $(REF_DOC_INSTALL_DIR)
+	(cd Base; $(TAR) cf - .) | \
+	  (cd $(REF_DOC_INSTALL_DIR); $(TAR) xf -)
+ifneq ($(CHOWN_TO),)
+	$(CHOWN) -R $(CHOWN_TO) \
+	  $(REF_DOC_INSTALL_DIR)
+endif
+endif
+
 
 # Things to do before uninstalling
 # before-uninstall::
 
 # Things to do after uninstalling
-# after-uninstall::
+after-uninstall::
+	rm -rf $(REF_DOC_INSTALL_DIR)
 
 # Things to do before cleaning
 # before-clean::
