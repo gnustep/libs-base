@@ -33,7 +33,7 @@ include ../config.mak
 
 # DTDs to install
 dtddir = $(GNUSTEP_RESOURCES)/DTDs
-DTD_FILES = gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd gsdoc-0_6_7.dtd
+DTD_FILES = plist-0_9.dtd gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd gsdoc-0_6_7.dtd
 
 # DocTemplates to install
 doctemplatesdir = $(GNUSTEP_RESOURCES)/DocTemplates

@@ -424,7 +424,8 @@ GSXMLPlMake(id obj, NSDictionary *loc)
 
   dest = [NSMutableString stringWithCString:
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
-    "SYSTEM \"file://localhost/System/Library/DTDs/PropertyList.dtd\">\n"
+    "PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
+    "\"http://www.gnustep.org/plist-0_9.xml\">\n"
     "<plist version=\"0.9\">\n"];
 
   XMLPlObject(dest, obj, loc, 0);

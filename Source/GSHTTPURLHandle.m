@@ -100,9 +100,11 @@ static void debugRead(NSData *data)
   d = open(debugFile, O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nRead %@ -\n", [NSDate date]];
+      s = [NSString stringWithFormat: @"\nRead %@ %u bytes - '",
+	[NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
+      write(d, "'", 1);
       close(d);
     }
   [debugLock unlock];
@@ -116,9 +118,11 @@ static void debugWrite(NSData *data)
   d = open(debugFile, O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nWrite %@ -\n", [NSDate date]];
+      s = [NSString stringWithFormat: @"\nWrite %@ %u bytes - '",
+	[NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
+      write(d, "'", 1);
       close(d);
     }
   [debugLock unlock];
