@@ -176,16 +176,54 @@
       If this is not specified, headers are looked for relative to the
       current directory or using absolute path names if given.
     </item>
-    <item><string>Project</strong>
+    <item><strong>LocalProjects</strong>
+      This value is used to control the automatic inclusion of local
+      external projects into the indexing system for generation of
+      cross-references in final document output.<br />
+      If set to 'None', then no local project references are done,
+      otherwise, the 'Local' GNUstep documentation directory is recursively
+      searched for files with a <code>.igsdoc</code> extension, and the
+      indexing information from those files is used.<br />
+      The value of this string is also used to generate the filenames in
+      the cross reference ... if it is an empty string, the path to use
+      is assumed to be a file in the same directory where the igsdoc
+      file was found, otherwise it is used as a prefix to the name in
+      the index.
+    </item>
+    <item><strong>Project</strong>
       May be used to specify the name of this project ... determines the
       name of the index reference file produced as part of the documentation
       to provide information enabling other projects to cross-reference to
       items in this project.
     </item>
+    <item><strong>Projects</strong>
+      This value may be supplies as a dictionary containing the paths to
+      the igsdoc index/reference files used by external projects, along
+      with values to be used to map the filenames found in the indexes.<br />
+      For example, if a project index (igsdoc) file says that the class
+      <code>Foo</code> is found in the file <code>Foo</code>, and the
+      path associated with that project index is <code>/usr/doc/proj</code>,
+      Then generated html output may reference the class as being in
+      <code>/usr/doc/prj/Foo.html</code>
+    </item>
     <item><strong>SourceDirectory</strong>
       May be used to specify the directory to be searched for header files.
       If this is not specified, headers are looked for relative to the
       current directory or using absolute path names if given.
+    </item>
+    <item><strong>SystemProjects</strong>
+      This value is used to control the automatic inclusion of system
+      external projects into the indexing system for generation of
+      cross-references in final document output.<br />
+      If set to 'None', then no system project references are done,
+      otherwise, the 'System' GNUstep documentation directory is recursively
+      searched for files with a <code>.igsdoc</code> extension, and the
+      indexing information from those files is used.<br />
+      The value of this string is also used to generate the filenames in
+      the cross reference ... if it is an empty string, the path to use
+      is assumed to be a file in the same directory where the igsdoc
+      file was found, otherwise it is used as a prefix to the name in
+      the index.
     </item>
   </list>
   <section>
@@ -227,14 +265,17 @@ main(int argc, char **argv, char **env)
   NSString		*declared;
   NSString		*headerDirectory;
   NSString		*sourceDirectory;
-  NSString		*projectName;
+  NSString		*project;
   NSString		*refsFile;
+  NSString		*systemProjects;
+  NSString		*localProjects;
   AGSIndex		*prjRefs;
   AGSIndex		*indexer;
   AGSParser		*parser;
   AGSOutput		*output;
   NSString		*up = nil;
   NSString		*prev = nil;
+  id			o;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
 
@@ -244,13 +285,21 @@ main(int argc, char **argv, char **env)
 
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
-    @"Untitled", @"ProjectName",
+    @"Untitled", @"Project",
     nil]];
 
-  projectName = [defs stringForKey: @"ProjectName"];
-
   declared = [defs stringForKey: @"Declared"];
-
+  project = [defs stringForKey: @"Project"];
+  localProjects = [defs stringForKey: @"LocalProjects"];
+  if (localProjects == nil)
+    {
+      localProjects = @"";
+    }
+  systemProjects = [defs stringForKey: @"SystemProjects"];
+  if (systemProjects == nil)
+    {
+      systemProjects = @"";
+    }
   projects = [defs dictionaryForKey: @"Projects"];
 
   headerDirectory = [defs stringForKey: @"HeaderDirectory"];
@@ -284,6 +333,122 @@ main(int argc, char **argv, char **env)
   indexer = [AGSIndex new];
   parser = [AGSParser new];
   output = [AGSOutput new];
+
+  /*
+   * Merge any external project references into the
+   * main cross reference index.
+   */
+
+  if ([systemProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
+    {
+      NSString	*base = [NSSearchPathForDirectoriesInDomains(
+	NSDocumentationDirectory, NSSystemDomainMask, NO) lastObject];
+
+      base = [base stringByStandardizingPath];
+      if (base != nil)
+	{
+	  NSDirectoryEnumerator *enumerator = [mgr enumeratorAtPath: base];
+	  NSString		*file;
+
+	  if ([systemProjects isEqual: @""] == YES)
+	    {
+	      systemProjects = base;	// Absolute path
+	    }
+	  while ((file = [enumerator nextObject]) != nil)
+	    {
+	      NSString	*ext = [file pathExtension];
+
+	      if ([ext isEqualToString: @"igsdoc"] == YES)
+		{
+		  NSString	*key;
+		  NSString	*val;
+
+		  if (projects == nil)
+		    {
+		      projects = [NSMutableDictionary dictionary];
+		    }
+		  key = [base stringByAppendingPathComponent: file];
+		  val = [file stringByDeletingLastPathComponent];
+		  val = [systemProjects stringByAppendingPathComponent: val];
+		  [projects setObject: val forKey: key];
+		}
+	    }
+	}
+    }
+
+  if ([localProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
+    {
+      NSString	*base = [NSSearchPathForDirectoriesInDomains(
+	NSDocumentationDirectory, NSLocalDomainMask, NO) lastObject];
+
+      base = [base stringByStandardizingPath];
+      if (base != nil)
+	{
+	  NSDirectoryEnumerator *enumerator = [mgr enumeratorAtPath: base];
+	  NSString		*file;
+
+	  if ([localProjects isEqual: @""] == YES)
+	    {
+	      localProjects = base;	// Absolute path
+	    }
+	  while ((file = [enumerator nextObject]) != nil)
+	    {
+	      NSString	*ext = [file pathExtension];
+
+	      if ([ext isEqualToString: @"igsdoc"] == YES)
+		{
+		  NSString	*key;
+		  NSString	*val;
+
+		  if (projects == nil)
+		    {
+		      projects = [NSMutableDictionary dictionary];
+		    }
+		  key = [base stringByAppendingPathComponent: file];
+		  val = [file stringByDeletingLastPathComponent];
+		  val = [localProjects stringByAppendingPathComponent: val];
+		  [projects setObject: val forKey: key];
+		}
+	    }
+	}
+    }
+
+  if (projects != nil)
+    {
+      NSEnumerator	*e = [projects keyEnumerator];
+      NSString		*k;
+
+      while ((k = [e nextObject]) != nil)
+	{
+	  NSDictionary	*dict;
+
+	  if ([mgr isReadableFileAtPath: k] == NO
+	    || (dict = [[NSDictionary alloc] initWithContentsOfFile: k]) == nil)
+	    {
+	      NSLog(@"Unable to read project file '%@'", k);
+	    }
+	  else
+	    {
+	      AGSIndex		*tmp;
+	      NSString		*p;
+
+	      tmp = [AGSIndex new];
+	      [tmp mergeRefs: dict];
+	      RELEASE(dict);
+	      /*
+	       * Adjust path to external project files ...
+	       */
+	      p = [projects objectForKey: k];
+	      if ([p isEqual: @""] == YES)
+		{
+		  p = [k stringByDeletingLastPathComponent];
+		}
+	      [tmp setDirectory: p];
+	      [indexer mergeRefs: [tmp refs]];
+	      RELEASE(tmp);
+	    }
+	}
+    }
 
   args = [proc arguments];
 
@@ -483,6 +648,7 @@ main(int argc, char **argv, char **env)
 	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 	      [parser substituteEntities: YES];
 	      [parser doValidityChecking: YES];
+	      [parser keepBlanks: NO];
 	      if ([parser parse] == NO)
 		{
 		  NSLog(@"WARNING %@ is not a valid document", gsdocfile);
@@ -498,9 +664,8 @@ main(int argc, char **argv, char **env)
 	      [locRefs makeRefs: [[parser doc] root]];
 
 	      /*
-	       * accumulate index info
+	       * accumulate index info in project references
 	       */
-	      [indexer mergeRefs: [locRefs refs]];
 	      [prjRefs mergeRefs: [locRefs refs]];
 	    }
 	  else if (isDocumentation)
@@ -514,6 +679,11 @@ main(int argc, char **argv, char **env)
 	  NSLog(@"Unknown argument '%@' ... ignored", arg);
 	}
     }
+
+  /*
+   * accumulate project index info into global index
+   */
+  [indexer mergeRefs: [prjRefs refs]];
 
   for (i = 1; i < [args count]; i++)
     {
@@ -570,6 +740,7 @@ main(int argc, char **argv, char **env)
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 		  [parser substituteEntities: YES];
 		  [parser doValidityChecking: YES];
+		  [parser keepBlanks: NO];
 		  if ([parser parse] == NO)
 		    {
 		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
@@ -588,7 +759,7 @@ main(int argc, char **argv, char **env)
 		   * We perform final output
 		   */
 		  html = AUTORELEASE([AGSHtml new]);
-		  [html setGlobalRefs: prjRefs];
+		  [html setGlobalRefs: indexer];
 		  [html setLocalRefs: locRefs];
 		  generated = [html outputDocument: [[parser doc] root]];
 		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
@@ -616,8 +787,7 @@ main(int argc, char **argv, char **env)
   /*
    * Save references.
    */
-  refsFile = [documentationDirectory stringByAppendingPathComponent:
-    projectName];
+  refsFile = [documentationDirectory stringByAppendingPathComponent: project];
   refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
   if ([[prjRefs refs] writeToFile: refsFile atomically: YES] == NO)
     {
