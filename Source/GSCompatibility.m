@@ -894,13 +894,19 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else
     {
-      NSDebugLog(@"Non-property-list class (%@) encoded as string",
-	NSStringFromClass([obj class]));
       if (x == PLXML)
 	{
+	  NSDebugLog(@"Non-property-list class (%@) encoded as string",
+	    NSStringFromClass([obj class]));
 	  Append(@"<string>", dest);
 	  XString([obj description], dest);
 	  Append(@"</string>\n", dest);
+	}
+      else if (x == PLNEW)
+	{
+	  NSDebugLog(@"Non-property-list class (%@) encoded as string",
+	    NSStringFromClass([obj class]));
+	  Append([obj description], dest);
 	}
       else
 	{
