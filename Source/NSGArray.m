@@ -68,6 +68,12 @@
   return _count;
 }
 
+/* Force message to go to super class rather than the behavior class */
+- (unsigned) indexOfObject: anObject
+{
+    return [super indexOfObject: anObject];
+}
+
 - objectAtIndex: (unsigned)index
 {
   assert(index < _count);	/* xxx should raise NSException instead */

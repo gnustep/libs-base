@@ -93,6 +93,22 @@
   return YES;
 }
 
+- copyWithZone: (NSZone *)zone
+{
+  if (NSShouldRetainWithZone(self, zone))
+    return [self retain];
+  else {
+    return [[NSData allocWithZone:zone]
+    	initWithBytes:[self bytes] length:[self length]];
+  }
+}
+
+- mutableCopyWithZone: (NSZone *)zone
+{
+    return [[NSMutableData allocWithZone:zone]
+    	initWithBytes:[self bytes] length:[self length]];
+}
+
 @end
 
 
@@ -139,6 +155,12 @@
 	      length: (unsigned int)length
 {
   [self writeBytes:bytes length:length];
+}
+
+- copyWithZone: (NSZone *)zone
+{
+    return [[NSData allocWithZone:zone]
+    	initWithBytes:[self bytes] length:[self length]];
 }
 
 @end

@@ -67,7 +67,7 @@
 /* Empty copy must empty an allocCopy'ed version of self */
 - emptyCopy
 {
-  NSGCString *copy = [super emptyCopy];
+  NSGCString *copy = [super allocCopy];
   OBJC_MALLOC(copy->_contents_chars, char, _count+1);
   copy->_count = 0;
   copy->_contents_chars[0] = '\0';
