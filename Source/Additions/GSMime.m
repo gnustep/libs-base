@@ -2163,6 +2163,239 @@ parseCharacterSet(NSString *token)
 
 
 
+@implementation	GSMimeHeader
+
+static NSCharacterSet	*nonToken = nil;
+static NSCharacterSet	*tokenSet = nil;
+
++ (void) initialize
+{
+  if (nonToken == nil)
+    {
+      NSMutableCharacterSet	*ms;
+
+      ms = [NSMutableCharacterSet new];
+      [ms addCharactersInRange: NSMakeRange(33, 126-32)];
+      [ms removeCharactersInString: @"()<>@,;:\\\"/[]?="];
+      tokenSet = [ms copy];
+      RELEASE(ms);
+      nonToken = RETAIN([tokenSet invertedSet]);
+    }
+}
+
+- (void) dealloc
+{
+  RELEASE(name);
+  RELEASE(value);
+  RELEASE(params);
+  [super dealloc];
+}
+
+- (id) init
+{
+  RELEASE(self);
+  NSLog(@"You should initialise GSMime using initWithName:value:params:");
+  return nil;
+}
+
+- (id) initWithName: (NSString*)n value: (NSString*)v params: (NSDictionary*)p
+{
+  [self setName: n];
+  [self setValue: v];
+  [self setParams: p];
+  return self;
+}
+
+/**
+ * Makes the value into a quoted string if necessary.
+ */
+- (NSString*) makeQuoted: (NSString*)v
+{
+  NSRange	r;
+  unsigned	pos = 0;
+  unsigned	l = [v length];
+
+  r = [v rangeOfCharacterFromSet: nonToken
+			 options: NSLiteralSearch
+			   range: NSMakeRange(pos, l - pos)];
+  if (r.length > 0)
+    {
+      NSMutableString	*m = [NSMutableString new];
+
+      [m appendString: @"\""];
+      while (r.length > 0)
+	{
+	  unichar	c;
+
+	  if (r.location > pos)
+	    {
+	      [m appendString:
+		[v substringFromRange: NSMakeRange(pos, r.location - pos)]];
+	    }
+	  pos = r.location + 1;
+	  c = [v characterAtIndex: r.location];
+	  if (c < 128)
+	    {
+	      [m appendFormat: @"\\%c", c];
+	    }
+	  else
+	    {
+	      NSLog(@"NON ASCII characters not yet implemented");
+	    }
+	  r = [v rangeOfCharacterFromSet: nonToken
+				 options: NSLiteralSearch
+				   range: NSMakeRange(pos, l - pos)];
+	}
+      [m appendString: @"\""];
+      v = AUTORELEASE(m);
+    }
+  return v;
+}
+
+/**
+ * Convert the supplied string to a standardized token by making it
+ * lowercase and removing all illegal characters.
+ */
+- (NSString*) makeToken: (NSString*)t
+{
+  NSRange	r;
+
+  t = [t lowercaseString];
+  r = [t rangeOfCharacterFromSet: nonToken];
+  if (r.length > 0)
+    {
+      NSMutableString	*m = [t mutableCopy];
+
+      while (r.length > 0)
+	{
+	  [m deleteCharactersInRange: r];
+	  r = [m rangeOfCharacterFromSet: nonToken];
+	}
+      t = AUTORELEASE(m);
+    }
+  return t;
+}
+
+/**
+ * Returns the name of this header ... a lowercase string.
+ */
+- (NSString*) name
+{
+  return name;
+}
+
+/**
+ * Returns the parameters of this header ... a dictionary whose keys
+ * are all lowercase strings, and whosre value is a string which may
+ * contain mixed case.
+ */
+- (NSDictionary*) params
+{
+  return AUTORELEASE([params copy]);
+}
+
+/**
+ * Sets the name of this header ... converts to lowercase.
+ */
+- (void) setName: (NSString*)s
+{
+  s = [self makeToken: s];
+
+  ASSIGN(name, s);
+}
+
+/**
+ * Sets a parameter of this header ... converts name to lowercase.<br />
+ * If a nil parameter name is supplied, removes any parameter with the
+ * specified key.
+ */
+- (void) setParam: (NSString*)v forKey: (NSString*)k
+{
+  if (params == nil)
+    {
+      params = [NSMutableDictionary new];
+    }
+  k = [self makeToken: k];
+  if (v == nil)
+    {
+      [params removeObjectForKey: k];
+    }
+  else
+    {
+      [params setObject: v forKey: k];
+    }
+}
+
+/**
+ * Sets all parameters of this header ... converts names to lowercase.
+ */
+- (void) setParams: (NSDictionary*)d
+{
+  NSMutableDictionary	*m = [NSMutableDictionary new];
+  NSEnumerator		*e = [d keyEnumerator];
+  NSString		*k;
+
+  while ((k = [e nextObject]) != nil)
+    {
+      [m setObject: [d objectForKey: k] forKey: [self makeToken: k]];
+    }
+  DESTROY(params);
+  params = m;
+}
+
+/**
+ * Sets the value of this header (without changing parameters)
+ */
+- (void) setValue: (NSString*)s
+{
+  ASSIGN(value, s);
+}
+
+/**
+ * Returns the full text of the header, built from its component parts,
+ * and inclufding a terminating CR-LF
+ */
+- (NSString*) text
+{
+  NSMutableString	*t = [NSMutableString new];
+  NSEnumerator		*e = [params keyEnumerator];
+  NSString		*k;
+  unsigned		l;
+
+  [t appendString: [[self name] capitalizedString]];
+  [t appendString: @": "];
+  [t appendString: value];
+  l = [t length];
+  while ((k = [e nextObject]) != nil)
+    {
+      NSString	*v = [self makeQuoted: [params objectForKey: k]];
+      unsigned	kl = [k length];
+      unsigned	vl = [v length];
+
+      if ((l + kl + vl + 3) > 72)
+	{
+	  [t appendString: @"\r\n\t"];
+	  l = 8;
+	}
+      [t appendFormat: @"; %@=%@", k, v];
+      l += kl + vl + 3;
+    }
+  [t appendString: @"\r\n"];
+
+  return AUTORELEASE(t);
+}
+
+/**
+ * Returns the value of this header (excluding any parameters)
+ */
+- (NSString*) value
+{
+  return value;
+}
+@end
+
+
+
 /**
  * <p>
  *   This class is intended to provide a wrapper for MIME messages
