@@ -2484,8 +2484,10 @@ fail:
 	      }
 	    else if ((exist = [methods objectForKey: token]) != nil)
 	      {
-		NSArray	*a0;
-		NSArray	*a1;
+		NSArray		*a0;
+		NSArray		*a1;
+		NSString	*c0;
+		NSString	*c1;
 
 		/*
 		 * Merge info from implementation into existing version.
@@ -2519,8 +2521,19 @@ fail:
 		      }
 		  }
 
-		[self appendComment: [method objectForKey: @"Comment"]
-				 to: exist];
+		/*
+		 * If the old comment from the header parsing is
+		 * the same as the new comment from the source
+		 * parsing, assume we parsed the same file as both
+		 * source and header ... otherwise append the new
+		 * comment.
+		 */
+		c0 = [exist objectForKey: @"Comment"];
+		c1 = [method objectForKey: @"Comment"];
+		if ([c0 isEqual: c1] == NO)
+		  {
+		    [self appendComment: c1 to: exist];
+		  }
 		[exist setObject: @"YES" forKey: @"Implemented"];
 	      }
 	    break;

@@ -1,5 +1,10 @@
 2002-10-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSParser.m: Avoid duplication of method comments when
+	parsing the same file as both header and source.
+
+2002-10-22  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/AGSOutput.m: ([-split:]) In links generated from class and
 	method specifications in square brackets, place a space between the
 	class and the method name.
