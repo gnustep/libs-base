@@ -82,6 +82,7 @@ values.m \
 nsarray.m \
 nsbundle.m \
 nsdictionary.m \
+nsset.m \
 nsprocessinfo.m
 
 # nsarchiving.m
@@ -158,6 +159,8 @@ nsarray: nsarray.o $(srcdir)/../src/libobjects.a
 nsbundle: nsbundle.o $(srcdir)/../src/libobjects.a
 	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
 nsdictionary: nsdictionary.o $(srcdir)/../src/libobjects.a
+	$(LINK_CMD)
+nsset: nsset.o $(srcdir)/../src/libobjects.a
 	$(LINK_CMD)
 nsprocessinfo: nsprocessinfo.o $(srcdir)/../src/libobjects.a
 	$(LINK_CMD)
