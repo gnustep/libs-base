@@ -1136,19 +1136,14 @@ handle_printf_atsign (FILE *stream,
         {
 	  if ((b[0]==0xFE) & (b[1]==0xFF))
 	    {
-	      for (count = 2; count < (len - 1); count += 2)
-		{
-		  u[count/2 - 1] = 256*b[count] + b[count + 1];
-		}
+	      b = &b[2];
+	      count -= 2;
 	    }
-	  else
+	  for (count = 0; count < (len - 1); count += 2)
 	    {
-	      for (count = 2; count < (len - 1); count += 2)
-		{
-		  u[count/2 - 1] = 256*b[count + 1] + b[count];
-		}
+	      u[count/2 - 1] = 256*b[count + 1] + b[count];
 	    }
-	  count = count/2 - 1;
+	  count = count/2;
 	  self = [self initWithCharactersNoCopy: u
 					 length: count
 				   freeWhenDone: YES];

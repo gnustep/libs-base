@@ -1,3 +1,12 @@
+2002-03-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Tidy a little ... fix non-static declarations.
+	* Source/NSString.m: ([-initWithData:encoding:]) Correct the length
+	of the string produced when unicode data is missing its 2 byte
+	prefix. Simplification of code based on suggestion by Yen-Ju Chen
+	* Source/GSString.m: Fixes for cString infor from unicode by
+	Yen-Ju Chen.
+
 Wed Mar 13 16:55:49 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Additions/GSXML.m ([GSSAXHandler

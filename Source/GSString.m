@@ -645,18 +645,20 @@ cString_c(ivars self)
 static inline char*
 cString_u(ivars self)
 {
-  int	l = self->_count;
-  char	*r = (char*)_fastMallocBuffer(l + 1);
+  int		l = self->_count;
+  char		*r = (char*)_fastMallocBuffer(l*2 + 1);
+  unsigned	limit = 0;
 
   if (l > 0)
     {
-      if (encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, YES) == 0)
+      limit =  encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, YES);
+      if (limit == 0)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cString from Unicode string."];
 	}
     }
-  r[l] = '\0';
+  r[limit] = '\0';
   
   return r;
 }
@@ -672,19 +674,21 @@ cStringLength_u(ivars self)
 {
   unsigned	c;
   unsigned	l = self->_count;
+  unsigned	limit = 0;
 
   if (l > 0)
     {
       char	*r;
 
-      r = (char*)NSZoneMalloc(NSDefaultMallocZone(), l + 1);
-      if (encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, NO) == 0)
+      r = (char*)NSZoneMalloc(NSDefaultMallocZone(), l*2 + 1);
+      limit = encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, NO);
+      if (limit == 0)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), r);
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cStringLength from Unicode string."];
 	}
-      r[l] = '\0';
+      r[limit] = '\0';
       c = strlen(r);
       NSZoneFree(NSDefaultMallocZone(), r);
     }

@@ -127,7 +127,7 @@
 
 typedef	unsigned char	*uptr;
 static int	is_daemon = 0;		/* Currently running as daemon.	 */
-static int	debug = 0;		/* Extra debug logging.		 */
+static int	debug = 0;		/* Extra debug gdomap_logging.		 */
 static int	nobcst = 0;		/* turn off broadcast probing.	 */
 static int	nofork = 0;		/* turn off fork() for debugging. */
 static int	noprobe = 0;		/* disable probe for unknown servers. */
@@ -244,16 +244,14 @@ getopt(int argc, char **argv, char *options)
 
 static char	ebuf[2048];
 
-/* Avoid conflict with syslog function */
-#define log gdomap_log
 
 #ifdef HAVE_SYSLOG
 
-int	log_perror = 0;
-int	log_priority;
+static int	log_perror = 0;
+static int	log_priority;
 
-void
-log (int prio)
+static void
+gdomap_log (int prio)
 {
   if (is_daemon)
     {
@@ -292,7 +290,7 @@ log (int prio)
 #define LOG_INFO	0
 #define LOG_WARNING	0
 void
-log (int prio)
+gdomap_log (int prio)
 {
   write (2, ebuf, strlen (ebuf));
   write (2, "\n", 1);
@@ -421,7 +419,7 @@ delRInfo(int s)
     {
       sprintf(ebuf, "%s requested unallocated RInfo struct (socket %d)",
 	__FUNCTION__, s);
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
   _rInfoCount--;
@@ -494,7 +492,7 @@ delWInfo(int s)
     {
       sprintf(ebuf, "%s requested unallocated WInfo struct (socket %d)",
 	__FUNCTION__, s);
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
   _wInfoCount--;
@@ -683,7 +681,7 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
     {
       sprintf(ebuf, "Added port %d to map for %.*s",
 		m->port, m->size, m->name);
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   return m;
 }
@@ -702,7 +700,7 @@ map_by_name(uptr n, int s)
   if (debug > 2)
     {
       sprintf(ebuf, "Searching map for %.*s", s, n);
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   for (index = upper/2; upper != lower; index = lower + (upper - lower)/2)
     {
@@ -726,14 +724,14 @@ map_by_name(uptr n, int s)
       if (debug > 2)
 	{
 	  sprintf(ebuf, "Found port %d for %.*s", map[index]->port, s, n);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       return map[index];
     }
   if (debug > 2)
     {
       sprintf(ebuf, "Failed to find map entry for %.*s", s, n);
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   return 0;
 }
@@ -750,7 +748,7 @@ map_by_port(unsigned p, unsigned char t)
   if (debug > 2)
     {
       sprintf(ebuf, "Searching map for %u:%x", p, t);
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   for (index = 0; index < map_used; index++)
     {
@@ -767,14 +765,14 @@ map_by_port(unsigned p, unsigned char t)
 	{
 	  sprintf(ebuf, "Found port %d with name %s",
 		map[index]->port, map[index]->name);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       return map[index];
     }
   if (debug > 2)
     {
       sprintf(ebuf, "Failed to find map entry for %u:%x", p, t);
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   return 0;
 }
@@ -793,7 +791,7 @@ map_del(map_ent* e)
     {
       sprintf(ebuf, "Removing port %d from map for %.*s",
 		e->port, e->size, e->name);
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   for (i = 0; i < map_used; i++)
     {
@@ -1013,17 +1011,17 @@ dump_stats()
 	}
     }
   sprintf(ebuf, "tcp messages waiting for send - %d", tcp_pending);
-  log(LOG_INFO);
+  gdomap_log(LOG_INFO);
   sprintf(ebuf, "udp messages waiting for send - %d", udp_pending);
-  log(LOG_INFO);
+  gdomap_log(LOG_INFO);
   sprintf(ebuf, "size of name-to-port map - %d", map_used);
-  log(LOG_INFO);
+  gdomap_log(LOG_INFO);
   sprintf(ebuf, "number of known name servers - %ld", prb_used);
-  log(LOG_INFO);
+  gdomap_log(LOG_INFO);
   sprintf(ebuf, "TCP %d read, %d sent", tcp_read, tcp_sent);
-  log(LOG_INFO);
+  gdomap_log(LOG_INFO);
   sprintf(ebuf, "UDP %d read, %d sent", udp_read, udp_sent);
-  log(LOG_INFO);
+  gdomap_log(LOG_INFO);
 }
 
 static void
@@ -1059,7 +1057,7 @@ dump_tables()
   else
     {
       sprintf(ebuf, "Failed to open gdomap.dump file for output\n");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
     }
 }
 
@@ -1080,7 +1078,7 @@ init_iface()
   if (desc == INVALID_SOCKET)
     {
       sprintf(ebuf, "Failed to get a socket. Error %s\n", WSAGetLastError());
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 
@@ -1089,7 +1087,7 @@ init_iface()
     sizeof(InterfaceList), &nBytesReturned, 0, 0) == SOCKET_ERROR)
     {
       sprintf(ebuf, "Failed WSAIoctl. Error %s\n", WSAGetLastError());
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 
@@ -1223,7 +1221,7 @@ init_iface()
 
       sprintf(ebuf,
 	"SIOCGIFCONF for init_iface found no active interfaces; %m");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
 
       if (res == EINVAL)
 	{
@@ -1232,7 +1230,7 @@ init_iface()
 "you need to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or\n"
 "your system is buggy, and you need to use the '-a' command line flag for\n"
 "gdomap to manually set the interface addresses and masks to be used.\n");
-	  log(LOG_INFO);
+	  gdomap_log(LOG_INFO);
 	}
       close(desc);
       exit(1);
@@ -1263,7 +1261,7 @@ init_iface()
       if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0)
         {
           sprintf(ebuf, "SIOCGIFFLAGS: %m");
-          log(LOG_ERR);
+          gdomap_log(LOG_ERR);
         }
       else if (ifreq.ifr_flags & IFF_UP)
         {  /* interface is up */
@@ -1290,7 +1288,7 @@ init_iface()
           if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
             {
               sprintf(ebuf, "SIOCGIFADDR: %m");
-              log(LOG_ERR);
+              gdomap_log(LOG_ERR);
             }
           else if (ifreq.ifr_addr.sa_family == AF_INET)
             {	/* IP interface */
@@ -1301,7 +1299,7 @@ init_iface()
 "to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or your\n"
 "system is buggy, and you need to use the '-a' command line flag for\n"
 "gdomap to manually set the interface addresses and masks to be used.");
-	          log(LOG_INFO);
+	          gdomap_log(LOG_INFO);
 		  close(desc);
 	          exit(1);
 	        }
@@ -1314,7 +1312,7 @@ init_iface()
 		  if (ioctl(desc, SIOCGIFDSTADDR, (char*)&ifreq) < 0)
 		    {
 		      sprintf(ebuf, "SIOCGIFADDR: %m");
-		      log(LOG_ERR);
+		      gdomap_log(LOG_ERR);
 		      bcok[interfaces] = 0;
 		    }
 		  else
@@ -1330,7 +1328,7 @@ init_iface()
                       ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
 		    {
 		      sprintf(ebuf, "SIOCGIFBRDADDR: %m");
-		      log(LOG_ERR);
+		      gdomap_log(LOG_ERR);
 		      bcok[interfaces] = 0;
 		    }
 		  else
@@ -1342,7 +1340,7 @@ init_iface()
 	      if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
 	        {
 		  sprintf(ebuf, "SIOCGIFNETMASK: %m");
-		  log(LOG_ERR);
+		  gdomap_log(LOG_ERR);
 		  /*
 		   *	If we can't get a netmask - assume a class-c
 		   *	network.
@@ -1374,7 +1372,7 @@ init_iface()
     {
       sprintf(ebuf, "I can't find any network interfaces on this platform - "
 	"use the '-a' flag to load interface details from a file instead.");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 }
@@ -1394,7 +1392,7 @@ load_iface(const char* from)
   if (fptr == 0)
     {
       sprintf(ebuf, "Unable to open address config - '%s'", from);
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 
@@ -1448,7 +1446,7 @@ load_iface(const char* from)
   if (num_iface == 0)
     {
       sprintf(ebuf, "No network interfaces found");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
   num_iface++;
@@ -1541,12 +1539,12 @@ load_iface(const char* from)
       if (addr[interfaces].s_addr == -1)
 	{
 	  sprintf(ebuf, "'%s' is not as valid address", buf);
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	}
       else if (mask[interfaces].s_addr == -1)
 	{
 	  sprintf(ebuf, "'%s' is not as valid netmask", ptr);
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	}
       else
 	{
@@ -1577,11 +1575,11 @@ init_my_port()
   if ((sp = getservbyname("gdomap", "tcp")) == 0)
     {
       sprintf(ebuf, "Unable to find service 'gdomap'");
-      log(LOG_WARNING);
+      gdomap_log(LOG_WARNING);
       sprintf(ebuf, "On a unix host it should be in /etc/services "
 	"as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
 	GDOMAP_PORT, GDOMAP_PORT);
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
   else
     {
@@ -1593,19 +1591,19 @@ init_my_port()
 	  sprintf(ebuf, "On a unix host it should be in /etc/services "
 	    "as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
 	    GDOMAP_PORT, GDOMAP_PORT);
-	  log(LOG_INFO);
+	  gdomap_log(LOG_INFO);
 	}
       else if (sp->s_port != tcp_port)
 	{
 	  sprintf(ebuf,
 	    "UDP and TCP service entries differ. "
 	    "Using the TCP entry for both!");
-	  log(LOG_WARNING);
+	  gdomap_log(LOG_WARNING);
 	}
       if (tcp_port != my_port)
 	{
 	  sprintf(ebuf, "gdomap not running on normal port");
-	  log(LOG_WARNING);
+	  gdomap_log(LOG_WARNING);
 	}
       my_port = tcp_port;
     }
@@ -1639,14 +1637,14 @@ init_ports()
 #endif
     {
       sprintf(ebuf, "Unable to create UDP socket");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
   r = 1;
   if ((setsockopt(udp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
       sprintf(ebuf, "Unable to set 're-use' on UDP socket");
-      log(LOG_WARNING);
+      gdomap_log(LOG_WARNING);
     }
   if (nobcst == 0)
     {
@@ -1655,7 +1653,7 @@ init_ports()
 	{
 	  nobcst++;
 	  sprintf(ebuf, "Unable to use 'broadcast' for probes");
-	  log(LOG_WARNING);
+	  gdomap_log(LOG_WARNING);
 	}
     }
 #ifdef __MINGW__
@@ -1663,7 +1661,7 @@ init_ports()
   if (ioctlsocket(udp_desc, FIONBIO, &dummy) < 0)
     {
       sprintf(ebuf, "Unable to handle UDP socket non-blocking");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 #else /* !__MINGW__ */
@@ -1673,14 +1671,14 @@ init_ports()
       if (fcntl(udp_desc, F_SETFL, r) < 0)
 	{
 	  sprintf(ebuf, "Unable to set UDP socket non-blocking");
-	  log(LOG_CRIT);
+	  gdomap_log(LOG_CRIT);
 	  exit(1);
 	}
     }
   else
     {
       sprintf(ebuf, "Unable to handle UDP socket non-blocking");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 #endif
@@ -1695,13 +1693,13 @@ init_ports()
   if (bind(udp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
       sprintf(ebuf, "Unable to bind address to UDP socket");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       if (errno == EACCES)
 	{
 	  sprintf(ebuf, "You probably need to run gdomap as root, "
 	    "or run the nameserver on a non-standard "
 	    "port that does not require root privilege.");
-	  log(LOG_INFO);
+	  gdomap_log(LOG_INFO);
 	}
       exit(1);
     }
@@ -1717,21 +1715,21 @@ init_ports()
 #endif
     {
       sprintf(ebuf, "Unable to create TCP socket");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
   r = 1;
   if ((setsockopt(tcp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
       sprintf(ebuf, "Unable to set 're-use' on TCP socket");
-      log(LOG_WARNING);
+      gdomap_log(LOG_WARNING);
     }
 #ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(tcp_desc, FIONBIO, &dummy) < 0)
     {
       sprintf(ebuf, "Unable to handle TCP socket non-blocking");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 #else /* !__MINGW__ */
@@ -1741,14 +1739,14 @@ init_ports()
       if (fcntl(tcp_desc, F_SETFL, r) < 0)
 	{
 	  sprintf(ebuf, "Unable to set TCP socket non-blocking");
-	  log(LOG_CRIT);
+	  gdomap_log(LOG_CRIT);
 	  exit(1);
 	}
     }
   else
     {
       sprintf(ebuf, "Unable to handle TCP socket non-blocking");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 #endif /* __MINGW__ */
@@ -1760,20 +1758,20 @@ init_ports()
   if (bind(tcp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
       sprintf(ebuf, "Unable to bind address to UDP socket");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       if (errno == EACCES)
 	{
 	  sprintf(ebuf, "You probably need to run gdomap as root, "
 	    "or run the nameserver on a non-standard "
 	    "port that does not require root privilege.");
-	  log(LOG_INFO);
+	  gdomap_log(LOG_INFO);
 	}
       exit(1);
     }
   if (listen(tcp_desc, QUEBACKLOG) < 0)
     {
       sprintf(ebuf, "Unable to listen for connections on TCP socket");
-      log(LOG_CRIT);
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
 
@@ -1867,7 +1865,7 @@ init_probe()
   if (debug > 2)
     {
       sprintf(ebuf, "Initiating probe requests.");
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
 
   /*
@@ -1944,7 +1942,7 @@ init_probe()
 			"treated as 255.255.255.0 for ",
 			inet_ntoa(mask[iface]));
 		      strcat(ebuf, inet_ntoa(addr[iface]));
-		      log(LOG_WARNING);
+		      gdomap_log(LOG_WARNING);
 		      hm |= ~255;
 		    }
 		  net = ha & hm & ~255;		/* class-c net number.	*/
@@ -2084,7 +2082,7 @@ init_probe()
   if (debug > 2)
     {
       sprintf(ebuf, "Probe requests initiated.");
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   last_probe = time(0);
 }
@@ -2121,7 +2119,7 @@ handle_accept()
 	{
 	  sprintf(ebuf, "accept from %s(%d) to chan %d",
 	    inet_ntoa(sa.sin_addr), ntohs(sa.sin_port), desc);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       /*
        *	Ensure that the connection is non-blocking.
@@ -2132,7 +2130,7 @@ handle_accept()
 	  if (debug)
 	    {
 	      sprintf(ebuf, "failed to set chan %d non-blocking", desc);
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  clear_chan(desc);
 	}
@@ -2145,7 +2143,7 @@ handle_accept()
 	      if (debug)
 		{
 		  sprintf(ebuf, "failed to set chan %d non-blocking", desc);
-		  log(LOG_DEBUG);
+		  gdomap_log(LOG_DEBUG);
 		}
 	      clear_chan(desc);
 	    }
@@ -2155,7 +2153,7 @@ handle_accept()
 	  if (debug)
 	    {
 	      sprintf(ebuf, "failed to set chan %d non-blocking", desc);
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  clear_chan(desc);
 	}
@@ -2169,7 +2167,7 @@ handle_accept()
 #else
 	errno);
 #endif /* __MINGW__ */
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
 }
 
@@ -2241,7 +2239,7 @@ handle_io()
 			  if (i == tcp_desc)
 			    {
 			      sprintf(ebuf, "Fatal error on socket.");
-			      log(LOG_CRIT);
+			      gdomap_log(LOG_CRIT);
 			      exit(1);
 			    }
 			}
@@ -2259,7 +2257,7 @@ handle_io()
 	  else
 	    {
 	      sprintf(ebuf, "Interrupted in select.");
-	      log(LOG_CRIT);
+	      gdomap_log(LOG_CRIT);
 	      exit(1);
 	    }
 	}
@@ -2443,7 +2441,7 @@ handle_recv()
 	  if (debug)
 	    {
 	      sprintf(ebuf, "recvfrom packet from self discarded");
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  return;
 	}
@@ -2459,7 +2457,7 @@ handle_recv()
 #else
 	    "%m", r);
 #endif
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       clear_chan(udp_desc);
     }
@@ -2497,12 +2495,12 @@ handle_request(int desc)
       if (desc == udp_desc)
 	{
 	  sprintf(ebuf, "request type '%c' on UDP chan", type);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       else
 	{
 	  sprintf(ebuf, "request type '%c' from chan %d", type, desc);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       if (type == GDO_PROBE || type == GDO_PREPLY || type == GDO_SERVERS
 	|| type == GDO_NAMES)
@@ -2512,7 +2510,7 @@ handle_request(int desc)
       else
 	{
 	  sprintf(ebuf, "  name: '%.*s' port: %ld", size, buf, port);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
     }
 
@@ -2528,7 +2526,7 @@ handle_request(int desc)
 	  if (debug)
 	    {
 	      sprintf(ebuf, "Illegal port type in request");
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  clear_chan(desc);
 	  return;
@@ -2554,7 +2552,7 @@ handle_request(int desc)
       if (is_local_host(ri->addr.sin_addr) == 0)
 	{
 	  sprintf(ebuf, "Illegal attempt to register!");
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  clear_chan(desc);		/* Only local progs may register. */
 	  return;
 	}
@@ -2633,7 +2631,7 @@ handle_request(int desc)
 			{
 			  sprintf(ebuf, "re-register from %d to %ld",
 			    m->port, port);
-			  log(LOG_DEBUG);
+			  gdomap_log(LOG_DEBUG);
 			}
 		      m->port = port;
 		      m->net = (ptype & GDO_NET_MASK);
@@ -2652,7 +2650,7 @@ handle_request(int desc)
       else if (port == 0)
 	{	/* Port not provided!	*/
 	  sprintf(ebuf, "port not provided in request");
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	}
       else
 	{		/* Use port provided in request.	*/
@@ -2669,7 +2667,7 @@ handle_request(int desc)
 	  if (debug > 1)
 	    {
 	      sprintf(ebuf, "requested service is of wrong type");
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  m = 0;	/* Name exists but is of wrong type.	*/
 	}
@@ -2753,7 +2751,7 @@ handle_request(int desc)
 	  if (debug > 1)
 	    {
 	      sprintf(ebuf, "requested service not found");
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  *(unsigned short*)wi->buf = 0;
 	}
@@ -2766,7 +2764,7 @@ handle_request(int desc)
       if (is_local_host(ri->addr.sin_addr) == 0)
 	{
 	  sprintf(ebuf, "Illegal attempt to un-register!");
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  clear_chan(desc);
 	  return;
 	}
@@ -2780,7 +2778,7 @@ handle_request(int desc)
 		  if (debug)
 		    {
 		      sprintf(ebuf, "Attempted unregister with wrong type");
-		      log(LOG_DEBUG);
+		      gdomap_log(LOG_DEBUG);
 		    }
 		}
 	      else
@@ -2794,7 +2792,7 @@ handle_request(int desc)
 	      if (debug > 1)
 		{
 		  sprintf(ebuf, "requested service not found");
-		  log(LOG_DEBUG);
+		  gdomap_log(LOG_DEBUG);
 		}
 	    }
 	}
@@ -2880,7 +2878,7 @@ handle_request(int desc)
 	  if (debug > 2)
 	    {
 	      sprintf(ebuf, "Probe from '%s'", inet_ntoa(sin));
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 #ifdef __MINGW__
 	  if (IN_CLASSA(sin.s_addr))
@@ -2907,7 +2905,7 @@ handle_request(int desc)
 	      if (debug > 2)
 		{
 		  sprintf(ebuf, "Add server '%s'", inet_ntoa(*ptr));
-		  log(LOG_DEBUG);
+		  gdomap_log(LOG_DEBUG);
 		}
 	      prb_add(ptr);
 	      ptr++;
@@ -3015,7 +3013,7 @@ handle_request(int desc)
 	  if (debug > 2)
 	    {
 	      sprintf(ebuf, "Probe reply from '%s'", inet_ntoa(sin));
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 #ifdef __MINGW__
 	  if (IN_CLASSA(sin.s_addr))
@@ -3042,7 +3040,7 @@ handle_request(int desc)
 	      if (debug > 2)
 		{
 		  sprintf(ebuf, "Add server '%s'", inet_ntoa(*ptr));
-		  log(LOG_DEBUG);
+		  gdomap_log(LOG_DEBUG);
 		}
 	      prb_add(ptr);
 	      ptr++;
@@ -3065,7 +3063,7 @@ handle_request(int desc)
   else
     {
       sprintf(ebuf, "Illegal operation code received!");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       clear_chan(desc);
       return;
     }
@@ -3129,7 +3127,7 @@ handle_send()
 		{
 		  sprintf(ebuf, "failed sendto for %s",
 		    inet_ntoa(entry->addr.sin_addr));
-		  log(LOG_DEBUG);
+		  gdomap_log(LOG_DEBUG);
 		}
 	      queue_pop();
 	    }
@@ -3141,7 +3139,7 @@ handle_send()
 	    {
 	      sprintf(ebuf, "performed sendto for %s",
 		inet_ntoa(entry->addr.sin_addr));
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  /*
 	   *	If we have sent the entire message - remove it from queue.
@@ -3176,7 +3174,7 @@ handle_write(int desc)
   if (wi == 0)
     {
       sprintf(ebuf, "handle_write for unknown descriptor (%d)", desc);
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
   ptr = wi->buf;
@@ -3192,7 +3190,7 @@ handle_write(int desc)
       if (debug > 1)
 	{
 	  sprintf(ebuf, "Failed write on chan %d - closing", desc);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	}
       /*
        *	Failure - close connection silently.
@@ -3208,7 +3206,7 @@ handle_write(int desc)
 	  if (debug > 1)
 	    {
 	      sprintf(ebuf, "Completed write on chan %d - closing", desc);
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	  /*
 	   *	Success - written all information.
@@ -3642,7 +3640,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       if ((port & 0xffff) != port)
 	{
 	  sprintf(ebuf, "Insanely large number of registered names");
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  port = 0;
 	}
       *v = b;
@@ -3672,19 +3670,19 @@ nameFail(int why)
       case 1:
 	sprintf(ebuf, "failed to contact name server - socket - %s",
 	  strerror(errno));
-	log(LOG_ERR);
+	gdomap_log(LOG_ERR);
       case 2:
 	sprintf(ebuf, "failed to contact name server - socket - %s",
 	  strerror(errno));
-	log(LOG_ERR);
+	gdomap_log(LOG_ERR);
       case 3:
 	sprintf(ebuf, "failed to contact name server - socket - %s",
 	  strerror(errno));
-	log(LOG_ERR);
+	gdomap_log(LOG_ERR);
       case 4:
 	sprintf(ebuf, "failed to contact name server - socket - %s",
 	  strerror(errno));
-	log(LOG_ERR);
+	gdomap_log(LOG_ERR);
     }
 }
 
@@ -3718,13 +3716,13 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   if (len == 0)
     {
       sprintf(ebuf, "no name specified.");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return -1;
     }
   if (len > 0xffff)
     {
       sprintf(ebuf, "name length to large.");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return -1;
     }
 
@@ -3759,7 +3757,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
 	{
 	  sprintf(ebuf, "gethostname() failed: %s", strerror(errno));
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  return -1;
 	}
       first_dot = strchr(local_hostname, '.');
@@ -3772,13 +3770,13 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   if ((hp = gethostbyname(host)) == 0)
     {
       sprintf(ebuf, "gethostbyname() failed: %s", strerror(errno));
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return -1;
     }
   if (hp->h_addrtype != AF_INET)
     {
       sprintf(ebuf, "non-internet network not supported for %s", host);
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return -1;
     }
 
@@ -3801,7 +3799,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       if (rval != 0 && host == local_hostname)
 	{
 	  sprintf(ebuf, "failed to contact gdomap (%s)\n", strerror(errno));
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  return -1;
 	}
       if (rval == 0)
@@ -3854,7 +3852,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       if (rval != 0 && host == local_hostname)
 	{
 	  sprintf(ebuf, "failed to contact gdomap (%s)", strerror(errno));
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  return -1;
 	}
       nameFail(rval);
@@ -3865,7 +3863,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       if (port == 0 || (pnum != 0 && port != pnum))
 	{
 	  sprintf(ebuf, "service already registered.");
-	  log(LOG_ERR);
+	  gdomap_log(LOG_ERR);
 	  return -1;
 	}
     }
@@ -3892,12 +3890,12 @@ lookup(const char *name, const char *host, int ptype)
     {
       sprintf(ebuf, "Found %s on '%s' port %d", name,
 	inet_ntoa(sin[i].sin_addr), ntohs(sin[i].sin_port));
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
   if (found == 0)
     {
       sprintf(ebuf, "Unable to find %s.", name);
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
 }
 
@@ -3940,7 +3938,7 @@ donames()
   if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
     {
       sprintf(ebuf, "gethostname() failed: %s", strerror(errno));
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
   first_dot = strchr(local_hostname, '.');
@@ -3952,13 +3950,13 @@ donames()
   if ((hp = gethostbyname(host)) == 0)
     {
       sprintf(ebuf, "gethostbyname() failed: %s", strerror(errno));
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
   if (hp->h_addrtype != AF_INET)
     {
       sprintf(ebuf, "non-internet network not supported for %s", host);
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
 
@@ -3971,20 +3969,20 @@ donames()
   if (rval != 0)
     {
       sprintf(ebuf, "failed to contact gdomap (%s)", strerror(errno));
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       return;
     }
   if (num == 0)
     {
       sprintf(ebuf, "No names currently registered with gdomap");
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
   else
     {
       uptr	p = b;
 
       sprintf(ebuf, "Registered names are -");
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
       while (num-- > 0)
 	{
 	  char	buf[256];
@@ -3992,7 +3990,7 @@ donames()
 	  memcpy(buf, &p[2], p[0]);
 	  buf[p[0]] = '\0';
 	  sprintf(ebuf, "  %s", buf);
-	  log(LOG_INFO);
+	  gdomap_log(LOG_INFO);
 	  p += 2 + p[0];
 	}
     }
@@ -4011,12 +4009,12 @@ doregister(const char *name, int port, int ptype)
     {
       sprintf(ebuf, "Registered %s on '%s' port %d", name,
 	inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
   if (found == 0)
     {
       sprintf(ebuf, "Unable to register %s on port %d.", name, port);
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
     }
 }
 
@@ -4032,12 +4030,12 @@ unregister(const char *name, int port, int ptype)
     {
       sprintf(ebuf, "Unregistered %s on '%s' port %d", name,
 	inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
   if (found == 0)
     {
       sprintf(ebuf, "Unable to unregister %s.", name);
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
     }
 }
 
@@ -4052,7 +4050,7 @@ main(int argc, char** argv)
   const char	*machine = 0;
 
 #ifdef	HAVE_SYSLOG
-  /* Initially, log errors to stderr as well as to syslogd. */
+  /* Initially, gdomap_log errors to stderr as well as to syslogd. */
 #ifdef SYSLOG_4_2
   openlog ("gdomap", LOG_NDELAY);
   log_priority = LOG_DAEMON;
@@ -4390,7 +4388,7 @@ printf(
 	    if (debug)
 	      {
 		sprintf(ebuf, "initialisation complete.");
-		log(LOG_DEBUG);
+		gdomap_log(LOG_DEBUG);
 	      }
 	    exit(0);
 	}
@@ -4404,7 +4402,7 @@ printf(
       if (fptr == 0)
 	{
 	  sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
-	  log(LOG_CRIT);
+	  gdomap_log(LOG_CRIT);
 	  exit(1);
 	}
       fprintf(fptr, "%d\n", (int) getpid());
@@ -4435,17 +4433,17 @@ printf(
   if (!is_local_host(loopback))
     {
       sprintf(ebuf, "I can't find the loopback interface on this machine.");
-      log(LOG_ERR);
+      gdomap_log(LOG_ERR);
       sprintf(ebuf,
 "Perhaps you should correct your machine configuration or use the -a flag.");
-      log(LOG_INFO);
+      gdomap_log(LOG_INFO);
       if (interfaces < MAX_IFACE)
 	{
 	  addr[interfaces].s_addr = loopback.s_addr;
 	  mask[interfaces] = class_c_mask;
 	  interfaces++;
 	  sprintf(ebuf, "I am assuming loopback interface on 127.0.0.1");
-	  log(LOG_INFO);
+	  gdomap_log(LOG_INFO);
 	}
       else
 	{
@@ -4453,7 +4451,7 @@ printf(
 "You have too many network interfaces to add the loopback interface on "
 "127.0.0.1 - you need to change the 'MAX_IFACE' constant in gdomap.c and "
 "rebuild it.");
-	  log(LOG_CRIT);
+	  gdomap_log(LOG_CRIT);
 	  exit(1);
 	}
     }
@@ -4502,7 +4500,7 @@ printf(
   if (debug)
     {
       sprintf(ebuf, "entering main loop.\n");
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
     }
   handle_io();
   return 0;
@@ -4525,17 +4523,17 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
       sprintf(ebuf, "Probing for server on '%s' from '", inet_ntoa(*to));
       strcat(ebuf, inet_ntoa(*from));
       strcat(ebuf, "'");
-      log(LOG_DEBUG);
+      gdomap_log(LOG_DEBUG);
       if (l > 0)
 	{
 	  int	i;
 
 	  sprintf(ebuf, " %d additional local addresses sent -", l);
-	  log(LOG_DEBUG);
+	  gdomap_log(LOG_DEBUG);
 	  for (i = 0; i < l; i++)
 	    {
 	      sprintf(ebuf, " '%s'", inet_ntoa(e[i]));
-	      log(LOG_DEBUG);
+	      gdomap_log(LOG_DEBUG);
 	    }
 	}
     }
