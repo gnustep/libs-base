@@ -1649,14 +1649,8 @@ NSDictionary *locale)
 	  }
 	else
 	  {
-	    unichar nil_name[] = {'(','n','i','l',')','\0'};
-	    /* Write "(nil)" for a nil pointer.  */
-	    string = nil_name;
-	    /* Make sure the full string "(nil)" is printed.  */
-	    if (prec < 5)
-	      prec = 5;
-	    string_malloced = 0;
-	    goto LABEL (print_uni_string);
+	    string = NULL;
+	    goto LABEL (print_string);
 	  }
       }
       /* NOTREACHED */
@@ -1788,7 +1782,6 @@ NSDictionary *locale)
 	    while (prc--) *sp = *wsp;
 	  }
 
-	LABEL (print_uni_string):
 	if ((width -= len) <= 0)
 	  {
 	    outstring (string, len);
