@@ -1,3 +1,10 @@
+Thu Feb 24 15:55:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/TcpPort.m: Removed some unused code.
+	* Source/GSTcpPort.m: Added new port implementation - non-functional
+	as yet, but it represents quite a bit of work so I thought I'd put
+	it somewhare safe from my hard disk crashing.
+
 Thu Feb 24 08:30:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUser.m: NSOpenStepRootDirectory() use GNUSTEP_ROOT

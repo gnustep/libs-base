@@ -310,6 +310,7 @@ NSObject.m \
 NSPage.m \
 NSPipe.m \
 NSPort.m \
+GSTcpPort.m \
 NSPortCoder.m \
 NSPortMessage.m \
 NSPortNameServer.m \
