@@ -1174,6 +1174,19 @@ init_ports()
     }
 
   /*
+   * Try to become a 'safe' user now that we have
+   * done everything that needs root priv.
+   */ 
+  if (getuid () != 0)
+    {
+      setuid (getuid ());
+    }
+  else
+    {
+      setuid (-1);
+    }
+
+  /*
    *	Set up masks to say we are interested in these descriptors.
    */
   memset(&read_fds, '\0', sizeof(read_fds));
@@ -2984,7 +2997,6 @@ main(int argc, char** argv)
 	    printf("		tcp_foreign, udp_foreign.\n");
 	    printf("-U name		unregister name locally then quit.\n");
 	    printf("-a file		use config file for interface list.\n");
-	    printf("-p		disable udp broadcast for probe\n");
 	    printf("-c file		use config file for probe.\n");
 	    printf("-d		extra debug logging.\n");
 	    printf("-f		avoid fork() to make debugging easy\n");
