@@ -1,3 +1,8 @@
+2003-11-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: Raise exception if user code incorrectly tries
+	to deallocate a cached small number.
+
 2003-11-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: fix for incremental parsing so that
