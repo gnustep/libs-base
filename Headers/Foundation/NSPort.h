@@ -160,18 +160,6 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 #endif
 @end
 
-#ifndef	NO_GNUSTEP
-/**
- * Stubs for backward compatibility.  Do not use.
- */
-@interface NSPort (GNUstep)
-//PENDING: none of this is implemented.. should it be removed?
-- (void) close;
-+ (Class) outPacketClass;
-- (Class) outPacketClass;
-@end
-#endif
-
 /**
  *  Notification posted when an instance of [NSPort] or a subclass becomes
  *  invalid.
@@ -204,7 +192,15 @@ typedef SOCKET NSSocketNativeHandle;
   NSString		*address;	/* Forced internet address.	*/
   gsu16			portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
+#ifdef HAVE_WINDOWS_H
+  WSAEVENT        listenerWin;
+  NSMapTable        *handlesWin;
+#endif
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
+#ifdef __MINGW32__
+  WSAEVENT              eventListener;
+  NSMapTable            *events;
+#endif
 }
 
 /**
@@ -325,6 +321,10 @@ typedef SOCKET NSSocketNativeHandle;
   NSRecursiveLock	*myLock;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
   int			listener;	/* Descriptor to listen on.	*/
+#ifdef __MINGW32__
+  WSAEVENT              eventListener;
+  NSMapTable            *events;
+#endif
 }
 
 - (int) _listener;

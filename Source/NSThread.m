@@ -42,6 +42,8 @@
 #include "thr-mach.h"
 #endif
 
+#include <errno.h>
+
 #include "Foundation/NSException.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSLock.h"
@@ -792,8 +794,12 @@ gnustep_base_thread_callback(void)
 @implementation GSPerformHolder
 
 static NSLock *subthreadsLock = nil;
+#ifdef __MINGW__
+static HANDLE	event;
+#else
 static int inputFd = -1;
 static int outputFd = -1;
+#endif	
 static NSMutableArray *perfArray = nil;
 static NSDate *theFuture;
 
@@ -803,9 +809,10 @@ static NSDate *theFuture;
   NSArray	*m = commonModes();
   unsigned	count = [m count];
   unsigned	i;
-  BOOL		pipeOK = NO;
 
   theFuture = RETAIN([NSDate distantFuture]);
+  subthreadsLock = [[NSLock alloc] init];
+  perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
 
 #ifndef __MINGW__
   {
@@ -815,47 +822,36 @@ static NSDate *theFuture;
       {
 	inputFd = fd[0];
 	outputFd = fd[1];
-	pipeOK = YES;
+      }
+    else
+      {
+	[NSException raise: NSInternalInconsistencyException
+	  format: @"Failed to create pipe to handle perform in main thread"];
+      }
+    for (i = 0; i < count; i++)
+      {
+	[loop addEvent: (void*)inputFd
+		  type: ET_RDESC
+	       watcher: (id<RunLoopEvents>)self
+	       forMode: [m objectAtIndex: i]];
       }
   }
 #else
   {
-    HANDLE readh, writeh;
-
-    if (CreatePipe(&readh, &writeh, NULL, 0) != 0)
+    if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == NULL)
       {
-	inputFd = _open_osfhandle((int)readh, 0);
-	outputFd = _open_osfhandle((int)writeh, 0);
-	pipeOK = YES;
+	[NSException raise: NSInternalInconsistencyException
+	  format: @"Failed to create event to handle perform in main thread"];
+      }
+    for (i = 0; i < count; i++)
+      {
+	[loop addEvent: (void*)event
+		  type: ET_HANDLE
+	       watcher: (id<RunLoopEvents>)self
+	       forMode: [m objectAtIndex: i]];
       }
   }
-#endif
-  if (pipeOK == NO)
-    {
-      [NSException raise: NSInternalInconsistencyException
-	format: @"Failed to create pipe to handle perform in main thread"];
-    }
-
-  subthreadsLock = [[NSLock alloc] init];
-
-  perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
-
-  /*
-   * FIXME:  The runloop under MINGW only accepts sockets and
-   *         unfortunately pipes under windows can not be
-   *         treated as sockets so this will not WORK.
-   *         Consequence, performSelectorOnMainThread methods will not
-   *         work.
-   */
-#ifndef __MINGW__
-  for (i = 0; i < count; i++)
-    {
-      [loop addEvent: (void*)inputFd
-		type: ET_RDESC
-	     watcher: (id<RunLoopEvents>)self
-	     forMode: [m objectAtIndex: i]];
-    }
-#endif
+#endif  
 }
 
 + (BOOL) isValid
@@ -879,8 +875,21 @@ static NSDate *theFuture;
   h->lock = l;
 
   [subthreadsLock lock];
+
   [perfArray addObject: h];
-  write(outputFd, "0", 1);
+
+#if defined(__MINGW__)
+  if (SetEvent(event) == 0)
+    {
+      NSLog(@"Set event failed - %@", GSLastErrorStr(errno));
+    }
+#else
+  if (write(outputFd, "0", 1) != 1)
+    {
+      NSLog(@"Write to pipe failed - %@", GSLastErrorStr(errno));
+    }
+#endif
+
   [subthreadsLock unlock];
 
   return h;
@@ -892,18 +901,32 @@ static NSDate *theFuture;
                forMode: (NSString*)mode
 {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
+  NSArray	*toDo;
   unsigned int	i;
   unsigned int	c;
-  char		dummy;
-
-  read(inputFd, &dummy, 1);
 
   [subthreadsLock lock];
 
-  c = [perfArray count];
+#if defined(__MINGW__)
+  if (ResetEvent(event) == 0)
+    {
+      NSLog(@"Reset event failed - %@", GSLastErrorStr(errno));
+    }
+#else
+  if (read(inputFd, &c, 1) != 1)
+    {
+      NSLog(@"Read pipe failed - %@", GSLastErrorStr(errno));
+    }
+#endif
+
+  toDo = [[NSArray alloc] initWithArray: perfArray];
+  [perfArray removeAllObjects];
+  [subthreadsLock unlock];
+
+  c = [toDo count];
   for (i = 0; i < c; i++)
     {
-      GSPerformHolder	*h = [perfArray objectAtIndex: i];
+      GSPerformHolder	*h = [toDo objectAtIndex: i];
 
       [loop performSelector: @selector(fire)
 		     target: h
@@ -911,9 +934,7 @@ static NSDate *theFuture;
 		      order: 0
 		      modes: h->modes];
     }
-  [perfArray removeAllObjects];
-
-  [subthreadsLock unlock];
+  RELEASE(toDo);
 }
 
 + (NSDate*) timedOutEvent: (void*)data

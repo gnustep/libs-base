@@ -50,6 +50,14 @@ endif
 libgnustep-base_SUBPROJECTS=Additions
 libgnustep-baseadd_SUBPROJECTS=Additions
 
+ifeq ($(GNUSTEP_TARGET_OS), mingw32)
+libgnustep-base_SUBPROJECTS+=win32
+libgnustep-baseadd_SUBPROJECTS+=win32
+else
+libgnustep-base_SUBPROJECTS+=unix
+libgnustep-baseadd_SUBPROJECTS+=unix
+endif
+
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 
@@ -125,7 +133,9 @@ Unicode.h \
 GNUstep.h \
 behavior.h \
 preface.h \
-objc-gnu2next.h
+objc-gnu2next.h \
+GSRunLoopCtxt.h \
+GSRunLoopWatcher.h
 
 GNU_HEADERS = $(ADD_HEADERS)
 
@@ -226,7 +236,7 @@ NSValue.m \
 NSXMLParser.m \
 NSZone.m \
 externs.m \
-objc-load.m
+objc-load.m 
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
 BASE_MFILES += \

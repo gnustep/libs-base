@@ -58,6 +58,9 @@
 #if	USE_ZLIB
   gzFile		gzDescriptor;
 #endif
+#ifdef __MINGW32__
+  WSAEVENT  		event;
+#endif
 }
 
 - (id) initAsClientAtAddress: (NSString*)address

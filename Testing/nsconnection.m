@@ -10,6 +10,7 @@ id	myServer;
 + (void) setServer: (id)anObject;
 + (void) startup;
 - (int) doIt;
+- (void) testPerform: (id)anObject;
 @end
 
 @implementation	Tester
@@ -26,6 +27,10 @@ id	myServer;
 			   sendPort: [portArray objectAtIndex: 1]];
 
   serverObject = [[self alloc] init];
+  [serverObject performSelectorOnMainThread: @selector(testPerform:)
+				 withObject: @"84"
+			      waitUntilDone: NO];
+
   [(id)[serverConnection rootProxy] setServer: serverObject];
   [serverObject release];
 
@@ -70,6 +75,12 @@ id	myServer;
 {
   return 42;
 }
+
+- (void) testPerform: (id)anObject
+{
+  NSLog(@"Test perform: %@", anObject);
+}
+
 @end
 
 int
@@ -81,7 +92,6 @@ main(int argc, char *argv[], char **env)
    [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
   pool = [[NSAutoreleasePool alloc] init];
-
 
   [Tester startup];
   [[NSRunLoop currentRunLoop] run];
