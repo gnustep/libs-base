@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <Foundation/Foundation.h>
+#include <Foundation/NSDebug.h>
 
 #include "GSPrivate.h"
 
@@ -870,10 +871,18 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else
     {
-      NSLog(@"Non-property-list class encoded as string");
-      Append(@"<string>", dest);
-      Append([obj description], dest);
-      Append(@"</string>\n", dest);
+      NSDebugLog(@"Non-property-list class (%@) encoded as string",
+	NSStringFromClass([obj class]));
+      if (x == YES)
+	{
+	  Append(@"<string>", dest);
+	  XString([obj description], dest);
+	  Append(@"</string>\n", dest);
+	}
+      else
+	{
+	  PString([obj description], dest);
+	}
     }
 }
 
