@@ -1,5 +1,18 @@
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSPathUtilities.h: GSDefaultsRootForUser()
+	function added.
+	* Source/NSUser.m: Many alterations to do with correcting the
+	file paths used to use GNUSTEP_USER_ROOT, and to get them to
+	vary nicely when GSSetUserName() is called.  Added function
+	GSDefaultsRootForUser() to get a defaults directory based on
+	a new environment varibale, or use GNUSTEP_USER_ROOT.
+	* Source/NSUserDefaults.m: Use GSDefaultsRootForUser()
+	Fix a few bugs in setting up defaults database.
+	Move defaults database to the Defaults subdirectory.
+
+2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSString.m: ([stringByExpandingTildeInPath]) fix bug in
 	handling ~username/... format.
 	* Headers/Foundation/GSIMap.h: GSIMapCleanMap() rewrote to empty
