@@ -27,13 +27,10 @@
 #include <objc/Protocol.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSMethodSignature.h>
-// #include <Foundation/NSArchiver.h>
-// #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
-#include <objects/collhash.h>
-#include <objects/eltfuncs.h>
+#include <Foundation/NSMapTable.h>
 #include <limits.h>
 
 extern void (*_objc_error)(id object, const char *format, va_list);
@@ -45,7 +42,7 @@ extern int errno;
    Doesn't handle exceptions. */
 
 /* The hashtable of retain counts on objects */
-static coll_cache_ptr retain_counts = NULL;
+static NSMapTable *retain_counts = NULL;
 
 /* The Class responsible for handling autorelease's */
 static id autorelease_class = nil;
@@ -62,8 +59,13 @@ BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
     return NO;
 }
 
-void NSIncrementExtraRefCount(id anObject)
+void NSIncrementExtraRefCount (id anObject)
 {
+  unsigned c = (unsigned) NSMapGet (retain_counts, anObject);
+  NSMapInsert (retain_counts, anObject, (void*)c+1);
+
+  /* xxx Make this more efficient like it was before: */
+#if 0
   coll_node_ptr n;
 
   n = coll_hash_node_for_key(retain_counts, anObject);
@@ -71,11 +73,25 @@ void NSIncrementExtraRefCount(id anObject)
     (n->value.unsigned_int_u)++;
   else
     coll_hash_add(&retain_counts, anObject, (unsigned)1);
+#endif
 }
 
-BOOL NSDecrementExtraRefCountWasZero(id anObject)
+BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
-  BOOL wasZero = YES;
+  unsigned c = (unsigned) NSMapGet (retain_counts, anObject);
+
+  if (!c)
+    return YES;
+
+  c--;
+  if (c)
+    NSMapInsert (retain_counts, anObject, (void*)c);
+  else
+    NSMapRemove (retain_counts, anObject);
+  return NO;
+
+  /* xxx Make this more efficient like it was before: */
+#if 0
   coll_node_ptr n;
 
   n = coll_hash_node_for_key(retain_counts, anObject);
@@ -84,6 +100,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   if (!--n->value.unsigned_int_u)
     coll_hash_remove(retain_counts, anObject);
   return wasZero;
+#endif
 }
 
 @implementation NSObject
@@ -92,11 +109,8 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 {
   if (self == [NSObject class])
     {
-      retain_counts = coll_hash_new(64,
-				    (coll_hash_func_type)
-				    elt_hash_void_ptr,
-				    (coll_compare_func_type)
-				    elt_compare_void_ptrs);
+      retain_counts = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+					NSIntMapValueCallBacks, 64);
       autorelease_class = [NSAutoreleasePool class];
     }
   return;
@@ -397,13 +411,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (unsigned) retainCount
 {
-  coll_node_ptr n;
-
-  n = coll_hash_node_for_key(retain_counts, self);
-  if (n)
-    return n->value.unsigned_int_u;
-  else
-    return 0;
+  return (unsigned) NSMapGet (retain_counts, self);
 }
 
 + (unsigned) retainCount
