@@ -1,3 +1,8 @@
+2001-03-14  Adam Fedor  <fedor@gnu.org>
+
+	* Source/libgnustep-base.def: Remove some classes that aren't
+	used on MinGW32.
+
 2001-03-13  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check and set EXEEXT needed by some tests.
