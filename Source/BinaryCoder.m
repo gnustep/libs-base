@@ -66,7 +66,7 @@ static BOOL debug_binary_coder = NO;
   return self;
 }
 
-- (void) encodeValueOfSimpleType: (const char*)type 
+- (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
    withName: (const char *)name
 {
@@ -75,7 +75,7 @@ static BOOL debug_binary_coder = NO;
   if (debug_binary_coder)
     {
       [[BinaryCoder debugStderrCoder] 
-       encodeValueOfSimpleType:type
+       encodeValueOfCType:type
        at:d
        withName:name];
     }
@@ -98,7 +98,7 @@ static BOOL debug_binary_coder = NO;
     case _C_CHARPTR:
       {
 	int length = strlen(*(char**)d);
-	[self encodeValueOfSimpleType:@encode(int)
+	[self encodeValueOfCType:@encode(int)
 	      at:&length withName:"BinaryCoder char* length"];
 	[stream writeBytes:*(char**)d length:length];
 	break;
@@ -172,7 +172,7 @@ static BOOL debug_binary_coder = NO;
 	char buf[64];
 	char *s = buf;
 	sprintf(buf, "%f", *(float*)d);
-	[self encodeValueOfSimpleType:@encode(char*)
+	[self encodeValueOfCType:@encode(char*)
 	      at:&s withName:"BinaryCoder float"];
 	break;
       }
@@ -181,7 +181,7 @@ static BOOL debug_binary_coder = NO;
 	char buf[64];
 	char *s = buf;
 	sprintf(buf, "%f", *(double*)d);
-	[self encodeValueOfSimpleType:@encode(char*)
+	[self encodeValueOfCType:@encode(char*)
 	      at:&s withName:"BinaryCoder double"];
 	break;
       }
@@ -190,7 +190,7 @@ static BOOL debug_binary_coder = NO;
     }
 }
 
-- (void) decodeValueOfSimpleType: (const char*)type
+- (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
    withName: (const char **)namePtr
 {
@@ -216,7 +216,7 @@ static BOOL debug_binary_coder = NO;
     case _C_CHARPTR:
       {
 	int length;
-	[self decodeValueOfSimpleType:@encode(int)
+	[self decodeValueOfCType:@encode(int)
 	      at:&length withName:NULL];
 	OBJC_MALLOC(*(char**)d, char, length+1);
 	[stream readBytes:*(char**)d length:length];
@@ -293,7 +293,7 @@ static BOOL debug_binary_coder = NO;
     case _C_FLT:
       {
 	char *buf;
-	[self decodeValueOfSimpleType:@encode(char*) at:&buf withName:NULL];
+	[self decodeValueOfCType:@encode(char*) at:&buf withName:NULL];
 	if (sscanf(buf, "%f", (float*)d) != 1)
 	  [self error:"expected float, got %s", buf];
 	(*objc_free)(buf);
@@ -302,7 +302,7 @@ static BOOL debug_binary_coder = NO;
     case _C_DBL:
       {
 	char *buf;
-	[self decodeValueOfSimpleType:@encode(char*) at:&buf withName:NULL];
+	[self decodeValueOfCType:@encode(char*) at:&buf withName:NULL];
 	if (sscanf(buf, "%lf", (double*)d) != 1)
 	  [self error:"expected double, got %s", buf];
 	(*objc_free)(buf);
@@ -315,7 +315,7 @@ static BOOL debug_binary_coder = NO;
   if (debug_binary_coder)
     {
       [[BinaryCoder debugStderrCoder] 
-       encodeValueOfSimpleType:type
+       encodeValueOfCType:type
        at:d
        withName:"decoding unnamed"];
     }

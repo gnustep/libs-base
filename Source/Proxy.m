@@ -150,10 +150,10 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 	  willBeLocal = YES;
 	  [aRmc encodeObjectBycopy:nil
 		withName:"Proxy is local on other side"];
-	  [aRmc encodeValueOfType:@encode(unsigned)
+	  [aRmc encodeValueOfObjCType:@encode(unsigned)
 		at:&aTarget 
 		withName:"Object Proxy target"];
-	  [aRmc encodeValueOfType:@encode(BOOL)
+	  [aRmc encodeValueOfObjCType:@encode(BOOL)
 		at:&willBeLocal 
 		withName:"Proxy willBeLocal"];
 	}
@@ -168,10 +168,10 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 	     triangle connection to */
 	  [aRmc encodeObjectBycopy:op
 		withName:"Proxy outPort"];
-	  [aRmc encodeValueOfType:@encode(unsigned)
+	  [aRmc encodeValueOfObjCType:@encode(unsigned)
 		at:&aTarget 
 		withName:"Object Proxy target"];
-	  [aRmc encodeValueOfType:@encode(BOOL)
+	  [aRmc encodeValueOfObjCType:@encode(BOOL)
 		at:&willBeLocal 
 		withName:"Proxy willBeLocal"];
 	}
@@ -186,10 +186,10 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
       /* if nil port, other connection will use ConnectedCoder remotePort */
       [aRmc encodeObjectBycopy:nil 
 	    withName:"Proxy outPort == remotePort"];
-      [aRmc encodeValueOfType:@encode(unsigned)
+      [aRmc encodeValueOfObjCType:@encode(unsigned)
 	    at:&aTarget 
 	    withName:"Object Proxy target"];
-      [aRmc encodeValueOfType:@encode(BOOL)
+      [aRmc encodeValueOfObjCType:@encode(BOOL)
 	    at:&willBeLocal 
 	    withName:"Proxy willBeLocal"];
     }
@@ -206,10 +206,10 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
     [self error:"Proxy objects only code with ConnectedCoder class"];
   assert([aRmc connection]);
   [aRmc decodeObjectAt:&newConnectionOutPort withName:NULL];
-  [aRmc decodeValueOfType:@encode(unsigned) 
+  [aRmc decodeValueOfObjCType:@encode(unsigned) 
 	at:&new_target 
 	withName:NULL];
-  [aRmc decodeValueOfType:@encode(BOOL) 
+  [aRmc decodeValueOfObjCType:@encode(BOOL) 
 	at:&willBeLocal 
 	withName:NULL];
   if (newConnectionOutPort)

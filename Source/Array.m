@@ -67,13 +67,13 @@
   const char *encoding = [self contentType];
 
   [super _encodeCollectionWithCoder:coder];
-  [coder encodeValueOfSimpleType:@encode(char*)
+  [coder encodeValueOfCType:@encode(char*)
 	 at:&encoding
 	 withName:"Array Encoding Type"];
-  [coder encodeValueOfSimpleType:@encode(unsigned)
+  [coder encodeValueOfCType:@encode(unsigned)
 	 at:&_grow_factor
 	 withName:"Array Grow Factor"];
-  [coder encodeValueOfSimpleType:@encode(unsigned)
+  [coder encodeValueOfCType:@encode(unsigned)
 	 at:&_capacity
 	 withName:"Array Capacity"];
 }
@@ -82,15 +82,15 @@
 {
   char *encoding;
   [super _initCollectionWithCoder:coder];
-  [coder decodeValueOfSimpleType:@encode(char*)
+  [coder decodeValueOfCType:@encode(char*)
 	 at:&encoding
 	 withName:NULL];
   _comparison_function = elt_get_comparison_function(encoding);
-  [coder decodeValueOfSimpleType:@encode(unsigned)
+  [coder decodeValueOfCType:@encode(unsigned)
 	 at:&_grow_factor
 	 withName:NULL];
   _count = 0;
-  [coder decodeValueOfSimpleType:@encode(unsigned)
+  [coder decodeValueOfCType:@encode(unsigned)
 	 at:&_capacity
 	 withName:NULL];
   OBJC_MALLOC(_contents_array, elt, _capacity);

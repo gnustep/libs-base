@@ -58,7 +58,7 @@ static BOOL debug_textcoder = NO;
 #define ENCODER_FORMAT(TYPE, CONVERSION) \
 "%*s<%s> (" XSTR(TYPE) ") = %" XSTR(CONVERSION) "\n"
 
-- (void) encodeValueOfSimpleType: (const char*)type 
+- (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
    withName: (const char *)name
 {
@@ -128,7 +128,7 @@ if (debug_textcoder) \
    XSTR(TYPE), *(TYPE*)d];
    
 
-- (void) decodeValueOfSimpleType: (const char*)type
+- (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
    withName: (const char **)name
 {

@@ -66,10 +66,10 @@
   const char *enc = [self contentType];
 
   [super _encodeCollectionWithCoder:aCoder];
-  [aCoder encodeValueOfSimpleType:@encode(char*) 
+  [aCoder encodeValueOfCType:@encode(char*) 
 	  at:&enc
 	  withName:"Set contents encoding"];
-  [aCoder encodeValueOfSimpleType:@encode(unsigned) 
+  [aCoder encodeValueOfCType:@encode(unsigned) 
 	  at:&(_contents_hash->size)
 	  withName:"Set contents capacity"];
   return;
@@ -81,10 +81,10 @@
   unsigned size;
 
   [super _initCollectionWithCoder:aCoder];
-  [aCoder decodeValueOfSimpleType:@encode(char*)
+  [aCoder decodeValueOfCType:@encode(char*)
 	  at:&encoding
 	  withName:NULL];
-  [aCoder decodeValueOfSimpleType:@encode(unsigned)
+  [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&size
 	  withName:NULL];
   _contents_hash =

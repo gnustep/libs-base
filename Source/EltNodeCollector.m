@@ -96,9 +96,9 @@
   const char *encoding = [self contentType];
 
   [super _encodeCollectionWithCoder:aCoder];
-  [aCoder encodeValueOfType:@encode(char*) at:&encoding
+  [aCoder encodeValueOfObjCType:@encode(char*) at:&encoding
 	  withName:"EltNodeCollector Content Type Encoding"];
-  [aCoder encodeValueOfType:"#" at:&_node_class
+  [aCoder encodeValueOfObjCType:"#" at:&_node_class
 	  withName:"EltNodeCollector Content Node Class"];
 }
 
@@ -107,9 +107,9 @@
   char *encoding;
 
   [super _initCollectionWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(char*) at:&encoding withName:NULL];
+  [aCoder decodeValueOfObjCType:@encode(char*) at:&encoding withName:NULL];
   _comparison_function = elt_get_comparison_function(encoding);
-  [aCoder decodeValueOfType:"#" at:&_node_class withName:NULL];
+  [aCoder decodeValueOfObjCType:"#" at:&_node_class withName:NULL];
   _contents_collector = nil;
   return self;
 }

@@ -255,7 +255,7 @@ static Class NXConnectionProxyClass;
 
 - encodeData:(void *)data ofType:(const char *)type
 {
-  [self encodeValueOfType:type at:data withName:NULL];
+  [self encodeValueOfObjCType:type at:data withName:NULL];
   return self;
 }
 
@@ -263,7 +263,7 @@ static Class NXConnectionProxyClass;
 {
   char types[16];
   sprintf(types, "[%dc]", count);
-  [self encodeValueOfType:types at:bytes withName:NULL];
+  [self encodeValueOfObjCType:types at:bytes withName:NULL];
   return self;
 }
 
@@ -293,7 +293,7 @@ static Class NXConnectionProxyClass;
 
 - decodeData:(void *)d ofType:(const char *)t
 {
-  [self decodeValueOfType:t at:d withName:NULL];
+  [self decodeValueOfObjCType:t at:d withName:NULL];
   return self;
 }
 
@@ -301,7 +301,7 @@ static Class NXConnectionProxyClass;
 {
   char types[16];
   sprintf(types, "[%dc]", count);
-  [self decodeValueOfType:types at:bytes withName:NULL];
+  [self decodeValueOfObjCType:types at:bytes withName:NULL];
   return self;
 }
 

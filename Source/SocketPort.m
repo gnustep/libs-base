@@ -385,7 +385,7 @@ or
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfType:@encode(typeof(sockPort.sin_port))
+  [aCoder encodeValueOfObjCType:@encode(typeof(sockPort.sin_port))
 	  at:&sockPort.sin_port 
 	  withName:"socket number"];
   if (![self isSoft])
@@ -398,13 +398,13 @@ or
       if (hp == 0)
 	[self error:"gethostbyname(): can't get host info"];
       bcopy(hp->h_addr, &sp.sin_addr, hp->h_length);
-      [aCoder encodeValueOfType:@encode(typeof(sp.sin_addr.s_addr))
+      [aCoder encodeValueOfObjCType:@encode(typeof(sp.sin_addr.s_addr))
 	      at:&sp.sin_addr.s_addr
 	      withName:"inet address"];
     }
   else
     {
-      [aCoder encodeValueOfType:@encode(typeof(sockPort.sin_addr.s_addr))
+      [aCoder encodeValueOfObjCType:@encode(typeof(sockPort.sin_addr.s_addr))
 	      at:&sockPort.sin_addr.s_addr
 	      withName:"inet address"];
     }
@@ -415,10 +415,10 @@ or
   sockport_t sp;
 
   sp.sin_family = AF_INET;
-  [aCoder decodeValueOfType:@encode(typeof(sp.sin_port))
+  [aCoder decodeValueOfObjCType:@encode(typeof(sp.sin_port))
 	  at:&sp.sin_port 
 	  withName:NULL];
-  [aCoder decodeValueOfType:@encode(typeof(sp.sin_addr.s_addr))
+  [aCoder decodeValueOfObjCType:@encode(typeof(sp.sin_addr.s_addr))
 	  at:&sp.sin_addr.s_addr
 	  withName:NULL];
   return [SocketPort newForSockPort:sp];

@@ -1301,12 +1301,12 @@ for info about latest version.",
   const char *encoding = [self contentType];
   void archiveElement(elt e)
     {
-      [aCoder encodeValueOfType:encoding
+      [aCoder encodeValueOfObjCType:encoding
 	      at:elt_get_ptr_to_member(encoding, &e)
 	      withName:"Collection element"];
     }
 
-  [aCoder encodeValueOfSimpleType:@encode(unsigned)
+  [aCoder encodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:"Collection element count"];
   [self withElementsCall:archiveElement];
@@ -1318,12 +1318,12 @@ for info about latest version.",
   elt newElement;  
   const char *encoding = [self contentType];
 
-  [aCoder decodeValueOfSimpleType:@encode(unsigned)
+  [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:NULL];
   for (i = 0; i < count; i++)
     {
-      [aCoder decodeValueOfType:encoding
+      [aCoder decodeValueOfObjCType:encoding
 	      at:elt_get_ptr_to_member(encoding, &newElement)
 	      withName:NULL];
       [self addElement:newElement];

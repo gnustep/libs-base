@@ -288,7 +288,7 @@ make_method_call(const char *forward_type,
 
 void f_decode_rets (int argnum, void *datum, const char *type)
 {
-  [ip decodeValueOfType:type
+  [ip decodeValueOfObjCType:type
       at:datum
       withName:NULL];
 }

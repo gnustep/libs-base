@@ -59,14 +59,14 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfType:@encode(char*) at:&_contents_chars 
+  [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 
 	  withName:"Concrete String content_chars"];
 }
 
 - initWithCoder: aCoder
 {
   [super initWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
+  [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
   _count = strlen(_contents_chars);
   _free_contents = YES;
@@ -255,9 +255,9 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfType:@encode(unsigned) at:&_capacity
+  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity
 	  withName:"String capacity"];
-  [aCoder encodeValueOfType:@encode(char*) at:&_contents_chars 
+  [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 
 	  withName:"String content_chars"];
 }
 
@@ -265,9 +265,9 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   unsigned cap;
   
-  [aCoder decodeValueOfType:@encode(unsigned) at:&cap withName:NULL];
+  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap withName:NULL];
   [self initWithCapacity:cap];
-  [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
+  [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
   _count = strlen(_contents_chars);
   _capacity = cap;
