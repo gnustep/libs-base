@@ -308,36 +308,36 @@ NSIntersectsRect(NSRect aRect, NSRect bRect)
 NSRect   
 NSIntersectionRect (NSRect aRect, NSRect bRect)
 {
-  NSRect rect;
-
   if (!NSIntersectsRect(aRect, bRect))
-  {
-    return NSMakeRect(0, 0, 0, 0);
-  }
-
-  if (NSMinX(aRect) <= NSMinX(bRect))
-  {
-    rect.size.width = MIN(NSMaxX(aRect), NSMaxX(bRect)) - NSMinX(bRect);
-    rect.origin.x = NSMinX(bRect);
-  }
+    {
+      return NSMakeRect(0, 0, 0, 0);
+    }
   else
-  {
-    rect.size.width = MIN(NSMaxX(aRect), NSMaxX(bRect)) - NSMinX(aRect);
-    rect.origin.x = NSMinX(aRect);
-  }
+    {
+      NSRect	rect;
 
-  if (NSMinY(aRect) <= NSMinY(bRect))
-  {
-    rect.size.height = MIN(NSMaxY(aRect), NSMaxY(bRect)) - NSMinY(bRect);
-    rect.origin.y = NSMinY(bRect);
-  }
-  else
-  {
-    rect.size.height = MIN(NSMaxY(aRect), NSMaxY(bRect)) - NSMinY(aRect);
-    rect.origin.y = NSMinY(aRect);
-  }
+      if (NSMinX(aRect) <= NSMinX(bRect))
+	rect.origin.x = bRect.origin.x;
+      else
+	rect.origin.x = aRect.origin.x;
 
-  return rect;
+      if (NSMinY(aRect) <= NSMinY(bRect))
+	rect.origin.y = bRect.origin.y;
+      else
+	rect.origin.y = aRect.origin.y;
+
+      if (NSMaxX(aRect) >= NSMaxX(bRect))
+	rect.size.width = NSMaxX(bRect) - rect.origin.x;
+      else
+	rect.size.width = NSMaxX(aRect) - rect.origin.x;
+
+      if (NSMaxY(aRect) >= NSMaxY(bRect))
+	rect.size.height = NSMaxY(bRect) - rect.origin.y;
+      else
+	rect.size.height = NSMaxY(aRect) - rect.origin.y;
+
+      return rect;
+    }
 }
 
 /** Test geometric relationships... **/
