@@ -1,4 +1,9 @@
-2002-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+2002-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Removed NSLogs() accidantally left in after
+	debugging. Reported by Fred Kiefer.
+
+2002-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObjCRuntime.h: Fix error in last change ...
 	GSSelectorFromName() should not create a new selector while
