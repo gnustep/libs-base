@@ -1,3 +1,7 @@
+2003-06-17  Adam Fedor  <fedor@gnu.org>
+
+	* GNUmakefile (SUBPROJECTS): Add Documentation
+
 2003-06-17  Chris Vetter <chrisv@web4inc.com?
 
 	* Tools/AGSHtml.m: Tidy up formatting of author output.
