@@ -1,3 +1,12 @@
+2000-12-12  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSDebug.m (table_entry): Added peak field.
+	(GSDebugAllocationAdd): Set peak counter if needed.
+	(GSDebugAllocationClassList), (GSDebugAllocationTotal),
+	(GSDebugAllocationPeak): New functions.
+	* Headers/gnustep/base/NSDebug.h: Added corresponding
+	declarations.
+
 2000-12-08  Adam Fedor  <fedor@gnu.org>
 
 	* Set up DO and NSInvocation to use foreign-function interface
