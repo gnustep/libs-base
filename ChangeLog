@@ -1,6 +1,6 @@
 1999-09-07  Adam Fedor  <fedor@gnu.org>
 
-	* Version: Version 0.6.0
+	* Version: 0.6.0
 
 	* configure.in: Add test for solaris libraries, freebsd threads.
 	* Source/mframe/config.guess: Update to latest version	
