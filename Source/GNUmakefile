@@ -38,7 +38,12 @@ PACKAGE_NAME = gnustep-base
 LIBRARY_VAR = GNUSTEP_BASE
 
 # The library to be compiled
+
+ifeq ($(add),yes)
 LIBRARY_NAME=libgnustep-baseadd libgnustep-base
+else
+LIBRARY_NAME=libgnustep-base
+endif
 
 ifeq ($(HAVE_OPENSSL), yes)
 
@@ -232,6 +237,10 @@ NSZone.m \
 externs.m \
 objc-load.m
 
+ifeq ($(add),yes)
+BASE_MFILES += GSMime.m GSXML.m
+endif
+
 ifeq ($(WITH_FFI),libffi)
 GNU_MFILES += cifframe.m
 BASE_MFILES += GSFFIInvocation.m
@@ -364,7 +373,9 @@ libgnustep-base_C_FILES = $(GNU_CFILES)
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
+ifeq ($(add),yes)
 libgnustep-baseadd_OBJC_FILES = GSMime.m GSXML.m
+endif
 
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def
