@@ -49,7 +49,9 @@ static Class	NSDate_class;
 		    repeats: (BOOL)f
 {
   if (seconds <= 0)
-    seconds = 0.001;
+    {
+      seconds = 0.001;
+    }
   _interval = seconds;
   _date = [[NSDate_class allocWithZone: [self zone]]
     initWithTimeIntervalSinceNow: seconds];
@@ -61,31 +63,31 @@ static Class	NSDate_class;
 }
 
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
-		        invocation: invocation
+		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f
 {
   return AUTORELEASE([[self alloc] initWithTimeInterval: ti
-			targetOrInvocation: invocation
-			selector: NULL
-			userInfo: nil
-			repeats: f]);
+				     targetOrInvocation: invocation
+					       selector: NULL
+					       userInfo: nil
+						repeats: f]);
 }
 
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
-			    target: object
+			    target: (id)object
 			  selector: (SEL)selector
-			  userInfo: info
+			  userInfo: (id)info
 			   repeats: (BOOL)f
 {
   return AUTORELEASE([[self alloc] initWithTimeInterval: ti
-			targetOrInvocation: object
-			selector: selector
-			userInfo: info
-			repeats: f]);
+				     targetOrInvocation: object
+					       selector: selector
+					       userInfo: info
+						repeats: f]);
 }
 
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-				 invocation: invocation
+				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f
 {
   id t = [self timerWithTimeInterval: ti
@@ -96,16 +98,16 @@ static Class	NSDate_class;
 }
 
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-				     target: object
+				     target: (id)object
 				   selector: (SEL)selector
-				   userInfo: info
+				   userInfo: (id)info
 				    repeats: (BOOL)f
 {
   id t = [self timerWithTimeInterval: ti
-	       target: object
-	       selector: selector
-	       userInfo: info
-	       repeats: f];
+			      target: object
+			    selector: selector
+			    userInfo: info
+			     repeats: f];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
   return t;
 }
@@ -118,14 +120,20 @@ static Class	NSDate_class;
 
 - (void) fire
 {
-  if (_selector)
-    [_target performSelector: _selector withObject: self];
+  if (_selector == 0)
+    {
+      [(NSInvocation*)_target invoke];
+    }
   else
-    [_target invoke];
+    {
+      [_target performSelector: _selector withObject: self];
+    }
 
-  if (!_repeats)
-    [self invalidate];
-  else if (!_invalidated)
+  if (_repeats == NO)
+    {
+      [self invalidate];
+    }
+  else if (_invalidated == NO)
     {
       NSTimeInterval	now = GSTimeNow();
       NSTimeInterval	nxt = [_date timeIntervalSinceReferenceDate];
@@ -138,7 +146,9 @@ static Class	NSDate_class;
 	}
 #ifdef	LOG_MISSED
       if (inc > 0)
-	NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
+	{
+	  NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
+	}
 #endif
       RELEASE(_date);
       _date = [[NSDate_class allocWithZone: [self zone]]
@@ -155,7 +165,10 @@ static Class	NSDate_class;
 
 - (BOOL) isValid
 {
-  return !_invalidated;
+  if (_invalidated == NO)
+    return YES;
+  else
+    return NO;
 }
 
 - (NSDate*) fireDate
