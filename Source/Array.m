@@ -92,7 +92,7 @@
   return DEFAULT_ARRAY_CAPACITY;
 }
 
-+ (unsigned) defaultGrowFactor
++ (int) defaultGrowFactor
 {
   return DEFAULT_ARRAY_GROW_FACTOR;
 }
@@ -168,7 +168,7 @@
   }
 }
 
-- (unsigned) growFactor
+- (int) growFactor
 {
   return _grow_factor;
 }
