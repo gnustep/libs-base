@@ -2709,7 +2709,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   unsigned	need = NSMaxRange(aRange);
 
-  if (aRange.location > capacity)
+  if (aRange.location > length)
     {
       [NSException raise: NSRangeException
 		  format: @"location bad in replaceByteInRange:withBytes:"];
