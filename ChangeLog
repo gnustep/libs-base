@@ -1,3 +1,9 @@
+2000-08-06  Adam Fedor  <fedor@gnu.org>
+
+	* Version 0.6.6 released.
+
+	* Source/NSTimer.m (-compare:): Add return to quiet warning. 
+
 2000-08-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortNameServer.m: include netinet/in.h as needed on

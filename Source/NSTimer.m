@@ -201,6 +201,7 @@ static Class	NSDate_class;
     {
       return [_date compare: anotherTimer->_date];
     }
+  return 0;
 }
 
 @end
