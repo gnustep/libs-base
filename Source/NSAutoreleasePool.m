@@ -308,8 +308,10 @@ pop_pool_from_cache ()
       }
   }
 
-  /* Uninstall ourselves as the current pool; install our parent parent. */
+  /* Uninstall ourselves as the current pool; install our parent pool. */
   current_pool = _parent;
+  if (current_pool)
+    current_pool->_child = nil;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (self);
