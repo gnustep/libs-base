@@ -297,6 +297,8 @@ static void debugWrite(NSData *data)
 - (void) loadInBackground
 {
   NSNotificationCenter	*nc;
+  NSString		*host = nil;
+  NSString		*port = nil;
 
   /*
    * Don't start a load if one is in progress.
@@ -315,6 +317,8 @@ static void debugWrite(NSData *data)
   contentLength = 0;
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {
+      host = [url host];
+      port = [url scheme];
       if ([[url scheme] isEqualToString: @"https"])
 	{
 	  if (sslClass == 0)
@@ -324,15 +328,15 @@ static void debugWrite(NSData *data)
 	      return;
 	    }
 	  sock = [sslClass
-	    fileHandleAsClientInBackgroundAtAddress: [url host]
-					    service: [url scheme]
+	    fileHandleAsClientInBackgroundAtAddress: host
+					    service: port
 					   protocol: @"tcp"];
 	}
       else
 	{
 	  sock = [NSFileHandle 
-	    fileHandleAsClientInBackgroundAtAddress: [url host]
-					    service: [url scheme]
+	    fileHandleAsClientInBackgroundAtAddress: host
+					    service: port
 					   protocol: @"tcp"];
 	}
     }
@@ -350,20 +354,20 @@ static void debugWrite(NSData *data)
 		@"https not supported ... needs SSL bundle"];
 	      return;
 	    }
+	  host = [request objectForKey: GSHTTPPropertyProxyHostKey];
+	  port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	  sock = [sslClass
-	    fileHandleAsClientInBackgroundAtAddress: 
-	      [request objectForKey: GSHTTPPropertyProxyHostKey]
-					    service:
-	      [request objectForKey: GSHTTPPropertyProxyPortKey]
+	    fileHandleAsClientInBackgroundAtAddress: host 
+					    service: port
 					   protocol: @"tcp"];
 	}
       else
 	{
+	  host = [request objectForKey: GSHTTPPropertyProxyHostKey];
+	  port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	  sock = [NSFileHandle 
-	    fileHandleAsClientInBackgroundAtAddress: 
-	      [request objectForKey: GSHTTPPropertyProxyHostKey]
-					    service:
-	      [request objectForKey: GSHTTPPropertyProxyPortKey]
+	    fileHandleAsClientInBackgroundAtAddress: host 
+					    service: port
 					   protocol: @"tcp"];
 	}
     }
@@ -372,7 +376,8 @@ static void debugWrite(NSData *data)
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
-      [self backgroundLoadDidFailWithReason: @"Unable to connect to host"];
+      [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
+	@"Unable to connect to %@:%@", host, port]];
       return;
     }
   RETAIN(sock);
@@ -409,6 +414,7 @@ static void debugWrite(NSData *data)
 - (void) bgdConnect: (NSNotification*)notification
 {
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+  
   NSDictionary          *userInfo = [notification userInfo];
   NSEnumerator          *wpEnumerator;
   NSMutableString	*s;
@@ -423,7 +429,8 @@ static void debugWrite(NSData *data)
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
-      NSLog(@"Unable to connect via socket");
+      NSLog(@"Unable to connect to %@:%@ via socket",
+	[sock socketAddress], [sock socketService]);
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
