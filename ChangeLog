@@ -1,3 +1,8 @@
+Fri May 28 14:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSString.m: Fixed error on growing mutable strings - could
+	cause unreasonable growth when generating property lists.
+
 Thu May 27 11:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArchiver.m: Fix memory leak reported by
