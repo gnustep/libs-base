@@ -325,7 +325,7 @@
 }
 
 /**
- * In spite of it's trivial name, this is one of the key methods -
+ * In spite of its trivial name, this is one of the key methods -
  * it parses and skips past comments, but it also recognizes special
  * comments (with an additional asterisk after the start of the block
  * comment) and extracts their contents, accumulating them into the
@@ -388,6 +388,7 @@
 	  unichar	*end = &buffer[pos - 1];
 	  unichar	*ptr = start;
 	  unichar	*newLine = ptr;
+	  BOOL		stripAsterisks = NO;
 
 	  /*
 	   * Remove any asterisks immediately before end of comment.
@@ -407,7 +408,11 @@
 	  *end++ = '\n';
 
 	  /*
-	   * Strip parts of lines up to leading asterisks.
+	   * If next line in the comment starts with whitespace followed
+	   * by an asterisk, we assume all the lines in the comment start
+	   * in a similar way, and everything up to and including the
+	   * asterisk on each line should be stripped.
+	   * Otherwise we take the comment verbatim.
 	   */
 	  while (ptr < end)
 	    {
@@ -415,23 +420,49 @@
 
 	      if (c == '\n')
 		{
-		  newLine = ptr;
+		  break;
 		}
-	      else if (c == '*' && newLine != 0)
+	      else if (c == '*')
 		{
-		  unichar	*out = newLine;
-
-		  while (ptr < end)
-		    {
-		      *out++ = *ptr++;
-		    }
-		  end = out;
-		  ptr = newLine;
-		  newLine = 0;
+		  stripAsterisks = YES;
+		  break;
 		}
 	      else if ([spaces characterIsMember: c] == NO)
 		{
-		  newLine = 0;
+		  break;
+		}
+	    }
+
+	  if (stripAsterisks == YES)
+	    {
+	      /*
+	       * Strip parts of lines up to leading asterisks.
+	       */
+	      ptr = start;
+	      while (ptr < end)
+		{
+		  unichar	c = *ptr++;
+
+		  if (c == '\n')
+		    {
+		      newLine = ptr;
+		    }
+		  else if (c == '*' && newLine != 0)
+		    {
+		      unichar	*out = newLine;
+
+		      while (ptr < end)
+			{
+			  *out++ = *ptr++;
+			}
+		      end = out;
+		      ptr = newLine;
+		      newLine = 0;
+		    }
+		  else if ([spaces characterIsMember: c] == NO)
+		    {
+		      newLine = 0;
+		    }
 		}
 	    }
 
