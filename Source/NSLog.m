@@ -34,9 +34,7 @@
 #include <syslog.h>
 #endif
 
-#ifndef __WIN32__
 #include <unistd.h>
-#endif
 
 static void
 _NSLog_standard_printf_handler (NSString* message)

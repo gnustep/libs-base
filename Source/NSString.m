@@ -739,21 +739,21 @@ handle_printf_atsign (FILE *stream,
 	      for this */
 	      case 'd': case 'i': case 'o': 
 	      case 'x': case 'X': case 'u': case 'c': 
-		va_arg(arg_list, int);
+		(void)va_arg(arg_list, int);
 		break;
 	      case 's': 
 		if (*(spec_pos - 1) == '*')
-		  va_arg(arg_list, int*);
-		va_arg(arg_list, char*);
+		  (void)va_arg(arg_list, int*);
+		(void)va_arg(arg_list, char*);
 		break;
 	      case 'f': case 'e': case 'E': case 'g': case 'G': 
-		va_arg(arg_list, double);
+		(void)va_arg(arg_list, double);
 		break;
 	      case 'p': 
-		va_arg(arg_list, void*);
+		(void)va_arg(arg_list, void*);
 		break;
 	      case 'n': 
-		va_arg(arg_list, int*);
+		(void)va_arg(arg_list, int*);
 		break;
 #endif /* NOT powerpc */
 	      case '\0': 
@@ -1101,6 +1101,22 @@ handle_printf_atsign (FILE *stream,
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
   return strRangeNsNs(self, aString, mask, aRange);
+}
+
+- (unsigned int) indexOfString: (NSString *)substring
+{
+    NSRange range = {0, [self length]};
+
+    range = [self rangeOfString:substring options:0 range:range];
+    return range.length ? range.location : NSNotFound;
+}
+
+- (unsigned int) indexOfString: (NSString*)substring fromIndex: (unsigned)index
+{
+    NSRange range = {index, [self length]-index};
+
+    range = [self rangeOfString:substring options:0 range:range];
+    return range.length ? range.location : NSNotFound;
 }
 
 // Determining Composed Character Sequences

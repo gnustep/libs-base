@@ -38,11 +38,13 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSDebug.h>
 
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#if	!defined(__WIN32__) || defined(__CYGWIN__)
-#include <time.h>
+#endif
+#if HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif /* !__WIN32__ */
+#endif
+#include <time.h>
 #include <limits.h>
 #include <string.h>		/* for memset() */
 

@@ -53,6 +53,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <unistd.h>
 
 #ifdef HAVE_STRERROR 
 #include <errno.h>

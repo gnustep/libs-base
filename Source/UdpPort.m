@@ -31,13 +31,15 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHost.h>
-#ifndef __WIN32__
 #include <unistd.h>
-#endif /* !__WIN32__ */
+
 #if _AIX
 #include <sys/select.h>
 #endif /* _AIX */
-#ifndef __WIN32__
+
+#ifdef __WIN32__
+#include <winsock.h>
+#else 
 #include <netdb.h>
 #include <time.h>
 #include <sys/time.h>

@@ -25,10 +25,7 @@
 #include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSFileHandle.h>
-
-#ifndef __WIN32__
 #include <unistd.h>
-#endif
 
 @implementation NSPipe
 

@@ -31,15 +31,8 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSUserDefaults.h>
 #include <base/behavior.h>
-
-#ifndef __WIN32__
-#include <time.h>
-#endif /* !__WIN32__ */
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __WIN32__
-#include <sys/time.h>
-#endif /* !__WIN32__ */
 
 // Absolute Gregorian date for NSDate reference date Jan 01 2001
 //

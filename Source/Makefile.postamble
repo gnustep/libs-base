@@ -104,7 +104,7 @@ after-uninstall::
 # Things to do after distcleaning
 after-distclean::
 	rm -f Foundation/config.h Foundation/GSConfig.h Foundation/dynamic-load.h \
-		mframe/mframe.h Foundation base \
+		Foundation/preface.h mframe/mframe.h Foundation base \
 		NSNumber[0-9]*.m NSValue[0-9]*.m o_*_bas.m
 	rm -rf $(GNUSTEP_TARGET_CPU)
 

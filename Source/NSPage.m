@@ -39,7 +39,14 @@
 #endif
 
 #ifdef __WIN32__
-#define getpagesize() vm_page_size
+#include <malloc.h>
+static size_t 
+getpagesize(void)
+{
+  SYSTEM_INFO info;
+  GetSystemInfo(&info);
+  return info.dwPageSize;
+}
 #endif
 
 #ifdef __SOLARIS__
