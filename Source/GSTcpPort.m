@@ -74,6 +74,12 @@ extern	int	errno;
 
 @class	GSTcpPort;
 
+/*
+ * Theory of operation
+ *
+ * 
+ */
+
 
 /* Private interfaces */
 
@@ -147,11 +153,12 @@ typedef enum {
   gsu32			rId;		/* Id of incoming message.	*/
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
-  GSTcpPort		*recvPort;
-  GSTcpPort		*sendPort;
   int			addrNum;	/* Address number within host.	*/
+@public
   BOOL			caller;		/* Did we connect to other end?	*/
   BOOL			valid;
+  GSTcpPort		*recvPort;
+  GSTcpPort		*sendPort;
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (int)d;
@@ -167,8 +174,6 @@ typedef enum {
 - (GSTcpPort*) recvPort;
 - (BOOL) sendMessage: (NSArray*)components beforeDate: (NSDate*)when;
 - (GSTcpPort*) sendPort;
-- (void) setRecvPort: (GSTcpPort*)port;
-- (void) setSendPort: (GSTcpPort*)port;
 - (void) setState: (GSHandleState)s;
 - (GSHandleState) state;
 - (NSDate*) timedOutEvent: (void*)data
@@ -190,9 +195,10 @@ typedef enum {
 			       onHost: (NSHost*)host;
 + (GSTcpPort*) portWithNumber: (gsu16)number
 		       onHost: (NSHost*)host
-		 forceAddress: (NSString*)addr;
+		 forceAddress: (NSString*)addr
+		     listener: (BOOL)shouldListen;
 
-- (void) addHandle: (GSTcpHandle*)handle;
+- (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send;
 - (NSString*) address;
 - (void) getFds: (int*)fds count: (int*)count;
 - (GSTcpHandle*) handleForPort: (GSTcpPort*)recvPort beforeDate: (NSDate*)when;
@@ -234,7 +240,10 @@ decodePort(NSData *data)
   NSDebugLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
 
   host = [NSHost hostWithAddress: addr];
-  return [GSTcpPort portWithNumber: pnum onHost: host forceAddress: nil];
+  return [GSTcpPort portWithNumber: pnum
+			    onHost: host
+		      forceAddress: nil
+			  listener: NO];
 }
 
 static NSData*
@@ -289,29 +298,11 @@ encodePort(GSTcpPort *port)
 
 @implementation	GSTcpHandle
 
-static NSRecursiveLock	*tcpHandleLock = nil;
-static NSMapTable	*tcpHandleTable = 0;
-
 + (id) allocWithZone: (NSZone*)zone
 {
   [NSException raise: NSGenericException
 	      format: @"attempt to alloc a GSTcpHandle!"];
   return nil;
-}
-
-+ (void) initialize
-{
-  if (tcpHandleLock == nil)
-    {
-      [gnustep_global_lock lock];
-      if (tcpHandleLock == nil)
-        {
-          tcpHandleLock = [NSRecursiveLock new];
-	  tcpHandleTable = NSCreateMapTable(NSIntMapKeyCallBacks,
-	    NSObjectMapValueCallBacks, 0); 
-        }
-      [gnustep_global_lock unlock];
-    }
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (int)d
@@ -338,22 +329,11 @@ static NSMapTable	*tcpHandleTable = 0;
       NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
       return nil;
     }
-  [tcpHandleLock lock];
-  handle = (GSTcpHandle*)NSMapGet(tcpHandleTable, (void*)(gsaddr)d);
-  if (handle == nil)
-    {
-      handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
-      handle->desc = d;
-      handle->wMsgs = [NSMutableArray new];
-      handle->myLock = [NSRecursiveLock new];
-      handle->valid = YES;
-      NSMapInsert(tcpHandleTable, (void*)(gsaddr)d, (void*)handle);
-    }
-  else
-    {
-      RETAIN(handle);
-    }
-  [tcpHandleLock unlock];
+  handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
+  handle->desc = d;
+  handle->wMsgs = [NSMutableArray new];
+  handle->myLock = [NSRecursiveLock new];
+  handle->valid = YES;
   return AUTORELEASE(handle);
 }
 
@@ -474,8 +454,7 @@ static NSMapTable	*tcpHandleTable = 0;
     {
       addrNum = 0;
       caller = YES;
-      [self setSendPort: aPort];	
-      [aPort addHandle: self];
+      [aPort addHandle: self forSend: YES];
       return YES;
     }
 }
@@ -486,7 +465,7 @@ static NSMapTable	*tcpHandleTable = 0;
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
-  DESTROY(myLock);
+  RELEASE(myLock);
   [super dealloc];
 }
 
@@ -513,7 +492,8 @@ static NSMapTable	*tcpHandleTable = 0;
 
 - (void) gcFinalize
 {
-  [self invalidate];
+  (void)close(desc);
+  desc = -1;
 }
 
 - (void) invalidate
@@ -521,20 +501,10 @@ static NSMapTable	*tcpHandleTable = 0;
   [myLock lock];
   if (valid == YES)
     { 
-      int	old = desc;
-
-      NSDebugLLog(@"GSTcpHandle", @"invalidated");
       valid = NO;
-      [[NSNotificationCenter defaultCenter] removeObserver: self];
+      NSDebugLLog(@"GSTcpHandle", @"invalidated");
       [[self recvPort] removeHandle: self];
-      [self setRecvPort: nil];
       [[self sendPort] removeHandle: self];
-      [self setSendPort: nil];
-      (void)close(desc);
-      desc = -1;
-      [tcpHandleLock lock];
-      NSMapRemove(tcpHandleTable, (void*)(gsaddr)old);
-      [tcpHandleLock unlock];
     }
   [myLock unlock];
 }
@@ -788,8 +758,7 @@ static NSMapTable	*tcpHandleTable = 0;
 		       * connection - set up port relationships.
 		       */
 		      state = GS_H_CONNECTED;
-		      [self setSendPort: p];
-		      [p addHandle: self];
+		      [p addHandle: self forSend: YES];
 		    }
 		  else
 		    {
@@ -952,24 +921,6 @@ static NSMapTable	*tcpHandleTable = 0;
     return sendPort;			// Retained port.
 }
 
-- (void) setRecvPort: (GSTcpPort*)port
-{
-  if (port == nil)
-    recvPort = nil;
-  else
-    recvPort = GS_GC_HIDE(port);
-}
-
-- (void) setSendPort: (GSTcpPort*)port
-{
-  if (port == nil)
-    sendPort = nil;
-  else if (caller == YES)
-    sendPort = GS_GC_HIDE(port);
-  else
-    ASSIGN(sendPort, port);
-}
-
 - (void) setState: (GSHandleState)s
 {
   state = s;
@@ -1013,7 +964,10 @@ static NSMapTable	*tcpPortMap = 0;
 
 + (id) new
 {
-  return RETAIN([self portWithNumber: 0 onHost: nil forceAddress: nil]);
+  return RETAIN([self portWithNumber: 0
+			      onHost: nil
+			forceAddress: nil
+			    listener: YES]);
 }
 
 /*
@@ -1053,6 +1007,7 @@ static NSMapTable	*tcpPortMap = 0;
 + (GSTcpPort*) portWithNumber: (gsu16)number
 		       onHost: (NSHost*)aHost
 		 forceAddress: (NSString*)addr
+		     listener: (BOOL)shouldListen
 {
   unsigned		i;
   GSTcpPort		*port = nil;
@@ -1096,7 +1051,7 @@ static NSMapTable	*tcpPortMap = 0;
       port->myLock = [NSRecursiveLock new];
       port->_is_valid = YES;
 
-      if ([thisHost isEqual: aHost] == YES)
+      if (shouldListen == YES && [thisHost isEqual: aHost] == YES)
 	{
 	  int	reuse = 1;	/* Should we re-use ports?	*/
 	  int	desc;
@@ -1192,7 +1147,7 @@ static NSMapTable	*tcpPortMap = 0;
 	       * Ok - now add the port for the host
 	       */
 	      NSMapInsert(thePorts, (void*)aHost, (void*)port);
-	      NSDebugLLog(@"NSPort", @"Created local port: %@", port);
+	      NSDebugLLog(@"NSPort", @"Created listening port: %@", port);
 	    }
 	}
       else
@@ -1216,7 +1171,7 @@ static NSMapTable	*tcpPortMap = 0;
 	   * Record the port by host.
 	   */
 	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
-	  NSDebugLLog(@"NSPort", @"Created remote port: %@", port);
+	  NSDebugLLog(@"NSPort", @"Created speaking port: %@", port);
 	}
       IF_NO_GC(AUTORELEASE(port));
     }
@@ -1229,9 +1184,20 @@ static NSMapTable	*tcpPortMap = 0;
   return port;
 }
 
-- (void) addHandle: (GSTcpHandle*)handle
+- (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send
 {
   [myLock lock];
+  if (send == YES)
+    {
+      if (handle->caller == YES)
+	handle->sendPort = GS_GC_HIDE(self);
+      else
+	ASSIGN(handle->sendPort, self);
+    }
+  else
+    {
+      handle->recvPort = GS_GC_HIDE(self);
+    }
   NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
   [myLock unlock];
 }
@@ -1342,9 +1308,7 @@ static NSMapTable	*tcpPortMap = 0;
 	}
       else
 	{
-	  [handle setRecvPort: recvPort];
-	  [recvPort addHandle: handle];
-	  NSMapInsert(handles, (void*)(gsaddr)sock, (void*)handle);
+	  [recvPort addHandle: handle forSend: NO];
 	}
     }
   [myLock unlock];
@@ -1355,6 +1319,7 @@ static NSMapTable	*tcpPortMap = 0;
     {
       if ([handle connectToPort: self beforeDate: when] == NO)
 	{
+	  [handle invalidate];
 	  handle = nil;
 	}
     }
@@ -1484,12 +1449,14 @@ static NSMapTable	*tcpPortMap = 0;
        */
       handle = [GSTcpHandle handleWithDescriptor: desc];
       [handle setState: GS_H_ACCEPT];
-      [handle setRecvPort: self];
-      [self addHandle: handle];
+      [self addHandle: handle forSend: NO];
     }
   else
     {
-      handle = [GSTcpHandle handleWithDescriptor: desc];
+      [myLock lock];
+      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
+      AUTORELEASE(RETAIN(handle));
+      [myLock unlock];
       if (handle == nil)
 	{
 	  NSLog(@"No handle for event on descriptor %d", desc);
@@ -1509,6 +1476,18 @@ static NSMapTable	*tcpPortMap = 0;
 - (void) removeHandle: (GSTcpHandle*)handle
 {
   [myLock lock];
+  if ([handle sendPort] == self)
+    {
+      if (handle->caller == YES)
+	{
+	  AUTORELEASE(self);
+	}
+      handle->sendPort = nil;
+    }
+  if ([handle recvPort] == self)
+    {
+      handle->recvPort = nil;
+    }
   NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
   if (listener < 0 && NSCountMapTable(handles) == 0)
     {
