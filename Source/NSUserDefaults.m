@@ -59,8 +59,9 @@ static SEL	nextObjectSel = @selector(nextObject);
 static SEL	objectForKeySel = @selector(objectForKey:);
 
 /* User's Defaults database */
-static NSString* GNU_UserDefaultsDatabase = @"GNUstep/.GNUstepDefaults";
-static NSString* GNU_UserDefaultsDatabaseLock = @"GNUstep/.GNUstepUDLock";
+static NSString	*GNU_UserDefaultsPrefix = @"GNUstep";
+static NSString	*GNU_UserDefaultsDatabase = @".GNUstepDefaults";
+static NSString	*GNU_UserDefaultsDatabaseLock = @".GNUstepUDLock";
 
 static Class	NSArrayClass;
 static Class	NSDataClass;
@@ -295,21 +296,48 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   return [self initWithUser: NSUserName()];
 }
 
+static NSString	*pathForUser(NSString *user) 
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSString	*home;
+  NSString	*path;
+  BOOL		isDir;
+	
+  home = NSHomeDirectoryForUser(user);
+  if (home == nil)
+    {  
+      return nil;
+    }
+  path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
+  if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
+    {
+      NSLog(@"Directory '%'@ does not exist - creating it", path);
+      if ([mgr createDirectoryAtPath: path attributes: nil] == NO)
+	{
+	  NSLog(@"Unable to create user GNUstep directory '%@'", path);
+	  return nil;
+	}
+    }
+  if (isDir == NO)
+    {
+      NSLog(@"ERROR - '%@' is not a directory!", path);
+      return nil;
+    }
+  path = [path stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
+  return path;
+}
+
 /* Initializes defaults for the specified user calling initWithFile: . */
 - (id) initWithUser: (NSString*)userName
 {
-  NSString	*userHome = NSHomeDirectoryForUser(userName);
-  NSString	*filename;
+  NSString	*path = pathForUser(userName);
 	
-  // Either userName is empty or it's wrong
-  if (!userHome)
+  if (path == nil)
     {  
       RELEASE(self);
       return nil;
     }
-  filename = [NSStringClass stringWithFormat: @"%@/%@",
-    userHome, GNU_UserDefaultsDatabase];
-  return [self initWithContentsOfFile: filename];
+  return [self initWithContentsOfFile: path];
 }
 
 - (id) initWithContentsOfFile: (NSString*)path
@@ -319,31 +347,29 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   [super init];
 	
   // Find the user's home folder and build the paths (executed only once)
-  if (!_defaultsDatabase)
+  if (_defaultsDatabase == nil)
     {
       if (path != nil && [path isEqual: @""] == NO)
-        _defaultsDatabase = (NSMutableString*)[path mutableCopy];
+	{
+	  _defaultsDatabase = [path copy];
+	}
       else
 	{
-	  _defaultsDatabase = (NSMutableString*)
-	    [NSMutableString stringWithFormat: @"%@/%@",
-	    NSHomeDirectoryForUser(NSUserName()),
-	    GNU_UserDefaultsDatabase];
-	  IF_NO_GC([_defaultsDatabase retain]);
+	  _defaultsDatabase = [pathForUser(NSUserName()) copy];
 	}
 
       if ([[_defaultsDatabase lastPathComponent] isEqual: 
-	[GNU_UserDefaultsDatabase lastPathComponent]] == YES)
-	_defaultsDatabaseLockName = (NSMutableString*)
-	  [NSMutableString stringWithFormat: @"%@/%@",
-	  [_defaultsDatabase stringByDeletingLastPathComponent],
-	  [GNU_UserDefaultsDatabaseLock lastPathComponent]];
+	GNU_UserDefaultsDatabase] == YES)
+	{
+	  path = [_defaultsDatabase stringByDeletingLastPathComponent];
+	}
       else
-        _defaultsDatabaseLockName = (NSMutableString*)
-	  [NSMutableString stringWithFormat: @"%@/%@",
-	  NSHomeDirectoryForUser(NSUserName()),
-	  GNU_UserDefaultsDatabaseLock];
-      IF_NO_GC([_defaultsDatabaseLockName retain]);
+	{
+	  path = [pathForUser(NSUserName()) stringByDeletingLastPathComponent];
+	}
+      path = [path stringByAppendingPathComponent:
+	GNU_UserDefaultsDatabaseLock];
+      _defaultsDatabaseLockName = [path copy];
       _defaultsDatabaseLock =
 	RETAIN([NSDistributedLock lockWithPath: _defaultsDatabaseLockName]);
     }

@@ -1,3 +1,8 @@
+Tue Sep  5 11:21:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUserDefaults.m: Fix for crash when reading corrupt file.
+	Also -added code to create ~/GNUstep directory if needed.
+
 Mon Sep  4 11:06:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: better debug output (hopefully)

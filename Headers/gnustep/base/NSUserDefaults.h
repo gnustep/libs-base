@@ -116,8 +116,8 @@ extern NSString* const NSDateTimeOrdering;
   NSMutableArray	*_changedDomains; /* ..after first time that persistent 
 					    user defaults are changed */
   NSDictionary		*_dictionaryRep; // Cached dictionary representation
-  NSMutableString	*_defaultsDatabase;
-  NSMutableString	*_defaultsDatabaseLockName;
+  NSString		*_defaultsDatabase;
+  NSString		*_defaultsDatabaseLockName;
   NSDistributedLock	*_defaultsDatabaseLock;
   NSDate		*_lastSync;
   NSTimer		*_tickingTimer;   // for synchronization
