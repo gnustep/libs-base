@@ -49,6 +49,11 @@ typedef @GS_FLT32@ gsf32;
 typedef @GS_FLT64@ gsf64;
 
 /*
+ * Integer type with same size as a pointer
+ */
+typedef	@GS_ADDR@ gsaddr;
+
+/*
  *	Do we have real 64-bit and 128-bit integers or are we just pretending.
  */
 #define GS_HAVE_I64	@GS_HAVE_I64@
