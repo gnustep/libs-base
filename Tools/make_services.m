@@ -303,12 +303,13 @@ validateEntry(id svcs, NSString *path)
   for (pos = 0; pos < [services count]; pos++)
     {
       id			svc;
-      NSDictionary		*service;
-      NSMutableDictionary	*newService;
 
       svc = [services objectAtIndex: pos];
       if ([svc isKindOfClass: [NSDictionary class]])
 	{
+	  NSDictionary		*service = (NSDictionary*)svc;
+	  NSMutableDictionary	*newService;
+
 	  newService = validateService(service, path, pos);
 	  if (newService)
 	    {
