@@ -23,9 +23,8 @@
 #include "AGSOutput.h"
 
 @interface AGSOutput (Private)
-- (BOOL) mergeMarkup: (NSString*)markup
-	      ofKind: (NSString*)kind
-	   directory: (NSString*)dest;
+- (NSString*) mergeMarkup: (NSString*)markup
+		   ofKind: (NSString*)kind;
 @end
 
 static NSString *escapeType(NSString *str)
@@ -198,12 +197,10 @@ static BOOL snuggleStart(NSString *t)
 }
 
 /**
- * Return a string containing a gsdoc document generated from d (the
- * parse tree)
+ * Return an array containing the names of any files modified as
+ * a result of outputing the specified data structure.
  */
-- (BOOL) output: (NSDictionary*)d
-	   file: (NSString*)name
-      directory: (NSString*)dest
+- (NSArray*) output: (NSDictionary*)d
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
@@ -213,11 +210,28 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary		*types;
   NSDictionary		*variables;
   NSDictionary		*constants;
+  NSMutableArray	*files;
   NSArray		*authors;
+  NSString		*base;
   NSString		*tmp;
+  NSString		*file;
+  NSString		*dest;
   unsigned		chapters = 0;
 
+  files = [NSMutableArray arrayWithCapacity: 5];
+
   info = d;
+  base = [info objectForKey: @"base"];
+  file = base;
+  if ([[file pathExtension] isEqualToString: @"gsdoc"] == NO)
+    {
+      file = [file stringByAppendingPathExtension: @"gsdoc"];
+    }
+  dest = [info objectForKey: @"directory"];
+  if ([dest length] > 0 && [file isAbsolutePath] == NO)
+    {
+      file = [dest stringByAppendingPathComponent: file];
+    }
 
   classes = [info objectForKey: @"Classes"];
   categories = [info objectForKey: @"Categories"];
@@ -233,11 +247,10 @@ static BOOL snuggleStart(NSString *t)
   [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
-  tmp = [info objectForKey: @"base"];
-  if (tmp != nil)
+  if (base != nil)
     {
       [str appendString: @" base=\""];
-      [str appendString: tmp];
+      [str appendString: base];
       [str appendString: @"\""];
     }
 
@@ -420,10 +433,9 @@ static BOOL snuggleStart(NSString *t)
       unsigned		c = [types count];
 
       [m appendString: @"    <chapter>\n"];
-      [m appendString: @"      <heading>Types</heading>\n"];
+      [m appendFormat: @"      <heading>%@ types</heading>\n", base];
       [m appendString: @"      <p></p>\n"];
 
-      chapters++;
       names = [types allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
@@ -436,10 +448,15 @@ static BOOL snuggleStart(NSString *t)
 
       [m appendString: @"    </chapter>\n"];
       
-      if ([self mergeMarkup: m ofKind: @"Typedefs" directory: dest] == NO)
+      tmp = [self mergeMarkup: m ofKind: @"Typedefs"];
+      if (tmp == nil)
 	{
 	  [str appendString: m];
 	  chapters++;
+	}
+      else
+	{
+	  [files addObject: tmp];
 	}
       RELEASE(m);
     }
@@ -452,10 +469,9 @@ static BOOL snuggleStart(NSString *t)
       unsigned		c = [constants count];
 
       [m appendString: @"    <chapter>\n"];
-      [m appendString: @"      <heading>Constants</heading>\n"];
+      [m appendFormat: @"      <heading>%@ constants</heading>\n", base];
       [m appendString: @"      <p></p>\n"];
 
-      chapters++;
       names = [constants allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
@@ -468,10 +484,15 @@ static BOOL snuggleStart(NSString *t)
 
       [m appendString: @"    </chapter>\n"];
 
-      if ([self mergeMarkup: m ofKind: @"Constants" directory: dest] == NO)
+      tmp = [self mergeMarkup: m ofKind: @"Constants"];
+      if (tmp == nil)
 	{
 	  [str appendString: m];
 	  chapters++;
+	}
+      else
+	{
+	  [files addObject: tmp];
 	}
       RELEASE(m);
     }
@@ -484,10 +505,9 @@ static BOOL snuggleStart(NSString *t)
       unsigned		c = [variables count];
 
       [m appendString: @"    <chapter>\n"];
-      [m appendString: @"      <heading>Variables</heading>\n"];
+      [m appendFormat: @"      <heading>%@ variables</heading>\n", base];
       [m appendString: @"      <p></p>\n"];
 
-      chapters++;
       names = [variables allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
@@ -500,10 +520,15 @@ static BOOL snuggleStart(NSString *t)
 
       [m appendString: @"    </chapter>\n"];
 
-      if ([self mergeMarkup: m ofKind: @"Variables" directory: dest] == NO)
+      tmp = [self mergeMarkup: m ofKind: @"Variables"];
+      if (tmp == nil)
 	{
 	  [str appendString: m];
 	  chapters++;
+	}
+      else
+	{
+	  [files addObject: tmp];
 	}
       RELEASE(m);
     }
@@ -516,7 +541,7 @@ static BOOL snuggleStart(NSString *t)
       unsigned		c = [functions count];
 
       [m appendString: @"    <chapter>\n"];
-      [m appendString: @"      <heading>Functions</heading>\n"];
+      [m appendFormat: @"      <heading>%@ functions</heading>\n", base];
       [m appendString: @"      <p></p>\n"];
 
       names = [functions allKeys];
@@ -530,34 +555,40 @@ static BOOL snuggleStart(NSString *t)
 	}
 
       [m appendString: @"    </chapter>\n"];
-      if ([self mergeMarkup: m ofKind: @"Functions" directory: dest] == NO)
+      tmp = [self mergeMarkup: m ofKind: @"Functions"];
+      if (tmp == nil)
 	{
 	  [str appendString: m];
 	  chapters++;
 	}
+      else
+	{
+	  [files addObject: tmp];
+	}
       RELEASE(m);
     }
 
-  if (chapters == 0)
+  if (chapters > 0)
     {
-      // We must have at least one chapter!
-      [str appendString: @"    <chapter>\n"];
-      [str appendString:
-	@"      <heading>No contents found by autogsdoc</heading>\n"];
-      [str appendString: @"      <p></p>\n"];
-      [str appendString: @"    </chapter>\n"];
-    }
+      // Output document appendix if available.
+      tmp = [info objectForKey: @"back"];
+      if (tmp != nil)
+	{
+	  [self reformat: tmp withIndent: 4 to: str];
+	}
 
-  // Output document appendix if available.
-  tmp = [info objectForKey: @"back"];
-  if (tmp != nil)
-    {
-      [self reformat: tmp withIndent: 4 to: str];
+      [str appendString: @"  </body>\n"];
+      [str appendString: @"</gsdoc>\n"];
+      if ([str writeToFile: file atomically: YES] == YES)
+	{
+	  [files addObject: file];
+	}
+      else
+	{
+	  files = nil;
+	}
     }
-
-  [str appendString: @"  </body>\n"];
-  [str appendString: @"</gsdoc>\n"];
-  return [str writeToFile: name atomically: YES];
+  return files;
 }
 
 /**
@@ -1882,9 +1913,8 @@ static BOOL snuggleStart(NSString *t)
 
 
 @implementation AGSOutput (Private)
-- (BOOL) mergeMarkup: (NSString*)markup
-	      ofKind: (NSString*)kind
-	   directory: (NSString*)dest
+- (NSString*) mergeMarkup: (NSString*)markup
+		   ofKind: (NSString*)kind
 {
   NSUserDefaults	*ud = [NSUserDefaults standardUserDefaults];
   NSString		*key = [kind stringByAppendingString: @"Template"];
@@ -1897,14 +1927,16 @@ static BOOL snuggleStart(NSString *t)
   NSRange		range;
   NSRange		start;
   NSRange		end;
+  NSString		*dest;
 
+  dest = [info objectForKey: @"directory"];
   if ([name length] == 0)
     {
-      return NO;	// No common document.
+      return nil;	// No common document.
     }
 
   file = [name stringByAppendingPathExtension: @"gsdoc"];
-  if (dest != nil && [file isAbsolutePath] == NO)
+  if ([dest length] > 0 && [file isAbsolutePath] == NO)
     {
       file = [dest stringByAppendingPathComponent: file];
     }
@@ -1944,7 +1976,7 @@ static BOOL snuggleStart(NSString *t)
 	  [str appendString: @"  <head>\n"];
 	  [str appendString: @"    <title>"];
 	  [str appendString: kind];
-	  [str appendString: @"<\title>\n"];
+	  [str appendString: @"</title>\n"];
 	  tmp = [NSString stringWithFormat: @"Generated by %@", NSUserName()];
 	  [str appendString: @"    <author name=\""];
 	  [str appendString: tmp];
@@ -1959,7 +1991,7 @@ static BOOL snuggleStart(NSString *t)
   /*
    * Locate  start and end points for all markup of this 'kind'.
    */
-  tmp = [NSString stringWithFormat: @"<!--Start%@-->", kind];
+  tmp = [NSString stringWithFormat: @"<!--Start%@-->\n", kind];
   start = [str rangeOfString: tmp];
   if (start.length == 0)
     {
@@ -1972,7 +2004,7 @@ static BOOL snuggleStart(NSString *t)
       [str insertString: tmp atIndex: start.location];
       start.length = [tmp length];
     }
-  tmp = [NSString stringWithFormat: @"<!--End%@-->", kind];
+  tmp = [NSString stringWithFormat: @"<!--End%@-->\n", kind];
   end = [str rangeOfString: tmp];
   if (end.length == 0)
     {
@@ -1989,7 +2021,7 @@ static BOOL snuggleStart(NSString *t)
   /*
    * Now locate start and end points for markup for this file.
    */
-  tmp = [NSString stringWithFormat: @"<!--Start%@%@-->", base, kind];
+  tmp = [NSString stringWithFormat: @"<!--Start%@%@-->\n", base, kind];
   start = [str rangeOfString: tmp];
   if (start.length == 0)
     {
@@ -1997,7 +2029,7 @@ static BOOL snuggleStart(NSString *t)
       start.length = [tmp length];
       [str insertString: tmp atIndex: end.location];
     }
-  tmp = [NSString stringWithFormat: @"<!--End%@%@-->", base, kind];
+  tmp = [NSString stringWithFormat: @"<!--End%@%@-->\n", base, kind];
   end = [str rangeOfString: tmp];
   if (end.length == 0)
     {
@@ -2012,8 +2044,9 @@ static BOOL snuggleStart(NSString *t)
   if ([str writeToFile: file atomically: YES] == NO)
     {
       NSLog(@"Unable to write %@ markup to %@", kind, file);
+      return nil;
     }
-  return YES;
+  return file;
 }
 @end
 
