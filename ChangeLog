@@ -1,5 +1,9 @@
 2000-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/Makefile.postabmle: Create directory for DTDs if needed
+
+2000-07-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSTcpHandle.m: fix error resetting size of data to be read -
 	could cause occasional crashes!
 
