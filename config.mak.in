@@ -1,5 +1,10 @@
 #
+# Extra make variables for base library
 #
-#
+
+WHOAMI=@WHOAMI@
+
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
+
 HAVE_LIBXML=@HAVE_LIBXML@
+

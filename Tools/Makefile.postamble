@@ -22,7 +22,7 @@ after-install::
 	for file in $(DTD_FILES); do \
 	  $(INSTALL_DATA) $$file $(dtddir)/$$file; \
 	done; \
-	if [ "`whoami`" != "root" ]; then \
+	if [ "`$(WHOAMI)`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
 	  echo "WARNING: gdomap MUST be installed owned by root and with"; \
