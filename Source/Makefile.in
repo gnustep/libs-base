@@ -469,11 +469,11 @@ uninstall:
 # Creation of NSValue and NSNumber concrete classes from templates
 $(NSVALUE_MFILES) : NSCTemplateValue.m
 	rm -f $@
-	echo '#define TYPE_ORDER' `expr $* : 'NSValue\([0-9]*\)'` > $@
+	echo '#define TYPE_ORDER' `expr $@ : 'NSValue\([0-9]*\)'` > $@
 	cat $(srcdir)/NSCTemplateValue.m >> $@
 $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	rm -f $@
-	echo '#define TYPE_ORDER' `expr $* : 'NSNumber\([0-9]*\)'` > $@
+	echo '#define TYPE_ORDER' `expr $@ : 'NSNumber\([0-9]*\)'` > $@
 	cat $(srcdir)/NSConcreteNumber.m >> $@
 
 NXStringTable_scan.c: NXStringTable_scan.l
@@ -482,11 +482,6 @@ NXStringTable_scan.c: NXStringTable_scan.l
 	sed 's/yy/NXlex_/g' < NXStringTable_scan.temp \
 		> NXStringTable_scan.c
 	$(RM) -f NXStringTable_scan.temp
-
-# remove this special case?
-# turn off warnings while compiling NXStringTable_scan.c
-NXStringTable_scan.o: NXStringTable_scan.c
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w $^ -o $*.o
 
 objc-load.o: dynamic-load.h
 
@@ -534,6 +529,7 @@ mostlyclean:
 	objc/*~
 clean: mostlyclean
 	rm -f libobjects.a *.o
+	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
