@@ -21,8 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+/* A strange attempt to make SOCK_STREAM sockets look like ports.  The
+   two concepts don't fit together easily.  Be prepared for a little
+   weirdness. */
+
 /* TODO:
    Make the sockets non-blocking. 
+   Change so we don't wait on incoming packet prefix.
    */
 
 #include <objects/stdobjects.h>
@@ -37,10 +42,14 @@
 #include <sys/resource.h>
 #endif
 
-#define debug_tcp_port 1
+static int debug_tcp_port = 0;
+
+
+/* Private interfaces */
 
 @interface TcpInPort (Private)
 - (int) _socket;
+- (struct sockaddr_in*) _listeningSockaddr;
 - (void) _addOutPort: p;
 - (void) _connectedOutPortInvalidated: p;
 @end
@@ -48,15 +57,40 @@
 @interface TcpOutPort (Private)
 - (int) _socket;
 - _initWithSocket: (int)s inPort: ip;
-+ newWithAcceptedSocket: (int)s inPort: p;
++ _newWithAcceptedSocket: (int)s peeraddr: (struct sockaddr_in*)addr inPort: p;
+- (struct sockaddr_in*) _remoteInPortSockaddr;
 @end
 
 @interface TcpPacket (Private)
 - (int) _fillFromSocket: (int)s;
-- (void) _writeToSocket: (int)s;
-+ (int) readPacketSizeFromSocket: (int)s;
+- (void) _writeToSocket: (int)s 
+      withReplySockaddr: (struct sockaddr_in*)addr;
++ (void) _getPacketSize: (int*)size
+	   andReplyPort: (id*)rp
+             fromSocket: (int)s
+	         inPort: ip;
 - _initForReceivingWithSize: (int)s replyPort: p;
 @end
+
+#if 0
+/* Not currently being used; but see the comment in -sendPacket:withTimeout: */
+
+/* TcpInStream - an object that represents an accept()'ed socket
+   that's being polled by a TcpInPort's select().  This object cannot
+   be the same as a TcpOutPort because we cannot be sure that someone
+   is polling the socket on the other end---unfortunately this means
+   that the socket's used by Tcp*Port objects are only used for sending
+   data in one direction. */
+
+@interface TcpInStream : NSObject
+{
+  int _socket;
+  id _listening_in_port;
+}
+- initWithAcceptedSocket: (int)s inPort: p;
+@end
+#endif /* 0 */
+
 
 
 /* Our current, sad excuse for a name server. */
@@ -80,19 +114,28 @@ name_2_port_number (const char *name)
 
 /* Both TcpInPort's and TcpOutPort's are entered in this maptable. */
 
-static NSMapTable *socket_2_port;
+static NSMapTable *socket_2_port = NULL;
+
 static void 
 init_socket_2_port ()
 {
-  socket_2_port =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
+  if (!socket_2_port)
+    socket_2_port =
+      NSCreateMapTable (NSIntMapKeyCallBacks,
+			NSNonOwnedPointerMapValueCallBacks, 0);
 }
 
 
 
+/* TcpInPort class - An object that represents a listen()'ing socket,
+   and a collection of socket's which we poll using select().  Each of
+   the socket's that we poll is actually held by a TcpOutPort object.
+   See the comments by TcpOutPort below. */
+
 @implementation TcpInPort
 
+/* This map table is used to make sure we don't create more than one
+   TcpInPort listening to the same port number. */
 static NSMapTable* port_number_2_port;
 
 + (void) initialize
@@ -101,54 +144,89 @@ static NSMapTable* port_number_2_port;
     port_number_2_port = 
       NSCreateMapTable (NSIntMapKeyCallBacks,
 			NSNonOwnedPointerMapValueCallBacks, 0);
-  if (!socket_2_port)
-    init_socket_2_port ();
+  init_socket_2_port ();
 }
 
-/* this is the designated initializer. */
+/* This is the designated initializer. 
+   If N is zero, it will choose a port number for you. */
+
 + newForReceivingFromPortNumber: (unsigned short)n
 {
   TcpInPort *p;
-  int sock;
 
+  /* If there already is a TcpInPort listening to this port number,
+     don't create a new one, just return the old one. */
   if ((p = (id) NSMapGet (port_number_2_port, (void*)((int)n))))
     return p;
 
-  /* Create the socket. */
-  sock = socket (AF_INET, SOCK_STREAM, 0);
-  if (sock < 0)
-    {
-      perror ("socket");
-      abort ();
-    }
+  /* There isn't already a TcpInPort for this port number, so create
+     a new one. */
 
   /* Create the port object. */
   p = [[TcpInPort alloc] init];
-  p->_socket = sock;
-  NSMapInsert (socket_2_port, (void*)sock, self);
-  
-  /* Give the socket a name. */
-  p->_address.sin_family = AF_INET;
-  p->_address.sin_addr.s_addr = htonl (INADDR_ANY);
-  p->_address.sin_port = htons (n);
-  if (bind (sock, (struct sockaddr*) &(p->_address), sizeof (p->_address)) < 0)
+
+  /* Create the socket. */
+  p->_socket = socket (AF_INET, SOCK_STREAM, 0);
+  if (p->_socket < 0)
     {
-      perror ("bind");
+      perror ("[TcpInPort +newForReceivingFromPortNumber] socket()");
       abort ();
     }
 
-  /* Set it up to accept connections, let 10 pending connections queue */
-  if (listen (sock, 10) < 0)
+  /* Register the port object according to its socket. */
+  assert (!NSMapGet (socket_2_port, (void*)p->_socket));
+  NSMapInsert (socket_2_port, (void*)p->_socket, p);
+  
+  /* Give the socket a name using bind(). */
+  {
+    struct hostent *hp;
+    hp = gethostbyname ("localhost"); // xxx No! Not "localhost" the host name
+    /* Use localhost's address, and not INADDR_ANY, so that went we
+       encode our _listening_address for a D.O. operation, they get
+       our unique host address. */
+    memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
+    p->_listening_address.sin_family = AF_INET;
+    p->_listening_address.sin_port = htons (n);
+    /* N may be zero, in which case bind() will choose a port number
+       for us. */
+    if (bind (p->_socket,
+	      (struct sockaddr*) &(p->_listening_address),
+	      sizeof (p->_listening_address)) 
+	< 0)
+      {
+	perror ("[TcpInPort +newForReceivingFromPortNumber] bind()");
+	abort ();
+      }
+  }
+
+  if (!n)
+    /* xxx Perhaps I should do this unconditionally? */
     {
-      perror ("listen");
+      int size = sizeof (p->_listening_address);
+      if (getsockname (p->_socket,
+		       (struct sockaddr*)&(p->_listening_address),
+		       &size)
+	  < 0)
+	{
+	  perror ("[TcpInPort +newForReceivingFromPortNumber] getsockname()");
+	  abort ();
+	}
+      assert (p->_listening_address.sin_port);
+    }
+
+  /* Set it up to accept connections, let 10 pending connections queue */
+  /* xxx Make this "10" a class variable? */
+  if (listen (p->_socket, 10) < 0)
+    {
+      perror ("[TcpInPort +newForReceivingFromPortNumber] listen()");
       abort ();
     }
 
   /* Initialize the set of active sockets. */
   FD_ZERO (&(p->active_fd_set));
-  FD_SET (sock, &(p->active_fd_set));
+  FD_SET (p->_socket, &(p->active_fd_set));
 
-  /* Initializer the tables. */
+  /* Initialize the tables for matching socket's to out ports and packets. */
   p->client_sock_2_out_port = 
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
@@ -156,7 +234,7 @@ static NSMapTable* port_number_2_port;
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
 
-  /* Record the new port in the table. */
+  /* Record the new port in TcpInPort's class table. */
   NSMapInsert (port_number_2_port, (void*)(int)n, p);
 
   return p;
@@ -194,6 +272,11 @@ static NSMapTable* port_number_2_port;
   return NSCountMapTable (client_sock_2_out_port);
 }
 
+- (struct sockaddr_in*) _listeningSockaddr
+{
+  return &_listening_address;
+}
+
 - receivePacketWithTimeout: (int)milliseconds
 {
   static int fd_index = 0;
@@ -219,7 +302,7 @@ static NSMapTable* port_number_2_port;
       sel_ret = select (FD_SETSIZE, &read_fd_set, NULL, NULL, select_timeout);
       if (sel_ret < 0)
 	{
-	  perror ("select");
+	  perror ("[TcpInPort receivePacketWithTimeout:] select()");
 	  abort ();
 	}
       else if (sel_ret == 0)
@@ -233,40 +316,54 @@ static NSMapTable* port_number_2_port;
 		/* This is a connection request on the original socket. */
 		int new;
 		int size;
+		volatile id op;
 
 		size = sizeof (clientname);
 		new = accept (_socket, (struct sockaddr*)&clientname, &size);
 		if (new < 0)
 		  {
-		    perror ("accept");
+		    perror ("[TcpInPort receivePacketWithTimeout:] accept()");
 		    abort ();
 		  }
+		op = [TcpOutPort _newWithAcceptedSocket: new 
+				 peeraddr: &clientname
+				 inPort: self];
+		[self _addOutPort: op];
 		if (debug_tcp_port)
 		  fprintf (stderr, 
-			   "Accepted connection from host %s, port %hd.\n",
-			   inet_ntoa (clientname.sin_addr),
-			   ntohs (clientname.sin_port));
-		[self _addOutPort: [TcpOutPort newWithAcceptedSocket: new
-				     inPort: self]];
+			   "%s: Accepted connection from\n %s.\n",
+			   object_get_class_name (self),
+			   [[op description] cStringNoCopy]);
+		[NotificationDispatcher
+		  postNotificationName: InPortAcceptedClientNotification
+		  object: self
+		  userInfo: op];
 	      }
 	    else
 	      {
-		/* Data arriving on an already-connected socket. */
+		/* Data has arrived on an already-connected socket. */
 		TcpPacket *packet;
 		int remaining;
+
+		/* See if there is already a Packet object waiting for
+		   more data from this socket. */
 		if (!(packet = NSMapGet (client_sock_2_packet,
 					 (void*)fd_index)))
 		  {
 		    /* This is the beginning of a new packet on this socket.
 		       Create a new Packet object for gathering the data. */
 
-		    /* First, get the packet size, (which is encoded in 
-		       the first few bytes of the stream). */
-		    int packet_size = 
-		      [TcpPacket readPacketSizeFromSocket: fd_index];
-		    /* We got an EOF when trying to read the packet size;
-		       invalidate the port, and keep on waiting for
-		       incoming data on other sockets. */
+		    /* First, get the packet size and reply port, (which is
+		       encoded in the first few bytes of the stream). */
+		    int packet_size;
+		    id reply_port;
+		    [TcpPacket _getPacketSize: &packet_size
+			       andReplyPort: &reply_port
+			       fromSocket: fd_index
+			       inPort: self];
+		    /* If we got an EOF when trying to read the packet prefix,
+		       invalidate the port, and keep on waiting for incoming
+		       data on other sockets. */
 		    if (packet_size == EOF)
 		      {
 			[(id) NSMapGet (client_sock_2_out_port,
@@ -278,9 +375,7 @@ static NSMapTable* port_number_2_port;
 		      {
 			packet = [[TcpPacket alloc] 
 				   _initForReceivingWithSize: packet_size
-				   replyPort: 
-				     NSMapGet (client_sock_2_out_port, 
-					       (void*)fd_index)];
+				   replyPort: reply_port];
 		      }
 		    /* The packet has now been created with correct capacity */
 		  }
@@ -312,9 +407,12 @@ static NSMapTable* port_number_2_port;
 {
   int s = [p _socket];
 
-  FD_SET (s, &active_fd_set);
+  /* Make sure it hasn't already been added. */
+  assert (!NSMapGet (client_sock_2_out_port, (void*)s));
 
+ /* Add it, and put its socket in the set of file descriptors we poll. */
   NSMapInsert (client_sock_2_out_port, (void*)s, p);
+  FD_SET (s, &active_fd_set);
 }
 
 /* Called by an OutPort in its -invalidate method. */
@@ -322,6 +420,12 @@ static NSMapTable* port_number_2_port;
 {
   id packet;
   int s = [p _socket];
+
+  if (debug_tcp_port)
+    fprintf (stderr, 
+	     "%s: Closed connection from\n %s\n",
+	     object_get_class_name (self),
+	     [[p description] cStringNoCopy]);
 
   packet = NSMapGet (client_sock_2_packet, (void*)s);
   if (packet)
@@ -347,7 +451,7 @@ static NSMapTable* port_number_2_port;
 
 - (int) portNumber
 {
-  return (int) ntohs (_address.sin_port);
+  return (int) ntohs (_listening_address.sin_port);
 }
 
 - (void) invalidate
@@ -382,7 +486,8 @@ static NSMapTable* port_number_2_port;
 - (void) dealloc
 {
   [self invalidate];
-  NSMapRemove (port_number_2_port, (void*)(int)ntohs(_address.sin_port));
+  NSMapRemove (port_number_2_port,
+	       (void*)(int) ntohs(_listening_address.sin_port));
   /* assert that these are empty? */
   NSFreeMapTable (client_sock_2_out_port);
   NSFreeMapTable (client_sock_2_packet);
@@ -393,6 +498,377 @@ static NSMapTable* port_number_2_port;
 - (void) checkConnection
 {
   [self notImplemented: _cmd];
+}
+
+- (Class) packetClass
+{
+  return [TcpPacket class];
+}
+
++ (Class) packetClass
+{
+  return [TcpPacket class];
+}
+
+- description
+{
+  return [NSString
+	   stringWithFormat: @"%s 0x%x port %hd socket %d",
+	   object_get_class_name (self),
+	   (unsigned)self,
+	   ntohs (_listening_address.sin_port),
+	   _socket];
+}
+
+- (Class) classForConnectedCoder: aRmc
+{
+  /* Make sure that Connection's always send us bycopy, not a Proxy class.
+     Also, encode a "send right" (ala Mach), not the "receive right". */
+  return [TcpOutPort class];
+}
+
+- (void) encodeWithCoder: aCoder
+{
+  /* We are actually encoding a "send right" (ala Mach), 
+     not a receive right.  
+     These values must match those expected by [TcpOutPort +newWithCoder] */
+  [super encodeWithCoder: aCoder];
+  [aCoder encodeValueOfCType: @encode(typeof(_listening_address.sin_port))
+	  at: &_listening_address.sin_port 
+	  withName: @"socket number"];
+  [aCoder encodeValueOfCType:
+	    @encode(typeof(_listening_address.sin_addr.s_addr))
+	  at: &_listening_address.sin_addr.s_addr
+	  withName: @"inet address"];
+}
+
++ newWithCoder: aCoder
+{
+  /* An InPort cannot be created by decoding, only OutPort's. */
+  [self shouldNotImplement: _cmd];
+  return nil;
+}
+
+@end
+
+
+
+/* TcpOutPort - An object that represents a connection to a remote
+   host.  Although it is officially an "Out" Port, we actually receive
+   data on the socket that is this object's `_socket' ivar; TcpInPort
+   takes care of this. */
+
+@implementation TcpOutPort
+
+/* A collection of all the all the TcpOutPort's, keyed by their id. */
+/* xxx This would be more efficient as a void* array instead of a map table. */
+static NSMapTable *out_port_bag = NULL;
+
++ (void) initialize
+{
+  if (self == [TcpOutPort class])
+    {
+      init_socket_2_port ();
+      out_port_bag = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+				       NSNonOwnedPointerMapValueCallBacks, 0);
+    }
+}
+
+#if 0
+/* Not needed unless we use TcpInStream objects. */
++ (void) checkForInvalidatedPorts {}
+#endif
+
+
+/* This is the designated creator. 
+
+   If SOCK is 0, then SOCKADDR must be non-NULL.  It is the address of
+   the socket on which the remote TcpInPort is listen()'ing.  Note
+   that it is *not* the address of the TcpOutPort's
+   getsockname(_socket,...), and it is not the address of the
+   TcpOutPort's getpeername(_socket,...).
+
+   SOCK can be either an already-created socket, or 0, in which case a 
+   socket will be created.
+
+   If SOCK is non-zero, and SOCKADDR is non-zero, then this is a request
+   to set the _remote_in_port_address ivar of a pre-existing TcpOutPort
+   instance.  In this case the IP argument must match the _polling_in_port
+   of the instance.
+
+   IP can be either an already-created InPort object, or nil.  */
+
++ newForSendingToSockaddr: (struct sockaddr_in*)sockaddr 
+       withAcceptedSocket: (int)sock
+            pollingInPort: ip
+{
+  TcpOutPort *p;
+
+  /* See if there already exists a port for this sockaddr;
+     if so, just return it.  However, there is no need to do this
+     if SOCK already holds an accept()'ed socket---in that case we
+     should always create a new OutPort object. */
+  if (!sock)
+    {
+      NSMapEnumerator me = NSEnumerateMapTable (out_port_bag);
+      void *k;
+
+      assert (sockaddr);
+      while (NSNextMapEnumeratorPair (&me, &k, (void**)&p))
+	{
+	  /* xxx Do I need to make sure connectedInPort is the same too? */
+	  /* xxx Come up with a way to do this with a hash key, not a list. */
+	  if ((sockaddr->sin_port 
+	       == p->_remote_in_port_address.sin_port)
+	      && (sockaddr->sin_addr.s_addr 
+		  == p->_remote_in_port_address.sin_addr.s_addr))
+	    /* Assume that sin_family is equal.  Using memcmp() doesn't
+	       work because sin_zero's may differ. */
+	    return p;
+	}
+    }
+  /* xxx When the AcceptedSocket-style OutPort get's it's 
+     _remote_in_port_address set, we should make sure that there isn't
+     already an OutPort with that address. */
+
+  /* See if there already exists a TcpOutPort object with ivar _socket
+     equal to SOCK.  If there is, and if sockaddr is non-null, this
+     call may be a request to set the TcpOutPort's _remote_in_port_address
+     ivar. */
+  if (sock && (p = NSMapGet (socket_2_port, (void*)sock)))
+    {
+      assert ([p isKindOfClass: [TcpOutPort class]]);
+      if (sockaddr)
+	{
+	  /* Make sure the address we're setting it to is non-zero. */
+	  assert (sockaddr->sin_port);
+
+	  /* See if the _remote_in_port_address is already set */
+	  if (p->_remote_in_port_address.sin_family)
+	    {
+	      /* It is set; make sure no one is trying to change it---that 
+		 isn't allowed. */
+	      if ((p->_remote_in_port_address.sin_port
+		   != sockaddr->sin_port)
+		  || (p->_remote_in_port_address.sin_addr.s_addr
+		      != sockaddr->sin_addr.s_addr))
+		[self error:"Can't change reply port of an out port once set"];
+	    }
+	  else
+	    {
+	      /* It wasn't set before; set it by copying it in. */
+	      memcpy (&(p->_remote_in_port_address), 
+		      sockaddr,
+		      sizeof (p->_remote_in_port_address));
+	    }
+	}
+      return p;
+    }
+
+  /* There isn't already an in port for this sockaddr or sock,
+     so create a new port. */
+  p = [[self alloc] init];
+
+  /* Set its socket. */
+  if (sock)
+    p->_socket = sock;
+  else
+    {
+      p->_socket = socket (AF_INET, SOCK_STREAM, 0);
+      if (p->_socket < 0)
+	{
+	  perror ("[TcpOutPort newForSendingToSockaddr:...] socket()");
+	  abort ();
+	}
+    }
+
+  /* Register which InPort object will listen to replies from our messages. 
+     This may be nil, in which case it can get set later in -sendPacket... */
+  p->_polling_in_port = [ip retain];
+
+  /* Set the port's address. */
+  if (sockaddr)
+    {
+      assert (sockaddr->sin_port);
+      memcpy (&(p->_remote_in_port_address), sockaddr, sizeof(*sockaddr));
+    }
+  /* Else, _remote_in_port_address will remain as zero's for the
+     time being, and may get set later by calling +newForSendingToSockaddr..
+     with a non-zero socket, and a non-NULL sockaddr. */
+
+  /* xxx Do I need to bind(_socket) to this address?  I don't think so. */
+
+  /* Connect the socket to its destination, (if it hasn't been done 
+     already by a previous accept() call. */
+  if (!sock)
+    {
+      if (connect (p->_socket,
+		   (struct sockaddr*)&(p->_remote_in_port_address), 
+		   sizeof(p->_remote_in_port_address)) 
+	  < 0)
+	{
+	  perror ("[TcpOutPort newForSendingToSockaddr:...] connect()");
+	  abort ();
+	}
+    }
+
+  /* Put it in the shared socket->port map table. */
+  assert (!NSMapGet (socket_2_port, (void*)p->_socket));
+  NSMapInsert (socket_2_port, (void*)p->_socket, p);
+
+  /* Put it in TcpOutPort's registry. */
+  NSMapInsert (out_port_bag, (void*)p, (void*)p);
+
+  return p;
+}
+
++ newForSendingToPortNumber: (unsigned short)n 
+		     onHost: (id <String>)hostname
+{
+  struct hostent *hp;
+  const char *host_cstring;
+  struct sockaddr_in addr;
+
+  /* Look up the hostname. */
+  if (!hostname || ![hostname length])
+    host_cstring = "localhost";
+  else
+    host_cstring = [hostname cStringNoCopy];
+  hp = gethostbyname ((char*)host_cstring);
+  if (hp == 0)
+    [self error: "unknown host: \"%s\"", host_cstring];
+
+  /* Get the sockaddr_in address. */
+  memcpy (&addr.sin_addr, hp->h_addr, hp->h_length);
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons (n);
+
+  return [self newForSendingToSockaddr: &addr
+	       withAcceptedSocket: 0
+	       pollingInPort: nil];
+}
+
++ newForSendingToRegisteredName: (id <String>)name 
+			 onHost: (id <String>)hostname
+{
+  return [self newForSendingToPortNumber: 
+		 name_2_port_number ([name cStringNoCopy])
+	       onHost: hostname];;
+}
+
++ _newWithAcceptedSocket: (int)s 
+		peeraddr: (struct sockaddr_in*)peeraddr
+                  inPort: p
+{
+#if 0
+  struct sockaddr_in addr;
+  int size = sizeof (struct sockaddr_in);
+
+  /* Get the sockaddr. */
+  if (getpeername (s, (struct sockaddr*)&addr, &size) < 0)
+    {
+      perror ("[TcpPort +newWithAcceptedSocket:] getsockname()");
+      abort ();
+    }
+  assert (size == sizeof (struct sockaddr_in));
+  /* xxx Perhaps I have to get peer name here!! */
+  assert (ntohs (addr.sin_port) != [p portNumber]);
+#elif 0
+  struct sockaddr_in in_port_address;
+  c = read (s, &in_port_address, sizeof(struct sockaddr_in));
+#endif
+
+  return [self newForSendingToSockaddr: NULL
+	       withAcceptedSocket: s
+	       pollingInPort: p];
+}
+
+- (struct sockaddr_in*) _remoteInPortSockaddr
+{
+  return &_remote_in_port_address;
+}
+
+- (BOOL) sendPacket: packet withTimeout: (int)milliseconds
+{
+  int c, l;
+  id reply_port = [packet replyPort];
+
+  /* If the socket of this TcpOutPort isn't already being polled
+     for incoming data by a TcpInPort, and if the packet's REPLY_PORT
+     is non-nil, then set up this TcpOutPort's socket to be polled by
+     the REPLY_PORT.  Once a TcpOutPort is associated with a particular
+     TcpInPort, it is permanantly associated with that InPort; it cannot 
+     be re-associated with another TcpInPort later. 
+     The creation and use of TcpInStream objects could avoid this 
+     restriction; see the note about them at the top of this file. */
+  if (_polling_in_port == nil && reply_port != nil)
+    {
+      _polling_in_port = [reply_port retain];
+      [_polling_in_port _addOutPort: self];
+    }
+  else if (_polling_in_port != reply_port)
+    [self error: "Instances of %s can't change their reply port once set.",
+	  object_get_class_name (self)];
+    /* Creating TcpInStream objects, and separating them from
+       TcpOutPort's would fix this restriction.  However, it would
+       also have the disadvantage of using all socket's only for
+       sending data one-way, and creating twice as many socket's for
+       two-way exchanges. */
+
+  /* Ask the packet to write it's bytes to the socket.
+     The TcpPacket will also write a prefix, indicating the packet size
+     and the reply port address.  If REPLY_PORT is nil, the second argument
+     to this call with be NULL, and __writeToSocket:withReplySockaddr: will
+     know that there is no reply port. */
+  [packet _writeToSocket: _socket 
+	  withReplySockaddr: [reply_port _listeningSockaddr]];
+  return YES;
+}
+
+- (int) _socket
+{
+  return _socket;
+}
+
+- (int) portNumber
+{
+  return (int) ntohs (_remote_in_port_address.sin_port);
+}
+
+- (void) close
+{
+  [self invalidate];
+}
+
+- (void) invalidate
+{
+  if (is_valid)
+    {
+      if (close (_socket) < 0)
+	{
+	  perror ("[TcpOutPort -invalidate] close()");
+	  abort ();
+	}
+      [_polling_in_port _connectedOutPortInvalidated: self];
+      [_polling_in_port release];
+      _polling_in_port = nil;
+      
+      /* This is here, and not in -dealloc, because invalidated
+	 but not dealloc'ed ports should not be returned from
+	 the out_port_bag in +newForSendingToSockaddr:... */
+      NSMapRemove (out_port_bag, (void*)self);
+
+      /* This also posts a PortBecameInvalidNotification. */
+      [super invalidate];
+    }
+}
+
+- (void) dealloc
+{
+  if (is_valid)
+    [self invalidate];
+  NSMapRemove (socket_2_port, (void*)_socket);
+  [super dealloc];
 }
 
 - classForConnectedCoder: aRmc
@@ -407,48 +883,233 @@ static NSMapTable* port_number_2_port;
   return [TcpPacket class];
 }
 
++ (Class) packetClass
+{
+  return [TcpPacket class];
+}
+
 - description
 {
-  return [NSString stringWithFormat: @"%s 0x%x port %hd socket %d",
-		   object_get_class_name (self),
-		   (unsigned)self,
-		   ntohs (_address.sin_port),
-		   _socket];
+  return [NSString 
+	   stringWithFormat: @"%s 0x%x host %s port %hd socket %d",
+	   object_get_class_name (self),
+	   (unsigned)self,
+	   inet_ntoa (_remote_in_port_address.sin_addr),
+	   ntohs (_remote_in_port_address.sin_port),
+	   _socket];
+}
+
+- (void) encodeWithCoder: aCoder
+{
+  [super encodeWithCoder: aCoder];
+  assert (!_polling_in_port 
+	  || (ntohs (_remote_in_port_address.sin_port)
+	      != [_polling_in_port portNumber]));
+  [aCoder encodeValueOfCType: @encode(typeof(_remote_in_port_address.sin_port))
+	  at: &_remote_in_port_address.sin_port
+	  withName: @"socket number"];
+  [aCoder encodeValueOfCType: 
+	    @encode(typeof(_remote_in_port_address.sin_addr.s_addr))
+	  at: &_remote_in_port_address.sin_addr.s_addr
+	  withName: @"inet address"];
+}
+
++ newWithCoder: aCoder
+{
+  struct sockaddr_in addr;
+
+  addr.sin_family = AF_INET;
+  [aCoder decodeValueOfCType: @encode(typeof(addr.sin_port))
+	  at: &addr.sin_port 
+	  withName: NULL];
+  [aCoder decodeValueOfCType: @encode(typeof(addr.sin_addr.s_addr))
+	  at: &addr.sin_addr.s_addr
+	  withName: NULL];
+  return [TcpOutPort newForSendingToSockaddr: &addr
+		     withAcceptedSocket: 0
+		     pollingInPort: nil];
 }
 
 @end
 
+
 
-@implementation TcpOutPort
+@implementation TcpPacket
 
-+ (void) initialize
-{
-  if (self == [TcpOutPort class])
-    {
-      if (!socket_2_port)
-	init_socket_2_port ();
-    }
-}
+/* If you change this "unsigned short", you must change the use
+   of ntohs() and htons() below. */
+#define PREFIX_LENGTH_TYPE unsigned short
+#define PREFIX_LENGTH_SIZE sizeof (PREFIX_LENGTH_TYPE)
+#define PREFIX_ADDRESS_TYPE struct sockaddr_in
+#define PREFIX_ADDRESS_SIZE sizeof (PREFIX_ADDRESS_TYPE)
+#define PREFIX_SIZE (PREFIX_LENGTH_SIZE + PREFIX_ADDRESS_SIZE)
 
-/* This is the designated initializer. */
-- _initWithSocket: (int)s inPort: ip
+/* This is the designated initialzer. */
+/* xxx This will change; it doesn't set it's buffer size with a nice 
+   interface */
+- _initForReceivingWithSize: (int)s replyPort: p
 {
-  [super init];
-  _socket = s;
-  NSMapInsert (socket_2_port, (void*)s, self);
-  connected_in_port = ip;
+  [super _initOnMallocBuffer: (*objc_malloc) (s)
+	 size: s
+	 eofPosition: 0
+	 prefix: 0
+	 position: 0];
+  assert (p);
+  reply_port = p;
   return self;
 }
 
+- initForSendingWithCapacity: (unsigned)c
+   replyPort: p
+{
+  [super _initOnMallocBuffer: (*objc_malloc)(c)
+	 size: c
+	 eofPosition: 0
+	 prefix: PREFIX_SIZE
+	 position: 0];
+  reply_port = p;
+  return self;
+}
+
+- (void) _writeToSocket: (int)s 
+      withReplySockaddr: (struct sockaddr_in*)addr
+{
+  int c;
+
+  /* Put the packet size in the first two bytes of the packet. */
+  assert (prefix == PREFIX_SIZE);
+  *(PREFIX_LENGTH_TYPE*)buffer = htons (eofPosition);
+
+  /* Put the sockaddr_in for replies in the next bytes of the prefix
+     region.  If there is no reply address specified, fill it with zeros. */
+  if (addr)
+    *(PREFIX_ADDRESS_TYPE*)(buffer + PREFIX_LENGTH_SIZE) = *addr;
+  else
+    memset (buffer + PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
+
+  /* Write the packet on the socket. */
+  c = write (s, buffer, prefix + eofPosition);
+  if (c < 0)
+    {
+      perror ("[TcpOutPort -_writeToSocket:] write()");
+      abort ();
+    }
+
+  /* Did we sucessfully write it all? */
+  if (c != prefix + eofPosition)
+    [self error: "socket write failed"];
+}
+
++ (void) _getPacketSize: (int*)packet_size 
+	   andReplyPort: (id*)rp
+             fromSocket: (int)s
+	         inPort: ip
+{
+  char prefix_buffer[PREFIX_SIZE];
+  int c;
+  struct sockaddr_in *addr;
+  
+  c = read (s, prefix_buffer, PREFIX_SIZE);
+  if (c == 0)
+    {
+      *packet_size = EOF;
+      return;
+    }
+  if (c != PREFIX_SIZE)
+    [self error: "Failed to get packet prefix from socket."];
+
+  /* *size is the number of bytes in the packet, not including 
+     the PREFIX_SIZE-byte header. */
+  *packet_size = ntohs (*(PREFIX_LENGTH_TYPE*) prefix_buffer);
+  assert (packet_size);
+
+  /* If the reply address is non-zero, and the TcpOutPort for this socket
+     doesn't already have its _address ivar set, then set it now. */
+  {
+    addr = (struct sockaddr_in*) (prefix_buffer + PREFIX_LENGTH_SIZE);
+    if (addr->sin_family)
+      {
+#if 0    
+	TcpOutPort *op = NSMapGet (socket_2_port, s);
+
+	assert ([op isKindOf: [TcpOutPort class]]);
+	if (![op portNumber])
+	  [op _setRemoteInPortAddress: addr];
+	else
+	  {
+	    struct sockaddr_in *op_addr = [op _sockaddr];
+	    if (op_addr->sin_port != addr->sin_port
+		|| op_addr->sin_addr.s_addr != addr->sin_addr.s_addr)
+	      [self error: "TcpPort can't change reply port of an out port "
+		    "once set."];
+	    /* See comment above for identical error message. */
+	  }
+#else
+      *rp = [TcpOutPort newForSendingToSockaddr: addr
+			withAcceptedSocket: s
+			pollingInPort: ip];
+#endif
+      }
+    else
+      *rp = nil;
+  }
+}
+
+- (int) _fillFromSocket: (int)s
+{
+  int c;
+  int remaining;
+
+  remaining = size - eofPosition;
+  /* xxx We need to make sure this read() is non-blocking. */
+  c = read (s, buffer + prefix + eofPosition, remaining);
+  if (c == 0)
+    return EOF;
+  eofPosition += c;
+  return remaining - c;
+}
+
+@end
+
+#if 0
+/* Not used.  See comments about TcpInStream at top of file. */
+@implementation TcpInStream 
+- initWithAcceptedSocket: (int)s inPort: p
+{
+  [super init];
+  _socket = s;
+  _listening_in_port = p;
+  return self;
+}
+@end
+#endif
+
+
+
+/* Notification Strings. */
+
+NSString *
+InPortClientBecameInvalidNotification = 
+@"InPortClientBecameInvalidNotification";
+
+NSString *
+InPortAcceptedClientNotification = 
+@"InPortAcceptedClientNotification";
+
+
+/* Scraps */
+
+#if 0
 + newForSendingToPortNumber: (unsigned short)n 
 		     onHost: (id <String>)hostname
 {
   TcpOutPort *p;
   int s;
 
-  /* xxx If the TcpOutPort object already exists, just return it. */
-  /* This needs to be judged according to the port number and host;
-     this is what will get sent when a TcpPort encodes itself. */
+  /* If the TcpOutPort object already exists, just return it.  This be
+     judged according to the port number and host; this is what will
+     get sent when a TcpPort encodes itself. */
+  /* xxx check the out_port_bag here. */
 
   /* There isn't one already; create the TcpOutPort. */
 
@@ -468,7 +1129,10 @@ static NSMapTable* port_number_2_port;
     struct hostent *hostinfo;
     p->_address.sin_family = AF_INET;
     p->_address.sin_port = htons (n);
-    hostinfo = gethostbyname ([hostname cStringNoCopy]);
+    if (!hostname || ![hostname length])
+      hostinfo = gethostbyname ("localhost");
+    else
+      hostinfo = gethostbyname ([hostname cStringNoCopy]);
     if (hostinfo == NULL)
     {
       fprintf (stderr, "Unknown host %s.\n", hostname);
@@ -486,16 +1150,12 @@ static NSMapTable* port_number_2_port;
 
   return p;
 }
+#endif
 
-+ newForSendingToRegisteredName: (id <String>)name 
-			 onHost: (id <String>)hostname
-{
-  return [self newForSendingToPortNumber: 
-		 name_2_port_number ([name cStringNoCopy])
-	       onHost: hostname];;
-}
-
-+ newWithAcceptedSocket: (int)s inPort: p
+#if 0
++ newWithAcceptedSocket: (int)s 
+	       sockaddr: (struct sockaddr_in*)addr
+		 inPort: p
 {
   TcpOutPort *op;
   struct sockaddr_in addr;
@@ -511,188 +1171,6 @@ static NSMapTable* port_number_2_port;
 
   return op;
 }
-
-- (int) writeBytes: (const char*)b length: (int)len
-{
-  return write (_socket, b, len);
-}
-
-- (BOOL) sendPacket: packet withTimeout: (int)milliseconds
-{
-  int c, l;
-  id reply_port = [packet replyPort];
-
-  if (connected_in_port == nil && reply_port != nil)
-    {
-      connected_in_port = reply_port;
-      [connected_in_port retain];
-      [connected_in_port _addOutPort: self];
-      /* xxx Register socket with the replyPort. */
-    }
-  else if (connected_in_port != reply_port)
-    [self error:"TcpPort can't change reply port of an out port once set."];
-
-  [packet _writeToSocket: _socket];
-  return YES;
-}
-
-- (int) _socket
-{
-  return _socket;
-}
-
-- (int) portNumber
-{
-  return (int) ntohs (_address.sin_port);
-}
-
-- (void) close
-{
-  [self invalidate];
-}
-
-- (void) invalidate
-{
-  if (is_valid)
-    {
-      if (close (_socket) < 0)
-	perror ("close, -invalidate");
-      [connected_in_port _connectedOutPortInvalidated: self];
-      [connected_in_port release];
-      connected_in_port = nil;
-      /* This also posts a PortBecameInvalidNotification. */
-      [super invalidate];
-    }
-}
-
-- (void) dealloc
-{
-  if (is_valid)
-    [self invalidate];
-  NSMapRemove (socket_2_port, (void*)_socket);
-}
-
-- classForConnectedCoder: aRmc
-{
-  /* Make sure that Connection's always send us bycopy,
-     i.e. as our own class, not a Proxy class. */
-  return [self class];
-}
-
-- (Class) packetClass
-{
-  return [TcpPacket class];
-}
-
-- description
-{
-  return [NSString stringWithFormat: @"%s 0x%x host %s port %hd socket %d",
-		   object_get_class_name (self),
-		   (unsigned)self,
-		   inet_ntoa (_address.sin_addr),
-		   ntohs (_address.sin_port),
-		   _socket];
-}
-
-@end
+#endif
 
 
-
-@implementation TcpPacket
-
-/* If you change this, you must change the use of ntohs() and htons() below. */
-#define PREFIX_TYPE unsigned short
-#define PREFIX_LENGTH sizeof (PREFIX_TYPE)
-
-/* This is the designated initialzer. */
-/* xxx This will change; it doesn't set it's buffer size with a nice 
-   interface */
-- _initForReceivingWithSize: (int)s replyPort: p
-{
-  [super _initOnMallocBuffer: (*objc_malloc) (s)
-	 size: s
-	 eofPosition: 0
-	 prefix: PREFIX_LENGTH
-	 position: 0];
-  assert (p);
-  reply_port = p;
-  return self;
-}
-
-- initForSendingWithCapacity: (unsigned)c
-   replyPort: p
-{
-  [super _initOnMallocBuffer: (*objc_malloc)(c)
-	 size: c
-	 eofPosition: 0
-	 prefix: PREFIX_LENGTH
-	 position: 0];
-  reply_port = p;
-  return self;
-}
-
-- (void) _writeToSocket: (int)s
-{
-  int write_len = eofPosition + 1;
-  int c, len = write_len - sizeof (unsigned short);
-
-  /* Put the packet size in the first two bytes of the packet. 
-     We use `-sizeof()'  because the size does not include this
-     length-indicating prefix. */
-  assert (prefix == PREFIX_LENGTH);
-  *(PREFIX_TYPE*)buffer = htons (len);
-
-  /* Write the packet on the socket. */
-  c = write (s, buffer, write_len);
-  if (c < 0)
-    {
-      perror ("write");
-      abort ();
-    }
-
-  /* Did we sucessfully write it all? */
-  if (c != write_len)
-    [self error: "socket write failed"];
-}
-
-+ (int) readPacketSizeFromSocket: (int)s
-{
-  char size_buffer[PREFIX_LENGTH];
-  int c;
-  int packet_size;
-  
-  c = read (s, size_buffer, PREFIX_LENGTH);
-  if (c == 0)
-    return EOF;
-  if (c != PREFIX_LENGTH)
-    [self error: "Failed to get packet size from socket."];
-
-  /* packet_size is the number of bytes in the packet, not including 
-     this two-byte length header. */
-  packet_size = ntohs (*(PREFIX_TYPE*) size_buffer);
-  assert (packet_size);
-  return packet_size;
-}
-
-- (int) _fillFromSocket: (int)s
-{
-  int c;
-  int remaining;
-
-  remaining = size - position;
-  c = read (s, buffer + position, remaining);
-  if (c == 0)
-    return EOF;
-  position += c;
-  eofPosition = position;
-  return remaining - c;
-}
-
-@end
-
-
-/* Notification Strings. */
-
-NSString *
-InPortClientBecameInvalidNotification = 
-@"InPortClientBecameInvalidNotification";
