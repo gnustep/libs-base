@@ -1,3 +1,16 @@
+2001-03-16  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Makefile.postamble (after-install): Removed old 
+	code for creating /etc/services.add when packaging.
+	
+	* Makefile.postamble
+	($(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional): New target;
+	create the directory.  (before-install): Don't create the
+	directory, but depend on the new target.
+	* Resources/GNUmakefile.postamble: Idem for $(languagedir).
+	* NSCharacterSets/Makefile.postamble: Idem for $(charsetdir).
+	* NSTimeZones/Makefile.postamble: Idem for $(timezonedir).
+	
 2001-03-16  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Tools/pl*.m: added #include <Foundation/Foundation.h> to avoid 
