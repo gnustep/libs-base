@@ -936,7 +936,8 @@ nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
 	}
       else if ([name isEqualToString: @"data"])
 	{
-	  result = [GSMimeDocument decodeBase64String: content];
+	  result = [GSMimeDocument decodeBase64: 
+		       [content dataUsingEncoding: NSASCIIStringEncoding]];
 	  if (o == NSPropertyListMutableContainersAndLeaves)
 	    {
 	      result = AUTORELEASE([result mutableCopy]);

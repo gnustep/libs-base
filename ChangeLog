@@ -1,5 +1,11 @@
 2004-01-27  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSPropertyList.m (nodeToObject()): Fixed bug in handling
+	of data elements. Was using [GSMimeDocument decodeBase64String:]
+	instead of [GSMimeDocument decodeBase64:].
+
+2004-01-27  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/GSArray.m:
 	* Source/NSArray.m:
 	* Source/GSSet.m:
