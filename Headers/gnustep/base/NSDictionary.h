@@ -24,7 +24,7 @@
 #ifndef _NSDictionary_h_OBJECTS_INCLUDE
 #define _NSDictionary_h_OBJECTS_INCLUDE
 
-#include <objects/Dictionary.h>
+#include <objects/stdobjects.h>
 
 @class NSArray, NSString, NSEnumerator;
 
