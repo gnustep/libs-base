@@ -1,3 +1,25 @@
+2002-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/Unicode.h: Add more options for character
+	encoding conversion routines.
+	* Source/GSPrivate.h: Add a couple of private functions for character
+	encoding management.
+	* Source/GSString.m: Convert throughoput to use new functions for
+	converting from one string encoding to another.  Make changes to
+	handle setting of default C string encoding to be an encoding which
+	is incompatible with internal e-bit string objects.
+	* Source/NSString.m: ditto
+	* Source/Unicode.m: new string encoding conversion functions extended
+	with a few new options.  Also fixed some memory allocation bugs to
+	cure memory leaks.
+
+	Rewritten low level support for different character encodings ...
+	should provide more efficient and maintainable conversion between
+	encodings and permit use of wide character encodings and encodings
+	with multibyte sequences as the default C string encoding.
+	Testing ... minimal ... we could do with decent tests for this stuff.
+	So this version must be viewed as possibly very unstable!
+
 2002-03-14  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.3.0

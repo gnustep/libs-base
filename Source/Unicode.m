@@ -28,6 +28,7 @@
 
 #include <config.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSLock.h>
 #include <base/Unicode.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,8 +51,10 @@ typedef struct {unichar from; char to;} _ucc_;
 #endif
 #include <errno.h>
 
-// The rest of the GNUstep code stores UNICODE in internal byte order,
-// so we do the same. This should be UCS-2-INTERNAL for libiconv
+/*
+ * The whole of the GNUstep code stores UNICODE in internal byte order,
+ * so we do the same. This should be UCS-2-INTERNAL for libiconv
+ */
 #ifdef WORDS_BIGENDIAN
 #define UNICODE_INT "UNICODEBIG"
 #else
@@ -61,236 +64,6 @@ typedef struct {unichar from; char to;} _ucc_;
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
 static const char *unicode_enc = NULL;
-
-#endif 
-
-
-typedef	unsigned char	unc;
-static NSStringEncoding	defEnc = GSUndefinedEncoding;
-
-#ifdef HAVE_ICONV
-/*
- * FIXME: We should check dynamically which encodings are found on this
- * computer as different implementation of iconv will support different
- * encodings. 
- */
-static NSStringEncoding _availableEncodings[] = {
-    NSASCIIStringEncoding,
-    NSNEXTSTEPStringEncoding,
-    NSJapaneseEUCStringEncoding,
-    NSUTF8StringEncoding,
-    NSISOLatin1StringEncoding,
-//    NSSymbolStringEncoding,
-//    NSNonLossyASCIIStringEncoding,
-    NSShiftJISStringEncoding,
-    NSISOLatin2StringEncoding,
-    NSUnicodeStringEncoding,
-    NSWindowsCP1251StringEncoding,
-    NSWindowsCP1252StringEncoding,
-    NSWindowsCP1253StringEncoding,
-    NSWindowsCP1254StringEncoding,
-    NSWindowsCP1250StringEncoding,
-    NSISO2022JPStringEncoding,
-    NSMacOSRomanStringEncoding,
-//    NSProprietaryStringEncoding,
-// GNUstep additions
-    NSISOCyrillicStringEncoding,
-    NSKOI8RStringEncoding,
-    NSISOLatin3StringEncoding,
-    NSISOLatin4StringEncoding,
-    NSISOArabicStringEncoding,
-    NSISOGreekStringEncoding,
-    NSISOHebrewStringEncoding,
-    NSGB2312StringEncoding,
-    NSGSM0338StringEncoding,
-    NSBIG5StringEncoding,
-    0
-};
-#else
-// Uncomment when implemented
-static NSStringEncoding _availableEncodings[] = {
-    NSASCIIStringEncoding,
-    NSNEXTSTEPStringEncoding,
-//    NSJapaneseEUCStringEncoding,
-//    NSUTF8StringEncoding,
-    NSISOLatin1StringEncoding,
-//    NSSymbolStringEncoding,
-//    NSNonLossyASCIIStringEncoding,
-//    NSShiftJISStringEncoding,
-    NSISOLatin2StringEncoding,
-    NSUnicodeStringEncoding,
-//    NSWindowsCP1251StringEncoding,
-//    NSWindowsCP1252StringEncoding,
-//    NSWindowsCP1253StringEncoding,
-//    NSWindowsCP1254StringEncoding,
-//    NSWindowsCP1250StringEncoding,
-//    NSISO2022JPStringEncoding,
-//    NSMacOSRomanStringEncoding,
-//    NSProprietaryStringEncoding,
-// GNUstep additions
-    NSISOCyrillicStringEncoding,
-//    NSKOI8RStringEncoding,
-//    NSISOLatin3StringEncoding,
-//    NSISOLatin4StringEncoding,
-//    NSISOArabicStringEncoding,
-//    NSISOGreekStringEncoding,
-//    NSISOHebrewStringEncoding,
-//    NSGB2312StringEncoding,
-    NSGSM0338StringEncoding,
-    NSBIG5StringEncoding,
-    0
-};
-#endif 
-
-struct _strenc_ {NSStringEncoding enc; char *ename;};
-const struct _strenc_ str_encoding_table[]=
-{
-  {NSASCIIStringEncoding,"NSASCIIStringEncoding"},
-  {NSNEXTSTEPStringEncoding,"NSNEXTSTEPStringEncoding"},
-  {NSJapaneseEUCStringEncoding, "NSJapaneseEUCStringEncoding"},
-  {NSUTF8StringEncoding,"NSUTF8StringEncoding"},
-  {NSISOLatin1StringEncoding,"NSISOLatin1StringEncoding"},
-  {NSSymbolStringEncoding,"NSSymbolStringEncoding"},
-  {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding"},
-  {NSShiftJISStringEncoding,"NSShiftJISStringEncoding"},
-  {NSISOLatin2StringEncoding,"NSISOLatin2StringEncoding"},
-  {NSUnicodeStringEncoding, "NSUnicodeStringEncoding"},
-  {NSWindowsCP1251StringEncoding,"NSWindowsCP1251StringEncoding"},
-  {NSWindowsCP1252StringEncoding,"NSWindowsCP1252StringEncoding"},
-  {NSWindowsCP1253StringEncoding,"NSWindowsCP1253StringEncoding"},
-  {NSWindowsCP1254StringEncoding,"NSWindowsCP1254StringEncoding"},
-  {NSWindowsCP1250StringEncoding,"NSWindowsCP1250StringEncoding"},
-  {NSISO2022JPStringEncoding,"NSISO2022JPStringEncoding "},
-  {NSMacOSRomanStringEncoding, "NSMacOSRomanStringEncoding"},
-  {NSProprietaryStringEncoding, "NSProprietaryStringEncoding"},
-
-// GNUstep additions
-  {NSISOCyrillicStringEncoding,"NSISOCyrillicStringEncoding"},
-  {NSKOI8RStringEncoding, "NSKOI8RStringEncoding"},
-  {NSISOLatin3StringEncoding, "NSISOLatin3StringEncoding"},
-  {NSISOLatin4StringEncoding, "NSISOLatin4StringEncoding"},
-  {NSISOArabicStringEncoding, "NSISOArabicStringEncoding"},
-  {NSISOGreekStringEncoding, "NSISOGreekStringEncoding"},
-  {NSISOHebrewStringEncoding, "NSISOHebrewStringEncoding"},
-  {NSISOLatin5StringEncoding, "NSISOLatin5StringEncoding"},
-  {NSISOLatin6StringEncoding, "NSISOLatin6StringEncoding"},
-  {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding"},
-  {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding"},
-  {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding"},
-  {NSUTF7StringEncoding, "NSUTF7StringEncoding"},
-  {NSGB2312StringEncoding, "NSGB2312StringEncoding"},
-  {NSGSM0338StringEncoding, "NSGSM0338StringEncoding"},
-  {NSBIG5StringEncoding, "NSBIG5StringEncoding"},
-
-  {0, "Unknown encoding"}
-};
-
-
-
-NSStringEncoding *GetAvailableEncodings()
-{
-  // FIXME: This should check which iconv definitions are available and 
-  // add them to the availble encodings
-  return _availableEncodings;
-}
-
-NSStringEncoding
-GetDefEncoding()
-{
-  if (defEnc == GSUndefinedEncoding)
-    {
-      char		*encoding;
-      unsigned int	count;
-      NSStringEncoding	tmp;
-      NSStringEncoding	*availableEncodings;
-
-      availableEncodings = GetAvailableEncodings();
-
-      encoding = getenv("GNUSTEP_STRING_ENCODING");
-      if (encoding != 0)
-	{
-	  count = 0;
-	  while (str_encoding_table[count].enc
-	    && strcmp(str_encoding_table[count].ename,encoding))
-	    {
-	      count++;
-	    }
-	  if (str_encoding_table[count].enc)
-	    {
-	      defEnc = str_encoding_table[count].enc;
-	      if ((defEnc == NSUnicodeStringEncoding)
-		|| (defEnc == NSUTF8StringEncoding)
-		|| (defEnc == NSSymbolStringEncoding))
-		{
-		  fprintf(stderr, "WARNING: %s - encoding not supported as "
-		    "default c string encoding.\n", encoding);
-		  fprintf(stderr,
-		    "NSISOLatin1StringEncoding set as default.\n");
-		  defEnc = NSISOLatin1StringEncoding;
-		}
-	      else /*encoding should be supported but is it implemented?*/
-		{
-		  count = 0;
-		  tmp = 0;
-		  while (availableEncodings[count] != 0)
-		    {
-		      if (defEnc != availableEncodings[count])
-			{
-			  tmp = 0;
-			}
-		      else
-			{
-			  tmp = defEnc;
-			  break;
-			}
-		      count++;
-		    }
-		  if (tmp == 0 && defEnc != NSISOLatin1StringEncoding)
-		    {
-		      fprintf(stderr,
-			"WARNING: %s - encoding not yet implemented.\n",
-			encoding);
-		      fprintf(stderr,
-			"NSISOLatin1StringEncoding set as default.\n");
-		      defEnc = NSISOLatin1StringEncoding;
-		    }
-		}
-	    }
-	  else /* encoding not found */
-	    {
-	      fprintf(stderr,
-		"WARNING: %s - encoding not supported.\n", encoding);
-	      fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
-	      defEnc = NSISOLatin1StringEncoding;
-	    }
-	}
-      else /* environment var not found */
-	{
-	  /* shouldn't be required. It really should be in UserDefaults - asf */
-	  //fprintf(stderr, "WARNING: GNUSTEP_STRING_ENCODING environment");
-	  //fprintf(stderr, " variable not found.\n");
-	  //fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
-	  defEnc = NSISOLatin1StringEncoding;
-	}
-    }
-  return defEnc;
-}
-
-NSString*
-GetEncodingName(NSStringEncoding encoding)
-{
-  unsigned int count=0;
-
-  while (str_encoding_table[count].enc
-    && (str_encoding_table[count].enc != encoding))
-    {
-      count++;
-    }
-
-  return [NSString stringWithCString: str_encoding_table[count].ename];
-}
-
-#ifdef HAVE_ICONV
 
 /* Check to see what type of internal unicode format the library supports */
 static const char *
@@ -316,78 +89,301 @@ internal_unicode_enc()
   return unicode_enc;
 }
 
-static const char *
-iconv_stringforencoding(NSStringEncoding enc)
+#endif 
+
+typedef	unsigned char	unc;
+static NSStringEncoding	defEnc = GSUndefinedEncoding;
+static NSStringEncoding *_availableEncodings = 0;
+
+struct _strenc_ {
+  NSStringEncoding	enc;		// Constant representing the encoding.
+  const char		*ename;		// ASCII string representation of name.
+  const char		*iconv;		/* Iconv name of encoding.  If this
+					 * is nul, we cannot use iconv to
+					 * perform conversions to/from this
+					 * encoding.
+					 */
+  BOOL			eightBit;	/* Flag to say whether this encoding
+					 * can be stored in a byte array ...
+					 * ie whether the encoding consists
+					 * entirely of single byte charcters
+					 * and the first 128 are identical to
+					 * the ASCII character set.
+					 */
+  BOOL			supported;	/* Is this supported?  Some encodings
+					 * have builtin conversion to/from
+					 * unicode, but for others we must
+					 * check with iconv to see if it
+					 * supports them on this platform.
+					 */
+};
+
+/*
+ * The str_encoding_table is a compact representation of all the string
+ * encoding information we might need.  It gets modified at runtime.
+ */
+static struct _strenc_ str_encoding_table[] = {
+  {NSASCIIStringEncoding,"NSASCIIStringEncoding","ASCII",1,1},
+  {NSNEXTSTEPStringEncoding,"NSNEXTSTEPStringEncoding","NEXTSTEP",1,1},
+  {NSJapaneseEUCStringEncoding, "NSJapaneseEUCStringEncoding","EUC-JP",0,0},
+  {NSUTF8StringEncoding,"NSUTF8StringEncoding","UTF-8",0,0},
+  {NSISOLatin1StringEncoding,"NSISOLatin1StringEncoding","ISO-8859-1",1,1},
+  {NSSymbolStringEncoding,"NSSymbolStringEncoding",0,0,0},
+  {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding",0,1,1},
+  {NSShiftJISStringEncoding,"NSShiftJISStringEncoding","SHIFT-JIS",0,0},
+  {NSISOLatin2StringEncoding,"NSISOLatin2StringEncoding","ISO-8859-2",1,1},
+  {NSUnicodeStringEncoding, "NSUnicodeStringEncoding",0,0,1},
+  {NSWindowsCP1251StringEncoding,"NSWindowsCP1251StringEncoding","CP1251",0,0},
+  {NSWindowsCP1252StringEncoding,"NSWindowsCP1252StringEncoding","CP1252",0,0},
+  {NSWindowsCP1253StringEncoding,"NSWindowsCP1253StringEncoding","CP1253",0,0},
+  {NSWindowsCP1254StringEncoding,"NSWindowsCP1254StringEncoding","CP1254",0,0},
+  {NSWindowsCP1250StringEncoding,"NSWindowsCP1250StringEncoding","CP1250",0,0},
+  {NSISO2022JPStringEncoding,"NSISO2022JPStringEncoding","ISO-2022-JP",0,0},
+  {NSMacOSRomanStringEncoding, "NSMacOSRomanStringEncoding","MACINTOSH",0,0},
+  {NSProprietaryStringEncoding, "NSProprietaryStringEncoding",0,0,0},
+
+// GNUstep additions
+  {NSISOCyrillicStringEncoding,"NSISOCyrillicStringEncoding","ISO-8859-5",0,1},
+  {NSKOI8RStringEncoding, "NSKOI8RStringEncoding","KOI8-R",0,0},
+  {NSISOLatin3StringEncoding, "NSISOLatin3StringEncoding","ISO-8859-3",0,0},
+  {NSISOLatin4StringEncoding, "NSISOLatin4StringEncoding","ISO-8859-4",0,0},
+  {NSISOArabicStringEncoding, "NSISOArabicStringEncoding","ISO-8859-6",0,0},
+  {NSISOGreekStringEncoding, "NSISOGreekStringEncoding","ISO-8859-7",0,0},
+  {NSISOHebrewStringEncoding, "NSISOHebrewStringEncoding","ISO-8859-8",0,0},
+  {NSISOLatin5StringEncoding, "NSISOLatin5StringEncoding","ISO-8859-9",0,0},
+  {NSISOLatin6StringEncoding, "NSISOLatin6StringEncoding","ISO-8859-10",0,0},
+  {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding","ISO-8859-13",0,0},
+  {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding","ISO-8859-14",0,0},
+  {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",0,0},
+  {NSUTF7StringEncoding, "NSUTF7StringEncoding",0,0,0},
+  {NSGB2312StringEncoding, "NSGB2312StringEncoding","EUC-CN",0,0},
+  {NSGSM0338StringEncoding, "NSGSM0338StringEncoding",0,0,1},
+  {NSBIG5StringEncoding, "NSBIG5StringEncoding","BIG5",0,0},
+
+  {0,"Unknown encoding",0,0,0}
+};
+
+static struct _strenc_	**encodingTable = 0;
+static unsigned		encTableSize = 0;
+
+NSStringEncoding *GetAvailableEncodings()
 {
-  switch (enc)
+  if (_availableEncodings == 0)
     {
-      case NSASCIIStringEncoding: 
-	return "ASCII";
-      case NSNEXTSTEPStringEncoding:
-	return "NEXTSTEP";
-      case NSISOLatin1StringEncoding: 
-	return "ISO-8859-1";
-      case NSISOLatin2StringEncoding: 
-	return "ISO-8859-2";
-      case NSUnicodeStringEncoding: 
-	return UNICODE_ENC;
-      case NSJapaneseEUCStringEncoding: 
-	return "EUC-JP";
-      case NSUTF8StringEncoding:
-	return "UTF-8";
-      case NSShiftJISStringEncoding:
-	return "SHIFT-JIS";
-      case NSWindowsCP1250StringEncoding:
-	return "CP1250";
-      case NSWindowsCP1251StringEncoding:
-	return "CP1251";
-      case NSWindowsCP1252StringEncoding:
-	return "CP1252";
-      case NSWindowsCP1253StringEncoding:
-	return "CP1253";
-      case NSWindowsCP1254StringEncoding:
-	return "CP1254";
-      case NSISO2022JPStringEncoding:
-	return "ISO-2022-JP";
-      case NSMacOSRomanStringEncoding:
-	return "MACINTOSH";
+      [gnustep_global_lock lock];
+      if (_availableEncodings == 0)
+	{
+	  NSStringEncoding	*encodings;
+	  unsigned		count;
+	  unsigned		pos;
+	  unsigned		i;
 
-      // GNUstep extensions
-      case NSKOI8RStringEncoding: 
-	return "KOI8-R";
-      case NSISOLatin3StringEncoding: 
-	return "ISO-8859-3";
-      case NSISOLatin4StringEncoding: 
-	return "ISO-8859-4";
-      case NSISOCyrillicStringEncoding:
-	return "ISO-8859-5";
-      case NSISOArabicStringEncoding: 
-	return "ISO-8859-6";
-      case NSISOGreekStringEncoding: 
-	return "ISO-8859-7";
-      case NSISOHebrewStringEncoding:
-	return "ISO-8859-8";
+	  /*
+	   * We want to store pointers to our string encoding info in a
+	   * large table so we can do efficient lookup by encoding value.
+	   */
+#define	MAX_ENCODING	128
+	  count = sizeof(str_encoding_table) / sizeof(struct _strenc_);
 
-      case NSISOLatin5StringEncoding: 
-	return "ISO-8859-9";
-      case NSISOLatin6StringEncoding: 
-	return "ISO-8859-10";
-      case NSISOLatin7StringEncoding: 
-	return "ISO-8859-13";
-      case NSISOLatin8StringEncoding: 
-	return "ISO-8859-14";
-      case NSISOLatin9StringEncoding: 
-	return "ISO-8859-15";
+	  /*
+	   * First determine the largest encoding value and create a
+	   * large enough table of pointers.
+	   */
+	  encTableSize = 0;
+	  for (i = 0; i < count; i++)
+	    {
+	      unsigned	tmp = str_encoding_table[i].enc;
 
-      case NSGB2312StringEncoding:
-	return "EUC-CN";
+	      if (tmp >= MAX_ENCODING)
+		{
+		  fprintf(stderr, "ERROR ... illegal NSStringEncoding "
+		    "value in str_encoding_table. Ignored\n");
+		} 
+	      else if (tmp > encTableSize)
+		{
+		  encTableSize = tmp;
+		}
+	    }
+	  encodingTable = malloc((encTableSize+1)*sizeof(struct _strenc_ *));
+	  memset(encodingTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
-      case NSBIG5StringEncoding:
-	return "BIG5";
-      default:
-	return "";
+	  /*
+	   * Now set up the pointers at the correct location in the table.
+	   */
+	  for (i = 0; i < count; i++)
+	    {
+	      unsigned	tmp = str_encoding_table[i].enc;
+
+	      if (tmp < MAX_ENCODING)
+		{
+		  encodingTable[tmp] = &str_encoding_table[i];
+		}
+	    }
+
+	  /*
+	   * Now build up a list of supported encodings ... in the
+	   * format needed to support [NSStirng+availableStringEncodings]
+	   * Check to see what iconv support we have as we go along.
+	   * This is also the palce where we determine the name we use
+	   * for iconv to support unicode.
+	   */
+	  encodings = objc_malloc(sizeof(NSStringEncoding) * count);
+	  pos = 0;
+	  for (i = 0; i < count; i++)
+	    {
+	      NSStringEncoding	enc = str_encoding_table[i].enc;
+
+	      if (enc == 0 || enc >= MAX_ENCODING)
+		{
+		  continue;
+		}
+#ifdef HAVE_ICONV
+	      if (enc == NSUnicodeStringEncoding)
+		{
+		  encodingTable[enc]->iconv = UNICODE_ENC;
+		  encodingTable[enc]->supported = 1;
+		}
+	      if (encodingTable[enc]->supported == 0)
+		{
+		  if (encodingTable[enc]->iconv == 0)
+		    {
+		      continue;		// Not handled by iconv.
+		    }
+		  else
+		    {
+		      iconv_t	c;
+
+		      c = iconv_open(UNICODE_ENC, encodingTable[enc]->iconv);
+		      if (c == (iconv_t)-1)
+			{
+			  continue;	// Can't convert to unicode
+			}
+		      iconv_close(c);
+		      c = iconv_open(encodingTable[enc]->iconv, UNICODE_ENC);
+		      if (c == (iconv_t)-1)
+			{
+			  continue;	// Can't convert from unicode
+			}
+		      iconv_close(c);
+		      encodingTable[enc]->supported = 1;
+		    }
+		}
+#else
+	      if (encodingTable[enc]->supported == 0)
+		{
+		  continue;
+		}
+#endif
+	      encodings[pos++] = enc;
+	    }
+	  encodings[pos] = 0;
+	  _availableEncodings = encodings;
+	}
+      [gnustep_global_lock unlock];
     }
+  return _availableEncodings;
 }
+
+NSStringEncoding
+GetDefEncoding()
+{
+  if (defEnc == GSUndefinedEncoding)
+    {
+      char		*encoding;
+      unsigned int	count;
+      NSStringEncoding	*availableEncodings;
+
+      [gnustep_global_lock lock];
+      if (defEnc != GSUndefinedEncoding)
+	{
+	  [gnustep_global_lock unlock];
+	  return defEnc;
+	}
+
+      availableEncodings = GetAvailableEncodings();
+
+      encoding = getenv("GNUSTEP_STRING_ENCODING");
+      if (encoding != 0)
+	{
+	  count = 0;
+	  while (str_encoding_table[count].enc
+	    && strcmp(str_encoding_table[count].ename, encoding))
+	    {
+	      count++;
+	    }
+	  if (str_encoding_table[count].enc)
+	    {
+	      defEnc = str_encoding_table[count].enc;
+	      if (str_encoding_table[count].supported == 0)
+		{
+		  fprintf(stderr, "WARNING: %s - encoding not implemented as "
+		    "default c string encoding.\n", encoding);
+		  fprintf(stderr,
+		    "NSISOLatin1StringEncoding set as default.\n");
+		  defEnc = NSISOLatin1StringEncoding;
+		}
+	    }
+	  else /* encoding not found */
+	    {
+	      fprintf(stderr,
+		"WARNING: %s - encoding not supported.\n", encoding);
+	      fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+	      defEnc = NSISOLatin1StringEncoding;
+	    }
+	}
+      else /* environment var not found */
+	{
+	  /* shouldn't be required. It really should be in UserDefaults - asf */
+	  //fprintf(stderr, "WARNING: GNUSTEP_STRING_ENCODING environment");
+	  //fprintf(stderr, " variable not found.\n");
+	  //fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+	  defEnc = NSISOLatin1StringEncoding;
+	}
+      [gnustep_global_lock unlock];
+    }
+  return defEnc;
+}
+
+BOOL
+GSIsByteEncoding(NSStringEncoding encoding)
+{
+  GetAvailableEncodings();
+  if (encoding == 0 || encoding >= encTableSize || encodingTable[encoding] == 0)
+    {
+      return NO;
+    }
+  return encodingTable[encoding]->eightBit;
+}
+
+NSString*
+GSEncodingName(NSStringEncoding encoding)
+{
+  GetAvailableEncodings();
+  if (encoding == 0 || encoding >= encTableSize || encodingTable[encoding] == 0)
+    {
+      return @"Unknown encoding";
+    }
+  return [NSString stringWithCString: encodingTable[encoding]->ename];
+}
+
+NSString*
+GetEncodingName(NSStringEncoding encoding)
+{
+  return GSEncodingName(encoding);
+}
+
+static const char *
+iconv_stringforencoding(NSStringEncoding encoding)
+{
+  GetAvailableEncodings();
+  if (encoding == 0 || encoding >= encTableSize || encodingTable[encoding] == 0)
+    {
+      return "";
+    }
+  return encodingTable[encoding]->iconv;
+}
+
+#ifdef HAVE_ICONV
 
 int
 iconv_cstrtoustr(unichar *u2, int size2, const char *s1, int size1,
@@ -1368,7 +1364,8 @@ if (dst == 0) \
   } \
 else if (zone == 0) \
   { \
-    return NO; /* No buffer growth possible ... fail. */ \
+    result = NO; /* No buffer growth possible ... fail. */ \
+    break; \
   } \
 else \
   { \
@@ -1397,7 +1394,8 @@ else \
       } \
     if (ptr == 0) \
       { \
-	return NO;	/* Not enough memory */ \
+	result = NO;	/* Not enough memory */ \
+	break; \
       } \
     bsize = grow / sizeof(unichar); \
   }
@@ -1441,6 +1439,11 @@ else \
  * <item>If GSUniTemporary is set, the function will return the results in
  * an autoreleased buffer rather than in a buffer that the caller must
  * release.</item>
+ * <item>If GSUniBOM is set, the function will write the first unicode
+ * character as a byte order marker.</item>
+ * </list>
+ * <item>If GSUniShortOk is set, the function will return a buffer containing
+ * any decoded characters even if the whole conversion fails.</item>
  * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
@@ -1464,9 +1467,11 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
   unsigned	extra = (options & GSUniTerminate) ? sizeof(unichar) : 0;
   unichar	base = 0;
   unichar	*table = 0;
+  BOOL		result = YES;
 
   if (slen == 0)
     {
+      *size = 0;
       return YES;
     }
 
@@ -1482,6 +1487,15 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
     {
       ptr = *dst;
       bsize = *size;
+    }
+
+  if (options & GSUniBOM)
+    {
+      while (dpos >= bsize)
+	{
+	  GROW();
+	}
+      ptr[dpos++] = (unichar)0xFEFF;	// Insert byte order marker.
     }
 
   switch (enc)
@@ -1577,19 +1591,20 @@ tables:
       default:
 #ifdef HAVE_ICONV
 	{
-	  iconv_t	cd;
 	  char		*inbuf;
 	  char		*outbuf;
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
-	  size_t	result;
+	  size_t	rval;
+	  iconv_t	cd;
 
 	  cd = iconv_open(UNICODE_ENC, iconv_stringforencoding(enc));
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s", 
 		GetEncodingName(enc), iconv_stringforencoding(enc));
-	      return NO;
+	      result = NO;
+	      break;
 	    }
 
 	  inbuf = (char*)src;
@@ -1606,10 +1621,12 @@ tables:
 		  outbuf = (char*)&ptr[dpos];
 		  outbytesleft = (bsize - old) * sizeof(unichar);
 		}
-	      result = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-	      if (result == (size_t)-1 && errno != E2BIG)
+	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      if (rval == (size_t)-1 && errno != E2BIG)
 		{
-		  return NO;
+		  result = NO;
+		  iconv_close(cd);
+		  break;
 		}
 	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
 	    }
@@ -1617,7 +1634,7 @@ tables:
 	  iconv_close(cd);
 	}
 #else 
-	return NO;
+	result = NO;
 #endif 
     }
 
@@ -1629,7 +1646,7 @@ tables:
       ptr[dpos] = (unichar)0;
     }
   *size = dpos;
-  if (dst != 0)
+  if (dst != 0 && (result == YES || (options & GSUniShortOk)))
     {
       if (options & GSUniTemporary)
 	{
@@ -1670,14 +1687,14 @@ tables:
 	    {
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
 	    }
-	  if (ptr == 0)
-	    {
-	      return NO;
-	    }
 	}
       *dst = ptr;
     }
-  return YES;
+  else if (ptr != buf && ptr != *dst)
+    {
+      NSZoneFree(zone, ptr);
+    }
+  return result;
 }
 
 #undef	GROW
@@ -1696,7 +1713,8 @@ if (dst == 0) \
   } \
 else if (zone == 0) \
   { \
-    return NO; /* No buffer growth possible ... fail. */ \
+    result = NO; /* No buffer growth possible ... fail. */ \
+    break; \
   } \
 else \
   { \
@@ -1724,7 +1742,8 @@ else \
       } \
     if (ptr == 0) \
       { \
-	return NO;	/* Not enough memory */ \
+	result = NO;	/* Not enough memory */ \
+	break; \
       } \
     bsize = grow; \
   }
@@ -1772,6 +1791,11 @@ else \
  * <item>If GSUniTemporary is set, the function will return the results in
  * an autoreleased buffer rather than in a buffer that the caller must
  * release.</item>
+ * <item>If GSUniBOM is set, the function will read the first unicode
+ * character as a byte order marker.</item>
+ * <item>If GSUniShortOk is set, the function will return a buffer containing
+ * any decoded characters even if the whole conversion fails.</item>
+ * </list>
  * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
@@ -1797,12 +1821,40 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   unichar	base = 0;
   _ucc_		*table = 0;
   unsigned	tsize = 0;
+  BOOL		swapped = NO;
+  BOOL		result = YES;
   
+  if (options & GSUniBOM)
+    {
+      unichar	c;
+
+      if (slen == 0)
+	{
+	  *size = 0;
+	  return NO;	// Missing byte order marker.
+	}
+      c = *src++;
+      slen--;
+      if (c != 0xFEFF)
+	{
+	  if (c == 0xFFFE)
+	    {
+	      swapped = YES;
+	    }
+	  else
+	    {
+	      *size = 0;
+	      return NO;	// Illegal byte order marker.
+	    }
+	}
+    }
+
   if (slen == 0)
     {
+      *size = 0;
       return YES;
     }
-    
+
   /*
    * Ensure we have an initial buffer set up to decode data into.
    */
@@ -1829,12 +1881,17 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	goto bases;
 
 bases:
-	if (strict == YES)
+	if (strict == NO)
 	  {
 	    while (spos < slen)
 	      {
 		unichar	u = src[spos++];
 
+		if (swapped == YES)
+		  {
+		    u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+		  }
+		
 		if (dpos >= bsize)
 		  {
 		    GROW();
@@ -1855,6 +1912,10 @@ bases:
 	      {
 		unichar	u = src[spos++];
 
+		if (swapped == YES)
+		  {
+		    u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+		  }
 		if (dpos >= bsize)
 		  {
 		    GROW();
@@ -1865,7 +1926,8 @@ bases:
 		  }
 		else
 		  {
-		    return NO;
+		    result = NO;
+		    break;
 		  }
 	      }
 	  }
@@ -1904,6 +1966,11 @@ tables:
 	      {
 		unichar	u = src[spos++];
 
+		if (swapped == YES)
+		  {
+		    u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+		  }
+
 		if (dpos >= bsize)
 		  {
 		    GROW();
@@ -1941,6 +2008,11 @@ tables:
 	      {
 		unichar	u = src[spos++];
 
+		if (swapped == YES)
+		  {
+		    u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+		  }
+
 		if (dpos >= bsize)
 		  {
 		    GROW();
@@ -1958,7 +2030,9 @@ tables:
 		      {
 			if (++i >= tsize)
 			  {
-			    return NO;
+			    result = NO;
+			    spos = slen;
+			    break;
 			  }
 		      }
 		    ptr[dpos++] = table[--i].to;
@@ -1971,8 +2045,13 @@ tables:
 	while (spos < slen)
 	  {
 	    unichar	u = src[spos++];
-	    int	res;
-	    int	i = 0;
+	    int		res;
+	    int		i = 0;
+
+	    if (swapped == YES)
+	      {
+		u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+	      }
 
 	    if (dpos >= bsize)
 	      {
@@ -1994,7 +2073,8 @@ tables:
 	      {
 		if (strict == YES)
 		  {
-		    return NO;
+		    result = NO;
+		    break;
 		  }
 		for (i = 0; i < GSM0338_esize; i++)
 		  {
@@ -2026,14 +2106,15 @@ tables:
 	  char		*outbuf;
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
-	  size_t	result;
+	  size_t	rval;
 
 	  cd = iconv_open(iconv_stringforencoding(enc), UNICODE_ENC);
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s", 
 		GetEncodingName(enc), iconv_stringforencoding(enc));
-	      return NO;
+	      result = NO;
+	      break;
 	    }
 
 	  inbuf = (char*)src;
@@ -2050,14 +2131,15 @@ tables:
 		  outbuf = (char*)&ptr[dpos];
 		  outbytesleft = (bsize - old);
 		}
-	      result = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-	      if (result == (size_t)-1 && errno != E2BIG)
+	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      if (rval == (size_t)-1 && errno != E2BIG)
 		{
 		  if (errno == EILSEQ)
 		    {
 		      if (strict == YES)
 			{
-			  return NO;
+			  result = NO;
+			  break;
 			}
 		      /*
 		       * If we are allowing lossy conversion, we replace any
@@ -2073,7 +2155,8 @@ tables:
 		    }
 		  else if (errno != E2BIG)
 		    {
-		      return NO;
+		      result = NO;
+		      break;
 		    }
 		}
 	      dpos = bsize - outbytesleft;
@@ -2082,7 +2165,8 @@ tables:
 	  iconv_close(cd);
 	}
 #else 
-	return NO;
+	result = NO;
+	break;
 #endif 
     }
 
@@ -2094,7 +2178,7 @@ tables:
       ptr[dpos] = (unsigned char)0;
     }
   *size = dpos;
-  if (dst != 0)
+  if (dst != 0 && (result == YES || (options & GSUniShortOk)))
     {
       if (options & GSUniTemporary)
 	{
@@ -2135,14 +2219,14 @@ tables:
 	    {
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
 	    }
-	  if (ptr == 0)
-	    {
-	      return NO;
-	    }
 	}
       *dst = ptr;
     }
-  return YES;
+  else if (ptr != buf && ptr != *dst)
+    {
+      NSZoneFree(zone, ptr);
+    }
+  return result;
 }
 
 #undef	GROW

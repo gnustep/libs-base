@@ -25,6 +25,17 @@
 
 
 /*
+ * Function to get the name of a string encoding as an NSString.
+ */
+GS_EXPORT NSString	*GSEncodingName(NSStringEncoding encoding);
+
+/*
+ * Function to determine whether data in a particular encoding can
+ * generally be represented as 8-bit characters including ascii.
+ */
+GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
+
+/*
  * Private concrete string classes.
  * NB. All these concrete string classes MUST have the same initial ivar
  * layout so that we can swap between them as necessary.
@@ -35,8 +46,8 @@
 @interface GSString : NSString
 {
   union {
-    unichar		*u;
-    unsigned char	*c;
+    unichar		*u;	// 16-bit unicode characters.
+    unsigned char	*c;	// 8-bit characters.
   } _contents;
   unsigned int	_count;
   struct {

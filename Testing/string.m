@@ -11,7 +11,7 @@
 void
 print_string(NSString* s)
 {
-  printf("The string [%s], length %d\n", [s cString], [s length]);
+  printf("The string [%s], length %d\n", [s lossyCString], [s length]);
 }
 
 #include <Foundation/NSString.h>
@@ -24,21 +24,31 @@ int main()
   id s = @"This is a test string";
   id s2, s3;
   int a;
-  unichar	uc[6] = { '1', '2', '.', '3', '4', 0};
+  unichar	u0[5] = { 0xFE66, 'a', 'b', 'c', 'd'};
+  unichar	u1[6] = { '1', '2', '.', '3', '4', 0xFE66};
+  unichar	u2[7] = { 'a', 'b', 0xFE66, 'a', 'b', 'c', 'd'};
+  NSString	*us0 = [NSString stringWithCharacters: u0 length: 5];
+  NSString	*us1 = [NSString stringWithCharacters: u1 length: 6];
+  NSString	*us2 = [NSString stringWithCharacters: u2 length: 7];
+  NSMutableString	*fo = [NSMutableString stringWithString: @"abcdef"];
+  NSMutableString	*f1 = [NSMutableString stringWithString: @"ab"];
 
-  NSMutableString	*fo = [NSMutableString stringWithString: @"abcdefg"];
   NS_DURING
-  [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: @"aa"];
+  [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: us1];
   NS_HANDLER
     printf("Caught exception during string replacement (expected)\n");
   NS_ENDHANDLER 
+
+  [f1 appendString: us0];
+  print_string(f1);
+  printf("%d\n", [f1 isEqual: us2]);
 
   print_string(s);
 
   s2 = NSStringFromPoint(NSMakePoint(1.374, 5.100));
   print_string(s2);
 
-  printf("%f", [[NSString stringWithCharacters: uc length: 5] floatValue]);
+  printf("%f", [[NSString stringWithCharacters: u1 length: 5] floatValue]);
 
   s2 = [s copy];
   print_string(s2);
@@ -69,6 +79,23 @@ int main()
     NSLog(@"A string with precision %d is :%.*@:", a, a, @"String");
 #endif
 
+{
+  NSMutableString	*base = [@"hello" mutableCopy];
+  NSString	*ext = [@"\"\\UFE66???\"" propertyList];
+  NSString	*want = [@"\"hello\\UFE66???\"" propertyList];
+  int		i;
+
+  [base appendString: ext];
+  printf("%u\n", [base length]);
+  printf("%u\n", [ext length]);
+  printf("%u\n", [want length]);
+  for (i = 0; i < 4; i++)
+    printf("%x\n", [ext characterAtIndex: i]);
+  for (i = 0; i < 9; i++)
+    printf("%x,%x\n", [base characterAtIndex: i], [want characterAtIndex: i]);
+  
+  printf("%u\n", [want isEqual: base]);
+}
   [arp release];
   exit(0);
 }
