@@ -1,5 +1,13 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* src/Makefile.in (GNUSTEP_OTHER_SRCFILES): Add gdomap.c and
+ 	gdomap.h.
+
+	* checks/NSData-test.m: New file from John Stevens
+ 	<jstevens@bamboo.verinet.com>.
+
+	* src/Makefile.in (GNUSTEP_HEADERS): Add include/NSConnection.h.
+
 	* doc/news.texi: Fix typo.
 	* doc/install.texi: Fix typo.
 
