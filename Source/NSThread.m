@@ -641,22 +641,46 @@ static NSDate *theFuture;
 
 + (void) initialize
 {
-  int		fd[2];
   NSRunLoop	*loop = GSRunLoopForThread(defaultThread);
   NSArray	*m = commonModes();
   unsigned	count = [m count];
   unsigned	i;
+  BOOL		pipeOK = NO;
 
   theFuture = RETAIN([NSDate distantFuture]);
 
-  pipe(fd);
+#ifndef __MINGW__
+  {
+    int	fd[2];
+
+    if (pipe(fd) == 0)
+      {
+	inputFd = fd[0];
+	outputFd = fd[1];
+	pipeOK = YES;
+      }
+  }
+#else
+  {
+    HANDLE readh, writeh;
+
+    if (CreatePipe(&readh, &writeh, NULL, 0) != 0)
+      {
+	inputFd = _open_osfhandle((int)readh, 0);
+	outputFd = _open_osfhandle((int)writeh, 0);
+	pipeOK = YES;
+      }
+  }
+#endif
+  if (pipeOK == NO)
+    {
+      [NSException raise: NSInternalInconsistencyException
+	format: @"Failed to create pipe to handle perform in main thread"];
+    }
 
   subthreadsLock = [[NSLock alloc] init];
 
   perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
-
-  inputFd = fd[0];
-  outputFd = fd[1];
 
   for (i = 0; i < count; i++ )
     {

@@ -1106,7 +1106,7 @@ init_iface()
       u_long	nFlags = InterfaceList[i].iiFlags;
 
       if ((nFlags & IFF_UP)
-	&& (InterfaceList[i].iiAddress.sa_family == AF_INET))
+	&& (InterfaceList[i].iiAddress.Address.sa_family == AF_INET))
 	{
 	  countActive++;
 	}
@@ -1129,7 +1129,7 @@ init_iface()
       u_long	nFlags = InterfaceList[i].iiFlags;
 
       if ((nFlags & IFF_UP)
-	&& (InterfaceList[i].iiAddress.sa_family == AF_INET))
+	&& (InterfaceList[i].iiAddress.Address.sa_family == AF_INET))
 	{
 	  int	broadcast = 0;
 	  int	pointopoint = 0;
