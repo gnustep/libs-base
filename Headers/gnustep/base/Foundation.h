@@ -90,5 +90,6 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSZone.h>
+#include "gnustep/base/GSCategories.h"
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */
