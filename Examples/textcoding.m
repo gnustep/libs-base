@@ -4,7 +4,7 @@
    text archive format.
    */
 
-#include <objects/Coder.h>
+#include <objects/Archiver.h>
 #include <objects/TextCStream.h>
 #include <objects/Set.h>
 #include <objects/EltNodeCollector.h>
@@ -16,7 +16,7 @@
 int main()
 {
   id set, ll;
-  id coder;
+  id archiver;
   id name;
   id arp;
   
@@ -47,37 +47,37 @@ int main()
 
   /* Write them to a file */
 
-  /* Create an instances of the Coder class, specify that we 
+  /* Create an instances of the Archiver class, specify that we 
      want human-readable "Text"-style, instead of "Binary"-style
      coding. */
-  coder = [[Coder alloc] initForWritingToFile: @"./textcoding.txt"
+  archiver = [[Archiver alloc] initForWritingToFile: @"./textcoding.txt"
 	    withCStreamClass: [TextCStream class]];
-  [coder encodeObject:set withName:@"Test Set"];
-  [coder encodeObject:ll withName:@"Test EltNodeCollector LinkedList"];
+  [archiver encodeObject:set withName:@"Test Set"];
+  [archiver encodeObject:ll withName:@"Test EltNodeCollector LinkedList"];
 
   /* Release the objects that were coded */
   [set release];
   [ll release];
 
-  /* Close the coder, (and thus flush the stream); then release it.
+  /* Close the archiver, (and thus flush the stream); then release it.
      We must separate the idea of "closing" a stream and
      "deallocating" a stream because of delays in deallocation due to
      -autorelease. */
-  [coder closeCoder];
-  [coder release];
+  [archiver closeCoding];
+  [archiver release];
 
 
   /* Read them back in from the file */
 
-  /* First init the stream and coder */
-  coder = [Coder coderReadingFromFile: @"./textcoding.txt"];
+  /* First create the unarchiver */
+  archiver = [Unarchiver newReadingFromFile: @"./textcoding.txt"];
 
   /* Read in the Set */
-  [coder decodeObjectAt:&set withName:&name];
+  [archiver decodeObjectAt:&set withName:&name];
   printf("got object named %@\n", name);
 
   /* Read in the LinkedList */
-  [coder decodeObjectAt:&ll withName:&name];
+  [archiver decodeObjectAt:&ll withName:&name];
   printf("got object named %@\n", name);
 
   /* Display what we read, to make sure it matches what we wrote */
@@ -87,6 +87,9 @@ int main()
   /* Relase the objects we read */
   [set release];
   [ll release];
+
+  /* Release the unarchiver. */
+  [archiver release];
 
   /* Do the autorelease. */
   [arp release];
