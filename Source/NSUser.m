@@ -37,6 +37,8 @@
 #include <stdlib.h>		// for getenv()
 #if !defined(__WIN32__) && !defined(_WIN32)
 #include <unistd.h>		// for getlogin()
+#endif
+#if	HAVE_PWD_H
 #include <pwd.h>		// for getpwnam()
 #endif
 #include <sys/types.h>
@@ -143,8 +145,15 @@ NSHomeDirectoryForUser (NSString *login_name)
 
 NSString *NSFullUserName(void)
 {
+#if HAVE_PWD_H
+  struct passwd	*pw;
+
+  pw = getpwnam([NSUserName() cString]);
+  return [NSString stringWithCString: pw->pw_gecos];
+#else
   NSLog(@"Warning: NSFullUserName not implemented\n");
   return NSUserName();
+#endif
 }
 
 NSArray *NSStandardApplicationPaths(void)
