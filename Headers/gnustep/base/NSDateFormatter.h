@@ -25,7 +25,7 @@
 #ifndef __NSDateFormatter_h_GNUSTEP_BASE_INCLUDE
 #define __NSDateFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
+#include <Foundation/NSFormatter.h>
 
 #ifndef	STRICT_OPENSTEP
 
