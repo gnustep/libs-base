@@ -1,5 +1,5 @@
 /* Stream of bytes class for serialization and persistance in GNUStep
-   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -266,8 +266,7 @@ failure:
     {
       dataMalloc = [NSDataMalloc class];
       mutableDataMalloc = [NSMutableDataMalloc class];
-      appendImp = [mutableDataMalloc
-	    instanceMethodForSelector: appendSel];
+      appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
 }
 
@@ -339,8 +338,7 @@ failure:
 
 - (id) init
 {
-   return [self initWithBytesNoCopy: 0
-			     length: 0];
+   return [self initWithBytesNoCopy: 0 length: 0];
 }
 
 - (id) initWithBytes: (const void*)aBuffer
@@ -377,8 +375,7 @@ failure:
 
 - (id) initWithData: (NSData*)data
 {
-  return [self initWithBytes: [data bytes]
-		      length: [data length]];
+  return [self initWithBytes: [data bytes] length: [data length]];
 }
 
 
@@ -432,19 +429,17 @@ failure:
   return AUTORELEASE(str);
 }
 
-- (void)getBytes: (void*)buffer
+- (void) getBytes: (void*)buffer
 {
   [self getBytes: buffer range: NSMakeRange(0, [self length])];
 }
 
-- (void)getBytes: (void*)buffer
-	  length: (unsigned)length
+- (void) getBytes: (void*)buffer length: (unsigned)length
 {
   [self getBytes: buffer range: NSMakeRange(0, length)];
 }
 
-- (void)getBytes: (void*)buffer
-	   range: (NSRange)aRange
+- (void) getBytes: (void*)buffer range: (NSRange)aRange
 {
   unsigned	size = [self length];
 
@@ -523,7 +518,7 @@ failure:
   return (memcmp([self bytes], [other bytes], len) ? NO : YES);
 }
 
-- (unsigned)length;
+- (unsigned) length;
 {
   /* This is left to concrete subclasses to implement. */
   [self subclassResponsibility: _cmd];
@@ -533,16 +528,15 @@ failure:
 
 // Storing Data
 
-- (BOOL) writeToFile: (NSString *)path
-	  atomically: (BOOL)useAuxiliaryFile
+- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile
 {
-  char thePath[BUFSIZ*2+8];
-  char theRealPath[BUFSIZ*2];
-  FILE *theFile;
-  int c;
+  char	thePath[BUFSIZ*2+8];
+  char	theRealPath[BUFSIZ*2];
+  FILE	*theFile;
+  int	c;
 
 #if defined(__MINGW__)
-      return NO;
+  return NO;
 #endif
 
   if ([path getFileSystemRepresentation: theRealPath
@@ -1050,13 +1044,18 @@ failure:
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [self subclassResponsibility: _cmd];
+  [coder encodeDataObject: self];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  id	obj = [coder decodeDataObject];
+
+  if (obj != self)
+    {
+      ASSIGN(self, obj);
+    }
+  return self;
 }
 
 @end
@@ -1257,10 +1256,56 @@ failure:
   return [self mutableBytes];
 }
 
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  unsigned	length = [self length];
+  void		*bytes = [self mutableBytes];
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned long)
+			     at: &length];
+  if (length)
+    {
+      [aCoder encodeArrayOfObjCType: @encode(unsigned char)
+			      count: length
+				 at: bytes];
+    }
+}
+
 - (id) initWithCapacity: (unsigned)capacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  unsigned	l;
+  void		*b;
+  NSZone	*zone;
+
+#if	GS_WITH_GC
+  zone = GSAtomicMallocZone();
+#else
+  zone = [self zone];
+#endif
+
+  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
+  if (l)
+    {
+      b = NSZoneMalloc(zone, l);
+      if (b == 0)
+	{
+	  NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %lu bytes", l);
+	  RELEASE(self);
+	  return nil;
+        }
+      [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: b];
+    }
+  else
+    {
+      b = 0;
+    }
+  return [self initWithBytesNoCopy: b length: l fromZone: zone];
 }
 
 - (id) initWithLength: (unsigned)length
@@ -1302,8 +1347,7 @@ failure:
 
 - (void) appendData: (NSData*)other
 {
-  [self appendBytes: [other bytes]
-	     length: [other length]];
+  [self appendBytes: [other bytes] length: [other length]];
 }
 
 
@@ -1336,14 +1380,14 @@ failure:
 
 // Serializing Data
 
-- (void)serializeAlignedBytesLength: (unsigned)length
+- (void) serializeAlignedBytesLength: (unsigned)length
 {
   [self serializeInt: length];
 }
 
-- (void)serializeDataAt: (const void*)data
-	     ofObjCType: (const char*)type
-	        context: (id <NSObjCTypeSerializationCallBack>)callback
+- (void) serializeDataAt: (const void*)data
+	      ofObjCType: (const char*)type
+		 context: (id <NSObjCTypeSerializationCallBack>)callback
 {
   if (!data || !type)
     return;
@@ -1679,13 +1723,13 @@ failure:
 - (id) mutableCopy
 {
   return [[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
-	initWithBytes: bytes length: length];
+    initWithBytes: bytes length: length];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)z
 {
   return [[mutableDataMalloc allocWithZone: z]
-	initWithBytes: bytes length: length];
+    initWithBytes: bytes length: length];
 }
 
 - (void) dealloc
@@ -1726,18 +1770,6 @@ failure:
 - (Class) classForPortCoder
 {
   return dataMalloc;		/* Will not be static data when decoded. */
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [aCoder encodeValueOfObjCType: @encode(unsigned long)
-			     at: &length];
-  if (length)
-    {
-      [aCoder encodeArrayOfObjCType: @encode(unsigned char)
-			      count: length
-				 at: bytes];
-    }
 }
 
 /* Basic methods	*/
@@ -2202,36 +2234,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  unsigned	l;
-  void*		b;
-
-#if	GS_WITH_GC
-  zone = GSAtomicMallocZone();
-#else
-  zone = [self zone];
-#endif
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
-  if (l)
-    {
-      b = NSZoneMalloc(zone, l);
-      if (b == 0)
-	{
-	  NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %lu bytes", l);
-	  RELEASE(self);
-	  return nil;
-        }
-      [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: b];
-    }
-  else
-    {
-      b = 0;
-    }
-  return [self initWithBytesNoCopy: b length: l fromZone: zone];
-}
-
 - (id) initWithContentsOfFile: (NSString *)path
 {
 #if	GS_WITH_GC
@@ -2595,28 +2597,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
   length = 0;
 
-  return self;
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  unsigned	l;
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
-  if (l)
-    {
-      [self initWithCapacity: l];
-      if (bytes == 0)
-	{
-	  NSLog(@"[NSMutableDataMalloc -initWithCoder:] unable to allocate %lu bytes", l);
-	  RELEASE(self);
-	  return nil;
-	}
-      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
-			      count: l
-				 at: bytes];
-      length = l;
-    }
   return self;
 }
 

@@ -956,20 +956,28 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	{
 	  void		*b;
 	  NSData	*d;
+	  NSZone	*z;
 
-	  b = NSZoneMalloc(zone, l);
-	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
-							 length: l
-						       fromZone: zone];
-	  IF_NO_GC(AUTORELEASE(d));
+#if	GS_WITH_GC
+	  z = GSAtomicMallocZone();
+#else
+	  z = zone;
+#endif
+	  b = NSZoneMalloc(z, l);
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];
+	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
+							 length: l
+						       fromZone: z];
+	  IF_NO_GC(AUTORELEASE(d));
 	  return d;
 	}
       else
-	[NSException raise: NSInternalInconsistencyException
-		    format: @"Decoding data object with unknown type"];
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"Decoding data object with unknown type"];
+	}
     }
   return [NSData data];
 }
