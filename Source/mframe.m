@@ -1313,7 +1313,7 @@ static  retval_t apply_short(short data)
    alloca()'ed, not malloc()'ed, and therefore is on the stack and can
    be tromped-on by future function calls.
 
-   The callback function is finally called with the 'type' set to a nul pointer
+   The callback function is finally called with the 'type' set to a null pointer
    to tell it that the return value and all return parameters have been
    dealt with.  This permits the function to do any tidying up necessary.
 */

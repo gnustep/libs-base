@@ -103,7 +103,7 @@ struct _strenc_ {
 					 * is the empty string, we cannot use
 					 * iconv perform conversions to/from
 					 * this encoding.
-					 * NB. do not put a nul pointer in this
+					 * NB. do not put a null pointer in this
 					 * field in the table, use "" instread.
 					 */
   BOOL			eightBit;	/* Flag to say whether this encoding
@@ -660,7 +660,7 @@ else \
 /**
  * Function to convert from 8-bit character data to 16-bit unicode.
  * <p>The dst argument is a pointer to a pointer to a buffer in which the
- * converted string is to be stored.  If it is a nul pointer, this function
+ * converted string is to be stored.  If it is a null pointer, this function
  * discards converted data, and is used only to determine the length of the
  * converted string.  If the zone argument is non-nul, the function is free
  * to allocate a larger buffer if necessary, and store this new buffer in
@@ -683,12 +683,12 @@ else \
  * <p>The zone argument specifies a memory zone in which the function may
  * allocate a buffer to return data in.
  * If this is nul, the function will fail if the originally supplied buffer
- * is not big enough (unless dst is a nul pointer ... indicating that
+ * is not big enough (unless dst is a null pointer ... indicating that
  * converted data is to be discarded).
  * </p>
  * The options argument controls some special behavior.
  * <list>
- * <item>If GSUniTerminate is set, the function is expected to nul terminate
+ * <item>If GSUniTerminate is set, the function is expected to null terminate
  * the output string, and will assume that it is safe to place the nul
  * just beyond the ned of the stated buffer size.
  * Also, if the function grows the buffer, it will allow for an extra
@@ -1012,7 +1012,7 @@ else \
 /**
  * Function to convert from 16-bit unicode to 8-bit character data.
  * <p>The dst argument is a pointer to a pointer to a buffer in which the
- * converted string is to be stored.  If it is a nul pointer, this function
+ * converted string is to be stored.  If it is a null pointer, this function
  * discards converted data, and is used only to determine the length of the
  * converted string.  If the zone argument is non-nul, the function is free
  * to allocate a larger buffer if necessary, and store this new buffer in
@@ -1035,7 +1035,7 @@ else \
  * <p>The zone argument specifies a memory zone in which the function may
  * allocate a buffer to return data in.
  * If this is nul, the function will fail if the originally supplied buffer
- * is not big enough (unless dst is a nul pointer ... indicating that
+ * is not big enough (unless dst is a null pointer ... indicating that
  * converted data is to be discarded).
  * </p>
  * The options argument controls some special behavior.
@@ -1044,7 +1044,7 @@ else \
  * encountered which can't be displayed in the source.  Otherwise, some
  * approximation or marker will be placed in the destination.</item>
  * </list>
- * <item>If GSUniTerminate is set, the function is expected to nul terminate
+ * <item>If GSUniTerminate is set, the function is expected to null terminate
  * the output string, and will assume that it is safe to place the nul
  * just beyond the ned of the stated buffer size.
  * Also, if the function grows the buffer, it will allow for an extra

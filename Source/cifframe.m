@@ -954,7 +954,7 @@ cifframe_do_call (DOContext *ctxt,
    sets up the invocation with the return value, and updates the
    pass-by-reference arguments.  
 
-   The callback function is finally called with the 'type' set to a nul pointer
+   The callback function is finally called with the 'type' set to a null pointer
    to tell it that the return value and all return parameters have been
    dealt with.  This permits the function to do any tidying up necessary.  */
 

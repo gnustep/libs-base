@@ -330,7 +330,7 @@ static Class	NSMutableDataMallocClass;
 	    if (_initialPass == NO)
 	      {
 		/*
-		 *	Special case - a nul pointer gets an xref of zero
+		 *	Special case - a null pointer gets an xref of zero
 		 */
 		(*_tagImp)(_dst, tagSel, _GSC_PTR | _GSC_XREF | _GSC_X_0);
 	      }
@@ -399,7 +399,7 @@ static Class	NSMutableDataMallocClass;
 	if (*(Class*)buf == 0)
 	  {
 	    /*
-	     *	Special case - a nul pointer gets an xref of zero
+	     *	Special case - a null pointer gets an xref of zero
 	     */
 	    (*_tagImp)(_dst, tagSel, _GSC_CLASS | _GSC_XREF | _GSC_X_0);
 	  }
@@ -467,7 +467,7 @@ static Class	NSMutableDataMallocClass;
 	if (*(SEL*)buf == 0)
 	  {
 	    /*
-	     *	Special case - a nul pointer gets an xref of zero
+	     *	Special case - a null pointer gets an xref of zero
 	     */
 	    (*_tagImp)(_dst, tagSel, _GSC_SEL | _GSC_XREF | _GSC_X_0);
 	  }
@@ -498,7 +498,7 @@ static Class	NSMutableDataMallocClass;
 	if (*(char**)buf == 0)
 	  {
 	    /*
-	     *	Special case - a nul pointer gets an xref of zero
+	     *	Special case - a null pointer gets an xref of zero
 	     */
 	    (*_tagImp)(_dst, tagSel, _GSC_CHARPTR | _GSC_XREF | _GSC_X_0);
 	  }

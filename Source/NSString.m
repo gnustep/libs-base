@@ -588,7 +588,7 @@ handle_printf_atsign (FILE *stream,
       if (chars == 0)
 	{
 	  [NSException raise: NSInvalidArgumentException
-		      format: @"nul pointer but non-zero length"];
+		      format: @"null pointer but non-zero length"];
 	}
       for (i = 0; i < length; i++)
 	{
@@ -2139,7 +2139,7 @@ handle_printf_atsign (FILE *stream,
 // Getting C Strings
 
 /**
- * Returns a pointer to a nul terminated string of 8-bit
+ * Returns a pointer to a null terminated string of 8-bit
  * characters in the default encoding.  The memory pointed
  * to is not owned by the caller, so the caller must copy
  * its contents to keep it.
