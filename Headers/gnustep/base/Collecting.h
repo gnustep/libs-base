@@ -1,5 +1,5 @@
 /* Protocol for Objective-C objects that hold collections of elements.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -38,33 +38,11 @@
 #include <objc/Object.h>
 #include <objects/elt.h>
 
-@protocol Collecting
+@protocol ConstantCollecting
 
 // INITIALIZING;
 - init;
 - initWithContentsOf: (id <Collecting>)aCollection;
-
-// ADDING;
-- addObject: newObject;
-- addObjectIfAbsent: newObject;
-- addContentsOf: (id <Collecting>)aCollection;
-- addContentsOfIfAbsent: (id <Collecting>)aCollection;
-- addObjectsCount: (unsigned)count, ...;
-
-// REMOVING;
-- removeObject: oldObject;
-- removeObject: oldObject ifAbsentCall: (id(*)(arglist_t))excFunc;
-- removeAllOccurrencesOfObject: oldObject;
-- removeContentsIn: (id <Collecting>)aCollection;
-- removeContentsNotIn: (id <Collecting>)aCollection;
-- uniqueContents;
-- empty;
-
-// REPLACING;
-- replaceObject: oldObject with: newObject;
-- replaceObject: oldObject with: newObject 
-    ifAbsentCall:(id(*)(arglist_t))excFunc;
-- replaceAllOccurrencesOfObject: oldObject with: newObject;
 
 // TESTING;
 - (BOOL) isEmpty;
@@ -96,12 +74,6 @@
 - makeObjectsPerform: (SEL)aSel;
 - makeObjectsPerform: (SEL)aSel with: argObject;
 
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeMakeObjectsPerform: (SEL)aSel;
-- safeMakeObjectsPerform: (SEL)aSel with: argObject;
-- safeWithObjectsCall: (void(*)(id))aFunc;
-- safeWithObjectsCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
-
 // FILTERED ENUMERATING;
 - withObjectsTrueByCalling: (BOOL(*)(id))testFunc 
     call: (void(*)(id))destFunc;
@@ -119,28 +91,10 @@
 - copyAs: (Class)aCollectionClass;
 - species;
 
-
 // NON-OBJECT ELEMENT METHOD NAMES;
 
 // INITIALIZING;
 - initWithType:(const char *)contentEncoding;
-
-// ADDING;
-- addElement: (elt)newElement;
-- addElementIfAbsent: (elt)newElement;
-- addElementsCount: (unsigned)count, ...;
-
-// REMOVING;
-- (elt) removeElement: (elt)oldElement;
-- (elt) removeElement: (elt)oldElement 
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-- removeAllOccurrencesOfElement: (elt)oldElement;
-
-// REPLACING;
-- (elt) replaceElement: (elt)oldElement with: (elt)newElement;
-- (elt) replaceElement: (elt)oldElement with: (elt)newElement
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-- replaceAllOccurrencesOfElement: (elt)oldElement with: (elt)newElement;
 
 // TESTING;
 - (BOOL) includesElement: (elt)anElement;
@@ -164,10 +118,6 @@
 - withElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag;
 - (elt) injectElement: (elt)initialElement byCalling: (elt(*)(elt,elt))aFunc;
 
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithElementsCall: (void(*)(elt))aFunc;
-- safeWithElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag;
-
 // FILTERED ENUMERATING;
 - withElementsTrueByCalling: (BOOL(*)(elt))testFunc 
     call: (void(*)(elt))destFunc;
@@ -175,6 +125,63 @@
     call: (void(*)(elt))destFunc;
 - withElementsTransformedByCalling: (elt(*)(elt))transFunc
     call: (void(*)(elt))destFunc;
+
+@end
+
+
+@protocol Collecting <ConstantCollecting>
+
+// ADDING;
+- addObject: newObject;
+- addObjectIfAbsent: newObject;
+- addContentsOf: (id <Collecting>)aCollection;
+- addContentsOfIfAbsent: (id <Collecting>)aCollection;
+- addObjectsCount: (unsigned)count, ...;
+
+// REMOVING;
+- removeObject: oldObject;
+- removeObject: oldObject ifAbsentCall: (id(*)(arglist_t))excFunc;
+- removeAllOccurrencesOfObject: oldObject;
+- removeContentsIn: (id <Collecting>)aCollection;
+- removeContentsNotIn: (id <Collecting>)aCollection;
+- uniqueContents;
+- empty;
+
+// REPLACING;
+- replaceObject: oldObject with: newObject;
+- replaceObject: oldObject with: newObject 
+    ifAbsentCall:(id(*)(arglist_t))excFunc;
+- replaceAllOccurrencesOfObject: oldObject with: newObject;
+
+// ENUMERATING WHILE CHANGING CONTENTS;
+- safeMakeObjectsPerform: (SEL)aSel;
+- safeMakeObjectsPerform: (SEL)aSel with: argObject;
+- safeWithObjectsCall: (void(*)(id))aFunc;
+- safeWithObjectsCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
+
+
+// NON-OBJECT ELEMENT METHOD NAMES;
+
+// ADDING;
+- addElement: (elt)newElement;
+- addElementIfAbsent: (elt)newElement;
+- addElementsCount: (unsigned)count, ...;
+
+// REMOVING;
+- (elt) removeElement: (elt)oldElement;
+- (elt) removeElement: (elt)oldElement 
+    ifAbsentCall: (elt(*)(arglist_t))excFunc;
+- removeAllOccurrencesOfElement: (elt)oldElement;
+
+// REPLACING;
+- (elt) replaceElement: (elt)oldElement with: (elt)newElement;
+- (elt) replaceElement: (elt)oldElement with: (elt)newElement
+    ifAbsentCall: (elt(*)(arglist_t))excFunc;
+- replaceAllOccurrencesOfElement: (elt)oldElement with: (elt)newElement;
+
+// ENUMERATING WHILE CHANGING CONTENTS;
+- safeWithElementsCall: (void(*)(elt))aFunc;
+- safeWithElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag;
 
 @end
 
