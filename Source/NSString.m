@@ -1593,7 +1593,82 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
-// Combining Strings
+/**
+ * Constructs a new ASCII string which is a representation of the receiver
+ * in which characters are esacped where necessary in order to produce a
+ * legal URL.<br />
+ * Returns nil if the receiver cannot be represented using the specified
+ * encoding.
+ */
+- (NSString*) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e
+{
+  NSData	*data = [self dataUsingEncoding: e];
+  NSString	*s = nil;
+
+  if (data != nil)
+    {
+      unsigned char	*src = (unsigned char*)[data bytes];
+      unsigned int	slen = [data length];
+      NSMutableData	*d = [[NSMutableData alloc] initWithLength: slen * 3];
+      unsigned char	*dst = (unsigned char*)[d mutableBytes];
+      unsigned int	spos = 0;
+      unsigned int	dpos = 0;
+
+      while (spos < slen)
+	{
+	  unsigned char	c = src[spos++];
+	  unsigned int	hi;
+	  unsigned int	lo;
+
+	  switch (c)
+	    {
+	      case ',':
+	      case ';':
+	      case '"':
+	      case '\'':
+	      case '&':
+	      case '=':
+	      case '(':
+	      case ')':
+	      case '<':
+	      case '>':
+	      case '?':
+	      case '#':
+	      case '{':
+	      case '}':
+	      case '%':
+	      case ' ':
+	      case '+':
+		dst[dpos++] = '%';
+		hi = (c & 0xf0) >> 4;
+		dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
+		lo = (c & 0x0f);
+		dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
+		break;
+
+	      default:
+		if (c < ' ' || c > 127)
+		  {
+		    dst[dpos++] = '%';
+		    hi = (c & 0xf0) >> 4;
+		    dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
+		    lo = (c & 0x0f);
+		    dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
+		  }
+		else
+		  {
+		    dst[dpos++] = c;
+		  }
+		break;
+	    }
+	}
+      [d setLength: dpos];
+      s = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+      RELEASE(d);
+      AUTORELEASE(s);
+    }
+  return s;
+}
 
 /**
  * Constructs a new string consisting of this instance followed by the string
@@ -3584,6 +3659,102 @@ handle_printf_atsign (FILE *stream,
 	  return AUTORELEASE(m);
 	}
     }
+}
+
+/**
+ * Returns a string created by replacing percent escape sequences in the
+ * receiver assuning that the resulting data represents characters in
+ * the specified encoding.<br />
+ * Returns nil if the ressult is not a string in the specified encoding.
+ */
+- (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e
+{
+  NSMutableData	*d; 
+  NSString	*s = nil;
+
+  d = [[self dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
+  if (d != nil)
+    {
+      unsigned char	*p = (unsigned char*)[d mutableBytes];
+      unsigned		l = [d length];
+      unsigned		i = 0;
+      unsigned		j = 0;
+
+      while (i < l)
+	{
+	  unsigned char	t;
+
+	  if ((t = p[i++]) == '%')
+	    {
+	      unsigned char	c;
+
+	      if (i >= l)
+		{
+		  DESTROY(d);
+		  break;
+		}
+	      t = p[i++];
+
+	      if (isxdigit(t))
+		{
+		  if (t <= '9')
+		    {
+		      c = t - '0';
+		    }
+		  else if (t <= 'A')
+		    {
+		      c = t - 'A' + 10;
+		    }
+		  else
+		    {
+		      c = t - 'a' + 10;
+		    }
+		}
+	      else
+		{
+		  DESTROY(d);
+		  break;
+		}
+	      c <<= 4;
+
+	      if (i >= l)
+		{
+		  DESTROY(d);
+		  break;
+		}
+	      t = p[i++];
+	      if (isxdigit(t))
+		{
+		  if (t <= '9')
+		    {
+		      c |= t - '0';
+		    }
+		  else if (t <= 'A')
+		    {
+		      c |= t - 'A' + 10;
+		    }
+		  else
+		    {
+		      c |= t - 'a' + 10;
+		    }
+		}
+	      else
+		{
+		  DESTROY(d);
+		  break;
+		}
+	      p[j++] = c;
+	    }
+	  else
+	    {
+	      p[j++] = t;
+	    }
+	}
+      [d setLength: j];
+      s = AUTORELEASE([[NSString alloc] initWithData: d encoding: e]);
+      RELEASE(d);
+    }
+  return s;
 }
 
 /**
