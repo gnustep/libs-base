@@ -1905,70 +1905,150 @@ handle_printf_atsign (FILE *stream,
 #if defined(__WIN32__)
   return self;
 #else 
-  const int	MAX_PATH_LEN = 1024;
+  const int	MAX_PATH = 1024;
+  char		new_buf[MAX_PATH];
 #if HAVE_REALPATH
-  char		new_buf[MAX_PATH_LEN];
 
-  if (realpath([self cString], new_buf) != 0)
-    return [NSString stringWithCString: new_buf];
-  else
+  if (realpath([self cString], new_buf) == 0)
     return self;
 #else
-  NSString	*first_half = self;
-  NSString	*second_half = @"";
-  const char	*tmp_cpath;
-  char		tmp_buf[MAX_PATH_LEN];
-  int		syscall_result;
-  struct stat	tmp_stat;  
+  char		extra[MAX_PATH];
+  char		*dest;
+  const char	*name = [self cString];
+  const char	*start;
+  const	char	*end;
+  unsigned	num_links = 0;
 
-  while (1)
+
+  if (name[0] != '/')
     {
-      tmp_cpath = [first_half cString];
+      if (!getcwd(new_buf, MAX_PATH))
+        return self;			/* Couldn't get directory.	*/
+      dest = strchr(new_buf, '\0');
+    }
+  else
+    {
+      new_buf[0] = '/';
+      dest = &new_buf[1];
+    }
 
-      syscall_result = lstat(tmp_cpath, &tmp_stat);
-      if (0 != syscall_result)
-	return self ;
-      
-      if ((tmp_stat.st_mode & S_IFLNK)
-	&& ((syscall_result=readlink(tmp_cpath, tmp_buf, MAX_PATH_LEN)) != -1))
+  for (start = end = name; *start; start = end)
+    {
+      struct stat	st;
+      int		n;
+      int		len;
+
+      /* Elide repeated path separators	*/
+      while (*start == '/')
+	start++;
+
+      /* Locate end of path component	*/
+      end = start;
+      while (*end && *end != '/')
+	end++;
+
+      len = end - start;
+      if (len == 0)
 	{
-	  /* 
-	   * first half is a path to a symbolic link.
+	  break;	/* End of path.	*/
+	}
+      else if (len == 1 && *start == '.')
+	{
+          /* Elide '/./' sequence by ignoring it.	*/
+	}
+      else if (len == 2 && strncmp(start, "..", len) == 0)
+	{
+	  /*
+	   * Backup - if we are not at the root, remove the last component.
 	   */
-	  tmp_buf[syscall_result] = '\0'; // Make a C string
-	  second_half = [[NSString stringWithCString: tmp_buf]
-	    stringByAppendingPathComponent: second_half];
-	  first_half = [first_half stringByDeletingLastPathComponent];
+	  if (dest > &new_buf[1])
+	    {
+	      do
+		{
+		  dest--;
+		}
+	      while (dest[-1] != '/');
+	    }
 	}
       else
-	{
-	  /* 
-	   * second_half is an absolute path 
-	   */
-	  if ([second_half hasPrefix: pathSepString]) 
-	    return [second_half stringByResolvingSymlinksInPath];
+        {
+          if (dest[-1] != '/')
+            *dest++ = '/';
 
-	  /* 
-	   * first half is NOT a path to a symbolic link 
-	   */
-	  second_half = [[first_half lastPathComponent]
-	    stringByAppendingPathComponent: second_half];
-	  first_half = [first_half stringByDeletingLastPathComponent];
-	}
+          if (&dest[len] >= &new_buf[MAX_PATH])
+	    return self;	/* Resolved name would be too long.	*/
 
-      /* BREAK CONDITION */
-      if ([first_half length] == 0)
-	break;
-      else if ([first_half length] == 1
-	&& [pathSeps() characterIsMember: [first_half characterAtIndex: 0]])
-	{
-	  second_half = [pathSepString stringByAppendingPathComponent:
-	    second_half];
-	  break;
-	}
+          memcpy(dest, start, len);
+          dest += len;
+          *dest = '\0';
+
+          if (lstat(new_buf, &st) < 0)
+            return self;	/* Unable to stat file.		*/
+
+          if (S_ISLNK(st.st_mode))
+            {
+              char buf[MAX_PATH];
+
+              if (++num_links > MAXSYMLINKS)
+		return self;	/* Too many symbolic links.	*/
+
+              n = readlink(new_buf, buf, MAX_PATH);
+              if (n < 0)
+		return self;	/* Couldn't resolve links.	*/
+
+              buf[n] = '\0';
+
+              if ((n + strlen(end)) >= MAX_PATH)
+		return self;	/* Path would be too long.	*/
+
+	      /*
+	       * Concatenate the resolved name with the string still to
+	       * be processed, and start using the result as input.
+	       */
+              strcat(buf, end);
+              strcpy(extra, buf);
+              name = end = extra;
+
+              if (buf[0] == '/')
+		{
+		  /*
+		   * For an absolute link, we start at root again.
+		   */
+		  dest = new_buf + 1;
+		}
+              else
+		{
+		  /*
+		   * Backup - remove the last component.
+		   */
+		  if (dest > new_buf + 1)
+		    {
+		      do
+			{
+			  dest--;
+			}
+		      while (dest[-1] != '/');
+		    }
+		}
+            }
+          else
+	    {
+	      num_links = 0;
+	    }
+        }
     }
-  return second_half;
+  if (dest > new_buf + 1 && dest[-1] == '/')
+    --dest;
+  *dest = '\0';
 #endif
+  if (strncmp(new_buf, "/private/", 9) == 0)
+    {
+      struct stat	st;
+
+      if (lstat(&new_buf[8], &st) == 0)
+	strcpy(new_buf, &new_buf[8]);
+    }
+  return [NSString stringWithCString: new_buf];
 #endif  /* (__WIN32__) */  
 }
 
@@ -1984,38 +2064,31 @@ handle_printf_atsign (FILE *stream,
   if ([s hasPrefix: @"/private"])
     [s deleteCharactersInRange: ((NSRange){0,7})];
 
-  /* Condense `//' */
+  /* Condense `//' and '/./' */
   r = NSMakeRange(0, [s length]);
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
 				 options: 0
 				   range: r]).length)
     {
-      if (r.location + r.length + 1 <= [s length]
-	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 1]])
-	[s deleteCharactersInRange: r];
-      else
-	r.location++;
-      if ((r.length = [s length]) > r.location)
-	r.length -= r.location;
-      else
-	break;
-    }
+      unsigned	length = [s length];
+      unichar	c1 = [s characterAtIndex: r.location + 1];
 
-  /* Condense `/./' */
-  r = NSMakeRange(0, [s length]);
-  while ((r = [s rangeOfCharacterFromSet: pathSeps()
-				 options: 0
-				   range: r]).length)
-    {
-      if (r.location + r.length + 2 <= [s length]
-	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
+      if (r.location + r.length + 1 <= length
+	&& [pathSeps() characterIsMember: c1])
+	{
+	  [s deleteCharactersInRange: r];
+	}
+      else if (r.location + r.length + 2 <= length
+	&& c1 == (unichar)'.'
 	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 2]])
 	{
 	  r.length++;
 	  [s deleteCharactersInRange: r];
 	}
       else
-	r.location++;
+	{
+	  r.location++;
+	}
       if ((r.length = [s length]) > r.location)
 	r.length -= r.location;
       else
@@ -2025,6 +2098,11 @@ handle_printf_atsign (FILE *stream,
   if ([s isAbsolutePath] == NO)
     return s;
 
+  /*
+   *	For absolute paths, we must resolve symbolic links or (on win32)
+   *	remove '/../' sequences and their matching parent directories.
+   */
+#if defined(__WIN32__)
   /* Condense `/../' */
   r = NSMakeRange(0, [s length]);
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
@@ -2057,6 +2135,9 @@ handle_printf_atsign (FILE *stream,
     }
 
   return s;
+#else
+  return [s stringByResolvingSymlinksInPath];
+#endif
 }
 
 // private methods for Unicode level 3 implementation
