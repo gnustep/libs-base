@@ -34,6 +34,8 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 RPM_DISABLE_RELOCATABLE=YES
 PACKAGE_NEEDS_CONFIGURE = YES
 
+CVS_MODULE_NAME = base
+
 GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 #
@@ -59,3 +61,4 @@ SUBPROJECTS = Source Tools NSCharacterSets NSTimeZones Resources
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 -include Makefile.postamble
+
