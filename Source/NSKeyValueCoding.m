@@ -183,6 +183,7 @@
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
       buf[size+4] = ':';
+      buf[size+5] = '\0';
 
       name = buf;	// _setKey:
       type = NULL;
@@ -245,6 +246,7 @@
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
       buf[size+4] = ':';
+      buf[size+5] = '\0';
 
       name = &buf[1];	// setKey:
       type = NULL;
