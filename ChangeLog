@@ -1,3 +1,8 @@
+2004-10-13  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (_bundle_name_first_match): Remove path
+	extension when comparing name (fixes #10611)
+
 2004-10-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Fix bug escaping XML special chartacters.
