@@ -128,15 +128,13 @@ static Class	gcClass = 0;
 
 - (id) initWithObjects: (id*)objects count: (unsigned int)count
 {
-  unsigned int	i;
-
   _contents = NSZoneMalloc([self zone], count * (sizeof(id) + sizeof(BOOL)));
   _isGCObject = (BOOL*)&_contents[count];
-  _count = count;
-  for (i = 0; i < count; i++)
+  _count = 0;
+  while (_count < count)
     {
-      _contents[i] = [objects[i] retain];
-      if (_contents[i] == nil)
+      _contents[_count] = [objects[_count] retain];
+      if (_contents[_count] == nil)
 	{
 	  [self release];
 	  [NSException raise: NSInvalidArgumentException
@@ -144,24 +142,25 @@ static Class	gcClass = 0;
 	}
       else
 	{
-	  _isGCObject[i] = [objects[i] isKindOfClass: gcClass];
+	  _isGCObject[_count] = [objects[_count] isKindOfClass: gcClass];
 	}
+      _count++;
     }
   return self;
 }
 
 - (id) initWithArray: (NSArray*)anotherArray
 {
-  unsigned int	i;
   unsigned int	count = [anotherArray count];
 
   _contents = NSZoneMalloc([self zone], count * (sizeof(id) + sizeof(BOOL)));
   _isGCObject = (BOOL*)&_contents[count];
-  _count = count;
-  for (i = 0; i < _count; i++)
+  _count = 0;
+  while (_count < count)
     {
-      _contents[i] = [[anotherArray objectAtIndex: i] retain];
-      _isGCObject[i] = [_contents[i] isKindOfClass: gcClass];
+      _contents[_count] = [[anotherArray objectAtIndex: _count] retain];
+      _isGCObject[_count] = [_contents[_count] isKindOfClass: gcClass];
+      _count++;
     }
   return self;
 }
@@ -236,13 +235,31 @@ static Class	gcClass = 0;
   return [self initWithCapacity: 1];
 }
 
+- (id) initWithArray: (NSArray*)anotherArray
+{
+  unsigned int	count = [anotherArray count];
+
+  self = [self initWithCapacity: count];
+  if (self != nil)
+    {
+      while (_count < count)
+	{
+	  _contents[_count] = [[anotherArray objectAtIndex: _count] retain];
+	  _isGCObject[_count] = [_contents[_count] isKindOfClass: gcClass];
+	  _count++;
+	}
+    }
+  return self;
+}
+
 - (id) initWithCapacity: (unsigned int)aNumItems
 {
   if (aNumItems < 1)
     {
       aNumItems = 1;
     }
-  _contents = NSZoneMalloc([self zone], aNumItems * (sizeof(id) + sizeof(BOOL)));
+  _contents = NSZoneMalloc([self zone],
+    aNumItems * (sizeof(id) + sizeof(BOOL)));
   _isGCObject = (BOOL*)&_contents[aNumItems];
   _maxCount = aNumItems;
   _count = 0;
@@ -254,12 +271,10 @@ static Class	gcClass = 0;
   self = [self initWithCapacity: count];
   if (self != nil)
     {
-      unsigned int	i;
-
-      for (i = 0; i < count; i++)
+      while (_count < count)
 	{
-	  _contents[i] = [objects[i] retain];
-	  if (_contents[i] == nil)
+	  _contents[_count] = [objects[_count] retain];
+	  if (_contents[_count] == nil)
 	    {
 	      [self release];
 	      [NSException raise: NSInvalidArgumentException
@@ -267,26 +282,9 @@ static Class	gcClass = 0;
 	    }
 	  else
 	    {
-	      _isGCObject[i] = [objects[i] isKindOfClass: gcClass];
+	      _isGCObject[_count] = [objects[_count] isKindOfClass: gcClass];
 	    }
-	}
-    }
-  return self;
-}
-
-- (id) initWithArray: (NSArray*)anotherArray
-{
-  unsigned int	count = [anotherArray count];
-
-  self = [self initWithCapacity: count];
-  if (self != nil)
-    {
-      unsigned int	i;
-
-      for (i = 0; i < _count; i++)
-	{
-	  _contents[i] = [[anotherArray objectAtIndex: i] retain];
-	  _isGCObject[i] = [_contents[i] isKindOfClass: gcClass];
+	  _count++;
 	}
     }
   return self;
