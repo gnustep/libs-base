@@ -41,6 +41,7 @@
 #include <Foundation/NSNotificationQueue.h>
 
 static Class threadClass = Nil;
+static NSNotificationCenter *nc = nil;
 
 #ifndef NO_GNUSTEP
 #if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME)
@@ -156,15 +157,14 @@ gnustep_base_thread_callback()
    */
   if (entered_multi_threaded_state == NO)
     {
-      NSNotification	*n;
-
       entered_multi_threaded_state = YES;
-      n = [NSNotification alloc];
-      n = [n initWithName: NSWillBecomeMultiThreadedNotification
-		   object: nil
-		 userInfo: nil];
-      [[NSNotificationCenter defaultCenter] postNotification: n];
-      RELEASE(n);
+      if (nc == nil)
+	{
+	  nc = [NSNotificationCenter defaultCenter];
+	}
+      [nc postNotificationName: NSWillBecomeMultiThreadedNotification
+			object: nil
+		      userInfo: nil];
     }
 }
 
@@ -248,8 +248,6 @@ gnustep_base_thread_callback()
   t = GSCurrentThread();
   if (t->_active == YES)
     {
-      NSNotification	*n;
-
       /*
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
@@ -258,12 +256,13 @@ gnustep_base_thread_callback()
       /*
        * Let observers know this thread is exiting.
        */
-      n = [NSNotification alloc];
-      n = [n initWithName: NSThreadWillExitNotification
-		   object: t
-		 userInfo: nil];
-      [[NSNotificationCenter defaultCenter] postNotification: n];
-      RELEASE(n);
+      if (nc == nil)
+	{
+	  nc = [NSNotificationCenter defaultCenter];
+	}
+      [nc postNotificationName: NSThreadWillExitNotification
+			object: t
+		      userInfo: nil];
 
       /*
        * destroy the thread object.
@@ -413,10 +412,6 @@ gnustep_base_thread_callback()
 
 - (void) _sendThreadMethod
 {
-#ifndef NO_GNUSTEP
-  NSNotification *n;
-#endif
-
   /*
    * We are running in the new thread - so we store ourself in the thread
    * dictionary and release ourself - thus, when the thread exits, we will
@@ -429,12 +424,13 @@ gnustep_base_thread_callback()
   /*
    * Let observers know a new thread is starting.
    */
-  n = [NSNotification alloc];
-  n = [n initWithName: NSThreadDidStartNotification
-	 object: self
-	 userInfo: nil];
-  [[NSNotificationCenter defaultCenter] postNotification: n];
-  RELEASE(n);
+  if (nc == nil)
+    {
+      nc = [NSNotificationCenter defaultCenter];
+    }
+  [nc postNotificationName: NSThreadDidStartNotification
+		    object: self
+		  userInfo: nil];
 #endif
 
   [_target performSelector: _selector withObject: _arg];
@@ -517,21 +513,11 @@ void
 GSUnregisterCurrentThread (void)
 {
   NSThread *thread;
-  static NSNotificationCenter *nc = nil;
-  static Class notificationClass = Nil;
 
-  if (nc == nil)
-    {
-      nc = [NSNotificationCenter defaultCenter];
-      notificationClass = [NSNotification class];
-    }
-  
   thread = GSCurrentThread();
   
   if (((NSThread_ivars *)thread)->_active == YES)
     {
-      NSNotification	*n;
-      
       /*
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
@@ -540,12 +526,13 @@ GSUnregisterCurrentThread (void)
       /*
        * Let observers know this thread is exiting.
        */
-      n = [notificationClass alloc];
-      n = [n initWithName: NSThreadWillExitNotification
-	           object: thread
-	         userInfo: nil];
-      [nc postNotification: n];
-      RELEASE(n);
+      if (nc == nil)
+	{
+	  nc = [NSNotificationCenter defaultCenter];
+	}
+      [nc postNotificationName: NSThreadWillExitNotification
+			object: thread
+		      userInfo: nil]; 
 
       /*
        * destroy the thread object.

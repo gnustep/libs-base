@@ -34,9 +34,84 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
 
-typedef struct {
-  @defs(NSNotification)
-} NotificationStruct;
+
+/**
+ * Concrete class implementing NSNotification
+ */
+@interface	GSNotification : NSNotification
+{
+@public
+  NSString	*_name;
+  id		_object;
+  NSDictionary	*_info;
+}
+@end
+
+@implementation GSNotification
+
+static Class concrete = 0;
+
++ (void) initialize
+{
+  if (concrete == 0)
+    {
+      concrete = [GSNotification class];
+    }
+}
+
++ (NSNotification*) notificationWithName: (NSString*)name
+				  object: (id)object
+			        userInfo: (NSDictionary*)info
+{
+  GSNotification	*n;
+
+  n = (GSNotification*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  n->_name = [name copyWithZone: GSObjCZone(self)];
+  n->_object = TEST_RETAIN(object);
+  n->_info = TEST_RETAIN(info);
+  return AUTORELEASE(n);
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSNotification	*n;
+
+  if (NSShouldRetainWithZone (self, zone))
+    {
+      return [self retain];
+    }
+  n = (GSNotification*)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
+  n->_name = [_name copyWithZone: GSObjCZone(self)];
+  n->_object = TEST_RETAIN(_object);
+  n->_info = TEST_RETAIN(_info);
+  return n;
+}
+
+- (void) dealloc
+{
+  RELEASE(_name);
+  TEST_RELEASE(_object);
+  TEST_RELEASE(_info);
+  [super dealloc];
+}
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- (id) object
+{
+  return _object;
+}
+
+- (NSDictionary*) userInfo
+{
+  return _info;
+}
+
+@end
+
 
 /*
  * Garbage collection considerations -
@@ -485,6 +560,10 @@ static NSNotificationCenter *default_center = nil;
 {
   if (self == [NSNotificationCenter class])
     {
+      if (concrete == 0)
+	{
+	  concrete = [GSNotification class];
+	}
       /*
        * Do alloc and init separately so the default center can refer to
        * the 'default_center' variable during initialisation.
@@ -854,35 +933,58 @@ static NSNotificationCenter *default_center = nil;
 }
 
 
-/*
- * Post NOTIFICATION to all the observers that match its NAME and OBJECT.
- *
+/**
+ * Posts notification to all the observers that match its NAME and OBJECT.<br />
+ * The GNUstep implementation calls -postNotificationName:object:userInfo: to
+ * perform the actual posting.
+ */
+- (void) postNotification: (NSNotification*)notification
+{
+  [self postNotificationName: [notification name]
+		      object: [notification object]
+		    userInfo: [notification userInfo]];
+}
+
+/**
+ * Creates and posts a notification using the
+ * -postNotificationName:object:userInfo: passing a nil user info argument.
+ */
+- (void) postNotificationName: (NSString*)name 
+		       object: (id)object
+{
+  [self postNotificationName: name object: object userInfo: nil];
+}
+
+/**
+ * The preferred method for posting a notification.
+ * <br />
  * For performance reasons, we don't wrap an exception handler round every
  * message sent to an observer.  This means that, if one observer raises
  * an exception, later observers in the lists will not get the notification.
  */
-- (void) postNotification: (NSNotification*)notification
+- (void) postNotificationName: (NSString*)name 
+		       object: (id)object
+		     userInfo: (NSDictionary*)info
 {
-  NSString	*n_name;
-  id		n_object;
   Observation	*o;
   unsigned	count;
   volatile GSIArray	a;
   unsigned	arrayBase;
+  GSNotification	*notification;
 
-  if (notification == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Tried to post a nil notification."];
-
-  n_name = ((NotificationStruct*)notification)->_name;
-  n_object = ((NotificationStruct*)notification)->_object;
-  if (n_object != nil)
-    n_object = CHEATGC(n_object);
-
-  if (n_name == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Tried to post a notification with no name."];
-
+  if (name == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to post a notification with no name."];
+    }
+  notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
+  name = notification->_name = [name copyWithZone: GSObjCZone(self)];
+  object = notification->_object = TEST_RETAIN(object);
+  notification->_info = TEST_RETAIN(info);
+  if (object != nil)
+    {
+      object = CHEATGC(object);
+    }
   lockNCTable(TABLE);
 
   a = ARRAY;
@@ -922,9 +1024,9 @@ static NSNotificationCenter *default_center = nil;
 	   * Post the notification to all the observers that specified OBJECT,
 	   * but didn't specify NAME.
 	   */
-	  if (n_object)
+	  if (object)
 	    {
-	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)n_object);
+	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
 	      if (n != 0)
 		{
 		  o = n->value.ext;
@@ -941,19 +1043,23 @@ static NSNotificationCenter *default_center = nil;
 	   * observers with a non-nil OBJECT that doesn't match the
 	   * notification's OBJECT).
 	   */
-	  if (n_name)
+	  if (name)
 	    {
-	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)n_name);
+	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
 	      if (n)
-		m = (GSIMapTable)n->value.ptr;
+		{
+		  m = (GSIMapTable)n->value.ptr;
+		}
 	      else
-		m = 0;
+		{
+		  m = 0;
+		}
 	      if (m != 0)
 		{
 		  /*
 		   * First, observers with a matching object.
 		   */
-		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)n_object);
+		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
 		  if (n != 0)
 		    {
 		      o = n->value.ext;
@@ -965,7 +1071,7 @@ static NSNotificationCenter *default_center = nil;
 			}
 		    }
 
-		  if (n_object != nil)
+		  if (object != nil)
 		    {
 		      /*
 		       * Now observers with a nil object.
@@ -1008,9 +1114,9 @@ static NSNotificationCenter *default_center = nil;
 	   * Post the notification to all the observers that specified OBJECT,
 	   * but didn't specify NAME.
 	   */
-	  if (n_object)
+	  if (object)
 	    {
-	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)n_object);
+	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
 	      if (n != 0)
 		{
 		  o = n->value.ext;
@@ -1035,19 +1141,23 @@ static NSNotificationCenter *default_center = nil;
 	   * observers with a non-nil OBJECT that doesn't match the
 	   * notification's OBJECT).
 	   */
-	  if (n_name)
+	  if (name)
 	    {
-	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)n_name);
+	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
 	      if (n)
-		m = (GSIMapTable)n->value.ptr;
+		{
+		  m = (GSIMapTable)n->value.ptr;
+		}
 	      else
-		m = 0;
+		{
+		  m = 0;
+		}
 	      if (m != 0)
 		{
 		  /*
 		   * First, observers with a matching object.
 		   */
-		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)n_object);
+		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
 		  if (n != 0)
 		    {
 		      o = n->value.ext;
@@ -1058,7 +1168,7 @@ static NSNotificationCenter *default_center = nil;
 			}
 		    }
 
-		  if (n_object != nil)
+		  if (object != nil)
 		    {
 		      /*
 		       * Now observers with a nil object.
@@ -1097,28 +1207,14 @@ static NSNotificationCenter *default_center = nil;
       GSIArrayRemoveItemsFromIndex(ARRAY, arrayBase);
       unlockNCTable(TABLE);
 
+      DESTROY(notification);	// Get rid of notification we created.
       [localException raise];
     }
   NS_ENDHANDLER
 #endif
 
   unlockNCTable(TABLE);
-}
-
-- (void) postNotificationName: (NSString*)name 
-		       object: (id)object
-{
-  [self postNotification: [NSNotification notificationWithName: name
-							object: object]];
-}
-
-- (void) postNotificationName: (NSString*)name 
-		       object: (id)object
-		     userInfo: (NSDictionary*)info
-{
-  [self postNotification: [NSNotification notificationWithName: name
-							object: object
-						      userInfo: info]];
+  RELEASE(notification);
 }
 
 @end

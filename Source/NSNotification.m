@@ -29,78 +29,110 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
 
-@implementation NSNotification (GNUstep)
-/* <init />
- * Initialise a newly created notification.
- */
-- (id) initWithName: (NSString*)name
-	     object: (id)object
-	   userInfo: (NSDictionary*)info
-{
-  _name = [name copyWithZone: GSObjCZone(self)];
-  _object = TEST_RETAIN(object);
-  _info = TEST_RETAIN(info);
-  return self;
-}
-
-@end
-
 @implementation NSNotification
 
+static Class	concreteClass = 0;
 
+@class	GSNotification;
+
++ (NSNotification*) allocWithZone: (NSZone*)z
+{
+  return (id)NSAllocateObject(concreteClass, 0, z);
+}
+
++ (void) initialize
+{
+  if (concreteClass == 0)
+    {
+      concreteClass = [GSNotification class];
+    }
+}
+
+/**
+ * Create a new autoreleased notification.  Concrete subclasses override
+ * this method to create actual notification objects.
+ */
 + (NSNotification*) notificationWithName: (NSString*)name
 				  object: (id)object
 			        userInfo: (NSDictionary*)info
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithName: name object: object userInfo: info]);
+  return [concreteClass notificationWithName: name
+				      object: object
+				    userInfo: info];
 }
 
+/**
+ * Create a new autoreleased notification by calling
+ * +notificationWithName:object:userInfo: with a nil user info argument.
+ */
 + (NSNotification*) notificationWithName: (NSString*)name
 				  object: (id)object
 {
-  return [self notificationWithName: name object: object userInfo: nil];
+  return [concreteClass notificationWithName: name
+				      object: object
+				    userInfo: nil];
 }
 
-
+/**
+ * The abstract class implements a copy as a simple retain ...
+ * subclasses should override this to perform more intelligent
+ * copy operations.
+ */
 - (id) copyWithZone: (NSZone*)zone
 {
-  if (NSShouldRetainWithZone (self, zone))
-    {
-      return [self retain];
-    }
-  return [[[self class] allocWithZone: zone] initWithName: _name
-						   object: _object
-						 userInfo: _info];
+  return [self retain];
 }
 
-- (void) dealloc
-{
-  RELEASE(_name);
-  TEST_RELEASE(_object);
-  TEST_RELEASE(_info);
-  [super dealloc];
-}
-
+/**
+ * Return a description of the parts of the notification.
+ */
 - (NSString*) description
 {
   return [[super description] stringByAppendingFormat:
-    @" Name: %@ Object: %@ Info: %@", _name, _object, _info];
+    @" Name: %@ Object: %@ Info: %@",
+    [self name], [self object], [self userInfo]];
 }
 
+- (id) init
+{
+  if ([self class] == [NSNotification class])
+    {
+      NSZone	*z = [self zone];
+
+      RELEASE(self);
+      self = (id)NSAllocateObject (concreteClass, 0, z);
+    }
+  return self; 
+}
+
+/**
+ * Concrete subclasses of NSNotification are responsible for
+ * implementing this method to return the notification name.
+ */
 - (NSString*) name
 {
-  return _name;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
+/**
+ * Concrete subclasses of NSNotification are responsible for
+ * implementing this method to return the notification object.
+ */
 - (id) object
 {
-  return _object;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
+/**
+ * Concrete subclasses of NSNotification are responsible for
+ * implementing this method to return the notification user information.
+ */
 - (NSDictionary*) userInfo
 {
-  return _info;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 /*
@@ -110,17 +142,32 @@
  */
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_name];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_object];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_info];
+  id	o;
+
+  o = [self name];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+  o = [self object];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+  o = [self userInfo];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_name];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_object];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_info];
-  return self;
+  NSString	*name;
+  id		object;
+  NSDictionary	*info;
+  id		n;
+
+  [aCoder decodeValueOfObjCType: @encode(id) at: &name];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &object];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &info];
+  n = [NSNotification notificationWithName: name object: object userInfo: info];
+  RELEASE(name);
+  RELEASE(object);
+  RELEASE(info);
+  RELEASE(self);
+  return RETAIN(n);
 }
 
 @end

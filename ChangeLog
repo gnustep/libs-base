@@ -1,6 +1,13 @@
 2002-08-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-boolValue]) Accept 'true' as well as 'YES'
+	* Source/NSThread.m: Modified to avoid using non-standard notification
+	initialisation.
+	* Source/NSNotification.m: Rewritten as abstract/cluster class for
+	implementation compatibility with MacOS-X
+	* Source/NSNotificationCenter.m: Modified posting to behave like the
+	MacOS-X implementation.  Implement concrete subclass of
+	NSNotification.
 
 2002-07-29  Adam Fedor  <fedor@gnu.org>
 
