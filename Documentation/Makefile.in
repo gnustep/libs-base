@@ -57,7 +57,7 @@ info: libobjects.info objective-c.info \
 dvi: libobjects.dvi objective-c.dvi
 
 version.texi: ../Makefile.in
-	cd ..; $(MAKE) $(MAKEFLAGS) doc/version.texi
+	cd ..; $(MAKE) doc/version.texi
 
 libobjects.dvi: libobjects.texi version.texi
 	$(TEXI2DVI) $(srcdir)/libobjects.texi
@@ -111,9 +111,12 @@ realclean: distclean
 dist-dir: $(srcdir)/../.fname
 	@echo Run "make dist" from the parent directory.
 
-dist: $(DISTFILES) dist-dir
+TOP_FILES = ../TODO ../INSTALL ../README ../ANNOUNCE ../NEWS ../ADVERTISEMENT
+
+dist: $(DISTFILES) dist-dir $(TOP_FILES)
 	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/doc
 	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/doc
+	ln $(TOP_FILES) $(srcdir)/../`cat $(srcdir)/../.fname`
 
 Makefile: Makefile.in
 	cd $(srcdir)/..; $(SHELL) config.status
