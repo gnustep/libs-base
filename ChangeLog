@@ -1,3 +1,9 @@
+2001-06-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: While deserializing, check strings to see
+	if they are really unicode, and create cStrings if they are not.
+	Minor memory usage optimisation.
+
 2001-06-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Change some deprecated runloop methods for

@@ -475,15 +475,41 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_STRING:
 	{
-	  GSUnicodeString	*s;
-	  unichar		*b;
+	  NSString	*s;
+	  unichar	*b;
+	  unsigned	i;
 	
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size*sizeof(unichar));
 	  (*info->debImp)(info->data, debSel, b, size*sizeof(unichar),
 	    info->cursor);
-	  s = (GSUnicodeString*)NSAllocateObject(USCls,
-	    0, NSDefaultMallocZone());
-	  s = (*usInitImp)(s, usInitSel, b, size, YES);
+
+	  /*
+	   * Check to see if this really IS unicode ... if not, use a cString
+	   */
+	  for (i = 0; i < size; i++)
+	    {
+	      if (b[i] > 127)
+		{
+		  break;
+		}
+	    }
+	  if (i == size)
+	    {
+	      char	*p = (char*)b;
+
+	      for (i = 0; i < size; i++)
+		{
+		  p[i] = (char)b[i];
+		}
+	      p = NSZoneRealloc(NSDefaultMallocZone(), b, size);
+	      s = (NSString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
+	      s = (*csInitImp)(s, csInitSel, b, size-1, YES);
+	    }
+	  else
+	    {
+	      s = (NSString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
+	      s = (*usInitImp)(s, usInitSel, b, size, YES);
+	    }
 
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
