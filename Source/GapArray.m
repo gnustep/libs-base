@@ -62,9 +62,9 @@
   return copy;
 }
 
-- (void) _collectionEmpty
+- (void) empty
 {
-  [super _collectionEmpty];
+  [super empty];
   _gap_start = 0;
   _gap_size = _capacity;
 }
