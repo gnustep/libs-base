@@ -428,7 +428,7 @@
 
 - (void) removeObject: anObject
 {
-  int index;
+  unsigned index;
 
   /* Retain the object.  Yuck, but necessary in case the array holds
      the last reference to anObject. */
@@ -445,7 +445,7 @@
 
 - (void) replaceObject: oldObject withObject: newObject
 {
-  int index;
+  unsigned index;
 
   /* Retain the object.  Yuck, but necessary in case the array holds
      the last reference to anObject. */
