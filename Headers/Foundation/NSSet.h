@@ -98,39 +98,77 @@
 
 #ifndef NO_GNUSTEP
 
-/*
+/**
  * Utility methods for using a counted set to handle uniquing of objects.
  */
 @interface NSCountedSet (GNU_Uniquing)
+/**
+ * <p>
+ *   This method removes from the set all objects whose count is
+ *   less than or equal to the specified value.
+ * </p>
+ * <p>
+ *   This is useful where a counted set is used for uniquing objects.
+ *   The set can be periodically purged of objects that have only
+ *   been added once - and are therefore simply wasting space.
+ * </p>
+ */
 - (void) purge: (int)level;
+
+/**
+ * <p>
+ *   If the supplied object (or one equal to it as determined by
+ *   the [-isEqual:] method) is already present in the set, the
+ *   count for that object is incremented, the supplied object
+ *   is released, and the object in the set is retained and returned.
+ *   Otherwise, the supplied object is added to the set and returned.
+ * </p>
+ * <p> 
+ *   This method is useful for uniquing objects - the init method of
+ *   a class need simply end with -
+ *   <code>
+ *     return [myUniquingSet unique: self];
+ *   </code>
+ * </p>
+ */
 - (id) unique: (id)anObject;
 @end
 
 /*
  * Functions for managing a global uniquing set.
- *
+ */
+
+/*
  * GSUniquing() turns on/off the action of the GSUnique() function.
  * if uniquing is turned off, GSUnique() simply returns its argument.
  *
+ */
+void	GSUniquing(BOOL flag);	
+
+/*
  * GSUnique() returns an object that is equal to the one passed to it.
  * If the returned object is not the same object as the object passed in,
  * the original object is released and the returned object is retained.
  * Thus, an -init method that wants to implement uniquing simply needs
  * to end with 'return GSUnique(self);'
  */
-void	GSUniquing(BOOL flag);	
 id	GSUnique(id anObject);
 
 /*
  * Management functions -
- *
+ */
+
+/*
  * GSUPurge() can be used to purge infrequently referenced objects from the
  * set by removing any objec whose count is less than or equal to that given.
  *
+ */
+void	GSUPurge(unsigned count);
+
+/*
  * GSUSet() can be used to artificially set the count for a particular object
  * Setting the count to zero will remove the object from the global set.
  */
-void	GSUPurge(unsigned count);
 id	GSUSet(id anObject, unsigned count);
 
 #endif /* NO_GNUSTEP */

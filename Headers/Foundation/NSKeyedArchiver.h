@@ -37,7 +37,12 @@
 @class NSMutableDictionary, NSMutableData, NSData, NSString;
 
 /**
- * Keyed archiving class
+ *  Implements <em>keyed</em> archiving of object graphs.  This archiver
+ *  should be used instead of [NSArchiver] for new implementations.  Classes
+ *  implementing [NSCoding] should check the [NSCoder-allowsKeyedCoding]
+ *  method and if the response is YES, encode/decode their fields using the
+ *  <code>...forKey:</code> [NSCoder] methods, which provide for more robust
+ *  forwards and backwards compatibility.
  */
 @interface NSKeyedArchiver : NSCoder
 {
@@ -100,16 +105,53 @@
  */
 - (id) delegate;
 
+/**
+ * Encodes aBool and associates the encoded value with aKey.
+ */
 - (void) encodeBool: (BOOL)aBool forKey: (NSString*)aKey;
+
+/**
+ * Encodes the data of the specified length and pointed to by aPointer,
+ * and associates the encoded value with aKey.
+ */
 - (void) encodeBytes: (const uint8_t*)aPointer
 	      length: (unsigned)length
 	      forKey: (NSString*)aKey;
+
+/**
+ * Encodes anObject and associates the encoded value with aKey, but only
+ * if anObject has already been encoded using -encodeObject:forKey:
+ */
 - (void) encodeConditionalObject: (id)anObject forKey: (NSString*)aKey;
+
+/**
+ * Encodes aDouble and associates the encoded value with aKey.
+ */
 - (void) encodeDouble: (double)aDouble forKey: (NSString*)aKey;
+
+/**
+ * Encodes aFloat and associates the encoded value with aKey.
+ */
 - (void) encodeFloat: (float)aFloat forKey: (NSString*)aKey;
+
+/**
+ * Encodes anInteger and associates the encoded value with aKey.
+ */
 - (void) encodeInt: (int)anInteger forKey: (NSString*)aKey;
+
+/**
+ * Encodes anInteger and associates the encoded value with aKey.
+ */
 - (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey;
+
+/**
+ * Encodes anInteger and associates the encoded value with aKey.
+ */
 - (void) encodeInt64: (int64_t)anInteger forKey: (NSString*)aKey;
+
+/**
+ * Encodes anObject and associates the encoded value with aKey.
+ */
 - (void) encodeObject: (id)anObject forKey: (NSString*)aKey;
 
 /**
@@ -159,7 +201,12 @@
 
 
 /**
- * Keyed unarchiving class.
+ *  Implements <em>keyed</em> unarchiving of object graphs.  The keyed archiver
+ *  should be used instead of [NSArchiver] for new implementations.  Classes
+ *  implementing [NSCoding] should check the [NSCoder-allowsKeyedCoding]
+ *  method and if the response is YES, encode/decode their fields using the
+ *  <code>...forKey:</code> [NSCoder] methods, which provide for more robust
+ *  forwards and backwards compatibility.
  */
 @interface NSKeyedUnarchiver : NSCoder
 {
@@ -182,29 +229,132 @@
   NSZone	*_zone;		/* Zone for allocating objs.	*/
 }
 
+/**
+ * Returns class substituted for class name specified by aString when
+ * encountered in the archive being decoded from, or nil if there is no
+ * specific translation mapping.  Each instance also maintains a translation
+ * map, which is searched first for a match during decoding.
+ */
 + (Class) classForClassName: (NSString*)aString;
+
+/**
+ * Sets class substituted for class name specified by aString when
+ * encountered in the archive being decoded from, or nil if there is no
+ * specific translation mapping.  Each instance also maintains a translation
+ * map, which is searched first for a match during decoding.
+ */
 + (void) setClass: (Class)aClass forClassName: (NSString*)aString;
+
+/**
+ *  Decodes from byte array in data and returns resulting root object.
+ */
 + (id) unarchiveObjectWithData: (NSData*)data;
+
+/**
+ *  Decodes from file contents at aPath and returns resulting root object.
+ */
 + (id) unarchiveObjectWithFile: (NSString*)aPath;
 
+/**
+ * Returns class substituted for class name specified by aString when
+ * encountered in the archive being decoded from, or nil if there is no
+ * specific translation mapping.  The class as a whole also maintains a
+ * translation map, which is searched on decoding if no match found here.
+ */
 - (Class) classForClassName: (NSString*)aString;
+
+/**
+ * Sets class substituted for class name specified by aString when
+ * encountered in the archive being decoded from, or nil if there is no
+ * specific translation mapping.  Each instance also maintains a translation
+ * map, which is searched first for a match during decoding.
+ */
 - (BOOL) containsValueForKey: (NSString*)aKey;
+
+/**
+ * Sets class substituted for class name specified by aString when
+ * encountered in the archive being decoded from, or nil if there is no
+ * specific translation mapping.  Each instance also maintains a translation
+ * map, which is searched first for a match during decoding.
+ */
+- (void) setClass: (Class)aClass forClassName: (NSString*)aString;
+
+/**
+ * Returns a boolean value associated with aKey.  This value must previously
+ * have been encoded using -encodeBool:forKey:
+ */
 - (BOOL) decodeBoolForKey: (NSString*)aKey;
+
+/**
+ * Returns a pointer to a byte array associated with aKey.<br />
+ * Returns the length of the data in aLength.<br />
+ * This value must previously have been encoded using
+ * -encodeBytes:length:forKey:
+ */
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
 		      returnedLength: (unsigned*)length;
-- (double) decodeDoubleForKey: (NSString*)aKey;
-- (float) decodeFloatForKey: (NSString*)aKey;
-- (int) decodeIntForKey: (NSString*)aKey;
-- (int32_t) decodeInt32ForKey: (NSString*)aKey;
-- (int64_t) decodeInt64ForKey: (NSString*)aKey;
-- (id) decodeObjectForKey: (NSString*)aKey;
+
 /**
- * returns the delegate of the unarchiver.
+ * Returns a double value associated with aKey.  This value must previously
+ * have been encoded using -encodeDouble:forKey: or -encodeFloat:forKey:
+ */
+- (double) decodeDoubleForKey: (NSString*)aKey;
+
+/**
+ * Returns a float value associated with aKey.  This value must previously
+ * have been encoded using -encodeFloat:forKey: or -encodeDouble:forKey:<br />
+ * Precision may be lost (or an exception raised if the value will not fit
+ * in a float) if the value was encoded using -encodeDouble:forKey:,
+ */
+- (float) decodeFloatForKey: (NSString*)aKey;
+
+/**
+ * Returns an integer value associated with aKey.  This value must previously
+ * have been encoded using -encodeInt:forKey:, -encodeInt32:forKey:, or
+ * -encodeInt64:forKey:.<br />
+ * An exception will be raised if the value does not fit in an integer.
+ */
+- (int) decodeIntForKey: (NSString*)aKey;
+
+/**
+ * Returns a 32-bit integer value associated with aKey.  This value must
+ * previously have been encoded using -encodeInt:forKey:,
+ * -encodeInt32:forKey:, or -encodeInt64:forKey:.<br />
+ * An exception will be raised if the value does not fit in a 32-bit integer.
+ */
+- (int32_t) decodeInt32ForKey: (NSString*)aKey;
+
+/**
+ * Returns a 64-bit integer value associated with aKey.  This value must
+ * previously have been encoded using -encodeInt:forKey:,
+ * -encodeInt32:forKey:, or -encodeInt64:forKey:.
+ */
+- (int64_t) decodeInt64ForKey: (NSString*)aKey;
+
+/**
+ * Returns an object value associated with aKey.  This value must
+ * previously have been encoded using -encodeObject:forKey: or
+ * -encodeConditionalObject:forKey:
+ */
+- (id) decodeObjectForKey: (NSString*)aKey;
+
+/**
+ * Returns the delegate of the unarchiver.
  */
 - (id) delegate;
+
+/**
+ * Tells receiver that you are done retrieving from archive, so the delegate
+ * should be allowed to perform close-up operations.
+ */
 - (void) finishDecoding;
+
+/**
+ * Prepare to read data from key archive (created by [NSKeyedArchiver]).
+ * Be sure to call -finishDecoding when done.
+ */
 - (id) initForReadingWithData: (NSData*)data;
-- (void) setClass: (Class)aClass forClassName: (NSString*)aString;
+
 /**
  * Sets the receivers delegate.  The delegate should conform to the
  * NSObject(NSKeyedUnarchiverDelegate) informal protocol.<br />
@@ -215,10 +365,17 @@
 
 @end
 
+/**
+ * Internal methods.  Do not use.
+ */
 @interface	NSKeyedArchiver (Internal)
 - (void) _encodeArrayOfObjects: (NSArray*)anArray forKey: (NSString*)aKey;
 - (void) _encodePropertyList: (id)anObject forKey: (NSString*)aKey;
 @end
+
+/**
+ * Internal methods.  Do not use.
+ */
 @interface	NSKeyedUnarchiver (Internal)
 - (id) _decodeArrayOfObjectsForKey: (NSString*)aKey;
 - (id) _decodePropertyListForKey: (NSString*)aKey;
@@ -231,7 +388,7 @@ GS_EXPORT NSString * const NSInvalidUnarchiveOperationException;
 
 
 /**
- * Informal protocol implemented by delegates of [NSKeyedArchiver]
+ * Informal protocol implemented by delegates of [NSKeyedArchiver].
  */
 @interface NSObject (NSKeyedArchiverDelegate)
 
@@ -277,7 +434,7 @@ willReplaceObject: (id)anObject
 
 
 /**
- * Informal protocol implemented by delegates of [NSKeyedUnarchiver]
+ * Informal protocol implemented by delegates of [NSKeyedUnarchiver].
  */
 @interface NSObject (NSKeyedUnarchiverDelegate) 
 
@@ -325,7 +482,7 @@ willReplaceObject: (id)anObject
 
 
 /**
- * Methods by which a class may control its archiving by the NSKeyedArchiver
+ * Methods by which a class may control its archiving by the [NSKeyedArchiver].
  */
 @interface NSObject (NSKeyedArchiverObjectSubstitution) 
 
@@ -351,6 +508,10 @@ willReplaceObject: (id)anObject
 
 @end
 
+/**
+ * Methods by which a class may control its unarchiving by the
+ * [NSKeyedArchiver].
+ */
 @interface NSObject (NSKeyedUnarchiverObjectSubstitution) 
 
 /**
@@ -363,34 +524,37 @@ willReplaceObject: (id)anObject
 
 @end
 
+/**
+ *  Methods for encoding/decoding points, rectangles, and sizes.
+ */
 @interface NSCoder (NSGeometryKeyedCoding)
 /**
- * Encodes an NSPoint object.
+ * Encodes an <code>NSPoint</code> object.
  */
 - (void) encodePoint: (NSPoint)aPoint forKey: (NSString*)aKey;
 
 /**
- * Encodes an NSRect object.
+ * Encodes an <code>NSRect</code> object.
  */
 - (void) encodeRect: (NSRect)aRect forKey: (NSString*)aKey;
 
 /**
- * Encodes an NSSize object.
+ * Encodes an <code>NSSize</code> object.
  */
 - (void) encodeSize: (NSSize)aSize forKey: (NSString*)aKey;
 
 /**
- * Decodes an NSPoint object.
+ * Decodes an <code>NSPoint</code> object.
  */
 - (NSPoint) decodePointForKey: (NSString*)aKey;
 
 /**
- * Decodes an NSRect object.
+ * Decodes an <code>NSRect</code> object.
  */
 - (NSRect) decodeRectForKey: (NSString*)aKey;
 
 /**
- * Decodes an NSSize object.
+ * Decodes an <code>NSSize</code> object.
  */
 - (NSSize) decodeSizeForKey: (NSString*)aKey;
 @end

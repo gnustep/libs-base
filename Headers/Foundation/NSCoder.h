@@ -30,51 +30,191 @@
 
 @class NSMutableData, NSData, NSString;
 
+/**
+ *  <p>Top-level class defining methods for use when archiving (encoding)
+ *  objects to a byte array or file, and when restoring (decoding) objects.
+ *  Generally only subclasses of this class are used directly - [NSArchiver],
+ *  [NSUnarchiver], [NSKeyedArchiver], [NSKeyedUnarchiver], or [NSPortCoder].
+ *  </p>
+ *  <p><code>NSPortCoder</code> is used within the distributed objects
+ *  framework.  For archiving to/from disk, the <em>Keyed...</em> classes are
+ *  preferred for new implementations, since they provide greater
+ *  forward/backward compatibility in the face of class changes.</p>
+ */
 @interface NSCoder : NSObject
 // Encoding Data
 
+/**
+ *  Encodes array of count structures or objects of given type, which may be
+ *  obtained through the '<code>@encode(...)</code>' compile-time operator.
+ *  Usually this is used for primitives though it can be used for objects as
+ *  well.
+ */
 - (void) encodeArrayOfObjCType: (const char*)type
 			 count: (unsigned)count
 			    at: (const void*)array;
+
+/**
+ *  Can be ignored.
+ */
 - (void) encodeBycopyObject: (id)anObject;
+/**
+ *  Can be ignored.
+ */
 - (void) encodeByrefObject: (id)anObject;
+
+/**
+ *  Stores bytes directly into archive.  
+ */
 - (void) encodeBytes: (void*)d length: (unsigned)l;
+
+/**
+ *  Encode object if it is/will be encoded unconditionally by this coder,
+ *  otherwise store a nil.
+ */
 - (void) encodeConditionalObject: (id)anObject;
+
+/**
+ *  Encode an instance of [NSData].
+ */
 - (void) encodeDataObject: (NSData*)data;
+
+/**
+ *  Encodes a generic object.  This will usually result in an [NSCoding
+ *  -encodeWithCoder:] message being sent to anObject so it can encode itself.
+ */
 - (void) encodeObject: (id)anObject;
+
+/**
+ *  Encodes a property list by calling [NSSerializer -serializePropertyList:],
+ *  then encoding the resulting [NSData] object.
+ */
 - (void) encodePropertyList: (id)plist;
+
+/**
+ *  Encodes a point structure.
+ */
 - (void) encodePoint: (NSPoint)point;
+
+/**
+ *  Encodes a rectangle structure.
+ */
 - (void) encodeRect: (NSRect)rect;
+
+/**
+ *  Store object and objects it refers to in archive (i.e., complete object
+ *  graph).
+ */
 - (void) encodeRootObject: (id)rootObject;
+
+/**
+ *  Encodes a size structure.
+ */
 - (void) encodeSize: (NSSize)size;
+
+/**
+ *  Encodes structure or object of given type, which may be obtained
+ *  through the '<code>@encode(...)</code>' compile-time operator.  Usually
+ *  this is used for primitives though it can be used for objects as well.
+ */
 - (void) encodeValueOfObjCType: (const char*)type
 			    at: (const void*)address;
+
+/**
+ *  Multiple version of [-encodeValueOfObjCType:at:].
+ */
 - (void) encodeValuesOfObjCTypes: (const char*)types,...;
 
 // Decoding Data
 
+/**
+ *  Decodes array of count structures or objects of given type, which may be
+ *  obtained through the '<code>@encode(...)</code>' compile-time operator.
+ *  Usually this is used for primitives though it can be used for objects as
+ *  well.  Objects will be retained and you must release them.
+ */
 - (void) decodeArrayOfObjCType: (const char*)type
                          count: (unsigned)count
                             at: (void*)address;
+
+/**
+ *  Retrieve bytes directly from archive.
+ */
 - (void*) decodeBytesWithReturnedLength: (unsigned*)l;
+
+/**
+ *  Decode an instance of [NSData].
+ */
 - (NSData*) decodeDataObject;
+
+/**
+ *  Decodes a generic object.  Usually the class will be read from the
+ *  archive, an object will be created through an <code>alloc</code> call,
+ *  then that class will be sent an [NSCoding -initWithCoder:] message.
+ */
 - (id) decodeObject;
+
+/**
+ *  Decodes a property list from the archive previously stored through a call
+ *  to [-encodePropertyList:].
+ */
 - (id) decodePropertyList;
+
+/**
+ *  Decodes a point structure.
+ */
 - (NSPoint) decodePoint;
+
+/**
+ *  Decodes a rectangle structure.
+ */
 - (NSRect) decodeRect;
+
+/**
+ *  Decodes a size structure.
+ */
 - (NSSize) decodeSize;
+
+/**
+ *  Decodes structure or object of given type, which may be obtained
+ *  through the '<code>@encode(...)</code>' compile-time operator.  Usually
+ *  this is used for primitives though it can be used for objects as well,
+ *  in which case you are responsible for releasing them.
+ */
 - (void) decodeValueOfObjCType: (const char*)type
 			    at: (void*)address;
+
+/**
+ *  Multiple version of [-decodeValueOfObjCType:at:].
+ */
 - (void) decodeValuesOfObjCTypes: (const char*)types,...;
 
 // Managing Zones
 
+/**
+ *  Returns zone being used to allocate memory for decoded objects.
+ */
 - (NSZone*) objectZone;
+
+/**
+ *  Sets zone to use for allocating memory for decoded objects.
+ */
 - (void) setObjectZone: (NSZone*)zone;
 
 // Getting a Version
 
+/**
+ *  Returns *Step version, which is not the release version, but a large number,
+ *  by specification &lt;1000 for pre-OpenStep.  This implementation returns
+ *  a number based on the GNUstep major, minor, and subminor versions.
+ */
 - (unsigned int) systemVersion;
+
+/**
+ *  Returns current version of class (when encoding) or version of decoded
+ *  class (decoded).  Version comes from [NSObject -getVersion].
+ *  
+ */
 - (unsigned int) versionForClassName: (NSString*)className;
 
 #ifndef	STRICT_OPENSTEP
@@ -162,7 +302,7 @@
 - (void) encodeBool: (BOOL) aBool forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes the data of the specified length and pointed to by aPointeraBool,
+ * Encodes the data of the specified length and pointed to by aPointer,
  * and associates the encoded value with aKey.
  */
 - (void) encodeBytes: (const uint8_t*)aPointer
@@ -209,6 +349,9 @@
 
 #ifndef NO_GNUSTEP
 
+/**
+ *  GNUstep extensions to [NSCoder], supporting compatibility with libObjects.
+ */
 @interface NSCoder (GNUstep)
 /* Compatibility with libObjects */
 - (void) decodeArrayOfObjCType: (const char*)type

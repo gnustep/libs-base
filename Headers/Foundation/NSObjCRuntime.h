@@ -39,9 +39,11 @@ GS_EXPORT const char	*NSGetSizeAndAlignment(const char *typePtr,
 
 #ifndef	NO_GNUSTEP
 /* Logging */
-/* OpenStep spec states that log messages go to stderr, but just in case
-   someone wants them to go somewhere else, they can implement a function
-   like this */
+/**
+ *  OpenStep spec states that log messages go to stderr, but just in case
+ *  someone wants them to go somewhere else, they can implement a function
+ *  like this.
+ */
 typedef void NSLog_printf_handler (NSString* message);
 GS_EXPORT NSLog_printf_handler	*_NSLog_printf_handler;
 GS_EXPORT int	_NSLogDescriptor;

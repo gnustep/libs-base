@@ -79,8 +79,9 @@ typedef struct autorelease_array_list
  *   object gets deallocated.
  * </p>
  * <p>
- *   A simple retain/release mechanism is not very interesting ...
- *   so it's spiced up with autorelease pools.  You can use the
+ *   A simple retain/release mechanism has problems with passing objects
+ *   from one scope to another,
+ *   so it's augmented with autorelease pools.  You can use the
  *   AUTORELEASE() macro to call the [NSObject-autorelease]
  *   method, which adds an object to the current autorelease pool by
  *   calling [NSAutoreleasePool+addObject:].<br />
@@ -127,7 +128,7 @@ typedef struct autorelease_array_list
  *   <desc>
  *     Methods whose names begin with init return an initialised
  *     version of the receiving object, owned by the caller.<br />
- *     NB. The returned object may not actualy be the same as the
+ *     NB. The returned object may not actually be the same as the
  *     receiver ... sometimes an init method releases the original
  *     receiver and returns an alternative.
  *   </desc>

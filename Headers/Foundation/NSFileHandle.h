@@ -145,7 +145,7 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 - (BOOL) writeInProgress;
 @end
 
-/*
+/**
  * Where OpenSSL is available, you can use the subclass returned by +sslClass
  * to handle SSL connections.
  *   The -sslAccept method is used to do SSL handlshake and start an

@@ -33,19 +33,25 @@
 
 #include <Foundation/NSObject.h>
 
-/*
- * NSLocking protocol
+/**
+ * Protocol defining lock and unlock operations.
  */
 @protocol NSLocking
 
+/**
+ *  Block until acquiring lock.
+ */
 - (void) lock;
+
+/**
+ *  Relinquish lock.
+ */
 - (void) unlock;
 
 @end
 
-/*
- * NSLock class
- * Simplest lock for protecting critical sections of code
+/**
+ * Simplest lock for protecting critical sections of code.
  */
 @interface NSLock : NSObject <NSLocking, GCFinalization>
 {
@@ -53,17 +59,32 @@
   void *_mutex;
 }
 
+/**
+ *  Try to acquire lock and return immediately, YES if succeeded, NO if not.
+ */
 - (BOOL) tryLock;
+
+/**
+ *  Try to acquire lock and return before limit, YES if succeeded, NO if not.
+ */
 - (BOOL) lockBeforeDate: (NSDate*)limit;
 
+/**
+ *  Block until acquiring lock.
+ */
 - (void) lock;
+
+/**
+ *  Relinquish lock.
+ */
 - (void) unlock;
 
 @end
 
-/*
- * NSConditionLock
- * Allows locking and unlocking to be based upon a condition
+/**
+ *  Lock that allows user to request it only when an internal integer
+ *  condition is equal to a particular value.  The condition is set on
+ *  initialization and whenever the lock is relinquished.
  */
 @interface NSConditionLock : NSObject <NSLocking, GCFinalization>
 {
@@ -73,39 +94,74 @@
   int   _condition_value;
 }
 
-/*
- * Initialize lock with condition
+/**
+ * Initialize lock with given condition.
  */
 - (id) initWithCondition: (int)value;
 
-/*
- * Return the current condition of the lock
+/**
+ * Return the current condition of the lock.
  */
 - (int) condition;
 
 /*
- * Acquiring and release the lock
+ * Acquiring and releasing the lock.
+ */
+
+/**
+ *  Acquire lock when it is available and the internal condition is equal to
+ *  value.  Blocks until this occurs.
  */
 - (void) lockWhenCondition: (int)value;
+
+/**
+ *  Relinquish the lock, setting internal condition to value.
+ */
 - (void) unlockWithCondition: (int)value;
+
+/**
+ *  Try to acquire lock regardless of condition and return immediately, YES if
+ *  succeeded, NO if not.
+ */
 - (BOOL) tryLock;
+
+/**
+ *  Try to acquire lock if condition is equal to value and return immediately
+ *  in any case, YES if succeeded, NO if not.
+ */
 - (BOOL) tryLockWhenCondition: (int)value;
 
 /*
- * Acquiring the lock with a date condition
+ * Acquiring the lock with a date condition.
+ */
+
+/**
+ *  Try to acquire lock and return before limit, YES if succeeded, NO if not.
  */
 - (BOOL) lockBeforeDate: (NSDate*)limit;
+
+/**
+ *  Try to acquire lock, when internal condition is equal to condition_to_meet,
+ *  and return before limit, YES if succeeded, NO if not.
+ */
 - (BOOL) lockWhenCondition: (int)condition_to_meet
                 beforeDate: (NSDate*)limitDate;
 
+/**
+ *  Block until acquiring lock.
+ */
 - (void) lock;
+
+/**
+ *  Relinquish lock.
+ */
 - (void) unlock;
 
 @end
 
-/*
- * NSRecursiveLock
- * Allows the lock to be recursively acquired by the same thread
+
+/**
+ * Allows the lock to be recursively acquired by the same thread.
  *
  * If the same thread locks the mutex (n) times then that same 
  * thread must also unlock it (n) times before another thread 
@@ -117,10 +173,25 @@
   void *_mutex;
 }
 
+/**
+ *  Try to acquire lock regardless of condition and return immediately, YES if
+ *  succeeded, NO if not.
+ */
 - (BOOL) tryLock;
+
+/**
+ *  Try to acquire lock and return before limit, YES if succeeded, NO if not.
+ */
 - (BOOL) lockBeforeDate: (NSDate*)limit;
 
+/**
+ *  Block until acquiring lock.
+ */
 - (void) lock;
+
+/**
+ *  Relinquish lock.
+ */
 - (void) unlock;
 
 @end
@@ -153,11 +224,63 @@
 #define GS_INITIALIZED_LOCK(IDENT,CLASSNAME) \
            (IDENT != nil ? IDENT : [CLASSNAME newLockAt: &IDENT])
 
+/**
+ *  Defines the <code>newLockAt:</code> method.
+ */
 @interface NSLock (GSCategories)
+/**
+ * Initializes the id pointed to by location
+ * with a new instance of the receiver's class
+ * in a thread safe manner, unless
+ * it has been previously initialized.
+ * Returns the contents pointed to by location.  
+ * The location is considered unintialized if it contains nil.
+ * <br/>
+ * This method is used in the GS_INITIALIZED_LOCK macro
+ * to initialize lock variables when it cannot be insured
+ * that they can be initialized in a thread safe environment.
+ * <example>
+ * NSLock *my_lock = nil;
+ *
+ * void function (void)
+ * {
+ *   [GS_INITIALIZED_LOCK(my_lock, NSLock) lock];
+ *   do_work ();
+ *   [my_lock unlock];
+ * }
+ * 
+ * </example>
+ */
 + (id)newLockAt:(id *)location;
 @end
 
+/**
+ *  Defines the <code>newLockAt:</code> method.
+ */
 @interface NSRecursiveLock (GSCategories)
+/**
+ * Initializes the id pointed to by location
+ * with a new instance of the receiver's class
+ * in a thread safe manner, unless
+ * it has been previously initialized.
+ * Returns the contents pointed to by location.  
+ * The location is considered unintialized if it contains nil.
+ * <br/>
+ * This method is used in the GS_INITIALIZED_LOCK macro
+ * to initialize lock variables when it cannot be insured
+ * that they can be initialized in a thread safe environment.
+ * <example>
+ * NSLock *my_lock = nil;
+ *
+ * void function (void)
+ * {
+ *   [GS_INITIALIZED_LOCK(my_lock, NSRecursiveLock) lock];
+ *   do_work ();
+ *   [my_lock unlock];
+ * }
+ * 
+ * </example>
+ */
 + (id)newLockAt:(id *)location;
 @end
 

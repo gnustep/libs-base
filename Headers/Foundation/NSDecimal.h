@@ -50,7 +50,7 @@ typedef enum {
   NSCalculationDivideByZero
 } NSCalculationError;
 
-/*
+/**
  *	Give a precision of at least 38 decimal digits
  *	requires 128 bits.
  */
@@ -59,6 +59,21 @@ typedef enum {
 #define NSDecimalMaxDigit 38
 #define NSDecimalNoScale 128
 
+/**
+ *  <p>Structure providing equivalent functionality, in conjunction with a set
+ *  of functions, to the [NSDecimalNumber] class.</p>
+<example>
+typedef struct {
+  signed char	exponent;   // Signed exponent - -128 to 127
+  BOOL	isNegative;         // Is this negative?
+  BOOL	validNumber;        // Is this a valid number?
+  unsigned char	length;	    // digits in mantissa.
+  unsigned char  cMantissa[2*NSDecimalMaxDigit];
+} NSDecimal;
+</example>
+* <p>Instances can be initialized using the NSDecimalFromString(NSString *)
+* function.</p>
+ */
 typedef struct {
   signed char	exponent;	/* Signed exponent - -128 to 127	*/
   BOOL	isNegative;	/* Is this negative?			*/

@@ -21,10 +21,9 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
-   AutogsdocSource: NSArchiver.m
-   AutogsdocSource: NSUnarchiver.m
-
-   */ 
+   AutogsdocSource:NSUnarchiver.m
+   AutogsdocSource:NSArchiver.m
+*/ 
 
 #ifndef __NSArchiver_h_GNUSTEP_BASE_INCLUDE
 #define __NSArchiver_h_GNUSTEP_BASE_INCLUDE

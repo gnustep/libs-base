@@ -30,24 +30,61 @@
 
 @class NSData, NSMutableData;
 
+/**
+ *  Objects that are not standard property list constituents can adopt this
+ *  protocol to allow themselves to be serialized by an [NSSerializer] and
+ *  deserialized by an [NSDeserializer].  <em>Note, this mechanism has been
+ *  deprecated and you should instead use [NSArchiver] and related facilities
+ *  to serialize objects that are not ordinary property lists.</em>
+ */
 @protocol NSObjCTypeSerializationCallBack
+
+/**
+ *  Decodes an object of given type from data at position cursor.
+ */
 - (void) deserializeObjectAt: (id*)object
 		  ofObjCType: (const char *)type
 		    fromData: (NSData*)data
 		    atCursor: (unsigned*)cursor;
+
+/**
+ *  Encode the given object of given type into data, using a string not a
+ *  binary representation.
+ */
 - (void) serializeObjectAt: (id*)object
 		ofObjCType: (const char *)type
 		  intoData: (NSMutableData*)data;
 @end
 
+/**
+ *  <p><em>This class is deprecated in favor of
+ *  [NSPropertyListSerialization].</em></p>
+ *
+ *  <p>It provides a means of producing a byte-array (actually string)
+ *  representation of a property list (NSArray or NSDictionary plus limited
+ *  contents).</p>
+ */
 @interface NSSerializer: NSObject
+
+/**
+ *  <p>Serialize given property list (NSArray or NSDictionary plus limited
+ *  contents) into byte array.</p>  <p><em>Deprecated in favor of
+ *  [NSPropertyListSerialization+dataFromPropertyList:format:errorDescription:].</em></p>
+ */
 + (NSData*) serializePropertyList: (id)propertyList;
+
+/**
+ *  <p>Serialize given property list (NSArray or NSDictionary plus limited
+ *  contents) into given mutable byte array.</p>  <p><em>Deprecated in favor of
+ *  [NSPropertyListSerialization+dataFromPropertyList:format:errorDescription:].</em></p>
+
+ */
 + (void) serializePropertyList: (id)propertyList
 		      intoData: (NSMutableData*)d;
 @end
 
 #ifndef	NO_GNUSTEP
-/*
+/**
  *	GNUstep extends serialization by having the option to make the
  *	resulting data more compact by ensuring that repeated strings
  *	are only stored once.  If the property-list has a lot of repeated
@@ -60,19 +97,56 @@
  *	override the default behavior.
  */
 @interface NSSerializer (GNUstep)
+
+/**
+ *  Specify whether to produce compacted format, with repeated strings only
+ *  written once.
+ */
 + (void) shouldBeCompact: (BOOL)flag;
+
+/**
+ *  As [NSSerializer+serializePropertyList:intoData:] but specify whether to
+ *  produce compacted format.
+ */
 + (void) serializePropertyList: (id)propertyList
 		      intoData: (NSMutableData*)d
 		       compact: (BOOL)flag;
 @end
 #endif
 
+/**
+ *  <em>This class is deprecated in favor of
+ *  [NSPropertyListSerialization].</em> It provides a means of recovering a
+ *  property list (NSArray or NSDictionary plus limited contents) from a
+ *  byte-array (actually string) representation.
+ */
 @interface NSDeserializer: NSObject
+
+/**
+ *  Recover a property list (NSArray or NSDictionary plus limited
+ *  contents) from a byte array.  <em>Deprecated in favor of
+ *  [NSPropertyListSerialization+propertyListFromData:mutabilityOption:format:errorDescription:].</em>
+ */
 + (id) deserializePropertyListFromData: (NSData*)data
 			      atCursor: (unsigned int*)cursor
 		     mutableContainers: (BOOL)flag;
+
+/**
+ *  Recover a property list (NSArray or NSDictionary plus limited
+ *  contents) from a byte array.  <em>Deprecated in favor of
+ *  [NSPropertyListSerialization+propertyListFromData:mutabilityOption:format:errorDescription:].</em>
+ */
 + (id) deserializePropertyListFromData: (NSData*)data
 		     mutableContainers: (BOOL)flag;
+
+/**
+ *  Recover a property list (NSArray or NSDictionary plus limited contents)
+ *  from a byte array.  If the data at cursor has a length greater than
+ *  length, a proxy is substituted for the actual property list as long as the
+ *  constituent objects of that property list are not accessed.
+ *  <em>Deprecated in favor of
+ *  [NSPropertyListSerialization+propertyListFromData:mutabilityOption:format:errorDescription:].</em>
+ */
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
 				    atCursor: (unsigned*)cursor
 				      length: (unsigned)length
@@ -81,21 +155,24 @@
 @end
 
 #ifndef	NO_GNUSTEP
-/*
- *	GNUstep extends deserialization by having the option to make the
+/**
+ *	<p>GNUstep extends deserialization by having the option to make the
  *	resulting data more compact by ensuring that repeated strings
  *	are only stored once.  If the property-list has a lot of repeated
  *	strings in it, this will be more space efficient but it will be
  *	slower (though other parts of your code may speed up through more
  *	efficient equality testing of uniqued strings).
- *	The default is NOT to deserialize uniqued strings.
+ *	The default is NOT to deserialize uniqued strings.</p>
  *
- *	The [+uniquing:] method turns uniquing on/off.
- *	Uniquing is done using a global NSCountedSet - see NSCountedSet for
- *	details.
+ *	<p>The [+uniquing:] method turns uniquing on/off.
+ *	Uniquing is done using a global [NSCountedSet] - see its documentation
+ *	for details.</p>
  */
-@class	NSMutableSet;
 @interface NSDeserializer (GNUstep)
+/**
+ * Turns uniquing (collapsing of multiple instances of a single string in the
+ * output to one full copy plus references) on/off.
+ */
 + (void) uniquing: (BOOL)flag;
 @end
 

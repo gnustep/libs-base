@@ -81,7 +81,7 @@ typedef struct _NSMapTableKeyCallBacks
 
   /**
    * Description function. Generates a string describing the key
-   * and does not modify the key itsself.
+   * and does not modify the key itself.
    */ 
   NSString *(*describe)(NSMapTable *, const void *);
 
@@ -115,7 +115,7 @@ struct _NSMapTableValueCallBacks
 
   /**
    * Description function. Generates a string describing the element
-   * and does not modify the element itsself.
+   * and does not modify the element itself.
    */ 
   NSString *(*describe)(NSMapTable *, const void *);
 };

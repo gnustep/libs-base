@@ -47,25 +47,32 @@ typedef void* NSHashTable;
  */
 typedef struct { void *map; void *node; size_t bucket; } NSHashEnumerator;
 
-/** Callback functions. <br />*/
+/** Callback functions for an NSHashTable.  See NSCreateHashTable() . <br />*/
 typedef struct _NSHashTableCallBacks
 {
-  /** hash ... Hashing function. NOTE: Elements with equal values must have
-   * equal hash function values. <br />*/
+  /** <code>unsigned int (*hash)(NSHashTable *, const void *)</code> ...
+   *  Hashing function.  NOTE: Elements with equal values must have equal hash
+   *  function values.  The default if NULL uses the pointer addresses
+   *  directly. <br/>*/
   unsigned int (*hash)(NSHashTable *, const void *);
 
-  /** isEqual ... Comparison function. <br />*/
+  /** <code>BOOL (*isEqual)(NSHashTable *, const void *, const void *)</code>
+   *  ... Comparison function.  The default if NULL uses '<code>==</code>'.
+   *  <br/>*/
   BOOL (*isEqual)(NSHashTable *, const void *, const void *);
 
-  /** retain ... Retaining function called when adding elements
-   * to the table. <br />*/
+  /** <code>void (*retain)(NSHashTable *, const void *)</code> ...
+   *  Retaining function called when adding elements to the table.
+   *  The default if NULL is a no-op (no reference counting). <br/> */
   void (*retain)(NSHashTable *, const void *);
 
-  /** release ... Releasing function called when a data element is
-   * removed from the table. <br />*/
+  /** <code>void (*release)(NSHashTable *, void *)</code> ... Releasing
+   *  function called when a data element is removed from the table.
+   *  The default if NULL is a no-op (no reference counting).<br/>*/
   void (*release)(NSHashTable *, void *);
 
-  /** describe ... Description function. <br />*/
+  /** <code>NSString *(*describe)(NSHashTable *, const void *)</code> ...
+   *  Description function.  The default if NULL prints boilerplate. <br /> */
   NSString *(*describe)(NSHashTable *, const void *);
 } NSHashTableCallBacks;
 

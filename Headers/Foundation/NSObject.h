@@ -140,13 +140,33 @@
  * to remote processes via the Distributed Objects mechanism.
  */
 @protocol NSCoding
+
+/**
+ * Called when it is time for receiver to be serialized for writing to an
+ * archive or network connection.  Receiver should record all of its instance
+ * variables using methods on aCoder.  See documentation for [NSCoder],
+ * [NSArchiver], [NSKeyedArchiver], and/or [NSPortCoder] for more information.
+ */
 - (void) encodeWithCoder: (NSCoder*)aCoder;
+
+/**
+ * Called on a freshly allocated receiver when it is time to reconstitute from
+ * serialized bytes in an archive or from a network connection.  Receiver
+ * should load all of its instance variables using methods on aCoder.  See
+ * documentation for [NSCoder], [NSUnarchiver], [NSKeyedUnarchiver], and/or
+ * [NSPortCoder] for more information.
+ */
 - (id) initWithCoder: (NSCoder*)aDecoder;
 @end
 
 
 @interface NSObject <NSObject>
 {
+ /**
+  * Points to instance's class.  Used by runtime to access method
+  * implementations, etc..  Set in +alloc, Unlike other instance variables,
+  * which are cleared there.
+  */
   Class isa;
 }
 
@@ -260,6 +280,11 @@ NSExtraRefCount(id anObject);
 GS_EXPORT void
 NSIncrementExtraRefCount(id anObject);
 
+/**
+ * Contains values <code>NSOrderedSame</code>, <code>NSOrderedAscending</code>
+ * <code>NSOrderedDescending</code>, for left hand side equals, less than, or
+ * greater than right hand side.
+ */
 typedef enum _NSComparisonResult 
 {
   NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending
@@ -291,11 +316,38 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (id) write: (TypedStream*)aStream;
 @end
 
+/**
+ * Provides a number of GNUstep-specific methods that are used to aid
+ * implementation of the Base library.
+ */
 @interface NSObject (GSCategories)
+
+/**
+ * Message sent when an implementation wants to explicitly exclude a method
+ * (but cannot due to compiler constraint), and wants to make sure it is not
+ * called by mistake.  Default implementation raises an exception at runtime.
+ */
 - notImplemented:(SEL)aSel;
+
+/**
+ * Message sent when an implementation wants to explicitly require a subclass
+ * to implement a method (but cannot at compile time since there is no
+ * <code>abstract</code> keyword in Objective-C).  Default implementation
+ * raises an exception at runtime to alert developer that he/she forgot to
+ * override a method.
+ */
 - (id) subclassResponsibility: (SEL)aSel;
+
+/**
+ * Message sent when an implementation wants to explicitly exclude a method
+ * (but cannot due to compiler constraint) and forbid that subclasses
+ * implement it.  Default implementation raises an exception at runtime.  If a
+ * subclass <em>does</em> implement this method, however, the superclass's
+ * implementation will not be called, so this is not a perfect mechanism.
+ */
 - (id) shouldNotImplement: (SEL)aSel;
-/*
+
+/**
   WARNING: The -compare: method for NSObject is deprecated
            due to subclasses declaring the same selector with
            conflicting signatures.
@@ -310,23 +362,53 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 #endif
 
-/*
+/**
  *	Protocol for garbage collection finalization - same as libFoundation
  *	for compatibility.
  */
 @protocol       GCFinalization
+/**
+ *  Called before receiver is deallocated by garbage collector.  If you want
+ *  to do anything special before [NSObject -dealloc] is called, do it here.
+ */
 - (void) gcFinalize;
 @end
 
 #include <Foundation/NSDate.h>
+/**
+ *  Declares some methods for sending messages to self after a fixed delay.
+ *  (These methods <em>are</em> in OpenStep and OS X.)
+ */
 @interface NSObject (TimedPerformers)
+
+/**
+ * Cancels any perform operations set up for the specified target
+ * in the current run loop.
+ */
 + (void) cancelPreviousPerformRequestsWithTarget: (id)obj;
+
+/**
+ * Cancels any perform operations set up for the specified target
+ * in the current loop, but only if the value of aSelector and argument
+ * with which the performs were set up match those supplied.<br />
+ * Matching of the argument may be either by pointer equality or by
+ * use of the [NSObject-isEqual:] method.
+ */
 + (void) cancelPreviousPerformRequestsWithTarget: (id)obj
 					selector: (SEL)s
 					  object: (id)arg;
+/**
+ * Sets given message to be sent to this instance after given delay,
+ * in any run loop mode.  See [NSRunLoop].
+ */
 - (void) performSelector: (SEL)s
 	      withObject: (id)arg
 	      afterDelay: (NSTimeInterval)seconds;
+
+/**
+ * Sets given message to be sent to this instance after given delay,
+ * in given run loop modes.  See [NSRunLoop].
+ */
 - (void) performSelector: (SEL)s
 	      withObject: (id)arg
 	      afterDelay: (NSTimeInterval)seconds

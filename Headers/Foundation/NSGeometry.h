@@ -46,7 +46,12 @@
 #define	GS_DEFINED_MIN
 #endif
 
-/* Point definition. */
+/**
+<example>{
+  float x;
+  float y;
+}</example>
+ <p>Represents a 2-d cartesian position.</p> */
 typedef struct _NSPoint NSPoint;
 struct _NSPoint
 {
@@ -55,11 +60,17 @@ struct _NSPoint
 };
 
 #ifndef STRICT_OPENSTEP
+/** Array of NSPoint structs. */
 typedef NSPoint *NSPointArray;
 typedef NSPoint *NSPointPointer;
 #endif
 
-/* Rectangle sizes. */
+/**
+<example>{
+  float width;
+  float height;
+}</example>
+ <p>Floating point rectangle size.</p> */
 typedef struct _NSSize NSSize;
 struct _NSSize
 {
@@ -72,7 +83,13 @@ typedef NSSize *NSSizeArray;
 typedef NSSize *NSSizePointer;
 #endif
 
-/* Rectangle. */
+/**
+<example>{
+  NSPoint origin;
+  NSSize size;
+}</example>
+
+ <p>Rectangle.</p> */
 typedef struct _NSRect NSRect;
 struct _NSRect
 {
@@ -81,6 +98,7 @@ struct _NSRect
 };
 
 #ifndef STRICT_OPENSTEP
+/** Array of NSPoint structs. */
 typedef NSRect *NSRectArray;
 typedef NSRect *NSRectPointer;
 #endif
@@ -95,8 +113,11 @@ enum _NSRectEdge
   NSMaxYEdge
 };
 
+/** Point at 0,0 */
 static const NSPoint NSZeroPoint __attribute__((unused));  /* Zero point. */
+/** Zero-size rectangle at 0,0 */
 static const NSRect NSZeroRect __attribute__((unused));    /* Zero rectangle. */
+/** Zero size */
 static const NSSize NSZeroSize __attribute__((unused));    /* Zero size. */
 
 /**** Function Prototypes ****************************************************/

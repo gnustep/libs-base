@@ -27,6 +27,7 @@
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSData.h>
 
+//PENDING: may want to make these less likely to conflict
 #define UNICODE_SIZE	65536
 #define BITMAP_SIZE	UNICODE_SIZE/8
 
@@ -36,20 +37,35 @@
 #define ISSET(a,i)      ((((a) & (1<<(i)))) > 0) ? YES : NO;
 #endif
 
+/**
+ *  An [NSCharacterSet] that stores the set of unicode characters in it as a
+ *  simple bitmap.  Implementation is very efficient.
+ */
 @interface NSBitmapCharSet : NSCharacterSet
 {
   char _data[BITMAP_SIZE];
 }
 
+/**
+ *  Init directly with bitmap data.  bitmap should be <code>BITMAP_SIZE</code>
+ *  long, which is currently 2^16 / 8.
+ */
 - (id) initWithBitmap: (NSData*)bitmap;
 
 @end
 
+/**
+ *  Mutable version of [NSBitmapCharSet].
+ */
 @interface NSMutableBitmapCharSet : NSMutableCharacterSet
 {
   char _data[BITMAP_SIZE];
 }
 
+/**
+ *  Init directly with bitmap data.  bitmap should be <code>BITMAP_SIZE</code>
+ *  long, which is currently 2^16 / 8.
+ */
 - (id) initWithBitmap: (NSData*)bitmap;
 
 @end

@@ -76,12 +76,138 @@ typedef enum {
 /**
  * <p>The NSPropertyListSerialization class provides facilities for
  * serialising and deserializing property list data in a number of
- * formats.
- * </p>
+ * formats.  A property list is roughly an [NSArray] or [NSDictionary] object,
+ * with these or [NSNumber], [NSData], [NSString], or [NSDate] objects
+ * as members.  (See below.)</p>
  * <p>You do not work with instances of this class, instead you use a
- * small number of claass methods to serialized and deserialize
+ * small number of class methods to serialize and deserialize
  * property lists.
- * </p>
+ * </p><br/>
+ * A <em>property list</em> may only be one of the following classes - 
+ * <deflist>
+ *   <term>[NSArray]</term>
+ *   <desc>
+ *     An array which is either empty or contains only <em>property list</em>
+ *     objects.<br />
+ *     An array is delimited by round brackets and its contents are comma
+ *     <em>separated</em> (there is no comma after the last array element).
+ *     <example>
+ *       ( "one", "two", "three" )
+ *     </example>
+ *     In XML format, an array is an element whose name is <code>array</code>
+ *     and whose content is the array content.
+ *     <example>
+ *       &lt;array&gt;&lt;string&gt;one&lt;/string&gt;&lt;string&gt;two&lt;/string&gt;&lt;string&gt;three&lt;/string&gt;&lt;/array&gt;
+ *     </example>
+ *   </desc>
+ *   <term>[NSData]</term>
+ *   <desc>
+ *     An array is represented as a series of pairs of hexadecimal characters
+ *     (each pair representing a byte of data) enclosed in angle brackets.
+ *     Spaces are ignored).
+ *     <example>
+ *       &lt; 54637374 696D67 &gt;
+ *     </example>
+ *     In XML format, a data object is an element whose name is
+ *     <code>data</code> and whose content is a stream of base64 encoded bytes.
+ *   </desc>
+ *   <term>[NSDate]</term>
+ *   <desc>
+ *     Date objects were not traditionally allowed in <em>property lists</em>
+ *     but were added when the XML format was introduced.  GNUstep provides
+ *     an extension to the traditional <em>property list</em> format to
+ *     support date objects, but older code will not read
+ *     <em>property lists</em> containing this extension.<br />
+ *     This format consists of an asterisk follwed by the letter 'D' then a
+ *     date/time in YYYY-MM-DD HH:MM:SS +/-ZZZZ format, all enclosed within
+ *     angle brackets.
+ *     <example>
+ *       &lt;*D2002-03-22 11:30:00 +0100&gt;
+ *     </example>
+ *     In XML format, a date object is an element whose name is
+ *     <code>date</code> and whose content is a date in the above format.
+ *     <example>
+ *       &lt;date&gt;2002-03-22 11:30:00 +0100&lt;/date&gt;
+ *     </example>
+ *   </desc>
+ *   <term>[NSDictionary]</term>
+ *   <desc>
+ *     A dictionary which is either empty or contains only <em>string</em>
+ *     keys and <em>property list</em> objects.<br />
+ *     A dictionary is delimited by curly brackets and its contents are
+ *     semicolon <em>terminated</em> (there is a semicolon after each value).
+ *     Each item in the dictionary is a key/value pair with an equals sign
+ *     after the key and before the value.
+ *     <example>
+ *       {
+ *         "key1" = "value1";
+ *       }
+ *     </example>
+ *     In XML format, a dictionary is an element whose name is
+ *     <code>dictionary</code> and whose content consists of pairs of
+ *     strings and other <em>property list</em> objects.
+ *     <example>
+ *       &lt;dictionary&gt;
+ *         &lt;string&gt;key1&lt;/string&gt;
+ *         &lt;string&gt;value1&lt;/string&gt;
+ *       &lt;/dictionary&gt;
+ *     </example>
+ *   </desc>
+ *   <term>[NSNumber]</term>
+ *   <desc>
+ *     Number objects were not traditionally allowed in <em>property lists</em>
+ *     but were added when the XML format was intoroduced.  GNUstep provides
+ *     an extension to the traditional <em>property list</em> format to
+ *     support number objects, but older code will not read
+ *     <em>property lists</em> containing this extension.<br />
+ *     Numbers are stored in a variety of formats depending on their values.
+ *     <list>
+ *       <item>boolean ... either <code>&lt;*BY&gt;</code> for YES or
+ *         <code>&lt;*BN&gt;</code> for NO.<br />
+ *         In XML format this is either <code>&lt;true /&gt;</code> or
+ *         <code>&lt;false /&gt;</code>
+ *       </item>
+ *       <item>integer ... <code>&lt;*INNN&gt;</code> where NNN is an
+ *         integer.<br />
+ *         In XML format this is <code>&lt;integer&gt;NNN&lt;integer&gt;</code>
+ *       </item>
+ *       <item>real ... <code>&lt;*RNNN&gt;</code> where NNN is a real
+ *         number.<br />
+ *         In XML format this is <code>&lt;real&gt;NNN&lt;real&gt;</code>
+ *       </item>
+ *     </list>
+ *   </desc>
+ *   <term>[NSString]</term>
+ *   <desc>
+ *     A string is either stored literally (if it contains no spaces or special
+ *     characters), or is stored as a quoted string with special characters
+ *     escaped where necessary.<br />
+ *     Escape conventions are similar to those normally used in ObjectiveC
+ *     programming, using a backslash followed by -
+ *     <list>
+ *      <item><strong>\</strong> a backslash character</item>
+ *      <item><strong>"</strong> a quote character</item>
+ *      <item><strong>b</strong> a backspace character</item>
+ *      <item><strong>n</strong> a newline character</item>
+ *      <item><strong>r</strong> a carriage return character</item>
+ *      <item><strong>t</strong> a tab character</item>
+ *      <item><strong>OOO</strong> (three octal digits)
+ *	  an arbitrary ascii character</item>
+ *      <item><strong>UXXXX</strong> (where X is a hexadecimal digit)
+ *	  a an arbitrary unicode character</item>
+ *     </list>
+ *     <example>
+ *       "hello world &amp; others"
+ *     </example>
+ *     In XML format, the string is simply stored in UTF8 format as the
+ *     content of a <code>string</code> element, and the only character
+ *     escapes  required are those used by XML such as the
+ *     '&amp;lt;' markup representing a '&lt;' character.
+ *     <example>
+ *       &lt;string&gt;hello world &amp;amp; others&lt;/string&gt;"
+ *     </example>
+ *   </desc>
+ * </deflist>
  */
 @interface NSPropertyListSerialization : NSObject
 {
@@ -108,7 +234,7 @@ typedef enum {
  * Deserialises dataItem and returns the resulting property list
  * (or nil if the data does not contain a property list serialised
  * in a supported format).<br />
- * The argument anOption is ised to control whether the objects making
+ * The argument anOption is used to control whether the objects making
  * up the deserialized property list are mutable or not.<br />
  * The argument aFormat is either null or a pointer to a location
  * in which the format of the serialized property list will be returned.<br />

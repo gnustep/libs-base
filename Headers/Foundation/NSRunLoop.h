@@ -130,7 +130,7 @@ typedef	enum {
  * These are general purpose methods for letting objects ask
  * the runloop to watch for events for them.  Only one object
  * at a time may be watching for a particular event in a mode, but
- * that object may add itsself as a watcher many times as long as
+ * that object may add itself as a watcher many times as long as
  * each addition is matched by a removal (the run loop keeps count).
  * Alternatively, the 'removeAll' parameter may be set to 'YES' for
  * [-removeEvent:type:forMode:all:] in order to remove the watcher
@@ -165,9 +165,13 @@ typedef	enum {
 		 all: (BOOL)removeAll;
 @end
 
-/* xxx This interface will probably change. */
+/**
+ * Defines implementation-helper method -getFds:count:.
+ * <strong>This interface will probably change.  Do not rely on it.</strong>
+ */
+// xxx This interface will probably change.
 @interface NSObject (OptionalPortRunLoop)
-/* If a InPort object responds to this, it is sent just before we are
+/** If a InPort object responds to this, it is sent just before we are
    about to wait listening for input.
    This interface will probably change. */
 - (void) getFds: (int*)fds count: (int*)count;

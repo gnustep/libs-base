@@ -58,7 +58,7 @@ typedef enum
 
 /**
  * A protocol to which clients of a handle must conform in order to
- * rfeceive notification of events on the handle.
+ * receive notification of events on the handle.
  */
 @protocol NSURLHandleClient
 /**

@@ -146,22 +146,41 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 @end
 
 
-/*
- *	This catagory contains legacy methods from the original GNU 'Connection'
- *	class, and useful extensions to NSConnection.
+/**
+ *	This category contains legacy methods from the original GNU 'Connection'
+ *	class, and useful extensions to [NSConnection].
  */
 @interface NSConnection (GNUstepExtensions) <GCFinalization>
 
+/**
+ *  Alternative convenience constructor, not specified in OpenStep, where you
+ *  registe root anObject under given name in one step.
+ */
 + (NSConnection*) newRegisteringAtName: (NSString*)name
 			withRootObject: (id)anObject;
 
+/**
+ * Performs local and remote cleanup.
+ */
 - (void) gcFinalize;
 
+/**
+ * [NSDistantObject -forward::] calls this to send the message over the wire.
+ */
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
 		    selector: (SEL)sel 
 		    argFrame: (arglist_t)argframe;
+
+/**
+ * [NSDistantObject -forwardInvocation:] calls this to send the message over
+ * the wire.
+ */
 - (void) forwardInvocation: (NSInvocation *)inv 
 		  forProxy: (NSDistantObject*)object;
+
+/**
+ *  Returns type code (@encode()-compatible) for given remote method.
+ */
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 
 @end
@@ -169,8 +188,8 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 
 @interface Object (NSConnectionDelegate)
-/*
- *	This method may be used to ask a delegates permission to create
+/**
+ *	This method may be used to ask a delegate's permission to create
  *	a new connection from the old one.
  *	This method should be implemented in preference to the
  *	[makeNewConnection:sender:] which is obsolete.
@@ -178,7 +197,7 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 - (BOOL) connection: (NSConnection*)parent
   shouldMakeNewConnection: (NSConnection*)newConnection;
 
-/*
+/**
  *	This is the old way of doing the same thing as
  *	[connection:shouldMakeNewConnection:]
  *	It is obsolete - don't use it.
@@ -186,7 +205,7 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 - (BOOL) makeNewConnection: (NSConnection*)newConnection
 		    sender: (NSConnection*)parent;
 
-/*
+/**
  *	If the delegate responds to this method, it will be used to ask the
  *	delegate's permission to establish a new connection from the old one.
  *	Often this is used so that the delegate can register for invalidation 
@@ -197,20 +216,29 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 - (NSConnection*) connection: (NSConnection*)ancestorConn
 		  didConnect: (NSConnection*)newConn;
 
-/*
+/**
  * These are like the MacOS-X delegate methods, except that we provide the
  * components in mutable arrays, so that the delegate can alter the data
  * items in the array.  Of course, you must do that WITH CARE.
  */ 
 - (BOOL) authenticateComponents: (NSMutableArray*)components
 		       withData: (NSData*)authenticationData;
+
+/**
+ * These are like the MacOS-X delegate methods, except that we provide the
+ * components in mutable arrays, so that the delegate can alter the data
+ * items in the array.  Of course, you must do that WITH CARE.
+ */ 
 - (NSData*) authenticationDataForComponents: (NSMutableArray*)components;
 
 @end
 
+/**
+ * This informal protocol allows an object to control the details of how an
+ * object is sent over the wire in distributed objects Port communications.
+ */
 @interface Object (NSPortCoder)
-- (Class) classForPortCoder;
-/*
+/**
  *	Must return the class that will be created on the remote side
  *	of the connection.  If the class to be created is not the same
  *	as that of the object returned by replacementObjectForPortCoder:
@@ -221,14 +249,16 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
  *	class is returned.  To force bycopy operation the object should
  *	return its own class.
  */
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
-/*
+- (Class) classForPortCoder;
+
+/**
  *	This message is sent to an object about to be encoded for sending
  *	over the wire.  The default action is to return an NSDistantObject
  *	which is a local proxy for the object unless the object is being
  *	sent bycopy, in which case the actual object is returned.
- *	To force bycopy, an object should return itsself.
+ *	To force bycopy, an object should return itself.
  */
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
 
 @end
 
