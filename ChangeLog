@@ -1,4 +1,4 @@
-1999-02-08  Adam Fedor  <fedor@penitente>
+1999-02-08  Adam Fedor  <fedor@gnu.org>
 
 	* Source/include/fake-main.h: Leave off __ELF__, only use
 	autoload of init method if SYS_AUTOLOAD.
