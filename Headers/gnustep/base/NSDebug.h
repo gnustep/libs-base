@@ -78,11 +78,15 @@ extern	const char*	GSDebugAllocationList(BOOL changeFlag);
 #ifdef DEBUG
 #include	<Foundation/NSDebug.h>
 #include	<Foundation/NSProcessInfo.h>
-#define NSDebugLog(level, format, args...) \
+#define NSDebugLLog(level, format, args...) \
   do { if ([[[NSProcessInfo processInfo] debugArray] containsObject: level]) \
     NSLog(format, ## args); } while (0)
+#define NSDebugLog(format, args...) \
+  do { if ([[[NSProcessInfo processInfo] debugArray] containsObject: @"dflt"]) \
+    NSLog(format, ## args); } while (0)
 #else
-#define NSDebugLog(level, format, args...)
+#define NSDebugLLog(level, format, args...)
+#define NSDebugLog(format, args...)
 #endif
 
 #endif
