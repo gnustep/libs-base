@@ -33,17 +33,6 @@
 
 #define LIST_GROW_FACTOR 2
 
-#if !defined(NX_MALLOC)
-#define NX_MALLOC(VAR,TYPE,NUM ) \
-  ((VAR) = (TYPE *) malloc((unsigned)(NUM)*sizeof(TYPE)))
-#endif
-#if !defined(NX_REALLOC)
-#define NX_REALLOC(VAR,TYPE,NUM ) \
-  ((VAR) = (TYPE *) realloc((VAR), (unsigned)(NUM)*sizeof(TYPE)))
-#endif
-#if !defined(NX_FREE)
-#define NX_FREE(VAR) free(VAR)
-#endif
 
 /* memcpy() is a gcc builtin */
 

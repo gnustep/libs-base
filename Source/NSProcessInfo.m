@@ -56,6 +56,7 @@
 
 /* One of these two should have MAXHOSTNAMELEN */
 #ifndef __WIN32__
+#include <unistd.h>
 #include <sys/param.h>
 #include <netdb.h>
 #endif /* !__WIN32__ */

@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
+#include <gnustep/base/behavior.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/CoderPrivate.h>
 #include <gnustep/base/MemoryStream.h>

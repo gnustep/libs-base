@@ -22,6 +22,7 @@
    */ 
 
 #include <config.h>
+#include <objc/objc-api.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPathUtilities.h>
@@ -94,7 +95,7 @@ NSHomeDirectoryForUser (NSString *login_name)
   if (n > 1024)
     {
       /* Buffer not big enough, so dynamically allocate it */
-      nb = (char *)malloc(sizeof(char)*(n+1));
+      nb = (char *)objc_malloc(sizeof(char)*(n+1));
       n = GetEnvironmentVariable("HOMEPATH", nb, n+1);
       nb[n] = '\0';
       s = [NSString stringWithCString: nb];

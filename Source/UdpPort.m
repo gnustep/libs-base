@@ -32,6 +32,7 @@
 #include <gnustep/base/Array.h>
 #include <assert.h>
 #ifndef __WIN32__
+#include <unistd.h>
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #endif /* !__WIN32__ */
 #if _AIX

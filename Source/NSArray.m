@@ -23,6 +23,7 @@
    */
 
 #include <config.h>
+#include <gnustep/base/behavior.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGArray.h>
@@ -393,7 +394,7 @@ static Class NSMutableArray_concrete_class;
   return [self descriptionWithIndent: 0];
 }
 
-- (NSString*) descriptionWithIndent: (int)level
+- (NSString*) descriptionWithIndent: (unsigned)level
 {
   id string;
   id desc;

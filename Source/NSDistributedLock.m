@@ -22,6 +22,7 @@
    */
 
 #include <config.h>
+#include <string.h>
 #include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSException.h>

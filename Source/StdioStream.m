@@ -30,6 +30,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSDebug.h>
 #include <stdarg.h>
+#include <string.h>
 #include <unistd.h>   /* SEEK_* on SunOS 4 */
 
 #ifdef __WIN32__

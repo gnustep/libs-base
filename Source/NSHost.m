@@ -34,6 +34,7 @@
 #ifdef WIN32
 #include <Windows32/Sockets.h>
 #else
+#include <unistd.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
