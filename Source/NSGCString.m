@@ -47,8 +47,7 @@
 - (unsigned) hash
 {
   if (_hash == 0)
-    if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
-      _hash = 0xffffffff;
+    _hash = _fastImp._NSString_hash(self, @selector(hash));
   return _hash;
 }
 
@@ -116,7 +115,6 @@
 
 - initWithCoder: aCoder
 {
-  [super initWithCoder:aCoder];
   [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
   _count = strlen(_contents_chars);
@@ -270,20 +268,22 @@
       if (_count != other->_count)
 	return NO;
       if (_hash == 0)
-         if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
-           _hash = 0xffffffff;
+         _hash = _fastImp._NSString_hash(self, @selector(hash));
       if (other->_hash == 0)
-         _fastImp._NSGString_hash(other, @selector(hash));
+         other->_hash = _fastImp._NSString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
       return YES;
     }
-  else if ([c isKindOfClass: [NSString class]])
-    return [super isEqualToString: (NSString*)anObject];
+  else if (c == nil)
+    return NO;
+  else if (fastClassIsKindOfClass(c, _fastCls._NSString))
+    return _fastImp._NSString_isEqualToString_(self,
+		@selector(isEqualToString:), anObject);
   else
-    return [super isEqual: anObject];
+    return NO;
 }
 
 - (BOOL) isEqualToString: (NSString*)aString
@@ -302,18 +302,22 @@
       if (_count != other->_count)
 	return NO;
       if (_hash == 0)
-        if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
-          _hash = 0xffffffff;
+        _hash = _fastImp._NSString_hash(self, @selector(hash));
       if (other->_hash == 0)
-         _fastImp._NSGString_hash(other, @selector(hash));
+         other->_hash = _fastImp._NSString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
       return YES;
     }
+  else if (c == nil)
+    return NO;
+  else if (fastClassIsKindOfClass(c, _fastCls._NSString))
+    return _fastImp._NSString_isEqualToString_(self,
+		@selector(isEqualToString:), aString);
   else
-    return [super isEqualToString: aString];
+    return NO;
 }
 
 

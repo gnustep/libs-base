@@ -47,19 +47,22 @@ void	_fastBuildCache()
   /*
    *	Cache some classes for quick access later.
    */
+
   _fastCls._NSString = [NSString class];
   _fastCls._NSGString = [NSGString class];
   _fastCls._NSGMutableString = [NSGMutableString class];
   _fastCls._NSGCString = [NSGCString class];
   _fastCls._NSGMutableCString = [NSGMutableCString class];
   _fastCls._NXConstantString = [NXConstantString class];
+
   /*
    *	Cache some method implementations for quick access later.
    */
+
   _fastImp._NSString_hash = (unsigned (*)())[_fastCls._NSString
 	    instanceMethodForSelector: @selector(hash)];
-  _fastImp._NSGString_hash = (unsigned (*)())[_fastCls._NSGString
-	    instanceMethodForSelector: @selector(hash)];
+  _fastImp._NSString_isEqualToString_ = (BOOL (*)())[_fastCls._NSString
+	    instanceMethodForSelector: @selector(isEqualToString:)];
   _fastImp._NSGString_isEqual_ = (BOOL (*)())[_fastCls._NSGString
 	    instanceMethodForSelector: @selector(isEqual:)];
   _fastImp._NSGCString_isEqual_ = (BOOL (*)())[_fastCls._NSGCString

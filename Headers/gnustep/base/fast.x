@@ -92,7 +92,7 @@ typedef struct {
      *	String implementations.
      */
     unsigned		(*_NSString_hash)();
-    unsigned		(*_NSGString_hash)();
+    BOOL		(*_NSString_isEqualToString_)();
     BOOL		(*_NSGString_isEqual_)();
     BOOL		(*_NSGCString_isEqual_)();
 } fastImp;

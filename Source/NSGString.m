@@ -57,8 +57,7 @@
 - (unsigned) hash
 {
   if (_hash == 0)
-    if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
-      _hash = 0xffffffff;
+    _hash = _fastImp._NSString_hash(self, @selector(hash));
   return _hash;
 }
 
@@ -70,20 +69,28 @@
   if (anObject == nil)
     return NO;
   c = fastClassOfInstance(anObject);
-  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString ||
+      c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString ||
+      c == _fastCls._NXConstantString)
     {
       NSGString	*other = (NSGString*)anObject;
 
       if (_hash == 0)
-        _fastImp._NSGString_hash(self, @selector(hash));
+        _hash = _fastImp._NSString_hash(self, @selector(hash));
       if (other->_hash == 0)
-        _fastImp._NSGString_hash(other, @selector(hash));
+        other->_hash = _fastImp._NSString_hash(other, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
-      return [self isEqualToString: other];
+      return _fastImp._NSString_isEqualToString_(self,
+		@selector(isEqualToString:), other);
     }
+  else if (c == nil)
+    return NO;
+  else if (fastClassIsKindOfClass(c, _fastCls._NSString))
+    return _fastImp._NSString_isEqualToString_(self,
+		@selector(isEqualToString:), anObject);
   else
-    return [super isEqual: anObject];
+    return NO;
 }
 
 // Initializing Newly Allocated Strings
@@ -231,7 +238,6 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [super encodeWithCoder:aCoder];  // *** added this
   [aCoder encodeValueOfObjCType:@encode(int) at:&_count
  	  withName:@"Concrete String count"];
   [aCoder encodeArrayOfObjCType:@encode(unichar)
@@ -242,7 +248,6 @@
 
 - initWithCoder: aCoder
 {
-  [super initWithCoder:aCoder];
   [aCoder decodeValueOfObjCType:@encode(int) at:&_count
   	  withName:NULL];
   OBJC_MALLOC(_contents_chars, unichar, _count+1);

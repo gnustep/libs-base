@@ -27,8 +27,12 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 
-/* NSGCString and NSGMutableCString must have the same initial ivar layout
-   because of class_add_behavior() in NSGMutableCString's +initialize. */
+/*
+ *	NSGCString and NSGMutableCString must have the same initial ivar layout
+ *	because of class_add_behavior() in NSGMutableCString's +initialize
+ *	and because the various string classes (and NSGDictionary) examine and
+ *	set each others _hash ivar directly for performance reasons!
+ */
 
 @interface NSGCString : NSString
 {
