@@ -47,8 +47,11 @@
 #include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSRange.h>
+#include <Foundation/NSDebug.h>
 #include <base/NSGArray.h>
 #include <base/fast.x>
+
+#define		SANITY_CHECKS	0
 
 @interface	GSAttrInfo : NSObject
 {
@@ -76,6 +79,12 @@
 {
   RELEASE(attrs);
   NSDeallocateObject(self);
+}
+
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"Attributes at %u are - %@",
+    loc, attrs];
 }
 
 - (Class) classForPortCoder
@@ -198,25 +207,35 @@ _attributesAtIndexEffectiveRange(
   unsigned	low, high, used, cnt, nextLoc;
   GSAttrInfo	*found = nil;
 
+  used = (*cntImp)(_infoArray, cntSel);
+  NSCAssert(used > 0, NSInternalInconsistencyException);
+  high = used - 1;
+
   if (index >= tmpLength)
     {
       if (index == tmpLength)
 	{
-	  *foundIndex = index;
-	  return nil;
+	  found = OBJECTAT(high);
+	  if (foundIndex != 0)
+	    {
+	      *foundIndex = high;
+	    }
+	  if (aRange != 0)
+	    {
+	      aRange->location = found->loc;
+	      aRange->length = tmpLength - found->loc;
+	    }
+	  return found->attrs;
 	}
       [NSException raise: NSRangeException
 		  format: @"index is out of range in function "
 			  @"_attributesAtIndexEffectiveRange()"];
     }
   
-  used = (*cntImp)(_infoArray, cntSel);
-
   /*
    * Binary search for efficiency in huge attributed strings
    */
   low = 0;
-  high = used - 1;
   while (low <= high)
     {
       cnt = (low + high) / 2;
@@ -240,12 +259,12 @@ _attributesAtIndexEffectiveRange(
 	  if (found->loc == index || index < nextLoc)
 	    {
 	      //Found
-	      if (aRange)
+	      if (aRange != 0)
 		{
 		  aRange->location = found->loc;
 		  aRange->length = nextLoc - found->loc;
 		}
-	      if (foundIndex)
+	      if (foundIndex != 0)
 		{
 		  *foundIndex = cnt;
 		}
@@ -343,6 +362,33 @@ _attributesAtIndexEffectiveRange(
 
 @implementation NSGMutableAttributedString
 
+#if	SANITY_CHECKS
+
+#define	SANITY()	[self sanity]
+	
+- (void) sanity
+{
+  GSAttrInfo	*info;
+  unsigned	i;
+  unsigned	l = 0;
+  unsigned	len = [_textChars length];
+  unsigned	c = (*cntImp)(_infoArray, cntSel);
+
+  NSAssert(c > 0, NSInternalInconsistencyException);
+  info = OBJECTAT(0);
+  NSAssert(info->loc == 0, NSInternalInconsistencyException);
+  for (i = 1; i < c; i++)
+    {
+      info = OBJECTAT(i);
+      NSAssert(info->loc > l, NSInternalInconsistencyException);
+      NSAssert(info->loc <= len, NSInternalInconsistencyException);
+      l = info->loc;
+    }
+}
+#else
+#define	SANITY()	
+#endif
+
 + (void) initialize
 {
   _setup();
@@ -385,6 +431,7 @@ _attributesAtIndexEffectiveRange(
 
       aString = [as string];
       _setAttributesFrom(as, NSMakeRange(0, [aString length]), _infoArray);
+SANITY();
     }
   else
     {
@@ -424,51 +471,72 @@ _attributesAtIndexEffectiveRange(
   NSZone	*z = fastZone(self);
   GSAttrInfo	*info;
 
-  if (!attributes)
-    attributes = [NSDictionary dictionary];
+  if (range.length == 0)
+    {
+      NSWarnMLog(@"Attempt to set attribute for zero-length range", 0);
+      return;
+    }
+  if (attributes == nil)
+    {
+      attributes = [NSDictionary dictionary];
+    }
+SANITY();
   tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
   arraySize = (*cntImp)(_infoArray, cntSel);
-  if (NSMaxRange(range) < tmpLength)
+  beginRangeLoc = range.location;
+  afterRangeLoc = NSMaxRange(range);
+  if (afterRangeLoc < tmpLength)
     {
+      /*
+       * Locate the first range that extends beyond our range.
+       */
       attrs = _attributesAtIndexEffectiveRange(
-	NSMaxRange(range), &effectiveRange, tmpLength, _infoArray, &arrayIndex);
-
-      afterRangeLoc = NSMaxRange(range);
-      if (effectiveRange.location > range.location)
+	afterRangeLoc, &effectiveRange, tmpLength, _infoArray, &arrayIndex);
+      if (effectiveRange.location > beginRangeLoc)
 	{
+	  /*
+	   * The located range also starts at or after our range.
+	   */
 	  info = OBJECTAT(arrayIndex);
 	  info->loc = afterRangeLoc;
+	  arrayIndex--;
 	}
-      else
+      else if (effectiveRange.location < beginRangeLoc)
 	{
+	  /*
+	   * The located range starts before our range.
+	   * Create a subrange to go from our end to the end of the old range.
+	   */
 	  info = NEWINFO(z, attrs, afterRangeLoc);
 	  arrayIndex++;
 	  INSOBJECT(info, arrayIndex);
 	  RELEASE(info);
+	  arrayIndex--;
 	}
-      arrayIndex--;
     }
   else
     {
       arrayIndex = arraySize - 1;
     }
   
+  /*
+   * Remove any ranges completely within ours
+   */
   while (arrayIndex > 0)
     {
       info = OBJECTAT(arrayIndex-1);
-      if (info->loc < range.location)
+      if (info->loc < beginRangeLoc)
 	break;
       REMOVEAT(arrayIndex);
       arrayIndex--;
     }
 
-  beginRangeLoc = range.location;
   info = OBJECTAT(arrayIndex);
   location = info->loc;
-  if (location >= range.location)
+  if (location >= beginRangeLoc)
     {
-      if (location > range.location)
+      if (location > beginRangeLoc)
 	{
 	  info->loc = beginRangeLoc;
 	}
@@ -482,6 +550,7 @@ _attributesAtIndexEffectiveRange(
       RELEASE(info);
     }
   
+SANITY();
   /*
    *	Primitive method! Sets attributes and values for a given range of
    *	characters, replacing any previous attributes and values for that
@@ -500,71 +569,118 @@ _attributesAtIndexEffectiveRange(
 - (void) replaceCharactersInRange: (NSRange)range
 		       withString: (NSString*)aString
 {
-  unsigned	tmpLength, arrayIndex, arraySize, cnt, moveLocations;
+  unsigned	tmpLength, arrayIndex, arraySize;
   NSRange	effectiveRange;
   NSDictionary	*attrs;
-  unsigned	afterRangeLoc;
   GSAttrInfo	*info;
+  int		moveLocations;
   NSZone	*z = fastZone(self);
+  unsigned	start;
 
-  if (!aString)
-    aString = @"";
+SANITY();
+  if (aString == nil)
+    {
+      aString = @"";
+    }
   tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
-  arraySize = (*cntImp)(_infoArray, cntSel);
-  if (NSMaxRange(range) < tmpLength)
+  if (range.location == tmpLength)
     {
-      attrs = _attributesAtIndexEffectiveRange(
-	NSMaxRange(range), &effectiveRange, tmpLength, _infoArray, &arrayIndex);
-      
-      moveLocations = [aString length] - range.length;
-      afterRangeLoc = NSMaxRange(range) + moveLocations;
-      
-      if (effectiveRange.location > range.location)
-	{
-	  info = OBJECTAT(arrayIndex);
-	  info->loc = afterRangeLoc;
-	}
-      else
-	{
-	  info = NEWINFO(z, attrs, afterRangeLoc);
-	  arrayIndex++;
-	  INSOBJECT(info, arrayIndex);
-	  arraySize++;
-	  RELEASE(info);
-	}
-
       /*
-       * Everything after our modified range need to be shifted.
+       * Special case - replacing a zero length string at the end
+       * simply appends the new string and attributes are inherited.
        */
-      if (arrayIndex + 1 < arraySize)
+      [_textChars appendString: aString];
+SANITY();
+      return;
+    }
+
+  arraySize = (*cntImp)(_infoArray, cntSel);
+  if (arraySize == 1)
+    {
+      /*
+       * Special case - if the string has only one set of attributes
+       * then the replacement characters will get them too.
+       */
+      [_textChars replaceCharactersInRange: range withString: aString];
+SANITY();
+      return;
+    }
+
+  /*
+   * Get the attributes to associate with our replacement string.
+   * Should be those of the first character replaced.
+   * If the range replaced is empty, we use the attributes of the
+   * previous character (if possible).
+   */
+  if (range.length == 0 && range.location > 0)
+    start = range.location - 1;
+  else
+    start = range.location;
+  attrs = _attributesAtIndexEffectiveRange(start, &effectiveRange,
+    tmpLength, _infoArray, &arrayIndex);
+
+  arrayIndex++;
+  if (NSMaxRange(effectiveRange) > NSMaxRange(range))
+    {
+      info = NEWINFO(z, attrs, NSMaxRange(range));
+      INSOBJECT(info, arrayIndex);
+      arraySize++;
+    }
+  else if (NSMaxRange(effectiveRange) < NSMaxRange(range))
+    {
+      /*
+       * Remove all range info for ranges enclosed within the one
+       * we are replacing.  Adjust the start point of a range that
+       * extends beyond ours.
+       */
+      info = OBJECTAT(arrayIndex);
+      if (info->loc < NSMaxRange(range))
 	{
-	  unsigned	l = arraySize - arrayIndex - 1;
-	  NSRange	r = NSMakeRange(arrayIndex + 1, l);
-	  GSAttrInfo	*objs[l];
-	 
-	  [_infoArray getObjects: objs range: r];
-	  for (cnt = 0; cnt < l; cnt++)
+	  int	next = arrayIndex + 1;
+
+	  while (next < arraySize)
 	    {
-	      objs[cnt]->loc += moveLocations;
+	      GSAttrInfo	*n = OBJECTAT(next);
+	      if (n->loc <= NSMaxRange(range))
+		{
+		  REMOVEAT(arrayIndex);
+		  arraySize--;
+		  info = n;
+		}
+	      break;
 	    }
 	}
-      arrayIndex--;
-    }
-  else
-    {
-      arrayIndex = arraySize - 1;
+      info->loc = NSMaxRange(range);
     }
 
-  while (arrayIndex > 0)
+  moveLocations = [aString length] - range.length;
+  if (effectiveRange.location == range.location
+    && (moveLocations + range.length) == 0)
+    {
+      /*
+       * If we are replacing a range with a zero length string and the
+       * range we are using matches the range replaced, then we must
+       * remove it from the array to avoid getting a zero length range.
+       */
+      arrayIndex--;
+      REMOVEAT(arrayIndex);
+      arraySize--;
+    }
+
+SANITY();
+  /*
+   * Now adjust the positions of the ranges following the one we are using.
+   */
+  while (arrayIndex < arraySize)
     {
       info = OBJECTAT(arrayIndex);
-      if (info->loc <= range.location)
-	break;
-      REMOVEAT(arrayIndex);
-      arrayIndex--;
+      info->loc += moveLocations;
+      arrayIndex++;
     }
+SANITY();
   [_textChars replaceCharactersInRange: range withString: aString];
+SANITY();
 }
 
 - (void) dealloc
