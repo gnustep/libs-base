@@ -68,6 +68,7 @@ typedef enum _NSStringEncoding
    length: (unsigned int)length;
 + (NSString*) stringWithCString: (const char*) byteString;
 + (NSString*) stringWithFormat: (NSString*)format,...;
++ (NSString*) stringWithContentsOfFile:(NSString *)path;
 
 // Initializing Newly Allocated Strings
 - (id) initWithCharactersNoCopy: (unichar*)chars

@@ -28,6 +28,12 @@
 #include <Foundation/NSLock.h>
 
 static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
+static NSString* gnustep_libdir =
+#ifdef GNUSTEP_INSTALL_LIBDIR
+  @GNUSTEP_INSTALL_LIBDIR;
+#else
+  nil;
+#endif
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 12
@@ -61,6 +67,7 @@ static NSLock* cache_lock = nil;
 {
   NSCharacterSet* set;
   NSString *path;
+  NSBundle *gstep_base_bundle = [NSBundle bundleWithPath: gnustep_libdir];
 
   if (!cache_lock)
     cache_lock = [NSLock new];
@@ -70,15 +77,15 @@ static NSLock* cache_lock = nil;
   if (cache_set[number] == nil)
     {
       NS_DURING
-	path = [NSBundle pathForResource:setname
-			ofType:@"dat"
-			inDirectory:NSCharacterSet_PATH];
+	path = [gstep_base_bundle pathForResource:setname
+				  ofType:@"dat"
+				  inDirectory:NSCharacterSet_PATH];
         /* This is for testing purposes */
         if (path == nil || [path length] == 0)
 	  {
-	    path = [NSBundle pathForResource:setname
-			ofType:@"dat"
-			inDirectory:@"../NSCharacterSets"];
+	    path = [gstep_base_bundle pathForResource:setname
+				      ofType:@"dat"
+				      inDirectory:@"../NSCharacterSets"];
 	  }
 
         if (path == nil || [path length] == 0)

@@ -58,7 +58,7 @@
 #endif
 
 #include <Foundation/NSObject.h>
-@class String;
+#include <Foundation/NSObjCRuntime.h>
 
 /* The following group of lines maintained by the gstep-base src/Makefile */
 #define @VERSION@
