@@ -31,6 +31,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSValue.h"
 
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -131,7 +132,7 @@ static Class	GSInlineArrayClass;
 	      _count = i;
 	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil to array"];
+			  format: @"Tried to init array with nil to object"];
 	    }
 	}
       _count = count;
@@ -268,8 +269,7 @@ static Class	GSInlineArrayClass;
 {
   if (index >= _count)
     {
-      [NSException raise: NSRangeException
-		  format: @"Index out of bounds"];
+        [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   return _contents_array[index];
 }
@@ -284,7 +284,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
 {
   unsigned i = _count;
 
@@ -314,6 +314,26 @@ static Class	GSInlineArrayClass;
     {
       aBuffer[j++] = _contents_array[i];
     }
+}
+
+- (void) _raiseRangeExceptionWithIndex: (int)index from: (SEL)sel
+{
+  NSDictionary *info;
+  NSException  *exception;
+  NSString     *reason;
+
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSNumber numberWithInt: index], @"Index",
+    [NSNumber numberWithInt: _count], @"Count",
+    self, @"Array", nil, nil];
+                              
+  reason = [NSString stringWithFormat: @"Index %d is out of range %d (in '%@')",
+    index, _count, NSStringFromSelector(sel)];
+
+  exception = [NSException exceptionWithName: NSRangeException
+		                      reason: reason
+                                    userInfo: info];
+  [exception raise];
 }
 
 @end
@@ -348,7 +368,7 @@ static Class	GSInlineArrayClass;
 	      _count = i;
 	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil to array"];
+			  format: @"Tried to init array with nil object"];
 	    }
 	}
       _count = count;
@@ -384,7 +404,7 @@ static Class	GSInlineArrayClass;
       if (ptr == 0)
 	{
 	  [NSException raise: NSMallocException
-		      format: @"Unable to grow"];
+		      format: @"Unable to grow array"];
 	}
       _contents_array = ptr;
       _capacity += _grow_factor;
@@ -410,15 +430,11 @@ static Class	GSInlineArrayClass;
 {
   if (i1 >= _count)
     {
-      [NSException raise: NSRangeException format:
-	@"in %@:, index %d is out of range",
-	NSStringFromSelector(_cmd), i1];
+      [self _raiseRangeExceptionWithIndex: i1 from: _cmd];
     }
   if (i2 >= _count)
     {
-      [NSException raise: NSRangeException format:
-	@"in %@:, index %d is out of range",
-	NSStringFromSelector(_cmd), i2];
+      [self _raiseRangeExceptionWithIndex: i2 from: _cmd];
     }
   if (i1 != i2)
     {
@@ -450,7 +466,7 @@ static Class	GSInlineArrayClass;
   if ((self = [self initWithCapacity: count]) == nil)
     {
       [NSException raise: NSMallocException
-		  format: @"Unable to make array"];
+		  format: @"Unable to make array while initializing from coder"];
     }
   if (count > 0)
     {
@@ -476,7 +492,7 @@ static Class	GSInlineArrayClass;
 	      _count = i;
 	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil to array"];
+			  format: @"Tried to init array with nil object"];
 	    }
 	}
       _count = count;
@@ -490,13 +506,21 @@ static Class	GSInlineArrayClass;
 
   if (!anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to insert nil to array"];
+      NSException  *exception;
+      NSDictionary *info;
+
+      info = [NSDictionary dictionaryWithObjectsAndKeys:
+	[NSNumber numberWithInt: index], @"Index",
+	self, @"Array", nil, nil];
+
+      exception = [NSException exceptionWithName: NSInvalidArgumentException
+	reason: @"Tried to insert nil to array"
+	userInfo: info];
+      [exception raise];
     }
   if (index > _count)
     {
-      [NSException raise: NSRangeException format:
-	      @"in insertObject:atIndex:, index %d is out of range", index];
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   if (_count == _capacity)
     {
@@ -608,9 +632,7 @@ static Class	GSInlineArrayClass;
 
   if (index >= _count)
     {
-      [NSException raise: NSRangeException
-		  format: @"in removeObjectAtIndex:, index %d is out of range",
-			index];
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   obj = _contents_array[index];
   _count--;
@@ -659,9 +681,7 @@ static Class	GSInlineArrayClass;
 
   if (index >= _count)
     {
-      [NSException raise: NSRangeException format:
-	    @"in replaceObjectAtIndex:withObject:, index %d is out of range",
-	    index];
+      [self _raiseRangeExceptionForIndex: index];
     }
   /*
    *	Swap objects in order so that there is always a valid object in the
@@ -954,7 +974,7 @@ static Class	GSInlineArrayClass;
 - (id) objectAtIndex: (unsigned)index
 {
   [NSException raise: NSInternalInconsistencyException
-	      format: @"attempt to use uninitialised array"];
+	      format: @"Attempt to use uninitialised array"];
   return 0;
 }
 
@@ -991,7 +1011,7 @@ static Class	GSInlineArrayClass;
 - (unsigned) count
 {
   [NSException raise: NSInternalInconsistencyException
-	      format: @"attempt to use uninitialised array"];
+	      format: @"Attempt to use uninitialised array"];
   return 0;
 }
 
