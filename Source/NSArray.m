@@ -28,6 +28,7 @@
 #include <limits.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSCharacterSet.h>
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
@@ -388,18 +389,59 @@ static Class NSMutableArray_concrete_class;
 
 - (NSString*) description
 {
+  id string;
   id desc;
+  id object;
   int count = [self count];
   int i;
+  NSCharacterSet *quotables;
+
+  quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
 
   desc = [NSMutableString stringWithCapacity: 2];
   [desc appendString: @"("];
   if (count > 0)
-    [desc appendString: [[self objectAtIndex: 0] description]];
+    {
+      object = [self objectAtIndex: 0];
+      if ([object respondsToSelector: @selector(descriptionWithIndent:)])
+        {
+          /* This a dictionary or array, so don't quote it */
+          string = [object descriptionWithIndent: 0];
+          [desc appendString: string];
+        }
+      else
+        {
+          /* This should be a string or number, so decide if we need to
+             quote it */
+          string = [object description];
+          if ([string rangeOfCharacterFromSet: quotables].length > 0)
+            [desc appendFormat: @"%s", [string quotedCString]];
+          else
+            [desc appendString: string];
+        }
+    }
   for (i=1; i<count; i++)
     {
+      object = [self objectAtIndex: i];
+
       [desc appendString: @", "];
-      [desc appendString: [[self objectAtIndex: i] description]];
+      if ([object respondsToSelector: @selector(descriptionWithIndent:)])
+        {
+          /* This a dictionary or array, so don't quote it */
+          string = [object descriptionWithIndent: 0];
+          [desc appendString: string];
+        }
+      else
+        {
+          /* This should be a string or number, so decide if we need to
+             quote it */
+          string = [object description];
+          if ([string rangeOfCharacterFromSet: quotables].length > 0)
+            [desc appendString: [NSString stringWithCString:
+			[string quotedCString]]];
+          else
+            [desc appendString: string];
+        }
     }
   [desc appendString: @")"];
   return desc;

@@ -216,6 +216,7 @@ typedef enum _NSStringEncoding
 
 #ifndef NO_GNUSTEP
 - (const char *) cStringNoCopy;
+- (const char *) quotedCString;
 #endif /* NO_GNUSTEP */
 
 @end

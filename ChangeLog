@@ -1,3 +1,58 @@
+Fri Oct 31 10:26:16 1997  Adam Fedor  <fedor@doc.com>
+
+	* GNUmakefile: Renamed from Makefile.
+	* src/GNUmakefile: Likewise.
+	* checks/GNUmakefile: Likewise.
+	* examples/GNUmakefile: Likewise.
+	* doc/GNUmakefile: Likewise.
+	* admin/GNUmakefile: Likewise.
+	* NSCharacterSets/GNUmakefile: Likewise.
+	* NSTimeZones/GNUmakefile: Likewise.
+	* Makefile: Dummy make, tells user to use GNU make.
+
+	* doc/GNUMakefile: Make more text files.
+	* doc/Makefile.postamble: Clean up to make text files.
+
+	* NSBundle.README: Update.
+	* examples/Makefile.example.in: Remove obsolete file.
+	* examples/configure.example.in: Likewise.
+
+Thu Oct 30 15:20:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/GNUmakefile: New format make file with the addition of three
+	new tools - dread, dwrite, dremove
+
+	* Tools/dread.m: New command line tool to read user defaults database.
+	* Tools/dremove.m: New command line tool to remove defaults from
+	database. 
+	* Tools/dwrite.m: New command line tool to modify user defaults.
+
+	* src/Dictionary.m: ([-descriptionWithIndent:]) modified to produce
+	better property-list type description with escaped special chars.
+
+	* src/NSArray.m: ([-description]) modified to produce better
+	property-list type description with escaped special chars.
+
+	* src/NSData.m: ([-writeToFile:atomically:]) changed code for handling
+	temporary file to avoid failure due to cross-device links.
+
+	* src/NSDictionary.m: ([-writeToFile:atomically:]) implemented this
+	method using NSString.
+
+	* src/NSString.m: ([-stringByAppendingString:]) fixed memory leak.
+	Added new method ([-quotedCString]) for use in writing property lists.
+	Modified ([-appendFormat:]) so that it doesn't leave temporary strings
+	to be autoreleased - small efficiency gain.
+
+	* src/NSUserDefaults.m: Various minor fixes to get saving to the
+	defaults database to work.
+
+	* src/Foundation/NSString.h: Added (GNUstep specific) method -
+	[-quotedCString].
+
+	* src/Foundation/NSUserDefaults.h: Added (OPENSTEP specific) method -
+	[-setSearchList:].
+
 Thu Oct 30 13:38:51 1997  Scott Christley  <scottc@stetson.net-community.com>
 
 	* Makefile (GNUSTEP_INSTALLATION_DIR): Make default be system.

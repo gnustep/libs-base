@@ -423,7 +423,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (BOOL) writeToFile: (NSString *)path
 	  atomically: (BOOL)useAuxiliaryFile
 {
-  const char *theFileName;
+  char *theFileName = NULL;
   const char *theRealFileName = NULL;
   FILE *theFile;
   int c;
@@ -443,17 +443,22 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   if (useAuxiliaryFile)
     {
-      /* FIXME: Is it clear that using the tmpnam() system call is the
-       * right way to go?  Do we need to worry about renaming the
-       * tempfile thus created, if we happen to be moving it across
-       * filesystems, for example?  I don't think so.  In particular,
-       * I think that this *is* a correct way to handle things. */
-      theFileName = tmpnam(NULL);
+      /* Use the path name of the destination file as a prefix for the
+       * mktemp() call so that we can be sure that both files are on
+       * the same filesystem and the subsequent rename() will work. */
       theRealFileName = [path cString];
+      theFileName = objc_malloc(strlen(theRealFileName) + 7);
+      strcpy(theFileName, theRealFileName);
+      strcat(theFileName, "XXXXXX");
+      if (mktemp(theFileName) == 0)
+	{
+          NSLog(@"mktemp (%s) failed - %s", theFileName, strerror(errno));
+          goto failure;
+	}
     }
   else
     {
-      theFileName = [path cString];
+      theFileName = (char*)[path cString];
     }
 
   /* Open the file (whether temp or real) for writing. */
@@ -504,6 +509,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
           NSLog(@"Rename (%s) failed - %s", theFileName, strerror(errno));
           goto failure;
         }
+      objc_free(theFileName);
     }
 
   /* success: */
@@ -511,6 +517,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   /* Just in case the failure action needs to be changed. */
  failure:
+  if (useAuxiliaryFile && theFileName != 0)
+    objc_free(theFileName);
   return NO;
 }
 

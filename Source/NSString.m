@@ -612,11 +612,14 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned len = [self length];
   unichar *s;
+  NSString *tmp;
   OBJC_MALLOC(s, unichar, len + [aString length]+1);
   [self getCharacters:s];
   [aString getCharacters:s+len];
   s[len + [aString length]]=(unichar) 0;
-    return [NSString stringWithCharacters:s length: len + [aString length]];
+  tmp = [NSString stringWithCharacters:s length: len + [aString length]];
+  OBJC_FREE(s);
+  return tmp;
 }
 
 // Dividing Strings into Substrings
@@ -2155,6 +2158,72 @@ else
   [self subclassResponsibility: _cmd];
   return NULL;
 }
+
+- (const char *) quotedCString
+{
+    const char	*from;
+    char	*buf;
+    char	*ptr;
+    int		len = 0;
+
+    for (from = [self cStringNoCopy]; *from; from++) {
+	switch (*from) {
+	    case '\a':
+	    case '\b':
+	    case '\t':
+	    case '\r':
+	    case '\n':
+	    case '\v':
+	    case '\f':
+	    case '\\':
+	    case '\'' :
+	    case '"' :
+		len += 2;
+		break;
+
+	    default:
+		if (isprint(*from) || *from == ' ') {
+		    len++;
+		}
+		else {
+		    len += 4;
+		}
+		break;
+	}
+    }
+
+    buf = objc_malloc(len + 3);
+    ptr = buf;
+    *ptr++ = '"';
+    for (from = [self cStringNoCopy]; *from; from++) {
+	switch (*from) {
+	    case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
+	    case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
+	    case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
+	    case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
+	    case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
+	    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
+	    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
+	    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
+	    case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
+	    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+
+	    default:
+		if (isprint(*from) || *from == ' ') {
+		    *ptr++ = *from;
+		}
+		else {
+		    sprintf(ptr, "\\%03o", *(unsigned char*)from);
+		    ptr = &ptr[4];
+		}
+		break;
+	}
+    }
+    *ptr++ = '"';
+    *ptr = '\0';
+    [MallocAddress autoreleaseMallocAddress: buf];
+    return buf;
+}
 // #endif /* NO_GNUSTEP */
 
 
@@ -2277,9 +2346,10 @@ else
   va_list ap;
   id tmp;
   va_start(ap, format);
-  tmp = [NSString stringWithFormat:format arguments:ap];
+  tmp = [[NSString alloc] initWithFormat:format arguments:ap];
   va_end(ap);
   [self appendString:tmp];
+  [tmp release];
 }
 
 - (void) deleteCharactersInRange: (NSRange)range

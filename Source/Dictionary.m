@@ -220,20 +220,24 @@
   [desc appendString: @"{"];
   if (dict_count > 0)
     [desc appendString: @"\n"];
+
+  level += 2;
+
   while ((key = [keyenum nextObject]))
     {
       NSString *string;
       id object;
       string = [key description];
+
       if ([string rangeOfCharacterFromSet: quotables].length > 0)
-      	[desc appendFormat: @"%*s  \"%@\" = ", level, "", string];
+      	[desc appendFormat: @"%*s%s = ", level, "", [string quotedCString]];
       else
-	[desc appendFormat: @"%*s  %@ = ", level, "", string];
+	[desc appendFormat: @"%*s%s = ", level, "", [string cStringNoCopy]];
       object = [self objectAtKey: key];
       if ([object respondsToSelector: @selector(descriptionWithIndent:)])
 	{
 	  /* This a dictionary or array, so don't quote it */
-	  string = [object descriptionWithIndent: level+2];
+	  string = [object descriptionWithIndent: level];
 	  [desc appendFormat: @"%@;\n", string];
 	}
       else
@@ -242,13 +246,15 @@
 	     quote it */
 	  string = [object description];
 	  if ([string rangeOfCharacterFromSet: quotables].length > 0)
-	    [desc appendFormat: @"\"%@\";\n", string];
+	    [desc appendFormat: @"%s;\n", [string quotedCString]];
 	  else
-	    [desc appendFormat: @"%@;\n", string];
+	    [desc appendFormat: @"%s;\n", [string cStringNoCopy]];
 	}
     }
   if (dict_count == 0)
     level = 0;
+  else
+    level -= 2;
   [desc appendFormat: @"%*s}", level, ""];
   return desc;
 }

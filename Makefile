@@ -1,5 +1,5 @@
 #
-#  Main Makefile for GNUstep Base Library.
+#  Depreciated Makefile for GNUstep Base Library.
 #  
 #  Copyright (C) 1997 Free Software Foundation, Inc.
 #
@@ -22,37 +22,6 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-# Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+all:
+	@echo You need to use GNU make to compile the GNUstep Base Library
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
-
-include ./Version
-
-PACKAGE_NAME = gstep-base
-
-DIST_FILES = \
-	Makefile Makefile.postamble config.mak.in \
-	configure.in aclocal.m4 acconfig.h \
-	configure.bat INSTALL.WIN32 \
-	config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
-	config/config.vsprintf.c \
-	README.ULTRIX README.ucblib \
-	STATUS RELEASE-NOTES \
-	COPYING COPYING.LIB ChangeLog \
-	configure Version \
-	config.guess mkinstalldirs install-sh config.sub \
-	NSBundle.README \
-	gcc-2.7.2-objc.diff \
-	gcc-2.7.2.1-objc.diff
-
-#
-# The list of subproject directories
-#
-SUBPROJECTS = Tools src doc checks examples NSCharacterSets NSTimeZones admin
-
--include Makefile.preamble
-
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/aggregate.make
-
--include Makefile.postamble

@@ -315,8 +315,7 @@ static Class NSMutableDictionary_concrete_class;
 
 - (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
 {
-  [self notImplemented:_cmd];
-  return 0;
+  return [[self description] writeToFile:path atomically:useAuxiliaryFile];
 }
 
 - copyWithZone: (NSZone*)z
