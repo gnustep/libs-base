@@ -92,7 +92,7 @@
   return 0;
 }
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: (id <Encoding>)anEncoder
 {
   [super encodeWithCoder:anEncoder];
 }
