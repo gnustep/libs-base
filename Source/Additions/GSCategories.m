@@ -23,6 +23,9 @@
 */
 #include	<Foundation/Foundation.h>
 
+/**
+ * Extension methods for the NSCalendarDate class
+ */
 @implementation NSCalendarDate (GSCategories)
 
 /**

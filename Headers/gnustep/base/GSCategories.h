@@ -1,6 +1,6 @@
 #ifndef	INCLUDED_GS_CATEGORIES_H
 #define	INCLUDED_GS_CATEGORIES_H
-/* Declaration of extension methods to standard classes
+/** Declaration of extension methods to standard classes
 
    Copyright (C) 2003 Free Software Foundation, Inc.
 
