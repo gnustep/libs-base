@@ -36,7 +36,6 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSTask.h>
 #include <Foundation/NSDate.h>
-#include <Foundation/NSThread.h>
 #include <Foundation/NSPortNameServer.h>
 #include <base/TcpPort.h>
 
@@ -50,8 +49,8 @@
  *	message about it - they include installation path information.
  */
 #define stringify_it(X) #X
-#define make_gdomap_cmd(X)      stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap"
-#define make_gdomap_err(X)      "check that " stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap is running and owned by root."
+#define make_gdomap_cmd(X)      stringify_it(X) "/Tools/gdomap"
+#define make_gdomap_err(X)      "check that " stringify_it(X) "/Tools/gdomap is running and owned by root."
 #define	make_gdomap_port(X)	stringify_it(X)
 
 /*
@@ -929,7 +928,11 @@ static NSPortNameServer	*defaultServer = nil;
     cmd = [NSString stringWithCString: make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
   NSLog(@"NSPortNameServer attempting to start gdomap on local host"); 
   [NSTask launchedTaskWithLaunchPath: cmd arguments: nil];
-  [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 5.0]];
+  [NSTimer scheduledTimerWithTimeInterval: 5.0
+			       invocation: nil
+				  repeats: NO];
+  [[NSRunLoop currentRunLoop] runUntilDate:
+    [NSDate dateWithTimeIntervalSinceNow: 5.0]];
   NSLog(@"NSPortNameServer retrying connection attempt to gdomap"); 
   [self _open: nil];
 }
