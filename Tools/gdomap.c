@@ -1082,7 +1082,7 @@ init_iface()
 
   if (desc == INVALID_SOCKET)
     {
-      sprintf(ebuf, "Failed to get a socket. Error %s\n", WSAGetLastError());
+      sprintf(ebuf, "Failed to get a socket. Error %d\n", WSAGetLastError());
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
@@ -1091,7 +1091,7 @@ init_iface()
   if (WSAIoctl(desc, SIO_GET_INTERFACE_LIST, 0, 0, (void*)InterfaceList,
     sizeof(InterfaceList), &nBytesReturned, 0, 0) == SOCKET_ERROR)
     {
-      sprintf(ebuf, "Failed WSAIoctl. Error %s\n", WSAGetLastError());
+      sprintf(ebuf, "Failed WSAIoctl. Error %d\n", WSAGetLastError());
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
@@ -1159,7 +1159,7 @@ init_iface()
 	  if (addr[interfaces].s_addr == 0)
 	    {
 	      addr[interfaces].s_addr = htonl(0x8f000001);
-	      fprintf(stderr, "Bad iface addr (0.0.0.0) guess (127.0.0.1)\n",
+	      fprintf(stderr, "Bad iface addr (0.0.0.0) guess (%s)\n",
 		inet_ntoa(addr[interfaces]));
 	    }
 	  if (mask[interfaces].s_addr == 0)

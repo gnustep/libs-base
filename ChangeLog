@@ -1,3 +1,9 @@
+2004-05-06 Mateu Batle
+
+	* Tools/gdomap.c: mingw fixes.
+	* Headers/Foundation/NSPort.h: ditto
+	* Source/NSSocketPort.m: ditto
+
 2004-05-03 22:12  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSString.m (-hash),

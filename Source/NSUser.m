@@ -851,6 +851,9 @@ NSTemporaryDirectory(void)
   perm = [[attr objectForKey: NSFilePosixPermissions] intValue];
   perm = perm & 0777;
 
+// Mateu Batle: secure temporary directories don't work in MinGW
+#ifndef __MINGW__
+
 #if	defined(__MINGW__)
   uid = owner;
 #else
@@ -900,6 +903,7 @@ NSTemporaryDirectory(void)
 	  return nil; /* Not reached. */
 	}
     }
+#endif
 
   if ([manager isWritableFileAtPath: tempDirName] == NO)
     {
