@@ -1,4 +1,9 @@
-Fri May 29 10:16:09 1998  Adam Fedor  <fedor@ultra.doc.com>
+Tue Jun 16 09:48:18 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/NSProtocolChecker.m, src/include/NSProtocolChecker.h: New files.
+	(from Mike Kienenberger <mkienenb@arsc.edu>)
+
+Fri May 29 10:16:09 1998  Adam Fedor  <fedor@doc.com>
 
 	* doc/news.tmpl.texi: Fixed typo.  
 	* doc/readme.tmpl.texi: Likewise. (patch from doko@cs.tu-berlin.de

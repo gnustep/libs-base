@@ -147,7 +147,7 @@ static BOOL debug_memory_stream = NO;
 	       size: capacity
 	       eofPosition: 0
 	       prefix: p
-	       position: i];
+	       position: 0];
 }
 
 - initWithCapacity: (unsigned)capacity
@@ -157,7 +157,7 @@ static BOOL debug_memory_stream = NO;
 	       size: capacity
 	       eofPosition: 0
 	       prefix: 0
-	       position: i];
+	       position: 0];
 }
 
 - initWithData: (id)anObject

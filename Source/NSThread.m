@@ -73,7 +73,7 @@ void gnustep_base_thread_callback()
 		      autorelease];
 #endif
       entered_multi_threaded_state = NO;
-      objc_set_thread_callback(gnustep_base_thread_callback());
+      objc_set_thread_callback(gnustep_base_thread_callback);
     }
 }
 
