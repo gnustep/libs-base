@@ -1,3 +1,13 @@
+2002-01-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Wrap code in exception handlers to reset current
+	runloop mode if an exception occurs ... may remove this again if the
+	performance is too bad.
+	Use initialiser for NSTimer to avoid having to put timers into the
+	autorelease pool.
+	* Headers/Foundation/NSTimer.h: Expose GNUstep initialiser since
+	OpenStep and MacOS-X don't have one.
+
 Wed Jan 16 13:46:24 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	Fixed dynamical loading of frameworks.

@@ -244,8 +244,8 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 @end
 
 /*
- *	The GSTimedPerformer class is used to hold information about
- *	messages which are due to be sent to objects at a particular time.
+ * The GSTimedPerformer class is used to hold information about
+ * messages which are due to be sent to objects at a particular time.
  */
 @interface GSTimedPerformer: NSObject <GCFinalization>
 {
@@ -268,6 +268,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 - (void) dealloc
 {
   [self gcFinalize];
+  TEST_RELEASE(timer);
   RELEASE(target);
   RELEASE(argument);
   [super dealloc];
@@ -275,7 +276,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
 - (void) fire
 {
-  timer = nil;
+  DESTROY(timer);
   [target performSelector: selector withObject: argument];
   [[[NSRunLoop currentRunLoop] _timedPerformers]
     removeObjectIdenticalTo: self];
@@ -284,7 +285,9 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 - (void) gcFinalize
 {
   if (timer != nil)
-    [timer invalidate];
+    {
+      [timer invalidate];
+    }
 }
 
 - (id) initWithSelector: (SEL)aSelector
@@ -293,16 +296,17 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 		  delay: (NSTimeInterval)delay
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
       selector = aSelector;
       target = RETAIN(aTarget);
       argument = RETAIN(anArgument);
-      timer = [NSTimer timerWithTimeInterval: delay
-				      target: self
-				    selector: @selector(fire)
-				    userInfo: nil
-				     repeats: NO];
+      timer = [[NSTimer allocWithZone: NSDefaultMallocZone()]
+	initWithTimeInterval: delay
+	  targetOrInvocation: self
+		    selector: @selector(fire)
+		    userInfo: nil
+		     repeats: NO];
     }
   return self;
 }
@@ -830,20 +834,23 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 /* This is the designated initializer. */
 - (id) init
 {
-  [super init];
-  _mode_2_timers = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
-				     ArrayMapValueCallBacks, 0);
-  _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
-					   ArrayMapValueCallBacks, 0);
-  _mode_2_performers = NSCreateMapTable (NSObjectMapKeyCallBacks,
-					   ArrayMapValueCallBacks, 0);
-  _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-  _efdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
-				  WatcherMapValueCallBacks, 0);
-  _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
-				  WatcherMapValueCallBacks, 0);
-  _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
-				  WatcherMapValueCallBacks, 0);
+  self = [super init];
+  if (self != nil)
+    {
+      _mode_2_timers = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+					 ArrayMapValueCallBacks, 0);
+      _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
+					       ArrayMapValueCallBacks, 0);
+      _mode_2_performers = NSCreateMapTable (NSObjectMapKeyCallBacks,
+					       ArrayMapValueCallBacks, 0);
+      _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
+      _efdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+				      WatcherMapValueCallBacks, 0);
+      _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+				      WatcherMapValueCallBacks, 0);
+      _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+				      WatcherMapValueCallBacks, 0);
+    }
   return self;
 }
 
@@ -894,9 +901,10 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 }
 
 
-/* Fire appropriate timers and determine the earliest time that anything
-  watched for becomes useless. */
-
+/**
+ * Fire appropriate timers and determine the earliest time that anything
+ * watched for becomes useless.
+ */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
   id			saved_mode;
@@ -910,116 +918,125 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   saved_mode = _current_mode;
   _current_mode = mode;
 
-  timers = NSMapGet(_mode_2_timers, mode);
-  if (timers)
+  NS_DURING
     {
-      while (GSIArrayCount(timers) != 0)
+      timers = NSMapGet(_mode_2_timers, mode);
+      if (timers)
 	{
-	  min_timer = GSIArrayItemAtIndex(timers, 0).obj;
-	  if (timerInvalidated(min_timer) == YES)
+	  while (GSIArrayCount(timers) != 0)
 	    {
-	      GSIArrayRemoveItemAtIndex(timers, 0);
-	      min_timer = nil;
-	      continue;
-	    }
-
-	  if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
-	    {
-	      break;
-	    }
-
-	  GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
-	  /* Firing will also increment its fireDate, if it is repeating. */
-	  [min_timer fire];
-	  if (timerInvalidated(min_timer) == NO)
-	    {
-	      GSIArrayInsertSortedNoRetain(timers,
-		(GSIArrayItem)min_timer, aSort);
-	    }
-	  else
-	    {
-	      RELEASE(min_timer);
-	    }
-	  min_timer = nil;
-	  GSNotifyASAP();		/* Post notifications. */
-	}
-    }
-
-  /* Is this right? At the moment we invalidate and discard watchers
-     whose limit-dates have passed. */
-  watchers = NSMapGet(_mode_2_watchers, mode);
-  if (watchers)
-    {
-      while (GSIArrayCount(watchers) != 0)
-	{
-	  min_watcher = GSIArrayItemAtIndex(watchers, 0).obj;
-
-	  if (min_watcher->_invalidated == YES)
-	    {
-	      GSIArrayRemoveItemAtIndex(watchers, 0);
-	      min_watcher = nil;
-	      continue;
-	    }
-
-	  if ([min_watcher->_date timeIntervalSinceNow] > 0)
-	    {
-	      break;
-	    }
-	  else
-	    {
-	      id	obj;
-	      NSDate	*nxt = nil;
-
-	      /*
-	       *	If the receiver or its delegate wants to know about
-	       *	timeouts - inform it and give it a chance to set a
-	       *	revised limit date.
-	       */
-	      GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
-	      obj = min_watcher->receiver;
-	      if ([obj respondsToSelector: 
-		      @selector(timedOutEvent:type:forMode:)])
+	      min_timer = GSIArrayItemAtIndex(timers, 0).obj;
+	      if (timerInvalidated(min_timer) == YES)
 		{
-		  nxt = [obj timedOutEvent: min_watcher->data
-				      type: min_watcher->type
-				   forMode: _current_mode];
+		  GSIArrayRemoveItemAtIndex(timers, 0);
+		  min_timer = nil;
+		  continue;
 		}
-	      else if ([obj respondsToSelector: @selector(delegate)])
+
+	      if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
 		{
-		  obj = [obj delegate];
-		  if (obj != nil && [obj respondsToSelector: 
-			    @selector(timedOutEvent:type:forMode:)])
+		  break;
+		}
+
+	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
+	      /* Firing will also increment its fireDate, if it is repeating. */
+	      [min_timer fire];
+	      if (timerInvalidated(min_timer) == NO)
+		{
+		  GSIArrayInsertSortedNoRetain(timers,
+		    (GSIArrayItem)min_timer, aSort);
+		}
+	      else
+		{
+		  RELEASE(min_timer);
+		}
+	      min_timer = nil;
+	      GSNotifyASAP();		/* Post notifications. */
+	    }
+	}
+
+      /* Is this right? At the moment we invalidate and discard watchers
+	 whose limit-dates have passed. */
+      watchers = NSMapGet(_mode_2_watchers, mode);
+      if (watchers)
+	{
+	  while (GSIArrayCount(watchers) != 0)
+	    {
+	      min_watcher = GSIArrayItemAtIndex(watchers, 0).obj;
+
+	      if (min_watcher->_invalidated == YES)
+		{
+		  GSIArrayRemoveItemAtIndex(watchers, 0);
+		  min_watcher = nil;
+		  continue;
+		}
+
+	      if ([min_watcher->_date timeIntervalSinceNow] > 0)
+		{
+		  break;
+		}
+	      else
+		{
+		  id		obj;
+		  NSDate	*nxt = nil;
+
+		  /*
+		   *	If the receiver or its delegate wants to know about
+		   *	timeouts - inform it and give it a chance to set a
+		   *	revised limit date.
+		   */
+		  GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
+		  obj = min_watcher->receiver;
+		  if ([obj respondsToSelector: 
+		    @selector(timedOutEvent:type:forMode:)])
 		    {
 		      nxt = [obj timedOutEvent: min_watcher->data
 					  type: min_watcher->type
 				       forMode: _current_mode];
 		    }
+		  else if ([obj respondsToSelector: @selector(delegate)])
+		    {
+		      obj = [obj delegate];
+		      if (obj != nil && [obj respondsToSelector: 
+			@selector(timedOutEvent:type:forMode:)])
+			{
+			  nxt = [obj timedOutEvent: min_watcher->data
+					      type: min_watcher->type
+					   forMode: _current_mode];
+			}
+		    }
+		  if (nxt && [nxt timeIntervalSinceNow] > 0.0)
+		    {
+		      /*
+		       * If the watcher has been given a revised limit date -
+		       * re-insert it into the queue in the correct place.
+		       */
+		      ASSIGN(min_watcher->_date, nxt);
+		      GSIArrayInsertSortedNoRetain(watchers,
+			(GSIArrayItem)min_watcher, aSort);
+		    }
+		  else
+		    {
+		      /*
+		       * If the watcher is now useless - invalidate and
+		       * release it.
+		       */
+		      min_watcher->_invalidated = YES;
+		      RELEASE(min_watcher);
+		    }
+		  min_watcher = nil;
 		}
-	      if (nxt && [nxt timeIntervalSinceNow] > 0.0)
-		{
-		  /*
-		   *	If the watcher has been given a revised limit date -
-		   *	re-insert it into the queue in the correct place.
-		   */
-		  ASSIGN(min_watcher->_date, nxt);
-		  GSIArrayInsertSortedNoRetain(watchers,
-		    (GSIArrayItem)min_watcher, aSort);
-		}
-	      else
-		{
-		  /*
-		   *	If the watcher is now useless - invalidate and
-		   *	release it.
-		   */
-		  min_watcher->_invalidated = YES;
-		  RELEASE(min_watcher);
-		}
-	      min_watcher = nil;
 	    }
 	}
+      _current_mode = saved_mode;
     }
+  NS_HANDLER
+    {
+      _current_mode = saved_mode;
+      [localException raise];
+    }
+  NS_ENDHANDLER
 
-  _current_mode = saved_mode;
   RELEASE(arp);
 
   /*
@@ -1087,309 +1104,329 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     }
   _current_mode = mode;
 
-  /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-  if (!limit_date)
+  NS_DURING
     {
-      /* Don't wait at all. */
-      timeout.tv_sec = 0;
-      timeout.tv_usec = 0;
-      select_timeout = &timeout;
-    }
-  else if ((ti = [limit_date timeIntervalSinceNow])
-	< LONG_MAX && ti > 0.0)
-    {
-      /* Wait until the LIMIT_DATE. */
-      if (debug_run_loop)
-	printf ("\tNSRunLoop accept input before %f (seconds from now %f)\n", 
-		[limit_date timeIntervalSinceReferenceDate], ti);
-      /* If LIMIT_DATE has already past, return immediately. */
-      timeout.tv_sec = ti;
-      timeout.tv_usec = (ti - timeout.tv_sec) * 1000000.0;
-      select_timeout = &timeout;
-    }
-  else if (ti <= 0.0)
-    {
-      /* The LIMIT_DATE has already past; return immediately without
-	 polling any inputs. */
-      GSCheckTasks();
-      [self _checkPerformers];
-      GSNotifyASAP();
-      if (debug_run_loop)
-	printf ("\tNSRunLoop limit date past, returning\n");
-      _current_mode = saved_mode;
-      RELEASE(arp);
-      return;
-    }
-  else
-    {
-      /* Wait forever. */
-      if (debug_run_loop)
-	printf ("\tNSRunLoop accept input waiting forever\n");
-      select_timeout = NULL;
-    }
-
-  /*
-   *	Get ready to listen to file descriptors.
-   *	Initialize the set of FDS we'll pass to select(), and make sure we
-   *	have empty maps for keeping track of which watcher is associated
-   *	with which file descriptor.
-   *	The maps may not have been emptied if a previous call to this
-   *	method was terminated by an exception.
-   */
-  memset(&exception_fds, '\0', sizeof(exception_fds));
-  memset(&read_fds, '\0', sizeof(read_fds));
-  memset(&write_fds, '\0', sizeof(write_fds));
-  NSResetMapTable(_efdMap);
-  NSResetMapTable(_rfdMap);
-  NSResetMapTable(_wfdMap);
-
-  /*
-   * Do the pre-listening set-up for the file descriptors of this mode.
-   */
-  {
-    GSIArray	watchers;
-
-    watchers = NSMapGet(_mode_2_watchers, mode);
-    if (watchers)
-      {
-	unsigned	i = GSIArrayCount(watchers);
-
-	while (i-- > 0)
-	  {
-	    GSRunLoopWatcher	*info;
-	    int			fd;
-
-	    info = GSIArrayItemAtIndex(watchers, i).obj;
-	    if (info->_invalidated == YES)
-	      {
-		GSIArrayRemoveItemAtIndex(watchers, i);
-		continue;
-	      }
-	    switch (info->type)
-	      {
-		case ET_EDESC: 
-		  fd = (int)info->data;
-		  if (fd > end_inputs)
-		    end_inputs = fd;
-		  FD_SET (fd, &exception_fds);
-		  NSMapInsert(_efdMap, (void*)fd, info);
-		  num_inputs++;
-		  break;
-
-		case ET_RDESC: 
-		  fd = (int)info->data;
-		  if (fd > end_inputs)
-		    end_inputs = fd;
-		  FD_SET (fd, &read_fds);
-		  NSMapInsert(_rfdMap, (void*)fd, info);
-		  num_inputs++;
-		  break;
-
-		case ET_WDESC: 
-		  fd = (int)info->data;
-		  if (fd > end_inputs)
-		    end_inputs = fd;
-		  FD_SET (fd, &write_fds);
-		  NSMapInsert(_wfdMap, (void*)fd, info);
-		  num_inputs++;
-		  break;
-
-		case ET_RPORT: 
-		  if ([info->receiver isValid] == NO)
-		    {
-		      /*
-		       * We must remove an invalidated port.
-		       */
-		      info->_invalidated = YES;
-		      GSIArrayRemoveItemAtIndex(watchers, i);
-		    }
-		  else
-		    {
-		      id port = info->receiver;
-		      int port_fd_count = 128; // xxx #define this constant
-		      int port_fd_array[port_fd_count];
-
-		      if ([port respondsToSelector: @selector(getFds:count:)])
-			[port getFds: port_fd_array count: &port_fd_count];
-		      if (debug_run_loop)
-			printf("\tNSRunLoop listening to %d sockets\n",
-			      port_fd_count);
-
-		      while (port_fd_count--)
-			{
-			  fd = port_fd_array[port_fd_count];
-			  FD_SET (port_fd_array[port_fd_count], &read_fds);
-			  if (fd > end_inputs)
-			    end_inputs = fd;
-			  NSMapInsert(_rfdMap, 
-			    (void*)port_fd_array[port_fd_count], info);
-			  num_inputs++;
-			}
-		    }
-		  break;
-	      }
-	  }
-      }
-  }
-  end_inputs++;
-
-  /*
-   * If there are notifications in the 'idle' queue, we try an instantaneous
-   * select so that, if there is no input pending, we can service the queue.
-   * Similarly, if a task has completed, we need to deliver it's notifications.
-   */
-  if (GSCheckTasks() || GSNotifyMore())
-    {
-      timeout.tv_sec = 0;
-      timeout.tv_usec = 0;
-      select_timeout = &timeout;
-      select_return = select (end_inputs, &read_fds, &write_fds, &exception_fds,
-			  select_timeout);
-    }
-  else
-    select_return = select (end_inputs, &read_fds, &write_fds, &exception_fds,
-			  select_timeout);
-
-  if (debug_run_loop)
-    printf ("\tNSRunLoop select returned %d\n", select_return);
-
-  if (select_return < 0)
-    {
-      if (errno == EINTR)
+      /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
+      if (!limit_date)
 	{
-	  GSCheckTasks();
-	  select_return = 0;
+	  /* Don't wait at all. */
+	  timeout.tv_sec = 0;
+	  timeout.tv_usec = 0;
+	  select_timeout = &timeout;
 	}
-#ifdef __MINGW__
-      else if (errno == 0)
-        {
-	  /* MinGW often returns an errno == 0. Not sure why */
-	    select_return = 0;
-        }
-#endif
+      else if ((ti = [limit_date timeIntervalSinceNow])
+	< LONG_MAX && ti > 0.0)
+	{
+	  /* Wait until the LIMIT_DATE. */
+	  if (debug_run_loop)
+	    printf ("\tNSRunLoop accept input before %f (sec from now %f)\n", 
+	      [limit_date timeIntervalSinceReferenceDate], ti);
+	  /* If LIMIT_DATE has already past, return immediately. */
+	  timeout.tv_sec = ti;
+	  timeout.tv_usec = (ti - timeout.tv_sec) * 1000000.0;
+	  select_timeout = &timeout;
+	}
+      else if (ti <= 0.0)
+	{
+	  /* The LIMIT_DATE has already past; return immediately without
+	     polling any inputs. */
+	  GSCheckTasks();
+	  [self _checkPerformers];
+	  GSNotifyASAP();
+	  if (debug_run_loop)
+	    printf ("\tNSRunLoop limit date past, returning\n");
+	  _current_mode = saved_mode;
+	  RELEASE(arp);
+	  return;
+	}
       else
 	{
-	  /* Some exceptional condition happened. */
-	  /* xxx We can do something with exception_fds, instead of
-	     aborting here. */
-	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%s'",
-		GSLastErrorStr(errno));
-	  abort ();
+	  /* Wait forever. */
+	  if (debug_run_loop)
+	    printf ("\tNSRunLoop accept input waiting forever\n");
+	  select_timeout = NULL;
 	}
-    }
-  if (select_return == 0)
-    {
+
+      /*
+       * Get ready to listen to file descriptors.
+       * Initialize the set of FDS we'll pass to select(), and make sure we
+       * have empty maps for keeping track of which watcher is associated
+       * with which file descriptor.
+       * The maps may not have been emptied if a previous call to this
+       * method was terminated by an exception.
+       */
+      memset(&exception_fds, '\0', sizeof(exception_fds));
+      memset(&read_fds, '\0', sizeof(read_fds));
+      memset(&write_fds, '\0', sizeof(write_fds));
       NSResetMapTable(_efdMap);
       NSResetMapTable(_rfdMap);
       NSResetMapTable(_wfdMap);
-      GSNotifyIdle();
-      [self _checkPerformers];
-      _current_mode = saved_mode;
-      RELEASE(arp);
-      return;
-    }
-  
-  /*
-   *	Look at all the file descriptors select() says are ready for action;
-   *	notify the corresponding object for each of the ready fd's.
-   *	NB. It is possible for a watcher to be missing from the map - if
-   *	the event handler of a previous watcher has 'run' the loop again
-   *	before returning.
-   *	NB. Each time this roop is entered, the starting position (_fdStart)
-   *	is incremented - this is to ensure a fair distribtion over all
-   *	inputs where multiple inputs are in use.  Note - _fdStart can be
-   *	modified while we are in the loop (by recursive calls).
-   */
-  if (_fdStart >= end_inputs)
-    {
-      _fdStart = 0;
-      fdIndex = 0;
-      fdEnd = 0;
-    }
-  else
-    {
-      _fdStart++;
-      fdIndex = _fdStart;
-      fdEnd = _fdStart;
-    }
-  do
-    {
-      BOOL	found = NO;
 
-      if (FD_ISSET (fdIndex, &exception_fds))
-        {
-	  GSRunLoopWatcher	*watcher;
+      /*
+       * Do the pre-listening set-up for the file descriptors of this mode.
+       */
+      {
+	GSIArray	watchers;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fdIndex);
-	  if (watcher != nil && watcher->_invalidated == NO)
+	watchers = NSMapGet(_mode_2_watchers, mode);
+	if (watchers)
+	  {
+	    unsigned	i = GSIArrayCount(watchers);
+
+	    while (i-- > 0)
+	      {
+		GSRunLoopWatcher	*info;
+		int			fd;
+
+		info = GSIArrayItemAtIndex(watchers, i).obj;
+		if (info->_invalidated == YES)
+		  {
+		    GSIArrayRemoveItemAtIndex(watchers, i);
+		    continue;
+		  }
+		switch (info->type)
+		  {
+		    case ET_EDESC: 
+		      fd = (int)info->data;
+		      if (fd > end_inputs)
+			end_inputs = fd;
+		      FD_SET (fd, &exception_fds);
+		      NSMapInsert(_efdMap, (void*)fd, info);
+		      num_inputs++;
+		      break;
+
+		    case ET_RDESC: 
+		      fd = (int)info->data;
+		      if (fd > end_inputs)
+			end_inputs = fd;
+		      FD_SET (fd, &read_fds);
+		      NSMapInsert(_rfdMap, (void*)fd, info);
+		      num_inputs++;
+		      break;
+
+		    case ET_WDESC: 
+		      fd = (int)info->data;
+		      if (fd > end_inputs)
+			end_inputs = fd;
+		      FD_SET (fd, &write_fds);
+		      NSMapInsert(_wfdMap, (void*)fd, info);
+		      num_inputs++;
+		      break;
+
+		    case ET_RPORT: 
+		      if ([info->receiver isValid] == NO)
+			{
+			  /*
+			   * We must remove an invalidated port.
+			   */
+			  info->_invalidated = YES;
+			  GSIArrayRemoveItemAtIndex(watchers, i);
+			}
+		      else
+			{
+			  id port = info->receiver;
+			  int port_fd_count = 128; // xxx #define this constant
+			  int port_fd_array[port_fd_count];
+
+			  if ([port respondsToSelector:
+			    @selector(getFds:count:)])
+			    {
+			      [port getFds: port_fd_array
+				     count: &port_fd_count];
+			    }
+			  if (debug_run_loop)
+			    {
+			      printf("\tNSRunLoop listening to %d sockets\n",
+				port_fd_count);
+			    }
+			  while (port_fd_count--)
+			    {
+			      fd = port_fd_array[port_fd_count];
+			      FD_SET (port_fd_array[port_fd_count], &read_fds);
+			      if (fd > end_inputs)
+				{
+				  end_inputs = fd;
+				}
+			      NSMapInsert(_rfdMap, 
+				(void*)port_fd_array[port_fd_count], info);
+			      num_inputs++;
+			    }
+			}
+		      break;
+		  }
+	      }
+	  }
+      }
+      end_inputs++;
+
+      /*
+       * If there are notifications in the 'idle' queue, we try an
+       * instantaneous select so that, if there is no input pending,
+       * we can service the queue.  Similarly, if a task has completed,
+       * we need to deliver it's notifications.
+       */
+      if (GSCheckTasks() || GSNotifyMore())
+	{
+	  timeout.tv_sec = 0;
+	  timeout.tv_usec = 0;
+	  select_timeout = &timeout;
+	  select_return = select (end_inputs, &read_fds, &write_fds,
+	    &exception_fds, select_timeout);
+	}
+      else
+	{
+	  select_return = select (end_inputs, &read_fds, &write_fds,
+	    &exception_fds, select_timeout);
+	}
+
+      if (debug_run_loop)
+	{
+	  printf ("\tNSRunLoop select returned %d\n", select_return);
+	}
+
+      if (select_return < 0)
+	{
+	  if (errno == EINTR)
 	    {
-	      /*
-	       * The watcher is still valid - so call it's receivers
-	       * event handling method.
-	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, _current_mode);
+	      GSCheckTasks();
+	      select_return = 0;
 	    }
-	  GSNotifyASAP();
-	  found = YES;
-        }
-      if (FD_ISSET (fdIndex, &write_fds))
-        {
-	  GSRunLoopWatcher	*watcher;
-
-	  watcher = NSMapGet(_wfdMap, (void*)fdIndex);
-	  if (watcher != nil && watcher->_invalidated == NO)
+    #ifdef __MINGW__
+	  else if (errno == 0)
 	    {
-	      /*
-	       * The watcher is still valid - so call it's receivers
-	       * event handling method.
-	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, _current_mode);
+	      /* MinGW often returns an errno == 0. Not sure why */
+		select_return = 0;
 	    }
-	  GSNotifyASAP();
-	  found = YES;
-        }
-      if (FD_ISSET (fdIndex, &read_fds))
-        {
-	  GSRunLoopWatcher	*watcher;
-
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fdIndex);
-	  if (watcher != nil && watcher->_invalidated == NO)
+    #endif
+	  else
 	    {
-	      /*
-	       * The watcher is still valid - so call it's receivers
-	       * event handling method.
-	       */
-	      (*watcher->handleEvent)(watcher->receiver,
+	      /* Some exceptional condition happened. */
+	      /* xxx We can do something with exception_fds, instead of
+		 aborting here. */
+	      NSLog (@"select() error in -acceptInputForMode:beforeDate: '%s'",
+		GSLastErrorStr(errno));
+	      abort ();
+	    }
+	}
+      if (select_return == 0)
+	{
+	  NSResetMapTable(_efdMap);
+	  NSResetMapTable(_rfdMap);
+	  NSResetMapTable(_wfdMap);
+	  GSNotifyIdle();
+	  [self _checkPerformers];
+	  _current_mode = saved_mode;
+	  RELEASE(arp);
+	  return;
+	}
+      
+      /*
+       * Look at all the file descriptors select() says are ready for action;
+       * notify the corresponding object for each of the ready fd's.
+       * NB. It is possible for a watcher to be missing from the map - if
+       * the event handler of a previous watcher has 'run' the loop again
+       * before returning.
+       * NB. Each time this roop is entered, the starting position (_fdStart)
+       * is incremented - this is to ensure a fair distribtion over all
+       * inputs where multiple inputs are in use.  Note - _fdStart can be
+       * modified while we are in the loop (by recursive calls).
+       */
+      if (_fdStart >= end_inputs)
+	{
+	  _fdStart = 0;
+	  fdIndex = 0;
+	  fdEnd = 0;
+	}
+      else
+	{
+	  _fdStart++;
+	  fdIndex = _fdStart;
+	  fdEnd = _fdStart;
+	}
+      do
+	{
+	  BOOL	found = NO;
+
+	  if (FD_ISSET (fdIndex, &exception_fds))
+	    {
+	      GSRunLoopWatcher	*watcher;
+
+	      watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fdIndex);
+	      if (watcher != nil && watcher->_invalidated == NO)
+		{
+		  /*
+		   * The watcher is still valid - so call it's receivers
+		   * event handling method.
+		   */
+		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
 		    (void*)(gsaddr)fdIndex, _current_mode);
+		}
+	      GSNotifyASAP();
+	      found = YES;
 	    }
-	  GSNotifyASAP();
-	  found = YES;
-        }
-      if (found == YES && --select_return == 0)
-	{
-	  break;
+	  if (FD_ISSET (fdIndex, &write_fds))
+	    {
+	      GSRunLoopWatcher	*watcher;
+
+	      watcher = NSMapGet(_wfdMap, (void*)fdIndex);
+	      if (watcher != nil && watcher->_invalidated == NO)
+		{
+		  /*
+		   * The watcher is still valid - so call it's receivers
+		   * event handling method.
+		   */
+		  (*watcher->handleEvent)(watcher->receiver,
+		    eventSel, watcher->data, watcher->type,
+		    (void*)(gsaddr)fdIndex, _current_mode);
+		}
+	      GSNotifyASAP();
+	      found = YES;
+	    }
+	  if (FD_ISSET (fdIndex, &read_fds))
+	    {
+	      GSRunLoopWatcher	*watcher;
+
+	      watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fdIndex);
+	      if (watcher != nil && watcher->_invalidated == NO)
+		{
+		  /*
+		   * The watcher is still valid - so call it's receivers
+		   * event handling method.
+		   */
+		  (*watcher->handleEvent)(watcher->receiver,
+		    eventSel, watcher->data, watcher->type,
+		    (void*)(gsaddr)fdIndex, _current_mode);
+		}
+	      GSNotifyASAP();
+	      found = YES;
+	    }
+	  if (found == YES && --select_return == 0)
+	    {
+	      break;
+	    }
+	  if (++fdIndex >= end_inputs)
+	    {
+	      fdIndex = 0;
+	    }
 	}
-      if (++fdIndex >= end_inputs)
-	{
-	  fdIndex = 0;
-	}
+      while (fdIndex != fdEnd);
+
+      /* Clean up before returning. */
+      NSResetMapTable(_efdMap);
+      NSResetMapTable(_rfdMap);
+      NSResetMapTable(_wfdMap);
+
+      [self _checkPerformers];
+      GSNotifyASAP();
+      _current_mode = saved_mode;
     }
-  while (fdIndex != fdEnd);
-
-
-  /* Clean up before returning. */
-  NSResetMapTable(_efdMap);
-  NSResetMapTable(_rfdMap);
-  NSResetMapTable(_wfdMap);
-
-  [self _checkPerformers];
-  GSNotifyASAP();
-  _current_mode = saved_mode;
+  NS_HANDLER
+    {
+      _current_mode = saved_mode;
+      [localException raise];
+    }
+  NS_ENDHANDLER
   RELEASE(arp);
 }
 

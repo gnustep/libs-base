@@ -40,9 +40,9 @@
   BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
   BOOL		_repeats;
   NSTimeInterval _interval;
-  id	_target;
-  SEL	_selector;
-  id	_info;
+  id		_target;
+  SEL		_selector;
+  id		_info;
 }
 
 /* Creating timer objects. */
@@ -51,18 +51,18 @@
 				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f;
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-				     target: object
+				     target: (id)object
 				   selector: (SEL)selector
-				   userInfo: info
+				   userInfo: (id)info
 				    repeats: (BOOL)f;
 
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f;
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
-			    target: object
+			    target: (id)object
 			  selector: (SEL)selector
-			  userInfo: info
+			  userInfo: (id)info
 			   repeats: (BOOL)f;
 
 - (void) fire;
@@ -76,6 +76,13 @@
 - (NSDate*) fireDate;
 - (id) userInfo;
 
+#ifndef	NO_GNUSTEP
+- (id) initWithTimeInterval: (NSTimeInterval)ti
+	 targetOrInvocation: (id)object
+		   selector: (SEL)selector
+		   userInfo: (id)info
+		    repeats: (BOOL)f;
+#endif
 @end
 
 #endif
