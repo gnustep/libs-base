@@ -3,7 +3,7 @@ AC_INIT(src/Collection.m)
 # configure.in for GNU Objective-C library
 # Process this file with autoconf to produce a configure script.
 #
-#   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
+#   Copyright (C) 1993,1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 #
 #   Written by:  Andrew Kachites McCallum <mccallum@cs.rochester.edu>
 #   Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -55,7 +55,6 @@ if test $NeXTCC = 0; then
     #----------------------------------------------------------------
     # Find out if nested functions work on this machine
     #----------------------------------------------------------------
-    AC_C_CROSS
     AC_MSG_CHECKING(whether nested functions work)
     AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
 	       gcc_nested=1, gcc_nested=0, 
@@ -64,7 +63,7 @@ if test $NeXTCC = 0; then
       echo "aborting"
       echo
       echo "The GCC 'nested functions' feature does not seem to be working on"
-      echo "this machine. $(LIBRARY_NAME) makes extensive use of nested functions."
+      echo "this machine. gstep-base makes extensive use of nested functions."
       echo "Read the bug-report instructions in the GCC texinfo manual"
       echo "and submit a bug report."
       echo "The program this configure script used to test nested functions"
