@@ -1,3 +1,8 @@
+2004-12-21  David Wetzel <dave@turbocat.de>
+
+        * Source/Additions/GNUmakefile
+        added Additions_OBJC_FILES += Unicode.m on apple
+
 2004-12-18  David Wetzel <dave@turbocat.de>
 
         * Source/Additions/GSCategories.m ([NSMutableString
