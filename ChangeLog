@@ -1,3 +1,7 @@
+2001-06-15  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.0.2
+
 2001-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSFileManager.m: ([-removeFileAtpath:handler:])
@@ -29,7 +33,6 @@ Wed Jun 13 19:43:16 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 	
 2001-06-12  Adam Fedor  <fedor@gnu.org>
 
-	* Version: 1.0.2
 	* Documentation/news.texi: Update
 
 	* Documentation/gsdoc/NSArray.gsdoc: Updates (from
