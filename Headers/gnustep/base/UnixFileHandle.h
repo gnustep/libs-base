@@ -48,7 +48,7 @@
   BOOL			readOK;
   BOOL			writeOK;
   NSMutableDictionary	*readInfo;
-  int			readPos;
+  int			readMax;
   NSMutableArray	*writeInfo;
   int			writePos;
   NSString		*address;

@@ -96,6 +96,17 @@
 		should cope with both cases anyway.
 	      </p>
 	    </desc>
+	    <term>GSSOCKS</term>
+	    <desc>
+	      <p>
+		May be used to specify a default SOCKS5 server (and optionally
+		a port separated from the server by a colon) to which tcp/ip
+	        connections made using the NSFileHandle extension methods
+		should be directed.<br />
+		This default overrides the SOCKS5_SERVER and SOCKS_SERVER
+		environment variables.
+	      </p>
+	    </desc>
 	    <term>NSWriteOldStylePropertyLists</term>
 	    <desc>
 	      <p>
@@ -305,6 +316,25 @@
 		allocated for objects will be leaked!
 	      </p>
 	    </desc>
+	    <term>SOCKS5_SERVER</term>
+	    <desc>
+	      <p>
+		Specifies the default socks server to be used when making
+		outgoing tcp/ip connections using NSFileHandle.  This may
+		also specify a port after the host name (and spearated
+		from it by a colon).<br />
+		This environment variable is used only if the GSSOCKS
+		user default is not set.
+	      </p>
+	    </desc>
+	    <term>SOCKS_SERVER</term>
+	    <desc>
+	      <p>
+		Equivalent to SOCKS5_SERVER, but used only if that is not
+		defined.
+	      </p>
+	    </desc>
+
 	    <term>TZ</term>
 	    <desc>
 	      <p>

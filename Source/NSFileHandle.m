@@ -309,6 +309,12 @@ NSString * const NSFileHandleOperationException
 
 @implementation NSFileHandle (GNUstepExtensions)
 
+/**
+ * Opens an outgoing network connection by initiating an asynchronous
+ * connection (see
+ * [+fileHandleAsClientInBackgroundAtAddress:service:protocol:forModes:])
+ * and waiting for it to succeed, fail, or time out.
+ */
 + (id) fileHandleAsClientAtAddress: (NSString*)address
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
@@ -320,6 +326,10 @@ NSString * const NSFileHandleOperationException
 				     protocol: protocol]);
 }
 
+/**
+ * Opens an outgoing network connection asynchronously using
+ * [+fileHandleAsClientInBackgroundAtAddress:service:protocol:forModes:]
+ */
 + (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
 				       service: (NSString*)service
 				      protocol: (NSString*)protocol
@@ -332,6 +342,44 @@ NSString * const NSFileHandleOperationException
 						 forModes: nil]);
 }
 
+/**
+ * <p>
+ *   Opens an outgoing network connection asynchronously.
+ * </p>
+ * <list>
+ *   <item>
+ *     The address is the name (or IP dotted quad) of the machine to
+ *     which the connection should be made.
+ *   </item>
+ *   <item>
+ *     The service is the name (or number) of the port to
+ *     which the connection should be made.
+ *   </item>
+ *   <item>
+ *     The protocol is provided so support different network protocols,
+ *     but at present only 'tcp' is supported.  However, a protocol
+ *     specification of the form 'socks-...' can be used to control socks5
+ *     support.<br />
+ *     If '...' is empty (ie the string is just 'socks-' then the connection
+ *     is <em>not</em> made via a socks server.<br />
+ *     Otherwise, the text '...' must be the name of the host on which the
+ *     socks5 server is running, with an optional port number separated
+ *     from the host name by a colon.
+ *   </item>
+ *   <item>
+ *     If modes is nil or empty, uses NSDefaultRunLoopMode.
+ *   </item>
+ * </list>
+ * <p>
+ *   This method supports connection through a firewall via socks5.  The
+ *   socks5 connection may be controlled via the protocol argument, but if
+ *   no socks infromation is supplied here, the <em>GSSOCKS</em> user default
+ *   will be used, and failing that, the <em>SOCKS5_SERVER</em> or
+ *   <em>SOCKS_SERVER</em> environment variables will be used to set the
+ *   socks server.  If none of these mechanisms specify a socks server, the
+ *   connection will be made directly rather than through socks.
+ * </p>
+ */
 + (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
 				       service: (NSString*)service
 				      protocol: (NSString*)protocol

@@ -47,16 +47,6 @@
 
 @implementation NSNotification
 
-- (void) dealloc
-{
-  RELEASE(_name);
-  TEST_RELEASE(_object);
-  TEST_RELEASE(_info);
-  [super dealloc];
-}
-
-
-/* Creating autoreleased Notification objects. */
 
 + (NSNotification*) notificationWithName: (NSString*)name
 				  object: (id)object
@@ -72,8 +62,31 @@
   return [self notificationWithName: name object: object userInfo: nil];
 }
 
-
-/* Querying a Notification object. */
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  if (NSShouldRetainWithZone (self, zone))
+    {
+      return [self retain];
+    }
+  return [[[self class] allocWithZone: zone] initWithName: _name
+						   object: _object
+						 userInfo: _info];
+}
+
+- (void) dealloc
+{
+  RELEASE(_name);
+  TEST_RELEASE(_object);
+  TEST_RELEASE(_info);
+  [super dealloc];
+}
+
+- (NSString*) description
+{
+  return [[super description] stringByAppendingFormat:
+    @" Name: %@ Object: %@ Info: %@", _name, _object, _info];
+}
 
 - (NSString*) name
 {
@@ -88,20 +101,6 @@
 - (NSDictionary*) userInfo
 {
   return _info;
-}
-
-
-/* NSCopying protocol. */
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  if (NSShouldRetainWithZone (self, zone))
-    return [self retain];
-
-  return [[[self class] allocWithZone: zone]
-    initWithName: _name
-	  object: _object
-	userInfo: _info];
 }
 
 /*

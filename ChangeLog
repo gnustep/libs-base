@@ -3,6 +3,11 @@
 	* Source/NSObject.m: Fix a few errors which crept in to the map
 	table based reference counting.
 	* Examples/GNUmakefile: Permit local makefile to be missing.
+	* Source/UnixFileHandle.m: Added outgoing SOCKS5 support.
+	* Source/NSFileHandle.m: Added SOCKS5 documentation.
+	* Source/Base/gsdoc: Dopcumented SOCKS enironemnet variables and defs.
+	* Source/NSNotification.m: Made -description more informative.
+	* Testing/call.m: Trivial test program for tcp connections.
 
 2002-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
