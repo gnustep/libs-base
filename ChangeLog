@@ -1,3 +1,8 @@
+2001-03-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSInvocation.m: Add missing static inline to __get_arg
+	(patch from David Relson <relson@osagesoftware.com>).
+
 2001-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSerializer.m:
