@@ -1,4 +1,9 @@
-2003-04-01  Richard Frith-Macdonald <rfm@gnu.org>
+22003-04-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([-content]) fix to produce string
+	content of elements rather than just text nodes.
+
+22003-04-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: ([initWithString:calendarFormat:locale:])
 	add support for %F millisecond initialisation.
