@@ -84,11 +84,11 @@
 #  define TYPE_TYPE	unsigned long long
 #elif TYPE_ORDER == 11
 #  define NumberTemplate	NSFloatNumber
-#  define TYPE_FORMAT	@"%f"
+#  define TYPE_FORMAT	@"%0.7f"
 #  define TYPE_TYPE	float
 #elif TYPE_ORDER == 12
 #  define NumberTemplate	NSDoubleNumber
-#  define TYPE_FORMAT	@"%g"
+#  define TYPE_FORMAT	@"%0.16g"
 #  define TYPE_TYPE	double
 #endif
 

@@ -1,3 +1,8 @@
+2001-02-26  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSConcreteNumber.m (NumberTemplate): added precision to float
+	and double TYPE_FORMAT.
+
 2001-02-25  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in (cppflags_temp): Corrected to save CPPFLAGS not
