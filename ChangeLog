@@ -9,7 +9,8 @@ Mon Nov 16 14:29:35 1998  Adam Fedor  <fedor@ultra.doc.com>
 	* src/include/NSBundle.h: New methods;
 	* src/include/NSCharacterSet.h: Likewise.
 	* src/include/NSLock.h: Likewise.
-	* src/include/NSConnection.h: Likewise.
+	* src/include/NSConnection.h: Likewise (fixes from TROILLARD
+	Camille <tuscland@wanadoo.fr>).
 
 	* src/include/fast.x: Fix /* in comment.
 	
