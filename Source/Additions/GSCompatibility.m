@@ -393,6 +393,11 @@ BOOL GSDebugSet(NSString *level)
     return [self intValue] != 0 ? YES : NO;
 }
 
+- (NSString*) substringFromRange:(NSRange)range
+{
+  return [self substringWithRange:range];
+}
+ 
 @end
 
 @implementation NSInvocation(GSCompatibility)
