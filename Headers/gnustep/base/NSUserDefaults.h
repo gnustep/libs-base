@@ -27,7 +27,6 @@
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSDistributedLock.h>
 
 @class NSArray;
 @class NSMutableArray;
@@ -123,8 +122,6 @@ GS_EXPORT NSString* const NSLocale;
 					    user defaults are changed */
   NSDictionary		*_dictionaryRep; // Cached dictionary representation
   NSString		*_defaultsDatabase;
-  NSString		*_defaultsDatabaseLockName;
-  NSDistributedLock	*_defaultsDatabaseLock;
   NSDate		*_lastSync;
   NSTimer		*_tickingTimer;   // for synchronization
   NSRecursiveLock	*_lock;

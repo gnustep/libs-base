@@ -44,7 +44,6 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSValue.h>
@@ -66,7 +65,6 @@ static SEL	addSel;
 /* User's Defaults database */
 static NSString	*GNU_UserDefaultsPrefix = @"GNUstep";
 static NSString	*GNU_UserDefaultsDatabase = @".GNUstepDefaults";
-static NSString	*GNU_UserDefaultsDatabaseLock = @".GNUstepUDLock";
 
 static Class	NSArrayClass;
 static Class	NSDataClass;
@@ -266,14 +264,14 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   return registrationDefaults;
 }
 
+/**
+ * Returns the shared defaults object. If it doesn't exist yet, it's
+ * created. The defaults are initialized for the current user.
+ * The search list is guaranteed to be standard only the first time 
+ * this method is invoked. The shared instance is provided as a 
+ * convenience; other instances may also be created.
+ */
 + (NSUserDefaults*) standardUserDefaults
-  /*
-    Returns the shared defaults object. If it doesn't exist yet, it's
-    created. The defaults are initialized for the current user.
-    The search list is guaranteed to be standard only the first time 
-    this method is invoked. The shared instance is provided as a 
-    convenience; other instances may also be created.
-    */
 {
   BOOL added_locale, added_lang;
   id lang;
@@ -470,8 +468,10 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 /*************************************************************************
  *** Initializing the User Defaults
  *************************************************************************/
+/**
+ * Initializes defaults for current user calling initWithUser:
+ */
 - (id) init
-  /* Initializes defaults for current user calling initWithUser: . */
 {
   return [self initWithUser: NSUserName()];
 }
@@ -493,7 +493,9 @@ static NSString	*pathForUser(NSString *user)
       path = home;
     }
   else
-    path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
+    {
+      path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
+    }
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
       NSLog(@"Directory '%@' does not exist - creating it", path);
@@ -516,7 +518,9 @@ static NSString	*pathForUser(NSString *user)
   return path;
 }
 
-/* Initializes defaults for the specified user calling initWithFile: . */
+/**
+ * Initializes defaults for the specified user calling -initWithContentsOfFile:
+ */
 - (id) initWithUser: (NSString*)userName
 {
   NSString	*path = pathForUser(userName);
@@ -529,9 +533,12 @@ static NSString	*pathForUser(NSString *user)
   return [self initWithContentsOfFile: path];
 }
 
+/**
+ * <init />
+ * Initializes defaults for the specified path. Returns an object with 
+ * an empty search list.
+ */
 - (id) initWithContentsOfFile: (NSString*)path
-  /* Initializes defaults for the specified path. Returns an object with 
-     an empty search list. */
 {
   [super init];
 	
@@ -556,14 +563,11 @@ static NSString	*pathForUser(NSString *user)
 	{
 	  path = [pathForUser(NSUserName()) stringByDeletingLastPathComponent];
 	}
-      path = [path stringByAppendingPathComponent:
-	GNU_UserDefaultsDatabaseLock];
-      _defaultsDatabaseLockName = [path copy];
-      _defaultsDatabaseLock =
-	RETAIN([NSDistributedLock lockWithPath: _defaultsDatabaseLockName]);
     }
   if (processName == nil)
-    processName = RETAIN([[NSProcessInfo processInfo] processName]);
+    {
+      processName = RETAIN([[NSProcessInfo processInfo] processName]);
+    }
 
   // Create an empty search list
   _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
@@ -582,12 +586,14 @@ static NSString	*pathForUser(NSString *user)
 	  [runLoop runMode: [runLoop currentMode]
 		beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.2]];
 	  if ([self synchronize] == YES)
-	    done = YES;
+	    {
+	      done = YES;
+	    }
         }
       if (done == NO)
 	{
-          RELEASE(self);
-          return self = nil;
+          DESTROY(self);
+          return self;
         }
     }
 	
@@ -928,7 +934,6 @@ static NSString	*pathForUser(NSString *user)
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableDictionary	*newDict;
   NSDictionary		*attr;
-  NSDate		*mod;
 
   [_lock lock];
 
@@ -945,6 +950,8 @@ static NSString	*pathForUser(NSString *user)
    *	If we haven't changed anything, we only need to synchronise if
    *	the on-disk database has been changed by someone else.
    */
+  attr = [mgr fileAttributesAtPath: _defaultsDatabase
+		      traverseLink: YES];
   if (_changedDomains == NO)
     {
       BOOL		wantRead = NO;
@@ -955,17 +962,19 @@ static NSString	*pathForUser(NSString *user)
 	}
       else
 	{
-	  attr = [mgr fileAttributesAtPath: _defaultsDatabase
-			      traverseLink: YES];
 	  if (attr == nil)
 	    {
 	      wantRead = YES;
 	    }
 	  else
 	    {
+	      NSDate	*mod;
+
 	      mod = [attr objectForKey: NSFileModificationDate];
 	      if ([_lastSync earlierDate: mod] != _lastSync)
-		wantRead = YES;
+		{
+		  wantRead = YES;
+		}
 	    }
 	}
       if (wantRead == NO)
@@ -975,31 +984,10 @@ static NSString	*pathForUser(NSString *user)
 	}
     }
 
-  /*
-   * Get file lock - break any lock that is more than five minute old.
-   */
-  if ([_defaultsDatabaseLock tryLock] == NO)
-    {
-      if ([[_defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
-	{
-	  [_defaultsDatabaseLock breakLock];
-	  if ([_defaultsDatabaseLock tryLock] == NO)
-	    {
-	      [_lock unlock];
-	      return NO;
-	    }
-	}
-      else
-	{
-	  [_lock unlock];
-	  return NO;
-	}
-    }
-	
   DESTROY(_dictionaryRep);
 
   // Read the persistent data from the stored database
-  if ([mgr fileExistsAtPath: _defaultsDatabase])
+  if (attr != nil)
     {
       unsigned long desired;
       unsigned long attributes;
@@ -1008,14 +996,12 @@ static NSString	*pathForUser(NSString *user)
         initWithContentsOfFile: _defaultsDatabase];
       if (newDict == nil)
 	{
-	  [_defaultsDatabaseLock unlock];	// release file lock
 	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
 	  [_lock unlock];
 	  return NO;
 	}
       
-      attributes = [[mgr fileAttributesAtPath: _defaultsDatabase
-	traverseLink: YES] filePosixPermissions];
+      attributes = [attr filePosixPermissions];
       // We enforce the permission mode 0600 on the defaults database
 #if	!(defined(S_IRUSR) && defined(S_IWUSR))
       desired = 0600;
@@ -1040,8 +1026,20 @@ static NSString	*pathForUser(NSString *user)
     }
   else
     {
+      unsigned long	desired;
+      NSNumber		*permissions;
+
+      // We enforce the permission mode 0600 on the defaults database
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+      desired = 0600;
+#else
+      desired = (S_IRUSR|S_IWUSR);
+#endif
+      permissions = [NSNumber numberWithUnsignedLong: desired];
       attr = [NSDictionary dictionaryWithObjectsAndKeys: 
-	NSUserName(), NSFileOwnerAccountName, nil];
+	NSUserName(), NSFileOwnerAccountName,
+	permissions, NSFilePosixPermissions,
+	nil];
       NSLog(@"Creating defaults database file %@", _defaultsDatabase);
       [mgr createFileAtPath: _defaultsDatabase
 		   contents: nil
@@ -1077,23 +1075,14 @@ static NSString	*pathForUser(NSString *user)
       // Save the changes
       if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
 	{
-	  [_defaultsDatabaseLock unlock];
 	  [_lock unlock];
 	  return NO;
 	}
-      attr = [mgr fileAttributesAtPath: _defaultsDatabase
-			  traverseLink: YES];
-      mod = [attr objectForKey: NSFileModificationDate];
-      ASSIGN(_lastSync, mod);
-      [_defaultsDatabaseLock unlock];	// release file lock
+      ASSIGN(_lastSync, [NSDate date]);
     }
   else
     {
-      attr = [mgr fileAttributesAtPath: _defaultsDatabase
-			  traverseLink: YES];
-      mod = [attr objectForKey: NSFileModificationDate];
-      ASSIGN(_lastSync, mod);
-      [_defaultsDatabaseLock unlock];	// release file lock
+      ASSIGN(_lastSync, [NSDate date]);
       if ([_persDomains isEqual: newDict] == NO)
 	{
 	  RELEASE(_persDomains);
