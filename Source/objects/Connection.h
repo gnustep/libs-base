@@ -43,7 +43,7 @@
 {
   unsigned is_valid:1;
   unsigned delay_dialog_interruptions:1;
-  unsigned tcp_port_filler:6;
+  unsigned connection_filler:6;
   unsigned retain_count:24;
   Port *in_port;
   Port *out_port;
