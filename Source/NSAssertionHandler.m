@@ -42,6 +42,11 @@
  * source file, the position within that file, and the name of the
  * ObjC method or C function in which the assertion failed.
  * </p>
+ * <p>An NSAssertionHandler instance is created on demand for each thread
+ * and is stored in the thread's dictionary under the key NSAssertionHandler.
+ * A custom NSAssertionHandler can be used by adding it to the thread
+ * dictionary under this key.
+ * </p>
  * The assertion macros are:
  * NSAssert(), NSCAssert(),
  * NSAssert1(), NSCAssert1(),
@@ -54,7 +59,7 @@
 @implementation NSAssertionHandler
 
 /* Key for thread dictionary. */
-static NSString *dict_key = @"_NSAssertionHandler";
+static NSString *dict_key = @"NSAssertionHandler";
 
 /**
  * Returns the assertion handler object for the current thread.<br />
