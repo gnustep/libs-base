@@ -21,6 +21,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
+#include "config.h"
 #import <Foundation/NSProtocolChecker.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSInvocation.h>

@@ -18,6 +18,7 @@
 
    */
 
+#include "config.h"
 #include	<Foundation/NSArray.h>
 #include	<Foundation/NSException.h>
 #include	<Foundation/NSString.h>

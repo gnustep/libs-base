@@ -18,6 +18,7 @@
 
    */
 
+#include "config.h"
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSConnection.h>
 #include	<Foundation/NSData.h>
