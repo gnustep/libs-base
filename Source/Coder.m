@@ -206,7 +206,7 @@ my_object_is_class(id object)
 }
 
 /* This is the designated sub-initializer for all "reading" coders. */
-+ coderReadingFromStream: (id <Streaming>) stream
++ newReadingFromStream: (id <Streaming>) stream
 {
   id cs = [CStream cStreamReadingFromStream: stream];
   char name[128];		/* Max classname length. */
@@ -221,7 +221,7 @@ my_object_is_class(id object)
 		_initWithCStream: cs
 		formatVersion: version
 		isDecoding: YES];
-  return [new_coder autorelease];
+  return new_coder;
 }
 
 /* ..Writing... methods */
@@ -306,9 +306,9 @@ my_object_is_class(id object)
 
 /* ..Reading... methods */
 
-+ coderReadingFromFile: (id <String>) filename
++ newReadingFromFile: (id <String>) filename
 {
-  return [self coderReadingFromStream: 
+  return [self newReadingFromStream: 
 		 [StdioStream streamWithFilename: filename 
 			      fmode: "r"]];
 }
@@ -317,8 +317,9 @@ my_object_is_class(id object)
 	    fromStream: (id <Streaming>)stream;
 {
   id c, o;
-  c = [self coderReadingFromStream:stream];
+  c = [self newReadingFromStream:stream];
   [c decodeObjectAt: &o withName: name];
+  [c release];
   return [o autorelease];
 }
 
