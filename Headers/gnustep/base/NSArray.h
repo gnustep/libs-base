@@ -56,7 +56,7 @@
 - (void) getObjects: (id*)objs;
 - (void) getObjects: (id*)objs range: (NSRange)aRange;
 - (unsigned) indexOfObject: anObject;
-- (unsigned) indexOfObject: anObject inRange: (NSRange*)aRange;
+- (unsigned) indexOfObject: anObject inRange: (NSRange)aRange;
 - (unsigned) indexOfObjectIdenticalTo: anObject;
 - (unsigned) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange;
 - lastObject;

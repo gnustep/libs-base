@@ -147,7 +147,6 @@
 
 - (unsigned) indexOfObject: anObject
 {
-    unsigned	hash = [anObject hash];
     unsigned	i;
 
     for (i = 0; i < _count; i++) {
