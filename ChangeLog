@@ -1,4 +1,94 @@
+Thu Mar 21 20:17:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-encodeValueOfCType:at:withName:name]): [_C_CHARPTR]: Write the
+ 	string with the host LENGTH, not the network LENGTH!
+
+	* src/Foundation/NSZone.h: Declare new functions.
+
+	* src/NSGSet.m ([NSGSet -isEqual:]): Make this just compare the
+ 	id's, not call [super isEqual:].  I did this to prevent an
+ 	infinite loop while running checks/nsarchiver.m, but I have a
+ 	feeling that the bug might be in map.c, not here.  Look at this
+ 	again!
+
+	* src/Set.m ([Set -nextObjectWithEnumState:]): Dereference
+ 	ENUMSTATE; this change mirrors the earlier change to [NSGSet
+ 	-nextObject].
+
+	* src/KeyedCollection.m ([ConstantKeyedCollection
+ 	-_decodeContentsWithCoder:]): Reverse order of objects and keys,
+ 	to match _encodeContentsWithCoder:.
+
+	* src/Makefile.in (GNUSTEP_CFILES): Removed NSZone.c.
+	(GNUSTEP_MFILES): Added NSZone.m.
+	* NSZone.m: Renamed from NSZone.c.
+	(NSZoneSetName, NSZoneName): New functions; unimplemented.
+
+	* src/Makefile.in (objects/stdobjects.h): Create it in the build
+ 	directory, not $(srcdir).  (Thanks to Albin Jones.)
+
+Thu Mar 21 13:13:35 EST 1996  Albin L. Jones  <Albin.L.Jones@Dartmouth.EDU>
+
+	* src/Foundation/NSGeometry.h: Added documentation commentary
+	and reformatted things a little.  Also separated the typedef's
+	from the struct declarations in the definitions of NSPoint,
+	NSSize, and NSRect.  (This is for conformity to the GNU coding
+	standards.)
+	* src/NSGeometry.m: Added documentation commentary and
+	reformatted things a little.  Also added bits of code to
+	guarantee that functions which return BOOL do so.
+	* src/Foundation/NSHashTable.h: Added full documentation.
+	* src/Foundation/NSMapTable.h: Ditto.
+	* src/Foundation/NSRange.h: Separated the typedef from the
+	struct declaration for NSRange.  (This is for conformity to the
+	GNU coding standards.)
+	* src/Makefile.in: Added new files to GNU_MFILES, GNU_HEADERS;
+	removed old files from GNU_CFILES, GNU_OTHER_SRCFILES,
+	GNUSTEP_HEADERS, GNUSTEP_MFILES.  Removed GNU_BASICS_CFILES,
+	GNU_BASICS_HFILES, GNU_CALLBACKS_CFILES, GNU_CALLBACKS_HFILES;
+	they are no longer needed.
+	* src/Makefile.in (libobjects.so): Replaced dependency
+	objects/stdobjects.h with $(HEADERS_INSTALL).
+	* src/Makefile.in (libobjects.a): Ditto.
+	* src/NSHashTable.m (_NSHT_extra_retain): Fixed annoying "Bus
+	error" bug.
+	* src/NSHashTable.m: Removed the usage of "allocs".  Now uses
+	zones only.
+	* src/NSHashTable.m: Many other changes, none fundamental.  More
+	comments.
+	* src/NSMapTable.m: Removed the usage of "allocs".  Now uses
+	zones only.
+	* src/NSMapTable.m: Many other changes, none fundamental.  More
+	comments.
+	* src/abort.c, src/allocs.c., src/atoz.m, src/objects/abort.h
+	src/objects/allocs.h, src/objects/bitops.h,
+	src/objects/minmax.h: Got rid of these, as they were no longer
+	needed.
+	* src/array.c: Became src/array.m.
+	* src/data.c: Became src/data.m.
+	* src/hash.c: Became src/hash.m.
+	* src/list.c: Became src/list.m.
+	* src/map.c: Became src/map.m.
+	* src/callbacks-char_p.c: Became src/cbs-char-p.m.
+	* src/callbacks-id.m: Became src/cbs-id.m.
+	* src/callbacks-int_p.c: Became src/cbs-int-p.m.
+	* src/callbacks-int.c: Became src/cbs-int.m.
+	* src/callbacks-void_p.c: Became src/cbs-void-p.m.
+	* src/callbacks.c: Became src/callbacks.m.
+	* src/number.c: Became src/numbers.c.
+	* src/x-basics.c.in: Became src/x-bas.m.in.
+	* src/x-callbacks.c.in: Became src/x-cbs.m.in.
+	* src/objects/magic.h, src/objects/number.h: Merged to form
+	src/objects/numbers.h.
+	* src/objects/x-basics.h.in: Became src/objects/x-bas.h.in.
+	* src/objects/x-callbacks.h.in: Became src/objects/x-cbs.h.in.
+	* src/array.m, hash.m, list.m, map.m: Removed usage of "allocs",
+	changed to using zones only.
+
 Thu Mar 21 19:27:56 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (CFLAGS): Added -Wno-implicit.
 
 	* src/BinaryCStream.m: Overhauled to use htonl() and friends.  New
  	format is incompatible with the old.
