@@ -32,14 +32,14 @@
 #include <netdb.h>
 /* #include <libc.h> */
 
-#ifdef WIN32
+#ifdef __WIN32__
 #include <Windows32/Sockets.h>
 #else
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#endif /* WIN32 */
+#endif /* __WIN32__ */
 
 static NSLock *_hostCacheLock = nil;
 static BOOL _hostCacheEnabled = NO;

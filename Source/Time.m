@@ -190,7 +190,7 @@ id monthNames;
 #endif
   return ((long)((end_tms.tms_utime - start_tms.tms_utime + 
                 end_tms.tms_stime - start_tms.tms_stime) * 1000) / CLK_TCK); 
-#elif defined(__WIN32__) || defined(_WIN32)
+#elif defined(__WIN32__)
   DWORD start_tick, end_tick;
 
   start_tick = GetTickCount();
@@ -215,7 +215,7 @@ id monthNames;
 {
 #if HAVE_TIMES
   struct tms start_tms, end_tms; 
-#elif defined(__WIN32__) || defined(_WIN32)
+#elif defined(__WIN32__)
   DWORD start_tick, end_tick;
 #else 
   struct rusage start_ru, end_ru;
@@ -226,7 +226,7 @@ id monthNames;
   times(&start_tms); 
   (*aFunc)(); 
   times(&end_tms); 
-#elif defined(__WIN32__) || defined(_WIN32)
+#elif defined(__WIN32__)
 #else 
   getrusage(RUSAGE_SELF, &start_ru);
   (*aFunc)();

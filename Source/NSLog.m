@@ -22,6 +22,7 @@
    */ 
 
 #include <config.h>
+#include <base/preface.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
@@ -98,7 +99,7 @@ NSLogv (NSString* format, va_list args)
   if (_NSLog_printf_handler == NULL)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
 
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
   pid = (int)GetCurrentProcessId(),
 #else
   pid = (int)getpid();

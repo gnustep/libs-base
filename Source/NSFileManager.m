@@ -1,7 +1,7 @@
 /* 
    NSFileManager.m
 
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -60,13 +60,7 @@
 
 #define DIR_enum_state DIR
 
-#ifdef	__WIN32__
-#ifndef	_WIN32
-#define	_WIN32
-#endif
-#endif
-
-#if	defined(_WIN32)
+#if	defined(__WIN32__)
 #define	WIN32ERR	((DWORD)0xFFFFFFFF)
 #endif
 
@@ -76,7 +70,7 @@
 # include <limits.h>			/* for PATH_MAX */
 # include <utime.h>
 #else
-#ifdef _WIN32
+#ifdef __WIN32__
 # include <limits.h>
 # include <sys/utime.h>
 #else
@@ -195,7 +189,7 @@ static NSFileManager* defaultManager = nil;
 {
     const char* cpath = [self fileSystemRepresentationWithPath: path];
     
-#if defined(_WIN32)
+#if defined(__WIN32__)
     return SetCurrentDirectory(cpath);
 #else
     return (chdir(cpath) == 0);
@@ -205,7 +199,7 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
 {
-#if defined(_WIN32)
+#if defined(__WIN32__)
   return CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
 #else
   const char* cpath;
@@ -296,7 +290,7 @@ static NSFileManager* defaultManager = nil;
 {
     char path[PATH_MAX];
 
-#if defined(_WIN32)
+#if defined(__WIN32__)
     if (GetCurrentDirectory(PATH_MAX, path) > PATH_MAX)
       return nil;
 #else
@@ -637,7 +631,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(_WIN32)
+#if defined(__WIN32__)
       DWORD res;
 
       res = GetFileAttributes(cpath);
@@ -676,7 +670,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(_WIN32)
+#if defined(__WIN32__)
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
@@ -696,7 +690,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(_WIN32)
+#if defined(__WIN32__)
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
@@ -716,7 +710,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(_WIN32)
+#if defined(__WIN32__)
       DWORD res= GetFileAttributes(cpath);
       int len = strlen(cpath);
 
@@ -852,7 +846,7 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
-#if defined(_WIN32)
+#if defined(__WIN32__)
     long long totalsize, freesize;
     id  values[5];
     id	keys[5] = {
@@ -937,7 +931,7 @@ static NSFileManager* defaultManager = nil;
   NSDate	*date;
   BOOL		allOk = YES;
 
-#ifndef _WIN32
+#ifndef __WIN32__
   num = [attributes objectForKey: NSFileOwnerAccountNumber];
   if (num)
     {
@@ -995,7 +989,7 @@ static NSFileManager* defaultManager = nil;
   if (date)
     {
       struct stat sb;
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
+#if  defined(__WIN32__) || defined(_POSIX_VERSION)
       struct utimbuf ub;
 #else
       time_t ub[2];
@@ -1005,7 +999,7 @@ static NSFileManager* defaultManager = nil;
 	allOk = NO;
       else
 	{
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
+#if  defined(__WIN32__) || defined(_POSIX_VERSION)
 	  ub.actime = sb.st_atime;
 	  ub.modtime = [date timeIntervalSince1970];
 	  allOk &= (utime(cpath, &ub) == 0);
@@ -1096,7 +1090,7 @@ static NSFileManager* defaultManager = nil;
   const char* lpath = [self fileSystemRepresentationWithPath: path];
   const char* npath = [self fileSystemRepresentationWithPath: otherPath];
     
-#ifdef _WIN32
+#ifdef __WIN32__
   return NO;
 #else
   return (symlink(lpath, npath) == 0);
@@ -1119,7 +1113,7 @@ static NSFileManager* defaultManager = nil;
 
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
-#if 0 && defined(_WIN32)
+#if 0 && defined(__WIN32__)
   unsigned	len = [path length];
   NSMutableData	*d = [NSMutableData dataWithLength: len + 5];
   char		*fspath = (char*)[d mutableBytes];

@@ -25,6 +25,7 @@
 */ 
 
 #include <config.h>
+#include <base/preface.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
@@ -178,7 +179,7 @@ void gnustep_base_thread_callback()
 #ifdef	HAVE_USLEEP
       usleep (30*60*1000000);
 #else
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
       Sleep (30*60*1000);
 #else
       sleep (30*60);
@@ -193,7 +194,7 @@ void gnustep_base_thread_callback()
 #ifdef	HAVE_USLEEP
       usleep ((int)(delay*1000000));
 #else
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
       Sleep (delay*1000);
 #else
       sleep ((int)delay);

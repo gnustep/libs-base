@@ -544,7 +544,11 @@ decode (const void *ptr)
 
 	 if (f)
 	   {
-	     fp = fopen([f cString], "rb");
+#if	defined(__WIN32__)
+	     fp = fopen([f fileSystemRepresentation], "rb");
+#else
+	     fp = fopen([f fileSystemRepresentation], "r");
+#endif
 	     if (fp != NULL)
 	       {
                  if (fscanf(fp, "%79s", zone_name) == 1)
@@ -658,7 +662,11 @@ decode (const void *ptr)
 
     /* Open file. */
     fileName = [NSTimeZone getTimeZoneFile: aTimeZoneName];
-    file = fopen([fileName cString], "rb");
+#if	defined(__WIN32__)
+    file = fopen([fileName fileSystemRepresentation], "rb");
+#else
+    file = fopen([fileName fileSystemRepresentation], "r");
+#endif
     if (file == NULL)
       [NSException raise: fileException format: errMess];
 
@@ -779,7 +787,11 @@ decode (const void *ptr)
   /* Read dictionary from file. */
   abbreviationDictionary = [[NSMutableDictionary alloc] init];
   fileName = [NSTimeZone getAbbreviationFile];
-  file = fopen([fileName cString], "rb");
+#if	defined(__WIN32__)
+  file = fopen([fileName fileSystemRepresentation], "rb");
+#else
+  file = fopen([fileName fileSystemRepresentation], "r");
+#endif
   if (file == NULL)
     [NSException
       raise: NSInternalInconsistencyException
@@ -826,7 +838,11 @@ decode (const void *ptr)
     temp_array[i] = [[NSMutableArray alloc] init];
 
   fileName = [NSTimeZone getRegionsFile];
-  file = fopen([fileName cString], "rb");
+#if	defined(__WIN32__)
+  file = fopen([fileName fileSystemRepresentation], "rb");
+#else
+  file = fopen([fileName fileSystemRepresentation], "r");
+#endif
   if (file == NULL)
     [NSException
       raise: NSInternalInconsistencyException

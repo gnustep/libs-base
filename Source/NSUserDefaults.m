@@ -30,7 +30,7 @@
 #include <libc.h>
 /* If POSIX then:  #include <unistd.h> */
 #endif /* 0 */
-#ifndef __WIN32__
+#if	!defined(__WIN32__)
 #include <pwd.h>
 #endif
 #include <sys/stat.h>
