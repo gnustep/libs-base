@@ -153,8 +153,6 @@
 - (BOOL) isValid;
 
 /* Only subclassers and power-users need worry about these */
-- (void) addToRunLoop: run_loop forMode: (id <String>)mode;
-- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode;
 - (Proxy*) proxyForTarget: (unsigned)target;
 - (void) addProxy: (Proxy*)aProxy;
 - (BOOL) includesProxyForTarget: (unsigned)target;
@@ -218,5 +216,7 @@ extern NSString *ConnectionBecameInvalidNotification;
 
 extern NSString *ConnectionBecameInvalidNotification;
 extern NSString *ConnectionWasCreatedNotification;
+
+extern NSString *RunLoopConnectionReplyMode;
 
 #endif /* __Connection_h_OBJECTS_INCLUDE */
