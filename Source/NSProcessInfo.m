@@ -157,7 +157,9 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   int i;
 
   /* Getting the process name */
-  _gnu_processName = [[NSString alloc] initWithCString: argv[0]];
+  _gnu_processName = [[NSString stringWithCString: argv[0]] lastPathComponent];
+  RETAIN(_gnu_processName);
+
 
   /* Copy the argument list */
   {
@@ -267,6 +269,7 @@ static char	**_gnu_noobjc_env;
   int		length;
   int		position; 
   int		env_terms;
+  BOOL		stripTrailingNewline = NO;
 #ifdef HAVE_PROGRAM_INVOCATION_NAME
   extern char	*program_invocation_name;
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
@@ -359,6 +362,16 @@ static char	**_gnu_noobjc_env;
       c = getc(ifp);
       if ((c == EOF) || (c == 0)) // End of a parameter 
 	{ 
+	  if (argument == 0 && position > 0
+	    && _gnu_noobjc_argv[argument][position-1] == '\n')
+	    {
+	      stripTrailingNewline = YES;
+	    }
+	  if (stripTrailingNewline == YES && position > 0
+	    && _gnu_noobjc_argv[argument][position-1] == '\n')
+	    {
+	      position--;
+	    }
 	  _gnu_noobjc_argv[argument][position] = '\0';
 	  argument++;
 	  if (c == EOF) // End of command line
@@ -553,10 +566,8 @@ int main(int argc, char *argv[], char *env[])
   // $$$ The format of the string is not specified by the OpenStep 
   // specification. It could be useful to change this format after
   // NeXTSTEP release 4.0 comes out.
-  return [NSString stringWithFormat: @"%s: %d: [%s]",
-		   [[self hostName] cString],
-		   pid,
-		   [[[NSDate date] description] cString]];
+  return [NSString stringWithFormat: @"%@:%d:[%@]",
+    [self hostName], pid, [NSDate date]];
 }
 
 /*************************************************************************

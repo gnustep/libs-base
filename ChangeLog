@@ -1,3 +1,13 @@
+Sat Sep  4  6:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Various process-info related bugfixes.
+	* Source/NSBundle.m: Use arguments list for argv[0] for full path.
+	* Source/NSLog.m: use processName directly in log.
+	* Source/NSProcessInfo.m: Fix process name to be last path component
+	of argv[0], and add workaround for buggy /proc filesystems that
+	append a newline to arguments.
+	* Source/NSUserDefaults.m: use processName directly for domain name.
+
 Thu Sep  2  9:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * Source/NSTask.m: exec process with argv[0] set to full path of

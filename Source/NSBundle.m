@@ -312,7 +312,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       char *output;
       NSString *path, *s;
       
-      path = [[NSProcessInfo processInfo] processName];
+      path = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
       output = objc_find_executable([path cString]);
       NSAssert(output, NSInternalInconsistencyException);
       path = [NSString stringWithCString: output];

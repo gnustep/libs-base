@@ -109,7 +109,7 @@ NSLogv (NSString* format, va_list args)
 	     stringWithFormat: @"%@ %@[%d] ",
 	     [[NSCalendarDate calendarDate] 
 	       descriptionWithCalendarFormat: @"%b %d %H:%M:%S"],
-	     [[[NSProcessInfo processInfo] processName] lastPathComponent],
+	     [[NSProcessInfo processInfo] processName],
 	     pid];
 
   /* Check if there is already a newline at the end of the format */

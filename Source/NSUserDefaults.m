@@ -326,9 +326,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	RETAIN([NSDistributedLock lockWithPath: defaultsDatabaseLockName]);
   }
   if (processName == nil)
-    processName = RETAIN([[[NSProcessInfo processInfo] processName]
-	lastPathComponent]);
-	
+    processName = RETAIN([[NSProcessInfo processInfo] processName]);
+
   // Create an empty search list
   searchList = [[NSMutableArray alloc] initWithCapacity: 10];
 	
@@ -901,31 +900,41 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	
   while (!done)
     {
-      if ([key hasPrefix: @"-"]) {
-	/* anything beginning with a '-' is a defaults key and we must strip
-	    the '-' from it.  As a special case, we leave the '- in place
-	    for '-GS...' and '--GS...' for backward compatibility. */
-        if ([key hasPrefix: @"-GS"] == NO && [key hasPrefix: @"--GS"] == NO) {
+      if ([key hasPrefix: @"-"])
+	{
+	  NSString	*old = nil;
+	  /* anything beginning with a '-' is a defaults key and we must strip
+	      the '-' from it.  As a special case, we leave the '- in place
+	      for '-GS...' and '--GS...' for backward compatibility. */
+	  if ([key hasPrefix: @"-GS"] == YES || [key hasPrefix: @"--GS"] == YES)
+	    {
+	      old = key;
+	    }
 	  key = [key substringFromIndex: 1];
+	  val = [enumerator nextObject];
+	  if (!val)
+	    {            // No more args
+	      [argDict setObject: @"" forKey: key];		// arg is empty.
+	      if (old)
+		[argDict setObject: @"" forKey: old];
+	      done = YES;
+	      continue;
+	    }
+	  else if ([val hasPrefix: @"-"])
+	    {  // Yet another argument
+	      [argDict setObject: @"" forKey: key];		// arg is empty.
+	      if (old)
+		[argDict setObject: @"" forKey: old];
+	      key = val;
+	      continue;
+	    }
+	  else
+	    {                            // Real parameter
+	      [argDict setObject: val forKey: key];
+	      if (old)
+		[argDict setObject: val forKey: old];
+	    }
 	}
-	val = [enumerator nextObject];
-	if (!val)
-	  {            // No more args
-	    [argDict setObject: @"" forKey: key];		// arg is empty.
-	    done = YES;
-	    continue;
-	  }
-	else if ([val hasPrefix: @"-"])
-	  {  // Yet another argument
-	    [argDict setObject: @"" forKey: key];		// arg is empty.
-	    key = val;
-	    continue;
-	  }
-	else
-	  {                            // Real parameter
-	    [argDict setObject: val forKey: key];
-	  }
-      }
       done = ((key = [enumerator nextObject]) == nil);
     }
   
