@@ -127,10 +127,8 @@ BinaryTreeNode.m \
 CircularArray.m \
 Collection.m \
 ConnectedCoder.m \
-CString.m \
 Coder.m \
 Connection.m \
-ConstantString.m \
 CStream.m \
 Decoder.m \
 DelegatePool.m \
@@ -149,8 +147,6 @@ Magnitude.m \
 MallocAddress.m \
 MappedCollector.m \
 MemoryStream.m \
-MutableCString.m \
-MutableString.m \
 Notification.m \
 NotificationDispatcher.m \
 OrderedCollection.m \
@@ -169,7 +165,6 @@ SplayTree.m \
 Stack.m \
 StdioStream.m \
 Stream.m \
-String.m \
 TcpPort.m \
 TextCStream.m \
 Time.m \
@@ -293,7 +288,6 @@ include/Stack.h \
 include/StdioStream.h \
 include/Stream.h \
 include/Streaming.h \
-include/String.h \
 include/TcpPort.h \
 include/TextCStream.h \
 include/Time.h \
