@@ -116,30 +116,17 @@
   [encoder encodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
   [encoder encodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
 
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_negativeFormat];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_positiveFormat];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_attributesForPositiveValues];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_attributesForNegativeValues];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_maximum];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_minimum];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_roundingBehavior];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_roundingBehavior];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForNil];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForNotANumber];
-  [encoder encodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForZero];
+  [encoder encodeObject: _roundingBehavior];
+  [encoder encodeObject: _maximum];
+  [encoder encodeObject: _minimum];
+  [encoder encodeObject: _attributedStringForNil];
+  [encoder encodeObject: _attributedStringForNotANumber];
+  [encoder encodeObject: _attributedStringForZero];
+  [encoder encodeObject: _negativeFormat];
+  [encoder encodeObject: _positiveFormat];
+  [encoder encodeObject: _attributesForPositiveValues];
+  [encoder encodeObject: _attributesForNegativeValues];
 }
-
 - (NSString*) format
 {
   if (_attributedStringForZero != nil)
@@ -187,38 +174,16 @@
   [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
   [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
 
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_negativeFormat];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_positiveFormat];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributesForPositiveValues];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributesForNegativeValues];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_maximum];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_negativeFormat];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_positiveFormat];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributesForPositiveValues];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributesForNegativeValues];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_maximum];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_minimum];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_roundingBehavior];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_roundingBehavior];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForNil];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForNotANumber];
-  [decoder decodeValueOfObjCType: @encode(id)
-			      at: &_attributedStringForZero];
+  _roundingBehavior = [decoder decodeObject];
+  _maximum  = [decoder decodeObject];
+  _minimum  = [decoder decodeObject];
+  _attributedStringForNil = [decoder decodeObject];
+  _attributedStringForNotANumber = [decoder decodeObject];
+  _attributedStringForZero = [decoder decodeObject];
+  _negativeFormat = [decoder decodeObject];
+  _positiveFormat = [decoder decodeObject];
+  _attributesForPositiveValues = [decoder decodeObject];
+  _attributesForNegativeValues = [decoder decodeObject];
 
   return self;
 }
