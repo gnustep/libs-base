@@ -1012,86 +1012,89 @@ static NSMutableSet	*textNodes = nil;
 	  [self outputText: [children firstChild] to: buf];
 	  [buf appendString: @"</a></h1>\n"];
 
-	  [buf appendString: indent];
-	  [buf appendString: @"<h3>Authors</h3>\n"];
-	  [buf appendString: indent];
-	  [buf appendString: @"<dl>\n"];
-	  [self incIndent];
 	  children = [children nextElement];
-	  while ([[children name] isEqual: @"author"] == YES)
+	  if ([[children name] isEqual: @"author"] == YES)
 	    {
-	      GSXMLNode		*author = children;
-	      GSXMLNode		*tmp;
-	      GSXMLNode		*email = nil;
-	      GSXMLNode		*url = nil;
-	      GSXMLNode		*desc = nil;
-
-	      children = [children nextElement];
-
-	      tmp = [author firstChildElement];
-	      if ([[tmp name] isEqual: @"email"] == YES)
-		{
-		  email = tmp;
-		  tmp = [tmp nextElement];
-		}
-	      if ([[tmp name] isEqual: @"url"] == YES)
-		{
-		  url = tmp;
-		  tmp = [tmp nextElement];
-		}
-	      if ([[tmp name] isEqual: @"desc"] == YES)
-		{
-		  desc = tmp;
-		  tmp = [tmp nextElement];
-		}
-
 	      [buf appendString: indent];
-	      if (url == nil)
-		{
-		  [buf appendString: @"<dt>"];
-		  [buf appendString: [[author attributes]
-		    objectForKey: @"name"]];
-		}
-	      else
-		{
-		  [buf appendString: @"<dt><a href=\""];
-		  [buf appendString: [[url attributes]
-		    objectForKey: @"url"]];
-		  [buf appendString: @"\">"];
-		  [buf appendString: [[author attributes]
-		    objectForKey: @"name"]];
-		  [buf appendString: @"</a>"];
-		}
-	      if (email != nil)
-		{
-		  //
-		  // Add a beautifier ' ' otherwise we'll get a
-		  //   <dt>John Doe(<a href="mailto:...
-		  // or
-		  //   <dt><a href...>John Doe</a>(<a href...
-		  //
-		  [buf appendString: @" ("];
-		  [self outputNode: email to: buf];
-		  [buf appendString: @")"];
-		}
-	      [buf appendString: @"</dt>\n"];
+	      [buf appendString: @"<h3>Authors</h3>\n"];
 	      [buf appendString: indent];
-	      [buf appendString: @"<dd>\n"];
-	      if (desc != nil)
+	      [buf appendString: @"<dl>\n"];
+	      [self incIndent];
+	      while ([[children name] isEqual: @"author"] == YES)
 		{
-		  [self incIndent];
-		  while (desc != nil)
+		  GSXMLNode		*author = children;
+		  GSXMLNode		*tmp;
+		  GSXMLNode		*email = nil;
+		  GSXMLNode		*url = nil;
+		  GSXMLNode		*desc = nil;
+
+		  children = [children nextElement];
+
+		  tmp = [author firstChildElement];
+		  if ([[tmp name] isEqual: @"email"] == YES)
 		    {
-		      desc = [self outputBlock: desc to: buf inPara: NO];
+		      email = tmp;
+		      tmp = [tmp nextElement];
 		    }
-		  [self decIndent];
+		  if ([[tmp name] isEqual: @"url"] == YES)
+		    {
+		      url = tmp;
+		      tmp = [tmp nextElement];
+		    }
+		  if ([[tmp name] isEqual: @"desc"] == YES)
+		    {
+		      desc = tmp;
+		      tmp = [tmp nextElement];
+		    }
+
+		  [buf appendString: indent];
+		  if (url == nil)
+		    {
+		      [buf appendString: @"<dt>"];
+		      [buf appendString: [[author attributes]
+			objectForKey: @"name"]];
+		    }
+		  else
+		    {
+		      [buf appendString: @"<dt><a href=\""];
+		      [buf appendString: [[url attributes]
+			objectForKey: @"url"]];
+		      [buf appendString: @"\">"];
+		      [buf appendString: [[author attributes]
+			objectForKey: @"name"]];
+		      [buf appendString: @"</a>"];
+		    }
+		  if (email != nil)
+		    {
+		      //
+		      // Add a beautifier ' ' otherwise we'll get a
+		      //   <dt>John Doe(<a href="mailto:...
+		      // or
+		      //   <dt><a href...>John Doe</a>(<a href...
+		      //
+		      [buf appendString: @" ("];
+		      [self outputNode: email to: buf];
+		      [buf appendString: @")"];
+		    }
+		  [buf appendString: @"</dt>\n"];
+		  [buf appendString: indent];
+		  [buf appendString: @"<dd>\n"];
+		  if (desc != nil)
+		    {
+		      [self incIndent];
+		      while (desc != nil)
+			{
+			  desc = [self outputBlock: desc to: buf inPara: NO];
+			}
+		      [self decIndent];
+		    }
+		  [buf appendString: indent];
+		  [buf appendString: @"</dd>\n"];
 		}
+	      [self decIndent];
 	      [buf appendString: indent];
-	      [buf appendString: @"</dd>\n"];
+	      [buf appendString: @"</dl>\n"];
 	    }
-	  [self decIndent];
-	  [buf appendString: indent];
-	  [buf appendString: @"</dl>\n"];
 	  if ([[children name] isEqual: @"version"] == YES)
 	    {
 	      [buf appendString: indent];
