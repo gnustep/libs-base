@@ -58,7 +58,7 @@
 - (void) setAtEnd: (BOOL)flag;
 @end
 
-@interface      GSMimeHeader : NSObject
+@interface      GSMimeHeader : NSObject <NSCopying>
 {
   NSString              *name;
   NSString              *value;
@@ -67,6 +67,7 @@
 }
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
 + (NSString*) makeToken: (NSString*)t;
+- (id) copyWithZone: (NSZone*)z;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v;
 - (id) initWithName: (NSString*)n
@@ -88,7 +89,7 @@
 @end
 
 
-@interface	GSMimeDocument : NSObject
+@interface	GSMimeDocument : NSObject <NSCopying>
 {
   NSMutableArray	*headers;
   id			content;
@@ -110,6 +111,7 @@
 - (id) content;
 - (id) contentByID: (NSString*)key;
 - (id) contentByName: (NSString*)key;
+- (id) copyWithZone: (NSZone*)z;
 - (NSString*) contentFile;
 - (NSString*) contentID;
 - (NSString*) contentName;
