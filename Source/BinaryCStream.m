@@ -57,7 +57,7 @@
 
 /* For debugging */
 
-static BOOL debug_binary_coder;
+static int debug_binary_coder = 0;
 
 + setDebugging: (BOOL)f
 {
