@@ -582,6 +582,8 @@
  */
 - (void) redo
 {
+  NSString *name = [NSString stringWithString: [self redoActionName]];
+
   if (_isUndoing || _isRedoing)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -613,6 +615,8 @@
 
       _isRedoing = NO;
       _group = oldGroup;
+
+      [[_undoStack lastObject] setActionName: name];
 
       [[NSNotificationCenter defaultCenter]
 	  postNotificationName: NSUndoManagerDidRedoChangeNotification
@@ -961,6 +965,7 @@
  */
 - (void) undoNestedGroup
 {
+  NSString *name = [NSString stringWithString: [self undoActionName]];
   PrivateUndoGroup	*oldGroup;
   PrivateUndoGroup	*groupToUndo;
 
@@ -1013,6 +1018,8 @@
 
   _isUndoing = NO;
   _group = oldGroup;
+
+  [[_redoStack lastObject] setActionName: name];
 
   [[NSNotificationCenter defaultCenter]
       postNotificationName: NSUndoManagerDidUndoChangeNotification
