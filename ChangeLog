@@ -1,9 +1,16 @@
 2000-06-27  Adam Fedor  <fedor@gnu.org>
 
+	* Fixes on solaris/gcc 2.8.0
+	* configure.in: Check for whoami location.
+	* Source/Makefile.postamble: Use it.
+	* Tools/Makefile.postamble: Use it.
+
 	* Tools/gsdoc.m: Make sure exit status is 0 when no libxml
 
 	* Makefile.postamble: Don't make documentation on install. Can't
 	guarentee that library path is setup correctly yet.
+
+	* Source/NSData.m: Correct sense of NEEDS_WORD_ALIGN test.
 
 2000-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -40,6 +40,8 @@ AC_CANONICAL_SYSTEM
 AC_PROG_CC
 AC_PROG_CPP
 
+AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
+
 #--------------------------------------------------------------------
 # -pipe option for compiler
 #--------------------------------------------------------------------

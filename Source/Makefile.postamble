@@ -67,7 +67,7 @@ after-install::
 	  mkdir -p $(INSTALL_ROOT_DIR)/etc; \
 	  services=$(INSTALL_ROOT_DIR)/etc/services.add; \
 	fi; \
-	if [ "`whoami`" != root ]; then \
+	if [ "`$(WHOAMI)`" != root ]; then \
 	    echo "WARNING: Please add the following lines to $$services"; \
 	    echo "gdomap 538/tcp # GNUstep distrib objects"; \
 	    echo "gdomap 538/udp # GNUstep distrib objects"; \
