@@ -9,9 +9,9 @@ GNUstep-HOWTO is located in the gnustep-make package or at
 
    If you are installing the GNUstep libraries individually, make sure
 you have installed the GNUstep Makefile package (gnustep-make) already.
-In addition you should probably install an Objective-C library
-(gnustep-objc), as well some other libraries (notable ffcall). See the
-GNUstep-HOWTO for more information.
+In addition you should install an Objective-C library (gnustep-objc)
+if you are not using gcc 3.x, as well some other libraries (notably
+ffcall). See the GNUstep-HOWTO for more information.
 
    When you configure this library, make sure you use the same
 configuration options as with gstep-make. Some additional options to
@@ -87,9 +87,19 @@ machines and is not supported.
    You need to have the ffcall libraries, which you can get from
 <ftp://www.gnustep.org/pub/gnustep/libs/> or
 <http://clisp.cons.org/~haible/>. You also need to have a special
-version of the Objective-C library (as of gcc 2.95.x the required hooks
-are not in the standard library). You can get this library from
-<ftp://www.gnustep.org/pub/gnustep/libs/libobjc-0.9.1.tar.gz>.
+version of the Objective-C library (before gcc 3.0 the required hooks
+were not in the standard library). You can get this library from
+<ftp://www.gnustep.org/pub/gnustep/libs/libobjc-1.0.0.tar.gz>.
+
+OpenSSL
+-------
+
+   GNUstep base has optional support for using the OpenSSL libraries for
+secure URL connections (with the NSURL classes). To enable this option
+you need to have the openssl libraries installed and add the option
+`--enable-openssl' when running the `configure' script. Note that the
+OpenSSL license is not compatible with GPL, so do not use this option
+if you want your programs to be GPL compatible.
 
 Compilation
 ===========

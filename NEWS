@@ -1,7 +1,15 @@
 News
 ****
 
-The currently released version of the library is `1.0.1'.
+The currently released version of the library is `1.0.2'.
+
+Noteworthy changes in version `1.0.2'
+=====================================
+
+   Mostly a bug fix release to work with the new gcc 3.0.
+
+   * Added support for special gcc 3.0 options (constant string
+     support).
 
 Noteworthy changes in version `1.0.1'
 =====================================
