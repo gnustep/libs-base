@@ -298,10 +298,6 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	}
       [nr_list appendObject: nr];
     }
-
-  /* Since nr was retained when it was added to the Array and
-     LinkedListabove, we can release it now. */
-  [nr release];
 }
 
 - (void) addInvocation: (id <Invoking>)invocation
@@ -323,6 +319,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	name: name
 	object: object];
 
+  /* Since nr was retained when it was added to the Array and
+     LinkedList above, we can release it now. */
   [nr release];
 }
 
@@ -351,6 +349,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	name: name
 	object: object];
 
+  /* Since nr was retained when it was added to the Array and
+     LinkedList above, we can release it now. */
   [nr release];
 }
 
