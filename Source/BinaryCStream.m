@@ -222,11 +222,13 @@ static int debug_binary_coder = 0;
 
     case _C_FLT:
       {
+	float fvalue;
 	double value;
 	int exponent, mantissa;
 	short exponent_encoded;
 
-	memcpy (&value, d, sizeof (float));
+	memcpy (&fvalue, d, sizeof (float));
+	value = fvalue;
 	/* Get the exponent */
 	value = frexp (value, &exponent);
 	exponent_encoded = exponent;
@@ -386,6 +388,7 @@ static int debug_binary_coder = 0;
 	short exponent;
 	int mantissa;
 	double value;
+	float fvalue;
 
 	/* Decode the exponent and mantissa. */
 	READ_SIGNED_TYPE (&exponent, short, ntohs);
@@ -394,7 +397,8 @@ static int debug_binary_coder = 0;
 	value = mantissa / FLOAT_FACTOR;
 	value = ldexp (value, exponent);
 	/* Put the double into the requested memory location as a float */
-	memcpy (d, &value, sizeof (float));
+	fvalue = value;
+	memcpy (d, &fvalue, sizeof (float));
 	break;
       }
 
