@@ -280,6 +280,7 @@ objc/zone.h
 
 GNUSTEP_MFILES = \
 NSAllocateObject.m \
+NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
 NSArrayEnumerator.m \
@@ -294,12 +295,16 @@ NSDictionary.m \
 NSEnumerator.m \
 NSException.m \
 NSGeometry.m \
+NSGArchiver.m \
 NSGArray.m \
 NSGCoder.m \
+NSGData.m \
+NSGUnarchiver.m \
 NSNumber.m \
 NSObject.m \
 NSRange.m \
 NSString.m \
+NSUnarchiver.m \
 NSValue.m
 
 NSVALUE_CLUSTER = 0 1 2 3 4
@@ -333,6 +338,7 @@ GNUSTEP_OBJS = \
 	$(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 
 GNUSTEP_HEADERS = \
+foundation/NSArchiver.h \
 foundation/NSArray.h \
 foundation/NSArrayEnumerator.h \
 foundation/NSAutoreleasePool.h \
@@ -345,14 +351,19 @@ foundation/NSDate.h \
 foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
+foundation/NSGArchiver.h \
 foundation/NSGArray.h \
 foundation/NSGCoder.h \
+foundation/NSGData.h \
+foundation/NSGUnarchiver.h \
 foundation/NSInvocation.h \
 foundation/NSMethodSignature.h \
 foundation/NSObjCRuntime.h \
 foundation/NSObject.h \
 foundation/NSRange.h \
+foundation/NSSerialization.h \
 foundation/NSString.h \
+foundation/NSUnarchiver.h \
 foundation/NSUtilities.h \
 foundation/NSValue.h \
 foundation/NSZone.h \
