@@ -1061,6 +1061,43 @@ quotedFromString(NSString *aString)
   return resultString;
 }
 
+static NSData*
+createUnicodeEnvBlockFromDict(NSDictionary *env)
+{
+  NSMutableData	*data = nil;
+
+  if ([env count] > 0)
+    {
+      // arbitrary value
+      NSMutableData	*data = [NSMutableData dataWithCapacity:10*1024];
+      NSEnumerator	*enumerator;
+      NSString		*key;
+      unichar 		terminator= (unichar)'\0';
+      unichar		separator = (unichar)'=';
+      CREATE_AUTORELEASE_POOL(pool);
+      
+      enumerator = [env keyEnumerator];
+      while ((key = [enumerator nextObject]))
+	{
+	  NSString	*value;
+	  NSString	*expression;
+	  unsigned	l;
+	  NSRange	r = NSMakeRange(0,0);
+	  unichar	buffer[1024];
+
+	  [data appendData: [key dataUsingEncoding: NSUnicodeStringEncoding];
+	  [data appendBytes: separator length: 2];
+	  value = [env objectForKey: key];
+	  [data appendData: [value dataUsingEncoding: NSUnicodeStringEncoding];
+	  [data appendBytes: terminator length: 2];	// end key-value pair
+	}
+      [data appendBytes: terminator length: 2];		// end of environment
+      RELEASE(pool);
+    }
+  return data;
+}
+
+
 - (void) launch
 {
   DWORD		tid;
@@ -1072,6 +1109,7 @@ quotedFromString(NSString *aString)
   wchar_t	*w_args;
   int		result;
   const wchar_t	*wexecutable;
+  LPVOID	envp = 0;
   
   if (_hasLaunched)
     {
@@ -1095,6 +1133,35 @@ quotedFromString(NSString *aString)
     sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
 
+  if ([_environment count] > 0)
+    {
+      NSMutableData	*data = [NSMutableData dataWithCapacity: 10240];
+      NSEnumerator	*enumerator;
+      NSString		*key;
+      unichar 		terminator= (unichar)'\0';
+      unichar		separator = (unichar)'=';
+      CREATE_AUTORELEASE_POOL(pool);
+      
+      enumerator = [_environment keyEnumerator];
+      while ((key = [enumerator nextObject]))
+	{
+	  NSString	*value;
+	  NSString	*expression;
+	  unsigned	l;
+	  NSRange	r = NSMakeRange(0,0);
+	  unichar	buffer[1024];
+
+	  [data appendData: [key dataUsingEncoding: NSUnicodeStringEncoding];
+	  [data appendBytes: separator length: 2];
+	  value = [_environment objectForKey: key];
+	  [data appendData: [value dataUsingEncoding: NSUnicodeStringEncoding];
+	  [data appendBytes: terminator length: 2];	// end key-value pair
+	}
+      [data appendBytes: terminator length: 2];		// end of environment
+      RELEASE(pool);
+      envp = [data bytes];
+    }
+
   memset (&start_info, 0, sizeof(start_info));
   start_info.cb = sizeof(start_info);
   start_info.dwFlags |= STARTF_USESTDHANDLES;
@@ -1104,11 +1171,11 @@ quotedFromString(NSString *aString)
   
   result = CreateProcessW(wexecutable,
     w_args,
-    NULL,      /* proc attrs */
-    NULL,      /* thread attrs */
-    1,         /* inherit handles */
-    0,         /* creation flags */
-    NULL,      /* env block */
+    NULL,      			/* proc attrs */
+    NULL,      			/* thread attrs */
+    1,         			/* inherit handles */
+    CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
+    envp,			/* env block */
     [[[self currentDirectoryPath] localFromOpenStepPath] unicharString],
     &start_info,
     &procInfo);
