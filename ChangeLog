@@ -1,3 +1,8 @@
+2003-07-22  Jeremy Bettis  <jeremy@deadbeef.com>
+
+	* Headers/gnustep/base/objc-gnu2next.h (class_nextMethodList):
+	Fix macro to return the method list.
+
 2003-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Don't output authors heading if not needed.
