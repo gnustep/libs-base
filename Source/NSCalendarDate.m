@@ -611,9 +611,6 @@ static inline int getDigits(const char *from, char *to, int limit)
   unsigned	had = 0;
   unsigned int	pos;
   BOOL		hadPercent = NO;
-  NSString	*dForm;
-  NSString	*tForm;
-  NSString	*TForm;
   NSMutableData	*fd;
   BOOL		changedFormat = NO;
   BOOL		error = NO;
@@ -634,16 +631,6 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       description = @"";
     }
-
-  TForm = [locale objectForKey: NSTimeDateFormatString];
-  if (TForm == nil)
-    TForm = @"%X %x";
-  dForm = [locale objectForKey: NSShortDateFormatString];
-  if (dForm == nil)
-    dForm = @"%y-%m-%d";
-  tForm = [locale objectForKey: NSTimeFormatString];
-  if (tForm == nil)
-    tForm = @"%H-%M-%S";
 
   /*
    * Get format into a buffer, leaving room for expansion in case it has
@@ -681,7 +668,11 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	      if (c == 'c')
 		{
-		  sub = TForm;
+		  sub = [locale objectForKey: NSTimeDateFormatString];
+		  if (sub == nil)
+		    {
+		      sub = @"%X %x";
+		    }
 		}
 	      else if (c == 'R')
 		{
@@ -693,11 +684,19 @@ static inline int getDigits(const char *from, char *to, int limit)
 		}
 	      else if (c == 'X')
 		{
-		  sub = tForm;
+		  sub = [locale objectForKey: NSTimeFormatString];
+		  if (sub == nil)
+		    {
+		      sub = @"%H-%M-%S";
+		    }
 		}
 	      else if (c == 'x')
 		{
-		  sub = dForm;
+		  sub = [locale objectForKey: NSShortDateFormatString];
+		  if (sub == nil)
+		    {
+		      sub = @"%y-%m-%d";
+		    }
 		}
 
 	      if (sub != nil)
@@ -1183,12 +1182,12 @@ static inline int getDigits(const char *from, char *to, int limit)
 	      NSCalendarDate	*now = [[NSCalendarDate alloc] init];
 
 	      [now setTimeZone: gmtZone];
-	      if ((had | hadY) == 0)
+	      if ((had & hadY) == 0)
 		{
 		  year = [now yearOfCommonEra];
 		  had |= hadY;
 		}
-	      if ((had | hadw) == 0)
+	      if ((had & hadw) == 0)
 		{
 		  dayOfWeek = [now dayOfWeek];
 		  had |= hadw;
@@ -1230,7 +1229,7 @@ static inline int getDigits(const char *from, char *to, int limit)
       /*
        * If the year has not been set ... use this year ... as on MacOS-X
        */
-      if ((had | hadY) == 0)
+      if ((had & hadY) == 0)
 	{
 	  NSCalendarDate	*now = [[NSCalendarDate alloc] init];
 
