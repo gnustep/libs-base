@@ -219,14 +219,14 @@ static NSMapTable	*attrNames = 0;
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
-  int			key;
+  void			*key;
 
   enumerator = NSEnumerateMapTable(attrNames);
-  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+  while (NSNextMapEnumeratorPair(&enumerator, &key, (void**)&val))
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return key;
+	  return (int)key;
 	}
     }
   return -1;
@@ -391,7 +391,7 @@ static NSMapTable	*attrNames = 0;
 
 - (unsigned) hash
 {
-  return (unsigned)lib;
+  return (((unsigned)lib) >> 3);
 }
 
 - (id) init
@@ -568,14 +568,14 @@ static NSMapTable	*nsNames = 0;
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
-  int			key;
+  void			*key;
 
   enumerator = NSEnumerateMapTable(nsNames);
-  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+  while (NSNextMapEnumeratorPair(&enumerator, &key, (void**)&val))
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return key;
+	  return (int)key;
 	}
     }
   return -1;
@@ -594,7 +594,7 @@ static NSMapTable	*nsNames = 0;
 
 - (unsigned) hash
 {
-  return (unsigned)lib;
+  return (((unsigned)lib) >> 3);
 }
 
 /**
@@ -795,14 +795,14 @@ static NSMapTable	*nodeNames = 0;
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
-  int			key;
+  void			*key;
 
   enumerator = NSEnumerateMapTable(nodeNames);
-  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+  while (NSNextMapEnumeratorPair(&enumerator, &key, (void**)&val))
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return key;
+	  return (int)key;
 	}
     }
   return -1;
@@ -1053,7 +1053,7 @@ static NSMapTable	*nodeNames = 0;
 
 - (unsigned) hash
 {
-  return (unsigned)lib;
+  return (((unsigned)lib) >> 3);
 }
 
 - (id) init
