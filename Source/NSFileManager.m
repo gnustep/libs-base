@@ -157,7 +157,7 @@
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSFileManager.h>
 
-/**
+/*
  * GSAttrDictionary is a private NSDictionary subclass used to
  * handle file attributes efficiently ...  using lazy evaluation
  * to ensure that we only do the minimum work necessary at any time.
@@ -172,7 +172,7 @@
 + (NSDictionary*) attributesAt: (const char*)cpath traverseLink: (BOOL)traverse;
 @end
 
-/**
+/*
  * We also need a special enumerator class to enumerate the dictionary.
  */
 @interface	GSAttrDictionaryEnumerator : NSEnumerator
@@ -772,7 +772,10 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Copies the file or directory at source to destination, using handler
+ * Copies the file or directory at source to destination, using a
+ * handler object which should respond to
+ * [NSObject-fileManager:willProcessPath:] and
+ * [NSObject-fileManager:shouldProceedAfterError:] messages.
  */
 - (BOOL) copyPath: (NSString*)source
 	   toPath: (NSString*)destination
@@ -861,7 +864,10 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Moves the file or directory at source to destination, using handler
+ * Moves the file or directory at source to destination, using a
+ * handler object which should respond to
+ * [NSObject-fileManager:willProcessPath:] and
+ * [NSObject-fileManager:shouldProceedAfterError:] messages.
  */
 - (BOOL) movePath: (NSString*)source
 	   toPath: (NSString*)destination 
@@ -936,7 +942,10 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Links the file or directory at source to destination, using handler
+ * Links the file or directory at source to destination, using a
+ * handler object which should respond to
+ * [NSObject-fileManager:willProcessPath:] and
+ * [NSObject-fileManager:shouldProceedAfterError:] messages.
  */
 - (BOOL) linkPath: (NSString*)source
 	   toPath: (NSString*)destination
@@ -948,7 +957,10 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Removes the file or directory at path, using handler
+ * Removes the file or directory at path, using a
+ * handler object which should respond to
+ * [NSObject-fileManager:willProcessPath:] and
+ * [NSObject-fileManager:shouldProceedAfterError:] messages.
  */
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: handler
