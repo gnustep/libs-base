@@ -652,6 +652,21 @@ AC_SYS_PROCFS
 AC_SYS_PROCFS_EXE_LINK
 
 #--------------------------------------------------------------------
+# Check if /proc/$$/cmdline terminates the last argument with a nul
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(/proc/$$/cmdline terminated by nul)
+AC_TRY_RUN([#include "$srcdir/config/config.proccmd.c"],
+	CMDLINE_TERMINATED=1,
+	CMDLINE_TERMINATED=0,
+	CMDLINE_TERMINATED=0)
+AC_DEFINE_UNQUOTED(CMDLINE_TERMINATED, $CMDLINE_TERMINATED)
+if test $CMDLINE_TERMINATED = 1; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
 # Check if short and int values need to be word aligned
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(short/int needs to be word aligned)
