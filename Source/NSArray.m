@@ -965,16 +965,34 @@ static int compare(id elem1, id elem2, void* context)
   return AUTORELEASE(e);
 }
 
+/**
+ * Returns the result of invoking -descriptionWithLocale:indent: with a nil
+ * locale and zero indent.
+ */
 - (NSString*) description
 {
   return [self descriptionWithLocale: nil];
 }
 
+/**
+ * Returns the result of invoking -descriptionWithLocale:indent:
+ * with a zero indent.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   return [self descriptionWithLocale: locale indent: 0];
 }
 
+/**
+ * Returns the receiver as a text property list in the traditional format.<br />
+ * See [NSString-propertyList] for details.<br />
+ * If locale is nil, no formatting is done, otherwise entries are formatted
+ * according to the locale, and indented according to level.<br />
+ * Unless locale is nil, a level of zero indents items by four spaces,
+ * while a level of one indents them by a tab.<br />
+ * The items in the property list string appear in the same order as
+ * they appear in the receiver.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {

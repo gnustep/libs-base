@@ -782,11 +782,20 @@ compareIt(id o1, id o2, void* context)
     writeToURL: url atomically: useAuxiliaryFile];
 }
 
+/**
+ * Returns the result of invoking -descriptionWithLocale:indent: with a nil
+ * locale and zero indent.
+ */
 - (NSString*) description
 {
   return [self descriptionWithLocale: nil indent: 0];
 }
 
+/**
+ * Returns the receiver as a text property list strings file format.<br />
+ * See [NSString-propertyListFromStringsFileFormat] for details.<br />
+ * The order of the items is undefined.
+ */
 - (NSString*) descriptionInStringsFileFormat
 {
   NSMutableString	*result = nil;
@@ -811,11 +820,26 @@ compareIt(id o1, id o2, void* context)
   return result;
 }
 
+/**
+ * Returns the result of invoking -descriptionWithLocale:indent: with
+ * a zero indent.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   return [self descriptionWithLocale: locale indent: 0];
 }
 
+/**
+ * Returns the receiver as a text property list in the traditional format.<br />
+ * See [NSString-propertyList] for details.<br />
+ * If locale is nil, no formatting is done, otherwise entries are formatted
+ * according to the locale, and indented according to level.<br />
+ * Unless locale is nil, a level of zero indents items by four spaces,
+ * while a level of one indents them by a tab.<br />
+ * If the keys in the dictionary respond to -compare:, the items are
+ * listed by key in ascending order.  If not, the order in which the
+ * items are listed is undefined.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
