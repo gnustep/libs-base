@@ -26,11 +26,10 @@
 
 @implementation Queue
   
-+ initialize
++ (void) initialize
 {
   if (self == [Queue class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 - enqueueElement: (elt)newElement
