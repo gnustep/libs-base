@@ -3948,6 +3948,13 @@ static NSCharacterSet	*tokenSet = nil;
 	  if (v == nil)
 	    {
 	      start = [content objectAtIndex: 0];
+	      v = [start contentID];
+	      if (v == nil)
+		{
+		  hdr = [start makeContentID];
+		  v = [hdr value];
+		}
+	      [type setParameter: v forKey: @"start"];
 	    }
 	  else
 	    {
