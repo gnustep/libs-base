@@ -262,11 +262,6 @@
   <section>
     <heading>Inter-document linkage</heading>
     <p>
-      When supplied with a list of files to process, the tool will
-      set up linkage between resulting documents using the gsdoc
-      'prev', 'next', and 'up' attributes.
-    </p>
-    <p>
       If the first file listed on the command line is a gsdoc document,
       it will be assumed to be the 'top' document and will be referenced
       in the 'up' link for all subsequent documents.<br />
@@ -274,12 +269,8 @@
       which will be used as the 'top' file.
     </p>
     <p>
-      The 'prev' and 'next' links will be set up to link the documents
-      in the order in which they are processed.
-    </p>
-    <p>
-      Where autogsdoc is used with only a single file name, no ne of the
-      above linkage is set up.
+      Where autogsdoc is used with only a single file name, the
+      above linkage is <em>not</em> set up.
     </p>
   </section>
 </chapter>
@@ -317,7 +308,6 @@ main(int argc, char **argv, char **env)
   AGSParser		*parser;
   AGSOutput		*output;
   NSString		*up = nil;
-  NSString		*prev = nil;
   BOOL			showDependencies = YES;
   BOOL			modifiedRefs = NO;
   NSDate		*rDate = nil;
@@ -396,6 +386,7 @@ main(int argc, char **argv, char **env)
 	  // Skip this and next value ... it is a default.
 	  [files removeObjectAtIndex: i];
 	  [files removeObjectAtIndex: i];
+	  i--;
 	}
       else if ([arg hasSuffix: @".h"] == NO
 	&& [arg hasSuffix: @".m"] == NO
@@ -404,6 +395,7 @@ main(int argc, char **argv, char **env)
 	  // Skip this value ... not a known file type.
 	  NSLog(@"Unknown argument '%@' ... ignored", arg);
 	  [files removeObjectAtIndex: i];
+	  i--;
 	}
     }
   if ([files count] < 1)
@@ -654,7 +646,7 @@ main(int argc, char **argv, char **env)
 		    @"<!DOCTYPE gsdoc PUBLIC "
 		    @"\"-//GNUstep//DTD gsdoc 0.6.7//EN\" "
 		    @"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"
-		    @"<gsdoc base=\"index\" next=\"%@\">\n"
+		    @"<gsdoc base=\"index\">\n"
 		    @"  <head>\n"
 		    @"    <title>%@ project reference</title>\n"
 		    @"    <author name=\"autogsdoc\"></author>\n"
@@ -668,7 +660,7 @@ main(int argc, char **argv, char **env)
 		    @"    </back>\n"
 		    @"  </body>\n"
 		    @"</gsdoc>\n",
-		      file, project, project];
+		      project, project];
 
 		  if ([upString writeToFile: upFile atomically: YES] == NO)
 		    {
@@ -759,19 +751,6 @@ main(int argc, char **argv, char **env)
 	      if ([files count] > 1)
 		{
 		  [[parser info] setObject: up forKey: @"up"];
-		  if (prev != nil)
-		    {
-		      [[parser info] setObject: prev forKey: @"prev"];
-		    }
-		  ASSIGN(prev, file);
-		  if (i < [files count] - 1)
-		    {
-		      NSString	*name = [files objectAtIndex: i + 1];
-
-		      name = [[name lastPathComponent]
-			stringByDeletingPathExtension];
-		      [[parser info] setObject: name forKey: @"next"];
-		    }
 		}
 
 	      generated = [output output: [parser info]];
@@ -971,7 +950,6 @@ main(int argc, char **argv, char **env)
 
   RELEASE(pool);
   DESTROY(up);
-  DESTROY(prev);
 
   if (modifiedRefs == YES)
     {
