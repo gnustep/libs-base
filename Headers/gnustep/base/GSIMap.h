@@ -335,7 +335,7 @@ GSIMapRemangleBuckets(GSIMapTable map,
 }
 
 static INLINE void
-GSIMapMoreNodes(GSIMapTable map)
+GSIMapMoreNodes(GSIMapTable map, unsigned required)
 {
   GSIMapNode	*newArray;
   size_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
@@ -357,20 +357,27 @@ GSIMapMoreNodes(GSIMapTable map)
       size_t		chunkCount;
       size_t		chunkSize;
 
-      memcpy(newArray,map->nodeChunks,(map->chunkCount)*sizeof(GSIMapNode));
+      memcpy(newArray, map->nodeChunks, (map->chunkCount)*sizeof(GSIMapNode));
       if (map->nodeChunks != 0)
 	{
 	  NSZoneFree(map->zone, map->nodeChunks);
 	}
       map->nodeChunks = newArray;
 
-      if (map->chunkCount == 0)
+      if (required == 0)
 	{
-	  chunkCount = map->bucketCount > 1 ? map->bucketCount : 2;
+	  if (map->chunkCount == 0)
+	    {
+	      chunkCount = map->bucketCount > 1 ? map->bucketCount : 2;
+	    }
+	  else
+	    {
+	      chunkCount = ((map->nodeCount>>2)+1)<<1;
+	    }
 	}
       else
 	{
-	  chunkCount = ((map->nodeCount>>2)+1)<<1;
+	  chunkCount = required;
 	}
       chunkSize = chunkCount * sizeof(GSIMapNode_t);
       newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
@@ -395,7 +402,7 @@ GSIMapNewNode(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 
   if (node == 0)
     {
-      GSIMapMoreNodes(map);
+      GSIMapMoreNodes(map, 0);
       node = map->freeNodes;
       if (node == 0)
 	{
@@ -419,7 +426,7 @@ GSIMapNewNode(GSIMapTable map, GSIMapKey key)
 
   if (node == 0)
     {
-      GSIMapMoreNodes(map);
+      GSIMapMoreNodes(map, 0);
       node = map->freeNodes;
       if (node == 0)
 	{
@@ -746,6 +753,6 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
   map->freeNodes = 0;
   map->chunkCount = 0;
   GSIMapRightSizeMap(map, capacity);
-  GSIMapMoreNodes(map);
+  GSIMapMoreNodes(map, capacity);
 }
 

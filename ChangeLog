@@ -1,3 +1,8 @@
+2000-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/GSIMap.h: On initialisation set number of nodes
+	to exactly equal capacity, for improved memory efficiency.
+
 2000-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSGAttributedString.m: Fix logic errors setting attributes.
