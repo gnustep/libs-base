@@ -591,6 +591,8 @@ main(int argc, char **argv, char **env)
 
 	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
 	    {
+	      NSArray	*modified;
+
 	      if (showDependencies == YES)
 		{
 		  NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
@@ -639,6 +641,8 @@ main(int argc, char **argv, char **env)
 	       * Set up linkage for this file.
 	       */
 	      [[parser info] setObject: file forKey: @"base"];
+	      [[parser info] setObject: documentationDirectory
+				forKey: @"directory"];
 
 	      /*
 	       * Only produce linkage if the up link is not empty.
@@ -649,18 +653,35 @@ main(int argc, char **argv, char **env)
 		  [[parser info] setObject: up forKey: @"up"];
 		}
 
-	      if ([output output: [parser info]
-			    file: gsdocfile
-		       directory: documentationDirectory] == NO)
+	      modified = [output output: [parser info]];
+	      if (modified == nil)
 		{
 		  NSLog(@"Sorry unable to write %@", gsdocfile);
 		}
+	      else
+		{
+		  unsigned	c = [modified count];
+
+		  while (c-- > 0)
+		    {
+		      NSString	*f;
+
+		      f = [[modified objectAtIndex: c] lastPathComponent];
+		      if ([gFiles containsObject: f] == NO)
+			{
+			  [gFiles addObject: f];
+			}
+		    }
+		}
 	    }
-	  /*
-	   * Add the gsdoc file corresponding to the .h file to the list of
-	   * those to process.
-	   */
-	  [gFiles addObject: [gsdocfile lastPathComponent]];
+	  else
+	    {
+	      /*
+	       * Add the gsdoc file corresponding to the .h file to the list of
+	       * those to process.
+	       */
+	      [gFiles addObject: [gsdocfile lastPathComponent]];
+	    }
 	}
       DESTROY(pool);
       DESTROY(parser);
