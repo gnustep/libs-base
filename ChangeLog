@@ -10,6 +10,15 @@
 	contigure.ac:
 	Add --enable-xslt option to require stylesheet support (in case we want
 	to start uisng it to generate documentation)
+	* Headers/Foundation/NSURLHandle.h:
+	* Source/GSFileHandle.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSFileHandle.m:
+	* Source/NSURLHandle.m:
+	Support binding to specific local ip address for outgoing connections
+	in gnustep extensions.
+	* Source/GSMime.m: ([-setContent:]), ([-addContent:]) Check that
+	content of a multipart document consists of GSMimeDocument objects.
 
 2004-03-29 Adrian Robert <arobert@cogsci.ucsd.edu>
 

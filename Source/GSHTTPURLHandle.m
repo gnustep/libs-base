@@ -161,6 +161,12 @@ char emp[64] = {
  *   secure connection when a proxy is specified, GSHTTPURLHandle will
  *   attempt to open an SSL Tunnel through the proxy.
  * </p>
+ * <p>
+ *   Requests to the remote server may be forced to be bound to a
+ *   particular local IP address by using the key
+ *   &quot;GSHTTPPropertyLocalHostKey&quot;  which must contain the
+ *   IP address of a network interface on the local host.
+ * </p>
  */
 @implementation GSHTTPURLHandle
 
@@ -450,6 +456,7 @@ static void debugWrite(NSData *data)
   NSNotificationCenter	*nc;
   NSString		*host = nil;
   NSString		*port = nil;
+  NSString		*s;
 
   /*
    * Don't start a load if one is in progress.
@@ -471,6 +478,20 @@ static void debugWrite(NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
+
+  /*
+   * If we have a local address specified, tell the file handle to bind to it.
+   */
+  s = [request objectForKey: GSHTTPPropertyLocalHostKey];
+  if ([s length] > 0)
+    {
+      s = [NSString stringWithFormat: @"bind-%@", s];
+    }
+  else
+    {
+      s = @"tcp";	// Bind to any.
+    }
+
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {
       NSNumber	*p;
@@ -493,17 +514,15 @@ static void debugWrite(NSData *data)
 		@"https not supported ... needs SSL bundle"];
 	      return;
 	    }
-	  sock = [sslClass
-	    fileHandleAsClientInBackgroundAtAddress: host
-					    service: port
-					   protocol: @"tcp"];
+	  sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
+							   service: port
+							  protocol: s];
 	}
       else
 	{
-	  sock = [NSFileHandle 
-	    fileHandleAsClientInBackgroundAtAddress: host
-					    service: port
-					   protocol: @"tcp"];
+	  sock = [NSFileHandle fileHandleAsClientInBackgroundAtAddress: host
+							       service: port
+							      protocol: s];
 	}
     }
   else
@@ -522,19 +541,17 @@ static void debugWrite(NSData *data)
 	    }
 	  host = [request objectForKey: GSHTTPPropertyProxyHostKey];
 	  port = [request objectForKey: GSHTTPPropertyProxyPortKey];
-	  sock = [sslClass
-	    fileHandleAsClientInBackgroundAtAddress: host 
-					    service: port
-					   protocol: @"tcp"];
+	  sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host 
+							   service: port
+							  protocol: s];
 	}
       else
 	{
 	  host = [request objectForKey: GSHTTPPropertyProxyHostKey];
 	  port = [request objectForKey: GSHTTPPropertyProxyPortKey];
-	  sock = [NSFileHandle 
-	    fileHandleAsClientInBackgroundAtAddress: host 
-					    service: port
-					   protocol: @"tcp"];
+	  sock = [NSFileHandle fileHandleAsClientInBackgroundAtAddress: host 
+							       service: port
+							      protocol: s];
 	}
     }
   if (sock == nil)

@@ -64,6 +64,9 @@ NSString * const NSHTTPPropertyErrorPageDataKey
 NSString * const GSHTTPPropertyMethodKey
   = @"GSHTTPPropertyMethodKey";
 
+NSString * const GSHTTPPropertyLocalHostKey
+  = @"GSHTTPPropertyLocalHostKey";
+
 NSString * const GSHTTPPropertyProxyHostKey
   = @"GSHTTPPropertyProxyHostKey";
 

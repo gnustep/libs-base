@@ -42,6 +42,7 @@ GS_EXPORT NSString * const NSHTTPPropertyRedirectionHeadersKey;
 GS_EXPORT NSString * const NSHTTPPropertyErrorPageDataKey;
 
 #ifndef	NO_GNUSTEP
+GS_EXPORT NSString * const GSHTTPPropertyLocalHostKey;
 GS_EXPORT NSString * const GSHTTPPropertyMethodKey;
 GS_EXPORT NSString * const GSHTTPPropertyProxyHostKey;
 GS_EXPORT NSString * const GSHTTPPropertyProxyPortKey;

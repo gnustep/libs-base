@@ -428,7 +428,10 @@ NSString * const NSFileHandleOperationException
  *     is <em>not</em> made via a socks server.<br />
  *     Otherwise, the text '...' must be the name of the host on which the
  *     socks5 server is running, with an optional port number separated
- *     from the host name by a colon.
+ *     from the host name by a colon.<br />
+ *     Alternatively a prefix of the form 'bind-' forllowed by an IP address
+ *     may be used (for non-socks connections) to ensure that the connection
+ *     is made from the specified address.
  *   </item>
  *   <item>
  *     If modes is nil or empty, uses NSDefaultRunLoopMode.
