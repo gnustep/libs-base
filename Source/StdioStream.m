@@ -105,12 +105,14 @@ o_vscanf (void *stream,
 - initWithFilename: (id <String>)name fmode: (const char *)m
 {
   FILE *afp = fopen([name cStringNoCopy], (char*)m);
+  /* xxx Add error checking. */
   return [self initWithFilePointer:afp fmode:m];
 }
 
 - initWithFileDescriptor: (int)fd fmode: (const char *)m
 {
   FILE *afp = fdopen(fd, (char*)m);
+  /* xxx Add error checking. */
   return [self initWithFilePointer:afp fmode:m];
 }
 
