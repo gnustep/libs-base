@@ -1,3 +1,9 @@
+Thu Oct 22 21:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	src/NSData.m: Added support for serialisation of Class and SEL types
+	and made a more efficient version of the main deserialisation code
+	int the NSDataStatic class.
+
 Wed Oct 21 13:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	src/NSData.m: Reorganized and optimised.
