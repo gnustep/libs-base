@@ -1,3 +1,10 @@
+2001-04-27  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSString.m: Minor optimization for parsing property
+	lists: cache the bitmap representation of hexdigit, quotable and
+	whitespace character sets, and use it directly to determine
+	whether a character is member or not of these sets.
+	
 2001-04-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([+initialize]) protect with flag so it is safe
