@@ -27,8 +27,7 @@
 
 #ifdef NeXT_Foundation_LIBRARY
 #include <string.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSLock.h>
+#include <Foundation/Foundation.h>
 #include "gnustep/base/preface.h"
 #include "gnustep/base/GSObjCRuntime.h"
 #include "gnustep/base/GNUstep.h"
