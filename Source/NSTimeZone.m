@@ -989,7 +989,6 @@ static NSMapTable	*absolutes = 0;
 	NSNonRetainedObjectMapValueCallBacks, 0);
 
       localTimeZone = [[NSLocalTimeZone alloc] init];
-      [self setDefaultTimeZone: [self systemTimeZone]];
 
       fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
       if ([NSThread isMultiThreaded])
