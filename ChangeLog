@@ -1,3 +1,9 @@
+Wed Jun  5 17:46:47 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSLog.m (_NSLog_standard_printf_handler): Fixed
+	syslogging of strings: add a NULL at the end of strings before
+	feeding them to syslog.
+
 2002-06-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURL.h: Added a couple of ivars and removed

@@ -84,6 +84,11 @@ _NSLog_standard_printf_handler (NSString* message)
     || write(_NSLogDescriptor, buf, len) != len)
     {
       int	mask;
+      /* We NULL-terminate the string in order to feed it to
+       * syslog.  */
+      char *null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
+      strncpy (null_terminated_buf, buf, len);
+      null_terminated_buf[len] = '\0';
 
 #ifdef	LOG_ERR
       mask = LOG_ERR;
@@ -98,7 +103,8 @@ _NSLog_standard_printf_handler (NSString* message)
 #ifdef	LOG_USER
       mask |= LOG_USER;
 #endif
-      syslog(mask, "%s",  buf);
+      syslog(mask, "%s",  null_terminated_buf);
+      objc_free (null_terminated_buf);
     }
 #else
   write(_NSLogDescriptor, buf, len);
