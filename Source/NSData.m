@@ -1742,37 +1742,45 @@ failure:
   unsigned	size = [self length];
   unsigned	end = NSMaxRange(aRange);
   int		shift = length - aRange.length; 
-  unsigned	need = end + shift;
+  unsigned	need = size + shift;
+  void		*buf;
 
   if (aRange.location > size)
     {
       [NSException raise: NSRangeException
 		  format: @"location bad in replaceByteInRange:withBytes:"];
     }
-  if (length > aRange.length)
-    {
-      need += (length - aRange.length);
-    }
   if (need > size)
     {
       [self setLength: need];
     }
-  if (aRange.length > 0 || aRange.length != length)
+  buf = [self mutableBytes];
+  if (shift < 0)
     {
-      void	*buf = [self mutableBytes];
-
-      if (end < size && shift != 0)
+      if (length > 0)
 	{
+	  // Copy bytes into place.
+	  memmove(buf + aRange.location, bytes, length);
+	}
+      // Fill gap
+      memmove(buf + end + shift, buf + end, size - end);
+    }
+  else
+    {
+      if (shift > 0)
+	{
+	  // Open space
 	  memmove(buf + end + shift, buf + end, size - end);
 	}
       if (length > 0)
 	{
+	  // Copy bytes into place.
 	  memmove(buf + aRange.location, bytes, length);
 	}
     }
-  if (shift < 0)
+  if (need < size)
     {
-      [self setLength: need + shift];
+      [self setLength: need];
     }
 }
 

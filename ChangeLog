@@ -2,6 +2,12 @@
 
 	* Source/NSString.m: Added two new MacOS-X initialisers.
 	* Headers/Foundation/NSString.h: ditto
+	* Source/NSData.m: ([replaceBytesInRange:withBytes:length:) rewrite
+	to fix crash when new data is smaller than orignal.
+	* Source/NSNumber.m: ([numberWithBool:]) and ([initWithBool:])
+	returns yes value for any non-zero argument. ([boolValue]) returns
+	either YES or NO. So we are tolerant in what we accept, strict in
+	what we produce.
 
 2004-01-28  Fred Kiefer <FredKiefer@gmx.de>
 

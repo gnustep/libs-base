@@ -117,7 +117,7 @@ enum {
 #ifndef	STRICT_OPENSTEP
 - (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length
-	    encoding: (NSStringEncoding)encoding ;
+	    encoding: (NSStringEncoding)encoding;
 - (id) initWithBytesNoCopy: (const void*)bytes
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding 
