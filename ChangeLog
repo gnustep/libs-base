@@ -1,3 +1,8 @@
+2004-11-30  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFileHandle.m (-setNonBlocking:): Set the isNonBlocking
+	ivar on MingW. Fixes bug #10742.
+
 2004-11-30  Matt Rice  <ratmice@yahoo.com>
 	
 	* Source/NSBundle.m (-principalClass): If the class specified in

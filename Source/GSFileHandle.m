@@ -2283,6 +2283,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      NSLog(@"unable to set non-blocking mode - %s",
 		GSLastErrorStr(errno));
 	    }
+	  else
+	    isNonBlocking = flag;
 	}
       else
 	{
@@ -2293,6 +2295,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      NSLog(@"unable to set blocking mode - %s",
 		GSLastErrorStr(errno));
 	    }
+	  else
+	    isNonBlocking = flag;
 	}
 #else
       int	e;
