@@ -13,7 +13,9 @@ int main(int argc, char *argv[])
   NSString* aKey;
   NSEnumerator* enumerator;
 
-  printf("Host Name: %s\n",[[pi hostName] cString]);
+  printf("Host name: %s\n",[[pi hostName] cString]);
+  printf("Operating system: %d\n",[pi operatingSystem]);
+  printf("Operating system name: %s\n",[[pi operatingSystemName] cString]);
   printf("Process Name: %s\n",[[pi processName] cString]);
   printf("Globally Unique String: %s\n",[[pi globallyUniqueString] cString]);
 
