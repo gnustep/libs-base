@@ -1,3 +1,28 @@
+Fri Oct 24 14:36:23 1997  Adam Fedor  <fedor@oc.com>
+
+	* Removed unused files.
+	* checks/beh.m, checks/float.c: Removed
+ 	* examples/nx-client.m, examples/nx-server.m, 
+	examples/port-client.m, examples/port-server.m: Likewise.
+	* src/AutoreleasePool.m, src/AutoreleaseStack.m, 
+	src/BinaryTreeEltNode.m, src/ConstantString.m, 
+	src/EltNodeCollector.m, src/LinkedListEltNode.m,
+	src/Makefile.sed.nt, src/MethodSignature.m, src/NXConnection.m,
+	src/NXProtocolChecker.m, src/NXProxy.m, src/NotificationQueue.m,
+	src/ObjectRetaining.m, src/ProtocolEnforcer.m, src/RBTreeEltNode.m,
+	src/ReleasePool.m, src/RetainingNotifier.m, src/Ring.m, 
+	src/RunLoop.m, src/SocketPort.m, src/SunRpcPort.m, src/Thread.m,
+	src/Tree.m, src/TreeNode.m, src/argframe.m, src/data.m,
+	src/eltfuncs.m, src/gnu4next.m, src/gnu4nextrt.m,
+	src/o_vprintf.c, src/vfscanf.c: Likewise.
+	* src/include/AutoreleasePool.h, src/include/AutoreleaseStack.h,
+	src/include/BinaryTreeEltNode.h, src/include/LinkedListEltNode.h,
+	src/include/RBTreeEltNode.h, src/include/SmallInt.h,
+	src/include/SocketPort.h, src/include/abort.h,
+	src/include/allocs.h, src/include/atoz.h, src/include/bitops.h,
+	src/include/data.h, src/include/magic.h, src/include/minmax.h,
+	src/include/number.h: Likewise.
+
 Fri Oct 24 20:16:14 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
 
         * src/StdioStream.m ([StdioStream -dealloc]): Check fp before
