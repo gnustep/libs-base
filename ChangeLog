@@ -1,3 +1,11 @@
+2000-07-07  Jonathan Gapen <jagapen@home.com>
+
+	* Source/NSString.m: (-initWithFormat:), (-initWithFormat:locale:),
+	(-initWithFormat:arguments:) now implemented by calling
+	(-initWithFormat:locale:arguments:)
+	* Source/externs.m: Add strings defined in MacOS X documentation,
+	and useful strings from OPENSTEP 4.2.
+
 2000-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: set size for return buffer of getsockbyname()
