@@ -1,3 +1,12 @@
+2005-02-16 14:40 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/patchxml.m4: Try to detect libxml2 in standard directories
+	exen if xml2-config is not present.
+	* configure.ac: Detect libxml2 becore iconv, in case libxml2
+	requires iconv (which it usually will on a system where iconv is
+	not built into the standard c library).
+	* confingure: Regenerate
+
 2005-02-15 08:00 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Fix incorrect version comitted.
