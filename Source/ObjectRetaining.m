@@ -25,6 +25,7 @@
 #include <objects/collhash.h>
 #include <objects/eltfuncs.h>
 #include <objects/objc-malloc.h>
+#include <objects/AutoreleasePool.h>
 #include <limits.h>
 
 /* Doesn't handle multi-threaded stuff.
@@ -34,7 +35,7 @@
 static coll_cache_ptr retain_counts = NULL;
 
 /* The Class responsible for handling autorelease's */
-static id autorelease_class = nil;
+id autorelease_class = nil;
 
 static void
 init_retain_counts_if_necessary()
@@ -94,12 +95,6 @@ objc_retain_count (id anObj)
     return 0;
 }
 
-void
-objc_set_autorelease_class (id the_autorelease_class)
-{
-  auto_release_class = the_autorelease_class;
-}
-
 @implementation Object (RetainingObject)
 
 - retain
@@ -125,8 +120,8 @@ objc_set_autorelease_class (id the_autorelease_class)
 
 - autorelease
 {
-  [the_autorelease_class addObject:self];
-  returnself;
+  [autorelease_class autoreleaseObject:self];
+  return self;
 }
 
 @end

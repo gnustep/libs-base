@@ -169,9 +169,9 @@ It is known not to work with:
 
 @section Now and Future
 
-The current version is 0.1; the low number indicates that the library is
-still in flux.  A version coming soon will include String objects and
-better allocation/dealocation conventions.
+The current version is @value{OBJECTS_VERSION} the low number indicates
+that the library is still in flux.  A version coming soon will include
+String objects and better allocation/dealocation conventions.
 
 @section GNUStep, NEXTSTEP and OpenStep
 

@@ -1,8 +1,8 @@
+#include <objects/stdobjects.h>
 #include <foundation/NSObject.h>
 #include <foundation/NSMethodSignature.h>
 #include <foundation/NSArchiver.h>
 #include <foundation/NSCoder.h>
-#include "objc/objc-api.h"
 
 @implementation NSObject
 

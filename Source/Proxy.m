@@ -345,7 +345,7 @@ static inline BOOL class_is_kind_of(CLASS self, CLASS aClassObject)
 - autorelease
 {
   /* xxx Problems here if the Connection goes away? */
-  [autorelease_class addObject:self];
+  [autorelease_class autoreleaseObject:self];
   return self;
 }
 
