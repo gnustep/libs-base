@@ -662,132 +662,33 @@ static NSString	*indentStrings[] = {
 			    to: (id<GNUDescriptionDestination>)result
 {
   IMP			myObj = [self methodForSelector: objSel];
-  BOOL			canCompare = YES;
   unsigned		i;
   NSArray		*keyArray = [self allKeys];
   unsigned		numKeys = [keyArray count];
   NSString		*plists[numKeys];
   NSString		*keys[numKeys];
   IMP			appImp;
-  Class			lastClass = 0;
 
   appImp = [(NSObject*)result methodForSelector: appSel];
 
   [keyArray getObjects: keys];
-  for (i = 0; i < numKeys; i++)
-    {
-      if (fastClass(keys[i]) == lastClass)
-	continue;
-      if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
-	{
-	  canCompare = NO;
-	  break;
-	}
-      lastClass = fastClass(keys[i]);
-    }
-
-  if (canCompare)
-    {
-/*
- * Shell sort algorithm taken from SortingInAction - a NeXT example
- * good value for stride factor is not well-understood
- * 3 is a fairly good choice (Sedgewick)
- */
-#define STRIDE_FACTOR 3
-      unsigned	c,d, stride;
-      BOOL	found;
-      NSComparisonResult	(*comp)(id, SEL, id);
-      int	count = numKeys;
-#ifdef	GSWARN
-      BOOL	badComparison = NO;
-#endif
-
-      stride = 1;
-      while (stride <= count)
-	{
-	  stride = stride * STRIDE_FACTOR + 1;
-	}
-      lastClass = 0;
-      while (stride > (STRIDE_FACTOR - 1))
-	{
-	  // loop to sort for each value of stride
-	  stride = stride / STRIDE_FACTOR;
-	  for (c = stride; c < count; c++)
-	    {
-	      found = NO;
-	      if (stride > c)
-		{
-		  break;
-		}
-	      d = c - stride;
-	      while (!found)	// move to left until correct place
-		{
-		  id			a = keys[d + stride];
-		  id			b = keys[d];
-		  Class			x;
-		  NSComparisonResult	r;
-
-		  x = fastClass(a);
-		  if (x != lastClass)
-		    {
-		      lastClass = x;
-		      comp = (NSComparisonResult (*)(id, SEL, id))
-			[a methodForSelector: @selector(compare:)];
-		    }
-		  r = (*comp)(a, @selector(compare:), b);
-		  if (r < 0)
-		    {
-#ifdef	GSWARN
-		      if (r != NSOrderedAscending)
-			{
-			  badComparison = YES;
-			}
-#endif
-		      keys[d + stride] = b;
-		      keys[d] = a;
-		      if (stride > d)
-			{
-			  break;
-			}
-		      d -= stride;		// jump by stride factor
-		    }
-		  else
-		    {
-#ifdef	GSWARN
-		      if (r != NSOrderedDescending && r != NSOrderedSame)
-			{
-			  badComparison = YES;
-			}
-#endif
-		      found = YES;
-		    }
-		}
-	    }
-	}
-#ifdef	GSWARN
-      if (badComparison == YES)
-	{
-	  NSWarnMLog(@"Detected bad return value from comparison", 0);
-	}
-#endif
-    }
-
-  for (i = 0; i < numKeys; i++)
-    {
-      plists[i] = (*myObj)(self, objSel, keys[i]);
-    }
 
   if (locale == nil)
     {
+      for (i = 0; i < numKeys; i++)
+	{
+	  plists[i] = (*myObj)(self, objSel, keys[i]);
+	}
+
       (*appImp)(result, appSel, @"{");
       for (i = 0; i < numKeys; i++)
 	{
 	  id	o = plists[i];
 
 	  [keys[i] descriptionWithLocale: nil indent: 0 to: result];
-	  (*appImp)(result, appSel, @"=");
+	  (*appImp)(result, appSel, @" = ");
 	  [o descriptionWithLocale: nil indent: 0 to: result];
-	  (*appImp)(result, appSel, @";");
+	  (*appImp)(result, appSel, @"; ");
 	}
       (*appImp)(result, appSel, @"}");
     }
@@ -795,6 +696,8 @@ static NSString	*indentStrings[] = {
     {
       NSString	*iBaseString;
       NSString	*iSizeString;
+      BOOL	canCompare = YES;
+      Class	lastClass = 0;
 
       if (level < sizeof(indentStrings)/sizeof(id))
 	{
@@ -812,6 +715,109 @@ static NSString	*indentStrings[] = {
       else
 	{
 	  iSizeString = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
+	}
+
+      for (i = 0; i < numKeys; i++)
+	{
+	  if (fastClass(keys[i]) == lastClass)
+	    continue;
+	  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+	    {
+	      canCompare = NO;
+	      break;
+	    }
+	  lastClass = fastClass(keys[i]);
+	}
+
+      if (canCompare == YES)
+	{
+	  /*
+	   * Shell sort algorithm taken from SortingInAction - a NeXT example
+	   * good value for stride factor is not well-understood
+	   * 3 is a fairly good choice (Sedgewick)
+	   */
+#define STRIDE_FACTOR 3
+	  unsigned	c,d, stride;
+	  BOOL		found;
+	  NSComparisonResult	(*comp)(id, SEL, id);
+	  int		count = numKeys;
+#ifdef	GSWARN
+	  BOOL		badComparison = NO;
+#endif
+
+	  stride = 1;
+	  while (stride <= count)
+	    {
+	      stride = stride * STRIDE_FACTOR + 1;
+	    }
+	  lastClass = 0;
+	  while (stride > (STRIDE_FACTOR - 1))
+	    {
+	      // loop to sort for each value of stride
+	      stride = stride / STRIDE_FACTOR;
+	      for (c = stride; c < count; c++)
+		{
+		  found = NO;
+		  if (stride > c)
+		    {
+		      break;
+		    }
+		  d = c - stride;
+		  while (!found)	// move to left until correct place
+		    {
+		      id			a = keys[d + stride];
+		      id			b = keys[d];
+		      Class			x;
+		      NSComparisonResult	r;
+
+		      x = fastClass(a);
+		      if (x != lastClass)
+			{
+			  lastClass = x;
+			  comp = (NSComparisonResult (*)(id, SEL, id))
+			    [a methodForSelector: @selector(compare:)];
+			}
+		      r = (*comp)(a, @selector(compare:), b);
+		      if (r < 0)
+			{
+#ifdef	GSWARN
+			  if (r != NSOrderedAscending)
+			    {
+			      badComparison = YES;
+			    }
+#endif
+			  keys[d + stride] = b;
+			  keys[d] = a;
+			  if (stride > d)
+			    {
+			      break;
+			    }
+			  d -= stride;		// jump by stride factor
+			}
+		      else
+			{
+#ifdef	GSWARN
+			  if (r != NSOrderedDescending && r != NSOrderedSame)
+			    {
+			      badComparison = YES;
+			    }
+#endif
+			  found = YES;
+			}
+		    }
+		}
+	    }
+#ifdef	GSWARN
+	  if (badComparison == YES)
+	    {
+	      NSWarnMLog(@"Detected bad return value from comparison", 0);
+	    }
+#endif
+	}
+
+      for (i = 0; i < numKeys; i++)
+	{
+	  plists[i] = (*myObj)(self, objSel, keys[i]);
 	}
 
       (*appImp)(result, appSel, @"{\n");
