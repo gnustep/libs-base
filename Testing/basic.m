@@ -7,9 +7,7 @@ int main ()
 {
   id	pool = [NSAutoreleasePool new];
   id o = [NSObject new];
-  NSLock *lock = [NSLock new];
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
-  [lock tryLock];
   exit (0);
 }
 #else
