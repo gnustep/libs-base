@@ -21,7 +21,7 @@ extern int xmlGetWarningsDefaultValue;
  */
 static Class NSString_class;
 static IMP csImp;
-static SEL csSel = @selector(stringWithCString: );
+static SEL csSel = @selector(stringWithCString:);
 
 static BOOL cacheDone = NO;
 
@@ -103,7 +103,7 @@ setupCache()
 
 - (GSXMLNode*) root
 {
-   return [GSXMLNode nodeFrom: xmlDocGetRootElement(lib)];
+  return [GSXMLNode nodeFrom: xmlDocGetRootElement(lib)];
 }
 
 - (GSXMLNode*) setRoot: (GSXMLNode*)node
@@ -374,7 +374,7 @@ setupCache()
 
 + (GSXMLNode*) nodeFrom: (void*)data
 {
-  return AUTORELEASE([[self alloc] nodeFrom: data]);
+  return AUTORELEASE([[self alloc] initFrom: data]);
 }
 
 - (id) initFrom: (void*)data
@@ -786,14 +786,13 @@ setupCache()
     }
   if ([src isKindOfClass: [NSData class]])
     {
-NSLog(@"parse data length %d", [src length]);
-NSLog(@"parse data %*s", [src length], [src bytes]);
-       lib = (void*)xmlCreateMemoryParserCtxt((void*)[src bytes], [src length]);
-       if (lib == NULL)
-         {
-           NSLog(@"out of memory");
-           return NO;
-         }
+      lib = (void*)xmlCreateMemoryParserCtxt((void*)[src bytes],
+	[src length]-1);
+      if (lib == NULL)
+        {
+          NSLog(@"out of memory");
+          return NO;
+        }
     }
   else if ([src isKindOfClass: [NSString class]])
     {
