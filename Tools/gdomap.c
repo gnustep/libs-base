@@ -193,10 +193,10 @@ is_local_host(struct in_addr a)
     {
       if (a.s_addr == addr[i].s_addr)
 	{
-	  return(1);
+	  return 1;
 	}
     }
-  return(0);
+  return 0;
 }
 
 static int
@@ -208,10 +208,10 @@ is_local_net(struct in_addr a)
     {
       if ((mask[i].s_addr&&addr[i].s_addr) == (mask[i].s_addr&&a.s_addr))
 	{
-	  return(1);
+	  return 1;
 	}
     }
-  return(0);
+  return 0;
 }
 
 /*
@@ -315,13 +315,13 @@ compare(uptr n0, int l0, uptr n1, int l1)
 {
   if (l0 == l1)
     {
-      return(memcmp(n0, n1, l0));
+      return memcmp(n0, n1, l0);
     }
   else if (l0 < l1)
     {
-      return(-1);
+      return -1;
     }
-  return(1);
+  return 1;
 }
 
 /*
@@ -375,7 +375,7 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
       fprintf(stderr, "Added port %d to map for %.*s\n",
 		m->port, m->size, m->name);
     }
-  return(m);
+  return m;
 }
 
 /*
@@ -416,13 +416,13 @@ map_by_name(uptr n, int s)
 	{
 	  fprintf(stderr, "Found port %d for %.*s\n", map[index]->port, s, n);
 	}
-      return(map[index]);
+      return map[index];
     }
   if (debug > 2)
     {
       fprintf(stderr, "Failed to find map entry for %.*s\n", s, n);
     }
-  return(0);
+  return 0;
 }
 
 /*
@@ -454,13 +454,13 @@ map_by_port(unsigned p, unsigned char t)
 	  fprintf(stderr, "Found port %d with name %.*s\n",
 		map[index]->port, map[index]->name);
 	}
-      return(map[index]);
+      return map[index];
     }
   if (debug > 2)
     {
       fprintf(stderr, "Failed to find map entry for %u:%x\n", p, t);
     }
-  return(0);
+  return 0;
 }
 
 /*
@@ -602,9 +602,9 @@ prb_get(struct in_addr *p)
     }
   if (index<prb_used && memcmp(&prb[index]->sin,p,IASIZE)==0)
     {
-      return(prb[index]);
+      return prb[index];
     }
-  return(0);
+  return 0;
 }
 
 /*
@@ -792,6 +792,16 @@ init_iface()
 		}
 	      else
 		{
+		  if (interfaces >= MAX_IFACE)
+		    {
+		      fprintf(stderr,
+"You have too many network interfaces on your machine (in which case you need\n"
+"to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or your\n"
+"system is buggy, and you need to use the '-a' command line flag for\n"
+"gdomap to manually set the interface addresses and masks to be used.\n");
+		      close(desc);
+		      exit(1);
+		    }
 		  addr[interfaces] =
 			((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
 		  if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
@@ -2313,7 +2323,7 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
 	    }
 	  else if (now - when >= tim)
 	    {
-	      return(-2);		/* Timed out.		*/
+	      return -2;		/* Timed out.		*/
 	    }
 	  else
 	    {
@@ -2327,7 +2337,7 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
 	}
       else if (rval < 0)
 	{
-	  return(-1);		/* Error in select.	*/
+	  return -1;		/* Error in select.	*/
 	}
       else if (len > 0)
 	{
@@ -2336,25 +2346,25 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
 	    {
 	      if (errno != EWOULDBLOCK)
 		{
-		  return(-1);		/* Error in read.	*/
+		  return -1;		/* Error in read.	*/
 		}
 	    }
 	  else if (rval == 0)
 	    {
-	      return(-1);		/* End of file.		*/
+	      return -1;		/* End of file.		*/
 	    }
 	  else
 	    {
 	      pos += rval;
 	      if (pos == len || neg == 1)
 		{
-		  return(pos);	/* Read as needed.	*/
+		  return pos;	/* Read as needed.	*/
 		}
 	    }
 	}
       else
 	{
-	  return(0);	/* Not actually asked to read.	*/
+	  return 0;	/* Not actually asked to read.	*/
 	}
     }
 }
@@ -2413,7 +2423,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 	    }
 	  else if (now - when >= tim)
 	    {
-	      return(-2);		/* Timed out.		*/
+	      return -2;		/* Timed out.		*/
 	    }
 	  else
 	    {
@@ -2425,7 +2435,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 	}
       else if (rval < 0)
 	{
-	  return(-1);		/* Error in select.	*/
+	  return -1;		/* Error in select.	*/
 	}
       else if (len > 0)
 	{
@@ -2443,7 +2453,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 	    {
 	      if (errno != EWOULDBLOCK)
 		{
-		  return(-1);		/* Error in write.	*/
+		  return -1;		/* Error in write.	*/
 		}
 	    }
 	  else
@@ -2451,13 +2461,13 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 	      pos += rval;
 	      if (pos == len || neg == 1)
 		{
-		  return(pos);	/* Written as needed.	*/
+		  return pos;	/* Written as needed.	*/
 		}
 	    }
 	}
       else
 	{
-	  return(0);	/* Not actually asked to write.	*/
+	  return 0;	/* Not actually asked to write.	*/
 	}
     }
 }
@@ -2481,7 +2491,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   *p = 0;
   if (desc < 0)
     {
-	return(1);	/* Couldn't create socket.	*/
+	return 1;	/* Couldn't create socket.	*/
     }
 
   if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
@@ -2492,7 +2502,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  e = errno;
 	  close(desc);
 	  errno = e;
-	  return(2);	/* Couldn't set non-blocking.	*/
+	  return 2;	/* Couldn't set non-blocking.	*/
 	}
     }
   else
@@ -2500,7 +2510,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       e = errno;
       close(desc);
       errno = e;
-      return(2);	/* Couldn't set non-blocking.	*/
+      return 2;	/* Couldn't set non-blocking.	*/
     }
 
   memcpy(&sin, addr, sizeof(sin));
@@ -2514,14 +2524,14 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	      e = errno;
 	      close(desc);
 	      errno = e;
-	      return(3);	/* Connect timed out.	*/
+	      return 3;	/* Connect timed out.	*/
 	    }
 	  else if (e == -1)
 	    {
 	      e = errno;
 	      close(desc);
 	      errno = e;
-	      return(3);	/* Select failed.	*/
+	      return 3;	/* Select failed.	*/
 	    }
 	}
       else
@@ -2529,7 +2539,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  e = errno;
 	  close(desc);
 	  errno = e;
-	  return(3);		/* Failed connect.	*/
+	  return 3;		/* Failed connect.	*/
 	}
     }
 
@@ -2550,7 +2560,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       e = errno;
       close(desc);
       errno = e;
-      return(4);
+      return 4;
     }
   e = tryRead(desc, 3, (uptr)&port, 4);
   if (e != 4)
@@ -2558,7 +2568,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       e = errno;
       close(desc);
       errno = e;
-      return(5);	/* Read timed out.	*/
+      return 5;	/* Read timed out.	*/
     }
   port = ntohl(port);
 
@@ -2577,7 +2587,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  e = errno;
 	  close(desc);
 	  errno = e;
-	  return(5);
+	  return 5;
 	}
       *v = b;
     }
@@ -2585,7 +2595,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   *p = (unsigned short)port;
   close(desc);
   errno = 0;
-  return(0);
+  return 0;
 }
 
 /*
@@ -2753,7 +2763,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 		}
 	    }
 	  free(b);
-	  return(found);
+	  return found;
 	}
       else
 	{
@@ -3177,6 +3187,28 @@ printf(
     {
       init_iface();	/* Build up list of network interfaces.	*/
     }
+
+  if (!is_local_host(loopback))
+    {
+      fprintf(stderr, "I can't find the loopback interface on this machine.\n");
+      fprintf(stderr,
+"Perhaps you should correct your machine configuration or use the -a flag.\n");
+      if (interfaces < MAX_IFACE)
+	{
+	  addr[interfaces].s_addr = loopback.s_addr;
+	  mask[interfaces] = class_c_mask;
+	  interfaces++;
+	  fprintf(stderr, "I am assuming loopback interface on 127.0.0.1\n");
+	}
+      else
+	{
+	  fprintf(stderr,
+"You have too many network interfaces to add the loopback interface on\n"
+"127.0.0.1 - you need to change the 'MAX_IFACE' constant in gdomap.c and\n"
+"rebuild it.\n");
+	  exit(1);
+	}
+    }
   init_ports();	/* Create ports to handle requests.	*/
   init_probe();	/* Probe other name servers on net.	*/
 
@@ -3185,7 +3217,7 @@ printf(
       fprintf(stderr, "gdomap - entering main loop.\n");
     }
   handle_io();
-  return(0);
+  return 0;
 }
 
 /*
