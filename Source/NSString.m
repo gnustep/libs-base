@@ -1287,8 +1287,8 @@ handle_printf_atsign (FILE *stream,
   unsigned int start, end;
 
   start=anIndex;
-  while(uni_isnonsp([self characterAtIndex: start]))
-    start++;
+  while(uni_isnonsp([self characterAtIndex: start]) && start > 0)
+    start--;
   end=start+1;
   if(end < [self length])
     while((end < [self length]) && (uni_isnonsp([self characterAtIndex: end])) )

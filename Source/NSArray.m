@@ -85,7 +85,9 @@ static Class NSMutableArray_concrete_class;
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject ([self _concreteClass], 0, z);
+  if ([self class] == [NSArray class])
+    return NSAllocateObject ([self _concreteClass], 0, z);
+  return [super allocWithZone: z];
 }
 
 + array
@@ -707,7 +709,9 @@ static NSString	*indentStrings[] = {
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject ([self _mutableConcreteClass], 0, z);
+  if ([self class] == [NSMutableArray class])
+    return NSAllocateObject ([self _mutableConcreteClass], 0, z);
+  return [super allocWithZone: z];
 }
 
 /* This is the desgnated initializer for NSMutableArray */

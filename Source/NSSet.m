@@ -338,6 +338,20 @@ static Class NSMutableSet_concrete_class;
     [o performSelector:aSelector];
 }
 
+- (void) makeObjectsPerformSelector: (SEL)aSelector
+{
+  id o, e = [self objectEnumerator];
+  while ((o = [e nextObject]))
+    [o performSelector:aSelector];
+}
+
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
+{
+  id o, e = [self objectEnumerator];
+  while ((o = [e nextObject]))
+    [o performSelector:aSelector withObject: argument];
+}
+
 - (void) makeObjectsPerform: (SEL)aSelector withObject:argument
 {
   id o, e = [self objectEnumerator];

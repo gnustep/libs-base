@@ -77,7 +77,9 @@ static Class NSMutableDictionary_concrete_class;
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  if ([self class] == [NSDictionary class])
+    return NSAllocateObject([self _concreteClass], 0, z);
+  return [super allocWithZone: z];
 }
 
 /* This is the designated initializer */
@@ -227,7 +229,7 @@ static Class NSMutableDictionary_concrete_class;
   int argi = 1;
 
   va_start (ap, firstObject);
-  if (firstObject != nil)
+  if (firstObject == nil)
     {
       return [self init];
     }
@@ -682,7 +684,9 @@ static NSString	*indentStrings[] = {
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  if ([self class] == [NSMutableDictionary class])
+    return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  return [super allocWithZone: z];
 }
 
 /* This is the designated initializer */
