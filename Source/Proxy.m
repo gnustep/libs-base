@@ -317,7 +317,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
   coll_hash_delete(_method_types);
   object_dispose((Object*)self);
 #else
-  object_dispose(self);
+  NSDeallocateObject(self);
 #endif
 }
 
