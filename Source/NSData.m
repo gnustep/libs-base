@@ -1913,19 +1913,7 @@ failure:
   return self;  
 }
 
-/* NSCoding	*/
-
-- (Class) classForArchiver
-{
-  return dataMalloc;		/* Will not be static data when decoded. */
-}
-
 - (Class) classForCoder
-{
-  return dataMalloc;		/* Will not be static data when decoded. */
-}
-
-- (Class) classForPortCoder
 {
   return dataMalloc;		/* Will not be static data when decoded. */
 }
@@ -2510,17 +2498,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return (NSData*)NSAllocateObject(mutableDataMalloc, 0, z);
 }
 
-- (Class) classForArchiver
-{
-  return mutableDataMalloc;
-}
-
 - (Class) classForCoder
-{
-  return mutableDataMalloc;
-}
-
-- (Class) classForPortCoder
 {
   return mutableDataMalloc;
 }

@@ -33,6 +33,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSCoder.h>
 #include <Foundation/NSDebug.h>
 
 @interface NSDictionaryNonCore : NSDictionary
@@ -126,15 +127,62 @@ static SEL	appSel = @selector(appendString:);
 	  initWithDictionary: self];
 }
 
+- (Class) classForCoder
+{
+  return NSDictionary_abstract_class;
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+  unsigned	count = [self count];
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  if (count > 0)
+    {
+      NSEnumerator	*enumerator = [self keyEnumerator];
+      id		key;
+      IMP		enc;
+      IMP		nxt;
+      IMP		ofk;
+
+      nxt = [enumerator methodForSelector: @selector(nextObject)];
+      enc = [aCoder methodForSelector: @selector(encodeObject:)];
+      ofk = [self methodForSelector: @selector(objectForKey:)];
+
+      while ((key = (*nxt)(enumerator, @selector(nextObject))) != nil)
+	{
+	  id	val = (*ofk)(self, @selector(objectForKey:), key);
+
+	  (*enc)(aCoder, @selector(encodeObject:), key);
+	  (*enc)(aCoder, @selector(encodeObject:), val);
+	}
+    }
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  unsigned	count;
+
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+  if (count > 0)
+    {
+      id	*keys = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
+      id	*vals = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
+      unsigned	i;
+      IMP	dec;
+
+      dec = [aCoder methodForSelector: @selector(decodeObject)];
+      for (i = 0; i < count; i++)
+	{
+	  keys[i] = (*dec)(aCoder, @selector(decodeObject));
+	  vals[i] = (*dec)(aCoder, @selector(decodeObject));
+	}
+      self = [self initWithObjects: vals forKeys: keys count: count];
+      NSZoneFree(NSDefaultMallocZone(), keys);
+      NSZoneFree(NSDefaultMallocZone(), vals);
+    }
+
+  return self;
 }
 @end
 
@@ -896,6 +944,11 @@ static NSString	*indentStrings[] = {
     }
 #endif
   return newDictionary;
+}
+
+- (Class) classForCoder
+{
+  return NSMutableDictionary_abstract_class;
 }
 
 /* This is the designated initializer */

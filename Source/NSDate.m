@@ -870,15 +870,15 @@ GSTimeNow()
     return NSCopyObject(self, 0, zone);
 }
 
-- (Class) classForPortCoder
+- (Class) classForCoder
 {
-  /* Make sure that Connection's always send us bycopy,
-     i.e. as our own class, not a Proxy class. */
   return abstractClass;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
 {
+  /* Make sure that Connection's always send us bycopy,
+     i.e. as our own class, not a Proxy class. */
   return self;
 }
 
@@ -895,8 +895,20 @@ GSTimeNow()
   id			o;
 
   [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
-  o = [[concreteClass alloc] initWithTimeIntervalSinceReferenceDate: interval];
-  [self release];
+  if (interval == DISTANT_PAST)
+    {
+      o = RETAIN([abstractClass distantPast]);
+    }
+  else if (interval == DISTANT_FUTURE)
+    {
+      o = RETAIN([abstractClass distantFuture]);
+    }
+  else
+    {
+      o = [concreteClass allocWithZone: NSDefaultMallocZone()];
+      o = [o initWithTimeIntervalSinceReferenceDate: interval];
+    }
+  RELEASE(self);
   return o;
 }
 
@@ -1116,16 +1128,6 @@ GSTimeNow()
     }
 }
 
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
-{
-  return self;
-}
-
 - (void) encodeWithCoder: (NSCoder*)coder
 {
   [coder encodeValueOfObjCType: @encode(NSTimeInterval)
@@ -1257,25 +1259,6 @@ GSTimeNow()
       [self setVersion: 1];
       behavior_class_add_class(self, [NSGDate class]);
     }
-}
-
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
-{
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)coder
-{
-}
-
-- (id) initWithCoder: (NSCoder*)coder
-{
-  return self;
 }
 
 - (id) autorelease

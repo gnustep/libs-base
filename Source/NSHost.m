@@ -358,10 +358,6 @@ static NSString			*myHostName = nil;
 }
 
 /* Methods for encoding/decoding*/
-- (Class) classForPortCoder
-{
-  return [self class];
-}
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {

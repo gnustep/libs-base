@@ -175,7 +175,7 @@ GSTime(int day, int month, int year, int h, int m, int s)
   return newObj;
 }
 
-- (Class) classForPortCoder
+- (Class) classForCoder
 {
   return [self class];
 }

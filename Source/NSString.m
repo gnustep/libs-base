@@ -2824,17 +2824,7 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-- (Class) classForArchiver
-{
-  return NSString_class;
-}
-
 - (Class) classForCoder
-{
-  return NSString_class;
-}
-
-- (Class) classForPortCoder
 {
   return NSString_class;
 }
@@ -2999,17 +2989,7 @@ handle_printf_atsign (FILE *stream,
   RELEASE(tmp);
 }
 
-- (Class) classForArchiver
-{
-  return NSMutableString_class;
-}
-
 - (Class) classForCoder
-{
-  return NSMutableString_class;
-}
-
-- (Class) classForPortCoder
 {
   return NSMutableString_class;
 }

@@ -1,3 +1,31 @@
+2000-10-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Attempts to make sure that when members of a class cluster are encoded
+	(either for archiving or for sending over DO), they are encoded as
+	the abstract class hiding the other classes in the cluster - this
+	should mean that (in future) changes in the private concrete classes
+	used should not effect existing archives and running DO applications.
+	* Source/NSDate.m: Implement -classForCoder to encode as the
+	abstract class.  Implement ([-encodeWithCoder:]) and ([-initWithCoder:])
+	in abstract class.
+	* Source/NSDictionary.m: Implement -classForCoder to encode as the
+	abstract class.  Implement ([-encodeWithCoder:]) and ([-initWithCoder:])
+	in abstract class.
+	* Source/NSArray.m: Implement -classForCoder to encode as the abstract
+	class.
+	* Source/NSAttributedString.m: Implement -classForCoder to encode as
+	the abstract class. Implement ([-encodeWithCoder:]) and
+	([-initWithCoder:]) in abstract class.
+	* Source/NSGAttributedString.m: Remove coding/encoding stuff - now done
+	in abstract class.
+	* Source/NSNumber.m: Implement -classForCoder to encode numbers as the
+	abstract class.
+	Modified ([-encodeWithCoder:]) and ([-initWithCoder:]) to encode objc
+	type when encoding as abstract class.
+	* Source/NSConcreteNumber.m: Modified encoding method to mirror
+	abstract class method.  Old ([-initWithCoder:]) method retained to
+	decode old format records from archives.
+ 
 2000-10-11  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSObject.m (+initialize): Initialize Window sockets

@@ -439,23 +439,23 @@
 }
 
 // NSCoding
-- (Class) classForCoder
-{
-  return [self class];
-}
 
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-  if ([aCoder isByref] == NO)
-    return self;
-  return [super replacementObjectForPortCoder: aCoder];
-}
-
+/*
+ * Exact mirror of NSNumber abstract class coding method.
+ */
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(TYPE_TYPE) at: &data];
+  const char	*t = @encode(TYPE_TYPE);
+
+  [coder encodeValueOfObjCType: @encode(char) at: t];
+  [coder encodeValueOfObjCType: t at: &data];
 }
 
+/*
+ * NSNumber objects should have been encoded with their class set to the
+ * abstract class.  If they haven't then we must be encoding from an old
+ * archive, so we must implement the old initWithCoder: method.
+ */
 - (id) initWithCoder: (NSCoder*)coder
 {
   [coder decodeValueOfObjCType: @encode(TYPE_TYPE) at: &data];

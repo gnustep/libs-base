@@ -2255,9 +2255,9 @@ static Class	doubleNumberClass;
  * NSCoding
  */
 
-- (Class) classForPortCoder
+- (Class) classForCoder
 {
-  return [self class];
+  return abstractClass;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
@@ -2269,12 +2269,52 @@ static Class	doubleNumberClass;
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: [self objCType] at: [self pointerValue]];
+  const char	*t = [self objCType];
+
+  [coder encodeValueOfObjCType: @encode(char) at: t];
+  [coder encodeValueOfObjCType: t at: [self pointerValue]];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: [self objCType] at: [self pointerValue]];
+  char	t[2];
+  union	{
+    signed char	c;
+    unsigned char C;
+    signed short s;
+    unsigned short S;
+    signed int i;
+    unsigned int I;
+    signed long	l;
+    unsigned long L;
+    signed long long q;
+    unsigned long long Q;
+    float f;
+    double d;
+  } data;
+
+  [coder decodeValueOfObjCType: @encode(char) at: t];
+  t[1] = '\0';
+  [coder decodeValueOfObjCType: t at: &data];
+  switch (*t)
+    {
+      case 'c':	self = [self initWithChar: data.c];	break;
+      case 'C':	self = [self initWithUnsignedChar: data.C]; break;
+      case 's':	self = [self initWithShort: data.s]; break;
+      case 'S':	self = [self initWithUnsignedShort: data.S]; break;
+      case 'i':	self = [self initWithInt: data.i]; break;
+      case 'I':	self = [self initWithUnsignedInt: data.I]; break;
+      case 'l':	self = [self initWithLong: data.l]; break;
+      case 'L':	self = [self initWithUnsignedLong: data.L]; break;
+      case 'q':	self = [self initWithLongLong: data.q]; break;
+      case 'Q':	self = [self initWithUnsignedLongLong: data.Q]; break;
+      case 'f':	self = [self initWithFloat: data.f]; break;
+      case 'd':	self = [self initWithDouble: data.d]; break;
+      default:
+	[self dealloc];
+	self = nil;
+	NSLog(@"Attempt to decode number with unknown ObjC type");
+    }
   return self;
 }
 @end
