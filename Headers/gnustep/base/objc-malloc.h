@@ -1,5 +1,5 @@
 /* Memory allocation definitions for Objective-C, easy garbage collection.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -43,5 +43,7 @@ extern void (*objc_free)(void *);
 #define OBJC_CALLOC(VAR, TYPE, NUM) \
    ((VAR) = (TYPE *) (*objc_calloc)((unsigned)(NUM), sizeof(TYPE)))
 #define OBJC_FREE(PTR) (*objc_free)((PTR))
+
+extern id MemoryExhaustedException;
 
 #endif /* __objc_malloc_h_INCLUDE_GNU */
