@@ -312,7 +312,7 @@ static void debugWrite(NSData *data)
     }
   else if ([parser isComplete] == YES
     || ([parser isInHeaders] == NO &&
-      [[[document headerNamed: @"http"] objectForKey: NSHTTPPropertyStatusCodeKey] intValue] == 204))
+      [[[document headerNamed: @"content-length"] value] intValue] > 0))
     {
       GSMimeHeader	*info;
       NSString		*val;
