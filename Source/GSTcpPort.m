@@ -1138,6 +1138,11 @@ static Class		tcpPortClass;
 		}
 	    }
 
+	  /*
+           * Need size of buffer for getsockbyname() later.
+	   */
+	  i = sizeof(sockaddr);
+
 	  if (addrOk == NO)
 	    {
 	      NSLog(@"Bad address (%@) specified for listening port", addr);

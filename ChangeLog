@@ -1,5 +1,9 @@
 2000-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSTcpPort.m: set size for return buffer of getsockbyname()
+
+2000-07-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m: Minor optimisation in select(), also update
 	servicing oorder of inputs to provide fairer allocation of processing.
 
