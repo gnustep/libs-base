@@ -1,5 +1,5 @@
 /* Protocol for Objective-C objects holding (keyElement,contentElement) pairs.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -36,17 +36,7 @@
 #include <objects/stdobjects.h>
 #include <objects/Collecting.h>
 
-@protocol KeyedCollecting <Collecting>
-
-// ADDING;
-- putObject: newContentObject atKey: (elt)aKey;
-
-// REPLACING AND SWAPPING;
-- replaceObjectAtKey: (elt)aKey with: newContentObject;
-- swapAtKeys: (elt)key1 : (elt)key2;
-
-// REMOVING;
-- removeObjectAtKey: (elt)aKey;
+@protocol ConstantKeyedCollecting <ConstantCollecting>
 
 // GETTING ELEMENTS AND KEYS;
 - objectAtKey: (elt)aKey;
@@ -61,31 +51,12 @@
 - withKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
     whileTrue: (BOOL *)flag;
 
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithKeyObjectsCall: (void(*)(id))aFunc;
-- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc;
-- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
-    whileTrue: (BOOL *)flag;
-
-
 // NON-OBJECT ELEMENT METHOD NAMES;
 
 // INITIALIZING;
 - initWithType: (const char *)contentsEncoding
     keyType: (const char *)keyEncoding;
 - initKeyType: (const char *)keyEncoding;
-
-// ADDING;
-- putElement: (elt)newContentElement atKey: (elt)aKey;
-
-// REPLACING;
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement;
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-
-// REMOVING;
-- (elt) removeElementAtKey: (elt)aKey;
-- (elt) removeElementAtKey: (elt)aKey ifAbsentCall: (elt(*)(arglist_t))excFunc;
 
 // GETTING ELEMENTS AND KEYS;
 - (elt) elementAtKey: (elt)aKey;
@@ -104,6 +75,41 @@
 - withKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc;
 - withKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc 
     whileTrue: (BOOL *)flag;
+
+@end
+
+@protocol KeyedCollecting <ConstantKeyedCollecting, Collecting>
+
+// ADDING;
+- putObject: newContentObject atKey: (elt)aKey;
+
+// REPLACING AND SWAPPING;
+- replaceObjectAtKey: (elt)aKey with: newContentObject;
+- swapAtKeys: (elt)key1 : (elt)key2;
+
+// REMOVING;
+- removeObjectAtKey: (elt)aKey;
+
+// ENUMERATING WHILE CHANGING CONTENTS;
+- safeWithKeyObjectsCall: (void(*)(id))aFunc;
+- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc;
+- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
+    whileTrue: (BOOL *)flag;
+
+
+// NON-OBJECT ELEMENT METHOD NAMES;
+
+// ADDING;
+- putElement: (elt)newContentElement atKey: (elt)aKey;
+
+// REPLACING;
+- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement;
+- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement
+    ifAbsentCall: (elt(*)(arglist_t))excFunc;
+
+// REMOVING;
+- (elt) removeElementAtKey: (elt)aKey;
+- (elt) removeElementAtKey: (elt)aKey ifAbsentCall: (elt(*)(arglist_t))excFunc;
 
 // ENUMERATING WHILE CHANGING CONTENTS;
 - safeWithKeyElementsCall: (void(*)(elt))aFunc;
