@@ -143,11 +143,17 @@ encodeBase64(NSData *source)
   int		enclen = length / 3;
   int		remlen = length - 3 * enclen;
   int		destlen = 4 * ((length - 1) / 3) + 5;
-  unsigned char *sBuf = (unsigned char*)[source bytes];
-  unsigned char *dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
+  unsigned char *sBuf;
+  unsigned char *dBuf;
   int		sIndex = 0;
   int		dIndex = 0;
 
+  if (length == 0)
+    {
+      return @"";
+    }
+  sBuf = (unsigned char*)[source bytes];
+  dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
   dBuf[destlen - 1] = '\0';
 
   for (sIndex = 0; sIndex < length - 2; sIndex += 3, dIndex += 4)

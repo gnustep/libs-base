@@ -3817,11 +3817,19 @@ static NSData*
 decodeBase64(const char *source)
 {
   int		length = strlen(source);
-  char		*sourceBuffer = objc_malloc(length+1);
-  NSMutableData	*data = [NSMutableData dataWithCapacity:0];
-  int i, j;
+  char		*sourceBuffer;
+  NSMutableData	*data;
+  int		i;
+  int		j;
   unsigned char	tmp[4];
 
+  if (length == 0)
+    {
+      return [NSData data];
+    }
+
+  data = [NSMutableData dataWithCapacity: 0];
+  sourceBuffer = objc_malloc(length+1);
   strcpy(sourceBuffer, source);
   j = 0;
 
