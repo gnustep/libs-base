@@ -1,5 +1,5 @@
 /* Implementation of functions for dissecting/making method calls 
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: Oct 1994
@@ -487,7 +487,7 @@ dissect_method_return(arglist_t argframe, const char *type,
 		      BOOL out_parameters,
 		      void(*f)(int,void*,const char*,int))
 {
-  retval_t retframe;
+  retval_t retframe = NULL;
   int argnum;
   int retsize;
   int flags;
