@@ -1,3 +1,8 @@
+2002-08-15  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add OpenBSD header/ldflag support (Patch from
+	Peter Cooper).
+
 2002-08-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GNUmakefile: Added -lgnustep-base and -lobjc to SSL_BUNDLE_LIBS

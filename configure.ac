@@ -62,7 +62,9 @@ AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 #--------------------------------------------------------------------
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-		LIBS="$LIBS -L/usr/local/lib";;
+		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
+  netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
+		LDFLAGS="$LDFLAGS -L/usr/pkg/lib";;
 
 esac
 
@@ -363,7 +365,7 @@ if test $ac_cv_sizeof_long = 4; then
 else
   if test $ac_cv_sizeof_long = 8; then
     _GSC_S_LNG=_GSC_I64
-  else
+v  else
     if test $ac_cv_sizeof_long = 16; then
       _GSC_S_LNG=_GSC_I128
     fi
