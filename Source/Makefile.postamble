@@ -216,6 +216,7 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 #	Files that include GSIArray.h will need a rebuild if it is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
+$(GNUSTEP_OBJ_DIR)/NSPortCoder.o \
 $(GNUSTEP_OBJ_DIR)/NSRunLoop.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
@@ -227,8 +228,11 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 $(GNUSTEP_OBJ_DIR)/GSCountedSet.o \
 $(GNUSTEP_OBJ_DIR)/GSSet.o \
 $(GNUSTEP_OBJ_DIR)/NSArchiver.o \
+$(GNUSTEP_OBJ_DIR)/NSConnection.o \
+$(GNUSTEP_OBJ_DIR)/NSGAttributedString.o \
 $(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
 $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
+$(GNUSTEP_OBJ_DIR)/NSPortCoder.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 	: $(HEADER_DIR)/GSIMap.h $(HEADER_DIR)/GSUnion.h
 

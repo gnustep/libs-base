@@ -48,8 +48,8 @@
 
 @interface GSCountedSetEnumerator : NSEnumerator
 {
-  GSCountedSet	*set;
-  GSIMapNode	node;
+  GSCountedSet		*set;
+  GSIMapEnumerator_t	enumerator;
 }
 @end
 
@@ -64,24 +64,23 @@
 - (id) initWithSet: (NSSet*)d
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
       set = RETAIN((GSCountedSet*)d);
-      node = set->map.firstNode;
+      enumerator = GSIMapEnumeratorForMap(&set->map);
     }
   return self;
 }
 
 - (id) nextObject
 {
-  GSIMapNode old = node;
+  GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
 
   if (node == 0)
     {
       return nil;
     }
-  node = node->nextInMap;
-  return old->key.obj;
+  return node->key.obj;
 }
 
 @end
@@ -145,12 +144,13 @@
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = map.nodeCount;
-  GSIMapNode	node = map.firstNode;
   SEL		sel1 = @selector(encodeObject:);
   IMP		imp1 = [aCoder methodForSelector: sel1];
   SEL		sel2 = @selector(encodeValueOfObjCType:at:);
   IMP		imp2 = [aCoder methodForSelector: sel2];
   const char	*type = @encode(unsigned);
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
   (*imp2)(aCoder, sel2, type, &count);
 
@@ -158,7 +158,7 @@
     {
       (*imp1)(aCoder, sel1, node->key.obj);
       (*imp2)(aCoder, sel2, type, &node->value.uint);
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
@@ -252,11 +252,12 @@
 {
   if (level > 0)
     {
-      GSIMapNode	node = map.firstNode;
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
-	  GSIMapNode	tmp = node->nextInMap;
+	  GSIMapNode	next = GSIMapEnumeratorNextNode(&enumerator);
 
 	  if (node->value.uint <= level)
 	    {
@@ -266,7 +267,7 @@
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
 	    }
-	  node = tmp;
+	  node = next;
 	}
     }
 }

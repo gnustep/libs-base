@@ -243,7 +243,8 @@ static void	mapFree(NCTable *t, GSIMapTable m)
 
 static void endNCTable(NCTable *t)
 {
-  unsigned	i;
+  unsigned		i;
+  GSIMapEnumerator_t	e0;
   GSIMapNode		n0;
   Observation		*l;
 
@@ -261,11 +262,12 @@ static void endNCTable(NCTable *t)
   /*
    * Free lists of observations without notification names.
    */
-  n0 = t->nameless->firstNode;
+  e0 = GSIMapEnumeratorForMap(t->nameless);
+  n0 = GSIMapEnumeratorNextNode(&e0);
   while (n0 != 0)
     {
       l = (Observation*)n0->value.ptr;
-      n0 = n0->nextInMap;
+      n0 = GSIMapEnumeratorNextNode(&e0);
       listFree(l);
     }
   GSIMapEmptyMap(t->nameless);
@@ -274,18 +276,20 @@ static void endNCTable(NCTable *t)
   /*
    * Free lists of observations keyed by name and observer.
    */
-  n0 = t->named->firstNode;
+  e0 = GSIMapEnumeratorForMap(t->named);
+  n0 = GSIMapEnumeratorNextNode(&e0);
   while (n0 != 0)
     {
-      GSIMapTable	m = (GSIMapTable)n0->value.ptr;
-      GSIMapNode	n1 = m->firstNode;
+      GSIMapTable		m = (GSIMapTable)n0->value.ptr;
+      GSIMapEnumerator_t	e1 = GSIMapEnumeratorForMap(m);
+      GSIMapNode		n1 = GSIMapEnumeratorNextNode(&e1);
 
-      n0 = n0->nextInMap;
+      n0 = GSIMapEnumeratorNextNode(&e0);
 
       while (n1 != 0)
 	{
 	  l = (Observation*)n1->value.ptr;
-	  n1 = n1->nextInMap;
+	  n1 = GSIMapEnumeratorNextNode(&e1);
 	  listFree(l);
 	}
       GSIMapEmptyMap(m);
@@ -295,7 +299,9 @@ static void endNCTable(NCTable *t)
   NSZoneFree(NSDefaultMallocZone(), (void*)t->named);
 
   for (i = 0; i < t->numChunks; i++)
-    NSZoneFree(NSDefaultMallocZone(), t->chunks[i]);
+    {
+      NSZoneFree(NSDefaultMallocZone(), t->chunks[i]);
+    }
   for (i = 0; i < t->cacheIndex; i++)
     {
       GSIMapEmptyMap(t->cache[i]);
@@ -692,7 +698,9 @@ static NSNotificationCenter *default_center = nil;
     }
 
   if (object != nil)
-    object = CHEATGC(object);
+    {
+      object = CHEATGC(object);
+    }
 
   if (name == nil && object == nil)
     {
@@ -701,30 +709,33 @@ static NSNotificationCenter *default_center = nil;
 
   if (name == nil)
     {
-      GSIMapNode	n;
+      GSIMapEnumerator_t	e0;
+      GSIMapNode		n0;
 
       /*
        * First try removing all named items set for this object.
        */
-      n = NAMED->firstNode;
-      while (n != 0)
+      e0 = GSIMapEnumeratorForMap(NAMED);
+      n0 = GSIMapEnumeratorNextNode(&e0);
+      while (n0 != 0)
 	{
-	  GSIMapTable	m = (GSIMapTable)n->value.ptr;
-	  NSString	*thisName = (NSString*)n->key.obj;
-	  GSIMapNode	n1;
+	  GSIMapTable		m = (GSIMapTable)n0->value.ptr;
+	  NSString		*thisName = (NSString*)n0->key.obj;
 
-	  n = n->nextInMap;
+	  n0 = GSIMapEnumeratorNextNode(&e0);
 	  if (object == nil)
 	    {
+	      GSIMapEnumerator_t	e1 = GSIMapEnumeratorForMap(m);
+	      GSIMapNode		n1 = GSIMapEnumeratorNextNode(&e1);
+
 	      /*
 	       * Nil object and nil name, so we step through all the maps
 	       * keyed under the current name and remove all the objects
 	       * that match the observer.
 	       */
-	      n1 = m->firstNode;
 	      while (n1 != 0)
 		{
-		  GSIMapNode	next = n1->nextInMap;
+		  GSIMapNode	next = GSIMapEnumeratorNextNode(&e1);
 
 		  purgeMapNode(m, n1, observer);
 		  n1 = next;
@@ -732,6 +743,8 @@ static NSNotificationCenter *default_center = nil;
 	    }
 	  else
 	    {
+	      GSIMapNode	n1;
+
 	      /*
 	       * Nil name, but non-nil object - we locate the map for the
 	       * specified object, and remove all the items that match
@@ -759,57 +772,61 @@ static NSNotificationCenter *default_center = nil;
        */
       if (object == nil)
 	{
-	  n = NAMELESS->firstNode;
-	  while (n != 0)
+	  e0 = GSIMapEnumeratorForMap(NAMELESS);
+	  n0 = GSIMapEnumeratorNextNode(&e0);
+	  while (n0 != 0)
 	    {
-	      GSIMapNode	next = n->nextInMap;
+	      GSIMapNode	next = GSIMapEnumeratorNextNode(&e0);
 
-	      purgeMapNode(NAMELESS, n, observer);
-	      n = next;
+	      purgeMapNode(NAMELESS, n0, observer);
+	      n0 = next;
 	    }
 	}
       else
 	{
-	  n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
-	  if (n != 0)
+	  n0 = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
+	  if (n0 != 0)
 	    {
-	      purgeMapNode(NAMELESS, n, observer);
+	      purgeMapNode(NAMELESS, n0, observer);
 	    }
 	}
     }
   else
     {
-      GSIMapTable	m;
-      GSIMapNode	n;
+      GSIMapTable		m;
+      GSIMapEnumerator_t	e0;
+      GSIMapNode		n0;
 
       /*
        * Locate the map table for this name.
        */
-      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
-      if (n == 0)
+      n0 = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
+      if (n0 == 0)
 	{
 	  unlockNCTable(TABLE);
 	  return;		/* Nothing to do.	*/
 	}
-      m = (GSIMapTable)n->value.ptr;
+      m = (GSIMapTable)n0->value.ptr;
 
       if (object == nil)
 	{
-	  n = m->firstNode;
-	  while (n != 0)
-	    {
-	      GSIMapNode	next = n->nextInMap;
+	  e0 = GSIMapEnumeratorForMap(m);
+	  n0 = GSIMapEnumeratorNextNode(&e0);
 
-	      purgeMapNode(m, n, observer);
-	      n = next;
+	  while (n0 != 0)
+	    {
+	      GSIMapNode	next = GSIMapEnumeratorNextNode(&e0);
+
+	      purgeMapNode(m, n0, observer);
+	      n0 = next;
 	    }
 	}
       else
 	{
-	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
-	  if (n != 0)
+	  n0 = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+	  if (n0 != 0)
 	    {
-	      purgeMapNode(m, n, observer);
+	      purgeMapNode(m, n0, observer);
 	    }
 	}
       if (m->nodeCount == 0)

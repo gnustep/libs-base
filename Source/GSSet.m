@@ -55,8 +55,8 @@
 
 @interface GSSetEnumerator : NSEnumerator
 {
-  GSSet	*set;
-  GSIMapNode	node;
+  GSSet			*set;
+  GSIMapEnumerator_t	enumerator;
 }
 @end
 
@@ -68,21 +68,20 @@
   if (self != nil)
     {
       set = (GSSet*)RETAIN(d);
-      node = set->map.firstNode;
+      enumerator = GSIMapEnumeratorForMap(&set->map);
     }
   return self;
 }
 
 - (id) nextObject
 {
-  GSIMapNode old = node;
+  GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
 
   if (node == 0)
     {
       return nil;
     }
-  node = node->nextInMap;
-  return old->key.obj;
+  return node->key.obj;
 }
 
 - (void) dealloc
@@ -112,14 +111,15 @@ static Class	mutableSetClass;
 
 - (NSArray*) allObjects
 {
-  id		objs[map.nodeCount];
-  GSIMapNode	node = map.firstNode;
-  unsigned	i = 0;
+  id			objs[map.nodeCount];
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+  unsigned		i = 0;
 
   while (node != 0)
     {
       objs[i++] = node->key.obj;
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
   return AUTORELEASE([[arrayClass allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objs count: i]);
@@ -150,16 +150,17 @@ static Class	mutableSetClass;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count = map.nodeCount;
-  GSIMapNode	node = map.firstNode;
-  SEL		sel = @selector(encodeObject:);
-  IMP		imp = [aCoder methodForSelector: sel];
+  unsigned		count = map.nodeCount;
+  SEL			sel = @selector(encodeObject:);
+  IMP			imp = [aCoder methodForSelector: sel];
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
   while (node != 0)
     {
       (*imp)(aCoder, sel, node->key.obj);
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
@@ -233,7 +234,9 @@ static Class	mutableSetClass;
   c = GSObjCClass(otherSet);
   if (c == setClass || c == mutableSetClass)
     {
-      GSIMapNode	node = ((GSSet*)otherSet)->map.firstNode;
+      GSIMapTable		m = &((GSSet*)otherSet)->map;
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(m);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
@@ -241,7 +244,7 @@ static Class	mutableSetClass;
 	    {
 	      return YES;
 	    }
-	  node = node->nextInMap;
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
     }
   else
@@ -263,7 +266,8 @@ static Class	mutableSetClass;
 
 - (BOOL) isSubsetOfSet: (NSSet*) otherSet
 {
-  GSIMapNode	node = map.firstNode;
+  GSIMapEnumerator_t	enumerator;
+  GSIMapNode 		node;
 
   // -1. members of this set(self) <= that of otherSet
   if (map.nodeCount > [otherSet count])
@@ -271,20 +275,23 @@ static Class	mutableSetClass;
       return NO;
     }
 
+  enumerator = GSIMapEnumeratorForMap(&map);
+  node = GSIMapEnumeratorNextNode(&enumerator);
+
   // 0. Loop for all members in this set(self).
   while (node != 0)
     {
       // 1. check the member is in the otherSet.
       if ([otherSet member: node->key.obj])
-       {
-         // 1.1 if true -> continue, try to check the next member.
-         node = node->nextInMap;
-       }
+	{
+	  // 1.1 if true -> continue, try to check the next member.
+	  node = GSIMapEnumeratorNextNode(&enumerator);
+	}
       else
-       {
-         // 1.2 if false -> return NO;
-         return NO;
-       }
+	{
+	  // 1.2 if false -> return NO;
+	  return NO;
+	}
     }
   // 2. return YES; all members in this set are also in the otherSet.
   return YES;
@@ -312,16 +319,19 @@ static Class	mutableSetClass;
 	    }
 	  else
 	    {
-	      GSIMapNode	node = map.firstNode;
+	      GSIMapEnumerator_t	enumerator;
+	      GSIMapNode 		node;
+
+	      enumerator = GSIMapEnumeratorForMap(&map);
+	      node = GSIMapEnumeratorNextNode(&enumerator);
 
 	      while (node != 0)
 		{
-		  if (GSIMapNodeForKey(&(((GSSet*)other)->map), node->key)
-		    == 0)
+		  if (GSIMapNodeForKey(&(((GSSet*)other)->map), node->key) == 0)
 		    {
 		      return NO;
 		    }
-		  node = node->nextInMap;
+		  node = GSIMapEnumeratorNextNode(&enumerator);
 		}
 	    }
 	}
@@ -333,7 +343,11 @@ static Class	mutableSetClass;
 	    }
 	  else
 	    {
-	      GSIMapNode	node = map.firstNode;
+	      GSIMapEnumerator_t	enumerator;
+	      GSIMapNode 		node;
+
+	      enumerator = GSIMapEnumeratorForMap(&map);
+	      node = GSIMapEnumeratorNextNode(&enumerator);
 
 	      while (node != 0)
 		{
@@ -341,7 +355,7 @@ static Class	mutableSetClass;
 		    {
 		      return NO;
 		    }
-		  node = node->nextInMap;
+		  node = GSIMapEnumeratorNextNode(&enumerator);
 		}
 	    }
 	}
@@ -351,45 +365,49 @@ static Class	mutableSetClass;
 
 - (void) makeObjectsPerform: (SEL)aSelector
 {
-  GSIMapNode	node = map.firstNode;
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
   while (node != 0)
     {
       [node->key.obj performSelector: aSelector];
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
-  GSIMapNode	node = map.firstNode;
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
   while (node != 0)
     {
       [node->key.obj performSelector: aSelector];
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
 {
-  GSIMapNode	node = map.firstNode;
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
   while (node != 0)
     {
       [node->key.obj performSelector: aSelector withObject: argument];
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector withObject: argument
 {
-  GSIMapNode	node = map.firstNode;
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
   while (node != 0)
     {
       [node->key.obj performSelector: aSelector withObject: argument];
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
@@ -505,11 +523,12 @@ static Class	mutableSetClass;
 {
   if (other != self)
     {
-      GSIMapNode	node = map.firstNode;
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
-	  GSIMapNode	next = node->nextInMap;
+	  GSIMapNode	next = GSIMapEnumeratorNextNode(&enumerator);
 
 	  if ([other containsObject: node->key.obj] == NO)
 	    {
