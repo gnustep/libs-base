@@ -1246,7 +1246,7 @@ static NSFileManager* defaultManager = nil;
       cpath = [self fileSystemRepresentationWithPath: 
 	[path stringByDeletingLastPathComponent]];
     
-      return  (access(cpath, X_OK | W_OK) != 0);
+      return  (access(cpath, X_OK | W_OK) == 0);
 #endif
     }
 }
