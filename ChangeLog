@@ -5,6 +5,8 @@
 	defaults and command line settings should still work.
 	* Source/GSDictionary.m: fix for keyed archioving reported by
 	Marc Ordinas i Llopis
+	* Source/Additions/GSXML.m: Improve error logging ... add line number
+	and column number to message, also avoid possible buffer overflow.
 
 2004-04-02 Richard Frith-Macdonald <rfm@gnu.org>
 
