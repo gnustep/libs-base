@@ -176,13 +176,13 @@
 - (void) encodeWithCoder:(NSCoder*)coder
 {
   [super encodeWithCoder:coder];
-  [coder encodeValueOfObjCType:"d" at:&seconds_since_ref];
+  [coder encodeValueOfObjCType:@encode(NSTimeInterval) at:&seconds_since_ref];
 }
 
 - (id) initWithCoder:(NSCoder*)coder
 {
   self = [super initWithCoder:coder];
-  [coder decodeValueOfObjCType:"d" at:&seconds_since_ref];
+  [coder decodeValueOfObjCType:@encode(NSTimeInterval) at:&seconds_since_ref];
   return self;
 }
 
