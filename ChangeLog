@@ -1,3 +1,16 @@
+2000-09-11  Adam Fedor  <fedor@gnu.org>
+
+	* Mingw fixes.
+	* Makefile.postamble (header-links): if MINGW, copy header files
+	to Foundation (Mingw's gcc can't handle links).
+
+	* Source/mframe/configure.in: Check target, not host.
+
+	* Source/NSDate.m (GSTimeNow): Fix typo.
+
+	* Source/NSData.m (readContentsOfFile): Fix up vars for MINGW.
+	(-writeToFile:atomically:): Likewise.	
+
 2000-09-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSXML.h: new classes for parsing XML
