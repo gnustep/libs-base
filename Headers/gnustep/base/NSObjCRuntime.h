@@ -47,7 +47,6 @@ GS_EXPORT NSLog_printf_handler	*_NSLog_printf_handler;
 GS_EXPORT int	_NSLogDescriptor;
 @class NSRecursiveLock;
 GS_EXPORT NSRecursiveLock	*GSLogLock(void);
-GS_EXPORT BOOL	GSPrintf (FILE *fptr, NSString *format, ...);
 #endif
 
 GS_EXPORT void			NSLog (NSString *format, ...);

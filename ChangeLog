@@ -1,3 +1,11 @@
+2003-07-01  David Ayers  <d.ayers@inode.at>
+
+	* Headers/gnustep/base/GSObjCRuntime.h/m (GSPrintf),
+	* Headers/gnustep/base/NSObjCRuntime.h (GSPrintf),
+	* Source/NSLog.m (GSPrintf): Moved implementation from NSLog.m to
+	GSObjCRuntime.m and declaration from NSObjCRuntime.h to
+	GSObjCRuntime.h.
+
 2003-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Flush iconv buffer at end of conversion
