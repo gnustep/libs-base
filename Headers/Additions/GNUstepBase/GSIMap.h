@@ -201,10 +201,11 @@
  *
  *   _GSIMapTable   ----->  C-array of buckets 
  *
- *  Where each bucket contains a count (nodeCount), describing the number of nodes in
- *  in the bucket and a pointer (firstNode) to a single linked list of nodes.
+ *  Where each bucket contains a count (nodeCount), describing the number
+ *  of nodes in the bucket and a pointer (firstNode) to a single linked
+ *  list of nodes.
  *  
- *  The second view is slightly more complicated
+ *  The second view is slightly more complicated.
  *  The individual nodes are allocated and deallocated in chunks.
  *  In order to keep track of this we have:
  *
@@ -237,10 +238,10 @@
  *                    / |          +---------------+  | 
  *         ----------   v                             v
  *       /       +----------+      +---------------------------+ 
- *       |       |  * ------+----->| Node1 | Node2 | Node3 ... |         A chunk of nodes
+ *       |       |  * ------+----->| Node1 | Node2 | Node3 ... | a chunk
  *   chunkCount  |  * ------+--\   +---------------------------+
  *  is size of = |  .       |   \  +-------------------------------+
- *               |  .       |    ->| Node n | Node n + 1 | ...     |     Another chunk of nodes
+ *               |  .       |    ->| Node n | Node n + 1 | ...     | another
  *               +----------+      +-------------------------------+
  *               array pointing
  *               to the chunks
@@ -250,12 +251,14 @@
  *  -------------------------------------
  *  Chunks are allocated when needed, that is a new chunk is allocated
  *  whenever the freeNodes list is empty and a new node is required.
- *  In gnustep-base-1.9.0 the size of the new chunk is calculated as roughly 3/4 of the number
- *  of nodes in use.  The problem with this approach is that it can lead to unnecessary
- *  address space fragmentation.  So in this version the algorithme
- *  will use the 3/4 rule until the nodeCount reaches the "increment" member variable.
- *  If nodeCount is bigger than the "increment" it will allocate chunks of size
- *  "increment".
+ *  In gnustep-base-1.9.0 the size of the new chunk is calculated as
+ *  roughly 3/4 of the number of nodes in use.
+ *  The problem with this approach is that it can lead to unnecessary
+ *  address space fragmentation.  So in this version the algorithm we
+ *  will use the 3/4 rule until the nodeCount reaches the "increment"
+ *  member variable.
+ *  If nodeCount is bigger than the "increment" it will allocate chunks
+ *  of size "increment".
  */
 
 typedef struct _GSIMapTable GSIMapTable_t;
@@ -592,9 +595,9 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
       size += tmp;
     }
   /*
-   *	Avoid even numbers - since hash functions frequently generate uneven distributions
-   *	around powers of two - we don't want lots of keys falling into a single
-   *	bucket.
+   *	Avoid even numbers - since hash functions frequently generate uneven
+   *	distributions around powers of two -
+   *	we don't want lots of keys falling into a single bucket.
    */
   if (size % 2 == 0)
     {
