@@ -423,7 +423,7 @@ static SEL	eqSel = @selector(isEqual:);
 {
   unsigned	index = _count;
 
-  if (index > 0)
+  if (index > 0 && anObject)
     {
       BOOL		(*imp)(id,SEL,id);
 
