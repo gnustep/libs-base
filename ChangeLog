@@ -1,3 +1,45 @@
+2002-07-27  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.4.0
+
+2002-07-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSInvocation.m ([GSFrameInvocation
+	-initWithMethodSignature:]): Return nil if signature is nil.
+	* Source/GSFFCallInvocation.m (-initWithMethodSignature:): Idem.
+	* Source/GSFFIInvocation (-initWithMethodSignature:): Idem.
+	
+2002-07-20  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSDecimal.m: ifdef for compiling on Darwin (report
+	from Carl Eugen).
+	* Source/NSInvocation.m ([-initWithSelector:): Rewrite to use
+	designated initializer.
+	(-initWithTarget:selector:): Idem.
+
+2002-07-18  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (main): Write the pidfile before switching away
+	from root, but only if the user is root.
+
+2002-07-17  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSString.m (-getLineStart:end:contentsEnd:forRange:): Fix
+	lineEnd and contentEnd check for \r\n (particularly at end of
+	string.
+
+Tue Jul 16 16:43:59 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Headers/gnustep/base/GSXML.h ([GSXMLNode -setNamespace:]): Added
+	missing method essential to use namespaces.
+	* Source/Additions/GSXML.m ([GSXMLNode -setNamespace:]): Implemented.
+	
+2002-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSFileManager.m: Don't standardise path before converting to
+        filesystem representation.
+        * Tools/gdomap.c: Security enhancement - call setgroups().
+
 2002-07-03  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.3.4

@@ -137,6 +137,7 @@
 - (void) setObject: (NSString*)value forKey:(NSString*)key;
 - (int) type;
 - (NSString*) typeDescription;
+- (void) setNamespace: (GSXMLNamespace *)space;
 
 @end
 
