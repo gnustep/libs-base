@@ -1,5 +1,27 @@
 Mon May 27 09:57:34 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	* Makefile.in (DIST_FILES): Added README.ucblib.
+
+	* src/include/objc-gnu2next.h: Remove "Object (GNUExtentions)"
+ 	Category.  We no longer use Object; we use NSObject.
+
+	Do our best to use "%@" (Objective-C String object printf-format
+	tag) as little as possible, because, for now, it is not
+	implemented on non-GNU-libc systems.
+	* src/KeyedCollection.m ([ConstantKeyedCollection -description]):
+ 	Instead of @%, use %s and [s cStringNoCopy].
+	* src/NSHashTable.m (NSStringFromHashTable): Likewise.
+	(NSHashInsertKnownAbsent): Likewise.
+	* src/NSMapTable.m (NSStringFromMapTable): Likewise.
+	(NSMapInsertKnownAbsent): Likewise.
+	* src/TextCStream.m ([TextCStream
+ 	-encodeValueOfCType:at:withName:]): Likewise.
+	([TextCStream -encodeName:n]): Likewise.
+	* src/o-hash.m (o_hash_description): Likewise.
+	* src/x-bas.m.in (_o_@XX@_description): Likewise.
+	* src/NSDictionary.m ([NSDictionary -descriptionWithIndent:]): Use
+ 	-cStringNoCopy instead of -cString.
+
 	* src/x-cbs.m.in: Prepend missing `o-' in #include.
 	* src/x-bas.m.in: Likewise.
 
