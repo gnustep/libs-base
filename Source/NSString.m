@@ -637,7 +637,72 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) description
 {
-  return self;
+  const char *src = [self cString];
+  char *dest;
+  char *src_ptr,*dest_ptr;
+  int len,quote;
+  unsigned char ch;
+
+  /* xxx Really should make this work with unichars. */
+
+#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+#define noquote(ch) (inrange(ch,'a','z') || inrange(ch,'A','Z') || inrange(ch,'0','9') || ((ch)=='_') || ((ch)=='.') || ((ch)=='$'))
+#define charesc(ch) (inrange(ch,07,014) || ((ch)=='\"') || ((ch)=='\\'))
+#define numesc(ch) (((ch)<=06) || inrange(ch,015,037) || ((ch)>0176))
+
+  for(src_ptr=(char *)src,len=0,quote=0; ch=*src_ptr; src_ptr++,len++)
+    {
+      if(!noquote(ch))
+	{
+	  quote=1;
+	  if(charesc(ch))
+	    len++;
+	  else if(numesc(ch))
+	    len+=3;
+	}
+    }
+  if (quote)
+    len+=2;
+
+  dest = (char*) malloc (len+1);
+
+  src_ptr = (char*) src;
+  dest_ptr = dest;
+  if (quote)
+    *(dest_ptr++) = '\"';
+  for(; ch=*src_ptr; src_ptr++,dest_ptr++)
+    {
+      if(charesc(ch))
+	{
+	  *(dest_ptr++) = '\\';
+	  switch(ch)
+	    {
+	    case '\a': *dest_ptr = 'a'; break;
+	    case '\b': *dest_ptr = 'b'; break;
+	    case '\t': *dest_ptr = 't'; break;
+	    case '\n': *dest_ptr = 'n'; break;
+	    case '\v': *dest_ptr = 'v'; break;
+	    case '\f': *dest_ptr = 'f'; break;
+	    default: *dest_ptr = ch;  /* " or \ */
+	    }
+	}
+      else if (numesc(ch))
+	{
+	  *(dest_ptr++) = '\\';
+	  *(dest_ptr++) = '0' + ((ch>>6)&07);
+	  *(dest_ptr++) = '0' + ((ch>>3)&07);
+	  *dest_ptr = '0' + (ch&07);
+	}
+      else
+	{  /* copy literally */
+	  *dest_ptr = ch;
+	}
+    }
+  if (quote)
+    *(dest_ptr++) = '\"';
+  *dest_ptr = '\0';
+
+  return [NSString stringWithCString:dest];
 }
 
 - (BOOL) writeToFile: (NSString*)filename
@@ -801,8 +866,12 @@ handle_printf_atsign (FILE *stream,
 
 - (id)propertyList
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id obj;
+  void *bufstate;
+  bufstate = (void *)pl_scan_string([self cString]);
+  obj = (id)plparse();
+  pl_delete_buffer(bufstate);
+  return obj;
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
