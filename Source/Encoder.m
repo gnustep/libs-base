@@ -580,7 +580,7 @@ my_object_is_class(id object)
    to the object, we're actually going to encode an object (either a
    proxy to the object or the object itself).
 
-   ConnectedCoder overrides _doEncodeObject: in order to implement
+   NSPortCoder overrides _doEncodeObject: in order to implement
    the encoding of proxies. */
 
 - (void) _doEncodeBycopyObject: anObj

@@ -1,3 +1,13 @@
+2000-06-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: Remove obsolete classForConnectedCoder method
+	* Source/NSPort.m: ditto
+	* Source/NSTcpPort.m: ditto
+	* Source/NSUdpPort.m: ditto
+	* Source/GNUmakefile: remove ConnectedCoder
+	* Source/ConnectedCoder.m: removed
+	* Headers/gnustep/base/ConnectedCoder.h: removed
+
 2000-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Removal of non-OpenStep unused classes.

@@ -861,15 +861,10 @@ GSTimeNow()
     return NSCopyObject(self, 0, zone);
 }
 
-- (Class) classForConnectedCoder: aRmc
+- (Class) classForPortCoder
 {
   /* Make sure that Connection's always send us bycopy,
      i.e. as our own class, not a Proxy class. */
-  return abstractClass;
-}
-
-- (Class) classForPortCoder
-{
   return abstractClass;
 }
 

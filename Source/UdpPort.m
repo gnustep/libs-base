@@ -26,7 +26,7 @@
 #include <config.h>
 #include <base/UdpPort.h>
 #include <base/Coder.h>
-#include <base/ConnectedCoder.h>
+#include <Foundation/NSPortCoder.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHost.h>
@@ -283,15 +283,10 @@ static NSMapTable *port_number_2_in_port = NULL;
   return [UdpInPacket class];
 }
 
-- (Class) classForConnectedCoder: aRmc
+- (Class) classForPortCoder
 {
   /* Make sure that Connection's always send us bycopy, not a Proxy class.
      Also, don't encode a "receive right" (ala Mach), encode a "send right". */
-  return [UdpOutPort class];
-}
-
-- (Class) classForPortCoder
-{
   return [UdpOutPort class];
 }
 - replacementObjectForPortCoder: aRmc

@@ -54,15 +54,10 @@
   return nil;
 }
 
-- (Class) classForConnectedCoder: aRmc
+- (Class) classForPortCoder
 {
   /* Make sure that Connection's always send us bycopy,
      i.e. as our own class, not a Proxy class. */
-  return [self class];
-}
-
-- (Class) classForPortCoder
-{
   return [self class];
 }
 - replacementObjectForPortCoder: aRmc

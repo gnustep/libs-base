@@ -136,13 +136,6 @@
 + newWithCoder: (Coder*)aDecoder;
 @end
 
-@interface NSObject (CoderAdditions) 
-/* <SelfCoding> not needed because of NSCoding */
-/* These methods here temporarily until ObjC runtime category bug fixed */
-- classForConnectedCoder:aRmc;
-+ (void) encodeObject: anObject withConnectedCoder: aRmc;
-@end
-
 GS_EXPORT id CoderSignatureMalformedException;
 
 #endif /* __Coder_h_GNUSTEP_BASE_INCLUDE */
