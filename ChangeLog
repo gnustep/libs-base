@@ -5,6 +5,7 @@
 	way ... so we only set up attribute info in the dictionary when we
 	actually need it.  Account 'Number' methods and dictionary keys changed
 	to be account 'ID' instead ... in accordance with MacOS-X usage.
+	Documented the class.
 
 2002-09-15  Richard Frith-Macdonald <rfm@gnu.org>
 
