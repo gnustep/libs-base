@@ -55,11 +55,6 @@ enum {
 
 #define DEFAULT_MEMORY_STREAM_SIZE 64
 
-#define MEMORY_CHECK(buffer)			\
-  if (!buffer)					\
-      [NSException raise: StreamException	\
-        format: @"Virtual memory exhausted"]
-
 extern int
 o_vscanf (void *stream, 
 		int (*inchar_func)(void*), 
@@ -96,7 +91,6 @@ static BOOL debug_memory_stream = NO;
 {
   char *b;
   OBJC_MALLOC(b, char, s);
-  MEMORY_CHECK(b);
   return [self _initOnMallocBuffer:b size:s eofPosition:i
 	       prefix:p position:i];
 }
@@ -146,7 +140,6 @@ static BOOL debug_memory_stream = NO;
     {
       size = MAX(prefix+position+l, size*2);
       buffer = objc_realloc (buffer, size);
-      MEMORY_CHECK(buffer);
     }
   memcpy(buffer+prefix+position, b, l);
   position += l;
@@ -304,7 +297,6 @@ void unchar_func(void *s, int c)
   if (s > prefix + eofPosition)
     {
       buffer = objc_realloc (buffer, s);
-      MEMORY_CHECK(buffer);
       size = s;
     }
 }
