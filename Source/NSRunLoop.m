@@ -1858,6 +1858,8 @@ if (0) {
   _currentMode = mode;
   context = NSMapGet(_contextMap, mode);
 
+  [self _checkPerformers: context];
+
   NS_DURING
     {
       GSIArray		watchers;
