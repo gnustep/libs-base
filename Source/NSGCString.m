@@ -131,6 +131,16 @@
     }
 }
 
+- (Class) classForArchiver
+{
+  return [self class];
+}
+
+- (Class) classForCoder
+{
+  return [self class];
+}
+
 - (Class) classForPortCoder
 {
   return [self class];
@@ -703,7 +713,17 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
  *	archive and readi it back, the new copy will never be deallocated -
  *	causing a memory leak.  So we tell the system to use the super class.
  */
+- (Class)classForArchiver
+{
+  return [self superclass];
+}
+
 - (Class)classForCoder
+{
+  return [self superclass];
+}
+
+- (Class)classForPortCoder
 {
   return [self superclass];
 }
