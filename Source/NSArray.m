@@ -789,9 +789,15 @@ static SEL	rlSel;
    [self makeObjectsPerformSelector: aSelector withObject: argument];
 }
 
-static int compare(id elem1, id elem2, void* context)
+static NSComparisonResult
+compare(id elem1, id elem2, void* context)
 {
-  return (int)[elem1 performSelector: (SEL)context withObject: elem2];
+  NSComparisonResult (*imp)(id, SEL, id);
+
+  imp = (NSComparisonResult (*)(id, SEL, id))
+    [elem1 methodForSelector: context];
+
+  return (*imp)(elem1, context, elem2);
 }
 
 /**
@@ -808,7 +814,7 @@ static int compare(id elem1, id elem2, void* context)
  * according to a sort with comparator.  This invokes
  * -sortedArrayUsingFunction:context:hint: with a nil hint.
  */
-- (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
+- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator 
    context: (void*)context
 {
   return [self sortedArrayUsingFunction: comparator context: context hint: nil];
@@ -829,7 +835,7 @@ static int compare(id elem1, id elem2, void* context)
  * is passed two objects to compare, and the copntext as the third
  * argument.
  */
-- (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
+- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator 
    context: (void*)context
    hint: (NSData*)hint
 {
@@ -1594,7 +1600,7 @@ static int compare(id elem1, id elem2, void* context)
  * Sorts the array according to the supplied compare function
  * with the context information.
  */
-- (void) sortUsingFunction: (int(*)(id,id,void*))compare 
+- (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
 		   context: (void*)context
 {
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
