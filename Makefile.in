@@ -300,11 +300,14 @@ objc/zone.h \
 objc/README
 
 GNUSTEP_HEADERS = \
+foundation/NSArray.h \
 foundation/NSAutoreleasePool.h \
 foundation/NSBundle.h \
 foundation/NSCString.h \
+foundation/NSCoder.h \
 foundation/NSConcreteValue.h \
 foundation/NSConcreteNumber.h \
+foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
 foundation/NSInvocation.h \
