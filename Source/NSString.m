@@ -1371,34 +1371,6 @@ handle_printf_atsign (FILE *stream,
   return NSMakeRange(start, end-start);
 }
 
-// Converting String Contents into a Property List
-
-#if 0
-//  xxx C strings only ???
-- (id)propertyList
-{
-  id obj;
-  void *bufstate;
-  bufstate = (void *)pl_scan_string([self cString]);
-  obj = (id)plparse();
-  pl_delete_buffer(bufstate);
-  return obj;
-}
-
-//  xxx C strings only ???
-- (NSDictionary*) propertyListFromStringsFileFormat
-{
-   id dict = [[[NSMutableDictionary alloc] init] autorelease];
-   void *bufstate;
-
-   bufstate = (void *)sf_scan_string([self cString]);
-   sfSetDict(dict);
-   sfparse(dict);
-   sf_delete_buffer(bufstate);
-   return dict;
-}
-#endif
-
 // Identifying and Comparing Strings
 
 - (NSComparisonResult) compare: (NSString*)aString

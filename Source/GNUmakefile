@@ -112,8 +112,6 @@ UdpPort.m \
 Unicode.m \
 UnixFileHandle.m \
 behavior.m \
-lex.pl.m \
-lex.sf.m \
 ostream.m \
 o_array.m \
 o_array_bas.m \
@@ -134,8 +132,6 @@ o_map.m \
 o_map_bas.m \
 o_map_cbs.m \
 preface.m \
-proplist.tab.m \
-stringsfile.tab.m \
 mframe.m \
 objc-gnu2next.m
 
@@ -157,12 +153,6 @@ o_x_cbs.m.in \
 include/o_x_bas.h.in \
 include/o_x_cbs.h.in \
 md5.h \
-proplist.l \
-proplist.tab.h \
-proplist.y \
-stringsfile.l \
-stringsfile.tab.h \
-stringsfile.y \
 win32-entry.m \
 win32-def.top \
 libgnustep-base.def

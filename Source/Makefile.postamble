@@ -137,19 +137,6 @@ NXStringTable_scan.c: NXStringTable_scan.l
 	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
 		> NXStringTable_scan.c
 	$(RM) -f NXStringTable_scan.temp
-proplist.tab.m proplist.tab.h: proplist.y
-	rm -f proplist.tab.m.h
-	$(BISON) -d -p pl proplist.y -o proplist.tab.m
-	mv proplist.tab.m.h proplist.tab.h
-lex.pl.m: proplist.l proplist.tab.h
-	$(FLEX) -t -B -Ppl proplist.l > $@
-
-stringsfile.tab.m stringsfile.tab.h: stringsfile.y
-	rm -f stringsfile.tab.m.h
-	$(BISON) -d -p sf stringsfile.y -o stringsfile.tab.m
-	mv stringsfile.tab.m.h stringsfile.tab.h
-lex.sf.m: stringsfile.l stringsfile.tab.h
-	$(FLEX) -t -B -Psf stringsfile.l > $@
 
 $(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
 
