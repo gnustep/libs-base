@@ -206,6 +206,7 @@ objects/MemoryStream.h \
 objects/NSArray.h \
 objects/NSCoder.h \
 objects/NSDictionary.h \
+objects/NSSet.h \
 objects/NSString.h \
 objects/Ordering.h \
 objects/Port.h \
@@ -296,12 +297,14 @@ NSGCoder.m \
 NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
+NSGSet.m \
 NSGUnarchiver.m \
 NSNumber.m \
 NSObjCRuntime.m \
 NSObject.m \
 NSProcessInfo.m \
 NSRange.m \
+NSSet.m \
 NSString.m \
 NSTimeZone.m \
 NSUnarchiver.m \
@@ -357,6 +360,7 @@ Foundation/NSGCoder.h \
 Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
+Foundation/NSGSet.h \
 Foundation/NSGUnarchiver.h \
 Foundation/NSInvocation.h \
 Foundation/NSMethodSignature.h \
@@ -365,6 +369,7 @@ Foundation/NSObject.h \
 Foundation/NSProcessInfo.h \
 Foundation/NSRange.h \
 Foundation/NSSerialization.h \
+Foundation/NSSet.h \
 Foundation/NSString.h \
 Foundation/NSUnarchiver.h \
 Foundation/NSUtilities.h \
