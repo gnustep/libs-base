@@ -542,6 +542,10 @@ NSString * const NSFileHandleOperationException
       path = [path stringByAppendingPathComponent: @"SSL.bundle"];
       bundle = [NSBundle bundleWithPath: path];
       NSFileHandle_ssl_class = [bundle principalClass];
+      if (NSFileHandle_ssl_class == 0 && bundle != nil)
+	{
+	  NSLog(@"Failed to load principal class from bundle (%@)", path);
+	}
     }
   return NSFileHandle_ssl_class;
 }
