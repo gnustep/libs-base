@@ -2211,7 +2211,7 @@ transmute(ivars self, NSString *aString)
       obj = [obj initWithCString: _contents.c length: _count];
       return obj;
     }
-  else 
+  else
     {
       return RETAIN(self);
     }
@@ -2232,6 +2232,10 @@ transmute(ivars self, NSString *aString)
 /*
  * Assume that a copy should be a new string, never just a retained substring.
  */
+- (id) copy
+{
+  return [self copyWithZone: NSDefaultMallocZone()];
+}
 - (id) copyWithZone: (NSZone*)z
 {
   NSString	*obj;
