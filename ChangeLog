@@ -1,3 +1,8 @@
+2004-08-04  David Ayers  <d.ayers@inode.at>
+
+	* Testing/nsmethodsignature.m: New test.
+	* Testing/GNUmakefile: Add new test.
+	
 2004-08-02  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Headers/Foundation/*.h: Some fixes and cleanups to 2004-07-20
