@@ -1319,18 +1319,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	[array addObject: locale];
     }
   /* I guess this is arbitrary if we can't find a match? */
-  if ([array count] == 0)
+  if ([array count] == 0 && [localizationsArray count] > 0)
     [array addObject: [localizationsArray objectAtIndex: 0]];
   return [array makeImmutableCopyOnFail: NO];
 }
 
 - (NSDictionary *)localizedInfoDictionary
 {
-  NSString* path;
-  NSString* locale;
+  NSString  *path;
+  NSArray   *locales;
+  NSString  *locale = nil;
   NSDictionary *dict = nil;
 
-  locale = [[self preferredLocalizations] objectAtIndex: 0];
+  locales = [self preferredLocalizations];
+  if ([locales count] > 0)
+    locale = [locales objectAtIndex: 0];
   path = [self pathForResource: @"Info-gnustep" 
                         ofType: @"plist"
                    inDirectory: nil 
