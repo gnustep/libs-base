@@ -599,3 +599,29 @@ static Class	mutableSetClass;
 
 @end
 
+@interface	NSGSet : NSSet
+@end
+@implementation	NSGSet
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
+  RELEASE(self);
+  self = (id)NSAllocateObject([GSSet class], 0, NSDefaultMallocZone());
+  self = [self initWithCoder: aCoder];
+  return self;
+}
+@end
+
+@interface	NSGMutableSet : NSMutableSet
+@end
+@implementation	NSGMutableSet
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
+  RELEASE(self);
+  self = (id)NSAllocateObject([GSMutableSet class], 0, NSDefaultMallocZone());
+  self = [self initWithCoder: aCoder];
+  return self;
+}
+@end
+
