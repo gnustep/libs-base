@@ -866,6 +866,11 @@ AC_ARG_ENABLE(do,
   [  --disable-do			Compile even if DO-dependencies are not met],,
   enable_do=yes)
 
+# DO isn't used on apple-apple-apple
+if test $LIBRARY_COMBO = apple-apple-apple; then
+  enable_do=no
+fi
+
 AC_ARG_WITH(ffcall-include,
     [  --with-ffcall-include=PATH include path for ffcall headers],
     ffcall_incdir="$withval", ffcall_incdir="no")
@@ -884,10 +889,15 @@ fi
 
 AC_CHECK_HEADER(ffi.h, , enable_libffi=no)
 
+have_forward_hook=yes
 AC_MSG_CHECKING("for forwarding callback in runtime")
 AC_EGREP_HEADER(__objc_msg_forward, objc/objc-api.h, AC_MSG_RESULT(yes), 
-	        AC_MSG_RESULT(no); enable_ffcall=no)
-AC_CHECK_HEADERS(callback.h, , enable_ffcall=no)
+	        AC_MSG_RESULT(no); have_forward_hook=no)
+AC_CHECK_HEADERS(callback.h, , have_forward_hook=no)
+if test $have_forward_hook = no; then
+  enable_libffi=no
+  enable_ffcall=no
+fi
 
 AC_MSG_CHECKING("FFI library usage")
 WITH_FFI=none
@@ -906,21 +916,24 @@ elif test $enable_ffcall = yes; then
 else
   AC_MSG_RESULT(none)
   echo
-  echo "GNUstep requires the ffcall library to do invocations and DO."
-  echo "Make sure this library is installed (see installation instructions)."
-  echo "Otherwise DO will not be compatible with other systems, and you will not"
-  echo "be able to use gnustep-gui."
+  echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
+  echo "invocations and DO."
+  echo "Make sure one of these libraries is installed and you have a proper"
+  echo "libobjc library. Otherwise DO will not be compatible with other"
+  echo "systems, and you will not be able to use gnustep-gui."
+  echo "(This does not apply on apple-apple-apple systems, except DO will"
+  echo "still not be compatible with other GNUstep systems.)"
   if test $enable_do = yes; then
     echo
-    echo "You most likely do not want to build -base without DO support. Many"
+    echo "You most likely do not want to build base without DO support. Many"
     echo "things, including all applications, won't work at all without DO."
     echo "If you really want to build -base without DO support, add --disable-do"
     echo "to the configure arguments."
     echo "For more information, read the GNUstep build guide, ffcall section:"
     echo "http://documents.made-it.com/GNUstep/buildguide.html#FOREIGN.FUNCTION.INTERFACES"
-    AC_MSG_ERROR([No ffcall interface library found.])
+    AC_MSG_ERROR([Incomplete support for ffi functionality.])
   fi
-  AC_MSG_WARN([No ffcall interface library found])
+  AC_MSG_WARN([Incomplete support for ffi funtionality.])
 fi
 AC_SUBST(WITH_FFI)
 
