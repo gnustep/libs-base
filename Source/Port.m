@@ -104,6 +104,13 @@
 
 @implementation InPort
 
+- init
+{
+  [super init];
+  _packet_invocation = nil;
+  return self;
+}
+
 + newForReceivingFromRegisteredName: (id <String>)name
 {
   [self subclassResponsibility:_cmd];
@@ -119,6 +126,21 @@
 {
   [self subclassResponsibility:_cmd];
   return nil;
+}
+
+- (void) setPacketInvocation: (id <Invoking>)invocation
+{
+  _packet_invocation = invocation;
+}
+
+- (void) addToRunLoop: run_loop forMode: (id <String>)mode
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode
+{
+  [self subclassResponsibility:_cmd];
 }
 
 @end
