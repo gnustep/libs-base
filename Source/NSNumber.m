@@ -88,7 +88,8 @@ GSNumberInfoFromObject(NSNumber *o)
 		break;
 	    }
 	}
-      info = (GSNumberInfo*)objc_malloc(sizeof(GSNumberInfo));
+      info = (GSNumberInfo*)NSZoneMalloc(NSDefaultMallocZone(),
+	(sizeof(GSNumberInfo)));
       info->typeLevel = order;
 
       info->getValue = (void (*)(NSNumber*, SEL, void*))

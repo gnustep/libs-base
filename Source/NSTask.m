@@ -582,7 +582,7 @@ GSCheckTasks()
       [args appendString: @" "];
       [args appendString: arg];
     }
-  c_args = objc_malloc([args cStringLength]+1);
+  c_args = NSZoneMalloc(NSDefaultMallocZone(), [args cStringLength]+1);
   [args getCString: c_args];
 
   memset (&start_info, 0, sizeof(start_info));
@@ -602,7 +602,7 @@ GSCheckTasks()
 			 [[self currentDirectoryPath] fileSystemRepresentation],
 			 &start_info,
 			 &proc_info);
-  objc_free(c_args);
+  NSZoneFree(NSDefaultMallocZone(), c_args);
   if (result == 0)
     {
       NSLog(@"Error launching task: %@", lpath);
