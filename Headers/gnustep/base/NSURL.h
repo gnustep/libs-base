@@ -24,10 +24,9 @@
 #ifndef _NSURL_h__
 #define _NSURL_h__
 
-#include	<Foundation/NSURLHandle.h>
+#include <Foundation/NSURLHandle.h>
 
-@class NSURLHandle;
-@class NSURL;
+@class NSNumber;
 
 GS_EXPORT NSString* NSURLFileScheme; //file
 
