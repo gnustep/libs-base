@@ -1,3 +1,12 @@
+2003-08-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProxy.m: Include  limits.h for UINT_MAX
+	* Source/NSProcessInfo.m: Avoid crash when given invalid argument list
+	* Source/NSString.m: Minor cleanup for coding standards and remove
+	pointer dereferencing of object which causes problems with new
+	compiler
+	Problems reported by Alexander and Roland
+
 2003-07-31  David Ayers  <d.ayers@inode.at>
 
 	* Created tag 'pre-header-reorg-20030731'.

@@ -2711,54 +2711,69 @@ handle_printf_atsign (FILE *stream,
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes
 {
-  NSString	*base_path = [self stringByDeletingLastPathComponent];
-  NSString	*last_compo = [self lastPathComponent];
-  NSString	*tmp_path;
+  NSString		*base_path = [self stringByDeletingLastPathComponent];
+  NSString		*last_compo = [self lastPathComponent];
+  NSString		*tmp_path;
   NSDirectoryEnumerator *e;
   NSMutableArray	*op = nil;
-  unsigned	match_count = 0;
+  unsigned		match_count = 0;
 
   if (outputArray != 0)
-    op = (NSMutableArray*)[NSMutableArray array];
+    {
+      op = (NSMutableArray*)[NSMutableArray array];
+    }
 
   if (outputName != NULL)
-    *outputName = nil;
+    {
+      *outputName = nil;
+    }
 
   if ([base_path length] == 0)
-    base_path = @".";
+    {
+      base_path = @".";
+    }
 
   e = [[NSFileManager defaultManager] enumeratorAtPath: base_path];
   while (tmp_path = [e nextObject], tmp_path)
     {
       /* Prefix matching */
-      if (YES == flag)
+      if (flag == YES)
 	{ /* Case sensitive */
-	  if (NO == [tmp_path hasPrefix: last_compo])
-	    continue ;
+	  if ([tmp_path hasPrefix: last_compo] == NO)
+	    {
+	      continue;
+	    }
 	}
-      else
+      else if ([[tmp_path uppercaseString]
+	hasPrefix: [last_compo uppercaseString]] == NO)
 	{
-	  if (NO == [[tmp_path uppercaseString]
-		      hasPrefix: [last_compo uppercaseString]])
-	    continue;
+	  continue;
 	}
 
       /* Extensions filtering */
-      if (filterTypes &&
-	  (NO == [filterTypes containsObject: [tmp_path pathExtension]]))
-	continue ;
+      if (filterTypes
+	&& ([filterTypes containsObject: [tmp_path pathExtension]] == NO))
+	{
+	  continue;
+	}
 
       /* Found a completion */
       match_count++;
       if (outputArray != NULL)
-	[*op addObject: tmp_path];
+	{
+	  [op addObject: tmp_path];
+	}
 
       if ((outputName != NULL) &&
 	((*outputName == nil) || (([*outputName length] < [tmp_path length]))))
-	*outputName = tmp_path;
+	{
+	  *outputName = tmp_path;
+	}
     }
   if (outputArray != NULL)
-    *outputArray = AUTORELEASE([op copy]);
+    {
+      *outputArray = AUTORELEASE([op copy]);
+    }
   return match_count;
 }
 

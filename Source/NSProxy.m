@@ -35,6 +35,11 @@
 #include "Foundation/NSDistantObject.h"
 #include "Foundation/NSPortCoder.h"
 
+#ifdef	HAVE_LIMITS_H
+/* For UINT_MAX */
+#include <limit.h>
+#endif
+
 @class	NSDistantObject;
 
 #ifndef NeXT_RUNTIME
