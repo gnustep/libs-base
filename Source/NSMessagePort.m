@@ -1459,7 +1459,9 @@ static int unique_index = 0;
 {
   NSMapEnumerator	me;
   int			sock;
+#ifndef	BROKEN_SO_REUSEADDR
   int			opt = 1;
+#endif
   GSMessageHandle	*handle = nil;
 
   M_LOCK(myLock);

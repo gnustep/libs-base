@@ -2179,7 +2179,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 		     format: (NSPropertyListFormat*)aFormat
 	   errorDescription: (NSString**)anErrorString
 {
-  NSPropertyListFormat	format;
+  NSPropertyListFormat	format = 0;
   NSString		*error = nil;
   id			result = nil;
   const unsigned char	*bytes = 0;
@@ -2222,10 +2222,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  if (length - index > 2
 	    && bytes[index] == '<' && bytes[index+1] == '?')
 	    {
-#ifdef	HAVE_LIBXML
 	      // It begins with '<?' so it is xml
 	      format = NSPropertyListXMLFormat_v1_0;
-#else
+#ifndef	HAVE_LIBXML
 	      error = @"XML format not supported ... XML support not present.";
 #endif
 	    }

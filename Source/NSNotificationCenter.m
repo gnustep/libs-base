@@ -1137,30 +1137,6 @@ static NSNotificationCenter *default_center = nil;
 
 @implementation	NSNotificationCenter (GNUstep)
 
-- (BOOL) setImmutableInPost: (BOOL)flag
-{
-  BOOL	old;
-
-  lockNCTable(TABLE);
-
-  if (self == default_center)
-    {
-      unlockNCTable(TABLE);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Can't change behavior of default center."];
-    }
-  if (LOCKCOUNT > 1)
-    {
-      unlockNCTable(TABLE);
-      [NSException raise: NSInvalidArgumentException
-		format: @"Can't change behavior during post."];
-    }
-
-  unlockNCTable(TABLE);
-  
-  return old;
-}
-
 - (BOOL) setLockingDisabled: (BOOL)flag
 {
   BOOL	old;
