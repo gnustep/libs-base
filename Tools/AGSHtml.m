@@ -78,6 +78,7 @@ static NSMutableSet	*textNodes = nil;
 {
   RELEASE(globalRefs);
   RELEASE(localRefs);
+  RELEASE(projectRefs);
   RELEASE(indent);
   [super dealloc];
 }
@@ -749,6 +750,73 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</a></"];
 	  [buf appendString: heading];
 	  [buf appendString: @">\n"];
+	}
+      else if ([name isEqual: @"index"] == YES)
+        {
+	  NSString	*scope = [prop objectForKey: @"scope"];
+	  NSString	*type = [prop objectForKey: @"type"];
+	  NSDictionary	*dict = [localRefs refs];
+
+	  if (projectRefs != nil && [scope isEqual: @"project"] == YES)
+	    {
+	      dict = [projectRefs refs];
+	    }
+	  
+	  dict = [dict objectForKey: type];
+	  if ([dict count] > 0)
+	    {
+	      NSArray	*a = [dict allKeys];
+	      unsigned	c = [a count];
+	      unsigned	i;
+
+	      a = [a sortedArrayUsingSelector: @selector(compare:)];
+
+	      [buf appendString: indent];
+	      [buf appendString: @"<hr />\n"];
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<b>%@ index</b>\n",
+		[type capitalizedString]];
+	      [buf appendString: indent];
+	      [buf appendString: @"<ul>\n"];
+	      [self incIndent];
+
+	      for (i = 0; i < c; i++)
+		{
+		  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
+		    {
+		      NSString		*ref = [a objectAtIndex: i];
+		      NSDictionary	*units = [dict objectForKey: ref];
+		      NSArray		*b = [units allKeys];
+		      unsigned		j;
+
+		      b = [b sortedArrayUsingSelector: @selector(compare:)];
+		      for (j = 0; j < [b count]; j++)
+			{
+			  NSString	*u = [b objectAtIndex: j];
+			  NSString	*file = [units objectForKey: u];
+
+			  [buf appendString: indent];
+			  [buf appendFormat:
+			    @"<li><a href=\"%@.html#%@%@\">%@ in %@</a></li>\n",
+			    file, u, ref, ref, u];
+			}
+		    }
+		  else
+		    {
+		      NSString	*ref = [a objectAtIndex: i];
+		      NSString	*file = [dict objectForKey: ref];
+
+		      [buf appendString: indent];
+		      [buf appendFormat:
+			@"<li><a href=\"%@.html#%@$%@\">%@</a></li>\n",
+			file, type, ref, ref];
+		    }
+		}
+
+	      [self decIndent];
+	      [buf appendString: indent];
+	      [buf appendString: @"</ul>\n"];
+	    }
 	}
       else if ([name isEqual: @"ivar"] == YES)	// %phrase
 	{
@@ -1474,6 +1542,11 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 - (void) setLocalRefs: (AGSIndex*)r
 {
   ASSIGN(localRefs, r);
+}
+
+- (void) setProjectRefs: (AGSIndex*)r
+{
+  ASSIGN(projectRefs, r);
 }
 
 /**
