@@ -30,6 +30,7 @@
 #include <Foundation/NSObjCRuntime.h>
 #include "limits.h"
 
+extern BOOL __objc_responds_to(id, SEL);
 
 @implementation NSProxy
 
@@ -54,24 +55,48 @@
   return self;
 }
 
-+ (void) load
-{
-  /* Do nothing	*/
-}
-
 + (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s>", object_get_class_name(self)];
 }
 
-+ (BOOL) respondsToSelector: (SEL)aSelector
++ (void) load
 {
-  return (class_get_class_method(self, aSelector) != METHOD_NULL);
+  /* Do nothing	*/
+}
+
++ (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  struct objc_method	*mth;
+
+  if (aSelector == 0)
+    {
+      return nil;
+    }
+  mth = class_get_class_method(GSObjCClass(self), aSelector);
+  if (mth != 0)
+    {
+      const char	*types = mth->method_types;
+
+      if (types != 0)
+	{
+	  return [NSMethodSignature signatureWithObjCTypes: types];
+	}
+    }
+  return nil;
 }
 
 + (void) release
 {
   /* Do nothing	*/
+}
+
++ (BOOL) respondsToSelector: (SEL)aSelector
+{
+  if (__objc_responds_to(self, aSelector))
+    return YES;
+  else
+    return NO;
 }
 
 + (id) retain
@@ -121,8 +146,8 @@
   NSInvocation *inv;
 
   inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
-				       selector: aSel]);
-  [self forwardInvocation:inv];
+						  selector: aSel]);
+  [self forwardInvocation: inv];
   return [inv returnFrame: argFrame];
 }
 
@@ -140,6 +165,9 @@
 
 - (id) init
 {
+  [NSException raise: NSGenericException
+    format: @"subclass %s should override %s", object_get_class_name(self),
+    sel_get_name(_cmd)];
   return self;
 }
 
@@ -190,10 +218,30 @@
   return self;
 }
 
+/*
+ * If we respond to the method directly, create and return a method
+ * signature.  Otherwise raise an exception.
+ */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
+  struct objc_method	*mth;
+
+  if (aSelector == 0)
+    {
+      return nil;
+    }
+  mth = class_get_instance_method(GSObjCClass(self), aSelector);
+  if (mth != 0)
+    {
+      const char	*types = mth->method_types;
+
+      if (types != 0)
+	{
+	  return [NSMethodSignature signatureWithObjCTypes: types];
+	}
+    }
   [NSException raise: NSInvalidArgumentException format:
-	@"NSProxy should not implement 'methodSignatureForSelector:'"];
+    @"NSProxy should not implement 'methodSignatureForSelector:'"];
   return nil;
 }
 
@@ -252,12 +300,34 @@
 #endif
 }
 
+/*
+ * If we respond to the method directly, return YES, otherwise
+ * forward this request to the object we are acting as a proxy for.
+ */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-  [NSException raise: NSGenericException
-    format: @"subclass %s should override %s", object_get_class_name(self),
-    sel_get_name(_cmd)];
-  return NO;
+  if (aSelector == 0)
+    {
+      return NO;
+    }
+  if (__objc_responds_to(self, aSelector))
+    {
+      return YES;
+    }
+  else
+    {
+      NSMethodSignature	*sig;
+      NSInvocation	*inv;
+      BOOL		ret;
+
+      sig = [self methodSignatureForSelector: _cmd];
+      inv = [NSInvocation invocationWithMethodSignature: sig];
+      [inv setSelector: _cmd];
+      [inv setArgument: &aSelector atIndex: 2];
+      [self forwardInvocation: inv];
+      [inv getReturnValue: &ret];
+      return ret;
+    }
 }
 
 - (id) retain
