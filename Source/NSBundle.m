@@ -81,9 +81,6 @@
 # endif
 #endif
 
-#define CHECK_LOCK(lock) \
-   if (!lock) lock = [NSLock new]
-
 typedef enum {
   NSBUNDLE_BUNDLE = 1, NSBUNDLE_APPLICATION, NSBUNDLE_LIBRARY
 } bundle_t;
@@ -102,7 +99,7 @@ static NSMapTable* _releasedBundles = NULL;
    where to store the class names. 
 */
 static NSBundle* _loadingBundle = nil;
-static NSLock* load_lock = nil;
+static NSRecursiveLock* load_lock = nil;
 static BOOL _strip_after_loading = NO;
 
 static NSString* gnustep_target_dir = 
@@ -230,12 +227,19 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 @implementation NSBundle
 
++ (void)initialize
+{
+  if (self == [NSBundle class])
+    {
+      /* Need to make this recursive since both mainBundle and initWithPath:
+	 want to lock the thread */
+      lock = [NSRecursiveLock new];
+    }
+}
+
 + (NSBundle *)mainBundle
 {
-
-  CHECK_LOCK(load_lock);
   [load_lock lock];
-
   if ( !_mainBundle ) 
     {
       char *output;
@@ -359,7 +363,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       //return nil;
     }
 
-  CHECK_LOCK(load_lock);
   [load_lock lock];
   if (!_bundles)
     {
