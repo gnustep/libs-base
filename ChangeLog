@@ -1,3 +1,11 @@
+2004-08-05 01:59  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSDistantObject.m (DO_FORWARD_INVOCATION): Warning if we
+	can't do the forwarding.
+	(-methodSignatureForSelector:): If a protocol has been set but
+	doesn't contain info about the selector, forward the request to
+	the other end of the connection.
+
 2004-08-04  David Ayers  <d.ayers@inode.at>
 
 	* Testing/nsmethodsignature.m: New test.
