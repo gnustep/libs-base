@@ -95,7 +95,9 @@ nshashtable.m \
 tcpport-server.m \
 tcpport-client.m \
 nsnotification.m \
-nstimer.m
+nstimer.m \
+coder.m \
+cstream.m
 
 # nsarchiving.m
 
