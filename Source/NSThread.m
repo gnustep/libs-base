@@ -40,7 +40,8 @@
 /* We need to access these private vars in the objc runtime - because
    the objc runtime's API is not enough powerful for the GNUstep
    extensions we want to add.  */
-#include <objc/runtime.h>
+extern objc_mutex_t __objc_runtime_mutex;
+extern int __objc_runtime_threads_alive;
 extern int __objc_is_multi_threaded;
 
 inline static void objc_thread_add ()
