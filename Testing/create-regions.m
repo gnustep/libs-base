@@ -22,8 +22,8 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSDate.h>
-#include <Foundation/NSUtilities.h>
 #include <Foundation/NSTimeZone.h>
+#include <Foundation/NSUtilities.h>
 
 #define HOURSECS (60*60) /* Seconds in 1 hour. */
 #define DAYSECS (HOURSECS*24) /* Seconds in 24 hours. */
@@ -43,7 +43,7 @@ main (int argc, char *argv[])
   /* Obtain the regions for each latitudinal region. */
   for (i = 1; i < argc; i++)
     {
-      name = [NSString stringWithCString: argv[i]];
+      name = [NSString stringWithUTF8String: argv[i]];
       zone = [NSTimeZone timeZoneWithName: name];
       if (zone != nil)
 	{
@@ -84,7 +84,7 @@ main (int argc, char *argv[])
 	{
 	  e = [zones[i] objectEnumerator];
 	  while ((name = [e nextObject]) != nil)
-	    printf("%d %@\n", i, name);
+	    printf("%d %s\n", i, [name UTF8String]);
 	}
     }
 

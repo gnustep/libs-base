@@ -76,7 +76,7 @@ bench_object()
   START_TIMER;
   for (i = 0; i < MAX_COUNT*10; i++)
     {
-      id i = [rootClass class];
+      [rootClass class];
     }
   END_TIMER;
   baseline = [eTime timeIntervalSinceDate: sTime];
@@ -220,7 +220,7 @@ bench_object()
   START_TIMER;
   for (i = 0; i < MAX_COUNT*10; i++)
     {
-      BOOL dummy = [rootClass instancesRespondToSelector: @selector(hash)];
+      [rootClass instancesRespondToSelector: @selector(hash)];
     }
   END_TIMER;
   PRINT_TIMER("ObjC: 10 inst responds to sel");
@@ -341,7 +341,7 @@ bench_dict()
 
       for (j = 0; j < 10; j++)
         {
-          id dummy = [dict objectForKey: keys[i/10]];
+          [dict objectForKey: keys[i/10]];
         }
     }
   END_TIMER;
@@ -350,7 +350,7 @@ bench_dict()
   START_TIMER;
   for (i = 0; i < MAX_COUNT*10; i++)
     {
-      int dummy = [dict count];
+      [dict count];
     }
   END_TIMER;
   PRINT_TIMER("NSDictionary (10 count)");
@@ -359,7 +359,7 @@ bench_dict()
   START_TIMER;
   for (i = 0; i < 10; i++)
     {
-      BOOL dummy = [dict isEqual: obj2];
+      [dict isEqual: obj2];
     }
   END_TIMER;
   PRINT_TIMER("NSDict (ten times isEqual:)");
@@ -379,6 +379,7 @@ bench_str()
   Class	des = [NSDeserializer class];
   Class md = [NSMutableDictionary class];
 
+  [[md new] release];
   AUTO_START;
 
   plist = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -418,7 +419,7 @@ bench_str()
   START_TIMER;
   for (i = 0; i < MAX_COUNT*10; i++)
     {
-      int dummy = [str length];
+      [str length];
     }
   END_TIMER;
   PRINT_TIMER("NSString (10 length)   ");
@@ -427,7 +428,7 @@ bench_str()
   for (i = 0; i < MAX_COUNT/100; i++)
     {
       id arp = [NSAutoreleasePool new];
-      NSString	*s = [plist description];
+      [plist description];
       [arp release];
     }
   END_TIMER;
@@ -436,7 +437,7 @@ bench_str()
   START_TIMER;
   for (i = 0; i < MAX_COUNT/1000; i++)
     {
-      id p = [plstr propertyList];
+      [plstr propertyList];
     }
   END_TIMER;
   PRINT_TIMER("NSString (1/1000 plparse)");
@@ -460,8 +461,7 @@ bench_str()
   for (i = 0; i < MAX_COUNT/100; i++)
     {
       NSData	*d = [ser serializePropertyList: plist];
-      id 	p = [des deserializePropertyListFromData: d
-				       mutableContainers: NO];
+      [des deserializePropertyListFromData: d mutableContainers: NO];
     }
   END_TIMER;
   PRINT_TIMER("NSString (1/100 ser/des)");
@@ -471,8 +471,7 @@ bench_str()
   for (i = 0; i < MAX_COUNT/100; i++)
     {
       NSData	*d = [ser serializePropertyList: plist];
-      id 	p = [des deserializePropertyListFromData: d
-				       mutableContainers: NO];
+      [des deserializePropertyListFromData: d mutableContainers: NO];
     }
   END_TIMER;
   PRINT_TIMER("NSString (1/100 ser/des - uniquing)");
@@ -482,11 +481,34 @@ bench_str()
   for (i = 0; i < MAX_COUNT/100; i++)
     {
       NSData	*d = [arc archivedDataWithRootObject: plist];
-      id 	p = [una unarchiveObjectWithData: d];
+      [una unarchiveObjectWithData: d];
     }
   END_TIMER;
   PRINT_TIMER("NSString (1/100 arc/una)");
 
+  AUTO_END;
+}
+
+void
+bench_date()
+{
+  int i;
+  id d;
+  AUTO_START;
+  Class	dateClass = [NSCalendarDate class];
+
+  printf("NSCalendarDate\n");
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT/10; i++)
+    { 
+      d = [[dateClass alloc] init];
+      [d description];
+      [d dayOfYear];
+      [d minuteOfHour];
+      [d release];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSCalendarDate (various)");
   AUTO_END;
 }
 
@@ -536,6 +558,7 @@ int main(int argc, char *argv[], char **env)
   bench_str();
   bench_array();
   bench_dict();
+  bench_date();
   bench_data();
   AUTO_END;
   return 0;
