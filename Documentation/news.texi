@@ -10,6 +10,40 @@ The currently released version of the library is
 
 @itemize @bullet
 
+@item The library now requires a patch to gcc-2.7.2.  The patch adds
+thread-safe features to the GNU Objective C runtime.
+
+@item The NSHashTable and NSMapTable functions have been implemented,
+thanks to Albin Jones <albin.jones@@dartmouth.edu>.  Albin has also
+implemented underlying GNU functions that provide functions for arrays
+and linked lists of C-type variables.
+
+@item NSThread and NSLock classes have been implemented, thanks to Scott
+Christley <scottc@@net-community.com>.
+
+@item The Notification mechanism has been implemented.  It makes good
+use of hash tables and linked lists in order to be fast.
+
+@item The Invocation class heirarchy has been fleshed out and now
+works. 
+
+@item The collection classes have been overhauled to better handle
+distributed objects, and for better compatibility with NeXT's method
+names.  
+
+A new separation has been made in the abstract collection
+classes: IndexedCollections contain objects accessible by an integer
+key, but the user cannot insert at an arbitrary key; these are useful
+for sorted collections, such as SplayTree's. OrderedCollection can have
+their order determined by the user; i.e. users can send
+@samp{-insertObject:atIndex:}, etc.
+
+There is a new set of rich enumeration methods based on Invocations.
+
+@item Port class heirarchy has been overhauled.  There are now classes
+for TCP ports, UDP ports, and Mach ports.  Only the TCP ports are
+currently working.
+
 @item GNU-style archiving has had an overhaul, and the GNUstep
 NSArchiver class is functional, but not strongly tested.
 
