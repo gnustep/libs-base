@@ -91,7 +91,7 @@ remove-header-links:
 	-rm -rf Headers/Foundation
 
 else
-ifneq ($(FOUNDATION_LIB),nx)
+ifeq ($(FOUNDATION_LIB), gnu)
 header-links: $(HEADER_LINK_DEPENDS)
 	-rm -f Headers/Foundation
 	-rm -f Source/Foundation
