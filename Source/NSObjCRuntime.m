@@ -73,7 +73,7 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
 }
 
 BOOL
-GSGetIinstanceVariable(id obj, NSString *iVarName, void *data)
+GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
 {
   const char	*name = [iVarName cString];
   Class	class;
