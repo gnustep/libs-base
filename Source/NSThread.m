@@ -786,9 +786,11 @@ static NSDate *theFuture;
     }
   else
     {
+      NSConditionLock	*l = lock;
+
       [lock lock];
-      [lock unlockWithCondition: 1];
       lock = nil;
+      [l unlockWithCondition: 1];
     }
 }
 @end
