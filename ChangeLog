@@ -1,5 +1,13 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* src/TcpPort.m (nameServer): Remove the ntohs() conversion of
+ 	NUM.  (Reported by Richard Frith-Macdonald
+ 	<richard@brainstorm.co.uk>>)
+
+	* src/NSCharacterSet.m ([NSCharacterSet_PATH]): Value of global
+ 	variable changed to absolute path.  (Reported by Richard
+ 	Frith-Macdonald <richard@brainstorm.co.uk>.)
+
 	* checks/Makefile.in (SRCS): Added NSData-test.m.
 
 	* src/Decoder.m ([Decoder -decodeObjectAt:anObjPtr:name])
