@@ -512,7 +512,10 @@ lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 gnustep/base:
 	ln -s . gnustep
 	ln -s $(srcdir)/include base
-Foundation:
+# This deletion is necessary, because the CVS repository contains
+# an emtpy `Foundation' directory that used to hold the OpenStep headers.
+Foundation: ../configure.in
+	rm -rf Foundation
 	ln -s $(srcdir)/include Foundation
 
 install: installdirs all
