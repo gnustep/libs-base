@@ -223,7 +223,7 @@ compare_long_ints (const void *k1, const void *k2)
 
 - (BOOL) isKey:(const void *)aKey
 {
-  return (hash_value_for_key(_buckets, aKey)) ? YES : NO;
+  return hash_is_key_in_hash(_buckets, aKey);
 }
 
 - (void *) valueForKey:(const void *)aKey
