@@ -1,0 +1,52 @@
+To: mccallum@cs.rochester.edu
+Subject: Re: Connection, Proxy Classes 
+In-reply-to: Your message of "Fri, 04 Nov 1994 15:22:27 CDT."
+             <199411042022.PAA13085@slate.cs.rochester.edu> 
+Date: Tue, 08 Nov 1994 12:44:07 +1100
+From: Masahiro Takatsuka <masa@judasa2.eng.monash.edu.au>
+
+Hello Andrew,
+
+I got libobjects and installed on DEC(Ultrix).
+
+A problem was that when I tried to compile checks/server.m, I
+got a error from "as0".  After delete -g switch for compiling
+server.m, I successfully compiled it.
+
+I'd like to say "Thank you" for your work!!!
+
+Regards,
+Masa
+============================================================================
+Masahiro Takatsuka (MASA)
+e-mail: Masahiro.Takatsuka@eng.monash.edu.au(non-NeXTmail)
+----------------------------------------------------------------------------
+Intelligent Robotics Research Center	:OzNeXT		:xxxxxx
+Eng. Building 36, Room No. G04		:NeXus		:92-00226
+Department of Electrical &		:CompuServe	:71661,1331
+Computer Systems Engineering		:Nifty-serve	:MGG1331
+Monash University			:
+Wellington Rd., Clayton			:Tel.+61-3-905-5705
+Victoria 3168, AUSTRALIA		:Fax.+61-3-905-3454
+============================================================================
+
+Date: Mon, 9 Jan 1995 14:03:21 -0700 (MST)
+From: Adam Fedor <fedor@mode.Colorado.EDU>
+Subject: Re: libobjects porting volunteers needed 
+To: mccallum@cs.rochester.edu
+In-Reply-To: <199501092051.PAA06062@slate.cs.rochester.edu>
+Message-Id: <Pine.3.89.9501091354.C20349-0100000@mode.Colorado.EDU>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+On Mon, 9 Jan 1995 mccallum@cs.rochester.edu wrote:
+
+> 
+> Did you look at README.ULTRIX in 0.1.2?
+> 
+
+Yes. I also forgot to say that deleting the -g switch didn't help me, 
+but deleting the -O switch did.  Without this, I get the error:
+
+as0: Internal: server.m, line 1: scNil to scNil
+

@@ -1,0 +1,3196 @@
+Mon Jan 22 11:08:55 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): libobjects version 0.1.19.
+
+Sat Jan 20 14:27:57 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* doc/install.texi: Mention GNU/Linux and the need for -lieee.
+
+	* aclocal.m4: Don't have the initializer-loading test program
+	print anything.
+	(OBJC_SYS_DYNAMIC_FLAGS): Use '' not "" to quote $(CC).
+
+Fri Jan 19 12:40:49 1996  Adam Fedor  <fedor@mode.Colorado.EDU>
+
+	* src/NSBundle.m (objc_executable_location): New
+	function. ([NSBundle +mainBundle]): Get path from NSProcessInfo.
+
+	* src/NSProcessInfo.m: Remove NSArgv
+	definition. (_gnu_process_args): Remove NSArgv code. 
+
+	* src/objc-load.c: Remove NSArgv
+	declaration. (objc_executable_location): Removed
+	function. (objc_initialize_loading): Make path const char*.
+	* src/Foundation/objc-load.h: Remove objc_executable_location
+	function declaration. 
+
+	* src/objc/HashTable.h: Include stdobjects.h header for
+	LibObjectsMain definition.
+
+Fri Jan 19 10:43:32 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): libobjects version 0.1.18.
+
+	* configure.in (OBJS_INSTALL): Fix typo NeXT_OBJS -> NEXTSTEP_OBJS
+	in when running under NeXTSTEP, but not using NeXT runtime.
+	(Reported by Satoshi Adachi <adachi@wisdom.aa.ap.titech.ac.jp>.)
+
+	* src/NSString.m ([NSString -initWithCString:length:]): Handle
+        case of NULL cString.
+	([NSString -initWithCString:]): Likewise.
+	(Reported by Adam Fedor <fedor@mode.Colorado.EDU>.)
+
+	* src/find_exec.c (objc_find_executable): Make NSBundle work even
+	when CWD isn't in PATH.  (Fix provided by Matthias Klose
+	<doko@cs.tu-berlin.de>.)
+
+	* src/Makefile.in (libobjects.so.$OBJECTS_VERSION)): Re-add the
+	-Wl,-soname,libobjects.so.$(OBJECTS_MAJOR_VERSION) argument.
+	Create a soft link named libobjects.so.
+	(install): Install a soft link named libobjects.so.
+	(Fixes sent by Jeremy Bettis <jbettis@cse.unl.edu>.)
+
+	* Makefile.in: Remove -$(MAKEFLAGS) as argument to recursive calls
+	of $(MAKE); this happens automatically.  (Reported by Niels Mvller
+	<nisse@lysator.liu.se>.)
+
+Tue Jan 16 19:33:49 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): libobjects version 0.1.17.
+
+Tue Jan 16 13:57:51 1996  Adam Fedor  <fedor@mode.Colorado.EDU>
+
+	* aclocal.m4 (OBJC_SYS_AUTOLOAD): Define CON_AUTOLOAD if
+ 	/usr/include/elf.h exists.  Use yes/no rather than 1/0.
+
+	* src/objc-load.c: Update copyright. 
+	(objc_load_module): Use	CON_AUTOLOAD instead of SYS_AUTOLOAD. 
+
+Tue Jan 16 12:24:59 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (HEADERS_INSTALL): Remove objects/config.h.
+	(install): Look for libobjects.so file, not just for configure
+	variable.  Remove unwanted `;'.  Install objects/config.h from
+	build directory.  (Fixes provided by Matthias Klose
+	<doko@cs.tu-berlin.de>).
+
+Mon Jan 15 17:07:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): libobjects version 0.1.16.
+	(OBJECTS_GCC_VERSION): Updated from 2.7.0 to 2.7.2.
+	(OBJECTS_FTP_MACHINE): Changed to prep.
+	(OBJECTS_FTP_DIRECTORY): Changed to pub/gnu.
+
+	* NSCharacterSets/Makefile.in (install): Prefix data files with
+        $(srcdir).
+	(Makefile): New target.
+
+	* src/Makefile.in ($(NSVALUE_MFILES)): Use sed instead of expr to
+        extract number.
+	($(NSNUMBER_MFILES)): Likewise.
+
+	* checks/Makefile.in (all): Remove target `bundles' for now;
+	linking them doesn't always work.  If people want to test bundles,
+	they can type `make bundles'.
+
+	* examples/Makefile.in (ALL_CPPFLAGS): -I../src, not -I.
+	(Makefile): Prefix dependancy with $(srcdir).
+	* checks/Makefile.in (ALL_CPPFLAGS): -I../src, not -I.
+	(Makefile): Prefix dependancy with $(srcdir).
+
+	* Makefile.in (dist): Add -9 to gzip args.
+	(snapshot): Likewise.
+
+	* doc/install.texi: Remove --enable-shared from first example of
+	installation commands; many people were just copying these
+	commands, ignorant of whether or not their system supported
+	dynamically-linked shared libraries.
+
+	* checks/Makefile.in: Remove test09; it doesn't work, but it
+        doesn't matter.
+	(SRCS): Remove test09.m.
+	(test09): Remove target.
+
+	* aclocal.m4: Test whether loading of contructor functions works
+	by actually compiling and running a program, not by looking for
+	/usr/include/elf.h.
+
+Tue Jan 16 00:31:19 1996  Gregor Hoffleit  <flight@mathi.uni-heidelberg.DE>
+
+	* src/NSDate.m ([NSDate -description]): replace strftime() with
+	sprintf() equivalent for NEXTSTEP.
+
+Mon Jan 15 15:11:18 1996  Adam Fedor  <fedor@mode.Colorado.EDU>
+
+	* aclocal.m4 (OBJC_SYS_DYNAMIC_LINKER): Expand macro correctly in
+	dld/defs.h check.
+
+Fri Jan 12 11:38:58 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* examples/Makefile.in (LIBS): Added -lm.
+
+	* src/NSProcessInfo.m ([NSProcessInfo -globallyUniqueString]):
+	Don't use the %@ printf format directive, since it isn't
+	implemented yet; use %s and -cString instead.  (Reported by 
+	Gregor Hoffleit <flight@mathi.uni-heidelberg.DE>.)
+
+	* aclocal.m4 (OBJC_SYS_AUTOLOAD): Don't define SYS_AUTOLOAD #ifdef
+	mips, gcc doesn't support it, even though elf.h exists.  (Perhaps
+	this should be "sgi" instead of "mips"?)
+	* src/NSProcessInfo.m: Don't test !(sgi), since SYS_AUTOLOAD is
+        fixed.
+
+	* src/find_exec.c (objc_find_executable): #ifdef NeXT, use getwd()
+        instead of getcwd().
+	(Reported by Gregor Hoffleit <flight@mathi.uni-heidelberg.DE>.)
+
+	* src/NSDate.m ([NSDate -description]): Don't use strftime #ifdef
+	NeXT.  (Reported by Gregor Hoffleit
+	<flight@mathi.uni-heidelberg.DE>.)
+
+	* src/Makefile.in (objects/stdobjects.h): prepend
+	objects/stdobjects.h.in with $(srcdir).
+
+	* checks/Makefile.in ($(DYNAMIC_OFILES)): Use $(srcdir).
+	($(BUNDLE_NAMEJ)): Likewise.
+	(Reported by Matthias Klose <doko@cs.tu-berlin.de>.)
+
+	* src/Makefile.in (NXStringTable_scan.o): Removed target; let
+	pattern rule take care of it.
+	($(NSVALUE_MFILES)): Use $@ instead of $* in expr argument.
+	($(NSNUMBER_MFILES)): Likewise.
+	(Reported by <pfuchs@tag01.acnet.net>.)
+
+	* src/NSMethodSignature.m ([NSMethodSignature
+	+signatureWithObjCTypes:]): Fix typo: change objc_size_of_type to
+	objc_sizeof_type.  (Reported by Gregor Hoffleit
+	<flight@mathi.uni-heidelberg.DE>.)
+
+	* src/Makefile.in (libobjects.so.$(OBJECTS_VERSION)): Removed
+	"-Wl,-soname,libobjects.so.$(OBJECTS_VERSION)"; gcc does this
+	automatically.  (Reported by Matthias Klose
+	<doko@cs.tu-berlin.de>.)
+
+	* src/NSProcessInfo.m: Include <netdb.h> for MAXHOSTNAMELEN.
+	(Reported by Matthias Klose <doko@cs.tu-berlin.de>.)
+
+	* src/Makefile.in (ALL_INCLUDE_FLAGS): Add -I. for
+	objects/config.h.  (Reported by Matthias Klose
+	<doko@cs.tu-berlin.de>)
+	* checks/Makefile.in (ALL_CPPFLAGS): Likewise.
+	* examples/Makefile.in (ALL_CPPFLAGS): Likewise.
+
+Wed Jan 10 10:51:26 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSProcessInfo.m: Remove #if NeXT and alternate #include's.
+	* src/Foundation/NSProcessInfo.h: Likewise.
+	(These caused problems reported by John Boller <jboller@panix.com>.)
+
+	* src/Invocation.m ([MethodInvocation -initWithSelector:arguments:]): 
+	New method, not implemented.
+
+Tue Jan  9 14:07:36 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Storage.m ([Storage -insertElement:at:]): Increment
+	numElements.  (Reported by Revuz Dominique <dr@univ-mlv.fr>).
+
+	* Makefile.in (RCS_FILES): Remove out-of-date MACHINES and CREDITS
+        files.
+
+Mon Jan  8 11:05:52 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.1.15.
+
+	* src/NSProcessInfo.m (_GNU_MAX_HOST_NAMELEN): Macro removed;
+	using MAXHOSTNAMELEN from <sys/param.h> instead.  All users
+	changed.
+	(_gnu_process_args): Malloc and fill NSArgv; assignment of char**
+	from *char[] isn't right.
+
+	* src/NSGCString.m ([NSGCString -emptyCopy]): Use [super
+        emptyCopy], not [super allocCopy].
+
+	* src/String.m ([String -emptyCopy]): Method removed; super class
+	implementation is fine.
+	([String -initWithCString:range:]): Use -subclassResponsibility:, not
+	-notImplemented:.
+	([String -empty]): Likewise.
+
+	* configure.in: Remove double-quotes in help string of
+        --enable-shared handling.
+
+Sun Jan  7 16:05:04 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in: Changed rules for compiling concrete NSValue
+	and NSNumber classes; the old version no longer worked with shared
+	library compilation, and didn't use the common pattern rule for
+	making the object file.
+	(NSNUMBER_CLUSTER, NSVALUE_CLUSTER): Variables removed.
+	(NSVALUE_MFILES): New variable, replacing NSVALUE_OFILES.
+	(NSNUMBER_MFILES): New variable, replacing NSNUMBER_OFILES.
+	(GNUSTEP_OBJS): Use new vars.
+
+Fri Jan  5 17:01:35 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Clean up shared library building.  Building from another
+	directory now works.
+	* configure.in: Add $srcdir where necessary.
+	(LIBOBJECTS_A_OR_SO): Variable removed.
+	(LIBOBJECTS_SO): Defined according to --enabled-shared flag.
+	* src/Makefile.in: (Makeconf): Include it after system
+	configuration section, and from $(srcdir).
+	(SHAREDLIB_CFLAGS, SHAREDLIB_ARFLAGS, USING_SHAREDLIB_CFLAGS,
+	USING_SHAREDLIB_ARFLAGS): Variables removed.
+	(ALL_CFLAGS, ALL_OBJCFLAGS): Don't use removed vars.
+	(%_pic.o: %.m): New pattern rule.
+	(%_pic.o: %.c): New pattern rule.
+	(all): Always build libobjects.a, optionally build .so version.
+	(libobjects.so): Use -shared.  Link to ..$(OBJECTS_MAJOR_VERSION).
+	(install): Always install libobjects, optionally install .so version.
+	Install the headers from the $(srcdir).
+	(NSVALUE_OFILES, NSNUMBER_OFILES, NXStringTable_scan.c,
+	dynamic-load.h): Use $(srcdir) properly for these targets.
+	* checks/Makefile.in: Executables now depend on libobjects.a, not
+        @LIBOBJECTS_A_OR_SO@.
+	(LIBS): Don't look in $(srcdir) for library.
+	(copy-dist): Don't use $(srcdir).
+	(Makefile): Likewise.
+	* examples/Makefile.in: Executables now depend on libobjects.a,
+        not @LIBOBJECTS_A_OR_SO@.
+	(LIBS): Don't look in $(srcdir) for library.
+	(OBJECTS_NEXT_INCLUDES): Don't look in non-existant next-includes dir.
+	(copy-dist): Don't use $(srcdir).
+	(Makefile): Likewise.
+	* doc/Makefile.in (TEXT_FILES): New variable.
+	(info): Use it.
+	(MAKEINFO_FLAGS): New variable.  Use it in TEXT_FILES targets.
+	(DIST_FILES): Remove version.texi.
+	(clean): rm version.texi and $(TEXT_FILES).
+
+	* src/NSProcessInfo.m (_gnu_process_args): Use "char **argv"
+	instead of "char *argv[]".  Remove cast in assignment of NSArgv.
+
+Thu Jan  4 23:12:11 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Set.m ([Set -removeElement:ifAbsentCall:]): Fix typo; method
+	renamed from -removeElement:ifAbsent:.  (Reported by Albert Mietus
+	<albert@gamp.hacom.nl>.)
+
+Wed Dec 20 11:30:37 1995  Adam Fedor  <fedor@mode.Colorado.EDU>
+
+	* src/NSGeometry.m (NSMouseInRect): Handle flipped y-axis.
+
+	* src/Foundation/NSException.h: Include NSString interface.
+
+Fri Nov 24 15:09:22 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSArray.m ([NSMutableArray -addObject:]): Use
+	-subclassResponsibility:, not -notImplemented:.
+	([NSMutableArray -replaceObjectAtIndex:withObject:]): Likewise.
+	([NSMutableArray -insertObject:atIndex:]): Likewise.
+	([NSMutableArray -removeObjectAtIndex:]): Likewise.
+	([NSMutableArray -removeAllObjects]): Likewise.
+
+Sun Nov 19 15:29:41 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSString.m ([NSString +allocWithZone:]): New method.
+	([NSString +stringWithCString:byteString]): Use it.
+	([NSString +stringWithCString:length:]): Likewise.
+	([NSString +stringWithFormat:]): Likewise.
+	([NSString +stringWithFormat:arguments:]): Likewise.
+	([NSMutableString +allocWithZone:]): New method.
+	([NSMutableString +stringWithCapacity:]): Use it.
+	([NSMutableString +stringWithCString:length:]): Likewise.
+
+Tue Nov 14 11:39:41 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Some improvement to shared lib support, but since I can't test it,
+	I still don't know if it works.
+
+	* src/Makefile.in (CFLAGS): Added -O.
+	(SHAREDLIB_CFLAGS,SHAREDLIB_ARFLAGS): Set values here, not in
+	configure.in.
+	(USING_SHAREDLIB_CFLAGS,USING_SHAREDLIB_ARFLAGS): New vars, set by
+	configure.
+	(ALL_CFLAGS, ALL_OBJCFLAGS): Use them.
+	(libobjects.so.$(OBJECTS_VERSION): New target, replacing
+	libobjects.so.  Use version numbers.
+	(install): Try to do the right thing with shared/non-shared libs.
+	* configure.in: Update shared library variable names.
+
+	* checks/Makefile.in: Use configure var, not libobjects.a.
+        Include ../Version.
+
+	* examples/Makefile.in: Use configure var, not non-existant
+        Makefile var.  Include ../Version.
+
+Mon Nov  6 12:24:16 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Shared library support; I'm not sure it works, though.
+
+	* configure.in: Look for --enabled-shared.
+	(LIBOBJECTS_A_OR_SO, SHAREDLIB_CFLAGS, SHAREDLIB_ARFLAGS): New
+	substitutions.
+	* src/Makefile.in (SHAREDLIB_CFLAGS): New variable.
+	(ALL_CFLAGS): Use it.
+	(ALL_OBJCFLAGS): Likewise.
+	(SHAREDLIB_ARFLAGS): New variable.
+	(libobjects.so): Use it; new target.
+	(all): Depend on configure variable.
+	(install): Changes to install shared library.
+	* examples/Makefile.in: Look for LIBOBJECTS_A_OR_SO, not
+        libobjects.a.
+
+	* src/NSProcessInfo.m (NSArgv): New global.
+	(_gnu_process_args): Set it.
+
+	* NSMethodSignature.m: New file; not finished, though.
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSMethodSignature.m.
+
+	* src/Foundation/NSMethodSignature.h (NSArgumentInfo): Declared.
+	([NSMethodSignature -argumentInfoAtIndex:]): Uncommented.
+
+	* doc/install.texi: Warn them that compiling in a different
+	directory than the source will not currently work.
+
+Fri Nov  3 11:12:11 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSDictionary.m ([NSDictionary +dictionary]): Use +alloc, not
+	_concreteClass.  This makes [NSMutableDictionary +dictionary] and
+	friends do the right thing.
+	([NSDictionary +dictionaryWithObjects:forKeys:count:]): Likewise.
+	([NSMutableDictionary +dictionaryWithCapacity:]): Likewise.
+	(Problem reported by Kim Shrier <kim@media.com>.)
+
+	* src/NSSet.m ([NSSet +set]): Use +alloc, not _concreteClass.
+	This makes [NSMutableSet +set] and friends do the right thing.
+	([NSSet +setWithObjects:count:]): Likewise.
+	([NSSet +setWithArray:]): Likewise.
+	([NSSet +setWithObject:]): Likewise.
+	([NSSet +setWithObjects:]): Likewise.
+	([NSMutableSet +setWithCapacity:]): Likewise.
+
+	* src/NSArray.m ([NSArray +array]): Use +alloc, not
+	_concreteClass.  This makes [NSMutableArray +array] and friends do
+	the right thing.
+	([NSArray +arrayWithObjects:]): Likewise.
+	([NSMutableArray +arrayWithCapacity:]): Likewise.
+	([NSArray +arrayWithObject:]): Likewise; and fix condition on
+	exception. 
+
+	* src/NSProcessInfo.m ([NSProcessInfo -hostName]): Remove
+	unnecessary inefficiency: use stack to hold temporary string, not
+	malloc/free; just return the string, not a copy.  Conform to GNU
+	coding standards in use of braces.
+	([NSProcessInfo -processName]): Likewise.  Just return the string, not
+	a copy.
+	([NSProcessInfo -environment]): Likewise.
+	([NSProcessInfo -arguments]): Likewise.
+	(_gnu_arguments, _gnu_environment): Make them constant classes, not
+	mutable.
+	(_gnu_process_args): Alloc _gnu_processName NSString, don't get an
+	autoreleased string and then retain it.  Initialize _gnu_arguments
+	as a constant NSArray, not NSMutableArray.  Initialize
+	_gnu_environment as a constant NSDictionary, not
+	NSMutableDictionary.  Conform to the GNU coding standards in use
+	of braces.
+
+	* src/Foundation/NSDictionary.h ([NSDictionary
+        -initWithObjects:forKeys:]): Declare method.
+
+	This is called dissertation-procrastination.
+
+Sun Oct 29 19:41:16 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/nsset.m: New file.
+	* checks/Makefile.in (SRCS): Added nsset.m.
+	(nsset): New target.
+
+	* src/NSGArray.m ([NSGArray -objectAtIndex:]): Fix condition on
+        exception.
+
+	* src/objects/NSSet.h: Moved method declarations from NSMutableSet
+        to NSSet.
+
+	* NSCountedSet.m, NSGCountedSet.m: New files.
+	* src/objects/NSSet.h: Added NSCountedSet interface.
+	* src/Foundation/NSSet.h: Likewise.
+	* src/Foundation/NSGSet.h: Added NSGCountedSet interface.
+	* src/NSGSet.m: Implemented many methods.
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSCountedSet.m and
+        NSGCountedSet.m.
+
+	* src/NSArray.m ([NSArray -objectEnumerator]): Autorelease it.
+	([NSArray -reverseObjectEnumerator]): Likewise.
+
+	* src/NSGDictionary.m ([NSGDictionary -keyEnumerator]):
+        Autorelease it.
+	([NSGDictionary -objectEnumerator]): Likewise.
+
+Wed Oct 25 20:37:15 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSSet.m, src/Foundation/NSSet.h: New files.
+	* src/NSGSet.m, src/Foundation/NSGSet.h: New files.
+	* src/Makefile.in (GNU_HEADERS): Added objects/NSSet.h.
+	(GNUSTEP_MFILES): Added NSGSet.m and NSSet.m.
+	(GNUSTEP_HEADERS): Added Foundation/NSGSet.h and Foundation/NSSet.h.
+
+	* src/Foundation/NSDictionary.h: Include objects/stdobjects.h, not
+        objects/Dictionary.h.
+	* src/Foundation/NSGDictionary.h: Include objects/Dictionary.h.
+
+	* src/collhash.c (coll_hash_next): Set STATE to 0 before returning
+	when the list is exhausted.  This interacts with [Dictionary
+	-freeEnumState:] and [Set -freeEnumState].  This will all be
+	cleaned up when we start using Albin Jones' tables.  (This bug
+	found by Allan Clearwaters.)
+
+	* src/NSGDictionary.m ([NSGDictionaryKeyEnumerator
+	-initWithDictionary:]): Retain dictionary after it is initialized.
+
+	* src/NSString.m ([NSString -cString]): Use
+	-subclassResponsibility: instead of -notImplemented:
+	([NSString -cStringLength]): Likewise.
+
+Sun Oct 22 13:53:39 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Start adding proper NSException's; not done yet.
+	* src/NSGArray.m ([NSGArray -initWithObjects:count:]): Raise
+        exception for nil objects.
+	([NSGArray -objectAtIndex:]): Raise exception when index too high.
+	* src/NSArray.m ([NSArray +arrayWithObject:]): Raise
+        exception on nil argument.
+
+Wed Oct 18 09:48:24 1995  Adam Fedor  <fedor@mode.Colorado.EDU>
+
+	* NSBundle.REAMDE: Rewrote documentation.
+
+	* examples/Makefile.example.in: New file.
+	* examples/configure.example.in: Likewise.
+	* examples/Makefile.in: Add new files to RCS_FILES.
+
+	* src/Foundation/NSGCString.h: New _free_contents ivar.
+	* src/Foundation/String.h: Likewise.
+	* src/CString.m ([CString -initWithCString:range:]): Set
+ 	_free_contents to YES. ([CString -initWithCoder:]): Likewise.
+  	([CString -dealloc]): Free contents if needed.  
+	* src/MutableCString.m ([MutableCString -initWithCapacity:]): Set
+ 	_free_contents to YES. ([MutableCString -initWithCoder:]):
+ 	Likewise.  ([MutableCString -dealloc]): Free contents if needed.
+  	* src/NSGCString ([NSGCString
+ 	-initWithCStringNoCopy:length:freeWhenDone:]): set _free_contents.
+  	([NSGCString -initWithCoder:]): Set _free_contents to YES;
+ 	([NSGCString -dealloc]): Free contents if needed.
+  	([NSGMutableCString -initWithCapacity:]): Set _free_contents to
+ 	YES. ([NSGMutableCString -initWithCoder:]): Likewise.
+
+	* src/NSString.m ([NSString -initWithCString:length:]): Set free
+	string. ([NSString -compare:options:]): Range should be
+	maximum of both strings.
+	
+	* src/NSGArray.m ([NSGArray -replaceObjectAtIndex:withObject:]):
+	Implement.
+
+	* src/NSGeometry.m (NSMouseInRect): Point should not touch sides.
+	
+Sat Oct 14 14:16:04 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Remove remnants of "stack of dictionaries"; we only need one.
+	* src/objects/Coder.h (Coder): Renamed ivars from
+	root_object_tables to root_object_table, from
+	forward_object_tables to forward_object_table; changed classes
+	from Stack (of Dictionary's) to Dictionary.
+	* src/Coder.m ([Coder -doInitOnStream:isDecoding:]): Use new ivar
+        names.
+	([Coder -_coderPushRootObjectTable]): Use new ivar names and don't use
+	Stack.
+	([Coder -_coderPopRootObjectTable]): Likewise.
+	([Coder -_coderTopRootObjectTable]): Likewise.
+	([Coder -_coderPushForwardObjectTable]): Likewise.
+	([Coder -_coderPopForwardObjectTable]): Likewise.
+	([Coder -_coderTopForwardObjectTable]): Likewise.
+	([Coder -_coderForwardObjectsAtReference:]): Don't access ivar
+	directly. 
+	([Coder -_coderPutForwardObjects:atReference:]): Likewise.
+	([Coder -finishDecodingInterconnectedObjects]): Use new ivar name.
+	([Coder -dealloc]): Likewise.
+
+Mon Oct  9 10:33:13 1995  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/IndexedCollection.m ([IndexedCollection
+	-shallowCopyInReverseAs:]): Return newColl, not self.
+	([IndexedCollection -withElementsInReverseCall:]): Set flag to YES.
+	([IndexedCollection -safeWithElementsInReverseCall:]): Likewise.
+	Reported by MURATA, Shuuichirou <mrt@mickey.ai.kyutech.ac.jp>.
+
+	* doc/readme.texi (The Class Heirarchy): Fixes from Aleksey
+	Sudakov <zander@cnext.crec.mipt.ru>.
+
+Thu Oct  5 11:31:44 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* src/objc-malloc.c (objc_malloc): Declare res before any 
+	statements.
+        (__objc_valloc): Likewise.
+        (__objc_realloc): Likewise.
+        (__objc_calloc): Likewise.
+
+Sat Sep 30 18:00:22 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/objc-malloc.c (CHECK_ZERO_SIZE): New macro; for making sure
+	we don't pass 0 to malloc and its friends.  (Needed on DEC Alpha;
+	problem reported by Adam Fedor.)
+	(__objc_malloc): Use it.
+	(__objc_valloc): Likewise.
+	(__objc_realloc): Likewise.
+	(__objc_calloc): Likewise.
+
+Wed Sep 27 18:45:46 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (DIST_FILES): Removed DISCUSSION.
+
+	* src/IndexedCollection.m ([IndexedCollection
+	-getNextElement:withEnumState:]): if isEmpty, return NO.
+
+	* src/NSObject.m ([NSObject +initialize]): Set default
+	autorelease_class to NSAutoreleasePool.
+
+	* src/NSProcessInfo.m: Don't try to use __attribute__ ((section
+	..)) #if (sgi).  It doesn't seem to be supported.  This probably
+	means that aclocal.m4 needs to be fixed so that it doesn't define
+	SYS_AUTOLOAD in this case.  No time now.  Adam?
+
+	* src/Collection.m: Avoid cache_flush when releasing contents.
+	(send_release): Remove function.
+	([Collection -_releaseContents]): New method.
+	([Collection -dealloc]): Use it.
+	([Collection -empty]): Likewise.
+	([Collection -_safeWithElementsCallNoRetain:]): Use
+	-getNextElement:withEnumState instead of -withElementsCall: to
+	avoid cache_flush.
+
+Thu Sep 21 11:07:38 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* src/NSArray.m ([NSArray -indexOfObjectIdenticalTo:
+	-indexOfObject: -containsObject: -removeObjectIdenticalTo:
+	-removeObject:]): Use NSNotFound for non-existant objects.
+
+	* src/NSBundle.m ([NSBundle -initWithPath:]): Check if bundle
+	for path already exists.
+
+	* src/NSGArray.m ([NSGArray -indexOfObject:]): Force message to
+	go to super rather than behavior class.
+
+	* src/NSGCString.m ([NSGCString -emptyCopy]): start with 
+	allocCopy.
+
+	* NSGData.m ([NSGData -copyWithZone: -mutableCopyWithZone:],
+	[NSGMutableData -copyWithZone:]): New methods.
+
+Tue Sep 12 18:33:25 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (RCS_FILES): Add file aclocal.m4.
+
+Tue Sep 12 15:30:27 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	This should make dynamic loading work under Solaris.
+
+	* aclocal.m4: New file.
+
+	* configure.in: Remove dynamic linking checks. Use 
+	OBJC_SYS_DYNAMIC_FLAGS macro from aclocal.m4.
+
+	* src/NSBundle.m: Make sure index is defined.
+
+	* src/NSProcessInfo.m: Check ifdef SYS_AUTOLOAD as well as __ELF__
+	* src/objc-load.c: Likewise.
+	* src/objects/LibobjectsMain.h: Likewise.
+
+Sun Sep 10 18:17:56 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/TextCoder.m ([TextCoder
+        -decodeValueOfSimpleType:at:withName:]): Assert the data pointer.
+
+	* src/Coder.m ([Coder -doInitOnStream:isDecoding:]): Temporarily
+	change in_progress_table from a Set to an Array.  I need to fix
+	some problems with Set.
+	([Coder -startEncodingInterconnectedObjects]): Deal with
+	interconnected_stack_height.
+	([Coder -finishEncodingInterconnectedObjects]): Likewise.
+	([Coder -startDecodingInterconnectedObjects]): Likewise.
+	([Coder -finishDecodingInterconnectedObjects]): Likewise.
+	([Coder -encodeRootObject:withName:]): Fix bug, whereby we weren't
+	giving what decodeObjectAt:withName: expected.
+	([Coder -encodeArrayOfType:at:count:withName:]): Don't encode the
+	array count.
+	([Coder -decodeArrayOfType:at:count:withName:]): Don't expect the
+	array count.  Change type on 3rd argument.
+	* src/objects/Coder.h (interconnected_stack_height): New ivar for
+        Coder.
+
+	* src/objects/Coding.h ([Coding
+	-decodeArrayOfType:at:count:withName:]): Change the 3rd argument
+	type; pass the count directly, not as a pointer.  The encoding and
+	decoding of array's no longer records the array count; if
+	necessary, you must do that yourself ahead of time.
+
+Fri Sep  8 18:30:54 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/objects/Coder.h (in_progress_table): New ivar in Coder.
+	* src/Coder.m ([Coder -doInitOnStream:isDecoding:]): Init
+        in_progress_table.
+	([Coder -dealloc]): Release in_progress_table.
+	([Coder -_encodeObject:withName:isBycopy:isForwardReference:]):
+	If the object is in progress, treat it like a forward reference.
+	Add the object to the in_progess_table before really encoding the
+	object; remove it when done.  (NOTE, this isn't an excuse not to
+	set up "encoding interconnected objects" mode; you still must do
+	this first.)
+
+Wed Sep  6 09:30:15 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* Makefile.in (snapshot): Remove the snapshot name so we don't get
+	nested snapshots on failure.
+
+Wed Aug 30 09:33:07 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* src/NSCTemplateValue.m ([NSCTemplateValue -encodeWithCoder:]):
+	Code type as a char_ptr. ([NSCTemplateValue -initWithCoder:]): 
+	Leave decoding to NSValueDecoder class.
+	* src/NSConcreteNumber.m: Likewise.
+	* src/NSConcreteValue.m: Likewise.
+
+	* src/NSNumber.m: Clarify error message for abstract methods
+	with "subclassResponsibility".
+
+	* src/NSValue.m: New NSValueDecoder class. Clarify error 
+	message for abstract methods.
+
+	* /src/TextCoder.m ([TextCoder encodeValueOfSimpleType:at:withName:]): 
+	Write reals using "%g".
+	([TextCoder decodeValueOfSimpleType:at:withName:]): Decode
+	double as "%lf".
+
+Mon Aug 28 16:27:03 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/Collection.m ([Collection -empty]): Check if already empty.
+	This avoids a previous malloc(0).
+
+Sat Aug 26 13:56:40 CDT 1995  Jeremy Bettis <jeremy@hksys.com>
+
+	* src/NSProcessInfo.m: Added Linux/ELF support. Linux calls the
+	__libc_subinit functions before the global constructors, therefore
+	the subinit functions must be just vanilla C.
+
+Sat Aug 26 12:36:37 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* Makefile.in (snapshot): Put README.first in the snapshot
+        distribution.
+	* README.first: New file.
+
+Thu Aug 24 12:32:54 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSObjCRuntime.m.
+	* src/NSObjCRuntime.m: New file.
+	(NSStringFromSelector, NSSelectorFromString, NSClassFromString,
+	NSStringFromClass): New functions.
+
+	* src/NSObject.m: Include <NSString.h>
+	([NSObject -description]): Implemented.
+	([NSObject +description]): Implemented.
+
+	* src/Makefile.in (FILE_AUTHORS): Added Peter Burka.
+
+	* volunteers: No longer a soft link to the http file; now it is a
+	text file giving the http address and explaining task coordination.
+
+	* Makefile.in (snap): New target.
+	(snapshot): New target.
+	(dist): Use new target snap.
+
+Wed Aug 23 10:39:21 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/NSTimeZone.m ([NSTimeZone -encodeWithCoder:]): Avoid warning
+	by removing type from argument.
+	([NSTimeZone -initWithCoder:]): Likewise.
+
+	* Makefile.in (DIST_FILES): Add file README.foundation.
+
+	* src/String.m: Fix bug by which [NSString mutableCopy] returned a
+        String, not NSString.
+	([String -copyWithZone:]): Renamed from -copy.
+	([String -mutableCopyWithZone:]): Renamed from -mutableCopy.
+
+	* src/behavior.c: Added comment about superclass methods being
+        overriden.
+
+	* Makeconf (install, uninstall): New targets.
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -dealloc]): Removed
+        question comment.
+
+Thu Aug 17 17:41:05 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	*  src/NSData.m ([NSData +allocWithZone:]): New method.
+	([NSMutableData +allocWithZone:]): Likewise.
+	([NSData +data, +dataWithBytes:length:, 
+	+dataWithBytesNoCopy:length:, +dataWithContentsOfFile:,
+	+dataWithContentsOfMappedFile:]): Allocate using designated
+	allocator.  ([NSMutableData +dataWithCapacity:, 
+	+dataWithLength:]): Likewise.
+
+Wed Aug 17 19:54:17 1995  Peter Burka <peter@bert.psyc.upei.ca>
+
+        * src/NSZone.c: malloc.h isn't included on NeXTStep
+        * src/Foundation/NSZone.h: use NeXT's zones only if we're using
+        their runtime, too
+
+        * src/Foundation/NSDate.h (NSTimeZone, NSTimeZoneDetail):
+        interfaces declared
+
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSTimeZone.m.
+	* src/NSTimeZone.m: New file.
+        * src/NSTimeZone.m: (NSTimeZone, NSConcreteTimeZone,
+        NSTimeZoneDetail, NSConcreteTimeZoneDetail): implementations
+        defined
+	* src/Foundation/NSDate.h: Added declaration of NSTimeZone.
+
+Wed Aug 16 11:58:24 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.1.14.
+
+	* checks/Makefile.in (nsprocessinfo): New target.
+
+	* src/objects/LibobjectsMain.h: Comment out args to LibobjectsMain
+	so we don't get errors from people's "int main ()".
+
+	* admin/Makefile.in (ADMIN_FILES): Added tasks.
+	(tasks): New target.
+	* doc/Makefile.in (copy-dist): Remove linking of 'tasks' to admin.
+
+	* src/NSProcessInfo.m (_GNU_MISSING_MAIN_FUNCTION_CALL): Added
+        Tuparev's email address.
+
+	* admin/Makefile.in (copy-dist): Use cp instead of ln.  (Some of
+	these files are symbolic links themselves, and tar gets confused).
+
+	* src/Makefile.in (FILE_AUTHORS): Added "Georg Tuparev".
+
+	* Makefile.in (DIST_FILES): Remove GNUStep-volunteers.  It's now
+        in admin/volunteers.
+
+	* checks/nsprocessinfo.m: Fix typo in includes.
+	(main): Fix warnings in while test.
+	Add newlines to end of printf's.
+
+	* src/NSProcessInfo.m: Fix indentation.
+
+	* src/NSProcessInfo.m: Use ELF _libc_subinit for initialization
+        instead of LibobjectsMain.
+	* src/objects/LibobjectsMain.h: Only redefine main if we don't
+        have __ELF__.
+
+	* src/objects/stdobjects.h.in: Include <objects/LibobjectsMain.h>
+
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSProcessInfo.m.
+	(GNUSTEP_HEADERS): Added Foundation/NSProcessInfo.h and
+	LibobjectsMain.h.
+	* checks/Makefile.in (SRCS): Added nsprocessinfo.m.
+
+	* src/NSProcessInfo.m, src/Foundation/NSProcessInfo.h,
+	src/objects/LibobjectsMain.h, checks/nsprocessinfo.m: New files
+	from Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
+
+Wed Aug  9 11:27:42 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/NSString.m: Replaced "notImplemented" with
+	"subclassResponsibilty" where appropriate.
+
+	* admin/Makefile.in (RCS_FILES): Renamed Makefile to Makefile.in.
+	(Makefile, ../config.status): New targets.
+
+	* admin/Makefile.in: Renamed from Makefile.
+	(srcdir, VPATH): new vars.
+	* configure.in (AC_OUTPUT): Added admin/Makefile.
+
+	* src/NSString.m: Rename NSCString to NSGCString.
+	([NXConstantString -release]): Fix return type and return.
+	([NSString +_setConcreteClass:]): New method.
+	([NSString +_setConcreteCClass:]): New method.
+	([NSString +_setMutableConcreteClass:]): New method.
+	([NSString +_setMutableConcreteCClass:]): New method.
+	([NSString +_concreteClass]): New method.
+	([NSString +_concreteCClass]): New method.
+	([NSString +_mutableConcreteClass]): New method.
+	([NSString +_mutableConcreteCClass]): New method.
+	([NSString +initialize]): Initialize new statics that hold concrete
+	classes.
+	([NSString +stringWithCString:byteString]): Use concrete class method.
+	([NSString +stringWithCString:length:]): Likewise.
+	([NSString +stringWithFormat:]): Likewise.
+	([NSString +stringWithFormat:arguments:]): Likewise.
+	([NSString -mutableCopyWithZone:]): Likewise.
+	([NSMutableString +stringWithCapacity:]): Likewise.
+	([NSMutableString +stringWithCString:length:]): Likewise.
+
+	* src/Makefile.in: Rename NSCString to NSGCString.
+	* src/Foundation/NSString.h: Likewise.
+	* src/Foundation/NSGCString.h: Likewise.
+	* src/NSGCString.m, src/Foundation/NSGCString.h:  Likewise.
+	* src/NSGCString.m: Likewise.
+
+	* admin/Makefile: New file.
+	* Makefile.in (SUBDIRS): Added admin.
+
+	* doc/Makefile.in (TOP_DOC_FILES): Remove TODO.
+	(DIST_FILES): Add TODO.
+	(copy-dist): Link TODO to ../snap/admin/tasks.
+
+Tue Aug  8 11:32:13 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/NSDate.m ([NSDate -copyWithZone:]): New method.
+	([NSDate -descriptionWithCalendarFormat:timeZone:]): Uncommented.
+	([NSDate -dateWithCalendarFormat:timeZone:]): Uncommented.
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -dealloc]): Use
+	object_get_class() instead of ->isa.
+
+	* src/Makefile.in (GNUSTEP_HEADERS): Added Foundation/NSDate.h.
+	(GNUSTEP_MFILES): Added NSDate.m.
+
+Fri Aug  4 13:39:05 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -addObject:]):
+	Remove double_release checking. Increment released_count after
+	setting released array. 
+	([NSAutoreleasePool -dealloc]): Catch release errors.
+	([NSAutoreleasePool -enableDoubleReleaseCheck:]): Removed method.
+
+	* src/NSObject.m ([NSObject -autorelease], [NSObject -release]): 
+	Add double_release checking. 
+	([NSObject +enableDoubleReleaseCheck:]): New method.
+
+	* src/Foundation/NSAutoreleasePool.h: Remove 
+	+enableDoubleReleaseCheck:, add +autoreleaseCountForObject:.
+
+	* src/Foundation/NSObject.h: Add +enableDoubleReleaseCheck:.
+
+	* src/Foundation/objc-load.h: Include objc-api file.
+
+Fri Aug  4 11:08:05 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/MemoryStream.m (debug_memory_stream): Turn debugging off by
+        default.
+
+	* src/Makefile.in (install): Remove README links before relinking.
+
+	* src/mframe.m (make_method_call) [__mips__]: Add 4 to offset for
+	float retframe.  Yipes, this may be needed for other architectures
+	too.
+
+	* src/Makefile.in (GNUSTEP_HEADERS): Removed Foundation/NSUser.h.
+	(GNUSTEP_CFILES): Removed NSUser.c.
+
+Thu Aug  3 15:48:21 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/mframe.m (make_method_call): Added comment about looking
+	into a problem with returning floats.  I need to get back to this
+	later.
+
+Mon Jul 31 10:44:22 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* configure.in: Check for HP version of dld library. Add new
+	DYNAMIC_LDFLAGS if hpux version found.
+
+	* checks/Makefile.in (DYNAMIC_LDFLAGS): New macro. (nsbundle): Use
+	macro in linking.
+
+	* src/hpux-load.h (__objc_dynamic_link): Specify linking flags to
+	shl_load. (__objc_dynamic_find_symbol): Check for return error
+	from shl_findsym.
+
+Fri Jul 28 12:38:22 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* configure.in: Added DYNAMIC_CFLAGS and extra test for hpux.
+
+	* checks/Makefile.in (DYNAMIC_BUNDLER_LINKER, DYNAMIC_CFLAGS,
+	BUNDLE_NAME, DYNAMIC_MFILES, DYNAMIC_HFILES, DYNAMIC_OFILES,
+	nsbundle, bundles): New macros and targets.
+
+	* checks/LoadMe.[hm], checks/SecondClass.[hm],
+	checks/MyCategory.[hm], checks/nsbundle.m: New files.   
+
+	* src/NSBundle.m (bundle_object_name, bundle_resource_path,
+	[NSBundle +mainBundle], [NSBundle +setSystemLanguages:]): Remove
+	dependency on NSString for calculating paths.
+
+Wed Aug  2 12:04:51 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* NSBundle.README: Remove reference to gcc-dynamic.patch.
+
+Fri Jul 14 17:11:20 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* src/MallocAddress.m ([MallocAddress -dealloc]): Check for object in
+	dictionary before removing.
+
+	* src/NSArchiver.m: Include NSData header.
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool
+	+autoreleaseCountForObject:]): Initialize count to 0.
+
+	* src/NSGData.m ([NSGMutableData -setLength:]): Reset eofPosition
+	to size.
+
+Wed Aug  2 11:21:55 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/NSString.m ([NXConstantString -dealloc]): New method.
+	([NXConstantString -cString]): New method.
+	([NXConstantString -retain]): New method.
+	([NXConstantString -release]): New method.
+	([NXConstantString -autorelease]): New method.
+	([NXConstantString -copyWithZone:]): New method.
+	(From Jeremy Bettis).
+
+	* src/NSDate.m ([NSDate -isEqual:]): Fix typo.  (From Jeremy
+	Bettis).
+
+Wed Jul 12 10:22:48 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* NSString.m (componentsSeparatedByString:, substringFromRange:,
+	rangeOfCharacterFromSet:, rangeOfCharacterFromSet:options:,
+	rangeOfCharacterFromSet:options:range:, rangeOfString:,
+	rangeOfString:options:, caseInsensitiveCompare:, hasPrefix:,
+	hasSuffix:, lastPathComponent, pathExtension,
+	stringByAppendingPathComponent:, stringByAppendingPathExtension:,
+	stringByDeletingLastPathComponent, stringByDeletingPathExtension):
+	Implemented methods.
+
+	* Foundation/NSException.h (_NSAssertArgs, _NSCAssertArgs): Made
+	',' a separate token to work with ## macro.
+
+	* Foundation/NSRange.h: Added NSMakeRange declaration. 
+
+Fri Jun 30 16:02:12 1995  Adam Fedor  <fedor@colorado.edu>
+
+	* NSData.m ([NSData +allocWithZone:]): New method. 
+	(_initWithBytesNoCopy:length): New (designated initializer) method.
+	(initWithBytesNoCopy:length:): Make subclass responsibility.
+	(init): Call new designated initializer. ([NSMutableData 
+	+allocWithZone:]) New Method. (dataWithCapacity:, dataWithLength:): 
+	Allocate using designated allocator. (initWithBytesNoCopy:length:): 
+	Make subclass responsibility.  
+
+	* NSGData.m (_initWithBytesNoCopy:length:): Make designated 
+	initializer. (initWithBytesNoCopy:length:) Call designated initializer.
+  
+Wed Aug  2 10:35:31 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/Makefile.in (FILE_AUTHORS): Added "Martin Michlmayr".
+
+	* NSUser.c, Foundation/NSUser.h: New files from Martin Michlmayr
+	<tbm@ihq.com>. 
+	* src/Makefile.in (GNUSTEP_HEADERS): Added Foundation/NSUser.h.
+	(GNUSTEP_MFILES): Added NSUser.c.
+
+Thu Jul  6 10:11:11 1995  Adam Fedor  <fedor@colorado.edu>
+
+    	* src/MemoryStream.m ([MemoryStream -writeBytes:length]): Realloc
+	buffer to at least minimum required length.
+
+	* src/NSCString.m ([NSCString -cString]): Malloc extra byte for
+	'\0' terminator.
+
+	* src/NSGArray.m ([NSGArray -initWithObjects:count:]): Set
+	_capacity to minimum of 1. 
+	([NSGMutableArray -initWithCapacity:]):	Likewise. 
+
+Wed Jul  5 17:19:21 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	Released version 0.1.13.
+
+	* src/NSString.m ([NSString -getCharacters:range:]): Decrement,
+        not increment in loop.  (Reported by Harmut
+	<benz@sophie-scholl.dbag.ulm.DaimlerBenz.COM>).
+
+Mon Jul  3 18:10:50 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/NSMethodSignature.m ([NSMethodSignature -dealloc]): Free
+        returnTypes.
+
+	* src/NSUnarchiver.m: Allow easy user-modification of concrete class.
+	([NSUnarchiver +_setConcreteClass:]): New method.
+	([NSUnarchiver +_concreteClass]): New method.
+	([NSUnarchiver +initialize]): New method.
+
+	* src/NSArchiver.m: Allow easy user-modification of concrete
+	class.  Removed references to NSGData.
+	([NSArchiver +_setConcreteClass:]): New method.
+	([NSArchiver +_concreteClass]): New method.
+	([NSArchiver +initialize]): New method.
+
+	* src/NSData.m: Allow easy user-modification of concrete class.
+	([NSData +_setConcreteClass:]): New method.
+	([NSData +_setMutableConcreteClass:]): New method.
+	([NSData +_concreteClass]): New method.
+	([NSData +_mutableConcreteClass]): New method.
+	([NSData +initialize]): New method.
+
+Sat Jul  1 14:32:52 1995  Andrew McCallum  <mccallum@artery.cs.rochester.edu>
+
+	* src/objects/README: Capitalize Foundation.
+
+	* src/NSArray.m: Moved NSArrayEnumerator interface and
+	implementation from separate files to here.
+	* src/Makefile.in (GNUSTEP_MFILES): Remove NSArrayEnumerator.m.
+	(GNUSTEP_HEADERS): Remove Foundation/NSArrayEnumerator.h.
+
+	* src/Foundation/NSZone.h: Update copyright.
+	* src/Foundation/NSValue.h: Likewise.
+	* src/Foundation/NSGeometry.h: Likewise.
+	* src/Foundation/NSException.h: Likewise.
+	* src/Foundation/NSUnarchiver.h: Likewise.
+	* src/Foundation/NSTimer.h: Likewise.
+	* src/Foundation/NSString.h: Likewise.
+	* src/Foundation/NSSerialization.h: Likewise.
+	* src/Foundation/NSRange.h: Likewise.
+	* src/Foundation/NSObject.h: Likewise.
+	* src/Foundation/NSObjCRuntime.h: Likewise.
+	* src/Foundation/NSMethodSignature.h: Likewise.
+	* src/Foundation/NSInvocation.h: Likewise.
+	* src/Foundation/NSDictionary.h: Likewise.
+	* src/Foundation/NSData.h: Likewise.
+	* src/Foundation/NSCoder.h: Likewise.
+	* src/Foundation/NSCharacterSet.h: Likewise.
+	* src/Foundation/NSBundle.h: Likewise.
+	* src/Foundation/NSBitmapCharSet.h: Likewise.
+	* src/Foundation/NSAutoreleasePool.h: Likewise.
+	* src/Foundation/NSArray.h: Likewise.
+	* src/Foundation/NSArchiver.h: Likewise.
+	* src/Foundation/NSDate.h: Likewise.
+	* src/NSDate.m: Likewise.
+
+Fri Jun 30 16:42:10 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/Foundation/NSRange.h (NSLocationInRange): Added
+        __attribute__ ((unused)).
+	(NSMaxRange): Likewise.
+
+Fri Jun 30 13:19:24 1995  Adam Fedor  <fedor@colorado.edu>
+
+	* Makefile.in (install): Fixed directory typo.
+
+	* NSCharacterSets/Makefile.in (INSTALL, INSTALL_PROGRAM,
+        INSTALL_DATA): New variables.
+	(install): Depend on installdirs.
+
+Fri Jun 30 09:45:14 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* (install-sh, mkinstalldirs): Change file permissions to group
+	and all can read and execute.  (Reported by Paul Kunz.)
+
+	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.1.13.
+
+	* doc/news.texi (Noteworthy changes since version 0.1.12): New
+        section.
+
+	The "concrete class" configuration idea was proposed by Albin
+	Jones <ajones@oxy.edu>, 10 Jun 1995.
+
+	* src/NSDictionary.m: Allow easy user-modification of concrete class.
+	([NSDictionary +_setConcreteClass:]): New method.
+	([NSDictionary +_setMutableConcreteClass:]): New method.
+	([NSDictionary +_concreteClass]): New method.
+	([NSDictionary +_mutableConcreteClass]): New method.
+	([NSDictionary +initialize]): New method.
+	(NSDictionary_concrete_class, NSMutableDictionary_concrete_class): New
+	static variables.
+	([NSDictionary -copyWithZone:]): Make a deep copy to conform to spec;
+	it was a shallow copy.
+
+	* src/NSArray.m: Allow easy user-modification of concrete class.
+	([NSArray +_setConcreteClass:]): New method.
+	([NSArray +_setMutableConcreteClass:]): New method.
+	([NSArray +_concreteClass]): New method.
+	([NSArray +_mutableConcreteClass]): New method.
+	([NSArray +initialize]): New method.
+	(NSArray_concrete_class): New static variable.
+	(NSMutableArray_concrete_class): New static variable.
+	([NSArray +arrayWithObject:]): Don't use addObject:.
+	([NSArray -copyWithZone:]): Make a deep copy to conform to spec; it
+	was a shallow copy.
+
+Wed Jun 28 18:31:36 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (rcs-list-locked): Fix typo.
+
+	Released Version 0.1.12.
+
+	* Makefile.in (DIST_FILES): Remove gcc patch files.
+	* doc/install.texi: Remove instructions for gcc patches.
+
+	* examples/Makefile.in (ALL_CPPFLAGS): Look in ../src for includes.
+
+	* examples/second-server.m: Use release instead of free.
+	* examples/textcoding.m: Likewise.
+	* examples/stdio-stream.m: Likewise.
+
+	* src/objects/Dictionary.h ([Dictionary
+        initWithType:keyType:capacity]): Declare it.
+	([Dictionary initWithType:capacity]): Likewise.
+
+	* Makefile.in (RCS_FILES): Added Makeconf.
+
+	* checks/Makefile.in (DIST_FILES): Added RCS_FILES.
+
+	* src/Time.m: Include Sequent support.  (Thanks to Matt Nelson
+        <nelsonm@ctron.com>).
+	* src/objects/Time.h: Likewise.
+
+	* checks/test09.m: Add _SEQUENT_ to lrand48 conditional.
+	* checks/test04.m: Likewise.
+	* checks/test01.m: Likewise.
+
+	* checks/client.m (main): Use -invalidate, not -release.
+	* examples/first-client.m (main): Likewise.
+	* examples/second-client.m (main): Likewise.
+
+	* src/Connection.m ([Connection
+	+newForInPort:outPort:ancestorConnection:]): Add comment.  I need
+	to fix retain/release for Connection.
+
+	* checks/Makefile.in: Put src in all dependencies on libobjects.a.
+	(OBJECTS_NEXT_INCLUDES): Look in src directory.
+	(LIBS): Likewise.
+	(ALL_CPPFLAGS): Likewise.
+
+	* checks/test08.m: Use libobjects' Coder instead of GNU
+	TypedStream.  Comment out BinaryTree testing.
+
+	* src/BinaryTree.m ([BinaryTree -_initCollectionWithCoder:]):
+	Disabled with -notImplemented.  I need to fix decoding of this
+	class.
+
+	* src/LinkedList.m: Added comment.  I need to fix decoding of this
+        class.
+
+	* src/Collection.m ([Collection -_safeWithElementsCallNoRetain:]):
+        Use malloc not alloca.
+
+	* src/Dictionary.m ([Dictionary -putElement:atKey:]): Release
+        previous element.  (Thanks to Paul Burchard <burchard@math.utah.edu>).
+
+	* src/NSObject.m (NSDecrementExtraRefCountWasZero): Return correct
+        value.  (Thanks to Paul Burchard <burchard@math.utah.edu>).
+
+	* src/Makefile.in (CFLAGS): Remove -Wall.
+
+	* doc/announce.texi: Use machines.texi.
+	* doc/advertisement.texi: Likewise.
+
+	* doc/machines.texi: New file.
+	* doc/Makefile.in (TEXI_FILES): Added machines.texi.
+	(info): Removed libobjects.texi and objective-c.texi.
+	(objective-c): Print apology about makeinfo.
+
+Sun Jun 25 18:08:26 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* src/Makefile.in (objects/stdobjects.h): Depend on ../Version,
+        not Makefile.in.
+	(AUTHORS): Fix echo'ing of newlines.
+
+	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.1.12.
+	(OBJECTS_GCC_VERSION): Upped from 2.6.3 to 2.7.0.
+
+Tue Jun 20 12:06:36 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* Makefile.in (rcs-list-locked): Print subdir names.
+
+	* checks/Makefile.in: Include $(srcdir)/../Makeconf.
+	(RCS_FILES): New variable.
+	(install, uninstall): New targets.
+	(copy-dist): Converted to new scheme.
+	* examples/Makefile.in: Likewise.
+
+	* doc/Makefile.in: Change the way top-level dir info files are
+        handled.
+	(TOP_FILES): Variable removed.
+	(.SUFFIXES): Removed.
+	(prefix, infodir): New variables.
+	(copy-dist): Converted to new scheme.
+
+	* doc/news.texi (Noteworthy changes since version 0.1.10): New
+        section.
+
+	* src/NSGArchiver.m ([NSGArchiver -initForWritingWithMutableData:]):
+	New method.
+
+	* src/Makefile.in (prefix, exec_prefix, libdir, includedir): New
+        variables.
+
+	* Makefile.in: Convert to new scheme with subdirs.  Many variable
+	and targets moved to subdir Makefiles.
+	(maintainer-clean, %-subdirs): New targets.
+
+	* configure.in (AC_OUTPUT): Added NSCharacterSets/Makefile.
+
+	* NSCharacterSets/Makefile.in (prefix, datadir, charsetdir,
+        INSTALL_FILES): New variables.
+	(installdirs, install, uninstall): New targets.
+
+Fri May 26 11:17:54 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+	* src/objc-load.c (objc_load_module): Don't execute ctor_list on
+	__ELF__ systems.
+
+Fri May 19 11:22:42 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+        * doc/Makefile.in (copy-dist): Renamed from "dist".
+        * examples/Makefile.in (copy-dist): Renamed from "dist".
+        * checks/Makefile.in (copy-dist): Renamed from "dist".
+
+        * configure.in (AC_OUTPUT): Prepend "src/" to "objects/config.h".
+
+        * configure.in (AC_OUTPUT): Added src/Makefile.  Changed
+        INSTALL_HEADERS to HEADERS_INSTALL.  Changed INSTALL_OBJS to
+        OBJS_INSTALL.
+
+Thu May 11 16:09:36 1995  Andrew McCallum  <mccallum@moose.cs.rochester.edu>
+
+	* Makefile.in (datadir): According to new standards, use "share"
+        instead of "lib".
+
+Mon May  8 16:39:42 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* Makefile.in (dist): Rename "share" to "NSCharacterSets".
+	(datadir): New variable.
+	(charsetdir): New variable.
+	(install): Install files from NSCharacterSets directory.
+	(installdirs): Make $(datadir) and $(charsetdir).
+	* NSCharacterSets: Directory renamed from "share".
+
+Fri May  5 10:46:37 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* doc/Makefile.in (TOP_FILES): New variable.
+	(dist): Copy TOP_FILES.
+	(version.texi): Remove $(MAKEFLAGS).
+
+	* Makefile.in (OBJECTS_SUBMINOR_VERSION): Version 0.1.11.
+	(dist): mkdir src and config.  Copy share and contents.
+
+	* configure.in: Use config/ directory prefix where needed.
+
+	* config:  New subdirectory.
+	* config.*:  Files moved there.
+
+	* src/NSException.m (encodeWithCoder:, initWithCoder:): Remove
+	class names from arg type to avoid bogus warnings about protocol
+	conformance.
+
+	* Makefile.in: Use doc/ and src/ directories.  Many changes.
+	* src: New subdirectory.  Move source files there.
+
+	* configure.in: Look for src/Collection.m, not Collection.
+
+	* configure.in: Create doc/Makefile.
+	* doc:  New subdirectory.
+	* doc/Makefile.in: New file.
+
+	* checks/nsdictionary.m:  New file.
+	* checks/Makefile.in (SRCS): Added nsdictionary.m.
+
+	* Foundation/NSDictionary.h: Uncomment -keyEnumerator and
+        -objectEnumerator.  
+	* NSDictionary.m [NSDictionary] (+allocWithZone, +dictionary,
+	+dictionaryWithObjects:forKeys:count:, -initWithObjects:forKeys:,
+	+dictionaryWithObjects:forKeys:, -initWithObjects,forKeys:count:,
+	-init, -initWithDictionary, -count, -objectForKey, -keyEnumerator,
+	-isEqual:, -isEqualToDictionary, -descriptionWithIndent, -allKeys,
+	-allValues, allKeysForObject:, -objectEnumerator, -copyWithZone,
+	-mutableCopyWithZone): Implemented.
+	[NSMutableDictionary] (+allocWithZone:, +dictionaryWithCapacity:,
+	-initWithCapacity:, -initWithObjects:forKeys:count:,
+	-setObject:forKey:, -removeObjectForKey:, removeAllObjects,
+	-removeObjectsForKeys:, addEntriesFromDictionary:): Implemented.
+	(NSGDictionaryKeyEnumerator, NSGDictionaryObjectEnumerator): New
+	classes. 
+	* NSGDictionary.m, Foundation/NSGDictionary.h,
+	objects/NSDictionary.h: New files.
+	* Makefile.in (GNU_HEADERS): Added NSDictionary.h.
+	(GNUSTEP_MFILES): Added NSGDictionary.m.
+	(GNUSTEP_HEADERS): Added NSGDictionary.h.
+
+	* objects/NSArray.h: Fix #ifndef macro name; NSArray, not NSString!
+
+	* NSString.m (-compare:options:range:): Simple implementation; not
+        complete.
+
+	* NSArray.m (NSArray +allocWithZone:): Implemented.
+	(NSMutableArray +allocWithZone:): Implemented.
+
+	* NSGArray.m (-initWithObjects:count:): Retain objects.
+
+Thu May  4 11:51:04 1995  Adam Fedor  <fedor@colorado.edu>
+
+	* NSBitmapCharSet.m, Foundation/NSBitmapCharSet.h: Replaced NSData
+	instance variable with char array and rewrote methods to reflect
+	this.
+
+	* NSCharacterSet.m (characterSetWithCharactersInString:): Create
+	mutable data object for bitmap. (characterSetWithRange:): Added
+	error checking. (deepen): removed. (copyWithZone:,
+	mutableCopyWithZone:): More efficient implementation.
+	(characterSetWithBitmapRepresentation:): Override implementation
+	from super.
+
+Wed May  3 15:05:17 1995  Adam Fedor  <fedor@colorado.edu>
+
+	* Makefile.in (GNUSTEP_MFILES, GNUSTEP_HEADERS): Added
+	NSBitmapCharSet.
+
+	* NSCTemplateValue.m, NSConcreteNumber: Added #line macro so gdb
+	knows which file source came from.
+	
+	* NSBitmapCharSet.m, Foundation/NSBitmapCharSet.h: New files.
+
+	* NSCharacterSet.m (all methods): Implemented.
+
+	* NSDictionary.m, Foundation/NSDictionary.h (keyEnumerator, 
+	objectEnumerator): Uncommented but left unimplemeneted.
+	
+	* NSNumber.m (valueClassWithObjCType:): Added break's to avoid
+	falling through case statements.
+
+	* Foundation/NSException.h (_NSAssertArgs, _NSCAssertArgs): Made
+	',' a separate token to work with ## macro.
+
+Wed Apr 26 10:15:51 1995  Adam Fedor  <fedor@colorado.edu>
+
+	* Makefile.in (GNUSTEP_MFILES, GNUSTEP_HEADERS): Added
+	NSCharacterSet.
+
+	* NSCharacterSet.m, Foundation/NSCharacterSet.h: New files.
+
+	* NSString.m (componentsSeparatedByString:, substringFromRange:,
+	rangeOfCharacterFromSet:, rangeOfCharacterFromSet:options:,
+	rangeOfCharacterFromSet:options:range:, rangeOfString:,
+	rangeOfString:options:, caseInsensitiveCompare:, hasPrefix:,
+	hasSuffix:, lastPathComponent, pathExtension,
+	stringByAppendingPathComponent:, stringByAppendingPathExtension:,
+	stringByDeletingLastPathComponent, stringByDeletingPathExtension):
+	Implemented methods.
+
+	* Foundation/NSRange.h: Added NSMakeRange declaration. 
+
+Wed Apr 26 15:01:07 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* install.texi: Fixed typo in patch instructions.  Too many "..".
+	(Reported by Daniel L. Green <dang@mcs.com>.)
+
+Thu Apr 20 20:11:23 1995  Andrew McCallum  <mccallum@zebra.cs.rochester.edu>
+
+	* NSData.m: Include <Foundation/NSException.h>
+
+	* NSData.m (dataWithBytesNoCopy:length:): Send alloc to NSGData
+        class, not self.
+
+Sun Apr 16 02:41:39 1995  Albin L. Jones  <ajones@oxy.edu>
+
+	* NSData.m([NSData -getBytes:range:],
+        [NSData -subdataWithRange:]): Coded these, including the range
+        checking bits.  The proper exception is raised.
+
+	* NSData.m([NSData -dataWithContentsOfFile:],
+	[NSData -dataWithContentsOfMappedFile:],
+        [NSData -initWithContentsOfFile:],
+	[NSData -initWithContentsOfMappedFile:],
+        [NSData -writeToFile:atomically:]): Filled
+	these out, made them do what they were suppossed to.
+
+	* NSData.m: Added many comments.  Maybe I shouldn't have.
+
+Thu Apr 20 11:26:45 1995  Adam Fedor  <fedor@boulder.colorado.edu>
+
+	* NSCTemplateValue.m, NSConcreteNumber.m, NSConcreteValue.m,
+	NSException.m, NSNumber.m, NSValue.m (encodeWithCoder:,
+	initWithCoder:): Include call to super since NSObject now
+	implements these methods.
+
+Mon Apr 17 16:37:06 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_SUBMINOR_VERSION): Version 0.1.10.
+
+	* examples/second-client.h: Make AppellationObject inherit from
+        NSObject, not Object.
+
+	* examples/second-server.h: Include NSObject.h from Foundation,
+        not objc.
+
+	* NSData.m (replaceBytesInRange:withBytes:): Get pointer with
+	-mutableBytes, not -bytes.
+
+	* Makefile.in (FILE_AUTHORS): Added Jeremy Bettis.
+
+	* Makefile.in: Change "foundation" to "Foundation".
+
+	* Foundation:  Directory renamed from "foundation".
+
+	* Connection.m, NSArchiver.m, NSArray.m, NSArrayEnumerator.m,
+	NSAssertionHandler.m, NSAutoreleasePool.m, NSBundle.m,
+	NSCString.m, NSCTemplateValue.m, NSCoder.m, NSConcreteNumber.m,
+	NSConcreteValue.m, NSData.m, NSDate.m, NSDictionary.m,
+	NSEnumerator.m, NSException.m, NSGArchiver.m, NSGArray.m,
+	NSGCoder.m, NSGData.m, NSGUnarchiver.m, NSGeometry.m, NSNumber.m,
+	NSObject.m, NSRange.m, NSString.m, NSUnarchiver.m, NSValue.m,
+	NSZone.c, objc-load.c: Include from <Foundation/...>, not
+	<foundation/...>.
+	* objects/Collection.h, objects/NSCoder.h, objects/String.h,
+	objects/stdobjects.h.in: Likewise.
+	* foundation/NSArchiver.h, foundation/NSArray.h,
+	foundation/NSArrayEnumerator.h, foundation/NSAutoreleasePool.h,
+	foundation/NSBundle.h, foundation/NSCString.h,
+	foundation/NSCoder.h, foundation/NSConcreteNumber.h,
+	foundation/NSConcreteValue.h, foundation/NSData.h,
+	foundation/NSDate.h, foundation/NSException.h,
+	foundation/NSGArchiver.h, foundation/NSGArray.h,
+	foundation/NSGCoder.h, foundation/NSGData.h,
+	foundation/NSGUnarchiver.h, foundation/NSMethodSignature.h,
+	foundation/NSObject.h, foundation/NSRange.h,
+	foundation/NSString.h, foundation/NSUnarchiver.h,
+	foundation/NSUtilities.h, foundation/NSValue.h: Likewise.
+	* examples/first-server.h: Likewise.
+	* checks/nsarchiving.m, checks/nsarray.m, checks/string.m,
+	checks/values.m: Likewise.
+
+	* objects/NSCoder.h: Fix typo: We're declaring methods of NSCoder,
+        not NSConcreteCoder.
+
+	* foundation/NSData.h: Insert the interface for NSMutableData.
+
+	* NSData.m: Insert the implementation of NSMutableData.
+
+	* foundation/NSGData.h: Don't include
+	<foundation/NSMutableData.h>.  The interface can now be found in
+	<foundation/NSData.h>
+
+Sat Apr 15 14:12:57 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_SUBMINOR_VERSION): Version 0.1.9.
+
+	* checks/Makefile.in (SRCS): Comment out nsarchiving.m.  It's
+	not done yet.
+
+	* Makefile.in (GNUStep-volunteers): New target to deal with "ln"
+	and disparate filesystem problems.
+	(DIST-FILES): Use the local GNUStep-volunteers file, not the remote
+	volunteers-gnustep file.
+	(dist): Switch back to "ln", not "ln -s".
+
+	* Stream.m (-initWithMode:, -streamMode): Methods removed.
+	(-isWritable): New method.
+	(-initWithCoder): Renamed from +newWithCoder.m.
+	* objects/Stream.h: Method removed and put into Streaming
+	protocol.  Included from objects/Streaming.h.
+	(mode): Instance variable removed.
+	(STREAM_READONLY, STREAM_WRITEONLY, STREAM_READWRITE): enum removed.
+	* objects/Streaming.h: New file.
+	* Makefile.in (GNU_HEADERS): Added objects/Streaming.h.
+
+	* objects/StdioStream.h (mode): New instance variable, to replace
+        one removed from Stream class.
+	* StdioStream.m (-isWriteable): New method.
+	(-initWithCoder): Renamed and rewritten from +newWithCoder.
+	(-isAtEof): Renamed from -streamEof.
+	(-initWithFilePointer:fmode:): Use new mode ivar.
+
+	* objects/MemoryStream.h: New protocol <MemoryStreaming>.  Make
+        MemoryStream class conform to it.
+	* MemoryStream.m (-setStreamBufferCapacity:): Renamed from
+        -setStreamBufferSize.
+	(-streamBufferCapacity): Renamed from -streamBufferSize.
+	(-isWriteable): New method.
+	(-streamBufferPrefix): Renamed from -streamPrefix.
+
+	* NSArchiver.m, foundation/NSArchiver.m, NSGArchiver.m,
+	NSUnarchiver.m, foundation/NSUnarchiver.h,
+	foundation/NSGArchiver.h, NSGData.m, foundation/NSGData.h: New
+	files.
+	* Makefile.in (GNUSTEP_MFILES): Added NSArchiver.m, NSGArchiver.m,
+	NSGData.m, NSGUnarchiver.m, NSUnarchiver.m.
+	(GNUSTEP_HEADERS): Added foundation/NSArchiver.h,
+	foundation/NSGArchiver.h, foundation/NSGData.h,
+	foundation/NSGUnarchiver.h, foundation/NSUnarchiver.h.
+
+	* checks/nsarchiving.m: New file.
+	* checks/Makefile.in (SRCS): Added nsarchiving.m.
+
+	* Makefile.in (GNU_HEADERS): Added objects/NSCoder.h.
+
+	The GNU-interoperating concrete subclasses of NS classes have the
+	prefix NSG.  If people want to write other concrete subclasses
+	(some of which could be more lowlevel-compatible with NeXT's
+	classes, such as in the low-level format used by NSConcreteCoder),
+	they can do so, and use NeXT's classnames, or their own.
+	* NSGArray.m, foundation/NSGArray.h:  Renamed from NSConcreteArray.
+	* NSGCoder.m, foundation/NSGCoder.h:  Renamed form NSGNUCoder.
+	* Makefile.in: Renamed appropriate files for NSG prefix.
+	* NSCoder.m: Change names from "Concrete"-style to "G"-style.
+	* NSGCoder.m: Likewise.
+	* foundation/NSGArray.h: Likewise.
+	* NSArray.m: Likewise.
+	* NSGArray.m: Likewise.
+
+Fri Apr 14 10:59:41 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* NSAutoreleasePool.m (+enableRelease:,	+enableDoubleReleaseCheck:,
+	+setPoolCountThreshhold:): New methods.
+	* foundation/NSAutoreleasePool.h: Declare new methods.
+
+	* Makefile.in (GNUSTEP_MFILES): Removed NSDate.m; it causes a bunch
+	of compilation errors.
+	(GNUSTEP_OTHER_SRCFILES): Added NSDate.m.
+
+Thu Apr 13 11:03:13 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* NSDate.m: Compare against [NSDate class], not NSDate.
+
+	* NSDate.m: Fixed indentation.  Added some calls to
+        -notImplemented:.
+
+	* NSDate.m, foundation/NSDate.h:  New files from Jeremy Bettis
+	<jeremy@hksys.com>.
+	* Makefile.in (GNUSTEP_HEADERS): Added foundation/NSDate.h.
+	(GNUSTEP_MFILES): Added NSDate.m.
+
+	* readme.texi: Updated for changes since addition of string
+	classes and retain/release.
+
+	* NSData.m (-getBytes:range:): Implemented.
+	(-isEqual:): New method.
+
+	* Now using new ObjC Emacs mode from cc-mode.el (to be included
+	with emacs 19.29), with (c-set-style "GNU").  This will change the
+	way multi-line methods are indented: I used to indent with three
+	spaces, now colons are lined up.  All contributors should use the
+	same style.  Note that (c-set-style "GNU") has different
+	c-basic-offset than the default.
+
+Wed Apr 12 11:15:57 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* BinaryTree.m (removeElement:): Fix bug whereby the deleted
+	node's parent still had the deleted node as a right child.
+	(Reported by Stephen Peters <SPETERS@us.oracle.com>).
+
+	* Collection.m (write:, read:): Put back these old-style archiving
+        methods.  (Reported by Stephen Peters <SPETERS@us.oracle.com>).
+
+Sun Apr  9 20:34:32 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* NSAssertionHandler.m: Fix copyright date and indentation.
+
+Sun Apr  9 16:43:03 1995  Adam Fedor  (fedor@boulder.colorado.edu)
+
+        * Makefile.in (GNUSTEP_MFILES): Added NSAssertionHandler.m.
+
+        * NSAssertionHandler.m: New file.
+
+        * foundaton/NSException.h: Added NSAssert macros and
+        NSAssertionHandler interface.
+
+Sun Apr  9 13:55:28 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* MallocAddress.m (objectForAddress:): Return nil if address is
+	not maintained by a MallocAddress object. (Used to simply die.)
+
+Sat Apr  8 13:04:08 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (GNUSTEP_MFILES): Added NSGNUCoder.m.
+	(GNUSTEP_HEADERS): Added foundation/NSGNUCoder.h.
+	(GNUSTEP_OTHER_SRCFILES): Added files NSArchiver.m,
+	foundation/NSArchiver.h.
+	* NSGNUCoder.m, foundation/NSGNUCoder.h, NSArchiver,
+	foundation/NSArchiver.h: New files.
+
+	* Makefile.in: Rearranged source variables to put
+	GNU/NEXTSTEP/GNUStep files close together.
+	(GNUSTEP_OTHER_SRCFILES): Added NSData.m, foundation/NSData.h.
+	* NSData.m, foundation/NSData.h:  New files.
+
+	* Array.m, BinaryTree.m, BinaryTreeNode.m, CString.m,
+	CircularArray.m, Collection.m, Connection.m, DelegatePool.m,
+	Dictionary.m, EltNodeCollector.m, GapArray.m, LinkedList.m,
+	LinkedListNode.m, MappedCollector.m, MemoryStream.m,
+	MutableCString.m, NSCString.m, NSCoder.m, NSObject.m, NSString.m,
+	Port.m, RBTreeNode.m, RNGAdditiveCongruential.m, RNGBerkeley.m,
+	Random.m, Set.m, Stream.m, TextCoder.m, Time.m: Convert to new
+	Coder scheme.  Use -initWithCoder instead of +newWithCoder where
+	appropriate.  Remove arguments typed (Coder*).  Replace
+	+_newCollectionWithCoder with -_initCollectionWithCoder.
+
+	* objects/Coding.h (CommonCoding, Encoding, Decoding): New
+        protocols.
+	(SelfCoding): New category of NSObject, interface only, no
+	implementation.  This takes the place of the Coding Protocol.
+	(Coding): Protocol removed.
+
+	* objects/IndexedCollecting.h: Use ConstantIndexedCollecting
+        protocol where appropriate.
+	* objects/Collecting.h: Use ConstantCollecting protocol where
+        appropriate.
+
+	* objects/KeyedCollection.h: Move protocol conformance to category
+        to avoid bogus gcc complaints.
+	* objects/IndexedCollection.h: Likewise.
+
+	* Coder.m (-decodeObjectAt:withName:): Create the instance and
+	send -initWithCoder if the object doesn't respond to
+	+newWithCoder.  Convert to new protocol and method type scheme.
+
+	* Proxy.m (RemoteSelfCoding): Renamed category from RemoteCoding.
+	* objects/Proxy.h: Likewise.
+	* objects/Connection.h (ConnectedSelfCoding): Renamed protocol
+        from ConnectedCoding.
+
+	* objects/Collection.h: Removed Coding protocol.  It's already
+        provided by NSObject.
+	* objects/BinaryTreeNode.h: Likewise.
+	* objects/Port.h: Likewise.
+	* objects/LinkedListNode.h: Likewise.
+
+	* objects/IndexedCollecting.h (ConstantIndexedCollecting): New
+	protocol extracted from IndexedCollecting.
+	* objects/KeyedCollecting.h (ConstantKeyedCollecting): New
+        protocol extracted from KeyedCollecting.
+	* objects/Collecting.h (ConstantCollecting): New protocol
+	extracted from Collecting.
+
+Fri Apr  7 16:36:08 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* checks/nsarray.m (main): Fix serious bug by including `nil' at
+	end of contents list.  Test forward and reverse enumerator
+	objects.
+
+	* NSArray.m (-objectEnumerator, -reverseObjectEnumerator):
+        Implemented methods.
+	* Makefile.in (GNUSTEP_MFILES): Added NSArrayEnumerator.m,
+	NSEnumerator.m. 
+	(GNUSTEP_HEADERS): Added foundation/NSArrayEnumerator.h.
+	* NSEnumerator.m, NSArrayEnumerator.m,
+	foundation/NSArrayEnumerator.h:  New files. 
+
+	* Connection.m (-dealloc): Remove dealloc of remote_proxies
+        contents.
+
+	* NSArray.m (-componentsJoinedByString:): Implemented method.
+
+	* NSCString.m (initWithCapacity:): Make sure that capacity is
+        greater than zero.
+
+	* Makefile.in (DIST_FILES): Added volunteers-gnustep.
+
+Fri Apr  7 15:41:46 1995  Mark Lakata  (lakata@nsdssp.lbl.gov)
+
+	* foundation/NSZone.h: Fixed clash with linux unistd.h.
+
+Thu Apr  6 14:47:09 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (FILE_AUTHORS): New variable.
+	(AUTHORS): New target.
+	(DIST_FILES): Added AUTHORS.
+
+	* Makefile.in (DIST_FILES): Add objective-c.texi objective-c.info.
+	(RCS_FILES): Add objective-c.texi.
+	(objective-c.info): New target.
+	(info): Add objective-c.info.
+
+	* Array.m (-_encodeCollectionWithCoder:): Fix typo.  Fix super call.
+	(+_newCollectionWithCoder:): Fix super call.
+	(Reported by allan-europa@mct.co.uk (Allan Clearwaters)).
+
+Wed Apr  5 11:22:30 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_SUBMINOR_VERSION): Version 0.1.8.
+
+	* Makefile.in (NEXTSTEP_DERIVED_CFILES): New variable.
+	(NEXTSTEP_CFILES): NXStringTable_scan.c moved to above.
+	(NEXTSTEP_OBJS): Use NEXTSTEP_DERIVED_CFILES.
+	(DIST_FILES): Add NEXTSTEP_DERIVED_CFILES.
+	(objects/stdobjects.h): Target overhauled.
+	(libobjects.a): Add dependancy on objects/stdobjects.h.
+	(GNU_HEADERS): Remove objects/config.h, objects/stdobjects.h.
+	(INSTALL_HEADERS): Add objects/config.h, objects/stdobjects.h.
+	(NEXTSTEP_HEADERS): Removed README.
+	(GNUSTEP_HEADERS): Likewise.
+	(RCS_FILES): New variable.
+	(rcs-list-locked): New target.
+	(dynamic-load.h): Depend on config.status, for less re-making.
+	(version.texi): Depend on Makefile.in, not Makefile.
+	(realclean): Add objects/stdobjects.h objects/config.h.
+
+	* objects/stdobjects.h.in: New file.
+
+	* Makefile.in (GNUSTEP_OTHER_SRCFILES): Added NSConcreteNumber.m,
+        NSCTemplateValue.m.
+
+	* objects/DelegatePool.h (_last_message_had_receivers): New
+        instance variable.
+	* DelegatePool.m (-delegatePoolLastMessageHadReceivers): New method.
+	(-forward::, init): Set new ivar.
+
+	* objects/behavior.h (CALL_METHOD_IN_CLASS): Fix typo.
+
+	* NSArray.m (allocWithZone): Removed method.
+	(arrayWithObjects:, initWithObjects:, initWithArray:, count,
+	indexOfObjectIdenticalTo:, indexOfObject:, isEqualToArray:,
+	makeObjectsPerform:, makeObjectsPerform:withObject:, lastObject,
+	firstObjectCommonWithArray:, arrayWithCapacity:, addObject:,
+	replaceObjectAtIndex:, removeLastObject, insertObject:atIndex:,
+	removeObjectAtIndex:, removeObjectIdenticalTo:, removeObject:,
+	removeAllObjects, addObjectsFromArray:,
+	removeObjectsFromIndices:numIndices:, removeObjectsInArray:,
+	copyWithZone:, mutableCopyWithZone:): Newly implemented or
+	overhauled.
+
+	* behavior.c (class_add_methods_if_not_there): Only put method
+	implementation in dtable if the dtable is already installed,
+	otherwise, just add it to the class's methods list and let
+	__objc_install_dispatch_table_for_class put it in.  Also, change
+	arguments.  All callers updated.
+	(check_class_methods): New function.
+
+	* NSString.m (+initialize): Use static "done".
+	* NSCString.m: Likewise.
+
+	* checks/test01.m (main): "release" collections intead of
+        "emtpy"ing them.
+
+	* NSDeallocateObject.m (NSDeallocateObject): Set
+	anObject->class_pointer to 0xdeadface, to help catch message-sends
+	to deallocated objects.
+
+	* Collection.m (_safeWithElementsCallNoRetain:): New method.
+	(dealloc, empty): Use it.
+	(send_release): New function.
+	(Problem reported by allan-europa@mct.co.uk (Allan Clearwaters)).
+
+	* Time.m (CLK_TCK): Use _CS_CLK_TCK instead of 3.
+
+Tue Apr  4 18:48:59 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* NSObject.m (+retain, +retainCount, +release, +autorelease): New
+        methods.
+
+	* checks/Makefile.in (SRCS): Added nsarray.m.
+
+	* foundation/NSArray.h: Inherit from NSObject, not Array.
+
+	* NSConcreteArray.m, foundation/NSConcreteArray.h,
+	foundation/NSUtilities.h, objects/NSArray.h:  New files. 
+	* Makefile.in (GNUSTEP_MFILES): Added NSConcreteArray.m.
+	(GNUSTEP_HEADERS): Added foundation/NSConcreteArray.h,
+	foundation/NSUtilities.h.
+	(GNU_HEADERS): Added objects/NSArray.h.
+
+	* objects/behavior.h: Added warning in comments.
+	(CALL_METHOD_IN_CLASS): New macro.
+
+	* objects/String.h: Add <IndexedCollecting> Protocol to String
+        Protocol.
+
+Tue Apr  4 10:56:02 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* NSDictionary.m: Fix indentation.
+	* NSCoder.m: Likewise.
+
+	* NSArray.m: Fixed indentation.
+	(arrayWithObject, arrayWithObjects, initWithArray, initWithObjects,
+	initWithObjects:count:, indexOfObjectIdenticalTo:,
+	firstObjectCommonWithArray, isEqualToArray,
+	sortedArrayUsingFunction, sortedArrayUsingSelector): Implemented.
+
+	* Time.m (#ifndef CLK_TCK): Define it using sysconf() if not
+	already defined.  (CLK_TCK wasn't defined on Solbourne S4000
+	running OS/MP 4.1B. Reported by Pekka Yrjola <py@fipnet.fi>.)
+
+Mon Apr  3 19:02:37 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* NSString.m (initialize): No need to add IndexedCollection
+	behavior to NSString, we already added String, and String inherits
+	from IndexedCollection.
+
+	* Makefile.in (dynamic-load.h): New target, replacing the
+	"one-step" target, which got invoked too often.
+
+	* Makefile.in (GNUSTEP_HEADERS): Add foundation/NSArray.h,
+	foundation/NSCoder.h, foundation/NSDictionary.h.
+
+Mon Apr  3 16:36:36 1995  Adam Fedor  (fedor@boulder.colorado.edu)
+
+	Placeholder non-implementations from Fedor until McCallum does
+	real implementations (that will be aided by and coexist with GNU
+	versions).
+
+	* NSArray.m, NSCoder.m, NSDictionary.m, foundation/NSArray.h,
+	foundation/NSCoder.h, foundation/NSDictionary.h: new files.
+
+Mon Apr  3 15:58:35 1995  Adam Fedor  (fedor@boulder.colorado.edu)
+
+	* configure.in: check for dynamic linking libraries to figure out
+	which *-load.h file to include in objc-load.c.
+
+	* Makefile.in (one-time): new target.
+
+Mon Apr  3 14:55:47 1995  Adam Fedor  (fedor@boulder.colorado.edu)
+
+	* Makefile.in (GNUSTEP_MFILES, GNUSTEP_CFILES, GNUSTEP_HEADERS):
+	Added files from corresponding FEDOR_ lists, removed FEDOR_ lists.
+	(DIST_FILES): added gcc-dynamic.patch, NSBundle.README and
+	GNUSTEP_OTHER_SRCFILES. (NSVALUE_OFILES, NSNUMBER_OFILES): removed
+	multiple target declarations.
+
+	* NSBundle.m (_bundle_load_callback): Changed Class* to Class.
+
+	* find_exec.c: new file.
+
+	* checks/Makefile (LIBS): added math library. (SRCS): Added values.m.
+
+Mon Apr  3 11:17:18 1995  Adam Fedor  (fedor@boulder.colorado.edu)
+
+	* Makefile.in: New class cluster targets NSVALUE_OFILES and 
+	NSNUMBER_OFILES.
+
+	* NSBundle.README, NCSTemplateValue.m,
+	NSConcreteNumber.m, NSConcreteValue.m: new files.
+
+	* NSBundle.m: Use @"" constructs, change Class to a pointer.
+
+	* NSException.m (encodeWithCoder:, initWithCoder:): take out calls
+	to super until NSCoder gets implemented.
+
+	* NSGeometry.m: Change includes to look in foundation subdir.
+
+	* NSNumber.m, NSValue.m: Rewrote as class cluster.
+
+	* NSRange.m (NSUnionRange): fixed typo -  point should be range.
+	(NSMaxRange, NSLocationInRange): Moved to header file.
+	(NSStringFromRange): use @"" construct.
+
+	* String.m (contentType) : new method.
+
+	* checks/values.m: new file.
+
+	* dld-load.h, null-load.h, simple-load.h, hpux-load.h: new files.
+	* foundation/NSArray.h, foundation/NSConcreteNumber.h,
+	foundation/NSConcreteValue.h, foundation/objc-load.h: new files.
+	* gcc-dynamic.patch: likewise.
+
+	* foundation/NSValue.h: Added methods valueClassWithObjCType: and
+	initValue:withObjCType: for class clusters.
+	
+	* objc-load.c: new file.
+
+Mon Apr  3 10:43:11 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+        * String.m (initWithType:): Fix previous attempt at avoiding
+        infinite loop.  (Reported by Jeremy Bettis <jbettis@cse.unl.edu>)
+
+Sun Apr  2 20:05:04 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_SUBMINOR_VERSION): Version 0.1.7.
+
+	* checks/string.m: Test mutable strings and "strings as
+        collections of char's".
+
+	* Connection.m, MutableString.m, NSString.m, Port.m, SocketPort.m,
+	String.m, objects/Connection.h, objects/Invocation.h,
+	objects/Port.h, objects/SocketPort.h, objects/ValueHolding.h,
+	objects/stdobjects.h: Use (id <String>) instead of (String*).
+
+	* objects/String.h: Use (id <String>) instead of (String*) Have
+	String protocol include NSString protcol.
+
+	* foundation/NSString.h: Define NSString and NSMutableString as
+	protocols.  Make the classes conform to them.
+
+	* NSCString.m: Have increment and decrement functions take int
+	arguments instead of unsigned because I was getting (0 >= -234) == 1.
+
+	* NSString.m: Added implementations.
+
+	* foundation/NSString.h: Uncomment method declarations.  Now
+	subclass of NSObject, not String.
+	(stringWithFormat:arguments:):  Added method.
+	(NSMutableString): Added declaration for class.
+	(NXConstantString): Moved declaration for class to here from
+	objects/String.h.  Now subclass of NSCString, not ConstantString.
+
+	* NSObject.m (perform:with:with:): New method added to (NEXTSTEP)
+        category.
+
+	* NSException.m: Fix #include's.  Fix @"" strings.
+
+	* ConstantString.m: #if'ed out NXConstantString implementation.
+        Moved to NSString.m
+	* objects/String.h (NXConstantString): Declaration #if'ed out.
+	Moved to foundation/NSString.h.
+
+	* MallocAddress.m, objects/MallocAddress.h, NSCString.m,
+	foundation/NSCString.m:  New files.
+
+	* Makefile.in (GNU_MFILES): Added MallocAddress.m.
+	(GNU_HEADERS): Added objects/MallocAddress.h, objects/NSString.h.
+	(GNUSTEP_MFILES): Added NSCString.m.
+	(GNUSTEP_HEADERS): Added foundation/NSCString.h.
+	(objects/stdobjects.h): Fixed typo.
+
+Sat Apr  1 16:09:04 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* String.m (initWithType:): Avoid infinite loop by calling
+	designated initializer instead of init.  (Reported by
+	Jeremy Bettis <jbettis@cse.unl.edu>)
+
+Sat Apr  1 12:19:13 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_SUBMINOR_VERSION): Version 0.1.6.
+
+	* NSObject.m (+superclass): New method.
+
+	* behavior.c (behavior_debug): Fix typo in variable name use.
+
+	* NSObject.m (+conformsToProtocol:): For now, send conformsTo: to
+        Protocol object.
+
+	* objects/stdobjects.h (OBJECTS_MAJOR_VERSION,
+	OBJECTS_MINOR_VERSION, OBJECTS_SUBMINOR_VERSION): New #define's.
+	* Makefile.in (OBJECTS_MAJOR_VERSION,
+	OBJECTS_MINOR_VERSION, OBJECTS_SUBMINOR_VERSION): New variables.
+	(OBJECTS_VERSION): define in terms of above.
+	(objects/stdobjects): Set values for OBJECTS_MAJOR_VERSION,
+	OBJECTS_MINOR_VERSION, OBJECTS_SUBMINOR_VERSION.
+
+Fri Mar 31 09:10:50 1995  Adam Fedor  <fedor@boulder.colorado.edu>
+
+        * NXStringTable.m (readFromFile:): Return the return value from
+        readFromSteam so that errors get passed along.
+
+        * NXStringTable_scan.l (main): Restart the parser for each new
+        file. This fix works correctly with flex, but is a bad hack and
+        still doesn't work right with lex.
+
+Fri Mar 31 10:28:52 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* configure.in: Added check for times().
+	* Time.m (HAVE_TIMES): Use this instead of test for solaris and
+        hpux.
+
+	* configure.in: Added check for valloc().
+	* objc-malloc.c (HAVE_VALLOC): if not defined, #define valloc
+        malloc.  (Reported by Mike Perik <mikep@crt.com> for HPUX).
+
+Tue Mar 28 12:37:22 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* gcc-string.patch: New version from Pieter Schoenmakers
+	<tiggr@es.ele.tue.nl> that should fix patching problems.  From 
+	ftp://ftp.es.ele.tue.nl/pub/tiggr/gcc-2.6.3-statics.patch.
+
+Mon Mar 27 09:35:30 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* NSObject.m (+conformsToProtocol:): Renamed from
+        -conformsToProtocol.
+	(-conformsToProtocol:): New method.
+	(-conformsTo:): New method.
+
+	* Time.m (__hpux): Add this to #if for using times().  (Reported
+	by Jan Springer <springer@nessi.informatik.hab-weimar.de>.)
+
+Fri Mar 24 12:33:27 1995  Mark Lakata  (lakata@nsdssp.lbl.gov)
+
+	* NSZone.c : added #define WORDSIZE sizeof(double)
+	(NSZoneMalloc): returns machine word aligned pointers.  Actually,
+	the word size is assumed to be equal to or smaller than
+	sizeof(double). 
+
+Fri Mar 24 10:04:54 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* Makefile.in (GNU_HEADERS): Added new file behavior.h.
+	(GNU_CFILES): Added new file behavior.c.
+	* behavior.c, objects/behavior.h: New files.
+
+	* NSObject.m (retain): Call NSIncrementExtraRefCount(), not
+	NSShouldRetainWithZone(). (Of course!)  (Reported by Adam Fedor
+	<fedor@mode.Colorado.EDU>)
+
+	* Invocation.m (invoke): Fix typo.  (Reported by hjl@nynexst.com
+	(H.J. Lu).)
+
+Wed Mar 22 16:37:06 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_VERSION): Version 0.1.5.
+	(OBJECTS_FTP_DIRECTORY): Fixed for alpha.gnu.
+	Added many GNUSTEP files.
+
+	* checks/test06.m: Inherit from NSObject, not Object.
+	* checks/test13.m: Likewise.
+	* checks/server.h: Likewise.
+	* checks/server.m: Likewise.
+	* examples/first-server.h: Likewise.
+	* foundation/NSInvocation.h: Likewise.
+	* examples/second-server.h: Likewise.
+
+	* checks/client.m: Inherit from NSObject, not Object.  Don't free
+	connection object, release it.
+
+	* IndexedCollection.m: Cast aCollectionClass to (id) so we can
+	send NSObject protocol messages that aren't in Collecting.
+
+	* Stack.m (initialize): Return void.
+
+	* examples/port-client.m: Use @"" constant strings.
+	* examples/second-server.m: Likewise.
+	* examples/first-client.m: Likewise.
+	* examples/first-server.m: Likewise.
+	* examples/second-client.m: Likewise.
+
+	* checks/test03.m (main): Added some #if 0'ed out new tests.
+
+	* objects/CollectionPrivate.h (DeallocationHelpers): New category
+	containing _empty and _collectionDeallocate.
+
+	* BinaryCoder.m (encodeValueOfSimpleType:at:withName:): Use
+	#ifndef __CHAR_UNSIGNED__ to prevent compiler warning.
+
+	* Magnitude.m (compare:): Implemented.
+
+	* foundation/NSAutoreleasePool.h: Comment fixes.
+	* foundation/NSBundle.h: Likewise.
+	* foundation/NSException.h: Likewise.
+	* foundation/NSGeometry.h: Likewise.
+	* foundation/NSRange.h: Likewise.
+	* foundation/NSValue.h: Likewise.
+	* NSZone.c: Include objects/objc-malloc.  Likewise.
+	* objects/String.h: Additional comments.
+	* Invocation.m: Add header comment.
+
+	* foundation/NSArray.h (arrayWithObjects): Add missing s.
+
+	* NSBundle.m: Don't include NSObjectPrivate.h.
+
+	* SocketPort.m: Include objects/String.h.
+
+	* foundation/NSMethodSignature.h (argumentInfoAtIndex:): Comment
+        out for now.
+
+	* Set.m (_collectionDealloc): Fix super call.
+	* Dictionary.m (_collectionDealloc): Likewise.
+	* Array.m (_collectionDealloc): Likewise.
+
+	* RetainingNotifier.m (autorelease): Implemented.
+
+	* Collection.m (shallowCopyAs:, emptyCopyAs:, copyAs:): Change arg
+        type to (Class).
+	(dealloc, empty): Don't use safe version of makeObjectsPerform:.
+	(_empty, _collectionDealloc): Move to a category.
+
+	* objects/Collecting.h (shallowCopyAs:, emptyCopyAs:, copyAs:):
+        Change arg type to (Class).
+	* KeyedCollection.m: Likewise.
+
+	* foundation/NSObject.h (compare:, autoreleaseClass,
+	setAutoreleaseClass, read:, write:): Declare new category methods.
+
+	* NSObject.m (class): Fix return value.
+	(encodeWithCoder:) #ifdef out for now, until we fix compatibility with
+	GNU Coder.
+	(perform:with:): New method in NEXTSTEP category.
+
+	* objects/Coder.h (isProxy): Method removed from
+        NSObject(CoderAdditions).
+
+	* Proxy.m (zone): New method.
+	(isProxy): Remove method from NSObject category.
+	Don't include objects/AutoreleasePool.h.
+
+	* Coder.m (encodeSelector:withName:): Use sel_get_any_uid() to get
+	sel type if we can't get it the normal way.
+	(newWithCoder:):  Use NSAllocateObject.
+	(isProxy): Removed from NSObject category.
+
+	* objects/Collecting.h (releaseObjects, release): Methods removed.
+
+Sat Mar 18 10:38:06 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* NSObject.m (zone):  Implemented.
+
+	* Makefile.in (GNUSTEP_MFILES): New files NSAllocateObject.m,
+	NSBundle.m, NSCopyObject.m, NSDeallocateObject.m, NSException.m,
+	NSGeometry.m, NSNumber.m.
+	(GNUSTEP_HEADERS): New files foundation/NSBundle.h,
+	foundation/NSException.h, foundation/NSGeometry.h,
+	foundation/NSNumber.h.
+
+	* NSZone.c: Base on objc_malloc and friends, not malloc.  Reformat
+	header comment.
+
+	* NSAllocateObject.m, NSDeallocateObject.m, NSCopyObject.m: New
+	files. 
+	* NSObject.m (NSAllocateObject, NSDeallocateObject, NSCopyObject):
+	These functions moved to separate files.
+
+	* objc-malloc.c (objc_valloc): New function pointer.
+	(__objc_valloc): New function.
+	* objects/objc-malloc.h (objc_valloc): New function declared.
+	(OBJC_VALLOC): New macro.
+
+	* Proxy.m (dealloc): Call NSDeallocateObject().
+
+	* KeyedCollection.m (dealloc): Deleted.
+
+	* Dictionary.m (_collectionDealloc): Renamed from dealloc.
+	* Set.m (_collectionDealloc): Likewise.
+	* Array.m (_collectionDealloc): Likewise.
+
+	* Connection.m: Removed Object(Retaining) category.
+
+	* Set.m (_empty): Renamed from emtpy.
+	* LinkedList.m (_empty): Likewise.
+	* GapArray.m (_empty): Likewise.
+	* EltNodeCollector.m (_empty): Likewise.
+	* Dictionary.m (_empty): Likewise.
+	* CircularArray.m (_empty): Likewise.
+	* BinaryTree.m (_empty): Likewise.
+	* Bag.m (_empty): Likewise.
+	* Array.m (_empty): Likewise.
+
+Fri Mar 17 11:09:29 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Coder.m (dealloc): Remove unneccesary releaseObjects.
+	* EltNodeCollector.m (dealloc): Likewise.
+
+	* Collection.m: Rename method "empty" to "_empty".  Rename
+        "releaseObjects" to "empty".
+
+	* Set.m: Do retain/release/autorelease of contents as appropriate.
+	* BinaryTree.m: Likewise.
+	* CircularArray.m: Likewise.
+	* SplayTree.m: Likewise.
+	* RBTree.m: Likewise.
+	* LinkedList.m: Likewise.
+	* Heap.m: Likewise.
+	* GapArray.m: Likewise.
+	* Dictionary.m: Likewise.
+
+	* Proxy.m (autorelease): Ask NSObject for autoreleaseClass.
+
+Wed Mar 15 17:56:57 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* Array.m: Do retain/release/autorelease of contents as appropriate.
+	* Bag.m: Likewise.
+
+	* Makefile.in (DIST_FILES): Added gcc-class.patch and
+        gcc-string.patch.
+	(OBJECTS_GCC_VERSION): Changed from version 2.6.1 to 2.6.3.
+
+Tue Mar 14 11:50:23 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* objects/CollectionPrivate.h (RETAIN_ELT, RELEASE_ELT,
+        AUTORELEASE_ELT): New macros.
+
+Sun Mar 12 11:37:10 1995  Andrew McCallum  <mccallum@graphite.cs.rochester.edu>
+
+	* objects/stdobjects.h: Declare @class String;
+
+	* objects/Collecting.h (alloc, respondsToSelector:,
+        conformsToProtocol:) removed.
+
+	* objects/Connection.h: Use String* instead of char*.
+	* objects/SocketPort.h: Likewise.
+	* objects/Port.h: Likewise.
+	* Connection.m: Likewise.
+	* SocketPort.m: Likewise.
+	* Port.m: Likewise.
+	* checks/client.m, checks/server.m: Likewise.
+
+	* objects/IndexedCollecting.h (IndexRange): changed to
+        location/length from start/end.
+	* IndexedCollection.m: Use location/length instead of start/end.
+
+	* *.[hm]: Use `release' and `dealloc' instead of `free'.
+	* *.[hm] (initialize): return void.
+
+	* objects/Collecting.h: Use `release' and `dealloc' instead of `free'.
+	(write:, read:): Removed.
+	(respondsToSelector:, conformsToProtocol:) Renamed from old Object
+	method names to NSObject method names.
+
+	* NSZone.c: New file, renamed from zone.c.  Include
+	foundation/NSZone, not foundation/zone.h. 
+
+	* Makefile.in (GNU_MFILES): Remove AutoreleasePool.m,
+	AutoreleaseStack.m, ObjectRetaining.m.
+	(GNU_HEADERS): Remove AutoreleasePool.h, AutoreleaseStack.h,
+	ObjectRetaining.h
+
+	* checks/Makefile.in (string): New test program.
+
+	* objects/Coder.h: Changed superclass from Object to NSObject.
+	* objects/Collection.h: Likewise.
+	* objects/Stream.h: Likewise.
+	* objects/RNGAdditiveCongruential.h:
+	* objects/RNGBerkeley.h: Likewise
+	* objects/Random.h: Likewise.
+	* objects/Magnitude.h: Likewise.
+	* objects/RetainingNotifier.h: Likewise.
+	* objects/BinaryTreeNode.h: Likewise.
+	* objects/LinkedListNode.h: Likewise.
+	* objects/Lock.h: Likewise.
+
+	* objects/stdobjects.h: Include foundation/NSObject.h instead of
+        objc/Object.h.
+
+Sat Mar 11 16:39:18 1995  Andrew McCallum  <mccallum@tbird.cs.rochester.edu>
+
+	* Makefile.in (NEXTSTEP_MFILES): Renamed from NeXT_MFILES.
+	(NEXTSTEP_CFILES): Renamed from NeXT_CFILES.
+	(NEXTSTEP_OTHER_SRCFILES): Renamed from NeXT_OTHER_SRCFILES.
+	(GNUSTEP_MFILES, GNUSTEP_CFILES, GNUSTEP_HEADERS, GNUSTEP_OBJS): New
+	variables.
+	(GNU_MFILES): Added CString.m, ConstantString.m, MutableCString.m,
+	MutableString.m, String.m.
+	(GNU_HEADERS): Added String.h.
+	(GNUSTEP_HEADERS): Added NSAutoreleasePool.h, NSObjCRuntime.h,
+	NSString.h.
+	(DIST_FILES):  Added GNUSTEP files.
+	* configure.in: Renamed variables from NeXT... to NEXTSTEP.  Added
+	GNUSTEP variables.
+
+	* objects/ValueHolding.h (ValueSetting): Methods now return `void'
+        instead of `self'.
+
+	* foundation/NSZone.h: Renamed from foundation/zone.h.
+
+Thu Mar  9 15:05:45 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* zone.c, foundation/zone.h:  New files from Mark Lakata.
+	* Makefile.in (GNUSTEP_HEADERS): Added foundation/NSZone.h.
+
+Wed Mar  8 17:35:01 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* Coder.m: `CLASS' #define no longer necessary, using `Class'.
+	* Proxy.m: Likewise.
+	* Connection.m: Likewise.
+
+	* objects/stdobjects.h (CLASS): #define removed.
+
+	* objects/Proxy.h (class): use "Class" instead of "Class*" to
+        match new runtime.
+
+	* Makefile.in (GNUSTEP_HEADERS): New variable.
+	(DIST_FILES): Added GNUSTEP_HEADERS.
+	* configure.in: Likewise.
+
+	* configure.in: Renamed NeXT_HEADERS to NEXTSTEP_HEADERS.
+	* Makefile.in: Likewise.
+
+	* Makefile.in (NeXT_HEADERS): Move from objects/next-includes up
+        to top.
+	(OBJECTS_NEXT_INCLUDES): Look directly in top level directory.
+	(dist, mostlyclean, installdirs): Likewise.
+
+Sat Feb 11 16:20:49 1995  Andrew McCallum  <mccallum@mustang.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_VERSION): Version 0.1.4.
+
+Wed Feb  1 15:26:11 1995  Andrew McCallum  <mccallum@leopard.cs.rochester.edu>
+
+	* checks/test01.m: Use lrand48() instead of random() if
+        defined(__hpux).
+	* checks/test09.m: Likewise.
+	* checks/test04.m: Likewise.
+	(Patch from Timothy Mooney <mooney@golem.phys.ndsu.NoDak.edu>)
+
+Thu Jan 26 12:52:33 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* objc-gnu2next.m: Convert Class* to Class.
+	* Proxy.m: Likewise.
+	* Coder.m: Likewise.
+
+Fri Jan 13 12:57:50 1995  Andrew McCallum  <mccallum@moose.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_VERSION): Version 0.1.3.
+
+	* ConnectedCoder.m (newDecodingWithConnection:timeout:): On
+	timeout use objc_free to free the buffer.
+
+	* checks/client.m (main): Only release remote_peer_obj if it
+	really is a remote object.
+
+	* examples/second-client.m (main): Only free appellation string if
+        it's from a remote object.
+
+Mon Jan  9 12:14:03 1995  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* RetainingNotifier.m (autorelease): New (unimplemented) method.
+	(Reported by Peter Kristensen <pkr@kom.auc.dk>).
+
+Fri Jan  6 17:57:08 1995  Andrew McCallum  <mccallum@leopard.cs.rochester.edu>
+
+	* Makefile.in (DIST_FILES): Added file MACHINES.
+
+Tue Dec 13 11:53:54 1994  Andrew McCallum  <mccallum@mustang.cs.rochester.edu>
+
+	* Makefile.in (OBJECTS_VERSION): Version 0.1.2.
+
+	* Coder.m (Object (CoderAdditions)): Removed methods retainCount,
+	dealloc, release, retain.
+	* objects/Coder.h (Object (CoderAdditions)): Likewise.
+
+Mon Dec 12 14:13:58 1994  Andrew McCallum  <mccallum@leopard.cs.rochester.edu>
+
+	* Makefile.in (dvi): Now points at libobjects.dvi.
+	(libobjects.dvi): New target, disabled until texinfo.tex is fixed.
+
+Fri Dec  9 20:00:56 1994  Andrew McCallum  <mccallum@edsel.cs.rochester.edu>
+
+	* Makefile.in (ANNOUNCE): depends on news.texi.
+
+	* Makefile.in (version.texi): Output FTP vars only if non-empty.
+
+	* Makefile.in (OBJECTS_FTP_MACHINE,OBJECTS_FTP_DIRECTORY): New vars.
+	(version.texi): set OBJECTS_FTP_MACHINE and OBJECTS_FTP_DIRECTORY.
+
+	* Makefile.in (OBJECTS_VERSION): Bumped to 0.1.1.
+
+Wed Dec  7 12:59:32 1994  Andrew McCallum  <mccallum@vein.cs.rochester.edu>
+
+	* SocketPort.m: Include <sys/select.h> #if _AIX.  (Reported by
+	Todd B. Templeton <toddt@phelpsd.com>.)
+
+Sun Nov 20 19:19:13 1994  Andrew McCallum  (mccallum@mustang.cs.rochester.edu)
+
+	* Connection.m (connectionForward,connectionPerformAndDismissCoder): 
+	Removed old #if'ed-out versions.
+
+Mon Nov 14 10:58:46 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* objects/objc-gnu2next.h: (sel_get_uid): Fix typo.
+	(class_is_class, class_is_meta_class, object_is_class,
+	object_is_instance, object_is_meta_class): New functions.
+	The above from a patch by Matthias Klose <doko@cs.tu-berlin.de>
+
+Sun Nov 13 14:29:37 1994  Andrew McCallum  (mccallum@moose.cs.rochester.edu)
+
+	* Makefile.in (diff): Fix tar call.  Add proper arguments to diff.
+
+Thu Nov 10 16:51:48 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* news.texi (Noteworthy changes since version @samp{0.1.0}): New
+        section.
+
+	* Makefile.in (TAGS): Use DIST_FILES, not non-existant SRCS.
+
+Wed Nov  9 18:34:53 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* configure.in: Remove duplicate NeXT_runtime=0.
+
+Tue Nov  8 10:44:30 1994  Andrew McCallum  (mccallum@moose.cs.rochester.edu)
+
+	* libobjects.texi (Organization): Updated inheritance tree.
+	* checks/test12.m (main): Free "rng", not "r" twice.
+	* TextCoder.m (encodeName): Do right thing for NULL name.
+	(Above three reported by Stephen Peters <SPETERS@us.oracle.com>)
+
+	* Proxy.m (autorelease): New method.
+
+	* Time.m: Patch for Solaris 2.4.  Use times() instead of
+	getrusage().  (Patch from Stephen Peters <speters@us.oracle.com>)
+
+	* Makefile.in (GNU_MFILES,GNU_HEADERS): Added AutoreleasePool,
+	AutoreleaseStack and ObjectRetaining.
+
+	* AutoreleasePool.m: Removed retain_count stuff.  Now setting
+	autorelease_class.
+
+	* ObjectRetaining.m: Removed stack release code.
+	(autorelease_class): New variable.
+
+	* objects/Retaining.h (autorelease): New method.
+	Added comments.
+
+	* objects/objc-gnu2next.h: Moved Object(GNUExtentions) category
+        from stdobject.h to here.
+
+	* Makefile.in (DIST_FILES): Added README.ULTRIX.
+
+	* Makefile.in (install,installdirs,includedir): Make NEXT_HEADERS
+	install to proper place: objects/next-include/.
+
+Fri Nov  4 01:32:27 1994  Andrew McCallum  (mccallum@moose.cs.rochester.edu)
+
+	* Makefile.in (diff): New target.
+
+	* Makefile.in (ADVERTISEMENT): New target.
+
+	* Version 0.1.0 released.
+
+Thu Nov  3 19:20:28 1994  Andrew McCallum  (mccallum@mustang.cs.rochester.edu)
+
+	* Connection.[hm] (connectionForward:::): Added object argument.
+	Use selectorTypeForProxy: if defined (NeXT_runtime).
+	* Proxy.m (forward::): Added object argument to connectionForward.
+	(selectorTypeForProxy:):  Add an Object Category with this method.
+
+	* Coder.m (decodeName:): Terminate char* with 0.
+
+	* collhash.c:  Use objc_malloc and friends instead of
+	__objc_xmalloc and friends.
+
+	* StdioStream.m (writeBytes:length:): Use fwrite, not write.
+	(readBytes:length:):  Use fread, not read.
+
+Wed Nov  2 20:59:36 1994  Andrew McCallum  (mccallum@leopard.cs.rochester.edu)
+
+	* configure.in:  Updated for Autoconf 2.0
+	* Makefile.in (DIST_FILES): Changed install.sh to install-sh.
+	(distclean): Added config.log, config.cache.
+	(prefix, exec_prefix):  Updated for Autoconf 2.0
+
+Fri Oct 28 18:20:28 1994  Andrew McCallum  (mccallum@mustang.cs.rochester.edu)
+
+	* *.[hm]:  Change many "NeXT_cc" to "NeXT_runtime"
+	* Proxy.[hm]:  Add and use _method_types ivar if NeXT_runtime.
+	* objects/objc-gnu2next.h:  Many addtional functions #define'd.
+	* objc-gnu2next.m:  New file.
+	* Makefile.in (GNU_MFILES):  Added objc-gnu2next.m.
+
+	* BinaryCoder.m (encode,decodeValueOfSimpleType:...): Added code
+	to write to stream directly (i.e. it does its own architecture
+	independent coding).  This replaces previous messy code that
+	interfaced with the internals of GNU TypedStream's.
+	* Makefile.in (GNU_MFILES,GNU_HFILES): Removed bcoder-stream.[hm].
+
+Thu Oct 27 17:39:49 1994  Andrew McCallum  (mccallum@mustang.cs.rochester.edu)
+
+	* SocketPort.m (sendPacket:toPort:timeout:,
+	newRemoteWithNumber:onHost:): Added casts to (char*) to prevent
+	warnings on systems that don't have "const" on args to
+	gethostbyname() and sendto().
+
+	* ConnectedCoder.h:  New #define's METHODTYPE_REQUEST,
+	METHODTYPE_REPLY. 
+	* Connection.m (_typeForSelector:remoteTarget:): New method.
+	(_handleMethodTypeRequest:): New method.
+	(doReceivedRequestsWithTimeout:): Watch for METHODTYPE_* msgs.
+	(newReceivedReplyRmcWithSequenceNumber:): Likewise.
+	* Proxy.m (selectorTypeForProxy:):  New method.
+	* Proxy.h (_method_types):  New instance variable.
+
+	* mframe.[hm], mtypes.[hm]: New files.
+	* Makefile.in (GNU_MFILES):  Added mframe.m
+	(GNU_HFILES): Added mframe.h.
+	(GNU_CFILES): mtypes.c.
+	(GNU_OTHER_SRCFILES): Added mtypes.h.
+	* Connection.m (connectionForward,connectionPerformAndDismissCoder):
+	Use functions in mframe.m instead of previous DO-specific method
+	frame code.
+
+Mon Oct 24 18:41:35 1994  Andrew McCallum  (mccallum@leopard.cs.rochester.edu)
+
+	* configure.in: Added AC_HEADER_CHECK for sys/rusage.h and
+	ucbinclude/sys/resource.h needed in Time.m on various SYSV
+	systems. 
+
+	* *.[hm]: Changed method name encodeType: to encodeValueOfType:.
+	Likewise for decodeType and SimpleType method names.
+
+	Makefile.in (GNU_OTHER_SRCFILES):  Removed bzero.c.
+	(DIST_FILES):  Added README.BZERO.
+	configure.in:  Removed bzero stuff.
+
+Thu Oct 20 13:10:50 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* IndexedCollection.m (putElement:atKey:): New method, needed for
+	KeyedCollecting protocol.  (reported by Niels Mvller
+	<nisse@lysator.liu.se>) 
+
+Wed Oct 19 19:35:32 1994  Andrew McCallum  (mccallum@zebra.cs.rochester.edu)
+
+	* configure.in: Look for libraries "socket" and "nsl", needed for
+	the distributed objects check/example programs on Solaris machine.
+
+	* checks/test01.m,test04.m,test09.m: Use lrand48 instead of random
+	if on Solaris machine.
+
+Tue Oct 18 10:27:29 1994  Andrew McCallum  (mccallum@graphite.cs.rochester.edu)
+
+	* Set.[hm] (*WithCollection:): Renamed from *With:.
+
+	* *.[hm]: Changed method name "initCapacity" to
+	"initWithCapacity".  Changed method names "...Encoding:" to
+	"...(With)Type:" to match Coder method names.
+
+Fri Oct  7 17:08:57 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* DelegatePool.[hm], Makefile.in:  Renamed "DelegateList" to
+	"DelegatePool" to avoid false association with List object.
+
+Thu Sep 22 10:06:19 1994  Andrew McCallum  (mccallum@llama.cs.rochester.edu)
+
+	* configure.in: Check for bzero, and include bzero.o in the
+	library if not.  (This works around a bug in libobjc.)
+	* Makefile.in (GNU_OBJS): Added @BZERO@.
+	(GNU_OTHER_SRCFILES): Added bzero.c.
+
+	* *.m: Added methods for Coding where necessary; a few just send
+	-notImplemented: for now.
+
+Tue Sep 20 20:11:57 1994  Andrew McCallum  (mccallum@llama.cs.rochester.edu)
+
+	* objects/ValueHolding.h: Divided ValueHolding protocol into
+	ValueGetting and ValueSetting.
+
+	* GCC-BUGS, CREDITS: new files.
+	* Makefile.in (DIST_FILES): Added GCC-BUGS, CREDITS.
+
+Mon Sep 19 14:42:26 1994  Andrew McCallum  (mccallum@llama.cs.rochester.edu)
+
+	* LinkedList.m (successorOfElement,predecessorOfElement): return
+	nil when there is no such element because arg was first or last in
+	list; previously it raised an error.
+
+Mon Sep 12 18:54:47 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* HashTable.[hm]: Changed GNUHashState to NXHashState.
+
+Tue Sep  6 21:11:38 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* LinkedList.m, LinkedListNode.m EltNode-m: Added methods for
+	Coding.
+
+Sat Aug 20 18:34:38 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* examples/*: Added example files: Makefile.in, dictionary.m,
+	port-server.m, port-client.m, first-server.[hm], first-client.m,
+	second-server.[hm], second-client.[hm], textcoding.m
+
+Fri Aug 19 18:39:06 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collection.m, Set.m: Added new methods for Coding.
+
+	* Makefile.in: Include new files in the distribution.  Add new
+	classes: Stream, StdioStream, MemoryStream, Coder, TextCoder,
+	BinaryCoder, Port, SocketPort, Connection, Proxy, ConnectedCoder,
+	Lock, RetainingNotifier.  New protocols: Coding, Retaining,
+	Locking.  New text files: announce.texi, ANNOUNCE, readme.texi,
+	README.
+
+Thu Aug 11 12:30:20 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* checks/Makefile.in (CC): Changed from gcc to @CC@.
+
+	* CircularArray.m (insertElement:atIndex:): Swapped order of
+	incrementCount and CIRCULAR_TO_BASIC.  (Test case crash reported
+	by Matthias Klose <doko@cs.tu-berlin.de>.)
+
+Wed Aug 10 12:30:45 1994  Andrew McCallum  (mccallum@raccoon.cs.rochester.edu)
+
+	* Makefile.in: Defined GNU_MFILES, NeXT_MFILES, GNU_CFILES,
+	NeXT_CFILES, GNU_HEADERS, NeXT_HEADERS, GNU_OTHER_SRCFILES,
+	NeXT_OTHER_SRCFILES. Removed *OFILES.  Renamed DISTFILES to
+	DIST_FILES.
+
+Tue Aug  9 15:21:43 1994  Andrew McCallum  (mccallum@mink.cs.rochester.edu)
+
+	* Changed name to libobjects.  All files changed accordingly.
+	
+	* Makefile.in (DISTFILES):  Added install.sh.
+
+Mon Aug  8 13:15:46 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Makefile.in (GOBJC_HDRS): Removed gobjc/ReferenceCounting.h.
+	Will be replaced by Retaining protocol.
+
+Sun Aug  7 17:13:08 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* config.nextcc.h: Created.
+	* configure.in: Update to use config.nextcc.h, define NeXT_cc
+	instead of NXcc.
+	Flipped the logic on NeXT32plus. (Reported by Matthias Klose
+	<doko@cs.tu-berlin.de>)
+
+	* Time.[hm]: Hack to make it work with Solaris rusage.
+
+Fri Jul 22 11:41:32 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Makefile.in (dist): Makefile.depend and Makefile.local forced to
+	be empty files by touch.
+
+Sat Jul 16 13:18:10 1994  R. Andrew McCallum  (mccallum@ngoma)
+
+	* configure.in: Define NXcc if using NeXT's cc.  Sources
+	#ifdef'ing (NeXT) don't	distinguish between NeXT cc and gcc on a
+	NeXT. 
+	*.[hm]: Change #ifdef (NeXT) to #ifdef (NXcc)
+
+	* Makefile.in:  include Makefile.local.
+	* zone.c, gobjc/next-includes/zone.h: New files.
+
+Wed Jul  6 16:23:16 1994  Andrew McCallum  (mccallum@swan.cs.rochester.edu)
+
+	Changed name to from libcoll to libgobjc:
+	* All files: Changed name to "GNU Objective-C Class Library" in all
+	header comments.
+	* gobjc: Renamed coll to gobjc.
+	* gobjc/stdgobjc.h: Renamed from coll/collstd.h.  Removed some
+	declarations that were already in gobjc/objc-malloc.h.
+	* gobjc/next-includes/objc: Created
+	* gobjc/next-includes/objc/
+	{List.h,HashTable.h,Storage.h,NXStringTable.h}: Moved from gobjc.
+	* Makefile.in: Names changed from libcoll to libgobjc.
+	* gobjc/next-include/objc/*.h: Look in objc instead of coll.
+
+	* gobjc/next-include/objc/List.h:  Changed GNU_ to NX_.
+
+Tue Jul  5 15:51:58 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Storage.m (_makeRoomForAnotherIfNecessary): Added self-> to find
+	ivar in assert() call.  Reported by ratlifc@ctron.com (Christian
+	A. Ratliff).
+
+Tue Jun  7 16:21:57 1994  Andrew McCallum  (mccallum@raccoon.cs.rochester.edu)
+
+	* List.m (incrementCount): Compare numElements and maxElements by
+	>= instead of ==.  (Reported by Paul Kunz.)
+
+Fri Jun  3 13:26:42 1994  Andrew McCallum  (mccallum@zebra.cs.rochester.edu)
+
+	* LinkedList.m (successorOfElement:,predecessorOfElement:): Added. 
+	* (removeElementAtIndex:): Return old element.
+	(Both reported by nisse@lysator.liu.se)
+
+Tue May 24 10:13:38 1994  Andrew McCallum  (mccallum@brain.cs.rochester.edu)
+
+	* coll/objc-gnu2next.h (objc_read_types): Removed ## from
+	NXWriteTypes() and NXReadTypes().  -cpp-traditional doesn't like
+	it, and 'args' should never be emtpy anyway.  (Reported by Stefan
+	Reich <reich@wmax60.mathematik.uni-wuerzburg.de>)
+
+	* checks/Makefile.in (LIBS): Removed -lobjc, added LIBOBJC, made
+	it conditional on NeXT cc test from configure.in.  
+
+	* configure.in:	Added LIBOBJC substitution.
+
+	* collstd.m: Added missing semicolon to coll_NeXT_cc_version line.
+
+	* Storage.m (_makeRoomForAnotherIfNecessary): Added assert()
+	checking for non-zero maxElements.
+
+	* Makefile.in (install): Changed HDRS to INSTALLHDRS.  (Reported
+	by Matthias Klose <doko@cs.tu-berlin.de>)
+
+Mon May  9 18:30:05 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Storage.m (initCount:elementSize:description):  Make sure
+	maxElements >= 1.  (Reported by Paul Kunz.)
+
+	These from Kresten Thorup:
+	* collstd.[hm] (#if NeXT): Added @interface/@end.  Added
+	-shouldNotImplement:.
+	* configure.in, collstd.m:  Changed NX_COMPILER_RELEASE to
+	NX_CURRENT_COMPILER_RELEASE.
+
+Sun May  8 19:40:40 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* configure.in: Added check for nested function support.
+	* config.nested.c:  Created.
+
+	* Makefile.in: Removed "-include Makefile.depend".  Removed
+	"-include Makefile.local".
+
+	* List.m (removeObjectAt:): Now returns old object.  (Reported by
+	Paul Kunz.)
+
+Fri May  6 11:11:17 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* collstd.[hm]: Defined coll_NeXT_cc_version.
+	* checks/test11.m:  Modified from NXStringTable test code provided
+	by <fedor@focus.Colorado.EDU>
+	* checks/Makefile.in:  Added test11.m, NXStringTable.example.
+	* Makefile.in:  Added support for NXStringTable_scan.lex
+	* eltfuncs.m (elt_get_encoding):  Fixed bug by adding char_ptr_u.
+	(__init_comp_func_hashtable():  Passing elt_{hash,compare}... to
+	coll_hash_new.
+
+Thu May  5 09:47:08 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Makefile.in, configure.in: Automatically check if using NeXT's
+	compiler.  If so, add -cpp-traditional, don't compile or install
+	NeXT compatibility classes.  If not, compile and install NeXT
+	compatibility classes.  MAKEDEFINES now includes $(INCLUDEFLAGS).
+
+	* StringTable*: Changed name to NXStringTable*.
+
+	* collstd.[hm]:  #ifdef NeXT -compare:.  Added.
+
+	* eltfuncs.m:  Changed to use coll/collhash.[hc] instead of
+	objc/hash.[hc].  Added (void*) casts to __objcx[mc]alloc.
+
+Tue May  3 14:09:03 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Makefile.in: Removed Makefile.depend target.
+
+Tue Apr 19 17:55:45 1994  Andrew McCallum  (mccallum@zebra.cs.rochester.edu)
+
+	* Storage.m (initCount:elementSize:description, setNumSlots):
+	Clear the allocated memory.  Patch contributed by Adam Fedor
+	<fedor@focus.Colorado.EDU>
+
+	* List.m (addObject:): Now calls insertObject:at:, as does NeXT's.
+	(removeLastObject):  Now calls removeObjectAt:, as does NeXT's.
+
+	The following are minor changes to enable compilation with
+	NeXTSTEP 3.3 cc.  Thanks to Kresten Krab Thorup.
+
+	* Collection.m (allocCopy): #ifdef NeXT object_copy takes 2 args.
+	* DelegateList.m (+initialize):  Added.
+	* eltfuncs.m: Define _C_ATOM.  Fix hash function types.  #ifdef
+	NeXT add definitions for assert, objc_fatal, __objc_xmalloc,
+	__objc_xcalloc. 
+
+Sat Feb 26 11:39:26 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* DelegateList.[hm] (delegateListCollection):  Changed name from
+	delegateListList.  Changed because what's returned is not a List.
+	(delegateListAddObjectIfAbsent:)  Created.
+
+Fri Jan 21 13:29:48 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collection.m (safeWithElementsCall:,
+	safeWithElementsCall:whileTrue:): Removed extra -addContentsOf:.
+	(Reported by Allan Clearwaters <allan%mct.uucp@britain.eu.net>)
+
+Fri Dec 17 14:45:30 1993  Andrew McCallum  (mccallum@raccoon.cs.rochester.edu)
+
+	* List.m (insertObject:at:): Fixed bug that occured when trying to
+	insert at index zero on an empty list.  (Reported by Paul Kunz)
+
+Tue Nov 16 18:40:12 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collecting.h, Collection.m, *.m: Renamed -includesSameContents:
+	to -contentsEqual:.  "Equal" reminds the programmer that "isEqual"
+	is called on content objects.  I think "Same" is used by Brad
+	Cox's code to mean something different from "isEqual".  Later we
+	could add "contentsSame:" if it proves useful.  Don't use
+	"includes" because programmers might think that we are talking
+	about a subset operation here---no this method tests for complete
+	membership equality.
+	IndexedCollecting.h, IndexedCollection.m:  Renamed
+	-includesSameContentsInOrder: to -contentsEqualInOrder:.
+
+	Collection.m (isEqual:): Removed.  Now we just let Object take
+	care of equality testing.  If you want to test equality of
+	contents, use -hasEqualContents:.
+
+Thu Nov 11 17:01:37 1993  Andrew McCallum  (mccallum@llama.cs.rochester.edu)
+
+	* coll/KeyedCollecting.h, KeyedCollection.m: Changed
+	-insertObject:atKey: to putObject:atKey:.  In KeyedCollection
+	"insert" doesn't really insert.  If there already an object at
+	that key, it replaces.  But we can't use replace because there
+	might not be an object at that key yet.  "Insert" was a bad name
+	because the method replaces an element if there already is one at
+	that key.  "Put" is different from "replace" because "put" can
+	place elements at keys that don't already have elements associated
+	with them.  This naming scheme also has the advantage that we can
+	later use "insertObject:atKey: for a collection that allows
+	multiple elements at a single key.
+
+	* Makefile.in, coll/collstd.h, collstd.m:  Moved version
+	information from version.c to collstd files.
+	(version.c):  Removed.
+
+	* Time.m:  (indexOf...Name, nameOf...Index):  Implemented.
+
+Wed Nov 10 13:36:06 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collection.m: (-includesSameContents:):  Added a check for same
+	comparisonFunction.
+	(-compare:):  Implemented.
+
+	* IndexedCollection.m (-indexOfFirstIn:, -indexOfFirstNotIn:):
+	Implemented. 
+
+	* readme.texi, news.texi: Created.  Changed Makefile to	support
+	these. 
+
+	* checks, checks/Makefile.in: Renamed tests directory to checks.
+	Created autoconf Makefile.in for checks directory.
+
+Wed Nov  3 10:27:52 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* coll/Collecting.h: (newEnumState, freeEnumState:)  Added.  Now
+	we can avoid memory leaks.  Later we can built an Iterator class
+	on top of these methods if we like.
+	*.m: Make use of new enum state methods.
+
+	* IndexedCollection.m (indexOfFirstDifference:)  Implemented.
+
+Tue Nov  2 13:40:34 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* RBTree.m (removeElement:,_RBTreeDeleteFixup): Added.  RBTree
+	should now be operational.
+
+	* BinaryTree.m, RBTree (nilNode): Added.  Now using this sentinal
+	to make a few operations more efficient.
+
+Mon Nov  1 15:07:48 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* *.m: Made sure all function pointers are dereferenced when
+	called. 
+
+	* SplayTree.m (-splayNode:, -sortAddElement:byCalling:,
+	-insertElement:after:, -insertElement:before:,
+	-insertElement:atIndex:, -removeElement:,
+	-_doSplayOperationOnNode:): Added.  SplayTree should now be
+	operational. 
+
+	* eltfuncs.m (elt_fprintf_elt): Now passing "l" when fprintf'ing
+	...  long elements.
+
+	* coll/CollectionPrivate.h (RETURN_BY_CALLING_EXCEPTION_FUNCTION):
+	No longer uses __builtin_apply and __builtin_return unnecessarily.
+
+Sun Oct 31 12:34:55 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* BinaryTree.m (-leftRotateAroundNode:, -rightRotateAroundNode:):
+	Fixed bug occurring when rotation child is nil.
+	(rootNode): Added.
+
+	* Collection.m, KeyedCollection.m, IndexedCollection.m
+	(-...Object:...):  Added CHECK_CONTAINS_OBJECTS_ERROR;
+
+Fri Oct 29 14:22:41 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* KeyedCollection.m, Collection.m: Removed use of LAMBDA().
+
+Thu Oct 28 15:44:23 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* coll/Time.h:  Removed <Ordering> from @interface line.
+
+Tue Oct 26 8:32:48 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Released version 931026.
+
+Mon Oct 25 12:41:28 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* coll/*Collecting.h:  Removed shallowCopy... methods with weird
+	options.  These can be done easily and more flexibly with
+	enumerations. 
+
+	* coll/*Collecting.h, *Colletion.m: Removed definition and use of
+	COLL_NO_ELEMENT, COLL_NO_OBJECT, COLL_NO_KEY, COLL_NO_INDEX.
+	Added ...ifAbsentCall: methods to replace this functionality.
+
+	* coll/Collecting.h, Collection.m: ...AllOccurrences... methods
+	now return self. 
+
+Thu Oct 21 17:41:49 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* libcoll.texi: Created.
+
+Tue Oct 19 10:25:34 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* coll/Collecting.h: Changed method name -freeContents to
+	-freeObjects.  Both names are pretty clear, and the later has the
+	advantage of compatibility with NeXT.  
+
+	* coll/Collecting.h: Changed method name -containsObjects to
+	-contentsAreObjects.  The previous name could be interpretted as
+	testing whether or not the collection was empty; in fact this
+	method just tests whether or not the collection was initialized to
+	hold objects (i.e.  initEncoding:@encode(id)).
+
+	* coll/collstd.h:  Added #define's for defining nested functions
+	in the argument position:  LAMBDA, LAMBDA_VOID_PERFORM,
+	LAMBDA_ID_PERFORM, LAMBDA_BOOL_PERFORM.
+
+	* coll/Collecting.h, KeyedCollecting.h, IndexedCollecting.h:
+	Removed many methods for various combinations of perform:,
+	perform:with:, perform:in, perform:in:with:.  All these can now be
+	replaced with ...ByCalling: methods now that we can easily define
+	nested functions with the LAMBDA macro's.  These methods really
+	ballooned the size of the protocols, and they still didn't provide
+	all the potentially useful conbinations.  This new scheme is far
+	more flexible.  I left the -makeObjectsPerform: and
+	-makeObjectsPerform:with: for compatibility with NeXT.
+
+Mon Oct 18 15:18:01 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* eltfuncs.m: Fixed overflow bug in compare functions.
+
+Fri Oct  8 11:47:56 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* List.m (replaceObjectAt:): Now returns oldObject.
+	(makeObjectsPerform:with:): Now uses perform:with:.
+	Removed -sortUsingMethod:inObject:.
+
+	* coll/SortedArray.h: removed.
+
+Thu Sep 30 10:52:14 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* List.m (makeObjectsPerform:, makeObjectsPerform:with:):  Removed
+	dependence on _makeObjects...:reverseOrder:.  Using #if instead.
+
+	* Bag.m (removeElement:occurrences:):  Added.  Bag will now cause
+	error if you try to remove an element that's not there, or not
+	there enough times.
+
+Tue Sep 28 11:49:42 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* List.m, Storage.m:  Now use objc_malloc/OBJC_MALLOC and friends
+	instead of malloc and friends.
+
+	* Makefile.in, configure.in:  Created.  Now libcoll works with
+	autoconf.  Also made some changes to *.m to take advantage of
+	autoconf.
+
+	* collstd.m:  Changed definition of free().  (thanks to
+	krab@iesd.auc.dk) 
+
+Mon Sep 27 09:59:25 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Bag.m (-uniqueCount): Added.
+
+	* HashTable.m (-initKeyDesc:valueDesc:capacity:)  Increased
+	portability for {long, unsigned} ints.
+
+	* IndexedCollecting.h, IndexedCollection.m:  Added
+	-safe...InReverse methods. 
+
+	* List.m (copy):  Added.  In order to force -shallowCopy for
+	compatibility with NeXT.
+
+	* collhash.[hc] (coll_hash_empty): Added.
+
+	* Collecting.h, Collection.m:  (-safe...) Added these enumerators
+	for doing enumerations while changing the contents of the
+	collection.
+
+	* Collecting.h, Collection.m:  (-initWithContentsOf:) Added.  This
+	allows for certain efficiencies, like init'ing an Array with the
+	needed capacity from the start.
+
+Sat Sep 25 12:20:18 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collection.m, KeyedCollection, IndexedCollection.m:  Extracted
+	message -comparisonFunction from inside loops to improve
+	efficiency. 
+
+	* Collecting.h, Collection.m:  Removed the -shallowCopySelect...,
+	etc methods and replaced them with -withElementsTrueBy..., etc
+	methods.  These shallowCopy methods make lots of sense in
+	SmallTalk where garbage collection makes enumeration on
+	temporary collections useful for iteration, but in ObjC I think
+	methods with a little more flexibility would be more helpful.  I
+	also wanted to add more options to those {select,reject,collect}
+	methods: 1) the option of deep or shallow copies, 2) the option of
+	changing the class of the new copy.  But if done in the old
+	framework this would have exploded the number of methods.  The new
+	framework allows all the old functionality, plus the new options,
+	plus the option to do something useful without creating a new
+	collection. 
+
+Tue Sep 21 11:52:46 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* *.m:  Added -emptyCopy based on -allocCopy.  Subclasses override
+	to take care of instance vars that must change.
+
+	* Collecting.h, Collection.m:  Changed -addCount:... to
+	-addObjectsCount:... and -addElementsCount:...
+
+Mon Sep 20 17:05:10 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* *.[hm]:  Added code for archiving:  -write:, writeInit:,
+	writeContents:, -read:, readInit:, readContents:.  I'm not sure
+	this division of labor is the best.  I'm open to suggestions for
+	different implementations. 
+
+	* *.[hm]:  Changed all instances of the word "description" to
+	"encoding".  Objective-C already uses @encode() for these things.
+	We shouldn't introduce new vocabulary for refering to the same
+	thing. 
+
+	* *.[hm]:  Removed methods that allowed specification of
+	comparison function independent of encoding.  This will allow us
+	to archive the comparison function by archiving the encoding.
+	Most people will be able to get custom comparisons by overriding
+	-compare:.  If you really, really need some new weird comparisons
+	for non-objects, you can still subclass the collection and
+	override -comparisonFunction.  If people think that we will want
+	to want custom comparisons of non-objects *very often*, then we
+	come up with another scheme that still allows meaningful archiving
+	of comparison functions.
+
+Sun Sep 19 19:30:02 1993  Andrew McCallum  (mccallum@swan.cs.rochester.edu)
+
+	* coll/eltfuncs.[hm]:  Created.  Moved functions for manipulating
+	elt's from CollectionPrivate.h to eltfuncs.h.  This makes elt a
+	little more separate from libcoll, so others can use it too.  I
+	changed the prefix on the names accordingly from coll_ to elt_.
+	Also, added function for getting encoding from comparison
+	function.  Also, declared all elt_compare_ and elt_hash_ functions
+	extern.
+
+Thu Sep  9 09:49:29 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* LinkedListEltNode.[hm], BinaryTreeEltNode.[hm],
+	RBTreeEltNode.[hm]:  Created these files and moved EltNode code
+	into them.  This cleanly separates the basic LinkedList code from
+	the EltNodeCollector stuff (and similarly for BinaryTree and
+	RBTree).  The EltNode stuff strikes me as being a little messy;
+	with this separation we can easily replace it later with something
+	cleaner (if we can think of something cleaner).
+
+	* elt.h, *.m:  Changed elt union names from *_t to *_u, following
+	suggestion of Burchard:  *_t should be reserved for type names.
+
+Tue Aug 31 11:40:29 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Storage.[hm], List.[hm]:  Removed many extra features that
+	aren't in the NeXT implementations.  Our goal for these NeXT-based
+	objects should be compatibility, not kitchen-sink features.  Let
+	people add features in Categories if they need them.
+
+	* Storage.[hm]:  Fixed return type for -removeLastElement to match
+	NeXT.  Unfortunately this conflicts with the IndexedCollecting
+	declaration (NeXT's returns self, IndexedCollecting returns the
+	removed element).  I really think methods that remove elemements
+	should return that element.  We're just going to have to live with
+	this conflict.
+
+	* Storage.[hm]:  Changed declaration of instance var 'dataPtr'
+	from void** to void*, to match NeXT.
+
+	* IndexedCollecting.h, IndexedCollection.m:  Added -sortContents;
+
+Thu Aug 26 17:47:59 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* List.m:  Changed default order of -makeObjectsPerform... and
+	fixed comment to match NeXTSTEP reality.
+
+Wed Jul 10 14:38:23 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* BinaryTree.m, RBTree.m, EltNodeCollector.[hm]:  Created.
+
+Wed Jun  2 11:48:08 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* IndexedCollecting.h:  Added
+		- successorOfObject: anObject;
+		- predecessorOfObject: anObject;
+		- (elt)	successorOfElement: (elt)anElement;
+		- (elt) predecessorOfElement: (elt)anElement;
+
+	* BinaryTree.h, RBTree.h:  Created.
+
+Mon May 31 13:33:42 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Time.[hm]:  Threw a Time object I wrote a while ago into the
+	.tar file.  Maybe someone will find it useful.  
+
+	* IndexedCollecting.h, IndexedCollection.m:  Added methods:
+	- (unsigned) indexOfFirstDifference: (id <IndexedCollecting>)aColl;
+	- (unsigned) indexOfFirstIn: (id <Collecting>)aColl;
+	- (unsigned) indexOfFirstNotIn: (id <Collecting>)aColl;
+	They fit well with desired functionality for Strings, but may also
+	be generally useful.
+
+	* Created preliminary String class.  It's very preliminary; I just
+	want to see how it will fit with IndexedCollecting.
+
+	* Overhauled instance variables in heirarchy.  Removed all 
+	instance variables from abstract superclasses.  This makes
+	subclassing an abstract superclass a bit more of a pain, but it
+	helps keep memory requirements down, especially for String,
+	LinkList and all IndexedCollections.
+
+Sat May 29 11:27:01 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* IndexedCollection.m: Made cast of void* to unsigned more
+	portable.
+
+Fri May 28 17:00:14 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* IndexedCollecting.h, IndexedCollection.m:  Added
+	-insertContentsOf:atIndex: modified from Kresten Krab Thorup.
+
+	* Collecting.h, Collection.m:  Added {Object,Element} to inject,
+	detect, max and min methods.
+
+Wed May 26 12:20:21 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Overhauled error generation.  Changed #define's so error
+	generation is easier to change again later, if necessary.  Error
+	methods now have forwarding capability.  See CollectionPrivate.h,
+	Collection.m, IndexedCollectionPrivate.h, IndexedCollection.m.
+
+	* *.m:  Fixed many small bugs found with -Wall.
+
+	* Created Heap object.
+
+	* Collection.m:  Fixed -includesSameContents.
+
+	* Collecting.h, Collection.m:  Added -isSubsetOf: as written by
+	Kresten Krab Thorup.  Removed -includesSubsetOf:.
+
+Tue May 25 14:14:33 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Removed ComparedCollecting protocol.  Its only purpose was to
+	allow the user to manage a comparison function---this was silly,
+	though, because there already was a comparison function inherited
+	from Collection!  No need to have two of them.  Now that there is
+	a general interface for user-specified comparison functions, we 
+	don't need the ComparedCollecting methods.  This is a big help
+	because we no longer have the problem of trying to combine a
+	ComparedCollection class and Array class with some ugly multiple
+	inheritance issues.  One disadvantage, however, is that it is 
+	slightly more complicated to specify a comparator that is a
+	selector. 
+
+	* Overhauled comparison and hash functions.  More changes than I
+	want to describe in detail here...  1) Created temporary versions
+	of hash.[hc] that do what I want, hopefully Kresten's new versions
+	of hash.[hc] will do something like this.  Created collhash.[hc].
+	2) Added -init... methods that allow the users to specify their own
+	comparison and hash functions instead of accepting the defaults.
+
+Mon May 24 10:46:21 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collecting.h, Collection.m: Removed -initWith:,... and
+	-initDescription:with:,... methods.  I don't want to add ..with:
+	version of all -init... methods.  People can use addCount,...
+	instead. 
+
+	* Created IdListLink.[hm].  Changed -linkClass in ListedList.m to
+	return [IdListLink class] if LinkedList contains objects.
+
+	* Collecting.h, elt.h: Moved definition of elt union to
+	<coll/elt.h> 
+
+	* List.m:  -isEqual: now checks [List count] at beginning.
+
+	* List.m:  -empty no longer realloc()'s. (for compatibility with
+	NeXT.)
+
+	* List.[hm]:  Added 
+	- makeObjectsPerform:(SEL)aSel reverseOrder:(BOOL)flag;
+	- makeObjectsPerform:(SEL)aSel with:anObject reverseOrder:(BOOL)flag;
+	and changed -makeObjectsPerform: and -makeObjectsPerform:with: to
+	call them.  This gives the option of compatibility with
+	pre-NeXTSTEP 3.0 List's.
+
+Sat May 22 13:53:25 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* Collection.m, Collecting.h: Changed type of initialArg from
+	void* to elt in inject.. methods. 
+
+Fri May 21 18:52:03 1993  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
+
+	* First alpha release announced on gnu-objc@prep.ai.mit.edu
+

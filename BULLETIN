@@ -1,0 +1,138 @@
+* GNU Objective C Class Library
+
+The GNU Objective C Class Library (libobjects) is a library of
+general-purpose, non-graphical Objective C objects written by
+R. Andrew McCallum and designed in the Smalltalk tradition.  It
+includes collection objects for maintaining groups of objects and C
+types, byte streams for I/O to various destinations, coders for
+formating objects and C types to byte streams, ports for network
+packet transmission, remote object messaging support, pseudo-random
+number generators, and time handling facilities.
+
+
+* GNU Objective C Class Library
+
+The GNU Objective C Class Library (libobjects) is a library of
+general-purpose, non-graphical Objective C objects designed in the
+Smalltalk tradition.  It includes collection objects for maintaining
+groups of objects and C types, byte streams for I/O to various
+destinations, coders for formating objects and C types to byte
+streams, ports for network packet transmission, remote object
+messaging support, pseudo-random number generators, and time handling
+facilities.  It is being written by R. Andrew McCallum.
+
+
+* GNU Objective C Class Library (libobjects)
+
+R. Andrew McCallum is writing the GNU Objective C Class Library, a
+library of general-purpose, non-graphical Objective C objects designed
+in the Smalltalk tradition.  It includes collection objects for
+maintaining groups of objects and C types, byte streams for I/O to
+various destinations, coders for formating objects and C types to byte
+streams, ports for network packet transmission, remote object
+messaging support, pseudo-random number generators, and time handling
+facilities.  It is being written by R. Andrew McCallum.
+
+
+* GNU Objective C Class Library
+
+The GNU Objective C Class Library (@code{libobjects}) is a library of
+general-purpose, non-graphical Objective C objects written by
+R. Andrew McCallum.  It includes collection objects for maintaining
+groups of objects and C types, streams for I/O to various
+destinations, coders for formating objects and C types to streams,
+ports for network packet transmission, distributed objects (remote
+object messaging), pseudo-random number generators, and time handling
+facilities.  Contact @samp{mccallum@gnu.ai.mit.edu}.
+
+
+
+* GNU Objective C Class Library
+
+The GNU Objective C Class Library (libobjects) is a library of
+general-purpose, non-graphical Objective C objects written by
+R. Andrew McCallum.  What `libg++' is to GNU's C++, `libobjects' is to
+GNU's Objective C.
+
+The library features collection objects for maintaining groups of
+objects and C types, byte streams for I/O to various destinations,
+coders for formating objects and C types to byte streams, ports for
+network packet transmission, remote object messaging support,
+pseudo-random number generators, and time handling facilities.
+
+The heirarchy of collection objects are similar in spirit to
+Smalltalk's collections.  A deep inheritance heirarchy provides good
+uniformity of access to members across different collection classes.
+All collections can hold simple C types such as int's and floats, as
+well as Objects.  The collection classes include simple collections
+(Set, Bag), collections with contents accessible by unordered keys
+(Dictionary, MappedCollector), collections with ordered contents
+(Array, LinkedList, BinaryTree, RBTree, SplayTree).  There is also a
+DelegatePool object that can forward messages it receives to an
+arbitrary number of Delegates.
+
+Stream objects provide a consistent interface for reading and writing
+bytes.  `StdioStream' objects work with files, file descriptors, FILE
+pointers and pipes to/from executables.  `MemoryStream' objects work
+with memory buffers.  There are methods for writing arbitrary n-length
+buffers, newline-terminated lines, and printf-style formated strings.
+
+Coders provide a formatted way of writing to Streams.  After a coder
+is initialized with a stream, the coder can encode/decode Objective C
+objects and C types in an architecture-independent way.  The currently
+available concrete coder classes are `BinaryCoder', for reading and
+writing a compact stream of illegible bytes, and `TextCoder', for
+reading and writing human-readable text (which you can also process
+with `perl', `awk', or whatever scripting language you like).
+
+Coders and streams can be mixed and matched so that programmers can
+choose the destination and the format separately.
+
+
+
+
+The current version is 0.1, the low number indicating that the library
+is still in flux.  Future version will include String objects and
+before allocation/dealocation conventions.  
+
+
+
+see ~rms/gnuorg/status
+
+
+
+
+Here is the simple description:
+
+* GNU Objective C Class Library
+
+The GNU Objective C Class Library (@code{libobjects}) is a library of
+general-purpose, non-graphical Objective C objects written by
+R. Andrew McCallum.  It includes collection objects for maintaining
+groups of objects and C types, streams for I/O to various
+destinations, coders for formating objects and C types to streams,
+ports for network packet transmission, distributed objects (remote
+object messaging), pseudo-random number generators, and time handling
+facilities.  It is known to work on i386, m68k, SPARC, MIPS, and
+RS6000.  Contact the author at @samp{mccallum@gnu.ai.mit.edu}.
+
+
+(GNU's Flashes)
+
+* New Library (on the Languages Tape?)
+
+The GNU Objective C Class Library (@code{libobjects}) has been added.
+See ``GNU Software'' and ``Forthcoming GNUs'' for more information.
+
+
+(Forthcoming GNUs)
+
+* GNU Objective C Class Library
+
+Future versions will have String objects that are integrated into the
+Collection object hierarchy, a better allocation/deallocation
+mechanism, improved features for distributed objects (including a
+back-end that uses Mach ports instead of sockets), more extensive
+random number generator facilities, and ports to more machines.
+Volunteers are needed for additional projects; contact
+@code{mccallum@gnu.ai.mit.edu}.
