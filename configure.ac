@@ -886,7 +886,7 @@ AC_SUBST(WITH_FFI)
 saved_LIBS="$LIBS"
 saved_CFLAGS="$CFLAGS"
 
-AM_PATH_XML(2.2.3, enable_libxml=yes, enable_libxml=no)
+AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
 if test $enable_libxml = yes; then
   CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
   LIBS="$LIBS $XML_LIBS"
