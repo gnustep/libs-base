@@ -44,6 +44,7 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 
 #include "unicode/cyrillic.h"
 #include "unicode/latin2.h"
+#include "unicode/latin9.h"
 #include "unicode/nextstep.h"
 #include "unicode/caseconv.h"
 #include "unicode/cop.h"
@@ -168,7 +169,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSISOThaiStringEncoding, "NSISOThaiStringEncoding","ISO-8859-11",1,1},
   {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding","ISO-8859-13",0,0},
   {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding","ISO-8859-14",0,0},
-  {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",0,0},
+  {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",1,1},
   {NSUTF7StringEncoding, "NSUTF7StringEncoding","",0,0},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding","EUC-CN",0,0},
   {NSGSM0338StringEncoding, "NSGSM0338StringEncoding","",0,1},
@@ -364,6 +365,8 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
 	return NSISOHebrewStringEncoding;
       else if ([encoding isEqualToString: @"11"])
 	return NSISOThaiStringEncoding;
+      else if ([encoding isEqualToString: @"15"])
+	return NSISOLatin9StringEncoding;
       // Other latin encodings are currently not supported
     }
   else if ([registry isEqualToString: @"iso10646"])
@@ -1127,6 +1130,11 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	table = Latin2_char_to_uni_table;
 	goto tables;
 
+      case NSISOLatin9StringEncoding:
+	base = Latin9_conv_base;
+	table = Latin9_char_to_uni_table;
+	goto tables;
+
       case NSISOThaiStringEncoding:
         base = Thai_conv_base;
 	table = Thai_char_to_uni_table;
@@ -1650,6 +1658,12 @@ bases:
 	base = (unichar)Latin2_conv_base;
 	table = Latin2_uni_to_char_table;
 	tsize = Latin2_uni_to_char_table_size;
+	goto tables;
+
+      case NSISOLatin9StringEncoding:
+	base = (unichar)Latin9_conv_base;
+	table = Latin9_uni_to_char_table;
+	tsize = Latin9_uni_to_char_table_size;
 	goto tables;
 
       case NSISOThaiStringEncoding:
