@@ -1,3 +1,8 @@
+2004-03-30  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
+
+	* Source/NSNotificationCenter.m ([-removeObserver:]): Do not raise an exception
+	when removing nil observer, jusr return.  This is WO4.5 and MacOSX behaviour.
+
 2004-03-29 Adam Fedor <fedor@gnu.org>
 
 	* Headers/Foundation/NSCoder.h (uint8_t, int32_t, int64_t): Define
