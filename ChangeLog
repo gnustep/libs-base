@@ -4,6 +4,7 @@
 	* Headers/Foundation/NSURLHandle.h: Added some more property keys.
 	* Source/GSMime.m: Update to add method for general decoding of
 	different transfer encoding types including chunked (for http1.1).
+	Recognise end of data in chunked encoding or by content length.
 	* Source/GSHTTPURLHandle.m: Added new class for http and https support.
 	* Source/NSURLHandle.m: Register class for http and https support.
 	* Source/externs.m: Added property keys for URL handles.

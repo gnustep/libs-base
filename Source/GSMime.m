@@ -794,7 +794,6 @@ parseCharacterSet(NSString *token)
     {
       data = [[NSMutableData alloc] init];
       document = [[GSMimeDocument alloc] init];
-      context = [[GSMimeCodingContext alloc] init];
     }
   return self;
 }
@@ -1507,7 +1506,53 @@ parseCharacterSet(NSString *token)
 
 - (BOOL) _decodeBody: (NSData*)d
 {
-  if (boundary == nil)
+  BOOL	result = NO;
+
+  rawBodyLength += [d length];
+
+  if (context == nil)
+    {
+      NSDictionary	*hdr;
+
+      /*
+       * Check for expected content length.
+       */
+      hdr = [document headerNamed: @"content-length"];
+      if (hdr != nil)
+	{
+	  expect = [[hdr objectForKey: @"BaseValue"] intValue];
+	}
+
+      /*
+       * Set up context for decoding data.
+       */
+      hdr = [document headerNamed: @"transfer-encoding"];
+      if (hdr == nil)
+	{
+	  hdr = [document headerNamed: @"content-transfer-encoding"];
+	}
+      else if ([[hdr objectForKey: @"Value"] isEqual: @"chunked"] == YES)
+	{
+	  /*
+	   * Chunked transfer encoding overrides any content length spec.
+	   */
+	  expect = 0;
+	}
+      context = [self contextFor: hdr];
+      RETAIN(context);
+    }
+
+  if ([context atEnd] == YES)
+    {
+      inBody = NO;
+      complete = YES;
+      if ([d length] > 0)
+	{
+	  NSLog(@"Additional data ignored after parse complete");
+	}
+      result = YES;	/* Nothing more to do	*/
+    }
+  else if (boundary == nil)
     {
       NSDictionary	*typeInfo;
       NSString		*type;
@@ -1517,25 +1562,19 @@ parseCharacterSet(NSString *token)
       if ([type isEqualToString: @"multipart"] == YES)
 	{
 	  NSLog(@"multipart decode attempt without boundary");
-	  return NO;
+	  inBody = NO;
+	  complete = YES;
+	  result = NO;
 	}
       else
 	{
-	  if ([context atEnd] == YES)
-	    {
-	      if ([d length] > 0)
-		{
-		  NSLog(@"Additional data ignored after parse complete");
-		}
-	      return YES;	/* Nothing more to do	*/
-	    }
-
 	  [self decodeData: d
 		 fromRange: NSMakeRange(0, [d length])
 		  intoData: data
 	       withContext: context];
 
-	  if ([context atEnd] == YES)
+	  if ([context atEnd] == YES
+	    || (expect > 0 && rawBodyLength >= expect))
 	    {
 	      inBody = NO;
 	      complete = YES;
@@ -1570,7 +1609,7 @@ parseCharacterSet(NSString *token)
 		  [document setContent: AUTORELEASE([data copy])];
 		}
 	    }
-	  return YES;
+	  result = YES;
 	}
     }
   else
@@ -1691,9 +1730,17 @@ parseCharacterSet(NSString *token)
 	      sectionStart = 0;
 	    }
 	}
-      return YES;
+      /*
+       * Check to see if we have reached content length.
+       */
+      if (expect > 0 && rawBodyLength >= expect)
+	{
+	  complete = YES;
+	  inBody = NO;
+	}
+      result = YES;
     }
-  return NO;
+  return result;
 }
 
 - (BOOL) _unfoldHeader
@@ -1738,7 +1785,6 @@ parseCharacterSet(NSString *token)
 	  if (lineEnd == lineStart)
 	    {
 	      unsigned		lengthRemaining;
-	      NSDictionary	*hdr;
 
 	      /*
 	       * Overwrite the header data with the body, ready to start
@@ -1756,19 +1802,7 @@ parseCharacterSet(NSString *token)
 	      lineStart = 0;
 	      lineEnd = 0;
 	      input = 0;
-
-	      /*
-	       * At end of headers - set up context for decoding data.
-	       */
 	      inBody = YES;
-	      DESTROY(context);
-	      hdr = [document headerNamed: @"content-transfer-encoding"];
-	      if (hdr == nil)
-		{
-		  hdr = [document headerNamed: @"transfer-encoding"];
-		}
-	      context = [self contextFor: hdr];
-	      RETAIN(context);
 	    }
 	}
     }

@@ -80,6 +80,8 @@
   unsigned		lineStart;
   unsigned		lineEnd;
   unsigned		input;
+  unsigned		expect;
+  unsigned		rawBodyLength;
   BOOL			inBody;
   BOOL			complete;
   NSData		*boundary;
