@@ -2231,9 +2231,10 @@ static int sparc_warn = 0;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
   int mode;
   int count;
-  id values[12];
-  id keys[12] = {
+  id values[13];
+  id keys[13] = {
     NSFileSize,
+    NSFileCreationDate,
     NSFileModificationDate,
     NSFileReferenceCount,
     NSFileSystemNumber,
@@ -2272,168 +2273,167 @@ static int sparc_warn = 0;
 #endif /* (__MINGW__) */
     
   values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
-  values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
-  values[2] = [NSNumber numberWithUnsignedInt: statbuf.st_nlink];
-  values[3] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
-  values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_ino];
-  values[5] = [NSNumber numberWithUnsignedInt: statbuf.st_dev];
-  values[6] = [NSNumber numberWithUnsignedInt: statbuf.st_mode];
+  values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
+  values[2] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+  values[3] = [NSNumber numberWithUnsignedInt: statbuf.st_nlink];
+  values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
+  values[5] = [NSNumber numberWithUnsignedLong: statbuf.st_ino];
+  values[6] = [NSNumber numberWithUnsignedInt: statbuf.st_dev];
+  values[7] = [NSNumber numberWithUnsignedInt: statbuf.st_mode];
   
   mode = statbuf.st_mode & S_IFMT;
 
   if (mode == S_IFREG)
-    values[7] = NSFileTypeRegular;
+    values[8] = NSFileTypeRegular;
   else if (mode == S_IFDIR)
-    values[7] = NSFileTypeDirectory;
+    values[8] = NSFileTypeDirectory;
   else if (mode == S_IFCHR)
-    values[7] = NSFileTypeCharacterSpecial;
+    values[8] = NSFileTypeCharacterSpecial;
   else if (mode == S_IFBLK)
-    values[7] = NSFileTypeBlockSpecial;
+    values[8] = NSFileTypeBlockSpecial;
 #ifdef S_IFLNK
   else if (mode == S_IFLNK)
-    values[7] = NSFileTypeSymbolicLink;
+    values[8] = NSFileTypeSymbolicLink;
 #endif
   else if (mode == S_IFIFO)
-    values[7] = NSFileTypeFifo;
+    values[8] = NSFileTypeFifo;
 #ifdef S_IFSOCK
   else if (mode == S_IFSOCK)
-    values[7] = NSFileTypeSocket;
+    values[8] = NSFileTypeSocket;
 #endif
   else
-    values[7] = NSFileTypeUnknown;
+    values[8] = NSFileTypeUnknown;
 
   if (copy == NO)
     {
 #ifdef __MINGW_NOT_AVAILABLE_YET
 
+      {
+	DWORD dwRtnCode = 0;
+	PSID pSidOwner;
+	BOOL bRtnBool = TRUE;
+	LPTSTR AcctName, DomainName;
+	DWORD dwAcctName = 1, dwDomainName = 1;
+	SID_NAME_USE eUse = SidTypeUnknown;
+	HANDLE hFile;
+	PSECURITY_DESCRIPTOR pSD;
 
-{
-DWORD dwRtnCode = 0;
-PSID pSidOwner;
-BOOL bRtnBool = TRUE;
-LPTSTR AcctName, DomainName;
-DWORD dwAcctName = 1, dwDomainName = 1;
-SID_NAME_USE eUse = SidTypeUnknown;
-HANDLE hFile;
-PSECURITY_DESCRIPTOR pSD;
+	// Get the handle of the file object.
+	hFile = CreateFile(
+			  "myfile.txt",
+			  GENERIC_READ,
+			  FILE_SHARE_READ,
+			  NULL,
+			  OPEN_EXISTING,
+			  FILE_ATTRIBUTE_NORMAL,
+			  NULL);
 
-// Get the handle of the file object.
-hFile = CreateFile(
-                  "myfile.txt",
-                  GENERIC_READ,
-                  FILE_SHARE_READ,
-                  NULL,
-                  OPEN_EXISTING,
-                  FILE_ATTRIBUTE_NORMAL,
-                  NULL);
+	// Check GetLastError for CreateFile error code.
+	if (hFile == INVALID_HANDLE_VALUE) {
+		  DWORD dwErrorCode = 0;
 
-// Check GetLastError for CreateFile error code.
-if (hFile == INVALID_HANDLE_VALUE) {
-          DWORD dwErrorCode = 0;
+		  dwErrorCode = GetLastError();
+		  _tprintf(TEXT("CreateFile error = %d\n"), dwErrorCode);
+		  return -1;
+	}
 
-          dwErrorCode = GetLastError();
-          _tprintf(TEXT("CreateFile error = %d\n"), dwErrorCode);
-          return -1;
-}
+	// Allocate memory for the SID structure.
+	pSidOwner = (PSID)GlobalAlloc(
+		  GMEM_FIXED,
+		  sizeof(PSID));
 
-// Allocate memory for the SID structure.
-pSidOwner = (PSID)GlobalAlloc(
-          GMEM_FIXED,
-          sizeof(PSID));
+	// Allocate memory for the security descriptor structure.
+	pSD = (PSECURITY_DESCRIPTOR)GlobalAlloc(
+		  GMEM_FIXED,
+		  sizeof(PSECURITY_DESCRIPTOR));
 
-// Allocate memory for the security descriptor structure.
-pSD = (PSECURITY_DESCRIPTOR)GlobalAlloc(
-          GMEM_FIXED,
-          sizeof(PSECURITY_DESCRIPTOR));
+	// Get the owner SID of the file.
+	dwRtnCode = GetSecurityInfo(
+			  hFile,
+			  SE_FILE_OBJECT,
+			  OWNER_SECURITY_INFORMATION,
+			  &pSidOwner,
+			  NULL,
+			  NULL,
+			  NULL,
+			  &pSD);
 
-// Get the owner SID of the file.
-dwRtnCode = GetSecurityInfo(
-                  hFile,
-                  SE_FILE_OBJECT,
-                  OWNER_SECURITY_INFORMATION,
-                  &pSidOwner,
-                  NULL,
-                  NULL,
-                  NULL,
-                  &pSD);
+	// Check GetLastError for GetSecurityInfo error condition.
+	if (dwRtnCode != ERROR_SUCCESS) {
+		  DWORD dwErrorCode = 0;
 
-// Check GetLastError for GetSecurityInfo error condition.
-if (dwRtnCode != ERROR_SUCCESS) {
-          DWORD dwErrorCode = 0;
+		  dwErrorCode = GetLastError();
+		  _tprintf(TEXT("GetSecurityInfo error = %d\n"), dwErrorCode);
+		  return -1;
+	}
 
-          dwErrorCode = GetLastError();
-          _tprintf(TEXT("GetSecurityInfo error = %d\n"), dwErrorCode);
-          return -1;
-}
+	// First call to LookupAccountSid to get the buffer sizes.
+	bRtnBool = LookupAccountSid(
+			  NULL,           // local computer
+			  pSidOwner,
+			  AcctName,
+			  (LPDWORD)&dwAcctName,
+			  DomainName,
+			  (LPDWORD)&dwDomainName,
+			  &eUse);
 
-// First call to LookupAccountSid to get the buffer sizes.
-bRtnBool = LookupAccountSid(
-                  NULL,           // local computer
-                  pSidOwner,
-                  AcctName,
-                  (LPDWORD)&dwAcctName,
-                  DomainName,
-                  (LPDWORD)&dwDomainName,
-                  &eUse);
+	// Reallocate memory for the buffers.
+	AcctName = (char *)GlobalAlloc(
+		  GMEM_FIXED,
+		  dwAcctName);
 
-// Reallocate memory for the buffers.
-AcctName = (char *)GlobalAlloc(
-          GMEM_FIXED,
-          dwAcctName);
+	// Check GetLastError for GlobalAlloc error condition.
+	if (AcctName == NULL) {
+		  DWORD dwErrorCode = 0;
 
-// Check GetLastError for GlobalAlloc error condition.
-if (AcctName == NULL) {
-          DWORD dwErrorCode = 0;
+		  dwErrorCode = GetLastError();
+		  _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
+		  return -1;
+	}
 
-          dwErrorCode = GetLastError();
-          _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
-          return -1;
-}
+	    DomainName = (char *)GlobalAlloc(
+		   GMEM_FIXED,
+		   dwDomainName);
 
-    DomainName = (char *)GlobalAlloc(
-           GMEM_FIXED,
-           dwDomainName);
+	    // Check GetLastError for GlobalAlloc error condition.
+	    if (DomainName == NULL) {
+		  DWORD dwErrorCode = 0;
 
-    // Check GetLastError for GlobalAlloc error condition.
-    if (DomainName == NULL) {
-          DWORD dwErrorCode = 0;
+		  dwErrorCode = GetLastError();
+		  _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
+		  return -1;
 
-          dwErrorCode = GetLastError();
-          _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
-          return -1;
+	    }
 
-    }
+	    // Second call to LookupAccountSid to get the account name.
+	    bRtnBool = LookupAccountSid(
+		  NULL,                          // name of local or remote computer
+		  pSidOwner,                     // security identifier
+		  AcctName,                      // account name buffer
+		  (LPDWORD)&dwAcctName,          // size of account name buffer 
+		  DomainName,                    // domain name
+		  (LPDWORD)&dwDomainName,        // size of domain name buffer
+		  &eUse);                        // SID type
 
-    // Second call to LookupAccountSid to get the account name.
-    bRtnBool = LookupAccountSid(
-          NULL,                          // name of local or remote computer
-          pSidOwner,                     // security identifier
-          AcctName,                      // account name buffer
-          (LPDWORD)&dwAcctName,          // size of account name buffer 
-          DomainName,                    // domain name
-          (LPDWORD)&dwDomainName,        // size of domain name buffer
-          &eUse);                        // SID type
+	    // Check GetLastError for LookupAccountSid error condition.
+	    if (bRtnBool == FALSE) {
+		  DWORD dwErrorCode = 0;
 
-    // Check GetLastError for LookupAccountSid error condition.
-    if (bRtnBool == FALSE) {
-          DWORD dwErrorCode = 0;
+		  dwErrorCode = GetLastError();
 
-          dwErrorCode = GetLastError();
+		  if (dwErrorCode == ERROR_NONE_MAPPED)
+		      _tprintf(TEXT("Account owner not found for specified SID.\n"));
+		  else 
+		      _tprintf(TEXT("Error in LookupAccountSid.\n"));
+		  return -1;
 
-          if (dwErrorCode == ERROR_NONE_MAPPED)
-              _tprintf(TEXT("Account owner not found for specified SID.\n"));
-          else 
-              _tprintf(TEXT("Error in LookupAccountSid.\n"));
-          return -1;
+	    } else if (bRtnBool == TRUE) 
 
-    } else if (bRtnBool == TRUE) 
+		// Print the account name.
+		_tprintf(TEXT("Account owner = %s\n"), AcctName);
 
-        // Print the account name.
-        _tprintf(TEXT("Account owner = %s\n"), AcctName);
-
-    return 0;
-}
-
+	    return 0;
+      }
 
 
 #endif
@@ -2445,15 +2445,15 @@ if (AcctName == NULL) {
 
 	if (pw)
 	  {
-	    values[8] = [NSString stringWithCString: pw->pw_name];
+	    values[9] = [NSString stringWithCString: pw->pw_name];
 	  }
 	else
 	  {
-	    values[8] = @"UnknownUser";
+	    values[9] = @"UnknownUser";
 	  }
       }
 #else
-      values[8] = @"UnknownUser";
+      values[9] = @"UnknownUser";
 #endif /* HAVE_PWD_H */
 
 #if defined(HAVE_GRP_H) && !(defined(sparc) && defined(DEBUG))
@@ -2470,11 +2470,11 @@ if (AcctName == NULL) {
 	  }
 	if (gp)
 	  {
-	    values[9] = [NSString stringWithCString: gp->gr_name];
+	    values[10] = [NSString stringWithCString: gp->gr_name];
 	  }
 	else
 	  {
-	    values[9] = @"UnknownGroup";
+	    values[10] = @"UnknownGroup";
 	  }
 	endgrent();
       }
@@ -2487,17 +2487,17 @@ if (AcctName == NULL) {
           fprintf(stderr, "WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines\n");
 	}
 #endif
-      values[9] = @"UnknownGroup";
+      values[10] = @"UnknownGroup";
 #endif
-      values[10] = [NSNumber numberWithUnsignedInt: statbuf.st_uid];
-      values[11] = [NSNumber numberWithUnsignedInt: statbuf.st_gid];
-      count = 12;
+      values[11] = [NSNumber numberWithUnsignedInt: statbuf.st_uid];
+      values[12] = [NSNumber numberWithUnsignedInt: statbuf.st_gid];
+      count = 13;
     }
   else
     {
       NSString	*u = NSUserName();
 
-      count = 8;	/* No ownership details needed.	*/
+      count = 9;	/* No ownership details needed.	*/
       /*
        * If we are running setuid to root - we need to specify the user
        * to be the owner of copied files.
@@ -2516,3 +2516,30 @@ if (AcctName == NULL) {
 }
 
 @end /* NSFileManager (PrivateMethods) */
+
+
+NSString * const NSFileCreationDate = @"NSFileCreationDate";
+NSString * const NSFileDeviceIdentifier = @"NSFileDeviceIdentifier";
+NSString * const NSFileGroupOwnerAccountName = @"NSFileGroupOwnerAccountName";
+NSString * const NSFileGroupOwnerAccountNumber = @"NSFileGroupOwnerAccountNumber";
+NSString * const NSFileModificationDate = @"NSFileModificationDate";
+NSString * const NSFileOwnerAccountName = @"NSFileOwnerAccountName";
+NSString * const NSFileOwnerAccountNumber = @"NSFileOwnerAccountNumber";
+NSString * const NSFilePosixPermissions = @"NSFilePosixPermissions";
+NSString * const NSFileReferenceCount = @"NSFileReferenceCount";
+NSString * const NSFileSize = @"NSFileSize";
+NSString * const NSFileSystemFileNumber = @"NSFileSystemFileNumber";
+NSString * const NSFileSystemFreeNodes = @"NSFileSystemFreeNodes";
+NSString * const NSFileSystemFreeSize = @"NSFileSystemFreeSize";
+NSString * const NSFileSystemNodes = @"NSFileSystemNodes";
+NSString * const NSFileSystemNumber = @"NSFileSystemNumber";
+NSString * const NSFileSystemSize = @"NSFileSystemSize";
+NSString * const NSFileType = @"NSFileType";
+NSString * const NSFileTypeBlockSpecial = @"NSFileTypeBlockSpecial";
+NSString * const NSFileTypeCharacterSpecial = @"NSFileTypeCharacterSpecial";
+NSString * const NSFileTypeDirectory = @"NSFileTypeDirectory";
+NSString * const NSFileTypeFifo = @"NSFileTypeFifo";
+NSString * const NSFileTypeRegular = @"NSFileTypeRegular";
+NSString * const NSFileTypeSocket = @"NSFileTypeSocket";
+NSString * const NSFileTypeSymbolicLink = @"NSFileTypeSymbolicLink";
+NSString * const NSFileTypeUnknown = @"NSFileTypeUnknown";
