@@ -66,8 +66,8 @@
 @end
 
 @protocol NSCoding
-- (void)encodeWithCoder:(NSCoder *)aCoder;
-- initWithCoder:(NSCoder *)aDecoder;
+//- (void)encodeWithCoder:(NSCoder *)aCoder; /* xxx Fix this! */
+//- initWithCoder:(NSCoder *)aDecoder;
 @end
 
 
@@ -126,9 +126,16 @@ NSComparisonResult;
 
 enum {NSNotFound = 0x7fffffff};
 
-@interface Object (NEXTSTEP)
+@interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
 - notImplemented:(SEL)aSel;
+- (const char *) name;
+@end
+
+@interface NSObject (GNU)
+- (Class)transmuteClassTo:(Class)aClassObject;
+- subclassResponsibility:(SEL)aSel;
+- shouldNotImplement:(SEL)aSel;
 @end
 
 #endif /* __NSObject_h_OBJECTS_INCLUDE */
