@@ -6,6 +6,7 @@
 	([-loadInBackGround]) use URL port if available.
 	More fixes thanks to lcampbel via savannah
 	* Headers/Foundation/NSURLHanlde.h: include NSObject.h
+	* Source/UnixFileHadle.h: add missing semicolon thanks to Paul Windey
 
 2002-05-01  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -161,7 +161,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  gsu16       v;
 #ifdef	GDOMAP_PORT_OVERRIDE
-	  v = GDOMAP_PORT_OVERRIDE
+	  v = GDOMAP_PORT_OVERRIDE;
 #else
 	  v = 538;	// IANA allocated port
 #endif
