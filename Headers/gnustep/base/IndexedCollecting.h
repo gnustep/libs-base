@@ -1,5 +1,5 @@
 /* Protocol for Objective-C objects that hold elements accessible by index
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -48,29 +48,7 @@ typedef struct _IndexRange {
     __a.start<=__b.start && __a.end>=__b.end;})
 
 
-@protocol IndexedCollecting <KeyedCollecting>
-
-// ADDING;
-- insertObject: newObject atIndex: (unsigned)index;
-- insertObject: newObject before: oldObject;
-- insertObject: newObject after: oldObject;
-- insertContentsOf: (id <Collecting>)aCollection atIndex: (unsigned)index;
-- appendObject: newObject;
-- prependObject: newObject;
-- appendContentsOf: (id <Collecting>)aCollection;
-- prependContentsOf: (id <Collecting>)aCollection;
-
-// REPLACING AND SWAPPING
-- replaceObjectAtIndex: (unsigned)index with: newObject;
-- replaceRange: (IndexRange)aRange with: (id <Collecting>)aCollection;
-- replaceRange: (IndexRange)aRange using: (id <Collecting>)aCollection;
-- swapAtIndeces: (unsigned)index1 : (unsigned)index2;
-
-// REMOVING
-- removeObjectAtIndex: (unsigned)index;
-- removeFirstObject;
-- removeLastObject;
-- removeRange: (IndexRange)aRange;
+@protocol ConstantIndexedCollecting <ConstantKeyedCollecting>
 
 // GETTING MEMBERS BY INDEX;
 - objectAtIndex: (unsigned)index;
@@ -102,6 +80,57 @@ typedef struct _IndexRange {
 - withObjectsInReverseCall: (void(*)(id))aFunc;
 - withObjectsInReverseCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
 
+// NON-OBJECT MESSAGE NAMES;
+
+// GETTING ELEMENTS BY INDEX;
+- (elt) elementAtIndex: (unsigned)index;
+- (elt) firstElement;
+- (elt) lastElement;
+
+// GETTING MEMBERS BY NEIGHBOR;
+- (elt) successorOfElement: (elt)anElement;
+- (elt) predecessorOfElement: (elt)anElement;
+
+// GETTING INDICES BY MEMBER;
+- (unsigned) indexOfElement: (elt)anElement;
+- (unsigned) indexOfElement: (elt)anElement
+    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
+- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange;
+- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange
+    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
+
+// ENUMERATING;
+- (BOOL) getPrevElement:(elt*)anElementPtr withEnumState: (void**)enumState;
+- withElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc;
+- withElementsInReverseCall: (void(*)(elt))aFunc;
+- withElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag;
+
+@end
+
+@protocol IndexedCollecting <ConstantIndexedCollecting, KeyedCollecting>
+
+// ADDING;
+- insertObject: newObject atIndex: (unsigned)index;
+- insertObject: newObject before: oldObject;
+- insertObject: newObject after: oldObject;
+- insertContentsOf: (id <Collecting>)aCollection atIndex: (unsigned)index;
+- appendObject: newObject;
+- prependObject: newObject;
+- appendContentsOf: (id <Collecting>)aCollection;
+- prependContentsOf: (id <Collecting>)aCollection;
+
+// REPLACING AND SWAPPING
+- replaceObjectAtIndex: (unsigned)index with: newObject;
+- replaceRange: (IndexRange)aRange with: (id <Collecting>)aCollection;
+- replaceRange: (IndexRange)aRange using: (id <Collecting>)aCollection;
+- swapAtIndeces: (unsigned)index1 : (unsigned)index2;
+
+// REMOVING
+- removeObjectAtIndex: (unsigned)index;
+- removeFirstObject;
+- removeLastObject;
+- removeRange: (IndexRange)aRange;
+
 // ENUMERATING WHILE CHANGING CONTENTS;
 - safeWithObjectsInReverseCall: (void(*)(id))aFunc;
 - safeWithObjectsInReverseCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
@@ -127,29 +156,6 @@ typedef struct _IndexRange {
 - (elt) removeFirstElement;
 - (elt) removeLastElement;
 - (elt) replaceElementAtIndex: (unsigned)index with: (elt)newElement;
-
-// GETTING ELEMENTS BY INDEX;
-- (elt) elementAtIndex: (unsigned)index;
-- (elt) firstElement;
-- (elt) lastElement;
-
-// GETTING MEMBERS BY NEIGHBOR;
-- (elt) successorOfElement: (elt)anElement;
-- (elt) predecessorOfElement: (elt)anElement;
-
-// GETTING INDICES BY MEMBER;
-- (unsigned) indexOfElement: (elt)anElement;
-- (unsigned) indexOfElement: (elt)anElement
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
-- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange;
-- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
-
-// ENUMERATING;
-- (BOOL) getPrevElement:(elt*)anElementPtr withEnumState: (void**)enumState;
-- withElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc;
-- withElementsInReverseCall: (void(*)(elt))aFunc;
-- withElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag;
 
 // ENUMERATING WHILE CHANGING CONTENTS;
 - safeWithElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc;
