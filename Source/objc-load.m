@@ -216,6 +216,8 @@ objc_load_module (const char *filename,
 	{
 	  __objc_dynamic_error(errorStream, "Error (objc-load)");
 	}
+      _objc_load_load_callback = 0;
+      _objc_load_callback = 0;
       return 1;
     }
   dynamic_handles = list_cons(handle, dynamic_handles);
@@ -224,6 +226,8 @@ objc_load_module (const char *filename,
   if (objc_check_undefineds(errorStream)) 
     {
       __objc_dynamic_unlink(handle);
+      _objc_load_load_callback = 0;
+      _objc_load_callback = 0;
       return 1;
     }
   
@@ -237,6 +241,8 @@ objc_load_module (const char *filename,
 	  fprintf(errorStream, 
 		  "Error (objc-load): Cannot load objects (no CTOR list)\n");
 	}
+      _objc_load_load_callback = 0;
+      _objc_load_callback = 0;
       return 1;
     }
   
