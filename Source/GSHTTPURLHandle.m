@@ -179,7 +179,7 @@ static Class			sslClass = 0;
 static NSLock			*debugLock = nil;
 static NSString			*debugFile;
 
-static void debugRead(NSData *data)
+static void debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
   NSString	*s;
   int		d;
@@ -189,8 +189,8 @@ static void debugRead(NSData *data)
 	   O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nRead %@ %u bytes - '",
-	[NSDate date], [data length]];
+      s = [NSString stringWithFormat: @"\nRead for %x at %@ %u bytes - '",
+	handle, [NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
       write(d, "'", 1);
@@ -198,7 +198,7 @@ static void debugRead(NSData *data)
     }
   [debugLock unlock];
 }
-static void debugWrite(NSData *data)
+static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   NSString	*s;
   int		d;
@@ -208,8 +208,8 @@ static void debugWrite(NSData *data)
 	   O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nWrite %@ %u bytes - '",
-	[NSDate date], [data length]];
+      s = [NSString stringWithFormat: @"\nWrite for %x at %@ %u bytes - '",
+	handle, [NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
       write(d, "'", 1);
@@ -311,7 +311,7 @@ static void debugWrite(NSData *data)
   NSRange		r;
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
-  if (debug == YES) debugRead(d);
+  if (debug == YES) debugRead(self, d);
 
   if ([parser parse: d] == NO)
     {
@@ -357,7 +357,7 @@ static void debugWrite(NSData *data)
       if (complete == YES)
 	{
 	  GSMimeHeader	*info;
-	  NSString		*val;
+	  NSString	*val;
 
 	  connectionState = idle;
 	  [nc removeObserver: self
@@ -421,7 +421,7 @@ static void debugWrite(NSData *data)
   GSMimeParser		*p = [GSMimeParser new];
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
-  if (debug == YES) debugRead(d);
+  if (debug == YES) debugRead(self, d);
 
   if ([d length] > 0)
     {
@@ -612,6 +612,7 @@ static void debugWrite(NSData *data)
   NSMutableData		*buf;
   NSString		*method;
   NSString		*path;
+  NSString		*version;
 
   path = [[url path] stringByTrimmingSpaces];
   if ([path length] == 0)
@@ -656,16 +657,22 @@ static void debugWrite(NSData *data)
       NSData		*buf;
       NSDate		*when;
       NSString		*status;
+      NSString		*version;
 
+      version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
+      if (version == nil)
+	{
+	  version = httpVersion;
+	} 
       if ([url port] == nil)
 	{
 	  cmd = [NSString stringWithFormat: @"CONNECT %@:443 HTTP/%@\r\n\r\n",
-	    [url host], httpVersion];
+	    [url host], version];
 	}
       else
 	{
 	  cmd = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/%@\r\n\r\n",
-	    [url host], [url port], httpVersion];
+	    [url host], [url port], version];
 	}
       
       /*
@@ -684,7 +691,7 @@ static void debugWrite(NSData *data)
 
       buf = [cmd dataUsingEncoding: NSASCIIStringEncoding];
       [sock writeInBackgroundAndNotify: buf]; 
-      if (debug == YES) debugWrite(buf);
+      if (debug == YES) debugWrite(self, buf);
 
       when = [NSDate alloc];
       while (tunnel == YES)
@@ -717,7 +724,8 @@ static void debugWrite(NSData *data)
       if ([sock sslConnect] == NO)
 	{
 	  [self endLoadInBackground];
-	  [self backgroundLoadDidFailWithReason: @"Failed to make ssl connect"];
+	  [self backgroundLoadDidFailWithReason:
+	    @"Failed to make ssl connect"];
 	  return;
 	}
     }
@@ -760,7 +768,13 @@ static void debugWrite(NSData *data)
     {
       [s appendFormat: @"?%@", [url query]];
     }
-  [s appendFormat: @" HTTP/%@\r\n", httpVersion];
+
+  version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
+  if (version == nil)
+    {
+      version = httpVersion;
+    } 
+  [s appendFormat: @" HTTP/%@\r\n", version];
 
   if ([wProperties objectForKey: @"host"] == nil)
     {
@@ -824,7 +838,7 @@ static void debugWrite(NSData *data)
    * Send request to server.
    */
   [sock writeInBackgroundAndNotify: buf];
-  if (debug == YES) debugWrite(buf);
+  if (debug == YES) debugWrite(self, buf);
   RELEASE(buf);
   RELEASE(s);
 
@@ -996,16 +1010,21 @@ static void debugWrite(NSData *data)
  *     connect to on the proxy host.  If not give, this defaults
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
  *   </item>
+ *   <item>
+ *     Any NSHTTPProperty... key
+ *   </item>
  * </list>
  */
 - (BOOL) writeProperty: (id) property forKey: (NSString*) propertyKey
 {
-  if (propertyKey == nil || [propertyKey isKindOfClass: [NSString class]] == NO)
+  if (propertyKey == nil
+    || [propertyKey isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"%@ with invalid key", NSStringFromSelector(_cmd)];
     }
-  if ([propertyKey hasPrefix: @"GSHTTPProperty"])
+  if ([propertyKey hasPrefix: @"GSHTTPProperty"]
+    || [propertyKey hasPrefix: @"NSHTTPProperty"])
     {
       if (property == nil)
 	{
