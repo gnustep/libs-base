@@ -1,3 +1,9 @@
+2004-08-25 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tools/make_strings/GNUmakefile: Include config.mak to be
+	consistent with the other base makefiles. Without this cross
+	compliation failed for this subproject.
+
 2004-08-24  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSScanner.m: Define _GNU_SOURCE before including other

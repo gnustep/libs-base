@@ -24,6 +24,7 @@
 
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
+include ../../config.mak
 
 VERSION = 0.4.2
 PACKAGE_NAME = make_strings
