@@ -655,14 +655,19 @@ mframe_do_call (const char *encoded_types,
   etmptype = objc_skip_type_qualifiers (encoded_types);
   tmptype = objc_skip_type_qualifiers (type);
 
-  /* Only encode return values if there is a non-void return value, or
-     if there are values that were passed by reference. */
-  /* xxx Are my tests right?  Do we also have to check _F_ONEWAY? */
+  /* Only encode return values if there is a non-void return value,
+     a non-oneway void return value, or if there are values that were
+     passed by reference. */
 
   /* If there is a return value, encode it. */
   switch (*tmptype)
     {
     case _C_VOID:
+      if ((flags & _F_ONEWAY) == 0)
+	{
+	   int	dummy = 0;
+          (*encoder) (-1, (void*)&dummy, @encode(int), 0);
+	}
       /* No return value to encode; do nothing. */
       break;
 
@@ -904,7 +909,7 @@ mframe_build_return (arglist_t argframe,
   /* Decode the return value and pass-by-reference values, if there
      are any.  OUT_PARAMETERS should be the value returned by
      mframe_dissect_call(). */
-  if (out_parameters || *tmptype != _C_VOID)
+  if (out_parameters || *tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
     /* xxx What happens with method declared "- (oneway) foo: (out int*)ip;" */
     /* xxx What happens with method declared "- (in char *) bar;" */
     /* xxx Is this right?  Do we also have to check _F_ONEWAY? */
@@ -913,10 +918,13 @@ mframe_build_return (arglist_t argframe,
          value, not an argument. */
 
       /* If there is a return value, decode it, and put it in retframe. */
-      if (*tmptype != _C_VOID)
+      if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
 	{
 	  /* Get the size of the returned value. */
-	  retsize = objc_sizeof_type (tmptype);
+          if (*tmptype == _C_VOID)
+	    retsize = sizeof(void*);
+	  else
+	    retsize = objc_sizeof_type (tmptype);
 	  /* Allocate memory on the stack to hold the return value.
              It should be at least 4 * sizeof(void*). */
 	  /* xxx We need to test retsize's less than 4.  Also note that
@@ -968,6 +976,12 @@ mframe_build_return (arglist_t argframe,
 	    case _C_DBL:
 	      (*decoder) (-1, ((char*)retframe), tmptype, flags);
 	      break;
+
+	    case _C_VOID:
+		{
+		  (*decoder) (-1, retframe, @encode(int), 0);
+		}
+		break;
 
 	    default:
 	      /* (Among other things, _C_CHARPTR is handled here). */
@@ -1055,7 +1069,7 @@ mframe_build_return (arglist_t argframe,
 		}
 	    }
 	}
-	(*decoder) (0, 0, 0, 0);	/* Tell it we have finished.	*/
+      (*decoder) (0, 0, 0, 0);	/* Tell it we have finished.	*/
     }
   else	/* matches `if (out_parameters)' */
     {

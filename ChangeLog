@@ -1,3 +1,89 @@
+Tue Oct 28 10:05:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSData.m: Added [-replacementObjectForPortCoder:] method to
+	ensure that NSData objects are always sent bycopy.
+
+	* src/mframe.m: Modified mframe_do_call() and mframe_build_return()
+	to encode/decode a dummy integer value where a method returns void
+	but is NOT declared as being oneway.
+
+Mon Oct 27 16:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Makefile: Added Tools subproject
+
+	* NSTimeZones/Makefile.postamble: Added distclean code to remove
+	time-zone files leaving only the tar image.
+
+	* Tools/Makefile: New make file added.
+
+	* Tools/Makefile.postamble: New file.
+
+	* Tools/Makefile.preamble: New file.
+
+	* Tools/gdomap.c: Moved from the src directory with some minor
+	bug fixes and easing of restrictions on deregistering a name.
+
+	* Tools/gdomap.h: Moved from the src directory with some minor
+	changes and improvements to comments.
+
+	* checks/Makefile.postamble: Added some stuff for distclean to
+	remove some fo the temporary data files.
+
+	* checks/Makefile.preamble: Modified to compile with -g flag
+	even if being linked with non-debug libraries.
+
+	* checks/nsdate.m: Added checks for new NSCalendarDate features.
+
+	* src/Coder.m: ([-initForReadingWithData:]) modified use of the
+	[-retainCount] method for newly corrected version.
+
+	* src/Makefile: Removed references to gdomap.[hc]
+
+	* src/Makefile.postamble: distclean now removes some automatically
+	generated source files.
+
+	* src/NSBundle.m: Removed own reference counting support in favour
+	of using the standard mechanism but intercepting [-release] to
+	change deallocation behaviour.
+
+	* src/NSCalendarDate.m: Implemented [-dayOfWeek], added support for
+	week day names (and abbreviations) in descriptions.  Implemented
+	some missing formatting directives in descriptions, Fixed the
+	[-initWithYears:months:days:hours:minutes:seconds:timeZone:] method
+	to use the supplied time zone correctly.
+	Implemented [-dateByAddingYears:months:days:hours:minutes:seconds].
+	Implemented [-years:months:days:hours:minutes:seconds:sinceDate:].
+
+	* src/NSData.m: Fixed shared memory to only remove shared-memory IDs
+	from the system when the last object having mapped the memory is
+	deallocated.
+
+	* src/NSObject.m: ([-retainCount]) corrected to return the number of
+	times the object has been retained.
+	([-autorelease]) use [-retainCount] so that this works with classes
+	that have implemented their own retain./release/retainCount.
+
+	* src/NSProxy.m: Fixed retain counting scheme so that [-retainCount]
+	returns the correct value.
+
+	* src/NSRunLoop.m: ([-runMode:beforeDate:]) fixed possible problem
+	with passing a date obejct which might have been released unexpectedly.
+
+	* src/NotificationDispatcher.m: Fixed retain counting scheme so that
+	[-retainCount] returns the correct value.
+
+	* src/Proxy.m: Fixed retain counting scheme so that [-retainCount]
+	returns the correct value.
+
+	* src/TcpPort.m: Modified to expect to find gdomap in the Tools
+	directory of the new GNUstep directory standard.
+
+	* src/include/NSBundle.h: Removed unneeded retsain count variable.
+	
+	* src/include/NSData.h: Conform to NSCoding protocol.
+	
+	* src/include/NSDate.h: Added two OPENSTEP methods.
+
 Fri Oct 24 14:36:23 1997  Adam Fedor  <fedor@oc.com>
 
 	* Removed unused files.

@@ -361,6 +361,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   return;
 }
 
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  return self;
+}
+
 - (NSData*) subdataWithRange: (NSRange)aRange
 {
   void		*buffer;
