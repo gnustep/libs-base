@@ -587,11 +587,14 @@ userDirectory(NSString *name, BOOL defaults)
 	  fprintf(stderr, "The file '%s' is writable by someone other than"
 	    " its owner.\nIgnoring it.\n", [file fileSystemRepresentation]);
 	}
+#ifndef	__MINGW__
+/* FIXME ... need to get mingw working */
       else if ([[attributes fileOwnerAccountName] isEqual: NSUserName()] == NO)
 	{
 	  fprintf(stderr, "The file '%s' is not owned by the current user."
 	    "\nIgnoring it.\n", [file fileSystemRepresentation]);
 	}
+#endif
       else if ([manager isReadableFileAtPath: file] == YES)
 	{
 	  NSArray	*lines;
