@@ -50,6 +50,7 @@
    $Date$ $Revision$
 */
 
+#include <config.h>
 #include	<Foundation/Foundation.h>
 #include	<gnustep/base/GSMime.h>
 #include	<string.h>
@@ -1186,7 +1187,7 @@ wordData(NSString *word)
 		}
 	      else
 		{
-		  NSDebugMLLog(@"GSMime", @"Parsed end of headers");
+		  NSDebugMLLog(@"GSMime", @"Parsed end of headers", "");
 		}
 	    }
 	  /*
@@ -1222,7 +1223,7 @@ wordData(NSString *word)
 			   * This is an intermediary response ... so we have
 			   * to restart the parsing operation!
 			   */
-			  NSDebugMLLog(@"GSMime", @"Parsed http continuation");
+			  NSDebugMLLog(@"GSMime", @"Parsed http continuation", "");
 			  flags.inBody = 0;
 			}
 		    }
@@ -2151,7 +2152,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      flags.inBody = 0;
 	      flags.complete = 1;
 
-	      NSDebugMLLog(@"GSMime", @"Parse body complete");
+	      NSDebugMLLog(@"GSMime", @"Parse body complete", "");
 	      /*
 	       * If no content type is supplied, we assume text ... unless
 	       * we have something that's known to be a file.
