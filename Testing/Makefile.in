@@ -91,9 +91,14 @@ nsarchiver.m \
 invocation.m \
 diningPhilosophers.m \
 nsmaptable.m \
-nshashtable.m
+nshashtable.m \
+tcpport-server.m \
+tcpport-client.m
 
 # nsarchiving.m
+
+tcpport: tcpport-server tcpport-client
+remote: server client
 
 HDRS = \
 server.h
@@ -122,72 +127,14 @@ DIST_FILES = $(RCS_FILES)
 all: $(EXCS)
 
 # This works for GNU make, but not others.
-# %: %$(OEXT) $(srcdir)/../src/libobjects$(LIBEXT)
-# 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
-# How can I do this in a better way than the ugliness below?
-# (but also have it work on old-style /bin/make)
-
-LINK_CMD = $(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
-test01: test01$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test02: test02$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test03: test03$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test04: test04$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test05: test05$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test06: test06$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test07: test07$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test10: test10$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test11: test11$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test12: test12$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-test13: test13$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-pipes: pipes$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-server: server$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-client: client$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-string: string$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-values: values$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nsarray: nsarray$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nsbundle: nsbundle$(OEXT) ../src/libobjects$(LIBEXT)
-	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
-nsdictionary: nsdictionary$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nsset: nsset$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nsprocessinfo: nsprocessinfo$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nsarchiver: nsarchiver$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-diningPhilosophers: diningPhilosophers$(OEXT) ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-invocation: invocation.o ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nsmaptable: nsmaptable.o ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
-nshashtable: nshashtable.o ../src/libobjects$(LIBEXT)
-	$(LINK_CMD)
+%: %$(OEXT) $(srcdir)/../src/libobjects$(LIBEXT)
+	$(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
 
 install:
 uninstall:
 
 echo-excs:
 	@echo $(EXCS)
-
-remote: server client
 
 # These next few lines give an example of how to compile, link and store
 # a bundle.
