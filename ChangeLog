@@ -1,3 +1,8 @@
+2000-07-24  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSTcpPort.m
+	(-sendBeforeDate:msgid:components:from:reserved:]): Correct typo.
+
 2000-07-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Testing directory tidied to reflect removal of old classes.

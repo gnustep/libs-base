@@ -1699,7 +1699,7 @@ static Class		tcpPortClass;
 		   * word boundary, so we work with an aligned buffer
 		   * and use memcmpy()
 		   */
-		  if ((*hLength % __alignof__(gsu32)) != 0)
+		  if ((hLength % __alignof__(gsu32)) != 0)
 		    {
 		      GSPortItemHeader	itemHeader;
 
