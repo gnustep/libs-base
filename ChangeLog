@@ -1,3 +1,8 @@
+2000-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSeq.h: comparison with zero length range is always
+	NSOrderdSame
+
 2000-05-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: ([-methodSignatureForSelector:])
