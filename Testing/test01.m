@@ -2,7 +2,7 @@
 #include <objc/Object.h>
 #include <objects/objects.h>
 
-#if (__svr4__) || defined(__hpux)
+#if (__svr4__) || defined(__hpux) || defined(_SEQUENT_)
 long lrand48();
 #define random lrand48
 #else

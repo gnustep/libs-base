@@ -1,6 +1,6 @@
 #include <objects/objects.h>
 
-#if (sun && __svr4__) || defined(__hpux)
+#if (sun && __svr4__) || defined(__hpux) || defined(_SEQUENT_)
 long lrand48();
 #define random lrand48
 #else
