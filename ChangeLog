@@ -1,3 +1,46 @@
+2003-07-15  David Ayers  <d.ayers@inode.at>
+
+	* Headers/gnustep/base/NSUndoManager.h: Add
+	NSUndoCloseGroupingRunLoopOrdering enum.  Replace instance
+	variables _registeredUndo with _runLoopGroupingPending and
+	_actionName with _unused1.
+	* Source/NSUndoManager.m: Added documentation.
+	Added actionName instance variable to PrivateUndoGroup.
+	(-[PrivateUndoGroup actionName]): New method.
+	(-[PrivateUndoGroup setActionName]): Ditto.
+	(-[PrivateUndoGroup dealloc]): Release new instance variable.
+	(-[PrivateUndoGroup initWithParent:]): Initialize actionName.
+	(-[NSUndoManager forwardInvocation]): Implicitly call
+	beginUndoGrouping if group has not been setup and we are grouping
+	by events.  Register _loop: invocation if none is already pending
+	and if we are grouping by event.
+	(-[NSUndoManager registerUndoWithTarget:selector:object]): Ditto.
+	(-[NSUndoManager methodSignatureForSelector:]): Overriden to
+	forward request to target supplied by
+	-prepareWithInvocationTarget: if available.
+	(-[NSUndoManager _loop:]): Set flag to determine pending _loop:
+	processing.
+	(-[NSUndoManager init]): Removed access to _actionName.  Have
+	receiver default to group by event.
+	(-[NSUndoManager dealloc]): Ditto.
+	(-[NSUndoManager enableUndoRegistration]): Remove access to
+	_registeredUndo.
+	(-[NSUndoManager redo]): Simplified implementation.
+	(-[NSUndoManager redoActionName:]: Retrieve action name from first
+	grouping of the redo stack.
+	(-[NSUndoManager redoMenuTitleForUndoActionName:]): Add comment
+	about localization.
+	(-[NSUndoManager undoMenuTitleForUndoActionName:]): Ditto.
+	(-[NSUndoManager setActionName:]): Forward call to current
+	grouping.
+	(-[NSUndoManager undoActionName:]: Retrieve action name from first
+	grouping of the undo stack.
+	(-[NSUndoManager setRunLoopModes:]): Use correct run loop ordering
+	and set flag for pending _loop: invocation.
+	(-[NSUndoManager undoNestedGroup]): Removed special case handling
+	of _registeredUndo.  Raise NSInternalInconsistencyException if
+	grouping is still in progress.  Simplified implementation.
+
 2003-07-15  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSConnection.m: When creating new connection with registered

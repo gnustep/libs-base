@@ -30,6 +30,11 @@
 @class NSMutableArray;
 @class NSInvocation;
 
+/** Defines run loop ordering for closing undo groupings. */
+enum {
+  NSUndoCloseGroupingRunLoopOrdering = 350000
+};
+
 /* Public notification */
 GS_EXPORT NSString *NSUndoManagerCheckpointNotification;
 GS_EXPORT NSString *NSUndoManagerDidOpenUndoGroupNotification;
@@ -44,14 +49,14 @@ GS_EXPORT NSString *NSUndoManagerWillUndoChangeNotification;
 @private
     NSMutableArray	*_redoStack;
     NSMutableArray	*_undoStack;
-    NSString		*_actionName;
+    id                  *_unused1;
     id			_group;
     id			_nextTarget;
     NSArray		*_modes;
     BOOL		_isRedoing;
     BOOL		_isUndoing;
     BOOL		_groupsByEvent;
-    BOOL		_registeredUndo;
+    BOOL		_runLoopGroupingPending;
     unsigned		_disableCount;
     unsigned		_levelsOfUndo;
 }
@@ -73,7 +78,7 @@ GS_EXPORT NSString *NSUndoManagerWillUndoChangeNotification;
 - (void) redo;
 - (NSString*) redoActionName;
 - (NSString*) redoMenuItemTitle;
-- (NSString*) redoMenuTitleForUndoActionName: (NSString*)name;
+- (NSString*) redoMenuTitleForUndoActionName: (NSString*)actionName;
 - (void) registerUndoWithTarget: (id)target
 		       selector: (SEL)aSelector
 			 object: (id)anObject;
@@ -87,7 +92,7 @@ GS_EXPORT NSString *NSUndoManagerWillUndoChangeNotification;
 - (void) undo;
 - (NSString*) undoActionName;
 - (NSString*) undoMenuItemTitle;
-- (NSString*) undoMenuTitleForUndoActionName: (NSString*)name;
+- (NSString*) undoMenuTitleForUndoActionName: (NSString*)actionName;
 - (void) undoNestedGroup;
 
 @end
