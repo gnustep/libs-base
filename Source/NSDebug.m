@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSString.h>
 
 #ifndef HAVE_STRERROR
 const char*

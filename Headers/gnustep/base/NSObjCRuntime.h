@@ -25,7 +25,8 @@
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
 #include <objc/objc.h>
-#include <Foundation/NSString.h>
+
+@class	NSString;
 
 extern NSString *NSStringFromSelector(SEL aSelector);
 extern SEL NSSelectorFromString(NSString *aSelectorName);

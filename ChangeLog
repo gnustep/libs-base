@@ -1,3 +1,9 @@
+Wed Feb  9 17:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/gnustep/base/NSObjCRuntime.h: fix for header dependencies.
+	* Headers/gnustep/base/Unicode.h: ditto
+	* Source/NSDebug.m: ditto
+
 Tue Feb  8 23:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRunLoop.m: ([acceptInputForMode:beforeDate:]) fix handling
