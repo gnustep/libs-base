@@ -42,7 +42,7 @@
 #include <pwd.h>		// for getpwnam()
 #endif
 #include <sys/types.h>
-#include <unistd.h>
+#include <stdio.h>
 
 static NSString	*theUserName = nil;
 
