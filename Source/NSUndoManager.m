@@ -422,7 +422,7 @@
       [anInvocation setTarget: _nextTarget];
       _nextTarget = nil;
       [_group addInvocation: anInvocation];
-      if (_isUndoing == NO && _isRedoing == NO)
+      if (_isUndoing == NO && _isRedoing == NO && [_group actions] > 0)
 	{
 	  [_redoStack removeAllObjects];
 	}
