@@ -1,5 +1,8 @@
 2001-03-10  Adam Fedor  <fedor@gnu.org>
 
+	* Makefile.postamble (before-install): Remove extra '/' before
+	GNUSTEP_MAKEFILES
+
 	* configure.in: Check for objc_thread_add in runtime.
 	* Source/NSThread.m (objc_thread_add): Define only if not in runtime
 	(objc_thread_remove): Likewise.

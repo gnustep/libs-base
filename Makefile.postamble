@@ -43,9 +43,9 @@ before-all:: header-links
 
 # Things to do before installing
 before-install::
-	$(MKDIRS) $(INSTALL_ROOT_DIR)/$(GNUSTEP_MAKEFILES)/Additional
+	$(MKDIRS) $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional
 	$(INSTALL_DATA) base.make \
-	    $(INSTALL_ROOT_DIR)/$(GNUSTEP_MAKEFILES)/Additional/base.make
+	    $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional/base.make
 
 # Things to do after installing
 # after-install::
