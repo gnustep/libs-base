@@ -91,7 +91,7 @@ GSLocale.m \
 preface.m \
 mframe.m
 
-ifeq ($(OBJC_RUNTIME), NeXT)
+ifneq ($(OBJC_RUNTIME_LIB), gnu)
 GNU_MFILES += objc-gnu2next.m
 ifeq ($(HAVE_PTHREAD_H), yes)
 GNU_MFILES += thr-pthread.m
@@ -129,7 +129,7 @@ numbers.h \
 objc-gnu2next.h \
 preface.h
 
-ifeq ($(OBJC_RUNTIME), NeXT)
+ifneq ($(OBJC_RUNTIME_LIB), gnu)
 GNU_HEADERS += thr-mach.h
 endif
 # GNUStep source files
