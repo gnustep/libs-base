@@ -477,8 +477,8 @@ _gnu_noobjc_free_vars(void)
 }
 #else /* !HAVE_PROC_FS || !HAVE_LOAD_METHOD */
 
-#ifdef __MINGW32__
-/* For Windows32API Library, we know the global variables */
+#ifdef __MINGW__
+/* For WindowsAPI Library, we know the global variables */
 extern int __argc;
 extern char** __argv;
 extern char** _environ;
@@ -505,9 +505,9 @@ int main(int argc, char *argv[], char *env[])
     }
 #endif /* __MINGW__ */
 
-#ifdef __MS_WIN32__
+#ifdef __MS_WIN__
   _MB_init_runtime();
-#endif /* __MS_WIN32__ */
+#endif /* __MS_WIN__ */
 
   _gnu_process_args(argc, argv, env);
 
@@ -515,7 +515,7 @@ int main(int argc, char *argv[], char *env[])
   return gnustep_base_user_main(argc, argv, env);
 }
 #endif /* !GS_PASS_ARGUMENTS */
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
 #endif /* HAS_LOAD_METHOD && HAS_PROC_FS */ 
 
