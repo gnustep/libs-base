@@ -43,8 +43,8 @@ static Class NSArchiver_concrete_class;
 
 + (void) initialize
 {
-  /* xxx clean this up eventually */
-  NSArchiver_concrete_class = [Coder class];
+  if (self = [NSArchiver class])
+    NSArchiver_concrete_class = [NSGArchiver class];
 }
 
 
@@ -83,7 +83,7 @@ static Class NSArchiver_concrete_class;
 
 - (unsigned int) versionForClassName: (NSString*)className;
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -120,16 +120,119 @@ static Class NSArchiver_concrete_class;
   [self subclassResponsibility:_cmd];
 }
 
-+ (NSString*) classNameDecodedForArchiveClassName: (NSString*) inArchiveName
+@end
+
+
+@implementation NSUnarchiver 
+
+static Class NSUnarchiver_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
 {
-  return [[self _concreteClass] 
-	   classNameDecodedForArchiveClassName: inArchiveName];
+  NSUnarchiver_concrete_class = c;
 }
 
-+ (void) decodeClassName: (NSString*) inArchiveName
-             asClassName:(NSString *)trueName
++ (Class) _concreteClass
 {
-  [self notImplemented:_cmd];
+  return NSUnarchiver_concrete_class;
+}
+
++ (void) initialize
+{
+  NSUnarchiver_concrete_class = [NSGUnarchiver class];
+}
+
+// Initializing an unarchiver
+
+- (id) initForReadingWithData: (NSData*)data
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+// Decoding objects
+
++ (id) unarchiveObjectWithData: (NSData*)data
+{
+  return [[self _concreteClass] unarchiveObjectWithData: data];
+}
+
++ (id) unarchiveObjectWithFile: (NSString*)path
+{
+  return [[self _concreteClass] unarchiveObjectWithFile: path];
+}
+
+/* Managing */
+
+- (BOOL) isAtEnd
+{
+  [self subclassResponsibility:_cmd];
+  return NO;
+}
+
+- (NSZone*) objectZone
+{
+  [self subclassResponsibility:_cmd];
+  return NULL;
+}
+
+- (void) setObjectZone: (NSZone*)zone
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (unsigned int) systemVersion
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+/* Substituting Classes */
+
++ (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
+{
+  return [[self _concreteClass] 
+	   classNameDecodedForArchiveClassName: nameInArchive];
+}
++ (void) decodeClassName: (NSString*)nameInArchive
+	     asClassName: (NSString*)trueName
+{
+  return [[self _concreteClass]
+	   decodeClassName: nameInArchive asClassName: trueName];
+}
+
+- (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (void) decodeClassName: (NSString*)nameInArchive 
+	     asClassName: (NSString*)trueName
+{
+  [self subclassResponsibility:_cmd];
 }
 
 @end
+
+
+/* Exceptions */
+NSString *NSInconsistentArchiveException = @"NSInconsistentArchiveException";
+
+
+/* NSObject extensions for archiving */
+
+@implementation NSObject (NSArchiver)
+
+- (Class) classForArchiver
+{
+  return [self classForCoder];
+}
+
+- replacementObjectForArchiver: (NSArchiver*) archiver
+{
+  return [self replacementObjectForCoder: archiver];
+}
+
+@end
+
