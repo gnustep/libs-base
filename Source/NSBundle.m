@@ -687,9 +687,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 }
 
 /* For an application, returns the main bundle of the application.
-   For a tool, returns the main bundle associated with the tool (this
-   is experimental and not yet supported by gnustep-make, but will
-   soon be).
+   For a tool, returns the main bundle associated with the tool.
    
    For an application, the structure is as follows - 
    
@@ -1172,7 +1170,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	{
 	  fullpath = [path stringByAppendingPathComponent:
 			     [NSString stringWithFormat: @"%@.%@", name, ext]];
-	  if ( bundle_file_readable(fullpath) )
+	  if (bundle_file_readable(fullpath))
 	    {
 	      if (gnustep_target_os)
 		{
