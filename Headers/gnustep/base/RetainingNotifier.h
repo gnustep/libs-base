@@ -31,7 +31,7 @@
 #ifndef __RetainingNotifier_h
 #define __RetainingNotifier_h
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Lock.h>
 #include <gnustep/base/InvalidationListening.h>
 #include <gnustep/base/Retaining.h>

@@ -24,7 +24,7 @@
 #ifndef __LinkedListNode_h_INCLUDE_GNU
 #define __LinkedListNode_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/LinkedList.h>
 #include <gnustep/base/Coding.h>
 

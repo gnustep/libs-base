@@ -24,7 +24,7 @@
 #ifndef __Stream_h__OBJECTS_INCLUDE
 #define __Stream_h__OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Streaming.h>
 
 @interface Stream : NSObject <Streaming>

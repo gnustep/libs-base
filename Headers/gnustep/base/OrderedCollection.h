@@ -24,7 +24,7 @@
 #ifndef __OrderedCollection_h_INCLUDE_GNU
 #define __OrderedCollection_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/OrderedCollecting.h>
 

@@ -24,7 +24,7 @@
 #ifndef __RBTreeEltNode_h_INCLUDE_GNU
 #define __RBTreeEltNode_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/RBTreeNode.h>
 #include <gnustep/base/EltNodeCollector.h>
 

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <string.h>		/* For memset(). */
 
 NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)

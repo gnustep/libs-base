@@ -32,7 +32,7 @@
 
 */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>

@@ -34,7 +34,7 @@
 #ifndef __Collecting_h_INCLUDE_GNU
 #define __Collecting_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <gnustep/base/Invoking.h>
 #include <gnustep/base/Enumerating.h>

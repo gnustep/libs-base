@@ -70,7 +70,7 @@
   
    */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

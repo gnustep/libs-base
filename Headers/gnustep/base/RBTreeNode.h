@@ -24,7 +24,7 @@
 #ifndef __RBTreeNode_h_INCLUDE_GNU
 #define __RBTreeNode_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/BinaryTreeNode.h>
 #include <gnustep/base/RBTree.h>
 

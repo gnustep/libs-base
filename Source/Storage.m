@@ -22,7 +22,7 @@
 */ 
 
 #include <objc/Storage.h>
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <assert.h>
 /* memcpy() and memcmp() are gcc builtin's */
 

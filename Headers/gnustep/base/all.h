@@ -24,7 +24,7 @@
 #ifndef __objects_h_OBJECTS_INCLUDE
 #define __objects_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 
 /* Collection objects */
 #include <gnustep/base/Set.h>

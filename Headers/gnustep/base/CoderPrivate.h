@@ -24,7 +24,7 @@
 #ifndef __CoderPrivate_h_OBJECTS_INCLUDE
 #define __CoderPrivate_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/CStreaming.h>
 

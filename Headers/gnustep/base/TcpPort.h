@@ -24,7 +24,7 @@
 #ifndef __TcpPort_h__OBJECTS_INCLUDE
 #define __TcpPort_h__OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Port.h>
 #include <gnustep/base/RunLoop.h>
 #include <sys/socket.h>

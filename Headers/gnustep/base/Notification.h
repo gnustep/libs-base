@@ -24,7 +24,7 @@
 #ifndef __Notification_h_OBJECTS_INCLUDE
 #define __Notification_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/NSString.h>
 #include <gnustep/base/KeyedCollecting.h>
 #include <gnustep/base/NotificationDispatcher.h>

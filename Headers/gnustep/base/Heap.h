@@ -24,7 +24,7 @@
 #ifndef __Heap_h_INCLUDE_GNU
 #define __Heap_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Array.h>
 
 @interface Heap : Array

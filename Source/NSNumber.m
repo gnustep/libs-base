@@ -22,7 +22,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSConcreteNumber.h>

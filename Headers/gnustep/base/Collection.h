@@ -28,10 +28,10 @@
 #ifndef __Collection_h_INCLUDE_GNU
 #define __Collection_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <Foundation/NSObject.h>
 #include <gnustep/base/Collecting.h>
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 
 @interface ConstantCollection : NSObject <ConstantCollecting>

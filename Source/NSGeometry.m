@@ -23,7 +23,7 @@
 /**** Included Headers *******************************************************/
 
 #include <math.h>
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGeometry.h>
 

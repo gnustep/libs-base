@@ -24,7 +24,7 @@
 #ifndef __Archiver_h_OBJECTS_INCLUDE
 #define __Archiver_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coder.h>
 
 /* Eventually some functionality may be moved out of Coder and

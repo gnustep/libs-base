@@ -24,7 +24,7 @@
 #ifndef __Coding_h_OBJECTS_INCLUDE
 #define __Coding_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 
 /* #include <gnustep/base/String.h>
    xxx Think about trying to get <String> back in types,

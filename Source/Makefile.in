@@ -510,8 +510,8 @@ lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 
 # Local links to the include files
 gnustep/base:
-	mkdir gnustep
-	ln -s $(srcdir)/include gnustep/base
+	ln -s . gnustep
+	ln -s $(srcdir)/include base
 Foundation:
 	ln -s $(srcdir)/include Foundation
 

@@ -24,7 +24,7 @@
 #ifndef __RBTree_h_INCLUDE_GNU
 #define __RBTree_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/BinaryTree.h>
 
 @protocol RBTreeComprising <BinaryTreeComprising>

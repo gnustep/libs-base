@@ -24,7 +24,7 @@
 #ifndef __Port_h_OBJECTS_INCLUDE
 #define __Port_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <gnustep/base/MemoryStream.h>
 #include <gnustep/base/NSString.h>

@@ -23,7 +23,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Proxy.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Port.h>

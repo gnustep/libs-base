@@ -26,7 +26,7 @@
 #ifndef __EltNodeCollector_h_INCLUDE_GNU
 #define __EltNodeCollector_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
 
 /* Protocol for a node that also holds an element */

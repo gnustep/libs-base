@@ -24,7 +24,7 @@
 #ifndef __Locking_h_INCLUDE_GNU
 #define __Locking_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <objc/Protocol.h>
 
 @protocol Locking

@@ -48,7 +48,7 @@
 
    */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/behavior.h>
 #include <assert.h>
 #include <Foundation/NSException.h>

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <objc/List.h>
 
 /* Change this #define to 0 if you want -makeObjectsPerform: and 

@@ -35,7 +35,7 @@
 #ifndef __IndexedCollecting_h_OBJECTS_INCLUDE
 #define __IndexedCollecting_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Collecting.h>
 
 typedef struct _IndexRange { 

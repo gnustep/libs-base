@@ -24,7 +24,7 @@
 #ifndef _NSSet_h_OBJECTS_INCLUDE
 #define _NSSet_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 

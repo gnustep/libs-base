@@ -24,7 +24,7 @@
 #ifndef __Proxy_h_OBJECTS_INCLUDE
 #define __Proxy_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Retaining.h>
 

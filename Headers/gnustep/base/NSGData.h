@@ -24,7 +24,7 @@
 #ifndef __NSGData_h_OBJECTS_INCLUDE
 #define __NSGData_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <Foundation/NSData.h>
 #include <gnustep/base/MemoryStream.h>
 

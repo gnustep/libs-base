@@ -24,7 +24,7 @@
 #ifndef __UdpPort_h_INCLUDE_GNU
 #define __UdpPort_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Port.h>
 #include <sys/types.h>
 #ifndef WIN32

@@ -24,7 +24,7 @@
 #ifndef __Coder_h_OBJECTS_INCLUDE
 #define __Coder_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <gnustep/base/Streaming.h>
 #include <gnustep/base/String.h>

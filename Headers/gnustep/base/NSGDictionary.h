@@ -24,7 +24,7 @@
 #ifndef __NSGDictionary_h_OBJECTS_INCLUDE
 #define __NSGDictionary_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <Foundation/NSDictionary.h>
 #include <gnustep/base/Dictionary.h>
 
