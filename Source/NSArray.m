@@ -459,26 +459,59 @@ static SEL	rlSel;
 }
 
 /**
- * Initialize the array with the content of anArray. The order is preserved.
- * <br />May change the value of self before returning it.
+ * Initialize the receiver with the contents of array.
+ * The order of array is preserved.<br />
+ * If shouldCopy is YES then the objects are copied
+ * rather than simply retained.<br />
+ * Invokes -initWithObjects:count:
  */
-- (id) initWithArray: (NSArray*)array
+- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy
 {
-  unsigned c;
+  unsigned	c = [array count];
+  id		objects[c];
 
-  c = [array count];
-  {
-    id	objects[c];
+  [array getObjects: objects];
+  if (shouldCopy == YES)
+    {
+      unsigned	i;
 
-    [array getObjects: objects];
-    self = [self initWithObjects: objects count: c];
-  }
+      for (i = 0; i < c; i++)
+	{
+	  objects[i] = [objects[i] copy];
+	}
+      self = [self initWithObjects: objects count: c];
+#if GS_WITH_GC == 0
+      while (i > 0)
+	{
+	  [objects[--i] release];
+	}
+#endif
+    }
+  else
+    {
+      self = [self initWithObjects: objects count: c];
+    }
   return self;
 }
 
 /**
- * Initialize the array by decoding from an archive.
- * <br />May change the value of self before returning it.
+ * Initialize the receiver with the contents of array.
+ * The order of array is preserved.<br />
+ * Invokes -initWithObjects:count:
+ */
+- (id) initWithArray: (NSArray*)array
+{
+  unsigned	c = [array count];
+  id		objects[c];
+
+  [array getObjects: objects];
+  self = [self initWithObjects: objects count: c];
+  return self;
+}
+
+/**
+ * Initialize the array by decoding from an archive.<br />
+ * Invokes -initWithObjects:count:
  */
 - (id) initWithCoder: (NSCoder*)aCoder
 {
@@ -496,7 +529,9 @@ static SEL	rlSel;
       return [self initWithObjects: contents count: count];
     }
   else
-    return [self initWithObjects: 0 count: 0];
+    {
+      return [self initWithObjects: 0 count: 0];
+    }
 }
 
 /**
@@ -548,8 +583,9 @@ static SEL	rlSel;
 }
 
 /** <init />
- * Initialize the array with count objects.
- * <br />May change the value of self before returning it.
+ * Initialize the array with count objects.<br />
+ * Retains each object placed in the array.<br />
+ * Like all initializers, may change the value of self before returning it.
  */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
