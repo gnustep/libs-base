@@ -122,13 +122,13 @@ static NSZone defaultZone;
 static ZoneTable *zones = NULL;
 static ZoneTable *endzones = NULL;
 
-static void initialize(void);
-
 /* Gets a block with size SIZE. SIZE must be a multiple of bsize.  The
    size given includes overhead.  Returns NULL if no block can be
    returned. */
 static BlockHeader *getBlock(unsigned size);
 
+static void initialize(void) __attribute((constructor));
+  
 static void releaseBlock(BlockHeader *block);
 static void *getMemInBlock(BlockHeader *block, unsigned size);
 static void insertFreeChunk(BlockHeader *block, void *chunk);
@@ -356,9 +356,6 @@ NSCreateZone(unsigned startSize, unsigned granularity, BOOL canFree)
   NSZone *zone;
   BlockHeader *block;
   
-  if (!bsize)
-    /* FIXME: Any way to make sure this runs only once? */
-    initialize();
   if ((startSize == 0) || (startSize > maxsblock()))
     startSize = bsize;
   else
@@ -406,9 +403,6 @@ NSCreateZone(unsigned startSize, unsigned granularity, BOOL canFree)
 NSZone*
 NSDefaultMallocZone(void)
 {
-  if (!bsize)
-    /* FIXME: Any way to make sure this runs only once? */
-    initialize();
   return &defaultZone;
 }
 
@@ -521,7 +515,7 @@ static void
 initialize(void)
 {
   BlockHeader *block;
-  
+
   bsize = NSPageSize();
   zunit = (bsize-sizeof(ZoneTable))/sizeof(NSZone);
   zonelock = makelock();
