@@ -1,3 +1,8 @@
+2001-03-13  Adam Fedor  <fedor@gnu.org>
+
+	* Makefile.postamble (header-links): Copy directory rather than link
+	if LN_S does not support symbolic links.
+
 2001-03-12  Jonathan Gapen  <jagapen@home.com>
 
 	* Headers/gnustep/base/NSString.h: Change NSCyrillicStringEncoding
