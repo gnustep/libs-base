@@ -1,3 +1,7 @@
+2001-04-24  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: Remove TypedStream defs
+
 2001-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fixes for string capitalisation in
