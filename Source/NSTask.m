@@ -1018,6 +1018,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
   NSMutableString *args;
   char		*c_args;
   int		result;
+  const char	*executable;
 
   if (_hasLaunched)
     {
@@ -1025,7 +1026,8 @@ static DWORD WINAPI _threadFunction(LPVOID t)
     }
 
   lpath = [self _fullLaunchPath];
-  args = [lpath mutableCopy];
+  executable = [lpath fileSystemRepresentation];
+  args = [[NSMutableString alloc] initWithCString: executable];
   arg_enum = [[self arguments] objectEnumerator];
   while ((arg = [arg_enum nextObject]))
     {
@@ -1042,7 +1044,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
   start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
   start_info.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
 
-  result = CreateProcess([lpath fileSystemRepresentation],
+  result = CreateProcess(executable,
 			 c_args,
 			 NULL,      /* proc attrs */
 			 NULL,      /* thread attrs */
@@ -1055,7 +1057,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
   NSZoneFree(NSDefaultMallocZone(), c_args);
   if (result == 0)
     {
-      NSLog(@"Error launching task: %@", lpath);
+      NSLog(@"Error launching task: %s", executable);
       return;
     }
   
@@ -1080,7 +1082,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
 
       if (GetExitCodeProcess(procInfo.hProcess, &eCode) == 0)
 	{
-	  NSLog(@"Error getting exit codef for process %d", _taskId);
+	  NSLog(@"Error getting exit code for process %d", _taskId);
 	}
       else if (eCode != STILL_ACTIVE)
 	{
@@ -1360,7 +1362,7 @@ GSCheckTasks()
     }
 }
 
-- (void) setStandardError: (id)hdl
+- (void) setStandard[self currentDirectoryPath]: (id)hdl
 {
   if (_usePseudoTerminal == YES)
     {

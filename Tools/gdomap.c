@@ -4422,7 +4422,7 @@ printf(
       a[argc+1] = 0;
       if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
 	{
-	  fprintf(stderr, "gdomap - spawn failed - bye.\n");
+	  fprintf(stderr, "gdomap - spawn '%s' failed - bye.\n", argv[0]);
 	  exit(1);
 	}
       if (debug)
