@@ -39,8 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) \
-  -DHAVE_LIBXML=$(HAVE_LIBXML) -Wall
+ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS = 

@@ -226,45 +226,15 @@ GSStandardPathPrefixes(void)
 NSArray *
 NSStandardApplicationPaths(void)
 {
-  NSArray	*prefixArray = GSStandardPathPrefixes();
-  unsigned	numPrefixes = [prefixArray count];
-    
-  if (numPrefixes > 0)
-    {
-      NSString	*paths[numPrefixes];
-      unsigned	count;
-
-      [prefixArray getObjects: paths];
-      for (count = 0; count < numPrefixes; count++)
-	{
-	  paths[count]
-	    = [paths[count] stringByAppendingPathComponent: @"Apps"];
-	}
-      return [NSArray arrayWithObjects: paths count: count];
-    }
-  return prefixArray;	/* An empty array */
+  return NSSearchPathForDirectoriesInDomains(NSAllApplicationsDirectory,
+                                             NSAllDomainsMask, YES);
 }
 
 NSArray *
 NSStandardLibraryPaths(void)
 {
-  NSArray	*prefixArray = GSStandardPathPrefixes();
-  unsigned	numPrefixes = [prefixArray count];
-    
-  if (numPrefixes > 0)
-    {
-      NSString	*paths[numPrefixes];
-      unsigned	count;
-
-      [prefixArray getObjects: paths];
-      for (count = 0; count < numPrefixes; count++)
-	{
-	  paths[count]
-	    = [paths[count] stringByAppendingPathComponent: @"Library"];
-	}
-      return [NSArray arrayWithObjects: paths count: count];
-    }
-  return prefixArray;	/* An empty array */
+  return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
+                                             NSAllDomainsMask, YES);
 }
 
 NSString *
@@ -324,6 +294,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSString *gnustep_system_root;
   NSString *adminDir = @"Administrator";
   NSString *appsDir = @"Apps";
+  NSString *demosDir = @"Demos";
   NSString *devDir = @"Developer";
   NSString *libraryDir = @"Library";
   NSString *libsDir = @"Libraries";
@@ -355,10 +326,14 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
         [paths addObject:
              [gnustep_system_root stringByAppendingPathComponent: appsDir]];
     }
-/*
   if (directoryKey == NSDemoApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory);
-*/
+    {
+      if (domainMask & NSSystemDomainMask)
+        [paths addObject: [NSString pathWithComponents:
+            [NSArray arrayWithObjects: gnustep_system_root,
+                devDir, demosDir, nil]]];
+    }
   if (directoryKey == NSDeveloperApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
     {

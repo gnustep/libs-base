@@ -22,12 +22,13 @@
 */
 
 #include <config.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSBitmapCharSet.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSLock.h>
-#include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSDictionary.h>
 
 static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
@@ -62,35 +63,11 @@ static NSLock* cache_lock = nil;
 
 + (NSCharacterSet *) _bitmapForSet: (NSString *)setname number: (int)number
 {
-  NSCharacterSet* set;
-  NSString *user_path, *local_path, *system_path;
-  NSBundle *user_bundle = nil, *local_bundle = nil, *system_bundle = nil;
-  NSProcessInfo *pInfo;
-  NSDictionary *env;
-  NSString *user, *local, *system;
-
-  /*
-    The path of where to search for the resource files
-    is based upon environment variables.
-    GNUSTEP_USER_ROOT
-    GNUSTEP_LOCAL_ROOT
-    GNUSTEP_SYSTEM_ROOT
-    */
-  pInfo = [NSProcessInfo processInfo];
-  env = [pInfo environment];
-  user = [env objectForKey: @"GNUSTEP_USER_ROOT"];
-  user = [user stringByAppendingPathComponent: @"Libraries"];
-  local = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
-  local = [local stringByAppendingPathComponent: @"Libraries"];
-  system = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
-  system = [system stringByAppendingPathComponent: @"Libraries"];
-
-  if (user)
-    user_bundle = [NSBundle bundleWithPath: user];
-  if (local)
-    local_bundle = [NSBundle bundleWithPath: local];
-  if (system)
-    system_bundle = [NSBundle bundleWithPath: system];
+  NSCharacterSet *set;
+  NSArray *paths;
+  NSString *bundle_path, *set_path;
+  NSBundle *bundle;
+  NSEnumerator *enumerator;
 
   if (!cache_lock)
     cache_lock = [NSLock new];
@@ -101,59 +78,28 @@ static NSLock* cache_lock = nil;
     {
       NS_DURING
 
-	/* Gather up the paths */
-	/* Search user first */
-	user_path = [user_bundle pathForResource: setname
-				 ofType: @"dat"
-				 inDirectory: NSCharacterSet_PATH];
-        /* Search local second */
-        local_path = [local_bundle pathForResource: setname
-				   ofType: @"dat"
-				   inDirectory: NSCharacterSet_PATH];
-	/* Search system last */
-	system_path = [system_bundle pathForResource: setname
-				     ofType: @"dat"
-				     inDirectory: NSCharacterSet_PATH];
+        paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
+                                                    NSAllDomainsMask, YES);
+        enumerator = [paths objectEnumerator];
+        while ((set == nil) && (bundle_path = [enumerator nextObject]))
+          {
+            bundle = [NSBundle bundleWithPath: bundle_path];
 
-	/* Try to load the set from the user path */
-        set = nil;
-        if (user_path != nil && [user_path length] != 0)
-	  {
-	    NS_DURING
-	      /* Load the character set file */
-	      set = [self characterSetWithBitmapRepresentation: 
-			    [NSData dataWithContentsOfFile: user_path]];
-            NS_HANDLER
-              NSLog(@"Unable to read NSCharacterSet file %@", user_path);
-	      set = nil;
-            NS_ENDHANDLER
-	  }
-
-	/* If we don't have a set yet then check local path */
-	if (set == nil && local_path != nil && [local_path length] != 0)
-	  {
-	    NS_DURING
-	      /* Load the character set file */
-	      set = [self characterSetWithBitmapRepresentation: 
-			    [NSData dataWithContentsOfFile: local_path]];
-            NS_HANDLER
-              NSLog(@"Unable to read NSCharacterSet file %@", local_path);
-	      set = nil;
-            NS_ENDHANDLER
-	  }
-
-	/* Lastly if we don't have a set yet then check system path */
-	if (set == nil && system_path != nil && [system_path length] != 0)
-	  {
-	    NS_DURING
-	      /* Load the character set file */
-	      set = [self characterSetWithBitmapRepresentation: 
-			    [NSData dataWithContentsOfFile: system_path]];
-            NS_HANDLER
-              NSLog(@"Unable to read NSCharacterSet file %@", system_path);
-	      set = nil;
-            NS_ENDHANDLER
-	  }
+            set_path = [bundle pathForResource: setname
+                                        ofType: @"dat"
+                                   inDirectory: NSCharacterSet_PATH];
+            if (set_path != nil)
+              {
+                NS_DURING
+                  /* Load the character set file */
+                  set = [self characterSetWithBitmapRepresentation:
+                                [NSData dataWithContentsOfFile: set_path]];
+                NS_HANDLER
+                  NSLog(@"Unable to read NSCharacterSet file %@", set_path);
+                  set = nil;
+                NS_ENDHANDLER
+              }
+          }
 
 	/* If we didn't load a set then raise an exception */
 	if (!set)
