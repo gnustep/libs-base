@@ -52,13 +52,6 @@ typedef unsigned short Character;
 //- initWithStream: (Stream*)aStream;
 //- initWithStream: (Stream*)aStream length: (unsigned)aLength;
 
-// GETTING C CHARS;
-- (char) charAtIndex: (unsigned)index;
-- (const char *) cString;
-- (unsigned) cStringLength;
-- (void) getCString: (char*)buffer;
-- (void) getCString: (char*)buffer range: (IndexRange)aRange;
-
 // GETTING NEW, AUTORELEASED STRING OBJECTS, NO NEED TO RELEASE THESE;
 + (String*) stringWithString: (String*)aString;
 + (String*) stringWithString: (String*)aString range: (IndexRange)aRange;
@@ -83,6 +76,9 @@ typedef unsigned short Character;
 //- (String*) lowercaseString;
 //- (String*) uppercaseString;
 
+- mutableCopy;
+- copy;
+
 // QUERYING
 - (unsigned) length;
 - (IndexRange) range;
@@ -96,6 +92,13 @@ typedef unsigned short Character;
 //- (unsigned) indexOfCharacter: (Character)aChar;
 //- (unsigned) indexOfLastCharacter: (Character)aChar;
 
+// GETTING C CHARS;
+- (char) charAtIndex: (unsigned)index;
+- (const char *) cString;
+- (unsigned) cStringLength;
+- (void) getCString: (char*)buffer;
+- (void) getCString: (char*)buffer range: (IndexRange)aRange;
+
 // FOR FILE NAMES (don't use the name "path", gnu will not use it for this);
 //- (IndexRange) fileRange;
 //- (IndexRange) directoriesRange;
@@ -106,7 +109,7 @@ typedef unsigned short Character;
 
 @end
 
-@protocol MutableString <String, ValueHolding>
+@protocol MutableString <ValueHolding>
 
 + (MutableString*) stringWithCapacity: (unsigned)capacity;
 - initWithCapacity: (unsigned)capacity;
