@@ -294,7 +294,7 @@ else
 #     64-bit ints not supported - but we need a dummy type for byte-swapping
 #     of 64-bit values arriving from another system.
       GS_SINT64="struct { gsu8 a[8]; }"
-      GS_SINT64="struct { gsu8 a[9]; }"
+      GS_SINT64="struct { gsu8 a[8]; }"
       GS_HAVE_I64=0
     fi
   fi
