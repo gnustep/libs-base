@@ -2,8 +2,6 @@
 #define _server_h
 
 #include <objects/stdobjects.h>
-#include <objects/InvalidationListening.h>
-#include <objc/List.h>
 #include <objects/Connection.h>
 #include <objects/Array.h>
 
@@ -22,7 +20,7 @@ struct myarray {
 };
  
 @protocol ServerProtocol 
-- addObject: o;
+- (void) addObject: o;
 - objectAt: (unsigned)i;
 - (unsigned) count;
 - print: (const char *)msg;
@@ -57,9 +55,9 @@ struct myarray {
 @end
 #endif
 
-@interface Server : NSObject <ServerProtocol,InvalidationListening>
+@interface Server : NSObject <ServerProtocol>
 {
-  id theList;
+  id the_array;
 }
 @end
 
