@@ -1,7 +1,7 @@
 /* A simple example of writing and reading to a file using the 
    GNU StdioStream object. */
 
-#include <objects/StdioStream.h>
+#include <gnustep/base/StdioStream.h>
 
 int main()
 {

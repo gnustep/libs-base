@@ -10,7 +10,7 @@ Hello, the following code core dumps on Solaris 2.3 (compiled with gcc
 Any hints?
 */
 
-#include <objects/Queue.h>
+#include <gnustep/base/Queue.h>
 #include <Foundation/NSValue.h>
 
 int main ()

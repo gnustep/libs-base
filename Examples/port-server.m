@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <objects/SocketPort.h>
+#include <gnustep/base/SocketPort.h>
 
 #define MSG "Hello back to you, from a server SocketPort"
 #define BUFFER_SIZE 80

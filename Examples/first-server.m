@@ -1,7 +1,7 @@
 
-#include <objects/Connection.h>
+#include <gnustep/base/Connection.h>
 #include "first-server.h"
-#include <objects/String.h>
+#include <gnustep/base/String.h>
 
 @implementation FirstServer
 - sayHiTo: (char *)name

@@ -1,12 +1,12 @@
-#include <objects/stdobjects.h>
+#include <gnustep/base/stdobjects.h>
 #include <stdio.h>
-#include <objects/SocketPort.h>
-#include <objects/BinaryCStream.h>
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
-#include <objects/String.h>
-#include <objects/Notification.h>
-#include <objects/RunLoop.h>
+#include <gnustep/base/SocketPort.h>
+#include <gnustep/base/BinaryCStream.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Proxy.h>
+#include <gnustep/base/String.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/RunLoop.h>
 #include "server.h"
 
 @implementation Server

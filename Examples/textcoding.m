@@ -4,11 +4,11 @@
    text archive format.
    */
 
-#include <objects/Archiver.h>
-#include <objects/TextCStream.h>
-#include <objects/Array.h>
-#include <objects/Dictionary.h>
-#include <objects/NSString.h>
+#include <gnustep/base/Archiver.h>
+#include <gnustep/base/TextCStream.h>
+#include <gnustep/base/Array.h>
+#include <gnustep/base/Dictionary.h>
+#include <gnustep/base/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSValue.h>
 

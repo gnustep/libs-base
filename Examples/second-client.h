@@ -1,8 +1,8 @@
 #ifndef second_client_h
 #define second_client_h
 
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Proxy.h>
 #include "second-server.h"
 
 @interface AppellationObject : NSObject

@@ -1,5 +1,5 @@
-#include <objects/stdobjects.h>
-#include <objects/behavior.h>
+#include <gnustep/base/stdobjects.h>
+#include <gnustep/base/behavior.h>
 #include <Foundation/NSCoder.h>
 
 @interface Foo : NSObject

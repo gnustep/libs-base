@@ -1,8 +1,8 @@
 
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/Proxy.h>
 #include "first-server.h"
-#include <objects/String.h>
+#include <gnustep/base/String.h>
 
 int main(int argc, char *argv[])
 {

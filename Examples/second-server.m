@@ -1,10 +1,10 @@
 #include "second-server.h"
 #include "second-client.h"
-#include <objects/Connection.h>
-#include <objects/TcpPort.h>
-#include <objects/String.h>
-#include <objects/Notification.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/Connection.h>
+#include <gnustep/base/TcpPort.h>
+#include <gnustep/base/String.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/Invocation.h>
 
 id announce_new_port (id notification)
 {

@@ -2,7 +2,7 @@
 #define second_server_h
 
 #include <Foundation/NSObject.h>
-#include <objects/Array.h>
+#include <gnustep/base/Array.h>
 
 @interface SecondServer : NSObject
 {

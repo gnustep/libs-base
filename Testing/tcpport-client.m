@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <objects/TcpPort.h>
-#include <objects/RunLoop.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/TcpPort.h>
+#include <gnustep/base/RunLoop.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSDate.h>
 
 id handle_incoming_packet (id packet)
