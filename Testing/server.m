@@ -5,6 +5,7 @@
 #include <objects/Connection.h>
 #include <objects/String.h>
 #include <objects/Notification.h>
+#include <objects/RunLoop.h>
 #include "server.h"
 
 @implementation Server
@@ -23,7 +24,7 @@
 }
 - objectAt: (unsigned)i
 {
-  return [the_array objectAt:i];
+  return [the_array objectAtIndex: i];
 }
 - print: (const char *)msg
 {
@@ -162,22 +163,20 @@
   return d;
 }
 
-- senderIsInvalid: anObj
+- connectionBecameInvalid: notification
 {
+  id anObj = [notification object];
   if ([anObj isKindOf:[Connection class]])
     {
-      id objList;
-      int i, j, count, listCount = [the_array count];
-      objList = [anObj proxies];
-      count = [objList count];
-      /* This contortion avoids List's calling -isEqual: on the proxy */
-      for (i = 0; i < count; i++)
-	for (j = 0; j < [the_array count]; j++)
-	  if ([the_array objectAt:j] == [objList objectAtIndex:i])
-	    [the_array removeObjectAtIndex: j];
-      [objList release];
-      if (listCount != [the_array count])
-	printf("$$$$$ senderIsInvalid: removed from the_array\n");
+      int i, count = [the_array count];
+      for (i = count-1; i >= 0; i--)
+	{
+	  id o = [the_array objectAtIndex: i];
+	  if ([o isProxy] && [o connectionForProxy] == anObj)
+	    [the_array removeObjectAtIndex: i];
+	}
+      if (count != [the_array count])
+	printf("$$$$$ connectionBecameInvalid: removed from the_array\n");
     }
   else
     {
@@ -228,7 +227,8 @@ int main(int argc, char *argv[])
   printf("got double %f\n", d);
   printf("list's hash is 0x%x\n", (unsigned)[l hash]);
   printf("object's hash is 0x%x\n", (unsigned)[o hash]);
-  [c runConnection];
+
+  [RunLoop run];
 
   exit(0);
 }
