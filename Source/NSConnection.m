@@ -1415,7 +1415,9 @@ static BOOL	multi_threaded = NO;
 }
 
 /**
- * Returns the proxy for the root object of the remote NSConnection.
+ * Returns the proxy for the root object of the remote NSConnection.<br />
+ * Generally you will wish to call [NSDistantObject-setProtocolForProxy:]
+ * immediately after obtaining such a root proxy.
  */
 - (NSDistantObject*) rootProxy
 {
@@ -1504,7 +1506,7 @@ static BOOL	multi_threaded = NO;
 
 /**
  * Sets the runloop mode in which requests will be sent to the remote
- * end of the connection.
+ * end of the connection.  Normally this is NSDefaultRunloopMode
  */
 - (void) setRequestMode: (NSString*)mode
 {
