@@ -117,7 +117,6 @@ unescstr (char *src)
   char *dest=(char*) malloc (strlen(src));
   char *src_ptr, *dest_ptr;
   char ch;
-  int num;
 
   /* blow away that terminating quote for good measure */
   src[strlen(src)-1] = '\0';
@@ -131,11 +130,11 @@ unescstr (char *src)
       else
 	{
           ch = *(++src_ptr);
-          if((ch>='0') && (ch<='7'))
+          if((ch>='0') && (ch<='1')) /* assume next 2 chars are octal too */
 	    {
-	      *dest_ptr = ch & 07;
-	      *dest_ptr = (num<<3) | (*(++src_ptr)&07);
-	      *dest_ptr = (num<<3) | (*(++src_ptr)&07);
+	      *dest_ptr = (ch & 07) << 3;
+              *dest_ptr |= (*(++src_ptr)&07)<<3;
+              *dest_ptr |= *(++src_ptr)&07;
 	    }
 	  else
 	    {
