@@ -22,13 +22,16 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+# Install into the system root by default
+GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
 include ../Version
 include ../config.mak
 
 # The tools to be compiled
-TOOL_NAME = \
+TEST_TOOL_NAME = \
 test01 \
 test02 \
 heap \
@@ -123,7 +126,7 @@ create-abbrevs_OBJC_FILES = create-abbrevs.m
 create-regions_OBJC_FILES = create-regions.m
 
 # The bundles to be compiled
-BUNDLE_NAME=LoadMe
+TEST_BUNDLE_NAME=LoadMe
 
 # The bundle Objective-C source files to be compiled
 LoadMe_OBJC_FILES = LoadMe.m MyCategory.m SecondClass.m
@@ -132,7 +135,7 @@ LoadMe_OBJC_FILES = LoadMe.m MyCategory.m SecondClass.m
 LoadMe_RESOURCES = English.lproj/NXStringTable.example
 LoadMe_RESOURCE_DIRS = English.lproj
 
-SRCS = $(TOOL_NAME:=.m)
+SRCS = $(TEST_TOOL_NAME:=.m)
 
 HDRS = \
 server.h \
@@ -153,7 +156,6 @@ DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 
 -include Makefile.preamble
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/tool.make
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/bundle.make
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/test.make
 
 -include Makefile.postamble

@@ -22,13 +22,16 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+# Install into the system root by default
+GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
 include ../Version
 include ../config.mak
 
 # The tools to be compiled
-TOOL_NAME = \
+TEST_TOOL_NAME = \
 dictionary \
 stdio-stream \
 textcoding \
@@ -60,6 +63,6 @@ custom-zone.m
 
 -include Makefile.preamble
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/tool.make
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/test.make
 
 -include Makefile.postamble

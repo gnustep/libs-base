@@ -59,6 +59,9 @@ after-install::
 
 # Things to do after uninstalling
 after-uninstall::
+	for file in $(GNU_HEADERS); do \
+	  rm $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
+	done
 
 # Things to do before cleaning
 # before-clean::

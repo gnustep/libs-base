@@ -253,7 +253,7 @@ const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks =
   (NSHT_describe_func_t) _NS_owned_void_p_describe
 };
 
-const NSHashTableCallBacks NSNonRetainedObjectsHashCallBacks = 
+const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks = 
 {
   (NSHT_hash_func_t) _NS_non_retained_id_hash,
   (NSHT_isEqual_func_t) _NS_non_retained_id_is_equal,
