@@ -42,16 +42,16 @@
 
 // INITIALIZING;
 - init;
-- initWithContentsOf: (id <Collecting>)aCollection;
+- initWithContentsOf: (id <ConstantCollecting>)aCollection;
 
 // TESTING;
 - (BOOL) isEmpty;
 - (BOOL) includesObject: anObject;
-- (BOOL) isSubsetOf: (id <Collecting>)aCollection;
-- (BOOL) isDisjointFrom: (id <Collecting>)aCollection;
+- (BOOL) isSubsetOf: (id <ConstantCollecting>)aCollection;
+- (BOOL) isDisjointFrom: (id <ConstantCollecting>)aCollection;
 - (int) compare: anObject;
 - (BOOL) isEqual: anObject;
-- (BOOL) contentsEqual: (id <Collecting>)aCollection;
+- (BOOL) contentsEqual: (id <ConstantCollecting>)aCollection;
 - (unsigned) count;
 - (unsigned) occurrencesOfObject: anObject;
 - (BOOL) trueForAllObjectsByCalling: (BOOL(*)(id))aFunc;
@@ -134,16 +134,16 @@
 // ADDING;
 - addObject: newObject;
 - addObjectIfAbsent: newObject;
-- addContentsOf: (id <Collecting>)aCollection;
-- addContentsOfIfAbsent: (id <Collecting>)aCollection;
+- addContentsOf: (id <ConstantCollecting>)aCollection;
+- addContentsOfIfAbsent: (id <ConstantCollecting>)aCollection;
 - addObjectsCount: (unsigned)count, ...;
 
 // REMOVING;
 - removeObject: oldObject;
 - removeObject: oldObject ifAbsentCall: (id(*)(arglist_t))excFunc;
 - removeAllOccurrencesOfObject: oldObject;
-- removeContentsIn: (id <Collecting>)aCollection;
-- removeContentsNotIn: (id <Collecting>)aCollection;
+- removeContentsIn: (id <ConstantCollecting>)aCollection;
+- removeContentsNotIn: (id <ConstantCollecting>)aCollection;
 - uniqueContents;
 - empty;
 
