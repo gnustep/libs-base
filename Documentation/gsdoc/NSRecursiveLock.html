@@ -8,7 +8,7 @@
 <h1>NSRecursiveLock</h1>
 <h3>Authors </h3>
  <dl>
-<dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Adam Fedor</a>
 <dd>
 </dl>
 <p>Version: $Revision$</p>
@@ -21,6 +21,11 @@
 </p>
 <hr>
 
+	  See NSLock for more information about what a lock is. A recursive
+	  lock extends NSLock in that you can lock a recursive lock multiple
+	  times. Each lock must be balanced by a cooresponding unlock, and the
+	  lock is not released for another thread to aquire until the last
+	  unlock call is made (cooresponding to the fist lock message). 
           
 <h2>Instance Variables </h2>
 <ul>
@@ -34,11 +39,17 @@
 <h3><a name ="method-0">lockBeforeDate:</a></h3>
 - (BOOL) <b>lockBeforeDate:</b> (NSDate*)limit;<br>
 
+	  Attempts to aquire a lock before the date limit passes. It returns 
+	  YES if it can. It returns NO if it cannot
+	  (but it waits until the time limit is up before returning NO).
           
  <hr>
 <h3><a name ="method-1">tryLock</a></h3>
 - (BOOL) <b>tryLock</b>;<br>
 
+	  Attempts to aquire a lock, but returns NO immediately if the lock
+	  cannot be aquired. It returns YES if the lock is aquired. Can be
+	  called multiple times to make nested locks.
           
  <hr>
 </body>
