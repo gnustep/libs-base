@@ -419,17 +419,17 @@ BOOL GSDebugSet(NSString *level)
 
 + (id) notImplemented:(SEL)selector
 {
-    [NSException raise: NSGenericException
-                format: @"method %s not implemented in %s(class)",
-selector ? sel_get_name(selector) : "(null)",
-        object_get_class_name(self)];
-    return nil;
+  [NSException raise: NSGenericException
+	       format: @"method %s not implemented in %s(class)",
+	       selector ? GSNameFromSelector(selector) : "(null)",
+	       GSClassNameFromObject(self)];
+  return nil;
 }
 
 // In NSObject.m, category GNU
 - (BOOL) isInstance
 {
-    return GSObjCIsInstance(self);
+  return GSObjCIsInstance(self);
 }
 
 @end

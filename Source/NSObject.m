@@ -701,7 +701,7 @@ GSDescriptionForInstanceMethod(pcl self, SEL aSel)
 {
   int i;
   struct objc_protocol_list	*p_list;
-  const char			*name = sel_get_name (aSel);
+  const char			*name = GSNameFromSelector(aSel);
   struct objc_method_description *result;
 
   if (self->instance_methods != 0)
@@ -732,7 +732,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   int i;
   struct objc_protocol_list	*p_list;
-  const char			*name = sel_get_name (aSel);
+  const char			*name = GSNameFromSelector(aSel);
   struct objc_method_description *result;
 
   if (self->class_methods != 0)
@@ -1184,7 +1184,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  */
 + (Class) superclass
 {
-  return class_get_super_class (self);
+  return GSObjCSuper(self);
 }
 
 /**
@@ -1404,7 +1404,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %lx>",
-    object_get_class_name(self), (unsigned long)self];
+    GSClassNameFromObject(self), (unsigned long)self];
 }
 
 /**
@@ -1437,9 +1437,9 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   [NSException raise: NSInvalidArgumentException
 	      format: @"%s(%s) does not recognize %s",
-	       object_get_class_name(self), 
+	       GSClassNameFromObject(self), 
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSelector ? sel_get_name(aSelector) : "(null)"];
+	       aSelector ? GSNameFromSelector(aSelector) : "(null)"];
 }
 
 - (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
@@ -1681,7 +1681,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+		   format: @"invalid selector passed to %s",
+		     GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -1705,7 +1706,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+		   format: @"invalid selector passed to %s", 
+		   GSNameFromSelector(_cmd)];
       return nil;
     }
 
@@ -1732,7 +1734,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", sel_get_name(_cmd)];
+		  format: @"invalid selector passed to %s", GSNameFromSelector(_cmd)];
       return nil;
     }
 
@@ -1906,7 +1908,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (aVersion < 0)
     [NSException raise: NSInvalidArgumentException
 	        format: @"%s +setVersion: may not set a negative version",
-			object_get_class_name(self)];
+			GSClassNameFromObject(self)];
   class_set_version(self, aVersion);
   return self;
 }
@@ -1921,11 +1923,11 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 - (id) error: (const char *)aString, ...
 {
 #define FMT "error: %s (%s)\n%s\n"
-  char fmt[(strlen((char*)FMT)+strlen((char*)object_get_class_name(self))
+  char fmt[(strlen((char*)FMT)+strlen((char*)GSClassNameFromObject(self))
             +((aString!=NULL)?strlen((char*)aString):0)+8)];
   va_list ap;
 
-  sprintf(fmt, FMT, object_get_class_name(self),
+  sprintf(fmt, FMT, GSClassNameFromObject(self),
                     GSObjCIsInstance(self)?"instance":"class",
                     (aString!=NULL)?aString:"");
   va_start(ap, aString);
@@ -1939,7 +1941,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 /*
 - (const char *) name
 {
-  return object_get_class_name(self);
+  return GSClassNameFromObject(self);
 }
 */
 
@@ -2015,9 +2017,9 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   [NSException raise: NSGenericException
 	       format: @"%s(%s) does not recognize %s",
-	       object_get_class_name(self), 
+	       GSClassNameFromObject(self), 
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSel ? sel_get_name(aSel) : "(null)"];
+	       aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
 }
 
@@ -2124,7 +2126,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 - (BOOL) isClass
 {
-  return object_is_class(self);
+  return GSObjCIsClass(self);
 }
 
 - (BOOL) isInstance
@@ -2271,7 +2273,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %lx>",
-    object_get_class_name(self), (unsigned long)self];
+    GSClassNameFromObject(self), (unsigned long)self];
 }
 - (BOOL) isProxy
 {

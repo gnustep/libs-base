@@ -94,7 +94,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 + (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s>", object_get_class_name(self)];
+  return [NSString stringWithFormat: @"<%s>", GSClassNameFromObject(self)];
 }
 
 /**
@@ -185,7 +185,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 + (Class) superclass
 {
-  return class_get_super_class (self);
+  return GSObjCSuper(self);
 }
 
 /**
@@ -249,7 +249,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s %lx>",
-	object_get_class_name(self), (unsigned long)self];
+	GSClassNameFromObject(self), (unsigned long)self];
 }
 
 /**
@@ -272,7 +272,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSInvalidArgumentException
 	      format: @"NSProxy should not implement '%s'",
-				sel_get_name(_cmd)];
+				GSNameFromSelector(_cmd)];
 }
 
 /**
@@ -289,8 +289,8 @@ extern BOOL __objc_responds_to(id, SEL);
 - (id) init
 {
   [NSException raise: NSGenericException
-    format: @"subclass %s should override %s", object_get_class_name(self),
-    sel_get_name(_cmd)];
+    format: @"subclass %s should override %s", GSClassNameFromObject(self),
+    GSNameFromSelector(_cmd)];
   return self;
 }
 
@@ -355,7 +355,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (id) notImplemented: (SEL)aSel
 {
   [NSException raise: NSGenericException
-	      format: @"NSProxy notImplemented %s", sel_get_name(aSel)];
+	      format: @"NSProxy notImplemented %s", GSNameFromSelector(aSel)];
   return self;
 }
 
@@ -394,7 +394,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				sel_get_name(_cmd)];
+				GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -409,7 +409,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				sel_get_name(_cmd)];
+				GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject);
@@ -425,7 +425,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				sel_get_name(_cmd)];
+				GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject, anotherObject);
