@@ -180,7 +180,7 @@ static NSMutableSet	*textNodes = nil;
 		inUnit: (NSString*)u
 		 isRef: (BOOL)f
 {
-  NSString	*s;
+  NSString	*s = nil;
   BOOL		isLocal = YES;
   NSString	*kind = (f == YES) ? @"href" : @"name";
 
