@@ -686,7 +686,7 @@ pty_slave(const char* name)
 
 /**
  * Returns a validated launch path or nil.<br />
- * Allows for the GNUstep host, operating system, and library combination
+ * Allows for the GNUstep host/operating system, and library combination
  * subdirectories in a path, appending them as necessary to try to locate
  * the actual binary to be used.<br />
  * Checks that the binary file exists and is executable.<br />
@@ -697,7 +697,8 @@ pty_slave(const char* name)
 {
   NSFileManager	*mgr;
   NSString	*libs;
-  NSString	*arch;
+  NSString	*cpu;
+  NSString	*os;
   NSString	*prog;
   NSString	*lpath;
   NSString	*base_path;
@@ -711,7 +712,8 @@ pty_slave(const char* name)
 
   mgr = [NSFileManager defaultManager];
   libs = [NSBundle _library_combo];
-  arch = [NSBundle _gnustep_target_dir];
+  os = [NSBundle _gnustep_target_os];
+  cpu = [NSBundle _gnustep_target_cpu];
 
   /*
    *	Set lpath to the actual path to use for the executable.
@@ -724,20 +726,26 @@ pty_slave(const char* name)
   base_path = [_launchPath stringByDeletingLastPathComponent];
   if ([[base_path lastPathComponent] isEqualToString: libs] == YES)
     base_path = [base_path stringByDeletingLastPathComponent];
-  if ([[base_path lastPathComponent] isEqualToString: arch] == YES)
+  if ([[base_path lastPathComponent] isEqualToString: os] == YES)
     base_path = [base_path stringByDeletingLastPathComponent];
-  arch_path = [base_path stringByAppendingPathComponent: arch];
+  if ([[base_path lastPathComponent] isEqualToString: cpu] == YES)
+    base_path = [base_path stringByDeletingLastPathComponent];
+  arch_path = [base_path stringByAppendingPathComponent: cpu];
+  arch_path = [arch_path stringByAppendingPathComponent: os];
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
   if ([mgr isExecutableFileAtPath: lpath] == NO)
     {
+NSLog(@"No executable in %@", lpath);
       lpath = [arch_path stringByAppendingPathComponent: prog];
       if ([mgr isExecutableFileAtPath: lpath] == NO)
 	{
+NSLog(@"No executable in %@", lpath);
 	  lpath = [base_path stringByAppendingPathComponent: prog];
 	  if ([mgr isExecutableFileAtPath: lpath] == NO)
 	    {
+NSLog(@"No executable in %@", lpath);
 	      /*
 	       * Last resort - if the launch path was simply a program name
 	       * get NSBundle to try using the PATH environment

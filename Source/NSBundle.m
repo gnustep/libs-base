@@ -421,11 +421,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  NSMutableString	*system = nil;
 	  NSString		*str;
 
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
-	    gnustep_target_dir = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
-	    gnustep_target_dir = RETAIN(str);
-	
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
 	    gnustep_target_cpu = RETAIN(str);
 	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
@@ -435,6 +430,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    gnustep_target_os = RETAIN(str);
 	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
 	    gnustep_target_os = RETAIN(str);
+	
+	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
+	    gnustep_target_dir = RETAIN(str);
+	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
+	    gnustep_target_dir = RETAIN(str);
 	
 	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	    library_combo = RETAIN(str);
