@@ -1,3 +1,8 @@
+2000-07-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: Add code to cope with machines requiring word
+	alignment for memory references.
+
 2000-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/Makefile.postabmle: Create directory for DTDs if needed
