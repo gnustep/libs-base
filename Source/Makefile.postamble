@@ -255,6 +255,12 @@ $(GNUSTEP_OBJ_DIR)/NSGCString.o \
 	: propList.h
 
 #
+#	Files that include GSeq.h will need a rebuild if it is changed.
+#
+$(GNUSTEP_OBJ_DIR)/NSString.o \
+	: GSeq.h
+
+#
 #	NSGeometry.m needs a recompile if NSGeometry.h is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
