@@ -1,23 +1,23 @@
 /* Implementation of filesystem & path-related functions for GNUstep
    Copyright (C) 1996-2004 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <address@hidden>
    Created: May 1996
    Rewrite by:  Sheldon Gill
    Date:    Jan 2004
-      
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -103,9 +103,9 @@
 #ifndef GNUSTEP_CONFIGURATION_FILE
 #define   GNUSTEP_CONFIGURATION_FILE  /etc/GNUstep/GNUstep.conf
 #endif
-/* The name of the user-specific configuration file */      
+/* The name of the user-specific configuration file */
 #define   DEFAULT_STEPRC_FILE         @".GNUsteprc"
-/* The standard path for user Defaults files */      
+/* The standard path for user Defaults files */
 #define   DEFAULT_DEFAULTS_PATH       @"Defaults"
 /* The standard path to user GNUstep resources */
 #define   DEFAULT_USER_ROOT           @"GNUstep"
@@ -139,7 +139,7 @@ static NSString *gnustep_system_root = nil;      /*  GNUSTEP_SYSTEM_ROOT path */
 
 static NSString *gnustep_rc_filename = nil;           /* .GNUsteprc file name */
 static NSString *gnustep_defaultspath = nil;          /* Defaults dir in home */
-static NSString *gnustep_userpath = nil;              /* dir in home for user */ 
+static NSString *gnustep_userpath = nil;              /* dir in home for user */
 
 #endif /* OPTION_COMPILED_PATHS else */
 
@@ -186,11 +186,11 @@ static NSString* internalise_path(NSString *s);
 static NSString* internalise_path_Cstring(const char *c);
 
 static void set_file_mgr(void);
-static NSString *set_user_gnustep_path(NSString *userName, 
-				       NSString **defaultspath, 
+static NSString *set_user_gnustep_path(NSString *userName,
+				       NSString **defaultspath,
 				       NSString **userpath);
 
-NSDictionary *GSReadStepConfFile(NSString *name);
+static NSDictionary *GSReadStepConfFile(NSString *name);
 
 void InitialisePathUtilities(void);
 void ShutdownPathUtilities(void);
@@ -212,7 +212,7 @@ internalise_path_Cstring(const char *path)
     }
 
   len = strlen(path);
-  return [file_mgr stringWithFileSystemRepresentation: path length: len]; 
+  return [file_mgr stringWithFileSystemRepresentation: path length: len];
 }
 
 /* make sure that the path 's' is in internal format (unix-style) */
@@ -230,15 +230,15 @@ internalise_path(NSString *s)
     {
       return nil;
     }
-  
+
   ptr = [s cString];
   len = strlen(ptr);
-  return [file_mgr stringWithFileSystemRepresentation: ptr length: len]; 
+  return [file_mgr stringWithFileSystemRepresentation: ptr length: len];
 }
 
 /* Convenience MACRO to ease legibility and coding */
 /* Conditionally assign lval to var */
-#define test_assign( var, lval)     \
+#define test_assign(var, lval)     \
   if ((var == nil)&&(lval != nil))  \
     {                               \
       var = lval;                   \
@@ -258,7 +258,7 @@ get_pathconfig(NSDictionary *dict, NSString *key)
       path = internalise_path(path);
     }
   TEST_RETAIN(path);
-    
+
   return path;
 }
 
@@ -295,8 +295,8 @@ remove_tilde (NSString *home, NSString *val)
 /*
  * Read .GNUsteprc file for user and set paths accordingly
  */
-static NSString *set_user_gnustep_path(NSString *userName, 
-				       NSString **defaultspath, 
+static NSString *set_user_gnustep_path(NSString *userName,
+				       NSString **defaultspath,
 				       NSString **userpath)
 {
   NSDictionary *dict, *attributes;
@@ -305,13 +305,13 @@ static NSString *set_user_gnustep_path(NSString *userName,
   NSString     *user_root;
 
   NSCAssert(file_mgr != nil, @"No file manager\n");
-  
+
   /* Look for rc file (".GNUsteprc") file in user's home directory */
   home = NSHomeDirectoryForUser(userName);
   if (home == nil)
     {
       /* It's OK if path is nil. We're might be running as user nobody in
-         which case we don't want to access user stuff. Possibly it's a 
+         which case we don't want to access user stuff. Possibly it's a
          misconfigured Windows environment, though... */
       return nil;
     }
@@ -319,7 +319,7 @@ static NSString *set_user_gnustep_path(NSString *userName,
 
   if ([file_mgr isReadableFileAtPath: steprc_file])
     {
-      dict = GSReadStepConfFile( steprc_file );
+      dict = GSReadStepConfFile(steprc_file);
       if (dict != nil)
         {
           path = [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"];
@@ -340,7 +340,7 @@ static NSString *set_user_gnustep_path(NSString *userName,
 
   /* Look at the .GNUsteprc file in GNUSTEP_SYSTEM_ROOT.  This is obsolete
      now that we are using the GNUstep conf file, but is kept in for
-     transition purposes. 
+     transition purposes.
   */
   steprc_file = [gnustep_system_root stringByAppendingPathComponent: @".GNUsteprc"];
   attributes = [file_mgr fileAttributesAtPath: steprc_file traverseLink: YES];
@@ -353,10 +353,10 @@ static NSString *set_user_gnustep_path(NSString *userName,
     {
       BOOL	forceD = NO;
       BOOL	forceU = NO;
-      fprintf(stderr, "Warning: Configuration: The file %s has been deprecated. Please use the \nconfiguration file %s to set standard paths.\n", 
+      fprintf(stderr, "Warning: Configuration: The file %s has been deprecated. Please use the \nconfiguration file %s to set standard paths.\n",
 	      [steprc_file fileSystemRepresentation],
 	      stringify(GNUSTEP_CONFIGURATION_FILE));
-      dict = GSReadStepConfFile( steprc_file );
+      dict = GSReadStepConfFile(steprc_file);
       if (dict != nil)
         {
 	  forceD = [[dict objectForKey: @"FORCE_DEFAULTS_ROOT"]
@@ -385,8 +385,8 @@ static NSString *set_user_gnustep_path(NSString *userName,
     }
 
   /* set the user path and defaults directory to default values if needed */
-  test_assign( *defaultspath, DEFAULT_DEFAULTS_PATH);
-  test_assign( *userpath, DEFAULT_USER_ROOT);
+  test_assign(*defaultspath, DEFAULT_DEFAULTS_PATH);
+  test_assign(*userpath, DEFAULT_USER_ROOT);
 
   /* Now we set the user's root path for the gnustep files. Note that the
   GNUsteprc files have the convention of specifying the defaults as an absolute
@@ -415,10 +415,10 @@ void InitialisePathUtilities(void)
       /* Set the file manager */
       if (file_mgr == nil)
         set_file_mgr();
-      
+
       /* Initialise Win32 things if on that platform */
       Win32Initialise();   // should be called by DLL_PROCESS_ATTACH
-      
+
       [gnustep_global_lock lock];
 
 #ifndef OPTION_NO_ENVIRONMENT
@@ -442,7 +442,7 @@ void InitialisePathUtilities(void)
 		      Win32NSStringFromRegistry(regkey, LOCAL_ROOT));
           RegCloseKey(regkey);
         }
-      
+
 #if 0
       // Not implemented yet
       platform_apps   = Win32FindDirectory(CLSID_APPS);
@@ -453,41 +453,41 @@ void InitialisePathUtilities(void)
       config_file = [NSString stringWithCString: stringify(GNUSTEP_CONFIGURATION_FILE)];
       if ([file_mgr fileExistsAtPath: config_file])
         {
-          dict = GSReadStepConfFile( config_file );
+          dict = GSReadStepConfFile(config_file);
         }
       if (dict != nil)
         {
           test_assign(gnustep_system_root , [dict objectForKey: SYSTEM_ROOT]);
           test_assign(gnustep_network_root, [dict objectForKey: NETWORK_ROOT]);
           test_assign(gnustep_local_root  , [dict objectForKey: LOCAL_ROOT]);
-              
+
           gnustep_rc_filename  = [dict objectForKey: @"USER_GNUSTEP_RC"];
           gnustep_defaultspath = [dict objectForKey: @"USER_GNUSTEP_DEFAULTS"];
           gnustep_userpath = [dict objectForKey: @"USER_GNUSTEP_DIR"];
-    
+
 #ifdef OPTION_PLATFORM_SUPPORT
           os_sys_prefs = get_pathconfig(dict, SYS_PREFS);
-          os_sys_apps  = get_pathconfig(dict, SYS_APPS );
-          os_sys_libs  = get_pathconfig(dict, SYS_LIBS );
+          os_sys_apps  = get_pathconfig(dict, SYS_APPS);
+          os_sys_libs  = get_pathconfig(dict, SYS_LIBS);
           os_sys_admin = get_pathconfig(dict, SYS_ADMIN);
-    
+
           platform_resources = get_pathconfig(dict, PLATFORM_RESOURCES);
-          platform_apps      = get_pathconfig(dict, PLATFORM_APPS );
-          platform_libs      = get_pathconfig(dict, PLATFORM_LIBS );
+          platform_apps      = get_pathconfig(dict, PLATFORM_APPS);
+          platform_libs      = get_pathconfig(dict, PLATFORM_LIBS);
           platform_admin     = get_pathconfig(dict, PLATFORM_ADMIN);
-          
+
           local_resources = get_pathconfig(dict, PLATFORM_LOCAL_RESOURCES);
           local_apps      = get_pathconfig(dict, PLATFORM_LOCAL_APPS);
           local_libs      = get_pathconfig(dict, PLATFORM_LOCAL_LIBS);
 #endif /* OPTION_PLATFORM SUPPORT */
-  
+
           [dict release];
         }
 #endif /* defined(__WIN32__) else */
 
       /* Omitting the following line would mean system admins could force
          the user and defaults paths by leaving USER_GNUSTEP_RC blank. */
-      test_assign( gnustep_rc_filename,  DEFAULT_STEPRC_FILE);
+      test_assign(gnustep_rc_filename,  DEFAULT_STEPRC_FILE);
 
       /* If the user has an rc file we need to source it */
       gnustep_user_root = set_user_gnustep_path(NSUserName(),
@@ -503,21 +503,21 @@ void InitialisePathUtilities(void)
       /* Finally we check and report problems... */
       if (gnustep_system_root == nil)
         {
-          gnustep_system_root = internalise_path_Cstring( \
+          gnustep_system_root = internalise_path_Cstring(\
                                   STRINGIFY(GNUSTEP_INSTALL_PREFIX));
           fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
                     "- using %s\n", [gnustep_system_root lossyCString]);
         }
       if (gnustep_network_root == nil)
         {
-          gnustep_network_root = internalise_path_Cstring( \
+          gnustep_network_root = internalise_path_Cstring(\
                                   STRINGIFY(GNUSTEP_NETWORK_ROOT));
           fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
                     "- using %s\n", [gnustep_network_root lossyCString]);
         }
       if (gnustep_local_root == nil)
         {
-          gnustep_local_root = internalise_path_Cstring( \
+          gnustep_local_root = internalise_path_Cstring(\
                                   STRINGIFY(GNUSTEP_LOCAL_ROOT));
           fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
                     "- using %s\n", [gnustep_local_root lossyCString]);
@@ -539,7 +539,7 @@ void InitialisePathUtilities(void)
     {
       if (dict != nil)
         [dict release];
-      
+
       /* unlock then re-raise the exception */
       [gnustep_global_lock unlock];
       [localException raise];
@@ -571,7 +571,7 @@ void ShutdownPathUtilities(void)
   TEST_RELEASE(platform_apps);
   TEST_RELEASE(platform_libs);
   TEST_RELEASE(platform_admin);
-  
+
   TEST_RELEASE(local_resources);
   TEST_RELEASE(local_apps);
   TEST_RELEASE(local_libs);
@@ -589,10 +589,6 @@ void ShutdownPathUtilities(void)
 #pragma mark -<GNUstep specific>-
 ---------+---------+---------+---------+---------+---------+---------+------- */
 
-/*
-  GSReadStepConfFile & GSFindNamedFile should be in Additions somewhere...
-*/
-
 /**
  * Reads a file and expects it to be in basic unix "conf" style format with
  * one key = value per line. Sometimes referred to as "strings" format.<br/ >
@@ -600,9 +596,11 @@ void ShutdownPathUtilities(void)
  * Lines beginning with a hash '#' are deemed comment lines and ignored.<br/ >
  * The value is all characters from the first non-whitespace after the '='
  * until the end of line '\n' which will include any internal spaces.<br/ >
+ * NB. This is <em>VERY</em> non-standard in that it returns an object which is
+ * <em>NOT</em> autoreleased.
  */
-NSDictionary *
-GSReadStepConfFile( NSString *fileName )
+static NSDictionary *
+GSReadStepConfFile(NSString *fileName)
 {
   NSMutableDictionary *dict;
   NSString      *file;
@@ -635,10 +633,10 @@ GSReadStepConfFile( NSString *fileName )
             {
               key = [line substringToIndex: r.location];
               val = [line substringFromIndex: NSMaxRange(r)];
-    
+
               key = [key stringByTrimmingSpaces];
               val = [val stringByTrimmingSpaces];
-            
+
               if ([key length] > 0)
                 [dict setObject: val forKey: key];
             }
@@ -651,6 +649,10 @@ GSReadStepConfFile( NSString *fileName )
     }
   return dict;
 }
+
+/*
+  GSFindNamedFile should be in Additions somewhere...
+ */
 
 /* See NSPathUtilities.h for description. */
 NSString *
@@ -676,7 +678,7 @@ GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)
   enumerator = [paths objectEnumerator];
   while ((path = [enumerator nextObject]))
     {
-      file_path = [path stringByAppendingPathComponent: file_name ];
+      file_path = [path stringByAppendingPathComponent: file_name];
 
       if ([file_mgr fileExistsAtPath: file_path] == YES)
         {
@@ -702,10 +704,10 @@ GSSetUserName(NSString *aName)
 
   /*
    * Release the memory
-   */  
+   */
   [gnustep_global_lock lock];
   ShutdownPathUtilities();
-  
+
   /*
    * Reset things as new user
    */
@@ -893,7 +895,7 @@ GSDefaultsRootForUser(NSString *userName)
     {
       home = [home stringByAppendingPathComponent: defaultspath];
     }
-  
+
   return internalise_path(home);
 }
 
@@ -1153,7 +1155,7 @@ NSTemporaryDirectory(void)
 
 /**
  * Deprecated function. Returns the location of the <em>root</em>
- * directory of the GNUstep file heirarchy.  Don't assume that /System, 
+ * directory of the GNUstep file heirarchy.  Don't assume that /System,
  * /Network etc exist in this path! Use other path utility functions for that.
  * Refer to the GNUstep File System Heirarchy documentation for more info.
  */
@@ -1188,7 +1190,7 @@ NSOpenStepRootDirectory(void)
  * The paths are returned in domain order: LOCAL, NETWORK then SYSTEM.
  */
 NSArray *
-NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey, 
+NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSSearchPathDomainMask domainMask, BOOL expandTilde)
 {
   static NSString *adminDir   = @"Administrator";
@@ -1197,7 +1199,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   static NSString *demosDir     =   @"Demos";
   static NSString *libraryDir = @"Library";
   static NSString *supportDir   =   @"ApplicationSupport";
-  static NSString *docDir       =   @"Documentation";  
+  static NSString *docDir       =   @"Documentation";
   static NSString *fontsDir     =   @"Fonts";
   static NSString *frameworkDir =   @"Frameworks";
   static NSString *libsDir      =   @"Libraries";
@@ -1209,10 +1211,10 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 
   if (gnustep_system_root == nil)
       InitialisePathUtilities();
-  
-  NSCAssert(gnustep_system_root != nil,@"Path utilities without initialisation!");
+
+  NSCAssert(gnustep_system_root!=nil,@"Path utilities without initialisation!");
   NSCAssert(file_mgr != nil,@"Path utilities without file manager!");
-  
+
   /*
    * The order in which we return paths is important - user must come
    * first, followed by local, followed by network, followed by system.
@@ -1226,7 +1228,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
    * NSAllApplicationsDirectory.  This should be fixed I think.
    * SHELDON: Have a fix pending...
    */
-  
+
 #define ADD_PATH(mask, base_dir, add_dir) \
 if (domainMask & mask) \
 { \
@@ -1252,7 +1254,7 @@ if (domainMask & mask) \
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, appsDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, appsDir);
       ADD_PATH(NSSystemDomainMask, gnustep_system_root, appsDir);
-    
+
       ADD_PLATFORM_PATH(NSLocalDomainMask, local_apps);
       ADD_PLATFORM_PATH(NSSystemDomainMask, platform_apps);
       ADD_PLATFORM_PATH(NSSystemDomainMask, os_sys_apps);
@@ -1276,13 +1278,14 @@ if (domainMask & mask) \
   if (directoryKey == NSAdminApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
     {
-      NSString *devAdminDir = [devDir stringByAppendingPathComponent: adminDir];
+      NSString *devAdminDir;
 
+      devAdminDir = [devDir stringByAppendingPathComponent: adminDir];
       /* NSUserDomainMask - users have no Administrator directory */
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, devAdminDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, devAdminDir);
       ADD_PATH(NSSystemDomainMask, gnustep_system_root, devAdminDir);
-    
+
       ADD_PLATFORM_PATH(NSSystemDomainMask, os_sys_admin);
       ADD_PLATFORM_PATH(NSSystemDomainMask, platform_admin);
     }
@@ -1294,8 +1297,8 @@ if (domainMask & mask) \
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, libraryDir);
       ADD_PATH(NSSystemDomainMask, gnustep_system_root, libraryDir);
 
-      ADD_PLATFORM_PATH(NSLocalDomainMask,  local_resources );
-      ADD_PLATFORM_PATH(NSSystemDomainMask, platform_resources );
+      ADD_PLATFORM_PATH(NSLocalDomainMask,  local_resources);
+      ADD_PLATFORM_PATH(NSSystemDomainMask, platform_resources);
     }
   if (directoryKey == NSDeveloperDirectory)
     {
@@ -1313,8 +1316,8 @@ if (domainMask & mask) \
     }
   if (directoryKey == NSDocumentationDirectory)
     {
-      NSString *gsdocDir = [libraryDir stringByAppendingPathComponent: docDir ];
-      
+      NSString *gsdocDir = [libraryDir stringByAppendingPathComponent: docDir];
+
       ADD_PATH(NSUserDomainMask, gnustep_user_root, gsdocDir);
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, gsdocDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, gsdocDir);
@@ -1323,8 +1326,9 @@ if (domainMask & mask) \
   /* Now the GNUstep additions */
   if (directoryKey == GSApplicationSupportDirectory)
     {
-      NSString *appSupDir = [libraryDir stringByAppendingPathComponent: supportDir];
-      
+      NSString *appSupDir;
+
+      appSupDir = [libraryDir stringByAppendingPathComponent: supportDir];
       ADD_PATH(NSUserDomainMask, gnustep_user_root, appSupDir);
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, appSupDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, appSupDir);
@@ -1332,8 +1336,9 @@ if (domainMask & mask) \
     }
   if (directoryKey == GSFrameworksDirectory)
     {
-      NSString *frameDir = [libraryDir stringByAppendingPathComponent: frameworkDir];
-      
+      NSString *frameDir;
+
+      frameDir = [libraryDir stringByAppendingPathComponent: frameworkDir];
       ADD_PATH(NSUserDomainMask, gnustep_user_root, frameDir);
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, frameDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, frameDir);
@@ -1350,8 +1355,9 @@ if (domainMask & mask) \
     }
   if (directoryKey == GSLibrariesDirectory)
     {
-      NSString *gslibsDir = [libraryDir stringByAppendingPathComponent: libsDir ];
+      NSString *gslibsDir;
 
+      gslibsDir = [libraryDir stringByAppendingPathComponent: libsDir];
       ADD_PATH(NSUserDomainMask, gnustep_user_root, gslibsDir);
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, gslibsDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, gslibsDir);
@@ -1359,7 +1365,7 @@ if (domainMask & mask) \
 
       ADD_PLATFORM_PATH(NSLocalDomainMask, local_libs);
       ADD_PLATFORM_PATH(NSSystemDomainMask, platform_libs);
-      ADD_PLATFORM_PATH(NSSystemDomainMask, os_sys_libs);    
+      ADD_PLATFORM_PATH(NSSystemDomainMask, os_sys_libs);
     }
   if (directoryKey == GSToolsDirectory)
     {

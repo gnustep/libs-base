@@ -1,3 +1,9 @@
+2005-03-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Mark ([setDefaultEncoding:]) as deprecated
+	rather than just removing it ... in case someone has started using it.
+	* Source/NSPathUtilities.m: Tidied a little.
+
 2005-03-14  Adam Fedor  <fedor@gnu.org>
 
 	* Continuation of NSPathUtilities patches
