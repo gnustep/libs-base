@@ -93,8 +93,11 @@ o_map.m \
 o_map_bas.m \
 o_map_cbs.m \
 preface.m \
-mframe.m \
-objc-gnu2next.m
+mframe.m
+
+ifeq ($(OBJC_RUNTIME), NeXT)
+GNU_MFILES += thr-mach.m objc-gnu2next.m
+endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 GNU_MFILES += WindowsFileHandle.m libgnustep-base-entry.m

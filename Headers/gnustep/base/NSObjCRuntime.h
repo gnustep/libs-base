@@ -84,7 +84,7 @@ GS_EXPORT BOOL GSInstanceVariableInfo(id obj, NSString *iVarName,
 GS_EXPORT BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
 GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 
-#include <objc-gnu2next.h>
+#include <base/objc-gnu2next.h>
 
 /*
  * GSObjCClass() return the class of an instance.
@@ -93,7 +93,7 @@ GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 FOUNDATION_STATIC_INLINE Class
 GSObjCClass(id obj)
 {
-  return object_get_class(objc);
+  return object_get_class(obj);
 }
 
 /*
@@ -103,7 +103,7 @@ GSObjCClass(id obj)
 FOUNDATION_STATIC_INLINE BOOL
 GSObjCIsInstance(id obj)
 {
-  return CLS_ISCLASS(object_get_class(objc));
+  return CLS_ISCLASS(object_get_class(obj));
 }
 
 /*
