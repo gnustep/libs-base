@@ -166,26 +166,26 @@ TcpPort.m \
 TextCStream.m \
 Time.m \
 UdpPort.m \
-o-array.m \
-o-array-bas.m \
-o-array-cbs.m \
 behavior.m \
-callbacks.m \
-cbs-char-p.m \
-cbs-id.m \
-cbs-int.m \
-cbs-int-p.m \
-cbs-void-p.m \
 lex.pl.m \
-o-hash.m \
-o-hash-bas.m \
-o-hash-cbs.m \
-o-list.m \
-o-list-bas.m \
-o-list-cbs.m \
-o-map.m \
-o-map-bas.m \
-o-map-cbs.m \
+o_array.m \
+o_array_bas.m \
+o_array_cbs.m \
+o_cbs.m \
+o_cbs_char-p.m \
+o_cbs_id.m \
+o_cbs_int.m \
+o_cbs_int_p.m \
+o_cbs_void_p.m \
+o_hash.m \
+o_hash_bas.m \
+o_hash_cbs.m \
+o_list.m \
+o_list_bas.m \
+o_list_cbs.m \
+o_map.m \
+o_map_bas.m \
+o_map_cbs.m \
 preface.m \
 proplist.tab.m \
 mframe.m \
@@ -198,10 +198,10 @@ numbers.c \
 o_vscanf.c 
 
 GNU_OTHER_SRCFILES = \
-x-bas.m.in \
-x-cbs.m.in \
-include/x-bas.h.in \
-include/x-cbs.h.in \
+o_x_bas.m.in \
+o_x_cbs.m.in \
+include/o_x_bas.h.in \
+include/o_x_cbs.h.in \
 md5.h \
 proplist.l \
 proplist.tab.h \
@@ -286,23 +286,23 @@ include/TextCStream.h \
 include/Time.h \
 include/UdpPort.h \
 include/ValueHolding.h \
-include/o-array.h \
-include/o-array-bas.h \
-include/o-array-cbs.h \
 include/behavior.h \
-include/callbacks.h \
 include/fake-main.h \
-include/o-hash.h \
-include/o-hash-bas.h \
-include/o-hash-cbs.h \
-include/o-list.h \
-include/o-list-bas.h \
-include/o-list-cbs.h \
-include/o-map.h \
-include/o-map-bas.h \
-include/o-map-cbs.h \
 include/mframe.h \
 include/numbers.h \
+include/o_array.h \
+include/o_array_bas.h \
+include/o_array_cbs.h \
+include/o_cbs.h \
+include/o_hash.h \
+include/o_hash_bas.h \
+include/o_hash_cbs.h \
+include/o_list.h \
+include/o_list_bas.h \
+include/o_list_cbs.h \
+include/o_map.h \
+include/o_map_bas.h \
+include/o_map_cbs.h \
 include/objc-gnu2next.h \
 include/objc-malloc.h \
 include/all.h \
@@ -598,26 +598,26 @@ o_vscanf${OEXT}: o_vscanf.c
 o_vscanf_pic${OEXT}: o_vscanf.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
-include/o-%-bas.h: include/x-bas.h.in
+include/o_%_bas.h: include/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
 
-include/o-%-cbs.h: include/x-cbs.h.in
+include/o_%_cbs.h: include/o_x_cbs.h.in
 	sed -e "s/@YY@/$*/g" $< > $@
 
-o-%-bas.m: x-bas.m.in include/o-%.h
+o_%_bas.m: o_x_bas.m.in include/o_%.h
 	sed -e "s/@XX@/$*/g" $< > $@
 
-o-%-cbs.m: x-cbs.m.in include/o-%.h
+o_%_cbs.m: o_x_cbs.m.in include/o_%.h
 	sed -e "s/@YY@/$*/g" $< > $@
 
-o-array.o: o-array.m include/o-array.h
-include/o-array.h: include/o-array-bas.h include/o-array-cbs.h include/o-hash.h
-o-hash.o: o-hash.m include/o-hash.h
-include/o-hash.h: include/o-hash-bas.h include/o-hash-cbs.h
-o-list.o: o-list.m include/o-list.h
-include/o-list.h: include/o-list-bas.h include/o-list-cbs.h include/o-array.h include/o-hash.h
-o-map.o: o-map.m include/o-map.h
-include/o-map.h: include/o-map-bas.h include/o-map-cbs.h include/o-hash.h
+o_array.o: o_array.m include/o_array.h
+include/o_array.h: include/o_array_bas.h include/o_array_cbs.h include/o_hash.h
+o_hash.o: o_hash.m include/o_hash.h
+include/o_hash.h: include/o_hash_bas.h include/o_hash_cbs.h
+o_list.o: o_list.m include/o_list.h
+include/o_list.h: include/o_list_bas.h include/o_list_cbs.h include/o_array.h include/o_hash.h
+o_map.o: o_map.m include/o_map.h
+include/o_map.h: include/o_map_bas.h include/o_map_cbs.h include/o_hash.h
 
 
 Makefile: $(srcdir)/Makefile.in ../config.status
