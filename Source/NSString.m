@@ -300,8 +300,15 @@ handle_printf_atsign (FILE *stream,
    arguments: (va_list)argList
 {
 #if HAVE_VSPRINTF
-  char buf[128];		/* xxx horrible, disgusting, fix this! */
-  vsprintf(buf, [format _cStringContents], argList);
+#define BUFFER_EXTRA 1024
+  const char *format_cp = [format cStringNoCopy]);
+  int format_len = strlen (format_cp);
+  char buf[format_len + BUFFER_EXTRA]; /* xxx horrible disgusting, fix this! */
+  int printed_len;
+
+  printed_len = vsprintf (buf, format_cp, argList);
+  /* Signal error if we overran our buffer. */
+  NSParameterAssert (printed_len < format_len + BUFFER_EXTRA - 1);
   return [self initWithCString:buf];
 #else
   [self notImplemented:_cmd];
