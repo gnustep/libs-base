@@ -39,6 +39,7 @@ ifeq ($(FOUNDATION_LIB),gnu)
   ifeq ($(gc), yes)
     OBJC_LIBS = -lobjc_gc -lgc
     AUXILIARY_CPPFLAGS += -DGS_WITH_GC=1
+    AUXILIARY_INCLUDE_DIRS += -I/usr/include/gc
   endif
 endif
 
