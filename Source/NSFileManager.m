@@ -165,7 +165,7 @@
 @interface	GSAttrDictionary : NSDictionary
 {
 #ifdef	__MINGW__
-  const char	*name;
+  char		*name;
 #endif
   struct stat	statbuf;
 }
@@ -2626,7 +2626,7 @@ static NSSet	*fileKeys = nil;
 {
 #ifdef	__MINGW__
   if (name != 0)
-    NSZoneFree(name);
+    NSZoneFree(NSDefaultMallocZone(), name);
 #endif
   [super dealloc];
 }
