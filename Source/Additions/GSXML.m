@@ -3698,8 +3698,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       node = xmlXPathNodeSetItem (((xmlXPathObject*)_lib)->nodesetval,
 	(int)index);
       n = [GSXMLNode alloc];
-      
-      return [n _initFrom: node  parent: self];
+      n = [n _initFrom: node  parent: self];
+      return AUTORELEASE(m);
     }
 }
 - (NSString *) description

@@ -1,6 +1,7 @@
 2004-09-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSArray.m: Make perform methods enumerate forwards.
+	* Source/Additions/GSXML.m: ([nodeAtIndex:]) fix memory leak.
 
 2004-09-22 Richard Frith-Macdonald <rfm@gnu.org>
 
