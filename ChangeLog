@@ -1,3 +1,9 @@
+2003-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: (fillHole) fix memory overrun (read only) and
+	argument order errors (in code not normally compiled) spotted by
+	Manuel Guesdon.
+
 2003-02-16  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.5.2
