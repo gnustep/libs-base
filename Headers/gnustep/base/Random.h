@@ -24,7 +24,6 @@
 #ifndef __Random_h_GNUSTEP_BASE_INCLUDE
 #define __Random_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/RandomGenerating.h>
 
 @interface Random : NSObject

@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
 {

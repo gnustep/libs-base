@@ -23,7 +23,7 @@
 #ifndef __NSHost_h_GNUSTEP_BASE_INCLUDE
 #define __NSHost_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 @class NSString, NSArray, NSMutableArray;
 

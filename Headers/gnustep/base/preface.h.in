@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <base/objc-gnu2next.h>
-#include <GSConfig.h>
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #ifndef __WIN32__
@@ -87,9 +86,6 @@
 #ifndef __WIN32__
 #include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
 #endif
-
-#include <Foundation/NSObject.h>
-#include <Foundation/NSObjCRuntime.h>
 
 /* The following group of lines maintained by the gstep-base src/Makefile */
 #define @VERSION@

@@ -86,7 +86,7 @@ NSLocationInRange(unsigned location, NSRange range)
 }
 
 /* Create an NSRange having the specified LOCATION and LENGTH. */
-extern NSRange
+GS_EXPORT NSRange
 NSMakeRange(unsigned int location, unsigned int length);
 
 GS_RANGE_SCOPE BOOL
@@ -134,8 +134,8 @@ NSIntersectionRange (NSRange aRange, NSRange bRange)
 
 @class NSString;
 
-extern NSString *NSStringFromRange(NSRange range);
-extern NSRange NSRangeFromString(NSString *aString);
+GS_EXPORT NSString *NSStringFromRange(NSRange range);
+GS_EXPORT NSRange NSRangeFromString(NSString *aString);
 
 #ifdef	GS_DEFINED_MAX
 #undef	GS_DEFINED_MAX

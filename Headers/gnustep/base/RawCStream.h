@@ -24,7 +24,6 @@
 #ifndef __RawCStream_h_GNUSTEP_BASE_INCLUDE
 #define __RawCStream_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Stream.h>
 #include <base/CStream.h>
 

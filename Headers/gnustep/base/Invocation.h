@@ -8,7 +8,6 @@
    extraneous stuff after the first type.
 */
 
-#include <base/preface.h>
 #include <base/Collection.h>
 #include <base/Invoking.h>
 

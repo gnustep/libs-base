@@ -34,7 +34,6 @@
 #ifndef __SplayTree_h_GNUSTEP_BASE_INCLUDE
 #define __SplayTree_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/BinaryTree.h>
 
 @interface SplayTree : BinaryTree

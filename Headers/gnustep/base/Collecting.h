@@ -34,7 +34,6 @@
 #ifndef __Collecting_h_GNUSTEP_BASE_INCLUDE
 #define __Collecting_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Coding.h>
 #include <base/Invoking.h>
 #include <base/Enumerating.h>

@@ -24,7 +24,6 @@
 #ifndef __Coder_h_GNUSTEP_BASE_INCLUDE
 #define __Coder_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Coding.h>
 #include <base/Streaming.h>
 #include <Foundation/NSHashTable.h>
@@ -144,6 +143,6 @@
 + (void) encodeObject: anObject withConnectedCoder: aRmc;
 @end
 
-extern id CoderSignatureMalformedException;
+GS_EXPORT id CoderSignatureMalformedException;
 
 #endif /* __Coder_h_GNUSTEP_BASE_INCLUDE */

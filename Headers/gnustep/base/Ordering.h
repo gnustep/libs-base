@@ -24,8 +24,8 @@
 #ifndef __Ordering_h_GNUSTEP_BASE_INCLUDE
 #define __Ordering_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <objc/objc.h>
+#include <Foundation/NSObject.h>
 
 @protocol Ordering
 

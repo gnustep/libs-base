@@ -24,6 +24,7 @@
 #ifndef __InvalidationListening_h_GNUSTEP_BASE_INCLUDE
 #define __InvalidationListening_h_GNUSTEP_BASE_INCLUDE
 
+#include <Foundation/NSObject.h>
 /* This protocol is just temporary.  It will disappear when GNU writes
    a more general notification system.
    It is not recommended that you use it in your code. */

@@ -24,7 +24,6 @@
 #ifndef __Stack_h_GNUSTEP_BASE_INCLUDE
 #define __Stack_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Array.h>
 
 @interface Stack : Array

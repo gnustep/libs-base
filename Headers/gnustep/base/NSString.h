@@ -24,8 +24,7 @@
 #ifndef __NSString_h_GNUSTEP_BASE_INCLUDE
 #define __NSString_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-
+#include <Foundation/NSObject.h>
 #include <Foundation/NSRange.h>
 
 typedef unsigned short unichar;

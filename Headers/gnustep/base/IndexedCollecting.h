@@ -35,7 +35,6 @@
 #ifndef __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE
 #define __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Collecting.h>
 #include <Foundation/NSRange.h>
 

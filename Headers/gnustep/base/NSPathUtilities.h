@@ -24,7 +24,6 @@
 #ifndef __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
 #define __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSString.h>
 
 #ifndef	NO_GNUSTEP
@@ -37,12 +36,12 @@
  * [NSUserDefaults +resetUserDefaults] extension to reset the defaults system
  * to use the defaults belonging to the new user.
  */
-extern void	GSSetUserName(NSString *name);
-extern NSArray	*GSStandardPathPrefixes(void);
+GS_EXPORT void	GSSetUserName(NSString *name);
+GS_EXPORT NSArray	*GSStandardPathPrefixes(void);
 #endif
-extern NSString *NSUserName();
-extern NSString *NSHomeDirectory();
-extern NSString *NSHomeDirectoryForUser(NSString *userName);
+GS_EXPORT NSString *NSUserName();
+GS_EXPORT NSString *NSHomeDirectory();
+GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *userName);
 
 #ifndef STRICT_OPENSTEP
 typedef enum
@@ -66,12 +65,12 @@ typedef unsigned int NSSearchPathDomainMask;
 #define NSSystemDomainMask	0x00000008
 #define NSAllDomainsMask	0xffffffff
 
-extern NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, BOOL expandTilde);
-extern NSString *NSFullUserName(void);
-extern NSArray *NSStandardApplicationPaths(void);
-extern NSArray *NSStandardLibraryPaths(void);
-extern NSString *NSTemporaryDirectory(void);
-extern NSString *NSOpenStepRootDirectory(void);
+GS_EXPORT NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, BOOL expandTilde);
+GS_EXPORT NSString *NSFullUserName(void);
+GS_EXPORT NSArray *NSStandardApplicationPaths(void);
+GS_EXPORT NSArray *NSStandardLibraryPaths(void);
+GS_EXPORT NSString *NSTemporaryDirectory(void);
+GS_EXPORT NSString *NSOpenStepRootDirectory(void);
 #endif /* !STRICT_OPENSTEP */
 
 #endif /* __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE */

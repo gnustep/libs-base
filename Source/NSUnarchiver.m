@@ -22,6 +22,7 @@
    */
 
 #include <config.h>
+#include <string.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSException.h>

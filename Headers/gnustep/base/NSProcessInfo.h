@@ -26,7 +26,7 @@
 #ifndef __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 #define __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 @class NSArray;
 @class NSMutableArray;
@@ -63,7 +63,7 @@
  * This function determines if the specified debug level is present in the
  * set of active debug levels.
  */
-extern BOOL GSDebugSet(NSString *level);
+GS_EXPORT BOOL GSDebugSet(NSString *level);
 
 #endif
 

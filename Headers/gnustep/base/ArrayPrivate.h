@@ -24,7 +24,6 @@
 #ifndef __ArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 #define __ArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/IndexedCollectionPrivate.h>
 
 #define DEFAULT_ARRAY_CAPACITY 2

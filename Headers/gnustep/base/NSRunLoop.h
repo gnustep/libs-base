@@ -24,13 +24,12 @@
 #ifndef __NSRunLoop_h_GNUSTEP_BASE_INCLUDE
 #define __NSRunLoop_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSMapTable.h>
 
 @class NSTimer, NSDate, NSPort;
 
 /* Mode strings. */
-extern id NSDefaultRunLoopMode;
+GS_EXPORT id NSDefaultRunLoopMode;
 
 @interface NSRunLoop : NSObject <GCFinalization>
 {

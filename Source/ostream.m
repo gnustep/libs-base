@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <stdio.h>
+#include <base/preface.h>
 #include <base/ostream.h>
 #include <base/MemoryStream.h>
 #include <base/StdioStream.h>

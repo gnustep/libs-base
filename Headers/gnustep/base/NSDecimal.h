@@ -63,40 +63,40 @@ NSDecimalIsNotANumber(const NSDecimal *decimal)
   return (decimal->validNumber == NO);
 }
 
-extern void
+GS_EXPORT void
 NSDecimalCopy(NSDecimal *destination, const NSDecimal *source);
 
-extern void
+GS_EXPORT void
 NSDecimalCompact(NSDecimal *number);
 
-extern NSComparisonResult
+GS_EXPORT NSComparisonResult
 NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand);
 
-extern void
+GS_EXPORT void
 NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, NSRoundingMode mode);
 
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode);
 
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, NSRoundingMode mode);
 
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalSubtract(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, NSRoundingMode mode);
 
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRoundingMode mode);
 
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr, NSRoundingMode mode);
     
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRoundingMode mode);
 
-extern NSCalculationError
+GS_EXPORT NSCalculationError
 NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power, NSRoundingMode mode);
 
-extern NSString*
+GS_EXPORT NSString*
 NSDecimalString(const NSDecimal *decimal, NSDictionary *locale);
 
 #endif

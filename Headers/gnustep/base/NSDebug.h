@@ -24,10 +24,10 @@
 #ifndef __NSDebug_h_GNUSTEP_BASE_INCLUDE
 #define __NSDebug_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <errno.h>
+#include <Foundation/NSObject.h>
 
-extern int	errno;
+GS_IMPORT int	errno;
 
 
 /*
@@ -59,17 +59,17 @@ extern int	errno;
  */
 
 #ifndef	NDEBUG
-extern	void		GSDebugAllocationAdd(Class c);
-extern	void		GSDebugAllocationRemove(Class c);
+GS_EXPORT void		GSDebugAllocationAdd(Class c);
+GS_EXPORT void		GSDebugAllocationRemove(Class c);
 
-extern	BOOL		GSDebugAllocationActive(BOOL active);
-extern	int		GSDebugAllocationCount(Class c);
-extern	const char*	GSDebugAllocationList(BOOL changeFlag);
-extern	const char*	GSDebugAllocationListAll();
+GS_EXPORT BOOL		GSDebugAllocationActive(BOOL active);
+GS_EXPORT int		GSDebugAllocationCount(Class c);
+GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
+GS_EXPORT const char*	GSDebugAllocationListAll();
 
-extern	NSString*	GSDebugFunctionMsg(const char *func, const char *file,
+GS_EXPORT NSString*	GSDebugFunctionMsg(const char *func, const char *file,
 				int line, NSString *fmt);
-extern	NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
+GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
 #endif
 

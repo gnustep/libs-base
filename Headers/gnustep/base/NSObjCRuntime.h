@@ -24,26 +24,35 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <objc/objc.h>
+#include <stdarg.h>
+
+#if BUILD_libgnustep-base_DLL
+#  define GS_EXPORT __declspec(dllexport)
+#elif libgnustep-base_ISDLL
+#  define GS_EXPORT extern __declspec(dllimport)
+#else
+#  define GS_EXPORT extern
+#endif
+#define GS_IMPORT extern
 
 @class	NSString;
 
-extern NSString *NSStringFromSelector(SEL aSelector);
-extern SEL NSSelectorFromString(NSString *aSelectorName);
-extern Class NSClassFromString(NSString *aClassName);
-extern NSString *NSStringFromClass(Class aClass);
-extern const char *NSGetSizeAndAlignment(const char *typePtr, unsigned int *sizep, unsigned int *alignp);
+GS_EXPORT NSString *NSStringFromSelector(SEL aSelector);
+GS_EXPORT SEL NSSelectorFromString(NSString *aSelectorName);
+GS_EXPORT Class NSClassFromString(NSString *aClassName);
+GS_EXPORT NSString *NSStringFromClass(Class aClass);
+GS_EXPORT const char *NSGetSizeAndAlignment(const char *typePtr, unsigned int *sizep, unsigned int *alignp);
 
 /* Logging */
 /* OpenStep spec states that log messages go to stderr, but just in case
    someone wants them to go somewhere else, they can implement a function
    like this */
 typedef void NSLog_printf_handler (NSString* message);
-extern NSLog_printf_handler *_NSLog_printf_handler;
+GS_EXPORT NSLog_printf_handler *_NSLog_printf_handler;
 
-extern void NSLog (NSString* format, ...);
-extern void NSLogv (NSString* format, va_list args);
+GS_EXPORT void NSLog (NSString* format, ...);
+GS_EXPORT void NSLogv (NSString* format, va_list args);
 
 #ifndef YES
 #define YES		1
@@ -56,8 +65,8 @@ extern void NSLogv (NSString* format, va_list args);
 #endif nil
 
 #ifndef	NO_GNUSTEP
-extern BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
-extern BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
+GS_EXPORT BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
+GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 #endif
 
 #define FOUNDATION_EXPORT

@@ -24,8 +24,7 @@
 #ifndef __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
 #define __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-#include <string.h>		/* for memset() */
+#include <Foundation/NSObject.h>
 
 @class NSAutoreleasePool;
 

@@ -24,10 +24,9 @@
 #ifndef __Stream_h__GNUSTEP_BASE_INCLUDE
 #define __Stream_h__GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Streaming.h>
 
-extern NSString* StreamException;
+GS_EXPORT NSString* StreamException;
 
 @interface Stream : NSObject <Streaming>
 

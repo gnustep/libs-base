@@ -24,8 +24,6 @@
 #ifndef __o_h_GNUSTEP_BASE_INCLUDE
 #define __o_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-
 /* Collection objects */
 #include <base/Set.h>
 #include <base/Bag.h>

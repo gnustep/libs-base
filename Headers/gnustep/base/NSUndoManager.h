@@ -31,13 +31,13 @@
 @class NSInvocation;
 
 /* Public notification */
-extern NSString *NSUndoManagerCheckpointNotification;
-extern NSString *NSUndoManagerDidOpenUndoGroupNotification;
-extern NSString *NSUndoManagerDidRedoChangeNotification;
-extern NSString	*NSUndoManagerDidUndoChangeNotification;
-extern NSString	*NSUndoManagerWillCloseUndoGroupNotification;
-extern NSString	*NSUndoManagerWillRedoChangeNotification;
-extern NSString	*NSUndoManagerWillUndoChangeNotification;
+GS_EXPORT NSString *NSUndoManagerCheckpointNotification;
+GS_EXPORT NSString *NSUndoManagerDidOpenUndoGroupNotification;
+GS_EXPORT NSString *NSUndoManagerDidRedoChangeNotification;
+GS_EXPORT NSString *NSUndoManagerDidUndoChangeNotification;
+GS_EXPORT NSString *NSUndoManagerWillCloseUndoGroupNotification;
+GS_EXPORT NSString *NSUndoManagerWillRedoChangeNotification;
+GS_EXPORT NSString *NSUndoManagerWillUndoChangeNotification;
 
 @interface NSUndoManager: NSObject
 {

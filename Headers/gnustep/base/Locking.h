@@ -24,7 +24,6 @@
 #ifndef __Locking_h_GNUSTEP_BASE_INCLUDE
 #define __Locking_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <objc/Protocol.h>
 
 @protocol Locking

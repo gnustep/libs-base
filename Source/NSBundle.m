@@ -303,59 +303,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return [self notImplemented: _cmd];
 }
 
-+ (NSString *) _absolutePathOfExecutable: (NSString *)path
-{
-  NSFileManager *mgr;
-  NSDictionary   *env;
-  NSString *pathlist, *prefix;
-  id patharr;
-
-  path = [path stringByStandardizingPath];
-  if ([path isAbsolutePath])
-    return path;
-
-  mgr = [NSFileManager defaultManager];
-  env = [[NSProcessInfo processInfo] environment];
-  pathlist = [env objectForKey:@"PATH"];
-#if defined(__MINGW__)
-  patharr = [pathlist componentsSeparatedByString:@";"];
-#else
-  patharr = [pathlist componentsSeparatedByString:@":"];
-#endif
-  /* Add . if not already in path */
-  if ([patharr indexOfObject: @"."] == NSNotFound)
-    {
-      patharr = AUTORELEASE([patharr mutableCopy]);
-      [patharr addObject: @"."];
-    }
-  patharr = [patharr objectEnumerator];
-  while ((prefix = [patharr nextObject]))
-    {
-      if ([prefix isEqual:@"."])
-	prefix = [mgr currentDirectoryPath];
-      prefix = [prefix stringByAppendingPathComponent: path];
-      if ([mgr isExecutableFileAtPath: prefix])
-	return [prefix stringByStandardizingPath];
-#if defined(__WIN32__)
-      /* Also add common executable extensions on windows */
-      if ([path pathExtension] == nil)
-	{
-	  NSString *wpath;
-	  wpath = [prefix stringByAppendingPathExtension: @"exe"];
-	  if ([mgr isExecutableFileAtPath: wpath])
-	    return [wpath stringByStandardizingPath];
-	  wpath = [prefix stringByAppendingPathExtension: @"com"];
-	  if ([mgr isExecutableFileAtPath: wpath])
-	    return [wpath stringByStandardizingPath];
-	  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
-	  if ([mgr isExecutableFileAtPath: wpath])
-	    return [wpath stringByStandardizingPath];
-	}
-#endif
-    }
-  return nil;
-}
-
 + (NSBundle *)mainBundle
 {
   [load_lock lock];
@@ -960,6 +907,59 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 /* These are convenience methods for searching for resource files
    within the GNUstep directory structure specified by the environment
    variables. */
+
++ (NSString *) _absolutePathOfExecutable: (NSString *)path
+{
+  NSFileManager *mgr;
+  NSDictionary   *env;
+  NSString *pathlist, *prefix;
+  id patharr;
+
+  path = [path stringByStandardizingPath];
+  if ([path isAbsolutePath])
+    return path;
+
+  mgr = [NSFileManager defaultManager];
+  env = [[NSProcessInfo processInfo] environment];
+  pathlist = [env objectForKey:@"PATH"];
+#if defined(__MINGW__)
+  patharr = [pathlist componentsSeparatedByString:@";"];
+#else
+  patharr = [pathlist componentsSeparatedByString:@":"];
+#endif
+  /* Add . if not already in path */
+  if ([patharr indexOfObject: @"."] == NSNotFound)
+    {
+      patharr = AUTORELEASE([patharr mutableCopy]);
+      [patharr addObject: @"."];
+    }
+  patharr = [patharr objectEnumerator];
+  while ((prefix = [patharr nextObject]))
+    {
+      if ([prefix isEqual:@"."])
+	prefix = [mgr currentDirectoryPath];
+      prefix = [prefix stringByAppendingPathComponent: path];
+      if ([mgr isExecutableFileAtPath: prefix])
+	return [prefix stringByStandardizingPath];
+#if defined(__WIN32__)
+      /* Also add common executable extensions on windows */
+      if ([path pathExtension] == nil)
+	{
+	  NSString *wpath;
+	  wpath = [prefix stringByAppendingPathExtension: @"exe"];
+	  if ([mgr isExecutableFileAtPath: wpath])
+	    return [wpath stringByStandardizingPath];
+	  wpath = [prefix stringByAppendingPathExtension: @"com"];
+	  if ([mgr isExecutableFileAtPath: wpath])
+	    return [wpath stringByStandardizingPath];
+	  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
+	  if ([mgr isExecutableFileAtPath: wpath])
+	    return [wpath stringByStandardizingPath];
+	}
+#endif
+    }
+  return nil;
+}
 
 + (NSBundle *) gnustepBundle
 {

@@ -26,6 +26,7 @@
 #ifndef __GetDefEncoding_h__GNUSTEP_BASE_INCLUDE
 #define __GetDefEncoding_h__GNUSTEP_BASE_INCLUDE
 
+#include <Foundation/NSObject.h>
 NSStringEncoding GetDefEncoding();
 NSString* GetEncodingName(NSStringEncoding encoding);
 

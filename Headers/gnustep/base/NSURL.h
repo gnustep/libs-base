@@ -29,7 +29,7 @@
 @class NSURLHandle;
 @class NSURL;
 
-extern NSString* NSURLFileScheme; //file
+GS_EXPORT NSString* NSURLFileScheme; //file
 
 //============================================================================
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>

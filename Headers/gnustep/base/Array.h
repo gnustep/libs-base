@@ -24,7 +24,6 @@
 #ifndef __Array_h_GNUSTEP_BASE_INCLUDE
 #define __Array_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/IndexedCollection.h>
 #include <base/OrderedCollecting.h>
 

@@ -24,7 +24,6 @@
 #ifndef __ConnectedCoder_h
 #define __ConnectedCoder_h
 
-#include <base/preface.h>
 #include <base/Coder.h>
 #include <base/Port.h>
 

@@ -24,7 +24,6 @@
 #ifndef __CircularArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 #define __CircularArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/ArrayPrivate.h>
 
 #define CIRCULAR_TO_BASIC(INDEX) \

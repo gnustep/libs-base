@@ -28,7 +28,6 @@
 #ifndef __DelegatePool_h_GNUSTEP_BASE_INCLUDE
 #define __DelegatePool_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Array.h>
 
 /* Available sending behaviors */

@@ -149,40 +149,40 @@
 @end /* NSDirectoryEnumerator */
 
 /* File Attributes */
-extern NSString* const NSFileDeviceIdentifier;
-extern NSString* const NSFileGroupOwnerAccountName;
-extern NSString* const NSFileDeviceIdentifier;
-extern NSString* const NSFileModificationDate;
-extern NSString* const NSFileOwnerAccountName;
-extern NSString* const NSFilePosixPermissions;
-extern NSString* const NSFileReferenceCount;
-extern NSString* const NSFileSize;
-extern NSString* const NSFileSystemFileNumber;
-extern NSString* const NSFileSystemNumber;
-extern NSString* const NSFileType;
+GS_EXPORT NSString* const NSFileDeviceIdentifier;
+GS_EXPORT NSString* const NSFileGroupOwnerAccountName;
+GS_EXPORT NSString* const NSFileDeviceIdentifier;
+GS_EXPORT NSString* const NSFileModificationDate;
+GS_EXPORT NSString* const NSFileOwnerAccountName;
+GS_EXPORT NSString* const NSFilePosixPermissions;
+GS_EXPORT NSString* const NSFileReferenceCount;
+GS_EXPORT NSString* const NSFileSize;
+GS_EXPORT NSString* const NSFileSystemFileNumber;
+GS_EXPORT NSString* const NSFileSystemNumber;
+GS_EXPORT NSString* const NSFileType;
 
 #ifndef	STRICT_MACOS_X
-extern NSString* const NSFileGroupOwnerAccountNumber;
-extern NSString* const NSFileOwnerAccountNumber;
+GS_EXPORT NSString* const NSFileGroupOwnerAccountNumber;
+GS_EXPORT NSString* const NSFileOwnerAccountNumber;
 #endif
 
 /* File Types */
 
-extern NSString* const NSFileTypeDirectory;
-extern NSString* const NSFileTypeRegular;
-extern NSString* const NSFileTypeSymbolicLink;
-extern NSString* const NSFileTypeSocket;
-extern NSString* const NSFileTypeFifo;
-extern NSString* const NSFileTypeCharacterSpecial;
-extern NSString* const NSFileTypeBlockSpecial;
-extern NSString* const NSFileTypeUnknown;
+GS_EXPORT NSString* const NSFileTypeDirectory;
+GS_EXPORT NSString* const NSFileTypeRegular;
+GS_EXPORT NSString* const NSFileTypeSymbolicLink;
+GS_EXPORT NSString* const NSFileTypeSocket;
+GS_EXPORT NSString* const NSFileTypeFifo;
+GS_EXPORT NSString* const NSFileTypeCharacterSpecial;
+GS_EXPORT NSString* const NSFileTypeBlockSpecial;
+GS_EXPORT NSString* const NSFileTypeUnknown;
 
 /* FileSystem Attributes */
 
-extern NSString* const NSFileSystemSize;
-extern NSString* const NSFileSystemFreeSize;
-extern NSString* const NSFileSystemNodes;
-extern NSString* const NSFileSystemFreeNodes;
+GS_EXPORT NSString* const NSFileSystemSize;
+GS_EXPORT NSString* const NSFileSystemFreeSize;
+GS_EXPORT NSString* const NSFileSystemNodes;
+GS_EXPORT NSString* const NSFileSystemFreeNodes;
 
 /* Easy access to attributes in a dictionary */
 

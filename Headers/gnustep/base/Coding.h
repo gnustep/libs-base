@@ -24,7 +24,7 @@
 #ifndef __Coding_h_GNUSTEP_BASE_INCLUDE
 #define __Coding_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 /* #include <base/String.h>
    xxx Think about trying to get <String> back in types,

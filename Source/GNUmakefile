@@ -242,7 +242,6 @@ o_map.h \
 o_map_bas.h \
 o_map_cbs.h \
 objc-gnu2next.h \
-README \
 preface.h
 
 GNU_EXTRAS_HFILES = \

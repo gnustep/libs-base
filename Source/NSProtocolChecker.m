@@ -22,6 +22,7 @@
    */ 
 
 #include "config.h"
+#import <base/preface.h>
 #import <Foundation/NSProtocolChecker.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSInvocation.h>

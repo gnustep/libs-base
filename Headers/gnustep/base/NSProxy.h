@@ -24,9 +24,7 @@
 #ifndef __NSProxy_h_GNUSTEP_BASE_INCLUDE
 #define __NSProxy_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSObject.h>
-
 
 @interface NSProxy <NSObject>
 {

@@ -28,7 +28,6 @@
 #ifndef __NSGString_h_GNUSTEP_BASE_INCLUDE
 #define __NSGString_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <Foundation/NSString.h>
 
 /* NSGString and NSGMutableString must have the same initial ivar layout

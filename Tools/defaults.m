@@ -19,6 +19,8 @@
    */
 
 #include "config.h"
+#include	<string.h>
+#include	<base/preface.h>
 #include	<Foundation/NSArray.h>
 #include	<Foundation/NSDictionary.h>
 #include	<Foundation/NSString.h>

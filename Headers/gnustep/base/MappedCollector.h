@@ -24,7 +24,6 @@
 #ifndef __MappedCollector_h_GNUSTEP_BASE_INCLUDE
 #define __MappedCollector_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/KeyedCollection.h>
 
 @interface MappedCollector : KeyedCollection

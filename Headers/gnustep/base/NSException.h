@@ -59,13 +59,13 @@
 @end
 
 /* Common exceptions */
-extern NSString *NSInconsistentArchiveException;
-extern NSString *NSGenericException;
-extern NSString *NSInternalInconsistencyException;
-extern NSString *NSInvalidArgumentException;
-extern NSString *NSMallocException;
-extern NSString *NSRangeException;
-extern NSString *NSCharacterConversionException;
+GS_EXPORT NSString *NSInconsistentArchiveException;
+GS_EXPORT NSString *NSGenericException;
+GS_EXPORT NSString *NSInternalInconsistencyException;
+GS_EXPORT NSString *NSInvalidArgumentException;
+GS_EXPORT NSString *NSMallocException;
+GS_EXPORT NSString *NSRangeException;
+GS_EXPORT NSString *NSCharacterConversionException;
 
 /* Exception handler definitions */
 typedef struct _NSHandler 
@@ -77,7 +77,7 @@ typedef struct _NSHandler
 
 typedef void NSUncaughtExceptionHandler(NSException *exception);
 
-extern NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
+GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 #define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
 #define NSSetUncaughtExceptionHandler(proc) \
 			(_NSUncaughtExceptionHandler = (proc))
@@ -102,8 +102,8 @@ extern NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
  */
 
 /* private support routines.  Do not call directly. */
-extern void _NSAddHandler( NSHandler *handler );
-extern void _NSRemoveHandler( NSHandler *handler );
+GS_EXPORT void _NSAddHandler( NSHandler *handler );
+GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_DURING { NSHandler NSLocalHandler;			\
 		    _NSAddHandler(&NSLocalHandler);		\

@@ -24,7 +24,7 @@
 #ifndef __ValueHolding_h_GNUSTEP_BASE_INCLUDE
 #define __ValueHolding_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
+#include <Foundation/NSObject.h>
 
 /* protocol String; */
 

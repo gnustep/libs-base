@@ -48,7 +48,7 @@
 #ifndef _NSGAttributedString_h_INCLUDE
 #define _NSGAttributedString_h_INCLUDE
 
-#include "NSAttributedString.h"
+#include "Foundation/NSAttributedString.h"
 
 @interface NSGAttributedString : NSAttributedString
 {

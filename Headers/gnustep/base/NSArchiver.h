@@ -270,6 +270,6 @@
 
 
 /* Exceptions */
-extern NSString *NSInconsistentArchiveException;
+GS_EXPORT NSString *NSInconsistentArchiveException;
 
 #endif	/* __NSArchiver_h_GNUSTEP_BASE_INCLUDE */

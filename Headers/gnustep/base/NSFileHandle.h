@@ -84,20 +84,20 @@
 
 // Notification names.
 
-extern	NSString*	NSFileHandleConnectionAcceptedNotification;
-extern	NSString*	NSFileHandleDataAvailableNotification;
-extern	NSString*	NSFileHandleReadCompletionNotification;
-extern	NSString*	NSFileHandleReadToEndOfFileCompletionNotification;
+GS_EXPORT NSString*	NSFileHandleConnectionAcceptedNotification;
+GS_EXPORT NSString*	NSFileHandleDataAvailableNotification;
+GS_EXPORT NSString*	NSFileHandleReadCompletionNotification;
+GS_EXPORT NSString*	NSFileHandleReadToEndOfFileCompletionNotification;
 
 // Keys for accessing userInfo dictionary in notification handlers.
 
-extern NSString*	NSFileHandleNotificationDataItem;
-extern NSString*	NSFileHandleNotificationFileHandleItem;
-extern NSString*	NSFileHandleNotificationMonitorModes;
+GS_EXPORT NSString*	NSFileHandleNotificationDataItem;
+GS_EXPORT NSString*	NSFileHandleNotificationFileHandleItem;
+GS_EXPORT NSString*	NSFileHandleNotificationMonitorModes;
 
 // Exceptions
 
-extern NSString*	NSFileHandleOperationException;
+GS_EXPORT NSString*	NSFileHandleOperationException;
 
 @interface NSPipe : NSObject
 {
@@ -137,10 +137,10 @@ extern NSString*	NSFileHandleOperationException;
 
 // GNUstep Notification names.
 
-extern	NSString*	GSFileHandleConnectCompletionNotification;
-extern	NSString*	GSFileHandleWriteCompletionNotification;
+GS_EXPORT NSString*	GSFileHandleConnectCompletionNotification;
+GS_EXPORT NSString*	GSFileHandleWriteCompletionNotification;
 
 // Message describing error in async accept,read,write operation.
-extern	NSString*	GSFileHandleNotificationError;
+GS_EXPORT NSString*	GSFileHandleNotificationError;
 
 #endif /* __NSFileHandle_h_GNUSTEP_BASE_INCLUDE */

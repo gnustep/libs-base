@@ -26,7 +26,6 @@
 #ifndef __Time_h_GNUSTEP_BASE_INCLUDE
 #define __Time_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Magnitude.h>
 
 #ifndef __WIN32__

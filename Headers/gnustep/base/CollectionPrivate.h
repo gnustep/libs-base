@@ -24,8 +24,6 @@
 #ifndef __CollectionPrivate_h_GNUSTEP_BASE_INCLUDE
 #define __CollectionPrivate_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-
 @interface ConstantCollection (ArchivingHelpers)
 /* These methods should never be called except in order, and inside 
    -encodeWithCoder: and -decodeWithCoder: */

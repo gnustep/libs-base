@@ -40,13 +40,13 @@
  *	Keys for the NSDictionary returned by [NSConnection -statistics]
  */
 /* These in OPENSTEP 4.2 */
-extern NSString *NSConnectionRepliesReceived;
-extern NSString *NSConnectionRepliesSent;
-extern NSString *NSConnectionRequestsReceived;
-extern NSString *NSConnectionRequestsSent;
+GS_EXPORT NSString *NSConnectionRepliesReceived;
+GS_EXPORT NSString *NSConnectionRepliesSent;
+GS_EXPORT NSString *NSConnectionRequestsReceived;
+GS_EXPORT NSString *NSConnectionRequestsSent;
 /* These Are GNUstep extras */
-extern NSString *NSConnectionLocalCount;	/* Objects sent out	*/
-extern NSString *NSConnectionProxyCount;	/* Objects received	*/
+GS_EXPORT NSString *NSConnectionLocalCount;	/* Objects sent out	*/
+GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 
 /*
@@ -236,7 +236,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 @end
 
-extern NSString *ConnectionBecameInvalidNotification;
+GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 
 @interface Object (NSConnectionDelegate)
 - (BOOL) connection: (NSConnection*)parent
@@ -299,9 +299,9 @@ extern NSString *ConnectionBecameInvalidNotification;
 /*
  *	NSRunLoop mode, NSNotification name and NSException strings.
  */
-extern NSString	*NSConnectionReplyMode;
-extern NSString *NSConnectionDidDieNotification;
-extern NSString *NSConnectionDidInitializeNotification;	/* OPENSTEP	*/
+GS_EXPORT NSString	*NSConnectionReplyMode;
+GS_EXPORT NSString *NSConnectionDidDieNotification;
+GS_EXPORT NSString *NSConnectionDidInitializeNotification;	/* OPENSTEP	*/
 
 /*
  *	For compatibility with old GNU DO code -

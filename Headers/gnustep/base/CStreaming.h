@@ -24,7 +24,6 @@
 #ifndef __CStreaming_h__GNUSTEP_BASE_INCLUDE
 #define __CStreaming_h__GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Streaming.h>
 
 @protocol CStreaming <Streaming>

@@ -39,7 +39,7 @@ typedef enum {
   NSNotificationSuspensionBehaviorDeliverImmediately
 } NSNotificationSuspensionBehavior;
 
-extern NSString	*NSLocalNotificationCenterType;
+GS_EXPORT NSString	*NSLocalNotificationCenterType;
 
 @interface	NSDistributedNotificationCenter : NSObject
 {

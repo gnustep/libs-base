@@ -24,7 +24,6 @@
 #ifndef __Set_h_GNUSTEP_BASE_INCLUDE
 #define __Set_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
 #include <base/Collection.h>
 #include <Foundation/NSHashTable.h>
 
