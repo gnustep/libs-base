@@ -25,7 +25,7 @@
 #ifndef h_zone_NS_h
 #define h_zone_NS_h
 
-#include <gnustep/base/preface.h>
+#include <gnustep/base/config.h>
 
 #if NeXT_runtime
 
