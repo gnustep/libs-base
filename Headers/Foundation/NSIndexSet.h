@@ -1,0 +1,176 @@
+/** Interface for NSIndexSet, NSMutableIndexSet for GNUStep
+   Copyright (C) 2004 Free Software Foundation, Inc.
+
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Created: Feb 2004
+   
+   This file is part of the GNUstep Base Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   AutogsdocSource: NSIndexSet.m
+
+   */ 
+
+#ifndef _NSIndexSet_h_GNUSTEP_BASE_INCLUDE
+#define _NSIndexSet_h_GNUSTEP_BASE_INCLUDE
+
+#ifndef	STRICT_OPENSTEP
+
+#include	<Foundation/NSObject.h>
+#include	<Foundation/NSRange.h>
+
+/**
+ * <strong> NOT YET IMPLEMENTED/TESTED </strong>
+ * Instances of this class are collections of unsigned integers in the
+ * range 0 to NSNotFound-1.<br />
+ * Each integer can appear in a collection only once.
+ */
+@interface	NSIndexSet : NSObject <NSCopying, NSMutableCopying, NSCoding>
+{
+  void	*_data;
+}
+
+/**
+ * Return an empty set.
+ */
++ (id) indexSet;
+
+/**
+ * Return a set containing the single value anIndex, or returns nil if
+ * anIndex is NSNotFound.
+ */
++ (id) indexSetWithIndex: (unsigned int)anIndex;
+
+/**
+ * Return a set containing all the values in aRange, or returns nil if
+ * aRange contains NSNotFound.
+ */
++ (id) indexSetWithIndexesInRange: (NSRange)aRange;
+
+/**
+ * Returns YES if the receiver contains anIndex, NO otherwise.
+ */
+- (BOOL) containsIndex: (unsigned int)anIndex;
+
+/**
+ * Returns YES if the receiver contains all the index values present
+ * in aSet, NO otherwise.
+ */
+- (BOOL) containsIndexes: (NSIndexSet*)aSet;
+
+/**
+ * Returns YES if the receiver contains all the index values present
+ * in aRange, NO otherwise.
+ */
+- (BOOL) containsIndexesInRange: (NSRange)aRange;
+
+/**
+ * Returns the number of index values present in the receiver.
+ */
+- (unsigned int) count;
+
+/**
+ * Returns the first index value in the receiver or NSNotFound if the
+ * receiver is empty.
+ */
+- (unsigned int) firstIndex;
+
+/**
+ * Copies index values into aBuffer until there are no index values left or
+ * aBuffer is full (assuming that the size of aBuffer is given by aCount).<br />
+ * Only copies index values present in aRange and copies them in order.<br />
+ * Returns the number of index values placed in aVuffer.<br />
+ * Modifies aRange to start after the last index value copied.<br />
+ */
+- (unsigned int) getIndexes: (unsigned int*)aBuffer
+		   maxCount: (unsigned int)aCount
+	       inIndexRange: (NSRangePointer)aRange;
+
+/**
+ * Return the first index value in the receiver which is greater than
+ * anIndex.
+ */
+- (unsigned int) indexGreaterThanIndex: (unsigned int)anIndex;
+
+/**
+ * Return the first index value in the receiver which is greater than
+ * or equal to anIndex.
+ */
+- (unsigned int) indexGreaterThanOrEqualToIndex: (unsigned int)anIndex;
+
+/**
+ * Return the first index value in the receiver which is less than
+ * anIndex.
+ */
+- (unsigned int) indexLessThanIndex: (unsigned int)anIndex;
+
+/**
+ * Return the first index value in the receiver which is less than
+ * or equal to anIndex.
+ */
+- (unsigned int) indexLessThanOrEqualToIndex: (unsigned int)anIndex;
+
+/**
+ * Initialise the receiver to contain anIndex.  Returns the initialised
+ * object or nil if anIndex is NSNotFound.
+ */
+- (id) initWithIndex: (unsigned int)anIndex;
+
+/** <init />
+ * Initialise the receiver to contain all index values in aRange.
+ * Returns the initialised object or nil if aRange contains NSNotFound.
+ */
+- (id) initWithIndexesInRange: (NSRange)aRange;
+
+/**
+ * Initialises the receiver with the index values from aSet.
+ */
+- (id) initWithIndexSet: (NSIndexSet*)aSet;
+
+/**
+ * Returns YES if the receiver contains any index values which lie in aRange,
+ * No otherwise.
+ */
+- (BOOL) intersectsIndexesInRange: (NSRange)aRange;
+
+/**
+ * Tests two index sets for equality and returns either YES or NO.
+ */
+- (BOOL) isEqualToIndexSet: (NSIndexSet*)aSet;
+
+/**
+ * Returns the last index value in the receiver or NSNotFound if the
+ * receiver is empty.
+ */
+- (unsigned int) lastIndex;
+@end
+
+
+@interface	NSMutableIndexSet : NSIndexSet
+
+- (void) addIndex: (unsigned int)anIndex;
+- (void) addIndexes: (NSIndexSet*)aSet;
+- (void) addIndexesInRange: (NSRange)aRange;
+- (void) removeAllIndexes;
+- (void) removeIndex: (unsigned int)anIndex;
+- (void) removeIndexes: (NSIndexSet*)aSet;
+- (void) removeIndexesInRange: (NSRange)aRange;
+- (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount;   
+
+@end
+
+#endif
+#endif

@@ -37,7 +37,7 @@
 @class NSMutableDictionary, NSMutableData, NSData, NSString;
 
 /**
- * Keyed archiving class, <strong>NOT YET IMPLEMENTED</strong>
+ * Keyed archiving class
  */
 @interface NSKeyedArchiver : NSCoder
 {
@@ -101,7 +101,9 @@
 - (id) delegate;
 
 - (void) encodeBool: (BOOL)aBool forKey: (NSString*)aKey;
-- (void) encodeBytes: (const uint8_t*)aPointer length: (unsigned)length forKey: (NSString*)aKey;
+- (void) encodeBytes: (const uint8_t*)aPointer
+	      length: (unsigned)length
+	      forKey: (NSString*)aKey;
 - (void) encodeConditionalObject: (id)anObject forKey: (NSString*)aKey;
 - (void) encodeDouble: (double)aDouble forKey: (NSString*)aKey;
 - (void) encodeFloat: (float)aFloat forKey: (NSString*)aKey;
@@ -157,7 +159,7 @@
 
 
 /**
- * Keyed unarchiving class, <strong>NOT YET IMPLEMENTED</strong>
+ * Keyed unarchiving class.
  */
 @interface NSKeyedUnarchiver : NSCoder
 {

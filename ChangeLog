@@ -10,6 +10,12 @@
 	c-strings without nul terminators using '%*.*s' format.
 	* Source/Additions/GSMime.m: Fix cases of possible access beyond buffer
 	and rare overflow writing decoded base64 data.
+	* Headers/Foundation/NSKeyedArchiver.h: Remove stuff saying this is
+	not implemented ... it is now.
+	* Source/NSIndexSet.m: Partial implementation untested ... at least
+	it's a skeleton for people to work on ... committed now because I'm
+	away for a few weeks on holiday.
+	* Headers/Foundation/NSIndexSet.h: Partial documentation.
 
 2004-02-23  Adam Fedor  <fedor@gnu.org>
 
