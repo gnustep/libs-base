@@ -127,6 +127,7 @@
 - (void) setLength: (unsigned int)length
 {
   [self setStreamBufferCapacity:length];
+  eofPosition = size;
 }
 
 - (void*) mutableBytes
