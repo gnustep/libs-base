@@ -1,3 +1,9 @@
+2001-03-21  Jonathan Gapen  <jagapen@home.com>
+
+	* config/nextcc.m4, config/objc-con-autoload.m4, config/procfs.m4,
+	config/objc-sys-dynamic.m4, config/procfs-exe-link.m4: Autoconf
+	macros used by configure.in.
+
 2001-03-19  Jonathan Gapen  <jagapen@home.com>
 
 	* Source/NSString.m: Implement ([-localizedStringWithFormat:]).
