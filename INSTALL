@@ -20,6 +20,18 @@ are going to use graphical applications.
 configuration options as with gstep-make. Some additional options to
 configure are described below.
 
+   Quick installation instructions:
+
+     ./configure
+     make
+     make install
+
+   To make and install the documentation:
+
+     cd Documentation
+     make
+     make install
+
 Configuration
 =============
 

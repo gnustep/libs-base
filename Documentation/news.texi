@@ -9,6 +9,17 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.7.2}
+
+@itemize @bullet
+@item NSUndoManager improvements 
+@item New NSMessagePort implementation.
+@item Private GSTcpPort becomre NSSocketPort.
+@item Improvements to handle selectors better over remote connections.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.7.1}
 
 Bug fixes.
@@ -29,8 +40,6 @@ NSSearchPathForDirectoriesInDomains.
 @item Added man page for gdomap
 @end itemize
 
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.6.0}
 
