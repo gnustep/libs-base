@@ -1976,6 +1976,7 @@ main(int argc, char **argv, char **env)
 	    {
 	      if (hDate == nil || [gDate earlierDate: hDate] == hDate)
 		{
+		  NSData	*d;
 		  GSXMLNode	*root;
 		  GSXMLParser	*parser;
 		  AGSIndex	*localRefs;
@@ -2016,7 +2017,8 @@ main(int argc, char **argv, char **env)
 		  [html setLocalRefs: localRefs];
                   [html setInstanceVariablesAtEnd: instanceVarsAtEnd];
 		  generated = [html outputDocument: root];
-		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
+		  d = [generated dataUsingEncoding: NSUTF8StringEncoding];
+		  if ([d writeToFile: htmlfile atomically: YES] == NO)
 		    {
 		      NSLog(@"Sorry unable to write %@", htmlfile);
 		    }
