@@ -178,7 +178,7 @@ static void	queue_probe(struct in_addr* to, struct in_addr *from,
 
 
 #ifdef __MINGW__
-
+#ifndef HAVE_GETOPT
 /* A simple implementation of getopt() */
 
 static int
@@ -244,6 +244,7 @@ getopt(int argc, char **argv, char *options)
     }
   return -1;
 }
+#endif
 #endif
 
 
@@ -4654,14 +4655,14 @@ printf(
       setgid (gid);
       setgroups (0, 0);	/* Empty additional groups list */
     }
-#endif /* __MINGW__ */
-
   if (getuid() == 0)
     {
       sprintf(ebuf, "Still running as root after trying to change");
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
+
+#endif /* __MINGW__ */
 
   init_probe();	/* Probe other name servers on net.	*/
 

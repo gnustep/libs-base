@@ -40,7 +40,7 @@
 */
 
 #include "config.h"
-#include "GSCompatibility.h"
+#include "GNUstepBase/GSCategories.h"
 
 #ifdef	HAVE_LIBXML
 

@@ -47,6 +47,9 @@ ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall
 ifeq ($(GNUSTEP_TARGET_OS),mingw32)
   ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
 endif
+ifeq ($(GNUSTEP_TARGET_OS),cygwin)
+  ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
+endif
 
 # Additional flags to pass to the C compiler
 ADDITIONAL_CFLAGS = 

@@ -295,6 +295,16 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - notImplemented:(SEL)aSel;
 - (id) subclassResponsibility: (SEL)aSel;
 - (id) shouldNotImplement: (SEL)aSel;
+/*
+  WARNING: The -compare: method for NSObject is deprecated
+           due to subclasses declaring the same selector with
+           conflicting signatures.
+           Comparision of arbitrary objects is not just meaningless
+           but also dangerous as most concrete implementations
+           expect comparable objects as arguments often accessing
+           instance variables directly.
+           This method will be removed in a future release.
+*/
 - (NSComparisonResult) compare: (id)anObject;
 @end
 

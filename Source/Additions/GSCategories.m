@@ -25,7 +25,6 @@
 #include <string.h>
 #include <Foundation/Foundation.h>
 #include "GNUstepBase/GSCategories.h"
-#include "GSCompatibility.h"
 
 /**
  * Extension methods for the NSCalendarDate class
@@ -542,8 +541,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   [NSException
     raise: NSGenericException
     format: @"method %s not implemented in %s(%s)",
-    aSel ? sel_get_name(aSel) : "(null)", 
-    object_get_class_name(self),
+    aSel ? GSNameFromSelector(aSel) : "(null)", 
+    GSClassNameFromObject(self),
     GSObjCIsInstance(self) ? "instance" : "class"];
   return nil;
 }
@@ -553,9 +552,9 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   [NSException
     raise: NSGenericException
     format: @"%s(%s) should not implement %s", 
-    object_get_class_name(self), 
+    GSClassNameFromObject(self), 
     GSObjCIsInstance(self) ? "instance" : "class",
-    aSel ? sel_get_name(aSel) : "(null)"];
+    aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
 }
 
@@ -563,18 +562,26 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 {
   [NSException raise: NSGenericException
     format: @"subclass %s(%s) should override %s", 
-	       object_get_class_name(self),
+	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSel ? sel_get_name(aSel) : "(null)"];
+	       aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
 }
 
 /**
- * Compare the receiver with anObject to see which is greater.
- * The default implementation orders by memory location.
+ * WARNING: The -compare: method for NSObject is deprecated
+ *          due to subclasses declaring the same selector with
+ *          conflicting signatures.
+ *          Comparision of arbitrary objects is not just meaningless
+ *          but also dangerous as most concrete implementations
+ *          expect comparable objects as arguments often accessing
+ *          instance variables directly.
+ *          This method will be removed in a future release.
  */
-- (int) compare: (id)anObject
+- (NSComparisonResult) compare: (id)anObject
 {
+  NSLog(@"WARNING: The -compare: method for NSObject is deprecated.");
+
   if (anObject == self)
     {
       return NSOrderedSame;
@@ -582,21 +589,21 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
+		   format: @"nil argument for compare:"];
     }
   if ([self isEqual: anObject])
     {
       return NSOrderedSame;
     }
   /*
-   * Ordering objects by their address is pretty useless, 
+   * Ordering objects by their address is pretty useless,
    * so subclasses should override this is some useful way.
    */
   if (self > anObject)
     {
       return NSOrderedDescending;
     }
-  else 
+  else
     {
       return NSOrderedAscending;
     }

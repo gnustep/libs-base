@@ -28,10 +28,75 @@
 #include	"process.h"
 #endif
 
+#include <fcntl.h>
+#ifdef	HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
+
 #include        <signal.h>
 
 #ifndef NSIG
 #define NSIG    32
+#endif
+
+static int	is_daemon = 0;		/* Currently running as daemon.	 */
+static char	ebuf[2048];
+
+#ifdef HAVE_SYSLOG
+
+static int	log_priority;
+
+static void
+gdnc_log (int prio)
+{
+  if (is_daemon)
+    {
+      syslog (log_priority | prio, ebuf);
+    }
+  else if (prio == LOG_INFO)
+    {
+      write (1, ebuf, strlen (ebuf));
+      write (1, "\n", 1);
+    }
+  else
+    {
+      write (2, ebuf, strlen (ebuf));
+      write (2, "\n", 1);
+    }
+
+  if (prio == LOG_CRIT)
+    {
+      if (is_daemon)
+	{
+	  syslog (LOG_CRIT, "exiting.");
+	}
+      else
+     	{
+	  fprintf (stderr, "exiting.\n");
+	  fflush (stderr);
+	}
+      exit(EXIT_FAILURE);
+    }
+}
+#else
+
+#define	LOG_CRIT	2
+#define LOG_DEBUG	0
+#define LOG_ERR		1
+#define LOG_INFO	0
+#define LOG_WARNING	0
+void
+gdnc_log (int prio)
+{
+  write (2, ebuf, strlen (ebuf));
+  write (2, "\n", 1);
+  if (prio == LOG_CRIT)
+    {
+      fprintf (stderr, "exiting.\n");
+      fflush (stderr);
+      exit(EXIT_FAILURE);
+    }
+}
 #endif
 
 static void
@@ -909,6 +974,7 @@ ihandler(int sig)
 int
 main(int argc, char** argv, char** env)
 {
+  int                   c;
   GDNCServer		*server;
   NSString		*str;
   BOOL			shouldFork = YES;
@@ -948,6 +1014,7 @@ main(int argc, char** argv, char** env)
 #else
   if (shouldFork)
     {
+      is_daemon = 1;
       switch (fork())
 	{
 	  case -1:
@@ -968,6 +1035,41 @@ main(int argc, char** argv, char** env)
 	  default:
 	    exit(EXIT_SUCCESS);
 	}
+    }
+
+  /*
+   *	Ensure we don't have any open file descriptors which may refer
+   *	to sockets bound to ports we may try to use.
+   *
+   *	Use '/dev/null' for stdin and stdout.
+   */
+  for (c = 0; c < FD_SETSIZE; c++)
+    {
+      if (is_daemon || (c != 2))
+	{
+	  (void)close(c);
+	}
+    }
+  if (open("/dev/null", O_RDONLY) != 0)
+    {
+      sprintf(ebuf, "failed to open stdin from /dev/null (%s)\n",
+	strerror(errno));
+      gdnc_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
+  if (open("/dev/null", O_WRONLY) != 1)
+    {
+      sprintf(ebuf, "failed to open stdout from /dev/null (%s)\n",
+	strerror(errno));
+      gdnc_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
+  if (is_daemon && open("/dev/null", O_WRONLY) != 2)
+    {
+      sprintf(ebuf, "failed to open stderr from /dev/null (%s)\n",
+	strerror(errno));
+      gdnc_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
     }
 #endif /* !MINGW */
 

@@ -59,15 +59,13 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
 {
   if (receiver)
     {
-      if (object_is_instance (receiver))
+      if (GSObjCIsInstance(receiver))
         {
-          return GSGetInstanceMethod (object_get_class
-                                              (receiver), sel);
+          return GSGetInstanceMethod(GSObjCClass(receiver), sel);
         }
-      else if (object_is_class (receiver))
+      else if (GSObjCIsClass(receiver))
         {
-          return GSGetClassMethod (object_get_class
-                                           (receiver), sel);
+          return GSGetClassMethod(receiver, sel);
         }
     }
 
@@ -96,7 +94,7 @@ gs_find_best_typed_sel (SEL sel)
 {
   if (!sel_get_type (sel))
     {
-      const char *name = sel_get_name (sel);
+      const char *name = GSNameFromSelector(sel);
       
       if (name)
 	{
@@ -325,14 +323,14 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
       s.self = _target;
       if (GSObjCIsInstance(_target))
-	s.class = class_get_super_class(GSObjCClass(_target));
+	s.class = GSObjCSuper(GSObjCClass(_target));
       else
-	s.class = class_get_super_class((Class)_target);
+	s.class = GSObjCSuper((Class)_target);
       imp = objc_msg_lookup_super(&s, _selector);
     }
   else
     {
-      imp = method_get_imp(object_is_instance(_target) ?
+      imp = method_get_imp(GSObjCIsInstance(_target) ?
 	GSGetInstanceMethod(
 	  ((struct objc_class*)_target)->class_pointer, _selector)
 	: GSGetClassMethod(
@@ -420,9 +418,12 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   
   if (!fwdInvMethod)
     {
-      NSCAssert2 (0, @"GSFFIInvocation: Class '%s' does not respond"
-                  @" to forwardInvocation: for '%s'",
-                  object_get_class_name (obj), sel_get_name(selector));
+      [NSException raise: NSInvalidArgumentException
+		   format: @"GSFFIInvocation: Class '%s'(%s) does not respond"
+		           @" to forwardInvocation: for '%s'",
+		   GSClassNameFromObject(obj),
+		   GSObjCIsInstance(obj) ? "instance" : "class",
+		   selector ? GSNameFromSelector(selector) : "(null)"];
     }
        
   sig = nil;
@@ -446,7 +447,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
-	  const char	*runtimeName = sel_get_name (selector);
+	  const char	*runtimeName = GSNameFromSelector(selector);
 
 	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
 	  if (selector == 0)
@@ -479,9 +480,9 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"%s(%s) does not recognize %s",
-	 object_get_class_name(obj),
+	 GSClassNameFromObject(obj),
 	 GSObjCIsInstance(obj) ? "instance" : "class",
-	 selector ? sel_get_name(selector) : "(null)"];
+	 selector ? GSNameFromSelector(selector) : "(null)"];
     }
     
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif

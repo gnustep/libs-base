@@ -56,7 +56,6 @@
 #include	"GNUstepBase/GSCategories.h"
 #include	<string.h>
 #include	<ctype.h>
-#include 	"GSCompatibility.h"
 
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;

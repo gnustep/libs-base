@@ -27,12 +27,7 @@
 #ifndef __behavior_h_GNUSTEP_BASE_INCLUDE
 #define __behavior_h_GNUSTEP_BASE_INCLUDE
 
-#if NeXT_RUNTIME
-#include <objc/objc.h>
-#include <objc/objc-class.h>
-#else
-#include <objc/objc-api.h>
-#endif
+#include <GNUstepBase/GSObjCRuntime.h>
 
 /* Call this method from CLASS's +initialize method to add a behavior
    to CLASS.  A "behavior" is like a protocol with an implementation.
@@ -51,14 +46,14 @@
 
 */
 
-void behavior_class_add_class (Class class, 
+GS_EXPORT void behavior_class_add_class (Class class, 
 			       Class behavior);
-void behavior_class_add_category (Class class, 
+GS_EXPORT void behavior_class_add_category (Class class, 
 				  struct objc_category *category);
-void behavior_class_add_methods (Class class, 
+GS_EXPORT void behavior_class_add_methods (Class class, 
 				 struct objc_method_list *methods);
 
 /* Set to non-zero if you want debugging messages on stderr. */
-void behavior_set_debug(int i);
+GS_EXPORT void behavior_set_debug(int i);
 
 #endif /* __behavior_h_GNUSTEP_BASE_INCLUDE */

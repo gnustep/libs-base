@@ -46,7 +46,7 @@
 		};
 		034768E0FF38A50411DB9C8B = {
 			isa = PBXFrameworkReference;
-			path = gnustep.framework;
+			path = GNUstepBase.framework;
 			refType = 3;
 		};
 //030
@@ -124,13 +124,14 @@
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = "";
 				FRAMEWORK_VERSION = A;
-				HEADER_SEARCH_PATHS = "\"${SOURCE_ROOT}/../Headers/gnustep\" \"${SOURCE_ROOT}/../Headers\" /usr/local/include/libxml2 /sw/include";
+				HEADER_SEARCH_PATHS = ". \"${SRCROOT}/../Headers/Additions\" /sw/include /sw/include/libxml2";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LIBRARY_SEARCH_PATHS = "/usr/local/lib /sw/lib";
+				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_LDFLAGS = "-seg1addr 0x58000000 -headerpad_max_install_names";
 				PRECOMPILE_PREFIX_HEADER = YES;
 				PREFIX_HEADER = config.h;
-				PRODUCT_NAME = gnustep;
+				PRODUCT_NAME = GNUstepBase;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
 				WRAPPER_EXTENSION = framework;
@@ -149,7 +150,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>gnustep</string>
+	<string>GNUstepBase</string>
 	<key>CFBundleIconFile</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
@@ -201,7 +202,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				089C1668FE841158C02AAC07,
-				554DDE86043110AA00000001,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -287,11 +287,13 @@
 				55CF466703E367A500000001,
 				55CF466803E367A500000001,
 				55CF466903E367A500000001,
+				EFF20035050D035500A80103,
 				55CF466A03E367A500000001,
 			);
 			isa = PBXGroup;
-			name = Classes;
-			refType = 4;
+			name = Source;
+			path = ../Source;
+			refType = 2;
 		};
 //080
 //081
@@ -456,27 +458,14 @@
 			path = HTMLLinker.html;
 			refType = 4;
 		};
-		554DDE86043110AA00000001 = {
-			fileRef = 554DDE85043110AA00000001;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		554DDE87043110C200000001 = {
 			buildActionMask = 2147483647;
 			dstPath = English.lproj/Documentation;
 			dstSubfolderSpec = 7;
 			files = (
-				554DDE88043110E600000001,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
-		};
-		554DDE88043110E600000001 = {
-			fileRef = 554DDE85043110AA00000001;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 		554DDE890431135200000001 = {
 			fileRef = 0867D69BFE84028FC02AAC07;
@@ -547,8 +536,9 @@
 				55F7D7DF03E49C1000000001,
 			);
 			isa = PBXGroup;
-			name = Docs;
-			refType = 4;
+			name = Documentation;
+			path = ../Documentation;
+			refType = 2;
 		};
 		556FFD1903EC2ECE00000001 = {
 			children = (
@@ -564,8 +554,8 @@
 			);
 			isa = PBXGroup;
 			name = unicode;
-			path = ../Headers/gnustep/unicode;
-			refType = 2;
+			path = Additions/GNUstepBase/unicode;
+			refType = 4;
 		};
 		556FFD1A03EC2ECE00000001 = {
 			fileEncoding = 30;
@@ -698,9 +688,9 @@
 				555112B303FEC81600000001,
 			);
 			isa = PBXGroup;
-			name = base;
-			path = ../Headers/gnustep/base;
-			refType = 2;
+			name = GNUstepBase;
+			path = Additions/GNUstepBase;
+			refType = 4;
 		};
 		556FFD3103EC36E500000001 = {
 			fileEncoding = 30;
@@ -753,7 +743,8 @@
 		556FFD8A03EC36E500000001 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			path = preface.h;
+			name = preface.h;
+			path = GNUstepBase/preface.h;
 			refType = 2;
 		};
 		556FFD8B03EC36E500000001 = {
@@ -865,12 +856,13 @@
 			);
 			isa = PBXGroup;
 			name = Headers;
-			refType = 4;
+			path = ../Headers;
+			refType = 2;
 		};
 		559CDB7E040587E100000001 = {
 			isa = PBXFileReference;
 			name = libxml2.a;
-			path = /usr/local/lib/libxml2.a;
+			path = /sw/lib/libxml2.a;
 			refType = 0;
 		};
 		559CDB8004058ACF00000001 = {
@@ -1557,6 +1549,22 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
+		};
+//550
+//551
+//552
+//553
+//554
+//EF0
+//EF1
+//EF2
+//EF3
+//EF4
+		EFF20035050D035500A80103 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = NSDecimal.m;
+			refType = 4;
 		};
 	};
 	rootObject = 0867D690FE84028FC02AAC07;

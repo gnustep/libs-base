@@ -99,7 +99,7 @@ static NSFileManager	*mgr = nil;
  * The directory in which the last path component resides must already
  * exist ... create it using NSFileManager if you need to.
  */
-- (NSDistributedLock*) initWithPath: (NSString*)aPath
+- (id) initWithPath: (NSString*)aPath
 {
   NSString	*lockDir;
   BOOL		isDirectory;

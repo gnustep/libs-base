@@ -35,7 +35,7 @@
 }
 
 + (NSDistributedLock*) lockWithPath: (NSString*)aPath;
-- (NSDistributedLock*) initWithPath: (NSString*)aPath;
+- (id) initWithPath: (NSString*)aPath;
 
 - (void) breakLock;
 - (NSDate*) lockDate;
