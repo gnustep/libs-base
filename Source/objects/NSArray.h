@@ -27,14 +27,14 @@
    IndexedCollecting---they are Collection objects just like in
    Smalltalk. */
 
-#ifndef __objects_NSString_h_OBJECTS_INCLUDE
-#define __objects_NSString_h_OBJECTS_INCLUDE
+#ifndef __objects_NSArray_h_OBJECTS_INCLUDE
+#define __objects_NSArray_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
 #include <objects/IndexedCollecting.h>
 #include <objects/String.h>
 
-/* Eventually we'll make a Contant version of this protocol. */
+/* Eventually we'll make a Constant version of this protocol. */
 @interface NSArray (GNU) <IndexedCollecting>
 @end
 
@@ -46,4 +46,4 @@
 - setGrowFactor: (unsigned)aNum;
 @end
 
-#endif /* __objects_NSString_h_OBJECTS_INCLUDE */
+#endif /* __objects_NSArray_h_OBJECTS_INCLUDE */
