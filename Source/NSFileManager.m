@@ -555,7 +555,19 @@ static NSFileManager* defaultManager = nil;
   NSEnumerator *paths = [[path pathComponents] objectEnumerator];
   NSString *subPath;
   NSString *completePath = nil;
+#else
+  const char	*cpath;
+  char		dirpath[PATH_MAX+1];
+  struct stat	statbuf;
+  int		len, cur;
+  NSDictionary	*needChown = nil;
+#endif
 
+  /* This is consitent with MacOSX - just return NO for an invalid path. */
+  if (path == nil)
+    return NO;
+    
+#if defined(__MINGW__)
   while ((subPath = [paths nextObject]))
     {
       BOOL isDir = NO;
@@ -583,12 +595,7 @@ static NSFileManager* defaultManager = nil;
     }
 
 #else
-  const char	*cpath;
-  char		dirpath[PATH_MAX+1];
-  struct stat	statbuf;
-  int		len, cur;
-  NSDictionary	*needChown = nil;
-    
+
   /*
    * If there is no file owner specified, and we are running setuid to
    * root, then we assume we need to change ownership to correct user.
@@ -701,12 +708,21 @@ static NSFileManager* defaultManager = nil;
 	       attributes: (NSDictionary*)attributes
 {
   const char	*cpath = [self fileSystemRepresentationWithPath: path];
-
 #if	defined(__MINGW__)
   HANDLE fh;
   DWORD	written = 0;
   DWORD	len = [contents length];
+#else
+  int	fd;
+  int	len;
+  int	written;
+#endif
 
+  /* This is consitent with MacOSX - just return NO for an invalid path. */
+  if (path == nil)
+    return NO;
+
+#if	defined(__MINGW__)
   fh = CreateFile(cpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
@@ -728,9 +744,6 @@ static NSFileManager* defaultManager = nil;
       return YES;
     }
 #else
-  int	fd;
-  int	len;
-  int	written;
 
   fd = open(cpath, GSBINIO|O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)
