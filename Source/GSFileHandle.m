@@ -297,12 +297,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 #if defined(__MINGW__)
 	  if (isSocket)
-	    closesocket((SOCKET)_get_osfhandle(descriptor));
-	  else
-	    close(descriptor);
-#else
-	  close(descriptor);
+            {
+              closesocket((SOCKET)_get_osfhandle(descriptor));
+            }
 #endif
+	  close(descriptor);
 	  descriptor = -1;
 	}
     }
@@ -1688,17 +1687,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
 #endif
 #if defined(__MINGW__)
-  if (isStandardFile)
-    {
-      (void)_close(descriptor);
-    }
-  else
+  if (isSocket)
     {
       (void)closesocket((SOCKET)_get_osfhandle(descriptor));
     }
-#else
-  (void)close(descriptor);
 #endif
+  (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
   connectOK = NO;
