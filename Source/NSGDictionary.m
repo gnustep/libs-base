@@ -132,12 +132,14 @@
 
 - (NSEnumerator*) keyEnumerator
 {
-  return [[NSGDictionaryKeyEnumerator alloc] initWithDictionary:self];
+  return [[[NSGDictionaryKeyEnumerator alloc] initWithDictionary:self]
+	  autorelease];
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[NSGDictionaryObjectEnumerator alloc] initWithDictionary:self];
+  return [[[NSGDictionaryObjectEnumerator alloc] initWithDictionary:self]
+	  autorelease];
 }
 
 @end
