@@ -35,11 +35,11 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSObjCRuntime.h>
 
-#include <base/NSGArray.h>
-
 @class	NSGDictionary;
 @class	NSGMutableDictionary;
 @class	NSDataMalloc;
+@class	GSInlineArray;
+@class  GSMutableArray;
 @class	GSCString;
 @class	GSUnicodeString;
 @class	GSMutableString;
@@ -85,14 +85,6 @@ static char	st_marray = (char)ST_MARRAY;
 static char	st_dict = (char)ST_DICT;
 static char	st_mdict = (char)ST_MDICT;
 static char	st_data = (char)ST_DATA;
-
-typedef struct {
-  @defs(NSGArray)
-} NSGArrayStruct;
-
-typedef struct {
-  @defs(NSGMutableArray)
-} NSGMutableArrayStruct;
 
 
 
@@ -522,7 +514,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	    }
 	  else
 	    {
-	      a = NSAllocateObject(IACls, 0, NSDefaultMallocZone());
+	      a = NSAllocateObject(IACls, sizeof(id)*size,
+		NSDefaultMallocZone());
 	      a = (*iaInitImp)(a, iaInitSel, objects, size);
 	    }
 #if	!GS_WITH_GC
@@ -694,8 +687,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       maInitSel = @selector(initWithObjects:count:);
       idInitSel = @selector(initWithObjects:forKeys:count:);
       mdInitSel = @selector(initWithObjects:forKeys:count:);
-      IACls = [NSGArray class];
-      MACls = [NSGMutableArray class];
+      IACls = [GSInlineArray class];
+      MACls = [GSMutableArray class];
       DCls = [NSDataMalloc class];
       IDCls = [NSGDictionary class];
       MDCls = [NSGMutableDictionary class];

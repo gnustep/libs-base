@@ -75,7 +75,7 @@
 @class	GSString;
 @class	GSMutableString;
 @class	GSPlaceholderString;
-@class	NSGMutableArray;
+@class	GSMutableArray;
 @class	NSGMutableDictionary;
 
 
@@ -4024,7 +4024,7 @@ setupPl()
   plInit = (id (*)(id, SEL, unichar*, unsigned))
     [NSStringClass instanceMethodForSelector: plSel];
 
-  plArray = [NSGMutableArray class];
+  plArray = [GSMutableArray class];
   plAdd = (id (*)(id, SEL, id))
     [plArray instanceMethodForSelector: @selector(addObject:)];
 

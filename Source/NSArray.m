@@ -31,30 +31,39 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSGArray.h>
 #include <Foundation/NSRange.h>
 #include <limits.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSThread.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
 
-@interface NSArrayNonCore : NSArray
-@end
-@interface NSMutableArrayNonCore : NSMutableArray
-@end
+@class	GSArray;
+@class	GSInlineArray;
+@class	GSMutableArray;
+@class	GSPlaceholderArray;
 
-@class	NSGInlineArray;
+static Class NSArrayClass;
+static Class GSArrayClass;
+static Class GSInlineArrayClass;
+static Class NSMutableArrayClass;
+static Class GSMutableArrayClass;
+static Class GSPlaceholderArrayClass;
 
-static Class NSArray_abstract_class;
-static Class NSArray_concrete_class;
-static Class NSMutableArray_abstract_class;
-static Class NSMutableArray_concrete_class;
-static Class NSGInlineArrayClass;
+static GSPlaceholderArray	*defaultPlaceholderArray;
+static NSMapTable		*placeholderMap;
+static NSLock			*placeholderLock;
+
+@interface	NSArray (GSPrivate)
+- (id) _initWithObjects: firstObject rest: (va_list) ap;
+@end
 
 
 @implementation NSArray
@@ -81,21 +90,64 @@ static SEL	rlSel;
       remSel = @selector(removeObjectAtIndex:);
       rlSel = @selector(removeLastObject);
 
-      NSArray_abstract_class = [NSArray class];
-      behavior_class_add_class (self, [NSArrayNonCore class]);
-      NSMutableArray_abstract_class = [NSMutableArray class];
-      NSArray_concrete_class = [NSGArray class];
-      NSMutableArray_concrete_class = [NSGMutableArray class];
-      NSMutableArray_concrete_class = [NSGMutableArray class];
-      NSGInlineArrayClass = [NSGInlineArray class];
+      NSArrayClass = [NSArray class];
+      NSMutableArrayClass = [NSMutableArray class];
+      GSArrayClass = [GSArray class];
+      GSInlineArrayClass = [GSInlineArray class];
+      GSMutableArrayClass = [GSMutableArray class];
+      GSPlaceholderArrayClass = [GSPlaceholderArray class];
+
+      /*
+       * Set up infrastructure for placeholder arrays.
+       */
+      defaultPlaceholderArray = (GSPlaceholderArray*)
+	NSAllocateObject(GSPlaceholderArrayClass, 0, NSDefaultMallocZone());
+      placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      placeholderLock = [NSLock new];
     }
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSArray_abstract_class)
+  if (self == NSArrayClass)
     {
-      return NSAllocateObject(NSArray_concrete_class, 0, z);
+      /*
+       * For a constant array, we return a placeholder object that can
+       * be converted to a real object when its initialisation method
+       * is called.
+       */
+      if (z == NSDefaultMallocZone() || z == 0)
+	{
+	  /*
+	   * As a special case, we can return a placeholder for an array
+	   * in the default malloc zone extremely efficiently.
+	   */
+	  return defaultPlaceholderArray;
+	}
+      else
+	{
+	  id	obj;
+
+	  /*
+	   * For anything other than the default zone, we need to
+	   * locate the correct placeholder in the (lock protected)
+	   * table of placeholders.
+	   */
+	  [placeholderLock lock];
+	  obj = (id)NSMapGet(placeholderMap, (void*)z);
+	  if (obj == nil)
+	    {
+	      /*
+	       * There is no placeholder object for this zone, so we
+	       * create a new one and use that.
+	       */
+	      obj = (id)NSAllocateObject(GSPlaceholderArrayClass, 0, z);
+	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
+	    }
+	  [placeholderLock unlock];
+	  return obj;
+	}
     }
   else
     {
@@ -105,57 +157,115 @@ static SEL	rlSel;
 
 + (id) array
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
+  id	o;
+
+  o = [self allocWithZone: NSDefaultMallocZone()];
+  o = [o initWithObjects: (id*)0 count: 0];
+  return AUTORELEASE(o);
 }
 
 + (id) arrayWithArray: (NSArray*)array
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithArray: array]);
+  id	o;
+
+  o = [self allocWithZone: NSDefaultMallocZone()];
+  o = [o initWithArray: array];
+  return AUTORELEASE(o);
 }
 
 + (id) arrayWithContentsOfFile: (NSString*)file
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: file]);
+  id	o;
+
+  o = [self allocWithZone: NSDefaultMallocZone()];
+  o = [o initWithContentsOfFile: file];
+  return AUTORELEASE(o);
 }
 
 + (id) arrayWithObject: (id)anObject
 {
   id	o;
 
-  if (anObject == nil)
-    [NSException raise: NSInvalidArgumentException
-		 format: @"Tried to add nil"];
-  o = NSAllocateObject(NSGInlineArrayClass, sizeof(id), NSDefaultMallocZone());
+  o = [self allocWithZone: NSDefaultMallocZone()];
   o = [o initWithObjects: &anObject count: 1];
   return AUTORELEASE(o);
 }
 
-/* This is the designated initializer for NSArray. */
-- (id) initWithObjects: (id*)objects count: (unsigned)count
++ (id) arrayWithObjects: firstObject, ...
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  va_list ap;
+  va_start(ap, firstObject);
+  self = [[self allocWithZone: NSDefaultMallocZone()]
+    _initWithObjects: firstObject rest: ap];
+  va_end(ap);
+  return AUTORELEASE(self);
+}
+
++ (id) arrayWithObjects: (id*)objects count: (unsigned)count
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects count: count]);
+}
+
+- (NSArray*) arrayByAddingObject: (id)anObject
+{
+  id na;
+  unsigned	c = [self count];
+ 
+  if (anObject == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"Attempt to add nil to an array"];
+  if (c == 0)
+    na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
+      initWithObjects: &anObject count: 1];
+  else
+    {
+      id	objects[c+1];
+
+      [self getObjects: objects];
+      objects[c] = anObject;
+      na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: objects count: c+1];
+    }
+  return AUTORELEASE(na);
+}
+
+- (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
+{
+  id		na;
+  unsigned	c, l;
+
+  c = [self count];
+  l = [anotherArray count];
+  {
+    id	objects[c+l];
+
+    [self getObjects: objects];
+    [anotherArray getObjects: &objects[c]];
+    na = [NSArrayClass arrayWithObjects: objects count: c+l];
+  }
+  return na;
+}
+
+- (Class) classForCoder
+{
+  return NSArrayClass;
+}
+
+- (BOOL) containsObject: anObject
+{
+  return ([self indexOfObject: anObject] != NSNotFound);
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);
 }
 
 - (unsigned) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
-}
-
-- (id) objectAtIndex: (unsigned)index
-{
-  [self subclassResponsibility: _cmd];
-  return nil;
-}
-
-/* The NSCoding Protocol */
-
-- (Class) classForCoder
-{
-  return NSArray_abstract_class;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -174,202 +284,6 @@ static SEL	rlSel;
                               count: count
                                  at: a];
     }
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  unsigned    count;
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned)
-			     at: &count];
-  if (count > 0)
-    {
-      id	contents[count];
-
-      [aCoder decodeArrayOfObjCType: @encode(id)
-                              count: count
-                                 at: contents];
-      return [self initWithObjects: contents count: count];
-    }
-  else
-    return [self initWithObjects: 0 count: 0];
-}
-
-/* The NSCopying Protocol */
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  return RETAIN(self);
-}
-
-/* The NSMutableCopying Protocol */
-
-- (id) mutableCopyWithZone: (NSZone*)zone
-{
-  return [[NSMutableArray_concrete_class allocWithZone: zone] 
-    initWithArray: self];
-}
-
-@end
-
-
-@implementation NSArrayNonCore
-
-- (NSArray*) arrayByAddingObject: (id)anObject
-{
-  id na;
-  unsigned	c = [self count];
- 
-  if (anObject == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Attempt to add nil to an array"];
-  if (c == 0)
-    na = [[NSArray_concrete_class allocWithZone: NSDefaultMallocZone()]
-      initWithObjects: &anObject count: 1];
-  else
-    {
-      id	objects[c+1];
-
-      [self getObjects: objects];
-      objects[c] = anObject;
-      na = [[NSArray_concrete_class allocWithZone: NSDefaultMallocZone()]
-	initWithObjects: objects count: c+1];
-    }
-  return AUTORELEASE(na);
-}
-
-- (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
-{
-  id		na;
-  unsigned	c, l;
-
-  c = [self count];
-  l = [anotherArray count];
-  {
-    id	objects[c+l];
-
-    [self getObjects: objects];
-    [anotherArray getObjects: &objects[c]];
-    na = [NSArray_abstract_class arrayWithObjects: objects count: c+l];
-  }
-  return na;
-}
-
-- (id) initWithObjects: firstObject rest: (va_list) ap
-{
-  register	unsigned		i;
-  register	unsigned		curSize;
-  auto		unsigned		prevSize;
-  auto		unsigned		newSize;
-  auto		id			*objsArray;
-  auto		id			tmpId;
-
-  /*	Do initial allocation.	*/
-  prevSize = 3;
-  curSize  = 5;
-  objsArray = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * curSize);
-  tmpId = firstObject;
-
-  /*	Loop through adding objects to array until a nil is
-   *	found.
-   */
-  for (i = 0; tmpId != nil; i++)
-    {
-      /*	Put id into array.	*/
-      objsArray[i] = tmpId;
-
-      /*	If the index equals the current size, increase size.	*/
-      if (i == curSize - 1)
-	{
-	  /*	Fibonacci series.  Supposedly, for this application,
-	   *	the fibonacci series will be more memory efficient.
-	   */
-	  newSize  = prevSize + curSize;
-	  prevSize = curSize;
-	  curSize  = newSize;
-
-	  /*	Reallocate object array.	*/
-	  objsArray = (id*)NSZoneRealloc(NSDefaultMallocZone(), objsArray,
-	    sizeof(id) * curSize);
-	}
-      tmpId = va_arg(ap, id);
-    }
-  va_end( ap );
-
-  /*	Put object ids into NSArray.	*/
-  self = [self initWithObjects: objsArray count: i];
-  NSZoneFree(NSDefaultMallocZone(), objsArray);
-  return( self );
-}
-
-- (id) initWithObjects: firstObject, ...
-{
-  va_list ap;
-  va_start(ap, firstObject);
-  self = [self initWithObjects: firstObject rest: ap];
-  va_end(ap);
-  return self;
-}
-
-- (id) initWithContentsOfFile: (NSString*)file
-{
-  NSString 	*myString;
-
-  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: file];
-  if (myString)
-    {
-      id result;
-
-      NS_DURING
-	{
-	  result = [myString propertyList];
-	}
-      NS_HANDLER
-	{
-          result = nil;
-	}
-      NS_ENDHANDLER
-      RELEASE(myString);
-      if ([result isKindOfClass: NSArray_abstract_class])
-	{
-	  [self initWithArray: result];
-	  return self;
-	}
-    }
-  NSWarnMLog(@"Contents of file does not contain an array", 0);
-  RELEASE(self);
-  return nil;
-}
-
-+ (id) arrayWithObjects: firstObject, ...
-{
-  va_list ap;
-  va_start(ap, firstObject);
-  self = [[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: firstObject rest: ap];
-  va_end(ap);
-  return AUTORELEASE(self);
-}
-
-+ (id) arrayWithObjects: (id*)objects count: (unsigned)count
-{
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objects count: count]);
-}
-
-- (id) initWithArray: (NSArray*)array
-{
-  unsigned c;
-
-  c = [array count];
-  {
-    id	objects[c];
-
-    [array getObjects: objects];
-    self = [self initWithObjects: objects count: c];
-  }
-  return self;
 }
 
 - (void) getObjects: (id*)aBuffer
@@ -463,16 +377,155 @@ static SEL	rlSel;
   return NSNotFound;
 }
 
-- (BOOL) containsObject: anObject
+- (id) init
 {
-  return ([self indexOfObject: anObject] != NSNotFound);
+  return [self initWithObjects: (id*)0 count: 0];
+}
+
+- (id) initWithArray: (NSArray*)array
+{
+  unsigned c;
+
+  c = [array count];
+  {
+    id	objects[c];
+
+    [array getObjects: objects];
+    self = [self initWithObjects: objects count: c];
+  }
+  return self;
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  unsigned    count;
+
+  [aCoder decodeValueOfObjCType: @encode(unsigned)
+			     at: &count];
+  if (count > 0)
+    {
+      id	contents[count];
+
+      [aCoder decodeArrayOfObjCType: @encode(id)
+                              count: count
+                                 at: contents];
+      return [self initWithObjects: contents count: count];
+    }
+  else
+    return [self initWithObjects: 0 count: 0];
+}
+
+- (id) initWithContentsOfFile: (NSString*)file
+{
+  NSString 	*myString;
+
+  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: file];
+  if (myString)
+    {
+      id result;
+
+      NS_DURING
+	{
+	  result = [myString propertyList];
+	}
+      NS_HANDLER
+	{
+          result = nil;
+	}
+      NS_ENDHANDLER
+      RELEASE(myString);
+      if ([result isKindOfClass: NSArrayClass])
+	{
+	  [self initWithArray: result];
+	  return self;
+	}
+    }
+  NSWarnMLog(@"Contents of file does not contain an array", 0);
+  RELEASE(self);
+  return nil;
+}
+
+/* This is the designated initializer for NSArray. */
+- (id) initWithObjects: (id*)objects count: (unsigned)count
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (id) _initWithObjects: firstObject rest: (va_list) ap
+{
+  register	unsigned		i;
+  register	unsigned		curSize;
+  auto		unsigned		prevSize;
+  auto		unsigned		newSize;
+  auto		id			*objsArray;
+  auto		id			tmpId;
+
+  /*	Do initial allocation.	*/
+  prevSize = 3;
+  curSize  = 5;
+  objsArray = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * curSize);
+  tmpId = firstObject;
+
+  /*	Loop through adding objects to array until a nil is
+   *	found.
+   */
+  for (i = 0; tmpId != nil; i++)
+    {
+      /*	Put id into array.	*/
+      objsArray[i] = tmpId;
+
+      /*	If the index equals the current size, increase size.	*/
+      if (i == curSize - 1)
+	{
+	  /*	Fibonacci series.  Supposedly, for this application,
+	   *	the fibonacci series will be more memory efficient.
+	   */
+	  newSize  = prevSize + curSize;
+	  prevSize = curSize;
+	  curSize  = newSize;
+
+	  /*	Reallocate object array.	*/
+	  objsArray = (id*)NSZoneRealloc(NSDefaultMallocZone(), objsArray,
+	    sizeof(id) * curSize);
+	}
+      tmpId = va_arg(ap, id);
+    }
+  va_end( ap );
+
+  /*	Put object ids into NSArray.	*/
+  self = [self initWithObjects: objsArray count: i];
+  NSZoneFree(NSDefaultMallocZone(), objsArray);
+  return( self );
+}
+
+- (id) initWithObjects: firstObject, ...
+{
+  va_list ap;
+  va_start(ap, firstObject);
+  self = [self _initWithObjects: firstObject rest: ap];
+  va_end(ap);
+  return self;
+}
+
+- (id) mutableCopyWithZone: (NSZone*)zone
+{
+  return [[GSMutableArrayClass allocWithZone: zone] 
+    initWithArray: self];
+}
+
+- (id) objectAtIndex: (unsigned)index
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (BOOL) isEqual: (id)anObject
 {
   if (self == anObject)
     return YES;
-  if ([anObject isKindOfClass: NSArray_abstract_class])
+  if ([anObject isKindOfClass: NSArrayClass])
     return [self isEqualToArray: anObject];
   return NO;
 }
@@ -570,10 +623,10 @@ static SEL	rlSel;
   NSMutableArray	*sortedArray;
   NSArray		*result;
 
-  sortedArray = [[NSMutableArray_abstract_class allocWithZone:
+  sortedArray = [[NSMutableArrayClass allocWithZone:
     NSDefaultMallocZone()] initWithArray: self];
   [sortedArray sortUsingFunction: comparator context: context];
-  result = [NSArray_abstract_class arrayWithArray: sortedArray];
+  result = [NSArrayClass arrayWithArray: sortedArray];
   RELEASE(sortedArray);
   return result;
 }
@@ -806,16 +859,14 @@ static NSString	*indentStrings[] = {
 {
   if (self == [NSMutableArray class])
     {
-      behavior_class_add_class (self, [NSMutableArrayNonCore class]);
-      behavior_class_add_class (self, [NSArrayNonCore class]);
     }
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSMutableArray_abstract_class)
+  if (self == NSMutableArrayClass)
     {
-      return NSAllocateObject(NSMutableArray_concrete_class, 0, z);
+      return NSAllocateObject(GSMutableArrayClass, 0, z);
     }
   else
     {
@@ -833,7 +884,7 @@ static NSString	*indentStrings[] = {
 
 - (Class) classForCoder
 {
-  return NSMutableArray_abstract_class;
+  return NSMutableArrayClass;
 }
 
 /* The NSCopying Protocol */
@@ -849,7 +900,7 @@ static NSString	*indentStrings[] = {
   [self getObjects: objects];
   for (i = 0; i < count; i++)
     objects[i] = [objects[i] copyWithZone: zone];
-  newArray = [[NSArray_concrete_class allocWithZone: zone]
+  newArray = [[GSArrayClass allocWithZone: zone]
     initWithObjects: objects count: count];
   while (i > 0)
     RELEASE(objects[--i]);
@@ -904,11 +955,6 @@ static NSString	*indentStrings[] = {
 {
   [self subclassResponsibility: _cmd];
 }
-
-@end
-
-
-@implementation NSMutableArrayNonCore
 
 + (id) arrayWithCapacity: (unsigned)numItems
 {
