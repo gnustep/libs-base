@@ -1,3 +1,8 @@
+2000-08-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDebug.m: Fix memory leak when adding new class to array
+	of those being recorded - report by Frederic.De.Jaeger
+
 2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Tools/gsdoc.gsdoc: aded examples on how to use AutoDoc and GSDoc.

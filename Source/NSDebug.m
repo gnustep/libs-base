@@ -143,6 +143,7 @@ GSDebugAllocationAdd(Class c)
 	      NSZoneFree(NSDefaultMallocZone(), the_table);
 	    }
 	  the_table = tmp;
+	  table_size = more;
 	}
       the_table[num_classes].class = c;
       the_table[num_classes].count = 1;
