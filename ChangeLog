@@ -1,7 +1,14 @@
+2004-04-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUnarchiver.m: Retain objects while they are being
+	decoded. Fixes problem reported by Willem Rein Oudshoorn where
+	an object used by more than one object being decoded could be
+	released by one object before being used by the other.
+
 2004-04-09  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
-	* Source/NSTask.m ([NSConcreteWindowsTask -launch]): Set stdin/stdout/stderr
-	file to values provided by the user (Fix #8417)
+	* Source/NSTask.m ([NSConcreteWindowsTask -launch]): Set
+	stdin/stdout/stderr file to values provided by the user (Fix #8417)
 
 2004-04-08  Adam Fedor  <fedor@gnu.org>
 
