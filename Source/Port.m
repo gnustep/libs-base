@@ -23,6 +23,7 @@
 
 #include <objects/Port.h>
 #include <objects/Coder.h>	/* for Coding protocol in Object category */
+#include <objects/Notification.h>
 
 @implementation Port
 
@@ -64,7 +65,13 @@
 
 - (void) invalidate
 {
-  is_valid = NO;
+  if (is_valid)
+    {
+      [NotificationDispatcher
+	postNotificationName: PortBecameInvalidNotification 
+	object: self];
+      is_valid = NO;
+    }
 }
 
 - (Class) packetClass
@@ -156,3 +163,5 @@
 }
 
 @end
+
+NSString *PortBecameInvalidNotification = @"PortBecameInvalidNotification";
