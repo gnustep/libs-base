@@ -158,8 +158,10 @@ typedef unsigned short Character;
 @interface ConstantString : CString
 @end
 
+#if 0 /* Moved to foundation/NSString.h */
 /* The compiler makes @""-strings into NXConstantString's */
 @interface NXConstantString : ConstantString
 @end
+#endif /* 0 */
 
 #endif /* __String_h_OBJECTS_INCLUDE */
