@@ -1,3 +1,9 @@
+Tue Jun 22 16:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSThread.m: Various changes to tidy up notification handling
+	to avoid warning messages and to ensure that observers get notified
+	before the application becomes multi-threaded.
+
 Mon Jun 21 20:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSFileManager.m: Fixed error recursing into directory.
