@@ -41,6 +41,7 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
+#include "GNUstepBase/Unicode.h"
 
 #include "GSPrivate.h"
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
@@ -356,17 +357,27 @@ static inline id parseQuotedString(pldata* pld)
     }
   else
     {
-      unsigned	length = pld->pos - start - shrink;
+      unsigned	length;
       unichar	*chars;
+      unichar	*temp = NULL;
+      unsigned	int temp_length = 0;
       unsigned	j;
       unsigned	k;
 
+      if (!GSToUnicode(&temp, &temp_length, &pld->ptr[start],
+		       pld->pos - start, NSUTF8StringEncoding,
+		       NSDefaultMallocZone(), 0))
+	{
+	  pld->err = @"invalid utf8 data while parsing quoted string";
+	  return nil;
+	}
+      length = temp_length - shrink;
       chars = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * length);
       escaped = 0;
       hex = NO;
-      for (j = start, k = 0; j < pld->pos; j++)
+      for (j = 0, k = 0; j < temp_length; j++)
 	{
-	  unsigned char	c = pld->ptr[j];
+	  unichar c = temp[j];
 
 	  if (escaped)
 	    {
@@ -443,6 +454,9 @@ static inline id parseQuotedString(pldata* pld)
 		}
 	    }
 	}
+
+      NSZoneFree(NSDefaultMallocZone(), temp);
+      length = k;
 
       if (pld->key ==
 	NO && pld->opt == NSPropertyListMutableContainersAndLeaves)
@@ -1013,26 +1027,22 @@ GSPropertyListFromStringsFormat(NSString *string)
   NSMutableDictionary	*dict;
   pldata		_pld;
   pldata		*pld = &_pld;
-  unsigned		length = [string length];
+  unsigned		length;
   NSData		*d;
 
   /*
    * An empty string is a nil property list.
    */
-  if (length == 0)
+  if ([string length] == 0)
     {
       return nil;
     }
 
-  d = [string dataUsingEncoding: NSASCIIStringEncoding];
-  if (d == nil)
-    {
-      [NSException raise: NSGenericException
-	format: @"Non-ascii data in string supposed to be property list"];
-    }
+  d = [string dataUsingEncoding: NSUTF8StringEncoding];
+  NSCAssert(d, @"Couldn't get utf8 data from string.");
   _pld.ptr = (unsigned char*)[d bytes];
   _pld.pos = 0;
-  _pld.end = length;
+  _pld.end = [d length];
   _pld.err = nil;
   _pld.lin = 0;
   _pld.opt = NSPropertyListImmutable;
@@ -2203,7 +2213,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	      // It begins with '<?' so it is xml
 	      format = NSPropertyListXMLFormat_v1_0;
 #else
-	      error = @"XML format not supported ... XML support notn present.";
+	      error = @"XML format not supported ... XML support not present.";
 #endif
 	    }
 	  else
@@ -2261,7 +2271,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	      if (_pld.old == NO)
 		{
 		  // Found some modern GNUstep extension in data.
-		  format = NSPropertyListGNUstepBinaryFormat;
+		  format = NSPropertyListGNUstepFormat;
 		}
 	      if (_pld.err != nil)
 		{

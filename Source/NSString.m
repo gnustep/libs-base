@@ -4584,11 +4584,8 @@ handle_printf_atsign (FILE *stream,
     {
       return nil;
     }
-  if ((data = [self dataUsingEncoding: NSASCIIStringEncoding]) == nil)
-    {
-      [NSException raise: NSGenericException
-	format: @"Non-ascii data in string supposed to be property list"];
-    }
+  data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  NSAssert(data, @"Couldn't get utf8 data from string.");
 
   result = [NSPropertyListSerialization
     propertyListFromData: data
