@@ -897,8 +897,16 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
-    ptr -= BUFSIZ; \
-    bsize += BUFSIZ; \
+    if (extra == 0) \
+      { \
+	ptr -= BUFSIZ; \
+	bsize += BUFSIZ; \
+      } \
+    else \
+      { \
+	ptr -= BUFSIZ-1; \
+	bsize += BUFSIZ-1; \
+      } \
   } \
 else if (zone == 0) \
   { \
@@ -1389,8 +1397,16 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
-    ptr -= BUFSIZ; \
-    bsize += BUFSIZ; \
+    if (extra == 0) \
+      { \
+	ptr -= BUFSIZ; \
+	bsize += BUFSIZ; \
+      } \
+    else \
+      { \
+	ptr -= BUFSIZ-1; \
+	bsize += BUFSIZ-1; \
+      } \
   } \
 else if (zone == 0) \
   { \
