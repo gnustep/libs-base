@@ -1,3 +1,9 @@
+2001-12-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/behavior.m: behavior_class_add_methods() bugfix to ensure
+	that despatch table is updated properly.
+	search_for_method_in_list() deleted ... use version in gnu runtime.
+
 2001-12-29  Adam Fedor  <fedor@gnu.org>
 
 	* Source/behavior.m (class_add_behavior): Add depreciated function 

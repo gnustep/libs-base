@@ -57,8 +57,6 @@
 #if NeXT_RUNTIME
 #define methods methodLists
 static struct objc_method *search_for_method_in_list (struct objc_method_list **list, SEL op);
-#else
-static struct objc_method *search_for_method_in_list (struct objc_method_list *list, SEL op);
 #endif
 static BOOL class_is_kind_of(Class self, Class class);
 
@@ -188,17 +186,27 @@ behavior_class_add_methods (Class class, struct objc_method_list **methodLists)
           struct objc_method *method = &(mlist->method_list[counter]);
 
 	  if (behavior_debug)
-	    fprintf(stderr, "   processing method [%s]\n", 
-		    sel_get_name(method->method_name));
+	    {
+	      fprintf(stderr, "   processing method [%s] ... ", 
+		sel_get_name(method->method_name));
+	    }
 
-	  if (!search_for_method_in_list(class->methodLists, method->method_name)
-	      && !sel_eq(method->method_name, initialize_sel))
+	  if (!search_for_method_in_list(class->methodLists,method->method_name)
+	    && !sel_eq(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
 		 put the BEHAVIOR method in there.  Thus, behavior
 		 methods override the superclasses' methods. */
 	      new_list->method_list[new_list->method_count] = *method;
 	      (new_list->method_count)++;
+	      if (behavior_debug)
+		{
+		  fprintf(stderr, "added.\n"); 
+		}
+	    }
+	  else if (behavior_debug)
+	    {
+	      fprintf(stderr, "ignored.\n"); 
 	    }
           counter -= 1;
         }
@@ -251,6 +259,13 @@ search_for_method_in_list (struct objc_method_list **list, SEL op)
 
 #else
 /* GNU runtime */
+
+/*
+ * The following two functions are implemented in the GNU objc runtime
+ */
+extern Method_t search_for_method_in_list(MethodList_t list, SEL op);
+extern void class_add_method_list(Class, MethodList_t);
+
 void
 behavior_class_add_category (Class class, struct objc_category *category)
 {
@@ -289,12 +304,13 @@ behavior_class_add_methods (Class class,
 
       while (counter >= 0)
         {
-          struct objc_method *method = &(mlist->method_list[counter]);
+          struct objc_method	*method = &(mlist->method_list[counter]);
+	  const char		*name = sel_get_name(method->method_name);
 
 	  if (behavior_debug)
-	    fprintf(stderr, "   processing method [%s]\n", 
-		    sel_get_name(method->method_name));
-
+	    {
+	      fprintf(stderr, "   processing method [%s] ... ", name);
+	    }
 	  if (!search_for_method_in_list(class->methods, method->method_name)
 	      && !sel_eq(method->method_name, initialize_sel))
 	    {
@@ -302,16 +318,29 @@ behavior_class_add_methods (Class class,
 		 put the BEHAVIOR method in there.  Thus, behavior
 		 methods override the superclasses' methods. */
 	      new_list->method_list[new_list->method_count] = *method;
+	      /*
+	       * HACK ... the GNU runtime implementation of
+	       * class_add_method_list() expects the method names to be
+	       * C-strings rather than selectors ... so we must allow
+	       * for that.
+	       */
+	      new_list->method_list[new_list->method_count].method_name
+		= (SEL)name;
 	      (new_list->method_count)++;
+	      if (behavior_debug)
+		{
+		  fprintf(stderr, "added.\n"); 
+		}
+	    }
+	  else if (behavior_debug)
+	    {
+	      fprintf(stderr, "ignored.\n"); 
 	    }
           counter -= 1;
         }
       if (new_list->method_count)
 	{
-	  /* Not sure why this doesn't work for GNU runtime */
-	  //class_add_method_list(class, new_list);
-	  new_list->method_next = class->methods;
-	  class->methods = new_list;
+	  class_add_method_list(class, new_list);
 	}
       else
 	{
@@ -320,41 +349,6 @@ behavior_class_add_methods (Class class,
     }
 }
 
-/* Given a linked list of method and a method's name.  Search for the named
-   method's method structure.  Return a pointer to the method's method
-   structure if found.  NULL otherwise. */
-static struct objc_method *
-search_for_method_in_list (struct objc_method_list *list, SEL op)
-{
-  struct objc_method_list *method_list = list;
-
-  if (! sel_is_mapped (op))
-    return NULL;
-
-  /* If not found then we'll search the list.  */
-  while (method_list)
-    {
-      int i;
-
-      /* Search the method list.  */
-      for (i = 0; i < method_list->method_count; ++i)
-        {
-          struct objc_method *method = &method_list->method_list[i];
-
-          if (method->method_name)
-            {
-              if (sel_eq(method->method_name, op))
-                return method;
-            }
-        }
-
-      /* The method wasn't found.  Follow the link to the next list of
-         methods.  */
-      method_list = method_list->method_next;
-    }
-
-  return NULL;
-}
 #endif /* NeXT runtime */
 
 static BOOL class_is_kind_of(Class self, Class aClassObject)
