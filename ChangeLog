@@ -3,8 +3,6 @@ Mon Dec  7 10:00:34 1998  Adam Fedor  <fedor@ultra.doc.com>
 	* src/NSProcessInfo.m: Use fake-main if FreeBSD.
 	* src/include/fake-main.h: Likewise.
 
-	* src/include/NSDateFormatter.h: Include NSFormatter.h.
-
 Sun Dec  6 20:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSDate.m: removed +initialize - moved default locale info to
