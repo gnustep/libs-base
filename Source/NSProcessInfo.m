@@ -143,6 +143,11 @@ static NSArray* _gnu_arguments = nil;
 // Dictionary of environment vars and their values
 static NSMutableDictionary* _gnu_environment = nil;
 
+/* xxx Referenced in objc-load.c, 
+   but I can't find it in the OpenStep standard. 
+   What's going on here? */
+const char **NSArgv;
+
 /*************************************************************************
  *** Implementing the Libobjects main function
  *************************************************************************/
@@ -151,6 +156,8 @@ static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
   int i;
+
+  NSArgv = (char**)argv;
 	
   /* Getting the process name */
   _gnu_processName = [[NSString alloc] initWithCString:argv[0]];
