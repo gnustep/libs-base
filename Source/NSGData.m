@@ -127,7 +127,7 @@
 /* Make sure we do this, and not what MemoryStream says. */
 - (id) initWithCapacity: (unsigned int)capacity
 {
-  return [self initWithBytesNoCopy:(*objc_malloc)(capacity)
+  return [self initWithBytesNoCopy: objc_malloc (capacity)
 	       length:capacity];
 }
 
