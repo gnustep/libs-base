@@ -3111,7 +3111,7 @@ static NSCharacterSet	*tokenSet = nil;
 /**
  * Return the MIME characterset name corresponding to the
  * specified string encoding.<br />
- * As a special case, returns "ascii" if enc is zero.<br />
+ * As a special case, returns "us-ascii" if enc is zero.<br />
  * Raises an NSInvalidArgumentException if enc cannot be
  * mapped to a charset.<br />
  * NB. The correspondence between charsets and encodings is not
@@ -3120,7 +3120,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc
 {
-  NSString	*charset = @"ascii";
+  NSString	*charset = @"us-ascii";
 
   if (enc != 0)
     {
@@ -3323,8 +3323,8 @@ static NSCharacterSet	*tokenSet = nil;
  * characterset name.<br />
  * As a special case, returns NSASCIIStringEncoding if charset is nil.<br />
  * Raises an NSInvalidArgumentException if charset cannot be found.<br />
- * NB. We treat iso-10646-ucs-2 and iso-10646 as utf-16, which should
- * work correctly for most text, but is not strictly correct.<br />
+ * NB. We treat iso-10646-ucs-2 as utf-16, which should
+ * work for most text, but is not strictly correct.<br />
  * The correspondence between charsets and encodings is not
  * a direct one to one mapping, so successive calls to +encodingFromCharset:
  * and +charsetFromEncoding: may not produce the original input.
@@ -3430,8 +3430,6 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)NSWindowsCP1254StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
 	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso-10646",
-	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-16",
 	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"big5",
@@ -3448,7 +3446,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  encodings = NSCreateMapTable (NSIntMapKeyCallBacks,
 	    NSObjectMapValueCallBacks, 0);
 	  NSMapInsert(encodings, (void*)NSASCIIStringEncoding,
-	    (void*)@"ascii");
+	    (void*)@"us-ascii");
 	  NSMapInsert(encodings, (void*)NSISOLatin1StringEncoding,
 	    (void*)@"iso-8859-1");
 	  NSMapInsert(encodings, (void*)NSISOLatin2StringEncoding,
