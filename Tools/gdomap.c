@@ -1062,6 +1062,12 @@ init_ports()
   if (bind(udp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
       fprintf(stderr, "Unable to bind address to UDP socket\n");
+      if (errno == EACCES)
+	{
+	  fprintf(stderr, "You probably need to run gdomap as root,\n");
+	  fprintf(stderr, "or run the nameserver on a non-standard\n");
+	  fprintf(stderr, "port that does not require root privilege.\n");
+	}
       exit(1);
     }
 
@@ -1099,6 +1105,12 @@ init_ports()
   if (bind(tcp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
       fprintf(stderr, "Unable to bind address to TCP socket\n");
+      if (errno == EACCES)
+	{
+	  fprintf(stderr, "You probably need to run gdomap as root,\n");
+	  fprintf(stderr, "or run the nameserver on a non-standard\n");
+	  fprintf(stderr, "port that does not require root privilege.\n");
+	}
       exit(1);
     }
   if (listen(tcp_desc, QUEBACKLOG) < 0)
