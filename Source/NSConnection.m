@@ -2044,7 +2044,7 @@ static int messages_received_count;
   id ro;
 
   [root_object_dictionary_gate lock];
-  ro = [root_object_dictionary objectAtKey:aPort];
+  ro = [root_object_dictionary objectForKey:aPort];
   [root_object_dictionary_gate unlock];
   return ro;
 }
