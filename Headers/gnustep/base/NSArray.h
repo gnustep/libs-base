@@ -105,6 +105,10 @@
 
 - (void) addObject: (id)anObject;				// Primitive
 - (void) addObjectsFromArray: (NSArray*)otherArray;
+#ifndef	STRICT_OPENSTEP
+- (void) exchangeObjectAtIndex: (unsigned int)i1
+	     withObjectAtIndex: (unsigned int)i2;
+#endif
 - (id) initWithCapacity: (unsigned)numItems;			// Primitive
 - (void) insertObject: (id)anObject atIndex: (unsigned)index;	// Primitive
 - (void) removeObjectAtIndex: (unsigned)index;			// Primitive
