@@ -28,14 +28,18 @@
 */ 
 
 #include "config.h"
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSArray.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSPathUtilities.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 #include "GSCompatibility.h"
-#include <base/Unicode.h>
+#include <gnustep/base/Unicode.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -602,12 +606,15 @@ GSEncodingName(NSStringEncoding encoding)
 /**
  * <strong>deprecated</strong> Use GSEncodingName()
  */
+#ifndef NeXT_Foundation_LIBRARY
 NSString*
 GetEncodingName(NSStringEncoding encoding)
 {
   return GSEncodingName(encoding);
 }
+#endif
 
+#ifdef HAVE_ICONV
 static const char *
 iconv_stringforencoding(NSStringEncoding encoding)
 {
@@ -617,6 +624,7 @@ iconv_stringforencoding(NSStringEncoding encoding)
     }
   return encodingTable[encoding]->iconv;
 }
+#endif
 
 /**
  * <strong>deprecated</strong>

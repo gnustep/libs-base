@@ -110,18 +110,15 @@ GS_EXPORT id GSGetValue(NSObject *self, NSString *key, SEL sel,
 GS_EXPORT void GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   const char *type, unsigned size, int offset);
 
-#include <base/objc-gnu2next.h>
+#include <gnustep/base/objc-gnu2next.h>
 
-#ifndef FOUNDATION_EXPORT
-#define FOUNDATION_EXPORT
-#define FOUNDATION_STATIC_INLINE static inline
-#endif
+#define GS_STATIC_INLINE static inline
 
 /*
  * GSObjCClass() return the class of an instance.
  * The argument to this function must NOT be nil.
  */
-FOUNDATION_STATIC_INLINE Class
+GS_STATIC_INLINE Class
 GSObjCClass(id obj)
 {
   return obj->class_pointer;
@@ -131,7 +128,7 @@ GSObjCClass(id obj)
  * GSObjCIsInstance() tests to see if an id is an instance.
  * The argument to this function must NOT be nil.
  */
-FOUNDATION_STATIC_INLINE BOOL
+GS_STATIC_INLINE BOOL
 GSObjCIsInstance(id obj)
 {
   return CLS_ISCLASS(obj->class_pointer);
@@ -141,7 +138,7 @@ GSObjCIsInstance(id obj)
  * GSObjCIsKindOf() tests to see if a class inherits from another class
  * The argument to this function must NOT be nil.
  */
-FOUNDATION_STATIC_INLINE BOOL
+GS_STATIC_INLINE BOOL
 GSObjCIsKindOf(Class this, Class other)
 {
   while (this != Nil)
@@ -157,7 +154,7 @@ GSObjCIsKindOf(Class this, Class other)
 
 /** ## deprecated ##
  */
-FOUNDATION_STATIC_INLINE const char*
+GS_STATIC_INLINE const char*
 GSObjCName(Class this)
 {
   return class_get_class_name(this);
@@ -165,7 +162,7 @@ GSObjCName(Class this)
 
 /** ## deprecated ##
  */
-FOUNDATION_STATIC_INLINE const char*
+GS_STATIC_INLINE const char*
 GSObjCSelectorName(SEL this)
 {
   if (this == 0)
@@ -175,7 +172,7 @@ GSObjCSelectorName(SEL this)
 
 /** ## deprecated ##
  */
-FOUNDATION_STATIC_INLINE const char*
+GS_STATIC_INLINE const char*
 GSObjCSelectorTypes(SEL this)
 {
   return sel_get_type(this);
@@ -186,7 +183,7 @@ GSObjCSelectorTypes(SEL this)
  * a nul pointer if the class cannot be found. <br />
  * If the argument is nil, return a nul pointer.
  */
-FOUNDATION_STATIC_INLINE Class
+GS_STATIC_INLINE Class
 GSClassFromName(const char *name)
 {
   if (name == 0)
@@ -198,7 +195,7 @@ GSClassFromName(const char *name)
  * Return the name of the supplied class, or a nul pointer if no class
  * was supplied.
  */
-FOUNDATION_STATIC_INLINE const char*
+GS_STATIC_INLINE const char*
 GSNameFromClass(Class this)
 {
   if (this == 0)
@@ -210,7 +207,7 @@ GSNameFromClass(Class this)
  * Return the name of the supplied selector, or a nul pointer if no selector
  * was supplied.
  */
-FOUNDATION_STATIC_INLINE const char*
+GS_STATIC_INLINE const char*
 GSNameFromSelector(SEL this)
 {
   if (this == 0)
@@ -223,7 +220,7 @@ GSNameFromSelector(SEL this)
  * supplied.  The returned selector could be any one with the name.<br />
  * If no selector exists, returns nil.
  */
-FOUNDATION_STATIC_INLINE SEL
+GS_STATIC_INLINE SEL
 GSSelectorFromName(const char *name)
 {
   if (name == 0)
@@ -242,7 +239,7 @@ GSSelectorFromName(const char *name)
  * argument is nul. <br />
  * Creates a new selector if necessary.
  */
-FOUNDATION_STATIC_INLINE SEL
+GS_STATIC_INLINE SEL
 GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
   if (name == 0)
@@ -282,7 +279,7 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
  * May return a nul pointer if the selector was a nul pointer or if it
  * was not typed.
  */
-FOUNDATION_STATIC_INLINE const char*
+GS_STATIC_INLINE const char*
 GSTypesFromSelector(SEL this)
 {
   if (this == 0)
@@ -291,13 +288,13 @@ GSTypesFromSelector(SEL this)
 }
 
 
-FOUNDATION_STATIC_INLINE Class
+GS_STATIC_INLINE Class
 GSObjCSuper(Class this)
 {
   return class_get_super_class(this);
 }
 
-FOUNDATION_STATIC_INLINE int
+GS_STATIC_INLINE int
 GSObjCVersion(Class this)
 {
   return class_get_version(this);
@@ -306,7 +303,12 @@ GSObjCVersion(Class this)
 /*
  * Return the zone in which an object belongs, without using the zone method
  */
+#ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSZone.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
+
 GS_EXPORT NSZone *GSObjCZone(NSObject *obj);
 
 /*

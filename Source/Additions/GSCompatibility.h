@@ -143,13 +143,13 @@ typedef enum _NSGNUstepStringEncoding
   NSBIG5StringEncoding			// Traditional chinese
 } NSGNUstepStringEncoding;
 
-@interface NSObject(GNUStepGlue)
+@interface NSObject(GSCompatibility)
 + (id) notImplemented:(SEL)selector;
 - (BOOL) isInstance;
 @end
 
 // Used only in EOFault.m, -[EOFault forward::], for Object compatibility
-@interface NSInvocation(GNUStepGlue)
+@interface NSInvocation(GSCompatibility)
 - (retval_t) returnFrame:(arglist_t)args;
 - (id) initWithArgframe:(arglist_t)args selector:(SEL)selector;
 @end
@@ -157,12 +157,12 @@ typedef enum _NSGNUstepStringEncoding
 GS_EXPORT NSArray *NSStandardLibraryPaths();
 GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
 
-@interface NSString(GNUStepGlue)
+@interface NSString(GSCompatibility)
 - (BOOL) boolValue;
 @end
 
 GS_EXPORT BOOL GSDebugSet(NSString *level);
-@interface NSProcessInfo(GNUStepGlue)
+@interface NSProcessInfo(GSCompatibility)
 - (NSMutableSet *) debugSet;
 @end
 

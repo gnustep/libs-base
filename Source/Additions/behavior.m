@@ -50,10 +50,14 @@
 
 #include "config.h"
 #include <stdio.h>
-#include <base/preface.h>
-#include <base/behavior.h>
+#include <gnustep/base/preface.h>
+#include <gnustep/base/behavior.h>
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 static BOOL class_is_kind_of(Class self, Class class);
 

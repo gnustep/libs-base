@@ -34,9 +34,13 @@
 #ifndef __GSXML_H__
 #define __GSXML_H__
 
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDictionary.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 #ifndef	STRICT_MACOS_X
 #ifndef	STRICT_OPENSTEP

@@ -44,6 +44,7 @@
 
 #ifdef	HAVE_LIBXML
 
+#ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSValue.h>
@@ -54,6 +55,9 @@
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSInvocation.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 /* libxml headers */
 #include <libxml/tree.h>
@@ -3237,10 +3241,14 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 #else
 
+#ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSObjCRuntime.h>
 #include	<Foundation/NSCoder.h>
 #include	<Foundation/NSInvocation.h>
 #include	<Foundation/NSString.h>
+#else
+#include <Foundation/Foundation.h>
+#endif
 
 /*
  * Build dummy implementations of the classes if libxml is not available
