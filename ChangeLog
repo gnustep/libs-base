@@ -2,7 +2,7 @@
 
 	* Source/NSTimer.m: Retain target and user info on initialisation
 	Release them on invalidation.  Ensure timer is invalidated on
-	deallocation.
+	deallocation. Documented timer methods.
 	Changes based on bug report by Andy Ruder <aeruder@yahoo.com>
 
 2002-06-16  Richard Frith-Macdonald <rfm@gnu.org>
