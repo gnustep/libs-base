@@ -55,6 +55,7 @@ static int decode_substitutes;
 
 - (void) encodeWithCoder: coder
 {
+  printf ("In [SubFoo encodeWithCoder:]\n");
   [super encodeWithCoder: coder];
 #if GNU_ARCHIVING
   [coder encodeObjectReference: super_foo
@@ -119,6 +120,7 @@ static int decode_substitutes;
 
 - (void) encodeWithCoder: coder
 {
+  printf ("In [Foo encodeWithCoder:]\n");
   [super encodeWithCoder: coder];
   [coder encodeObject: sub_foo];
   [coder encodeValueOfObjCType: @encode(int)
@@ -165,7 +167,7 @@ test_fref ()
   printf ("Test encoding of forward references\n");
   decode_substitutes = 0;
 
-  array = [[NSArray alloc] init];
+  array = [[NSMutableArray alloc] init];
   foo = [[Foo alloc] init];
   [foo setLabel: 4];
   sub_foo = [[SubFoo alloc] initWithSuperFoo: foo label: 3];
