@@ -1,83 +1,219 @@
-Mon Feb 12 22:03:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+Thu Feb 22 10:03:01 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
-	* src/Makefile.in: Fix patch rejects.
-	(GNUSTEP_MFILES): Added NSHashTable.m and NSMapTable.m.
-	(GNUSTEP_HEADERS): Added Foundation/NSHashTable.h and
-	Foundation/NSMapTable.h.
+	* doc/Makefile.in (TEXI_FILES): Add faq.texi.
+	* doc/faq.texi: New file.
 
-Mon Feb 12 21:14:58 1996  Albin L. Jones  <ajones@coos.dartmouth.edu>
+	* src/Coder.m: Move much of functionality to Encoder.m, Decoder.m,
+ 	and objects/CoderPrivate.h.
 
-        * src/Makefile.in (GNU_MFILES, GNU_CFILES, GNU_HEADERS): Added
-        the above to the appropriate lists.  (GNU_BASICS_CFILES): Created
-        this variable to hold a list of `...-basics.c' files to be made.
-        (GNU_BASICS_HFILES): Similarly.  (GNU_CALLBACKS_CFILES): Created
-        this variable to hold a list of `...-callbacks.c' files to be
-        make.  (GNU_CALLBACKS_HFILES): Similarly.  (GNU_OTHER_SRCFILES):
-        Needed to add `x-basics.c.in', `x-callbacks.c.in',
-        `objects/x-basics.h.in' and `objects/x-callbacks.h.in' to this
-        list.  (GNUSTEP_HEADERS): Added `Foundation/atoz.h'.  (%-basics.c,
-        %-callbacks.c, objects/%-basics.h, objects/%-callbacks.h): Added
-        these make targets.  (array.o, data.o, hash.o, list.o, map.o,
-        objects/array.h, objects/data.h, objects/hash.h, objects/list.h,
-        objects/map.h): Added these make targets.
+	* src/Invocation.m ([Invocation -objectReturnValue]): New method.
+	([Invocation -intReturnValue]): New method.
+	([Invocation -returnValueIsTrue]): New method.
+	([Invocation -initWithTarget:selector:...]): Use switch statement to
+	handle value arguments, instead of pointer-to-value arguments.
 
-        * src/NSHashTable.m, src/NSMapTable.m,
-        src/Foundation/NSHashTable.h,
-        src/Foundation/NSMapTable.h,
-        src/Foundation/atoz.h: Added these.
+	* src/NSConcreteNumber.m ([NumberTemplate -hash]): New method.
+	([NumberTemplate -isEqual:]): New method.
+	([NumberTemplate -encodeWithCoder:]): Make this self-contained.
+	([NumberTemplate -initWithCoder:]): Likewise.
 
-        * src/objects/abort.h, src/objects/allocs.h,
-        src/objects/array.h, src/objects/bitops.h,
-        src/objects/callbacks.h, src/objects/data.h,
-        src/objects/hash.h, src/objects/list.h, src/objects/magic.h,
-        src/objects/magic.h, src/objects/minmax.h,
-        src/objects/number.h: Added these.
+	* src/NSGCString.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
 
-        * src/abort.c, src/allocs.c, src/array.c, src/atoz.m,
-        src/callbacks-char_p.c, src/callbacks-id.m, src/callbacks-int.c,
-        src/callbacks-int_p.c, src/callbacks-void_p.c, src/callbacks.c,
-        src/hash.c, src/list.c, src/map.c, src/md5.c, src/md5.h,
-        src/number.c: Added these.
+	* src/NSData.m: Fix typos.
 
-Mon Feb 12 20:50:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+	* src/String.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
 
-	* src/Makefile.in (GNUSTEP_MFILES): Added NSHashTable.m and
- 	NSMapTable.m.
-	(GNUSTEP_HEADERS): Added Foundation/NSHashTable.h and
-	Foundation/NSMapTable.h.
+	* src/Port.m ([Port -encodeWithCoder:]): Fix argument type.
 
-	* checks/invocation.m: New file.
-	* checks/Makefile.in (SRCS): Add invocation.m.
+	* src/OrderedCollection.m: Many fixes, continuing conversion from
+ 	old IndexedCollection.m
 
-	* checks/nsarchiver.m: Add test case from Scott Christley.
+	* src/NSValue.m ([NSValueDecoder +newWithCoder:]): Comment out for
+ 	now; I think it needs fixes.
+	([NSValueDecoder -initWithCoder:]): Likewise.
 
-	* src/Collection.m ([Collection -withObjectsInvoke:]): New method.
-	* src/objects/Collection.h: Declare new method.
+	* src/NSNumber.m ([NSNumber -description]): New method.
 
-	* src/Invocation.m ([Invocation -invoke]): Terminate copy of
- 	encoding string.  Deal with void return type.
-	([Invocation -invokeWithElement:]): Method removed.
-	([Invocation -invokeWithObject:]): Make is -subclassResponsibility.
-	([Invocation -getReturnValue:]): Make sure return_value is non-NULL.
-	([ArgframeInvocation -initWithArgframe:type:]): Use objc_calloc.
-	([MethodInvocation -initWithArgframe:selector:]): Try hard to get a
-	selector with a type string.
-	([MethodInvocation -initWithTarget:selector:...]): New method.
-	([MethodInvocation -invoke]): Get the target and selector properly.
-	([MethodInvocation -invokeWithObject:]): New method.
-	* src/objects/Invocation.h: Declare new methods.
+	* src/Foundation/atoz.h: New version from Albin Jones, plus fixes
+ 	by McCallum.
 
-	* src/NSArchiver.m ([NSUnarchiver +allocWithZone:]): New method.
+	* src/Foundation/NSMapTable.h: New version from Albin Jones, plus
+ 	fixes by McCallum.
 
-	* src/Coder.m ([Coder -decodeObject]): Return the object.
-	([Coder -initForReadingWithData:]): New method.
+	* src/Foundation/NSHashTable.h: New version from Albin Jones, plus
+ 	fixes by McCallum.
 
-Thu Feb  1 17:04:17 1996  Andrew McCallum  <mccallum@eeyore.cs.rochester>
+	* src/Foundation/NSGSet.h: Remove ivars, the behavior code now
+ 	handles this.
 
-        * NSData.m, NSDictionary.m, NSEnumerator.m, NSMutableData.m,
- 	Port.m, MutableString.m, NSArray.m:
-        Use -subclassResponsibility instead of -notImplemented
-        where appropriate.
+	* src/Foundation/NSGDictionary.h: Remove ivars, the behavior code
+ 	now handles this.
+
+	* src/allocs.c: New version from Albin Jones, plus fixes by
+ 	McCallum.
+
+	* src/atoz.m: New version from Albin Jones, plus fixes by
+ 	McCallum.
+
+	* src/array.c: New version from Albin Jones, plus fixes by
+ 	McCallum.
+
+	* src/objects/Coder.h: Declare classes Encoder and Decoder;
+ 	extensive rearrangement of ivars, method names and protocols.
+
+	* src/objects/RetainingNotifier.h: Don't include <objc/List.h>
+
+	* src/objects/DelegatePool.h: Change many method return types to
+ 	void.
+
+	* src/objects/Archiver.h: Subclass from Encoder and Decoder, not
+ 	Coder.
+
+	* src/Makefile.in (GNUSTEP_OTHER_SRCFILES): Add NSCallBacks.h.
+	(GNUSTEP_HEADERS): Remove Foundation/NSCallBacks.h.
+
+	* src/Makefile.in (CFLAGS): Remove -Wno-implicit.
+	(GNU_MFILES): Remove BinaryTreeEltNode.m, LinkedListEltNode.m,
+	RNTreeEltNode.m.  Add Decoder.m, Encoder.m.  Temporarily remove
+ 	ConnectedCoder.m, Connection.m, RetainingNotifier.m, Time.m.
+	(GNU_CFILES): Add allocs.c.
+	(GNU_OBJS): Change order to create BASICS and CALLBACKS first.
+	(GNU_HEADERS): Remove BinaryTreeEltNode.h, EltNode-h, EltNode-m,
+	LinkedListEltNode.h, RBTreeEltNode.h.
+	(GNUSTEP_MFILES): NSCallBacks.m.
+	(GNUSTEP_HEADERS): Foundation/NSCallBacks.h.
+
+	* Encoder.m, Decoder.m, NSCallBacks.m: New files.
+	* objects/OrderedCollecting.h, objects/Enumerating.h,
+	objects/Invoking.h, objects/CoderPrivate.h,
+	objects/OrderedCollection.h: New files.
+
+	* src/NSHashTable.m: New version from Albin Jones, plus fixes by
+ 	McCallum.
+
+	* src/NSMapTable.m: New version from Albin Jones, plus fixes by
+ 	McCallum.
+
+	* src/NSString.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/NSGSet.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/NSGDictionary.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/NSGCountedSet.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/NSGArray.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/NSGArchiver.m: Use new Archiver classes instead of Coder.
+
+	* src/MutableString.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/MutableCString.m: Overhaul for new collection class scheme
+ 	to improve distributed objects and NeXT-compatibility.
+
+	* src/MallocAddress.m: Update for new collection class scheme: use
+	NSMapTable instead of Dictionary class.
+
+	* src/DelegatePool.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.  Change
+ 	several methods to return void.
+
+	* src/ConstantString.m: Overhaul for new collection class scheme
+ 	to improve distributed objects and NeXT-compatibility.
+
+	* src/CString.m ([CString -initWithCString:range:]): Don't make
+ 	super call.  Fix infinite loop in _collectionDealloc.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-decodeValueOfCType:at:withName:]): Make save_type const.
+
+	* src/AutoreleaseStack.m: Don't include <objects/eltfuncs.h>.
+
+	* src/AutoreleasePool.m: Don't include <objects/eltfuncs.h>.
+
+	* examples/textcoding.m: Overhaul for new collection class scheme
+ 	to improve distributed objects and NeXT-compatibility.
+
+	* src/KeyedCollection.m: Overhaul for new collection class scheme
+ 	to improve distributed objects and NeXT-compatibility.
+
+	* src/IndexedCollection.m: Overhaul for new collection class
+ 	scheme to improve distributed objects and NeXT-compatibility.
+
+	* src/Heap.m: Overhaul for new collection class scheme to improve
+ 	distributed objects and NeXT-compatibility.
+
+	* src/GapArray.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/Dictionary.m: Overhaul for new collection class scheme to
+ 	improve distributed objects and NeXT-compatibility.
+
+	* src/Bag.m: Overhaul for new collection class scheme to improve
+ 	distributed objects and NeXT-compatibility.
+
+	* src/Array.m: Overhaul for new collection class scheme to improve
+ 	distributed objects and NeXT-compatibility.
+
+	* checks/Makefile.in (SRCS): Add nsmaptable.m and nshashtable.m.
+
+	* checks/nsarchiver.m: Update for new Archiver classes.
+
+	* checks/test01.m: Update for new collection classes.
+
+Thu Feb 15 11:18:33 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (GNU_MFILES): Removed EltNodeCollector.m.
+	(GNU_HEADERS): Removed objects/EltNodeCollector.h.
+
+Wed Feb 14 12:23:12 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Makefile.in (RCS_FILES): Add INSTALL.WIN32.
+
+	* src/Makefile.in (RCS_FILES): Add Makefile.sed.nt.
+	* checks/Makefile.in (RCS_FILES): Undo last change.
+	* Makefile.in (RCS_FILES): Undo last change.
+
+Tue Feb 13 11:00:51 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (GNU_MFILES): Added OrderedCollection.m.
+	(GNU_HEADERS): Added objects/OrderedCollection.h and
+	objects/OrderedCollecting.h.
+
+	* checks/Makefile.in (RCS_FILES): Remove Makefile.sed.nt, (which,
+ 	as I understand, is supposed to be automatically generated from
+ 	Makefile.in by configure.bat).
+	(SRCS): Fix typo.
+
+	* Makefile.in (RCS_FILES): Remove Makefile.sed.nt, (which, as I
+ 	understand, is supposed to be automatically generated from
+ 	Makefile.in by configure.bat).
+
+	* doc/install.texi: Mention objc.patch.
+	* Makefile.in (DIST_FILES): Add objc.patch for thread-safe
+ 	runtime.
+
+	* src/RawCStream.m, objects/RawCStream.h: New files.
+	* src/Makefile.in (GNU_MFILES): Added RawCStream.m.
+	(GNU_HEADERS): Added objects/RawCStream.h.
+
+	* checks/diningPhilosophers.m (main): Cast (int) to (id) in
+ 	detachNewThread... call.
+
+	* src/NSNotification.m, src/NSNotificationCenter.m,
+	src/Foundation/NSNotification.h: New files from Georg Tuparev.
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSNotification.m and
+ 	NSNotificationCenter.m from Georg Tuparev.
+	(GNUSTEP_HEADERS): Added Foundation/NSNotification.h from Georg
+	Tuparev.
 
 Mon Feb  5 10:08:56 1996  Scott Christley  (scottc@net-community.com)
 
@@ -130,6 +266,82 @@ Thu Feb  1 19:42:09 1996  Scott Christley  (scottc@net-community.com)
 	* src/objc-load.c: Runtime include file changed "objc/list.h"
 	to "objc/objc-list.h"
 	* src/objects/stdobject.h.in: Likewise
+
+Mon Feb 12 22:03:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in: Fix patch rejects.
+	(GNUSTEP_MFILES): Added NSHashTable.m and NSMapTable.m.
+	(GNUSTEP_HEADERS): Added Foundation/NSHashTable.h and
+	Foundation/NSMapTable.h.
+
+Mon Feb 12 21:14:58 1996  Albin L. Jones  <ajones@coos.dartmouth.edu>
+
+        * src/Makefile.in (GNU_MFILES, GNU_CFILES, GNU_HEADERS): Added
+        the above to the appropriate lists.  (GNU_BASICS_CFILES): Created
+        this variable to hold a list of `...-basics.c' files to be made.
+        (GNU_BASICS_HFILES): Similarly.  (GNU_CALLBACKS_CFILES): Created
+        this variable to hold a list of `...-callbacks.c' files to be
+        make.  (GNU_CALLBACKS_HFILES): Similarly.  (GNU_OTHER_SRCFILES):
+        Needed to add `x-basics.c.in', `x-callbacks.c.in',
+        `objects/x-basics.h.in' and `objects/x-callbacks.h.in' to this
+        list.  (GNUSTEP_HEADERS): Added `Foundation/atoz.h'.  (%-basics.c,
+        %-callbacks.c, objects/%-basics.h, objects/%-callbacks.h): Added
+        these make targets.  (array.o, data.o, hash.o, list.o, map.o,
+        objects/array.h, objects/data.h, objects/hash.h, objects/list.h,
+        objects/map.h): Added these make targets.
+
+        * src/NSHashTable.m, src/NSMapTable.m,
+        src/Foundation/NSHashTable.h,
+        src/Foundation/NSMapTable.h,
+        src/Foundation/atoz.h: Added these.
+
+        * src/objects/abort.h, src/objects/allocs.h,
+        src/objects/array.h, src/objects/bitops.h,
+        src/objects/callbacks.h, src/objects/data.h,
+        src/objects/hash.h, src/objects/list.h, src/objects/magic.h,
+        src/objects/magic.h, src/objects/minmax.h,
+        src/objects/number.h: Added these.
+
+        * src/abort.c, src/allocs.c, src/array.c, src/atoz.m,
+        src/callbacks-char_p.c, src/callbacks-id.m, src/callbacks-int.c,
+        src/callbacks-int_p.c, src/callbacks-void_p.c, src/callbacks.c,
+        src/hash.c, src/list.c, src/map.c, src/md5.c, src/md5.h,
+        src/number.c: Added these.
+
+Mon Feb 12 20:50:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/invocation.m: New file.
+	* checks/Makefile.in (SRCS): Add invocation.m.
+
+	* checks/nsarchiver.m: Add test case from Scott Christley.
+
+	* src/Collection.m ([Collection -withObjectsInvoke:]): New method.
+	* src/objects/Collection.h: Declare new method.
+
+	* src/Invocation.m ([Invocation -invoke]): Terminate copy of
+ 	encoding string.  Deal with void return type.
+	([Invocation -invokeWithElement:]): Method removed.
+	([Invocation -invokeWithObject:]): Make is -subclassResponsibility.
+	([Invocation -getReturnValue:]): Make sure return_value is non-NULL.
+	([ArgframeInvocation -initWithArgframe:type:]): Use objc_calloc.
+	([MethodInvocation -initWithArgframe:selector:]): Try hard to get a
+	selector with a type string.
+	([MethodInvocation -initWithTarget:selector:...]): New method.
+	([MethodInvocation -invoke]): Get the target and selector properly.
+	([MethodInvocation -invokeWithObject:]): New method.
+	* src/objects/Invocation.h: Declare new methods.
+
+	* src/NSArchiver.m ([NSUnarchiver +allocWithZone:]): New method.
+
+	* src/Coder.m ([Coder -decodeObject]): Return the object.
+	([Coder -initForReadingWithData:]): New method.
+
+Thu Feb  1 17:04:17 1996  Andrew McCallum  <mccallum@eeyore.cs.rochester>
+
+        * NSData.m, NSDictionary.m, NSEnumerator.m, NSMutableData.m,
+ 	Port.m, MutableString.m, NSArray.m:
+        Use -subclassResponsibility instead of -notImplemented
+        where appropriate.
 
 Wed Jan 31 22:29:57 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
