@@ -35,6 +35,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_NANOSLEEP
+#include <time.h>
+#endif
 
 #include "Foundation/NSThread.h"
 #include "Foundation/NSLock.h"
@@ -495,21 +498,24 @@ gnustep_base_thread_callback()
   while (delay > 30.0*60.0)
     {
       // sleep 30 minutes
-#ifdef	HAVE_USLEEP
-      usleep (30*60*1000000);
-#else
 #if defined(__MINGW__)
       Sleep (30*60*1000);
 #else
       sleep (30*60);
 #endif
-#endif
       delay = [date timeIntervalSinceNow];
     }
 
-  // usleep may return early because of signals
+  // sleeping may return early because of signals
   while (delay > 0)
     {
+#ifdef	HAVE_NANOSLEEP
+      struct timespec req;
+
+      req.tv_sec = (time_t)delay;
+      req.tv_nsec = (long)((delay - req.tv_sec) * 1000000000);
+      nanosleep(&req, 0);
+#else
 #ifdef	HAVE_USLEEP
       usleep ((int)(delay*1000000));
 #else
@@ -517,6 +523,7 @@ gnustep_base_thread_callback()
       Sleep (delay*1000);
 #else
       sleep ((int)delay);
+#endif
 #endif
 #endif
       delay = [date timeIntervalSinceNow];

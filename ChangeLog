@@ -1,3 +1,11 @@
+2003-07-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: ([-acceptInputForMode:beforeDate:]) use the
+	NSThread method to sleep rather than re-implementing it.
+	* configure.ac: Check for nanosleep()
+	* Headers/Foundation/config.h.in: Add entry for nanosleep
+	* Source/NSThread.m: Use nanosleep if available.
+
 2003-07-16  David Ayers  <d.ayers@inode.at>
 
 	* config.make.in: Default to builing -baseadd on non *-gnu-*

@@ -1926,36 +1926,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
 	  GSNotifyASAP();
 	  GSNotifyIdle();
-	  ti = [limit_date timeIntervalSinceNow];
 	  /*
 	   * Pause for as long as possible (up to the limit date)
 	   */
-	  if (ti > 0.0)
-	    {
-#if	defined(HAVE_USLEEP)
-	      if (ti >= INT_MAX / 1000000)
-		{
-		  ti = INT_MAX;
-		}
-	      else
-		{
-		  ti *= 1000000;
-		}
-	      usleep (ti);
-#elif	defined(__MINGW__)
-	      if (ti >= INT_MAX / 1000)
-		{
-		  ti = INT_MAX;
-		}
-	      else
-		{
-		  ti *= 1000;
-		}
-	      Sleep (ti);
-#else
-	      sleep (ti);
-#endif
-	    }
+	  [NSThread sleepUntilDate: limit_date];
+	  ti = [limit_date timeIntervalSinceNow];
 	  GSCheckTasks();
 	  if (context != nil)
 	    {
