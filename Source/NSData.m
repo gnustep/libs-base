@@ -518,7 +518,7 @@ static Class NSMutableData_concrete_class;
 /* This method not in OpenStep */
 - (unsigned) capacity
 {
-  [self subclassResponsiblity:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
@@ -536,7 +536,7 @@ static Class NSMutableData_concrete_class;
 
 - (void*) mutableBytes
 {
-  [self subclassResponsibilty:_cmd];
+  [self subclassResponsibility:_cmd];
   return NULL;
 }
 
