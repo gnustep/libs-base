@@ -28,9 +28,21 @@
 #include <objects/Dictionary.h>
 #include <objects/Stack.h>
 #include <objects/Set.h>
+#include <objects/NSString.h>
+#include <objects/Streaming.h>
+#include <objects/Stream.h>
+#include <objects/CStreaming.h>
+#include <objects/CStream.h>
+#include <objects/TextCStream.h>
+#include <objects/StdioStream.h>
+#include <Foundation/NSException.h>
 #include <assert.h>
 
-#define CODER_FORMAT_VERSION 0
+
+/* Exception strings */
+id CoderSignatureMalformedException = @"CoderSignatureMalformedException";
+
+#define DEFAULT_FORMAT_VERSION 0
 
 enum {CODER_OBJECT_NIL = 0, CODER_OBJECT, CODER_ROOT_OBJECT, 
 	CODER_REPEATED_OBJECT, CODER_CLASS_OBJECT, 
@@ -42,14 +54,15 @@ enum {CODER_OBJECT_NIL = 0, CODER_OBJECT, CODER_ROOT_OBJECT,
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
 
-static BOOL debug_coder = NO;
-static id defaultStreamClass;
-
 #define DOING_ROOT_OBJECT (interconnected_stack_height != 0)
 
+static BOOL debug_coder = NO;
+static id default_stream_class;
+static id default_cstream_class;
+
+
 /* xxx For experimentation.  The function in objc-api.h doesn't always
    work for objects; it sometimes returns YES for an instance. */
-
 /* But, metaclasses return YES too? */
 static BOOL
 my_object_is_class(id object)
@@ -67,14 +80,15 @@ my_object_is_class(id object)
     return NO;
 }
 
-
+
 @implementation Coder
 
 + (void) initialize
 {
   if (self == [Coder class])
     {
-      defaultStreamClass = [MemoryStream class];
+      default_stream_class = [MemoryStream class];
+      default_cstream_class = [TextCStream class];
       assert(sizeof(void*) == sizeof(unsigned)); 
     }
 }
@@ -85,122 +99,157 @@ my_object_is_class(id object)
   return self;
 }
 
+
+/* Default Stream and CStream class handling. */
+
++ (void) setDefaultCStreamClass: sc
+{
+  default_cstream_class = sc;
+}
+
++ defaultCStreamClass
+{
+  return default_cstream_class;
+}
+
 + (void) setDefaultStreamClass: sc
 {
-  defaultStreamClass = sc;
+  default_stream_class = sc;
 }
 
 + defaultStreamClass
 {
-  return defaultStreamClass;
+  return default_stream_class;
 }
 
-/* Careful, this shouldn't contain newlines */
-+ (const char *) coderSignature
+
+/* Signature Handling. */
+
++ (int) defaultFormatVersion
 {
-  return "GNU Objective C Class Library Coder";
+  return DEFAULT_FORMAT_VERSION;
 }
 
-+ (int) coderFormatVersion
+- (void) writeSignature
 {
-  return CODER_FORMAT_VERSION;
+  /* Careful: the string should not contain newlines. */
+  [cstream writeFormat: 
+	   @"GNU Objective C Class Library %s version %d\n", 
+	   objects_get_class_name(self),
+	   format_version];
 }
 
-+ (int) coderConcreteFormatVersion
++ (void) readSignatureFromCStream: (id <CStreaming>) cs
+		     getClassname: (char **) namePtr 
+		    formatVersion: (int*) version
 {
-  [self notImplemented:_cmd];
-  return 0;
+  int got;
+
+  got = [cs readFormat: @"GNU %a version %d\n", namePtr, version];
+  if (got != 2)
+    [NSException raise:CoderSignatureMalformedException
+		 format:@"Coder found a malformed signature"];
 }
 
-- (void) encodeSignature
-{
-  [stream writeLine:[[self class] coderSignature]];
-  [self encodeValueOfSimpleType:@encode(int)
-	at:&format_version
-	withName:"Coder Format Version"];
-  [self encodeValueOfSimpleType:@encode(int)
-	at:&concrete_format_version
-	withName:"Coder Concrete Format Version"];
-}
-
-- (void) decodeSignature
-{
-  char *s;
-
-  s = [stream readLine];
-  if (strcmp(s, [[self class] coderSignature]))
-    [self error:"Signature mismatch, executable (%s) != encoded (%s)", 
-	  [[self class] coderSignature], s];
-  (*objc_free)(s);
-
-  [self decodeValueOfSimpleType:@encode(int)
-	at:&format_version
-	withName:NULL];
-  if (format_version != [[self class] coderFormatVersion])
-    [self error:"Format version mismatch, executable %d != encoded %d\n",
-	  [[self class] coderFormatVersion], format_version];
-
-  [self decodeValueOfSimpleType:@encode(int)
-	at:&concrete_format_version
-	withName:NULL];
-  if (concrete_format_version != [[self class] coderConcreteFormatVersion])
-    [self error:"Concrete format version mismatch, "
-	  "executable %d != encoded %d\n",
-	  [[self class] coderConcreteFormatVersion], concrete_format_version];
-}
+
+/* Initialization. */
 
 /* This is the designated sub-initializer.  
    Don't call it yourself.
    Do override it and call [super...] in subclasses. */
-- doInitOnStream: (Stream*)s isDecoding: (BOOL)f
+- _initWithCStream: (id <CStreaming>) cs
+    formatVersion: (int) version
+       isDecoding: (BOOL) f
 {
   is_decoding = f;
-  //  [s retain];
-  stream = s;
+  format_version = version;
+  cstream = [cs retain];
+
   object_table = nil;
+  classname_map = [[Dictionary alloc] initWithType:@encode(char*)
+				      keyType:@encode(char*)];
   in_progress_table = [[Array alloc] initWithType:@encode(unsigned)];
   const_ptr_table = [[Dictionary alloc] initWithType:@encode(void*) 
 					keyType:@encode(unsigned)];
   root_object_table = nil;
   forward_object_table = nil;
   interconnected_stack_height = 0;
+
   return self;
 }
 
-/* These are the two designated initializers for users. 
-   Should I combine them and differentiate encoding/decoding with
-   an argument, just like doInitOnStream... does? */
-
-- initEncodingOnStream: (Stream *)s
++ coderReadingFromStream: (id <Streaming>) stream
 {
-  [self doInitOnStream:s isDecoding:NO];
-  format_version = [[self class] coderFormatVersion];
-  concrete_format_version = [[self class] coderConcreteFormatVersion];
-  [self encodeSignature];
+  id cs = [CStream cStreamReadingFromStream: stream];
+  char *name;
+  int version;
+  id new_coder;
+
+  [self readSignatureFromCStream: cs
+	getClassname: &name
+	formatVersion: &version];
+
+  new_coder = [[objc_lookup_class(name) alloc]
+		_initWithCStream: cs
+		formatVersion: version
+		isDecoding: YES];
+  return [new_coder autorelease];
+}
+
++ coderReadingFromFile: (id <String>) filename
+{
+  return [self coderReadingFromStream: 
+		 [[[StdioStream alloc] initWithFilename:filename fmode:"r"]
+		   autorelease]];
+}
+
+- initForReadingFromStream: (id <Streaming>) stream
+	     formatVersion: (int)version
+{
+  [self notImplemented:_cmd];
+  [self _initWithCStream: [[[[[self class] defaultCStreamClass] alloc]
+			     initForWritingToStream: stream]
+			    autorelease]
+	formatVersion: version
+	isDecoding: YES];
+  /* Model this after [CStream -initForReading...] */
   return self;
 }
 
-- initDecodingOnStream: (Stream *)s
+- initForWritingToStream: (id <Streaming>) s
+	   formatVersion: (int) version
 {
-  [self doInitOnStream:s isDecoding:YES];
-  [self decodeSignature];
-  return self;
-}
-
-- initEncoding
-{
-  return [self initEncodingOnStream:[[defaultStreamClass alloc] init]];
-}
-
-- initDecoding
-{
-  return [self initDecodingOnStream:[[defaultStreamClass alloc] init]];
+  [self _initWithCStream: [[[self class] defaultCStreamClass] 
+			    cStreamWritingToStream: s]
+	formatVersion: version
+	isDecoding: NO];
+  [self writeSignature];
 }
 
 - init
 {
-  return [self initEncoding];
+  [self shouldNotImplement:_cmd];
+  return self;
 }
+
++ decodeObjectFromStream: (id <Streaming>)stream
+{
+  id c, o;
+  c = [self coderReadingFromStream:stream];
+  [c decodeObjectAt: &o withName: NULL];
+  return [o autorelease];
+}
+
++ decodeObjectFromFile: (id <String>) filename
+{
+  return [self decodeObjectFromStream:
+		 [StdioStream streamWithFilename:filename fmode: "r"]];
+}
+
+
+
+/* Functions and methods for keeping cross-references
+   so objects aren't written/read twice. */
 
 /* These _coder... methods may be overriden by subclasses so that 
    cross-references can be kept differently.
@@ -342,22 +391,53 @@ exc_return_null(arglist_t f)
   [self _coderPutObject:anObj atReference:xref];
 }
 
-- (BOOL) isDecoding
+
+/* Method for encoding things. */
+
+- (void) decodeValueOfCType: (const char*)type
+   at: (void*)d 
+   withName: (id <String> *)namePtr
 {
-  return is_decoding;
+  [cstream decodeValueOfCType:type
+	   at:d
+	   withName:namePtr];
 }
+
+- (void) encodeValueOfCType: (const char*)type 
+   at: (const void*)d 
+   withName: (id <String>)name
+{
+  [cstream encodeValueOfCType:type
+	   at:d
+	   withName:name];
+}
+
+- (void) encodeBytes: (const char *)b
+   count: (unsigned)c
+   withName: (id <String>)name
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) decodeBytes: (char *)b
+   count: (unsigned*)c
+   withName: (id <String> *) name
+{
+  [self notImplemented:_cmd];
+}
+
 
 - (void) encodeTag: (unsigned char)t
 {
-  [self encodeValueOfSimpleType:@encode(unsigned char) 
+  [self encodeValueOfCType:@encode(unsigned char) 
 	at:&t 
-	withName:"Coder tag"];
+	withName:@"Coder tag"];
 }
 
 - (unsigned char) decodeTag
 {
   unsigned char t;
-  [self decodeValueOfSimpleType:@encode(unsigned char)
+  [self decodeValueOfCType:@encode(unsigned char)
 	at:&t 
 	withName:NULL];
   return t;
@@ -376,9 +456,9 @@ exc_return_null(arglist_t f)
       if ([self _coderHasConstPtrReference:xref])
 	{
 	  [self encodeTag: CODER_REPEATED_CLASS];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref 
-		withName:"Class cross-reference number"];
+		withName:@"Class cross-reference number"];
 	}
       else
 	{
@@ -388,15 +468,15 @@ exc_return_null(arglist_t f)
 	  assert(class_name);
 	  assert(*class_name);
 	  [self encodeTag: CODER_CLASS];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref
-		withName:"Class cross-reference number"];
-	  [self encodeValueOfSimpleType:@encode(char*)
+		withName:@"Class cross-reference number"];
+	  [self encodeValueOfCType:@encode(char*)
 		at:&class_name
-		withName:"Class name"];
-	  [self encodeValueOfSimpleType:@encode(int)
+		withName:@"Class name"];
+	  [self encodeValueOfCType:@encode(int)
 		at:&class_version
-		withName:"Class version"];
+		withName:@"Class version"];
 	  [self _coderPutConstPtr:aClass atReference:xref];
 	}
     }
@@ -420,13 +500,13 @@ exc_return_null(arglist_t f)
     case CODER_CLASS:
       {
 	unsigned xref;
-	[self decodeValueOfSimpleType:@encode(unsigned)
+	[self decodeValueOfCType:@encode(unsigned)
 	      at:&xref
 	      withName:NULL];
-	[self decodeValueOfSimpleType:@encode(char*)
+	[self decodeValueOfCType:@encode(char*)
 	      at:&class_name
 	      withName:NULL];
-	[self decodeValueOfSimpleType:@encode(int)
+	[self decodeValueOfCType:@encode(int)
 	      at:&class_version
 	      withName:NULL];
 	ret = objc_lookup_class(class_name);
@@ -446,7 +526,7 @@ exc_return_null(arglist_t f)
     case CODER_REPEATED_CLASS:
       {
 	unsigned xref;
-	[self decodeValueOfSimpleType:@encode(unsigned)
+	[self decodeValueOfCType:@encode(unsigned)
 	      at:&xref
 	      withName:NULL];
 	ret = (id) [self _coderConstPtrAtReference:xref];
@@ -462,26 +542,26 @@ exc_return_null(arglist_t f)
   return ret;
 }
 
-- (void) encodeAtomicString: (const char*)sp
-   withName: (const char*)name
+- (void) encodeAtomicString: (const char*) sp
+   withName: (id <String>) name
 {
   /* xxx Add repeat-string-ptr checking here. */
   [self notImplemented:_cmd];
-  [self encodeValueOfSimpleType:@encode(char*) at:&sp withName:name];
+  [self encodeValueOfCType:@encode(char*) at:&sp withName:name];
 }
 
-- (const char *) decodeAtomicStringWithName: (const char **)name
+- (const char *) decodeAtomicStringWithName: (id <String> *) name
 {
   char *s;
   /* xxx Add repeat-string-ptr checking here */
   [self notImplemented:_cmd];
-  [self decodeValueOfSimpleType:@encode(char*) at:&s withName:name];
+  [self decodeValueOfCType:@encode(char*) at:&s withName:name];
   return s;
 }
 
 #define NO_SEL_TYPES "none"
 
-- (void) encodeSelector: (SEL)sel withName: (const char*)name
+- (void) encodeSelector: (SEL)sel withName: (id <String>) name
 {
   [self encodeName:name];
   [self encodeIndent];
@@ -495,9 +575,9 @@ exc_return_null(arglist_t f)
       if ([self _coderHasConstPtrReference:xref])
 	{
 	  [self encodeTag: CODER_REPEATED_CONST_PTR];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref
-		withName:"SEL cross-reference number"];
+		withName:@"SEL cross-reference number"];
 	}
       else
 	{
@@ -520,15 +600,15 @@ exc_return_null(arglist_t f)
 	  if (!*sel_name) [self error:"ObjC runtime didn't provide SEL name"];
 	  if (!sel_types) [self error:"ObjC runtime didn't provide SEL type"];
 	  if (!*sel_types) [self error:"ObjC runtime didn't provide SEL type"];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref
-		withName:"SEL cross-reference number"];
-	  [self encodeValueOfSimpleType:@encode(char*) 
+		withName:@"SEL cross-reference number"];
+	  [self encodeValueOfCType:@encode(char*) 
 		at:&sel_name 
-		withName:"SEL name"];
-	  [self encodeValueOfSimpleType:@encode(char*) 
+		withName:@"SEL name"];
+	  [self encodeValueOfCType:@encode(char*) 
 		at:&sel_types 
-		withName:"SEL types"];
+		withName:@"SEL types"];
 	  [self _coderPutConstPtr:sel atReference:xref];
 	  if (debug_coder)
 	    fprintf(stderr, "Coder encoding registered sel xref %u\n", xref);
@@ -538,7 +618,7 @@ exc_return_null(arglist_t f)
   return;
 }
 
-- (SEL) decodeSelectorWithName: (const char **)name
+- (SEL) decodeSelectorWithName: (id <String> *) name
 {
   char tag;
   SEL ret = NULL;
@@ -556,13 +636,13 @@ exc_return_null(arglist_t f)
 	char *sel_name;
 	char *sel_types;
 
-	[self decodeValueOfSimpleType:@encode(unsigned)
+	[self decodeValueOfCType:@encode(unsigned)
 	      at:&xref
 	      withName:NULL];
-	[self decodeValueOfSimpleType:@encode(char *) 
+	[self decodeValueOfCType:@encode(char *) 
 	      at:&sel_name 
 	      withName:NULL];
-	[self decodeValueOfSimpleType:@encode(char *) 
+	[self decodeValueOfCType:@encode(char *) 
 	      at:&sel_types 
 	      withName:NULL];
 #if NeXT_runtime
@@ -591,7 +671,7 @@ exc_return_null(arglist_t f)
     case CODER_REPEATED_CONST_PTR:
       {
 	unsigned xref;
-	[self decodeValueOfSimpleType:@encode(unsigned)
+	[self decodeValueOfCType:@encode(unsigned)
 	      at:&xref
 	      withName:NULL];
 	ret = (SEL)[self _coderConstPtrAtReference:xref];
@@ -607,9 +687,9 @@ exc_return_null(arglist_t f)
   return ret;
 }
 
-- (void) encodeValueOfType: (const char*)type 
-   at: (const void*)d 
-   withName: (const char *)name
+- (void) encodeValueOfObjCType: (const char*) type 
+   at: (const void*) d 
+   withName: (id <String>) name
 {
   switch (*type)
     {
@@ -628,68 +708,14 @@ exc_return_null(arglist_t f)
     case _C_ID:
       [self encodeObject:*(id*)d withName:name];
       break;
-    case _C_ARY_B:
-      {
-	int len = atoi(type+1);	/* xxx why +1 ? */
-	int offset;
-
-	while (isdigit(*++type));
-	offset = objc_sizeof_type(type);
-	[self encodeName:name];
-	[self encodeIndent];
-	while (len-- > 0)
-	  {
-	    [self encodeValueOfType:type 
-		  at:d 
-		  withName:"array component"];
-	    ((char*)d) += offset;
-	  }
-	[self encodeUnindent];
-	break; 
-      }
-    case _C_STRUCT_B:
-      {
-	int acc_size = 0;
-	int align;
-
-	while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	[self encodeName:name];
-	[self encodeIndent];
-	while (*type != _C_STRUCT_E)
-	  {
-	    align = objc_alignof_type (type); /* pad to alignment */
-	    acc_size = ROUND (acc_size, align);
-	    [self encodeValueOfType:type 
-		  at:((char*)d)+acc_size 
-		  withName:"structure component"];
-	    acc_size += objc_sizeof_type (type); /* add component size */
-	    type = objc_skip_typespec (type); /* skip component */
-	  }
-	[self encodeUnindent];
-	break;
-      }
-    case _C_PTR:
-      [self error:"Cannot encode pointers"];
-      break;
-#if 0 /* No, don't know how far to recurse */
-      [self encodeValueOfType:type+1 at:*(char**)d withName:name];
-      break;
-#endif
     default:
-      [self encodeValueOfSimpleType:type at:d withName:name];
+      [self encodeValueOfCType:type at:d withName:name];
     }
 }
 
-- (void) encodeValueOfSimpleType: (const char*)type 
-   at: (const void*)d 
-   withName: (const char *)name
-{
-  [self notImplemented:_cmd];
-}
-
-- (void) decodeValueOfType: (const char*)type
+- (void) decodeValueOfObjCType: (const char*)type
    at: (void*)d 
-   withName: (const char **)namePtr
+   withName: (id <String> *)namePtr
 {
   switch (*type)
     {
@@ -708,81 +734,14 @@ exc_return_null(arglist_t f)
     case _C_ID:
       [self decodeObjectAt:d withName:namePtr];
       break;
-    case _C_ARY_B:
-      {
-	/* xxx Do we need to allocate space, just like _C_CHARPTR ? */
-	int len = atoi(type+1);
-	int offset;
-	[self decodeName:namePtr];
-	[self decodeIndent];
-	while (isdigit(*++type));
-	offset = objc_sizeof_type(type);
-	while (len-- > 0)
-	  {
-	    [self decodeValueOfType:type 
-		  at:d 
-		  withName:namePtr];
-	    ((char*)d) += offset;
-	  }
-	[self decodeUnindent];
-	break; 
-      }
-    case _C_STRUCT_B:
-      {
-	/* xxx Do we need to allocate space just like char* ?  No. */
-	int acc_size = 0;
-	int align;
-	while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
-	[self decodeName:namePtr];
-	[self decodeIndent];		/* xxx insert [self decodeName:] */
-	while (*type != _C_STRUCT_E)
-	  {
-	    align = objc_alignof_type (type); /* pad to alignment */
-	    acc_size = ROUND (acc_size, align);
-	    [self decodeValueOfType:type 
-		  at:((char*)d)+acc_size 
-		  withName:namePtr];
-	    acc_size += objc_sizeof_type (type); /* add component size */
-	    type = objc_skip_typespec (type); /* skip component */
-	  }
-	[self decodeUnindent];
-	break;
-      }
-    case _C_PTR:
-      [self error:"Cannot decode pointers"];
-      break;
-#if 0 /* No, don't know how far to recurse */
-      OBJC_MALLOC(*(void**)d, void*, 1);
-      [self decodeValueOfType:type+1 at:*(char**)d withName:namePtr];
-      break;
-#endif
     default:
-      [self decodeValueOfSimpleType:type at:d withName:namePtr];
+      [self decodeValueOfCType:type at:d withName:namePtr];
     }
   /* xxx We need to catch unions and make a sensible error message */
 }
 
-- (void) decodeValueOfSimpleType: (const char*)type
-   at: (void*)d 
-   withName: (const char **)namePtr
-{
-  [self notImplemented:_cmd];
-}
 
-- (void) encodeBytes: (const char *)b
-   count: (unsigned)c
-   withName: (const char *)name
-{
-  [self notImplemented:_cmd];
-}
-
-- (void) decodeBytes: (char *)b
-   count: (unsigned*)c
-   withName: (const char **)name
-{
-  [self notImplemented:_cmd];
-}
-
+
 - (void) startEncodingInterconnectedObjects
 {
   if (interconnected_stack_height++)
@@ -856,9 +815,9 @@ exc_return_null(arglist_t f)
 
 /* NOTE: This *can* be called recursively */
 - (void) encodeRootObject: anObj
-    withName: (const char *)name
+    withName: (id <String>)name
 {
-  [self encodeName:"Root Object"];
+  [self encodeName:@"Root Object"];
   [self encodeIndent];
   [self encodeTag:CODER_ROOT_OBJECT];
   [self startEncodingInterconnectedObjects];
@@ -867,7 +826,7 @@ exc_return_null(arglist_t f)
   [self encodeUnindent];
 }
 
-- (void) _decodeRootObjectAt: (id*)ret withName: (const char **)name
+- (void) _decodeRootObjectAt: (id*)ret withName: (id <String> *) name
 {
   [self startDecodingInterconnectedObjects];
   [self decodeObjectAt:ret withName:name];
@@ -900,7 +859,7 @@ exc_return_null(arglist_t f)
 
 /* This is the designated object encoder */
 - (void) _encodeObject: anObj
-   withName: (const char*) name
+   withName: (id <String>) name
    isBycopy: (BOOL) bycopy_flag
    isForwardReference: (BOOL) forward_ref_flag
 {
@@ -921,25 +880,25 @@ exc_return_null(arglist_t f)
       if ([self _coderHasObjectReference:xref])
 	{
 	  [self encodeTag:CODER_REPEATED_OBJECT];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref 
-		withName:"Object cross-reference number"];
+		withName:@"Object cross-reference number"];
 	}
       else if (forward_ref_flag
 	       || [in_progress_table includesElement:xref])
 	{
 	  [self encodeTag:CODER_OBJECT_FORWARD_REFERENCE];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref 
-		withName:"Object forward cross-reference number"];
+		withName:@"Object forward cross-reference number"];
 	}
       else
 	{
 	  [in_progress_table addElement:xref];
 	  [self encodeTag:CODER_OBJECT];
-	  [self encodeValueOfSimpleType:@encode(unsigned)
+	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref 
-		withName:"Object cross-reference number"];
+		withName:@"Object cross-reference number"];
 	  [self encodeIndent];
 	  if (bycopy_flag)
 	    [self _doEncodeBycopyObject:anObj];
@@ -954,27 +913,27 @@ exc_return_null(arglist_t f)
 }
 
 - (void) encodeObject: anObj
-   withName: (const char *)name
+   withName: (id <String>)name
 {
   [self _encodeObject:anObj withName:name isBycopy:NO isForwardReference:NO];
 }
 
 
 - (void) encodeObjectBycopy: anObj
-   withName: (const char *)name
+   withName: (id <String>)name
 {
   [self _encodeObject:anObj withName:name isBycopy:YES isForwardReference:NO];
 }
 
 - (void) encodeObjectReference: anObj
-   withName: (const char *)name
+   withName: (id <String>)name
 {
   [self _encodeObject:anObj withName:name isBycopy:NO isForwardReference:YES];
 }
 
 
 /* This is the designated (and one-and-only) object decoder */
-- (void) decodeObjectAt: (id*)anObjPtr withName: (const char**)name
+- (void) decodeObjectAt: (id*) anObjPtr withName: (id <String> *) name
 {
   unsigned char tag;
 
@@ -996,7 +955,7 @@ exc_return_null(arglist_t f)
 	SEL new_sel = sel_get_any_uid("newWithCoder:");
 	Method* new_method;
 
-	[self decodeValueOfSimpleType:@encode(unsigned) 
+	[self decodeValueOfCType:@encode(unsigned) 
 	      at:&xref 
 	      withName:NULL];
 	[self decodeIndent];
@@ -1039,7 +998,7 @@ exc_return_null(arglist_t f)
       {
 	unsigned xref;
 
-	[self decodeValueOfSimpleType:@encode(unsigned)
+	[self decodeValueOfCType:@encode(unsigned)
 	      at:&xref 
 	      withName:NULL];
 	*anObjPtr = [self _coderObjectAtReference:xref];
@@ -1056,7 +1015,7 @@ exc_return_null(arglist_t f)
 	if (!DOING_ROOT_OBJECT)
 	  [self error:"can't decode forward reference when not decoding "
 		"a root object"];
-	[self decodeValueOfSimpleType:@encode(unsigned)
+	[self decodeValueOfCType:@encode(unsigned)
 	      at:&xref 
 	      withName:NULL];
 	addr_list = [self _coderForwardObjectsAtReference:xref];
@@ -1070,8 +1029,8 @@ exc_return_null(arglist_t f)
   [self decodeUnindent];
 }
 
-- (void) encodeWithName: (const char *)name
-   valuesOfTypes: (const char *)types, ...
+- (void) encodeWithName: (id <String>)name
+   valuesOfObjCTypes: (const char *)types, ...
 {
   va_list ap;
 
@@ -1079,16 +1038,16 @@ exc_return_null(arglist_t f)
   va_start(ap, types);
   while (*types)
     {
-      [self encodeValueOfType:types
+      [self encodeValueOfObjCType:types
 	    at:va_arg(ap, void*)
-	    withName:"Encoded Types Component"];
+	    withName:@"Encoded Types Component"];
       types = objc_skip_typespec(types);
     }
   va_end(ap);
 }
 
-- (void) decodeWithName: (const char **)name
-   valuesOfTypes: (const char *)types, ...
+- (void) decodeWithName: (id <String> *)name
+   valuesOfObjCTypes: (const char *)types, ...
 {
   va_list ap;
 
@@ -1096,7 +1055,7 @@ exc_return_null(arglist_t f)
   va_start(ap, types);
   while (*types)
     {
-      [self decodeValueOfType:types
+      [self decodeValueOfObjCType:types
 	    at:va_arg(ap, void*)
 	    withName:NULL];
       types = objc_skip_typespec(types);
@@ -1104,38 +1063,38 @@ exc_return_null(arglist_t f)
   va_end(ap);
 }
 
-- (void) encodeValueOfTypes: (const char *)types
+- (void) encodeValueOfObjCTypes: (const char *)types
    at: (const void *)d
-   withName: (const char *)name
+   withName: (id <String>)name
 {
   [self encodeName:name];
   while (*types)
     {
-      [self encodeValueOfType:types
+      [self encodeValueOfObjCType:types
 	    at:d
-	    withName:"Encoded Types Component"];
+	    withName:@"Encoded Types Component"];
       types = objc_skip_typespec(types);
     }
 }
 
-- (void) decodeValueOfTypes: (const char *)types
+- (void) decodeValueOfObjCTypes: (const char *)types
    at: (void *)d
-   withName: (const char **)name
+   withName: (id <String> *)name
 {
   [self decodeName:name];
   while (*types)
     {
-      [self decodeValueOfType:types
+      [self decodeValueOfObjCType:types
 	    at:d
 	    withName:NULL];
       types = objc_skip_typespec(types);
     }
 }
 
-- (void) encodeArrayOfType: (const char *)type
+- (void) encodeArrayOfObjCType: (const char *)type
    at: (const void *)d
    count: (unsigned)c
-   withName: (const char *)name
+   withName: (id <String>)name
 {
   int i;
   int offset = objc_sizeof_type(type);
@@ -1144,17 +1103,17 @@ exc_return_null(arglist_t f)
   [self encodeName:name];
   for (i = 0; i < c; i++)
     {
-      [self encodeValueOfType:type
+      [self encodeValueOfObjCType:type
 	    at:where
-	    withName:"Encoded Array Component"];
+	    withName:@"Encoded Array Component"];
       where += offset;
     }
 }
 
-- (void) decodeArrayOfType: (const char *)type
+- (void) decodeArrayOfObjCType: (const char *)type
    at: (void *)d
    count: (unsigned)c
-   withName: (const char **)name
+   withName: (id <String> *) name
 {
   int i;
   int offset = objc_sizeof_type(type);
@@ -1163,7 +1122,7 @@ exc_return_null(arglist_t f)
   [self decodeName:name];
   for (i = 0; i < c; i++)
     {
-      [self decodeValueOfType:type
+      [self decodeValueOfObjCType:type
 	    at:where
 	    withName:NULL];
       where += offset;
@@ -1178,64 +1137,58 @@ exc_return_null(arglist_t f)
   [object_table release];
   [forward_object_table release];
   [root_object_table release];
-  [stream release];		/* xxx should we do this? */
+  [cstream release];
   [super dealloc];
 }
 
 - (void) encodeIndent
 {
-  /* Do nothing */
+  [cstream encodeIndent];
 }
 
 - (void) encodeUnindent
 {
-  /* Do nothing */
+  [cstream encodeUnindent];
 }
 
 - (void) decodeIndent
 {
-  /* Do nothing */
+  [cstream decodeIndent];
 }
 
 - (void) decodeUnindent
 {
-  /* Do nothing */
+  [cstream decodeUnindent];
 }
 
-- (void) encodeName: (const char*)n
+- (void) encodeName: (id <String>)n
 {
-  /* Do nothing */
+  [cstream encodeName: n];
 }
 
-- (void) decodeName: (const char**)n
+- (void) decodeName: (id <String> *)n
 {
-  if (n)
-    {
-      OBJC_MALLOC(*n, char, 1);
-      **(char**)n = '\0';
-#if 0
-      {
-	/* xxx fix this junk */
-	char *foo = *(char**)n;
-	foo[0] = '\0';
-      }
-#endif
-    }
+  [cstream decodeName: n];
 }
 
-- (int) coderFormatVersion
+
+/* Access to instance variables. */
+
+- (int) formatVersion
 {
   return format_version;
 }
 
-- (int) coderConcreteFormatVersion
+- (BOOL) isDecoding
 {
-  return concrete_format_version;
+  return is_decoding;
 }
+
 
 - (void) resetCoder
 {
   /* xxx Finish this */
+  [self notImplemented:_cmd];
   [const_ptr_table empty];
 }
 
