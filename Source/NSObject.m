@@ -81,13 +81,13 @@ void	_fastBuildCache()
    */
 
   _fastImp._NSString_hash = (unsigned (*)())[_fastCls._NSString
-	    instanceMethodForSelector: @selector(hash)];
+    instanceMethodForSelector: @selector(hash)];
   _fastImp._NSString_isEqualToString_ = (BOOL (*)())[_fastCls._NSString
-	    instanceMethodForSelector: @selector(isEqualToString:)];
+    instanceMethodForSelector: @selector(isEqualToString:)];
   _fastImp._NSGString_isEqual_ = (BOOL (*)())[_fastCls._NSGString
-	    instanceMethodForSelector: @selector(isEqual:)];
+    instanceMethodForSelector: @selector(isEqual:)];
   _fastImp._NSGCString_isEqual_ = (BOOL (*)())[_fastCls._NSGCString
-	    instanceMethodForSelector: @selector(isEqual:)];
+    instanceMethodForSelector: @selector(isEqual:)];
 }
 
 
@@ -894,8 +894,12 @@ static BOOL deallocNotifications = NO;
   if (proxyImp == 0)
     {
       proxyClass = [NSDistantObject class];
-      proxyImp = [proxyClass methodForSelector:
-	@selector(proxyWithLocal:connection:)];
+      /*
+       * use get_imp() because NSDistantObject doesn't implement
+       * methodForSelector:
+       */
+      proxyImp = get_imp(fastClass((id)proxyClass),
+	@selector(proxyWithLocal:connection:));
     }
 
   if ([aCoder isBycopy])
@@ -1234,12 +1238,12 @@ static BOOL deallocNotifications = NO;
   return [self instanceMethodForSelector:aSel];
 }
 
-+ (NSMethodSignature*)instanceMethodSignatureForSelector:(SEL)aSelector
++ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
 {
-    struct objc_method* mth = class_get_instance_method(self, aSelector);
+  struct objc_method* mth = class_get_instance_method(self, aSelector);
 
-    return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
-		: nil;
+  return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
+    : nil;
 }
 
 - (IMP) methodFor:(SEL)aSel
