@@ -68,7 +68,9 @@ static SEL	addSel;
 
 static Class	NSArrayClass;
 static Class	NSDataClass;
+static Class	NSDateClass;
 static Class	NSDictionaryClass;
+static Class	NSNumberClass;
 static Class	NSMutableDictionaryClass;
 static Class	NSStringClass;
 
@@ -221,7 +223,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
        */
       NSArrayClass = [NSArray class];
       NSDataClass = [NSData class];
+      NSDateClass = [NSDate class];
       NSDictionaryClass = [NSDictionary class];
+      NSNumberClass = [NSNumber class];
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
       classLock = [NSRecursiveLock new];
@@ -617,7 +621,7 @@ static NSString	*pathForUser(NSString *user)
 #endif
   attr = [NSDictionary dictionaryWithObjectsAndKeys:
     NSUserName(), NSFileOwnerAccountName,
-    [NSNumber numberWithUnsignedLong: desired], NSFilePosixPermissions,
+    [NSNumberClass numberWithUnsignedLong: desired], NSFilePosixPermissions,
     nil];
 
   if ([mgr fileExistsAtPath: home isDirectory: &isDir] == NO)
@@ -860,9 +864,10 @@ static NSString	*pathForUser(NSString *user)
  */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
-  id	obj = [self stringForKey: defaultName];
+  id	obj = [self objectForKey: defaultName];
 
-  if (obj != nil)
+  if (obj != nil && ([obj isKindOfClass: NSStringClass]
+    || [obj isKindOfClass: NSNumberClass]))
     {
       return [obj boolValue];
     }
@@ -891,7 +896,9 @@ static NSString	*pathForUser(NSString *user)
   id	obj = [self objectForKey: defaultName];
 
   if (obj != nil && [obj isKindOfClass: NSDictionaryClass])
-    return obj;
+    {
+      return obj;
+    }
   return nil;
 }
 
@@ -901,10 +908,13 @@ static NSString	*pathForUser(NSString *user)
  */
 - (float) floatForKey: (NSString*)defaultName
 {
-  id	obj = [self stringForKey: defaultName];
+  id	obj = [self objectForKey: defaultName];
 
-  if (obj != nil)
-    return [obj floatValue];
+  if (obj != nil && ([obj isKindOfClass: NSStringClass]
+    || [obj isKindOfClass: NSNumberClass]))
+    {
+      return [obj floatValue];
+    }
   return 0.0;
 }
 
@@ -914,10 +924,13 @@ static NSString	*pathForUser(NSString *user)
  */
 - (int) integerForKey: (NSString*)defaultName
 {
-  id	obj = [self stringForKey: defaultName];
+  id	obj = [self objectForKey: defaultName];
 
-  if (obj != nil)
-    return [obj intValue];
+  if (obj != nil && ([obj isKindOfClass: NSStringClass]
+    || [obj isKindOfClass: NSNumberClass]))
+    {
+      return [obj intValue];
+    }
   return 0;
 }
 
@@ -996,7 +1009,7 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
-  NSNumber	*n = [NSNumber numberWithBool: value];
+  NSNumber	*n = [NSNumberClass numberWithBool: value];
 
   [self setObject: n forKey: defaultName];
 }
@@ -1007,7 +1020,7 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
 {
-  NSNumber	*n = [NSNumber numberWithFloat: value];
+  NSNumber	*n = [NSNumberClass numberWithFloat: value];
 
   [self setObject: n forKey: defaultName];
 }
@@ -1018,30 +1031,30 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setInteger: (int)value forKey: (NSString*)defaultName
 {
-  NSNumber	*n = [NSNumber numberWithInt: value];
+  NSNumber	*n = [NSNumberClass numberWithInt: value];
 
   [self setObject: n forKey: defaultName];
 }
 
 static BOOL isPlistObject(id o)
 {
-  if ([o isKindOfClass: [NSString class]] == YES)
+  if ([o isKindOfClass: NSStringClass] == YES)
     {
       return YES;
     }
-  if ([o isKindOfClass: [NSData class]] == YES)
+  if ([o isKindOfClass: NSDataClass] == YES)
     {
       return YES;
     }
-  if ([o isKindOfClass: [NSDate class]] == YES)
+  if ([o isKindOfClass: NSDateClass] == YES)
     {
       return YES;
     }
-  if ([o isKindOfClass: [NSNumber class]] == YES)
+  if ([o isKindOfClass: NSNumberClass] == YES)
     {
       return YES;
     }
-  if ([o isKindOfClass: [NSArray class]] == YES)
+  if ([o isKindOfClass: NSArrayClass] == YES)
     {
       NSEnumerator	*e = [o objectEnumerator];
       id		tmp;
@@ -1055,7 +1068,7 @@ static BOOL isPlistObject(id o)
 	}
       return YES;
     }
-  if ([o isKindOfClass: [NSDictionary class]] == YES)
+  if ([o isKindOfClass: NSDictionaryClass] == YES)
     {
       NSEnumerator	*e = [o keyEnumerator];
       id		tmp;
@@ -1284,7 +1297,7 @@ static BOOL isPlistObject(id o)
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableDictionary	*newDict;
   NSDictionary		*attr;
-  NSDate		*started = [NSDate date];
+  NSDate		*started = [NSDateClass date];
   unsigned long		desired;
   unsigned long		attributes;
 
@@ -1299,7 +1312,7 @@ static BOOL isPlistObject(id o)
 	  NSDate	*lockDate;
 
 	  lockDate = [_fileLock lockDate];
-	  when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+	  when = [NSDateClass dateWithTimeIntervalSinceNow: 0.1];
 
 	  /*
 	   * In case we have tried and failed to break the lock,
@@ -1425,7 +1438,7 @@ static BOOL isPlistObject(id o)
       enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
 	[mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
 
-      permissions = [NSNumber numberWithUnsignedLong: desired];
+      permissions = [NSNumberClass numberWithUnsignedLong: desired];
       [enforced_attributes setObject: permissions
 			      forKey: NSFilePosixPermissions];
 
@@ -1464,11 +1477,11 @@ static BOOL isPlistObject(id o)
 	      return NO;
 	    }
 	}
-      ASSIGN(_lastSync, [NSDate date]);
+      ASSIGN(_lastSync, [NSDateClass date]);
     }
   else
     {
-      ASSIGN(_lastSync, [NSDate date]);
+      ASSIGN(_lastSync, [NSDateClass date]);
       if ([_persDomains isEqual: newDict] == NO)
 	{
 	  RELEASE(_persDomains);
