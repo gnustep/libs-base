@@ -8,6 +8,9 @@
 	* Source/GSWindowsFileHandle.m: watch for exceptional conditions
 	so we can handle socket connection failures in mingw32.
 	* Source/GSTcpPort.m: ditto.
+	* Source/Unicode.m: GSToUnicode(), GSFromUnicode(), if terminate
+	option is specified, always produce output with a nul terminator
+	even for input of an empty string.
 
 2002-03-22  Richard Frith-Macdonald <rfm@gnu.org>
 
