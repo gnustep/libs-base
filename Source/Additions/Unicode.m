@@ -1048,7 +1048,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 			  break;
 			}
 		      c1 = src[spos++];
-		      if (!((c1 ^ 0x80) < 0x40))
+		      if ((c1 ^ 0x80) >= 0x40)
 			{
 			  /*
 			   * Second byte in sequence is not a legal
@@ -1057,7 +1057,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 			  result = NO;
 			  break;
 			}
-		      u = ((c & 0x1f) << 6) | (c1 ^ 0x80);
+		      u = ((c & 0x1f) << 6) | (c1 & 0x3f);
 		    }
 		  else if (c < 0xf0)
 		    {
@@ -1071,14 +1071,14 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 			  break;
 			}
 		      c2 = src[spos++];
-		      if (!(((c1 ^ 0x80) < 0x40) && ((c2 ^ 0x80) < 0x40)
-			&& (c1 >= 0xa0)))
+		      if (((c1 ^ 0x80) >= 0x40) || ((c2 ^ 0x80) >= 0x40)
+			|| (c1 == 0x80))
 			{
 			  result = NO;	// Invalid sequence.
 			  break;
 			}
-		      u = ((c & 0x0f) << 12) | ((c1 ^ 0x80) << 6)
-			| (c2 ^ 0x80);
+		      u = ((c & 0x0f) << 12) | ((c1 & 0x3f) << 6)
+			| (c2 & 0x3f);
 		    }
 		  else
 		    {

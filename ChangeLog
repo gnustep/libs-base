@@ -1,3 +1,8 @@
+2003-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Fix error in check for legality of
+	three-byte utf-8 sequences.
+
 2003-01-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Fix memory leak with timed performs.
