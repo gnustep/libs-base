@@ -1,3 +1,8 @@
+2002-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Correct test for multipart content when
+	generating raw data.  Fix by Mark Allison <mark@brainstorm.co.uk>
+
 2002-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSFileHandle.h: New version of UnixFileHandle
