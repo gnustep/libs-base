@@ -48,7 +48,7 @@ extern BOOL __objc_responds_to(id, SEL);
 static Class	fastMallocClass;
 static unsigned	fastMallocOffset;
 
-static Class	NXConstantStringClass;
+static Class	NSConstantStringClass;
 
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
@@ -407,7 +407,7 @@ NSDeallocateObject(NSObject *anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  if (GSObjCClass(object) == NXConstantStringClass)
+  if (GSObjCClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
@@ -417,7 +417,7 @@ GSObjCZone(NSObject *object)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  if (GSObjCClass(object) == NXConstantStringClass)
+  if (GSObjCClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(&((obj)object)[-1]);
 }
@@ -478,7 +478,7 @@ NSDeallocateObject(NSObject *anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  if (GSObjCClass(object) == NXConstantStringClass)
+  if (GSObjCClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(object);
 }
@@ -609,7 +609,7 @@ static BOOL double_release_check_enabled = NO;
 #else
       fastMallocOffset = 0;
 #endif
-      NXConstantStringClass = [NXConstantString class];
+      NSConstantStringClass = [NSString constantStringClass];
       GSBuildStrings();
       [[NSNotificationCenter defaultCenter]
 	addObserver: self

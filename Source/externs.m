@@ -296,7 +296,7 @@ NSString *NSClassDescriptionNeededForClassNotification;
 
 /*
  *	Setup function called when NSString is initialised.
- *	We make all the constant strings not be NXConstantString so they can
+ *	We make all the constant strings not be constant strings so they can
  *	cache their hash values and be used much more efficiently as keys in
  *	dictionaries etc.
  */

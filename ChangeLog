@@ -1,3 +1,15 @@
+2001-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Changes for constant string support with gcc-3.0
+	* configure.in: Just substitute NXCONST
+	* Headers/gnustep/base/GSConfig.h.in: Use NXCONST to redefine
+	NXConstantString
+	* Headers/gnustep/base/NSString.h: new constantStringClass method.
+	* Source/GSString.m: new constantStringClass method.
+	* Source/NSObject.m: Use NSConstantStringClass.
+	* Source/NSScanner.m: Use NSConstantStringClass.
+	* Source/NSString.m: implement constantStringClass method.
+
 2001-06-06  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/mframe.m: Reactivated inling nested functions after 

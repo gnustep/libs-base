@@ -892,6 +892,12 @@ AC_SUBST(SUBMINOR_VERSION)
 AC_SUBST(GCC_VERSION)
 
 #--------------------------------------------------------------------
+# Set the constant string class support.
+#--------------------------------------------------------------------
+NXCONST=NXConstantString
+AC_SUBST(NXCONST)
+
+#--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
 AC_OUTPUT(config.mak base.make Headers/gnustep/base/GSConfig.h 
