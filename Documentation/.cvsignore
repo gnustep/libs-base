@@ -1,10 +1,22 @@
 =*
+version.tmpl.texi
+gnustep-base.texi
+gnustep-zones.texi
+announce.texi
+coding-standards.texi
+install.texi
+news.texi
+readme.texi
+status.texi
+todo.texi
+gnustep-base.info
+gnustep-base_toc.html
+gnustep-base_1.html
+gnustep-base_2.html
+gnustep-base_3.html
+gnustep-base_4.html
+gnustep-base_5.html
+gnustep-base_6.html
+CODING-STANDARDS
+STATUS
 
-Makefile
-version.texi
-
-README TODO INSTALL NEWS ANNOUNCE ADVERTISEMENT
-GNUstep-FAQ GNUstep-FAQ.html GNUstep-FAQ_toc.html GNUstep-FAQ.texi
-Gnustep-FAQ Gnustep-FAQ.html Gnustep-FAQ_toc.html
-
-Coder.grammar

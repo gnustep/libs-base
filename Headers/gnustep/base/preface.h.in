@@ -99,23 +99,20 @@ extern const char o_NeXT_cc_version[];
 
 #ifndef MAX
 #define MAX(a,b) \
-       ({typedef _ta = (a), _tb = (b);  \
-         _ta _a = (a); _tb _b = (b);     \
-         _a > _b ? _a : _b; })
+       ({typeof(a) _MAX_a = (a); typeof(b) _MAX_b = (b);  \
+         _MAX_a > _MAX_b ? _MAX_a : _MAX_b; })
 #endif
 
 #ifndef MIN
 #define MIN(a,b) \
-       ({typedef _ta = (a), _tb = (b);  \
-         _ta _a = (a); _tb _b = (b);     \
-         _a < _b ? _a : _b; })
+       ({typeof(a) _MIN_a = (a); typeof(b) _MIN_b = (b);  \
+         _MIN_a < _MIN_b ? _MIN_a : _MIN_b; })
 #endif
 
 #ifndef ABS
 #define ABS(a) \
-       ({typedef _ta = (a);   \
-         _ta _a = (a);        \
-         _a < 0 ? -_a : _a; })
+       ({typeof(a) _ABS_a = (a); \
+         _ABS_a < 0 ? -_ABS_a : _ABS_a; })
 #endif
 
 #ifndef STRINGIFY
