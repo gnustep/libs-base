@@ -32,6 +32,11 @@ if test -z "$GNUSTEP_SYSTEM_ROOT"; then
 fi
 
 #--------------------------------------------------------------------
+# Use config.guess, config.sub and install.sh provided by gnustep-make
+#--------------------------------------------------------------------
+AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
+
+#--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
 AC_CONFIG_HEADER(Headers/gnustep/base/config.h)
