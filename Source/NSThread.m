@@ -821,6 +821,14 @@ static NSDate *theFuture;
 
   perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
 
+  /*
+   * FIXME:  The runloop under MINGW only accepts sockets and
+   *         unfortunately pipes under windows can not be
+   *         treated as sockets so this will not WORK.
+   *         Consequence, performSelectorOnMainThread methods will not
+   *         work.
+   */         
+#ifndef __MINGW__
   for (i = 0; i < count; i++ )
     {
       [loop addEvent: (void*)inputFd
@@ -828,6 +836,7 @@ static NSDate *theFuture;
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: [m objectAtIndex: i]];
     }
+#endif  
 }
 
 + (BOOL) isValid
