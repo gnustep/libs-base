@@ -223,6 +223,8 @@ static inline id parseQuotedString(pldata* pld)
     {
       unichar	c = (unichar)pld->ptr[pld->pos];
 
+      if (c == '\n')
+	pld->lin++;
       if (escaped)
 	{
 	  if (escaped == 1 && c == '0')
