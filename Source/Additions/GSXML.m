@@ -2084,7 +2084,7 @@ static NSString	*endMarker = @"At end of incremental parse";
        * Put saxHandler address in _private member, so we can retrieve
        * the GSXMLHandler to use in our SAX C Functions.
        */
-      ((xmlParserCtxtPtr)lib)->_private=saxHandler;
+      ((xmlParserCtxtPtr)lib)->_private = saxHandler;
     }
   return YES;
 }
@@ -2092,7 +2092,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (void) _parseChunk: (NSData*)data
 {
   // nil data allowed
-  xmlParseChunk(lib, [data bytes], [data length], 0);
+  xmlParseChunk(lib, [data bytes], [data length], data == nil);
 }
 
 @end
@@ -2127,7 +2127,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (void) _parseChunk: (NSData*)data
 {
-  htmlParseChunk(lib, [data bytes], [data length], 0);
+  htmlParseChunk(lib, [data bytes], [data length], data == nil);
 }
 
 @end
