@@ -44,6 +44,8 @@ object:         NSSTRING
 
 array:          '(' objlist ')'
                                 {$$ = $2;}
+		|	'(' objlist ',' ')'
+                                {$$ = $2;}
                 |       '(' ')'
                                 {$$ = [NSArray array];}
                 ;
