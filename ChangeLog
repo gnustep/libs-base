@@ -1,7 +1,39 @@
 Fri May 31 10:06:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	* src/Makefile.in (gnustep/base): Make a link for `Foundation'
+ 	when building in a separate directory.
+
+	* doc/install.texi: Mention making a link from thread.h to thr.h.
+
+	* src/StdioStream.m ([StdioStream -readBytes:length:]): Don't
+ 	assert that we get as many bytes as we asked for.
+
+	* checks/Makefile.in (ALL_CPPFLAGS): Look in ../src/srcdir-include.
+	* examples/Makefile.in (ALL_CPPFLAGS): Likewise.
+
+	* src/NSLock.m: Include <Foundation/NSException.h>.  Fix typo.
+
+	* src/proplist.l (unescstr): Bug fix from Nathan Urban
+	<nurban@csugrad.cs.vt.edu>.
+
+	This is a feeble attempt to use the correct flags for making a
+	shared library.  Other than the GNU-standard flags, so far I've
+	just taken care of the Solaris case.
+	* src/Makefile.in (CFLAGS_SHAREDLIB_GNU): New variable.
+	(CFLAGS_SHAREDLIB_SOLARIS): New variable.
+	(CFLAGS_SHAREDLIB): New variable set from configure.
+	(lib$(LIBRARY_NAME).so.$(VERSION)): Use it.
+	* configure.in (CFLAGS_SHAREDLIB): Figure this out, and AC_SUBST it.
+
+	* src/Makefile.in (maintainer-clean): Remove *_bas and *_cbs files.
+	(GNU_MFILES): Fix typo.
+
+	* src/NSProcessInfo.m (__gnustep_base_subinit_args__): No longer
+ 	declared static; (avoids warning).
+
 	* src/Makefile.in: Rename all `o-*' files to `o_*', and prepend
  	`o_' to some related files.
+	* src/o-*, src/include/o-*: Rename to `o_'.
 
 	* src/NSString.m ([NSString -initWithFormat:arguments:]): Increase
  	bsprintf buffer size, and assert that we haven't overrun the
