@@ -239,6 +239,7 @@ enum {
 - (NSString*) stringByResolvingSymlinksInPath;
 - (NSString*) stringByStandardizingPath;
 
+
 // for methods working with decomposed strings
 - (int) _baseLength;
 
@@ -263,15 +264,15 @@ enum {
 - (id) initWithContentsOfURL: (NSURL*)url;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
-- (NSComparisonResult)compare:(NSString *)string 
-		      options:(unsigned int)mask 
-			range:(NSRange)compareRange 
-		       locale:(NSDictionary *)dict;
-- (NSComparisonResult)localizedCompare:(NSString *)string;
-- (NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)string;
+- (NSComparisonResult) compare: (NSString*)string 
+		       options: (unsigned int)mask 
+			 range: (NSRange)compareRange 
+			locale: (NSDictionary*)dict;
+- (NSComparisonResult) localizedCompare: (NSString *)string;
+- (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string;
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile;
-- (BOOL)writeToURL:(NSURL *)anURL atomically:(BOOL)atomically;
+- (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)atomically;
 - (double) doubleValue;
 + (NSStringEncoding*) availableStringEncodings;
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding;
@@ -281,6 +282,10 @@ enum {
              forRange: (NSRange)aRange;
 - (NSRange) lineRangeForRange: (NSRange)aRange;
 - (const char*) lossyCString;
+- (NSString*) stringByPaddingToLength: (unsigned int)newLength
+			   withString: (NSString*)padString
+		      startingAtIndex: (unsigned int)padIndex;
+- (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet;
 - (const char *)UTF8String;
 #endif
 
