@@ -2406,12 +2406,17 @@ static void callEncoder (DOContext *ctxt)
 	   * by setting a small delay and increasing it each time round
 	   * so that this semi-busy wait doesn't consume too much
 	   * processor time (I hope).
+	   * We set an upper limit on the delay to avoid responsiveness
+	   * problems.
 	   */
 	  RELEASE(delay_date);
 	  delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-	  next_interval = last_interval + delay_interval;
-	  last_interval = delay_interval;
-	  delay_interval = next_interval;
+	  if (delay_interval < 1.0)
+	    {
+	      next_interval = last_interval + delay_interval;
+	      last_interval = delay_interval;
+	      delay_interval = next_interval;
+	    }
 	  delay_date
 	    = [delay_date initWithTimeIntervalSinceNow: delay_interval];
 

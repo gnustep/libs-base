@@ -421,10 +421,13 @@ static NSLock			*urlLock = nil;
       when = [NSDate alloc];
       while (tunnel == YES)
 	{
-	  NSTimeInterval	tmp = limit;
+	  if (limit < 1.0)
+	    {
+	      NSTimeInterval	tmp = limit;
 
-	  limit += last;
-	  last = tmp;
+	      limit += last;
+	      last = tmp;
+	    }
           when = [when initWithTimeIntervalSinceNow: limit];
 	  [loop runUntilDate: when];
 	}
