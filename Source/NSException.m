@@ -26,20 +26,15 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
-#include <Foundation/NSValue.h>
+#include <Foundation/NSThread.h>
 #include <Foundation/NSDictionary.h>
-#include <assert.h>
 
-NSString *NSGenericException
-	= @"NSGenericException";
+NSString *NSGenericException = @"NSGenericException";
 NSString *NSInternalInconsistencyException
 	= @"NSInternalInconsistencyException";
 NSString *NSInvalidArgumentException = @"NSInvalidArgumentException";
 NSString *NSMallocException = @"NSMallocException";
 NSString *NSRangeException = @"NSRangeException";
-
-/* FIXME: Not thread safe - probably need one for each thread. */
-static NSMutableArray *e_queue;
 
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
@@ -57,7 +52,9 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 @implementation NSException
 
-+ (NSException *)exceptionWithName:(NSString *)name reason:(NSString *)reason userInfo:(NSDictionary *)userInfo 
++ (NSException *)exceptionWithName:(NSString *)name
+			    reason:(NSString *)reason
+			  userInfo:(NSDictionary *)userInfo 
 {
     return [[[self alloc] initWithName:name reason:reason
 			userInfo:userInfo] autorelease];
@@ -89,7 +86,8 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
     [except raise];
 }
 
-- (id)initWithName:(NSString *)name reason:(NSString *)reason userInfo:(NSDictionary *)userInfo 
+- (id)initWithName:(NSString *)name reason:(NSString *)reason
+	  userInfo:(NSDictionary *)userInfo 
 {
     self = [super init];
     e_name = [name retain];
@@ -101,23 +99,21 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (volatile void)raise
 {
+    NSThread *thread;
     NSHandler *handler;
     
     if (_NSUncaughtExceptionHandler == NULL)
-    	_NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
+        _NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
 
-    if (!e_queue) {
+    thread = [NSThread currentThread];
+    handler = [thread exceptionHandler];
+    if (handler == NULL) {
     	_NSUncaughtExceptionHandler(self);
 	return;
     }
-    if ([e_queue count] == 0) {
-    	_NSUncaughtExceptionHandler(self);
-	return;
-    }
-    
-    [[e_queue lastObject] getValue:&handler];
+
+    [thread setExceptionHandler: handler->next];
     handler->exception = self;
-    [e_queue removeLastObject];
     longjmp(handler->jumpState, 1);
 }
 
@@ -177,20 +173,18 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 void 
 _NSAddHandler( NSHandler *handler )
 {
-    if (!e_queue)
-      e_queue = [[NSMutableArray alloc] initWithCapacity:8];
+    NSThread *thread;
 
-    [e_queue addObject:
-	       [NSValue value: &handler
-			withObjCType: @encode(NSHandler*)]];
+    thread = [NSThread currentThread];
+    handler->next = [thread exceptionHandler];
+    [thread setExceptionHandler: handler];
 }
 
 void 
 _NSRemoveHandler( NSHandler *handler )
 {
-    // FIXME: Should be NSAssert??
-    assert(e_queue);
-    assert([e_queue count] != 0);
-    [e_queue removeLastObject];
-}
+    NSThread *thread;
 
+    thread = [NSThread currentThread];
+    [thread setExceptionHandler: ([thread exceptionHandler])->next];
+}

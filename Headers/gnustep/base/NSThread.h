@@ -29,6 +29,7 @@
 #include <objc/thr.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
 
 typedef enum
@@ -42,6 +43,7 @@ typedef enum
 {
 @public
    objc_thread_t _thread_id;
+   NSHandler *_exception_handler;
    NSMutableDictionary *_thread_dictionary;
    struct autorelease_thread_vars _autorelease_vars;
 }
@@ -56,6 +58,10 @@ typedef enum
 
 + (void) sleepUntilDate: (NSDate*)date;
 + (void) exit;
+
+- (NSHandler*)exceptionHandler;
+
+- (void)setExceptionHandler: (NSHandler*)handler;
 
 @end
 

@@ -456,7 +456,6 @@ segindex (size_t size)
 {
   assert(size%MINCHUNK == 0);
 
-
   if (size < CLTOSZ(8))
     return size/MINCHUNK;
   else if (size < CLTOSZ(16))
@@ -786,7 +785,7 @@ nmalloc (NSZone *zone, size_t size)
       if (zptr->blocks->size-zptr->blocks->top < chunksize)
 	/* Get new block. */
 	{
-	  size_t blocksize = roundupto(size+NF_HEAD, zone->gran);
+	  size_t blocksize = roundupto(chunksize+NF_HEAD, zone->gran);
 
 	  /* Any clean way to make gcc shut up here? */
 	  NS_DURING

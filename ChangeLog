@@ -3,6 +3,58 @@ Mon Mar  3 14:41:01 1997  Andrew McCallum  <mccallum@jprc.com>
 	* src/NSHost.m, src/include/NSHost.h: New files from Luke Howard
 	<lukeh@xedoc.com.au>.
 
+Tue Jan 21 11:18:32 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* checks/thread-except.m: New file.
+
+	* checks/Makefile.in (SRCS): Added thread-except.m.
+
+	* src/NSAssertionHandler.m ([NSAssertionHandler +currentHandler]):
+	Handle multiple threads.
+
+	* src/NSException.m: Removed e_handlers.
+	([NSException -raise]): Support multiple threads.
+	(_NSAddHandler): Likewise.
+	(_NSRemoveHandler): Likewise.
+
+	* src/NSThread.m ([NSThread -init]): Init _exception_handler.
+	([NSThread -exceptionHandler]): New method.
+	([NSThread -setExceptionHandler:]): Likewise.
+
+	* src/include/NSThread.h (NSThread): Added _exception_handler and
+	new methods exceptionHandler and setExceptionHandler.
+
+Mon Jan 20 09:46:00 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSException.m: Use linked list instead of NSArray.  Fit
+	lines within 80 columns.
+
+	* src/NSZone.m (nmalloc): Use CHUNKSIZE to get new block size
+	instead of SIZE.
+
+Mon Jan 20 00:15:39 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSAllocateObject.m: Include NSZone.h.
+
+	* src/NSZone.m: Changed ffree_NSZone and nfree_NSZone to ffree_zone
+ 	and nfree_zone.  Changed lock functions return types to ints.
+	(become_threaded): Set mutex functions.
+	(NSZoneMemInUse): Properly check buffer.
+	(nmalloc): Removed unnecessary declaration of block.
+	(NSCreateZone): Moved assignment of block out of exception handled
+ 	area.
+	(NSCreateZone): Fixed typo (objc_mutex_deallocate instead of
+ 	objc_mutex_dealloc).
+	(NSZoneMemInUse): Consider cases when memory is in buffer.
+
+ 	* src/NSData.m ([NSData -description]): Frees malloced memory.
+
+	* src/NSPage.m (NSAllocateMemoryPages): Return NULL if we fail to
+ 	allocate memory.
+
+	* src/NSObject.m (NSShouldRetainWithZone): Check match for
+	NSDefaultMallocZone().
+
 Fri Jan 17 20:08:00 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
 
 	* src/o_x_bas.m.in (o_@XX@_zone): Use NSZoneFromPointer().
