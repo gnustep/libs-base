@@ -23,42 +23,7 @@
 */ 
 
 #include <config.h>
-#include <base/preface.h>
-
-#if NeXT_runtime
-
-/* Deal with strrchr: */
-#if STDC_HEADERS || HAVE_STRING_H
-#include <string.h>
-/* An ANSI string.h and pre-ANSI memory.h might conflict.  */
-#if !STDC_HEADERS && HAVE_MEMORY_H
-#include <memory.h>
-#endif /* not STDC_HEADERS and HAVE_MEMORY_H */
-#define index strchr
-#define rindex strrchr
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#define bcmp(s1, s2, n) memcmp ((s1), (s2), (n))
-#define bzero(s, n) memset ((s), 0, (n))
-#else /* not STDC_HEADERS and not HAVE_STRING_H */
-#include <strings.h>
-/* memory.h and strings.h conflict on some systems.  */
-#endif /* not STDC_HEADERS and not HAVE_STRING_H */
-
-#define ROUND(V, A) \
-  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
-     __a*((__v+__a-1)/__a); })
-
-
-static inline int
-atoi (const char* str)
-{
-  int res = 0;
-  
-  while (isdigit (*str))
-    res *= 10, res += (*str++ - '0');
-
-  return res;
-}
+#include <base/objc-gnu2next.h>
 
 /*
   return the size of an object specified by type 
@@ -444,60 +409,6 @@ objc_get_type_qualifiers (const char* type)
   return res;
 }
 
-
-/* GNU Object.[hm] defines -compare:, NeXT doesn't, libcoll needs it. */
-
-@implementation Object (GNUExtensions)
-- (int)compare:anotherObject;
-{
-  if ([self isEqual:anotherObject])
-    return 0;
-  // Ordering objects by their address is pretty useless, 
-  // so subclasses should override this is some useful way.
-  else if (self > anotherObject)
-    return 1;
-  else 
-    return -1;
-}
-- shouldNotImplement:(SEL)op
-{
-  return [self error:"should not implement %s", sel_getName (op)];
-}
-@end
-
-#ifdef objc_fatal
-#undef objc_fatal
-#endif
-void
-objc_fatal(const char* msg)
-{
-  write(2, msg, (int)strlen((const char*)msg));
-  abort();
-}
-void *__objc_xmalloc (unsigned long size)
-{
-  void* res = (void*) malloc(size);
-  if(!res)
-    objc_fatal("Virtual memory exhausted\n");
-  return res;
-}
-void*
-__objc_xrealloc(void* mem, size_t size)
-{
-  void* res = (void*) realloc(mem, size);
-  if(!res)
-    objc_fatal("Virtual memory exhausted\n");
-  return res;
-}
-void*
-__objc_xcalloc(size_t nelem, size_t size)
-{
-  void* res = (void*)calloc(nelem, size);
-  if(!res)
-    objc_fatal("Virtual memory exhausted\n");
-  return res;
-}
-
 /* Returns YES iff t1 and t2 have same method types, but we ignore
    the argframe layout */
 BOOL
@@ -529,4 +440,80 @@ sel_types_match (const char* t1, const char* t2)
 
 
 
-#endif /* NeXT_runtime */
+/*
+** Hook functions for memory allocation and disposal.
+** This makes it easy to substitute garbage collection systems
+** such as Boehm's GC by assigning these function pointers
+** to the GC's allocation routines.  By default these point
+** to the ANSI standard malloc, realloc, free, etc.
+**
+** Users should call the normal objc routines above for
+** memory allocation and disposal within their programs.
+*/
+
+void *(*_objc_malloc)(size_t) = malloc;
+void *(*_objc_atomic_malloc)(size_t) = malloc;
+void *(*_objc_valloc)(size_t) = malloc;
+void *(*_objc_realloc)(void *, size_t) = realloc;
+void *(*_objc_calloc)(size_t, size_t) = calloc;
+void (*_objc_free)(void *) = free;
+
+/*
+** Standard functions for memory allocation and disposal.
+** Users should use these functions in their ObjC programs so
+** that they work properly with garbage collectors as well as
+** can take advantage of the exception/error handling available.
+*/
+
+void *
+objc_malloc(size_t size)
+{
+  void* res = (void*) (*_objc_malloc)(size);
+  if(!res)
+    objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
+  return res;
+}
+
+void *
+objc_atomic_malloc(size_t size)
+{
+  void* res = (void*) (*_objc_atomic_malloc)(size);
+  if(!res)
+    objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
+  return res;
+}
+
+void *
+objc_valloc(size_t size)
+{
+  void* res = (void*) (*_objc_valloc)(size);
+  if(!res)
+    objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
+  return res;
+}
+
+void *
+objc_realloc(void *mem, size_t size)
+{
+  void* res = (void*) (*_objc_realloc)(mem, size);
+  if(!res)
+    objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
+  return res;
+}
+
+void *
+objc_calloc(size_t nelem, size_t size)
+{
+  void* res = (void*) (*_objc_calloc)(nelem, size);
+  if(!res)
+    objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
+  return res;
+}
+
+void
+objc_free(void *mem)
+{
+  (*_objc_free)(mem);
+}
+
+

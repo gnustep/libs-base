@@ -95,6 +95,47 @@
 #define OBJC_READONLY 1
 #define OBJC_WRITEONLY 2
 
+/*
+** Standard functions for memory allocation and disposal.
+** Users should use these functions in their ObjC programs so
+** that they work properly with garbage collectors as well as
+** can take advantage of the exception/error handling available.
+*/
+void *
+objc_malloc(size_t size);
+
+void *
+objc_atomic_malloc(size_t size);
+
+void *
+objc_valloc(size_t size);
+
+void *
+objc_realloc(void *mem, size_t size);
+
+void *
+objc_calloc(size_t nelem, size_t size);
+
+void
+objc_free(void *mem);
+
+/*
+** Hook functions for memory allocation and disposal.
+** This makes it easy to substitute garbage collection systems
+** such as Boehm's GC by assigning these function pointers
+** to the GC's allocation routines.  By default these point
+** to the ANSI standard malloc, realloc, free, etc.
+**
+** Users should call the normal objc routines above for
+** memory allocation and disposal within their programs.
+*/
+objc_EXPORT void *(*_objc_malloc)(size_t);
+objc_EXPORT void *(*_objc_atomic_malloc)(size_t);
+objc_EXPORT void *(*_objc_valloc)(size_t);
+objc_EXPORT void *(*_objc_realloc)(void *, size_t);
+objc_EXPORT void *(*_objc_calloc)(size_t, size_t);
+objc_EXPORT void (*_objc_free)(void *);
+
 #endif /* NeXT_RUNTIME */
 
 #endif /* __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE */

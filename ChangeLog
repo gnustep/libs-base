@@ -1,10 +1,13 @@
 2001-04-12  Adam Fedor  <fedor@gnu.org>
 
-	* Headers/gnustep/base/NSLock.h: Don't include thr.h if NeXT_RUNTIME.
+	* Headers/gnustep/base/NSLock.h: Include thrmach.h if NeXT_RUNTIME.
 	* Headers/gnustep/base/NSThread.h: Likewise.
-	* Headers/gnustep/base/NSObjCRuntime: Include objc-gnu2next if
-	NeXT_RUNTIME, usr common objc functions for compatibility.
+	* Headers/gnustep/base/NSObjCRuntime: Include objc-gnu2next.h if
+	NeXT_RUNTIME, use common objc functions for compatibility.
 	* Headers/gnustep/base/objc-gnu2next.h: Update, simplify.
+	* Headers/gnustep/base/thr-mach.h: New file
+	* Source/thr-mach.m: New file
+	* Source/GNUmakefile: Update to conditionally compile NeXT files
 
 	* Documentation/gsdoc/NSRecursiveLock.gsdoc: Update.
 
