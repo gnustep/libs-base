@@ -61,6 +61,8 @@
 #include <Foundation/NSZone.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSMapTable.h>
+#include <Foundation/NSThread.h>
+#include <Foundation/NSNotification.h>
 
 #define NOID
 #include "tzfile.h"
@@ -106,8 +108,9 @@ struct ttinfo
 };
 
 
-/* The local time zone. */
-static id	localTimeZone;
+static NSTimeZone	*defaultTimeZone = nil;
+static NSTimeZone	*localTimeZone = nil;
+static NSTimeZone	*systemTimeZone = nil;
 
 /* Dictionary for time zones.  Each time zone must have a unique
    name. */
@@ -117,7 +120,7 @@ static NSMutableDictionary *zoneDictionary;
 static NSDictionary *fake_abbrev_dict;
 
 /* Lock for creating time zones. */
-static NSRecursiveLock *zone_mutex;
+static NSRecursiveLock *zone_mutex = nil;
 
 static Class	NSTimeZoneClass;
 
@@ -191,6 +194,9 @@ decode (const void *ptr)
 - (id) initWithOffset: (int)anOffset;
 @end
   
+@interface NSLocalTimeZone : NSTimeZone
+@end
+
 
 @interface NSConcreteTimeZoneDetail : NSTimeZoneDetail
 {
@@ -208,9 +214,9 @@ decode (const void *ptr)
   
 /* Private methods for obtaining resource file names. */
 @interface NSTimeZone (Private)
++ (void) _becomeThreaded: (NSNotification*)notification;
 + (NSString*) getAbbreviationFile;
 + (NSString*) getRegionsFile;
-+ (NSString*) getLocalTimeFile;
 + (NSString*) getTimeZoneFile: (NSString*)name;
 @end
 
@@ -319,7 +325,7 @@ decode (const void *ptr)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  if (self == localTimeZone)
+  if (self == (id)localTimeZone)
     [aCoder encodeObject: @"NSLocalTimeZone"];
   else
     [aCoder encodeObject: name];
@@ -385,7 +391,39 @@ decode (const void *ptr)
 }
   
 @end
+
+@implementation	NSLocalTimeZone
   
+- (id) autorelease
+{
+  return self;
+}
+
+- (void) release
+{
+}
+
+- (id) retain
+{
+  return self;
+}
+
+- (NSString*) name
+{
+  return [[NSTimeZoneClass defaultTimeZone] name];
+}
+
+- (NSArray*) timeZoneDetailArray
+{
+  return [[NSTimeZoneClass defaultTimeZone] timeZoneDetailArray];
+}
+  
+- (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
+{
+  return [[NSTimeZoneClass defaultTimeZone] timeZoneDetailForDate: date];
+}
+
+@end
   
 @implementation NSConcreteAbsoluteTimeZone
 
@@ -402,9 +440,11 @@ static NSMapTable	*absolutes = 0;
 
 - (void) dealloc
 {
-  [zone_mutex lock];
+  if (zone_mutex != nil)
+    [zone_mutex lock];
   NSMapRemove(absolutes, (void*)(gsaddr)offset);
-  [zone_mutex unlock];
+  if (zone_mutex != nil)
+    [zone_mutex unlock];
   RELEASE(name);
   RELEASE(detail);
   [super dealloc];
@@ -419,7 +459,8 @@ static NSMapTable	*absolutes = 0;
 {
   NSConcreteAbsoluteTimeZone	*z;
 
-  [zone_mutex lock];
+  if (zone_mutex != nil)
+    [zone_mutex lock];
   z = (NSConcreteAbsoluteTimeZone*)NSMapGet(absolutes, (void*)(gsaddr)anOffset);
   if (z)
     {
@@ -438,7 +479,8 @@ static NSMapTable	*absolutes = 0;
       z = self;
       NSMapInsert(absolutes, (void*)(gsaddr)anOffset, (void*)z);
     }
-  [zone_mutex unlock];
+  if (zone_mutex != nil)
+    [zone_mutex unlock];
   return z;
 }
 
@@ -588,20 +630,91 @@ static NSMapTable	*absolutes = 0;
   return abbreviationDictionary;
 }
 
-+ (NSTimeZoneDetail*) defaultTimeZone
++ (NSTimeZone*) defaultTimeZone
 {
-  return [localTimeZone timeZoneDetailForDate: [NSDate date]];
+  NSTimeZone	*zone;
+
+  if (zone_mutex != nil)
+    [zone_mutex lock];
+  if (defaultTimeZone == nil)
+    {
+      zone = [self systemTimeZone];
+    }
+  else
+    {
+      if (zone_mutex != nil)
+	zone = AUTORELEASE(RETAIN(defaultTimeZone));
+      else
+	zone = defaultTimeZone;
+    }
+  if (zone_mutex != nil)
+    [zone_mutex unlock];
+  return zone;
 }
 
 + (void) initialize
 {
   if (self == [NSTimeZone class])
     {
-      id	localZoneString = nil;
-
       NSTimeZoneClass = self;
-      zone_mutex = [NSRecursiveLock new];
       zoneDictionary = [[NSMutableDictionary alloc] init];
+
+      localTimeZone = [[NSLocalTimeZone alloc] init];
+      [self setDefaultTimeZone: [self systemTimeZone]];
+
+      fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
+      if ([NSThread isMultiThreaded])
+	{
+	  [self _becomeThreaded: nil];
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_becomeThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
+    }
+}
+
++ (NSTimeZone*) localTimeZone
+{
+  return localTimeZone;
+}
+
++ (void) resetSystemTimeZone
+{
+  if (zone_mutex != nil)
+    [zone_mutex lock];
+  DESTROY(systemTimeZone);
+  if (zone_mutex != nil)
+    [zone_mutex unlock];
+}
+
++ (void) setDefaultTimeZone: (NSTimeZone*)aTimeZone
+{
+  if (zone_mutex != nil)
+    [zone_mutex lock];
+  ASSIGN(defaultTimeZone, aTimeZone);
+  if (zone_mutex != nil)
+    [zone_mutex unlock];
+}
+
++ (NSTimeZone*) systemTimeZone
+{
+  NSTimeZone	*zone = nil;
+
+  if (zone_mutex != nil)
+    [zone_mutex lock];
+  if (systemTimeZone == nil)
+    {
+      NSString	*localZoneString = nil;
+
+      /*
+       * setup default value in case something goes wrong.
+       */
+      systemTimeZone = RETAIN([NSTimeZoneClass timeZoneForSecondsFromGMT: 0]);
 
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
@@ -618,23 +731,15 @@ static NSMapTable	*absolutes = 0;
 	  /*
 	   * Try to get timezone from LOCAL_TIME_FILE.
 	   */
-	  NSString	*f = [NSTimeZoneClass getLocalTimeFile];
-	  char		zone_name[80];
-	  FILE		*fp;
+	  NSString	*f;
 
-	  if (f != 0)
+	  f = [NSBundle pathForGNUstepResource: LOCAL_TIME_FILE
+					ofType: @""
+				   inDirectory: TIME_ZONE_DIR];
+	  if (f != nil)
 	    {
- #if	defined(__WIN32__)
-	      fp = fopen([f fileSystemRepresentation], "rb");
- #else
-	      fp = fopen([f fileSystemRepresentation], "r");
- #endif
-	      if (fp != NULL)
-		{
-		  if (fscanf(fp, "%79s", zone_name) == 1)
-		   localZoneString = [NSString stringWithCString: zone_name];
-		  fclose(fp);
-		}
+	      localZoneString = [NSString stringWithContentsOfFile: f];
+	      localZoneString = [localZoneString stringByTrimmingSpaces];
 	    }
 	}
       if (localZoneString == nil)
@@ -647,7 +752,7 @@ static NSMapTable	*absolutes = 0;
 	}
       if (localZoneString != nil)
 	{
-	  localTimeZone = [NSTimeZoneClass timeZoneWithName: localZoneString];
+	  zone = RETAIN([NSTimeZoneClass timeZoneWithName: localZoneString]);
 	}
       else
 	{
@@ -659,28 +764,23 @@ static NSMapTable	*absolutes = 0;
        * that is sure to succeed (unless we run out of memory, of
        * course).
        */
-      if (localTimeZone == nil)
+      if (zone == nil)
         {
           NSLog(@"Using time zone with absolute offset 0.");
-          localTimeZone = [NSTimeZoneClass timeZoneForSecondsFromGMT: 0];
+          zone = systemTimeZone;
         }
-      IF_NO_GC(RETAIN(localTimeZone));
-
-      fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
+      ASSIGN(systemTimeZone, zone);
     }
-}
-
-+ (NSTimeZone*) localTimeZone
-{
-  return localTimeZone;
-}
-
-+ (void) setDefaultTimeZone: (NSTimeZone*)aTimeZone
-{
-  if (aTimeZone == nil)
-    [NSException raise: NSInvalidArgumentException
-		 format: @"Nil time zone specified."];
-  ASSIGN(localTimeZone, aTimeZone);
+  if (zone_mutex != nil)
+    {
+      zone = AUTORELEASE(RETAIN(systemTimeZone));
+      [zone_mutex unlock];
+    }
+  else
+    {
+      zone = systemTimeZone;
+    }
+  return zone;
 }
 
 + (NSArray*) timeZoneArray
@@ -725,31 +825,13 @@ static NSMapTable	*absolutes = 0;
   return AUTORELEASE([[NSConcreteAbsoluteTimeZone alloc] initWithOffset: seconds]);
 }
 
-+ (NSTimeZoneDetail*) timeZoneWithAbbreviation: (NSString*)abbreviation
++ (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation
 {
-  /* We obtain a time zone from the abbreviation dictionary, get the
-     time zone detail array, and then obtain the time zone detail we
-     want from that array.  This convulated and twisted method is used
-     because there is no way to directly obtain the time zone
-     detail. */
-  id zone, detailArray, e, object;
+  NSTimeZone	*zone;
 
   zone = [self timeZoneWithName: [[self abbreviationDictionary]
 				   objectForKey: abbreviation]];
-  if (zone == nil)
-    return nil;
-  detailArray = [zone timeZoneDetailArray];
-  e = [detailArray objectEnumerator];
-  while ((object = [e nextObject]) != nil)
-    if ([[object timeZoneAbbreviation] isEqualToString: abbreviation])
-      return object;
-
-  /* If we reach here, we've got an inconsistency in our time zone
-     database. */
-  [NSException
-    raise: NSInternalInconsistencyException
-    format: @"Time zone abbreviation `%@' inconsistent.", abbreviation];
-  return nil;
+  return zone;
 }
 
 + (NSTimeZone*) timeZoneWithName: (NSString*)aTimeZoneName
@@ -765,11 +847,13 @@ static NSMapTable	*absolutes = 0;
   FILE *file = NULL;
   NSString *fileName;
 
-  [zone_mutex lock];
+  if (zone_mutex != nil)
+    [zone_mutex lock];
   zone = [zoneDictionary objectForKey: aTimeZoneName];
   if (zone != nil)
     {
-      [zone_mutex unlock];
+      if (zone_mutex != nil)
+	[zone_mutex unlock];
       return zone;
     }
 
@@ -777,7 +861,8 @@ static NSMapTable	*absolutes = 0;
   if (i == 0)
     {
       NSLog(@"Disallowed null time zone name");
-      [zone_mutex unlock];
+      if (zone_mutex != nil)
+	[zone_mutex unlock];
       return nil;
     }
   else
@@ -787,7 +872,8 @@ static NSMapTable	*absolutes = 0;
       if ([aTimeZoneName hasPrefix: @"NSAbsoluteTimeZone:"] == YES)
 	{
 	  i = atoi(&str[19]);
-	  [zone_mutex unlock];
+	  if (zone_mutex != nil)
+	    [zone_mutex unlock];
 	  zone = [[NSConcreteAbsoluteTimeZone alloc] initWithOffset: i];
 	  AUTORELEASE(zone);
 	  return zone;
@@ -798,7 +884,8 @@ static NSMapTable	*absolutes = 0;
       if ((str)[0] == '/' || strchr(str, '.') != NULL)
 	{
 	  NSLog(@"Disallowed time zone name `%@'.", aTimeZoneName);
-	  [zone_mutex unlock];
+	  if (zone_mutex != nil)
+	    [zone_mutex unlock];
 	  return nil;
 	}
     }
@@ -889,7 +976,7 @@ static NSMapTable	*absolutes = 0;
       [zone initWithName: aTimeZoneName
 	 withTransitions: transArray
 	     withDetails: detailsArray];
-      [zoneDictionary setObject: zone forKey: [zone name]];
+      [zoneDictionary setObject: zone forKey: (NSString*)[zone name]];
     }
   NS_HANDLER
     {
@@ -906,10 +993,16 @@ static NSMapTable	*absolutes = 0;
 
   if (file != NULL)
     fclose(file);
-  [zone_mutex unlock];
+  if (zone_mutex != nil)
+    [zone_mutex unlock];
   return zone;
 }
 
++ (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
 
 - (NSString*) abbreviation
 {
@@ -966,6 +1059,18 @@ static NSMapTable	*absolutes = 0;
       self = RETAIN([NSTimeZoneClass timeZoneWithName: name]);
     }
   return self;
+}
+
+- (id) initWithName: (NSString*)name
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
+- (id) initWithName: (NSString*)name data: (NSData*)data
+{
+  [self notImplemented: _cmd];
+  return nil;
 }
 
 - (BOOL) isDaylightSavingTime
@@ -1069,6 +1174,21 @@ static NSMapTable	*absolutes = 0;
 
 @implementation NSTimeZone (Private)
 
+/*
+ *	When the system becomes multithreaded, we set a flag to say so
+ */
++ (void) _becomeThreaded: (NSNotification*)notification
+{
+  if (zone_mutex == nil)
+    {
+      zone_mutex = [NSRecursiveLock new];
+    }
+  [[NSNotificationCenter defaultCenter]
+    removeObserver: self
+	      name: NSWillBecomeMultiThreadedNotification
+	    object: nil];
+}
+
 + (NSString*) getAbbreviationFile
 {
   return [NSBundle pathForGNUstepResource: ABBREV_DICT
@@ -1079,13 +1199,6 @@ static NSMapTable	*absolutes = 0;
 + (NSString*) getRegionsFile
 {
   return [NSBundle pathForGNUstepResource: REGIONS_FILE
-		   ofType: @""
-		   inDirectory: TIME_ZONE_DIR];
-}
-
-+ (NSString*) getLocalTimeFile
-{
-  return [NSBundle pathForGNUstepResource: LOCAL_TIME_FILE
 		   ofType: @""
 		   inDirectory: TIME_ZONE_DIR];
 }
