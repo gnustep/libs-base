@@ -42,6 +42,7 @@ Languages/French  \
 Languages/German  \
 Languages/Italian \
 Languages/Russian \
+Languages/Slovak \
 Languages/UkraineRussian
 
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases
