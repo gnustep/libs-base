@@ -591,31 +591,34 @@ int main(int argc, char *argv[], char *env[])
 /**
  * Returns a string which may be used as a globally unique identifier.<br />
  * The string contains the host name, the process ID, a timestamp and a
- * counter (to ensure that multiple strings generated within the same
- * process are unique).
+ * counter.<br />
+ * The first three values identify the process in which the string is
+ * generated, while the fourth ensures that multiple strings generated
+ * within the same process are unique.
  */
 - (NSString *) globallyUniqueString
 {
-  static int	pid = 0;
-  static int	counter = 0;
-  int		count;
+  static unsigned long	counter = 0;
+  int			count;
+  static NSString	*host = nil;
+  static int		pid;
+  static unsigned long	start;
 
-  if (pid == 0)
-    {
-#if defined(__MINGW__)
-      pid = (int)GetCurrentProcessId();
-#else
-      pid = (int)getpid();
-#endif
-    }
   [gnustep_global_lock lock];
+  if (host == nil)
+    {
+      pid = [self processIdentifier];
+      start = (unsigned long)GSTimeNow();
+      host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
+      RETAIN(host);
+    }
   count = counter++;
   [gnustep_global_lock unlock];
 
   // $$$ The format of the string is not specified by the OpenStep 
   // specification.
-  return [NSString stringWithFormat: @"%@_%d_%lf_%d",
-    [self hostName], pid, GSTimeNow(), count];
+  return [NSString stringWithFormat: @"%@_%x_%lx_%lx",
+    host, pid, start, count];
 }
 
 /**
