@@ -336,7 +336,7 @@ static IMP	wRelImp;
 static IMP	wRetImp;
 
 static void
-wRelease(NSMapTable* t, const void* w)
+wRelease(NSMapTable* t, void* w)
 {
   (*wRelImp)((id)w, wRelSel);
 }
