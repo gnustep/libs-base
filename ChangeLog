@@ -1,3 +1,8 @@
+2001-06-09  Adam Fedor  <fedor@gnu.org>
+
+	* Source/externs.m: Change definition of exception strings and some
+	functions to match headers.
+
 2001-06-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: parseQuotedString() ... fix for parsing octal
