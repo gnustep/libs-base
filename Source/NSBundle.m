@@ -1000,7 +1000,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (ext && [ext length] != 0)
 	{
 	  fullpath = [path stringByAppendingPathComponent:
-	    [NSString stringWithFormat: @"%@.%@", name, ext]];
+			     [NSString stringWithFormat: @"%@.%@", name, ext]];
 	  if ( bundle_file_readable(fullpath) )
 	    {
 	      if (gnustep_target_os)
