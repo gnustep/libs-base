@@ -1,3 +1,9 @@
+2005-03-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix some charset-encoding mappings.
+	Add utf-7 and utf-16.
+	Document mapping methods better.
+
 2005-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSFileManager.h: Add path handling documentation.
@@ -9,7 +15,7 @@
 	gnustep/unix/windows.  In the default gnustep mode we try to
 	handle paths in any format and just do the right thing.
 	Also updated handling of path extensions to match MacOSX behavior.
-	* Source/Additions/GSMime.h: Remove deprecated method.
+	* Source/Additions/GSMime.m: Remove deprecated method.
 	Optimise a little by avoiding class lookups.
 
 2005-03-18  Richard Frith-Macdonald <rfm@gnu.org>
