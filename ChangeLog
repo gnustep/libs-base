@@ -1,3 +1,179 @@
+Mon Mar 18 13:31:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Fix the relationship between RunLoop's and Port's.  Maintain the
+	fd_set, and information about which Port's are registered with
+	which RunLoop's entirely in the RunLoop.  Also implement multiple
+	MODE's with RunLoop's---previously the MODE was ignored.
+
+	* checks/tcpport-server.m (main): Add port to run loop using new
+ 	scheme.
+	* checks/tcpport-client.m (main): Likewise.
+
+	* src/TcpPort.m: Removed methods for dealing remembering locally
+ 	which RunLoop we've been added to; now the RunLoop manages this.
+	([TcpInPort +newForReceivingFromPortNumber:]): Don't initialize the
+	the removed ivar ACTIVE_FD_SET.  Likewise with _RUN_LOOPS.
+	([TcpInPort -newPacketReceivedBeforeDate:]): Don't use removed
+	_RUN_LOOPS.
+	([TcpInPort -old_receivePacketWithTimeout:]): Remove old deprecated
+	method.
+	([TcpInPort -invokeWithObject:]): Method removed.
+	([TcpInPort -newPacketReceivedBeforeDate:]): Overhauled to use new
+	RunLoop mechanism.
+	([TcpInPort -getFds:count:]): New method, called by RunLoop.
+	([TcpInPort -readyForReadingOnFileDescriptor:]): Likewise.
+	([TcpInPort -_addClientOutPort:]): Updated for new scheme.
+	([TcpInPort -_connectedOutPortInvalidated:]): Likewise.
+	([TcpInPort -addToRunLoop:forMode:]): Method removed.
+	([TcpInPort -removeFromRunLoop:forMode:]): Method removed.
+	([TcpInPort -dealloc]): Don't release deleted ivar _RUN_LOOPS.
+	* src/objects/TcpPort.h (TcpInPort _run_loops): Removed ivars.
+	(TcpInPort _client_sock_2_out_port, _client_sock_2_packet): Prepended
+	ivars with underscores.
+
+	* src/RunLoop.m: Add new explanatory comment at beginning.
+	([RunLoop -init]): Initialize new ivars.
+	([RunLoop -currentMode]): New method.
+	([RunLoop -addFileDescriptor:object:forMode:]): Method replaces
+	-addFileDescriptor:invocation:forMode:, and re-implemented.  Not
+ 	yet functional.
+	([RunLoop -removeFileDescriptor:forMode:]): Likewise.
+	([RunLoop -addPort:forMode:]): New method.
+	([RunLoop -removePort:forMode:]): New method.
+	([RunLoop -addTimer:forMode:]): Overhauled to do the right thing with
+	the MODE argument.
+	([RunLoop -acceptInputForMode:beforeDate:]): Method overhauled to ask
+	port objects for their FD's, create FD_2_OBJECT map table on the
+ 	fly, and initialize FDS on the fly.  Now properly removed
+ 	invalidated ports from the MODE.
+	([RunLoop -runOnceBeforeDate:forMode:]): New method.
+	([RunLoop -runOnceBeforeDate:]): New method.
+	([RunLoop -runUntilDate:forMode:]): New method.
+	([RunLoop -runUntilDate:]): New method.
+	([RunLoop +runUntilDate:forMode:]): New method.
+	([RunLoop +runOnceBeforeDate:]): New method.
+	([RunLoop +runOnceBeforeDate:forMode:]): New method.
+	([RunLoop +currentMode]): New method.
+	(RunLoopDefaultMode): New global variable.
+	([NSObject -performSelector:afterDelay:]): Not implemented.
+	* src/objects/RunLoop.h: Many new methods declared.
+	(RunLoop _mode_2_timers): New ivar.
+	(RunLoop _mode_2_in_ports): New ivar.
+	(RunLoop _mode_2_fd_listeners): New ivar.
+	(RunLoopDefaultMode): New extern variable.
+
+	* src/objects/RandomGenerating.h (RandomGenerating): Inherit from
+ 	NSObject protocol.  Remove methods +alloc and -init.
+
+	* src/NSDate.m ([NSDate +distantFuture]): Increase efficiency by
+ 	caching a single instance in a static variable.
+	([NSDate +distantPast]): Likewise.
+
+Sun Mar 17 18:20:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/objects/objects.h: Don't include <objects/SocketPort.h>
+
+	* src/mframe.m (dissect_method_return): Initialize RETFRAME to
+ 	NULL to prevent warning.
+
+	* src/UdpPort.m: Change references to non-existant UdpPacket class
+ 	to UdpInPacket.
+	* src/objects/UdpPort.h: Declare classes UdpInPacket and
+ 	UdpOutPacket.
+
+	* src/TcpPort.m (bzero): New macro, to memset(); for FD_ZERO().
+
+	* src/RunLoop.m: Remove references to NAN.  Include <string.h> for
+	memset. 
+	(bzero): New macro, to memset(); for FD_ZERO().
+	* src/NSTimer.m: Remove references to NAN.
+
+	* src/Proxy.m ([Proxy +newWithCoder:]): Remove unused variable.
+
+	* src/NotificationDispatcher.m ([NotificationDispatcher
+ 	-removeObserver:name:object:]): Remove unused variables.
+	* src/NSNotificationCenter.m: Include <behavior.h>
+	* src/NSNotification.m: Include <behavior.h>
+
+	* src/NSInvocation.m ([NSInvocation -methodSignature]): Return
+ 	nil.
+
+	* src/NSDate.m ([NSDate -initWithString:]): Initialize theTime to
+ 	0, to prevent warning.
+
+	* src/NSData.m ([NSData +_setConcreteClass:]): Include <string.h>
+ 	for memset().
+
+	* src/NSCountedSet.m ([NSCountedSet -countForObject:]): Return 0.
+
+	* src/NSBundle.m: Minor comment format fix.
+
+	* src/Invocation.m: Remove several unused local variables.
+ 	([MethodInvocation -invokeWithObject:]): Revert last change: call
+	-invokeWithTarget:, not -subclassResponsibility.
+
+	* src/NSAllocateObject.m: Include <string.h> for memset().
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool
+ 	-parentAutoreleasePool]): Remove inclusion of eltfuncs.h and
+ 	collhash.h.
+
+	Miscellaneous archiving fixes.
+	* src/NSArchiver.m ([NSArchiver +initialize]): Use ==, not = in if
+ 	test.
+	* src/Encoder.m ([Encoder -_coderCreateReferenceForObject:]):
+ 	Return the xref!
+	([Encoder -_coderCreateReferenceForConstPtr:]): Likewise.
+	* src/Coder.m: Return nil for several -notImplemented methods that
+ 	are to return objects.
+	* src/CStream.m ([CStream -initForWritingToStream:s]): Return the
+ 	result.
+	* src/TextCStream.m ([TextCStream -decodeName:name]): Pass correct
+ 	value to debug message.
+	* src/RawCStream.m ([RawCStream
+ 	-encodeValueOfCType:at:withName:name]): Remove unused variable.
+	([RawCStream -decodeValueOfCType:at:withName:]): Likewise.  Switch on
+	*type, not unused variable.
+
+	Miscellaneous fixes to collection classes.
+	* src/MutableCString.m ([MutableCString -initWithCoder:]): Remove
+ 	unused variable n.  Return self, not n.
+	* src/OrderedCollection.m ([OrderedCollection
+ 	-replaceRange:withCollection:]): Return void.
+	([OrderedCollection -replaceRange:usingCollection:]): Likewise.
+	* src/MappedCollector.m ([MappedCollector
+ 	-initWithObjects:forKeys:count:]): Return self.
+	* src/LinkedList.m ([LinkedList -initWithObjects:count:]): Return
+ 	self.
+	* src/KeyedCollection.m ([ConstantKeyedCollection
+ 	-initWithObjects:forKeys:count:]): Return nil.
+	([ConstantKeyedCollection -objectAtKey:]): Likewise.
+	([ConstantKeyedCollection -keyOfObject:]): Likewise.
+	([ConstantKeyedCollection -withKeysInvoke:]): Return void.
+	([ConstantKeyedCollection -withKeysInvoke:whileTrue:]): Likewise.
+	([ConstantKeyedCollection -nextObjectAndKey:withEnumState:]):
+	Return nil.
+	([ConstantKeyedCollection -copyValuesAs:]): Likewise.
+	([ConstantKeyedCollection -nextObjectAndKey:withEnumState:]):
+	Likewise.
+	* src/IndexedCollection.m ([ConstantIndexedCollection
+ 	-prevObjectWithEnumState:]): Use assignment, not equality test for
+ 	setting enumState to -1.
+	* src/GapArray.m ([GapArray -empty]): Renamed from
+ 	_collectionEmpty, and implemented to do entire job of emptying.
+	* src/Dictionary.m ([Dictionary -newEnumState]): Removed useless
+ 	cruft.
+	* src/Collection.m ([ConstantCollection
+ 	-detectObjectByInvoking:]): Set detectedObject to nil to avoid
+ 	warning.
+	([ConstantCollection -maxObject]): Initialize MAX to nil.
+	([ConstantCollection -minObject]): Initialize MIN to nil.
+	([Collection -uniqueContents]): Iterate over CP, not SELF.
+	* src/CircularArray.m ([CircularArray -empty]): Renamed from
+ 	_collectionEmpty, and implemented to do entire job of emptying.
+	* src/Array.m ([Array -empty]): Renamed from _empty, and
+ 	implemented to do entire job of emptying.
+
 Fri Mar 15 13:10:34 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* doc/Makefile.in (GNUstep-FAQ.html): New target.
