@@ -833,14 +833,19 @@ static NSFileManager* defaultManager = nil;
 
       res = GetFileAttributes(cpath);
       if (res == WIN32ERR)
-	return NO;
-
-      if (isDirectory)
+	{
+	  return NO;
+	}
+      if (isDirectory != 0)
 	{
 	  if (res & FILE_ATTRIBUTE_DIRECTORY)
-	    *isDirectory = YES;
+	    {
+	      *isDirectory = YES;
+	    }
 	  else
-	    *isDirectory = NO;
+	    {
+	      *isDirectory = NO;
+	    }
 	}
       return YES;
 #else

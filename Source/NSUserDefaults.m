@@ -599,18 +599,19 @@ static NSString	*pathForUser(NSString *user)
     {
       if ([mgr createDirectoryAtPath: home attributes: attr] == NO)
 	{
-	  NSLog(@"Directory '%@' does not exist - failed to create it.", home);
+	  NSLog(@"Defaults home '%@' does not exist - failed to create it.",
+	    home);
 	  return nil;
 	}
       else
 	{
-	  NSLog(@"Directory '%@' did not exist - created it", home);
+	  NSLog(@"Defaults home '%@' did not exist - created it", home);
 	  isDir = YES;
 	}
     }
   if (isDir == NO)
     {
-      NSLog(@"ERROR - '%@' is not a directory!", home);
+      NSLog(@"ERROR - defaults home '%@' is not a directory!", home);
       return nil;
     }
 
@@ -618,18 +619,19 @@ static NSString	*pathForUser(NSString *user)
     {
       if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
 	{
-	  NSLog(@"Directory '%@' does not exist - failed to create it.", path);
+	  NSLog(@"Defaults path '%@' does not exist - failed to create it.",
+	    path);
 	  return nil;
 	}
       else
 	{
-	  NSLog(@"Directory '%@' did not exist - created it", path);
+	  NSLog(@"Defaults path '%@' did not exist - created it", path);
 	  isDir = YES;
 	}
     }
   if (isDir == NO)
     {
-      NSLog(@"ERROR - '%@' is not a directory!", path);
+      NSLog(@"ERROR - Defaults path '%@' is not a directory!", path);
       return nil;
     }
 
