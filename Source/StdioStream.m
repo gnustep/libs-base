@@ -28,6 +28,21 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#if !HAS_STRERROR
+static const char*
+strerror(int eno)
+{
+    extern char*	sys_errlist[];
+    extern int		sys_nerr;
+
+    if (eno < 0 || eno >= sys_nerr) {
+	return("unknown error number");
+    }
+    return(sys_errlist[eno]);
+}
+#endif
+
+
 enum {
   STREAM_READONLY = 0,
   STREAM_READWRITE,
