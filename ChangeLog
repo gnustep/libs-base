@@ -1,3 +1,9 @@
+Tue Feb  8 12:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Foundation/HSConfig.h.in: Added some GC macros
+	* Source/NSData.m: Attempt to remove temporary file if an atomic
+	write attempt fails.
+
 Sat Feb  5  8:47:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/Foundation/NSDebug.h: Add missing function prototype -
