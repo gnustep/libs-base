@@ -1613,6 +1613,7 @@ fail:
 		    if (isSource == YES)
 		      {
 			[self skipUnit];
+			DESTROY(comment);
 		      }
 		    else
 		      {
@@ -1624,6 +1625,7 @@ fail:
 		    if (isSource == YES)
 		      {
 			[self skipUnit];
+			DESTROY(comment);
 		      }
 		    else
 		      {
