@@ -90,6 +90,25 @@ GS_EXPORT NSString * const GSHTTPPropertyProxyHostKey;
  * obtain proxy port.
  */
 GS_EXPORT NSString * const GSHTTPPropertyProxyPortKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * specify the location of an SSL certificate file.
+ */
+GS_EXPORT NSString * const GSHTTPSCertificateFileKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * specify the location of an SSL key file.
+ */
+GS_EXPORT NSString * const GSHTTPSKeyFileKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * specify the password for an SSL key file.
+ */
+GS_EXPORT NSString * const GSHTTPSKeyPasswordKey;
+
 #endif
 
 /**

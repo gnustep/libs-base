@@ -514,6 +514,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       if ([[url scheme] isEqualToString: @"https"])
 	{
+	  NSString	*cert;
+
 	  if (sslClass == 0)
 	    {
 	      [self backgroundLoadDidFailWithReason:
@@ -523,6 +525,14 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
 							   service: port
 							  protocol: s];
+	  cert = [request objectForKey: GSHTTPSCertificateFileKey];
+          if ([cert length] > 0)
+	    {
+	      NSString	*key = [request objectForKey: GSHTTPSKeyFileKey];
+	      NSString	*pwd = [request objectForKey: GSHTTPSKeyPasswordKey];
+
+	      [sock sslSetCertificate: cert privateKey: key PEMpasswd: pwd];
+	    }
 	}
       else
 	{
