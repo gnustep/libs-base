@@ -43,6 +43,7 @@ function may be incorrect
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSFileManager.h>
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
@@ -211,26 +212,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   else
     {
       char	*start = base->path;
-      char	*end;
-
-      /*
-       * Evil hack for MacOS-X compatibility.
-       * RFCs state that '/foo/bar' combined with 'xxx'
-       * gives '/foo/xxx', but MacOS-X treats file URLs
-       * differently and returns '/foo/bar/xxx'
-       */
-      if (rel->isFile == YES)
-	{
-	  end = &start[strlen(start)];
-	  if (end > start && end[-1] == '/')
-	    {
-	      end--;
-	    }
-	}
-      else
-	{
-	  end = strrchr(start, '/');
-	}
+      char	*end = strrchr(start, '/');
 
       if (end != 0)
 	{
@@ -575,11 +557,24 @@ static void unescape(const char *from, char * to)
 }
 
 /**
- * Initialise as a file URL with the specified path.<br />
- * Calls -initWithString:relativeToURL:
+ * Initialise as a file URL with the specified path (which must
+ * be a valid path on the local filesystem).<br />
+ * Appends a trailing slash to the path when necessary if it
+ * specifies a directory.<br />
+ * Calls -initWithScheme:host:path:
  */
 - (id) initFileURLWithPath: (NSString*)aPath
 {
+  if ([aPath hasSuffix: @"/"] == NO)
+    {
+      BOOL	flag = NO;
+
+      if ([[NSFileManager defaultManager] fileExistsAtPath: aPath
+	isDirectory: &flag] == YES && flag == YES)
+	{
+	  aPath = [aPath stringByAppendingString: @"/"];
+	}
+    }
   self = [self initWithScheme: NSURLFileScheme
 			 host: nil
 			 path: aPath];
