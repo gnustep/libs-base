@@ -1,5 +1,48 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* src/NSBundle.m: Temporarily comment out some code with #if 0/1
+ 	so it will compile.  Get Adam Fedor or someone to fix it.
+	* src/NSCharacterSet.m: Likewise.
+
+	* src/include/NSConnection.h: Include some files.
+
+	* src/Makefile.in (GNUSTEP_HEADERS): Add NSDistantObject.h.
+	* src/include/NSDistantObject.h: New file.
+
+	* src/gdomap.c: Delete duplicate copy inside file.
+
+	* src/TcpPort.m: #include <signal.h>.  Define GDOMAP to be 0 for
+ 	now; have Richard Frith-Macdonald verify that it works for me.
+	(tryWrite): Change type of IFUN to match declaration of signal().
+	Cast second argument to signal() to avoid warning.
+	([TcpInPort +newForReceivingFromPortNumber:]): Use P->_PORT_SOCKET not
+	P->_SOCKET, which doesn't exist.  Likewise in several other
+ 	methods.
+
+	* src/NSString.m: Remove some duplicate methods.
+
+	* src/NSHost.m: Don't include <libc.h>.  Include
+ 	<Foundation/NSDictionary.h>.
+
+	* src/Connection.m: Include <Foundation/NSConnection> for delegate
+	method declaration.
+	([Connection +newForInPort:outPort:ancestorConnection:]): Cast
+	NEWCONN to avoid warning.
+
+	* src/Makefile.in (GNUSTEP_OTHER_SRCFILES): Move NSHost.m
+ 	temporarily here until its debugged.
+	(GNUSTEP_MFILES): Temporarily remove NSHost.m.
+
+	* src/NSDate.m ([NSDate -timeIntervalSince1970]): Remove duplicate
+ 	method definition.
+
+	* src/NSArchiver.m ([NSArchiver -init]): New method.  (Need for it
+ 	reported by Richard Frith-Macdonald <richard@brainstorm.co.uk>.)
+
+	* src/NSArchiver.m ([NSArchiver -encodeClassName:intoClassName:]):
+ 	Fix typo in method name.
+	* src/include/NSArchiver.h: Fix typo in method name.
+
 	* src/TcpPort.m (nameServer): Remove the ntohs() conversion of
  	NUM.  (Reported by Richard Frith-Macdonald
  	<richard@brainstorm.co.uk>>)
