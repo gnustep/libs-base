@@ -28,17 +28,11 @@
 
 #include <config.h>
 
-#ifdef	LIBXML2
-#include <libxml2/parser.h>
-#include <libxml2/parserInternals.h>
-#include <libxml2/SAX.h>
-#include <libxml2/HTMLparser.h>
-#else
-#include <libxml/parser.h>
-#include <libxml/parserInternals.h>
-#include <libxml/SAX.h>
-#include <libxml/HTMLparser.h>
-#endif
+/* libxml headers */
+#include <parser.h>
+#include <parserInternals.h>
+#include <SAX.h>
+#include <HTMLparser.h>
 
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>

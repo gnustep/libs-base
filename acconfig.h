@@ -145,6 +145,6 @@
 /* Define if using the ffcall library for invocations */
 #undef USE_FFCALL
 
-/* Define if the libxml header files are in libxml2 */
-#undef LIBXML2
+/* Define if libxml available */
+#undef HAVE_LIBXML
 
