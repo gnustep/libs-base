@@ -194,6 +194,8 @@ AC_SUBST(GS_WORDS_BIGENDIAN)
 #--------------------------------------------------------------------
 # Type size information needed for foundation headers.
 #--------------------------------------------------------------------
+AC_CHECK_SIZEOF(void*)
+
 GS_SINT8="signed char"
 GS_UINT8="unsigned char"
 AC_SUBST(GS_SINT8)
@@ -216,6 +218,22 @@ AC_SUBST(ac_cv_sizeof_float)
 
 AC_CHECK_SIZEOF(double)
 AC_SUBST(ac_cv_sizeof_double)
+
+if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_int; then
+  GS_ADDR="unsigned int"
+else
+  if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long; then
+    GS_ADDR="unsigned long"
+  else
+    if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long_long; then
+      GS_ADDR="unsigned long long"
+    else
+      echo "Unable to find integer of same size as void* - abort configuration"
+      exit
+    fi
+  fi
+fi
+AC_SUBST(GS_ADDR)
 
 if test $ac_cv_sizeof_short = 2; then
   GS_SINT16="signed short"
