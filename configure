@@ -2401,7 +2401,7 @@ fi
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 echo "$as_me:$LINENO: checking the Objective-C runtime" >&5
 echo $ECHO_N "checking the Objective-C runtime... $ECHO_C" >&6
-if test "$OBJC_RUNTIME_LIB" = "nx"; then
+if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   echo "$as_me:$LINENO: result: NeXT" >&5
 echo "${ECHO_T}NeXT" >&6
   LIBOBJC='-lobjc'
