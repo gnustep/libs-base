@@ -604,10 +604,17 @@ GetDefEncoding()
 #if HAVE_LANGINFO_CODESET
 	  /* Take it from the system locale information.  */
 	  encoding = nl_langinfo(CODESET);
+/*
+ * First handle the fallback response from nl_langinfo() ...
+ * if we are getting the default value we can't assume that
+ * the user has set anything up at all, so we must use the
+ * OpenStep/GNUstep default encopding ... latin1, even though
+ * the nl_langinfo() stuff would say default is ascii.
+ */
 	  if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
 	    || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
 	    || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
-	    defEnc = NSASCIIStringEncoding;
+	    defEnc = NSISOLatin1StringEncoding;
 	  else if (strcmp(encoding, "EUC-JP") == 0 /* glibc */
 	    /* HP-UX IRIX OSF/1 Solaris NetBSD */
 	    || strcmp(encoding, "eucJP") == 0
@@ -1281,6 +1288,23 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
+	while (spos < slen)
+	  {
+	    unichar	c = (unichar)((unc)src[spos++]);
+
+	    if (c > 127)
+	      {
+		result = NO;	// Non-ascii data found in input.
+		break;
+	      }
+	    if (dpos >= bsize)
+	      {
+		GROW();
+	      }
+	    ptr[dpos++] = c;
+	  }
+	break;
+
       case NSISOLatin1StringEncoding:
       case NSUnicodeStringEncoding:
 	while (spos < slen)
