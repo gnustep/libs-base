@@ -842,6 +842,8 @@ handle_printf_atsign (FILE *stream,
 		  options: (unsigned int) mask
 		    range: (NSRange) aRange
 {
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
   return strRangeNsNs(self, aString, mask, aRange);
 }
 
@@ -884,6 +886,8 @@ handle_printf_atsign (FILE *stream,
 		       options: (unsigned int)mask
 			 range: (NSRange)aRange
 {
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
   return strCompNsNs(self, aString, mask, aRange);
 }
 

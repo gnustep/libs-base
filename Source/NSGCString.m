@@ -696,8 +696,11 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 		       options: (unsigned int)mask
 			 range: (NSRange)aRange
 {
-  Class	c = fastClass(aString);
+  Class	c;
 
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
+  c = fastClass(aString);
   if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
     return strCompCsUs(self, aString, mask, aRange);
   else if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
@@ -711,8 +714,11 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 		  options: (unsigned int) mask
 		    range: (NSRange) aRange
 {
-  Class	c = fastClass(aString);
+  Class	c;
 
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+  c = fastClass(aString);
   if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
     return strRangeCsUs(self, aString, mask, aRange);
   else if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
