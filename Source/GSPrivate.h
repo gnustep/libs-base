@@ -32,8 +32,8 @@
  * allocated from the heap (to avoid stack overflow).
  */
 #define	OBUFMAX	1024
-#define	OBUFBEGIN(P, S) { id _xxx[(S) <= OBUFMAX ? (S) : 0]; id *(P) = ((S) <= OBUFMAX) ? _xxx : (id*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(id)); 
-#define	OBUFEND(P, S) if ((S) > OBUFMAX) NSZoneFree(NSDefaultMallocZone(), (P)); }
+#define	OBUFBEGIN(P, S) { id _obuf[(S) <= OBUFMAX ? (S) : 0]; id *_base = ((S) <= OBUFMAX) ? _obuf : (id*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(id)); id *(P) = _base;
+#define	OBUFEND() if (_base != _obuf) NSZoneFree(NSDefaultMallocZone(), _base); }
 
 /*
  * Function to get the name of a string encoding as an NSString.
