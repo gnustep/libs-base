@@ -250,7 +250,7 @@
 /* This is the designated copier */
 - (char *) cStringCopyRange: (IndexRange)aRange;
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return "";
 }
 
@@ -260,6 +260,7 @@
   return [self cStringCopyRange:((IndexRange){0,aLength})];
 }
 
+/* xxx No longer necessary because -cString does the same thing? */
 - (char *) cStringCopy
 {
   return [self cStringCopyRange:((IndexRange){0, [self count]})];
@@ -355,19 +356,25 @@
 
 - (char) charAtIndex: (unsigned)index
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return ' ';
 }
 
 - (const char *) cString
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
+  return NULL;
+}
+
+- (const char *) cStringNoCopy
+{
+  [self subclassResponsibility:_cmd];
   return NULL;
 }
 
 - (unsigned) cStringLength
 {
-  [self notImplemented:_cmd];
+  [self subclassResponbility:_cmd];
   return 0;
 }
 
