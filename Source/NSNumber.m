@@ -468,22 +468,6 @@ static Class	doubleNumberClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSValue*) valueFromString: (NSString*)string
-{
-  /* FIXME: implement this better */
-  const char *str;
-
-  str = [string cString];
-  if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0 
-      || strchr(str, 'E') >= 0)
-    return [NSNumber numberWithDouble: atof(str)];
-  else if (strchr(str, '-') >= 0)
-    return [NSNumber numberWithInt: atoi(str)];
-  else
-    return [NSNumber numberWithUnsignedInt: atoi(str)];
-  return [NSNumber numberWithInt: 0];
-}
-
 /*
  * A moderately sane default init method - a zero value integer.
  */

@@ -38,6 +38,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSUserDefaults.h>
+#include "gnustep/base/GSCategories.h"
 
 #include "GSPrivate.h"
 

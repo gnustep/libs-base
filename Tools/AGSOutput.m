@@ -22,9 +22,7 @@
 
 #include "AGSOutput.h"
 #include "gnustep/base/GNUstep.h"
-#ifdef NeXT_Foundation_LIBRARY
 #include "gnustep/base/GSCategories.h"
-#endif
 
 @interface AGSOutput (Private)
 - (NSString*) mergeMarkup: (NSString*)markup

@@ -32,6 +32,7 @@
 #include <Foundation/NSCalendarDate.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSValue.h>
 #else
 #include <Foundation/Foundation.h>
 #endif
@@ -53,11 +54,25 @@
 @interface NSString (GSCategories)
 - (NSString*) stringByDeletingPrefix: (NSString*)prefix;
 - (NSString*) stringByDeletingSuffix: (NSString*)suffix;
+- (NSString*) stringByTrimmingLeadSpaces;
+- (NSString*) stringByTrimmingTailSpaces;
+- (NSString*) stringByTrimmingSpaces;
+- (NSString*) stringByReplacingString: (NSString*)replace
+                           withString: (NSString*)by;
 @end
 
 @interface NSMutableString (GSCategories)
 - (void) deleteSuffix: (NSString*)suffix;
 - (void) deletePrefix: (NSString*)prefix;
+- (void) replaceString: (NSString*)replace
+            withString: (NSString*)by;
+- (void) trimLeadSpaces;
+- (void) trimTailSpaces;
+- (void) trimSpaces;
+@end
+
+@interface NSNumber(GSCategories)
++ (NSValue*) valueFromString: (NSString *)string;
 @end
 
 /* This is also defined in NSObject.h, but added here for use with the

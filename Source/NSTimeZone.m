@@ -75,7 +75,9 @@
 #include <Foundation/NSTimeZone.h>
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSDebug.h>
+#include "gnustep/base/GSCategories.h"
 #include <GSConfig.h>
+
 
 #define NOID
 #include "tzfile.h"

@@ -35,6 +35,10 @@
 
 @class NSMutableSet;
 
+/* ------------------------------------------------------------------------
+ * Macros
+ */
+
 // Following are also defined in gnustep-base/Headers/gnustep/base/NSObject.h
 #define IF_NO_GC(x)	\
     x
@@ -110,8 +114,6 @@
                 format: @"in %s, range { %u, %u } extends beyond size (%u)", \
                   sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
 
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
 /* Taken from gnustep-base/Headers/gnustep/base/NSString.h */
 typedef enum _NSGNUstepStringEncoding
 {
@@ -143,9 +145,33 @@ typedef enum _NSGNUstepStringEncoding
   NSBIG5StringEncoding			// Traditional chinese
 } NSGNUstepStringEncoding;
 
+/* ------------------------------------------------------------------------
+ * Variables
+ */
+GS_EXPORT NSRecursiveLock *gnustep_global_lock;
+
+/* ------------------------------------------------------------------------
+ * Class/Method Extensions
+ */
+
 @interface NSObject(GSCompatibility)
 + (id) notImplemented:(SEL)selector;
 - (BOOL) isInstance;
+@end
+
+@interface NSArray (GSCompatibility)
+- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
+@end
+
+@interface NSDistantObject (GSCompatibility)
++ (void) setDebug: (int)val;
+@end
+
+@interface NSFileHandle(GSCompatibility)
++ (id) fileHandleAsServerAtAddress: (NSString*)address
+                           service: (NSString*)service
+                          protocol: (NSString*)protocol;
+- (NSString*) socketAddress;
 @end
 
 // Used only in EOFault.m, -[EOFault forward::], for Object compatibility
@@ -153,9 +179,6 @@ typedef enum _NSGNUstepStringEncoding
 - (retval_t) returnFrame:(arglist_t)args;
 - (id) initWithArgframe:(arglist_t)args selector:(SEL)selector;
 @end
-
-GS_EXPORT NSArray *NSStandardLibraryPaths();
-GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
 
 @interface NSString(GSCompatibility)
 - (BOOL) boolValue;
@@ -166,13 +189,17 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
 - (NSMutableSet *) debugSet;
 @end
 
+/* ------------------------------------------------------------------------
+ * Functions
+ */
+
+GS_EXPORT NSArray *NSStandardLibraryPaths();
+GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
+
+GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary();
+
 GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt);
 GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt);
-
-@interface NSArray (GSCompatibility)
-- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
-@end
-
 
 #endif /* NexT_FOUNDATION_LIB */
 

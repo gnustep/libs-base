@@ -43,7 +43,6 @@
 
 #ifndef STRICT_OPENSTEP
 + (NSValue*) valueWithBytes: (const void*)value objCType: (const char*)type;
-+ (NSValue*) valueFromString: (NSString*)string;
 /* Designated initializer for all concrete subclasses */
 - (id) initWithBytes: (const void*)data objCType: (const char*)type;
 - (BOOL) isEqualToValue: (NSValue*)other;
