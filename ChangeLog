@@ -1,3 +1,8 @@
+2002-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m: Make gdnc log to syslog by default, and close
+	stdin, stdout, stderr to run as daemon.
+
 2002-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Insert port information to URL passed
