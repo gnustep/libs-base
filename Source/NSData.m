@@ -181,9 +181,9 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   tmp = NSZoneMalloc(zone, fileLength);
   if (tmp == 0)
     {
-      NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
-	thePath, fileLength, GSLastErrorStr(errno));
       CloseHandle(fh);
+      NSLog(@"Malloc failed for file (%s) of length %d - %s",
+	thePath, fileLength, GSLastErrorStr(errno));
       return NO;
     }
   if (!ReadFile(fh, tmp, fileLength, &got, 0))
@@ -275,7 +275,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	    }
 	  if (tmp == 0)
 	    {
-	      NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
+	      NSLog(@"Malloc failed for file (%s) of length %d - %s",
 		thePath, fileLength + c, GSLastErrorStr(errno));
 	      goto failure;
 	    }
@@ -288,7 +288,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       tmp = NSZoneMalloc(zone, fileLength);
       if (tmp == 0)
 	{
-	  NSWarnFLog(@"Malloc failed for file (%s) of length %d - %s",
+	  NSLog(@"Malloc failed for file (%s) of length %d - %s",
 	    thePath, fileLength, GSLastErrorStr(errno));
 	  goto failure;
 	}
@@ -312,9 +312,13 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
    */
 failure:
   if (tmp != 0)
-    NSZoneFree(zone, tmp);
+    {
+      NSZoneFree(zone, tmp);
+    }
   if (theFile != 0)
-    fclose(theFile);
+    {
+      fclose(theFile);
+    }
   return NO;
 }
 
@@ -555,6 +559,11 @@ failure:
   if (bufferSize > 0)
     {
       ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
+      if (ptr == 0)
+        {
+	  DESTROY(self);
+	  return nil;
+        }
       memcpy(ptr, aBuffer, bufferSize);
     }
   return [self initWithBytesNoCopy: ptr
@@ -775,8 +784,10 @@ failure:
   buffer = NSZoneMalloc([self zone], aRange.length);
 #endif
   if (buffer == 0)
-    [NSException raise: NSMallocException
-		format: @"No memory for subdata of NSData object"];
+    {
+      [NSException raise: NSMallocException
+		  format: @"No memory for subdata of NSData object"];
+    }
   [self getBytes: buffer range: aRange];
 
   return [NSData dataWithBytesNoCopy: buffer length: aRange.length];
@@ -1163,6 +1174,11 @@ failure:
 #else
 	      *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
 #endif
+	      if (*(char**)data == 0)
+	        {
+		  [NSException raise: NSMallocException
+			      format: @"out of memory to deserialize bytes"];
+		}
 	    }
 
 	  [self deserializeBytes: *(char**)data
@@ -1230,6 +1246,11 @@ failure:
 #else
 	  *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
 #endif
+	  if (*(char**)data == 0)
+	    {
+	      [NSException raise: NSMallocException
+			  format: @"out of memory to deserialize bytes"];
+	    }
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type
 			 atCursor: cursor
@@ -2365,6 +2386,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #else
 	      *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len+1);
 #endif
+	      if (*(char**)data == 0)
+	        {
+		  [NSException raise: NSMallocException
+			      format: @"out of memory to deserialize bytes"];
+		}
 	    }
 	  getBytes(*(void**)data, bytes, len, length, cursor);
 	  (*(char**)data)[len] = '\0';
@@ -2428,6 +2454,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
 #else
 	  *(char**)data = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
+	  if (*(char**)data == 0)
+	    {
+	      [NSException raise: NSMallocException
+			  format: @"out of memory to deserialize bytes"];
+	    }
 #endif
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type
@@ -3312,7 +3343,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  return;
 	}
       default:
-	[NSException raise: NSGenericException
+	[NSException raise: NSMallocException
 		    format: @"Unknown type to serialize - '%s'", type];
     }
 }
@@ -3399,6 +3430,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      zone = GSObjCZone(self);
 #endif
 	      tmp = NSZoneMalloc(zone, size);
+	      if (tmp == 0)
+	        {
+		  [NSException raise: NSMallocException
+		    format: @"Unable to set data capacity to '%d'", size];
+		}
 	      memcpy(tmp, bytes, capacity < size ? capacity : size);
 	    }
 	  else

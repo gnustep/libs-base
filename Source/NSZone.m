@@ -96,17 +96,15 @@
 #include <Foundation/NSLock.h>
 
 /*
- *	Try to get more memory - the normal process has failed.
- *	If we can't do anything, bomb out.
+ * Try to get more memory - the normal process has failed.
+ * If we can't do anything, just return a null pointer.
+ * Try to do some logging if possible.
  */
 void *
 GSOutOfMemory(size_t size, BOOL retry)
 {
-  /*
-   *	It would be nice to raise an exception - but how can we if there is
-   *	no memory available?
-   */
-  abort();
+  fprintf(stderr, "GSOutOfMemory ... wanting %u bytes.\n", size);
+  return 0;
 }
 
 #if	GS_WITH_GC == 0
