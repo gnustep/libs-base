@@ -290,7 +290,12 @@ my_object_is_class(id object)
 
 - (unsigned) _coderCreateForwardReferenceForObject: anObject
 {
-  unsigned fref = NSCountMapTable (object_2_fref) + 1;
+  unsigned fref;
+  if (!object_2_fref)
+    object_2_fref = 
+      NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
+			NSIntMapValueCallBacks, 0);
+  fref = NSCountMapTable (object_2_fref) + 1;
   assert ( ! NSMapGet (object_2_fref, anObject));
   NSMapInsert (object_2_fref, anObject, (void*)fref);
   return fref;
