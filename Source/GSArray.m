@@ -928,3 +928,29 @@ static Class	GSInlineArrayClass;
 }
 @end
 
+@interface	NSGArray : NSArray
+@end
+@implementation	NSGArray
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
+  RELEASE(self);
+  self = (id)NSAllocateObject([GSArray class], 0, NSDefaultMallocZone());
+  self = [self initWithCoder: aCoder];
+  return self;
+}
+@end
+
+@interface	NSGMutableArray : NSMutableArray
+@end
+@implementation	NSGMutableArray
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
+  RELEASE(self);
+  self = (id)NSAllocateObject([GSMutableArray class], 0, NSDefaultMallocZone());
+  self = [self initWithCoder: aCoder];
+  return self;
+}
+@end
+
