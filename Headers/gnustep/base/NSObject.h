@@ -54,34 +54,54 @@
 @class NSInvocation;
 @class Protocol;
 
+/**
+ * The NSObject protocol describes a minimal set of methods that all
+ * objects are expected to support.  You should be able to send any
+ * of the messages listed in this protocol to an object, and be safe
+ * in assuming that the receiver can handle it.
+ */
 @protocol NSObject
-- (Class) class;
-- (Class) superclass;
-- (BOOL) isEqual: anObject;
-- (BOOL) isKindOfClass: (Class)aClass;
-- (BOOL) isMemberOfClass: (Class)aClass;
-- (BOOL) isProxy;
-- (unsigned) hash;
-- self;
-- performSelector: (SEL)aSelector;
-- performSelector: (SEL)aSelector withObject: anObject;
-- performSelector: (SEL)aSelector withObject: object1 withObject: object2;
+- (Class) class;			/** See [NSObject-class] */
+- (Class) superclass;			/** See [NSObject-superclass] */
+- (BOOL) isEqual: (id)anObject;		/** See [NSObject-isEqual:] */
+- (BOOL) isKindOfClass: (Class)aClass;	/** See [NSObject-isKindOfClass:] */
+- (BOOL) isMemberOfClass: (Class)aClass;/** See [NSObject-isMemberOfClass:] */
+- (BOOL) isProxy;			/** See [NSObject-isProxy] */
+- (unsigned) hash;			/** See [NSObject-hash] */
+- (id) self;				/** See [NSObject-self] */
+- (id) performSelector: (SEL)aSelector;	/** See [NSObject-performSelector:] */
+/** See [NSObject-performSelector:withObject:] */
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id)anObject;
+/** See [NSObject-performSelector:withObject:withObject:] */
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id)object1
+	    withObject: (id)object2;
+/** See [NSObject-respondsToSelector:] */
 - (BOOL) respondsToSelector: (SEL)aSelector;
-- (BOOL) conformsToProtocol: (Protocol *)aProtocol;
-- retain;
-- autorelease;
-- (oneway void) release;
-- (unsigned) retainCount;
-- (NSZone*) zone;
-- (NSString*) description;
+/** See [NSObject-conformsToProtocol:] */
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
+- (id) retain;				/** See [NSObject-retain] */
+- (id) autorelease			/** See [NSObject-autorelease] */;
+- (oneway void) release;		/** See [NSObject-release] */
+- (unsigned) retainCount;		/** See [NSObject-retainCount] */
+- (NSZone*) zone;			/** See [NSObject-zone] */
+- (NSString*) description;		/** See [NSObject-description] */
 @end
 
+/**
+ * This protocol must be adopted by any class wishing to support copying.
+ */
 @protocol NSCopying
-- (id) copyWithZone: (NSZone *)zone;
+- (id) copyWithZone: (NSZone*)zone;
 @end
 
+/**
+ * This protocol must be adopted by any class wishing to support
+ * mutable copying.
+ */
 @protocol NSMutableCopying
-- (id) mutableCopyWithZone: (NSZone *)zone;
+- (id) mutableCopyWithZone: (NSZone*)zone;
 @end
 
 @protocol NSCoding
@@ -187,24 +207,29 @@ GS_EXPORT BOOL
 NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
 
 /**
- * Return the extra reference count of anObject.  The retain count
+ * Return the extra reference count of anObject (a value in the range
+ * from 0 to the maximum unsigned integer value minus one).<br />
+ * The retain count
  * for an object is this value plus one.
  */
 GS_EXPORT unsigned
 NSExtraRefCount(id anObject);
 
 /**
- * Increment the extra reference count for anObject.  This is used
- * by the [NSObject-retain] method.
+ * Increments the extra reference count for anObject.
+ * The GNUstep version raises an exception if the reference count
+ * would be incremented to too large a value.
+ * This is used by the [NSObject-retain] method.
  */
 GS_EXPORT void
 NSIncrementExtraRefCount(id anObject);
 
 /**
  * Examines the extra reference count for the object and, if non-zero
- * decrements it.  Returns a flag to say whether the count was zero
+ * decrements it, otherwise leaves it unchanged.<br />
+ * Returns a flag to say whether the count was zero
  * (and hence whether the extra refrence count was decremented).<br />
- * This us used by the [NSObject-release] method.
+ * This function is used by the [NSObject-release] method.
  */
 GS_EXPORT BOOL
 NSDecrementExtraRefCountWasZero(id anObject);
@@ -266,14 +291,14 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output;
 - (Class) transmuteClassTo: (Class)aClassObject;
-- subclassResponsibility: (SEL)aSel;
-- shouldNotImplement: (SEL)aSel;
+- (id) subclassResponsibility: (SEL)aSel;
+- (id) shouldNotImplement: (SEL)aSel;
 + (Class) autoreleaseClass;
 + (void) setAutoreleaseClass: (Class)aClass;
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
-- read: (TypedStream*)aStream;
-- write: (TypedStream*)aStream;
-/*
+- (id) read: (TypedStream*)aStream;
+- (id) write: (TypedStream*)aStream;
+/**
  * If the 'deallocActivationsActive' flag is set, the _dealloc method will be
  * called during the final release of an object, and the dealloc method will
  * then be called only if _dealloc returns YES.

@@ -228,11 +228,22 @@ NSIncrementExtraRefCount(id anObject)
   if (allocationLock != 0)
     {
       objc_mutex_lock(allocationLock);
+      if (((obj)anObject)[-1].retained == UINT_MAX - 1)
+	{
+	  objc_mutex_unlock (allocationLock);
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
+	}
       ((obj)anObject)[-1].retained++;
       objc_mutex_unlock (allocationLock);
     }
   else
     {
+      if (((obj)anObject)[-1].retained == UINT_MAX - 1)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
+	}
       ((obj)anObject)[-1].retained++;
     }
 }
@@ -241,11 +252,22 @@ NSIncrementExtraRefCount(id anObject)
   if (allocationLock != 0) \
     { \
       objc_mutex_lock(allocationLock); \
+      if (((obj)X)[-1].retained == UINT_MAX - 1) \
+	{ \
+	  objc_mutex_unlock (allocationLock); \
+	  [NSException raise: NSInternalInconsistencyException \
+	    format: @"NSIncrementExtraRefCount() asked to increment too far"]; \
+	} \
       ((obj)(X))[-1].retained++;            \
       objc_mutex_unlock(allocationLock); \
     } \
   else \
     { \
+      if (((obj)X)[-1].retained == UINT_MAX - 1) \
+	{ \
+	  [NSException raise: NSInternalInconsistencyException \
+	    format: @"NSIncrementExtraRefCount() asked to increment too far"]; \
+	} \
       ((obj)X)[-1].retained++; \
     } \
 })
@@ -313,6 +335,13 @@ NSIncrementExtraRefCount (id anObject)
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node != 0)
 	{
+	  if ((node->value.uint) == UINT_MAX - 1)
+	    {
+	      objc_mutex_unlock(allocationLock);
+	      [NSException raise: NSInternalInconsistencyException
+		format:
+		@"NSIncrementExtraRefCount() asked to increment too far"];
+	    }
 	  (node->value.uint)++;
 	}
       else
@@ -326,6 +355,12 @@ NSIncrementExtraRefCount (id anObject)
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node != 0)
 	{
+	  if ((node->value.uint) == UINT_MAX - 1)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format:
+		@"NSIncrementExtraRefCount() asked to increment too far"];
+	    }
 	  (node->value.uint)++;
 	}
       else
@@ -413,7 +448,7 @@ NSExtraRefCount (id anObject)
 	  ret = node->value.uint;
 	}
     }
-  return ret;	/* ExtraRefCount + 1	*/
+  return ret;
 }
 
 #endif	/* defined(REFCNT_LOCAL) */
@@ -681,6 +716,7 @@ static BOOL double_release_check_enabled = NO;
 
 
 
+
 @implementation NSObject
 
 + (void) _becomeMultiThreaded: (NSNotification)aNotification
@@ -1113,7 +1149,9 @@ static BOOL double_release_check_enabled = NO;
 /**
  * Adds the receiver to the current autorelease pool, so that it will be
  * sent a -release message when the pool is destroyed.<br />
- * Returns the receiver.
+ * Returns the receiver.<br />
+ * In GNUstep, the [NSObject+enableDoubleReleaseCheck:] method may be used
+ * to turn on checking for ratain/release errors in this method.
  */
 - (id) autorelease
 {
@@ -1152,7 +1190,12 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * returns the class of which the receiver is an instance.
+ * Returns the class of which the receiver is an instance.<br />
+ * The default implementation returns the private <code>isa</code>
+ * instance variable of NSObject, which is used to store a pointer
+ * to the objects class.<br />
+ * NB.  When NSZombie is enabled (see NSDebug.h) this pointer is
+ * changed upon object deallocation.
  */
 - (Class) class
 {
@@ -1314,9 +1357,18 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Calls the NSDecrementExtraRefCountWasZero() function to test the
- * extra reference count for the receiver (and decrement it if non-zero).<br />
- * If it was zero, calls the -dealloc method to destroy the receiver.<br />
+ * Decrements the retain count for the receiver unless it is 1, in which
+ * case the dealloc method is called instead.<br />
+ * The default implementation calls the NSDecrementExtraRefCountWasZero()
+ * function to test the extra reference count for the receiver (and
+ * decrement it if non-zero) - if the extra reference count is zero then
+ * the retain count is one, and the dealloc method is called.<br />
+ * In GNUstep, the [NSObject+enableDoubleReleaseCheck:] method may be used
+ * to turn on checking for ratain/release errors in this method.<br />
+ * GNUstep also supports deallocation notifications ... if this feature is
+ * turned on (See [NSObject-setDeallocNotificationsActive:]) then the
+ * [NSObject-_dealloc] method is called to notify the objct that it is
+ * about to be deallocated.
  */
 - (oneway void) release
 {
@@ -1365,8 +1417,8 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Increments the reference count for the receiver by calling
- * NSIncrementExtraRefCount()
+ * Increments the reference count and returns the receiver.<br />
+ * The default implementation does this by calling NSIncrementExtraRefCount()
  */
 - (id) retain
 {
@@ -1390,7 +1442,10 @@ static BOOL double_release_check_enabled = NO;
 /**
  * Returns the reference count for the receiver.  Each instance has an
  * implicit reference count of 1, and has an 'extra refrence count'
- * returned by the NSExtraRefCount() function.
+ * returned by the NSExtraRefCount() function, so the value returned by
+ * this method is always greater than zero.<br />
+ * By convention, objects which should (or can) never be deallocated
+ * return the maximum unsigned integer value.
  */
 - (unsigned) retainCount
 {
@@ -1617,10 +1672,23 @@ static BOOL double_release_check_enabled = NO;
 
 /**
  * Enables runtime checking of retain/release/autorelease operations.<br />
- * Whenever either -autorelease or -release is called, the contents of any
+ * <p>Whenever either -autorelease or -release is called, the contents of any
  * autorelease pools will be checked to see if there are more outstanding
  * release operations than the objects retain count.  In which case an
  * exception is raised to say that the object is released too many times.
+ * </p>
+ * <p><strong>Beware</strong>, since this feature entails examining all active
+ * autorelease pools every time an object is released or autoreleased, it
+ * can cause a massive performance degradation ... it should only be enabled
+ * for debugging.
+ * </p>
+ * <p>
+ * Where you are having memory allocation problems, it may make more sense
+ * to look at the memory allocation debugging functions documnented in
+ *  look at the memory allocation debugging functions documnented in
+ * NSDebug.h, or use the NSZombie features.NSDebug.h, or use the NSZombie
+ * features.  
+ * </p>
  */
 + (void) enableDoubleReleaseCheck: (BOOL)enable
 {
