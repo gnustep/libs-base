@@ -42,6 +42,11 @@
 - (BOOL) isPartialStringValid: (NSString*)partialString
 	     newEditingString: (NSString**)newString
 	     errorDescription: (NSString**)error;
+- (BOOL) isPartialStringValid: (NSString**)partialStringPtr
+        proposedSelectedRange: (NSRange*)proposedSelRangePtr
+               originalString: (NSString*)origString
+        originalSelectedRange: (NSRange)originalSelRangePtr
+             errorDescription: (NSString**)error;
 - (NSString*) stringForObjectValue: (id)anObject;
 @end
 
