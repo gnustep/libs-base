@@ -3,6 +3,8 @@
 
    These files are part of the GNUstep Base Library.
 
+   Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
@@ -26,12 +28,40 @@
    Software Foundation.  Many code fragments are derived from gcc either
    directly or by way of libFoundation.
 
-   These files are used by the configuration script to build a
-   machine/operating-system specific 'mframe.m' file containing macros used
-   to access stack frames.
-   The 'mframe.m' file is simply built by wrapping a system dependant file
-   between mframe.head and mframe.foot
+   The sections of code (and comments) to do with the MFRAME_ARG_ENCODING()
+   macro for sparc, hppa and powerpc were derived from libFoundation (for
+   which, much thanks) avoiding the need to extract the relevent details
+   directly from the gcc source in these cases.  The originals from which
+   these fragments came the additional credit/copyright -
 
+     Copyright (C) 1995, 1996, 1998 Ovidiu Predescu and Mircea Oancea.
+     All rights reserved.
+
+     Author: Ovidiu Predescu <ovidiu@bx.logicnet.ro>
+
+     This file is part of libFoundation.
+
+     Permission to use, copy, modify, and distribute this software and its
+     documentation for any purpose and without fee is hereby granted, provided
+     that the above copyright notice appear in all copies and that both that
+     copyright notice and this permission notice appear in supporting
+     documentation.
+
+     We disclaim all warranties with regard to this software, including all
+     implied warranties of merchantability and fitness, in no event shall
+     we be liable for any special, indirect or consequential damages or any
+     damages whatsoever resulting from loss of use, data or profits, whether in
+     an action of contract, negligence or other tortious action, arising out of
+     or in connection with the use or performance of this software.
+
+
+Purpose -
+
+   The files in these directories are used by the configuration script to build
+   a machine/operating-system specific 'mframe.m' file containing macros used
+   to access stack frames.
+   The 'mframe.m' file is simply built by wrapping a system dependent file
+   between mframe.head and mframe.foot
 
 Advice on porting -
 
@@ -49,11 +79,11 @@ MFRAME_SMALL_STRUCT
 	the stack.  If your system never returns structures on the stack,
 	set this to zero rather than 8.
 	NB. If __builtin_apply_args() always returns an argframe for
-	structure return via pointe, you should also define this to zero.
+	structure return via pointer, you should also define this to zero.
 
 MFRAME_STRUCT_BYREF
-	This should be defined to 1 if structure arguments are passed
-	by reference, 0 otherwise.
+	This should be defined to 1 if structure arguments are passed in
+	the stack frame by reference, 0 otherwise.
 
 MFRAME_ARGS_SIZE
 	This must be set to the value computed by the apply_args_size()
@@ -61,7 +91,7 @@ MFRAME_ARGS_SIZE
 	area of memory allocated in which to pass arguments to a function.
 	If you can't figure out how to determine this - try using a
 	value like 128 - which will probably be far larger than required
-	(and therefore somewhat inefficient) but will msot likely work.
+	(and therefore somewhat inefficient) but will most likely work.
 
 MFRAME_RESULT_SIZE
 	This must be set to the value computed by the apply_result_size()
@@ -69,7 +99,7 @@ MFRAME_RESULT_SIZE
 	of memory allocated in which to return a value from a function.
 	If you can't figure out how to determine this - try using a
 	value like 128 - which will probably be far larger than required
-	(and therefore somewhat inefficient) but will msot likely work.
+	(and therefore somewhat inefficient) but will most likely work.
 
 MFRAME_FLT_IN_FRAME_AS_DBL
 	This should be defined as 1 if float parameters to functions and
@@ -98,6 +128,12 @@ MFRAME_INIT_ARGS(CUM, RTYPE)
 
 MFRAME_ARG_ENCODING(CUM,TYPES,STACK,DEST)
 	This macro is used to to determine the encoding of arguments.
+	You will have to write this macro for your system by examining the
+	gcc source code to determine how the compiler does this on your
+	system - look for the usage of CUMULATIVE_ARGS an INIT_CUMULATIVE_ARGS
+	in the configuration files for your hardware and operating system in
+	the gcc (or egcs) source, and make your macro mirror it's operation.
+
 	Before initial entry,
 	  CUM should have been initialised using the MFRAME_INIT_ARGS() macro,
 	  TYPES should be a (const char*) variable initialised to a

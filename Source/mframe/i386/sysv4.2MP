@@ -1,3 +1,4 @@
+/* See ../README for copyright */
 
 #define	MFRAME_STACK_STRUCT	0
 #define	MFRAME_STRUCT_BYREF	0
