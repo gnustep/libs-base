@@ -110,6 +110,9 @@ GS_EXPORT NSString*	NSFileHandleOperationException;
 @end
 
 
+
+#ifndef	NO_GNUSTEP
+
 // GNUstep class extensions
 
 @interface NSFileHandle (GNUstepExtensions)
@@ -135,6 +138,24 @@ GS_EXPORT NSString*	NSFileHandleOperationException;
 - (BOOL) writeInProgress;
 @end
 
+/*
+ * Where OpenSSL is available, you can use the GSUnixSSLHandle subclass
+ * to handle SSL connections.
+ *   The -sslConnect method is used to do SSL handlshake and start an
+ *   encrypted session.
+ *   The -sslDisconnect method is used to end the encrypted session.
+ *   The -sslSetCertificate:privateKey:PEMpasswd: method is used to
+ *   establish a client certificate before starting an encrypted session.
+ */
+@class	GSUnixSSLHandle;
+@interface NSFileHandle (GNUstepOpenSSL)
+- (void) sslConnect;
+- (void) sslDisconnect;
+- (void) sslSetCertificate: (NSString*)certFile
+                privateKey: (NSString*)privateKey
+                 PEMpasswd: (NSString*)PEMpasswd;
+@end
+
 // GNUstep Notification names.
 
 GS_EXPORT NSString*	GSFileHandleConnectCompletionNotification;
@@ -142,5 +163,6 @@ GS_EXPORT NSString*	GSFileHandleWriteCompletionNotification;
 
 // Message describing error in async accept,read,write operation.
 GS_EXPORT NSString*	GSFileHandleNotificationError;
+#endif
 
 #endif /* __NSFileHandle_h_GNUSTEP_BASE_INCLUDE */

@@ -1,5 +1,12 @@
 2000-11-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.in: Added checks for OpenSSL
+	* Headers/gnustep/base/NSFileHandle.h: Added info for SSL handles.
+	* Source/UnixFileHandle.m: Added GSUnixSSLHandle class based on
+	code by <mark@brainstorm.co.uk>
+
+2000-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSBundle.m: Minor tidying to avoid compiler warnings.
 	* Source/NSFileManager.m: ditto
 
