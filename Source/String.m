@@ -66,6 +66,14 @@
   return self;
 }
 
+/* xxx This is a second "designated" initializer. */
+- initWithCStringNoCopy: (const char*) aCharPtr
+	   freeWhenDone: (BOOL) f
+{
+  [self subclassResponsibility:_cmd];
+  return self;
+}
+
 /* This override in mutable string classes */
 - empty
 {
@@ -374,7 +382,7 @@
 
 - (unsigned) cStringLength
 {
-  [self subclassResponbility:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
