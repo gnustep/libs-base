@@ -1230,7 +1230,7 @@ handle_printf_atsign (FILE *stream,
   NSString *newstring;
 
   range = [self rangeOfString:@"/" options:NSBackwardsSearch];
-  if (range.length != 0 && range.location != [self length] - 1)
+  if (range.length == 0 && range.location != [self length] - 1)
       newstring = [self stringByAppendingString:@"/"];
   else
       newstring = self;
@@ -1247,8 +1247,8 @@ handle_printf_atsign (FILE *stream,
   NSRange  range;
   NSString *newstring;
 
-  range = [aString rangeOfString:@"." options:NSBackwardsSearch];
-  if (range.length != 0 && range.location != [self length] - 1)
+  range = [self rangeOfString:@"." options:NSBackwardsSearch];
+  if ((range.length == 0) && (range.location != ([self length] - 1)))
       newstring = [self stringByAppendingString:@"."];
   else
       newstring = self;
