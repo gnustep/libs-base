@@ -1,7 +1,7 @@
 # @configure_input@
 #
 #  Main makefile for GNU Objective-C Class library
-#  Copyright (C) 1993,1994,1995 Free Software Foundation, Inc.
+#  Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
 #
@@ -38,7 +38,6 @@ include $(srcdir)/Version
 SUBDIRS = src doc checks examples NSCharacterSets admin
 
 RCS_FILES = \
-	CREDITS MACHINES \
 	Makefile.in Makeconf configure.in aclocal.m4 \
 	config/config.nested.c config/config.nextcc.h config/config.nextrt.m 
 
