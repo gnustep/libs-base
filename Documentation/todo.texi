@@ -52,6 +52,9 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @itemize @bullet
 
+@item Make sure the GNU Archiver/Unarchiver handle
+-encodeConditionalObject: and -decodeObject: correctly.
+
 @item Reorganize some of the Categories to make a minimal NSObject-using
 program smaller.  Currently it is huge becuase it pulls in archiving and
 therefore many of the collection classes.
