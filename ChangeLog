@@ -3,6 +3,8 @@
 	* Source/NSString.m: Implemented new MacOS-X methods -
 	([-stringByPaddingToLength:withString:startingAtIndex:]), and
 	([-stringByTrimmingCharactersInSet:])
+	Tidied a couple of extension method names for consistency and
+	documented several methods.
 
 2002-08-29  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -43,7 +43,6 @@
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
 
-#ifndef NO_GNUSTEP
 #if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME)
 /* We need to access these private vars in the objc runtime - because
    the objc runtime's API is not enough powerful for the GNUstep
@@ -67,7 +66,6 @@ inline static void objc_thread_remove ()
   objc_mutex_unlock(__objc_runtime_mutex);  
 }
 #endif /* not HAVE_OBJC_THREAD_ADD */
-#endif
 
 @interface	NSThread (Private)
 - (id) _initWithSelector: (SEL)s toTarget: (id)t withObject: (id)o;
@@ -482,7 +480,6 @@ gnustep_base_thread_callback()
   objc_thread_set_data(self);
   _active = YES;
 
-#ifndef NO_GNUSTEP
   /*
    * Let observers know a new thread is starting.
    */
@@ -493,7 +490,6 @@ gnustep_base_thread_callback()
   [nc postNotificationName: NSThreadDidStartNotification
 		    object: self
 		  userInfo: nil];
-#endif
 
   [_target performSelector: _selector withObject: _arg];
   [NSThread exit];

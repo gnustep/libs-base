@@ -113,7 +113,7 @@
       extracted and wrapped round the rest of the documentation for
       the class as the classes chapter.
       The rest of the class documentation is normally
-      inserted at the end of the chapter, but may instead be sbstituted
+      inserted at the end of the chapter, but may instead be substituted
       in in place of the &lt;unit /&gt; pseudo-element within the
       &lt;chapter&gt; element.
     </item>
