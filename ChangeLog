@@ -1,3 +1,15 @@
+2000-09-19  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/gnustep/base/Unicode.h:
+	New functions encode_ustrtostr_strict() and encode_unitochar_strict()
+	* Source/NSString.m: 
+	Impelemented [initWithUTF8String:]
+	* Source/NSGCString.m: 
+	* Source/NSGString.m: 
+	Implemented method [dataUsingEncoding:allowLossyConversion:]
+	* Source/Unicode.m: 
+	New strict methods for string conversion.	
+	
 2000-09-15  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Turn off enable_fake_main if on MinGW.
