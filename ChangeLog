@@ -1,3 +1,16 @@
+2001-12-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSValue.m: polish last set of changes -
+	Optimisation ... cut memory allocation/deallocation to a minimum.
+	Versioning ... set NSValue version number and attempt to decode
+	old format objects.
+	Simplification ... remove redundant code in placeholder class.
+	Fixes ... allocate new objects in correct memory zone, I think a few
+	others I forgot.
+	* Source/NSNumberFormatter.m (-initWithCoder:): Avoid unnecessary
+	autorelease/retain sequences. (-init): Fix illegal re-initialisation
+        of initialised values and avoid unnecessary use of autorelease.
+
 2001-12-03  Laurent Julliard  <laurent@moldus.org>
 
 	* Source/NSNumberFormatter.m (-initWithCoder:): decoded objects
