@@ -1175,6 +1175,27 @@
   RELEASE(t);
 
   /*
+   * Handle protocol specification if necessary
+   */
+  if ([self parseSpace] < length && buffer[pos] == '<')
+    {
+      NSString	*p;
+
+      pos++;
+      do
+	{
+	  p = [self parseIdentifier];
+	  [a addObject: p];
+	}
+      while ([self parseSpace] < length && buffer[pos] == ',');
+      pos++;
+      [self parseSpace];
+      [a sortUsingSelector: @selector(compare:)];
+      [d setObject: [a componentsJoinedByString: @","] forKey: @"Protocols"];
+      [a removeAllObjects];
+    }
+   
+  /*
    * Set the 'Kind' of declaration ... one of 'Types', 'Functions',
    * 'Variables', or 'Constants'
    * We may override this later.
