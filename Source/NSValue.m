@@ -366,7 +366,7 @@ static NSLock			*placeholderLock;
 - (void) encodeWithCoder: (NSCoder *)coder
 {
   unsigned	size;
-  char		*data;
+  const char	*data;
   const char	*objctype = [self objCType];
   NSMutableData	*d;
 
@@ -378,10 +378,15 @@ static NSLock			*placeholderLock;
   [self getValue: (void*)data];
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];
-  [coder encodeValueOfObjCType: @encode(id) at: &d];
+  size = [d length];
+  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
+  NSZoneFree(NSDefaultMallocZone(), (void*)data);
+  data = [d bytes];
+  [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
   RELEASE(d);
-  NSZoneFree(NSDefaultMallocZone(), data);
 }
+ 
+@class	NSDataStatic;		// Neede for decoding.
 
 - (id) initWithCoder: (NSCoder *)coder
 {
@@ -458,9 +463,13 @@ static NSLock			*placeholderLock;
     }
   else
     {
-      NSData		*d;
+      static NSData	*d = nil;
       unsigned		cursor = 0;
 
+      if (d == nil)
+	{
+	  d = [NSDataStatic allocWithZone: NSDefaultMallocZone()];
+	}
       /*
        * For performance, decode small values directly onto the stack,
        * For larger values we allocate and deallocate heap space.  
@@ -470,26 +479,42 @@ static NSLock			*placeholderLock;
 	{
 	  unsigned char	data[size];
 
-	  [coder decodeValueOfObjCType: @encode(id) at: &d];
-	  [d deserializeDataAt: data
-		    ofObjCType: objctype
-		      atCursor: &cursor
-		       context: nil];
+	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+	  {
+	    unsigned char	serialized[size];
+
+	    [coder decodeArrayOfObjCType: @encode(unsigned char)
+				   count: size
+				      at: (void*)serialized];
+	    d = [d initWithBytesNoCopy: (void*)serialized length: size];
+	    [d deserializeDataAt: data
+		      ofObjCType: objctype
+			atCursor: &cursor
+			 context: nil];
+	  }
 	  o = [o initWithBytes: data objCType: objctype];
-	  RELEASE(d);
 	}
       else
 	{
-	  unsigned char	*data;
+	  void	*data;
 
 	  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
-	  [coder decodeValueOfObjCType: @encode(id) at: &d];
-	  [d deserializeDataAt: data
-		    ofObjCType: objctype
-		      atCursor: &cursor
-		       context: nil];
+	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+	  {
+	    void	*serialized;
+
+	    serialized = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	    [coder decodeArrayOfObjCType: @encode(unsigned char)
+				   count: size
+				      at: serialized];
+	    d = [d initWithBytesNoCopy: serialized length: size];
+	    [d deserializeDataAt: data
+		      ofObjCType: objctype
+			atCursor: &cursor
+			 context: nil];
+	    NSZoneFree(NSDefaultMallocZone(), serialized);
+	  }
 	  o = [o initWithBytes: data objCType: objctype];
-	  RELEASE(d);
 	  NSZoneFree(NSDefaultMallocZone(), data);
 	}
     }
