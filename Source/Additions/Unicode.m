@@ -518,7 +518,11 @@ GSEncodingFromLocale(const char *clocale)
       NSBundle *gbundle;
       NSString *table;
 
+#ifdef GNUSTEP
       gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+#else
+      gbundle = [NSBundle bundleForClass: NSClassFromString(@"GSXMLNode")];
+#endif
       table = [gbundle pathForResource: @"Locale"
 		                ofType: @"encodings"
 		           inDirectory: @"Languages"];
