@@ -147,7 +147,8 @@ static RunLoop *current_run_loop;
 - (void) addPort: port
          forMode: (id <String>)mode
 {
-  /* xxx Perhaps this should be a Bag instead. */
+  /* xxx Perhaps this should be a Bag instead; I think this currently works
+     when a port is added more than once, but it doesn't work prettily. */
   Array *in_ports;
 
   in_ports = NSMapGet (_mode_2_in_ports, mode);
@@ -201,6 +202,7 @@ static RunLoop *current_run_loop;
   /* Linux doesn't always return double from methods, even though
      I'm using -lieee. */
 #if 1
+  assert (mode);
   return nil;
 #else
   Heap *timers;
@@ -253,6 +255,7 @@ static RunLoop *current_run_loop;
   NSMapTable *fd_2_object;
   id saved_mode;
 
+  assert (mode);
   saved_mode = _current_mode;
   _current_mode = mode;
 
