@@ -1,3 +1,9 @@
+2004-04-29 23:00  Alexander Malmberg <alexander@malmberg.org>
+
+	* configure.ac: Test for iconv support by compiling a program that
+	includes the iconv header.
+	* configure: Regenerate.
+
 2004-04-27  Georg Fleischmann
 	
 	* Source/NSCalendarDate.m:
