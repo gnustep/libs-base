@@ -85,6 +85,9 @@
 #define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define M_UNLOCK(X) {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
+NSString * const NSFailedAuthenticationException =
+  @"NSFailedAuthenticationExceptions";
+
 /*
  * Set up a type to permit us to have direct access into an NSDistantObject
  */

@@ -42,10 +42,10 @@
 #include <ctype.h>
 
 /* Deal with strrchr: */
-#if STDC_HEADERS || HAVE_STRING_H
+#if STDC_HEADERS || defined(HAVE_STRING_H)
 #include <string.h>
 /* An ANSI string.h and pre-ANSI memory.h might conflict.  */
-#if !STDC_HEADERS && HAVE_MEMORY_H
+#if !STDC_HEADERS && defined(HAVE_MEMORY_H)
 #include <memory.h>
 #endif /* not STDC_HEADERS and HAVE_MEMORY_H */
 #define index strchr
@@ -1245,12 +1245,14 @@ mframe_do_call (DOContext *ctxt,
   return;
 }
 
+#if 0
   /* For returning structures etc */
   typedef struct { id many[8];} __big;
 static  __big return_block (void* data)
     {
       return *(__big*)data;
     }
+#endif
   /* For returning a char (or unsigned char) */
 static  char return_char (char data)
     {
@@ -1271,11 +1273,13 @@ static  short return_short (short data)
     {
       return data;
     }
+#if 0
 static  retval_t apply_block(void* data)
     {
       void* args = __builtin_apply_args();
       return __builtin_apply((apply_t)return_block, args, sizeof(void*));
     }
+#endif
 static  retval_t apply_char(char data)
     {
       void* args = __builtin_apply_args();

@@ -107,8 +107,7 @@ endif
 
 GNU_CFILES = \
 md5.c \
-numbers.c \
-o_vscanf.c 
+numbers.c
 
 GNU_OTHER_SRCFILES = \
 md5.h \

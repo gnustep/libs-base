@@ -248,7 +248,6 @@ static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
-static int	log_perror = 0;
 static int	log_priority;
 
 static void

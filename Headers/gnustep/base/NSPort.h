@@ -32,7 +32,7 @@
 @class	NSRunLoop;
 @class	NSString;
 
-GS_EXPORT NSString *NSPortTimeoutException; /* OPENSTEP */
+GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {

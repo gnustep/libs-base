@@ -652,7 +652,7 @@ GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
   return message;
 }
 
-static void *_frameOffsets[100];
+// static void *_frameOffsets[100];
 
 #define _NS_FRAME_HACK(a) case a: return __builtin_frame_address(a + 1)
 #define _NS_RETURN_HACK(a) case a: return __builtin_return_address(a + 1)
