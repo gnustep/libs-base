@@ -1,5 +1,5 @@
 /* Interface for NSCoder for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -34,7 +34,7 @@
 
 // Encoding Data
 
-- (void) encodeArrayOfObjCType: (const char*)types
+- (void) encodeArrayOfObjCType: (const char*)type
    count: (unsigned)count
    at: (const void*)array;
 - (void) encodeBycopyObject: (id)anObject;
@@ -52,9 +52,9 @@
 
 // Decoding Data
 
-- (void) decodeArrayOfObjCType: (const char*)types
- count: (unsigned)count
-   at: (void*)address;
+- (void) decodeArrayOfObjCType: (const char*)type
+                         count: (unsigned)count
+                            at: (void*)address;
 - (NSData*) decodeDataObject;
 - (id) decodeObject;
 - (id) decodePropertyList;
