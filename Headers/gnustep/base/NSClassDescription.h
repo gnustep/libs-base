@@ -27,6 +27,8 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSException.h>
 
+#ifndef	STRICT_OPENSTEP
+
 @class NSArray;
 @class NSDictionary;
 @class NSString;
@@ -56,6 +58,8 @@ GS_EXPORT NSString* const NSClassDescriptionNeededForClassNotification;
 - (NSArray*) toOneRelationshipKeys;
 
 @end
+
+#endif
 
 #endif
 
