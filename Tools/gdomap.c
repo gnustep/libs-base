@@ -1574,12 +1574,15 @@ init_my_port()
   my_port = htons(GDOMAP_PORT);
   if ((sp = getservbyname("gdomap", "tcp")) == 0)
     {
-      sprintf(ebuf, "Unable to find service 'gdomap'");
-      gdomap_log(LOG_WARNING);
-      sprintf(ebuf, "On a unix host it should be in /etc/services "
-	"as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
-	GDOMAP_PORT, GDOMAP_PORT);
-      gdomap_log(LOG_INFO);
+      if (debug)
+	{
+	  sprintf(ebuf, "Unable to find service 'gdomap'");
+	  gdomap_log(LOG_WARNING);
+	  sprintf(ebuf, "On a unix host it should be in /etc/services "
+	    "as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
+	    GDOMAP_PORT, GDOMAP_PORT);
+	  gdomap_log(LOG_INFO);
+	}
     }
   else
     {
@@ -1587,11 +1590,14 @@ init_my_port()
 
       if ((sp = getservbyname("gdomap", "udp")) == 0)
 	{
-	  sprintf(ebuf, "Unable to find service 'gdomap'");
-	  sprintf(ebuf, "On a unix host it should be in /etc/services "
-	    "as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
-	    GDOMAP_PORT, GDOMAP_PORT);
-	  gdomap_log(LOG_INFO);
+	  if (debug)
+	    {
+	      sprintf(ebuf, "Unable to find service 'gdomap'");
+	      sprintf(ebuf, "On a unix host it should be in /etc/services "
+		"as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
+		GDOMAP_PORT, GDOMAP_PORT);
+	      gdomap_log(LOG_INFO);
+	    }
 	}
       else if (sp->s_port != tcp_port)
 	{
@@ -1696,9 +1702,10 @@ init_ports()
       gdomap_log(LOG_ERR);
       if (errno == EACCES)
 	{
-	  sprintf(ebuf, "You probably need to run gdomap as root, "
-	    "or run the nameserver on a non-standard "
-	    "port that does not require root privilege.");
+	  sprintf(ebuf,
+"You probably need to run gdomap as root/system administrator (recommended),\n"
+"or run the nameserver on a non-standard port that does not require root\n"
+"privilege (poor option and last resort!!!)");
 	  gdomap_log(LOG_INFO);
 	}
       exit(1);
@@ -1761,9 +1768,10 @@ init_ports()
       gdomap_log(LOG_ERR);
       if (errno == EACCES)
 	{
-	  sprintf(ebuf, "You probably need to run gdomap as root, "
-	    "or run the nameserver on a non-standard "
-	    "port that does not require root privilege.");
+	  sprintf(ebuf,
+"You probably need to run gdomap as root/system administrator (recommended),\n"
+"or run the nameserver on a non-standard port that does not require root\n"
+"privilege (poor option and last resort!!!)");
 	  gdomap_log(LOG_INFO);
 	}
       exit(1);

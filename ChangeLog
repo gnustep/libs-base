@@ -2,6 +2,7 @@
 
 	* Source/GSString.m: lossyCString_u() handle case where cString
 	contains more bytes than unicode string has characters.
+	* Tools/gdomap.c: Suppress unnecessary warnings except under debug.
 
 2002-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
