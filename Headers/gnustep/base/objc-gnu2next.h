@@ -117,7 +117,7 @@ class_is_class(Class class)
 static inline IMP
 method_get_imp(Method method)
 {
-  return (method!=METHOD_NULL)?method->method_imp:(IMP)0;
+  return (method!=0)?method->method_imp:(IMP)0;
 }
 
 static inline BOOL
