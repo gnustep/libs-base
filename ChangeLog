@@ -1,5 +1,22 @@
 2001-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GNUmakefile: Add flags for SSL and rules to build bundle
+	* Source/GSHTTPURLHandle.m: use +sslClass
+	* Source/GSUnixSSLHandle.m: Extract SSL support for bundle to this file.
+	* Source/Makefile.preamble: Add flags for SSL
+	* Source/NSFileHandle.m: Add +sslClass and automated loading of bundle
+	* Source/UnixFileHandle.m: Remove SSL support.
+	* Headers/gnustep/base/NSFileHandle.h: Add +sslClass
+	* Headers/gnustep/base/UnixFileHandle.h: Tidy a little.
+	* config.mak.in: Add variables needed by SSL bundle
+	* configure.in: Update to build SSL bundle by default.
+	* configure: regenerated
+	The above changes made to move SSL support into a bundle and add a
+	+sslClass to NSFileHandle to return the class from the bundle if it
+	is available.  Changed the http url handle support to use this.
+
+2001-12-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSValue.m: polish last set of changes -
 	Optimisation ... cut memory allocation/deallocation to a minimum.
 	Versioning ... set NSValue version number and attempt to decode

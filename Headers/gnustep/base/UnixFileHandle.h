@@ -91,12 +91,11 @@
 		  type: (RunLoopEventType)type
 	         extra: (void*)extra
 	       forMode: (NSString*)mode;
+- (void) setAddr: (struct sockaddr_in *)sin;
 - (NSDate*) timedOutEvent: (void*)data
 		    type: (RunLoopEventType)type
 		 forMode: (NSString*)mode;
-#ifndef	NO_GNUSTEP
 - (BOOL) useCompression;
-#endif
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 - (void) watchWriteDescriptor;
 

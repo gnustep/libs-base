@@ -855,7 +855,7 @@ AC_SUBST(HAVE_LIBXML)
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(openssl,
   [  --enable-openssl       	Enable support for openssl in URL classes],,
-  enable_openssl=no)
+  enable_openssl=yes)
 AC_ARG_WITH(openssl-include,
   [  --with-openssl-include=PATH  include path for openssl headers],
   openssl_incdir="$withval", openssl_incdir="no")
@@ -868,9 +868,16 @@ libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
   CPPFLAGS="$CPPFLAGS -I$openssl_incdir"
+  SSLFLAGS="-I$openssl_incdir"
+else
+  SSLFLAGS=
 fi
+
 if test "$openssl_libdir" != "no"; then
   LIBS="$LIBS -L$openssl_libdir"
+  SSLLIBS="-L$openssl_libdir"
+else
+  SSLLIBS=
 fi
 
 if test $enable_openssl = yes; then
@@ -878,7 +885,9 @@ if test $enable_openssl = yes; then
   if test $ac_cv_header_openssl_ssl_h = no; then
     echo "Could not find openssl headers"
     echo "Check to make sure you have a recent version of openssl installed"
+    echo "The SSL bundle will not be built"
     AC_MSG_WARN(Could not find openssl headers)
+    AC_MSG_WARN(The SSL bundle will not be built)
     ssl_ok=no
   else
     AC_CHECK_LIB(crypto, CRYPTO_malloc, ssl_ok=yes, ssl_ok=no)
@@ -889,30 +898,43 @@ if test $enable_openssl = yes; then
       if test "$ssl_ok" = yes; then
         echo "found openssl"
         LIBS="$base_libs -lssl -lcrypto"
-        AC_DEFINE(HAVE_OPENSSL)
+	SSLLIBS="$SSLLIBS -lssl -lcrypto"
       else
+	SSLLIBS="$SSLLIBS -lcrypto"
         echo "Could not find openssl crypto library"
         echo "Check to make sure you have a recent version of openssl installed"
-        AC_MSG_WARN(Could not find openssl headers)
+	echo "The SSL bundle will not be built"
+        AC_MSG_WARN(Could not find openssl libraries)
+	AC_MSG_WARN(The SSL bundle will not be built)
       fi
 
       AC_CHECK_LIB(cipher,des_setkey,cipher_ok=yes,cipher_ok=no)
       if test "$cipher_ok" = yes; then
         echo "found cipher"
         LIBS="$LIBS -lcipher"
+        SSLLIBS="$SSLLIBS -lcipher"
       fi
     else
       echo "Could not find openssl library"
       echo "Check to make sure you have a recent version of openssl installed"
-      AC_MSG_WARN(Could not find openssl headers)
+      echo "The SSL bundle will not be built"
+      AC_MSG_WARN(Could not find openssl libraries)
+      AC_MSG_WARN(The SSL bundle will not be built)
     fi
   fi
+else
+  echo "The use of openssl was disabled"
+  echo "The SSL bundle will not be built"
+  AC_MSG_WARN(The use of openssl was disabled)
+  AC_MSG_WARN(The SSL bundle will not be built)
 fi
+HAVE_OPENSSL=$ssl_ok
+AC_SUBST(HAVE_OPENSSL)
+AC_SUBST(SSLFLAGS)
+AC_SUBST(SSLLIBS)
 
-if test "$ssl_ok" = "no"; then
-  CPPFLAGS="$cppflags_temp";
-  LIBS="$libs_temp";
-fi
+CPPFLAGS="$cppflags_temp";
+LIBS="$libs_temp";
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal

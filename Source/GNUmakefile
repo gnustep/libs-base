@@ -40,6 +40,21 @@ LIBRARY_VAR = GNUSTEP_BASE
 # The library to be compiled
 LIBRARY_NAME=libgnustep-base
 
+ifeq ($(HAVE_OPENSSL), yes)
+
+# The bundles to be compiled
+BUNDLE_NAME=SSL
+
+# The bundle Objective-C source files to be compiled
+SSL_OBJC_FILES = GSUnixSSLHandle.m
+
+# The principal class in the bundle
+SSL_PRINCIPAL_CLASS = GSUnixSSLHandle
+
+SSL_BUNDLE_LIBS = $(SSLLIBS)
+
+endif
+
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 
@@ -413,5 +428,6 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 -include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/library.make
+include $(GNUSTEP_MAKEFILES)/bundle.make
 
 -include Makefile.postamble
