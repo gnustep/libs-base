@@ -1,3 +1,8 @@
+Wed Sep 25 02:46:28 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Tools/make_strings/make_strings.m (main): Remove "" languages
+	from the list of languages before processing.
+
 2002-09-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpHandle.m: ([-handleForPort:beforeDate:]) fix bug where

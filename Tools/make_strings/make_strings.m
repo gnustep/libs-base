@@ -523,6 +523,21 @@ int main(int argc, char **argv)
     argc = j;
   }
 
+  /* Remove any empty language from the list.  */
+  {
+    int k;
+    
+    for (k = [languages count] - 1; k >= 0; k--)
+      {
+	NSString *language = [languages objectAtIndex: k];
+	if ([language isEqualToString: @""])
+	  {
+	    [languages removeObjectAtIndex: k];
+	  }
+      }
+  }
+  
+
   if (![languages count])
     {
       NSLog (@"No languages specified!\n");
