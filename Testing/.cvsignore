@@ -7,3 +7,4 @@ nstimer nsnotification nxst fref heap basic
 release nsscanner nsdate awake thread-except nscharacterset
 
 *.txt *.dat
+LoadMe.bundle
