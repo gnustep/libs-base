@@ -520,7 +520,8 @@ static NSPortNameServer	*defaultServer = nil;
 
 	  if (result == 0)
 	    {
-	      NSLog(@"NSPortNameServer unable to register '%@'\n", name);
+	      [NSException raise: NSGenericException
+			  format: @"unable to register %@", name]; 
 	    }
 	  else
 	    {
