@@ -273,7 +273,11 @@ static int messages_received_count;
 
 + (NSArray*) allConnections
 {
-  return [connection_array copy];
+  int	count = [connection_array count];
+  id	cons[count];
+
+  [connection_array getObjects: cons];
+  return [NSArray arrayWithObjects: cons count: count];
 }
 
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
