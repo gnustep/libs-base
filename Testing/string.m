@@ -24,6 +24,9 @@ int main()
   id s2, s3;
   int a;
 
+  NSMutableString	*fo = [NSMutableString stringWithString: @"abcdefg"];
+  [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: @"aa"];
+
   print_string(s);
 
   s2 = NSStringFromPoint(NSMakePoint(1.374, 5.100));

@@ -1,6 +1,14 @@
+2000-09-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/GSXML.h: new classes for parsing XML
+	* Source/GSXML.m: new classes for parsing XML
+	* Source/Makefile.preamble: Define HAVE_LIBXML if appropriate.
+	* Source/GNUMakefile: Build new classes if appropriate.
+	* Tools/Makefile.preamble: Removed libxml stuff - now done globally.
+
 2000-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSCalnedarDate: ([-initWithString:calendarFormat:locale:])
+	* Source/NSCalendarDate: ([-initWithString:calendarFormat:locale:])
 	modify parsing to be more tolerant of numeric fields that are smaller
 	than the expected size, but warn about unexpected format.
 

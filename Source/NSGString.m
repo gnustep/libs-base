@@ -402,7 +402,7 @@
   if (plInit == 0)
     setupPl([NSGString class]);
 
-  result = parsePlItem(&data);
+  result = parsePl(&data);
 
   if (result == nil && data.err != nil)
     {
