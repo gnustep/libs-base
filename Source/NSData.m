@@ -685,7 +685,6 @@ failure:
   int		i;
   int		j;
   NSZone	*z;
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
 
   src = [self bytes];
   length = [self length];

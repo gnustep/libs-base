@@ -83,8 +83,8 @@ behavior_class_add_class (Class class, Class behavior)
         }
       else
         NSCAssert2(class->instance_size >= behavior->instance_size,
-		@"Trying to add behavior (%s) with instance size larger than class (%s)",
-                class_get_class_name(behavior), class_get_class_name(class));
+  @"Trying to add behavior (%s) with instance size larger than class (%s)",
+  class_get_class_name(behavior), class_get_class_name(class));
     }
 #else
   /* If necessary, increase instance_size of CLASS. */
@@ -152,13 +152,6 @@ behavior_class_add_class (Class class, Class behavior)
   }
 
   return;
-}
-
-/* The old interface */
-void
-class_add_behavior (Class class, Class behavior)
-{
-  behavior_class_add_class (class, behavior);
 }
 
 void

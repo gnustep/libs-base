@@ -58,7 +58,7 @@ static BOOL	debug_allocation = NO;
 static NSLock	*uniqueLock;
 
 static const char*	_GSDebugAllocationList(BOOL difference);
-static const char*	_GSDebugAllocationListAll();
+static const char*	_GSDebugAllocationListAll(void);
 
 @interface GSDebugAlloc : NSObject
 + (void) initialize;
@@ -534,7 +534,7 @@ GSDebugAllocationListAll()
 }
 
 static const char*
-_GSDebugAllocationListAll()
+_GSDebugAllocationListAll(void)
 {
   int		pos = 0;
   int		i;

@@ -56,6 +56,6 @@ void behavior_class_add_methods (Class class,
 				 struct objc_method_list *methods);
 
 /* Set to non-zero if you want debugging messages on stderr. */
-void set_behavior_debug(int i);
+void behavior_set_debug(int i);
 
 #endif /* __behavior_h_GNUSTEP_BASE_INCLUDE */

@@ -75,7 +75,7 @@ typedef enum {
 /*
  * Get the dictionary representation.
  */
-NSDictionary	*GSUserDefaultsDictionaryRepresentation();
+NSDictionary	*GSUserDefaultsDictionaryRepresentation(void);
 
 /*
  * Get one of several potentially useful flags.

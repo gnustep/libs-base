@@ -305,14 +305,14 @@ NSUnionRect(NSRect aRect, NSRect bRect)
   NSRect rect;
 
   if (NSIsEmptyRect(aRect) && NSIsEmptyRect(bRect))
-    return NSMakeRect(0,0,0,0);
+    return NSMakeRect(0.0,0.0,0.0,0.0);
   else if (NSIsEmptyRect(aRect))
     return bRect;
   else if (NSIsEmptyRect(bRect))
     return aRect;
 
   rect = NSMakeRect(MIN(NSMinX(aRect), NSMinX(bRect)),
-                    MIN(NSMinY(aRect), NSMinY(bRect)), 0, 0);
+                    MIN(NSMinY(aRect), NSMinY(bRect)), 0.0, 0.0);
 
   rect = NSMakeRect(NSMinX(rect),
                     NSMinY(rect),
@@ -336,7 +336,7 @@ NSIntersectionRect (NSRect aRect, NSRect bRect)
   if (NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect)
     || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect)) 
     {
-      return NSMakeRect(0, 0, 0, 0);
+      return NSMakeRect(0.0, 0.0, 0.0, 0.0);
     }
   else
     {

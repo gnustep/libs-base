@@ -125,8 +125,8 @@ GS_EXPORT NSString	*NSThreadDidStartNotification;
 /*
  *	Get current thread and it's dictionary.
  */
-GS_EXPORT NSThread		*GSCurrentThread();
-GS_EXPORT NSMutableDictionary	*GSCurrentThreadDictionary();
+GS_EXPORT NSThread		*GSCurrentThread(void);
+GS_EXPORT NSMutableDictionary	*GSCurrentThreadDictionary(void);
 #endif
 
 #endif /* __NSThread_h_GNUSTEP_BASE_INCLUDE */

@@ -104,9 +104,9 @@ struct _NSNotificationQueueList;
 /*
  *	Functions used by the the NSRunLoop
  */
-extern void GSNotifyASAP();
-extern void GSNotifyIdle();
-extern BOOL GSNotifyMore();
+extern void GSNotifyASAP(void);
+extern void GSNotifyIdle(void);
+extern BOOL GSNotifyMore(void);
 #endif
 
 #endif /* __NSNotificationQueue_h__ */
