@@ -37,6 +37,10 @@ LDFLAGS =
 DEFS = @DEFS@
 LIBS = -L../src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm
 
+EXEEXT = 
+OEXT = .o
+LIBEXT = .a
+
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
@@ -62,8 +66,6 @@ SRCS = \
 dictionary.m \
 stdio-stream.m \
 textcoding.m \
-port-server.m \
-port-client.m \
 first-server.m \
 first-client.m \
 second-server.m \
@@ -79,8 +81,12 @@ EXCS = $(SRCS:.m=)
 all: $(EXCS)
 
 # This works for GNU make, but not others.
-%: %$(OEXT) $(srcdir)/../src/lib$(LIBRARY_NAME)(LIBEXT)
+%: %$(OEXT) $(srcdir)/../src/lib$(LIBRARY_NAME)$(LIBEXT)
 	$(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
+
+../src/lib$(LIBRARY_NAME)$(LIBEXT):
+	@echo You must first make the library $(LIBRARY_NAME).
+	@false
 
 first: FORCE
 	(cd ../src; $(MAKE))
@@ -88,7 +94,6 @@ first: FORCE
 second: FORCE
 	(cd ../src; $(MAKE))
 	$(MAKE) second-server second-client
-port: port-server port-client
 
 install:
 uninstall:
