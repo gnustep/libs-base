@@ -1,5 +1,6 @@
 Thu Feb  4 13:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	Deleted all the old property-list and strings-file parsing stuff.
 	* Source/NSBitmapCharSet.m: ([-formUnionWithCharacterSet]) corrected
 	to use bitwise or rather than logical or.
 	([-formIntersectionWithCharacterSet:]) corrected to use bitwise and
