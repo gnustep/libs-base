@@ -1950,6 +1950,16 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   _defaultEncoding = [GSMimeDocument encodingFromCharset: aName];
 }
 
+/**       
+ * Method to inform the parser that body parts with no content-type
+ * header (which are treated as text/plain) should use the specified
+ * NSStringEncoding rather than the default 
+ */
+- (void) setDefaultEncoding: (NSStringEncoding)encoding
+{   
+  _defaultEncoding = encoding;
+}   
+
 /**
  * Method to inform the parser that the data it is parsing is an HTTP
  * document rather than true MIME.  This method is called internally
