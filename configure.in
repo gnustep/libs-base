@@ -97,6 +97,11 @@ if test $NeXTCC = 0; then
       ac_ext=$saved_ac_ext
       if test $NeXT_runtime = 1; then
         AC_MSG_RESULT(no: NeXT runtime)
+	AC_MSG_ERROR(Sorry GNUstep doesn't yet work with the NeXT runtime.
+	Type `setenv CC gcc -fgnu-runtime' and run ./configure again.
+	If you are interested in having GNUstep work with the NeXT runtime
+	please contact Andrew McCallum <mccallum@gnu.ai.mit.edu>.)
+	# Not reached, for now...
 	LIBOBJC=''
         CC="$CC -fnext-runtime"
         # Make sure that we get NeXTs objc/*.h files
