@@ -21,37 +21,39 @@
 #   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+AC_DEFUN(OBJC_CON_AUTOLOAD,
 #--------------------------------------------------------------------
 # Guess if we are using a object file format that supports automatic
-# loading of constructor functions, et. al. (e.g. ELF format).
+# loading of constructor functions.
 #
-# Currently only looks for ELF format. NOTE: Checking for __ELF__ being
-# defined doesnt work, since gcc on Solaris does not define this. I'm 
-# assuming that machines that have elf.h use the ELF library format, what
-# is really needed is to check if this is true directly.
+# If this system supports autoloading of constructors, that means that gcc
+# doesn't have to do it for us via collect2. This routine tests for this
+# in a very roundabout way by intentionally trying to link a program that
+# will give a link error, and examining the output to see if collect2 gave
+# the error (which means the system does not autoload constructors)
+# The only problem is this test might incorrectly return yes if it fails
+# for some other reason besides a link problem.
 #
 # Makes the following substitutions:
-#	Defines SYS_AUTOLOAD (whether initializer functions are autoloaded)
 #	Defines CON_AUTOLOAD (whether constructor functions are autoloaded)
 #--------------------------------------------------------------------
-AC_DEFUN(OBJC_CON_AUTOLOAD,
 [dnl
 AC_MSG_CHECKING(loading of constructor functions)
 AC_CACHE_VAL(objc_cv_con_autoload,
-[AC_TRY_RUN([
-static int inited = 0;
-static void construct_test () __attribute__ ((constructor));
-static void construct_test ()
-{
-  inited = 1;
-}
+[dnl 
+cat > conftest.constructor.c <<EOF
+extern void undefined_function();
 int main()
 {
-  if (inited)
-    exit (0);
-  exit (1);
+  undefined_function();
 }
-], objc_cv_con_autoload=yes, objc_cv_con_autoload=no, objc_cv_con_autoload=no)])
+EOF
+if test -n "`${CC-cc} -o conftest.constructor conftest.constructor.c 2>&1 | grep collect2`"; then
+  objc_cv_con_autoload=no
+else
+  objc_cv_con_autoload=yes
+fi
+])
 if test $objc_cv_con_autoload = yes; then
   AC_MSG_RESULT(yes)
   AC_DEFINE(CON_AUTOLOAD)
@@ -61,6 +63,13 @@ fi
 ])
 
 AC_DEFUN(OBJC_SYS_AUTOLOAD,
+#--------------------------------------------------------------------
+# Guess if we are using a object file format that supports automatic
+# loading of init functions.
+#
+# Makes the following substitutions:
+#	Defines SYS_AUTOLOAD (whether initializer functions are autoloaded)
+#--------------------------------------------------------------------
 [AC_MSG_CHECKING(loading of initializer functions)
 AC_CACHE_VAL(objc_cv_subinit_worked,
 [AC_TRY_RUN([
@@ -137,7 +146,7 @@ if test $DYNAMIC_LINKER = dld; then
 elif test $DYNAMIC_LINKER = simple; then
     save_LDFLAGS=$LDFLAGS
     LDFLAGS="-shared"
-    AC_TRY_LINK([extern void loadf(int i);], loadf(1);, 
+    AC_TRY_LINK([extern void loadf();], loadf();, 
 	        objc_shared_linker=yes, objc_shared_linker=no)
     LDFLAGS=$save_LDFLAGS
     if test $objc_shared_linker = yes; then

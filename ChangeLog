@@ -1,3 +1,20 @@
+Fri Oct 25 20:22:37 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/StdioStream.m (strerror) [!HAS_STRERROR]: New function from
+ 	Richard Frith-Macdonald <richard@brainstorm.co.uk>.
+	* configure.in: Check for strerror().
+
+Fri Sep 27 10:33:07 1996  Adam Fedor  <fedor@pulse.Colorado.edu>
+
+	*  aclocal.m4 (OBJC_CON_AUTOLOAD): New macro. Explicit check for
+	constructor loading.
+	(OBJC_SYS_AUTOLOAD): Insert '_cv' in cache variable name to get it
+	to cache correctly.
+	(OBJC_SYS_DYNAMIC_LINKER): Use headers to determine linker. Check
+	for libraries separately.
+	(OBJC_SYS_DYNAMIC_FLAGS): Check to see if '-shared' load flag
+	works (for DEC Alpha).
+
 Thu Sep 26 12:39:18 1996  Adam Fedor  <fedor@pulse.Colorado.edu>
 
 	*  src/ostream.m (ostream_close_memory): Change to
