@@ -1,0 +1,277 @@
+I took the liberty of moving the double_release checking to NSObject from 
+NSAutoreleasePool, and also improving it a little.  This really helped me 
+find a bug in my own program (one that even NeXT Foundation didn't catch).
+
+Fri Aug  4 13:39:05 1995  Adam Fedor  <fedor@mode.colorado.edu>
+
+        * src/NSAutoreleasePool.m ([NSAutoreleasePool -addObject:]):
+        Remove double_release checking. Increment released_count after
+        setting released array. 
+	([NSAutoreleasePool -dealloc]): Catch release errors. 
+	([NSAutoreleasePool -enableDoubleReleaseCheck:]): Removed method.
+
+        * src/NSObject.h ([NSObject -autorelease], [NSObject -release]): 
+        Add double_release checking. 
+	([NSObject +enableDoubleReleaseCheck:]): New method.
+
+        * src/Foundation/NSAutoreleasePool.h: Remove 
+        +enableDoubleReleaseCheck:, add +autoreleaseCountForObject:.
+
+        * src/Foundation/NSObject.h: Add +enableDoubleReleaseCheck:.
+
+        * src/Foundation/objc-load.h: Include objc-api file.
+
+diff -c libobjects/src/NSAutoreleasePool.m:1.2 libobjects/src/NSAutoreleasePool.
+m:1.3
+*** libobjects/src/NSAutoreleasePool.m:1.2      Fri Aug  4 13:57:13 1995
+--- libobjects/src/NSAutoreleasePool.m  Fri Aug  4 13:57:13 1995
+***************
+*** 44,53 ****
+     `release' message.  Memory use grows, and grows, and... */
+  static BOOL autorelease_enabled = YES;
+  
+- /* When this is `YES', every call to addObject, checks to make sure 
+-    isn't being set up to release itself too many times. */
+- static BOOL double_release_check_enabled = NO;
+- 
+  /* When the released_count gets over this value, we call error:.
+     In the future, I may change this to raise an exception or call 
+     a function instead. */
+--- 44,49 ----
+***************
+*** 109,132 ****
+    if (!autorelease_enabled)
+      return;
+  
+-   if (double_release_check_enabled)
+-     {
+-       unsigned release_count = [[self class] autoreleaseCountForObject:anObj];
+-       unsigned retain_count = [anObj retainCount];
+-       if (release_count > retain_count + 1)
+-       [self error:"Autorelease would release object too many times."];
+-     }
+- 
+    if (released_count >= pool_count_warning_threshhold)
+      [self error:"AutoreleasePool count threshhold exceeded."];
+  
+-   released_count++;
+    if (released_count == released_size)
+      {
+        released_size *= 2;
+        OBJC_REALLOC(released, id, released_size);
+      }
+    released[released_count] = anObj;
+  }
+  
+  - init
+--- 105,120 ----
+    if (!autorelease_enabled)
+      return;
+  
+    if (released_count >= pool_count_warning_threshhold)
+      [self error:"AutoreleasePool count threshhold exceeded."];
+  
+    if (released_count == released_size)
+      {
+        released_size *= 2;
+        OBJC_REALLOC(released, id, released_size);
+      }
+    released[released_count] = anObj;
++   released_count++;
+  }
+  
+  - init
+***************
+*** 154,166 ****
+  {
+    int i;
+  
+    if (parent)
+      current_pool = parent;
+    else
+      current_pool = [[NSAutoreleasePool alloc] init];
+-   for (i = 0; i < released_count; i++)
+-     [released[i] release];
+-   OBJC_FREE(released);
+    NSDeallocateObject(self);
+  }
+  
+--- 142,165 ----
+  {
+    int i;
+  
++   /* Make debugging easier by checking to see if we already dealloced the
++      object before trying to release it.  Also, take the object out of the
++      released list just before releasing it, so if we are doing 
++      "double_release_check"ing, then autoreleaseCountForObject: won't find the
+ 
++      object we are currently releasing. */
++   for (i = 0; i < released_count; i++)
++     {
++       id anObject = released[i];
++       if (anObject->isa == (void*) 0xdeadface)
++       [self error:"Autoreleasing deallocated object. Debug after setting [NSOb
+ject enableDoubleReleaseCheck:YES] to check for release errors."];
++       released[i]=0;
++       [anObject release];
++     }
++   OBJC_FREE(released);
+    if (parent)
+      current_pool = parent;
+    else
+      current_pool = [[NSAutoreleasePool alloc] init];
+    NSDeallocateObject(self);
+  }
+  
+***************
+*** 173,183 ****
+  + (void) enableRelease: (BOOL)enable
+  {
+    autorelease_enabled = enable;
+- }
+- 
+- + (void) enableDoubleReleaseCheck: (BOOL)enable
+- {
+-   double_release_check_enabled = enable;
+  }
+  
+  + (void) setPoolCountThreshhold: (unsigned)c
+--- 172,177 ----
+diff -c libobjects/src/NSObject.m:1.1.1.2 libobjects/src/NSObject.m:1.2
+*** libobjects/src/NSObject.m:1.1.1.2   Fri Aug  4 13:57:14 1995
+--- libobjects/src/NSObject.m   Fri Aug  4 13:57:14 1995
+***************
+*** 49,54 ****
+--- 49,58 ----
+  /* The Class responsible for handling autorelease's */
+  static id autorelease_class = nil;
+  
++ /* When this is `YES', every call to release/autorelease, checks to make sure
++    isn't being set up to release itself too many times. */
++ static BOOL double_release_check_enabled = NO;
++ 
+  BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
+  {
+    if (!requestedZone || [anObject zone] == requestedZone)
+***************
+*** 282,287 ****
+--- 286,300 ----
+  
+  - autorelease
+  {
++   if (double_release_check_enabled)
++     {
++       unsigned release_count;
++       unsigned retain_count = [self retainCount];
++       release_count = [autorelease_class autoreleaseCountForObject:self];
++       if (release_count > retain_count)
++         [self error:"Autorelease would release object too many times."];
++     }
++ 
+    [autorelease_class addObject:self];
+    return self;
+  }
+***************
+*** 352,357 ****
+--- 365,379 ----
+  
+  - (oneway void) release
+  {
++   if (double_release_check_enabled)
++     {
++       unsigned release_count;
++       unsigned retain_count = [self retainCount];
++       release_count = [autorelease_class autoreleaseCountForObject:self];
++       if (release_count > retain_count)
++         [self error:"Release would release object too many times."];
++     }
++ 
+    if (NSDecrementExtraRefCountWasZero(self))
+      [self dealloc];
+    return;
+***************
+*** 543,548 ****
+--- 565,575 ----
+  + (Class) autoreleaseClass
+  {
+    return autorelease_class;
++ }
++ 
++ + (void) enableDoubleReleaseCheck: (BOOL)enable
++ {
++   double_release_check_enabled = enable;
+  }
+  
+  - (int)compare:anotherObject;
+diff -c libobjects/src/Foundation/NSAutoreleasePool.h:1.3 libobjects/src/Foundat
+ion/NSAutoreleasePool.h:1.4
+*** libobjects/src/Foundation/NSAutoreleasePool.h:1.3   Fri Aug  4 13:57:17 1995
+--- libobjects/src/Foundation/NSAutoreleasePool.h       Fri Aug  4 13:57:17 1995
+***************
+*** 38,45 ****
+  - (void)addObject: anObject;
+  
+  + (void) enableRelease: (BOOL)enable;
+- + (void) enableDoubleReleaseCheck: (BOOL)enable;
+  + (void) setPoolCountThreshhold: (unsigned)c;
+  
+  @end
+  
+--- 38,45 ----
+  - (void)addObject: anObject;
+  
+  + (void) enableRelease: (BOOL)enable;
+  + (void) setPoolCountThreshhold: (unsigned)c;
++ + (unsigned) autoreleaseCountForObject: anObject;
+  
+  @end
+  
+diff -c libobjects/src/Foundation/NSObject.h:1.5 libobjects/src/Foundation/NSObj
+ect.h:1.6
+*** libobjects/src/Foundation/NSObject.h:1.5    Fri Aug  4 13:57:18 1995
+--- libobjects/src/Foundation/NSObject.h        Fri Aug  4 13:57:18 1995
+***************
+*** 140,145 ****
+--- 140,146 ----
+  - shouldNotImplement:(SEL)aSel;
+  + (Class) autoreleaseClass;
+  + (void) setAutoreleaseClass: (Class)aClass;
++ + (void) enableDoubleReleaseCheck: (BOOL)enable;
+  - read: (TypedStream*)aStream;
+  - write: (TypedStream*)aStream;
+  @end
+diff -c libobjects/src/Foundation/objc-load.h:1.6 libobjects/src/Foundation/objc
+-load.h:1.7
+*** libobjects/src/Foundation/objc-load.h:1.6   Fri Aug  4 13:57:18 1995
+--- libobjects/src/Foundation/objc-load.h       Fri Aug  4 13:57:19 1995
+***************
+*** 3,16 ****
+  
+      Copyright (C) 1993, Adam Fedor.
+      
+!     $Id$
+  */
+  
+  #ifndef __objc_load_h_INCLUDE
+  #define __objc_load_h_INCLUDE
+  
+  #include <stdio.h>
+! #include <objc/objc.h>
+  
+  extern char *objc_executable_location();
+  
+--- 3,16 ----
+  
+      Copyright (C) 1993, Adam Fedor.
+      
+!     $Id$
+  */
+  
+  #ifndef __objc_load_h_INCLUDE
+  #define __objc_load_h_INCLUDE
+  
+  #include <stdio.h>
+! #include <objc/objc-api.h>
+  
+  extern char *objc_executable_location();
+  
