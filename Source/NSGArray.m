@@ -83,7 +83,7 @@
 
 - objectAtIndex: (unsigned)index
 {
-  if (index < _count)
+  if (index >= _count)
     [NSException raise:NSRangeException
 		 format:@"Index out of bounds"];
   return _contents_array[index].id_u;
