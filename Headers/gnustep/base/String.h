@@ -106,6 +106,7 @@ typedef unsigned short Character;
 // GETTING C CHARS;
 - (char) charAtIndex: (unsigned)index;
 - (const char *) cString;
+- (const char *) cStringNoCopy;
 - (unsigned) cStringLength;
 - (void) getCString: (char*)buffer;
 - (void) getCString: (char*)buffer range: (IndexRange)aRange;
