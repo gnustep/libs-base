@@ -22,6 +22,7 @@
 
 # Install into the system root by default
 
+GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 VERSION = 0.4.2
@@ -34,5 +35,8 @@ make_strings_OBJC_FILES = \
 	StringsEntry.m \
 	StringsFile.m
 
+include GNUmakefile.preamble
+
 include $(GNUSTEP_MAKEFILES)/tool.make
+include $(GNUSTEP_MAKEFILES)/ctool.make
 
