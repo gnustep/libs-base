@@ -24,6 +24,7 @@
    */
 
 #include <config.h>
+#include <stdio.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>

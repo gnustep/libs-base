@@ -315,7 +315,7 @@ static NSString *lastFrameworkName = nil;
 static NSBundle *lastFrameworkBundle = nil;
 
 void
-_bundle_load_callback(Class theClass, Category *theCategory)
+_bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSBundle	*bundle = nil;
   NSString	*className;
@@ -566,9 +566,23 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  handle = objc_open_main_module(stderr);
 	  printf("%08x\n", handle);
 #endif
+#if NeXT_RUNTIME
+	  {
+	    int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
+	    Class *classes = NULL;
+	    while (numClasses < newNumClasses) {
+	      numClasses = newNumClasses;
+	      classes = realloc(classes, sizeof(Class) * numClasses);
+	      newNumClasses = objc_getClassList(classes, numClasses);
+	    }
+	    for (i = 0; i < numClasses; i++)
+	      [NSBundle _addFrameworkFromClass: classes[i]];
+	    free(classes);
+	  }
+#else
 	  while ((class = objc_next_class(&state)))
 	    [NSBundle _addFrameworkFromClass: class];
-
+#endif
 #if 0
 		  //		  _bundle_load_callback(class, NULL);
 

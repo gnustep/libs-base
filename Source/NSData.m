@@ -74,6 +74,7 @@
 #include <Foundation/NSRange.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSZone.h>
+#include <stdio.h>
 #include <string.h>		/* for memset() */
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 
