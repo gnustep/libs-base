@@ -12,7 +12,7 @@ Sat Mar  6 13:54:28 2004  Nicola Pero  <n.pero@mi.flashnet.it>
 	* SSL/GNUmakefile: Include common.make before everything else so
 	that the SSL bundle is built again.
 
-2004-03-05    <Wim Oudshoorn <Wim.Oudshoorn@agilisys.com>>
+2004-03-05  Wim Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
 	* Source/NSCalendarDate.m ([NSCalendarDate -descriptionWithCalendarFormat:locale:]): 
 	Fixed problem with repeated %b %B %b %B and the like. 
@@ -23,7 +23,7 @@ Sat Mar  6 13:54:28 2004  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSCalendarDate.m (dayOfCommonEra): Make non-static.
 
-2004-03-01    <woudshoo@agilisys.com>
+2004-03-01  Wim Oudshoorn  <woudshoo@agilisys.com>
 
 	* Headers/Additions/GNUstepBase/GSIMap.h: Added increment ivar to GSIMapTable
 	struct for allocation size
@@ -64,7 +64,7 @@ Sat Mar  6 13:54:28 2004  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSIndexSet.m: Don't use casts as lvalues.
 
-2004-02-27    <woudshoo@agilisys.com>
+2004-02-27  Wim Oudshoorn  <woudshoo@agilisys.com>
 
 	* Tools/gdomap.c: when using MinGW do not try to chdir to /tmp
 	because it does not always exist.
@@ -2706,7 +2706,7 @@ Mon Apr 28 12:09:44 BST 2003  Nicola Pero  <nicola@brainstorm.co.uk>
 	bitwise or) in call to access()
 	Bug reported by Roland Schwingel
 
-2003-02-17    <woudshoo@agilisys.com>
+2003-02-17  Wim Oudshoorn  <woudshoo@agilisys.com>
 
 	* GNUmakefile (GNUSTEP_TARGET_INSTALL_PREFIX)
 	(GNUSTEP_TARGET_LOCAL_ROOT, GNUSTEP_TARGET_NETWORK_ROOT): On
