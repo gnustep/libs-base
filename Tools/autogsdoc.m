@@ -594,12 +594,15 @@ main(int argc, char **argv, char **env)
 			@"    <author name=\"autogsdoc\"></author>\n"
 			@"  </head>\n"
 			@"  <body>\n"
+			@"    <chapter>\n"
+			@"      <heading>%@ project reference</heading>\n"
+			@"    </chapter>\n"
 			@"    <back>\n"
 			@"      <index scope=\"project\" type=\"title\" />\n"
 			@"    </back>\n"
 			@"  </body>\n"
 			@"</gsdoc>\n",
-			  file, project];
+			  file, project, project];
 
 		      if ([upString writeToFile: upFile atomically: YES] == NO)
 			{
