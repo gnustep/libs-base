@@ -95,19 +95,19 @@ static Class NSMutableArray_concrete_class;
 
 + array
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
 + arrayWithArray: (NSArray*)array
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithArray: array] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithArray: array]);
 }
 
 + arrayWithContentsOfFile: (NSString*)file
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: file] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: file]);
 }
 
 + arrayWithObject: anObject
@@ -115,9 +115,8 @@ static Class NSMutableArray_concrete_class;
   if (anObject == nil)
     [NSException raise: NSInvalidArgumentException
 		 format: @"Tried to add nil"];
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: &anObject count: 1]
-	  autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: &anObject count: 1]);
 }
 
 /* This is the designated initializer for NSArray. */
@@ -183,7 +182,7 @@ static Class NSMutableArray_concrete_class;
 
 - copyWithZone: (NSZone*)zone
 {
-  return [self retain];
+  return RETAIN(self);
 }
 
 /* The NSMutableCopying Protocol */
@@ -202,8 +201,7 @@ static Class NSMutableArray_concrete_class;
 - (NSArray*) arrayByAddingObject: anObject
 {
   id na;
-  unsigned i, c;
-  id *objects;
+  unsigned c;
  
   c = [self count];
   {
@@ -214,7 +212,7 @@ static Class NSMutableArray_concrete_class;
     na = [[NSArray allocWithZone: NSDefaultMallocZone()]
       initWithObjects: objects count: c+1];
   }
-  return [na autorelease];
+  return AUTORELEASE(na);
 }
 
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
@@ -308,7 +306,7 @@ static Class NSMutableArray_concrete_class;
           result = nil;
 	}
       NS_ENDHANDLER
-      [myString release];
+      RELEASE(myString);
       if ([result isKindOfClass: [NSArray class]])
 	{
 	  [self initWithArray: result];
@@ -316,7 +314,7 @@ static Class NSMutableArray_concrete_class;
 	}
     }
   NSLog(@"Contents of file does not contain an array");
-  [self release];
+  RELEASE(self);
   return nil;
 }
 
@@ -327,13 +325,13 @@ static Class NSMutableArray_concrete_class;
   self = [[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: firstObject rest: ap];
   va_end(ap);
-  return [self autorelease];
+  return AUTORELEASE(self);
 }
 
 + arrayWithObjects: (id*)objects count: (unsigned)count
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objects count: count] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects count: count]);
 }
 
 - initWithArray: (NSArray*)array
@@ -508,7 +506,7 @@ static Class NSMutableArray_concrete_class;
     initWithArray: self];
   [sortedArray sortUsingFunction: comparator context: context];
   result = [NSArray arrayWithArray: sortedArray];
-  [sortedArray release];
+  RELEASE(sortedArray);
   return result;
 }
 
@@ -573,14 +571,13 @@ static Class NSMutableArray_concrete_class;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSArrayEnumerator allocWithZone: NSDefaultMallocZone()]
-    initWithArray: self] autorelease];
+  return AUTORELEASE([[NSArrayEnumerator allocWithZone: NSDefaultMallocZone()]
+    initWithArray: self]);
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return [[[NSArrayEnumeratorReverse allocWithZone: NSDefaultMallocZone()]
-    initWithArray: self] autorelease];
+  return AUTORELEASE([[NSArrayEnumeratorReverse allocWithZone: NSDefaultMallocZone()] initWithArray: self]);
 }
 
 - (NSString*) description
@@ -598,8 +595,7 @@ static Class NSMutableArray_concrete_class;
 {
   NSMutableString	*result;
 
-  result = [[[NSGMutableCString alloc] initWithCapacity: 20*[self count]]
-    autorelease];
+  result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity: 20*[self count]]);
   [self descriptionWithLocale: locale
 		       indent: level
 			   to: (id<GNUDescriptionDestination>)result];
@@ -720,7 +716,7 @@ static NSString	*indentStrings[] = {
   newArray = [[[[self class] _concreteClass] allocWithZone: zone]
 	      initWithObjects: objects count: count];
   while (i > 0)
-    [objects[--i] release];
+    RELEASE(objects[--i]);
   return newArray;
 }
 
@@ -780,8 +776,8 @@ static NSString	*indentStrings[] = {
 
 + arrayWithCapacity: (unsigned)numItems
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: numItems] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: numItems]);
 }
 
 - (BOOL)writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
@@ -1008,10 +1004,10 @@ static NSString	*indentStrings[] = {
 	id a = [self objectAtIndex: d + stride];
 	id b = [self objectAtIndex: d];
 	if ((*compare)(a, b, context) == NSOrderedAscending) {
-	  [a retain];
+	  RETAIN(a);
 	  [self replaceObjectAtIndex: d + stride withObject: b];
 	  [self replaceObjectAtIndex: d withObject: a];
-	  [a release];
+	  RELEASE(a);
 	  if (stride > d)
 	    break;
 	  d -= stride;		// jump by stride factor
@@ -1037,7 +1033,7 @@ static NSString	*indentStrings[] = {
 {
   [super init];
   array = anArray;
-  [array retain];
+  RETAIN(array);
   next_index = 0;
   return self;
 }
@@ -1051,7 +1047,7 @@ static NSString	*indentStrings[] = {
 
 - (void) dealloc
 {
-  [array release];
+  RELEASE(array);
   [super dealloc];
 }
 
@@ -1066,7 +1062,7 @@ static NSString	*indentStrings[] = {
 {
   [super init];
   array = anArray;
-  [array retain];
+  RETAIN(array);
   next_index = [array count]-1;
   return self;
 }

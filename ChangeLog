@@ -1,5 +1,6 @@
-Wed Jun 30 20:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Jun 30 22:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Source/NSArray.m: Tidied for garbage collection.
 	* Source/PropList.h: Tidied for garbage collection.
 	* Source/include/Unicode.h: Added missing prototyp.
 
