@@ -2088,7 +2088,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	{
 	  hdr = [document headerNamed: @"content-transfer-encoding"];
 	}
-      else if ([[[hdr value] lowercaseString] isEqual: @"chunked"] == YES)
+      else if ([[[hdr value] lowercaseString] isEqualToString: @"chunked"])
 	{
 	  /*
 	   * Chunked transfer encoding overrides any content length spec.
@@ -3289,7 +3289,7 @@ static NSCharacterSet	*tokenSet = nil;
 {
   NSString	*name = [info name];
 
-  if (name == nil || [name isEqual: @"unknown"] == YES)
+  if (name == nil || [name isEqualToString: @"unknown"] == YES)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ -%@] header with invalid name",
@@ -3831,6 +3831,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*enc;
   GSMimeHeader	*hdr;
   NSData	*boundary;
+  BOOL		contentIsBinary = NO;
   BOOL		contentIs7bit = YES;
   unsigned int	count;
   unsigned int	i;
@@ -3866,7 +3867,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  /*
 	   * If any part of a multipart document is not 7bit then
 	   * the document as a whole must not be 7bit either.
-	   * It is important tol chack this *after* the part has been
+	   * It is important to check this *after* the part has been
 	   * processed by -rawMimeData:, so we know that the encoding
 	   * set for the part is valid.
 	   */ 
@@ -3876,9 +3877,14 @@ static NSCharacterSet	*tokenSet = nil;
 
 	      enc = [part headerNamed: @"content-transfer-encoding"];
 	      v = [enc value];
-	      if ([v isEqual: @"8bit"] == YES || [v isEqual: @"binary"] == YES)
+	      if ([v isEqualToString: @"8bit"] == YES
+		|| [v isEqualToString: @"binary"] == YES)
 		{
 		  contentIs7bit = NO;
+		  if ([v isEqualToString: @"binary"] == YES)
+		    {
+		      contentIsBinary = YES;
+		    }
 		}
 	    }
 	}
@@ -3920,12 +3926,23 @@ static NSCharacterSet	*tokenSet = nil;
 
       enc = [self headerNamed: @"content-transfer-encoding"];
       v = [enc value];
-      if ([v isEqualToString: @"8bit"] || [v isEqualToString: @"binary"])
+      if ([v isEqualToString: @"binary"])
 	{
 	  /*
-	   * For 8bit/binary encoding, we can just accept the setting.
+	   * For binary encoding, we can just accept the setting.
 	   */
 	  shouldSet = NO;
+	}
+      else if ([v isEqualToString: @"8bit"])
+	{
+	  if (contentIsBinary == YES)
+	    {
+	      shouldSet = YES;	// Need to promote from 8bit to binary
+	    }
+	  else
+	    {
+	      shouldSet = NO;
+	    }
 	}
       else if (v == nil || [v isEqualToString: @"7bit"] == YES)
 	{
@@ -3954,15 +3971,36 @@ static NSCharacterSet	*tokenSet = nil;
 
       if (shouldSet == YES)
 	{
+	  NSString	*encoding;
+
 	  /*
 	   * Force a change to the current transfer encoding setting.
 	   */
-	  enc = [GSMimeHeader alloc];
-	  enc = [enc initWithName: @"content-transfer-encoding"
-			    value: ((contentIs7bit == YES) ? @"7bit" : @"8bit")
-		       parameters: nil];
-	  [self setHeader: enc];
-	  RELEASE(enc);
+	  if (contentIs7bit == YES)
+	    {
+	      encoding = @"7bit";
+	    }
+	  else if (contentIsBinary == YES)
+	    {
+	      encoding = @"binary";
+	    }
+	  else
+	    {
+	      encoding = @"8bit";
+	    }
+	  if (enc == nil)
+	    {
+	      enc = [GSMimeHeader alloc];
+	      enc = [enc initWithName: @"content-transfer-encoding"
+				value: encoding
+			   parameters: nil];
+	      [self setHeader: enc];
+	      RELEASE(enc);
+	    }
+	  else
+	    {
+	      [enc setValue: encoding];
+	    }
 	}
 
       v = [type parameterForKey: @"boundary"];
@@ -3974,7 +4012,7 @@ static NSCharacterSet	*tokenSet = nil;
       boundary = [v dataUsingEncoding: NSASCIIStringEncoding];
 
       v = [type objectForKey: @"Subtype"];
-      if ([v isEqual: @"related"] == YES)
+      if ([v isEqualToString: @"related"] == YES)
 	{
 	  GSMimeDocument	*start;
 
@@ -4021,38 +4059,102 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
+      NSString	*encoding;
+
       d = [self convertToData];
       enc = [self headerNamed: @"content-transfer-encoding"];
-      if (enc == nil)
+      encoding = [enc value];
+      if (encoding == nil)
 	{
-	  enc = [GSMimeHeader alloc];
-	  if ([[type objectForKey: @"Type"] isEqual: @"text"] == YES)
+	  if ([[type objectForKey: @"Type"] isEqualToString: @"text"] == YES)
 	    {
-	      NSString	*charset = [type parameterForKey: @"charset"];
+	      NSString		*charset = [type parameterForKey: @"charset"];
 
-	      if (charset == nil
-		|| [charset isEqual: @"ascii"]
-		|| [charset isEqual: @"us-ascii"])
+	      if (charset != nil
+		&& [charset isEqualToString: @"ascii"] == NO
+		&& [charset isEqualToString: @"us-ascii"] == NO)
 		{
+		  encoding = @"8bit";
+		  enc = [GSMimeHeader alloc];
 		  enc = [enc initWithName: @"content-transfer-encoding"
-				    value: @"7bit"
+				    value: encoding
 			       parameters: nil];
-		}
-	      else
-		{
-		  enc = [enc initWithName: @"content-transfer-encoding"
-				    value: @"8bit"
-			       parameters: nil];
+		  [self addHeader: enc];
+		  RELEASE(enc);
 		}
 	    }
 	  else
 	    {
+	      enc = [GSMimeHeader alloc];
 	      enc = [enc initWithName: @"content-transfer-encoding"
 				value: @"base64"
 			   parameters: nil];
+	      [self addHeader: enc];
+	      RELEASE(enc);
 	    }
-	  [self addHeader: enc];
-	  RELEASE(enc);
+	}
+
+      if (encoding == nil
+	|| [encoding isEqualToString: @"7bit"] == YES
+	|| [encoding isEqualToString: @"8bit"] == YES)
+	{
+	  unsigned char	*bytes = (unsigned char*)[d bytes];
+	  unsigned	length = [d length];
+	  BOOL		hadCarriageReturn = NO;
+	  unsigned 	lineLength = 0;
+	  unsigned	i;
+
+	  for (i = 0; i < length; i++)
+	    {
+	      unsigned char	c = bytes[i];
+
+	      if (hadCarriageReturn == YES)
+		{
+		  if (c != '\n')
+		    {
+		      encoding = @"binary";	// CR not part of CRLF
+		      break;
+		    }
+		  hadCarriageReturn = NO;
+		  lineLength = 0;
+		}
+	      else if (c == '\r')
+		{
+		  hadCarriageReturn = YES;
+		}
+	      else if (++lineLength > 998)
+		{
+		  encoding = @"binary";	// Line of more than 998
+		  break;
+		}
+
+	      if (c == 0)
+		{
+		  encoding = @"binary";
+		  break;
+		}
+	      else if (c > 127)
+		{
+		  encoding = @"8bit";	// Not 7bit data
+		}
+	    }
+
+	  if (encoding != nil)
+	    {
+	      if (enc == nil)
+		{
+		  enc = [GSMimeHeader alloc];
+		  enc = [enc initWithName: @"content-transfer-encoding"
+				    value: encoding
+			       parameters: nil];
+		  [self addHeader: enc];
+		  RELEASE(enc);
+		}
+	      else
+		{
+		  [enc setValue: encoding];
+		}
+	    }
 	}
     }
 
@@ -4079,7 +4181,8 @@ static NSCharacterSet	*tokenSet = nil;
 
 	      enc = [part headerNamed: @"content-transport-encoding"];
 	      v = [enc value];
-	      if (v != nil && ([v isEqual: @"8bit"] || [v isEqual: @"binary"]))
+	      if (v != nil && ([v isEqualToString: @"8bit"]
+		|| [v isEqualToString: @"binary"]))
 	        {
 		  [NSException raise: NSInternalInconsistencyException
 		    format: @"[%@ -%@] bad part encoding for 7bit container",
@@ -4106,7 +4209,7 @@ static NSCharacterSet	*tokenSet = nil;
        */
       [md appendBytes: "\r\n" length: 2];
 
-      if ([[enc value] isEqual: @"base64"] == YES)
+      if ([[enc value] isEqualToString: @"base64"] == YES)
         {
 	  const char	*ptr;
 	  unsigned	len;
@@ -4220,15 +4323,15 @@ static NSCharacterSet	*tokenSet = nil;
       type = @"text";
     }
 
-  if ([type isEqual: @"text"] == YES)
+  if ([type isEqualToString: @"text"] == YES)
     {
       subtype = @"plain";
     }
-  else if ([type isEqual: @"multipart"] == YES)
+  else if ([type isEqualToString: @"multipart"] == YES)
     {
       subtype = @"mixed";
     }
-  else if ([type isEqual: @"application"] == YES)
+  else if ([type isEqualToString: @"application"] == YES)
     {
       subtype = @"octet-stream";
     }
