@@ -1,3 +1,9 @@
+2004-07-09  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSFileManager.m ([GSAttrDictionary
+	-fileGroupOwnerAccountName]): Remove Solaris warning - no longer
+	necessary.
+
 2004-07-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.h: Fix printf missing argument bug.

@@ -2882,14 +2882,10 @@ static NSSet	*fileKeys = nil;
   return statbuf.st_gid;
 }
 
-#if (defined(sparc) && defined(DEBUG))
-static int sparc_warn = 0;
-#endif
-
 - (NSString*) fileGroupOwnerAccountName
 {
   NSString	*result = @"UnknownGroup";
-#if defined(HAVE_GRP_H) && !(defined(sparc) && defined(DEBUG))
+#if defined(HAVE_GRP_H)
   struct group	*gp;
 
   gp = getgrgid(statbuf.st_gid);
@@ -2897,15 +2893,6 @@ static int sparc_warn = 0;
     {
       result = [NSString stringWithCString: gp->gr_name];
     }
-#else
-#if (defined(sparc) && defined(DEBUG))
-  if (sparc_warn == 0)
-    {
-      sparc_warn = 1;
-      /* Can't be NSLog - causes recursion in [NSUser -synchronize] */
-      fprintf(stderr, "WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines\n");
-    }
-#endif
 #endif
   return result;
 }
