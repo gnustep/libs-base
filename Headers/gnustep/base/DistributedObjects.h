@@ -25,7 +25,7 @@
 #define __DistributedObjects_h
 
 /*
- *	Changes from GNU DO to OPENSTEP style DO
+ *	For internal use by the GNUstep base library.
  *
  *	Classes should implement [-classForPortCoder] to return the class
  *	that should be sent over the wire.
