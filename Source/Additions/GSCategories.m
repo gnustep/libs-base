@@ -1074,8 +1074,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 {
   NSRange       range;
   unsigned int  count = 0;
-  unsigned int      newEnd;
-  NSRange searchRange;
+  unsigned int	newEnd;
+  NSRange	searchRange;
 
   if (replace == nil)
     {
@@ -1101,9 +1101,9 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
           [self replaceCharactersInRange: range
                               withString: by];
 
-              newEnd = NSMaxRange(searchRange) + byLen - range.length;
-              searchRange.location = range.location + byLen;
-              searchRange.length = newEnd - searchRange.location;
+	  newEnd = NSMaxRange(searchRange) + byLen - range.length;
+	  searchRange.location = range.location + byLen;
+	  searchRange.length = newEnd - searchRange.location;
 
           range = [self rangeOfString: replace
                               options: 0
