@@ -1,3 +1,7 @@
+2004-02-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: If there is no path in the URL, assume '/'
+
 2004-02-04 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m: Rewrote the object reference handling
