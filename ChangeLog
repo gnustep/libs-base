@@ -7,6 +7,8 @@
 	* Source/NSDate.m: Update to use NSTimeIntervalSince1970
 	* Source/NSTimer.m: Declare GSTimeNow() locally
 	* Source/NSprocessInfo.m: ditto
+	* Source/Additions/GSMime.m: more tolerant parsing ... ignore excess
+	data in multi-part document.
  
 Thu Oct 31 00:46:23 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 

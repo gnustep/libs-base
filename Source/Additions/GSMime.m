@@ -2167,6 +2167,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       unsigned char	*bBytes = (unsigned char*)[boundary bytes];
       unsigned char	bInit = bBytes[0];
       BOOL		done = NO;
+      BOOL		endedFinalPart = NO;
 
       [data appendBytes: [d bytes] length: [d length]];
       bytes = (unsigned char*)[data mutableBytes];
@@ -2186,6 +2187,11 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    || bytes[lineStart-1] == '\n')
 		    {
 		      lineEnd = lineStart + bLength;
+		      if (lineEnd + 2 < dataEnd && bytes[lineEnd] == '-'
+			&& bytes[lineEnd+1] == '-')
+			{
+			  endedFinalPart = YES;
+			}
 		      break;
 		    }
 		}
@@ -2209,7 +2215,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    {
 	      NSData	*d;
 	      unsigned	pos;
-	      BOOL	endedFinalPart = NO;
 
 	      /*
 	       * Found boundary at the end of a section.
@@ -2220,7 +2225,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		&& bytes[sectionStart+1] == '-')
 		{
 		  sectionStart += 2;
-		  endedFinalPart = YES;
 		}
 	      if (bytes[sectionStart] == '\r')
 		{
@@ -2294,17 +2298,26 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      bytes = (unsigned char*)[data mutableBytes];
 	      lineStart -= sectionStart;
 	      sectionStart = 0;
+	      if (endedFinalPart == YES)
+		{
+		  done = YES;
+		}
 	    }
 	}
       /*
-       * Check to see if we have reached content length.
+       * Check to see if we have reached content length or ended multipart
+       * document.
        */
-      if (expect > 0 && rawBodyLength >= expect)
+      if (endedFinalPart == YES || (expect > 0 && rawBodyLength >= expect))
 	{
 	  complete = YES;
 	  inBody = NO;
+	  result = NO;
 	}
-      result = YES;
+      else
+	{
+	  result = YES;
+	}
     }
   return result;
 }
