@@ -348,37 +348,39 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 - (id) initWithFileName: (NSString*)name
 {
   self = [super initWithFileName: name];
-
-  mgr = RETAIN([NSFileManager defaultManager]);
-  refToFile = [NSMutableDictionary new];
-  contents = [NSMutableArray new];
-  footnotes = [NSMutableArray new];
-  if ([defs boolForKey: @"Monolithic"] == YES)
+  if (self != nil)
     {
-      ASSIGN(currName, [baseName stringByAppendingPathExtension: @"html"]);
-    }
-  else
-    {
-      BOOL	flag = NO;
-
-      if ([mgr fileExistsAtPath: baseName isDirectory: &flag] == NO)
+      mgr = RETAIN([NSFileManager defaultManager]);
+      refToFile = [NSMutableDictionary new];
+      contents = [NSMutableArray new];
+      footnotes = [NSMutableArray new];
+      if ([defs boolForKey: @"Monolithic"] == YES)
 	{
-	  if ([mgr createDirectoryAtPath: baseName attributes: nil] == NO)
+	  ASSIGN(currName, [baseName stringByAppendingPathExtension: @"html"]);
+	}
+      else
+	{
+	  BOOL	flag = NO;
+
+	  if ([mgr fileExistsAtPath: baseName isDirectory: &flag] == NO)
 	    {
-	      NSLog(@"Unable to create directory '%@'", baseName);
+	      if ([mgr createDirectoryAtPath: baseName attributes: nil] == NO)
+		{
+		  NSLog(@"Unable to create directory '%@'", baseName);
+		  RELEASE(self);
+		  return nil;
+		}
+	    }
+	  else if (flag == NO)
+	    {
+	      NSLog(@"The file '%@' is not a directory", baseName);
 	      RELEASE(self);
 	      return nil;
 	    }
-	}
-      else if (flag == NO)
-	{
-	  NSLog(@"The file '%@' is not a directory", baseName);
-	  RELEASE(self);
-	  return nil;
-	}
-      ASSIGN(currName,
-	[baseName stringByAppendingPathComponent: @"index.html"]);
-    }    
+	  ASSIGN(currName,
+	    [baseName stringByAppendingPathComponent: @"index.html"]);
+	}    
+    }
   return self;
 }
 
