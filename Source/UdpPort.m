@@ -44,7 +44,7 @@
 @interface UdpOutPort (Private)
 + newForSendingToSockaddr: (struct sockaddr_in*)addr;
 @end
-@interface UdpPacket (Private)
+@interface UdpInPacket (Private)
 - (void) _setReplyPort: p;
 @end
 
@@ -99,7 +99,6 @@ static NSMapTable *port_number_2_in_port = NULL;
 + newForReceivingFromPortNumber: (unsigned short)n 
 {
   UdpInPort* p;
-  int i, count;
 
   assert (n > IPPORT_USERRESERVED);
 
@@ -161,7 +160,7 @@ static NSMapTable *port_number_2_in_port = NULL;
   int r;
   struct sockaddr_in remote_addr;
   int remote_len;
-  UdpPacket *packet;
+  UdpInPacket *packet;
 
   if (udp_port_debug)
     fprintf(stderr, "receiving from %d\n", [self portNumber]);
@@ -191,7 +190,7 @@ static NSMapTable *port_number_2_in_port = NULL;
   /* There is a packet on the socket ready for us to receive. */
 
   /* Create a packet. */
-  packet = [[UdpPacket alloc] initWithCapacity: MAX_PACKET_SIZE];
+  packet = [[UdpInPacket alloc] initWithCapacity: MAX_PACKET_SIZE];
 
   /* Fill it with the UDP packet data. */
   remote_len = sizeof(remote_addr);
@@ -238,7 +237,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
 - (Class) packetClass
 {
-  return [UdpPacket class];
+  return [UdpInPacket class];
 }
 
 - (Class) classForConnectedCoder: aRmc
@@ -384,7 +383,7 @@ static Array *udp_out_port_array;
 
 - (Class) packetClass
 {
-  return [UdpPacket class];
+  return [UdpInPacket class];
 }
 
 - (void) encodeWithCoder: aCoder
@@ -416,11 +415,11 @@ static Array *udp_out_port_array;
 
 
 
-@implementation UdpPacket
+@implementation UdpInPacket
 
 - (void) _setReplyPort: p
 {
-  reply_port = p;
+  [self notImplemented: _cmd];
 }
 
 @end
