@@ -85,30 +85,6 @@ static Class NSMutableArray_concrete_class;
   return NSAllocateObject ([self _concreteClass], 0, z);
 }
 
-/* This is the designated initializer for NSArray. */
-- initWithObjects: (id*)objects count: (unsigned)count
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
-
-- (unsigned) count
-{
-  [self subclassResponsibility:_cmd];
-  return 0;
-}
-
-- objectAtIndex: (unsigned)index
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
-
-@end
-
-
-@implementation NSArrayNonCore
-
 + array
 {
   return [[[self alloc] init] 
@@ -133,6 +109,30 @@ static Class NSMutableArray_concrete_class;
   return [[[self alloc] initWithObjects:&anObject count:1]
 	  autorelease];
 }
+
+/* This is the designated initializer for NSArray. */
+- initWithObjects: (id*)objects count: (unsigned)count
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (unsigned) count
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- objectAtIndex: (unsigned)index
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+@end
+
+
+@implementation NSArrayNonCore
 
 - (NSArray*) arrayByAddingObject: anObject
 {
@@ -622,12 +622,29 @@ static Class NSMutableArray_concrete_class;
 {
   /* a deep copy */
   unsigned count = [self count];
-  id objects[count];
+  id oldObjects[count];
+  id newObjects[count];
+  id newArray;
   unsigned i;
+  BOOL needCopy = [self isKindOfClass: [NSMutableArray class]];
+
+  if (NSShouldRetainWithZone(self, zone) == NO)
+    needCopy = YES;
+  [self getObjects: oldObjects];
   for (i = 0; i < count; i++)
-    objects[i] = [[self objectAtIndex:i] copyWithZone:zone];
-  return [[[[self class] _concreteClass] allocWithZone:zone] 
-	  initWithObjects:objects count:count];
+    {
+      newObjects[i] = [oldObjects[i] copyWithZone:zone];
+      if (newObjects[i] != oldObjects[i])
+	needCopy = YES;
+    }
+  if (needCopy)
+    newArray = [[[[self class] _concreteClass] allocWithZone:zone]
+	      initWithObjects:newObjects count:count];
+  else
+    newArray = [self retain];
+  for (i = 0; i < count; i++)
+    [newObjects[i] release];
+  return newArray;
 }
 
 /* The NSMutableCopying Protocol */

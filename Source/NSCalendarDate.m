@@ -24,9 +24,10 @@
 #include <config.h>
 #include <math.h>
 #include <objc/objc-api.h>
-#include <gnustep/base/NSDate.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/NSException.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSCoder.h>
+#include <Foundation/NSException.h>
 
 #ifndef __WIN32__
 #include <time.h>
@@ -143,6 +144,27 @@ static id long_day[7] = {@"Sunday",
 					      second: second
 					      timeZone: aTimeZone];
   return [d autorelease];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    [super encodeWithCoder: aCoder];
+    [aCoder encodeObject: calendar_format];
+    [aCoder encodeObject: time_zone];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    self = [super initWithCoder: aCoder];
+    calendar_format = [aCoder decodeObject];
+    time_zone = [aCoder decodeObject];
+    return self;
+}
+
+- (void) dealloc
+{
+    [calendar_format release];
+    [super dealloc];
 }
 
 // Initializing an NSCalendar Date
@@ -972,7 +994,7 @@ static id long_day[7] = {@"Sunday",
 
 - (void)setCalendarFormat:(NSString *)format
 {
-  calendar_format = format;
+  calendar_format = [format copyWithZone: [self zone]];
 }
 
 // Getting and Setting Time Zones

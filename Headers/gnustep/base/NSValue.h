@@ -42,6 +42,7 @@
 
 #ifndef STRICT_OPENSTEP
 + valueFromString: (NSString *)string;
+- (BOOL) isEqualToValue: (NSValue*)other;
 #endif
 
 // Accessing Data 
@@ -56,7 +57,7 @@
 
 @end
 
-@interface NSNumber : NSValue <NSCoding>
+@interface NSNumber : NSValue <NSCopying,NSCoding>
 
 // Allocating and Initializing
 

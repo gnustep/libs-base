@@ -744,8 +744,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  [self subclassResponsibility:_cmd];
-  return nil;
+  if (NSShouldRetainWithZone(self, zone) &&
+	[self isKindOfClass: [NSMutableData class]] == NO)
+    return [self retain];
+  else
+    return [[NSDataMalloc allocWithZone: zone]
+	initWithBytes: [self bytes] length: [self length]];
 }
 
 - (id) mutableCopy
@@ -755,8 +759,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  [self subclassResponsibility:_cmd];
-  return nil;
+  return [[NSMutableDataMalloc allocWithZone: zone]
+	initWithBytes: [self bytes] length: [self length]];
 }
 
 - (void) encodeWithCoder:(NSCoder*)coder
@@ -1183,11 +1187,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   return [NSDataMalloc class];
 }
 
-- (id) copyWithZone: (NSZone*)zone
-{
-  return [self retain];
-}
-
 - (void) dealloc
 {
   if (bytes)
@@ -1309,12 +1308,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (unsigned int) length
 {
   return length;
-}
-
-- (id) mutableCopyWithZone: (NSZone*)zone
-{
-  return [[NSMutableDataMalloc allocWithZone:zone] initWithBytes: bytes
-							  length: length];
 }
 
 - (void*) relinquishAllocatedBytes
@@ -1552,11 +1545,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   return [NSMutableDataMalloc class];
 }
 
-- (id) copyWithZone: (NSZone*)zone
-{
-  return [[NSDataMalloc allocWithZone:zone] initWithBytes:bytes length:length];
-}
-
 - (void) dealloc
 {
   if (bytes)
@@ -1704,12 +1692,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (void*) mutableBytes
 {
   return bytes;
-}
-
-- (id) mutableCopyWithZone: (NSZone*)zone
-{
-  return [[NSMutableDataMalloc allocWithZone:zone] initWithBytes: bytes
-							  length: length];
 }
 
 - (id) setCapacity: (unsigned int)size

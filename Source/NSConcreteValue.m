@@ -113,6 +113,11 @@
     memcpy( value, data, objc_sizeof_type([objctype cString]) );
 }
 
+-(BOOL) isEqualToValue: (NSValue*)aValue
+{
+    return NO;
+}
+
 - (const char *)objCType
 {
     return [objctype cString];
