@@ -83,8 +83,6 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
-static NSRecursiveLock *local_lock = nil;
-
 static const char *unicode_enc = NULL;
 
 /* Check to see what type of internal unicode format the library supports */
@@ -123,6 +121,8 @@ internal_unicode_enc(void)
 }
 
 #endif 
+
+static NSRecursiveLock *local_lock = nil;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;

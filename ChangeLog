@@ -18,7 +18,8 @@
 	* Source/Additions/GSCompatibility.m: Remove gnustep_global_lock.
 	* Source/Additions/GSObjCRuntime.m: Remove superfluous locking.
 	* Source/Additions/Unicode.m: Use new GS_INITIALIZED_LOCK macro
-	and replace global lock with local lock.
+	and replace global lock with local lock.  Moved out of the #ifdef
+	as reported by Matt Rice (ratmice@yahoo.com).
 	* Source/NSLock.m 
 	(-[NSConditionLock lockWhenCondition:beforeDate:]): Implemented.
 	* Testing/gslock.m: New test case.
