@@ -1,3 +1,7 @@
+2004-04-09 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUnarchiver.m: Temporary rollback of previous fix.
+
 2004-04-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUnarchiver.m: Retain objects while they are being
