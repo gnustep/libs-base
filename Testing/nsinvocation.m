@@ -196,7 +196,7 @@ main ()
   float	f;
   double	d;
   id		o;
-  char*	str;
+  char		*str;
   NSInvocation	*inv;
   NSMethodSignature	*sig;
   Target		*t;
@@ -209,6 +209,25 @@ printf("Starting\n");
 printf("Calling proxy\n");
 [p loopInt: 1];
 
+  printf("Testing NS_MESSAGE ... ");
+  inv = NS_MESSAGE(t, loopInt: 5);
+  [inv invoke];
+  [inv getReturnValue: &i];
+  if (i == 6)
+    printf("OK\n");
+  else
+    printf("ERROR ... expecting 6 and got %d\n", i);
+  
+  printf("Testing NS_INVOCATION ... ");
+  inv = NS_MESSAGE([Target class], loopInt: 7);
+  [inv setTarget: t];
+  [inv invoke];
+  [inv getReturnValue: &i];
+  if (i == 8)
+    printf("OK\n");
+  else
+    printf("ERROR ... expecting 8 and got %d\n", i);
+  
 #define	SETUP(X) \
   sig = [t methodSignatureForSelector: @selector(X)]; \
   inv = [NSInvocation invocationWithMethodSignature: sig]; \
