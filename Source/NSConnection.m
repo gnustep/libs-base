@@ -78,6 +78,8 @@
 #include "Foundation/NSDebug.h"
 #include "GSInvocation.h"
 
+extern NSRunLoop	*GSRunLoopForThread(NSThread*);
+
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 #define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
@@ -211,7 +213,7 @@ stringFromMsgType(int type)
 - (void) _service_rootObject: (NSPortCoder*)rmc;
 - (void) _service_shutdown: (NSPortCoder*)rmc;
 - (void) _service_typeForSelector: (NSPortCoder*)rmc;
-- (void) _threadWillExit: (NSNotification*)notification;
++ (void) _threadWillExit: (NSNotification*)notification;
 @end
 
 #define _proxiesGate _refGate
@@ -488,6 +490,8 @@ static NSLock	*cached_proxies_gate = nil;
 {
   if (self == [NSConnection class])
     {
+      NSNotificationCenter	*nc;
+
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
@@ -520,6 +524,16 @@ static NSLock	*cached_proxies_gate = nil;
 	{
 	  root_object_map_gate = [GSLazyLock new];
 	}
+
+      /*
+       * When any thread exits, we must check to see if we are using its
+       * runloop, and remove ourselves from it if necessary.
+       */
+      nc = [NSNotificationCenter defaultCenter];
+      [nc addObserver: self
+	     selector: @selector(_threadWillExit:)
+		 name: NSThreadWillExitNotification
+	       object: nil];
     }
 }
 
@@ -639,7 +653,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       if ([_runLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
 	{
-	  unsigned	c = [_requestModes count];
+	  unsigned		c = [_requestModes count];
 
 	  while (c-- > 0)
 	    {
@@ -892,7 +906,7 @@ static NSLock	*cached_proxies_gate = nil;
        * Set up request modes array and make sure the receiving port
        * is added to the run loop to get data.
        */
-      loop = [runLoopClass currentRunLoop];
+      loop = GSRunLoopForThread(nil);
       _runLoops = [[NSMutableArray alloc] initWithObjects: &loop count: 1];
       _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
       [self addRequestMode: NSDefaultRunLoopMode]; 
@@ -953,15 +967,6 @@ static NSLock	*cached_proxies_gate = nil;
 		    object: s];
     }
   
-  /*
-   * When any thread exits, we must check to see if we are using its
-   * runloop, and remove ourselves from it if necessary.
-   */
-  [nCenter addObserver: self
-	      selector: @selector(_threadWillExit:)
-		  name: NSThreadWillExitNotification
-		object: nil];
-
   /* In order that connections may be deallocated - there is an
      implementation of [-release] to automatically remove the connection
      from this array when it is the only thing retaining it. */
@@ -969,7 +974,7 @@ static NSLock	*cached_proxies_gate = nil;
   M_UNLOCK(connection_table_gate);
 
   [nCenter postNotificationName: NSConnectionDidInitializeNotification
-			  object: self];
+			 object: self];
 
   return self;
 }
@@ -1092,7 +1097,6 @@ static NSLock	*cached_proxies_gate = nil;
     }
   M_UNLOCK(_proxiesGate);
 
-#if 1
   /*
    * If we are invalidated, we shouldn't be receiving any event and
    * should not need to be in any run loops.
@@ -1101,7 +1105,6 @@ static NSLock	*cached_proxies_gate = nil;
     {
       [self removeRunLoop: [_runLoops lastObject]];
     }
-#endif
 
   /*
    * Invalidate the current conversation so we don't leak.
@@ -1400,7 +1403,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) runInNewThread
 {
-  [self removeRunLoop: [runLoopClass currentRunLoop]];
+  [self removeRunLoop: GSRunLoopForThread(nil)];
   [NSThread detachNewThreadSelector: @selector(_runInNewThread)
 			   toTarget: self
 			 withObject: nil];
@@ -1750,7 +1753,8 @@ static void retEncoder (DOContext *ctxt)
   const char	*type;
   retval_t	retframe;
   DOContext	ctxt;
-  NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
+  NSThread	*thread = GSCurrentThread();
+  NSRunLoop	*runLoop = GSRunLoopForThread(thread);
 
   memset(&ctxt, 0, sizeof(ctxt));
   ctxt.connection = self;
@@ -1893,7 +1897,8 @@ static void retEncoder (DOContext *ctxt)
   BOOL		needsResponse;
   const char	*type;
   DOContext	ctxt;
-  NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
+  NSThread	*thread = GSCurrentThread();
+  NSRunLoop	*runLoop = GSRunLoopForThread(thread);
 
   if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
@@ -2238,7 +2243,7 @@ static void retEncoder (DOContext *ctxt)
 
 - (void) _runInNewThread
 {
-  NSRunLoop	*loop = [runLoopClass currentRunLoop];
+  NSRunLoop	*loop = GSRunLoopForThread(nil);
 
   [self addRunLoop: loop];
   [loop run];
@@ -2356,7 +2361,8 @@ static void callEncoder (DOContext *ctxt)
    */
   NS_DURING
     {
-      NSRunLoop		*runLoop = [NSRunLoop currentRunLoop];
+      NSThread	*thread = GSCurrentThread();
+      NSRunLoop	*runLoop = GSRunLoopForThread(thread);
 
       NSParameterAssert (_isValid);
       if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
@@ -2619,7 +2625,8 @@ static void callEncoder (DOContext *ctxt)
   NSTimeInterval	last_interval = 0.0001;
   NSTimeInterval	delay_interval = last_interval;
   NSDate		*delay_date = nil;
-  NSRunLoop		*runLoop = [runLoopClass currentRunLoop];
+  NSThread		*thread = GSCurrentThread();
+  NSRunLoop		*runLoop = GSRunLoopForThread(thread);
   BOOL			isLocked = NO;
 
   /*
@@ -3535,17 +3542,26 @@ static void callEncoder (DOContext *ctxt)
 }
 
 /**
- * On thread exit, we need to be removed from the runloop of the thread
- * or we will retain that and cause a memory leak.
+ * On thread exit, we need all connections to be removed from the runloop
+ * of the thread or they will retain that and cause a memory leak.
  */
-- (void) _threadWillExit: (NSNotification*)notification
++ (void) _threadWillExit: (NSNotification*)notification
 {
-  extern NSRunLoop	*GSRunLoopForThread(NSThread*);
   NSRunLoop		*runLoop = GSRunLoopForThread([notification object]);
 
-  if ([_runLoops indexOfObjectIdenticalTo: runLoop] != NSNotFound)
+  if (runLoop != nil)
     {
-      [self removeRunLoop: runLoop];
+      NSHashEnumerator	enumerator;
+      NSConnection	*c;
+
+      M_LOCK(connection_table_gate);
+      enumerator = NSEnumerateHashTable(connection_table);
+      while ((c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
+	{
+	  [c removeRunLoop: runLoop];
+	}
+      NSEndHashTableEnumeration(&enumerator);
+      M_UNLOCK(connection_table_gate);
     }
 }
 
