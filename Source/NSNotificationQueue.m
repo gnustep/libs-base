@@ -443,7 +443,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 }
 
 - (void) enqueueNotification: (NSNotification*)notification
-  postingStyle: (NSPostingStyle)postingStyle	
+		postingStyle: (NSPostingStyle)postingStyle	
 {
   [self enqueueNotification: notification
     postingStyle: postingStyle
@@ -453,9 +453,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 }
 
 - (void) enqueueNotification: (NSNotification*)notification
-  postingStyle: (NSPostingStyle)postingStyle
-  coalesceMask: (NSNotificationCoalescing)coalesceMask
-  forModes: (NSArray*)modes
+		postingStyle: (NSPostingStyle)postingStyle
+		coalesceMask: (NSNotificationCoalescing)coalesceMask
+		    forModes: (NSArray*)modes
 {
   if (coalesceMask != NSNotificationNoCoalescing)
     [self dequeueNotificationsMatching: notification

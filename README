@@ -21,22 +21,12 @@ Initial reading
    The file `GNUstep-HOWTO' give instructions for installing the
 library.
 
-Preparing to write code
-=======================
-
-   The documentation isn't much to speak of so far.  Better
-documentation will be forthcoming, but the library needs to settle
-first.  For now I recommend reading the header files.  The headers for
-the classes are in `./src/include'.
-
 How can you help?
 =================
 
    * Give us feedback!  Tell us what you like; tell us what you think
      could be better.  Send bug reports to <bug-gnustep@gnu.org>.
 
-   * Donate classes.  If you write classes that fit in the
-     libgnustep-base framework, I'd be happy to include them.
 
      Happy hacking!
 

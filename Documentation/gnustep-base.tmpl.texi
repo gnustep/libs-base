@@ -152,11 +152,14 @@ Type @code{make install} to install the libraries and programs
 @chapter Implementation Details
 
 @menu
-* Memory Management::                   
+* Memory Management::           
+* Memory Allocation::           
+* Reference Counting::          
+* Garbage Collection::          
 * Time Zone::                   
 @end menu
 
-@node Memory Management, Time Zones, Implementation, Implementation
+@node Memory Management, Memory Allocation, Implementation, Implementation
 @section Memory Management
 
 The OpenStep standard defines an reference-count based memory management scheme which the GNUstep libraries support.  GNUstep also supports garbage collection
@@ -169,7 +172,7 @@ currently (October 1999) in a pre-alpha state.
 * Garbage Collection::              
 @end menu
 
-@node Memory Allocation,  , Reference Counting, Memory Management
+@node Memory Allocation, Reference Counting, Memory Management, Implementation
 @section Memory Allocation
 
 Normally, memory is allocated in zones.  Most memory is allocated from a
@@ -213,7 +216,7 @@ make memory management easy.  In addition to this, the GNU Objective-C compiler
 and the GNUstep system provide a memory sweeping garbage collection mechanism
 (using the Boehm conservative garbage collection library).
 
-@node Reference Counting, Memory Allocation, Garbage Collection, Memory Management
+@node Reference Counting, Garbage Collection, Memory Allocation, Implementation
 @section Reference Counting
 
 The reference counting scheme for object allocation/deallocation is quite
@@ -237,15 +240,15 @@ so you don't need to worry about releasing it yourself.  However, if you wish
 to store the object for any length of time, you will need to send it a retain
 message, and then send it a release when you have finished with it.
 
-@node Garbage Collection, Reference Counting, Memory Management, Memory Management
+@node Garbage Collection, Time Zone, Reference Counting, Implementation
 @section Garbage Collection
 
 
-@node Time Zone,  , Memory Management, Implementation
+@node Time Zone,  , Garbage Collection, Implementation
 @section Time Zones
 
 If the GNUstep time zone datafiles become too out of date, one can
-download an updated database from <ftp://elsie.nci.nih.gov/pub/> and
+download an updated database from @url{ftp://elsie.nci.nih.gov/pub/} and
 compile it as specified in the README file in the NSTimeZones
 directory.  (In fact, I believe it's about time they're updated.)
 

@@ -35,17 +35,17 @@ DOCUMENT_NAME = gnustep-base
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
-INSTALL NEWS CODING-STANDARDS README ANNOUNCE 
+INSTALL NEWS CODING-STANDARDS README ANNOUNCE BUGS
 
-TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE 
+TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE BUGS
 
 gnustep-base_TEXI_FILES = \
 version.tmpl.texi \
 gnustep-base.tmpl.texi \
 gnustep-zones.tmpl.texi
 
-TODO_TEXI_FILES = version.tmpl.texi
-TODO_TEXT_MAIN = todo.tmpl.texi
+BUGS_TEXI_FILES = version.tmpl.texi
+BUGS_TEXT_MAIN = todo.tmpl.texi
 
 INSTALL_TEXI_FILES = version.tmpl.texi
 INSTALL_TEXT_MAIN = install.tmpl.texi

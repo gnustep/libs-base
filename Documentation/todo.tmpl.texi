@@ -10,5 +10,15 @@
 
 @itemize @bullet
 
-@end itemize
+@item NSZone memory allocation may not work correctly. If you
+encounter a problem with NSZones, switch to using the
+default zone instead of creating one. 
 
+@item Invocations (and by extension, Distributed Objects) work well only
+on ix86 platforms. In particular, they don't work well on PPC and Sparc
+platforms.  
+
+@item Distributed Objects aren't thread safe. Don't use DO
+between threads in a multi-theaded app.  
+
+@end itemize
