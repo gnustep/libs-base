@@ -21,23 +21,23 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef __NSCString_h_OBJECTS_INCLUDE
-#define __NSCString_h_OBJECTS_INCLUDE
+#ifndef __NSGCString_h_OBJECTS_INCLUDE
+#define __NSGCString_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSString.h>
 
-/* NSCString and NSMutableCString must have the same initial ivar layout
-   because of class_add_behavior() in NSMutableCString's +initialize. */
+/* NSGCString and NSGMutableCString must have the same initial ivar layout
+   because of class_add_behavior() in NSGMutableCString's +initialize. */
 
-@interface NSCString : NSString
+@interface NSGCString : NSString
 {
   char * _contents_chars;
   int _count;
 }
 @end
 
-@interface NSMutableCString : NSMutableString
+@interface NSGMutableCString : NSMutableString
 {
   char * _contents_chars;
   int _count;
@@ -45,4 +45,4 @@
 }
 @end
 
-#endif /* __NSCString_h_OBJECTS_INCLUDE */
+#endif /* __NSGCString_h_OBJECTS_INCLUDE */

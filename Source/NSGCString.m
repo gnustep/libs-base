@@ -29,7 +29,7 @@
 #include <objects/MallocAddress.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-@implementation NSCString
+@implementation NSGCString
 
 /* This is the designated initializer for this class. */
 - (id) initWithCStringNoCopy: (char*)byteString
@@ -67,7 +67,7 @@
 /* Empty copy must empty an allocCopy'ed version of self */
 - emptyCopy
 {
-  NSCString *copy = [super emptyCopy];
+  NSGCString *copy = [super emptyCopy];
   OBJC_MALLOC(copy->_contents_chars, char, _count+1);
   copy->_count = 0;
   copy->_contents_chars[0] = '\0';
@@ -128,7 +128,7 @@
   if (!done)
     {
       done = 1;
-      class_add_behavior(self, [NSCString class]);
+      class_add_behavior(self, [NSGCString class]);
     }
 }
 
