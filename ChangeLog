@@ -1,3 +1,8 @@
+Fri Sep  8 12:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* configure.in: Correct path to include file for checking thread support
+	(bug reported by kai@cats.ms).
+
 Tue Sep  5 11:21:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUserDefaults.m: Fix for crash when reading corrupt file.
