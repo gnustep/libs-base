@@ -35,6 +35,42 @@
           </desc>
         </method>
 
+        <method type="NSString*" factory="yes">
+          <sel>descriptionFromType:</sel>
+          <arg type="int">type</arg>
+          <desc>
+	    <p>
+	      Return the string constant value for the attribute
+	      type given.
+            </p>
+          </desc>
+        </method>
+
+        <method type="int" factory="yes">
+          <sel>typeFromDescription:</sel>
+          <arg type="NSString*">desc</arg>
+          <desc>
+	    <p>
+	      Return the numeric constant value for the attribute
+	      type named.  This method is inefficient, so the returned
+	      value should be saved for re-use later.  The possible
+	      values are -
+            </p>
+	    <list>
+	      <item>XML_ATTRIBUTE_CDATA</item>
+	      <item>XML_ATTRIBUTE_ID</item>
+	      <item>XML_ATTRIBUTE_IDREF	</item>
+	      <item>XML_ATTRIBUTE_IDREFS</item>
+	      <item>XML_ATTRIBUTE_ENTITY</item>
+	      <item>XML_ATTRIBUTE_ENTITIES</item>
+	      <item>XML_ATTRIBUTE_NMTOKEN</item>
+	      <item>XML_ATTRIBUTE_NMTOKENS</item>
+	      <item>XML_ATTRIBUTE_ENUMERATION</item>
+	      <item>XML_ATTRIBUTE_NOTATION</item>
+	    </list>
+          </desc>
+        </method>
+
         <method type="id" >
           <sel>initWithNode:</sel>
           <arg type="GSXMLNode*">node</arg>
@@ -111,10 +147,30 @@
         <method type="GSXMLAttribute*" >
           <sel>prev</sel>
           <desc>
-	    <p>Return previous Attribute.
+	    <p>
+	      Return previous Attribute.
             </p>
           </desc>
         </method>
+
+        <method type="int" >
+          <sel>type</sel>
+          <desc>
+	    <p>
+	      Return the numeric type code for this attribute.
+            </p>
+          </desc>
+        </method>
+
+        <method type="NSString*" >
+          <sel>typeDescription</sel>
+          <desc>
+	    <p>
+	      Return the string type code for this attribute.
+            </p>
+          </desc>
+        </method>
+
       </class>
     </chapter>
   </body>
