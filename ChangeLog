@@ -4,6 +4,9 @@
 	the delay between polling for incoming packets can grow to ...
 	improve response on heavily loaded systems.
 	* Source/GSHTTPURLHandle.m: ditto
+	* Tools/autogsdoc.m: Tidied structure a little and added file
+	modification date checks to see whether files should be regenerated
+	or not.
 
 2001-11-24  Fred Kiefer <FredKiefer@gmx.de>
 

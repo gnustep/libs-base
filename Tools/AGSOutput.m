@@ -1174,6 +1174,7 @@ static BOOL snuggleStart(NSString *t)
 	{
 	  unsigned	sPos = NSMaxRange(r);
 
+	  pos = sPos;
 	  r = NSMakeRange(pos, [tmp length] - pos);
 	  r = [tmp rangeOfString: @"]" options: NSLiteralSearch range: r];
 	  if (r.length > 0)
