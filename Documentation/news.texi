@@ -26,6 +26,10 @@ Thanks to Pieter Schoenmakers <tiggr@@es.ele.tue.nl> we have a new
 version of the gcc-string.patch that should apply more smoothly.
 
 @item
+Thanks to Adam Fedor <fedor@@boulder.colorado.edu> for a bug fix to
+NXStringTable's.
+
+@item
 Thanks to Mark Lakata <lakata@@nsdssp.lbl.gov> for a bug fix to NSZone.c.
 
 @ignore
