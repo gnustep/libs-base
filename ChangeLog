@@ -1,3 +1,17 @@
+2001-05-11  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSArchiver.m ([NSArchiver -encodeValueOfObjCType:at:]): Use
+	signed char to encode _C_CHR.
+	* Source/NSPortCoder.m ([NSPortCoder -decodeValueOfObjCType:at:]): 
+	Be lenient about decoding [un]signed chars.
+	* Source/NSUnarchiver.m: Likewise.
+	* Source/GSTemplateValue.m (-encodeWithCoder:): Use signed char to
+	encode/decode type info.
+	* Source/GSValue.m: Likewise.
+	* Source/NSConcreteNumber.m: Likewise.
+	* Source/NSNumber.m: Likewise.
+	* Source/NSValue.m: Likewise.
+
 2001-05-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Use respondsToSelector rather than respondsTo

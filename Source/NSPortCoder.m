@@ -835,7 +835,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
       case _GSC_CHR:
       case _GSC_UCHR:
-	typeCheck(*type, info & _GSC_MASK);
+	/* Encoding of chars is not consistant across platforms, so we
+	   loosen the type checking a little */
+	if (*type != type_map[_GSC_CHR] && *type != type_map[_GSC_UCHR])
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+		        format: @"expected %s and got %s",
+		    typeToName1(*type), typeToName2(info)];
+	  }
 	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
 	return;
 
@@ -1559,7 +1566,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
       case _C_CHR:
 	(*_eTagImp)(_dst, eTagSel, _GSC_CHR);
-	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(char), nil);
+	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(signed char), nil);
 	return;
 
       case _C_UCHR:

@@ -518,7 +518,7 @@ static Class	NSMutableDataMallocClass;
 
       case _C_CHR:
 	(*_tagImp)(_dst, tagSel, _GSC_CHR);
-	(*_serImp)(_dst, serSel, (void*)buf, @encode(char), nil);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(signed char), nil);
 	return;
 
       case _C_UCHR:
