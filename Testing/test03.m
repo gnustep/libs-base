@@ -11,6 +11,14 @@ int main()
 
   [array addElementsCount:6, ((elt)0),((elt)1),((elt)5),((elt)3),
 	 ((elt)4),((elt)2)];
+#if 0
+  printf("got %s\n", [Bag name]);
+  printf("got class %s\n", [[Bag class] name]);
+  printf("class archiver %d\n", (int)[[Bag class] classForArchiver]);
+  printf("conforms %d\n", (int)[[Bag class] 
+				conformsToProtocol:
+				@protocol(KeyedCollecting)]);
+#endif
   bag = [array shallowCopyAs:[Bag class]];
   llist = [[EltNodeCollector alloc] initWithType:@encode(int)
 	   nodeCollector:[[LinkedList alloc] init]
