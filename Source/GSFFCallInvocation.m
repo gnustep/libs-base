@@ -581,8 +581,9 @@ void GSInvocationCallback(void *callback_data, va_alist args)
 {
   int i;
   BOOL out_parameters = NO;
+  const char *type = [_sig methodType];
 
-  [coder encodeValueOfObjCType: @encode(char*) at: &_info[0].type];
+  [coder encodeValueOfObjCType: @encode(char*) at: &type];
 
   for (i = 0; i < _numArgs; i++)
     {

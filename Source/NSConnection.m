@@ -92,7 +92,8 @@ static Class	connectionClass;
 static Class	dateClass;
 static Class	distantObjectClass;
 static Class	localCounterClass;
-static Class	portCoderClass;
+static Class	sendCoderClass;
+static Class	recvCoderClass;
 static Class	runLoopClass;
 
 static NSString*
@@ -226,6 +227,8 @@ static unsigned local_object_counter = 0;
 - (void) removeLocalObject: (id)anObj;
 
 - (void) _doneInRmc: (NSPortCoder*)c;
+- (void) _failInRmc: (NSPortCoder*)c;
+- (void) _failOutRmc: (NSPortCoder*)c;
 - (NSPortCoder*) _getReplyRmc: (int)sn;
 - (NSPortCoder*) _makeInRmc: (NSMutableArray*)components;
 - (NSPortCoder*) _makeOutRmc: (int)sequence generate: (int*)sno reply: (BOOL)f;
@@ -493,7 +496,8 @@ static BOOL	multi_threaded = NO;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
       localCounterClass = [GSLocalCounter class];
-      portCoderClass = [NSPortCoder class];
+      sendCoderClass = [NSPortCoder class];
+      recvCoderClass = [NSPortCoder class];
       runLoopClass = [NSRunLoop class];
 
       dummyObject = [NSObject new];
@@ -1206,7 +1210,7 @@ static BOOL	multi_threaded = NO;
 
   ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
-  DESTROY(ip);
+  [self _doneInRmc: ip];
   return AUTORELEASE(newProxy);
 }
 
@@ -1511,11 +1515,27 @@ static BOOL	multi_threaded = NO;
 
   if (needsResponse == NO)
     {
+      GSIMapNode	node;
+
       /*
        * Since we don't need a response, we can remove the placeholder from
-       * the _replyMap.
+       * the _replyMap.  However, in case the other end has already sent us
+       * a response, we must check for it and scrap it if necessary.
        */
       M_LOCK(_refGate);
+      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)seq_num);
+      if (node != 0 && node->value.obj != dummyObject)
+	{
+	  BOOL	is_exception = NO;
+
+	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
+					      at: &is_exception];
+	  if (is_exception == YES)
+	    NSLog(@"Got exception with %@", NSStringFromSelector(sel));
+	  else
+	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
+	  [self _doneInRmc: node->value.obj];
+	}
       GSIMapRemoveKey(_replyMap, (GSIMapKey)seq_num);
       M_UNLOCK(_refGate);
       retframe = alloca(sizeof(void*));	 /* Dummy value for void return. */
@@ -1531,7 +1551,7 @@ static BOOL	multi_threaded = NO;
 	    {
 	      if (ip != nil)
 		{
-		  DESTROY(ip);
+		  [self _doneInRmc: ip];
 		  /* this must be here to avoid trashing alloca'ed retframe */
 		  ip = (id)-1;
 		  _repInCount++;	/* received a reply */
@@ -1539,9 +1559,9 @@ static BOOL	multi_threaded = NO;
 	      return;
 	    }
 	  /* If we didn't get the reply packet yet, get it now. */
-	  if (!ip)
+	  if (ip == nil)
 	    {
-	      if (!_isValid)
+	      if (_isValid == NO)
 		{
 		  [NSException raise: NSGenericException
 		    format: @"connection waiting for request was shut down"];
@@ -1552,12 +1572,12 @@ static BOOL	multi_threaded = NO;
 	       * of the return values.
 	       */
 	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	      if (is_exception)
+	      if (is_exception == YES)
 		{
 		  /* Decode the exception object, and raise it. */
 		  id exc;
 		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
-		  DESTROY(ip);
+		  [self _doneInRmc: ip];
 		  ip = (id)-1;
 		  /* xxx Is there anything else to clean up in
 		     dissect_method_return()? */
@@ -1653,11 +1673,28 @@ static BOOL	multi_threaded = NO;
 
   if (needsResponse == NO)
     {
+      GSIMapNode	node;
+
       /*
        * Since we don't need a response, we can remove the placeholder from
-       * the _replyMap.
+       * the _replyMap.  However, in case the other end has already sent us
+       * a response, we must check for it and scrap it if necessary.
        */
       M_LOCK(_refGate);
+      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)seq_num);
+      if (node != 0 && node->value.obj != dummyObject)
+	{
+	  BOOL	is_exception = NO;
+	  SEL	sel = [inv selector];
+
+	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
+					      at: &is_exception];
+	  if (is_exception == YES)
+	    NSLog(@"Got exception with %@", NSStringFromSelector(sel));
+	  else
+	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
+	  [self _doneInRmc: node->value.obj];
+	}
       GSIMapRemoveKey(_replyMap, (GSIMapKey)seq_num);
       M_UNLOCK(_refGate);
     }
@@ -1672,7 +1709,7 @@ static BOOL	multi_threaded = NO;
 	    {
 	      if (ip != nil)
 		{
-		  DESTROY(ip);
+		  [self _doneInRmc: ip];
 		  /* this must be here to avoid trashing alloca'ed retframe */
 		  ip = (id)-1;
 		  _repInCount++;	/* received a reply */
@@ -1680,9 +1717,9 @@ static BOOL	multi_threaded = NO;
 	      return;
 	    }
 	  /* If we didn't get the reply packet yet, get it now. */
-	  if (!ip)
+	  if (ip == nil)
 	    {
-	      if (!_isValid)
+	      if (_isValid == NO)
 		{
 		  [NSException raise: NSGenericException
 		    format: @"connection waiting for request was shut down"];
@@ -1693,12 +1730,12 @@ static BOOL	multi_threaded = NO;
 	       * of the return values.
 	       */
 	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	      if (is_exception)
+	      if (is_exception == YES)
 		{
 		  /* Decode the exception object, and raise it. */
 		  id exc;
 		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
-		  DESTROY(ip);
+		  [self _doneInRmc: ip];
 		  ip = (id)-1;
 		  /* xxx Is there anything else to clean up in
 		     dissect_method_return()? */
@@ -1736,7 +1773,7 @@ static BOOL	multi_threaded = NO;
   [self _sendOutRmc: op type: METHODTYPE_REQUEST];
   ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(char*) at: &type];
-  DESTROY(ip);
+  [self _doneInRmc: ip];
   return type;
 }
 
@@ -1832,6 +1869,10 @@ static BOOL	multi_threaded = NO;
     }
 
   rmc = [conn _makeInRmc: components];
+  if (debug_connection > 5)
+    {
+      NSLog(@"made rmc 0x%x for %d", rmc, type);
+    }
 
   switch (type)
     {
@@ -1902,19 +1943,21 @@ static BOOL	multi_threaded = NO;
 	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
 	  if (node == 0)
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Ignoring RMC %d on %x",
+	      NSDebugMLLog(@"NSConnection", @"Ignoring reply RMC %d on %x",
 		sequence, conn);
-	      RELEASE(rmc);
+	      [self _doneInRmc: rmc];
 	    }
 	  else if (node->value.obj == dummyObject)
 	    {
+	      NSDebugMLLog(@"NSConnection", @"Saving reply RMC %d on %x",
+		sequence, conn);
 	      node->value.obj = rmc;
 	    }
 	  else
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Replace RMC %d on %x",
+	      NSDebugMLLog(@"NSConnection", @"Replace reply RMC %d on %x",
 		sequence, conn);
-	      RELEASE(node->value.obj);
+	      [self _doneInRmc: node->value.obj];
 	      node->value.obj = rmc;
 	    }
 	  M_UNLOCK(conn->_queueGate);
@@ -1989,14 +2032,13 @@ static BOOL	multi_threaded = NO;
 
   void encoder (int argnum, void *datum, const char *type, int flags)
     {
-#define ENCODED_RETNAME @"return value"
       if (op == nil)
 	{
 	  BOOL is_exception = NO;
 	  /* It is possible that our connection died while the method was
 	     being called - in this case we mustn't try to send the result
 	     back to the remote application!	*/
-	  if (!_isValid)
+	  if (_isValid == NO)
 	    return;
 	  op = [self _makeOutRmc: reply_sno generate: 0 reply: NO];
 	  [op encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
@@ -2055,11 +2097,16 @@ static BOOL	multi_threaded = NO;
     {
       BOOL is_exception = YES;
 
+      [self _failInRmc: aRmc];
       /* Send the exception back to the client. */
-      if (_isValid)
+      if (_isValid == YES)
 	{
 	  NS_DURING
 	    {
+	      if (op != nil)
+		{
+		  [self _failOutRmc: op];
+		}
 	      op = [self _makeOutRmc: reply_sno generate: 0 reply: NO];
 	      [op encodeValueOfObjCType: @encode(BOOL)
 				     at: &is_exception];
@@ -2374,15 +2421,56 @@ static BOOL	multi_threaded = NO;
       [NSException raise: NSPortTimeoutException
 		  format: @"timed out waiting for reply"];
     }
+  NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %x", sn, self);
   return rmc;
 }
 
 - (void) _doneInRmc: (NSPortCoder*)c
 {
   M_LOCK(_refGate);
+  if (debug_connection > 5)
+    {
+      NSLog(@"done rmc 0x%x", c);
+    }
   [_cachedDecoders addObject: c];
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
+  M_UNLOCK(_refGate);
+}
+
+/*
+ * This method called if an exception occurred, and we don't know
+ * whether we have already tidied the NSPortCoder object up or not.
+ */
+- (void) _failInRmc: (NSPortCoder*)c
+{
+  M_LOCK(_refGate);
+  if ([_cachedDecoders indexOfObjectIdenticalTo: c] == NSNotFound)
+    {
+      if (debug_connection > 5)
+	{
+	  NSLog(@"fail rmc 0x%x", c);
+	}
+      [_cachedDecoders addObject: c];
+      [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
+      RELEASE(c);
+    }
+  M_UNLOCK(_refGate);
+}
+
+/*
+ * This method called if an exception occurred, and we don't know
+ * whether we have already tidied the NSPortCoder object up or not.
+ */
+- (void) _failOutRmc: (NSPortCoder*)c
+{
+  M_LOCK(_refGate);
+  if ([_cachedEncoders indexOfObjectIdenticalTo: c] == NSNotFound)
+    {
+      [_cachedEncoders addObject: c];
+      [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
+      RELEASE(c);
+    }
   M_UNLOCK(_refGate);
 }
 
@@ -2403,7 +2491,7 @@ static BOOL	multi_threaded = NO;
     }
   else
     {
-      coder = [portCoderClass allocWithZone: NSDefaultMallocZone()];
+      coder = [recvCoderClass allocWithZone: NSDefaultMallocZone()];
     }
   M_UNLOCK(_refGate);
 
@@ -2457,7 +2545,7 @@ static BOOL	multi_threaded = NO;
     }
   else
     {
-      coder = [portCoderClass allocWithZone: NSDefaultMallocZone()];
+      coder = [sendCoderClass allocWithZone: NSDefaultMallocZone()];
     }
   M_UNLOCK(_refGate);
 
@@ -2799,7 +2887,7 @@ static BOOL	multi_threaded = NO;
 
 	  ip = [self _getReplyRmc: seq_num];
 	  [ip decodeValueOfObjCType: @encode(id) at: &result];
-	  DESTROY(ip);
+	  [self _doneInRmc: ip];
 	  if (result != nil)
 	    NSLog(@"failed to retain target - %@", result);
 	}
