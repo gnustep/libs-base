@@ -159,7 +159,7 @@
 
 - (id)initWithBytes: (const void *)value objCType: (const char *)type
 {
-  typedef _dt = data;
+  typedef __typeof__(data) _dt;
   data = *(_dt *)value;
   return self;
 }
@@ -235,7 +235,7 @@
 
   if (o == [other _typeOrder] || o >= [other _nextOrder])
     {
-      typedef _dt = data;
+      typedef __typeof__(data) _dt;
       _dt other_data = [other TYPE_METHOD];
   
       if (data == other_data)
@@ -328,7 +328,7 @@
 
 - (const char *)objCType
 {
-  typedef _dt = data;
+  typedef __typeof__(data) _dt;
   return @encode(_dt);
 }
 

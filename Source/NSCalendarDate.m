@@ -419,32 +419,42 @@
 
   // +++ then there is the time zone
   if (tzord)
-    if (zoneByAbbreviation)
     {
-      tz = [NSTimeZone timeZoneWithAbbreviation:
-			 [NSString stringWithCString: timez]];
-      if (!tz)
-	tz = [NSTimeZone localTimeZone];
-    }
-    else
-    {
-      int tzm, tzh, sign;
-
-      if (tznum < 0)
-      {
-	sign = -1;
-	tznum = -tznum;
-      }
+      if (zoneByAbbreviation)
+	{
+	  tz = [NSTimeZone timeZoneWithAbbreviation:
+			     [NSString stringWithCString: timez]];
+	  if (!tz)
+	    {
+	      tz = [NSTimeZone localTimeZone];
+	    }
+	}
       else
-	sign = 1;
-      tzm = tznum % 100;
-      tzh = tznum / 100;
-      tz = [NSTimeZone timeZoneForSecondsFromGMT: (tzh * 60 + tzm) * 60 * sign];
-      if (!tz)
-        tz = [NSTimeZone localTimeZone];
+	{
+	  int tzm, tzh, sign;
+
+	  if (tznum < 0)
+	    {
+	      sign = -1;
+	      tznum = -tznum;
+	    }
+	  else
+	    {
+	      sign = 1;
+	    }
+	  tzm = tznum % 100;
+	  tzh = tznum / 100;
+	  tz = [NSTimeZone timeZoneForSecondsFromGMT: (tzh*60 + tzm)*60*sign];
+	  if (!tz)
+	    {
+	      tz = [NSTimeZone localTimeZone];
+	    }
+	}
     }
   else
-    tz = [NSTimeZone localTimeZone];
+    {
+      tz = [NSTimeZone localTimeZone];
+    }
 
   free(newf);
 
@@ -945,15 +955,19 @@
 
 		++i;
 		if (hd >= 12)
-		  if ([a count] > 1)
-		    ampm = [a objectAtIndex: 1];
-		  else
-		    ampm = @"pm";
+		  {
+		    if ([a count] > 1)
+		      ampm = [a objectAtIndex: 1];
+		    else
+		      ampm = @"pm";
+		  }
 		else
-		  if ([a count] > 0)
-		    ampm = [a objectAtIndex: 0];
-		  else
-		    ampm = @"am";
+		  {
+		    if ([a count] > 0)
+		      ampm = [a objectAtIndex: 0];
+		    else
+		      ampm = @"am";
+		  }
 		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), [ampm cString]));
 		j += k;
 	      }
