@@ -91,6 +91,14 @@
 
 @implementation GSTemplateValue
 
++ (void) initialize
+{
+  /*
+   * Ensure that the version encoded is that used by the abstract class.
+   */
+  [self setVersion: [super version]];
+}
+
 // Allocating and Initializing 
 
 - (id) initWithBytes: (const void *)value
