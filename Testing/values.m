@@ -41,24 +41,7 @@ int main()
     [[v1 nonretainedObjectValue] getValue:&p];
     printf("point is %f %f\n", p.x, p.y);
 
-    // Exceptions
-NS_DURING
-
-    NS_DURING
-        v2 = [NSValue value:NULL withObjCType:@encode(int)];
-    NS_HANDLER
-	printf("Caught our exception, name %s and reason: %s\n",
-	       [[localException name] cString], 
-	       [[localException reason] cString]);
-        [localException raise];
-    NS_ENDHANDLER
-
-NS_HANDLER
-    printf("Caught our reraised exception, name %s and reason: %s\n",
-	   [[localException name] cString],
-	   [[localException reason] cString]);
-
-NS_ENDHANDLER
-
+    printf("Try getting a null NSValue, should get a NSLog error message:\n");
+    v2 = [NSValue value:NULL withObjCType:@encode(int)];
     return 0;
 }

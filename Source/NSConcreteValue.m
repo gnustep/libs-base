@@ -65,22 +65,24 @@
 {
     int	size;
     
-    if (!value || !type) {
-    	[NSException raise:NSInvalidArgumentException
-		format:@"Cannot create with NULL value or NULL type"];
-	/* NOT REACHED */
-    }
+    if (!value || !type) 
+      {
+    	NSLog(@"Tried to create NSValue with NULL value or NULL type");
+	[self release];
+	return nil;
+      }
 
     self = [super init];
 
     // FIXME: objc_sizeof_type will abort when it finds an invalid type, when
     // we really want to just raise an exception
     size = objc_sizeof_type(type);
-    if (size <= 0) {
-    	[NSException raise:NSInternalInconsistencyException
-		format:@"Invalid Objective-C type"];
-	/* NOT REACHED */
-    }
+    if (size <= 0) 
+      {
+    	NSLog(@"Tried to create NSValue with invalid Objective-C type");
+	[self release];
+	return nil;
+      }
 
     data = (void *)NSZoneMalloc([self zone], size);
     NS_CHECK_MALLOC(data)
@@ -92,9 +94,11 @@
 
 - (void)dealloc
 {
+  if (objctype)
     [objctype release];
+  if (data)
     NSZoneFree([self zone], data);
-    [super dealloc];
+  [super dealloc];
 }
 
 // Accessing Data 

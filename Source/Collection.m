@@ -675,18 +675,21 @@
 - (void) _collectionReleaseContents
 {
   int c = [self count];
-  id *array = (id*) alloca (c * sizeof(id));
-  int i = 0;
-  void *es = [self newEnumState];
-  id o;
-  while ((o = [self nextObjectWithEnumState:&es]))
+  if (c)
     {
-      array[i++] = o;
+      id *array = (id*) alloca (c * sizeof(id));
+      int i = 0;
+      void *es = [self newEnumState];
+      id o;
+      while ((o = [self nextObjectWithEnumState:&es]))
+	{
+	  array[i++] = o;
+	}
+      [self freeEnumState: &es];
+      assert (c == i);
+      for (i = 0; i < c; i++)
+	[array[i] release];
     }
-  [self freeEnumState: &es];
-  assert (c == i);
-  for (i = 0; i < c; i++)
-    [array[i] release];
 }
 
 - (void) _collectionDealloc
