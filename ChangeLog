@@ -1,3 +1,8 @@
+2001-12-03  Laurent Julliard  <laurent@moldus.org>
+
+	* Source/NSNumberFormatter.m (-initWithCoder:): decoded objects
+	must be retained
+
 2001-12-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSValue.m: Fix coding/decoding to use serialization code to

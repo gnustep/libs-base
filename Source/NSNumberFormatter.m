@@ -174,16 +174,16 @@
   [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
   [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
 
-  _roundingBehavior = [decoder decodeObject];
-  _maximum  = [decoder decodeObject];
-  _minimum  = [decoder decodeObject];
-  _attributedStringForNil = [decoder decodeObject];
-  _attributedStringForNotANumber = [decoder decodeObject];
-  _attributedStringForZero = [decoder decodeObject];
-  _negativeFormat = [decoder decodeObject];
-  _positiveFormat = [decoder decodeObject];
-  _attributesForPositiveValues = [decoder decodeObject];
-  _attributesForNegativeValues = [decoder decodeObject];
+  _roundingBehavior = RETAIN([decoder decodeObject]);
+  _maximum  = RETAIN([decoder decodeObject]);
+  _minimum  = RETAIN([decoder decodeObject]);
+  _attributedStringForNil = RETAIN([decoder decodeObject]);
+  _attributedStringForNotANumber = RETAIN([decoder decodeObject]);
+  _attributedStringForZero = RETAIN([decoder decodeObject]);
+  _negativeFormat = RETAIN([decoder decodeObject]);
+  _positiveFormat = RETAIN([decoder decodeObject]);
+  _attributesForPositiveValues = RETAIN([decoder decodeObject]);
+  _attributesForNegativeValues = RETAIN([decoder decodeObject]);
 
   return self;
 }
