@@ -400,8 +400,14 @@ NSLog(@"Connection to GDNC server established.\n");
 	}
       else
 	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"unable to contact GDNC server on %@", host];
+	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
+	    [GDNC_SERVICE stringByAppendingFormat: @"-%@", host] host: @"*"];
+	  if (_remote == nil)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"unable to contact GDNC server for %@", host];
+	    }
+	  RETAIN(_remote);
 	}
     }
 }
