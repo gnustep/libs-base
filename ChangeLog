@@ -1,3 +1,8 @@
+1999-03-09  Adam Fedor  <fedor@gnu.org>
+
+	* Source/include/NSObjCRuntime.h: Define some OpenStep cpp vars.
+	* Source/include/NSException.h (NS_VALUERETURN): Fix.
+
 Tue Mar  9  5:16:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* configure.in: Added tests for syslog
