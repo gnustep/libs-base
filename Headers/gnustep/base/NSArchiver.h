@@ -63,7 +63,7 @@
 - (BOOL) isAtEnd;
 - (NSZone*) objectZone;
 - (void) setObjectZone: (NSZone*)zone;
-- (unsigned int) systermVersion;
+- (unsigned int) systemVersion;
 
 /* Substituting Classes */
 + (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive;
