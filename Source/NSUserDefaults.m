@@ -811,14 +811,19 @@ static NSString	*pathForUser(NSString *user)
 
 /**
  * Looks up a value for a specified default using -objectForKey:
- * and checks that it is a boolean.  Returns NO if it is not.
+ * and returns its boolean representation.<br />
+ * Returns NO if it is not a boolean.<br />
+ * The text 'yes' or 'true' or any non zero numeric value is considered
+ * to be a boolean YES.  Other string values are NO.
  */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
 
   if (obj != nil)
-    return [obj boolValue];
+    {
+      return [obj boolValue];
+    }
   return NO;
 }
 
