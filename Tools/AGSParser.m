@@ -1397,7 +1397,19 @@
 		{
 		  if ([self skipSpaces] < length && buffer[pos] == '(')
 		    {
+		      unsigned	start = pos;
+		      NSString	*attr;
+
 		      [self skipBlock];	// Skip the attributes
+		      attr = [NSString stringWithCharacters: buffer + start
+						     length: pos - start];
+		      if ([attr rangeOfString: @"deprecated"].length > 0)
+			{
+			  [self appendComment: @"<em>Warning</em> this is "
+			    @"<em>deprecated</em> and may be removed in "
+			    @"future versions"
+			    to: nil];
+			}
 		    }
 		  else
 		    {
@@ -1419,7 +1431,19 @@
 		  [self skipSpaces];
 		  if (pos < length && buffer[pos] == '(')
 		    {
+		      unsigned	start = pos;
+		      NSString	*attr;
+
 		      [self skipBlock];
+		      attr = [NSString stringWithCharacters: buffer + start
+						     length: pos - start];
+		      if ([attr rangeOfString: @"deprecated"].length > 0)
+			{
+			  [self appendComment: @"<em>Warning</em> this is "
+			    @"<em>deprecated</em> and may be removed in "
+			    @"future versions"
+			    to: nil];
+			}
 		      [self skipSpaces];
 		    }
 		}
@@ -1634,7 +1658,15 @@ fail:
 		  }
 		else if ([token isEqual: @"implementation"] == YES)
 		  {
-		    [self parseImplementation];
+		    if (isSource == YES)
+		      {
+			[self parseImplementation];
+		      }
+		    else
+		      {
+			[self skipUnit];
+			DESTROY(comment);
+		      }
 		  }
 		else
 		  {
@@ -2637,6 +2669,7 @@ fail:
 		  }
 		[exist setObject: @"YES" forKey: @"Implemented"];
 	      }
+	    DESTROY(comment);	// Don't want this.
 	    break;
 
 	  case '@':
@@ -2663,6 +2696,7 @@ fail:
 		[self log: @"@method list with unknown directive '%@'", token];
 		[self skipStatementLine];
 	      }
+	    DESTROY(comment);	// Don't want this.
 	    break;
 
 	  case '#':
@@ -2688,6 +2722,7 @@ fail:
 		pos--;
 		[self parseDeclaration];
 	      }
+	    DESTROY(comment);	// Don't want this.
 	    break;
 	}
     }
