@@ -50,6 +50,7 @@
 static int	debug_run_loop = 0;
 static NSDate	*theFuture = nil;
 
+extern BOOL	GSCheckTasks();
 
 
 /*
@@ -1016,7 +1017,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: limit_date
 {
-  extern BOOL	GSCheckTasks();
   NSTimeInterval ti;
   struct timeval timeout;
   void *select_timeout;
@@ -1059,6 +1059,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       /* The LIMIT_DATE has already past; return immediately without
 	 polling any inputs. */
+      GSCheckTasks();
       [self _checkPerformers];
       GSNotifyASAP();
       if (debug_run_loop)
@@ -1352,6 +1353,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	{
 	  printf ("\tNSRunLoop run mode with date already past\n");
 	}
+      /*
+       * Notify if any tasks have completed.
+       */
+      if (GSCheckTasks() == YES)
+	{
+	  GSNotifyASAP();
+	}
       return NO;
     }
 
@@ -1362,6 +1370,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       if (debug_run_loop)
 	{
 	  printf ("\tNSRunLoop run mode with nothing to do\n");
+	}
+      /*
+       * Notify if any tasks have completed.
+       */
+      if (GSCheckTasks() == YES)
+	{
+	  GSNotifyASAP();
 	}
       return NO;
     }
