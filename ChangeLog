@@ -3,6 +3,8 @@
 	* Source/NSDateFormatter.m:
 	* Source/NSNumberFormatter.m:
 	Tolerate being given null pointers to return values in.
+	* Tools/gdomap.c: Try both short and long forms of local host name.
+	Report host name used when gethostbyname() fails.
 
 2004-09-13  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
