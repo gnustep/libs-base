@@ -430,7 +430,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_CSTRING:
 	{
 	  NSGCString	*s;
-	  char		*b = objc_malloc(size);
+	  char		*b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = (NSGCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
@@ -468,7 +468,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_STRING:
 	{
 	  NSGString	*s;
-	  unichar	*b = objc_malloc(size*2);
+	  unichar	*b = NSZoneMalloc(NSDefaultMallocZone(), size*2);
 	
 	  (*info->debImp)(info->data, debSel, b, size*2, info->cursor);
 	  s = (NSGString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
@@ -603,7 +603,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_DATA:
 	{
 	  NSData	*d;
-	  void		*b = objc_malloc(size);
+	  void		*b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  d = (NSData*)NSAllocateObject(DCls, 0, NSDefaultMallocZone());

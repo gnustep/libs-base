@@ -229,7 +229,7 @@
   // Find the order of date elements
   // and translate format string into scanf ready string
   order = 1;
-  newf = objc_malloc(lf+1);
+  newf = NSZoneMalloc(NSDefaultMallocZone(), lf+1);
   for (i = 0;i < lf; ++i)
     {
       newf[i] = f[i];
@@ -461,7 +461,7 @@
       tz = [NSTimeZone localTimeZone];
     }
 
-  free(newf);
+  NSZoneFree(NSDefaultMallocZone(), newf);
 
   return [self initWithYear: yd month: md day: dd hour: hd
 	       minute: mnd second: sd

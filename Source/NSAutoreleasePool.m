@@ -69,7 +69,8 @@ init_pool_cache (struct autorelease_thread_vars *tv)
 {
   tv->pool_cache_size = 32;
   tv->pool_cache_count = 0;
-  OBJC_MALLOC (tv->pool_cache, id, tv->pool_cache_size);
+  tv->pool_cache = (id*)NSZoneMalloc(NSDefaultMallocZone(),
+    sizeof(id) * tv->pool_cache_size);
 }
 
 static void
@@ -80,7 +81,8 @@ push_pool_to_cache (struct autorelease_thread_vars *tv, id p)
   else if (tv->pool_cache_count == tv->pool_cache_size)
     {
       tv->pool_cache_size *= 2;
-      OBJC_REALLOC (tv->pool_cache, id, tv->pool_cache_size);
+      tv->pool_cache = (id*)NSZoneRealloc(NSDefaultMallocZone(),
+	tv->pool_cache, sizeof(id) * tv->pool_cache_size);
     }
   tv->pool_cache[tv->pool_cache_count++] = p;
 }
@@ -123,7 +125,7 @@ static IMP	initImp;
   return (*initImp)(arp, @selector(init));
 }
 
-- init
+- (id) init
 {
   if (!_released_head)
     {
@@ -131,8 +133,9 @@ static IMP	initImp;
 	[self methodForSelector: @selector(addObject:)];
       /* Allocate the array that will be the new head of the list of arrays. */
       _released = (struct autorelease_array_list*)
-	objc_malloc (sizeof(struct autorelease_array_list) + 
-		     (BEGINNING_POOL_SIZE * sizeof(id)));
+	NSZoneMalloc(NSDefaultMallocZone(),
+	sizeof(struct autorelease_array_list)
+	+ (BEGINNING_POOL_SIZE * sizeof(id)));
       /* Currently no NEXT array in the list, so NEXT == NULL. */
       _released->next = NULL;
       _released->size = BEGINNING_POOL_SIZE;
@@ -270,8 +273,8 @@ static IMP	initImp;
 	  unsigned new_size = _released->size * 2;
 	  
 	  new_released = (struct autorelease_array_list*)
-	    objc_malloc (sizeof(struct autorelease_array_list) + 
-			 (new_size * sizeof(id)));
+	    NSZoneMalloc(NSDefaultMallocZone(),
+	    sizeof(struct autorelease_array_list) + (new_size * sizeof(id)));
 	  new_released->next = NULL;
 	  new_released->size = new_size;
 	  new_released->count = 0;
@@ -374,7 +377,7 @@ static IMP	initImp;
   for (a = _released_head; a; )
     {
       void *n = a->next;
-      objc_free (a);
+      NSZoneFree(NSDefaultMallocZone(), a);
       a = n;
     }
   [super dealloc];
@@ -407,7 +410,7 @@ static IMP	initImp;
     }
 
   if (tv->pool_cache)
-    OBJC_FREE(tv->pool_cache);
+    NSZoneFree(NSDefaultMallocZone(), tv->pool_cache);
 }
 
 + (void) resetTotalAutoreleasedObjects

@@ -165,7 +165,7 @@ mframe_build_signature(const char *typePtr, int *size, int *narg, char *buf)
    */
   if (doMalloc)
     {
-      char	*tmp = objc_malloc(dest - buf + 1);
+      char	*tmp = NSZoneMalloc(NSDefaultMallocZone(), dest - buf + 1);
 
       strcpy(tmp, buf);
       buf = tmp;
@@ -1355,7 +1355,7 @@ mframe_build_return_opts (arglist_t argframe,
 		  retLength = objc_sizeof_type(tmptype);
 		  /* Allocate memory to hold the value we're pointing to. */
 		  *(void**)retframe = 
-		    objc_malloc (retLength);
+		    NSZoneMalloc(NSDefaultMallocZone(), retLength);
 		  /* We are responsible for making sure this memory gets free'd
 		     eventually.  Ask NSData class to autorelease it. */
 		  [NSData dataWithBytesNoCopy: *(void**)retframe
@@ -1559,9 +1559,9 @@ mframe_destroy_argframe(const char *types, arglist_t argframe)
 
   if (stack_argsize)
     {
-      objc_free(argframe->arg_ptr);
+      NSZoneFree(NSDefaultMallocZone(), argframe->arg_ptr);
     }
-  objc_free(argframe);
+  NSZoneFree(NSDefaultMallocZone(), argframe);
 }
 
 
