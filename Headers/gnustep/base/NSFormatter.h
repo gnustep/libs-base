@@ -25,6 +25,7 @@
 #define __NSFormatter_h_GNUSTEP_BASE_INCLUDE
 
 #include	<Foundation/NSObject.h>
+#include	<Foundation/NSGeometry.h>
 
 #ifndef	STRICT_OPENSTEP
 

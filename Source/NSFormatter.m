@@ -77,7 +77,6 @@
 	originalSelectedRange: (NSRange)originalSelRangePtr
 	     errorDescription: (NSString**)error
 {
-  *newString = nil;
   *error = nil;
   return YES;
 }
