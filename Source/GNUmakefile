@@ -57,11 +57,11 @@ libgnustep-baseadd_SUBPROJECTS=Additions
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 
 GNUSTEP_TARGET_INSTALL_PREFIX := \
-     $(shell echo $(GNUSTEP_SYSTEM_ROOT) | sed 's|^[a-zA-Z]:/|/|')
+     $(shell echo $(GNUSTEP_SYSTEM_ROOT) | sed 's|^[a-zA-Z]:/|/|' | sed 's|/|\\\\057|g')
 GNUSTEP_TARGET_LOCAL_ROOT := \
-     $(shell echo $(GNUSTEP_LOCAL_ROOT) | sed 's|^[a-zA-Z]:/|/|')
+     $(shell echo $(GNUSTEP_LOCAL_ROOT) | sed 's|^[a-zA-Z]:/|/|' | sed 's|/|\\\\057|g')
 GNUSTEP_TARGET_NETWORK_ROOT := \
-     $(shell echo $(GNUSTEP_NETWORK_ROOT) | sed 's|^[a-zA-Z]:/|/|')
+     $(shell echo $(GNUSTEP_NETWORK_ROOT) | sed 's|^[a-zA-Z]:/|/|' | sed 's|/|\\\\057|g')
 DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_TARGET_INSTALL_PREFIX) \
 	-DGNUSTEP_LOCAL_ROOT=$(GNUSTEP_TARGET_LOCAL_ROOT) \
 	-DGNUSTEP_NETWORK_ROOT=$(GNUSTEP_TARGET_NETWORK_ROOT) \
@@ -69,6 +69,7 @@ DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_TARGET_INSTALL_PREFIX) \
 	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
+
 
 else
 

@@ -755,16 +755,112 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  unsigned	numKeys = [keyArray count];
 	  NSString	*plists[numKeys];
 	  NSString	*keys[numKeys];
+	  BOOL		canCompare = YES;
+	  Class		lastClass = 0;
 
 	  [keyArray getObjects: keys];
 
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      if (GSObjCClass(keys[i]) == lastClass)
+		continue;
+	      if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+		{
+		  canCompare = NO;
+		  break;
+		}
+	      lastClass = GSObjCClass(keys[i]);
+	    }
+
+	  if (canCompare == YES)
+	    {
+	      #define STRIDE_FACTOR 3
+	      unsigned	c,d, stride;
+	      BOOL		found;
+	      NSComparisonResult	(*comp)(id, SEL, id) = 0;
+	      unsigned int	count = numKeys;
+	      #ifdef	GSWARN
+	      BOOL		badComparison = NO;
+	      #endif
+
+	      stride = 1;
+	      while (stride <= count)
+		{
+		  stride = stride * STRIDE_FACTOR + 1;
+		}
+	      lastClass = 0;
+	      while (stride > (STRIDE_FACTOR - 1))
+		{
+		  // loop to sort for each value of stride
+		  stride = stride / STRIDE_FACTOR;
+		  for (c = stride; c < count; c++)
+		    {
+		      found = NO;
+		      if (stride > c)
+			{
+			  break;
+			}
+		      d = c - stride;
+		      while (!found)
+			{
+			  id			a = keys[d + stride];
+			  id			b = keys[d];
+			  Class			x;
+			  NSComparisonResult	r;
+
+			  x = GSObjCClass(a);
+			  if (x != lastClass)
+			    {
+			      lastClass = x;
+			      comp = (NSComparisonResult (*)(id, SEL, id))
+				[a methodForSelector: @selector(compare:)];
+			    }
+			  r = (*comp)(a, @selector(compare:), b);
+			  if (r < 0)
+			    {
+			      #ifdef	GSWARN
+			      if (r != NSOrderedAscending)
+				{
+				  badComparison = YES;
+				}
+			      #endif
+			      keys[d + stride] = b;
+			      keys[d] = a;
+			      if (stride > d)
+				{
+				  break;
+				}
+			      d -= stride;
+			    }
+			  else
+			    {
+			      #ifdef	GSWARN
+			      if (r != NSOrderedDescending
+				&& r != NSOrderedSame)
+				{
+				  badComparison = YES;
+				}
+			      #endif
+			      found = YES;
+			    }
+			}
+		    }
+		}
+	      #ifdef	GSWARN
+	      if (badComparison == YES)
+		{
+		  NSWarnFLog(@"Detected bad return value from comparison");
+		}
+	      #endif
+	    }
+
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      plists[i] = (*myObj)(obj, objSel, keys[i]);
+	    }
+
 	  if (loc == nil)
 	    {
-	      for (i = 0; i < numKeys; i++)
-		{
-		  plists[i] = (*myObj)(obj, objSel, keys[i]);
-		}
-
 	      Append(@"{", dest);
 	      for (i = 0; i < numKeys; i++)
 		{
@@ -777,108 +873,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	  else
 	    {
-	      BOOL	canCompare = YES;
-	      Class	lastClass = 0;
-
-	      for (i = 0; i < numKeys; i++)
-		{
-		  if (GSObjCClass(keys[i]) == lastClass)
-		    continue;
-		  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
-		    {
-		      canCompare = NO;
-		      break;
-		    }
-		  lastClass = GSObjCClass(keys[i]);
-		}
-
-	      if (canCompare == YES)
-		{
-		  #define STRIDE_FACTOR 3
-		  unsigned	c,d, stride;
-		  BOOL		found;
-		  NSComparisonResult	(*comp)(id, SEL, id) = 0;
-		  unsigned int	count = numKeys;
-		  #ifdef	GSWARN
-		  BOOL		badComparison = NO;
-		  #endif
-
-		  stride = 1;
-		  while (stride <= count)
-		    {
-		      stride = stride * STRIDE_FACTOR + 1;
-		    }
-		  lastClass = 0;
-		  while (stride > (STRIDE_FACTOR - 1))
-		    {
-		      // loop to sort for each value of stride
-		      stride = stride / STRIDE_FACTOR;
-		      for (c = stride; c < count; c++)
-			{
-			  found = NO;
-			  if (stride > c)
-			    {
-			      break;
-			    }
-			  d = c - stride;
-			  while (!found)
-			    {
-			      id			a = keys[d + stride];
-			      id			b = keys[d];
-			      Class			x;
-			      NSComparisonResult	r;
-
-			      x = GSObjCClass(a);
-			      if (x != lastClass)
-				{
-				  lastClass = x;
-				  comp = (NSComparisonResult (*)(id, SEL, id))
-				    [a methodForSelector: @selector(compare:)];
-				}
-			      r = (*comp)(a, @selector(compare:), b);
-			      if (r < 0)
-				{
-				  #ifdef	GSWARN
-				  if (r != NSOrderedAscending)
-				    {
-				      badComparison = YES;
-				    }
-				  #endif
-				  keys[d + stride] = b;
-				  keys[d] = a;
-				  if (stride > d)
-				    {
-				      break;
-				    }
-				  d -= stride;
-				}
-			      else
-				{
-				  #ifdef	GSWARN
-				  if (r != NSOrderedDescending
-				    && r != NSOrderedSame)
-				    {
-				      badComparison = YES;
-				    }
-				  #endif
-				  found = YES;
-				}
-			    }
-			}
-		    }
-		  #ifdef	GSWARN
-		  if (badComparison == YES)
-		    {
-		      NSWarnFLog(@"Detected bad return value from comparison");
-		    }
-		  #endif
-		}
-
-	      for (i = 0; i < numKeys; i++)
-		{
-		  plists[i] = (*myObj)(obj, objSel, keys[i]);
-		}
-
 	      Append(@"{\n", dest);
 	      for (i = 0; i < numKeys; i++)
 		{

@@ -38,12 +38,17 @@
 + (id) setWithArray: (NSArray*)objects;
 + (id) setWithObject: (id)anObject;
 + (id) setWithObjects: (id)firstObject, ...;
+#ifndef	STRICT_OPENSTEP
++ (id) setWithObjects: (id*)objects
+		count: (unsigned)count;
+#endif
 + (id) setWithSet: (NSSet*)aSet;
 
 - (NSArray*) allObjects;
 - (id) anyObject;
 - (BOOL) containsObject: (id)anObject;
 - (unsigned) count;
+- (NSString*) description;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 
 - (id) initWithArray: (NSArray*)other;
@@ -61,6 +66,10 @@
 
 - (void) makeObjectsPerform: (SEL)aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
+#ifndef	STRICT_OPENSTEP
+- (void) makeObjectsPerformSelector: (SEL)aSelector;
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument;
+#endif
 - (id) member: (id)anObject;
 - (NSEnumerator*) objectEnumerator;
 

@@ -22,7 +22,8 @@ portion of the OpenStep standard (the Foundation library).
 There is more information available at the GNUstep homepage
 at @samp{http://www.gnustep.org}.
 
-Note that versions that have a odd minor release number are unstable
+Note that versions that have a odd minor release number (the second number,
+y, in x.y.z) are unstable
 releases (like 1.5.2), which even minor release numbers (1.4.1) are stable
 releases.
 

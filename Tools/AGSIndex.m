@@ -274,6 +274,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	{
 	  NSMutableDictionary	*d;
 	  NSString		*k;
+	  NSString		*c;
 
 	  d = [refs objectForKey: @"contents"];
 	  if (d == nil)
@@ -285,7 +286,9 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
           k = [NSString stringWithFormat: @"%03u%03u%03u%03u",
 	    chap, sect, ssect, sssect];
-	  [d setObject: [[children content] stringByTrimmingSpaces] forKey: k];
+	  c = [[children content] stringByTrimmingSpaces];
+	  if (c == nil) c = @"";
+	  [d setObject: c forKey: k];
 	  children = nil;
 	}
       else if ([name isEqual: @"ivariable"] == YES)
@@ -303,6 +306,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  NSString		*val;
 
 	  text = [[children content] stringByTrimmingSpaces];
+	  if (text == nil) text = @"";
 	  children = nil;
 	  all = [refs objectForKey: name];
 	  if (all == nil)
@@ -352,8 +356,11 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      sel = [sel stringByAppendingString:
-				[[t content] stringByTrimmingSpaces]];
+			      NSString	*s;
+
+			      s = [[t content] stringByTrimmingSpaces];
+			      if (s == nil) s = @"";
+			      sel = [sel stringByAppendingString: s];
 			    }
 			  t = [t next];
 			}
@@ -416,6 +423,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       else if ([name isEqual: @"title"] == YES)
 	{
 	  NSMutableDictionary	*d;
+	  NSString		*s;
 
 	  d = [refs objectForKey: @"title"];
 	  if (d == nil)
@@ -425,8 +433,9 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	      RELEASE(d);
 	    }
 
-	  [d setObject: [[children content] stringByTrimmingSpaces]
-		forKey: base];
+	  s = [[children content] stringByTrimmingSpaces];
+	  if (s == nil) s = @"";
+	  [d setObject: s forKey: base];
 	  children = nil;
 	}
       else

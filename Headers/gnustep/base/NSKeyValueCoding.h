@@ -33,6 +33,8 @@
 
 #ifndef	STRICT_OPENSTEP
 
+GS_EXPORT NSString* const NSUnknownKeyException;
+
 @interface NSObject (NSKeyValueCoding)
 
 + (BOOL) accessInstanceVariablesDirectly;

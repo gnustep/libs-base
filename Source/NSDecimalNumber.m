@@ -271,6 +271,140 @@ static NSDecimalNumber *one;
   return [self initWithDecimal: decimal];
 }
 
+- (id) initWithBool: (BOOL)value
+{
+  return [self initWithMantissa: (value == YES) ? 1 : 0
+		       exponent: 0
+		     isNegative: NO];
+}
+
+- (id) initWithChar: (signed char)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
+- (id) initWithDouble: (double)value
+{
+  return [self initWithBytes: &value objCType: "d"];
+}
+
+- (id) initWithFloat: (float)value
+{
+  double	d = (double)value;
+
+  return [self initWithBytes: &d objCType: "d"];
+}
+
+- (id) initWithInt: (signed int)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
+- (id) initWithLong: (signed long)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
+- (id) initWithLongLong: (signed long long)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
+- (id) initWithShort: (signed short)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
+- (id) initWithUnsignedChar: (unsigned char)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
+- (id) initWithUnsignedInt: (unsigned int)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
+- (id) initWithUnsignedLong: (unsigned long)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
+- (id) initWithUnsignedLongLong: (unsigned long long)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
+- (id) initWithUnsignedShort: (unsigned short)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   return NSDecimalString(&data, locale);

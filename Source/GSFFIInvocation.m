@@ -41,6 +41,8 @@ typedef struct _NSInvocation_t {
 /* Function that implements the actual forwarding */
 typedef void (*ffi_closure_fun) (ffi_cif*,void*,void**,void*);
 
+typedef void (*f_fun) ();
+
 void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
 
 /*
@@ -267,7 +269,7 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   NSInvocation_t	*inv = (NSInvocation_t*)_inv;
 
   /* Do it */
-  ffi_call(inv->_cframe, imp, (inv->_retval), 
+  ffi_call(inv->_cframe, (f_fun)imp, (inv->_retval), 
 	   ((cifframe_t *)inv->_cframe)->values);
 
   /* Don't decode the return value here (?) */
@@ -412,10 +414,11 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
      this since the return value (retp) really belongs to the closure
      not the invocation so it will be demallocd at the end of this call
   */
-  if ([sig methodReturnType] && *[sig methodReturnType] == _C_ID)
+  if ([sig methodReturnType] && *[sig methodReturnType] == _C_ID
+      && ((NSInvocation_t *)invocation)->_validReturn == YES)
     {
       AUTORELEASE(*(id *)retp);
-      invocation->_validReturn = NO;
+      ((NSInvocation_t *)invocation)->_validReturn = NO;
     }
 
   /* We need to (re)encode the return type for it's trip back. */
