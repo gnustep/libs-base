@@ -2064,7 +2064,11 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     {
       bytes = [data bytes];
       length = [data length];
-      if (bytes[0] == 0 || bytes[0] == 1)
+      if (length > 0 && memcmp(bytes, "bplist00", 8) == 0)
+	{
+	  format = NSPropertyListBinaryFormat_v1_0;
+	}
+      else if (bytes[0] == 0 || bytes[0] == 1)
 	{
 	  format = NSPropertyListGNUstepBinaryFormat;
 	}
@@ -2165,6 +2169,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		result = [NSDeserializer deserializePropertyListFromData: data
 						       mutableContainers: YES];
 	      }
+	    break;
+
+	  case NSPropertyListBinaryFormat_v1_0:
+	    {
+	      GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
+
+	      p = [p initWithData: data mutability: anOption];
+	      result = [p rootObject];
+	      RELEASE(p);
+	    }
 	    break;
 
 	  default:
@@ -2522,7 +2536,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       char *buffer;
 
       len = [self readCountAt: &counter];
-      buffer = malloc(len+1);
+      buffer = NSZoneMalloc(NSDefaultMallocZone(), len+1);
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       buffer[len] = '\0';
       if (mutability == NSPropertyListMutableContainersAndLeaves)
@@ -2533,7 +2547,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  result = [NSString stringWithUTF8String: buffer];
 	}
-      free(buffer);
+      NSZoneFree(NSDefaultMallocZone(), buffer);
     }
   else if ((next >= 0x60) && (next < 0x6F))
     {
@@ -2567,7 +2581,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       unichar	*buffer;
 
       len = [self readCountAt: &counter];
-      buffer = malloc(sizeof(unichar)*len);
+      buffer = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar)*len);
       [data getBytes: buffer range: NSMakeRange(counter, sizeof(unichar)*len)];
 
       for (i = 0; i < len; i++)
@@ -2583,7 +2597,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  result = [NSString stringWithCharacters: buffer length: len];
 	}
-      free(buffer);
+      NSZoneFree(NSDefaultMallocZone(), buffer);
     }
   else if (next == 0x80)
     {
@@ -2632,7 +2646,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       id	*objects;
 
       len = [self readCountAt: &counter];
-      objects = malloc(sizeof(id) * len);
+      objects = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * len);
 
       for (i = 0; i < len; i++)
         {
@@ -2650,7 +2664,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  result =[NSArray arrayWithObjects: objects count: len];
 	}
-      free(objects);
+      NSZoneFree(NSDefaultMallocZone(), objects);
     }
   else if ((next >= 0xD0) && (next < 0xDF))
     {
@@ -2697,8 +2711,8 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       id	*values;
 
       len = [self readCountAt: &counter];
-      keys = malloc(sizeof(id)*len);
-      values = malloc(sizeof(id)*len);
+      keys = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*len);
+      values = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*len);
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
@@ -2726,8 +2740,8 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 					       forKeys: keys 
 						 count: len];
 	}
-      free(values);
-      free(keys);
+      NSZoneFree(NSDefaultMallocZone(), values);
+      NSZoneFree(NSDefaultMallocZone(), keys);
     }
   else
     {
