@@ -1,44 +1,52 @@
-Fri Nov 20 12:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Nov 20 14:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSSerializer.m: Added GNUstep specific methods for controlling
+	* src/NSSerializer.m: Added GNUstep specific methods for controlling
 	format to optimise serialisation for property lists containing
 	repeated strings.
-	include/NSSerializer.h: ditto
-	src/FastArray.x: inline implementation of fast array code for stuff
+	* src/include/NSSerializer.h: ditto
+	* src/FastArray.x: inline implementation of fast array code for stuff
 	that doesn't need to be retained etc. Minimal functionality so far.
+	* src/Fastmap.x: Tidied indentation etc.
+	* src/include/NSArchiver.h: Use FastArray
+	* src/NSUnarchiver.m: Use FastArray
+	* src/NSAutorleasePool.m: Optimize implementation of +new
+	* src/NSArray.m: Use ([NSAutoreleasePool +new])
+	* src/NSDictionary.m: Use ([NSAutoreleasePool +new])
+	* src/NSFileManager.m: Use ([NSAutoreleasePool +new])
+	* src/NSPort.m: Use ([NSAutoreleasePool +new])
 
 Thu Nov 19 21:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-	src/Archiver.m: Got rid of 'assert' - replace with 'NSAssert' etc.
-	src/BinaryTree.m: ditto
-	src/Coder.m: ditto
-	src/Collection.m: ditto
-	src/ConnectedCoder.m: ditto
-	src/Invocation.m: ditto
-	src/LinkedList.m: ditto
-	src/MachPort.m: ditto
-	src/NSAutoreleasePool.m: ditto
-	src/NSBundle.m: ditto
-	src/NSConnection.m: ditto
-	src/NSCountedSet.m: ditto
-	src/NSDate.m: ditto
-	src/NSDistantObject.m: ditto
-	src/NSGArchiver.m: ditto
-	src/NSGSequence.m: ditto
-	src/NSObject.m: ditto
-	src/NSPortCoder.m: ditto
-	src/NSRunLoop.m: ditto
-	src/NSSet.m: ditto
-	src/NSTimer.m: ditto
-	src/NSZone.m: ditto
-	src/NotificationDispatcher.m: ditto
-	src/OrderedCollection.m: ditto
-	src/Port.m: ditto
-	src/Random.m: ditto
-	src/Storage.m: ditto
-	src/TcpPort.m: ditto
-	src/UdpPort.m: ditto
-	src/behavior.m: ditto
-	src/mframe.m: ditto
+	* src/Archiver.m: Got rid of 'assert' - replace with 'NSAssert' etc.
+	* src/BinaryTree.m: ditto
+	* src/Coder.m: ditto
+	* src/Collection.m: ditto
+	* src/ConnectedCoder.m: ditto
+	* src/Invocation.m: ditto
+	* src/LinkedList.m: ditto
+	* src/MachPort.m: ditto
+	* src/NSAutoreleasePool.m: ditto
+	* src/NSBundle.m: ditto
+	* src/NSConnection.m: ditto
+	* src/NSCountedSet.m: ditto
+	* src/NSDate.m: ditto
+	* src/NSDistantObject.m: ditto
+	* src/NSGArchiver.m: ditto
+	* src/NSGSequence.m: ditto
+	* src/NSObject.m: ditto
+	* src/NSPortCoder.m: ditto
+	* src/NSRunLoop.m: ditto
+	* src/NSSet.m: ditto
+	* src/NSTimer.m: ditto
+	* src/NSZone.m: ditto
+	* src/NotificationDispatcher.m: ditto
+	* src/OrderedCollection.m: ditto
+	* src/Port.m: ditto
+	* src/Random.m: ditto
+	* src/Storage.m: ditto
+	* src/TcpPort.m: ditto
+	* src/UdpPort.m: ditto
+	* src/behavior.m: ditto
+	* src/mframe.m: ditto
 
 Thu Nov 19 16:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
