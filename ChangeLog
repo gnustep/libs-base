@@ -1,5 +1,8 @@
 Mon Dec  7 10:00:34 1998  Adam Fedor  <fedor@ultra.doc.com>
 
+	* src/NSConcreteNumber.m ([NumberTemplate
+	-descriptionWithLocale:]): Print BOOL value as a special case.
+
 	* src/NSProcessInfo.m: Use fake-main if FreeBSD.
 	* src/include/fake-main.h: Likewise.
 
