@@ -1,3 +1,10 @@
+1999-12-19  David Lazaro  <khelekir@encomix.es>
+
+	* configure.in (objc_thread_lib): Added support for FreeBSD native
+	POSIX threads (from the reentrant C library, libc_r).  Made this the
+	first option to test as this is the best working one.
+	* configure: New build to support the above mentioned.
+
 Fri Dec 17 17:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Fix error in last change.
