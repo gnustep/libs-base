@@ -81,6 +81,9 @@ after-uninstall::
 
 # Things to do after cleaning
 after-clean::
+ifeq ($(HAVE_LIBXML),1)
+	$(MAKE) -C ../Source -f DocMakefile clean
+endif
 	rm -rf Base
 	rm -rf BaseAdditions
 
