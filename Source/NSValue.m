@@ -1,5 +1,5 @@
-/* NSValue.h - Object encapsulation for C types.
-   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
+/* NSValue.m - Object encapsulation for C types.
+   Copyright (C) 1993, 1994, 1996, 1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -26,150 +26,157 @@
 #include <Foundation/NSConcreteValue.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSZone.h>
 
-/* NSValueDecoder is a Class whose only purpose is to decode coded NSValue
-   objects.  The only method(s) that should ever be called are +newWithCoder:
-   or -initWithCoder:.  Should disallow any other method calls... */
-@interface NSValueDecoder : NSValue
-{
-}
-
-@end
-
-@implementation NSValueDecoder
-
-- initValue:(const void *)value
-      withObjCType:(const char *)type
-{
-    [self shouldNotImplement:_cmd];
-    return self;
-}
-
-/* xxx What's going on here?  This doesn't look right to me -mccallum. */
-#if 0
-+ (id) newWithCoder: (NSCoder *)coder
-{
-    char *type;
-    void *data;
-    id   new_value;
-
-    [coder decodeValueOfObjCType:@encode(char *) at:&type];
-    [coder decodeValueOfObjCType:type at:&data];
-    /* Call NSNumber's implementation of this method, because NSValueDecoder
-       also stores NSNumber types */
-    new_value = [[NSNumber valueClassWithObjCType:type] 
-	allocWithZone:[coder objectZone]];
-    [new_value initValue:data withObjCType:type];
-    OBJC_FREE(data);
-    OBJC_FREE(type);
-    return new_value;
-}
-
-/* Are you convinced that +newWithCoder is a better idea?  Otherwise we
-   have to release ourselves and return a new instance of the correct
-   object. We hope that the calling method knows this and has nested the
-   alloc and init calls or knows that the object has been replaced. */
-- (id) initWithCoder: (NSCoder *)coder
-{
-    self = [super initWithCoder:coder];
-    [self autorelease];
-    return [NSValueDecoder newWithCoder:coder];
-}
-#endif
-
-@end
+static Class	abstractClass;
+static Class	concreteClass;
+static Class	nonretainedObjectValueClass;
+static Class	pointValueClass;
+static Class	pointerValueClass;
+static Class	rectValueClass;
+static Class	sizeValueClass;
+  
 
 @implementation NSValue
 
-// NSCopying
-/* deepening is done by concrete subclasses */
-- deepen
++ (void) initialize
 {
-    return self;
+  if (self == [NSValue class])
+    {
+      abstractClass = self;
+      concreteClass = [NSConcreteValue class];
+      nonretainedObjectValueClass = [NSNonretainedObjectValue class];
+      pointValueClass = [NSPointValue class];
+      pointerValueClass = [NSPointerValue class];
+      rectValueClass = [NSRectValue class];
+      sizeValueClass = [NSSizeValue class];
+    }
 }
 
-- (id)copy
++ (id) alloc
 {
-    return [self retain];
+  if (self == abstractClass)
+    return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
+  else
+    return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
 
-- (id)copyWithZone:(NSZone *)zone
++ (id) allocWithZone: (NSZone*)z
 {
-    if (NSShouldRetainWithZone(self, zone))
-    	return [self retain];
-    else
-    	return [(NSValue*)NSCopyObject(self, 0, zone) deepen];
+  if (self == abstractClass)
+    return NSAllocateObject(concreteClass, 0, z);
+  else
+    return NSAllocateObject(self, 0, z);
+}
+
+// NSCopying - always a simple retain.
+
+- (id) copy
+{
+  return RETAIN(self);
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return RETAIN(self);
 }
 
 /* Returns the concrete class associated with the type encoding */
-+ (Class)valueClassWithObjCType:(const char *)type
++ (Class) valueClassWithObjCType: (const char *)type
 {
-    Class theClass = [NSConcreteValue class];
+  Class	theClass = concreteClass;
 
-    /* Let someone else deal with this error */
-    if (!type)
-	return theClass;
-
-    if (strcmp(@encode(id), type) == 0)
-	theClass = [NSNonretainedObjectValue class];
-    else if (strcmp(@encode(NSPoint), type) == 0)
-	theClass = [NSPointValue class];
-    else if (strcmp(@encode(void *), type) == 0)
-	theClass = [NSPointerValue class];
-    else if (strcmp(@encode(NSRect), type) == 0)
-	theClass = [NSRectValue class];
-    else if (strcmp(@encode(NSSize), type) == 0)
-	theClass = [NSSizeValue class];
-    
+  /* Let someone else deal with this error */
+  if (!type)
     return theClass;
+
+  if (strcmp(@encode(id), type) == 0)
+    theClass = nonretainedObjectValueClass;
+  else if (strcmp(@encode(NSPoint), type) == 0)
+    theClass = pointValueClass;
+  else if (strcmp(@encode(void *), type) == 0)
+    theClass = pointerValueClass;
+  else if (strcmp(@encode(NSRect), type) == 0)
+    theClass = rectValueClass;
+  else if (strcmp(@encode(NSSize), type) == 0)
+    theClass = sizeValueClass;
+  
+  return theClass;
 }
 
 // Allocating and Initializing 
 
-+ (NSValue *)value:(const void *)value
-      withObjCType:(const char *)type
++ (NSValue *)value: (const void *)value
+      withObjCType: (const char *)type
 {
-    Class theClass = [self valueClassWithObjCType:type];
-    return [[[theClass alloc] initValue:value withObjCType:type]
-    		autorelease];
+  Class		theClass = [self valueClassWithObjCType: type];
+  NSValue	*theObj;
+
+  theObj = [theClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: value objCType: type];
+  return AUTORELEASE(theObj);
 }
 		
-+ (NSValue *)valueWithNonretainedObject: (id)anObject
++ (NSValue *)valueWithBytes: (const void *)value
+		   objCType: (const char *)type
 {
-    return [[[NSNonretainedObjectValue alloc] 
-    		initValue:&anObject withObjCType:@encode(id)]
-    		autorelease];
+  Class		theClass = [self valueClassWithObjCType: type];
+  NSValue	*theObj;
+
+  theObj = [theClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: value objCType: type];
+  return AUTORELEASE(theObj);
+}
+		
++ (NSValue *) valueWithNonretainedObject: (id)anObject
+{
+  NSValue	*theObj;
+
+  theObj = [NSNonretainedObjectValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &anObject objCType: @encode(id)];
+  return AUTORELEASE(theObj);
 }
 	
-+ (NSValue *)valueWithPoint:(NSPoint)point
++ (NSValue *) valueWithPoint: (NSPoint)point
 {
-    return [[[NSPointValue alloc] 
-    		initValue:&point withObjCType:@encode(NSPoint)]
-    		autorelease];
+  NSValue	*theObj;
+
+  theObj = [NSPointValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &point objCType: @encode(NSPoint)];
+  return AUTORELEASE(theObj);
 }
  
-+ (NSValue *)valueWithPointer:(const void *)pointer
++ (NSValue *)valueWithPointer: (const void *)pointer
 {
-    return [[[NSPointerValue alloc] 
-    		initValue:&pointer withObjCType:@encode(void*)]
-    		autorelease];
+  NSValue	*theObj;
+
+  theObj = [NSPointerValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &pointer objCType: @encode(void*)];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSValue *)valueWithRect:(NSRect)rect
++ (NSValue *)valueWithRect: (NSRect)rect
 {
-    return [[[NSRectValue alloc] initValue:&rect withObjCType:@encode(NSRect)]
-    		autorelease];
+  NSValue	*theObj;
+
+  theObj = [NSRectValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &rect objCType: @encode(NSRect)];
+  return AUTORELEASE(theObj);
 }
  
-+ (NSValue *)valueWithSize:(NSSize)size
++ (NSValue *)valueWithSize: (NSSize)size
 {
-    return [[[NSSizeValue alloc] initValue:&size withObjCType:@encode(NSSize)]
-    		autorelease];
+  NSValue	*theObj;
+
+  theObj = [NSSizeValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &size objCType: @encode(NSSize)];
+  return AUTORELEASE(theObj);
 }
 
-+ valueFromString: (NSString *)string
++ (NSValue*)valueFromString: (NSString *)string
 {
-  NSDictionary *dict = [string propertyList];
+  NSDictionary	*dict = [string propertyList];
+
   if (!dict)
     return nil;
 
@@ -180,100 +187,100 @@
 		       [[dict objectForKey: @"y"] floatValue],
 		       [[dict objectForKey: @"width"] floatValue],
 		       [[dict objectForKey: @"height"] floatValue]);
-      return [NSValue valueWithRect: rect];
+      return [abstractClass valueWithRect: rect];
     }
   else if ([dict objectForKey: @"width"])
     {
       NSSize size;
       size = NSMakeSize([[dict objectForKey: @"width"] floatValue],
 			[[dict objectForKey: @"height"] floatValue]);
-      return [NSValue valueWithSize: size];
+      return [abstractClass valueWithSize: size];
     }
   else if ([dict objectForKey: @"x"])
     {
       NSPoint point;
       point = NSMakePoint([[dict objectForKey: @"x"] floatValue],
 			[[dict objectForKey: @"y"] floatValue]);
-      return [NSValue valueWithPoint: point];
+      return [abstractClass valueWithPoint: point];
     }
   return nil;
 }
 
-
+- (id) initWithBytes: (const void*)data objCType: (const char*)type
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
 
 // Accessing Data 
 /* All the rest of these methods must be implemented by a subclass */
-- (void)getValue:(void *)value
+- (void)getValue: (void *)value
 {
-    [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (BOOL)isEqual: (id)other
 {
-    if ([other isKindOfClass: [self class]]) {
+  if ([other isKindOfClass: [self class]])
+    {
 	return [self isEqualToValue: other];
     }
-    return NO;
+  return NO;
 }
 
 - (BOOL)isEqualToValue: (NSValue*)other
 {
-    [self subclassResponsibility:_cmd];
-    return NO;
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 - (const char *)objCType
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
  
-// FIXME: Is this an error or an exception???
 - (id)nonretainedObjectValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
  
 - (void *)pointerValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 } 
 
 - (NSRect)rectValue
 {
-    [self subclassResponsibility:_cmd];
-    return NSMakeRect(0,0,0,0);
+  [self subclassResponsibility: _cmd];
+  return NSMakeRect(0,0,0,0);
 }
  
 - (NSSize)sizeValue
 {
-    [self subclassResponsibility:_cmd];
-    return NSMakeSize(0,0);
+  [self subclassResponsibility: _cmd];
+  return NSMakeSize(0,0);
 }
  
 - (NSPoint)pointValue
 {
-    [self subclassResponsibility:_cmd];
-    return NSMakePoint(0,0);
+  [self subclassResponsibility: _cmd];
+  return NSMakePoint(0,0);
 }
 
 // NSCoding (done by subclasses)
-- classForCoder
+
+- (void) encodeWithCoder: (NSCoder *)coder
 {
-    return [NSValueDecoder class];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void)encodeWithCoder:(NSCoder *)coder
+- (id) initWithCoder: (NSCoder *)coder
 {
-    [super encodeWithCoder:coder];
-}
-
-- (id)initWithCoder:(NSCoder *)coder
-{
-    self = [super initWithCoder:coder];
-    return self;
+  [self subclassResponsibility: _cmd];
+  return self;
 }
 
 @end
