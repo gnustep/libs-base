@@ -120,7 +120,7 @@
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
     [NSException raise: NSInvalidArgumentException
-		    format: @"NSProxy should does not implement '%s'",
+		format: @"NSProxy should not implement '%s'",
 				sel_get_name(_cmd)];
 }
 
@@ -171,7 +171,8 @@
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-    [self notImplemented: _cmd];
+    [NSException raise: NSInvalidArgumentException format:
+	@"NSProxy should not implement 'methodSignatureForSelector:'"];
     return nil;
 }
 

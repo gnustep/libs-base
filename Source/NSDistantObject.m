@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <Foundation/DistributedObjects.h>
+#include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSException.h>
 
 static int debug_proxy;
@@ -297,6 +298,30 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 	   (unsigned)self, (unsigned)_object, (unsigned)_connection);
 
     return self;
+}
+
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+    const char	*types = 0;
+
+    if (_protocol) {
+	struct objc_method_description* mth;
+
+	mth = [_protocol descriptionForInstanceMethod: aSelector];
+	if (mth == 0) {
+	    mth = [_protocol descriptionForClassMethod: aSelector];
+	}
+	if (mth != 0) {
+	    types = mth->types;
+	}
+    }
+    else {
+	types = [self selectorTypeForProxy: aSelector];
+    }
+    if (types == 0) {
+	return nil;
+    }
+    return [NSMethodSignature signatureWithObjCTypes: types];
 }
 
 - (void) setProtocolForProxy: (Protocol*)aProtocol
