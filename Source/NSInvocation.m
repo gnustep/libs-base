@@ -27,6 +27,7 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
 #include <include/fast.x>
+#include <config.h>
 #include <mframe.h>
 
 @implementation NSInvocation
