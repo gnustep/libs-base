@@ -32,7 +32,7 @@ static BOOL snuggleEnd(NSString *t)
     }
   if (set == nil)
     {
-      set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;"];
+      set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;?!"];
       RETAIN(set);
     }
   return [set characterIsMember: [t characterAtIndex: 0]];
@@ -388,7 +388,6 @@ static BOOL snuggleStart(NSString *t)
  */
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str
 {
-  NSArray	*args = [d objectForKey: @"Args"];
   NSArray	*sels = [d objectForKey: @"Sels"];
   NSArray	*types = [d objectForKey: @"Types"];
   NSString	*name = [d objectForKey: @"Name"];
@@ -397,6 +396,8 @@ static BOOL snuggleStart(NSString *t)
   BOOL		isInitialiser = NO;
   NSString	*override = nil;
   NSString	*standards = nil;
+
+  args = [d objectForKey: @"Args"];	// Used when splitting.
 
   tmp = [d objectForKey: @"Comment"];
 
@@ -527,6 +528,7 @@ static BOOL snuggleStart(NSString *t)
       [self reformat: standards withIndent: 10 to: str];
     }
   [str appendString: @"        </method>\n"];
+  args = nil;
 }
 
 - (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str
@@ -747,12 +749,13 @@ static BOOL snuggleStart(NSString *t)
   unichar		*buf;
 
   /**
-   * Phase 1 ... we take the supplied string andcheck for white space.
+   * Phase 1 ... we take the supplied string and check for white space.
    * Any white space sequence is deleted and treated as a word separator
    * except within xml element markup.  The format of element start and
    * end marks is tidied for consistency.  The resulting data is made
    * into an array of strings, each containing either an element start
    * or end tag, or one of the whitespace separated words.
+   * What about str?
    */
   data = [[NSMutableData alloc] initWithLength: l * sizeof(unichar)];
   ptr = buf = [data mutableBytes];
@@ -895,75 +898,145 @@ static BOOL snuggleStart(NSString *t)
   for (l = 0; l < [a count]; l++)
     {
       static NSArray	*constants = nil;
-      static unsigned	cCount = 0;
+      unsigned		count;
       NSString		*tmp = [a objectAtIndex: l];
       unsigned		pos;
       NSRange		r;
       BOOL		hadMethod = NO;
 
-      /*
-       * Ensure that well known constants are rendered as 'code'
-       */
       if (constants == nil)
 	{
 	  constants = [[NSArray alloc] initWithObjects:
 	    @"YES", @"NO", @"nil", nil];
-	  cCount = [constants count];
 	}
-      for (pos = 0; pos < cCount; pos++)
+
+      if (l == 0 || [[a objectAtIndex: l-1] isEqual: @"<code>"] == NO)
 	{
-	  NSString	*c = [constants objectAtIndex: pos];
-
-	  r = [tmp rangeOfString: c];
-
-	  if (r.length > 0)
+	  /*
+	   * Ensure that well known constants are rendered as 'code'
+	   */
+	  count = [constants count];
+	  for (pos = 0; pos < count; pos++)
 	    {
-	      NSString	*start;
-	      NSString	*end;
+	      NSString	*c = [constants objectAtIndex: pos];
 
-	      if (r.location > 0)
-		{
-		  start = [tmp substringToIndex: r.location];
-		}
-	      else
-		{
-		  start = nil;
-		}
-	      if (NSMaxRange(r) < [tmp length])
-		{
-		  end = [tmp substringFromIndex: NSMaxRange(r)];
-		}
-	      else
-		{
-		  end = nil;
-		}
-	      if ((start == nil || snuggleStart(start) == YES)
-		&& (end == nil || snuggleEnd(end) == YES))
-		{
-		  NSString	*sub;
+	      r = [tmp rangeOfString: c];
 
-		  if (start != nil || end != nil)
+	      if (r.length > 0)
+		{
+		  NSString	*start;
+		  NSString	*end;
+
+		  if (r.location > 0)
 		    {
-		      sub = [tmp substringWithRange: r];
+		      start = [tmp substringToIndex: r.location];
 		    }
 		  else
 		    {
-		      sub = nil;
+		      start = nil;
 		    }
-		  if (start != nil)
+		  if (NSMaxRange(r) < [tmp length])
 		    {
-		      [a insertObject: start atIndex: l++];
+		      end = [tmp substringFromIndex: NSMaxRange(r)];
 		    }
-		  [a insertObject: @"<code>" atIndex: l++];
-		  if (sub != nil)
+		  else
 		    {
-		      [a replaceObjectAtIndex: l withObject: sub];
+		      end = nil;
 		    }
-		  l++;
-		  [a insertObject: @"</code>" atIndex: l];
-		  if (end != nil)
+		  if ((start == nil || snuggleStart(start) == YES)
+		    && (end == nil || snuggleEnd(end) == YES))
 		    {
-		      [a insertObject: end atIndex: ++l];
+		      NSString	*sub;
+
+		      if (start != nil || end != nil)
+			{
+			  sub = [tmp substringWithRange: r];
+			}
+		      else
+			{
+			  sub = nil;
+			}
+		      if (start != nil)
+			{
+			  [a insertObject: start atIndex: l++];
+			}
+		      [a insertObject: @"<code>" atIndex: l++];
+		      if (sub != nil)
+			{
+			  [a replaceObjectAtIndex: l withObject: sub];
+			}
+		      l++;
+		      [a insertObject: @"</code>" atIndex: l];
+		      if (end != nil)
+			{
+			  [a insertObject: end atIndex: ++l];
+			}
+		    }
+		}
+	    }
+	}
+
+      /*
+       * Ensure that method arguments are rendered as 'var'
+       */
+      if (l == 0 || [[a objectAtIndex: l-1] isEqual: @"<var>"] == NO)
+	{
+	  count = [args count];
+	  for (pos = 0; pos < count; pos++)
+	    {
+	      NSString	*c = [args objectAtIndex: pos];
+
+	      r = [tmp rangeOfString: c];
+
+	      if (r.length > 0)
+		{
+		  NSString	*start;
+		  NSString	*end;
+
+		  if (r.location > 0)
+		    {
+		      start = [tmp substringToIndex: r.location];
+		    }
+		  else
+		    {
+		      start = nil;
+		    }
+		  if (NSMaxRange(r) < [tmp length])
+		    {
+		      end = [tmp substringFromIndex: NSMaxRange(r)];
+		    }
+		  else
+		    {
+		      end = nil;
+		    }
+		  if ((start == nil || snuggleStart(start) == YES)
+		    && (end == nil || snuggleEnd(end) == YES))
+		    {
+		      NSString	*sub;
+
+		      if (start != nil || end != nil)
+			{
+			  sub = [tmp substringWithRange: r];
+			}
+		      else
+			{
+			  sub = nil;
+			}
+		      if (start != nil)
+			{
+			  [a insertObject: start atIndex: l++];
+			}
+		      [a insertObject: @"<var>" atIndex: l++];
+		      if (sub != nil)
+			{
+			  [a replaceObjectAtIndex: l withObject: sub];
+			}
+		      l++;
+		      [a insertObject: @"</var>" atIndex: l];
+		      if (end != nil)
+			{
+			  [a insertObject: end atIndex: ++l];
+			}
 		    }
 		}
 	    }

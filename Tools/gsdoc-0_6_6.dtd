@@ -86,7 +86,7 @@
 
 <!--***** Phrase elements. *****-->
 
-<!-- The content is a metasyntactic variable name. -->
+<!-- The content is a metasyntactic variable or argument name. -->
 <!ELEMENT var (%text;)*>
 
 <!-- The content is a metasyntactic ivariable name. -->

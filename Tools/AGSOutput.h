@@ -28,6 +28,7 @@
   NSCharacterSet	*identStart;	// Legit initial char of identifier
   NSCharacterSet	*spaces;	// All blank characters
   NSCharacterSet	*spacenl;	// Blanks excluding newline
+  NSArray		*args;		// Not retained.
 }
 
 - (unsigned) fitWords: (NSArray*)a

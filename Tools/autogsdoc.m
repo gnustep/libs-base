@@ -127,6 +127,9 @@
     <item>Certain well known constants such as YES, NO, and nil are
       enclosed in &lt;code&gt; ... &lt;/code&gt; markup.
     </item>
+    <item>The names of method arguments within method descriptions are
+      enclosed in &lt;var&gt; ... &lt;/var&gt; markup.
+    </item>
     <item>Method names (beginning with a plus or minus) are enclosed
       in &lt;ref...&gt; ... &lt;/ref&gt; markup.
     </item>
