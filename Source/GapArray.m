@@ -76,9 +76,9 @@
   return copy;
 }
 
-- empty
+- _empty
 {
-  [super empty];
+  [super _empty];
   _gap_start = 0;
   _gap_size = _capacity;
   return self;

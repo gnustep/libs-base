@@ -85,7 +85,7 @@
 }
 
 /* This must work without sending any messages to content objects */
-- empty
+- _empty
 {
   _count = 0;
   _first_link = nil;

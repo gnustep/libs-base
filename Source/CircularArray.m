@@ -67,9 +67,9 @@
   return copy;
 }
 
-- empty
+- _empty
 {
-  [super empty];
+  [super _empty];
   _start_index = 0;
   return self;
 }

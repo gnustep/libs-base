@@ -226,7 +226,7 @@
 }
 
 /* This must work without sending any messages to content objects */
-- empty
+- _empty
 {
   coll_hash_empty(_contents_hash);
   return self;
