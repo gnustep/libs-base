@@ -2,6 +2,8 @@
 
 	* Tools/AGSParser.m: Bugfix ... look for source files more
 	intelligently. Try both current directory and relative to header.
+	* Source/GSHTTPURLHandle.m: If response parsing fails, fail the
+	load operation and (conditionally when debug enabled) log an error.
 
 2002-09-16  Richard Frith-Macdonald <rfm@gnu.org>
 
