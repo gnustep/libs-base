@@ -39,7 +39,7 @@
 - (NSConnection*) connection;
 - (NSPort*) decodePortObject;
 - (void) encodePortObject: (NSPort*)aPort;
-- (BOOL) isByCopy;
+- (BOOL) isBycopy;
 
 @end
 

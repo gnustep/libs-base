@@ -118,7 +118,7 @@
 }
 
 /*	Next two methods for OPENSTEP	*/
-- (Class) classForPortCoder: coder
+- (Class) classForPortCoder
 {
   return [self class];
 }
@@ -753,9 +753,9 @@ my_method_get_next_argument (arglist_t argframe,
 
 /* Encode ourself as a proxies across Connection's; we can't encode
    a function across the wire. */
-- classForPortCoder: coder
+- classForPortCoder
 {
-  return [[coder connection] proxyClass];
+  return [NSDistantObject class];
 }
 
 - (void) encodeWithCoder: (id <Encoding>)coder
@@ -786,9 +786,9 @@ my_method_get_next_argument (arglist_t argframe,
 
 /* Encode ourself as a proxies across Connection's; we can't encode
    a function across the wire. */
-- classForPortCoder: coder
+- classForPortCoder
 {
-  return [[coder connection] proxyClass];
+  return [NSDistantObject class];
 }
 
 - (void) encodeWithCoder: (id <Encoding>)coder

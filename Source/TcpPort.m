@@ -40,6 +40,7 @@
 #include <gnustep/base/NSException.h>
 #include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1238,7 +1239,7 @@ assert(type == ET_RPORT);
   return [TcpOutPort class];
 }
 
-- (Class) classForPortCoder: aRmc
+- (Class) classForPortCoder
 {
   return [TcpOutPort class];
 }
@@ -1686,7 +1687,7 @@ static NSMapTable *out_port_bag = NULL;
   [super dealloc];
 }
 
-- classForPortCoder: aRmc
+- classForPortCoder
 {
   /* Make sure that Connection's always send us bycopy,
      i.e. as our own class, not a Proxy class. */
@@ -1840,15 +1841,15 @@ static NSMapTable *out_port_bag = NULL;
   int c;
   int remaining;
 
-  remaining = size - eof_position;
+  remaining = [data length] - prefix - eof_position;
 #ifdef	GDOMAP
-  c = tryRead(s, 1, buffer + prefix + eof_position, -remaining);
+  c = tryRead(s, 1, [data mutableBytes] + prefix + eof_position, -remaining);
 #else
   /* xxx We need to make sure this read() is non-blocking. */
 #ifdef	__WIN32__
-  c = recv (s, buffer + prefix + eof_position, remaining, 0);
+  c = recv (s, [data mutableBytes] + prefix + eof_position, remaining, 0);
 #else
-  c = read (s, buffer + prefix + eof_position, remaining);
+  c = read (s, [data mutableBytes] + prefix + eof_position, remaining);
 #endif	/* __WIN32 */
 #endif	/* GDOMAP */
   if (c <= 0) {
@@ -1875,25 +1876,25 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Put the packet size in the first two bytes of the packet. */
   assert (prefix == PREFIX_SIZE);
-  *(PREFIX_LENGTH_TYPE*)buffer = htons (eof_position);
+  *(PREFIX_LENGTH_TYPE*)[data mutableBytes] = htons (eof_position);
 
   /* Put the sockaddr_in for replies in the next bytes of the prefix
      region.  If there is no reply address specified, fill it with zeros. */
   if (addr)
     /* Do this memcpy instead of simply casting the pointer because
        some systems fail to do the cast correctly (due to alignment issues?) */
-    memcpy (buffer + PREFIX_LENGTH_SIZE, addr, PREFIX_ADDRESS_SIZE);
+    memcpy ([data mutableBytes]+PREFIX_LENGTH_SIZE, addr, PREFIX_ADDRESS_SIZE);
   else
-    memset (buffer + PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
+    memset ([data mutableBytes]+PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
 
   /* Write the packet on the socket. */
 #ifdef	GDOMAP
-  c = tryWrite (s, (int)timeout, buffer, prefix + eof_position);
+  c = tryWrite (s, (int)timeout, [data bytes], prefix + eof_position);
 #else
 #ifdef	__WIN32__
-  c = send (s, buffer, prefix + eof_position, 0);
+  c = send (s, [data bytes], prefix + eof_position, 0);
 #else
-  c = write (s, buffer, prefix + eof_position);
+  c = write (s, [data bytes], prefix + eof_position);
 #endif	/* __WIN32__ */
 #endif	/* GDOMAP */
   if (c == -2) {

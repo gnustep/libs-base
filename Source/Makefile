@@ -315,8 +315,6 @@ NSGArray.m \
 NSGAttributedString.m \
 NSGCountedSet.m \
 NSGCString.m \
-NSGData.m \
-NSHData.m \
 NSGDictionary.m \
 NSGSet.m \
 NSGSequence.m \
@@ -406,8 +404,6 @@ Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
 Foundation/NSGAttributedString.h \
 Foundation/NSGCString.h \
-Foundation/NSGData.h \
-Foundation/NSHData.h \
 Foundation/NSGDictionary.h \
 Foundation/NSGSet.h \
 Foundation/NSGSequence.h \

@@ -34,13 +34,13 @@
 
 + (id)data;
 + (id)dataWithBytes: (const void*)bytes
-   length: (unsigned int)length;
+	     length: (unsigned int)length;
 + (id)dataWithBytesNoCopy: (void*)bytes
-   length: (unsigned int)length;
+   		   length: (unsigned int)length;
 + (id)dataWithContentsOfFile: (NSString*)path;
 + (id)dataWithContentsOfMappedFile: (NSString*)path;
 - (id)initWithBytes: (const void*)bytes
-   length: (unsigned int)length;
+   	     length: (unsigned int)length;
 - (id)initWithBytesNoCopy: (void*)bytes
                    length: (unsigned int)length;
 - (id)initWithContentsOfFile: (NSString*)path;
@@ -53,9 +53,9 @@
 - (NSString*)description;
 - (void)getBytes: (void*)buffer;
 - (void)getBytes: (void*)buffer
-   length: (unsigned int)length;
+          length: (unsigned int)length;
 - (void)getBytes: (void*)buffer
-   range: (NSRange)aRange;
+           range: (NSRange)aRange;
 - (NSData*)subdataWithRange: (NSRange)aRange;
 
 // Querying a Data Object
@@ -72,21 +72,27 @@
 
 - (unsigned int)deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor;
 - (void)deserializeBytes: (void*)buffer
-   length: (unsigned int)bytes
-   atCursor: (unsigned int*)cursor;
+                  length: (unsigned int)bytes
+                atCursor: (unsigned int*)cursor;
 - (void)deserializeDataAt: (void*)data
-   ofObjCType: (const char*)type
-   atCursor: (unsigned int*)cursor
-   context: (id <NSObjCTypeSerializationCallBack>)callback;
+               ofObjCType: (const char*)type
+                 atCursor: (unsigned int*)cursor
+                  context: (id <NSObjCTypeSerializationCallBack>)callback;
 - (int)deserializeIntAtCursor: (unsigned int*)cursor;
 - (int)deserializeIntAtIndex: (unsigned int)location;
 - (void)deserializeInts: (int*)intBuffer
-   count: (unsigned int)numInts
-   atCursor: (unsigned int*)cursor;
+                  count: (unsigned int)numInts
+               atCursor: (unsigned int*)cursor;
 - (void)deserializeInts: (int*)intBuffer
-   count: (unsigned int)numInts
-   atIndex: (unsigned int)index;
+                  count: (unsigned int)numInts
+                atIndex: (unsigned int)index;
 
+@end
+
+@interface NSData (GNUstepExtensions)
++ (id) dataWithShmID: (int)anID length: (unsigned) length;
++ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
++ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned) length;
 @end
 
 
@@ -130,6 +136,12 @@
 		 count: (unsigned int)numInts
 	       atIndex: (unsigned int)location;
 
+@end
+
+@interface NSMutableData (GNUstepExtensions)
+- (unsigned int) capacity;
+- (id) setCapacity: (unsigned int)newCapacity;
+- (int) shmID;
 @end
 
 /*

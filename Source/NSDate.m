@@ -159,7 +159,7 @@
   return [self class];
 }
 
-- (Class) classForPortCoder: aRmc
+- (Class) classForPortCoder
 {
   return [self class];
 }

@@ -2315,7 +2315,7 @@ else
  *	deallocated in the other process - causing a memory leak.  So we tell
  *	the DO system to use the super class instead.
  */
-- (Class)classForPortCoder: (NSPortCoder*)aCoder
+- (Class)classForPortCoder
 {
   return [self superclass];
 }

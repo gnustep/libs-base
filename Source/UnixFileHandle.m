@@ -69,7 +69,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   struct servent*	sp;
 
   if (svc == nil)
-    return NO;
+    svc = @"localhost";
 
   if (pcl)
     proto = [pcl cStringNoCopy];
@@ -174,21 +174,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   int	net;
   struct sockaddr_in	sin;
 
-  if (address == nil)
-    {
-      [self release];
-      return nil;
-    }
-
   if (getAddr(address, service, protocol, &sin) == NO)
     {
-      [self release];
+      [self dealloc];
+      NSLog(@"bad address-service-protocol combination");
       return nil;
     }
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self release];
+      [self dealloc];
+      NSLog(@"unable to create socket - %s", strerror(errno));
       return nil;
     }
 
@@ -201,7 +197,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	if (errno != EINPROGRESS)
 	  {
-	    [self release];
+	    [self dealloc];
+	    NSLog(@"unable to make connection - %s", strerror(errno));
 	    return nil;
 	  }
 	
@@ -214,10 +211,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [writeInfo addObject:info];
       [info release];
       [self watchWriteDescriptor];
+      connectOK = YES;
+      readOK = NO;
+      writeOK = NO;
     }
-  connectOK = YES;
-  readOK = NO;
-  writeOK = NO;
   return self;
 }
 
@@ -231,13 +228,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (getAddr(address, service, protocol, &sin) == NO)
     {
-      [self release];
-      return nil;
+      [self dealloc];
+      NSLog(@"bad address-service-protocol combination");
+      return  nil;
     }
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self release];
+      [self dealloc];
+      NSLog(@"unable to create socket - %s", strerror(errno));
       return nil;
     }
 
@@ -246,21 +245,26 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
       (void) close(net);
-      [self release];
+      [self dealloc];
+      NSLog(@"unable to bind to port - %s", strerror(errno));
       return nil;
     }
 
   if (listen(net, 5) < 0)
     {
       (void) close(net);
-      [self release];
+      [self dealloc];
+      NSLog(@"unable to listen on port - %s", strerror(errno));
       return nil;
     }
 
   self = [self initWithFileDescriptor:net closeOnDealloc:YES];
-  acceptOK = YES;
-  readOK = NO;
-  writeOK = NO;
+  if (self)
+    {
+      acceptOK = YES;
+      readOK = NO;
+      writeOK = NO;
+    }
   return self;
 }
 
@@ -270,13 +274,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self release];
+      [self dealloc];
       return nil;
     }
   else
     {
       self = [self initWithFileDescriptor:d closeOnDealloc:YES];
-      writeOK = NO;
+      if (self)
+	writeOK = NO;
       return self;
     }
 }
@@ -287,13 +292,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self release];
+      [self dealloc];
       return nil;
     }
   else
     {
       self = [self initWithFileDescriptor:d closeOnDealloc:YES];
-      readOK = NO;
+      if (self)
+        readOK = NO;
       return self;
     }
 }
@@ -304,7 +310,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self release];
+      [self dealloc];
       return nil;
     }
   else
@@ -318,7 +324,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (fh_stderr)
     {
       [fh_stderr retain];
-      [self release];
+      [self dealloc];
     }
   else
     {
@@ -326,8 +332,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       fh_stderr = self;
     }
   self = fh_stderr;
-  readOK = NO;
-  return self;
+  if (self)
+    readOK = NO;
   return self;
 }
 
@@ -336,7 +342,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (fh_stdin)
     {
       [fh_stdin retain];
-      [self release];
+      [self dealloc];
     }
   else
     {
@@ -344,7 +350,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       fh_stdin = self;
     }
   self = fh_stdin;
-  writeOK = NO;
+  if (self)
+    writeOK = NO;
   return self;
 }
 
@@ -353,7 +360,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (fh_stdout)
     {
       [fh_stdout retain];
-      [self release];
+      [self dealloc];
     }
   else
     {
@@ -361,7 +368,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       fh_stdout = self;
     }
   self = fh_stdout;
-  readOK = NO;
+  if (self)
+    readOK = NO;
   return self;
 }
 
@@ -384,9 +392,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       int	  e;
 
       if (fstat(desc, &sbuf) < 0)
-          [NSException raise: NSFileHandleOperationException
-                      format: @"unable to get status of descriptor - %s",
-                      strerror(errno)];
+	{
+	  [self dealloc];
+          NSLog(@"unable to get status of descriptor - %s", strerror(errno));
+	  return nil;
+	}
       if (S_ISREG(sbuf.st_mode))
         isStandardFile = YES;
       else
@@ -732,12 +742,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)closeFile
 {
-  NSNotification*	n;
-
-  /* Ensure that any notifications we queued are destroyed with us. */
-  n = [NSNotification notificationWithName:@"any" object:self userInfo:nil];
-  [[NSNotificationQueue defaultQueue] dequeueNotificationsMatching:n
-		coalesceMask:NSNotificationCoalescingOnSender];
+  if (descriptor < 0)
+    [NSException raise: NSFileHandleOperationException
+		format: @"attempt to close closed file"];
 
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
@@ -851,11 +858,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)ignoreReadDescriptor
 {
-  NSRunLoop*	l = [NSRunLoop currentRunLoop];
-  NSArray*	modes = nil;
+  NSRunLoop	*l;
+  NSArray	*modes;
 
   if (descriptor < 0)
     return;
+
+  l = [NSRunLoop currentRunLoop];
+  modes = nil;
 
   if (readInfo)
     modes = (NSArray*)[readInfo objectForKey:NSFileHandleNotificationMonitorModes];
@@ -881,11 +891,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)ignoreWriteDescriptor
 {
-  NSRunLoop*	l = [NSRunLoop currentRunLoop];
-  NSArray*	modes = nil;
+  NSRunLoop	*l;
+  NSArray	*modes;
 
   if (descriptor < 0)
     return;
+
+  l = [NSRunLoop currentRunLoop];
+  modes = nil;
 
   if ([writeInfo count] > 0)
     {
@@ -915,7 +928,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)watchReadDescriptorForModes:(NSArray*)modes;
 {
-  NSRunLoop*	l;
+  NSRunLoop	*l;
 
   if (descriptor < 0)
     return;
@@ -986,7 +999,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		extra: (void*)extra
 	      forMode: (NSString*)mode
 {
-  NSString*	operation;
+  NSString	*operation;
 
   if (type == ET_RDESC) {
     operation = [readInfo objectForKey:NotificationKey];
@@ -1115,13 +1128,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
         e &= ~NBLK_OPT;
 
       if (fcntl(descriptor, F_SETFL, e) < 0)
-        [NSException raise: NSFileHandleOperationException
-                      format: @"could not change non-blocking mode"];
-      isNonBlocking = flag;
+        NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
+      else
+        isNonBlocking = flag;
     }
     else
-      [NSException raise: NSFileHandleOperationException
-                      format: @"could not change non-blocking mode"];
+      NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
 }
 
 @end

@@ -137,7 +137,7 @@ static BOOL debug_connected_coder = NO;
   return connection;
 }
 
-- (BOOL) isByCopy
+- (BOOL) isBycopy
 {
   return _is_by_copy;
 }
@@ -172,12 +172,12 @@ static BOOL debug_connected_coder = NO;
 {
     BOOL	old = _is_by_copy;
     id		obj;
+    Class	cls;
 
     _is_by_copy = NO;
-    obj = [anObj classForPortCoder: (NSPortCoder*)self];
-    /* xxx Should I also do classname substition here? */
-    [self encodeClass: obj];
     obj = [anObj replacementObjectForPortCoder: (NSPortCoder*)self];
+    cls = [obj classForPortCoder];
+    [self encodeClass: cls];
     [obj encodeWithCoder: (NSCoder*)self];
     _is_by_copy = old;
 }
@@ -188,7 +188,7 @@ static BOOL debug_connected_coder = NO;
     id		obj;
 
     _is_by_copy = YES;
-    obj = [anObj classForPortCoder: (NSPortCoder*)self];
+    obj = [anObj classForPortCoder];
     [self encodeClass: obj];
     obj = [anObj replacementObjectForPortCoder: (NSPortCoder*)self];
     [obj encodeWithCoder: (NSCoder*)self];
@@ -422,7 +422,7 @@ static BOOL debug_connected_coder = NO;
   return 0;
 }
 
-- (BOOL) isByCopy
+- (BOOL) isBycopy
 {
   [self subclassResponsibility:_cmd];
   return NO;
@@ -446,12 +446,9 @@ static BOOL debug_connected_coder = NO;
 @implementation NSObject (NSPortCoder)
 
 /* By default, Object's encode themselves as proxies across Connection's */
-- (Class) classForPortCoder: (NSPortCoder*)aRmc
+- (Class) classForPortCoder
 {
-    if ([aRmc isByCopy]) {
-	return [self class];
-    }
-    return [[aRmc connection] proxyClass];
+    return [self classForCoder];
 }
 
 static inline BOOL class_is_kind_of (Class self, Class aClassObject)
@@ -466,7 +463,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 - replacementObjectForPortCoder: (NSPortCoder*)aRmc
 {
-    if ([aRmc isByCopy]) {
+    if ([aRmc isBycopy]) {
 	return self;
     }
     else if (class_is_kind_of(object_get_class(self->isa),

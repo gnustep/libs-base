@@ -139,7 +139,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   return nil;
 }
 
-- (Class) classForPortCoder: (NSPortCoder*)aCoder
+- (Class) classForPortCoder
 {
   return [self class];
 }
@@ -203,7 +203,7 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 
 @implementation NSGMutableAttributedString
 
-- (Class) classForPortCoder: (NSPortCoder*)aCoder
+- (Class) classForPortCoder
 {
   return [self class];
 }

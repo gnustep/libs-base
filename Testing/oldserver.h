@@ -5,10 +5,10 @@
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Array.h>
 
-typedef struct _small_struct {
+typedef struct _small_struct { 
   unsigned char z;
 } small_struct;
-
+ 
 typedef struct _foo {
   int i;
   char *s;

@@ -258,7 +258,7 @@ extern NSString *ConnectionBecameInvalidNotification;
 @end
 
 @interface Object (NSPortCoder)
-- (Class) classForPortCoder: (NSPortCoder*)aCoder;
+- (Class) classForPortCoder;
 /*
  *	Must return the class that will be created on the remote side
  *	of the connection.  If the class to be created is not the same

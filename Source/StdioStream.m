@@ -115,7 +115,8 @@ o_vscanf (void *stream,
     {
       id message;
 
-      message = [NSString stringWithFormat: @"Stream: %s", strerror(errno)];
+      message = [[NSString alloc] initWithFormat: @"Stream: %s",
+		strerror(errno)];
       NSLog(message);
       [message release];
       [super dealloc];
@@ -131,7 +132,8 @@ o_vscanf (void *stream,
     {
       id message;
 
-      message = [NSString stringWithFormat: @"Stream: %s", strerror(errno)];
+      message = [[NSString alloc] initWithFormat: @"Stream: %s",
+		strerror(errno)];
       NSLog(message);
       [message release];
       [super dealloc];
@@ -243,6 +245,7 @@ stdio_unchar_func(void *s, int c)
 - (void) close
 {
   fclose(fp);
+  fp = 0;
 }
 
 - (BOOL) isClosed

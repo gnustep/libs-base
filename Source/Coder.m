@@ -252,20 +252,16 @@ static BOOL debug_coder = NO;
 
 /* Initializing an archiver */
 
-@interface NSData (Streaming) <Streaming>
-@end
-
 - (id) initForWritingWithMutableData: (NSMutableData*)mdata
 {
-  /* This relies on the fact that GNU extentions to NSMutableData 
-     cause it to conform to <Streaming>. */
-  [(id)self initForWritingToStream: mdata];
+  [(id)self initForWritingToStream: [MemoryStream streamWithData: mdata]];
   return self;
 }
 
 - (id) initForReadingWithData: (NSData*)data
 {
-  id ret = [[self class] newReadingFromStream: data];
+  id ret = [[self class] newReadingFromStream:
+		[MemoryStream streamWithData:data]];
   if ([self retainCount] == 0)
     [ret autorelease];
   else
@@ -295,7 +291,8 @@ static BOOL debug_coder = NO;
 
 + unarchiveObjectWithData: (NSData*) data
 {
-  return [self decodeObjectWithName: NULL fromStream: data];
+  return [self decodeObjectWithName: NULL
+			 fromStream: [MemoryStream streamWithData:data]];
 }
 
 + unarchiveObjectWithFile: (NSString*) path
