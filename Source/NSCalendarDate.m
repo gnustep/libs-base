@@ -18,7 +18,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
 #include <config.h>
@@ -74,46 +74,46 @@
 //
 // Getting an NSCalendar Date
 //
-+ (id)calendarDate
++ (id) calendarDate
 {
   id	d = [[self alloc] init];
 
   return AUTORELEASE(d);
 }
 
-+ (id)dateWithString: (NSString *)description
-      calendarFormat: (NSString *)format
++ (id) dateWithString: (NSString *)description
+       calendarFormat: (NSString *)format
 {
   NSCalendarDate *d = [[NSCalendarDate alloc] initWithString: description
 					      calendarFormat: format];
   return AUTORELEASE(d);
 }
 
-+ (id)dateWithString: (NSString *)description
-      calendarFormat: (NSString *)format
-	      locale: (NSDictionary *)dictionary
++ (id) dateWithString: (NSString *)description
+       calendarFormat: (NSString *)format
+	       locale: (NSDictionary *)dictionary
 {
   NSCalendarDate *d = [[NSCalendarDate alloc] initWithString: description
 					      calendarFormat: format
-					      locale: dictionary];
+						      locale: dictionary];
   return AUTORELEASE(d);
 }
 
-+ (id)dateWithYear: (int)year
-	     month: (unsigned int)month
-	       day: (unsigned int)day
-	      hour: (unsigned int)hour
-	    minute: (unsigned int)minute
-	    second: (unsigned int)second
-	  timeZone: (NSTimeZone *)aTimeZone
++ (id) dateWithYear: (int)year
+	      month: (unsigned int)month
+	        day: (unsigned int)day
+	       hour: (unsigned int)hour
+	     minute: (unsigned int)minute
+	     second: (unsigned int)second
+	   timeZone: (NSTimeZone *)aTimeZone
 {
   NSCalendarDate *d = [[NSCalendarDate alloc] initWithYear: year
-					      month: month
-					      day: day
-					      hour: hour
-					      minute: minute
-					      second: second
-					      timeZone: aTimeZone];
+						     month: month
+						       day: day
+						      hour: hour
+						    minute: minute
+						    second: second
+						  timeZone: aTimeZone];
   return AUTORELEASE(d);
 }
 
@@ -122,7 +122,7 @@
   return [self class];
 }
 
-- replacementObjectForPortCoder: aRmc
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
 {
   return self;
 }
@@ -145,35 +145,38 @@
 - (void) dealloc
 {
   RELEASE(calendar_format);
+  RELEASE(time_zone);
   [super dealloc];
 }
 
-// Initializing an NSCalendar Date
-- (id)initWithString: (NSString *)description
+/*
+ * Initializing an NSCalendar Date
+ */
+- (id) initWithString: (NSString *)description
 {
   // +++ What is the locale?
   return [self initWithString: description
 	       calendarFormat: @"%Y-%m-%d %H:%M:%S %z"
-	       locale: nil];
+		       locale: nil];
 }
 
-- (id)initWithString: (NSString *)description
-      calendarFormat: (NSString *)format
+- (id) initWithString: (NSString *)description
+       calendarFormat: (NSString *)format
 {
   // ++ What is the locale?
   return [self initWithString: description
 	       calendarFormat: format
-	       locale: nil];
+		       locale: nil];
 }
 
-//
-// This function could possibly be written better
-// but it works ok; currently ignores locale
-// information and some specifiers.
-//
-- (id)initWithString: (NSString *)description
-      calendarFormat: (NSString *)format
-	      locale: (NSDictionary *)locale
+/*
+ * This function could possibly be written better
+ * but it works ok; currently ignores locale
+ * information and some specifiers.
+ */
+- (id) initWithString: (NSString *)description
+       calendarFormat: (NSString *)format
+	       locale: (NSDictionary *)locale
 {
   const char *d = [description cString];
   const char *f = [format cString];
@@ -195,7 +198,7 @@
   // If either the string or format is nil then raise exception
   if (!description)
     [NSException raise: NSInvalidArgumentException
-		 format: @"NSCalendar date description is nil"];
+		format: @"NSCalendar date description is nil"];
 
   if (locale == nil)
     locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
@@ -465,13 +468,13 @@
 	       timeZone: tz];
 }
 
-- (id)initWithYear: (int)year
-	     month: (unsigned int)month
-	       day: (unsigned int)day
-	      hour: (unsigned int)hour
-	    minute: (unsigned int)minute
-	    second: (unsigned int)second
-	  timeZone: (NSTimeZone *)aTimeZone
+- (id) initWithYear: (int)year
+	      month: (unsigned int)month
+	        day: (unsigned int)day
+	       hour: (unsigned int)hour
+	     minute: (unsigned int)minute
+	     second: (unsigned int)second
+	   timeZone: (NSTimeZone *)aTimeZone
 {
   int	a;
   int	c;
@@ -487,9 +490,9 @@
   s += second;
 
   // Assign time zone detail
-  time_zone = [aTimeZone
+  time_zone = RETAIN([aTimeZone
 		timeZoneDetailForDate:
-		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]];
+		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]]);
 
   // Adjust date so it is correct for time zone.
   s -= [time_zone timeZoneSecondsFromGMT];
@@ -519,7 +522,7 @@
 	  NSTimeInterval	newOffset;
 
 	  oldOffset = [time_zone timeZoneSecondsFromGMT];
-	  time_zone = z;
+	  ASSIGN(time_zone, z);
 	  newOffset = [time_zone timeZoneSecondsFromGMT];
 	  s += newOffset - oldOffset;
 	}
@@ -557,19 +560,24 @@
 }
 
 // Default initializer
-- (id)initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
   seconds_since_ref = seconds;
   if (!calendar_format)
     calendar_format = @"%Y-%m-%d %H:%M:%S %z";
   if (!time_zone)
-    time_zone = [[NSTimeZone localTimeZone] timeZoneDetailForDate: self];
+    time_zone = RETAIN([[NSTimeZone localTimeZone]
+      timeZoneDetailForDate: self]);
   return self;
 }
 
 // Retreiving Date Elements
-- (void)getYear: (int *)year month: (int *)month day: (int *)day
-	   hour: (int *)hour minute: (int *)minute second: (int *)second
+- (void) getYear: (int *)year
+	   month: (int *)month
+	     day: (int *)day
+	    hour: (int *)hour
+	  minute: (int *)minute
+	  second: (int *)second
 {
   int h, m;
   double a, b, c, d = [self dayOfCommonEra];
@@ -594,7 +602,7 @@
   *second = (int)c;
 }
 
-- (int)dayOfCommonEra
+- (int) dayOfCommonEra
 {
   double a;
   int r;
@@ -608,7 +616,7 @@
   return r;
 }
 
-- (int)dayOfMonth
+- (int) dayOfMonth
 {
   int m, d, y;
 
@@ -618,7 +626,7 @@
   return d;
 }
 
-- (int)dayOfWeek
+- (int) dayOfWeek
 {
   int	d = [self dayOfCommonEra];
 
@@ -632,7 +640,7 @@
   return d;
 }
 
-- (int)dayOfYear
+- (int) dayOfYear
 {
   int m, d, y, days, i;
 
@@ -645,7 +653,7 @@
   return days;
 }
 
-- (int)hourOfDay
+- (int) hourOfDay
 {
   int h;
   double a, d = [self dayOfCommonEra];
@@ -663,7 +671,7 @@
   return h;
 }
 
-- (int)minuteOfHour
+- (int) minuteOfHour
 {
   int h, m;
   double a, b, d = [self dayOfCommonEra];
@@ -680,7 +688,7 @@
   return m;
 }
 
-- (int)monthOfYear
+- (int) monthOfYear
 {
   int m, d, y;
 
@@ -690,7 +698,7 @@
   return m;
 }
 
-- (int)secondOfMinute
+- (int) secondOfMinute
 {
   int h, m, s;
   double a, b, c, d = [self dayOfCommonEra];
@@ -710,7 +718,7 @@
   return s;
 }
 
-- (int)yearOfCommonEra
+- (int) yearOfCommonEra
 {
   int m, d, y;
   int a;
@@ -725,7 +733,7 @@
 }
 
 // Providing Adjusted Dates
-- (NSCalendarDate *)addYear: (int)year
+- (NSCalendarDate*) addYear: (int)year
 		      month: (unsigned int)month
 			day: (unsigned int)day
 		       hour: (unsigned int)hour
@@ -741,16 +749,14 @@
 }
 
 // Getting String Descriptions of Dates
-- (NSString *)description
+- (NSString*) description
 {
-  return [self descriptionWithCalendarFormat: calendar_format
-	       locale: nil];
+  return [self descriptionWithCalendarFormat: calendar_format locale: nil];
 }
 
-- (NSString *)descriptionWithCalendarFormat: (NSString *)format
+- (NSString*) descriptionWithCalendarFormat: (NSString *)format
 {
-  return [self descriptionWithCalendarFormat: format
-	       locale: nil];
+  return [self descriptionWithCalendarFormat: format locale: nil];
 }
 
 #define UNIX_REFERENCE_INTERVAL -978307200.0
@@ -1035,36 +1041,38 @@
       if (newDate)
 	{
 	  newDate->calendar_format = [calendar_format copyWithZone: zone];
+	  newDate->time_zone = RETAIN(time_zone);
 	}
     }
   return newDate;
 }
 
-- (NSString *)descriptionWithLocale: (NSDictionary *)locale
+- (NSString*) descriptionWithLocale: (NSDictionary *)locale
 {
-  return [self descriptionWithCalendarFormat: calendar_format
-	       locale: locale];
+  return [self descriptionWithCalendarFormat: calendar_format locale: locale];
 }
 
 // Getting and Setting Calendar Formats
-- (NSString *)calendarFormat
+- (NSString*) calendarFormat
 {
   return calendar_format;
 }
 
-- (void)setCalendarFormat: (NSString *)format
+- (void) setCalendarFormat: (NSString *)format
 {
   RELEASE(calendar_format);
   calendar_format = [format copyWithZone: [self zone]];
 }
 
 // Getting and Setting Time Zones
-- (void)setTimeZone: (NSTimeZone *)aTimeZone
+- (void) setTimeZone: (NSTimeZone *)aTimeZone
 {
-  time_zone = [aTimeZone timeZoneDetailForDate: self];
+  NSTimeZoneDetail	*detail = [aTimeZone timeZoneDetailForDate: self];
+
+  ASSIGN(time_zone, detail);
 }
 
-- (NSTimeZoneDetail *)timeZoneDetail
+- (NSTimeZoneDetail*) timeZoneDetail
 {
   return time_zone;
 }
@@ -1082,24 +1090,24 @@
 
 @implementation NSCalendarDate (GregorianDate)
 
-- (int)lastDayOfGregorianMonth: (int)month year: (int)year
+- (int) lastDayOfGregorianMonth: (int)month year: (int)year
 {
   switch (month) {
-  case 2:
-    if ((((year % 4) == 0) && ((year % 100) != 0))
-        || ((year % 400) == 0))
-      return 29;
-    else
-      return 28;
-  case 4:
-  case 6:
-  case 9:
-  case 11: return 30;
-  default: return 31;
+    case 2:
+      if ((((year % 4) == 0) && ((year % 100) != 0))
+	  || ((year % 400) == 0))
+	return 29;
+      else
+	return 28;
+    case 4:
+    case 6:
+    case 9:
+    case 11: return 30;
+    default: return 31;
   }
 }
 
-- (int)absoluteGregorianDay: (int)day month: (int)month year: (int)year
+- (int) absoluteGregorianDay: (int)day month: (int)month year: (int)year
 {
   int m, N;
 
@@ -1114,10 +1122,10 @@
      + (year - 1)/400);   // ...plus prior years divisible by 400
 }
 
-- (void)gregorianDateFromAbsolute: (int)d
-			      day: (int *)day
-			    month: (int *)month
-			     year: (int *)year
+- (void) gregorianDateFromAbsolute: (int)d
+			       day: (int *)day
+			     month: (int *)month
+			      year: (int *)year
 {
   // Search forward year by year from approximate year
   *year = d/366;
