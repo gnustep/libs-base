@@ -108,27 +108,27 @@
 
 - (NSDictionary*) attributes;
 - (NSString*) content;
+- (GSXMLDocument*) document;
 - (GSXMLAttribute*) firstAttribute;
 - (GSXMLNode*) firstChild;
 - (GSXMLNode*) firstChildElement;
-- (GSXMLDocument*) document;
 - (void*) lib;
 - (GSXMLAttribute*) makeAttributeWithName: (NSString*)name
 				    value: (NSString*)value;
 - (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
 				 name: (NSString*)name
 			      content: (NSString*)content;
+- (GSXMLNode*) makeComment: (NSString*)content;
 - (GSXMLNamespace*) makeNamespaceHref: (NSString*)href
 			       prefix: (NSString*)prefix;
-- (GSXMLNode*) makeText: (NSString*)content;
-- (GSXMLNode*) makeComment: (NSString*)content;
 - (GSXMLNode*) makePI: (NSString*)name
 	      content: (NSString*)content;
+- (GSXMLNode*) makeText: (NSString*)content;
 - (NSString*) name;
-- (GSXMLNode*) next;
-- (GSXMLNode*) nextElement;
 - (GSXMLNamespace*) namespace;
 - (GSXMLNamespace*) namespaceDefinitions;
+- (GSXMLNode*) next;
+- (GSXMLNode*) nextElement;
 - (NSString*) objectForKey: (NSString*)key;
 - (GSXMLNode*) parent;
 - (GSXMLNode*) previous;
