@@ -41,7 +41,6 @@
 #include <sys/file.h>
 
 static NSString	*httpVersion = @"1.1";
-static BOOL	debug = NO;
 
 char emp[64] = {
     'A','B','C','D','E','F','G','H','I','J','K','L','M',
@@ -54,6 +53,7 @@ char emp[64] = {
 @interface GSHTTPURLHandle : NSURLHandle
 {
   BOOL			tunnel;
+  BOOL			debug;
   NSFileHandle          *sock;
   NSURL                 *url;
   NSMutableData         *dat;
@@ -72,6 +72,7 @@ char emp[64] = {
   } connectionState;
 }
 - (NSString*) encodebase64: (NSString*) input;
+- (void) setDebug: (BOOL)flag;
 @end
 
 
@@ -80,11 +81,16 @@ char emp[64] = {
 static NSMutableDictionary	*urlCache = nil;
 static NSLock			*urlLock = nil;
 
+static NSLock			*debugLock = nil;
+static char			debugFile[128];
+
 static void debugRead(NSData *data)
 {
-  NSString	*s = [NSString stringWithFormat: @"/tmp/GSHTTP.%d", getpid()];
-  int		d = open([s cString], O_WRONLY|O_CREAT|O_APPEND, 0644);
+  NSString	*s;
+  int		d;
 
+  [debugLock lock];
+  d = open(debugFile, O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
       s = [NSString stringWithFormat: @"\nRead %@ -\n", [NSDate date]];
@@ -92,12 +98,15 @@ static void debugRead(NSData *data)
       write(d, [data bytes], [data length]);
       close(d);
     }
+  [debugLock unlock];
 }
 static void debugWrite(NSData *data)
 {
-  NSString	*s = [NSString stringWithFormat: @"/tmp/GSHTTP.%d", getpid()];
-  int		d = open([s cString], O_WRONLY|O_CREAT|O_APPEND, 0644);
+  NSString	*s;
+  int		d;
 
+  [debugLock lock];
+  d = open(debugFile, O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
       s = [NSString stringWithFormat: @"\nWrite %@ -\n", [NSDate date]];
@@ -105,6 +114,7 @@ static void debugWrite(NSData *data)
       write(d, [data bytes], [data length]);
       close(d);
     }
+  [debugLock unlock];
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
@@ -131,12 +141,9 @@ static void debugWrite(NSData *data)
     {
       urlCache = [NSMutableDictionary new];
       urlLock = [NSLock new];
+      debugLock = [NSLock new];
+      sprintf(debugFile, "/tmp/GSHTTP.%d", getpid());
     }
-}
-
-+ (void) setDebug: (BOOL)flag
-{
-  debug = flag;
 }
 
 - (void) dealloc
@@ -686,6 +693,11 @@ static void debugWrite(NSData *data)
 	}
     }
   return result;
+}
+
+- (void) setDebug: (BOOL)flag
+{
+  debug = flag;
 }
 
 - (BOOL) writeData: (NSData*)d
