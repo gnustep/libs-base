@@ -4,6 +4,10 @@
 	* Tools/GNUmakefile: build autogsdoc documentation automatically
 	if possible.
 	* Tools/AGSOutput.m: Make automatic cross references for functions.
+	* Source/Docmakefile: Use handcrafted template files.  Document the
+	path utilities file.
+	* Documentation/Functions.gsdoc: Handcrafted template.
+	* Documentation/TypesAndConstants.gsdoc: Handcrafted template.
 
 2002-10-08  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -29,7 +29,7 @@
 #include <Foundation/NSString.h>
 
 #ifndef	NO_GNUSTEP
-/*
+/**
  * This extension permits a change of username from that specified in the
  * LOGNAME environment variable.  Using it will almost certainly cause
  * trouble if the process does not posess the file access priviliges of the

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.7//EN" "http://www.gnustep.org/gsdoc-0_6_7.xml">
+<gsdoc base="TypesAndConstants" up="Base">
+  <head>
+    <title>Types and Constants</title>
+    <author name="Richard Frith-Macdonald"></author>
+  </head>
+  <body>
+    <front>
+      <contents />
+      <chapter>
+	<heading>Type index</heading>
+	<index type="type" scope="file" />
+      </chapter>
+      <chapter>
+	<heading>Variable index</heading>
+	<index type="variable" scope="file" />
+      </chapter>
+      <chapter>
+	<heading>Constant index</heading>
+	<index type="constant" scope="file" />
+      </chapter>
+    </front>
+  </body>
+</gsdoc>
