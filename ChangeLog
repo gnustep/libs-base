@@ -1,3 +1,11 @@
+1999-02-09  Adam Fedor  <fedor@gnu.org>
+
+	* Source/HashTable.m: Moved to extensions.
+	* Source/List.m, Source/NXStringTable*, Source/Storage.m,
+	Source/objc/HashTable.h, Source/objc/List.h,
+	Source/objc/NXStringTable.h, Source/objc/Storage.h:
+	Likewise.
+
 Tue Feb  9 14:08:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSProcessInfo.m: Fixed login in #if construct so things

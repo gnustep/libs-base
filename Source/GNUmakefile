@@ -251,29 +251,6 @@ RNGBerkeley.h \
 RandomGenerating.h \
 Time.h
 
-# NEXTSTEP source files
-
-NEXTSTEP_MFILES = \
-HashTable.m \
-List.m \
-NXStringTable.m \
-Storage.m
-
-NEXTSTEP_CFILES = 
-
-NEXTSTEP_DERIVED_CFILES = \
-NXStringTable_scan.c
-
-NEXTSTEP_OTHER_SRCFILES = \
-NXStringTable_scan.l 
-
-NEXTSTEP_HEADERS = \
-objc/HashTable.h \
-objc/List.h \
-objc/NXStringTable.h \
-objc/Storage.h \
-objc/zone.h
-
 # GNUStep source files
 
 BASE_MFILES = \

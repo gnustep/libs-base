@@ -131,13 +131,6 @@ $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
 	cat $(srcdir)/NSConcreteNumber.m >> $@
 
-NXStringTable_scan.c: NXStringTable_scan.l
-	$(FLEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
-		> NXStringTable_scan.temp
-	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
-		> NXStringTable_scan.c
-	$(RM) -f NXStringTable_scan.temp
-
 $(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
 
 dynamic-load.h: ../config.status
