@@ -227,6 +227,7 @@
 -->
 <!ELEMENT method (((sel, arg?), (sel, arg)*, vararg?), desc?, standards?)>
 <!ATTLIST method
+  id CDATA #IMPLIED
   type CDATA #IMPLIED
   factory %boolean; "no"
   init %boolean; "no"
@@ -236,6 +237,7 @@
 <!-- A java method definition. -->
 <!ELEMENT jmethod ((arg*, vararg?), declared?, desc?, standards?)>
 <!ATTLIST jmethod
+  id CDATA #IMPLIED
   name CDATA #REQUIRED
   type CDATA #IMPLIED
   factory %boolean; "no"
