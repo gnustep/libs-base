@@ -1,5 +1,5 @@
 /* Interface for GNU Objective-C stream object for use in archiving
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Written: Jan 1996
@@ -53,6 +53,10 @@
 
 + cStreamWritingToStream: (id <Streaming>) stream;
 + cStreamWritingToFile: (NSString*) filename;
+
+/* This is the designated initializer for reading.  Don't call it yourself. */
+- _initForReadingFromPostSignatureStream: (id <Streaming>)s
+		       withFormatVersion: (int)version;
 
 @end
 
