@@ -137,7 +137,7 @@ install: installdirs all\
 	for %i in ( ${NEXTSTEP_HEADERS} ) do \\\
 	  rm -f $(includedir)/%i
 /gnustep\/base:/,/ln -s $(srcdir)\/include Foundation/c\
-gnustep/base: include\/preface.h\
+gnustep/base: include\/preface.h FORCE\
 	-rm -rf gnustep\
 	-mkdir gnustep\
 	-mkdir gnustep\\base\
