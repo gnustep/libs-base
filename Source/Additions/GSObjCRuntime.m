@@ -163,7 +163,7 @@ GSObjCMethodNames(id obj)
 	}
 #else
       methods = class->methods;
-      if (methods != 0)
+      while (methods != 0)
 	{
 	  int	i;
 
