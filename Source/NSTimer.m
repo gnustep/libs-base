@@ -148,7 +148,8 @@ static Class	NSDate_class;
 
 - (void) invalidate
 {
-  NSAssert(_invalidated == NO, NSInternalInconsistencyException);
+  /* OPENSTEP allows this method to be called multiple times. */
+  //NSAssert(_invalidated == NO, NSInternalInconsistencyException);
   _invalidated = YES;
 }
 

@@ -1,3 +1,7 @@
+2000-06-26  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimer.m (-invalidate): Remove assertion.
+
 2000-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPortCoder.m: Rewrite of NSPortCoder - under development.
