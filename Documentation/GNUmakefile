@@ -31,7 +31,7 @@ include ../Version
 include ../config.mak
 
 # The documents to be generated
-DOCUMENT_NAME = gnustep-base 
+DOCUMENT_NAME = gnustep-base coding-standards
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
@@ -43,6 +43,9 @@ gnustep-base_TEXI_FILES = \
 version.tmpl.texi \
 gnustep-base.tmpl.texi \
 gnustep-zones.tmpl.texi
+
+coding-standards_TEXI_FILES = \
+coding-standards.tmpl.texi
 
 BUGS_TEXI_FILES = version.tmpl.texi
 BUGS_TEXT_MAIN = todo.tmpl.texi
