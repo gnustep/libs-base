@@ -811,7 +811,7 @@ static NSLock		*global_proxies_gate;
       M_UNLOCK(_refGate);
       return;
     }
-
+  _isValid = NO;
   M_LOCK(connection_table_gate);
   NSHashRemove(connection_table, self);
   [timer invalidate];
@@ -865,16 +865,6 @@ static NSLock		*global_proxies_gate;
    *	might otherwise de deallocated.
    */
   M_LOCK(_proxiesGate);
-  if (_remoteProxies != 0)
-    {
-      NSFreeMapTable(_remoteProxies);
-      _remoteProxies = 0;
-    }
-  if (_localObjects != 0)
-    {
-      NSFreeMapTable(_localObjects);
-      _localObjects = 0;
-    }
   if (_localTargets != 0)
     {
       NSArray	*targets;
@@ -892,6 +882,16 @@ static NSLock		*global_proxies_gate;
       RELEASE(targets);
       NSFreeMapTable(_localTargets);
       _localTargets = 0;
+    }
+  if (_remoteProxies != 0)
+    {
+      NSFreeMapTable(_remoteProxies);
+      _remoteProxies = 0;
+    }
+  if (_localObjects != 0)
+    {
+      NSFreeMapTable(_localObjects);
+      _localObjects = 0;
     }
   M_UNLOCK(_proxiesGate);
 

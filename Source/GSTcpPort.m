@@ -999,19 +999,16 @@ static Class	runLoopClass;
 
 static NSRecursiveLock	*tcpPortLock = nil;
 static NSMapTable	*tcpPortMap = 0;
+static Class		tcpPortClass;
 
 + (void) initialize
 {
-  if (tcpPortLock == nil)
+  if (self == [GSTcpPort class])
     {
-      [gnustep_global_lock lock];
-      if (tcpPortLock == nil)
-        {
-          tcpPortLock = [NSRecursiveLock new];
-	  tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
-			    NSNonOwnedPointerMapValueCallBacks, 0);
-        }
-      [gnustep_global_lock unlock];
+      tcpPortClass = self;
+      tcpPortLock = [NSRecursiveLock new];
+      tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+			NSNonOwnedPointerMapValueCallBacks, 0);
     }
 }
 
@@ -1414,7 +1411,7 @@ static NSMapTable	*tcpPortMap = 0;
 - (id) init
 {
   RELEASE(self);
-  self = [GSTcpPort new];
+  self = [tcpPortClass new];
   return self;
 }
 
@@ -1574,8 +1571,12 @@ static NSMapTable	*tcpPortMap = 0;
 {
   BOOL		sent = NO;
   GSTcpHandle	*h;
-  unsigned	rl = [self reservedSpaceLength];
+  unsigned	rl;
 
+  if ([self isValid] == NO)
+    {
+      return NO;
+    }
   if ([components count] == 0)
     {
       NSLog(@"empty components sent");
@@ -1586,12 +1587,13 @@ static NSMapTable	*tcpPortMap = 0;
    * fail, unless it's zero, in which case we can insert a data object for
    * the header.
    */
+  rl = [self reservedSpaceLength];
   if (length != 0 && length != rl)
     {
       NSLog(@"bad reserved length - %u", length);
       return NO;
     }
-  if ([receivingPort isKindOfClass: [GSTcpPort class]] == NO)
+  if ([receivingPort isKindOfClass: tcpPortClass] == NO)
     {
       NSLog(@"woah there - receiving port is not the correct type");
       return NO;
@@ -1688,7 +1690,7 @@ static NSMapTable	*tcpPortMap = 0;
 		  RELEASE(d);
 		}
 	    }
-	  else if ([o isKindOfClass: [GSTcpPort class]])
+	  else if ([o isKindOfClass: tcpPortClass])
 	    {
 	      NSData	*d = newDataWithEncodedPort(o);
 	      unsigned	dLength = [d length];
