@@ -667,7 +667,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		{
 		  id	item = plists[i];
 
-		  OAppend(item, nil, 0, step, NO, dest);
+		  OAppend(item, nil, 0, step, x, dest);
 		  if (i != last)
 		    {
 		      Append(@", ", dest);
@@ -683,7 +683,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		  id	item = plists[i];
 
 		  Append(iSizeString, dest);
-		  OAppend(item, loc, level, step, NO, dest);
+		  OAppend(item, loc, level, step, x, dest);
 		  if (i == last)
 		    {
 		      Append(@"\n", dest);
@@ -740,7 +740,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      Append(@"<key>", dest);
 	      XString(key, dest);
 	      Append(@"</key>\n", dest);
-	      OAppend(val, loc, level, step, YES, dest);
+	      OAppend(val, loc, level, step, x, dest);
 	    }
 	  Append(iBaseString, dest);
 	  Append(@"</dict>\n", dest);
@@ -767,9 +767,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      Append(@"{", dest);
 	      for (i = 0; i < numKeys; i++)
 		{
-		  OAppend(keys[i], nil, 0, step, NO, dest);
+		  OAppend(keys[i], nil, 0, step, x, dest);
 		  Append(@" = ", dest);
-		  OAppend(plists[i], nil, 0, step, NO, dest);
+		  OAppend(plists[i], nil, 0, step, x, dest);
 		  Append(@"; ", dest);
 		}
 	      Append(@"}", dest);
@@ -882,9 +882,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      for (i = 0; i < numKeys; i++)
 		{
 		  Append(iSizeString, dest);
-		  OAppend(keys[i], loc, level, step, NO, dest);
+		  OAppend(keys[i], loc, level, step, x, dest);
 		  Append(@" = ", dest);
-		  OAppend(plists[i], loc, level, step, NO, dest);
+		  OAppend(plists[i], loc, level, step, x, dest);
 		  Append(@";\n", dest);
 		}
 	      Append(iBaseString, dest);
