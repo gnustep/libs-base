@@ -78,7 +78,7 @@ typedef	enum {
 		    fromData: (NSData*)data
 		    atCursor: (unsigned*)cursor
 {
-    [self notImplemented:_cmd];
+    [self shouldNotImplement: _cmd];
 }
 
 - (void) serializeObjectAt: (id*)objPtr
@@ -358,7 +358,7 @@ typedef	enum {
 		ofObjCType: (const char *)type
 		  intoData: (NSMutableData*)data
 {
-    [self notImplemented:_cmd];
+    [self shouldNotImplement: _cmd];
 }
 @end
 
