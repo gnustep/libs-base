@@ -46,6 +46,7 @@
  *
  *	NSData					Abstract base class.
  *	    NSDataStatic			Concrete class static buffers.
+ *	        NSDataEmpty			Concrete class static buffers.
  *		NSDataMalloc			Concrete class.
  *		    NSDataMappedFile		Memory mapped files.
  *		    NSDataShared		Extension for shared memory.
@@ -333,6 +334,8 @@ failure:
   void		*bytes;
 }
 @end
+@interface	NSDataEmpty: NSDataStatic
+@end
 
 @interface	NSDataMalloc : NSDataStatic
 {
@@ -401,13 +404,19 @@ failure:
     }
 }
 
+/**
+ * Returns an empty data object.
+ */
 + (id) data
 {
-  NSData	*d;
+  static NSData	*empty = nil;
 
-  d = [NSDataStatic allocWithZone: NSDefaultMallocZone()];
-  d = [d initWithBytesNoCopy: 0 length: 0];
-  return AUTORELEASE(d);
+  if (empty == nil)
+    {
+      empty = [NSDataEmpty allocWithZone: NSDefaultMallocZone()];
+      empty = [empty initWithBytesNoCopy: 0 length: 0 freeWhenDone: NO];
+    }
+  return empty;
 }
 
 + (id) dataWithBytes: (const void*)bytes
@@ -426,7 +435,25 @@ failure:
   NSData	*d;
 
   d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
-  d = [d initWithBytesNoCopy: bytes length: length];
+  d = [d initWithBytesNoCopy: bytes length: length freeWhenDone: YES];
+  return AUTORELEASE(d);
+}
+
++ (id) dataWithBytesNoCopy: (void*)bytes
+		    length: (unsigned int)length
+	      freeWhenDone: (BOOL)shouldFree
+{
+  NSData	*d;
+
+  if (shouldFree == YES)
+    {
+      d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+    }
+  else
+    {
+      d = [dataStatic allocWithZone: NSDefaultMallocZone()];
+    }
+  d = [d initWithBytesNoCopy: bytes length: length freeWhenDone: shouldFree];
   return AUTORELEASE(d);
 }
 
@@ -475,13 +502,13 @@ failure:
   NSData	*d;
 
   d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
-  d = [d initWithBytesNoCopy: 0 length: 0];
+  d = [d initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
   return d;
 }
 
 - (id) init
 {
-   return [self initWithBytesNoCopy: 0 length: 0];
+   return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
 }
 
 - (id) initWithBytes: (const void*)aBuffer
@@ -494,17 +521,40 @@ failure:
       ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
       memcpy(ptr, aBuffer, bufferSize);
     }
-  return [self initWithBytesNoCopy: ptr length: bufferSize];
+  return [self initWithBytesNoCopy: ptr
+			    length: bufferSize
+		      freeWhenDone: YES];
 }
 
+/**
+ * Invokes -initWithBytesNoCopy:length:freeWhenDone: with the last argument
+ * set to YES.  Returns the resulting initialised data object (which may not
+ * be the receiver).
+ */
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
+{
+  return [self initWithBytesNoCopy: aBuffer
+			    length: bufferSize
+		      freeWhenDone: YES];
+}
+
+/** <init /><override-subclass />
+ */
+- (id) initWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned int)bufferSize
+	      freeWhenDone: (BOOL)shouldFree
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (id) initWithContentsOfFile: (NSString *)path
+/**
+ * Initialises the receiver with the contents of the specified file.<br />
+ * Returns the resulting object.
+ * Returns nil if the file does not exist.
+ */
+- (id) initWithContentsOfFile: (NSString*)path
 {
   void		*fileBytes;
   unsigned	fileLength;
@@ -522,7 +572,9 @@ failure:
     }
   else
     {
-      self = [self initWithBytesNoCopy: fileBytes length: fileLength];
+      self = [self initWithBytesNoCopy: fileBytes
+				length: fileLength
+			  freeWhenDone: YES];
     }
   return self;
 }
@@ -549,7 +601,7 @@ failure:
 {
   if (data == nil)
     {
-      return [self initWithBytesNoCopy: 0 length: 0];
+      return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
     }
   if ([data isKindOfClass: [NSData class]] == NO)
     {
@@ -1336,8 +1388,8 @@ failure:
 {
   NSDataStatic	*d;
 
-  d = [NSDataStatic allocWithZone: NSDefaultMallocZone()];
-  d = [d initWithBytesNoCopy: (void*)bytes length: length];
+  d = [dataStatic allocWithZone: NSDefaultMallocZone()];
+  d = [d initWithBytesNoCopy: (void*)bytes length: length freeWhenDone: NO];
   return AUTORELEASE(d);
 }
 
@@ -1661,6 +1713,52 @@ failure:
 	  [self setLength: need];
 	}
       memmove([self mutableBytes] + aRange.location, bytes, aRange.length);
+    }
+}
+
+/**
+ * Replace the content of the receiver which lies in aRange with
+ * the specified length of data from the buffer pointed to by bytes.<br />
+ * The size of the receiver is adjusted to allow for the change.
+ */
+- (void) replaceBytesInRange: (NSRange)aRange
+		   withBytes: (const void*)bytes
+		      length: (unsigned int)length
+{
+  unsigned	size = [self length];
+  unsigned	end = NSMaxRange(aRange);
+  int		shift = length - aRange.length; 
+  unsigned	need = end + shift;
+
+  if (aRange.location > size)
+    {
+      [NSException raise: NSRangeException
+		  format: @"location bad in replaceByteInRange:withBytes:"];
+    }
+  if (length > aRange.length)
+    {
+      need += (length - aRange.length);
+    }
+  if (need > size)
+    {
+      [self setLength: need];
+    }
+  if (aRange.length > 0 || aRange.length != length)
+    {
+      void	*buf = [self mutableBytes];
+
+      if (end < size && shift != 0)
+	{
+	  memmove(buf + end + shift, buf + end, size - end);
+	}
+      if (length > 0)
+	{
+	  memmove(buf + aRange.location, bytes, length);
+	}
+    }
+  if (shift < 0)
+    {
+      [self setLength: need + shift];
     }
 }
 
@@ -2043,6 +2141,7 @@ failure:
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
+	      freeWhenDone: (BOOL)shouldFree
 {
   bytes = aBuffer;
   length = bufferSize;
@@ -2422,8 +2521,15 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
-
 @end
+
+
+@implementation NSDataEmpty
+- (void) dealloc
+{
+}
+@end
+
 
 @implementation	NSDataMalloc
 
@@ -2457,7 +2563,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
+	      freeWhenDone: (BOOL)shouldFree
 {
+  if (shouldFree == NO)
+    {
+      self->isa = dataStatic;
+    }
   bytes = aBuffer;
   length = bufferSize;
   return self;
@@ -2667,7 +2778,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (bytes != 0)
     {
-      NSZoneFree(zone, bytes);
+      if (zone != 0)
+	{
+	  NSZoneFree(zone, bytes);
+	}
       bytes = 0;
     }
   [super dealloc];
@@ -2689,6 +2803,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
+	      freeWhenDone: (BOOL)shouldFree
 {
   if (aBuffer == 0)
     {
@@ -2702,11 +2817,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   self = [self initWithCapacity: 0];
   if (self)
     {
-#if	GS_WITH_GC
-      zone = GSAtomicMallocZone();
-#else
-      zone = NSZoneFromPointer(aBuffer);
-#endif
+      if (shouldFree == NO)
+	{
+	  zone = 0;		// Don't free this memory.
+	}
       bytes = aBuffer;
       length = bufferSize;
       capacity = bufferSize;
@@ -2734,7 +2848,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       bytes = NSZoneMalloc(zone, size);
       if (bytes == 0)
 	{
-	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory for %u bytes - %s", size, GSLastErrorStr(errno));
+	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory "
+	    @"for %u bytes - %s", size, GSLastErrorStr(errno));
 	  RELEASE(self);
 	  return nil;
 	}
@@ -3141,10 +3256,31 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
       if (bytes)
 	{
-	  tmp = NSZoneRealloc(zone, bytes, size);
+	  if (zone == 0)
+	    {
+#if	GS_WITH_GC
+	      zone = GSAtomicMallocZone();
+#else
+	      zone = GSObjCZone(self);
+#endif
+	      tmp = NSZoneMalloc(zone, size);
+	      memcpy(tmp, bytes, capacity < size ? capacity : size);
+	    }
+	  else
+	    {
+	      tmp = NSZoneRealloc(zone, bytes, size);
+	    }
 	}
       else
 	{
+	  if (zone == 0)
+	    {
+#if	GS_WITH_GC
+	      zone = GSAtomicMallocZone();
+#else
+	      zone = GSObjCZone(self);
+#endif
+	    }
 	  tmp = NSZoneMalloc(zone, size);
 	}
       if (tmp == 0)

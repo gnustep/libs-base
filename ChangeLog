@@ -2,6 +2,9 @@
 
 	* Source/NSData.m: ([-writeToFile:atomically:]) Removed bogus line
 	which deleted files when it shouldn't.
+	Added new MacOS-X methods supporting NSData objects where the bytes
+	are not owned by the data object.  Removed GNUstep extension which
+	provided this functionality before.
 	* Source/NSUserDefaults.m: Use distributed lock to ensure that there
 	is no possible window when the defaults file is invalid ... not all
 	systems guarantee that the rename() system call is atomic.
