@@ -48,7 +48,7 @@ classes, and think about replacing the @samp{Random} class with
 something more like these.  How about Poisson and Gaussian distributions
 also?
 
-@item Write some code to deal with `%@' in printf-style format strings.
+@item Write some code to deal with `%@@' in printf-style format strings.
 
 @item See
 http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers-gnustep for
