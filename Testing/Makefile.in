@@ -35,7 +35,7 @@ CPPFLAGS =
 LDFLAGS =
      
 DEFS = @DEFS@
-LIBS = -L$(srcdir)/.. -lobjects @LIBOBJC@ @LIBS@ 
+LIBS = -L$(srcdir)/.. -lobjects @LIBOBJC@ @LIBS@ -lm
 
 #### End of system configuration section. ####
 
@@ -71,7 +71,8 @@ test13.m \
 pipes.m \
 server.m \
 client.m \
-string.m
+string.m \
+values.m
 
 HDRS = \
 server.h
@@ -122,6 +123,8 @@ server: server.o $(srcdir)/../libobjects.a
 client: client.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 string: string.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+values: values.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 
 echo-excs:
