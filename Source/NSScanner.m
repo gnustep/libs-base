@@ -63,11 +63,11 @@ typedef struct {
  * Return NO if the end of the string is reached.
  * For internal use only.
  */
-#define	skipToNextField()	({ \
-  while (_scanLocation < myLength() \
-    && (*_skipImp)(_charactersToBeSkipped, memSel, myUnicode(_scanLocation))) \
-    _scanLocation++; \
-  (_scanLocation >= myLength()) ? NO : YES; \
+#define	skipToNextField()	({\
+  while (_scanLocation < myLength()\
+    && (*_skipImp)(_charactersToBeSkipped, memSel, myCharacter(_scanLocation)))\
+    _scanLocation++;\
+  (_scanLocation >= myLength()) ? NO : YES;\
 })
 
 + (void) initialize
