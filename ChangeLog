@@ -1,3 +1,22 @@
+2000-09-13  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/gnustep/base/Unicode.h:
+	Make function encode_ustrtostr public
+	* Headers/gnustep/base/NSString.h:
+	Added extra encodings. Added missing methods 
+	* Source/NSString.m: 
+	Added basic implementation for missing methods
+	[stringWithUTF8String:], [initWithUTF8String:], [UTF8String],
+	[stringWithContentsOfURL:], [initWithContentsOfURL:], 
+	[writeToURL:atomically:], [localizedCaseInsensitiveCompare:], 
+	[localizedCompare:], [compare:options:range:locale:]
+	* Source/NSGCString.m: 
+	[getCharacters:] and [getCharacters:range:] use higher level
+	methods for conversion.
+	* Source/Unicode.m: 
+	Added conversion with iconv, this needs HAVE_ICONV.
+	Made normal conversions faster by unrolling the case switch.
+	
 2000-09-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Makefile.postamble (header-links): Restore functionality on unix
