@@ -145,7 +145,7 @@
 - (void) _collectionDealloc
 {
   coll_hash_delete(_contents_hash);
-  [super dealloc];
+  [super _collectionDealloc];
 }
 
 /* This must work without sending any messages to content objects */
