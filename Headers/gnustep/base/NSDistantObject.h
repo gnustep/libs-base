@@ -34,7 +34,7 @@
 @private
     NSConnection	*_connection;
     id			_object;
-    gsu32		_handle;
+    unsigned		_handle;
     BOOL		_isVended;
     Protocol		*_protocol;
 }
@@ -43,22 +43,22 @@
 			 connection: (NSConnection*)aConnection;
 /*
  *	NB. Departure from the OpenStep/MacOS spec - the type of a target
- *	is a 32-bit integer, not an id, since we can't safely pass id's
+ *	is an integer, not an id, since we can't safely pass id's
  *	between address spaces on machines with different pointer sizes.
  */
-+ (NSDistantObject*) proxyWithTarget: (gsu32)anObject
++ (NSDistantObject*) proxyWithTarget: (unsigned)anObject
 			  connection: (NSConnection*)aConnection;
 
 - (NSConnection*) connectionForProxy;
 - (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
-- (id) initWithTarget: (gsu32)anObject connection: (NSConnection*)aConnection;
+- (id) initWithTarget: (unsigned)anObject connection: (NSConnection*)aConnection;
 - (void) setProtocolForProxy: (Protocol*)aProtocol;
 
 @end
 
 @interface NSDistantObject(GNUstepExtensions)
 
-+ newForRemoteTarget: (gsu32)target connection: (NSConnection*)conn;
++ newForRemoteTarget: (unsigned)target connection: (NSConnection*)conn;
 
 - awakeAfterUsingCoder: aDecoder;
 - classForPortCoder;
@@ -66,7 +66,7 @@
 - (const char *) selectorTypeForProxy: (SEL)selector;
 - forward: (SEL)aSel :(arglist_t)frame;
 - (id) localForProxy;
-- (gsu32) targetForProxy;
+- (unsigned) targetForProxy;
 @end
 
 #endif /* __NSDistantObject_h_GNUSTEP_BASE_INCLUDE */

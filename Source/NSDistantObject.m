@@ -53,17 +53,6 @@ enum
   PROXY_REMOTE_FOR_BOTH
 };
 
-static gsu32		handle_counter = 0;
-static NSRecursiveLock	*handle_lock = nil;
-
-+ (void) initialize
-{
-  if (self == [NSDistantObject class])
-    {
-      handle_lock = [NSRecursiveLock new];
-    }
-}
-
 + (NSDistantObject*) proxyWithLocal: (id)anObject
 			 connection: (NSConnection*)aConnection
 {
@@ -78,7 +67,7 @@ static NSRecursiveLock	*handle_lock = nil;
 			      connection: aConnection] autorelease];
 }
 
-+ (NSDistantObject*) proxyWithTarget: (gsu32)anObject
++ (NSDistantObject*) proxyWithTarget: (unsigned)anObject
 			  connection: (NSConnection*)aConnection
 {
   NSDistantObject	*new_proxy;
@@ -122,7 +111,7 @@ static NSRecursiveLock	*handle_lock = nil;
 
 - (void) encodeWithCoder: (NSCoder*)aRmc
 {
-  gsu32		proxy_target;
+  unsigned		proxy_target;
   gsu8		proxy_tag;
   NSConnection	*encoder_connection;
 
@@ -264,10 +253,6 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
    */
   _object = [anObject retain];
 
-  [handle_lock lock];
-  _handle = ++handle_counter;
-  [handle_lock unlock];
-
   /*
    *	We register this object with the connection using it.
    */
@@ -280,7 +265,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
   return self;
 }
 
-- (id) initWithTarget: (gsu32)target connection: (NSConnection*)aConnection
+- (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection
 {
   NSDistantObject	*new_proxy;
 
@@ -388,7 +373,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 
 @implementation NSDistantObject(GNUstepExtensions)
 
-+ newForRemoteTarget: (gsu32)target connection: (NSConnection*)conn
++ newForRemoteTarget: (unsigned)target connection: (NSConnection*)conn
 {
   return [[NSDistantObject alloc] initWithTarget: target connection: conn];
 }
@@ -413,7 +398,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 + newWithCoder: aRmc
 {
   gsu8 proxy_tag;
-  gsu32 target;
+  unsigned target;
   id decoder_connection;
 
   if ([aRmc class] != [PortDecoder class])
@@ -586,7 +571,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
   return _object;
 }
 
-- (gsu32) targetForProxy
+- (unsigned) targetForProxy
 {
   return _handle;
 }
