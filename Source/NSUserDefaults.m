@@ -213,6 +213,8 @@ static void updateCache(NSUserDefaults *self)
  */
 @implementation NSUserDefaults: NSObject
 
+static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
+
 + (void) initialize
 {
   if (self == [NSUserDefaults class])
@@ -251,6 +253,8 @@ static void updateCache(NSUserDefaults *self)
       [sharedDefaults synchronize];	// Ensure changes are written.
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
+
+      setSharedDefaults = NO; 
       DESTROY(sharedDefaults);
       if (regDefs != nil)
 	{
@@ -412,12 +416,19 @@ static void updateCache(NSUserDefaults *self)
    */
 
   [classLock lock];
-  if (sharedDefaults != nil)
+
+  /*
+   * NB. The use of the setSharedDefaults flag ensures that a recursive
+   * call to this method is quietly suppressed ... so we get a more
+   * manageable problem.
+   */
+  if (setSharedDefaults == YES)
     {
       RETAIN(sharedDefaults);
       [classLock unlock];
       return AUTORELEASE(sharedDefaults);
     }
+  setSharedDefaults = YES;
 
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
   sharedDefaults = [[self alloc] init];
