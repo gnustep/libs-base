@@ -403,7 +403,7 @@
 	for (i = 0; i < _count; i++) {
 	    char	val = _contents_chars[i];
 
-	    if (isalnum(val) || strchr("$./_", val)) {
+	    if (isalnum(val)) {
 		continue;
 	    }
 	    switch (val) {
