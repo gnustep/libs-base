@@ -939,13 +939,15 @@ elif test $enable_ffcall = yes; then
 else
   AC_MSG_RESULT(none)
   echo
+  if test $have_forward_hook = no; then
+    echo "You do not have an up-to-date libobjc library installed"
+  else
+    echo "You do not have either ffcall or libffi installed"
+  fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."
-  echo "Make sure one of these libraries is installed and you have a proper"
-  echo "libobjc library. Otherwise DO will not be compatible with other"
-  echo "systems, and you will not be able to use gnustep-gui."
-  echo "(This does not apply on apple-apple-apple systems, except DO will"
-  echo "still not be compatible with other GNUstep systems.)"
+  echo "(This does not apply on apple-apple-apple systems where DO is"
+  echo "not compatible with other GNUstep systems.)"
   if test $enable_do = yes; then
     echo
     echo "You most likely do not want to build base without DO support. Many"
