@@ -3,12 +3,12 @@ inline static void*
 mframe_arg_addr(arglist_t argf, NSArgumentInfo *info)
 {
   int	offset = info->offset;
-#if WORDS_BIGENDIAN
-  if (info->size < sizeof(int))
-    {
-      offset += sizeof(int) - info->size;
-    }
-#endif
+//#if WORDS_BIGENDIAN
+//  if (info->size < sizeof(int))
+//    {
+//      offset += sizeof(int) - info->size;
+//    }
+//#endif
   if (info->isReg)
     {
       return(argf->arg_regs + offset);
