@@ -573,13 +573,16 @@ enum
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  if (_object)
+  if (_object != nil)
     {
-      return [_object methodSignatureForSelector: aSelector];
+      NSMethodSignature	*m = [_object methodSignatureForSelector: aSelector];
+      const char	*types = [m methodType];
+
+      return [NSMethodSignature signatureWithObjCTypes: types];
     }
   else
     {
-      if (_protocol)
+      if (_protocol != nil)
 	{
 	  const char	*types = 0;
 

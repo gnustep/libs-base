@@ -1,3 +1,9 @@
+2000-05-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: ([-methodSignatureForSelector:])
+	Fix attempting to handle creation of local method signature rather than
+	returning a proxy to a remote one.
+
 2000-05-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: ([-descriptionWithCalendarFormat:locale:])
