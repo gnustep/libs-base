@@ -63,7 +63,7 @@
   NSMutableDictionary   *objects;
   NSMutableDictionary   *params;
 }
-+ (NSString*) makeQuoted: (NSString*)v;
++ (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
 + (NSString*) makeToken: (NSString*)t;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v;
