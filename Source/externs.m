@@ -50,6 +50,8 @@ NSString *NSConnectionDidInitializeNotification;
  */
 NSString *NSWillBecomeMultiThreadedNotification;
 
+NSString *NSThreadDidStartNotification;
+
 NSString *NSThreadWillExitNotification;
 
 
@@ -451,6 +453,8 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSThisDayDesignations"];
       NSThousandsSeparator
 	= [[SClass alloc] initWithCString: "NSThousandsSeparator"];
+      NSThreadDidStartNotification
+	= [[SClass alloc] initWithCString: "NSThreadDidStartNotification"];
       NSThreadWillExitNotification
 	= [[SClass alloc] initWithCString: "NSThreadWillExitNotification"];
       NSTimeDateFormatString

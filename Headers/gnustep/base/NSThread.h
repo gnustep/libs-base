@@ -64,13 +64,57 @@ typedef enum
 
 @end
 
-/* Notification Strings. */
+#ifndef NO_GNUSTEP
+/*
+ * Don't use the following methods unless you really know what you are 
+ * doing ! 
+ * The following methods are low-levelish and special. 
+ * They are meant to make it possible to run GNUstep code in threads 
+ * created in completely different environment, eg inside a JVM.
+ *
+ * If you use them, make sure you initialize the NSThread class inside
+ * (what you consider to be your) main thread, before registering any
+ * other thread.  To initialize NSThread, simply call GSCurrentThread
+ * ().  The main thread will not need to be registered.  
+ */
+@interface NSThread (GNUstepRegister)
+/*
+ * Register an external thread (created using your OS thread interface
+ * directly) to GNUstep.  This means that it creates a NSThread object
+ * corresponding to the current thread, and sets things up so that you
+ * can run GNUstep code inside the thread.  If the thread was not
+ * known to GNUstep, this methods registers it, and returns YES.  If
+ * the thread was already known to GNUstep, this method does nothing
+ * and returns NO.  */
++ (BOOL) registerCurrentThread;
+/*
+ * Unregister the current thread from GNUstep.  You must only
+ * unregister threads which have been register using + (BOOL)
+ * registerCurrentThread.  This method is basically the same as
+ * `+exit', but does not exit the thread - just destroys all objects
+ * associated with the thread.  Warning: using any GNUstep code after
+ * this method call is not safe.  
+ */
++ (void) unregisterCurrentThread;
+@end
+#endif
+
+/*
+ * Notification Strings.
+ * NSBecomingMultiThreaded and NSThreadExiting are defined for strict
+ * OpenStep compatibility, the actual notification names are the more
+ * modern OPENSTEP/MacOS versions.
+ */
 GS_EXPORT NSString	*NSWillBecomeMultiThreadedNotification;
 #define	NSBecomingMultiThreaded NSWillBecomeMultiThreadedNotification
+
 GS_EXPORT NSString	*NSThreadWillExitNotification;
 #define NSThreadExiting NSThreadWillExitNotification
 
 #ifndef	NO_GNUSTEP
+
+GS_EXPORT NSString	*NSThreadDidStartNotification;
+
 /*
  *	Get current thread and it's dictionary.
  */
