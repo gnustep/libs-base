@@ -1,3 +1,16 @@
+Thu Jul 30 16:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/include/NSSet.h: Corrected protocol conformance
+        * src/NSSet.m: Added ([-encodeWithCoder:]), ([-initWithCoder:]).
+	Fixed ([-copyWithZone:]) to remove memory and to simply retain where
+	possible.
+	Implemented ([-description]) and ([-descriptionWithLocale:]).
+	* src/NSGCountedSet.m: Removed ([-initWithCapacity:]) and fixed
+	enumerator.
+	* src/include/NSDictionary.h: Added ([+dictionaryWithObject:forKey:])
+	and corrected protocol conformance.
+	* src/NSDictionary.m: Added ([+dictionaryWithObject:forKey:])
+
 Wed Jul 29 15:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/Collection.m: Removed [-copy]

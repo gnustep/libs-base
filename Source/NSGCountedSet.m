@@ -43,7 +43,7 @@
   [super init];
   bag = d;
   [bag retain];
-  enum_state = 0;
+  enum_state = [bag newEnumState];
   return self;
 }
 
@@ -54,6 +54,7 @@
 
 - (void) dealloc
 {
+  [bag freeEnumState: &enum_state];
   [bag release];
   [super dealloc];
 }
@@ -72,12 +73,6 @@
       done = 1;
       class_add_behavior([NSGCountedSet class], [Bag class]);
     }
-}
-
-- initWithCapacity: (unsigned)numItems
-{
-  return [self initWithType:@encode(id)
-	       capacity:numItems];
 }
 
 - (NSEnumerator*) objectEnumerator

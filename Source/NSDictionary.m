@@ -111,6 +111,63 @@ static Class NSMutableDictionary_concrete_class;
   return nil;
 }
 
+- copyWithZone: (NSZone*)z
+{
+  /* a deep copy */
+  unsigned count = [self count];
+  id oldKeys[count];
+  id newKeys[count];
+  id oldObjects[count];
+  id newObjects[count];
+  id newDictionary;
+  unsigned i;
+  id key;
+  NSEnumerator *enumerator = [self keyEnumerator];
+  BOOL needCopy = [self isKindOfClass: [NSMutableDictionary class]];
+
+  if (NSShouldRetainWithZone(self, z) == NO)
+    needCopy = YES;
+  for (i = 0; (key = [enumerator nextObject]); i++)
+    {
+      oldKeys[i] = key;
+      oldObjects[i] = [self objectForKey:key];
+      newKeys[i] = [oldKeys[i] copyWithZone:z];
+      newObjects[i] = [oldObjects[i] copyWithZone:z];
+      if (oldKeys[i] != newKeys[i] || oldObjects[i] != newObjects[i])
+	needCopy = YES;
+    }
+  if (needCopy)
+    newDictionary = [[[[self class] _concreteClass] alloc] 
+	  initWithObjects:newObjects
+	  forKeys:newKeys
+	  count:count];
+  else
+    newDictionary = [self retain];
+  for (i = 0; i < count; i++)
+    {
+      [newKeys[i] release];
+      [newObjects[i] release];
+    }
+  return newDictionary;
+}
+
+- mutableCopyWithZone: (NSZone*)z
+{
+  /* a shallow copy */
+  return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
+	  initWithDictionary:self];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
 @end
 
 @implementation NSDictionaryNonCore
@@ -200,6 +257,12 @@ static Class NSMutableDictionary_concrete_class;
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
   return [[[self alloc] initWithObjects:objects forKeys:keys]
+	  autorelease];
+}
+
++ dictionaryWithObject: (id)object forKey: (id)key
+{
+  return [[[self alloc] initWithObjects: &object forKeys: &key count: 1]
 	  autorelease];
 }
 
@@ -363,53 +426,6 @@ compareIt(id o1, id o2, void* context)
 - (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
 {
   return [[self description] writeToFile:path atomically:useAuxiliaryFile];
-}
-
-- copyWithZone: (NSZone*)z
-{
-  /* a deep copy */
-  unsigned count = [self count];
-  id oldKeys[count];
-  id newKeys[count];
-  id oldObjects[count];
-  id newObjects[count];
-  id newDictionary;
-  unsigned i;
-  id key;
-  NSEnumerator *enumerator = [self keyEnumerator];
-  BOOL needCopy = [self isKindOfClass: [NSMutableDictionary class]];
-
-  if (NSShouldRetainWithZone(self, z) == NO)
-    needCopy = YES;
-  for (i = 0; (key = [enumerator nextObject]); i++)
-    {
-      oldKeys[i] = key;
-      oldObjects[i] = [self objectForKey:key];
-      newKeys[i] = [oldKeys[i] copyWithZone:z];
-      newObjects[i] = [oldObjects[i] copyWithZone:z];
-      if (oldKeys[i] != newKeys[i] || oldObjects[i] != newObjects[i])
-	needCopy = YES;
-    }
-  if (needCopy)
-    newDictionary = [[[[self class] _concreteClass] alloc] 
-	  initWithObjects:newObjects
-	  forKeys:newKeys
-	  count:count];
-  else
-    newDictionary = [self retain];
-  for (i = 0; i < count; i++)
-    {
-      [newKeys[i] release];
-      [newObjects[i] release];
-    }
-  return newDictionary;
-}
-
-- mutableCopyWithZone: (NSZone*)z
-{
-  /* a shallow copy */
-  return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
-	  initWithDictionary:self];
 }
 
 - (NSString*) description
