@@ -1,3 +1,8 @@
+2000-08-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: ([-removeHandle:]) corrected logic for releasing
+	self when port was created and retained by an incoming connection.
+
 2000-08-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSConcreteNumber.m (-compare:): Add return at end to quiet

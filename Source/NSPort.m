@@ -114,11 +114,20 @@ Class	NSPort_concrete_class;
  */
 - (void) invalidate
 {
+  NSAutoreleasePool	*arp;
+
   [[NSPortNameServer systemDefaultPortNameServer] removePort: self];
   _is_valid = NO;
+  /*
+   * Use a local autorelease pool when invalidating so that we know that
+   * anything refering to this port during the invalidation process is
+   * released immediately.
+   */
+  arp = [NSAutoreleasePool new];
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification
 		  object: self];
+  [arp release];
 }
 
 - (BOOL) isValid
@@ -132,23 +141,27 @@ Class	NSPort_concrete_class;
   return 0;
 }
 
+- (id) retain
+{
+  return [super retain];
+}
+
+- (id) autorelease
+{
+  return [super autorelease];
+}
+
 - (void) release
 {
   if (_is_valid && [self retainCount] == 1)
     {
-      NSAutoreleasePool	*arp;
-
       /*
-       *	If the port is about to have a final release deallocate it
-       *	we must invalidate it.  Use a local autorelease pool when
-       *	invalidating so that we know that anything refering to this
-       *	port during the invalidation process is released immediately.
-       *	Also - bracket with retain/release pair to prevent recursion.
+       * If the port is about to have a final release deallocate it
+       * we must invalidate it.
+       * Bracket with retain/release pair to prevent recursion.
        */
       [super retain];
-      arp = [NSAutoreleasePool new];
       [self invalidate];
-      [arp release];
       [super release];
     }
   [super release];

@@ -1692,8 +1692,15 @@ static Class		tcpPortClass;
   DO_LOCK(myLock);
   if ([handle sendPort] == self)
     {
-      if (handle->caller == YES)
+      if (handle->caller != YES)
 	{
+	  /*
+	   * This is a handle for a send port, and the handle was not formed
+	   * by calling the remote process, so this port object must have
+	   * been created to deal with an incoming connection and will have
+	   * been retained - we must therefore release this port since the
+	   * handle no longer uses it.
+	   */
 	  AUTORELEASE(self);
 	}
       handle->sendPort = nil;
