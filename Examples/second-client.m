@@ -2,11 +2,13 @@
 #include <objects/String.h>
 #include <objects/Notification.h>
 #include <objects/Invocation.h>
+#include <objects/RunLoop.h>
+#include <Foundation/NSDate.h>
 
 id announce_new_connection (id notification)
 {
-  id connection = [notification object];
 #if 0
+  id connection = [notification object];
   printf ("Created Connection 0x%x to %@\n",
 	  (unsigned)connection, [[connection outPort] description]);
 #endif
@@ -63,10 +65,12 @@ int main(int argc, char *argv[])
       }
   }
 
-  /* Run, exiting as soon as there are 15 seconds with no requests */
-  [[server connectionForProxy] runConnectionWithTimeout: -1];
+  /* Run, exiting as soon as there are 30 minutes with no requests */
+  [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30 * 60]];
   
-  /* Clean up, to let the server know we're going away */
+  /* Clean up, to let the server know we're going away; (although
+     this isn't strictly necessary because the remote port will
+     detect that the connection has been severed). */
   [[server connectionForProxy] invalidate];
 
   exit(0);
