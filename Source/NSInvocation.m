@@ -613,8 +613,14 @@
 		Hopefully there is a more general way to figure this out */
 		size = (size<sizeof(int))?4:size;
 #endif
-	      NSLog(@"Unsafe handling of type of %d argument.", i-1];
-	      memcpy(datum, (char)va_arg(ap, int), copysize);
+	      NSLog(@"Unsafe handling of type of %d argument.", i-1);
+	      memcpy(datum, ap, size);
+	      {
+		struct {
+		  char	x[size];
+		} dummy;
+		dummy = va_arg(ap, typeof(dummy));
+	      }
 	      break;
 	    }
 	}
