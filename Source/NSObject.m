@@ -719,9 +719,9 @@ static BOOL double_release_check_enabled = NO;
       gnustep_global_lock = [[NSRecursiveLock alloc] init];
 
       // Zombie management stuff.
-      zombieClass = [NSZombie class];
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
+      zombieClass = [NSZombie class];
       NSZombieEnabled = GSEnvironmentFlag("NSZombieEnabled", NO);
       NSDeallocateZombies = GSEnvironmentFlag("NSDeallocateZombies", NO);
 

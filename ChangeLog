@@ -1,5 +1,10 @@
 2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSObject.m: Change order of zombie initialisation for
+	darwin port.
+
+2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/GSMime.h: Make set... methods return void.
 	* Source//GSMime.m: Make set... methods return void.  Also fix
 	parsing to use different 'specials' for HTTP and MIME
