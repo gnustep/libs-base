@@ -1,0 +1,1005 @@
+# configure.in for GNU Objective-C library
+# Process this file with autoconf to produce a configure script.
+#
+#   Copyright (C) 1993,1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+#
+#   Written by:  Andrew Kachites McCallum <mccallum@cs.rochester.edu>
+#   Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
+#
+#   This file is part of the GNU Objective-C library.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU Library General Public
+#   License as published by the Free Software Foundation; either
+#   version 2 of the License, or (at your option) any later version.
+#   
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   Library General Public License for more details.
+#
+#   You should have received a copy of the GNU Library General Public
+#   License along with this library; if not, write to the Free
+#   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA
+builtin(include, config/objc-con-autoload.m4)dnl
+builtin(include, config/objc-sys-dynamic.m4)dnl
+builtin(include, config/procfs-exe-link.m4)dnl
+builtin(include, config/procfs.m4)dnl
+builtin(include, config/pathxml.m4)dnl
+
+AC_INIT
+AC_CONFIG_SRCDIR([Source/NSArray.m])
+
+if test -z "$GNUSTEP_SYSTEM_ROOT"; then
+  AC_MSG_ERROR([You must run the GNUstep initialization script first!])
+fi
+
+#--------------------------------------------------------------------
+# Use config.guess, config.sub and install-sh provided by gnustep-make
+#--------------------------------------------------------------------
+AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
+
+#--------------------------------------------------------------------
+# Use a .h file with #define's, instead of -D command-line switches
+#--------------------------------------------------------------------
+AC_CONFIG_HEADER(Headers/gnustep/base/config.h)
+
+#--------------------------------------------------------------------
+# Determine the host, build, and target systems
+#--------------------------------------------------------------------
+AC_CANONICAL_TARGET([])
+
+#--------------------------------------------------------------------
+# Find the compiler
+#--------------------------------------------------------------------
+AC_PROG_CC
+AC_PROG_CPP
+
+AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
+
+#--------------------------------------------------------------------
+# specific target_os options
+#--------------------------------------------------------------------
+case "$target_os" in
+  freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+		LIBS="$LIBS -L/usr/local/lib";;
+
+esac
+
+#----------------------------------------------------------------
+# Find out if nested functions work on this machine
+#----------------------------------------------------------------
+AC_MSG_CHECKING(whether nested functions work)
+AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
+    gcc_nested=1, gcc_nested=0, gcc_nested=1)
+if test $gcc_nested = 0; then
+  AC_MSG_RESULT(no)
+  AC_DEFINE(BROKEN_NESTED_FUNCTIONS,,
+            [Define if nested functions are broken on this compiler])
+else
+  AC_MSG_RESULT(yes)
+fi
+
+#--------------------------------------------------------------------
+# Set Apple/Darwin/OSX/NeXT information for other tests
+#--------------------------------------------------------------------
+OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
+AC_MSG_CHECKING(the Objective-C runtime)
+if test "$OBJC_RUNTIME_LIB" = "nx"; then
+  AC_MSG_RESULT(NeXT)
+  LIBOBJC='-lobjc'
+  CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
+else
+  AC_MSG_RESULT(GNU)
+  LIBOBJC='-lobjc'
+  CPPFLAGS="$CPPFLAGS -fgnu-runtime"
+fi
+
+#--------------------------------------------------------------------
+# Miscellaneous flags
+#--------------------------------------------------------------------
+# Set location of GNUstep dirs for later use
+GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Headers
+if test "$GNUSTEP_FLATTENED" = yes; then
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries
+else
+  clean_target_os=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_os.sh $target_os`
+  clean_target_cpu=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_cpu.sh $target_cpu`
+  obj_dir=$clean_target_cpu/$clean_target_os
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
+fi
+
+#
+# The following one is so that headers of custom libraries into
+# $GNUSTEP_HDIR are used before the standard ones
+#
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
+
+#--------------------------------------------------------------------
+# Check if Objective-C is installed
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(objc/objc.h)
+if test $ac_cv_header_objc_objc_h = no; then
+  echo "Check to make sure you have a full installation of the GCC"
+  echo "compiler that includes the Objective-C headers and libraries"
+  AC_MSG_ERROR(Could not find Objective-C headers)
+fi
+
+#--------------------------------------------------------------------
+# Check for strange network stuff used by gdomap
+#--------------------------------------------------------------------
+AC_MSG_NOTICE(for gdomap network details)
+AC_MSG_CHECKING(for variable length socket addresses)
+AC_TRY_COMPILE([
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <net/if.h>
+  ],
+  [struct ifreq s; s.ifr_addr.sa_len = 0;],
+  sa_len=1, sa_len=0)
+if test $sa_len = 1; then
+  AC_MSG_RESULT([found])
+  AC_DEFINE(HAVE_SA_LEN,,
+            [Define if your system has variable length network addresses])
+else
+  AC_MSG_RESULT([not found])
+fi
+
+#--------------------------------------------------------------------
+# Check if system has buggy SO_REUSEADDR
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(whether SO_REUSADDR is broken)
+AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
+	reuseaddr_ok=1,
+	reuseaddr_ok=0,
+	reuseaddr_ok=0)
+if test $reuseaddr_ok = 0; then
+  AC_DEFINE(BROKEN_SO_REUSEADDR,,
+            [Define if SO_REUSEADDR is broken on this system])
+  echo
+  echo "The SO_REUSEADDR socket option for controlling re-use of network"
+  echo "sockets immediately after shutdown appears to be broken on this"
+  echo "machine.  Networking code will be built without using this"
+  echo "feature."
+  echo "The effect of this lack is that when a network service is shut"
+  echo "down, it cannot be re-started on the same network port until"
+  echo "an operating-system timeout has expired."
+  echo "For servers other than gdomap, GNUstep does not normally need"
+  echo "a particular network port, so the problem is unlikely to arise."
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
+# Check for thread flags for libobjc.
+#--------------------------------------------------------------------
+#
+AC_MSG_CHECKING(for objc threading flags)
+#
+# Get them from gnustep-make which contains the real code to get them
+#
+objc_threaded=`grep objc_threaded: $GNUSTEP_SYSTEM_ROOT/Makefiles/$obj_dir/config.make | sed -e 's/objc_threaded:=//'`
+#
+AC_MSG_RESULT($objc_threaded)
+
+#--------------------------------------------------------------------
+# Byte order information needed for foundation headers.
+#--------------------------------------------------------------------
+AC_C_BIGENDIAN
+if test $ac_cv_c_bigendian = yes; then
+  GS_WORDS_BIGENDIAN=1
+else
+  GS_WORDS_BIGENDIAN=0
+fi
+AC_SUBST(GS_WORDS_BIGENDIAN)
+
+#--------------------------------------------------------------------
+# Type size information needed for foundation headers.
+#--------------------------------------------------------------------
+AC_CHECK_SIZEOF(void*)
+
+GS_SINT8="signed char"
+GS_UINT8="unsigned char"
+AC_SUBST(GS_SINT8)
+AC_SUBST(GS_UINT8)
+
+AC_CHECK_SIZEOF(short)
+AC_SUBST(ac_cv_sizeof_short)
+
+AC_CHECK_SIZEOF(int)
+AC_SUBST(ac_cv_sizeof_int)
+
+AC_CHECK_SIZEOF(long)
+AC_SUBST(ac_cv_sizeof_long)
+
+AC_CHECK_SIZEOF(long long)
+AC_SUBST(ac_cv_sizeof_long_long)
+
+AC_CHECK_SIZEOF(float)
+AC_SUBST(ac_cv_sizeof_float)
+
+AC_CHECK_SIZEOF(double)
+AC_SUBST(ac_cv_sizeof_double)
+
+AC_SUBST(ac_cv_sizeof_voidp)
+if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_int; then
+  GS_ADDR="unsigned int"
+else
+  if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long; then
+    GS_ADDR="unsigned long"
+  else
+    if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long_long; then
+      GS_ADDR="unsigned long long"
+    else
+      AC_MSG_ERROR([Unable to find integer of same size as void*])
+    fi
+  fi
+fi
+AC_SUBST(GS_ADDR)
+
+if test $ac_cv_sizeof_short = 2; then
+  GS_SINT16="signed short"
+  GS_UINT16="unsigned short"
+else
+  if test $ac_cv_sizeof_int = 2; then
+    GS_SINT16="signed int"
+    GS_UINT16="unsigned int"
+  else
+    AC_MSG_ERROR([Unable to determine type for 16-bit integer])
+  fi
+fi
+AC_SUBST(GS_SINT16)
+AC_SUBST(GS_UINT16)
+
+if test $ac_cv_sizeof_int = 4; then
+  GS_SINT32="signed int"
+  GS_UINT32="unsigned int"
+else
+  if test $ac_cv_sizeof_long = 4; then
+    GS_SINT32="signed long"
+    GS_UINT32="unsigned long"
+  else
+    if test $ac_cv_sizeof_short = 4; then
+      GS_SINT32="signed short"
+      GS_UINT32="unsigned short"
+    else
+      AC_MSG_ERROR([Unable to determine type for 32-bit integer])
+    fi
+  fi
+fi
+AC_SUBST(GS_SINT32)
+AC_SUBST(GS_UINT32)
+
+GS_HAVE_I64=1
+if test $ac_cv_sizeof_int = 8; then
+  GS_SINT64="signed int"
+  GS_UINT64="unsigned int"
+else
+  if test $ac_cv_sizeof_long = 8; then
+    GS_SINT64="signed long"
+    GS_UINT64="unsigned long"
+  else
+    if test $ac_cv_sizeof_long_long = 8; then
+      GS_SINT64="signed long long"
+      GS_UINT64="unsigned long long"
+    else
+#     64-bit ints not supported - but we need a dummy type for byte-swapping
+#     of 64-bit values arriving from another system.
+      GS_SINT64="struct { gsu8 a[8]; }"
+      GS_SINT64="struct { gsu8 a[9]; }"
+      GS_HAVE_I64=0
+    fi
+  fi
+fi
+AC_SUBST(GS_SINT64)
+AC_SUBST(GS_UINT64)
+AC_SUBST(GS_HAVE_I64)
+
+GS_HAVE_I128=1
+if test $ac_cv_sizeof_long = 16; then
+  GS_SINT128="signed long"
+  GS_UINT128="unsigned long"
+else
+  if test $ac_cv_sizeof_long_long = 16; then
+    GS_SINT128="signed long long"
+    GS_UINT128="unsigned long long"
+  else
+#     128-bit ints not supported - but we need a dummy type for byte-swapping
+#     of 128-bit values arriving from another system.
+    GS_SINT128="struct { gsu8 a[16]; }"
+    GS_UINT128="struct { gsu8 a[16]; }"
+    GS_HAVE_I128=0
+  fi
+fi
+AC_SUBST(GS_SINT128)
+AC_SUBST(GS_UINT128)
+AC_SUBST(GS_HAVE_I128)
+
+if test $ac_cv_sizeof_float = 4; then
+  GS_FLT32="float"
+else
+  AC_MSG_ERROR([Unable to determine type for 32-bit float])
+fi
+AC_SUBST(GS_FLT32)
+
+if test $ac_cv_sizeof_double = 8; then
+  GS_FLT64="double"
+else
+  AC_MSG_ERROR([Unable to determine type for 64-bit float])
+fi
+AC_SUBST(GS_FLT64)
+
+#--------------------------------------------------------------------
+# Type-size information for encoding into archives using NSArchiver etc.
+#--------------------------------------------------------------------
+if test $ac_cv_sizeof_short = 2; then
+  _GSC_S_SHT=_GSC_I16
+else
+  _GSC_S_SHT=_GSC_I32
+fi
+AC_SUBST(_GSC_S_SHT)
+
+if test $ac_cv_sizeof_int = 2; then
+  _GSC_S_INT=_GSC_I16
+else
+  if test $ac_cv_sizeof_int = 4; then
+    _GSC_S_INT=_GSC_I32
+  else
+    if test $ac_cv_sizeof_int = 8; then
+      _GSC_S_INT=_GSC_I64
+    else
+      if test $ac_cv_sizeof_int = 16; then
+	_GSC_S_INT=_GSC_I128
+      fi
+    fi
+  fi
+fi
+AC_SUBST(_GSC_S_INT)
+
+if test $ac_cv_sizeof_long = 4; then
+  _GSC_S_LNG=_GSC_I32
+else
+  if test $ac_cv_sizeof_long = 8; then
+    _GSC_S_LNG=_GSC_I64
+  else
+    if test $ac_cv_sizeof_long = 16; then
+      _GSC_S_LNG=_GSC_I128
+    fi
+  fi
+fi
+AC_SUBST(_GSC_S_LNG)
+
+if test $ac_cv_sizeof_long_long = 4; then
+  _GSC_S_LNG_LNG=_GSC_I32
+else
+  if test $ac_cv_sizeof_long_long = 8; then
+    _GSC_S_LNG_LNG=_GSC_I64
+  else
+    if test $ac_cv_sizeof_long_long = 16; then
+      _GSC_S_LNG_LNG=_GSC_I128
+    fi
+  fi
+fi
+AC_SUBST(_GSC_S_LNG_LNG)
+
+#--------------------------------------------------------------------
+# Setup dynamic linking 
+#--------------------------------------------------------------------
+OBJC_SYS_DYNAMIC_LINKER()
+
+#--------------------------------------------------------------------
+# Check whether Objective-C /really/ works
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(whether objc really works)
+saved_LIBS="$LIBS"
+saved_CPPFLAGS="$CPPFLAGS"
+LIBS="$LIBS $LIBOBJC"
+CPPFLAGS="$CPPFLAGS -x objective-c"
+if test x"$objc_threaded" != x""; then
+  LIBS="$LIBS $objc_threaded"
+fi
+LIBS="$LIBS $extra_LIBS"
+AC_CACHE_VAL(objc_works,
+  AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
+  objc_works=yes, 
+  objc_works=no, 
+  objc_works=yes)
+)
+if test $objc_works = yes; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  echo "I don't seem to be able to use your Objective-C compiler to produce"
+  echo "working binaries!  Please check your Objective-C compiler installation."
+  echo "If you are using gcc-3.x make sure that your compiler's libgcc_s and libobjc"
+  echo "can be found by the dynamic linker - usually that requires you to play"
+  echo "with LD_LIBRARY_PATH or /etc/ld.so.conf."
+  echo "Please refer to your compiler installation instructions for more help."
+  AC_MSG_ERROR(The Objective-C compiler doesn't work or is not installed properly.)
+fi
+
+# Don't revert any Objective-C flags as they are used in the next test
+
+#---------------------------------------------------------------------
+# Guess if we are using a compiler which allows us to change the class
+# to be used for constant strings by using the -fconstant-string-class
+# option.  If that is the case, we change it to NSConstantString.
+#---------------------------------------------------------------------
+CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
+AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
+AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
+  AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
+  objc_compiler_supports_constant_string_class=yes,
+  objc_compiler_supports_constant_string_class=no,
+  objc_compiler_supports_constant_string_class=no)
+)
+if test $objc_compiler_supports_constant_string_class = yes; then
+  NX_CONST_STRING_CPPFLAGS="-fconstant-string-class=NSConstantString"
+  NX_CONST_STRING_CLASS=NSConstantString
+  AC_MSG_RESULT(yes)
+else
+  NX_CONST_STRING_CPPFLAGS=""
+  NX_CONST_STRING_CLASS=NXConstantString
+  AC_MSG_RESULT(no)
+fi
+
+AC_SUBST(NX_CONST_STRING_CPPFLAGS)
+AC_SUBST(NX_CONST_STRING_CLASS)
+
+CPPFLAGS="$saved_CPPFLAGS"
+# Don't revert LIBS, need it for the next test
+
+#---------------------------------------------------------------------
+# Guess if we are using a compiler which has the (GNU extension) +load 
+# method which is executed before main.  
+# Defines HAVE_LOAD_METHOD if +load methods are called before main.
+# Needed by NSProcessInfo.m
+#---------------------------------------------------------------------
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS -x objective-c"
+AC_MSG_CHECKING(if +load method is executed before main)
+AC_CACHE_VAL(objc_load_method_worked,
+  AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
+	objc_load_method_worked=yes,
+	objc_load_method_worked=no,
+	objc_load_method_worked=no)
+)
+if test $objc_load_method_worked = yes; then
+  AC_DEFINE(HAVE_LOAD_METHOD,,
+            [Define if your Obj-C compiler calls +load methods before main])
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+CPPFLAGS="$saved_CPPFLAGS"
+# Don't revert LIBS, need it for the next test
+
+#--------------------------------------------------------------------
+# This function needed by NSLock.m for conditioned wait
+# get_uninstalled_dtable used by behavior.m and objc-load.m
+# Thread functions used by NSThread
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(objc_condition_timedwait objc_thread_add)
+
+AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
+	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,,
+                  [ Define if objc-api.h defines this function]),)
+
+LIBS="$saved_LIBS"
+
+#--------------------------------------------------------------------
+# Generic settings needed by NSZone.m
+#--------------------------------------------------------------------
+AC_TYPE_SIZE_T
+AC_C_INLINE
+
+#--------------------------------------------------------------------
+# Following header checks needed for bzero in Storage.m and other places
+#--------------------------------------------------------------------
+AC_HEADER_STDC
+AC_CHECK_HEADERS(string.h memory.h)
+
+#--------------------------------------------------------------------
+# Following header check needed NSConnection.h
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(float.h)
+
+#--------------------------------------------------------------------
+# Header files and functions for files and filesystems
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
+AC_CHECK_HEADERS(sys/mount.h sys/types.h windows.h locale.h langinfo.h)
+saved_LIBS="$LIBS"
+AC_CHECK_LIB(m, main)
+AC_CHECK_FUNCS(statvfs symlink readlink geteuid getlogin getpwnam getpwuid rint)
+LIBS="$saved_LIBS"
+
+#--------------------------------------------------------------------
+# These two headers (functions) needed by Time.m
+#--------------------------------------------------------------------
+dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
+
+AC_CHECK_HEADERS(time.h sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
+AC_CHECK_FUNCS(time ctime)
+
+#--------------------------------------------------------------------
+# These headers/functions needed by GSTcpPort.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
+dnl AC_REPLACE_FUNCS(recvfrom)
+
+#--------------------------------------------------------------------
+# These headers/functions needed by NSLog.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(syslog.h)
+AC_CHECK_FUNCS(syslog)
+
+#--------------------------------------------------------------------
+# These headers/functions needed by NSRunLoop.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(poll.h)
+AC_CHECK_FUNCS(poll)
+
+
+#--------------------------------------------------------------------
+# Check for pthread.h (only when building on Darwin machines)
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(pthread.h)
+HAVE_PTHREAD_H=no
+if test $ac_cv_header_pthread_h = yes ; then
+  HAVE_PTHREAD_H=yes
+fi
+AC_SUBST(HAVE_PTHREAD_H)
+
+#--------------------------------------------------------------------
+# This function needed by StdioStream.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(vsprintf vasprintf)
+if test $ac_cv_func_vsprintf = yes ; then
+    AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
+		VSPRINTF_RETURNS_LENGTH=1,
+		VSPRINTF_RETURNS_LENGTH=0,
+		VSPRINTF_RETURNS_LENGTH=1)
+    AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH,
+                       [Define if vsprintf returns the length printed])
+fi
+if test $ac_cv_func_vasprintf = yes ; then
+    AC_TRY_RUN([#include "$srcdir/config/config.vasprintf.c"],
+		VASPRINTF_RETURNS_LENGTH=1,
+		VASPRINTF_RETURNS_LENGTH=0,
+		VASPRINTF_RETURNS_LENGTH=1)
+    AC_DEFINE_UNQUOTED(VASPRINTF_RETURNS_LENGTH, $VASPRINTF_RETURNS_LENGTH,
+                       [Define if vasprintf returns the length printed])
+fi
+
+#--------------------------------------------------------------------
+# This function needed by NSFileManager.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(getcwd)
+AC_HEADER_DIRENT
+
+#--------------------------------------------------------------------
+# This function needed by gdomap.c
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(getopt.h)
+
+#--------------------------------------------------------------------
+# This function needed by NSPage.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(valloc)
+
+#--------------------------------------------------------------------
+# This function needed by Time.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(times)
+
+#--------------------------------------------------------------------
+# These functions needed by NSData.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(mkstemp)
+AC_CHECK_FUNCS(shmctl)
+AC_CHECK_FUNCS(mmap)
+
+#--------------------------------------------------------------------
+# These used by UnixFileHandle.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(inet_aton)
+HAVE_ZLIB=0
+AC_CHECK_HEADERS(zlib.h)
+if test $ac_cv_header_zlib_h = yes; then
+  AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
+  if test "$zlib_ok" = yes; then
+    base_libs="$LIBS"
+    LIBS="$LIBS -lz"
+    HAVE_ZLIB=1
+  fi
+fi
+AC_SUBST(HAVE_ZLIB)
+
+#--------------------------------------------------------------------
+# These functions needed by NSTask.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(killpg setpgrp setpgid)
+AC_FUNC_SETPGRP
+
+HAVE_PTS_STREAM_MODULES=0
+case "${target}" in
+  *-sysv-*)
+    HAVE_PTS_STREAM_MODULES=1
+    ;;
+esac
+AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES,
+                   [Define this if you work on sysv])
+AC_SUBST(HAVE_PTS_STREAM_MODULES)
+
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
+	sys/signal.h sys/param.h sys/wait.h sys/file.h sys/fcntl.h dnl
+	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
+
+#--------------------------------------------------------------------
+# This function needed by NSThread.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(usleep)
+
+#--------------------------------------------------------------------
+# This function needed by NSDebug.m and NSProcessInfo.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(strerror)
+
+#--------------------------------------------------------------------
+# This type needed by GSFormat
+#--------------------------------------------------------------------
+AC_CHECK_TYPES([uintmax_t])
+
+AC_MSG_CHECKING([whether precompiler handles LONG_LONG_MAX])
+AC_TRY_CPP([#ifdef HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
+	#include <limits.h>
+	#if defined(LONG_LONG_MAX)
+	#if LONG_MAX == LONG_LONG_MAX
+	#error long max equals long long max
+	#endif
+	#else
+	#error long long max not defined
+	#endif
+	], llmax=yes, llmax=no)
+if test $llmax = yes; then
+	AC_MSG_RESULT(yes)
+        AC_DEFINE(HANDLE_LONG_LONG_MAX,,
+                  [Define if this constant is defined])
+else
+	AC_MSG_RESULT(no)
+fi
+
+#
+# Solaris and *BSD use LLONG_MAX instead
+#
+AC_MSG_CHECKING([whether we have LLONG_MAX])
+
+AC_TRY_CPP([#include <limits.h>
+	#if defined(LLONG_MAX)
+	#if LONG_MAX == LLONG_MAX
+	#error long max equals long long max
+	#endif
+	#else
+	#error llong max not defined
+	#endif
+	], llmax=yes, llmax=no)
+
+if test $llmax = yes; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HANDLE_LLONG_MAX,,
+            [Define if this constant is defined])
+else
+  AC_MSG_RESULT(no)
+fi
+AC_CHECK_HEADERS(wchar.h)
+
+#--------------------------------------------------------------------
+# This function needed by NSString for handling of %@ printf directive.
+#--------------------------------------------------------------------
+AC_CHECK_FUNC(register_printf_function, register_printf=1, 
+register_printf=0)
+if test $register_printf = 1; then
+  AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
+	       working_register_printf=1, working_register_printf=0, 
+               working_register_printf=1)
+  if test $working_register_printf = 1; then
+    AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,,
+              [Define if you have the register_printf_function function])
+  fi
+fi
+
+#--------------------------------------------------------------------
+# This function needed by NSString.
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(realpath)
+
+#--------------------------------------------------------------------
+# Check if the C Library defines extern char *program_invocation_name
+# Used in critical cases by NSProcessInfo.m
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(program_invocation_name in C Library)
+AC_CACHE_VAL(program_invocation_name_worked,
+[AC_TRY_RUN([
+#include <string.h>
+int 
+main (int argc, char *argv[])
+{
+  extern char *program_invocation_name;
+  return (strcmp (program_invocation_name, argv[0]));
+}
+], program_invocation_name_worked=yes, program_invocation_name_worked=no, program_invocation_name_worked=no)])
+if test $program_invocation_name_worked = yes; then
+  AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,,
+            [Define if your Lib C defines program_invocation_name])
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
+# Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
+# Needed by NSProcessInfo.m 
+#--------------------------------------------------------------------
+AC_SYS_PROCFS
+AC_SYS_PROCFS_EXE_LINK
+
+#--------------------------------------------------------------------
+# Check if /proc/$$/cmdline terminates the last argument with a nul
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(/proc/$$/cmdline terminated by nul)
+AC_TRY_RUN([#include "$srcdir/config/config.proccmd.c"],
+	CMDLINE_TERMINATED=1,
+	CMDLINE_TERMINATED=0,
+	CMDLINE_TERMINATED=0)
+AC_DEFINE_UNQUOTED(CMDLINE_TERMINATED, $CMDLINE_TERMINATED,
+		   [Define if your system terminates the final argument in /proc/$$/cmdline])
+if test $CMDLINE_TERMINATED = 1; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
+# Check if short and int values need to be word aligned
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(short/int needs to be word aligned)
+AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
+	NEED_WORD_ALIGNMENT=0,
+	NEED_WORD_ALIGNMENT=1,
+	NEED_WORD_ALIGNMENT=1)
+AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
+                   [Define if your system needs to have short/int word aligned])
+if test $NEED_WORD_ALIGNMENT = 1; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
+# Include redefinition of main () only if needed.
+# On some systems - force redefinition to be used as the /proc stuff
+# doesn't work. Allow NSProcessInfo initialization method also.
+#--------------------------------------------------------------------
+AC_MSG_CHECKING("use of pass-through arguments")
+AC_ARG_ENABLE(pass-arguments,
+  [  --enable-pass-arguments	Force user main call to NSProcessInfo initialize],,
+  enable_pass_arguments=no)
+
+case "$target_os" in
+  cygwin*)	enable_pass_arguments=yes;;
+esac
+if test "$enable_pass_arguments" = "yes"; then
+  GS_PASS_ARGUMENTS=1
+else
+  GS_PASS_ARGUMENTS=0
+fi
+AC_SUBST(GS_PASS_ARGUMENTS)
+AC_MSG_RESULT($enable_pass_arguments)
+
+AC_MSG_CHECKING("use of fake-main definition")
+AC_ARG_ENABLE(fake-main,
+  [  --enable-fake-main  		Force redefine of user main function],,
+  enable_fake_main=no)
+
+if test "$enable_pass_arguments" = "no"; then
+  case "$target_os" in
+    freebsd2*)	enable_fake_main=yes;;
+    freebsd*)	;;
+    netbsd*)	enable_fake_main=yes;;
+    openbsd*)	enable_fake_main=yes;;
+    *sysv*)	enable_fake_main=yes;;
+  esac
+fi
+
+GS_FAKE_MAIN=0
+if test "$enable_fake_main" = "yes"; then
+  GS_FAKE_MAIN=1
+elif test "$enable_pass_arguments" = "no"; then
+  if test "$objc_load_method_worked" = yes -a "$ac_cv_sys_procfs" = yes; then
+    GS_FAKE_MAIN=0
+  else
+    GS_FAKE_MAIN=1
+    enable_fake_main=yes
+  fi
+fi
+case "$target_os" in
+    mingw*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
+esac
+AC_SUBST(GS_FAKE_MAIN)
+AC_MSG_RESULT($enable_fake_main)
+
+#--------------------------------------------------------------------
+# Check for FFI interface libraries for invocations
+# We enable ffcall by default now.
+#--------------------------------------------------------------------
+AC_ARG_ENABLE(libffi,
+  [  --enable-libffi  		Enable use of libffi library],,
+  enable_libffi=no)
+if test $enable_libffi = yes; then
+  echo "WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "The libffi library is not fully supported in GNUstep"
+  echo "please use ffcall instead, unless you would like to help."
+  echo "debug it. Use with caution."
+  echo "WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+fi
+
+AC_ARG_ENABLE(ffcall,
+  [  --enable-ffcall  		Enable use of ffcall library],,
+  enable_ffcall=yes)
+
+AC_CHECK_HEADER(ffi.h, , enable_libffi=no)
+
+AC_MSG_CHECKING("for forwarding callback in runtime")
+AC_EGREP_HEADER(__objc_msg_forward, objc/objc-api.h, AC_MSG_RESULT(yes), 
+	        AC_MSG_RESULT(no); enable_ffcall=no)
+AC_CHECK_HEADERS(callback.h, , enable_ffcall=no)
+
+AC_MSG_CHECKING("FFI library usage")
+WITH_FFI=none
+if test $enable_libffi = yes; then
+  AC_DEFINE(USE_LIBFFI,,
+            [Define if using the libffi library for invocations])
+  WITH_FFI=libffi
+  LIBS="$LIBS -lffi"
+  AC_MSG_RESULT(libffi)
+elif test $enable_ffcall = yes; then
+  AC_DEFINE(USE_FFCALL,,
+            [Define if using the ffcall library for invocations])
+  WITH_FFI=ffcall
+  LIBS="$LIBS -lcallback -lavcall"
+  AC_MSG_RESULT(ffcall)
+else
+  AC_MSG_RESULT(none)
+  AC_MSG_WARN([No ffcall interface library found])
+  echo
+  echo "GNUstep requires the ffcall library to do invocations and DO"
+  echo "Make sure this library is installed (see installation instructions)"
+  echo "Otherwise DO will not be compatible with other systems"
+fi
+AC_SUBST(WITH_FFI)
+
+#--------------------------------------------------------------------
+# Check recent libxml for Properytlists, GSXML, GSDoc etc.
+#--------------------------------------------------------------------
+
+# Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
+# of the success of the macro.
+saved_LIBS="$LIBS"
+saved_CFLAGS="$CFLAGS"
+
+AM_PATH_XML(2.2.3, enable_libxml=yes, enable_libxml=no)
+if test $enable_libxml = yes; then
+  CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+  LIBS="$LIBS $XML_LIBS"
+  HAVE_LIBXML=1
+  AC_DEFINE(HAVE_LIBXML,,
+           [Define if libxml available])
+else
+  HAVE_LIBXML=0
+  # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
+  LIBS="$saved_LIBS"
+  CFLAGS="$saved_CFLAGS"
+fi
+AC_SUBST(HAVE_LIBXML)
+
+#--------------------------------------------------------------------
+# Check GMP for NSDecimal
+#--------------------------------------------------------------------
+AC_ARG_WITH(gmp-include,
+  [  --with-gmp-include=PATH  include path for gmp headers],
+  gmp_incdir="$withval", gmp_incdir="no")
+
+AC_ARG_WITH(gmp-library,
+  [  --with-gmp-library=PATH  library path for gmp libraries],
+  gmp_libdir="$withval", gmp_libdir="no")
+
+cppflags_temp="$CPPFLAGS"
+libs_temp=$LIBS
+
+if test "$gmp_incdir" != "no"; then
+  CPPFLAGS="$CPPFLAGS -I$gmp_incdir"
+fi
+if test "$gmp_libdir" != "no"; then
+  LIBS="$LIBS -L$gmp_libdir"
+fi
+
+HAVE_GMP=0
+AC_CHECK_HEADERS(gmp.h)
+if test $ac_cv_header_gmp_h = yes; then
+  AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
+  if test "$gmp_ok" = no; then
+    AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
+  fi
+  if test "$gmp_ok" = yes; then
+    base_libs="$LIBS"
+    LIBS="$LIBS -lgmp"
+    HAVE_GMP=1
+  fi
+fi
+
+if test "$HAVE_GMP" = "0"; then
+  CPPFLAGS="$cppflags_temp";
+  LIBS="$libs_temp";
+fi
+AC_SUBST(HAVE_GMP)
+
+#--------------------------------------------------------------------
+# Check for iconv support (for Unicode conversion).
+#--------------------------------------------------------------------
+# Check in the glibc library
+AC_CHECK_FUNCS(iconv)
+if test $ac_cv_func_iconv = no; then
+  # Check if we have a libiconv library
+  AC_ARG_WITH(libiconv-library,
+    [  --with-libiconv-library=PATH  library path for libiconv libraries],
+    libiconv_libdir="$withval", libiconv_libdir="no")
+  cppflags_temp="$CPPFLAGS"
+
+  if test "$libiconv_libdir" != "no"; then
+    CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
+  fi
+
+  # BSDs install this lib as libgiconv
+  AC_CHECK_LIB(giconv, main)
+  if test x"$ac_cv_lib_giconv_main" = xyes; then
+    AC_DEFINE(HAVE_ICONV,, [Define if you have this function])
+    AC_DEFINE(HAVE_GICONV_H,, [Define if you have this header])
+  else
+    AC_CHECK_LIB(iconv, main)
+    if test x"$ac_cv_lib_iconv_main" = xyes; then
+      AC_DEFINE(HAVE_ICONV,, [Define if you have this function])
+    fi
+  fi
+  CPPFLAGS="$cppflags_temp"
+fi
+
+AC_SUBST(SYSTEM_DEFS)
+
+AC_CONFIG_SUBDIRS(Source/mframe SSL)
+
+#--------------------------------------------------------------------
+# Record the version
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(for the version of gnustep-base we are compiling)
+if test -f "Version"; then
+  . ./Version
+fi
+AC_MSG_RESULT($VERSION)
+AC_SUBST(VERSION)
+AC_SUBST(MAJOR_VERSION)
+AC_SUBST(MINOR_VERSION)
+AC_SUBST(SUBMINOR_VERSION)
+AC_SUBST(GCC_VERSION)
+
+#--------------------------------------------------------------------
+# Write the Makefiles
+#--------------------------------------------------------------------
+AC_CONFIG_FILES([config.mak base.make Headers/gnustep/base/GSConfig.h 
+	  Headers/gnustep/base/preface.h])
+AC_OUTPUT
