@@ -747,7 +747,27 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Return the children of this node
+ * Return the first child element of this node.  If you wish to step
+ * through all children of the node (including non-element nodes)
+ * you should use the -children method instead.
+ */
+- (GSXMLNode*) childElement
+{
+  xmlNodePtr	ptr = ((xmlNodePtr)lib)->children;
+
+  while (ptr != NULL)
+    {
+      if (ptr->type == XML_ELEMENT_NODE)
+	{
+	  return [GSXMLNode nodeFrom: ptr];
+	}
+      ptr = ptr->next;
+    }
+  return nil;
+}
+
+/**
+ * Return the first child node of this node.
  * <example>
  *    - (GSXMLNode*) elementRecursive: (GSXMLNode*)node
  *    {

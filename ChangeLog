@@ -1,7 +1,8 @@
 2002-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: New method ([-nextElement]) to traverse
-	tree skipping non-element nodes.
+	tree skipping non-element nodes.  Also ([-childElement]) to get the
+	first child element of a node.
 
 Thu Apr 11 15:34:33 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 

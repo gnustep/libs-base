@@ -117,6 +117,7 @@
 + (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 + (int) typeFromDescription: (NSString*)desc;
 
+- (GSXMLNode*) childElement;
 - (GSXMLNode*) children;
 - (NSString*) content;
 - (GSXMLDocument*) doc;
