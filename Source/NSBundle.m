@@ -279,17 +279,20 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		    mutableCopy]);
 	  [system appendString: @"/Libraries"];
 
+	  _executable_path = nil;
 #ifdef HAVE_PROC_FS_EXE_LINK
 	  _executable_path = [[NSFileManager defaultManager]
 	    pathContentOfSymbolicLinkAtPath: @"/proc/self/exe"];
-#else
-	  _executable_path =
-		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
-	  output = objc_find_executable([_executable_path cString]);
-	  NSAssert(output, NSInternalInconsistencyException);
-	  _executable_path = [NSString stringWithCString: output];
-	  OBJC_FREE(output);
 #endif
+	  if (_executable_path == nil || [_executable_path length] == 0)
+	    {
+	      _executable_path =
+		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+	      output = objc_find_executable([_executable_path cString]);
+	      NSAssert(output, NSInternalInconsistencyException);
+	      _executable_path = [NSString stringWithCString: output];
+	      OBJC_FREE(output);
+	    }
 
 	  RETAIN(_executable_path);
 	  _gnustep_bundle = RETAIN([NSBundle bundleWithPath: system]);

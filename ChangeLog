@@ -1,3 +1,10 @@
+2000-05-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+initialize): Check if /proc/self/exe returns
+	a real link, otherwise get path from NSProcessInfo.
+
+	* NSData: Correct #ifdef NEEDS_WORD_ALIGN to #if
+
 2000-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSeq.h: comparison with zero length range is always

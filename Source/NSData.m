@@ -2073,7 +2073,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 			      format: @"Range: (%u, 1) Size: %d",
 			  *cursor, length];
 		}
-#ifdef NEED_WORD_ALIGNMENT
+#if NEED_WORD_ALIGNMENT
 	      if ((*cursor % __alignof__(gsu16)) == 0)
 		memcpy(&x, (bytes + *cursor), 2);
 	      else
@@ -2093,7 +2093,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 			      format: @"Range: (%u, 1) Size: %d",
 			  *cursor, length];
 		}
-#ifdef NEED_WORD_ALIGNMENT
+#if NEED_WORD_ALIGNMENT
 	      if ((*cursor % __alignof__(gsu32)) == 0)
 		memcpy(&x, (bytes + *cursor), 4);
 	      else
@@ -2986,7 +2986,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  [self _grow: length + 3];
 	}
       *(gsu8*)(bytes + length++) = tag;
-#ifdef NEED_WORD_ALIGNMENT
+#if NEED_WORD_ALIGNMENT
       if ((length % __alignof__(gsu16)) == 0)
 	{
 	  x = GSSwapHostI16ToBig(x);
@@ -3007,7 +3007,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  [self _grow: length + 5];
 	}
       *(gsu8*)(bytes + length++) = tag;
-#ifdef NEED_WORD_ALIGNMENT
+#if NEED_WORD_ALIGNMENT
       if ((length % __alignof__(gsu32)) == 0)
 	{
 	  x = GSSwapHostI32ToBig(x);
