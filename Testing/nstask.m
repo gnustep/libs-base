@@ -1,16 +1,32 @@
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSTask.h>
+#include <Foundation/Foundation.h>
+
+
+@interface TaskObs : NSObject
+- (void) terminated: (NSNotification*)aNotification;
+@end
+@implementation TaskObs
+- (void) terminated: (NSNotification*)aNotification
+{
+  NSLog(@"Task (%@) terminated", [aNotification object]);
+}
+@end
 
 int
 main()
 {
-  id pool;
+  NSAutoreleasePool *pool;
   NSDictionary	*env;
   NSTask	*task;
+  NSTask	*t0, *t1;
   NSData	*d;
+  TaskObs	*obs = [TaskObs new];
 
-  pool = [[NSAutoreleasePool alloc] init];
+  pool = [NSAutoreleasePool new];
+  [[NSNotificationCenter defaultCenter]
+    addObserver: obs
+       selector: @selector(terminated:)
+	   name: NSTaskDidTerminateNotification
+	 object: nil];
 
 #ifdef __MINGW__
   task = [NSTask launchedTaskWithLaunchPath: @"C:\\WINDOWS\\COMMAND\\MEM.EXE"
@@ -22,8 +38,8 @@ main()
   [task waitUntilExit];
   printf("Exit status - %d\n", [task terminationStatus]);
 
-  [pool release];
-  pool = [[NSAutoreleasePool alloc] init];
+  RELEASE(pool);
+  pool = [NSAutoreleasePool new];
 
   task = [NSTask new];
   env = [[[[NSProcessInfo processInfo] environment] mutableCopy] autorelease];
@@ -37,8 +53,28 @@ main()
   NSLog(@"Got PATH of '%*s'", [d length], [d bytes]);
 
   [task waitUntilExit];
-  [task release];
-  [pool release];
+  RELEASE(task);
+
+  NSLog(@"Testing two tasks at the same time");
+  t0 = [NSTask launchedTaskWithLaunchPath: @"/bin/sh"
+				arguments:
+    [NSArray arrayWithObjects: @"-c", @"echo task0", nil]];
+  NSLog(@"Launched task0 - %@", t0);
+
+  t1 = [NSTask launchedTaskWithLaunchPath: @"/bin/sh"
+				arguments:
+    [NSArray arrayWithObjects: @"-c", @"echo task1", nil]];
+  NSLog(@"Launched task1 - %@", t1);
+
+  while ([t0 isRunning] == YES || [t1 isRunning] == YES)
+    {
+      NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+
+      [[NSRunLoop currentRunLoop] runOnceBeforeDate:
+	[NSDate dateWithTimeIntervalSinceNow: 1]];
+      RELEASE(arp);
+    }
+  RELEASE(pool);
 
   exit(0);
 }
