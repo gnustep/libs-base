@@ -33,7 +33,7 @@ static id nilRBNode;
 
 @implementation RBTree
 
-+ initialize
++ (void) initialize
 {
   if (self == [RBTree class])
     {
@@ -41,7 +41,6 @@ static id nilRBNode;
       nilRBNode = [[RBTreeNode alloc] init];
       [nilRBNode setBlack];
     }
-  return self;
 }
 
 - nilNode
