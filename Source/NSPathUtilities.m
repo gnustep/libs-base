@@ -114,6 +114,15 @@
 
 #define	MGR()	[NSFileManager defaultManager]
 
+/*
+ * NB. use fprintf() rather than NSLog() to avoid possibility of recursion
+ * when features of NSLog() cause patrh utilities to be used.
+ */
+#define PrintOnce(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    beenHere = YES; \
+    fprintf(stderr, format, ## args); }} while (0)
+
 /* ------------------ */
 /* Internal variables */
 /* ------------------ */
@@ -334,9 +343,9 @@ static NSString *setUserGNUstepPath(NSString *userName,
       dict = GSReadStepConfFile(steprcFile);
       if (dict != nil)
 	{
-	  GSOnceFLog(@"Warning: Configuration: The file %s has been "
-	    @"deprecated.  Please use the configuration file %s to "
-	    @"set standard paths.\n",
+	  PrintOnce("Warning: Configuration: The file %s has been "
+	    "deprecated.  Please use the configuration file %s to "
+	    "set standard paths.\n",
 	    [steprcFile fileSystemRepresentation],
 	    stringify(GNUSTEP_CONFIGURATION_FILE));
 	  forceD = [[dict objectForKey: @"FORCE_DEFAULTS_ROOT"] boolValue];
@@ -444,27 +453,27 @@ static void InitialisePathUtilities(void)
 		o = [d objectForKey: @"FORCE_DEFAULTS_ROOT"];
 		if (o != nil)
 		  {
-		    GSOnceFLog(@"Warning: Configuration: "
+		    PrintOnce("Warning: Configuration: "
 		      "FORCE_DEFAULTS_ROOT is deprecated.\n");
 		    forceD = [o boolValue];
 		  }
 		o = [d objectForKey: @"FORCE_USER_ROOT"];
 		if (o != nil)
 		  {
-		    GSOnceFLog(@"Warning: Configuration: "
+		    PrintOnce("Warning: Configuration: "
 		      "FORCE_USER_ROOT is deprecated.\n");
 		    forceU = [o boolValue];
 		  }
 		ASSIGN(oldDRoot, [d objectForKey: @"GNUSTEP_DEFAULTS_ROOT"]);
 		if (oldDRoot != nil)
 		  {
-		    GSOnceFLog(@"Warning: Configuration: "
+		    PrintOnce("Warning: Configuration: "
 		      "GNUSTEP_DEFAULTS_ROOT is deprecated.\n");
 		  }
 		ASSIGN(oldURoot, [d objectForKey: @"GNUSTEP_USER_ROOT"]);
 		if (oldURoot != nil)
 		  {
-		    GSOnceFLog(@"Warning: Configuration: "
+		    PrintOnce("Warning: Configuration: "
 		      "GNUSTEP_USER_ROOT is deprecated.\n");
 		  }
 	      }
