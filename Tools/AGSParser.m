@@ -1046,6 +1046,8 @@ fail:
       [dict setObject: methods forKey: @"Methods"];
     }
 
+  [dict setObject: declared forKey: @"Declared"];
+
   d = [info objectForKey: @"Protocols"];
   if (d == nil)
     {
