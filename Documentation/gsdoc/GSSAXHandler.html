@@ -255,35 +255,53 @@ Called when found a warning.
 <h3><a name ="method-18">hasInternalSubset:</a></h3>
 - (int) <b>hasInternalSubset:</b>;<br>
 
-          <p>
-Callback on internal subset declaration.
+            <p>
+
+	      Does this document have an internal subset?
             </p>
+
+	    <ul>
+<li>Return 1 for yes
+<li>Return 0 for no
+<li>Return -1 for don't know (let parser decide)
+</ul>
 
           
  <hr>
 <h3><a name ="method-19">hasExternalSubset:</a></h3>
 - (int) <b>hasExternalSubset:</b>;<br>
 
-          <p>
-Does this document have an external subset.
+	    <p>
+
+	      Does this document have an external subset.
             </p>
+
+	    <ul>
+<li>Return 1 for yes
+<li>Return 0 for no
+<li>Return -1 for don't know (let parser decide)
+</ul>
 
           
  <hr>
 <h3><a name ="method-20">internalSubset:externalID:systemID:</a></h3>
-- (void) <b>internalSubset:</b> (NSString*)name <b>externalID:</b> (NSString*)externalID <b>systemID:</b> (NSString*)systemID;<br>
+- (BOOL) <b>internalSubset:</b> (NSString*)name <b>externalID:</b> (NSString*)externalID <b>systemID:</b> (NSString*)systemID;<br>
 
-          <p>
-Callback on internal subset declaration.
+	    <p>
+
+	      Callback on internal subset declaration.
+	      Return YES if handled, NO if you want the parser to handle it.
             </p>
 
           
  <hr>
 <h3><a name ="method-21">externalSubset:externalID:systemID:</a></h3>
-- (void) <b>externalSubset:</b> (NSString*)name <b>externalID:</b> (NSString*)externalID <b>systemID:</b> (NSString*)systemID;<br>
+- (BOOL) <b>externalSubset:</b> (NSString*)name <b>externalID:</b> (NSString*)externalID <b>systemID:</b> (NSString*)systemID;<br>
 
-          <p>
-Callback on external subset declaration.
+	    <p>
+
+	      Callback on external subset declaration.
+	      Return YES if handled, NO if you want the parser to handle it.
             </p>
 
           
