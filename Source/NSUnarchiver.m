@@ -98,6 +98,7 @@ typeToName2(char type)
 {
   switch (type & _GSC_MASK)
     {
+      case _GSC_CID:	return "class (encoded as id)";
       case _GSC_CLASS:	return "class";
       case _GSC_ID:	return "object";
       case _GSC_SEL:	return "selector";
@@ -455,9 +456,12 @@ mapClassName(NSUnarchiverObjectInfo *info)
       (*tagImp)(src, tagSel, &ainfo, 0, &cursor);
       if (info != (ainfo & _GSC_MASK))
         {
-          [NSException raise: NSInternalInconsistencyException
-                      format: @"expected %s and got %s",
-                        typeToName2(info), typeToName2(ainfo)];
+	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CID)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"expected %s and got %s",
+			    typeToName2(info), typeToName2(ainfo)];
+	    }
         }
 
       for (i = 0; i < count; i++)

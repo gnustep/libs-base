@@ -160,6 +160,7 @@
 #define	_GSC_CHARPTR	0x14
 #define	_GSC_ARY_B	0x15
 #define	_GSC_STRUCT_B	0x16
+#define	_GSC_CID	0x17	/* Class encoded as id	*/
 
 @interface NSData (GNUstepExtensions)
 + (id) dataWithShmID: (int)anID length: (unsigned) length;

@@ -138,6 +138,7 @@ typeToName2(char type)
 {
   switch (type & _GSC_MASK)
     {
+      case _GSC_CID:	return "class (encoded as id)";
       case _GSC_CLASS:	return "class";
       case _GSC_ID:	return "object";
       case _GSC_SEL:	return "selector";
@@ -424,7 +425,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       (*_dTagImp)(_src, dTagSel, &ainfo, 0, &_cursor);
       if (info != (ainfo & _GSC_MASK))
         {
-	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CLASS)
+	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CID)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"expected %s and got %s",
@@ -551,6 +552,52 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		      obj = rep;
 		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
 		    }
+		}
+	    }
+	  *(id*)address = obj;
+	  return;
+	}
+
+      case _GSC_CID:
+	{
+	  id		obj;
+
+	  typeCheck(*type, _GSC_ID);
+	  /*
+	   *	Special case - a zero crossref value size is a nil pointer.
+	   */
+	  if ((info & _GSC_SIZE) == 0)
+	    {
+	      obj = nil;
+	    }
+	  else
+	    {
+	      if (info & _GSC_XREF)
+		{
+		  if (xref >= GSIArrayCount(_objAry))
+		    {
+		      [NSException raise: NSInternalInconsistencyException
+				  format: @"object crossref missing - %d",
+					xref];
+		    }
+		  obj = GSIArrayItemAtIndex(_objAry, xref).obj;
+		  /*
+		   *	If it's a cross-reference, we need to retain it in
+		   *	order to give the appearance that it's actually a
+		   *	new object.
+		   */
+		  IF_NO_GC(RETAIN(obj));
+		}
+	      else
+		{
+		  if (xref != GSIArrayCount(_objAry))
+		    {
+		      [NSException raise: NSInternalInconsistencyException
+				  format: @"extra object crossref - %d",
+					xref];
+		    }
+		  (*_dValImp)(self, dValSel, @encode(Class), &obj);
+		  GSIArrayAddItem(_objAry, (GSIArrayItem)obj);
 		}
 	    }
 	  *(id*)address = obj;
@@ -1134,14 +1181,6 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  (*_eTagImp)(_dst, eTagSel, _GSC_ID | _GSC_XREF, _GSC_X_0);
 	}
     }
-  else if (fastIsInstance(anObject) == NO)
-    {
-      /*
-       *	If the object we have been given is actually a class,
-       *	we encode it as a class instead.
-       */
-      (*_eValImp)(self, eValSel, @encode(Class), &anObject);
-    }
   else
     {
       GSIMapNode	node;
@@ -1182,11 +1221,22 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    }
 
 	  obj = [anObject replacementObjectForPortCoder: self];
-	  cls = [obj classForPortCoder];
-
-	  (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
-	  (*_eValImp)(self, eValSel, @encode(Class), &cls);
-	  [obj encodeWithCoder: self];
+	  if (fastIsInstance(obj) == NO)
+	    {
+	      /*
+	       *	If the object we have been given is actually a class,
+	       *	we encode it as a special case.
+	       */
+	      (*_xRefImp)(_dst, xRefSel, _GSC_CID, node->value.uint);
+	      (*_eValImp)(self, eValSel, @encode(Class), &obj);
+	    }
+	  else
+	    {
+	      cls = [obj classForPortCoder];
+	      (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
+	      (*_eValImp)(self, eValSel, @encode(Class), &cls);
+	      [obj encodeWithCoder: self];
+	    }
 	}
       else
 	{

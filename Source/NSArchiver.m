@@ -712,14 +712,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  (*_tagImp)(_dst, tagSel, _GSC_ID | _GSC_XREF, _GSC_X_0);
 	}
     }
-  else if (fastIsInstance(anObject) == NO)
-    {
-      /*
-       *	If the object we have been given is actually a class,
-       *	we encode it as a class instead.
-       */
-      (*_eValImp)(self, eValSel, @encode(Class), &anObject);
-    }
   else
     {
       GSIMapNode	node;
@@ -769,22 +761,33 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    }
 
 	  obj = [anObject replacementObjectForArchiver: self];
-	  cls = [obj classForArchiver];
-
-	  (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
-	  if (_namMap->nodeCount)
+	  if (fastIsInstance(obj) == NO)
 	    {
-	      GSIMapNode	node;
-
-	      node = GSIMapNodeForKey(_namMap, (GSIMapKey)cls);
-
-	      if (node)
-		{
-		  cls = (Class)node->value.ptr;
-		}
+	      /*
+	       * If the object we have been given is actually a class,
+	       * we encode it as a special case.
+	       */
+	      (*_xRefImp)(_dst, xRefSel, _GSC_CID, node->value.uint);
+	      (*_eValImp)(self, eValSel, @encode(Class), &obj);
 	    }
-	  (*_eValImp)(self, eValSel, @encode(Class), &cls);
-	  [obj encodeWithCoder: self];
+	  else
+	    {
+	      cls = [obj classForArchiver];
+	      if (_namMap->nodeCount)
+		{
+		  GSIMapNode	n;
+
+		  n = GSIMapNodeForKey(_namMap, (GSIMapKey)cls);
+
+		  if (n)
+		    {
+		      cls = (Class)n->value.ptr;
+		    }
+		}
+	      (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
+	      (*_eValImp)(self, eValSel, @encode(Class), &cls);
+	      [obj encodeWithCoder: self];
+	    }
 	}
       else
 	{
