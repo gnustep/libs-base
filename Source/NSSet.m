@@ -119,6 +119,9 @@ static Class NSMutableSet_concrete_class;
   return RETAIN(self);
 }
 
+/**
+ * Returns the number of objects stored in the set.
+ */
 - (unsigned) count
 {
   [self subclassResponsibility: _cmd];
@@ -169,7 +172,8 @@ static Class NSMutableSet_concrete_class;
   }
 }
 
-/* This is the designated initializer */
+/* <init />
+ */
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count
 {
@@ -257,6 +261,10 @@ static Class NSMutableSet_concrete_class;
   return [self initWithObjects: NULL count: 0];
 }
 
+/**
+ * Initialises a newly allocated set by adding all the objects
+ * in the supplied array to the set.
+ */
 - (id) initWithArray: (NSArray*)other
 {
   unsigned	count = [other count];
@@ -274,6 +282,10 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ * Initialises a newly allocated set by adding all the objects
+ * in the supplied set.
+ */
 - (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
@@ -487,17 +499,30 @@ static Class NSMutableSet_concrete_class;
   return [[NSSet_concrete_class allocWithZone: z] initWithSet: self];
 }
 
-/* This is the designated initializer */
+/** <init />
+ * Initialises a newly allocated set to contain no objects but
+ * to have space available to hold the specified number of items.<br />
+ * Additions of items to a set initialised
+ * with an appropriate capacity will be more efficient than addition
+ * of items otherwise.
+ */
 - (id) initWithCapacity: (unsigned)numItems
 {
   return [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Adds anObject to the set.<br />
+ * The object is retained by the set.
+ */
 - (void) addObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Removes the anObject from the receiver.
+ */
 - (void) removeObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
@@ -517,6 +542,9 @@ static Class NSMutableSet_concrete_class;
   return self;
 }
 
+/**
+ * Adds all the objects in the array to the receiver.
+ */
 - (void) addObjectsFromArray: (NSArray*)array
 {
   unsigned	i, c = [array count];
@@ -527,6 +555,10 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ * Removes from the receiver all the objects it contains
+ * which are not also in other.
+ */
 - (void) intersectSet: (NSSet*) other
 {
   if (other != self)
@@ -544,6 +576,10 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ * Removes from the receiver all the objects that are in
+ * other.
+ */
 - (void) minusSet: (NSSet*) other
 {
   if (other == self)
@@ -562,11 +598,19 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ * Removes all objects from the receiver.
+ */
 - (void) removeAllObjects
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Removes all objects from the receiver then adds the
+ * objects from other.  If the receiver <em>is</em>
+ * other, the method has no effect.
+ */
 - (void) setSet: (NSSet*)other
 {
   if (other == self)
@@ -587,6 +631,9 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ * Adds all the objects from other to the receiver.
+ */
 - (void) unionSet: (NSSet*) other
 {
   if (other != self)

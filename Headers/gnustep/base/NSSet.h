@@ -1,4 +1,4 @@
-/* Interface for NSSet, NSMutableSet, NSCountedSet for GNUStep
+/** Interface for NSSet, NSMutableSet, NSCountedSet for GNUStep
    Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -19,6 +19,10 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   AutogsdocSource: NSSet.m
+   AutogsdocSource: NSCountedSet.m
+
    */ 
 
 #ifndef _NSSet_h_GNUSTEP_BASE_INCLUDE

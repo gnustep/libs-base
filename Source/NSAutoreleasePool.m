@@ -119,6 +119,20 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 }
 
 
+/**
+ * <p>
+ *   This class maintains a stack of autorelease pools objects
+ *   in each thread.
+ * </p>
+ * <p>
+ *   When an autorelease pool is created, it is automatically
+ *   added to the stack of pools in the thread.
+ * </p>
+ * <p>
+ *   When a pool is destroyed, it (and any pool later in
+ *   the stack) is removed from the stack.
+ * </p>
+ */
 @implementation NSAutoreleasePool
 
 static IMP	allocImp;
@@ -133,10 +147,13 @@ static IMP	initImp;
     }
 }
 
+/**
+ * Allocate and return an autorelease pool instance.<br />
+ * If there is an already-allocated NSAutoreleasePool available,
+ * save time by just returning that, rather than allocating a new one.
+ */
 + (id) allocWithZone: (NSZone*)zone
 {
-  /* If there is an already-allocated NSAutoreleasePool available,
-     save time by just returning that, rather than allocating a new one. */
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
   if (tv->pool_cache_count)
     return pop_pool_from_cache (tv);
@@ -202,7 +219,9 @@ static IMP	initImp;
   return _parent;
 }
 
-/* This method not in OpenStep */
+/*
+ * Return the number of objects in this pool.
+ */
 - (unsigned) autoreleaseCount
 {
   unsigned count = 0;
@@ -215,7 +234,16 @@ static IMP	initImp;
   return count;
 }
 
-/* This method not in OpenStep */
+/**
+ * <p>
+ *   Counts the number of times that the specified object occurs
+ *   in autorelease pools in the current thread.
+ * </p>
+ * <p>
+ *   This method is <em>slow</em> and should probably only be
+ *   used for debugging purposes.
+ * </p>
+ */
 - (unsigned) autoreleaseCountForObject: (id)anObject
 {
   unsigned count = 0;
@@ -232,9 +260,16 @@ static IMP	initImp;
   return count;
 }
 
-/* This method not in OpenStep */
-/* xxx This count should be made for *all* threads, but currently is 
-   only madefor the current thread! */
+/**
+ * <p>
+ *   Counts the number of times that the specified object occurs
+ *   in autorelease pools in the current thread.
+ * </p>
+ * <p>
+ *   This method is <em>slow</em> and should probably only be
+ *   used for debugging purposes.
+ * </p>
+ */
 + (unsigned) autoreleaseCountForObject: (id)anObject
 {
   unsigned count = 0;
@@ -247,11 +282,19 @@ static IMP	initImp;
   return count;
 }
 
+/**
+ * Return the currently active autorelease pool.
+ */
 + (id) currentPool
 {
   return ARP_THREAD_VARS->current_pool;
 }
 
+/**
+ * Adds the specified object to the current autorelease pool.
+ * If there is no autorelease pool in the thread,
+ * a warning is logged.
+ */
 + (void) addObject: (id)anObj
 {
   NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
@@ -278,6 +321,9 @@ static IMP	initImp;
     }
 }
 
+/**
+ * Adds the specified object to this autorelease pool.
+ */
 - (void) addObject: (id)anObj
 {
   /* If the global, static variable AUTORELEASE_ENABLED is not set,
@@ -329,6 +375,9 @@ static IMP	initImp;
   _released_count++;
 }
 
+/**
+ * Raises an exception ... pools should not be retained.
+ */
 - (id) retain
 {
   [NSException raise: NSGenericException
@@ -336,6 +385,9 @@ static IMP	initImp;
   return self;
 }
 
+/**
+ * Destroys the receiver (calls -dealloc).
+ */
 - (oneway void) release
 {
   [self dealloc];
@@ -416,6 +468,9 @@ static IMP	initImp;
   [super dealloc];
 }
 
+/**
+ * Raises an exception - pools should not be autoreleased.
+ */
 - (id) autorelease
 {
   [NSException raise: NSGenericException
@@ -449,16 +504,50 @@ static IMP	initImp;
   return ARP_THREAD_VARS->total_objects_count;
 }
 
+/**
+ * <p>
+ *   Specifies whether objects contained in autorelease pools are to
+ *   be released when the pools are deallocated (by default YES).
+ * </p>
+ * <p>
+ *   You can set this to NO for debugging purposes.
+ * </p>
+ */
 + (void) enableRelease: (BOOL)enable
 {
   autorelease_enabled = enable;
 }
 
+/**
+ * <p>
+ *   When autorelease pools are deallocated, the memory they used
+ *   is retained in a cache for re-use so that new polls can be
+ *   created very quickly.
+ * </p>
+ * <p>
+ *   This method may be used to empty that cache, ensuring that
+ *   the minimum memory is used by the application.
+ * </p>
+ */
 + (void) freeCache
 {
   free_pool_cache(ARP_THREAD_VARS);
 }
 
+/**
+ * <p>
+ *   Specifies a limit to the number of objects that may be added to
+ *   an autorelease pool.  When this limit is reached an exception is
+ *   raised.
+ * </p>
+ * <p>
+ *   You can set this to a smallish value to catch problems with code
+ *   that autoreleases too many objects to operate efficiently.
+ * </p>
+ * <p>
+ *   Default value is maxint.
+ * </p>
+ */
 + (void) setPoolCountThreshhold: (unsigned)c
 {
   pool_count_warning_threshhold = c;

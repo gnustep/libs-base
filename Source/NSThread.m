@@ -85,7 +85,18 @@ static BOOL	entered_multi_threaded_state = NO;
 static NSThread	*defaultThread = nil;
 
 /**
- * Fast access function to get current thread.
+ * <p>
+ *   This function is a GNUstep extension.  It pretty much
+ *   duplicates the functionality of [NSThread +currentThread]
+ *   but is more efficient and is used internally throughout
+ *   GNUstep.
+ * </p>
+ * <p>
+ *   Returns the current thread.  Could perhaps return <code>nil</code>
+ *   if executing a thread that was started outside the GNUstep
+ *   environment and not registered (this should not happen in a
+ *   well-coded application).
+ * </p>
  */
 inline NSThread*
 GSCurrentThread()
@@ -171,8 +182,16 @@ gnustep_base_thread_callback()
 
 @implementation NSThread
 
-/*
- * Return the current thread
+/**
+ * <p>
+ *   Returns the NSThread object corresponding to the current thread.
+ * </p>
+ * <p>
+ *   NB. In GNUstep the library internals use the GSCurrentThread()
+ *   function as a more efficient mechanism for doing this job - so
+ *   you cannot use a category to override this method and expect
+ *   the library internals to use your implementation.
+ * </p>
  */
 + (NSThread*) currentThread
 {
@@ -457,6 +476,22 @@ gnustep_base_thread_callback()
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
 
+/**
+ * <p>
+ *   This function is provided to let threads started by some other
+ *   software library register themselves to be used with the
+ *   GNUstep system.  All such threads should call this function
+ *   before attempting to use any GNUstep objects.
+ * </p>
+ * <p>
+ *   Returns <code>YES</code> if the thread can be registered,
+ *   <code>NO</code> if it is already registered.
+ * </p>
+ * <p>
+ *   Sends out a <code>NSWillBecomeMultiThreadedNotification</code>
+ *   if the process was not already multithreaded.
+ * </p>
+ */
 BOOL
 GSRegisterCurrentThread (void)
 {
@@ -509,6 +544,19 @@ GSRegisterCurrentThread (void)
   return YES;
 }
 
+/**
+ * <p>
+ *   This function is provided to let threads started by some other
+ *   software library unregister themselves from the GNUstep threading
+ *   system. 
+ * </p>
+ * <p>
+ *   Calling this function causes a
+ *   <code>NSThreadWillExitNotification</code>
+ *   to be sent out, and destroys the GNUstep NSThread object
+ *   associated with the thread.
+ * </p>
+ */
 void
 GSUnregisterCurrentThread (void)
 {

@@ -30,12 +30,14 @@
         to and from convenient internal formats.
       </p>
       <p>
-        Eventually the goal is to center round three classes -
+        The idea is to center round two classes -
       </p>
       <deflist>
         <term>document</term>
         <desc>
-          A container for the actual data (and headers) of a mime/http document.        </desc>
+          A container for the actual data (and headers) of a mime/http
+	  document, this is also used to create raw MIME data for sending.
+        </desc>
         <term>parser</term>
         <desc>
           An object that can be fed data and will parse it into a document.

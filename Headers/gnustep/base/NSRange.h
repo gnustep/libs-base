@@ -46,6 +46,28 @@
 #define	GS_DEFINED_MIN
 #endif
 
+/**
+ * <p>
+ *   The NSRange type is used to specify ranges of locations,
+ *   typically items in an array, characters in a string, and bytes
+ *   in a data object.
+ * </p>
+ * <p>
+ *   As 'boundary' or 'fencepost' errors are a particularly common
+ *   problem in programming, it is important that you understand
+ *   how an NSRange works.
+ * </p>
+ * <p>
+ *   An NSRange consists of a location and a length.  The points
+ *   that are considered to lie in a range are the integers from
+ *   the location to the location plus the length, so the number
+ *   of points in a range is the length of the range plus one.<br />
+ *   However, if you consider these points like the marks on a
+ *   ruler, you can only store information <strong>between</strong>
+ *   points.  So the number of items that can be stored in a range
+ *   is the length of the range.
+ * </p>
+ */
 typedef struct _NSRange NSRange;
 struct _NSRange
 {

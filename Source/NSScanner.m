@@ -45,6 +45,20 @@
 #define ULONG_LONG_MAX ULLONG_MAX
 #endif
 
+/**
+ * <p>
+ *   The NSScanner class cluster (currently a single class in GNUstep)
+ *   provides a mechanism to parse the contents of a string into number
+ *   and string values by making a sequence of scan operations to
+ *   step through the string retrieving successive items.
+ * </p>
+ * <p>
+ *   You can tell the scanner whether its scanning is supposed to be
+ *   case sensitive or not, and you can specify a set of characters
+ *   to be skipped before each scanning operation (by default,
+ *   whitespace and newlines).
+ * </p>
+ */
 @implementation NSScanner
 
 @class	GSCString;
@@ -104,7 +118,8 @@ typedef struct {
 }
 
 /*
- * Create and return a scanner that scans aString.
+ * Create and return a scanner that scans aString.<br />
+ * Uses -initWithString: and with no locale set.
  */
 + (id) scannerWithString: (NSString *)aString
 {
@@ -112,6 +127,11 @@ typedef struct {
     initWithString: aString]);
 }
 
+/**
+ * Returns an NSScanner instance set up to scan aString
+ * (using -initWithString: and with a locale set the default locale
+ * (using -setLocale:
+ */
 + (id) localizedScannerWithString: (NSString*)aString
 {
   NSScanner		*scanner = [self scannerWithString: aString];
@@ -123,9 +143,14 @@ typedef struct {
   return scanner;
 }
 
-/*
- * Initialize a a newly-allocated scanner to scan aString.
- * Returns self.
+/**
+ * Initialises the scanner to scan aString.  The GNUstep
+ * implementation may make an internal copy of the original
+ * string - so it is not safe to assume that if you modify a
+ * mutable string that you initialised a scanner with, the changes
+ * will be visible to the scanner.
+ * <br/>
+ * Returns the scanner object.
  */
 - (id) initWithString: (NSString *)aString
 {
@@ -200,9 +225,10 @@ typedef struct {
   [super dealloc];
 }
 
-/*
- * Returns YES if no more characters remain to be scanned.
- * Returns YES if all characters remaining to be scanned are to be skipped.
+/**
+ * Returns YES if no more characters remain to be scanned.<br />
+ * Returns YES if all characters remaining to be scanned
+ * are to be skipped.<br />
  * Returns NO if there are characters left to scan.
  */
 - (BOOL) isAtEnd
@@ -288,8 +314,15 @@ typedef struct {
   return YES;
 }
 
-/*
- * Scan an int into value.
+/**
+ * After initial skipping (if any), this method scans a integer value,
+ * placing it in <em>intValue</em> if that is not null.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, INT_MAX or INT_MIN is put into <em>intValue</em>
+ * <br/>
+ * Scans past any excess digits
  */
 - (BOOL) scanInt: (int*)value
 {
@@ -381,8 +414,18 @@ typedef struct {
   return YES;
 }
 
-/*
- * Scan an unsigned int of the given radix into value.
+/**
+ * After initial skipping (if any), this method scans an unsigned
+ * integer value placing it in <em>intValue</em> if that is not null.
+ * If the number begins with "0x" or "0X" it is treated as hexadecimal,
+ * otherwise if the number begins with "0" it is treated as octal,
+ * otherwise the number is treated as decimal.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, INT_MAX or INT_MIN is put into <em>intValue</em>
+ * <br/>
+ * Scans past any excess digits
  */
 - (BOOL) scanRadixUnsignedInt: (unsigned int *)value
 {
@@ -423,8 +466,16 @@ typedef struct {
   return NO;
 }
 
-/*
- * Scan a hexadecimal unsigned integer into value.
+/**
+ * After initial skipping (if any), this method scans a hexadecimal
+ * integer value (optionally prefixed by "0x" or "0X"),
+ * placing it in <em>intValue</em> if that is not null.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, INT_MAX or INT_MIN is put into <em>intValue</em>
+ * <br/>
+ * Scans past any excess digits
  */
 - (BOOL) scanHexInt: (unsigned int *)value
 {
@@ -464,9 +515,17 @@ typedef struct {
   return NO;
 }
 
-/*
- * Scan a long long int into value.
- * Same as scanInt, except with different variable types and limits.
+/**
+ * After initial skipping (if any), this method scans a long
+ * decimal integer value placing it in <em>longLongValue</em> if that
+ * is not null.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, LONG_LONG_MAX or LONG_LONG_MIN is put into
+ * <em>longLongValue</em>
+ * <br/>
+ * Scans past any excess digits
  */
 - (BOOL) scanLongLong: (long long *)value
 {
@@ -552,19 +611,25 @@ typedef struct {
 #endif /* defined(LONG_LONG_MAX) */
 }
 
+/**
+ * Not implemented.
+ */
 - (BOOL) scanDecimal: (NSDecimal*)value
 {
   [self notImplemented:_cmd];			/* FIXME */
   return NO;
 }
 
-/*
- * Scan a double into value.
- * Returns YES if a valid floating-point expression was scanned. 
- * Returns NO otherwise.
- * On overflow, HUGE_VAL or -HUGE_VAL is put into value and YES is returned.
- * On underflow, 0.0 is put into value and YES is returned.
- * Based on the strtod code from the GNU C library.
+/**
+ * After initial skipping (if any), this method scans a double value,
+ * placing it in <em>doubleValue</em> if that is not null.
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, HUGE_VAL or -HUGE_VAL is put into <em>doubleValue</em>
+ * <br/>
+ * On underflow, 0.0 is put into <em>doubleValue</em>
+ * <br/>
+ * Scans past any excess digits
  */
 - (BOOL) scanDouble: (double *)value
 {
@@ -680,12 +745,16 @@ typedef struct {
   return YES;
 }
 
-/*
- * Scan a float into value.
- * Returns YES if a valid floating-point expression was scanned. 
- * Returns NO otherwise.
- * On overflow, HUGE_VAL or -HUGE_VAL is put into value and YES is returned.
- * On underflow, 0.0 is put into value and YES is returned.
+/**
+ * After initial skipping (if any), this method scans a float value,
+ * placing it in <em>floatValue</em> if that is not null.
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, HUGE_VAL or -HUGE_VAL is put into <em>floatValue</em>
+ * <br/>
+ * On underflow, 0.0 is put into <em>floatValue</em>
+ * <br/>
+ * Scans past any excess digits
  */
 - (BOOL) scanFloat: (float*)value
 {
@@ -701,12 +770,13 @@ typedef struct {
   return NO;
 }
     
-/*
- * Scan as long as characters from aSet are encountered.
- * Returns YES if any characters were scanned.
- * Returns NO if no characters were scanned.
- * If value is non-NULL, and any characters were scanned, a string
- * containing the scanned characters is returned by reference in value.
+/**
+ * After initial skipping (if any), this method scans any characters
+ * from aSet, terminating when a character not in the set
+ * is found.<br />
+ * Returns YES if any character is scanned, NO otherwise.<br />
+ * If value is not null, any character scanned are
+ * stored in a string returned in this location.
  */
 - (BOOL) scanCharactersFromSet: (NSCharacterSet *)aSet 
 		    intoString: (NSString **)value
@@ -760,12 +830,12 @@ typedef struct {
   return NO;
 }
 
-/*
- * Scan until a character from aSet is encountered.
- * Returns YES if any characters were scanned.
- * Returns NO if no characters were scanned.
- * If value is non-NULL, and any characters were scanned, a string
- * containing the scanned characters is returned by reference in value.
+/**
+ * After initial skipping (if any), this method scans characters until
+ * it finds one in <em>set</em>.  The scanned characters are placed in
+ * <em>stringValue</em> if that is not null.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
  */
 - (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)aSet 
 		        intoString: (NSString **)value
@@ -819,13 +889,12 @@ typedef struct {
   return YES;
 }
 
-/*
- * Scans for aString.
- * Returns YES if the characters at the scan location match aString.
- * Returns NO if the characters at the scan location do not match aString.
- * If the characters at the scan location match aString.
- * If value is non-NULL, and the characters at the scan location match aString,
- * a string containing the matching string is returned by reference in value.
+/**
+ * After initial skipping (if any), this method scans for
+ * <em>aString</em> and places the string ound in <em>stringValue</em>
+ * if that is not null.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
  */
 - (BOOL) scanString: (NSString *)string intoString: (NSString **)value
 {
@@ -851,12 +920,14 @@ typedef struct {
   return YES;
 }
 
-/*
- * Scans the string until aString is encountered..
- * Returns YES if any characters were scanned.
- * Returns NO if no characters were scanned.
- * If value is non-NULL, and any characters were scanned, a string
- * containing the scanned characters is returned by reference in value.
+/**
+ *  After initial skipping (if any), this method scans characters until
+ *  it finds <em>aString</em>.  The scanned characters are placed in
+ *  <em>stringValue</em> if that is not null.  If <em>aString</em> is
+ *  not found, all the characters up to the end of the scanned string
+ *  will be returned.
+ *  <br/>
+ *  Returns YES if anything is scanned, NO otherwise.
  */
 - (BOOL) scanUpToString: (NSString *)string 
 	     intoString: (NSString **)value
@@ -884,7 +955,7 @@ typedef struct {
   return YES;
 }
 
-/*
+/**
  * Returns the string being scanned.
  */
 - (NSString *) string
@@ -892,18 +963,21 @@ typedef struct {
   return _string;
 }
 
-/*
- * Returns the character index at which the scanner
- * will begin the next scanning operation.
+/**
+ * Returns the current position that the scanner has reached in
+ * scanning the string.  This is the position at which the next scan
+ * operation will begin.
  */
 - (unsigned) scanLocation
 {
   return _scanLocation;
 }
 
-/*
- * Set the character location at which the scanner
- * will begin the next scanning operation to anIndex.
+/**
+ * This method sets the location in the scanned string at which the
+ * next scan operation begins.
+ * Raises an NSRangeException if index is beyond the end of the
+ * scanned string.
  */
 - (void) setScanLocation: (unsigned int)anIndex
 {
@@ -914,37 +988,53 @@ typedef struct {
 		format: @"Attempt to set scan location beyond end of string"];
 }
 
-/*
- * Returns YES if the scanner makes a distinction
- * between upper and lower case characters.
+/**
+ * If the scanner is set to be case-sensitive in its scanning of
+ * the string (other than characters to be skipped), this method
+ * returns YES, otherwise it returns NO.
+ * <br/>
+ * The default is for a scanner to <em>not</em> be case sensitive.
  */
 - (BOOL) caseSensitive
 {
   return _caseSensitive;
 }
 
-/*
- * If flag is YES the scanner will consider upper and lower case
- * to be the same during scanning.  If flag is NO the scanner will
- * not make a distinction between upper and lower case characters.
+/**
+ * Sets the case sensitivity of the scanner.
+ * <br/>
+ * Case sensitivity governs matrching of characters being scanned,
+ * but does not effect the characters in the set to be skipped.
+ * <br/>
+ * The default is for a scanner to <em>not</em> be case sensitive.
  */
 - (void) setCaseSensitive: (BOOL)flag
 {
   _caseSensitive = flag;
 }
 
-/*
- * Return a character set object containing the characters the scanner
- * will ignore when searching for the next element to be scanned.
+/**
+ * Returns a set of characters containing those characters that the
+ * scanner ignores when starting any scan operation.  Once a character
+ * not in this set has been encountered during an operation, skipping
+ * is finished, and any further characters from this set that are
+ * found are scanned normally.
+ * <br/>
+ * The default for this is the whitespaceAndNewlineCharacterSet.
  */
 - (NSCharacterSet *) charactersToBeSkipped
 {
   return _charactersToBeSkipped;
 }
 
-/*
- * Set the characters to be ignored when the scanner
- * searches for the next element to be scanned.
+/**
+ * Sets the set of characters that the scanner will skip over at the
+ * start of each scanning operation to be <em>skipSet</em>.
+ * Skipping is performed by literal character matchins - the case
+ * sensitivity of the scanner does not effect it.
+ * If this is set to nil, no skipping is done.
+ * <br/>
+ * The default for this is the whitespaceAndNewlineCharacterSet.
  */
 - (void) setCharactersToBeSkipped: (NSCharacterSet *)aSet
 {
@@ -953,18 +1043,20 @@ typedef struct {
     [_charactersToBeSkipped methodForSelector: memSel];
 }
 
-/*
- * Returns a dictionary object containing the locale
- * information used by the scanner.
+/**
+ * Returns the locale set for the scanner, or nil if no locale has
+ * been set.  A scanner uses it's locale to alter the way it handles
+ * scanning - it uses the NSDecimalSeparator value for scanning
+ * numbers.
  */
 - (NSDictionary *) locale
 {
   return _locale;
 }
 
-/*
- * Set the dictionary containing the locale
- * information used by the scanner to localeDictionary.
+/**
+ * This method sets the locale used by the scanner to <em>aLocale</em>.
+ * The locale may be set to nil.
  */
 - (void) setLocale: (NSDictionary *)localeDictionary
 {

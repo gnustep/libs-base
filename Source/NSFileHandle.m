@@ -487,9 +487,24 @@ NSString * const NSFileHandleOperationException
 }
 
 /**
- * Return a flag to indicate whether compression has been turned on for
- * the file handle ... this is only available on systems where GNUstep
- * was built with 'zlib' support for compressing/decompressing data.
+ * <p>
+ *   Return a flag to indicate whether compression has been turned on for
+ *   the file handle ... this is only available on systems where GNUstep
+ *   was built with 'zlib' support for compressing/decompressing data.
+ * </p>
+ * <p>
+ *   On systems which support it, this method may be called after
+ *   a file handle has been initialised to turn on compression or
+ *   decompression of the data being written/read.
+ * </p>
+ * Returns YES on success, NO on failure.<br />
+ * Reasons for failure are - <br />
+ * <list>
+ *   <item>Not supported/built in to GNUstep</item>
+ *   <item>File handle has been closed</item>
+ *   <item>File handle is open for both read and write</item>
+ *   <item>Failure in compression/decompression library</item>
+ * </list>
  */
 - (BOOL) useCompression
 {

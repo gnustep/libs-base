@@ -816,6 +816,12 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 @end
 
 @implementation NSDeserializer (GNUstep)
+/**
+ * This method turns on/off uniquing of strings as they are
+ * deserialized from data objects.  The uniquing mechanism
+ * employs the GNUstep-specific functions documented with
+ * the NSCountedSet class.
+ */
 + (void) uniquing: (BOOL)flag
 {
   if (flag == YES)

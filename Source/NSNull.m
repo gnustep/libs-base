@@ -24,11 +24,11 @@
    $Date$ $Revision$
    */ 
 
-/*
- * An object to use as a placeholder - in collections for instance.
- */
 #include <Foundation/NSNull.h>
 
+/**
+ * An object to use as a placeholder - in collections for instance.
+ */
 @implementation	NSNull
 
 static NSNull	*null = 0;
@@ -51,6 +51,10 @@ static NSNull	*null = 0;
     }
 }
 
+/**
+ * Return an object that can be used as a placeholder in a collection.
+ * This method always returns the same object.
+ */
 + (NSNull*) null
 {
   return null;

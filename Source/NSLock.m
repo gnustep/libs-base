@@ -67,6 +67,16 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // NSLock class
 // Simplest lock for protecting critical sections of code
 
+/**
+ * An NSLock is used in multi-threaded applications to protect critical
+ * pieces of code. While one thread holds a lock within a piece of code,
+ * another thread cannot execute that code until the first thread has
+ * given up it's hold on the lock. The limitation of NSLock is that
+ * you can only lock an
+ * NSLock once and it must be unlocked before it can be aquired again.<br />
+ * Other lock classes, notably NSRecursiveLock, have
+ * different restrictions.
+ */
 @implementation NSLock
 
 // Designated initializer
@@ -106,8 +116,12 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }
 }
 
-// Try to acquire the lock
-// Does not block
+/**
+ * Attempts to aquire a lock, but returns immediately if the lock
+ * cannot be aquired. It returns YES if the lock is aquired. It returns
+ * NO if the lock cannot be aquired or if the current thread already has
+ * the lock.
+ */
 - (BOOL) tryLock
 {
   /* Return NO if we're already locked */
@@ -124,6 +138,12 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   return YES;
 }
 
+/**
+ * Attempts to aquire a lock before the date limit passes. It returns YES
+ * if it can. It returns NO if it cannot, or if the current thread already
+ * has the lock (but it waits until the time limit is up before returning
+ * NO).
+ */
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
   int x;
@@ -150,7 +170,9 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   return YES;
 }
 
-// NSLocking protocol
+/**
+ * Attempts to aquire a lock, and waits until it can do so.
+ */
 - (void) lock
 {
   CHECK_RECURSIVE_LOCK(_mutex);
@@ -457,16 +479,18 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 @end
 
 
-// NSRecursiveLock
-// Allows the lock to be recursively acquired by the same thread
-//
-// If the same thread locks the mutex (n) times then that same 
-// thread must also unlock it (n) times before another thread 
-// can acquire the lock.
 
+/**
+ * See NSLock for more information about what a lock is. A recursive
+ * lock extends NSLock in that you can lock a recursive lock multiple
+ * times. Each lock must be balanced by a cooresponding unlock, and the
+ * lock is not released for another thread to aquire until the last
+ * unlock call is made (corresponding to the first lock message).
+ */
 @implementation NSRecursiveLock
 
-// Designated initializer
+/** <init />
+ */
 - (id) init
 {
   self = [super init];
@@ -503,8 +527,11 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }
 }
 
-// Try to acquire the lock
-// Does not block
+/**
+ * Attempts to aquire a lock, but returns NO immediately if the lock
+ * cannot be aquired. It returns YES if the lock is aquired. Can be
+ * called multiple times to make nested locks.
+ */
 - (BOOL) tryLock
 {
   // Ask the runtime to acquire a lock on the mutex
@@ -514,6 +541,11 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     return YES;
 }
 
+/**
+ * Attempts to aquire a lock before the date limit passes. It returns
+ * YES if it can. It returns NO if it cannot
+ * (but it waits until the time limit is up before returning NO).
+ */
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
   while (objc_mutex_trylock(_mutex) == -1)

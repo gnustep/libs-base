@@ -1,5 +1,5 @@
-/** Stream of bytes class for serialization and persistance in GNUStep
-   Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+/**
+   Copyright (C) 1995, 1996, 1997, 2000, 2002 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -1575,11 +1575,40 @@ failure:
   [self setLength: [self length]+extraLength];
 }
 
+/**
+ * <p>
+ *   Sets the length of the NSMutableData object.
+ *   If the length is increased, the newly allocated data area
+ *   is filled with zero bytes.
+ * </p>
+ * <p>
+ *   This is a 'primitive' method ... you need to implement it
+ *   if you write a subclass of NSMutableData.
+ * </p>
+ */
 - (void) setLength: (unsigned int)size
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * <p>
+ *   Returns a pointer to the data storage of the receiver.<br />
+ *   Modifications to the memory pointed to by this pointer will
+ *   change the contents of the object.  It is important that
+ *   your code should not try to modify the memory beyond the
+ *   number of bytes given by the <code>-length</code> method.
+ * </p>
+ * <p>
+ *   NB. if the object is released, or any method that changes its
+ *   size or content is called, then the pointer previously returned
+ *   by this method may cease to be valid.
+ * </p>
+ * <p>
+ *   This is a 'primitive' method ... you need to implement it
+ *   if you write a subclass of NSMutableData.
+ * </p>
+ */
 - (void*) mutableBytes
 {
   [self subclassResponsibility: _cmd];
@@ -1604,9 +1633,16 @@ failure:
   [self appendBytes: [other bytes] length: [other length]];
 }
 
-
-// Modifying Data
-
+/**
+ * Replaces the bytes of data in the specified range with a
+ * copy of the new bytes supplied.<br />
+ * If the location of the range specified lies beyond the end
+ * of the data (<code>[self length] &lt; range.location</code>)
+ * then a range exception is raised.<br />
+ * Otherwise, if the range specified extends beyond the end
+ * of the data, then the size of the data is increased to
+ * accomodate the new bytes.<br />
+ */
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
 {

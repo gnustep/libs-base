@@ -689,7 +689,65 @@ static BOOL double_release_check_enabled = NO;
 
 
 
-
+/**
+ * <p>
+ *   <code>NSObject</code> is the root class (a root class is
+ *   a class with no superclass) of the gnustep base library
+ *   class hierarchy, so all classes normally inherit from
+ *   <code>NSObject</code>.  There is an exception though:
+ *   <code>NSProxy</code> (which is used for remote messaging)
+ *   does not inherit from <code>NSObject</code>.
+ * </p>
+ * <p>
+ *   Unless you are really sure of what you are doing, all
+ *   your own classes should inherit (directly or indirectly)
+ *   from <code>NSObject</code> (or in special cases from
+ *   <code>NSProxy</code>).  <code>NSObject</code> provides
+ *   the basic common functionality shared by all gnustep
+ *   classes and objects.
+ * </p>
+ * <p>
+ *   The essential methods which must be implemented by all
+ *   classes for their instances to be usable within gnustep
+ *   are declared in a separate protocol, which is the
+ *   <code>NSObject</code> protocol.  Both
+ *   <code>NSObject</code> and <code>NSProxy</code> conform to
+ *   this protocol, which means all objects in a gnustep
+ *   application will conform to this protocol (btw, if you
+ *   don't find a method of <code>NSObject</code> you are
+ *   looking for in this documentation, make sure you also
+ *   look into the documentation for the <code>NSObject</code>
+ *   protocol).
+ * </p>
+ * <p>
+ *   Theoretically, in special cases you might need to
+ *   implement a new root class.  If you do, you need to make
+ *   sure that your root class conforms (at least) to the
+ *   <code>NSObject</code> protocol, otherwise it will not
+ *   interact correctly with the gnustep framework.  Said
+ *   that, I must note that I have never seen a case in which
+ *   a new root class is needed.
+ * </p>
+ * <p>
+ *   <code>NSObject</code> is a root class, which implies that
+ *   instance methods of <code>NSObject</code> are treated in
+ *   a special way by the Objective-C runtime.  This is an
+ *   exception to the normal way messaging works with class
+ *   and instance methods: if the Objective-C runtime can't
+ *   find a class method for a class object, as a last resort
+ *   it looks for an instance method of the root class with
+ *   the same name, and executes it if it finds it.  This
+ *   means that instance methods of the root class (such as
+ *   <code>NSObject</code>) can be performed by class objects
+ *   which inherit from that root class !  This can only
+ *   happen if the class doesn't have a class method with the
+ *   same name, otherwise that method - of course - takes the
+ *   precedence.  Because of this exception,
+ *   <code>NSObject</code>'s instance methods are written in
+ *   such a way that they work both on <code>NSObject</code>'s
+ *   instances and on class objects.
+ * </p>
+ */
 @implementation NSObject
 
 + (void) _becomeMultiThreaded: (NSNotification)aNotification
@@ -768,8 +826,10 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Simply calls the +allocWithZone: method passing it
- * NSDefaultMallocZone() as an argument.
+ * Allocates a new instance of the receiver from the default
+ * zone, by invoking +allocWithZone: with
+ * <code>NSDefaultMallocZone()</code> as the zone argument.<br />
+ * Returns the created instance.
  */
 + (id) alloc
 {
@@ -777,7 +837,39 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Creates a new instance of a class by calling NSAllocateObject()
+ * This is the basic method to create a new instance.  It
+ * allocates a new instance of the receiver from the specified
+ * memory zone.  
+ * <p>
+ *   Memory for an instance of the receiver is allocated; a
+ *   pointer to this newly created instance is returned.  All
+ *   instance variables are set to 0 except the
+ *   <code>isa</code> pointer which is set to point to the
+ *   object class.  No initialization of the instance is
+ *   performed: it is your responsibility to initialize the
+ *   instance by calling an appropriate <code>init</code>
+ *   method.  If you are not using the garbage collector, it is
+ *   also your responsibility to make sure the returned
+ *   instance is destroyed when you finish using it, by calling
+ *   the <code>release</code> method to destroy the instance
+ *   directly, or by using <code>autorelease</code> and
+ *   autorelease pools.
+ * </p>
+ * <p>
+ *  You do not normally need to override this method in
+ *  subclasses, unless you are implementing a class which for
+ *  some reasons silently allocates instances of another class
+ *  (this is typically needed to implement class clusters and
+ *  similar design schemes).
+ * </p>
+ * <p>
+ *   If you have turned on debugging of object allocation (by
+ *   calling the <code>GSDebugAllocationActive</code>
+ *   function), this method will also update the various
+ *   debugging counts and monitors of allocated objects, which
+ *   you can access using the <code>GSDebugAllocation...</code>
+ *   functions.
+ * </p>
  */
 + (id) allocWithZone: (NSZone*)z
 {
@@ -793,7 +885,67 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Creates and returns a new instance by calling +alloc and -init
+ * <p>
+ *   This method is a short-hand for alloc followed by init, that is,
+ * </p>
+ * <p><code>
+ *    NSObject *object = [NSObject new];
+ * </code></p>
+ * is exactly the same as 
+ * <p><code>
+ *    NSObject *object = [[NSObject alloc] init];
+ * </code></p>
+ * <p>
+ *   This is a general convention: all <code>new...</code>
+ *   methods are supposed to return a newly allocated and
+ *   initialized instance, as would be generated by an
+ *   <code>alloc</code> method followed by a corresponding
+ *   <code>init...</code> method.  Please note that if you are 
+ *   not using a garbage collector, this means that instances 
+ *   generated by the <code>new...</code> methods are not 
+ *   autoreleased, that is, you are responsible for releasing 
+ *   (autoreleasing) the instances yourself.  So when you use 
+ *   <code>new</code> you typically do something like:
+ * </p>
+ * <p>
+ *   <code>
+ *      NSMutableArray *array = AUTORELEASE ([NSMutableArray new]);
+ *   </code>
+ * </p>
+ * <p>
+ *   You do no normally need to override <code>new</code> in
+ *   subclasses, because if you override <code>init</code> (and
+ *   optionally <code>allocWithZone:</code> if you really
+ *   need), <code>new</code> will automatically use your
+ *   subclass methods.
+ * </p>
+ * <p>
+ *   You might need instead to define new <code>new...</code>
+ *   methods specific to your subclass to match any
+ *   <code>init...</code> specific to your subclass.  For
+ *   example, if your subclass defines an instance method
+ * </p>
+ * <p>
+ *   <code>initWithName:</code>
+ * </p> 
+ * <p>
+ *   it might be handy for you to have a class method 
+ * </p>
+ * <p>
+ *    <code>newWithName:</code>
+ * </p> 
+ * <p>
+ *   which combines <code>alloc</code> and
+ *   <code>initWithName:</code>.  You would implement it as follows:
+ * </p>
+ * <p>
+ *   <code> 
+ *     + (id) newWithName: (NSString *)aName 
+ *     { 
+ *       return [[self alloc] initWithName: aName]; 
+ *     } 
+ *   </code>
+ * </p>
  */
 + (id) new
 {
@@ -836,15 +988,85 @@ static BOOL double_release_check_enabled = NO;
 /**
  * Deallocates the receiver by calling NSDeallocateObject() with self
  * as the argument.<br />
- * You should normally call the superclass implementation of this method
- * when you override it in a subclass, or the memory occupied by your
- * object will not be released.<br />
- * If you have allocated the memory using a non-standard mechanism, you
- * will not call the superclass (NSObject) implementation of the method
- * as you will need to handle the deallocation specially.<br />
- * In some circumstances, an object may wish to prevent itsself from
- * being deallocated, it can do this simply be refraining from calling
- * the superclass implementation.
+ * <p>
+ *   You should normally call the superclass implementation of this method
+ *   when you override it in a subclass, or the memory occupied by your
+ *   object will not be released.
+ * </p>
+ * <p>
+ *   <code>NSObject</code>'s implementation of this method
+ *   destroys the receiver, by returning the memory allocated
+ *   to the receiver to the system.  After this method has been
+ *   called on an instance, you must not refer the instance in
+ *   any way, because it does not exist any longer.  If you do,
+ *   it is a bug and your program might even crash with a
+ *   segmentation fault.
+ * </p>
+ * <p>
+ *   If you have turned on the debugging facilities for
+ *   instance allocation, <code>NSObject</code>'s
+ *   implementation of this method will also update the various
+ *   counts and monitors of allocated instances (see the
+ *   <code>GSDebugAllocation...</code> functions for more
+ *   info).
+ * </p>
+ * <p>
+ *   Normally you are supposed to manage the memory taken by
+ *   objects by using the high level interface provided by the
+ *   <code>retain</code>, <code>release</code> and
+ *   <code>autorelease</code> methods (or better by the
+ *   corresponding macros <code>RETAIN</code>,
+ *   <code>RELEASE</code> and <code>AUTORELEASE</code>), and by
+ *   autorelease pools and such; whenever the
+ *   release/autorelease mechanism determines that an object is
+ *   no longer needed (which happens when its retain count
+ *   reaches 0), it will call the <code>dealloc</code> method
+ *   to actually deallocate the object.  This means that normally, 
+ *   you should not need to call <code>dealloc</code> directly as 
+ *   the gnustep base library automatically calls it for you when 
+ *   the retain count of an object reaches 0.
+ * </p>
+ * <p>
+ *   Because the <code>dealloc</code> method will be called
+ *   when an instance is being destroyed, if instances of your
+ *   subclass use objects or resources (as it happens for most
+ *   useful classes), you must override <code>dealloc</code> in
+ *   subclasses to release all objects and resources which are
+ *   used by the instance, otherwise these objects and
+ *   resources would be leaked.  In the subclass
+ *   implementation, you should first release all your subclass
+ *   specific objects and resources, and then invoke super's
+ *   implementation (which will do the same, and so on up in
+ *   the class hierarchy to <code>NSObject</code>'s
+ *   implementation, which finally destroys the object).  Here
+ *   is an example of the implementation of
+ *   <code>dealloc</code> for a subclass whose instances have a
+ *   single instance variable <code>name</code> which needs to
+ *   be released when an instance is deallocated:
+ * </p>
+ * <p>
+ *   <code>
+ *   - (void) dealloc
+ *   {
+ *     RELEASE (name);
+ *     [super dealloc];
+ *   }
+ *   </code>
+ *  </p>
+ *  <p>
+ *    <code>dealloc</code> might contain code to release not
+ *    only objects, but also other resources, such as open
+ *    files, network connections, raw memory allocated in other
+ *    ways, etc.
+ *  </p>
+ * <p>
+ *   If you have allocated the memory using a non-standard mechanism, you
+ *   will not call the superclass (NSObject) implementation of the method
+ *   as you will need to handle the deallocation specially.<br />
+ *   In some circumstances, an object may wish to prevent itsself from
+ *   being deallocated, it can do this simply be refraining from calling
+ *   the superclass implementation.
+ * </p>
  */
 - (void) dealloc
 {
@@ -1020,7 +1242,7 @@ static BOOL double_release_check_enabled = NO;
 
 /**
  * Returns a string describing the receiver.  The default implementation
- * gives the class and memory location of the rceiver.
+ * gives the class and memory location of the receiver.
  */
 - (NSString*) description
 {
@@ -1719,6 +1941,11 @@ static BOOL double_release_check_enabled = NO;
     }
 }
 
+/**
+ * The default (NSObject) implementation of this method simply calls
+ * the -description method and discards the locale
+ * information.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
 {
   return [self description];
@@ -1729,6 +1956,11 @@ static BOOL double_release_check_enabled = NO;
   return [self description];
 }
 
+/**
+ * The default (NSObject) implementation of this method simply calls
+ * the -descriptionWithLocale: method and discards the
+ * level information.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
 			     indent: (unsigned)level
 {
@@ -1741,6 +1973,11 @@ static BOOL double_release_check_enabled = NO;
   return [self descriptionWithLocale: aLocale];
 }
 
+/**
+ * The default (NSObject) implementation of this method simply calls
+ * the -descriptionWithLocale:indent: method and appends
+ * the value returned by that method to the output object.
+ */
 - (void) descriptionWithLocale: (NSDictionary*)aLocale
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
