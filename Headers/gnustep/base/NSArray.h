@@ -1,9 +1,6 @@
 /* Interface for NSArray for GNUStep
    Copyright (C) 1994 NeXT Computer, Inc.
    
-   Typed by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: August 1994
-   
    This file is part of the GNU Objective C Class Library.
 
    This library is free software; you can redistribute it and/or
@@ -26,12 +23,15 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Array.h>
+#include <foundation/NSRange.h>
+
+@class NSEnumerator;
 
 @interface NSArray : Array <NSCopying, NSMutableCopying>
 
 + (id) array;
 + (id) arrayWithObject: anObject;
-+ (id) arrayWithObject: firstObject, ...;
++ (id) arrayWithObjects: firstObject, ...;
 - (id) initWithArray: (NSArray*)array;
 - (id) initWithObjects: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects count: (unsigned int)count;
@@ -54,6 +54,9 @@
 - (NSString*) componentsJoinedByString: (NSString*)separator;
 - (NSString*) description;
 
+@end
+
+@interface NSMutableArray : NSArray
 @end
 
 #endif /* __NSArray_h_OBJECTS_INCLUDE */
