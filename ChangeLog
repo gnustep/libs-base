@@ -10,6 +10,8 @@
 	that would just crash.
 	In GSRegisterCurrentThread(), add code to handle the case where the
 	NSThread class has not been initialised.
+	* Source/NSObject.m: NSAllocateObject() raise exception if passed
+	something other than a class to allocate an instance of.
 
 2002-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 
