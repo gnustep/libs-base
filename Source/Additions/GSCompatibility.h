@@ -201,6 +201,7 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
 
 GS_EXPORT NSArray *NSStandardLibraryPaths();
 GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
+GS_EXPORT NSString *GSEncodingName(NSStringEncoding availableEncodingValue);
 
 GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary();
 
