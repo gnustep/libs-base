@@ -1,3 +1,9 @@
+2001-05-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: GSTimeNow() remove volatile typespec and move
+	initialisation of interval in the hope of fixing a problem with
+	float operations.  In any case, the code is tidier.
+
 2001-05-03  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Don't use -lobjc with NeXT_RUNTIME. Check for -lm.

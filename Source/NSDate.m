@@ -117,11 +117,11 @@ NSTimeInterval
 GSTimeNow()
 {
 #if !defined(__MINGW__)
-  volatile NSTimeInterval interval;
+  NSTimeInterval interval;
   struct timeval tp;
 
-  interval = UNIX_REFERENCE_INTERVAL;
   gettimeofday (&tp, NULL);
+  interval = UNIX_REFERENCE_INTERVAL;
   interval += tp.tv_sec;
   interval += (double)tp.tv_usec / 1000000.0;
   return interval;
