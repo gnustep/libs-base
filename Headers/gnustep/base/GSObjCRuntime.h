@@ -323,6 +323,154 @@ GS_EXPORT void	*GSAutoreleasedBuffer(unsigned size);
 /* Getting a system error message on a variety of systems */
 GS_EXPORT const char *GSLastErrorStr(long error_id);
 
+
+
+#ifndef	GS_MAX_OBJECTS_FROM_STACK
+/**
+ * The number of objects to try to get from varargs into an array on
+ * the stack ... if there are more than this, use the heap.
+ * NB. This MUST be a multiple of 2
+ */
+#define	GS_MAX_OBJECTS_FROM_STACK	128
+#endif
+
+/**
+ * <p>This is a macro designed to minimise the use of memory allocation and
+ * deallocation when you need to work with a vararg list of objects.<br />
+ * The objects are unpacked from the vararg list into two 'C' arrays and
+ * then a code fragment you specify is able to make use of them before
+ * that 'C' array is destroyed. 
+ * </p>
+ * <p>The firstObject argument is the name of the formal parameter in your
+ * method or function which precedes the ', ...' denoting variable args.
+ * </p>
+ * <p>The code argument is a piece of objective-c code to be executed to
+ * make use of the objects stored in the 'C' arrays.<br />
+ * When this code is called the unsigned integer '__count' will contain the
+ * number of objects unpacked, the pointer '__objects' will point to
+ * the first object in each pair, and the pointer '__pairs' will point
+ * to an array containing the second halves of the pairs of objects
+ * whose first halves are in '__objects'.<br />
+ * This lets you pack a list of the form 'key, value, key, value, ...'
+ * into an array of keys and an array of values.
+ * </p>
+ */
+#define GS_USEIDPAIRLIST(firstObject, code...) ({\
+  va_list	__ap; \
+  unsigned int	__max = GS_MAX_OBJECTS_FROM_STACK; \
+  unsigned int	__count = 0; \
+  id		__buf[__max]; \
+  id		*__objects = __buf; \
+  id		*__pairs = &__objects[__max/2]; \
+  id		__obj = firstObject; \
+  va_start(__ap, firstObject); \
+  while (__obj != nil && __count < __max) \
+    { \
+      if ((__count % 2) == 0) \
+	{ \
+	  __objects[__count/2] = __obj; \
+	} \
+      else \
+	{ \
+	  __pairs[__count/2] = __obj; \
+	} \
+      __obj = va_arg(__ap, id); \
+      if (++__count == __max) \
+	{ \
+	  while (__obj != nil) \
+	    { \
+	      __count++; \
+	      __obj = va_arg(__ap, id); \
+	    } \
+	} \
+    } \
+  if ((__count % 2) == 1) \
+    { \
+      __pairs[__count/2] = nil; \
+      __count++; \
+    } \
+  va_end(__ap); \
+  if (__count > __max) \
+    { \
+      unsigned int	__tmp; \
+      __objects = (id*)objc_malloc(__count*sizeof(id)); \
+      __pairs = &__objects[__count/2]; \
+      __objects[0] = firstObject; \
+      va_start(__ap, firstObject); \
+      for (__tmp = 1; __tmp < __count; __tmp++) \
+	{ \
+	  if ((__tmp % 2) == 0) \
+	    { \
+	      __objects[__tmp/2] = va_arg(__ap, id); \
+	    } \
+	  else \
+	    { \
+	      __pairs[__tmp/2] = va_arg(__ap, id); \
+	    } \
+	} \
+      va_end(__ap); \
+    } \
+  code; \
+  if (__objects != __buf) objc_free(__objects); \
+})
+
+/**
+ * <p>This is a macro designed to minimise the use of memory allocation and
+ * deallocation when you need to work with a vararg list of objects.<br />
+ * The objects are unpacked from the vararg list into a 'C' array and
+ * then a code fragment you specify is able to make use of them before
+ * that 'C' array is destroyed. 
+ * </p>
+ * <p>The firstObject argument is the name of the formal parameter in your
+ * method or function which precedes the ', ...' denoting variable args.
+ * </p>
+ * <p>The code argument is a piece of objective-c code to be executed to
+ * make use of the objects stored in the 'C' array.<br />
+ * When this code is called the unsigned integer '__count' will contain the
+ * number of objects unpacked, and the pointer '__objects' will point to
+ * the unpacked objects, ie. firstObject followed by the vararg arguments
+ * up to (but not including) the first nil.
+ * </p>
+ */
+#define GS_USEIDLIST(firstObject, code...) ({\
+  va_list	__ap; \
+  unsigned int	__max = GS_MAX_OBJECTS_FROM_STACK; \
+  unsigned int	__count = 0; \
+  id		__buf[__max]; \
+  id		*__objects = __buf; \
+  id		__obj = firstObject; \
+  va_start(__ap, firstObject); \
+  while (__obj != nil && __count < __max) \
+    { \
+      __objects[__count] = __obj; \
+      __obj = va_arg(__ap, id); \
+      if (++__count == __max) \
+	{ \
+	  while (__obj != nil) \
+	    { \
+	      __count++; \
+	      __obj = va_arg(__ap, id); \
+	    } \
+	} \
+    } \
+  va_end(__ap); \
+  if (__count > __max) \
+    { \
+      unsigned int	__tmp; \
+      __objects = (id*)objc_malloc(__count*sizeof(id)); \
+      va_start(__ap, firstObject); \
+      __objects[0] = firstObject; \
+      for (__tmp = 1; __tmp < __count; __tmp++) \
+	{ \
+	  __objects[__tmp] = va_arg(__ap, id); \
+	} \
+      va_end(__ap); \
+    } \
+  code; \
+  if (__objects != __buf) objc_free(__objects); \
+})
+
+
 #endif
 
 #endif /* __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */
