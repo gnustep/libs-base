@@ -43,6 +43,10 @@
 BOOL
 mframe_dissect_call (arglist_t argframe, const char *types,
 		     void (*encoder)(int,void*,const char*,int));
+BOOL
+mframe_dissect_call_opts (arglist_t argframe, const char *types,
+		     void (*encoder)(int,void*,const char*,int),
+			BOOL pass_pointers);
 
 /* Decode the arguments to a method call by calling DECODER, knowing
    what to decode by looking at type string ENCODED_TYPES.  Build an
@@ -53,6 +57,11 @@ void
 mframe_do_call (const char *encoded_types,
 		void(*decoder)(int,void*,const char*),
 		void(*encoder)(int,void*,const char*,int));
+void
+mframe_do_call_opts (const char *encoded_types,
+		void(*decoder)(int,void*,const char*),
+		void(*encoder)(int,void*,const char*,int),
+		BOOL pass_pointers);
 
 /* Decode the return value and pass-by-reference arguments using
    DECODER, knowning what to decode by looking at type string TYPES
@@ -63,5 +72,10 @@ retval_t
 mframe_build_return (arglist_t argframe, const char *types, 
 		     BOOL out_parameters,
 		     void(*decoder)(int,void*,const char*,int));
+retval_t 
+mframe_build_return_opts (arglist_t argframe, const char *types, 
+		     BOOL out_parameters,
+		     void(*decoder)(int,void*,const char*,int),
+		     BOOL pass_pointers);
 
 #endif /* __mframe_h_GNUSTEP_BASE_INCLUDE */

@@ -1,3 +1,21 @@
+Mon Apr 27 15:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/include/mframe.h: Added three new functions to enable passing
+	of pointers using the mframe routines.
+
+	* src/mframe.m: Added mframe_dissect_call_opts(),
+ 	mframe_do_call_opts(), and mframe_build_return_opts() so that we
+ 	may pass pointers to and from functions in other languages rather
+ 	than using the DO behaviour which is to copy a single object when
+ 	given a pointer.
+
+Tue Apr 21 15:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSMethodSignature.m: ([+signatureWithObjCTypes:]) rewritten
+	to use some macros from libFoundation (adapted from gcc) to handle
+	creation of NSMethodSignature objects where the types string passed
+	in does not contain the position information of the arguments.
+
 Thu Apr 16 13:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* checks/client.m: enable testing of DO strucuture return.

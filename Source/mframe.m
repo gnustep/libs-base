@@ -192,8 +192,9 @@ method_types_get_next_argument (arglist_t argf,
    e.g. an argument declared (out char*). */
 
 BOOL
-mframe_dissect_call (arglist_t argframe, const char *type,
-		     void (*encoder)(int,void*,const char*,int))
+mframe_dissect_call_opts (arglist_t argframe, const char *type,
+		     void (*encoder)(int,void*,const char*,int),
+			BOOL pass_pointers)
 {
   unsigned flags;
   char *datum;
@@ -256,11 +257,6 @@ mframe_dissect_call (arglist_t argframe, const char *type,
 	  break;
 
 	case _C_PTR:
-	  /* Handle an argument that is a pointer to a non-char.  But
-	     (void*) and (anything**) is not allowed. */
-	  /* The argument is a pointer to something; increment TYPE
-	       so we can see what it is a pointer to. */
-	  type++;
 	  /* If the pointer's value is qualified as an OUT parameter,
 	     or if it not explicitly qualified as an IN parameter,
 	     then we will have to get the value pointed to again after
@@ -268,11 +264,22 @@ mframe_dissect_call (arglist_t argframe, const char *type,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  /* If the pointer's value is qualified as an IN parameter,
-             or not explicity qualified as an OUT parameter, then
-             encode it. */
-	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*encoder) (argnum, *(void**)datum, type, flags);
+	  if (pass_pointers) {
+	    if ((flags & _F_IN) || !(flags & _F_OUT))
+	      (*encoder) (argnum, datum, type, flags);
+	  }
+	  else {
+	    /* Handle an argument that is a pointer to a non-char.  But
+	       (void*) and (anything**) is not allowed. */
+	    /* The argument is a pointer to something; increment TYPE
+		 so we can see what it is a pointer to. */
+	    type++;
+	    /* If the pointer's value is qualified as an IN parameter,
+	       or not explicity qualified as an OUT parameter, then
+	       encode it. */
+	    if ((flags & _F_IN) || !(flags & _F_OUT))
+	      (*encoder) (argnum, *(void**)datum, type, flags);
+	  }
 	  break;
 
 	case _C_STRUCT_B:
@@ -301,6 +308,13 @@ mframe_dissect_call (arglist_t argframe, const char *type,
      after the method has finished executing because the execution of
      the method may have changed them.*/
   return out_parameters;
+}
+
+BOOL
+mframe_dissect_call (arglist_t argframe, const char *type,
+		     void (*encoder)(int,void*,const char*,int))
+{
+    return mframe_dissect_call_opts(argframe, type, encoder, NO);
 }
 
 
@@ -370,12 +384,17 @@ mframe_dissect_call (arglist_t argframe, const char *type,
      pass-by-reference parameters.  The ENCODER function should place
      the value at memory location DATA wherever the user wants to
      record the ARGNUM'th return value.
+
+  PASS_POINTERS is a flag saying whether pointers should be passed
+  as pointers (for local stuff) or should be assumed to point to a
+  single data item (for distributed objects).
 */
 
 void
-mframe_do_call (const char *encoded_types,
+mframe_do_call_opts (const char *encoded_types,
 		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int))
+		void(*encoder)(int,void*,const char*,int),
+		BOOL pass_pointers)
 {
   /* The method type string obtained from the target's OBJC_METHOD 
      structure for the selector we're sending. */
@@ -584,11 +603,6 @@ mframe_do_call (const char *encoded_types,
 	  break;
 
 	case _C_PTR:
-	  /* Handle an argument that is a pointer to a non-char.  But
-	     (void*) and (anything**) is not allowed. */
-	  /* The argument is a pointer to something; increment TYPE
-	       so we can see what it is a pointer to. */
-	  tmptype++;
 	  /* If the pointer's value is qualified as an OUT parameter,
 	     or if it not explicitly qualified as an IN parameter,
 	     then we will have to get the value pointed to again after
@@ -596,16 +610,27 @@ mframe_do_call (const char *encoded_types,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  /* Allocate some memory to be pointed to, and to hold the
-	     value.  Note that it is allocated on the stack, and
-	     methods that want to keep the data pointed to, will have
-	     to make their own copies. */
-	  *(void**)datum = alloca (objc_sizeof_type (tmptype));
-	  /* If the pointer's value is qualified as an IN parameter,
-             or not explicity qualified as an OUT parameter, then
-             decode it. */
-	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*decoder) (argnum, *(void**)datum, tmptype);
+	  if (pass_pointers) {
+	    if ((flags & _F_IN) || !(flags & _F_OUT))
+	      (*decoder) (argnum, datum, tmptype);
+	  }
+	  else {
+	    /* Handle an argument that is a pointer to a non-char.  But
+	       (void*) and (anything**) is not allowed. */
+	    /* The argument is a pointer to something; increment TYPE
+		 so we can see what it is a pointer to. */
+	    tmptype++;
+	    /* Allocate some memory to be pointed to, and to hold the
+	       value.  Note that it is allocated on the stack, and
+	       methods that want to keep the data pointed to, will have
+	       to make their own copies. */
+	    *(void**)datum = alloca (objc_sizeof_type (tmptype));
+	    /* If the pointer's value is qualified as an IN parameter,
+	       or not explicity qualified as an OUT parameter, then
+	       decode it. */
+	    if ((flags & _F_IN) || !(flags & _F_OUT))
+	      (*decoder) (argnum, *(void**)datum, tmptype);
+	  }
 	  break;
 
 	case _C_STRUCT_B:
@@ -684,11 +709,16 @@ mframe_do_call (const char *encoded_types,
       break;
 
     case _C_PTR:
-      /* The argument is a pointer to something; increment TYPE
-	 so we can see what it is a pointer to. */
-      tmptype++;
-      /* Encode the value that was pointed to. */
-      (*encoder) (-1, *(void**)retframe, tmptype, flags);
+      if (pass_pointers) {
+        (*encoder) (-1, retframe, tmptype, flags);
+      }
+      else {
+	/* The argument is a pointer to something; increment TYPE
+	   so we can see what it is a pointer to. */
+	tmptype++;
+	/* Encode the value that was pointed to. */
+	(*encoder) (-1, *(void**)retframe, tmptype, flags);
+      }
       break;
 
     case _C_STRUCT_B:
@@ -816,6 +846,14 @@ mframe_do_call (const char *encoded_types,
   return;
 }
 
+void
+mframe_do_call (const char *encoded_types,
+		void(*decoder)(int,void*,const char*),
+		void(*encoder)(int,void*,const char*,int))
+{
+    mframe_do_call_opts(encoded_types, decoder, encoder, NO);
+}
+
 
 /* mframe_build_return()
 
@@ -835,10 +873,11 @@ mframe_do_call (const char *encoded_types,
 */
 
 retval_t 
-mframe_build_return (arglist_t argframe, 
+mframe_build_return_opts (arglist_t argframe, 
 		     const char *type, 
 		     BOOL out_parameters,
-		     void(*decoder)(int,void*,const char*,int))
+		     void(*decoder)(int,void*,const char*,int),
+		     BOOL pass_pointers)
 {
   /* A pointer to the memory that will hold the return value. */
   retval_t retframe = NULL;
@@ -955,17 +994,22 @@ mframe_build_return (arglist_t argframe,
 	  switch (*tmptype)
 	    {
 	    case _C_PTR:
-	      /* We are returning a pointer to something. */
-	      /* Increment TYPE so we can see what it is a pointer to. */
-	      tmptype++;
-	      /* Allocate some memory to hold the value we're pointing to. */
-	      *(void**)retframe = 
-		objc_malloc (objc_sizeof_type (tmptype));
-	      /* We are responsible for making sure this memory gets free'd
-		 eventually.  Ask MallocAddress class to autorelease it. */
-	      [MallocAddress autoreleaseMallocAddress: *(void**)retframe];
-	      /* Decode the return value into the memory we allocated. */
-	      (*decoder) (-1, *(void**)retframe, tmptype, flags);
+	      if (pass_pointers) {
+		(*decoder) (-1, retframe, tmptype, flags);
+	      }
+	      else {
+		/* We are returning a pointer to something. */
+		/* Increment TYPE so we can see what it is a pointer to. */
+		tmptype++;
+		/* Allocate some memory to hold the value we're pointing to. */
+		*(void**)retframe = 
+		  objc_malloc (objc_sizeof_type (tmptype));
+		/* We are responsible for making sure this memory gets free'd
+		   eventually.  Ask MallocAddress class to autorelease it. */
+		[MallocAddress autoreleaseMallocAddress: *(void**)retframe];
+		/* Decode the return value into the memory we allocated. */
+		(*decoder) (-1, *(void**)retframe, tmptype, flags);
+	      }
 	      break;
 
 	    case _C_STRUCT_B: 
@@ -1118,5 +1162,14 @@ mframe_build_return (arglist_t argframe,
 
   /* Return the retval_t pointer to the return value. */
   return retframe;
+}
+
+retval_t 
+mframe_build_return (arglist_t argframe, 
+		     const char *type, 
+		     BOOL out_parameters,
+		     void(*decoder)(int,void*,const char*,int))
+{
+    return mframe_build_return_opts(argframe,type,out_parameters,decoder,NO);
 }
 
