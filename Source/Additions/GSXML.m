@@ -153,7 +153,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
  * [n1 makePI: @"pi1" content: @"this is a process instruction"];
  * [n1 makeChildWithNamespace: nil name: @"key" content: @"Year Of Birth"];
  * [n1 makeChildWithNamespace: nil name: @"integer" content: @"65"];
- * [n1 makeChildWithnamespace: nil name: @"key" content: @"Pets Names"];
+ * [n1 makeChildWithNamespace: nil name: @"key" content: @"Pets Names"];
  * </example>
  */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
