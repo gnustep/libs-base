@@ -884,10 +884,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 #if	GS_HAVE_I64
 	  bigval = val;
 #else
-#if	GS_WORDS_BIGENDIAN == 0
-	  val = GSSwapI64(val);
-#endif
-	  bigval = *(gsu32*)&val;
+	  val = GSSwapBigI64ToHost(val);
 #endif
 	  break;
 	}
@@ -900,9 +897,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 #if	GS_HAVE_I128
 	  bigval = val;
 #else
-#if	GS_WORDS_BIGENDIAN == 0
-	  val = GSSwapI128(val);
-#endif
+	  val = GSSwapBigI128ToHost(val);
 #if	GS_HAVE_I64
 	  bigval = *(gsu64*)&val;
 #else
