@@ -1,0 +1,324 @@
+@ifset TODO_ONLY
+@chapter GNU Objective-C Class Library To Do list, and Questions.
+@c set the vars GOBJC_VERSION and GCC_VERSION
+@include version.texi
+@end ifset
+
+@section Projects Looking for Volunteers
+
+If you think you can do one of these projects, please let me know.  Your
+help is greatly appreciated!  Send email to
+@samp{mccallum@@gnu.ai.mit.edu}. 
+
+@itemize
+
+@item Make the GNU Objective C runtime properly initialize the class
+pointer of statically-created string objects (i.e. the string objects
+created with the syntax @samp{@@"This is a constant string object"}).
+See the relevant comments in gcc/objc-act.c.  Once we get this working
+I'll release the suite of String classes that I've already written.
+
+Please!  Someone?  I want to do this soon so that we can get the ensuing
+interface changes done before too many people write code based on the
+current deprecated char-pointer interfaces.
+
+@item Make the GNU Objective C runtime thread-safe.  (Again, someone?
+We really need this.)
+
+@item Write a test-suite for the library.  Use dejagnu.
+
+@item Write a proper name server for SocketPort's.  Currently we're just
+hashing the name to a socket port number---we could get unwanted hash
+collisions.  This will also allow us to name a SocketPort after it's
+been created.
+
+@item Make SocketPort more reliable than UDP.
+
+@item Add some features to the compiler:  
+@enumerate
+@item You can't add __attribute__'s to methods.  I want to use: 
+@smallexample
+   - (int) writeFormat: (const char *)format, ... 
+       __attribute__ ((format (printf, 1, 2)));
+   - (int) readFormat: (const char *)format, ...
+       __attribute__ ((format (scanf, 1, 2)));
+@end smallexample
+@item I would like to be able to use a function name/pointer as an
+argument to @@encode() and get a type string like the selector types.
+@end enumerate
+
+@item Notification registration classes, notification classes.  
+
+@item Write more/better random number generators.  Make them conform to
+the protocol <RandomGenerating>.  See RNGAdditiveCongruential.
+
+@item Write user-visible random number classes in the spirit of the
+@samp{Random} class.  Look at Smalltalk's ProbabilityDistribution
+classes, and think about replacing the @samp{Random} class with
+something more like these.  How about Poisson and Gaussian distributions
+also?
+
+@end itemize
+
+
+@section My To Do's
+
+@itemize @bullet
+
+@item Many code fixes and cleanups, indicated with @samp{xxx} in the source.
+
+@item In remote object messaging, send exceptions back to the requestor.
+I'm waiting for gcc 2.7 exceptions.
+
+@item Add Coding methods to all the other collection classes.
+
+@item Find method for detecting NeXT vs GNU runtime.  Put it in
+@samp{configure.in} and define @samp{NeXT_runtime}.
+
+@item
+The LAMBDA macro doesn't work on all systems.  Request a change to gcc
+that make something like LAMBDA work on all systems.
+
+@item
+Possibly change @code{-(int)compare:anObject} for Collection.  How
+should non-Indexed collections be ordered?
+
+@item
+Think about restructuring the Collection heirarchy.  We need an abstract
+class for collections that are ordered, but whose order is fixed by the
+-compare: method, i.e. not user-settable.  We need non-mutable version
+of the classes.  The implementation of this stuff is crying out for
+multiple inheritance or protocols-with-implementation!
+
+@item
+Finish HashTable.m.  Implement freeKeys:values: (What is this supposed
+to do anyway?).  Handle archiving of atom string, "%", keys.
+
+@item
+Finish Time.m.  Many methods are not yet implemented.
+
+@item
+Write a good hash function for floats and doubles.
+@c This from
+@c libg++.texi: @code{unsigned int foldhash(double x);} a hash function for
+@c doubles that exclusive-or's the first and second words of x, returning
+@c the result as an integer.
+
+@item
+Many implementations could be made more efficient.  Libobjects hasn't
+been efficiency tuned at all.  Overridding more methods in certain
+classes could make things more efficient (especially EltNodeCollector).
+SplayTree's could be done using top-down splaying.  collhash could be
+completely reimplemented.  ...and a lot more...
+
+@item
+Fix bugs that arise when double's are included in the elt union.  
+
+@item
+Fix all the subclassResponsibility comments in objects/*.h
+
+@c @item
+@c Look at __gcc_bcmp in libgcc2.c.
+
+@item
+I will finish libobjects documentation.
+
+@end itemize
+
+@c ==================================================================
+@section Questions
+
+I would greatly appreciate your feedback on the questions
+below.  Please email your thoughts to mccallum@@gnu.ai.mit.edu.
+
+@itemize @bullet
+
+@item
+I want to put method names in texinfo indices, but the colons in the
+method names are interfering with info's notion of menu item names and
+node names.  Help.  Any ideas?  (Kresten?)
+
+@item
+I need to read through al the enumState code again and clean it up.
+Perhaps we'd like an Iterator class to use as a wrapper around the
+enumState functionality?  The NIH Class Library organizes things this
+way. 
+
+@item
+Should we keep the -safe... enumeration methods?  They sure do add a
+lot of clutter to the protocols.  If we got rid of them people would
+have to alloc an Array, copy the contents, and free the Array
+themselves. 
+
+@item
+What would people think about removing the ...Object methods, and just
+having the ...Element methods instead?  It might be a bit more difficult
+to use, but it would reduce clutter significantly.  The ...Element
+methods are more efficient to use anyway, since most ...Object methods
+are wrappers around ...Element calls.  I'm not sure what I think we
+should do.
+
+Here's an idea: Define the ...Object methods as macros.  But we need a
+new macro scheme that works for methods instead of functions.  We would
+need something with the following functionality:
+@smallexample
+#define [REC replaceObject: OLDOBJ with: NEWOBJ] \
+        ([REC replaceElement:(elt)(OLDOBJ) with:(elt)(NEWOBJ)].id_u)
+@end smallexample
+The issue of macros for methods has been mentioned in email
+found in the gnu-objc-issues archive, in the file @samp{preprocessor}.
+
+@item
+It would be nice to have more error checking on the types going in and
+out of a collection.  When some code tries to put a float into a
+collector initialized to hold integers, it would be nice to catch that.
+Perhaps just some macros that will do the appropriate checks?  It would
+also be nice if elt's returned from methods were automatically casted to
+the correct type.
+
+It might be good to use something like this (from the gcc
+PROJECTS file):
+@example
+* A way of defining a structure containing a union, in which the choice
+of union alternative is controlled by a previous structure component.
+
+Here is a possible syntax for this.
+
+struct foo @{
+  enum @{ INT, DOUBLE @} code;
+  auto union @{ case INT: int i; case DOUBLE: double d;@} value : code;
+@};
+@end example
+
+This has the disadvantage that now elt's will take up more than one
+word. 
+
+What I would prefer is something more radical:  Some efficient way to
+enable int's, float's to receive Objective-C messages.  Then I wouldn't
+have to worry about any of these horrible elt typing issues; I wouldn't
+have to worry about all the ...Object ...Element method name
+duplication; I wouldn't have to worry about the inefficiency of having
+all the ...Object methods just be covers for the ...Element methods.
+Lots of other Objective-C code would find this useful too.  It has
+the advantage of fixing the previous question also (about removing the
+...Element ...Object method duplication).  We need Objective-C objects
+that can live on the stack.
+
+For now, I've worked out a ObjC++ solution to this with constructors and
+casting operators.  Now I'm just waiting for Kresten to finish ObjC++.
+
+@item
+Perhaps we should put more safety checks into LinkedList,
+BinaryTree, etc:  Check that node is not already part of another
+collection (by checking that neighbor pointers are nil?)  In method
+"insertObject:newObject after:oldObject" make sure that oldObject is a
+member of self.  ...It seems that there is a lot of potential for
+nasty bugs with mistakes like these.
+
+@item
+HashTable.m (-initKeyDesc:valueDesc:capacity:)  I tried to make it
+portable, but I didn't try very hard.  Anyone want to send in fixes?
+
+@item
+I fixed -emptyCopy in all the subclasses, but the -emptyCopy scheme
+seems pretty fragile.  How about calling -initFoo: inside -emptyCopy?
+This way we avoid having yet another method in which instance vars
+must be initialized to some consistent state.  -allocCopy would never
+even get called.  <<ObjC insiders: This is a less well-expressed
+version of what we've just been discussing in email.>>
+
+@item
+The situation with LinkedListNode and LinkedListEltNode, (and the
+analagous classes for BinaryTree's and RBTree's) are just crying out
+for multiple inheritance.  Anyone have ideas that are prettier than my
+quick fix using #include ?  Anyone have an alternate organization that
+doesn't need multiple inheritance?
+
+@item
+Somes classes, like RBTree, depend on a certain ordering of elements
+to maintain internal consistency.  How should we define the behavior
+of methods whose names imply that the user can set the ordering of
+elements independent of these constraints? (like -appendElement: or
+-insertElement:atIndex: for instance).  I see three possibilities:
+@enumerate
+ @item The methods do what they say.  Give the user the power to
+override the default ordering.
+ @item The methods do not do what they say, but call addElement:
+instead.  This lets the class maintain its internal consistency, but
+it has the potential to be a bit confusing to the user.  What would
+happen if the user sent a sort message to such a class, for instance?
+ @item The methods trigger a -shouldNotImplement: error.  This solution
+perhaps best expresses the reality of the situation, but it's a bit
+strange for a class to signal an error on a method which is in a
+protocol the class conforms to.
+@end enumerate
+  Currently I'm using solution #1 (in most classes?).
+
+@item
+I created libobjects.texi by copying libg++.texi.  Some of the text
+is taken verbatim.  Is this a problem?
+
+@item
+If you don't like the organization of the documentation and you have
+suggestions for changes, please say so now, not after it's all been
+written. 
+
+@item
+Does anyone really miss the ability to set the comparison function
+independent of the element encoding?  If it's really important we can
+come up with ways to do this and still be able to archive comparison
+functions.
+
+@item
+Something like this needed?
+- elementDidChange: (elt*)elementPtr;
+Currently you have to remove, change, add, for some classes.
+
+@c -------------------------------------------------------------------
+@c @section Questions leftover from last release 
+
+@item
+Opinions on the error reporting scheme?  See also
+@samp{checks/test05.m}.  This error reporting scheme will most likely
+change completely as soon as gcc gets exception handling.
+
+@item
+Should I include _comparison_function as an instance variable of
+Collection?  Putting it back in could make some things more efficient,
+but several classes don't have configurable comparisonFunction's
+(i.e. String, LinkedList, BinaryTree, RBTree), so they don't need it.
+
+@item
+I've been told that GNU filenames should be 14 chars or less.  I
+don't want to abbreviate my classnames, but I think using .h
+@@interface files with names different than the class name is even
+worse.  ** I want to keep my unabbreviated filenames!! **  What to do,
+what to do... I can't believe that *all* GNU classnames will be
+limited to 12 characters forever and ever---disgusting.
+
+@end itemize
+
+@c ==================================================================
+@section Changes I'd like in the Objective-C runtime and gcc:
+
+@itemize @bullet
+
+@item
+Make OBJC_MALLOC() and friends public.  Have the runtime and
+Object.m use them.  See objc-malloc.[hm].
+
+@item
+Give hash.[hc] functionality more like collhash.[hc], i.e.:
+Add hash_node_for_key() to hash.h and hash.c.
+Change hash_next() so that more than one enumeration of the contents
+can happen concurrently.
+How about removing cache as a parameter to the hashing functions in
+hash.h and hash.c.  Do the masking on the result of the hash function.
+This seems much neater to me.
+
+@item
+Add a way of defining a structure containing a union, in which the choice
+of union alternative is controlled by a previous structure component.
+(See gcc @samp{PROJECTS} file.)
+
+@end itemize

@@ -1,0 +1,135 @@
+@chapter GNU Objective C Class Library
+
+@c set the vars OBJECTS_VERSION and OBJECTS_GCC_VERSION
+@include version.texi
+
+The GNU Objective C Class Library, version @value{OBJECTS_VERSION}, is now
+available.
+
+@section What is the GNU Objective C Class Library?
+
+It is a library of general-purpose, non-graphical Objective C objects
+designed in the Smalltalk tradition.  It includes collection objects for
+maintaining groups of objects and C types, streams for I/O to various
+destinations, coders for formating objects and C types to streams, ports
+for network packet transmission, distributed objects (remote object
+messaging), pseudo-random number generators, and time handling
+facilities.
+
+@ignore
+So that developers of non-free, commercial programs can use the library,
+the library is released under the GNU Library GPL.
+
+So that it can easily be included in non-free, comercial software, the
+library is released under the GNU Library GPL.
+
+For more details, see the @samp{README} file that comes with the
+distribution.
+@end ignore
+
+@c @section What's new in this release?
+@include news.texi
+
+@section Where can you get it?  How can you compile it?
+
+The libobjects-@value{OBJECTS_VERSION}.tar.gz distribution file has been
+placed on @samp{prep.ai.mit.edu} in @samp{/pub/gnu}, and will be
+appearing on the usual mirror sites.  
+
+@ignore
+The library is available by anonymous ftp at URL:
+@smallexample
+ftp://prep.ai.mit.edu/pub/gnu/libobjects-@value{OBJECTS_VERSION}.tar.gz
+@end smallexample
+Since @samp{prep} is heavily loaded, you are encouraged to use GNU
+mirror sites.  A partial list of mirror sites is at the end of this
+message.
+@end ignore
+
+The library requires gcc @value{OBJECTS_GCC_VERSION} or higher.  The
+library does not work with the NEXTSTEP 3.2 compiler because that
+version of NeXT's cc cannot handle nested functions.  Until a later
+release from NeXT, NEXTSTEP users will have to install gcc.  See the
+@samp{INSTALL} file for more instructions about compiling and installing
+the library.
+
+The library has been successfully compiled and tested with the following
+configurations:
+@smallexample
+  mips-sgi-irix5.2
+  sparc-sun-sunos4.1.3
+  m68k-next-nextstep3.0
+@end smallexample
+
+Some previous snapshots of the library worked with these configurations,
+but they haven't been tested recently:
+@smallexample
+  i386-unknown-linux
+  i386-sun-solaris2.4
+  i386-unknown-sysv4.0
+  sparc-sun-solaris2.3
+@end smallexample
+
+It is known not to work with:
+@smallexample
+  alpha-dec-osf
+@end smallexample
+
+The @samp{.tar} file is compressed with GNU gzip.  Gzip can be obtained by
+anonymous ftp at any of the GNU archive sites.
+
+For info about FTP via email, send email to
+@samp{ftpmail@@decwrl.dec.com} with no subject line, and two-line body
+with line one @samp{help} and line two @samp{quit}.
+
+The most recent (not necessarily tested) snapshots of the library will
+be placed in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
+
+@display
+Happy Hacking!
+       R. Andrew McCallum
+       mccallum@@gnu.ai.mit.edu
+@end display
+
+@format
+
+
+[ Most GNU software is packed using the GNU `gzip' compression program.
+  Source code is available on most sites distributing GNU software.
+
+  For information on how to order GNU software on tape, floppy or cd-rom, or
+  printed GNU manuals, check the file etc/ORDERS in the GNU Emacs distribution
+  or in GNUinfo/ORDERS on prep, or e-mail a request to: gnu@@prep.ai.mit.edu
+
+  By ordering your GNU software from the FSF, you help us continue to
+  develop more free software.  Media revenues are our primary source of
+  support.  Donations to FSF are deductible on US tax returns.
+
+  The above software will soon be at these ftp sites as well.
+  Please try them before prep.ai.mit.edu as prep is very busy!
+
+  thanx -gnu@@prep.ai.mit.edu
+
+	ASIA: ftp.cs.titech.ac.jp, utsun.s.u-tokyo.ac.jp:/ftpsync/prep,
+  cair.kaist.ac.kr:/pub/gnu, ftp.nectec.or.th:/pub/mirrors/gnu
+	AUSTRALIA: archie.au:/gnu (archie.oz or archie.oz.au for ACSnet)
+	AFRICA: ftp.sun.ac.za:/pub/gnu
+	MIDDLE-EAST: ftp.technion.ac.il:/pub/unsupported/gnu
+	EUROPE: irisa.irisa.fr:/pub/gnu, ftp.univ-lyon1.fr:pub/gnu,
+  ftp.mcc.ac.uk, unix.hensa.ac.uk:/pub/uunet/systems/gnu,
+  src.doc.ic.ac.uk:/gnu, ftp.ieunet.ie:pub/gnu, ftp.eunet.ch,
+  nic.switch.ch:/mirror/gnu, ftp.informatik.rwth-aachen.de:/pub/gnu,
+  ftp.informatik.tu-muenchen.de, ftp.win.tue.nl:/pub/gnu,
+  ftp.funet.fi:/pub/gnu, ftp.denet.dk, ftp.stacken.kth.se, isy.liu.se,
+  ftp.luth.se:/pub/unix/gnu, ftp.sunet.se:/pub/gnu, archive.eu.net
+	SOUTH AMERICA: ftp.unicamp.br:/pub/gnu
+	WESTERN CANADA: ftp.cs.ubc.ca:/mirror2/gnu
+	USA: wuarchive.wustl.edu:/systems/gnu, labrea.stanford.edu,
+  ftp.digex.net:/pub/gnu, ftp.kpc.com:/pub/mirror/gnu, f.ms.uky.edu:/pub3/gnu,
+  jaguar.utah.edu:/gnustuff, ftp.hawaii.edu:/mirrors/gnu,
+  vixen.cso.uiuc.edu:/gnu, mrcnext.cso.uiuc.edu:/pub/gnu,
+  ftp.cs.columbia.edu:/archives/gnu/prep, col.hp.com:/mirrors/gnu,
+  gatekeeper.dec.com:/pub/GNU, ftp.uu.net:/systems/gnu
+
+]
+@end format

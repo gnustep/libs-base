@@ -1,0 +1,149 @@
+#
+#  Tests makefile for Objective-C Class Library
+#  Copyright (C) 1993 Free Software Foundation, Inc.
+#
+#  Written by:	R. Andrew McCallum <mccallum@cs.rochester.edu>
+#  Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
+#
+#  This file is part of the GNU Objective-C Class Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+SHELL = /bin/sh
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC = @CC@
+     
+CFLAGS = -Wall -Wno-implicit -g -O
+CPPFLAGS =
+LDFLAGS =
+     
+DEFS = @DEFS@
+LIBS = -L$(srcdir)/.. -lobjects @LIBOBJC@ @LIBS@ 
+
+#### End of system configuration section. ####
+
+NEXT_NEXT_INCLUDES = -I/usr/include
+OBJECTS_NEXT_INCLUDES = -I$(srcdir)/../objects/next-include
+NEXT_INCLUDES = @NEXT_INCLUDES@
+
+ALL_CPPFLAGS = -I$(srcdir)/.. $(NEXT_INCLUDES) $(CPPFLAGS)
+ALL_CFLAGS = $(CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
+ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
+
+.SUFFIXES: .m
+.m.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*.o
+.c.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*.o
+
+SRCS = \
+test01.m \
+test02.m \
+test03.m \
+test04.m \
+test05.m \
+test06.m \
+test07.m \
+test08.m \
+test09.m \
+test10.m \
+test11.m \
+test12.m \
+test13.m \
+pipes.m \
+server.m \
+client.m
+
+HDRS = \
+server.h
+
+EXCS = $(SRCS:.m=)
+
+DISTFILES = $(SRCS) $(HDRS) Makefile.in NXStringTable.example
+
+all: $(EXCS)
+
+# This works for GNU make, but not others.
+# %: %.o $(srcdir)/../libobjects.a
+# 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
+# How can I do this in a better way than the ugliness below?
+# (but also have it work on old-style /bin/make)
+
+LINK_CMD = $(CC) $(ALL_CFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
+test01: test01.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test02: test02.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test03: test03.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test04: test04.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test05: test05.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test06: test06.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test07: test07.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test08: test08.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test09: test09.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test10: test10.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test11: test11.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test12: test12.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+test13: test13.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+pipes: pipes.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+server: server.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+client: client.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+
+echo-excs:
+	@echo $(EXCS)
+
+remote: server client
+
+mostlyclean:
+	rm -f core *~ test08.data textcoder.txt
+
+clean: mostlyclean
+	rm -f *.o $(EXCS)
+
+distclean: clean
+	rm -f Makefile config.status
+
+realclean: distclean
+	rm -f TAGS
+
+dist-dir: $(srcdir)/../.fname
+	@echo Run make dist from the parent directory.
+
+dist: $(DISTFILES) dist-dir
+	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/checks
+	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/checks
+
+Makefile: Makefile.in
+	cd $(srcdir)/..; $(SHELL) config.status

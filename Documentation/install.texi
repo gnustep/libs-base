@@ -1,0 +1,175 @@
+@c This is a generic INSTALL file for utilities distributions.
+@c If this package does not come with, e.g., installable documentation or
+@c data files, please ignore the references to them below.
+
+@c set the vars OBJECTS_VERSION and OBJECTS_GCC_VERSION
+@include version.texi
+
+@ifset INSTALL_ONLY
+This file documents the installation of the GNU Objective C 
+Class Library, @samp{libobjects}.  Copyright (C) 1993, 1994 Free Software
+Foundation, Inc.  You may copy, distribute, and modify it freely as long
+as you preserve this copyright notice and permission notice.
+@chapter Installing @samp{libobjects}
+@end ifset
+
+To compile and install @samp{libobjects}:
+
+@enumerate
+
+@item
+Install @samp{gcc}.  The library requires gcc version
+@value{OBJECTS_GCC_VERSION} or later.
+
+@item
+Configure the package for your system.  In the directory that this file
+is in, type @samp{./configure}.  If you're using @samp{csh} on an old
+version of System V, you might need to type @samp{sh configure} instead
+to prevent @samp{csh} from trying to execute @samp{configure} itself.
+
+If you are compiling the library for a NeXT machine, you have the choice
+of using either the GNU or the NeXT Objective C runtime.  You can
+specify this by setting CFLAGS.  For example:
+@smallexample
+CFLAGS=-fgnu-runtime ./configure 
+@end smallexample
+
+The @samp{configure} shell script attempts to guess correct values for
+various system-dependent variables used during compilation, and creates
+the Makefile(s) (one in each subdirectory of the source directory).  In
+some packages it creates a C header file containing system-dependent
+definitions.  It also creates a file @samp{config.status} that you can
+run in the future to recreate the current configuration.
+
+Running @samp{configure} takes less than a minute or two.  While it is
+running, it prints some messages that tell what it is doing.  If you
+don't want to see the messages, run @samp{configure} with its standard
+output redirected to @samp{/dev/null}; for example:
+@smallexample 
+./configure >/dev/null
+@end smallexample
+
+To compile the package in a different directory from the one containing
+the source code, you must use a version of make that supports the VPATH
+variable, such as GNU make.  @samp{cd} to the directory where you want
+the object files and executables to go and run @samp{configure}.
+@samp{configure} automatically checks for the source code in the
+directory that @samp{configure} is in and in @samp{..}.  If for some
+reason @samp{configure} is not in the source code directory that you are
+configuring, then it will report that it can't find the source code.  In
+that case, run @samp{configure} with the option @samp{--srcdir=DIR},
+where DIR is the directory that contains the source code.
+
+By default, @samp{make install} will install the package's files in
+/usr/local/bin, /usr/local/lib, /usr/local/man, etc.  You can specify
+an installation prefix other than /usr/local by giving @samp{configure} the
+option @samp{--prefix=PATH}.  Alternately, you can do so by giving a value
+for the @samp{prefix} variable when you run @samp{make}, e.g.,
+@smallexample
+make prefix=/usr/gnu
+@end smallexample
+
+You can specify separate installation prefixes for architecture-specific
+files and architecture-independent files.  If you give @samp{configure}
+the option @samp{--exec_prefix=PATH} or set the @samp{make} variable
+@samp{exec_prefix} to PATH, the package will use PATH as the prefix for
+installing programs and libraries.  Data files and documentation will
+still use the regular prefix.  Normally, all files are installed using
+the regular prefix.
+
+You can tell @samp{configure} to figure out the configuration for your
+system, and record it in @samp{config.status}, without actually
+configuring the package (creating @samp{Makefile}s and perhaps a
+configuration header file).  To do this, give @samp{configure} the
+@samp{--no-create} option.  Later, you can run @samp{./config.status} to
+actually configure the package.  This option is useful mainly in
+@samp{Makefile} rules for updating @samp{config.status} and
+@samp{Makefile}.  You can also give @samp{config.status} the
+@samp{--recheck} option, which makes it re-run @samp{configure} with the
+same arguments you used before.  This is useful if you change
+@samp{configure}.
+
+@samp{configure} ignores any other arguments that you give it.
+
+If your system requires unusual options for compilation or linking that
+@samp{configure} doesn't know about, you can give @samp{configure}
+initial values for some variables by setting them in the environment.
+In Bourne-compatible shells, you can do that on the command line like
+this:
+@smallexample
+CC='gcc -traditional' DEFS=-D_POSIX_SOURCE ./configure
+@end smallexample
+
+The @samp{make} variables that you might want to override with environment
+variables when running @samp{configure} are:
+
+(For these variables, any value given in the environment overrides the
+value that @samp{configure} would choose:)
+@table @samp
+
+@item CC
+C compiler program.  Default is @samp{cc}, or @samp{gcc} if @samp{gcc}
+is in your PATH. 
+
+@item INSTALL
+Program to use to install files.
+Default is @samp{install} if you have it, @samp{install.sh} otherwise.
+@end table
+
+
+(For these variables, any value given in the environment is added to
+the value that @samp{configure} chooses:)
+@table @samp
+
+@item DEFS
+Configuration options, in the form @samp{-Dfoo -Dbar ...}
+
+@item LIBS
+Libraries to link with, in the form @samp{-lfoo -lbar ...}
+@end table
+
+If you need to do unusual things to compile the package, we encourage
+you to figure out how @samp{configure} could check whether to do them, and
+mail diffs or instructions to the address given in the @samp{README} so we
+can include them in the next release.
+
+
+@item
+Type @samp{make} to compile the package.  If you want, you can override
+the @samp{make} variables @samp{CFLAGS} and @samp{LDFLAGS} like this:
+@smallexample
+	make CFLAGS=-O2 LDFLAGS=-s
+@end smallexample
+
+You will get some warnings from @samp{#warning} lines I've added to the
+code.  Ignore them.
+
+You may get some warnings like @samp{stdobjects.m:0: warning:
+`_OBJC_SELECTOR_TABLE' defined but not used}.  Ignore them. 
+They are bogus warnings due to a bug in cc1obj.
+
+You may get some warnings like @samp{ar: filename BinaryTreeEltNode.o
+truncated to BinaryTreeEltNo}.  Ignore them.
+
+
+@item
+If you want to compile the self-tests, cd to @samp{checks} and type
+@samp{make}.  If you want to compile the examples, cd to @samp{examples}
+and type @samp{make}.
+
+@item
+Type @samp{make install} to install programs, data files, and
+documentation.
+
+@item
+You can remove the program binaries and object files from the source
+directory by typing @samp{make clean}.  To also remove the Makefile(s),
+and @samp{config.status} (all the files that @samp{configure} created),
+type @samp{make distclean}.
+
+The file @samp{configure.in} is used as a template to create
+@samp{configure} by a program called @samp{autoconf}.  You will only
+need it if you want to regenerate @samp{configure} using a newer version
+of @samp{autoconf}.
+
+@end enumerate

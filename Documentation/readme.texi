@@ -1,0 +1,337 @@
+@chapter GNU Objective-C Class Library README
+
+@c set the vars OBJECTS_VERSION and GCC_VERSION
+@include version.texi
+
+Here is some introductory info to get you started:
+
+@section Initial reading
+
+The file @samp{ANNOUNCE} contains a very brief overview of the library.
+It also tells you where to get the most recent version.
+
+The file @samp{NEWS} has the library's feature history.
+
+The file @samp{INSTALL} gives instructions for installing the library.
+
+The file @samp{DISCUSSION} contains the archives of email discussions
+about the library.  It's a good place to read about the reasons for
+some of the design decisions.
+
+@section Preparing to write code
+
+@ignore
+Preliminary documentation is available via @samp{texinfo} in the files
+@samp{libobjects.info} and @samp{libobjects.texi}.  The info file was
+created from the texi file using an modified version of @samp{makeinfo}
+available by anonymous ftp from @samp{iesd.auc.dk:pub/ObjC}.
+@end ignore
+
+The documentation isn't much to speak of so far.  Better documentation
+will be forthcoming, but the library needs to settle first.  For now I
+recommend skipping libobjects.info and reading the header files
+instead.  The headers for the GNU classes are in ./objects; the headers
+for the NeXT-compatible classes are in ./objects/next-include.
+
+[NOTE: To compile code that uses NeXT compatibility classes, you'll want
+to put @samp{XX/objects/next-include} in your include file search path.
+Then, (unlike with the old libcoll), you can use #include <objc/List.h>
+instead of #include <coll/List.h>.]
+
+The overview of classes below should help you see the big picture as you
+read the source.
+
+
+@section The Class Heirarchy
+
+Here is the class inheritance heirarchy.  All protocols end with
+"ing"; all collection protocols end with "Collecting".  All collection
+abtract superclasses (classes which are not usable without
+subclassing) end with "Collection";
+
+@example
+   Collection <Collecting>
+       Set
+           Bag
+       KeyedCollection <KeyedCollecting>
+           Dictionary
+           MappedCollector
+           IndexedCollection <IndexedCollecting>
+               Array
+                   Stack
+                   GapArray
+                   CircularArray
+                       Queue
+                   Heap
+               LinkedList
+               BinaryTree
+               RBTree
+               EltNodeCollector
+               String
+    DelegatePool
+    LinkedListNode
+        LinkedListEltNode
+    BinaryTreeNode
+        BinaryTreeEltNode
+    RBTreeNode
+        RBTreeEltNode
+    Stream
+        StdioStream
+        MemoryStream
+    Coder
+        TextCoder
+        BinaryCoder
+            ConnectedCoder
+    Port <Coding>
+        SocketPort
+    Connection
+    Proxy <Coding>
+    Magnitude
+        Time
+    Random
+    RNGBerkeley <RandomGenerating>
+    RNGAdditiveCongruential <RandomGenerating>
+@end example
+
+
+@section Overview of the classes
+
+The GNU classes included in this version of the library fall into five
+categories: collections, magnitudes, streams, coders and distributed
+object support.
+
+@c There are several GNU protocols also.  You can recognize the protocols
+@c by their name: they all end with ``ing''.
+
+@itemize
+
+@item The collection objects all conform to the @samp{Collecting}
+protocol.  Reading @samp{./objects/Collecting.h} is a good place to
+start.  Protocols for collections that store their contents with keys
+and with indices can be found in @samp{./objects/KeyedCollecting.h} and
+@samp{./objects/IndexedCollecting.h} respectively.  Examples of generic
+collections are @samp{Set} and @samp{Bag}.  The keyed collections are
+@samp{Dictionary} and @samp{MappedCollector}.  The classes @samp{Array},
+@samp{Queue}, @samp{GapArray}, @samp{LinkedList}, @samp{BinaryTree},
+@samp{RBTree} and @samp{SplayTree} are all indexed collections.
+
+@item The public magnitude classes are @samp{Time} and @samp{Random}.
+The @samp{Random} class works in conjunction with pseudo-random number
+generators that conform to the @samp{RandomGenerating} protocol.  The
+conforming class @samp{RNGBerkeley} provides identical behavior to the
+BSD random() function.  The class @samp{RNGAdditiveCongruential} is an
+implementation of the additive congruential method.
+
+@item Stream objects provide a consistent interface for reading and
+writing bytes.  Read @samp{./objects/Stream.h} to get the general idea.
+@samp{StdioStream} objects work with files, file descriptors, FILE
+pointers and pipes to/from executables.  @samp{MemoryStream} objects
+work with memory buffers.
+
+@item Coders provide a formatted way of writing to Streams.  After a
+coder is initialized with a stream, the coder can encode/decode
+Objective C objects and C types in an architecture-independent way.  See
+@samp{./objects/Coder.h} for the abstract superclass interface; see
+@samp{./objects/Coding.h} for the protocol adopted by objects that read
+and write themselves using coders.  The currently available concrete
+coder classes are @samp{BinaryCoder}, for reading and writing a compact
+stream of illegible bytes, and @samp{TextCoder}, for reading and writing
+human-readable text (which you can also process with @samp{perl},
+@samp{awk}, or whatever scripting language you like).
+
+Coders and streams can be mixed and matched so that programmers can
+choose the destination and the format separately.
+
+Neither the stream or coder class heirarchies are very mature yet.  I
+threw them together because I needed them for distributed objects.
+
+@item The distributed object support classes are @samp{Connection},
+@samp{Proxy}, @samp{ConnectedCoder}, @samp{Port} and @samp{SocketPort}.
+This version of the distributed objects only works with sockets.  A Mach
+port back-end should be on the way.
+
+[NOTE: The GNU distributed object facilities have the same ease-of-use
+as NeXT's; be warned, however, that they are not compatible with each
+other.  They have different class heirarchies, different instance
+variables, different method names, different implementation strategies
+and different network message formats.  You cannot communicate with a
+NeXT NXConnection using a GNU Connection.  The GNU distributed object
+code does not work with the NeXT Objective C runtime.  NXConnection
+creates NXProxy objects for local objects as well as remote objects; GNU
+Connection doesn't need and doesn't create proxies for local objects.
+NXProxy asks it's remote target for the method encoding types and caches
+the results; GNU Proxy gets the types directly from the local GNU "typed
+selector" mechanism and has no need for querying the remote target or
+caching encoding types.  The NXProxy for the remote root object always
+has name 0 and, once set, you cannot change the root object of a
+NXConnection; the GNU Proxy for the remote root object has a target
+address value just like all other Proxy's, and you can change the root
+object as many times as you like.  See the "lacking-capabilities" list
+below for a partial list of things that NXConnection can do that GNU
+Connection cannot.]
+
+To begin using distributed objects, you only need to know about
+@samp{Connection} class.  You can see the full interface in
+@samp{./objects/Connection.h}.  The long list of methods may be a little
+daunting, but actually, a lot can be done with just a few key methods:
+
+@smallexample
+- (Connection*) newRegisteringAtName: (const char*)name
+    withRootObject: anObj;
+      For registering your server object with the network.
+
+- (void) runConnection;
+      For running the connection object returned by the above
+      method, so that your server can start handling requests from
+      clients. 
+
+- (Proxy*) rootProxyAtName: (const char*)name 
+    onHost: (const char*)host;
+      For connecting to a remote server.  You get a proxy object for 
+      the remote server object, which, for messaging purposes, you 
+      can treat as if it were local.
+@end smallexample
+
+Here is a partial list of what the current distributed objects system
+can do:
+@smallexample
+- It can pass and return all simple C types, including char*, float 
+  and double, both by value and by reference.
+- It can pass structures by value and by reference, return 
+  structures by reference.  The structures can contain arrays.
+- It obeys all the type qualifiers: oneway, in, out, inout, const.
+- It can pass and return objects, either bycopy or with proxies.
+  An object encoded multiple times in a single message is properly
+  decoded on the other side.
+- Proxies to remote objects are automatically created as they are
+  returned.  Proxies passed back where they came from are decoded
+  as the correct local object.
+- It can wait for an incoming message and timeout after a 
+  specified period.
+- A server can handle multiple clients.
+- The server will ask its delegate before making new connections.
+- The server can make call-back requests of the client, and keep 
+  it all straight even when the server has multiple clients.
+- A client will automatically form a connection to another client 
+  if an object from the other client is vended to it. (i.e. Always 
+  make a direct connection rather than forwarding messages twice, 
+  once into the server, from there out to the other client.)
+- The server will clean up its connection to a client if the client 
+  says goodbye (i.e. if the client connection is freed).
+- When the connection is being freed it will send a invalidation 
+  notification message to those objects that have registered for
+  such notification.
+- Servers and clients can be on different machines of different
+  architectures; byte-order and all other architecture-dependent
+  nits are taken care of for you.  You can have SPARC, i386, m68k, 
+  and MIPS machines all distributed-object'ing away together in
+  one big web of client-server connections!
+@end smallexample
+
+Here is a partial list of what the current distributed objects system
+does *not* do: 
+@smallexample
+- Run multi-threaded.
+- Detect port deaths (due to remote application crash, for example) 
+  and do something graceful.
+- Send exceptions in the server back to the client.
+- Send messages with vararg arguments.
+- Return structures by value.
+- Use Mach ports, pass Mach ports, pass Mach virtual memory.
+- Send messages more reliably than UDP.  It does detect reply
+  timeouts and message-out-of-order conditions, but it's reaction 
+  is simply to abort.
+- Claim to be thoroughly tested.
+@end smallexample
+
+@end itemize
+
+
+@section Where else to look
+
+@subsection Examples
+
+A few simple example programs can be found in @samp{./examples}.
+Read and enjoy.  To compile them (after having compiled the library),
+type @samp{make} in the @samp{examples} directory.
+
+@itemize
+
+@item @samp{dictionary.m} demonstrates the basic features of the
+Dictionary object.
+
+@item @samp{stdio-stream.m} creates a StdioStream object that points to
+a file, writes to the file, then reads from the file.
+
+@item @samp{textcoding.m} shows how you can archive an object to a file 
+in a human-readable text format, and then read it back in again.  This
+format is handy for editing archived objects with a text editor, and is
+great when you want to modify/create an archive using a scripting
+language like @samp{perl} or @samp{awk}.
+
+@item @samp{first-server.m} and @samp{first-client.m} show the
+distributed object version of ``Hello, world''.
+
+@item @samp{second-server.m} and @samp{second-client.m} contain a more
+complex demonstration of distributed objects, with multiple clients,
+connection delegates, and invalidation notification.
+
+@item @samp{port-server.m} and @samp{port-client.m} show a simple use of
+Port objects.  Be warned, however, the interface to Port objects will
+likely change in the near future.
+
+@end itemize
+
+@subsection Test Programs
+
+Some of the programs I've used to test the library are in
+@samp{./checks}.  Many of them are pretty messy, (desperately trying to
+tickle that late night bug), but at least they show some code that works
+when the library compiles correctly.  I'm looking for a volunteer to
+write some nicely organized test cases using @samp{dejagnu}.  Any
+takers?
+
+
+@section Coming Soon...
+
+More improvements to the library are on the way.  Closest in the
+pipeline are String objects and better allocation/deallocation
+conventions for objects.
+
+These improvements will bring some changes to the current interfaces:
+(1) Almost everywhere that the current methods now take (char*)
+arguments, the new methods will take (String*) arguments.  (2) The use
+of the method @samp{free} will be abolished and replaced by new
+methods.
+
+I'm trying to get these changes in place as soon as possible so that
+you don't end up writing too much code that uses the old (i.e. current)
+interfaces.  
+
+Meanwhile, please use the library!  The small amount of changes you may
+need to make won't be difficult, and the earlier I get usability
+suggestions and bug reports, the sooner the fixes will come.
+
+
+@section How can you help?
+
+@itemize
+
+@item Read the projects and  questions in the @samp{TODO} file.  If you
+have any useful comments mail them to me!
+
+@item
+Give me feedback!  Tell me what you like; tell me what you think
+could be better.  Send me bug reports.
+
+@item
+Donate classes.  If you write classes that fit in the libobjects
+framework, I'd be happy to include them.
+
+@end itemize
+
+@example
+Happy hacking!
+       Andrew McCallum
+       mccallum@@gnu.ai.mit.edu
+@end example

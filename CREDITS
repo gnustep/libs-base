@@ -1,0 +1,23 @@
+*** Thanks to ****
+
+Paul Kunz, Paul Burchard, Kresten Krab Thorup, Matthias Klose, Stefan
+Reich, Seth Tisue, Allan Clearwaters, Niels Mvller for bug reports and
+suggestions.
+
+James Gledhill, Allan Clearwaters, Galen Hunt and Jonas Karlsson for
+help with testing on different architectures.
+
+Adam Fedor for contributing the NXStringTable class.  Kresten Thorup
+for contributing the GapArray class.
+
+Geoffrey Knauth, the GNU Objective C project coordinator.
+
+Kresten Krab Thorup for writing the GNU Objective C runtime.
+
+Richard Stallman for his advice, for emacs, for GNU, and for the FSF.
+
+Jim Wilson at Cygnus Support for help with IRIX4 nested function
+problems.
+
+	-- Andrew
+	mccallum@gnu.ai.mit.edu
