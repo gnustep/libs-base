@@ -13,8 +13,8 @@ designed in the Smalltalk tradition.  It includes collection objects for
 maintaining groups of objects and C types, streams for I/O to various
 destinations, coders for formating objects and C types to streams, ports
 for network packet transmission, distributed objects (remote object
-messaging), pseudo-random number generators, and time handling
-facilities.
+messaging), pseudo-random number generators, string handling, and time
+handling facilities.
 
 @ignore
 So that developers of non-free, commercial programs can use the library,
@@ -56,7 +56,8 @@ configurations:
 @end smallexample
 
 Some previous snapshots of the library worked with these configurations,
-but they haven't been tested recently:
+but they haven't been tested recently.  We are looking for a volunteer
+to write a test suite using dejagnu.
 @smallexample
   sparc-sun-sunos4.1.3
   m68k-next-nextstep3.0
