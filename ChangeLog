@@ -1,3 +1,7 @@
+2000-03-17  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/coding-standards.tmpl.texi: Update
+
 2000-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Changed so that property lists are output in a compact form when
