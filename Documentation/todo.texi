@@ -21,6 +21,7 @@ been created.
 
 @item Make SocketPort more reliable than UDP.
 
+@ignore
 @item Add some features to the compiler:  
 @enumerate
 @item You can't add __attribute__'s to methods.  I want to use: 
@@ -33,6 +34,7 @@ been created.
 @item I would like to be able to use a function name/pointer as an
 argument to @@encode() and get a type string like the selector types.
 @end enumerate
+@end ignore
 
 @item GNU Notification registration classes, notification classes.  
 
@@ -47,9 +49,12 @@ also?
 
 @item Write some code to deal with `%@@' in printf-style format strings.
 
+@item Implement efficient SmallInt and SmallFloat classes in the same
+sort of way that Smalltalk does.  Talk to me.  mccallum@gnu.ai.mit.edu.
+
 @item See
 http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers-gnustep for
-a list of the claimed and unclaimed GNUStep classes.
+a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @end itemize
 
@@ -76,8 +81,9 @@ I'm waiting for gcc 2.7 exceptions.
 @item Add Coding methods to all the other collection classes.
 
 @item
-The LAMBDA macro doesn't work on all systems.  Request a change to gcc
-that make something like LAMBDA work on all systems.
+Once we have SmallInt and SmallFloat classes, overhaul the collection
+heirarchy to get rid of the (elt) stuff.  Probably will get rid of
+function pointer passing too.
 
 @item
 Possibly change @code{-(int)compare:anObject} for Collection.  How
