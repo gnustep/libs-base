@@ -378,9 +378,9 @@ bench_str()
   Class	ser = [NSSerializer class];
   Class	des = [NSDeserializer class];
   Class md = [NSMutableDictionary class];
+  AUTO_START;
 
   [[md new] release];
-  AUTO_START;
 
   plist = [NSDictionary dictionaryWithObjectsAndKeys:
 	@"Value1", @"Key1",
