@@ -1,5 +1,5 @@
 /* Concrete NSData for GNUStep based on GNU MemoryStream class
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: April 1995
@@ -26,7 +26,7 @@
 #include <objects/NSCoder.h>
 #include <objects/behavior.h>
 #include <objects/MemoryStream.h>
-#include <Foundation/NSString.h>
+#include <objects/NSString.h>
 
 /* This from objects/MemoryStream.h */
 @interface NSGData (MemoryStream)
@@ -85,7 +85,7 @@
 {
   /* xxx This currently ignores useAuxiliaryFile. */
   int written;
-  FILE* fp = fopen([path cString], "w");
+  FILE* fp = fopen([path cStringNoCopy], "w");
   assert (fp);			/* This should raise NSException instead. */
   written = fwrite(buffer+prefix, 1, eofPosition, fp);
   assert (eofPosition == written);
