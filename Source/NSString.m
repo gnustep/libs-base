@@ -4418,7 +4418,7 @@ handle_printf_atsign (FILE *stream,
 
   result = [NSPropertyListSerialization
     propertyListFromData: data
-    mutabilityOption: NSPropertyListImmutable
+    mutabilityOption: NSPropertyListMutableContainers
     format: &format
     errorDescription: &error];
 

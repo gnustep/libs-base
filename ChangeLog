@@ -1,7 +1,9 @@
 2004-07-03 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Tools/plmerge.m: Bugfix ... was attempting to set values in a
-	dictionary which was not mutable.
+	* Tools/plmerge.m: Portability ... was attempting to set values in a
+	dictionary which may not be mutable.
+	* Source/NSString.m: ([propertyList]) make decoded containers mutable
+	for compatibility with current MacOS-X
 
 2004-07-02 Richard Frith-Macdonald <rfm@gnu.org>
 
