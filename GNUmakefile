@@ -30,6 +30,11 @@ PACKAGE_NEEDS_CONFIGURE = YES
 
 GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
+#
+# Include local (new) configuration - this will prevent the old one 
+# (if any) from $(GNUSTEP_MAKEFILES)/Additional/base.make to be included
+#
+GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ./Version
