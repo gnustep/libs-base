@@ -3769,7 +3769,8 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   int			multi = 0;
   int			found = 0;
   int			rval;
-  char *local_hostname=NULL; 
+  char			*first_dot = 0;
+  char			*local_hostname = 0;
 
   if (len == 0)
     {
@@ -3810,8 +3811,6 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
    */
   if (multi || host == 0 || *host == '\0')
     {
-      char *first_dot;
-
       local_hostname = xgethostname();
       if (!local_hostname) 
 	{
@@ -3826,9 +3825,14 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 	}
       host = local_hostname;
     }
-  if ((hp = gethostbyname(host)) == 0)
+  if ((hp = gethostbyname(host)) == 0 && first_dot != 0)
     {
-      sprintf(ebuf, "gethostbyname() failed: %s", strerror(errno));
+      *first_dot = '.';
+      hp = gethostbyname(host);
+    }
+  if (hp == 0)
+    {
+      sprintf(ebuf, "gethostbyname('%s') failed: %s", host, strerror(errno));
       gdomap_log(LOG_ERR);
       return -1;
     }
