@@ -105,7 +105,7 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
     }
   if (ivar == 0)
     {
-      NSLog(@"Attempt to get non-existent ivar");
+      NSLog(@"Attempt to get non-existent ivar '%s'", name);
       return NO;
     }
 
@@ -148,7 +148,7 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
     }
   if (ivar == 0)
     {
-      NSLog(@"Attempt to set non-existent ivar");
+      NSLog(@"Attempt to set non-existent ivar '%s'", name);
       return NO;
     }
 
