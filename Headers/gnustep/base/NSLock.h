@@ -32,7 +32,7 @@
 #define _GNUstep_H_NSLock
 
 #include <Foundation/NSObject.h>
-#ifdef NeXT_RUNTIMME
+#ifdef NeXT_RUNTIME
 #include <base/thr-mach.h>
 #endif
 
