@@ -1,6 +1,8 @@
-Wed Nov 25 19:50:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Nov 25 20:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSPortNameServer.m: Made more tolerant of badly set up systems.
+	* src/Makefile.postamble: Modified to make rule for placing gdomap in
+	/etc/services more portable.
 
 Tue Nov 24  4:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
