@@ -1,5 +1,10 @@
 2005-03-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSMime.m: Ensure last line of base64 encoded data
+	is terminated with crlf for clients which have buggy base64 decodedrs.
+
+2005-03-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSMime.m: Mark ([setDefaultEncoding:]) as deprecated
 	rather than just removing it ... in case someone has started using it.
 	* Source/NSPathUtilities.m: Tidied a little ... moved a function.
