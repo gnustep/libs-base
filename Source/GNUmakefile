@@ -475,7 +475,7 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 
 DIST_FILES = \
         GNUmakefile Makefile.preamble Makefile.postamble AUTHORS \
-        include/config.h.in include/preface.h.in \
+        include/config.h.in include/preface.h.in include/GSConfig.h.in \
 	include/config-win32.h \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
@@ -492,7 +492,8 @@ include/o_array.h \
 include/o_hash.h \
 include/o_list.h \
 include/o_map.h \
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h \
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
 
 # The C source files to be compiled
 libgnustep-base_C_FILES = $(GNU_CFILES) $(BASE_CFILES)
