@@ -63,6 +63,8 @@
 #include <gnustep/base/NSGSequence.h>
 #include <gnustep/base/Unicode.h>
 #include <gnustep/base/GetDefEncoding.h>
+#include <gnustep/base/NSGString.h>
+#include <gnustep/base/NSGCString.h>
 
 // Uncomment when implemented
     static NSStringEncoding _availableEncodings[] = {
@@ -2737,6 +2739,16 @@ else
 
 @implementation NXConstantString
 
++ (void) initialize
+{
+    BOOL	beenHere = NO;
+
+    if (beenHere == NO) {
+	beenHere = YES;
+        class_add_behavior(self, [NSGCString class]);
+    }
+}
+
 /*
  *	NXConstantString overrides [-dealloc] so that it is never deallocated.
  *	If we pass an NXConstantString to another process it will never get
@@ -2746,6 +2758,21 @@ else
 - (Class)classForPortCoder
 {
   return [self superclass];
+}
+
+- (unsigned) hash
+{
+    return [super hash];
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+    return [super isEqual: anObject];
+}
+
+- (BOOL) isEqualToString: (NSString*)aString
+{
+    return [super isEqualToString: aString];
 }
 
 - (void)dealloc
