@@ -255,7 +255,12 @@
 
 - copy
 {
-  return [[[self class] alloc] initWithCString:[self cString]];
+  return [[[self class] alloc] initWithString:self];
+}
+
+- mutableCopy
+{
+  return [[MutableCString alloc] initWithString:self];
 }
 
 // TESTING;
