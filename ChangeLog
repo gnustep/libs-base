@@ -1,3 +1,8 @@
+2003-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Implement new MacOS-X isLoaded method.
+	* Headers/gnustep/base/NSBundle.h: ditto
+
 2003-02-04  Willem Rein Oudshoorn  <woudshoo@xs4all.nl>
 
 	* Headers/gnustep/base/GSInvocation.h (CLEAR_RETURN_VALUE_IF_OBJECT):

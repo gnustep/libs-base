@@ -1040,6 +1040,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _principalClass;
 }
 
+/**
+ * Returns YES if the receiver's code is loaded, otherwise, returns NO.
+ */
+- (BOOL) isLoaded
+{
+  return _codeLoaded;
+}
+
 - (BOOL) load
 {
   if (self == _mainBundle || self == _gnustep_bundle)
