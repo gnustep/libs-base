@@ -832,7 +832,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  NS_ENDHANDLER
 	}
       else
-	NSLog(@"Failed to locate strings file %@", tablePath);
+	NSLog(@"Failed to locate strings file %@", tableName);
 	
       /*
        * If we couldn't found and parsed the strings table, we put it in
