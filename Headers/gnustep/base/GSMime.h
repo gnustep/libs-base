@@ -86,8 +86,6 @@
   id			content;
 }
 
-+ (GSMimeDocument*) mimeDocument;
-
 - (BOOL) addContent: (id)newContent;
 - (BOOL) addHeader: (GSMimeHeader*)info;
 - (NSArray*) allHeaders;

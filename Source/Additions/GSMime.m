@@ -2571,14 +2571,6 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Create an empty MIME document.
- */
-+ (GSMimeDocument*) mimeDocument
-{
-  return AUTORELEASE([[self alloc] init]);
-}
-
-/**
  * Adds a part to a multipart document
  */
 - (BOOL) addContent: (GSMimeDocument*)newContent
