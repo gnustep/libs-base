@@ -1,3 +1,9 @@
+2002-05-07  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Make all AC_DEFINES define 1
+	* config/objc-con-autoload.m4: Idem.
+	* config/objc-sys-dynamic.m4: Idem.
+
 2002-05-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: mingw path fixes and debugging
