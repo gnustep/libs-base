@@ -339,6 +339,9 @@ ANNOUNCE: announce.texi version.texi
 NEWS: news.texi version.texi
 	$(MAKEINFO) -o NEWS -D NEWS_ONLY \
 	--no-header --no-split $(srcdir)/news.texi
+ADVERTISEMENT: advertisement.texi version.texi
+	$(MAKEINFO) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
+	--no-header --no-split $(srcdir)/advertisement.texi
 Makefile: Makefile.in config.status
 	$(SHELL) config.status
 config.status: configure
