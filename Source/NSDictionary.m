@@ -199,9 +199,8 @@ static Class NSMutableDictionary_concrete_class;
 
 - (NSString*) descriptionWithIndent: (unsigned)level
 {
-  /* xxx Fix this when we get %@ working in format strings. */
   return [NSString stringWithFormat:@"%*s%s", 
-		   level, "", [[self description] cString]];
+		   level, "", [[self description] cStringNoCopy]];
 }
 
 - (NSArray*) allKeys
