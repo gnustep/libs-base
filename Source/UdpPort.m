@@ -31,6 +31,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSByteOrder.h>
 
 #if _AIX
 #include <sys/select.h>
@@ -141,7 +142,7 @@ static NSMapTable *port_number_2_in_port = NULL;
        our unique host address that can identify us across the network. */
     memcpy (&(p->_address.sin_addr), hp->h_addr, hp->h_length);
     p->_address.sin_family = AF_INET;
-    p->_address.sin_port = htons (n);
+    p->_address.sin_port = NSSwapHostShortToBig (n);
     /* N may be zero, in which case bind() will choose a port number
        for us. */
     if (bind (p->_port_socket,
@@ -177,7 +178,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
   if (udp_port_debug)
     fprintf(stderr, "created new UdpInPort 0x%x, fd=%d port_number=%d\n",
-	   (unsigned)p, p->_port_socket, htons(p->_address.sin_port));
+	   (unsigned)p, p->_port_socket, NSSwapHostShortToBig(p->_address.sin_port));
 
   return p;
 }
@@ -261,6 +262,11 @@ static NSMapTable *port_number_2_in_port = NULL;
 {
   if (_is_valid)
     {
+#if defined(__WIN32__)
+      closesocket (_port_socket);
+#else
+      close (_port_socket);
+#endif	/* __WIN32__ */
       close (_port_socket);
       [super invalidate];
     }
@@ -279,7 +285,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
 - (int) portNumber
 {
-  return (int) ntohs (_address.sin_port);
+  return (int) NSSwapBigShortToHost (_address.sin_port);
 }
 
 - (Class) packetClass
@@ -401,7 +407,7 @@ static Array *udp_out_port_array;
   /* Get the sockaddr_in address. */
   memcpy (&addr.sin_addr, hp->h_addr, hp->h_length);
   addr.sin_family = AF_INET;
-  addr.sin_port = htons (n);
+  addr.sin_port = NSSwapHostShortToBig (n);
 
   return [self newForSendingToSockaddr: &addr];
 }
@@ -419,7 +425,7 @@ static Array *udp_out_port_array;
   if ( ! [reply_port isKindOfClass: [UdpInPort class]])
     [self error:"Trying to send to a port that is not a UdpInPort"];
   if (udp_port_debug)
-    fprintf (stderr, "sending to %d\n", (int) ntohs (_address.sin_port));
+    fprintf (stderr, "sending to %d\n", (int) NSSwapBigShortToHost (_address.sin_port));
   if (sendto ([reply_port socket],
 	      [packet streamBuffer], len, 0,
 	      (struct sockaddr*)&_address, sizeof (_address)) 
@@ -433,7 +439,7 @@ static Array *udp_out_port_array;
 
 - (int) portNumber
 {
-  return (int) ntohs (_address.sin_port);
+  return (int) NSSwapBigShortToHost (_address.sin_port);
 }
 
 - (NSString*) hostname

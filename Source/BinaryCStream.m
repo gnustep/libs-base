@@ -29,16 +29,11 @@
 #include <base/TextCStream.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSByteOrder.h>
 #include <math.h>
-#ifdef __WIN32__
-#include <winsock.h>
-#else /* __WIN32__ */
 #if HAVE_VALUES_H
 #include <values.h>		// This gets BITSPERBYTE on Solaris
 #endif
-#include <sys/types.h>
-#include <netinet/in.h>		// for byte-conversion
-#endif /* !__WIN32__ */
 
 #define PRE_SIZEOF_PREFIX_FORMAT_VERSION 0
 #define CURRENT_FORMAT_VERSION ((((GNUSTEP_BASE_MAJOR_VERSION * 100) + \
@@ -315,7 +310,7 @@ static int debug_binary_coder = 0;
       {
 	unsigned length = strlen (*(char**)d);
 	unsigned nlength;
-	nlength = htonl (length);
+	nlength = NSSwapHostIntToBig (length);
 	[stream writeBytes: &nlength
 		length: NUM_BYTES_STRING_LENGTH];
 	[stream writeBytes: *(char**)d
@@ -331,24 +326,24 @@ static int debug_binary_coder = 0;
 /* Reading and writing signed scalar types. */
 
     case _C_SHT:
-      WRITE_SIGNED_TYPE (d, short, htons);
+      WRITE_SIGNED_TYPE (d, short, NSSwapHostShortToBig);
       break;
     case _C_USHT:
-      WRITE_UNSIGNED_TYPE (d, short, htons);
+      WRITE_UNSIGNED_TYPE (d, short, NSSwapHostShortToBig);
       break;
 
     case _C_INT:
-      WRITE_SIGNED_TYPE (d, int, htonl);
+      WRITE_SIGNED_TYPE (d, int, NSSwapHostIntToBig);
       break;
     case _C_UINT:
-      WRITE_UNSIGNED_TYPE (d, int, htonl);
+      WRITE_UNSIGNED_TYPE (d, int, NSSwapHostIntToBig);
       break;
 
     case _C_LNG:
-      WRITE_SIGNED_TYPE (d, long, htonl);
+      WRITE_SIGNED_TYPE (d, long, NSSwapHostLongToBig);
       break;
     case _C_ULNG:
-      WRITE_UNSIGNED_TYPE (d, long, htonl);
+      WRITE_UNSIGNED_TYPE (d, long, NSSwapHostLongToBig);
       break;
 
     /* xxx The handling of floats and doubles could be improved.
@@ -373,8 +368,8 @@ static int debug_binary_coder = 0;
 	NSAssert (value - mantissa == 0,
 	  @"mantissa and value should be the same");
 	/* Encode the value as its two integer components. */
-	WRITE_SIGNED_TYPE (&exponent_encoded, short, htons);
-	WRITE_SIGNED_TYPE (&mantissa, int, htonl);
+	WRITE_SIGNED_TYPE (&exponent_encoded, short, NSSwapHostShortToBig);
+	WRITE_SIGNED_TYPE (&mantissa, int, NSSwapHostIntToBig);
 	break;
       }
 
@@ -398,9 +393,9 @@ static int debug_binary_coder = 0;
 	NSAssert (value - mantissa2 == 0,
 	  @"mantissa2 and value should be the same");
 	/* Encode the value as its three integer components. */
-	WRITE_SIGNED_TYPE (&exponent_encoded, short, htons);
-	WRITE_SIGNED_TYPE (&mantissa1, int, htonl);
-	WRITE_SIGNED_TYPE (&mantissa2, int, htonl);
+	WRITE_SIGNED_TYPE (&exponent_encoded, short, NSSwapHostShortToBig);
+	WRITE_SIGNED_TYPE (&mantissa1, int, NSSwapHostIntToBig);
+	WRITE_SIGNED_TYPE (&mantissa2, int, NSSwapHostIntToBig);
 	break;
       }
 
@@ -485,7 +480,7 @@ static int debug_binary_coder = 0;
 	NSAssert2 (read_count == NUM_BYTES_STRING_LENGTH,
           @"expected %d bytes of input, got %d",
           NUM_BYTES_STRING_LENGTH,read_count);
-	length = ntohl (length);
+	length = NSSwapBigIntToHost (length);
 	OBJC_MALLOC (*(char**)d, char, length+1);
 	read_count = [stream readBytes: *(char**)d 
 			     length: length];
@@ -504,24 +499,24 @@ static int debug_binary_coder = 0;
       break;
 
     case _C_SHT:
-      READ_SIGNED_TYPE (d, short, ntohs);
+      READ_SIGNED_TYPE (d, short, NSSwapBigShortToHost);
       break;
     case _C_USHT:
-      READ_UNSIGNED_TYPE (d, short, ntohs);
+      READ_UNSIGNED_TYPE (d, short, NSSwapBigShortToHost);
       break;
 
     case _C_INT:
-      READ_SIGNED_TYPE (d, int, ntohl);
+      READ_SIGNED_TYPE (d, int, NSSwapBigIntToHost);
       break;
     case _C_UINT:
-      READ_UNSIGNED_TYPE (d, int, ntohl);
+      READ_UNSIGNED_TYPE (d, int, NSSwapBigIntToHost);
       break;
 
     case _C_LNG:
-      READ_SIGNED_TYPE (d, long, ntohl);
+      READ_SIGNED_TYPE (d, long, NSSwapBigLongToHost);
       break;
     case _C_ULNG:
-      READ_UNSIGNED_TYPE (d, long, ntohl);
+      READ_UNSIGNED_TYPE (d, long, NSSwapBigLongToHost);
       break;
 
     case _C_FLT:
@@ -532,8 +527,8 @@ static int debug_binary_coder = 0;
 	float fvalue;
 
 	/* Decode the exponent and mantissa. */
-	READ_SIGNED_TYPE (&exponent, short, ntohs);
-	READ_SIGNED_TYPE (&mantissa, int, ntohl);
+	READ_SIGNED_TYPE (&exponent, short, NSSwapBigShortToHost);
+	READ_SIGNED_TYPE (&mantissa, int, NSSwapBigIntToHost);
 	/* Assemble them into a double */
 	value = mantissa / FLOAT_FACTOR;
 	value = ldexp (value, exponent);
@@ -550,9 +545,9 @@ static int debug_binary_coder = 0;
 	double value;
 
 	/* Decode the exponent and the two pieces of the mantissa. */
-	READ_SIGNED_TYPE (&exponent, short, ntohs);
-	READ_SIGNED_TYPE (&mantissa1, int, ntohl);
-	READ_SIGNED_TYPE (&mantissa2, int, ntohl);
+	READ_SIGNED_TYPE (&exponent, short, NSSwapBigShortToHost);
+	READ_SIGNED_TYPE (&mantissa1, int, NSSwapBigIntToHost);
+	READ_SIGNED_TYPE (&mantissa2, int, NSSwapBigIntToHost);
 	/* Assemble them into a double */
 	value = ((mantissa2 / FLOAT_FACTOR) + mantissa1) / FLOAT_FACTOR;
 	value = ldexp (value, exponent);
