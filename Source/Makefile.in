@@ -631,7 +631,7 @@ AUTHORS: Makefile.in
 		echo >>AUTHORS; \
 		echo >>AUTHORS; \
 		echo "$${a}:" >>AUTHORS; \
-		egrep -l "((Written by)|(Author)).*$${a}" \
+		egrep -l "((Written by)|(Author)|(Rewritten by)).*$${a}" \
 			$(DIST_FILES) >>AUTHORS; \
 	done
 
