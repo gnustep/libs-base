@@ -38,6 +38,17 @@
 */
 
 #include "config.h"
+
+/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#include <limits.h>
+
 #include <stdio.h>
 #include <string.h>
 #include "GNUstepBase/preface.h"
@@ -63,12 +74,6 @@
 #include "GNUstepBase/GSLocale.h"
 #include "GSFormat.h"
 
-/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
-#include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
@@ -81,9 +86,6 @@
 #include <wchar.h>
 #else
 typedef gsu32 wint_t;
-#endif
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
 #endif
 #ifdef HAVE_SYS_INTTYPES_H
 #include <sys/inttypes.h>
@@ -103,6 +105,15 @@ typedef unsigned long long uintmax_t;
 #undef LONG_LONG_MAX
 #endif
 #endif
+
+#if	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_long_long_max defined without long_long_max being defined
+#else
+#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_llong_max defined without llong_max being defined
+#endif
+#endif
+
 
 #include "GNUstepBase/Unicode.h"
 

@@ -1,3 +1,9 @@
+2004-11-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.h: Moved around includes somewhat so that the
+	order matches those in the autoconf test for HANDLE_LONG_LONG_MAX
+	and we should therefore get LONG_LONG_MAX defined consistently.
+
 2004-10-31 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([setObject:forKey:]) when given a nil
