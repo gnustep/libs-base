@@ -55,7 +55,8 @@ typedef enum
   NSUserDirectory,
   NSDocumentationDirectory,
   NSAllApplicationsDirectory,
-  NSAllLibrariesDirectory
+  NSAllLibrariesDirectory,
+  GSLibrariesDirectory,
 } NSSearchPathDirectory;
 
 typedef unsigned int NSSearchPathDomainMask;

@@ -1,3 +1,11 @@
+2001-01-28  Jonathan Gapen  <jagapen@home.com>
+ 
+        * Source/NSUser.m: In NSSearchPathForDirectoriesInDomains(), added
+        support for NSDeveloperDirectory, NSAdminDirectory, and the new
+        GSLibrariesDirectory.
+        * Headers/gnustep/base/NSPathUtilities.h: Added new enum value
+        GSLibrariesDirectory, to support GNUstep's Libraries dir.
+
 2001-01-26  Adam Fedor  <fedor@gnu.org>
 
 	* gnustep-base.script.spec.in: New file, rpm script for installing 
