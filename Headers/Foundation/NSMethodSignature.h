@@ -45,10 +45,10 @@ typedef struct	{
   BOOL		isReg;  // extension, available only ifndef NO_GNUSTEP
 } NSArgumentInfo;
  </example>
- *      <p>NB. The offset and register information my not always be reliable.
- *      In the past it was dependant of locally maintained platform dependent 
+ *      <p>NB. The offset and register information may not always be reliable.
+ *      In the past it was dependent on locally maintained platform dependent 
  *      information.  In the future it may depend on layout information
- *      supplied by the compiler.<p>
+ *      supplied by the compiler.</p>
  */
 typedef struct	{
   int		offset;
