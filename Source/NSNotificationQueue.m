@@ -479,11 +479,11 @@ static inline void notifyIdle(NSNotificationQueue *q)
       RELEASE(notification);
       RELEASE(modes);
       NSZoneFree(((accessQueue)q)->zone, item);
-      /*
-       *	Post all ASAP notifications.
-       */
-      GSNotifyASAP();
     }
+  /*
+   *	Post all ASAP notifications.
+   */
+  notifyASAP(q);
 }
 
 void
