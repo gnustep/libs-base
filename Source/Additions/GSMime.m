@@ -3684,7 +3684,7 @@ static NSCharacterSet	*tokenSet = nil;
    */
   [md appendBytes: "\r\n" length: 2];
 
-  if (enc == nil)
+  if ([[type objectForKey: @"Type"] isEqual: @"multipart"] == YES)
     {
       unsigned	count;
       unsigned	i;
