@@ -33,6 +33,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSProcessInfo.h>
 
 #include <stdio.h>
 
@@ -536,13 +537,16 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: handler
 {
-  NSArray	*contents;
+  BOOL		exists, is_dir;
 
   if (handler != nil)
     [handler fileManager: self willProcessPath: path];
 
-  contents = [self directoryContentsAtPath: path];
-  if (contents == nil)
+  exists = [self fileExistsAtPath: path isDirectory: &is_dir];
+  if (!exists)
+    return NO;
+
+  if (!is_dir)
     {
       const char	*cpath = [path fileSystemRepresentation];
 
@@ -575,6 +579,7 @@ static NSFileManager* defaultManager = nil;
     }
   else
     {
+      NSArray   *contents = [self directoryContentsAtPath: path];
       unsigned	count = [contents count];
       unsigned	i;
 
@@ -872,6 +877,10 @@ static NSFileManager* defaultManager = nil;
         return NO;
       if (len > 4 && strcmp(&cpath[len-4], ".exe") == 0)
 	return YES;
+      /* FIXME: On unix, directory accessable == executable, so we simulate that
+	 here for Windows. Is there a better check for directory access? */
+      if (res & FILE_ATTRIBUTE_DIRECTORY)
+	return YES;
       return NO;
 #else
       return (access(cpath, X_OK) == 0);
@@ -1121,14 +1130,12 @@ static NSFileManager* defaultManager = nil;
   IMP			nxtImp;
   IMP			addImp;
   NSDictionary		*attr;
-  NSString		*type;
+  BOOL			is_dir;
 
   /*
    * See if this is a directory (don't follow links).
    */
-  attr = [self fileAttributesAtPath: path traverseLink: NO];
-  type = [attr objectForKey: NSFileType];
-  if ([type isEqualToString: NSFileTypeDirectory] == NO)
+  if ([self fileExistsAtPath: path isDirectory: &is_dir] == NO || is_dir == NO)
     return nil;
     
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path 
@@ -1221,32 +1228,38 @@ static NSFileManager* defaultManager = nil;
 
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
-#if 0 && defined(__MINGW__)
-  unsigned	len = [path length];
-  NSMutableData	*d = [NSMutableData dataWithLength: len + 5];
-  char		*fspath = (char*)[d mutableBytes];
-  
-  [path getCString: &fspath[4]];
-  fspath[len+4] = '\0';
-
-  // Check if path specifies drive number or is current drive
-  if (fspath[4] && (fspath[5] == ': '))
+#ifdef __MINGW__
+  /* If path is in Unix format, transmorgrify it so Windows functions
+     can handle it */
+  NSString *newpath = path;
+  const char *c_path = [path cString];
+  if (c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
     {
-      fspath[0] = fspath[4];
-      fspath[1] = fspath[5];
-      fspath[2] = '\\';
-      fspath[3] = '\0';
+      /* Cygwin "//c/" type absolute path */
+      newpath = [NSString stringWithFormat: @"%c:%s", c_path[2], &c_path[3]];
+      newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
     }
-  else
+  else if (isalpha(c_path[0]) && c_path[1] == ':')
     {
-      fspath = &fspath[2];
-      fspath[0] = '\\';
-      fspath[1] = '\0';
+      /* Unix absolute path */
+      newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
     }
-  return fspath;
-#else
-  return [path cString];
+  else if (c_path[0] == '/')
+    {
+      NSDictionary  *env;
+      env = [[NSProcessInfo processInfo] environment];
+      if ([env objectForKey: @"CYGWIN"])
+        {
+          /* FIXME: Find cygwin drive? */
+	  newpath = @"c:/cygwin";
+          newpath = [newpath stringByAppendingPathComponent: path];
+          newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
+        }
+    }
+  /* FIXME: Should we translate relative paths? */
+  return [newpath cString];
 #endif
+  return [path cString];
 }
 
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string

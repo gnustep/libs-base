@@ -93,6 +93,9 @@
 /* Define if you have the realpath function.  */
 #undef HAVE_REALPATH
 
+/* Define if you have the rint function.  */
+#undef HAVE_RINT
+
 /* Define if you have the setpgid function.  */
 #undef HAVE_SETPGID
 

@@ -19,6 +19,8 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "wgetopt.h"
+
 /*
  * Doubles differing by this many least-significant-bits
  * or less are assumed to be `equal'.

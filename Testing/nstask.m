@@ -11,8 +11,13 @@ main()
 
   pool = [[NSAutoreleasePool alloc] init];
 
+#ifdef __MINGW__
+  task = [NSTask launchedTaskWithLaunchPath: @"C:\\WINDOWS\\COMMAND\\MEM.EXE"
+				  arguments: nil];
+#else
   task = [NSTask launchedTaskWithLaunchPath: @"/bin/ls"
 				  arguments: nil];
+#endif
   [task waitUntilExit];
   printf("Exit status - %d\n", [task terminationStatus]);
 

@@ -13,6 +13,8 @@
 #include <assert.h>
 #include "server.h"
 
+#include "wgetopt.h"
+
 @interface	Auth : NSObject
 @end
 
@@ -340,8 +342,10 @@ int main (int argc, char *argv[], char **env)
   id cobj, prx;
   NSAutoreleasePool	*arp;
   Auth *auth;
+#ifndef __MINGW__
   extern int optind;
   extern char *optarg;
+#endif
 
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
   arp = [NSAutoreleasePool new];

@@ -147,7 +147,7 @@ NSHomeDirectoryForUser(NSString *login_name)
       s = [NSString stringWithCString: buf];
     }
   else
-    s = NSOpenStepRootDirectory();
+    s = nil;
   [gnustep_global_lock unlock];
   return s;
 #endif

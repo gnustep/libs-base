@@ -1,4 +1,5 @@
 #include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
 
 // Fri Oct 23 02:58:47 MET DST 1998 	dave@turbocat.de
 // cStringNoCopy -> cString
@@ -25,7 +26,11 @@ int main()
   int a;
 
   NSMutableString	*fo = [NSMutableString stringWithString: @"abcdefg"];
+  NS_DURING
   [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: @"aa"];
+  NS_HANDLER
+    printf("Caught exception during string replacement (expected)\n");
+  NS_ENDHANDLER 
 
   print_string(s);
 

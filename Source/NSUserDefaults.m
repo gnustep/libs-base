@@ -297,9 +297,13 @@ static NSString	*pathForUser(NSString *user)
   home = NSHomeDirectoryForUser(user);
   if (home == nil)
     {  
-      return nil;
+      /* Probably on MINGW. Where to put it? */
+      NSLog(@"Could not get home dir. Using GNUSTEP_ROOT");
+      home = NSOpenStepRootDirectory();
+      path = home;
     }
-  path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
+  else
+    path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
       NSLog(@"Directory '%@' does not exist - creating it", path);

@@ -1,3 +1,36 @@
+2000-09-21  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for rint.
+	* Source/GSCompatibility.m: Define rint if not available.
+
+	* Source/NSData.m (readContentsOfFile): Remove incorrectly used
+	variable (MINGW).
+	* Source/NSFileManager.m (-removeFileAtPath:handler:): Use more
+	direct check if path is a dir.
+	(directoryContentsAtPath): Likewise.
+	(isExecutableFileAtPath): On MINGW, Return YES if a directory.
+	(fileSystemRepresentationWithPath:): On MINGW, fix up paths that might
+	come from Unix-like shells, like Cygwin bash, so they can be used with
+	Windows functions.
+	* Source/NSRunLoop.m (-acceptInputForMode:beforeDate:): On MINGW,
+	check for errno==0 and continue as if there was no error.
+	* Source/NSString.m (fileSystemRepresentation): Use NSFileManager's
+	implementation.
+	(getFileSystemRepresentation:): Likewise.
+	(isAbsolutePath): Check fileSystemRepresentation.
+	* Source/NSTask.m: Use fileSystemRepresentation instead of cString.
+	* Source/NSUser.m (NSHomeDirectoryForUser): On MINGW, return nil
+	if no home found.
+	* Source/NSUser.m (pathForUser): Use GNUSTEP_ROOT if no user home
+	found.
+
+	* Testing/nsconnection_client.m: Use impl of getopt for MINGW.
+	* Testing/nsconnection_server.m: Likewise.
+	* Testing/nsscanner.m: Likewise.
+	* Testing/nstask.m: Launch an appropriate Windows task.
+	* Testing/nsstring.m: Catch exception during inappropriate
+	string replacement.
+	
 2000-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSURLHandle.h: tidy up.

@@ -1971,12 +1971,12 @@ handle_printf_atsign (FILE *stream,
 /* Return a string for passing to OS calls to handle file system objects. */
 - (const char*) fileSystemRepresentation
 {
-  return [self cString];
+  return [[NSFileManager defaultManager] fileSystemRepresentationWithPath: self];
 }
 
 - (BOOL) getFileSystemRepresentation: (char*)buffer maxLength: (unsigned)size
 {
-  const char* ptr = [self cString];
+  const char* ptr = [self fileSystemRepresentation];
   if (strlen(ptr) > size)
     return NO;
   strcpy(buffer, ptr);
@@ -2471,7 +2471,15 @@ handle_printf_atsign (FILE *stream,
     return NO;
 
 #if defined(__MINGW__)
-  if ([self indexOfString: @":"] != NSNotFound)
+  if ([self indexOfString: @":"] == NSNotFound)
+    {
+      const char *cpath = [self fileSystemRepresentation];
+      if (isalpha(cpath[0]) && cpath[1] == ':')
+        return YES;
+      else
+	return NO;
+    }
+  else
     return YES;
 #else
   {
