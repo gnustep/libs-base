@@ -7,6 +7,7 @@ Thu Nov 19 16:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* doc/todo.tmpl.texi: Update todo list.
 	* checks/benchmark.m: Added benchmarks for serializing/deserializing
 	property lists and archiving/unarchiving them.
+	* src/NSString.m: Fix bug returning arrya in completePathIntoString
 
 Thu Nov 19 12:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
