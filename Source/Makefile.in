@@ -144,6 +144,7 @@ Port.m \
 Proxy.m \
 Queue.m \
 Random.m \
+RawCStream.m \
 RBTree.m \
 RBTreeEltNode.m \
 RBTreeNode.m \
@@ -284,6 +285,7 @@ objects/RNGAdditiveCongruential.h \
 objects/RNGBerkeley.h \
 objects/Random.h \
 objects/RandomGenerating.h \
+objects/RawCStream.h \
 objects/Retaining.h \
 objects/RetainingNotifier.h \
 objects/Set.h \
