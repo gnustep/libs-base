@@ -1,3 +1,22 @@
+Tue Oct 21 18:00:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: Retain local objects on creation,
+	and release on deallocation ... don't depend on the connection
+	to do it.
+	* Source/NSConnection.m: Restructured handling of proxies ...
+	remove global tables of local object references and just look in all
+	connections and cache when a local object cannot be found in the
+	current connection.
+	Don't retain local objects ... depend on the NSDistantObject class
+	to do that.
+	Don't keep counters of the number of connections in which a local
+	object reference is used ... it's not needed if we don't need to
+	track whether to release the local object or not.
+	Shorten timeout for deferred deallocation of local object references
+	(temporary measure).
+	* Headers/Foundation/NSDistantObject.h: new ivar for future use
+	keeping track of number of times an object is vended.
+
 Tue Oct 21 15:25:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Testing/nsconnection_client.m: Add -r option.

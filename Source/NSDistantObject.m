@@ -726,15 +726,10 @@ enum
       return new_proxy;
     }
 
-  /*
-   *	We don't need to retain the object here - the connection
-   *	will retain the proxies local object if necessary (and release it
-   *	when all proxies referring to it have been released).
-   */
-  _object = anObject;
+  _object = RETAIN(anObject);
 
   /*
-   *	We register this proxy with the connection using it.
+   * We register this proxy with the connection using it.
    */
   _connection = RETAIN(aConnection);
   [_connection addLocalObject: self];
@@ -831,7 +826,7 @@ enum
 	  return sig;
 	}
       /*
-       * Simlarly, when we fetch a method signature form the remote end,
+       * Simlarly, when we fetch a method signature from the remote end,
        * we get a proxy, and when we build a local signature we need to
        * ask the proxy for its types ... and must avoid recursion again.
        */
@@ -986,19 +981,21 @@ enum
 	NSLog(@"retain count for connection (0x%x) is now %u\n",
 		(gsaddr)_connection, [_connection retainCount]);
       /*
-       * A proxy for local object does not retain it's target - the
-       * NSConnection class does that for us - so we need not release it.
+       * A proxy for local object retains its target - so we release it.
        * For a local object the connection also retains this proxy, so we
        * can't be deallocated unless we are already removed from the
-       * connection.
+       * connection, and there is no need to remove self from connection.
        *
-       * A proxy retains it's connection so that the connection will
-       * continue to exist as long as there is a something to use it.
+       * A proxy has a nil local object, and retains it's connection so
+       * that the connection will continue to exist as long as there is
+       * a something to use it.
        * So we release our reference to the connection here just as soon
        * as we have removed ourself from the connection.
        */
       if (_object == nil)
 	[_connection removeProxy: self];
+      else
+	DESTROY(_object);
       RELEASE(_connection);
     }
 }

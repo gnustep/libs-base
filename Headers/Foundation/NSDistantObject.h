@@ -36,6 +36,7 @@
   id		_object;
   unsigned	_handle;
   Protocol	*_protocol;
+  unsigned	_counter;
 }
 
 + (NSDistantObject*) proxyWithLocal: (id)anObject
