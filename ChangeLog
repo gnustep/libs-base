@@ -1,3 +1,9 @@
+Fri Dec 21 13:50:50 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSBundle.m ([+bundleForLibrary:]): New method.
+	([+bundleForTool:]): New method.
+	* Headers/gnustep/base/NSBundle.h: Declare them.
+
 Fri Dec 21 11:48:49 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 	
 	* NSTimeZones/Makefile.postamble (timezonedir, before-install):
