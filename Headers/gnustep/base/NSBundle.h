@@ -113,6 +113,12 @@ extern NSString* NSLoadedClasses;
 #define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
   [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
 
+#ifndef	NO_GNUSTEP
+#define NSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
+  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" \
+  table: [bundle pathForGNUstepResource:(tbl) ofType: nil inDirectory: (fpth)]
+#endif
+
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */
 
 

@@ -30,7 +30,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
-charsetdir = $(GNUSTEP_RESOURCES)/gnustep/NSCharacterSets
+charsetdir = $(GNUSTEP_RESOURCES)/NSCharacterSets
 
 CHARSET_FILES = \
 alphanumericCharSet.dat \

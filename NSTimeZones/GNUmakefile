@@ -30,7 +30,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
-resourcedir = $(GNUSTEP_RESOURCES)/gnustep
+resourcedir = $(GNUSTEP_RESOURCES)
 
 TIMEZONE_ARCHIVE = \
 NSTimeZones.tar
