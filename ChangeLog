@@ -1,4 +1,18 @@
-2000-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+2000-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSAutoreleasePool.h: Changed proivate method
+	for cleanup at end of thread.
+	* Headers/gnustep/base/NSThead.h: New ivar to mark when we are
+	deallocating.
+	* Source/NSAutoreleasePool.m: Added parameter to _endThread so we
+	can safely end a thread without it being the current one.
+	* Source/NSThread.m: Now clean up autorelease pools *after*
+	everything elese, while deallocating the thread.  This is to cope
+	with objects that try to access the thread dictionary while
+	autoreleasing. -threadDictionary modified to return nil during
+	deallocation rather than creating a new ductionary.
+
+2000-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/externs.m: Removed obsolete http body key.
 	* Source/GSHTTPURLHandle.m: Removed obsolete http body key.
