@@ -429,7 +429,8 @@ libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC)
 	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
 		-Wl,-soname,libobjects.so.$(OBJECTS_MAJOR_VERSION) \
 		$(OBJS_INSTALL_PIC)
-	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION)
+	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION) 
+	rm -f libobjects.so
 	ln -s libobjects.so.$(OBJECTS_VERSION) \
 		libobjects.so.$(OBJECTS_MAJOR_VERSION)
 	ln -s libobjects.so.$(OBJECTS_MAJOR_VERSION) \
@@ -446,6 +447,7 @@ install: installdirs all
 	if [ -n "@LIBOBJECTS_SO@" ]; then \
 	  $(INSTALL_DATA) libobjects.so.$(OBJECTS_VERSION) $(libdir) ; \
 	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
+	  rm -f $(libdir)/libobjects.so ; \
 	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) \
 		$(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
 	  ln -s $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) \
