@@ -1,3 +1,10 @@
+Tue Dec 18 18:02:07 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSObject.m ([+conformsToProtocol:]): Fixed - it was
+	checking that the metaclass conforms to the protocol rather than
+	the class, which was causing it to fail for protocols implemented
+	in categories.
+
 2001-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Many source files modified to contain date, version, and title info.
