@@ -6831,6 +6831,13 @@ fi
 fi
 
 
+if test $ac_cv_lib_dl_dladdr = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_DLADDR 1
+_ACEOF
+
+fi
 
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
