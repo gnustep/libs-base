@@ -3,9 +3,6 @@
 	* Tools/cvtenc.m (main): Write using local/set encoding when
 	EscapeIn=YES.
 
-	* Tools/gdomap.c: Remove getopt function for MinGW
-	(patch from Leigh Smith <leigh@leighsmith.com>).
-	
 	* Documentation/coding-standards.texi: Add section about object
 	persistance.
 
