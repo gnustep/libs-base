@@ -23,7 +23,7 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSGArchiver.h>
-#include <objects/Coder.h>
+#include <objects/Archiver.h>
 #include <objects/behavior.h>
 
 @implementation NSGArchiver
@@ -31,7 +31,7 @@
 + (void) initialize
 {
   if (self == [NSGArchiver class])
-    class_add_behavior([NSGArchiver class], [Coder class]);
+    class_add_behavior([NSGArchiver class], [Archiver class]);
 }
 
 @end
@@ -41,7 +41,7 @@
 + (void) initialize
 {
   if (self == [NSGUnarchiver class])
-    class_add_behavior([NSGUnarchiver class], [Coder class]);
+    class_add_behavior([NSGUnarchiver class], [Unarchiver class]);
 }
 
 @end
