@@ -33,6 +33,9 @@
 /* The hashtable of retain counts on objects */
 static coll_cache_ptr retain_counts = NULL;
 
+/* The Class responsible for handling autorelease's */
+static id autorelease_class = nil;
+
 static void
 init_retain_counts_if_necessary()
 {
@@ -91,6 +94,11 @@ objc_retain_count (id anObj)
     return 0;
 }
 
+void
+objc_set_autorelease_class (id the_autorelease_class)
+{
+  auto_release_class = the_autorelease_class;
+}
 
 @implementation Object (RetainingObject)
 
@@ -113,6 +121,12 @@ objc_retain_count (id anObj)
 - (unsigned) retainCount
 {
   return objc_retain_count(self);
+}
+
+- autorelease
+{
+  [the_autorelease_class addObject:self];
+  returnself;
 }
 
 @end
