@@ -1306,7 +1306,7 @@ nmalloc (NSZone *zone, size_t size)
   if (freesize >= chunksize)
     {
       chunkhead = (void*)(block)+top;
-      block += chunksize;
+      block->top += chunksize;
     }
   else
     {

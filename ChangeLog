@@ -1,3 +1,8 @@
+2004-06-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSZone.m: Fixed error in malloc of non-freeable zones
+	(bug #9199) was failing to update top of block after allocation.
+
 2004-06-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUnarchiver.m: Decode class names directly so we can

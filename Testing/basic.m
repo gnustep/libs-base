@@ -1,5 +1,6 @@
 #include <Foundation/Foundation.h>
 #include <GNUstepBase/GCObject.h>
+#include <GNUstepBase/GSMime.h>
 #include <stdio.h>
 
 
@@ -28,6 +29,52 @@ static void test2(void)
         NSLog(@"Test 2 ok");
     else
         NSLog(@"-[NSURL path] returned \"%@\", expected \"%@\"", result, expected);
+}
+
+static try(GSMimeParser *p, NSData *d)
+{
+  if ([p parse: d] == NO)
+    {
+      NSLog(@"HTTP parse failure - %@", p);
+    }
+  else
+    {
+      BOOL		complete = [p isComplete];
+      GSMimeDocument	*document = [p mimeDocument];
+
+      if (complete == NO && [p isInHeaders] == NO)
+	{
+	  NSString	*enc;
+	  NSString	*len;
+	  int		ver;
+
+	  ver = [[[document headerNamed: @"http"]
+	    objectForKey: NSHTTPPropertyServerHTTPVersionKey] intValue];
+	  len = [[document headerNamed: @"content-length"] value];
+	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
+	  if (enc == nil)
+	    {
+	      enc = [[document headerNamed: @"transfer-encoding"] value];
+	    }
+
+	  if ([enc isEqualToString: @"chunked"] == YES)	
+	    {
+	      complete = NO;	// Read chunked body data
+	    }
+	  else if (ver >= 1 && [len intValue] == 0)
+	    {
+	      complete = YES;	// No content
+	    }
+	  else
+	    {
+	      complete = NO;	// No
+	    }
+	}
+      if (complete == YES)
+	{
+	  NSLog(@"Got data %@", [p data]);
+	}
+    }
 }
 
 int main ()
