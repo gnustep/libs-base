@@ -15,3 +15,14 @@ hppa1.1-hp-hpux9	mooney@golem.phys.ndsu.NoDak.edu (Timothy Mooney)
 mips-sgi-irix5.2	cracauer@wavehh.hanse.de (Martin Cracauer)
 			ebariaux@ulb.ac.be (Eric Bariaux)
 mips-dec-ultrix4.2	fedor@boulder.colorado.edu (Adam Fedor)
+
+The uniq'ed list:
+
+	jbettis@cse.unl.edu (Jeremy Bettis),
+	cracauer@wavehh.hanse.de (Martin Cracauer),
+	james.gledhill@brite.com (James Gledhill),
+	pkr@kom.auc.dk (Peter Kristensen),
+	ebariaux@ulb.ac.be (Eric Bariaux),
+	fog@cyberspace.org (Federico Di Gregorio),
+	mooney@golem.phys.ndsu.NoDak.edu (Timothy Mooney),
+	fedor@boulder.colorado.edu (Adam Fedor)
