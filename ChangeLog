@@ -1,5 +1,11 @@
 2000-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSGAttributedString.m: ([-setAttributes:range:])
+	Fixed obscure bug - use ASSIGNCOPY rather than ASSIGN to prevent
+	mutable dictionaries being placed in attributed string.
+
+2000-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Major rewrite of NSString.
 	There was a fundamental architectural problem in the old
 	implementation ...  if you had an NSGMutableCString object,

@@ -464,7 +464,7 @@ SANITY();
 - (void) setAttributes: (NSDictionary*)attributes
 		 range: (NSRange)range
 {
-  unsigned	tmpLength, arrayIndex, arraySize, location;
+  unsigned	tmpLength, arrayIndex, arraySize;
   NSRange	effectiveRange;
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
@@ -533,14 +533,10 @@ SANITY();
     }
 
   info = OBJECTAT(arrayIndex);
-  location = info->loc;
-  if (location >= beginRangeLoc)
+  if (info->loc >= beginRangeLoc)
     {
-      if (location > beginRangeLoc)
-	{
-	  info->loc = beginRangeLoc;
-	}
-      ASSIGN(info->attrs, attributes);
+      info->loc = beginRangeLoc;
+      ASSIGNCOPY(info->attrs, attributes);
     }
   else
     {
