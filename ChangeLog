@@ -1,3 +1,8 @@
+2001-04-19  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/GSTcpPort.m ([GSTcpPort -dealloc]): Fixed memory leak:
+	release address string.
+
 2001-04-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Tidied code a little, added safety checks for
