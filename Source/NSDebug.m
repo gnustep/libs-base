@@ -643,7 +643,7 @@ GSDebugAllocationRemove(Class c, id o)
  * This function returns an array
  * containing all the allocated objects of a certain class
  * which have been recorded ... to start the recording, you need
- * to invoke GSDebugAllocationActiveRecordedObjects().
+ * to invoke GSDebugAllocationActiveRecordingObjects().
  * Presumably, you will immediately call -description on them
  * to find out the objects you are leaking.  The objects are
  * returned in an array, so until the array is autoreleased,
