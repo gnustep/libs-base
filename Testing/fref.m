@@ -1,7 +1,14 @@
 /* Test NSArchiver on encoding of self-referential forward references. */
 
+#ifdef NX_CURRENT_COMPILER_RELEASE
+#include <foundation/NSArchiver.h>
+#include <foundation/NSArray.h>
+#include <foundation/NSAutoreleasePool.h>
+#else
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSAutoreleasePool.h>
+#endif
 
 /* Use GNU Archiving features, if they are available. */
 #define TRY_GNU_ARCHIVING 1
@@ -9,7 +16,8 @@
 /* The -initWithCoder methods substitutes another object for self. */
 static int decode_substitutes;
 
-#define GNU_ARCHIVING (TRY_GNU_ARCHIVING && defined(OBJECTS_MAJOR_VERSION))
+#define GNU_ARCHIVING \
+(TRY_GNU_ARCHIVING && defined(GNUSTEP_BASE_MAJOR_VERSION))
 
 #if GNU_ARCHIVING
 #include <gnustep/base/Archiver.h>
@@ -217,6 +225,7 @@ test_self_fref ()
 int
 main ()
 {
+  id arp = [NSAutoreleasePool new];
 
 #if TEXTCSTREAM
   [Archiver setDefaultCStreamClass: [TextCStream class]];
@@ -225,12 +234,7 @@ main ()
   test_fref ();
   test_self_fref ();
 
-#if 0
-  printf ("foo 0x%x sub_foo 0x%x\n",
-	  (unsigned)foo, (unsigned)sub_foo);
-  printf ("sub_foo 0x%x super_foo 0x%x\n",
-	  (unsigned)sub_foo, (unsigned)[sub_foo superFoo]);
-#endif
+  [arp release];
 
   exit (0);
 }
