@@ -8,6 +8,7 @@ Mon Feb  2 10:11:20 1998  Adam Fedor  <fedor@ultra.doc.com>
 	directories before (re-)installing.
 
 	* checks/GNUmakefile: Include bundle.make.
+	* checks/invocation2.m: New file.
 
 	* doc/gnustep-howto.tmpl.texi: Make gcc2.8.0 supported compiler.
 	* doc/news.tmpl.texi: Add recent changes.
