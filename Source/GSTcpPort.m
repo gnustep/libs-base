@@ -1530,6 +1530,7 @@ static Class		tcpPortClass;
   NSMapEnumerator	me;
   int			sock;
   GSTcpHandle		*handle;
+  id			recvSelf;
 
   DO_LOCK(myLock);
 
@@ -1542,15 +1543,23 @@ static Class		tcpPortClass;
    * Put in our listening socket.
    */
   *count = 0;
-  fds[(*count)++] = listener;
+  if (listener >= 0)
+    {
+      fds[(*count)++] = listener;
+    }
 
   /*
-   * Enumerate all our socket handles, and put them in.
+   * Enumerate all our socket handles, and put them in as long as they
+   * are to be used for receiving.
    */
+  recvSelf = GS_GC_HIDE(self);
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
     {
-      fds[(*count)++] = sock;
+      if (handle->recvPort == recvSelf)
+	{
+	  fds[(*count)++] = sock;
+	}
     }
   DO_UNLOCK(myLock);
 }

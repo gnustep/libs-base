@@ -1648,7 +1648,7 @@ static BOOL	multi_threaded = NO;
     }
   if (debug_connection > 4)
     {
-      NSLog(@"  connection is %x", conn);
+      NSLog(@"  connection is %x:%x", conn, [NSThread currentThread]);
     }
 
   if (conn->_authenticateIn == YES
@@ -2103,7 +2103,8 @@ static BOOL	multi_threaded = NO;
   NSDate	*timeout_date = nil;
 
   if (debug_connection > 5)
-    NSLog(@"Waiting for reply sequence %d on %x", sn, self);
+    NSLog(@"Waiting for reply sequence %d on %x:%x",
+      sn, self, [NSThread currentThread]);
   M_LOCK(_queueGate);
   while ((node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
     && node->value.obj == dummyObject)
