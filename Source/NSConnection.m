@@ -49,6 +49,7 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSPortMessage.h>
+#include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSNotification.h>
 
 NSString* NSConnectionReplyMode = @"NSConnectionReplyMode";
@@ -264,13 +265,14 @@ static int messages_received_count;
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
 					  host: (NSString*)h
 {
-    NSDistantObject	*proxy;
+  NSDistantObject	*proxy;
 
-    proxy = [self rootProxyForConnectionWithRegisteredName: n host: h];
-    if (proxy) {
-	return [proxy connectionForProxy];
+  proxy = [self rootProxyForConnectionWithRegisteredName: n host: h];
+  if (proxy != nil)
+    {
+      return [proxy connectionForProxy];
     }
-    return nil;
+  return nil;
 }
 
 /*
@@ -287,36 +289,38 @@ static int messages_received_count;
 
   d = GSCurrentThreadDictionary();
   c = (NSConnection*)[d objectForKey: tkey];
-  if (c != nil && [c isValid] == NO) {
-    /*
-     *	If the default connection for this thread has been invalidated -
-     *	release it and create a new one.
-     */
-    [d removeObjectForKey: tkey];
-    c = nil;
-  }
-  if (c == nil) {
-    c = [NSConnection new];
-    [d setObject: c forKey: tkey];
-    RELEASE(c);
-  }
+  if (c != nil && [c isValid] == NO)
+    {
+      /*
+       * If the default connection for this thread has been invalidated -
+       * release it and create a new one.
+       */
+      [d removeObjectForKey: tkey];
+      c = nil;
+    }
+  if (c == nil)
+    {
+      c = [NSConnection new];
+      [d setObject: c forKey: tkey];
+      RELEASE(c);
+    }
   return c;
 }
 
 + (void) initialize
 {
   connection_table = 
-    NSCreateHashTable (NSNonRetainedObjectHashCallBacks, 0);
+    NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
   connection_table_gate = [NSLock new];
   /* xxx When NSHashTable's are working, change this. */
   all_connections_local_objects =
-    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+    NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
   all_connections_local_targets =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
+    NSCreateMapTable(NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
   all_connections_local_cached =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
+    NSCreateMapTable(NSIntMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
   received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity: 32];
   received_request_rmc_queue_gate = [NSLock new];
@@ -337,16 +341,18 @@ static int messages_received_count;
   default_request_timeout = CONNECTION_DEFAULT_TIMEOUT;
 }
 
-+ new
++ (id) new
 {
-  id newPort = [[default_receive_port_class newForReceiving] autorelease];
-  id newConn = [NSConnection newForInPort: newPort
-				  outPort: nil
-		       ancestorConnection: nil];
+  NSPort	*newPort;
+  NSConnection	*newConn;
+
+  newConn = [self alloc];
+  newConn = [newConn initWithReceivePort: newPort sendPort: nil];
+  RELEASE(newPort);
   return newConn;
 }
 
-+ (id)currentConversation
++ (id) currentConversation
 {
   [self notImplemented: _cmd];
   return self;
@@ -355,38 +361,43 @@ static int messages_received_count;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
 						         host: (NSString*)h
 {
-    id p = [default_send_port_class newForSendingToRegisteredName: n onHost: h];
-    if (p == nil) {
-	return nil;
+  id p = [default_send_port_class newForSendingToRegisteredName: n onHost: h];
+  if (p == nil)
+    {
+      return nil;
     }
-    return [self rootProxyAtPort: [p autorelease]];
+  return [self rootProxyAtPort: [p autorelease]];
 }
 
 + (void) _timeout: (NSTimer*)t
 {
-    NSArray	*cached_locals;
-    int	i;
+  NSArray	*cached_locals;
+  int	i;
 
-    cached_locals = NSAllMapTableValues(all_connections_local_cached);
-    for (i = [cached_locals count]; i > 0; i--) {
-	CachedLocalObject *item = [cached_locals objectAtIndex: i-1];
+  cached_locals = NSAllMapTableValues(all_connections_local_cached);
+  for (i = [cached_locals count]; i > 0; i--)
+    {
+      CachedLocalObject *item = [cached_locals objectAtIndex: i-1];
 
-	if ([item countdown] == NO) {
-	    GSLocalCounter	*counter = [item obj];
-	    NSMapRemove(all_connections_local_cached, (void*)counter->target);
+      if ([item countdown] == NO)
+	{
+	  GSLocalCounter	*counter = [item obj];
+	  NSMapRemove(all_connections_local_cached, (void*)counter->target);
 	}
     }
-    if ([cached_locals count] == 0) {
-	[t invalidate];
-	timer = nil;
+  if ([cached_locals count] == 0)
+    {
+      [t invalidate];
+      timer = nil;
     }
 }
 
 - (void) addRequestMode: (NSString*)mode
 {
-    if (![request_modes containsObject: mode]) {
-	[request_modes addObject: mode];
-        [[NSRunLoop currentRunLoop] addPort: receive_port forMode: mode];
+  if ([request_modes containsObject: mode] == NO)
+    {
+      [request_modes addObject: mode];
+      [[NSRunLoop currentRunLoop] addPort: receive_port forMode: mode];
     }
 }
 
@@ -431,12 +442,12 @@ static int messages_received_count;
 
 - (id) init
 {
-  id newPort = [[default_receive_port_class newForReceiving] autorelease];
-  id newConn = [NSConnection newForInPort: newPort
-				  outPort: nil
-		       ancestorConnection: nil];
-  [self release];
-  return newConn;
+  NSPort	*newPort;
+
+  newPort = [default_receive_port_class newForReceiving];
+  self = [self initWithReceivePort: newPort sendPort: nil];
+  RELEASE(newPort);
+  return self;
 }
 
 /*
@@ -514,6 +525,33 @@ static int messages_received_count;
 - (BOOL) isValid
 {
   return is_valid;
+}
+
+- (BOOL) registerName: (NSString*)name
+{
+  NSPortNameServer	*svr = [NSPortNameServer defaultPortNameServer];
+  NSArray		*names = [svr namesForPort: receive_port];
+  BOOL			result = YES;
+
+  if (name != nil)
+    {
+      result = [svr registerPort: receive_port forName: name];
+    }
+  if (result == YES && [names count] > 0)
+    {
+      unsigned	i;
+
+      for (i = 0; i < [names count]; i++)
+	{
+	  NSString	*tmp = [names objectAtIndex: i];
+
+	  if ([tmp isEqualToString: name] == NO)
+	    {
+	      [svr removePort: receive_port forName: name];
+	    }
+	}
+    }
+  return result;
 }
 
 - (void) release
@@ -676,7 +714,7 @@ static int messages_received_count;
 
 - (void) gcFinalize
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  CREATE_AUTORELEASE_POOL(arp);
 
   if (debug_connection)
     NSLog(@"finalising 0x%x\n", (gsaddr)self);
@@ -690,26 +728,35 @@ static int messages_received_count;
 
   /* Remove rootObject from root_object_dictionary
      if this is last connection */
-  if (![NSConnection connectionsCountWithInPort: receive_port])
-    [NSConnection setRootObject: nil forInPort: receive_port];
+  if (receive_port != nil
+    && [NSConnection connectionsCountWithInPort: receive_port] == 0)
+    {
+      [NSConnection setRootObject: nil forInPort: receive_port];
+    }
 
   /* Remove receive port from run loop. */
   [self setRequestMode: nil];
-  [[NSRunLoop currentRunLoop] removePort: receive_port
-				 forMode: NSConnectionReplyMode];
-  [request_modes release];
+  if (receive_port != nil)
+    {
+      [[NSRunLoop currentRunLoop] removePort: receive_port
+				     forMode: NSConnectionReplyMode];
+    }
+  RELEASE(request_modes);
 
   /* Finished with ports - releasing them may generate a notification */
-  [receive_port release];
-  [send_port release];
+  RELEASE(receive_port);
+  RELEASE(send_port);
 
   [proxiesHashGate lock];
-  NSFreeMapTable (remote_proxies);
-  NSFreeMapTable (local_objects);
-  NSFreeMapTable (local_targets);
+  if (remote_proxies != 0)
+    NSFreeMapTable(remote_proxies);
+  if (local_objects != 0)
+    NSFreeMapTable(local_objects);
+  if (local_targets != 0)
+    NSFreeMapTable(local_targets);
   [proxiesHashGate unlock];
 
-  [arp release];
+  RELEASE(arp);
 }
 
 /* Getting and setting class variables */
@@ -817,7 +864,7 @@ static int messages_received_count;
   newPort = [[default_receive_port_class newForReceiving] autorelease];
   newConn = [self newForInPort: newPort outPort: nil
 		  ancestorConnection: nil];
-  [self setRootObject: anObj forInPort: newPort];
+  [[self class] setRootObject: anObj forInPort: newPort];
   return newConn;
 }
 
@@ -842,12 +889,15 @@ static int messages_received_count;
   id newPort;
   id newConn;
 
-  newPort = [default_receive_port_class newForReceivingFromRegisteredName: n
-								 fromPort: p];
-  newConn = [self newForInPort: [newPort autorelease]
-		       outPort: nil
-	    ancestorConnection: nil];
-  [self setRootObject: anObj forInPort: newPort];
+  newPort = [default_receive_port_class newForReceiving];
+  newConn = [self alloc];
+  newConn = [newConn initWithReceivePort: newPort sendPort: nil];
+  RELEASE(newPort);
+  [newConn setRootObject: anObj];
+  if ([newConn registerName: n] == NO)
+    {
+      DESTROY(newConn);
+    }
   return newConn;
 }
 
@@ -889,163 +939,15 @@ static int messages_received_count;
 }
 
 
-/* This is the designated initializer for NSConnection */
-
 + (NSConnection*) newForInPort: (NSPort*)ip
 		       outPort: (NSPort*)op
 	    ancestorConnection: (NSConnection*)ancestor
 {
-  NSNotificationCenter	*nCenter;
-  NSConnection		*newConn;
+  NSConnection	*conn;
 
-  NSParameterAssert (ip);
-
-  /* Find previously existing connection if there */
-  newConn = [self connectionByInPort: ip outPort: op];
-  if (newConn)
-    {
-      if (debug_connection > 2)
-	NSLog(@"Found existing connection (0x%x) for \n\t%@\n\t%@\n",
-		(gsaddr)newConn, [ip description], [op description]);
-      return [newConn retain];
-    }
-  [connection_table_gate lock];
-
-  newConn = [[NSConnection alloc] _superInit];
-  if (debug_connection)
-    NSLog(@"Created new connection 0x%x\n\t%@\n\t%@\n",
-	    (gsaddr)newConn, [ip description], [op description]);
-  newConn->is_valid = YES;
-  newConn->receive_port = ip;
-  [ip retain];
-  newConn->send_port = op;
-  [op retain];
-  newConn->message_count = 0;
-  newConn->rep_out_count = 0;
-  newConn->req_out_count = 0;
-  newConn->rep_in_count = 0;
-  newConn->req_in_count = 0;
-
-  /* This maps (void*)obj to (id)obj.  The obj's are retained.
-     We use this instead of an NSHashTable because we only care about
-     the object's address, and don't want to send the -hash message to it. */
-  newConn->local_objects =
-    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
-		      NSObjectMapValueCallBacks, 0);
-
-  /* This maps handles for local objects to their local proxies. */
-  newConn->local_targets =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
-
-  /* This maps [proxy targetForProxy] to proxy.  The proxy's are retained. */
-  newConn->remote_proxies =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
-
-  newConn->reply_timeout = [self defaultInTimeout];
-  newConn->request_timeout = [self defaultOutTimeout];
-  newConn->encoding_class = default_encoding_class;
-
-  /* xxx ANCESTOR argument is currently ignored; in the future it
-     will be removed. */
-  /* xxx It this the correct behavior? */
-  if (!(ancestor = NSMapGet (receive_port_2_ancestor, ip)))
-    {
-      NSMapInsert (receive_port_2_ancestor, ip, newConn);
-      /* This will cause the connection with the registered name
-	 to receive the -invokeWithObject: from the IN_PORT.
-	 This ends up being the ancestor of future new NSConnections
-	 on this in port. */
-      /* xxx Could it happen that this connection was invalidated, but
-	 the others would still be OK?  That would cause problems.
-	 No.  I don't think that can happen. */
-      [(InPort*)ip setReceivedPacketInvocation: (id)[self class]];
-    }
-
-  if (ancestor)
-    {
-      newConn->receive_port_class = [ancestor receivePortClass];
-      newConn->send_port_class = [ancestor sendPortClass];
-    }
-  else
-    {
-      newConn->receive_port_class = default_receive_port_class;
-      newConn->send_port_class = default_send_port_class;
-    }
-  newConn->independent_queueing = NO;
-  newConn->reply_depth = 0;
-  newConn->delegate = nil;
-  /*
-   *	Set up request modes array and make sure the receiving port is
-   *	added to the run loop to get data.
-   */
-  newConn->request_modes = [[NSMutableArray arrayWithObject: 
-		NSDefaultRunLoopMode] retain];
-  [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
-			      forMode: NSDefaultRunLoopMode];
-  [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
-			      forMode: NSConnectionReplyMode];
-
-  /* Ssk the delegate for permission, (OpenStep-style and GNUstep-style). */
-
-  /* Preferred OpenStep version, which just allows the returning of BOOL */
-  if ([[ancestor delegate] respondsTo: @selector(connection: shouldMakeNewConnection: )])
-    {
-      if (![[ancestor delegate] connection: ancestor
-		   shouldMakeNewConnection: (NSConnection*)newConn])
-	{
-	  [connection_table_gate unlock];
-	  [newConn release];
-	  return nil;
-	}
-    }
-  /* Deprecated OpenStep version, which just allows the returning of BOOL */
-  if ([[ancestor delegate] respondsTo: @selector(makeNewConnection: sender: )])
-    {
-      if (![[ancestor delegate] makeNewConnection: (NSConnection*)newConn
-				sender: ancestor])
-	{
-	  [connection_table_gate unlock];
-	  [newConn release];
-	  return nil;
-	}
-    }
-  /* Here is the GNUstep version, which allows the delegate to specify
-     a substitute.  Note: The delegate is responsible for freeing
-     newConn if it returns something different. */
-  if ([[ancestor delegate] respondsTo: @selector(connection: didConnect: )])
-    newConn = [[ancestor delegate] connection: ancestor
-	       didConnect: newConn];
-
-  /* Register ourselves for invalidation notification when the
-     ports become invalid. */
-  nCenter = [NSNotificationCenter defaultCenter];
-  [nCenter addObserver: newConn
-	      selector: @selector(portIsInvalid: )
-		  name: NSPortDidBecomeInvalidNotification
-		object: ip];
-  if (op)
-    [nCenter addObserver: newConn
-		selector: @selector(portIsInvalid: )
-		    name: NSPortDidBecomeInvalidNotification
-		  object: op];
-  /* if OP is nil, making this notification request would have
-     registered us to receive all NSPortDidBecomeInvalidNotification
-     requests, independent of which port posted them.  This isn't
-     what we want. */
-
-  /* In order that connections may be deallocated - there is an
-     implementation of [-release] to automatically remove the connection
-     from this array when it is the only thing retaining it. */
-  NSHashInsert(connection_table, (void*)newConn);
-  [connection_table_gate unlock];
-
-  [[NSNotificationCenter defaultCenter]
-    postNotificationName: NSConnectionDidInitializeNotification
-		  object: newConn];
-
-  return newConn;
+  conn = [self alloc];
+  conn = [conn initWithReceivePort: ip sendPort: op];
+  return conn;
 }
 
 + (NSConnection*) connectionByInPort: (NSPort*)ip
@@ -2068,24 +1970,24 @@ static int messages_received_count;
   [self _release_targets: &target count: 1];
 }
 
-- (NSArray *) localObjects
+- (NSArray*) localObjects
 {
-  id c;
+  NSArray	*c;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  c = NSAllMapTableValues (local_objects);
+  c = NSAllMapTableValues(local_objects);
   [proxiesHashGate unlock];
   return c;
 }
 
-- (NSArray *) proxies
+- (NSArray*) proxies
 {
-  id c;
+  NSArray	*c;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  c = NSAllMapTableValues (remote_proxies);
+  c = NSAllMapTableValues(remote_proxies);
   [proxiesHashGate unlock];
   return c;
 }
@@ -2270,21 +2172,23 @@ static int messages_received_count;
  */
 - (void) portIsInvalid: notification
 {
-    if (is_valid) {
-	id port = [notification object];
+  if (is_valid)
+    {
+      id port = [notification object];
 
-	if (debug_connection)
-	    NSLog(@"Received port invalidation notification for "
-		@"connection 0x%x\n\t%@\n", (gsaddr)self,
-		[port description]);
+      if (debug_connection)
+	{
+	  NSLog(@"Received port invalidation notification for "
+	      @"connection 0x%x\n\t%@\n", (gsaddr)self, port);
+	}
 
-	/* We shouldn't be getting any port invalidation notifications,
-	    except from our own ports; this is how we registered ourselves
-	    with the NSNotificationCenter in
-	    +newForInPort: outPort: ancestorConnection. */
-	NSParameterAssert (port == receive_port || port == send_port);
+      /* We shouldn't be getting any port invalidation notifications,
+	  except from our own ports; this is how we registered ourselves
+	  with the NSNotificationCenter in
+	  +newForInPort: outPort: ancestorConnection. */
+      NSParameterAssert (port == receive_port || port == send_port);
 
-	[self invalidate];
+      [self invalidate];
     }
 }
 
@@ -2297,32 +2201,188 @@ static int messages_received_count;
 + (NSConnection*) connectionWithReceivePort: (NSPort*)r
 				   sendPort: (NSPort*)s
 {
-    NSConnection	*c;
+  NSConnection	*c;
 
-    c = [self newForInPort: r outPort: s ancestorConnection: nil];
-    return [c autorelease];
+  c = [self alloc];
+  c = [self initWithReceivePort: r sendPort: s];
+  return AUTORELEASE(c);
 }
 
-- initWithReceivePort: (NSPort*)r
-	     sendPort: (NSPort*)s
+/* This is the designated initializer for NSConnection */
+- (id) initWithReceivePort: (NSPort*)r
+		  sendPort: (NSPort*)s
 {
-    [self dealloc];
-    return [NSConnection newForInPort: r outPort: s ancestorConnection: nil];
+  NSNotificationCenter	*nCenter;
+  NSConnection		*conn;
+  id			del;
+
+  NSParameterAssert(r);
+
+  /*
+   * Find previously existing connection if there
+   */
+  conn = [NSConnection connectionByInPort: r outPort: s];
+  if (conn != nil)
+    {
+      if (debug_connection > 2)
+	{
+	  NSLog(@"Found existing connection (0x%x) for \n\t%@\n\t%@\n",
+	    (gsaddr)conn, r, s);
+	}
+      RELEASE(self);
+      return RETAIN(conn);
+    }
+  [connection_table_gate lock];
+
+  if (debug_connection)
+    {
+      NSLog(@"Initialised new connection 0x%x\n\t%@\n\t%@\n",
+	(gsaddr)self, r, s);
+    }
+  is_valid = YES;
+  receive_port = RETAIN(r);
+  send_port = RETAIN(s);
+  message_count = 0;
+  rep_out_count = 0;
+  req_out_count = 0;
+  rep_in_count = 0;
+  req_in_count = 0;
+
+  /*
+   * This maps (void*)obj to (id)obj.  The obj's are retained.
+   * We use this instead of an NSHashTable because we only care about
+   * the object's address, and don't want to send the -hash message to it.
+   */
+  local_objects =
+    NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+		      NSObjectMapValueCallBacks, 0);
+
+  /*
+   * This maps handles for local objects to their local proxies.
+   */
+  local_targets =
+    NSCreateMapTable(NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
+
+  /*
+   * This maps [proxy targetForProxy] to proxy.  The proxy's are retained.
+   */
+  remote_proxies =
+    NSCreateMapTable(NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
+
+  reply_timeout = default_reply_timeout;
+  request_timeout = default_request_timeout;
+  encoding_class = default_encoding_class;
+
+  /* xxx It this the correct behavior? */
+  if ((conn = NSMapGet(receive_port_2_ancestor, r)) == nil)
+    {
+      NSMapInsert(receive_port_2_ancestor, r, self);
+      /*
+       * This will cause the connection with the registered name
+       * to receive the -invokeWithObject: from the IN_PORT.
+       * This ends up being the ancestor of future new NSConnections
+       * on this in port.
+       */
+      /* xxx Could it happen that this connection was invalidated, but
+	 the others would still be OK?  That would cause problems.
+	 No.  I don't think that can happen. */
+      [(InPort*)r setReceivedPacketInvocation: (id)[self class]];
+    }
+
+  if (conn != nil)
+    {
+      receive_port_class = [conn receivePortClass];
+      send_port_class = [conn sendPortClass];
+    }
+  else
+    {
+      receive_port_class = default_receive_port_class;
+      send_port_class = default_send_port_class;
+    }
+  independent_queueing = NO;
+  reply_depth = 0;
+  delegate = nil;
+  /*
+   *	Set up request modes array and make sure the receiving port is
+   *	added to the run loop to get data.
+   */
+  request_modes
+    = RETAIN([NSMutableArray arrayWithObject: NSDefaultRunLoopMode]);
+  [[NSRunLoop currentRunLoop] addPort: (NSPort*)r
+			      forMode: NSDefaultRunLoopMode];
+  [[NSRunLoop currentRunLoop] addPort: (NSPort*)r
+			      forMode: NSConnectionReplyMode];
+
+  /* Ask the delegate for permission, (OpenStep-style and GNUstep-style). */
+
+  /* Preferred OpenStep version, which just allows the returning of BOOL */
+  del = [conn delegate];
+  if ([del respondsTo: @selector(connection:shouldMakeNewConnection:)])
+    {
+      if ([del connection: conn shouldMakeNewConnection: self] == NO)
+	{
+	  [connection_table_gate unlock];
+	  RELEASE(self);
+	  return nil;
+	}
+    }
+  /* Deprecated OpenStep version, which just allows the returning of BOOL */
+  if ([del respondsTo: @selector(makeNewConnection:sender:)])
+    {
+      if (![del makeNewConnection: self sender: conn])
+	{
+	  [connection_table_gate unlock];
+	  RELEASE(self);
+	  return nil;
+	}
+    }
+  /* Here is the GNUstep version, which allows the delegate to specify
+     a substitute.  Note: The delegate is responsible for freeing
+     newConn if it returns something different. */
+  if ([del respondsTo: @selector(connection:didConnect:)])
+    self = [del connection: conn didConnect: self];
+
+  /* Register ourselves for invalidation notification when the
+     ports become invalid. */
+  nCenter = [NSNotificationCenter defaultCenter];
+  [nCenter addObserver: self
+	      selector: @selector(portIsInvalid:)
+		  name: NSPortDidBecomeInvalidNotification
+		object: r];
+  if (s != nil)
+    [nCenter addObserver: self
+		selector: @selector(portIsInvalid:)
+		    name: NSPortDidBecomeInvalidNotification
+		  object: s];
+
+  /* In order that connections may be deallocated - there is an
+     implementation of [-release] to automatically remove the connection
+     from this array when it is the only thing retaining it. */
+  NSHashInsert(connection_table, (void*)self);
+  [connection_table_gate unlock];
+
+  [[NSNotificationCenter defaultCenter]
+  postNotificationName: NSConnectionDidInitializeNotification
+		object: self];
+
+  return self;
 }
 
 - (NSPort*) receivePort
 {
-    return receive_port;
+  return receive_port;
 }
 
 - (void) runInNewThread
 {
-    [self notImplemented: _cmd];
+  [self notImplemented: _cmd];
 }
 
 - (NSPort*) sendPort
 {
-    return send_port;
+  return send_port;
 }
 
 @end

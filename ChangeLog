@@ -1,3 +1,10 @@
+Fri Feb  4 17:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSPortNameServer.m: New methods for use by NSConnection
+	* Foundation/NSPortNameServer.h: ditto
+	* Source/NSConnection.m: Tidied a little and added ([-registerName:])
+	* Source/NSConnection.h: ditto
+
 Sun Jan 16  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Moved objc-load.c to objc-load.m and filnd-exec.c to find-exec.m
