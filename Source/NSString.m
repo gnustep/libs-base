@@ -1973,7 +1973,11 @@ handle_printf_atsign (FILE *stream,
   if (lineEndIndex || contentsEndIndex)
     {
       BOOL found = NO;
-      end = aRange.location + aRange.length;
+      end = aRange.location;
+      if(aRange.length)
+        {
+          end += (aRange.length - 1);
+        }
       while (end < len)
 	{
 
