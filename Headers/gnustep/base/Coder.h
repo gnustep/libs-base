@@ -1,5 +1,5 @@
 /* Interface for GNU Objective-C coder object for use serializing
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Coder_h
-#define __Coder_h
+#ifndef __Coder_h_OBJECTS_INCLUDE
+#define __Coder_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
 #include <objects/Coding.h>
@@ -31,7 +31,7 @@
 @class Dictionary;
 @class Stack;
 
-@interface Coder : NSObject
+@interface Coder : NSObject <Encoding, Decoding>
 {
   int format_version;
   int concrete_format_version;
@@ -48,102 +48,14 @@
 + defaultStreamClass;
 + setDebugging: (BOOL)f;
 
-- initEncodingOnStream: (Stream *)s;
-- initDecodingOnStream: (Stream *)s;
-- initEncoding;
-- initDecoding;
-- init;
-
-- (void) dealloc;
-- (BOOL) isDecoding;
-
-- (void) encodeValueOfType: (const char*)type 
-   at: (const void*)d 
-   withName: (const char *)name;
-- (void) decodeValueOfType: (const char*)type
-   at: (void*)d 
-   withName: (const char **)namePtr;
-
-- (void) encodeWithName: (const char *)name
-   valuesOfTypes: (const char *)types, ...;
-- (void) decodeWithName: (const char **)name
-   valuesOfTypes: (const char *)types, ...;
-
-- (void) encodeArrayOfType: (const char *)type
-   at: (const void *)d
-   count: (unsigned)c
-   withName: (const char *)name;
-- (void) decodeArrayOfType: (const char *)type
-   at: (void *)d
-   count: (unsigned *)c
-   withName: (const char **)name;
-
-- (void) encodeObject: anObj
-   withName: (const char *)name;
-- (void) encodeObjectBycopy: anObj
-   withName: (const char *)name;
-- (void) decodeObjectAt: (id*)anObjPtr
-   withName: (const char **)name;
-
-- (void) encodeRootObject: anObj
-   withName: (const char *)name;
-- (void) encodeObjectReference: anObj
-   withName: (const char *)name;
-- (void) startEncodingInterconnectedObjects;
-- (void) finishEncodingInterconnectedObjects;
-- (void) startDecodingInterconnectedObjects;
-- (void) finishDecodingInterconnectedObjects;
-
-- (void) encodeAtomicString: (const char*)sp
-   withName: (const char*)name;
-- (const char *) decodeAtomicStringWithName: (const char **)name;
-
-- decodeClass;
-- (void) encodeClass: aClass;
-
-/* For inserting a name into a TextCoder stream */
-- (void) encodeName: (const char*)n;
-- (void) decodeName: (const char**)n;
-
-/* For subclasses that want to keep track of recursion */
-- (void) encodeIndent;
-- (void) encodeUnindent;
-- (void) decodeIndent;
-- (void) decodeUnindent;
-
-/* Implemented by concrete subclasses */
-- (void) encodeValueOfSimpleType: (const char*)type 
-   at: (const void*)d 
-   withName: (const char *)name;
-- (void) decodeValueOfSimpleType: (const char*)type 
-   at: (void*)d 
-   withName: (const char **)namePtr;
-- (void) encodeBytes: (const char *)b
-   count: (unsigned)c
-   withName: (const char *)name;
-- (void) decodeBytes: (char *)b
-   count: (unsigned*)c
-   withName: (const char **)name;
-
-- (int) coderFormatVersion;
-- (int) coderConcreteFormatVersion;
-
-- (void) resetCoder;		/* xxx remove this? */
-
-- doInitOnStream: (Stream *)s isDecoding: (BOOL)f;
-/* Internal designated initializer.  Override it, but don't call it yourself.
-   This method name may change. */
-
-+ (int) coderFormatVersion;
-+ (int) coderConcreteFormatVersion;
-+ (const char *) coderSignature;
-
 @end
 
-@interface NSObject (CoderAdditions) <Coding>
-
-- (void) encodeWithCoder: (Coder*)anEncoder;
+@interface NSObject (OptionalNewWithCoder)
 + newWithCoder: (Coder*)aDecoder;
+@end
+
+@interface NSObject (CoderAdditions) 
+/* <SelfCoding> not needed because of NSCoding */
 
 /* These methods here temporarily until ObjC runtime category bug fixed */
 - classForConnectedCoder:aRmc;
@@ -151,4 +63,4 @@
 
 @end
 
-#endif /* __Coder_h */
+#endif /* __Coder_h_OBJECTS_INCLUDE */

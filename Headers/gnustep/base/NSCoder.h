@@ -2,7 +2,7 @@
    Copyright (C) 1994 NeXT Computer, Inc.
    
    This file is part of the GNU Objective C Class Library.
-
+   
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
@@ -18,8 +18,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSCoder__include__
-#define __NSCoder__include__
+#ifndef __NSCoder_h_OBJECTS_INCLUDE
+#define __NSCoder_h_OBJECTS_INCLUDE
 
 #include <foundation/NSObject.h>
 #include <foundation/NSGeometry.h>
@@ -28,53 +28,50 @@
 @class NSMutableData, NSData, NSString;
 
 @interface NSCoder : NSObject
-{
-    NSMutableData *_data;
-}
 
 // Encoding Data
 
-- (void)encodeArrayOfObjCType:(const char *)types
-                        count:(unsigned)count
-                           at:(const void *)array;
-- (void)encodeBycopyObject:(id)anObject;
-- (void)encodeConditionalObject:(id)anObject;
-- (void)encodeDataObject:(NSData *)data;
-- (void)encodeObject:(id)anObject;
-- (void)encodePropertyList:(id)plist;
-- (void)encodePoint:(NSPoint)point;
-- (void)encodeRect:(NSRect)rect;
-- (void)encodeRootObject:(id)rootObject;
-- (void)encodeSize:(NSSize)size;
-- (void)encodeValueOfObjCType:(const char *)type
-                           at:(const void *)address;
-- (void)encodeValuesOfObjCTypes:(const char *)types,...;
+- (void) encodeArrayOfObjCType: (const char*)types
+   count: (unsigned)count
+   at: (const void*)array;
+- (void) encodeBycopyObject: (id)anObject;
+- (void) encodeConditionalObject: (id)anObject;
+- (void) encodeDataObject: (NSData*)data;
+- (void) encodeObject: (id)anObject;
+- (void) encodePropertyList: (id)plist;
+- (void) encodePoint: (NSPoint)point;
+- (void) encodeRect: (NSRect)rect;
+- (void) encodeRootObject: (id)rootObject;
+- (void) encodeSize: (NSSize)size;
+- (void) encodeValueOfObjCType: (const char*)type
+   at: (const void*)address;
+- (void) encodeValuesOfObjCTypes: (const char*)types,...;
 
 // Decoding Data
 
-- (void)decodeArrayOfObjCType:(const char *)types
-                        count:(unsigned)count
-                           at:(void *)address;
-- (NSData *)decodeDataObject;
-- (id)decodeObject;
-- (id)decodePropertyList;
-- (NSPoint)decodePoint;
-- (NSRect)decodeRect;
-- (NSSize)decodeSize;
-- (void)decodeValueOfObjCType:(const char *)type
-                           at:(void *)address;
-- (void)decodeValuesOfObjCTypes:(const char *)types,...;
+- (void) decodeArrayOfObjCType: (const char*)types
+ count: (unsigned)count
+   at: (void*)address;
+- (NSData*) decodeDataObject;
+- (id) decodeObject;
+- (id) decodePropertyList;
+- (NSPoint) decodePoint;
+- (NSRect) decodeRect;
+- (NSSize) decodeSize;
+- (void) decodeValueOfObjCType: (const char*)type
+   at: (void*)address;
+- (void) decodeValuesOfObjCTypes: (const char*)types,...;
 
 // Managing Zones
 
-- (NSZone *)objectZone;
-- (void)setObjectZone:(NSZone *)zone;
+- (NSZone*) objectZone;
+- (void) setObjectZone: (NSZone*)zone;
 
 // Getting a Version
 
-- (unsigned int)systemVersion;
-- (unsigned int)versionForClassName:(NSString *)className;
-	
+- (unsigned int) systemVersion;
+- (unsigned int) versionForClassName: (NSString*)className;
+
 @end
 
-#endif	/* __NSCoder__include__ */
+#endif	/* __NSCoder_h_OBJECTS_INCLUDE */

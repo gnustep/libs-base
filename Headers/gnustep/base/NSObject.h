@@ -63,8 +63,8 @@
 @end
 
 @protocol NSCoding
-// - (void)encodeWithCoder:(NSCoder *)aCoder; /* xxx Fix this! */
-// - initWithCoder:(NSCoder *)aDecoder;
+- (void) encodeWithCoder: (NSCoder*)aCoder;
+- (id) initWithCoder: (NSCoder*)aDecoder;
 @end
 
 
@@ -111,6 +111,7 @@
 NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
 void NSDeallocateObject(NSObject *anObject);
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
+
 BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
 void NSIncrementExtraRefCount(id anObject);
 BOOL NSDecrementExtraRefCountWasZero(id anObject);

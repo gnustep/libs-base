@@ -1,5 +1,5 @@
 /* Code for implementation for Objective-C EltNode objects
-   Copyright (C) 1993 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@cs.rochester.edu>
    Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -45,7 +45,7 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) encodeWithCoder: (Coder*)aCoder
+- (void) encodeWithCoder: aCoder
 {
   const char *encoding;
 
@@ -68,20 +68,19 @@
   return &_elt_comparison_function;
 }
 
-+ newWithCoder: (Coder*)aCoder
+- initWithCoder: aCoder
 {
-  id n;
   char *encoding;
 
-  n = [super newWithCoder:aCoder];
+  [super initWithCoder:aCoder];
   [aCoder decodeValueOfType:@encode(char*)
 	  at:&encoding
 	  withName:NULL];
-  *[n _eltComparisonFunctionPtr] = elt_get_comparison_function(encoding);
+  *[self _eltComparisonFunctionPtr] = elt_get_comparison_function(encoding);
   [aCoder decodeValueOfType:encoding
-	  at:[n _elementDataPtr]
+	  at:[self _elementDataPtr]
 	  withName:NULL];
-  return n;
+  return self;
 }
 
 - (int(*)(elt,elt)) comparisonFunction

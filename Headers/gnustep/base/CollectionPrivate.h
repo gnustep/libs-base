@@ -1,5 +1,5 @@
 /* Collection definitions for the use of subclass implementations only
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -36,10 +36,10 @@
 - _readContents: (TypedStream*)aStream;
 
 /* The Coding versions of the above */
-- (void) _encodeCollectionWithCoder: (Coder*) aCoder;
-+ _newCollectionWithCoder: (Coder*) aCoder;
-- (void) _encodeContentsWithCoder: (Coder*)aCoder;
-- (void) _decodeContentsWithCoder: (Coder*)aCoder;
+- (void) _encodeCollectionWithCoder: (id <Encoding>)aCoder;
+- _initCollectionWithCoder: (id <Decoding>)aCoder;
+- (void) _encodeContentsWithCoder: (id <Encoding>)aCoder;
+- (void) _decodeContentsWithCoder: (id <Decoding>)aCoder;
 @end
 
 @interface Collection (DeallocationHelpers)
