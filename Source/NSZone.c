@@ -83,6 +83,8 @@
 #define ALLOCATED 1
 #define ZONELINK  2
 
+#define WORDSIZE (sizeof(double))
+
 typedef struct _chunkdesc 
 {
     void *base;
@@ -291,25 +293,32 @@ void NSMergeZone(NSZone *zonep)
 void *NSZoneMalloc(NSZone *zonep, size_t size)
 {
     int i,pages;
+    size_t newsize,oddsize;
     void *ptr;
     chunkdesc temp,*chunk;
     NSZone *newzone;
 
     if (zonep == NS_NOZONE) return (*objc_malloc) (size);
+/* round size up to the nearest word, so that all chunks are word aligned */
+    oddsize = (size % WORDSIZE);
+    newsize = size - oddsize + (oddsize?WORDSIZE:0);
+/* if the chunks in this zone can be freed, then we have to scan the whole
+   zone for chunks that have been deallocated for recycling. This requires
+   extra time, so it is not as fast as !canFree */
     if (zonep->canFree) {
         for (i=0;i<zonep->heap.Count;i++) {
             chunk = &(((chunkdesc *)zonep->heap.LList)[i]);
             
             if (chunk->type == UNUSED) {
-                if (size <= chunk->size) {
+                if (newsize <= chunk->size) {
                     ptr = chunk->base;
                     chunk->type = ALLOCATED;
-                    if (size < chunk->size) {
-                        temp.base = chunk->base+size;
-                        temp.size = chunk->size-size;
+                    if (newsize < chunk->size) {
+                        temp.base = chunk->base+newsize;
+                        temp.size = chunk->size-newsize;
                         temp.type = UNUSED;
                         addtolist(&temp,&zonep->heap,i+1);
-                        chunk->size = size;
+                        chunk->size = newsize;
                     }
                     return ptr;
                 }
@@ -318,7 +327,7 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
 #ifdef DEBUG
                 printf("following link ...\n");
 #endif
-                return (NSZoneMalloc((NSZone *)(chunk->base),size));
+                return (NSZoneMalloc((NSZone *)(chunk->base),newsize));
             }
             
         }
@@ -326,9 +335,9 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
     }
     else {
         chunk = &(((chunkdesc *)zonep->heap.LList)[0]);
-        if (chunk->size > size) {
+        if (chunk->size > newsize) {
             ptr = chunk->base;
-            chunk->size -=size;
+            chunk->size -=newsize;
             return ptr;
         }
         if (zonep->heap.Count == 2) {
@@ -337,7 +346,7 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
 #ifdef DEBUG
                 printf("following link ...\n");
 #endif
-                return (NSZoneMalloc((NSZone *)(chunk->base),size));
+                return (NSZoneMalloc((NSZone *)(chunk->base),newsize));
             }
         }
     }
@@ -345,7 +354,7 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
 #ifdef DEBUG        
     printf("*** no more memory in zone, creating link to new zone\n");
 #endif                
-    pages = size/(zonep->granularity)+1;
+    pages = newsize/(zonep->granularity)+1;
     newzone = NSCreateZone(pages*(zonep->granularity),
                            zonep->granularity,zonep->canFree);
     if (newzone == NS_NOZONE) {
@@ -359,7 +368,7 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
     temp.size = 0;
     temp.type = ZONELINK;
     addtolist(&temp,&zonep->heap,zonep->heap.Count);
-    return  (NSZoneMalloc(newzone,size));
+    return  (NSZoneMalloc(newzone,newsize));
     
 }
 
