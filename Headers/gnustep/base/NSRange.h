@@ -51,6 +51,8 @@ NSLocationInRange(unsigned location, NSRange range)
   return (location >= range.location) && (location < NSMaxRange(range));
 }
 
+extern NSRange NSMakeRange(float location, float length);
+
 extern NSRange NSUnionRange(NSRange range1, NSRange range2);
 
 extern NSRange NSIntersectionRange(NSRange range1, NSRange range2);
