@@ -5,6 +5,8 @@
 	The intention was to produce a pretty complete manual and then
 	release it, but we ran out of funding, so I'm releasing the work
 	to date.
+	* Source/NSObject.m: Go back to using local refcounts now that new
+	map table code is thoroughly tested.
 
 2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
