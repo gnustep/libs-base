@@ -227,6 +227,7 @@
 -->
 <!ELEMENT method (((sel, arg?), (sel, arg)*, vararg?), desc?, standards?)>
 <!ATTLIST method
+  id CDATA #IMPLIED
   type CDATA #IMPLIED
   factory %boolean; "no"
   init %boolean; "no"
