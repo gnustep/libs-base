@@ -71,7 +71,6 @@ FILE_AUTHORS = \
 GNU_MFILES = \
 GetDefEncoding.m \
 Unicode.m \
-UnixFileHandle.m \
 behavior.m \
 o_array.m \
 o_array_bas.m \
@@ -94,6 +93,12 @@ o_map_cbs.m \
 preface.m \
 mframe.m \
 objc-gnu2next.m
+
+ifeq ($(GNUSTEP_TARGET_OS), mingw32)
+#GNU_MFILES +=
+else
+GNU_MFILES += UnixFileHandle.m 
+endif
 
 GNU_CFILES = \
 md5.c \

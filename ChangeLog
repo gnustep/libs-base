@@ -1,3 +1,16 @@
+2000-09-12  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for symlin, readlink.
+
+	* Source/GNUmakefile: Don't compile UnixFileHandle.m on mingw.
+	(Will create WindowsFileHandle later...).
+
+	* Source/NSFileManager.m (-createDirectoryAtPath:attributes:]): 
+	Create subpaths on mingw.
+	(isDeletableFileAtPath:): Implement for mingw.
+	(createSymbolicLinkAtPath): Implement only if HAVE_SYMLINK
+	(pathContentOfSymbolicLinkAtPath): Implement only if HAVE_READLINK
+
 2000-09-13  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/gnustep/base/Unicode.h:
