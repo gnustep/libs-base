@@ -1,3 +1,12 @@
+2004-02-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Headers/Foundation/NSPropertyList.h:
+	Use GNUstep rather than GNUStep in property list format names as
+	it seems to be the more common capitalisation.
+	* Source/NSPropertyList.m: Add new methods exposed to java by jigs
+	to avoid java errors with conflicting implementations of the
+	NSPropertyListSerialisation class.
+
 2004-02-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.h: improve consistency of naming of

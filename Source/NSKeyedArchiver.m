@@ -1,4 +1,4 @@
-/** Implementation for NSKeyedArchiver for GNUStep
+/** Implementation for NSKeyedArchiver for GNUstep
    Copyright (C) 2004 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>

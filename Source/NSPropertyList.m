@@ -1,4 +1,4 @@
-/** Interface for NSPropertyList for GNUStep
+/** Interface for NSPropertyList for GNUstep
    Copyright (C) 2003,2004 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
@@ -1503,7 +1503,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		{
 		  [dest appendBytes: "<true/>\n" length: 8];
 		}
-	      else if (x == NSPropertyListGNUStepFormat)
+	      else if (x == NSPropertyListGNUstepFormat)
 		{
 		  [dest appendBytes: "<*BY>\n" length: 6];
 		}
@@ -1518,7 +1518,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		{
 		  [dest appendBytes: "<false/>\n" length: 9];
 		}
-	      else if (x == NSPropertyListGNUStepFormat)
+	      else if (x == NSPropertyListGNUstepFormat)
 		{
 		  [dest appendBytes: "<*BN>\n" length: 6];
 		}
@@ -1536,7 +1536,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      XString([obj stringValue], dest);
 	      [dest appendBytes: "</integer>\n" length: 11];
 	    }
-	  else if (x == NSPropertyListGNUStepFormat)
+	  else if (x == NSPropertyListGNUstepFormat)
 	    {
 	      [dest appendBytes: "<*I" length: 3];
 	      PString([obj stringValue], dest);
@@ -1555,7 +1555,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      XString([obj stringValue], dest);
 	      [dest appendBytes: "</real>\n" length: 8];
 	    }
-	  else if (x == NSPropertyListGNUStepFormat)
+	  else if (x == NSPropertyListGNUstepFormat)
 	    {
 	      [dest appendBytes: "<*R" length: 3];
 	      PString([obj stringValue], dest);
@@ -1615,7 +1615,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  [dest appendData: obj];
 	  [dest appendBytes: "</date>\n" length: 8];
 	}
-      else if (x == NSPropertyListGNUStepFormat)
+      else if (x == NSPropertyListGNUstepFormat)
 	{
 	  [dest appendBytes: "<*D" length: 3];
 	  obj = [obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
@@ -1996,7 +1996,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 // FIXME ... need to check properly.
   switch (aFormat)
     {
-      case NSPropertyListGNUStepFormat:
+      case NSPropertyListGNUstepFormat:
 	return YES;
 
       case NSPropertyListGNUstepBinaryFormat:
@@ -2167,4 +2167,74 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   return result;
 }
 
+@end
+
+
+
+@interface NSPropertyListSerialization (JavaCompatibility)
++ (NSData*) dataFromPropertyList: (id)anObject;
++ (id) propertyListFromData: (NSData*)aData;
++ (id) propertyListFromString: (NSString*)aString;
++ (NSString*) stringFromPropertyList: (id)anObject;
+@end
+
+@implementation NSPropertyListSerialization (JavaCompatibility)
++ (NSData*) dataFromPropertyList: (id)anObject
+{
+  NSString	*dummy;
+
+  if (anObject == nil)
+    {
+      return nil;
+    }
+  return [self dataFromPropertyList: anObject
+                             format: NSPropertyListGNUstepBinaryFormat
+		   errorDescription: &dummy];
+}
++ (id) propertyListFromData: (NSData*)aData
+{
+  NSPropertyListFormat	format;
+  NSString		*dummy;
+
+  if (aData == nil)
+    {
+      return nil;
+    }
+  return [self propertyListFromData: aData
+		   mutabilityOption: NSPropertyListImmutable
+			     format: &format
+		   errorDescription: &dummy];
+}
++ (id) propertyListFromString: (NSString*)aString
+{
+  NSData		*aData;
+  NSPropertyListFormat	format;
+  NSString		*dummy;
+
+  aData = [aString dataUsingEncoding: NSUTF8StringEncoding];
+  if (aData == nil)
+    {
+      return nil;
+    }
+  return [self propertyListFromData: aData
+		   mutabilityOption: NSPropertyListImmutable
+			     format: &format
+		   errorDescription: &dummy];
+}
++ (NSString*) stringFromPropertyList: (id)anObject
+{
+  NSString	*string;
+  NSData	*aData;
+
+  if (anObject == nil)
+    {
+      return nil;
+    }
+  aData = [self dataFromPropertyList: anObject
+			      format: NSPropertyListGNUstepFormat
+		    errorDescription: &string];
+  string = [NSString alloc];
+  string = [string initWithData: aData encoding: NSASCIIStringEncoding];
+  return AUTORELEASE(string);
+}
 @end

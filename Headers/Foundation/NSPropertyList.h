@@ -1,4 +1,4 @@
-/** Interface for NSPropertyList for GNUStep
+/** Interface for NSPropertyList for GNUstep
    Copyright (C) 2004 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
@@ -56,8 +56,8 @@ typedef enum {
  * Specifies the serialisation format for a serialised property list.
  */
 typedef enum {
-  NSPropertyListGNUStepFormat,
-/** <strong>NSPropertyListGNUStepFormat</strong>
+  NSPropertyListGNUstepFormat,
+/** <strong>NSPropertyListGNUstepFormat</strong>
  * extension of OpenStep format */
   NSPropertyListGNUstepBinaryFormat,
 /** <strong>NSPropertyListGNUstepBinaryFormat</strong>
