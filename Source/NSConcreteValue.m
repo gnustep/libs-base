@@ -1,5 +1,5 @@
 /* NSConcreteValue - Object encapsulation for C types.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994,1995,1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -29,14 +29,15 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSZone.h>
 #include <base/preface.h>
+#include <base/fast.x>
 
 /* This is the real, general purpose value object.  I've implemented all the
    methods here (like pointValue) even though most likely, other concrete
    subclasses were created to handle these types */
 
 #define NS_RAISE_MALLOC \
-	[NSException raise:NSMallocException \
-	    format:@"No memory left to allocate"]
+	[NSException raise: NSMallocException \
+	    format: @"No memory left to allocate"]
 
 #define NS_CHECK_MALLOC(ptr) \
 	if (!ptr) {NS_RAISE_MALLOC;}
@@ -44,79 +45,86 @@
 @implementation NSConcreteValue
 
 // NSCopying
-- deepen
+- (id) deepen
 {
-    void	*old_ptr;
-    int		size;
+  void	*old_ptr;
+  char	*old_typ;
+  int	size;
 
-    size = objc_sizeof_type([objctype cString]);
-    old_ptr = data;
-    data = (void *)NSZoneMalloc([self zone], size);
-    NS_CHECK_MALLOC(data)
-    memcpy(data, old_ptr, size);
+  size = objc_sizeof_type(objctype);
+  old_ptr = data;
+  data = (void *)NSZoneMalloc(fastZone(self), size);
+  NS_CHECK_MALLOC(data)
+  memcpy(data, old_ptr, size);
 
-    objctype = [objctype copyWithZone:[self zone]];
-    return self;
+  old_typ = objctype;
+  objctype = (char *)NSZoneMalloc(fastZone(self), strlen(old_typ)+1);
+  NS_CHECK_MALLOC(objctype)
+  strcpy(objctype, old_typ);
+
+  return self;
 }
 
 // Allocating and Initializing 
 
-- initValue:(const void *)value
-      withObjCType:(const char *)type
+- (id) initValue: (const void *)value
+      withObjCType: (const char *)type
 {
-    int	size;
-    
-    if (!value || !type) 
-      {
-    	NSLog(@"Tried to create NSValue with NULL value or NULL type");
-	[self release];
-	return nil;
-      }
+  int	size;
+  
+  if (!value || !type) 
+    {
+      NSLog(@"Tried to create NSValue with NULL value or NULL type");
+      [self release];
+      return nil;
+    }
 
-    self = [super init];
+  self = [super init];
 
-    // FIXME: objc_sizeof_type will abort when it finds an invalid type, when
-    // we really want to just raise an exception
-    size = objc_sizeof_type(type);
-    if (size <= 0) 
-      {
-    	NSLog(@"Tried to create NSValue with invalid Objective-C type");
-	[self release];
-	return nil;
-      }
+  // FIXME: objc_sizeof_type will abort when it finds an invalid type, when
+  // we really want to just raise an exception
+  size = objc_sizeof_type(type);
+  if (size <= 0) 
+    {
+      NSLog(@"Tried to create NSValue with invalid Objective-C type");
+      [self release];
+      return nil;
+    }
 
-    data = (void *)NSZoneMalloc([self zone], size);
-    NS_CHECK_MALLOC(data)
-    memcpy(data, value, size);
+  data = (void *)NSZoneMalloc(fastZone(self), size);
+  NS_CHECK_MALLOC(data)
+  memcpy(data, value, size);
 
-    objctype = [[NSString stringWithCString:type] retain];
-    return self;
+  objctype = (char *)NSZoneMalloc(fastZone(self), strlen(type)+1);
+  NS_CHECK_MALLOC(objctype)
+  strcpy(objctype, type);
+  return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   if (objctype)
-    [objctype release];
+    NSZoneFree(fastZone(self), objctype);
   if (data)
-    NSZoneFree([self zone], data);
+    NSZoneFree(fastZone(self), data);
   [super dealloc];
 }
 
 // Accessing Data 
-- (void)getValue:(void *)value
+- (void) getValue: (void *)value
 {
-    if (!value) {
-	[NSException raise:NSInvalidArgumentException
-	    format:@"Cannot copy value into NULL buffer"];
-	/* NOT REACHED */
+  if (!value)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Cannot copy value into NULL buffer"];
+      /* NOT REACHED */
     }
-    memcpy( value, data, objc_sizeof_type([objctype cString]) );
+  memcpy(value, data, objc_sizeof_type(objctype));
 }
 
 - (unsigned) hash
 {
-  const char*	type = [objctype cString];
-  unsigned	size = objc_sizeof_type(type);
+  unsigned	size = objc_sizeof_type(objctype);
   unsigned	hash = 0;
 
   while (size-- > 0)
@@ -128,18 +136,15 @@
 {
   const char*	type;
 
-  if ([aValue class] != [self class])
+  if (fastClass(aValue) != fastClass(self))
     return NO;
-  type = [objctype cString];
-  if (strcmp(type, [aValue objCType]) != 0)
+  if (strcmp(objctype, ((NSConcreteValue*)aValue)->objctype) != 0)
     return NO;
   else
     {
-      unsigned	size = objc_sizeof_type(type);
-      char	buf[size];
+      unsigned	size = objc_sizeof_type(objctype);
 
-      [aValue getValue: buf];
-      if (memcmp(buf, data, size) != 0)
+      if (memcmp(((NSConcreteValue*)aValue)->data, data, size) != 0)
 	return NO;
       return YES;
     }
@@ -147,33 +152,33 @@
 
 - (const char *)objCType
 {
-    return [objctype cString];
+  return objctype;
 }
  
 // FIXME: need to check to make sure these hold the right values...
-- (id)nonretainedObjectValue
+- (id) nonretainedObjectValue
 {
-    return *((id *)data);
+  return *((id *)data);
 }
  
-- (void *)pointerValue
+- (void *) pointerValue
 {
-    return *((void **)data);
+  return *((void **)data);
 } 
 
-- (NSRect)rectValue
+- (NSRect) rectValue
 {
-    return *((NSRect *)data);
+  return *((NSRect *)data);
 }
  
-- (NSSize)sizeValue
+- (NSSize) sizeValue
 {
-    return *((NSSize *)data);
+  return *((NSSize *)data);
 }
  
-- (NSPoint)pointValue
+- (NSPoint) pointValue
 {
-    return *((NSPoint *)data);
+  return *((NSPoint *)data);
 }
 
 - (NSString *) description
@@ -181,28 +186,26 @@
   int size;
   NSData *rep;
 
-  size = objc_sizeof_type([objctype cString]);
+  size = objc_sizeof_type(objctype);
   rep = [NSData dataWithBytes: data length: size];
   return [NSString stringWithFormat: @"(%@) %@", objctype, [rep description]];
 }
 
 // NSCoding
-- (void)encodeWithCoder:(NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder *)coder
 {
-    const char *type;
-    [super encodeWithCoder:coder];
-    // FIXME: Do we need to check for encoding void, void * or will
-    // NSCoder do this for us?
-    type = [objctype cString];
-    [coder encodeValueOfObjCType:@encode(char *) at:&type];
-    [coder encodeValueOfObjCType:type at:&data];
+  [super encodeWithCoder: coder];
+  // FIXME: Do we need to check for encoding void, void * or will
+  // NSCoder do this for us?
+  [coder encodeValueOfObjCType: @encode(char *) at: &objctype];
+  [coder encodeValueOfObjCType: objctype at: &data];
 }
 
-- (id)initWithCoder:(NSCoder *)coder
+- (id) initWithCoder: (NSCoder *)coder
 {
-    [NSException raise:NSInconsistentArchiveException
-	format:@"Cannot unarchive class - Need NSValueDecoder."];
-    return self;
+  [NSException raise: NSInconsistentArchiveException
+      format: @"Cannot unarchive class - Need NSValueDecoder."];
+  return self;
 }
 
 @end

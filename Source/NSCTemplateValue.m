@@ -28,6 +28,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <base/preface.h>
+#include <base/fast.x>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 4 cooresponding to each value type */
@@ -57,67 +58,70 @@
 
 // Allocating and Initializing 
 
-- initValue:(const void *)value
-      withObjCType:(const char *)type
+- (id) initValue: (const void *)value
+    withObjCType: (const char *)type
 {
-    typedef _dt = data;
-    self = [super init];
-    data = *(_dt *)value;
-    return self;
+  typedef _dt = data;
+  self = [super init];
+  data = *(_dt *)value;
+  return self;
 }
 
 // Accessing Data 
-- (void)getValue:(void *)value
+- (void) getValue: (void *)value
 {
-    if (!value) {
-	[NSException raise:NSInvalidArgumentException
-	    format:@"Cannot copy value into NULL buffer"];
+  if (!value)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Cannot copy value into NULL buffer"];
 	/* NOT REACHED */
     }
-    memcpy( value, &data, objc_sizeof_type([self objCType]) );
+  memcpy( value, &data, objc_sizeof_type([self objCType]) );
 }
 
 - (BOOL) isEqual: (id)other
 {
-    if ([other isKindOfClass: [self class]]) {
-	return [self isEqualToValue: other];
+  if (other != nil && fastInstanceIsKindOfClass(other, fastClass(self)))
+    {
+      return [self isEqualToValue: other];
     }
-    return NO;
+  return NO;
 }
 
 - (BOOL) isEqualToValue: (NSValue*)aValue
 {
-    typedef _dt = data;
-    if ([aValue isKindOfClass: [self class]]) {
-	_dt	val = [aValue TYPE_METHOD];
+  typedef _dt = data;
+
+  if (aValue != nil && fastInstanceIsKindOfClass(aValue, fastClass(self)))
+    {
+      _dt	val = [aValue TYPE_METHOD];
 #if TYPE_ORDER == 0
-	return [data isEqual: val];
+      return [data isEqual: val];
 #elif TYPE_ORDER == 1
-	if (data.x == val.x && data.y == val.y)
-	    return YES;
-	else
-	    return NO;
+      if (data.x == val.x && data.y == val.y)
+	return YES;
+      else
+	return NO;
 #elif TYPE_ORDER == 2
-	if (data == val)
-	    return YES;
-	else
-	    return NO;
+      if (data == val)
+	return YES;
+      else
+	return NO;
 #elif TYPE_ORDER == 3
-	if (data.origin.x == val.origin.x &&
-		data.origin.y == val.origin.y &&
-		data.size.width == val.size.width &&
-		data.size.height == val.size.height)
-	    return YES;
-	else
-	    return NO;
+      if (data.origin.x == val.origin.x && data.origin.y == val.origin.y
+	&& data.size.width == val.size.width
+	&& data.size.height == val.size.height)
+	return YES;
+      else
+	return NO;
 #elif TYPE_ORDER == 4
-	if (data.width == val.width && data.height == val.height)
-	    return YES;
-	else
-	    return NO;
+      if (data.width == val.width && data.height == val.height)
+	return YES;
+      else
+	return NO;
 #endif
     }
-    return NO;
+  return NO;
 }
 
 - (unsigned) hash
@@ -133,9 +137,8 @@
   int           i;
 
   val.d = data.x + data.y;
-  for (i = 0; i < sizeof(double); i++) {
+  for (i = 0; i < sizeof(double); i++)
     hash += val.c[i];
-  }
   return hash;
 #elif TYPE_ORDER == 2
   return (unsigned)(gsaddr)data;
@@ -148,9 +151,8 @@
   int           i;
 
   val.d = data.origin.x + data.origin.y + data.size.width + data.size.height;
-  for (i = 0; i < sizeof(double); i++) {
+  for (i = 0; i < sizeof(double); i++)
     hash += val.c[i];
-  }
   return hash;
 #elif TYPE_ORDER == 4
   union {
@@ -161,22 +163,21 @@
   int           i;
 
   val.d = data.width + data.height;
-  for (i = 0; i < sizeof(double); i++) {
+  for (i = 0; i < sizeof(double); i++)
     hash += val.c[i];
-  }
   return hash;
 #endif
 }
 
 - (const char *)objCType
 {
-    typedef _dt = data;
-    return @encode(_dt);
+  typedef _dt = data;
+  return @encode(_dt);
 }
  
 - (TYPE_NAME)TYPE_METHOD
 {
-    return data;
+  return data;
 }
 
 - (NSString *) description
@@ -195,20 +196,20 @@
 }
 
 // NSCoding
-- (void)encodeWithCoder:(NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder *)coder
 {
-    const char *type;
-    [super encodeWithCoder:coder];
-    type = [self objCType];
-    [coder encodeValueOfObjCType:@encode(char *) at:&type];
-    [coder encodeValueOfObjCType:type at:&data];
+  const char *type;
+  [super encodeWithCoder: coder];
+  type = [self objCType];
+  [coder encodeValueOfObjCType: @encode(char *) at: &type];
+  [coder encodeValueOfObjCType: type at: &data];
 }
 
-- (id)initWithCoder:(NSCoder *)coder
+- (id) initWithCoder: (NSCoder *)coder
 {
-    [NSException raise:NSInconsistentArchiveException
-	format:@"Cannot unarchive class - Need NSValueDecoder."];
-    return self;
+  [NSException raise: NSInconsistentArchiveException
+	      format: @"Cannot unarchive class - Need NSValueDecoder."];
+  return self;
 }
 
 @end
