@@ -153,8 +153,13 @@ static char	type_map[32] = {
   _C_UINT,
   _C_LNG,
   _C_ULNG,
+#ifdef	_C_LNG_LMG
   _C_LNG_LNG,
   _C_ULNG_LNG,
+#else
+  0,
+  0,
+#endif
   _C_FLT,
   _C_DBL,
   0,
