@@ -81,6 +81,8 @@ char emp[64] = {
 static NSMutableDictionary	*urlCache = nil;
 static NSLock			*urlLock = nil;
 
+static Class			sslClass = 0;
+
 static NSLock			*debugLock = nil;
 static char			debugFile[128];
 
@@ -143,6 +145,9 @@ static void debugWrite(NSData *data)
       urlLock = [NSLock new];
       debugLock = [NSLock new];
       sprintf(debugFile, "/tmp/GSHTTP.%d", getpid());
+#ifndef __MINGW__
+      sslClass = [NSFileHandle sslClass];
+#endif
     }
 }
 
@@ -307,12 +312,16 @@ static void debugWrite(NSData *data)
     {
       if ([[url scheme] isEqualToString: @"https"])
 	{
-#ifndef __MINGW__
-	  sock = [GSUnixSSLHandle 
+	  if (sslClass == 0)
+	    {
+	      [self backgroundLoadDidFailWithReason:
+		@"https not supported ... needs SSL bundle"];
+	      return;
+	    }
+	  sock = [sslClass
 	    fileHandleAsClientInBackgroundAtAddress: [url host]
 					    service: [url scheme]
 					   protocol: @"tcp"];
-#endif
 	}
       else
 	{
@@ -330,14 +339,18 @@ static void debugWrite(NSData *data)
 	}
       if ([[url scheme] isEqualToString: @"https"])
 	{
-#ifndef __MINGW__
-	  sock = [GSUnixSSLHandle 
+	  if (sslClass == 0)
+	    {
+	      [self backgroundLoadDidFailWithReason:
+		@"https not supported ... needs SSL bundle"];
+	      return;
+	    }
+	  sock = [sslClass
 	    fileHandleAsClientInBackgroundAtAddress: 
 	      [request objectForKey: GSHTTPPropertyProxyHostKey]
 					    service:
 	      [request objectForKey: GSHTTPPropertyProxyPortKey]
 					   protocol: @"tcp"];
-#endif
 	}
       else
 	{

@@ -27,6 +27,8 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSFileHandle.h>
+#include <Foundation/NSPathUtilities.h>
+#include <Foundation/NSBundle.h>
 #ifdef __MINGW__
 #include <Foundation/WindowsFileHandle.h>
 #else
@@ -35,10 +37,11 @@
 
 static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
+static Class NSFileHandle_ssl_class = nil;
 
 @implementation NSFileHandle
 
-+ (void)initialize
++ (void) initialize
 {
   if (self == [NSFileHandle class])
     {
@@ -47,6 +50,17 @@ static Class NSFileHandle_concrete_class = nil;
       NSFileHandle_concrete_class = [WindowsFileHandle class];
 #else
       NSFileHandle_concrete_class = [UnixFileHandle class];
+      {
+	NSBundle	*bundle;
+	NSString	*path;
+
+	path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	  NSSystemDomainMask, NO) lastObject];
+	path = [path stringByAppendingPathComponent: @"Bundles"];
+	path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+	bundle = [NSBundle bundleWithPath: path];
+	NSFileHandle_ssl_class = [bundle principalClass];
+      }
 #endif
     }
 }
@@ -336,6 +350,11 @@ NSString*	NSFileHandleOperationException =
   return AUTORELEASE([o initAsServerAtAddress: address
 				      service: service
 				     protocol: protocol]);
+}
+
++ (Class) sslClass
+{
+  return NSFileHandle_ssl_class;
 }
 
 - (BOOL) readInProgress
