@@ -1,3 +1,8 @@
+2003-04-04  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Additions/GSCompatibility.m ([NSString(GSCompatibility)
+	-substringFromRange:]): Add.
+
 2003-04-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSInvocation: Added NS_INVOCATION asnd NS_MESSAGE

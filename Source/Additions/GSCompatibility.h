@@ -188,6 +188,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 @interface NSString(GSCompatibility)
 - (BOOL) boolValue;
+- (NSString*) substringFromRange:(NSRange)range;
 @end
 
 GS_EXPORT BOOL GSDebugSet(NSString *level);
