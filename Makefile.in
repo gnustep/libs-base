@@ -35,7 +35,7 @@ MAKEDEFINES =
 
 include $(srcdir)/Version
 
-SUBDIRS = src doc checks examples NSCharacterSets
+SUBDIRS = src doc checks examples NSCharacterSets admin
 
 RCS_FILES = \
 	CREDITS MACHINES \
