@@ -719,73 +719,114 @@ main(int argc, char **argv, char **env)
 
   // BEGIN test for any unrecognized arguments, or "--help"
   argsRecognized = [NSDictionary dictionaryWithObjectsAndKeys:
-      @"\t\t\tBOOL\t(NO)\n\tproduce verbose output", @"Verbose",
-      @"\t\t\tBOOL\t(NO)\n\tproduce warnings", @"Warn",
-      @"\tBOOL\t(NO)\n\tignore file mod times (always generate)", @"IgnoreDependencies",
-      @"\t\tBOOL\t(NO)\n\tlog files being regenerated due to dependencies", @"ShowDependencies",
-      @"\t\tBOOL\t(YES)\n\tgenerate HTML output (as opposed to just gsdoc from source)", @"GenerateHtml",
-      @"\t\t\tSTR\t(\"\")\n\tspecify where headers are to be documented as being found", @"Declared",
-      @"\t\t\tSTR\t(\"Untitled\")\n\thead title name of this documentation", @"Project",
-      @"\t\tSTR\t(.)\n\tdirectory to search for .h files", @"HeaderDirectory",
-      @"\tSTR\t(.)\n\tdirectory to place generated files and search for gsdoc files", @"DocumentationDirectory",
-      @"\t\t\tSTR\t(\"\")\n\tname of file containing filenames to document", @"Files",
-      @"\t\t\tBOOL\t(NO)\n\tremove all generated files", @"Clean",
-      @"\t\tBOOL\t(NO)\n\tremove template files when cleaning", @"CleanTemplates",
-      @"\t\t\tSTR\t(\"\")\n\tfilename to link to from generated HTML", @"Up",
-      @"\t\t\tspecial\t(nil)\n\tdictionary used to preprocess (see docs)", @"WordMap",
-      @"\t\t\tBOOL\t(NO)\n\twhether to insert information on standards compliance", @"Standards",
-      @"BOOL\t(NO)\n\tdocument private instance variables", @"DocumentAllInstanceVariables",
-      @"\tBOOL\t(YES)\n\tdocument instance variables at all", @"DocumentInstanceVariables",
-      @"\tBOOL\t(YES)\n\tput instance variable docs at end of class", @"InstanceVariablesAtEnd",
-      @"\t\tSTR\t(\"None\")\n\twhether to include other projects in index", @"LocalProjects",
-      @"\t\tSTR\t(\"None\")\n\twhether to include system projects in index", @"SystemProjects",
-      @"\t\t\tSTR\t(\"None\")\n\texplicit list of other projects to index", @"Projects",
-      @"\t\tSTR\t(\"\")\n\tfile to output dependency info for 'make' into", @"MakeDependencies",
-      @"\t\tSTR\t(\"\")\n\tfile into which docs for constants should be consolidated", @"ConstantsTemplate",
-      @"\t\tSTR\t(\"\")\n\tfile into which docs for functions should be consolidated", @"FunctionsTemplate",
-      @"\t\tSTR\t(\"\")\n\tfile into which docs for macros should be consolidated", @"MacrosTemplate",
-      @"\t\tSTR\t(\"\")\n\tfile into which docs for typedefs should be consolidated", @"TypedefsTemplate",
-      @"\t\tSTR\t(\"\")\n\tfile into which docs for variables should be consolidated", @"VariablesTemplate",
-      @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages for display in HTML frames", @"MakeFrames",
-      nil];
-    NSString *arg;
-    NSString *opt;
-    NSSet *argSet = [NSSet setWithArray: [argsRecognized allKeys]];
-    NSArray *argsGiven = [[NSProcessInfo processInfo] arguments];
+    @"\t\t\tBOOL\t(NO)\n\tproduce verbose output",
+    @"Verbose",
+    @"\t\t\tBOOL\t(NO)\n\tproduce warnings",
+    @"Warn",
+    @"\tBOOL\t(NO)\n\tignore file mod times (always generate)",
+    @"IgnoreDependencies",
+    @"\t\tBOOL\t(NO)\n\tlog files being regenerated due to dependencies",
+    @"ShowDependencies",
+    @"\t\tBOOL\t(YES)\n\tgenerate HTML output "
+      @"(as opposed to just gsdoc from source)",
+    @"GenerateHtml",
+    @"\t\t\tSTR\t(\"\")\n\tspecify where headers "
+      @"are to be documented as being found",
+    @"Declared",
+    @"\t\t\tSTR\t(\"Untitled\")\n\thead title name of this documentation",
+    @"Project",
+    @"\t\tSTR\t(.)\n\tdirectory to search for .h files",
+    @"HeaderDirectory",
+    @"\tSTR\t(.)\n\tdirectory to place generated files and "
+      @"search for gsdoc files",
+    @"DocumentationDirectory",
+    @"\t\t\tSTR\t(\"\")\n\tname of file containing filenames to document",
+    @"Files",
+    @"\t\t\tBOOL\t(NO)\n\tremove all generated files",
+    @"Clean",
+    @"\t\tBOOL\t(NO)\n\tremove template files when cleaning",
+    @"CleanTemplates",
+    @"\t\t\tSTR\t(\"\")\n\tfilename to link to from generated HTML",
+    @"Up",
+    @"\t\t\tspecial\t(nil)\n\tdictionary used to preprocess (see docs)",
+    @"WordMap",
+    @"\t\t\tBOOL\t(NO)\n\twhether to insert information on "
+      @"standards compliance",
+    @"Standards",
+    @"BOOL\t(NO)\n\tdocument private instance variables",
+    @"DocumentAllInstanceVariables",
+    @"\tBOOL\t(YES)\n\tdocument instance variables at all",
+    @"DocumentInstanceVariables",
+    @"\tBOOL\t(YES)\n\tput instance variable docs at end of class",
+    @"InstanceVariablesAtEnd",
+    @"\t\tSTR\t(\"None\")\n\twhether to include other projects in index",
+    @"LocalProjects",
+    @"\t\tSTR\t(\"None\")\n\twhether to include system projects in index",
+    @"SystemProjects",
+    @"\t\t\tSTR\t(\"None\")\n\texplicit list of other projects to index",
+    @"Projects",
+    @"\t\tSTR\t(\"\")\n\tfile to output dependency info for 'make' into",
+    @"MakeDependencies",
+    @"\t\tSTR\t(\"\")\n\tfile into which docs for constants "
+      @"should be consolidated",
+    @"ConstantsTemplate",
+    @"\t\tSTR\t(\"\")\n\tfile into which docs for functions "
+      @"should be consolidated",
+    @"FunctionsTemplate",
+    @"\t\tSTR\t(\"\")\n\tfile into which docs for macros "
+      @"should be consolidated",
+    @"MacrosTemplate",
+    @"\t\tSTR\t(\"\")\n\tfile into which docs for typedefs "
+      @"should be consolidated",
+    @"TypedefsTemplate",
+    @"\t\tSTR\t(\"\")\n\tfile into which docs for variables "
+      @"should be consolidated",
+    @"VariablesTemplate",
+    @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages "
+      @"for display in HTML frames",
+    @"MakeFrames",
+    nil];
+  NSString	*arg;
+  NSString	*opt;
+  NSSet	*argSet = [NSSet setWithArray: [argsRecognized allKeys]];
+  NSArray	*argsGiven = [[NSProcessInfo processInfo] arguments];
 
-    for (i=0; i<[argsGiven count]; i++) {
-        arg = [argsGiven objectAtIndex: i];
-        if ([arg characterAtIndex: 0] == '-')
-          {
-            opt = ([arg characterAtIndex: 1] == '-') ?
-                [arg substringFromIndex: 2] : [arg substringFromIndex: 1];
-          }
-        else
-          {
-            continue;
-          }
-        if (![argSet containsObject: opt] || [@"help" isEqual: opt])
-          {
-              NSArray *args = [argsRecognized allKeys];
+  for (i = 0; i < [argsGiven count]; i++)
+    {
+      arg = [argsGiven objectAtIndex: i];
+      if ([arg characterAtIndex: 0] == '-')
+	{
+	  opt = ([arg characterAtIndex: 1] == '-') ?
+	      [arg substringFromIndex: 2] : [arg substringFromIndex: 1];
+	}
+      else
+	{
+	  continue;
+	}
+      if (![argSet containsObject: opt] || [@"help" isEqual: opt])
+	{
+	  NSArray	*args = [argsRecognized allKeys];
 
-              GSPrintf(stderr, @"Usage:\n");
-              GSPrintf(stderr, [NSString stringWithFormat:
-                                           @"    %@ [options] [files]\n",
-                                 [argsGiven objectAtIndex: 0]]);
-              GSPrintf(stderr, @"\n Options:\n");
-              for (i=0; i<[args count]; i++) {
-                  arg = [args objectAtIndex: i];
-                  GSPrintf(stderr,
-                           [NSString stringWithFormat: @"     -%@\t%@\n\n",
-                                     arg, [argsRecognized objectForKey: arg]]);
-              }
+	  GSPrintf(stderr, @"Usage:\n");
+	  GSPrintf(stderr, [NSString stringWithFormat:
+	    @"    %@ [options] [files]\n", [argsGiven objectAtIndex: 0]]);
+	  GSPrintf(stderr, @"\n Options:\n");
+	  for (i = 0; i < [args count]; i++)
+	    {
+	      arg = [args objectAtIndex: i];
+	      GSPrintf(stderr,
+		[NSString stringWithFormat: @"     -%@\t%@\n\n",
+		   arg, [argsRecognized objectForKey: arg]]);
+	    }
 
-              GSPrintf(stderr, @"\n Files:\n");
-              GSPrintf(stderr, @"  [.h files]\t\tMust be in 'HeaderDirectory'\n");
-              GSPrintf(stderr, @"  [.m files]\t\tAbsolute or relative path (from here)\n");
-              GSPrintf(stderr, @"  [.gsdoc files]\tMust be in 'DocumentationDirectory'\n\n");
-            exit(1);
-          }
+	  GSPrintf(stderr, @"\n Files:\n");
+	  GSPrintf(stderr, @"  [.h files]\t\tMust be in 'HeaderDirectory'\n");
+	  GSPrintf(stderr,
+	    @"  [.m files]\t\tAbsolute or relative path (from here)\n");
+	  GSPrintf(stderr
+	    @"  [.gsdoc files]\tMust be in 'DocumentationDirectory'\n\n");
+	  exit(1);
+	}
     }
 
   verbose = [defs boolForKey: @"Verbose"];
@@ -1745,7 +1786,7 @@ main(int argc, char **argv, char **env)
                                      range: NSMakeRange(0, [frameset length])];
 
       // generate the table of contents gsdoc files
-      for (i=0; i<[idxTypes count]; i++)
+      for (i = 0; i < [idxTypes count]; i++)
         {
           NSString		*gsdocFile;
           NSString		*htmlFile;
@@ -1800,7 +1841,7 @@ main(int argc, char **argv, char **env)
 
       // it is possible that <project>.gsdoc does not exist; if that is the
       // case, generate one now as a placeholder
-      for (i=0; i<[gFiles count]; i++)
+      for (i = 0; i < [gFiles count]; i++)
         {
           NSString	*fname = [gFiles objectAtIndex: i];
           if ([fname rangeOfString: prjFile].length > 0)
