@@ -8,6 +8,9 @@
 	* Source/Additions/GSObjCRuntime.m: Tidied function name conventions.
 	* Headers/gnustep/base/GSObjCRuntime.h: ditto.
 	* Source/NSKeyValueCoding.m: Use new function names.
+	* Source/mframe.m: When scanning arguments, skip type information
+	for things poionted to by a pointer - more efficient than scanning
+	the fine structure and then throwing away the scanned information.
 
 2002-11-27  Manuel Guesdon <mguesdon@orange-concept.com>
 

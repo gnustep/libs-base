@@ -205,6 +205,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 {
   NSArgumentInfo	local;
   BOOL			flag;
+  BOOL			negative = NO;
 
   if (info == 0)
     {
@@ -330,9 +331,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	  }
 	else
 	  {
-	    typePtr = mframe_next_arg(typePtr, &local);
-	    info->isReg = local.isReg;
-	    info->offset = local.offset;
+	    typePtr = objc_skip_typespec(typePtr);
 	  }
 	break;
 
@@ -452,47 +451,37 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
     }
 
   /*
-   *	If we had a pointer argument, we will already have gathered
-   *	(and skipped past) the argframe offset information - so we
-   *	don't need to (and can't) do it here.
+   *	May tell the caller if the item is stored in a register.
    */
-  if (info->type[0] != _C_PTR || info->type[1] == '?')
+  if (*typePtr == '+')
     {
-      BOOL	negative = NO;
-
-      /*
-       *	May tell the caller if the item is stored in a register.
-       */
-      if (*typePtr == '+')
-	{
-	  typePtr++;
-	  info->isReg = YES;
-	}
-      else
-	{
-	  info->isReg = NO;
-	}
-      /*
-       * Cope with negative offsets.
-       */
-      if (*typePtr == '-')
-	{
-	  typePtr++;
-	  negative = YES;
-	}
-      /*
-       *	May tell the caller what the stack/register offset is for
-       *	this argument.
-       */
-      info->offset = 0;
-      while (isdigit(*typePtr))
-	{
-	  info->offset = info->offset * 10 + (*typePtr++ - '0');
-	}
-      if (negative == YES)
-	{
-	  info->offset = -info->offset;
-	}
+      typePtr++;
+      info->isReg = YES;
+    }
+  else
+    {
+      info->isReg = NO;
+    }
+  /*
+   * Cope with negative offsets.
+   */
+  if (*typePtr == '-')
+    {
+      typePtr++;
+      negative = YES;
+    }
+  /*
+   *	May tell the caller what the stack/register offset is for
+   *	this argument.
+   */
+  info->offset = 0;
+  while (isdigit(*typePtr))
+    {
+      info->offset = info->offset * 10 + (*typePtr++ - '0');
+    }
+  if (negative == YES)
+    {
+      info->offset = -info->offset;
     }
 
   return typePtr;

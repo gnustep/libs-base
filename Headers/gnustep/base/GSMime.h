@@ -95,6 +95,9 @@
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
 + (NSData*) decodeBase64: (NSData*)source;
 + (NSString*) decodeBase64String: (NSString*)source;
++ (GSMimeDocument*) documentWithContent: (id)newContent
+				   type: (NSString*)type
+				   name: (NSString*)name;
 + (NSData*) encodeBase64: (NSData*)source;
 + (NSString*) encodeBase64String: (NSString*)source;
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset;
@@ -127,10 +130,6 @@
 	       type: (NSString*)type;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
-	       name: (NSString*)name;
-- (void) setContent: (id)newContent
-	       type: (NSString*)type
-	    subtype: (NSString*)subtype
 	       name: (NSString*)name;
 - (void) setHeader: (GSMimeHeader*)info;
 
