@@ -182,41 +182,38 @@ static SEL	appSel;
 
   if ([aCoder allowsKeyedCoding])
     {
-      if (count > 0)
+      id	key;
+      unsigned	i;
+
+      if ([aCoder class] == [NSKeyedArchiver class])
+	{
+	  NSArray	*keys = [self allKeys];
+	  id		objects = [NSMutableArray arrayWithCapacity: count];
+
+	  for (i = 0; i < count; i++)
+	    {
+	      key = [keys objectAtIndex: i];
+	      [objects addObject: [self objectForKey: key]];
+	    }
+	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: keys
+						   forKey: @"NS.keys"];
+	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: objects
+						   forKey: @"NS.objects"];
+	}
+      else if (count > 0)
 	{
 	  NSEnumerator	*enumerator = [self keyEnumerator];
-	  id		key;
 
-	  if ([aCoder class] == [NSKeyedArchiver class])
+	  i = 0;
+	  while ((key = [enumerator nextObject]) != nil)
 	    {
-	      NSArray	*keys = [self allKeys];
-	      id	objects = [NSMutableArray arrayWithCapacity: count];
-	      unsigned	i;
+	      NSString	*s;
 
-	      for (i = 0; i < count; i++)
-		{
-		  key = [keys objectAtIndex: i];
-		  [objects addObject: [self objectForKey: key]];
-		}
-	      [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: keys
-						       forKey: @"NS.keys"];
-	      [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: objects
-						       forKey: @"NS.objects"];
-	    }
-	  else
-	    {
-	      unsigned	i = 0;
-
-	      while ((key = [enumerator nextObject]) != nil)
-		{
-		  NSString	*s;
-
-		  s = [NSString stringWithFormat: @"NS.key.%u", i];
-		  [aCoder encodeObject: key forKey: s];
-		  s = [NSString stringWithFormat: @"NS.object.%u", i];
-		  [aCoder encodeObject: [self objectForKey: key] forKey: s];
-		  i++;
-		}
+	      s = [NSString stringWithFormat: @"NS.key.%u", i];
+	      [aCoder encodeObject: key forKey: s];
+	      s = [NSString stringWithFormat: @"NS.object.%u", i];
+	      [aCoder encodeObject: [self objectForKey: key] forKey: s];
+	      i++;
 	    }
 	}
     }
