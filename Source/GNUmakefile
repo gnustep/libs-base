@@ -360,6 +360,7 @@ NSTask.m \
 NSThread.m \
 NSTimer.m \
 NSTimeZone.m \
+NSUndoManager.m \
 NSUser.m \
 NSUserDefaults.m \
 NSValue.m \
@@ -448,6 +449,7 @@ Foundation/NSString.h \
 Foundation/NSTask.h \
 Foundation/NSThread.h \
 Foundation/NSTimer.h \
+Foundation/NSUndoManager.h \
 Foundation/NSUserDefaults.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \

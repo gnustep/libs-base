@@ -343,7 +343,10 @@ my_method_get_next_argument (arglist_t argframe,
 	     reg_argsize);
       memcpy(argframe->arg_ptr, frame->arg_ptr, stack_argsize);
       if (f)
-	[self _retainArguments];
+	{
+	  [self _retainArguments];
+          args_retained = YES;
+	}
     }
 }
 

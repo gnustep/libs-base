@@ -246,7 +246,6 @@ extraRefCount (id anObject)
 	    (object_is_instance(self) ?
 		  class_get_instance_method(self->isa, aSelector)
 		: class_get_class_method(self->isa, aSelector));
-
     return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
 		: nil;
 }
@@ -275,21 +274,24 @@ extraRefCount (id anObject)
 
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
-#if 1
-  [self doesNotRecognizeSelector:aSel];
-  return NULL;
-#else
   void *retFrame;
-  NSMethodSignature *ms = [self methodSignatureForSelector:aSel];
-  NSInvocation *inv = [NSInvocation invocationWithMethodSignature:ms
-				    frame:argFrame];
+  NSMethodSignature *sig;
+  NSInvocation *inv;
+  int retLength;
+
+  inv = [[[NSInvocation alloc] initWithArgframe: argFrame
+				       selector: aSel] autorelease];
   /* is this right? */
-  retFrame = (void*) alloca([ms methodReturnLength]);
+  sig = [inv methodSignature];
+  retLength = [sig methodReturnLength];
+  /* Make sure we have something even if we are returnign void */
+  if (retLength == 0)
+    retLength = sizeof(void*);
+
+  retFrame = (void*) alloca(retLength);
   [self forwardInvocation:inv];
-  [inv getReturnValue:retFrame];
-  /* where do ms and inv get free'd? */
+  [inv getReturnValue: retFrame];
   return retFrame;
-#endif
 }
 
 - (void) forwardInvocation: (NSInvocation*)anInvocation
