@@ -136,4 +136,11 @@ __objc_dynamic_list_undefined_symbols(void)
     return dld_list_undefined_sym();
 }
 
+/* current dld version does not support an equivalent of dladdr() */
+static char *
+__objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
+{
+  return NULL;
+}
+
 #endif /* __dld_load_h_INCLUDE */

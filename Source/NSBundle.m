@@ -4,6 +4,9 @@
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: May 1993
 
+   Author: Mirko Viviani <mirko.viviani@rccr.cremona.it>
+   Date: October 2000  Added frameworks support
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -39,10 +42,19 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSValue.h>
 #include <unistd.h>
+#include <string.h>
+
+@interface NSObject (PrivateFrameworks)
++ (NSString *)frameworkEnv;
++ (NSString *)frameworkPath;
++ (NSString *)frameworkVersion;
++ (NSString **)frameworkClasses;
+@end
 
 typedef enum {
-  NSBUNDLE_BUNDLE = 1, NSBUNDLE_APPLICATION, NSBUNDLE_LIBRARY
+  NSBUNDLE_BUNDLE = 1, NSBUNDLE_APPLICATION, NSBUNDLE_FRAMEWORK
 } bundle_t;
 
 /* Class variables - We keep track of all the bundles */
@@ -200,24 +212,264 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 }
 
 @interface NSBundle (Private)
++ (BOOL) _addFrameworkFromClass:(Class)frameworkClass;
 - (NSArray *) _bundleClasses;
 @end
 
 @implementation NSBundle (Private)
+
++ (BOOL) _addFrameworkFromClass:(Class)frameworkClass
+{
+  NSBundle  *bundle;
+  NSString **fmClasses, *bundlePath = nil;
+  int        len = strlen(frameworkClass->name);
+
+  if (len > 12*sizeof(char)
+      && !strncmp("NSFramework_", frameworkClass->name, sizeof(char)*12))
+    {
+      NSString *varEnv, *path, *name;
+
+      name = [NSString stringWithCString: &frameworkClass->name[12]];
+
+      varEnv = [frameworkClass frameworkEnv];
+      if (varEnv && [varEnv length])
+	bundlePath = [[[NSProcessInfo processInfo] environment]
+		       objectForKey: varEnv];
+
+      path = [frameworkClass frameworkPath];
+      if (path && [path length])
+	{
+	  if (bundlePath)
+	    bundlePath = [bundlePath
+			   stringByAppendingPathComponent: path];
+	  else
+	    bundlePath = path;
+	}
+      else
+	bundlePath = [bundlePath
+		       stringByAppendingPathComponent: @"Library/Frameworks"];
+
+      bundlePath = [bundlePath stringByAppendingPathComponent:
+				 [NSString stringWithFormat: @"%@.framework",
+					   name]];
+
+      bundle = [NSBundle bundleWithPath: bundlePath];
+      bundle->_bundleType = NSBUNDLE_FRAMEWORK;
+      bundle->_codeLoaded = YES;
+      bundle->_frameworkVersion = RETAIN([frameworkClass frameworkVersion]);
+      bundle->_bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
+
+      fmClasses = [frameworkClass frameworkClasses];
+
+      while (*fmClasses)
+	{
+	  NSValue *value;
+	  Class    class = NSClassFromString(*fmClasses);
+
+	  value = [NSValue valueWithNonretainedObject: class];
+
+	  [(NSMutableArray *)[bundle _bundleClasses]
+			     addObject: value];
+
+	  if (_loadingBundle)
+	    {
+	      NSEnumerator *classEnum;
+	      NSValue      *obj;
+
+	      classEnum = [_loadingBundle->_bundleClasses objectEnumerator];
+	      while ((obj = [classEnum nextObject]))
+		{
+		  if ([obj nonretainedObjectValue] == class)
+		    {
+		      [(NSMutableArray *)_loadingBundle->_bundleClasses
+					 removeObject: obj];
+		      break;
+		    }
+		}
+	    }
+
+	  fmClasses++;
+	}
+
+      return YES;
+    }
+
+  return NO;
+}
+
 - (NSArray *) _bundleClasses
 {
   return _bundleClasses;
 }
+
 @end
+
+static NSString *lastSymbolPath = nil;
+static NSString *lastFrameworkName = nil;
+static NSBundle *lastFrameworkBundle = nil;
 
 void
 _bundle_load_callback(Class theClass, Category *theCategory)
 {
+  NSBundle	  *bundle = nil;
+  NSString        *className;
+  NSString        *path, *bundlePath = nil, *lastComponent;
+  NSString        *libName, *frameworkVersion = nil;
+  BOOL             isFramework = NO;
+
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
+
+  if (theClass)
+    className = NSStringFromClass(theClass);
+  else
+    className = [NSString stringWithCString: theCategory->class_name];
+
+#if !LINKER_GETSYMBOL
+  if ([NSBundle _addFrameworkFromClass: theClass] == YES)
+    return;
+#else
+  path = objc_get_symbol_path(theClass, theCategory);
+
+  if (lastSymbolPath && [lastSymbolPath isEqual: path] == YES)
+    isFramework = YES;
+  else
+    {
+      NSString *s;
+
+      DESTROY(lastSymbolPath);
+      DESTROY(lastFrameworkBundle);
+      DESTROY(lastFrameworkName);
+
+      /*
+       * Check for framework dirs
+       *
+       * <path_to>/Library/Frameworks/
+       * <path_to>/Library/Libraries/
+       */
+
+      libName = [path lastPathComponent];
+      s = [path stringByDeletingLastPathComponent]; // remove lib name
+      s = [s stringByDeletingLastPathComponent]; // remove *-*-*-*
+      s = [s stringByDeletingLastPathComponent]; // remove system name
+      s = [s stringByDeletingLastPathComponent]; // remove processor
+
+      lastComponent = [s lastPathComponent];
+
+      // is in <path_to>/Library/Libraries ?
+      if ([lastComponent isEqual: @"Libraries"] == YES)
+	{
+	  s = [s stringByDeletingLastPathComponent]; // remove Libraries
+
+	  if ([[s lastPathComponent] isEqual: @"Library"] == YES)
+	    {
+	      const char *cString;
+	      int i, len;
+
+	      s = [s stringByAppendingPathComponent: @"Frameworks"];
+
+	      cString = [libName cString];
+	      len = [libName length];
+
+	      if (len > 3)
+		{
+		  for (i = 3; i < len; i++)
+		    if (cString[i] == '.')
+		      break;
+
+		  if (i-3)
+		    {
+		      NSString *name;
+
+		      name = [NSString stringWithCString: &cString[3]
+				       length: i-3];
+
+		      bundlePath = [s stringByAppendingPathComponent:
+					[NSString stringWithFormat:
+						    @"%@.framework", name]];
+
+		      name = [NSString stringWithFormat: @"NSFramework_%@",
+				       name];
+
+		      ASSIGN(lastFrameworkName, name);
+		      ASSIGN(lastSymbolPath, path);
+
+		      isFramework = YES;
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  // if there is an extension it is not a framework
+	  if ([[lastComponent pathExtension] length] == 0)
+	    {
+	      frameworkVersion = lastComponent;
+	      s = [s stringByDeletingLastPathComponent]; // remove version
+	      bundlePath = [s stringByDeletingLastPathComponent]; // remove version dir
+
+	      if ([[bundlePath pathExtension] isEqual: @"framework"] == YES)
+		{
+		  ASSIGN(lastSymbolPath, path);
+		  isFramework = YES;
+		}
+	    }
+	}
+
+      if (isFramework == YES)
+	{
+	  if (_bundles) 
+	    bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
+
+	  if (!bundle && _releasedBundles)
+	    {
+	      bundle = (NSBundle *)NSMapGet(_releasedBundles, bundlePath);
+
+	      if (bundle)
+		{
+		  NSMapInsert(_bundles, bundlePath, bundle);
+		  NSMapRemove(_releasedBundles, bundlePath);
+		}
+	    }
+
+	  if (!bundle)
+	    {
+	      bundle = [NSBundle bundleWithPath: bundlePath];
+	      bundle->_bundleType = NSBUNDLE_FRAMEWORK;
+	      bundle->_codeLoaded = YES;
+	      bundle->_frameworkVersion = RETAIN(frameworkVersion);
+	      bundle->_bundleClasses = RETAIN([NSMutableArray
+						arrayWithCapacity: 2]);
+	    }
+
+	  ASSIGN(lastFrameworkBundle, bundle);
+	}
+    }
+
+  if (isFramework == YES)
+    {
+      bundle = lastFrameworkBundle;
+
+      if (lastFrameworkName)
+	{
+	  if ([className isEqual: lastFrameworkName] == YES)
+	    {
+	      bundle->_frameworkVersion = RETAIN([theClass frameworkVersion]);
+
+	      DESTROY(lastFrameworkName);
+	    }
+	}
+    }
+  else
+#endif
+    bundle = _loadingBundle;
+
   /* Don't store categories */
   if (!theCategory)
-    [(NSMutableArray *)[_loadingBundle _bundleClasses] addObject: (id)theClass];
+    [(NSMutableArray *)[bundle _bundleClasses]
+		       addObject: [NSValue
+				    valueWithNonretainedObject: (id)theClass]];
 }
+
 
 @implementation NSBundle
 
@@ -225,7 +477,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 {
   if (self == [NSBundle class])
     {
-      NSDictionary	*env;
+      NSDictionary *env;
+      void         *state = NULL;
+      Class         class;
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
@@ -276,6 +530,23 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 	  RETAIN(_executable_path);
 	  _gnustep_bundle = RETAIN([NSBundle bundleWithPath: system]);
+
+#if 0
+	  _loadingBundle = [NSBundle mainBundle];
+	  handle = objc_open_main_module(stderr);
+	  printf("%08x\n", handle);
+#endif
+	  while ((class = objc_next_class(&state)))
+	    [NSBundle _addFrameworkFromClass: class];
+
+#if 0
+		  //		  _bundle_load_callback(class, NULL);
+
+		  //		  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
+
+	  objc_close_main_module(handle);
+	  _loadingBundle = nil;
+#endif
 	}
     }
 }
@@ -291,9 +562,11 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   enumerate = NSEnumerateMapTable(_bundles);
   while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
     {
+      if (bundle->_bundleType == NSBUNDLE_FRAMEWORK)
+	continue;
+
       if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
 	{
-	  /* FIXME - must ignore frameworks here */
 	  [array addObject: bundle];
 	}
     }
@@ -303,7 +576,23 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 + (NSArray *) allFrameworks
 {
-  return [self notImplemented: _cmd];
+  NSMapEnumerator  enumerate;
+  NSMutableArray  *array = [NSMutableArray arrayWithCapacity: 2];
+  void		  *key;
+  NSBundle	  *bundle;
+
+  [load_lock lock];
+  enumerate = NSEnumerateMapTable(_bundles);
+  while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
+    {
+      if (bundle->_bundleType == NSBUNDLE_FRAMEWORK
+	  && [array indexOfObjectIdenticalTo: bundle] == NSNotFound)
+	{
+	  [array addObject: bundle];
+	}
+    }
+  [load_lock unlock];
+  return array;
 }
 
 + (NSBundle *)mainBundle
@@ -366,10 +655,21 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   enumerate = NSEnumerateMapTable(_bundles);
   while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
     {
-      int j;
-      j = [[bundle _bundleClasses] indexOfObject: aClass];
-      if (j != NSNotFound && [bundle _bundleClasses])
+      int i, j;
+      NSArray *bundleClasses = [bundle _bundleClasses];
+      BOOL found = NO;
+
+      j = [bundleClasses count];
+      for (i = 0; i < j && found == NO; i++)
+	{
+	  if ([[bundleClasses objectAtIndex: i]
+		nonretainedObjectValue] == aClass)
+	    found = YES;
+	}
+
+      if (found == YES)
 	break;
+
       bundle = nil;
     }
   [load_lock unlock];
@@ -440,9 +740,16 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     }
 
   _path = [path copy];
-  _bundleType = (unsigned int)NSBUNDLE_BUNDLE;
-  if (self == _mainBundle)
-    _bundleType = (unsigned int)NSBUNDLE_APPLICATION;
+
+  if ([[[_path lastPathComponent] pathExtension] isEqual: @"framework"] == YES)
+    _bundleType = (unsigned int)NSBUNDLE_FRAMEWORK;
+  else
+    {
+      if (self == _mainBundle)
+	_bundleType = (unsigned int)NSBUNDLE_APPLICATION;
+      else
+	_bundleType = (unsigned int)NSBUNDLE_BUNDLE;
+    }
 
   [load_lock lock];
   if (!_bundles)
@@ -494,6 +801,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       [load_lock unlock];
       RELEASE(_path);
     }
+  TEST_RELEASE(_frameworkVersion);
   TEST_RELEASE(_bundleClasses);
   TEST_RELEASE(_infoDict);
   TEST_RELEASE(_localizations);
@@ -507,8 +815,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 - (Class) classNamed: (NSString *)className
 {
-  int     j;
+  int     i, j;
   Class   theClass = Nil;
+
   if (!_codeLoaded) 
     {
       if (self != _mainBundle && ![self load]) 
@@ -526,9 +835,20 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     } 
   else 
     {
-      j = [_bundleClasses indexOfObject: NSClassFromString(className)];
-      if (j != NSNotFound)
-	theClass = [_bundleClasses objectAtIndex: j];
+      BOOL found = NO;
+
+      theClass = NSClassFromString(className);
+      j = [_bundleClasses count];
+
+      for (i = 0; i < j && found == NO; i++)
+	{
+	  if ([[_bundleClasses objectAtIndex: i]
+		nonretainedObjectValue] == theClass)
+	    found = YES;
+	}
+
+      if (found == NO)
+	theClass = Nil;
     }
   
   return theClass;
@@ -557,7 +877,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   if (class_name)
     _principalClass = NSClassFromString(class_name);
   else if ([_bundleClasses count])
-    _principalClass = [_bundleClasses objectAtIndex:0];
+    _principalClass = [[_bundleClasses objectAtIndex: 0]
+			nonretainedObjectValue];
   return _principalClass;
 }
 
@@ -572,14 +893,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   [load_lock lock];
   if (!_codeLoaded) 
     {
-      NSString* object;
+      NSString       *object, *path;
+      NSEnumerator   *classEnumerator;
+      NSMutableArray *classNames;
+      NSValue        *class;
+
       object = [[self infoDictionary] objectForKey: @"NSExecutable"];
       if (object == nil || [object length] == 0)
 	{
 	  [load_lock unlock];
 	  return NO;
 	}
-      object = bundle_object_name(_path, object);
+      if (_bundleType == NSBUNDLE_FRAMEWORK)
+	path = [_path stringByAppendingPathComponent:@"Versions/Current"];
+      else
+	path = _path;
+      object = bundle_object_name(path, object);
       _loadingBundle = self;
       _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
       if (objc_load_module([object cString], 
@@ -588,14 +917,27 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  [load_lock unlock];
 	  return NO;
 	}
+      DESTROY(lastSymbolPath);
+      DESTROY(lastFrameworkName);
+      DESTROY(lastFrameworkBundle);
+
       _codeLoaded = YES;
       _loadingBundle = nil;
+
+      classNames = [NSMutableArray arrayWithCapacity: [_bundleClasses count]];
+      classEnumerator = [_bundleClasses objectEnumerator];
+      while ((class = [classEnumerator nextObject]))
+	[classNames addObject: NSStringFromClass([class
+						   nonretainedObjectValue])];
+
       [load_lock unlock];
+
       [[NSNotificationCenter defaultCenter]
         postNotificationName: NSBundleDidLoadNotification 
         object: self
-        userInfo: [NSDictionary dictionaryWithObjects: &_bundleClasses
-	       forKeys: &NSLoadedClasses count: 1]];
+        userInfo: [NSDictionary dictionaryWithObject: classNames
+				forKey: NSLoadedClasses]];
+
       return YES;
     }
   [load_lock unlock];
@@ -612,7 +954,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
      <main bundle>/<bundlePath>/<language.lproj>
 */
 + (NSArray *) _bundleResourcePathsWithRootPath: (NSString *)rootPath
-                                 subPath: (NSString *)bundlePath
+				       subPath: (NSString *)bundlePath
 {
   NSString* primary;
   NSString* language;
@@ -639,10 +981,10 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 }
 
 + (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inRootPath: (NSString *)rootPath
-		inDirectory: (NSString *)bundlePath
-		withVersion: (int)version
+			ofType: (NSString *)ext	
+		    inRootPath: (NSString *)rootPath
+		   inDirectory: (NSString *)bundlePath
+		   withVersion: (int)version
 {
   NSString *path, *fullpath;
   NSEnumerator* pathlist;
@@ -655,9 +997,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     }
 
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: rootPath
-	       subPath: bundlePath] objectEnumerator];
+			subPath: bundlePath] objectEnumerator];
   fullpath = nil;
-  while((path = [pathlist nextObject]))
+  while ((path = [pathlist nextObject]))
     {
       if (!bundle_directory_readable(path))
 	continue;
@@ -702,45 +1044,53 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 }
 
 + (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath
-		withVersion: (int) version
+			ofType: (NSString *)ext	
+		   inDirectory: (NSString *)bundlePath
+		   withVersion: (int) version
 {
     return [self pathForResource: name
-			  ofType: ext
-                      inRootPath: bundlePath
-		     inDirectory: nil
-		     withVersion: version];
+		 ofType: ext
+		 inRootPath: bundlePath
+		 inDirectory: nil
+		 withVersion: version];
 }
 
 + (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath
+			ofType: (NSString *)ext	
+		   inDirectory: (NSString *)bundlePath
 {
     return [self pathForResource: name
-			  ofType: ext
-                      inRootPath: bundlePath
-		     inDirectory: nil
-		     withVersion: 0];
+		 ofType: ext
+		 inRootPath: bundlePath
+		 inDirectory: nil
+		 withVersion: 0];
 }
 
 - (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext;
+			ofType: (NSString *)ext;
 {
   return [self pathForResource: name
-	   ofType: ext 
-	   inDirectory: nil];
+	       ofType: ext 
+	       inDirectory: nil];
 }
 
 - (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext
-                inDirectory: (NSString *)bundlePath;
+			ofType: (NSString *)ext
+		   inDirectory: (NSString *)bundlePath;
 {
+  NSString *rootPath;
+
+  if (_frameworkVersion)
+    rootPath = [NSString stringWithFormat:@"%@/Versions/%@", [self bundlePath],
+			 _frameworkVersion];
+  else
+    rootPath = [self bundlePath];
+
   return [NSBundle pathForResource: name
-	   ofType: ext
-	   inRootPath: [self bundlePath]
-	   inDirectory: bundlePath
-	   withVersion: _version];
+		   ofType: ext
+		   inRootPath: rootPath
+		   inDirectory: bundlePath
+		   withVersion: _version];
 }
 
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
@@ -753,7 +1103,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSFileManager	*mgr = [NSFileManager defaultManager];
     
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
-	        subPath: bundlePath] objectEnumerator];
+			subPath: bundlePath] objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
   allfiles = (extension == nil || [extension length] == 0);
 
@@ -778,7 +1128,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 			       table: (NSString *)tableName
 {
   NSDictionary	*table;
-  NSString	*newString;
+  NSString	*newString = nil;
 
   if (_localizations == nil)
     _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
@@ -866,7 +1216,17 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 - (NSString *) resourcePath
 {
-  return [_path stringByAppendingPathComponent: @"Resources"];
+  NSString *version = _frameworkVersion;
+
+  if (!version)
+    version = @"Current";
+
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    return [_path stringByAppendingPathComponent:
+		    [NSString stringWithFormat:@"Versions/%@/Resources",
+			      version]];
+  else
+    return [_path stringByAppendingPathComponent: @"Resources"];
 }
 
 - (NSDictionary *) infoDictionary
@@ -1002,22 +1362,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
   /* Search user first */
   path = [user_bundle pathForResource: name
-			   ofType: ext
-			   inDirectory: bundlePath];
+		      ofType: ext
+		      inDirectory: bundlePath];
   if (path)
     return path;
 
   /* Search local second */
   path = [local_bundle pathForResource: name
-			     ofType: ext
-			     inDirectory: bundlePath];
+		       ofType: ext
+		       inDirectory: bundlePath];
   if (path)
     return path;
 
   /* Search system last */
   path = [_gnustep_bundle pathForResource: name
-			       ofType: ext
-			       inDirectory: bundlePath];
+			  ofType: ext
+			  inDirectory: bundlePath];
   if (path)
     return path;
 

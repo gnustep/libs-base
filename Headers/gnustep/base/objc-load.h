@@ -10,6 +10,13 @@
 
 #include <stdio.h>
 #include <objc/objc-api.h>
+#include <Foundation/NSString.h>
+
+#if HAVE_DLADDR
+#define LINKER_GETSYMBOL 1
+#else
+#define LINKER_GETSYMBOL 0
+#endif
 
 extern long objc_load_module(
 	const char *filename,
@@ -32,5 +39,9 @@ extern long objc_load_modules(
 extern long objc_unload_modules(
 	FILE *errorStream,
 	void (*unloadCallback)(Class, Category*));
+
+extern NSString *objc_get_symbol_path(
+	Class theClass,
+	Category *theCategory);
 
 #endif /* __objc_load_h_INCLUDE */

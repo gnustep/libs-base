@@ -22,8 +22,10 @@ mframe_arg_addr(arglist_t argf, NSArgumentInfo *info)
 inline static void
 mframe_get_arg(arglist_t argf, NSArgumentInfo *info, void* buffer)
 {
-#if MFRAME_STRUCT_BYREF
+#if MFRAME_STRUCT_BYREF || MFRAME_FLT_IN_FRAME_AS_DBL
   const char	*typ = info->type;
+#endif
+#if MFRAME_STRUCT_BYREF
 
   /*
    *	If structures are passed in the stack frame by reference - we need
@@ -48,8 +50,10 @@ mframe_get_arg(arglist_t argf, NSArgumentInfo *info, void* buffer)
 inline static void
 mframe_set_arg(arglist_t argf, NSArgumentInfo *info, void* buffer)
 {
-#if MFRAME_STRUCT_BYREF
+#if MFRAME_STRUCT_BYREF || MFRAME_FLT_IN_FRAME_AS_DBL
   const char	*typ = info->type;
+#endif
+#if MFRAME_STRUCT_BYREF
 
   /*
    *	If structures are passed in the stack frame by reference - we need

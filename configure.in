@@ -49,6 +49,14 @@ PIPE='-pipe'
 AC_SUBST(PIPE)
 
 #--------------------------------------------------------------------
+# specific target_os options
+#--------------------------------------------------------------------
+case "$target_os" in
+  freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+		LIBS="$LIBS -L/usr/local/lib";;
+esac
+
+#--------------------------------------------------------------------
 # Find out if we\'re using NeXT\'s compiler.
 # if yes:
 #   add -cpp-traditional to CPP
@@ -781,6 +789,24 @@ AC_MSG_RESULT($enable_fake_main)
 # Check recent libxlm for Properytlists, GSXML, GSDoc etc.
 #--------------------------------------------------------------------
 echo "Checking for libxml"
+AC_ARG_WITH(libxml-include,
+  [  --with-libxml-include=PATH  include path for libxml headers],
+  libxml_incdir="$withval", libxml_incdir="no")
+
+AC_ARG_WITH(libxml-library,
+  [  --with-libxml-library=PATH  library path for libxml libraries],
+  libxml_libdir="$withval", libxml_libdir="no")
+
+cppflags_temp=$CFLAGS
+libs_temp=$LIBS
+
+if test "$libxml_incdir" != "no"; then
+  CPPFLAGS="$CPPFLAGS -I$libxml_incdir"
+fi
+if test "$libxml_libdir" != "no"; then
+  LIBS="$LIBS -L$libxml_libdir"
+fi
+
 AC_CHECK_HEADERS(libxml/xmlversion.h)
 if test $ac_cv_header_libxml_xmlversion_h = no; then
   echo "Could not find libxml headers"
@@ -801,6 +827,11 @@ else
   fi
 fi
 AC_SUBST(HAVE_LIBXML)
+
+if test "$HAVE_LIBXML" = "0"; then
+  CPPFLAGS="$cppflags_temp";
+  LIBS="$libs_temp";
+fi
 
 
 AC_SUBST(whole_archive)

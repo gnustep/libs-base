@@ -1,3 +1,31 @@
+2000-10-28  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Headers/gnustep/base/NSBundle.h: added ivar.
+	* Source/NSBundle.m ([NSBundle +_addFrameworkFromClass:]): new private
+	method to parse NSFramework_* classes.
+	(_bundle_load_callback): added framework support. Wrap classes in a
+	NSValue to avoid implicit initialization.
+	([NSBundle +allBundles]): added framework support.
+	([NSBundle +allFrameworks]): implemented.
+	([NSBundle +bundleForClass:]): get classes from NSValue object.
+	([NSBundle -classNamed:]): likewise.
+
+	* Headers/gnustep/base/objc-load.h (LINKER_GETSYMBOL): new define.
+	* Source/objc-load.m (objc_get_symbol_path): get lib path of a Class
+	or Category.
+	* Source/simple-load.h (__objc_dynamic_get_symbol_path): indentifies
+	lib path of a symbol.
+	* Source/dld-load.h (__objc_dynamic_get_symbol_path): not supported.
+	* Source/hpux-load.h (__objc_dynamic_get_symbol_path): not implemented.
+
+	* Source/mframe/mframe.foot (mframe_get_arg): typ declaration fix.
+	(mframe_set_arg): idem
+
+	* Headers/gnustep/base/config.h.in: added HAVE_DLADDR
+	* aclocal.m4 (OBJC_SYS_DYNAMIC_LINKER): test for dladdr()
+	* configure.in: added --with-libxml-include and --with-libxml-library,
+	added -I/usr/local/include and -L/usr/local/lib for FreeBSD.
+
 2000-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Reverted last change -
@@ -81,7 +109,6 @@
 	* Source/GSString.m: Changed all substringFromRange: to
 	substringWithRange: as this is the basic method.
 
->>>>>>> 1.737
 2000-10-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-fastestEncoding]), ([-smallestEncoding])

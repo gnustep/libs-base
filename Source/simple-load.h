@@ -84,4 +84,21 @@ __objc_dynamic_list_undefined_symbols(void)
     return NULL;
 }
 
+static char *
+__objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
+{
+  dl_symbol_t sym;
+  Dl_info     info;
+
+  sym = dlsym(RTLD_NEXT, symbol);
+
+  if (!sym)
+    return NULL;
+
+  if (!dladdr(sym, &info))
+    return NULL;
+
+  return info.dli_fname;
+}
+
 #endif /* __sunos_load_h_INCLUDE */

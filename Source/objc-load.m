@@ -243,3 +243,61 @@ objc_unload_modules(
         fprintf(errorStream, "Warning: unloading modules not implemented\n");
     return 0;
 }
+
+NSString *
+objc_get_symbol_path(Class theClass, Category *theCategory)
+{
+  const char *ret;
+  char        buf[125], *p = buf;
+  int         len = strlen(theClass->name);
+
+  if (!theCategory)
+    {
+      if (len+sizeof(char)*19 > sizeof(buf))
+	{
+	  p = malloc(len+sizeof(char)*19);
+
+	  if (!p)
+	    {
+	      fprintf(stderr, "Unable to allocate memory !!");
+	      return nil;
+	    }
+	}
+
+      memcpy(buf, "__objc_class_name_", sizeof(char)*18);
+      memcpy(&buf[18*sizeof(char)], theClass->name,
+	     strlen(theClass->name)+1);
+    }
+  else
+    {
+      len += strlen(theCategory->category_name);
+
+      if (len+sizeof(char)*23 > sizeof(buf))
+	{
+	  p = malloc(len+sizeof(char)*23);
+
+	  if (!p)
+	    {
+	      fprintf(stderr, "Unable to allocate memory !!");
+	      return nil;
+	    }
+	}
+
+      memcpy(buf, "__objc_category_name_", sizeof(char)*21);
+      memcpy(&buf[21*sizeof(char)], theCategory->class_name,
+	     strlen(theCategory->class_name)+1);
+      memcpy(&buf[strlen(p)], "_", 2*sizeof(char));
+      memcpy(&buf[strlen(p)], theCategory->category_name,
+	     strlen(theCategory->category_name)+1);
+    }
+
+  ret = __objc_dynamic_get_symbol_path(0, p);
+
+  if (p != buf)
+    free(p);
+
+  if (ret)
+    return [NSString stringWithCString:ret];
+
+  return nil;
+}
