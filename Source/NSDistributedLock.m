@@ -35,7 +35,7 @@
 
 + (NSDistributedLock*) lockWithPath: (NSString*)aPath
 {
-  return [[[self alloc] initWithPath: aPath] autorelease];
+  return AUTORELEASE([[self alloc] initWithPath: aPath]);
 }
 
 - (void) breakLock
@@ -47,14 +47,14 @@
     [NSException raise: NSGenericException 
 		format: @"Failed to remove lock directory '%@' - %s",
 		lockPath, strerror(errno)];
-  [lockTime release];
+  RELEASE(lockTime);
   lockTime = nil;
 }
 
 - (void) dealloc
 {
-  [lockPath release];
-  [lockTime release];
+  RELEASE(lockPath);
+  RELEASE(lockTime);
   [super dealloc];
 }
 
@@ -72,27 +72,27 @@
   if ([fileManager fileExistsAtPath: lockDir isDirectory: &isDirectory] == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is missing\n", lockPath);
-      [self release];
+      RELEASE(self);
       return nil;
     }
   if (isDirectory == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is not a directory\n",
 		lockPath);
-      [self release];
+      RELEASE(self);
       return nil;
     }
   if ([fileManager isWritableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not writable\n", lockPath);
-      [self release];
+      RELEASE(self);
       return nil;
     }
   if ([fileManager isExecutableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not accessible\n",
 		lockPath);
-      [self release];
+      RELEASE(self);
       return nil;
     }
   return self;
@@ -146,7 +146,7 @@
 
   if (locked == NO)
     {
-      [lockTime release];
+      RELEASE(lockTime);
       lockTime = nil;
       return NO;
     }
@@ -154,8 +154,8 @@
     {
       attributes = [fileManager fileAttributesAtPath: lockPath
 					traverseLink: YES];
-      [lockTime release];
-      lockTime = [[attributes objectForKey: NSFileModificationDate] retain];
+      RELEASE(lockTime);
+      lockTime = RETAIN([attributes objectForKey: NSFileModificationDate]);
       return YES;
     }
 }
@@ -185,7 +185,7 @@
   else
     NSLog(@"lock '%@' already broken and in use again\n", lockPath);
 
-  [lockTime release];
+  RELEASE(lockTime);
   lockTime = nil;
 }
 

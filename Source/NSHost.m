@@ -47,38 +47,39 @@ static BOOL _hostCacheEnabled = NO;
 static NSMutableDictionary *_hostCache = nil;
 
 @interface NSHost (Private)
-+ (NSHost *)_hostWithHostEntry:(struct hostent *)entry;
-+ (NSHost *)_hostWithHostEntry:(struct hostent *)entry name:name;
-- _initWithHostEntry:(struct hostent *)entry name:name;
++ (NSHost *)_hostWithHostEntry: (struct hostent *)entry;
++ (NSHost *)_hostWithHostEntry: (struct hostent *)entry name: name;
+- _initWithHostEntry: (struct hostent *)entry name: name;
 @end
 
 @implementation NSHost (Private)
 
-+ (NSHost *)_hostWithHostEntry:(struct hostent *)entry
++ (NSHost *)_hostWithHostEntry: (struct hostent *)entry
 {
   if (!entry)
     return nil;
 		
-  return [[self class] _hostWithHostEntry:entry  
-		       name:[NSString stringWithCString:entry->h_name]];
+  return [[self class] _hostWithHostEntry: entry  
+		       name: [NSString stringWithCString: entry->h_name]];
 }
 
-+ (NSHost *)_hostWithHostEntry:(struct hostent *)entry name:name
++ (NSHost *)_hostWithHostEntry: (struct hostent *)entry name: name
 {
   NSHost *res = nil;
 		
   [_hostCacheLock lock];
   if (_hostCacheEnabled == YES)
     {
-      res = [_hostCache objectForKey:name];
+      res = [_hostCache objectForKey: name];
     }
   [_hostCacheLock unlock];
 	
-  return (res != nil) ? res : [[[[self class] alloc]  
-				 _initWithHostEntry:entry name:name] autorelease];
+  return (res != nil) ? res
+    : AUTORELEASE([[[self class] alloc]  
+		       _initWithHostEntry: entry name: name]);
 }
 
-- _initWithHostEntry:(struct hostent *)entry name:name
+- _initWithHostEntry: (struct hostent *)entry name: name
 {
   int i;
   char *ptr;
@@ -92,21 +93,21 @@ static NSMutableDictionary *_hostCache = nil;
       return nil;
     }
 		
-  names = [[NSMutableArray array] retain];
-  addresses = [[NSMutableArray array] retain];
+  names = RETAIN([NSMutableArray array]);
+  addresses = RETAIN([NSMutableArray array]);
 	
-  [names addObject:name];
-  h_name = [NSString stringWithCString:entry->h_name];
+  [names addObject: name];
+  h_name = [NSString stringWithCString: entry->h_name];
 	
-  if (![h_name isEqual:name])
+  if (![h_name isEqual: name])
     {
-      [names addObject:h_name];
+      [names addObject: h_name];
     }
 	
   for (i = 0, ptr = entry->h_aliases[0]; ptr != NULL; i++,  
 	 ptr = entry->h_aliases[i])
     {
-      [names addObject:[NSString stringWithCString:ptr]];
+      [names addObject: [NSString stringWithCString: ptr]];
     }
 
   for (i = 0, ptr = entry->h_addr_list[0]; ptr != NULL; i++,  
@@ -114,14 +115,14 @@ static NSMutableDictionary *_hostCache = nil;
     {
       memcpy((void *)&in.s_addr, (const void *)ptr,  
 	      entry->h_length);
-      [addresses addObject:[NSString  
-			     stringWithCString:(char*)inet_ntoa(in)]];
+      [addresses addObject: [NSString  
+			     stringWithCString: (char*)inet_ntoa(in)]];
     }
 
   [_hostCacheLock lock];
   if (_hostCacheEnabled == YES)
     {
-      [_hostCache setObject:self forKey:name];
+      [_hostCache setObject: self forKey: name];
     }
   [_hostCacheLock unlock];
 	
@@ -163,11 +164,11 @@ static NSMutableDictionary *_hostCache = nil;
     }
 	
 	
-  return [self _hostWithHostEntry:h name:[NSString  
-					   stringWithCString:name]];
+  return [self _hostWithHostEntry: h name: [NSString  
+					   stringWithCString: name]];
 }
 
-+ (NSHost *)hostWithName:(NSString *)name
++ (NSHost *)hostWithName: (NSString *)name
 {
   struct hostent *h;
 
@@ -179,11 +180,11 @@ static NSMutableDictionary *_hostCache = nil;
 	
   h = gethostbyname((char *)[name cString]);
 	
-  return [self _hostWithHostEntry:h name:name];
+  return [self _hostWithHostEntry: h name: name];
 	
 }
 
-+ (NSHost *)hostWithAddress:(NSString *)address
++ (NSHost *)hostWithAddress: (NSString *)address
 {
   struct hostent *h;
   struct in_addr hostaddr;
@@ -201,10 +202,10 @@ static NSMutableDictionary *_hostCache = nil;
     }
 		
   h = gethostbyaddr((char *)&hostaddr, sizeof(hostaddr), AF_INET);
-  return [self _hostWithHostEntry:h];
+  return [self _hostWithHostEntry: h];
 }
 
-+ (void)setHostCacheEnabled:(BOOL)flag
++ (void)setHostCacheEnabled: (BOOL)flag
 {
   [_hostCacheLock lock];
   _hostCacheEnabled = flag;
@@ -234,7 +235,7 @@ static NSMutableDictionary *_hostCache = nil;
 {
   return [self class];
 }
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+- replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
     return self;
 }
@@ -271,8 +272,8 @@ static NSMutableDictionary *_hostCache = nil;
 
 /*
  *	The OpenStep spec says that [-hash] must be the same for any two
- *	objects that [-isEqual:] returns YES for.  We have a problem in
- *	that [-isEqualToHost:] is specified to return YES if any name or
+ *	objects that [-isEqual: ] returns YES for.  We have a problem in
+ *	that [-isEqualToHost: ] is specified to return YES if any name or
  *	address part of two hosts is the same.  That means we can't
  *	reasonably calculate a hash since two hosts with radically
  *	different ivar contents may be 'equal'.  The best I can think of
@@ -293,7 +294,7 @@ static NSMutableDictionary *_hostCache = nil;
   return NO;
 }
 
-- (BOOL)isEqualToHost:(NSHost *)aHost
+- (BOOL)isEqualToHost: (NSHost *)aHost
 {
   NSArray*	a;
   int		i;
@@ -303,12 +304,12 @@ static NSMutableDictionary *_hostCache = nil;
 
   a = [aHost addresses];
   for (i = 0; i < [a count]; i++)
-    if ([addresses containsObject:[a objectAtIndex:i]])
+    if ([addresses containsObject: [a objectAtIndex: i]])
       return YES;
 
   a = [aHost names];
   for (i = 0; i < [a count]; i++)
-    if ([addresses containsObject:[a objectAtIndex:i]])
+    if ([addresses containsObject: [a objectAtIndex: i]])
       return YES;
 
   return NO;
@@ -316,7 +317,7 @@ static NSMutableDictionary *_hostCache = nil;
 
 - (NSString *)name
 {
-  return [names objectAtIndex:0];
+  return [names objectAtIndex: 0];
 }
 
 - (NSArray *)names
@@ -326,7 +327,7 @@ static NSMutableDictionary *_hostCache = nil;
 
 - (NSString *)address
 {
-  return [addresses objectAtIndex:0];
+  return [addresses objectAtIndex: 0];
 }
 
 - (NSArray *)addresses
@@ -336,16 +337,16 @@ static NSMutableDictionary *_hostCache = nil;
 
 - (NSString *)description
 {
-  return [NSString stringWithFormat:@"Host %@ (%@ %@)", [self  
+  return [NSString stringWithFormat: @"Host %@ (%@ %@)", [self  
 							  name],
 		   [[self names] description], [[self addresses]  
 						 description]];
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-  [names autorelease];
-  [addresses autorelease];
+  RELEASE(names);
+  RELEASE(addresses);
   [super dealloc];
 }
 

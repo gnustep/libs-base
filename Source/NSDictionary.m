@@ -117,12 +117,12 @@ static Class NSMutableDictionary_concrete_class;
   return nil;
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
-  return [self retain];
+  return RETAIN(self);
 }
 
-- mutableCopyWithZone: (NSZone*)z
+- (id) mutableCopyWithZone: (NSZone*)z
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone: z] 
 	  initWithDictionary: self];
@@ -142,23 +142,23 @@ static Class NSMutableDictionary_concrete_class;
 
 @implementation NSDictionaryNonCore
 
-+ dictionary
++ (id) dictionary
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
-+ dictionaryWithDictionary: (NSDictionary*)otherDictionary
++ (id) dictionaryWithDictionary: (NSDictionary*)otherDictionary
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithDictionary: otherDictionary] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithDictionary: otherDictionary]);
 }
 
-+ dictionaryWithObjects: (id*)objects 
-		forKeys: (id*)keys
-		  count: (unsigned)count
++ (id) dictionaryWithObjects: (id*)objects 
+		     forKeys: (id*)keys
+		       count: (unsigned)count
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objects forKeys: keys count: count] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects forKeys: keys count: count]);
 }
 
 - (unsigned) hash
@@ -273,8 +273,8 @@ static Class NSMutableDictionary_concrete_class;
 	    }
 	}
       NSAssert (argi % 2 == 0, NSInvalidArgumentException);
-      d = [[[self allocWithZone: NSDefaultMallocZone()]
-	initWithObjects: objects forKeys: keys count: num_pairs] autorelease];
+      d = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: objects forKeys: keys count: num_pairs]);
       OBJC_FREE(objects);
       OBJC_FREE(keys);
       return d;
@@ -283,20 +283,20 @@ static Class NSMutableDictionary_concrete_class;
   return [self dictionary];
 }
 
-+ dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
++ (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objects forKeys: keys] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects forKeys: keys]);
 }
 
-+ dictionaryWithObject: (id)object forKey: (id)key
++ (id) dictionaryWithObject: (id)object forKey: (id)key
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: &object forKeys: &key count: 1] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: &object forKeys: &key count: 1]);
 }
 
 /* Override superclass's designated initializer */
-- init
+- (id) init
 {
   return [self initWithObjects: NULL forKeys: NULL count: 0];
 }
@@ -323,10 +323,12 @@ static Class NSMutableDictionary_concrete_class;
 	  i++;
 	}
       self = [self initWithObjects: os forKeys: ks count: i];
+#if	!GS_WITH_GC
       while (i > 0)
 	{
 	  [os[--i] release];
 	}
+#endif
       return self;
     }
   else
@@ -360,7 +362,7 @@ static Class NSMutableDictionary_concrete_class;
           result = nil;
 	}
       NS_ENDHANDLER
-      [myString release];
+      RELEASE(myString);
       if ([result isKindOfClass: [NSDictionary class]])
 	{
 	  [self initWithDictionary: result];
@@ -368,14 +370,14 @@ static Class NSMutableDictionary_concrete_class;
 	}
     }
   NSLog(@"Contents of file does not contain a dictionary");
-  [self release];
+  RELEASE(self);
   return nil;
 }
 
-+ dictionaryWithContentsOfFile: (NSString *)path
++ (id) dictionaryWithContentsOfFile: (NSString *)path
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: path] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path]);
 }
 
 - (BOOL) isEqual: other
@@ -418,8 +420,8 @@ static Class NSMutableDictionary_concrete_class;
       NSAssert (k[i], NSInternalInconsistencyException);
     }
   NSAssert (![e nextObject], NSInternalInconsistencyException);
-  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: k count: c] autorelease];
+  return AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: k count: c]);
 }
 
 - (NSArray*) allValues
@@ -434,8 +436,8 @@ static Class NSMutableDictionary_concrete_class;
       NSAssert (k[i], NSInternalInconsistencyException);
     }
   NSAssert (![e nextObject], NSInternalInconsistencyException);
-  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: k count: c] autorelease];
+  return AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: k count: c]);
 }
 
 - (NSArray*) allKeysForObject: anObject
@@ -449,8 +451,8 @@ static Class NSMutableDictionary_concrete_class;
       a[c++] = k;
   if (c == 0)
     return nil;
-  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: a count: c] autorelease];
+  return AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: a count: c]);
 }
 
 struct foo { NSDictionary *d; SEL s; IMP i; };
@@ -509,7 +511,7 @@ compareIt(id o1, id o2, void* context)
   NSEnumerator		*enumerator;
   id                    key;
 
-  result = [[[NSGMutableCString alloc] initWithCapacity: 1024] autorelease];
+  result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity: 1024]);
   enumerator = [self keyEnumerator];
   while ((key = [enumerator nextObject]) != nil)
     {
@@ -539,8 +541,8 @@ compareIt(id o1, id o2, void* context)
 {
   NSMutableString	*result;
 
-  result = [[[NSGMutableCString alloc] initWithCapacity: 20*[self count]]
-    autorelease];
+  result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity:
+    20*[self count]]);
   [self descriptionWithLocale: locale
 		       indent: level
 			   to: (id<GNUDescriptionDestination>)result];
@@ -690,10 +692,12 @@ static NSString	*indentStrings[] = {
 	  initWithObjects: objects
 		  forKeys: keys
 		    count: count];
+#if	!GS_WITH_GC
   while (i > 0)
     {
       [objects[--i] release];
     }
+#endif
   return newDictionary;
 }
 
@@ -718,16 +722,16 @@ static NSString	*indentStrings[] = {
 
 @implementation NSMutableDictionaryNonCore
 
-+ dictionaryWithCapacity: (unsigned)numItems
++ (id) dictionaryWithCapacity: (unsigned)numItems
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: numItems] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: numItems]);
 }
 
 /* Override superclass's designated initializer */
-- initWithObjects: (id*)objects
-	  forKeys: (id*)keys
-	    count: (unsigned)count
+- (id) initWithObjects: (id*)objects
+	       forKeys: (id*)keys
+		 count: (unsigned)count
 {
   [self initWithCapacity: count];
   while (count--)

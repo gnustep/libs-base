@@ -209,13 +209,13 @@ myEqual(id self, id other)
 
       if (keys[i] == nil)
 	{
-	  [self autorelease];
+	  AUTORELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil key"];
 	}
       if (objs[i] == nil)
 	{
-	  [self autorelease];
+	  AUTORELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil value"];
 	}
@@ -223,8 +223,8 @@ myEqual(id self, id other)
       node = GSIMapNodeForKey(&map, (GSIMapKey)keys[i]);
       if (node)
 	{
-	  [objs[i] retain];
-	  [node->value.obj release];
+	  RETAIN(objs[i]);
+	  RELEASE(node->value.obj);
 	  node->value.obj = objs[i];
 	}
       else
@@ -256,7 +256,7 @@ myEqual(id self, id other)
       k = [k copyWithZone: z];
       if (k == nil)
 	{
-	  [self autorelease];
+	  AUTORELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil key"];
 	}
@@ -266,11 +266,11 @@ myEqual(id self, id other)
 	}
       else
 	{
-	  o = [o retain];
+	  o = RETAIN(o);
 	}
       if (o == nil)
 	{
-	  [self autorelease];
+	  AUTORELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil value"];
 	}
@@ -278,7 +278,7 @@ myEqual(id self, id other)
       node = GSIMapNodeForKey(&map, (GSIMapKey)k);
       if (node)
 	{
-	  [node->value.obj release];
+	  RELEASE(node->value.obj);
 	  node->value.obj = o;
 	}
       else
@@ -291,14 +291,14 @@ myEqual(id self, id other)
 
 - (NSEnumerator*) keyEnumerator
 {
-  return [[[NSGDictionaryKeyEnumerator allocWithZone: NSDefaultMallocZone()]
-    initWithDictionary: self] autorelease];
+  return AUTORELEASE([[NSGDictionaryKeyEnumerator allocWithZone:
+    NSDefaultMallocZone()] initWithDictionary: self]);
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGDictionaryObjectEnumerator allocWithZone: NSDefaultMallocZone()]
-    initWithDictionary: self] autorelease];
+  return AUTORELEASE([[NSGDictionaryObjectEnumerator allocWithZone:
+    NSDefaultMallocZone()] initWithDictionary: self]);
 }
 
 - (id) objectForKey: aKey
@@ -352,8 +352,8 @@ myEqual(id self, id other)
   node = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
   if (node)
     {
-      [anObject retain];
-      [node->value.obj release];
+      RETAIN(anObject);
+      RELEASE(node->value.obj);
       node->value.obj = anObject;
     }
   else
@@ -382,12 +382,12 @@ myEqual(id self, id other)
 - (id) initWithDictionary: (NSDictionary*)d
 {
   [super init];
-  dictionary = (NSGDictionary*)[d retain];
+  dictionary = (NSGDictionary*)RETAIN(d);
   node = dictionary->map.firstNode;
   return self;
 }
 
-- nextObject
+- (id) nextObject
 {
   GSIMapNode	old = node;
 
@@ -401,7 +401,7 @@ myEqual(id self, id other)
 
 - (void) dealloc
 {
-  [dictionary release];
+  RELEASE(dictionary);
   [super dealloc];
 }
 
@@ -409,7 +409,7 @@ myEqual(id self, id other)
 
 @implementation NSGDictionaryObjectEnumerator
 
-- nextObject
+- (id) nextObject
 {
   GSIMapNode	old = node;
 

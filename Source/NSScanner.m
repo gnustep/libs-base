@@ -34,13 +34,12 @@
 /*
  * Create and return a scanner that scans aString.
  */
-+ scannerWithString:(NSString *)aString
++ (id) scannerWithString: (NSString *)aString
 {
-  return [[[self alloc] initWithString: aString]
-	   autorelease];
+  return AUTORELEASE([[self alloc] initWithString: aString]);
 }
 
-+ localizedScannerWithString: (NSString*)locale
++ (id) localizedScannerWithString: (NSString*)locale
 {
   [self notImplemented: _cmd];
   return Nil;
@@ -50,31 +49,31 @@
  * Initialize a a newly-allocated scanner to scan aString.
  * Returns self.
  */
-- initWithString:(NSString *)aString
+- (id) initWithString: (NSString *)aString
 {
   [super init];
   string = [aString copyWithZone: [self zone]];
   len = [string length];
-  charactersToBeSkipped = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
+  charactersToBeSkipped = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
   return self;
 }
 
 /*
  * Deallocate a scanner and all its associated storage.
  */
-- (void)dealloc
+- (void) dealloc
 {
-  [string release];
-  [locale release];
-  [charactersToBeSkipped release];
+  RELEASE(string);
+  RELEASE(locale);
+  RELEASE(charactersToBeSkipped);
   [super dealloc];
 }
 
 /*
- * Like scanCharactersFromSet:intoString: but no initial skip
+ * Like scanCharactersFromSet: intoString: but no initial skip
  * For internal use only.
  */
-- (BOOL)_scanCharactersFromSet: (NSCharacterSet *)set
+- (BOOL) _scanCharactersFromSet: (NSCharacterSet *)set
 		    intoString: (NSString **)value;
 {
   unsigned int start;
@@ -84,7 +83,7 @@
   start = scanLocation;
   while (scanLocation < len)
     {
-      if (![set characterIsMember: [string characterAtIndex:scanLocation]])
+      if (![set characterIsMember: [string characterAtIndex: scanLocation]])
 	break;
       scanLocation++;
     }
@@ -154,12 +153,12 @@
   BOOL got_digits = NO;
 
   /* Check for sign */
-  switch ([string characterAtIndex:scanLocation])
+  switch ([string characterAtIndex: scanLocation])
     {
-    case '+':
+    case '+': 
       scanLocation++;
       break;
-    case '-':
+    case '-': 
       negative = YES;
       scanLocation++;
       break;
@@ -211,9 +210,9 @@
 
 /*
  * Scan an unsigned int of the given radix into value.
- * Internal version used by scanRadixUnsignedInt: and scanHexInt:.
+ * Internal version used by scanRadixUnsignedInt: and scanHexInt: .
  */
-- (BOOL)scanUnsignedInt_: (unsigned int *)value radix:(int)radix gotDigits:(BOOL)gotDigits
+- (BOOL) scanUnsignedInt_: (unsigned int *)value radix: (int)radix gotDigits: (BOOL)gotDigits
 {
   unsigned int num = 0;
   unsigned int numLimit, digitLimit, digitValue;
@@ -227,7 +226,7 @@
   /* Process digits */
   while (scanLocation < len)
     {
-      unichar digit = [string characterAtIndex:scanLocation];
+      unichar digit = [string characterAtIndex: scanLocation];
       switch (digit)
 	{
 	case '0': digitValue = 0; break;
@@ -252,7 +251,7 @@
 	case 'D': digitValue = 0xD; break;
 	case 'E': digitValue = 0xE; break;
 	case 'F': digitValue = 0xF; break;
-	default:
+	default: 
 	  digitValue = radix;
 	  break;
 	}
@@ -288,7 +287,7 @@
 /*
  * Scan an unsigned int of the given radix into value.
  */
-- (BOOL)scanRadixUnsignedInt: (unsigned int *)value
+- (BOOL) scanRadixUnsignedInt: (unsigned int *)value
 {
   int radix;
   BOOL gotDigits = NO;
@@ -303,17 +302,17 @@
 
   /* Check radix */
   radix = 10;
-  if ((scanLocation < len) && ([string characterAtIndex:scanLocation] == '0'))
+  if ((scanLocation < len) && ([string characterAtIndex: scanLocation] == '0'))
     {
     radix = 8;
     scanLocation++;
     gotDigits = YES;
     if (scanLocation < len)
       {
-      switch ([string characterAtIndex:scanLocation])
+      switch ([string characterAtIndex: scanLocation])
 	{
-	case 'x':
-	case 'X':
+	case 'x': 
+	case 'X': 
 	  scanLocation++;
 	  radix = 16;
 	  gotDigits = NO;
@@ -321,7 +320,7 @@
 	}
       }
     }
-  if ( [self scanUnsignedInt_:value radix:radix gotDigits:gotDigits])
+  if ( [self scanUnsignedInt_: value radix: radix gotDigits: gotDigits])
     return YES;
   scanLocation = saveScanLocation;
   return NO;
@@ -330,7 +329,7 @@
 /*
  * Scan a hexadecimal unsigned integer into value.
  */
-- (BOOL)scanHexInt: (unsigned int *)value
+- (BOOL) scanHexInt: (unsigned int *)value
 {
   unsigned int saveScanLocation = scanLocation;
 
@@ -340,7 +339,7 @@
       scanLocation = saveScanLocation;
       return NO;
     }
-  if ([self scanUnsignedInt_:value radix:16 gotDigits:NO])
+  if ([self scanUnsignedInt_: value radix: 16 gotDigits: NO])
     return YES;
   scanLocation = saveScanLocation;
   return NO;
@@ -350,7 +349,7 @@
  * Scan a long long int into value.
  * Same as scanInt, except with different variable types and limits.
  */
-- (BOOL)scanLongLong: (long long *)value
+- (BOOL) scanLongLong: (long long *)value
 {
 #if defined(LONG_LONG_MAX)
   unsigned long long num = 0;
@@ -368,12 +367,12 @@
     }
 
   /* Check for sign */
-  switch ([string characterAtIndex:scanLocation])
+  switch ([string characterAtIndex: scanLocation])
     {
-    case '+':
+    case '+': 
       scanLocation++;
       break;
-    case '-':
+    case '-': 
       negative = YES;
       scanLocation++;
       break;
@@ -382,7 +381,7 @@
     /* Process digits */
   while (scanLocation < len)
     {
-      unichar digit = [string characterAtIndex:scanLocation];
+      unichar digit = [string characterAtIndex: scanLocation];
       if ((digit < '0') || (digit > '9'))
 	break;
       if (!overflow) {
@@ -417,7 +416,7 @@
    */
 #    warning "Can't use long long variables."
   [NSException raise: NSGenericException
-	       format:@"Can't use long long variables."];
+	       format: @"Can't use long long variables."];
   return NO;
 #endif /* defined(LONG_LONG_MAX) */
 }
@@ -430,7 +429,7 @@
  * On underflow, 0.0 is put into value and YES is returned.
  * Based on the strtod code from the GNU C library.
  */
-- (BOOL)scanDouble:(double *)value
+- (BOOL) scanDouble: (double *)value
 {
   unichar decimal;
   unichar c = 0;
@@ -456,12 +455,12 @@
   decimal = '.';
 
   /* Check for sign */
-  switch ([string characterAtIndex:scanLocation])
+  switch ([string characterAtIndex: scanLocation])
     {
-    case '+':
+    case '+': 
       scanLocation++;
       break;
-    case '-':
+    case '-': 
       negative = YES;
       scanLocation++;
       break;
@@ -556,13 +555,13 @@
  * On overflow, HUGE_VAL or -HUGE_VAL is put into value and YES is returned.
  * On underflow, 0.0 is put into value and YES is returned.
  */
-- (BOOL)scanFloat: (float*)value
+- (BOOL) scanFloat: (float*)value
 {
   double num;
   
   if (value == NULL)
-    return [self scanDouble:NULL];
-  if ([self scanDouble:&num])
+    return [self scanDouble: NULL];
+  if ([self scanDouble: &num])
     {
       *value = num;
       return YES;
@@ -577,8 +576,8 @@
  * If value is non-NULL, and any characters were scanned, a string
  * containing the scanned characters is returned by reference in value.
  */
-- (BOOL)scanCharactersFromSet:(NSCharacterSet *)aSet 
-		   intoString:(NSString **)value;
+- (BOOL) scanCharactersFromSet: (NSCharacterSet *)aSet 
+		   intoString: (NSString **)value;
 {
   unsigned int saveScanLocation = scanLocation;
 
@@ -596,8 +595,8 @@
  * If value is non-NULL, and any characters were scanned, a string
  * containing the scanned characters is returned by reference in value.
  */
-- (BOOL)scanUpToCharactersFromSet:(NSCharacterSet *)set 
-		       intoString:(NSString **)value;
+- (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)set 
+		       intoString: (NSString **)value;
 {
   unsigned int saveScanLocation = scanLocation;
   unsigned int start;
@@ -607,7 +606,7 @@
   start = scanLocation;
   while (scanLocation < len)
     {
-      if ([set characterIsMember:[string characterAtIndex: scanLocation]])
+      if ([set characterIsMember: [string characterAtIndex: scanLocation]])
 	break;
       scanLocation++;
     }
@@ -634,7 +633,7 @@
  * If value is non-NULL, and the characters at the scan location match aString,
  * a string containing the matching string is returned by reference in value.
  */
-- (BOOL)scanString:(NSString *)aString intoString:(NSString **)value;
+- (BOOL) scanString: (NSString *)aString intoString: (NSString **)value;
 {
   NSRange range;
   unsigned int saveScanLocation = scanLocation;
@@ -644,16 +643,16 @@
   range.length = [aString length];
   if (range.location + range.length > len)
     return NO;
-  range = [string rangeOfString:aString
-		  options:caseSensitive ? 0 : NSCaseInsensitiveSearch
-		  range:range];
+  range = [string rangeOfString: aString
+		  options: caseSensitive ? 0 : NSCaseInsensitiveSearch
+		  range: range];
   if (range.length == 0)
     {
       scanLocation = saveScanLocation;
       return NO;
     }
   if (value)
-    *value = [string substringFromRange:range];
+    *value = [string substringFromRange: range];
   scanLocation += range.length;
   return YES;
 }
@@ -665,8 +664,8 @@
  * If value is non-NULL, and any characters were scanned, a string
  * containing the scanned characters is returned by reference in value.
  */
-- (BOOL)scanUpToString:(NSString *)aString 
-	    intoString:(NSString **)value;
+- (BOOL) scanUpToString: (NSString *)aString 
+	    intoString: (NSString **)value;
 {
   NSRange range;
   NSRange found;
@@ -675,9 +674,9 @@
   [self _skipToNextField];
   range.location = scanLocation;
   range.length = len - scanLocation;
-  found = [string rangeOfString:aString
-		  options:caseSensitive ? 0 : NSCaseInsensitiveSearch
-		  range:range];
+  found = [string rangeOfString: aString
+		  options: caseSensitive ? 0 : NSCaseInsensitiveSearch
+		  range: range];
   if (found.length)
     range.length = found.location - scanLocation;
   if (range.length == 0)
@@ -686,7 +685,7 @@
       return NO;
     }
   if (value)
-    *value = [string substringFromRange:range];
+    *value = [string substringFromRange: range];
   scanLocation += range.length;
   return YES;
 }
@@ -694,7 +693,7 @@
 /*
  * Returns the string being scanned.
  */
-- (NSString *)string
+- (NSString *) string
 {
   return string;
 }
@@ -703,7 +702,7 @@
  * Returns the character index at which the scanner
  * will begin the next scanning operation.
  */
-- (unsigned)scanLocation
+- (unsigned) scanLocation
 {
   return scanLocation;
 }
@@ -712,7 +711,7 @@
  * Set the character location at which the scanner
  * will begin the next scanning operation to anIndex.
  */
-- (void)setScanLocation:(unsigned int)anIndex
+- (void) setScanLocation: (unsigned int)anIndex
 {
   scanLocation = anIndex;
 }
@@ -721,7 +720,7 @@
  * Returns YES if the scanner makes a distinction
  * between upper and lower case characters.
  */
-- (BOOL)caseSensitive
+- (BOOL) caseSensitive
 {
   return caseSensitive;
 }
@@ -731,7 +730,7 @@
  * to be the same during scanning.  If flag is NO the scanner will
  * not make a distinction between upper and lower case characters.
  */
-- (void)setCaseSensitive:(BOOL)flag
+- (void) setCaseSensitive: (BOOL)flag
 {
   caseSensitive = flag;
 }
@@ -740,7 +739,7 @@
  * Return a character set object containing the characters the scanner
  * will ignore when searching for the next element to be scanned.
  */
-- (NSCharacterSet *)charactersToBeSkipped
+- (NSCharacterSet *) charactersToBeSkipped
 {
   return charactersToBeSkipped;
 }
@@ -749,17 +748,16 @@
  * Set the characters to be ignored when the scanner
  * searches for the next element to be scanned.
  */
-- (void)setCharactersToBeSkipped:(NSCharacterSet *)aSet
+- (void) setCharactersToBeSkipped: (NSCharacterSet *)aSet
 {
-  [charactersToBeSkipped release];
-  charactersToBeSkipped = [aSet copyWithZone: [self zone]];
+  ASSIGNCOPY(charactersToBeSkipped, aSet);
 }
 
 /*
  * Returns a dictionary object containing the locale
  * information used by the scanner.
  */
-- (NSDictionary *)locale
+- (NSDictionary *) locale
 {
   return locale;
 }
@@ -768,17 +766,17 @@
  * Set the dictionary containing the locale
  * information used by the scanner to localeDictionary.
  */
-- (void)setLocale:(NSDictionary *)localeDictionary
+- (void) setLocale: (NSDictionary *)localeDictionary
 {
-  locale = [localeDictionary retain];
+  locale = RETAIN(localeDictionary);
 }
 
 /*
  * NSCopying protocol
  */
-- copyWithZone:(NSZone *)zone
+- (id) copyWithZone: (NSZone *)zone
 {
-  NSScanner *n = [[self class] allocWithZone:zone];
+  NSScanner *n = [[self class] allocWithZone: zone];
 
   [n initWithString: string];
   [n setCharactersToBeSkipped: charactersToBeSkipped];

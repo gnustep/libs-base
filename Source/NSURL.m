@@ -58,24 +58,21 @@ NSString* NSURLPartKey_query=@"query";
 //-----------------------------------------------------------------------------
 + (id) fileURLWithPath: (NSString*)_path
 {
-  return [[[NSURL alloc] initFileURLWithPath: _path]
-		   autorelease];
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: _path]);
 }
 
 //-----------------------------------------------------------------------------
 + (id)URLWithString: (NSString*)_urlString
 {
-  return [[[NSURL alloc] initWithString: _urlString]
-		   autorelease];
+  return AUTORELEASE([[NSURL alloc] initWithString: _urlString]);
 }
 
 //-----------------------------------------------------------------------------
 + (id)URLWithString: (NSString*)_urlString
 	 relativeToURL: (NSURL*)_baseURL
 {
-  return [[[NSURL alloc] initWithString: _urlString
-						 relativeToURL: _baseURL]
-		   autorelease];
+  return AUTORELEASE([[NSURL alloc] initWithString: _urlString
+				     relativeToURL: _baseURL]);
 }
 
 //-----------------------------------------------------------------------------
@@ -158,7 +155,7 @@ NSString* NSURLPartKey_query=@"query";
     return [[isa allocWithZone: zone] initWithString: urlString
 									  relativeToURL: baseURL];
   else
-    return [self retain];
+    return RETAIN(self);
 }
 
 //-----------------------------------------------------------------------------
@@ -287,7 +284,7 @@ NSString* NSURLPartKey_query=@"query";
 	{
 	  int index=2;
 	  NSRange range;
-	  elements=[[NSMutableDictionary new] autorelease];
+	  elements = [NSMutableDictionary dictionaryWithCapacity: 0];
 	  if (![[self scheme] isEqualToString: NSURLFileScheme])
 		{
 		  range=[resourceSpecifier rangeOfString: @"/"
