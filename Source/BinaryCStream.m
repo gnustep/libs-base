@@ -30,6 +30,7 @@
 #include <Foundation/NSException.h>
 #include <math.h>
 #include <values.h>		// This gets BITSPERBYTE on Solaris
+#include <netinet/in.h>		// for byte-conversion
 
 #define DEFAULT_FORMAT_VERSION 0
 
