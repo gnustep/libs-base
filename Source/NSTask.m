@@ -442,7 +442,8 @@ extern char *objc_find_executable(const char *name);
 	      if (cpath == 0)
 		{
 		  [NSException raise: NSInvalidArgumentException
-			      format: @"NSTask - launch path is not valid"];
+			      format: @"NSTask - launch path (%@) is not valid",
+				_launchPath];
 		}
 	      else
 		{
