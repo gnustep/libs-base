@@ -43,6 +43,7 @@
 #include <Foundation/NSRange.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <base/behavior.h>
 #include <limits.h>
