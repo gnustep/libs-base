@@ -93,30 +93,30 @@ name_to_port_number (const char *name)
   return self;
 }
 
-+ newPortFromRegisterWithName: (const char *)name onHost: (const char *)h
++ newPortFromRegisterWithName: (String*)name onHost: (String*)h
 {
   id p;
   int n;
 
 #if SOCKETPORT_NUMBER_NAMES_ONLY
-  if ((n = atoi(name)) == 0)
-    [self error:"Name (%s) is not a number", name];
+  if ((n = atoi([name cString])) == 0)
+    [self error:"Name (%s) is not a number", [name cString]];
 #else
-  n = name_to_port_number(name);
+  n = name_to_port_number([name cString]);
 #endif
   p = [SocketPort newRemoteWithNumber:n onHost:h];
   return p;
 }
 
-+ newRegisteredPortWithName: (const char *)name
++ newRegisteredPortWithName: (String*)name
 {
   int n;
 
 #if SOCKET_NUMBER_NAMES_ONLY
-  if ((n = atoi(name)) == 0)
+  if ((n = atoi([name cString])) == 0)
     return nil;
 #else
-  n = name_to_port_number(name);
+  n = name_to_port_number([name cString]);
 #endif
   return [SocketPort newLocalWithNumber:n];
 }
@@ -241,22 +241,25 @@ s1.sin_addr.s_addr == s2.sin_addr.s_addr)
   return sp;
 }
 
-+ newRemoteWithNumber: (int)n onHost: (const char*)h
++ newRemoteWithNumber: (int)n onHost: (String*)h
 {
   struct sockaddr_in remote_addr;
   struct hostent *hp;
+  const char *hs;
 
   /* xxx clean this up */
   if (n > 65535 - IPPORT_USERRESERVED - 1)
     [self error:"port number too high"];
   n += IPPORT_USERRESERVED + 1;
 
-  if (!h || !(*h))
-    h = "localhost";
+  if (!h || ![h length])
+    hs = "localhost";
+  else
+    hs = [h cString];
 
-  hp = gethostbyname((char*)h);
+  hp = gethostbyname((char*)hs);
   if (hp == 0)
-    [self error:"unknown host: \"%s\"", h];
+    [self error:"unknown host: \"%s\"", hs];
   bcopy(hp->h_addr, &remote_addr.sin_addr, hp->h_length);
   remote_addr.sin_family = AF_INET;
   remote_addr.sin_port = htons(n);

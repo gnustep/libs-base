@@ -33,8 +33,8 @@
 @interface Port : RetainingNotifier <Coding>
 
 /* xxx These will probably change */
-+ newRegisteredPortWithName: (const char *)n;
-+ newPortFromRegisterWithName: (const char *)n onHost: (const char *)host;
++ newRegisteredPortWithName: (String*)n;
++ newPortFromRegisterWithName: (String*)n onHost: (String*)host;
 + newPort;
 
 /* xxx These sending and receiving interfaces will change */
