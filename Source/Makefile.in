@@ -386,7 +386,7 @@ Foundation/NSValue.h \
 Foundation/NSZone.h \
 Foundation/objc-load.h
 
-HEADERS_INSTALL = @HEADERS_INSTALL@ objects/config.h objects/stdobjects.h
+HEADERS_INSTALL = @HEADERS_INSTALL@ objects/stdobjects.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:.o=_pic.o)
 
@@ -440,16 +440,17 @@ install: installdirs all
 	# Install the library
 	$(INSTALL_DATA) libobjects.a $(libdir)
 	$(RANLIB) $(libdir)/libobjects.a; \
-	if [ @LIBOBJECTS_SO@ ]; then \
+	if [ -n "@LIBOBJECTS_SO@" ]; then \
 	  $(INSTALL_DATA) libobjects.so.$(OBJECTS_VERSION) $(libdir) ; \
 	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
-	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) ; \
+	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) \
 		$(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
 	fi
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file $(includedir)/$$file ; \
 	done
+	$(INSTALL_DATA) objects/config.h $(includedir)/objects/config.h
 	cd $(includedir)/Foundation; rm -f README; ln -s ../objects/README .
 	cd $(includedir)/objc; rm -f README; ln -s ../objects/README .
 
