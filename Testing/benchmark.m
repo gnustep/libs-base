@@ -410,7 +410,7 @@ int main(int argc, char *argv[], char **env)
 {
   id pool;
 
-#if 0 || LIB_FOUNDATION_LIBRARY
+#if LIB_FOUNDATION_LIBRARY || defined(GS_PASS_ARGUMENTS)
    [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
 

@@ -84,10 +84,17 @@ Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
 <Foundation/Foundation.h>?\n\
 If that is not the problem, Please report the error to bug-gnustep@gnu.org.\n\n"
 #else
+#ifdef GS_PASS_ARGUMENTS
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Error:\n\
+A call to NSProcessInfo +initializeWithArguments:... must be made\n\
+as the first ObjC statment in main. This function is used to \n\
+establish the argv and environment variables.\n"
+#else
 #define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
 Please report the error to bug-gnustep@gnu.org.\n\n"
+#endif
 #endif
 
 /*************************************************************************
@@ -483,6 +490,7 @@ extern char** _environ;
 }
 
 #else
+#ifndef GS_PASS_ARGUMENTS
 #undef main
 int main(int argc, char *argv[], char *env[])
 {
@@ -506,6 +514,7 @@ int main(int argc, char *argv[], char *env[])
   /* Call the user defined main function */
   return gnustep_base_user_main(argc, argv, env);
 }
+#endif /* !GS_PASS_ARGUMENTS */
 #endif /* __MINGW32__ */
 
 #endif /* HAS_LOAD_METHOD && HAS_PROC_FS */ 

@@ -13,7 +13,7 @@
 @implementation Server
 - init
 {
-  the_array = [[Array alloc] init];
+  the_array = [[NSMutableArray alloc] init];
   return self;
 }
 - (unsigned) count

@@ -56,7 +56,10 @@
 static int behavior_debug = 0;
 
 #ifndef HAVE_OBJC_GET_UNINSTALLED_DTABLE
-extern void *__objc_uninstalled_dtable;
+#ifndef objc_EXPORT
+#define objc_EXPORT export
+#endif
+objc_EXPORT void *__objc_uninstalled_dtable;
 static void *
 objc_get_uninstalled_dtable()
 {

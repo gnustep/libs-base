@@ -384,6 +384,9 @@ libgnustep-base_C_FILES = $(GNU_CFILES)
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
+# Extra DLL exports file
+libgnustep-base_DLL_DEF = libgnustep-base.def
+
 libgnustep-base_HEADER_FILES_DIR = ../Headers
 libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep
 

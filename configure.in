@@ -607,7 +607,6 @@ AC_CHECK_FUNCS(times)
 AC_CHECK_FUNCS(mkstemp)
 AC_CHECK_FUNCS(shmctl)
 AC_CHECK_FUNCS(mmap)
-AC_CHECK_FUNCS(mkstemp)
 
 #--------------------------------------------------------------------
 # This function needed by UnixFileHandle.m
@@ -729,7 +728,7 @@ AC_ARG_ENABLE(pass-arguments,
   enable_pass_arguments=no)
 
 case "$target_os" in
-  cygnus*)	enable_pass_arguments=yes;;
+  cygwin*)	enable_pass_arguments=yes;;
 esac
 if test "$enable_pass_arguments" = "yes"; then
   GS_PASS_ARGUMENTS=1
