@@ -55,6 +55,17 @@ main(int argc, char** argv, char** envp)
   keys = [NSArray arrayWithObjects:
 		  @"cow", @"fish", @"horse", @"chicken", nil];
   a = [NSDictionary dictionaryWithObjects:objects forKeys:keys];
+  b = [NSDictionary dictionaryWithObjectsAndKeys:
+    @"vache",
+    @"cow",
+    @"poisson",
+    @"fish",
+    @"cheval",
+    @"horse",
+    @"poulet",
+    @"chicken", nil];
+
+  printf("Match is %d\n", [a isEqual: b]);
 
   printf("NSDictionary has count %d\n", [a count]);
   key = @"fish";

@@ -38,6 +38,7 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSValue.h>
+#include "gnustep/base/GSCategories.h"
 #include "GSPrivate.h"
 
 @implementation NSDictionary 
@@ -290,56 +291,8 @@ static SEL	appSel;
  */
 - (id) initWithObjectsAndKeys: (id)firstObject, ...
 {
-  va_list ap;
-  int	capacity = 16;
-  int	num_pairs = 0;
-  id	*objects;
-  id	*keys;
-  id	arg;
-  int	argi = 1;
-
-  va_start (ap, firstObject);
-  if (firstObject == nil)
-    {
-      return [self init];
-    }
-  /* Gather all the arguments in a simple array, in preparation for
-     calling the designated initializer. */
-  objects = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
-  keys = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
-
-  objects[num_pairs] = firstObject;
-  /* Keep grabbing arguments until we get a nil... */
-  while ((arg = va_arg (ap, id)))
-    {
-      if (num_pairs >= capacity)
-	{
-	  /* Must increase capacity in order to fit additional ARG's. */
-	  capacity *= 2;
-	  objects = (id*)NSZoneRealloc(NSDefaultMallocZone(), objects,
-	    sizeof(id) * capacity);
-	  keys = (id*)NSZoneRealloc(NSDefaultMallocZone(), keys,
-	    sizeof(id) * capacity);
-	}
-      /* ...and alternately dump them into OBJECTS and KEYS */
-      if (argi++ % 2 == 0)
-	objects[num_pairs] = arg;
-      else
-	{
-	  keys[num_pairs] = arg;
-	  num_pairs++;
-	}
-    }
-  if (argi %2 != 0)
-    {
-      NSZoneFree(NSDefaultMallocZone(), objects);
-      NSZoneFree(NSDefaultMallocZone(), keys);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"init dictionary with nil key"];
-    }
-  self = [self initWithObjects: objects forKeys: keys count: num_pairs];
-  NSZoneFree(NSDefaultMallocZone(), objects);
-  NSZoneFree(NSDefaultMallocZone(), keys);
+  GS_USEIDPAIRLIST(firstObject,
+    self = [self initWithObjects: __objects forKeys: __pairs count: __count/2]);
   return self;
 }
 
@@ -350,53 +303,11 @@ static SEL	appSel;
  */
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...
 {
-  va_list ap;
-  int	capacity = 16;
-  int	num_pairs = 0;
-  id	*objects;
-  id	*keys;
-  id	arg;
-  int	argi = 1;
+  id	o = [self allocWithZone: NSDefaultMallocZone()];
 
-  va_start (ap, firstObject);
-  /* Gather all the arguments in a simple array, in preparation for
-     calling the designated initializer. */
-  objects = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
-  keys = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * capacity);
-  if (firstObject != nil)
-    {
-      NSDictionary *d;
-      objects[num_pairs] = firstObject;
-      /* Keep grabbing arguments until we get a nil... */
-      while ((arg = va_arg (ap, id)))
-	{
-	  if (num_pairs >= capacity)
-	    {
-	      /* Must increase capacity in order to fit additional ARG's. */
-	      capacity *= 2;
-	      objects = (id*)NSZoneRealloc(NSDefaultMallocZone(), objects,
-		sizeof(id) * capacity);
-	      keys = (id*)NSZoneRealloc(NSDefaultMallocZone(), keys,
-		sizeof(id) * capacity);
-	    }
-	  /* ...and alternately dump them into OBJECTS and KEYS */
-	  if (argi++ % 2 == 0)
-	    objects[num_pairs] = arg;
-	  else
-	    {
-	      keys[num_pairs] = arg;
-	      num_pairs++;
-	    }
-	}
-      NSAssert (argi % 2 == 0, NSInvalidArgumentException);
-      d = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-	initWithObjects: objects forKeys: keys count: num_pairs]);
-      NSZoneFree(NSDefaultMallocZone(), objects);
-      NSZoneFree(NSDefaultMallocZone(), keys);
-      return d;
-    }
-  /* FIRSTOBJECT was nil; just return an empty NSDictionary object. */
-  return [self dictionary];
+  GS_USEIDPAIRLIST(firstObject,
+    o = [o initWithObjects: __objects forKeys: __pairs count: __count/2]);
+  return AUTORELEASE(o);
 }
 
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys

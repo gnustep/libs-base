@@ -1,3 +1,9 @@
+2003-04-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/GSCategories.h (GS_USEIDLIST and
+	GS_USEIDPAIRLIST): Complete implementation and testing.
+	* Source/NSDictionary.m: Use macro.
+
 2003-04-06 23:30  Alexander Malmberg <alexander@malmberg.org>
 
 	* Headers/gnustep/base/GSCategories.h (GS_USEIDLIST): Make the
