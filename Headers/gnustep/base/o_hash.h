@@ -49,7 +49,7 @@ struct _objects_hash_node
     objects_hash_node_t *next_in_hash;
     objects_hash_node_t *prev_in_hash;
 
-    void *element;
+    const void *element;
   };
 
 struct _objects_hash_bucket
@@ -64,8 +64,8 @@ struct _objects_hash
   {
     int magic;
     size_t number;
-    char *name;
-    void *extra;
+    const char *name;
+    const void *extra;
     objects_callbacks_t extra_callbacks;
     objects_allocs_t allocs;
 
@@ -144,7 +144,10 @@ objects_hash_t * objects_hash_copy_with_allocs (objects_hash_t * hash, objects_a
  * to handle functions that aren't one-to-one is to create a new hash
  * and transform the elements of the first to create the elements of
  * the second. */
-objects_hash_t * objects_hash_map_elements (objects_hash_t * hash, void *(*fcn) (void *, void *), void *user_data);
+objects_hash_t * 
+objects_hash_map_elements (objects_hash_t * hash, 
+			   const void *(*fcn) (const void *, const void *), 
+			   const void *user_data);
 
 /** Destroying **/
 
@@ -160,39 +163,43 @@ int objects_hash_is_equal_to_hash (objects_hash_t * hash, objects_hash_t * other
 
 /** Adding **/
 
-void *objects_hash_add_element_known_absent (objects_hash_t * hash, void *element);
+const void *objects_hash_add_element_known_absent (objects_hash_t *hash, 
+						   const void *element);
 
-void *objects_hash_add_element (objects_hash_t * hash, void *element);
+const void *objects_hash_add_element (objects_hash_t *hash, 
+				      const void *element);
 
-void *objects_hash_add_element_if_absent (objects_hash_t * hash, void *element);
+const void *objects_hash_add_element_if_absent (objects_hash_t *hash, 
+						const void *element);
 
 /** Replacing **/
 
-void objects_hash_replace_element (objects_hash_t * hash, void *element);
+void objects_hash_replace_element (objects_hash_t *hash, const void *element);
 
 /** Removing **/
 
-void objects_hash_remove_element (objects_hash_t * hash, void *element);
+void objects_hash_remove_element (objects_hash_t *hash, const void *element);
 
 /** Emptying **/
 
-void objects_hash_empty (objects_hash_t * hash);
+void objects_hash_empty (objects_hash_t *hash);
 
 /** Searching **/
 
-void *objects_hash_any_element (objects_hash_t * hash);
+void *objects_hash_any_element (objects_hash_t *hash);
 
-int objects_hash_contains_element (objects_hash_t * hash, void *element);
+int objects_hash_contains_element (objects_hash_t *hash, const void *element);
 
-void *objects_hash_element (objects_hash_t * hash, void *element);
+const void *objects_hash_element (objects_hash_t *hash, const void *element);
 
-void **objects_hash_all_elements (objects_hash_t * hash);
+const void **objects_hash_all_elements (objects_hash_t *hash);
 
 /** Enumerating **/
 
-objects_hash_enumerator_t objects_hash_enumerator (objects_hash_t * hash);
+objects_hash_enumerator_t objects_hash_enumerator (objects_hash_t *hash);
 
-int objects_hash_enumerator_next_element (objects_hash_enumerator_t *enumerator, void **element);
+int objects_hash_enumerator_next_element (objects_hash_enumerator_t *enumeratr,
+					  const void **element);
 
 /** Statistics **/
 

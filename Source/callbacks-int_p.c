@@ -46,7 +46,7 @@ objects_callbacks_t objects_callbacks_for_int_p =
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_int_p_hash(void *iptr)
+objects_int_p_hash (const void *iptr)
 {
   return (size_t)(*((int *)iptr));
 }
@@ -54,31 +54,31 @@ objects_int_p_hash(void *iptr)
 /* FIXME: Are these next two correct?  These seem rather useless to me. */
 
 int
-objects_int_p_compare(void *iptr, void *jptr)
+objects_int_p_compare (const void *iptr, const void *jptr)
 {
   return *((int *)iptr) - *((int *)jptr);
 }
 
 int
-objects_int_p_is_equal(void *iptr, void *jptr)
+objects_int_p_is_equal (const void *iptr, const void *jptr)
 {
   return *((int *)iptr) == *((int *)jptr);
 }
 
-void *
-objects_int_p_retain(void *iptr)
+const void *
+objects_int_p_retain (const void *iptr)
 {
   return iptr;
 }
 
 void
-objects_int_p_release(void *iptr)
+objects_int_p_release (const void *iptr)
 {
   return;
 }
 
-void *
-objects_int_p_describe(void *iptr)
+const void *
+objects_int_p_describe (const void *iptr)
 {
   /* FIXME: Code this. */
   return 0;

@@ -39,10 +39,11 @@ objects_map_bucket_t *
 _objects_map_pick_bucket_for_key (objects_map_t *map,
                                   objects_map_bucket_t *buckets,
 				  size_t bucket_count,
-                                  void *key)
+                                  const void *key)
 {
   return buckets + (objects_hash (objects_map_key_callbacks (map),
-				  key, map) % bucket_count);
+				  key, map) 
+		    % bucket_count);
 }
 
 objects_map_bucket_t *
@@ -52,11 +53,12 @@ _objects_map_pick_bucket_for_node (objects_map_t * map,
 				   objects_map_node_t * node)
 {
   return buckets + (objects_hash (objects_map_key_callbacks (map),
-				  node->key, map) % bucket_count);
+				  node->key, map)
+		    % bucket_count);
 }
 
 objects_map_bucket_t *
-_objects_map_bucket_for_key (objects_map_t * map, void *key)
+_objects_map_bucket_for_key (objects_map_t * map, const void *key)
 {
   return _objects_map_pick_bucket_for_key (map, map->buckets,
 					   map->bucket_count, key);
@@ -100,7 +102,8 @@ _objects_map_unlink_node_from_its_bucket (objects_map_node_t * node)
 }
 
 void
-_objects_map_link_node_into_map (objects_map_t * map, objects_map_node_t * node)
+_objects_map_link_node_into_map (objects_map_t * map, 
+				 objects_map_node_t * node)
 {
   if (map->first_node != NULL)
     map->first_node->prev_in_map = node;
@@ -129,7 +132,8 @@ _objects_map_unlink_node_from_its_map (objects_map_node_t * node)
 }
 
 void
-_objects_map_add_node_to_bucket (objects_map_bucket_t * bucket, objects_map_node_t * node)
+_objects_map_add_node_to_bucket (objects_map_bucket_t * bucket, 
+				 objects_map_node_t * node)
 {
   if (bucket != NULL)
     {
@@ -145,9 +149,11 @@ _objects_map_add_node_to_bucket (objects_map_bucket_t * bucket, objects_map_node
 }
 
 void
-_objects_map_add_node_to_its_bucket (objects_map_t * map, objects_map_node_t * node)
+_objects_map_add_node_to_its_bucket (objects_map_t * map, 
+				     objects_map_node_t * node)
 {
-  _objects_map_add_node_to_bucket (_objects_map_bucket_for_node (map, node), node);
+  _objects_map_add_node_to_bucket (_objects_map_bucket_for_node (map, node), 
+				   node);
   return;
 }
 
@@ -243,7 +249,7 @@ _objects_map_remangle_buckets (objects_map_t * map,
 }
 
 objects_map_node_t *
-_objects_map_new_node (objects_map_t * map, void *key, void *value)
+_objects_map_new_node (objects_map_t * map, const void *key, const void *value)
 {
   objects_map_node_t *node;
 
@@ -286,8 +292,10 @@ _objects_map_free_node (objects_map_node_t * node)
 
       /* Release KEY and VALUE.  (They're retained above in
        * `_objects_map_new_node()'.) */
-      objects_release (objects_map_key_callbacks (map), node->key, map);
-      objects_release (objects_map_value_callbacks (map), node->value, map);
+      objects_release (objects_map_key_callbacks (map), 
+		       (void*)node->key, map);
+      objects_release (objects_map_value_callbacks (map), 
+		       (void*)node->value, map);
 
       /* Actually free the space map aside for NODE. */
       objects_free (objects_map_allocs (map), node);
@@ -298,7 +306,7 @@ _objects_map_free_node (objects_map_node_t * node)
 }
 
 objects_map_node_t *
-_objects_map_node_for_key (objects_map_t * map, void *key)
+_objects_map_node_for_key (objects_map_t * map, const void *key)
 {
   objects_map_bucket_t *bucket;
   objects_map_node_t *node;
@@ -413,7 +421,7 @@ objects_map_is_empty (objects_map_t * map)
  * in DICT. */
 
 int
-objects_map_contains_key (objects_map_t * map, void *key)
+objects_map_contains_key (objects_map_t * map, const void *key)
 {
   objects_map_node_t *node;
 
@@ -426,16 +434,16 @@ objects_map_contains_key (objects_map_t * map, void *key)
 }
 
 int
-objects_map_contains_value (objects_map_t * map, void *value)
+objects_map_contains_value (objects_map_t * map, const void *value)
 {
   return 0;
 }
 
 int
 objects_map_key_and_value_at_key (objects_map_t * map,
-				  void **old_key,
-				  void **value,
-				  void *key)
+				  const void **old_key,
+				  const void **value,
+				  const void *key)
 {
   objects_map_node_t *node;
 
@@ -460,39 +468,39 @@ objects_map_key_and_value_at_key (objects_map_t * map,
     }
 }
 
-void *
-objects_map_key (objects_map_t * map, void *key)
+const void *
+objects_map_key (objects_map_t * map, const void *key)
 {
-  void *old_key;
+  const void *old_key;
 
   objects_map_key_and_value_at_key (map, &old_key, NULL, key);
 
   return old_key;
 }
 
-void *
-objects_map_value_at_key (objects_map_t * map, void *key)
+const void *
+objects_map_value_at_key (objects_map_t * map, const void *key)
 {
-  void *value;
+  const void *value;
 
   objects_map_key_and_value_at_key (map, NULL, &value, key);
 
   return value;
 }
 
-void **
+const void **
 objects_map_all_keys_and_values (objects_map_t * map)
 {
   size_t j;
-  void **array;
+  const void **array;
   objects_map_enumerator_t enumerator;
 
   /* Allocate space for ARRAY.  Remember that it is the programmer's
    * responsibility to free this by calling
    * `objects_free(objects_map_allocs(DICT), ARRAY)' */
-  array = (void **) objects_calloc (objects_map_allocs (map),
-				    2 * (map->node_count + 1),
-				    sizeof (void *));
+  array = (const void **) objects_calloc (objects_map_allocs (map),
+					  2 * (map->node_count + 1),
+					  sizeof (void *));
 
   /* ENUMERATOR is an enumerator for DICT. */
   enumerator = objects_map_enumerator (map);
@@ -510,19 +518,19 @@ objects_map_all_keys_and_values (objects_map_t * map)
   return array;
 }
 
-void **
+const void **
 objects_map_all_keys (objects_map_t * map)
 {
   size_t j;
-  void **array;
+  const void **array;
   objects_map_enumerator_t enumerator;
 
   /* Allocate space for ARRAY.  Remember that it is the programmer's
    * responsibility to free this by calling
    * `objects_free(objects_map_allocs(DICT), ARRAY)' */
-  array = (void **) objects_calloc (objects_map_allocs (map),
-				    map->node_count + 1,
-				    sizeof (void *));
+  array = (const void **) objects_calloc (objects_map_allocs (map),
+					  map->node_count + 1,
+					  sizeof (void *));
 
   /* ENUMERATOR is an enumerator for DICT. */
   enumerator = objects_map_enumerator (map);
@@ -536,19 +544,19 @@ objects_map_all_keys (objects_map_t * map)
   return array;
 }
 
-void **
+const void **
 objects_map_all_values (objects_map_t * map)
 {
   size_t j;
-  void **array;
+  const void **array;
   objects_map_enumerator_t enumerator;
 
   /* Allocate space for ARRAY.  Remember that it is the programmer's
    * responsibility to free this by calling
    * `objects_free(objects_map_allocs(DICT), ARRAY)' */
-  array = (void **) objects_calloc (objects_map_allocs (map),
-				    map->node_count + 1,
-				    sizeof (void *));
+  array = (const void **) objects_calloc (objects_map_allocs (map),
+					  map->node_count + 1,
+					  sizeof (void *));
 
   /* ENUMERATOR is an enumerator for DICT. */
   enumerator = objects_map_enumerator (map);
@@ -644,8 +652,8 @@ _objects_map_enumerator_next_node (objects_map_enumerator_t * enumerator)
 
 int
 objects_map_enumerator_next_key_and_value (objects_map_enumerator_t * enumerator,
-					   void **key,
-					   void **value)
+					   const void **key,
+					   const void **value)
 {
   objects_map_node_t *node;
 
@@ -679,24 +687,24 @@ objects_map_enumerator_next_key_and_value (objects_map_enumerator_t * enumerator
 
 int
 objects_map_enumerator_next_key (objects_map_enumerator_t * enumerator,
-				 void **key)
+				 const void **key)
 {
   return objects_map_enumerator_next_key_and_value (enumerator, key, NULL);
 }
 
 int
 objects_map_enumerator_next_value (objects_map_enumerator_t * enumerator,
-				   void **value)
+				   const void **value)
 {
   return objects_map_enumerator_next_key_and_value (enumerator, NULL, value);
 }
 
 /** Adding **/
 
-void *
+const void *
 objects_map_at_key_put_value_known_absent (objects_map_t * map,
-					   void *key,
-					   void *value)
+					   const void *key,
+					   const void *value)
 {
   objects_map_node_t *node;
 
@@ -723,10 +731,10 @@ objects_map_at_key_put_value_known_absent (objects_map_t * map,
     }
 }
 
-void *
+const void *
 objects_map_at_key_put_value (objects_map_t * map,
-			      void *key,
-			      void *value)
+			      const void *key,
+			      const void *value)
 {
   objects_map_node_t *node;
 
@@ -736,7 +744,8 @@ objects_map_at_key_put_value (objects_map_t * map,
   if (node != NULL)
     {
       objects_retain (objects_map_value_callbacks (map), value, map);
-      objects_release (objects_map_value_callbacks (map), node->value, map);
+      objects_release (objects_map_value_callbacks (map), 
+		       (void*)node->value, map);
       node->value = value;
       return node->key;
     }
@@ -747,10 +756,10 @@ objects_map_at_key_put_value (objects_map_t * map,
     }
 }
 
-void *
+const void *
 objects_map_at_key_put_value_if_absent (objects_map_t * map,
-					void *key,
-					void *value)
+					const void *key,
+					const void *value)
 {
   objects_map_node_t *node;
 
@@ -774,7 +783,7 @@ objects_map_at_key_put_value_if_absent (objects_map_t * map,
 /** Removing **/
 
 void
-objects_map_remove_key (objects_map_t * map, void *key)
+objects_map_remove_key (objects_map_t * map, const void *key)
 {
   objects_map_node_t *node;
 
@@ -992,8 +1001,8 @@ objects_map_t *
 objects_map_init_from_map (objects_map_t * map, objects_map_t * old_map)
 {
   objects_map_enumerator_t enumerator;
-  void *key;
-  void *value;
+  const void *key;
+  const void *value;
 
   /* Initialize MAP. */
   objects_map_init_with_callbacks (map,
@@ -1038,7 +1047,7 @@ objects_map_dealloc (objects_map_t * map)
 
 void
 objects_map_replace_key (objects_map_t * map,
-			 void *key)
+			 const void *key)
 {
   objects_map_node_t *node;
 
@@ -1047,7 +1056,8 @@ objects_map_replace_key (objects_map_t * map,
   if (node != NULL)
     {
       objects_retain (objects_map_key_callbacks (map), key, map);
-      objects_release (objects_map_key_callbacks (map), node->key, map);
+      objects_release (objects_map_key_callbacks (map), 
+		       (void*)node->key, map);
       node->key = key;
     }
 
@@ -1060,7 +1070,7 @@ int
 objects_map_contains_map (objects_map_t * map1, objects_map_t * map2)
 {
   objects_map_enumerator_t enumerator;
-  void *key;
+  const void *key;
 
   enumerator = objects_map_enumerator (map2);
 
@@ -1075,7 +1085,7 @@ int
 objects_map_intersects_map (objects_map_t * map1, objects_map_t * map2)
 {
   objects_map_enumerator_t enumerator;
-  void *key;
+  const void *key;
 
   enumerator = objects_map_enumerator (map1);
 
@@ -1137,8 +1147,8 @@ objects_map_copy (objects_map_t * old_map)
 
 objects_map_t *
 objects_map_map_keys (objects_map_t * map,
-		      void *(*fcn) (void *, void *),
-		      void *user_data)
+		      const void *(*fcn) (const void *, const void *),
+		      const void *user_data)
 {
   objects_map_enumerator_t enumerator;
   objects_map_node_t *node;
@@ -1147,12 +1157,13 @@ objects_map_map_keys (objects_map_t * map,
 
   while ((node = _objects_map_enumerator_next_node (&enumerator)) != NULL)
     {
-      void *key;
-
+      const void *key;
+      
       key = (*fcn) (node->key, user_data);
 
       objects_retain (objects_map_key_callbacks (map), key, map);
-      objects_release (objects_map_key_callbacks (map), node->key, map);
+      objects_release (objects_map_key_callbacks (map), 
+		       (void*)node->key, map);
       node->key = key;
     }
 
@@ -1161,8 +1172,8 @@ objects_map_map_keys (objects_map_t * map,
 
 objects_map_t *
 objects_map_map_values (objects_map_t * map,
-			void *(*fcn) (void *, void *),
-			void *user_data)
+			const void *(*fcn) (const void *, const void *),
+			const void *user_data)
 {
   objects_map_enumerator_t enumerator;
   objects_map_node_t *node;
@@ -1171,12 +1182,13 @@ objects_map_map_values (objects_map_t * map,
 
   while ((node = _objects_map_enumerator_next_node (&enumerator)) != NULL)
     {
-      void *value;
+      const void *value;
 
       value = (fcn) (node->value, user_data);
 
       objects_retain (objects_map_value_callbacks (map), value, map);
-      objects_release (objects_map_value_callbacks (map), node->value, map);
+      objects_release (objects_map_value_callbacks (map), 
+		       (void*)node->value, map);
       node->value = value;
     }
 
@@ -1189,7 +1201,7 @@ objects_map_t *
 objects_map_intersect_map (objects_map_t * map, objects_map_t * other_map)
 {
   objects_map_enumerator_t enumerator;
-  void *key;
+  const void *key;
 
   enumerator = objects_map_enumerator (map);
 
@@ -1204,7 +1216,7 @@ objects_map_t *
 objects_map_minus_map (objects_map_t * map, objects_map_t * other_map)
 {
   objects_map_enumerator_t enumerator;
-  void *key;
+  const void *key;
 
   enumerator = objects_map_enumerator (other_map);
 
@@ -1220,8 +1232,8 @@ objects_map_t *
 objects_map_union_map (objects_map_t * map, objects_map_t * other_map)
 {
   objects_map_enumerator_t enumerator;
-  void *key;
-  void *value;
+  const void *key;
+  const void *value;
 
   enumerator = objects_map_enumerator (other_map);
 

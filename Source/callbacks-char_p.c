@@ -45,7 +45,7 @@ objects_callbacks_t objects_callbacks_for_char_p =
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_char_p_hash(void *cptr)
+objects_char_p_hash (const void *cptr)
 {
   register char *s = (char *) cptr;
   register size_t h = 0;
@@ -58,7 +58,7 @@ objects_char_p_hash(void *cptr)
 }
 
 int
-objects_char_p_compare(void *cptr, void *dptr)
+objects_char_p_compare (const void *cptr, const void *dptr)
 {
   register char *s = (char *) cptr;
   register char *t = (char *) dptr;
@@ -86,7 +86,7 @@ objects_char_p_compare(void *cptr, void *dptr)
  * internationalization here.  CPTR and DPTR are taken to be C strings
  * in the default (seven or) eight bit character encoding. */
 int
-objects_char_p_is_equal(register void *cptr, register void *dptr)
+objects_char_p_is_equal (register const void *cptr, register const void *dptr)
 {
   register char *s = (char *) cptr;
   register char *t = (char *) dptr;
@@ -108,20 +108,20 @@ objects_char_p_is_equal(register void *cptr, register void *dptr)
   }
 }
 
-void *
-objects_char_p_retain(void *cptr)
+const void *
+objects_char_p_retain (const void *cptr)
 {
   return cptr;
 }
 
 void
-objects_char_p_release(void *cptr)
+objects_char_p_release (const void *cptr)
 {
   return;
 }
 
-void *
-objects_char_p_describe(void *cptr)
+const void *
+objects_char_p_describe (const void *cptr)
 {
   /* FIXME: Code this.  But first, figure out what it should do, OK? */
   return 0;

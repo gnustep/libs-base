@@ -47,7 +47,7 @@ objects_@YY@_key_callbacks (objects_@YY@_t * yy)
 }
 
 /* Returns the ``bogus'' marker associated with YY's keys. */
-void *
+const void *
 objects_@YY@_not_a_key_marker (objects_@YY@_t *yy)
 {
   return (yy->key_callbacks).not_an_item_marker;
@@ -61,7 +61,7 @@ objects_@YY@_value_callbacks (objects_@YY@_t *yy)
 }
 
 /* Returns the ``bogus'' marker associated with YY's values. */
-void *
+const void *
 objects_@YY@_not_a_value_marker (objects_@YY@_t *yy)
 {
   return (yy->value_callbacks).not_an_item_marker;
@@ -79,7 +79,7 @@ objects_@YY@_element_callbacks (objects_@YY@_t *yy)
 }
 
 /* Returns the ``bogus'' marker associated with YY's elements. */
-void *
+const void *
 objects_@YY@_not_an_element_marker (objects_@YY@_t *yy)
 {
   return (yy->callbacks).not_an_item_marker;

@@ -47,7 +47,7 @@ struct _objects_list_node
     objects_list_node_t *next_in_list;
     objects_list_node_t *prev_in_list;
 
-    void *element;
+    const void *element;
   };
 
 struct _objects_list
@@ -56,7 +56,7 @@ struct _objects_list
     int magic;
     size_t number;
     char *name;
-    void *extra;
+    const void *extra;
     objects_callbacks_t extra_callbacks;
     objects_allocs_t allocs;
 
@@ -143,9 +143,9 @@ objects_list_t * objects_list_at_index_insert_list (objects_list_t * base_list, 
 
 objects_list_t * objects_list_roll_to_nth_element (objects_list_t * list, long int n);
 
-objects_list_t * objects_list_roll_to_element (objects_list_t * list, void *element);
+objects_list_t * objects_list_roll_to_element (objects_list_t * list, const void *element);
 
-objects_list_t * objects_list_roll_to_nth_occurrance_of_element (objects_list_t * list, long int n, void *element);
+objects_list_t * objects_list_roll_to_nth_occurrance_of_element (objects_list_t * list, long int n, const void *element);
 
 objects_list_t * objects_list_invert (objects_list_t * list);
 
@@ -153,39 +153,39 @@ objects_list_t * objects_list_swap_elements_at_indices (objects_list_t * list, l
 
 /** Adding **/
 
-void *objects_list_append_element (objects_list_t * list, void *element);
+const void *objects_list_append_element (objects_list_t * list, const void *element);
 
-void *objects_list_append_element_if_absent (objects_list_t * list, void *element);
+const void *objects_list_append_element_if_absent (objects_list_t * list, const void *element);
 
-void *objects_list_prepend_element (objects_list_t * list, void *element);
+const void *objects_list_prepend_element (objects_list_t * list, const void *element);
 
-void *objects_list_prepend_element_if_absent (objects_list_t * list, void *element);
+const void *objects_list_prepend_element_if_absent (objects_list_t * list, const void *element);
 
-void *objects_list_at_index_insert_element (objects_list_t * list, long int n, void *element);
+const void *objects_list_at_index_insert_element (objects_list_t * list, long int n, const void *element);
 
-void *objects_list_at_index_insert_element_if_absent (objects_list_t * list, long int n, void *element);
+const void *objects_list_at_index_insert_element_if_absent (objects_list_t * list, long int n, const void *element);
 
-void *objects_list_queue_push_element (objects_list_t * list, void *element);
+const void *objects_list_queue_push_element (objects_list_t * list, const void *element);
 
-void *objects_list_stack_push_element (objects_list_t * list, void *element);
+const void *objects_list_stack_push_element (objects_list_t * list, const void *element);
 
 /** Replacing **/
 
-void objects_list_replace_nth_occurrance_of_element (objects_list_t * list, long int n, void *old_element, void *new_element);
+void objects_list_replace_nth_occurrance_of_element (objects_list_t * list, long int n, const void *old_element, const void *new_element);
 
-void objects_list_replace_element (objects_list_t * list, void *old_element, void *new_element);
+void objects_list_replace_element (objects_list_t * list, const void *old_element, const void *new_element);
 
-void objects_list_replace_nth_element (objects_list_t * list, long int n, void *new_element);
+void objects_list_replace_nth_element (objects_list_t * list, long int n, const void *new_element);
 
-void objects_list_replace_first_element (objects_list_t * list, void *new_element);
+void objects_list_replace_first_element (objects_list_t * list, const void *new_element);
 
-void objects_list_replace_last_element (objects_list_t * list, void *new_element);
+void objects_list_replace_last_element (objects_list_t * list, const void *new_element);
 
 /** Removing **/
 
-void objects_list_remove_nth_occurrence_of_element (objects_list_t * list, long int n, void *element);
+void objects_list_remove_nth_occurrence_of_element (objects_list_t * list, long int n, const void *element);
 
-void objects_list_remove_element (objects_list_t * list, void *element);
+void objects_list_remove_element (objects_list_t * list, const void *element);
 
 void objects_list_remove_nth_element (objects_list_t * list, long int n);
 
@@ -207,17 +207,17 @@ void objects_list_empty (objects_list_t * list);
 
 /** Searching **/
 
-int objects_list_contains_element (objects_list_t * list, void *element);
+int objects_list_contains_element (objects_list_t * list, const void *element);
 
-void *objects_list_element (objects_list_t * list, void *element);
+const void *objects_list_element (objects_list_t * list, const void *element);
 
-void *objects_list_nth_element (objects_list_t * list, long int n);
+const void *objects_list_nth_element (objects_list_t * list, long int n);
 
-void *objects_list_first_element (objects_list_t * list);
+const void *objects_list_first_element (objects_list_t * list);
 
-void *objects_list_last_element (objects_list_t * list);
+const void *objects_list_last_element (objects_list_t * list);
 
-void **objects_list_all_elements (objects_list_t * list);
+const void **objects_list_all_elements (objects_list_t * list);
 
 /** Enumerating **/
 
@@ -227,13 +227,13 @@ objects_list_enumerator_t objects_list_forward_enumerator (objects_list_t * list
 
 objects_list_enumerator_t objects_list_reverse_enumerator (objects_list_t * list);
 
-int objects_list_enumerator_next_element (objects_list_enumerator_t *enumerator, void **element);
+int objects_list_enumerator_next_element (objects_list_enumerator_t *enumerator, const void **element);
 
 /** Mapping **/
 
 /* NO WARNING: The mapping function FCN need not be one-to-one on the
  * elements of LIST.  In fact, FCN may do whatever it likes. */
-objects_list_t * objects_list_map_elements (objects_list_t * list, void *(*fcn) (void *, void *), void *user_data);
+objects_list_t * objects_list_map_elements (objects_list_t * list, const void *(*fcn) (const void *, const void *), const void *user_data);
 
 /** Statistics **/
 

@@ -53,8 +53,8 @@ struct _objects_data
   {
     int magic;
     size_t number;
-    char *name;
-    void *extra;
+    const char *name;
+    const void *extra;
     objects_callbacks_t extra_callbacks;
     objects_allocs_t allocs;
 

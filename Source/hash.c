@@ -38,10 +38,11 @@ objects_hash_bucket_t *
 _objects_hash_pick_bucket_for_element (objects_hash_t *hash,
 				       objects_hash_bucket_t *buckets,
 				       size_t bucket_count,
-				       void *element)
+				       const void *element)
 {
   return buckets + (objects_hash (objects_hash_element_callbacks (hash),
-				  element, hash) % bucket_count);
+				  element, hash)
+		    % bucket_count);
 }
 
 objects_hash_bucket_t *
@@ -51,11 +52,12 @@ _objects_hash_pick_bucket_for_node (objects_hash_t * hash,
 				    objects_hash_node_t * node)
 {
   return buckets + (objects_hash (objects_hash_element_callbacks (hash),
-				  node->element, hash) % bucket_count);
+				  node->element, hash) 
+		    % bucket_count);
 }
 
 objects_hash_bucket_t *
-_objects_hash_bucket_for_element (objects_hash_t * hash, void *element)
+_objects_hash_bucket_for_element (objects_hash_t * hash, const void *element)
 {
   return _objects_hash_pick_bucket_for_element (hash, hash->buckets,
 						hash->bucket_count, element);
@@ -242,7 +244,7 @@ _objects_hash_remangle_buckets (objects_hash_t * hash,
 }
 
 objects_hash_node_t *
-_objects_hash_new_node (objects_hash_t * hash, void *element)
+_objects_hash_new_node (objects_hash_t * hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -281,7 +283,9 @@ _objects_hash_free_node (objects_hash_node_t * node)
       hash = node->hash;
 
       /* Release ELEMENT.  (It's retained in `_objects_hash_new_node()'.) */
-      objects_release (objects_hash_element_callbacks (hash), node->element, hash);
+      objects_release (objects_hash_element_callbacks (hash), 
+		       (void*)node->element, 
+		       hash);
 
       /* Actually free the space hash aside for NODE. */
       objects_free (objects_hash_allocs (hash), node);
@@ -292,7 +296,7 @@ _objects_hash_free_node (objects_hash_node_t * node)
 }
 
 objects_hash_node_t *
-_objects_hash_node_for_element (objects_hash_t * hash, void *element)
+_objects_hash_node_for_element (objects_hash_t * hash, const void *element)
 {
   objects_hash_bucket_t *bucket;
   objects_hash_node_t *node;
@@ -405,7 +409,7 @@ objects_hash_capacity (objects_hash_t * hash)
 }
 
 int
-objects_hash_check (objects_hash_t * hash)
+objects_hash_check (objects_hash_t *hash)
 {
   /* FIXME: Code this. */
   return 0;
@@ -414,7 +418,7 @@ objects_hash_check (objects_hash_t * hash)
 /** Searching **/
 
 int
-objects_hash_contains_element (objects_hash_t * hash, void *element)
+objects_hash_contains_element (objects_hash_t *hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -423,8 +427,8 @@ objects_hash_contains_element (objects_hash_t * hash, void *element)
   return node != NULL;
 }
 
-void *
-objects_hash_element (objects_hash_t * hash, void *element)
+const void *
+objects_hash_element (objects_hash_t *hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -437,17 +441,17 @@ objects_hash_element (objects_hash_t * hash, void *element)
     return objects_hash_not_an_element_marker (hash);
 }
 
-void **
-objects_hash_all_elements (objects_hash_t * hash)
+const void **
+objects_hash_all_elements (objects_hash_t *hash)
 {
   size_t j;
-  void **array;
+  const void **array;
   objects_hash_enumerator_t enumerator;
 
   /* Allocate space for ARRAY.  Remember that it is the programmer's
    * responsibility to free this by calling
    * `objects_free(objects_hash_allocs(HASH), ARRAY)' */
-  array = (void **) objects_calloc (objects_hash_allocs (hash),
+  array = (const void **) objects_calloc (objects_hash_allocs (hash),
 				    hash->node_count + 1,
 				    sizeof (void *));
 
@@ -538,7 +542,7 @@ objects_hash_enumerator (objects_hash_t * hash)
 
 int
 objects_hash_enumerator_next_element (objects_hash_enumerator_t * enumerator,
-				      void **element)
+				      const void **element)
 {
   objects_hash_node_t *node;
 
@@ -573,8 +577,9 @@ objects_hash_enumerator_next_element (objects_hash_enumerator_t * enumerator,
 
 /** Adding **/
 
-void *
-objects_hash_add_element_known_absent (objects_hash_t * hash, void *element)
+const void *
+objects_hash_add_element_known_absent (objects_hash_t *hash, 
+				       const void *element)
 {
   objects_hash_node_t *node;
 
@@ -593,8 +598,8 @@ objects_hash_add_element_known_absent (objects_hash_t * hash, void *element)
     }
 }
 
-void *
-objects_hash_add_element (objects_hash_t * hash, void *element)
+const void *
+objects_hash_add_element (objects_hash_t * hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -609,13 +614,15 @@ objects_hash_add_element (objects_hash_t * hash, void *element)
   else
     {
       objects_retain (objects_hash_element_callbacks (hash), element, hash);
-      objects_release (objects_hash_element_callbacks (hash), node->element, hash);
+      objects_release (objects_hash_element_callbacks (hash), 
+		       (void*)node->element, 
+		       hash);
       return node->element = element;
     }
 }
 
-void *
-objects_hash_add_element_if_absent (objects_hash_t * hash, void *element)
+const void *
+objects_hash_add_element_if_absent (objects_hash_t* hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -634,7 +641,7 @@ objects_hash_add_element_if_absent (objects_hash_t * hash, void *element)
 /** Removing **/
 
 void
-objects_hash_remove_element (objects_hash_t * hash, void *element)
+objects_hash_remove_element (objects_hash_t *hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -789,7 +796,7 @@ objects_hash_init_from_hash (objects_hash_t * hash, objects_hash_t * old_hash)
   if (hash != NULL)
     {
       objects_hash_enumerator_t enumerator;
-      void *element;
+      const void *element;
 
       /* Make a note of the callbacks for HASH. */
       hash->callbacks = objects_hash_element_callbacks (hash);
@@ -838,7 +845,7 @@ objects_hash_dealloc (objects_hash_t * hash)
 /** Replacing **/
 
 void
-objects_hash_replace_element (objects_hash_t * hash, void *element)
+objects_hash_replace_element (objects_hash_t *hash, const void *element)
 {
   objects_hash_node_t *node;
 
@@ -850,7 +857,9 @@ objects_hash_replace_element (objects_hash_t * hash, void *element)
       /* Remember: First retain the new element, then release the old
        * element, just in case they're the same. */
       objects_retain (objects_hash_element_callbacks (hash), element, hash);
-      objects_release (objects_hash_element_callbacks (hash), node->element, hash);
+      objects_release (objects_hash_element_callbacks (hash), 
+		       (void*)node->element, 
+		       hash);
       node->element = element;
     }
 
@@ -864,7 +873,7 @@ int
 objects_hash_contains_hash (objects_hash_t * hash1, objects_hash_t * hash2)
 {
   objects_hash_enumerator_t enumerator;
-  void *element;
+  const void *element;
 
   enumerator = objects_hash_enumerator (hash2);
 
@@ -906,7 +915,7 @@ int
 objects_hash_intersects_hash (objects_hash_t * hash, objects_hash_t * other_hash)
 {
   objects_hash_enumerator_t enumerator;
-  void *element;
+  const void *element;
 
   /* Get an element enumerator for OTHER_HASH. */
   enumerator = objects_hash_enumerator (other_hash);
@@ -956,8 +965,8 @@ objects_hash_copy (objects_hash_t * old_hash)
  * the second. */
 objects_hash_t *
 objects_hash_map_elements (objects_hash_t * hash,
-			   void *(*fcn) (void *, void *),
-			   void *user_data)
+			   const void *(*fcn) (const void *, const void *),
+			   const void *user_data)
 {
   objects_hash_enumerator_t enumerator;
   objects_hash_node_t *node;
@@ -966,14 +975,16 @@ objects_hash_map_elements (objects_hash_t * hash,
 
   while ((node = _objects_hash_enumerator_next_node (&enumerator)) != NULL)
     {
-      void *element;
+      const void *element;
 
       element = (*fcn) (node->element, user_data);
 
       /* Remember: First retain the new element, then release the old
        * element. */
       objects_retain (objects_hash_element_callbacks (hash), element, hash);
-      objects_release (objects_hash_element_callbacks (hash), node->element, hash);
+      objects_release (objects_hash_element_callbacks (hash), 
+		       (void*)node->element, 
+		       hash);
       node->element = element;
     }
 
@@ -1025,7 +1036,7 @@ objects_hash_t *
 objects_hash_union_hash (objects_hash_t * hash, objects_hash_t * other_hash)
 {
   objects_hash_enumerator_t enumerator;
-  void *element;
+  const void *element;
 
   enumerator = objects_hash_enumerator (other_hash);
 

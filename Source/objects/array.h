@@ -47,7 +47,7 @@ struct _objects_array_bucket
     size_t index;
 
     /* The bucket's cargo */
-    void *element;
+    const void *element;
   };
 
 struct _objects_array
@@ -55,8 +55,8 @@ struct _objects_array
     /* Identifying information. */
     int magic;
     size_t number;
-    char *name;
-    void *extra;
+    const char *name;
+    const void *extra;
     objects_callbacks_t extra_callbacks;
     objects_allocs_t allocs;
 
@@ -135,7 +135,7 @@ int objects_array_is_equal_to_array (objects_array_t * array, objects_array_t * 
 
 /** Adding **/
 
-void *objects_array_at_index_put_element (objects_array_t * array, size_t index, void *element);
+const void *objects_array_at_index_put_element (objects_array_t * array, size_t index, const void *element);
 
 /** Replacing **/
 
@@ -143,9 +143,9 @@ void *objects_array_at_index_put_element (objects_array_t * array, size_t index,
 
 void objects_array_remove_element_at_index (objects_array_t * array, size_t index);
 
-void objects_array_remove_element (objects_array_t * array, void *element);
+void objects_array_remove_element (objects_array_t * array, const void *element);
 
-void objects_array_remove_element_known_present (objects_array_t * array, void *element);
+void objects_array_remove_element_known_present (objects_array_t * array, const void *element);
 
 /** Emptying **/
 
@@ -153,19 +153,19 @@ void objects_array_empty (objects_array_t * array);
 
 /** Searching **/
 
-int objects_array_contains_element (objects_array_t * array, void *element);
+int objects_array_contains_element (objects_array_t * array, const void *element);
 
-void *objects_array_element (objects_array_t * array, void *element);
+const void *objects_array_element (objects_array_t * array, const void *element);
 
-size_t objects_array_index_of_element (objects_array_t * array, void *element);
+size_t objects_array_index_of_element (objects_array_t * array, const void *element);
 
-void *objects_array_element_at_index (objects_array_t * array, size_t index);
+const void *objects_array_element_at_index (objects_array_t * array, size_t index);
 
-void **objects_array_all_elements (objects_array_t * array);
+const void **objects_array_all_elements (objects_array_t * array);
 
-void **objects_array_all_elements_ascending (objects_array_t * array);
+const void **objects_array_all_elements_ascending (objects_array_t * array);
 
-void **objects_array_all_element_descending (objects_array_t * array);
+const void **objects_array_all_element_descending (objects_array_t * array);
 
 /** Enumerating **/
 
@@ -175,9 +175,9 @@ objects_array_enumerator_t objects_array_ascending_enumerator (objects_array_t *
 
 objects_array_enumerator_t objects_array_descending_enumerator (objects_array_t * array);
 
-int objects_array_enumerator_next_index_and_element (objects_array_enumerator_t *enumerator, size_t *index, void **element);
+int objects_array_enumerator_next_index_and_element (objects_array_enumerator_t *enumerator, size_t *index, const void **element);
 
-int objects_array_enumerator_next_element (objects_array_enumerator_t *enumerator, void **element);
+int objects_array_enumerator_next_element (objects_array_enumerator_t *enumerator, const void **element);
 
 int objects_array_enumerator_next_index (objects_array_enumerator_t *enumerator, size_t *element);
 

@@ -54,13 +54,13 @@ objects_callbacks_t objects_callbacks_for_owned_void_p =
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_void_p_hash(void *cptr)
+objects_void_p_hash (const void *cptr)
 {
   return ((size_t) cptr)/4;
 }
 
 int
-objects_void_p_compare(void *cptr, void *dptr)
+objects_void_p_compare (const void *cptr, const void *dptr)
 {
   if (cptr == dptr)
     return 0;
@@ -71,25 +71,25 @@ objects_void_p_compare(void *cptr, void *dptr)
 }
 
 int
-objects_void_p_is_equal(register void *cptr, register void *dptr)
+objects_void_p_is_equal (register const void *cptr, register const void *dptr)
 {
   return (cptr == dptr);
 }
 
-void *
-objects_void_p_retain(void *cptr)
+const void *
+objects_void_p_retain (const void *cptr)
 {
   return cptr;
 }
 
 void
-objects_void_p_release(void *cptr)
+objects_void_p_release (const void *cptr)
 {
   return;
 }
 
 size_t
-objects_owned_void_p_hash(void *cptr)
+objects_owned_void_p_hash (const void *cptr)
 {
   /* We divide by 4 because many machines align
    * memory on word boundaries. */
@@ -97,7 +97,7 @@ objects_owned_void_p_hash(void *cptr)
 }
 
 int
-objects_owned_void_p_compare(void *cptr, void *dptr)
+objects_owned_void_p_compare (const void *cptr, const void *dptr)
 {
   if (cptr == dptr)
     return 0;
@@ -108,22 +108,30 @@ objects_owned_void_p_compare(void *cptr, void *dptr)
 }
 
 int
-objects_owned_void_p_is_equal(register void *cptr, register void *dptr)
+objects_owned_void_p_is_equal(register const void *cptr, 
+			      register const void *dptr)
 {
   return (cptr == dptr);
 }
 
-void *
-objects_owned_void_p_retain(void *cptr)
+const void *
+objects_owned_void_p_retain(const void *cptr)
 {
   return cptr;
 }
 
 void
-objects_owned_void_p_release(void *cptr)
+objects_owned_void_p_release (const void *cptr)
 {
-  free(cptr);
+  free ((void*)cptr);
   return;
 }
 
+const void *
+objects_void_p_describe (const void *obj)
+{
+  /* FIXME: Harrumph.  Make all of these describe functions live
+   * in harmony.  Please. */
+  return 0;
+}
 

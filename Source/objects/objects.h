@@ -46,11 +46,6 @@
 #include <objects/RBTreeNode.h>
 #include <objects/SplayTree.h>
 
-#include <objects/EltNodeCollector.h>
-#include <objects/LinkedListEltNode.h>
-#include <objects/BinaryTreeEltNode.h>
-#include <objects/RBTreeEltNode.h>
-
 /* Magnitude objects */
 #include <objects/Magnitude.h>
 #include <objects/Random.h>
@@ -74,5 +69,7 @@
 #include <objects/Connection.h>
 #include <objects/Proxy.h>
 #include <objects/ConnectedCoder.h>
+
+#include <objects/Invocation.h>
 
 #endif /* __objects_h_OBJECTS_INCLUDE */
