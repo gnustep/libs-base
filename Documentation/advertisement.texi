@@ -1,0 +1,183 @@
+@chapter GNU Objective-C Class Library
+
+@c set the vars OBJECTS_VERSION and GCC_VERSION
+@include version.texi
+
+The GNU Objective C Class Library (libobjects) is a library of
+general-purpose, non-graphical Objective C objects written by R. Andrew
+McCallum.  What `libg++' is to GNU's C++, `libobjects' is to GNU's
+Objective C.
+
+The library features collection objects for maintaining groups of
+objects and C types, streams for I/O to various destinations, coders for
+formating objects and C types to byte streams, ports for network packet
+transmission, distributed objects (remote object messaging),
+pseudo-random number generators, and time handling facilities.
+
+@itemize
+
+@item
+The heirarchy of collection objects are similar in spirit to Smalltalk's
+collections.  A deep inheritance heirarchy provides good uniformity of
+method names across different collection classes.  All collections can
+hold simple C types (such as int's and floats) as well as Objects.  The
+collection classes include simple collections (Set, Bag), collections
+with contents accessible by unordered keys (Dictionary,
+MappedCollector), collections with ordered contents (Array, LinkedList,
+Stack, Queue, Heap, BinaryTree, RBTree, SplayTree, GapArray).  There is
+also a DelegatePool object that can forward messages it receives to an
+arbitrary number of delegate objects.
+
+@item
+Stream objects provide a consistent interface for reading and writing
+bytes.  `StdioStream' objects work with files, file descriptors, FILE
+pointers and pipes to/from executables.  `MemoryStream' objects work
+with memory buffers that grow automatically as needed.  For all Stream
+objects there are methods for writing/reading arbitrary n-length
+buffers, newline-terminated lines, and printf-style strings.
+
+@item
+Coders provide a formatted way of writing to Streams.  After a coder is
+initialized with a stream, the coder can encode/decode Objective C
+objects and C types in an architecture-independent way.  The currently
+available concrete coder classes are `BinaryCoder', for reading and
+writing a compact stream of illegible bytes, and `TextCoder', for
+reading and writing human-readable structured textual representation
+(which you can also process with `perl', `awk', or whatever scripting
+language you like).
+
+Coders and streams can be mixed and matched so that programmers can
+choose the destination and the format separately.
+
+@item
+The distributed object support classes are @samp{Connection},
+@samp{Proxy}, @samp{ConnectedCoder}, @samp{Port} and @samp{SocketPort}.
+This version of the distributed objects only works with sockets.  A Mach
+port back-end should be on the way.
+
+[NOTE: The GNU distributed object facilities have the same ease-of-use
+as NeXT's; be warned, however, that they are not compatible with each
+other.  They have different class heirarchies, different instance
+variables, different method names, different implementation strategies
+and different network message formats.  You cannot communicate with a
+NeXT NXConnection using a GNU Connection.  NXConnection creates NXProxy
+objects for local objects as well as remote objects; GNU Connection
+doesn't need and doesn't create proxies for local objects.  NXProxy asks
+it's remote target for the method encoding types and caches the results;
+GNU Proxy gets the types directly from the local GNU "typed selector"
+mechanism and has no need for querying the remote target or caching
+encoding types.  The NXProxy for the remote root object always has name
+0 and, once set, you cannot change the root object of a NXConnection;
+the GNU Proxy for the remote root object has a target address value just
+like all other Proxy's, and you can change the root object as many times
+as you like.  See the "lacking-capabilities" list below for a partial
+list of things that NXConnection can do that GNU Connection cannot.]
+
+Here is a partial list of what the current distributed objects system
+can do:
+@smallexample
+* It can pass and return all simple C types, including char*, float 
+  and double, both by value and by reference.
+* It can pass structures by value and by reference, return 
+  structures by reference.  The structures can contain arrays.
+* It obeys all the type qualifiers: oneway, in, out, inout, const.
+* It can pass and return objects, either bycopy or with proxies.
+  An object encoded multiple times in a single message is properly
+  decoded on the other side.
+* Proxies to remote objects are automatically created as they are
+  returned.  Proxies passed back where they came from are decoded
+  as the correct local object.
+* It can wait for an incoming message and timeout after a 
+  specified period.
+* A server can handle multiple clients.
+* The server will ask its delegate before making new connections.
+* The server can make call-back requests of the client, and keep 
+  it all straight even when the server has multiple clients.
+* A client will automatically form a connection to another client 
+  if an object from the other client is vended to it. (i.e. Always 
+  make a direct connection rather than forwarding messages twice, 
+  once into the server, from there out to the other client.)
+* The server will clean up its connection to a client if the client 
+  says goodbye (i.e. if the client connection is freed).
+* When the connection is being freed it will send a invalidation 
+  notification message to those objects that have registered for
+  such notification.
+* Servers and clients can be on different machines of different
+  architectures; byte-order and all other architecture-dependent
+  nits are taken care of for you.  You can have SPARC, i386, m68k, 
+  and MIPS machines all distributed-object'ing away together in
+  one big web of client-server connections!
+@end smallexample
+
+Here is a partial list of what the current distributed objects system
+does *not* do: 
+@smallexample
+* Run multi-threaded.
+* Detect port deaths (due to remote application crash, for example) 
+  and do something graceful.
+* Send exceptions in the server back to the client.
+* Return structures by value.
+* Use Mach ports, pass Mach ports, pass Mach virtual memory.
+* Send messages more reliably than UDP.  It does detect reply
+  timeouts and message-out-of-order conditions, but it's reaction 
+  is simply to abort.
+* Claim to be thoroughly tested.
+@end smallexample
+
+@end itemize
+
+@section Getting It, and Compiling It
+
+The library is available by anonymous ftp at URL:
+@smallexample
+ftp://prep.ai.mit.edu/pub/gnu/libobjects-@value{OBJECTS_VERSION}.tar.gz
+@end smallexample
+Since @samp{prep} is heavily loaded, you are encouraged to use GNU
+mirror sites.
+
+The most recent (not necessarily tested) snapshots of the library will
+be placed at @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
+
+The library requires gcc @value{OBJECTS_GCC_VERSION} or higher.  The
+library does not work with the NEXTSTEP 3.2 compiler because that
+version of NeXT's cc cannot handle nested functions.  Until a later
+release from NeXT, NEXTSTEP users will have to install gcc.  Also,
+temporarily, the library does not work with the NeXT Objective C runtime
+library. 
+
+The library has been successfully compiled and tested with the following
+configurations:
+@smallexample
+  m68k-next-ns3.0
+  mips-sgi-irix5.2
+  sparc-sun-sunos4.1.3
+  sparc-sun-solaris2.3
+  i386-sun-solaris2.4
+  i386-unknown-linux ???
+@end smallexample
+
+It is known not to work with:
+@smallexample
+  alpha-dec-osf
+@end smallexample
+
+@section Now and Future
+
+The current version is 0.1; the low number indicates that the library is
+still in flux.  A version coming soon will include String objects and
+better allocation/dealocation conventions.
+
+@section GNUStep, NEXTSTEP and OpenStep
+
+The libobjects library already contains many of the "Common Classes" in
+NeXTSTEP: List, HashTable, Storage, NXStringTable.  In the future it
+will also contain classes compatible with the OpenStep Foundation Kit.
+Rapid progress is already being made on this front.
+
+@example
+Contact:
+        Andrew McCallum
+        mccallum@@gnu.ai.mit.edu
+@end example
+
+@bye
