@@ -1,4 +1,4 @@
-/* Interface for NSMethodSignature for GNUStep
+/* Interface for NSProtocolChecker for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Mike Kienenberger
@@ -24,7 +24,7 @@
 #ifndef __NSProtocolChecker_h_GNUSTEP_BASE_INCLUDE
 #define __NSProtocolChecker_h_GNUSTEP_BASE_INCLUDE
 
-#import <Foundation/NSObject.h>
+#include <Foundation/NSObject.h>
 
 @class Protocol;
 
