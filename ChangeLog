@@ -4,6 +4,7 @@
 	we don't want them included as part of the documentation of the
 	next thing after the unit.
 	Recognize __attribute__((deprecated)) and add a comment.
+	Fix scope of instance variables ... protected by default.
 
 2004-08-20  David Ayers  <d.ayers@inode.at>
 
