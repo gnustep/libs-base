@@ -745,9 +745,30 @@ static Class	runLoopClass;
 			  rWant = l;
 			}
 		    }
+		  else if (rType == GSP_HEAD)
+		    {
+		      if (l > maxDataLength)
+			{
+			  NSLog(@"%@ - unreasonable length (%u) for data",
+			    self, l);
+			  [self invalidate];
+			  return;
+			}
+		      /*
+		       * If not a port or zero length data,
+		       * we discard the data read so far and fill the
+		       * data object with the data item from the msg.
+		       */
+		      rLength -= rWant;
+		      if (rLength > 0)
+			{
+			  memcpy(bytes, bytes + rWant, rLength);
+			}
+		      rWant = l;
+		    }
 		  else
 		    {
-		      NSLog(@"%@ - bad data recieived on port handle", self);
+		      NSLog(@"%@ - bad data received on port handle", self);
 		      [self invalidate];
 		      return;
 		    }
