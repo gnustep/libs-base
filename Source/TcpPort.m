@@ -260,6 +260,10 @@ static NSMapTable* port_number_2_port;
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
 
+  /* Initialize the arrays for remembering the RunLoop's we've been
+     added to. */
+  p->_run_loops = [Bag new];
+
   /* Record the new port in TcpInPort's class table. */
   NSMapInsert (port_number_2_port, (void*)(int)n, p);
 
@@ -304,7 +308,7 @@ static NSMapTable* port_number_2_port;
   return &_listening_address;
 }
 
-- newReceivedPacketBeforeDate: date
+- newPacketReceivedBeforeDate: date
 {
   id saved_packet_invocation;
   id packet = nil;
@@ -318,7 +322,7 @@ static NSMapTable* port_number_2_port;
   saved_packet_invocation = _packet_invocation;
   _packet_invocation = [[ObjectFunctionInvocation alloc]
 			 initWithObjectFunction: handle_packet];
-  if (!_run_loop)
+  if ([_run_loops count] == 0)
     [self addToRunLoop: [RunLoop defaultInstance]
 	  forMode: nil];
 
@@ -515,12 +519,21 @@ static NSMapTable* port_number_2_port;
   NSMapEnumerator me;
   int sock;
   id out_port;
-  
-  /* Yipes.  How do we handle being added to multiple RunLoops/modes? */
-  assert (!_run_loop);
-  _run_loop = rl;
-  _run_loop_mode = mode;
+
+  /* MODE is current ignored; for now insist that it is nil. */
+  assert (!mode);
+
+  [_run_loops addObject: rl];
+
+  if ([_run_loops occurrencesOfObject: rl] > 1)
+    /* If it has already been added, just return without 
+       adding the file descriptors again. */
+    return;
+
+  /* Add our listening socket. */
   [rl addFileDescriptor: _socket invocation: self forMode: mode];
+
+  /* Add our client's sockets. */
   me = NSEnumerateMapTable (client_sock_2_out_port);
   while (NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port))
     [self _addClientOutPort: out_port toRunLoop: rl forMode: mode];
@@ -540,14 +553,20 @@ static NSMapTable* port_number_2_port;
   int sock;
   id out_port = nil;
 
+  /* MODE is current ignored; for now insist that it is nil. */
+  assert (!mode);
+
+  [_run_loops removeObject: rl];
+
+  if ([_run_loops occurrencesOfObject: rl] > 0)
+    return;
+
   [rl removeFileDescriptor: _socket forMode: mode];
   me = NSEnumerateMapTable (client_sock_2_out_port);
   while (NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port))
     [self _removeClientOutPort: out_port fromRunLoop: rl forMode: mode];
-  _run_loop = nil;
 }
 
-
 /* Add and removing out port's from the collection of connections we handle. */
 
 - (void) _addClientOutPort: p
@@ -562,7 +581,20 @@ static NSMapTable* port_number_2_port;
   NSMapInsert (client_sock_2_out_port, (void*)s, p);
   FD_SET (s, &active_fd_set);
 
-  [self _addClientOutPort: p toRunLoop: _run_loop forMode: _run_loop_mode];
+  /* Add it to all the run loops SELF has been added to. */
+  {
+    void *es = [_run_loops newEnumState];
+    id rl, rl2 = nil;
+    while ((rl = [_run_loops nextObjectWithEnumState: &es]))
+      {
+	if (rl2 == nil || rl2 != rl)
+	  [self _addClientOutPort: p 
+		toRunLoop: rl
+		forMode: nil];
+	rl2 = rl;
+      }
+    [_run_loops freeEnumState: &es];
+  }
 }
 
 /* Called by an OutPort in its -invalidate method. */
@@ -587,9 +619,20 @@ static NSMapTable* port_number_2_port;
   NSMapRemove (client_sock_2_out_port, (void*)s);
   FD_CLR(s, &active_fd_set);
 
-  [self _removeClientOutPort: p 
-	fromRunLoop: _run_loop 
-	forMode: _run_loop_mode];
+  /* Remove it from all the run loops SELF has been added to. */
+  {
+    void *es = [_run_loops newEnumState];
+    id rl, rl2 = nil;
+    while ((rl = [_run_loops nextObjectWithEnumState: &es]))
+      {
+	if (rl2 == nil || rl2 != rl)
+	  [self _removeClientOutPort: p 
+		fromRunLoop: rl
+		forMode: nil];
+	rl2 = rl;
+      }
+    [_run_loops freeEnumState: &es];
+  }
 
   /* xxx Should this be earlier, so that the notification recievers
      can still use client_sock_2_out_port before the out port P is removed? */
@@ -652,6 +695,7 @@ static NSMapTable* port_number_2_port;
   /* assert that these are empty? */
   NSFreeMapTable (client_sock_2_out_port);
   NSFreeMapTable (client_sock_2_packet);
+  [_run_loops release];
   [super dealloc];
 }
 
@@ -1054,12 +1098,12 @@ static NSMapTable *out_port_bag = NULL;
   return [self class];
 }
 
-- (Class) packetClass
+- (Class) outPacketClass
 {
   return [TcpOutPacket class];
 }
 
-+ (Class) packetClass
++ (Class) outPacketClass
 {
   return [TcpOutPacket class];
 }
