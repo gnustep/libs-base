@@ -24,6 +24,7 @@ int main()
   id s = @"This is a test string";
   id s2, s3;
   int a;
+  unichar	uc[6] = { '1', '2', '.', '3', '4', 0};
 
   NSMutableString	*fo = [NSMutableString stringWithString: @"abcdefg"];
   NS_DURING
@@ -36,6 +37,8 @@ int main()
 
   s2 = NSStringFromPoint(NSMakePoint(1.374, 5.100));
   print_string(s2);
+
+  printf("%f", [[NSString stringWithCharacters: uc length: 5] floatValue]);
 
   s2 = [s copy];
   print_string(s2);
