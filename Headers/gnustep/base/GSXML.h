@@ -186,7 +186,7 @@
 		 withData: (NSData*)data;
 
 - (BOOL) keepBlanks: (BOOL)yesno;
-- (NSMutableString*) messages;
+- (NSString*) messages;
 - (BOOL) parse;
 - (BOOL) parse: (NSData*)data;
 - (void) saveMessages: (BOOL)yesno;
