@@ -3,8 +3,8 @@
 	* Source/NSDate.m: GSTime() added millisecond info.
 	* Source/NSCalendarDate.m: GSTime() added millisecond info.
 	* Headers/Foundation/NSDate.h: GSTime() added millisecond info.
-	* Source/NSObject.m: key-value-coding restructured to simplify
-	future implementation for non-object values.
+	* Source/NSObject.m: key-value-coding restructured and
+	implemented for non-object values.
 
 2000-11-30  Richard Frith-Macdonald <rfm@gnu.org>
 

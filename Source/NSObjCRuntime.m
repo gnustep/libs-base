@@ -70,17 +70,15 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
     *alignp = info.align;
   return typePtr;
 }
-
+ 
 BOOL
-GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
+GSInstanceVariableInfo(id obj, NSString *iVarName,
+  const char **type, unsigned *size, unsigned *offset)
 {
   const char		*name = [iVarName cString];
   Class			class;
   struct objc_ivar_list	*ivars;
   struct objc_ivar	*ivar = 0;
-  int			offset;
-  const char		*type;
-  unsigned int		size;
 
   class = [obj class];
   while (class != nil && ivar == 0)
@@ -106,86 +104,42 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
       return NO;
     }
 
-  offset = ivar->ivar_offset;
-  type = ivar->ivar_type;
-  size = objc_sizeof_type(type);
-  memcpy(data, ((void*)obj) + offset, size);
+  if (*type)
+    *type = ivar->ivar_type;
+  if (*size)
+    *size = objc_sizeof_type(ivar->ivar_type);
+  if (*offset)
+    *offset = ivar->ivar_offset;
   return YES;
 }
 
-const char*
-GSInstanceVariableType(id obj, NSString *iVarName)
+BOOL
+GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
 {
-  const char		*name = [iVarName cString];
-  Class			class;
-  struct objc_ivar_list	*ivars;
-  struct objc_ivar	*ivar = 0;
+  int			offset;
+  const char		*type;
+  unsigned int		size;
 
-  class = [obj class];
-  while (class != nil && ivar == 0)
+  if (GSInstanceVariableInfo(obj, iVarName, &type, &size, &offset) == NO)
     {
-      ivars = class->ivars;
-      class = class->super_class;
-      if (ivars != 0)
-	{
-	  int	i;
-
-	  for (i = 0; i < ivars->ivar_count; i++)
-	    {
-	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
-		{
-		  ivar = &ivars->ivar_list[i];
-		  break;
-		}
-	    }
-	}
-    }
-  if (ivar == 0)
-    {
-      return 0;
+      return NO;
     }
 
-  return ivar->ivar_type;
+  memcpy(data, ((void*)obj) + offset, size);
+  return YES;
 }
 
 BOOL
 GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
 {
-  const	char		*name = [iVarName cString];
-  Class			class;
-  struct objc_ivar_list	*ivars;
-  struct objc_ivar	*ivar = 0;
   int			offset;
   const char		*type;
   unsigned int		size;
 
-  class = [obj class];
-  while (class != nil && ivar == 0)
-    {
-      ivars = class->ivars;
-      class = class->super_class;
-      if (ivars != 0)
-	{
-	  int	i;
-
-	  for (i = 0; i < ivars->ivar_count; i++)
-	    {
-	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
-		{
-		  ivar = &ivars->ivar_list[i];
-		  break;
-		}
-	    }
-	}
-    }
-  if (ivar == 0)
+  if (GSInstanceVariableInfo(obj, iVarName, &type, &size, &offset) == NO)
     {
       return NO;
     }
-
-  offset = ivar->ivar_offset;
-  type = ivar->ivar_type;
-  size = objc_sizeof_type(type);
   memcpy(((void*)obj) + offset, data, size);
   return YES;
 }
