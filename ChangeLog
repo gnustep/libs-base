@@ -11,6 +11,10 @@
 	* Source/NSArray.m: New MacOS-X methods ([-initWithArray:copyItems:])
 	([-exchangeObjectAtIndex:withObjectAtIndex:])
 	* Source/NSTimer.m: Update for compatibility with latest MacOS-X
+	* Source/NSObject.m: New ([+isSubclassOfClass:]) and perform
+	cancellation from MacOS-X
+	* Source/NSRunloop.m: New perform cancellation method from MacOS-X
+	proofreading help/fixes from David Ayers.
  
 2002-08-25  Richard Frith-Macdonald <rfm@gnu.org>
 
