@@ -1,4 +1,82 @@
+Sun Mar 31 16:43:42 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Several small bug fixes.
+
+	* src/Foundation/NSArray.h: Declare @class NSMutableArrayNonCore,
+ 	not NSMutableArray.
+
+	* checks/test02.m (main): Updated for new collection scheme.
+
+	* src/MappedCollector.m ([MappedCollector -newEnumState]): New
+ 	method.
+	([MappedCollector -freeEnumState:]): New method.
+
+	* src/Random.m (ABS): Remove macro; now defined in
+ 	objects/stdobjects.h.
+
+	Separate the core and non-core methods of NSArray implementations
+	to take advantage of the new behavior mechanisms, and to better
+	make use of the non-core methods in the concrete implementation.
+
+	* src/NSGArray.m ([NSGArray +initialize]): Add the NSArrayNonCore
+ 	behavior, so we can, once and for all, avoid the need for those
+ 	odd [super ...] calls, and can remove many methods.
+	([NSGArray -initWithObjects:count:]): Method removed.
+	([NSGArray -indexOfObject:]): Method removed.
+	([NSGArray -objectAtIndex:]): Method removed.
+	([NSGMutableArray +initialize]): Add the NSMutableArrayNonCore
+	behavior, as above.
+	([NSGMutableArray -replaceObjectAtIndex:withObject:]): Method removed.
+	* src/Foundation/NSGArray.h (NSGArray, NSGMutableArray): Add
+ 	placeholder ivars so our instance size matches that of the
+ 	behavior class that will be added.
+
+	* src/NSArray.m: Divide methods between NSArray and NSArrayNonCore
+ 	classes.  Add NSArrayNonCore behavior to NSArray.  Divide methods
+ 	between NSMutableArray and NSMutableArrayNonCore classes.  Add
+ 	NSArrayNonCore behavior to NSArray.
+	* src/Foundation/NSArray.h: Separate core and non-core methods.
+  	Declare with @class the new classes NSArrayNonCore and
+ 	NSMutableArrayNonCore.
+
+	Use the new behavior mechanisms to make it safe to subclass
+	NSNotification.
+
+	* src/Foundation/NSNotification.h: Include
+ 	<objects/Notification.h>
+	(NSNotification): Add placeholder ivars so our instance size matches
+	that of the behavior class that will be added.
+	* src/objects/Notification.h: Add #ifndef/#endif wrapper around
+ 	header file.
+
+	New behavior mechanisms for safer subclassing.
+
+	* src/behavior.m (behavior_class_add_class): Function renamed from
+ 	class_add_behavior.  Add more explanation to NSCAssert().
+	(class_add_behavior): New function, calling above function.
+	(behavior_class_add_category): New function.
+	(behavior_class_add_methods): Function renamed from
+	class_add_methods_if_not_there.
+	* src/objects/behavior.h: Declare new function names.
+
+	* src/behavior.m: Include <objects/stdobjects.h>.
+	(class_add_behavior): Use NSCAssert() to make sure that we don't try
+	to increase the instance size of a class that has been subclassed;
+	(hopeless ivar layout confusion would result).
+	* behavior.m: File renamed from behavior.c.
+	* src/Makefile.in (GNU_CFILES): Removed behavior.c.
+	(GNU_MFILES): Added behavior.m.
+
 Sat Mar 30 10:05:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/nsdictionary.m (main): Use renamed method
+ 	behavior_set_debug.
+	* checks/nsarray.m (main): Use renamed method behavior_set_debug.
+
+	* src/NSArray.m ([NSArray -lastObject]): Don't assert count; just
+ 	return nil if it's empty.
+	([NSMutableArray -removeLastObject]): Don't assert count; raise
+	NSRangeError if it's empty.
 
 	* src/NSAutoreleasePool.m: Make NSAutoreleasePools co-exist with
  	exceptions, safely and without leaks.  (Also improve efficiency by
