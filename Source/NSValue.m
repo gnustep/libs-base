@@ -71,7 +71,7 @@ static NSLock			*placeholderLock;
   if (self == [NSValue class])
     {
       abstractClass = self;
-      [abstractClass setVersion: 1];	// Version 1
+      [abstractClass setVersion: 2];	// Version 2
       concreteClass = [GSValue class];
       nonretainedObjectValueClass = [GSNonretainedObjectValue class];
       pointValueClass = [GSPointValue class];
@@ -418,47 +418,87 @@ static NSLock			*placeholderLock;
   o = [c allocWithZone: [coder objectZone]];
 
   ver = [coder versionForClassName: @"NSValue"];
-  if (ver < 1)
+  if (ver < 2)
     {
-      if (c == pointValueClass)
+      if (ver < 1)
 	{
-	  NSPoint	v;
+	  if (c == pointValueClass)
+	    {
+	      NSPoint	v;
 
-	  [coder decodeValueOfObjCType: @encode(NSPoint) at: &v];
-	  o = [o initWithBytes: &v objCType: @encode(NSPoint)];
-	}
-      else if (c == sizeValueClass)
-	{
-	  NSSize	v;
+	      [coder decodeValueOfObjCType: @encode(NSPoint) at: &v];
+	      o = [o initWithBytes: &v objCType: @encode(NSPoint)];
+	    }
+	  else if (c == sizeValueClass)
+	    {
+	      NSSize	v;
 
-	  [coder decodeValueOfObjCType: @encode(NSSize) at: &v];
-	  o = [o initWithBytes: &v objCType: @encode(NSSize)];
-	}
-      else if (c == rangeValueClass)
-	{
-	  NSRange	v;
+	      [coder decodeValueOfObjCType: @encode(NSSize) at: &v];
+	      o = [o initWithBytes: &v objCType: @encode(NSSize)];
+	    }
+	  else if (c == rangeValueClass)
+	    {
+	      NSRange	v;
 
-	  [coder decodeValueOfObjCType: @encode(NSRange) at: &v];
-	  o = [o initWithBytes: &v objCType: @encode(NSRange)];
-	}
-      else if (c == rectValueClass)
-	{
-	  NSRect	v;
+	      [coder decodeValueOfObjCType: @encode(NSRange) at: &v];
+	      o = [o initWithBytes: &v objCType: @encode(NSRange)];
+	    }
+	  else if (c == rectValueClass)
+	    {
+	      NSRect	v;
 
-	  [coder decodeValueOfObjCType: @encode(NSRect) at: &v];
-	  o = [o initWithBytes: &v objCType: @encode(NSRect)];
+	      [coder decodeValueOfObjCType: @encode(NSRect) at: &v];
+	      o = [o initWithBytes: &v objCType: @encode(NSRect)];
+	    }
+	  else
+	    {
+	      unsigned char	*data;
+
+	      [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+	      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	      [coder decodeArrayOfObjCType: @encode(unsigned char)
+				     count: size
+					at: (void*)data];
+	      o = [o initWithBytes: data objCType: objctype];
+	      NSZoneFree(NSDefaultMallocZone(), data);
+	    }
 	}
       else
 	{
-	  unsigned char	*data;
+	  NSData            *d;
+	  unsigned          cursor = 0;
 
-	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-	  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
-	  [coder decodeArrayOfObjCType: @encode(unsigned char)
-				 count: size
-				    at: (void*)data];
-	  o = [o initWithBytes: data objCType: objctype];
-	  NSZoneFree(NSDefaultMallocZone(), data);
+	  /*
+	   * For performance, decode small values directly onto the stack,
+	   * For larger values we allocate and deallocate heap space.
+	   */
+	  size = objc_sizeof_type(objctype);
+	  if (size <= 64)
+	    {
+	      unsigned char data[size];
+
+	      [coder decodeValueOfObjCType: @encode(id) at: &d];
+	      [d deserializeDataAt: data
+			ofObjCType: objctype
+			  atCursor: &cursor
+			   context: nil];
+	      o = [o initWithBytes: data objCType: objctype];
+	      RELEASE(d);
+	    }
+	  else
+	    {
+	      unsigned char *data;
+
+	      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	      [coder decodeValueOfObjCType: @encode(id) at: &d];
+	      [d deserializeDataAt: data
+			ofObjCType: objctype
+			  atCursor: &cursor
+			   context: nil];
+	      o = [o initWithBytes: data objCType: objctype];
+	      RELEASE(d);
+	      NSZoneFree(NSDefaultMallocZone(), data);
+	    }
 	}
     }
   else
