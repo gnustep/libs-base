@@ -1,3 +1,13 @@
+Mon Nov  2 17:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Tidied header files for NO_GNUSTEP/STRICT_OPENSTEP stuff.
+	* src/NSDistributedNotificationCenter.m: New class (untested)
+	* src/include/NSDistributedNotificationCenter.m: New class
+	* src/GNUmakefile: Added NSDistributedNotificationCenter
+	* src/Tools/gdnc.m: Server for distributed notifications (untested)
+	* src/Tools/gdnc.h: Include for distributed notifications
+	* src/Tools/GNUmakefile: Added gdnc
+
 Fri Oct 30 09:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/include/NSPortNameServer.h: Added ([-removePort:]) method in a
