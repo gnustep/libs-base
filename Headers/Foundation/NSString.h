@@ -38,7 +38,6 @@ typedef unsigned short unichar;
 #endif
 
 #define NSMaximumStringLength	(INT_MAX-1)
-#define NSHashStringLength	63
 
 enum 
 {

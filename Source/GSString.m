@@ -3807,19 +3807,16 @@ agree, create a new GSUnicodeInlineString otherwise.
  */
 - (unsigned) hash
 {
-  unsigned ret = 0;
+  unsigned	ret = 0;
+  unsigned	len = _self->_count;
 
-  int len = _self->_count;
-
-  if (len > NSHashStringLength)
-    len = NSHashStringLength;
-  if (len)
+  if (len > 0)
     {
       const unsigned char	*p;
       unsigned			char_count = 0;
 
       p = _self->_contents.c;
-      while (*p != 0 && char_count++ < NSHashStringLength)
+      while (char_count++ < len)
 	{
 	  unichar	c = *p++;
 
@@ -3835,9 +3832,13 @@ agree, create a new GSUnicodeInlineString otherwise.
        * an empty cache value, so we MUST NOT return a hash of zero.
        */
       if (ret == 0)
-	ret = 0x0fffffff;
+	{
+	  ret = 0x0fffffff;
+	}
       else
-	ret &= 0x0fffffff;
+	{
+	  ret &= 0x0fffffff;
+	}
     }
   else
     {
