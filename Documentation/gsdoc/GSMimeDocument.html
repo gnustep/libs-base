@@ -10,8 +10,8 @@
 <dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
 </dl>
-<p>Version: 0.1</p>
-<p>Date: 25 October, 2000</p>
+<p>Version: 0.2</p>
+<p>Date: 16 November, 2000</p>
 <h2><a name ="cont-0">GSMimeDocument</a></h2>
 <h2><a name ="GSMimeDocument">GSMimeDocument</a></h2>
 <p><b>Declared in: </b> Foundation/GSMime.h</p>
@@ -72,18 +72,14 @@
 <ul>
 <li><a href ="GSMimeDocument.html#method-0">+mimeDocument</a>
 <li><a href ="GSMimeDocument.html#method-1">-addHeader:</a>
-<li><a href ="GSMimeDocument.html#method-2">-boundary</a>
+<li><a href ="GSMimeDocument.html#method-2">-allHeaders</a>
 <li><a href ="GSMimeDocument.html#method-3">-content</a>
 <li><a href ="GSMimeDocument.html#method-4">-deleteHeader:</a>
 <li><a href ="GSMimeDocument.html#method-5">-deleteHeaderNamed:</a>
-<li><a href ="GSMimeDocument.html#method-6">-infoForAllHeaders</a>
-<li><a href ="GSMimeDocument.html#method-7">-infoForHeaderNamed:</a>
-<li><a href ="GSMimeDocument.html#method-8">-infoForHeadersNamed:</a>
-<li><a href ="GSMimeDocument.html#method-9">-parseHeader:named:inTo:</a>
-<li><a href ="GSMimeDocument.html#method-10">-scanSpecial:</a>
-<li><a href ="GSMimeDocument.html#method-11">-scanToken:</a>
-<li><a href ="GSMimeDocument.html#method-12">-setContent:</a>
-<li><a href ="GSMimeDocument.html#method-13">-setHeader:</a>
+<li><a href ="GSMimeDocument.html#method-6">-headerNamed:</a>
+<li><a href ="GSMimeDocument.html#method-7">-headersNamed:</a>
+<li><a href ="GSMimeDocument.html#method-8">-setContent:</a>
+<li><a href ="GSMimeDocument.html#method-9">-setHeader:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">mimeDocument</a></h3>
@@ -94,21 +90,33 @@
  <hr>
 <hr><h2>Instances Methods </h2>
 <h3><a name ="method-1">addHeader:</a></h3>
-- (BOOL) <b>addHeader:</b> (NSString*)aHeader;<br>
+- (BOOL) <b>addHeader:</b> (NSDictionary*)headerInfo;<br>
 
-	    This method may be called to add a header to the document.
-	    The header must be a single line of text in the standard
-	    format (begining with a name and a colon).  It will be
-	    added after all other headers in the document.
+	    <p>
+
+	      This method may be called to add a header to the document.
+	      The header must be a mutable dictionary object that contains
+	      at least the fields that are standard for all headers.
+	    </p>
+
           
  <hr>
-<h3><a name ="method-2">boundary</a></h3>
-- (NSData*) <b>boundary</b>;<br>
+<h3><a name ="method-2">allHeaders</a></h3>
+- (NSArray) <b>allHeaders</b>;<br>
 
-	    For a multipart document, return the raw data used to
-	    delimit the parts of the document.
-	    Otherwise, return nil.
-          
+	    <p>
+
+	      This method returns an array containing NSDictionary objects
+	      representing the headers associated with the document.
+	    </p>
+
+	    <p>
+
+	      The order of the headers in the array is the order of the
+	      headers in the document.
+	    </p>
+
+	  
  <hr>
 <h3><a name ="method-3">content</a></h3>
 - (id) <b>content</b>;<br>
@@ -127,7 +135,7 @@
           
  <hr>
 <h3><a name ="method-4">deleteHeader:</a></h3>
-- (void) <b>deleteHeader:</b> (NSString*)aHeader;<br>
+- (void) <b>deleteHeader:</b> (NSString*)rawHeader;<br>
 
 	    This method removes all occurrances of headers whose raw data
 	    exactly matches the supplied string.
@@ -140,90 +148,30 @@
 	    matches the supplied string.
 	  
  <hr>
-<h3><a name ="method-6">infoForAllHeaders</a></h3>
-- (NSArray) <b>infoForAllHeaders</b>;<br>
-
-	    This method returns an array containing info dictionaries that
-	    represent all the headers of the document.
-	  
- <hr>
-<h3><a name ="method-7">infoForHeaderNamed:</a></h3>
-- (NSDictionary*) <b>infoForHeaderNamed:</b> (NSString*)aName;<br>
+<h3><a name ="method-6">headerNamed:</a></h3>
+- (NSDictionary*) <b>headerNamed:</b> (NSString*)aName;<br>
 
 	    This method returns the info dictionary for the first header
 	    whose name equals the supplied argument.
 	  
  <hr>
-<h3><a name ="method-8">infoForHeadersNamed:</a></h3>
-- (NSArray*) <b>infoForHeadersNamed:</b> (NSString*)aName;<br>
+<h3><a name ="method-7">headersNamed:</a></h3>
+- (NSArray*) <b>headersNamed:</b> (NSString*)aName;<br>
 
 	    This method returns an array of info dictionaries for all headers
 	    whose names equal the supplied argument.
 	  
  <hr>
-<h3><a name ="method-9">parseHeader:named:inTo:</a></h3>
-- (BOOL) <b>parseHeader:</b> (NSScanner*)aScanner <b>named:</b> (NSString*)aName <b>inTo:</b> (NSMutableDictionary*)info;<br>
-
-	    This method is called to parse a header line and split its
-	    contents into an info dictionary.
-	    <p>
-
-	      On entry, the dictionary is already partially filled,
-	      the name argument is a lowercase representation of the
-	      header name, and the scanner is set to a scan location
-              immediately after the colon in the header string.
-	    </p>
-
-	    <p>
-
-	      If the header is parsed successfully, the method should
-	      return YES, otherwise NO.
-	    </p>
-
-	    <p>
-
-	      You should not call this method directly yourself, but may
-	      override it to support parsing of new headers.
-	    </p>
-
-	  
- <hr>
-<h3><a name ="method-10">scanSpecial:</a></h3>
-- (NSString*) <b>scanSpecial:</b> (NSScanner*)aScanner;<br>
-
-	    A convenience method to use a scanner (that is set up to scan a
-	    header line) to scan in a special character that terminated a
-	    token previously scanned.  If the token was terminated by
-	    whitespace and no other special character, the string returned
-	    will contain a single space character.
-	  
- <hr>
-<h3><a name ="method-11">scanToken:</a></h3>
-- (NSString*) <b>scanToken:</b> (NSScanner*)aScanner;<br>
-
-	    A convenience method to use a scanner (that is set up to scan a
-	    header line) to scan a header token - either a quoted string or
-	    a simple word.
-	    <ul>
-<li>Leading whitespace is ignored.
-<li>Backslash escapes in quoted text are converted
-</ul>
-
-	  
- <hr>
-<h3><a name ="method-12">setContent:</a></h3>
+<h3><a name ="method-8">setContent:</a></h3>
 - (BOOL) <b>setContent:</b> (id)newContent;<br>
 
 	    Sets a new value for the content of the document.
 	  
  <hr>
-<h3><a name ="method-13">setHeader:</a></h3>
-- (BOOL) <b>setHeader:</b> (NSString*)aHeader;<br>
+<h3><a name ="method-9">setHeader:</a></h3>
+- (BOOL) <b>setHeader:</b> (NSDictionary*)headerInfo;<br>
 
 	    This method may be called to set a header in the document.
-	    The header must be a single line of text in the standard
-	    format (begining with a name and a colon).  It will be
-	    added after all other headers in the document.
 	    Any other headers with the same name will be removed from
 	    the document.
           

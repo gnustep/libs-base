@@ -1,5 +1,15 @@
 2000-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSUserDefaults.m: ([-userLanguages]) updated to ensure we
+	don't get empty strings in the language list.
+	* Headers/Foundation/GSMime.h: Revised API
+	* Source/GSMime.m: Revised API to make more sense
+	* Documentation/gsdoc/GSMime.gsdoc: ditto
+	* Documentation/gsdoc/GSMimeDocument.gsdoc: ditto
+	* Documentation/gsdoc/GSMimeParser.gsdoc: ditto
+
+2000-11-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURL.m:  ([-explode]) bugfix for parsing username/password
 	provided by mark@brainstorm.co.uk
 

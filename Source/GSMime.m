@@ -189,7 +189,7 @@ parseCharacterSet(NSString *token)
 }
 
 @interface GSMimeParser (Private)
-- (BOOL) _decodeBody: (NSData*)boundary;
+- (BOOL) _decodeBody;
 - (NSString*) _decodeHeader;
 - (BOOL) _unfoldHeader;
 @end
@@ -205,6 +205,7 @@ parseCharacterSet(NSString *token)
 {
   RELEASE(data);
   RELEASE(child);
+  RELEASE(boundary);
   RELEASE(document);
   [super dealloc];
 }
@@ -242,8 +243,6 @@ parseCharacterSet(NSString *token)
     }
   if ([d length] > 0)
     {
-      NSData	*boundary;
-
       [data appendBytes: [d bytes] length: [d length]];
       bytes = (unsigned char*)[data mutableBytes];
       dataEnd = [data length];
@@ -262,9 +261,9 @@ parseCharacterSet(NSString *token)
 		{
 		  return NO;	/* Couldn't handle word encodings.	*/
 		}
-	      if ([document addHeader: header] == NO)
+	      if ([self parseHeader: header] == NO)
 		{
-		  return NO;	/* Header was not in legal format.	*/
+		  return NO;	/* Header was not parsed properly.	*/
 		}
 	    }
 	}
@@ -273,10 +272,9 @@ parseCharacterSet(NSString *token)
        * If we have a multipart document, we must feed the data to
        * a child parser to decode the subsidiary parts.
        */
-      boundary = [document boundary];
       if (boundary != nil)
 	{
-	  [self _decodeBody: boundary];
+	  [self _decodeBody];
 	}
       return YES;	/* Want more data for body */
     }
@@ -286,7 +284,7 @@ parseCharacterSet(NSString *token)
 
       if (inBody == YES)
 	{
-	  result = [self _decodeBody: [document boundary]];
+	  result = [self _decodeBody];
 	}
       else
 	{
@@ -301,9 +299,480 @@ parseCharacterSet(NSString *token)
     }
 }
 
+- (BOOL) parseHeader: (NSString*)aHeader
+{
+  NSScanner		*scanner = [NSScanner scannerWithString: aHeader];
+  NSString		*name;
+  NSString		*value;
+  NSMutableDictionary	*info;
+  NSCharacterSet	*skip;
+  unsigned		count;
+
+  info = [NSMutableDictionary dictionary];
+
+  /*
+   * Store the raw header string in the info dictionary.
+   */
+  [info setObject: [scanner string] forKey: @"RawHeader"];
+
+  /*
+   * Store the Raw header name and a lowercase version too.
+   */
+  if ([scanner scanUpToString: @":" intoString: &name] == NO)
+    {
+      NSLog(@"No colon terminated name in header (%@)", [scanner string]);
+      return NO;
+    }
+  name = [name stringByTrimmingTailSpaces];
+  [info setObject: name forKey: @"BaseName"];
+  name = [name lowercaseString];
+  [info setObject: name forKey: @"Name"];
+
+  /*
+   * Position scanner after colon and any white space.
+   */
+  if ([scanner scanString: @":" intoString: 0] == NO)
+    {
+      NSLog(@"No colon terminating name in header (%@)", [scanner string]);
+      return NO;
+    }
+  skip = RETAIN([scanner charactersToBeSkipped]);
+  [scanner setCharactersToBeSkipped: nil];
+  [scanner scanCharactersFromSet: skip intoString: 0];
+  [scanner setCharactersToBeSkipped: skip];
+  RELEASE(skip);
+
+  /*
+   * Set remainder of header as a base value.
+   */
+  [info setObject: [[scanner string] substringFromIndex: [scanner scanLocation]]
+	   forKey: @"BaseValue"];
+
+  /*
+   * Break header fields out into info dictionary.
+   */
+  if ([self scanHeader: scanner named: name inTo: info] == NO)
+    {
+      return NO;
+    }
+
+  /*
+   * Check validity of broken-out header fields.
+   */
+  if ([name isEqualToString: @"mime-version"] == YES)
+    {
+      int	majv = 0;
+      int	minv = 0;
+
+      value = [info objectForKey: @"Value"];
+      if ([value length] == 0)
+	{
+	  NSLog(@"Missing value for mime-version header");
+	  return NO;
+	}
+      if (sscanf([value lossyCString], "%d.%d", &majv, &minv) != 2)
+	{
+	  NSLog(@"Bad value for mime-version header");
+	  return NO;
+	}
+      [document deleteHeaderNamed: name];	// Should be unique
+    }
+  else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
+    {
+      BOOL	supported = NO;
+
+      value = [info objectForKey: @"Value"];
+      if ([value length] == 0)
+	{
+	  NSLog(@"Bad value for content-transfer-encoding header");
+	  return NO;
+	}
+      if ([value isEqualToString: @"quoted-printable"] == YES)
+	{
+	  supported = YES;
+	}
+      else if ([value isEqualToString: @"base64"] == YES)
+	{
+	  supported = YES;
+	}
+      else if ([value isEqualToString: @"binary"] == YES)
+	{
+	  supported = YES;
+	}
+      else if ([value characterAtIndex: 0] == '7')
+	{
+	  supported = YES;
+	}
+      else if ([value characterAtIndex: 0] == '8')
+	{
+	  supported = YES;
+	}
+      if (supported == NO)
+	{
+	  NSLog(@"Unsupported/unknown content-transfer-encoding");
+	  return NO;
+	}
+      [document deleteHeaderNamed: name];	// Should be unique
+    }
+  else if ([name isEqualToString: @"content-type"] == YES)
+    {
+      NSString	*type;
+      NSString	*subtype;
+      BOOL	supported = NO;
+
+      DESTROY(boundary);
+      type = [info objectForKey: @"Type"];
+      if ([type length] == 0)
+	{
+	  NSLog(@"Missing Mime content-type");
+	  return NO;
+	}
+      subtype = [info objectForKey: @"SubType"];
+	
+      if ([type isEqualToString: @"text"] == YES)
+	{
+	  if (subtype == nil)
+	    subtype = @"plain";
+	}
+      else if ([type isEqualToString: @"application"] == YES)
+	{
+	  if (subtype == nil)
+	    subtype = @"octet-stream";
+	}
+      else if ([type isEqualToString: @"multipart"] == YES)
+	{
+	  NSDictionary	*par = [info objectForKey: @"Parameters"];
+	  NSString	*tmp = [par objectForKey: @"boundary"];
+
+	  supported = YES;
+	  if (tmp != nil)
+	    {
+	      unsigned int	l = [tmp cStringLength] + 2;
+	      unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+
+	      b[0] = '-';
+	      b[1] = '-';
+	      [tmp getCString: &b[2]];
+	      ASSIGN(boundary, [NSData dataWithBytesNoCopy: b length: l]);
+	    }
+	  else
+	    {
+	      NSLog(@"multipart message without boundary");
+	      return NO;
+	    }
+	}
+
+      [document deleteHeaderNamed: name];	// Should be unique
+    }
+
+  /*
+   * Ensure that info dictionary is immutable by making a copy
+   * of all keys and objects and placing them in a new dictionary.
+   */
+  count = [info count];
+  {
+    id		keys[count];
+    id		objects[count];
+    unsigned	index;
+
+    [[info allKeys] getObjects: keys];
+    for (index = 0; index < count; index++)
+      {
+	keys[index] = [keys[index] copy];
+	objects[index] = [[info objectForKey: keys[index]] copy];
+      }
+    info = [NSDictionary dictionaryWithObjects: objects
+				       forKeys: keys
+					 count: count];
+    for (index = 0; index < count; index++)
+      {
+	RELEASE(objects[index]);
+	RELEASE(keys[index]);
+      }
+  }
+
+  return [document addHeader: info];
+}
+
 - (BOOL) parsedHeaders
 {
   return inBody;
+}
+
+/*
+ * Parse an unloaded and decoded header line, splitting information
+ * into an 'info' dictionary.
+ */
+- (BOOL) scanHeader: (NSScanner*)scanner
+	      named: (NSString*)name
+	       inTo: (NSMutableDictionary*)info
+{
+  NSString		*value = nil;
+  NSMutableDictionary	*parameters = nil;
+
+  /*
+   *	Now see if we are interested in any of it.
+   */
+  if ([name isEqualToString: @"mime-version"] == YES)
+    {
+      value = [self scanToken: scanner];
+      if ([value length] == 0)
+	{
+	  NSLog(@"Bad value for mime-version header");
+	  return NO;
+	}
+    }
+  else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
+    {
+      value = [self scanToken: scanner];
+      if ([value length] == 0)
+	{
+	  NSLog(@"Bad value for content-transfer-encoding header");
+	  return NO;
+	}
+      value = [value lowercaseString];
+    }
+  else if ([name isEqualToString: @"content-type"] == YES)
+    {
+      NSString	*type;
+      NSString	*subtype = nil;
+
+      type = [self scanToken: scanner];
+      if ([type length] == 0)
+	{
+	  NSLog(@"Invalid Mime content-type");
+	  return NO;
+	}
+      type = [type lowercaseString];
+      [info setObject: type forKey: @"Type"];
+      if ([scanner scanString: @"/" intoString: 0] == YES)
+	{
+	  subtype = [self scanToken: scanner];
+	  if ([subtype length] == 0)
+	    {
+	      NSLog(@"Invalid Mime content-type (subtype)");
+	      return NO;
+	    }
+	  subtype = [subtype lowercaseString];
+	  [info setObject: subtype forKey: @"SubType"];
+	  value = [NSString stringWithFormat: @"%@/%@", type, subtype];
+	}
+      else
+	{
+	  value = type;
+	}
+
+      while ([scanner scanString: @";" intoString: 0] == YES)
+	{
+	  NSString	*paramName;
+
+	  paramName = [self scanToken: scanner];
+	  if ([paramName length] == 0)
+	    {
+	      NSLog(@"Invalid Mime content-type (parameter name)");
+	      return NO;
+	    }
+	  if ([scanner scanString: @"=" intoString: 0] == YES)
+	    {
+	      NSString	*paramValue;
+
+	      paramValue = [self scanToken: scanner];
+	      if (paramValue == nil)
+		{
+		  paramValue = @"";
+		}
+	      if (parameters == nil)
+		{
+		  parameters = [NSMutableDictionary dictionary];
+		}
+	      paramName = [paramName lowercaseString];
+	      [parameters setObject: paramValue forKey: paramName];
+	    }
+	  else
+	    {
+	      NSLog(@"Ignoring Mime content-type parameter (%@)", paramName);
+	    }
+	}
+    }
+  else if ([name isEqualToString: @"content-disposition"] == YES)
+    {
+      value = [self scanToken: scanner];
+      value = [value lowercaseString];
+      /*
+       *	Concatenate slash separated parts of field.
+       */
+      while ([scanner scanString: @"/" intoString: 0] == YES)
+	{
+	  NSString	*sub = [self scanToken: scanner];
+
+	  if ([sub length] > 0)
+	    {
+	      sub = [sub lowercaseString];
+	      value = [NSString stringWithFormat: @"%@/%@", value, sub];
+	    }
+	}
+
+      /*
+       *	Expect anything else to be 'name=value' parameters.
+       */
+      while ([scanner scanString: @";" intoString: 0] == YES)
+	{
+	  NSString	*paramName;
+
+	  paramName = [self scanToken: scanner];
+	  if ([paramName length] == 0)
+	    {
+	      NSLog(@"Invalid Mime content-type (parameter name)");
+	      return NO;
+	    }
+	  if ([scanner scanString: @"=" intoString: 0] == YES)
+	    {
+	      NSString	*paramValue;
+
+	      paramValue = [self scanToken: scanner];
+	      if (paramValue == nil)
+		{
+		  paramValue = @"";
+		}
+	      if (parameters == nil)
+		{
+		  parameters = [NSMutableDictionary dictionary];
+		}
+	      paramName = [paramName lowercaseString];
+	      [parameters setObject: paramValue forKey: paramName];
+	    }
+	  else
+	    {
+	      NSLog(@"Ignoring Mime content-disposition parameter (%@)",
+		paramName);
+	    }
+	}
+    }
+
+  if (value != nil)
+    {
+      [info setObject: value forKey: @"Value"];
+    }
+  if (parameters != nil)
+    {
+      [info setObject: parameters forKey: @"Parameters"];
+    }
+  return YES;
+}
+
+- (NSString*) scanSpecial: (NSScanner*)scanner
+{
+  NSCharacterSet	*skip;
+  unsigned		location;
+  unichar		c;
+
+  /*
+   * Move past white space.
+   */
+  skip = RETAIN([scanner charactersToBeSkipped]);
+  [scanner setCharactersToBeSkipped: nil];
+  [scanner scanCharactersFromSet: skip intoString: 0];
+  [scanner setCharactersToBeSkipped: skip];
+  RELEASE(skip);
+
+  /*
+   * Now return token delimiter (may be whitespace)
+   */
+  location = [scanner scanLocation];
+  c = [[scanner string] characterAtIndex: location];
+
+  if ([specials characterIsMember: c] == YES)
+    {
+      [scanner setScanLocation: location + 1];
+      return [NSString stringWithCharacters: &c length: 1];
+    }
+  else
+    {
+      return @" ";
+    }
+}
+
+/*
+ *	Get a mime field value - token or quoted string.
+ */
+- (NSString*) scanToken: (NSScanner*)scanner
+{
+  if ([scanner scanString: @"\"" intoString: 0] == YES)		// Quoted
+    {
+      NSString	*string = [scanner string];
+      unsigned	length = [string length];
+      unsigned	start = [scanner scanLocation];
+      NSRange	r = NSMakeRange(start, length - start);
+      BOOL	done = NO;
+
+      while (done == NO)
+	{
+	  r = [string rangeOfString: @"\""
+			    options: NSLiteralSearch
+			      range: r];
+	  if (r.length == 0)
+	    {
+	      NSLog(@"Parsing header value - found unterminated quoted string");
+	      return nil;
+	    }
+	  if ([string characterAtIndex: r.location - 1] == '\\')
+	    {
+	      r.location++;
+	      r.length = length - r.location;
+	    }
+	  else
+	    {
+	      done = YES;
+	    }
+	}
+      [scanner setScanLocation: r.length + 1];
+      length = r.location - start;
+      if (length == 0)
+	{
+	  return nil;
+	}
+      else
+	{
+	  unichar	buf[length];
+	  unichar	*src = buf;
+	  unichar	*dst = buf;
+
+	  [string getCharacters: buf range: NSMakeRange(start, length)];
+	  while (src < &buf[length])
+	    {
+	      if (*src == '\\')
+		{
+		  src++;
+		}
+	      *dst++ = *src++;
+	    }
+	  return [NSString stringWithCharacters: buf length: dst - buf];
+	}
+    }
+  else							// Token
+    {
+      NSCharacterSet		*skip;
+      NSString			*value;
+
+      /*
+       * Move past white space.
+       */
+      skip = RETAIN([scanner charactersToBeSkipped]);
+      [scanner setCharactersToBeSkipped: nil];
+      [scanner scanCharactersFromSet: skip intoString: 0];
+      [scanner setCharactersToBeSkipped: skip];
+      RELEASE(skip);
+
+      /*
+       * Scan value terminated by any special character.
+       */
+      if ([scanner scanUpToCharactersFromSet: specials
+				  intoString: &value] == NO)
+	{
+	  return nil;
+	}
+      return value;
+    }
 }
 
 @end
@@ -456,14 +925,14 @@ parseCharacterSet(NSString *token)
   return hdr;
 }
 
-- (BOOL) _decodeBody: (NSData*)boundary
+- (BOOL) _decodeBody
 {
   if (boundary == nil)
     {
       NSDictionary	*typeInfo;
       NSString		*type;
 
-      typeInfo = [document infoForHeaderNamed: @"content-type"];
+      typeInfo = [document headerNamed: @"content-type"];
       type = [typeInfo objectForKey: @"Type"];
       if ([type isEqualToString: @"multipart"] == YES)
 	{
@@ -476,7 +945,7 @@ parseCharacterSet(NSString *token)
 	  NSString	*value;
 	  NSData	*decoded;
 
-	  encInfo = [document infoForHeaderNamed: @"content-transfer-encoding"];
+	  encInfo = [document headerNamed: @"content-transfer-encoding"];
 	  value = [encInfo objectForKey: @"Value"];
 
 	  if ([value isEqualToString: @"quoted-printable"] == YES)
@@ -1101,10 +1570,6 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 
 
 
-@interface	GSMimeDocument (Private)
-- (NSDictionary*) _parseHeader: (NSString*)aHeader;
-@end
-
 @implementation	GSMimeDocument
 
 + (void) initialize
@@ -1131,24 +1596,25 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   return AUTORELEASE([[self alloc] init]);
 }
 
-- (BOOL) addHeader: (NSString*)aHeader
+- (BOOL) addHeader: (NSDictionary*)info
 {
-  NSDictionary	*info = [self _parseHeader: aHeader];
+  NSString	*name = [info objectForKey: @"Name"];
 
-  if (info == nil)
+  if (name == nil)
     {
+      NSLog(@"addHeader: supplied with header info without 'Name' field");
       return NO;
     }
-  else
-    {
-      [headers addObject: info];
-      return YES;
-    }
+
+  info = [info copy];
+  [headers addObject: info];
+  RELEASE(info);
+  return YES;
 }
 
-- (NSData*) boundary
+- (NSArray*) allHeaders
 {
-  return boundary;
+  return [NSArray arrayWithArray: headers];
 }
 
 - (id) content
@@ -1160,7 +1626,6 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 {
   RELEASE(headers);
   RELEASE(content);
-  RELEASE(boundary);
   [super dealloc];
 }
 
@@ -1207,12 +1672,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   return desc;
 }
 
-- (NSArray*) infoForAllHeaders
-{
-  return [NSArray arrayWithArray: headers];
-}
-
-- (NSDictionary*) infoForHeaderNamed: (NSString*)name
+- (NSDictionary*) headerNamed: (NSString*)name
 {
   unsigned		count = [headers count];
   unsigned		index;
@@ -1231,7 +1691,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   return nil;
 }
 
-- (NSArray*) infoForHeadersNamed: (NSString*)name
+- (NSArray*) headersNamed: (NSString*)name
 {
   unsigned		count = [headers count];
   unsigned		index;
@@ -1261,522 +1721,37 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   return self;
 }
 
-/*
- * Parse an unloaded and decoded header line, splitting information
- * into an 'info' dictionary.
- */
-- (BOOL) parseHeader: (NSScanner*)scanner
-	       named: (NSString*)name
-		inTo: (NSMutableDictionary*)info
-{
-  NSString		*value = nil;
-  NSMutableDictionary	*parameters = nil;
-
-  /*
-   *	Now see if we are interested in any of it.
-   */
-  if ([name isEqualToString: @"mime-version"] == YES)
-    {
-      value = [self scanToken: scanner];
-      if ([value length] == 0)
-	{
-	  NSLog(@"Bad value for mime-version header");
-	  return NO;
-	}
-    }
-  else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
-    {
-      value = [self scanToken: scanner];
-      if ([value length] == 0)
-	{
-	  NSLog(@"Bad value for content-transfer-encoding header");
-	  return NO;
-	}
-      value = [value lowercaseString];
-    }
-  else if ([name isEqualToString: @"content-type"] == YES)
-    {
-      NSString	*type;
-      NSString	*subtype = nil;
-
-      type = [self scanToken: scanner];
-      if ([type length] == 0)
-	{
-	  NSLog(@"Invalid Mime content-type");
-	  return NO;
-	}
-      type = [type lowercaseString];
-      [info setObject: type forKey: @"Type"];
-      if ([scanner scanString: @"/" intoString: 0] == YES)
-	{
-	  subtype = [self scanToken: scanner];
-	  if ([subtype length] == 0)
-	    {
-	      NSLog(@"Invalid Mime content-type (subtype)");
-	      return NO;
-	    }
-	  subtype = [subtype lowercaseString];
-	  [info setObject: type forKey: @"SubType"];
-	  value = [NSString stringWithFormat: @"%@/%@", type, subtype];
-	}
-      else
-	{
-	  value = type;
-	}
-
-      while ([scanner scanString: @";" intoString: 0] == YES)
-	{
-	  NSString	*paramName;
-
-	  paramName = [self scanToken: scanner];
-	  if ([paramName length] == 0)
-	    {
-	      NSLog(@"Invalid Mime content-type (parameter name)");
-	      return NO;
-	    }
-	  if ([scanner scanString: @"=" intoString: 0] == YES)
-	    {
-	      NSString	*paramValue;
-
-	      paramValue = [self scanToken: scanner];
-	      if (paramValue == nil)
-		{
-		  paramValue = @"";
-		}
-	      if (parameters == nil)
-		{
-		  parameters = [NSMutableDictionary dictionary];
-		}
-	      paramName = [paramName lowercaseString];
-	      [parameters setObject: paramValue forKey: paramName];
-	    }
-	  else
-	    {
-	      NSLog(@"Ignoring Mime content-type parameter (%@)", paramName);
-	    }
-	}
-    }
-  else if ([name isEqualToString: @"content-disposition"] == YES)
-    {
-      value = [self scanToken: scanner];
-      value = [value lowercaseString];
-      /*
-       *	Concatenate slash separated parts of field.
-       */
-      while ([scanner scanString: @"/" intoString: 0] == YES)
-	{
-	  NSString	*sub = [self scanToken: scanner];
-
-	  if ([sub length] > 0)
-	    {
-	      sub = [sub lowercaseString];
-	      value = [NSString stringWithFormat: @"%@/%@", value, sub];
-	    }
-	}
-
-      /*
-       *	Expect anything else to be 'name=value' parameters.
-       */
-      while ([scanner scanString: @";" intoString: 0] == YES)
-	{
-	  NSString	*paramName;
-
-	  paramName = [self scanToken: scanner];
-	  if ([paramName length] == 0)
-	    {
-	      NSLog(@"Invalid Mime content-type (parameter name)");
-	      return NO;
-	    }
-	  if ([scanner scanString: @"=" intoString: 0] == YES)
-	    {
-	      NSString	*paramValue;
-
-	      paramValue = [self scanToken: scanner];
-	      if (paramValue == nil)
-		{
-		  paramValue = @"";
-		}
-	      if (parameters == nil)
-		{
-		  parameters = [NSMutableDictionary dictionary];
-		}
-	      paramName = [paramName lowercaseString];
-	      [parameters setObject: paramValue forKey: paramName];
-	    }
-	  else
-	    {
-	      NSLog(@"Ignoring Mime content-disposition parameter (%@)",
-		paramName);
-	    }
-	}
-    }
-
-  if (value != nil)
-    {
-      [info setObject: value forKey: @"Value"];
-    }
-  if (parameters != nil)
-    {
-      [info setObject: parameters forKey: @"Parameters"];
-    }
-  return YES;
-}
-
-- (NSString*) scanSpecial: (NSScanner*)scanner
-{
-  NSCharacterSet	*skip;
-  unsigned		location;
-  unichar		c;
-
-  /*
-   * Move past white space.
-   */
-  skip = RETAIN([scanner charactersToBeSkipped]);
-  [scanner setCharactersToBeSkipped: nil];
-  [scanner scanCharactersFromSet: skip intoString: 0];
-  [scanner setCharactersToBeSkipped: skip];
-  RELEASE(skip);
-
-  /*
-   * Now return token delimiter (may be whitespace)
-   */
-  location = [scanner scanLocation];
-  c = [[scanner string] characterAtIndex: location];
-
-  if ([specials characterIsMember: c] == YES)
-    {
-      [scanner setScanLocation: location + 1];
-      return [NSString stringWithCharacters: &c length: 1];
-    }
-  else
-    {
-      return @" ";
-    }
-}
-
-/*
- *	Get a mime field value - token or quoted string.
- */
-- (NSString*) scanToken: (NSScanner*)scanner
-{
-  if ([scanner scanString: @"\"" intoString: 0] == YES)		// Quoted
-    {
-      NSString	*string = [scanner string];
-      unsigned	length = [string length];
-      unsigned	start = [scanner scanLocation];
-      NSRange	r = NSMakeRange(start, length - start);
-      BOOL	done = NO;
-
-      while (done == NO)
-	{
-	  r = [string rangeOfString: @"\""
-			    options: NSLiteralSearch
-			      range: r];
-	  if (r.length == 0)
-	    {
-	      NSLog(@"Parsing header value - found unterminated quoted string");
-	      return nil;
-	    }
-	  if ([string characterAtIndex: r.location - 1] == '\\')
-	    {
-	      r.location++;
-	      r.length = length - r.location;
-	    }
-	  else
-	    {
-	      done = YES;
-	    }
-	}
-      [scanner setScanLocation: r.length + 1];
-      length = r.location - start;
-      if (length == 0)
-	{
-	  return nil;
-	}
-      else
-	{
-	  unichar	buf[length];
-	  unichar	*src = buf;
-	  unichar	*dst = buf;
-
-	  [string getCharacters: buf range: NSMakeRange(start, length)];
-	  while (src < &buf[length])
-	    {
-	      if (*src == '\\')
-		{
-		  src++;
-		}
-	      *dst++ = *src++;
-	    }
-	  return [NSString stringWithCharacters: buf length: dst - buf];
-	}
-    }
-  else							// Token
-    {
-      NSCharacterSet		*skip;
-      NSString			*value;
-
-      /*
-       * Move past white space.
-       */
-      skip = RETAIN([scanner charactersToBeSkipped]);
-      [scanner setCharactersToBeSkipped: nil];
-      [scanner scanCharactersFromSet: skip intoString: 0];
-      [scanner setCharactersToBeSkipped: skip];
-      RELEASE(skip);
-
-      /*
-       * Scan value terminated by any special character.
-       */
-      if ([scanner scanUpToCharactersFromSet: specials
-				  intoString: &value] == NO)
-	{
-	  return nil;
-	}
-      return value;
-    }
-}
-
 - (BOOL) setContent: (id)newContent
 {
   ASSIGN(content, newContent);
   return YES;
 }
 
-- (BOOL) setHeader: (NSString*)aHeader
+- (BOOL) setHeader: (NSDictionary*)info
 {
-  NSDictionary	*info = [self _parseHeader: aHeader];
+  NSString	*name = [info objectForKey: @"Name"];
+  unsigned	count = [headers count];
 
-  if (info == nil)
+  if (name == nil)
     {
+      NSLog(@"setHeader: supplied with header info without 'Name' field");
       return NO;
     }
-  else
-    {
-      unsigned	count = [headers count];
-      NSString	*name = [info objectForKey: @"Name"];
-
-      /*
-       * Remove any existing headers with this name.
-       */
-      while (count-- > 0)
-	{
-	  NSDictionary	*tmp = [headers objectAtIndex: count];
-
-	  if ([name isEqualToString: [tmp objectForKey: @"Name"]] == YES)
-	    {
-	      [headers removeObjectAtIndex: count];
-	    }
-	}
-      /*
-       * Add the new header.
-       */
-      [headers addObject: info];
-      return YES;
-    }
-}
-
-@end
-
-@implementation	GSMimeDocument (Private)
-
-- (NSDictionary*) _parseHeader: (NSString*)aHeader
-{
-  NSScanner	*scanner = [NSScanner scannerWithString: aHeader];
-  NSString	*name;
-  NSString	*value;
-  NSMutableDictionary	*info;
-  NSCharacterSet	*skip;
-  unsigned	count;
-
-  info = [NSMutableDictionary dictionary];
 
   /*
-   * Store the raw header string in the info dictionary.
+   * Remove any existing headers with this name.
    */
-  [info setObject: [scanner string] forKey: @"RawHeader"];
-
-  /*
-   * Store the Raw header name and a lowercase version too.
-   */
-  if ([scanner scanUpToString: @":" intoString: &name] == NO)
+  while (count-- > 0)
     {
-      NSLog(@"No colon terminated name in header (%@)", [scanner string]);
-      return nil;
-    }
-  name = [name stringByTrimmingTailSpaces];
-  [info setObject: name forKey: @"BaseName"];
-  name = [name lowercaseString];
-  [info setObject: name forKey: @"Name"];
+      NSDictionary	*tmp = [headers objectAtIndex: count];
 
-  /*
-   * Position scanner after colon and any white space.
-   */
-  if ([scanner scanString: @":" intoString: 0] == NO)
-    {
-      NSLog(@"No colon terminating name in header (%@)", [scanner string]);
-      return nil;
-    }
-  skip = RETAIN([scanner charactersToBeSkipped]);
-  [scanner setCharactersToBeSkipped: nil];
-  [scanner scanCharactersFromSet: skip intoString: 0];
-  [scanner setCharactersToBeSkipped: skip];
-  RELEASE(skip);
-
-  /*
-   * Set remainder of header as a base value.
-   */
-  [info setObject: [[scanner string] substringFromIndex: [scanner scanLocation]]
-	   forKey: @"BaseValue"];
-
-  /*
-   * Break header fields out into info dictionary.
-   */
-  if ([self parseHeader: scanner named: name inTo: info] == NO)
-    {
-      return nil;
+      if ([name isEqualToString: [tmp objectForKey: @"Name"]] == YES)
+	{
+	  [headers removeObjectAtIndex: count];
+	}
     }
 
-  /*
-   * Check validity of broken-out header fields.
-   */
-  if ([name isEqualToString: @"mime-version"] == YES)
-    {
-      int	majv = 0;
-      int	minv = 0;
-
-      value = [info objectForKey: @"Value"];
-      if ([value length] == 0)
-	{
-	  NSLog(@"Missing value for mime-version header");
-	  return nil;
-	}
-      if (sscanf([value lossyCString], "%d.%d", &majv, &minv) != 2)
-	{
-	  NSLog(@"Bad value for mime-version header");
-	  return nil;
-	}
-      [self deleteHeaderNamed: name];	// Should be unique
-    }
-  else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
-    {
-      BOOL	supported = NO;
-
-      value = [info objectForKey: @"Value"];
-      if ([value length] == 0)
-	{
-	  NSLog(@"Bad value for content-transfer-encoding header");
-	  return nil;
-	}
-      if ([value isEqualToString: @"quoted-printable"] == YES)
-	{
-	  supported = YES;
-	}
-      else if ([value isEqualToString: @"base64"] == YES)
-	{
-	  supported = YES;
-	}
-      else if ([value isEqualToString: @"binary"] == YES)
-	{
-	  supported = YES;
-	}
-      else if ([value characterAtIndex: 0] == '7')
-	{
-	  supported = YES;
-	}
-      else if ([value characterAtIndex: 0] == '8')
-	{
-	  supported = YES;
-	}
-      if (supported == NO)
-	{
-	  NSLog(@"Unsupported/unknown content-transfer-encoding");
-	  return nil;
-	}
-      [self deleteHeaderNamed: name];	// Should be unique
-    }
-  else if ([name isEqualToString: @"content-type"] == YES)
-    {
-      NSString	*type;
-      NSString	*subtype;
-      BOOL	supported = NO;
-
-      type = [info objectForKey: @"Type"];
-      if ([type length] == 0)
-	{
-	  NSLog(@"Missing Mime content-type");
-	  return nil;
-	}
-      subtype = [info objectForKey: @"SubType"];
-	
-      if ([type isEqualToString: @"text"] == YES)
-	{
-	  if (subtype == nil)
-	    subtype = @"plain";
-	}
-      else if ([type isEqualToString: @"application"] == YES)
-	{
-	  if (subtype == nil)
-	    subtype = @"octet-stream";
-	}
-      else if ([type isEqualToString: @"multipart"] == YES)
-	{
-	  NSDictionary	*par = [info objectForKey: @"Parameters"];
-	  NSString	*tmp = [par objectForKey: @"boundary"];
-
-	  supported = YES;
-	  if (tmp != nil)
-	    {
-	      unsigned int	l = [tmp cStringLength] + 2;
-	      unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
-
-	      b[0] = '-';
-	      b[1] = '-';
-	      [tmp getCString: &b[2]];
-	      ASSIGN(boundary, [NSData dataWithBytesNoCopy: b length: l]);
-	    }
-	  else
-	    {
-	      NSLog(@"multipart message without boundary");
-	      return nil;
-	    }
-	}
-
-      [self deleteHeaderNamed: name];	// Should be unique
-    }
-
-  /*
-   * Ensure that info dictionary is immutable by making a copy
-   * of all keys and objects and placing them in a new dictionary.
-   */
-  count = [info count];
-  if (count > 0)
-    {
-      id	keys[count];
-      id	objects[count];
-      unsigned	index;
-
-      [[info allKeys] getObjects: keys];
-      for (index = 0; index < count; index++)
-	{
-	  keys[index] = [keys[index] copy];
-	  objects[index] = [[info objectForKey: keys[index]] copy];
-	}
-      info = [NSDictionary dictionaryWithObjects: objects
-					 forKeys: keys
-					   count: count];
-      for (index = 0; index < count; index++)
-	{
-	  RELEASE(objects[index]);
-	  RELEASE(keys[index]);
-	}
-    }
-  else
-    {
-      info = [NSDictionary dictionary];
-    }
-
-  return info;
+  return [self addHeader: info];
 }
 
 @end

@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.1</version>
-    <date>26 Ovctober, 2000</date>
+    <version>0.2</version>
+    <date>16 November, 2000</date>
   </head>
   <body>
     <chapter>
@@ -21,8 +21,8 @@
       <section>
           <heading>The classes</heading>
           <list>
-            <item><uref url="GSXMLDocument.html">GSXMLDocument</uref></item>
-            <item><uref url="GSXMLParser.html">GSXMParser</uref></item>
+            <item><uref url="GSMimeDocument.html">GSMimeDocument</uref></item>
+            <item><uref url="GSMimeParser.html">GSMimearser</uref></item>
           </list>
       </section>
     </chapter>

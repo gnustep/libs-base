@@ -43,26 +43,19 @@
 {
   NSMutableArray	*headers;
   id			content;
-  NSData		*boundary;
 }
 
 + (GSMimeDocument*) mimeDocument;
 
-- (BOOL) addHeader: (NSString*)aHeader;
-- (NSData*) boundary;
+- (BOOL) addHeader: (NSDictionary*)headerInfo;
+- (NSArray*) allHeaders;
 - (id) content;
-- (void) deleteHeader: (NSString*)aHeader;
+- (void) deleteHeader: (NSString*)rawHeader;
 - (void) deleteHeaderNamed: (NSString*)aName;
-- (NSArray*) infoForAllHeaders;
-- (NSDictionary*) infoForHeaderNamed: (NSString*)name;
-- (NSArray*) infoForHeadersNamed: (NSString*)name;
-- (BOOL) parseHeader: (NSScanner*)aScanner
-	       named: (NSString*)name
-		inTo: (NSMutableDictionary*)info;
-- (NSString*) scanSpecial: (NSScanner*)aScanner;
-- (NSString*) scanToken: (NSScanner*)aScanner;
+- (NSDictionary*) headerNamed: (NSString*)name;
+- (NSArray*) headersNamed: (NSString*)name;
 - (BOOL) setContent: (id)newContent;
-- (BOOL) setHeader: (NSString*)aHeader;
+- (BOOL) setHeader: (NSDictionary*)headerInfo;
 
 @end
 
@@ -76,6 +69,7 @@
   unsigned		lineEnd;
   unsigned		input;
   BOOL			inBody;
+  NSData		*boundary;
   GSMimeDocument	*document;
   GSMimeParser		*child;
 }
@@ -84,7 +78,13 @@
 
 - (GSMimeDocument*) document;
 - (BOOL) parse: (NSData*)input;
+- (BOOL) parseHeader: (NSString*)aRawHeader;
 - (BOOL) parsedHeaders;
+- (BOOL) scanHeader: (NSScanner*)aScanner
+	      named: (NSString*)headerName
+	       inTo: (NSMutableDictionary*)info;
+- (NSString*) scanSpecial: (NSScanner*)aScanner;
+- (NSString*) scanToken: (NSScanner*)aScanner;
 
 @end
 
