@@ -345,7 +345,8 @@ enum {
     unsigned int	wide: 1;	// 16-bit characters in string?
     unsigned int	ascii: 1;	// String contains only ascii?
     unsigned int	free: 1;	// Should free memory?
-    unsigned int	hash: 30;
+    unsigned int	unused: 1;
+    unsigned int	hash: 28;
   } _flags;
 }
 @end
