@@ -706,7 +706,6 @@ static NSLock	*global_proxies_gate;
 
   /*
    * This maps targets to remote proxies.
-   * The proxy's must be retained on addition and released on removal.
    */
   _remoteProxies = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(_remoteProxies, z, 4);
@@ -930,16 +929,23 @@ static NSLock	*global_proxies_gate;
 - (NSArray*) localObjects
 {
   NSMutableArray	*c;
-  GSIMapNode		node;
 
   /* Don't assert (_isValid); */
   M_LOCK(_proxiesGate);
-  c = [NSMutableArray arrayWithCapacity: _localObjects->nodeCount];
-  node = _localObjects->firstNode;
-  while (node != 0)
+  if (_localObjects != 0)
     {
-      [c addObject: node->key.obj];
-      node = node->nextInMap;
+      GSIMapNode	node = _localObjects->firstNode;
+
+      c = [NSMutableArray arrayWithCapacity: _localObjects->nodeCount];
+      while (node != 0)
+	{
+	  [c addObject: node->key.obj];
+	  node = node->nextInMap;
+	}
+    }
+  else
+    {
+      c = [NSArray array];
     }
   M_UNLOCK(_proxiesGate);
   return c;
@@ -1002,16 +1008,23 @@ static NSLock	*global_proxies_gate;
 - (NSArray *) remoteObjects
 {
   NSMutableArray	*c;
-  GSIMapNode		node;
 
   /* Don't assert (_isValid); */
   M_LOCK(_proxiesGate);
-  c = [NSMutableArray arrayWithCapacity: _remoteProxies->nodeCount];
-  node = _remoteProxies->firstNode;
-  while (node != 0)
+  if (_remoteProxies != 0)
     {
-      [c addObject: node->key.obj];
-      node = node->nextInMap;
+      GSIMapNode	node = _remoteProxies->firstNode;
+
+      c = [NSMutableArray arrayWithCapacity: _remoteProxies->nodeCount];
+      while (node != 0)
+	{
+	  [c addObject: node->key.obj];
+	  node = node->nextInMap;
+	}
+    }
+  else
+    {
+      c = [NSMutableArray array];
     }
   M_UNLOCK(_proxiesGate);
   return c;
@@ -1020,7 +1033,7 @@ static NSLock	*global_proxies_gate;
 - (void) removeRequestMode: (NSString*)mode
 {
   M_LOCK(_refGate);
-  if ([_requestModes containsObject: mode])
+  if (_requestModes != nil && [_requestModes containsObject: mode])
     {
       unsigned	c = [_runLoops count];
 
@@ -1037,21 +1050,23 @@ static NSLock	*global_proxies_gate;
 
 - (void) removeRunLoop: (NSRunLoop*)loop
 {
-  unsigned	pos;
-
   M_LOCK(_refGate);
-  pos = [_runLoops indexOfObjectIdenticalTo: loop];
-  if (pos != NSNotFound)
+  if (_runLoops != nil)
     {
-      unsigned	c = [_requestModes count];
+      unsigned	pos = [_runLoops indexOfObjectIdenticalTo: loop];
 
-      while (c-- > 0)
+      if (pos != NSNotFound)
 	{
-	  NSString	*mode = [_requestModes objectAtIndex: c];
+	  unsigned	c = [_requestModes count];
 
-	  [loop removePort: _receivePort forMode: mode];
+	  while (c-- > 0)
+	    {
+	      NSString	*mode = [_requestModes objectAtIndex: c];
+
+	      [loop removePort: _receivePort forMode: mode];
+	    }
+	  [_runLoops removeObjectAtIndex: pos];
 	}
-      [_runLoops removeObjectAtIndex: pos];
     }
   M_UNLOCK(_refGate);
 }
@@ -1063,7 +1078,12 @@ static NSLock	*global_proxies_gate;
 
 - (NSArray*) requestModes
 {
-  return AUTORELEASE([_requestModes copy]);
+  NSArray	*c;
+
+  M_LOCK(_refGate);
+  c = AUTORELEASE([_requestModes copy]);
+  M_UNLOCK(_refGate);
+  return c;
 }
 
 - (NSTimeInterval) requestTimeout
@@ -1130,17 +1150,21 @@ static NSLock	*global_proxies_gate;
 - (void) setRequestMode: (NSString*)mode
 {
   M_LOCK(_refGate);
-  while ([_requestModes count] > 0 && [_requestModes objectAtIndex: 0] != mode)
+  if (_requestModes != nil)
     {
-      [self removeRequestMode: [_requestModes objectAtIndex: 0]];
-    }
-  while ([_requestModes count] > 1)
-    {
-      [self removeRequestMode: [_requestModes objectAtIndex: 1]];
-    }
-  if (mode != nil && [_requestModes count] == 0)
-    {
-      [self addRequestMode: mode];
+      while ([_requestModes count] > 0
+	&& [_requestModes objectAtIndex: 0] != mode)
+	{
+	  [self removeRequestMode: [_requestModes objectAtIndex: 0]];
+	}
+      while ([_requestModes count] > 1)
+	{
+	  [self removeRequestMode: [_requestModes objectAtIndex: 1]];
+	}
+      if (mode != nil && [_requestModes count] == 0)
+	{
+	  [self addRequestMode: mode];
+	}
     }
   M_UNLOCK(_refGate);
 }
@@ -1179,11 +1203,14 @@ static NSLock	*global_proxies_gate;
   /*
    *	These are GNUstep extras
    */
-  o = [NSNumber numberWithUnsignedInt: _localTargets->nodeCount];
+  o = [NSNumber numberWithUnsignedInt:
+    _localTargets ? _localTargets->nodeCount : 0];
   [d setObject: o forKey: NSConnectionLocalCount];
-  o = [NSNumber numberWithUnsignedInt: _remoteProxies->nodeCount];
+  o = [NSNumber numberWithUnsignedInt:
+    _remoteProxies ? _remoteProxies->nodeCount : 0];
   [d setObject: o forKey: NSConnectionProxyCount];
-  o = [NSNumber numberWithUnsignedInt: _replyMap->nodeCount];
+  o = [NSNumber numberWithUnsignedInt:
+    _replyMap ? _replyMap->nodeCount : 0];
   [d setObject: o forKey: @"NSConnectionReplyQueue"];
   o = [NSNumber numberWithUnsignedInt: [_requestQueue count]];
   [d setObject: o forKey: @"NSConnectionRequestQueue"];
@@ -2403,7 +2430,7 @@ static NSLock	*global_proxies_gate;
        *	for the targets in the specified list since we don't have
        *	proxies for them any more.
        */
-      if (_receivePort && _isValid && number > 0)
+      if (_receivePort != nil && _isValid == YES && number > 0)
 	{
 	  id		op;
 	  unsigned 	i;
@@ -2467,20 +2494,26 @@ static NSLock	*global_proxies_gate;
 
 - (void) removeProxy: (NSDistantObject*)aProxy
 {
-  unsigned	target;
-
-  /* Don't assert (_isValid); */
   M_LOCK(_proxiesGate);
-  target = ((ProxyStruct*)aProxy)->_handle;
-  /* This also releases aProxy */
-  GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
-  M_UNLOCK(_proxiesGate);
+  if (_isValid == YES)
+    {
+      unsigned		target;
+      GSIMapNode	node;
 
-  /*
-   *	Tell the remote application that we have removed our proxy and
-   *	it can release it's local object.
-   */
-  [self _release_targets: &target count: 1];
+      target = ((ProxyStruct*)aProxy)->_handle;
+      node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
+      if (node != 0)
+	{
+	  RELEASE(node->value.obj);
+	  GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
+	}
+      /*
+       * Tell the remote application that we have removed our proxy and
+       * it can release it's local object.
+       */
+      [self _release_targets: &target count: 1];
+    }
+  M_UNLOCK(_proxiesGate);
 }
 
 - (NSDistantObject*) proxyForTarget: (unsigned)target
