@@ -151,7 +151,7 @@ ostream_printf (ostream *s, const char *format, ...)
 void 
 ostream_vprintf (ostream *s, const char *format, va_list argList)
 {
-  id <String> str = [String stringWithCString: format];
+  id str = [String stringWithCString: format];
   if (s->flags & OSTREAM_WRITEFLAG)
     [(id <Streaming>)s->stream_obj writeFormat: str arguments: argList];
   else
@@ -172,7 +172,7 @@ ostream_scanf (ostream *s, const char *format, ...)
 int 
 ostream_vscanf (ostream *s, const char *format, va_list argList)
 {
-  id <String> str = [String stringWithCString: format];
+  id str = [String stringWithCString: format];
   if (s->flags & OSTREAM_READFLAG)
     return [(id <Streaming>)s->stream_obj readFormat: str 
 	     arguments: argList];

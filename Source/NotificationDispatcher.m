@@ -55,7 +55,7 @@
 }
 
 - initWithName: n object: o;
-- (id <String>) notificationName;
+- (NSString*) notificationName;
 - notificationObject;
 - (void) postNotification: n;
 @end
@@ -101,7 +101,7 @@
   [super dealloc];
 }
 
-- (id <String>) notificationName
+- (NSString*) notificationName
 {
   return _name;
 }
@@ -243,7 +243,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 - (void) _addObserver: observer
   notificationRequest: nr
-                 name: (id <String>)name
+                 name: (NSString*)name
 	       object: object
 {
   /* If observer is nil, there is nothing to do; return. */
@@ -318,7 +318,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 }
 
 - (void) addInvocation: (id <Invoking>)invocation
-		  name: (id <String>)name
+		  name: (NSString*)name
                 object: object
 {
   id nr;
@@ -347,7 +347,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 - (void) addObserver: observer
             selector: (SEL)sel
-                name: (id <String>)name
+                name: (NSString*)name
 	      object: object
 {
   id nr;
@@ -427,7 +427,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
    request, nil NAME or OBJECT act as wildcards. */
 
 - (void) removeInvocation: invocation
-                     name: (id <String>)name
+                     name: (NSString*)name
                    object: object
 {
   [self removeObserver: invocation
@@ -482,7 +482,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
    adding an observation request, nil NAME or OBJECT act as wildcards. */
 
 - (void) removeObserver: observer
-		   name: (id <String>)name
+		   name: (NSString*)name
                  object: object
 {
   Array *observer_nr_array;
@@ -597,14 +597,14 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   [_lock unlock];
 }
 
-- (void) postNotificationName: (id <String>)name 
+- (void) postNotificationName: (NSString*)name 
 		       object: object
 {
   [self postNotification: [Notification notificationWithName: name
 					object: object]];
 }
 
-- (void) postNotificationName: (id <String>)name 
+- (void) postNotificationName: (NSString*)name 
 		       object: object
 		     userInfo: info
 {
@@ -623,7 +623,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 }
 
 + (void) addInvocation: (id <Invoking>)invocation
-		  name: (id <String>)name
+		  name: (NSString*)name
                 object: object
 {
   [default_notification_dispatcher addInvocation: invocation
@@ -633,7 +633,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 + (void) addObserver: observer
             selector: (SEL)sel
-                name: (id <String>)name
+                name: (NSString*)name
 	      object: object
 {
   [default_notification_dispatcher addObserver: observer
@@ -648,7 +648,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 }
 
 + (void) removeInvocation: invocation
-                     name: (id <String>)name
+                     name: (NSString*)name
                    object: object
 {
   [default_notification_dispatcher removeInvocation: invocation
@@ -662,7 +662,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 }
 
 + (void) removeObserver: observer
-		   name: (id <String>)name
+		   name: (NSString*)name
                  object: object
 {
   [default_notification_dispatcher removeObserver: observer
@@ -675,14 +675,14 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   [default_notification_dispatcher postNotification: notification];
 }
 
-+ (void) postNotificationName: (id <String>)name 
++ (void) postNotificationName: (NSString*)name 
 		       object: object
 {
   [default_notification_dispatcher postNotificationName: name
 				   object: object];
 }
 
-+ (void) postNotificationName: (id <String>)name 
++ (void) postNotificationName: (NSString*)name 
 		       object: object
 		     userInfo: info
 {

@@ -39,13 +39,13 @@
 @implementation NSGArchiverNullCStream
 - (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
-   withName: (id <String>) name
+   withName: (NSString*) name
 {
   return;
 }
 - (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
-   withName: (id <String> *)namePtr
+   withName: (NSString* *)namePtr
 {
   [self shouldNotImplement: _cmd];
 }
@@ -80,7 +80,7 @@
 
 /* Unlike the GNU version, this cannot be called recursively. */
 - (void) encodeRootObject: anObj
-    withName: (id <String>)name
+    withName: (NSString*)name
 {
   id saved_cstream;
 

@@ -60,7 +60,7 @@ static BOOL debug_binary_coder;
   return c;
 }
 
-- (void) encodeName: (id <String>) name
+- (void) encodeName: (NSString*) name
 {
   if (debug_binary_coder)
     [[[self class] debugStderrCoder]
@@ -73,7 +73,7 @@ static BOOL debug_binary_coder;
 
 - (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
-   withName: (id <String>) name
+   withName: (NSString*) name
 {
   if (debug_binary_coder)
     {
@@ -168,7 +168,7 @@ static BOOL debug_binary_coder;
 
 - (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
-   withName: (id <String> *)namePtr
+   withName: (NSString* *)namePtr
 {
   assert(type);
   assert(*type != '@');
@@ -274,7 +274,7 @@ static BOOL debug_binary_coder;
   return DEFAULT_FORMAT_VERSION;
 }
 
-- (void) decodeName: (id <String> *)n
+- (void) decodeName: (NSString* *)n
 {
 #if 1
   if (n)

@@ -55,12 +55,12 @@
 }
 
 + newForReceiving;
-+ newForReceivingFromRegisteredName: (id <String>)name;
++ newForReceivingFromRegisteredName: (NSString*)name;
 
 /* Register/Unregister this port for input handling through RunLoop 
    RUN_LOOP in mode MODE. */
-- (void) addToRunLoop: run_loop forMode: (id <String>)mode;
-- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode;
+- (void) addToRunLoop: run_loop forMode: (NSString*)mode;
+- (void) removeFromRunLoop: run_loop forMode: (NSString*)mode;
 
 /* When a RunLoop is handling this InPort, and a new incoming
    packet arrives, INVOCATION will be invoked with the new packet
@@ -79,8 +79,8 @@
 
 @interface OutPort : Port
 
-+ newForSendingToRegisteredName: (id <String>)name 
-                         onHost: (id <String>)hostname;
++ newForSendingToRegisteredName: (NSString*)name 
+                         onHost: (NSString*)hostname;
 - (BOOL) sendPacket: packet;
 
 @end

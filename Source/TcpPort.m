@@ -285,7 +285,7 @@ static NSMapTable* port_number_2_port;
   return p;
 }
 
-+ newForReceivingFromRegisteredName: (id <String>)name
++ newForReceivingFromRegisteredName: (NSString*)name
 {
   return [self newForReceivingFromPortNumber: 
 		 name_2_port_number ([name cStringNoCopy])];
@@ -853,7 +853,7 @@ static NSMapTable *out_port_bag = NULL;
 }
 
 + newForSendingToPortNumber: (unsigned short)n 
-		     onHost: (id <String>)hostname
+		     onHost: (NSString*)hostname
 {
   struct hostent *hp;
   const char *host_cstring;
@@ -893,8 +893,8 @@ static NSMapTable *out_port_bag = NULL;
 	       pollingInPort: nil];
 }
 
-+ newForSendingToRegisteredName: (id <String>)name 
-			 onHost: (id <String>)hostname
++ newForSendingToRegisteredName: (NSString*)name 
+			 onHost: (NSString*)hostname
 {
   return [self newForSendingToPortNumber: 
 		 name_2_port_number ([name cStringNoCopy])

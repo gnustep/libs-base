@@ -31,18 +31,18 @@
 
 - (void) encodeValueOfCType: (const char*) type 
          at: (const void*) d 
-         withName: (id <String>) name;
+         withName: (NSString*) name;
 - (void) decodeValueOfCType: (const char*) type 
          at: (void*) d 
-         withName: (id <String> *) namePtr;
+         withName: (NSString* *) namePtr;
 
-- (void) encodeWithName: (id <String>) name
+- (void) encodeWithName: (NSString*) name
 	 valuesOfCTypes: (const char *) types, ...;
-- (void) decodeWithName: (id <String> *)name
+- (void) decodeWithName: (NSString* *)name
 	 valuesOfCTypes: (const char *)types, ...;
 
-- (void) encodeName: (id <String>) name;
-- (void) decodeName: (id <String> *) name;
+- (void) encodeName: (NSString*) name;
+- (void) decodeName: (NSString* *) name;
 
 - (void) encodeIndent;
 - (void) decodeIndent;

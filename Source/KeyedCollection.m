@@ -231,7 +231,7 @@
   OBJC_FREE(keys);
 }
 
-- (id <String>) description
+- (NSString*) description
 {
   id s = [NSMutableString new];
   id o, k;

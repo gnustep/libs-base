@@ -92,12 +92,12 @@
    it's unclear if we're connecting to another Connection that already
    registered with that name. */
 + (Connection*) newWithRootObject: anObj;
-+ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj;
++ (Connection*) newRegisteringAtName: (NSString*)n withRootObject: anObj;
 
 /* Get a proxy to a remote server object.
    A new connection is created if necessary. */
-+ (Proxy*) rootProxyAtName: (id <String>)name onHost: (id <String>)host;
-+ (Proxy*) rootProxyAtName: (id <String>)name;
++ (Proxy*) rootProxyAtName: (NSString*)name onHost: (NSString*)host;
++ (Proxy*) rootProxyAtName: (NSString*)name;
 + (Proxy*) rootProxyAtPort: (OutPort*)anOutPort;
 + (Proxy*) rootProxyAtPort: (OutPort*)anOutPort withInPort: (InPort*)anInPort;
 

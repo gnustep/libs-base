@@ -26,7 +26,7 @@
 @implementation Notification
 
 /* This is the designated initializer. */
-- initWithName: (id <String>)name
+- initWithName: (NSString*)name
 	object: object
       userInfo: info
 {
@@ -48,7 +48,7 @@
 
 /* Creating autoreleased Notification objects. */
 
-+ notificationWithName: (id <String>)name
++ notificationWithName: (NSString*)name
 		object: object
 	      userInfo: info
 {
@@ -58,7 +58,7 @@
 	   autorelease];
 }
 
-+ notificationWithName: (id <String>)name
++ notificationWithName: (NSString*)name
 		object: object
 {
   return [self notificationWithName: name 
@@ -69,7 +69,7 @@
 
 /* Querying a Notification object. */
 
-- (id <String>) name
+- (NSString*) name
 {
   return _name;
 }

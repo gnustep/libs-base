@@ -33,7 +33,7 @@
 - (float) floatValue;
 - (double) doubleValue;
 - (const char *) cStringValue;
-- /* (id <String>) */ stringValue;
+- /* (NSString*) */ stringValue;
 @end
 
 @protocol ValueSetting
@@ -41,7 +41,7 @@
 - (void) setFloatValue: (float)aFloat;
 - (void) setDoubleValue: (double)aDouble;
 - (void) setCStringValue: (const char *)aCString;
-- (void) setStringValue: /* (id <String>) */ aString;
+- (void) setStringValue: /* (NSString*) */ aString;
 @end
 
 @protocol ValueHolding <ValueGetting, ValueSetting>

@@ -302,7 +302,7 @@ static int messages_received_count;
    if we're connecting to another Connection that already registered 
    with that name. */
 
-+ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj
++ (Connection*) newRegisteringAtName: (NSString*)n withRootObject: anObj
 {
   id newPort;
   id newConn;
@@ -314,12 +314,12 @@ static int messages_received_count;
   return newConn;
 }
 
-+ (Proxy*) rootProxyAtName: (id <String>)n
++ (Proxy*) rootProxyAtName: (NSString*)n
 {
   return [self rootProxyAtName: n onHost: @""];
 }
 
-+ (Proxy*) rootProxyAtName: (id <String>)n onHost: (id <String>)h
++ (Proxy*) rootProxyAtName: (NSString*)n onHost: (NSString*)h
 {
   id p = [default_out_port_class newForSendingToRegisteredName: n onHost: h];
   return [self rootProxyAtPort: p];

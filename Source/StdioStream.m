@@ -84,7 +84,7 @@ o_vscanf (void *stream,
   return stderrStream;
 }
 
-+ streamWithFilename: (id <String>)name fmode: (const char *)m
++ streamWithFilename: (NSString*)name fmode: (const char *)m
 {
   return [[[self alloc]
 	    initWithFilename: name fmode: m]
@@ -116,7 +116,7 @@ o_vscanf (void *stream,
   return self;
 }
 
-- initWithFilename: (id <String>)name fmode: (const char *)m
+- initWithFilename: (NSString*)name fmode: (const char *)m
 {
   FILE *afp = fopen([name cStringNoCopy], (char*)m);
   if (!afp)
@@ -142,14 +142,14 @@ o_vscanf (void *stream,
   return [self initWithFilePointer:afp fmode:m];
 }
 
-- initWithPipeTo: (id <String>) systemCommand
+- initWithPipeTo: (NSString*) systemCommand
 {
   return [self initWithFilePointer:
 	       popen([systemCommand cStringNoCopy], "w")
 	       fmode:"w"];
 }
 
-- initWithPipeFrom: (id <String>) systemCommand
+- initWithPipeFrom: (NSString*) systemCommand
 {
   return [self initWithFilePointer:
 	       popen([systemCommand cStringNoCopy], "r")
@@ -188,7 +188,7 @@ o_vscanf (void *stream,
   return ret;
 }
 
-- (int) writeFormat: (id <String>)format
+- (int) writeFormat: (NSString*)format
 	  arguments: (va_list)arg
 {
   return vfprintf(fp, [format cStringNoCopy], arg);
@@ -205,7 +205,7 @@ stdio_unchar_func(void *s, int c)
    ungetc(c, (FILE*)s);
 }
 
-- (int) readFormat: (id <String>)format, ...
+- (int) readFormat: (NSString*)format, ...
 {
   int ret;
   va_list ap;

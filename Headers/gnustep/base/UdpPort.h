@@ -49,7 +49,7 @@
 }
 
 - (int) portNumber;
-- (id <String>) hostname;
+- (NSString*) hostname;
 
 @end
 

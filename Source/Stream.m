@@ -59,14 +59,14 @@ NSString* StreamException = @"StreamException";
   return 0;
 }
 
-- (int) writeFormat: (id <String>)format
+- (int) writeFormat: (NSString*)format
 	  arguments: (va_list)arg
 {
   [self subclassResponsibility:_cmd];
   return 0;
 }
 
-- (int) writeFormat: (id <String>)format, ...
+- (int) writeFormat: (NSString*)format, ...
 {
   int ret;
   va_list ap;
@@ -77,27 +77,27 @@ NSString* StreamException = @"StreamException";
   return ret;
 }
 
-- (int) readFormat: (id <String>)format
+- (int) readFormat: (NSString*)format
 	 arguments: (va_list)arg
 {
   [self subclassResponsibility:_cmd];
   return 0;
 }
 
-- (int) readFormat: (id <String>)format, ...
+- (int) readFormat: (NSString*)format, ...
 {
   [self subclassResponsibility:_cmd];
   return 0;
 }
 
-- (void) writeLine: (id <String>)l
+- (void) writeLine: (NSString*)l
 {
   const char *s = [l cStringNoCopy];
   [self writeBytes:s length:strlen(s)];
   [self writeBytes:"\n" length:1];
 }
 
-- (id <String>) readLine
+- (NSString*) readLine
 {
   char *l;
   [self readFormat: @"%a[^\n]\n", &l];

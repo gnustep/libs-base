@@ -35,13 +35,13 @@
 - (int) writeBytes: (const void*)b length: (int)l;
 - (int) readBytes: (void*)b length: (int)l;
 
-- (int) writeFormat: (id <String>)format, ...;
-- (int) readFormat: (id <String>)format, ...;
-- (int) writeFormat: (id <String>)format arguments: (va_list)arg;
-- (int) readFormat: (id <String>)format arguments: (va_list)arg;
+- (int) writeFormat: (NSString*)format, ...;
+- (int) readFormat: (NSString*)format, ...;
+- (int) writeFormat: (NSString*)format arguments: (va_list)arg;
+- (int) readFormat: (NSString*)format arguments: (va_list)arg;
 
-- (void) writeLine: (id <String>)l;
-- (id <String>) readLine;
+- (void) writeLine: (NSString*)l;
+- (NSString*) readLine;
 
 - (unsigned) streamPosition;
 - (BOOL) isAtEof;

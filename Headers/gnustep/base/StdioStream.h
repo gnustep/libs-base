@@ -38,15 +38,15 @@
 + standardOut;
 + standardError;
 
-+ streamWithFilename: (id <String>)name fmode: (const char *)m;
++ streamWithFilename: (NSString*)name fmode: (const char *)m;
 /* xxx Add the others too. */
 
 - initWithFilePointer: (FILE*)afp fmode: (const char *)m;
-- initWithFilename: (id <String>)name fmode: (const char *)m;
+- initWithFilename: (NSString*)name fmode: (const char *)m;
 - initWithFileDescriptor: (int)fd fmode: (const char *)m;
 
-- initWithPipeTo: (id <String>)systemCommand;
-- initWithPipeFrom: (id <String>)systemCommand;
+- initWithPipeTo: (NSString*)systemCommand;
+- initWithPipeFrom: (NSString*)systemCommand;
 
 @end
 

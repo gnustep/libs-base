@@ -109,7 +109,7 @@
    INVOCATION and NAME, however, are retained. */
 
 - (void) addInvocation: (id <Invoking>)invocation
-                  name: (id <String>)name
+                  name: (NSString*)name
 	        object: object;
 
 /* Register OBSERVER to receive future notifications that match NAME
@@ -132,18 +132,18 @@
 
 - (void) addObserver: observer
             selector: (SEL)sel
-                name: (id <String>)name
+                name: (NSString*)name
 	      object: object;
 
 /* Class versions of the above two methods that send these messages
    to the default NotificationDispatcher for the class. */
 
 + (void) addInvocation: (id <Invoking>)invocation
-                  name: (id <String>)name
+                  name: (NSString*)name
 	        object: object;
 + (void) addObserver: observer
             selector: (SEL)sel
-                name: (id <String>)name
+                name: (NSString*)name
 	      object: object;
 
 
@@ -159,7 +159,7 @@
    request, nil NAME or OBJECT act as wildcards. */
 
 - (void) removeInvocation: invocation
-                     name: (id <String>)name
+                     name: (NSString*)name
                    object: object;
 
 /* Remove all records pertaining to OBSERVER.  For instance, this 
@@ -172,7 +172,7 @@
    OBJECT act as wildcards. */
 
 - (void) removeObserver: observer
-		   name: (id <String>)name
+		   name: (NSString*)name
                  object: object;
 
 /* Class versions of the above four methods that send these messages
@@ -180,11 +180,11 @@
 
 + (void) removeInvocation: invocation;
 + (void) removeInvocation: invocation
-                     name: (id <String>)name
+                     name: (NSString*)name
                    object: object;
 + (void) removeObserver: observer;
 + (void) removeObserver: observer
-		   name: (id <String>)name
+		   name: (NSString*)name
                  object: object;
 
 
@@ -195,9 +195,9 @@
    pass that single object instead of a Dictionary containing the object. */
 
 - (void) postNotification: notification;
-- (void) postNotificationName: (id <String>)name 
+- (void) postNotificationName: (NSString*)name 
 		       object: object;
-- (void) postNotificationName: (id <String>)name 
+- (void) postNotificationName: (NSString*)name 
 		       object: object
 		     userInfo: info;
 
@@ -205,9 +205,9 @@
    to the default NotificationDispatcher for the class. */
 
 + (void) postNotification: notification;
-+ (void) postNotificationName: (id <String>)name 
++ (void) postNotificationName: (NSString*)name 
 		       object: object;
-+ (void) postNotificationName: (id <String>)name 
++ (void) postNotificationName: (NSString*)name 
 		       object: object
 		     userInfo: info;
 

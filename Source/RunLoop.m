@@ -129,7 +129,7 @@
 
 - (void) addReadDescriptor: (int)fd
 		    object: (id <FdListening>)listener
-		   forMode: (id <String>)mode
+		   forMode: (NSString*)mode
 {
   Bag		*fd_listeners;
   FdInfo	*info;
@@ -156,7 +156,7 @@
 
 - (void) addWriteDescriptor: (int)fd
 		    object: (id <FdSpeaking>)speaker
-		   forMode: (id <String>)mode
+		   forMode: (NSString*)mode
 {
   Bag		*fd_speakers;
   FdInfo	*info;
@@ -182,7 +182,7 @@
 }
 
 - (void) removeReadDescriptor: (int)fd 
-		      forMode: (id <String>)mode
+		      forMode: (NSString*)mode
 {
   Bag*	fd_listeners;
 
@@ -203,7 +203,7 @@
 }
 
 - (void) removeWriteDescriptor: (int)fd 
-		      forMode: (id <String>)mode
+		      forMode: (NSString*)mode
 {
   Bag*	fd_speakers;
 
@@ -253,7 +253,7 @@ static RunLoop *current_run_loop;
   return self;
 }
 
-- (id <String>) currentMode
+- (NSString*) currentMode
 {
   return _current_mode;
 }
@@ -262,7 +262,7 @@ static RunLoop *current_run_loop;
 /* Adding and removing port objects. */
 
 - (void) addPort: port
-         forMode: (id <String>)mode
+         forMode: (NSString*)mode
 {
   /* xxx Perhaps this should be a Bag instead; I think this currently works
      when a port is added more than once, but it doesn't work prettily. */
@@ -279,7 +279,7 @@ static RunLoop *current_run_loop;
 }
 
 - (void) removePort: port
-            forMode: (id <String>)mode
+            forMode: (NSString*)mode
 {
   /* xxx Perhaps this should be a Bag instead. */
   Array *in_ports;
@@ -296,7 +296,7 @@ static RunLoop *current_run_loop;
 /* Adding timers.  They are removed when they are invalid. */
 
 - (void) addTimer: timer
-	  forMode: (id <String>)mode
+	  forMode: (NSString*)mode
 {
   Heap *timers;
 
@@ -314,7 +314,7 @@ static RunLoop *current_run_loop;
 
 /* Fire appropriate timers. */
 
-- limitDateForMode: (id <String>)mode
+- limitDateForMode: (NSString*)mode
 {
   /* Linux doesn't always return double from methods, even though
      I'm using -lieee. */
@@ -361,7 +361,7 @@ static RunLoop *current_run_loop;
 /* Listen to input sources.
    If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
 
-- (void) acceptInputForMode: (id <String>)mode 
+- (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: limit_date
 {
   NSTimeInterval ti;
@@ -552,7 +552,7 @@ static RunLoop *current_run_loop;
 
 /* Running the run loop once through for timers and input listening. */
 
-- (BOOL) runOnceBeforeDate: date forMode: (id <String>)mode
+- (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
 {
   id d;
 
@@ -588,7 +588,7 @@ static RunLoop *current_run_loop;
 
 /* Running the run loop multiple times through. */
 
-- (void) runUntilDate: date forMode: (id <String>)mode
+- (void) runUntilDate: date forMode: (NSString*)mode
 {
   volatile double ti;
 
@@ -630,7 +630,7 @@ static RunLoop *current_run_loop;
   [current_run_loop runUntilDate: date];
 }
 
-+ (void) runUntilDate: date forMode: (id <String>)mode
++ (void) runUntilDate: date forMode: (NSString*)mode
 {
   assert (current_run_loop);
   [current_run_loop runUntilDate: date forMode: mode];
@@ -641,7 +641,7 @@ static RunLoop *current_run_loop;
   return [current_run_loop runOnceBeforeDate: date];
 }
 
-+ (BOOL) runOnceBeforeDate: date forMode: (id <String>)mode
++ (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
 {
   return [current_run_loop runOnceBeforeDate: date forMode: mode];
 }
@@ -652,7 +652,7 @@ static RunLoop *current_run_loop;
   return current_run_loop;
 }
 
-+ (id <String>) currentMode
++ (NSString*) currentMode
 {
   return [current_run_loop currentMode];
 }
@@ -679,9 +679,9 @@ id RunLoopDefaultMode = @"RunLoopDefaultMode";
 
 
 #if 0
-- getNotificationWithName: (id <String>)name
+- getNotificationWithName: (NSString*)name
 		   object: object
-		   inMode: (id <String>)mode
+		   inMode: (NSString*)mode
                beforeDate: date
 {
   /* See if any timers should fire, and fire them. */
@@ -698,9 +698,9 @@ id RunLoopDefaultMode = @"RunLoopDefaultMode";
 }
 
 /* Some alternate names */
-- waitForNotificationWithName: (id <String>)name
+- waitForNotificationWithName: (NSString*)name
 		       object: object
-		       inMode: (id <String>)mode
+		       inMode: (NSString*)mode
                     untilDate: date
 {
 }
@@ -710,14 +710,14 @@ id RunLoopDefaultMode = @"RunLoopDefaultMode";
 
 /* The old alternate names */
 - (void) makeNotificationsForFileDescriptor: (int)fd
-				    forMode: (id <String>)mode
-				       name: (id <String>)name
+				    forMode: (NSString*)mode
+				       name: (NSString*)name
                                      object: object
                                   postingTo: (id <NotificationPosting>)poster
 			       postingStyle: style
 - (void) addFileDescriptor: (int)fd
-		   forMode: (id <String>)mode
-	   postingWithName: (id <String>)name
+		   forMode: (NSString*)mode
+	   postingWithName: (NSString*)name
                     object: object;
 - (void) addFileDescriptor: (int)fd 
 	      withAttender: (id <FileDescriptorAttending>)object

@@ -40,19 +40,19 @@
    It reads the CStream signature at the beginning of the file, and
    automatically creates the appropriate subclass of CStream with
    the correct format version. */
-+ cStreamReadingFromFile: (id <String>) filename;
++ cStreamReadingFromFile: (NSString*) filename;
 + cStreamReadingFromStream: (id <Streaming>) stream;
 
 /* These are standard ways to create a new CStream with a Stream 
    that is open for writing. */
-- initForWritingToFile: (id <String>) filename;
+- initForWritingToFile: (NSString*) filename;
 - initForWritingToStream: (id <Streaming>) stream;
 
 - initForWritingToStream: (id <Streaming>) s
        withFormatVersion: (int)version;
 
 + cStreamWritingToStream: (id <Streaming>) stream;
-+ cStreamWritingToFile: (id <String>) filename;
++ cStreamWritingToFile: (NSString*) filename;
 
 @end
 

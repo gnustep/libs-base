@@ -162,7 +162,7 @@ my_object_is_class(id object)
 	       withCStreamClass: [[self class] defaultCStreamClass]];
 }
 
-- initForWritingToFile: (id <String>) filename
+- initForWritingToFile: (NSString*) filename
      withFormatVersion: (int) version
           cStreamClass: (Class) cStreamClass
   cStreamFormatVersion: (int) cStreamFormatVersion
@@ -175,7 +175,7 @@ my_object_is_class(id object)
 	       cStreamFormatVersion: cStreamFormatVersion];
 }
 
-- initForWritingToFile: (id <String>) filename
+- initForWritingToFile: (NSString*) filename
       withCStreamClass: (Class) cStreamClass
 {
   return [self initForWritingToStream: [StdioStream 
@@ -184,7 +184,7 @@ my_object_is_class(id object)
 	       withCStreamClass: cStreamClass];
 }
 
-- initForWritingToFile: (id <String>) filename
+- initForWritingToFile: (NSString*) filename
 {
   return [self initForWritingToStream: 
 		 [StdioStream streamWithFilename: filename
@@ -196,7 +196,7 @@ my_object_is_class(id object)
   return [[self alloc] initForWritingToStream: s];
 }
 
-+ newWritingToFile: (id <String>)filename
++ newWritingToFile: (NSString*)filename
 {
   return [self newWritingToStream:
 		 [StdioStream streamWithFilename: filename
@@ -204,7 +204,7 @@ my_object_is_class(id object)
 }
 
 + (BOOL) encodeRootObject: anObject
-		 withName: (id <String>) name
+		 withName: (NSString*) name
 		 toStream: (id <Streaming>)stream
 {
   id c = [[self alloc] initForWritingToStream: stream];
@@ -215,8 +215,8 @@ my_object_is_class(id object)
 }
 
 + (BOOL) encodeRootObject: anObject 
-  	         withName: (id <String>) name
-                   toFile: (id <String>) filename
+  	         withName: (NSString*) name
+                   toFile: (NSString*) filename
 {
   return [self encodeRootObject: anObject
 	       withName: name
@@ -365,7 +365,7 @@ my_object_is_class(id object)
 
 - (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   [cstream encodeValueOfCType:type
 	   at:d
@@ -374,7 +374,7 @@ my_object_is_class(id object)
 
 - (void) encodeBytes: (const void *)b
    count: (unsigned)c
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   /* xxx Is this what we want?  
      It won't be cleanly readable in TextCStream's. */
@@ -450,14 +450,14 @@ my_object_is_class(id object)
 }
 
 - (void) encodeAtomicString: (const char*) sp
-   withName: (id <String>) name
+   withName: (NSString*) name
 {
   /* xxx Add repeat-string-ptr checking here. */
   [self notImplemented:_cmd];
   [self encodeValueOfCType:@encode(char*) at:&sp withName:name];
 }
 
-- (void) encodeSelector: (SEL)sel withName: (id <String>) name
+- (void) encodeSelector: (SEL)sel withName: (NSString*) name
 {
   [self encodeName:name];
   [self encodeIndent];
@@ -520,7 +520,7 @@ my_object_is_class(id object)
 
 - (void) encodeValueOfObjCType: (const char*) type 
    at: (const void*) d 
-   withName: (id <String>) name
+   withName: (NSString*) name
 {
   switch (*type)
     {
@@ -564,7 +564,7 @@ my_object_is_class(id object)
 
 /* NOTE: Unlike NeXT's, this *can* be called recursively */
 - (void) encodeRootObject: anObj
-    withName: (id <String>)name
+    withName: (NSString*)name
 {
   [self encodeName: @"Root Object"];
   [self encodeIndent];
@@ -618,7 +618,7 @@ my_object_is_class(id object)
 
 /* This is the designated object encoder */
 - (void) _encodeObject: anObj
-   withName: (id <String>) name
+   withName: (NSString*) name
    isBycopy: (BOOL) bycopy_flag
    isForwardReference: (BOOL) forward_ref_flag
 {
@@ -726,27 +726,27 @@ my_object_is_class(id object)
 }
 
 - (void) encodeObject: anObj
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   [self _encodeObject:anObj withName:name isBycopy:NO isForwardReference:NO];
 }
 
 
 - (void) encodeBycopyObject: anObj
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   [self _encodeObject:anObj withName:name isBycopy:YES isForwardReference:NO];
 }
 
 - (void) encodeObjectReference: anObj
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   [self _encodeObject:anObj withName:name isBycopy:NO isForwardReference:YES];
 }
 
 
 
-- (void) encodeWithName: (id <String>)name
+- (void) encodeWithName: (NSString*)name
    valuesOfObjCTypes: (const char *)types, ...
 {
   va_list ap;
@@ -765,7 +765,7 @@ my_object_is_class(id object)
 
 - (void) encodeValueOfObjCTypes: (const char *)types
    at: (const void *)d
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   [self encodeName:name];
   while (*types)
@@ -780,7 +780,7 @@ my_object_is_class(id object)
 - (void) encodeArrayOfObjCType: (const char *)type
    count: (unsigned)c
    at: (const void *)d
-   withName: (id <String>)name
+   withName: (NSString*)name
 {
   int i;
   int offset = objc_sizeof_type(type);
@@ -806,7 +806,7 @@ my_object_is_class(id object)
   [cstream encodeUnindent];
 }
 
-- (void) encodeName: (id <String>)n
+- (void) encodeName: (NSString*)n
 {
   [cstream encodeName: n];
 }
@@ -814,7 +814,7 @@ my_object_is_class(id object)
 
 /* Substituting Classes */
 
-- (id <String>) classNameEncodedForTrueClassName: (id <String>) trueName
+- (NSString*) classNameEncodedForTrueClassName: (NSString*) trueName
 {
   [self notImplemented: _cmd];
   return nil;
@@ -826,8 +826,8 @@ my_object_is_class(id object)
 #endif
 }
 
-- (void) encodeClassName: (id <String>) trueName
-   intoClassName: (id <String>) inArchiveName
+- (void) encodeClassName: (NSString*) trueName
+   intoClassName: (NSString*) inArchiveName
 {
   [self notImplemented: _cmd];
 
