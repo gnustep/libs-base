@@ -1,3 +1,15 @@
+Tue Sep 28  9:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: ([+allocWithZone:]) tiny optimisation.
+	* Source/NSCountedSet.m: Some optimisation.
+	* Source/NSTask.m: implement ([-interrupt]) to send SIGINT.
+	* Source/NSUserDefaults.m: ([-searchList]) return constant array.
+	Various tidying up and optimisations.
+	([-persistentDomainForName:]) fixed memory leak.
+	([-volatileDomainForName:]) return constant dictionary.
+	([-setPersistentDomain:forName:]) make mutable copy.
+	([-setVolatileDomain:forName:]) ditto
+
 Tue Sep 28  5:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTask.m: ([_collectChiled]) bugfix suggested by karl@nfox.com

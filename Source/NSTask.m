@@ -328,7 +328,21 @@ static void handleSignal(int sig)
  */
 - (void) interrupt
 {
-  [self notImplemented: _cmd];	/* Undocumented as yet	*/
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+  if (_hasTerminated)
+    {
+      return;
+    }
+
+#ifdef	HAVE_KILLPG
+  killpg(_taskId, SIGINT);
+#else
+  kill(-_taskId, SIGINT);
+#endif
 }
 
 /* Declaration from find_exec.c */
