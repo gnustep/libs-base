@@ -36,15 +36,7 @@
    functions is implemented in NSProcessInfo.m
 */
 
-/* Currently this only actually necessary if we don't have ELF.
-   If we have ELF, we can do something far cleaner.  
-   See src/NSProcessInfo.m [__ELF__]. 
-   Hopefully, in the future, we'll do something cleaner 
-   with non-ELF systems too. 
-     -mccallum 
-*/
-
-#if (!defined(__ELF__) && !defined(SYS_AUTOLOAD)) || defined(__FreeBSD__) || defined(__PPC__)
+#if (!defined(SYS_AUTOLOAD)) || defined(__FreeBSD__)
 #ifndef __MINGW32__
 #define main gnustep_base_user_main
 extern int gnustep_base_user_main (/* int argc, char *argv[] */);
