@@ -28,11 +28,16 @@
 */ 
 
 #include <config.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSBundle.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSPathUtilities.h>
 #include <base/Unicode.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {unichar from; unsigned char to;} _ucc_;
 
@@ -315,6 +320,183 @@ NSStringEncoding *GetAvailableEncodings()
   return _availableEncodings;
 }
 
+/** Returns the NSStringEncoding that matches the specified
+ *  character set registry and encoding information. For instance,
+ *  for the iso8859-5 character set, the registry is iso8859 and
+ *  the encoding is 5, and the returned NSStringEncoding is
+ *  NSISOCyrillicStringEncoding. If there is no specific encoding,
+ *  use @"0".
+ */
+NSStringEncoding
+GSEncodingForRegistry (NSString *registry, NSString *encoding)
+{
+  if ([registry isEqualToString: @"iso8859"])
+    {
+      if ([encoding isEqualToString: @"1"])
+	return NSISOLatin1StringEncoding;
+      else if ([encoding isEqualToString: @"2"])
+	return NSISOLatin2StringEncoding;
+      else if ([encoding isEqualToString: @"3"])
+	return NSISOLatin3StringEncoding;
+      else if ([encoding isEqualToString: @"4"])
+	return NSISOLatin4StringEncoding;
+      else if ([encoding isEqualToString: @"5"])
+	return NSISOCyrillicStringEncoding;
+      else if ([encoding isEqualToString: @"6"])
+	return NSISOArabicStringEncoding;
+      else if ([encoding isEqualToString: @"7"])
+	return NSISOGreekStringEncoding;
+      else if ([encoding isEqualToString: @"8"])
+	return NSISOHebrewStringEncoding;
+      // Other latin encodings are currently not supported
+    }
+  else if ([registry isEqualToString: @"iso10646"])
+    {
+      if ([encoding isEqualToString: @"1"])
+	return NSUnicodeStringEncoding;
+    }
+  else if ([registry isEqualToString: @"microsoft"])
+    {
+      if ([encoding isEqualToString: @"symbol"])
+	return NSSymbolStringEncoding;
+      else if ([encoding isEqualToString: @"cp1250"])
+	return NSWindowsCP1250StringEncoding;
+      else if ([encoding isEqualToString: @"cp1251"])
+	return NSWindowsCP1251StringEncoding;
+      else if ([encoding isEqualToString: @"cp1252"])
+	return NSWindowsCP1252StringEncoding;
+      else if ([encoding isEqualToString: @"cp1253"])
+	return NSWindowsCP1253StringEncoding;
+      else if ([encoding isEqualToString: @"cp1254"])
+	return NSWindowsCP1254StringEncoding;
+    }
+  else if ([registry isEqualToString: @"apple"])
+    {
+      if ([encoding isEqualToString: @"roman"])
+	return NSMacOSRomanStringEncoding;
+    }
+  else if ([registry isEqualToString: @"jisx0201.1976"])
+    {
+      if ([encoding isEqualToString: @"0"])
+	return NSShiftJISStringEncoding;
+    }
+  else if ([registry isEqualToString: @"iso646.1991"])
+    {
+      if ([encoding isEqualToString: @"irv"])
+	return NSASCIIStringEncoding;
+    }
+  else if ([registry isEqualToString: @"koi8"])
+    {
+      if ([encoding isEqualToString: @"r"])
+	return NSKOI8RStringEncoding;
+    }
+  else if ([registry isEqualToString: @"gb2312.1980"])
+    {
+      if ([encoding isEqualToString: @"0"])
+	return NSGB2312StringEncoding;
+    }
+  else if ([registry isEqualToString: @"big5"])
+    {
+      if ([encoding isEqualToString: @"0"])
+        return NSBIG5StringEncoding;
+    }
+  else if ([registry isEqualToString:@"utf8"]
+	   || [registry isEqualToString:@"utf-8"] )
+    {
+      return NSUTF8StringEncoding;
+    }
+
+  return NSASCIIStringEncoding;
+}
+
+/** Try to deduce the string encoding from the locale string
+ *  clocale. This function looks in the Locale.encodings file
+ *  installed as part of GNUstep Base if the encoding cannot be
+ *  deduced from the clocale string itself. If  clocale isn't set or
+ *  no match can be found, returns GSUndefinedEncoding.
+ */
+/* It would be really nice if this could be used in GetDefEncoding, but
+ * there are too many dependancies on other parts of the library to
+ * make this practical (even if everything possible was written in C,
+ * we'd still need some way to find the Locale.encodings file).
+ */
+NSStringEncoding
+GSEncodingFromLocale(const char *clocale)
+{
+  NSStringEncoding encoding;
+  NSString *encodstr;
+
+  if (clocale == NULL || strcmp(clocale, "C") == 0 
+      || strcmp(clocale, "POSIX") == 0) 
+    {
+      /* Don't make any assumptions. Let caller handle that */
+      return GSUndefinedEncoding;
+    }
+
+  if (strchr (clocale, '.') != NULL)
+    {
+      /* Locale contains the 'codeset' section. Parse it and see
+	 if we know what encoding this cooresponds to */
+      NSString *registry;
+      NSArray *array;
+      char *s;
+      s = strchr (clocale, '.');
+      registry = [[NSString stringWithCString: s+1] lowercaseString];
+      array = [registry componentsSeparatedByString: @"-"];
+      registry = [array objectAtIndex: 0];
+      if ([array count] > 1)
+	{
+	  encodstr = [array lastObject];
+	}
+      else
+	{
+	  encodstr = @"0";
+	}
+      
+      encoding = GSEncodingForRegistry(registry, encodstr);
+      if (encoding == NSASCIIStringEncoding)
+	encoding = GSUndefinedEncoding;
+    }
+  else
+    {
+      /* Look up the locale in our table of encodings */
+      NSString *table;
+
+      table = [NSBundle pathForGNUstepResource: @"Locale"
+		                        ofType: @"encodings"
+		                   inDirectory: @"Resources/Languages"];  
+      if (table != nil)
+	{
+	  int count;
+	  NSDictionary	*dict;
+	  
+	  dict = [NSDictionary dictionaryWithContentsOfFile: table];
+	  encodstr = [dict objectForKey: 
+			     [NSString stringWithCString: clocale]];
+
+	  /* Find the matching encoding */
+	  count = 0;
+	  while (str_encoding_table[count].enc
+		 && strcmp(str_encoding_table[count].ename, 
+			   [encodstr lossyCString]))
+	    {
+	      count++;
+	    }
+	  if (str_encoding_table[count].enc)
+	    {
+	      encoding = str_encoding_table[count].enc;
+	    }
+	  if (encoding == GSUndefinedEncoding)
+	    {
+	      NSLog(@"No known GNUstep encoding for %s = %@",
+		    clocale, encodstr);
+	    }
+	}
+    }
+      
+  return encoding;
+}
+
 /**
  * Return the default encoding
  */
@@ -340,36 +522,34 @@ GetDefEncoding()
 	{
 	  count = 0;
 	  while (str_encoding_table[count].enc
-	    && strcmp(str_encoding_table[count].ename, encoding))
+		 && strcmp(str_encoding_table[count].ename, encoding))
 	    {
 	      count++;
 	    }
 	  if (str_encoding_table[count].enc)
 	    {
 	      defEnc = str_encoding_table[count].enc;
-	      if (GSEncodingSupported(defEnc) == NO)
-		{
-		  fprintf(stderr, "WARNING: %s - encoding not implemented as "
-		    "default c string encoding.\n", encoding);
-		  fprintf(stderr,
-		    "NSISOLatin1StringEncoding set as default.\n");
-		  defEnc = NSISOLatin1StringEncoding;
-		}
 	    }
-	  else /* encoding not found */
+	  else
 	    {
 	      fprintf(stderr,
-		"WARNING: %s - encoding not supported.\n", encoding);
-	      fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+		      "WARNING: %s - encoding not supported.\n", encoding);
+	      fprintf(stderr, 
+		      "  NSISOLatin1StringEncoding set as default.\n");
 	      defEnc = NSISOLatin1StringEncoding;
 	    }
 	}
-      else /* environment var not found */
+      if (defEnc == GSUndefinedEncoding)
 	{
-	  /* shouldn't be required. It really should be in UserDefaults - asf */
-	  //fprintf(stderr, "WARNING: GNUSTEP_STRING_ENCODING environment");
-	  //fprintf(stderr, " variable not found.\n");
-	  //fprintf(stderr, "NSISOLatin1StringEncoding set as default.\n");
+	  /* Encoding not set */
+	  defEnc = NSISOLatin1StringEncoding;
+	}
+      else if (GSEncodingSupported(defEnc) == NO)
+	{
+	  fprintf(stderr, "WARNING: %s - encoding not implemented as "
+		  "default c string encoding.\n", encoding);
+	  fprintf(stderr,
+		  "  NSISOLatin1StringEncoding set as default.\n");
 	  defEnc = NSISOLatin1StringEncoding;
 	}
       [gnustep_global_lock unlock];

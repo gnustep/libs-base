@@ -1,5 +1,16 @@
 2002-10-21  Adam Fedor  <fedor@gnu.org>
 
+	* Source/GSLocale.m (GSLanguageFromLocale): Implement regardless
+	of HAVE_LOCALE_H.
+
+	* Source/Unicode.m (GSEncodingForRegistry): New (from
+	[GSFontInfo +encodingForRegistry:encoding:]).
+	(GSEncodingFromLocale): New.
+	(GetDefEncoding): Rearrange encoding check.
+	* Resources/Languages/Locale.encodings: New file.
+
+2002-10-21  Adam Fedor  <fedor@gnu.org>
+
 	* Documentation/coding-standards.texi: Update.
 
 2002-10-14  Richard Frith-Macdonald <rfm@gnu.org>

@@ -45,7 +45,8 @@ Languages/Russian \
 Languages/Slovak \
 Languages/UkraineRussian
 
-LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases
+LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
+	Languages/Locale.encodings
 
 -include GNUmakefile.local
 

@@ -211,6 +211,21 @@ GSDomainFromDefaultLocale(void)
 #endif
 }
 
+#else /* HAVE_LOCALE_H */
+NSString *
+GSSetLocale(NSString *locale)
+{
+  return nil;
+}
+
+NSDictionary *
+GSDomainFromDefaultLocale(void)
+{
+  return nil;
+}
+
+#endif /* !HAVE_LOCALE_H */
+
 NSString *
 GSLanguageFromLocale(NSString *locale)
 {
@@ -243,26 +258,3 @@ GSLanguageFromLocale(NSString *locale)
       
   return language;
 }
-
-#else /* HAVE_LOCALE_H */
-NSString *
-GSSetLocale(NSString *locale)
-{
-  return nil;
-}
-
-NSDictionary *
-GSDomainFromDefaultLocale(void)
-{
-  return nil;
-}
-
-NSString *
-GSLanguageFromLocale(NSString *locale)
-{
-  return nil;
-}
-
-#endif /* !HAVE_LOCALE_H */
-
-

@@ -38,6 +38,9 @@
 
 GS_EXPORT NSStringEncoding *GetAvailableEncodings();
 GS_EXPORT NSStringEncoding GetDefEncoding();
+GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale);
+GS_EXPORT NSStringEncoding GSEncodingForRegistry(NSString *registry, 
+						 NSString *encoding);
 GS_EXPORT NSString* GetEncodingName(NSStringEncoding encoding);
 
 GS_EXPORT unichar chartouni(unsigned char c);
