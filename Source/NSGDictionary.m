@@ -25,7 +25,6 @@
 #include <objects/NSDictionary.h>
 #include <objects/behavior.h>
 #include <objects/Dictionary.h>
-#include <objects/eltfuncs.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 
