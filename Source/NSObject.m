@@ -256,25 +256,27 @@ NSDecrementExtraRefCountWasZero(id anObject)
   if (allocationLock != 0)
     {
       objc_mutex_lock(allocationLock);
-      if (((obj)anObject)[-1].retained-- == 0)
+      if (((obj)anObject)[-1].retained == 0)
 	{
 	  objc_mutex_unlock(allocationLock);
 	  return YES;
 	}
       else
 	{
+	  ((obj)anObject)[-1].retained--;
 	  objc_mutex_unlock(allocationLock);
 	  return NO;
 	}
     }
   else
     {
-      if (((obj)anObject)[-1].retained-- == 0)
+      if (((obj)anObject)[-1].retained == 0)
 	{
 	  return YES;
 	}
       else
 	{
+	  ((obj)anObject)[-1].retained--;
 	  return NO;
 	}
     }
@@ -347,10 +349,15 @@ NSDecrementExtraRefCountWasZero (id anObject)
 	  objc_mutex_unlock(allocationLock);
 	  return YES;
 	}
-      NSCAssert(node->value.uint > 0, NSInternalInconsistencyException);
-      if (--(node->value.uint) == 0)
+      if (node->value.uint == 0)
 	{
 	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
+	  objc_mutex_unlock(allocationLock);
+	  return YES;
+	}
+      else
+	{
+	  (node->value.uint)--;
 	}
       objc_mutex_unlock(allocationLock);
     }
@@ -361,13 +368,17 @@ NSDecrementExtraRefCountWasZero (id anObject)
 	{
 	  return YES;
 	}
-      NSCAssert(node->value.uint > 0, NSInternalInconsistencyException);
-      if (--(node->value.uint) == 0)
+      if (node->value.uint) == 0)
 	{
 	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
+	  return YES;
+	}
+      else
+	{
+	  --(node->value.uint);
+	  return NO;
 	}
     }
-  return NO;
 }
 
 unsigned
@@ -1154,6 +1165,11 @@ static BOOL double_release_check_enabled = NO;
   return (*msg)(self, aSelector, object1, object2);
 }
 
+/**
+ * Calls the NSDecrementExtraRefCountWasZero() function to test the
+ * extra reference count for the receiver (and decrement it if non-zero).<br />
+ * If it was zero, calls the -dealloc method to destroy the receiver.<br />
+ */
 - (oneway void) release
 {
 #if	GS_WITH_GC == 0
@@ -1177,6 +1193,12 @@ static BOOL double_release_check_enabled = NO;
 #endif
 }
 
+/**
+ * The class implementation of the release method is a dummy method
+ * having no effect.  It is present so that class objects can be stored
+ * in containers (such as NSArray) which will send them retain and
+ * release messages.
+ */
 + (oneway void) release
 {
   return;
@@ -1187,6 +1209,10 @@ static BOOL double_release_check_enabled = NO;
   return __objc_responds_to(self, aSelector);
 }
 
+/**
+ * Increments the reference count for the receiver by calling
+ * NSIncrementExtraRefCount()
+ */
 - (id) retain
 {
 #if	GS_WITH_GC == 0
@@ -1195,11 +1221,22 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
+/**
+ * The class implementation of the retain method is a dummy method
+ * having no effect.  It is present so that class objects can be stored
+ * in containers (such as NSArray) which will send them retain and
+ * release messages.
+ */
 + (id) retain
 {
   return self;
 }
 
+/**
+ * Returns the reference count for the receiver.  Each instance has an
+ * implicit reference count of 1, and has an 'extra refrence count'
+ * returned by the NSExtraRefCount() function.
+ */
 - (unsigned) retainCount
 {
 #if	GS_WITH_GC
@@ -1209,6 +1246,11 @@ static BOOL double_release_check_enabled = NO;
 #endif
 }
 
+/**
+ * The class implementation of the retainCount method always returns
+ * the maximum unsigned integer value, as classes can not be deallocated
+ * the retain count mechanism is a dummy system for them.
+ */
 + (unsigned) retainCount
 {
   return UINT_MAX;
