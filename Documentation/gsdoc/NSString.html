@@ -10,6 +10,8 @@
 <dl>
 <dt><a href="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
+<dt>James Dessart
+<dd>
 </dl>
 <p>Version: 0.1</p>
 <p>Date: 28 February, 2000</p>
@@ -20,6 +22,16 @@
 <p><b>Conforms to:</b> NSCoding
 </p>
 <hr>
+
+          <p>
+NSString objects represent an immutable string of characters.  NSString itself is an
+          abstract class which provides factory methods to generate objects of unspecified
+          subclasses.</p>
+
+
+          <p>
+A constant NSString can be created using the following syntax: <code>@"..."</code>,
+          where the contents of the quotes are the string, using only ASCII characters.</p>
 
           
 <ul>
@@ -116,15 +128,24 @@
 <h2><a name="method-0">availableStringEncodings</a></h2>
 + (const NSStringEncoding*) <b>availableStringEncodings</b><br>
 
+          <p>
+Returns an array of all available string encodings, terminated by a null value.</p>
+
           
 <hr>
 <h2><a name="method-1">defaultCStringEncoding</a></h2>
 + (NSStringEncoding) <b>defaultCStringEncoding</b><br>
 
+          <p>
+Returns the encoding used for any method accepting a C string.</p>
+
           
 <hr>
 <h2><a name="method-2">localizedNameOfStringEncoding:</a></h2>
 + (NSString*) <b>localizedNameOfStringEncoding:</b> (NSStringEncoding)encoding<br>
+
+          <p>
+Returns the localized name of the encoding specified by <var>encoding</var>.</p>
 
           
 <hr>
