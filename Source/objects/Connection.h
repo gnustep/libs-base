@@ -52,7 +52,8 @@
   NSMapTable *remote_proxies;
   int in_timeout;
   int out_timeout;
-  Class port_class;
+  Class in_port_class;
+  Class out_port_class;
   Class encoding_class;
   NSMapTable *incoming_xref_2_const_ptr;
   NSMapTable *outgoing_const_ptr_2_xref;
@@ -60,8 +61,10 @@
 }
 
 /* Setting and getting class configuration */
-+ (Class) defaultPortClass;
-+ (void) setDefaultPortClass: (Class) aPortClass;
++ (Class) defaultInPortClass;
++ (void) setDefaultInPortClass: (Class) aPortClass;
++ (Class) defaultOutPortClass;
++ (void) setDefaultOutPortClass: (Class) aPortClass;
 + (Class) defaultProxyClass;
 + (void) setDefaultProxyClass: (Class) aClass;
 + (int) defaultOutTimeout;
@@ -136,8 +139,10 @@
 - (int) inTimeout;
 - (void) setOutTimeout: (int)to;
 - (void) setInTimeout: (int)to;
-- (Class) portClass;
-- (void) setPortClass: aPortClass;
+- (Class) inPortClass;
+- (Class) outPortClass;
+- (void) setInPortClass: (Class)aPortClass;
+- (void) setOutPortClass: (Class)aPortClass;
 - (Class) proxyClass;
 - (Class) encodingClass;
 - (Class) decodingClass;
@@ -211,5 +216,6 @@ extern NSString *ConnectionBecameInvalidNotification;
 #define CONNECTION_DEFAULT_TIMEOUT   15000 /* in milliseconds */
 
 extern NSString *ConnectionBecameInvalidNotification;
+extern NSString *ConnectionWasCreatedNotification;
 
 #endif /* __Connection_h_OBJECTS_INCLUDE */
