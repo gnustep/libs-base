@@ -92,6 +92,7 @@
 
 #define	MAX_EXTRA	((GDO_NAME_MAX_LEN - 2 * IASIZE)/IASIZE)
 
+typedef	unsigned char	*uptr;
 int	debug = 0;		/* Extra debug logging.			*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
 int	noprobe = 0;		/* turn off probe for unknown servers.	*/
@@ -129,7 +130,7 @@ static void	init_iface();
 static void	load_iface(const char* from);
 static void	init_ports();
 static void	init_probe();
-static void	queue_msg(struct sockaddr_in* a, unsigned char* d, int l);
+static void	queue_msg(struct sockaddr_in* a, uptr d, int l);
 static void	queue_pop();
 static void	queue_probe(struct in_addr* to, struct in_addr *from, int num_extras, struct in_addr* extra, int is_reply);
 
@@ -141,8 +142,8 @@ static void	queue_probe(struct in_addr* to, struct in_addr *from, int num_extras
 static void
 mcopy(void* p0, void* p1, int l)
 {
-    unsigned char*	b0 = (unsigned char*)p0;
-    unsigned char*	b1 = (unsigned char*)p1;
+    uptr	b0 = (uptr)p0;
+    uptr	b1 = (uptr)p1;
     int			i;
 
     for (i = 0; i < l; i++) {
@@ -153,7 +154,7 @@ mcopy(void* p0, void* p1, int l)
 static void
 mzero(void* p, int l)
 {
-    unsigned char*	b = (unsigned char*)p;
+    uptr	b = (uptr)p;
 
     while (l > 0) {
 	*b++ = '\0';
@@ -234,7 +235,7 @@ struct	u_data	{
     struct sockaddr_in	addr;	/* Address to send to.			*/
     int			pos;	/* Number of bytes already sent.	*/
     int 		len;	/* Length of data to send.		*/
-    unsigned char*	dat;	/* Data to be sent.			*/
+    uptr	dat;	/* Data to be sent.			*/
     struct u_data*	next;	/* Next message to send.		*/
 } *u_queue = 0;
 int	udp_pending = 0;
@@ -245,7 +246,7 @@ int	udp_pending = 0;
  *			on the UDP socket.
  */
 void
-queue_msg(struct sockaddr_in* a, unsigned char* d, int l)
+queue_msg(struct sockaddr_in* a, uptr d, int l)
 {
     struct u_data*	entry = (struct u_data*)malloc(sizeof(struct u_data));
 
@@ -286,7 +287,7 @@ queue_pop()
 unsigned short	next_port = IPPORT_USERRESERVED;
 
 typedef struct {
-    unsigned char*	name;	/* Service name registered.	*/
+    uptr	name;	/* Service name registered.	*/
     unsigned int	port;	/* Port it was mapped to.	*/
     unsigned short	size;	/* Number of bytes in name.	*/
     unsigned char	net;	/* Type of port registered.	*/
@@ -298,7 +299,7 @@ int	map_size = 0;
 map_ent	**map = 0;
 
 static int
-compare(unsigned char* n0, int l0, unsigned char* n1, int l1)
+compare(uptr n0, int l0, uptr n1, int l1)
 {
     if (l0 == l1) {
 	return(memcmp(n0, n1, l0));
@@ -315,7 +316,7 @@ compare(unsigned char* n0, int l0, unsigned char* n1, int l1)
  *			into the map in the appropriate position.
  */
 static map_ent*
-map_add(unsigned char* n, unsigned char l, unsigned int p, unsigned char t)
+map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
 {
     map_ent	*m = (map_ent*)malloc(sizeof(map_ent));
     int		i;
@@ -361,7 +362,7 @@ map_add(unsigned char* n, unsigned char l, unsigned int p, unsigned char t)
  *	Purpose -	Search the map for an entry for a particular name
  */
 static map_ent*
-map_by_name(unsigned char* n, int s)
+map_by_name(uptr n, int s)
 {
     int		lower = 0;
     int		upper = map_used;
@@ -1374,7 +1375,7 @@ handle_io()
 static void
 handle_read(int desc)
 {
-    unsigned char*	ptr = r_info[desc].buf.b;
+    uptr	ptr = r_info[desc].buf.b;
     int nothingRead = 1;
     int	done = 0;
     int	r;
@@ -1409,7 +1410,7 @@ handle_read(int desc)
 static void
 handle_recv()
 {
-    unsigned char*	ptr = r_info[udp_desc].buf.b;
+    uptr	ptr = r_info[udp_desc].buf.b;
     struct sockaddr_in*	addr = &r_info[udp_desc].addr;
     int	len = sizeof(struct sockaddr_in);
     int	r;
@@ -1926,13 +1927,539 @@ handle_write(int desc)
     }
 }
 
+/*
+ *	Name -		tryRead()
+ *	Purpose -	Attempt to read from a non blocking channel.
+ *			Time out in specified time.
+ *			If length of data is zero then just wait for
+ *			descriptor to be readable.
+ *			If the length is negative then attempt to
+ *			read the absolute value of length but return
+ *			as soon as anything is read.
+ *
+ *			Return -1 on failure
+ *			Return -2 on timeout
+ *			Return number of bytes read
+ */
+static int
+tryRead(int desc, int tim, unsigned char* dat, int len)
+{
+  struct timeval timeout;
+  fd_set	fds;
+  void		*to;
+  int		rval;
+  int		pos = 0;
+  time_t	when = 0;
+  int		neg = 0;
+
+  if (len < 0) {
+    neg = 1;
+    len = -len;
+  }
+
+  /*
+   *	First time round we do a select with an instant timeout to see
+   *	if the descriptor is already readable.
+   */
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+
+  for (;;) {
+    to = &timeout;
+    FD_ZERO(&fds);
+    FD_SET(desc, &fds);
+
+    rval = select(FD_SETSIZE, &fds, 0, 0, to);
+    if (rval == 0) {
+      time_t	now = time(0);
+
+      if (when == 0) {
+	when = now;
+      }
+      else if (now - when >= tim) {
+        return(-2);		/* Timed out.		*/
+      }
+      else {
+	/* Set the timeout for a new call to select next time round
+         * the loop. */
+	timeout.tv_sec = tim - (now - when);
+	timeout.tv_usec = 0;
+      }
+    }
+    else if (rval < 0) {
+      return(-1);		/* Error in select.	*/
+    }
+    else if (len > 0) {
+      rval = read(desc, &dat[pos], len - pos);
+      if (rval < 0) {
+	if (errno != EWOULDBLOCK) {
+          return(-1);		/* Error in read.	*/
+        }
+      }
+      else if (rval == 0) {
+        return(-1);		/* End of file.		*/
+      }
+      else {
+        pos += rval;
+	if (pos == len || neg == 1) {
+	    return(pos);	/* Read as needed.	*/
+	}
+      }
+    }
+    else {
+      return(0);	/* Not actually asked to read.	*/
+    }
+  }
+}
+
+/*
+ *	Name -		tryWrite()
+ *	Purpose -	Attempt to write to a non blocking channel.
+ *			Time out in specified time.
+ *			If length of data is zero then just wait for
+ *			descriptor to be writable.
+ *			If the length is negative then attempt to
+ *			write the absolute value of length but return
+ *			as soon as anything is written.
+ *
+ *			Return -1 on failure
+ *			Return -2 on timeout
+ *			Return number of bytes written
+ */
+static int
+tryWrite(int desc, int tim, unsigned char* dat, int len)
+{
+  struct timeval timeout;
+  fd_set	fds;
+  void		*to;
+  int		rval;
+  int		pos = 0;
+  time_t	when = 0;
+  int		neg = 0;
+
+  if (len < 0) {
+    neg = 1;
+    len = -len;
+  }
+
+  /*
+   *	First time round we do a select with an instant timeout to see
+   *	if the descriptor is already writable.
+   */
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+
+  for (;;) {
+    to = &timeout;
+    FD_ZERO(&fds);
+    FD_SET(desc, &fds);
+
+    rval = select(FD_SETSIZE, 0, &fds, 0, to);
+    if (rval == 0) {
+      time_t	now = time(0);
+
+      if (when == 0) {
+	when = now;
+      }
+      else if (now - when >= tim) {
+        return(-2);		/* Timed out.		*/
+      }
+      else {
+	/* Set the timeout for a new call to select next time round
+         * the loop. */
+	timeout.tv_sec = tim - (now - when);
+	timeout.tv_usec = 0;
+      }
+    }
+    else if (rval < 0) {
+      return(-1);		/* Error in select.	*/
+    }
+    else if (len > 0) {
+      void	(*ifun)();
+
+      /*
+       *	Should be able to write this short a message immediately, but
+       *	if the connection is lost we will get a signal we must trap.
+       */
+      ifun = signal(SIGPIPE, (void(*)(int))SIG_IGN);
+      rval = write(desc, &dat[pos], len - pos);
+      signal(SIGPIPE, ifun);
+
+      if (rval <= 0) {
+	if (errno != EWOULDBLOCK) {
+          return(-1);		/* Error in write.	*/
+        }
+      }
+      else {
+        pos += rval;
+	if (pos == len || neg == 1) {
+	    return(pos);	/* Written as needed.	*/
+	}
+      }
+    }
+    else {
+      return(0);	/* Not actually asked to write.	*/
+    }
+  }
+}
+
+/*
+ *	Name -		tryHost()
+ *	Purpose -	Perform a name server operation with a given
+ *			request packet to a server at specified address.
+ *			On error - return non-zero with reason in 'errno'
+ */
+static int
+tryHost(unsigned char op, unsigned char len, const unsigned char* name,
+int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
+{
+    int desc = socket(AF_INET, SOCK_STREAM, 0);
+    int	e = 0;
+    unsigned long	port = *p;
+    gdo_req		msg;
+    struct sockaddr_in sin;
+
+    *p = 0;
+    if (desc < 0) {
+	return(1);	/* Couldn't create socket.	*/
+    }
+
+    if ((e = fcntl(desc, F_GETFL, 0)) >= 0) {
+	e |= NBLK_OPT;
+	if (fcntl(desc, F_SETFL, e) < 0) {
+	    e = errno;
+	    close(desc);
+	    errno = e;
+	    return(2);	/* Couldn't set non-blocking.	*/
+	}
+    }
+    else {
+	e = errno;
+	close(desc);
+	errno = e;
+	return(2);	/* Couldn't set non-blocking.	*/
+    }
+
+    memcpy(&sin, addr, sizeof(sin));
+    if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) != 0) {
+	if (errno == EINPROGRESS) {
+	    e = tryWrite(desc, 10, 0, 0);
+	    if (e == -2) {
+		e = errno;
+		close(desc);
+		errno = e;
+		return(3);	/* Connect timed out.	*/
+	    }
+	    else if (e == -1) {
+		e = errno;
+		close(desc);
+		errno = e;
+		return(3);	/* Select failed.	*/
+	    }
+	}
+	else {
+	    e = errno;
+	    close(desc);
+	    errno = e;
+	    return(3);		/* Failed connect.	*/
+	}
+    }
+
+    memset((char*)&msg, '\0', GDO_REQ_SIZE);
+    msg.rtype = op;
+    msg.nsize = len;
+    msg.ptype = ptype;
+    if (op != GDO_REGISTER) {
+	port = 0;
+    }
+    msg.port = htonl(port);
+    memcpy(msg.name, name, len);
+
+    e = tryWrite(desc, 10, (uptr)&msg, GDO_REQ_SIZE);
+    if (e != GDO_REQ_SIZE) {
+	e = errno;
+	close(desc);
+	errno = e;
+	return(4);
+    }
+    e = tryRead(desc, 3, (uptr)&port, 4);
+    if (e != 4) {
+	e = errno;
+	close(desc);
+	errno = e;
+	return(5);	/* Read timed out.	*/
+    }
+    port = ntohl(port);
+
+/*
+ *	Special case for GDO_SERVERS - allocate buffer and read list.
+ */
+    if (op == GDO_SERVERS) {
+	int	len = port * sizeof(struct in_addr);
+	uptr	b;
+
+	b = (uptr)malloc(len);
+	if (tryRead(desc, 3, b, len) != len) {
+	    free(b);
+	    e = errno;
+	    close(desc);
+	    errno = e;
+	    return(5);
+	}
+	*v = b;
+    }
+
+    *p = (unsigned short)port;
+    close(desc);
+    errno = 0;
+    return(0);
+}
+
+/*
+ *	Name -		nameFail()
+ *	Purpose -	If given a failure status from tryHost()
+ *			raise an appropriate exception.
+ */
+static void
+nameFail(int why)
+{
+    switch (why) {
+	case 0:	break;
+	case 1:
+	    fprintf(stderr, "failed to contact name server - socket - %s",
+		strerror(errno));
+	case 2:
+	    fprintf(stderr, "failed to contact name server - socket - %s",
+		strerror(errno));
+	case 3:
+	    fprintf(stderr, "failed to contact name server - socket - %s",
+		strerror(errno));
+	case 4:
+	    fprintf(stderr, "failed to contact name server - socket - %s",
+		strerror(errno));
+    }
+}
+
+/*
+ *	Name -		nameServer()
+ *	Purpose -	Perform name server lookup or registration.
+ *			Return success/failure status and set up an
+ *			address structure for use in bind or connect.
+ *	Restrictions -	0xffff byte name limit
+ *			Uses old style host lookup - only handles the
+ *			primary network interface for each host!
+ */
+static int
+nameServer(const char* name, const char* host, int op, int ptype, struct sockaddr_in* addr, int pnum, int max)
+{
+    struct sockaddr_in	sin;
+    struct servent*	sp;
+    struct hostent*	hp;
+    unsigned short	p = htons(GDOMAP_PORT);
+    unsigned short	port = 0;
+    int			len = strlen(name);
+    int			multi = 0;
+    int			found = 0;
+    int			rval;
+    char local_hostname[MAXHOSTNAMELEN];
+
+    if (len == 0) {
+        fprintf(stderr, "no name specified.\n");
+	return -1;
+    }
+    if (len > 0xffff) {
+        fprintf(stderr, "name length to large.\n");
+	return -1;
+    }
+
+#if	GDOMAP_PORT_OVERRIDE
+    p = htons(GDOMAP_PORT_OVERRIDE);
+#else
+    /*
+     *	Ensure we have port number to connect to name server.
+     *	The TCP service name 'gdomap' overrides the default port.
+     */
+    if ((sp = getservbyname("gdomap", "tcp")) != 0) {
+	p = sp->s_port;		/* Network byte order.	*/
+    }
+#endif
+
+    /*
+     *	The host name '*' matches any host on the local network.
+     */
+    if (host && host[0] == '*' && host[1] == '\0') {
+	multi = 1;
+    }
+    /*
+     *	If no host name is given, we use the name of the local host.
+     *	NB. This should always be the case for operations other than lookup.
+     */
+    if (multi || host == 0 || *host == '\0') {
+        char *first_dot;
+
+        if (gethostname(local_hostname, sizeof(local_hostname)) < 0) {
+	    fprintf(stderr, "gethostname() failed: %s", strerror(errno));
+	    return -1;
+	}
+        first_dot = strchr(local_hostname, '.');
+        if (first_dot) {
+	    *first_dot = '\0';
+	}
+	host = local_hostname;
+    }
+    if ((hp = gethostbyname(host)) == 0) {
+	fprintf(stderr, "gethostbyname() failed: %s", strerror(errno));
+	return -1;
+    }
+    if (hp->h_addrtype != AF_INET) {
+	fprintf(stderr, "non-internet network not supported for %s\n", host);
+	return -1;
+    }
+
+    memset((char*)&sin, '\0', sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_port = p;
+    memcpy((caddr_t)&sin.sin_addr, hp->h_addr, hp->h_length);
+
+    if (multi) {
+	unsigned short	num;
+	struct in_addr*	b;
+
+	/*
+	 *	A host name of '*' is a special case which should do lookup on
+	 *	all machines on the local network until one is found which has 
+	 *	the specified server on it.
+	 */
+	rval = tryHost(GDO_SERVERS, 0, 0, ptype, &sin, &num, (uptr*)&b);
+	if (rval != 0 && host == local_hostname) {
+	    fprintf(stderr, "failed to contact gdomap\n");
+	    return -1;
+	}
+	if (rval == 0) {
+	    int	i;
+
+	    for (i = 0; found == 0 && i < num; i++) {
+		memset((char*)&sin, '\0', sizeof(sin));
+		sin.sin_family = AF_INET;
+		sin.sin_port = p;
+		memcpy((caddr_t)&sin.sin_addr, &b[i], sizeof(struct in_addr));
+		if (sin.sin_addr.s_addr == 0) continue;
+
+		if (tryHost(GDO_LOOKUP, len, name, ptype, &sin, &port, 0)==0) {
+		    if (port != 0) {
+			memset((char*)&addr[found], '\0', sizeof(*addr));
+			memcpy((caddr_t)&addr[found].sin_addr, &sin.sin_addr,
+				sizeof(sin.sin_addr));
+			addr[found].sin_family = AF_INET;
+			addr[found].sin_port = htons(port);
+			found++;
+			if (found == max) {
+			    break;
+			}
+		    }
+		}
+	    }
+	    free(b);
+	    return(found);
+	}
+	else {
+	    nameFail(rval);
+	}
+    }
+    else {
+        if (op == GDO_REGISTER) {
+	    port = (unsigned short)pnum;
+	}
+	rval = tryHost(op, len, name, ptype, &sin, &port, 0);
+	if (rval != 0 && host == local_hostname) {
+	    fprintf(stderr, "failed to contact gdomap\n");
+	    return -1;
+	}
+	nameFail(rval);
+    }
+
+    if (op == GDO_REGISTER) {
+	if (port == 0 || (pnum != 0 && port != pnum)) {
+	    fprintf(stderr, "service already registered.\n");
+	    return -1;
+	}
+    }
+    if (port == 0) {
+	return 0;
+    }
+    memset((char*)addr, '\0', sizeof(*addr));
+    memcpy((caddr_t)&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port);
+    return 1;
+}
+
+static void
+lookup(const char *name, const char *host, int ptype)
+{
+  struct sockaddr_in	sin[100];
+  int			found;
+  int			i;
+
+  found = nameServer(name, host, GDO_LOOKUP, ptype, sin, 0, 100);
+  for (i = 0; i < found; i++)
+    {
+      printf("Found %s on '%s' port %d\n", name,
+		inet_ntoa(sin[i].sin_addr), ntohs(sin[i].sin_port));
+    }
+  if (found == 0)
+    {
+      printf("Unable to find %s.\n", name);
+    }
+}
+
+static void
+doregister(const char *name, int port, int ptype)
+{
+  struct sockaddr_in	sin;
+  int			found;
+  int			i;
+
+  found = nameServer(name, 0, GDO_REGISTER, ptype, &sin, port, 1);
+  for (i = 0; i < found; i++)
+    {
+      printf("Registered %s on '%s' port %d\n", name,
+		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+    }
+  if (found == 0)
+    {
+      printf("Unable to register %s on port %d.\n", name, port);
+    }
+}
+
+static void
+unregister(const char *name, int ptype)
+{
+  struct sockaddr_in	sin;
+  int			found;
+  int			i;
+
+  found = nameServer(name, 0, GDO_UNREG, ptype, &sin, 0, 1);
+  for (i = 0; i < found; i++)
+    {
+      printf("Unregistered %s on '%s' port %d\n", name,
+		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+    }
+  if (found == 0)
+    {
+      printf("Unable to unregister %s.\n", name);
+    }
+}
 
 int
 main(int argc, char** argv)
 {
     extern char	*optarg;
-    char	*options = "CHa:c:dfi:p";
+    char	*options = "CHL:M:P:R:T:U:a:c:dfi:p";
     int		c;
+    int		ptype = GDO_TCP_GDO;
+    int		port = 0;
+    const char	*machine = 0;
 
     /*
      *	Would use inet_aton(), but older systems don't have it.
@@ -1952,6 +2479,14 @@ main(int argc, char** argv)
 		printf("GNU Distributed Objects name server\n");
 		printf("-C		help about configuration\n");
 		printf("-H		general help\n");
+		printf("-L name		perform lookup for name then quit.\n");
+		printf("-M name		machine name for L (default local)\n");
+		printf("-P number	port number required for R option.\n");
+		printf("-R name		register name locally then quit.\n");
+		printf("-T type		port type for L, R and U options -\n");
+		printf("		tcp_gdo, udp_gdo,\n");
+		printf("		tcp_foreign, udp_foreign.\n");
+		printf("-U name		unregister name locally then quit.\n");
 		printf("-a file		use config file for interface list.\n");
 		printf("-c file		use config file for probe.\n");
 		printf("-d		extra debug logging.\n");
@@ -2002,6 +2537,56 @@ printf(
 "network interfaces and masks, please send me example code so that I can\n"
 "implement it in gdomap.\n");
 		printf("\n");
+		exit(0);
+
+	    case 'L':
+		lookup(optarg, machine, ptype);
+		exit(0);
+
+	    case 'M':
+		machine = optarg;
+		break;
+
+	    case 'P':
+		port = atoi(optarg);
+		break;
+
+	    case 'R':
+		if (machine && *machine)
+		  {
+		    fprintf(stderr, "-M flag is ignored for registration.\n");
+		    fprintf(stderr, "Registration will take place locally.\n");
+		  }
+		doregister(optarg, port, ptype);
+		return;
+
+	    case 'T':
+		if (strcmp(optarg, "tcp_gdo") == 0) {
+		    ptype = GDO_TCP_GDO;
+		}
+		else if (strcmp(optarg, "udp_gdo") == 0) {
+		    ptype = GDO_UDP_GDO;
+		}
+		else if (strcmp(optarg, "tcp_foreign") == 0) {
+		    ptype = GDO_TCP_FOREIGN;
+		}
+		else if (strcmp(optarg, "udp_foreign") == 0) {
+		    ptype = GDO_UDP_FOREIGN;
+		}
+		else {
+		    fprintf(stderr, "Warning - -P selected unknown type -");
+		    fprintf(stderr, " using tcp_gdo.\n");
+		    ptype = GDO_TCP_GDO;
+		}
+		break;
+
+	    case 'U':
+		if (machine && *machine)
+		  {
+		    fprintf(stderr, "-M flag is ignored for unregistration.\n");
+		    fprintf(stderr, "Operation will take place locally.\n");
+		  }
+		unregister(optarg, ptype);
 		exit(0);
 
 	    case 'a':
@@ -2214,6 +2799,6 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
 	msg.nsize += l*IASIZE;
     }
   
-    queue_msg(&sin, (unsigned char*)&msg, GDO_REQ_SIZE);
+    queue_msg(&sin, (uptr)&msg, GDO_REQ_SIZE);
 }
 
