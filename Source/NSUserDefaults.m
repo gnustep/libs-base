@@ -97,6 +97,7 @@ static NSMutableString   *processName = nil;
 	
   [sharedDefaults __createStandardSearchList];
 
+  if (sharedDefaults)
     {
       NSUserDefaults	*defs;
       NSDictionary	*registrationDefaults;
@@ -196,6 +197,10 @@ static NSMutableString   *processName = nil;
 		ymw_names, NSYearMonthWeekDesignations,
 		nil];
       [sharedDefaults registerDefaults: registrationDefaults];
+    }
+  else
+    {
+      NSLog(@"WARNING - unable to create shared user defaults!\n");
     }
   return sharedDefaults;
 }
