@@ -41,6 +41,7 @@
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/String.h>
+#include <objects/behavior.h>
 #include <limits.h>
 
 @implementation NSString
@@ -366,19 +367,21 @@ handle_printf_atsign (FILE *stream,
 {
   NSRange search;
   NSRange found;
-  NSMutableArray *array;
+  NSMutableArray *array = [NSMutableArray array];
 
-  search = NSMakeRange(0, [self length]);
-  found = [self rangeOfString:separator];
+  search = NSMakeRange (0, [self length]);
+  found = [self rangeOfString: separator];
   while (found.length)
     {
       NSRange current;
-      current = NSMakeRange(search.location, found.location - search.location);
-      [array addObject:[self substringFromRange:current]];
-      search = NSMakeRange(found.location+1, search.length - found.location);
-      found = [self rangeOfString:separator 
-		options:0
-		range:search];
+      current = NSMakeRange (search.location,
+			     found.location - search.location);
+      [array addObject: [self substringFromRange: current]];
+      search = NSMakeRange (found.location+1,
+			    search.length - found.location);
+      found = [self rangeOfString: separator 
+		    options: 0
+		    range: search];
     }
 
   // FIXME: Need to make mutable array into non-mutable array?
