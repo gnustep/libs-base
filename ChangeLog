@@ -1,3 +1,20 @@
+2001-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m:
+	* Source/NSURLHandle.m:
+	* Source/NSUnarchiver.m:
+	* Source/GSFormat.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSMime.m:
+	* Source/GSString.m:
+	* Source/NSDictionary.m:
+	* Source/NSPortNameServer.m:
+	Various minor changes to avoid compiler warnings.
+	* Source/NSFileManager.m: ([-fileSystemRepresentationWithPath:])
+	Use CYGWIN_HOME as suggested by Michael Scheibler
+	* Source/NSUser.m: NSHomeDirectoryForUser() fix for home path
+	on NT by Michael Scheibler.
+
 2001-03-01  Jonathan Gapen  <jagapen@home.com>
 
 	* NSCharacterSets/whitespaceCharSet.dat,
