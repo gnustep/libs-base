@@ -1,5 +1,5 @@
 /* Implementation of NSTimer for GNUstep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: March 1996
@@ -49,9 +49,9 @@
   return self;
 }
 
-+ timerWithTimeInterval: (NSTimeInterval)ti
-	     invocation: invocation
-		repeats: (BOOL)f
++ (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
+		        invocation: invocation
+			   repeats: (BOOL)f
 {
   return AUTORELEASE([[self alloc] initWithTimeInterval: ti
 			targetOrInvocation: invocation
@@ -60,11 +60,11 @@
 			repeats: f]);
 }
 
-+ timerWithTimeInterval: (NSTimeInterval)ti
-		 target: object
-	       selector: (SEL)selector
-               userInfo: info
-	        repeats: (BOOL)f
++ (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
+			    target: object
+			  selector: (SEL)selector
+			  userInfo: info
+			   repeats: (BOOL)f
 {
   return AUTORELEASE([[self alloc] initWithTimeInterval: ti
 			targetOrInvocation: object
@@ -73,9 +73,9 @@
 			repeats: f]);
 }
 
-+ scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-		      invocation: invocation
-			 repeats: (BOOL)f
++ (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+				 invocation: invocation
+				    repeats: (BOOL)f
 {
   id t = [self timerWithTimeInterval: ti
 	       invocation: invocation
@@ -84,11 +84,11 @@
   return t;
 }
 
-+ scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-			  target: object
-			selector: (SEL)selector
-                        userInfo: info
-			 repeats: (BOOL)f
++ (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+				     target: object
+				   selector: (SEL)selector
+				   userInfo: info
+				    repeats: (BOOL)f
 {
   id t = [self timerWithTimeInterval: ti
 	       target: object
@@ -146,12 +146,17 @@
   return !_invalidated;
 }
 
-- fireDate
+- (NSDate*) fireDate
 {
   return _date;
 }
 
-- userInfo
+- (NSTimeInterval) timeInterval
+{
+  return _interval;
+}
+
+- (id) userInfo
 {
   return _info;
 }

@@ -1,7 +1,9 @@
-Thu Jun  4 12:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Thu Jun  4 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSCharacterSet.m: prepare for GC
 	* Source/NSString.m: prepare for GC
+	* Source/NSTimer.m: tidied and added timeInterval method
+	* Source/include/NSTimer.h: tidied and added timeInterval method
 
 Tue Jun  2 10:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

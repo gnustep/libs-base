@@ -1,5 +1,5 @@
 /* Declarations for NSTimer for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -48,31 +48,34 @@
 
 /* Creating timer objects. */
 
-+ scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-		      invocation: invocation
-			 repeats: (BOOL)f;
-+ scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-			  target: object
-			selector: (SEL)selector
-                        userInfo: info
-			 repeats: (BOOL)f;
++ (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+				 invocation: invocation
+				    repeats: (BOOL)f;
++ (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+				     target: object
+				   selector: (SEL)selector
+				   userInfo: info
+				    repeats: (BOOL)f;
 
-+ timerWithTimeInterval: (NSTimeInterval)ti
-	     invocation: invocation
-		repeats: (BOOL)f;
-+ timerWithTimeInterval: (NSTimeInterval)ti
-		 target: object
-	       selector: (SEL)selector
-               userInfo: info
-	        repeats: (BOOL)f;
++ (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
+		        invocation: invocation
+			   repeats: (BOOL)f;
++ (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
+			    target: object
+			  selector: (SEL)selector
+			  userInfo: info
+			   repeats: (BOOL)f;
 
 - (void) fire;
 - (void) invalidate;
 
-- (BOOL) isValid;		/* This method not in OpenStep */
+#ifndef	STRICT_OPENSTEP
+- (BOOL) isValid;
+- (NSTimeInterval) timeInterval;
+#endif
 
-- fireDate;
-- userInfo;
+- (NSDate*) fireDate;
+- (id) userInfo;
 
 @end
 
