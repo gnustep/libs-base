@@ -904,8 +904,8 @@ static NSLock	*cached_proxies_gate = nil;
     {
       _multipleThreads = NO;
       _independentQueueing = NO;
-      _replyTimeout = 300.0;	// Five minute default.
-      _requestTimeout = 300.0;	// Five minute default.
+      _replyTimeout = 1.0E12;
+      _requestTimeout = 1.0E12;
       /*
        * Set up request modes array and make sure the receiving port
        * is added to the run loop to get data.
@@ -1323,9 +1323,7 @@ static NSLock	*cached_proxies_gate = nil;
  * a request sent on the NSConnection.  This value is inherited
  * from the parent connection or may be set using the -setReplyTimeout:
  * method.<br />
- * Under MacOS-X the default value is documented as the maximum delay
- * (effectively infinite), but under GNUstep it is set to a more
- * useful 300 seconds.
+ * The default value is the maximum delay (effectively infinite).
  */
 - (NSTimeInterval) replyTimeout
 {
@@ -1350,9 +1348,7 @@ static NSLock	*cached_proxies_gate = nil;
  * Returns the timeout interval used when trying to send a request
  * on the NSConnection.  This value is inherited from the parent
  * connection or may be set using the -setRequestTimeout: method.<br />
- * Under MacOS-X the default value is documented as the maximum delay
- * (effectively infinite), but under GNUstep it is set to a more
- * useful 300 seconds.
+ * The default value is the maximum delay (effectively infinite).
  */
 - (NSTimeInterval) requestTimeout
 {
@@ -1456,6 +1452,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setReplyTimeout: (NSTimeInterval)to
 {
+  if (to <= 0.0 || to > 1.0E12) to = 1.0E12;
   _replyTimeout = to;
 }
 
@@ -1491,6 +1488,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setRequestTimeout: (NSTimeInterval)to
 {
+  if (to <= 0.0 || to > 1.0E12) to = 1.0E12;
   _requestTimeout = to;
 }
 
