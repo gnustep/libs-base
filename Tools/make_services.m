@@ -445,7 +445,7 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 			  return nil;
 			}
 		    }
-		  [result setObject: obj forKey: k];
+		  [result setObject: a forKey: k];
 		}
 	    }
 	  else if ([type isEqualToString: @"dictionary"])
@@ -474,8 +474,8 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 			  return nil;
 			}
 		    }
-		  [result setObject: obj forKey: k];
 		}
+	      [result setObject: d forKey: k];
 	    }
 	}
     }
