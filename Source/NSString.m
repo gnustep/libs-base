@@ -48,12 +48,19 @@
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSDictionary.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
 #include <gnustep/base/String.h>
 #include <gnustep/base/behavior.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <stdio.h>
+
 
 @implementation NSString
 
@@ -289,8 +296,21 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  [self notImplemented:_cmd];
-  return self;
+   struct stat buf;
+   int fd;
+   char *s;
+
+   stat([path cString], &buf);
+
+   OBJC_MALLOC(s,char,buf.st_size + 1);
+   fd = open([path cString], O_RDONLY);
+   if ( fd < 0 )
+      [NSException raise: NSGenericException format: @"Could not open file %s", [path cString]];
+
+   read(fd,(void *)s,buf.st_size);
+   s[buf.st_size] = (char)0;
+
+   return [self initWithCStringNoCopy:s length: buf.st_size freeWhenDone:YES];
 }
 
 - (id) initWithData: (NSData*)data
@@ -1038,8 +1058,14 @@ handle_printf_atsign (FILE *stream,
 
 - (NSDictionary*) propertyListFromStringsFileFormat
 {
-  [self notImplemented:_cmd];
-  return nil;
+   id dict = [[[NSMutableDictionary alloc] init] autorelease];
+   void *bufstate;
+
+   bufstate = (void *)sf_scan_string([self cString]);
+   sfSetDict(dict);
+   sfparse(dict);
+   sf_delete_buffer(bufstate);
+   return dict;
 }
 
 
