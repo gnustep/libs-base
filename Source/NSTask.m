@@ -610,9 +610,9 @@ pty_slave(const char* name)
     }
 #ifndef __MINGW__
 #ifdef	HAVE_KILLPG
-  killpg(_taskId, SIGTERM);
+  killpg(_taskId, SIGSTOP);
 #else
-  kill(-_taskId, SIGTERM);
+  kill(-_taskId, SIGSTOP);
 #endif
 #endif
   return YES;
