@@ -120,7 +120,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 + (id) alloc
 {
-  return [self allocWithZone:NS_NOZONE];
+  return [self allocWithZone: NSDefaultMallocZone()];
 }
 
 + (id) allocWithZone: (NSZone*)z
@@ -140,7 +140,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 - (id) copy
 {
-  return [self copyWithZone: NS_NOZONE];
+  return [self copyWithZone: NSDefaultMallocZone()];
 }
 
 - (void) dealloc
@@ -167,7 +167,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 - (id) mutableCopy
 {
-  return [self mutableCopyWithZone: NS_NOZONE];
+  return [self mutableCopyWithZone: NSDefaultMallocZone()];
 }
 
 + (Class) superclass
@@ -458,7 +458,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 - (NSZone *)zone
 {
-  return NSZoneFromPtr(self);
+  return NSZoneFromPointer(self);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
