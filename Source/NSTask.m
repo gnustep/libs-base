@@ -854,7 +854,7 @@ GSCheckTasks()
 
   for (i = 0; i < ac; i++)
     {
-      args[i+1] = [[[a objectAtIndex: i] description] cString];
+      args[i+1] = [[[a objectAtIndex: i] description] lossyCString];
     }
   args[ac+1] = 0;
 
@@ -872,7 +872,7 @@ GSCheckTasks()
 	{
 	  s = [NSString stringWithFormat: @"%@=", key];
 	}
-      envl[i] = [s cString];
+      envl[i] = [s lossyCString];
     }
   envl[ec] = 0;
 
