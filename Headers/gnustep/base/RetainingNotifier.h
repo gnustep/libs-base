@@ -1,8 +1,8 @@
 /* Interface for reference-counted invalidation notifer object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: July 1994
+   Created: July 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -35,12 +35,11 @@
 #include <objects/Lock.h>
 #include <objects/InvalidationListening.h>
 #include <objects/Retaining.h>
-#include <objc/List.h>
 
 @interface RetainingNotifier : NSObject <Retaining>
 {
   Lock *refGate;
-  List *notificationList;
+  id *notificationList;
   BOOL isValid;
   int retain_count;
 }
