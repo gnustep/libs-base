@@ -33,8 +33,10 @@ languagedir = $(GNUSTEP_RESOURCES)/Languages
 
 LANGUAGES = \
 Languages/English \
+Languages/French  \
 Languages/German  \
 Languages/Italian
+
 
 LANGUAGE_INSTALL_FILES = $(LANGUAGES) Languages/Locale.aliases
 
