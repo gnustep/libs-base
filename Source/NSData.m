@@ -911,7 +911,13 @@ failure:
 	  IF_NO_GC(TEST_AUTORELEASE(att));
 	}
 
-#if defined(__NEW__MINGW__)
+#if defined(__MINGW__)
+      /*
+       * The windoze implementation of the POSIX rename() function is buggy
+       * and doesn't work if the destination file already exists ... so we
+       * try to use a windoze specific function instead.
+       */
+#if 0
       if (ReplaceFile(theRealPath, thePath, 0,
 	REPLACEFILE_IGNORE_MERGE_ERRORS, 0, 0) != 0)
 	{
@@ -922,16 +928,17 @@ failure:
 	  c = -1;
 	}
 #else
-      c = rename(thePath, theRealPath);
-#if defined(__MINGW__)
-      if (c != 0)
+      if (MoveFileEx(thePath, theRealPath, MOVEFILE_REPLACE_EXISTING) != 0)
 	{
-          NSLog(@"Rename ('%s' to '%s') failed - %s trying delete first.",
-	    thePath, theRealPath, GSLastErrorStr(errno));
-	  DeleteFile(theRealPath);		// Non-atomic!
-	  c = rename(thePath, theRealPath);
+	  c = 0;
+	}
+      else
+	{
+	  c = -1;
 	}
 #endif
+#else
+      c = rename(thePath, theRealPath);
 #endif
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
