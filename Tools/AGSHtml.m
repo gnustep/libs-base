@@ -558,7 +558,7 @@ static NSMutableSet	*textNodes = nil;
 	  nam = [prop objectForKey: @"name"];
 	  str = [prop objectForKey: @"type"];
 	  str = [self typeRef: str];
-	  str = [str stringByAppendingFormat: @" %@;", nam];
+	  str = [str stringByAppendingFormat: @" %@", nam];
 
 	  /*
 	   * Output heading.

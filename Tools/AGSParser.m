@@ -1383,12 +1383,12 @@
 	    {
 	      [self parseComment];
 	    }
-	  if (comment != nil)
-	    {
-	      [self appendComment: comment to: d];
-	    }
-	  DESTROY(comment);
 	}
+      if (comment != nil)
+	{
+	  [self appendComment: comment to: d];
+	}
+      DESTROY(comment);
 
       RELEASE(arp);
       if (inArgList == NO)
