@@ -1,5 +1,5 @@
-/* Interface for NSObject for GNUStep
- * Copyright (C) 1995,199 Free Software Foundation, Inc.
+/* 
+ * Copyright (C) 1995,1999 Free Software Foundation, Inc.
  * 
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
  * Date: 1995
@@ -134,8 +134,8 @@ NSIntersectionRange (NSRange aRange, NSRange bRange)
 
 @class NSString;
 
-extern NSString *
-NSStringFromRange(NSRange range);
+extern NSString *NSStringFromRange(NSRange range);
+extern NSRange NSRangeFromString(NSString *aString);
 
 #ifdef	GS_DEFINED_MAX
 #undef	GS_DEFINED_MAX
