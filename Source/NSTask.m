@@ -739,15 +739,12 @@ pty_slave(const char* name)
   lpath = [full_path stringByAppendingPathComponent: prog];
   if ([mgr isExecutableFileAtPath: lpath] == NO)
     {
-NSLog(@"No executable in %@", lpath);
       lpath = [arch_path stringByAppendingPathComponent: prog];
       if ([mgr isExecutableFileAtPath: lpath] == NO)
 	{
-NSLog(@"No executable in %@", lpath);
 	  lpath = [base_path stringByAppendingPathComponent: prog];
 	  if ([mgr isExecutableFileAtPath: lpath] == NO)
 	    {
-NSLog(@"No executable in %@", lpath);
 	      /*
 	       * Last resort - if the launch path was simply a program name
 	       * get NSBundle to try using the PATH environment
