@@ -21,6 +21,15 @@
         <method type="NSThread*" factory="yes">
           <sel>currentThread</sel>
           <desc>
+	    <p>
+	      Returns the NSThread object corresponding to the current thread.
+	    </p>
+	    <p>
+	      NB. In GNUstep the library internals use the GSCurrentThread()
+	      function as a more efficient mechanism for doing this job - so
+	      you cannot use a category to override this method and expect
+	      the library internals to use your implementation.
+	    </p>
           </desc>
         </method>
         <method type="void" factory="yes">
