@@ -202,8 +202,8 @@ static NSString *setUserGNUstepPath(NSString *userName,
 
 static NSDictionary *GSReadStepConfFile(NSString *name);
 
-void InitialisePathUtilities(void);
-void ShutdownPathUtilities(void);
+static void InitialisePathUtilities(void);
+static void ShutdownPathUtilities(void);
 
 /* make sure that the path 'path' is in internal format (unix-style) */
 static inline NSString*
@@ -376,7 +376,7 @@ static NSString *setUserGNUstepPath(NSString *userName,
 }
 
 /* Initialise all things required by this module */
-void InitialisePathUtilities(void)
+static void InitialisePathUtilities(void)
 {
   NSDictionary  *env;
 
@@ -486,16 +486,18 @@ void InitialisePathUtilities(void)
 #endif /* OPTION_PLATFORM SUPPORT */
 	    }
 	}
-#endif /* defined(__WIN32__) else */
+#endif
 
-      /* Omitting the following line would mean system admins could force
-         the user and defaults paths by leaving USER_GNUSTEP_RC blank. */
+      /* System admins may force the user and defaults paths by
+       * setting USER_GNUSTEP_RC to be an empty string.
+       * If they simply don't define it at all, we assign a default
+       * value here.
+       */
       TEST_ASSIGN(gnustepRcFileName,  DEFAULT_STEPRC_FILE);
 
       /* If the user has an rc file we need to source it */
       gnustepUserRoot = setUserGNUstepPath(NSUserName(),
-						&gnustepDefaultsPath,
-						&gnustepUserPath);
+	&gnustepDefaultsPath, &gnustepUserPath);
 
       /* Make sure that they're in path internal format */
       internalizePath(gnustepSystemRoot);
@@ -507,23 +509,23 @@ void InitialisePathUtilities(void)
       if (gnustepSystemRoot == nil)
         {
           gnustepSystemRoot = internalizePathCString(\
-                                  STRINGIFY(GNUSTEP_INSTALL_PREFIX));
+	    STRINGIFY(GNUSTEP_INSTALL_PREFIX));
           fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
-                    "- using %s\n", [gnustepSystemRoot lossyCString]);
+	    "- using %s\n", [gnustepSystemRoot lossyCString]);
         }
       if (gnustepNetworkRoot == nil)
         {
           gnustepNetworkRoot = internalizePathCString(\
-                                  STRINGIFY(GNUSTEP_NETWORK_ROOT));
+	    STRINGIFY(GNUSTEP_NETWORK_ROOT));
           fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
-                    "- using %s\n", [gnustepNetworkRoot lossyCString]);
+	    "- using %s\n", [gnustepNetworkRoot lossyCString]);
         }
       if (gnustepLocalRoot == nil)
         {
           gnustepLocalRoot = internalizePathCString(\
-                                  STRINGIFY(GNUSTEP_LOCAL_ROOT));
+	    STRINGIFY(GNUSTEP_LOCAL_ROOT));
           fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
-                    "- using %s\n", [gnustepLocalRoot lossyCString]);
+	    "- using %s\n", [gnustepLocalRoot lossyCString]);
         }
 
       /* We're keeping these strings... */
@@ -550,7 +552,7 @@ void InitialisePathUtilities(void)
 /*
  * Close down and release all things allocated.
  */
-void ShutdownPathUtilities(void)
+static void ShutdownPathUtilities(void)
 {
   TEST_RELEASE(gnustepSystemRoot);
   TEST_RELEASE(gnustepNetworkRoot);
@@ -839,11 +841,14 @@ GSDefaultsRootForUser(NSString *userName)
   NSString *defaultsPath = nil;
   NSString *userPath = nil;
 
-  NSCParameterAssert([userName length] > 0);
-
+  if ([userName length] == 0)
+    {
+      userName = NSUserName();
+    }
   if (gnustepSystemRoot == nil)
-    InitialisePathUtilities();
-
+    {
+      InitialisePathUtilities();
+    }
   if ([userName isEqual: NSUserName()])
     {
       home = gnustepUserRoot;
@@ -1172,8 +1177,9 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   unsigned        count;
 
   if (gnustepSystemRoot == nil)
+    {
       InitialisePathUtilities();
-
+    }
   NSCAssert(gnustepSystemRoot!=nil,@"Path utilities without initialisation!");
 
   /*
