@@ -37,12 +37,15 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 AR = ar
 ARFLAGS = rc
+LN_S = @LN_S@
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
 LEX = flex
 LFLAGS =
      
 DEFS = @DEFS@
+
+DYNAMIC_LINKER=@DYNAMIC_LINKER@
      
 # All these are optional.  You can redifine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
@@ -156,30 +159,22 @@ Storage.m
 
 GNUSTEP_MFILES = \
 NSAllocateObject.m \
+NSArray.m \
 NSAutoreleasePool.m \
+NSBundle.m \
+NSCoder.m \
 NSCopyObject.m \
+NSConcreteValue.m \
 NSCString.m \
 NSDeallocateObject.m \
-NSObject.m \
-NSString.m
-
-FEDOR_GNUSTEP_MFILES = \
+NSDictionary.m \
 NSException.m \
 NSGeometry.m \
 NSNumber.m \
+NSObject.m \
 NSRange.m \
-NSValue.m \
-NSConcreteValue.m
-#NSArray.m \
-#NSCoder.m \
-#NSDictionary.m \
-#NSBundle.m \
-
-#FEDOR_GNUSTEP_CFILES = \
-#objc-load.c \
-#find_exec.c 
-
-FEDOR_CLUSTER_OBJS = $(NSVALUE_OFILES) $(NSNUMBER_OFILES)
+NSString.m \
+NSValue.m
 
 NSVALUE_CLUSTER = 0 1 2 3 4
 NSVALUE_OFILES  = NSValue0.o NSValue1.o NSValue2.o NSValue3.o NSValue4.o
@@ -201,7 +196,7 @@ NXStringTable_scan.c
 GNUSTEP_CFILES = \
 NSZone.c \
 find_exec.c \
-objc-load.c \
+objc-load.c
 
 GNU_OTHER_SRCFILES = 
 
@@ -318,16 +313,10 @@ foundation/NSObjCRuntime.h \
 foundation/NSObject.h \
 foundation/NSRange.h \
 foundation/NSString.h \
-foundation/NSZone.h \
-foundation/README
-
-FEDOR_GNUSTEP_HEADERS = \
-foundation/NSBundle.h \
-foundation/NSException.h \
-foundation/NSGeometry.h \
 foundation/NSValue.h \
-foundation/NSConcreteValue.h \
-foundation/NSConcreteNumber.h
+foundation/NSZone.h \
+foundation/objc-load.h \
+foundation/README
 
 INSTALL_HEADERS = @INSTALL_HEADERS@
 INSTALL_OBJS = @INSTALL_OBJS@ 
@@ -353,7 +342,11 @@ $(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
 $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
 $(GNU_OTHER_SRCFILES) $(NEXTSTEP_OTHER_SRCFILES) $(GNUSTEP_OTHER_SRCFILES)
 
-all: libobjects.a
+all: one-time libobjects.a
+
+one-time:
+	rm -f dynamic-load.h
+	$(LN_S) $(DYNAMIC_LINKER)-load.h dynamic-load.h
 
 libobjects.a: $(INSTALL_OBJS)
 	$(AR) $(ARFLAGS) libobjects.a $(INSTALL_OBJS)
@@ -384,6 +377,23 @@ check: libobjects.a
 depend:
 	rm -f $(srcdir)/Makefile.depend
 	$(CC) $(ALL_INCLUDE_FLAGS) -M $(SRCS) > $(srcdir)/Makefile.depend
+
+# Compilation of class clusters
+$(NSVALUE_OFILES) : NSCTemplateValue.m
+	for i in ${NSVALUE_CLUSTER}; do \
+	    cp NSCTemplateValue.m NSCTemplateValue$$i.m; \
+	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
+	    -DTYPE_ORDER=$$i NSCTemplateValue$$i.m -o NSValue$$i.o; \
+	    rm -f NSCTemplateValue$$i.m; \
+	done
+
+$(NSNUMBER_OFILES) : NSConcreteNumber.m
+	for i in ${NSNUMBER_CLUSTER}; do \
+	    cp NSConcreteNumber.m NSConcreteNumber$$i.m; \
+	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
+	    -DTYPE_ORDER=$$i -c NSConcreteNumber$$i.m -o NSNumber$$i.o; \
+	    rm -f NSConcreteNumber$$i.m; \
+	done
 
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(LEX) $(LFLAGS) -t NXStringTable_scan.l > NXStringTable_scan.temp
