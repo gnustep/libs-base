@@ -6,9 +6,9 @@
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
-   Date: June 1997
+   Date: November 1997
    
-   This file is part of ...
+   This file is part of GNUStep-base
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -28,21 +28,27 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <config.h>
+//FIXME: 1) The NSMutableString object returned from the -mutableString method
+//       in NSMutableAttributedString is NOT tracked for changes to update
+//       NSMutableAttributedString's attributes as it should.
+
+//FIXME: 2) If out-of-memory exceptions are raised in some methods,
+//       inconsistencies may develop, because the two internal arrays in
+//       NSGAttributedString and NSGMutableAttributedString called
+//       attributeArray and locateArray must always be syncronized.
+
+//FIXME: 3) The method _setAttributesFrom: must be overridden by
+//          concrete subclasses of NSAttributedString which is WRONG and
+//          VERY bad! I haven't found any other way to make
+//          - initWithString:attributes: the designated initializer 
+//          in NSAttributedString and still implement
+//          - initWithAttributedString: without having to override it
+//          in the concrete subclass.
+
 #include <Foundation/NSAttributedString.h>
+#include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
-
-NSString *NSFontAttributeName = @"FontAttribute";
-NSString *NSForegroundColorAttributeName = @"ForegroundColorAttribute";
-NSString *NSBackgroundColorAttributeName = @"BackgroundColorAttribute";
-NSString *NSUnderlineStyleAttributeName = @"UnderlineStyleAttribute";
-NSString *NSSuperscriptAttributeName = @"SuperscriptAttribute";
-NSString *NSBaselineOffsetAttributeName = @"BaselineOffsetAttribute";
-NSString *NSKernAttributeName = @"KernAttribute";
-NSString *NSLigatureAttributeName = @"LigatureAttribute";
-NSString *NSParagraphStyleAttributeName = @"ParagraphStyleAttribute";
-NSString *NSAttachmentAttributeName = @"AttachmentAttribute";
 
 @implementation NSAttributedString
 
@@ -140,14 +146,12 @@ static Class NSMutableAttributedString_concrete_class;
 //Creating an NSAttributedString
 - (id)init
 {
-  [self initWithString:nil attributes:nil];//Designated initializer
-  return self;
+  return [self initWithString:nil attributes:nil];//Designated initializer
 }
 
 - (id)initWithString:(NSString *)aString
 {
-  [self initWithString:aString attributes:nil];//Designated initializer
-  return self;
+  return [self initWithString:aString attributes:nil];//Designated initializer
 }
 
 - (id)initWithAttributedString:(NSAttributedString *)attributedString
@@ -168,8 +172,7 @@ static Class NSMutableAttributedString_concrete_class;
 - (id)initWithString:(NSString *)aString attributes:(NSDictionary *)attributes
 {
   //This is the designated initializer
-  [self subclassResponsibility:_cmd];
-  return self;
+  return [super init];
 }
 
 //Retrieving character information
