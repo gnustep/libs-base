@@ -25,6 +25,7 @@
 #define __NSBundle_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSString.h>
 
 @class NSString;
 @class NSArray;
@@ -87,7 +88,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 
 @end
 
-#ifndef	NO_GNUSTEP
+#ifndef	 NO_GNUSTEP
 @interface NSBundle (GNUstep)
 
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
@@ -106,7 +107,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 #define GSLocalizedStringFromTable(key, tbl, comment) \
   [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
 
-#endif
+#endif /* GNUSTEP */
 
 #define NSLocalizedString(key, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
@@ -119,7 +120,41 @@ GS_EXPORT NSString* NSLoadedClasses;
 #define NSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" \
   table: [bundle pathForGNUstepResource:(tbl) ofType: nil inDirectory: (fpth)]
-#endif
+#endif /* GNUSTEP */
+
+  /* Now Support for Quick Localization */
+#ifndef NO_GNUSTEP
+
+  /* The quickest possible way to localize a string: 
+     
+     NSLog (_(@"New Game"));
+     
+     Please make use of the longer functions taking a comment when you 
+     get the time to localize seriously your code.
+  */
+#define _(X) NSLocalizedString (X, @"")
+  
+  /* The quickest possible way to localize a static string:
+     
+     static NSString *string = __(@"New Game");
+     
+     NSLog (_(string)); */
+  
+#define __(X) X
+
+  /* The better way for a static string, with a comment - use as follows - 
+
+     static NSString *string = NSLocalizedStaticString (@"New Game", 
+                                                        @"Menu Option");
+
+     NSLog (_(string));
+
+     If you need anything more complicated than this, please initialize 
+     the static strings manually.
+*/
+#define NSLocalizedStaticString(key, comment) key
+
+#endif /* NO_GNUSTEP */
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */
 
