@@ -518,7 +518,17 @@ AC_CHECK_HEADERS(float.h)
 # Header files and functions for files and filesystems
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
-AC_CHECK_HEADERS(sys/mount.h sys/types.h windows.h locale.h langinfo.h)
+AC_CHECK_HEADERS(sys/syslimits.h sys/param.h)
+# Twisted header check for NetBSD
+AC_CHECK_HEADERS([sys/mount.h], [], [],
+  [#if HAVE_SYS_SYSLIMITS_H
+   #include <sys/syslimits.h>
+   #endif
+   #if HAVE_SYS_PARAM_H
+   #include <sys/param.h>
+   #endif
+  ])
+AC_CHECK_HEADERS(sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
 AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwuid getgrgid rint getopt)
@@ -642,7 +652,7 @@ AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES,
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
-	sys/signal.h sys/param.h sys/wait.h sys/file.h sys/fcntl.h dnl
+	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h dnl
 	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
 #--------------------------------------------------------------------
