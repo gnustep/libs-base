@@ -75,6 +75,7 @@ static BOOL deallocNotifications = NO;
  *	correct zone to free memory very fast.
  */
 
+
 /*
  * retain_counts_gate is needed when running multi-threaded for retain/release
  * to work reliably.
@@ -82,8 +83,8 @@ static BOOL deallocNotifications = NO;
 static objc_mutex_t retain_counts_gate = NULL;
 
 #if	GS_WITH_GC == 0 && !defined(NeXT_RUNTIME)
-#define	REFCNT_LOCAL	0
-#define	CACHE_ZONE	0
+#define	REFCNT_LOCAL	1
+#define	CACHE_ZONE	1
 #endif
 
 #ifdef ALIGN
@@ -225,12 +226,12 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #else
 
 #define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
-#define GSI_MAP_HASH(M, X)	(X.ptr >> 2)
+#define GSI_MAP_HASH(M, X)	(X.uint >> 2)
 #define GSI_MAP_RETAIN_KEY(M, X)
 #define GSI_MAP_RELEASE_KEY(M, X)
 #define GSI_MAP_RETAIN_VAL(M, X)
 #define GSI_MAP_RELEASE_VAL(M, X)
-#define GSI_MAP_KTYPES  GSUNION_OBJ
+#define GSI_MAP_KTYPES  GSUNION_OBJ|GSUNION_INT
 #define GSI_MAP_VTYPES  GSUNION_INT
 
 #include <base/GSIMap.h>
@@ -253,7 +254,7 @@ NSIncrementExtraRefCount (id anObject)
 	}
       else
 	{
-	  GSIMapAddPair(&retain_count, (GSIMapKey)anObject, (GSIMapKey)1);
+	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
 	}
       objc_mutex_unlock(retain_counts_gate);
     }
@@ -266,7 +267,7 @@ NSIncrementExtraRefCount (id anObject)
 	}
       else
 	{
-	  GSIMapAddPair(&retain_count, (GSIMapKey)anObject, (GSIMapKey)1);
+	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
 	}
     }
 }
@@ -634,7 +635,8 @@ static BOOL double_release_check_enabled = NO;
       fastMallocClass = [_FastMallocBuffer class];
 #if	GS_WITH_GC == 0
 #if	!defined(REFCNT_LOCAL)
-      GSIMapInitWithZoneAndCapacity(&retain-count, NSDefaultMallocZone(), 1024);
+      GSIMapInitWithZoneAndCapacity(&retain_counts,
+	NSDefaultMallocZone(), 1024);
 #endif
       fastMallocOffset = fastMallocClass->instance_size % ALIGN;
 #else
