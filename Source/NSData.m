@@ -237,3 +237,137 @@
 }
 
 @end
+
+
+/* xxx Pretty messy.  Needs work. */
+
+@implementation NSMutableData
+
++ (id) dataWithCapacity: (unsigned int)numBytes
+{
+  return [[[[NSGMutableData class] alloc] initWithCapacity:numBytes]
+	  autorelease];
+}
+
++ (id) dataWithLength: (unsigned int)length
+{
+  return [[[[NSGMutableData class] alloc] initWithLength:length]
+	  autorelease];
+}
+
+- (id) initWithCapacity: (unsigned int)capacity
+{
+  return [self initWithBytesNoCopy:(*objc_malloc)(capacity)
+	       length:capacity];
+}
+
+/* This is the designated initializer */
+- (id) initWithBytesNoCopy: (void*)bytes
+   length: (unsigned int)length
+{
+  /* xxx Eventually we'll have to be aware of malloc'ed memory
+     vs vm_allocate'd memory, etc. */
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (id) initWithLength: (unsigned int)length
+{
+  [self initWithCapacity:length];
+  memset([self bytes], 0, length);
+  return self;
+}
+
+/* This method not in OpenStep */
+- (unsigned) capacity
+{
+  [self notImplemented:_cmd];
+  return 0;
+}
+
+// Adjusting Capacity
+
+- (void) increaseLengthBy: (unsigned int)extraLength
+{
+  [self setLength:[self length]+extraLength];
+}
+
+- (void) setLength: (unsigned int)length
+{
+  [self notImplemented:_cmd];
+}
+
+- (void*) mutableBytes
+{
+  [self notImplemented:_cmd];
+  return NULL;
+}
+
+// Appending Data
+
+- (void) appendBytes: (const void*)bytes
+	      length: (unsigned int)length
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) appendData: (NSData*)other
+{
+  [self appendBytes:[other bytes]
+	length:[other length]];
+}
+
+
+// Modifying Data
+
+- (void) replaceBytesInRange: (NSRange)aRange
+		   withBytes: (const void*)bytes
+{
+  memcpy([self bytes] + aRange.location, bytes, aRange.length);
+}
+
+- (void) resetBytesInRange: (NSRange)aRange
+{
+  memset([self bytes] + aRange.location, 0, aRange.length);
+}
+
+// Serializing Data
+
+- (void) serializeAlignedBytesLength: (unsigned int)length
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) serializeDataAt: (const void*)data
+	      ofObjCType: (const char*)type
+		 context: (id <NSObjCTypeSerializationCallBack>)callback
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) serializeInt: (int)value
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) serializeInt: (int)value
+	      atIndex: (unsigned int)location
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) serializeInts: (int*)intBuffer
+		 count: (unsigned int)numInts
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) serializeInts: (int*)intBuffer
+		 count: (unsigned int)numInts
+	       atIndex: (unsigned int)location
+{
+  [self notImplemented:_cmd];
+}
+
+@end
+
