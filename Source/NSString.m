@@ -3206,7 +3206,7 @@ handle_printf_atsign (FILE *stream,
 		  }
 		else
 		  {
-		    len += 10;
+		    len += 6;
 		  }
 		break;
 	    }
@@ -3247,8 +3247,8 @@ handle_printf_atsign (FILE *stream,
 		    }
 		  else
 		    {
-		      sprintf(ptr, "\\U%08x", *from);
-		      ptr = &ptr[10];
+		      sprintf(ptr, "\\U%04x", *from);
+		      ptr = &ptr[6];
 		    }
 		  break;
 	      }
@@ -3941,7 +3941,6 @@ static inline id parseQuotedString(pldata* pld)
 	  else if (escaped == 1 && c == 'U')
 	    {
 	      escaped = 2;
-	      shrink++;
 	      hex = YES;
 	    }
 	  else if (escaped > 1)
@@ -3950,7 +3949,7 @@ static inline id parseQuotedString(pldata* pld)
 		{
 		  shrink++;
 		  escaped++;
-		  if (escaped == 10)
+		  if (escaped == 6)
 		    {
 		      escaped = 0;
 		    }
@@ -3958,6 +3957,7 @@ static inline id parseQuotedString(pldata* pld)
 	      else if (c >= '0' && c <= '7')
 		{
 		  shrink++;
+		  escaped++;
 		  if (escaped == 4)
 		    {
 		      escaped = 0;
@@ -4032,7 +4032,7 @@ static inline id parseQuotedString(pldata* pld)
 		      chars[k] <<= 4;
 		      chars[k] |= char2num(c);
 		      escaped++;
-		      if (escaped == 10)
+		      if (escaped == 6)
 			{
 			  escaped = 0;
 			  k++;
