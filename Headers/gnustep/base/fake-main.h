@@ -23,8 +23,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __LibobjectsMain_h_OBJECTS_INCLUDE
-#define __LibobjectsMain_h_OBJECTS_INCLUDE
+#ifndef __fake_main_h_GNUSTEP_BASE_INCLUDE
+#define __fake_main_h_GNUSTEP_BASE_INCLUDE
 
 /* 
    Several Foundation classes (NSBundle, NSProcessInfo, ...) need access
@@ -60,6 +60,7 @@ extern int gnustep_base_user_main (/* int argc, char *argv[] */);
   to participate in the standardization committee for C-- v.6.0 as 
   responsible for the new Tab-Overriding-Operator and Scope-Sensitive-
   Comments ... but this makes my situation even worse ;-)
+  - Georg
 */
 
-#endif /* __LibobjectsMain_h_OBJECTS_INCLUDE */
+#endif /* __fake_main_h_GNUSTEP_BASE_INCLUDE */
