@@ -7,7 +7,7 @@
 
 @ifset INSTALL_ONLY
 This file documents the installation of the GNU Objective C 
-Class Library, @samp{libobjects}.  Copyright (C) 1993, 1994 Free Software
+Class Library, @samp{libobjects}.  Copyright (C) 1993, 1994, 1996 Free Software
 Foundation, Inc.  You may copy, distribute, and modify it freely as long
 as you preserve this copyright notice and permission notice.
 @chapter Installing @samp{libobjects}
@@ -16,6 +16,8 @@ as you preserve this copyright notice and permission notice.
 To compile and install @samp{libobjects}:
 
 Here is a quick-and-dirty example of installation commands:
+
+First install the GNU Objective C runtime patch, objc.patch; then
 
 @example
 ./configure --prefix=/usr/local
@@ -36,6 +38,9 @@ make install
 Here are more detailed instructions.
 
 @enumerate
+
+@item
+Patch the @samp{gcc} Objective C runtime with objc.patch.
 
 @item
 Install @samp{gcc}.  The library requires gcc version
