@@ -1,3 +1,8 @@
+2002-10-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedLock.m: Document and tidy.
+	* Source/NSTimeZone.m: Don't set system zone prematurely.
+
 2002-10-01  Adam Fedor  <fedor@gnu.org>
 
 	* config/pathxml.m4: Filter -L/usr/lib out of XML_LIBS.
