@@ -899,9 +899,8 @@ static NSNotificationCenter *default_center = nil;
 - (void) removeObserver: (id)observer
 {
   if (observer == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Nil observer passed to removeObserver:"];
-
+    return;
+  
   [self removeObserver: observer name: nil object: nil];
 }
 
