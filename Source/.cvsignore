@@ -2,7 +2,7 @@ Makefile
 
 AUTHORS
 
-NXStringTable_scan.c
-NSValue?.m NSNumber?.m
+NXStringTable_scan.c dynamic-load.h
+NSValue?.m NSNumber?.m NSNumber??.m
 
 errs*
