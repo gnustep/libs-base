@@ -1,5 +1,5 @@
 /* 
-   NSGAttributedString.m
+   GSAttributedString.m
 
    Implementation of concrete subclass of a string class with attributes
 
@@ -45,7 +45,7 @@
 
 #include "config.h"
 #include <base/preface.h>
-#include <Foundation/NSGAttributedString.h>
+#include <Foundation/NSAttributedString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSRange.h>
 #include <Foundation/NSDebug.h>
@@ -56,6 +56,40 @@
 #include <Foundation/NSZone.h>
 
 #define		SANITY_CHECKS	0
+
+@interface GSAttributedString : NSAttributedString
+{
+  NSString		*_textChars;
+  NSMutableArray	*_infoArray;
+}
+
+- (id) initWithString: (NSString*)aString
+	   attributes: (NSDictionary*)attributes;
+- (NSString*) string;
+- (NSDictionary*) attributesAtIndex: (unsigned)index
+		     effectiveRange: (NSRange*)aRange;
+
+@end
+
+@interface GSMutableAttributedString : NSMutableAttributedString
+{
+  NSMutableString	*_textChars;
+  NSMutableArray	*_infoArray;
+}
+
+- (id) initWithString: (NSString*)aString
+	   attributes: (NSDictionary*)attributes;
+- (NSString*) string;
+- (NSDictionary*) attributesAtIndex: (unsigned)index
+		     effectiveRange: (NSRange*)aRange;
+- (void) setAttributes: (NSDictionary*) attributes
+		 range: (NSRange)range;
+- (void) replaceCharactersInRange: (NSRange)range
+		       withString: (NSString*)aString;
+
+@end
+
+
 
 #define	GSI_MAP_RETAIN_KEY(X)	
 #define	GSI_MAP_RELEASE_KEY(X)	
@@ -199,7 +233,7 @@ unCacheAttributes(NSDictionary *attrs)
 
 
 
-@implementation NSGAttributedString
+@implementation GSAttributedString
 
 static Class	infCls = 0;
 
@@ -459,7 +493,7 @@ _attributesAtIndexEffectiveRange(
 @end
 
 
-@implementation NSGMutableAttributedString
+@implementation GSMutableAttributedString
 
 #if	SANITY_CHECKS
 
@@ -490,7 +524,7 @@ _attributesAtIndexEffectiveRange(
 
 + (void) initialize
 {
-  [NSGAttributedString class];	// Ensure immutable class is initialised
+  [GSAttributedString class];	// Ensure immutable class is initialised
 }
 
 - (id) initWithString: (NSString*)aString

@@ -48,12 +48,13 @@
 #include <base/Unicode.h>
 
 #include <Foundation/NSAttributedString.h>
-#include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSRange.h>
 
+@class	GSAttributedString;
+@class	GSMutableAttributedString;
 @class	NSGMutableDictionary;
 static Class	dictionaryClass = 0;
 
@@ -84,21 +85,21 @@ static IMP	remDictImp;
 
 @implementation NSAttributedString
 
-static Class NSAttributedString_abstract_class;
-static Class NSAttributedString_concrete_class;
-static Class NSMutableAttributedString_abstract_class;
-static Class NSMutableAttributedString_concrete_class;
+static Class NSAttributedStringClass;
+static Class GSAttributedStringClass;
+static Class NSMutableAttributedStringClass;
+static Class GSMutableAttributedStringClass;
 
 + (void) initialize
 {
   if (self == [NSAttributedString class])
     {
-      NSAttributedString_abstract_class = self;
-      NSAttributedString_concrete_class = [NSGAttributedString class];
-      NSMutableAttributedString_abstract_class
+      NSAttributedStringClass = self;
+      GSAttributedStringClass = [GSAttributedString class];
+      NSMutableAttributedStringClass
 	= [NSMutableAttributedString class];
-      NSMutableAttributedString_concrete_class
-	= [NSGMutableAttributedString class];
+      GSMutableAttributedStringClass
+	= [GSMutableAttributedString class];
       dictionaryClass = [NSGMutableDictionary class];
 
       eqSel = @selector(isEqual:);
@@ -122,15 +123,15 @@ static Class NSMutableAttributedString_concrete_class;
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSAttributedString_abstract_class)
-    return NSAllocateObject(NSAttributedString_concrete_class, 0, z);
+  if (self == NSAttributedStringClass)
+    return NSAllocateObject(GSAttributedStringClass, 0, z);
   else
     return NSAllocateObject(self, 0, z);
 }
 
 - (Class) classForCoder
 {
-  return NSAttributedString_abstract_class;
+  return NSAttributedStringClass;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -209,7 +210,7 @@ static Class NSMutableAttributedString_concrete_class;
 {
   if ([self isKindOfClass: [NSMutableAttributedString class]]
     || NSShouldRetainWithZone(self, zone) == NO)
-    return [[NSAttributedString_concrete_class allocWithZone: zone]
+    return [[GSAttributedStringClass allocWithZone: zone]
       initWithAttributedString: self];
   else
     return RETAIN(self);
@@ -218,7 +219,7 @@ static Class NSMutableAttributedString_concrete_class;
 //NSMutableCopying protocol
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[NSMutableAttributedString_concrete_class allocWithZone: zone]
+  return [[GSMutableAttributedStringClass allocWithZone: zone]
     initWithAttributedString: self];
 }
 
@@ -481,7 +482,7 @@ static Class NSMutableAttributedString_concrete_class;
 {
   if (anObject == self)
     return YES;
-  if ([anObject isKindOfClass: NSAttributedString_abstract_class])
+  if ([anObject isKindOfClass: NSAttributedStringClass])
     return [self isEqualToAttributedString: anObject];
   return NO;
 }
@@ -504,7 +505,7 @@ static Class NSMutableAttributedString_concrete_class;
   range = NSIntersectionRange(range, aRange);
   if (NSEqualRanges(range, aRange) == YES)
     {
-      newAttrString = [NSAttributedString_concrete_class alloc];
+      newAttrString = [GSAttributedStringClass alloc];
       newAttrString = [newAttrString initWithString: newSubstring
 					 attributes: attrs];
     }
@@ -513,7 +514,7 @@ static Class NSMutableAttributedString_concrete_class;
       NSMutableAttributedString	*m;
       NSRange			rangeToSet = range;
 
-      m = [NSMutableAttributedString_concrete_class alloc];
+      m = [GSMutableAttributedStringClass alloc];
       m = [m initWithString: newSubstring attributes: nil];
       rangeToSet.location = 0;
       [m setAttributes: attrs range: rangeToSet];
@@ -544,15 +545,15 @@ static Class NSMutableAttributedString_concrete_class;
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSMutableAttributedString_abstract_class)
-    return NSAllocateObject(NSMutableAttributedString_concrete_class, 0, z);
+  if (self == NSMutableAttributedStringClass)
+    return NSAllocateObject(GSMutableAttributedStringClass, 0, z);
   else
     return NSAllocateObject(self, 0, z);
 }
 
 - (Class) classForCoder
 {
-  return NSMutableAttributedString_abstract_class;
+  return NSMutableAttributedStringClass;
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
