@@ -69,10 +69,10 @@
 <!ENTITY % list "list | enum | deflist | qalist | dictionary">
 
 <!-- Entity for block level elements. -->
-<!ENTITY % block "%text; | %list; | p | example | embed">
+<!ENTITY % block "%text; | %list; | p | example | embed | index">
 
 <!-- Entity for definition elements and blocks. -->
-<!ENTITY % defblock "%list; | p | example | embed | class | category | protocol | function | macro | type | variable | constant | EOModel | EOEntity">
+<!ENTITY % defblock "%list; | p | example | embed | index | class | category | protocol | function | macro | type | variable | constant | EOModel | EOEntity">
 
 <!--**********-->
 
