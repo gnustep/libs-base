@@ -86,6 +86,16 @@ GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
   const void *data);
 
 /*
+ * Functions for key-value encoding ... they access values in an object
+ * either by selector or directly, but do so using NSNumber for the
+ * scalar types of data.
+ */
+GS_EXPORT id GSGetValue(NSObject *self, NSString *key, SEL sel,
+  const char *type, unsigned size, int off);
+GS_EXPORT void GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
+  const char *type, unsigned size, int off);
+
+/*
  * The following three functions are deprecated and will be removed in future
  */
 GS_EXPORT BOOL GSInstanceVariableInfo(id obj, NSString *iVarName,
