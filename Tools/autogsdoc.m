@@ -216,6 +216,13 @@
     supplied as command-line arguments as usual) -
   </p>
   <list>
+    <item><strong>Clean</strong>
+      If this boolean value is set to YES, then rather than generating
+      documentation, the tool removes all gsdoc files generated in the
+      project, and all html files generated from them (as well as any
+      which would be generated from gsdoc files listed explicitly),
+      and finally removes the project index file.
+    </item>
     <item><strong>ConstantsTemplate</strong>
       Specify the name of a template document into which documentation
       about constants should be inserted from all files in the project.<br />
@@ -626,12 +633,6 @@ main(int argc, char **argv, char **env)
 	}
     }
 
-  if ([sFiles count] == 0 && [gFiles count] == 0 && [hFiles count] == 0)
-    {
-      NSLog(@"No filename arguments found ... giving up");
-      return 1;
-    }
-
   mgr = [NSFileManager defaultManager];
 
   /*
@@ -660,6 +661,80 @@ main(int argc, char **argv, char **env)
 	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
 	  rDate = [dict fileModificationDate];
 	}
+    }
+
+  if ([defs boolForKey: @"Clean"] == YES)
+    {
+      NSDictionary	*output = [[projectRefs refs] objectForKey: @"output"];
+      NSEnumerator	*enumerator = [output objectEnumerator];
+      NSArray		*outputNames;
+      NSMutableSet	*allPaths = [NSMutableSet new];
+      NSString		*path;
+
+      /*
+       * Build a list of all generated gsdoc files, then remove them
+       * and their corresponding html documents.
+       */
+      while ((outputNames = [enumerator nextObject]) != nil)
+	{
+	  [allPaths addObjectsFromArray: outputNames];
+	}
+      enumerator = [allPaths objectEnumerator];
+      while ((path = [enumerator nextObject]) != nil)
+	{
+	  if ([mgr fileExistsAtPath: path] == YES)
+	    {
+	      if ([mgr removeFileAtPath: path handler: nil] == NO)
+		{
+		  NSLog(@"Cleaning ... failed to remove %@", path);
+		}
+	    }
+	  path = [path stringByDeletingPathExtension];
+	  path = [path stringByAppendingPathExtension: @"html"];
+	  if ([mgr fileExistsAtPath: path] == YES)
+	    {
+	      if ([mgr removeFileAtPath: path handler: nil] == NO)
+		{
+		  NSLog(@"Cleaning ... failed to remove %@", path);
+		}
+	    }
+	}
+      RELEASE(allPaths);
+
+      /*
+       * Remove the project index file.
+       */
+      if ([mgr removeFileAtPath: refsFile handler: nil] == NO)
+	{
+	  NSLog(@"Cleaning ... failed to remove %@", refsFile);
+	}
+
+      /*
+       * Remove any HTML documents resulting from gsdoc files which
+       * were specified on the command line rather than generated.
+       */
+      enumerator = [gFiles objectEnumerator];
+      while ((path = [enumerator nextObject]) != nil)
+	{
+	  path = [documentationDirectory
+	    stringByAppendingPathComponent: path];
+	  path = [path stringByDeletingPathExtension];
+	  path = [path stringByAppendingPathExtension: @"html"];
+	  if ([mgr fileExistsAtPath: path] == YES)
+	    {
+	      if ([mgr removeFileAtPath: path handler: nil] == NO)
+		{
+		  NSLog(@"Cleaning ... failed to remove %@", path);
+		}
+	    }
+	}
+      return 0;
+    }
+
+  if ([sFiles count] == 0 && [gFiles count] == 0 && [hFiles count] == 0)
+    {
+      NSLog(@"No filename arguments found ... giving up");
+      return 1;
     }
 
   count = [sFiles count];
