@@ -34,15 +34,16 @@
 <h2>Methods </h2>
 <ul>
 <li><a href ="GSMimeParser.html#method-0">+mimeParser</a>
-<li><a href ="GSMimeParser.html#method-1">-decodeData:fromRange:intoData:withContext:</a>
-<li><a href ="GSMimeParser.html#method-2">-document</a>
-<li><a href ="GSMimeParser.html#method-3">-parse:</a>
-<li><a href ="GSMimeParser.html#method-4">-parseHeader:</a>
-<li><a href ="GSMimeParser.html#method-5">-parsingHeaders</a>
-<li><a href ="GSMimeParser.html#method-6">-scanHeader:named:inTo:</a>
-<li><a href ="GSMimeParser.html#method-7">-scanSpace:</a>
-<li><a href ="GSMimeParser.html#method-8">-scanSpecial:</a>
-<li><a href ="GSMimeParser.html#method-9">-scanToken:</a>
+<li><a href ="GSMimeParser.html#method-1">-contextFor:</a>
+<li><a href ="GSMimeParser.html#method-2">-decodeData:fromRange:intoData:withContext:</a>
+<li><a href ="GSMimeParser.html#method-3">-document</a>
+<li><a href ="GSMimeParser.html#method-4">-parse:</a>
+<li><a href ="GSMimeParser.html#method-5">-parseHeader:</a>
+<li><a href ="GSMimeParser.html#method-6">-parsingHeaders</a>
+<li><a href ="GSMimeParser.html#method-7">-scanHeader:named:inTo:</a>
+<li><a href ="GSMimeParser.html#method-8">-scanSpace:</a>
+<li><a href ="GSMimeParser.html#method-9">-scanSpecial:</a>
+<li><a href ="GSMimeParser.html#method-10">-scanToken:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">mimeParser</a></h3>
@@ -52,8 +53,31 @@
           
  <hr>
 <hr><h2>Instances Methods </h2>
-<h3><a name ="method-1">decodeData:fromRange:intoData:withContext:</a></h3>
-- (BOOL) <b>decodeData:</b> (NSData*)sourceData <b>fromRange:</b> (NSRange)aRange <b>intoData:</b> (NSMutableData*)destinationData <b>withContext:</b> (GSMimeEncodingContext*)ctxt;<br>
+<h3><a name ="method-1">contextFor:</a></h3>
+- (GSMimeCodingContext*) <b>contextFor:</b> (NSDictionary*)headerInfo;<br>
+
+	    Return a coding context object to be used for decoding data
+	    according to the scheme specified in the header.
+	    <p>
+
+	      The default implementation supports the following transfer
+	      encodings specified in either a <code>transfer-encoding</code>
+	      of <code>content-transfer-encoding</code> header -
+	    </p>
+
+	    <ul>
+<li>base64
+<li>quoted-printable
+<li>binary
+<li>7bit
+<li>8bit
+<li>chunked (for HTTP/1.1)
+</ul>
+
+	  
+ <hr>
+<h3><a name ="method-2">decodeData:fromRange:intoData:withContext:</a></h3>
+- (BOOL) <b>decodeData:</b> (NSData*)sourceData <b>fromRange:</b> (NSRange)aRange <b>intoData:</b> (NSMutableData*)destinationData <b>withContext:</b> (GSMimeCodingContext*)ctxt;<br>
 
 	    <p>
 
@@ -81,13 +105,13 @@
 
           
  <hr>
-<h3><a name ="method-2">document</a></h3>
+<h3><a name ="method-3">document</a></h3>
 - (GSMimeDocument*) <b>document</b>;<br>
 
 	    Returns the object into which raw mime data is being parsed.
           
  <hr>
-<h3><a name ="method-3">parse:</a></h3>
+<h3><a name ="method-4">parse:</a></h3>
 - (BOOL) <b>parse:</b> (NSData*)rawData;<br>
 
 	    This method is called repeatedly to pass raw mime data into
@@ -96,7 +120,7 @@
 	    all the available information.
           
  <hr>
-<h3><a name ="method-4">parseHeader:</a></h3>
+<h3><a name ="method-5">parseHeader:</a></h3>
 - (BOOL) <b>parseHeader:</b> (NSString*)aRawHeader;<br>
 
 	    <p>
@@ -144,7 +168,7 @@
 
 	  
  <hr>
-<h3><a name ="method-5">parsingHeaders</a></h3>
+<h3><a name ="method-6">parsingHeaders</a></h3>
 - (BOOL) <b>parsingHeaders</b>;<br>
 
 	    Returns YES if the parser is expecting to read mime headers,
@@ -153,7 +177,7 @@
             the mime message (or has been passed all data).
           
  <hr>
-<h3><a name ="method-6">scanHeader:named:inTo:</a></h3>
+<h3><a name ="method-7">scanHeader:named:inTo:</a></h3>
 - (BOOL) <b>scanHeader:</b> (NSScanner*)aScanner <b>named:</b> (NSString*)aName <b>inTo:</b> (NSMutableDictionary*)info;<br>
 
 	    <p>
@@ -260,7 +284,7 @@
 
 	  
  <hr>
-<h3><a name ="method-7">scanSpace:</a></h3>
+<h3><a name ="method-8">scanSpace:</a></h3>
 - (BOOL) <b>scanSpace:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to scan past any whitespace in the scanner
@@ -268,7 +292,7 @@
 	    comes after it.  Returns YES if any space was read, NO otherwise.
 	  
  <hr>
-<h3><a name ="method-8">scanSpecial:</a></h3>
+<h3><a name ="method-9">scanSpecial:</a></h3>
 - (NSString*) <b>scanSpecial:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to use a scanner (that is set up to scan a
@@ -278,7 +302,7 @@
 	    will contain a single space character.
 	  
  <hr>
-<h3><a name ="method-9">scanToken:</a></h3>
+<h3><a name ="method-10">scanToken:</a></h3>
 - (NSString*) <b>scanToken:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to use a scanner (that is set up to scan a
