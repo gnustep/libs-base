@@ -206,8 +206,15 @@ AC_DEFUN(AC_SYS_PROCFS,
 
   AC_CACHE_CHECK([kernel support for /proc filesystem], ac_cv_sys_procfs,
   [if test "$enable_procfs" = yes; then
-    if test -d /proc/0; then
+  # Suggested change for the following line was 
+  #  if test -d /proc/0; then
+  # but it doesn't work on my linux - /proc/0 does not exist, but /proc
+  # works fine
+  if (grep proc /etc/fstab >/dev/null 2>/dev/null); then 
       ac_cv_sys_procfs=yes
+	# Solaris has proc, but for some reason the dir is not readable
+	# 	elif (grep proc /etc/vfstab >/dev/null 2>/dev/null); then 
+	# ac_cv_sys_procfs=yes
     else
       ac_cv_sys_procfs=no
     fi
