@@ -100,7 +100,6 @@
 #define	NOFILE	256
 #endif
 
-NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
 static NSRecursiveLock  *tasksLock = nil;
 static NSMapTable       *activeTasks = 0;

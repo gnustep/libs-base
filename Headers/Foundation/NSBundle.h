@@ -42,7 +42,7 @@
  *  mapped to an [NSArray] containing the names of each class and category
  *  loaded (as strings).
  */
-GS_EXPORT NSString* NSBundleDidLoadNotification;
+GS_EXPORT NSString* const NSBundleDidLoadNotification;
 
 /**
  * A user default affecting the behavior of
@@ -51,7 +51,7 @@ GS_EXPORT NSString* NSBundleDidLoadNotification;
  * equivalent found.  This can be useful during development to check where
  * a given string in the UI is "coming from".
  */
-GS_EXPORT NSString* NSShowNonLocalizedStrings;
+GS_EXPORT NSString* const NSShowNonLocalizedStrings;
 
 /**
  *  When an [NSBundle] loads classes and posts a
@@ -59,7 +59,7 @@ GS_EXPORT NSString* NSShowNonLocalizedStrings;
  *  contains this key, mapped to an [NSArray] containing the names of each
  *  class and category loaded (as strings).
  */
-GS_EXPORT NSString* NSLoadedClasses;
+GS_EXPORT NSString* const NSLoadedClasses;
 
 /**
    <p>

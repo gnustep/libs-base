@@ -33,22 +33,6 @@
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSUndoManager.h"
 
-/* Public notifications */
-NSString *NSUndoManagerCheckpointNotification =
-	@"NSUndoManagerCheckpointNotification";
-NSString *NSUndoManagerDidOpenUndoGroupNotification =
-	@"NSUndoManagerDidOpenUndoGroupNotification";
-NSString *NSUndoManagerDidRedoChangeNotification =
-	@"NSUndoManagerDidRedoChangeNotification";
-NSString *NSUndoManagerDidUndoChangeNotification =
-	@"NSUndoManagerDidUndoChangeNotification";
-NSString *NSUndoManagerWillCloseUndoGroupNotification =
-	@"NSUndoManagerWillCloseUndoGroupNotification";
-NSString *NSUndoManagerWillRedoChangeNotification =
-	@"NSUndoManagerWillRedoChangeNotification";
-NSString *NSUndoManagerWillUndoChangeNotification =
-	@"NSUndoManagerWillUndoChangeNotification";
-
 
 /*
  *	Private class for grouping undo/redo actions.

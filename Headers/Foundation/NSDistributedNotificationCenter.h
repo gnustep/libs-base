@@ -55,14 +55,14 @@ typedef enum {
  *  Type for [NSDistributedNotificationCenter+notificationCenterForType:] -
  *  localhost broadcast only.  This is the only type on OS X.
  */
-GS_EXPORT NSString	*NSLocalNotificationCenterType;
+GS_EXPORT NSString* const NSLocalNotificationCenterType;
 #ifndef NO_GNUSTEP
 
 /**
  *  Type of [NSDistributedNotificationCenter+notificationCenterForType:] -
  *  localhost and LAN broadcast.  This type is available only on GNUstep.
  */
-GS_EXPORT NSString	*GSNetworkNotificationCenterType;
+GS_EXPORT NSString* const GSNetworkNotificationCenterType;
 #endif
 
 @interface	NSDistributedNotificationCenter : NSNotificationCenter

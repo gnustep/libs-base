@@ -176,7 +176,7 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
  *  Notification posted when an instance of [NSPort] or a subclass becomes
  *  invalid.
  */
-GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
+GS_EXPORT NSString* const NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification
 

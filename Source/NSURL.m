@@ -51,8 +51,6 @@ function may be incorrect
 #include "Foundation/NSValue.h"
 #include "Foundation/NSZone.h"
 
-NSString	*NSURLFileScheme = @"file";
-
 /*
  * Structure describing a URL.
  * All the char* fields may be NULL pointers, except path, which

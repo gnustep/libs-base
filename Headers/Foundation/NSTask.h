@@ -104,6 +104,6 @@
  *  subprocess ending or the [NSTask-terminate] method explicitly being
  *  called.
  */
-GS_EXPORT NSString*	NSTaskDidTerminateNotification;
+GS_EXPORT NSString* const NSTaskDidTerminateNotification;
 
 #endif /* __NSTask_h_GNUSTEP_BASE_INCLUDE */

@@ -118,14 +118,14 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
  *  can assume the application is in single-threaded mode and locks are not
  *  necessary.  Afterwards multiple threads <em>may</em> be running.
  */
-GS_EXPORT NSString	*NSWillBecomeMultiThreadedNotification;
+GS_EXPORT NSString* const NSWillBecomeMultiThreadedNotification;
 #define	NSBecomingMultiThreaded NSWillBecomeMultiThreadedNotification
 
 /**
  *  Notification posted when an [NSThread] instance receives an exit message,
  *  or an external thread has been deregistered.
  */
-GS_EXPORT NSString	*NSThreadWillExitNotification;
+GS_EXPORT NSString* const NSThreadWillExitNotification;
 #define NSThreadExiting NSThreadWillExitNotification
 
 #ifndef	NO_GNUSTEP
@@ -134,7 +134,7 @@ GS_EXPORT NSString	*NSThreadWillExitNotification;
  *  Notification posted whenever a new thread is started up.  This is a
  *  GNUstep extension.
  */
-GS_EXPORT NSString	*NSThreadDidStartNotification;
+GS_EXPORT NSString* const NSThreadDidStartNotification;
 
 /*
  *	Get current thread and it's dictionary.
