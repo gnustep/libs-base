@@ -1,3 +1,11 @@
+2001-12-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/autogsdoc.m: Add options for better control of index file and
+	turning off dependency checking (for slightly more efficient running
+	under make).  Also added flag to enable/disable html generation.
+	* Tools/AGSHtml.m: Fix a few errors in achnors and links to document
+	titles.
+
 2001-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Fix bug in handling args introduceed by last

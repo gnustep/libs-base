@@ -629,9 +629,9 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<br />\n"];
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<h1>"];
+	  [buf appendFormat: @"<h1><a name=\"title$%@\">", base];
 	  [self outputText: [children children] to: buf];
-	  [buf appendString: @"</h1>\n"];
+	  [buf appendString: @"</a></h1>\n"];
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<h3>Authors</h3>\n"];
@@ -817,18 +817,17 @@ static NSMutableSet	*textNodes = nil;
 		    {
 		      NSString	*ref = [a objectAtIndex: i];
 		      NSString	*file = [dict objectForKey: ref];
+		      NSString	*text = ref;
 
 		      /*
-		       * Special case ... title listings are done in reverse
-		       * order, with the name of the file being the unique key
+		       * Special case ... title listings are done 
+		       * with the name of the file being the unique key
 		       * and the value being the title string.
 		       */
 		      if ([type isEqual: @"title"] == YES)
 			{
-			  NSString	*tmp = ref;
-
-			  ref = file;
-			  file = tmp;
+			  text = file;
+			  file = ref;
 			  if ([file isEqual: base] == YES)
 			    {
 			      continue;	// Don't list current file.
@@ -838,7 +837,7 @@ static NSMutableSet	*textNodes = nil;
 		      [buf appendString: indent];
 		      [buf appendFormat:
 			@"<li><a href=\"%@.html#%@$%@\">%@</a></li>\n",
-			file, type, ref, ref];
+			file, type, ref, text];
 		    }
 		}
 
@@ -857,7 +856,7 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
-NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+	  NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([name isEqual: @"label"] == YES)	// %anchor
 	{
@@ -1033,7 +1032,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([name isEqual: @"prjref"] == YES)
 	{
-NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+	  NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([name isEqual: @"ref"] == YES)	// %xref
 	{
@@ -1085,7 +1084,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
-NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+	  NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else if ([name isEqual: @"section"] == YES)
 	{
