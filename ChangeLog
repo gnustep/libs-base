@@ -1,5 +1,14 @@
 2000-08-02  Adam Fedor  <fedor@gnu.org>
 
+	* Version: Update version number
+	* Documentation/announce.tmpl.texi: Update
+	* Documentation/readme.tmpl.texi: Likewise.
+	* Documentation/news.tmpl.texi: Likewise.
+	* Documentation/todo.tmpl.texi: Likewise.
+	* ANNOUNCE, BUGS, NEWS, README: Regenerate
+
+2000-08-02  Adam Fedor  <fedor@gnu.org>
+
 	* Testing/nsconnection_client.m: Rewrite, organize.
 	* Testing/nsconnection_server.m: Likewise.
 

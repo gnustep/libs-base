@@ -85,6 +85,7 @@
   *bp = !(*bp);
 }
 
+/* This causes problems, because the runtime encodes this as "*", a string! */
 - (unsigned char) sendUChar: (unsigned char)num
 {
   unsigned char rnum = num + ADD_CONST;

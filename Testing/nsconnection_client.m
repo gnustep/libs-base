@@ -69,7 +69,7 @@ int con_data (id prx)
   if (b == !br)
     printf(" ...ok\n");
   else
-    printf(" ********** ERROR ************\n");
+    printf(" *** ERROR ***\n");
   br = b = YES;
   printf("  sending ptr to %d", br);
   [prx getBoolean: &br];
@@ -77,7 +77,8 @@ int con_data (id prx)
   if (b == !br)
     printf(" ...ok\n");
   else
-    printf(" ********** ERROR ************\n");
+    printf(" *** ERROR ***\n");
+  printf("    (should get error returning ptr)\n");
 
 #define TEST_CALL(test, send, got, sendp, var, varr, val, msg1, msg2)	\
   printf(test);								\
@@ -86,7 +87,7 @@ int con_data (id prx)
   varr = [prx msg1 var];						\
   printf(got, varr);							\
   if (varr != var+ADD_CONST)						\
-    printf(" ************** ERROR *************\n");			\
+    printf(" *** ERROR ***\n");						\
   else									\
     printf(" ...ok\n");							\
   varr = var = val+1;							\
@@ -94,15 +95,17 @@ int con_data (id prx)
   [prx msg2 &varr];							\
   printf(got, varr);							\
   if (varr != var+ADD_CONST)						\
-    printf(" ************** ERROR *************\n");			\
+    printf(" *** ERROR ***\n");						\
   else									\
     printf(" ...ok\n");
 
   TEST_CALL("UChar:\n", "  sending %x", " got %x", "  sending ptr to %x",
 	    uc, ucr, 23, sendUChar:, getUChar:)
+  printf("    (should get error returning ptr)\n");
 
   TEST_CALL("Char:\n", "  sending %x", " got %x", "  sending ptr to %x",
 	    c, cr, 23, sendChar:, getChar:)
+  printf("    (should get error returning ptr)\n");
 
   TEST_CALL("Short:\n", "  sending %d", " got %d", "  sending ptr to %d",
 	    s, sr, 23, sendShort:, getShort:)

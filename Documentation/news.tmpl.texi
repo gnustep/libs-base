@@ -19,6 +19,10 @@ the MacOS-X API (and incidentally, closer to the original OpenStep standard).
 @item More optimization of classes.
 @end itemize
 
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{0.6.5}
 
 @itemize @bullet
@@ -239,10 +243,6 @@ NSAllocateMemoryPages, NSDeallocateMemoryPages, NSCopyMemoryPages.
 @item ...and many bug fixes.
 
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes since version @samp{0.1.14}
 
