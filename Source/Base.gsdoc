@@ -207,8 +207,9 @@
 	    <term>GNUSTEP_USER_ROOT</term>
 	    <desc>
 	      <p>
-		Used to specify the GNUstep directory in which resources
-		specific to the current user are located.
+		This environment variable, commonly set by the make system,
+		is <strong>not</strong> used by GNUstep programs.  Instead
+		values from <code>.GNUsteprc</code> are used (see later).
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_TARGET_CPU</term>
@@ -294,6 +295,60 @@
 	      </p>
 	    </desc>
 
+	  </deflist>
+	</subsect>
+	<subsect>
+	  <heading>.GNUsteprc files</heading>
+	  <p>
+	    The locations of the directories in which user specific files and
+	    the user defaults database are stored are defined in the
+	    <code>.GNUsteprc</code> files.<br />
+	    If no location is given for user specific files, they are stored
+	    in the GNUstep subdirectory of the users home directory.<br />
+	    If a separate location is not given for the defaults database, it
+	    is stored in the same directory as other user specific files.<br />
+	  </p>
+	  <p>
+	    The presence of a <code>.GNUsteprc</code> file in a users home
+	    directory premits the user to customize file locations using
+	    two commands -
+	  </p>
+	  <deflist>
+	    <term>GNUSTEP_DEFAULTS_ROOT=...</term>
+	    <desc>
+	      The text after the '=' is taken to be the path to the users
+	      files.  If it begins with a '~' character, the users home
+	      directory is prepended to it.
+	    </desc>
+	    <term>GNUSTEP_USER_ROOT=...</term>
+	    <desc>
+	      The text after the '=' is taken to be the path to the users
+	      files.  If it begins with a '~' character, the users home
+	      directory is prepended to it.
+	    </desc>
+	  </deflist>
+	  <p>
+	    The presence of a <code>.GNUsteprc</code> file in the GNUstep
+	    system directory may provide default paths for all users and
+	    may even override user specific files.  The content of this file
+	    is as for the user specific file, but permits two additional
+	    commands -
+	  </p>
+	  <deflist>
+	    <term>FORCE_DEFAULTS_ROOT</term>
+	    <desc>
+	      If this line is present, and the file specifies a
+	      GNUSTEP_DEFAULTS_ROOT, then the value given in the system-wide
+	      file is used irrespective of the user specific file.
+	      Otherwise, the value in the user specific file takes precedence.
+	    </desc>
+	    <term>FORCE_USER_ROOT</term>
+	    <desc>
+	      If this line is present, and the file specifies a
+	      GNUSTEP_USER_ROOT, then the value given in the system-wide
+	      file is used irrespective of the user specific file.
+	      Otherwise, the value in the user specific file takes precedence.
+	    </desc>
 	  </deflist>
 	</subsect>
       </section>
