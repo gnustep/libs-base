@@ -1,3 +1,9 @@
+2003-05-14 16:50  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSUser.m, Headers/gnustep/base/NSPathUtilities.h: Add
+	GSApplicationSupportDirectory constant for
+	NSSearchPathForDirectoriesInDomains.
+
 2003-05-14  David Ayers  <d.ayers@inode.at>
 
 	* Tools/Makefile.postamble: Added safe handling of empty
