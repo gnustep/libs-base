@@ -1654,13 +1654,19 @@ warningFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
   va_list args;
+  int lineNumber=-1;
+  int colNumber=-1;
 
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
-  [HANDLER warning: UTF8Str(allMsg)];
+  lineNumber=getLineNumber(ctx);
+  colNumber=getColumnNumber(ctx);
+  [HANDLER warning: UTF8Str(allMsg)
+           colNumber:colNumber
+           lineNumber:lineNumber];
 }
 
 static void
@@ -1668,12 +1674,18 @@ errorFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
   va_list args;
+  int lineNumber=-1;
+  int colNumber=-1;
 
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
   NSCAssert(ctx,@"No Context");
-  [HANDLER error: UTF8Str(allMsg)];
+  lineNumber=getLineNumber(ctx);
+  colNumber=getColumnNumber(ctx);
+  [HANDLER error: UTF8Str(allMsg)
+           colNumber:colNumber
+           lineNumber:lineNumber];
 }
 
 static void
@@ -1681,12 +1693,18 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
   va_list args;
+  int lineNumber=-1;
+  int colNumber=-1;
 
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
   NSCAssert(ctx, @"No Context");
-  [HANDLER fatalError: UTF8Str(allMsg)];
+  lineNumber=getLineNumber(ctx);
+  colNumber=getColumnNumber(ctx);
+  [HANDLER fatalError: UTF8Str(allMsg)           
+           colNumber:colNumber
+           lineNumber:lineNumber];
 }
 
 #undef	HANDLER
@@ -1839,6 +1857,27 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 
 - (void) fatalError: (NSString*)e
 {
+}
+
+- (void) warning: (NSString*)e
+       colNumber: (int)colNumber
+      lineNumber: (int)lineNumber
+{
+  [self warning:e];
+}
+
+- (void) error: (NSString*)e
+       colNumber: (int)colNumber
+      lineNumber: (int)lineNumber
+{
+  [self error:e];
+}
+
+- (void) fatalError: (NSString*)e
+       colNumber: (int)colNumber
+      lineNumber: (int)lineNumber
+{
+  [self fatalError:e];
 }
 
 - (int) hasInternalSubset
