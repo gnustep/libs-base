@@ -49,7 +49,18 @@ NSMutableDictionary *GSCurrentThreadDictionary()
 
 NSArray *NSStandardLibraryPaths()
 {
-    return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory, NSAllDomainsMask, YES);
+    return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
+					       NSAllDomainsMask, YES);
+}
+
+// Defined in NSDecimal.m
+void NSDecimalFromComponents(NSDecimal *result,
+			     unsigned long long mantissa,
+			     short exponent, BOOL negative)
+{
+  *result = [[NSDecimalNumber decimalNumberWithMantissa:mantissa 
+			      exponent:exponent
+			      isNegative:negative] decimalValue];
 }
 
 // Defined in NSDebug.m

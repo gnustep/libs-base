@@ -201,13 +201,18 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
  */
 
 GS_EXPORT NSArray *NSStandardLibraryPaths();
+GS_EXPORT void NSDecimalFromComponents(NSDecimal *result, 
+				       unsigned long long mantissa,
+				       short exponent, BOOL negative);
 GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
 GS_EXPORT NSString *GSEncodingName(NSStringEncoding availableEncodingValue);
 
 GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary();
 
-GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt);
-GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt);
+GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, 
+				     int line, NSString *fmt);
+GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
+				       int line, NSString *fmt);
 
 #endif /* NexT_FOUNDATION_LIB */
 

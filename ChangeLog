@@ -1,3 +1,9 @@
+2003-09-11  Philip Moetteli  <philip.moetteli@tele2.ch>
+
+	* Source/Additions/GSCompatibility.h
+	* Source/Additions/GSCompatibility.m
+	(NSDecimalFromComponents): Added compatibility function.
+
 2003-09-10  Richard Frith-Macdonald  <rfm@gnu.org>
 
 	* Source/NSObject.m: Tidy use of GSObjCRuntime a little.
