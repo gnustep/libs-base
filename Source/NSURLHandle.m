@@ -37,6 +37,7 @@
 #include <Foundation/NSRunLoop.h>
 
 @class	GSFileURLHandle;
+@class	GSHTTPURLHandle;
 
 @implementation NSURLHandle
 
@@ -86,6 +87,7 @@ static Class		NSURLHandleClass = 0;
       registry = [NSMutableArray new];
       registryLock = [NSLock new];
       [self registerURLHandleClass: [GSFileURLHandle class]];
+      [self registerURLHandleClass: [GSHTTPURLHandle class]];
     }
 }
 

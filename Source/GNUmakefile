@@ -144,6 +144,8 @@ preface.h
 # GNUStep source files
 
 BASE_MFILES = \
+GSHTTPURLHandle.m \
+GSMime.m \
 GSString.m \
 NSAttributedString.m \
 NSArchiver.m \
@@ -230,7 +232,6 @@ objc-load.m
 ifeq ($(HAVE_LIBXML),1)
 BASE_MFILES += GSXML.m
 endif
-BASE_MFILES += GSMime.m
 
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
@@ -255,6 +256,7 @@ tzfile.h
 BASE_HEADERS = \
 Foundation.h \
 DistributedObjects.h \
+GSMime.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
@@ -327,7 +329,6 @@ NSURLHandle.h
 ifeq ($(HAVE_LIBXML),1)
 BASE_HEADERS += GSXML.h
 endif
-BASE_HEADERS += GSMime.h
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \
