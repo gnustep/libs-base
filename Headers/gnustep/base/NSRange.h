@@ -147,4 +147,16 @@ NSStringFromRange(NSRange range);
 #undef	MIN
 #endif
 
+#ifndef	NO_GNUSTEP
+/*
+ * To be used inside a method for making sure that a range does not specify
+ * anything outsize the size of an array/string.
+ */
+#define GS_RANGE_CHECK(RANGE, SIZE) \
+  if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
+    [NSException raise: NSRangeException \
+                format: @"in %s, range { %u, %u } extends beyond size (%u)", \
+		  sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
+#endif
+
 #endif /* __NSRange_h_GNUSTEP_BASE_INCLUDE */

@@ -31,6 +31,7 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSRange.h>
 #include <base/NSGString.h>
 #include <base/NSGCString.h>
 #include <base/IndexedCollection.h>
@@ -343,10 +344,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 {
   int len;
 
-  if (aRange.location >= _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
   if (maxLength < aRange.length)
     {
       len = maxLength;
@@ -403,10 +401,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 {
   int e, i;
 
-  if (aRange.location >= _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
   e = aRange.location + aRange.length;
   for (i = aRange.location; i < e; i++)
     *buffer++ = chartouni(((unsigned char *)_contents_chars)[i]);
@@ -414,10 +409,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  if (aRange.location > _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
   return [[self class] stringWithCString: _contents_chars + aRange.location
 		       length: aRange.length];
 }

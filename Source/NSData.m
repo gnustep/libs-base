@@ -73,6 +73,7 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSPathUtilities.h>
+#include <Foundation/NSRange.h>
 #include <string.h>		/* for memset() */
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 
@@ -413,23 +414,10 @@ failure:
 - (void)getBytes: (void*)buffer
 	   range: (NSRange)aRange
 {
-  int	size;
+  unsigned	size = [self length];
 
-  // Check for 'out of range' errors.  This code assumes that the
-  // NSRange location and length types will remain unsigned (hence
-  // the lack of a less-than-zero check).
-  size = [self length];
-  if (aRange.location > size ||
-      aRange.length   > size ||
-      NSMaxRange( aRange ) > size)
-  {
-    [NSException raise: NSRangeException
-		format: @"Range: (%u, %u) Size: %d",
-			aRange.location, aRange.length, size];
-  }
-  else
-    memcpy(buffer, [self bytes] + aRange.location, aRange.length);
-  return;
+  GS_RANGE_CHECK(aRange, size);
+  memcpy(buffer, [self bytes] + aRange.location, aRange.length);
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
@@ -442,14 +430,7 @@ failure:
   void		*buffer;
   unsigned	l = [self length];
 
-  // Check for 'out of range' errors before calling [-getBytes:range:]
-  // so that we can be sure that we don't get a range exception raised
-  // after we have allocated memory.
-  l = [self length];
-  if (aRange.location > l || aRange.length > l || NSMaxRange(aRange) > l)
-    [NSException raise: NSRangeException
-		format: @"Range: (%u, %u) Size: %d",
-			aRange.location, aRange.length, l];
+  GS_RANGE_CHECK(aRange, l);
 
   buffer = NSZoneMalloc([self zone], aRange.length);
   if (buffer == 0)
@@ -1230,45 +1211,17 @@ failure:
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
 {
-  int	size;
+  unsigned	size = [self length];
 
-  // Check for 'out of range' errors.  This code assumes that the
-  // NSRange location and length types will remain unsigned (hence
-  // the lack of a less-than-zero check).
-  size = [self length];
-  if (aRange.location > size ||
-      aRange.length   > size ||
-      NSMaxRange( aRange ) > size)
-  {
-	// Raise an exception.
-	[NSException raise    : NSRangeException
-		     format   : @"Range: (%u, %u) Size: %d",
-		     		aRange.location,
-				aRange.length,
-				size];
-  }
+  GS_RANGE_CHECK(aRange, size);
   memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
 }
 
 - (void) resetBytesInRange: (NSRange)aRange
 {
-  int	size;
+  unsigned	size = [self length];
 
-  // Check for 'out of range' errors.  This code assumes that the
-  // NSRange location and length types will remain unsigned (hence
-  // the lack of a less-than-zero check).
-  size = [self length];
-  if (aRange.location > size ||
-      aRange.length   > size ||
-      NSMaxRange( aRange ) > size)
-  {
-	// Raise an exception.
-	[NSException raise    : NSRangeException
-		     format   : @"Range: (%u, %u) Size: %d",
-		     		aRange.location,
-				aRange.length,
-				size];
-  }
+  GS_RANGE_CHECK(aRange, size);
   memset((char*)[self bytes] + aRange.location, 0, aRange.length);
 }
 
@@ -1692,17 +1645,8 @@ failure:
 - (void) getBytes: (void*)buffer
 	    range: (NSRange)aRange
 {
-  if (aRange.location > length || NSMaxRange(aRange) > length)
-    {
-      [NSException raise: NSRangeException
-		  format: @"Range: (%u, %u) Size: %d",
-			aRange.location, aRange.length, length];
-    }
-  else
-    {
-      memcpy(buffer, bytes + aRange.location, aRange.length);
-    }
-  return;
+  GS_RANGE_CHECK(aRange, length);
+  memcpy(buffer, bytes + aRange.location, aRange.length);
 }
 
 - (unsigned) length
@@ -2623,12 +2567,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)moreBytes
 {
-    if (aRange.location > length || NSMaxRange(aRange) > length) {
-	[NSException raise: NSRangeException
-		    format: @"Range: (%u, %u) Size: %u",
-		     		aRange.location, aRange.length, length];
-    }
-    memcpy(bytes + aRange.location, moreBytes, aRange.length);
+  GS_RANGE_CHECK(aRange, length);
+  memcpy(bytes + aRange.location, moreBytes, aRange.length);
 }
 
 - (void) serializeDataAt: (const void*)data

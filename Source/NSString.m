@@ -52,6 +52,7 @@
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPathUtilities.h>
+#include <Foundation/NSRange.h>
 
 #include <base/IndexedCollection.h>
 #include <Foundation/NSData.h>
@@ -306,7 +307,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (NSString*) stringWithCharacters: (const unichar*)chars
-			    length: (unsigned int)length
+			    length: (unsigned)length
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithCharacters: chars length: length]);
@@ -319,7 +320,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
-   length: (unsigned int)length
+   length: (unsigned)length
 {
   return AUTORELEASE([[NSString_c_concrete_class allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
@@ -358,7 +359,7 @@ handle_printf_atsign (FILE *stream,
 
 /* This is the designated initializer for Unicode Strings. */
 - (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
+			 length: (unsigned)length
 		       fromZone: (NSZone*)zone
 {
   [self subclassResponsibility: _cmd];
@@ -366,7 +367,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
+   length: (unsigned)length
    freeWhenDone: (BOOL)flag
 {
   if (flag)
@@ -381,7 +382,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithCharacters: (const unichar*)chars
-		   length: (unsigned int)length
+		   length: (unsigned)length
 {
     NSZone	*z = [self zone];
     unichar	*s = NSZoneMalloc(z, sizeof(unichar)*length);
@@ -393,7 +394,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
+		      length: (unsigned)length
 		freeWhenDone: (BOOL)flag
 {
   if (flag)
@@ -408,14 +409,14 @@ handle_printf_atsign (FILE *stream,
 
 /* This is the designated initializer for CStrings. */
 - (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
+		      length: (unsigned)length
 		    fromZone: (NSZone*)zone
 {
   [self subclassResponsibility: _cmd];
   return self;
 }
 
-- (id) initWithCString: (const char*)byteString  length: (unsigned int)length
+- (id) initWithCString: (const char*)byteString  length: (unsigned)length
 {
     NSZone	*z = [self zone];
     char	*s = NSZoneMalloc(z, length);
@@ -619,7 +620,7 @@ handle_printf_atsign (FILE *stream,
   NSStringEncoding enc;
   id d = [NSData dataWithContentsOfFile: path];
   const unsigned char *test=[d bytes];
-  unsigned int len = [d length];
+  unsigned len = [d length];
 
   if (d == nil) return nil;
   if (test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
@@ -637,7 +638,7 @@ handle_printf_atsign (FILE *stream,
 
 // Getting a String's Length
 
-- (unsigned int) length
+- (unsigned) length
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -645,7 +646,7 @@ handle_printf_atsign (FILE *stream,
 
 // Accessing Characters
 
-- (unichar) characterAtIndex: (unsigned int)index
+- (unichar) characterAtIndex: (unsigned)index
 {
   [self subclassResponsibility: _cmd];
   return (unichar)0;
@@ -665,10 +666,7 @@ handle_printf_atsign (FILE *stream,
   unsigned	l = [self length];
   unsigned	i;
 
-  if (aRange.location >= l)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (l - aRange.location))
-    [NSException raise:NSRangeException format:@"Invalid location+length"];
+  GS_RANGE_CHECK(aRange, l);
 
   for (i = 0; i < aRange.length; i++)
     {
@@ -721,7 +719,7 @@ handle_printf_atsign (FILE *stream,
 
       current = NSMakeRange (search.location,
 			     found.location - search.location);
-      [array addObject: [self substringFromRange: current]];
+      [array addObject: [self substringWithRange: current]];
 
       search = NSMakeRange (found.location + found.length,
 			    complete.length - found.location - found.length);
@@ -730,27 +728,36 @@ handle_printf_atsign (FILE *stream,
 		    range: search];
     }
   // Add the last search string range
-  [array addObject: [self substringFromRange: search]];
+  [array addObject: [self substringWithRange: search]];
 
   // FIXME: Need to make mutable array into non-mutable array?
   return array;
 }
 
-- (NSString*) substringFromIndex: (unsigned int)index
+- (NSString*) substringFromIndex: (unsigned)index
 {
-  return [self substringFromRange: ((NSRange){index, [self length]-index})];
+  return [self substringWithRange: ((NSRange){index, [self length]-index})];
+}
+
+- (NSString*) substringToIndex: (unsigned)index
+{
+  return [self substringWithRange: ((NSRange){0,index})];;
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  NSZone *z;
-  unichar *buf;
-  id ret;
+  return [self substringWithRange: aRange];
+}
 
-  if (aRange.location > [self length])
-    [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > ([self length] - aRange.location))
-    [NSException raise: NSRangeException format: @"Invalid location+length."];
+- (NSString*) substringWithRange: (NSRange)aRange
+{
+  NSZone	*z;
+  unichar	*buf;
+  id		ret;
+  unsigned	len = [self length];
+
+  GS_RANGE_CHECK(aRange, len);
+
   if (aRange.length == 0)
     return @"";
   z = fastZone(self);
@@ -759,16 +766,6 @@ handle_printf_atsign (FILE *stream,
   ret = [[[self class] allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length fromZone: z];
   return AUTORELEASE(ret);
-}
-
-- (NSString*) substringWithRange: (NSRange)aRange
-{
-  return [self substringFromRange: aRange];
-}
-
-- (NSString*) substringToIndex: (unsigned int)index
-{
-  return [self substringFromRange: ((NSRange){0,index})];;
 }
 
 // Finding Ranges of Characters and Substrings
@@ -782,7 +779,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned int)mask
+			    options: (unsigned)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
   return [self rangeOfCharacterFromSet: aSet
@@ -792,7 +789,7 @@ handle_printf_atsign (FILE *stream,
 
 /* xxx FIXME */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned int)mask
+			    options: (unsigned)mask
 			      range: (NSRange)aRange
 {
   int i, start, stop, step;
@@ -801,10 +798,7 @@ handle_printf_atsign (FILE *stream,
   BOOL		(*mImp)(id, SEL, unichar);
 
   i = [self length];
-  if (aRange.location > i)
-    [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > (i - aRange.location))
-    [NSException raise: NSRangeException format: @"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, i);
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
@@ -843,7 +837,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfString: (NSString*)string
-		  options: (unsigned int)mask
+		  options: (unsigned)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
   return [self rangeOfString: string
@@ -852,7 +846,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfString: (NSString *) aString
-		  options: (unsigned int) mask
+		  options: (unsigned) mask
 		    range: (NSRange) aRange
 {
   if (aString == nil)
@@ -862,7 +856,7 @@ handle_printf_atsign (FILE *stream,
 
 // Determining Composed Character Sequences
 
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
 {
   unsigned	start;
   unsigned	end;
@@ -888,7 +882,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSComparisonResult) compare: (NSString*)aString	
-		       options: (unsigned int)mask
+		       options: (unsigned)mask
 {
   return [self compare: aString options: mask 
 		 range: ((NSRange){0, [self length]})];
@@ -896,7 +890,7 @@ handle_printf_atsign (FILE *stream,
 
 // xxx Should implement full POSIX.2 collate
 - (NSComparisonResult) compare: (NSString*)aString
-		       options: (unsigned int)mask
+		       options: (unsigned)mask
 			 range: (NSRange)aRange
 {
   if (aString == nil)
@@ -945,7 +939,7 @@ handle_printf_atsign (FILE *stream,
   return NO;
 }
 
-- (unsigned int) hash
+- (unsigned) hash
 {
   unsigned ret = 0;
 
@@ -985,7 +979,7 @@ handle_printf_atsign (FILE *stream,
 // Getting a Shared Prefix
 
 - (NSString*) commonPrefixWithString: (NSString*)aString
-			     options: (unsigned int)mask
+			     options: (unsigned)mask
 {
   if (mask & NSLiteralSearch)
     {
@@ -1077,7 +1071,7 @@ handle_printf_atsign (FILE *stream,
 	      oRange = (*orImp)(aString, ranSel, oIndex);
 
 	      if ((sRange.length < 2) || (oRange.length < 2))
-		return [self substringFromRange: NSMakeRange(0, sIndex)];
+		return [self substringWithRange: NSMakeRange(0, sIndex)];
 	      else
 		{
 		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
@@ -1107,21 +1101,21 @@ handle_printf_atsign (FILE *stream,
 			  oIndex += oRange.length;
 			}
 		      else
-			return [self substringFromRange: NSMakeRange(0,sIndex)];
+			return [self substringWithRange: NSMakeRange(0,sIndex)];
 		    }
 		  else
-		    return [self substringFromRange: NSMakeRange(0,sIndex)];
+		    return [self substringWithRange: NSMakeRange(0,sIndex)];
 		}
 	    }
 	}
-      return [self substringFromRange: NSMakeRange(0, sIndex)];
+      return [self substringWithRange: NSMakeRange(0, sIndex)];
     }
 }
 
 - (NSRange) lineRangeForRange: (NSRange)aRange
 {
-  unsigned int startIndex;
-  unsigned int lineEndIndex;
+  unsigned startIndex;
+  unsigned lineEndIndex;
 
   [self getLineStart: &startIndex
                  end: &lineEndIndex
@@ -1130,114 +1124,117 @@ handle_printf_atsign (FILE *stream,
   return NSMakeRange(startIndex, lineEndIndex - startIndex);
 }
 
-- (void)getLineStart: (unsigned int *)startIndex
-                 end: (unsigned int *)lineEndIndex
-         contentsEnd: (unsigned int *)contentsEndIndex
-         forRange: (NSRange)aRange
+- (void)getLineStart: (unsigned *)startIndex
+                 end: (unsigned *)lineEndIndex
+         contentsEnd: (unsigned *)contentsEndIndex
+	    forRange: (NSRange)aRange
 {
-  unichar thischar;
-  BOOL done;
-  unsigned int start, end, len;
-
-  if (aRange.location > [self length])
-    [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > ([self length] - aRange.location))
-    [NSException raise: NSRangeException format: @"Invalid location+length."];
+  unichar	thischar;
+  BOOL		done;
+  unsigned	start, end, len;
 
   len = [self length];
-  start=aRange.location;
+  GS_RANGE_CHECK(aRange, len);
+
+  start = aRange.location;
 
   if (startIndex)
     if (start==0)
       *startIndex=0;
     else
-    {
-      start--;
-      while (start>0)
       {
-        BOOL done = NO;
-        thischar = [self characterAtIndex: start];
-        switch(thischar)
-        {
-          case (unichar)0x000A: 
-          case (unichar)0x000D: 
-          case (unichar)0x2028: 
-          case (unichar)0x2029: 
-            done = YES;
-            break;
-          default: 
-            start--;
-            break;
-        };
-        if (done)
-          break;
+	start--;
+	while (start > 0)
+	  {
+	    BOOL	done = NO;
+
+	    thischar = [self characterAtIndex: start];
+	    switch(thischar)
+	      {
+		case (unichar)0x000A: 
+		case (unichar)0x000D: 
+		case (unichar)0x2028: 
+		case (unichar)0x2029: 
+		  done = YES;
+		  break;
+		default: 
+		  start--;
+		  break;
+	      };
+	    if (done)
+	      break;
+	  };
+	if (start == 0)
+	  {
+	     thischar = [self characterAtIndex: start];
+	     switch(thischar)
+	       {
+		 case (unichar)0x000A: 
+		 case (unichar)0x000D: 
+		 case (unichar)0x2028: 
+		 case (unichar)0x2029: 
+		   start++;
+		   break;
+		 default: 
+		   break;
+	       };
+	  }
+	else
+	  start++;
+	*startIndex = start;
       };
-      if (start == 0)
-      {
-         thischar = [self characterAtIndex: start];
-         switch(thischar)
-         {
-           case (unichar)0x000A: 
-           case (unichar)0x000D: 
-           case (unichar)0x2028: 
-           case (unichar)0x2029: 
-             start++;
-             break;
-           default: 
-             break;
-         };
-      }
-      else
-      start++;
-      *startIndex=start;
-    };
 
   if (lineEndIndex || contentsEndIndex)
-  {
-    end=aRange.location+aRange.length;
-    while (end<len)
     {
-       BOOL done = NO;
-       thischar = [self characterAtIndex: end];
-       switch(thischar)
-       {
-         case (unichar)0x000A: 
-         case (unichar)0x000D: 
-         case (unichar)0x2028: 
-         case (unichar)0x2029: 
-           done = YES;
-           break;
-         default: 
-           break;
-       };
-       end++;
-       if (done)
-         break;
-    };
-    if (end<len)
-    {
-      if ([self characterAtIndex: end]==(unichar)0x000D)
-        if ([self characterAtIndex: end+1]==(unichar)0x000A)
-          *lineEndIndex = end+1;
-        else  *lineEndIndex = end;
-      else  *lineEndIndex = end;
+      end=aRange.location+aRange.length;
+      while (end<len)
+	{
+	   BOOL done = NO;
+	   thischar = [self characterAtIndex: end];
+	   switch(thischar)
+	     {
+	       case (unichar)0x000A: 
+	       case (unichar)0x000D: 
+	       case (unichar)0x2028: 
+	       case (unichar)0x2029: 
+		 done = YES;
+		 break;
+	       default: 
+		 break;
+	     };
+	   end++;
+	   if (done)
+	     break;
+	};
+      if (end<len)
+	{
+	  if ([self characterAtIndex: end]==(unichar)0x000D)
+	    {
+	      if ([self characterAtIndex: end+1]==(unichar)0x000A)
+		*lineEndIndex = end+1;
+	      else
+		*lineEndIndex = end;
+	    }
+	  else
+	    *lineEndIndex = end;
+	}
+      else
+	*lineEndIndex = end;
     }
-    else
-    *lineEndIndex = end;
-  };
 
   if (contentsEndIndex)
-  {
-    if (end<len)
     {
-      *contentsEndIndex= end-1;
+      if (end<len)
+	{
+	  *contentsEndIndex= end-1;
+	}
+      else
+	{
+	  /* xxx OPENSTEP documentation does not say what to do if last
+	     line is not terminated. Assume this */
+	  *contentsEndIndex= end;
+	}
     }
-    else
-
-/* xxx OPENSTEP documentation does not say what to do if last
-   line is not terminated. Assume this */
-     *contentsEndIndex= end;
-    };
 }
 
 // Changing Case
@@ -1330,7 +1327,7 @@ handle_printf_atsign (FILE *stream,
   return NULL;
 }
 
-- (unsigned int) cStringLength
+- (unsigned) cStringLength
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -1344,7 +1341,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (void) getCString: (char*)buffer
-    maxLength: (unsigned int)maxLength
+    maxLength: (unsigned)maxLength
 {
   [self getCString: buffer maxLength: maxLength 
 	range: ((NSRange){0, [self length]})
@@ -1353,17 +1350,14 @@ handle_printf_atsign (FILE *stream,
 
 // xxx FIXME adjust range for composite sequence
 - (void) getCString: (char*)buffer
-   maxLength: (unsigned int)maxLength
+   maxLength: (unsigned)maxLength
    range: (NSRange)aRange
    remainingRange: (NSRange*)leftoverRange
 {
   int len, count;
 
   len = [self cStringLength];
-  if (aRange.location > len)
-    [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > (len - aRange.location))
-    [NSException raise: NSRangeException format: @"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, len);
 
   if (maxLength < aRange.length)
     {
@@ -1548,7 +1542,7 @@ handle_printf_atsign (FILE *stream,
 
 // Manipulating File System Paths
 
-- (unsigned int) completePathIntoString: (NSString**)outputName
+- (unsigned) completePathIntoString: (NSString**)outputName
 			  caseSensitive: (BOOL)flag
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes
@@ -1608,7 +1602,7 @@ handle_printf_atsign (FILE *stream,
   return [self cString];
 }
 
-- (BOOL)getFileSystemRepresentation: (char*)buffer maxLength: (unsigned int)size
+- (BOOL)getFileSystemRepresentation: (char*)buffer maxLength: (unsigned)size
 {
   const char* ptr = [self cString];
   if (strlen(ptr) > size)
@@ -1785,7 +1779,7 @@ handle_printf_atsign (FILE *stream,
       else
 	/* It is actually of the form `~username' */
 	uname_len = [self length] - 1;
-      uname = [self substringFromRange: ((NSRange){1, uname_len})];
+      uname = [self substringWithRange: ((NSRange){1, uname_len})];
       homedir = NSHomeDirectoryForUser (uname);
     }
   else
@@ -2286,7 +2280,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
-   length: (unsigned int)length
+			 length: (unsigned)length
 {
   return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);

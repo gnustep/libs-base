@@ -155,19 +155,19 @@ static inline BOOL timerInvalidated(NSTimer* timer)
  *      Setup for inline operation of arrays.
  */
 
-#define FAST_ARRAY_TYPES       GSUNION_OBJ
+#define GSI_ARRAY_TYPES       GSUNION_OBJ
 
 #if	GS_WITH_GC == 0
-#define FAST_ARRAY_RELEASE(X)	[(X).obj release]
-#define FAST_ARRAY_RETAIN(X)	[(X).obj retain]
+#define GSI_ARRAY_RELEASE(X)	[(X).obj release]
+#define GSI_ARRAY_RETAIN(X)	[(X).obj retain]
 #else
-#define FAST_ARRAY_RELEASE(X)	
-#define FAST_ARRAY_RETAIN(X)	(X).obj
+#define GSI_ARRAY_RELEASE(X)	
+#define GSI_ARRAY_RETAIN(X)	(X).obj
 #endif
 
-#include <base/FastArray.x>
+#include <base/GSIArray.h>
 
-static NSComparisonResult aSort(FastArrayItem i0, FastArrayItem i1)
+static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
   return [((RunLoopWatcher *)(i0.obj))->_date 
            compare: ((RunLoopWatcher *)(i1.obj))->_date];
@@ -401,7 +401,7 @@ static NSComparisonResult aSort(FastArrayItem i0, FastArrayItem i1)
    limit-date order. */
 - (void) _addWatcher: (RunLoopWatcher*) item forMode: (NSString*)mode
 {
-  FastArray	watchers;
+  GSIArray	watchers;
   id		obj;
 
   watchers = NSMapGet(_mode_2_watchers, mode);
@@ -409,8 +409,8 @@ static NSComparisonResult aSort(FastArrayItem i0, FastArrayItem i1)
     {
       NSZone	*z = [self zone];
 
-      watchers = NSZoneMalloc(z, sizeof(FastArray_t));
-      FastArrayInitWithZoneAndCapacity(watchers, z, 8);
+      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
       NSMapInsert(_mode_2_watchers, mode, watchers);
     }
 
@@ -440,7 +440,7 @@ static NSComparisonResult aSort(FastArrayItem i0, FastArrayItem i1)
     }
   else
     item->_date = RETAIN(theFuture);
-  FastArrayInsertSorted(watchers, (FastArrayItem)item, aSort);
+  GSIArrayInsertSorted(watchers, (GSIArrayItem)item, aSort);
 }
 
 - (void) _checkPerformers
@@ -671,15 +671,15 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #endif
 
 static void*
-aRetain(void* t, FastArray a)
+aRetain(void* t, GSIArray a)
 {
   return t;
 }
 
 static void
-aRelease(void* t, FastArray a)
+aRelease(void* t, GSIArray a)
 {
-  FastArrayEmpty(a);
+  GSIArrayEmpty(a);
   NSZoneFree(a->zone, (void*)a);
 }
 
@@ -766,18 +766,18 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (void) addTimer: timer
 	  forMode: (NSString*)mode
 {
-  FastArray timers;
+  GSIArray timers;
 
   timers = NSMapGet(_mode_2_timers, mode);
   if (!timers)
     {
       NSZone	*z = [self zone];
 
-      timers = NSZoneMalloc(z, sizeof(FastArray_t));
-      FastArrayInitWithZoneAndCapacity(timers, z, 8);
+      timers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       NSMapInsert(_mode_2_timers, mode, timers);
     }
-  FastArrayInsertSorted(timers, (FastArrayItem)timer, aSort);
+  GSIArrayInsertSorted(timers, (GSIArrayItem)timer, aSort);
 }
 
 
@@ -788,8 +788,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 {
   id			saved_mode;
   NSDate		*when;
-  FastArray		timers;
-  FastArray		watchers;
+  GSIArray		timers;
+  GSIArray		watchers;
   NSTimer		*min_timer = nil;
   RunLoopWatcher	*min_watcher = nil;
 
@@ -799,12 +799,12 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   timers = NSMapGet(_mode_2_timers, mode);
   if (timers)
     {
-      while (FastArrayCount(timers) != 0)
+      while (GSIArrayCount(timers) != 0)
 	{
-	  min_timer = FastArrayItemAtIndex(timers, 0).obj;
+	  min_timer = GSIArrayItemAtIndex(timers, 0).obj;
 	  if (timerInvalidated(min_timer) == YES)
 	    {
-	      FastArrayRemoveItemAtIndex(timers, 0);
+	      GSIArrayRemoveItemAtIndex(timers, 0);
 	      min_timer = nil;
 	      continue;
 	    }
@@ -814,13 +814,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      break;
 	    }
 
-	  FastArrayRemoveItemAtIndexNoRelease(timers, 0);
+	  GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
 	  /* Firing will also increment its fireDate, if it is repeating. */
 	  [min_timer fire];
 	  if (timerInvalidated(min_timer) == NO)
 	    {
-	      FastArrayInsertSortedNoRetain(timers,
-		(FastArrayItem)min_timer, aSort);
+	      GSIArrayInsertSortedNoRetain(timers,
+		(GSIArrayItem)min_timer, aSort);
 	    }
 	  else
 	    {
@@ -836,13 +836,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers)
     {
-      while (FastArrayCount(watchers) != 0)
+      while (GSIArrayCount(watchers) != 0)
 	{
-	  min_watcher = FastArrayItemAtIndex(watchers, 0).obj;
+	  min_watcher = GSIArrayItemAtIndex(watchers, 0).obj;
 
 	  if (min_watcher->_invalidated == YES)
 	    {
-	      FastArrayRemoveItemAtIndex(watchers, 0);
+	      GSIArrayRemoveItemAtIndex(watchers, 0);
 	      min_watcher = nil;
 	      continue;
 	    }
@@ -861,7 +861,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       *	timeouts - inform it and give it a chance to set a
 	       *	revised limit date.
 	       */
-	      FastArrayRemoveItemAtIndexNoRelease(watchers, 0);
+	      GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
 	      obj = min_watcher->receiver;
 	      if ([obj respondsToSelector: 
 		      @selector(timedOutEvent:type:forMode:)])
@@ -888,8 +888,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		   *	re-insert it into the queue in the correct place.
 		   */
 		  ASSIGN(min_watcher->_date, nxt);
-		  FastArrayInsertSortedNoRetain(watchers,
-		    (FastArrayItem)min_watcher, aSort);
+		  GSIArrayInsertSortedNoRetain(watchers,
+		    (GSIArrayItem)min_watcher, aSort);
 		}
 	      else
 		{
@@ -944,7 +944,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 			   type: (RunLoopEventType)type
 		        forMode: (NSString*)mode
 {
-  FastArray		watchers;
+  GSIArray		watchers;
 
   if (mode == nil)
     {
@@ -954,13 +954,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers)
     {
-      unsigned		i = FastArrayCount(watchers);
+      unsigned		i = GSIArrayCount(watchers);
 
       while (i-- > 0)
 	{
 	  RunLoopWatcher	*info;
 
-	  info = FastArrayItemAtIndex(watchers, i).obj;
+	  info = GSIArrayItemAtIndex(watchers, i).obj;
 	  if (info->type == type && info->data == data)
 	    {
 	      return info;
@@ -974,7 +974,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
                    type: (RunLoopEventType)type
                 forMode: (NSString*)mode
 {
-  FastArray	watchers;
+  GSIArray	watchers;
 
   if (mode == nil)
     {
@@ -984,17 +984,17 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers)
     {
-      unsigned	i = FastArrayCount(watchers);
+      unsigned	i = GSIArrayCount(watchers);
 
       while (i-- > 0)
 	{
 	  RunLoopWatcher	*info;
 
-	  info = FastArrayItemAtIndex(watchers, i).obj;
+	  info = GSIArrayItemAtIndex(watchers, i).obj;
 	  if (info->type == type && info->data == data)
 	    {
 	      info->_invalidated = YES;
-	      FastArrayRemoveItemAtIndex(watchers, i);
+	      GSIArrayRemoveItemAtIndex(watchers, i);
 	    }
 	}
     }
@@ -1078,19 +1078,19 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
-      FastArray	watchers;
+      GSIArray	watchers;
 
       watchers = NSMapGet(_mode_2_watchers, mode);
       if (watchers) {
 	  int	i;
 
-	  for (i = FastArrayCount(watchers); i > 0; i--) {
+	  for (i = GSIArrayCount(watchers); i > 0; i--) {
 	      RunLoopWatcher	*info;
 	      int		fd;
 
-	      info = FastArrayItemAtIndex(watchers, i-1).obj;
+	      info = GSIArrayItemAtIndex(watchers, i-1).obj;
 	      if (info->_invalidated == YES) {
-		FastArrayRemoveItemAtIndex(watchers, i-1);
+		GSIArrayRemoveItemAtIndex(watchers, i-1);
 		continue;
               }
 	      switch (info->type) {

@@ -1,4 +1,4 @@
-/* A fast map/hash table implementation for NSObjects
+/* A fast (Inline) map/hash table implementation for NSObjects
  * Copyright (C) 1998,1999  Free Software Foundation, Inc.
  * 
  * Author:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -34,72 +34,72 @@
 /* To turn assertions on, comment out the following four lines */
 #ifndef	NS_BLOCK_ASSERTIONS
 #define	NS_BLOCK_ASSERTIONS	1
-#define	FAST_MAP_BLOCKED_ASSERTIONS	1
+#define	GSI_MAP_BLOCKED_ASSERTIONS	1
 #endif
 
 /*
- *	This file should be INCLUDED in files wanting to use the FastMap
+ *	This file should be INCLUDED in files wanting to use the GSIMap
  *	functions - these are all declared inline for maximum performance.
  *
  *	The file including this one may predefine some macros to alter
  *	the behaviour
  *
- *	FAST_MAP_HAS_VALUE
+ *	GSI_MAP_HAS_VALUE
  *		If defined as 0, then this becomes a hash table rather than
  *		a map table.
  *
- *	FAST_MAP_RETAIN_KEY()
+ *	GSI_MAP_RETAIN_KEY()
  *		Macro to retain the key item in a map or hash table.
  *
- *	FAST_MAP_RETAIN_VAL()
+ *	GSI_MAP_RETAIN_VAL()
  *		Macro to retain the value item in a map table.
  *
- *	FAST_MAP_RELEASE_KEY()
+ *	GSI_MAP_RELEASE_KEY()
  *		Macro to release the key item in a map or hash table.
  *
- *	FAST_MAP_RELEASE_VAL()
+ *	GSI_MAP_RELEASE_VAL()
  *		Macro to release the value item in a map table.
  *
- *	FAST_MAP_HASH()
+ *	GSI_MAP_HASH()
  *		Macro to get the hash of a key item.
  *
- *	FAST_MAP_EQUAL()
+ *	GSI_MAP_EQUAL()
  *		Macro to compare two key items for equality - produces zero
  *		if the items are not equal.
  *
- *	FAST_MAP_EXTRA
+ *	GSI_MAP_EXTRA
  *		If this value is defined, there is an 'extra' field in each
  *		map table which is a pointer to void.  This field can be used
  *		to store additional information for the map.
  *
  */
 
-#ifndef	FAST_MAP_HAS_VALUE
-#define	FAST_MAP_HAS_VALUE	1
+#ifndef	GSI_MAP_HAS_VALUE
+#define	GSI_MAP_HAS_VALUE	1
 #endif
 
-#ifndef	FAST_MAP_RETAIN_KEY
-#define	FAST_MAP_RETAIN_KEY(X)	[(X).obj retain]
+#ifndef	GSI_MAP_RETAIN_KEY
+#define	GSI_MAP_RETAIN_KEY(X)	[(X).obj retain]
 #endif
 
-#ifndef	FAST_MAP_RELEASE_KEY
-#define	FAST_MAP_RELEASE_KEY(X)	[(X).obj release]
+#ifndef	GSI_MAP_RELEASE_KEY
+#define	GSI_MAP_RELEASE_KEY(X)	[(X).obj release]
 #endif
 
-#ifndef	FAST_MAP_RETAIN_VAL
-#define	FAST_MAP_RETAIN_VAL(X)	[(X).obj retain]
+#ifndef	GSI_MAP_RETAIN_VAL
+#define	GSI_MAP_RETAIN_VAL(X)	[(X).obj retain]
 #endif
 
-#ifndef	FAST_MAP_RELEASE_VAL
-#define	FAST_MAP_RELEASE_VAL(X)	[(X).obj release]
+#ifndef	GSI_MAP_RELEASE_VAL
+#define	GSI_MAP_RELEASE_VAL(X)	[(X).obj release]
 #endif
 
-#ifndef	FAST_MAP_HASH
-#define	FAST_MAP_HASH(X)	[(X).obj hash]
+#ifndef	GSI_MAP_HASH
+#define	GSI_MAP_HASH(X)	[(X).obj hash]
 #endif
 
-#ifndef	FAST_MAP_EQUAL
-#define	FAST_MAP_EQUAL(X,Y)	[(X).obj isEqual: (Y).obj]
+#ifndef	GSI_MAP_EQUAL
+#define	GSI_MAP_EQUAL(X,Y)	[(X).obj isEqual: (Y).obj]
 #endif
 
 
@@ -107,8 +107,8 @@
  *      If there is no bitmask defined to supply the types that
  *      may be used as keys in the  map, default to permitting all types.
  */
-#ifndef FAST_MAP_KTYPES
-#define FAST_MAP_KTYPES        GSUNION_ALL
+#ifndef GSI_MAP_KTYPES
+#define GSI_MAP_KTYPES        GSUNION_ALL
 #endif
 
 /*
@@ -117,7 +117,7 @@
 #ifdef	GSUNION
 #undef	GSUNION
 #endif
-#define	GSUNION	FastMapKey
+#define	GSUNION	GSIMapKey
 
 /*
  *	Set up the types that will be storable in the union.
@@ -126,12 +126,12 @@
 #ifdef	GSUNION_TYPES
 #undef	GSUNION_TYPES
 #endif
-#define	GSUNION_TYPES	FAST_MAP_KTYPES
+#define	GSUNION_TYPES	GSI_MAP_KTYPES
 #ifdef	GSUNION_EXTRA
 #undef	GSUNION_EXTRA
 #endif
-#ifdef	FAST_MAP_KEXTRA
-#define	GSUNION_EXTRA	FAST_MAP_KEXTRA
+#ifdef	GSI_MAP_KEXTRA
+#define	GSUNION_EXTRA	GSI_MAP_KEXTRA
 #endif
 
 /*
@@ -143,8 +143,8 @@
  *      If there is no bitmask defined to supply the types that
  *      may be used as values in the  map, default to permitting all types.
  */
-#ifndef FAST_MAP_VTYPES
-#define FAST_MAP_VTYPES        GSUNION_ALL
+#ifndef GSI_MAP_VTYPES
+#define GSI_MAP_VTYPES        GSUNION_ALL
 #endif
 
 /*
@@ -153,7 +153,7 @@
 #ifdef	GSUNION
 #undef	GSUNION
 #endif
-#define	GSUNION	FastMapVal
+#define	GSUNION	GSIMapVal
 
 /*
  *	Set up the types that will be storable in the union.
@@ -162,12 +162,12 @@
 #ifdef	GSUNION_TYPES
 #undef	GSUNION_TYPES
 #endif
-#define	GSUNION_TYPES	FAST_MAP_VTYPES
+#define	GSUNION_TYPES	GSI_MAP_VTYPES
 #ifdef	GSUNION_EXTRA
 #undef	GSUNION_EXTRA
 #endif
-#ifdef	FAST_MAP_VEXTRA
-#define	GSUNION_EXTRA	FAST_MAP_VEXTRA
+#ifdef	GSI_MAP_VEXTRA
+#define	GSUNION_EXTRA	GSI_MAP_VEXTRA
 #endif
 
 /*
@@ -176,70 +176,70 @@
 #include <base/GSUnion.h>
 
 
-typedef struct _FastMapTable FastMapTable_t;
-typedef struct _FastMapBucket FastMapBucket_t;
-typedef struct _FastMapNode FastMapNode_t;
-typedef struct _FastMapEnumerator FastMapEnumerator_t;
+typedef struct _GSIMapTable GSIMapTable_t;
+typedef struct _GSIMapBucket GSIMapBucket_t;
+typedef struct _GSIMapNode GSIMapNode_t;
+typedef struct _GSIMapEnumerator GSIMapEnumerator_t;
 
-typedef FastMapTable_t *FastMapTable;
-typedef FastMapBucket_t *FastMapBucket;
-typedef FastMapNode_t *FastMapNode;
-typedef FastMapEnumerator_t *FastMapEnumerator;
+typedef GSIMapTable_t *GSIMapTable;
+typedef GSIMapBucket_t *GSIMapBucket;
+typedef GSIMapNode_t *GSIMapNode;
+typedef GSIMapEnumerator_t *GSIMapEnumerator;
 
-struct	_FastMapNode {
-  FastMapNode	nextInBucket;	/* Linked list of bucket.	*/
-  FastMapNode	nextInMap;	/* For enumerating.		*/
-  FastMapKey	key;
-#if	FAST_MAP_HAS_VALUE
-  FastMapVal	value;
+struct	_GSIMapNode {
+  GSIMapNode	nextInBucket;	/* Linked list of bucket.	*/
+  GSIMapNode	nextInMap;	/* For enumerating.		*/
+  GSIMapKey	key;
+#if	GSI_MAP_HAS_VALUE
+  GSIMapVal	value;
 #endif
 };
 
-struct	_FastMapBucket {
+struct	_GSIMapBucket {
   size_t	nodeCount;	/* Number of nodes in bucket.	*/
-  FastMapNode	firstNode;	/* The linked list of nodes.	*/
+  GSIMapNode	firstNode;	/* The linked list of nodes.	*/
 };
 
-struct	_FastMapTable {
+struct	_GSIMapTable {
   NSZone	*zone;
   size_t	nodeCount;	/* Number of nodes in map.	*/
-  FastMapNode	firstNode;	/* List for enumerating.	*/
+  GSIMapNode	firstNode;	/* List for enumerating.	*/
   size_t	bucketCount;	/* Number of buckets in map.	*/
-  FastMapBucket	buckets;	/* Array of buckets.		*/
-  FastMapNode	freeNodes;	/* List of unused nodes.	*/
+  GSIMapBucket	buckets;	/* Array of buckets.		*/
+  GSIMapNode	freeNodes;	/* List of unused nodes.	*/
   size_t	chunkCount;	/* Number of chunks in array.	*/
-  FastMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
-#ifdef	FAST_MAP_EXTRA
+  GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
+#ifdef	GSI_MAP_EXTRA
   void		*extra;
 #endif
 };
 
-struct	_FastMapEnumerator {
-  FastMapTable	map;		/* the map being enumerated.	*/
-  FastMapNode	node;		/* The next node to use.	*/
+struct	_GSIMapEnumerator {
+  GSIMapTable	map;		/* the map being enumerated.	*/
+  GSIMapNode	node;		/* The next node to use.	*/
 };
 
-static INLINE FastMapBucket
-FastMapPickBucket(FastMapKey key, FastMapBucket buckets, size_t bucketCount)
+static INLINE GSIMapBucket
+GSIMapPickBucket(GSIMapKey key, GSIMapBucket buckets, size_t bucketCount)
 {
-  return buckets + FAST_MAP_HASH(key) % bucketCount;
+  return buckets + GSI_MAP_HASH(key) % bucketCount;
 }
 
-static INLINE FastMapBucket
-FastMapBucketForKey(FastMapTable map, FastMapKey key)
+static INLINE GSIMapBucket
+GSIMapBucketForKey(GSIMapTable map, GSIMapKey key)
 {
-  return FastMapPickBucket(key, map->buckets, map->bucketCount);
+  return GSIMapPickBucket(key, map->buckets, map->bucketCount);
 }
 
 static INLINE void
-FastMapLinkNodeIntoBucket(FastMapBucket bucket, FastMapNode node)
+GSIMapLinkNodeIntoBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   node->nextInBucket = bucket->firstNode;
   bucket->firstNode = node;
 }
 
 static INLINE void
-FastMapUnlinkNodeFromBucket(FastMapBucket bucket, FastMapNode node)
+GSIMapUnlinkNodeFromBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   if (node == bucket->firstNode)
     {
@@ -247,7 +247,7 @@ FastMapUnlinkNodeFromBucket(FastMapBucket bucket, FastMapNode node)
     }
   else
     {
-      FastMapNode	tmp = bucket->firstNode;
+      GSIMapNode	tmp = bucket->firstNode;
 
       while (tmp->nextInBucket != node)
 	{
@@ -259,14 +259,14 @@ FastMapUnlinkNodeFromBucket(FastMapBucket bucket, FastMapNode node)
 }
 
 static INLINE void
-FastMapLinkNodeIntoMap(FastMapTable map, FastMapNode node)
+GSIMapLinkNodeIntoMap(GSIMapTable map, GSIMapNode node)
 {
   node->nextInMap = map->firstNode;
   map->firstNode = node;
 }
 
 static INLINE void
-FastMapUnlinkNodeFromMap(FastMapTable map, FastMapNode node)
+GSIMapUnlinkNodeFromMap(GSIMapTable map, GSIMapNode node)
 {
   if (node == map->firstNode)
     {
@@ -274,7 +274,7 @@ FastMapUnlinkNodeFromMap(FastMapTable map, FastMapNode node)
     }
   else
     {
-      FastMapNode	tmp = map->firstNode;
+      GSIMapNode	tmp = map->firstNode;
 
       while (tmp->nextInMap != node)
 	{
@@ -286,75 +286,75 @@ FastMapUnlinkNodeFromMap(FastMapTable map, FastMapNode node)
 }
 
 static INLINE void
-FastMapAddNodeToBucket(FastMapBucket bucket, FastMapNode node)
+GSIMapAddNodeToBucket(GSIMapBucket bucket, GSIMapNode node)
 {
-  FastMapLinkNodeIntoBucket(bucket, node);
+  GSIMapLinkNodeIntoBucket(bucket, node);
   bucket->nodeCount += 1;
 }
 
 static INLINE void
-FastMapAddNodeToMap(FastMapTable map, FastMapNode node)
+GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
-  FastMapBucket	bucket;
+  GSIMapBucket	bucket;
 
-  bucket = FastMapBucketForKey(map, node->key);
-  FastMapAddNodeToBucket(bucket, node);
-  FastMapLinkNodeIntoMap(map, node);
+  bucket = GSIMapBucketForKey(map, node->key);
+  GSIMapAddNodeToBucket(bucket, node);
+  GSIMapLinkNodeIntoMap(map, node);
   map->nodeCount++;
 }
 
 static INLINE void
-FastMapRemoveNodeFromBucket(FastMapBucket bucket, FastMapNode node)
+GSIMapRemoveNodeFromBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   bucket->nodeCount--;
-  FastMapUnlinkNodeFromBucket(bucket, node);
+  GSIMapUnlinkNodeFromBucket(bucket, node);
 }
 
 static INLINE void
-FastMapRemoveNodeFromMap(FastMapTable map, FastMapBucket bkt, FastMapNode node)
+GSIMapRemoveNodeFromMap(GSIMapTable map, GSIMapBucket bkt, GSIMapNode node)
 {
   map->nodeCount--;
-  FastMapUnlinkNodeFromMap(map, node);
-  FastMapRemoveNodeFromBucket(bkt, node);
+  GSIMapUnlinkNodeFromMap(map, node);
+  GSIMapRemoveNodeFromBucket(bkt, node);
 }
 
 static INLINE void
-FastMapRemangleBuckets(FastMapTable map,
-			      FastMapBucket old_buckets,
+GSIMapRemangleBuckets(GSIMapTable map,
+			      GSIMapBucket old_buckets,
 			      size_t old_bucketCount,
-			      FastMapBucket new_buckets,
+			      GSIMapBucket new_buckets,
 			      size_t new_bucketCount)
 {
   while (old_bucketCount-- > 0)
     {
-      FastMapNode	node;
+      GSIMapNode	node;
 
       while ((node = old_buckets->firstNode) != 0)
 	{
-	  FastMapBucket	bkt;
+	  GSIMapBucket	bkt;
 
-	  FastMapRemoveNodeFromBucket(old_buckets, node);
-	  bkt = FastMapPickBucket(node->key, new_buckets, new_bucketCount);
-	  FastMapAddNodeToBucket(bkt, node);
+	  GSIMapRemoveNodeFromBucket(old_buckets, node);
+	  bkt = GSIMapPickBucket(node->key, new_buckets, new_bucketCount);
+	  GSIMapAddNodeToBucket(bkt, node);
 	}
       old_buckets++;
     }
 }
 
 static INLINE void
-FastMapMoreNodes(FastMapTable map)
+GSIMapMoreNodes(GSIMapTable map)
 {
-  FastMapNode	*newArray;
-  size_t	arraySize = (map->chunkCount+1)*sizeof(FastMapNode);
+  GSIMapNode	*newArray;
+  size_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
 
-  newArray = (FastMapNode*)NSZoneMalloc(map->zone, arraySize);
+  newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
   if (newArray)
     {
-      FastMapNode	newNodes;
+      GSIMapNode	newNodes;
       size_t		chunkCount;
       size_t		chunkSize;
 
-      memcpy(newArray,map->nodeChunks,(map->chunkCount)*sizeof(FastMapNode));
+      memcpy(newArray,map->nodeChunks,(map->chunkCount)*sizeof(GSIMapNode));
       if (map->nodeChunks != 0)
 	{
 	  NSZoneFree(map->zone, map->nodeChunks);
@@ -369,17 +369,17 @@ FastMapMoreNodes(FastMapTable map)
 	{
 	  chunkCount = ((map->nodeCount>>2)+1)<<1;
 	}
-      chunkSize = chunkCount * sizeof(FastMapNode_t);
+      chunkSize = chunkCount * sizeof(GSIMapNode_t);
 #if	GS_WITH_GC
       /*
        *	If we use a nil zone, objects we point to are subject to GC
        */
       if (map->zone == 0)
-	newNodes = (FastMapNode*)GC_MALLOC_ATOMIC(chunkSize);
+	newNodes = (GSIMapNode*)GC_MALLOC_ATOMIC(chunkSize);
       else
-	newNodes = (FastMapNode*)GC_MALLOC(chunkSize);
+	newNodes = (GSIMapNode*)GC_MALLOC(chunkSize);
 #else
-      newNodes = (FastMapNode)NSZoneMalloc(map->zone, chunkSize);
+      newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
 #endif
       if (newNodes)
 	{
@@ -394,15 +394,15 @@ FastMapMoreNodes(FastMapTable map)
     }
 }
 
-#if	FAST_MAP_HAS_VALUE
-static INLINE FastMapNode
-FastMapNewNode(FastMapTable map, FastMapKey key, FastMapVal value)
+#if	GSI_MAP_HAS_VALUE
+static INLINE GSIMapNode
+GSIMapNewNode(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  FastMapNode	node = map->freeNodes;
+  GSIMapNode	node = map->freeNodes;
 
   if (node == 0)
     {
-      FastMapMoreNodes(map);
+      GSIMapMoreNodes(map);
       node = map->freeNodes;
       if (node == 0)
 	{
@@ -419,14 +419,14 @@ FastMapNewNode(FastMapTable map, FastMapKey key, FastMapVal value)
   return node;
 }
 #else
-static INLINE FastMapNode
-FastMapNewNode(FastMapTable map, FastMapKey key)
+static INLINE GSIMapNode
+GSIMapNewNode(GSIMapTable map, GSIMapKey key)
 {
-  FastMapNode	node = map->freeNodes;
+  GSIMapNode	node = map->freeNodes;
 
   if (node == 0)
     {
-      FastMapMoreNodes(map);
+      GSIMapMoreNodes(map);
       node = map->freeNodes;
       if (node == 0)
 	{
@@ -443,45 +443,45 @@ FastMapNewNode(FastMapTable map, FastMapKey key)
 #endif
 
 static INLINE void
-FastMapFreeNode(FastMapTable map, FastMapNode node)
+GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
 {
-  FAST_MAP_RELEASE_KEY(node->key);
-#if	FAST_MAP_HAS_VALUE
-  FAST_MAP_RELEASE_VAL(node->value);
+  GSI_MAP_RELEASE_KEY(node->key);
+#if	GSI_MAP_HAS_VALUE
+  GSI_MAP_RELEASE_VAL(node->value);
 #endif
   node->nextInMap = map->freeNodes;
   map->freeNodes = node;
 }
 
-static INLINE FastMapNode 
-FastMapNodeForKeyInBucket(FastMapBucket bucket, FastMapKey key)
+static INLINE GSIMapNode 
+GSIMapNodeForKeyInBucket(GSIMapBucket bucket, GSIMapKey key)
 {
-  FastMapNode	node = bucket->firstNode;
+  GSIMapNode	node = bucket->firstNode;
 
-  while ((node != 0) && FAST_MAP_EQUAL(node->key, key) == NO)
+  while ((node != 0) && GSI_MAP_EQUAL(node->key, key) == NO)
     {
       node = node->nextInBucket;
     }
   return node;
 }
 
-static INLINE FastMapNode 
-FastMapNodeForKey(FastMapTable map, FastMapKey key)
+static INLINE GSIMapNode 
+GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
 {
-  FastMapBucket	bucket;
-  FastMapNode	node;
+  GSIMapBucket	bucket;
+  GSIMapNode	node;
 
   if (map->nodeCount == 0)
     return 0;
-  bucket = FastMapBucketForKey(map, key);
-  node = FastMapNodeForKeyInBucket(bucket, key);
+  bucket = GSIMapBucketForKey(map, key);
+  node = GSIMapNodeForKeyInBucket(bucket, key);
   return node;
 }
 
 static INLINE void
-FastMapResize(FastMapTable map, size_t new_capacity)
+GSIMapResize(GSIMapTable map, size_t new_capacity)
 {
-  FastMapBucket	new_buckets;
+  GSIMapBucket	new_buckets;
   size_t	size = 1;
   size_t	old = 1;
 
@@ -504,11 +504,11 @@ FastMapResize(FastMapTable map, size_t new_capacity)
   /*
    *	Make a new set of buckets for this map
    */
-  new_buckets = (FastMapBucket)NSZoneCalloc(map->zone, size,
-		sizeof(FastMapBucket_t));
+  new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
+		sizeof(GSIMapBucket_t));
   if (new_buckets != 0)
     {
-      FastMapRemangleBuckets(map,
+      GSIMapRemangleBuckets(map,
 				  map->buckets,
 				  map->bucketCount,
 				  new_buckets,
@@ -524,7 +524,7 @@ FastMapResize(FastMapTable map, size_t new_capacity)
 }
 
 static INLINE void
-FastMapRightSizeMap(FastMapTable map, size_t capacity)
+GSIMapRightSizeMap(GSIMapTable map, size_t capacity)
 {
   /* FIXME: Now, this is a guess, based solely on my intuition.  If anyone
    * knows of a better ratio (or other test, for that matter) and can
@@ -533,7 +533,7 @@ FastMapRightSizeMap(FastMapTable map, size_t capacity)
 
   if (3 * capacity >= 4 * map->bucketCount)
     {
-      FastMapResize(map, (3 * capacity)/4 + 1);
+      GSIMapResize(map, (3 * capacity)/4 + 1);
     }
 }
 
@@ -556,7 +556,7 @@ FastMapRightSizeMap(FastMapTable map, size_t capacity)
  * this. */
 
 /* IMPORTANT WARNING: Enumerators have yet another wonderous property.
- * Once a node has been returned by `FastMapEnumeratorNextNode()', it may be
+ * Once a node has been returned by `GSIMapEnumeratorNextNode()', it may be
  * removed from the map without effecting the rest of the current
  * enumeration. */
 
@@ -565,10 +565,10 @@ FastMapRightSizeMap(FastMapTable map, size_t capacity)
  * the behaviours outlined above.  So be prepared for some serious
  * breakage when you go fudging around with these things. */
 
-static INLINE FastMapEnumerator_t
-FastMapEnumeratorForMap(FastMapTable map)
+static INLINE GSIMapEnumerator_t
+GSIMapEnumeratorForMap(GSIMapTable map)
 {
-  FastMapEnumerator_t	enumerator;
+  GSIMapEnumerator_t	enumerator;
 
   enumerator.map = map;
   enumerator.node = map->firstNode;
@@ -576,10 +576,10 @@ FastMapEnumeratorForMap(FastMapTable map)
   return enumerator;
 }
 
-static INLINE FastMapNode 
-FastMapEnumeratorNextNode(FastMapEnumerator enumerator)
+static INLINE GSIMapNode 
+GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 {
-  FastMapNode node;
+  GSIMapNode node;
 
   node = enumerator->node;
 
@@ -590,102 +590,102 @@ FastMapEnumeratorNextNode(FastMapEnumerator enumerator)
   return node;
 }
 
-#if	FAST_MAP_HAS_VALUE
-static INLINE FastMapNode
-FastMapAddPairNoRetain(FastMapTable map, FastMapKey key, FastMapVal value)
+#if	GSI_MAP_HAS_VALUE
+static INLINE GSIMapNode
+GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  FastMapNode node;
+  GSIMapNode node;
 
-  node = FastMapNewNode(map, key, value);
+  node = GSIMapNewNode(map, key, value);
 
   if (node != 0)
     {
-      FastMapRightSizeMap(map, map->nodeCount);
-      FastMapAddNodeToMap(map, node);
+      GSIMapRightSizeMap(map, map->nodeCount);
+      GSIMapAddNodeToMap(map, node);
     }
   return node;
 }
 
-static INLINE FastMapNode
-FastMapAddPair(FastMapTable map, FastMapKey key, FastMapVal value)
+static INLINE GSIMapNode
+GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  FastMapNode node;
+  GSIMapNode node;
 
-  FAST_MAP_RETAIN_KEY(key);
-  FAST_MAP_RETAIN_VAL(value);
-  node = FastMapNewNode(map, key, value);
+  GSI_MAP_RETAIN_KEY(key);
+  GSI_MAP_RETAIN_VAL(value);
+  node = GSIMapNewNode(map, key, value);
 
   if (node != 0)
     {
-      FastMapRightSizeMap(map, map->nodeCount);
-      FastMapAddNodeToMap(map, node);
+      GSIMapRightSizeMap(map, map->nodeCount);
+      GSIMapAddNodeToMap(map, node);
     }
   return node;
 }
 #else
-static INLINE FastMapNode
-FastMapAddKeyNoRetain(FastMapTable map, FastMapKey key)
+static INLINE GSIMapNode
+GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 {
-  FastMapNode node;
+  GSIMapNode node;
 
-  node = FastMapNewNode(map, key);
+  node = GSIMapNewNode(map, key);
 
   if (node != 0)
     {
-      FastMapRightSizeMap(map, map->nodeCount);
-      FastMapAddNodeToMap(map, node);
+      GSIMapRightSizeMap(map, map->nodeCount);
+      GSIMapAddNodeToMap(map, node);
     }
   return node;
 }
 
-static INLINE FastMapNode
-FastMapAddKey(FastMapTable map, FastMapKey key)
+static INLINE GSIMapNode
+GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 {
-  FastMapNode node;
+  GSIMapNode node;
 
-  FAST_MAP_RETAIN_KEY(key);
-  node = FastMapNewNode(map, key);
+  GSI_MAP_RETAIN_KEY(key);
+  node = GSIMapNewNode(map, key);
 
   if (node != 0)
     {
-      FastMapRightSizeMap(map, map->nodeCount);
-      FastMapAddNodeToMap(map, node);
+      GSIMapRightSizeMap(map, map->nodeCount);
+      GSIMapAddNodeToMap(map, node);
     }
   return node;
 }
 #endif
 
 static INLINE void
-FastMapRemoveKey(FastMapTable map, FastMapKey key)
+GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
 {
-  FastMapBucket	bucket = FastMapBucketForKey(map, key);
+  GSIMapBucket	bucket = GSIMapBucketForKey(map, key);
 
   if (bucket != 0)
     {
-      FastMapNode	node = FastMapNodeForKeyInBucket(bucket, key);
+      GSIMapNode	node = GSIMapNodeForKeyInBucket(bucket, key);
 
       if (node != 0)
 	{
-	  FastMapRemoveNodeFromMap(map, bucket, node);
-	  FastMapFreeNode(map, node);
+	  GSIMapRemoveNodeFromMap(map, bucket, node);
+	  GSIMapFreeNode(map, node);
 	}
     }
 }
 
 static INLINE void
-FastMapCleanMap(FastMapTable map)
+GSIMapCleanMap(GSIMapTable map)
 {
-  FastMapBucket	bucket = map->buckets;
+  GSIMapBucket	bucket = map->buckets;
   int		i;
 
   for (i = 0; i < map->bucketCount; i++)
     {
       while (bucket->nodeCount != 0)
 	{
-	  FastMapNode	node = bucket->firstNode;
+	  GSIMapNode	node = bucket->firstNode;
 
-	  FastMapRemoveNodeFromBucket(bucket, node);
-	  FastMapFreeNode(map, node);
+	  GSIMapRemoveNodeFromBucket(bucket, node);
+	  GSIMapFreeNode(map, node);
 	}
       bucket++;
     }
@@ -694,11 +694,11 @@ FastMapCleanMap(FastMapTable map)
 }
 
 static INLINE void
-FastMapEmptyMap(FastMapTable map)
+GSIMapEmptyMap(GSIMapTable map)
 {
   int	i;
 
-  FastMapCleanMap(map);
+  GSIMapCleanMap(map);
   if (map->buckets != 0)
     {
       NSZoneFree(map->zone, map->buckets);
@@ -723,8 +723,8 @@ FastMapEmptyMap(FastMapTable map)
   map->zone = 0;
 }
 
-static INLINE FastMapTable 
-FastMapInitWithZoneAndCapacity(FastMapTable map, NSZone *zone, size_t capacity)
+static INLINE GSIMapTable 
+GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
 {
   map->zone = zone;
   map->nodeCount = 0;
@@ -734,12 +734,12 @@ FastMapInitWithZoneAndCapacity(FastMapTable map, NSZone *zone, size_t capacity)
   map->nodeChunks = 0;
   map->freeNodes = 0;
   map->chunkCount = 0;
-  FastMapRightSizeMap(map, capacity);
-  FastMapMoreNodes(map);
+  GSIMapRightSizeMap(map, capacity);
+  GSIMapMoreNodes(map);
 }
 
-#ifdef	FAST_MAP_BLOCKED_ASSERTIONS
+#ifdef	GSI_MAP_BLOCKED_ASSERTIONS
 #undef	NS_BLOCK_ASSERTIONS
-#undef	FAST_MAP_BLOCKED_ASSERTIONS
+#undef	GSI_MAP_BLOCKED_ASSERTIONS
 #endif
 

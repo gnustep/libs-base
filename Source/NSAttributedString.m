@@ -52,6 +52,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSRange.h>
 
 
 @interface GSMutableAttributedStringTracker : NSMutableString
@@ -359,11 +360,9 @@ static Class NSMutableAttributedString_concrete_class;
   NSString		*newSubstring;
   NSDictionary		*attrs;
   NSRange		range;
+  unsigned		len = [self length];
 
-  if (aRange.location<0 || aRange.length<0 || NSMaxRange(aRange)>[self length])
-    [NSException raise: NSRangeException
-		format: @"RangeError in method -attributedSubstringFromRange: "
-			@"in class NSAttributedString"];
+  GS_RANGE_CHECK(aRange, len);
   
   newSubstring = [[self string] substringFromRange: aRange];
 
@@ -434,11 +433,7 @@ static Class NSMutableAttributedString_concrete_class;
   unsigned int tmpLength;
 
   tmpLength = [self length];
-  if (aRange.location <= 0 || NSMaxRange(aRange) > tmpLength)
-    {
-      [NSException raise: NSRangeException
-	format: @"RangeError in method -addAttribute: value: range: in class NSMutableAttributedString"];
-    }
+  GS_RANGE_CHECK(aRange, tmpLength);
   
   attrDict = [self attributesAtIndex: aRange.location
     effectiveRange: &effectiveRange];
@@ -512,11 +507,7 @@ static Class NSMutableAttributedString_concrete_class;
   unsigned int tmpLength;
   
   tmpLength = [self length];
-  if (aRange.location <= 0 || NSMaxRange(aRange) > tmpLength)
-  {
-    [NSException raise: NSRangeException
-      format: @"RangeError in method -addAttribute: value: range: in class NSMutableAttributedString"];
-  }
+  GS_RANGE_CHECK(aRange, tmpLength);
   
   attrDict = [self attributesAtIndex: aRange.location
     effectiveRange: &effectiveRange];

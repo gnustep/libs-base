@@ -161,8 +161,8 @@ libgnustep-base.def
 GNU_HEADERS = \
 fast.x \
 GSUnion.h \
-FastArray.x \
-FastMap.x \
+GSIArray.h \
+GSIMap.h \
 Archiver.h \
 Array.h \
 ArrayPrivate.h \

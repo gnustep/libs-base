@@ -31,12 +31,12 @@
 #include <Foundation/NSPortCoder.h>
 
 
-#define	FAST_MAP_RETAIN_VAL(X)	X
-#define	FAST_MAP_RELEASE_VAL(X)	
-#define FAST_MAP_KTYPES	GSUNION_OBJ
-#define FAST_MAP_VTYPES	GSUNION_INT
+#define	GSI_MAP_RETAIN_VAL(X)	X
+#define	GSI_MAP_RELEASE_VAL(X)	
+#define GSI_MAP_KTYPES	GSUNION_OBJ
+#define GSI_MAP_VTYPES	GSUNION_INT
 
-#include <base/FastMap.x>
+#include <base/GSIMap.h>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
@@ -44,14 +44,14 @@
 @interface NSGCountedSet : NSCountedSet
 {
 @public
-  FastMapTable_t	map;
+  GSIMapTable_t	map;
 }
 @end
 
 @interface NSGCountedSetEnumerator : NSEnumerator
 {
   NSGCountedSet	*set;
-  FastMapNode	node;
+  GSIMapNode	node;
 }
 @end
 
@@ -70,7 +70,7 @@
 
 - nextObject
 {
-  FastMapNode old = node;
+  GSIMapNode old = node;
 
   if (node == 0)
     {
@@ -102,14 +102,14 @@
 
 - (void) dealloc
 {
-  FastMapEmptyMap(&map);
+  GSIMapEmptyMap(&map);
   [super dealloc];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = map.nodeCount;
-  FastMapNode	node = map.firstNode;
+  GSIMapNode	node = map.firstNode;
   SEL		sel1 = @selector(encodeObject:);
   IMP		imp1 = [aCoder methodForSelector: sel1];
   SEL		sel2 = @selector(encodeValueOfObjCType:at:);
@@ -138,12 +138,12 @@
 
   (*imp)(aCoder, sel, utype, &count);
 
-  FastMapInitWithZoneAndCapacity(&map, [self zone], count);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
   while (count-- > 0)
     {
       (*imp)(aCoder, sel, otype, &value);
       (*imp)(aCoder, sel, utype, &valcnt);
-      FastMapAddPairNoRetain(&map, (FastMapKey)value, (FastMapVal)valcnt);
+      GSIMapAddPairNoRetain(&map, (GSIMapKey)value, (GSIMapVal)valcnt);
     }
 
   return self;
@@ -152,7 +152,7 @@
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-  FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 
@@ -166,7 +166,7 @@
     }
   for (i = 0; i < c; i++)
     {
-      FastMapNode     node;
+      GSIMapNode     node;
 
       if (objs[i] == nil)
 	{
@@ -174,10 +174,10 @@
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init counted set with nil value"];
 	}
-      node = FastMapNodeForKey(&map, (FastMapKey)objs[i]);
+      node = GSIMapNodeForKey(&map, (GSIMapKey)objs[i]);
       if (node == 0)
 	{
-	  FastMapAddPair(&map,(FastMapKey)objs[i],(FastMapVal)(unsigned)1);
+	  GSIMapAddPair(&map,(GSIMapKey)objs[i],(GSIMapVal)(unsigned)1);
         }
       else
 	{
@@ -189,7 +189,7 @@
 
 - (void) addObject: (NSObject*)anObject
 {
-  FastMapNode node;
+  GSIMapNode node;
 
   if (anObject == nil)
     {
@@ -197,10 +197,10 @@
 		  format: @"Tried to nil value to counted set"];
     }
 
-  node = FastMapNodeForKey(&map, (FastMapKey)anObject);
+  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
   if (node == 0)
     {
-      FastMapAddPair(&map,(FastMapKey)anObject,(FastMapVal)(unsigned)1);
+      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
     }
   else
     {
@@ -217,7 +217,7 @@
 {
   if (anObject)
     {
-      FastMapNode node = FastMapNodeForKey(&map, (FastMapKey)anObject);
+      GSIMapNode node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
 
       if (node)
 	{
@@ -236,7 +236,7 @@
 {
   if (anObject)
     {
-      FastMapNode node = FastMapNodeForKey(&map, (FastMapKey)anObject);
+      GSIMapNode node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
 
       if (node)
 	{
@@ -256,20 +256,20 @@
 {
   if (anObject)
     {
-      FastMapBucket       bucket;
+      GSIMapBucket       bucket;
 
-      bucket = FastMapBucketForKey(&map, (FastMapKey)anObject);
+      bucket = GSIMapBucketForKey(&map, (GSIMapKey)anObject);
       if (bucket)
 	{
-	  FastMapNode     node;
+	  GSIMapNode     node;
 
-	  node = FastMapNodeForKeyInBucket(bucket, (FastMapKey)anObject);
+	  node = GSIMapNodeForKeyInBucket(bucket, (GSIMapKey)anObject);
 	  if (node)
 	    {
 	      if (--node->value.uint == 0)
 		{
-		  FastMapRemoveNodeFromMap(&map, bucket, node);
-		  FastMapFreeNode(&map, node);
+		  GSIMapRemoveNodeFromMap(&map, bucket, node);
+		  GSIMapFreeNode(&map, node);
 		}
 	    }
 	}
@@ -278,7 +278,7 @@
 
 - (void) removeAllObjects
 {
-  FastMapCleanMap(&map);
+  GSIMapCleanMap(&map);
 }
 
 @end

@@ -143,20 +143,20 @@ const NSMapTableValueCallBacks ObsMapCallBacks =
  * Setup for inline operation on arrays of Observers.
  */
 
-#define FAST_ARRAY_TYPES       0
-#define FAST_ARRAY_EXTRA       Observation*
+#define GSI_ARRAY_TYPES       0
+#define GSI_ARRAY_EXTRA       Observation*
 
-#define FAST_ARRAY_RELEASE(X)   FreeObs(((X).ext))
-#define FAST_ARRAY_RETAIN(X)    RetainObs(((X).ext))
+#define GSI_ARRAY_RELEASE(X)   FreeObs(((X).ext))
+#define GSI_ARRAY_RETAIN(X)    RetainObs(((X).ext))
 
-#include <base/FastArray.x>
+#include <base/GSIArray.h>
 
-#define FAST_MAP_RETAIN_VAL(X)  X
-#define FAST_MAP_RELEASE_VAL(X)
-#define FAST_MAP_KTYPES GSUNION_OBJ
-#define FAST_MAP_VTYPES GSUNION_PTR
+#define GSI_MAP_RETAIN_VAL(X)  X
+#define GSI_MAP_RELEASE_VAL(X)
+#define GSI_MAP_KTYPES GSUNION_OBJ
+#define GSI_MAP_VTYPES GSUNION_PTR
 
-#include <base/FastMap.x>
+#include <base/GSIMap.h>
 
 #if	GS_WITH_GC
 /*
@@ -213,8 +213,8 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		      NSNonOwnedPointerMapValueCallBacks, 0);
   observers = NSCreateMapTable(NSNonOwnedPointerOrNullMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
-  named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(FastMapTable_t));
-  FastMapInitWithZoneAndCapacity((FastMapTable)named,NSDefaultMallocZone(),128);
+  named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity((GSIMapTable)named,NSDefaultMallocZone(),128);
 
   _lock = [NSRecursiveLock new];
 
@@ -233,8 +233,8 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 {
   NSMapEnumerator	enumerator;
   id			o;
-  FastMapTable		f = (FastMapTable)named;
-  FastMapNode		n;
+  GSIMapTable		f = (GSIMapTable)named;
+  GSIMapNode		n;
   Observation		*l;
   NSHashTable		*h;
   NSMapTable		*m;
@@ -263,7 +263,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
       NSFreeMapTable((NSMapTable*)n->value.ptr);
       n = n->nextInMap;
     }
-  FastMapEmptyMap(f);
+  GSIMapEmptyMap(f);
   NSZoneFree(f->zone, named);
 
   /*
@@ -335,12 +335,12 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
     {
       NSMapTable	*m;
       Observation	*list;
-      FastMapNode	n;
+      GSIMapNode	n;
 
       /*
        * Locate the map table for this name - create it if not present.
        */
-      n = FastMapNodeForKey((FastMapTable)named, (FastMapKey)name);
+      n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)name);
       if (n == 0)
 	{
 	  m = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
@@ -351,8 +351,8 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 	   */
 	  name = [name copyWithZone: NSDefaultMallocZone()];
 	  o->name = name;
-	  FastMapAddPair((FastMapTable)named, (FastMapKey)name,
-	    (FastMapVal)(void*)m);
+	  GSIMapAddPair((GSIMapTable)named, (GSIMapKey)name,
+	    (GSIMapVal)(void*)m);
 	  RELEASE(name);
 	}
       else
@@ -436,12 +436,12 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
     {
       NSMapTable	*m;
       Observation	*list;
-      FastMapNode	n;
+      GSIMapNode	n;
 
       /*
        * Locate the map table for this name.
        */
-      n = FastMapNodeForKey((FastMapTable)named, (FastMapKey)o->name);
+      n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)o->name);
       NSAssert(n != 0, NSInternalInconsistencyException);
       m = (NSMapTable*)n->value.ptr;
 
@@ -454,7 +454,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 	      NSMapRemove(m, CHEATGC(o->object));
 	      if (NSCountMapTable(m) == 0)
 		{
-		  FastMapRemoveKey((FastMapTable)named, (FastMapKey)o->name);
+		  GSIMapRemoveKey((GSIMapTable)named, (GSIMapKey)o->name);
 		}
 	    }
 	  else
@@ -561,7 +561,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		   name: (NSString*)name
                  object: (id)object
 {
-  FastArray	a;
+  GSIArray	a;
 
   /*
    * If both NAME and OBJECT are nil, this call is the same as 
@@ -577,18 +577,18 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 
   [_lock lock];
 
-  a = NSZoneMalloc(NSDefaultMallocZone(), sizeof(FastArray_t));
-  FastArrayInitWithZoneAndCapacity(a, NSDefaultMallocZone(), 128);
+  a = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
+  GSIArrayInitWithZoneAndCapacity(a, NSDefaultMallocZone(), 128);
 
   if (name)
     {
       NSMapTable	*m;
-      FastMapNode	n;
+      GSIMapNode	n;
 
       /*
        * Locate items with specified name (if any).
        */
-      n = FastMapNodeForKey((FastMapTable)named, (FastMapKey)name);
+      n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)name);
       if (n)
 	m = (NSMapTable*)n->value.ptr;
       else
@@ -611,7 +611,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		    {
 		      if (observer == nil || observer == list->observer)
 			{
-			  FastArrayAddItem(a, (FastArrayItem)list);
+			  GSIArrayAddItem(a, (GSIArrayItem)list);
 			}
 		      list = list->next;
 		    }
@@ -631,7 +631,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		    {
 		      if (observer == nil || observer == list->observer)
 			{
-			  FastArrayAddItem(a, (FastArrayItem)list);
+			  GSIArrayAddItem(a, (GSIArrayItem)list);
 			}
 		      list = list->next;
 		    }
@@ -643,7 +643,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
     {
       Observation	*list;
       NSMapTable	*m;
-      FastMapNode	n;
+      GSIMapNode	n;
 
       /*
        * Make a list of items matching specific object with NO names
@@ -655,7 +655,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 	    {
 	      if (observer == nil || observer == list->observer)
 		{
-		  FastArrayAddItem(a, (FastArrayItem)list);
+		  GSIArrayAddItem(a, (GSIArrayItem)list);
 		}
 	      list = list->next;
 	    }
@@ -664,7 +664,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
       /*
        * Add items for ALL names.
        */
-      n = ((FastMapTable)named)->firstNode;
+      n = ((GSIMapTable)named)->firstNode;
       while (n != 0)
 	{
 	  m = (NSMapTable*)n->value.ptr;
@@ -676,7 +676,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		{
 		  if (observer == nil || observer == list->observer)
 		    {
-		      FastArrayAddItem(a, (FastArrayItem)list);
+		      GSIArrayAddItem(a, (GSIArrayItem)list);
 		    }
 		  list = list->next;
 		}
@@ -684,17 +684,17 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 	}
     }
 
-  if (FastArrayCount(a) > 0)
+  if (GSIArrayCount(a) > 0)
     {
       id		lastObs = nil;
       NSHashTable	*h = 0;
-      unsigned		count = FastArrayCount(a);
+      unsigned		count = GSIArrayCount(a);
       unsigned		i;
       Observation	*o;
 
       for (i = 0; i < count; i++)
 	{
-	  o = FastArrayItemAtIndex(a, i).ext;
+	  o = GSIArrayItemAtIndex(a, i).ext;
 	  (*remImp)(self, remSel, o);
 	  if (h == 0 || lastObs != o->observer)
 	    {
@@ -709,7 +709,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 	}
     }
 
-  FastArrayEmpty(a);
+  GSIArrayEmpty(a);
   NSZoneFree(a->zone, (void*)a);
 
   [_lock unlock];
@@ -728,7 +728,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
   NSString	*n_name;
   id		n_object;
   Observation	*o;
-  FastArray	a;
+  GSIArray	a;
   unsigned	count;
   unsigned	i;
 
@@ -745,8 +745,8 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 
   [_lock lock];
 
-  a = NSZoneMalloc(NSDefaultMallocZone(), sizeof(FastArray_t));
-  FastArrayInitWithZoneAndCapacity(a, NSDefaultMallocZone(), 16);
+  a = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
+  GSIArrayInitWithZoneAndCapacity(a, NSDefaultMallocZone(), 16);
 
   NS_DURING
     {
@@ -756,15 +756,15 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
        */
       for (o = wildcard; o != ENDOBS; o = o->next)
 	{
-	  FastArrayAddItem(a, (FastArrayItem)o);
+	  GSIArrayAddItem(a, (GSIArrayItem)o);
 	}
-      count = FastArrayCount(a);
+      count = GSIArrayCount(a);
       while (count-- > 0)
 	{
-	  o = FastArrayItemAtIndex(a, count).ext;
+	  o = GSIArrayItemAtIndex(a, count).ext;
 	  if (o->next != 0) 
 	    (*o->method)(o->observer, o->selector, notification);
-	  FastArrayRemoveItemAtIndex(a, count);
+	  GSIArrayRemoveItemAtIndex(a, count);
 	}
 
       /*
@@ -778,16 +778,16 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 	    {
 	      while (o != ENDOBS)
 		{
-		  FastArrayAddItem(a, (FastArrayItem)o);
+		  GSIArrayAddItem(a, (GSIArrayItem)o);
 		  o = o->next;
 		}
-	      count = FastArrayCount(a);
+	      count = GSIArrayCount(a);
 	      while (count-- > 0)
 		{
-		  o = FastArrayItemAtIndex(a, count).ext;
+		  o = GSIArrayItemAtIndex(a, count).ext;
 		  if (o->next != 0) 
 		    (*o->method)(o->observer, o->selector, notification);
-		  FastArrayRemoveItemAtIndex(a, count);
+		  GSIArrayRemoveItemAtIndex(a, count);
 		}
 	    }
 	}
@@ -800,9 +800,9 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
       if (n_name)
 	{
 	  NSMapTable	*m;
-	  FastMapNode	n;
+	  GSIMapNode	n;
 
-	  n = FastMapNodeForKey((FastMapTable)named, (FastMapKey)n_name);
+	  n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)n_name);
 	  if (n)
 	    m = (NSMapTable*)n->value.ptr;
 	  else
@@ -817,16 +817,16 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		{
 		  while (o != ENDOBS)
 		    {
-		      FastArrayAddItem(a, (FastArrayItem)o);
+		      GSIArrayAddItem(a, (GSIArrayItem)o);
 		      o = o->next;
 		    }
-		  count = FastArrayCount(a);
+		  count = GSIArrayCount(a);
 		  while (count-- > 0)
 		    {
-		      o = FastArrayItemAtIndex(a, count).ext;
+		      o = GSIArrayItemAtIndex(a, count).ext;
 		      if (o->next != 0)
 			(*o->method)(o->observer, o->selector, notification);
-		      FastArrayRemoveItemAtIndex(a, count);
+		      GSIArrayRemoveItemAtIndex(a, count);
 		    }
 		}
 
@@ -840,17 +840,17 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 		    {
 		      while (o != ENDOBS)
 			{
-			  FastArrayAddItem(a, (FastArrayItem)o);
+			  GSIArrayAddItem(a, (GSIArrayItem)o);
 			  o = o->next;
 			}
-		      count = FastArrayCount(a);
+		      count = GSIArrayCount(a);
 		      while (count-- > 0)
 			{
-			  o = FastArrayItemAtIndex(a, count).ext;
+			  o = GSIArrayItemAtIndex(a, count).ext;
 			  if (o->next != 0)
 			    (*o->method)(o->observer, o->selector,
 			      notification);
-			  FastArrayRemoveItemAtIndex(a, count);
+			  GSIArrayRemoveItemAtIndex(a, count);
 			}
 		    }
 		}
@@ -862,7 +862,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
       /*
        *    If we had a problem - release memory and unlock before going on.
        */
-      FastArrayEmpty(a);
+      GSIArrayEmpty(a);
       NSZoneFree(a->zone, (void*)a);
       [_lock unlock];
 
@@ -870,7 +870,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
     }
   NS_ENDHANDLER
 
-  FastArrayEmpty(a);
+  GSIArrayEmpty(a);
   NSZoneFree(a->zone, (void*)a);
   [_lock unlock];
 }
