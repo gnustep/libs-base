@@ -1,7 +1,9 @@
-Wed Oct 15 12:23:37 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+Wed Oct 15 12:36:33 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* SSL/Makefile.postamble: Removed regenerate, TAGS and FORCE
-	rules.
+	rules.  Removed rule that GSSSLHandle.o depends on
+	GNUSTEP_TARGET_DIR/config.h - this dependency is automatically
+	determined by gnustep-make.
 
 Wed Oct 15 12:17:24 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
