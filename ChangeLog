@@ -1,3 +1,8 @@
+1999-08-29  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSLog.m (_NSLog_standard_printf_handler): Use
+	cStringLength.
+
 Wed Aug 25 15:28:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Fixes for memory leaks in parsing property lists.

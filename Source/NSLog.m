@@ -41,7 +41,7 @@
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
-  unsigned	len = [message length];
+  unsigned	len = [message cStringLength];
   char		buf[len+1];
 
   [message getCString: buf];
