@@ -1,3 +1,8 @@
+2001-02-22  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Resources/Languages/Italian: New file.
+	* Resources/GNUmakefile (LANGUAGES): Added Italian.
+	
 2001-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fixes to prevent problems obtaining
