@@ -102,7 +102,6 @@ OrderedCollection.m \
 Port.m \
 Proxy.m \
 Queue.m \
-Random.m \
 RawCStream.m \
 RBTree.m \
 RBTreeNode.m \
@@ -146,6 +145,8 @@ proplist.tab.m \
 stringsfile.tab.m \
 mframe.m \
 objc-gnu2next.m
+
+#Random.m \
 
 GNU_CFILES = \
 md5.c \
@@ -224,7 +225,6 @@ RBTree.h \
 RBTreeNode.h \
 RNGAdditiveCongruential.h \
 RNGBerkeley.h \
-Random.h \
 RandomGenerating.h \
 RawCStream.h \
 Retaining.h \
@@ -265,6 +265,8 @@ objc-gnu2next.h \
 all.h \
 README \
 preface.h
+
+#Random.h \
 
 # NEXTSTEP source files
 

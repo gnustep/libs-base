@@ -1,4 +1,7 @@
+@ifclear GSTEP-BASE-MAIN
 @include version.tmpl.texi
+@end ifclear
+
 @chapter News
 
 The currently released version of the library is
@@ -164,7 +167,7 @@ NSAllocateMemoryPages, NSDeallocateMemoryPages, NSCopyMemoryPages.
 
 @c ====================================================================
 @c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE_ONLY
+@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes since version @samp{0.1.14}
 

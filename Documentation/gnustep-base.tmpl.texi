@@ -3,6 +3,9 @@
 @c
 @c This file uses the special commands @url{} and @email{}.
 
+@c Let included files know they are within the main document
+@set GSTEP-BASE-MAIN
+
 @iftex
 @global@let@email=@i
 @global@let@url=@samp
@@ -86,14 +89,8 @@ into another language, under the above conditions for modified versions.
 @c Announcement
 @include announce.texi
 
-@c Installation Instructions
-@include gnustep-howto.texi
-
 @c News
 @include news.texi
-
-@c The FAQ
-@include faq.texi
 
 @c Status Report
 @include status.texi

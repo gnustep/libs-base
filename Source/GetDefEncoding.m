@@ -62,61 +62,61 @@ NSStringEncoding GetDefEncoding()
   availableEncodings = [NSString availableStringEncodings];
 
   encoding = getenv("GNUSTEP_STRING_ENCODING");
-  if(encoding)
-  {
-    count=0;
-    while((count<str_encoding_table_size)&
-         strcmp(str_encoding_table[count].ename,encoding))
+  if (encoding)
     {
-      count++;
+      count = 0;
+      while ((count < str_encoding_table_size) &
+	     strcmp(str_encoding_table[count].ename,encoding))
+	{
+	  count++;
+	}
+      if( !(count == str_encoding_table_size) )
+	{
+	  ret = str_encoding_table[count].enc;
+	  if ((ret == NSUnicodeStringEncoding) ||
+	      (ret == NSSymbolStringEncoding))
+	    {
+	      fprintf(stderr, "WARNING: %s - encoding not supported as default c string encoding.\n", encoding);
+	      fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+	      ret = NSASCIIStringEncoding;
+	    }
+	  else /*encoding should be supported but is it implemented?*/
+	    {
+	      count = 0;
+	      tmp = 0;
+	      while ( !(availableEncodings[count] == 0) )
+		{
+		  if ( !(ret == availableEncodings[count]) )
+		    tmp = 0;
+		  else
+		    {
+		      tmp = ret;
+		      break;
+		    }
+		  count++;
+		};
+	      if (!tmp)
+		{
+		  fprintf(stderr, "WARNING: %s - encoding not yet implemented.\n", encoding);
+		  fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+		  ret = NSASCIIStringEncoding;
+		};
+	    };
+	}
+      else /* encoding not found */
+	{
+	  fprintf(stderr, "WARNING: %s - encoding not supported.\n", encoding);
+	  fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+	  ret = NSASCIIStringEncoding;
+	}
     }
-    if(!(count==str_encoding_table_size))
-    {
-      ret= str_encoding_table[count].enc;
-      if((ret==NSUnicodeStringEncoding) ||
-          (ret==NSSymbolStringEncoding))
-      {
-        fprintf(stderr, "WARNING: %s - encoding not supported as default c string encoding.\n", encoding);
-        fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-        ret=NSASCIIStringEncoding;
-      }
-      else /*encoding should be supported but is it implemented?*/
-      {
-        count=0;
-        tmp=0;
-        while(!(availableEncodings[count]==0))
-        {
-          if(!(ret==availableEncodings[count]))
-            tmp=0;
-          else
-	  {
-            tmp=ret;
-	    break;
-	  }
-          count++;
-        };
-        if(!tmp)
-        {
-          fprintf(stderr, "WARNING: %s - encoding not yet implemented.\n", encoding);
-          fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-          ret=NSASCIIStringEncoding;
-        };
-      };
-    }
-    else /* encoding not found */
-    {
-      fprintf(stderr, "WARNING: %s - encoding not supported.\n", encoding);
-      fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-      ret=NSASCIIStringEncoding;
-    }
-  }
   else /* envirinment var not found */
-  {
-    /* This shouldn't be required. It really should be in UserDefaults - asf */
-    //fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment variable not found\n");
-    //fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
-    ret=NSASCIIStringEncoding;
-  }
+    {
+      /* This shouldn't be required. It really should be in UserDefaults - asf */
+      //fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment variable not found\n");
+      //fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+      ret = NSASCIIStringEncoding;
+    }
   return ret;
 };
 
@@ -124,14 +124,15 @@ NSString*
 GetEncodingName(NSStringEncoding encoding)
 {
   char* ret;
-    unsigned int count=0;
-  while((count<str_encoding_table_size)&
+  unsigned int count=0;
+  while ((count < str_encoding_table_size) &
          !(str_encoding_table[count].enc == encoding))
-  {
-    count++;
-  }
-  if(!(count==str_encoding_table_size))
-    ret= str_encoding_table[count].ename;
-  else ret="Unknown encoding";
+    {
+      count++;
+    }
+  if ( !(count == str_encoding_table_size) )
+    ret = str_encoding_table[count].ename;
+  else
+    ret = "Unknown encoding";
   return [NSString stringWithCString:ret];
 };

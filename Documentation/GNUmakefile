@@ -30,14 +30,18 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
-MAKEINFO = makeinfo
-TEXI2DVI = texi2dvi
-TEXI2HTML = texi2html
+# The documents to be generated
+DOCUMENT_NAME = gnustep-base
 
-ORIG_FILES = \
+# The text documents to be generated
+DOCUMENT_TEXT_NAME = \
+TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE STATUS
+
+TOP_DOC_FILES = TODO INSTALL NEWS README ANNOUNCE STATUS
+
+gnustep-base_TEXI_FILES = \
 version.tmpl.texi \
 gnustep-base.tmpl.texi \
-gnustep-howto.tmpl.texi \
 gnustep-zones.tmpl.texi \
 announce.tmpl.texi \
 coding-standards.tmpl.texi \
@@ -45,43 +49,32 @@ install.tmpl.texi \
 news.tmpl.texi \
 readme.tmpl.texi \
 status.tmpl.texi \
-todo.tmpl.texi \
-faq.tmpl.texi
+todo.tmpl.texi
 
-TEXI_FILES = \
-version.texi \
-gnustep-base.texi \
-gnustep-howto.texi \
-gnustep-zones.texi \
-announce.texi \
-coding-standards.texi \
-install.texi \
-news.texi \
-readme.texi \
-status.texi \
-todo.texi \
-faq.texi \
+TODO_TEXI_FILES = version.tmpl.texi
+TODO_TEXT_MAIN = todo.tmpl.texi
 
-TEXT_FILES = \
-TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE FAQ STATUS GNUstep-HOWTO
+INSTALL_TEXI_FILES = version.tmpl.texi
+INSTALL_TEXT_MAIN = install.tmpl.texi
 
-INFO_FILES = gnustep-base.info
-PS_FILES = gnustep-base.dvi
-HTML_FILES = gnustep-base_toc.html faq_toc.html
-DVI_FILES = gnustep-base.dvi
+NEWS_TEXI_FILES = version.tmpl.texi
+NEWS_TEXT_MAIN = news.tmpl.texi
 
-TOP_DOC_FILES = TODO README INSTALL NEWS ANNOUNCE STATUS GNUstep-HOWTO
-RCS_FILES =  $(ORIG_FILES) GNUmakefile Makefile.postamble
-DIST_FILES = $(RCS_FILES) $(TEXT_FILES)
+CODING-STANDARDS_TEXI_FILES = version.tmpl.texi
+CODING-STANDARDS_TEXT_MAIN = coding-standards.tmpl.texi
+
+README_TEXI_FILES = version.tmpl.texi
+README_TEXT_MAIN = readme.tmpl.texi
+
+ANNOUNCE_TEXI_FILES = version.tmpl.texi
+ANNOUNCE_TEXT_MAIN = announce.tmpl.texi
+
+STATUS_TEXI_FILES = version.tmpl.texi
+STATUS_TEXT_MAIN = status.tmpl.texi
 
 -include Makefile.preamble
+-include Makefile.local
 
-# We don't actually build anything in this directory so
-# just include the common makefile rules
-include $(GNUSTEP_MAKEFILES)/rules.make
+include $(GNUSTEP_MAKEFILES)/documentation.make
 
 -include Makefile.postamble
-
-
-
-

@@ -695,15 +695,15 @@ static Class NSMutableArray_concrete_class;
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray
 {
-  unsigned	i;
+  id e, o;
 
-  if ([self count] <= aRange.location)
+  if ([self count] < (aRange.location + aRange.length))
     [NSException raise: NSRangeException
 		 format: @"Replacing objects beyond end of array."];
   [self removeObjectsInRange: aRange];
-  i = [anArray count];
-  while (i-- > 0)
-    [self insertObject: [anArray objectAtIndex: i] atIndex: aRange.location];
+  e = [anArray reverseObjectEnumerator];
+  while ((o = [e nextObject]))
+    [self insertObject: o atIndex: aRange.location];
 }
 
 - (void) replaceObjectsInRange: (NSRange)aRange

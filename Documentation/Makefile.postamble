@@ -57,17 +57,7 @@
 # before-clean::
 
 # Things to do after cleaning
-after-clean::
-	rm -f version.texi version.tmpl.texi
-	rm -f $(TEXT_FILES)
-	rm -f $(ORIG_FILES:.tmpl.texi=.texi)
-	rm -f *.info
-	rm -f *.html
-	rm -f gnustep-base.dvi gnustep-base.aux gnustep-base.log \
-	gnustep-base.toc gnustep-base.cl \
-	gnustep-base.cp gnustep-base.cps gnustep-base.fn gnustep-base.fns \
-	gnustep-base.ky gnustep-base.pg gnustep-base.pr gnustep-base.tp \
-	gnustep-base.vr 
+# after-clean::
 
 # Things to do before distcleaning
 # before-distclean::
@@ -81,18 +71,7 @@ after-clean::
 # Things to do after checking
 # after-check::
 
-srcdir=.
-INFO_FLAGS = -I $(srcdir) -D NO-TEXI2HTML --no-header
-HTML_FLAGS = -split_chapter -expandinfo -I $(srcdir)
-TEXT_FLAGS = -I $(srcdir) -D NO-TEXI2HTML -D TEXT-ONLY --no-header --no-split
-
-text: $(TEXT_FILES)
-info: $(INFO_FILES)
-ps: $(PS_FILES)
-html: $(HTML_FILES)
-dvi: $(DVI_FILES)
-
-version.tmpl.texi: $(srcdir)/../Version
+version.tmpl.texi: ../Version
 	rm -f version.tmpl.texi
 	echo '@set GNUSTEP-BASE-VERSION' $(GNUSTEP_BASE_VERSION) \
 		> version.tmpl.texi
@@ -114,141 +93,5 @@ version.tmpl.texi: $(srcdir)/../Version
 		>> version.tmpl.texi; fi
 	cp version.tmpl.texi version.texi
 
-gnustep-base.dvi: $(ORIG_FILES)
-	rm -f $(TEXI_FILES)
-	for i in $(ORIG_FILES); do \
-		cp $$i `basename $$i .tmpl.texi`.texi ; \
-	done
-	$(TEXI2DVI) $(srcdir)/gnustep-base.texi
-
-gnustep-base.info: $(ORIG_FILES)
-	rm -f $(TEXI_FILES)
-	for i in $(ORIG_FILES); do \
-	   sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/$$i \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> `basename $$i .tmpl.texi`.texi ; \
-	done
-	$(MAKEINFO) $(INFO_FLAGS) -o gnustep-base.info $(srcdir)/gnustep-base.texi
-
-gnustep-base.ps: gnustep-base.dvi
-	dvips gnustep-base.dvi -o gnustep-base.ps
-
-gnustep-base_toc.html: $(ORIG_FILES)
-	rm -f $(TEXI_FILES)
-	for i in $(ORIG_FILES); do \
-	   sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
-		$(srcdir)/$$i \
-		| sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
-		| sed -e 's,^ *$$,@br{},g' \
-		> `basename $$i .tmpl.texi`.texi ; \
-	done
-	$(TEXI2HTML) $(HTML_FLAGS) gnustep-base.texi
-
-faq_toc.html: $(ORIG_FILES)
-	rm -f $(TEXI_FILES)
-	for i in $(ORIG_FILES); do \
-	   sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
-		$(srcdir)/$$i \
-		| sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
-		| sed -e 's,^ *$$,@br{},g' \
-		> `basename $$i .tmpl.texi`.texi ; \
-	done
-	$(TEXI2HTML) $(HTML_FLAGS) faq.texi
- 
-# Rules for producing the text files
-README: version.tmpl.texi readme.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/readme.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> readme.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o README $(srcdir)/readme.texi
-
-ANNOUNCE: version.tmpl.texi announce.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/announce.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> announce.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o ANNOUNCE $(srcdir)/announce.texi
-
-INSTALL: version.tmpl.texi install.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/install.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> install.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o INSTALL $(srcdir)/install.texi
-
-NEWS: version.tmpl.texi news.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/news.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> news.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o NEWS $(srcdir)/news.texi
-
-FAQ: version.tmpl.texi faq.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/faq.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> faq.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o FAQ $(srcdir)/faq.texi
-
-STATUS: version.tmpl.texi status.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/status.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> status.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o STATUS $(srcdir)/status.texi
-
-TODO: version.tmpl.texi todo.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/todo.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> todo.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o TODO $(srcdir)/todo.texi
-
-CODING-STANDARDS: version.tmpl.texi coding-standards.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/coding-standards.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> coding-standards.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o CODING-STANDARDS \
-		$(srcdir)/coding-standards.texi
-
-GNUstep-HOWTO: version.tmpl.texi gnustep-howto.tmpl.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-		$(srcdir)/gnustep-howto.tmpl.texi \
-		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-		> gnustep-howto.texi ; \
-	$(MAKEINFO) $(TEXT_FLAGS) -o GNUstep-HOWTO \
-		$(srcdir)/gnustep-howto.texi
-
-
-# Unused for now, but may be used in the future.
-#%: %.texi
-#	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ -D ${@}_ONLY \
-#	--no-header --no-split $(srcdir)/$<
-#
-#%.texi: %.www.texi
-#	rm -f $@
-#	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-#	  $(srcdir)/$< \
-#	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-#	    > $@
-#
-#%.html: %.www.texi
-#	rm -f $@.texi
-#	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
-#	  $(srcdir)/$< \
-#	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
-#	  | sed -e 's,^ *$$,@br{},g' \
-#	    > $<.html.texi
-#	texi2html -expandinfo $(MAKEINFO_FLAGS) $<.html.texi
-#	mv -f $<.html.html $*.html
-
-regenerate: $(DIST_FILES)
+regenerate: $(DOCUMENT_TEXT_NAME)
 	mv $(TOP_DOC_FILES) ..
-
-copy-dist: $(DIST_FILES)
-	mkdir ../snap/doc
-	ln $(DIST_FILES) ../snap/doc
-	ln $(TOP_DOC_FILES) ../snap

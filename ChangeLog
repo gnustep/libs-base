@@ -1,3 +1,29 @@
+Sun Apr  5 20:07:28 1998  Scott Christley  <scottc@net-community.com>
+
+	* Utilize documentation rules in Makefile Package.
+	* doc/GNUmakefile: Rewrite to use Makefile Package.
+	* doc/Makefile.postamble: Remove old obsolete rules.
+
+	* Documentation which covers GNUstep as a whole versus just
+	gstep-base has been moved to the top level Documentation dir.
+	* GNUstep-HOWTO: Delete.
+	* doc/gnustep-base.tmpl.texi: GNUstep-HOWTO and FAQ removed.
+	Add variable so that included files know they are within the
+	main document.
+	* doc/gnustep-howto.tmpl.texi: Delete.
+	* doc/faq.tmpl.texi: Delete.
+	* doc/announce.tmpl.texi: Don't include version.texi needlessly.
+	* doc/news.tmpl.texi: Don't include version.texi needlessly.
+	* doc/todo.tmpl.texi: Don't include version.texi needlessly.
+
+	* src/GNUmakefile: Don't compile Random class as the name too
+	often conflicts with user apps.
+
+	* src/GetDefEncoding.m: Reformat.
+
+	* src/NSArray.m (-replaceObjectsInRange:withObjectsFromArray:):
+ 	Fix range check.  Use enumerator instead of count.
+	
 Wed Apr  1 18:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.m: Modified code so that we make sure we have at least

@@ -1,6 +1,8 @@
-@chapter Todo
-@c set the vars GSTEP-BASE-VERSION and GCC-VERSION
+@ifclear GSTEP-BASE-MAIN
 @include version.tmpl.texi
+@end ifclear
+
+@chapter Todo
 
 This TODO list is out of date.
 
