@@ -194,7 +194,10 @@ static BOOL debug_memory_stream = NO;
       ret[len] = '\0';
       position += len+1;
     }
-  return [NSString stringWithCStringNoCopy:ret];
+  return [[[NSString alloc] initWithCStringNoCopy: ret 
+			    length: strlen (ret)
+			    freeWhenDone: YES]
+	   autorelease];
 }
 
 /* Making these nested functions (which is what I'd like to do) is
