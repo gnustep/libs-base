@@ -78,6 +78,8 @@ typedef struct {
     Class	_NSGCString;
     Class	_NSGMutableCString;
     Class	_NXConstantString;
+    Class	_NSDataMalloc;
+    Class	_NSMutableDataMalloc;
 } fastCls;
 extern	fastCls	_fastCls;	/* Populated by _fastBuildCache()	*/
 
