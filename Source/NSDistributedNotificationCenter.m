@@ -37,6 +37,8 @@
 #include	<Foundation/NSRunLoop.h>
 #include	<Foundation/NSTask.h>
 #include	<Foundation/NSDistributedNotificationCenter.h>
+#include	<Foundation/NSUserDefaults.h>
+#include	<Foundation/NSHost.h>
 
 #include	"../Tools/gdnc.h"
 
@@ -317,11 +319,34 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 {
   if (_remote == nil)
     {
+      NSString	*host;
+
       /*
        *	Connect to the NSDistributedNotificationCenter for this host.
        */
+      host = [[NSUserDefaults standardUserDefaults] stringForKey: @"NSHost"];
+      if (host == nil)
+	{
+	  host = @"";
+	}
+      else
+	{
+	  NSHost	*h;
+
+	  /*
+	   * If we have a host specified, but it is the current host,
+	   * we do not need to ask for a host by name (nameserver lookup
+	   * can be faster) and the empty host name can be used to
+	   * indicate that we may start a gdnc server locally.
+	   */
+	  h = [NSHost hostWithName: host];
+	  if ([h isEqual: [NSHost currentHost]] == YES)
+	    {
+	      host = @"";
+	    }
+	}
       _remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
-		GDNC_SERVICE host: @""]);
+	GDNC_SERVICE host: host]);
 
       if (_remote != nil)
 	{
@@ -340,7 +365,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 		 object: c];
 	  [_remote registerClient: (id<GDNCClient>)self];
 	}
-      else
+      else if ([host isEqual: @""] == YES)
 	{
 	  static BOOL recursion = NO;
 
@@ -372,6 +397,11 @@ NSLog(@"Connection to GDNC server established.\n");
 			  format: @"unable to contact GDNC server - %@",
 			   MAKE_GDNC_ERR];
 	    }
+	}
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"unable to contact GDNC server on %@", host];
 	}
     }
 }
