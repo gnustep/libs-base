@@ -24,7 +24,7 @@ at @samp{http://www.gnustep.org}.
 
 Note that versions that have a odd minor release number (the second number,
 y, in x.y.z) are unstable
-releases (like 1.5.2), which even minor release numbers (1.4.1) are stable
+releases (like 1.5.2), while even minor release numbers (1.4.1) are stable
 releases.
 
 @ignore

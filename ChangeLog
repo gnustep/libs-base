@@ -1,3 +1,9 @@
+2003-08-02  Yen-Ju Chen <yjchenx@hotmail.com>
+
+	* Resources/Languages/TraditionalChinese,
+	Resources/TraditionalChinese.lproj: New
+	* Resources/GNUmakefile: Install them.
+
 2003-08-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m: Include  limits.h for UINT_MAX
