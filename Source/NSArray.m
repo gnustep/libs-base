@@ -850,6 +850,17 @@ static NSString	*indentStrings[] = {
   return [desc writeToFile: path atomically: useAuxiliaryFile];
 }
 
+- (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
+{
+  NSDictionary	*loc;
+  NSString	*desc;
+
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  desc = [self descriptionWithLocale: loc indent: 0];
+
+  return [desc writeToURL: url atomically: useAuxiliaryFile];
+}
+
 @end
 
 

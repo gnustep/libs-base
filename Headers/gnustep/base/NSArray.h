@@ -28,6 +28,7 @@
 #include <Foundation/NSUtilities.h>
 
 @class NSString;
+@class NSURL;
 
 @interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
@@ -89,7 +90,9 @@
 			     indent: (unsigned int)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxilliaryFile;
-
+#ifndef	STRICT_OPENSTEP
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile;
+#endif
 @end
 
 
