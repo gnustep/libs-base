@@ -42,15 +42,35 @@ NSLog_printf_handler *_NSLog_printf_handler;
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
-#ifdef	HAVE_SYSLOG_H
-  const char	*txt = [message cString];
+  unsigned	len = [message length];
+  char		buf[len+1];
 
-  if (fputs(txt, stderr) == EOF)
+  [message getCString: buf];
+  buf[len] = '\0';
+
+#ifdef	HAVE_SYSLOG_H
+
+  if (write(2, buf, len) != len)
     {
-      syslog(LOG_INFO, "%s",  txt);
+      int	mask;
+
+#ifdef	LOG_ERR
+      mask = LOG_ERR;
+#else
+# ifdef	LOG_ERROR
+      mask = LOG_ERROR;
+# else
+#include <Help, I can't find a logging levl for syslog>
+# endif
+#endif
+
+#ifdef	LOG_USER
+      mask |= LOG_USER;
+#endif
+      syslog(mask, "%s",  buf);
     }
 #else
-  fputs([message cString], stderr);
+  write(2, buf, len);
 #endif
 }
 
