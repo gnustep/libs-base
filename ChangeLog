@@ -1,3 +1,16 @@
+Sat Oct 24 11:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	src/NSArchiver.m: New implementation
+	src/NSArchiver.m: New file
+	src/GNUmakefile: Added NSUnarchiver.m
+	src/include/NSArchiver.h: New version
+	New Archiver/unarchiver - OPENSTEP complient (I think).
+	Basic functionality tested fairly thoroughly, some of the more
+	unusual bits untested so far. Mechanisms for adding other backends
+	in place, but untested. Performance may be around four times that
+	of the old version though there is still a little (very little)
+	room for improvement.
+
 Thu Oct 22 21:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	src/NSData.m: Added support for serialisation of Class and SEL types

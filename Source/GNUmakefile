@@ -353,6 +353,7 @@ NSTask.m \
 NSThread.m \
 NSTimer.m \
 NSTimeZone.m \
+NSUnarchiver.m \
 NSUndoManager.m \
 NSUser.m \
 NSUserDefaults.m \
