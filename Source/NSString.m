@@ -3805,12 +3805,14 @@ static id parsePlItem(pldata* pld)
 	      if (skipSpace(pld) == NO)
 		{
 		  RELEASE(key);
+		  RELEASE(dict);
 		  return nil;
 		}
 	      if (pld->ptr[pld->pos] != '=')
 		{
 		  pld->err = @"unexpected character (wanted '=')";
 		  RELEASE(key);
+		  RELEASE(dict);
 		  return nil;
 		}
 	      pld->pos++;
@@ -3818,12 +3820,14 @@ static id parsePlItem(pldata* pld)
 	      if (val == nil)
 		{
 		  RELEASE(key);
+		  RELEASE(dict);
 		  return nil;
 		}
 	      if (skipSpace(pld) == NO)
 		{
 		  RELEASE(key);
 		  RELEASE(val);
+		  RELEASE(dict);
 		  return nil;
 		}
 	      if (pld->ptr[pld->pos] == ';')
@@ -3835,6 +3839,7 @@ static id parsePlItem(pldata* pld)
 		  pld->err = @"unexpected character (wanted ';' or '}')";
 		  RELEASE(key);
 		  RELEASE(val);
+		  RELEASE(dict);
 		  return nil;
 		}
 	      (*plSet)(dict, @selector(setObject:forKey:), val, key);
@@ -3865,11 +3870,13 @@ static id parsePlItem(pldata* pld)
 	      val = parsePlItem(pld);
 	      if (val == nil)
 		{
+		  RELEASE(array);
 		  return nil;
 		}
 	      if (skipSpace(pld) == NO)
 		{
 		  RELEASE(val);
+		  RELEASE(array);
 		  return nil;
 		}
 	      if (pld->ptr[pld->pos] == ',')
@@ -3880,6 +3887,7 @@ static id parsePlItem(pldata* pld)
 		{
 		  pld->err = @"unexpected character (wanted ',' or ')')";
 		  RELEASE(val);
+		  RELEASE(array);
 		  return nil;
 		}
 	      (*plAdd)(array, @selector(addObject:), val);
