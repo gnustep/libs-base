@@ -1,3 +1,7 @@
+2003-06-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/mframe/powerpc/darwin: New file.
+
 2003-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe.m: Allow for structure names in type specifications.
