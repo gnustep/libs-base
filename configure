@@ -11394,7 +11394,7 @@ fi
   else
     XML_CONFIG=$XML2_CONFIG
   fi
-  min_xml_version=2.2.3
+  min_xml_version=2.3.0
   echo "$as_me:$LINENO: checking for libxml - version >= $min_xml_version" >&5
 echo $ECHO_N "checking for libxml - version >= $min_xml_version... $ECHO_C" >&6
   no_xml=""
