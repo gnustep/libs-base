@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 0.9.4, is now available.
+The GNUstep Base Library, version 1.0.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -22,21 +22,9 @@ portion of the OpenStep standard (the Foundation library).
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gstepbase-0.9.4.tar.gz distribution file has been placed on
+   The gstepbase-1.0.0.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
-   The library requires gcc 2.8.0 or higher.  Significant sections of
-the library do not work with the NeXT runtime, so we recommend using
-gcc instead of NeXT's cc.  See the `GNUstep-HOWTO' file for more
-instructions about compiling and installing the library.
-
-   The `.tar' file is compressed with GNU gzip.  Gzip can be obtained by
-anonymous ftp at any of the GNU archive sites.
-
-   For info about FTP via email, send email to `ftpmail@decwrl.dec.com'
-with no subject line, and two-line body with line one `help' and line
-two `quit'.
-
-   The most recent (not necessarily tested) snapshots of the library
-will be placed on `alpha.gnu.org'.
+   The library requires gcc 2.8.0 or higher.  See the `GNUstep-HOWTO'
+file for more instructions about compiling and installing the library.
 
