@@ -1,3 +1,61 @@
+Mon May  6 14:59:03 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSGArchiver.m ([NSGArchiver -encodeObjectReference:]): New
+ 	method.
+	* src/Decoder.m ([Decoder -decodeObjectAt:anObjPtr:name]): Move
+ 	CREATE_REF_BEFORE_INIT assertion to inside conditional for FREF
+ 	being true.
+
+	* src/NSString.m (PRINTF_ATSIGN_VA_LIST): New macro, when 1,
+ 	undoes previous changes.  Previous changes cause crashes with my
+ 	libc.
+
+	* configure.in (shared): Prepend missing `lib'.  (Reported by
+ 	Randy Chapman <chapman@cs.washington.edu>.)
+
+	* src/Makefile.in: It should now work again to build in a separate
+ 	directory.  Use ${OEXT}, not $(OEXT).
+	(ALL_INCLUDE_FLAGS): Look in ./include, not $(srcdir).
+	(GNU_HEADERS): Remove duplicate NS*.h files.
+	(gnustep/base): Make soft links to the $(srcdir) include files inside
+	./include.
+	(include/preface.h): Get preface.h.in from the $(srcdir)!
+	* examples/Makefile.in (ALL_CPPFLAGS): Look for source include
+ 	files in new place.
+	* checks/Makefile.in (ALL_CPPFLAGS): Look for source include files
+ 	in new place.
+
+	* src/include/NSZone.h: use #include instead of #import.
+
+	* doc/gnustep-faq.texi: Added "On what platforms will it run?"
+
+	* src/NSArray.m ([NSMutableArray +initialize]): Add the
+ 	NSArrayNonCore methods also.  (Reported by Scott Christley.)
+
+	* src/Makefile.in: Add `o-' prefix to object collection function
+ 	files.
+	* src/o-array.m, src/o-list.m, src/o-hash.m, src/o-map.m: Renamed
+	from versions without `o-' prefix.  This prevents aliasing with
+	Array.m, etc, on systems without case-sensitive filenames.
+	* src/include/o-array.h, src/include/o-hash.h,
+	src/include/o-list.h, src/include/o-map.h: Likewise.
+
+	* src/NSString.m: All uses of @"" were crashing in Linux
+ 	libc-5.3.9.
+	(arginfo_func): New function.
+	(handle_printf_atsign): Get the string object without va_arg().
+	([NSString +initialize]): Use new function.
+	(Reported and fixed by Kai-Uwe Sattler
+	<sattler@volker.cs.Uni-Magdeburg.DE>.)
+
+Tue Apr 30 10:19:40 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSArray.m ([NSMutableArrayNonCore -removeObject:]): Replace
+ 	with version that removes all objects equal to argument.
+	([NSMutableArrayNonCore -removeObjectIdenticalTo:]): Likewise.
+
+	* checks/nsarray.m (main): Patched from Scott Christley.
+
 Fri Apr 19 18:11:30 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Make NSArchiver do object forward references the same way OpenStep
@@ -14,7 +72,7 @@ Fri Apr 19 18:11:30 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	Before these changes, the gnustep-base code that tried to handle
  	the OpenStep-style `-encodeConditionalObject:' and `-decodeObject'
  	did not have the same behavior as NeXT's implementation---in fact
- 	it did not to forward references at all.  Users' OpenStep code
+ 	it did not do forward references at all.  Users' OpenStep code
  	that used the OpenStep methods would have failed badly.  These
  	changes implement the OpenStep-style forward references.  Now
  	NSArchiver implements OpenStep-style forward references, and
@@ -25,7 +83,7 @@ Fri Apr 19 18:11:30 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	* src/NSGArchiver.m (USE_OPENSTEP_STYLE_FORWARD_REFERENCES): New
  	macro.
 	(NSGArchiverNullCStream): New class, interface and implementation.
-	([NSGArchiverNullCStream -decodeValueOfCType:at:withName:]): New
+	([NSGArchiverNullCStream -encodeValueOfCType:at:withName:]): New
 	method. 
 	([NSGArchiverNullCStream -decodeValueOfCType:at:withName:]): New
 	method. 
