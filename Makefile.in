@@ -320,8 +320,10 @@ dld-load.h \
 hpux-load.h \
 null-load.h \
 simple-load.h \
-NSData.m \
-foundation/NSData.h
+foundation/NSArchiver.h \
+foundation/NSData.h \
+NSArchiver.m \
+NSData.m
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=.o) \
