@@ -1139,8 +1139,6 @@ static int messages_received_count;
 
     NSParameterAssert (is_valid);
     [[self retain] autorelease];
-    op = [self newSendingRequestRmc];
-    seq_num = [op sequenceNumber];
 
     /* get the method types from the selector */
 #if NeXT_runtime
@@ -1151,8 +1149,14 @@ static int messages_received_count;
 #else
     type = sel_get_type(sel);
 #endif
+    if (type == 0 || *type == '\0') {
+	type = [[object methodSignatureForSelector: sel] methodType];
+    }
     NSParameterAssert(type);
     NSParameterAssert(*type);
+
+    op = [self newSendingRequestRmc];
+    seq_num = [op sequenceNumber];
 
     /* Send the types that we're using, so that the performer knows
        exactly what qualifiers we're using.
