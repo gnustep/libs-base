@@ -84,30 +84,6 @@
   return n;
 }
 
-- write: (TypedStream*)aStream
-{
-  const char *encoding;
-
-  [super write:aStream];
-  encoding = elt_get_encoding(_elt_comparison_function);
-  objc_write_type(aStream, @encode(char*), &encoding);
-  objc_write_types(aStream, encoding, 
-		   elt_get_ptr_to_member(encoding, &_element));
-  return self;
-}
-
-- read: (TypedStream*)aStream
-{
-  char *encoding;
-
-  [super read:aStream];
-  objc_read_type(aStream, @encode(char*), &encoding);
-  _elt_comparison_function = elt_get_comparison_function(encoding);
-  objc_read_type(aStream, encoding, 
-		 elt_get_ptr_to_member(encoding,&_element));
-  return self;
-}
-
 - (int(*)(elt,elt)) comparisonFunction
 {
   return _elt_comparison_function;
