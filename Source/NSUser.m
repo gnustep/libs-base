@@ -39,6 +39,8 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSUserDefaults.h>
 
+#include "GSPrivate.h"
+
 #include <stdlib.h>		// for getenv()
 #if HAVE_UNISTD_H
 #include <unistd.h>		// for getlogin()

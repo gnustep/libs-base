@@ -48,6 +48,9 @@
 #include <base/GSFormat.h>
 #include <base/behavior.h>
 #include <limits.h>
+
+#include "GSPrivate.h"
+
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #include <base/Unicode.h>
@@ -3313,13 +3316,13 @@ transmute(ivars self, NSString *aString)
 
 
 
-/*
- * The NXConstantString class is used by the compiler for constant
+/**
+ * <p>The NXConstantString class is used by the compiler for constant
  * strings, as such its ivar layout is determined by the compiler
  * and consists of a pointer (_contents.c) and a character count
  * (_count).  So, while this class inherits GSCString behavior,
  * the code must make sure not to use any other GSCString ivars
- * when accesssing an NXConstantString.
+ * when accesssing an NXConstantString.</p>
  */
 @implementation NXConstantString
 
@@ -3355,7 +3358,7 @@ transmute(ivars self, NSString *aString)
 
 - (const char*) cString
 {
-  return (const char*)_contents.c;
+  return (const char*)nxcsptr;
 }
 
 - (id) retain
@@ -3407,7 +3410,7 @@ transmute(ivars self, NSString *aString)
 {
   unsigned ret = 0;
 
-  int len = _count;
+  int len = nxcslen;
 
   if (len > NSHashStringLength)
     len = NSHashStringLength;
@@ -3416,7 +3419,7 @@ transmute(ivars self, NSString *aString)
       const unsigned char	*p;
       unsigned			char_count = 0;
 
-      p = _contents.c;
+      p = nxcsptr;
       while (*p != 0 && char_count++ < NSHashStringLength)
 	{
 	  unichar	c = *p++;
@@ -3468,16 +3471,16 @@ transmute(ivars self, NSString *aString)
     {
       ivars	other = (ivars)anObject;
 
-      if (_count != other->_count)
+      if (nxcslen != other->_count)
 	return NO;
-      if (memcmp(_contents.c, other->_contents.c, _count) != 0)
+      if (memcmp(nxcsptr, other->_contents.c, nxcslen) != 0)
 	return NO;
       return YES;
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || c == GSMutableStringClass)
     {
-      if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
+      if (strCompCsUs(self, anObject, 0, (NSRange){0,nxcslen}) == NSOrderedSame)
 	return YES;
       return NO;
     }
@@ -3515,16 +3518,16 @@ transmute(ivars self, NSString *aString)
     {
       ivars	other = (ivars)anObject;
 
-      if (_count != other->_count)
+      if (nxcslen != other->_count)
 	return NO;
-      if (memcmp(_contents.c, other->_contents.c, _count) != 0)
+      if (memcmp(nxcsptr, other->_contents.c, nxcslen) != 0)
 	return NO;
       return YES;
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || c == GSMutableStringClass)
     {
-      if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
+      if (strCompCsUs(self, anObject, 0, (NSRange){0,nxcslen}) == NSOrderedSame)
 	return YES;
       return NO;
     }

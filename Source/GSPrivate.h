@@ -1,5 +1,5 @@
-/* GSUserDefaults
-   Copyright (C) 2001 Free Software Foundation, Inc.
+/* GSPrivate
+   Copyright (C) 2001,2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    
@@ -20,12 +20,36 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
-#ifndef __GSUserDefaults_h_
-#define __GSUserDefaults_h_
+#ifndef __GSPrivate_h_
+#define __GSPrivate_h_
 
-#include <Foundation/NSUserDefaults.h>
 
 /*
+ * Private concrete string classes.
+ * NB. All these concrete string classes MUST have the same initial ivar
+ * layout so that we can swap between them as necessary.
+ * The initial layout must also match that of NXConstantString (which is
+ * determined by the compiler) - an initial pointer to the string data
+ * followed by the string length (number of characters).
+ */
+@interface GSString : NSString
+{
+  union {
+    unichar		*u;
+    unsigned char	*c;
+  } _contents;
+  unsigned int	_count;
+  struct {
+    unsigned int	wide: 1;	// 16-bit characters in string?
+    unsigned int	free: 1;	// Should free memory?
+    unsigned int	unused: 2;
+    unsigned int	hash: 28;
+  } _flags;
+}
+@end
+
+/*
+ * Enumeration for MacOS-X compatibility user defaults settings.
  * For efficiency, we save defaults information which is used by the
  * base library.
  */
@@ -47,4 +71,5 @@ NSDictionary	*GSUserDefaultsDictionaryRepresentation();
  */
 BOOL		GSUserDefaultsFlag(GSUserDefaultFlagType type);
 
-#endif /* __GSUserDefaults_h_ */
+#endif /* __GSPrivate_h_ */
+

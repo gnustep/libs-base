@@ -38,6 +38,8 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSObjCRuntime.h>
 
+#include "GSPrivate.h"
+
 @class	GSDictionary;
 @class	GSMutableDictionary;
 @class	NSDataMalloc;

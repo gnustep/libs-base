@@ -28,7 +28,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSDecimal.h>
 #include <Foundation/NSDecimalNumber.h>
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 static NSDecimalNumberHandler *handler;
  

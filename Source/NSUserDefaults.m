@@ -50,7 +50,7 @@
 #include <Foundation/NSLock.h>
 #include <base/GSLocale.h>
 
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */

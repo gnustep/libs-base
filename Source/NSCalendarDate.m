@@ -35,11 +35,12 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSUserDefaults.h>
 #include <base/behavior.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 // Absolute Gregorian date for NSDate reference date Jan 01 2001
 //

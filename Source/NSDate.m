@@ -39,6 +39,7 @@
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSUserDefaults.h>
 #include <base/preface.h>
 #include <base/behavior.h>
 #if HAVE_SYS_TIME_H
@@ -47,7 +48,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 /* The number of seconds between 1/1/2001 and 1/1/1970 = -978307200. */
 /* This number comes from:
