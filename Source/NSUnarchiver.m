@@ -154,7 +154,7 @@ static char	type_map[32] = {
   _C_UINT,
   _C_LNG,
   _C_ULNG,
-#ifdef	_C_LNG_LMG
+#ifdef	_C_LNG_LNG
   _C_LNG_LNG,
   _C_ULNG_LNG,
 #else
