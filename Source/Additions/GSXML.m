@@ -119,9 +119,11 @@ static xmlParserInputPtr
 loadEntityFunction(const unsigned char *url, const unsigned char *eid,
   xmlParserCtxtPtr ctxt);
 
+#ifdef NeXT_Foundation_LIBRARY
 @interface NSObject (MissingFromMacOSX)
 - (IMP) methodForSelector: (SEL)aSelector;
 @end
+#endif
 
 @interface GSXPathObject(Private)
 + (id) _newWithNativePointer: (xmlXPathObject *)lib
