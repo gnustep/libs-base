@@ -20,9 +20,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-ffcall  		Enable use of ffcall library"
 ac_help="$ac_help
-  --with-libxml-include=PATH  include path for libxml headers"
+  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)"
 ac_help="$ac_help
-  --with-libxml-library=PATH  library path for libxml libraries"
+  --disable-xmltest        Do not try to compile and run a test XML program"
 ac_help="$ac_help
   --with-openssl-include=PATH  include path for openssl headers"
 ac_help="$ac_help
@@ -4507,127 +4507,227 @@ fi
 
 
 #--------------------------------------------------------------------
-# Check recent libxlm for Properytlists, GSXML, GSDoc etc.
+# Check recent libxml for Properytlists, GSXML, GSDoc etc.
 #--------------------------------------------------------------------
-echo "Checking for libxml"
-# Check whether --with-libxml-include or --without-libxml-include was given.
-if test "${with_libxml_include+set}" = set; then
-  withval="$with_libxml_include"
-  libxml_incdir="$withval"
+
+# Check whether --with-xml-prefix or --without-xml-prefix was given.
+if test "${with_xml_prefix+set}" = set; then
+  withval="$with_xml_prefix"
+  xml_config_prefix="$withval"
 else
-  libxml_incdir="no"
+  xml_config_prefix=""
 fi
 
-
-# Check whether --with-libxml-library or --without-libxml-library was given.
-if test "${with_libxml_library+set}" = set; then
-  withval="$with_libxml_library"
-  libxml_libdir="$withval"
+# Check whether --enable-xmltest or --disable-xmltest was given.
+if test "${enable_xmltest+set}" = set; then
+  enableval="$enable_xmltest"
+  :
 else
-  libxml_libdir="no"
+  enable_xmltest=yes
 fi
 
 
-cppflags_temp=$CFLAGS
-libs_temp=$LIBS
+  if test x$xml_config_prefix != x ; then
+    xml_config_args="$xml_config_args --prefix=$xml_config_prefix"
+    if test x${XML_CONFIG+set} != xset ; then
+      XML_CONFIG=$xml_config_prefix/bin/xml-config
+    fi
+  fi
 
-if test "$libxml_incdir" != "no"; then
-  CPPFLAGS="$CPPFLAGS -I$libxml_incdir"
-fi
-if test "$libxml_libdir" != "no"; then
-  LIBS="$LIBS -L$libxml_libdir"
-fi
-
-xmlhdrdir=no
-# The order of these tests is important.
-cat > conftest.$ac_ext <<EOF
-#line 4545 "configure"
-#include "confdefs.h"
-#include <libxml/xmlversion.h>
-#if LIBXML_VERSION < 20203
-#error libxml needs to be version 2.2.3 or later
-#endif
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:4553: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  xmlhdrdir=libxml
+  # Extract the first word of "xml-config", so it can be a program name with args.
+set dummy xml-config; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:4541: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_path_XML_CONFIG'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
 else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
+  case "$XML_CONFIG" in
+  /*)
+  ac_cv_path_XML_CONFIG="$XML_CONFIG" # Let the user override the test with a path.
+  ;;
+  ?:/*)			 
+  ac_cv_path_XML_CONFIG="$XML_CONFIG" # Let the user override the test with a dos path.
+  ;;
+  *)
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do 
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_path_XML_CONFIG="$ac_dir/$ac_word"
+      break
+    fi
+  done
+  IFS="$ac_save_ifs"
+  test -z "$ac_cv_path_XML_CONFIG" && ac_cv_path_XML_CONFIG="no"
+  ;;
+esac
 fi
-rm -f conftest*
-if test $xmlhdrdir = no; then
-cat > conftest.$ac_ext <<EOF
-#line 4566 "configure"
-#include "confdefs.h"
-#include <libxml2/xmlversion.h>
-#if LIBXML_VERSION < 20203
-#error libxml needs to be version 2.2.3 or later
-#endif
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:4574: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  cat >> confdefs.h <<\EOF
-#define LIBXML2 1
-EOF
- xmlhdrdir=libxml2
+XML_CONFIG="$ac_cv_path_XML_CONFIG"
+if test -n "$XML_CONFIG"; then
+  echo "$ac_t""$XML_CONFIG" 1>&6
 else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
+  echo "$ac_t""no" 1>&6
 fi
-rm -f conftest*
-fi
-echo "$ac_t""$xmlhdrdir" 1>&6
-if test $xmlhdrdir = no; then
-  echo "Could not find libxml headers"
-  echo "Check to make sure you have libxml version 2 or later installed"
-  echo "configure: warning: Could not find libxml headers" 1>&2
-  HAVE_LIBXML=0
+
+  min_xml_version=2.2.3
+  echo $ac_n "checking for libxml - version >= $min_xml_version""... $ac_c" 1>&6
+echo "configure:4576: checking for libxml - version >= $min_xml_version" >&5
+  no_xml=""
+  if test "$XML_CONFIG" = "no" ; then
+    no_xml=yes
+  else
+    XML_CFLAGS=`$XML_CONFIG $xml_config_args --cflags`
+    XML_LIBS=`$XML_CONFIG $xml_config_args --libs`
+    xml_config_major_version=`$XML_CONFIG $xml_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    xml_config_minor_version=`$XML_CONFIG $xml_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    xml_config_micro_version=`$XML_CONFIG $xml_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+    if test "x$enable_xmltest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $XML_CFLAGS"
+      LIBS="$XML_LIBS $LIBS"
+      rm -f conf.xmltest
+      if test "$cross_compiling" = yes; then
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
 else
   cat > conftest.$ac_ext <<EOF
-#line 4597 "configure"
+#line 4599 "configure"
 #include "confdefs.h"
-#include "$xmlhdrdir/xmlversion.h"
-    #if LIBXML_VERSION < 20203
-    #error
-    #endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <xmlversion.h>
+#include <parser.h>
+
+int
+main()
+{
+  int xml_major_version, xml_minor_version, xml_micro_version;
+  int major, minor, micro;
+  char *tmp_version;
+
+  system("touch conf.xmltest");
+
+  tmp_version = xmlStrdup("$min_xml_version");
+  if(sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+    printf("%s, bad version string\n", "$min_xml_version");
+    exit(1);
+  }
+
+  tmp_version = xmlStrdup(LIBXML_DOTTED_VERSION);
+  if(sscanf(tmp_version, "%d.%d.%d", &xml_major_version, &xml_minor_version, &xml_micro_version) != 3) {
+    printf("%s, bad version string\n", "$min_xml_version");
+    exit(1);
+  }
+
+  if((xml_major_version != $xml_config_major_version) ||
+     (xml_minor_version != $xml_config_minor_version) ||
+     (xml_micro_version != $xml_config_micro_version))
+    {
+      printf("\n*** 'xml-config --version' returned %d.%d.%d, but libxml (%d.%d.%d)\n", 
+             $xml_config_major_version, $xml_config_minor_version, $xml_config_micro_version,
+             xml_major_version, xml_minor_version, xml_micro_version);
+      printf("*** was found! If xml-config was correct, then it is best\n");
+      printf("*** to remove the old version of libxml. You may also be able to fix the error\n");
+      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
+      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
+      printf("*** required on your system.\n");
+      printf("*** If xml-config was wrong, set the environment variable XML_CONFIG\n");
+      printf("*** to point to the correct copy of xml-config, and remove the file config.cache\n");
+      printf("*** before re-running configure\n");
+    }
+  else
+    {
+      if ((xml_major_version > major) ||
+          ((xml_major_version == major) && (xml_minor_version > minor)) ||
+          ((xml_major_version == major) && (xml_minor_version == minor) &&
+           (xml_micro_version >= micro)))
+        {
+          return 0;
+        }
+      else
+        {
+          printf("\n*** An old version of libxml (%d.%d.%d) was found.\n",
+            xml_major_version, xml_minor_version, xml_micro_version);
+          printf("*** You need a version of libxml newer than %d.%d.%d. The latest version of\n",
+            major, minor, micro);
+          printf("*** libxml is always available from ftp://ftp.gnome.org.\n");
+          printf("***\n");
+          printf("*** If you have already installed a sufficiently new version, this error\n");
+          printf("*** probably means that the wrong copy of the xml-config shell script is\n");
+          printf("*** being found. The easiest way to fix this is to remove the old version\n");
+          printf("*** of libxml, but you can also set the XML_CONFIG environment to point to the\n");
+          printf("*** correct copy of xml-config. (In this case, you will have to\n");
+          printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+          printf("*** so that the correct libraries are found at run-time))\n");
+        }
+    }
+  return 1;
+}
+
 EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:4605: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  libxml2plus=1
+if { (eval echo configure:4674: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+then
+  :
 else
-  echo "$ac_err" >&5
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  libxml2plus=0
+  rm -fr conftest*
+  no_xml=yes
 fi
-rm -f conftest*
-  if test $libxml2plus = 0; then
-    echo "libxml version older than 2.2.3"
-    echo "configure: warning: libxml version older than 2.2.3" 1>&2
-    HAVE_LIBXML=0
-  else
-    HAVE_LIBXML=1
+rm -fr conftest*
+fi
+
+
+      CFLAGS="$ac_save_CFLAGS"
+      LIBS="$ac_save_LIBS"
+    fi
   fi
+
+  if test "x$no_xml" = x ; then
+    echo "$ac_t""yes" 1>&6
+    enable_libxml=yes
+  else
+    echo "$ac_t""no" 1>&6
+    if test "$XML_CONFIG" = "no" ; then
+      echo "*** The xml-config script installed by libxml could not be found"
+      echo "*** If libxml was installed in PREFIX, make sure PREFIX/bin is in"
+      echo "*** your path, or set the XML_CONFIG environment variable to the"
+      echo "*** full path to xml-config."
+    else
+      if test -f conf.xmltest ; then
+        :
+      else
+        echo "*** Could not run libxml test program, checking why..."
+        CFLAGS="$CFLAGS $XML_CFLAGS"
+        LIBS="$LIBS $XML_LIBS"
+              fi
+    fi
+
+    XML_CFLAGS=""
+    XML_LIBS=""
+    enable_libxml=no
+  fi
+  
+  
+  rm -f conf.xmltest
+
+if test $enable_libxml = yes; then
+  CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+  LIBS="$LIBS $XML_LIBS"
+  HAVE_LIBXML=1
+  cat >> confdefs.h <<\EOF
+#define HAVE_LIBXML 1
+EOF
+
+else
+  HAVE_LIBXML=0
 fi
 
-
-if test "$HAVE_LIBXML" = "0"; then
-  CPPFLAGS="$cppflags_temp";
-  LIBS="$libs_temp";
-fi
 
 #--------------------------------------------------------------------
 # Check OpenSSL for HTTPS support.
@@ -4665,17 +4765,17 @@ for ac_hdr in openssl/ssl.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:4669: checking for $ac_hdr" >&5
+echo "configure:4769: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4674 "configure"
+#line 4774 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:4679: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:4779: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -4707,7 +4807,7 @@ if test $ac_cv_header_openssl_ssl_h = no; then
   echo "configure: warning: Could not find openssl headers" 1>&2
 else
   echo $ac_n "checking for CRYPTO_malloc in -lcrypto""... $ac_c" 1>&6
-echo "configure:4711: checking for CRYPTO_malloc in -lcrypto" >&5
+echo "configure:4811: checking for CRYPTO_malloc in -lcrypto" >&5
 ac_lib_var=`echo crypto'_'CRYPTO_malloc | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -4715,7 +4815,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lcrypto  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 4719 "configure"
+#line 4819 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -4726,7 +4826,7 @@ int main() {
 CRYPTO_malloc()
 ; return 0; }
 EOF
-if { (eval echo configure:4730: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:4830: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -4751,7 +4851,7 @@ fi
     base_libs="$LIBS"
     LIBS="$LIBS -lcrypto"
     echo $ac_n "checking for ssl2_clear in -lssl""... $ac_c" 1>&6
-echo "configure:4755: checking for ssl2_clear in -lssl" >&5
+echo "configure:4855: checking for ssl2_clear in -lssl" >&5
 ac_lib_var=`echo ssl'_'ssl2_clear | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -4759,7 +4859,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lssl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 4763 "configure"
+#line 4863 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -4770,7 +4870,7 @@ int main() {
 ssl2_clear()
 ; return 0; }
 EOF
-if { (eval echo configure:4774: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:4874: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -4845,17 +4945,17 @@ for ac_hdr in gmp.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:4849: checking for $ac_hdr" >&5
+echo "configure:4949: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4854 "configure"
+#line 4954 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:4859: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:4959: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -4887,7 +4987,7 @@ if test $ac_cv_header_gmp_h = no; then
   echo "configure: warning: Could not find gmp headers" 1>&2
 else
   echo $ac_n "checking for mpf_abs in -lgmp""... $ac_c" 1>&6
-echo "configure:4891: checking for mpf_abs in -lgmp" >&5
+echo "configure:4991: checking for mpf_abs in -lgmp" >&5
 ac_lib_var=`echo gmp'_'mpf_abs | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -4895,7 +4995,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgmp  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 4899 "configure"
+#line 4999 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -4906,7 +5006,7 @@ int main() {
 mpf_abs()
 ; return 0; }
 EOF
-if { (eval echo configure:4910: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:5010: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -5156,6 +5256,9 @@ s%@DYNAMIC_LINKER@%$DYNAMIC_LINKER%g
 s%@GS_PASS_ARGUMENTS@%$GS_PASS_ARGUMENTS%g
 s%@GS_FAKE_MAIN@%$GS_FAKE_MAIN%g
 s%@WITH_FFI@%$WITH_FFI%g
+s%@XML_CONFIG@%$XML_CONFIG%g
+s%@XML_CFLAGS@%$XML_CFLAGS%g
+s%@XML_LIBS@%$XML_LIBS%g
 s%@HAVE_LIBXML@%$HAVE_LIBXML%g
 s%@HAVE_GMP@%$HAVE_GMP%g
 s%@whole_archive@%$whole_archive%g

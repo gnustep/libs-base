@@ -1,3 +1,11 @@
+2001-01-04  Jonathan Gapen  <jagapen@home.com>
+
+	* configure.in, aclocal.m4, acconfig.h: Replace libxml detection with
+	autoconf macro from libxml 2.2.10 installation.
+	* configure, Headers/gnustep/base/config.h.in: Regenerate.
+	* Headers/gnustep/base/GSXML.h, base/Source/GSXML.m,
+	base/Tools/gsdoc.m: Use proper libxml #includes.
+
 2001-01-03  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Change test for objc forwarding hook to match gcc
