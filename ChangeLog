@@ -1,3 +1,62 @@
+Fri May 31 10:06:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (GNU_OTHER_SRCFILES): Added win32-entry.c and
+ 	win32-def.top.
+
+	* src/NSObject.m: Don't declare `errno'.
+
+	* src/NSAutoreleasePool.m: Don't include <gnustep/base/Array.h>.
+
+	* src/BinaryCStream.m (WRITE_SIGNED_TYPE): Avoid alignment errors
+ 	by using memcpy() instead of trying to assign to (_TYPE*)(BUFFER+1).
+	(WRITE_UNSIGNED_TYPE): Likewise.
+
+Fri May 31 08:20:09 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+        * src/NSProcessInfo.m (main): Pass `env' variable to
+        gnustep_base_user_main.
+
+Tue May 28 09:37:19 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/include/NSPathUtilities.h: New file.
+	* src/Makefile.in (GNUSTEP_HEADERS): Added
+ 	include/NSPathUtilities.h.
+
+	* src/NSUser.m: New file.
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSUser.m.
+
+	* src/NSPage.m: New file.
+	* src/include/NSZone.h (NSPageSize, NSLogPageSize,
+ 	NSRoundUpToMultipleOfPageSize, NSRoundDownToMultipleOfPageSize,
+ 	NSRealMemoryAvailable, NSAllocateMemoryPages,
+ 	NSDeallocateMemoryPages, NSCopyMemoryPages): New functions
+ 	declared; they are implemented in NSPage.m.
+
+	* src/Makefile.in (ALL_INCLUDE_FLAGS): Undo last change, except
+ 	use name `srcdir-include' instead of `include'.  This should allow
+ 	building is a separate directory than the source, yet still avoid
+ 	confusion between <string.h> and <String.h> on win32 systems.
+	(gnustep/base:): Use `srcdir-include' instead of `include' for extra
+	links needed when building in a separate directory than the
+ 	source.
+
+	* src/NSException.m (_NSAddHandler): When creating E_QUEUE, don't
+ 	autorelease and then retain; instead just allocate it
+ 	un-autoreleased.
+
+	* checks/Makefile.in (SRCS): Added basic.m.
+	* checks/basic.m: New file.
+
+	* src/NSLock.m: Include <gnustep/base/preface.h> first!  Fix
+ 	indentation.
+	([NSLock +initialize]): Method removed.
+	([NSLock -init]): Assert return value from objc_mutex_allocate(),
+	don't just return nil.
+	([NSConditionLock -initWithCondition:]): Likewise.
+	([NSRecursiveLock -init]): Likewise.
+	([NSConditionLock +initialize]): Method removed.
+	([NSRecursiveLock +initialize]): Method removed.
+
 Mon May 27 09:57:34 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* Makefile.in (DIST_FILES): Added README.ucblib.
