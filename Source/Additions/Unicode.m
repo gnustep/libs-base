@@ -447,23 +447,24 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
 NSStringEncoding
 GSEncodingFromLocale(const char *clocale)
 {
-  NSStringEncoding encoding;
-  NSString *encodstr;
+  NSStringEncoding	encoding = GSUndefinedEncoding;
+  NSString		*encodstr;
 
   if (clocale == NULL || strcmp(clocale, "C") == 0 
     || strcmp(clocale, "POSIX") == 0) 
     {
       /* Don't make any assumptions. Let caller handle that */
-      return GSUndefinedEncoding;
+      return encoding;
     }
 
   if (strchr (clocale, '.') != NULL)
     {
       /* Locale contains the 'codeset' section. Parse it and see
 	 if we know what encoding this cooresponds to */
-      NSString *registry;
-      NSArray *array;
-      char *s;
+      NSString	*registry;
+      NSArray	*array;
+      char	*s;
+
       s = strchr (clocale, '.');
       registry = [[NSString stringWithCString: s+1] lowercaseString];
       array = [registry componentsSeparatedByString: @"-"];
@@ -491,7 +492,7 @@ GSEncodingFromLocale(const char *clocale)
 		           inDirectory: @"Languages"];  
       if (table != nil)
 	{
-	  int count;
+	  unsigned	count;
 	  NSDictionary	*dict;
 	  
 	  dict = [NSDictionary dictionaryWithContentsOfFile: table];
@@ -503,8 +504,7 @@ GSEncodingFromLocale(const char *clocale)
 	  /* Find the matching encoding */
 	  count = 0;
 	  while (str_encoding_table[count].enc
-		 && strcmp(str_encoding_table[count].ename, 
-			   [encodstr lossyCString]))
+	    && strcmp(str_encoding_table[count].ename, [encodstr lossyCString]))
 	    {
 	      count++;
 	    }
@@ -1240,8 +1240,8 @@ tables:
       default:
 #ifdef HAVE_ICONV
 	{
-	  char		*inbuf;
-	  char		*outbuf;
+	  unsigned char	*inbuf;
+	  unsigned char	*outbuf;
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
 	  size_t	rval;
@@ -1271,21 +1271,21 @@ tables:
 	      break;
 	    }
 
-	  inbuf = (char*)src;
+	  inbuf = (unsigned char*)src;
 	  inbytesleft = slen;
-	  outbuf = (char*)ptr;
+	  outbuf = (unsigned char*)ptr;
 	  outbytesleft = bsize * sizeof(unichar);
 	  do
 	    {
 	      if (inbytesleft == 0)
 		{
 		  done = YES;	// Flush iconv
-		  rval = iconv(cd, 0, 0, &outbuf, &outbytesleft);
+		  rval = iconv(cd, 0, 0, (void*)&outbuf, &outbytesleft);
 		}
 	      else
 		{
 		  rval = iconv(cd,
-		    &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+		    (void*)&inbuf, &inbytesleft, (void*)&outbuf, &outbytesleft);
 		}
 	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
 	      if (rval == (size_t)-1)
@@ -1295,7 +1295,7 @@ tables:
 		      unsigned	old = bsize;
 
 		      GROW();
-		      outbuf = (char*)&ptr[dpos];
+		      outbuf = (unsigned char*)&ptr[dpos];
 		      outbytesleft += (bsize - old) * sizeof(unichar);
 		    }
 		  else
@@ -1671,7 +1671,7 @@ bases:
 		  }
 		if (u < base)
 		  {
-		    ptr[dpos++] = (char)u;
+		    ptr[dpos++] = (unsigned char)u;
 		  }
 		else
 		  {
@@ -1695,7 +1695,7 @@ bases:
 		  }
 		if (u < base)
 		  {
-		    ptr[dpos++] = (char)u;
+		    ptr[dpos++] = (unsigned char)u;
 		  }
 		else
 		  {
@@ -1782,7 +1782,7 @@ tables:
 		 * The character set has a lower section whose contents
 		 * are identical to unicode, so no mapping is needed.
 		 */
-		ptr[dpos++] = (char)u;
+		ptr[dpos++] = (unsigned char)u;
 	      }
 	    else if (table != 0 && (i = chop(u, table, tsize)) >= 0)
 	      {
@@ -1835,8 +1835,8 @@ tables:
 #ifdef HAVE_ICONV
 	{
 	  iconv_t	cd;
-	  char		*inbuf;
-	  char		*outbuf;
+	  unsigned char	*inbuf;
+	  unsigned char	*outbuf;
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
 	  size_t	rval;
@@ -1865,21 +1865,21 @@ tables:
 	      break;
 	    }
 
-	  inbuf = (char*)src;
+	  inbuf = (unsigned char*)src;
 	  inbytesleft = slen * sizeof(unichar);
-	  outbuf = (char*)ptr;
+	  outbuf = (unsigned char*)ptr;
 	  outbytesleft = bsize;
 	  do
 	    {
 	      if (inbytesleft == 0)
 		{
 		  done = YES; // Flush buffer
-		  rval = iconv(cd, 0, 0, &outbuf, &outbytesleft);
+		  rval = iconv(cd, 0, 0, (void*)&outbuf, &outbytesleft);
 		}
 	      else
 		{
 		  rval = iconv(cd,
-		    &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+		    (void*)&inbuf, &inbytesleft, (void*)&outbuf, &outbytesleft);
 		}
 	      dpos = bsize - outbytesleft;
 	      if (rval != 0)
@@ -1891,7 +1891,7 @@ tables:
 			  unsigned	old = bsize;
 
 			  GROW();
-			  outbuf = (char*)&ptr[dpos];
+			  outbuf = (unsigned char*)&ptr[dpos];
 			  outbytesleft += (bsize - old);
 			}
 		      else if (errno == EILSEQ)
