@@ -29,6 +29,17 @@ Thu Oct 15 06:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	make simpler and more efficient.
 	* src/include/fast.x: Added fastZone()
 
+Wed Oct 14 11:29:11 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+        * src/NSString.m ([NSString -stringByResolvingSymlinksInPath]): 
+        Implement.
+
+Wed Oct 14 10:27:47 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+        * src/NSString.m ([NSString +pathWithComponents:]): 
+        Use the first object of components as the base path string
+        instead of null string([NSString string]).
+
 Tue Oct 13 09:24:17 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/include/NSNotification.h: Addd placeholder in
