@@ -311,7 +311,7 @@ static NSString	*pathForUser(NSString *user)
   path = [home stringByAppendingPathComponent: GNU_UserDefaultsPrefix];
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
-      NSLog(@"Directory '%'@ does not exist - creating it", path);
+      NSLog(@"Directory '%@' does not exist - creating it", path);
       if ([mgr createDirectoryAtPath: path attributes: nil] == NO)
 	{
 	  NSLog(@"Unable to create user GNUstep directory '%@'", path);
