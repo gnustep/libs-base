@@ -8,6 +8,7 @@
 	* Source/NSConnection.m: Fix thread related memory leak leaving
 	an NSRunLoop in a connection when the connection is no longer
 	using it.
+	* Source/NSURL.m: retain handle while doing background load.
 
 2003-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 
