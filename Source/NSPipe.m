@@ -33,9 +33,14 @@
 #endif
 
 /**
- * The NSPipe provides an encapsulation of the UNIX concept of pipe.
+ * <p>The NSPipe provides an encapsulation of the UNIX concept of pipe.<br />
  * With NSPipe, it is possible to redirect the standard input or
  * standard output.
+ * </p>
+ * <p>The file handles created by NSPipe are automatically closed when they
+ * are no longer in use (ie when the NSPipe instance is deallocated), so you
+ * don't need to close them explicitly.
+ * </p>
  */
 @implementation NSPipe
 
@@ -65,8 +70,10 @@
 
       if (pipe(p) == 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]];
-          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]];
+          readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
+						     closeOnDealloc: YES];
+          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
+						      closeOnDealloc: YES];
         }
       else
 	{
@@ -78,19 +85,27 @@
 
       if (CreatePipe(&readh, &writeh, NULL, 0) != 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh];
-          writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh];
+          readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
+						   closeOnDealloc: YES];
+          writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
+						    closeOnDealloc: YES];
         }
 #endif
     }
   return self;
 }
 
+/**
+ * Returns the file handle for reading from the pipe.
+ */
 - (id) fileHandleForReading
 {
   return readHandle;
 }
 
+/**
+ * Returns the file handle for writing to the pipe.
+ */
 - (id) fileHandleForWriting
 {
   return writeHandle;
