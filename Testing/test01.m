@@ -1,22 +1,11 @@
-
-#include <objc/Object.h>
 #include <objects/objects.h>
+#include <Foundation/NSValue.h>
+#include <objects/Invocation.h>
 
-#if (__svr4__) || defined(__hpux) || defined(_SEQUENT_)
-long lrand48();
-#define random lrand48
-#else
-#if WIN32
-#define random rand
-#else
-long random();
-#endif
-#endif
-
-@interface Collection (TestingExtras)
+@interface ConstantCollection (TestingExtras)
 - printCount;
 @end
-@implementation Collection (TestingExtras)
+@implementation ConstantCollection (TestingExtras)
 - printCount
 {
   printf("%s: count=%d\n", [self name], [self count]);
@@ -37,73 +26,57 @@ void checkSameContents(id objectslist)
 
 int main()
 {
-  int i, e;
+  int i;
 
-  id array = [[Array alloc] initWithType:@encode(int)];
-  id bag = [[Bag alloc] initWithType:"i"];
-  id stack = [[Stack alloc] initWithType:"i"];
-  id queue = [[Queue alloc] initWithType:"i"];
-  id gaparray = [[GapArray alloc] initWithType:"i"];
-  id llist = [[EltNodeCollector alloc] initWithType:"i"
-	      nodeCollector:[[LinkedList alloc] init]
-	      nodeClass:[LinkedListEltNode class]];
-  id bt = [[EltNodeCollector alloc] initWithType:"i"
-	   nodeCollector:[[BinaryTree alloc] init]
-	   nodeClass:[BinaryTreeEltNode class]];
-  id rt = [[EltNodeCollector alloc] initWithType:"i"
-	   nodeCollector:[[RBTree alloc] init]
-	   nodeClass:[RBTreeEltNode class]];
-  id st = [[EltNodeCollector alloc] initWithType:"i"
-	   nodeCollector:[[SplayTree alloc] init]
-	   nodeClass:[BinaryTreeEltNode class]];
-  id foo = [[Array alloc] initWithType:"i"];
+  id array = [Array new];
+  id bag = [Bag new];
+  id set = [Set new];
+  id stack = [Stack new];
+  id queue = [Queue new];
+  id gaparray = [GapArray new];
+  id foo = [Array new];
 
   id collections = [DelegatePool new];
 
   [collections delegatePoolAddObject:array];
-  [collections delegatePoolAddObject:llist];
-  [collections delegatePoolAddObject:bag];
+  //  [collections delegatePoolAddObject:bag];
+  //  [collections delegatePoolAddObject:set];
   [collections delegatePoolAddObject:stack];
   [collections delegatePoolAddObject:queue];
   [collections delegatePoolAddObject:gaparray];
-  [collections delegatePoolAddObject:bt];
-  [collections delegatePoolAddObject:rt];
-  [collections delegatePoolAddObject:st];
   [collections delegatePoolAddObject:foo];
 
   printf("delegatePool filled, count=%d\n",
 	 [[collections delegatePoolCollection] count]);
 
-  [collections addElement:99];
+  [collections addObject: [NSNumber numberWithInt: 99]];
   [collections printCount];
 
   printf("Adding numbers...\n");
-  for (i = 0; i < 17; i++)
+  for (i = 1; i < 17; i++)
     {
-      e = random() % 99;
-      printf("%2d ", e);
-      [collections addElement:e];
+      printf("%2d ", i);
+      [collections addObject: [NSNumber numberWithInt: i]];
     }
   printf("\ncollections filled\n\n");
   [collections printForDebugger];
 
   {
-    BOOL testzero (elt e)
-      {
-	if (e.void_ptr_u == 0) return NO;
-	else return YES;
-      }
-    if ([array trueForAllElementsByCalling:testzero])
+    id inv = [[MethodInvocation alloc] 
+	       initWithTarget: nil
+	       selector: @selector(isEqual:), 
+	       [NSNumber numberWithInt:0]];
+    if ([array trueForAllObjectsByInvoking: inv])
       printf("Array contains no zero's\n");
   }
 
   checkSameContents([collections delegatePoolCollection]);
 
   printf("\nremoving 99\n\n");
-  [collections removeElement:99];
+  [collections removeObject: [NSNumber numberWithInt: 99]];
 
-  [foo removeElement:[foo minElement]];
-  [foo addElement:99];
+  [foo removeObject:[foo minObject]];
+  [foo addObject: [NSNumber numberWithInt: 99]];
   printf("Collections 0 and 9 should mismatch\n");
   [collections printForDebugger];
 
