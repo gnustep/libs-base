@@ -54,6 +54,11 @@ struct _NSPoint
   float y;
 };
 
+#ifndef STRICT_OPENSTEP
+typedef NSPoint *NSPointArray;
+typedef NSPoint *NSPointPointer;
+#endif
+
 /* Rectangle sizes. */
 typedef struct _NSSize NSSize;
 struct _NSSize
@@ -62,6 +67,11 @@ struct _NSSize
   float height;
 };
 
+#ifndef STRICT_OPENSTEP
+typedef NSSize *NSSizeArray;
+typedef NSSize *NSSizePointer;
+#endif
+
 /* Rectangle. */
 typedef struct _NSRect NSRect;
 struct _NSRect
@@ -69,6 +79,11 @@ struct _NSRect
   NSPoint origin;
   NSSize size;
 };
+
+#ifndef STRICT_OPENSTEP
+typedef NSRect *NSRectArray;
+typedef NSRect *NSRectPointer;
+#endif
 
 /* Sides of a rectangle. */
 typedef enum _NSRectEdge NSRectEdge;

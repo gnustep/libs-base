@@ -1,3 +1,9 @@
+2003-12-30  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSGeometry.h 
+	* Headers/Foundation/NSRange.h
+	Added a few additonal Cocoa type definitions.
+
 2003-12-25 Gregory John Casamento <greg_casamento@yahoo.com> & 
 
 	* Source/NSBundle.m: Corrected spelling of "Warning" and 

@@ -75,6 +75,10 @@ struct _NSRange
   unsigned int length;
 };
 
+#ifndef STRICT_OPENSTEP
+typedef NSRange *NSRangePointer;
+#endif
+
 /**** Function Prototypes ****************************************************/
 
 /*
