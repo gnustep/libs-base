@@ -80,7 +80,7 @@
 - (void) encodeIndent;
 - (void) encodeUnindent;
 
-- (void) encodeBytes: (const char *)b
+- (void) encodeBytes: (const void *)b
    count: (unsigned)c
    withName: (id /*<String>*/)name;
 
@@ -121,8 +121,8 @@
 - (void) decodeIndent;
 - (void) decodeUnindent;
 
-- (void) decodeBytes: (char *)b
-   count: (unsigned*)c
+- (void) decodeBytes: (void *)b
+   count: (unsigned)c
    withName: (id /*<String>*/ *) name;
 
 @end
