@@ -1,5 +1,25 @@
 2001-04-19  Nicola Pero  <nicola@brainstorm.co.uk>
 
+	To help with debugging memory leaks, you can now ask to the
+	library to track all allocated instances of a certain class.
+	* Source/NSDebug.m (table_entry): Added fields to allow recording
+	the list of allocated instances if required.
+	(GSDebugAllocationActiveRecordingObjects): New function.  
+	(GSDebugAllocationAdd): Modified to take an additional argument -
+	the object being allocated -, and to record it in the list of
+	instances for the class if recording instances of that class has
+	been activated.
+	(GSDebugAllocationRemote): Add a similar additional argument;
+	remove the object from the list of instances if recording
+	instances is activated.
+	(GSDebugAllocationListRecordedObjects): New function.
+	* Source/NSObject.m: Updated all occurrences of
+	GSDebugAllocationAdd and GSDebugAllocationRemove to pass the 
+	allocated/removed object as well.
+	* Headers/gnustep/base/NSDebug.h: Updated.
+
+2001-04-19  Nicola Pero  <nicola@brainstorm.co.uk>
+
 	* Source/GSTcpPort.m ([GSTcpPort -dealloc]): Fixed memory leak:
 	release address string.
 
