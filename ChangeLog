@@ -1,3 +1,7 @@
+Sat mar 04 10:08:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/Makefile.postamble: improved messages about gdomap installation.
+
 Mon Feb 28 15:27:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* GSDoc: Added GSDoc subdirectory to contain tool for converting gsdoc
