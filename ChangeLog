@@ -1,3 +1,12 @@
+Wed Jan 17 16:46:09 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* GNUmakefile: Added PACKAGE_NEEDS_CONFIGURE and
+	RPM_DISABLE_RELOCATABLE.
+	* GNUmakefile: Simplified name to gnustep-base.
+	* gnustep-base.spec.in: New file.
+	* gnustep-base-debug.spec.in: Idem.
+	* gnustep-base.spec: Move to gnustep-base.spec.old.
+
 2001-01-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: ([-decodeData:fromrange:intoData:withContext:])

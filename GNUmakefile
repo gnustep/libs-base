@@ -25,13 +25,16 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
+RPM_DISABLE_RELOCATABLE=YES
+PACKAGE_NEEDS_CONFIGURE = YES
+
 GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ./Version
 
-PACKAGE_NAME = gstep-base
+PACKAGE_NAME = gnustep-base
 
 #
 # The list of subproject directories

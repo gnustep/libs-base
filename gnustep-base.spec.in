@@ -1,0 +1,18 @@
+Release: 	1
+Source: 	ftp://ftp.gnustep.org/pub/gnustep/core/%{gs_name}-%{gs_version}.tar.gz
+Copyright: 	GPL
+Group: 		Development/Tools
+Summary: 	GNUstep Base library package
+Packager:	Adam Fedor <fedor@gnu.org>
+Vendor:		The GNUstep Project
+URL:		http://www.gnustep.org/
+Requires:	gnustep-make = 0.9.0
+
+%description
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), event loops, and
+random number generators.  This package includes development headers.
+#Library combo is %{libcombo}.
