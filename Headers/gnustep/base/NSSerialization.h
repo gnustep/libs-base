@@ -21,6 +21,8 @@
 #ifndef __NSSerialization_h_OBJECTS_INCLUDE
 #define __NSSerialization_h_OBJECTS_INCLUDE
 
+@class NSData, NSMutableData;
+
 @protocol NSObjCTypeSerializationCallBack
 - (void) deserialzeObjectAt: (id*)object
    ofObjCType: (const char *)type
@@ -31,4 +33,4 @@
    intoData: (NSMutableData*)data;
 @end
 
-endif /* __NSSerialization_h_OBJECTS_INCLUDE */
+#endif /* __NSSerialization_h_OBJECTS_INCLUDE */
