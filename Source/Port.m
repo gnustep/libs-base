@@ -136,6 +136,7 @@
 
 - (void) setReceivedPacketInvocation: (id <Invoking>)invocation
 {
+  assert (!_packet_invocation);
   _packet_invocation = invocation;
 }
 
