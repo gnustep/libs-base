@@ -1,3 +1,9 @@
+2003-09-07  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Unicode.m: Added Korean encoding
+	* Headers/Foundation/NSString.h: Added Korean encoding
+	* Source/Additions/GSCompatibility.h: Idem.
+
 Sun Sep  7 13:35:15 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.ac: Fixed GNUSTEP_HDIR when not flattened.
