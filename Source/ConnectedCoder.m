@@ -2,7 +2,7 @@
    Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: July 1994
+   Created: July 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -24,7 +24,7 @@
 #include <objects/stdobjects.h>
 #include <objects/ConnectedCoder.h>
 #include <objects/CStream.h>
-#include <objects/SocketPort.h>
+#include <objects/Port.h>
 #include <objects/MemoryStream.h>
 #include <objects/Connection.h>
 #include <objects/Proxy.h>
@@ -33,179 +33,163 @@
 #define PTR2LONG(P) (((char*)(P))-(char*)0)
 #define LONG2PTR(L) (((char*)0)+(L))
 
-//#define DEFAULT_SIZE 256
-//#define DEFAULT_SIZE 1024
-#define DEFAULT_SIZE 2000
+#define DEFAULT_SIZE 256
 
 static BOOL debug_connected_coder = NO;
 
-@implementation ConnectedCoder
+@implementation ConnectedEncoder
 
-+ newEncodingWithConnection: (Connection*)c
+- (void) writeSignature
+{
+  return;
+}
+
+- _initForWritingWithConnection: (Connection*)c
    sequenceNumber: (int)n
    identifier: (int)i
 {
-  ConnectedCoder *newsp;
-  char *b;
-  MemoryStream* ms;
+  Packet* packet = [[[[c portClass] packetClass] alloc]
+		     initForSendingWithCapacity: DEFAULT_SIZE
+		     replyPort: [c inPort]];
+  [super initForWritingToStream: packet];
+  connection = c;
+  sequence_number = n;
+  identifier = i;
+  [self encodeValueOfCType: @encode(typeof(sequence_number))
+	at: &sequence_number
+	withName: @"ConnectedCoder sequence number"];
+  [self encodeValueOfCType: @encode(typeof(identifier))
+	at: &identifier
+	withName: @"ConnectedCoder sequence number"];
+}
 
-  b = (char*) (*objc_malloc)(DEFAULT_SIZE);
-  ms = [[MemoryStream alloc] 
-	_initOnMallocBuffer:b
-	size:DEFAULT_SIZE
-	eofPosition:0
-	prefix:2
-	position:0];
++ newForWritingWithConnection: (Connection*)c
+   sequenceNumber: (int)n
+   identifier: (int)i
+{
+  /* Export this method and not the -init... method because eventually
+     we may do some caching of old ConnectedEncoder's to speed things up. */
+  return [[self alloc] _initForWritingWithConnection: c
+		       sequenceNumber: n
+		       identifier: i];
+}
 
-  newsp = [[self alloc] initForWritingToStream:ms];
-  newsp->connection = c;
-  newsp->sequence_number = n;
-  newsp->identifier = i;
-  [newsp encodeValueOfCType:@encode(typeof(newsp->sequence_number))
-	 at:&(newsp->sequence_number)
-	 withName:@"ConnectedCoder sequence number"];
-  [newsp encodeValueOfCType:@encode(typeof(newsp->identifier))
-	 at:&(newsp->identifier)
-	 withName:@"ConnectedCoder identifier"];
-  return newsp;
+- (void) dismiss
+{
+  id packet = [cstream stream];
+  [[connection outPort] sendPacket: packet withTimeout: 0];
+  if (debug_connected_coder)
+    fprintf(stderr, "dismiss 0x%x: #=%d i=%d %d\n", 
+	    (unsigned)self, sequence_number, identifier, 
+	    [packet streamEofPosition]);
+  [self release];
+}
+
+
+/* Access to ivars. */
+
+- (int) identifier
+{
+  return identifier;
+}
+
+- connection
+{
+  return connection;
+}
+
+- (unsigned) sequenceNumber
+{
+  return sequence_number;
+}
+
+
+/* Cache the const ptr's in the Connection, not separately for each 
+   created ConnectedCoder. */
+
+- (unsigned) _coderReferenceForConstPtr: (const void*)ptr
+{
+  return [connection _encoderReferenceForConstPtr: ptr];
+}
+
+- (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
+{
+  return [connection _encoderCreateReferenceForConstPtr: ptr];
+}
+
+
+/* This is called by Coder's designated object encoder */
+- (void) _doEncodeObject: anObj
+{
+  id c = [anObj classForConnectedCoder: self];
+  /* xxx Should I also do classname substition here? */
+  [self encodeClass: c];
+  [c encodeObject: anObj withConnectedCoder: self];
+}
+
+@end
+
+
+@implementation ConnectedDecoder
+
++ (void) readSignatureFromCStream: (id <CStreaming>) cs
+		     getClassname: (char *) name
+		    formatVersion: (int*) version
+{
+  return;
 }
 
 + newDecodingWithConnection: (Connection*)c
    timeout: (int) timeout
 {
-  ConnectedCoder *newsp;
-  int len;
-  char *b;
-  id inPort = [c inPort];
-  MemoryStream *ms;
-  id rp;
-  unsigned sent_size;
+  ConnectedDecoder *cd;
+  id in_port;
+  id packet;
+  id reply_port;
 
-  b = (char*) (*objc_malloc)(DEFAULT_SIZE);
-  if (!inPort) [self error:"no inPort"];
-  len = [inPort
-	 receivePacket:b
-	 length:DEFAULT_SIZE
-	 fromPort:&rp
-	 timeout:timeout];
-  if (len < 0)			/* timeout */
-    {
-      (*objc_free)(b);
-      return nil;
-    }
-  
-  /* xxx We need to do something if DEFAULT_SIZE is too small for this msg.
-     Change the interface to Port. */
-  sent_size = *(unsigned char*)(b+1);
-  sent_size = (sent_size * 0x100) + *(unsigned char*)(b);
-  if (sent_size != len)
-    [self error:"received packet size overflow?\n"
-	  "packet size sent (%d) != packet size received (%d)",
-	  sent_size, len];
+  /* Try to get a packet. */
+  in_port = [c inPort];
+  packet = [in_port receivePacketWithTimeout: timeout];
+  if (!packet)
+    return nil;			/* timeout */
 
-  ms = [[MemoryStream alloc] 
-	_initOnMallocBuffer:b
-	size:DEFAULT_SIZE
-	eofPosition:len-2
-	prefix:2
-	position:0];
-  newsp = [self newReadingFromStream: ms];
-  newsp->remotePort = rp;
-  newsp->connection = [Connection newForInPort:inPort
-				  outPort:newsp->remotePort
-				  ancestorConnection:c];
-  [newsp decodeValueOfCType:@encode(typeof(newsp->sequence_number))
-	 at:&(newsp->sequence_number)
-	 withName:NULL];
-  [newsp decodeValueOfCType:@encode(typeof(newsp->identifier))
-	 at:&(newsp->identifier)
-	 withName:NULL];
+  /* Create the new ConnectedDecoder */
+  cd = [self newReadingFromStream: packet];
+  reply_port = [packet replyPort];
+  cd->connection = [Connection newForInPort: in_port
+			       outPort: reply_port
+			       ancestorConnection: c];
 
-  b[len] = '\0';		/* xxx dangerous, but pretty debug output */
+  /* Decode the ConnectedDecoder's ivars. */
+  [cd decodeValueOfCType: @encode(typeof(cd->sequence_number))
+      at: &(cd->sequence_number)
+      withName: NULL];
+  [cd decodeValueOfCType: @encode(typeof(cd->identifier))
+      at: &(cd->identifier)
+      withName: NULL];
+
   if (debug_connected_coder)
-    fprintf(stderr, "startDecoding #=%d id=%d: (%s)\n", 
-	   newsp->sequence_number, newsp->identifier, b);
-  return newsp;
+    fprintf(stderr, "newDecoding #=%d id=%d\n", 
+	    cd->sequence_number, cd->identifier);
+  return cd;
 }
 
-- dismiss
+
+
+/* Cache the const ptr's in the Connection, not separately for each 
+   created ConnectedCoder. */
+
+- (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
 {
-  if (![self isDecoding])
-    {
-      int buffer_len;
-      int sent_len;
-      id ip, op;
-      char *b;
-      id stream;
-
-      ip = [connection inPort];
-      if (!ip) [self error:"no inPort"];
-      op = [connection outPort];
-      if (!op) [self error:"no outPort"];
-      stream = [cstream stream];
-      buffer_len = [(MemoryStream*)stream streamBufferLength];
-      b = [(MemoryStream*)stream streamBuffer];
-      /* Put the packet length in the first two bytes */
-      b[0] = buffer_len % 0x100;
-      b[1] = buffer_len / 0x100;
-      assert(!(buffer_len / 0x10000));
-      sent_len = [ip
-		  sendPacket:b
-		  length:buffer_len
-		  toPort:op
-		  timeout:[connection outTimeout]];
-      assert(sent_len == buffer_len);
-      b[sent_len] = '\0';	/* xxx oooo, dangerous.  fix this */
-      if (debug_connected_coder)
-	fprintf(stderr, "finishEncoding 0x%x: #=%d i=%d %d/%d (%s)\n", 
-	       (unsigned)self, sequence_number, identifier, 
-	       buffer_len, sent_len, b);
-    }
-  [self release];
-  return nil;
+  return [connection _decoderCreateReferenceForConstPtr: ptr];
 }
 
-static elt 
-exc_return_null(arglist_t f)
+- (const void*) _coderConstPtrAtReference: (unsigned)xref
 {
-  return (void*)0;
+  return [connection _decoderConstPtrAtReference: xref];
 }
 
-- (BOOL) _coderHasConstPtrReference: (unsigned)xref
-{
-  if (is_decoding)
-    return [[connection _incomingConstPtrs] includesKey:xref];
-  else
-    return [[connection _outgoingConstPtrs] includesKey:xref];
-}
-
-- (const void*) _coderConstPtrAtReference: (unsigned)xref;
-{
-  if (is_decoding)
-    return [[connection _incomingConstPtrs] 
-	    elementAtKey:xref
-	    ifAbsentCall:exc_return_null].void_ptr_u;
-  else
-    return [[connection _outgoingConstPtrs] 
-	    elementAtKey:xref
-	    ifAbsentCall:exc_return_null].void_ptr_u;
-}
-
-- (void) _coderPutConstPtr: (const void*)p atReference: (unsigned)xref
-{
-  if (is_decoding)
-    {
-      assert(![[connection _incomingConstPtrs] includesKey:xref]);
-      [[connection _incomingConstPtrs] putElement:(void*)p atKey:xref];
-    }
-  else
-    {
-      assert(![[connection _outgoingConstPtrs] includesKey:xref]);
-      [[connection _outgoingConstPtrs] putElement:(void*)p atKey:xref];
-    }
-  return;
-}
-
+
 #if CONNECTION_WIDE_OBJECT_REFERENCES
 
 /* We need to think carefully about reference counts, bycopy and
@@ -263,11 +247,8 @@ exc_return_null(arglist_t f)
 
 #endif /* CONNECTION_WIDE_REFERENCES */
 
-- (void) dealloc
-{
-  /* Anything else? */
-  [super dealloc];
-}
+
+/* Access to ivars. */
 
 - (int) identifier
 {
@@ -279,22 +260,14 @@ exc_return_null(arglist_t f)
   return connection;
 }
 
-- remotePort
+- replyPort
 {
-  return remotePort;
+  return [(id)[cstream stream] replyPort];
 }
 
 - (unsigned) sequenceNumber
 {
   return sequence_number;
-}
-
-/* This is called by Coder's designated object encoder */
-- (void) _doEncodeObject: anObj
-{
-  id c = [anObj classForConnectedCoder:self];
-  [self encodeClass:c];
-  [c encodeObject:anObj withConnectedCoder:self];
 }
 
 - (void) resetConnectedCoder	/* xxx rename resetCoder */
@@ -304,13 +277,18 @@ exc_return_null(arglist_t f)
      save time by doing this instead of free/malloc for each message */
 }
 
+- (void) dismiss
+{
+  [self release];
+}
+
 @end
 
 
 @implementation NSObject (ConnectedCoderCallbacks)
 
 /* By default, Object's encode themselves as proxies across Connection's */
-- classForConnectedCoder:aRmc
+- classForConnectedCoder: aRmc
 {
   return [[aRmc connection] proxyClass];
 }
@@ -320,7 +298,7 @@ exc_return_null(arglist_t f)
    encode the object itself, not a proxy */
 + (void) encodeObject: anObject withConnectedCoder: aRmc
 {
-  [anObject encodeWithCoder:aRmc];
+  [anObject encodeWithCoder: aRmc];
 }
 
 @end

@@ -1,8 +1,8 @@
 /* Interface for GNU Objective-C connection for remote object messaging
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: July 1994
+   Created: July 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -31,53 +31,54 @@
 #include <objc/Protocol.h>
 #include <objects/Lock.h>
 #include <objects/InvalidationListening.h>
-#include <objects/RetainingNotifier.h>
 #include <objects/Collecting.h>
 #include <objects/Dictionary.h>
 #include <objects/NSString.h>
+#include <Foundation/NSMapTable.h>
 
 @class Proxy;
 @class Port;
-@class ConnectedCoder;
 
-@interface Connection : RetainingNotifier <InvalidationListening>
+@interface Connection : NSObject
 {
-  id delegate;
+  unsigned is_valid:1;
+  unsigned delay_dialog_interruptions:1;
+  unsigned tcp_port_filler:6;
+  unsigned retain_count:24;
   Port *in_port;
   Port *out_port;
   unsigned message_count;
-  Dictionary *local_targets;
-  Dictionary *remote_proxies;
+  NSMapTable *local_targets;
+  NSMapTable *remote_proxies;
   int in_timeout;
   int out_timeout;
-  id port_class;
-  int queue_dialog_interruptions;
-  Dictionary *incoming_const_ptrs;
-  Dictionary *outgoing_const_ptrs;
+  Class port_class;
+  Class encoding_class;
+  NSMapTable *incoming_xref_2_const_ptr;
+  NSMapTable *outgoing_const_ptr_2_xref;
+  id delegate;
 }
 
-+ setDefaultPortClass: aPortClass;
-+ defaultProxyClass;
-+ setDefaultProxyClass: aClass;
-+ (int) defaultOutTimeout;
-+ setDefaultOutTimeout: (int)to;
-+ (int) defaultInTimeout;
-+ setDefaultInTimeout: (int)to;
 /* Setting and getting class configuration */
++ (Class) defaultPortClass;
++ (void) setDefaultPortClass: (Class) aPortClass;
++ (Class) defaultProxyClass;
++ (void) setDefaultProxyClass: (Class) aClass;
++ (int) defaultOutTimeout;
++ (void) setDefaultOutTimeout: (int)to;
++ (int) defaultInTimeout;
++ (void) setDefaultInTimeout: (int)to;
 
+/* Querying the state of all the connections */
 + (int) messagesReceived;
 + (id <Collecting>) allConnections;
 + (unsigned) connectionsCount;
 + (unsigned) connectionsCountWithInPort: (Port*)aPort;
-/* Querying the state of all the connections */
 
-+ removeObject: anObj;
-+ unregisterForInvalidationNotification: anObj;
 /* Use these when you're release'ing an object that may have been vended
    or registered for invalidation notification */
++ (void) removeLocalObject: anObj;
 
-+ (Connection*) newWithRootObject: anObj;
-+ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj;
 /* Registering your server object on the network.
    These methods create a new connection object that must be "run" in order
    to start handling requests from clients. 
@@ -89,74 +90,85 @@
    registered.  This is why I don't like "newWithRegisteredName:" ---
    it's unclear if we're connecting to another Connection that already
    registered with that name. */
++ (Connection*) newWithRootObject: anObj;
++ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj;
 
+/* Get a proxy to a remote server object.
+   A new connection is created if necessary. */
 + (Proxy*) rootProxyAtName: (id <String>)name onHost: (id <String>)host;
 + (Proxy*) rootProxyAtName: (id <String>)name;
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort;
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort;
-/* Get a proxy to a remote server object.
-   A new connection is created if necessary. */
 
-+ (Connection*) newForInPort: (Port*)anInPort outPort: (Port*)anOutPort
-   ancestorConnection: (Connection*)ancestor;
 /* This is the designated initializer for the Connection class.
    You don't need to call it yourself. */
++ (Connection*) newForInPort: (Port*)anInPort outPort: (Port*)anOutPort
+   ancestorConnection: (Connection*)ancestor;
 
-- (void) runConnectionWithTimeout: (int)timeout;
 /* Make a connection object start listening for incoming requests.  After 
    `timeout' milliseconds without receiving anything, return. */
+- (void) runConnectionWithTimeout: (int)timeout;
 
-- (void) runConnection;
 /* Same as above, but never time out. */
+- (void) runConnection;
 
-- (id <Collecting>) proxies;
 /* When you get an invalidation notification from a connection, use
    this method in order to find out if any of the proxy objects you're
    using are going away. */
+- (id <Collecting>) proxies;
 
-- (Proxy*) rootProxy;
 /* If you somehow have a connection to a server, but don't have it's
    a proxy to its root object yet, you can use this to get it. */
+- (Proxy*) rootProxy;
 
+/* For getting the root object of a connection or port */
 - rootObject;
 + rootObjectForInPort: (Port*)aPort;
-/* For getting the root object of a connection or port */
 
-+ setRootObject: anObj forInPort: (Port*)aPort;
-- setRootObject: anObj;
 /* Used for setting the root object of a connection that we
    created without one, or changing the root object of a connection
    that already has one. */
++ (void) setRootObject: anObj forInPort: (Port*)aPort;
+- setRootObject: anObj;
 
+/* Querying and setting some instance variables */
 - (int) outTimeout;
 - (int) inTimeout;
-- setOutTimeout: (int)to;
-- setInTimeout: (int)to;
-- portClass;
-- setPortClass: aPortClass;
-- proxyClass;
-- coderClass;
-- (Port*) outPort;
-- (Port*) inPort;
+- (void) setOutTimeout: (int)to;
+- (void) setInTimeout: (int)to;
+- (Class) portClass;
+- (void) setPortClass: aPortClass;
+- (Class) proxyClass;
+- (Class) encodingClass;
+- (Class) decodingClass;
+- outPort;
+- inPort;
 - delegate;
-- setDelegate: anObj;
-/* Querying and setting some instance variables */
+- (void) setDelegate: anObj;
 
-- (Proxy*) proxyForTarget: (unsigned)target;
-- addProxy: (Proxy*)aProxy;
-- (BOOL) includesProxyForTarget: (unsigned)target;
-- removeProxy: (Proxy*)aProxy;
-- (id <Collecting>) localObjects;
-- addLocalObject: anObj;
-- (BOOL) includesLocalObject: anObj;
-- removeLocalObject: anObj;
-- (retval_t) connectionForward: (Proxy*)object : (SEL)sel : (arglist_t)frame;
-- (const char *) _typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
-- (Dictionary*) _incomingConstPtrs;
-- (Dictionary*) _outgoingConstPtrs;
+- (void) invalidate;
+
 /* Only subclassers and power-users need worry about these */
+- (Proxy*) proxyForTarget: (unsigned)target;
+- (void) addProxy: (Proxy*)aProxy;
+- (BOOL) includesProxyForTarget: (unsigned)target;
+- (void) removeProxy: (Proxy*)aProxy;
+- (id <Collecting>) localObjects;
+- (void) addLocalObject: anObj;
+- (BOOL) includesLocalObject: anObj;
+- (void) removeLocalObject: anObj;
+- (retval_t) forwardForProxy: (Proxy*)object 
+    selector: (SEL)sel 
+    argFrame: (arglist_t)frame;
+- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
+- (unsigned) _encoderReferenceForConstPtr: (const void*)ptr;
+- (const void*) _decoderConstPtrAtReference: (unsigned)xref;
+- (unsigned) _encoderCreateReferenceForConstPtr: (const void*)ptr;
+- (unsigned) _decoderCreateReferenceForConstPtr: (const void*)ptr;
 
 @end
+
+extern NSString *ConnectionBecameInvalidNotification;
 
 @protocol ConnectedSelfCoding
 + (void) encodeObject: anObj withConnectedCoder: aRmc;
