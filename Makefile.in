@@ -244,7 +244,7 @@ ANNOUNCE announce.texi \
 INSTALL install.texi \
 TODO todo.texi \
 NEWS news.texi \
-CREDITS \
+CREDITS README.ULTRIX \
 COPYING COPYING.LIB DISCUSSION ChangeLog \
 Makefile.in configure configure.in objects/config.h.in \
 config.guess config.nested.c config.nextcc.h config.nextrt.m \
