@@ -406,7 +406,7 @@ gnustep_base_thread_callback(void)
 	       */
 	      if (nc == nil)
 		{
-		  nc = [NSNotificationCenter defaultCenter];
+		  nc = RETAIN([NSNotificationCenter defaultCenter]);
 		}
 	      [nc postNotificationName: NSWillBecomeMultiThreadedNotification
 				object: nil
@@ -536,7 +536,7 @@ gnustep_base_thread_callback(void)
        */
       if (nc == nil)
 	{
-	  nc = [NSNotificationCenter defaultCenter];
+	  nc = RETAIN([NSNotificationCenter defaultCenter]);
 	}
       [nc postNotificationName: NSThreadWillExitNotification
 			object: t
@@ -716,7 +716,7 @@ gnustep_base_thread_callback(void)
    */
   if (nc == nil)
     {
-      nc = [NSNotificationCenter defaultCenter];
+      nc = RETAIN([NSNotificationCenter defaultCenter]);
     }
   [nc postNotificationName: NSThreadDidStartNotification
 		    object: self
@@ -1172,7 +1172,7 @@ GSUnregisterCurrentThread (void)
        */
       if (nc == nil)
 	{
-	  nc = [NSNotificationCenter defaultCenter];
+	  nc = RETAIN([NSNotificationCenter defaultCenter]);
 	}
       [nc postNotificationName: NSThreadWillExitNotification
 			object: thread

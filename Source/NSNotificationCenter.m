@@ -613,6 +613,11 @@ static NSNotificationCenter *default_center = nil;
 
 - (void) gcFinalize
 {
+  if (self == default_center)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Attempt to destroy the default center"];
+    }
   /*
    * Release all memory used to store Observations etc.
    */

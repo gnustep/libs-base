@@ -1,3 +1,9 @@
+2004-11-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Retain the notification center we use.
+	* Source/NSNotificationCenter.m: Raise exception if anything
+	tries to destroy the default center.
+
 2004-11-04  Adrian Robert  <arobert@cogsci.ucsd.edu>
 	* Source/NSRunLoop.m (limitDateForMode:) Correction to housekeeper
 	timer logic so event polling times out within reasonable time.
