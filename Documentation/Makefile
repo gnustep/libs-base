@@ -41,7 +41,9 @@ readme.texi \
 todo.texi \
 machines.texi \
 gnustep-faq.texi \
-faq.texi
+faq.texi \
+version.texi \
+NSZone.texi
 
 TEXT_FILES = \
 TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE ADVERTISEMENT
