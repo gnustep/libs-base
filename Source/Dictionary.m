@@ -161,17 +161,11 @@
 
 - (void*) newEnumState
 {
-  void *es;
-  NSMapEnumerator me;
+  void *me;
 
-  OBJC_MALLOC (es, NSMapEnumerator, 1);
-#if 1
-  *((NSMapEnumerator*)es) = NSEnumerateMapTable (_contents_hash);
-#else
-  me = NSEnumerateMapTable (_contents_hash);
-  memcpy (es, &me, sizeof (NSMapEnumerator));
-#endif
-  return es;
+  OBJC_MALLOC (me, NSMapEnumerator, 1);
+  *((NSMapEnumerator*)me) = NSEnumerateMapTable (_contents_hash);
+  return me;
 }
 
 - (void) freeEnumState: (void**)enumState
