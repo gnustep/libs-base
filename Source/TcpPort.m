@@ -1200,9 +1200,18 @@ static NSMapTable* port_number_2_port;
     }
     hp = gethostbyname (hostname);
     if (!hp)
-      [self error: "Could not get address of local host \"%s\"", hostname];
-    NSAssert(hp, NSInternalInconsistencyException);
-    memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
+      hp = gethostbyname ("localhost");
+    if (hp == 0)
+      {
+	NSLog(@"Unable to get IP address of '%s' or of 'localhost'", hostname);
+#ifndef HAVE_INET_ATON
+	p->_listening_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+#else
+	inet_aton("127.0.0.1", &p->_listening_address.sin_addr.s_addr);
+#endif
+      }
+    else
+      memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
   }
 
   /* Set it up to accept connections, let 10 pending connections queue */
