@@ -2449,14 +2449,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       for (i = 0; i < len; i++)
         {
-	  num = num*256 + buffer[counter + i];
+	  num = num*256 + buffer[i];
 	}
       result = [NSNumber numberWithInt: num];
     }
   else if (next == 0x22)
     {
       // float number
-      float in;
+      NSSwappedFloat in;
 
       [data getBytes: &in range: NSMakeRange(counter, sizeof(float))];
       result = [NSNumber numberWithFloat: NSSwapBigFloatToHost(in)];
@@ -2464,7 +2464,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   else if (next == 0x23)
     {
       // double number
-      double in;
+      NSSwappedDouble in;
 
       [data getBytes: &in range: NSMakeRange(counter, sizeof(double))];
       result = [NSNumber numberWithFloat: NSSwapBigDoubleToHost(in)];

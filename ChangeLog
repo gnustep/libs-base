@@ -1,3 +1,8 @@
+2004-02-04 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m: (GSBinaryPLParser -objectAtIndex:)
+	Corrected two small errors for the new binary parser.
+
 2004-02-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedUnarchiver.m: Changes to fix memory leaks.
