@@ -50,6 +50,9 @@
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (id) initWithArray: (NSArray*)array;
+#ifndef	STRICT_OPENSTEP
+- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
+#endif
 - (id) initWithContentsOfFile: (NSString*)file;
 - (id) initWithObjects: firstObject, ...;
 - (id) initWithObjects: (id*)objects count: (unsigned)count;	// Primitive
