@@ -1,3 +1,23 @@
+2001-01-03  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSObjCRuntime.m (GSInstanceVariableInfo): fixes.
+	* Source/NSObject.m ([NSObject -handleQueryWithUnboundKey:]): raise an
+	exception.
+	([NSObject -handleTakeValue:forUnboundKey:]): changed exception.
+	([NSObject -unableToSetNilForKey:]): likewise.
+	([NSObject -storedValueForKey:]),
+	([NSObject -valueForKey:]): check for null selector before calling
+	respondsToSelector:
+	([NSObject -takeStoredValue:forKey:]),
+	([NSObject -takeValue:forKey:]): likewise. Call GSSetValue with correct
+	values.
+	(GSSetValue): fixed ivar implementation.
+	(GSGetValue): likewise.
+	([NSObject -methodSignatureForSelector:]): FreeBSD fix.
+	* Source/NSEnumerator.m|.h ([NSEnumerator -allObjects]): implemented.
+	* Source/Unicode.m (GetDefEncoding): do not emit the warning for
+	NSISOLatin1StringEncoding.
+
 2000-12-26  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Look for libxml2 (patch from Kim Shrier

@@ -104,11 +104,11 @@ GSInstanceVariableInfo(id obj, NSString *iVarName,
       return NO;
     }
 
-  if (*type)
+  if (type)
     *type = ivar->ivar_type;
-  if (*size)
+  if (size)
     *size = objc_sizeof_type(ivar->ivar_type);
-  if (*offset)
+  if (offset)
     *offset = ivar->ivar_offset;
   return YES;
 }
