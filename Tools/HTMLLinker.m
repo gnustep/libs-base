@@ -1157,7 +1157,7 @@ int main (int argc, char** argv, char** env)
 				@"table.htmlink"];
 
 	table = build_relocation_table_for_directory (relFile);
-	[table writeToFile: outputFile atomically: YES];
+	[table writeToFile: outputFile  atomically: YES];
 	exit (0);
       }
   }
@@ -1275,16 +1275,13 @@ int main (int argc, char** argv, char** env)
 		}
 	    }
 	}
-      
       else
 	{
 	  BOOL isDir;
 	  
-	  if (![fileManager fileExistsAtPath: arg
-			    isDirectory: &isDir])
+	  if (![fileManager fileExistsAtPath: arg  isDirectory: &isDir])
 	    {
-	      NSLog (@"Warning - input file '%@' not found - ignored", 
-		     arg);
+	      NSLog (@"Warning - input file '%@' not found - ignored", arg);
 	    }
 	  else
 	    {
@@ -1331,8 +1328,7 @@ int main (int argc, char** argv, char** env)
       inputFileContents = [parser resolveLinksUsingHTMLLinker: linker
 				  logFile: inputFile
 				  linksMarker: linksMarker];
-      [inputFileContents writeToFile: inputFile
-			 atomically: YES];
+      [inputFileContents writeToFile: inputFile  atomically: YES];
       RELEASE (parser);
     }
 
