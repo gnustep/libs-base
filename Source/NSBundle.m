@@ -89,8 +89,23 @@ static NSString *
 bundle_object_name(NSString *path)
 {
     NSString *name;
+#if 0
+    /* FIXME: This will work when NSString is fully implemented */
     name = [[path lastPathComponent] stringByDeletingPathExtension];
     name = [path stringByAppendingPathComponent:name];
+    return name;
+#else
+#define BASENAME(str)   ((rindex(str, '/')) ? rindex(str, '/')+1 : str)
+    char *s;
+    char *output;
+    OBJC_MALLOC(output, char, strlen(BASENAME([path cString]))+20);
+    strcpy(output, BASENAME([path cString]));
+    s = rindex(output, '.');
+    if (s)
+	*s = '\0';
+    name =  [NSString stringWithFormat:@"%s/%s", [path cString], output];
+    OBJC_FREE(output);
+#endif
     return name;
 } 
 
@@ -104,22 +119,54 @@ bundle_resource_path(NSString *path, NSString *lang, NSString *name,
     NSString *fullpath;
     NSString *name_ext;
     
+#if 0
+    /* FIXME: This will work when NSString is fully implemented */
     name_ext = [name pathExtension];
     name = [name stringByDeletingPathExtension];
+#else
+    char *s;
+    char *output;
+    OBJC_MALLOC(output, char, strlen([name cString])+1);
+    strcpy(output, [name cString]);
+    s = rindex(output, '.');
+    if (s) 
+      {
+	*s = '\0';
+	name_ext = [NSString stringWithCString:(s+1)];
+      }
+    else
+	name_ext = nil;
+    name = [NSString stringWithCString:output];
+    OBJC_FREE(output);
+#endif
     // FIXME: we could check to see if name_ext and ext match, but what
     //        would we do if they didn't?
     if (!ext)
 	ext = name_ext;
-    if ([ext compare:bundle_nib_ext] == NSOrderedSame)
+    if ([ext isEqual:bundle_nib_ext])
     	ext = bundle_xmib_ext;
+#if 0
+    /* FIXME: This will work when NSString is fully implemented */
     if (lang) {
-	fullpath = [NSString stringWithFormat:
-			@"%@/%@.lproj/%@", path, lang, name];
+	fullpath = [NSString stringWithFormat: @"%@/%@.lproj/%@", 
+			path, lang, name];
     } else {
 	fullpath = [NSString stringWithFormat: @"%@/%@", path, name];
     }
     if (ext && [ext length] != 0)
 	fullpath = [NSString stringByAppendingPathExtension:ext];
+#else
+    if (lang) {
+	fullpath = [NSString stringWithFormat: @"%s/%s.lproj/%s", 
+			[path cString], [lang cString], [name cString]];
+    } else {
+	fullpath = [NSString stringWithFormat: @"%s/%s", 
+			[path cString], [name cString]];
+    }
+    if (ext && [ext length] != 0) 
+	fullpath = [NSString stringWithFormat:@"%s.%s",
+			[fullpath cString], [ext cString]];
+#endif
 
 #ifdef DEBUG
     fprintf(stderr, "Debug (NSBundle): path is %s\n", [fullpath cString]);
@@ -143,6 +190,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 + (NSBundle *)mainBundle
 {
     if ( !_mainBundle ) {
+	char *s;
+	char *output;
 	NSString *path;
 
 	path = [NSString stringWithCString:objc_executable_location()];
@@ -150,7 +199,19 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	assert([path length]);
 
 	/* Strip off the name of the program */
+#if 0
+	/* FIXME: Should work when NSString is implemented */
 	path = [path stringByDeletingLastPathComponent];
+#else
+	OBJC_MALLOC(output, char, strlen([path cString])+1);
+	strcpy(output, [path cString]);
+	s = rindex(output, '/');
+	if (s && s != output) {*s = '\0';}
+	path =  [NSString stringWithCString:output];
+	OBJC_FREE(output);
+#endif
+
+/* Construct a path from the directory, language, name and extension.  Used by 
 
 #ifdef DEBUG
 	fprintf(stderr, "Debug (NSBundle): Found main in %s\n", 
@@ -409,9 +470,23 @@ _bundle_load_callback(Class theClass, Category *theCategory)
        string.
     */
     if (!languages) {
-        NSString *env = [NSString stringWithCString:getenv("LANGUAGES")];
-	if (env && [env length] != 0)
+	const char *env_list;
+        NSString *env;
+        env_list = getenv("LANGUAGES");
+	if (env_list) {
+#if 0
+    	    /* FIXME: This will work when NSString is fully implemented */
+            env = [NSString stringWithCString:e];
             _languages = [[env componentsSeparatedByString:separator] retain];
+#else
+	    /* Just pick out the first one */
+	    char *s;
+	    s = index(env_list, ' ');
+	    if (s)
+		*s = '\0';
+            _languages = [[NSString stringWithCString:env_list] retain];
+#endif
+	}
     } else
     	_languages = [languages retain];
 
