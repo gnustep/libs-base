@@ -233,7 +233,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     {
       /* Need to make this recursive since both mainBundle and initWithPath:
 	 want to lock the thread */
-      lock = [NSRecursiveLock new];
+      load_lock = [NSRecursiveLock new];
     }
 }
 
