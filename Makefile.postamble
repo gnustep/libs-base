@@ -99,6 +99,14 @@ remove-header-links:
 	-rm -f Headers/Foundation
 endif
 
+# Automatically run ./configure if needed to generate the makefiles
+# which we need in order to do our job.  If you need any special
+# argument to ./configure, you can't rely on this rule, and you must
+# always run ./configure manually.  This rule is usually executed
+# whenever 'make xxx' is invoked after a 'make distclean' - which is
+# why we can't guess what the ./configure arguments were last time
+# ./configure was called - make distclean cleans the sources
+# completely, wiping out any memory of specific configuration.
 base.make: base.make.in
 	./configure
 
