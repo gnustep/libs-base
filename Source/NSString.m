@@ -2294,7 +2294,7 @@ handle_printf_atsign (FILE *stream,
       NSZoneRealloc(NSDefaultMallocZone(), buff, j);
 
       return [NSDataClass dataWithBytesNoCopy: buff
-                                       length: count];
+                                       length: j];
     }
   else if (encoding == NSUnicodeStringEncoding)
     {
