@@ -10,6 +10,8 @@
 	* Source/externs.m: Remove map and hash table stuff
 	* Headers/gnustep/base/NSMapTable.h: Update for macosx compatibility.
 	* Headers/gnustep/base/NSHashTable.h: Ditto
+	* Tools/AGSHtml.m: Fix typo ... excess semicolon in constant output.
+	* Tools/AGSParser.m: Fix error failing to find comment for constants.
 
 2002-12-30  Adam Fedor  <fedor@gnu.org>
 
