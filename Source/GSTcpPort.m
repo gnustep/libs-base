@@ -512,6 +512,8 @@ static Class	runLoopClass;
       else
 	{
 	  gotAddr = YES;
+	  NSDebugMLLog(@"GSTcpHandle", @"Connecting to %s:%d using desc %d",
+	    addr, [aPort portNumber], desc);
 	}
     }
   sockAddr.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
