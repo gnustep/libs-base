@@ -99,12 +99,8 @@ gnustep/base: FORCE
 	  (cd srcdir-include/gnustep; $(LN_S) ../../$(srcdir)/include ./base) ; \
 	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./Foundation) ; \
 	fi
-# This deletion is necessary, because the CVS repository contains
-# an emtpy `Foundation' directory that used to hold the OpenStep headers.
-Foundation: FORCE
-	if [ -d Foundation ]; then \
-	  rm -rf Foundation; \
-	fi
+
+Foundation: 
 	$(LN_S) $(srcdir)/include Foundation
 
 # Creation of NSValue and NSNumber concrete classes from templates
