@@ -2,7 +2,7 @@
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: 1995
+   Created: 1995
    
    This file is part of the GNU Objective C Class Library.
 
@@ -30,19 +30,24 @@
 
 @class NSString;
 
-@interface NSArray: NSObject <NSCopying, NSMutableCopying>
+@interface NSArray : NSObject
+- initWithObjects: (id*) objects count: (unsigned) count;
+- (unsigned) count;
+- objectAtIndex: (unsigned)index;
+@end
+
+
+@class NSArrayNonCore;
+@interface NSArray (NonCore) <NSCopying, NSMutableCopying>
 
 + array;
 + arrayWithObject: anObject;
 + arrayWithObjects: firstObj, ...;
 - (NSArray*) arrayByAddingObject: anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
-- initWithObjects: (id*) objects count: (unsigned) count;
 - initWithObjects: firstObj, ...;
 - initWithArray: (NSArray*)array;
 
-- (unsigned) count;
-- objectAtIndex: (unsigned)index;
     
 - (unsigned) indexOfObjectIdenticalTo: anObject;
 - (unsigned) indexOfObject: anObject;
@@ -67,16 +72,21 @@
 
 @end
 
-@interface NSMutableArray: NSArray
-
-+ arrayWithCapacity: (unsigned)numItems;
+
+@class NSMutableArray;
+@interface NSMutableArray : NSArray
 - initWithCapacity: (unsigned)numItems;
-
 - (void) addObject: anObject;
 - (void) replaceObjectAtIndex: (unsigned)index withObject: anObject;
-- (void) removeLastObject;
 - (void) insertObject: anObject atIndex: (unsigned)index;
 - (void) removeObjectAtIndex: (unsigned)index;
+@end
+
+@interface NSMutableArray (NonCore)
+
++ arrayWithCapacity: (unsigned)numItems;
+
+- (void) removeLastObject;
     
 - (void) removeObjectIdenticalTo: anObject;
 - (void) removeObject: anObject;
