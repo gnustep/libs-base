@@ -50,17 +50,6 @@ static Class NSFileHandle_ssl_class = nil;
       NSFileHandle_concrete_class = [WindowsFileHandle class];
 #else
       NSFileHandle_concrete_class = [UnixFileHandle class];
-      {
-	NSBundle	*bundle;
-	NSString	*path;
-
-	path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-	  NSSystemDomainMask, NO) lastObject];
-	path = [path stringByAppendingPathComponent: @"Bundles"];
-	path = [path stringByAppendingPathComponent: @"SSL.bundle"];
-	bundle = [NSBundle bundleWithPath: path];
-	NSFileHandle_ssl_class = [bundle principalClass];
-      }
 #endif
     }
 }
@@ -354,6 +343,18 @@ NSString*	NSFileHandleOperationException =
 
 + (Class) sslClass
 {
+  if (NSFileHandle_ssl_class == 0)
+    {
+      NSBundle	*bundle;
+      NSString	*path;
+
+      path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+	NSSystemDomainMask, NO) lastObject];
+      path = [path stringByAppendingPathComponent: @"Bundles"];
+      path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+      bundle = [NSBundle bundleWithPath: path];
+      NSFileHandle_ssl_class = [bundle principalClass];
+    }
   return NSFileHandle_ssl_class;
 }
 
