@@ -160,9 +160,27 @@ GSIArrayGrow(GSIArray array)
   unsigned int	size;
   GSIArrayItem	*tmp;
 
-  next = array->cap + array->old;
-  size = next*sizeof(GSIArrayItem);
-  tmp = NSZoneRealloc(array->zone, array->ptr, size);
+  if (array->old == 0)
+    {
+      /*
+       * Statically initialised buffer ... copy into new heap buffer.
+       */
+      array->old = array->cap / 2;
+      if (array->old < 1)
+	{
+	  array->old = 1;
+	}
+      next = array->cap + array->old;
+      size = next*sizeof(GSIArrayItem);
+      tmp = NSZoneMalloc(array->zone, size);
+      memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
+    }
+  else
+    {
+      next = array->cap + array->old;
+      size = next*sizeof(GSIArrayItem);
+      tmp = NSZoneRealloc(array->zone, array->ptr, size);
+    }
 
   if (tmp == 0)
     {
@@ -437,7 +455,13 @@ GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
     {
-      NSZoneFree(array->zone, (void*)array->ptr);
+      /*
+       * Only free memory if it was dynamically initialised (old > 0)
+       */
+      if (array->old > 0)
+	{
+	  NSZoneFree(array->zone, (void*)array->ptr);
+	}
       array->ptr = 0;
       array->cap = 0;
     }
@@ -490,6 +514,18 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
   array->old = capacity/2;
   size = capacity*sizeof(GSIArrayItem);
   array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
+  return array;
+}
+
+static INLINE GSIArray
+GSIArrayInitWithZoneAndStaticCapacity(GSIArray array, NSZone *zone,
+    size_t capacity, GSIArrayItem *buffer)
+{
+  array->zone = zone;
+  array->count = 0;
+  array->cap = capacity;
+  array->old = 0;
+  array->ptr = buffer;
   return array;
 }
 

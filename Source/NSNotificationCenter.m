@@ -1,5 +1,4 @@
 /** Implementation of NSNotificationCenter for GNUstep
-  notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -238,11 +237,9 @@ typedef struct NCTbl {
   Observation		*wildcard;	/* Get ALL messages.		*/
   GSIMapTable		nameless;	/* Get messages for any name.	*/
   GSIMapTable		named;		/* Getting named messages only.	*/
-  GSIArray		array;		/* Temp store during posting.	*/
   unsigned		lockCount;	/* Count recursive operations.	*/
   GSLazyRecursiveLock	*_lock;		/* Lock out other threads.	*/
   BOOL			lockingDisabled;
-  BOOL			immutableInPost;
 
   Observation	*freeList;
   Observation	**chunks;
@@ -256,7 +253,6 @@ typedef struct NCTbl {
 #define	WILDCARD	(TABLE->wildcard)
 #define	NAMELESS	(TABLE->nameless)
 #define	NAMED		(TABLE->named)
-#define	ARRAY		(TABLE->array)
 #define	LOCKCOUNT	(TABLE->lockCount)
 
 static Observation *obsNew(NCTable* t)
@@ -327,12 +323,6 @@ static void endNCTable(NCTable *t)
   GSIMapEnumerator_t	e0;
   GSIMapNode		n0;
   Observation		*l;
-
-  /*
-   * free the temporary storage area for observations about to receive msgs.
-   */
-  GSIArrayEmpty(t->array);
-  NSZoneFree(NSDefaultMallocZone(), (void*)t->array);
 
   /*
    * Free observations without notification names or numbers.
@@ -407,9 +397,6 @@ static NCTable *newNCTable(void)
 
   t->named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(t->named, NSDefaultMallocZone(), 128);
-
-  t->array = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
-  GSIArrayInitWithZoneAndCapacity(t->array, NSDefaultMallocZone(), 16);
 
   // t->_lock = [GSLazyRecursiveLock new];
   t->_lock = [NSRecursiveLock new];
@@ -644,13 +631,6 @@ static NSNotificationCenter *default_center = nil;
 
   lockNCTable(TABLE);
 
-  if (TABLE->immutableInPost == YES && LOCKCOUNT > 1)
-    {
-      unlockNCTable(TABLE);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to add to immutable center."];
-    }
-
   o = obsNew(TABLE);
   o->selector = selector;
   o->method = method;
@@ -744,13 +724,6 @@ static NSNotificationCenter *default_center = nil;
    */
 
   lockNCTable(TABLE);
-
-  if (TABLE->immutableInPost == YES && LOCKCOUNT > 1)
-    {
-      unlockNCTable(TABLE);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to remove from immutable center."];
-    }
 
   if (object != nil)
     {
@@ -914,10 +887,13 @@ static NSNotificationCenter *default_center = nil;
 {
   Observation	*o;
   unsigned	count;
-  volatile GSIArray	a;
-  unsigned	arrayBase;
   NSString	*name = [notification name];
   id		object;
+  GSIMapNode	n;
+  GSIMapTable	m;
+  GSIArrayItem	i[64];
+  GSIArray_t	b;
+  GSIArray	a = &b;
 
   if (name == nil)
     {
@@ -930,138 +906,79 @@ static NSNotificationCenter *default_center = nil;
     {
       object = CHEATGC(object);
     }
+
+  /*
+   * Initialise static array to store copies of observers.
+   */
+  GSIArrayInitWithZoneAndStaticCapacity(a, NSDefaultMallocZone(), 64, i);
+
+  /*
+   * Lock the table of observers while we traverse it.
+   */
   lockNCTable(TABLE);
 
-  a = ARRAY;
   /*
-   * If this is a recursive posting of a notification, the array will already
-   * be in use, so we restrict our operation to array indices beyond the end
-   * of those used by the posting that caused this one.
+   * Find all the observers that specified neither NAME nor OBJECT.
    */
-  arrayBase = GSIArrayCount(a);
-
-#if 0
-  NS_DURING
-#endif
+  for (o = WILDCARD; o != ENDOBS; o = o->next)
     {
-      GSIMapNode	n;
-      GSIMapTable	m;
+      GSIArrayAddItem(a, (GSIArrayItem)o);
+    }
 
-      /*
-       * If the notification center guarantees that it will be immutable
-       * while a notification is being posted, we can simply send the
-       * message to each matching Observation.  Otherwise, we put the
-       * Observations in a temporary array before starting sending the
-       * messages, so any changes to the tables don't mess us up.
-       */
-      if (TABLE->immutableInPost)
+  /*
+   * Find the observers that specified OBJECT, but didn't specify NAME.
+   */
+  if (object)
+    {
+      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
+      if (n != 0)
 	{
-	  /*
-	   * Post the notification to all the observers that specified neither
-	   * NAME nor OBJECT.
-	   */
-	  for (o = WILDCARD; o != ENDOBS; o = o->next)
+	  o = n->value.ext;
+	  while (o != ENDOBS)
 	    {
-	      (*o->method)(o->observer, o->selector, notification);
+	      GSIArrayAddItem(a, (GSIArrayItem)o);
+	      o = o->next;
 	    }
+	}
+    }
 
-	  /*
-	   * Post the notification to all the observers that specified OBJECT,
-	   * but didn't specify NAME.
-	   */
-	  if (object)
-	    {
-	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
-	      if (n != 0)
-		{
-		  o = n->value.ext;
-		  while (o != ENDOBS)
-		    {
-		      (*o->method)(o->observer, o->selector, notification);
-		      o = o->next;
-		    }
-		}
-	    }
-
-	  /*
-	   * Post the notification to all the observers of NAME, except those
-	   * observers with a non-nil OBJECT that doesn't match the
-	   * notification's OBJECT).
-	   */
-	  if (name)
-	    {
-	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
-	      if (n)
-		{
-		  m = (GSIMapTable)n->value.ptr;
-		}
-	      else
-		{
-		  m = 0;
-		}
-	      if (m != 0)
-		{
-		  /*
-		   * First, observers with a matching object.
-		   */
-		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
-		  if (n != 0)
-		    {
-		      o = n->value.ext;
-		      while (o != ENDOBS)
-			{
-			  (*o->method)(o->observer, o->selector,
-			    notification);
-			  o = o->next;
-			}
-		    }
-
-		  if (object != nil)
-		    {
-		      /*
-		       * Now observers with a nil object.
-		       */
-		      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
-		      if (n != 0)
-			{
-			  o = n->value.ext;
-			  while (o != ENDOBS)
-			    {
-			      (*o->method)(o->observer, o->selector,
-				notification);
-			      o = o->next;
-			    }
-			}
-		    }
-		}
-	    }
+  /*
+   * Find the observers of NAME, except those observers with a non-nil OBJECT
+   * that doesn't match the notification's OBJECT).
+   */
+  if (name)
+    {
+      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
+      if (n)
+	{
+	  m = (GSIMapTable)n->value.ptr;
 	}
       else
 	{
+	  m = 0;
+	}
+      if (m != 0)
+	{
 	  /*
-	   * Post the notification to all the observers that specified neither
-	   * NAME nor OBJECT.
+	   * First, observers with a matching object.
 	   */
-	  for (o = WILDCARD; o != ENDOBS; o = o->next)
+	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+	  if (n != 0)
 	    {
-	      GSIArrayAddItem(a, (GSIArrayItem)o);
+	      o = n->value.ext;
+	      while (o != ENDOBS)
+		{
+		  GSIArrayAddItem(a, (GSIArrayItem)o);
+		  o = o->next;
+		}
 	    }
-	  count = GSIArrayCount(a);
-	  while (count-- > arrayBase)
-	    {
-	      o = GSIArrayItemAtIndex(a, count).ext;
-	      if (o->next != 0) 
-		(*o->method)(o->observer, o->selector, notification);
-	    }
-	  GSIArrayRemoveItemsFromIndex(a, arrayBase);
 
-	  /*
-	   * Post the notification to all the observers that specified OBJECT,
-	   * but didn't specify NAME.
-	   */
-	  if (object)
+	  if (object != nil)
 	    {
-	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
+	      /*
+	       * Now observers with a nil object.
+	       */
+	      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
 	      if (n != 0)
 		{
 		  o = n->value.ext;
@@ -1070,95 +987,47 @@ static NSNotificationCenter *default_center = nil;
 		      GSIArrayAddItem(a, (GSIArrayItem)o);
 		      o = o->next;
 		    }
-		  count = GSIArrayCount(a);
-		  while (count-- > arrayBase)
-		    {
-		      o = GSIArrayItemAtIndex(a, count).ext;
-		      if (o->next != 0) 
-			(*o->method)(o->observer, o->selector, notification);
-		    }
-		  GSIArrayRemoveItemsFromIndex(a, arrayBase);
 		}
 	    }
 
-	  /*
-	   * Post the notification to all the observers of NAME, except those
-	   * observers with a non-nil OBJECT that doesn't match the
-	   * notification's OBJECT).
-	   */
-	  if (name)
-	    {
-	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
-	      if (n)
-		{
-		  m = (GSIMapTable)n->value.ptr;
-		}
-	      else
-		{
-		  m = 0;
-		}
-	      if (m != 0)
-		{
-		  /*
-		   * First, observers with a matching object.
-		   */
-		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
-		  if (n != 0)
-		    {
-		      o = n->value.ext;
-		      while (o != ENDOBS)
-			{
-			  GSIArrayAddItem(a, (GSIArrayItem)o);
-			  o = o->next;
-			}
-		    }
-
-		  if (object != nil)
-		    {
-		      /*
-		       * Now observers with a nil object.
-		       */
-		      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
-		      if (n != 0)
-			{
-			  o = n->value.ext;
-			  while (o != ENDOBS)
-			    {
-			      GSIArrayAddItem(a, (GSIArrayItem)o);
-			      o = o->next;
-			    }
-			}
-		    }
-
-		  count = GSIArrayCount(a);
-		  while (count-- > arrayBase)
-		    {
-		      o = GSIArrayItemAtIndex(a, count).ext;
-		      if (o->next != 0)
-			(*o->method)(o->observer, o->selector,
-			  notification);
-		    }
-		  GSIArrayRemoveItemsFromIndex(a, arrayBase);
-		}
-	    }
 	}
     }
+
+  /*
+   * Finished with the table ... we can unlock it.
+   */
+  unlockNCTable(TABLE);
+
+#if 0
+  NS_DURING
+#endif
+  /*
+   * Now send all the notifications.
+   */
+  count = GSIArrayCount(a);
+  while (count-- > 0)
+    {
+      o = GSIArrayItemAtIndex(a, count).ext;
+      if (o->next != 0)
+	{
+	  (*o->method)(o->observer, o->selector, notification);
+	}
+    }
+  GSIArrayEmpty(a);
+
 #if 0
   NS_HANDLER
     {
       /*
-       *    If we had a problem - release memory and unlock before going on.
+       *    If we had a problem - release memory before going on.
        */
-      GSIArrayRemoveItemsFromIndex(ARRAY, arrayBase);
-      unlockNCTable(TABLE);
-
+      GSIArrayEmpty(a);
       RELEASE(notification);
       [localException raise];
     }
   NS_ENDHANDLER
 #endif
 
-  unlockNCTable(TABLE);
   RELEASE(notification);
 }
 
@@ -1231,8 +1100,6 @@ static NSNotificationCenter *default_center = nil;
 		format: @"Can't change behavior during post."];
     }
 
-  old = TABLE->immutableInPost;
-  TABLE->immutableInPost = flag;
   unlockNCTable(TABLE);
   
   return old;
