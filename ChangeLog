@@ -1,3 +1,10 @@
+Wed Nov 18  9:20:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/make_services.m: New tool
+	* Tools/GNUmakefile: Added make_services
+	* Tools/Makefile.postamble: Tidied installation for gdnc
+	* src/NSDistributedNotificationCenter.m: Start server with full path.
+
 Mon Nov 16 14:29:35 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/NSBundle.m [+allBundles]: New method (unimplemented).
