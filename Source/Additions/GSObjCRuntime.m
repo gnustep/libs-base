@@ -676,6 +676,33 @@ GSGetClassMethodNotInhertited (Class class, SEL sel)
   return search_for_method_in_class (class->class_pointer, sel);
 }
 
+/* See header for documentation. */
+GSIVar
+GSCGetInstanceVariableDefinition(Class class, const char *name)
+{
+  struct objc_ivar_list *list;
+  int i;
+  list = class->ivars;
+  for (i = 0; i < list->ivar_count; i++)
+    {
+      if (strcmp (list->ivar_list[i].ivar_name, name) == 0)
+	return &(list->ivar_list[i]);
+    }
+  class = GSObjCSuper(class);
+  if (class != 0)
+    {
+      return GSCGetInstanceVariableDefinition(class, name);
+    }
+  return 0;
+}
+
+GSIVar
+GSObjCGetInstanceVariableDefinition(Class class, NSString *name)
+{
+  return GSCGetInstanceVariableDefinition(class, [name cString]);
+}
+
+
 
 /**
  * <p>A Behavior can be seen as a "Protocol with an implementation" or a
