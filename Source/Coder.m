@@ -244,6 +244,7 @@ static BOOL debug_coder = NO;
 - (NSData*) decodeDataObject
 {
   [self notImplemented:_cmd];
+  return nil;
 }
 
 - (id) decodeObject
@@ -257,6 +258,7 @@ static BOOL debug_coder = NO;
 - (id) decodePropertyList
 {
   [self notImplemented:_cmd];
+  return nil;
 }
 
 - (NSPoint) decodePoint
@@ -364,6 +366,7 @@ static BOOL debug_coder = NO;
 - (NSMutableData*) archiverData
 {
   [self notImplemented:_cmd];
+  return nil;
 }
 
 @end
