@@ -90,7 +90,6 @@ id announce_broken_port (id notification)
 	      [array removeObjectAtIndex:j];
 	      break;
 	    }
-      [remotes release];
     }
   else
     {
@@ -105,6 +104,8 @@ int main(int argc, char *argv[])
 {
   id s;
   id c;
+
+  [NSObject enableDoubleReleaseCheck: YES];
 
   s = [[SecondServer alloc] init];
 
