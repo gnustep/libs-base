@@ -168,8 +168,26 @@ static BOOL entered_multi_threaded_state;
 // Delaying a thread
 + (void) sleepUntilDate: (NSDate*)date
 {
-  // xxx Do we need some runtime/OS support for this?
-  [self notImplemented: _cmd];
+  NSTimeInterval delay;
+
+  // delay is always the number of seconds we still need to wait
+  delay = [date timeIntervalSinceNow];
+
+  // Avoid integer overflow by breaking up long sleeps
+  // We assume usleep can accept a value at least 31 bits in length
+  while (delay > 30.0*60.0)
+    {
+      // sleep 30 minutes
+      usleep (30*60*1000000);
+      delay = [date timeIntervalSinceNow];
+    }
+
+  // usleep may return early because of signals
+  while (delay > 0)
+    {
+      usleep (delay*1000000.0);
+      delay = [date timeIntervalSinceNow];
+    }
 }
 
 // Terminating a thread
