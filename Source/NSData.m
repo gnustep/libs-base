@@ -26,6 +26,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSGData.h>
+#include <string.h>		/* for memset() */
 
 /* xxx Pretty messy.  Needs work. */
 
@@ -511,7 +512,7 @@ static Class NSMutableData_concrete_class;
 - (id) initWithLength: (unsigned int)length
 {
   [self initWithCapacity:length];
-  memset([self bytes], 0, length);
+  memset ([self bytes], 0, length);
   return self;
 }
 
