@@ -1125,8 +1125,6 @@ static void unescape(const char *from, char * to)
 			      usingCache: (BOOL)shouldUseCache
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: shouldUseCache];
-  NSRunLoop	*loop;
-  NSDate	*future;
   
   if (client != nil)
     {
@@ -1145,24 +1143,6 @@ static void unescape(const char *from, char * to)
    * Kick off the load process.
    */
   [handle loadInBackground];
-
-  /*
-   * Keep the runloop going until the load has completed (or failed).
-   */
-  loop = [NSRunLoop currentRunLoop];
-  future = [NSDate distantFuture];
-  while ([handle status] == NSURLHandleLoadInProgress)
-    {
-      [loop runMode: NSDefaultRunLoopMode beforeDate: future];
-    }
-
-  if (client != nil)
-    {
-      [handle removeClient: self];
-      [clientsLock lock];
-      NSMapRemove((NSMapTable*)_clients, (void*)handle);
-      [clientsLock unlock];
-    }
 }
 
 /**
@@ -1357,8 +1337,21 @@ static void unescape(const char *from, char * to)
 
   if (shouldUseCache == NO || [handle status] != NSURLHandleLoadSucceeded)
     {
+      NSRunLoop	*loop;
+      NSDate	*future;
+
       [self loadResourceDataNotifyingClient: self
 				 usingCache: shouldUseCache];
+
+      /*
+       * Keep the runloop going until the load has completed (or failed).
+       */
+      loop = [NSRunLoop currentRunLoop];
+      future = [NSDate distantFuture];
+      while ([handle status] == NSURLHandleLoadInProgress)
+	{
+	  [loop runMode: NSDefaultRunLoopMode beforeDate: future];
+	}
     }
   data = [handle resourceData];
   return data;
@@ -1527,10 +1520,18 @@ static void unescape(const char *from, char * to)
 {
   id	c = clientForHandle(_clients, sender);
 
-  if ([c respondsToSelector: @selector(URL:resourceDidFailLoadingWithReason:)])
+  if (c != nil)
     {
-      [c URL: self resourceDidFailLoadingWithReason: reason];
+      if ([c respondsToSelector:
+	@selector(URL:resourceDidFailLoadingWithReason:)])
+	{
+	  [c URL: self resourceDidFailLoadingWithReason: reason];
+	}
+      [clientsLock lock];
+      NSMapRemove((NSMapTable*)_clients, (void*)sender);
+      [clientsLock unlock];
     }
+  [sender removeClient: self];
 }
 
 - (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender
@@ -1541,22 +1542,35 @@ static void unescape(const char *from, char * to)
 {
   id	c = clientForHandle(_clients, sender);
 
-  if ([c respondsToSelector: @selector(URLResourceDidCancelLoading:)])
+  if (c != nil)
     {
-      [c URLResourceDidCancelLoading: self];
+      if ([c respondsToSelector: @selector(URLResourceDidCancelLoading:)])
+	{
+	  [c URLResourceDidCancelLoading: self];
+	}
+      [clientsLock lock];
+      NSMapRemove((NSMapTable*)_clients, (void*)sender);
+      [clientsLock unlock];
     }
+  [sender removeClient: self];
 }
 
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender
 {
   id	c = clientForHandle(_clients, sender);
 
-  if ([c respondsToSelector: @selector(URLResourceDidFinishLoading:g:)])
+  if (c != nil)
     {
-      [c URLResourceDidFinishLoading: self];
+      if ([c respondsToSelector: @selector(URLResourceDidFinishLoading:g:)])
+	{
+	  [c URLResourceDidFinishLoading: self];
+	}
+      [clientsLock lock];
+      NSMapRemove((NSMapTable*)_clients, (void*)sender);
+      [clientsLock unlock];
     }
+  [sender removeClient: self];
 }
-
 
 @end
 
