@@ -193,6 +193,12 @@ static Class NSMutableDictionary_concrete_class;
   return nil;
 }
 
++ dictionaryWithContentsOfFile:(NSString *)path
+{
+  return [[[self alloc] initWithContentsOfFile:path] 
+	   autorelease];
+}
+
 - (unsigned) count
 {
   [self subclassResponsibility:_cmd];
