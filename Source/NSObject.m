@@ -78,7 +78,7 @@ static Class	NSConstantStringClass;
  */
 static objc_mutex_t retain_counts_gate = NULL;
 
-#if	GS_WITH_GC == 0
+#if	GS_WITH_GC == 0 && !defined(NeXT_RUNTIME)
 #define	REFCNT_LOCAL	0
 #define	CACHE_ZONE	0
 #endif

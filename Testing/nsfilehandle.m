@@ -2,6 +2,7 @@
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
+#include <assert.h>
 
 int
 main ()
