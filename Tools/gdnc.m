@@ -996,107 +996,57 @@ ihandler(int sig)
 int
 main(int argc, char** argv, char** env)
 {
-  int                   c;
   GDNCServer		*server;
-  NSString		*str;
-  BOOL			shouldFork = YES;
+  BOOL			subtask = YES;
   BOOL			debugging = NO;
+  NSProcessInfo		*pInfo;
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
-  if (argc > 1 && strcmp(argv[argc-1], "-f") == 0)
+  pInfo = [NSProcessInfo processInfo];
+  if ([[pInfo arguments] containsObject: @"-f"] == YES)
     {
-      shouldFork = NO;
+      subtask = NO;
     }
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: @"debug"];
-  if (str != nil && [str caseInsensitiveCompare: @"yes"] == NSOrderedSame)
+  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"debug"] == YES)
     {
-      shouldFork = NO;
+      subtask = NO;
       debugging = YES;
     }
-  RELEASE(pool);
 
-  if (shouldFork)
+  if (subtask)
     {
-      char	**a = malloc((argc+2) * sizeof(char*));
+      NSFileHandle	*null;
+      NSMutableArray	*args;
+      NSTask		*t;
 
-      memcpy(a, argv, argc*sizeof(char*));
-      a[argc] = "-f";
-      a[argc+1] = 0;
-#ifdef __MINGW__
-      if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
+      t = [NSTask new];
+      NS_DURING
 	{
-	  fprintf(stderr, "gdnc - spawn failed - bye.\n");
-	  exit(EXIT_FAILURE);
+	  args = [[pInfo arguments] mutableCopy];
+	  [args addObject: @"-f"];
+	  [t setLaunchPath: [[NSBundle mainBundle] executablePath]];
+	  [t setArguments: args];
+	  [t setEnvironment: [pInfo environment]];
+	  null = [NSFileHandle fileHandleWithNullDevice];
+	  [t setStandardInput: null];
+	  [t setStandardOutput: null];
+	  [t setStandardError: null];
+	  [t launch];
+	  DESTROY(t);
 	}
-      exit(EXIT_SUCCESS);
-#else
-      is_daemon = 1;
-      switch (fork())
+      NS_HANDLER
 	{
-	  case -1:
-	    fprintf(stderr, "gdnc - fork failed - bye.\n");
-	    exit(EXIT_FAILURE);
-
-	  case 0:
-	    /*
-	     *	Try to run in background.
-	     */
-    #ifdef	NeXT
-	    setpgrp(0, getpid());
-    #else
-	    setsid();
-    #endif
-	    break;
-
-	  default:
-	    exit(EXIT_SUCCESS);
-	}
-
-      /*
-       *	Ensure we don't have any open file descriptors which may refer
-       *	to sockets bound to ports we may try to use.
-       *
-       *	Use '/dev/null' for stdin and stdout.
-       */
-      for (c = 0; c < FD_SETSIZE; c++)
-	{
-	  if (is_daemon || (c != 2))
-	    {
-	      (void)close(c);
-	    }
-	}
-      if (open("/dev/null", O_RDONLY) != 0)
-	{
-	  sprintf(ebuf, "failed to open stdin from /dev/null (%s)\n",
-	    strerror(errno));
 	  gdnc_log(LOG_CRIT);
-	  exit(EXIT_FAILURE);
+	  DESTROY(t);
 	}
-      if (open("/dev/null", O_WRONLY) != 1)
-	{
-	  sprintf(ebuf, "failed to open stdout from /dev/null (%s)\n",
-	    strerror(errno));
-	  gdnc_log(LOG_CRIT);
-	  exit(EXIT_FAILURE);
-	}
-      if (is_daemon && open("/dev/null", O_WRONLY) != 2)
-	{
-	  sprintf(ebuf, "failed to open stderr from /dev/null (%s)\n",
-	    strerror(errno));
-	  gdnc_log(LOG_CRIT);
-	  exit(EXIT_FAILURE);
-	}
-      execve([[[NSBundle mainBundle] executablePath] cString], a, env);
-      sprintf(ebuf, "failed to exec to '%s' (%s)\n",
-	argv[0], strerror(errno));
-      gdnc_log(LOG_CRIT);
+      NS_ENDHANDLER
       exit(EXIT_FAILURE);
-#endif /* !MINGW */
     }
+  RELEASE(pool);
 
   {
 #if GS_WITH_GC == 0
@@ -1137,6 +1087,8 @@ main(int argc, char** argv, char** env)
 	[[NSFileHandle fileHandleWithStandardError] closeFile];
       }
 #endif
+
+    is_daemon = YES;
 
     RELEASE(pool);
   }

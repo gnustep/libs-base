@@ -1,5 +1,11 @@
+2005-02-08 10:10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m: Rewrite startup code to create a daemon using NSTask
+	rather than calling fork()/spawn() etc.
+	* Source/NSTask.m: Minor code layout/indentation tweaks.
+
 2005-02-02 09:40 Richard Frith-Macdonald <rfm@gnu.org>
-	
+
 	* Source/NSFileManager.m: Restructure last patch to conform to
 	gnustep coding standards.
 	(localFromOpenStepPath:) for unix paths, expand '~' abbreviations.

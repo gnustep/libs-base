@@ -1069,7 +1069,7 @@ quotedFromString(NSString *aString)
   NSString      *arg;
   NSEnumerator  *arg_enum;
   NSMutableString *args;
-  wchar_t		*w_args;
+  wchar_t	*w_args;
   int		result;
   const wchar_t	*wexecutable;
   
@@ -1082,7 +1082,8 @@ quotedFromString(NSString *aString)
   wexecutable = [[lpath localFromOpenStepPath] unicharString];
 
   args = [[NSMutableString alloc] initWithString:
-    quotedFromString([NSString stringWithCharacters:wexecutable length:wcslen(wexecutable)])];
+    quotedFromString([NSString stringWithCharacters: wexecutable
+	length: wcslen(wexecutable)])];
   arg_enum = [[self arguments] objectEnumerator];
   while ((arg = [arg_enum nextObject]))
     {
@@ -1090,7 +1091,8 @@ quotedFromString(NSString *aString)
       [args appendString: quotedFromString(arg)];
     }
   
-  w_args = NSZoneMalloc(NSDefaultMallocZone(),sizeof(wchar_t) *([args length]+1));
+  w_args = NSZoneMalloc(NSDefaultMallocZone(),
+    sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
 
   memset (&start_info, 0, sizeof(start_info));
@@ -1101,15 +1103,15 @@ quotedFromString(NSString *aString)
   start_info.hStdError = [[self standardError] nativeHandle];
   
   result = CreateProcessW(wexecutable,
-			 w_args,
-			 NULL,      /* proc attrs */
-			 NULL,      /* thread attrs */
-			 1,         /* inherit handles */
-			 0,         /* creation flags */
-			 NULL,      /* env block */
-			 [[[self currentDirectoryPath] localFromOpenStepPath] unicharString],
-			 &start_info,
-			 &procInfo);
+    w_args,
+    NULL,      /* proc attrs */
+    NULL,      /* thread attrs */
+    1,         /* inherit handles */
+    0,         /* creation flags */
+    NULL,      /* env block */
+    [[[self currentDirectoryPath] localFromOpenStepPath] unicharString],
+    &start_info,
+    &procInfo);
   NSZoneFree(NSDefaultMallocZone(), w_args);
   if (result == 0)
     {
@@ -1124,9 +1126,9 @@ quotedFromString(NSString *aString)
   [tasksLock lock];
   NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
   [tasksLock unlock];
-/*
- * Create thread to watch for termination of process.
- */
+  /*
+   * Create thread to watch for termination of process.
+   */
   wThread = CreateThread(NULL, 0, _threadFunction, (LPVOID)self, 0, &tid);
 }
 
