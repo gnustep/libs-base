@@ -27,14 +27,14 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-/* Caveats:
+/* Caveats: 
 
    Some implementations will need to be changed.
    Does not support all justification directives for `%@' in format strings 
    on non-GNU-libc systems.
 */
 
-/* Initial implementation of Unicode. Version 0.0.0 :)
+/* Initial implementation of Unicode. Version 0.0.0 : )
    Locales not yet supported.
    Limited choice of default encodings.
 */
@@ -273,47 +273,47 @@ handle_printf_atsign (FILE *stream,
 {
   if ([self class] == [NSString class])
     return NSAllocateObject ([self _concreteClass], 0, z);
-  return [super allocWithZone:z];
+  return [super allocWithZone: z];
 }
 
 // Creating Temporary Strings
 
 + (NSString*) string
 {
-  return [[[self alloc] init] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
 }
 
 + (NSString*) stringWithString: (NSString*)aString
 {
-   return [[[self alloc] initWithString: aString] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithString: aString] autorelease];
 }
 
 + (NSString*) stringWithCharacters: (const unichar*)chars
-   length: (unsigned int)length
+			    length: (unsigned int)length
 {
-   return [[[self alloc]
-          initWithCharacters:chars length:length]
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithCharacters: chars length: length]
          autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*) byteString
 {
-  return [[[NSString_c_concrete_class alloc] initWithCString:byteString]
-	  autorelease];
+  return [[[NSString_c_concrete_class allocWithZone: NSDefaultMallocZone()]
+    initWithCString: byteString] autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[NSString_c_concrete_class alloc]
-	   initWithCString:byteString length:length]
-	  autorelease];
+  return [[[NSString_c_concrete_class allocWithZone: NSDefaultMallocZone()]
+    initWithCString: byteString length: length] autorelease];
 }
 
-+ (NSString*) stringWithContentsOfFile:(NSString *)path
++ (NSString*) stringWithContentsOfFile: (NSString *)path
 {
-  return [[[self alloc]
-	      initWithContentsOfFile: path] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path] autorelease];
 }
 
 + (NSString*) stringWithFormat: (NSString*)format,...
@@ -322,8 +322,11 @@ handle_printf_atsign (FILE *stream,
   id ret;
 
   va_start(ap, format);
-  ret = [[[self alloc] initWithFormat:format arguments:ap]
-	 autorelease];
+  if (format == nil)
+    ret = nil;
+  else
+    ret = [[[self allocWithZone: NSDefaultMallocZone()]
+      initWithFormat: format arguments: ap] autorelease];
   va_end(ap);
   return ret;
 }
@@ -331,9 +334,8 @@ handle_printf_atsign (FILE *stream,
 + (NSString*) stringWithFormat: (NSString*)format
    arguments: (va_list)argList
 {
-  return [[[self alloc]
-	   initWithFormat:format arguments:argList]
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithFormat: format arguments: argList] autorelease];
 }
 
 
@@ -344,7 +346,7 @@ handle_printf_atsign (FILE *stream,
 			 length: (unsigned int)length
 		       fromZone: (NSZone*)zone
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return self;
 }
 
@@ -372,7 +374,7 @@ handle_printf_atsign (FILE *stream,
     if (chars)
 	memcpy(s, chars, sizeof(unichar)*length);
 
-    return [self initWithCharactersNoCopy:s length:length fromZone:z];
+    return [self initWithCharactersNoCopy: s length: length fromZone: z];
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
@@ -394,7 +396,7 @@ handle_printf_atsign (FILE *stream,
 		      length: (unsigned int)length
 		    fromZone: (NSZone*)zone
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return self;
 }
 
@@ -405,13 +407,13 @@ handle_printf_atsign (FILE *stream,
 
     if (byteString)
 	memcpy(s, byteString, length);
-    return [self initWithCStringNoCopy:s length:length fromZone:z];
+    return [self initWithCStringNoCopy: s length: length fromZone: z];
 }
 
 - (id) initWithCString: (const char*)byteString
 {
-  return [self initWithCString:byteString 
-	       length:(byteString ? strlen(byteString) : 0)];
+  return [self initWithCString: byteString 
+	       length: (byteString ? strlen(byteString) : 0)];
 }
 
 - (id) initWithString: (NSString*)string
@@ -420,7 +422,7 @@ handle_printf_atsign (FILE *stream,
     unsigned	length = [string length];
     unichar	*s = NSZoneMalloc(z, sizeof(unichar)*length);
 
-    [string getCharacters:s];
+    [string getCharacters: s];
     return [self initWithCharactersNoCopy: s
 				   length: length
 				 fromZone: z];
@@ -430,7 +432,7 @@ handle_printf_atsign (FILE *stream,
 {
   va_list ap;
   va_start(ap, format);
-  self = [self initWithFormat:format arguments:ap];
+  self = [self initWithFormat: format arguments: ap];
   va_end(ap);
   return self;
 }
@@ -489,25 +491,25 @@ handle_printf_atsign (FILE *stream,
 	    spec_pos = strpbrk(formatter_pos+1, "dioxXucsfeEgGpn\0");
 	    switch (*spec_pos)
 	      {
-	      case 'd': case 'i': case 'o':
-	      case 'x': case 'X': case 'u': case 'c':
+	      case 'd': case 'i': case 'o': 
+	      case 'x': case 'X': case 'u': case 'c': 
 		va_arg(arg_list, int);
 		break;
-	      case 's':
+	      case 's': 
 		if (*(spec_pos - 1) == '*')
 		  va_arg(arg_list, int*);
 		va_arg(arg_list, char*);
 		break;
-	      case 'f': case 'e': case 'E': case 'g': case 'G':
+	      case 'f': case 'e': case 'E': case 'g': case 'G': 
 		va_arg(arg_list, double);
 		break;
-	      case 'p':
+	      case 'p': 
 		va_arg(arg_list, void*);
 		break;
-	      case 'n':
+	      case 'n': 
 		va_arg(arg_list, int*);
 		break;
-	      case '\0':
+	      case '\0': 
 		/* Make sure loop exits on next iteration. */
 		spec_pos--;
 		break;
@@ -535,7 +537,7 @@ handle_printf_atsign (FILE *stream,
 
   /* Raise an exception if we overran our buffer. */
   NSParameterAssert (printed_len < format_len + BUFFER_EXTRA - 1);
-  return [self initWithCString:buf];
+  return [self initWithCString: buf];
 #else /* HAVE_VSPRINTF */
   [self notImplemented: _cmd];
   return self;
@@ -545,7 +547,7 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithFormat: (NSString*)format
    locale: (NSDictionary*)dictionary
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return self;
 }
 
@@ -553,7 +555,7 @@ handle_printf_atsign (FILE *stream,
    locale: (NSDictionary*)dictionary
    arguments: (va_list)argList
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return self;
 }
 
@@ -567,8 +569,8 @@ handle_printf_atsign (FILE *stream,
       int len=[data length];
       char *s = NSZoneMalloc(z, len+1);
 
-      [data getBytes:s];
-      return [self initWithCStringNoCopy:s length:len fromZone:z];
+      [data getBytes: s];
+      return [self initWithCStringNoCopy: s length: len fromZone: z];
     }
   else
     {
@@ -591,7 +593,7 @@ handle_printf_atsign (FILE *stream,
       else
 	count = encode_strtoustr(u,b,len,encoding);
 
-      return [self initWithCharactersNoCopy:u length:count fromZone:z];
+      return [self initWithCharactersNoCopy: u length: count fromZone: z];
     }
   return self;
 }
@@ -609,7 +611,7 @@ handle_printf_atsign (FILE *stream,
     enc = NSUnicodeStringEncoding;
   else
     enc = [NSString defaultCStringEncoding];
-  return [self initWithData:d encoding:enc];
+  return [self initWithData: d encoding: enc];
 }
 
 - (id) init
@@ -622,7 +624,7 @@ handle_printf_atsign (FILE *stream,
 
 - (unsigned int) length
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
@@ -630,14 +632,14 @@ handle_printf_atsign (FILE *stream,
 
 - (unichar) characterAtIndex: (unsigned int)index
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return (unichar)0;
 }
 
 /* Inefficient.  Should be overridden */
 - (void) getCharacters: (unichar*)buffer
 {
-  [self getCharacters:buffer range:((NSRange){0,[self length]})];
+  [self getCharacters: buffer range: ((NSRange){0,[self length]})];
   return;
 }
 
@@ -659,8 +661,8 @@ handle_printf_atsign (FILE *stream,
   va_list ap;
   id ret;
   va_start(ap, format);
-  ret = [self stringByAppendingString:
-	      [NSString stringWithFormat:format arguments:ap]];
+  ret = [self stringByAppendingString: 
+	      [NSString stringWithFormat: format arguments: ap]];
   va_end(ap);
   return ret;
 }
@@ -673,9 +675,9 @@ handle_printf_atsign (FILE *stream,
   unichar *s = NSZoneMalloc(z, (len+otherLength)*sizeof(unichar));
   NSString *tmp;
 
-  [self getCharacters:s];
-  [aString getCharacters:s+len];
-  tmp = [[[self class] allocWithZone:z] initWithCharactersNoCopy: s
+  [self getCharacters: s];
+  [aString getCharacters: s+len];
+  tmp = [[[self class] allocWithZone: z] initWithCharactersNoCopy: s
 		    length: len+otherLength fromZone: z];
   return [tmp autorelease];
 }
@@ -714,7 +716,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringFromIndex: (unsigned int)index
 {
-  return [self substringFromRange:((NSRange){index, [self length]-index})];
+  return [self substringFromRange: ((NSRange){index, [self length]-index})];
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
@@ -724,17 +726,16 @@ handle_printf_atsign (FILE *stream,
   id ret;
 
   if (aRange.location > [self length])
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > ([self length] - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+    [NSException raise: NSRangeException format: @"Invalid location+length."];
   if (aRange.length == 0)
     return @"";
   z = fastZone(self);
   buf = NSZoneMalloc(z, sizeof(unichar)*aRange.length);
-  [self getCharacters:buf range:aRange];
-  ret = [[[self class] alloc] initWithCharactersNoCopy: buf
-						length: aRange.length
-					      fromZone: z];
+  [self getCharacters: buf range: aRange];
+  ret = [[[self class] allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: buf length: aRange.length fromZone: z];
   return [ret autorelease];
 }
 
@@ -745,7 +746,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringToIndex: (unsigned int)index
 {
-  return [self substringFromRange:((NSRange){0,index})];;
+  return [self substringFromRange: ((NSRange){0,index})];;
 }
 
 // Finding Ranges of Characters and Substrings
@@ -753,18 +754,18 @@ handle_printf_atsign (FILE *stream,
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 {
   NSRange all = NSMakeRange(0, [self length]);
-  return [self rangeOfCharacterFromSet:aSet
-		options:0
-		range:all];
+  return [self rangeOfCharacterFromSet: aSet
+		options: 0
+		range: all];
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
    options: (unsigned int)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
-  return [self rangeOfCharacterFromSet:aSet
-		options:mask
-		range:all];
+  return [self rangeOfCharacterFromSet: aSet
+		options: mask
+		range: all];
 }
 
 /* xxx FIXME */
@@ -779,9 +780,9 @@ handle_printf_atsign (FILE *stream,
 
   i = [self length];
   if (aRange.location > i)
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (i - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+    [NSException raise: NSRangeException format: @"Invalid location+length."];
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
@@ -795,13 +796,13 @@ handle_printf_atsign (FILE *stream,
   range.length = 0;
 
   cImp = (unichar(*)(id,SEL,unsigned)) 
-    [self methodForSelector: @selector(characterAtIndex:)];
+    [self methodForSelector: @selector(characterAtIndex: )];
   mImp = (BOOL(*)(id,SEL,unichar))
     [aSet methodForSelector: cMemberSel];
 
   for (i = start; i != stop; i += step)
     {
-      unichar letter = (unichar)(*cImp)(self, @selector(characterAtIndex:), i);
+      unichar letter = (unichar)(*cImp)(self, @selector(characterAtIndex: ), i);
       if ((*mImp)(aSet, cMemberSel, letter))
 	{
 	  range = NSMakeRange(i, 1);
@@ -815,23 +816,23 @@ handle_printf_atsign (FILE *stream,
 - (NSRange) rangeOfString: (NSString*)string
 {
   NSRange all = NSMakeRange(0, [self length]);
-  return [self rangeOfString:string
-		options:0
-		range:all];
+  return [self rangeOfString: string
+		options: 0
+		range: all];
 }
 
 - (NSRange) rangeOfString: (NSString*)string
    options: (unsigned int)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
-  return [self rangeOfString:string
-		options:mask
-		range:all];
+  return [self rangeOfString: string
+		options: mask
+		range: all];
 }
 
-- (NSRange) _searchForwardCaseInsensitiveLiteral:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchForwardCaseInsensitiveLiteral: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength;
@@ -845,12 +846,12 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacter = [aString characterAtIndex:0];
+  strFirstCharacter = [aString characterAtIndex: 0];
 
   for (;;)
     {
       unsigned int i = 1;
-      unichar myCharacter = [self characterAtIndex:myIndex];
+      unichar myCharacter = [self characterAtIndex: myIndex];
       unichar strCharacter = strFirstCharacter;
 
       for (;;)
@@ -860,8 +861,8 @@ handle_printf_atsign (FILE *stream,
 	    break;
 	  if (i == strLength)
 	    return (NSRange){myIndex, strLength};
-	  myCharacter = [self characterAtIndex:myIndex + i];
-	  strCharacter = [aString characterAtIndex:i];
+	  myCharacter = [self characterAtIndex: myIndex + i];
+	  strCharacter = [aString characterAtIndex: i];
 	  i++;
 	}
       if (myIndex == myEndIndex)
@@ -871,9 +872,9 @@ handle_printf_atsign (FILE *stream,
   return (NSRange){0, 0};
 }
 
-- (NSRange) _searchBackwardCaseInsensitiveLiteral:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchBackwardCaseInsensitiveLiteral: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength;
@@ -888,12 +889,12 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacter = [aString characterAtIndex:0];
+  strFirstCharacter = [aString characterAtIndex: 0];
 
       for (;;)
       {
         unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar myCharacter = [self characterAtIndex: myIndex];
         unichar strCharacter = strFirstCharacter;
 
         for (;;)
@@ -903,8 +904,8 @@ handle_printf_atsign (FILE *stream,
               break;
             if (i == strLength)
               return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex:myIndex + i];
-            strCharacter = [aString characterAtIndex:i];
+            myCharacter = [self characterAtIndex: myIndex + i];
+            strCharacter = [aString characterAtIndex: i];
             i++;
           }
         if (myIndex == myEndIndex)
@@ -914,9 +915,9 @@ handle_printf_atsign (FILE *stream,
   return (NSRange){0, 0};
 }
 
-- (NSRange) _searchForwardLiteral:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchForwardLiteral: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength;
@@ -930,12 +931,12 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacter = [aString characterAtIndex:0];
+  strFirstCharacter = [aString characterAtIndex: 0];
 
       for (;;)
       {
         unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar myCharacter = [self characterAtIndex: myIndex];
         unichar strCharacter = strFirstCharacter;
 
         for (;;)
@@ -944,8 +945,8 @@ handle_printf_atsign (FILE *stream,
               break;
             if (i == strLength)
               return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex:myIndex + i];
-            strCharacter = [aString characterAtIndex:i];
+            myCharacter = [self characterAtIndex: myIndex + i];
+            strCharacter = [aString characterAtIndex: i];
             i++;
           }
         if (myIndex == myEndIndex)
@@ -955,9 +956,9 @@ handle_printf_atsign (FILE *stream,
   return (NSRange){0, 0};
 }
 
-- (NSRange) _searchBackwardLiteral:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchBackwardLiteral: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength;
@@ -972,12 +973,12 @@ handle_printf_atsign (FILE *stream,
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  strFirstCharacter = [aString characterAtIndex:0];
+  strFirstCharacter = [aString characterAtIndex: 0];
 
       for (;;)
       {
         unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar myCharacter = [self characterAtIndex: myIndex];
         unichar strCharacter = strFirstCharacter;
 
         for (;;)
@@ -986,8 +987,8 @@ handle_printf_atsign (FILE *stream,
               break;
             if (i == strLength)
               return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex:myIndex + i];
-            strCharacter = [aString characterAtIndex:i];
+            myCharacter = [self characterAtIndex: myIndex + i];
+            strCharacter = [aString characterAtIndex: i];
             i++;
           }
         if (myIndex == myEndIndex)
@@ -998,9 +999,9 @@ handle_printf_atsign (FILE *stream,
 }
 
 
-- (NSRange) _searchForwardCaseInsensitive:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchForwardCaseInsensitive: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength, strBaseLength;
@@ -1051,9 +1052,9 @@ handle_printf_atsign (FILE *stream,
   return (NSRange){0, 0};
 }
 
-- (NSRange) _searchBackwardCaseInsensitive:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchBackwardCaseInsensitive: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength, strBaseLength;
@@ -1105,9 +1106,9 @@ handle_printf_atsign (FILE *stream,
 }
 
 
-- (NSRange) _searchForward:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchForward: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength, strBaseLength;
@@ -1157,9 +1158,9 @@ handle_printf_atsign (FILE *stream,
 }
 
 
-- (NSRange) _searchBackward:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) _searchBackward: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
   unsigned int myIndex, myEndIndex;
   unsigned int strLength, strBaseLength;
@@ -1209,9 +1210,9 @@ handle_printf_atsign (FILE *stream,
  return (NSRange){0, 0};
 }
 
-- (NSRange) rangeOfString:(NSString *) aString
-   options:(unsigned int) mask
-   range:(NSRange) aRange
+- (NSRange) rangeOfString: (NSString *) aString
+   options: (unsigned int) mask
+   range: (NSRange) aRange
 {
 
  #define FCLS  3
@@ -1236,9 +1237,9 @@ handle_printf_atsign (FILE *stream,
   /* Check that the search range is reasonable */
   myLength = [self length];
   if (aRange.location > myLength)
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (myLength - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+    [NSException raise: NSRangeException format: @"Invalid location+length."];
 
 
   /* Ensure the string can be found */
@@ -1248,58 +1249,58 @@ handle_printf_atsign (FILE *stream,
 
  switch (mask)
  {
-  case FCLS :
-  case FCLAS :
+  case FCLS : 
+  case FCLAS : 
      return [self _searchForwardCaseInsensitiveLiteral: aString
                options: mask
                range: aRange];
            break;
 
-  case BCLS :
-  case BCLAS :
+  case BCLS : 
+  case BCLAS : 
      return [self _searchBackwardCaseInsensitiveLiteral: aString
                options: mask
                range: aRange];
            break;
 
-  case FLS :
-  case FLAS :
+  case FLS : 
+  case FLAS : 
     return [self _searchForwardLiteral: aString
                options: mask 
                range: aRange];
            break;
 
-  case BLS :
-  case BLAS :
+  case BLS : 
+  case BLAS : 
     return [self _searchBackwardLiteral: aString
                options: mask
                range: aRange];
            break;
 
-  case FCS :
-  case FCAS :
+  case FCS : 
+  case FCAS : 
     return [self _searchForwardCaseInsensitive: aString
                options: mask
                range: aRange];
                break;
 
-  case BCS :
-  case BCAS :
+  case BCS : 
+  case BCAS : 
     return [self _searchBackwardCaseInsensitive: aString
                options: mask
                range: aRange];
                break;
 
-  case BS :
-  case BAS :
+  case BS : 
+  case BAS : 
     return [self _searchBackward: aString
                options: mask
                range: aRange];
                break;
 
-  case FS :
-  case FAS :
-  default :
+  case FS : 
+  case FAS : 
+  default : 
     return [self _searchForward: aString
            options: mask
            range: aRange];
@@ -1328,14 +1329,14 @@ handle_printf_atsign (FILE *stream,
 
 - (NSComparisonResult) compare: (NSString*)aString
 {
-  return [self compare:aString options:0];
+  return [self compare: aString options: 0];
 }
 
 - (NSComparisonResult) compare: (NSString*)aString	
    options: (unsigned int)mask
 {
-  return [self compare:aString options:mask 
-	       range:((NSRange){0, [self length]})];
+  return [self compare: aString options: mask 
+	       range: ((NSRange){0, [self length]})];
 }
 
 // xxx Should implement full POSIX.2 collate
@@ -1344,9 +1345,9 @@ handle_printf_atsign (FILE *stream,
    range: (NSRange)aRange
 {
   if (aRange.location > [self length])
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > ([self length] - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+    [NSException raise: NSRangeException format: @"Invalid location+length."];
 
   if (aRange.length == 0)
     return NSOrderedSame;
@@ -1366,9 +1367,9 @@ if (mask & NSLiteralSearch)
   unichar s1[s1len+1];
   unichar s2[s2len+1];
 
-  [self getCharacters:s1 range: aRange];
+  [self getCharacters: s1 range: aRange];
   s1[s1len] = (unichar)0;
-  [aString getCharacters:s2];
+  [aString getCharacters: s2];
   s2[s2len] = (unichar)0;
   end = s1len+1;
   if (s2len < s1len)
@@ -1438,14 +1439,14 @@ else
 - (BOOL) hasPrefix: (NSString*)aString
 {
   NSRange range;
-  range = [self rangeOfString:aString];
+  range = [self rangeOfString: aString];
   return ((range.location == 0) && (range.length != 0)) ? YES : NO;
 }
 
 - (BOOL) hasSuffix: (NSString*)aString
 {
   NSRange range;
-  range = [self rangeOfString:aString options:NSBackwardsSearch];
+  range = [self rangeOfString: aString options: NSBackwardsSearch];
   return (range.length > 0 && range.location == ([self length] - [aString length])) ? YES : NO;
 }
 
@@ -1543,7 +1544,7 @@ else
     if (len > NSHashStringLength)
       len = NSHashStringLength;
     source = alloca(sizeof(unichar)*(len*MAXDEC+1));
-    [self getCharacters: source range:NSMakeRange(0,len)];
+    [self getCharacters: source range: NSMakeRange(0,len)];
     source[len]=(unichar)0;
 
 // decompose
@@ -1649,9 +1650,9 @@ else
   unichar a2[[aString length]+1];
   unichar *s2 = a2;
   u=s1;
-  [self getCharacters:s1];
+  [self getCharacters: s1];
   s1[[self length]] = (unichar)0;
-  [aString getCharacters:s2];
+  [aString getCharacters: s2];
   s2[[aString length]] = (unichar)0;
   u=s1;
   w=s2;
@@ -1748,7 +1749,7 @@ else
  }
 }
 
-- (NSRange)lineRangeForRange:(NSRange)aRange
+- (NSRange)lineRangeForRange: (NSRange)aRange
 {
   unsigned int startIndex;
   unsigned int lineEndIndex;
@@ -1756,23 +1757,23 @@ else
   [self getLineStart: &startIndex
                  end: &lineEndIndex
          contentsEnd: NULL
-            forRange:aRange];
+            forRange: aRange];
   return NSMakeRange(startIndex, lineEndIndex - startIndex);
 }
 
-- (void)getLineStart:(unsigned int *)startIndex
-                 end:(unsigned int *)lineEndIndex
-         contentsEnd:(unsigned int *)contentsEndIndex
-         forRange:(NSRange)aRange
+- (void)getLineStart: (unsigned int *)startIndex
+                 end: (unsigned int *)lineEndIndex
+         contentsEnd: (unsigned int *)contentsEndIndex
+         forRange: (NSRange)aRange
 {
   unichar thischar;
   BOOL done;
   unsigned int start, end, len;
 
   if (aRange.location > [self length])
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > ([self length] - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+    [NSException raise: NSRangeException format: @"Invalid location+length."];
 
   len = [self length];
   start=aRange.location;
@@ -1786,16 +1787,16 @@ else
       while (start>0)
       {
         BOOL done = NO;
-        thischar = [self characterAtIndex:start];
+        thischar = [self characterAtIndex: start];
         switch(thischar)
         {
-          case (unichar)0x000A:
-          case (unichar)0x000D:
-          case (unichar)0x2028:
-          case (unichar)0x2029:
+          case (unichar)0x000A: 
+          case (unichar)0x000D: 
+          case (unichar)0x2028: 
+          case (unichar)0x2029: 
             done = YES;
             break;
-          default:
+          default: 
             start--;
             break;
         };
@@ -1804,16 +1805,16 @@ else
       };
       if (start == 0)
       {
-         thischar = [self characterAtIndex:start];
+         thischar = [self characterAtIndex: start];
          switch(thischar)
          {
-           case (unichar)0x000A:
-           case (unichar)0x000D:
-           case (unichar)0x2028:
-           case (unichar)0x2029:
+           case (unichar)0x000A: 
+           case (unichar)0x000D: 
+           case (unichar)0x2028: 
+           case (unichar)0x2029: 
              start++;
              break;
-           default:
+           default: 
              break;
          };
       }
@@ -1828,16 +1829,16 @@ else
     while (end<len)
     {
        BOOL done = NO;
-       thischar = [self characterAtIndex:end];
+       thischar = [self characterAtIndex: end];
        switch(thischar)
        {
-         case (unichar)0x000A:
-         case (unichar)0x000D:
-         case (unichar)0x2028:
-         case (unichar)0x2029:
+         case (unichar)0x000A: 
+         case (unichar)0x000D: 
+         case (unichar)0x2028: 
+         case (unichar)0x2029: 
            done = YES;
            break;
-         default:
+         default: 
            break;
        };
        end++;
@@ -1846,8 +1847,8 @@ else
     };
     if (end<len)
     {
-      if ([self characterAtIndex:end]==(unichar)0x000D)
-        if ([self characterAtIndex:end+1]==(unichar)0x000A)
+      if ([self characterAtIndex: end]==(unichar)0x000D)
+        if ([self characterAtIndex: end+1]==(unichar)0x000A)
           *lineEndIndex = end+1;
         else  *lineEndIndex = end;
       else  *lineEndIndex = end;
@@ -1886,7 +1887,7 @@ else
     setupWhitespce();
 
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
-  [self getCharacters:s];
+  [self getCharacters: s];
   s[len] = (unichar)0;
   while (count<len)
   {
@@ -1912,7 +1913,8 @@ else
     };
     found=NO;
   };
-  return [[[NSString alloc] initWithCharactersNoCopy:s length:len fromZone:z] autorelease];
+  return [[[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: s length: len fromZone: z] autorelease];
 }
 
 - (NSString*) lowercaseString
@@ -1923,8 +1925,9 @@ else
   int len=[self length];
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   for(count=0;count<len;count++)
-    s[count]=uni_tolower([self characterAtIndex:count]);
-  return [[[[self class] alloc] initWithCharactersNoCopy: s
+    s[count]=uni_tolower([self characterAtIndex: count]);
+  return [[[[self class] allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: s
 						  length: len
 					        fromZone: z] autorelease];
 }
@@ -1937,10 +1940,9 @@ else
   int len=[self length];
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   for(count=0;count<len;count++)
-    s[count]=uni_toupper([self characterAtIndex:count]);
-  return [[[[self class] alloc] initWithCharactersNoCopy: s
-						  length: len
-					        fromZone: z] autorelease];
+    s[count]=uni_toupper([self characterAtIndex: count]);
+  return [[[[self class] allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: s length: len fromZone: z] autorelease];
 }
 
 // Storing the String
@@ -1955,29 +1957,29 @@ else
 
 - (const char*) cString
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return NULL;
 }
 
 - (unsigned int) cStringLength
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (void) getCString: (char*)buffer
 {
-  [self getCString:buffer maxLength:NSMaximumStringLength
-	range:((NSRange){0, [self length]})
-	remainingRange:NULL];
+  [self getCString: buffer maxLength: NSMaximumStringLength
+	range: ((NSRange){0, [self length]})
+	remainingRange: NULL];
 }
 
 - (void) getCString: (char*)buffer
     maxLength: (unsigned int)maxLength
 {
-  [self getCString:buffer maxLength:maxLength 
-	range:((NSRange){0, [self length]})
-	remainingRange:NULL];
+  [self getCString: buffer maxLength: maxLength 
+	range: ((NSRange){0, [self length]})
+	remainingRange: NULL];
 }
 
 // xxx FIXME adjust range for composite sequence
@@ -1990,9 +1992,9 @@ else
 
   len = [self cStringLength];
   if (aRange.location > len)
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (len - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+    [NSException raise: NSRangeException format: @"Invalid location+length."];
 
   if (maxLength < aRange.length)
     {
@@ -2060,7 +2062,7 @@ else
   return _availableEncodings;
 }
 
-+ (NSString*)localizedNameOfStringEncoding:(NSStringEncoding)encoding
++ (NSString*)localizedNameOfStringEncoding: (NSStringEncoding)encoding
 {
   id ourbundle;
   id ourname;
@@ -2070,13 +2072,13 @@ else
       Until we have it, just make shure that bundle
       is initialized.
 */
-  ourbundle = [NSBundle bundleWithPath:@"/"];
+  ourbundle = [NSBundle bundleWithPath: @"/"];
 
   ourname = GetEncodingName(encoding);
   return [ourbundle
-            localizedStringForKey:ourname
-            value:ourname
-            table:nil];
+            localizedStringForKey: ourname
+            value: ourname
+            table: nil];
 }
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
@@ -2157,20 +2159,20 @@ else
     }
   else /* UTF8 or EUC */
     {
-      [self notImplemented:_cmd];
+      [self notImplemented: _cmd];
     }
   return nil;
 }
 
 - (NSStringEncoding) fastestEncoding
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (NSStringEncoding) smallestEncoding
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
@@ -2265,11 +2267,11 @@ else
       if (range.location == 0)
 	substring = [[NSString new] autorelease];
       else
-	substring = [[self substringToIndex:range.location] 
+	substring = [[self substringToIndex: range.location] 
 		      lastPathComponent];
     }
   else
-    substring = [self substringFromIndex:range.location + 1];
+    substring = [self substringFromIndex: range.location + 1];
 
   return substring;
 }
@@ -2283,7 +2285,7 @@ else
   NSRange range;
   NSString *substring = nil;
 
-  range = [self rangeOfString:@"." options:NSBackwardsSearch];
+  range = [self rangeOfString: @"." options: NSBackwardsSearch];
   if (range.length == 0) 
     substring = nil;
   else
@@ -2293,7 +2295,7 @@ else
       if (range2.length > 0 && range.location < range2.location)
 	substring = nil;
       else
-	substring = [self substringFromIndex:range.location + 1];
+	substring = [self substringFromIndex: range.location + 1];
     }
 
   if (!substring)
@@ -2340,18 +2342,18 @@ else
   if ([aString length] == 0)
     return [[self copy] autorelease];
 
-  range = [aString rangeOfString:@"."];
+  range = [aString rangeOfString: @"."];
   if (range.length != 0 && range.location == 0)
     [NSException raise: NSGenericException
 	     format: @"attempt to append illegal path extension"];
 
-  range = [self rangeOfString:@"." options:NSBackwardsSearch];
+  range = [self rangeOfString: @"." options: NSBackwardsSearch];
   if (range.length == 0 || range.location != [self length] - 1)
-      newstring = [self stringByAppendingString:@"."];
+      newstring = [self stringByAppendingString: @"."];
   else
       newstring = self;
 
-  return [newstring stringByAppendingString:aString];
+  return [newstring stringByAppendingString: aString];
 }
 
 /* Returns a new string with the last path component removed from the
@@ -2369,7 +2371,7 @@ else
   else if (range.location == 0)
     substring = [[NSString new] autorelease];
   else if (range.location > 1)
-    substring = [self substringToIndex:range.location-1];
+    substring = [self substringToIndex: range.location-1];
   else
     substring = pathSepString;
   return substring;
@@ -2382,9 +2384,9 @@ else
   NSRange range;
   NSString *substring;
 
-  range = [self rangeOfString:[self pathExtension] options:NSBackwardsSearch];
+  range = [self rangeOfString: [self pathExtension] options: NSBackwardsSearch];
   if (range.length != 0)
-    substring = [self substringToIndex:range.location-1];
+    substring = [self substringToIndex: range.location-1];
   else
     substring = [[self copy] autorelease];
   return substring;
@@ -2560,7 +2562,7 @@ else
   if (len > 0)
     {
       int	count = 0;
-      SEL	caiSel = @selector(characterAtIndex:);
+      SEL	caiSel = @selector(characterAtIndex: );
       unichar	(*caiImp)() = (unichar (*)())[self methodForSelector: caiSel];
 
       while (count < len)
@@ -2595,9 +2597,8 @@ else
   }
   *upoint = (unichar)0;
 
-  ret = [[[[self class] alloc] initWithCharactersNoCopy: u
-						 length: uslen(u)
-					       fromZone: z] autorelease];
+  ret = [[[[self class] allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: u length: uslen(u) fromZone: z] autorelease];
   return ret;
 }
 
@@ -2618,7 +2619,7 @@ else
     return NO;
 
 #if defined(__WIN32__) || defined(_WIN32)
-  if ([self indexOfString: @":"] != NSNotFound)
+  if ([self indexOfString: @": "] != NSNotFound)
     return YES;
 #else
   if ([self characterAtIndex: 0] == (unichar)'/')
@@ -2640,7 +2641,7 @@ else
 
 	/* If the path began with a '/' then the first path component must
 	 * be a '/' rather than an empty string so that our output could be
-	 * fed into [+pathWithComponents:]
+	 * fed into [+pathWithComponents: ]
          */
 	if ([[a objectAtIndex: 0] length] == 0) {
 	    [a replaceObjectAtIndex: 0 withObject: @"/"];
@@ -2659,42 +2660,45 @@ else
 
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths
 {
-    NSMutableArray	*a;
-    NSArray		*r;
-    int			i;
+  NSMutableArray	*a;
+  NSArray		*r;
+  int			i;
 
-    a = [[NSMutableArray alloc] initWithCapacity: [paths count]];
-    for (i = 0; i < [paths count]; i++) {
-	NSString	*s = [paths objectAtIndex: i];
+  a = [[NSMutableArray allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: [paths count]];
+  for (i = 0; i < [paths count]; i++)
+    {
+      NSString	*s = [paths objectAtIndex: i];
 
-	while ([s isAbsolutePath]) {
-	    s = [s substringFromIndex: 1];
+      while ([s isAbsolutePath])
+	{
+	  s = [s substringFromIndex: 1];
 	}
-	s = [self stringByAppendingPathComponent: s];
-	[a addObject: s];
+      s = [self stringByAppendingPathComponent: s];
+      [a addObject: s];
     }
-    r = [a copy];
-    [a release];
-    return [r autorelease];
+  r = [a copy];
+  [a release];
+  return [r autorelease];
 }
 
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return self;
 }
 
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
 {
-  return [self compare:aString options:NSCaseInsensitiveSearch 
-	       range:((NSRange){0, [self length]})];
+  return [self compare: aString options: NSCaseInsensitiveSearch 
+	       range: ((NSRange){0, [self length]})];
 }
 
 - (BOOL) writeToFile: (NSString*)filename
    atomically: (BOOL)useAuxiliaryFile
 {
   id d;
-  if (!(d = [self dataUsingEncoding:[NSString defaultCStringEncoding]]))
+  if (!(d = [self dataUsingEncoding: [NSString defaultCStringEncoding]]))
     d = [self dataUsingEncoding: NSUnicodeStringEncoding];
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
@@ -2720,20 +2724,20 @@ else
 	{
 	  switch (*from)
 	    {
-	      case '\a':
-	      case '\b':
-	      case '\t':
-	      case '\r':
-	      case '\n':
-	      case '\v':
-	      case '\f':
-	      case '\\':
-	      case '\'' :
-	      case '"' :
+	      case '\a': 
+	      case '\b': 
+	      case '\t': 
+	      case '\r': 
+	      case '\n': 
+	      case '\v': 
+	      case '\f': 
+	      case '\\': 
+	      case '\'' : 
+	      case '"' : 
 		len += 2;
 		break;
 
-	      default:
+	      default: 
 		if (isprint(*from) || *from == ' ')
 		  {
 		    len++;
@@ -2755,18 +2759,18 @@ else
 	  {
 	    switch (*from)
 	      {
-		case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
-		case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
-		case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
-		case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
-		case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
-		case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
-		case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
-		case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-		case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
-		case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+		case '\a': 	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		case '\b': 	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		case '\t': 	*ptr++ = '\\'; *ptr++ = 't';  break;
+		case '\r': 	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		case '\n': 	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		case '\v': 	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		case '\f': 	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		case '\\': 	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		case '\'': 	*ptr++ = '\\'; *ptr++ = '\''; break;
+		case '"' : 	*ptr++ = '\\'; *ptr++ = '"';  break;
 
-		default:
+		default: 
 		  if (isprint(*from) || *from == ' ')
 		    {
 		      *ptr++ = *from;
@@ -2797,28 +2801,28 @@ else
 {
   if ([self isKindOfClass: [NSMutableString class]] ||
 	NSShouldRetainWithZone(self, zone) == NO)
-    return [[[[self class] _concreteClass] allocWithZone:zone]
-	initWithString:self];
+    return [[[[self class] _concreteClass] allocWithZone: zone]
+	initWithString: self];
   else
     return [self retain];
 }
 
 - mutableCopyWithZone: (NSZone*)zone
 {
-  return [[[[self class] _mutableConcreteClass] allocWithZone:zone]
-	  initWithString:self];
+  return [[[[self class] _mutableConcreteClass] allocWithZone: zone]
+	  initWithString: self];
 }
 
 /* NSCoding Protocol */
 
 - (void) encodeWithCoder: anEncoder
 {
-    [self subclassResponsibility:_cmd];
+    [self subclassResponsibility: _cmd];
 }
 
 - initWithCoder: aDecoder
 {
-    [self subclassResponsibility:_cmd];
+    [self subclassResponsibility: _cmd];
     return self;
 }
 
@@ -2906,15 +2910,15 @@ else
 {
   if ([self class] == [NSMutableString class])
     return NSAllocateObject([self _mutableConcreteClass], 0, z);
-  return [super allocWithZone:z];
+  return [super allocWithZone: z];
 }
 
 // Creating Temporary Strings
 
-+ (NSMutableString*) stringWithCapacity:(unsigned)capacity
++ (NSMutableString*) stringWithCapacity: (unsigned)capacity
 {
-  return [[[self alloc] initWithCapacity:capacity] 
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: capacity] autorelease];
 }
 
 /* Inefficient. */
@@ -2922,23 +2926,23 @@ else
    length: (unsigned)length
 {
   id n;
-  n =  [[self alloc] initWithCharacters: characters length: length];
+  n =  [[self allocWithZone: NSDefaultMallocZone()]
+    initWithCharacters: characters length: length];
   return [n autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
 {
-  return [[[NSMutableString_c_concrete_class alloc]
-		initWithCString:byteString]
-		autorelease];
+  return [[[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCString: byteString] autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[NSMutableString_c_concrete_class alloc]
-		initWithCString:byteString length:length]
-		autorelease];
+  return [[[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCString: byteString length: length]
+    autorelease];
 }
 
 /* xxx Change this when we have non-CString classes */
@@ -2946,16 +2950,16 @@ else
 {
   va_list ap;
   va_start(ap, format);
-  self = [super stringWithFormat:format arguments:ap];
+  self = [super stringWithFormat: format arguments: ap];
   va_end(ap);
   return self;
 }
 
 // Initializing Newly Allocated Strings
 
-- initWithCapacity:(unsigned)capacity
+- initWithCapacity: (unsigned)capacity
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return self;
 }
 
@@ -2976,33 +2980,34 @@ else
   va_list ap;
   id tmp;
   va_start(ap, format);
-  tmp = [[NSString alloc] initWithFormat:format arguments:ap];
+  tmp = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithFormat: format arguments: ap];
   va_end(ap);
-  [self appendString:tmp];
+  [self appendString: tmp];
   [tmp release];
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
 {
-  [self replaceCharactersInRange:range withString:nil];
+  [self replaceCharactersInRange: range withString: nil];
 }
 
-- (void) insertString: (NSString*)aString atIndex:(unsigned)loc
+- (void) insertString: (NSString*)aString atIndex: (unsigned)loc
 {
   NSRange range = {loc, 0};
-  [self replaceCharactersInRange:range withString:aString];
+  [self replaceCharactersInRange: range withString: aString];
 }
 
 - (void) replaceCharactersInRange: (NSRange)range 
    withString: (NSString*)aString
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setString: (NSString*)aString
 {
   NSRange range = {0, [self length]};
-  [self replaceCharactersInRange:range withString:aString];
+  [self replaceCharactersInRange: range withString: aString];
 }
 
 @end
@@ -3015,10 +3020,10 @@ else
 -(NSString*)stringByTrimmingLeadWhiteSpaces
 {
   NSCharacterSet *nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
-  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet:nonSPSet];
+  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet: nonSPSet];
   
   if (nonSPCharRange.length>0)
-	return [self substringFromIndex:nonSPCharRange.location];
+	return [self substringFromIndex: nonSPCharRange.location];
   else
 	return [NSString string];
 };
@@ -3027,10 +3032,10 @@ else
 -(NSString*)stringByTrimmingTailWhiteSpaces
 {
   NSCharacterSet *nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
-  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet:nonSPSet
-								  options:NSBackwardsSearch];
+  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet: nonSPSet
+								  options: NSBackwardsSearch];
   if (nonSPCharRange.length>0)
-	return [self substringToIndex:nonSPCharRange.location+1];
+	return [self substringToIndex: nonSPCharRange.location+1];
   else
 	return [NSString string];
 };
@@ -3081,11 +3086,11 @@ else
 {
   int location = 0;
   int length = [self length];
-  while (location<length && isspace([self characterAtIndex:location]))
+  while (location<length && isspace([self characterAtIndex: location]))
 	location++;
         
   if (location>0)
-	  [self deleteCharactersInRange:NSMakeRange(0,location)];
+	  [self deleteCharactersInRange: NSMakeRange(0,location)];
 };
 
 //------------------------------------------------------------------------------
@@ -3094,11 +3099,11 @@ else
   int length = [self length];
   int location = length-1;
         
-  while (location>=0 && isspace([self characterAtIndex:location]))
+  while (location>=0 && isspace([self characterAtIndex: location]))
 	location--;
         
   if (location < length-1)
-	[self deleteCharactersInRange:NSMakeRange((location == 0) ? 0 : location + 1,
+	[self deleteCharactersInRange: NSMakeRange((location == 0) ? 0 : location + 1,
 											  length - ((location == 0) ? 0 : location + 1))];
 }
 
@@ -3115,29 +3120,29 @@ else
 @implementation NSString (GSString)
 
 //------------------------------------------------------------------------------
--(NSString*)stringWithoutSuffix:(NSString*)_suffix
+-(NSString*)stringWithoutSuffix: (NSString*)_suffix
 {
-  NSCAssert2([self hasSuffix:_suffix],@"'%@' has not the suffix '%@'",self,_suffix);
-  return [self substringToIndex:([self length]-[_suffix length])];
+  NSCAssert2([self hasSuffix: _suffix],@"'%@' has not the suffix '%@'",self,_suffix);
+  return [self substringToIndex: ([self length]-[_suffix length])];
 };
 
 //------------------------------------------------------------------------------
--(NSString*)stringWithoutPrefix:(NSString*)_prefix
+-(NSString*)stringWithoutPrefix: (NSString*)_prefix
 {
-  NSCAssert2([self hasPrefix:_prefix],@"'%@' has not the prefix '%@'",self,_prefix);
-  return [self substringFromIndex:[_prefix length]];
+  NSCAssert2([self hasPrefix: _prefix],@"'%@' has not the prefix '%@'",self,_prefix);
+  return [self substringFromIndex: [_prefix length]];
 };
 
 //------------------------------------------------------------------------------
--(NSString*)stringByReplacingString:(NSString*)_replace
-						 withString:(NSString*)_by
+-(NSString*)stringByReplacingString: (NSString*)_replace
+						 withString: (NSString*)_by
 {
-  NSRange range=[self rangeOfString:_replace];
+  NSRange range=[self rangeOfString: _replace];
   if (range.length>0)
 	{
 	  NSMutableString* tmp= [[self mutableCopy] autorelease];
-	  [tmp replaceString:_replace
-		   withString:_by];
+	  [tmp replaceString: _replace
+		   withString: _by];
 	  // Convert to immuable
 	  return [[tmp copy] autorelease];
 	}
@@ -3150,36 +3155,36 @@ else
 //==============================================================================
 @implementation NSMutableString (GSString)
 //------------------------------------------------------------------------------
--(void)removeSuffix:(NSString*)_suffix
+-(void)removeSuffix: (NSString*)_suffix
 {
-  NSCAssert2([self hasSuffix:_suffix],@"'%@' has not the suffix '%@'",self,_suffix);
-  [self deleteCharactersInRange:NSMakeRange([self length]-[_suffix length],[_suffix length])];
+  NSCAssert2([self hasSuffix: _suffix],@"'%@' has not the suffix '%@'",self,_suffix);
+  [self deleteCharactersInRange: NSMakeRange([self length]-[_suffix length],[_suffix length])];
 };
 
 //------------------------------------------------------------------------------
--(void)removePrefix:(NSString*)_prefix;
+-(void)removePrefix: (NSString*)_prefix;
 {
-  NSCAssert2([self hasPrefix:_prefix],@"'%@' has not the prefix '%@'",self,_prefix);
-  [self deleteCharactersInRange:NSMakeRange(0,[_prefix length])];
+  NSCAssert2([self hasPrefix: _prefix],@"'%@' has not the prefix '%@'",self,_prefix);
+  [self deleteCharactersInRange: NSMakeRange(0,[_prefix length])];
 };
 
 //------------------------------------------------------------------------------
--(void)replaceString:(NSString*)_replace
-		  withString:(NSString*)_by
+-(void)replaceString: (NSString*)_replace
+		  withString: (NSString*)_by
 {
-  NSRange range=[self rangeOfString:_replace];
+  NSRange range=[self rangeOfString: _replace];
   if (range.length>0)
 	{
 	  int byLen=[_by length];
 	  do
 		{
-		  [self replaceCharactersInRange:range
-				withString:_by];
+		  [self replaceCharactersInRange: range
+				withString: _by];
 		  range.location+=byLen;
 		  range.length=[self length]-range.location;
-		  range=[self rangeOfString:_replace
-					  options:0
-					  range:range];
+		  range=[self rangeOfString: _replace
+					  options: 0
+					  range: range];
 		}
 	  while (range.length>0);
 	};

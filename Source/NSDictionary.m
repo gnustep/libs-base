@@ -142,23 +142,21 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionary
 {
-  return [[[self alloc] init] 
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
 }
 
 + dictionaryWithDictionary: (NSDictionary*)otherDictionary
 {
-  return [[[self alloc] initWithDictionary: otherDictionary] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithDictionary: otherDictionary] autorelease];
 }
 
 + dictionaryWithObjects: (id*)objects 
 		forKeys: (id*)keys
 		  count: (unsigned)count
 {
-  return [[[self alloc] initWithObjects: objects
-			forKeys: keys
-			count: count]
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects forKeys: keys count: count] autorelease];
 }
 
 - (unsigned) hash
@@ -274,8 +272,8 @@ static Class NSMutableDictionary_concrete_class;
 	    }
 	}
       NSAssert (argi % 2 == 0, NSInvalidArgumentException);
-      d = [[[self alloc] initWithObjects: objects forKeys: keys
-			    count: num_pairs] autorelease];
+      d = [[[self allocWithZone: NSDefaultMallocZone()]
+	initWithObjects: objects forKeys: keys count: num_pairs] autorelease];
       OBJC_FREE(objects);
       OBJC_FREE(keys);
       return d;
@@ -286,14 +284,14 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
-  return [[[self alloc] initWithObjects: objects forKeys: keys]
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects forKeys: keys] autorelease];
 }
 
 + dictionaryWithObject: (id)object forKey: (id)key
 {
-  return [[[self alloc] initWithObjects: &object forKeys: &key count: 1]
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: &object forKeys: &key count: 1] autorelease];
 }
 
 /* Override superclass's designated initializer */
@@ -346,7 +344,8 @@ static Class NSMutableDictionary_concrete_class;
 {
   NSString 	*myString;
 
-  myString = [[NSString alloc] initWithContentsOfFile: path];
+  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path];
   if (myString)
     {
       id result;
@@ -374,8 +373,8 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionaryWithContentsOfFile: (NSString *)path
 {
-  return [[[self alloc] initWithContentsOfFile: path] 
-	   autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path] autorelease];
 }
 
 - (BOOL) isEqual: other
@@ -418,8 +417,8 @@ static Class NSMutableDictionary_concrete_class;
       NSAssert (k[i], NSInternalInconsistencyException);
     }
   NSAssert (![e nextObject], NSInternalInconsistencyException);
-  return [[[NSArray alloc] initWithObjects: k count: c]
-	  autorelease];
+  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: k count: c] autorelease];
 }
 
 - (NSArray*) allValues
@@ -434,8 +433,8 @@ static Class NSMutableDictionary_concrete_class;
       NSAssert (k[i], NSInternalInconsistencyException);
     }
   NSAssert (![e nextObject], NSInternalInconsistencyException);
-  return [[[NSArray alloc] initWithObjects: k count: c]
-	  autorelease];
+  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: k count: c] autorelease];
 }
 
 - (NSArray*) allKeysForObject: anObject
@@ -449,8 +448,8 @@ static Class NSMutableDictionary_concrete_class;
       a[c++] = k;
   if (c == 0)
     return nil;
-  return [[[NSArray alloc] initWithObjects: a count: c]
-	  autorelease];
+  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: a count: c] autorelease];
 }
 
 struct foo { NSDictionary *d; SEL s; IMP i; };
@@ -717,8 +716,8 @@ static NSString	*indentStrings[] = {
 
 + dictionaryWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity: numItems]
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: numItems] autorelease];
 }
 
 /* Override superclass's designated initializer */

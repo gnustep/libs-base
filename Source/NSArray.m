@@ -92,18 +92,19 @@ static Class NSMutableArray_concrete_class;
 
 + array
 {
-  return [[[self alloc] init] 
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
 }
 
 + arrayWithArray: (NSArray*)array
 {
-  return [[[self alloc] initWithArray: array] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithArray: array] autorelease];
 }
 
 + arrayWithContentsOfFile: (NSString*)file
 {
-  return [[[self alloc] initWithContentsOfFile: file] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: file] autorelease];
 }
 
 + arrayWithObject: anObject
@@ -111,7 +112,8 @@ static Class NSMutableArray_concrete_class;
   if (anObject == nil)
     [NSException raise: NSInvalidArgumentException
 		 format: @"Tried to add nil"];
-  return [[[self alloc] initWithObjects: &anObject count: 1]
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: &anObject count: 1]
 	  autorelease];
 }
 
@@ -206,7 +208,8 @@ static Class NSMutableArray_concrete_class;
 
     [self getObjects: objects];
     objects[c] = anObject;
-    na = [[NSArray alloc] initWithObjects: objects count: c+1];
+    na = [[NSArray allocWithZone: NSDefaultMallocZone()]
+      initWithObjects: objects count: c+1];
   }
   return [na autorelease];
 }
@@ -287,7 +290,8 @@ static Class NSMutableArray_concrete_class;
 {
   NSString 	*myString;
 
-  myString = [[NSString alloc] initWithContentsOfFile: file];
+  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: file];
   if (myString)
     {
       id result = [myString propertyList];
@@ -317,15 +321,16 @@ static Class NSMutableArray_concrete_class;
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[self alloc] initWithObjects: firstObject rest: ap];
+  self = [[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: firstObject rest: ap];
   va_end(ap);
   return [self autorelease];
 }
 
 + arrayWithObjects: (id*)objects count: (unsigned)count
 {
-  return [[[self alloc] initWithObjects: objects count: count]
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects count: count] autorelease];
 }
 
 - initWithArray: (NSArray*)array
@@ -492,7 +497,8 @@ static Class NSMutableArray_concrete_class;
   NSMutableArray	*sortedArray;
   NSArray		*result;
 
-  sortedArray = [[NSMutableArray alloc] initWithArray: self];
+  sortedArray = [[NSMutableArray allocWithZone: NSDefaultMallocZone()]
+    initWithArray: self];
   [sortedArray sortUsingFunction: comparator context: context];
   result = [NSArray arrayWithArray: sortedArray];
   [sortedArray release];
@@ -570,14 +576,14 @@ static Class NSMutableArray_concrete_class;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSArrayEnumerator alloc] initWithArray: self]
-	  autorelease];
+  return [[[NSArrayEnumerator allocWithZone: NSDefaultMallocZone()]
+    initWithArray: self] autorelease];
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return [[[NSArrayEnumeratorReverse alloc] initWithArray: self]
-	  autorelease];
+  return [[[NSArrayEnumeratorReverse allocWithZone: NSDefaultMallocZone()]
+    initWithArray: self] autorelease];
 }
 
 - (NSString*) description
@@ -776,8 +782,8 @@ static NSString	*indentStrings[] = {
 
 + arrayWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity: numItems] 
-	  autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: numItems] autorelease];
 }
 
 - (BOOL)writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile

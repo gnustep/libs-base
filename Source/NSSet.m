@@ -72,37 +72,42 @@ static Class NSMutableSet_concrete_class;
 
 + set
 {
-  return [[[self alloc] init] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
 }
 
 + setWithObjects: (id*)objects 
 	   count: (unsigned)count
 {
-  return [[[self alloc] initWithObjects: objects count: count] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects count: count] autorelease];
 }
 
 + setWithArray: (NSArray*)objects
 {
-  return [[[self alloc] initWithArray: objects] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithArray: objects] autorelease];
 }
 
 + setWithObject: anObject
 {
-  return [[[self alloc] initWithObjects: &anObject count: 1] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: &anObject count: 1] autorelease];
 }
 
 + setWithObjects: firstObject, ...
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[self alloc] initWithObjects: firstObject rest: ap];
+  self = [[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: firstObject rest: ap];
   va_end(ap);
   return [self autorelease];
 }
 
 + setWithSet: (NSSet*)aSet
 {
-  return [[[self alloc] initWithSet: aSet] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithSet: aSet] autorelease];
 }
 
 + allocWithZone: (NSZone*)z
@@ -277,7 +282,8 @@ static Class NSMutableSet_concrete_class;
     {
       k[i] = [e nextObject];
     }
-  return [[[NSArray alloc] initWithObjects: k count: c] autorelease];
+  return [[[NSArray allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: k count: c] autorelease];
 }
 
 - (id) anyObject
@@ -427,7 +433,8 @@ static Class NSMutableSet_concrete_class;
 
 + (id) setWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity: numItems] autorelease];
+  return [[[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: numItems] autorelease];
 }
 
 + (id) allocWithZone: (NSZone*)z

@@ -290,14 +290,14 @@ myEqual(id self, id other)
 
 - (NSEnumerator*) keyEnumerator
 {
-  return [[[NSGDictionaryKeyEnumerator alloc] initWithDictionary: self]
-		autorelease];
+  return [[[NSGDictionaryKeyEnumerator allocWithZone: NSDefaultMallocZone()]
+    initWithDictionary: self] autorelease];
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGDictionaryObjectEnumerator alloc] initWithDictionary: self]
-		autorelease];
+  return [[[NSGDictionaryObjectEnumerator allocWithZone: NSDefaultMallocZone()]
+    initWithDictionary: self] autorelease];
 }
 
 - (id) objectForKey: aKey
