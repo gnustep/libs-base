@@ -272,11 +272,12 @@ GSTypesFromSelector(SEL this)
 
 
 /*
- * Unfortunately the definition of the symbol 'Method'
+ * Unfortunately the definition of the symbol 'Method' "IVar(_t)"
  * is incompatible between the GNU and NeXT/Apple runtimes.
- * We introduce GSMethod to allow portability.
+ * We introduce GSMethod and GSIVar to allow portability.
  */
 typedef struct objc_method *GSMethod;
+typedef struct objc_ivar   *GSIVar;
 
 /**
  * Returns the pointer to the instance method structure
@@ -364,6 +365,31 @@ GSFlushMethodCacheForClass (Class class)
   extern void __objc_update_dispatch_table_for_class (Class);
   __objc_update_dispatch_table_for_class (class);
 }
+
+/**
+ * Returns the pointer to the instance variable structure
+ * for the instance variable name in the specified class.
+ * This function searches the specified class and its superclasses.<br/>
+ * It should be safe to use this function in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_EXPORT GSIVar
+GSCGetInstanceVariableDefinition(Class class, const char *name);
+
+/**
+ * Returns the pointer to the instance variable structure
+ * for the instance variable name in the specified class.
+ * This function searches the specified class and its superclasses.<br/>
+ * It is not necessarily safe to use this function
+ * in +load implementations.<br/>
+ * This function should currently (June 2003) be considered WIP.
+ * Please follow potential changes (Name, parameters, ...) closely until
+ * it stabilizes.
+ */
+GS_EXPORT GSIVar
+GSObjCGetInstanceVariableDefinition(Class class, NSString *name);
 
 
 /**

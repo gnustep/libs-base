@@ -1,3 +1,11 @@
+2003-07-07  David Ayers  <d.ayers@inode.at>
+	
+	* Headers/gnustep/base/GSObjCRuntime.h:
+	* Source/Additions/GSObjCRuntime.m:
+	Added typedef for GSIVar.
+	(GSCGetInstanceVariableDefinition): New function.
+	(GSObjCGetInstanceVariableDefinition): Ditto.
+
 2003-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Source/GSFFCallInvocation.m: gs_objc_msg_forward() trust the
