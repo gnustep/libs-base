@@ -10,9 +10,33 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDate.h>
 
+@interface	ClassOne : NSObject
+@end
+@implementation	ClassOne
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+}
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  return self;
+}
+@end
+@interface	ClassTwo : NSObject
+@end
+@implementation	ClassTwo
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+}
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  return self;
+}
+@end
+
 typedef struct { char a; double b; char c;} tstruct;
 int main()
 {
+  id obj;
   id set;
   id arp;
   id arc;
@@ -97,6 +121,14 @@ printf("%u\n", [arc retainCount]);
     while ((o = [e nextObject]))
       printf("%s\n", [[o description] cString]);    
   }
+
+  obj = [ClassOne new];
+  [NSArchiver archiveRootObject: obj toFile: @"./nsarchiver.dat"];
+  RELEASE(obj);
+  [NSUnarchiver decodeClassName: @"ClassOne" asClassName: @"ClassTwo"];
+  obj = [NSUnarchiver unarchiveObjectWithFile: @"./nsarchiver.dat"];
+  if ([obj isKindOfClass: [ClassTwo class]] == NO)
+    NSLog(@"ERROR: ClassOne decoded as %@", NSStringFromClass([obj class]));
 
 #if 0
 /*
