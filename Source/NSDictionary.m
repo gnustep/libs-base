@@ -382,18 +382,20 @@ static Class NSMutableDictionary_concrete_class;
 {
   NSString 	*myString;
 
-  myString = [[NSString alloc] initWithContentsOfFile:path];
+  myString = [[NSString alloc] initWithContentsOfFile: path];
   if (myString)
     {
       id result = [myString propertyList];
-      if ( [result isKindOfClass: [NSDictionary class]] )
+
+      [myString release];
+      if ([result isKindOfClass: [NSDictionary class]])
 	{
 	  [self initWithDictionary: result];
 	  return self;
 	}
     }
   NSLog(@"Contents of file does not contain a dictionary");
-  [self autorelease];
+  [self release];
   return nil;
 }
 

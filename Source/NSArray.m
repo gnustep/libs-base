@@ -312,18 +312,20 @@ static Class NSMutableArray_concrete_class;
 {
   NSString 	*myString;
 
-  myString = [[NSString alloc] initWithContentsOfFile:file];
+  myString = [[NSString alloc] initWithContentsOfFile: file];
   if (myString)
     {
       id result = [myString propertyList];
-      if ( [result isKindOfClass: [NSArray class]] )
+
+      [myString release];
+      if ([result isKindOfClass: [NSArray class]])
 	{
 	  [self initWithArray: result];
 	  return self;
 	}
     }
   NSLog(@"Contents of file does not contain an array");
-  [self dealloc];
+  [self release];
   return nil;
 }
 
