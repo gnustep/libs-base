@@ -1,5 +1,5 @@
 /* archiving class for serialization and persistance.
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: March 1995
@@ -114,7 +114,7 @@ static Class NSArchiver_concrete_class;
   return [[self _concreteClass] classNameEncodedForTrueClassName: trueName];
 }
 
-- (void) enocdeClassName: (NSString*)trueName
+- (void) encodeClassName: (NSString*)trueName
    intoClassName: (NSString*)inArchiveName
 {
   [self subclassResponsibility:_cmd];
