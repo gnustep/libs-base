@@ -34,35 +34,37 @@
 + (void) initialize
 {
   if (self == [NSCoder class])
-    behavior_class_add_class (self, [NSCoderNonCore class]);
+    {
+      behavior_class_add_class (self, [NSCoderNonCore class]);
+    }
 }
 
 - (void) encodeValueOfObjCType: (const char*)type
-   at: (const void*)address
+			    at: (const void*)address
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) decodeValueOfObjCType: (const char*)type
-   at: (void*)address
+			    at: (void*)address
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) encodeDataObject: (NSData*)data
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (NSData*) decodeDataObject
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (unsigned int) versionForClassName: (NSString*)className
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return NSNotFound;
 }
 
@@ -73,79 +75,87 @@
 // Encoding Data
 
 - (void) encodeArrayOfObjCType: (const char*)type
-   count: (unsigned)count
-   at: (const void*)array
+			 count: (unsigned)count
+			    at: (const void*)array
 {
-  int i, size = objc_sizeof_type(type);
-  const char *where = array;
-  IMP imp = [self methodForSelector:@selector(encodeValueOfObjCType:at:)];
+  unsigned	i;
+  unsigned	size = objc_sizeof_type(type);
+  const char	*where = array;
+  IMP		imp;
 
+  imp = [self methodForSelector: @selector(encodeValueOfObjCType:at:)];
   for (i = 0; i < count; i++, where += size)
-    (*imp)(self, @selector(encodeValueOfObjCType:at:), type, where);
+    {
+      (*imp)(self, @selector(encodeValueOfObjCType:at:), type, where);
+    }
 }
 
 - (void) encodeBycopyObject: (id)anObject
 {
-  [self encodeObject:anObject];
+  [self encodeObject: anObject];
 }
 
 - (void) encodeByrefObject: (id)anObject
 {
-  [self encodeObject:anObject];
+  [self encodeObject: anObject];
 }
 
 - (void) encodeBytes: (void*)d length: (unsigned)l
 {
-  const char *type = @encode(unsigned char);
-  const unsigned char *where = (const unsigned char*)d;
-  IMP imp = [self methodForSelector:@selector(encodeValueOfObjCType:at:)];
+  const char		*type = @encode(unsigned char);
+  const unsigned char	*where = (const unsigned char*)d;
+  IMP			imp;
 
+  imp = [self methodForSelector: @selector(encodeValueOfObjCType:at:)];
   (*imp)(self, @selector(encodeValueOfObjCType:at:),
-		@encode(unsigned), &l);
+    @encode(unsigned), &l);
   while (l-- > 0)
     (*imp)(self, @selector(encodeValueOfObjCType:at:), type, where++);
 }
 
 - (void) encodeConditionalObject: (id)anObject
 {
-  [self encodeObject:anObject];
+  [self encodeObject: anObject];
 }
 
 - (void) encodeObject: (id)anObject
 {
-  [self encodeValueOfObjCType:@encode(id) at: &anObject];
+  [self encodeValueOfObjCType: @encode(id) at: &anObject];
 }
 
 - (void) encodePropertyList: (id)plist
 {
   id    anObject = plist ? [NSSerializer serializePropertyList: plist] : nil;
+
   [self encodeValueOfObjCType: @encode(id) at: &anObject];
 }
 
 - (void) encodePoint: (NSPoint)point
 {
-  [self encodeValueOfObjCType:@encode(NSPoint) at:&point];
+  [self encodeValueOfObjCType: @encode(NSPoint) at: &point];
 }
 
 - (void) encodeRect: (NSRect)rect
 {
-  [self encodeValueOfObjCType:@encode(NSRect) at:&rect];
+  [self encodeValueOfObjCType: @encode(NSRect) at: &rect];
 }
 
 - (void) encodeRootObject: (id)rootObject
 {
-  [self encodeObject:rootObject];
+  [self encodeObject: rootObject];
 }
 
 - (void) encodeSize: (NSSize)size
 {
-  [self encodeValueOfObjCType:@encode(NSSize) at:&size];
+  [self encodeValueOfObjCType: @encode(NSSize) at: &size];
 }
 
 - (void) encodeValuesOfObjCTypes: (const char*)types,...
 {
-  va_list ap;
-  IMP imp = [self methodForSelector:@selector(encodeValueOfObjCType:at:)];
+  va_list	ap;
+  IMP		imp;
+
+  imp = [self methodForSelector: @selector(encodeValueOfObjCType:at:)];
   va_start(ap, types);
   while (*types)
     {
@@ -159,32 +169,41 @@
 // Decoding Data
 
 - (void) decodeArrayOfObjCType: (const char*)type
-   count: (unsigned)count
-   at: (void*)address
+			 count: (unsigned)count
+			    at: (void*)address
 {
-  int i, size = objc_sizeof_type(type);
-  char *where = address;
-  IMP imp = [self methodForSelector:@selector(decodeValueOfObjCType:at:)];
+  unsigned	i;
+  unsigned	size = objc_sizeof_type(type);
+  char		*where = address;
+  IMP		imp;
+
+  imp = [self methodForSelector: @selector(decodeValueOfObjCType:at:)];
 
   for (i = 0; i < count; i++, where += size)
-    (*imp)(self, @selector(decodeValueOfObjCType:at:), type, where);
+    {
+      (*imp)(self, @selector(decodeValueOfObjCType:at:), type, where);
+    }
 }
 
 - (void*) decodeBytesWithReturnedLength: (unsigned*)l
 {
-  unsigned count;
-  const char *type = @encode(unsigned char);
-  unsigned char *where;
-  unsigned char *array;
-  IMP imp = [self methodForSelector:@selector(decodeValueOfObjCType:at:)];
+  unsigned	count;
+  const char	*type = @encode(unsigned char);
+  unsigned char	*where;
+  unsigned char	*array;
+  IMP		imp;
+
+  imp = [self methodForSelector: @selector(decodeValueOfObjCType:at:)];
 
   (*imp)(self, @selector(decodeValueOfObjCType:at:),
-	@encode(unsigned), &count);
+    @encode(unsigned), &count);
   *l = count;
   array = NSZoneMalloc(NSDefaultMallocZone(), count);
   where = array;
   while (count-- > 0)
-    (*imp)(self, @selector(decodeValueOfObjCType:at:), type, where++);
+    {
+      (*imp)(self, @selector(decodeValueOfObjCType:at:), type, where++);
+    }
 
   [NSData dataWithBytesNoCopy: array length: count];
   return array;
@@ -192,57 +211,66 @@
 
 - (id) decodeObject
 {
-  id o;
-  [self decodeValueOfObjCType:@encode(id) at:&o];
-  return [o autorelease];
+  id	o;
+
+  [self decodeValueOfObjCType: @encode(id) at: &o];
+  return AUTORELEASE(o);
 }
 
 - (id) decodePropertyList
 {
-  id o;
-  id d;
+  id	o;
+  id	d;
+
   [self decodeValueOfObjCType: @encode(id) at: &d];
-  if (d)
+  if (d != nil)
     {
       o = [NSDeserializer deserializePropertyListFromData: d
                                         mutableContainers: NO];
-      [d release];
+      RELEASE(d);
     }
   else
-    o = nil;
+    {
+      o = nil;
+    }
   return o;
 }
 
 - (NSPoint) decodePoint
 {
-  NSPoint point;
-  [self decodeValueOfObjCType:@encode(NSPoint) at:&point];
+  NSPoint	point;
+
+  [self decodeValueOfObjCType: @encode(NSPoint) at: &point];
   return point;
 }
 
 - (NSRect) decodeRect
 {
-  NSRect rect;
-  [self decodeValueOfObjCType:@encode(NSRect) at:&rect];
+  NSRect	rect;
+
+  [self decodeValueOfObjCType: @encode(NSRect) at: &rect];
   return rect;
 }
 
 - (NSSize) decodeSize
 {
-  NSSize size;
-  [self decodeValueOfObjCType:@encode(NSSize) at:&size];
+  NSSize	size;
+
+  [self decodeValueOfObjCType: @encode(NSSize) at: &size];
   return size;
 }
 
 - (void) decodeValuesOfObjCTypes: (const char*)types,...
 {
-  va_list ap;
-  IMP imp = [self methodForSelector:@selector(decodeValueOfObjCType:at:)];
+  va_list	ap;
+  IMP		imp;
+
+  imp = [self methodForSelector: @selector(decodeValueOfObjCType:at:)];
   va_start(ap, types);
   while (*types)
     {
       (*imp)(self, @selector(decodeValueOfObjCType:at:),
-		types, va_arg(ap, void*));
+	types, va_arg(ap, void*));
       types = objc_skip_typespec(types);
     }
   va_end(ap);
@@ -265,8 +293,8 @@
 
 - (unsigned int) systemVersion;
 {
-  return (((GNUSTEP_BASE_MAJOR_VERSION * 100) +
-	GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
+  return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
+    + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
 }
 
 @end
