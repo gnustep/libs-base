@@ -222,7 +222,7 @@ static int debug_binary_coder = 0;
 
     case _C_FLT:
       {
-	volatile double value;
+	double value;
 	int exponent, mantissa;
 	short exponent_encoded;
 
@@ -243,7 +243,7 @@ static int debug_binary_coder = 0;
 
     case _C_DBL:
       {
-	volatile double value;
+	double value;
 	int exponent, mantissa1, mantissa2;
 	short exponent_encoded;
 
@@ -385,7 +385,8 @@ static int debug_binary_coder = 0;
       {
 	short exponent;
 	int mantissa;
-	volatile double value;
+	double value;
+
 	/* Decode the exponent and mantissa. */
 	READ_SIGNED_TYPE (&exponent, short, ntohs);
 	READ_SIGNED_TYPE (&mantissa, int, ntohl);
@@ -401,7 +402,8 @@ static int debug_binary_coder = 0;
       {
 	short exponent;
 	int mantissa1, mantissa2;
-	volatile double value;
+	double value;
+
 	/* Decode the exponent and the two pieces of the mantissa. */
 	READ_SIGNED_TYPE (&exponent, short, ntohs);
 	READ_SIGNED_TYPE (&mantissa1, int, ntohl);
