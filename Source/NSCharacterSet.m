@@ -99,6 +99,7 @@ static NSLock* cache_lock = nil;
       NS_HANDLER
 	[cache_lock unlock];
         [localException raise];
+	abort (); /* quiet warnings about `set' clobbered by longjmp. */
       NS_ENDHANDLER
     }
   else
