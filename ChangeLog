@@ -1,3 +1,9 @@
+1999-08-08  Manuel Guesdon  <mguesdon@sbuilders.com>
+
+	* Source/NSGString.m (stringIncrementCountAndMakeHoleAt and stringDecrementCountAndFillHoleAt): 
+	Added a test for null length/size. 
+	Added NSCAssert on index/size/count/capacity
+	
 1999-08-05  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSLock.m ([NSConditionLock -lockWhenCondition:beforeDate:]): 
