@@ -33,6 +33,15 @@ Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
  	Use NSBundle's pathForResource:ofType:inDirectory method properly.
   	(Reported by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>.)
 
+Fri Apr 25 01:30:00 1997  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSBundle.m:
+	Added missing methods to conform to OpenStep spec, also added
+	[+ pathForResource:ofType:inDirectory:]
+
+	* src/include/NSBundle.h:
+	Added missing methods to conform to OpenStep spec.
+
 Thu Apr 24 10:30:00 1997  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/Makefile.in: Added stuff to build and install the name

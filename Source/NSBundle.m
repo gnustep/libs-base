@@ -274,6 +274,27 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return [[[NSBundle alloc] initWithPath: path] autorelease];
 }
 
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath
+{
+    return [self pathForResource:name
+			  ofType:ext
+		     inDirectory:bundlePath
+		     withVersion:0];
+}
+
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath
+		withVersion: (int)version
+{
+    NSBundle*	bundle = [NSBundle bundleWithPath:bundlePath];
+
+    [bundle setBundleVersion:version];
+    return [bundle pathForResource:name ofType:ext inDirectory:nil];
+}
+
 - initWithPath:(NSString *)path;
 {
   struct stat statbuf;
@@ -669,6 +690,19 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   else
     _infoDict = [[NSDictionary dictionary] retain];
   return _infoDict;
+}
+
+- (unsigned)bundleVersion
+{
+  return _version;
+}
+
+/* Since I don't know how version numbers should behave - the version
+   number is not used. (FIXME)
+*/
+- (void)setBundleVersion:(unsigned)version
+{
+  _version = version;
 }
 
 @end

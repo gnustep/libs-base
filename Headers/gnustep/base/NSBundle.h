@@ -43,17 +43,27 @@ extern NSString* NSLoadedClasses;
     unsigned int _retainCount;
     unsigned int _bundleType;
     BOOL	_codeLoaded;
+    unsigned int _version;
 }
 
 + (NSBundle *) mainBundle;
 + (NSBundle *) bundleForClass: (Class)aClass;
 + (NSBundle *) bundleWithPath: (NSString *)path;
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath
+		withVersion: (int)version;
 - initWithPath: (NSString *)path;
 - (NSString *) bundlePath;
 - (Class) classNamed: (NSString *)className;
 - (Class) principalClass;
+- (unsigned) bundleVersion;
+- (void) setBundleVersion: (unsigned)version;
 
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
+		inDirectory: (NSString *)bundlePath;
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath;
 + (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
