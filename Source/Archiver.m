@@ -25,10 +25,11 @@
 #include <objects/Archiver.h>
 #include <assert.h>
 
-/* Eventually some functionality may be moved out of Coder and
-   into these objects.
+/* Eventually some functionality may be moved out of Encoder and
+   Decoder and into these objects.
 
-   These class should be used as concrete classes, not the Coder class. */
+   These class should be used as concrete classes, not the Coder,
+   Encoder or Decoder classes. */
 
 @implementation Archiver
 @end
