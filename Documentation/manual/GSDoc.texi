@@ -4,7 +4,10 @@
 @appendix The GNUstep Documentation System
 @cindex gsdoc
 
-The GNUstep documentation markup language (GSdoc) is an XML language designed
+GNUstep includes its own documentation system for producing HTML, PDF, and
+other readable documents for developers and users.  (It also includes
+facilities for ``Help'' accessed within applications, but these are not
+covered here.)  It is based on @i{GSdoc}, an XML language designed
 specifically for writing documentation for the @uref{http://www.gnustep.org,
 GNUstep project}.  In practice, that means that it is designed for writing
 about software, and in particular, for writing about Objective-C classes.
@@ -88,6 +91,25 @@ Usually this is put into a separate makefile called ``@code{DocMakeFile}'' in
 the source directory.
 
 
+@section Cross-Referencing
+
+GSdoc provides the ability to reference entities both within the project and
+in external projects.  When writing GSdoc comments in source code, references
+are particularly easy to create.  To refer to an argument of the method or
+function you are documenting, just type it normally; it will be presented in a
+special type face in the final documentation to show it is an argument.  To
+refer to another method within the same class you are documenting, just type
+its selector with the + or - sign in front.  This will be converted into a
+hyperlink in output forms that support that.  To refer to another class, you
+just type the class's name in [Brackets].  To refer to a method in another
+class, put the method selector after the name, as in
+[Class-methodWithArg1:andArg2:] (do not include a space).  To refer to a
+protocol, use [(BracketsAndParentheses)] instead of just brackets.  To refer
+to a category, use [Class(Category)].  For methods in these two cases, put the
+method name outside the parentheses.  To refer to a function, simply type its
+name suffixed by parentheses().
+
+
 @section Comment the Interface or the Implementation?
 
 Since @code{autogsdoc} picks up comments both from interface/header files and
@@ -98,8 +120,8 @@ source) will be able to generate the documentation.  The header file carries
 all of the specification for the class's behavior.  On the other hand, if you
 put the comments in the implementation, then people editing the source code
 will have the method descriptions handy when they need them.  If @i{autogsdoc}
-finds comments for the same entity in both interface and implementation, the
-version in the implementation file ``wins''.
+finds comments for the same entity in both interface and implementation, they
+are concatenated in the result.
 
 Nonetheless, the recommendation of this author is that you put the comments
 in the header, since this is more within the spirit of Objective-C, where the
@@ -111,15 +133,8 @@ The HTML output from all of these systems is roughly comparable.  In terms of
 and comments needed in the source code to produce good class documentation,
 the GSdoc / autogsdoc system aims for maximal simplicity.  In practice,
 requiring lots of special formatting makes developers less likely to document
-things.  For example, to refer to an argument of the method or function you
-are documenting, just type it normally.  To refer to another method within the
-same class you are documenting, just type its selector with the + or - sign in
-front.  No need to enclose it in special markup.  To refer to another class in
-documentation, you just type the class's name in [Brackets].  To refer to a
-method in another class, put the method selector after the name, as in [Class
--methodWithArg1:andArg2:].  To refer to a protocol, use
-[(BracketsAndParentheses)] instead of just brackets.  To refer to a function,
-simply type its name suffixed by parentheses().
+things, therefore, as described above, GSdoc does not require it, letting the
+parser do the work instead of the person.
 
 In terms of non-HTML output formats and control over the HTML format, these
 are not provided with GSdoc, yet, but there are plans to provide them through
