@@ -51,12 +51,12 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 
 @interface NSAutoreleasePool (Private)
-- _parentAutoreleasePool;
+- (id) _parentAutoreleasePool;
 - (unsigned) autoreleaseCount;
-- (unsigned) autoreleaseCountForObject: anObject;
-+ (unsigned) autoreleaseCountForObject: anObject;
-+ currentPool;
-- (void) _setChildPool: pool;
+- (unsigned) autoreleaseCountForObject: (id)anObject;
++ (unsigned) autoreleaseCountForObject: (id)anObject;
++ (id) currentPool;
+- (void) _setChildPool: (id)pool;
 @end
 
 
@@ -108,7 +108,7 @@ static IMP	initImp;
     }
 }
 
-+ allocWithZone: (NSZone*)zone
++ (id) allocWithZone: (NSZone*)zone
 {
   /* If there is an already-allocated NSAutoreleasePool available,
      save time by just returning that, rather than allocating a new one. */
@@ -119,7 +119,7 @@ static IMP	initImp;
   return NSAllocateObject (self, 0, zone);
 }
 
-+ new
++ (id) new
 {
   id arp = (*allocImp)(self, @selector(allocWithZone:), NSDefaultMallocZone());
   return (*initImp)(arp, @selector(init));
@@ -166,13 +166,13 @@ static IMP	initImp;
   return self;
 }
 
-- (void) _setChildPool: pool
+- (void) _setChildPool: (id)pool
 {
   _child = pool;
 }
 
 /* This method not in OpenStep */
-- _parentAutoreleasePool
+- (id) _parentAutoreleasePool
 {
   return _parent;
 }
@@ -191,7 +191,7 @@ static IMP	initImp;
 }
 
 /* This method not in OpenStep */
-- (unsigned) autoreleaseCountForObject: anObject
+- (unsigned) autoreleaseCountForObject: (id)anObject
 {
   unsigned count = 0;
   struct autorelease_array_list *released = _released_head;
@@ -210,7 +210,7 @@ static IMP	initImp;
 /* This method not in OpenStep */
 /* xxx This count should be made for *all* threads, but currently is 
    only madefor the current thread! */
-+ (unsigned) autoreleaseCountForObject: anObject
++ (unsigned) autoreleaseCountForObject: (id)anObject
 {
   unsigned count = 0;
   id pool = ARP_THREAD_VARS->current_pool;
@@ -222,12 +222,12 @@ static IMP	initImp;
   return count;
 }
 
-+ currentPool
++ (id) currentPool
 {
   return ARP_THREAD_VARS->current_pool;
 }
 
-+ (void) addObject: anObj
++ (void) addObject: (id)anObj
 {
   NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
 
@@ -246,7 +246,7 @@ static IMP	initImp;
     }
 }
 
-- (void) addObject: anObj
+- (void) addObject: (id)anObj
 {
   /* If the global, static variable AUTORELEASE_ENABLED is not set,
      do nothing, just return. */
@@ -383,7 +383,7 @@ static IMP	initImp;
   [super dealloc];
 }
 
-- autorelease
+- (id) autorelease
 {
   [NSException raise: NSGenericException
 	       format: @"Don't call `-autorelease' on a NSAutoreleasePool"];

@@ -4,6 +4,8 @@
 	([-initWithData:encoding]) create UTF strings as 8-bit strings if
 	they actually only contain ascii characters.
 	* Source/GSXML.m: Create strings from UTF8 data throughout.
+	* Headers/gnustep/base/NSObject.h: (CREATE_AUTORELEASE_POOL) use +new
+	to avoid a message despatch overhead (combine allocWithZone and init).
 
 2000-09-29  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -52,7 +54,7 @@
 
 	* Source/NSURLHandle.m: ([-addClient:]) ensure that clients are only
 	recorded once.
-	* Documentation/gsdoc/NSURLHandle.gsdoc: fless out descriptions and
+	* Documentation/gsdoc/NSURLHandle.gsdoc: flesh out descriptions and
 	add type and protocol information.
 
 2000-09-24  Adam Fedor  <fedor@gnu.org>

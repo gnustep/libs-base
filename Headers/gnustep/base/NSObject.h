@@ -392,7 +392,7 @@ if (__value != (id)object) \
 
 #ifndef	CREATE_AUTORELEASE_POOL
 #define	CREATE_AUTORELEASE_POOL(X)	\
-  NSAutoreleasePool *(X) = [[NSAutoreleasePool alloc] init]
+  NSAutoreleasePool *(X) = [NSAutoreleasePool new]
 #endif
 
 /*
@@ -403,7 +403,7 @@ if (__value != (id)object) \
 #ifndef RECREATE_AUTORELEASE_POOL
 #define RECREATE_AUTORELEASE_POOL(X)  \
   if (X == nil) \
-    (X) = [[NSAutoreleasePool alloc] init]
+    (X) = [NSAutoreleasePool new]
 #endif
 
 #define	IF_NO_GC(X)	X
