@@ -62,8 +62,12 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 - (id) init
 {
-  return [self initForWritingWithMutableData:
-    [[_fastCls._NSMutableDataMalloc allocWithZone: [self zone]] init]];
+  NSMutableData	*d;
+
+  d = [[_fastCls._NSMutableDataMalloc allocWithZone: fastZone(self)] init];
+  self = [self initForWritingWithMutableData: d];
+  RELEASE(d);
+  return self;
 }
 
 - (id) initForWritingWithMutableData: (NSMutableData*)anObject
