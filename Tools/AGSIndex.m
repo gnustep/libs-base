@@ -32,6 +32,8 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
   static NSMutableArray	*stack = nil;
   NSEnumerator	*e = [src keyEnumerator];
   NSString	*k;
+  id		s;
+  id		d;
 
   if (stack == nil)
     {
@@ -39,8 +41,12 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
     }
   while ((k = [e nextObject]) != nil)
     {
-      id	s = [src objectForKey: k];
-      id	d = [dst objectForKey: k];
+      if ([k isEqualToString: @"contents"] == YES)
+	{
+	  continue;	// Makes no sense to merge file contents.
+	}
+      s = [src objectForKey: k];
+      d = [dst objectForKey: k];
 
       [stack addObject: k];
       if (d == nil)
@@ -195,6 +201,13 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
 	  [self setGlobalRef: unit type: name];
 	}
+      else if ([name isEqual: @"chapter"] == YES)
+	{
+	  chap++;
+	  sect = 0;
+	  ssect = 0;
+	  sssect = 0;
+	}
       else if ([name isEqual: @"class"] == YES)
 	{
 	  NSString		*tmp;
@@ -218,6 +231,24 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	      return;
 	    }
 	}
+      else if ([name isEqual: @"heading"] == YES)
+	{
+	  NSMutableDictionary	*d;
+	  NSString		*k;
+
+	  d = [refs objectForKey: @"contents"];
+	  if (d == nil)
+	    {
+	      d = [[NSMutableDictionary alloc] initWithCapacity: 8];
+	      [refs setObject: d forKey: @"contents"];
+	      RELEASE(d);
+	    }
+
+          k = [NSString stringWithFormat: @"%03u%03u%03u%03u",
+	    chap, sect, ssect, sssect];
+	  [d setObject: [[children content] stringByTrimmingSpaces] forKey: k];
+	  children = nil;
+	}
       else if ([name isEqual: @"ivariable"] == YES)
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
@@ -231,7 +262,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  NSString		*text;
 	  NSString		*val;
 
-	  text = [children content];
+	  text = [[children content] stringByTrimmingSpaces];
 	  children = nil;
 	  all = [refs objectForKey: name];
 	  if (all == nil)
@@ -281,7 +312,8 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      sel = [sel stringByAppendingString: [t content]];
+			      sel = [sel stringByAppendingString:
+				[[t content] stringByTrimmingSpaces]];
 			    }
 			  t = [t next];
 			}
@@ -323,6 +355,21 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
 	  [self setGlobalRef: tmp type: name];
+	}
+      else if ([name isEqual: @"section"] == YES)
+	{
+	  sect++;
+	  ssect = 0;
+	  sssect = 0;
+	}
+      else if ([name isEqual: @"subsect"] == YES)
+	{
+	  ssect++;
+	  sssect = 0;
+	}
+      else if ([name isEqual: @"subsubsect"] == YES)
+	{
+	  sssect++;
 	}
       else
 	{

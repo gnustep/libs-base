@@ -323,7 +323,11 @@ static BOOL snuggleStart(NSString *t)
 
   // Output document forward if available.
   tmp = [info objectForKey: @"front"];
-  if (tmp != nil)
+  if (tmp == nil)
+    {
+      [self reformat: @"<front><contents /></front>" withIndent: 4 to: str];
+    }
+  else
     {
       [self reformat: tmp withIndent: 4 to: str];
     }
