@@ -30,9 +30,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#ifdef	HAVE_FLOAT_H
-#include <float.h>
-#endif
+#include "GNUstepBase/GSLock.h"
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -299,7 +297,6 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
 static NSMapTable *targetToCached = NULL;
 static NSLock	*cached_proxies_gate = nil;
 
-static BOOL	multi_threaded = NO;
 
 
 
@@ -309,46 +306,6 @@ static BOOL	multi_threaded = NO;
  * different threads.
  */
 @implementation NSConnection
-
-/*
- *	When the system becomes multithreaded, we set a flag to say so and
- *	make sure that connection locking is enabled.
- */
-+ (void) _becomeThreaded: (NSNotification*)notification
-{
-  if (multi_threaded == NO)
-    {
-      NSHashEnumerator	enumerator;
-      NSConnection		*c;
-
-      multi_threaded = YES;
-      if (connection_table_gate == nil)
-	{
-	  connection_table_gate = [NSLock new];
-	}
-      if (cached_proxies_gate == nil)
-	{
-	  cached_proxies_gate = [NSLock new];
-	}
-      if (root_object_map_gate == nil)
-	{
-	  root_object_map_gate = [NSLock new];
-	}
-      enumerator = NSEnumerateHashTable(connection_table);
-      while ((c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
-	{
-	  if (c->_refGate == nil)
-	    {
-	      c->_refGate = [NSRecursiveLock new];
-	    }
-	}
-      NSEndHashTableEnumeration(&enumerator);
-    }
-  [[NSNotificationCenter defaultCenter]
-    removeObserver: self
-	      name: NSWillBecomeMultiThreadedNotification
-	    object: nil];
-}
 
 /**
  * Returns an array containing all the NSConnection objects known to
@@ -551,17 +508,18 @@ static BOOL	multi_threaded = NO;
       root_object_map =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
-      if ([NSThread isMultiThreaded])
+
+      if (connection_table_gate == nil)
 	{
-	  [self _becomeThreaded: nil];
+	  connection_table_gate = [GSLazyLock new];
 	}
-      else
+      if (cached_proxies_gate == nil)
 	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_becomeThreaded:)
-		   name: NSWillBecomeMultiThreadedNotification
-		 object: nil];
+	  cached_proxies_gate = [GSLazyLock new];
+	}
+      if (root_object_map_gate == nil)
+	{
+	  root_object_map_gate = [GSLazyLock new];
 	}
     }
 }
@@ -904,10 +862,7 @@ static BOOL	multi_threaded = NO;
 
   _requestDepth = 0;
   _delegate = nil;
-  if (multi_threaded == YES)
-    {
-      _refGate = [NSRecursiveLock new];
-    }
+  _refGate = [GSLazyRecursiveLock new];
 
   /*
    * Some attributes are inherited from the parent if possible.
