@@ -228,7 +228,7 @@ static inline unsigned long long
 NSSwapLongLong(unsigned long long in)
 {
     union swap {
-	unsigned long	num;
+	unsigned long long	num;
 	unsigned char	byt[8];
     } dst;
     union swap	*src = (union swap*)&in;
