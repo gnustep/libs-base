@@ -908,6 +908,8 @@ if (0) {
     }
   else 
     {
+      timeout.tv_sec = -1;
+      timeout.tv_usec = -1;
       select_timeout = NULL;
     }
 
@@ -1017,6 +1019,8 @@ if (0) {
       timeout.tv_usec = 0;
       select_timeout = &timeout;
     }
+
+  // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
 
   select_return = select (fdEnd, &read_fds, &write_fds,
     &exception_fds, select_timeout);

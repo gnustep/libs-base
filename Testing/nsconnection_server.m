@@ -457,8 +457,10 @@ int main(int argc, char *argv[], char **env)
 	exit(0);
 	break;
       default:
+#if 0
 	usage(argv[0]);
 	exit(1);
+#endif
 	break;
       }
 
