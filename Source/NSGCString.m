@@ -708,11 +708,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 /*
  *	NXConstantString overrides [-dealloc] so that it is never deallocated.
- *	If we pass an NXConstantString to another process it will never get
- *	deallocated in the other process - causing a memory leak.  So we tell
- *	the DO system to use the super class instead.
+ *	If we pass an NXConstantString to another process or record it in an
+ *	archive and readi it back, the new copy will never be deallocated -
+ *	causing a memory leak.  So we tell the system to use the super class.
  */
-- (Class)classForPortCoder
+- (Class)classForCoder
 {
   return [self superclass];
 }
