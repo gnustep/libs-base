@@ -316,7 +316,8 @@ static NSFileManager* defaultManager = nil;
 	{
 	  if (cur == len)
 	    {
-	      ASSIGN(_lastError, @"Could not create directory - already exists");
+	      ASSIGN(_lastError,
+		@"Could not create directory - already exists");
 	      return NO;
 	    }
 	}
@@ -1307,6 +1308,16 @@ static NSFileManager* defaultManager = nil;
 
 // Converting file-system representations
 
+/**
+ * Convert from OpenStep internal path format (unix-style) to a string in
+ * the local filesystem format, suitable for passing to system functions.<br />
+ * Under unix, this simply standardizes the path and converts to a
+ * C string.<br />
+ * Under windoze, this attempts to use local conventions to convert to a
+ * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
+ * be used to indicate a windoze drive specification by using the drive
+ * letter in place of the username.
+ */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
 #ifdef __MINGW__
@@ -1314,15 +1325,25 @@ static NSFileManager* defaultManager = nil;
    * If path is in Unix format, transmogrify it so Windows functions
    * can handle it
    */  
-  NSString	*newpath = path;
-  const char	*c_path = [path cString];
-  int		l = [path length];
+  NSString	*newpath;
+  const char	*c_path;
+  int		l;
+
+  path = [path stringByStandardizingPath];
+  newpath = path;
+  c_path = [path cString];
+  l = strlen(c_path);
 
   if (c_path == 0)
     {
       return 0;
     }
-  if (l >= 3 && c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
+  if (l >= 3 && c_path[0] == '~' && c_path[2] == '/' && isalpha(c_path[1]))
+    {
+      newpath = [NSString stringWithFormat: @"%c:%s", c_path[1],
+	    &c_path[2]];
+    }
+  else if (l >= 3 && c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
     {
       if (l == 3 || c_path[3] == '/')
         {
@@ -1387,16 +1408,25 @@ static NSFileManager* defaultManager = nil;
   newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
   return [newpath cString];
 #else
-  return [path cString];
+  return [[path stringByStandardizingPath] cString];
 #endif
 }
 
+/**
+ * This method converts from a local system specific filename representation
+ * to the internal OpenStep representation (unix-style).  This should be used
+ * whenever a filename is read in from the local system.<br />
+ * In GNUstep, windoze drive specifiers are encoded in the internal path
+ * using the conventuional unix syntax of '~user/...' where the drive letter
+ * is used instead of a username.
+ */
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len
 {
 #ifdef __MINGW__
   char		buf[len + 20];
   unsigned	i;
+  unsigned	j;
 
   /*
    * If path is in Windows format, transmogrify it so Unix functions
@@ -1409,57 +1439,56 @@ static NSFileManager* defaultManager = nil;
   if (len >= 2 && string[1] == ':' && isalpha(string[0]))
     {
       /*
-       * Convert '<driveletter>:' to '/<driveletter>/' sequences on MSYS
-       * or '/cygdrive/<driveletter>/' on CYGWIN
+       * Convert '<driveletter>:' to '~<driveletter>/' sequences.
        */
-#ifdef	__CYGWIN__
-      strcpy(buf, "/cygdrive/");
-      buf[10] = string[0];
-      buf[11] = '/';
-      string -= 9;
-      len += 9;
-      i = 11;
-#else
-      buf[0] = '/';
+      buf[0] = '~';
       buf[1] = string[0];
       buf[2] = '/';
       string--;
       len++;
       i = 3;
-#endif
     }
+#ifdef	__CYGWIN__
+  else if (len > 9 && strncmp(string, "/cygdrive/", 10) == 0)
+    {
+      buf[0] = '~';
+      string += 9;
+      len -= 9;
+      i = 1;
+   }
+#endif
   else
     {
       i = 0;
     }
   /*
-   * Convert backslashes to slashes.
+   * Convert backslashes to slashes, colaescing adjacent slashses.
+   * Also elide '/./' sequences, because we can do so efficiently.
    */
+  j = i;
   while (i < len)
     {
       if (string[i] == '\\')
 	{
-	  buf[i] = '/';
+	  if (j == 0 || buf[j-1] != '/')
+	    {
+	      if (j > 2 && buf[j-2] == '/' && buf[j-1] == '.')
+		{
+		  j--;
+		}
+	      else
+		{
+		  buf[j++] = '/';
+		}
+	    }
 	}
       else
 	{
-	  buf[i] = string[i];
+	  buf[j++] = string[i];
 	}
       i++;
     }
-  /*
-   * Coalesce multiple slashes into a single one.
-   */
-  for (i = 1; i < len; i++)
-    {
-      if (buf[i] == '/' && buf[i - 1] == '/')
-	{
-	  len--;
-	  memmove(&buf[i], &buf[i+1], len - i);
-	  i--;
-	}
-    }
-  return [NSString stringWithCString: buf length: len];
+  return [NSString stringWithCString: buf length: j];
 #endif
   return [NSString stringWithCString: string length: len];
 }

@@ -1,3 +1,12 @@
+2002-04-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Standardise handling for windoze drive
+	specifiers in file paths.
+	* Source/NSUser.m: Use ([-stringWithFileSystemRepresentation:length:])
+	when importing file names.
+	* Source/NSString.m: Update all path handling methods for windoze 
+	changes.  Fix several bugs where we did not conform to documentation.
+
 2002-04-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Port

@@ -64,6 +64,30 @@ static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
 static void	setupPathNames();
 static NSString	*userDirectory(NSString *name, BOOL defaults);
 
+static NSString*
+ImportPath(NSString *s, const char *c)
+{
+  static NSFileManager	*mgr = nil;
+  const char		*ptr = c;
+  unsigned		len;
+
+  if (mgr == nil)
+    {
+      mgr = [NSFileManager defaultManager];
+      RETAIN(mgr);
+    }
+  if (ptr == 0)
+    {
+      if (s == nil)
+	{
+	  return nil;
+	}
+      ptr = [s cString];
+    }
+  len = strlen(ptr);
+  return [mgr stringWithFileSystemRepresentation: ptr length: len]; 
+}
+
 /**
  * Sets the user name for this process.  This method is supplied to enable
  * setuid programs to run properly as the user indicated by their effective
@@ -227,7 +251,6 @@ NSHomeDirectoryForUser(NSString *loginName)
   pw = getpwnam ([loginName cString]);
   if (pw == 0)
     {
-      NSLog(@"Unable to locate home directory for '%@'", loginName);
       s = nil;
     }
   else
@@ -235,7 +258,6 @@ NSHomeDirectoryForUser(NSString *loginName)
       s = [NSString stringWithCString: pw->pw_dir];
     }
   [gnustep_global_lock unlock];
-  return s;
 #else
   /* Then environment variable HOMEPATH holds the home directory
      for the user on Windows NT; Win95 has no concept of home. */
@@ -247,8 +269,8 @@ NSHomeDirectoryForUser(NSString *loginName)
         stringByAppendingString: s];
     }
   [gnustep_global_lock unlock];
-  return s;
 #endif
+  return ImportPath(s, 0);
 }
 
 /**
@@ -274,6 +296,7 @@ setupPathNames()
 {
 #if defined (__MINGW32__)
   NSString *systemDrive = GSStringFromWin32EnvironmentVariable("SystemDrive");
+  systemDrive = ImportPath(systemDrive, 0);
 #endif
   if (gnustep_user_root == nil)
     {
@@ -289,6 +312,7 @@ setupPathNames()
 	    {
 	      /* Any of the following might be nil */
 	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+	      gnustep_system_root = ImportPath(gnustep_system_root, 0);
 	      TEST_RETAIN (gnustep_system_root);
 	      if (gnustep_system_root == nil)
 		{
@@ -298,13 +322,12 @@ setupPathNames()
 		   * resources.  Use fprintf to avoid recursive calls.
 		   */
 		  warned = YES;
-		  gnustep_system_root = [NSString stringWithCString:
-					  stringify(GNUSTEP_INSTALL_PREFIX)];
+		  gnustep_system_root
+		    = ImportPath(nil, stringify(GNUSTEP_INSTALL_PREFIX));
 #if defined (__MINGW32__)
                   gnustep_system_root = [systemDrive stringByAppendingString:
                                           gnustep_system_root];
 #endif
-
 		  RETAIN(gnustep_system_root);
 		  fprintf (stderr, 
 		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
@@ -314,19 +337,24 @@ setupPathNames()
 	  if (gnustep_local_root == nil)
 	    {
 	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+	      gnustep_local_root = ImportPath(gnustep_local_root, 0);
 	      TEST_RETAIN (gnustep_local_root);
 	      if (gnustep_local_root == nil)
 		{
-		  gnustep_local_root = [NSString stringWithCString:
-					  stringify(GNUSTEP_LOCAL_ROOT)];
+		  gnustep_local_root = ImportPath(nil,
+					  stringify(GNUSTEP_LOCAL_ROOT));
 #if defined (__MINGW32__)
                   gnustep_local_root = [systemDrive stringByAppendingString:
                                          gnustep_local_root];
 #endif
 		  if ([gnustep_local_root length] == 0)
-		    gnustep_local_root = nil;
+		    {
+		      gnustep_local_root = nil;
+		    }
 		  else
-		    RETAIN(gnustep_local_root);
+		    {
+		      RETAIN(gnustep_local_root);
+		    }
 		}
 	      if (gnustep_local_root == nil)
 		{
@@ -357,19 +385,24 @@ setupPathNames()
 	    {
 	      gnustep_network_root = [env objectForKey: 
 		@"GNUSTEP_NETWORK_ROOT"];
+	      gnustep_network_root = ImportPath(gnustep_network_root, 0);
 	      TEST_RETAIN (gnustep_network_root);
 	      if (gnustep_network_root == nil)
 		{
-		  gnustep_network_root = [NSString stringWithCString:
-					  stringify(GNUSTEP_NETWORK_ROOT)];
+		  gnustep_network_root = ImportPath(nil, 
+					  stringify(GNUSTEP_NETWORK_ROOT));
 #if defined (__MINGW32__)
                   gnustep_network_root = [systemDrive stringByAppendingString:
                                            gnustep_network_root];
 #endif
 		  if ([gnustep_network_root length] == 0)
-		    gnustep_network_root = nil;
+		    {
+		      gnustep_network_root = nil;
+		    }
 		  else
-		    RETAIN(gnustep_network_root);
+		    {
+		      RETAIN(gnustep_network_root);
+		    }
 		}
 	      if (gnustep_network_root == nil)
 		{
@@ -454,13 +487,13 @@ userDirectory(NSString *name, BOOL defaults)
   if (defaults == YES)
     {
 #ifdef	FORCE_DEFAULTS_ROOT
-      return [NSString stringWithCString: stringify(FORCE_DEFAULTS_ROOT)];
+      return ImportPath(nil, stringify(FORCE_DEFAULTS_ROOT));
 #endif
     }
   else
     {
 #ifdef	FORCE_USER_ROOT
-      return [NSString stringWithCString: stringify(FORCE_USER_ROOT)];
+      return ImportPath(nil, stringify(FORCE_USER_ROOT));
 #endif
     }
 
@@ -476,10 +509,11 @@ userDirectory(NSString *name, BOOL defaults)
     {
       NSString	*root;
 
-      root = [NSString stringWithCString: stringify(GNUSTEP_INSTALL_PREFIX)];
+      root = ImportPath(nil, stringify(GNUSTEP_INSTALL_PREFIX));
 #if defined (__MINGW32__)
       root = [GSStringFromWin32EnvironmentVariable("SystemDrive")
 	stringByAppendingString: gnustep_system_root];
+      root = ImportPath(root, 0);
 #endif
       file = [root stringByAppendingPathComponent: @".GNUsteprc"];
     }
@@ -551,7 +585,7 @@ userDirectory(NSString *name, BOOL defaults)
       path = [home stringByAppendingPathComponent: @"GNUstep"];
     }
 
-  return path;
+  return ImportPath(path, 0);
 }
 
 /** Returns an array of strings which contain paths that should be in
@@ -573,16 +607,30 @@ GSStandardPathPrefixes(void)
   prefixes = [env objectForKey: @"GNUSTEP_PATHPREFIX_LIST"];
   if (prefixes != nil)
     {
+      unsigned	c;
+
 #if	defined(__WIN32__)
       prefixArray = [prefixes componentsSeparatedByString: @";"];
 #else
       prefixArray = [prefixes componentsSeparatedByString: @":"];
 #endif
-      if ([prefixArray count] <= 1)
+      if ((c = [prefixArray count]) <= 1)
 	{
 	  /* This probably means there was some parsing error, but who
 	     knows. Play it safe though... */
 	  prefixArray = nil;
+	}
+      else
+	{
+	  NSString	*a[c];
+	  unsigned	i;
+
+	  [prefixArray getObjects: a];
+	  for (i = 0; i < c; i++)
+	    {
+	      a[c] = ImportPath(a[c], 0);
+	    }
+	  prefixArray = [NSArray arrayWithObjects: a count: c];
 	}
     }
   if (prefixes == nil)
@@ -659,7 +707,7 @@ NSTemporaryDirectory(void)
 
   if (GetTempPath(1024, buffer))
     {
-      baseTempDirName = [NSString stringWithCString: buffer];
+      baseTempDirName = ImportPath(nil, buffer);
     }
 #endif
 
@@ -678,8 +726,12 @@ NSTemporaryDirectory(void)
 	  baseTempDirName = [env objectForKey: @"TMP"];
 	  if (baseTempDirName == nil)
 	    {
-#if	defined(__WIN32__)
-	      baseTempDirName = @"C:\\";
+#if	defined(__MINGW__)
+#ifdef  __CYGWIN__
+	      baseTempDirName = @"/cygdrive/c/";
+#else
+	      baseTempDirName = @"/c/";
+#endif
 #else
 	      baseTempDirName = @"/tmp";
 #endif
@@ -752,11 +804,21 @@ NSOpenStepRootDirectory(void)
   root = [[[NSProcessInfo processInfo] environment]
     objectForKey: @"GNUSTEP_ROOT"];
   if (root == nil)
+    {
 #if	defined(__MINGW__)
-    root = @"C:\\";
+#ifdef  __CYGWIN__
+      root = @"/cygdrive/c/";
 #else
-    root = @"/";
+      root = @"/c/";
 #endif
+#else
+      root = @"/";
+#endif
+    }
+  else
+    {
+      root = ImportPath(root, 0);
+    }
   return root;
 }
 

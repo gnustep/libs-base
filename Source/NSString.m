@@ -1,6 +1,6 @@
 /** Implementation of GNUSTEP string class
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
 
@@ -16,7 +16,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -28,12 +28,12 @@
 
    <title>NSString class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
-/* Caveats: 
+/* Caveats:
 
    Some implementations will need to be changed.
-   Does not support all justification directives for `%@' in format strings 
+   Does not support all justification directives for `%@' in format strings
    on non-GNU-libc systems.
 */
 
@@ -128,7 +128,7 @@ static void setupHexdigits()
     {
       NSCharacterSet *hexdigits;
       NSData *bitmap;
-      
+
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789abcdefABCDEF"];
       bitmap = RETAIN([hexdigits bitmapRepresentation]);
@@ -196,20 +196,14 @@ static void setupWhitespace()
 static id	GSPropertyList(NSString *string);
 static id	GSPropertyListFromStringsFormat(NSString *string);
 
-#if defined(__MINGW__)
-static unichar		pathSepChar = (unichar)'\\';
-static NSString		*pathSepString = @"\\";
-static NSString		*rootPath = @"C:\\";
-#else
-static unichar		pathSepChar = (unichar)'/';
-static NSString		*pathSepString = @"/";
-static NSString		*rootPath = @"/";
-#endif
-
 static NSCharacterSet	*myPathSeps = nil;
 /*
- *	We can't have a 'pathSeps' variable initialized in the +initialize
- *	method 'cos that would cause recursion.
+ * The pathSeps character set is used for parsing paths ... it *must*
+ * contain the '/' character, which is the internal path separator,
+ * and *may* contain additiona system specific separators.
+ *
+ * We can't have a 'pathSeps' variable initialized in the +initialize
+ * method 'cos that would cause recursion.
  */
 static NSCharacterSet*
 pathSeps()
@@ -232,9 +226,9 @@ pathSepMember(unichar c)
 
 #if defined(__MINGW__)
   if (c == (unichar)'\\' || c == (unichar)'/')
-#else 
+#else
   if (c == (unichar)'/')
-#endif 
+#endif
     {
       return YES;
     }
@@ -273,8 +267,8 @@ static NSRange  lowSurrogateRange = {0xDC00, 1024};
 #include <printf.h>
 #include <stdarg.h>
 
-/* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this 
-   flag PRINTF_ATSIGN_VA_LIST should be 0, but for me, with libc-5.0.9, 
+/* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this
+   flag PRINTF_ATSIGN_VA_LIST should be 0, but for me, with libc-5.0.9,
    it crashes.  -mccallum
 
    Apparently GNU libc 2.xx needs this to be 0 also, along with Linux
@@ -295,7 +289,7 @@ arginfo_func (const struct printf_info *info, size_t n, int *argtypes)
 #endif /* !PRINTF_ATSIGN_VA_LIST */
 
 static int
-handle_printf_atsign (FILE *stream, 
+handle_printf_atsign (FILE *stream,
 		      const struct printf_info *info,
 #if PRINTF_ATSIGN_VA_LIST
 		      va_list *ap_pointer)
@@ -312,7 +306,7 @@ handle_printf_atsign (FILE *stream,
   id string_object;
   int len;
 
-  /* xxx This implementation may not pay pay attention to as much 
+  /* xxx This implementation may not pay pay attention to as much
      of printf_info as it should. */
 
 #if PRINTF_ATSIGN_VA_LIST
@@ -366,8 +360,8 @@ handle_printf_atsign (FILE *stream,
       placeholderLock = [NSLock new];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
-      if (register_printf_function ('@', 
-				    handle_printf_atsign, 
+      if (register_printf_function ('@',
+				    handle_printf_atsign,
 #if PRINTF_ATSIGN_VA_LIST
 				    0))
 #else
@@ -650,7 +644,7 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithCString: (const char*)byteString
 {
-  return [self initWithCString: byteString 
+  return [self initWithCString: byteString
     length: (byteString ? strlen(byteString) : 0)];
 }
 
@@ -812,8 +806,8 @@ handle_printf_atsign (FILE *stream,
   {
     /* We need a local copy since we change it.  (Changing and undoing
        the change doesn't work because some format strings are constant
-       strings, placed in a non-writable section of the executable, and 
-       writing to them will cause a segfault.) */ 
+       strings, placed in a non-writable section of the executable, and
+       writing to them will cause a segfault.) */
     char format_cp_copy[format_len+1];
     char *atsign_pos;	     /* points to a location inside format_cp_copy */
     char *format_to_go = format_cp_copy;
@@ -829,7 +823,7 @@ handle_printf_atsign (FILE *stream,
       {
         const char *cstring;
         char *formatter_pos; // Position for formatter.
-        
+
         /* If there is a "%%@", then do the right thing: print it literally. */
         if ((*(atsign_pos-1) == '%')
             && atsign_pos != format_cp_copy)
@@ -870,7 +864,7 @@ handle_printf_atsign (FILE *stream,
         while ((formatter_pos = strchr(format_to_go, '%')))
           {
             char *spec_pos; // Position of conversion specifier.
-            
+
             if (*(formatter_pos+1) == '%')
               {
                 format_to_go = formatter_pos+2;
@@ -881,28 +875,28 @@ handle_printf_atsign (FILE *stream,
               {
 #ifndef powerpc
 	      /* FIXME: vsprintf on powerpc apparently advances the arg list
-             so this doesn't need to be done. Make a more general check 
+             so this doesn't need to be done. Make a more general check
              for this */
-              case 'd': case 'i': case 'o': 
-              case 'x': case 'X': case 'u': case 'c': 
+              case 'd': case 'i': case 'o':
+              case 'x': case 'X': case 'u': case 'c':
                 va_arg(arg_list, int);
                 break;
-              case 's': 
+              case 's':
                 if (*(spec_pos - 1) == '*')
                   va_arg(arg_list, int*);
                 va_arg(arg_list, char*);
                 break;
-              case 'f': case 'e': case 'E': case 'g': case 'G': 
+              case 'f': case 'e': case 'E': case 'g': case 'G':
                 va_arg(arg_list, double);
                 break;
-              case 'p': 
+              case 'p':
                 va_arg(arg_list, void*);
                 break;
-              case 'n': 
+              case 'n':
                 va_arg(arg_list, int*);
                 break;
 #endif /* NOT powerpc */
-              case '\0': 
+              case '\0':
                 spec_pos--;
                 break;
               }
@@ -961,7 +955,7 @@ handle_printf_atsign (FILE *stream,
       }
   }
 #else /* HAVE_VSPRINTF */
-  /* The available libc has `register_printf_function()', so the `%@' 
+  /* The available libc has `register_printf_function()', so the `%@'
      printf directive is handled by printf and friends. */
   printed_len = VASPRINTF_LENGTH (vasprintf (&buf, format_cp, arg_list));
 
@@ -992,8 +986,8 @@ handle_printf_atsign (FILE *stream,
   {
     /* We need a local copy since we change it.  (Changing and undoing
        the change doesn't work because some format strings are constant
-       strings, placed in a non-writable section of the executable, and 
-       writing to them will cause a segfault.) */ 
+       strings, placed in a non-writable section of the executable, and
+       writing to them will cause a segfault.) */
     char format_cp_copy[format_len+1];
     char *atsign_pos;	     /* points to a location inside format_cp_copy */
     char *format_to_go = format_cp_copy;
@@ -1028,28 +1022,28 @@ handle_printf_atsign (FILE *stream,
 	      {
 #ifndef powerpc
 	      /* FIXME: vsprintf on powerpc apparently advances the arg list
-	      so this doesn't need to be done. Make a more general check 
+	      so this doesn't need to be done. Make a more general check
 	      for this */
-	      case 'd': case 'i': case 'o': 
-	      case 'x': case 'X': case 'u': case 'c': 
+	      case 'd': case 'i': case 'o':
+	      case 'x': case 'X': case 'u': case 'c':
 		(void)va_arg(arg_list, int);
 		break;
-	      case 's': 
+	      case 's':
 		if (*(spec_pos - 1) == '*')
 		  (void)va_arg(arg_list, int*);
 		(void)va_arg(arg_list, char*);
 		break;
-	      case 'f': case 'e': case 'E': case 'g': case 'G': 
+	      case 'f': case 'e': case 'E': case 'g': case 'G':
 		(void)va_arg(arg_list, double);
 		break;
-	      case 'p': 
+	      case 'p':
 		(void)va_arg(arg_list, void*);
 		break;
-	      case 'n': 
+	      case 'n':
 		(void)va_arg(arg_list, int*);
 		break;
 #endif /* NOT powerpc */
-	      case '\0': 
+	      case '\0':
 		spec_pos--;
 		break;
 	      }
@@ -1069,7 +1063,7 @@ handle_printf_atsign (FILE *stream,
 					      format_to_go, arg_list));
   }
 #else
-  /* The available libc has `register_printf_function()', so the `%@' 
+  /* The available libc has `register_printf_function()', so the `%@'
      printf directive is handled by printf and friends. */
   printed_len = VSPRINTF_LENGTH (vsprintf (buf, format_cp, arg_list));
 #endif /* !HAVE_REGISTER_PRINTF_FUNCTION */
@@ -1104,11 +1098,11 @@ handle_printf_atsign (FILE *stream,
       /*
        * We can only create an internal C string if the default C string
        * encoding is Ok, and the specified encoding matches it.
-       */ 
+       */
       s = NSZoneMalloc(GSObjCZone(self), len);
       [data getBytes: s];
       self = [self initWithCStringNoCopy: s length: len freeWhenDone: YES];
-    } 
+    }
   else if (encoding == NSUTF8StringEncoding)
     {
       const char	*bytes = [data bytes];
@@ -1339,7 +1333,7 @@ handle_printf_atsign (FILE *stream,
   id		ret;
 
   va_start(ap, format);
-  ret = [self stringByAppendingString: 
+  ret = [self stringByAppendingString:
     [NSString stringWithFormat: format arguments: ap]];
   va_end(ap);
   return ret;
@@ -1382,7 +1376,7 @@ handle_printf_atsign (FILE *stream,
 
       search = NSMakeRange (found.location + found.length,
 	complete.length - found.location - found.length);
-      found = [self rangeOfString: separator 
+      found = [self rangeOfString: separator
 			  options: 0
 			    range: search];
     }
@@ -1573,10 +1567,10 @@ handle_printf_atsign (FILE *stream,
   return [self compare: aString options: 0];
 }
 
-- (NSComparisonResult) compare: (NSString*)aString	
+- (NSComparisonResult) compare: (NSString*)aString
 		       options: (unsigned int)mask
 {
-  return [self compare: aString options: mask 
+  return [self compare: aString options: mask
 		 range: ((NSRange){0, [self length]})];
 }
 
@@ -1717,7 +1711,7 @@ handle_printf_atsign (FILE *stream,
 	}
       else
 	{
-	  while (*s1 && *s2 && (*s1 == *s2))	     
+	  while (*s1 && *s2 && (*s1 == *s2))
 	    {
 	      s1++;
 	      s2++;
@@ -1863,13 +1857,13 @@ handle_printf_atsign (FILE *stream,
 	      thischar = (*caiImp)(self, caiSel, start);
 	      switch (thischar)
 		{
-		  case (unichar)0x000A: 
-		  case (unichar)0x000D: 
-		  case (unichar)0x2028: 
-		  case (unichar)0x2029: 
+		  case (unichar)0x000A:
+		  case (unichar)0x000D:
+		  case (unichar)0x2028:
+		  case (unichar)0x2029:
 		    done = YES;
 		    break;
-		  default: 
+		  default:
 		    start--;
 		    break;
 		}
@@ -1881,13 +1875,13 @@ handle_printf_atsign (FILE *stream,
 	      thischar = (*caiImp)(self, caiSel, start);
 	      switch (thischar)
 		{
-		  case (unichar)0x000A: 
-		  case (unichar)0x000D: 
-		  case (unichar)0x2028: 
-		  case (unichar)0x2029: 
+		  case (unichar)0x000A:
+		  case (unichar)0x000D:
+		  case (unichar)0x2028:
+		  case (unichar)0x2029:
 		    start++;
 		    break;
-		  default: 
+		  default:
 		    break;
 		}
 	    }
@@ -1909,13 +1903,13 @@ handle_printf_atsign (FILE *stream,
 	   thischar = (*caiImp)(self, caiSel, end);
 	   switch (thischar)
 	     {
-	       case (unichar)0x000A: 
-	       case (unichar)0x000D: 
-	       case (unichar)0x2028: 
-	       case (unichar)0x2029: 
+	       case (unichar)0x000A:
+	       case (unichar)0x000D:
+	       case (unichar)0x2028:
+	       case (unichar)0x2029:
 		 done = YES;
 		 break;
-	       default: 
+	       default:
 		 break;
 	     }
 	   end++;
@@ -2120,7 +2114,7 @@ handle_printf_atsign (FILE *stream,
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 {
-  [self getCString: buffer maxLength: maxLength 
+  [self getCString: buffer maxLength: maxLength
 	     range: ((NSRange){0, [self length]})
     remainingRange: NULL];
 }
@@ -2180,7 +2174,7 @@ handle_printf_atsign (FILE *stream,
 
 - (BOOL) boolValue
 {
-  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame) 
+  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
     return YES;
   return [self intValue] != 0 ? YES : NO;
 }
@@ -2416,9 +2410,9 @@ handle_printf_atsign (FILE *stream,
 // Manipulating File System Paths
 
 - (unsigned int) completePathIntoString: (NSString**)outputName
-		      caseSensitive: (BOOL)flag
-		   matchesIntoArray: (NSArray**)outputArray
-			filterTypes: (NSArray*)filterTypes
+			  caseSensitive: (BOOL)flag
+		       matchesIntoArray: (NSArray**)outputArray
+			    filterTypes: (NSArray*)filterTypes
 {
   NSString	*base_path = [self stringByDeletingLastPathComponent];
   NSString	*last_compo = [self lastPathComponent];
@@ -2461,8 +2455,8 @@ handle_printf_atsign (FILE *stream,
       match_count++;
       if (outputArray != NULL)
 	[*op addObject: tmp_path];
-      
-      if ((outputName != NULL) && 
+
+      if ((outputName != NULL) &&
 	((*outputName == nil) || (([*outputName length] < [tmp_path length]))))
 	*outputName = tmp_path;
     }
@@ -2480,7 +2474,7 @@ handle_printf_atsign (FILE *stream,
     {
       fm = RETAIN([NSFileManager defaultManager]);
     }
-  
+
   return [fm fileSystemRepresentationWithPath: self];
 }
 
@@ -2494,64 +2488,54 @@ handle_printf_atsign (FILE *stream,
   return YES;
 }
 
-/* Returns a new string containing the last path component of the receiver. The
-   path component is any substring after the last '/' character. If the last
-   character is a '/', then the substring before the last '/', but after the
-   second-to-last '/' is returned. Returns the receiver if there are no '/'
-   characters. Returns the null string if the receiver only contains a '/'
-   character. */
+/**
+ * Returns a string containing the last path component of the receiver.<br />
+ * The path component is the last non-empty substring delimited by the ends
+ * of the string or by path * separator ('/') characters.<br />
+ * If the receiver is an empty string, it is simply returned.<br />
+ * If there are no non-empty substrings, the root string is returned.
+ */
 - (NSString*) lastPathComponent
 {
-  NSRange range;
-  NSString *substring = nil;
+  NSString	*substring;
+  unsigned int	l = [self length];
 
-  range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
-  if (range.length == 0)
+  if (l == 0)
     {
-      substring = AUTORELEASE([self copy]);
-    }
-  else if (range.location == ([self length] - 1))
-    {
-      if (range.location == 0)
-	{
-	  substring = @"";
-	}
-      else
-	{
-	  substring = [[self substringToIndex: range.location] 
-	    lastPathComponent];
-	}
+      substring = self;		// self is empty
     }
   else
     {
-      substring = [self substringFromIndex: range.location + 1];
-    }
+      NSRange	range;
 
-  return substring;
-}
-
-/* Returns a new string containing the path extension of the receiver. The
-   path extension is a suffix on the last path component which starts with
-   a '.' (for example .tiff is the pathExtension for /foo/bar.tiff). Returns
-   a null string if no such extension exists. */
-- (NSString*) pathExtension
-{
-  NSRange range;
-  NSString *substring = nil;
-
-  range = [self rangeOfString: @"." options: NSBackwardsSearch];
-  if (range.length == 0) 
-    {
-      substring = nil;
-    }
-  else
-    {
-      NSRange range2 = [self rangeOfCharacterFromSet: pathSeps()
-					     options: NSBackwardsSearch];
-
-      if (range2.length > 0 && range.location < range2.location)
+      range = [self rangeOfCharacterFromSet: pathSeps()
+				    options: NSBackwardsSearch];
+      if (range.length == 0)
 	{
-	  substring = nil;
+	  substring = self;		// No '/' in self
+	}
+      else if (range.location == (l - 1))
+	{
+	  if (range.location == 0)
+	    {
+	      substring = self;		// Just '/'
+	    }
+	  else
+	    {
+	      l = range.location;
+	      while (l > 0 && [self characterAtIndex: l - 1] == '/')
+		{
+		  l--;
+		}
+	      if (l > 0)
+		{
+		  substring = [[self substringToIndex: l] lastPathComponent];
+		}
+	      else
+		{
+		  substring = @"/";	// Multiple '/' characters.
+		}
+	    }
 	}
       else
 	{
@@ -2559,14 +2543,47 @@ handle_printf_atsign (FILE *stream,
 	}
     }
 
-  if (substring == nil)
-    {
-      substring = @"";
-    }
   return substring;
 }
 
-/* Returns a new string with the path component given in aString
+/**
+ * Returns a new string containing the path extension of the receiver.<br />
+ * The path extension is a suffix on the last path component which starts
+ * with the extension separator (a '.') (for example .tiff is the
+ * pathExtension for /foo/bar.tiff).<br />
+ * Returns an empty string if no such extension exists.
+ */
+- (NSString*) pathExtension
+{
+  NSRange	range;
+  NSString	*substring;
+  unsigned int	length = [self length];
+
+  /*
+   * Step past trailing path separators.
+   */
+  while (length > 1 && pathSepMember([self characterAtIndex: length-1]) == YES)
+    {
+      length--;
+    }
+  range = NSMakeRange(0, length);
+  range = [self rangeOfString: @"." options: NSBackwardsSearch range: range];
+  if (range.length == 0)
+    {
+      substring = @"";
+    }
+  else
+    {
+      range.location++;
+      range.length = length - range.location;
+      substring = [self substringFromRange: range];
+    }
+
+  return substring;
+}
+
+/**
+ * Returns a new string with the path component given in aString
  * appended to the receiver.
  * Removes trailing separators and multiple separators.
  */
@@ -2577,11 +2594,15 @@ handle_printf_atsign (FILE *stream,
   unichar	buf[length+aLength+1];
 
   [self getCharacters: buf];
+  while (length > 1 && pathSepMember(buf[length-1]) == YES)
+    {
+      length--;
+    }
   if (aLength > 0)
     {
-      if (length > 0)
+      if (length > 0 && pathSepMember(buf[length-1]) == NO)
 	{
-	  buf[length++] = pathSepChar;
+	  buf[length++] = '/';
 	}
       [aString getCharacters: &buf[length]];
     }
@@ -2592,14 +2613,8 @@ handle_printf_atsign (FILE *stream,
     }
   if (length > 0)
     {
-#if defined(__MINGW__)
-#define _PATH_SEARCH_END 1
-#else
-#define _PATH_SEARCH_END 0
-#endif
       aLength = length - 1;
-      while (aLength > _PATH_SEARCH_END)
-#undef _PATH_SEARCH_END
+      while (aLength > 0)
 	{
 	  if (pathSepMember(buf[aLength]) == YES)
 	    {
@@ -2620,42 +2635,91 @@ handle_printf_atsign (FILE *stream,
   return [NSStringClass stringWithCharacters: buf length: length];
 }
 
-/* Returns a new string with the path extension given in aString
-   appended to the receiver.
-   A '.' is appended before appending aString */
+/**
+ * Returns a new string with the path extension given in aString
+ * appended to the receiver after the extensionSeparator ('.').<br />
+ * If the receiver has trailing '/' characters which are not part of the
+ * root directory, those '/' characters are stripped before the extension
+ * separator is added.
+ */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString
 {
   if ([aString length] == 0)
-    return [self stringByAppendingString: @"."];
+    {
+      return [self stringByAppendingString: @"."];
+    }
   else
-    return [self stringByAppendingFormat: @".%@", aString];
+    {
+      unsigned	length = [self length];
+      unsigned	len = length;
+      NSString	*base = self;
+
+      /*
+       * Step past trailing path separators.
+       */
+      while (len > 1 && pathSepMember([self characterAtIndex: len-1]) == YES)
+	{
+	  len--;
+	}
+      if (length != len)
+	{
+	  NSRange	range = NSMakeRange(0, len);
+
+	  base = [base substringFromRange: range];
+	}
+      return [base stringByAppendingFormat: @".%@", aString];
+    }
 }
 
-/* Returns a new string with the last path component removed from the
-  receiver.  See lastPathComponent for a definition of a path component */
+/**
+ * Returns a new string with the last path component (including any final
+ * path separators) removed from the receiver.<br />
+ * A string without a path component other than the root is returned
+ * without alteration.<br />
+ * See -lastPathComponent for a definition of a path component.
+ */
 - (NSString*) stringByDeletingLastPathComponent
 {
-  NSRange range;
-  NSString *substring;
+  NSRange	range;
+  NSString	*substring;
+  unsigned int	length = [self length];
 
-  range = [self rangeOfString: [self lastPathComponent] 
-		      options: NSBackwardsSearch];
+  /*
+   * Step past trailing path separators.
+   */
+  while (length > 1 && pathSepMember([self characterAtIndex: length-1]) == YES)
+    {
+      length--;
+    }
+  range = NSMakeRange(0, length);
 
+  /*
+   * Locate path separator preceeding last path component.
+   */
+  range = [self rangeOfCharacterFromSet: pathSeps()
+				options: NSBackwardsSearch
+				  range: range];
   if (range.length == 0)
-    substring = AUTORELEASE([self copy]);
+    {
+      substring = @"";
+    }
   else if (range.location == 0)
-    substring = @"";
-  else if (range.location > 1)
-    substring = [self substringToIndex: range.location-1];
+    {
+      substring = @"/";
+    }
   else
-    substring = pathSepString;
+    {
+      substring = [self substringToIndex: range.location];
+    }
   return substring;
 }
 
-/*
- * Returns a new string with the path extension removed from the receiver.
+/**
+ * Returns a new string with the path extension removed from the receiver.<br />
  * Strips any trailing path separators before checking for the extension
- * separator.
+ * separator.<br />
+ * Does not consider a string starting with the extension separator ('.') to
+ * be a path extension.
  */
 - (NSString*) stringByDeletingPathExtension
 {
@@ -2697,17 +2761,27 @@ handle_printf_atsign (FILE *stream,
   return substring;
 }
 
+/**
+ * Returns a string created by expanding the initial tilde ('~') and any
+ * following username to be the home directory of the current user or the
+ * named user.<br />
+ * Returns the receiver if it was not possible to expand it.
+ */
 - (NSString*) stringByExpandingTildeInPath
 {
   NSString	*homedir;
   NSRange	first_slash_range;
-  
-  if ([self length] == 0)
-    return AUTORELEASE([self copy]);
-  if ([self characterAtIndex: 0] != 0x007E)
-    return AUTORELEASE([self copy]);
 
-  first_slash_range = [self rangeOfString: pathSepString];
+  if ([self length] == 0)
+    {
+      return self;
+    }
+  if ([self characterAtIndex: 0] != 0x007E)
+    {
+      return self;
+    }
+
+  first_slash_range = [self rangeOfCharacterFromSet: pathSeps()];
 
   if (first_slash_range.location != 1)
     {
@@ -2733,19 +2807,35 @@ handle_printf_atsign (FILE *stream,
       /* It is of the form `~/blah/...' */
       homedir = NSHomeDirectory ();
     }
-  
-  return [NSStringClass stringWithFormat: @"%@%@", homedir, 
-    [self substringFromIndex: first_slash_range.location]];
+  if (homedir != nil)
+    {
+      return [NSStringClass stringWithFormat: @"%@%@", homedir,
+	[self substringFromIndex: first_slash_range.location]];
+    }
+  else
+    {
+      return self;
+    }
 }
 
+/**
+ * Returns a string where a prefix of the current user's home directory is
+ * abbreviated by '~', or returns the receiver if it was not found to have
+ * the home directory as a prefix.
+ */
 - (NSString*) stringByAbbreviatingWithTildeInPath
 {
-  NSString *homedir = NSHomeDirectory ();
+  NSString	*homedir = NSHomeDirectory ();
 
   if (![self hasPrefix: homedir])
-    return AUTORELEASE([self copy]);
-
-  return [NSStringClass stringWithFormat: @"~%c%@", (char)pathSepChar,
+    {
+      return self;
+    }
+  if ([self length] == [homedir length])
+    {
+      return @"~";
+    }
+  return [NSStringClass stringWithFormat: @"~/%@",
     [self substringFromIndex: [homedir length] + 1]];
 }
 
@@ -2753,7 +2843,7 @@ handle_printf_atsign (FILE *stream,
 {
 #if defined(__MINGW__)
   return self;
-#else 
+#else
   #ifndef MAX_PATH
   #define MAX_PATH 1024
   #endif
@@ -2900,7 +2990,7 @@ handle_printf_atsign (FILE *stream,
 	strcpy(new_buf, &new_buf[8]);
     }
   return [NSStringClass stringWithCString: new_buf];
-#endif  /* (__MINGW__) */  
+#endif  /* (__MINGW__) */
 }
 
 /**
@@ -2939,18 +3029,7 @@ handle_printf_atsign (FILE *stream,
       if (r.location + r.length + 1 <= length
 	&& pathSepMember((*caiImp)(s, caiSel, r.location + 1)) == YES)
 	{
-#if defined(__MINGW__)
-	   if (r.location)
-	     {
-	       [s deleteCharactersInRange: r];
-	     }
-	   else
-	     {
-	       r.location++;
-	     }
-#else
 	  [s deleteCharactersInRange: r];
-#endif /* (__MINGW__) */
 	}
       else if (r.location + r.length + 2 <= length
 	&& (*caiImp)(s, caiSel, r.location + 1) == (unichar)'.'
@@ -3060,8 +3139,12 @@ handle_printf_atsign (FILE *stream,
 	}
     }
   return blen;
-} 
+}
 
+/**
+ * Concatenates the strings in the components array placing a path
+ * separator between each one and returns the result.
+ */
 + (NSString*) pathWithComponents: (NSArray*)components
 {
   NSString	*s;
@@ -3074,9 +3157,9 @@ handle_printf_atsign (FILE *stream,
       return @"";
     }
   s = [components objectAtIndex: 0];
-  if ([s length] == 0 || [s isEqualToString: pathSepString] == YES)
+  if ([s length] == 0)
     {
-      s = rootPath;
+      s = @"/";
     }
   for (i = 1; i < c; i++)
     {
@@ -3085,48 +3168,39 @@ handle_printf_atsign (FILE *stream,
   return s;
 }
 
+/*
+ * Returs YES if the receiver represents an absolute path ... ie if it begins
+ * with a '/' or a '~'<br />
+ * Returns NO otherwise.
+ */
 - (BOOL) isAbsolutePath
 {
+  unichar	c;
+
   if ([self length] == 0)
     {
       return NO;
     }
+  c = [self characterAtIndex: 0];
 #if defined(__MINGW__)
-  if ([self indexOfString: @":"] == NSNotFound)
-    {
-      const char *cpath = [self fileSystemRepresentation];
-
-      if (isalpha(cpath[0]) && cpath[1] == ':')
-	{
-	  return YES;
-	}
-      else if (cpath[0] == cpath[1]
-	&& (cpath[0] == '/' || cpath[0] == '\\'))
-	{
-	  return YES;
-	}
-      else
-	{
-	  return NO;
-	}
-    }
-  else
+  if (isalpha(c) && [self indexOfString: @":"] == 1)
     {
       return YES;
     }
-#else
-  {
-    unichar	c = [self characterAtIndex: 0];
-
-    if (c == (unichar)'/' || c == (unichar)'~')
-      {
-	return YES;
-      }
-  }
 #endif
+  if (c == (unichar)'/' || c == (unichar)'~')
+    {
+      return YES;
+    }
   return NO;
 }
 
+/**
+ * Returns the path components of the reciever separated into an array.<br />
+ * If the receiver begins with a '/' character then that is used as the
+ * first element in the array.<br />
+ * Empty components are removed.
+ */
 - (NSArray*) pathComponents
 {
   NSMutableArray	*a;
@@ -3136,7 +3210,7 @@ handle_printf_atsign (FILE *stream,
     {
       return [NSArray array];
     }
-  a = [[self componentsSeparatedByString: pathSepString] mutableCopy];
+  a = [[self componentsSeparatedByString: @"/"] mutableCopy];
   if ([a count] > 0)
     {
       int	i;
@@ -3148,7 +3222,7 @@ handle_printf_atsign (FILE *stream,
        */
       if ([[a objectAtIndex: 0] length] == 0)
 	{
-	  [a replaceObjectAtIndex: 0 withObject: pathSepString];
+	  [a replaceObjectAtIndex: 0 withObject: @"/"];
 	}
       /*
        * Similarly if the path ended with a path separator (other than the
@@ -3158,7 +3232,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  if ([self length] > 1)
 	    {
-	      [a replaceObjectAtIndex: [a count]-1 withObject: pathSepString];
+	      [a replaceObjectAtIndex: [a count]-1 withObject: @"/"];
 	    }
 	}
       /* Any empty path components  must be removed. */
@@ -3175,6 +3249,10 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(r);
 }
 
+/**
+ * Returns an array of strings made by appending the values in paths
+ * to the receiver.
+ */
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths
 {
   NSMutableArray	*a;
@@ -3187,10 +3265,6 @@ handle_printf_atsign (FILE *stream,
     {
       NSString	*s = [paths objectAtIndex: i];
 
-      while ([s isAbsolutePath])
-	{
-	  s = [s substringFromIndex: 1];
-	}
       s = [self stringByAppendingPathComponent: s];
       [a addObject: s];
     }
@@ -3223,13 +3297,13 @@ handle_printf_atsign (FILE *stream,
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
 {
   return [self compare: aString
-	       options: NSCaseInsensitiveSearch 
+	       options: NSCaseInsensitiveSearch
 		 range: ((NSRange){0, [self length]})];
 }
 
-- (NSComparisonResult) compare: (NSString *)string 
-		       options: (unsigned int)mask 
-			 range: (NSRange)compareRange 
+- (NSComparisonResult) compare: (NSString *)string
+		       options: (unsigned int)mask
+			 range: (NSRange)compareRange
 			locale: (NSDictionary *)dict
 {
   // FIXME: This does only a normal compare
@@ -3253,7 +3327,7 @@ handle_printf_atsign (FILE *stream,
   NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
 
   return [self compare: string
-               options: NSCaseInsensitiveSearch 
+               options: NSCaseInsensitiveSearch
                  range: ((NSRange){0, [self length]})
                 locale: dict];
 }
@@ -3320,20 +3394,20 @@ handle_printf_atsign (FILE *stream,
 	{
 	  switch (*from)
 	    {
-	      case '\a': 
-	      case '\b': 
-	      case '\t': 
-	      case '\r': 
-	      case '\n': 
-	      case '\v': 
-	      case '\f': 
-	      case '\\': 
-	      case '\'' : 
-	      case '"' : 
+	      case '\a':
+	      case '\b':
+	      case '\t':
+	      case '\r':
+	      case '\n':
+	      case '\v':
+	      case '\f':
+	      case '\\':
+	      case '\'' :
+	      case '"' :
 		len += 2;
 		break;
 
-	      default: 
+	      default:
 		if (*from < 128)
 		  {
 		    if (isprint(*from) || *from == ' ')
@@ -3373,7 +3447,7 @@ handle_printf_atsign (FILE *stream,
 		case '\'': 	*ptr++ = '\\'; *ptr++ = '\''; break;
 		case '"' : 	*ptr++ = '\\'; *ptr++ = '"';  break;
 
-		default: 
+		default:
 		  if (*from < 128)
 		    {
 		      if (isprint(*from) || *from == ' ')
@@ -3459,7 +3533,7 @@ handle_printf_atsign (FILE *stream,
     {
       NSStringEncoding	enc;
       NSZone		*zone;
-  
+
       [aCoder decodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
 #if	GS_WITH_GC
       zone = GSAtomicMallocZone();
@@ -3615,7 +3689,7 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-// Designated initialiser 
+// Designated initialiser
 - (id) initWithCapacity: (unsigned int)capacity
 {
   [self subclassResponsibility: _cmd];
@@ -3699,7 +3773,7 @@ handle_printf_atsign (FILE *stream,
   [self replaceCharactersInRange: range withString: aString];
 }
 
-- (void) replaceCharactersInRange: (NSRange)range 
+- (void) replaceCharactersInRange: (NSRange)range
 		       withString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];
@@ -3747,7 +3821,7 @@ handle_printf_atsign (FILE *stream,
     {
       unsigned	end = length;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
-        
+
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (end > 0)
 	{
@@ -3837,7 +3911,7 @@ handle_printf_atsign (FILE *stream,
     {
       unsigned	end = length;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
-        
+
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (end > 0)
 	{
@@ -3859,7 +3933,7 @@ handle_printf_atsign (FILE *stream,
   [self trimTailSpaces];
   [self trimLeadSpaces];
 }
-        
+
 @end
 
 @implementation NSString (GNUstep)
@@ -4471,7 +4545,7 @@ static id parsePlItem(pldata* pld)
 	    {
 	      unsigned char	byte;
 
-	      byte = (char2num(pld->ptr[pld->pos])) << 4; 
+	      byte = (char2num(pld->ptr[pld->pos])) << 4;
 	      pld->pos++;
 	      byte |= char2num(pld->ptr[pld->pos]);
 	      pld->pos++;
@@ -4826,7 +4900,7 @@ GSPropertyList(NSString *string)
       NSData		*data;
       GSXMLParser	*parser;
 
-      data = [string dataUsingEncoding: NSUTF8StringEncoding]; 
+      data = [string dataUsingEncoding: NSUTF8StringEncoding];
       parser = [GSXMLParser parser];
       [parser substituteEntities: YES];
       [parser doValidityChecking: YES];
