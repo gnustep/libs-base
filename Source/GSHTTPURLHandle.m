@@ -36,9 +36,11 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSHost.h"
 #include "Foundation/NSProcessInfo.h"
 #include "Foundation/NSPathUtilities.h"
 #include "GNUstepBase/GSMime.h"
+#include "GNUstepBase/GSLock.h"
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -51,14 +53,6 @@
 
 static NSString	*httpVersion = @"1.1";
 
-char emp[64] = {
-    'A','B','C','D','E','F','G','H','I','J','K','L','M',
-    'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-    'a','b','c','d','e','f','g','h','i','j','k','l','m',
-    'n','o','p','q','r','s','t','u','v','w','x','y','z',
-    '0','1','2','3','4','5','6','7','8','9','+','/'
-};
- 
 @interface GSHTTPURLHandle : NSURLHandle
 {
   BOOL			tunnel;
@@ -241,8 +235,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (self == [GSHTTPURLHandle class])
     {
       urlCache = [NSMutableDictionary new];
-      urlLock = [NSLock new];
-      debugLock = [NSLock new];
+      urlLock = [GSLazyLock new];
+      debugLock = [GSLazyLock new];
       debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d", 
 			     NSTemporaryDirectory(),
 			     [[NSProcessInfo processInfo] processIdentifier]];
@@ -303,6 +297,104 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   return NO;
 }
 
+- (void) bgdApply: (NSString*)basic
+{
+  NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+  NSEnumerator          *wpEnumerator;
+  NSMutableString	*s;
+  NSString              *key;
+  NSMutableData		*buf;
+  NSString		*version;
+
+  s = [basic mutableCopy];
+  if ([[url query] length] > 0)
+    {
+      [s appendFormat: @"?%@", [url query]];
+    }
+
+  version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
+  if (version == nil)
+    {
+      version = httpVersion;
+    } 
+  [s appendFormat: @" HTTP/%@\r\n", version];
+
+  if ([wProperties objectForKey: @"host"] == nil)
+    {
+      [wProperties setObject: [url host] forKey: @"host"];
+    }
+
+  if ([wData length] > 0)
+    {
+      [wProperties setObject: [NSString stringWithFormat: @"%d", [wData length]]
+		      forKey: @"content-length"];
+      /*
+       * Assume content type if not specified.
+       */
+      if ([wProperties objectForKey: @"content-type"] == nil)
+	{
+	  [wProperties setObject: @"application/x-www-form-urlencoded"
+			  forKey: @"content-type"];
+	}
+    }
+  if ([wProperties objectForKey: @"authorisation"] == nil)
+    {
+      if ([url user] != nil)
+	{
+	  NSString	*auth;
+
+	  if ([[url password] length] > 0)
+	    { 
+	      auth = [NSString stringWithFormat: @"%@:%@", 
+		[url user], [url password]];
+	    }
+	  else
+	    {
+	      auth = [NSString stringWithFormat: @"%@", [url user]];
+	    }
+	  auth = [NSString stringWithFormat: @"Basic %@",
+	    [GSMimeDocument encodeBase64String: auth]];
+	  [wProperties setObject: auth
+			  forKey: @"authorization"];
+	}
+    }
+
+  wpEnumerator = [wProperties keyEnumerator];
+  while ((key = [wpEnumerator nextObject]))
+    {
+      [s appendFormat: @"%@: %@\r\n", key, [wProperties objectForKey: key]];
+    }
+  [wProperties removeAllObjects];
+  [s appendString: @"\r\n"];
+  buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
+
+  /*
+   * Append any data to be sent
+   */
+  if (wData != nil)
+    {
+      [buf appendData: wData];
+      DESTROY(wData);
+    }
+
+  /*
+   * Send request to server.
+   */
+  [sock writeInBackgroundAndNotify: buf];
+  if (debug == YES) debugWrite(self, buf);
+  RELEASE(buf);
+  RELEASE(s);
+
+  /*
+   * Watch for write completion.
+   */
+  [nc addObserver: self
+         selector: @selector(bgdWrite:)
+             name: GSFileHandleWriteCompletionNotification
+           object: sock];
+  connectionState = writing;
+}
+
 - (void) bgdRead: (NSNotification*) not
 {
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
@@ -330,10 +422,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  NSString	*enc;
 	  NSString	*len;
-	  int		ver;
+	  float		ver;
 
-	  ver = [[[document headerNamed: @"http"]
-	    objectForKey: NSHTTPPropertyServerHTTPVersionKey] intValue];
+	  ver = [[[document headerNamed: @"http"] value] floatValue];
 	  len = [[document headerNamed: @"content-length"] value];
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
 	  if (enc == nil)
@@ -345,7 +436,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    {
 	      complete = NO;	// Read chunked body data
 	    }
-	  else if (ver >= 1 && [len intValue] == 0)
+	  else if (ver >= 1.0 && [len intValue] == 0)
 	    {
 	      complete = YES;	// No content
 	    }
@@ -358,13 +449,20 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  GSMimeHeader	*info;
 	  NSString	*val;
+	  float		ver;
 
 	  connectionState = idle;
 	  [nc removeObserver: self
 			name: NSFileHandleReadCompletionNotification
 		      object: sock];
-	  [sock closeFile];
-	  DESTROY(sock);
+
+	  ver = [[[document headerNamed: @"http"] value] floatValue];
+	  val = [[document headerNamed: @"connection"] value];
+	  if (ver < 1.1 || (val != nil && [val isEqual: @"close"] == YES))
+	    {
+	      [sock closeFile];
+	      DESTROY(sock);
+	    }
 
 	  /*
 	   * Retrieve essential keys from document
@@ -479,10 +577,52 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   parser = [GSMimeParser new];
   document = RETAIN([parser mimeDocument]);
   [self beginLoadInBackground];
+
+  host = [url host];
+  port = (id)[url port];
+  if (port != nil)
+    {
+      port = [NSString stringWithFormat: @"%u", [port intValue]];
+    }
+  else
+    {
+      port = [url scheme];
+    }
+  if ([port isEqualToString: @"https"])
+    {
+      port = @"443";
+    }
+  else if ([port isEqualToString: @"http"])
+    {
+      port = @"80";
+    }
+
   if (sock != nil)
     {
-      [sock closeFile];
-      DESTROY(sock);
+      NSString	*method;
+      NSString	*path;
+      NSString	*basic;
+
+      method = [request objectForKey: GSHTTPPropertyMethodKey];
+      if (method == nil)
+	{
+	  if ([wData length] > 0)
+	    {
+	      method = @"POST";
+	    }
+	  else
+	    {
+	      method = @"GET";
+	    }
+	}
+      path = [[url path] stringByTrimmingSpaces];
+      if ([path length] == 0)
+	{
+	  path = @"/";
+	} 
+      basic = [NSString stringWithFormat: @"%@ %@", method, path];
+      [self bgdApply: basic];
+      return;
     }
 
   /*
@@ -500,18 +640,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {
-      NSNumber	*p;
-
-      host = [url host];
-      p = [url port];
-      if (p != nil)
-	{
-	  port = [NSString stringWithFormat: @"%u", [p unsignedIntValue]];
-	}
-      else
-	{
-	  port = [url scheme];
-	}
       if ([[url scheme] isEqualToString: @"https"])
 	{
 	  NSString	*cert;
@@ -615,14 +743,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   
   NSDictionary          *userInfo = [notification userInfo];
-  NSEnumerator          *wpEnumerator;
   NSMutableString	*s;
   NSString		*e;
-  NSString              *key;
-  NSMutableData		*buf;
   NSString		*method;
   NSString		*path;
-  NSString		*version;
 
   path = [[url path] stringByTrimmingSpaces];
   if ([path length] == 0)
@@ -774,92 +898,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       s = [[NSMutableString alloc] initWithFormat: @"%@ %@", 
 	method, path];
     }
-  if ([[url query] length] > 0)
-    {
-      [s appendFormat: @"?%@", [url query]];
-    }
 
-  version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
-  if (version == nil)
-    {
-      version = httpVersion;
-    } 
-  [s appendFormat: @" HTTP/%@\r\n", version];
-
-  if ([wProperties objectForKey: @"host"] == nil)
-    {
-      [wProperties setObject: [url host] forKey: @"host"];
-    }
-
-  if ([wData length] > 0)
-    {
-      [wProperties setObject: [NSString stringWithFormat: @"%d", [wData length]]
-		      forKey: @"content-length"];
-      /*
-       * Assume content type if not specified.
-       */
-      if ([wProperties objectForKey: @"content-type"] == nil)
-	{
-	  [wProperties setObject: @"application/x-www-form-urlencoded"
-			  forKey: @"content-type"];
-	}
-    }
-  if ([wProperties objectForKey: @"authorisation"] == nil)
-    {
-      if ([url user] != nil)
-	{
-	  NSString	*auth;
-
-	  if ([[url password] length] > 0)
-	    { 
-	      auth = [NSString stringWithFormat: @"%@:%@", 
-		[url user], [url password]];
-	    }
-	  else
-	    {
-	      auth = [NSString stringWithFormat: @"%@", [url user]];
-	    }
-	  auth = [NSString stringWithFormat: @"Basic %@",
-	    [GSMimeDocument encodeBase64String: auth]];
-	  [wProperties setObject: auth
-			  forKey: @"authorization"];
-	}
-    }
-
-  wpEnumerator = [wProperties keyEnumerator];
-  while ((key = [wpEnumerator nextObject]))
-    {
-      [s appendFormat: @"%@: %@\r\n", key, [wProperties objectForKey: key]];
-    }
-  [wProperties removeAllObjects];
-  [s appendString: @"\r\n"];
-  buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
-
-  /*
-   * Append any data to be sent
-   */
-  if (wData != nil)
-    {
-      [buf appendData: wData];
-      DESTROY(wData);
-    }
-
-  /*
-   * Send request to server.
-   */
-  [sock writeInBackgroundAndNotify: buf];
-  if (debug == YES) debugWrite(self, buf);
-  RELEASE(buf);
+  [self bgdApply: s];
   RELEASE(s);
-
-  /*
-   * Watch for write completion.
-   */
-  [nc addObserver: self
-         selector: @selector(bgdWrite:)
-             name: GSFileHandleWriteCompletionNotification
-           object: sock];
-  connectionState = writing;
 }
 
 - (void) bgdWrite: (NSNotification*)notification
