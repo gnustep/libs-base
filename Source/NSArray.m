@@ -25,8 +25,63 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGArray.h>
-#include <Foundation/NSArrayEnumerator.h>
 #include <limits.h>
+#include <Foundation/NSUtilities.h>
+
+@interface NSArrayEnumerator : NSEnumerator
+{
+  id array;
+  int next_index;
+}
+@end
+
+@interface NSArrayEnumeratorReverse : NSArrayEnumerator
+@end
+
+@implementation NSArrayEnumerator
+
+- initWithArray: (NSArray*)anArray
+{
+  [super init];
+  array = anArray;
+  [array retain];
+  next_index = 0;
+  return self;
+}
+
+- (id) nextObject
+{
+  if (next_index >= [array count])
+    return nil;
+  return [array objectAtIndex:next_index++];
+}
+
+- (void) dealloc
+{
+  [array release];
+  [super dealloc];
+}
+
+@end
+
+@implementation NSArrayEnumeratorReverse
+
+- initWithArray: (NSArray*)anArray
+{
+  [super init];
+  array = anArray;
+  [array retain];
+  next_index = [array count]-1;
+  return self;
+}
+
+- (id) nextObject
+{
+  if (next_index < 0)
+    return nil;
+  return [array objectAtIndex:next_index--];
+}
+
 
 @implementation NSArray
 
