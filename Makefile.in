@@ -240,14 +240,20 @@ objects/mframe.h \
 objects/objc-gnu2next.h \
 objects/objc-malloc.h \
 objects/objects.h \
-objects/stdobjects.h 
+objects/stdobjects.h \
+objects/README 
 
-NeXT_HEADERS = \
+NEXTSTEP_HEADERS = \
 objc/HashTable.h \
 objc/List.h \
 objc/NXStringTable.h \
 objc/Storage.h \
-objc/zone.h
+objc/zone.h \
+objc/README
+
+GNUSTEP_HEADERS = \
+foundation/NSObject.h \
+foundation/README
 
 INSTALL_HEADERS = @INSTALL_HEADERS@
 INSTALL_OBJS = @INSTALL_OBJS@
@@ -268,7 +274,7 @@ libobjects.info libobjects.texi \
 texinfo.tex \
 $(GNU_MFILES) $(NeXT_MFILES) \
 $(GNU_CFILES) $(NeXT_CFILES) \
-$(GNU_HEADERS) $(NeXT_HEADERS) \
+$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
 $(GNU_OTHER_SRCFILES) $(NeXT_OTHER_SRCFILES) 
 
 all: libobjects.a

@@ -75,7 +75,7 @@ if test $NeXTCC = 0; then
     if test $NeXTSTEP = 0; then
       AC_MSG_RESULT(no)
       INSTALL_OBJS='$(GNU_OBJS) $(NeXT_OBJS)'
-      INSTALL_HEADERS='$(GNU_HEADERS) $(NeXT_HEADERS)'
+      INSTALL_HEADERS='$(GNU_HEADERS) $(NEXTSTEP_HEADERS)'
       NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
       NeXT_runtime=0
       NeXT_cc=0
@@ -106,7 +106,7 @@ if test $NeXTCC = 0; then
         # Get objc/List.h, etc. files from libobjects.
         NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
         INSTALL_OBJS='$(GNU_OBJS) $(NeXT_OBJS)'
-        INSTALL_HEADERS='$(GNU_HEADERS) $(NeXT_HEADERS)'
+        INSTALL_HEADERS='$(GNU_HEADERS) $(NEXTSTEP_HEADERS)'
         NeXT_cc=0
       fi
     fi
