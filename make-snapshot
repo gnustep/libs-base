@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 # The directory in which to find the last snapshot
-dir=../releases
+dir=/home/mccallum/gnu/releases
 
 # The name of this module
 module=gstep-base
