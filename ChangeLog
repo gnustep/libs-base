@@ -1,3 +1,9 @@
+Tue Mar 12 09:21:20 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSAssertionHandler.m
+	([-handleFailureInMethod:object:file:lineNumber:description:]): Log
+	if the object is a class or an instance.
+
 2002-03-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/configure.in: Check GNUstep directories for headers and
