@@ -600,10 +600,12 @@ static NSFileManager* defaultManager = nil;
 {
     struct stat statbuf;
     const char* cpath = [self fileSystemRepresentationWithPath:path];
+    struct passwd *pw;
     int mode;
-    
-    id  values[9];
-    id	keys[9] = {
+    int count = 10;
+		
+    id  values[10];
+    id	keys[10] = {
 	    NSFileSize,
 	    NSFileModificationDate,
 	    NSFileOwnerAccountNumber,
@@ -612,7 +614,8 @@ static NSFileManager* defaultManager = nil;
 	    NSFileIdentifier,
 	    NSFileDeviceIdentifier,
 	    NSFilePosixPermissions,
-	    NSFileType
+	    NSFileType,
+	    NSFileOwnerAccountName
 	};
 
     if (stat(cpath, &statbuf) != 0)
@@ -649,9 +652,19 @@ static NSFileManager* defaultManager = nil;
 #endif
     else
 	values[8] = NSFileTypeUnknown;
-
+	
+	pw = getpwuid(statbuf.st_uid);
+	
+	if(pw)
+	{
+		values[9] = [NSString stringWithCString:pw->pw_name];
+	}
+	else
+	{
+		count = 9;
+	}
     return [[[NSDictionary alloc]
-	initWithObjects:values forKeys:keys count:5]
+	initWithObjects:values forKeys:keys count:count]
 	autorelease];
 }
 

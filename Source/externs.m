@@ -90,6 +90,7 @@ NSString* StreamException = @"StreamException";
 NSString* NSFileSize = @"NSFileSize";
 NSString* NSFileModificationDate = @"NSFileModificationDate";
 NSString* NSFileOwnerAccountNumber = @"NSFileOwnerAccountNumber";
+NSString* NSFileOwnerAccountName = @"NSFileOwnerAccountName";
 NSString* NSFileGroupOwnerAccountNumber = @"NSFileGroupOwnerAccountNumber";
 NSString* NSFileReferenceCount = @"NSFileReferenceCount";
 NSString* NSFileIdentifier = @"NSFileIdentifier";

@@ -138,6 +138,7 @@
 extern NSString* NSFileSize;
 extern NSString* NSFileModificationDate;
 extern NSString* NSFileOwnerAccountNumber;
+extern NSString* NSFileOwnerAccountName;
 extern NSString* NSFileGroupOwnerAccountNumber;
 extern NSString* NSFileReferenceCount;
 extern NSString* NSFileIdentifier;
