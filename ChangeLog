@@ -1,3 +1,8 @@
+2003-08-13  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/preface.h: Remove generated
+	file that should have been ignored by entry in .cvsignore.
+	
 2003-08-05  Martin Brecher <martin@mb-itconsulting.com>
 
 	* Tools/gdnc.1: Updated man pages, fixed typos, unified format 
