@@ -1,3 +1,8 @@
+Fri Dec 21 11:48:49 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+	
+	* NSTimeZones/Makefile.postamble (timezonedir, before-install):
+	Unused targets removed.
+
 2001-12-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSXML.m: Check validation status at parse completion.
