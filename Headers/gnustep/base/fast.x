@@ -79,7 +79,7 @@ typedef struct {
     Class	_NSGMutableCString;
     Class	_NXConstantString;
 } fastCls;
-extern	fastCls	_fastCls;	/* Populated by NSObject	*/
+extern	fastCls	_fastCls;	/* Populated by _fastBuildCache()	*/
 
 /*
  *	Structure to cache method implementation information.
@@ -96,7 +96,16 @@ typedef struct {
     BOOL		(*_NSGString_isEqual_)();
     BOOL		(*_NSGCString_isEqual_)();
 } fastImp;
-extern	fastImp	_fastImp;	/* Populated by NSObject	*/
+extern	fastImp	_fastImp;	/* Populated by _fastBuildCache()	*/
+
+/*
+ *	The '_fastBuildCache()' function is called to populate the cache
+ *	structures.  This is (at present) called in [NSObject +initialize]
+ *	but you may call it explicitly later to repopulate the cache after
+ *	changes have been made to the runtime by loading of categories or
+ *	by classes posing as other classes.
+ */
+extern void	_fastBuildCache();
 
 /*
  *	Fast access to class info - DON'T pass nil to these!

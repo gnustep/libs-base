@@ -42,6 +42,31 @@
 fastCls	_fastCls;	/* Structure to cache classes.	*/
 fastImp	_fastImp;	/* Structure to cache methods.	*/
 
+void	_fastBuildCache()
+{
+  /*
+   *	Cache some classes for quick access later.
+   */
+  _fastCls._NSString = [NSString class];
+  _fastCls._NSGString = [NSGString class];
+  _fastCls._NSGMutableString = [NSGMutableString class];
+  _fastCls._NSGCString = [NSGCString class];
+  _fastCls._NSGMutableCString = [NSGMutableCString class];
+  _fastCls._NXConstantString = [NXConstantString class];
+  /*
+   *	Cache some method implementations for quick access later.
+   */
+  _fastImp._NSString_hash = (unsigned (*)())[_fastCls._NSString
+	    instanceMethodForSelector: @selector(hash)];
+  _fastImp._NSGString_hash = (unsigned (*)())[_fastCls._NSGString
+	    instanceMethodForSelector: @selector(hash)];
+  _fastImp._NSGString_isEqual_ = (BOOL (*)())[_fastCls._NSGString
+	    instanceMethodForSelector: @selector(isEqual:)];
+  _fastImp._NSGCString_isEqual_ = (BOOL (*)())[_fastCls._NSGCString
+	    instanceMethodForSelector: @selector(isEqual:)];
+}
+
+
 
 /*
  *	Reference count and memory management
@@ -314,26 +339,7 @@ static BOOL double_release_check_enabled = NO;
       retain_counts_gate = objc_mutex_allocate ();
 #endif
       autorelease_class = [NSAutoreleasePool class];
-      /*
-       *	Cache some classes for quick access later.
-       */
-      _fastCls._NSString = [NSString class];
-      _fastCls._NSGString = [NSGString class];
-      _fastCls._NSGMutableString = [NSGMutableString class];
-      _fastCls._NSGCString = [NSGCString class];
-      _fastCls._NSGMutableCString = [NSGMutableCString class];
-      _fastCls._NXConstantString = [NXConstantString class];
-      /*
-       *	Cache some method implementations for quick access later.
-       */
-      _fastImp._NSString_hash = (unsigned (*)())[_fastCls._NSString
-		instanceMethodForSelector: @selector(hash)];
-      _fastImp._NSGString_hash = (unsigned (*)())[_fastCls._NSGString
-		instanceMethodForSelector: @selector(hash)];
-      _fastImp._NSGString_isEqual_ = (BOOL (*)())[_fastCls._NSGString
-		instanceMethodForSelector: @selector(isEqual:)];
-      _fastImp._NSGCString_isEqual_ = (BOOL (*)())[_fastCls._NSGCString
-		instanceMethodForSelector: @selector(isEqual:)];
+      _fastBuildCache();
     }
   return;
 }
@@ -469,6 +475,11 @@ static BOOL double_release_check_enabled = NO;
 + (void) poseAsClass: (Class)aClassObject
 {
   class_pose_as(self, aClassObject);
+  /*
+   *	We may have replaced a class in the cache, or may have replaced one
+   *	which had cached methods, so we must rebuild the cache.
+   */
+  _fastBuildCache();
 }
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector
