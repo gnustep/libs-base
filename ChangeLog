@@ -1,3 +1,8 @@
+2000-02-08  Adam Fedor  <fedor@gnu.org>
+
+	* config.guess: New version
+	* config.sub: Likewise.
+
 Tue Feb  8 23:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: Move ([writeToFile:atomically:]) from mutable
