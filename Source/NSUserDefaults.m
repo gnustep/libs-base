@@ -1198,6 +1198,7 @@ static NSString	*pathForUser(NSString *user)
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableDictionary	*newDict;
   NSDictionary		*attr;
+  NSDate		*started = [NSDate date];
   unsigned long		desired;
   unsigned long		attributes;
 
@@ -1206,18 +1207,32 @@ static NSString	*pathForUser(NSString *user)
   while ([_fileLock tryLock] == NO)
     {
       CREATE_AUTORELEASE_POOL(arp);
-      NSDate	*when, *lockDate;
+      NSDate	*when;
+      NSDate	*lockDate;
 
       lockDate = [_fileLock lockDate];
-      /* If the lock has already been released, lockDate will be nil. If
-      so, just try again. */
-      if (!lockDate)
-	{
-	  RELEASE(arp);
-	  continue;
-	}
       when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
-      if ([when timeIntervalSinceDate: lockDate] > 5.0)
+
+      /*
+       * In case we have tried and failed to break the lock,
+       * we give up after a while ... 16 seconds should give
+       * us three lock breaks if we do them at 5 second
+       * intervals.
+       */
+      if ([when timeIntervalSinceDate: started] > 16.0)
+	{
+	  NSLog(@"Failed to lock user defaults database even after "
+	    @"breaking old locks!");
+	  [_lock unlock];
+	  return NO;
+	}
+
+      /*
+       * If lockDate is nil, we should be able to lock again ... but we
+       * wait a little anyway ... so that in the case of a locking
+       * problem we do an idle wait rather than a busy one.
+       */ 
+      if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
 	{
 	  [_fileLock breakLock];
 	}
