@@ -26,11 +26,18 @@
 #include <objc/objc-class.h>
 #include "GSCompatibility.h"
 #include "gnustep/base/GSCategories.h"
+#include "gnustep/base/GCObject.h"
 
 /* FIXME: Need to initialize this */
 NSRecursiveLock *gnustep_global_lock = NULL;
 
 NSString *GetEncodingName(NSStringEncoding availableEncodingValue)
+{
+    // Deprecated
+    return GSEncodingName(availableEncodingValue);
+}
+
+NSString *GSEncodingName(NSStringEncoding availableEncodingValue)
 {
 return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
 }
@@ -211,6 +218,47 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 	}
       else
 	{
+}
+
+@end
+
+@implementation NSBundle(GSCompatibility)
+
+// In NSBundle.m
++ (NSString *) pathForGNUstepResource: (NSString *)name
+                                        ofType: (NSString *)ext
+                                   inDirectory: (NSString *)bundlePath
+{
+    NSString	*path = nil;
+    NSString	*bundle_path = nil;
+    NSArray	*paths;
+    NSBundle	*bundle;
+    NSEnumerator	*enumerator;
+
+    /* Gather up the paths */
+    // Originally, looks up in GSLibrariesDirectory, i.e. "Libraries"
+    paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+                                                NSAllDomainsMask, YES);
+
+    enumerator = [paths objectEnumerator];
+    while ((path == nil) && (bundle_path = [enumerator nextObject]))
+    {
+        bundle = [self bundleWithPath: bundle_path];
+        path = [bundle pathForResource: name
+                                ofType: ext
+                           inDirectory: bundlePath];
+    }
+
+    // New for OSX: looks in framework
+    if(path == nil){
+        if([bundlePath hasPrefix:@"Resources/"])
+            bundlePath = [bundlePath substringFromIndex:10];
+        path = [[NSBundle bundleForClass:[GCObject class]] pathForResource: name
+                                ofType: ext
+                           inDirectory: bundlePath];
+    }
+
+    return path;
 	  return NO;
 	}
     }
