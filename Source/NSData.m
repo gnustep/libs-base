@@ -247,6 +247,7 @@ static Class NSMutableData_concrete_class;
   char *dest;
   int length = [self length];
   int i,j;
+  id ret;
 
 #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
@@ -263,7 +264,9 @@ static Class NSMutableData_concrete_class;
     }
   dest[j++] = '>';
   dest[j] = '\0';
-  return [NSString stringWithCString: dest];
+  ret = [NSString stringWithCString: dest];
+  free(dest);
+  return ret;
 }
 
 - (void)getBytes: (void*)buffer

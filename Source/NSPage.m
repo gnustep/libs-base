@@ -101,10 +101,13 @@ NSAllocateMemoryPages (unsigned bytes)
 #if __mach__
   kern_return_t r;
   r = vm_allocate (mach_task_self(), &where, (vm_size_t) bytes, 1);
-  NSParameterAssert (r == KERN_SUCCESS);
+  if (r != KERN_SUCCESS)
+    return NULL;
   return where;
 #else
   where = valloc (bytes);
+  if (where == NULL)
+    return NULL;
   memset (where, 0, bytes);
   return where;
 #endif

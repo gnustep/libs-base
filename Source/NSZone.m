@@ -108,8 +108,8 @@
 typedef struct _ffree_free_link ff_link;
 typedef struct _nfree_block_struct nf_block;
 typedef struct _ffree_block_struct ff_block;
-typedef struct _ffree_NSZone_struct ffree_NSZone;
-typedef struct _nfree_NSZone_struct nfree_NSZone;
+typedef struct _ffree_zone_struct ffree_zone;
+typedef struct _nfree_zone_struct nfree_zone;
 
 
 /* Links for free lists. */
@@ -134,7 +134,7 @@ struct _ffree_block_struct
 };
 
 /* NSZone structure for freeable zones. */
-struct _ffree_NSZone_struct
+struct _ffree_zone_struct
 {
   NSZone common;
   ff_block *blocks; // Linked list of blocks
@@ -146,7 +146,7 @@ struct _ffree_NSZone_struct
 };
 
 /* NSZone structure for nonfreeable zones. */
-struct _nfree_NSZone_struct
+struct _nfree_zone_struct
 {
   NSZone common;
   /* Linked list of blocks in decreasing order of free space,
@@ -162,7 +162,7 @@ static void become_threaded (void);
 static inline size_t roundupto (size_t n, size_t base);
 
 /* Dummy lock, unlock function. */
-static void dummy_lock (objc_mutex_t mutex);
+static int dummy_lock (objc_mutex_t mutex);
 
 /* Memory management functions for freeable zones. */
 static void* fmalloc (NSZone *zone, size_t size);
@@ -171,11 +171,11 @@ static void ffree (NSZone *zone, void *ptr);
 static void frecycle (NSZone *zone);
 
 static inline size_t segindex (size_t size);
-static void* get_chunk (ffree_NSZone *zone, size_t size);
-static void take_chunk (ffree_NSZone *zone, size_t *chunk);
-static void put_chunk (ffree_NSZone *zone, size_t *chunk);
-static inline void add_buf (ffree_NSZone *zone, size_t *chunk);
-static void flush_buf (ffree_NSZone *zone);
+static void* get_chunk (ffree_zone *zone, size_t size);
+static void take_chunk (ffree_zone *zone, size_t *chunk);
+static void put_chunk (ffree_zone *zone, size_t *chunk);
+static inline void add_buf (ffree_zone *zone, size_t *chunk);
+static void flush_buf (ffree_zone *zone);
 
 /* Memory management functions for nonfreeable zones. */
 static void* nmalloc (NSZone *zone, size_t size);
@@ -185,13 +185,13 @@ static void nrecycle (NSZone *zone);
 static objc_thread_callback thread_callback;
 
 /* Mutex function pointers. */
-static void (*lock)(objc_mutex_t mutex) = dummy_lock;
-static void (*unlock)(objc_mutex_t mutex) = dummy_lock;
+static int (*lock)(objc_mutex_t mutex) = dummy_lock;
+static int (*unlock)(objc_mutex_t mutex) = dummy_lock;
 
 /* Error message. */
 static NSString *outmemstr = @"Out of memory";
 
-static ffree_NSZone default_zone =
+static ffree_zone default_zone =
 {
   { fmalloc, frealloc, ffree, NULL, DEFBLOCK, (objc_mutex_t)0, nil },
   NULL,
@@ -229,6 +229,8 @@ become_threaded (void)
 {
   if (thread_callback != NULL)
     thread_callback();
+  lock = objc_mutex_lock;
+  unlock = objc_mutex_unlock;
   default_zone.common.lock = objc_mutex_allocate();
 }
 
@@ -240,10 +242,10 @@ roundupto (size_t n, size_t base)
   return (n-a)? (a+base): n;
 }
 
-static void
+static int
 dummy_lock (objc_mutex_t mutex)
 {
-  // Do nothing.
+  return 0; // Do nothing.
 }
 
 /* Search the buffer to see if there is any memory chunks large enough
@@ -259,7 +261,7 @@ fmalloc (NSZone *zone, size_t size)
 {
   size_t i = 0;
   size_t chunksize = roundupto(size+SZSZ+ZPTRSZ, MINCHUNK);
-  ffree_NSZone *zptr = (ffree_NSZone*)zone;
+  ffree_zone *zptr = (ffree_zone*)zone;
   size_t bufsize;
   size_t *size_buf = zptr->size_buf;
   size_t **ptr_buf = zptr->ptr_buf;
@@ -334,7 +336,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
 {
   size_t realsize;
   size_t chunksize = roundupto(size+SZSZ+ZPTRSZ, MINCHUNK);
-  ffree_NSZone *zptr = (ffree_NSZone*)zone;
+  ffree_zone *zptr = (ffree_zone*)zone;
   size_t *chunkhead, *slack;
   NSZone **zoneptr; // Zone pointer preceding memory chunk.
 
@@ -416,7 +418,7 @@ static void
 ffree (NSZone *zone, void *ptr)
 {
   lock(zone->lock);
-  add_buf((ffree_NSZone*)zone, ptr-(SZSZ+ZPTRSZ));
+  add_buf((ffree_zone*)zone, ptr-(SZSZ+ZPTRSZ));
   unlock(zone->lock);
 }
 
@@ -432,7 +434,7 @@ ffree (NSZone *zone, void *ptr)
 static void
 frecycle (NSZone *zone)
 {
-  ffree_NSZone *zptr = (ffree_NSZone*)zone;
+  ffree_zone *zptr = (ffree_zone*)zone;
   ff_block *block = zptr->blocks;
   ff_block *nextblock;
 
@@ -480,7 +482,7 @@ segindex (size_t size)
 /* Look through the segregated list with first fit to find a memory
    chunk.  If one is not found, get more memory. */
 static void*
-get_chunk (ffree_NSZone *zone, size_t size)
+get_chunk (ffree_zone *zone, size_t size)
 {
   size_t class = segindex(size);
   size_t *chunk = zone->segheadlist[class];
@@ -591,7 +593,7 @@ get_chunk (ffree_NSZone *zone, size_t size)
 
 /* Take the given chunk out of the free list.  No headers are set. */
 static void
-take_chunk (ffree_NSZone *zone, size_t *chunk)
+take_chunk (ffree_zone *zone, size_t *chunk)
 {
   size_t size = *chunk & ~SIZE_BITS;
   size_t class = segindex(size);
@@ -621,7 +623,7 @@ take_chunk (ffree_NSZone *zone, size_t *chunk)
 /* Add the given chunk to the segregated list.  The header to the
    chunk must be set appropriately, but the tailer is set here. */
 static void
-put_chunk (ffree_NSZone *zone, size_t *chunk)
+put_chunk (ffree_zone *zone, size_t *chunk)
 {
   size_t size = *chunk & ~SIZE_BITS;
   size_t class = segindex(size);
@@ -657,7 +659,7 @@ put_chunk (ffree_NSZone *zone, size_t *chunk)
    flush it.  The given pointer must always be one that points to used
    memory. */
 static inline void
-add_buf (ffree_NSZone *zone, size_t *chunk)
+add_buf (ffree_zone *zone, size_t *chunk)
 {
   size_t bufsize = zone->bufsize;
 
@@ -674,7 +676,7 @@ add_buf (ffree_NSZone *zone, size_t *chunk)
 
 /* Flush buffers.  All coalescing is done here. */
 static void
-flush_buf (ffree_NSZone *zone)
+flush_buf (ffree_zone *zone)
 {
   size_t i, size;
   size_t bufsize = zone->bufsize;
@@ -746,7 +748,7 @@ flush_buf (ffree_NSZone *zone)
 static void*
 nmalloc (NSZone *zone, size_t size)
 {
-  nfree_NSZone *zptr = (nfree_NSZone*)zone;
+  nfree_zone *zptr = (nfree_zone*)zone;
   size_t top;
   size_t chunksize = roundupto(size+ZPTRSZ, ALIGN);
   NSZone **chunkhead;
@@ -785,7 +787,6 @@ nmalloc (NSZone *zone, size_t size)
 	/* Get new block. */
 	{
 	  size_t blocksize = roundupto(size+NF_HEAD, zone->gran);
-	  nf_block *block;
 
 	  /* Any clean way to make gcc shut up here? */
 	  NS_DURING
@@ -817,7 +818,7 @@ static void
 nrecycle (NSZone *zone)
 {
   nf_block *nextblock;
-  nf_block *block = ((nfree_NSZone*)zone)->blocks;
+  nf_block *block = ((nfree_zone*)zone)->blocks;
 
   objc_mutex_deallocate(zone->lock);
   while (block != NULL)
@@ -847,11 +848,11 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
   if (canFree)
     {
       ff_block *block;
-      ffree_NSZone *zone;
+      ffree_zone *zone;
       size_t *header, *tailer;
       NSZone **zoneptr;
 
-      zone = fmalloc(NSDefaultMallocZone(), sizeof(ffree_NSZone));
+      zone = fmalloc(NSDefaultMallocZone(), sizeof(ffree_zone));
       zone->common.malloc = fmalloc;
       zone->common.realloc = frealloc;
       zone->common.free = ffree;
@@ -866,12 +867,13 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
 	}
       zone->bufsize = 0;
       NS_DURING
-	zone->blocks = block = fmalloc(NSDefaultMallocZone(), startsize);
+	zone->blocks = fmalloc(NSDefaultMallocZone(), startsize);
       NS_HANDLER
-	objc_mutex_dealloc(zone->common.lock);
+	objc_mutex_deallocate(zone->common.lock);
         ffree(NSDefaultMallocZone(), zone);
         [localException raise];
       NS_ENDHANDLER
+      block = zone->blocks;
       block->next = NULL;
       block->size = startsize;
       header = (void*)block+FF_HEAD;
@@ -886,9 +888,9 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
   else
     {
       nf_block *block;
-      nfree_NSZone *zone;
+      nfree_zone *zone;
 
-      zone = fmalloc(NSDefaultMallocZone(), sizeof(nfree_NSZone));
+      zone = fmalloc(NSDefaultMallocZone(), sizeof(nfree_zone));
       zone->common.malloc = nmalloc;
       zone->common.realloc = NULL;
       zone->common.free = NULL;
@@ -897,12 +899,13 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       zone->common.lock = objc_mutex_allocate();
       zone->common.name = nil;
       NS_DURING
-	zone->blocks = block = fmalloc(NSDefaultMallocZone(), startsize);
+	zone->blocks = fmalloc(NSDefaultMallocZone(), startsize);
       NS_HANDLER
 	objc_mutex_deallocate(zone->common.lock);
         ffree(NSDefaultMallocZone(), zone);
 	[localException raise];
       NS_ENDHANDLER
+      block = zone->blocks;
       block->next = NULL;
       block->size = startsize;
       block->top = NF_HEAD;
@@ -971,8 +974,21 @@ NSZoneName (NSZone *zone)
   return zone->name;
 }
 
+/* FIXME: not thread safe. */
 BOOL
 NSZoneMemInUse (void *ptr)
 {
-  return (*(size_t*)(ptr-ZPTRSZ-SZSZ)) & INUSE;
+  size_t *header = ptr-ZPTRSZ-SZSZ;
+
+  if (*header & INUSE)
+    {
+      size_t i;
+      ffree_zone *zone = (ffree_zone*)NSZoneFromPointer(ptr);
+
+      for (i = 0; i < zone->bufsize; i++)
+	if (zone->ptr_buf[i] == ptr)
+	  return NO;
+      return YES;
+    }
+  return NO;
 }

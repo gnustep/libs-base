@@ -32,6 +32,7 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_map.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSZone.h>
 #include <limits.h>
 
 
@@ -61,10 +62,8 @@ static BOOL double_release_check_enabled = NO;
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
-  if (!requestedZone || [anObject zone] == requestedZone)
-    return YES;
-  else
-    return NO;
+  return (!requestedZone || requestedZone == NSDefaultMallocZone()
+	  || [anObject zone] == requestedZone);
 }
 
 void
