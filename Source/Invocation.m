@@ -100,7 +100,7 @@
 	 withName: NULL];
   if (return_size)
     {
-      return_value = (*objc_malloc) (return_size);
+      return_value = objc_malloc (return_size);
       [coder decodeValueOfObjCType: return_type
 	     at: return_value
 	     withName: NULL];
