@@ -1,3 +1,8 @@
+Sat Mar  9 15:21:04 2002  Adam Fedor  <fedor@yogi.doc.com>
+
+	* Source/NSDistributedNotificationCenter.m (-_connect): Move check
+	for alternative name so we can get registered.
+ 	
 2002-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCentre.m: Try alternative name for

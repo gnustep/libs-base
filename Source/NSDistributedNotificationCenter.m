@@ -347,6 +347,12 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	}
       _remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
 	GDNC_SERVICE host: host]);
+      if (_remote == nil && [host isEqual: @""] == NO)
+	{
+	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
+	    [GDNC_SERVICE stringByAppendingFormat: @"-%@", host] host: @"*"];
+	  RETAIN(_remote);
+	}
 
       if (_remote != nil)
 	{
@@ -400,14 +406,8 @@ NSLog(@"Connection to GDNC server established.\n");
 	}
       else
 	{
-	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
-	    [GDNC_SERVICE stringByAppendingFormat: @"-%@", host] host: @"*"];
-	  if (_remote == nil)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-		format: @"unable to contact GDNC server for %@", host];
-	    }
-	  RETAIN(_remote);
+	  [NSException raise: NSInternalInconsistencyException
+		       format: @"unable to contact GDNC server for %@", host];
 	}
     }
 }
