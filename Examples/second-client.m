@@ -18,7 +18,7 @@ id announce_new_connection (id notification)
 
 int main(int argc, char *argv[])
 {
-  id server;
+  static id server;
   id a1;
   id remote_array;
   char namebuf[16];
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   /* Cause an exception, and watch it return to us. */
   NS_DURING
     {
-      id o = [remote_array objectAtIndex: 99];
+      [remote_array objectAtIndex: 99];
     }
   NS_HANDLER
     {

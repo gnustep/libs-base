@@ -40,16 +40,16 @@
 #include <Foundation/NSDate.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef WIN32
+#ifndef __WIN32__
 #include <unistd.h>		/* for gethostname() */
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !WIN32 */
-#include <string.h>		/* for memset() */
-#ifndef WIN32
+#endif /* !__WIN32__ */
+#include <string.h>		/* for memset() and strchr() */
+#ifndef __WIN32__
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif
+#endif /* !__WIN32__ */
 
 /* On some systems FD_ZERO is a macro that uses bzero().
    Just define it to use GCC's builtin memset(). */
@@ -224,7 +224,7 @@ static NSMapTable* port_number_2_port;
 	abort ();
       }
 
-    /* Now change INADDR_ANY to the specific network address of this
+    /* Now change _LISTENING_ADDRESS to the specific network address of this
        machine so that, when we encoded our _LISTENING_ADDRESS for a
        Distributed Objects connection to another machine, they get our
        unique host address that can identify us across the network. */
@@ -233,12 +233,15 @@ static NSMapTable* port_number_2_port;
 	perror ("[TcpInPort +newForReceivingFromPortNumber:] gethostname()");
 	abort ();
       }
+    /* Terminate the name at the first dot. */
+    {
+      char *first_dot = strchr (hostname, '.');
+      if (first_dot)
+	*first_dot = '\0';
+    }
     hp = gethostbyname (hostname);
     if (!hp)
-      /* xxx This won't work with port connections on a network, though.
-         Fix this.  Perhaps there is a better way of getting the address
-	 of the local host. */
-      hp = gethostbyname ("localhost");
+      [self error: "Could not get address of local host \"%s\"", hostname];
     assert (hp);
     memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
   }
@@ -851,10 +854,25 @@ static NSMapTable *out_port_bag = NULL;
   struct hostent *hp;
   const char *host_cstring;
   struct sockaddr_in addr;
+  /* Only used if no hostname is passed in. */
+  char local_hostname[MAXHOSTNAMELEN];
 
   /* Look up the hostname. */
   if (!hostname || ![hostname length])
-    host_cstring = "localhost";
+    {
+      int len = sizeof (local_hostname);
+      char *first_dot;
+      if (gethostname (local_hostname, len) < 0)
+	{
+	  perror ("[TcpOutPort +newForSendingToPortNumber:onHost:] "
+		  "gethostname()");
+	  abort ();
+	}
+      host_cstring = local_hostname;
+      first_dot = strchr (host_cstring, '.');
+      if (first_dot)
+	*first_dot = '\0';
+    }
   else
     host_cstring = [hostname cStringNoCopy];
   hp = gethostbyname ((char*)host_cstring);
@@ -1093,7 +1111,6 @@ static NSMapTable *out_port_bag = NULL;
 {
   char prefix_buffer[PREFIX_SIZE];
   int c;
-  struct sockaddr_in *addr;
   
   c = read (s, prefix_buffer, PREFIX_SIZE);
   if (c == 0)
@@ -1120,10 +1137,13 @@ static NSMapTable *out_port_bag = NULL;
   /* If the reply address is non-zero, and the TcpOutPort for this socket
      doesn't already have its _address ivar set, then set it now. */
   {
-    addr = (struct sockaddr_in*) (prefix_buffer + PREFIX_LENGTH_SIZE);
-    if (addr->sin_family)
+    struct sockaddr_in addr;
+    /* Do this memcpy instead of simply casting the pointer because
+       some systems fail to do the cast correctly (due to alignment issues?) */
+    memcpy (&addr, prefix_buffer + PREFIX_LENGTH_SIZE, sizeof (typeof (addr)));
+    if (addr.sin_family)
       {
-      *rp = [TcpOutPort newForSendingToSockaddr: addr
+      *rp = [TcpOutPort newForSendingToSockaddr: &addr
 			withAcceptedSocket: s
 			pollingInPort: ip];
       }
@@ -1167,7 +1187,9 @@ static NSMapTable *out_port_bag = NULL;
   /* Put the sockaddr_in for replies in the next bytes of the prefix
      region.  If there is no reply address specified, fill it with zeros. */
   if (addr)
-    *(PREFIX_ADDRESS_TYPE*)(buffer + PREFIX_LENGTH_SIZE) = *addr;
+    /* Do this memcpy instead of simply casting the pointer because
+       some systems fail to do the cast correctly (due to alignment issues?) */
+    memcpy (buffer + PREFIX_LENGTH_SIZE, addr, PREFIX_ADDRESS_SIZE);
   else
     memset (buffer + PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
 

@@ -43,12 +43,10 @@ More information about the library, including a list of machines on
 which it has been successfully compiled and used, can be found at
 @samp{http://www.cs.rochester.edu/u/mccallum/libgnustep-base}.
 
-The library requires gcc @value{GNUSTEP_BASE_GCC_VERSION} or higher.  The
-library does not work with the NEXTSTEP 3.2 compiler because that
-version of NeXT's cc cannot handle nested functions.  Until a later
-release from NeXT, NEXTSTEP users will have to install gcc.  See the
-@samp{INSTALL} file for more instructions about compiling and installing
-the library.
+The library requires gcc @value{GNUSTEP_BASE_GCC_VERSION} or higher.
+Significant sections of the library do not work with the NeXT runtime,
+so we recommend using gcc instead of NeXT's cc.  See the @samp{INSTALL}
+file for more instructions about compiling and installing the library.
 
 The @samp{.tar} file is compressed with GNU gzip.  Gzip can be obtained by
 anonymous ftp at any of the GNU archive sites.

@@ -50,7 +50,7 @@ DIST_FILES = \
 	COPYING COPYING.LIB ChangeLog \
 	configure Version \
 	config.guess mkinstalldirs install-sh \
-	NSBundle.README objc.patch
+	NSBundle.README gcc-objc.patch
 
 all: src
 
@@ -90,7 +90,7 @@ maintainer-clean-top:
 mostlyclean: mostlyclean-top mostlyclean-subdirs
 clean: mostlyclean-top clean-subdirs
 distclean: clean-top distclean-subdirs
-maintainer-clean: distclean-top maintainer-clean-subdirs
+maintainer-clean: maintainer-clean-subdirs distclean-top
 
 snap: $(DIST_FILES)
 	rm -rf snap

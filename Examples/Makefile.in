@@ -30,7 +30,7 @@ VPATH = @srcdir@
 
 CC = @CC@
      
-CFLAGS = -Wall -Wno-implicit -g -O
+CFLAGS = -Wall -Wno-implicit -Wno-format -g -O
 CPPFLAGS =
 LDFLAGS =
      
@@ -113,7 +113,7 @@ clean: mostlyclean
 distclean: clean
 	rm -f Makefile config.status
 
-realclean: distclean
+maintainer-clean: distclean
 	rm -f TAGS
 
 copy-dist: $(DIST_FILES) 

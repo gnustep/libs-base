@@ -6,6 +6,8 @@
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/Invocation.h>
 
+/* This function will be called by an Invocation object that will be 
+   registered to fire every time an InPort accepts a new client. */
 id announce_new_port (id notification)
 {
   id in_port = [notification object];
@@ -17,6 +19,8 @@ id announce_new_port (id notification)
   return nil;
 }
 
+/* This function will be called by an Invocation object that will be 
+   registered to fire every time an InPort client disconnects. */
 id announce_broken_port (id notification)
 {
   id in_port = [notification object];
@@ -28,6 +32,8 @@ id announce_broken_port (id notification)
   return nil;
 }
 
+/* The implementation of the object that will be registered with  D.O. 
+   as the server. */
 @implementation SecondServer
 
 - init

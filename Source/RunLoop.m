@@ -59,9 +59,9 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSTimer.h>
-#ifndef WIN32
+#ifndef __WIN32__
 #include <sys/time.h>
-#endif /* !WIN32 */
+#endif /* !__WIN32__ */
 #include <limits.h>
 #include <string.h>		/* for memset() */
 
@@ -341,7 +341,7 @@ static RunLoop *current_run_loop;
 	   want us to listen to; add these to FD_LISTEN_SET. */
 	for (i = [ports count]-1; i >= 0; i--)
 	  {
-	    int port_fd_count = 128;
+	    int port_fd_count = 128; // xxx #define this constant
 	    int port_fd_array[port_fd_count];
 	    port = [ports objectAtIndex: i];
 	    if ([port respondsTo: @selector(getFds:count:)])
@@ -376,7 +376,10 @@ static RunLoop *current_run_loop;
       abort ();
     }
   else if (select_return == 0)
-    return;
+    {
+      NSFreeMapTable (fd_2_object);
+      return;
+    }
   
   /* Look at all the file descriptors select() says are ready for reading;
      notify the corresponding object for each of the ready fd's. */

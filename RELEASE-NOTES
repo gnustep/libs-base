@@ -3,5 +3,3 @@ list of what's changed, and the old and new names.
 
 The `o-*' file names have been changed to `o_*' to better match their
 function names and the GNU standards.
-
-The %@ printf directive only works if you are using the GNU C library.

@@ -1,7 +1,300 @@
-Wed Jun 26 20:45:26 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+Thu Jul 11 21:12:41 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
-	* src/Makefile.in (install): Create a soft link for `objc' in
- 	addition to `Foundation'.
+	* Version (SUBMINOR_VERSION): Version 0.2.6.
+
+Tue Jun 25 12:56:01 1996  Scott Christley  <scottc@ocbi.com>
+
+	* NSCharacterSets/Makefile.in: Remove Makefile when distclean.
+	* admin/Makefile.in: Likewise.
+	* checks/Makefile.in: Change realclean target to maintainer-clean.
+	* doc/Makefile.in: Likewise.
+	* examples/Makefile.in: Likewise.
+	
+	* Makefile.in: Clean the subdirectories first before the top
+	level directory to avoid configuration loop.
+
+	* checks/Makefile.sed.nt: Change name of runtime initialization
+	routine to use standard "_init_runtime" suffix.
+	* checks/nsarchiver.m: Likewise.
+	* checks/nsarray.m: Likewise.
+	* src/win32-entry.c: Likewise.
+	* src/Makefile.in: Likewise.  Clean additional files.
+
+	* src/NSDate.m: Use __WIN32__ macro instead of WIN32.
+	
+	* src/NSTime.m: Implement Win32 specific time routines.
+	* src/include/config-win32.h: Likewise.
+
+Fri Jun 21 16:45:31 1996  Scott Christley  <scottc@ocbi.com>
+
+	* configure.bat: New filenames for Win32 configuration.
+	* src/Makefile.in: (DIST_FILES): Add Win32 configuration files:
+	src/include/config-win32.sed, src/include/config-win32.h.
+	* src/BinaryCStream.m: Rename WIN32 to __WIN32__ to conform
+	to ANSI specifications.  Perform any WIN32 customization.
+	* src/NSBundle.m: Likewise.
+	* src/NSPage.m: Likewise.
+	* src/NSProcessInfo.m: Likewise.
+	* src/NSUser.m: Likewise.
+	* src/NSRunLoop.m: Likewise.
+	* src/TcpPort.m: Likewise.
+	* src/UdpPort.m: Likewise.
+	* src/find_exec.c: Likewise.
+	* src/include/TcpPort.h: Likewise.
+	* src/include/Time.h: Likewise.
+	* src/include/config-nt.sed: Renamed to config-win32.sed.
+	* src/include/config-nt.h: Renamed to config-win32.h
+	
+Thu Jul 11 08:20:34 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -dealloc]): Remove
+ 	untrue assertion that SELF be this thread's current pool.
+	(Reported by Adam Fedor.)
+
+	* checks/Makefile.in (LIBS): Remove -lmcheck.
+
+	* Version (SUBMINOR_VERSION): Version 0.2.5.
+
+	* doc/news.texi: Fix typo, replace @ with @@ in email address.
+
+	* Version (SUBMINOR_VERSION): Version 0.2.4.
+
+	* src/NSString.m (PRINTF_ATSIGN_VA_LIST): Reverse sense of test.
+  	This macro should be defined if libc version is *less than* 5.2.
+
+	* examples/dictionary.m: Long-overdue update for new collection
+ 	heirarchy.
+	* examples/textcoding.m (main): Fix typo in comment.
+	* examples/second-server.m: Add comments.
+	* examples/second-client.m (main): To avoid warnings: make SERVER
+ 	static; get rid of unused variable.
+	* examples/Makefile.in (CFLAGS): Added -Wno-format so we don't get
+ 	complains about the %@ printf directive.
+
+	* doc/news.texi: Add news about NSUserDefaults, thread-safety, @%,
+ 	and NSPage.
+	* doc/readme.texi: Update description of classes, although the
+ 	list is still incomplete.
+
+Wed Jul 10 16:28:14 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* doc/gnustep-faq.texi: New Q/A about mixing Objective C and C++.
+  	Include base-desc.texi for description of Base Library.  Update
+ 	"state of development for Base Library.  Correct description of
+ 	NeXT's archiving.  Add ocbi.com ftp site.
+	* doc/base-desc.texi: Improve list of example classes.
+	* doc/announce.texi: Fix comments about NeXT's cc.
+	* doc/machines.texi: Label as out-of-date.
+	* doc/advertisement.texi: Comment out inclusion of machines.texi.
+
+	* src/NSUserDefaults.m: Fix source to avoid warnings.
+
+	* src/NSUserDefaults.m: New file from Georg Tuparev.
+	* src/include/NSUserDefaults.h: Likewise.
+	* src/NSUserDefaults.m, src/include/NSUserDefaults.h: Fix
+	formatting to conform to GNU standards.
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSUserDefaults.m.
+	(GNUSTEP_HEADERS): Added include/NSUserDefaults.h.
+
+Tue Jul  9 20:05:16 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* doc/install.texi: Enumerate the steps, and various other
+ 	corrections.
+
+	* src/RunLoop.m ([RunLoop -acceptInputForMode:beforeDate:]): Free
+ 	fd_2_object before returning in case where select() returned 0.
+  	(Reported by Marc Decugis <mds@sepgifbr.sep.de.edf.fr>.)
+
+Mon Jul  8 21:55:11 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (SUBMINOR_VERSION): Version 0.2.3.
+
+	* src/Invocation.m ([ArgframeInvocation -dealloc]): Release
+ 	arguments depending on ARGS_RETAINED, not RETURN_RETAINED.
+
+	* checks/release.m: New file.
+	* checks/Makefile.in (SRCS): Added release.m.
+
+	* src/o_map.m (o_map_remove_node): Function renamed from
+ 	o_map_remove_node_from_its_map().  Free the node after removing
+ 	it!  Otherwise, memory leaks and leaks!
+	* src/NSObject.m (NSDecrementExtraRefCountWasZero): Call renamed
+ 	function for removing node.
+
+	* src/NSAutoreleasePool.m (push_pool_to_cache): Avoid unnecessary
+ 	test.
+	(pop_pool_from_cache): Don't bother conditionally initializing the
+	cache; it will always be initialized when we are here.
+	([NSAutoreleasePool -dealloc]): Add assertion.
+	([NSAutoreleasePool -reallyDealloc]): New method.
+
+Tue May 28 15:39:36 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+        * checks/nsmaptable.m: Check for nil map element.
+
+        * src/Invocation [Invocation -dealloc]: Release return_value
+        only if return_retained.
+        [ArgframeInvocation -dealloc]: Likewise.
+
+Sat Jul  6 09:03:25 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* Version (SUBMINOR_VERSION): gnustep-base version 0.2.2.
+
+	* doc/install.texi: Describe installation of pthreads.
+
+	* src/NSObject.m ([NSObject +initialize]): Use
+ 	o_map_with_callbacks(), instead of the short-cut function
+ 	o_map_of_non_owned_void_p_to_int().
+
+	* src/RunLoop.m ([RunLoop -acceptInputForMode:beforeDate:]): Add
+ 	comment about arbitrary fd port limit.  Fix this eventually.
+
+	* checks/tcpport-client.m (main): When argc == 1, pass nil for
+ 	hostname instead of @"localhost".
+
+	* checks/string.m (main): Add test of copyWithZone.
+
+	* src/TcpPort.m ([TcpOutPacket
+ 	-_writeToSocket:withReplySockaddr:]): Use memcpy() instead of
+ 	cast; some systems have trouble with the cast due to alignment
+ 	issues.  (Reported by Marc Decugis <mds@sepgifbr.sep.de.edf.fr>.)
+	([TcpInPacket +_getPacketSize:andReplyPort:fromSocket:inPort:]):
+	Likewise.
+
+	* configure.in: Clean up echo'ed message for shared library flags.
+
+	* gcc-objc.patch: New objc runtime patch from Scott Christley.
+	* Makefile.in (DIST_FILES): Include gcc-objc.patch instead of
+ 	objc.patch.
+	* doc/install.texi: Update instructions for new objc runtime
+ 	patch.
+
+	* src/Foundation/NSAutoreleasePool.h: Include <string.h> for
+ 	memset().
+
+	A first attempt at making NotificationDispatcher thread-safe.
+	* src/NotificationDispatcher.m ([NotificationDispatcher -init]):
+
+ 	Create _LOCK.
+	([NotificationDispatcher -dealloc]): New method.
+	([NotificationDispatcher
+	-_addObserver:notificationRequest:name:object:]): Use _LOCK to
+ 	provide thread-safety.  Lock around all access to ivars.
+	([NotificationDispatcher -removeObserver:]): Likewise.
+	([NotificationDispatcher -removeObserver:name:object:]): Likewise.
+	([NotificationDispatcher -postNotification:]): Likewise.  All
+	Notification postings are serialized.  If this weren't true, the
+ 	user would have to worry about all kinds of thread-safety issues
+ 	in unpredictable ways, because there is no way to tell what other
+ 	objects have asked for notification postings.
+	* src/include/NotificationDispatcher.h (NotificationDispatcher
+ 	_lock): New ivar.
+
+	Fix error that occurs when using a TcpOutPort that was created
+	with a default hostname.
+
+	* src/TcpPort.m ([TcpInPort +newForReceivingFromPortNumber:]):
+ 	Terminate the hostname at the first dot before looking up with
+ 	gethostbyname().  If gethostbyname() fails, don't try again with
+ 	"localhost"; signal an error instead.
+	([TcpOutPort +newForSendingToPortNumber:onHost:]): When HOSTNAME is
+	empty or nil, don't use "localhost", look up the name of the local
+ 	machine, and use that.  Before this change we could easily get
+ 	"Can't change reply port of an out port once set" errors.
+
+Fri Jul  5 08:59:26 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Use more-efficient o_map instead NSMapTable for retain counts.
+
+	* src/NSObject.m (retain_counts): Make it an o_map instead of
+ 	NSMapTable; (o_map is more efficient).
+	(NSIncrementExtraRefCount): Use o_map interface.
+	(NSDecrementExtraRefCountWasZero): Likewise.
+	([NSObject +initialize]): Likewise.
+	([NSObject -retainCount]): Likewise.
+
+	* src/o_map.m (o_map_node_for_key): New function, non-static, for
+ 	efficient implementation of NSObject retain count management.
+	(o_map_remove_node_from_its_map): Likewise.
+
+Thu Jul  4 21:00:42 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Make -retain/-release counts thread-safe.
+
+	* src/NSObject.m (retain_counts_gate): New static variable, mutex
+ 	for protecting RETAIN_COUNTS.
+	(NSIncrementExtraRefCount): Use it.
+	(NSDecrementExtraRefCountWasZero): Likewise.
+	([NSObject -retainCount]): Likewise.
+	([NSObject +initialize]): Allocate RETAIN_COUNTS_GATE.
+
+Tue Jun 11 14:50:20 1996  Andrew McCallum  <mccallum@pad>
+
+	Make NSAutoreleasePool thread-safe.
+
+	* src/include/NSAutoreleasePool.h (struct
+ 	autorelease_thread_vars): New structure declared.
+	(struct autorelease_cache): Structure declaration removed.
+	(init_autorelease_thread_vars): New static inline function.
+
+	* src/NSAutoreleasePool.m (ARP_THREAD_VARS): New macro for
+ 	accessing NSAutoreleasePool's per-thread variables.
+	(current_pool): Static variable removed. 
+	(total_autoreleased_objects_count): Likewise.
+	(autorelease_pool_cache): Likewise.
+	(autorelease_pool_size): Likewise.
+	(autorelease_pool_count): Likewise.
+	(push_pool_to_cache): Add (struct autorelease_thread_vars*) argument.
+	All callers changed.
+	(pop_pool_from_cache): Likewise.
+	(push_pool_to_cache): Likewise.
+	(init_pool_cache): New function.
+	([NSAutoreleasePool +initialize]): Don't initialize the
+	autorelease_pool_cache here.
+	([NSAutoreleasePool +init]): Use per-thread variables.
+	([NSAutoreleasePool -autoreleaseCountForObject:]): Likewise.
+	([NSAutoreleasePool -currentPool:]): Likewise.
+	([NSAutoreleasePool +currentPool:]): Likewise.
+	([NSAutoreleasePool -addObject:]): Likewise.
+	([NSAutoreleasePool +addObject:]): Likewise.
+	([NSAutoreleasePool -dealloc:]): Likewise.
+	([NSAutoreleasePool +totalAutoreleasedObjects:]): Likewise.  This
+	return value is now only a per-thread count.
+	([NSAutoreleasePool +resetTotalAutoreleasedObjects:]): Likewise.
+
+	* src/include/NSThread.h: Make the ivars @public, not @private, so
+ 	NSAutoreleasePool can efficiently access the _autorelease_vars
+ 	ivar.
+	(_autorelease_vars): New ivar.
+
+	* src/NSThread.m ([NSThread -init]): Instead of creating an
+ 	NSMutableDictionary here, just set the ivar `_thread_dictionary' to
+ 	nil, and create it later, only on demand.  Use
+ 	`init_autorelease_thread_vars()' to initialize `_autorelease_vars'.
+	([NSThread -threadDictionary]): If `_thread_dictionary' is nil,
+	create it.
+
+	* checks/string.m (print_string): Use -cStringNoCopy instead of
+ 	-cString.
+	(main): Test the use of the `%@' printf format directive.
+
+	Implement handling of `%@' for non-GNU libc systems.
+	* src/NSString.m: Include <string.h>.
+	(PRINTF_ATSIGN_VA_LIST): Make it an expression that depends on the
+	libc version, not a boolean constant.
+	([NSString -initWithFormat:arguments:]): Implement the `%@' printf
+	directive in the case where the available libc doesn't have
+ 	`register_printf_function()'.  It does not currently handle format
+ 	width specifiers, etc.
+
+Mon Jun 10 23:22:58 1996  Andrew McCallum  <mccallum@pad>
+
+	* src/gnustep/base/preface.h.in: Fix comment.
+
+Mon Jun  3 12:07:16 1996  Andrew McCallum  <mccallum@pad>
+
+	* src/Makefile.in (gnustep/base): Remove `gnustep' and `base'
+ 	before trying to recreate them.
 
 Fri May 31 10:06:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 

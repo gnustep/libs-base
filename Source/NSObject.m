@@ -30,7 +30,7 @@
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSMapTable.h>
+#include <gnustep/base/o_map.h>
 #include <Foundation/NSException.h>
 #include <limits.h>
 
@@ -39,20 +39,29 @@ extern void (*_objc_error)(id object, const char *format, va_list);
 
 /* Reference count management */
 
-/* Doesn't handle multi-threaded stuff.
-   Doesn't handle exceptions. */
+/* Handles multi-threaded access.
+   ?? Doesn't handle exceptions. */
 
-/* The hashtable of retain counts on objects */
-static NSMapTable *retain_counts = NULL;
+/* The maptable of retain counts on objects */
+static o_map_t *retain_counts = NULL;
+/* The mutex lock to protect multi-threaded use of `retain_counts' */
+static _objc_mutex_t retain_counts_gate = NULL;
 
-/* The Class responsible for handling autorelease's */
+/* The mutex lock to protect RETAIN_COUNTS. */
+static _objc_mutex_t retain_counts_gate;
+
+/* The Class responsible for handling autorelease's.  This does not
+   need mutex protection, since it is simply a pointer that gets read
+   and set. */
 static id autorelease_class = nil;
 
-/* When this is `YES', every call to release/autorelease, checks to make sure
-   isn't being set up to release itself too many times. */
+/* When this is `YES', every call to release/autorelease, checks to
+   make sure isn't being set up to release itself too many times.
+   This does not need mutex protection. */
 static BOOL double_release_check_enabled = NO;
 
-BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
+BOOL
+NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
   if (!requestedZone || [anObject zone] == requestedZone)
     return YES;
@@ -60,58 +69,52 @@ BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
     return NO;
 }
 
-void NSIncrementExtraRefCount (id anObject)
+void
+NSIncrementExtraRefCount (id anObject)
 {
-  unsigned c = (unsigned) NSMapGet (retain_counts, anObject);
-  NSMapInsert (retain_counts, anObject, (void*)c+1);
+  o_map_node_t *node;
+  extern o_map_node_t *o_map_node_for_key (o_map_t *m, const void *k);
 
-  /* xxx Make this more efficient like it was before: */
-#if 0
-  coll_node_ptr n;
-
-  n = coll_hash_node_for_key(retain_counts, anObject);
-  if (n)
-    (n->value.unsigned_int_u)++;
+  objc_mutex_lock (retain_counts_gate);
+  node = o_map_node_for_key (retain_counts, anObject);
+  if (node)
+    ((int)(node->value))++;
   else
-    coll_hash_add(&retain_counts, anObject, (unsigned)1);
-#endif
+    o_map_at_key_put_value_known_absent (retain_counts, anObject, (void*)1);
+  objc_mutex_unlock (retain_counts_gate);
 }
 
-BOOL NSDecrementExtraRefCountWasZero (id anObject)
+BOOL
+NSDecrementExtraRefCountWasZero (id anObject)
 {
-  unsigned c = (unsigned) NSMapGet (retain_counts, anObject);
+  o_map_node_t *node;
+  extern o_map_node_t *o_map_node_for_key (o_map_t *m, const void *k);
+  extern void o_map_remove_node (o_map_node_t *node);
 
-  if (!c)
-    return YES;
-
-  c--;
-  if (c)
-    NSMapInsert (retain_counts, anObject, (void*)c);
-  else
-    NSMapRemove (retain_counts, anObject);
+  objc_mutex_lock (retain_counts_gate);
+  node = o_map_node_for_key (retain_counts, anObject);
+  if (!node)
+    {
+      objc_mutex_unlock (retain_counts_gate);
+      return YES;
+    }
+  assert ((int)(node->value) > 0);
+  if (!--((int)(node->value)))
+    o_map_remove_node (node);
+  objc_mutex_unlock (retain_counts_gate);
   return NO;
-
-  /* xxx Make this more efficient like it was before: */
-#if 0
-  coll_node_ptr n;
-
-  n = coll_hash_node_for_key(retain_counts, anObject);
-  if (!n) return wasZero;
-  if (n->value.unsigned_int_u) wasZero = NO;
-  if (!--n->value.unsigned_int_u)
-    coll_hash_remove(retain_counts, anObject);
-  return wasZero;
-#endif
 }
 
+
 @implementation NSObject
 
 + (void) initialize
 {
   if (self == [NSObject class])
     {
-      retain_counts = NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
-					NSIntMapValueCallBacks, 64);
+      retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
+					    o_callbacks_for_int);
+      retain_counts_gate = objc_mutex_allocate ();
       autorelease_class = [NSAutoreleasePool class];
     }
   return;
@@ -433,7 +436,12 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - (unsigned) retainCount
 {
-  return (unsigned) NSMapGet (retain_counts, self);
+  unsigned ret;
+
+  objc_mutex_lock (retain_counts_gate);
+  ret = (unsigned) o_map_value_at_key (retain_counts, self);
+  objc_mutex_unlock (retain_counts_gate);
+  return ret;
 }
 
 + (unsigned) retainCount
@@ -451,12 +459,10 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
   return NSZoneFromPtr(self);
 }
 
-#if 1 /* waiting until I resolve type conflict with GNU Coding method */
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   return;
 }
-#endif
 
 - initWithCoder: (NSCoder*)aDecoder
 {
@@ -465,6 +471,7 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 @end
 
+
 @implementation NSObject (NEXTSTEP)
 
 /* NEXTSTEP Object class compatibility */
@@ -581,6 +588,7 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 @end
 
+
 @implementation NSObject (GNU)
 
 /* GNU Object class compatibility */

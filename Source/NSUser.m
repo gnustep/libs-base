@@ -24,19 +24,26 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <stdlib.h>		// for getenv()
+#ifndef __WIN32__
 #include <unistd.h>		// for getlogin()
 #include <pwd.h>		// for getpwnam()
+#endif
 #include <sys/types.h>
 
 /* Return the caller's login name as an NSString object. */
 NSString *
 NSUserName ()
 {
+#ifndef __WIN32__
   const char *login_name = getlogin ();
+  
   if (login_name)
     return [NSString stringWithCString: login_name];
   else
     return nil;
+#else
+  return nil;
+#endif /* __WIN32__ */
 }
 
 /* Return the caller's home directory as an NSString object. */
@@ -50,7 +57,11 @@ NSHomeDirectory ()
 NSString *
 NSHomeDirectoryForUser (NSString *login_name)
 {
+#ifndef __WIN32__
   struct passwd *pw;
   pw = getpwnam ([login_name cStringNoCopy]);
   return [NSString stringWithCString: pw->pw_dir];
+#else
+  return nil;
+#endif
 }

@@ -29,10 +29,10 @@
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSException.h>
 #include <math.h>
-#ifndef WIN32
+#ifndef __WIN32__
 #include <values.h>		// This gets BITSPERBYTE on Solaris
 #include <netinet/in.h>		// for byte-conversion
-#endif /* !WIN32 */
+#endif /* !__WIN32__ */
 
 #define DEFAULT_FORMAT_VERSION 0
 

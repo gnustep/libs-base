@@ -6,8 +6,11 @@
 void
 print_string(NSString* s)
 {
-  printf("The string [%s], length %d\n", [s cString], [s length]);
+  printf("The string [%s], length %d\n", [s cStringNoCopy], [s length]);
 }
+
+#include <Foundation/NSString.h>
+
 
 int main()
 {
@@ -16,12 +19,20 @@ int main()
 
   print_string(s);
 
+  s2 = [s copyWithZone: NS_NOZONE];
+  print_string(s2);
+
   s2 = [s stringByAppendingString:@" with something added"];
   print_string(s2);
 
   s2 = [s mutableCopy];
   [s2 replaceCharactersInRange:((NSRange){10,4})
       withString:@"changed"];
+  print_string(s2);
+
+  /* Test the use of the `%@' format directive. */
+  s2 = [NSString stringWithFormat: @"foo %@ bar",
+		 @"test"];
   print_string(s2);
 
 #if 0

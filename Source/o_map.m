@@ -322,6 +322,23 @@ _o_map_node_for_key(o_map_t *map, const void *key)
   return node;
 }
 
+/* A non--static-inline version for use in NSObject.
+   xxx Figure out if this change should be generalized. */
+o_map_node_t *
+o_map_node_for_key (o_map_t *map, const void *key)
+{
+  return _o_map_node_for_key (map, key);
+}
+
+/* A non--static-inline version for use in NSObject.
+   xxx Figure out if this change should be generalized. */
+void
+o_map_remove_node (o_map_node_t *node)
+{
+  _o_map_remove_node_from_its_map (node);
+  _o_map_free_node(node);
+}
+
 /** Callbacks... **/
 
 /* Return a hash index for MAP.  Needed for the callbacks below. */

@@ -25,7 +25,41 @@
 #define __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
+#include <string.h>		/* for memset() */
 
+@class NSAutoreleasePool;
+
+
+/* Each thread has its own copy of these variables.
+   A pointer to this structure is an ivar of NSThread. */
+struct autorelease_thread_vars
+{
+  /* The current, default NSAutoreleasePool for the calling thread;
+     the one that will hold objects that are arguments to
+     [NSAutoreleasePool +addObject:]. */
+  NSAutoreleasePool *current_pool;
+
+  /* The total number of objects autoreleased since the thread was
+     started, or since -resetTotalAutoreleasedObjects was called
+     in this thread. */
+  unsigned total_objects_count;
+
+  /* A cache of NSAutoreleasePool's already alloc'ed.  Caching old pools
+     instead of deallocating and re-allocating them will save time. */
+  id *pool_cache;
+  int pool_cache_size;
+  int pool_cache_count;
+};
+
+/* Initialize an autorelease_thread_vars structure for a new thread.
+   This function is called in NSThread each time an NSThread is created. */
+static inline void
+init_autorelease_thread_vars (struct autorelease_thread_vars *tv)
+{
+  memset (tv, 0, sizeof (typeof (*tv)));
+}
+
+
 /* Each pool holds its objects-to-be-released in a linked-list of 
    these structures. */
 struct autorelease_array_list
@@ -36,22 +70,15 @@ struct autorelease_array_list
   id objects[0];
 };
 
-/* This structure holds a per-thread cache of NSAutoreleasePool objects,
-   so they don't have to be alloc/dealloc'ed each time. */
-struct autorelease_cache
-{
-  id *cache;
-  int cache_size;
-  int cache_count;
-};
-
+
 @interface NSAutoreleasePool : NSObject 
 {
   /* For re-setting the current pool when we are dealloc'ed. */
   NSAutoreleasePool *_parent;
-  /* This necessary for co-existing with exceptions. */
+  /* This pointer to our child pool is  necessary for co-existing
+     with exceptions. */
   NSAutoreleasePool *_child;
-  /* An collection of the objects to be released. */
+  /* A collection of the objects to be released. */
   struct autorelease_array_list *_released;
   struct autorelease_array_list *_released_head;
   /* The total number of objects autoreleased in this pool. */

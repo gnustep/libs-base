@@ -31,16 +31,16 @@
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/String.h>
 #include <assert.h>
-#ifndef WIN32
+#ifndef __WIN32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
-#endif /* !WIN32 */
+#endif /* !__WIN32__ */
 #if _AIX
 #include <sys/select.h>
 #endif /* _AIX */
-#ifndef WIN32
+#ifndef __WIN32__
 #include <netdb.h>
 #include <sys/time.h>
-#endif /* !WIN32 */
+#endif /* !__WIN32__ */
 
 @interface UdpInPort (Private)
 @end

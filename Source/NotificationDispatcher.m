@@ -182,7 +182,8 @@
 @implementation NotificationDispatcher
 
 /* The default instance, most often the only one created.
-   It is accessed by the class methods at the end of this file. */
+   It is accessed by the class methods at the end of this file.
+   There is no need to mutex locking of this variable. */
 static NotificationDispatcher *default_notification_dispatcher = nil;
 
 + (void) initialize
@@ -219,7 +220,19 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
     NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
 
+  _lock = [NSRecursiveLock new];
+
   return self;
+}
+
+- (void) dealloc
+{
+  [_anonymous_nr_list release];
+  NSFreeMapTable( _object_2_nr_list);
+  NSFreeMapTable (_name_2_nr_list);
+  NSFreeMapTable (_observer_2_nr_array);
+  [_lock release];
+  [super dealloc];
 }
 
 
@@ -236,6 +249,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   /* If observer is nil, there is nothing to do; return. */
   if (!observer)
     return;
+
+  [_lock lock];
 
   /* Record the notification request in an array keyed by OBSERVER. */
   {
@@ -298,6 +313,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	}
       [nr_list appendObject: nr];
     }
+
+  [_lock unlock];
 }
 
 - (void) addInvocation: (id <Invoking>)invocation
@@ -435,6 +452,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   if (!observer)
     return;
 
+  [_lock lock];
+
   /* Get the array of NotificationRequest's associated with OBSERVER. */
   observer_nr_array = NSMapGet (_observer_2_nr_array, observer);
 
@@ -454,6 +473,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
      associated with OBSERVER.  This also releases the observer_nr_array,
      and its contents. */
   NSMapRemove (_observer_2_nr_array, observer);
+
+  [_lock unlock];
 }
 
 
@@ -472,6 +493,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
     [self removeObserver: observer];
 
   /* We are now guaranteed that at least one of NAME and OBJECT is non-nil. */
+
+  [_lock lock];
 
   /* Get the list of NotificationRequest's associated with OBSERVER. */
   observer_nr_array = NSMapGet (_observer_2_nr_array, observer);
@@ -508,6 +531,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
     /* xxx If there are some LinkedList's that are empty, I should
        remove them from the map table's. */
   }
+
+  [_lock unlock];
 }
 
 
@@ -525,6 +550,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   if (!notification_name)
     [NSException raise: NSInvalidArgumentException
 		 format: @"Tried to post a notification with no name."];
+
+  [_lock lock];
 
   /* Post the notification to all the observers that specified neither
      NAME or OBJECT. */
@@ -566,6 +593,8 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	}
       END_FOR_COLLECTION (nr_list);
     }
+
+  [_lock unlock];
 }
 
 - (void) postNotificationName: (id <String>)name 

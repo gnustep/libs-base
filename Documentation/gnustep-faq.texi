@@ -25,7 +25,7 @@ contributions by Pascal Forget @email{pascal@@wsc.com}, Scott Christley
 @email{scottc@@net-community.com}, and Randy Chapman
 @email{chapman@@u.washington.edu}.
 
-Last updated 26 March 1996.  
+Last updated 10 July 1996.  
 The most up-to-date version of this FAQ is
 available at @url{ftp://ftp.cs.rochester.edu/pub/u/mccallum/gnustep-base}.
 Please send corrections to @email{mccallum@@gnu.ai.mit.edu}.
@@ -54,7 +54,7 @@ The GNUstep project consists of the following sub-projects:
 @itemize @bullet
 
 @item GNU Objective C Compiler and Objective C Runtime Library -
-Although not actually a sub-project the GNUstep, GCC and the GNU
+Although not actually a component of GNUstep, GCC and the GNU
 Objective C Runtime Library are integral to GNUstep, since they are used
 to make every GNU Objective C program.
 
@@ -171,8 +171,8 @@ Please send corrections to the FAQ maintainer.
 
 @item @b{Is there a WWW site for GNUstep?  Are there mailing lists for GNUstep?}
 
-There is a WWW site at @url{http://www.GNUstep.org}, (and its mirror
-@url{http://www.NMR.EMBL-Heidelberg.DE/GNUstep}, that contains many
+There is a WWW site at @url{http://www.gnustep.org}, (and its mirror
+@url{http://www.NMR.EMBL-Heidelberg.DE/gnustep}, that contains many
 useful pointers.  The technical information in this FAQ may be more up
 to date than the WWW pages since this FAQ is maintained directly by the
 people who are developing GNUstep code.
@@ -337,6 +337,25 @@ are currently thread-safe backends for DEC OSF/1, Solaris, IRIX, and
 WindowsNT.  Volunteers are solicited for writing additional back-ends,
 especially one for Linux.
 
+@item @b{Does it allow a mixture of Objective C and C++}
+
+No.  Unlike NeXT's @samp{cc}, GNU GCC does not support source files
+containing both Objective C and C++.  People at Cygnus have mentioned
+that they would be willing to do the work---if they were paid for it, of
+course.  Several people are interested in seeing this happen.  Send
+email to @samp{discussion@gnustep.org} and
+@samp{gnu-objc@prep.ai.mit.edu} if you are interesting in pushing this
+issue, so that the efforts of all those people interested can be
+coordinated.
+
+Also, unlike NeXT's @samp{cc}, GNU GCC does not support the @samp{extern
+"Objective-C"} construct.
+
+@item @b{Where can I find more information?}
+
+The FAQ associated with the newsgroup @samp{comp.lang.objective-c}
+contains more information about GNU Objective C.
+
 @end enumerate
 @c GNU Compiler and Objective C Runtime Library
 
@@ -347,16 +366,7 @@ especially one for Linux.
 
 @item @b{What is the GNUstep Base Library?}
 
-The GNUstep Base Library is a library of general-purpose, non-graphical
-Objective C objects.  For example, it includes classes for strings,
-collections, byte streams, typed coders, invocations, notifications,
-notification dispatchers, times, network ports, remote object messaging
-support, event loops and random number generators.
-
-It provides functionality that aims to implement the
-@samp{FoundationKit} portion of the OpenStep standard.  In many cases,
-the @samp{NS*} classes are implemented as wrappers around more
-featureful GNU classes.
+@include base-desc.texi
 
 There is more (although perhaps out-of-date) information available at
 the GNUstep Base Library homepage at
@@ -376,7 +386,7 @@ NSBitmapCharSet, NSBundle, NSCharacterSet, NSCoder, NSCountedSet,
 NSData, NSDate, NSDictionary, NSEnumerator, NSException, NSInvocation,
 NSLock, NSMethodSignature, NSNotification, NSNotificationCenter,
 NSNumber, NSObject, NSProcessInfo, NSRunLoop, NSSet, NSString, NSThread,
-NSTimeZone, NSTimer, NSValue.
+NSTimeZone, NSTimer, NSUserDefaults, NSValue.
 
 Most of the C functions are also implemented, including NSHashTable and
 NSMaptable.
@@ -387,7 +397,7 @@ not yet been made.
 
 The following classes are unstarted or unusable: NSBTreeBlock,
 NSBTreeCursor, NSByteStore, NSByteStoreFile, NSCalendarDate,
-NSDeserializer, NSScanner, NSSerializer, NSUserDefaults.
+NSDeserializer, NSScanner, NSSerializer.
 
 
 @item @b{In what ways is the Base Library different from OpenStep's FoundationKit?}
@@ -441,16 +451,13 @@ A third writes in an even more compact stream of machine-dependent bits;
 this is useful for distributed objects connections on machines of the
 same architecture.
 
-I'm not sure how OpenStep's archiving system implements forward
-references, (that is, calls to @samp{encodeConditionalObject:} for which
-the object argument has not yet been encoded, but will be encoded
-later.)  According to its restricted interface, NeXT's implementation
-must either (1) make two passes through all the -encodeWithCoder:
-methods of the objects to be encoded, or (2) not handle forward
-references with @samp{-encodeConditionalObject:}, only backward
-references.  GNU's archiving system, on the other hand, implements
-forward references efficiently, without making two passes.  It does this
-by using an object decoding method (@samp{-decodeObjectAt:..}) that
+OpenStep's archiving system implements forward references, (that is,
+calls to @samp{encodeConditionalObject:} for which the object argument
+has not yet been encoded, but will be encoded later.) by making two
+passes through all the -encodeWithCoder: methods of the objects to be
+encoded GNU's archiving system, on the other hand, implements forward
+references efficiently, without making two passes.  It does this by
+using an object decoding method (@samp{-decodeObjectAt:..}) that
 back-patches @code{id}-pointers when the conditionally encoded objects
 are found in the coded stream.
 
@@ -755,7 +762,8 @@ All remaining classes have stub implementations.
 @item @b{Where can I get a copy?}
 
 It is not yet publically available.  When it is available you will be
-able to find it in @url{ftp://alpha.gnu.ai.mit.edu/gnu}.
+able to find it in @url{ftp://alpha.gnu.ai.mit.edu/gnu}.  Pre-release
+snapshots are available at @url{ftp://ocbi.com}.
 
 @end enumerate
 @c GNUstep GUI Library

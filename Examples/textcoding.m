@@ -77,7 +77,7 @@ int main()
   [array printForDebugger];
   [dictionary printForDebugger];
 
-  /* Relase the objects we read */
+  /* Release the objects we read */
   [array release];
   [dictionary release];
 
