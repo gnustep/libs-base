@@ -27,7 +27,7 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 RESOURCE_SET_NAME = base-resources
-base-resources_RESOURCE_FILES_INSTALL_DIR = gnustep-base/NSCharacterSets
+base-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base/NSCharacterSets
 base-resources_LANGUAGES =
 base-resources_LOCALIZED_RESOURCE_FILES =
 base-resources_RESOURCE_DIRS =
