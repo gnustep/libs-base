@@ -42,6 +42,7 @@
 #include <memory.h>
 #endif /* not STDC_HEADERS and HAVE_MEMORY_H */
 #define rindex strrchr
+#define index strchr
 #define bcopy(s, d, n) memcpy ((d), (s), (n))
 #define bcmp(s1, s2, n) memcmp ((s1), (s2), (n))
 #define bzero(s, n) memset ((s), 0, (n))
