@@ -4,6 +4,8 @@
 	* Source/NSUserDefaults.m: Ensure flags are initialised.
 	* Source/GSCompatibility.m: Set GNUstep DTD for propertyLists.
 	* Tools/plist-0_9.dtd: GNUstep property list DTD.
+	* Source/autogsdoc.m: Improve dependency checking ... only regenerate
+	project index when necessary, thus avoiding some gsdoc file parsing.
 
 Wed Dec 19 02:17:09 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
