@@ -1328,6 +1328,48 @@ static BOOL isPlistObject(id o)
 
   [_lock lock];
 
+  /*
+   *	If we haven't changed anything, we only need to synchronise if
+   *	the on-disk database has been changed by someone else.
+   */
+  attr = [mgr fileAttributesAtPath: _defaultsDatabase
+		      traverseLink: YES];
+  if (_changedDomains == nil)
+    {
+      BOOL	wantRead = NO;
+
+      if (_lastSync == nil)
+	{
+	  wantRead = YES;
+	}
+      else
+	{
+	  if (attr == nil)
+	    {
+	      wantRead = YES;
+	    }
+	  else
+	    {
+	      NSDate	*mod;
+
+	      /*
+	       * If the database was modified since the last synchronisation
+	       * we need to read it.
+	       */
+	      mod = [attr objectForKey: NSFileModificationDate];
+	      if (mod != nil && [_lastSync laterDate: mod] != _lastSync)
+		{
+		  wantRead = YES;
+		}
+	    }
+	}
+      if (wantRead == NO)
+	{
+	  [_lock unlock];
+	  return YES;
+	}
+    }
+
   wasLocked = isLocked;
   if (isLocked == NO && _fileLock != nil)
     {
@@ -1373,51 +1415,10 @@ static BOOL isPlistObject(id o)
     }
 
   /*
-   *	If we haven't changed anything, we only need to synchronise if
-   *	the on-disk database has been changed by someone else.
+   * Re-fetch database attributes in cased they changed while obtaining lock.
    */
   attr = [mgr fileAttributesAtPath: _defaultsDatabase
 		      traverseLink: YES];
-  if (_changedDomains == nil)
-    {
-      BOOL		wantRead = NO;
-
-      if (_lastSync == nil)
-	{
-	  wantRead = YES;
-	}
-      else
-	{
-	  if (attr == nil)
-	    {
-	      wantRead = YES;
-	    }
-	  else
-	    {
-	      NSDate	*mod;
-
-	      /*
-	       * If the database was modified since the last synchronisation
-	       * we need to read it.
-	       */
-	      mod = [attr objectForKey: NSFileModificationDate];
-	      if (mod != nil && [_lastSync laterDate: mod] != _lastSync)
-		{
-		  wantRead = YES;
-		}
-	    }
-	}
-      if (wantRead == NO)
-	{
-	  if (wasLocked == NO)
-	    {
-	      [_fileLock unlock];
-	      isLocked = NO;
-	    }
-	  [_lock unlock];
-	  return YES;
-	}
-    }
 
   DESTROY(_dictionaryRep);
 
