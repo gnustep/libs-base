@@ -12,6 +12,9 @@
 	limit date even if no I/O is possible.
 	* Source/NSUserDefaults.m: Patch by Alexander Malmberg to try all
 	listed locales rather than giving up at first failure.
+	* Headers/gnustep/base/GSUnion.h: Enclose types bitmask in brackets
+	to avoid *all* types being included in the union!  Should decrease
+	memory footprint and increase speed of many classes.
 
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 

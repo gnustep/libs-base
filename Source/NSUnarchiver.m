@@ -36,7 +36,7 @@
  */
 #define	GSI_ARRAY_RETAIN(A, X)	
 #define	GSI_ARRAY_RELEASE(A, X)	
-#define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_STR
+#define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
 #include <base/GSIArray.h>
 
@@ -1191,15 +1191,15 @@ static Class NSDataMallocClass;
        */
       clsMap = NSZoneMalloc(zone, sizeof(GSIArray_t)*3);
       GSIArrayInitWithZoneAndCapacity(clsMap, zone, sizeC);
-      GSIArrayAddItem(clsMap, (GSIArrayItem)0);
+      GSIArrayAddItem(clsMap, (GSIArrayItem)(void*)0);
 
       objMap = &clsMap[1];
       GSIArrayInitWithZoneAndCapacity(objMap, zone, sizeO);
-      GSIArrayAddItem(objMap, (GSIArrayItem)0);
+      GSIArrayAddItem(objMap, (GSIArrayItem)(void*)0);
 
       ptrMap = &clsMap[2];
       GSIArrayInitWithZoneAndCapacity(ptrMap, zone, sizeP);
-      GSIArrayAddItem(ptrMap, (GSIArrayItem)0);
+      GSIArrayAddItem(ptrMap, (GSIArrayItem)(void*)0);
     }
   else
     {
