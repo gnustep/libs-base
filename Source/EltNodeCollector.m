@@ -171,7 +171,7 @@
 }
 
 /* This must work without sending any messages to content objects */
-- empty
+- _empty
 {
   [_contents_collector empty];
   return self;
