@@ -61,7 +61,7 @@ typedef enum
 //=============================================================================
 @interface NSURLHandle: NSObject
 {
-  NSMutableData		*_data;
+  id			_data;
   NSMutableArray	*_clients;
   NSString		*_failure; 
   NSURLHandleStatus	_status;

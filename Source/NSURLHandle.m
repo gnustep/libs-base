@@ -34,7 +34,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSURLHandle.h>
 #include <Foundation/NSURL.h>
-#include <Foundation/NSMapTable.h>
+#include <Foundation/NSRunLoop.h>
 
 @class	GSFileURLHandle;
 
@@ -139,7 +139,11 @@ static Class		NSURLHandleClass = 0;
 
 - (NSData*) availableResourceData
 {
-  return AUTORELEASE([_data copy]);
+  if (_status == NSURLHandleLoadInProgress)
+    {
+      return nil;
+    }
+  return _data;
 }
 
 - (void) backgroundLoadDidFailWithReason: (NSString*)reason
@@ -148,7 +152,7 @@ static Class		NSURLHandleClass = 0;
   id <NSURLHandleClient>	client;
 
   _status = NSURLHandleLoadFailed;
-  [_data setLength: 0];
+  DESTROY(_data);
   ASSIGNCOPY(_failure, reason);
   
   while ((client = [enumerator nextObject]) != nil)
@@ -160,7 +164,8 @@ static Class		NSURLHandleClass = 0;
 - (void) beginLoadInBackground
 {
   _status = NSURLHandleLoadInProgress;
-  [_data setLength: 0];
+  DESTROY(_data);
+  _data = [NSMutableData new];
   [_clients makeObjectsPerformSelector:
     @selector(URLHandleResourceDidBeginLoading:)
     withObject: self];
@@ -169,7 +174,7 @@ static Class		NSURLHandleClass = 0;
 - (void) cancelLoadInBackground
 {
   _status = NSURLHandleNotLoaded;
-  [_data setLength: 0];
+  DESTROY(_data);
   [_clients makeObjectsPerformSelector:
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
@@ -202,7 +207,8 @@ static Class		NSURLHandleClass = 0;
   if (_status != NSURLHandleLoadInProgress)
     {
       _status = NSURLHandleLoadInProgress;
-      [_data setLength: 0];
+      DESTROY(_data);
+      _data = [NSMutableData new];
       [_clients makeObjectsPerformSelector:
 	@selector(URLHandleResourceDidBeginLoading:)
 	withObject: self];
@@ -245,8 +251,14 @@ static Class		NSURLHandleClass = 0;
 
 - (void) endLoadInBackground
 {
+  if (_status == NSURLHandleLoadInProgress)
+    {
+      id	tmp = _data;
+
+      _data = [tmp copy];
+      RELEASE(tmp);
+    }
   _status = NSURLHandleNotLoaded;
-  [_data setLength: 0];
 }
 
 - (NSString*) failureReason
@@ -259,7 +271,7 @@ static Class		NSURLHandleClass = 0;
 
 - (void) flushCachedData
 {
-  [_data setLength: 0];
+  DESTROY(_data);
 }
 
 - (id) init
@@ -272,19 +284,48 @@ static Class		NSURLHandleClass = 0;
 {
   _status = NSURLHandleNotLoaded;
   _clients = [NSMutableArray new];
-  _data = [NSMutableData new];
   return self;
 }
 
+/*
+ * Do a background load by using loadInForeground -
+ * if this method is not overridden, loadInForeground MUST be.
+ */
 - (void) loadInBackground
 {
-  [self subclassResponsibility: _cmd];
+  NSData	*d;
+
+  [self beginLoadInBackground];
+  d = [self loadInForeground]; 
+  if (d == nil)
+    {
+      [self backgroundLoadDidFailWithReason: @"foreground load returned nil"];
+    }
+  else
+    {
+      [self didLoadBytes: d loadComplete: YES];
+    }
+  [self endLoadInBackground];
 }
 
+/*
+ * Do a foreground load by using loadInBackground -
+ * if this method is not overridden, loadInBackground MUST be.
+ */
 - (NSData*) loadInForeground
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  NSRunLoop	*loop = [NSRunLoop currentRunLoop];
+
+  [self loadInBackground];
+  while ([self status] == NSURLHandleLoadInProgress)
+    {
+      NSDate	*limit;
+
+      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
+      [loop runUntilDate: limit];
+      RELEASE(limit);
+    } 
+  return _data;
 }
 
 - (id) propertyForKey: (NSString*)propertyKey
@@ -316,9 +357,9 @@ static Class		NSURLHandleClass = 0;
 
       if (d != nil)
 	{
-	  [_data setData: d];
+	  ASSIGNCOPY(_data, d);
 	}
-      return d;
+      return _data;
     }
 }
 
@@ -351,6 +392,7 @@ static Class		NSURLHandleClass = 0;
 @implementation	GSFileURLHandle
 
 static NSMutableDictionary	*fileCache = nil;
+static NSLock			*fileLock = nil;
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url
 {
@@ -361,7 +403,10 @@ static NSMutableDictionary	*fileCache = nil;
       NSString	*path = [url path];
 
       path = [path stringByStandardizingPath];
+      [fileLock lock];
       obj = [fileCache objectForKey: path];
+      AUTORELEASE(RETAIN(obj));
+      [fileLock unlock];
     }
   return obj;
 }
@@ -378,6 +423,7 @@ static NSMutableDictionary	*fileCache = nil;
 + (void) initialize
 {
   fileCache = [NSMutableDictionary new];
+  fileLock = [NSLock new];
 }
 
 - (void) dealloc
@@ -404,13 +450,16 @@ static NSMutableDictionary	*fileCache = nil;
     {
       id	obj;
 
+      [fileLock lock];
       obj = [fileCache objectForKey: path];
       if (obj != nil)
 	{
 	  RELEASE(self);
 	  self = RETAIN(obj);
+	  [fileLock unlock];
 	  return self;
 	}
+      [fileLock unlock];
     }
 
   if ((self = [super initWithURL: url cached: cached]) != nil)
@@ -418,15 +467,12 @@ static NSMutableDictionary	*fileCache = nil;
       _path = [path copy];
       if (cached == YES)
 	{
+	  [fileLock lock];
 	  [fileCache setObject: self forKey: _path];
+	  [fileLock unlock];
 	}
     }
   return self;
-}
-
-- (void) loadInBackground
-{
-  [self loadInForeground];
 }
 
 - (NSData*) loadInForeground

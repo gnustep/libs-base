@@ -1,3 +1,12 @@
+2000-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Reverted last change -
+        +new has to do alloc, init or break classes that expect to use their
+	own allocation mechanisms.  Similarly, +alloc must call the
+	([+allocWithZone:]) method.  We can't make optimisations that
+	break with the OpenStep spec and MacOS documentation - they would
+	break production code.  Of course, private classes can do this.
+
 2000-10-27  Lyndon Tremblay  <humasect@home.com>
 
 	* Source/NSObject.m ([NSObject +new]): No longer sends 2 messages,

@@ -1411,6 +1411,15 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   return YES;
 }
 
+- (NSString*) scanDate: (NSScanner*)scanner
+{
+  int	day;
+
+  if ([scanner scanString: @"Mon," intoString: 0] == YES)
+    {
+    }
+}
+
 - (NSString*) scanSpecial: (NSScanner*)scanner
 {
   NSCharacterSet	*skip;
