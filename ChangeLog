@@ -1,5 +1,17 @@
 2000-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	NSNumber optimisation ...
+	* Headers/gnustep/base/NSValue.h: Added a couple of GNUstep specific
+	functions for obtaining cached information about methods of NSNumber
+	subclasses and hashes of small integer values.
+	* Source/NSNumber.m: Added caches for small integer numbers and for
+	booleans.  Also added caching mechamism for methods and order info
+	for NSNumber concrete subclasses.
+	* Source/NSConcreteNumber.m: Added support for much more efficient
+	compare and fast hash for small integers.
+
+2000-03-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSUserDefaults.m: ([-description]) implemented.
 	* Source/NSArray.m: ([-descriptionWithLocale:indent:]) put space
 	after comma even when doing unformatted description.

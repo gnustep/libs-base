@@ -37,119 +37,62 @@
 #  define NumberTemplate	NSBoolNumber
 #  define TYPE_METHOD	boolValue
 #  define TYPE_FORMAT	@"%u"
-#  define NEXT_ORDER	4
-#  define NEXT_METHOD	shortValue
-#  define NEXT_CTYPE	short
 #elif TYPE_ORDER == 1
-#  define NumberTemplate	NSUCharNumber
-#  define TYPE_METHOD	unsignedCharValue
-#  define TYPE_FORMAT	@"%c"
-#  define NEXT_ORDER	4
-#  define NEXT_METHOD	shortValue
-#  define NEXT_CTYPE	short
-#elif TYPE_ORDER == 2
 #  define NumberTemplate	NSCharNumber
 #  define TYPE_METHOD	charValue
 #  define TYPE_FORMAT	@"%c"
-#  define NEXT_ORDER	4
-#  define NEXT_METHOD	shortValue
-#  define NEXT_CTYPE	short
+#elif TYPE_ORDER == 2
+#  define NumberTemplate	NSUCharNumber
+#  define TYPE_METHOD	unsignedCharValue
+#  define TYPE_FORMAT	@"%c"
 #elif TYPE_ORDER == 3
-#  define NumberTemplate	NSUShortNumber
-#  define TYPE_METHOD	unsignedShortValue
-#  define TYPE_FORMAT	@"%hu"
-#  define NEXT_ORDER	6
-#  define NEXT_METHOD	intValue
-#  define NEXT_CTYPE	int
-#elif TYPE_ORDER == 4
 #  define NumberTemplate	NSShortNumber
 #  define TYPE_METHOD	shortValue
 #  define TYPE_FORMAT	@"%hd"
-#  define NEXT_ORDER	6
-#  define NEXT_METHOD	intValue
-#  define NEXT_CTYPE	int
+#elif TYPE_ORDER == 4
+#  define NumberTemplate	NSUShortNumber
+#  define TYPE_METHOD	unsignedShortValue
+#  define TYPE_FORMAT	@"%hu"
 #elif TYPE_ORDER == 5
-#  define NumberTemplate	NSUIntNumber
-#  define TYPE_METHOD	unsignedIntValue
-#  define TYPE_FORMAT	@"%u"
-#  define NEXT_ORDER	8
-#  define NEXT_METHOD	longValue
-#  define NEXT_CTYPE	long
-#elif TYPE_ORDER == 6
 #  define NumberTemplate	NSIntNumber
 #  define TYPE_METHOD	intValue
 #  define TYPE_FORMAT	@"%d"
-#  define NEXT_ORDER	8
-#  define NEXT_METHOD	longValue
-#  define NEXT_CTYPE	long
+#elif TYPE_ORDER == 6
+#  define NumberTemplate	NSUIntNumber
+#  define TYPE_METHOD	unsignedIntValue
+#  define TYPE_FORMAT	@"%u"
 #elif TYPE_ORDER == 7
-#  define NumberTemplate	NSULongNumber
-#  define TYPE_METHOD	unsignedLongValue
-#  define TYPE_FORMAT	@"%lu"
-#  define NEXT_ORDER	10
-#  define NEXT_METHOD	longLongValue
-#  define NEXT_CTYPE	long long
-#elif TYPE_ORDER == 8
 #  define NumberTemplate	NSLongNumber
 #  define TYPE_METHOD	longValue
 #  define TYPE_FORMAT	@"%ld"
-#  define NEXT_ORDER	10
-#  define NEXT_METHOD	longLongValue
-#  define NEXT_CTYPE	long long
+#elif TYPE_ORDER == 8
+#  define NumberTemplate	NSULongNumber
+#  define TYPE_METHOD	unsignedLongValue
+#  define TYPE_FORMAT	@"%lu"
 #elif TYPE_ORDER == 9
-#  define NumberTemplate	NSULongLongNumber
-#  define TYPE_METHOD	unsignedLongLongValue
-#  define TYPE_FORMAT	@"%llu"
-#  define NEXT_ORDER	12
-#  define NEXT_METHOD	doubleValue
-#  define NEXT_CTYPE	double
-#elif TYPE_ORDER == 10
 #  define NumberTemplate	NSLongLongNumber
 #  define TYPE_METHOD	longLongValue
 #  define TYPE_FORMAT	@"%lld"
-#  define NEXT_ORDER	12
-#  define NEXT_METHOD	doubleValue
-#  define NEXT_CTYPE	double
+#elif TYPE_ORDER == 10
+#  define NumberTemplate	NSULongLongNumber
+#  define TYPE_METHOD	unsignedLongLongValue
+#  define TYPE_FORMAT	@"%llu"
 #elif TYPE_ORDER == 11
 #  define NumberTemplate	NSFloatNumber
 #  define TYPE_METHOD	floatValue
 #  define TYPE_FORMAT	@"%f"
-#  define NEXT_ORDER	12
-#  define NEXT_METHOD	doubleValue
-#  define NEXT_CTYPE	double
 #elif TYPE_ORDER == 12
 #  define NumberTemplate	NSDoubleNumber
 #  define TYPE_METHOD	doubleValue
 #  define TYPE_FORMAT	@"%g"
-#  define NEXT_ORDER	12
-#  define NEXT_METHOD	doubleValue
-#  define NEXT_CTYPE	double
 #endif
 
 @interface NSNumber (Private)
-- (int)_nextOrder;
-- (NSComparisonResult) _promotedCompare: (NSNumber*)other;
-- (int)_typeOrder;
+- (int) _typeOrder;
 @end
 
 @implementation NumberTemplate (Private)
-- (int)_nextOrder
-{
-  return NEXT_ORDER;
-}
-- (NSComparisonResult) _promotedCompare: (NSNumber*)other
-{
-  NEXT_CTYPE	v0, v1;
-
-  v0 = [self NEXT_METHOD];
-  v1 = [other NEXT_METHOD];
-
-  if (v0 == v1)
-    return NSOrderedSame;
-  else
-    return (v0 < v1) ?  NSOrderedAscending : NSOrderedDescending;
-}
-- (int)_typeOrder
+- (int) _typeOrder
 {
   return TYPE_ORDER;
 }
@@ -157,130 +100,19 @@
 
 @implementation NumberTemplate
 
-- (id)initWithBytes: (const void *)value objCType: (const char *)type
+- (id) initWithBytes: (const void*)value objCType: (const char*)type
 {
   typedef __typeof__(data) _dt;
-  data = *(_dt *)value;
+  data = *(_dt*)value;
   return self;
 }
 
-- (BOOL)boolValue
-{
-  return data;
-}
-
-- (char)charValue
-{
-  return data;
-}
-
-- (double)doubleValue
-{
-  return data;
-}
-
-- (float)floatValue
-{
-  return data;
-}
-
-- (int)intValue
-{
-  return data;
-}
-
-- (long long)longLongValue
-{
-  return data;
-}
-
-- (long)longValue
-{
-  return data;
-}
-
-- (short)shortValue
-{
-  return data;
-}
-
-- (unsigned char)unsignedCharValue
-{
-  return data;
-}
-
-- (unsigned int)unsignedIntValue
-{
-  return data;
-}
-
-- (unsigned long long)unsignedLongLongValue
-{
-  return data;
-}
-
-- (unsigned long)unsignedLongValue
-{
-  return data;
-}
-
-- (unsigned short)unsignedShortValue
-{
-  return data;
-}
-
-- (NSComparisonResult)compare: (NSNumber *)other
-{
-  int	o = [self _typeOrder];
-
-  if (o == [other _typeOrder] || o >= [other _nextOrder])
-    {
-      typedef __typeof__(data) _dt;
-      _dt other_data = [other TYPE_METHOD];
-  
-      if (data == other_data)
-	return NSOrderedSame;
-      else
-	return (data < other_data) ?  NSOrderedAscending : NSOrderedDescending;
-    }
-  o = [self _nextOrder];
-  if (o <= [other _typeOrder])
-    {
-      NSComparisonResult	r = [other compare: self];
-
-      if (r == NSOrderedAscending)
-	{
-	  return NSOrderedDescending;
-	}
-      if (r == NSOrderedDescending)
-	{
-	  return NSOrderedAscending;
-	}
-      return r;
-    }
-  if (o >= [other _nextOrder])
-    {
-      return [self _promotedCompare: other];
-    }
-  else
-    {
-      NSComparisonResult	r = [other _promotedCompare: self];
-
-      if (r == NSOrderedAscending)
-	{
-	  return NSOrderedDescending;
-	}
-      if (r == NSOrderedDescending)
-	{
-	  return NSOrderedAscending;
-	}
-      return r;
-    }
-}
-
-/* Because of the rule that two numbers which are the same according to
+/*
+ * Because of the rule that two numbers which are the same according to
  * [-isEqual: ] must generate the same hash, we must generate the hash
  * from the most general representation of the number.
+ * NB. Don't change this without changing the matching function in
+ * NSNumber.m
  */
 - (unsigned) hash
 {
@@ -289,23 +121,141 @@
     unsigned char c[sizeof(double)];
   } val;
   unsigned	hash = 0;
-  int		i;
+  unsigned	i;
+
+/*
+ * If possible use a cached hash value for small integers.
+ */
+#if	TYPE_ORDER < 11
+#if	(TYPE_ORDER & 1)
+  if (data <= GS_SMALL && data >= -GS_SMALL)
+#else
+  if (data <= GS_SMALL)
+#endif
+    {
+      return GSSmallHash((int)data);
+    }
+#endif
 
   val.d = [self doubleValue];
-  for (i = 0; i < sizeof(double); i++) {
-    hash += val.c[i];
-  }
+  for (i = 0; i < sizeof(double); i++)
+    {
+      hash += val.c[i];
+    }
   return hash;
 }
 
-- (BOOL) isEqualToNumber: (NSNumber*)o
+- (BOOL) boolValue
 {
-  if ([self compare: o] == NSOrderedSame)
-    return YES;
-  return NO;
+  return data;
 }
 
-- (NSString *)descriptionWithLocale: (NSDictionary*)locale
+- (char) charValue
+{
+  return data;
+}
+
+- (double) doubleValue
+{
+  return data;
+}
+
+- (float) floatValue
+{
+  return data;
+}
+
+- (int) intValue
+{
+  return data;
+}
+
+- (long long) longLongValue
+{
+  return data;
+}
+
+- (long) longValue
+{
+  return data;
+}
+
+- (short) shortValue
+{
+  return data;
+}
+
+- (unsigned char) unsignedCharValue
+{
+  return data;
+}
+
+- (unsigned int) unsignedIntValue
+{
+  return data;
+}
+
+- (unsigned long long) unsignedLongLongValue
+{
+  return data;
+}
+
+- (unsigned long) unsignedLongValue
+{
+  return data;
+}
+
+- (unsigned short) unsignedShortValue
+{
+  return data;
+}
+
+- (NSComparisonResult) compare: (NSNumber*)other
+{
+  GSNumberInfo	*info;
+
+  if (other == self)
+    {
+      return NSOrderedSame;
+    }
+  info = GSNumberInfoFromObject(other);
+  if (TYPE_ORDER >= info->typeOrder)
+    {
+      typedef __typeof__(data) _dt;
+      _dt other_data = (*(info->TYPE_METHOD))(other, @selector(TYPE_METHOD));
+  
+      if (data == other_data)
+	{
+	  return NSOrderedSame;
+	}
+      else if (data < other_data)
+	{
+	  return  NSOrderedAscending;
+	}
+      else
+	{
+	  return NSOrderedDescending;
+	}
+    }
+  else
+    {
+      NSComparisonResult	r;
+
+      r = (*(info->compValue))(other, @selector(compare:), self); 
+
+      if (r == NSOrderedAscending)
+	{
+	  return NSOrderedDescending;
+	}
+      if (r == NSOrderedDescending)
+	{
+	  return NSOrderedAscending;
+	}
+      return r;
+    }
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
 #if TYPE_ORDER == 0
   return (data) ? @"YES" : @"NO";
@@ -315,9 +265,9 @@
 }
 
 // Override these from NSValue
-- (void)getValue: (void *)value
+- (void) getValue: (void*)value
 {
-  if (!value)
+  if (value == 0)
     {
       [NSException raise: NSInvalidArgumentException
 	      format: @"Cannot copy value into NULL pointer"];
@@ -326,14 +276,14 @@
   memcpy( value, &data, objc_sizeof_type([self objCType]) );
 }
 
-- (const char *)objCType
+- (const char*) objCType
 {
   typedef __typeof__(data) _dt;
   return @encode(_dt);
 }
 
 // NSCoding
-- (Class)classForCoder
+- (Class) classForCoder
 {
   return [self class];
 }

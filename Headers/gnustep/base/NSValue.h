@@ -78,19 +78,19 @@
 + (NSNumber*) numberWithUnsignedLongLong: (unsigned long long)value;
 + (NSNumber*) numberWithUnsignedShort: (unsigned short)value;
 
-- (id)initWithBool: (BOOL)value;
-- (id)initWithChar: (char)value;
-- (id)initWithDouble: (double)value;
-- (id)initWithFloat: (float)value;
-- (id)initWithInt: (int)value;
-- (id)initWithLong: (long)value;
-- (id)initWithLongLong: (long long)value;
-- (id)initWithShort: (short)value;
-- (id)initWithUnsignedChar: (unsigned char)value;
-- (id)initWithUnsignedInt: (unsigned int)value;
-- (id)initWithUnsignedLong: (unsigned long)value;
-- (id)initWithUnsignedLongLong: (unsigned long long)value;
-- (id)initWithUnsignedShort: (unsigned short)value;
+- (id) initWithBool: (BOOL)value;
+- (id) initWithChar: (char)value;
+- (id) initWithDouble: (double)value;
+- (id) initWithFloat: (float)value;
+- (id) initWithInt: (int)value;
+- (id) initWithLong: (long)value;
+- (id) initWithLongLong: (long long)value;
+- (id) initWithShort: (short)value;
+- (id) initWithUnsignedChar: (unsigned char)value;
+- (id) initWithUnsignedInt: (unsigned int)value;
+- (id) initWithUnsignedLong: (unsigned long)value;
+- (id) initWithUnsignedLongLong: (unsigned long long)value;
+- (id) initWithUnsignedShort: (unsigned short)value;
 
 // Accessing Data 
 
@@ -123,9 +123,37 @@
 @interface NSValue (Subclassing)
 
 /* Used by value: withObjCType: to determine the concrete subclass to alloc */
-+ (Class)valueClassWithObjCType: (const char *)type;
++ (Class) valueClassWithObjCType: (const char*)type;
 
 @end
+
+/*
+ * Cache info for internal use by NSNumber concrete subclasses.
+ */
+typedef struct {
+  int			typeOrder;
+  NSComparisonResult	(*compValue)(NSNumber*, SEL, NSNumber*);
+  BOOL			(*boolValue)(NSNumber*, SEL);
+  char			(*charValue)(NSNumber*, SEL);
+  unsigned char		(*unsignedCharValue)(NSNumber*, SEL);
+  short			(*shortValue)(NSNumber*, SEL);
+  unsigned short	(*unsignedShortValue)(NSNumber*, SEL);
+  int			(*intValue)(NSNumber*, SEL);
+  unsigned int		(*unsignedIntValue)(NSNumber*, SEL);
+  long			(*longValue)(NSNumber*, SEL);
+  unsigned long		(*unsignedLongValue)(NSNumber*, SEL);
+  long long		(*longLongValue)(NSNumber*, SEL);
+  unsigned long long	(*unsignedLongLongValue)(NSNumber*, SEL);
+  float			(*floatValue)(NSNumber*, SEL);
+  double		(*doubleValue)(NSNumber*, SEL);
+} GSNumberInfo;
+
+GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
+#define	GS_SMALL	16
+/*
+ * Get cached values for integers in the range -GS_SMALL to +GS_SMALL
+ */
+unsigned	GSSmallHash(int n);
 #endif
 
 #endif /* __NSValue_h_GNUSTEP_BASE_INCLUDE */
