@@ -675,23 +675,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      int	count;
-
-      /*
-       *	Determine number of bytes readable on descriptor.
-       */
-      if (ioctl(descriptor, FIONREAD, (char*)&count) < 0)
-	{
-	  [NSException raise: NSFileHandleOperationException
-		      format: @"unable to use FIONREAD on descriptor - %s",
-		      strerror(errno)];
-	}
-
-      if (count > sizeof(buf))
-	{
-	  count = sizeof(buf);
-	}
-      if ((len = read(descriptor, buf, count)) > 0)
+      if ((len = read(descriptor, buf, sizeof(buf))) > 0)
 	{
 	  [d appendBytes: buf length: len];
 	}
