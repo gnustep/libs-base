@@ -116,7 +116,7 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
 }
 
 BOOL
-GSSetInstanceVariable(id obj, NSString *iVarName, void *data)
+GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
 {
   const	char	*name = [iVarName cString];
   Class	class;

@@ -55,7 +55,7 @@ extern void NSLogv (NSString* format, va_list args);
 
 #ifndef	NO_GNUSTEP
 extern BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
-extern BOOL GSSetInstanceVariable(id obj, NSString *name, void* data);
+extern BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 #endif
 
 #define FOUNDATION_EXPORT
