@@ -1,3 +1,8 @@
+2004-04-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix error parsing sequence of protocol names
+	separated by commas.
+
 2004-03-31 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedArchiver.m: Encode archive version as a number rather

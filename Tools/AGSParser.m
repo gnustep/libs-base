@@ -1240,11 +1240,14 @@
     {
       NSString	*p;
 
-      pos++;
       do
 	{
+	  pos++;
 	  p = [self parseIdentifier];
-	  [a addObject: p];
+	  if (p != nil)
+	    {
+	      [a addObject: p];
+	    }
 	}
       while ([self parseSpace] < length && buffer[pos] == ',');
       pos++;
