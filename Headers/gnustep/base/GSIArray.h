@@ -314,6 +314,16 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
 }
 
 static INLINE void
+GSIArrayRemoveLastItem(GSIArray array)
+{
+#ifdef	GSI_ARRAY_CHECKS
+  NSCAssert(array->count, NSInvalidArgumentException);
+#endif
+  GSI_ARRAY_RELEASE(array->ptr[array->count-1]);
+  array->count--;
+}
+
+static INLINE void
 GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
 {
   GSIArrayItem	tmp;
@@ -346,6 +356,15 @@ GSIArrayItemAtIndex(GSIArray array, unsigned index)
   NSCAssert(index < array->count, NSInvalidArgumentException);
 #endif
   return array->ptr[index];
+}
+
+static INLINE GSIArrayItem
+GSIArrayLastItem(GSIArray array)
+{
+#ifdef	GSI_ARRAY_CHECKS
+  NSCAssert(array->count, NSInvalidArgumentException);
+#endif
+  return array->ptr[array->count-1];
 }
 
 static INLINE void
@@ -423,3 +442,18 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
   return array;
 }
 
+static INLINE GSIArray
+GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
+{
+  int i;
+  GSIArray new;
+  new = NSZoneMalloc(zone, sizeof(GSIArray_t));
+  GSIArrayInitWithZoneAndCapacity(new, zone, array->count);
+
+  for (i = 0; i < array->count; i++)
+    {
+      GSI_ARRAY_RETAIN(array->ptr[i]);
+      new->ptr[new->count++] = array->ptr[i];
+    }
+  return new;
+}

@@ -87,6 +87,7 @@ static void FreeList(Observation *list)
 static void *RetainObs(Observation *o)
 {
   o->retained++;
+  return o;
 }
 
 static unsigned oHash(void* t, Observation *o)

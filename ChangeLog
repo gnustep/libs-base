@@ -1,3 +1,9 @@
+1999-06-24  Adam Fedor  <fedor@gnu.org>
+
+	* Source/include/GSIArray.h (GSIArrayRemoveLastItem): New function.
+	(GSIArrayLastItem): Likewise.
+	(GSIArrayCopyWithZone): Likewise.
+
 Tue Jun 22 16:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSThread.m: Various changes to tidy up notification handling
