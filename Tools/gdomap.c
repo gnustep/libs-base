@@ -43,6 +43,7 @@
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
+#include "config.h"
 #ifdef __MINGW__
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -56,7 +57,6 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <sys/file.h>
-#include "config.h"
 #ifdef	HAVE_TIME_H
 #include <time.h>
 #endif
@@ -64,6 +64,9 @@
 #include <pwd.h>
 #endif
 
+#if HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 /*
  *	Stuff for setting the sockets into non-blocking mode.
@@ -91,10 +94,6 @@
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
-#endif
-
-#if HAVE_GETOPT_H
-#include <getopt.h>
 #endif
 
 #include	"gdomap.h"
@@ -174,8 +173,10 @@ static void	queue_probe(struct in_addr* to, struct in_addr *from,
   int num_extras, struct in_addr* extra, int is_reply);
 
 
-#if (defined __MINGW__)
+#ifdef __MINGW__
+
 /* A simple implementation of getopt() */
+
 static int
 indexof(char c, char *string)
 {
