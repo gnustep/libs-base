@@ -87,6 +87,8 @@
 /* Defaults */
 + (void) setDefaultStreamClass: sc;
 + defaultStreamClass;
++ (void) setDefaultCStreamClass: sc;
++ defaultCStreamClass;
 + (void) setDefaultFormatVersion: (int)fv;
 + (int) defaultFormatVersion;
 
