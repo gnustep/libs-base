@@ -21,7 +21,6 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#if 1
 /* Deal with memchr: */
 #if STDC_HEADERS || HAVE_STRING_H
 #include <string.h>
@@ -37,7 +36,6 @@
 #include <strings.h>
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
-#endif
 
 #include <config.h>
 #include <gnustep/base/preface.h>
@@ -65,7 +63,6 @@ types_get_number_of_arguments (const char *types)
   return i - 1;
 }
 
-#if 1
 static BOOL
 rtn_type_is_oneway(const char * types)
 {
@@ -75,7 +72,6 @@ rtn_type_is_oneway(const char * types)
   else
     return NO;
 }
-#endif
 
 @implementation NSMethodSignature
 
@@ -109,11 +105,72 @@ rtn_type_is_oneway(const char * types)
 
 - (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index
 {
+  /*   0  1   2   3       position
+    "C0@+8:+12C+19C+23"   types    
+       ^  ^   ^   ^
+       (index == 0) tmptype->0, pretmptype->0
+       (index == 1) tmptype->1, pretmptype->0
+       (index == 2) tmptype->2, pretmptype->1
+       (index == 3) tmptype->3, pretmptype->2
+       and so on... */
+  const char *tmptype = types;
+  const char *pretmptype = NULL;
+  int offset, preoffset, size;
+  const char * result_type;
+
   if (index >= numArgs)
     [NSException raise:NSInvalidArgumentException
 		 format:@"Index too high."];
-  [self notImplemented:_cmd];
-  return (NSArgumentInfo){0,0,""};
+
+  do 
+    {
+      pretmptype = tmptype;
+      tmptype = objc_skip_argspec (tmptype);
+    }
+  while (index--);
+
+  result_type = tmptype;  
+
+  if (pretmptype == types)	// index == 0
+    {
+
+      tmptype = objc_skip_typespec(tmptype);
+      if (*tmptype == '+')
+	offset = atoi(tmptype + 1);
+      else
+#if m68k
+	  offset = (atoi(tmptype) - 8);
+#else 
+	  offset = atoi(tmptype);
+#endif // m68k
+      size = offset;
+    }
+  else				// index != 0
+    {
+      tmptype = objc_skip_typespec(tmptype);
+      pretmptype = objc_skip_typespec(pretmptype);
+
+      if (*tmptype == '+')
+	offset = atoi(tmptype + 1);
+      else
+#if m68k
+	  offset = (atoi(tmptype) - 8);
+#else 
+	  offset = atoi(tmptype);
+#endif // m68k
+
+      if (*pretmptype == '+')
+	preoffset = atoi(pretmptype + 1);
+      else
+#if m68k
+	  preoffset = (atoi(pretmptype) - 8);
+#else 
+	  preoffset = atoi(pretmptype);
+
+      size = offset - preoffset;
+    }
+#endif // m68k
+  return (NSArgumentInfo){offset, size, result_type};
 }
 
 - (unsigned) frameLength
@@ -123,12 +180,7 @@ rtn_type_is_oneway(const char * types)
 
 - (BOOL) isOneway
 {
-#if 1  
   return rtn_type_is_oneway(returnTypes);
-#else 
-  [self notImplemented:_cmd];
-  return NO;
-#endif
 }
 
 - (unsigned) methodReturnLength
@@ -155,11 +207,9 @@ rtn_type_is_oneway(const char * types)
 
 @end
 
-#if 1
 @implementation NSMethodSignature(GNU)
 - (char*) methodType
 {
   return types;
 }
 @end
-#endif

@@ -53,6 +53,12 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/file.h>
+
+/* For IRIX machines, which don't define this */
+#ifndef        IPPORT_USERRESERVED
+#define        IPPORT_USERRESERVED     5000
+#endif /* IPPORT_USERRESERVED */
+
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
@@ -1399,6 +1405,7 @@ static NSMapTable *out_port_bag = NULL;
 	  /* See if the _remote_in_port_address is already set */
 	  if (p->_remote_in_port_address.sin_family)
 	    {
+#if 0
 	      /* It is set; make sure no one is trying to change it---that 
 		 isn't allowed. */
 	      if ((p->_remote_in_port_address.sin_port
@@ -1406,6 +1413,18 @@ static NSMapTable *out_port_bag = NULL;
 		  || (p->_remote_in_port_address.sin_addr.s_addr
 		      != sockaddr->sin_addr.s_addr))
 		[self error:"Can't change reply port of an out port once set"];
+#else
+	      /* If someone is trying to change the port of this socket, the
+		old one must have died - invalidate it. */
+	      if ((p->_remote_in_port_address.sin_port
+		   != sockaddr->sin_port)
+		  || (p->_remote_in_port_address.sin_addr.s_addr
+		      != sockaddr->sin_addr.s_addr))
+		{
+		  [p invalidate];
+		  p = nil;
+		}
+#endif
 	    }
 	  else
 	    {
@@ -1418,8 +1437,11 @@ static NSMapTable *out_port_bag = NULL;
 			[[self description] cStringNoCopy]);
 	    }
 	}
-      assert (p->is_valid);
-      return [p retain];
+      if (p)
+	{
+	  assert (p->is_valid);
+	  return [p retain];
+	}
     }
 
   /* There isn't already an in port for this sockaddr or sock,
@@ -1475,8 +1497,8 @@ static NSMapTable *out_port_bag = NULL;
 		   sizeof(p->_remote_in_port_address)) 
 	  < 0)
 	{
-	    close(p->_port_socket);
 #if 0
+	    close(p->_port_socket);
 	    [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] connect(): %s",
 	      strerror(errno)];
@@ -1492,14 +1514,14 @@ static NSMapTable *out_port_bag = NULL;
       if ((rval = fcntl(p->_port_socket, F_GETFL, 0)) >= 0) {
 	rval |= NBLK_OPT;
 	if (fcntl(p->_port_socket, F_SETFL, rval) < 0) {
-	  close(p->_port_socket);
+	  [p release];
 	  [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] fcntl(SET): %s",
 	      strerror(errno)];
 	}
       }
       else {
-	close(p->_port_socket);
+	[p release];
 	[NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] fcntl(GET): %s",
 	      strerror(errno)];

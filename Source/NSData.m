@@ -97,7 +97,7 @@
 static BOOL
 readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
-  const char	*theFileName;
+  char		thePath[BUFSIZ*2];
   FILE		*theFile = 0;
   unsigned int	fileLength;
   void		*tmp = 0;
@@ -110,12 +110,17 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
    * bidirectional, this simple translation might not be the proper
    * one. */
 
-  theFileName = [path cStringNoCopy];
-  theFile = fopen(theFileName, "r");
+  if ([path getFileSystemRepresentation: thePath
+			      maxLength: sizeof(thePath)-1] == NO)
+    {
+      NSLog(@"Open (%s) attempt failed - bad path", thePath);
+      return NO;
+    }
+  theFile = fopen(thePath, "r");
 
   if (theFile == NULL)          /* We failed to open the file. */
     {
-      NSLog(@"Open (%s) attempt failed - %s", theFileName, strerror(errno));
+      NSLog(@"Open (%s) attempt failed - %s", thePath, strerror(errno));
       goto failure;
     }
 
@@ -162,6 +167,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   *buf = tmp;
   *len = fileLength;
+  fclose(theFile);
   return YES;
 
   /* Just in case the failure action needs to be changed. */
@@ -431,51 +437,48 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (BOOL) writeToFile: (NSString *)path
 	  atomically: (BOOL)useAuxiliaryFile
 {
-  char *theFileName = NULL;
-  const char *theRealFileName = NULL;
+  char thePath[BUFSIZ*2+8];
+  char theRealPath[BUFSIZ*2];
   FILE *theFile;
   int c;
 
+  if ([path getFileSystemRepresentation: theRealPath
+			      maxLength: sizeof(theRealPath)-1] == NO)
+    {
+      NSLog(@"Open (%s) attempt failed - bad path", theRealPath);
+      return NO;
+    }
   /* FIXME: The docs say nothing about the raising of any exceptions,
    * but if someone can provide evidence as to the proper handling of
    * bizarre situations here, I'll add whatever functionality is
    * needed.  For the time being, I'm returning the success or failure
    * of the write as a boolean YES or NO. */
 
-  /* FIXME: I believe that we should take the name of the file to be
-   * the cString of the path provided.  It is unclear, however, that
-   * this is correct for fully internationalized functionality.  If
-   * the cString <--> Unicode translation isn't completely
-   * bidirectional, this simple translation might not be the proper
-   * one. */
-
   if (useAuxiliaryFile)
     {
       /* Use the path name of the destination file as a prefix for the
        * mktemp() call so that we can be sure that both files are on
        * the same filesystem and the subsequent rename() will work. */
-      theRealFileName = [path cString];
-      theFileName = objc_malloc(strlen(theRealFileName) + 7);
-      strcpy(theFileName, theRealFileName);
-      strcat(theFileName, "XXXXXX");
-      if (mktemp(theFileName) == 0)
+      strcpy(thePath, theRealPath);
+      strcat(thePath, "XXXXXX");
+      if (mktemp(thePath) == 0)
 	{
-          NSLog(@"mktemp (%s) failed - %s", theFileName, strerror(errno));
+          NSLog(@"mktemp (%s) failed - %s", thePath, strerror(errno));
           goto failure;
 	}
     }
   else
     {
-      theFileName = (char*)[path cString];
+      strcpy(thePath, theRealPath);
     }
 
   /* Open the file (whether temp or real) for writing. */
-  theFile = fopen(theFileName, "w");
+  theFile = fopen(thePath, "w");
 
   if (theFile == NULL)          /* Something went wrong; we weren't
                                  * even able to open the file. */
     {
-      NSLog(@"Open (%s) failed - %s", theFileName, strerror(errno));
+      NSLog(@"Open (%s) failed - %s", thePath, strerror(errno));
       goto failure;
     }
 
@@ -490,7 +493,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   if (c < [self length])        /* We failed to write everything for
                                  * some reason. */
     {
-      NSLog(@"Fwrite (%s) failed - %s", theFileName, strerror(errno));
+      NSLog(@"Fwrite (%s) failed - %s", thePath, strerror(errno));
       goto failure;
     }
 
@@ -501,7 +504,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
                                  * closing the file, but we got here,
                                  * so we need to deal with it. */
     {
-      NSLog(@"Fclose (%s) failed - %s", theFileName, strerror(errno));
+      NSLog(@"Fclose (%s) failed - %s", thePath, strerror(errno));
       goto failure;
     }
 
@@ -509,15 +512,14 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
    * real file.  Am I forgetting anything here? */
   if (useAuxiliaryFile)
     {
-      c = rename(theFileName, theRealFileName);
+      c = rename(thePath, theRealPath);
 
       if (c != 0)               /* Many things could go wrong, I
                                  * guess. */
         {
-          NSLog(@"Rename (%s) failed - %s", theFileName, strerror(errno));
+          NSLog(@"Rename (%s) failed - %s", thePath, strerror(errno));
           goto failure;
         }
-      objc_free(theFileName);
     }
 
   /* success: */
@@ -525,8 +527,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   /* Just in case the failure action needs to be changed. */
  failure:
-  if (useAuxiliaryFile && theFileName != 0)
-    objc_free(theFileName);
   return NO;
 }
 
@@ -1335,12 +1335,18 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (id) initWithContentsOfMappedFile: (NSString*)path
 {
   int	fd;
-  const char	*theFileName = [path cStringNoCopy];
+  char	thePath[BUFSIZ*2];
 
-  fd = open(theFileName, O_RDONLY);
+  if ([path getFileSystemRepresentation: thePath
+			      maxLength: sizeof(thePath)-1] == NO)
+    {
+      NSLog(@"Open (%s) attempt failed - bad path", thePath);
+      return NO;
+    }
+  fd = open(thePath, O_RDONLY);
   if (fd < 0)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to open %s - %s", theFileName, strerror(errno));
+      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to open %s - %s", thePath, strerror(errno));
       [self dealloc];
       return nil;
     }
@@ -1348,7 +1354,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   length = lseek(fd, 0, SEEK_END);
   if (length < 0)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to seek to eof %s - %s", theFileName, strerror(errno));
+      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to seek to eof %s - %s", thePath, strerror(errno));
       close(fd);
       [self dealloc];
       return nil;
@@ -1356,7 +1362,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   /* Position at start of file. */
   if (lseek(fd, 0, SEEK_SET) != 0)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to seek to sof %s - %s", theFileName, strerror(errno));
+      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] unable to seek to sof %s - %s", thePath, strerror(errno));
       close(fd);
       [self dealloc];
       return nil;
@@ -1364,7 +1370,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
   if (bytes == MAP_FAILED)
     {
-      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] mapping failed for %s - %s", theFileName, strerror(errno));
+      NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] mapping failed for %s - %s", thePath, strerror(errno));
       close(fd);
       [self dealloc];
       self = [NSDataMalloc alloc];

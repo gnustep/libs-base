@@ -204,7 +204,8 @@ static NSMutableString   *processName = nil;
 	[[NSDistributedLock lockWithPath: defaultsDatabaseLockName] retain];
   }
   if (processName == nil)
-    processName = [[[NSProcessInfo processInfo] processName] retain];
+    processName = [[[[NSProcessInfo processInfo] processName]
+	lastPathComponent] retain];
 	
   // Create an empty search list
   searchList = [[NSMutableArray arrayWithCapacity:10] retain];

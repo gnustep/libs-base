@@ -75,7 +75,24 @@
 		 format: @"Index out of bounds"];
   return self->_contents_array[index];
 }
+
 #endif
+
+- (void) getObjects: (id*)aBuffer
+{
+  unsigned i;
+  for (i = 0; i < _count; i++)
+    aBuffer[i] = _contents_array[i];
+}
+
+- (void) getObjects: (id*)aBuffer range: (IndexRange)aRange
+{
+  unsigned i, j = 0, e = aRange.location + aRange.length;
+  if (_count < e)
+    e = _count;
+  for (i = aRange.location; i < _count; i++)
+    aBuffer[j++] = _contents_array[i];
+}
 
 @end
 
@@ -93,17 +110,43 @@
     }
 }
 
-#if 0
-/* Comes in from Array behavior 
-   - initWithCapacity:
-   - (void) addObject: anObject
-   - (void) insertObject: anObject atIndex: (unsigned)index
-   */
-
-- (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
+- (void) sortUsingFunction: (int(*)(id,id,void*))compare 
+   context: (void*)context
 {
-  [self replaceObjectAtIndex: index with: anObject];
+  /* Shell sort algorithm taken from SortingInAction - a NeXT example */
+#define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
+                        // 3 is a fairly good choice (Sedgewick)
+  unsigned c,d, stride;
+  BOOL found;
+  int count = _count;
+
+  stride = 1;
+  while (stride <= count)
+    stride = stride * STRIDE_FACTOR + 1;
+    
+  while(stride > (STRIDE_FACTOR - 1)) {
+    // loop to sort for each value of stride
+    stride = stride / STRIDE_FACTOR;
+    for (c = stride; c < count; c++) {
+      found = NO;
+      if (stride > c)
+	break;
+      d = c - stride;
+      while (!found) {
+	// move to left until correct place
+	id a = _contents_array[d + stride];
+	id b = _contents_array[d];
+	if ((*compare)(a, b, context) == NSOrderedAscending) {
+	  _contents_array[d+stride] = b;
+	  _contents_array[d] = a;
+	  if (stride > d)
+	    break;
+	  d -= stride;		// jump by stride factor
+	}
+	else found = YES;
+      }
+    }
+  }
 }
-#endif
 
 @end

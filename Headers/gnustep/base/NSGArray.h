@@ -30,15 +30,17 @@
 
 @interface NSGArray : NSArray
 {
-  char _NSGArray_placeholder[(sizeof(struct ConstantArray)
-			      - sizeof(struct NSArray))];
+  id *_contents_array;
+  unsigned int _count;
 }
 @end
 
 @interface NSGMutableArray : NSMutableArray
 {
-  char _NSGMutableArray_placeholder[(sizeof(struct Array) 
-				     - sizeof(struct NSMutableArray))];
+  id *_contents_array;
+  unsigned int _count;
+  unsigned int _capacity;
+  int _grow_factor;
 }
 @end
 

@@ -78,6 +78,11 @@
  *	the include file.
  */
 
+/* For IRIX machines, which don't define this */
+#ifndef        IPPORT_USERRESERVED
+#define        IPPORT_USERRESERVED     5000
+#endif /* IPPORT_USERRESERVED */
+
 #define QUEBACKLOG	(16)	/* How many coonections to queue.	*/
 #define	MAX_IFACE	(256)	/* How many network interfaces.		*/
 #define	IASIZE		(sizeof(struct in_addr))

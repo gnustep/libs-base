@@ -43,6 +43,11 @@
 #include <sys/time.h>
 #endif /* !__WIN32__ */
 
+/* For IRIX machines, which don't define this */
+#ifndef        IPPORT_USERRESERVED
+#define        IPPORT_USERRESERVED     5000
+#endif /* IPPORT_USERRESERVED */
+
 @interface UdpInPort (Private)
 @end
 @interface UdpOutPort (Private)

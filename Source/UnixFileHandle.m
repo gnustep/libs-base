@@ -83,9 +83,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   const char*		proto = "tcp";
   struct servent*	sp;
 
-  if (svc == nil)
-    svc = @"localhost";
-
   if (pcl)
     proto = [pcl cStringNoCopy];
 
@@ -114,7 +111,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   else
     sin->sin_addr.s_addr = htonl(INADDR_ANY);
 
-  if ((sp = getservbyname([svc cStringNoCopy], proto)) == 0)
+  if (svc == nil)
+    {
+      sin->sin_port = 0;
+      return YES;
+    }
+  else if ((sp = getservbyname([svc cStringNoCopy], proto)) == 0)
     {
       const char*     ptr = [svc cStringNoCopy];
       int             val = atoi(ptr);
@@ -190,6 +192,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   int	net;
   struct sockaddr_in	sin;
 
+  if (s == nil)
+    {
+      [self dealloc];
+      NSLog(@"bad argument - service is nil");
+      return nil;
+    }
   if (getAddr(a, s, p, &sin) == NO)
     {
       [self dealloc];
@@ -276,7 +284,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       return nil;
     }
 
-  getsockname(net, (struct sockaddr*)&sin, &size);
+  if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
+    {
+      (void) close(net);
+      [self dealloc];
+      NSLog(@"unable to get socket name - %s", strerror(errno));
+      return nil;
+    }
 
   self = [self initWithFileDescriptor:net closeOnDealloc:YES];
   if (self)
@@ -291,7 +305,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initForReadingAtPath:(NSString*)path
 {
-  int	d = open([path cString], O_RDONLY);
+  int	d = open([path fileSystemRepresentation], O_RDONLY);
 
   if (d < 0)
     {
@@ -309,7 +323,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initForWritingAtPath:(NSString*)path
 {
-  int	d = open([path cString], O_WRONLY);
+  int	d = open([path fileSystemRepresentation], O_WRONLY);
 
   if (d < 0)
     {
@@ -327,7 +341,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initForUpdatingAtPath:(NSString*)path
 {
-  int	d = open([path cString], O_RDWR);
+  int	d = open([path fileSystemRepresentation], O_RDWR);
 
   if (d < 0)
     {

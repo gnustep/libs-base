@@ -268,13 +268,13 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 /* This is the designated initializer for this class */
-/* xxx Should capacity include the '\0' terminator? */
+/* NB. capacity does not include the '\0' terminator */
 - initWithCapacity: (unsigned)capacity
 {
   [super init];
   _count = 0;
-  _capacity = MAX(capacity, 2);
-  OBJC_MALLOC(_contents_chars, char, _capacity);
+  _capacity = MAX(capacity, 3);
+  OBJC_MALLOC(_contents_chars, char, _capacity+1);
   _contents_chars[0] = '\0';
   _free_contents = YES;
   return self;
@@ -297,10 +297,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 - (void) insertString: (NSString*)aString atIndex:(unsigned)index
 {
   unsigned c = [aString cStringLength];
-  if (_count + c >= _capacity)
+  if (_count + c > _capacity)
     {
       _capacity = MAX(_capacity*2, _count+c);
-      OBJC_REALLOC(_contents_chars, char, _capacity);
+      OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
   memcpy(_contents_chars + index, [aString cStringNoCopy], c);
@@ -310,10 +310,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 - (void) appendString: (NSString*)aString
 {
   unsigned c = [aString cStringLength];
-  if (_count + c >= _capacity)
+  if (_count + c > _capacity)
     {
       _capacity = MAX(_capacity*2, _count+c);
-      OBJC_REALLOC(_contents_chars, char, _capacity);
+      OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
   memcpy(_contents_chars + _count, [aString cStringNoCopy], c);
   _count += c;
@@ -324,10 +324,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   const char *s = [aString cStringNoCopy];
   unsigned length = strlen(s);
-  if (_capacity < length+1)
+  if (_capacity < length)
     {
-      _capacity = length+1;
-      OBJC_REALLOC(_contents_chars, char, _capacity);
+      _capacity = length;
+      OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
   memcpy(_contents_chars, s, length);
   _contents_chars[length] = '\0';
@@ -337,10 +337,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 /* xxx This method may be removed in future. */
 - (void) setCString: (const char *)byteString length: (unsigned)length
 {
-  if (_capacity < length+1)
+  if (_capacity < length)
     {
-      _capacity = length+1;
-      OBJC_REALLOC(_contents_chars, char, _capacity);
+      _capacity = length;
+      OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
   memcpy(_contents_chars, byteString, length);
   _contents_chars[length] = '\0';
@@ -354,7 +354,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   [super init];
   _count = length;
-  _capacity = length+1;
+  _capacity = length;
   _contents_chars = byteString;
   _free_contents = flag;
   return self;
@@ -424,10 +424,10 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   // one for the next char, one for the '\0';
-  if (_count+1 >= _capacity)
+  if (_count >= _capacity)
     {
       _capacity *= 2;
-      OBJC_REALLOC(_contents_chars, char, _capacity);
+      OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[index] = [newObject charValue];

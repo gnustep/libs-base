@@ -84,6 +84,7 @@
 
 #ifdef HAVE_SYS_VFS_H
 # include <sys/vfs.h>
+# include <sys/statvfs.h>
 #endif
 
 #ifdef HAVE_SYS_STATFS_H

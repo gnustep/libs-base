@@ -1,7 +1,7 @@
 # This file is included in various Makefile's to get version information.
 
 # The gcc version required to compile the library.
-GCC_VERSION=2.7.2
+GCC_VERSION=2.8.0
 
 # The version number of this release.
 MAJOR_VERSION=0

@@ -423,7 +423,7 @@ Add or Remove an Item
 `NSString *NSStringFromSelector(SEL ASELECTOR)'
 @end example
 
-@item [0] Compose a Message To Be Sent Later to an Object
+@item [3] Compose a Message To Be Sent Later to an Object
 @example
 `NSInvocation *NS_INVOCATION(Class ACLASS, INSTANCEMESSAGE)'
 `NSInvocation *NS_MESSAGE(id ANOBJECT, INSTANCEMESSAGE)'

@@ -1056,7 +1056,6 @@ static int debug_run_loop = 0;
       NSFreeMapTable (rfd_2_object);
       NSFreeMapTable (wfd_2_object);
       [NSNotificationQueue runLoopIdle];
-      [NSNotificationQueue runLoopASAP];
       [self _checkPerformers];
       _current_mode = saved_mode;
       return;
@@ -1086,6 +1085,7 @@ static int debug_run_loop = 0;
   NSFreeMapTable (wfd_2_object);
 
   [self _checkPerformers];
+  [NSNotificationQueue runLoopASAP];
   _current_mode = saved_mode;
 }
 
