@@ -220,6 +220,24 @@
    }
 }
 
+- (void) takeStoredValuesFromDictionary: (NSDictionary*)aDictionary
+{
+  NSEnumerator	*enumerator = [aDictionary keyEnumerator];
+  NSNull	*null = [NSNull null];
+  NSString	*key;
+
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      id obj = [aDictionary objectForKey: key];
+
+      if (obj == null)
+	{
+	  obj = nil;
+	}
+      [self takeStoredValue: obj forKey: key];
+    }
+}
+
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey
 {
   unsigned	size;
@@ -301,7 +319,7 @@
 
   while ((key = [enumerator nextObject]) != nil)
     {
-      id	obj = [aDictionary objectForKey: key];
+      id obj = [aDictionary objectForKey: key];
 
       if (obj == null)
 	{
