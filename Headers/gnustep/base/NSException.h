@@ -143,7 +143,11 @@ extern void _NSRemoveHandler( NSHandler *handler );
 
 @end
 
-#define _NSAssertArgs(condition, desc, args...)		\
+#ifdef	NS_BLOCK_ASSERTIONS
+#define _NSAssertArgs(condition, desc, args...)		
+#define _NSCAssertArgs(condition, desc, args...)	
+#else
+#define _NSAssertArgs(condition, desc, args...)			\
     do {							\
 	if (!(condition)) {					\
 	    [[NSAssertionHandler currentHandler] 		\
@@ -165,7 +169,7 @@ extern void _NSRemoveHandler( NSHandler *handler );
 	    description:(desc) , ## args]; 			\
 	}							\
     } while(0)
-
+#endif
 
 /* Asserts to use in Objective-C method bodies*/ 
 #define NSAssert5(condition, desc, arg1, arg2, arg3, arg4, arg5)	\
