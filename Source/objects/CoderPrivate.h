@@ -52,7 +52,16 @@ enum {
 @end
 
 #define SIGNATURE_FORMAT_STRING \
-@"GNU Objective C Class Library %s version %d\n"
+@"GNU Objective C (%s %d.%d.%d), [%s] version %d\n"
+
+#define WRITE_SIGNATURE_FORMAT_ARGS \
+OBJECTS_PACKAGE_NAME, \
+OBJECTS_MAJOR_VERSION, \
+OBJECTS_MINOR_VERSION, \
+OBJECTS_SUBMINOR_VERSION, \
+[self defaultDecoderClassname], \
+format_version
+
 
 #define NO_SEL_TYPES "none"
 
