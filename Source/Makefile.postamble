@@ -1,0 +1,204 @@
+#
+#  Makefile.postamble
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  If you are interested in a warranty or support for this source code,
+#  contact Scott Christley at scottc@net-community.com
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, write to the Free Software Foundation,
+#  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#
+#   Makefile.postamble
+#
+#   Project specific makefile rules
+#
+#   Uncomment the targets you want.
+#   The double colons (::) are important, do not make them single colons
+#   otherwise the normal makefile rules will not be performed.
+#
+
+# Things to do before compiling
+before-all:: gnustep/base Foundation
+
+# Things to do after compiling
+# after-all::
+
+# Things to do before installing
+# before-install::
+
+# Things to do after installing
+#
+# Unfortunately the way the header files are placed in relationship
+# to the source we must install the GNU header manually
+after-install::
+	for file in $(GNU_HEADERS); do \
+	  $(INSTALL_DATA) ./include/$$file \
+	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
+	done
+
+# Things to do before uninstalling
+# before-uninstall::
+
+# Things to do after uninstalling
+after-uninstall::
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+# after-clean::
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+# after-distclean::
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+# Local links to the include files
+gnustep/base: FORCE
+	rm -rf gnustep
+	mkdir gnustep
+	cd gnustep ; $(LN_S) ../include base
+	# Make necessary links to source headers if compiling in seperate dir
+	# These are separate directories because one contains the .h files
+	# generated during the build; the other contains the unchanged sources.
+	if [ ! -r ./include/Collection.h ]; then \
+	  mkdir srcdir-include; \
+	  mkdir srcdir-include/gnustep; \
+	  (cd srcdir-include/gnustep; $(LN_S) ../../$(srcdir)/include ./base) ; \
+	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./Foundation) ; \
+	fi
+# This deletion is necessary, because the CVS repository contains
+# an emtpy `Foundation' directory that used to hold the OpenStep headers.
+Foundation: FORCE
+	rm -rf Foundation
+	$(LN_S) $(srcdir)/include Foundation
+
+# Creation of NSValue and NSNumber concrete classes from templates
+$(NSVALUE_MFILES) : NSCTemplateValue.m
+	rm -f $@
+	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
+	cat $(srcdir)/NSCTemplateValue.m >> $@
+$(NSNUMBER_MFILES) : NSConcreteNumber.m
+	rm -f $@
+	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
+	cat $(srcdir)/NSConcreteNumber.m >> $@
+
+gdomap:	gdomap.c gdomap.h
+	$(CC) $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $< $(LIBS)
+
+NXStringTable_scan.c: NXStringTable_scan.l
+	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
+		> NXStringTable_scan.temp
+	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
+		> NXStringTable_scan.c
+	$(RM) -f NXStringTable_scan.temp
+proplist.tab.m proplist.tab.h: proplist.y
+	rm -f proplist.tab.m.h
+	$(YACC) -d -p pl proplist.y -o proplist.tab.m
+	mv proplist.tab.m.h proplist.tab.h
+lex.pl.m: proplist.l proplist.tab.h
+	$(LEX) -t -B -Ppl proplist.l > $@
+
+stringsfile.tab.m stringsfile.tab.h: stringsfile.y
+	rm -f stringsfile.tab.m.h
+	$(YACC) -d -p sf stringsfile.y -o stringsfile.tab.m
+	mv stringsfile.tab.m.h stringsfile.tab.h
+lex.sf.m: stringsfile.l stringsfile.tab.h
+	$(LEX) -t -B -Psf stringsfile.l > $@
+
+objc-load${OEXT}: dynamic-load.h
+
+dynamic-load.h: ../config.status
+	rm -f dynamic-load.h
+	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
+
+include/preface.h: $(srcdir)/include/preface.h.in ../Version
+	rm -f $@
+	sed -e "s/@VERSION@/$(LIBRARY_VAR)_VERSION $(VERSION)/" \
+	< $(srcdir)/include/preface.h.in | \
+	sed -e "s/@MAJOR_VERSION@/$(LIBRARY_VAR)_MAJOR_VERSION $(MAJOR_VERSION)/" | \
+	sed -e "s/@MINOR_VERSION@/$(LIBRARY_VAR)_MINOR_VERSION $(MINOR_VERSION)/" | \
+	sed -e "s/@SUBMINOR_VERSION@/$(LIBRARY_VAR)_SUBMINOR_VERSION $(SUBMINOR_VERSION)/" | \
+	sed -e "s/@GCC_VERSION@/$(LIBRARY_VAR)_GCC_VERSION $(GCC_VERSION)/" | \
+	sed -e "s/@LIBRARY_NAME@/$(LIBRARY_VAR)_LIBRARY_NAME $(LIBRARY_NAME)/" | \
+	sed -e "s/@PACKAGE_NAME@/$(LIBRARY_VAR)_PACKAGE_NAME $(PACKAGE_NAME)/" \
+	> $@
+preface${OEXT}: include/preface.h
+
+# Turn off warnings for o_vscanf.c, it generates a bunch of unimportant ones.
+o_vscanf${OEXT}: o_vscanf.c
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
+o_vscanf_pic${OEXT}: o_vscanf.c
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
+
+include/o_%_bas.h: include/o_x_bas.h.in
+	sed -e "s/@XX@/$*/g" $< > $@
+
+include/o_%_cbs.h: include/o_x_cbs.h.in
+	sed -e "s/@YY@/$*/g" $< > $@
+
+o_%_bas.m: o_x_bas.m.in include/o_%.h
+	sed -e "s/@XX@/$*/g" $< > $@
+
+o_%_cbs.m: o_x_cbs.m.in include/o_%.h
+	sed -e "s/@YY@/$*/g" $< > $@
+
+o_array.o: o_array.m include/o_array.h
+include/o_array.h: include/o_array_bas.h include/o_array_cbs.h include/o_hash.h
+o_hash.o: o_hash.m include/o_hash.h
+include/o_hash.h: include/o_hash_bas.h include/o_hash_cbs.h
+o_list.o: o_list.m include/o_list.h
+include/o_list.h: include/o_list_bas.h include/o_list_cbs.h include/o_array.h include/o_hash.h
+o_map.o: o_map.m include/o_map.h
+include/o_map.h: include/o_map_bas.h include/o_map_cbs.h include/o_hash.h
+
+TAGS: $(DIST_FILES)
+	etags $(DIST_FILES)
+
+AUTHORS: Makefile.in
+	rm -f AUTHORS
+	@echo Finding file authors...
+	@echo 'For the legal record, here is a list of who wrote what:'>AUTHORS
+	@for a in $(FILE_AUTHORS) \
+	; do \
+		echo >>AUTHORS; \
+		echo >>AUTHORS; \
+		echo "$${a}:" >>AUTHORS; \
+		egrep -l "((Written by)|(Author)|(Rewritten by)).*$${a}" \
+			$(DIST_FILES) >>AUTHORS; \
+	done
+
+copy-dist: $(DIST_FILES)
+	mkdir ../snap/src
+	mkdir ../snap/src/include
+	mkdir ../snap/src/objc
+	mkdir ../snap/src/unicode
+	for file in $(DIST_FILES); do \
+	  ln $$file ../snap/src/$$file ; \
+	done
+	ln AUTHORS ../snap

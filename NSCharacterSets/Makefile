@@ -1,10 +1,10 @@
 #
-#  NSCharacterSet makefile for Objective-C Class Library
+#  NSCharacterSet makefile for GNUstep Base Library
 #  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 #
-#  This file is part of the Gnustep Base Library.
+#  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Library General Public
@@ -20,28 +20,12 @@
 #  License along with this library; if not, write to the Free
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-SHELL = /bin/sh
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
-#### Start of system configuration section. ####
+include ../Version
+include ../config.mak
 
-srcdir = @srcdir@
-VPATH = @srcdir@
-
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-libdir = @libdir@
-gnustep_libdir = $(libdir)/gnustep
-charsetdir = $(gnustep_libdir)/NSCharacterSets
-
-INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
-INSTALL_DATA = @INSTALL_DATA@
-
-#### End of system configuration section. ####
-
-include $(srcdir)/../Makeconf
-
-all: 
+charsetdir = $(GNUSTEP_RESOURCES)/gnustep/NSCharacterSets
 
 CHARSET_FILES = \
 alphanumCharSet.dat \
@@ -55,31 +39,14 @@ uppercaseCharSet.dat \
 whitespaceCharSet.dat \
 whitespaceandnlCharSet.dat
 
-RCS_FILES = Makefile.in
+RCS_FILES = Makefile
 DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
 INSTALL_FILES = $(CHARSET_FILES) README.CharSet
 
-installdirs:
-	$(srcdir)/../mkinstalldirs $(libdir) $(gnustep_libdir) $(charsetdir)
-install: installdirs
-	for file in $(INSTALL_FILES); do \
-	  $(INSTALL_DATA) $(srcdir)/$$file $(charsetdir)/$$file ; \
-	done
-uninstall:
-	for file in $(INSTALL_FILES); do \
-	  rm -f $(charsetdir)/$$file ; \
-	done
+-include Makefile.preamble
 
-mostlyclean:
-	rm -f *~
-clean: mostlyclean
-distclean: clean
-	rm -f Makefile
-maintainer-clean: distclean
+# We don't actually build anything in this directory so
+# just include the common makefile rules
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/rules.make
 
-copy-dist: $(DIST_FILES)
-	mkdir $(srcdir)/../snap/NSCharacterSets
-	ln $(DIST_FILES) $(srcdir)/../snap/NSCharacterSets
-
-Makefile: $(srcdir)/Makefile.in
-	cd ..; $(SHELL) config.status
+-include Makefile.postamble

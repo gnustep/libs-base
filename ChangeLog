@@ -1,3 +1,44 @@
+Sat Sep 23 10:18:41 2017  Scott Christley  <scottc@net-community.com>
+
+	* Convert to GNUstep makefile package.
+	* Makefile: New file.
+	* Makefile.postamble: New file.
+	* config.mak.in: New file.
+	* Makefile.in: Delete.
+	* Makefile.sed.nt: Delete.
+	* Makeconf: Delete.
+	* configure.in (AC_OUTPUT): No longer create the makefiles.
+	* NSCharacterSets/Makefile: New file.
+	* NSCharacterSets/Makefile.postamble: New file.
+	* NSCharacterSets/Makefile.in: Delete.
+	* admin/Makefile: New file.
+	* admin/Makefile.postamble: New file.
+	* admin/Makefile.in: Delete
+	* checks/Makefile: New file.
+	* checks/Makefile.preamble: New file.
+	* checks/Makefile.in: Delete.
+	* examples/Makefile: New file.
+	* examples/Makefile.preamble: New file.
+	* examples/Makefile.in: Delete.
+	* src/Makefile: New file.
+	* src/Makefile.preamble: New file.
+	* src/Makefile.postamble: New file.
+	* src/Makefile.in: Delete
+
+	* The installation of the header files was modified slightly
+	to correspond with the GNUstep makefile package.  All OpenStep
+	headers go into Foundation while the gnustep-base specific
+	headers go into gnustep/base.
+	* checks/coder.m: Correct header directory.
+	* checks/cstream.m: Likewise.
+	* checks/oldserver.m: Likewise.
+	* checks/string.m: Likewise.
+	* src/include/Connection.h: Likewise.
+	* src/include/NSConnection.h: Likewise.
+	* src/include/NSPortCoder.h: Likewise.
+	* src/include/Notification.h: Likewise.
+	* src/include/NotificationDispatcher.h: Likewise.
+	
 Mon Sep 22 17:14:32 1997  Adam Fedor  <fedor@doc.com>
 
 	* checks/NSData-test.m: Change main to return int.

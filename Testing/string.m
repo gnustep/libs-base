@@ -1,7 +1,7 @@
 #include <Foundation/NSString.h>
 
 /* For demo of Strings as Collections of char's. */
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 
 void
 print_string(NSString* s)
