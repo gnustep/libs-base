@@ -71,6 +71,7 @@ static BOOL snuggleStart(NSString *t)
  *  <p>Here is the afterword for the class.</p>
  * </unit>
  * And finally, here is the actual class description ... outside the chapter.
+ * With a reference to foo() in it.
  */
 @implementation	AGSOutput
 
@@ -1402,7 +1403,7 @@ static BOOL snuggleStart(NSString *t)
 	  i = r.location;
 	}
       /*
-       * Now find the end of the exmple, and output the whole example
+       * Now find the end of the example, and output the whole example
        * literally as it appeared in the comment.
        */
       r = [str rangeOfString: @"</example>"
@@ -1499,6 +1500,10 @@ static BOOL snuggleStart(NSString *t)
   return ind;
 }
 
+/**
+ * Split comment text into an array of words (to be reformatted) and
+ * insert markup for cross referencing and highlighting.
+ */
 - (NSArray*) split: (NSString*)str
 {
   NSMutableArray	*a = [NSMutableArray arrayWithCapacity: 128];
@@ -1650,10 +1655,10 @@ static BOOL snuggleStart(NSString *t)
 
   /*
    * Phase 2 ... the array of words is checked to see if a word contains
-   * a well known constant, or a method name specification.
+   * a well known constant, or a method or function name specification.
    * Where these special cases apply, the array of words is modified to
    * insert extra gsdoc markup to highlight the constants and to create
-   * references to where the named methods are documented.
+   * references to where the named methods or functions are documented.
    */
   for (l = 0; l < [a count]; l++)
     {
@@ -1662,7 +1667,6 @@ static BOOL snuggleStart(NSString *t)
       NSString		*tmp = [a objectAtIndex: l];
       unsigned		pos;
       NSRange		r;
-      BOOL		hadMethod = NO;
 
       if (constants == nil)
 	{
@@ -2000,15 +2004,15 @@ static BOOL snuggleStart(NSString *t)
 		    {
 		      [a insertObject: end atIndex: ++l];
 		    }
-		  hadMethod = YES;
 		}
 	    }
+	  continue;
 	}
       
       /*
        * Now handle bare method names for current class ... outside brackets.
        */
-      if (hadMethod == NO && ([tmp hasPrefix: @"-"] || [tmp hasPrefix: @"+"]))
+      if ([tmp hasPrefix: @"-"] || [tmp hasPrefix: @"+"])
 	{
 	  unsigned	ePos = [tmp length];
 	  NSString	*mName = nil;
@@ -2071,8 +2075,53 @@ static BOOL snuggleStart(NSString *t)
 		    {
 		      [a insertObject: end atIndex: ++l];
 		    }
-		  hadMethod = YES;
 		}
+	    }
+	  continue;
+	}
+      /*
+       * Now handle function names.  Anything ending in '()' is assumed to
+       * be a referencable function name except 'main()' ... which is special.
+       * NB. A comma, fullstop, or semicolon following '()' is counted as if
+       * the text ended in '()'
+       */
+      r = [tmp rangeOfString: @"()"];
+      if (r.length > 0)
+	{
+	  unsigned	c = [tmp characterAtIndex: 0];
+	  unsigned	len = [tmp length];
+	  NSString	*str = [tmp substringToIndex: r.location];
+	  BOOL		ok = NO;
+
+	  if ([identStart characterIsMember: c] == YES
+	    && [str isEqual: @"main"] == NO)
+	    {
+	      ok = YES;
+	      if (len > r.location + 2)
+		{
+		  NSString	*end;
+
+		  end = [tmp substringFromIndex: r.location + 2];
+		  c = [end characterAtIndex: 0];
+		  if (c == ',' || c == '.' || c == ';')
+		    {
+		      [a insertObject: end atIndex: l + 1];
+		      tmp = [tmp substringToIndex: r.location + 2];
+		    }
+		  else
+		    {
+		      ok = NO;
+		    }
+		}
+	    }
+	  if (ok == YES)
+	    {
+	      str = [NSString stringWithFormat:
+		@"<ref type=\"function\" id=\"%@\">", str];
+	      [a insertObject: str atIndex: l++];
+	      l++;	// Point past the function name in the array.
+	      [a insertObject: @"</ref>" atIndex: l++];
+	      continue;
 	    }
 	}
     }
