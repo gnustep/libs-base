@@ -750,8 +750,8 @@ static int debug_run_loop = 0;
 				     NSObjectMapValueCallBacks, 0);
   _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
 					   NSObjectMapValueCallBacks, 0);
-  _performers = [[NSMutableArray arrayWithCapacity:8] retain];
-  _timedPerformers = [[NSMutableArray arrayWithCapacity:8] retain];
+  _performers = [[NSMutableArray alloc] initWithCapacity:8];
+  _timedPerformers = [[NSMutableArray alloc] initWithCapacity:8];
   return self;
 }
 

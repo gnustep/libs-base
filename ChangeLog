@@ -1,3 +1,14 @@
+Thu Sep 10 06:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSFileHandle.m: Implemented [(-waitForDataInBackground])
+	* src/UnixFileHandle.m: Implemented [(-waitForDataInBackground])
+	* src/include/NSFileHandle.h: Added [(-waitForDataInBackground])
+	* src/externs.m: Fixed error in hash callbacks name.
+	* src/Set.m: Fixed error in hash callbacks name.
+	* src/include/NSHashTable.h: Fixed error in hash callbacks name.
+	* src/NSRunLoop.m: minor efficiency hack - don't use autoreleasing
+	arrray construction methods when we are going to retain immediately.
+
 Fri Sep 04 08:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSUserDefaults.m: ([-setObjectsforKey:], [-removeObjectForKey:])

@@ -196,6 +196,16 @@ static Class NSFileHandle_concrete_class = nil;
   [self subclassResponsibility:_cmd];
 }
 
+- (void)waitForDataInBackgroundAndNotifyForModes:(NSArray*)modes
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void)waitForDataInBackgroundAndNotify
+{
+  [self subclassResponsibility:_cmd];
+}
+
 
 // Seeking within a file
 
@@ -250,6 +260,8 @@ NSString*	NSFileHandleNotificationMonitorModes =
 
 NSString*	NSFileHandleConnectionAcceptedNotification =
 		@"NSFileHandleConnectionAcceptedNotification";
+NSString*	NSFileHandleDataAvailableNotification =
+		@"NSFileHandleDataAvailableNotification";
 NSString*	NSFileHandleReadCompletionNotification =
 		@"NSFileHandleReadCompletionNotification";
 NSString*	NSFileHandleReadToEndOfFileCompletionNotification =

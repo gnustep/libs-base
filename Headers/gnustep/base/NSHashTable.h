@@ -72,7 +72,7 @@ extern const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
 extern const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks;
 
 /* For sets of objects; similar to NSSet. */
-extern const NSHashTableCallBacks NSObjectsHashCallBacks;
+extern const NSHashTableCallBacks NSObjectHashCallBacks;
 
 /* For sets of pointers with transfer of ownership upon insertion. */
 extern const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
