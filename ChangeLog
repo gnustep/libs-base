@@ -1,3 +1,10 @@
+Mon Jul 12  5:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSString.m: Bugfixes in ([stringByStandardizingPath:])
+	as suggested by Pascal Bourguignon. Also fix to do substitutions
+	throughout path, also use realpath() for resolving links if possible.
+	* configure.in: Check for realpath()
+
 Sat Jul 10 13:52:20 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Makefile.postamble: Create Foundation link in Source directory

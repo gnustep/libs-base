@@ -1900,31 +1900,39 @@ handle_printf_atsign (FILE *stream,
 #if defined(__WIN32__)
   return self;
 #else 
-  NSString *first_half = self, * second_half = @"";
+  const int	MAX_PATH_LEN = 1024;
+#if HAVE_REALPATH
+  char		new_buf[MAX_PATH_LEN];
 
-  const char * tmp_cpath;
-  const int MAX_PATH_LEN = 1024;
-  char tmp_buf[MAX_PATH_LEN];
-
-  int syscall_result;
-  struct stat tmp_stat;  
+  if (realpath([self cString], new_buf) != 0)
+    return [NSString stringWithCString: new_buf];
+  else
+    return self;
+#else
+  NSString	*first_half = self;
+  NSString	*second_half = @"";
+  const char	*tmp_cpath;
+  char		tmp_buf[MAX_PATH_LEN];
+  int		syscall_result;
+  struct stat	tmp_stat;  
 
   while (1)
     {
       tmp_cpath = [first_half cString];
 
       syscall_result = lstat(tmp_cpath, &tmp_stat);
-      if (0 != syscall_result)  return self ;
+      if (0 != syscall_result)
+	return self ;
       
-      if ((tmp_stat.st_mode & S_IFLNK) &&
-	  ((syscall_result = readlink(tmp_cpath, tmp_buf, MAX_PATH_LEN)) != -1))
+      if ((tmp_stat.st_mode & S_IFLNK)
+	&& ((syscall_result=readlink(tmp_cpath, tmp_buf, MAX_PATH_LEN)) != -1))
 	{
 	  /* 
 	   * first half is a path to a symbolic link.
 	   */
 	  tmp_buf[syscall_result] = '\0'; // Make a C string
-	  second_half 		  = [[NSString stringWithCString: tmp_buf]
-				      stringByAppendingPathComponent: second_half];
+	  second_half = [[NSString stringWithCString: tmp_buf]
+	    stringByAppendingPathComponent: second_half];
 	  first_half = [first_half stringByDeletingLastPathComponent];
 	}
       else
@@ -1939,27 +1947,30 @@ handle_printf_atsign (FILE *stream,
 	   * first half is NOT a path to a symbolic link 
 	   */
 	  second_half = [[first_half lastPathComponent]
-			  stringByAppendingPathComponent: second_half];
+	    stringByAppendingPathComponent: second_half];
 	  first_half = [first_half stringByDeletingLastPathComponent];
 	}
 
       /* BREAK CONDITION */
-      if ([first_half length] == 0) break;
+      if ([first_half length] == 0)
+	break;
       else if ([first_half length] == 1
 	&& [pathSeps() characterIsMember: [first_half characterAtIndex: 0]])
 	{
-	  second_half = [pathSepString stringByAppendingPathComponent: second_half];
+	  second_half = [pathSepString stringByAppendingPathComponent:
+	    second_half];
 	  break;
 	}
     }
   return second_half;
+#endif
 #endif  /* (__WIN32__) */  
 }
 
 - (NSString*) stringByStandardizingPath
 {
-  NSMutableString *s;
-  NSRange r;
+  NSMutableString	*s;
+  NSRange		r;
 
   /* Expand `~' in the path */
   s = [[self stringByExpandingTildeInPath] mutableCopy];
@@ -1969,39 +1980,72 @@ handle_printf_atsign (FILE *stream,
     [s deleteCharactersInRange: ((NSRange){0,7})];
 
   /* Condense `//' */
-  while ((r = [s rangeOfCharacterFromSet: pathSeps()]).length
-      && r.location + r.length < [s length]
-      && [pathSeps() characterIsMember: [s characterAtIndex: r.location + 1]])
-    [s deleteCharactersInRange: r];
-
-  /* Condense `/./' */
-  while ((r = [s rangeOfCharacterFromSet: pathSeps()]).length
-      && r.location + r.length < [s length] + 1
-      && [s characterAtIndex: r.location + 1] == (unichar)'.'
-      && [pathSeps() characterIsMember: [s characterAtIndex: r.location + 2]])
+  while ((r = [s rangeOfCharacterFromSet: pathSeps()
+				 options: 0
+				   range: r]).length)
     {
-      r.length++;
-      [s deleteCharactersInRange: r];
+      if (r.location + r.length + 1 <= [s length]
+	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 1]])
+	[s deleteCharactersInRange: r];
+      else
+	r.location++;
+      if ((r.length = [s length]) > r.location)
+	r.length -= r.location;
+      else
+	break;
     }
 
-  /* Condense `/../' */
-  while ((r = [s rangeOfCharacterFromSet: pathSeps()]).length
-      && r.location + r.length < [s length] + 2
-      && [s characterAtIndex: r.location + 1] == (unichar)'.'
-      && [s characterAtIndex: r.location + 2] == (unichar)'.'
-      && [pathSeps() characterIsMember: [s characterAtIndex: r.location + 3]])
+  /* Condense `/./' */
+  while ((r = [s rangeOfCharacterFromSet: pathSeps()
+				 options: 0
+				   range: r]).length)
     {
-      if (r.location > 0)
+      if (r.location + r.length + 2 <= [s length]
+	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
+	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 2]])
 	{
-	  NSRange r2 = {0, r.location};
-	  r = [s rangeOfCharacterFromSet: pathSeps()
-				 options: NSBackwardsSearch
-				   range: r2];
-	  if (r.length == 0)
-	    r = r2;
-	  r.length += 4;		/* Add the `/../' */
+	  r.length++;
+	  [s deleteCharactersInRange: r];
 	}
-      [s deleteCharactersInRange: r];
+      else
+	r.location++;
+      if ((r.length = [s length]) > r.location)
+	r.length -= r.location;
+      else
+	break;
+    }
+
+  if ([s isAbsolutePath] == NO)
+    return s;
+
+  /* Condense `/../' */
+  while ((r = [s rangeOfCharacterFromSet: pathSeps()
+				 options: 0
+				   range: r]).length)
+    {
+      if (r.location + r.length + 3 <= [s length]
+	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
+	&& [s characterAtIndex: r.location + 2] == (unichar)'.'
+	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 3]])
+	{
+	  if (r.location > 0)
+	    {
+	      NSRange r2 = {0, r.location};
+	      r = [s rangeOfCharacterFromSet: pathSeps()
+				     options: NSBackwardsSearch
+				       range: r2];
+	      if (r.length == 0)
+		r = r2;
+	      r.length += 4;		/* Add the `/../' */
+	    }
+	  [s deleteCharactersInRange: r];
+	}
+      else
+	r.location++;
+      if ((r.length = [s length]) > r.location)
+	r.length -= r.location;
+      else
+	break;
     }
 
   return s;
