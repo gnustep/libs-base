@@ -1,9 +1,9 @@
 /* NSNumber - Object encapsulation of numbers
     
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
-   Date: Mar 1995
+   Created: Mar 1995
 
    This file is part of the GNU Objective C Class Library.
 
@@ -269,5 +269,10 @@
     return self;
 }
 
-@end
+- description
+{
+  /* xxx This could be better integrated into concrete subclasses. */
+  return [NSString stringWithFormat: @"%d", [self intValue]];
+}
 
+@end
