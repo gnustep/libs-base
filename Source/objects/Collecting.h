@@ -44,10 +44,6 @@
 - init;
 - initWithContentsOf: (id <Collecting>)aCollection;
 
-// RELEASING;
-- (oneway void) release;
-- releaseObjects;
-
 // ADDING;
 - addObject: newObject;
 - addObjectIfAbsent: newObject;
