@@ -40,6 +40,7 @@
 
 // NSLocks ... umm I mean forks
 id forks[5];
+id fork_lock;
 
 //
 // A class of hungry philosophers
@@ -69,23 +70,28 @@ id forks[5];
 	// Its a constant battle to feed yourself
 	while (1)
 	{
+
+		[fork_lock lockWhenCondition:FOOD_SERVED];
+
 		// Get the fork to our left
 		[forks[chair] lockWhenCondition:FOOD_SERVED];
 
 		// Get the fork to our right
 		[forks[(chair + 1) % 5] lockWhenCondition:FOOD_SERVED];
 
+		[fork_lock unlock];
+
 		// Start eating!
-		printf("Philosopher %d can start eating.\n", chair);
+		printf("Philosopher %d can start eating.\n", chair); fflush(stdout);
 
 		for (i = 0;i < 100000; ++i)
 		{
 			if ((i % 10000) == 0)
-				printf("Philosopher %d is eating.\n", chair);
+				printf("Philosopher %d is eating.\n", chair); fflush(stdout);
 		}
 
 		// Done eating
-		printf("Philosopher %d is done eating.\n", chair);
+		printf("Philosopher %d is done eating.\n", chair); fflush(stdout);
 
 		// Drop the fork to our left
 		[forks[chair] unlock];
@@ -125,6 +131,10 @@ int main()
 	  [forks[i] lock];
   }
 
+	fork_lock = [[NSConditionLock alloc]
+		initWithCondition:NO_FOOD];
+	[fork_lock lock];
+
   // Create the philosophers
   for (i = 0;i < 5; ++i)
 	  p[i] = [[Philosopher alloc] init];
@@ -135,6 +145,7 @@ int main()
 		  toTarget:p[i] withObject: [NSNumber numberWithInt: i]];
 
   // Now let them all eat
+	[fork_lock unlockWithCondition:FOOD_SERVED];
   for (i = 0;i < 5; ++i)
 	  [forks[i] unlockWithCondition:FOOD_SERVED];
   

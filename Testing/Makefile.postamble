@@ -35,42 +35,6 @@
 #   otherwise the normal makefile rules will not be performed.
 #
 
-CHECKABLE_TOOLS = \
-		awake \
-		basic \
-		benchmark \
-		call \
-		containers \
-		create-abbrevs \
-		create-regions \
-		fref \
-		nsarchiver \
-		nsarray \
-		nsattributedstring \
-		nsbundle \
-		nscharacterset \
-		nsconnection \
-		nsdata \
-		nsdate \
-		nsdictionary \
-		nsfilehandle \
-		nsfilemanager \
-		nshashtable \
-		nshost \
-		nsinvocation \
-		nsmaptable \
-		nsnotification \
-		nsprocessinfo \
-		nsscanner \
-		nsset \
-		nstask \
-		nstimezone \
-		release \
-		string \
-		thread \
-		thread-except \
-		values
-
 # Things to do before compiling
 # before-all::
 

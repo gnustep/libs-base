@@ -1,5 +1,11 @@
 2003-06-23  Adam Fedor  <fedor@gnu.org>
 
+	* Testing/diningPhilosophers.m: Locking and output fixes (from
+	Chris Beaham).
+	* Testing/create-abbrevs, Testing/create-regions: Remove.
+
+2003-06-23  Adam Fedor  <fedor@gnu.org>
+
 	* Source/NSProcessInfo.m (+load): use the KVM library where
 	available when procfs doesn't work (FreeBSD, others?) (patch from
 	Pete French <pete@twisted.org.uk>).
