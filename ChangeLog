@@ -1,3 +1,9 @@
+2003-08-05  Martin Brecher <martin@mb-itconsulting.com>
+
+	* Tools/gdnc.1: Updated man pages, fixed typos, unified format 
+	and layout.  Man pages are now installed unprocessed as it should be.
+	* Tools/gdomap.8: ditto.
+
 2003-08-12  Yen-Ju Chen <yjchenx@hotmail.com>
 
 	* Source/Additions/Unicode.m (GetAvailableEncodings): Include
