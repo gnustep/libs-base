@@ -1,5 +1,5 @@
 /* Abstract class for writing objects to a stream
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: February 1996, with core from Coder, created 1994.
@@ -33,9 +33,9 @@
 static int default_format_version;
 static id default_stream_class;
 static id default_cstream_class;
+#define DEFAULT_DEFAULT_FORMAT_VERSION 0
 
 static int debug_coder = 0;
-#define DEFAULT_FORMAT_VERSION 0
 
 
 /* xxx For experimentation.  The function in objc-api.h doesn't always
@@ -71,7 +71,7 @@ my_object_is_class(id object)
       /* Initialize some defaults. */
       default_stream_class = [MemoryStream class];
       default_cstream_class = [BinaryCStream class];
-      default_format_version = DEFAULT_FORMAT_VERSION;
+      default_format_version = DEFAULT_DEFAULT_FORMAT_VERSION;
     }
 }
 
@@ -151,7 +151,7 @@ my_object_is_class(id object)
 	withCStreamClass: (Class) cStreamClass
 {
   return [self initForWritingToStream: s
-	       withFormatVersion: DEFAULT_FORMAT_VERSION
+	       withFormatVersion: DEFAULT_DEFAULT_FORMAT_VERSION
 	       cStreamClass: cStreamClass
 	       cStreamFormatVersion: [cStreamClass defaultFormatVersion]];
 }
