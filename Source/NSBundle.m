@@ -211,7 +211,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
   /* name might have a directory in it also, so account for this */
   path = [[directory stringByAppendingPathComponent: name] 
     stringByDeletingLastPathComponent];
-  cleanname = [name lastPathComponent];
+  cleanname = [[name lastPathComponent] stringByDeletingPathExtension];
   filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
   while ((match = [filelist nextObject]))
     {
