@@ -456,8 +456,9 @@ CPPFLAGS="$saved_CPPFLAGS"
 #--------------------------------------------------------------------
 # This function needed by NSLock.m for conditioned wait
 # get_uninstalled_dtable used by behavior.m and objc-load.m
+# Thread functions used by NSThread
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_condition_timedwait)
+AC_CHECK_FUNCS(objc_condition_timedwait objc_thread_add)
 
 AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE),)

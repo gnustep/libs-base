@@ -1,3 +1,9 @@
+2001-03-10  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for objc_thread_add in runtime.
+	* Source/NSThread.m (objc_thread_add): Define only if not in runtime
+	(objc_thread_remove): Likewise.
+
 2001-03-10  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* GSXML.m/.h: added errer, warning and fatal error methods with 
