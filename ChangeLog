@@ -1,3 +1,7 @@
+2002-12-28  Kelvin  <kelvin@xbar.org>
+
+	* Source/NSPage.m: Add BeOS support.
+
 2002-12-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	*  Source/Additions/Unicode.m: Tidied and optimised binary searches.
