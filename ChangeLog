@@ -1,3 +1,8 @@
+Tue Feb  8 23:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: Move ([writeToFile:atomically:]) from mutable
+	array to array code.
+
 Tue Feb  8 12:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/Foundation/HSConfig.h.in: Added some GC macros

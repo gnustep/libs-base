@@ -745,6 +745,11 @@ static NSString	*indentStrings[] = {
   (*appImp)(result, appSel, @")");
 }
 
+- (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
+{
+  return [[self description] writeToFile: path atomically: useAuxiliaryFile];
+}
+
 @end
 
 
@@ -844,11 +849,6 @@ static NSString	*indentStrings[] = {
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithCapacity: numItems]);
-}
-
-- (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
-{
-  return [[self description] writeToFile: path atomically: useAuxiliaryFile];
 }
 
 /* Override our superclass's designated initializer to go our's */
