@@ -1,5 +1,12 @@
 2004-05-17 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m: Fix based on emailed patch
+	by Roland Schwingel ... ensure we have a thread registered in
+	atexit functions.
+
+2004-05-17 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/Foundation.h: Add NSError.h
 	* Headers/Foundation/NSError.h: New MacOS-X compatibility header
 	* Source/DocMakefile: Add NSError
