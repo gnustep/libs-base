@@ -1,3 +1,9 @@
+2003-03-14  Adam Fedor  <fedor@Eldorado.local.>
+
+	* Testing/nsarray.m (compare): Un-nest function.
+
+	* Source/NSProcessInfo.m (-operatingSystem): Add darwin. 
+
 2003-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: ([-isDeletableFileAtPath:]) Fix for the

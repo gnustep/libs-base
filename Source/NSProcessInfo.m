@@ -749,6 +749,10 @@ int main(int argc, char *argv[], char *env[])
 	{
           os = NSBeOperatingSystem;
         }
+      else if ([n hasPrefix: @"darwin"] == YES)
+	{
+          os = NSMACHOperatingSystem;
+        }
       else if ([n hasPrefix: @"solaris"] == YES)
 	{
           os = NSSolarisOperatingSystem;
