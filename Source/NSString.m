@@ -600,13 +600,13 @@ static Class NSMutableString_c_concrete_class;
 
 - (const char*) cString
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return NULL;
 }
 
 - (unsigned int) cStringLength
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
