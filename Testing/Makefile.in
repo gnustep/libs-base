@@ -70,7 +70,6 @@ test05.m \
 test06.m \
 test07.m \
 test08.m \
-test09.m \
 test10.m \
 test11.m \
 test12.m \
@@ -134,8 +133,6 @@ test06: test06.o ../src/libobjects.a
 test07: test07.o ../src/libobjects.a
 	$(LINK_CMD)
 test08: test08.o ../src/libobjects.a
-	$(LINK_CMD)
-test09: test09.o ../src/libobjects.a
 	$(LINK_CMD)
 test10: test10.o ../src/libobjects.a
 	$(LINK_CMD)
