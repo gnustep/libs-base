@@ -235,6 +235,20 @@ AC_CHECK_FUNCS(times)
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, main)
 
+#--------------------------------------------------------------------
+# Make a shared library?
+#--------------------------------------------------------------------
+AC_ARG_ENABLE(shared, "Build libobjects as a shared library",
+        LIBOBJECTS_A_OR_SO=libobjects.so
+	SHAREDLIB_CFLAGS=-fPIC
+	SHAREDLIB_ARFLAGS=-shared,
+        LIBOBJECTS_A_OR_SO=libobjects.a
+	SHAREDLIB_CFLAGS=
+	SHAREDLIB_ARFLAGS=)
+AC_SUBST(LIBOBJECTS_A_OR_SO)
+AC_SUBST(SHAREDLIB_CFLAGS)
+AC_SUBST(SHAREDLIB_ARFLAGS)
+
 
 #--------------------------------------------------------------------
 # Write the Makefiles
