@@ -244,7 +244,7 @@ my_method_get_next_argument (arglist_t argframe,
   assert(imp);
   ret = __builtin_apply((void(*)(void))imp,
 			argframe, 
-			type_get_size_of_stack_arguments(encoding));
+			types_get_size_of_stack_arguments(encoding));
   if (*encoding == 'd')
     memcpy(return_value, (char*)ret + 2*sizeof(void*), return_size);
   else
