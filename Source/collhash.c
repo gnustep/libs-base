@@ -26,8 +26,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <assert.h>
 
-#include <objects/collhash.h>
-#include <objects/objc-malloc.h>
+#include <gnustep/base/collhash.h>
+#include <gnustep/base/objc-malloc.h>
 #include <objc/objc.h>
 
 /* These two macros determine when a hash table is full and
