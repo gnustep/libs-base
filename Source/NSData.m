@@ -615,14 +615,16 @@ failure:
 
       if ([mgr fileExistsAtPath: path])
 	{
-	  att = [[mgr fileAttributesAtPath:path traverseLink:YES] mutableCopy];
+	  att = [[mgr fileAttributesAtPath: path
+			      traverseLink: YES] mutableCopy];
 	  IF_NO_GC(TEST_AUTORELEASE(att));
 	}
 
       c = rename(thePath, theRealPath);
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
-          NSLog(@"Rename (%s) failed - %s", thePath, strerror(errno));
+          NSLog(@"Rename ('%s' to '%s') failed - %s",
+	    thePath, theRealPath, strerror(errno));
           goto failure;
         }
 
@@ -656,6 +658,13 @@ failure:
 
   /* Just in case the failure action needs to be changed. */
  failure:
+  /*
+   * Attempt to tidy up by removing temporary file on failure.
+   */
+  if (useAuxiliaryFile)
+    {
+      unlink(thePath);
+    }
   return NO;
 }
 
