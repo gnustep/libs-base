@@ -1,3 +1,7 @@
+2003-11-23  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.9.0
+
 2003-11-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: ([-suspend]) send SIGSTOP as documented ... bug
