@@ -109,6 +109,9 @@ GSOutOfMemory(size_t size, BOOL retry)
 #if	GS_WITH_GC == 0
 
 /* Alignment */
+#ifdef ALIGN
+#undef ALIGN
+#endif
 #define ALIGN ((__alignof__(double) < 8) ? 8 : __alignof__(double))
 #define MINGRAN 256 /* Minimum granularity. */
 #define DEFBLOCK 16384 /* Default granularity. */

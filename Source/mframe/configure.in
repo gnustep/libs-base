@@ -37,6 +37,12 @@ case "$target_cpu" in
     sparc*)		host_cpu=sparc;;
 esac
 
+case "$target_os" in
+    freebsd*)		target_os=freebsd;;
+    openbsd*)		target_os=openbsd;;
+esac
+
+
 if test -d $host_cpu -a "`echo $host_cpu/*`" != "$host_cpu/*"
 then
     my_dir=$host_cpu
