@@ -198,8 +198,8 @@ GSCurrentThreadDictionary()
 }
 
 /**
- * Returns the run loop for the specified thread (or, if t is nil,
- * for the current thread).  Creates a new run loop if necessary.<br />
+ * Returns the runloop for the specified thread (or, if t is nil,
+ * for the current thread).  Creates a new runloop if necessary.<br />
  * Returns nil on failure.
  */
 NSRunLoop*
@@ -250,6 +250,17 @@ gnustep_base_thread_callback()
 }
 
 
+/**
+ * This class encapsulates OpenStep threading.  See [NSLock] and its
+ * subclasses for handling synchronisation between threads.<br />
+ * Each process begins with a main thread and additional threads can
+ * be created using NSThread.  The GNUstep implementation of OpenStep
+ * has been carefully designed so that the internals of the base
+ * library do not use threading (except for methods which explicitly
+ * deal with threads of course) so that you can write applications
+ * without threading.  Non-threaded applications re more efficient
+ * (no locking is required) and are easier to debug during development.
+ */
 @implementation NSThread
 
 /**
@@ -592,9 +603,9 @@ gnustep_base_thread_callback()
  * This class performs a dual function ...
  * <p>
  *   As a class, it is responsible for handling incoming events from
- *   the main run loop on a special inputFd.  This consumes any bytes
- *   written to wake the main run loop.<br />
- *   During initialisation, the default run loop is set up to watch
+ *   the main runloop on a special inputFd.  This consumes any bytes
+ *   written to wake the main runloop.<br />
+ *   During initialisation, the default runloop is set up to watch
  *   for data arriving on inputFd.
  * </p>
  * <p>
@@ -796,6 +807,13 @@ static NSDate *theFuture;
 }
 @end
 
+/**
+ * Extra methods to permit messages to be sent to an object such that they
+ * are executed in the <em>main</em> thread.<br />
+ * The main thread is the thread in which the GNUstep system is started,
+ * and where the GNUstep gui is used, it is the thread in which gui
+ * drawing operations <strong>must</strong> be performed.
+ */
 @implementation	NSObject (NSMainThreadPerformAdditions)
 
 /**
@@ -807,22 +825,23 @@ static NSDate *theFuture;
  * runs in one of the modes specified in anArray.<br />
  * Where this method has been called more than once before the runloop
  * of the main thread runs in the required mode, the order in which the
- * 'perform' operations in the main thread is done is the same as that
- * in which they were added.<br />
- * If there are no modes in anArray,
+ * operations in the main thread is done is the same as that in which
+ * they were added using this method.
+ * </p>
+ * <p>If there are no modes in anArray,
  * the method has no effect and simply returns immediately.
  * </p>
  * <p>The argument aFlag specifies whether the method should wait until
  * the selector has been performed before returning.<br />
- * <strong>NB.</strong> This method does <em>not</em> cause the run loop of
- * the main thread to be run ... so if the run loop is not executed by some
+ * <strong>NB.</strong> This method does <em>not</em> cause the runloop of
+ * the main thread to be run ... so if the runloop is not executed by some
  * code in the main thread, the thread waiting for the perform to complete
  * will block forever.
  * </p>
  * <p>As a special case, if aFlag == YES and the current thread is the main
- * thread, the modes array is ignord and the selector is performed immediately.
+ * thread, the modes array is ignored and the selector is performed immediately.
  * This behavior is necessary to avoid the main thread being blocked by
- * waiting for a perform which will never happen because the run loop is
+ * waiting for a perform which will never happen because the runloop is
  * not executing.
  * </p>
  */
