@@ -1,3 +1,8 @@
+Wed Aug 25 11:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Makefile.postamble: Added rules to build some files without
+	optimisation, to avoid optimiser breaking them.
+
 1999-08-23  Pedro Ivo Andrade Tavares  <ptavares@iname.com>
 
         * Headers/gnustep/base/NSByteOrder.h: changed the NSByteStore struct
