@@ -1,3 +1,12 @@
+2001-04-11  Nicola Pero  <nicola@brainstorm.co.uk>
+	
+	* Source/NSString.m ([-initWithData:encoding:]): When working with
+	a generic but non-unicode encoding, do not treat a single
+	character string with no null terminator as an empty string.  This
+	should fix passing single character strings over DO.
+	* Source/NSThread.m ([+registerCurrentThread]),
+	([+unregisterCurrentThread]): Removed.
+
 2001-04-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFCallInvocation.m: bugfix encoding ... pass correct
