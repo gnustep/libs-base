@@ -1,3 +1,9 @@
+Fri Jan 15 10:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	src/NSObjCRuntime.m: Added GSGetInstanceVariable() and
+	GSSetInstanceVariable() methods - extensions to gnustep.
+	src/NSObjCRuntime.h: ditto
+
 Tue Jan 12  4:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSProcessInfo.m: Fix for GNU/Linux-powerpc (__PPC__) to get

@@ -72,3 +72,88 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
     *alignp = info.align;
 }
 
+BOOL
+GSGetIinstanceVariable(id obj, NSString *iVarName, void *data)
+{
+  const char	*name = [iVarName cString];
+  Class	class;
+  struct objc_ivar_list	*ivars;
+  struct objc_ivar	*ivar = 0;
+  int		offset;
+  const char	*type;
+  unsigned int	size;
+
+  class = [obj class];
+  while (class != nil && ivar == 0)
+    {
+      ivars = class->ivars;
+      class = class->super_class;
+      if (ivars)
+	{
+	  int	i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
+		{
+		  ivar = &ivars->ivar_list[i];
+		  break;
+		}
+	    }
+	}
+    }
+  if (ivar == 0)
+    {
+      NSLog(@"Attempt to get non-existent ivar");
+      return NO;
+    }
+
+  offset = ivar->ivar_offset;
+  type = ivar->ivar_type;
+  size = objc_sizeof_type(type);
+  memcpy(data, ((void*)obj) + offset, size);
+  return YES;
+}
+
+BOOL
+GSSetInstanceVariable(id obj, NSString *iVarName, void *data)
+{
+  const	char	*name = [iVarName cString];
+  Class	class;
+  struct objc_ivar_list	*ivars;
+  struct objc_ivar	*ivar = 0;
+  int		offset;
+  const char	*type;
+  unsigned int	size;
+
+  class = [obj class];
+  while (class != nil && ivar == 0)
+    {
+      ivars = class->ivars;
+      class = class->super_class;
+      if (ivars)
+	{
+	  int	i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
+		{
+		  ivar = &ivars->ivar_list[i];
+		  break;
+		}
+	    }
+	}
+    }
+  if (ivar == 0)
+    {
+      NSLog(@"Attempt to set non-existent ivar");
+      return NO;
+    }
+
+  offset = ivar->ivar_offset;
+  type = ivar->ivar_type;
+  size = objc_sizeof_type(type);
+  memcpy(((void*)obj) + offset, data, size);
+  return YES;
+}
