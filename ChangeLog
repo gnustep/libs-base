@@ -1,10 +1,11 @@
-Thu May 20 10:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Thu May 20 10:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/GSeq.h:  Add support for comparison and search.
 	* Source/NSString.m:  Use comparison and search functions from GSeq.h
 	* Source/NSGString.m:  Use comparison and search functions from GSeq.h
 	* Source/NSGCString.m:  Use comparison and search functions from GSeq.h
 	* Source/Makefile.postamble: Make all string files depend on GSeq.h
+	* Source/NSRunLoop.m: Don't retain receiver of runloop watcher.
 
 Wed May 19 21:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
