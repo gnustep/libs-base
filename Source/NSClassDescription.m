@@ -45,9 +45,11 @@ static NSMapTable	*classMap;
     {
       NSNotificationCenter	*nc;
 
+      [mapLock unlock];
       nc = [NSNotificationCenter defaultCenter];
       [nc postNotificationName: NSClassDescriptionNeededForClassNotification
                         object: aClass];
+      [mapLock lock];
       description = NSMapGet(classMap, aClass);
     }
   RETAIN(description);
