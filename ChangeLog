@@ -1,3 +1,9 @@
+Tue Apr 16 11:33:46 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSPortNameServer.m (MAKE_GDOMAP_CMD): Added
+	GNUSTEP_TARGET_DIR in the command to run gdomap.
+	(MAKE_GDOMAP_ERR): Idem.
+	
 2002-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: New method ([-nextElement]) to traverse
