@@ -707,6 +707,7 @@ failure:
   if (useAuxiliaryFile)
     {
       int	desc;
+      int	mask;
 
       strcpy(thePath, theRealPath);
       strcat(thePath, "XXXXXX");
@@ -715,6 +716,9 @@ failure:
           NSLog(@"mkstemp (%s) failed - %s", thePath, strerror(errno));
           goto failure;
 	}
+      mask = umask(0);
+      umask(mask);
+      fchmod(desc, 0644 & ~mask);
       if ((theFile = fdopen(desc, "w")) == 0)
 	{
 	  close(desc);

@@ -2,6 +2,10 @@
 
 	* Source/NSTask.m: Tidied code a little, added safety checks for
 	usePseudoTerminal method.
+	* Source/NSData.m: ([writeToFile:atomically:]) create new files
+	with permission 0644 modified by umask.
+	* Tools/gsdoc.m: Use memory management macros and attempt to get
+	back to something like conformance with coding standards.
 	* Documentation/gsdoc/NSTask.gsdoc: documentation fleshed out.
 
 2001-04-16  Adam Fedor  <fedor@gnu.org>
