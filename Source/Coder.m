@@ -28,10 +28,8 @@
 #include <gnustep/base/CoderPrivate.h>
 #include <gnustep/base/MemoryStream.h>
 #include <gnustep/base/Coding.h>
-#include <gnustep/base/Dictionary.h>
 #include <gnustep/base/Stack.h>
 #include <gnustep/base/Set.h>
-#include <gnustep/base/NSString.h>
 #include <gnustep/base/Streaming.h>
 #include <gnustep/base/Stream.h>
 #include <gnustep/base/CStreaming.h>
@@ -40,6 +38,8 @@
 #include <gnustep/base/BinaryCStream.h>
 #include <gnustep/base/StdioStream.h>
 #include <gnustep/base/Archiver.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSData.h>
