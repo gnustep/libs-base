@@ -1196,7 +1196,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  RunLoopWatcher	*watcher;
 
 	  watcher = NSMapGet(_wfdMap, (void*)fd_index);
-	  if (watcher->_invalidated == NO)
+	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      /*
 	       * The watcher is still valid - so call it's receivers
@@ -1223,7 +1223,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  RunLoopWatcher	*watcher;
 
 	  watcher = (RunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd_index);
-	  if (watcher->_invalidated == NO)
+	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      /*
 	       * The watcher is still valid - so call it's receivers
