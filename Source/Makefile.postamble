@@ -94,9 +94,9 @@ after-uninstall::
 # Things to do after distcleaning
 after-distclean::
 	rm -f include/config.h include/GSConfig.h include/dynamic-load.h \
-		include/mframe.h Foundation gnustep/base \
+		include/mframe.h Foundation base \
 		NSNumber[0-9]*.m NSValue[0-9]*.m o_*_bas.m
-	rmdir gnustep
+	rm -rf $(GNUSTEP_TARGET_CPU)
 
 # Things to do before checking
 # before-check::
