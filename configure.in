@@ -238,7 +238,7 @@ AC_CHECK_LIB(nsl, main)
 #--------------------------------------------------------------------
 # Make a shared library?
 #--------------------------------------------------------------------
-AC_ARG_ENABLE(shared, "Build libobjects as a shared library",
+AC_ARG_ENABLE(shared, Build libobjects as a shared library,
         LIBOBJECTS_SO='libobjects.so.$(OBJECTS_VERSION)',
     LIBOBJECTS_SO=)
 AC_SUBST(LIBOBJECTS_SO)
