@@ -66,6 +66,7 @@ before-all:: header-links
 after-distclean::
 	rm -f config.status config.log config.cache TAGS config.mak
 	cd Headers; rm -f Foundation
+	cd Source; rm -f Foundation
 
 # Things to do before checking
 # before-check::
@@ -76,6 +77,7 @@ after-distclean::
 header-links: $(HEADER_LINK_DEPENDS)
 	-rm -f Headers/Foundation
 	$(LN_S) gnustep/base Headers/Foundation
+	$(LN_S) ../Headers/gnustep/base Source/Foundation
 
 configure: configure.in
 	autoconf
