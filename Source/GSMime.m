@@ -30,6 +30,7 @@
 #include	<Foundation/NSScanner.h>
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSUserDefaults.h>
+#include	<Foundation/NSException.h>
 #include	<Foundation/GSMime.h>
 #include	<string.h>
 
@@ -188,6 +189,10 @@ parseCharacterSet(NSString *token)
   return NSASCIIStringEncoding;
 }
 
+@implementation	GSMimeEncodingContext
+@end
+
+
 @interface GSMimeParser (Private)
 - (BOOL) _decodeBody;
 - (NSString*) _decodeHeader;
@@ -205,9 +210,190 @@ parseCharacterSet(NSString *token)
 {
   RELEASE(data);
   RELEASE(child);
+  RELEASE(context);
   RELEASE(boundary);
   RELEASE(document);
   [super dealloc];
+}
+
+- (BOOL) decodeData: (NSData*)sData
+	  fromRange: (NSRange)aRange
+	   intoData: (NSMutableData*)dData
+	withContext: (GSMimeEncodingContext*)ctxt
+{
+  unsigned		size = [dData length];
+  unsigned		len = [sData length];
+  unsigned char		*beg;
+  unsigned char		*dst;
+  const char		*src;
+  const char		*end;
+
+  if (dData == nil || ctxt == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad data or context"];
+    }
+  GS_RANGE_CHECK(aRange, len);
+
+  /*
+   * A nil data item as input represents end of data.
+   */
+  if (sData == nil)
+    {
+      ctxt->atEnd = YES;
+    }
+
+  /*
+   * Get pointers into source data buffer.
+   */
+  src = (const char *)[sData bytes];
+  src += aRange.location;
+  end = src + aRange.length;
+  
+  switch (ctxt->type)
+    {
+      case GSMimeEncodingBase64:
+	/*
+	 * Expand destination data buffer to have capacity to handle info.
+	 */
+	[dData setLength: size + (3 * (end + 8 - src))/4];
+	dst = (unsigned char*)[dData mutableBytes];
+	beg = dst;
+
+	/*
+	 * Now decode data into buffer, keeping count and temporary
+	 * data in context.
+	 */
+	while (src < end)
+	  {
+	    int	cc = *src++;
+
+	    if (isupper(cc))
+	      {
+		cc -= 'A';
+	      }
+	    else if (islower(cc))
+	      {
+		cc = cc - 'a' + 26;
+	      }
+	    else if (isdigit(cc))
+	      {
+		cc = cc - '0' + 52;
+	      }
+	    else if (cc == '+')
+	      {
+		cc = 62;
+	      }
+	    else if (cc == '/')
+	      {
+		cc = 63;
+	      }
+	    else if  (cc == '=')
+	      {
+		ctxt->atEnd = YES;
+		cc = -1;
+	      }
+	    else if (cc == '-')
+	      {
+		ctxt->atEnd = YES;
+		break;
+	      }
+	    else
+	      {
+		cc = -1;		/* ignore */
+	      }
+
+	    if (cc >= 0)
+	      {
+		ctxt->buf[ctxt->pos++] = cc;
+		if (ctxt->pos == 4)
+		  {
+		    ctxt->pos = 0;
+		    decodebase64(dst, ctxt->buf);
+		    dst += 3;
+		  }
+	      }
+	  }
+
+	/*
+	 * Odd characters at end of decoded data need to be added separately.
+	 */
+	if (ctxt->atEnd == YES && ctxt->pos > 0)
+	  {
+	    unsigned	len = ctxt->pos - 1;;
+
+	    while (ctxt->pos < 4)
+	      {
+		ctxt->buf[ctxt->pos++] = '\0';
+	      }
+	    ctxt->pos = 0;
+	    decodebase64(dst, ctxt->buf);
+	    size += len;
+	  }
+	[dData setLength: dst - beg];
+	break;
+
+      case GSMimeEncodingQuotedPrintable:
+	/*
+	 * Expand destination data buffer to have capacity to handle info.
+	 */
+	[dData setLength: size + (end - src)];
+	dst = (unsigned char*)[dData mutableBytes];
+	beg = dst;
+
+	while (src < end)
+	  {
+	    if (ctxt->pos > 0)
+	      {
+		if ((*src == '\n') || (*src == '\r'))
+		  {
+		    ctxt->pos = 0;
+		  }
+		else
+		  {
+		    ctxt->buf[ctxt->pos++] = '=';
+		    if (ctxt->pos == 3)
+		      {
+		        int	c;
+			int	val;
+
+			ctxt->pos = 0;
+			c = ctxt->buf[1];
+			val = isdigit(c) ? (c - '0') : (c - 55);
+			val *= 0x10;
+			c = ctxt->buf[2];
+			val += isdigit(c) ? (c - '0') : (c - 55);
+			*dst++ = val;
+		      }
+		  }
+	      }
+	    else if (*src == '=')
+	      {
+		ctxt->buf[ctxt->pos++] = '=';
+	      }
+	    else
+	      {
+		*dst++ = *src;
+	      }
+	    src++;
+	  }
+	[dData setLength: dst - beg];
+	break;
+
+      default:
+	NSLog(@"Content encoding %d not known - assume binary", ctxt->type);
+      case GSMimeEncodingBinary:
+      case GSMimeEncodingSevenBit:
+      case GSMimeEncodingEightBit:
+	[dData setLength: size + (end - src)];
+	dst = (unsigned char*)[dData mutableBytes];
+	memcpy(&dst[size], src, (end - src));
+	size += (end - src);
+	[dData setLength: size];
+	break;
+    }
+
+  return YES;
 }
 
 - (NSString*) description
@@ -231,6 +417,7 @@ parseCharacterSet(NSString *token)
     {
       data = [[NSMutableData alloc] init];
       document = [[GSMimeDocument alloc] init];
+      context = [[GSMimeEncodingContext alloc] init];
     }
   return self;
 }
@@ -389,26 +576,32 @@ parseCharacterSet(NSString *token)
 	}
       if ([value isEqualToString: @"quoted-printable"] == YES)
 	{
+	  context->type = GSMimeEncodingQuotedPrintable;
 	  supported = YES;
 	}
       else if ([value isEqualToString: @"base64"] == YES)
 	{
+	  context->type = GSMimeEncodingBase64;
 	  supported = YES;
 	}
       else if ([value isEqualToString: @"binary"] == YES)
 	{
+	  context->type = GSMimeEncodingBinary;
 	  supported = YES;
 	}
       else if ([value characterAtIndex: 0] == '7')
 	{
+	  context->type = GSMimeEncodingSevenBit;
 	  supported = YES;
 	}
       else if ([value characterAtIndex: 0] == '8')
 	{
+	  context->type = GSMimeEncodingEightBit;
 	  supported = YES;
 	}
       if (supported == NO)
 	{
+	  context->type = GSMimeEncodingBinary;
 	  NSLog(@"Unsupported/unknown content-transfer-encoding");
 	  return NO;
 	}
@@ -941,144 +1134,20 @@ parseCharacterSet(NSString *token)
 	}
       else
 	{
-	  NSDictionary	*encInfo;
-	  NSString	*value;
-	  NSData	*decoded;
+	  unsigned	length = [data length];
+	  NSMutableData	*decoded = [NSMutableData dataWithCapacity: length];
 
-	  encInfo = [document headerNamed: @"content-transfer-encoding"];
-	  value = [encInfo objectForKey: @"Value"];
-
-	  if ([value isEqualToString: @"quoted-printable"] == YES)
+	  [self decodeData: data
+		 fromRange: NSMakeRange(0, length)
+		  intoData: decoded
+	       withContext: context];
+	  if (context->pos != 0)
 	    {
-	      int		cc;
-	      const char	*src;
-	      const char	*end;
-	      unsigned char	*dst;
-	      unsigned char	*beg;
-
-	      src = (const char*)bytes;
-	      end = src + dataEnd;
-	      beg = NSZoneMalloc(NSDefaultMallocZone(), dataEnd);
-	      dst = beg;
-
-	      while (src < end)
-		{
-		  if (*src == '=')
-		    {
-		      src++;
-		      if (src == end)
-			{
-			  break;
-			}
-		      if ((*src == '\n') || (*src == '\r'))
-			{
-			  break;
-			}
-		      cc = isdigit(*src) ? (*src - '0') : (*src - 55);
-		      cc *= 0x10;
-		      src++;
-		      if (src == end)
-			{
-			  break;
-			}
-		      cc += isdigit(*src) ? (*src - '0') : (*src - 55);
-		      *dst = cc;
-		    }
-		  else
-		    {
-		      *dst = *src;
-		    }
-		  dst++;
-		  src++;
-		}
-	      decoded = [NSData dataWithBytesNoCopy: beg length: dst - beg];
-	    }
-	  else if ([value isEqualToString: @"base64"] == YES)
-	    {
-	      int		cc;
-	      const char	*src;
-	      const char	*end;
-	      unsigned char	*dst;
-	      unsigned char	*beg;
-	      char		buf[4];
-	      int		pos = 0;
-
-	      src = (const char*)bytes;
-	      end = src + dataEnd;
-	      beg = NSZoneMalloc(NSDefaultMallocZone(), dataEnd);
-	      dst = beg;
-
-	      while (src < end)
-		{
-		  cc = *src++;
-		  if (isupper(cc))
-		    {
-		      cc -= 'A';
-		    }
-		  else if (islower(cc))
-		    {
-		      cc = cc - 'a' + 26;
-		    }
-		  else if (isdigit(cc))
-		    {
-		      cc = cc - '0' + 52;
-		    }
-		  else if (cc == '/')
-		    {
-		      cc = 63;
-		    }
-		  else if (cc == '+')
-		    {
-		      cc = 62;
-		    }
-		  else if (cc == '=')
-		    {
-		      cc = -1;
-		    }
-		  else if (cc == '\r')
-		    {
-		      cc = -1;
-		    }
-		  else if (cc == '\n')
-		    {
-		      cc = -1;
-		    }
-		  else if (cc == '-')
-		    {
-		      break;
-		    }
-		  else
-		    {
-		      cc = -1;				/* ignore */
-		    }
-
-		  if (cc >= 0)
-		    {
-		      buf[pos++] = cc;
-		      if (pos == 4)
-			{
-			  decodebase64(dst, buf);
-			  pos = 0;
-			  dst += 3;
-			}
-		    }
-		}
-
-	      for (cc = pos; cc < 4; cc++)
-		{
-		  buf[cc] = '\0';
-		}
-	      if (pos > 0)
-		{
-		  pos--;
-		}
-	      decodebase64(dst, buf);
-	      dst += pos;
-	      decoded = [NSData dataWithBytesNoCopy: beg length: dst - beg];
-	    }
-	  else /* Assume no encoding used */
-	    {
-	      decoded = data;
+	      context->atEnd = YES;
+	      [self decodeData: nil
+		     fromRange: NSMakeRange(0, 0)
+		      intoData: decoded
+		   withContext: context];
 	    }
 
 	  /*
@@ -1283,6 +1352,7 @@ parseCharacterSet(NSString *token)
 		}
 	      dataEnd = lengthRemaining;
 	      [data setLength: lengthRemaining];
+	      bytes = (unsigned char*)[data mutableBytes];
 	      sectionStart = 0;
 	      lineStart = 0;
 	      lineEnd = 0;
@@ -1296,279 +1366,7 @@ parseCharacterSet(NSString *token)
 
 @end
 
-
-
-#if 0
-/*
- *	Name		decodebuf()
- *	Purpose -	Decode a line.
- */
-static void
-decodebuf(mstate* ptr, unsigned char *src, int enc, int *junkp, int* len)
-{
-  int		cc;
-  int		show;
-  unsigned char	*ss;
-  unsigned char	*dest = src;
-
-  if (enc == CE_QUOTEDP)
-    {
-      *len = 0;
-      while (*src)
-	{
-	  if (*src == '=')
-	    {
-	      src++;
-	      if (*src == 0)
-		{
-		  break;
-		}
-	      if ((*src == '\n') || (*src == '\r'))
-		{
-		  break;
-		}
-	      cc = isdigit(*src) ? (*src - '0') : (*src - 55);
-	      cc *= 0x10;
-	      src++;
-	      if (*src == 0)
-		{
-		  break;
-		}
-	      cc += isdigit(*src) ? (*src - '0') : (*src - 55);
-	      *dest = cc;
-	    }
-	  else
-	    {
-	      *dest = *src;
-	    }
-	  dest++;
-	  src++;
-	  (*len)++;
-	}
-      *dest = '\0';
-    }
-  else if (enc == CE_BASE064)
-    {
-      *len = 0;
-      if (ptr->EndP)
-	{
-	  *junkp = 1;
-	  return;
-	}
-      ptr->BPos = 0;
-      while (*src)
-	{
-	  cc = *src++;
-	  if (isupper(cc))
-	    {
-	      cc -= 'A';
-	    }
-	  else if (islower(cc))
-	    {
-	      cc = cc - 'a' + 26;
-	    }
-	  else if (isdigit(cc))
-	    {
-	      cc = cc - '0' + 52;
-	    }
-	  else if (cc == '/')
-	    {
-	      cc = 63;
-	    }
-	  else if (cc == '+')
-	    {
-	      cc = 62;
-	    }
-	  else if (cc == '=')
-	    {
-	      ptr->EndP = 1;
-	      cc = -1;
-	    }
-	  else if (cc == '-')
-	    {
-	      *junkp = 1;			/* junk?  */
-	      break;
-	    }
-	  else
-	    {
-	      cc = -1;				/* ignore */
-	    }
-
-	  if (cc >= 0)
-	    {
-	      ptr->BBuf[ptr->BPos++] = cc;
-	      if (ptr->BPos == 4)
-		{
-		  ss = decodebase64(dest, ptr->BBuf);
-		  ptr->BPos = 0;
-		  dest += 3;
-		  *len += 3;
-		}
-	    }
-	}
-
-      show = ptr->BPos;
-      if (show)
-	{
-	  show--;
-	}
-      decodebase64(dest, ptr);
-      ptr->BPos = 0;
-      dest += show;
-      *len += show;
-      *dest = '\0';
-    }
-}
-
-
-
-/*
- *	Name -		donehead()
- *	Purpose -	Do all sort of processing at the end of header.
- */
-static void
-donehead(mstate* ptr)
-{
-    int ctypemask;
-
-    if (ptr->rfc822) {
-	parsehead(ptr);
-    }
-    ptr->InHeadP = 0;
-    if (ptr->MimeVers < 0) {			/* NOT MIME     */
-	if (ptr->ContType != CT_UNKNOWN) {	/* RFC1049	*/
-	    ptr->MimeVers = MV_R1049;
-	} else {				/* no head	*/
-	 /* ptr->MimeVers = MV_R0822;	default  */
-	    ptr->ContType = CT_ASCTEXT;
-	    ptr->CSubType = ST_PLAINTX;
-	 /* ptr->Encoding = CE_UNCODED;	default  */
-	 /* ptr->Charset  = NSISOLatin1StringEncoding;	default  */
-	}
-    }
-    ptr->TempEncd = ptr->Encoding;
-
-    if ((ptr->Charset == GSUndefinedEncoding)
-	&& ((ptr->ContType != CT_ASCTEXT) || (ptr->CSubType != ST_PLAINTX))) {
-	foldinit(ptr, GSUndefinedEncoding, GSUndefinedEncoding);
-	ptr->FoldChP = 0;
-    } else {
-	foldinit(ptr, ptr->Charset,  CS_IGNOR);
-    }
-
-    if ((ptr->ActMask & AC_APPLCTN) && (ptr->nameParameter)) {
-	ptr->AttFile = fopen(ptr->nameParameter, "wb");
-    }
-
-    ctypemask = 0; /* default */
-    switch (ptr->ContType) {
-      case CT_ASCTEXT: ctypemask = AC_ASCTEXT;	break;
-      case CT_MULTIPT: ctypemask = AC_MULTIPT;	break;
-      case CT_MESSAGE: ctypemask = AC_MESSAGE;	break;
-      case CT_APPLCTN: ctypemask = AC_APPLCTN;	break;
-    } /* switch */
-    ptr->DecodeP = ctypemask & ptr->ActMask;
-}
-
-
-/*
- *	Name -		unmimeline()
- *	Params -	(mstate*)ptr, (unsigned char*)buf, (int*)len
- *	Purpose -	Process a line of input.
- *
- * 	buf = buffer containing line, also used to return decoded buffer.
- *      len = length of data in buffer on entry and return.
- * Ret: 0: nothing special
- *      1: line is null line separating header from body
- *      2: found junk trailing BASE64 encoding
- *      3: dumping attachement to named file
- *	4: line is multipart boundary
- *	5: line is a header line
- * Des: The mimelite library doesn't really handle RFC-1049 content types, but
- *      it assumes that somthing _with_ a content-type header, but _without_ a
- *      mime-version header must be RFC-1049 and sets MimeVers accordingly.
- *      The rest is up to you.
- */
-int unmimeline(mstate* ptr, unsigned char *buf, int *len)
-{
-    int junkp = 0;
-
-    buf[*len] = '\0';	/* Ensure nul termination.	*/
-/*
- *	If we are in a multipart section and haven't started the header, 
- *	we check to see if the header is actually missing.
- */
-    if (ptr->InHeadP == 2) {
-	ptr->InHeadP = 1;
-	if (strchr((char*)buf, ':') == 0) {
-	    donehead(ptr);
-	}
-    }
-
-    if (!ptr->InHeadP) {
-        if (ptr->DecodeP) {
-	    if (ptr->DecodeP == AC_MULTIPT) {
-		if (strncmp((const char*)buf, ptr->Boundary, ptr->BLength)==0 &&
-		    (buf[ptr->BLength] == '\0' || buf[ptr->BLength] == '-' ||
-			isspace(buf[ptr->BLength]))) {
-		    /*
-		     *	At a boundary, we release any old subsidiary parser.
-		     */
-		    DESTROY(child);
-		    /*
-		     *	If we are not on the final boundary, we create a
-		     *	subsidiary parser to handle everything in this part.
-		     */
-		    if (buf[ptr->BLength] != '-') {
-			child = [GSMimeParser new];
-			[child setHeader: 2];	/* May be no header.	*/
-			[child setMimeVersion: [self mimeVersion]];
-		    }
-		    return(4);
-		}
-		else if (child != nil) {
-		    /*
-		     *	Parsing a multipart document, let the subsidiary
-		     *	parser handle the current part.
-		     */
-		    return [child unmimeline: buf length: len];
-		}
-	    }
-	    else {
-		decodebuf(ptr, buf, ptr->TempEncd, &junkp, len);
-	    }
-	}
-	if (ptr->FoldChP) {
-	    foldbuff(ptr, buf, *len);
-	}
-	if (ptr->AttFile) {
-	    fwrite(buf, *len, 1, ptr->AttFile);
-	    return(3);
-	}
-	if (junkp) {
-	    ptr->TempEncd = CE_UNCODED;
-	    return(2);
-	}
-	return(0);
-    }
-
-    if (eohp(buf)) {				/* end of head  */
-	donehead(ptr);
-	return(1);
-    }
-
-    *len = decodhead(ptr, buf);
-    foldbuff(ptr, buf, *len);
-    junkp = fold_rfc822(ptr, (char*)buf);
-    if (junkp != 0) {				/* Bad header.	*/
-	donehead(ptr);
-	return(-1);
-    }
-    return(5);
-}
-#endif
-
-
+
 
 @implementation	GSMimeDocument
 

@@ -39,6 +39,28 @@
 @class	NSString;
 @class	NSMutableString;
 
+typedef	enum {
+  GSMimeEncodingBase64,
+  GSMimeEncodingQuotedPrintable,
+  GSMimeEncodingSevenBit,
+  GSMimeEncodingEightBit,
+  GSMimeEncodingBinary,
+  GSMimeEncodingUnknown
+} GSMimeEncoding;
+
+/*
+ * A trivial class for mantaining state while decoding/encoding data.
+ */
+@interface	GSMimeEncodingContext : NSObject
+{
+@public
+  unsigned char		buf[4];
+  unsigned		pos;
+  BOOL			atEnd;
+  GSMimeEncoding	type;	/* The content encoding type to be used	*/
+}
+@end
+
 @interface	GSMimeDocument : NSObject
 {
   NSMutableArray	*headers;
@@ -72,10 +94,15 @@
   NSData		*boundary;
   GSMimeDocument	*document;
   GSMimeParser		*child;
+  GSMimeEncodingContext	*context;
 }
 
 + (GSMimeParser*) mimeParser;
 
+- (BOOL) decodeData: (NSData*)sData
+	  fromRange: (NSRange)aRange
+	   intoData: (NSMutableData*)dData
+	withContext: (GSMimeEncodingContext*)ctxt;
 - (GSMimeDocument*) document;
 - (BOOL) parse: (NSData*)input;
 - (BOOL) parseHeader: (NSString*)aRawHeader;

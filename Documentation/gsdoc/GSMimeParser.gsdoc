@@ -32,6 +32,37 @@
           </desc>
         </method>
 
+        <method type="BOOL">
+          <sel>decodeData:</sel>
+          <arg type="NSData*">sourceData</arg>
+          <sel>fromRange:</sel>
+          <arg type="NSRange">aRange</arg>
+          <sel>intoData:</sel>
+          <arg type="NSMutableData*">destinationData</arg>
+          <sel>withContext:</sel>
+          <arg type="GSMimeEncodingContext*">ctxt</arg>
+          <desc>
+	    <p>
+	      Decodes the raw data from the specified range in the source
+	      data object and appends it to the destination data object.
+	      The context object provides information about the content
+	      encoding type in use, and the state of the decoding operation.
+	    </p>
+	    <p>
+	      This method may be called repeatedly to incrementally decode
+	      information as it arrives on some communications channel.
+              It should be called with a nil source data item (or with
+	      the atEnd flag of the context set to YES) in order to flush
+	      any information held in the context to the output data
+	      object.
+	    </p>
+	    <p>
+	      You may override this method in order to implement
+	      additional coding schemes.
+	    </p>
+          </desc>
+        </method>
+
         <method type="GSMimeDocument*">
           <sel>document</sel>
           <desc>
