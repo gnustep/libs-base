@@ -1,4 +1,4 @@
-/* src/include/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* Source/include/config.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* Define as __inline if that's what the C compiler calls it.  */
 #undef inline
@@ -21,8 +21,29 @@
 
 #undef VSPRINTF_RETURNS_LENGTH
 
+/* Define if you have the register_printf_function function.  */
+#undef HAVE_REGISTER_PRINTF_FUNCTION
+
+/* The number of bytes in a double.  */
+#undef SIZEOF_DOUBLE
+
+/* The number of bytes in a float.  */
+#undef SIZEOF_FLOAT
+
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
+
+/* The number of bytes in a long.  */
+#undef SIZEOF_LONG
+
+/* The number of bytes in a long long.  */
+#undef SIZEOF_LONG_LONG
+
+/* The number of bytes in a short.  */
+#undef SIZEOF_SHORT
+
+/* The number of bytes in a void*.  */
+#undef SIZEOF_VOIDP
 
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD
@@ -33,29 +54,29 @@
 /* Define if you have the killpg function.  */
 #undef HAVE_KILLPG
 
-/* Define if you have the setpgrp function.  */
-#undef HAVE_SETPGRP
-
-/* Define if you have the setpgid function.  */
-#undef HAVE_SETPGID
+/* Define if you have the mkstemp function.  */
+#undef HAVE_MKSTEMP
 
 /* Define if you have the mmap function.  */
 #undef HAVE_MMAP
 
-/* Define if you have the register_printf_function function.  */
-#undef HAVE_REGISTER_PRINTF_FUNCTION
+/* Define if you have the setpgid function.  */
+#undef HAVE_SETPGID
+
+/* Define if you have the setpgrp function.  */
+#undef HAVE_SETPGRP
 
 /* Define if you have the shmctl function.  */
 #undef HAVE_SHMCTL
-
-/* Define if you have the mkstemp function.  */
-#undef HAVE_MKSTEMP
 
 /* Define if you have the statvfs function.  */
 #undef HAVE_STATVFS
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
+
+/* Define if you have the syslog function.  */
+#undef HAVE_SYSLOG
 
 /* Define if you have the times function.  */
 #undef HAVE_TIMES
@@ -72,6 +93,9 @@
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
+/* Define if you have the <grp.h> header file.  */
+#undef HAVE_GRP_H
+
 /* Define if you have the <memory.h> header file.  */
 #undef HAVE_MEMORY_H
 
@@ -84,18 +108,14 @@
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
 
-/* Define if you have the <getgrent.h> header file.  */
-#undef HAVE_GRP_H
-
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H
 
-/* Define if you have the <syslog.h> header file.  */
-#undef HAVE_SYSLOG_H
-#undef HAVE_SYSLOG
-
 /* Define if you have the <sys/dir.h> header file.  */
 #undef HAVE_SYS_DIR_H
+
+/* Define if you have the <sys/mount.h> header file.  */
+#undef HAVE_SYS_MOUNT_H
 
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
@@ -123,6 +143,9 @@
 
 /* Define if you have the <sys/vfs.h> header file.  */
 #undef HAVE_SYS_VFS_H
+
+/* Define if you have the <syslog.h> header file.  */
+#undef HAVE_SYSLOG_H
 
 /* Define if you have the <ucbinclude/sys/resource.h> header file.  */
 #undef HAVE_UCBINCLUDE_SYS_RESOURCE_H
