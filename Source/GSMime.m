@@ -768,6 +768,25 @@ parseCharacterSet(NSString *token)
   return document;
 }
 
+- (BOOL) isComplete
+{
+  return complete;
+}
+
+- (BOOL) isInBody
+{
+  return inBody;
+}
+
+- (BOOL) isInHeaders
+{
+  if (inBody == YES)
+    return NO;
+  if (complete == YES)
+    return NO;
+  return YES;
+}
+
 - (id) init
 {
   self = [super init];
@@ -846,6 +865,7 @@ parseCharacterSet(NSString *token)
            */
 	  result = [self parse: [NSData dataWithBytes: @"\r\n\r\n" length: 4]];
 	}
+      inBody = NO;
       complete = YES;	/* Finished parsing	*/
       return result;
     }
@@ -1517,6 +1537,7 @@ parseCharacterSet(NSString *token)
 
 	  if ([context atEnd] == YES)
 	    {
+	      inBody = NO;
 	      complete = YES;
 
 	      /*

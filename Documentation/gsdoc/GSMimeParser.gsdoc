@@ -102,6 +102,29 @@
         </method>
 
         <method type="BOOL">
+          <sel>isComplete</sel>
+          <desc>
+	    Returns YES if the document parsing is known to be completed.
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>isInBody</sel>
+          <desc>
+	    Returns YES if all the document headers have been parsed but
+	    the document body parsing may not yet be complete.
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>isInHeaders</sel>
+          <desc>
+	    Returns YES if parsing of the document headers has not yet
+	    been completed.
+          </desc>
+        </method>
+
+        <method type="BOOL">
           <sel>parse:</sel>
           <arg type="NSData*">rawData</arg>
           <desc>

@@ -97,6 +97,9 @@
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)ctxt;
 - (GSMimeDocument*) document;
+- (BOOL) isComplete;
+- (BOOL) isInBody;
+- (BOOL) isInHeaders;
 - (BOOL) parse: (NSData*)input;
 - (BOOL) parseHeader: (NSString*)aRawHeader;
 - (BOOL) parsedHeaders;
