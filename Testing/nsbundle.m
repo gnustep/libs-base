@@ -1,5 +1,5 @@
 /* nsbundle - Program to test out dynamic linking via NSBundle.
-   Copyright (C) 1993,1994,1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Jul 1995
@@ -71,7 +71,7 @@ main(int ac, char *av[])
 	fprintf(stderr, "* ERROR: Can't find principal class\n");
 	exit(1);
     }
-    printf("  Principal class is: %s\n", [object name]);
+    printf("  Principal class is: %s\n", object_get_class_name (object));
 
     printf("Testing LoadMe bundle classes...\n");
     printf("  This is LoadMe:\n");
