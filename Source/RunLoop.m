@@ -25,7 +25,6 @@
    It is still in the early stages of development, and will most likely
    evolve quite a bit more before the interface settles.
 
-   Distinguishing between different MODES is not currently implemented.
    Handling NSTimers is implemented, but currently disabled.
 
    Does it strike anyone else that NSNotificationCenter,
@@ -239,7 +238,8 @@ static RunLoop *current_run_loop;
 }
 
 
-/* Listen to input sources */
+/* Listen to input sources.
+   If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
 
 - (void) acceptInputForMode: (id <String>)mode 
 		 beforeDate: limit_date
@@ -267,9 +267,17 @@ static RunLoop *current_run_loop;
 #endif
 
   /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-  if (limit_date 
-      && ((ti = [limit_date timeIntervalSinceNow]) < LONG_MAX))
+  if (!limit_date)
     {
+      /* Don't wait at all. */
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 0;
+      select_timeout = &timeout;
+    }
+  else if ((ti = [limit_date timeIntervalSinceNow]) < LONG_MAX
+	    && ti > 0.0)
+    {
+      /* Wait until the LIMIT_DATE. */
       if (debug_run_loop)
 	printf ("\tRunLoop accept input before %f (seconds from now %f)\n", 
 		[limit_date timeIntervalSinceReferenceDate], ti);
@@ -280,13 +288,19 @@ static RunLoop *current_run_loop;
 	    printf ("\tRunLoop limit date past, returning\n");
 	  return;
 	}
-
       timeout.tv_sec = ti;
       timeout.tv_usec = ti * 1000000.0;
       select_timeout = &timeout;
     }
+  else if (ti <= 0.0)
+    {
+      /* The LIMIT_DATE has already past; return immediately without
+	 polling any inputs. */
+      return;
+    }
   else
     {
+      /* Wait forever. */
       if (debug_run_loop)
 	printf ("\tRunLoop accept input waiting forever\n");
       select_timeout = NULL;
@@ -400,6 +414,10 @@ static RunLoop *current_run_loop;
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode
 	beforeDate: d];
+
+  /* xxx Is this where we detect if the RunLoop is idle, and whether
+     we should dispatch the notifications from NotificationQueue's
+     idle queue? */
 
   return YES;
 }
