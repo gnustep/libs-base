@@ -1,3 +1,10 @@
+2003-10-05  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/GNUmakefile: Make manual
+	* Source/DocMakefile: Remove dependencies file when cleaning.
+
+	* Version: Bump to 1.8.90
+
 2003-10-03  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Use -Wl for netbsd linker options.
@@ -33,6 +40,10 @@
 	* Source/NSString.m: Fix pathExtension bug reported by Roland
 	Schwingel.  Was failing to handle the case when a dot appears 
 	inside a path component properly.
+
+2003-09-26  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.8.0 on branch.
 
 2003-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -211,8 +211,10 @@ after-clean::
 	$(RM) BaseAdditions.gsdoc
 	if [ -d Base ]; then \
 	  $(RM) Base/stamp; \
+	  $(RM) Base/dependencies; \
 	  rmdir Base; \
 	  $(RM) BaseAdditions/stamp; \
+	  $(RM) BaseAdditions/dependencies; \
 	  rmdir BaseAdditions; \
 	fi
 
