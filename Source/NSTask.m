@@ -906,7 +906,7 @@ BOOL
 GSCheckTasks()
 {
   /* FIXME: Implement */
-  return YES;
+  return NO;
 }
 
 - (void) gcFinalize

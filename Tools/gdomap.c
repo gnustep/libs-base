@@ -4240,7 +4240,7 @@ printf(
 		fprintf(stderr, "Registration will take place locally.\n");
 	      }
 	    doregister(optarg, port, ptype);
-	    return 0;
+	    exit(0);
 
 	  case 'T':
 	    if (strcmp(optarg, "tcp_gdo") == 0)

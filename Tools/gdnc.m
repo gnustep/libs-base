@@ -855,7 +855,9 @@ main(int argc, char** argv, char** env)
 
   if (server != nil)
     {
+      CREATE_AUTORELEASE_POOL(pool);
       [[NSRunLoop currentRunLoop] run];
+      RELEASE(pool);
     }
   exit(0);
 }

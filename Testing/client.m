@@ -87,7 +87,7 @@ printf("oneway %d\n", _F_ONEWAY);
     }
   else
     p = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server" 
-		    host:nil];
+		    host: @"*"];
   c = [p connectionForProxy];
   [c setDelegate:auth];
   [c setRequestTimeout:180.0];
