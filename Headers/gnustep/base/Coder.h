@@ -56,9 +56,10 @@
   /* xxx in_progress_table should actually be an NSHashTable,
      but we are working around a bug right now. */
   NSMapTable *in_progress_table;    /* objects begun writing, but !finished */
-  NSMapTable *object_2_xref;         /* objects already written */
-  NSMapTable *object_2_fref;         /* table of forward references */
-  NSMapTable *const_ptr_2_xref;      /* const pointers already written */
+  NSMapTable *object_2_xref;        /* objects already written */
+  NSMapTable *object_2_fref;        /* table of forward references */
+  NSMapTable *const_ptr_2_xref;     /* const pointers already written */
+  unsigned fref_counter;            /* Keep track of unused fref numbers */
 }
 
 - initForWritingToFile: (id <String>) filename;
