@@ -1,3 +1,11 @@
+2002-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Change to quote strings in plist output
+	aggressively (quote characters that don't really need quoting)
+	while still parsing flexibly ... ie handle unquoted strings as
+	long as they don't contain 'special' characters.
+	Fix for Tom Hageman <th@xs4all.nl>
+
 2002-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Tools/AGSParser.m: ([-parseDeclaration:]) Correct wrongly
