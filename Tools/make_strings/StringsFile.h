@@ -27,8 +27,16 @@
 
 @interface StringsFile : NSObject
 {
-	NSMutableArray *strings;
-	NSString *global_comment;
+@public
+  NSMutableArray *strings;
+  NSString *global_comment;
+
+@private
+  /** These are used for aggressive matching **/
+  /* Contains all keys for which there is a translation */
+  NSMutableArray *keys_translated;
+  /* Contains all keys that appeared in the source */
+  NSMutableArray *keys_matched;
 }
 
 - init;

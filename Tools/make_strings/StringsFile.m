@@ -69,14 +69,39 @@ static NSString *parse_string(NSString **ptr)
 
 
 #define DUMMY @"<dummy>"
-#define DUMMY2 @"<dummy2>"
 
 @implementation StringsFile
+
+-(BOOL) isTranslated: (NSString *)key
+{
+  return [keys_translated containsObject: key];
+}
+
+-(void) addTranslated: (NSString *)key
+{
+  if (![self isTranslated: key])
+    [keys_translated addObject: key];
+}
+
+
+-(BOOL) isMatched: (NSString *)key
+{
+  return [keys_matched containsObject: key];
+}
+
+-(void) addMatched: (NSString *)key
+{
+  if (![self isMatched: key])
+    [keys_matched addObject: key];
+}
+
 
 - init
 {
   self=[super init];
   strings=[[NSMutableArray alloc] init];
+  keys_translated=[[NSMutableArray alloc] init];
+  keys_matched=[[NSMutableArray alloc] init];
   return self;
 }
 
@@ -132,7 +157,7 @@ static NSString *parse_string(NSString **ptr)
 	    else if ([l hasPrefix: @" File: "])
 	      {
 		se=[[StringsEntry alloc] init];
-		[se addFlag: FLAG_UNMATCHED];
+		[se addFlag: FLAG_UNMATCHED]; /* TODO: ? */
 		[update_list addObject: se];
 		[se release];
 
@@ -212,13 +237,21 @@ static NSString *parse_string(NSString **ptr)
 
 	    [update_list makeObjectsPerformSelector: @selector(setKey:) withObject: key];
 	    [update_list makeObjectsPerformSelector: @selector(setTranslated:) withObject: trans];
-	    /*				{
-					int i,c=[update_list count];
-					for (i=0;i<c;i++)
-					{
-					printf("%4i : %@\n",i,[update_list objectAtIndex: i]);
-					}
-					}*/
+
+	    {
+	      int i,c=[update_list count];
+		for (i=0;i<c;i++)
+		  {
+//		    printf("%4i : %@\n",i,[update_list objectAtIndex: i]);
+		    se=[update_list objectAtIndex: i];
+		    if (!([se flags]&FLAG_UNTRANSLATED))
+		      {
+			[self addTranslated: key];
+			break;
+		      }
+		  }
+	    }
+
 
 	    [strings addObjectsFromArray: update_list];
 
@@ -307,10 +340,24 @@ static NSString *parse_string(NSString **ptr)
     [self _writeTo: str  entryKey: cur];
 }
 
+-(BOOL) _shouldIgnore: (StringsEntry *)se
+{
+  if (([se flags]&(FLAG_UNMATCHED|FLAG_UNTRANSLATED))==
+		    (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
+    return YES;
+
+  if (aggressive_import && [[se file] isEqual: DUMMY] && [self isMatched: [se key]])
+    return YES;
+
+  if (aggressive_remove && ([se flags]&FLAG_UNMATCHED) && [self isMatched: [se key]])
+    return YES;
+
+  return NO;
+}
 
 -(BOOL) writeToFile: (NSString *)filename
 {
-  unsigned  i,c;
+  unsigned int i,c;
   BOOL result;
   NSMutableString *str=[[NSMutableString alloc] initWithCapacity: 32*1024];
   StringsEntry *se;
@@ -350,10 +397,8 @@ static NSString *parse_string(NSString **ptr)
   while ([strings_left count])
     {
       cur=[strings_left objectAtIndex: 0];
-      if (([cur flags]&(FLAG_UNMATCHED|FLAG_UNTRANSLATED))==
-	  (FLAG_UNMATCHED|FLAG_UNTRANSLATED)
-	  || (aggressive_import && [[cur file] isEqual: DUMMY2]))
-	{ /* ignore strings that are unmatched _and_ untranslated */
+      if ([self _shouldIgnore: cur])
+	{
 	  [strings_left removeObjectAtIndex: 0];
 	  continue;
 	}
@@ -366,10 +411,8 @@ static NSString *parse_string(NSString **ptr)
 	{
 	  c2=[strings_left objectAtIndex: i];
 
-	  if (([c2 flags]&(FLAG_UNMATCHED|FLAG_UNTRANSLATED))==
-	      (FLAG_UNMATCHED|FLAG_UNTRANSLATED)
-	      || (aggressive_import && [[cur file] isEqual: DUMMY2]))
-	    { /* ignore strings that are unmatched _and_ untranslated */
+	  if ([self _shouldIgnore: c2])
+	    {
 	      [strings_left removeObjectAtIndex: i];
 	      i--;
 	      continue;
@@ -490,6 +533,8 @@ static NSString *parse_string(NSString **ptr)
 
   c=[strings count];
 
+  [self addMatched: [e key]];
+
   /* Look for exact matches. If we find an exact match (same file, key, and
      comment) we mark the StringsEntry matched and don't add the SourceEntry.
   */
@@ -535,11 +580,6 @@ static NSString *parse_string(NSString **ptr)
 	    [se2 setFlags: 0];
 	    [se2 setTranslated: [se translated]];
 	    [strings addObject: se2];
-
-	    /* If aggressive_import is enabled and the one we matched is a
-	       dummy we change the name to DUMMY2 so we can ignore it later. */
-	    if (aggressive_import && [[se file] isEqual: DUMMY])
-	      [se setFile: DUMMY2];
 	    return;
 	  }
 	}

@@ -1,3 +1,10 @@
+2003-06-28 15:48  Alexander Malmberg <alexander@malmberg.org>
+
+	* Tools/make_strings/StringsFile.h, Tools/make_strings/StringsFile.m,
+	Tools/make_strings/make_strings.h, Tools/make_strings/make_strings.m:
+	Clean up handling of key matching and ignoring. Add
+	--aggressive-remove option.
+
 2003-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Don't NSLog when we can't find a localizable
