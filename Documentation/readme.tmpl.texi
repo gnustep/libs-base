@@ -11,7 +11,8 @@ Here is some introductory info to get you started:
 
 The file @samp{NEWS} has the library's feature history.
 
-The file @samp{INSTALL} gives instructions for installing the library.
+The files @samp{INSTALL} and @samp{GNUstep-HOWTO} 
+give instructions for installing the library.
 
 @section Preparing to write code
 
@@ -120,7 +121,7 @@ takers?
 
 @item Read the projects and questions in the @samp{TODO} file.  If you
 can volunteer for any of the projects, or if you have any useful
-comments send me email!  <mccallum@@gnu.ai.mit.edu>
+comments send me email! 
 
 @item
 Give me feedback!  Tell me what you like; tell me what you think

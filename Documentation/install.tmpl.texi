@@ -1,0 +1,21 @@
+@c This is a generic INSTALL file for utilities distributions.
+@c If this package does not come with, e.g., installable documentation or
+@c data files, please ignore the references to them below.
+
+@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
+@include version.texi
+
+@ifset INSTALL_ONLY
+This file documents the installation of the GNUstep Base Library,
+@samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996, 1997 Free Software 
+Foundation, Inc.  You may copy, distribute, and modify it freely as long
+as you preserve this copyright notice and permission notice.
+@chapter Installing @samp{libgnustep-base}
+@end ifset
+
+Read the file GNUstep-HOWTO for instructions on how to install the
+entire GNUstep package (including the base library).
+GNUstep-HOWTO comes with this distribution and also 
+is located at the same ftp sites as this library.
+
+@bye

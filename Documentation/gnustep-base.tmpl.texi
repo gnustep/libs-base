@@ -1,0 +1,109 @@
+\input texinfo  @c -*-texinfo-*-
+@c GNUstep BASE Library
+@c
+@c This file uses the special commands @url{} and @email{}.
+
+@iftex
+@global@let@email=@i
+@global@let@url=@samp
+@end iftex
+
+@ifset NO-TEXI2HTML
+@ifinfo
+@definfoenclose email, <, >
+@definfoenclose url `, '
+@end ifinfo
+@end ifset
+
+@settitle The GNUstep BASE Library
+@setfilename gnustep-base.info
+@include version.texi
+
+@ifinfo
+This file documents the GNUstep BASE Library.
+
+@ifclear NO-TEXI2HTML
+@subtitle DRAFT Edition for GNUstep BASE Library @value{GNUSTEP-BASE-VERSION}
+@subtitle Last revision Jan 1998
+@c @subtitle For GCC Version @value{GNUSTEP-BASE-GCC}
+@author Andrew McCallum
+@sp 1
+@end ifclear
+Copyright @copyright{} 1998 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+@iftex
+@setchapternewpage odd
+@finalout
+@titlepage
+@title The GNUstep BASE Library
+@subtitle DRAFT Edition for GNUstep BASE Library @value{GNUSTEP-BASE-VERSION}
+@subtitle Last revision Jan 1998
+@c @subtitle For GCC Version @value{GNUSTEP-BASE-GCC}
+@author Andrew McCallum
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1998 Free Software Foundation
+
+@sp 2
+GNUstep BASE Library Version @value{GNUSTEP-BASE-VERSION}@*
+@c For GCC Version @value{GCC-VERSION}@*
+@sp 1
+Last printed Jan, 1998.@*
+@sp 1
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end titlepage
+@end iftex
+
+@chapter Introduction
+
+@c README
+@include readme.texi
+
+@c Announcement
+@include announce.texi
+
+@c Installation Instructions
+@include gnustep-howto.texi
+
+@c News
+@include news.texi
+
+@c The FAQ
+@include faq.texi
+
+@c Status Report
+@include status.texi
+
+@c The ToDo
+@include todo.texi
+
+@c Generate Short Contents
+@shortcontents
+
+@c Generate Complete Contents
+@contents
+@bye

@@ -10,6 +10,8 @@ The currently released version of the library is
 
 @itemize @bullet
 
+@item New tools for maintaining the defaults database.
+
 @item Use the new GNUstep Makefile Package to compile the library, tools
 checks, and everything else.
 

@@ -1,6 +1,7 @@
 \input texinfo @c -*-texinfo-*-
 
 @setfilename gnustep-howto.texi
+@chapter GNUstep Installation
 
 @paragraphindent 4
 
@@ -71,6 +72,7 @@ gstep-make
 gstep-base or libFoundation
 gstep-gui
 gstep-xpds
+FoundationExt (optional).
 @end display
 
 @section Getting the files
@@ -98,21 +100,22 @@ You need the following packages of either the version given or any later
 version, in order to compile GNUstep.
 
 @example
-gcc-2.7.2.1.tar.gz (The gcc compiler. Version 2.7.2 also works):
+gcc-2.8.0.tar.gz (The GCC compiler), or gcc-2.7.2.x.tar.gz with the patch
+listed below.
 gdb-4.16.tar.gz (The gdb debugger)
 make-3.75.tar.gz (You need GNU make to compile GNUstep).
   ftp://ftp.gnu.org/pub/gnu or from other GNU mirror sites.
 
-gcc-2.7.2.1-objc-970318.diff.gz (patch for multi-threaded Obj-C runtime)
+gcc-2.7.2.1-objc-970318.diff.gz (patch needed for using gcc 2.7.2.x)
   From the gstep-base distribution (gcc-2.7.2.1-objc.diff) or
   ftp://alpha.gnu.org/gnu/gnustep
   ftp://ftp.gnustep.org/pub/gnustep/developer
   ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/developer/releases
-gdb-4.16-objc-971112.diff.gz (A patch for easier debugging of Objective-C code).
+gdb-4.16-objc-971112.diff.gz (A patch for easier debugging of Objective-C).
   ftp://alpha.gnu.org/gnu/gnustep
   ftp://ftp.gnustep.org/pub/gnustep/developer
 
-tiff-v3.4beta036-tar.gz (The TIFF library)
+tiff-v3.4beta036-tar.gz (The TIFF library), or
 tiff-970711.tar.gz
   ftp://ftp.sgi.com/graphics/tiff/
   ftp://alpha.gnu.org/gnu/gnustep
@@ -121,16 +124,22 @@ tiff-970711.tar.gz
 pcthreads-1.1.0.tar.gz (PCThreads for Linux/GNU Inel x86 systems)
   ftp://alpha.gnu.org/gnu/gnustep
   
-gstep-make-971102.tar.gz (Makefile package)
+gstep-make-0.4.0.tar.gz (Makefile package)
 dgs-970711.tar.gz (The Display Ghostscript distribution)
-gstep-base-971102.tar.gz (Foundation)
-gstep-gui-971102.tar.gz (AppKit)
-gstep-xdps-971102.tar.gz (X11/PostScript backend)
-  ftp://alpha.gnu.org/gnu/gnustep/snap
-  ftp://ftp.gnustep.org/pub/gnustep/developer/snap
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/developer/snapshots
+gstep-base-0.4.0.tar.gz (Foundation)
+gstep-gui-0.4.0.tar.gz (AppKit)
+gstep-xdps-0.4.0.tar.gz (X11/PostScript backend)
+  ftp://ftp.gnu.org/pub/gnu
+  ftp://ftp.gnustep.org/pub/gnustep
+  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
 
 libFoundation-0.8.0.tar.gz (Foundation)
+  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
+  ftp://alpha.gnu.org/gnu/gnustep
+
+FoundationExt-0.8.1.tar.gz (Foundation extentions (optional))
+  ftp://ftp.gnu.org/pub/gnu
+  ftp://ftp.gnustep.org/pub/gnustep
   ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
   ftp://alpha.gnu.org/gnu/gnustep
 @end example
@@ -141,7 +150,8 @@ take one of them, not both) gstep-base or libFoundation.
 Note that you should get the latest version available, not
 necessarily the one listed here. For the more adventurous, and since the
 project is still in development, it might be better to get the latest snapshot
-located in the snap or snapshot subdirectories at these locations.
+located in the snap or snapshot subdirectories at alpha.gnu.org/gnu/gnustep
+or the other ftp locations.
 
 For the following instructions, some version numbers are replaced by XXX.
 You shoule replace the 'X's with the version of the package you have.
@@ -182,7 +192,7 @@ threads, you need to specify the thread package you are using when
 running configure:
 
 @example
-LIBS=-lthread; ./configure --prefix=/usr/local/GNUstep
+LIBS=-lpthread; ./configure --prefix=/usr/local/GNUstep
 @end example
 
 After this you should add the shell script @file{GNUstep.sh} in the makefile
@@ -232,7 +242,10 @@ GNUstep system root as the prefix when you configure the package.
 @subsection Patching and Compiling GCC
 
 The following commands assume that all the aforementioned files have been
-copied to the /usr/src directory on your machine.
+copied to the /usr/src directory on your machine. GCC version 2.8.0 should 
+be released soon. If you have this version, you do NOT need to apply the
+following patch to it.  Version 2.8.0 already has the required changes 
+included.
 
 @table @asis
 @item 1. Uncompress gcc:
@@ -446,6 +459,25 @@ Compile the XDPS library:
   make
   cd Testing
   make
+@end example
+
+@subsection Building the Foundation extensions
+
+The Foundation extensions have some useful features in them. The one
+reason you definitely might want to use it is to read in GNUstep model
+files which store User Interface structures in ASCII format, and can
+also be used to translate NeXT and OpenStep NIB files to GNUstep model
+format.
+
+Compiling:
+
+@example
+  cd /usr/src
+  tar zxf FoundationExt-XXX.tar.gz
+  cd extensions
+  make
+  su root
+  make install
 @end example
 
 @section Additional Installation

@@ -80,63 +80,131 @@ after-clean::
 # after-check::
 
 srcdir=.
+INFO_FLAGS = -I $(srcdir) -D NO-TEXI2HTML --no-header
+HTML_FLAGS = -split_chapter -expandinfo -I $(srcdir)
+TEXT_FLAGS = -I $(srcdir) -D NO-TEXI2HTML -D TEXT-ONLY --no-header --no-split
 
 text: $(TEXT_FILES)
-info: version.texi $(INFO_FILES)
+info: $(INFO_FILES)
 ps: $(PS_FILES)
 html: $(HTML_FILES)
 dvi: $(DVI_FILES)
 
-version.texi: $(srcdir)/../Version
-	rm -f version.texi
-	echo '@set GNUSTEP_BASE_VERSION' $(VERSION) \
-		> version.texi
-	echo '@set GNUSTEP_BASE_GCC_VERSION $(GCC_VERSION)' \
-		>> version.texi
-	if [ $(FTP_MACHINE) ]; then \
-		echo '@set GNUSTEP_BASE_FTP_MACHINE $(FTP_MACHINE)' \
-		>> version.texi; fi
-	if [ $(FTP_DIRECTORY) ]; then \
-		echo '@set GNUSTEP_BASE_FTP_DIRECTORY $(FTP_DIRECTORY)' \
-		>> version.texi; fi
+version.tmpl.texi: $(srcdir)/../Version
+	rm -f version.tmpl.texi
+	echo '@set GNUSTEP-BASE-VERSION' $(GNUSTEP_BASE_VERSION) \
+		> version.tmpl.texi
+	echo '@set GCC-VERSION $(GCC_VERSION)' \
+		>> version.tmpl.texi
+	if [ $(GNUSTEP_BASE_FTP_MACHINE) ]; then \
+	  echo '@set GNUSTEP-BASE-FTP-MACHINE $(GNUSTEP_BASE_FTP_MACHINE)' \
+		>> version.tmpl.texi; fi
+	if [ $(GNUSTEP_BASE_FTP_DIRECTORY) ]; then \
+	  echo '@set GNUSTEP-BASE-FTP-DIRECTORY $(GNUSTEP_BASE_FTP_DIRECTORY)' \
+		>> version.tmpl.texi; fi
+	if [ $(GNUSTEP_BASE_SNAP_FTP_MACHINE) ]; then \
+	  echo '@set GNUSTEP-BASE-SNAP-FTP-MACHINE \
+		$(GNUSTEP_BASE_SNAP_FTP_MACHINE)' \
+		>> version.tmpl.texi; fi
+	if [ $(GNUSTEP_BASE_SNAP_FTP_DIRECTORY) ]; then \
+	  echo '@set GNUSTEP-BASE-SNAP-FTP-DIRECTORY \
+		$(GNUSTEP_BASE_SNAP_FTP_DIRECTORY)' \
+		>> version.tmpl.texi; fi
+	cp version.tmpl.texi version.texi
 
-gnustep-base.dvi: gnustep-base.texi version.texi
+gnustep-base.dvi: $(ORIG_FILES)
+	rm -f $(TEXI_FILES)
+	for i in $(ORIG_FILES); do \
+		cp $$i `basename $$i .tmpl.texi`.texi ; \
+	done
 	$(TEXI2DVI) $(srcdir)/gnustep-base.texi
-objective-c.dvi: objective-c.texi 
-	$(TEXI2DVI) $(srcdir)/objective-c.texi
 
-MAKEINFO_FLAGS = -I $(srcdir)
+gnustep-base.info: $(ORIG_FILES)
+	rm -f $(TEXI_FILES)
+	for i in $(ORIG_FILES); do \
+	   sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/$$i \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> `basename $$i .tmpl.texi`.texi ; \
+	done
+	$(MAKEINFO) $(INFO_FLAGS) -o gnustep-base.info $(srcdir)/gnustep-base.texi
 
-gnustep-base.info: gnustep-base.texi todo.texi version.texi
-	@echo Sorry, makeinfo does not yet support Objective C documentation.
-	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/gnustep-base.texi
-objective-c.info: objective-c.texi
-	@echo Sorry, makeinfo does not yet support Objective C documentation.
-	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/objective-c.texi
-TODO: todo.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o TODO -D TODO_ONLY \
-	--no-header --no-split $(srcdir)/todo.texi
-INSTALL: install.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o INSTALL -D INSTALL_ONLY \
-	--no-header --no-split $(srcdir)/install.texi
-CODING-STANDARDS: coding-standards.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o CODING-STANDARDS -D CODING_ONLY \
-	--no-header --no-split $(srcdir)/coding-standards.texi
-README: readme.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o README -D README_ONLY \
-	--no-header --no-split $(srcdir)/readme.texi
-ANNOUNCE: announce.texi version.texi news.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ANNOUNCE -D ANNOUNCE_ONLY \
-	--no-header --no-split $(srcdir)/announce.texi
-NEWS: news.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o NEWS -D NEWS_ONLY \
-	--no-header --no-split $(srcdir)/news.texi
-ADVERTISEMENT: advertisement.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
-	--no-header --no-split $(srcdir)/advertisement.texi
-GNUstep-HOWTO: gnustep-howto.texi version.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o GNUstep-HOWTO -D GNUsteo-HOWTO_ONLY \
-	--no-header --no-split $(srcdir)/gnustep-howto.texi
+gnustep-base.ps: gnustep-base.dvi
+	dvips gnustep-base.dvi -o gnustep-base.ps
+
+gnustep-base_toc.html: $(ORIG_FILES)
+	rm -f $(TEXI_FILES)
+	for i in $(ORIG_FILES); do \
+	   sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
+		$(srcdir)/$$i \
+		| sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
+		| sed -e 's,^ *$$,@br{},g' \
+		> `basename $$i .tmpl.texi`.texi ; \
+	done
+	$(TEXI2HTML) $(HTML_FLAGS) gnustep-base.texi
+
+# Rules for producing the text files
+README: version.tmpl.texi readme.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/readme.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> readme.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o README $(srcdir)/readme.texi
+
+ANNOUNCE: version.tmpl.texi announce.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/announce.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> announce.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o ANNOUNCE $(srcdir)/announce.texi
+
+INSTALL: version.tmpl.texi install.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/install.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> install.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o INSTALL $(srcdir)/install.texi
+
+NEWS: version.tmpl.texi news.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/news.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> news.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o NEWS $(srcdir)/news.texi
+
+FAQ: version.tmpl.texi faq.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/faq.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> faq.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o FAQ $(srcdir)/faq.texi
+
+STATUS: version.tmpl.texi status.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/status.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> status.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o STATUS $(srcdir)/status.texi
+
+TODO: version.tmpl.texi todo.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/todo.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> todo.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o TODO $(srcdir)/todo.texi
+
+CODING-STANDARDS: version.tmpl.texi coding-standards.texi
+	$(MAKEINFO) $(TEXT_FLAGS) -o CODING-STANDARDS \
+		$(srcdir)/coding-standards.texi
+
+GNUstep-HOWTO: version.tmpl.texi gnustep-howto.tmpl.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+		$(srcdir)/gnustep-howto.tmpl.texi \
+		| sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+		> gnustep-howto.texi ; \
+	$(MAKEINFO) $(TEXT_FLAGS) -o GNUstep-HOWTO \
+		$(srcdir)/gnustep-howto.texi
+
 
 # Unused for now, but may be used in the future.
 #%: %.texi
@@ -159,34 +227,6 @@ GNUstep-HOWTO: gnustep-howto.texi version.texi
 #	    > $<.html.texi
 #	texi2html -expandinfo $(MAKEINFO_FLAGS) $<.html.texi
 #	mv -f $<.html.html $*.html
-
-# Make substitutions for @email{} and @url{} before passing to makeinfo.
-# These substitution scripts could be cleaned up.
-GNUstep-FAQ: gnustep-faq.texi version.texi
-	rm -f GNUstep-FAQ.texi
-	sed -e 's,@email{\([^}]*\)},<\1>,g' \
-	  $(srcdir)/gnustep-faq.texi \
-	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-	    > GNUstep-FAQ.texi
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ \
-	  --no-header --no-split GNUstep-FAQ.texi
-	rm -f GNUstep-FAQ.texi
-# Make substitutions for @email{} and @url{}, and add @br{} before @item
-# before passing to texi2html.  Note: I think that this `@br{}' should 
-# actually be a `@br', but the extra `{}' is necessary to work around a
-# bug in texi@html.
-# These substitution scripts could be cleaned up.
-GNUstep-FAQ.html: gnustep-faq.texi version.texi
-	rm -f GNUstep-FAQ.texi
-	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
-	  $(srcdir)/gnustep-faq.texi \
-	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
-	  | sed -e 's,^ *$$,@br{},g' \
-	    > GNUstep-FAQ.texi
-	texi2html -expandinfo $(MAKEINFO_FLAGS) GNUstep-FAQ.texi
-
-#	  | awk -- '/@item/ { print "@br{}" } /@end itemize/ { print "@br{}" } ; { print }' 
-#<A HREF="http://www.cl.cam.ac.uk/texinfodoc/dir.html">GNU "info" manuals</A>
 
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/doc

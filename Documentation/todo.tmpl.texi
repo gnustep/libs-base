@@ -1,8 +1,6 @@
-@ifset TODO_ONLY
 @chapter GNU Objective-C Class Library To Do list, and Questions.
 @c set the vars GOBJC_VERSION and GCC_VERSION
 @include version.texi
-@end ifset
 
 This TODO list is out of date.
 

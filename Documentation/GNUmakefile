@@ -32,33 +32,41 @@ MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
 TEXI2HTML = texi2html
 
+ORIG_FILES = \
+version.tmpl.texi \
+gnustep-gui.tmpl.texi \
+gnustep-howto.tmpl.texi \
+announce.tmpl.texi \
+install.tmpl.texi \
+news.tmpl.texi \
+readme.tmpl.texi \
+status.tmpl.texi \
+todo.tmpl.texi \
+faq.tmpl.texi
+
 TEXI_FILES = \
-announce.texi \
-base-desc.texi \
-coding-standards.texi \
-faq.texi \
-gnustep-base.texi \
-gnustep-faq.texi \
-gnustep-howto.texi \
-gnustep-zones.texi \
-install.texi \
-machines.texi \
-news.texi \
-objective-c.texi \
-readme.texi \
-todo.texi \
 version.texi \
-NSZone.texi
+gnustep-gui.texi \
+announce.texi \
+install.texi \
+news.texi \
+readme.texi \
+status.texi \
+todo.texi \
+faq.texi \
+coding-standards.texi \
+gnustep-howto.texi \
+gnustep-zones.texi
 
 TEXT_FILES = \
-TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE GNUstep-HOWTO
+TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE FAQ STATUS GNUstep-HOWTO
 
 INFO_FILES = gnustep-base.info
 PS_FILES = gnustep-base.dvi
-HTML_FILES =
-DVI_FILES = gnustep-base.dvi objective-c.dvi
+HTML_FILES = gnustep-base_toc.html
+DVI_FILES = gnustep-base.dvi
 
-TOP_DOC_FILES = README INSTALL NEWS
+TOP_DOC_FILES = README INSTALL NEWS GNUstep-HOWTO
 RCS_FILES =  $(TEXI_FILES) GNUmakefile Makefile.postamble
 DIST_FILES = $(RCS_FILES) texinfo.tex $(TEXT_FILES)
 

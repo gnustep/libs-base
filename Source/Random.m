@@ -244,7 +244,7 @@ static id defaultRNG = nil;
 
 - (float) randomFloatBetween: (float)lowBound and: (float)highBound
 {
-  return [self randomFloat] * (highBound - lowBound);
+  return ([self randomFloat] * (highBound - lowBound) + lowBound);
 }
 
 - (float) randomFloatProbability

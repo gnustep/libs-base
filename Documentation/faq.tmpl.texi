@@ -20,16 +20,14 @@
 @chapter GNUstep Frequently Asked Questions with Answers
 @end iftex
 
-Maintained by Andrew McCallum @email{mccallum@@gnu.ai.mit.edu}, with
-contributions by Pascal Forget @email{pascal@@wsc.com}, Scott Christley
+Maintained by Andrew McCallum @email{mccallum@@gnu.org}, with
+contributions by Adam Fedor @email{fedor@@gnu.org}, 
+Pascal Forget @email{pascal@@wsc.com}, Scott Christley
 @email{scottc@@net-community.com}, and Randy Chapman
 @email{chapman@@u.washington.edu}.
 
-@c Do not remove the two words at the beginning of the next
-@c non-commented line, nor the period at the end of the line.
-@c time-stamp depends on them to find and properly update the date.
-Last updated 17 September 1996.
-Please send corrections to @email{mccallum@@gnu.ai.mit.edu}.
+Last updated @today{}
+Please send corrections to @email{gnustep-maintainer@@gnu.org}.
 
 The intended audience of this FAQ is future and present code developers
 for GNUstep.  This FAQ serves a purpose complementary to the GNUstep WWW
@@ -125,9 +123,9 @@ involvement in the GNUstep coding efforts.
 
 @itemize @bullet
 
-@item Adam Fedor @email{fedor@@mode.colorado.edu} continues his
-excellent, long service as user, tester, and code contributor to both
-the Base Library and the GUI Library.
+@item Adam Fedor @email{fedor@@gnu.org} Co-Maintainer of the
+GNUstep project, continues his excellent, long service as user, tester,
+and code contributor to both the Base Library and the GUI Library.
 
 @item Andrew McCallum @email{mccallum@@gnu.ai.mit.edu} was appointed chief
 maintainer of the GNUstep project by Richard Stallman in January 1996.
@@ -144,9 +142,9 @@ on the GNUstep DisplayGhostScript Server, adding DPS extensions to
 GhostScript, including pswrap work.
 
 @item Scott Christley @email{scottc@@net-community.com} is in charge of
-the InterfaceModeler project, which is currently in the design stages.
-He is working on the GUI Library in conjunction with Pascal Forget.  He
-has already written much of the GUI Library frontend.
+the GUI library and the InterfaceModeler project, which is currently in
+the design stages.  He is also the maintainer of the Objective-C
+language and runtime for GCC.
 
 @end itemize
 
@@ -217,8 +215,8 @@ maintained by McCallum @email{mccallum@@gnu.ai.mit.edu}.
 
 @item @b{What is the current state of the project?  When can I expect it to be completed?}
 
-The Base Library is about 85 percent done.  Significant useful work can
-already be done using the library.  The GUI library is about 25
+The Base Library is about 90 percent done.  Significant useful work can
+already be done using the library.  The GUI library is about 45
 percent done.  It is going through a major transition at the moment
 to coordinate work from multiple developers, DisplayPostscript, and
 the non-OpenStep objcX library into a single package that will be made
@@ -226,12 +224,12 @@ available to the public.  The DisplayPostscript and drawing support
 is also in transition.
 
 More detailed information about the state of each of the sub-projects
-can be found below.
+can be found at the above mentioned web sites. 
 
 With free software, you should never, ever, believe promises about when
 a project will be finished.  ...However, that said: there are certain
 GNUstep developers that are counting on having useful Base and GUI
-libraries working by the end of Summer 1996.
+libraries working by the end of Summer 1998.
 
 
 @item @b{On what platforms will it run?}
@@ -252,13 +250,13 @@ few code contributions for OS/2.
 
 If you have a specific piece of functionality that you would like to
 contribute, or if you would like to ask for suggestions about what
-coding work you can do to help, contact the GNUstep Chief Maintainer,
-Andrew McCallum @email{mccallum@@gnu.ai.mit.edu}.
+coding work you can do to help, contact the GNUstep Maintainers,
+Andrew McCallum and Adam Fedor @email{gnustep-maintainer@@gnu.org}.
 
 @end enumerate
 @c GNUstep General
 
-More detailed inforation about each of the GNUstep sub-projects can be
+More detailed inforamtion about each of the GNUstep sub-projects can be
 found below.
 
 @section GNU Objective C Compiler and Objective C Runtime Library
@@ -271,7 +269,7 @@ found below.
 The Objective C Runtime Library provides C functions and data structures
 required to execute an Objective C program.  An introduction to the
 Objective C Language is provided at
-@url{http://www.next.com/Pubs/Documents/OPENSTEP/ObjectiveC/objctoc.htm}.
+@url{http://gemma.apple.com/techinfo/techdocs/rhapsody}.
 The Frequently Asked Questions list for
 @url{news://comp.lang.objective-c} can be found at @url{??}.
 
@@ -332,12 +330,10 @@ library.  It can be obtained from @url{ftp://prep.ai.mit.edu/pub/gnu},
 or any other mirror of the GNU archives.  As far as I know, the GNU
 Objective C Runtime runs on all, platforms on which GCC runs.
 
-GCC version 2.7.2 does not contain the thread-safe features, but the
-next version of GCC will.  A patch for thread-safe features is provided
+GCC version 2.7.2 does not contain the thread-safe features, but GCC version 2.8.0 will.  A patch for thread-safe features is provided
 with the latest developer snaphots of the GNUstep Base Library.  There
-are currently thread-safe backends for DEC OSF/1, Solaris, IRIX, and
-WindowsNT.  Volunteers are solicited for writing additional back-ends,
-especially one for Linux.
+are currently thread-safe backends for DEC OSF/1, Solaris, IRIX, Linux, and
+WindowsNT.  Volunteers are solicited for writing additional back-ends.
 
 @item @b{Does it allow a mixture of Objective C and C++}
 
@@ -377,30 +373,13 @@ the GNUstep Base Library homepage at
 
 @item @b{What is its current state of development?}
 
-It is about 85 percent of the way to having all the OpenStep classes.
+It is about 90 percent of the way to having all the OpenStep classes.
 Significant useful work can already be done using the library since the
-missing 15 percent are the less-often-used classes, such as NSByteStore.
+missing 10 percent are the less-often-used classes, such as NSByteStore.
 Over 60,000 lines of code have already been written.
 
-The following OpenStep classes and class clusters are pretty much done
-and usable: NSArchiver, NSArray, NSAssertionHandler, NSAutoreleasePool,
-NSBitmapCharSet, NSBundle, NSCharacterSet, NSCoder, NSCountedSet,
-NSData, NSDate, NSDictionary, NSEnumerator, NSException, NSInvocation,
-NSLock, NSMethodSignature, NSNotification, NSNotificationCenter,
-NSNumber, NSObject, NSProcessInfo, NSRunLoop, NSScanner, NSSet,
-NSString, NSThread, NSTimeZone, NSTimer, NSUserDefaults, NSValue.
-
-Most of the C functions are also implemented, including NSHashTable and
-NSMaptable.
-
-A GNU implementation of Distributed Object works.  However, the wrappers
-for creating the NSConnection, NSDistantObject, NSProxy wrappers have
-not yet been made.
-
-The following classes are unstarted or unusable: NSBTreeBlock,
-NSBTreeCursor, NSByteStore, NSByteStoreFile, NSCalendarDate,
-NSDeserializer, NSSerializer.
-
+Look at the STATUS file that comes with the distriution for additional
+status information.
 
 @item @b{In what ways is the Base Library different from OpenStep's FoundationKit?}
 
@@ -749,10 +728,10 @@ efficiency, and (2) legal clarity.  GNUstep is no exception.
 @item @b{Where can I get a copy?}
 
 The most recently released ``official'' version can be obtained from
-@url{ftp://prep.ai.mit.edu}.
+@url{ftp://ftp.gnu.org/pub/gnu}.
 
 The most recently released alpha version can be obtained from
-@url{ftp://alpha.gnu.ai.mit.edu}.
+@url{ftp://alpha.gnu.org/gnu/gnustep}.
 
 @end enumerate
 @c GNUstep Base Library
@@ -805,30 +784,22 @@ having the interface between front- and back-end fixed by the front-end.
 
 @item @b{What is the current state of development of the front-end?}
 
-A number of classes in the front-end are complete or almost complete;
-these include:  NSActionCell, NSButtonCell, NSButton, NSCell, NSControl,
-NSEvent, NSFont, NSResponder, and NSSlider.
-
-Other classes are complete enough to use, but still require some major
-additions before being considered almost complete: NSApplication, NSBox,
-NSColor, NSFontManager, NSMenu, NSMenuCell, NSPopUpButton, NSSliderCell,
-NSText, NSTextField, NSTextFieldCell, NSView, and NSWindow.
-
-All remaining classes have stub implementations.
-
+Many of the classes are well implemented, if not thouroughly tested.
+See the GNUstep web sites and read status information contained in the
+distribution for the most up-to-date information.
 
 @item @b{What is the current state of development of the X/DPS back-end?}
 
+Many of the classes are well implemented, if not thouroughly tested.
+See the GNUstep web sites and read status information contained in the
+distribution for the most up-to-date information.
 
 @item @b{Where can I get a copy?}
 
-It is not yet publically available.  When it is available you will be
-able to find it in @url{ftp://alpha.gnu.ai.mit.edu/gnu}.  Pre-release
-snapshots are available at @url{ftp://ocbi.com}.
+At the same place as the Base library.
 
 @end enumerate
 @c GNUstep GUI Library
-
 
 
 @section GNUstep DisplayGhostScript Server
@@ -870,6 +841,47 @@ current specifications are available through the GNUstep WWW pages.
 
 @end enumerate
 @c GNUstep IM
+
+@c ****************************************************************
+@c Compiling
+@section Compiling the GNUstep package
+
+@enumerate
+
+@item @b{How do I compile GNUstep on my machine?}
+
+Read the file @file{GNUstep-HOWTO}, which comes with the Base library
+distribution, and also is available separately on the GNUstep ftp sites.
+
+@item @b{Are there any precompiled packages available?}
+
+Not really, but you can contact Net-Community
+@email{info@@net-community.com} for information on a CD they release
+occasionally contaning compiled packages for Linux and Windows NT.
+
+@item @b{I get an error compiling mframe.m in gnustep-base}
+
+This occurs on some Linux systems.  You'll need to change the
+optimization level, usually like this:
+@example
+make OPTFLAG=-O
+@end example
+
+@item @b{Can I run NeXT OPENSTEP or Apple Rhapsody programs on GNUstep?}
+
+You can't run these programs on GNUstep, but if you have the source
+code for the programs, you should be able to port them to GNUstep and
+compile them. Whether or not you will be able to run them depends on how
+complete GNUstep is at the time.
+
+@item @b{Is it easy to port OPENSTEP and Rhapsody programs to GNUstep?}
+
+It is probably easy for simple programs. You'll have to rewrite the
+Makefiles as GNUstep uses a slightly different format.  You will also
+have to translate the NIB files (if there are any) to GNUstep model
+files using the FoundationExt library.
+
+@end enumerate
 
 
 @ignore
