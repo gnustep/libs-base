@@ -1,5 +1,5 @@
 /* Implementation of GNUSTEP string class
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
@@ -168,7 +168,8 @@ static Class NSMutableString_c_concrete_class;
 
 - (id) initWithCString: (const char*)byteString
 {
-  return [self initWithCString:byteString length:strlen(byteString)];
+  return [self initWithCString:byteString 
+	       length:(byteString ? strlen(byteString) : 0)];
 }
 
 - (id) initWithCString: (const char*)byteString
@@ -176,7 +177,8 @@ static Class NSMutableString_c_concrete_class;
 {
   char *s;
   OBJC_MALLOC(s, char, length+1);
-  memcpy(s, byteString, length);
+  if (byteString)
+    memcpy(s, byteString, length);
   s[length] = '\0';
   return [self initWithCStringNoCopy:s length:length freeWhenDone:YES];
 }
