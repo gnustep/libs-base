@@ -58,7 +58,7 @@
 
 # Things to do after cleaning
 after-clean::
-	rm -f version.texi
+	rm -f version.texi version.tmpl.texi
 	rm -f $(TEXT_FILES)
 	rm -f $(ORIG_FILES:.tmpl.texi=.texi)
 	rm -f *.info

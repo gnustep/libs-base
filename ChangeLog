@@ -1,3 +1,7 @@
+Fri Jan  9 10:04:09 1998  Adam Fedor  <fedor@doc.com>
+
+	* Version: Release 0.4.0.
+
 Thu Jan  8 09:42:39 1998  Adam Fedor  <fedor@doc.com>
 
 	* doc/announce.tmpl.texi: Fixup variable definitions.
@@ -23,7 +27,7 @@ Sun Jan 4 13:26:03 1997  Stevo Crvenkovski <stevo@btinternet.com>
 	* src/NSGString.m ([NSGMutableString initWithCapacity:]):
  	   Likewise.
 
-        * src/NSGSequence.m ([NSGSequence decompose}): Check for lenght>1:
+        * src/NSGSequence.m ([NSGSequence decompose]): Check for lenght>1:
 
 	* src/NSString.m ([NSGString initialize]): Set
  	  _DefaultStringEncoding variable using GetDefEncoding().
