@@ -56,7 +56,7 @@
 #include <base/preface.h>
 
 /* One of these two should have MAXHOSTNAMELEN */
-#ifndef __WIN32__
+#if	!defined(__WIN32__) || defined(__CYGWIN__)
 #include <unistd.h>
 #include <sys/param.h>
 #include <netdb.h>
@@ -348,7 +348,7 @@ extern char** _environ;
 #undef main
 int main(int argc, char *argv[], char *env[])
 {
-#ifdef __WIN32__
+#if	defined(__WIN32__) && !defined(__CYGWIN__)
   WSADATA lpWSAData;
 
   // Initialize Windows Sockets
@@ -431,7 +431,7 @@ int main(int argc, char *argv[], char *env[])
   int	pid;
 
 #if defined(__WIN32__)
-  pid = (int)GetCurrentProcessId(),
+  pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();
 #endif
