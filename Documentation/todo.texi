@@ -7,23 +7,13 @@
 @section Projects Looking for Volunteers
 
 If you think you can do one of these projects, please let me know.  Your
-help is greatly appreciated!  Send email to
+help is greatly appreciated.  Send email to
 @samp{mccallum@@gnu.ai.mit.edu}. 
 
 @itemize
 
-@item Make the GNU Objective C runtime properly initialize the class
-pointer of statically-created string objects (i.e. the string objects
-created with the syntax @samp{@@"This is a constant string object"}).
-See the relevant comments in gcc/objc-act.c.  Once we get this working
-I'll release the suite of String classes that I've already written.
-
-Please!  Someone?  I want to do this soon so that we can get the ensuing
-interface changes done before too many people write code based on the
-current deprecated char-pointer interfaces.
-
 @item Make the GNU Objective C runtime thread-safe.  (Again, someone?
-We really need this.)
+We really need this.)  [This might be claimed.]
 
 @item Write a test-suite for the library.  Use dejagnu.
 
@@ -57,6 +47,10 @@ the protocol <RandomGenerating>.  See RNGAdditiveCongruential.
 classes, and think about replacing the @samp{Random} class with
 something more like these.  How about Poisson and Gaussian distributions
 also?
+
+@item See
+http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers-gnustep for
+a list of the claimed and unclaimed GNUStep classes.
 
 @end itemize
 
