@@ -376,7 +376,7 @@
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
 #if TYPE_ORDER == 0
-  return (data) ? @"true" : @"false";
+  return (data) ? @"YES" : @"NO";
 #else
   NSString	*result = [NSString alloc];
 

@@ -1,3 +1,12 @@
+2002-08-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Allow 'true' as boolean value
+	* Source/NSConcreteNumber.m: Output 'YES' as boolean in description.
+	* Source/NSNotificationCenter.m: Fix dumb memory leak.
+	* Source/NSNumber.m: Output 'YES' as boolean in description.
+	* Source/NSUserDefaults.m: Set 'YES' as boolean string.
+	* Headers/Foundation/NSObject.h: Fix v dumb memory leak.
+
 2002-08-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for libxml version 2.3.0 or greater to ensure
