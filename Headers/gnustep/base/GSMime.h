@@ -50,6 +50,9 @@
   BOOL		atEnd;	/* Flag to say that data has ended.	*/
 }
 - (BOOL) atEnd;
+- (BOOL) decodeData: (const void*)sData
+             length: (unsigned)length
+	   intoData: (NSMutableData*)dData;
 - (void) setAtEnd: (BOOL)flag;
 @end
 
@@ -62,6 +65,8 @@
 }
 + (NSString*) makeQuoted: (NSString*)v;
 + (NSString*) makeToken: (NSString*)t;
+- (id) initWithName: (NSString*)n
+	      value: (NSString*)v;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v
 	 parameters: (NSDictionary*)p;
@@ -116,6 +121,8 @@
 - (NSMutableData*) rawMimeData;
 - (NSMutableData*) rawMimeData: (BOOL)isOuter;
 - (void) setContent: (id)newContent;
+- (void) setContent: (id)newContent
+	       type: (NSString*)type;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
 	       name: (NSString*)name;

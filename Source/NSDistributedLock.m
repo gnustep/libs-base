@@ -46,6 +46,10 @@ static NSFileManager	*mgr = nil;
     }
 }
 
+/**
+ * Return a distributed lock for aPath.
+ * See -initWithPath: for details.
+ */
 + (NSDistributedLock*) lockWithPath: (NSString*)aPath
 {
   return AUTORELEASE([[self alloc] initWithPath: aPath]);
@@ -67,7 +71,7 @@ static NSFileManager	*mgr = nil;
 
       if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	{
-	  NSString	*err = GSLastErrorStr(errno);
+	  const char	*err = GSLastErrorStr(errno);
 
 	  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
 	  if ([modDate isEqual: [attributes fileModificationDate]] == YES)
@@ -90,7 +94,10 @@ static NSFileManager	*mgr = nil;
 /**
  * Initialises the reciever with the specified filesystem path.<br />
  * The location in the filesystem must be accessible for this
- * to be usable.
+ * to be usable.  That is, the processes using the lock must be able
+ * to access, create, and destroy files at the path.<br />
+ * The directory in which the last path component resides must already
+ * exist ... create it using NSFileManager if you need to.
  */
 - (NSDistributedLock*) initWithPath: (NSString*)aPath
 {
