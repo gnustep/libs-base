@@ -1,6 +1,6 @@
-* GNU Objective C Class Library
+* Gnustep Base Library
 
-The GNU Objective C Class Library (libobjects) is a library of
+The Gnustep Base Library (libobjects) is a library of
 general-purpose, non-graphical Objective C objects written by
 R. Andrew McCallum and designed in the Smalltalk tradition.  It
 includes collection objects for maintaining groups of objects and C
@@ -10,9 +10,9 @@ packet transmission, remote object messaging support, pseudo-random
 number generators, and time handling facilities.
 
 
-* GNU Objective C Class Library
+* Gnustep Base Library
 
-The GNU Objective C Class Library (libobjects) is a library of
+The Gnustep Base Library (libobjects) is a library of
 general-purpose, non-graphical Objective C objects designed in the
 Smalltalk tradition.  It includes collection objects for maintaining
 groups of objects and C types, byte streams for I/O to various
@@ -22,9 +22,9 @@ messaging support, pseudo-random number generators, and time handling
 facilities.  It is being written by R. Andrew McCallum.
 
 
-* GNU Objective C Class Library (libobjects)
+* Gnustep Base Library (libobjects)
 
-R. Andrew McCallum is writing the GNU Objective C Class Library, a
+R. Andrew McCallum is writing the Gnustep Base Library, a
 library of general-purpose, non-graphical Objective C objects designed
 in the Smalltalk tradition.  It includes collection objects for
 maintaining groups of objects and C types, byte streams for I/O to
@@ -34,9 +34,9 @@ messaging support, pseudo-random number generators, and time handling
 facilities.  It is being written by R. Andrew McCallum.
 
 
-* GNU Objective C Class Library
+* Gnustep Base Library
 
-The GNU Objective C Class Library (@code{libobjects}) is a library of
+The Gnustep Base Library (@code{libobjects}) is a library of
 general-purpose, non-graphical Objective C objects written by
 R. Andrew McCallum.  It includes collection objects for maintaining
 groups of objects and C types, streams for I/O to various
@@ -47,9 +47,9 @@ facilities.  Contact @samp{mccallum@gnu.ai.mit.edu}.
 
 
 
-* GNU Objective C Class Library
+* Gnustep Base Library
 
-The GNU Objective C Class Library (libobjects) is a library of
+The Gnustep Base Library (libobjects) is a library of
 general-purpose, non-graphical Objective C objects written by
 R. Andrew McCallum.  What `libg++' is to GNU's C++, `libobjects' is to
 GNU's Objective C.
@@ -104,9 +104,9 @@ see ~rms/gnuorg/status
 
 Here is the simple description:
 
-* GNU Objective C Class Library
+* Gnustep Base Library
 
-The GNU Objective C Class Library (@code{libobjects}) is a library of
+The Gnustep Base Library (@code{libobjects}) is a library of
 general-purpose, non-graphical Objective C objects written by
 R. Andrew McCallum.  It includes collection objects for maintaining
 groups of objects and C types, streams for I/O to various
@@ -121,13 +121,13 @@ RS6000.  Contact the author at @samp{mccallum@gnu.ai.mit.edu}.
 
 * New Library (on the Languages Tape?)
 
-The GNU Objective C Class Library (@code{libobjects}) has been added.
+The Gnustep Base Library (@code{libobjects}) has been added.
 See ``GNU Software'' and ``Forthcoming GNUs'' for more information.
 
 
 (Forthcoming GNUs)
 
-* GNU Objective C Class Library
+* Gnustep Base Library
 
 Future versions will have String objects that are integrated into the
 Collection object hierarchy, a better allocation/deallocation

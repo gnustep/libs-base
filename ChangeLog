@@ -1,15 +1,18 @@
 Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Major renaming!
-	"GNU Objective C Class Library" -> "Gnustep Base Library"
-	libobjects.a         ->      libgnustep-base.a
-	libobjects.tar.gz    ->      gstep-base.tar.gz
-	<objects/*.h>        ->      <gnustep/base/*.h>
-	OBJECTS_*            ->      GNUSTEP_BASE_*
-	objects_*()          ->      o_*()
-	R. Andrew McCallum   ->      Andrew Kachites McCallum
-	(my pre-marriage name)       (my post-marriage name)
+	"GNU Objective C Class Library" ->  "Gnustep Base Library"
+	libobjects.a                    ->  libgnustep-base.a
+	libobjects.tar.gz               ->  gstep-base.tar.gz
+	<objects/*.h>                   ->  <gnustep/base/*.h>
+	OBJECTS_*                       ->  GNUSTEP_BASE_*
+	objects_*()                     ->  o_*()
+	R. Andrew McCallum              ->  Andrew Kachites McCallum
+	(my pre-marriage name)              (my post-marriage name)
 	...and more...
+
+	* doc/Makefile.in (TEXI_FILES): Rename libobjects.texi to
+ 	gnustep-base.texi.
 
 	* src/include/*.h: Rename all #ifndef macro names to
 	...GNUSTEP_BASE_INCLUDE.

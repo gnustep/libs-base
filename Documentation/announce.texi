@@ -1,12 +1,12 @@
-@chapter GNU Objective C Class Library
+@chapter Gnustep Base Library
 
 @c set the vars OBJECTS_VERSION and OBJECTS_GCC_VERSION
 @include version.texi
 
-The GNU Objective C Class Library, version @value{OBJECTS_VERSION}, is now
+The Gnustep Base Library, version @value{OBJECTS_VERSION}, is now
 available.
 
-@section What is the GNU Objective C Class Library?
+@section What is the Gnustep Base Library?
 
 It is a library of general-purpose, non-graphical Objective C objects
 designed in the Smalltalk tradition.  It includes collection objects for
