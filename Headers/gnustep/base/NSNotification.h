@@ -1,11 +1,9 @@
-/* Interface for NSNotification and NSNotification for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/* Interface for NSNotification and NSNotificationCenter for GNUStep
+   Copyright (C) 1996 Free Software Foundation, Inc.
 
-   Written by:  Georg Tuparev, EMBL, Academia Naturalis, & NIT
-                Heidelberg, Germany
-                Tuparev@EMBL-Heidelberg.de
-   Last update: 11-feb-1996
-   
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Created: March 1996
+
    This file is part of the GNU Objective C Class Library.
 
    This library is free software; you can redistribute it and/or
@@ -17,69 +15,74 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/ 
+*/
 
 #ifndef __NSNotification_h_OBJECTS_INCLUDE
 #define __NSNotification_h_OBJECTS_INCLUDE
 
-#include <Foundation/NSObject.h>
+#include <objects/stdobjects.h>
 
 @class NSString;
 @class NSDictionary;
-@class NSMutableDictionary;
-@class NSMutableArray;
 
-@interface NSNotification:NSObject <NSCopying>
-{
-	NSString      *notificationName;
-	id				    notificationObject;
-	NSDictionary  *notificationInfo;
-}
-
-/*" Creating Notification Objects "*/
-+ (NSNotification *)notificationWithName:(NSString *)aName
-	object:(id)anObject;
-+ (NSNotification *)notificationWithName:(NSString *)aName
-	object:(id)anObject userInfo:(NSDictionary *)userInfo;
-
-/*" Querying a Notification Object "*/
-- (NSString *)name;
-- (id)object;
-- (NSDictionary *)userInfo;
+@interface NSNotification : NSObject
 @end
 
-@interface NSNotificationCenter:NSObject
-{
-	@private
-	id                  _sendLock;          // Will be used later
-	NSMutableDictionary *_repositoryByName;
-	NSMutableArray      *_anonymousObservers;
-}
+/* Put this in a category to avoid unimportant errors due to behaviors. */
+@interface NSNotification (GNUstep) <NSCopying>
 
-/*" Accessing the Default Notification Center "*/
-+ (NSNotificationCenter *)defaultCenter;
+/* Creating a Notification Object */
 
-/*" Adding and Removing Observers "*/
-- (void)addObserver:(id)anObserver
-	selector:(SEL)aSelector
-	name:(NSString *)aName
-	object:(id)anObject;
-- (void)removeObserver:(id)anObserver;
-- (void)removeObserver:(id)anObserver
-	name:(NSString *)aName
-	object:anObject;
++ (NSNotification*) notificationWithName: (NSString*)name
+   object: object;
 
-/*" Posting Notifications "*/
-- (void)postNotification:(NSNotification *)aNotification;
-- (void)postNotificationName:(NSString *)aName
-	object:(id)anObject;
-- (void)postNotificationName:(NSString *)aName
-	object:(id)anObject
-	userInfo:(NSDictionary *)userInfo;
++ (NSNotification*) notificationWithName: (NSString*)name
+   object: object
+   userInfo: (NSDictionary*)user_info;
+
+/* Querying a Notification Object */
+
+- (NSString*) name;
+- object;
+- (NSDictionary*) userInfo;
+
+@end
+
+
+/* Put this in a category to avoid unimportant errors due to behaviors. */
+@interface NSNotificationCenter : NSObject
+@end
+
+@interface NSNotificationCenter (GNUstep)
+
+/* Getting the default NotificationCenter */
+
++ (NSNotificationCenter*) defaultCenter;
+
+/* Adding and removing observers */
+
+- (void) addObserver: anObserver
+	    selector: (SEL)selector
+                name: (NSString*)name
+	      object: object;
+
+- (void) removeObserver: anObserver;
+- (void) removeObserver: anObserver
+		   name: (NSString*)name
+                 object: object;
+
+/* Posting Notifications */
+
+- (void) postNotification: (NSNotification*)aNotification;
+- (void) postNotificationName: (NSString*)name
+		       object: object;
+- (void) postNotificationName: (NSString*)name
+		       object: object
+		     userInfo: (NSDictionary*)user_info;
 @end
 
 #endif /*__NSNotification_h_OBJECTS_INCLUDE */
