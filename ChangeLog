@@ -1,3 +1,8 @@
+Fri Dec 17  7:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSGAttributedString.m: Patch (slightly modified) by Adam Fedor
+	to permit setting attributes on an empty string (as a no-op).
+
 Wed Dec 15 18:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSHost.m: Update again - record current host name for duration
