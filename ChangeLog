@@ -1,7 +1,8 @@
 2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSMime.h: Make set... methods return void.
-	* Source//GSMime.m: Make set... methods return void.
+	* Source//GSMime.m: Make set... methods return void.  Also fix
+	parsing to use different 'specials' for HTTP and MIME
 	* Headers/gnustep/base/GSIMap.h:
 	* Headers/gnustep/base/NSHashTable.h:
 	* Headers/gnustep/base/NSMapTable.h:
