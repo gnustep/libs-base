@@ -19,6 +19,46 @@
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.10.0</heading>
+	<p>
+	</p>
+	  <deflist>
+	    <term>Interface version change</term>
+	    <desc>
+	    The interface version of the base library has changed in
+	    this release, as it will in all future releases with a
+	    new minor number (that's the second number in the
+	    release number). Applications, libraries and tools that
+	    wish to use this new version must be recompiled
+	    (otherwise, they'll use the older version of the library).
+	    There is no single reason for this change. Arguably, it
+	    should have been done long ago.
+	    </desc>
+	    <term>NSString clarification</term>
+	    <desc>
+	      The NSString documentation contains some clarification
+	      on the lifetime of returned NSString objects.
+	    </desc>
+	    <term>URL classes support persistant connections</term>
+	    <desc>
+	      The NSURLHandle and other classes have support for
+	      persistant connections.
+	    </desc>
+	    <term>NSMethodSignature clarification</term>
+	    <desc>
+	      Recent compiler releases have exposed a flaw in the way
+	      GNUstep gathers signature information. The
+	      documentation explains how the information for offset
+	      and registers may not be reliable.
+	    </desc>
+	    <term>Mac OS X compatibility</term>
+	    <desc>
+	      There have been many fixes in various classes for Mac
+	      OS X compatibility, particularly relating to XML encoding.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.9.2</heading>
 	<p>
 	</p>

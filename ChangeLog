@@ -1,3 +1,9 @@
+2004-09-04  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.10.0
+
+	* Source/GNUmakefile: Define INTERFACE_VERSON explicitly.
+
 2004-09-02  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h

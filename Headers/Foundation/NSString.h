@@ -167,7 +167,7 @@ enum {
  *   avoid returning mutable strings by returning an autoreleased
  *   copy of a mutable receiver, concrete subclasses may behave
  *   differently, so code should not rely upon the mutability of
- *   returned strings nor upon their lifetime being create than
+ *   returned strings nor upon their lifetime being greater than
  *   that of the receiver which returned them.
  * </p>
  */
