@@ -30,57 +30,29 @@
 /* Doesn't handle multi-threaded stuff.
    Doesn't handle exceptions. */
 
-/* We should add this to the runtime:
-   We should use cache_ptr's instead, (adding the necessary code)
-   Put the stuff from initialize into a runtime init function. 
-   This class should be made more efficient, especially:
-     [[Autorelease alloc] init]
-     [current_pool addObject:o] (REALLOC-case)
-   */
-
-/* The initial size of the released_objects array */
-#define DEFAULT_SIZE 64
-
 /* The hashtable of retain counts on objects */
 static coll_cache_ptr retain_counts = NULL;
 
-/* Array of objects to be released later */
-static unsigned released_capacity = 0;
-static unsigned released_index = 0;
-static id *released_objects = NULL;
-static void **released_stack_pointers = NULL;
-
-static int
-init_object_retaining_if_necessary()
+static void
+init_retain_counts_if_necessary()
 {
-  static init_done = 0;
-
   /* Initialize if we haven't done it yet */
-  if (!init_done)
+  if (!retain_counts)
     {
-      init_done = 1;
-      
-      released_capacity = DEFAULT_SIZE;
-      OBJC_MALLOC(released_objects, id, released_capacity);
-      OBJC_MALLOC(released_stack_pointers, void*, released_capacity);
-      
       retain_counts = coll_hash_new(64,
 				    (coll_hash_func_type)
 				    elt_hash_void_ptr,
 				    (coll_compare_func_type)
 				    elt_compare_void_ptrs);
     }
-  return 1;
 }
-
-static int object_retaining_initialized = init_object_retaining_if_necessary();
 
 void
 objc_retain_object (id anObj)
 {
   coll_node_ptr n;
 
-  init_object_retaining_if_necessary();
+  init_retain_counts_if_necessary();
   n = coll_hash_node_for_key(retain_counts, anObj);
   if (n)
     (n->value.unsigned_int_u)++;
@@ -93,7 +65,7 @@ objc_release_object (id anObj)
 {
   coll_node_ptr n;
 
-  init_object_retaining_if_necessary();
+  init_retain_counts_if_necessary();
   n = coll_hash_node_for_key(retain_counts, anObj);
   if (n)
     {
@@ -111,70 +83,12 @@ objc_retain_count (id anObj)
 {
   coll_node_ptr n;
 
-  init_object_retaining_if_necessary();
+  init_retain_counts_if_necessary();
   n = coll_hash_node_for_key(retain_counts, anObj);
   if (n)
     return n->value.unsigned_int_u;
   else
     return 0;
-}
-
-static void*
-get_stack()
-{
-  int i;
-  return &i;
-}
-
-static inline void
-grow_released_arrays()
-{
-  if (index == released_capacity)
-    {
-      released_capacity *= 2;
-      OBJC_REALLOC(released_objects, id, released_capacity);
-      OBJC_REALLOC(released_stack_pointers, void*, released_capacity);
-    }
-}
-
-void
-objc_release_stack_objects_to_frame_address(void *frame_address)
-{
-  /* xxx This assumes stack grows up */
-  while ((released_frame_pointers[released_index] 
-	  > frame_address))
-	 && released_index)
-    {
-      [released_objects[released_index] release];
-      released_index--;
-    }
-}
-
-void
-objc_release_stack_objects_this_frame()
-{
-  objc_release_stack_objects_to_frame_address(__builtin_frame_address(1));
-}
-
-void
-objc_release_stack_objects()
-{
-  /* Note that the argument may be a bit conservative here. */
-  objc_release_stack_objects_to_frame_address(__builtin_frame_address(0));
-}
-
-void
-objc_stack_release_object(id anObj, unsigned frames_up)
-{
-  /* Do the pending releases of other objects */
-  objc_release_stack_objects_to_frame_address
-    (__builtin_frame_address(frames_up+1));
-
-  /* Queue this object for later release */
-  released_index++;
-  grow_released_arrays();
-  released_objects[released_index] = self;
-  released_stack_pointers[released_index] = __builtin_frame_address(1);
 }
 
 
@@ -183,12 +97,6 @@ objc_stack_release_object(id anObj, unsigned frames_up)
 - retain
 {
   objc_retain_object(self);
-  return self;
-}
-
-- stackRelease
-{
-  objc_stack_release_object(self,1);
   return self;
 }
 
