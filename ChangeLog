@@ -4,6 +4,15 @@
 	* Source/Additions/Unicode.m: Added built-in support for the Latin9
 	character encoding ... contains the Euro symbol ... nice for
 	european users.
+	* Source/NSArray.m: Make abstract copying implementation like that
+	of latest MacOS-X rather than OPENSTEP ... no relationship between
+	mutability and depth.
+	* Source/NSDictionary.m: ditto
+	* Source/NSSet.m: ditto
+	* Source/GSArray.m: Implement optimised copies ... copying an immutable
+	object just retains it, and copying a mutable object is shallow.
+	* Source/GSDictionary.m: ditto
+	* Source/GSSet.m: ditto
 
 2003-01-16  Richard Frith-Macdonald <rfm@gnu.org>
 

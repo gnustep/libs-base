@@ -144,6 +144,11 @@ static Class	mutableSetClass;
     }
 }
 
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
+}
+
 - (unsigned) count
 {
   return map.nodeCount;
@@ -502,6 +507,14 @@ static Class	mutableSetClass;
 	    }
 	}
     }
+}
+
+/* Override version from GSSet */
+- (id) copyWithZone: (NSZone*)z
+{
+  NSSet	*copy = [setClass allocWithZone: z];
+
+  return [copy initWithSet: self copyItems: NO];
 }
 
 /* Designated initialiser */

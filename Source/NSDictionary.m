@@ -141,15 +141,31 @@ static SEL	appSel;
   return nil;
 }
 
+/**
+ * Returns a new copy of the receiver.<br />
+ * The default abstract implementation of a copy is to use the
+ * -initWithDictionary:copyItems: method with the flag set to YES.<br />
+ * Immutable subclasses generally simply retain and return the receiver.
+ */
 - (id) copyWithZone: (NSZone*)z
 {
-  return RETAIN(self);
+  NSDictionary	*copy = [NSDictionaryClass allocWithZone: z];
+
+  return [copy initWithDictionary: self copyItems: NO];
 }
 
+/**
+ * Returns a new instance containing the same objects as
+ * the receiver.<br />
+ * The default implementation does this by calling the
+ * -initWithDictionary:copyItems: method on a newly created object,
+ * and passing it NO to tell it just to retain the items.
+ */
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  return [[GSMutableDictionaryClass allocWithZone: z] 
-	  initWithDictionary: self];
+  NSMutableDictionary	*copy = [NSMutableDictionaryClass allocWithZone: z];
+
+  return [copy initWithDictionary: self copyItems: NO];
 }
 
 - (Class) classForCoder

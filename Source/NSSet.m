@@ -113,9 +113,17 @@ static Class NSMutableSet_concrete_class;
   return NSSet_abstract_class;
 }
 
+/**
+ * Returns a new copy of the receiver.<br />
+ * The default abstract implementation of a copy is to use the
+ * -initWithSet:copyItems: method with the flag set to YES.<br />
+ * Concrete subclasses generally simply retain and return the receiver.
+ */
 - (id) copyWithZone: (NSZone*)z
 {
-  return RETAIN(self);
+  NSSet	*copy = [NSSet_concrete_class allocWithZone: z];
+
+  return [copy initWithSet: self copyItems: YES];
 }
 
 /**
@@ -186,9 +194,18 @@ static Class NSMutableSet_concrete_class;
   return 0;  
 }
 
+/**
+ * Returns a new instance containing the same objects as
+ * the receiver.<br />
+ * The default implementation does this by calling the
+ * -initWithSet:copyItems: method on a newly created object,
+ * and passing it NO to tell it just to retain the items.
+ */
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  return [[NSMutableSet_concrete_class allocWithZone: z] initWithSet: self];
+  NSMutableSet	*copy = [NSMutableSet_concrete_class allocWithZone: z];
+
+  return [copy initWithSet: self copyItems: NO];
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -491,11 +508,6 @@ static Class NSMutableSet_concrete_class;
 - (Class) classForCoder
 {
   return NSMutableSet_concrete_class;
-}
-
-- (id) copyWithZone: (NSZone*)z
-{
-  return [[NSSet_concrete_class allocWithZone: z] initWithSet: self];
 }
 
 /** <init />
