@@ -77,23 +77,23 @@ NSString *NSConnectionReplyMode;
 
 
 /* Exceptions */
-NSString *NSCharacterConversionException;
+NSString * const NSCharacterConversionException;
 
-NSString *NSFailedAuthenticationException;
+NSString * const NSFailedAuthenticationException;
 
-NSString *NSGenericException;
+NSString * const NSGenericException;
 
-NSString *NSInconsistentArchiveException;
+NSString * const NSInconsistentArchiveException;
 
-NSString *NSInternalInconsistencyException;
+NSString * const NSInternalInconsistencyException;
 
-NSString *NSInvalidArgumentException;
+NSString * const NSInvalidArgumentException;
 
-NSString *NSMallocException;
+NSString * const NSMallocException;
 
-NSString *NSPortTimeoutException;
+NSString * const NSPortTimeoutException;
 
-NSString *NSRangeException;
+NSString * const NSRangeException;
 
 
 /* Exception handler */
@@ -695,7 +695,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 const void *o_not_a_char_p_marker = _OBJECTS_NOT_A_CHAR_P_MARKER;
 
-o_callbacks_t o_callbacks_for_char_p = 
+const o_callbacks_t o_callbacks_for_char_p = 
 {
   (o_hash_func_t) o_char_p_hash,
   (o_compare_func_t) o_char_p_compare,
@@ -713,7 +713,7 @@ o_callbacks_t o_callbacks_for_char_p =
 
 const void *o_not_an_int_marker = _OBJECTS_NOT_AN_INT_MARKER;
 
-o_callbacks_t o_callbacks_for_int = 
+const o_callbacks_t o_callbacks_for_int = 
 {
   (o_hash_func_t) o_int_hash,
   (o_compare_func_t) o_int_compare,
@@ -731,7 +731,7 @@ o_callbacks_t o_callbacks_for_int =
 
 const void *o_not_an_id_marker = _OBJECTS_NOT_AN_ID_MARKER;
 
-o_callbacks_t o_callbacks_for_id = 
+const o_callbacks_t o_callbacks_for_id = 
 {
   (o_hash_func_t) o_id_hash,
   (o_compare_func_t) o_id_compare,
@@ -749,7 +749,7 @@ o_callbacks_t o_callbacks_for_id =
 
 const void *o_not_an_int_p_marker = _OBJECTS_NOT_AN_INT_P_MARKER;
 
-o_callbacks_t o_callbacks_for_int_p = 
+const o_callbacks_t o_callbacks_for_int_p = 
 {
   (o_hash_func_t) o_int_p_hash,
   (o_compare_func_t) o_int_p_compare,
@@ -767,7 +767,7 @@ o_callbacks_t o_callbacks_for_int_p =
 
 const void *o_not_a_void_p_marker = _OBJECTS_NOT_A_VOID_P_MARKER;
 
-o_callbacks_t o_callbacks_for_non_owned_void_p = 
+const o_callbacks_t o_callbacks_for_non_owned_void_p = 
 {
   (o_hash_func_t) o_non_owned_void_p_hash,
   (o_compare_func_t) o_non_owned_void_p_compare,
@@ -777,7 +777,7 @@ o_callbacks_t o_callbacks_for_non_owned_void_p =
   _OBJECTS_NOT_A_VOID_P_MARKER
 };
 
-o_callbacks_t o_callbacks_for_owned_void_p = 
+const o_callbacks_t o_callbacks_for_owned_void_p = 
 {
   (o_hash_func_t) o_owned_void_p_hash,
   (o_compare_func_t) o_owned_void_p_compare,
