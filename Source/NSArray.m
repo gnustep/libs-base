@@ -135,6 +135,42 @@ static Class NSMutableArray_concrete_class;
 	  autorelease];
 }
 
+- (NSArray*) arrayByAddingObject: anObject
+{
+  id na;
+  int i, c;
+  id *objects;
+ 
+  c = [self count];
+  OBJC_MALLOC (objects, id, c+1);
+  for (i = 0; i < c; i++)
+    objects[i] = [self objectAtIndex: i];
+  objects[c] = anObject;
+  na = [[NSArray alloc] initWithObjects: objects count: c+1];
+  OBJC_FREE (objects);
+  return na;
+}
+
+- (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
+{
+  id na;
+  int i, c, l;
+  id *objects;
+ 
+  c = [self count];
+  l = [anotherArray count];
+  OBJC_MALLOC (objects, id, c+l);
+  for (i = 0; i < c; i++)
+    objects[i] = [self objectAtIndex: i];
+  for (i = c; i < c+l; i++)
+    objects[i] = [anotherArray objectAtIndex: i-c];
+  na = [[NSArray alloc] initWithObjects: objects count: c+l];
+  OBJC_FREE (objects);
+  return na;
+}
+
+
+
 /* This is the designated initializer for NSArray. */
 - initWithObjects: (id*)objects count: (unsigned)count
 {
@@ -250,7 +286,7 @@ static Class NSMutableArray_concrete_class;
   if (c != [otherArray count])
     return NO;
   for (i = 0; i < c; i++)
-    if ([[self objectAtIndex:i] isEqual:[otherArray objectAtIndex:i]])
+    if (![[self objectAtIndex: i] isEqual: [otherArray objectAtIndex: i]])
       return NO;
   return YES;
 }
@@ -317,10 +353,36 @@ static Class NSMutableArray_concrete_class;
   return nil;
 }
 
-- (NSArray*)subarrayWithRange: (NSRange)range
+- (NSArray*) subarrayWithRange: (NSRange)range
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id na;
+  id *objects;
+  unsigned c = [self count];
+  unsigned i, j, k;
+
+  // If array is empty or start is beyond end of array
+  // then return an empty array
+  if (([self count] == 0) || (range.location > (c-1)))
+    return [NSArray array];
+
+  // Obtain bounds
+  i = range.location;
+  // Check if length extends beyond end of array
+  if ((range.location + range.length) > (c-1))
+    j = c-1;
+  else
+    j = range.location + range.length - 1;
+
+  // Copy the ids from the range into a temporary array
+  OBJC_MALLOC(objects, id, j-i+1);
+  for (k = i; k <= j; k++)
+    objects[k-i] = [self objectAtIndex:k];
+
+  // Create the new array
+  na = [[NSArray alloc] initWithObjects:objects count:j-i+1];
+  OBJC_FREE(objects);
+  return na;
+
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -440,20 +502,21 @@ static Class NSMutableArray_concrete_class;
 - (void) removeObjectIdenticalTo: anObject
 {
   int i = [self indexOfObjectIdenticalTo:anObject];
-  assert (i != NSNotFound);	/* xxx should raise an NSException instead */
-  [self removeObjectAtIndex:i];
+  if (i != NSNotFound)
+    [self removeObjectAtIndex: i];
 }
 
 - (void) removeObject: anObject
 {
   int i = [self indexOfObject:anObject];
-  assert (i != NSNotFound);	/* xxx should raise an NSException instead */
-  [self removeObjectAtIndex:i];
+  if (i != NSNotFound)
+    [self removeObjectAtIndex:i];
 }
 
 - (void) removeAllObjects
 {
-  [self subclassResponsibility:_cmd];
+  while ([self count])
+    [self removeLastObject];
 }
 
 - (void) addObjectsFromArray: (NSArray*)otherArray
@@ -462,6 +525,12 @@ static Class NSMutableArray_concrete_class;
   int i, c = [otherArray count];
   for (i = 0; i < c; i++)
     [self addObject:[otherArray objectAtIndex:i]];
+}
+
+- (void) setArray:(NSArray *)otherArray
+{
+  [self removeAllObjects];
+  [self addObjectsFromArray:otherArray];
 }
 
 - (void) removeObjectsFromIndices: (unsigned*)indices 
