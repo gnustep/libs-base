@@ -1,3 +1,9 @@
+2004-05-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Corrected value for cdata in sax-like
+	interface to be an NSData rather than an NSString.
+        * Headers/Additions/GNUstepBase/GSXML.h: ditto
+
 2004-05-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Create output directories if necessary.

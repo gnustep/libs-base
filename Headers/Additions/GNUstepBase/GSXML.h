@@ -222,7 +222,7 @@
           typeDefValue: (int)defType
           defaultValue: (NSString*)value;
 - (void) characters: (NSString*)name;
-- (void) cdataBlock: (NSString*)value;
+- (void) cdataBlock: (NSData*)value;
 - (void) comment: (NSString*) value;
 - (void) elementDecl: (NSString*)name
 		type: (int)type;
