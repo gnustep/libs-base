@@ -723,14 +723,13 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithFormat: (NSString*)format
-               locale: (NSDictionary*)locale
+               locale: (NSDictionary*)locale, ...
 {
-  va_list	ap;
-  /*
-   * Dummy variable 'ap' is unused, but needs to be present because on
-   * some machines we can't just pass a null as a va_list
-   */
+  va_list ap;
+  va_start(ap, locale);
   return [self initWithFormat: format locale: locale arguments: ap];
+  va_end(ap);
+  return self;
 }
 
 - (id) initWithFormat: (NSString*)format

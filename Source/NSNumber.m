@@ -666,11 +666,12 @@ static Class	doubleNumberClass;
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
+  NSString	*result = nil;
+
   if (GSObjCClass(self) == abstractClass)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"descriptionWithLocale: for abstract NSNumber"];
-      return nil;
     }
   else
     {
@@ -680,48 +681,74 @@ static Class	doubleNumberClass;
 	{
 	  case 0:
 	    return [self boolValue] ? @"true" : @"false";
+	    break;
+
 	  case 1:
-	    return [NSString stringWithFormat: @"%i",
+	    result = [[NSString alloc] initWithFormat: @"%i" locale: locale,
 	      (int)[self charValue]];
+	    break;
+
 	  case 2:
-	    return [NSString stringWithFormat: @"%u",
+	    result = [[NSString alloc] initWithFormat: @"%u" locale: locale,
 	      (unsigned int)[self unsignedCharValue]];
+	    break;
+
 	  case 3:
-	    return [NSString stringWithFormat: @"%hi",
-	      (short int)[self shortValue]];
+	    result = [[NSString alloc] initWithFormat: @"%hi" locale: locale,
+	      [self shortValue]];
+	    break;
+
 	  case 4:
-	    return [NSString stringWithFormat: @"%hu",
-	      (unsigned short int)[self unsignedShortValue]];
+	    result = [[NSString alloc] initWithFormat: @"%hu" locale: locale,
+	      [self unsignedShortValue]];
+	    break;
+
 	  case 5:
-	    return [NSString stringWithFormat: @"%i",
+	    result = [[NSString alloc] initWithFormat: @"%i" locale: locale,
 	      [self intValue]];
+	    break;
+
 	  case 6:
-	    return [NSString stringWithFormat: @"%u",
+	    result = [[NSString alloc] initWithFormat: @"%u" locale: locale,
 	      [self unsignedIntValue]];
+	    break;
+
 	  case 7:
-	    return [NSString stringWithFormat: @"%li",
+	    result = [[NSString alloc] initWithFormat: @"%li" locale: locale,
 	      [self longValue]];
+	    break;
+
 	  case 8:
-	    return [NSString stringWithFormat: @"%lu",
+	    result = [[NSString alloc] initWithFormat: @"%lu" locale: locale,
 	      [self unsignedLongValue]];
+	    break;
+
 	  case 9:
-	    return [NSString stringWithFormat: @"%lli",
+	    result = [[NSString alloc] initWithFormat: @"%lli" locale: locale,
 	      [self longLongValue]];
+	    break;
+
 	  case 10:
-	    return [NSString stringWithFormat: @"%llu",
+	    result = [[NSString alloc] initWithFormat: @"%llu" locale: locale,
 	      [self unsignedLongLongValue]];
+	    break;
+
 	  case 11:
-	    return [NSString stringWithFormat: @"%0.7g",
+	    result = [[NSString alloc] initWithFormat: @"%0.7g" locale: locale,
 	      (double)[self floatValue]];
+	    break;
+
 	  case 12:
-	    return [NSString stringWithFormat: @"%0.16g",
+	    result = [[NSString alloc] initWithFormat: @"%0.16g" locale: locale,
 	      [self doubleValue]];
+	    break;
+
 	  default:
 	    [NSException raise: NSInvalidArgumentException
 			format: @"unknown number type value for description"];
-	    return nil;
 	}
     }
+  return AUTORELEASE(result);
 }
 
 /* All the rest of these methods must be implemented by a subclass */

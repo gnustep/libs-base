@@ -377,30 +377,35 @@
 {
 #if TYPE_ORDER == 0
   return (data) ? @"true" : @"false";
-#elif TYPE_ORDER == 1
-  return [NSString stringWithFormat: @"%i", (int)data];
+#else
+  NSString	*result = [NSString alloc];
+
+#if TYPE_ORDER == 1
+  result = [result initWithFormat: @"%i" locale: locale, (int)data];
 #elif TYPE_ORDER == 2
-  return [NSString stringWithFormat: @"%u", (unsigned int)data];
+  result = [result initWithFormat: @"%u" locale: locale, (unsigned int)data];
 #elif TYPE_ORDER == 3
-  return [NSString stringWithFormat: @"%hi", (short int)data];
+  result = [result initWithFormat: @"%hi" locale: locale, data];
 #elif TYPE_ORDER == 4
-  return [NSString stringWithFormat: @"%hu", (unsigned short int)data];
+  result = [result initWithFormat: @"%hu" locale: locale, data];
 #elif TYPE_ORDER == 5
-  return [NSString stringWithFormat: @"%i", data];
+  result = [result initWithFormat: @"%i" locale: locale, data];
 #elif TYPE_ORDER == 6
-  return [NSString stringWithFormat: @"%u", data];
+  result = [result initWithFormat: @"%u" locale: locale, data];
 #elif TYPE_ORDER == 7
-  return [NSString stringWithFormat: @"%li", data];
+  result = [result initWithFormat: @"%li" locale: locale, data];
 #elif TYPE_ORDER == 8
-  return [NSString stringWithFormat: @"%lu", data];
+  result = [result initWithFormat: @"%lu" locale: locale, data];
 #elif TYPE_ORDER == 9
-  return [NSString stringWithFormat: @"%lli", data];
+  result = [result initWithFormat: @"%lli" locale: locale, data];
 #elif TYPE_ORDER == 10
-  return [NSString stringWithFormat: @"%llu", data];
+  result = [result initWithFormat: @"%llu" locale: locale, data];
 #elif TYPE_ORDER == 11
-  return [NSString stringWithFormat: @"%0.7g", (double)data];
+  result = [result initWithFormat: @"%0.7g" locale: locale, (double)data];
 #elif TYPE_ORDER == 12
-  return [NSString stringWithFormat: @"%0.16g", data];
+  result = [result initWithFormat: @"%0.16g" locale: locale, data];
+#endif
+  return AUTORELEASE(result);
 #endif
 }
 

@@ -449,8 +449,10 @@
 
         <method type="id">
           <sel>initWithFormat:</sel>
-          <arg type="NSString*">format,</arg>
+          <arg type="NSString*">format</arg>
+	  <vararg/>
           <desc>
+	    Invokes initWithFormat:locale:arguments with a nil locale.
           </desc>
         </method>
 
@@ -460,13 +462,29 @@
           <sel>arguments:</sel>
           <arg type="va_list">argList</arg>
           <desc>
+	    Invokes initWithFormat:locale:arguments with a nil locale.
           </desc>
         </method>
 
         <method type="id">
           <sel>initWithFormat:</sel>
           <arg type="NSString*">format</arg>
+          <sel>locale:</sel>
+          <arg type="NSDictionary*">dictionary</arg>
+	  <vararg/>
           <desc>
+	    Initialises the string using the specified format and local
+	    to format the following arguments.
+          </desc>
+        </method>
+
+        <method type="id">
+          <sel>initWithFormat:</sel>
+          <arg type="NSString*">format</arg>
+          <sel>arguments:</sel>
+          <arg type="va_list">argList</arg>
+          <desc>
+	    Invokes initWithFormat:locale:,... with a nil locale.
           </desc>
         </method>
 
@@ -478,6 +496,8 @@
           <sel>arguments:</sel>
           <arg type="va_list">argList</arg>
           <desc>
+	    Initialises the string using the specified format and local
+	    to format the following arguments.
           </desc>
         </method>
 

@@ -163,10 +163,47 @@
 <h3><a name ="method-17">description</a></h3>
 - (NSString*) <b>description</b>;<br>
 
+	    Invokes descriptionWithLocale: using nil locale.
           
  <hr>
 <h3><a name ="method-18">descriptionWithLocale:</a></h3>
 - (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)aLocale;<br>
+
+	    <p>
+
+	      Produces a string representation of the number.  For a boolean
+	      this will be either 'true' or 'false'.  For other numbers the
+	      format is produced using the initWithFormat:locale:... method
+	      of NSString, and the format depends on the type of number as
+	      follows -
+	    </p>
+
+	    <dl>
+<dt>char
+<dd>%i
+<dt> short
+<dd>%hi
+<dt> int
+<dd>%i
+<dt> long
+<dd>%li
+<dt> long long
+<dd>%li
+<dt> unsigned char
+<dd>%u
+<dt> unsigned short
+<dd>%hu
+<dt> unsigned int
+<dd>%u
+<dt> unsigned long
+<dd>%lu
+<dt> unsigned long long
+<dd>%lu
+<dt> float
+<dd>%0.7g
+<dt> double
+<dd>%0.16g
+</dl>
 
           
  <hr>
@@ -273,6 +310,7 @@
 <h3><a name ="method-39">stringValue</a></h3>
 - (NSString*) <b>stringValue</b>;<br>
 
+	    Expivalent to descriptionWithLocale: using a nil locale.
           
  <hr>
 <h3><a name ="method-40">unsignedCharValue</a></h3>

@@ -120,12 +120,46 @@
         <method type="NSString*">
           <sel>description</sel>
           <desc>
+	    Invokes descriptionWithLocale: using nil locale.
           </desc>
         </method>
         <method type="NSString*">
           <sel>descriptionWithLocale:</sel>
           <arg type="NSDictionary*">aLocale</arg>
           <desc>
+	    <p>
+	      Produces a string representation of the number.  For a boolean
+	      this will be either 'true' or 'false'.  For other numbers the
+	      format is produced using the initWithFormat:locale:... method
+	      of NSString, and the format depends on the type of number as
+	      follows -
+	    </p>
+	    <deflist>
+	      <term>char</term>
+              <desc>%i</desc>
+	      <term> short</term>
+              <desc>%hi</desc>
+	      <term> int</term>
+              <desc>%i</desc>
+	      <term> long</term>
+              <desc>%li</desc>
+	      <term> long long</term>
+              <desc>%li</desc>
+	      <term> unsigned char</term>
+              <desc>%u</desc>
+	      <term> unsigned short</term>
+              <desc>%hu</desc>
+	      <term> unsigned int</term>
+              <desc>%u</desc>
+	      <term> unsigned long</term>
+              <desc>%lu</desc>
+	      <term> unsigned long long</term>
+              <desc>%lu</desc>
+	      <term> float</term>
+              <desc>%0.7g</desc>
+	      <term> double</term>
+              <desc>%0.16g</desc>
+	    </deflist>
           </desc>
         </method>
         <method type="double">
@@ -245,6 +279,7 @@
         <method type="NSString*">
           <sel>stringValue</sel>
           <desc>
+	    Expivalent to descriptionWithLocale: using a nil locale.
           </desc>
         </method>
         <method type="unsigned char">
