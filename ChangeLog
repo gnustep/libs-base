@@ -1,5 +1,8 @@
 2000-11-06 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m: handle_printf_atsign() - use lossyCString to
+	get string to print.  This is a temporary *HACK* - we need a proper
+	unicode supporting initWithFormat:
 	* Source/GSString.m: ([GSMutableString substringWithRange:]) fix to
 	allocate inline string classes for substrings.
 
