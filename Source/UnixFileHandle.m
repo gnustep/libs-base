@@ -198,8 +198,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
 #if	!defined(__MINGW__)
       /*
-       *	If SIGPIPE is not ignored, we will abort on any attempt to
-       *	write to a pipe/socket that has been closed by the other end!
+       * If SIGPIPE is not ignored, we will abort on any attempt to
+       * write to a pipe/socket that has been closed by the other end!
        */
       signal(SIGPIPE, SIG_IGN);
 #endif
