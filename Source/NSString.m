@@ -214,12 +214,6 @@ handle_printf_atsign (FILE *stream,
 
 // Creating Temporary Strings
 
-+ (NSString*) localizedStringWithFormat: (NSString*) format, ...
-{
-  [self notImplemented:_cmd];
-  return self;
-}
-
 + (NSString*) string
 {
   return [[[self alloc] init] autorelease];
@@ -251,12 +245,6 @@ handle_printf_atsign (FILE *stream,
 {
   return [[[self alloc]
 	      initWithContentsOfFile: path] autorelease];
-}
-
-+ (NSString*) stringWithCString: (const char*) byteString
-{
-  return [[[self alloc] initWithCString:byteString]
-	  autorelease];
 }
 
 + (NSString*) stringWithFormat: (NSString*)format,...
@@ -673,27 +661,27 @@ handle_printf_atsign (FILE *stream,
 
   strFirstCharacter = [aString characterAtIndex:0];
 
-      for (;;)
-      {
-        unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex:myIndex];
-        unichar strCharacter = strFirstCharacter;
+  for (;;)
+    {
+      unsigned int i = 1;
+      unichar myCharacter = [self characterAtIndex:myIndex];
+      unichar strCharacter = strFirstCharacter;
 
-        for (;;)
-          {
-            if ((myCharacter != strCharacter) &&
-                ((uni_tolower (myCharacter) != uni_tolower (strCharacter))))
-              break;
-            if (i == strLength)
-              return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex:myIndex + i];
-            strCharacter = [aString characterAtIndex:i];
-            i++;
-          }
-        if (myIndex == myEndIndex)
-          break;
-        myIndex ++;
-      }
+      for (;;)
+	{
+	  if ((myCharacter != strCharacter) &&
+	      ((uni_tolower (myCharacter) != uni_tolower (strCharacter))))
+	    break;
+	  if (i == strLength)
+	    return (NSRange){myIndex, strLength};
+	  myCharacter = [self characterAtIndex:myIndex + i];
+	  strCharacter = [aString characterAtIndex:i];
+	  i++;
+	}
+      if (myIndex == myEndIndex)
+	break;
+      myIndex ++;
+    }
   return (NSRange){0, 0};
 }
 
@@ -1461,14 +1449,6 @@ else
   return ret;
 #endif
 }
-
-- (BOOL) writeToFile: (NSString*)filename
-   atomically: (BOOL)useAuxiliaryFile
-{
-  [self notImplemented:_cmd];
-  return NO;
-}
-
 
 
 // Getting C Strings
