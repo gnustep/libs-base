@@ -383,7 +383,7 @@ static char	**_gnu_noobjc_env;
     }
   argument = 0;
   position = 0;
-  while (1)
+  while (argument < _gnu_noobjc_argc)
     {
       c = getc(ifp);
       if ((c == EOF) || (c == 0)) // End of a parameter 
