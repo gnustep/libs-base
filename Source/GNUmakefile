@@ -426,11 +426,17 @@ libgnustep-base_HEADER_FILES_INSTALL_DIR = /Foundation
 
 libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
+DOCUMENT_NAME = Base
+
+Base_AGSDOC_FILES = $(FOUNDATION_HEADERS)
+Base_AGSDOC_FLAGS = -HeaderDirectory ../Headers/Foundation -Declared Foundation
+
 -include Makefile.preamble
 
 -include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/bundle.make
+include $(GNUSTEP_MAKEFILES)/documentation.make
 
 -include Makefile.postamble
