@@ -29,6 +29,7 @@
 #if NeXT_RUNTIME
 
 #include <objc/objc-class.h>
+#include <objc/objc-runtime.h>
 #include <stddef.h>
 #include <ctype.h>
 #include <stdio.h>

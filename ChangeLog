@@ -1,3 +1,12 @@
+2002-02-28  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: Add objc-runtime.h
+	* Source/Makefile.preamble: Add ..DEPEND_UPON for all darwin versions.
+
+	* Source/NSPortCoder.m
+	(-initWithReceivePort:sendPort:components:): Change cast to make
+	MacOSX compiler happy.
+
 2002-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: rewrite user and defaults root code to standardise
