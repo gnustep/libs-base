@@ -34,14 +34,35 @@
 
 #include <gnustep/base//Unicode.h>
 
+static Class	immutableClass;
+static Class	mutableClass;
 
 @implementation NSGCString
+
++ (void) initialize
+{
+  static int done = 0;
+  if (!done)
+    {
+      done = 1;
+      immutableClass = [NSGCString class];
+      mutableClass = [NSGMutableCString class];
+    }
+}
 
 - (void)dealloc
 {
   if (_free_contents)
     OBJC_FREE(_contents_chars);
   [super dealloc];
+}
+
+- (unsigned) hash
+{
+  if (_hash == 0)
+    if ((_hash = [super hash]) == 0)
+      _hash = 0xffffffff;
+  return _hash;
 }
 
 /* This is the designated initializer for this class. */
@@ -132,10 +153,53 @@
   return _contents_chars;
 }
 
-/* xxx Remove this method, now that we have cStringNoCopy */
-- (const char *) _cStringContents
+- (void) getCString: (char*)buffer
 {
-  return _contents_chars;
+  memcpy(buffer, _contents_chars, _count);
+  buffer[_count] = '\0';
+}
+
+- (void) getCString: (char*)buffer
+    maxLength: (unsigned int)maxLength
+{
+  if (maxLength > _count)
+    maxLength = _count;
+  memcpy(buffer, _contents_chars, maxLength);
+  buffer[maxLength] = '\0';
+}
+
+- (void) getCString: (char*)buffer
+   maxLength: (unsigned int)maxLength
+   range: (NSRange)aRange
+   remainingRange: (NSRange*)leftoverRange
+{
+  int len;
+
+  if (aRange.location >= _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (_count - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  if (maxLength < aRange.length)
+    {
+      len = maxLength;
+      if (leftoverRange)
+	{
+	  leftoverRange->location = 0;
+	  leftoverRange->length = 0;
+	}
+    }
+  else
+    {
+      len = aRange.length;
+      if (leftoverRange)
+	{
+	  leftoverRange->location = aRange.location + maxLength;
+	  leftoverRange->length = aRange.length - maxLength;
+	}
+    }
+
+  memcpy(buffer, &_contents_chars[aRange.location], len);
+  buffer[len] = '\0';
 }
 
 - (unsigned) count
@@ -155,11 +219,30 @@
 
 - (unichar) characterAtIndex: (unsigned int)index
 {
-  /* xxx This should raise an NSException. */
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return chartouni(_contents_chars[index]);
 }
 
+- (void) getCharacters: (unichar*)buffer
+{
+  int i;
+
+  for (i = 0; i < _count; i++)
+    buffer[i] = chartouni(((unsigned char *)_contents_chars)[i]);
+}
+
+- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
+{
+  int e, i;
+
+  if (aRange.location >= _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (_count - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  e = aRange.location + aRange.length;
+  for (i = aRange.location; i < e; i++)
+    *buffer++ = chartouni(((unsigned char *)_contents_chars)[i]);
+}
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
@@ -184,15 +267,26 @@
   return [NSString defaultCStringEncoding];
 }
 
-// Override for speed
 - (BOOL) isEqualToString: (NSString*)aString
 {
-  if([self class] == [aString class])
-    return ! strcmp([self cStringNoCopy], [aString cStringNoCopy]);
+  Class	c = [aString class];
+  if (c == immutableClass || c == mutableClass)
+    {
+      NSGCString	*other = (NSGCString*)aString;
+
+      if (_count != other->_count)
+	return NO;
+      if (_hash && other->_hash && (_hash != other->_hash))
+	return NO;
+      if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
+	return NO;
+      return YES;
+    }
   else
     return [super isEqualToString: aString];
   return YES;
 }
+
 
 // FOR IndexedCollection SUPPORT;
 
@@ -247,6 +341,7 @@ stringIncrementCountAndMakeHoleAt(NSGMutableCStringStruct *self,
 	 self->_count - index);
 #endif /* STABLE_MEMCPY */
   (self->_count) += size;
+  (self->_hash) = 0;
 }
 
 static inline void
@@ -265,6 +360,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 	 self->_contents_chars + index, 
 	 self->_count - index);
 #endif /* STABLE_MEMCPY */
+  (self->_hash) = 0;
 }
 
 /* This is the designated initializer for this class */
@@ -318,6 +414,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   memcpy(_contents_chars + _count, [aString cStringNoCopy], c);
   _count += c;
   _contents_chars[_count] = '\0';
+  _hash = 0;
 }
 
 - (void) setString: (NSString*)aString
@@ -332,6 +429,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   memcpy(_contents_chars, s, length);
   _contents_chars[length] = '\0';
   _count = length;
+  _hash = 0;
 }
 
 /* xxx This method may be removed in future. */
@@ -345,6 +443,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   memcpy(_contents_chars, byteString, length);
   _contents_chars[length] = '\0';
   _count = length;
+  _hash = 0;
 }
 
 /* Override NSString's designated initializer for CStrings. */

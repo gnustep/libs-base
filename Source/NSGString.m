@@ -55,6 +55,14 @@
   [super dealloc];
 }
 
+- (unsigned) hash
+{
+  if (_hash == 0)
+    if ((_hash = [super hash]) == 0)
+      _hash = 0xffffffff;
+  return _hash;
+}
+
 // Initializing Newly Allocated Strings
 
 /* This is the designated initializer for this class. */
@@ -302,6 +310,7 @@ stringIncrementCountAndMakeHoleAt(NSGMutableStringStruct *self,
 	 2*(self->_count - index));
  #endif /* STABLE_MEMCPY */
   (self->_count) += size;
+  (self->_hash) = 0;
 }
 
 static inline void
@@ -320,6 +329,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 	 self->_contents_chars + index, 
 	 2*(self->_count - index));
  #endif // STABLE_MEMCPY
+  (self->_hash) = 0;
 }
 
 // Initializing Newly Allocated Strings
@@ -407,6 +417,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 #endif
   [aString getCharacters: &_contents_chars[aRange.location]];
   _count += offset;
+  _hash = 0;
 }
 
 - (void) setString: (NSString*)aString
@@ -421,6 +432,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
     }
   [aString getCharacters: _contents_chars];
   _count = len;
+  _hash = 0;
 }
 
 // ************ Stuff from NSGCString *********
@@ -437,6 +449,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
     }
   strtoustr(_contents_chars, byteString, length);
   _count = length;
+  _hash = 0;
 }
 
 /* Override NSString's designated initializer for CStrings. */

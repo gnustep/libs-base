@@ -35,6 +35,7 @@
   char * _contents_chars;
   int _count;
   BOOL _free_contents;
+  unsigned _hash;
 }
 @end
 
@@ -43,6 +44,7 @@
   char * _contents_chars;
   int _count;
   BOOL _free_contents;
+  unsigned _hash;
   int _capacity;
 }
 @end

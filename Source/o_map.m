@@ -30,6 +30,10 @@
 #include <gnustep/base/o_hash.h>
 #include <gnustep/base/o_map.h>
 
+/* Efficiency hack - the o_map_key_callbacks() incurs a function-call
+  overhead and we use it a lot! */
+#define	o_map_key_callbacks(X) ((X)->key_callbacks)
+
 /* To easily un-inline functions for debugging */
 #define INLINE inline
 
