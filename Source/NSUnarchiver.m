@@ -808,7 +808,7 @@ static Class NSDataMallocClass;
 	       *	add it to the crossref map.
 	       */
 	      size = objc_sizeof_type(++type);
-	      *(void**)address = _fastMallocBuffer(size);
+	      *(void**)address = GSAutoreleasedBuffer(size);
 	      GSIArrayAddItem(ptrMap, (GSIArrayItem)*(void**)address);
 
 	      /*

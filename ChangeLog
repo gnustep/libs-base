@@ -1,3 +1,19 @@
+2003-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/GSObjCRuntime.h:
+	* Source/GSFFIInvocation.m:
+	* Source/GSString.m:
+	* Source/NSInvocation.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSUnarchiver.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/Unicode.m:
+	Rename _fastMallocBuffer() to GSAutoreleasedBuffer() for clarity
+	and consistency.  Moved implementation from NSObject.m to
+	GSObjCRuntime.m so this is available for use withing the Additions
+	library when built standalone.
+
 2003-02-19  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Headers/gnustep/base/NSArray.h: fixed declarations.

@@ -605,7 +605,7 @@ _arg_addr(NSInvocation *inv, int index)
         const char      *t = _info[i].type;
         if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
           {
-	    *(void**)datum = _fastMallocBuffer(_info[i].size);
+	    *(void**)datum = GSAutoreleasedBuffer(_info[i].size);
             datum = *(void**)datum;
           }
       }

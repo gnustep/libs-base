@@ -170,8 +170,8 @@ static IMP gs_objc_msg_forward (SEL sel)
      where it becomes owned by the callback invocation, so we don't have to
      worry about freeing it */
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
-  /* Autorelease the closure through fastMallocBuffer */
-  cclosure = (ffi_closure *)_fastMallocBuffer(sizeof(ffi_closure));
+  /* Autorelease the closure through GSAutoreleasedBuffer */
+  cclosure = (ffi_closure *)GSAutoreleasedBuffer(sizeof(ffi_closure));
   if (cframe == NULL || cclosure == NULL)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
