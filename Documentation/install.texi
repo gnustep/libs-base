@@ -25,7 +25,16 @@ cd gcc-2.7.2
 patch -p0 <../gnustep-base/objc.patch
 @end example
 
-and make and install gcc; then configure and make libgnustep-base:
+and make and install gcc.  Because the objc.patch is not quite
+up-to-date, you will also have to make a link from @file{thread.h} to
+@file{thr.h} in the objc include directory.  For example:
+
+@example
+cd /usr/local/lib/gcc-lib/i586-unknown-linux/2.7.2/include/objc/
+ln -s thread.h thr.h
+@end example
+
+Then configure and make libgnustep-base:
 
 @example
 ./configure --prefix=/usr/local
@@ -46,7 +55,7 @@ make install
 If you have trouble with the Makefile, it may be that our makefiles use
 features that your @code{make} does not support; use GNU make.
 
-Here are more detailed instructions.
+Here are instructions that describe more options.
 
 @enumerate
 
