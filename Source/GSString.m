@@ -353,7 +353,9 @@ setup()
   me->_count = length;
   me->_flags.wide = 1;
   if (flag == YES)
-    me->_flags.free = 1;
+    {
+      me->_flags.free = 1;
+    }
   return (id)me;
 }
 
@@ -363,14 +365,29 @@ setup()
 - (id) initWithCString: (const char*)chars
 		length: (unsigned)length
 {
-  ivars	me;
+  if (defEnc == intEnc)
+    {
+      ivars	me;
 
-  me = (ivars)NSAllocateObject(GSCInlineStringClass, length, GSObjCZone(self));
-  me->_contents.c = (char*)&((GSCInlineString*)me)[1];
-  me->_count = length;
-  me->_flags.wide = 0;
-  memcpy(me->_contents.c, chars, length);
-  return (id)me;
+      me = (ivars)NSAllocateObject(GSCInlineStringClass, length,
+	GSObjCZone(self));
+      me->_contents.c = (char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
+      memcpy(me->_contents.c, chars, length);
+      return (id)me;
+    }
+  else
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+
+      if (GSToUnicode(&u, &l, chars, length, defEnc, GSObjCZone(self), 0) == NO)
+	{
+	  return nil;
+	}
+      return [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
+    }
 }
 
 /*
@@ -380,15 +397,39 @@ setup()
 		      length: (unsigned)length
 		freeWhenDone: (BOOL)flag
 {
-  ivars	me;
+  if (defEnc == intEnc)
+    {
+      ivars	me;
 
-  me = (ivars)NSAllocateObject(GSCStringClass, 0, GSObjCZone(self));
-  me->_contents.c = chars;
-  me->_count = length;
-  me->_flags.wide = 0;
-  if (flag == YES)
-    me->_flags.free = 1;
-  return (id)me;
+      me = (ivars)NSAllocateObject(GSCStringClass, 0, GSObjCZone(self));
+      me->_contents.c = chars;
+      me->_count = length;
+      me->_flags.wide = 0;
+      if (flag == YES)
+	{
+	  me->_flags.free = 1;
+	}
+      return (id)me;
+    }
+  else
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+
+      if (GSToUnicode(&u, &l, chars, length, defEnc, GSObjCZone(self), 0) == NO)
+	{
+	  self = nil;
+	}
+      else
+	{
+	  self = [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
+	}
+      if (flag == YES)
+	{
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+	}
+      return self;
+    }
 }
 
 /*
