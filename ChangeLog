@@ -1,3 +1,8 @@
+2001-06-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: parseQuotedString() ... fix for parsing octal
+	and hex escape sequences.
+
 2001-06-09  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.in (VERSION): Output a message saying that we are

@@ -4035,6 +4035,7 @@ static inline id parseQuotedString(pldata* pld)
 		      if (escaped == 10)
 			{
 			  escaped = 0;
+			  k++;
 			}
 		    }
 		  else if (c >= '0' && c <= '7')
@@ -4045,6 +4046,7 @@ static inline id parseQuotedString(pldata* pld)
 		      if (escaped == 4)
 			{
 			  escaped = 0;
+			  k++;
 			}
 		    }
 		  else
