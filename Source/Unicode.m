@@ -325,7 +325,7 @@ NSStringEncoding *GetAvailableEncodings()
  *  for the iso8859-5 character set, the registry is iso8859 and
  *  the encoding is 5, and the returned NSStringEncoding is
  *  NSISOCyrillicStringEncoding. If there is no specific encoding,
- *  use @"0".
+ *  use @"0". Returns GSUndefinedEncoding if there is no match.
  */
 NSStringEncoding
 GSEncodingForRegistry (NSString *registry, NSString *encoding)
@@ -406,7 +406,7 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
       return NSUTF8StringEncoding;
     }
 
-  return NSASCIIStringEncoding;
+  return GSUndefinedEncoding;
 }
 
 /** Try to deduce the string encoding from the locale string
@@ -454,8 +454,6 @@ GSEncodingFromLocale(const char *clocale)
 	}
       
       encoding = GSEncodingForRegistry(registry, encodstr);
-      if (encoding == NSASCIIStringEncoding)
-	encoding = GSUndefinedEncoding;
     }
   else
     {
@@ -473,6 +471,8 @@ GSEncodingFromLocale(const char *clocale)
 	  dict = [NSDictionary dictionaryWithContentsOfFile: table];
 	  encodstr = [dict objectForKey: 
 			     [NSString stringWithCString: clocale]];
+	  if (encodstr == nil)
+	    return GSUndefinedEncoding;
 
 	  /* Find the matching encoding */
 	  count = 0;
