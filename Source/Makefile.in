@@ -47,7 +47,8 @@ MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
 LEX = flex
 LEXFLAGS =
-     
+YACC = bison
+
 DEFS = @DEFS@
 
 # File name extensions
@@ -174,6 +175,7 @@ cbs-id.m \
 cbs-int.m \
 cbs-int-p.m \
 cbs-void-p.m \
+lex.pl.m \
 o-hash.m \
 o-hash-bas.m \
 o-hash-cbs.m \
@@ -184,6 +186,7 @@ o-map.m \
 o-map-bas.m \
 o-map-cbs.m \
 preface.m \
+proplist.tab.m \
 mframe.m \
 objc-gnu2next.m \
 objc-malloc.m
@@ -198,7 +201,10 @@ x-bas.m.in \
 x-cbs.m.in \
 include/x-bas.h.in \
 include/x-cbs.h.in \
-md5.h
+md5.h \
+proplist.l \
+proplist.tab.h \
+proplist.y
 
 GNU_OBJS = \
 	$(GNU_MFILES:.m=${OEXT}) \
@@ -566,6 +572,12 @@ NXStringTable_scan.c: NXStringTable_scan.l
 	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
 		> NXStringTable_scan.c
 	$(RM) -f NXStringTable_scan.temp
+proplist.tab.m proplist.tab.h: proplist.y
+	rm -f proplist.tab.m.h
+	$(YACC) -d -p pl proplist.y -o proplist.tab.m
+	mv proplist.tab.m.h proplist.tab.h
+lex.pl.m: proplist.l proplist.tab.h
+	$(LEX) -t -B -Ppl proplist.l > $@
 
 objc-load${OEXT}: dynamic-load.h
 
