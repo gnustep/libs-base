@@ -821,8 +821,8 @@ static NSLock			*urlLock = nil;
     {
       if ([name isEqualToString: GSFileHandleConnectCompletionNotification])
 	{
-	  NSLog(@"Unable to connect to %@:%@ via socket",
-	    [dHandle socketAddress], [dHandle socketService]);
+	  NSLog(@"Unable to connect to %@:%@ via socket ... %@",
+	    [dHandle socketAddress], [dHandle socketService], e);
 	}
 // NSLog(@"Fail - %@", e);
       /*
@@ -972,11 +972,14 @@ static NSLock			*urlLock = nil;
 						      protocol: @"tcp"];
   if (sock == nil)
     {
+      extern int	errno;
+
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
-	@"Unable to connect to %@:%@", host, port]];
+	@"Unable to connect to %@:%@ ... %s",
+	host, port, GSLastErrorStr(errno)]];
       return;
     }
   cHandle = [[GSTelnetHandle alloc] initWithHandle: sock isConnected: NO];
