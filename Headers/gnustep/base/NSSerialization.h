@@ -44,6 +44,27 @@
 		      intoData: (NSMutableData*)d;
 @end
 
+#ifndef	NO_GNUSTEP
+/*
+ *	GNUstep extends serialization by having the option to make the
+ *	resulting data more compact by ensuring that repeated strings
+ *	are only stored once.  If the property-list has a lot of repeated
+ *	strings in it, this will be both faster and more space efficient
+ *	but it will be slower if the property-list has few repeated
+ *	strings.  The default is to generate compact versions of the data.
+ *
+ *	The [+shouldBeCompact:] method sets default behavior.
+ *	The [+serializePropertyList:intoData:compact:] method lets you
+ *	override the default behavior.
+ */
+@interface NSSerializer (GNUstep)
++ (void) shouldBeCompact: (BOOL)flag;
++ (void) serializePropertyList: (id)propertyList
+		      intoData: (NSMutableData*)d
+		       compact: (BOOL)flag;
+@end
+#endif
+
 @interface NSDeserializer: NSObject
 + (id) deserializePropertyListFromData: (NSData*)data
 			      atCursor: (unsigned int*)cursor

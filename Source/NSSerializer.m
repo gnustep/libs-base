@@ -41,16 +41,38 @@
 @class	NSDataMalloc;
 
 /*
+ *	Setup for inline operation of string map tables.
+ */
+#define	FAST_MAP_RETAIN_KEY(X)	X
+#define	FAST_MAP_RELEASE_KEY(X)	
+#define	FAST_MAP_RETAIN_VAL(X)	X
+#define	FAST_MAP_RELEASE_VAL(X)	
+#define	FAST_MAP_HASH(X)	[(X).o hash]
+#define	FAST_MAP_EQUAL(X,Y)	[(X).o isEqualToString: (Y).o]
+
+#include "FastMap.x"
+
+/*
+ *	Setup for inline operation of string arrays.
+ */
+#define	FAST_ARRAY_RETAIN(X)	X
+#define	FAST_ARRAY_RELEASE(X)	
+
+#include "FastArray.x"
+
+/*
  *	Define constants for data types and variables to hold them.
  */
-#define ST_CSTRING	0
-#define ST_STRING	1
-#define ST_ARRAY	2
-#define ST_MARRAY	3
-#define ST_DICT		4
-#define ST_MDICT	5
-#define ST_DATA		6
+#define ST_XREF		0
+#define ST_CSTRING	1
+#define ST_STRING	2
+#define ST_ARRAY	3
+#define ST_MARRAY	4
+#define ST_DICT		5
+#define ST_MDICT	6
+#define ST_DATA		7
 
+static char	st_xref = (char)ST_XREF;
 static char	st_cstring = (char)ST_CSTRING;
 static char	st_string = (char)ST_STRING;
 static char	st_array = (char)ST_ARRAY;
@@ -77,6 +99,9 @@ typedef struct {
   unsigned int	(*lenImp)();		// Length of data.
   void		(*serImp)();		// Serialize integer.
   void		(*setImp)();		// Set length of data.
+  unsigned	count;			// String counter.
+  FastMapTable_t	map;		// For uniquing.
+  BOOL		shouldUnique;		// Do we do uniquing?
 } _NSSerializerInfo;
 
 static SEL	appSel = @selector(appendBytes:length:);
@@ -86,7 +111,7 @@ static SEL	serSel = @selector(serializeInt:);
 static SEL	setSel = @selector(setLength:);
 
 static void
-initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d)
+initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {
   Class	c = fastClass(d);
 
@@ -96,6 +121,20 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d)
   info->lenImp = (unsigned int (*)())get_imp(c, lenSel);
   info->serImp = (void (*)())get_imp(c, serSel);
   info->setImp = (void (*)())get_imp(c, setSel);
+  info->shouldUnique = u;
+  (*info->appImp)(d, appSel, &info->shouldUnique, 1);
+  if (u)
+    {
+      FastMapInitWithZoneAndCapacity(&info->map, NSDefaultMallocZone(), 16);
+      info->count = 0;
+    }
+}
+
+static void
+endSerializerInfo(_NSSerializerInfo* info)
+{
+  if (info->shouldUnique)
+    FastMapEmptyMap(&info->map);
 }
 
 static id
@@ -106,25 +145,61 @@ serializeToInfo(id object, _NSSerializerInfo* info)
   if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString ||
 	c == _fastCls._NXConstantString)
     {
-      unsigned	slen = [object cStringLength] + 1;
-      unsigned	dlen;
+      FastMapNode	node;
 
-      (*info->appImp)(info->data, appSel, &st_cstring, 1);
-      (*info->serImp)(info->data, serSel, slen);
-      dlen = (*info->lenImp)(info->data, lenSel);
-      (*info->setImp)(info->data, setSel, dlen + slen);
-      [object getCString: (*info->datImp)(info->data, datSel) + dlen];
+      if (info->shouldUnique)
+	node = FastMapNodeForKey(&info->map, (FastMapItem)object);
+      else
+	node = 0;
+      if (node == 0)
+	{
+	  unsigned	slen;
+	  unsigned	dlen;
+
+	  slen = [object cStringLength] + 1;
+	  (*info->appImp)(info->data, appSel, &st_cstring, 1);
+	  (*info->serImp)(info->data, serSel, slen);
+	  dlen = (*info->lenImp)(info->data, lenSel);
+	  (*info->setImp)(info->data, setSel, dlen + slen);
+	  [object getCString: (*info->datImp)(info->data, datSel) + dlen];
+	  if (info->shouldUnique)
+	    FastMapAddPair(&info->map,
+		(FastMapItem)object, (FastMapItem)info->count++);
+	}
+      else
+	{
+	  (*info->appImp)(info->data, appSel, &st_xref, 1);
+	  (*info->serImp)(info->data, serSel, node->value.I);
+	}
     }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
     {
-      unsigned	slen = [object length];
-      unsigned	dlen;
+      FastMapNode	node;
 
-      (*info->appImp)(info->data, appSel, &st_string, 1);
-      (*info->serImp)(info->data, serSel, slen);
-      dlen = (*info->lenImp)(info->data, lenSel);
-      (*info->setImp)(info->data, setSel, dlen + slen*sizeof(unichar));
-      [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
+      if (info->shouldUnique)
+	node = FastMapNodeForKey(&info->map, (FastMapItem)object);
+      else
+	node = 0;
+      if (node == 0)
+	{
+	  unsigned	slen;
+	  unsigned	dlen;
+
+	  slen = [object length];
+	  (*info->appImp)(info->data, appSel, &st_string, 1);
+	  (*info->serImp)(info->data, serSel, slen);
+	  dlen = (*info->lenImp)(info->data, lenSel);
+	  (*info->setImp)(info->data, setSel, dlen + slen*sizeof(unichar));
+	  [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
+	  if (info->shouldUnique)
+	    FastMapAddPair(&info->map,
+		(FastMapItem)object, (FastMapItem)info->count++);
+	}
+      else
+	{
+	  (*info->appImp)(info->data, appSel, &st_xref, 1);
+	  (*info->serImp)(info->data, serSel, node->value.I);
+	}
     }
   else if (fastClassIsKindOfClass(c, ArrayClass))
     {
@@ -191,6 +266,8 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 
 @implementation NSSerializer
 
+static BOOL	shouldBeCompact = YES;
+
 + (void) initialize
 {
   if (self == [NSSerializer class])
@@ -206,10 +283,13 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 + (NSData*) serializePropertyList: (id)propertyList
 {
   _NSSerializerInfo	info;
+  NSMutableData		*d;
 
   NSAssert(propertyList != nil, NSInvalidArgumentException);
-  initSerializerInfo(&info, [NSMutableData dataWithCapacity: 1024]);
+  d = [NSMutableData dataWithCapacity: 1024];
+  initSerializerInfo(&info, d, shouldBeCompact);
   serializeToInfo(propertyList, &info);
+  endSerializerInfo(&info);
   return info.data;
 }
 
@@ -220,8 +300,29 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 
   NSAssert(propertyList != nil, NSInvalidArgumentException);
   NSAssert(d != nil, NSInvalidArgumentException);
-  initSerializerInfo(&info, d);
+  initSerializerInfo(&info, d, shouldBeCompact);
   serializeToInfo(propertyList, &info);
+  endSerializerInfo(&info);
+}
+
+@end
+
+@implementation	NSSerializer (GNUstep)
++ (void) serializePropertyList: (id)propertyList
+		      intoData: (NSMutableData*)d
+		       compact: (BOOL)flag
+{
+  _NSSerializerInfo	info;
+
+  NSAssert(propertyList != nil, NSInvalidArgumentException);
+  NSAssert(d != nil, NSInvalidArgumentException);
+  initSerializerInfo(&info, d, flag);
+  serializeToInfo(propertyList, &info);
+  endSerializerInfo(&info);
+}
++ (void) shouldBeCompact: (BOOL)flag
+{
+  shouldBeCompact = flag;
 }
 @end
 
@@ -240,8 +341,10 @@ typedef struct {
   NSData	*data;
   unsigned	*cursor;
   BOOL		mutable;
+  BOOL		didUnique;
   void		(*debImp)();
   unsigned int	(*deiImp)();
+  FastArray_t	array;
 } _NSDeserializerInfo;
 
 static SEL	debSel = @selector(deserializeBytes:length:atCursor:);
@@ -255,6 +358,16 @@ initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
   info->mutable = m;
   info->debImp = (void (*)())[d methodForSelector: debSel];
   info->deiImp = (unsigned int (*)())[d methodForSelector: deiSel];
+  (*info->debImp)(d, debSel, &info->didUnique, 1, c);
+  if (info->didUnique)
+    FastArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
+}
+
+static void
+endDeserializerInfo(_NSDeserializerInfo* info)
+{
+  if (info->didUnique)
+    FastArrayEmpty(&info->array);
 }
 
 static id
@@ -268,6 +381,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
   switch (code)
     {
+      case ST_XREF:
+	{
+	  return [FastArrayItemAtIndex(&info->array, size).o retain];
+	}
+
       case ST_CSTRING:
 	{
 	  NSGCString	*s;
@@ -278,6 +396,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  s = [s initWithCStringNoCopy: b
 				length: size-1
 			      fromZone: NSDefaultMallocZone()];
+	  if (info->didUnique)
+	    FastArrayAddItem(&info->array, (FastArrayItem)s);
 	  return s;
 	}
 
@@ -291,6 +411,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  s = [s initWithCharactersNoCopy: b
 				   length: size
 			         fromZone: NSDefaultMallocZone()];
+	  if (info->didUnique)
+	    FastArrayAddItem(&info->array, (FastArrayItem)s);
 	  return s;
 	}
 
@@ -431,6 +553,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 - (void) dealloc
 {
   [info.data release];
+  endDeserializerInfo(&info);
   [plist release];
   [super dealloc];
 }
@@ -495,6 +618,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   NSAssert(cursor != 0, NSInvalidArgumentException);
   initDeserializerInfo(&info, data, cursor, flag);
   o = deserializeFromInfo(&info);
+  endDeserializerInfo(&info);
   [o autorelease];
   return o;
 }
@@ -509,6 +633,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   NSAssert(data != nil, NSInvalidArgumentException);
   initDeserializerInfo(&info, data, &cursor, flag);
   o = deserializeFromInfo(&info);
+  endDeserializerInfo(&info);
   [o autorelease];
   return o;
 }
@@ -527,6 +652,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       initDeserializerInfo(&info, data, cursor, flag);
       o = deserializeFromInfo(&info);
+      endDeserializerInfo(&info);
       [o autorelease];
       return o;
     }
