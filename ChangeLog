@@ -3,6 +3,9 @@
 	* Source/Additions/GCObject.m: Attempt to make garbage collecting
 	thread-safe.
 	* Source/Additions/GCArray.m: Fix count initialising mutable array.
+	* Source/Additions/GSMime.m: Provide a method to generate and return
+	a string suitable for use as a boundary.  Make tolerant of multipart
+	messages with 'application' as the message type.
 
 2002-11-25  Richard Frith-Macdonald <rfm@gnu.org>
 
