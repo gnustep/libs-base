@@ -10,7 +10,7 @@ If you think you can do one of these projects, please let me know.  Your
 help is greatly appreciated.  Send email to
 @samp{mccallum@@gnu.ai.mit.edu}. 
 
-@itemize
+@itemize @bullet
 
 @item Write a test-suite for the library.  Use dejagnu.
 
