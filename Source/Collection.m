@@ -300,7 +300,7 @@
 - detectObjectByInvoking: (id <Invoking>)anInvocation;
 {
   BOOL flag = YES;
-  id detectedObject;
+  id detectedObject = nil;
   id o;
 
   FOR_COLLECTION_WHILE_TRUE(self, o, flag)
@@ -321,11 +321,9 @@
 
 - maxObject
 {
-  id o, max;
+  id o, max = nil;
   BOOL firstTime = YES;
 
-  if (![self count])
-    return NO_OBJECT;
   FOR_COLLECTION(self, o)
     {
       if (firstTime)
@@ -345,11 +343,9 @@
 
 - minObject
 {
-  id o, min;
+  id o, min = nil;
   BOOL firstTime = YES;
 
-  if (![self count])
-    return NO_OBJECT;
   FOR_COLLECTION(self, o)
     {
       if (firstTime)
@@ -649,7 +645,6 @@
 {
   id *content_array;
   unsigned int count, i;
-  id o;
 
   [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&count
@@ -795,7 +790,7 @@
   int count;
   id o;
 
-  FOR_COLLECTION(self, o)
+  FOR_COLLECTION(cp, o)
     {
       count = [self occurrencesOfObject: o];
       if (!count)
@@ -803,7 +798,7 @@
       while (count--)
 	[self removeObject: o];
     }
-  END_FOR_COLLECTION(self);
+  END_FOR_COLLECTION(cp);
 }
 
 /* May be inefficient.  Could be overridden; */
