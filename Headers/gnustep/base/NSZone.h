@@ -25,9 +25,12 @@
 
 #include <objc/thr.h>
 
+
 @class NSString;
 
+
 typedef struct _NSZone NSZone;
+
 
 struct _NSZone
 {
@@ -38,7 +41,6 @@ struct _NSZone
   void (*recycle)(struct _NSZone *zone);
 
   size_t gran; // Zone granularity
-  objc_mutex_t lock; // Mutex for zone
   NSString *name; // Name of zone (default is 'nil')
 };
 
@@ -47,10 +49,13 @@ struct _NSZone
    want to use it. ;) Private variable. */
 extern NSZone* __nszone_private_hidden_default_zone;
 
+
 extern NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
 extern inline NSZone* NSDefaultMallocZone (void)
 { return __nszone_private_hidden_default_zone; }
+
+extern void NSSetDefaultMallocZone (NSZone *zone); // Not in OpenStep
 
 extern inline NSZone* NSZoneFromPointer (void *ptr)
 { return *((NSZone**)ptr-1); }
@@ -73,8 +78,5 @@ extern void NSSetZoneName (NSZone *zone, NSString *name);
 
 extern inline NSString* NSZoneName (NSZone *zone)
 { return zone->name; }
-
-/* Functions not in OpenStep. */
-extern BOOL NSZoneMemInUse (void *ptr);
 
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */

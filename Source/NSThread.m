@@ -120,6 +120,8 @@ static BOOL entered_multi_threaded_state;
 		        toTarget:(id)aTarget
                       withObject:(id)anArgument
 {
+  entered_multi_threaded_state = YES;
+
   // Have the runtime detach the thread
   objc_thread_detach (aSelector, aTarget, anArgument);
 
@@ -189,11 +191,13 @@ static BOOL entered_multi_threaded_state;
   objc_thread_exit ();
 }
 
+/* Not in OpenStep. */
 - (NSHandler*)exceptionHandler
 {
   return _exception_handler;
 }
 
+/* Not in OpenStep. */
 - (void)setExceptionHandler: (NSHandler*)handler
 {
   _exception_handler = handler;
