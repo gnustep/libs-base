@@ -6,8 +6,8 @@
 	* Source/NSException.m: flush stderr ... under windoze stderr is
 	not automatically flushed!
 	* Source/GSWindowsFileHandle.m: watch for exceptional conditions
-	so we can handle socket failures.
-	* Source/GSTcpPort.mL ditto.
+	so we can handle socket connection failures in mingw32.
+	* Source/GSTcpPort.m: ditto.
 
 2002-03-22  Richard Frith-Macdonald <rfm@gnu.org>
 
