@@ -2,6 +2,10 @@
 
 	* Tools/gdnc.m: Make gdnc log to syslog by default, and close
 	stdin, stdout, stderr to run as daemon.
+	* Source/NSUser.m: Restructured path generation code slightly.
+	Added support for system-wide .GNUsteprc with force options.
+	Removed use of FORCE_USER_ROOT and FORCE_DEFAULTS_ROOT
+	* Source/Base/gsdoc: Document the .GNUsteprc files.
 
 2002-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 

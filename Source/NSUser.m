@@ -297,13 +297,138 @@ NSFullUserName(void)
 #endif
 }
 
+static BOOL
+setupSystemRoot(NSDictionary *env)
+{
+  BOOL	warned = NO;
+	  
+  if (gnustep_system_root == nil)
+    {
+      /* Any of the following might be nil */
+      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+      gnustep_system_root = ImportPath(gnustep_system_root, 0);
+      TEST_RETAIN (gnustep_system_root);
+      if (gnustep_system_root == nil)
+	{
+	  /*
+	   * This is pretty important as we need it to load
+	   * character sets, language settings and similar
+	   * resources.  Use fprintf to avoid recursive calls.
+	   */
+	  warned = YES;
+	  gnustep_system_root
+	    = ImportPath(nil, stringify(GNUSTEP_INSTALL_PREFIX));
+	  RETAIN(gnustep_system_root);
+	  fprintf (stderr, 
+	    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
+		    "- using %s\n", [gnustep_system_root lossyCString]);
+	}
+    }
+  return warned;
+}
+
+static BOOL
+setupLocalRoot(NSDictionary *env, BOOL warned)
+{
+  if (gnustep_local_root == nil)
+    {
+      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+      gnustep_local_root = ImportPath(gnustep_local_root, 0);
+      TEST_RETAIN (gnustep_local_root);
+      if (gnustep_local_root == nil)
+	{
+	  gnustep_local_root
+	    = ImportPath(nil, stringify(GNUSTEP_LOCAL_ROOT));
+	  if ([gnustep_local_root length] == 0)
+	    {
+	      gnustep_local_root = nil;
+	    }
+	  else
+	    {
+	      RETAIN(gnustep_local_root);
+	    }
+	}
+      if (gnustep_local_root == nil)
+	{
+	  if ([[gnustep_system_root lastPathComponent] isEqual:
+	    @"System"] == YES)
+	    {
+	      gnustep_local_root = [[gnustep_system_root
+		stringByDeletingLastPathComponent]
+		stringByAppendingPathComponent: @"Local"];
+	      TEST_RETAIN (gnustep_local_root);
+	    }
+	  else
+	    {
+	      gnustep_local_root = @"/usr/GNUstep/Local";
+	    }
+#ifndef	NDEBUG
+	  if (warned == NO)
+	    {
+	      warned = YES;
+	      fprintf (stderr, 
+		"Warning - GNUSTEP_LOCAL_ROOT is not set "
+		"- using %s\n", [gnustep_local_root lossyCString]);
+	    }
+#endif
+	}
+    }
+  return warned;
+}
+
+static BOOL
+setupNetworkRoot(NSDictionary *env, BOOL warned)
+{
+  if (gnustep_network_root == nil)
+    {
+      gnustep_network_root = [env objectForKey: @"GNUSTEP_NETWORK_ROOT"];
+      gnustep_network_root = ImportPath(gnustep_network_root, 0);
+      TEST_RETAIN (gnustep_network_root);
+      if (gnustep_network_root == nil)
+	{
+	  gnustep_network_root
+	    = ImportPath(nil, stringify(GNUSTEP_NETWORK_ROOT));
+	  if ([gnustep_network_root length] == 0)
+	    {
+	      gnustep_network_root = nil;
+	    }
+	  else
+	    {
+	      RETAIN(gnustep_network_root);
+	    }
+	}
+      if (gnustep_network_root == nil)
+	{
+	  if ([[gnustep_system_root lastPathComponent] isEqual:
+	    @"System"] == YES)
+	    {
+	      gnustep_network_root = [[gnustep_system_root
+		stringByDeletingLastPathComponent]
+		stringByAppendingPathComponent: @"Network"];
+	      TEST_RETAIN (gnustep_network_root);
+	    }
+	  else
+	    {
+	      gnustep_network_root = @"/usr/GNUstep/Network";
+	    }
+#ifndef	NDEBUG
+	  if (warned == NO)
+	    {
+	      warned = YES;
+	      fprintf (stderr, 
+		"Warning - GNUSTEP_NETWORK_ROOT is not set "
+		"- using %s\n", [gnustep_network_root lossyCString]);
+	    }
+#endif
+	}
+    }
+  return warned;
+}
+
+
 static void
 setupPathNames()
 {
-#if defined (__MINGW32__)
-  NSString *systemDrive = GSStringFromWin32EnvironmentVariable("SystemDrive");
-  systemDrive = ImportPath(systemDrive, 0);
-#endif
   if (gnustep_user_root == nil)
     {
       NS_DURING
@@ -313,128 +438,9 @@ setupPathNames()
 	  
 	  [gnustep_global_lock lock];
 
-	  /* Double-Locking Pattern */
-	  if (gnustep_system_root == nil)
-	    {
-	      /* Any of the following might be nil */
-	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
-	      gnustep_system_root = ImportPath(gnustep_system_root, 0);
-	      TEST_RETAIN (gnustep_system_root);
-	      if (gnustep_system_root == nil)
-		{
-		  /*
-		   * This is pretty important as we need it to load
-		   * character sets, language settings and similar
-		   * resources.  Use fprintf to avoid recursive calls.
-		   */
-		  warned = YES;
-		  gnustep_system_root
-		    = ImportPath(nil, stringify(GNUSTEP_INSTALL_PREFIX));
-#if defined (__MINGW32__)
-                  gnustep_system_root = [systemDrive stringByAppendingString:
-                                          gnustep_system_root];
-#endif
-		  RETAIN(gnustep_system_root);
-		  fprintf (stderr, 
-		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
-		    "- using %s\n", [gnustep_system_root lossyCString]);
-		}
-	    }
-	  if (gnustep_local_root == nil)
-	    {
-	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
-	      gnustep_local_root = ImportPath(gnustep_local_root, 0);
-	      TEST_RETAIN (gnustep_local_root);
-	      if (gnustep_local_root == nil)
-		{
-		  gnustep_local_root = ImportPath(nil,
-					  stringify(GNUSTEP_LOCAL_ROOT));
-#if defined (__MINGW32__)
-                  gnustep_local_root = [systemDrive stringByAppendingString:
-                                         gnustep_local_root];
-#endif
-		  if ([gnustep_local_root length] == 0)
-		    {
-		      gnustep_local_root = nil;
-		    }
-		  else
-		    {
-		      RETAIN(gnustep_local_root);
-		    }
-		}
-	      if (gnustep_local_root == nil)
-		{
-		  if ([[gnustep_system_root lastPathComponent] isEqual:
-		    @"System"] == YES)
-		    {
-		      gnustep_local_root = [[gnustep_system_root
-			stringByDeletingLastPathComponent]
-			stringByAppendingPathComponent: @"Local"];
-		      TEST_RETAIN (gnustep_local_root);
-		    }
-		  else
-		    {
-		      gnustep_local_root = @"/usr/GNUstep/Local";
-		    }
-#ifndef	NDEBUG
-		  if (warned == NO)
-		    {
-		      warned = YES;
-		      fprintf (stderr, 
-			"Warning - GNUSTEP_LOCAL_ROOT is not set "
-			"- using %s\n", [gnustep_local_root lossyCString]);
-		    }
-#endif
-		}
-	    }
-	  if (gnustep_network_root == nil)
-	    {
-	      gnustep_network_root = [env objectForKey: 
-		@"GNUSTEP_NETWORK_ROOT"];
-	      gnustep_network_root = ImportPath(gnustep_network_root, 0);
-	      TEST_RETAIN (gnustep_network_root);
-	      if (gnustep_network_root == nil)
-		{
-		  gnustep_network_root = ImportPath(nil, 
-					  stringify(GNUSTEP_NETWORK_ROOT));
-#if defined (__MINGW32__)
-                  gnustep_network_root = [systemDrive stringByAppendingString:
-                                           gnustep_network_root];
-#endif
-		  if ([gnustep_network_root length] == 0)
-		    {
-		      gnustep_network_root = nil;
-		    }
-		  else
-		    {
-		      RETAIN(gnustep_network_root);
-		    }
-		}
-	      if (gnustep_network_root == nil)
-		{
-		  if ([[gnustep_system_root lastPathComponent] isEqual:
-		    @"System"] == YES)
-		    {
-		      gnustep_network_root = [[gnustep_system_root
-			stringByDeletingLastPathComponent]
-			stringByAppendingPathComponent: @"Network"];
-		      TEST_RETAIN (gnustep_network_root);
-		    }
-		  else
-		    {
-		      gnustep_network_root = @"/usr/GNUstep/Network";
-		    }
-#ifndef	NDEBUG
-		  if (warned == NO)
-		    {
-		      warned = YES;
-		      fprintf (stderr, 
-			"Warning - GNUSTEP_NETWORK_ROOT is not set "
-			"- using %s\n", [gnustep_network_root lossyCString]);
-		    }
-#endif
-		}
-	    }
+	  warned = setupSystemRoot(env);
+	  warned = setupLocalRoot(env, warned);
+	  warned = setupNetworkRoot(env, warned);
 	  if (gnustep_user_root == nil)
 	    {
 	      gnustep_user_root = [userDirectory(NSUserName(), NO) copy];
@@ -487,42 +493,23 @@ userDirectory(NSString *name, BOOL defaults)
   NSString	*file;
   NSString	*user = nil;
   NSString	*defs = nil;
+  BOOL		forceD = NO;
+  BOOL		forceU = NO;
 
   NSCAssert([name length] > 0, NSInvalidArgumentException);
 
-  if (defaults == YES)
-    {
-#ifdef	FORCE_DEFAULTS_ROOT
-      return ImportPath(nil, stringify(FORCE_DEFAULTS_ROOT));
-#endif
-    }
-  else
-    {
-#ifdef	FORCE_USER_ROOT
-      return ImportPath(nil, stringify(FORCE_USER_ROOT));
-#endif
-    }
-
-  home = NSHomeDirectoryForUser(name);
-  file = [home stringByAppendingPathComponent: @".GNUsteprc"];
   manager = [NSFileManager defaultManager];
-  /*
-   * If there is no per-user  startup file, look in the one in the
-   * configured system root directory.  NB. Don't use the environment
-   * variable ... that could have been changed!
-   */
-  if ([manager isReadableFileAtPath: file] == NO)
-    {
-      NSString	*root;
 
-      root = ImportPath(nil, stringify(GNUSTEP_INSTALL_PREFIX));
-#if defined (__MINGW32__)
-      root = [GSStringFromWin32EnvironmentVariable("SystemDrive")
-	stringByAppendingString: gnustep_system_root];
-      root = ImportPath(root, 0);
-#endif
-      file = [root stringByAppendingPathComponent: @".GNUsteprc"];
+  if (gnustep_system_root == nil)
+    {
+      NSDictionary	*env = [[NSProcessInfo processInfo] environment];
+	  
+      [gnustep_global_lock lock];
+      setupSystemRoot(env);
+      [gnustep_global_lock unlock];
     }
+  file = [gnustep_system_root stringByAppendingPathComponent: @".GNUsteprc"];
+
   if ([manager isReadableFileAtPath: file] == YES)
     {
       NSArray	*lines;
@@ -535,33 +522,105 @@ userDirectory(NSString *name, BOOL defaults)
 	{
 	  NSRange	r;
 	  NSString	*line;
+	  NSString	*key;
+	  NSString	*val;
 
 	  line = [[lines objectAtIndex: count] stringByTrimmingSpaces];
 	  r = [line rangeOfString: @"="];
 	  if (r.length == 1)
 	    {
-	      NSString	*key = [line substringToIndex: r.location];
-	      NSString	*val = [line substringFromIndex: NSMaxRange(r)];
+	      key = [line substringToIndex: r.location];
+	      val = [line substringFromIndex: NSMaxRange(r)];
 
 	      key = [key stringByTrimmingSpaces];
 	      val = [val stringByTrimmingSpaces];
-	      if ([key isEqualToString: @"GNUSTEP_USER_ROOT"] == YES)
+	    }
+	  else
+	    {
+	      key = [line stringByTrimmingSpaces];
+	      val = nil;
+	    }
+
+	  if ([key isEqualToString: @"GNUSTEP_USER_ROOT"] == YES)
+	    {
+	      if ([val length] > 0 && [val characterAtIndex: 0] == '~')
 		{
-		  if ([val length] > 0 && [val characterAtIndex: 0] == '~')
-		    {
-		      val = [home stringByAppendingString:
-			[val substringFromIndex: 1]];
-		    }
-		  user = val;
+		  val = [home stringByAppendingString:
+		    [val substringFromIndex: 1]];
 		}
-	      else if ([key isEqualToString: @"GNUSTEP_DEFAULTS_ROOT"] == YES)
+	      user = val;
+	    }
+	  else if ([key isEqualToString: @"GNUSTEP_DEFAULTS_ROOT"] == YES)
+	    {
+	      if ([val length] > 0 && [val characterAtIndex: 0] == '~')
 		{
-		  if ([val length] > 0 && [val characterAtIndex: 0] == '~')
+		  val = [home stringByAppendingString:
+		    [val substringFromIndex: 1]];
+		}
+	      defs = val;
+	    }
+	  else if ([key isEqualToString: @"FORCE_USER_ROOT"] == YES)
+	    {
+	      forceU = YES;
+	    }
+	  else if ([key isEqualToString: @"FORCE_DEFAULTS_ROOT"] == YES)
+	    {
+	      forceD = YES;
+	    }
+	}
+    }
+
+  if (forceD == NO || defs == nil || forceU == NO || user == nil)
+    {
+      home = NSHomeDirectoryForUser(name);
+      file = [home stringByAppendingPathComponent: @".GNUsteprc"];
+
+      if ([manager isReadableFileAtPath: file] == YES)
+	{
+	  NSArray	*lines;
+	  unsigned	count;
+
+	  file = [NSString stringWithContentsOfFile: file];
+	  lines = [file componentsSeparatedByString: @"\n"];
+	  count = [lines count];
+	  while (count-- > 0)
+	    {
+	      NSRange	r;
+	      NSString	*line;
+
+	      line = [[lines objectAtIndex: count] stringByTrimmingSpaces];
+	      r = [line rangeOfString: @"="];
+	      if (r.length == 1)
+		{
+		  NSString	*key = [line substringToIndex: r.location];
+		  NSString	*val = [line substringFromIndex: NSMaxRange(r)];
+
+		  key = [key stringByTrimmingSpaces];
+		  val = [val stringByTrimmingSpaces];
+		  if ([key isEqualToString: @"GNUSTEP_USER_ROOT"] == YES)
 		    {
-		      val = [home stringByAppendingString:
-			[val substringFromIndex: 1]];
+		      if ([val length] > 0 && [val characterAtIndex: 0] == '~')
+			{
+			  val = [home stringByAppendingString:
+			    [val substringFromIndex: 1]];
+			}
+		      if (user == nil || forceU == NO)
+			{
+			  user = val;
+			}
 		    }
-		  defs = val;
+		  else if ([key isEqualToString: @"GNUSTEP_DEFAULTS_ROOT"])
+		    {
+		      if ([val length] > 0 && [val characterAtIndex: 0] == '~')
+			{
+			  val = [home stringByAppendingString:
+			    [val substringFromIndex: 1]];
+			}
+		      if (defs == nil || forceD == NO)
+			{
+			  defs = val;
+			}
+		    }
 		}
 	    }
 	}
