@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "GNUstepBase/preface.h"
+#include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSCalendarDate.h"
 #include "Foundation/NSArray.h"
@@ -4988,163 +4989,164 @@ elementNode(GSXMLNode* node)
 static id
 nodeToObject(GSXMLNode* node)
 {
-  NSString	*name;
-  NSString	*content;
-  GSXMLNode	*children;
+  CREATE_AUTORELEASE_POOL(arp);
+  id		result = nil;
 
   node = elementNode(node);
-  if (node == nil)
+  if (node != nil)
     {
-      return nil;
-    }
-  name = [node name];
-  children = [node firstChild];
-  content = [children content];
-  children = elementNode(children);
+      NSString	*name;
+      NSString	*content;
+      GSXMLNode	*children;
 
-  if ([name isEqualToString: @"string"]
-    || [name isEqualToString: @"key"])
-    {
-      if (content == nil)
-	{
-	  content = @"";
-	}
-      else
-	{
-	  NSRange	r;
+      name = [node name];
+      children = [node firstChild];
+      content = [children content];
+      children = elementNode(children);
 
-	  r = [content rangeOfString: @"\\"];
-	  if (r.length == 1)
+      if ([name isEqualToString: @"string"]
+	|| [name isEqualToString: @"key"])
+	{
+	  if (content == nil)
 	    {
-	      unsigned	len = [content length];
-	      unichar	buf[len];
-	      unsigned	pos = r.location;
+	      content = @"";
+	    }
+	  else
+	    {
+	      NSRange	r;
 
-	      [content getCharacters: buf];
-	      while (pos < len)
+	      r = [content rangeOfString: @"\\"];
+	      if (r.length == 1)
 		{
-		  if (++pos < len)
+		  unsigned	len = [content length];
+		  unichar	buf[len];
+		  unsigned	pos = r.location;
+
+		  [content getCharacters: buf];
+		  while (pos < len)
 		    {
-		      if ((buf[pos] == 'u' || buf[pos] == 'U')
-			&& (len >= pos + 4))
+		      if (++pos < len)
 			{
-			  unichar	val = 0;
-			  unsigned	i;
-			  BOOL		ok = YES;
-
-			  for (i = 1; i < 5; i++)
+			  if ((buf[pos] == 'u' || buf[pos] == 'U')
+			    && (len >= pos + 4))
 			    {
-			      unichar	c = buf[pos + i];
+			      unichar	val = 0;
+			      unsigned	i;
+			      BOOL		ok = YES;
 
-			      if (c >= '0' && c <= '9')
+			      for (i = 1; i < 5; i++)
 				{
-				  val = (val << 4) + c - '0';
+				  unichar	c = buf[pos + i];
+
+				  if (c >= '0' && c <= '9')
+				    {
+				      val = (val << 4) + c - '0';
+				    }
+				  else if (c >= 'A' && c <= 'F')
+				    {
+				      val = (val << 4) + c - 'A' + 10;
+				    }
+				  else if (c >= 'a' && c <= 'f')
+				    {
+				      val = (val << 4) + c - 'a' + 10;
+				    }
+				  else
+				    {
+				      ok = NO;
+				    }
 				}
-			      else if (c >= 'A' && c <= 'F')
+			      if (ok == YES)
 				{
-				  val = (val << 4) + c - 'A' + 10;
-				}
-			      else if (c >= 'a' && c <= 'f')
-				{
-				  val = (val << 4) + c - 'a' + 10;
-				}
-			      else
-				{
-				  ok = NO;
+				  len -= 5;
+				  memcpy(&buf[pos], &buf[pos+5],
+				    (len - pos) * sizeof(unichar));
+				  buf[pos - 1] = val;
 				}
 			    }
-			  if (ok == YES)
+			  while (pos < len && buf[pos] != '\\')
 			    {
-			      len -= 5;
-			      memcpy(&buf[pos], &buf[pos+5],
-				(len - pos) * sizeof(unichar));
-			      buf[pos - 1] = val;
+			      pos++;
 			    }
-			}
-		      while (pos < len && buf[pos] != '\\')
-			{
-			  pos++;
 			}
 		    }
+		  content = [NSString stringWithCharacters: buf length: len];
 		}
-	      content = [NSString stringWithCharacters: buf length: len];
 	    }
+	  result = content;
 	}
-      return content;
-    }
-  else if ([name isEqualToString: @"true"])
-    {
-      return [NSNumber numberWithBool: YES];
-    }
-  else if ([name isEqualToString: @"false"])
-    {
-      return [NSNumber numberWithBool: NO];
-    }
-  else if ([name isEqualToString: @"integer"])
-    {
-      if (content == nil)
+      else if ([name isEqualToString: @"true"])
 	{
-	  content = @"0";
+	  result = [NSNumber numberWithBool: YES];
 	}
-      return [NSNumber numberWithInt: [content intValue]];
-    }
-  else if ([name isEqualToString: @"real"])
-    {
-      if (content == nil)
+      else if ([name isEqualToString: @"false"])
 	{
-	  content = @"0.0";
+	  result = [NSNumber numberWithBool: NO];
 	}
-      return [NSNumber numberWithDouble: [content doubleValue]];
-    }
-  else if ([name isEqualToString: @"date"])
-    {
-      if (content == nil)
+      else if ([name isEqualToString: @"integer"])
 	{
-	  content = @"";
+	  if (content == nil)
+	    {
+	      content = @"0";
+	    }
+	  result = [NSNumber numberWithInt: [content intValue]];
 	}
-      return [NSCalendarDate dateWithString: content
-                             calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
-    }
-  else if ([name isEqualToString: @"data"])
-    {
-      return [GSMimeDocument decodeBase64String: content];
-    }
-  // container class
-  else if ([name isEqualToString: @"array"])
-    {
-      NSMutableArray	*container = [NSMutableArray array];
+      else if ([name isEqualToString: @"real"])
+	{
+	  if (content == nil)
+	    {
+	      content = @"0.0";
+	    }
+	  result = [NSNumber numberWithDouble: [content doubleValue]];
+	}
+      else if ([name isEqualToString: @"date"])
+	{
+	  if (content == nil)
+	    {
+	      content = @"";
+	    }
+	  result = [NSCalendarDate dateWithString: content
+				 calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
+	}
+      else if ([name isEqualToString: @"data"])
+	{
+	  result = [GSMimeDocument decodeBase64String: content];
+	}
+      // container class
+      else if ([name isEqualToString: @"array"])
+	{
+	  NSMutableArray	*container = [NSMutableArray array];
 
-      while (children != nil)
-        {
-	  id	val;
+	  while (children != nil)
+	    {
+	      id	val;
 
-	  val = nodeToObject(children);
-          [container addObject: val];
-          children = elementNode([children next]);
-        }
-      return container;
-    }
-  else if ([name isEqualToString: @"dict"])
-    {
-      NSMutableDictionary	*container = [NSMutableDictionary dictionary];
+	      val = nodeToObject(children);
+	      [container addObject: val];
+	      children = [children nextElement];
+	    }
+	  result = container;
+	}
+      else if ([name isEqualToString: @"dict"])
+	{
+	  NSMutableDictionary	*container = [NSMutableDictionary dictionary];
 
-      while (children != nil)
-        {
-	  NSString	*key;
-	  id		val;
+	  while (children != nil)
+	    {
+	      NSString	*key;
+	      id	val;
 
-	  key = nodeToObject(children);
-          children = elementNode([children next]);
-	  val = nodeToObject(children);
-          children = elementNode([children next]);
-          [container setObject: val forKey: key];
-        }
-      return container;
+	      key = nodeToObject(children);
+	      children = [children nextElement];
+	      val = nodeToObject(children);
+	      children = [children nextElement];
+	      [container setObject: val forKey: key];
+	    }
+	  result = container;
+	}
     }
-  else
-    {
-      return nil;
-    }
+  RETAIN(result);
+  RELEASE(arp);
+  return AUTORELEASE(result);
 }
 #endif
 
