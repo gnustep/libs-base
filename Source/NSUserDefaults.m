@@ -909,6 +909,32 @@ static NSString	*pathForUser(NSString *user)
 }
 
 /**
+ * Adds the domain names aName to the search list of the receiver.<br />
+ * The domain is added after the application domain.<br />
+ * Suites may be removed using the -removeSuiteName: method.
+ */
+- (void) addSuiteNamed: (NSString*)aName
+{
+  unsigned	index;
+
+  if (aName == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"attempt to add suite with nil name"];
+    }
+  [_lock lock];
+  DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
+  [_searchList removeObject: aName];
+  index = [_searchList indexOfObject: processName];
+  index++;	// NSNotFound wraps to zero ... insert at start.
+  aName = [aName copy];
+  [_searchList insertObject: aName atIndex: index];
+  [_lock unlock];
+  RELEASE(aName);
+}
+
+/**
  * Looks up a value for a specified default using -objectForKey:
  * and checks that it is an NSArray object.  Returns nil if it is not.
  */
@@ -1755,6 +1781,24 @@ static BOOL isPlistObject(id o)
   DESTROY(_dictionaryRep);
   if (self == sharedDefaults) invalidatedLanguages = YES;
   [regDefs addEntriesFromDictionary: newVals];
+  [_lock unlock];
+}
+
+/**
+ * Removes the named domain from the serach list of the receiver.<br />
+ * Suites may be added using the -addSuiteName: method.
+ */
+- (void) removeSuiteNamed: (NSString*)aName
+{
+  if (aName == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"attempt to remove suite with nil name"];
+    }
+  [_lock lock];
+  DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
+  [_searchList removeObject: aName];
   [_lock unlock];
 }
 

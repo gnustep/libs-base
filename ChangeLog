@@ -1,3 +1,8 @@
+2004-06-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Added MacOS-X compatibility methods ..
+	([addSuiteNamed:]) and ([removeSuiteNamed:])
+
 2004-06-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/plparse.m: Check for and report illegal (non-ascii) characters
