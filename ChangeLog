@@ -1,5 +1,18 @@
 Sun Jan 12 13:46:38 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 
+	* Version (SUBMINOR_VERSION): Version 0.2.12.  There seems to be
+	a problem with Richard and my patches to distributed objects, but
+	many other bug fixes have been added, NSZone has a complete
+	re-write, -awakeAfterUsingCoder: is now called, and NSString is
+	all cleaned up and ready to go.  Richard and I will work on fixing
+	D.O. for the next release.
+
+	* examples/second-client.m: Include <Foundation/NSString.h>
+ 	instead of <gnustep/base/String.h>.
+	* examples/second-server.m: Likewise.
+	* examples/first-client.m: Likewise.
+	* examples/first-server.m: Likewise.
+
 	Finish code necessary for versioning in CStreams and Coders.
 	Test this code by actually making a new format for BinaryCStream;
 	files created with the new format should be, on average, 4/5 the
