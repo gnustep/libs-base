@@ -1,0 +1,125 @@
+\input texinfo  @c -*- texinfo -*-
+@c %**start of header
+@setfilename NSZone.info
+@settitle Zone Functions in GNUstep
+@c %**end of header
+
+@ifinfo
+This explains the zone functions in the GNUstep base library.
+
+This document is in the public domain.
+@end ifinfo
+
+@titlepage
+@title Zone Funtions in GNUstep
+@author Yoo C. Chung
+@end titlepage
+
+
+@node Top, (dir), (dir), (dir)
+@comment  node-name,  next,  previous,  up
+
+@ifinfo
+This explains how to use the zone functions in the GNUstep base library.
+@end ifinfo
+
+For the current implementation, memory allocated by @code{malloc()}
+cannot be freed by @code{NSZoneFree()}, and memory allocated by
+@code{NSZoneMalloc()} cannot be freed by @code{free()}.
+
+All the zone functions should be thread safe, though you should still be
+careful (it wouldn't make much sense to use a zone before it's created
+or after it's recycled).
+
+
+@deftypefun {NSZone *} NSCreateZone (size_t @var{start}, size_t @var{gran}, BOOL @var{canFree})
+Creates a memory zone which starts with a size of at least @var{start}
+bytes and grows by at least @var{gran} bytes when needed.  If
+@var{canFree} is @code{YES}, then memory allocated in the zone can be
+freed.  If @var{canFree} is @code{NO}, then memory allocated in the zone
+cannot be freed unless the whole zone is recycled (in which case the
+memory will be returned to the system regardless of whether they are
+still in use).
+
+If @var{start} is zero, the zone will start out with some default size.
+If @var{gran} is zero, the zone will grow by some default number of
+bytes when the zone needs more memory.
+
+There is no advantage in setting @var{start} or @var{gran} to a multiple
+of the page size of the machine.
+@end deftypefun
+
+
+@deftypefun {NSZone *} NSDefaultMallocZone (void)
+Returns the default memory zone.
+@end deftypefun
+
+
+@deftypefun {NSZone *} NSZoneFromPointer(void *@var{ptr})
+Finds the zone that contains the memory pointed to by @var{ptr}.  This
+should be very fast.
+@end deftypefun
+
+
+@deftypefun void NSRecycleZone (NSZone *@var{zone})
+This function destroys the zone.  If @var{zone} is a zone that can free
+allocated memory, then memory blocks in the zone that are still in use
+will be merged with the default zone (or at least they should be, they
+currently aren't merged).  If not, all memory in the zone will be
+reclaimed.
+@end deftypefun
+
+
+@deftypefun {void *} NSZoneMalloc (NSZone *@var{zone}, size_t @var{size})
+Allocate @var{size} bytes from @var{zone} and return a pointer to the
+allocated memory.
+
+If @var{size} is zero @code{NULL} is returned.
+@end deftypefun
+
+
+@deftypefun {void *} NSZoneCalloc (NSZone *@var{zone}, size_t @var{elems}, size_t @var{bytes})
+Allocate memory for @var{elems} elements (each of which are @var{bytes}
+bytes) from @var{zone}.  The memory is initialized with zeroes.
+
+If either @var{elems} or @var{bytes} is zero, NULL is returned.
+@end deftypefun
+
+
+@deftypefun {void *} NSZoneRealloc (NSZone *@var{zone}, void *@var{ptr}, size_t @var{size})
+Resizes the memory block pointed to by @var{ptr} to @var{size} bytes.
+If the memory block needs to be relocated, then the original contents
+will be copied to the new location.  @var{ptr} may be @code{NULL}, in
+which case a new memory block will be allocated from the zone.
+
+If @var{size} is zero, the memory pointed to by @var{ptr} is freed.
+@end deftypefun
+
+
+@deftypefun void NSZoneFree (NSZone *@var{zone}, void *@var{ptr})
+This frees the allocated memory that @var{ptr} points at.  The memory
+block must have been allocated from the @var{zone}.
+@end deftypefun
+
+
+@deftypefun void NSSetZoneName (NSZone *@var{zone}, NSString *@var{name})
+This sets a name for @var{zone}.  If @var{name} is @code{nil}, the name
+of the zone will be unset if there was a name previously set.  Otherwise
+a copy will be made of @var{name} in the default zone.
+@end deftypefun
+
+
+@deftypefun {NSString *} NSZoneName (NSZone *@var{zone})
+Returns the name for @var{zone}.  Don't release it!
+@end deftypefun
+
+
+@deftypefun {BOOL} NSZoneInUse (void *@var{ptr})
+Returns whether @var{ptr} points to memory that has been allocated or not.
+It does not work for memory allocated from a zone that cannot free memory.
+
+This function is not in OpenStep.
+@end deftypefun
+
+
+@bye
