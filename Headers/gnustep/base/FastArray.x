@@ -30,10 +30,10 @@
 #endif
 
 /* To turn assertions on, comment out the following four lines */
-#ifndef	NS_BLOCK_ASSERTIONS
-#define	NS_BLOCK_ASSERTIONS	1
-#define	FAST_ARRAY_BLOCKED_ASSERTIONS	1
-#endif
+//#ifndef	NS_BLOCK_ASSERTIONS
+//#define	NS_BLOCK_ASSERTIONS	1
+//#define	FAST_ARRAY_BLOCKED_ASSERTIONS	1
+//#endif
 
 #define	FAST_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
 
@@ -155,7 +155,7 @@ FastArrayInsertItem(FastArray array, FastArrayItem item, unsigned index)
     {
       FastArrayGrow(array);
     }
-  for (i = ++array->count; i > index; i--)
+  for (i = array->count++; i > index; i--)
     {
       array->ptr[i] = array->ptr[i-1];
     }
@@ -173,7 +173,7 @@ FastArrayInsertItemNoRetain(FastArray array, FastArrayItem item, unsigned index)
     {
       FastArrayGrow(array);
     }
-  for (i = ++array->count; i > index; i--)
+  for (i = array->count++; i > index; i--)
     {
       array->ptr[i] = array->ptr[i-1];
     }
@@ -257,7 +257,7 @@ FastArrayCheckSort(FastArray array, int (*sorter)())
 {
   unsigned	i;
 
-  for (i = 1; i < FastArrayCount(array); i++)
+  for (i = 1; i < array->count; i++)
     {
       NSCAssert(((*sorter)(array->ptr[i-1], array->ptr[i]) <= 0),
 	NSInvalidArgumentException);
