@@ -1768,16 +1768,19 @@ static Class		tcpPortClass;
 	}
       [tcpPortLock unlock];
 
-      handleArray = NSAllMapTableValues(handles);
-      i = [handleArray count];
-      while (i-- > 0)
+      if (handles != 0)
 	{
-	  GSTcpHandle	*handle = [handleArray objectAtIndex: i];
+	  handleArray = NSAllMapTableValues(handles);
+	  i = [handleArray count];
+	  while (i-- > 0)
+	    {
+	      GSTcpHandle	*handle = [handleArray objectAtIndex: i];
 
-	  [handle invalidate];
+	      [handle invalidate];
+	    }
+	  NSFreeMapTable(handles);
+	  handles = 0;
 	}
-      NSFreeMapTable(handles);
-      handles = 0;
       [super invalidate];
     }
   DO_UNLOCK(myLock);
