@@ -366,20 +366,20 @@ decode (const void *ptr)
     }
 
   /*
-   * Return a chached time zone if possible.
+   * Return a cached time zone if possible.
    */
   if (zone_mutex != nil)
     {
       [zone_mutex lock];
     }
   zone = [zoneDictionary objectForKey: name];
+  IF_NO_GC(RETAIN(zone));
+  if (zone_mutex != nil)
+    {
+      [zone_mutex unlock];
+    }
   if (zone != nil)
     {
-      IF_NO_GC(RETAIN(zone));
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex unlock];
-	}
       return zone;
     }
 
