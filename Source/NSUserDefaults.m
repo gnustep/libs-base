@@ -404,7 +404,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	{
 	  NSString *locale = GSSetLocale(nil);
 	  if (locale == nil)
-	    break;
+	    continue;
 	  /* See if we can get the dictionary from i18n functions.
 	     Note that we get the dict from the current locale regardless
 	     of what 'lang' is, since it should match anyway. */
