@@ -1,7 +1,7 @@
 # @configure_input@
 #
 #  src makefile for GNU Objective-C Class library
-#  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+#  Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 #
 #  Written by:	Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 #
@@ -377,6 +377,7 @@ NSGSet.m \
 NSHashTable.m \
 NSInvocation.m \
 NSLock.m \
+NSLog.m \
 NSMapTable.m \
 NSMethodSignature.m \
 NSNotification.m \
