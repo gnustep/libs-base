@@ -30,6 +30,7 @@
 @class Stream;
 @class Dictionary;
 @class Stack;
+@class Set;
 
 @interface Coder : NSObject <Encoding, Decoding>
 {
@@ -42,7 +43,7 @@
   Dictionary *const_ptr_table;       /* read/written const *'s */
   Stack *root_object_tables;         /* Stack of Dicts for interconnt'd objs */
   Stack *forward_object_tables;      /* Stack of Dictionaries for frwd refs */
-  Dictionary *in_progress_table;     /* objects started r/w, but !finished */
+  Set *in_progress_table;     /* objects started r/w, but !finished */
 }
 
 + (void) setDefaultStreamClass: sc;
