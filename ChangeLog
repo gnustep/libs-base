@@ -4,6 +4,7 @@ Mon Mar  2 10:04:57 1998  Adam Fedor  <fedor@doc.com>
 	* ANNOUNCE, NEWS, GNUstep-HOWTO: Update.
 	* doc/faq.tmpl.texi, doc/gnustep-howto.tmpl.texi,
 	doc/news.tmpl.texi: Likewise.
+	* src/GNUmakefile (GENERATED_HAFILES): Add include/o_...
 
 Thu Feb 26 12:49:10 1998  Adam Fedor  <fedor@doc.com>
 
