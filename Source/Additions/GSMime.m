@@ -813,6 +813,7 @@ parseCharacterSet(NSString *token)
 			}
 		      if ([self parseHeader: header] == NO)
 			{
+			  hadErrors = YES;
 			  break;
 			}
 		    }
@@ -891,10 +892,16 @@ parseCharacterSet(NSString *token)
 }
 
 /**
- * Returns YES if the document parsing is known to be completed.
+ * Returns YES if the document parsing is known to be completed successfully.
+ * Returns NO if either more data is needed, or if the parser encountered an
+ * error.
  */
 - (BOOL) isComplete
 {
+  if (hadErrors == YES)
+    {
+      return NO;
+    }
   return complete;
 }
 
@@ -965,6 +972,12 @@ parseCharacterSet(NSString *token)
  *   is complete.
  * </p>
  * <p>
+ *   The parser attempts to be as flexible as possible and to continue
+ *   parsing wherever it can.  If an error occurs in parsing, the
+ *   -isComplete method will always return NO, even after the -parse:
+ *   method has been called with a nil argument.
+ * </p>
+ * <p>
  *   A multipart document will be parsed to content consisting of an
  *   NSArray of GSMimeDocument instances representing each part.<br />
  *   Otherwise, a document will become content of type NSData, unless
@@ -1009,6 +1022,7 @@ parseCharacterSet(NSString *token)
 		    }
 		  if ([self parseHeader: header] == NO)
 		    {
+		      hadErrors = YES;
 		      return NO;	/* Header not parsed properly.	*/
 		    }
 		  NSDebugMLLog(@"GSMime", @"Parsed header '%@'", header);
@@ -2049,9 +2063,13 @@ parseCharacterSet(NSString *token)
 		  endedFinalPart = YES;
 		}
 	      if (bytes[sectionStart] == '\r')
-		sectionStart++;
+		{
+		  sectionStart++;
+		}
 	      if (bytes[sectionStart] == '\n')
-		sectionStart++;
+		{
+		  sectionStart++;
+		}
 
 	      /*
 	       * Create data object for this section and pass it to the

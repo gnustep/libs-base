@@ -127,6 +127,7 @@
   BOOL			inBody;
   BOOL			isHttp;
   BOOL			complete;
+  BOOL			hadErrors;
   NSData		*boundary;
   GSMimeDocument	*document;
   GSMimeParser		*child;
