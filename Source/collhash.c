@@ -1,5 +1,5 @@
 /* Hash tables for Objective C internal structures
-   Copyright (C) 1993 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU CC.
 
@@ -290,6 +290,7 @@ coll_hash_next (coll_cache_ptr cache, void** state)
   } else
     {
       (*objc_free)(*state);
+      *state = (void*)0;
       return 0;
     }
 }
