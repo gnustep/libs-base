@@ -318,6 +318,7 @@ foundation/NSObjCRuntime.h \
 foundation/NSObject.h \
 foundation/NSRange.h \
 foundation/NSString.h \
+foundation/NSUtilities.h \
 foundation/NSValue.h \
 foundation/NSZone.h \
 foundation/objc-load.h \
