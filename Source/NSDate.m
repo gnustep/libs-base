@@ -99,7 +99,7 @@
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self != NSDate)
+  if (self != [NSDate class])
     return [super allocWithZone:z];
   return [NSConcreteDate allocWithZone:z];
 }
