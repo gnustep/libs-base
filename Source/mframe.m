@@ -401,6 +401,16 @@ mframe_do_call (const char *encoded_types,
     {
       __builtin_return (rframe);
     }
+  /* For extracting a return value of type `char' from RETFRAME */
+  char retframe_char (void *rframe)
+    {
+      __builtin_return (rframe);
+    }
+  /* For extracting a return value of type `short' from RETFRAME */
+  short retframe_short (void *rframe)
+    {
+      __builtin_return (rframe);
+    }
 
 
   /* Decode the object, (which is always the first argument to a method),
@@ -627,10 +637,6 @@ mframe_do_call (const char *encoded_types,
       /* No return value to encode; do nothing. */
       break;
 
-    case _C_ID:
-      (*encoder) (-1, retframe, @encode(id), flags);
-    break;
-
     case _C_PTR:
       /* The argument is a pointer to something; increment TYPE
 	 so we can see what it is a pointer to. */
@@ -666,25 +672,33 @@ mframe_do_call (const char *encoded_types,
 
     case _C_SHT:
     case _C_USHT:
-      /* For C variable types smaller than int, like short, the
-	 RETFRAME doesn't actually point to the beginning of the
-	 short, it points to the beginning of an int. */
-      (*encoder) (-1, ((char*)retframe) + sizeof(void*)-sizeof(short),
-		  tmptype, flags);
-      break;
+      /* On some (but not all) architectures, for C variable types
+	 smaller than int, like short, the RETFRAME doesn't actually
+	 point to the beginning of the short, it points to the
+	 beginning of an int.  So we let RETFRAME_SHORT() take care of
+	 it. */
+      {
+	short ret = retframe_short (retframe);
+	(*encoder) (-1, &ret, tmptype, flags);
+	break;
+      }
 
     case _C_CHR:
     case _C_UCHR:
-      /* For C variable types smaller than int, like char, the
-         RETFRAME doesn't actually point to the beginning of the
-         short, it points to the beginning of an int. */
-      (*encoder) (-1, ((char*)retframe) + sizeof(void*)-sizeof(char),
-		  tmptype, flags);
-      break;
+      /* On some (but not all) architectures, for C variable types
+         smaller than int, like char, the RETFRAME doesn't actually
+         point to the beginning of the char, it points to the
+         beginning of an int.   So we let RETFRAME_SHORT() take care of
+	 it. */
+      {
+	char ret = retframe_char (retframe);
+	(*encoder) (-1, &ret, tmptype, flags);
+	break;
+      }
 
     default:
       /* case _C_INT: case _C_UINT: case _C_LNG: case _C_ULNG:
-	 case _C_CHARPTR: */
+	 case _C_CHARPTR: case: _C_ID: */
       /* xxx I think this assumes that sizeof(int)==sizeof(void*) */
       (*encoder) (-1, retframe, tmptype, flags);
     }
