@@ -63,6 +63,11 @@
   return ISSET(_data[aCharacter/8], aCharacter % 8);
 }
 
+- (Class) classForCoder
+{
+  return [self class];
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeObject: [self bitmapRepresentation]];

@@ -7,6 +7,12 @@
    of the Unicode character set as of Feb. 27, 2001.  The Unicode character
    set can be obtained from http://www.unicode.org
 
+   The NSCharacterSetData.h file is generated from the binary bitmap
+   data in the individual .dat files, and is compiled in to the
+   NSCharacterSet class.
+
+   The binary data files are no longer used at runtime.
+
    The current character sets are based on UnicodeData.txt version 3.0.1.
 
    NOTE: There are a number of differences between these sets and the
