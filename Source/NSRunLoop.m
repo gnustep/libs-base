@@ -619,19 +619,15 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
 - (void) runUntilDate: date forMode: (NSString*)mode
 {
-  volatile double ti;
-  BOOL mayDoMore = YES;
+  double	ti = [date timeIntervalSinceNow];
+  BOOL		mayDoMore = YES;
 
-  ti = [date timeIntervalSinceNow];
   /* Positive values are in the future. */
   while (ti > 0 && mayDoMore == YES)
     {
-      CREATE_AUTORELEASE_POOL(arp);
-
       if (debug_run_loop)
 	printf ("\tNSRunLoop run until date %f seconds from now\n", ti);
       mayDoMore = [self runMode: mode beforeDate: date];
-      RELEASE(arp);
       ti = [date timeIntervalSinceNow];
     }
 }
@@ -786,6 +782,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
+  CREATE_AUTORELEASE_POOL(arp);
   id			saved_mode;
   NSDate		*when;
   GSIArray		timers;
@@ -906,6 +903,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     }
 
   _current_mode = saved_mode;
+  RELEASE(arp);
 
   /*
    *	If there are timers - set limit date to the earliest of them.
@@ -1009,6 +1007,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: limit_date
 {
+  CREATE_AUTORELEASE_POOL(arp);
   NSTimeInterval ti;
   struct timeval timeout;
   void *select_timeout;
@@ -1053,6 +1052,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       if (debug_run_loop)
 	printf ("\tNSRunLoop limit date past, returning\n");
       _current_mode = saved_mode;
+      RELEASE(arp);
       return;
     }
   else
@@ -1178,6 +1178,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       GSNotifyIdle();
       [self _checkPerformers];
       _current_mode = saved_mode;
+      RELEASE(arp);
       return;
     }
   
@@ -1254,6 +1255,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   [self _checkPerformers];
   GSNotifyASAP();
   _current_mode = saved_mode;
+  RELEASE(arp);
 }
 
 - (BOOL) runMode: (NSString*)mode beforeDate: date
@@ -1282,9 +1284,12 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       return NO;
     }
 
-  /* Use the earlier of the two dates we have. */
+  /*
+   * Use the earlier of the two dates we have.
+   * Retain the date in case the firing of a timer (or some other event)
+   * releases it.
+   */
   d = [d earlierDate: date];
-
   RETAIN(d);
 
   /* Wait, listening to our input sources. */

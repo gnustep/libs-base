@@ -1,3 +1,8 @@
+Fri Jun 25 11:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRunLoop.m: Use autorelease pools in ([limitDateForMode:])
+	and ([acceptInputForMode:beforeDate:])
+
 Thu Jun 24 20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/GSIMap.h: Tweaks to avoid compiler warnings.
