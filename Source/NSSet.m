@@ -33,6 +33,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSDebug.h>
+#include "gnustep/base/GSCategories.h"
 
 @class	GSSet;
 @class	GSMutableSet;
@@ -94,11 +95,10 @@ static Class NSMutableSet_concrete_class;
 + (id) setWithObjects: firstObject, ...
 {
   id	set;
-  va_list ap;
-  va_start(ap, firstObject);
-  set = [[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: firstObject rest: ap];
-  va_end(ap);
+  
+  GS_USEIDLIST(firstObject,
+    set = [[self allocWithZone: NSDefaultMallocZone()]
+      initWithObjects: __objects count: __count]);
   return AUTORELEASE(set);
 }
 
@@ -213,61 +213,10 @@ static Class NSMutableSet_concrete_class;
   return [self subclassResponsibility: _cmd];
 }
 
-/* Same as NSArray */
-- (id) initWithObjects: firstObject rest: (va_list)ap
-{
-  register	unsigned		i;
-  register	unsigned		curSize;
-  auto		unsigned		prevSize;
-  auto		unsigned		newSize;
-  auto		id			*objsArray;
-  auto		id			tmpId;
-
-  /*	Do initial allocation.	*/
-  prevSize = 3;
-  curSize  = 5;
-  objsArray = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * curSize);
-  tmpId = firstObject;
-
-  /*	Loop through adding objects to array until a nil is
-   *	found.
-   */
-  for (i = 0; tmpId != nil; i++)
-    {
-      /*	Put id into array.	*/
-      objsArray[i] = tmpId;
-
-      /*	If the index equals the current size, increase size.	*/
-      if (i == curSize - 1)
-	{
-	  /*	Fibonacci series.  Supposedly, for this application,
-	   *	the fibonacci series will be more memory efficient.
-	   */
-	  newSize  = prevSize + curSize;
-	  prevSize = curSize;
-	  curSize  = newSize;
-
-	  /*	Reallocate object array.	*/
-	  objsArray = (id*)NSZoneRealloc(NSDefaultMallocZone(), objsArray,
-	    sizeof(id) * curSize);
-	}
-      tmpId = va_arg(ap, id);
-    }
-  va_end( ap );
-
-  /*	Put object ids into NSSet.	*/
-  self = [self initWithObjects: objsArray count: i];
-  NSZoneFree(NSDefaultMallocZone(), objsArray);
-  return( self );
-}
-
-/* Same as NSArray */
 - (id) initWithObjects: firstObject, ...
 {
-  va_list ap;
-  va_start(ap, firstObject);
-  self = [self initWithObjects: firstObject rest: ap];
-  va_end(ap);
+  GS_USEIDLIST(firstObject,
+    self = [self initWithObjects: __objects count: __count]);
   return self;
 }
 

@@ -55,8 +55,6 @@
 - (id) initWithObjects: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count;
-- (id) initWithObjects: firstObject
-		  rest: (va_list)ap;
 - (id) initWithSet: (NSSet*)other;
 - (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag;
 
