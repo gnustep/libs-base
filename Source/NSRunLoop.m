@@ -50,6 +50,10 @@
 #ifdef HAVE_POLL_H
 #include <poll.h>
 #endif
+/* Some systems (e.g. MacOSX) just emulate poll and prefer select */
+#ifdef _POLL_EMUL_H_
+#undef HAVE_POLL
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

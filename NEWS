@@ -1,7 +1,27 @@
 News
 ****
 
-The currently released version of the library is `1.9.1'.
+The currently released version of the library is `1.9.2'.
+
+See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.9.2'
+=====================================
+
+   * GSMime parsing ignores extraneous data
+
+   * New log functions GSOnceFlag and GSOnceMLog
+
+   * New class NSError
+
+   * Multiple new function in GSObjCRuntime
+
+   * NSProtocolChecker rewritten
+
+   * autogsdoc support added for building frames
+
+   * Binary incompatibility:  NSUnarchiver, GSIMapTable have new ivars
+     added
 
 Noteworthy changes in version `1.9.1'
 =====================================
@@ -34,11 +54,11 @@ Noteworthy changes in version `1.9.0'
 Noteworthy changes in version `1.8.0'
 =====================================
 
-   Read the NEWS file for a complete list of changes since the last
-stable version. The major change is that the header files (both in the
-package and when installed) are in different locations. Also, due to
-filesystem changes in gnustep-make, several components of gnustep-base
-are located in different locations. Generally this should not affect the
+Read the NEWS file for a complete list of changes since the last stable
+version. The major change is that the header files (both in the package
+and when installed) are in different locations. Also, due to filesystem
+changes in gnustep-make, several components of gnustep-base are located
+in different locations. Generally this should not affect the
 compilation or running of applications and tools.
 
 Noteworthy changes in version `1.7.4'
@@ -51,7 +71,7 @@ Noteworthy changes in version `1.7.4'
 Noteworthy changes in version `1.7.3'
 =====================================
 
-   Note in this version there have been large changes to the location of
+Note in this version there have been large changes to the location of
 header files (both in the package and when installed). It's possible
 (though unlikely) that certain applications that rely on GNUstep
 specific headers may not compile because of this.
@@ -74,14 +94,14 @@ Noteworthy changes in version `1.7.2'
 Noteworthy changes in version `1.7.1'
 =====================================
 
-   Bug fixes.
+Bug fixes.
 
 Noteworthy changes in version `1.7.0'
 =====================================
 
-   See gnustep-make for comments on the filesystem change. Some
-components of gnustep-base are now stored in different directories and
-in some cases you should use different methods to look for them. Use
+See gnustep-make for comments on the filesystem change. Some components
+of gnustep-base are now stored in different directories and in some
+cases you should use different methods to look for them. Use
 +pathForLibraryResource:ofType:inDirectory: instead of
 +pathForGNUstepResource:. Also try using +bundleForLibrary:.
 
@@ -144,7 +164,7 @@ Noteworthy changes in version `1.4.0'
 Noteworthy changes in version `1.3.4'
 =====================================
 
-   This is a first pre-release version for 1.4.
+This is a first pre-release version for 1.4.
 
    This version also fixes a potentially destructive bug in gdomap. All
 users are urged to upgrade to this version as soon as possible.
@@ -156,7 +176,7 @@ users are urged to upgrade to this version as soon as possible.
 Noteworthy changes in version `1.3.3'
 =====================================
 
-   Note there are interface and binary changes in this release that
+Note there are interface and binary changes in this release that
 require you to recompile all applications and tools that use
 gnustep-base.
 
@@ -233,7 +253,7 @@ Noteworthy changes in version `1.1.0'
 Noteworthy changes in version `1.0.2'
 =====================================
 
-   Mostly a bug fix release to work with the new gcc 3.0.
+Mostly a bug fix release to work with the new gcc 3.0.
 
    * Added support for special gcc 3.0 options (constant string
      support).
@@ -361,7 +381,7 @@ Noteworthy changes in version `0.6.5'
 Noteworthy changes in version `0.6.0'
 =====================================
 
-   Most of the changes to the Base Library are bug fixes and updates to
+Most of the changes to the Base Library are bug fixes and updates to
 include MacOS-X specifications. Although the base library hasn't been
 extensively tested, it is currently used in several commercial products
 and installations, and is considered to be fairly stable.
@@ -377,7 +397,7 @@ and installations, and is considered to be fairly stable.
 Noteworthy changes in version `0.5.5'
 =====================================
 
-   Too many changes to mention in detail, but here is a list of a few:
+Too many changes to mention in detail, but here is a list of a few:
 
    * Many base classes have been rewritten with tonnes of performance
      improvements that in many cases make it as fast as or faster than
@@ -729,7 +749,7 @@ Noteworthy changes since version `0.1.5'
 Noteworthy changes since version `0.1.3'
 ========================================
 
-   This release not well tested at all.  We desperately need someone to
+This release not well tested at all.  We desperately need someone to
 write a test suite using dejagnu.  Any volunteers?
 
    I made this release now in order to share the progress that is being
