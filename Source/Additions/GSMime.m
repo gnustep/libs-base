@@ -4134,6 +4134,15 @@ static NSCharacterSet	*tokenSet = nil;
  * <p>Convenience method to set the content of the document along with
  * creating a content-type header for it.
  * </p>
+ * <p>The type parameter may be a simple common content type (text,
+ * multipart, or application), in which case the default subtype for
+ * that type is used.  Alternatively it may be full detail of a
+ * content type header value, which will be parsed into 'type', 'subtype'
+ * and 'parameters'.<br />
+ * NB. In this case, if the parsed data contains a 'name' parameter
+ * and the name argument is non-nil, the argument value will
+ * override the parsed value.
+ * </p>
  * <p>You can get the same effect by calling -setContent: to set the document
  * content, then creating a [GSMimeHeader] instance, initialising it with
  * the content type information you want using
@@ -4144,7 +4153,7 @@ static NSCharacterSet	*tokenSet = nil;
  * combination of content and type/subtype you may use ... so you may want
  * to use the more primitive methods in order to bypass these checks if
  * you are using unusual type/subtype information or if you need to provide
- * additional paramters in the header.
+ * additional parameters in the header.
  * </p>
  */
 - (void) setContent: (id)newContent
