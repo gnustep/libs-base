@@ -136,6 +136,7 @@ my_object_is_class(id object)
 			    initForWritingToStream: s
 			    withFormatVersion: cStreamFormatVersion]
 	 formatVersion: version];
+  [cstream release];
   in_progress_table = NULL;
   object_2_xref = NULL;
   object_2_fref = NULL;
