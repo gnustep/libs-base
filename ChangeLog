@@ -1,3 +1,9 @@
+2003-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCategories.m: Additional ([weekOfYear]) method
+	for NSCalendarDate.
+	* Headers/gnustep/base/GSCategories.h: ditto
+
 2003-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m:

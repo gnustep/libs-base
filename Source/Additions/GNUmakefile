@@ -32,6 +32,7 @@ include ../../config.mak
 SUBPROJECT_NAME = Additions
 
 Additions_OBJC_FILES =\
+	GSCategories.m \
 	GSObjCRuntime.m \
 	GCObject.m \
 	GCArray.m \
