@@ -2611,28 +2611,22 @@ handle_printf_atsign (FILE *stream,
 /**
  * Returns a pointer to a null terminated string of 16-bit unichar
  * The memory pointed to is not owned by the caller, so the
- * caller must copy its contents to keep it.  Raises an
+ * caller must copy its contents to keep it.
  */
 - (const unichar*) unicharString
 {
-	NSData   *returnData = nil;
-	int      len         = [self length];
-	unichar	buf[64];
-	unichar  *uniStr    = (len < 64) ? buf : 
-	             NSZoneMalloc(NSDefaultMallocZone(), (len+1) * sizeof(unichar));
-					 
-	if (uniStr != NULL)
-	{
-		[self getCharacters:uniStr];
-		uniStr[len] = L'\0';
-		returnData = [NSData dataWithBytes:uniStr length:(len+1)*sizeof(unichar)];
-		if (uniStr != buf)
-			NSZoneFree(NSDefaultMallocZone(), uniStr);
+  NSMutableData	*data;
+  unichar	*uniStr;
 
-		return ((const unichar*)[returnData bytes]);
-	}
-	return(NULL);		
+  data = [NSMutableData dataWithLength: ([self length] + 1) * sizeof(unichar)];
+  uniStr = (unichar*)[data mutableBytes];
+  if (uniStr != 0)
+    {
+      [self getCharacters: uniStr];
+    }
+  return uniStr;
 }
+
 /**
  * Returns a pointer to a null terminated string of 8-bit characters in the
  * default encoding.  The memory pointed to is not owned by the caller, so the
