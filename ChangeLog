@@ -1,5 +1,7 @@
 2001-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSXML.m: Bugfixes in setting parse behavior ... now turns
+	on validation properly.
 	* Tools/gsdoc-0_6_7.dtd: added 'scope' to index element and
 	added a 'title' type to list files in a project.
 	* Tools/AGSHtml.h:
@@ -8,7 +10,9 @@
 	element with both file and project scope.
 	* Tools/autogsdoc.m: Clean up a little and handle gsdoc files
 	listed as source files better .... now looks for them in the
-	source directory.
+	source directory.  Added automatic generation of an 'index' file
+	for a project where the first source file listed in the project
+	is not a gsdoc file.
 
 2001-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
