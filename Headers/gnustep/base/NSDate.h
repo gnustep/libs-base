@@ -1,5 +1,5 @@
 /* Interface for NSDate for GNUStep
-   Copyright (C) 1994 NeXT Computer, Inc.
+   Copyright (C) 1994, 1996 Free Software Foundation, Inc.
 
    This file is part of the GNU Objective C Class Library.
 
@@ -23,7 +23,8 @@
 
 #include <Foundation/NSObject.h>
 
-typedef double	NSTimeInterval;
+/* Time interval difference between two dates, in seconds. */
+typedef double NSTimeInterval;
 
 @class NSArray;
 @class NSCalendarDate;
