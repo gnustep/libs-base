@@ -193,6 +193,12 @@ else
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
 fi
 
+#
+# The following one is so that headers of custom libraries into
+# $GNUSTEP_HDIR are used before the standard ones
+#
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
+
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
 #--------------------------------------------------------------------
