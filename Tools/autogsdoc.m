@@ -232,6 +232,11 @@
       Then generated html output may reference the class as being in
       <code>/usr/doc/prj/Foo.html</code>
     </item>
+    <item><strong>ShowDependencies</strong>
+      A boolean value which may be used to specify that the program should
+      log which files are being regenerated because of their dependencies
+      on other files.
+    </item>
     <item><strong>SourceDirectory</strong>
       May be used to specify the directory to be searched for header files.
       If this is not specified, headers are looked for relative to the
@@ -301,6 +306,7 @@ main(int argc, char **argv, char **env)
   AGSOutput		*output;
   NSString		*up = nil;
   NSString		*prev = nil;
+  BOOL			showDependencies = YES;
   id			o;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
@@ -314,6 +320,7 @@ main(int argc, char **argv, char **env)
     @"Untitled", @"Project",
     nil]];
 
+  showDependencies = [defs boolForKey: @"ShowDependencies"];
   declared = [defs stringForKey: @"Declared"];
   project = [defs stringForKey: @"Project"];
   localProjects = [defs stringForKey: @"LocalProjects"];
@@ -332,19 +339,19 @@ main(int argc, char **argv, char **env)
   headerDirectory = [defs stringForKey: @"HeaderDirectory"];
   if (headerDirectory == nil)
     {
-      headerDirectory = @".";
+      headerDirectory = @"";
     }
 
   sourceDirectory = [defs stringForKey: @"SourceDirectory"];
   if (sourceDirectory == nil)
     {
-      sourceDirectory = @".";
+      sourceDirectory = @"";
     }
 
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
   if (documentationDirectory == nil)
     {
-      documentationDirectory = @".";
+      documentationDirectory = @"";
     }
 
   proc = [NSProcessInfo processInfo];
@@ -471,7 +478,7 @@ main(int argc, char **argv, char **env)
 		  p = [k stringByDeletingLastPathComponent];
 		}
 	      [tmp setDirectory: p];
-	      [indexer mergeRefs: [tmp refs] override: NO];
+	      [indexer mergeRefs: [tmp refs] override: YES];
 	      RELEASE(tmp);
 	    }
 	}
@@ -559,6 +566,11 @@ main(int argc, char **argv, char **env)
 
 	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
 	    {
+	      if (showDependencies == YES)
+		{
+		  NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
+		    file, sDate, gDate);
+		}
 	      [parser reset];
 
 	      if (isSource == NO && isDocumentation == NO)
@@ -757,6 +769,11 @@ main(int argc, char **argv, char **env)
 		  AGSIndex	*locRefs;
 		  AGSHtml	*html;
 
+		  if (showDependencies == YES)
+		    {
+		      NSLog(@"%@: gsdoc %@, html %@ ==> regenerate",
+			file, gDate, hDate);
+		    }
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 		  [parser substituteEntities: NO];
 		  [parser doValidityChecking: YES];
