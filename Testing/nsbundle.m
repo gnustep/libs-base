@@ -62,7 +62,7 @@ main(int ac, char *av[])
     	object = [bundle principalClass];
     NS_HANDLER
 	object = nil;
-	fprintf(stderr, "  ERROR: %s\n", [[exception reason] cString]);
+	fprintf(stderr, "  ERROR: %s\n", [[localException reason] cString]);
         fprintf(stderr, "  Either there is a problem with dynamic loading,\n");
 	fprintf(stderr, "  or there is no dynamic loader on your system\n");
 	exit(1);
