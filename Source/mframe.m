@@ -218,6 +218,9 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	  case _C_BYREF:  info->qual |= _F_BYREF; break;
 #endif
 	  case _C_ONEWAY: info->qual |= _F_ONEWAY; break;
+#ifdef	_C_GCINVISIBLE
+	  case _C_GCINVISIBLE:  info->qual |= _F_GCINVISIBLE; break;
+#endif
 	  default: flag = NO;
 	}
       if (flag)

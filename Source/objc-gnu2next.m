@@ -305,6 +305,9 @@ objc_skip_type_qualifiers (const char* type)
 #ifdef	_C_BYREF
 	 || *type == _C_BYREF
 #endif
+#ifdef	_C_GCINVISIBLE
+	 || *type == _C_GCINVISIBLE
+#endif
 	 || *type == _C_ONEWAY)
     {
       type += 1;
@@ -431,6 +434,9 @@ objc_get_type_qualifiers (const char* type)
       case _C_BYREF:  res |= _F_BYREF; break;
 #endif
       case _C_ONEWAY: res |= _F_ONEWAY; break;
+#ifdef	_C_GCINVISIBLE
+      case _C_GCINVISIBLE:  res |= _F_GCINVISIBLE; break;
+#endif
       default: flag = NO;
     }
 

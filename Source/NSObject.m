@@ -272,6 +272,9 @@ NSExtraRefCount (id anObject)
  */
 #if	GS_WITH_GC
 
+#include	<gc.h>
+#include	<gc_typed.h>
+
 inline NSZone *
 fastZone(NSObject *object)
 {
@@ -294,8 +297,26 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
   id	new = nil;
   int	size = aClass->instance_size + extraBytes;
 
-  if (CLS_ISCLASS(aClass))
-    new = NSZoneMalloc(zone, size);
+  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  if (zone == GSAtomicMallocZone())
+    {
+      new = NSZoneMalloc(zone, size);
+    }
+  else
+    {
+      GC_descr	gc_type = aClass->gc_object_type;
+
+      if (gc_type == 0)
+	{
+	  new = NSZoneMalloc(zone, size);
+	  NSLog(@"No garbage collection information for '%s'", aClass->name);
+	}
+      else
+	{
+	  new = GC_CALLOC_EXPLICTLY_TYPED(1, size, gc_type);
+        }
+    }
+
   if (new != nil)
     {
       memset(new, 0, size);

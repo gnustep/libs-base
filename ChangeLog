@@ -1,3 +1,10 @@
+Wed Sep 29 15:33:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSObject.m: More GC updates
+	* Source/NSZone.m: ditto
+	* Source/mframe.m: ditto
+	* Source/objc-gnu2next.m: ditto
+
 Tue Sep 28 20:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: Tidy for GC stuff

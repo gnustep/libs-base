@@ -1758,6 +1758,8 @@ NSZoneStats (NSZone *zone)
 
 #else
 
+#include <gc.h>
+
 /*
  * Dummy zones used with garbage collection.
  * The 'atomic' zone is for memory that will be assumed not to contain
@@ -1774,6 +1776,90 @@ static NSZone atomic_zone =
   0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
 };
 NSZone* __nszone_private_hidden_atomic_zone = &atomic_zone;
+
+NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
+{ return __nszone_private_hidden_default_zone; }
+
+NSZone* NSDefaultMallocZone (void)
+{ return __nszone_private_hidden_default_zone; }
+
+NSZone* GSAtomicMallocZone (void)
+{ return __nszone_private_hidden_atomic_zone; }
+
+NSZone* NSZoneFromPointer (void *ptr)
+{ return __nszone_private_hidden_default_zone; }
+
+void* NSZoneMalloc (NSZone *zone, size_t size)
+{
+  void	*ptr;
+
+  if (zone == GSAtomicMallocZone())
+    ptr = (void*)GC_MALLOC_ATOMIC(size);
+  else
+    ptr = (void*)GC_MALLOC(size);
+
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size, YES);
+  return ptr;
+}
+
+void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+{
+  size_t	size = elems * bytes;
+  void		*ptr;
+
+  if (zone == __nszone_private_hidden_atomic_zone)
+    ptr = (void*)GC_MALLOC_ATOMIC(size);
+  else
+    ptr = (void*)GC_MALLOC(size);
+
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size, NO);
+  memset(ptr, '\0', size);
+  return ptr;
+}
+
+void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+{
+  ptr = GC_REALLOC(ptr, size);
+  if (ptr == 0)
+    GSOutOfMemory(size, NO);
+  return ptr;
+}
+
+void NSRecycleZone (NSZone *zone)
+{
+}
+
+void NSZoneFree (NSZone *zone, void *ptr)
+{
+  GC_FREE(ptr);
+}
+
+void NSSetZoneName (NSZone *zone, NSString *name)
+{
+}
+
+NSString* NSZoneName (NSZone *zone)
+{
+  return nil;
+}
+
+void* NSZoneMallocAtomic (NSZone *zone, size_t size)
+{
+  return NSZoneMalloc(GSAtomicMallocZone(), size);
+}
+
+BOOL NSZoneCheck (NSZone *zone)
+{
+  return YES;
+}
+
+struct NSZoneStats NSZoneStats (NSZone *zone)
+{
+  struct NSZoneStats stats = { 0 };
+  return stats;
+}
 
 #endif	/* GS_WITH_GC */
 
