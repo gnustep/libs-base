@@ -1,3 +1,12 @@
+2000-11-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/GSMime.h: Added GSMimeEncodingContext etc
+	* Source/GSMime.m: Update to add method for general decoding of
+	different transfer encoding types including chunked (for http1.1).
+	* Documentation/gsdoc/GSMime.gsdoc: updated
+	* Documentation/gsdoc/GSMimeDocument.gsdoc: updated
+	* Documentation/gsdoc/GSMimeParser.gsdoc: updated
+
 2000-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([-userLanguages]) updated to ensure we

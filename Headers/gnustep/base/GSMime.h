@@ -58,6 +58,7 @@ typedef	enum {
   GSMimeEncoding	type;	/* The encoding type to be used.	*/
   unsigned char		buf[8];	/* Temporary data storage area.		*/
   int			pos;	/* Context position count.		*/
+  BOOL			foot;	/* Reading footer near end of data.	*/
   BOOL			atEnd;	/* Flag to say that data has ended.	*/
 }
 @end
@@ -111,6 +112,7 @@ typedef	enum {
 - (BOOL) scanHeader: (NSScanner*)aScanner
 	      named: (NSString*)headerName
 	       inTo: (NSMutableDictionary*)info;
+- (BOOL) scanPastSpace: (NSScanner*)aScanner;
 - (NSString*) scanSpecial: (NSScanner*)aScanner;
 - (NSString*) scanToken: (NSScanner*)aScanner;
 

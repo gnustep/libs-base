@@ -48,6 +48,9 @@
 	    </desc>
 	    <term>Value</term>
 	    <desc>This is the value of the header (normally lower case).
+	      It may only be a small subset of the information in the header
+	      with other information being split into separate fields
+	      depending on the type of header.
 	    </desc>
 	  </deflist>
 	  <p>

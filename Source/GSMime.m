@@ -194,7 +194,7 @@ parseCharacterSet(NSString *token)
 
 
 @interface GSMimeParser (Private)
-- (BOOL) _decodeBody;
+- (BOOL) _decodeBody: (NSData*)data;
 - (NSString*) _decodeHeader;
 - (BOOL) _unfoldHeader;
 @end
@@ -330,7 +330,7 @@ parseCharacterSet(NSString *token)
 	    decodebase64(dst, ctxt->buf);
 	    size += len;
 	  }
-	[dData setLength: dst - beg];
+	[dData setLength: size + dst - beg];
 	break;
 
       case GSMimeEncodingQuotedPrintable:
@@ -377,12 +377,36 @@ parseCharacterSet(NSString *token)
 	      }
 	    src++;
 	  }
-	[dData setLength: dst - beg];
+	[dData setLength: size + dst - beg];
 	break;
 
       case GSMimeEncodingChunked:
 	while (ctxt->atEnd == NO && src < end)
 	  {
+	    /*
+	     * If we are reading a chunk footer, look for a blank line
+	     * that terminates it.
+	     */
+	    if (ctxt->foot == YES)
+	      {
+		if (*src == '\r')
+		  {
+		    src++;
+		  }
+		else if (*src != '\n' || ctxt->buf[0] != '\n')
+		  {
+		    ctxt->buf[0] = *src++;
+		  }
+		else
+		  {
+		    ctxt->foot = NO;
+		    ctxt->atEnd = YES;
+		    src++;
+		    break;
+		  }
+		continue;
+	      }
+
 	    /*
 	     * Keep track of chunk size in the context.
 	     * A negative 'pos' indicates that we are reading the chunk size.
@@ -453,7 +477,8 @@ parseCharacterSet(NSString *token)
 		     */
 		    if (ctxt->pos == 0)
 		      {
-			ctxt->atEnd = YES;
+			ctxt->foot = YES;
+			ctxt->buf[0] = src[-1];	// last char read
 		      }
 		  }
 		else
@@ -482,7 +507,7 @@ parseCharacterSet(NSString *token)
 		      }
 		    src++;
 		  }
-		[dData setLength: dst - beg];
+		[dData setLength: size + dst - beg];
 	      }
 	  }
 	break;
@@ -495,8 +520,7 @@ parseCharacterSet(NSString *token)
 	[dData setLength: size + (end - src)];
 	dst = (unsigned char*)[dData mutableBytes];
 	memcpy(&dst[size], src, (end - src));
-	size += (end - src);
-	[dData setLength: size];
+	[dData setLength: size + end - src];
 	break;
     }
 
@@ -537,38 +561,45 @@ parseCharacterSet(NSString *token)
     }
   if ([d length] > 0)
     {
-      [data appendBytes: [d bytes] length: [d length]];
-      bytes = (unsigned char*)[data mutableBytes];
-      dataEnd = [data length];
-      while (inBody == NO)
+      if (inBody == NO)
 	{
-	  if ([self _unfoldHeader] == NO)
-	    {
-	      return YES;	/* Needs more data to fill line.	*/
-	    }
-	  if (inBody == NO)
-	    {
-	      NSString		*header;
+	  [data appendBytes: [d bytes] length: [d length]];
+	  bytes = (unsigned char*)[data mutableBytes];
+	  dataEnd = [data length];
 
-	      header = [self _decodeHeader];
-	      if (header == nil)
+	  while (inBody == NO)
+	    {
+	      if ([self _unfoldHeader] == NO)
 		{
-		  return NO;	/* Couldn't handle word encodings.	*/
+		  return YES;	/* Needs more data to fill line.	*/
 		}
-	      if ([self parseHeader: header] == NO)
+	      if (inBody == NO)
 		{
-		  return NO;	/* Header was not parsed properly.	*/
+		  NSString		*header;
+
+		  header = [self _decodeHeader];
+		  if (header == nil)
+		    {
+		      return NO;	/* Couldn't handle words.	*/
+		    }
+		  if ([self parseHeader: header] == NO)
+		    {
+		      return NO;	/* Header not parsed properly.	*/
+		    }
 		}
 	    }
+	  /*
+	   * All headers have been parsed, so we empty our internal buffer
+	   * (which we will now use to store decoded data) and place unused
+	   * information back in the incoming data object to act as input.
+	   */
+	  d = AUTORELEASE([data copy]);
+	  [data setLength: 0];
 	}
 
-      /*
-       * If we have a multipart document, we must feed the data to
-       * a child parser to decode the subsidiary parts.
-       */
-      if (boundary != nil)
+      if ([d length] > 0)
 	{
-	  [self _decodeBody];
+	  [self _decodeBody: d];
 	}
       return YES;	/* Want more data for body */
     }
@@ -578,7 +609,7 @@ parseCharacterSet(NSString *token)
 
       if (inBody == YES)
 	{
-	  result = [self _decodeBody];
+	  result = [self _decodeBody: d];
 	}
       else
 	{
@@ -610,26 +641,34 @@ parseCharacterSet(NSString *token)
   [info setObject: [scanner string] forKey: @"RawHeader"];
 
   /*
+   * Special case - permit web response status line to act like a header.
+   */
+  if ([scanner scanString: @"HTTP" intoString: &name] == NO
+    || [scanner scanString: @"/" intoString: 0] == NO)
+    {
+      if ([scanner scanUpToString: @":" intoString: &name] == NO)
+	{
+	  NSLog(@"Not a valid header (%@)", [scanner string]);
+	  return NO;
+	}
+      /*
+       * Position scanner after colon and any white space.
+       */
+      if ([scanner scanString: @":" intoString: 0] == NO)
+	{
+	  NSLog(@"No colon terminating name in header (%@)", [scanner string]);
+	  return NO;
+	}
+    }
+
+  /*
    * Store the Raw header name and a lowercase version too.
    */
-  if ([scanner scanUpToString: @":" intoString: &name] == NO)
-    {
-      NSLog(@"No colon terminated name in header (%@)", [scanner string]);
-      return NO;
-    }
   name = [name stringByTrimmingTailSpaces];
   [info setObject: name forKey: @"BaseName"];
   name = [name lowercaseString];
   [info setObject: name forKey: @"Name"];
 
-  /*
-   * Position scanner after colon and any white space.
-   */
-  if ([scanner scanString: @":" intoString: 0] == NO)
-    {
-      NSLog(@"No colon terminating name in header (%@)", [scanner string]);
-      return NO;
-    }
   skip = RETAIN([scanner charactersToBeSkipped]);
   [scanner setCharactersToBeSkipped: nil];
   [scanner scanCharactersFromSet: skip intoString: 0];
@@ -658,7 +697,7 @@ parseCharacterSet(NSString *token)
       int	majv = 0;
       int	minv = 0;
 
-      value = [info objectForKey: @"Value"];
+      value = [info objectForKey: @"BaseValue"];
       if ([value length] == 0)
 	{
 	  NSLog(@"Missing value for mime-version header");
@@ -819,16 +858,45 @@ parseCharacterSet(NSString *token)
   /*
    *	Now see if we are interested in any of it.
    */
-  if ([name isEqualToString: @"mime-version"] == YES)
+  if ([name isEqualToString: @"http"] == YES)
     {
-      value = [self scanToken: scanner];
-      if ([value length] == 0)
+      int	major;
+      int	minor;
+      int	status;
+
+      if ([scanner scanInt: &major] == NO || major < 0)
 	{
-	  NSLog(@"Bad value for mime-version header");
+	  NSLog(@"Bad value for http major version");
 	  return NO;
 	}
+      if ([scanner scanString: @"." intoString: 0] == NO)
+	{
+	  NSLog(@"Bad format for http version");
+	  return NO;
+	}
+      if ([scanner scanInt: &minor] == NO || minor < 0)
+	{
+	  NSLog(@"Bad value for http minor version");
+	  return NO;
+	}
+      if ([scanner scanInt: &status] == NO || status < 0)
+	{
+	  NSLog(@"Bad value for http status");
+	  return NO;
+	}
+      [info setObject: [NSString stringWithFormat: @"%d", major]
+	       forKey: @"HttpMajorVersion"];
+      [info setObject: [NSString stringWithFormat: @"%d", minor]
+	       forKey: @"HttpMinorVersion"];
+      [info setObject: [NSString stringWithFormat: @"%d.%d", major, minor]
+	       forKey: @"HttpVersion"];
+      [info setObject: [NSString stringWithFormat: @"%d", status]
+	       forKey: @"HttpStatus"];
+      [self scanPastSpace: scanner];
+      value = [[scanner string] substringFromIndex: [scanner scanLocation]];
     }
-  else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
+  else if ([name isEqualToString: @"content-transfer-encoding"] == YES
+    || [name isEqualToString: @"transfer-encoding"] == YES)
     {
       value = [self scanToken: scanner];
       if ([value length] == 0)
@@ -966,20 +1034,25 @@ parseCharacterSet(NSString *token)
   return YES;
 }
 
-- (NSString*) scanSpecial: (NSScanner*)scanner
+- (BOOL) scanPastSpace: (NSScanner*)scanner
 {
   NSCharacterSet	*skip;
+  BOOL			scanned;
+
+  skip = RETAIN([scanner charactersToBeSkipped]);
+  [scanner setCharactersToBeSkipped: nil];
+  scanned = [scanner scanCharactersFromSet: skip intoString: 0];
+  [scanner setCharactersToBeSkipped: skip];
+  RELEASE(skip);
+  return scanned;
+}
+
+- (NSString*) scanSpecial: (NSScanner*)scanner
+{
   unsigned		location;
   unichar		c;
 
-  /*
-   * Move past white space.
-   */
-  skip = RETAIN([scanner charactersToBeSkipped]);
-  [scanner setCharactersToBeSkipped: nil];
-  [scanner scanCharactersFromSet: skip intoString: 0];
-  [scanner setCharactersToBeSkipped: skip];
-  RELEASE(skip);
+  [self scanPastSpace: scanner];
 
   /*
    * Now return token delimiter (may be whitespace)
@@ -1231,7 +1304,7 @@ parseCharacterSet(NSString *token)
   return hdr;
 }
 
-- (BOOL) _decodeBody
+- (BOOL) _decodeBody: (NSData*)d
 {
   if (boundary == nil)
     {
@@ -1247,52 +1320,51 @@ parseCharacterSet(NSString *token)
 	}
       else
 	{
-	  unsigned	length = [data length];
-	  NSMutableData	*decoded = [NSMutableData dataWithCapacity: length];
+	  if (context->atEnd == YES)
+	    {
+	      if ([d length] > 0)
+		{
+		  NSLog(@"Additional data ignored after parse complete");
+		}
+	      return YES;	/* Nothing more to do	*/
+	    }
 
-	  [self decodeData: data
-		 fromRange: NSMakeRange(0, length)
-		  intoData: decoded
+	  [self decodeData: d
+		 fromRange: NSMakeRange(0, [d length])
+		  intoData: data
 	       withContext: context];
-	  if (context->pos != 0)
-	    {
-	      context->atEnd = YES;
-	      [self decodeData: nil
-		     fromRange: NSMakeRange(0, 0)
-		      intoData: decoded
-		   withContext: context];
-	    }
 
-	  /*
-	   * If no content type is supplied, we assume text.
-	   */
-	  if (type == nil || [type isEqualToString: @"text"] == YES)
-	    {
-	      NSDictionary	*params;
-	      NSString		*charset;
-	      NSStringEncoding	stringEncoding;
-	      NSString		*string;
-
-	      /*
-	       * Assume that content type is best represented as NSString.
-	       */
-	      params = [typeInfo objectForKey: @"Parameters"];
-	      charset = [params objectForKey: @"charset"];
-	      stringEncoding = parseCharacterSet(charset);
-	      string = [[NSString alloc] initWithData: decoded
-					     encoding: stringEncoding];
-	      [document setContent: string];
-	      RELEASE(string);
-	    }
-	  else
+	  if (context->atEnd == YES)
 	    {
 	      /*
-	       * Assume that any non-text content type is best
-	       * represented as NSData.
+	       * If no content type is supplied, we assume text.
 	       */
-	      decoded = [decoded copy]; /* Ensure it's immutable */
-	      [document setContent: decoded];
-	      RELEASE(decoded);
+	      if (type == nil || [type isEqualToString: @"text"] == YES)
+		{
+		  NSDictionary		*params;
+		  NSString		*charset;
+		  NSStringEncoding	stringEncoding;
+		  NSString		*string;
+
+		  /*
+		   * Assume that content type is best represented as NSString.
+		   */
+		  params = [typeInfo objectForKey: @"Parameters"];
+		  charset = [params objectForKey: @"charset"];
+		  stringEncoding = parseCharacterSet(charset);
+		  string = [[NSString alloc] initWithData: data
+						 encoding: stringEncoding];
+		  [document setContent: string];
+		  RELEASE(string);
+		}
+	      else
+		{
+		  /*
+		   * Assume that any non-text content type is best
+		   * represented as NSData.
+		   */
+		  [document setContent: AUTORELEASE([data copy])];
+		}
 	    }
 	  return YES;
 	}
@@ -1303,6 +1375,10 @@ parseCharacterSet(NSString *token)
       unsigned char	*bBytes = (unsigned char*)[boundary bytes];
       unsigned char	bInit = bBytes[0];
       BOOL		done = NO;
+
+      [data appendBytes: [d bytes] length: [d length]];
+      bytes = (unsigned char*)[data mutableBytes];
+      dataEnd = [data length];
 
       while (done == NO)
 	{
@@ -1367,10 +1443,11 @@ parseCharacterSet(NSString *token)
 	      if ([child parse: d] == YES && [child parse: nil] == YES)
 		{
 		  NSMutableArray	*a;
+		  GSMimeDocument	*doc;
 
 		  /*
 		   * Store the document produced by the child, and
-		   * create anew parser for the next section.
+		   * create a new parser for the next section.
 	           */
 		  a = [document content];
 		  if (a == nil)
@@ -1379,7 +1456,11 @@ parseCharacterSet(NSString *token)
 		      [document setContent: a];
 		      RELEASE(a);
 		    }
-		  [a addObject: [child document]];
+		  doc = [child document];
+		  if (doc != nil)
+		    {
+		      [a addObject: doc];
+		    }
 		  RELEASE(child);
 		  child = [GSMimeParser new];
 		}
@@ -1531,6 +1612,11 @@ parseCharacterSet(NSString *token)
 - (id) content
 {
   return content;
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
 }
 
 - (void) dealloc
