@@ -390,6 +390,11 @@ static int messages_received_count;
     }
 }
 
+- (void) addRunloop: (NSRunLoop*)loop
+{
+  [self notImplemented: _cmd];
+}
+
 - (void) dealloc
 {
   if (debug_connection)
