@@ -920,7 +920,7 @@ static NSFileManager* defaultManager = nil;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
 #if defined(__MINGW__)
-  long long totalsize, freesize;
+  unsigned long long totalsize, freesize;
   id  values[5];
   id	keys[5] = {
 	  NSFileSystemSize,
@@ -937,11 +937,15 @@ static NSFileManager* defaultManager = nil;
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
     return nil;
 
-  totalsize = TotalNumberClusters * SectorsPerCluster * BytesPerSector;
-  freesize = NumberFreeClusters * SectorsPerCluster * BytesPerSector;
+  totalsize = (unsigned long long)TotalNumberClusters
+    * (unsigned long long)SectorsPerCluster
+    * (unsigned long long)BytesPerSector;
+  freesize = (unsigned long long)NumberFreeClusters
+    * (unsigned long long)SectorsPerCluster
+    * (unsigned long long)BytesPerSector;
   
-  values[0] = [NSNumber numberWithLongLong: totalsize];
-  values[1] = [NSNumber numberWithLongLong: freesize];
+  values[0] = [NSNumber numberWithUnsignedLongLong: totalsize];
+  values[1] = [NSNumber numberWithUnsignedLongLong: freesize];
   values[2] = [NSNumber numberWithLong: LONG_MAX];
   values[3] = [NSNumber numberWithLong: LONG_MAX];
   values[4] = [NSNumber numberWithUnsignedInt: 0];
@@ -956,7 +960,7 @@ static NSFileManager* defaultManager = nil;
 #else
   struct statfs statfsbuf;
 #endif
-  long long totalsize, freesize;
+  unsigned long long totalsize, freesize;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
   
   id  values[5];
@@ -979,11 +983,13 @@ static NSFileManager* defaultManager = nil;
     return nil;
 #endif
 
-  totalsize = statfsbuf.f_bsize * statfsbuf.f_blocks;
-  freesize = statfsbuf.f_bsize * statfsbuf.f_bavail;
+  totalsize = (unsigned long long) statfsbuf.f_bsize
+    * (unsigned long long) statfsbuf.f_blocks;
+  freesize = (unsigned long long) statfsbuf.f_bsize
+    * (unsigned long long) statfsbuf.f_bavail;
   
-  values[0] = [NSNumber numberWithLongLong: totalsize];
-  values[1] = [NSNumber numberWithLongLong: freesize];
+  values[0] = [NSNumber numberWithUnsignedLongLong: totalsize];
+  values[1] = [NSNumber numberWithUnsignedLongLong: freesize];
   values[2] = [NSNumber numberWithLong: statfsbuf.f_files];
   values[3] = [NSNumber numberWithLong: statfsbuf.f_ffree];
   values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
@@ -1096,7 +1102,15 @@ static NSFileManager* defaultManager = nil;
 #endif
 
       if (stat(cpath, &sb) != 0)
-	ok = NO;
+	{
+	  ok = NO;
+	}
+#if  defined(__WIN32__)
+      else if (sb.st_mode & _S_IFDIR)
+	{
+	  ok = YES;	// Directories don't have modification times.
+	}
+#endif
       else
 	{
 #if  defined(__WIN32__) || defined(_POSIX_VERSION)
@@ -1762,18 +1776,29 @@ static NSFileManager* defaultManager = nil;
     NSFileGroupOwnerAccountNumber
   };
 
+#if defined(__MINGW__)
+  if (stat(cpath, &statbuf) != 0)
+    {
+      return nil;
+    }
+#else /* !(__MINGW__) */
   if (traverse)
     {
       if (stat(cpath, &statbuf) != 0)
-	return nil;
+	{
+	  return nil;
+	}
     }
 #ifdef S_IFLNK
   else
     {
       if (lstat(cpath, &statbuf) != 0)
-	return nil;
+	{
+	  return nil;
+	}
     }
-#endif
+#endif /* (S_IFLNK) */
+#endif /* (__MINGW__) */
     
   values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
   values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
