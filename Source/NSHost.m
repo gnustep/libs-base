@@ -69,6 +69,11 @@ static NSMutableDictionary	*_hostCache = nil;
     {
       return nil;
     }
+  if (name == nil)
+    {
+      RELEASE(self);
+      return nil;
+    }
   if (entry == (struct hostent*)NULL)
     {
       RELEASE(self);
@@ -99,26 +104,7 @@ static NSMutableDictionary	*_hostCache = nil;
 
   if (_hostCacheEnabled == YES)
     {
-      NSEnumerator	*enumerator;
-      NSString		*key;
-
-      enumerator = [_names objectEnumerator];
-      while ((key = [enumerator nextObject]) != nil)
-	{
-	  [_hostCache setObject: self forKey: key];
-	}
-      enumerator = [_addresses objectEnumerator];
-      while ((key = [enumerator nextObject]) != nil)
-	{
-	  [_hostCache setObject: self forKey: key];
-	}
-      /*
-       * In addition to official names, use the name we were called with.
-       */
-      if (name != nil)
-	{
-	  [_hostCache setObject: self forKey: name];
-	}
+      [_hostCache setObject: self forKey: name];
     }
 
   return self;
@@ -128,38 +114,38 @@ static NSMutableDictionary	*_hostCache = nil;
 
 @implementation NSHost
 
-- (id) init
-{
-  [self dealloc];
-  return nil;
-}
-
-+ (void) initialize
-{
-  if (self == [NSHost class])
-    {
-      _hostCacheLock = [[NSLock alloc] init];
-      _hostCache = [NSMutableDictionary new];
-    }
-}
-
 /*
  *	Max hostname length in line with RFC  1123
  */
 #define	GSMAXHOSTNAMELEN	255
 
+static NSString	*myHost = nil;
+
++ (void) initialize
+{
+  if (self == [NSHost class])
+    {
+      char	buf[GSMAXHOSTNAMELEN+1];
+      int	res;
+
+      res = gethostname(buf, GSMAXHOSTNAMELEN);
+      if (res < 0)
+	{
+	  NSLog(@"Unable to get name of current host - using 'localhost'");
+	  myHost = @"localhost";
+	}
+      else
+	{
+	  myHost = [[NSString alloc] initWithCString: buf];
+	}
+      _hostCacheLock = [[NSLock alloc] init];
+      _hostCache = [NSMutableDictionary new];
+    }
+}
+
 + (NSHost*) currentHost
 {
-  char		name[GSMAXHOSTNAMELEN+1];
-  int		res;
-
-  res = gethostname(name, GSMAXHOSTNAMELEN);
-  if (res < 0)
-    {
-      return nil;
-    }
-  name[GSMAXHOSTNAMELEN] = '\0';
-  return [self hostWithName: [NSString stringWithCString: name]];
+  return [self hostWithName: myHost];
 }
 
 + (NSHost*) hostWithName: (NSString*)name
@@ -168,7 +154,7 @@ static NSMutableDictionary	*_hostCache = nil;
 
   if (name == nil)
     {
-      NSLog(@"Nil host name sent to +[NSHost hostWithName]");
+      NSLog(@"Nil host name sent to [NSHost +hostWithName:]");
       return nil;
     }
 
@@ -196,7 +182,7 @@ static NSMutableDictionary	*_hostCache = nil;
 
   if (address == nil)
     {
-      NSLog(@"Nil host address sent to +[NSHost hostWithName]");
+      NSLog(@"Nil host address sent to [NSHost +hostWithName:]");
       return nil;
     }
 
@@ -289,6 +275,19 @@ static NSMutableDictionary	*_hostCache = nil;
   return host;
 }
 
+- (void) dealloc
+{
+  RELEASE(_names);
+  RELEASE(_addresses);
+  [super dealloc];
+}
+
+- (id) init
+{
+  [self dealloc];
+  return nil;
+}
+
 /*
  *	The OpenStep spec says that [-hash] must be the same for any two
  *	objects that [-isEqual: ] returns YES for.  We have a problem in
@@ -326,11 +325,6 @@ static NSMutableDictionary	*_hostCache = nil;
     if ([_addresses containsObject: [a objectAtIndex: i]])
       return YES;
 
-  a = [aHost names];
-  for (i = 0; i < [a count]; i++)
-    if ([_addresses containsObject: [a objectAtIndex: i]])
-      return YES;
-
   return NO;
 }
 
@@ -358,13 +352,6 @@ static NSMutableDictionary	*_hostCache = nil;
 {
   return [NSString stringWithFormat: @"Host %@ (%@ %@)",
     [self name], [self names], [self addresses]];
-}
-
-- (void) dealloc
-{
-  RELEASE(_names);
-  RELEASE(_addresses);
-  [super dealloc];
 }
 
 @end

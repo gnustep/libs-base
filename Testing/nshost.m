@@ -37,12 +37,24 @@ main ()
   displayHost(a);
 
   printf("c:%lx, n:%lx, a:%lx\n", c, n, a);
+  printf("c isEqual: n ... %d\n", [c isEqual: n]);
+  printf("n isEqual: c ... %d\n", [n isEqual: c]);
+  printf("c isEqual: a ... %d\n", [c isEqual: a]);
+  printf("a isEqual: c ... %d\n", [a isEqual: c]);
+  printf("n isEqual: a ... %d\n", [n isEqual: a]);
+  printf("a isEqual: n ... %d\n", [a isEqual: n]);
 
   [NSHost setHostCacheEnabled:NO];
 
   n = [NSHost hostWithName:[c name]];
   displayHost(n);
   printf("c:%lx, n:%lx, a:%lx\n", c, n, a);
+  printf("c isEqual: n ... %d\n", [c isEqual: n]);
+  printf("n isEqual: c ... %d\n", [n isEqual: c]);
+  printf("c isEqual: a ... %d\n", [c isEqual: a]);
+  printf("a isEqual: c ... %d\n", [a isEqual: c]);
+  printf("n isEqual: a ... %d\n", [n isEqual: a]);
+  printf("a isEqual: n ... %d\n", [a isEqual: n]);
 
   [arp release];
   exit (0);
