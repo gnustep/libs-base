@@ -52,7 +52,10 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
-#include <sys/param.h>		/* for MAXHOSTNAMELEN */
+/* One of these two should have MAXHOSTNAMELEN */
+#include <sys/param.h>
+#include <netdb.h>
+
 #include <string.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
