@@ -53,6 +53,7 @@
  *************************************************************************/
 
 #include <config.h>
+#include <base/preface.h>
 
 /* One of these two should have MAXHOSTNAMELEN */
 #ifndef __WIN32__
@@ -171,7 +172,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     i = 0;
     while (env[i]) 
       {
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
 	char	buf[1024];
 	char	*cp;
 	DWORD	len;
@@ -429,7 +430,7 @@ int main(int argc, char *argv[], char *env[])
 {
   int	pid;
 
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
   pid = (int)GetCurrentProcessId(),
 #else
   pid = (int)getpid();

@@ -33,6 +33,7 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSScanner.h>
+#include <base/preface.h>
 #include <base/behavior.h>
 #include <base/fast.x>
 #ifndef __WIN32__
@@ -109,7 +110,7 @@ otherTime(NSDate* other)
 NSTimeInterval
 GSTimeNow()
 {
-#if !defined(__WIN32__) && !defined(_WIN32)
+#if !defined(__WIN32__)
   volatile NSTimeInterval interval;
   struct timeval tp;
 

@@ -1,3 +1,24 @@
+Tue May 11 10:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/preface.h: Attempt to standardise win32 conditional
+	compilation by using __WIN32__ throughout.
+	* NSDate.m: Standardize win32 stuff using __WIN32__
+	Open files with "rb" or "wb" only for winw3.
+	* NSFileManager.m: Standardize win32 stuff using __WIN32__
+	* NSHost.m: Standardize win32 stuff using __WIN32__
+	* NSLog.m: Standardize win32 stuff using __WIN32__
+	* NSProcessInfo.m: Standardize win32 stuff using __WIN32__
+	* NSString.m: Standardize win32 stuff using __WIN32__
+	* NSTask.m: Standardize win32 stuff using __WIN32__
+	* NSThread.m: Standardize win32 stuff using __WIN32__
+	* NSUser.m: Standardize win32 stuff using __WIN32__
+	* NSUserDefaults.m: Standardize win32 stuff using __WIN32__
+	* Time.m: Standardize win32 stuff using __WIN32__
+	* UnixFileHandle.m: Standardize win32 stuff using __WIN32__
+	* NSData.m: Standardize win32 stuff using __WIN32__
+	* NSTimeZone.m: Standardize win32 stuff using __WIN32__
+	Open files with "rb" or "wb" only for winw3.
+
 Mon May 10  8:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSString.m: ([-rangeOfComposedCharacterSequenceAtIndex:])

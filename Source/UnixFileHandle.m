@@ -36,7 +36,7 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
 
-#ifdef WIN32
+#if	defined(__WIN32__)
 #include <Windows32/Sockets.h>
 #else
 #include <time.h>
@@ -46,7 +46,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#endif /* WIN32 */
+#endif /* __WIN32__ */
 
 #include <sys/file.h>
 #include <sys/stat.h>

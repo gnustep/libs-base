@@ -29,7 +29,13 @@
 #include <base/objc-gnu2next.h>
 #include <base/fake-main.h>
 
-#if defined(__WIN32__) || defined(_WIN32)
+#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
+#ifndef __WIN32__
+#define __WIN32__
+#endif
+#endif
+
+#if defined(__WIN32__)
 #include <windows.h>
 #define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
 #endif

@@ -124,7 +124,7 @@ pathSeps()
 
   if (pathSeps == nil)
     {
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
       pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
 #else
       pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
@@ -2462,7 +2462,7 @@ else
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
   return self;
 #else 
   NSString *first_half = self, * second_half = @"";
@@ -2518,7 +2518,7 @@ else
 	}
     }
   return second_half;
-#endif  /* (__WIN32__) || (_WIN32) */  
+#endif  /* (__WIN32__) */  
 }
 
 - (NSString*) stringByStandardizingPath
@@ -2636,7 +2636,7 @@ else
   if ([self length] == 0)
     return NO;
 
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
   if ([self indexOfString: @": "] != NSNotFound)
     return YES;
 #else

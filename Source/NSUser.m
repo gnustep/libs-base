@@ -35,7 +35,7 @@
 #include <Foundation/NSUserDefaults.h>
 
 #include <stdlib.h>		// for getenv()
-#if !defined(__WIN32__) && !defined(_WIN32)
+#if !defined(__WIN32__)
 #include <unistd.h>		// for getlogin()
 #endif
 #if	HAVE_PWD_H
@@ -68,7 +68,7 @@ NSUserName ()
   if (theUserName == nil)
     {
       const char *login_name = 0;
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(__WIN32__)
       /* The GetUserName function returns the current user name */
       char buf[1024];
       DWORD n = 1024;
@@ -112,7 +112,7 @@ NSHomeDirectory ()
 NSString *
 NSHomeDirectoryForUser (NSString *login_name)
 {
-#if !defined(__WIN32__) && !defined(_WIN32)
+#if !defined(__WIN32__)
   struct passwd *pw;
   pw = getpwnam ([login_name cString]);
   return [NSString stringWithCString: pw->pw_dir];
@@ -172,7 +172,7 @@ NSString *NSTemporaryDirectory(void)
 {
   NSFileManager *manager;
   NSString *tempDirName, *baseTempDirName;
-#ifdef WIN32
+#if	defined(__WIN32__)
   char buffer[1024];
   if (GetTempPath(1024, buffer))
     baseTempDirName = [NSString stringWithCString: buffer];
@@ -202,7 +202,7 @@ NSString *NSOpenStepRootDirectory(void)
 		     objectForKey:@"GNUSTEP_SYSTEM_ROOT"];
 
   if (!root)
-#ifdef WIN32
+#if	defined(__WIN32__)
     root = @"C:\\";
 #else
     root = @"/";
