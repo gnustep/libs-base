@@ -1,3 +1,10 @@
+Thu Apr 22 21:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSBundle.m: Improved localisation - added stuff for internal
+	use by the GNUstep system.
+	* Source/NSBundle.h: ditto.
+	* Source/FastArray.x: Removed assertions for performance.
+
 Thu Apr 22 11:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * Source/NSRunLoop.m: Optimisation and tidyup.
