@@ -2077,8 +2077,8 @@ if test x"$objc_threaded" != x""; then
 fi
 LIBS="$LIBS $extra_LIBS"
 CPPFLAGS="$CPPFLAGS -fconstant-string-class=NSConstantString"
-echo $ac_n "checking if the compiler support -fconstant-string-class""... $ac_c" 1>&6
-echo "configure:2082: checking if the compiler support -fconstant-string-class" >&5
+echo $ac_n "checking if the compiler supports -fconstant-string-class""... $ac_c" 1>&6
+echo "configure:2082: checking if the compiler supports -fconstant-string-class" >&5
 if eval "test \"`echo '$''{'objc_compiler_supports_constant_string_class'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
