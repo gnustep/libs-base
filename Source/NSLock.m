@@ -447,8 +447,40 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
                 beforeDate: (NSDate*)limitDate
 {
 #ifndef HAVE_OBJC_CONDITION_TIMEDWAIT
-  [self notImplemented: _cmd];
+  GSSleepInfo	ctxt;
+
+  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+
+  GSSleepInit(limitDate, &ctxt);
+
+  do
+    {
+      if (_condition_value == condition_to_meet)
+	{
+	  while (objc_mutex_trylock(_mutex) == -1)
+	    {
+	      if (GSSleepOrFail(&ctxt) == NO)
+		{
+		  return NO;
+		}
+	    }
+	  if (_condition_value == condition_to_meet)
+	    {
+	      return YES;
+	    }
+	  if (objc_mutex_unlock(_mutex) == -1)
+	    {
+	      [NSException raise: NSConditionLockException
+			   format: @"%s failed to unlock mutex",
+			   GSNameFromSelector(_cmd)];
+	      /* NOT REACHED */
+	    }
+	} 
+    }
+  while (GSSleepOrFail(&ctxt) == YES);
+
   return NO;
+
 #else
   NSTimeInterval atimeinterval;
   struct timespec endtime;

@@ -25,6 +25,7 @@
 #include <string.h>
 #include <Foundation/Foundation.h>
 #include "GNUstepBase/GSCategories.h"
+#include "GNUstepBase/GSLock.h"
 
 /**
  * Extension methods for the NSCalendarDate class
@@ -873,4 +874,121 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   [self trimLeadSpaces];
 }
 
+@end
+
+/**
+ * GNUstep specific (non-standard) additions to the NSLock class.
+ */
+
+static NSRecursiveLock *local_lock = nil;
+
+/* 
+   This class only exists to provide 
+   a thread safe mechanism to initialize local_lock
+   as +initialize is called under a lock in ObjC runtimes.
+   User code should resort to GS_INITIALIZED_LOCK(),
+   which uses the +newLockAt: extension.
+*/
+
+@interface _GSLockInitializer : NSObject
+@end
+@implementation _GSLockInitializer
++ (void)initialize
+{
+  if (!local_lock)
+    {
+      local_lock = [GSLazyRecursiveLock new];
+    }
+}
+@end
+
+GS_STATIC_INLINE id
+newLockAt(Class self, SEL _cmd, id *location)
+{
+  if (location == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                   format: @"'%@' called with nil location",
+		   NSStringFromSelector(_cmd)];
+    }
+
+  if (*location == nil)
+    {
+      if (local_lock == nil)
+	{
+	  [_GSLockInitializer class];
+	}
+
+      [local_lock lock];
+
+      if (*location == nil)
+	{
+	  *location = [[self alloc] init];
+	}
+
+      [local_lock unlock];
+    }
+
+  return *location;
+}
+
+
+@implementation NSLock (GSCategories)
+/**
+ * Initializes the id pointed to by location
+ * with a new instance of the receiver's class
+ * in a thread safe manner, unless
+ * it has been previously initialized.
+ * Returns the contents pointed to by location.  
+ * The location is considered unintialized if it contains nil.
+ * <br/>
+ * This method is used in the GS_INITIALIZED_LOCK macro
+ * to initialize lock variables when it cannot be insured
+ * that they can be initialized in a thread safe environment.
+ * <example>
+ * NSLock *my_lock = nil;
+ *
+ * void function (void)
+ * {
+ *   [GS_INITIALIZED_LOCK(my_lock, NSLock) lock];
+ *   do_work ();
+ *   [my_lock unlock];
+ * }
+ * 
+ * </example>
+ */
++ (id)newLockAt:(id *)location
+{
+  return newLockAt(self, _cmd, location);
+}
+@end
+
+@implementation NSRecursiveLock (GSCategories)
+/**
+ * Initializes the id pointed to by location
+ * with a new instance of the receiver's class
+ * in a thread safe manner, unless
+ * it has been previously initialized.
+ * Returns the contents pointed to by location.  
+ * The location is considered unintialized if it contains nil.
+ * <br/>
+ * This method is used in the GS_INITIALIZED_LOCK macro
+ * to initialize lock variables when it cannot be insured
+ * that they can be initialized in a thread safe environment.
+ * <example>
+ * NSLock *my_lock = nil;
+ *
+ * void function (void)
+ * {
+ *   [GS_INITIALIZED_LOCK(my_lock, NSRecursiveLock) lock];
+ *   do_work ();
+ *   [my_lock unlock];
+ * }
+ * 
+ * </example>
+ */
++ (id)newLockAt:(id *)location
+{
+  return newLockAt(self, _cmd, location);
+}
 @end

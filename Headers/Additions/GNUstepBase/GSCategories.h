@@ -162,12 +162,9 @@ typedef enum _NSGNUstepStringEncoding
 } NSGNUstepStringEncoding;
 
 
-/* ------------------------------------------------------------------------
- * Variables
- */
-
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
+/* Taken from base/Headers/Foundation/NSLock.h */
+#define GS_INITIALIZED_LOCK(IDENT,CLASSNAME) \
+           (IDENT != nil ? IDENT : [CLASSNAME newLockAt: &IDENT])
 
 /* ------------------------------------------------------------------------
  * Class/Method Extensions
@@ -277,6 +274,14 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 @interface NSProcessInfo(GSCompatibility)
 - (NSMutableSet *) debugSet;
+@end
+
+@interface NSLock (GSCategories)
++ (id)newLockAt:(NSLock **)location;
+@end
+
+@interface NSRecursiveLock (GSCategories)
++ (id)newLockAt:(NSLock **)location;
 @end
 
 

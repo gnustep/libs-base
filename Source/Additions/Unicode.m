@@ -39,6 +39,7 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
+#include "GNUstepBase/GSLock.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/Unicode.h"
 #include <stdio.h>
@@ -81,6 +82,8 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #endif
 
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
+
+static NSRecursiveLock *local_lock = nil;
 
 static const char *unicode_enc = NULL;
 
@@ -207,7 +210,7 @@ static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {
-      [gnustep_global_lock lock];
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyRecursiveLock) lock];
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
@@ -257,7 +260,7 @@ static void GSSetupEncodingTable(void)
 	    }
 	  encodingTable = encTable;
 	}
-      [gnustep_global_lock unlock];
+      [local_lock unlock];
     }
 }
 
@@ -325,7 +328,7 @@ GetAvailableEncodings()
 {
   if (_availableEncodings == 0)
     {
-      [gnustep_global_lock lock];
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyRecursiveLock) lock];
       if (_availableEncodings == 0)
 	{
 	  NSStringEncoding	*encodings;
@@ -352,7 +355,7 @@ GetAvailableEncodings()
 	  encodings[pos] = 0;
 	  _availableEncodings = encodings;
 	}
-      [gnustep_global_lock unlock];
+      [local_lock unlock];
     }
   return _availableEncodings;
 }
@@ -559,10 +562,10 @@ GetDefEncoding()
       char		*encoding;
       unsigned int	count;
 
-      [gnustep_global_lock lock];
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyRecursiveLock) lock];
       if (defEnc != GSUndefinedEncoding)
 	{
-	  [gnustep_global_lock unlock];
+	  [local_lock unlock];
 	  return defEnc;
 	}
 
@@ -604,7 +607,7 @@ GetDefEncoding()
 		  "  NSISOLatin1StringEncoding set as default.\n");
 	  defEnc = NSISOLatin1StringEncoding;
 	}
-      [gnustep_global_lock unlock];
+      [local_lock unlock];
     }
   return defEnc;
 }

@@ -128,4 +128,42 @@
 
 @end
 
+#ifndef NO_GNUSTEP
+
+/**
+ * Returns IDENT which will be initialized
+ * to an instance of a CLASSNAME in a thread safe manner.  
+ * If IDENT has been previoulsy initilized 
+ * this macro merely returns IDENT.
+ * IDENT is considered uninitialzed, if it contains nil.
+ * CLASSNAME must be either NSLock, NSRecursiveLock or one
+ * of thier subclasses.
+ * See [NSLock+newLockAt:] for details.
+ * This macro is intended for code that cannot insure
+ * that a lock can be initialized in thread safe manner otherwise.
+ * <example>
+ * NSLock *my_lock = nil;
+ *
+ * void function (void)
+ * {
+ *   [GS_INITIALIZED_LOCK(my_lock, NSLock) lock];
+ *   do_work ();
+ *   [my_lock unlock];
+ * }
+ *
+ * </example>
+ */
+#define GS_INITIALIZED_LOCK(IDENT,CLASSNAME) \
+           (IDENT != nil ? IDENT : [CLASSNAME newLockAt: &IDENT])
+
+@interface NSLock (GSCategories)
++ (id)newLockAt:(id *)location;
+@end
+
+@interface NSRecursiveLock (GSCategories)
++ (id)newLockAt:(id *)location;
+@end
+
+#endif /* NO_GNUSTEP */
+
 #endif /* _GNUstep_H_NSLock*/

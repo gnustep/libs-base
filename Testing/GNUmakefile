@@ -36,6 +36,7 @@ CHECKABLE_TOOLS = \
 		call \
 		containers \
 		fref \
+		gslock \
 		nsarchiver \
 		nsarray \
 		nsattributedstring \
@@ -74,7 +75,8 @@ ADDITIONAL_TOOLS = \
 		nsconnection_client \
 		nsconnection_server \
 
-// TEST_TOOL_NAME += nsconnection_client nsconnection_server
+# TEST_TOOL_NAME += nsconnection_client nsconnection_server
+TEST_TOOL_NAME += nsconnection_client nsconnection_server $(ADDITIONAL_TOOLS)
 
 # The tool Objective-C source files to be compiled
 awake_OBJC_FILES = awake.m
@@ -84,6 +86,7 @@ call_OBJC_FILES = call.m
 containers_OBJC_FILES = containers.m
 diningPhilosophers_OBJC_FILES = diningPhilosophers.m
 fref_OBJC_FILES = fref.m
+gslock_OBJC_FILES = gslock.m
 gstcpport-client_OBJC_FILES = gstcpport-client.m
 gstcpport-server_OBJC_FILES = gstcpport-server.m
 nsarchiver_OBJC_FILES = nsarchiver.m

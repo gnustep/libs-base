@@ -1,3 +1,29 @@
+2003-10-30  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSLock.h: Added missing forward
+	declaration.
+	* Headers/Additions/GNUstepBase/GSCategories.h: Remove declaraion
+	of gnustep_global_lock.
+	(GS_INITIALIZED_LOCK): New macro.
+	(+[NSLock newLockAt:]): New method.
+	(+[NSRecursiveLock newLockAt:]): Ditto.
+	* Headers/Foundation/NSLock.h: Ditto.
+	* Source/Additions/GSCategories.m: Replace global lock with local
+	lock.
+	(_GSLockInitializer): New class to initialize local lock safely.
+	(newLockAt): New static function shared by +newLockAt:
+	implementations to safely intialize lock variables.
+	(+[NSLock newLockAt:]): Implemented and documented.
+	(+[NSRecursiveLock newLockAt:]): Ditto.
+	* Source/Additions/GSCompatibility.m: Remove gnustep_global_lock.
+	* Source/Additions/GSObjCRuntime.m: Remove superfluous locking.
+	* Source/Additions/Unicode.m: Use new GS_INITIALIZED_LOCK macro
+	and replace global lock with local lock.
+	* Source/NSLock.m 
+	(-[NSConditionLock lockWhenCondition:beforeDate:]): Implemented.
+	* Testing/gslock.m: New test case.
+	* Testing/GNUmakefile: Add new test case.
+
 2003-10-28  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Simplify and clarify ffi errors.

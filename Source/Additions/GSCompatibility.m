@@ -27,9 +27,6 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GCObject.h"
 
-/* FIXME: Need to initialize this */
-NSRecursiveLock *gnustep_global_lock = NULL;
-
 NSString *GetEncodingName(NSStringEncoding availableEncodingValue)
 {
   // Deprecated
