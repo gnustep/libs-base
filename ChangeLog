@@ -1,5 +1,28 @@
 2000-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Makefile.preamble: define GS_NEW_DO to specify whether the
+	new or the old DO code is to be used.  Change the define and
+	rebuild the library for the new DO code.
+	Advantages of new code -
+	  MacOS-X compatibly
+	  Should work between different processor architectures and word sizes
+	  Might work for inter-thread communication
+	  Approx 25% faster
+	  Permit packet authentication/encryption
+	Disadvantages -
+	  not well tested - development version
+	  removed many old methods.
+	* Headers/gnustep/base/GSConnection.h: removed - merged into
+	NSConnection.h
+	* Headers/gnustep/base/GSPortCoder.h: removed - merged into
+	NSPortCoder.h
+	* Source/GSConnection.m: removed - merged into NSConnection.m
+	* Source/GSPortCoder.m: removed - merged into NSPortCoder.m
+	* Source/NSPortNameServer.m: Use GS_NEW_DO define to determine
+	default port class
+
+2000-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSConnection.m: Improved coder caching and added code for
 	multiple thread support.
 	* Source/GSPortCoder.m: Improved performance of class version

@@ -95,6 +95,9 @@
   Class isa;
 }
 
+#if	GS_WITH_GC
++ (BOOL) requiresTypedMemory;
+#endif
 + (void) initialize;
 + (id) allocWithZone: (NSZone*)z;
 + (id) alloc;
@@ -132,7 +135,7 @@
 - (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
 
 
-+ setVersion: (int)aVersion;
++ (id) setVersion: (int)aVersion;
 + (int) version;
 
 @end
