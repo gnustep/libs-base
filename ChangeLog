@@ -2,6 +2,8 @@
 
 	* Source/GSMime.m: ([-decodeData:fromRange:intoData:withContext:])
 	One line fix suggested by Stephen Brandon
+	* Source/GSMime.m: ([-_decodeBody:]) fix parsing multipart documents		as there was an error in the logic for testing to see if the sub docs
+	had been parsed correctly.
 
 2001-08-03  Adam Fedor  <fedor@gnu.org>
 

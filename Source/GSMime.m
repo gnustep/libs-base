@@ -65,7 +65,7 @@ typedef	enum {
  *			enc content-transfer-encoding
  *	Purpose -	Decode text with BASE64 or QUOTED-PRINTABLE codes.
  */
-unsigned char*
+static unsigned char*
 decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
 {
   int	c;
@@ -1694,7 +1694,7 @@ parseCharacterSet(NSString *token)
 	       */
 	      d = [NSData dataWithBytes: &bytes[sectionStart]
 				 length: lineStart - sectionStart];
-	      if ([child parse: d] == YES && [child parse: nil] == YES)
+	      if ([child parse: d] == YES || [child parse: nil] == YES)
 		{
 		  NSMutableArray	*a;
 		  GSMimeDocument	*doc;
