@@ -78,9 +78,6 @@ after-distclean::
 config.mak:	config.mak.in
 	./configure
 
-$(GNUSTEP_OBJ_DIR)/GSSSLHandle.o \
-        : $(GNUSTEP_TARGET_DIR)/config.h
-
 #
 # The config.h file is specific to a target
 #
