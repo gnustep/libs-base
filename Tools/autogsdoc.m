@@ -636,6 +636,10 @@ main(int argc, char **argv, char **env)
   NSAutoreleasePool	*outer = nil;
   NSAutoreleasePool	*pool = nil;
 #endif
+  NSString	*arg;
+  NSString	*opt;
+  NSSet		*argSet;
+  NSArray 	*argsGiven;
 
   /*
    Overall process in this file is as follows:
@@ -786,10 +790,8 @@ main(int argc, char **argv, char **env)
       @"for display in HTML frames",
     @"MakeFrames",
     nil];
-  NSString	*arg;
-  NSString	*opt;
-  NSSet	*argSet = [NSSet setWithArray: [argsRecognized allKeys]];
-  NSArray	*argsGiven = [[NSProcessInfo processInfo] arguments];
+  argSet = [NSSet setWithArray: [argsRecognized allKeys]];
+  argsGiven = [[NSProcessInfo processInfo] arguments];
 
   for (i = 0; i < [argsGiven count]; i++)
     {
@@ -1849,12 +1851,12 @@ main(int argc, char **argv, char **env)
         }
       if (i == [gFiles count])
         {
+          NSMutableString 	*prjFileContents =
+            [NSMutableString stringWithCapacity: cap];
           NSLog(@"\n\nNOTE: Generating a simple introductory page for your"
 @" project.\nTo replace this with a custom version, edit the gsdoc file \n"
 @"named %@ in the documentation output directory.\n"
 @"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
-          NSMutableString 	*prjFileContents =
-            [NSMutableString stringWithCapacity: cap];
           [prjFileContents setString: @"<?xml version=\"1.0\"?>\n"
 @"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
 @"<gsdoc base=\"[prjName]\">\n"
