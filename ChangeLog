@@ -1,3 +1,13 @@
+Sat Feb  9 01:45:48 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSBundle.m ([+bundleForTool:]): Removed.  We switch to a
+	better API, which is to have a tool use +mainBundle, in the same
+	way as applications do, to retrieve the main resource bundle for
+	itself.
+	([+mainBundle]): Modified to support tools as well as
+	applications.
+	* Headers/gnustep/base/NSBundle.h ([+bundleForTool:]): Removed.
+	
 2002-02-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSTask.h: New method -validatedLaunchPath to
