@@ -551,8 +551,9 @@ static int messages_received_count;
 
     /* get the method types from the selector */
 #if NeXT_runtime
-    [self error:
-	  "sorry, distributed objects does not work with the NeXT runtime"];
+    [NSException 
+      raise: NSGenericException
+      format: @"Sorry, distributed objects does not work with NeXT runtime"];
     /* type = [object selectorTypeForProxy:sel]; */
 #else
     type = sel_get_type(sel);
@@ -716,7 +717,8 @@ static int messages_received_count;
   assert (is_valid);
   [self invalidate];
   if (receiving_connection == self)
-    [self error: "connection waiting for request was shut down"];
+    [NSException raise: NSGenericException
+		 format: @"connection waiting for request was shut down"];
   [self dealloc];		// xxx release instead?  YES!!
   [rmc dismiss];
 }
@@ -861,7 +863,8 @@ static int messages_received_count;
 	break;
       }
     default:
-      [self error:"unrecognized ConnectedDecoder identifier"];
+      [NSException raise: NSGenericException
+		   format: @"unrecognized ConnectedDecoder identifier"];
     }
 }
 
@@ -1051,7 +1054,8 @@ static int messages_received_count;
   assert([aProxy connectionForProxy] == self);
   [proxiesHashGate lock];
   if (NSMapGet (remote_proxies, (void*)target))
-    [self error:"Trying to add the same proxy twice"];
+    [NSException raise: NSGenericException
+		 format: @"Trying to add the same proxy twice"];
   NSMapInsert (remote_proxies, (void*)target, aProxy);
   [proxiesHashGate unlock];
 }
