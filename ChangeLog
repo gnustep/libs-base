@@ -1,5 +1,21 @@
 2001-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GNUmakefile:
+	* Source/GSXML.m:
+	* Headers/Foundation/GSXML.h: Build and install dummy version if
+	libxml is not available.
+	* Tools/GNUmakefile:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.h:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m: Many bugfixes and additions, bew code to
+	generate indexes.
+
+2001-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/AGSOutput.m: Added new 'unit' pseudo-markup to permit
 	control over chapter layout for a chapter containing class,
 	category, or protocol documentation.

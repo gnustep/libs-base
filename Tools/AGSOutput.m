@@ -22,6 +22,13 @@
 
 #include "AGSOutput.h"
 
+static NSString *escapeType(NSString *str)
+{
+  str = [str stringByReplacingString: @"<" withString: @"&lt;"];
+  str = [str stringByReplacingString: @">" withString: @"&gt;"];
+  return str;
+}
+
 static BOOL snuggleEnd(NSString *t)
 {
   static NSCharacterSet	*set = nil;
@@ -193,32 +200,36 @@ static BOOL snuggleStart(NSString *t)
   [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_6.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
-  tmp = [info objectForKey: @"Base"];
+  tmp = [info objectForKey: @"base"];
   if (tmp != nil)
     {
       [str appendString: @" base=\""];
       [str appendString: tmp];
+      [str appendString: @"\""];
     }
 
-  tmp = [info objectForKey: @"Next"];
+  tmp = [info objectForKey: @"next"];
   if (tmp != nil)
     {
       [str appendString: @" next=\""];
       [str appendString: tmp];
+      [str appendString: @"\""];
     }
 
-  tmp = [info objectForKey: @"Prev"];
+  tmp = [info objectForKey: @"prev"];
   if (tmp != nil)
     {
       [str appendString: @" prev=\""];
       [str appendString: tmp];
+      [str appendString: @"\""];
     }
 
-  tmp = [info objectForKey: @"Up"];
+  tmp = [info objectForKey: @"up"];
   if (tmp != nil)
     {
       [str appendString: @" up=\""];
       [str appendString: tmp];
+      [str appendString: @"\""];
     }
 
   [str appendString: @">\n"];
@@ -400,7 +411,7 @@ static BOOL snuggleStart(NSString *t)
   NSArray	*sels = [d objectForKey: @"Sels"];
   NSArray	*types = [d objectForKey: @"Types"];
   NSString	*name = [d objectForKey: @"Name"];
-  NSString	*tmp;
+  NSString	*comment;
   unsigned	i;
   BOOL		isInitialiser = NO;
   NSString	*override = nil;
@@ -408,79 +419,91 @@ static BOOL snuggleStart(NSString *t)
 
   args = [d objectForKey: @"Args"];	// Used when splitting.
 
-  tmp = [d objectForKey: @"Comment"];
+  comment = [d objectForKey: @"Comment"];
 
   /**
    * Check special markup which should be removed from the text
    * actually placed in the gsdoc method documentation ... the
    * special markup is included in the gsdoc markup differently.
    */ 
-  if (tmp != nil)
+  if (comment != nil)
     {
       NSMutableString	*m = nil;
       NSRange		r;
 
       do
 	{
-	  r = [tmp rangeOfString: @"<init>"];
+	  r = [comment rangeOfString: @"<init />"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<init/>"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<init>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
 		{
-		  m = [tmp mutableCopy];
+		  m = [comment mutableCopy];
 		}
 	      [m deleteCharactersInRange: r];
-	      tmp = m;
+	      comment = m;
 	      isInitialiser = YES;
 	    }
 	} while (r.length > 0);
       do
 	{
-	  r = [tmp rangeOfString: @"<override-subclass>"];
+	  r = [comment rangeOfString: @"<override-subclass />"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<override-subclass/>"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<override-subclass>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
 		{
-		  m = [tmp mutableCopy];
+		  m = [comment mutableCopy];
 		}
 	      [m deleteCharactersInRange: r];
-	      tmp = m;
+	      comment = m;
 	      override = @"subclass";
 	    }
 	} while (r.length > 0);
       do
 	{
-	  r = [tmp rangeOfString: @"<override-never>"];
+	  r = [comment rangeOfString: @"<override-never />"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<override-never/>"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<override-never>"];
 	  if (r.length > 0)
 	    {
 	      if (m == nil)
 		{
-		  m = [tmp mutableCopy];
+		  m = [comment mutableCopy];
 		}
 	      [m deleteCharactersInRange: r];
-	      tmp = m;
+	      comment = m;
 	      override = @"never";
 	    }
 	} while (r.length > 0);
-      r = [tmp rangeOfString: @"<standards>"];
+      r = [comment rangeOfString: @"<standards>"];
       if (r.length > 0)
 	{
 	  unsigned  i = r.location;
 
-	  r = NSMakeRange(i, [tmp length] - i);
-	  r = [tmp rangeOfString: @"</standards>"
+	  r = NSMakeRange(i, [comment length] - i);
+	  r = [comment rangeOfString: @"</standards>"
 			 options: NSLiteralSearch
 			   range: r];
 	  if (r.length > 0)
 	    {
 	      r = NSMakeRange(i, NSMaxRange(r) - i);
-	      standards = [tmp substringWithRange: r];
+	      standards = [comment substringWithRange: r];
 	      if (m == nil)
 		{
-		  m = [tmp mutableCopy];
+		  m = [comment mutableCopy];
 		}
 	      [m deleteCharactersInRange: r];
-	      tmp = m;
+	      comment = m;
 	    }
 	  else
 	    {
@@ -489,12 +512,12 @@ static BOOL snuggleStart(NSString *t)
 	}
       if (m != nil)
 	{
-	  RELEASE(m);
+	  AUTORELEASE(m);
 	}
     }
 
   [str appendString: @"        <method type=\""];
-  [str appendString: [d objectForKey: @"ReturnType"]];
+  [str appendString: escapeType([d objectForKey: @"ReturnType"])];
   if ([name hasPrefix: @"+"] == YES)
     {
       [str appendString: @"\" factory=\"yes"];
@@ -518,18 +541,21 @@ static BOOL snuggleStart(NSString *t)
       if (i < [args count])
 	{
 	  [str appendString: @"          <arg type=\""];
-	  [str appendString: [types objectAtIndex: i]];
+	  [str appendString: escapeType([types objectAtIndex: i])];
 	  [str appendString: @"\">"];
 	  [str appendString: [args objectAtIndex: i]];
 	  [str appendString: @"</arg>\n"];
 	}
     }
+  if ([[d objectForKey: @"VarArg"] boolValue] == YES)
+    {
+      [str appendString: @"<vararg />\n"];
+    }
 
   [str appendString: @"          <desc>\n"];
-  tmp = [d objectForKey: @"Comment"];
-  if (tmp != nil)
+  if (comment != nil)
     {
-      [self reformat: tmp withIndent: 12 to: str];
+      [self reformat: comment withIndent: 12 to: str];
     }
   [str appendString: @"          </desc>\n"];
   if (standards != nil)
@@ -1230,6 +1256,15 @@ static BOOL snuggleStart(NSString *t)
 			  pos++;
 			}
 		      /*
+		       * Varags methods end with ',...'
+		       */
+		      if (ePos - pos >= 4
+			&& [[tmp substringWithRange: NSMakeRange(pos, 4)]
+			  isEqual: @",..."])
+			{
+			  pos += 4;
+			}
+		      /*
 		       * The end of the method name should be immediately
 		       * before the closing square bracket at 'ePos'
 		       */
@@ -1328,6 +1363,16 @@ static BOOL snuggleStart(NSString *t)
 		      break;
 		    }
 		  pos++;
+		}
+	      /*
+	       * Varags methods end with ',...'
+	       */
+	      if (ePos - pos >= 4
+		&& [[tmp substringWithRange: NSMakeRange(pos, 4)]
+		  isEqual: @",..."])
+		{
+		  pos += 4;
+		  c = [tmp characterAtIndex: pos];
 		}
 	      if (pos > 1 && (pos == ePos || c == ',' || c == '.' || c == ';'))
 		{

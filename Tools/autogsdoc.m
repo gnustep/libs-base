@@ -109,14 +109,14 @@
     following markup is removed from the text and handled specially -
   </p>
   <list>
-    <item><strong>&lt;init&gt;</strong>
+    <item><strong>&lt;init /&gt;</strong>
       The method is marked as being the designated initialiser for the class.
     </item>
-    <item><strong>&lt;override-subclass&gt;</strong>
+    <item><strong>&lt;override-subclass /&gt;</strong>
       The method is marked as being one which subclasses must override
       (eg an abstract method).
     </item>
-    <item><strong>&lt;override-never&gt;</strong>
+    <item><strong>&lt;override-never /&gt;</strong>
       The method is marked as being one which subclasses should <em>NOT</em>
       override.
     </item>
@@ -161,19 +161,30 @@
       command line.
     </item>
   </list>
+  <section>
+    <heading>Inter-document linkage</heading>
+    <p>
+      When supplied with a list of documents to process, the tool will
+      set up linkage between documents using the gsdoc 'prev', 'next',
+      and 'up' attributes.
+    </p>
+    <p>
+      The first document processed will be the 'up' link for all
+      subsequent documents.
+    </p>
+    <p>
+      The 'prev' and 'next' links will be set up to link the documents
+      in the order in which they are processed.
+    </p>
+  </section>
 </chapter>
    */
 
-#include "AGSParser.h"
-#include "AGSOutput.h"
-
 #include	<config.h>
 
-#if	HAVE_LIBXML
-#include        <Foundation/GSXML.h>
-
-static int      XML_ELEMENT_NODE;
-#endif
+#include "AGSParser.h"
+#include "AGSOutput.h"
+#include "AGSIndex.h"
 
 int
 main(int argc, char **argv, char **env)
@@ -185,8 +196,11 @@ main(int argc, char **argv, char **env)
   NSFileManager		*mgr;
   NSString		*documentationDirectory;
   NSString		*sourceDirectory;
+  AGSIndex		*indexer;
   AGSParser		*parser;
   AGSOutput		*output;
+  NSString		*up = nil;
+  NSString		*prev = nil;
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
@@ -209,6 +223,7 @@ main(int argc, char **argv, char **env)
 
   mgr = [NSFileManager defaultManager];
 
+  indexer = [AGSIndex new];
   parser = [AGSParser new];
   output = [AGSOutput new];
 
@@ -221,25 +236,33 @@ main(int argc, char **argv, char **env)
 	{
 	  i++;		// Skip next value ... it is a default.
 	}
-      else if ([arg hasSuffix: @".h"])
+      else if ([arg hasSuffix: @".h"] || [arg hasSuffix: @".m"])
 	{
 	  NSString	*ddir;
 	  NSString	*sdir;
 	  NSString	*file;
 	  NSString	*generated;
+	  BOOL		isSource = [arg hasSuffix: @".m"];
 
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
-	  if (sourceDirectory == nil)
+	  if (isSource == YES)
 	    {
-	      sdir = [arg stringByDeletingLastPathComponent];
+	      sdir = arg;
 	    }
 	  else
 	    {
-	      sdir = sourceDirectory;
+	      if (sourceDirectory == nil)
+		{
+		  sdir = [arg stringByDeletingLastPathComponent];
+		}
+	      else
+		{
+		  sdir = sourceDirectory;
+		}
+	      sdir = [sdir stringByAppendingPathComponent: file];
+	      sdir = [sdir stringByAppendingPathExtension: @"m"];
 	    }
-	  sdir = [sdir stringByAppendingPathComponent: file];
-	  sdir = [sdir stringByAppendingPathExtension: @"m"];
 
 	  if (documentationDirectory == nil)
 	    {
@@ -265,74 +288,65 @@ main(int argc, char **argv, char **env)
 	      [parser parseFile: sdir isSource: YES];
 	    }
 
+	  [[parser info] setObject: file forKey: @"base"];
+	  if (up == nil)
+	    {
+	      up = file;
+	    }
+	  else
+	    {
+	      [[parser info] setObject: up forKey: @"up"];
+	    }
+	  if (prev != nil)
+	    {
+	      [[parser info] setObject: prev forKey: @"prev"];
+	    }
+	  prev = file;
+	  if (i < [args count] - 1)
+	    {
+	      unsigned	j = i + 1;
+
+	      while (j < [args count])
+		{
+		  NSString	*name = [args objectAtIndex: j++];
+
+		  if ([name hasSuffix: @".h"] || [name hasSuffix: @".m"])
+		    {
+		      name = [[name lastPathComponent]
+			stringByDeletingPathExtension];
+		      [[parser info] setObject: name forKey: @"next"];
+		      break;
+		    }
+		}
+	    }
+
 	  generated = [output output: [parser info]];
 
-#if	HAVE_LIBXML
-	  {
-	    NSData	*data;
-	    GSXMLParser	*parser;
-
-	    /*
-	     * Cache XML node information.
-	     */
-	    XML_ELEMENT_NODE
-	      = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
-
-	    data = [generated dataUsingEncoding: NSUTF8StringEncoding]; 
-	    parser = [GSXMLParser parser];
-	    [parser substituteEntities: YES];
-	    [parser doValidityChecking: YES];
-	    if ([parser parse: data] == NO || [parser parse: nil] == NO)
-	      {
-		NSLog(@"WARNING %@ did not produce a valid document", arg);
-	      }
-	    if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
-	      {
-		NSLog(@"not a gsdoc document - because name node is %@",
-		  [[[parser doc] root] name]);
-		return 1;
-	      }
-	  }
-#endif
 	  if ([generated writeToFile: ddir atomically: YES] == NO)
 	    {
 	      NSLog(@"Sorry unable to write %@", ddir);
 	    }
-	}
-      else if ([arg hasSuffix: @".m"])
-	{
-	  NSString	*ddir;
-	  NSString	*file;
-
-	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
-
-	  if (documentationDirectory == nil)
-	    {
-	      ddir = [arg stringByDeletingLastPathComponent];
-	    }
 	  else
 	    {
-	      ddir = documentationDirectory;
+	      CREATE_AUTORELEASE_POOL(pool);
+	      GSXMLParser	*parser;
+
+	      parser = [GSXMLParser parserWithContentsOfFile: ddir];
+	      [parser substituteEntities: YES];
+	      [parser doValidityChecking: YES];
+	      if ([parser parse] == NO)
+		{
+		  NSLog(@"WARNING %@ did not produce a valid document", arg);
+		}
+	      if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+		{
+		  NSLog(@"not a gsdoc document - because name node is %@",
+		    [[[parser doc] root] name]);
+		  return 1;
+		}
+	      [indexer makeRefs: [[parser doc] root]];
+	      RELEASE(pool);
 	    }
-	  ddir = [ddir stringByAppendingPathComponent: file];
-	  ddir = [ddir stringByAppendingPathExtension: @"gsdoc"];
-
-	  if ([mgr isReadableFileAtPath: arg] == NO)
-	    {
-	      NSLog(@"No readable file at '%@' ... skipping", arg);
-	      continue;
-	    }
-
-	  /*
-	   * If we have been given a '.m' file, we assume that it contains
-	   * interface details to be exported ... so we parse it first as
-	   * if it were a header file, and then again as a source file.
-	   */
-	  [parser reset];
-	  [parser parseFile: arg isSource: NO];
-	  [parser parseFile: arg isSource: YES];
-
-	  [output output: [parser info] file: ddir];
 	}
       else
 	{
