@@ -21,7 +21,7 @@
 #   License along with this library; if not, write to the Free
 #   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA
 AC_INIT
-AC_CONFIG_SRCDIR([GSUnixSSLHandle.m])
+AC_CONFIG_SRCDIR([GSSSLHandle.m])
 
 if test -z "$GNUSTEP_SYSTEM_ROOT"; then
   AC_MSG_ERROR([You must run the GNUstep initialization script first!])

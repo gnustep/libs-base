@@ -258,7 +258,7 @@ PACKAGE_VERSION=
 PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
-ac_unique_file="GSUnixSSLHandle.m"
+ac_unique_file="GSSSLHandle.m"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>

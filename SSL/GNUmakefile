@@ -45,10 +45,10 @@ BUNDLE_NAME=SSL
 SSL_LIB_DIRS += -L$(GNUSTEP_OBJ_DIR)
 
 # The bundle Objective-C source files to be compiled
-SSL_OBJC_FILES = GSUnixSSLHandle.m
+SSL_OBJC_FILES = GSSSLHandle.m
 
 # The principal class in the bundle
-SSL_PRINCIPAL_CLASS = GSUnixSSLHandle
+SSL_PRINCIPAL_CLASS = GSSSLHandle
 
 SSL_BUNDLE_LIBS = $(SSLLIBS)
 
