@@ -22,9 +22,9 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/MappedCollector.h>
-#include <gnustep/base/Dictionary.h>
-#include <gnustep/base/CollectionPrivate.h>
+#include <base/MappedCollector.h>
+#include <base/Dictionary.h>
+#include <base/CollectionPrivate.h>
 
 @implementation MappedCollector
 

@@ -24,9 +24,9 @@
 #ifndef __LinkedListNode_h_GNUSTEP_BASE_INCLUDE
 #define __LinkedListNode_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/LinkedList.h>
-#include <gnustep/base/Coding.h>
+#include <base/preface.h>
+#include <base/LinkedList.h>
+#include <base/Coding.h>
 
 @interface LinkedListNode : NSObject <LinkedListComprising>
 {

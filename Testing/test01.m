@@ -1,6 +1,6 @@
-#include <gnustep/base/all.h>
+#include <base/all.h>
 #include <Foundation/NSValue.h>
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 #include    <Foundation/NSAutoreleasePool.h>
 
 @interface ConstantCollection (TestingExtras)

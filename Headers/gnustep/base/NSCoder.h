@@ -88,7 +88,7 @@
 
 #ifndef NO_GNUSTEP
 
-#include <gnustep/base/Coding.h>
+#include <base/Coding.h>
 #include <Foundation/NSCoder.h>
 @interface NSCoder (GNU) <Encoding, Decoding>
 @end

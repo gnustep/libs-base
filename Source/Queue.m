@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Queue.h>
-#include <gnustep/base/ArrayPrivate.h>
+#include <base/Queue.h>
+#include <base/ArrayPrivate.h>
 
 @implementation Queue
   

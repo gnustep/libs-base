@@ -26,8 +26,8 @@
 
 #if __mach__
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Port.h>
+#include <base/preface.h>
+#include <base/Port.h>
 
 @interface MachInPort : InPort
 @end

@@ -22,13 +22,13 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSGArchiver.h>
-#include <gnustep/base/Archiver.h>
-#include <gnustep/base/CStream.h>
-#include <gnustep/base/behavior.h>
-#include <gnustep/base/CoderPrivate.h>
-#include <gnustep/base/MemoryStream.h>
+#include <base/Archiver.h>
+#include <base/CStream.h>
+#include <base/behavior.h>
+#include <base/CoderPrivate.h>
+#include <base/MemoryStream.h>
 #include <Foundation/NSException.h>
 
 #define USE_OPENSTEP_STYLE_FORWARD_REFERENCES 1

@@ -25,8 +25,8 @@
    IndexedCollection, but not OrderedCollection. */
 
 #include <config.h>
-#include <gnustep/base/Heap.h>
-#include <gnustep/base/ArrayPrivate.h>
+#include <base/Heap.h>
+#include <base/ArrayPrivate.h>
 
 #define HEAP_PARENT(i) (i/2)
 #define HEAP_LEFT(i) (2 * i)

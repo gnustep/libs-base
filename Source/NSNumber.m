@@ -23,7 +23,7 @@
 */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSConcreteNumber.h>

@@ -22,13 +22,13 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/CoderPrivate.h>
-#include <gnustep/base/CStream.h>
-#include <gnustep/base/Stream.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/Array.h>
+#include <base/preface.h>
+#include <base/Coder.h>
+#include <base/CoderPrivate.h>
+#include <base/CStream.h>
+#include <base/Stream.h>
+#include <base/StdioStream.h>
+#include <base/Array.h>
 #include <Foundation/NSException.h>
 
 static int debug_coder = 0;

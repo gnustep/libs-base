@@ -1,3 +1,19 @@
+Sat Dec 19 01:26:06 1998  Matthias Klose  <doko@cs.tu-berlin.de>
+
+        * NSCharacterSets/Makefile.postamble: Use macro MKDIRS.
+        * NSTimeZones/Makefile.postamble: likewise
+        * src/Makefile.postamble: likewise
+
+Sat Dec 19 10:45:58 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/mframe/configure.in: Test for empty subdir (patch from
+ 	Matthias Klose <doko@cs.tu-berlin.de>).
+
+Fri Dec 18 14:39:46 1998  Matthias Klose  <doko@cs.tu-berlin.de> 
+ 
+        * */*: include <base/*.h> instead of <gnustep/base/*.h>. 
+        * src/Makefile.postamble: reflect this change in srcdir-include. 
+
 Fri Dec 18 18:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         Foundation.h: Added NSPathUtilities.h

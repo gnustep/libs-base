@@ -27,10 +27,10 @@
 */
 
 #include <config.h>
-#include <gnustep/base/Random.h>
-#include <gnustep/base/RNGBerkeley.h>
-#include <gnustep/base/Time.h>
-#include <gnustep/base/Coder.h>
+#include <base/Random.h>
+#include <base/RNGBerkeley.h>
+#include <base/Time.h>
+#include <base/Coder.h>
 #include <Foundation/NSException.h>
 #include <limits.h>
 

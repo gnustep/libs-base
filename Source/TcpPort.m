@@ -34,13 +34,13 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/TcpPort.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/NotificationDispatcher.h>
-#include <gnustep/base/NSException.h>
+#include <base/preface.h>
+#include <base/TcpPort.h>
+#include <base/Array.h>
+#include <base/NotificationDispatcher.h>
+#include <base/NSException.h>
 #include <Foundation/NSRunLoop.h>
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSPortNameServer.h>

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 @class NSString, NSArray, NSMutableArray;
 

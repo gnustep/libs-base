@@ -31,11 +31,11 @@
    It's an instance of PortEncoder or PortDecoder. */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/DistributedObjects.h>
-#include <gnustep/base/TcpPort.h>
+#include <base/TcpPort.h>
 #include <mframe.h>
-#include <gnustep/base/NotificationDispatcher.h>
+#include <base/NotificationDispatcher.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSArray.h>

@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/RBTreeNode.h>
-#include <gnustep/base/NSString.h>
+#include <base/RBTreeNode.h>
+#include <base/NSString.h>
 
 @implementation RBTreeNode
 

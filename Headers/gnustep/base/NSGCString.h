@@ -24,7 +24,7 @@
 #ifndef __NSGCString_h_GNUSTEP_BASE_INCLUDE
 #define __NSGCString_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSString.h>
 
 /*

@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/Dictionary.h>
-#include <gnustep/base/CollectionPrivate.h>
+#include <base/Dictionary.h>
+#include <base/CollectionPrivate.h>
 #include <Foundation/NSCharacterSet.h>
 
 #define DEFAULT_DICTIONARY_CAPACITY 32

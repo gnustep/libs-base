@@ -24,8 +24,8 @@
 #ifndef __Set_h_GNUSTEP_BASE_INCLUDE
 #define __Set_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Collection.h>
+#include <base/preface.h>
+#include <base/Collection.h>
 #include <Foundation/NSHashTable.h>
 
 @interface Set : Collection

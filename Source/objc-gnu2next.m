@@ -23,7 +23,7 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 #if NeXT_runtime
 

@@ -42,7 +42,7 @@
    FIXME?: use leap seconds? */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>

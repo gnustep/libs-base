@@ -24,10 +24,10 @@
 /* xxx I should also look into SOCK_RDM and SOCK_SEQPACKET. */
 
 #include <config.h>
-#include <gnustep/base/UdpPort.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/ConnectedCoder.h>
-#include <gnustep/base/Array.h>
+#include <base/UdpPort.h>
+#include <base/Coder.h>
+#include <base/ConnectedCoder.h>
+#include <base/Array.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
 #ifndef __WIN32__

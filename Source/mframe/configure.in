@@ -37,7 +37,7 @@ case "$target_cpu" in
     sparc*)		host_cpu=sparc;;
 esac
 
-if test -d $host_cpu
+if test -d $host_cpu -a "`echo $host_cpu/*`" != "$host_cpu/*"
 then
     my_dir=$host_cpu
 else
@@ -51,6 +51,7 @@ fi
 if test -f $my_dir/$target_os
 then
     my_path=$my_dir/$target_os
+    echo Using information from $my_path.
 else
     echo '*************** Warning ****************'
     echo The 'mframe' software has not been ported to $target_cpu-$target_os.

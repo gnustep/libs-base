@@ -22,8 +22,8 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/Stack.h>
-#include <gnustep/base/ArrayPrivate.h>
+#include <base/Stack.h>
+#include <base/ArrayPrivate.h>
 
 @implementation Stack 
   

@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/BinaryTreeNode.h>
-#include <gnustep/base/NSString.h>
+#include <base/BinaryTreeNode.h>
+#include <base/NSString.h>
 
 @implementation BinaryTreeNode
 

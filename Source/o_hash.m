@@ -26,9 +26,9 @@
 
 #include <config.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/o_cbs.h>
-#include <gnustep/base/numbers.h>
-#include <gnustep/base/o_hash.h>
+#include <base/o_cbs.h>
+#include <base/numbers.h>
+#include <base/o_hash.h>
 
 /**** Function Implementations ***********************************************/
 

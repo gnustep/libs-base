@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <gnustep/base/TcpPort.h>
-#include <gnustep/base/Invocation.h>
+#include <base/TcpPort.h>
+#include <base/Invocation.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSRunLoop.h>
 

@@ -22,9 +22,9 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/LinkedList.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/Coder.h>
+#include <base/LinkedList.h>
+#include <base/IndexedCollectionPrivate.h>
+#include <base/Coder.h>
 
 @implementation LinkedList
 

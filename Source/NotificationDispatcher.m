@@ -28,10 +28,10 @@
    NotificationDistributor class. */
 
 #include <config.h>
-#include <gnustep/base/NotificationDispatcher.h>
-#include <gnustep/base/LinkedListNode.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/Invocation.h>
+#include <base/NotificationDispatcher.h>
+#include <base/LinkedListNode.h>
+#include <base/Array.h>
+#include <base/Invocation.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSException.h>
 

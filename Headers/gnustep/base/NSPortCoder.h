@@ -24,9 +24,9 @@
 #ifndef __NSPortCoder_h
 #define __NSPortCoder_h
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSCoder.h>
-#include <gnustep/base/Port.h>
+#include <base/Port.h>
 
 @class NSConnection;
 

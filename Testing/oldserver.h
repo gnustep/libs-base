@@ -1,9 +1,9 @@
 #ifndef _server_h
 #define _server_h
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/Array.h>
+#include <base/preface.h>
+#include <base/Connection.h>
+#include <base/Array.h>
 
 typedef struct _small_struct { 
   unsigned char z;

@@ -23,9 +23,9 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSArray.h>
-#include <gnustep/base/behavior.h>
+#include <base/behavior.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 

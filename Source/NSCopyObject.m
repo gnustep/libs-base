@@ -22,7 +22,7 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
 {

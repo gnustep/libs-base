@@ -24,9 +24,9 @@
 #ifndef __NSGArray_h_GNUSTEP_BASE_INCLUDE
 #define __NSGArray_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSArray.h>
-#include <gnustep/base/Array.h>
+#include <base/Array.h>
 
 @interface NSGArray : NSArray
 {

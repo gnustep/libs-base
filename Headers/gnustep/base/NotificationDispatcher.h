@@ -56,9 +56,9 @@
 
    */
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/LinkedList.h>
-#include <gnustep/base/Array.h>
+#include <base/preface.h>
+#include <base/LinkedList.h>
+#include <base/Array.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>

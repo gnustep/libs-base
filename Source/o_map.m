@@ -26,9 +26,9 @@
 
 #include <config.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/o_cbs.h>
-#include <gnustep/base/o_hash.h>
-#include <gnustep/base/o_map.h>
+#include <base/o_cbs.h>
+#include <base/o_hash.h>
+#include <base/o_map.h>
 
 /* Efficiency hack - the o_map_key_callbacks() incurs a function-call
   overhead and we use it a lot! */

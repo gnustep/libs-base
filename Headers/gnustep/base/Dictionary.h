@@ -24,8 +24,8 @@
 #ifndef __Dictionary_h_GNUSTEP_BASE_INCLUDE
 #define __Dictionary_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/KeyedCollection.h>
+#include <base/preface.h>
+#include <base/KeyedCollection.h>
 #include <Foundation/NSMapTable.h>
 
 @interface Dictionary : KeyedCollection

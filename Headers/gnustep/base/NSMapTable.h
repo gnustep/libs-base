@@ -30,7 +30,7 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
-#include <gnustep/base/o_map.h>
+#include <base/o_map.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

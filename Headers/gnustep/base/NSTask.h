@@ -24,7 +24,7 @@
 #ifndef __NSTask_h_GNUSTEP_BASE_INCLUDE
 #define __NSTask_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>

@@ -22,12 +22,12 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/RunLoop.h>
-#include <gnustep/base/ConnectedCoder.h>
-#include <gnustep/base/CStream.h>
-#include <gnustep/base/Port.h>
-#include <gnustep/base/MemoryStream.h>
+#include <base/preface.h>
+#include <base/RunLoop.h>
+#include <base/ConnectedCoder.h>
+#include <base/CStream.h>
+#include <base/Port.h>
+#include <base/MemoryStream.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSProxy.h>
 #include <Foundation/NSException.h>

@@ -29,8 +29,8 @@
 #ifndef __BinaryTree_h_GNUSTEP_BASE_INCLUDE
 #define __BinaryTree_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/IndexedCollection.h>
+#include <base/preface.h>
+#include <base/IndexedCollection.h>
 
 /* The <BinaryTreeComprising> protocol defines the interface to an object
    that may be an element in a BinaryTree. 

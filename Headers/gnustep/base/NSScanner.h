@@ -24,7 +24,7 @@
 #ifndef __NSScanner_h_GNUSTEP_INCLUDE
 #define __NSScanner_h_GNUSTEP_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
 

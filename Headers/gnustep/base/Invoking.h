@@ -24,7 +24,7 @@
 #ifndef __Invoking_h__GNUSTEP_BASE_INCLUDE
 #define __Invoking_h__GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 @protocol Invoking <NSObject>
 

@@ -24,9 +24,9 @@
 #ifndef __BinaryCStream_h_GNUSTEP_BASE_INCLUDE
 #define __BinaryCStream_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Stream.h>
-#include <gnustep/base/CStream.h>
+#include <base/preface.h>
+#include <base/Stream.h>
+#include <base/CStream.h>
 
 @interface BinaryCStream : CStream
 {

@@ -22,7 +22,7 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 const char gnustep_base_version[] = STRINGIFY (GNUSTEP_BASE_VERSION);
 const char o_gcc_version[] = STRINGIFY (GNUSTEP_BASE_GCC_VERSION);

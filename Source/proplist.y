@@ -2,7 +2,7 @@
 
         /* literal block */
 %{
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSData.h>

@@ -22,9 +22,9 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/Port.h>
-#include <gnustep/base/Coder.h>	/* for Coding protocol in Object category */
-#include <gnustep/base/NotificationDispatcher.h>
+#include <base/Port.h>
+#include <base/Coder.h>	/* for Coding protocol in Object category */
+#include <base/NotificationDispatcher.h>
 #include <Foundation/NSException.h>
 
 @implementation Port

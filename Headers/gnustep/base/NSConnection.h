@@ -25,11 +25,11 @@
 #ifndef __NSConnection_h_GNUSTEP_BASE_INCLUDE
 #define __NSConnection_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <gnustep/base/Collecting.h>
-#include <gnustep/base/Dictionary.h>
+#include <base/Collecting.h>
+#include <base/Dictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSRunLoop.h>

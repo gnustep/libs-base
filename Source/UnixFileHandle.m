@@ -22,7 +22,7 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSArray.h>

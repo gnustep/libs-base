@@ -1,4 +1,4 @@
-#include <gnustep/base/all.h>
+#include <base/all.h>
 #include    <Foundation/NSAutoreleasePool.h>
 
 int main()

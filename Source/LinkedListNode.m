@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/LinkedListNode.h>
-#include <gnustep/base/Coder.h>
+#include <base/LinkedListNode.h>
+#include <base/Coder.h>
 
 @implementation LinkedListNode
 

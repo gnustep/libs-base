@@ -22,11 +22,11 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/BinaryCStream.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/TextCStream.h>
+#include <base/preface.h>
+#include <base/BinaryCStream.h>
+#include <base/NSString.h>
+#include <base/StdioStream.h>
+#include <base/TextCStream.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <math.h>

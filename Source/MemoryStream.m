@@ -22,9 +22,9 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/MemoryStream.h>
-#include <gnustep/base/Coder.h>
+#include <base/preface.h>
+#include <base/MemoryStream.h>
+#include <base/Coder.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdarg.h>

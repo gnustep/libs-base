@@ -24,7 +24,7 @@
 
 #include <config.h>
 #include <math.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSScanner.h>

@@ -23,7 +23,7 @@
 
 #include <config.h>
 #include <objc/Storage.h>
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 /* memcpy() and memcmp() are gcc builtin's */
 
 /* Deal with bzero: */

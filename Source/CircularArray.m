@@ -23,8 +23,8 @@
 
 
 #include <config.h>
-#include <gnustep/base/CircularArray.h>
-#include <gnustep/base/CircularArrayPrivate.h>
+#include <base/CircularArray.h>
+#include <base/CircularArrayPrivate.h>
 
 @implementation CircularArray
 

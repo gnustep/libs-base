@@ -24,8 +24,8 @@
 #ifndef __IndexedCollectionPrivate_h_GNUSTEP_BASE_INCLUDE
 #define __IndexedCollectionPrivate_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/CollectionPrivate.h>
+#include <base/preface.h>
+#include <base/CollectionPrivate.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 

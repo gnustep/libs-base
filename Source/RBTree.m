@@ -22,9 +22,9 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/RBTree.h>
-#include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/RBTreeNode.h>
+#include <base/RBTree.h>
+#include <base/IndexedCollectionPrivate.h>
+#include <base/RBTreeNode.h>
 
 #define NODE_IS_RED(NODE) ([NODE isRed])
 #define NODE_IS_BLACK(NODE) (![NODE isRed])

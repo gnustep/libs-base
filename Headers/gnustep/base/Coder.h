@@ -24,9 +24,9 @@
 #ifndef __Coder_h_GNUSTEP_BASE_INCLUDE
 #define __Coder_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coding.h>
-#include <gnustep/base/Streaming.h>
+#include <base/preface.h>
+#include <base/Coding.h>
+#include <base/Streaming.h>
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSMapTable.h>
 

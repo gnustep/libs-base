@@ -26,12 +26,12 @@
    WARNING: This encoding is *not* machine-independent. */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/RawCStream.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/TextCStream.h>
-#include <gnustep/base/NSException.h>
+#include <base/preface.h>
+#include <base/RawCStream.h>
+#include <base/NSString.h>
+#include <base/StdioStream.h>
+#include <base/TextCStream.h>
+#include <base/NSException.h>
 
 #define DEFAULT_FORMAT_VERSION 0
 

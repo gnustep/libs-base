@@ -22,10 +22,10 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/OrderedCollection.h>
+#include <base/OrderedCollection.h>
 #include <stdio.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/NSString.h>
+#include <base/Array.h>
+#include <base/NSString.h>
 #include <Foundation/NSException.h>
 
 

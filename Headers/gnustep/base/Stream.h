@@ -24,8 +24,8 @@
 #ifndef __Stream_h__GNUSTEP_BASE_INCLUDE
 #define __Stream_h__GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Streaming.h>
+#include <base/preface.h>
+#include <base/Streaming.h>
 
 extern NSString* StreamException;
 

@@ -6,8 +6,8 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/BinaryCStream.h>
+#include <base/Coder.h>
+#include <base/BinaryCStream.h>
 #include <assert.h>
 #include "server.h"
 

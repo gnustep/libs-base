@@ -24,9 +24,9 @@
 #ifndef __Array_h_GNUSTEP_BASE_INCLUDE
 #define __Array_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/IndexedCollection.h>
-#include <gnustep/base/OrderedCollecting.h>
+#include <base/preface.h>
+#include <base/IndexedCollection.h>
+#include <base/OrderedCollecting.h>
 
 @interface ConstantArray : ConstantIndexedCollection
 {

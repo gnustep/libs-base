@@ -26,7 +26,7 @@
 #ifndef __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 #define __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 @class NSArray;
 @class NSMutableArray;

@@ -18,7 +18,7 @@
 
 #line 4 "proplist.y"
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSData.h>
@@ -155,7 +155,7 @@ static const short yycheck[] = {     5,
      4,    -1,     6,    10,    11,     9
 };
 /* -*-C-*-  Note some compilers choke on comments on `#line' lines.  */
-#line 3 "/usr/lib/bison.simple"
+#line 3 "/apps/share/bison.simple"
 
 /* Skeleton output parser for bison,
    Copyright (C) 1984, 1989, 1990 Free Software Foundation, Inc.
@@ -348,7 +348,7 @@ __yy_memcpy (char *to, char *from, int count)
 #endif
 #endif
 
-#line 196 "/usr/lib/bison.simple"
+#line 196 "/apps/share/bison.simple"
 
 /* The user can define YYPARSE_PARAM as the name of an argument to be passed
    into yyparse.  The argument should have type void *.
@@ -725,7 +725,7 @@ case 17:
     break;}
 }
    /* the action file gets copied in in place of this dollarsign */
-#line 498 "/usr/lib/bison.simple"
+#line 498 "/apps/share/bison.simple"
 
   yyvsp -= yylen;
   yyssp -= yylen;

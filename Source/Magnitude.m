@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Magnitude.h>
+#include <base/preface.h>
+#include <base/Magnitude.h>
 
 /* These methods accesses no instance variables.  It is exactly the kind
    of thing that should be a "behavior" associated with a protocol.

@@ -22,8 +22,8 @@
 */ 
 
 #include <config.h>
-#include <gnustep/base/RNGAdditiveCongruential.h>
-#include <gnustep/base/Coder.h>
+#include <base/RNGAdditiveCongruential.h>
+#include <base/Coder.h>
 #include <limits.h>
 
 /* Additive Congruential Method,

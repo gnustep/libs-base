@@ -1,10 +1,10 @@
 /* A demonstration of writing and reading with NSArchiver */
 
-#include <gnustep/base/Invocation.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/Archiver.h>
+#include <base/Invocation.h>
+#include <base/Array.h>
+#include <base/Archiver.h>
 #include <Foundation/NSValue.h>
-#include <gnustep/base/TextCStream.h>
+#include <base/TextCStream.h>
 #include    <Foundation/NSAutoreleasePool.h>
 
 @interface NSNumber (printing)

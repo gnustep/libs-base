@@ -24,44 +24,44 @@
 #ifndef __o_h_GNUSTEP_BASE_INCLUDE
 #define __o_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 
 /* Collection objects */
-#include <gnustep/base/Set.h>
-#include <gnustep/base/Bag.h>
-#include <gnustep/base/Dictionary.h>
-#include <gnustep/base/Array.h>
-#include <gnustep/base/Stack.h>
-#include <gnustep/base/Queue.h>
-#include <gnustep/base/GapArray.h>
-#include <gnustep/base/CircularArray.h>
-#include <gnustep/base/DelegatePool.h>
-#include <gnustep/base/MappedCollector.h>
-#include <gnustep/base/Heap.h>
-#include <gnustep/base/LinkedList.h>
-#include <gnustep/base/LinkedListNode.h>
-#include <gnustep/base/BinaryTree.h>
-#include <gnustep/base/BinaryTreeNode.h>
-#include <gnustep/base/RBTree.h>
-#include <gnustep/base/RBTreeNode.h>
-#include <gnustep/base/SplayTree.h>
+#include <base/Set.h>
+#include <base/Bag.h>
+#include <base/Dictionary.h>
+#include <base/Array.h>
+#include <base/Stack.h>
+#include <base/Queue.h>
+#include <base/GapArray.h>
+#include <base/CircularArray.h>
+#include <base/DelegatePool.h>
+#include <base/MappedCollector.h>
+#include <base/Heap.h>
+#include <base/LinkedList.h>
+#include <base/LinkedListNode.h>
+#include <base/BinaryTree.h>
+#include <base/BinaryTreeNode.h>
+#include <base/RBTree.h>
+#include <base/RBTreeNode.h>
+#include <base/SplayTree.h>
 
 /* Stream objects */
-#include <gnustep/base/Stream.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/MemoryStream.h>
+#include <base/Stream.h>
+#include <base/StdioStream.h>
+#include <base/MemoryStream.h>
 
 /* Coder objects */
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/BinaryCStream.h>
-#include <gnustep/base/TextCStream.h>
+#include <base/Coder.h>
+#include <base/BinaryCStream.h>
+#include <base/TextCStream.h>
 
 /* Port objects */
-#include <gnustep/base/Port.h>
+#include <base/Port.h>
 
 /* Remote messaging support objects */
-#include <gnustep/base/ConnectedCoder.h>
+#include <base/ConnectedCoder.h>
 
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 
 #endif /* __o_h_GNUSTEP_BASE_INCLUDE */

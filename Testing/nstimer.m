@@ -1,5 +1,5 @@
 #include <Foundation/NSRunLoop.h>
-#include <gnustep/base/Invocation.h>
+#include <base/Invocation.h>
 #include <Foundation/NSTimer.h>
 #include    <Foundation/NSAutoreleasePool.h>
 

@@ -1,7 +1,7 @@
 /* A simple example of writing and reading to a file using the 
    GNU StdioStream object. */
 
-#include <gnustep/base/StdioStream.h>
+#include <base/StdioStream.h>
 #include <Foundation/NSString.h>
 
 int main()

@@ -31,7 +31,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSMapTable.h>
-#include <gnustep/base/o_map.h>
+#include <base/o_map.h>
 #include "NSCallBacks.h"
 
 /** Dummy callbacks... **/

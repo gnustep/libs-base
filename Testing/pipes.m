@@ -1,4 +1,4 @@
-#include <gnustep/base/StdioStream.h>
+#include <base/StdioStream.h>
 #include <Foundation/NSString.h>
 
 int main()

@@ -24,10 +24,10 @@
 #ifndef __NSGSet_h_GNUSTEP_BASE_INCLUDE
 #define __NSGSet_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
+#include <base/preface.h>
 #include <Foundation/NSSet.h>
-#include <gnustep/base/Set.h>
-#include <gnustep/base/Bag.h>
+#include <base/Set.h>
+#include <base/Bag.h>
 
 @interface NSGSet : NSSet
 @end

@@ -22,11 +22,11 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Stream.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/NSString.h>
+#include <base/preface.h>
+#include <base/Stream.h>
+#include <base/Coder.h>
+#include <base/Coder.h>
+#include <base/NSString.h>
 
 @implementation Stream
 

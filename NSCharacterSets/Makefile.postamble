@@ -43,7 +43,7 @@
 
 # Things to do before installing
 before-install::
-	$(GNUSTEP_MAKEFILES)/mkinstalldirs $(charsetdir)
+	$(MKDIRS) $(charsetdir)
 
 # Things to do after installing
 after-install::

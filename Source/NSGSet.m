@@ -24,7 +24,7 @@
 
 #include <config.h>
 #include <Foundation/NSSet.h>
-#include <gnustep/base/behavior.h>
+#include <base/behavior.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSUtilities.h>

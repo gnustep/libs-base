@@ -22,7 +22,7 @@
    */
 
 #include <config.h>
-#include <gnustep/base/behavior.h>
+#include <base/behavior.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSArray.h>

@@ -106,17 +106,15 @@ after-distclean::
 
 # Local links to the include files
 gnustep/base: FORCE
-	if [ ! -d gnustep ]; then \
-	  mkdir gnustep; \
-	  cd gnustep ; $(LN_S) ../include base; \
+	if [ ! -h base ]; then \
+	  $(LN_S) include base; \
 	fi
 	# Make necessary links to source headers if compiling in seperate dir
 	# These are separate directories because one contains the .h files
 	# generated during the build; the other contains the unchanged sources.
 	if [ ! -r ./srcdir-include/Foundation/NSObject.h ]; then \
 	  mkdir srcdir-include; \
-	  mkdir srcdir-include/gnustep; \
-	  (cd srcdir-include/gnustep; $(LN_S) ../../$(srcdir)/include ./base) ; \
+	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./base) ; \
 	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./Foundation) ; \
 	fi
 
@@ -179,18 +177,15 @@ $(GNUSTEP_OBJ_DIR)/preface${OEXT}: include/preface.h
 # The config.h file is specific to a target
 #
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
-	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
-	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
-	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
-	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: ../config.status
-	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
-	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 include/o_%_bas.h: include/o_x_bas.h.in

@@ -51,8 +51,8 @@
    */
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Heap.h>
+#include <base/preface.h>
+#include <base/Heap.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSValue.h>

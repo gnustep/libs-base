@@ -22,12 +22,12 @@
    */ 
 
 #include <config.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Coder.h>
-#include <gnustep/base/CoderPrivate.h>
-#include <gnustep/base/MemoryStream.h>
-#include <gnustep/base/StdioStream.h>
-#include <gnustep/base/BinaryCStream.h>
+#include <base/preface.h>
+#include <base/Coder.h>
+#include <base/CoderPrivate.h>
+#include <base/MemoryStream.h>
+#include <base/StdioStream.h>
+#include <base/BinaryCStream.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSException.h>
 

@@ -63,7 +63,7 @@
 @end
 
 
-#include <gnustep/base/NotificationDispatcher.h>
+#include <base/NotificationDispatcher.h>
 
 /* Put this in a category to avoid unimportant errors due to behaviors. */
 @interface NSNotificationCenter : NSObject
