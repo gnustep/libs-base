@@ -1,5 +1,14 @@
 2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
 
+	* Tools/GNUmakefile: added DocTemplates
+	* Tools/Makefile.postamble: added DocTemplates
+	* Tools/indextemplate.gsdoc: New file. Use it as template for 
+		gsdoc index generation
+	* Tools/AutoDocTemplate.gsdoc: New File: Use it as templae for AutoDoc
+		source-to-documentation generation.
+	
+2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
+
 	* Tools/gsdoc-0_6_6.dtd: added ivariable, constant and stylesheet
 	* Tools/gsdoc.m: added ivariable, constant and stylesheet support
 		added index generation

@@ -34,6 +34,10 @@ include ../config.mak
 dtddir = $(GNUSTEP_RESOURCES)/DTDs
 DTD_FILES = gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd
 
+# DocTemplates to install
+doctemplatesdir = $(GNUSTEP_RESOURCES)/DocTemplates
+DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
+
 # The application to be compiled
 TOOL_NAME = gdnc gsdoc defaults plmerge \
 		plparse sfparse pldes plser

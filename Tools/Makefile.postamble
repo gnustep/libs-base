@@ -25,6 +25,12 @@ after-install::
 	for file in $(DTD_FILES); do \
 	  $(INSTALL_DATA) $$file $(dtddir)/$$file; \
 	done; \
+	if [ ! -f $(doctemplatesdir) ]; then \
+	  $(MKDIRS) $(doctemplatesdir); \
+	fi; \
+	for file in $(DOCTEMPLATES_FILES); do \
+	  $(INSTALL_DATA) $$file $(doctemplatesdir)/$$file; \
+	done; \
 	if [ "`$(WHOAMI)`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
