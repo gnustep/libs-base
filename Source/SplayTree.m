@@ -26,11 +26,10 @@
 
 @implementation SplayTree
 
-+ initialize
++ (void) initialize
 {
   if (self == [SplayTree class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 /* Make this a function ? */
