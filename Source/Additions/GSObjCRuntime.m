@@ -921,9 +921,9 @@ GSRemoveMethodFromList (GSMethodList list,
             }
 
 	  /* Clear the last entry.  */
-	  /* NB: For the NeXT_RUNTIME we may leak the types
-	     if they were set by GSAppendMethodFromList.  Yet
-	     as we can not determine the origin, we shall leak. */
+	  /* NB: We may leak the types if they were previously
+	     set by GSAppendMethodFromList.  Yet as we can not
+	     determine the origin, we shall leak.  */
           list->method_list[i].method_name = 0;
           list->method_list[i].method_types = 0;
           list->method_list[i].method_imp = 0;
