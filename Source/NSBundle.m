@@ -585,6 +585,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  _executable_path = [[NSFileManager defaultManager]
 	    pathContentOfSymbolicLinkAtPath:
               [NSString stringWithCString: PROCFS_EXE_LINK]];
+
+	  /*
+	  On some systems, the link is of the form "[device]:inode", which
+	  can be used to open the executable, but is useless if you want
+	  the path to it. Thus we check that the path is an actual absolute
+	  path. (Using '/' here is safe; it isn't the path separator
+	  everywhere, but it is on all systems that have PROCFS_EXE_LINK.)
+	  */
+	  if ([_executable_path length] > 0 &&
+	      [_executable_path characterAtIndex: 0] != '/')
+	    {
+	      _executable_path = nil;
+	    }
 #endif
 	  if (_executable_path == nil || [_executable_path length] == 0)
 	    {

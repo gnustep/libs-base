@@ -1,3 +1,8 @@
+2003-03-05 15:50  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSBundle.m (+initialize) [PROCFS_EXE_LINK]: Make sure that
+	the link is a path before using it.
+
 2003-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: Added some trivial reverse
