@@ -1077,10 +1077,10 @@ handle_printf_atsign (FILE *stream,
     {
       unichar	(*scImp)(NSString*, SEL, unsigned);
       unichar	(*ocImp)(NSString*, SEL, unsigned);
-      void	(*sgImp)(NSString*, SEL, unichar*, NSRange);
-      void	(*ogImp)(NSString*, SEL, unichar*, NSRange);
-      NSRange	(*srImp)(NSString*, SEL, unsigned);
-      NSRange	(*orImp)(NSString*, SEL, unsigned);
+      void	(*sgImp)(NSString*, SEL, unichar*, NSRange) = 0;
+      void	(*ogImp)(NSString*, SEL, unichar*, NSRange) = 0;
+      NSRange	(*srImp)(NSString*, SEL, unsigned) = 0;
+      NSRange	(*orImp)(NSString*, SEL, unsigned) = 0;
       BOOL	gotRangeImps = NO;
       BOOL	gotFetchImps = NO;
       NSRange	sRange;
@@ -1623,19 +1623,21 @@ handle_printf_atsign (FILE *stream,
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes
 {
-  NSString * base_path = [self stringByDeletingLastPathComponent];
-  NSString * last_compo = [self lastPathComponent];
-  NSString * tmp_path;
-  NSDirectoryEnumerator * e;
-  NSMutableArray	*op;
-  int match_count = 0;
+  NSString	*base_path = [self stringByDeletingLastPathComponent];
+  NSString	*last_compo = [self lastPathComponent];
+  NSString	*tmp_path;
+  NSDirectoryEnumerator *e;
+  NSMutableArray	*op = nil;
+  unsigned	match_count = 0;
 
   if (outputArray != 0)
     op = (NSMutableArray*)[NSMutableArray array];
 
-  if (outputName != NULL) *outputName = nil;
+  if (outputName != NULL)
+    *outputName = nil;
 
-  if ([base_path length] == 0) base_path = @".";
+  if ([base_path length] == 0)
+    base_path = @".";
 
   e = [[NSFileManager defaultManager] enumeratorAtPath: base_path];
   while (tmp_path = [e nextObject], tmp_path)
