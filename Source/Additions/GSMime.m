@@ -63,6 +63,7 @@ static	NSCharacterSet	*rfc2045Specials = nil;
 static  NSMapTable	*charsets = 0;
 static  NSMapTable	*encodings = 0;
 static	Class		NSArrayClass = 0;
+static	Class		NSStringClass = 0;
 static	Class		documentClass = 0;
 
 /*
@@ -661,6 +662,10 @@ wordData(NSString *word)
   if (NSArrayClass == 0)
     {
       NSArrayClass = [NSArray class];
+    }
+  if (NSStringClass == 0)
+    {
+      NSStringClass = [NSString class];
     }
   if (documentClass == 0)
     {
@@ -1615,13 +1620,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  NSLog(@"Bad value for http status");
 	  return NO;
 	}
-      [info setObject: [NSString stringWithFormat: @"%d", minor]
+      [info setObject: [NSStringClass stringWithFormat: @"%d", minor]
 	       forKey: @"HttpMinorVersion"];
-      [info setObject: [NSString stringWithFormat: @"%d.%d", major, minor]
+      [info setObject: [NSStringClass stringWithFormat: @"%d.%d", major, minor]
 	       forKey: @"HttpVersion"];
-      [info setObject: [NSString stringWithFormat: @"%d", major]
+      [info setObject: [NSStringClass stringWithFormat: @"%d", major]
 	       forKey: NSHTTPPropertyServerHTTPVersionKey];
-      [info setObject: [NSString stringWithFormat: @"%d", status]
+      [info setObject: [NSStringClass stringWithFormat: @"%d", status]
 	       forKey: NSHTTPPropertyStatusCodeKey];
       [self scanPastSpace: scanner];
       value = [[scanner string] substringFromIndex: [scanner scanLocation]];
@@ -1677,7 +1682,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    }
 	  subtype = [subtype lowercaseString];
 	  [info setObject: subtype forKey: @"Subtype"];
-	  value = [NSString stringWithFormat: @"%@/%@", type, subtype];
+	  value = [NSStringClass stringWithFormat: @"%@/%@", type, subtype];
 	}
       else
 	{
@@ -1700,7 +1705,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  if ([sub length] > 0)
 	    {
 	      sub = [sub lowercaseString];
-	      value = [NSString stringWithFormat: @"%@/%@", value, sub];
+	      value = [NSStringClass stringWithFormat: @"%@/%@", value, sub];
 	    }
 	}
 
@@ -1800,7 +1805,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   if ([specials characterIsMember: c] == YES)
     {
       [scanner setScanLocation: location + 1];
-      return [NSString stringWithCharacters: &c length: 1];
+      return [NSStringClass stringWithCharacters: &c length: 1];
     }
   else
     {
@@ -1893,7 +1898,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		}
 	      *dst++ = *src++;
 	    }
-	  return [NSString stringWithCharacters: buf length: dst - buf];
+	  return [NSStringClass stringWithCharacters: buf length: dst - buf];
 	}
     }
   else							// Token
@@ -2000,12 +2005,11 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (NSString*) _decodeHeader
 {
   NSStringEncoding	enc;
-  NSString		*charset;
   WE			encoding;
   unsigned char		c;
   unsigned char		*src, *dst, *beg;
   NSMutableString	*hdr = [NSMutableString string];
-  CREATE_AUTORELEASE_POOL(arp);
+  NSString		*s;
 
   /*
    * Remove any leading or trailing space - there shouldn't be any.
@@ -2032,11 +2036,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 	  if (dst > beg)
 	    {
-	      NSData	*d = [NSData dataWithBytes: beg length: dst - beg];
-	      NSString	*s;
-
-	      s = [[NSString alloc] initWithData: d
-					encoding: NSASCIIStringEncoding];
+	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+	      s = [s initWithBytes: beg
+			    length: dst - beg
+			  encoding: NSASCIIStringEncoding];
 	      [hdr appendString: s];
 	      RELEASE(s);
 	      dst = beg;
@@ -2060,8 +2063,12 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      break;
 	    }
 	  *src = '\0';
-	  charset = [NSString stringWithCString: tmp];
-	  enc = [documentClass encodingFromCharset: charset];
+
+	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+	  s = [s initWithCString: tmp];
+	  enc = [documentClass encodingFromCharset: s];
+	  RELEASE(s);
+
 	  src++;
 	  if (*src == 0)
 	    {
@@ -2110,10 +2117,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  src = tmp;
 	  if (dst > beg)
 	    {
-	      NSData	*d = [NSData dataWithBytes: beg length: dst - beg];
-	      NSString	*s;
-
-	      s = [[NSString alloc] initWithData: d encoding: enc];
+	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+	      s = [s initWithBytes: beg
+			    length: dst - beg
+			  encoding: enc];
 	      [hdr appendString: s];
 	      RELEASE(s);
 	      dst = beg;
@@ -2127,16 +2134,14 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
   if (dst > beg)
     {
-      NSData	*d = [NSData dataWithBytes: beg length: dst - beg];
-      NSString	*s;
-
-      s = [[NSString alloc] initWithData: d
-				encoding: NSASCIIStringEncoding];
+      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+      s = [s initWithBytes: beg
+		    length: dst - beg
+		  encoding: NSASCIIStringEncoding];
       [hdr appendString: s];
       RELEASE(s);
       dst = beg;
     }
-  RELEASE(arp);
   return hdr;
 }
 
@@ -2292,8 +2297,9 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  /*
 		   * Assume that content type is best represented as NSString.
 		   */
-		  string = [[NSString alloc] initWithData: data
-						 encoding: stringEncoding];
+		  string = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+		  string = [string initWithData: data
+				       encoding: stringEncoding];
 		  [document setContent: string];
 		  RELEASE(string);
 		}
@@ -2655,6 +2661,10 @@ static NSCharacterSet	*tokenSet = nil;
       if (NSArrayClass == 0)
 	{
 	  NSArrayClass = [NSArray class];
+	}
+      if (NSStringClass == 0)
+	{
+	  NSStringClass = [NSString class];
 	}
       if (documentClass == 0)
 	{
@@ -3051,7 +3061,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSString*) text
 {
-  NSString	*s = [NSString alloc];
+  NSString	*s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 
   s = [s initWithData: [self rawMimeData] encoding: NSASCIIStringEncoding];
   return AUTORELEASE(s);
@@ -3215,7 +3225,8 @@ static NSCharacterSet	*tokenSet = nil;
   d = [self decodeBase64: d];
   if (d != nil)
     {
-      r = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+      r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+      r = [r initWithData: d encoding: NSASCIIStringEncoding];
       AUTORELEASE(r);
     }
   return r;
@@ -3278,7 +3289,8 @@ static NSCharacterSet	*tokenSet = nil;
   d = [self encodeBase64: d];
   if (d != nil)
     {
-      r = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+      r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+      r = [r initWithData: d encoding: NSASCIIStringEncoding];
       AUTORELEASE(r);
     }
   return r;
@@ -3338,12 +3350,18 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  NSArrayClass = [NSArray class];
 	}
+      if (NSStringClass == 0)
+	{
+	  NSStringClass = [NSString class];
+	}
       if (charsets == 0)
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
 	    NSIntMapValueCallBacks, 0);
 	  NSMapInsert(charsets, (void*)@"ascii",
 	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-1",
+	    (void*)NSISOLatin1StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-2",
 	    (void*)NSISOLatin2StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-3",
@@ -3393,6 +3411,8 @@ static NSCharacterSet	*tokenSet = nil;
 	    NSObjectMapValueCallBacks, 0);
 	  NSMapInsert(encodings, (void*)NSASCIIStringEncoding,
 	    (void*)@"ascii");
+	  NSMapInsert(encodings, (void*)NSISOLatin1StringEncoding,
+	    (void*)@"iso-8859-1");
 	  NSMapInsert(encodings, (void*)NSISOLatin2StringEncoding,
 	    (void*)@"iso-8859-2");
 	  NSMapInsert(encodings, (void*)NSISOLatin3StringEncoding,
@@ -3598,7 +3618,7 @@ static NSCharacterSet	*tokenSet = nil;
 {
   if ([key hasPrefix: @"<"] == NO)
     {
-      key = [NSString stringWithFormat: @"<%@>", key];
+      key = [NSStringClass stringWithFormat: @"<%@>", key];
     }
   if ([content isKindOfClass: NSArrayClass] == YES)
     {
@@ -3856,7 +3876,7 @@ static NSCharacterSet	*tokenSet = nil;
 {
   NSData	*d = nil;
 
-  if ([content isKindOfClass: [NSString class]] == YES)
+  if ([content isKindOfClass: NSStringClass] == YES)
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
@@ -3885,7 +3905,7 @@ static NSCharacterSet	*tokenSet = nil;
 {
   NSString	*s = nil;
 
-  if ([content isKindOfClass: [NSString class]] == YES)
+  if ([content isKindOfClass: NSStringClass] == YES)
     {
       s = content;
     }
@@ -3896,7 +3916,8 @@ static NSCharacterSet	*tokenSet = nil;
       NSStringEncoding	enc;
 
       enc = [documentClass encodingFromCharset: charset];
-      s = [[NSString alloc] initWithData: content encoding: enc];
+      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+      s = [s initWithData: content encoding: enc];
       AUTORELEASE(s);
     }
   return s;
@@ -4087,9 +4108,11 @@ static NSCharacterSet	*tokenSet = nil;
   output[18] = (sequence >> 8) & 0xff;
   output[19] = sequence & 0xff;
 
-  md = [[NSMutableData alloc] initWithLength: 40];
+  md = [NSMutableData allocWithZone: NSDefaultMallocZone()];
+  md = [md initWithLength: 40];
   [md setLength: encodebase64([md mutableBytes], output, 20)];
-  result = [[NSString alloc] initWithData: md encoding: NSASCIIStringEncoding];
+  result = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+  result = [result initWithData: md encoding: NSASCIIStringEncoding];
   RELEASE(md);
   return AUTORELEASE(result);
 }
@@ -4105,7 +4128,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*hdr;
   NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
-  str = [NSString stringWithFormat: @"<%@>", str];
+  str = [NSStringClass stringWithFormat: @"<%@>", str];
   hdr = [[GSMimeHeader alloc] initWithName: @"content-id"
 				     value: str
 				parameters: nil];
@@ -4142,7 +4165,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*hdr;
   NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
-  str = [NSString stringWithFormat: @"<%@>", str];
+  str = [NSStringClass stringWithFormat: @"<%@>", str];
   hdr = [[GSMimeHeader alloc] initWithName: @"message-id"
 				     value: str
 				parameters: nil];
@@ -4266,7 +4289,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  [self setContent: content type: @"multipart/mixed" name: nil];
 	}
-      else if ([content isKindOfClass: [NSString class]] == YES)
+      else if ([content isKindOfClass: NSStringClass] == YES)
 	{
 	  [self setContent: content type: @"text/plain" name: nil];
 	}
@@ -4627,7 +4650,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) setContent: (id)newContent
 {
-  if ([newContent isKindOfClass: [NSString class]] == YES)
+  if ([newContent isKindOfClass: NSStringClass] == YES)
     {
       if (newContent != content)
 	{
@@ -4751,7 +4774,7 @@ static NSCharacterSet	*tokenSet = nil;
     {
       NSString	*val;
 
-      val = [NSString stringWithFormat: @"%@/%@", type, subtype];
+      val = [NSStringClass stringWithFormat: @"%@/%@", type, subtype];
       hdr = [GSMimeHeader alloc];
       hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
