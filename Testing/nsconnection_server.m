@@ -431,6 +431,22 @@
   [newConn setDelegate: self];
   return newConn;
 }
+
+- (oneway void) registerClient: (id<ClientProtocol>)client
+{
+  ASSIGN(registered_client, client);
+}
+
+- (oneway void) unregisterClient: (id<ClientProtocol>)client
+{
+  DESTROY(registered_client);
+}
+
+- (BOOL) tryClientCallback
+{
+  return [registered_client callback];
+}
+
 @end
 
 void

@@ -74,6 +74,8 @@ ADDITIONAL_TOOLS = \
 		nsconnection_client \
 		nsconnection_server \
 
+// TEST_TOOL_NAME += nsconnection_client nsconnection_server
+
 # The tool Objective-C source files to be compiled
 awake_OBJC_FILES = awake.m
 basic_OBJC_FILES = basic.m

@@ -25,6 +25,18 @@
 - (id) quietBycopy: (id byref)a;
 @end
 
+@interface	CallbackClient : NSObject <ClientProtocol>
+- (BOOL) callback;
+@end
+
+@implementation	CallbackClient
+- (BOOL) callback
+{
+  return YES;
+}
+@end
+
+
 @interface	Auth : NSObject
 @end
 
@@ -413,6 +425,29 @@ con_objects (id prx)
   return 0;
 }
 
+int
+con_callback (id prx)
+{
+  int j, k;
+  id localObj;
+
+  localObj = [CallbackClient new];
+  [prx registerClient: localObj];
+  k = 10000;
+  for (j = 0; j < k; j++)
+    {
+      [prx unregisterClient: localObj];
+      [prx registerClient: localObj];
+      [prx tryClientCallback];
+      if (j < 10 || j %10 == 0)
+	printf("repeated client registration and callback %d\n", j);
+
+    }
+  printf("repeated client registration and callback %d\n", j);
+  RELEASE(localObj);
+  return 0;
+}
+
 void
 usage(const char *program)
 {
@@ -425,11 +460,12 @@ usage(const char *program)
   printf("  -l     - Loop test\n");
   printf("  -o     - Objects test\n");
   printf("  -c     - Connect test\n");
+  printf("  -r     - Registration and callback test\n");
 }
 
 typedef enum {
   NO_TEST, TYPE_TEST, BENCHMARK_TEST, MESSAGE_TEST,
-  LOOP_TEST, OBJECT_TEST, CONNECT_TEST
+  LOOP_TEST, OBJECT_TEST, CONNECT_TEST, CALLBACK_TEST
 } test_t;
 
 int main (int argc, char *argv[], char **env)
@@ -453,7 +489,7 @@ int main (int argc, char *argv[], char **env)
   debug = 0;
   type_test = 0;
   stats = 0;
-  while ((c = getopt(argc, argv, "hdtbmsloc")) != EOF)
+  while ((c = getopt(argc, argv, "hdtbmslocr")) != EOF)
     switch (c) 
       {
       case 'd':
@@ -479,6 +515,9 @@ int main (int argc, char *argv[], char **env)
 	break;
       case 'c':
 	type_test = CONNECT_TEST;
+	break;
+      case 'r':
+	type_test = CALLBACK_TEST;
 	break;
       case 'h':
 	usage(argv[0]);
@@ -554,6 +593,9 @@ int main (int argc, char *argv[], char **env)
       break;
     case OBJECT_TEST:
       con_objects (prx);
+      break;
+    case CALLBACK_TEST:
+      con_callback (prx);
       break;
     default:
       break;
