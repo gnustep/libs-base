@@ -736,6 +736,10 @@ static BOOL double_release_check_enabled = NO;
 
 + setVersion:(int)aVersion
 {
+  if (aVersion < 0)
+    [NSException raise: NSInvalidArgumentException
+	        format: @"%s +setVersion: may not set a negative version",
+			object_get_class_name(self)];
   class_set_version(self, aVersion);
   return self;
 }
