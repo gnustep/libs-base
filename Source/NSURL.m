@@ -217,12 +217,20 @@ NSString	*NSURLPartKey_query = @"query";
       absString = [self baseURLAbsolutePart];
 
       if ([_urlString hasPrefix: @"/"])
-	absString = [absString stringByAppendingString: _urlString];
+        {
+          absString = [absString stringByAppendingString: _urlString];
+        }
       else
-	absString = [absString stringByAppendingFormat: @"/%@", _urlString];
+        {
+          absString = [absString stringByAppendingFormat: @"%@/%@",
+            [_baseURL path], _urlString];
+        }
     }
   else
-    absString = _urlString;
+    {
+      absString = _urlString;
+    }
+
   return absString;
 }
 
