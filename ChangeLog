@@ -1,3 +1,8 @@
+Tue Mar  2 11:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* NSTimeZones/Makefile.postamble: Updated to preserver old localtime
+	* NSTimeZones.tar: Updated to yuse the latest available zone info.
+
 Tue Mar  2 08:04:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Merge in 'dawn' CVS branch.
