@@ -1,3 +1,14 @@
+2004-09-10  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSArray.m: Consistently terminate macros with semicolons.
+	(arrayByAddingObjectsFromArray)
+	(removeObjectsFromIndices:numIndices:): Insure all declarations
+	precede statements.
+	* Source/NSDictionary.m: Consistently terminate macros with
+	semicolons.
+	* Source/NSSet.m (initWithCoder:): Insure all declarations precede
+	statements.
+	
 2004-09-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Implement init for GSPlaceHolderString

@@ -275,14 +275,14 @@ static SEL	rlSel;
     }
   else
     {
-      GS_BEGINIDBUF(objects, c+1)
+      GS_BEGINIDBUF(objects, c+1);
 
       [self getObjects: objects];
       objects[c] = anObject;
       na = [[GSArrayClass allocWithZone: NSDefaultMallocZone()]
 	initWithObjects: objects count: c+1];
 
-      GS_ENDIDBUF()
+      GS_ENDIDBUF();
     }
   return AUTORELEASE(na);
 }
@@ -299,13 +299,15 @@ static SEL	rlSel;
   c = [self count];
   l = [anotherArray count];
 
-  GS_BEGINIDBUF(objects, c+l)
+  {
+    GS_BEGINIDBUF(objects, c+l);
 
-  [self getObjects: objects];
-  [anotherArray getObjects: &objects[c]];
-  na = [NSArrayClass arrayWithObjects: objects count: c+l];
+    [self getObjects: objects];
+    [anotherArray getObjects: &objects[c]];
+    na = [NSArrayClass arrayWithObjects: objects count: c+l];
 
-  GS_ENDIDBUF()
+    GS_ENDIDBUF();
+  }
 
   return na;
 }
@@ -388,13 +390,13 @@ static SEL	rlSel;
 
       if (count > 0)
 	{
-	  GS_BEGINIDBUF(a, count)
+	  GS_BEGINIDBUF(a, count);
 
 	  [self getObjects: a];
 	  [aCoder encodeArrayOfObjCType: @encode(id)
 				  count: count
 				     at: a];
-	  GS_ENDIDBUF()
+	  GS_ENDIDBUF();
 	}
     }
 }
@@ -557,7 +559,7 @@ static SEL	rlSel;
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy
 {
   unsigned	c = [array count];
-  GS_BEGINIDBUF(objects, c)
+  GS_BEGINIDBUF(objects, c);
 
   [array getObjects: objects];
   if (shouldCopy == YES)
@@ -580,7 +582,7 @@ static SEL	rlSel;
     {
       self = [self initWithObjects: objects count: c];
     }
-  GS_ENDIDBUF()
+  GS_ENDIDBUF();
   return self;
 }
 
@@ -592,11 +594,11 @@ static SEL	rlSel;
 - (id) initWithArray: (NSArray*)array
 {
   unsigned	c = [array count];
-  GS_BEGINIDBUF(objects, c)
+  GS_BEGINIDBUF(objects, c);
 
   [array getObjects: objects];
   self = [self initWithObjects: objects count: c];
-  GS_ENDIDBUF()
+  GS_ENDIDBUF();
   return self;
 }
 
@@ -641,11 +643,11 @@ static SEL	rlSel;
 	                         at: &count];
       if (count > 0)
         {
-	  GS_BEGINIDBUF(contents, count)
+	  GS_BEGINIDBUF(contents, count);
 
-	      [aCoder decodeArrayOfObjCType: @encode(id)
-                                      count: count
-                                         at: contents];
+	  [aCoder decodeArrayOfObjCType: @encode(id)
+		  count: count
+		  at: contents];
 	  self = [self initWithObjects: contents count: count];
 #if GS_WITH_GC == 0
 	  while (count-- > 0)
@@ -653,7 +655,7 @@ static SEL	rlSel;
 	      [contents[count] release];
 	    }
 #endif
-	  GS_ENDIDBUF()
+	  GS_ENDIDBUF();
 	}
       else
         {
@@ -1072,11 +1074,11 @@ compare(id elem1, id elem2, void* context)
     }
   else
     {
-      GS_BEGINIDBUF(objects, aRange.length)
+      GS_BEGINIDBUF(objects, aRange.length);
 
       [self getObjects: objects range: aRange];
       na = [NSArray arrayWithObjects: objects count: aRange.length];
-      GS_ENDIDBUF()
+      GS_ENDIDBUF();
     }
   return na;
 }
@@ -1688,10 +1690,10 @@ compare(id elem1, id elem2, void* context)
 {
   if (count > 0)
     {
-      GS_BEGINITEMBUF(sorted, count, unsigned int);
       unsigned	to = 0;
       unsigned	from = 0;
       unsigned	i;
+      GS_BEGINITEMBUF(sorted, count, unsigned int);
 
       while (from < count)
 	{
