@@ -50,7 +50,9 @@ NSUserName ()
 NSString *
 NSHomeDirectory ()
 {
-  return [NSString stringWithCString: getenv ("HOME")];
+  return NSHomeDirectoryForUser (NSUserName ());
+  /* xxx Was using this.  Is there a reason to prefer it?
+     return [NSString stringWithCString: getenv ("HOME")]; */
 }
 
 /* Return LOGIN_NAME's home directory as an NSString object. */

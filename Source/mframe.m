@@ -774,12 +774,7 @@ mframe_do_call (const char *encoded_types,
    functions after this one.  The memory for the retframe is
    alloca()'ed, not malloc()'ed, and therefore is on the stack and can
    be tromped-on by future function calls.
-
-   xxx Pointer values returned by the method or non-const strings
-   passed in will now point to newly malloc'ed memory.  It is your
-   responsibility to free it.  This is thoroughly disgusting, and will
-   be fixed as soon as we get rid of the -free method and replace it
-   with something better.  */
+   */
 
 retval_t 
 mframe_build_return (arglist_t argframe, 

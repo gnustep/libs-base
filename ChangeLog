@@ -1,3 +1,63 @@
+Sun Aug 25 16:12:49 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* checks/Makefile.in (SRCS): Added nsscanner.m from Eric Norum.
+
+	* src/NSScanner.m: Fix indentation.
+	([NSScanner +scannerWithString:]): Rewrite to avoid unnecessary
+	local variable.
+	([NSScanner -initWithString:]): Call [super init].
+	([NSScanner -_scanCharactersFromSet:intoString:]): Method renamed to
+	put underscore at the beginning, not in the middle of the method
+ 	name.  All callers changed.
+	([NSScanner -_skipToNextField]): Likewise.
+	([NSScanner +localizedScannerWithString:]): New method, unimplemented.
+	([NSScanner -scanDouble:]): Initialize `unichar c' to avoid warning.
+	([NSScanner -scanLongLong:]): Don't compare with -(LONG_LONG_MIN),
+	this number is out of range since, in two-complement arithmetic,
+ 	we have one more negative number than positive numbers.
+	* src/include/NSScanner.h: Include <gnustep/base/preface.h>.  Fix
+ 	indentation.  Standarize #define wrapper symbol.
+
+	* src/NSScanner.m, src/include/NSScanner.h: New files from Eric
+	Norum. 
+
+Sun Aug 11 10:54:49 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/NSUser.m (NSHomeDirectory): Use NSHomeDirectoryForUser
+ 	instead of the HOME environment variable.
+
+	* src/NSUserDefaults.m: #include <Foundation/NSPathUtilities.h> to
+ 	get declarations for NSUser* functions.
+	(NSUserName): Function removed; it can already be found in
+	NSUser.m.
+	(NSHomeDirectory): Likewise.
+	(NSHomeDirectoryForUser): Likewise.
+
+	* doc/Makefile.in: Fix typo: properly comment out section.
+
+	* doc/gnustep-faq.texi: English fixes, and move NSScanner to
+ 	`implemented' list.
+
+	* doc/install.texi: English fixes, and mention --enable-shared
+ 	with Base Library configure directions.
+
+	* README.foundation: Add note about making a soft link, instead of
+ 	adding #ifdef's to the code.
+
+	* NSBundle.README: Change name from libobjects to GNUstep Base
+ 	Library.
+	* README.first: Likewise.
+
+Wed Aug  7 09:06:10 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/mframe.m (mframe_build_return): Remove comment about users
+ 	responsibility to free returned char*'s; it's no longer true.
+
+Mon Aug  5 11:25:30 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/include/NSArray.h: Remove declaration of NonCore classes;
+ 	just the category is sufficient.
+
 Mon Sep  2 09:11:34 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* src/mframe.m: Use gcc's __builtin_return smarts to find location

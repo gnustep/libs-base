@@ -95,7 +95,8 @@ coder.m \
 cstream.m \
 fref.m \
 basic.m \
-release.m
+release.m \
+nsscanner.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))

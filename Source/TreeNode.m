@@ -1,5 +1,5 @@
 /* Implementation for Objective-C TreeNode object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -52,6 +52,12 @@
   return self;
 }
 
+- (void) dealloc
+{
+  [_children release];
+  [super dealloc];
+}
+
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
@@ -79,10 +85,8 @@
 
 - (void) setChildren: (id <IndexedCollecting>)kids
 {
-  /* xxx
   [kids retain];
   [_children release];
-  */
   _children = kids;
   return self;
 }

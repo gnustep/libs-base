@@ -28,7 +28,8 @@
    Only supports C Strings.  Some implementations will need to be 
    changed when we get other string backing classes.
 
-   Does not support %@ in format strings on non-GNU-libc systems.
+   Does not support all justification directives for `%@' in format strings 
+   on non-GNU-libc systems.
 
 */
 
@@ -320,7 +321,7 @@ handle_printf_atsign (FILE *stream,
     /* We need a local copy since we change it.  (Changing and undoing
        the change doesn't work because some format strings are constant
        strings, placed in a non-writable section of the executable, and 
-       can't be written to.) */ 
+       writing to them will cause a segfault.) */ 
     char format_cp_copy[format_len+1];
     char *atsign_pos;
     char *format_to_go = format_cp_copy;
