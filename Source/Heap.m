@@ -41,12 +41,12 @@
 
   right = HEAP_RIGHT(index);
   left = HEAP_LEFT(index);
-  if (left <= _count 
+  if (left < _count 
       && [_contents_array[index] compare: _contents_array[left]] > 0)
     largest = left;
   else
     largest = index;
-  if (right <= _count
+  if (right < _count
       && [_contents_array[largest] compare: _contents_array[right]] > 0)
     largest = right;
   if (largest != index)
