@@ -58,6 +58,9 @@
 #undef HAVE_UINTMAX_T
 #undef HANDLE_LONG_LONG_MAX
 
+/* Define if nested functions are broken on this compiler */
+#undef BROKEN_NESTED_FUNCTIONS
+
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 
@@ -181,9 +184,6 @@
 /* Define if you have the <libc.h> header file.  */
 #undef HAVE_LIBC_H
 
-/* Define if you have the <libguile.h> header file.  */
-#undef HAVE_LIBGUILE_H
-
 /* Define if you have the <limits.h> header file.  */
 #undef HAVE_LIMITS_H
 
@@ -207,6 +207,9 @@
 
 /* Define if you have the <openssl/ssl.h> header file.  */
 #undef HAVE_OPENSSL_SSL_H
+
+/* Define if you have the <pthread.h> header file.  */
+#undef HAVE_PTHREAD_H
 
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
@@ -282,6 +285,9 @@
 
 /* Define if you have the <windows.h> header file.  */
 #undef HAVE_WINDOWS_H
+
+/* Define if you have the giconv library (-lgiconv).  */
+#undef HAVE_LIBGICONV
 
 /* Define if you have the iconv library (-liconv).  */
 #undef HAVE_LIBICONV

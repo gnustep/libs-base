@@ -1411,6 +1411,93 @@ static BOOL	multi_threaded = NO;
   RELEASE(arp);
 }
 
+#ifdef BROKEN_NESTED_FUNCTIONS
+typedef struct _NSConnection_t {
+  @defs(NSConnection)
+} NSConnection_t;
+static NSConnection_t *c_self_t;
+static NSPortCoder *op = nil;
+static NSPortCoder *ip = nil;
+static NSConnection *c_self;
+static BOOL         is_exception = NO;
+static BOOL         second_decode = NO;
+static int	    seq_num;
+
+  void encoder (int argnum, void *datum, const char *type, int flags)
+    {
+#define ENCODED_ARGNAME @"argument value"
+      switch (*type)
+	{
+	case _C_ID: 
+	  if (flags & _F_BYCOPY)
+	    [op encodeBycopyObject: *(id*)datum];
+#ifdef	_F_BYREF
+	  else if (flags & _F_BYREF)
+	    [op encodeByrefObject: *(id*)datum];
+#endif
+	  else
+	    [op encodeObject: *(id*)datum];
+	  break;
+	default: 
+	  [op encodeValueOfObjCType: type at: datum];
+	}
+    }
+
+      void decoder(int argnum, void *datum, const char *type, int flags)
+	{
+	  c_self_t = (NSConnection_t *)c_self;
+	  if (type == 0)
+	    {
+	      if (ip != nil)
+		{
+		  [c_self _doneInRmc: ip];
+		  /* this must be here to avoid trashing alloca'ed retframe */
+		  ip = (id)-1;
+		  c_self_t->_repInCount++;	/* received a reply */
+		}
+	      return;
+	    }
+	  /* If we didn't get the reply packet yet, get it now. */
+	  if (ip == nil)
+	    {
+	      if (c_self_t->_isValid == NO)
+		{
+		  [NSException raise: NSGenericException
+		    format: @"connection waiting for request was shut down"];
+		}
+	      ip = [c_self _getReplyRmc: seq_num];
+	      /*
+	       * Find out if the server is returning an exception instead
+	       * of the return values.
+	       */
+	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+	      if (is_exception == YES)
+		{
+		  /* Decode the exception object, and raise it. */
+		  id exc;
+		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
+		  [c_self _doneInRmc: ip];
+		  ip = (id)-1;
+		  /* xxx Is there anything else to clean up in
+		     dissect_method_return()? */
+		  [exc raise];
+		}
+	    }
+	  [ip decodeValueOfObjCType: type at: datum];
+	  /* -decodeValueOfObjCType:at: malloc's new memory
+	     for pointers.  We need to make sure it gets freed eventually
+	     so we don't have a memory leak.  Request here that it be
+	     autorelease'ed. Also autorelease created objects. */
+	  if (second_decode == NO)
+	    {
+	      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
+		[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
+	    }
+	  else if (*type == _C_ID)
+	    AUTORELEASE(*(id*)datum);
+	}
+#endif
+
 /*
  * NSDistantObject's -forward: : method calls this to send the message
  * over the wire.
@@ -1419,13 +1506,16 @@ static BOOL	multi_threaded = NO;
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
 {
+#ifndef BROKEN_NESTED_FUNCTIONS
   NSPortCoder	*op;
+  int		seq_num;
+#endif
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
-  int		seq_num;
   retval_t	retframe;
 
+#ifndef BROKEN_NESTED_FUNCTIONS
   /* The callback for encoding the args of the method call. */
   void encoder (int argnum, void *datum, const char *type, int flags)
     {
@@ -1446,6 +1536,7 @@ static BOOL	multi_threaded = NO;
 	  [op encodeValueOfObjCType: type at: datum];
 	}
     }
+#endif
 
   /* Encode the method on an RMC, and send it. */
 
@@ -1546,6 +1637,7 @@ static BOOL	multi_threaded = NO;
     }
   else
     {
+#ifndef BROKEN_NESTED_FUNCTIONS
       NSPortCoder	*ip = nil;
       BOOL		is_exception = NO;
 
@@ -1598,6 +1690,11 @@ static BOOL	multi_threaded = NO;
 	  else if (*type == _C_ID)
 	    AUTORELEASE(*(id*)datum);
 	}
+#else
+      c_self = self;
+      second_decode = NO;
+#endif /* not BROKEN_NESTED_FUNCTIONS */
+	
 
       retframe = mframe_build_return (argframe, type, outParams, decoder);
       /* Make sure we processed all arguments, and dismissed the IP.
@@ -1704,6 +1801,7 @@ static BOOL	multi_threaded = NO;
     }
   else
     {
+#ifndef BROKEN_NESTED_FUNCTIONS
       NSPortCoder	*ip = nil;
       BOOL		is_exception = NO;
 
@@ -1750,6 +1848,10 @@ static BOOL	multi_threaded = NO;
 	  if (*type == _C_ID)
 	    AUTORELEASE(*(id*)datum);
 	}
+#else
+      c_self = self;
+      second_decode = YES;
+#endif /* not BROKEN_NESTED_FUNCTIONS */
 
 #ifdef USE_FFCALL
       callframe_build_return (inv, type, outParams, decoder);
@@ -2002,10 +2104,77 @@ static BOOL	multi_threaded = NO;
   debug_connection = val;
 }
 
+#ifdef BROKEN_NESTED_FUNCTIONS
+#define decoder service_decoder
+#define encoder service_encoder
+static id              op;
+static int             reply_sno;
+static NSConnection   *c_self;
+static NSConnection_t *c_self_t;
+static NSPortCoder    *c_aRmc;
+  void service_decoder (int argnum, void *datum, const char *type)
+    {
+      /* We need this "dismiss" to happen here and not later so that Coder
+	 "-awake..." methods will get sent before the __builtin_apply! */
+      if (argnum == -1 && datum == 0 && type == 0)
+	{
+	  [c_self _doneInRmc: c_aRmc];
+	  return;
+	}
+
+      [c_aRmc decodeValueOfObjCType: type at: datum];
+#ifdef USE_FFCALL
+      if (*type == _C_ID)
+#else
+      /* -decodeValueOfObjCType: at: malloc's new memory
+	 for char*'s.  We need to make sure it gets freed eventually
+	 so we don't have a memory leak.  Request here that it be
+	 autorelease'ed. Also autorelease created objects. */
+      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
+	[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
+      else if (*type == _C_ID)
+#endif
+        AUTORELEASE(*(id*)datum);
+    }
+
+  void service_encoder (int argnum, void *datum, const char *type, int flags)
+    {
+      c_self_t = (NSConnection_t *)c_self;
+      if (op == nil)
+	{
+	  BOOL is_exception = NO;
+	  /* It is possible that our connection died while the method was
+	     being called - in this case we mustn't try to send the result
+	     back to the remote application!	*/
+	  if (c_self_t->_isValid == NO)
+	    return;
+	  op = [c_self _makeOutRmc: reply_sno generate: 0 reply: NO];
+	  [op encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+	}
+      switch (*type)
+	{
+	  case _C_ID: 
+	    if (flags & _F_BYCOPY)
+	      [op encodeBycopyObject: *(id*)datum];
+#ifdef	_F_BYREF
+	    else if (flags & _F_BYREF)
+	      [op encodeByrefObject: *(id*)datum];
+#endif
+	    else
+	      [op encodeObject: *(id*)datum];
+	    break;
+	  default: 
+	    [op encodeValueOfObjCType: type at: datum];
+	}
+    }
+
+#endif
+
 /* NSConnection calls this to service the incoming method request. */
 - (void) _service_forwardForProxy: (NSPortCoder*)aRmc
 {
   char	*forward_type = 0;
+#ifndef BROKEN_NESTED_FUNCTIONS
   id	op = nil;
   int	reply_sno;
 
@@ -2063,6 +2232,10 @@ static BOOL	multi_threaded = NO;
 	    [op encodeValueOfObjCType: type at: datum];
 	}
     }
+#else
+  c_self = self;
+  c_aRmc = aRmc;
+#endif /* not BROKEN_NESTED_FUNCTIONS */
 
   /* Make sure don't let exceptions caused by servicing the client's
      request cause us to crash. */
