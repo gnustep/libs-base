@@ -448,7 +448,7 @@ static NSFileManager* defaultManager = nil;
 	  NSString		*next;
 	  BOOL			result;
 
-	  arp = [[NSAutoreleasePool alloc] init];
+	  arp = [NSAutoreleasePool new];
 	  item = [contents objectAtIndex: i];
 	  next = [path stringByAppendingPathComponent: item];
 	  result = [self removeFileAtPath: next handler: handler];

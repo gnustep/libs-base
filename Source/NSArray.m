@@ -609,7 +609,7 @@ static Class NSMutableArray_concrete_class;
     unsigned		indentBase;
     NSMutableString	*iBaseString;
     NSMutableString	*iSizeString;
-    NSAutoreleasePool	*arp = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
     unsigned		count = [self count];
     NSString		*plists[count];
     unsigned		i;

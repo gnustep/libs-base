@@ -116,7 +116,7 @@ NSString *NSPortTimeoutException
        *	Also - bracket with retain/release pair to prevent recursion.
        */
       [super retain];
-      arp = [[NSAutoreleasePool alloc] init];
+      arp = [NSAutoreleasePool new];
       [self invalidate];
       [arp release];
       [super release];
