@@ -12,7 +12,7 @@ main()
   id pool;
   unsigned int p;
 
-  set_behavior_debug(0);
+  behavior_set_debug(0);
 
   pool = [[NSAutoreleasePool alloc] init];
 
