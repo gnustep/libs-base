@@ -182,7 +182,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
    that it automatically gets called before main with the argument and
    environment pointers. FIXME: Would like to do something similar
    for other formats besides ELF. */
-#if defined(__ELF__) || defined(SYS_AUTOLOAD)
+#if (defined(__ELF__) || defined(SYS_AUTOLOAD)) && !(sgi)
 #ifdef linux
 
 /* Under linux the functions in __libc_subinit are called before the
