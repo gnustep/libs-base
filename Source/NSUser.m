@@ -945,6 +945,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSString		*libsDir = @"Library/Libraries";
   NSString		*toolsDir = @"Tools";
   NSString		*docDir = @"Library/Documentation";
+  NSString		*supportDir = @"ApplicationSupport";
   NSMutableArray	*paths = [NSMutableArray new];
   NSString		*path;
   unsigned		i;
@@ -979,26 +980,26 @@ if (domainMask & mask) \
   if (directoryKey == NSApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
     {
-      ADD_PATH (NSUserDomainMask, gnustep_user_root, appsDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, appsDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, appsDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, appsDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, appsDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, appsDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, appsDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, appsDir);
     }
   if (directoryKey == NSDemoApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory);
     {
       NSString *devDemosDir = [devDir stringByAppendingPathComponent: demosDir];
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, devDemosDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, devDemosDir);
     }
   if (directoryKey == NSDeveloperApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
     {
       NSString *devAppsDir = [devDir stringByAppendingPathComponent: appsDir];
 
-      ADD_PATH (NSUserDomainMask, gnustep_user_root, devAppsDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, devAppsDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, devAppsDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, devAppsDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, devAppsDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, devAppsDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, devAppsDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, devAppsDir);
     }
   if (directoryKey == NSAdminApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
@@ -1006,24 +1007,24 @@ if (domainMask & mask) \
       NSString *devAdminDir = [devDir stringByAppendingPathComponent: adminDir];
 
       /* FIXME - NSUserDomainMask ? - users have no Administrator directory */
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, devAdminDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, devAdminDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, devAdminDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, devAdminDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, devAdminDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, devAdminDir);
     }
   if (directoryKey == NSLibraryDirectory
     || directoryKey == NSAllLibrariesDirectory)
     {
-      ADD_PATH (NSUserDomainMask, gnustep_user_root, libraryDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, libraryDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, libraryDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, libraryDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, libraryDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, libraryDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, libraryDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, libraryDir);
     }
   if (directoryKey == NSDeveloperDirectory)
     {
-      ADD_PATH (NSUserDomainMask, gnustep_local_root, devDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, devDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, devDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, devDir);
+      ADD_PATH(NSUserDomainMask, gnustep_local_root, devDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, devDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, devDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, devDir);
     }
   if (directoryKey == NSUserDirectory)
     {
@@ -1034,25 +1035,33 @@ if (domainMask & mask) \
     }
   if (directoryKey == NSDocumentationDirectory)
     {
-      ADD_PATH (NSUserDomainMask, gnustep_user_root, docDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, docDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, docDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, docDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, docDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, docDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, docDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, docDir);
     }
   if (directoryKey == GSLibrariesDirectory)
     {
-      ADD_PATH (NSUserDomainMask, gnustep_user_root, libsDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, libsDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, libsDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, libsDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, libsDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, libsDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, libsDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, libsDir);
     }
   if (directoryKey == GSToolsDirectory)
     {
-      ADD_PATH (NSUserDomainMask, gnustep_user_root, toolsDir);
-      ADD_PATH (NSLocalDomainMask, gnustep_local_root, toolsDir);
-      ADD_PATH (NSNetworkDomainMask, gnustep_network_root, toolsDir);
-      ADD_PATH (NSSystemDomainMask, gnustep_system_root, toolsDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, toolsDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, toolsDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, toolsDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, toolsDir);
     }
+  if (directoryKey == GSApplicationSupportDirectory)
+    {
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, supportDir);
+      ADD_PATH(NSLocalDomainMask, gnustep_local_root, supportDir);
+      ADD_PATH(NSNetworkDomainMask, gnustep_network_root, supportDir);
+      ADD_PATH(NSSystemDomainMask, gnustep_system_root, supportDir);
+    }
+
 #undef ADD_PATH
 
   fm = [NSFileManager defaultManager];
