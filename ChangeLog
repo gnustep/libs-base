@@ -1,3 +1,8 @@
+2000-10-04  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.preamble (ADDITIONAL_CPPFLAGS): Add
+	CONFIG_SYSTEM_DEFS.
+
 2000-10-05  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/Unicode.m: 
