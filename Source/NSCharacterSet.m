@@ -42,6 +42,7 @@ static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
 #define MAX_STANDARD_SETS 15
 static NSCharacterSet* cache_set[MAX_STANDARD_SETS];
 static NSLock* cache_lock = nil;
+Class	abstract = nil;
 
 @implementation NSCharacterSet
 
@@ -65,6 +66,7 @@ static NSLock* cache_lock = nil;
     {
       unsigned	i;
 
+      abstract = [NSCharacterSet class];
       for (i = 0; i < MAX_STANDARD_SETS; i++)
 	{
 	  cache_set[i] = 0;
@@ -138,7 +140,6 @@ static NSLock* cache_lock = nil;
 	  {
 	    /* Else cache the set */
 	    cache_set[number] = RETAIN(set);
-
 	  }
       NS_HANDLER
 	[cache_lock unlock];
@@ -151,9 +152,10 @@ static NSLock* cache_lock = nil;
 
   [cache_lock unlock];
 
-  if ([self isSubclassOfClass: [NSCharacterSet class]])
+  if (self != abstract && self != [set class])
     {
-      NSData *data;
+      NSData	*data;
+
       data = [set bitmapRepresentation];
       set = [self characterSetWithBitmapRepresentation: data];
     }
