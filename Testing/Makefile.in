@@ -34,6 +34,9 @@ CFLAGS = -Wall -Wno-implicit -g -O
 CPPFLAGS =
 LDFLAGS =
      
+DYNAMIC_BUNDLER_LINKER=@DYNAMIC_BUNDLER_LINKER@
+DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
+DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
 DEFS = @DEFS@
 LIBS = -L$(srcdir)/../src -lobjects @LIBOBJC@ @LIBS@ -lm
 
@@ -77,6 +80,7 @@ client.m \
 string.m \
 values.m \
 nsarray.m \
+nsbundle.m \
 nsdictionary.m
 
 # nsarchiving.m
@@ -86,10 +90,24 @@ server.h
 
 EXCS = $(SRCS:.m=)
 
-RCS_FILES = $(SRCS) $(HDRS) Makefile.in NXStringTable.example
-DIST_FILES = $(RCS_FILES) NXStringTable.example
+BUNDLE_NAME=LoadMe
+DYNAMIC_MFILES = \
+LoadMe.m \
+MyCategory.m \
+SecondClass.m
 
-all: $(EXCS)
+DYNAMIC_HFILES = \
+LoadMe.h \
+MyCategory.h \
+SecondClass.h
+
+DYNAMIC_OFILES = $(DYNAMIC_MFILES:.m=.o)
+
+RCS_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
+	Makefile.in NXStringTable.example
+DIST_FILES = $(RCS_FILES) 
+
+all: $(EXCS) bundles
 
 # This works for GNU make, but not others.
 # %: %.o $(srcdir)/../src/libobjects.a
@@ -136,6 +154,8 @@ values: values.o $(srcdir)/../src/libobjects.a
 	$(LINK_CMD)
 nsarray: nsarray.o $(srcdir)/../src/libobjects.a
 	$(LINK_CMD)
+nsbundle: nsbundle.o $(srcdir)/../src/libobjects.a
+	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
 nsdictionary: nsdictionary.o $(srcdir)/../src/libobjects.a
 	$(LINK_CMD)
 
@@ -150,11 +170,27 @@ echo-excs:
 
 remote: server client
 
+# These next few lines give an example of how to compile, link and store
+# a bundle.
+bundles: $(BUNDLE_NAME).bundle/$(BUNDLE_NAME)
+
+$(DYNAMIC_OFILES): $(DYNAMIC_MFILES) $(DYNAMIC_HFILES)
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(DYNAMIC_CFLAGS) $(ALL_OBJCFLAGS) \
+		$*.m -o $*.o
+
+$(BUNDLE_NAME).bundle/$(BUNDLE_NAME): $(DYNAMIC_OFILES)
+	-mkdir $(BUNDLE_NAME).bundle
+	-mkdir $(BUNDLE_NAME).bundle/English.lproj
+	$(DYNAMIC_BUNDLER_LINKER) -o $(BUNDLE_NAME).bundle/$(BUNDLE_NAME) \
+		$(DYNAMIC_OFILES)
+	cp NXStringTable.example $(BUNDLE_NAME).bundle/English.lproj
+
 mostlyclean:
 	rm -f core *~ test08.data textcoder.txt
 
 clean: mostlyclean
 	rm -f *.o $(EXCS)
+	rm -rf $(BUNDLE_NAME).bundle
 
 distclean: clean
 	rm -f Makefile config.status
