@@ -427,10 +427,13 @@ all: libobjects.a @LIBOBJECTS_SO@
 
 libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC) 
 	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
+		-Wl,-soname,libobjects.so.$(OBJECTS_MAJOR_VERSION) \
 		$(OBJS_INSTALL_PIC)
 	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION)
 	ln -s libobjects.so.$(OBJECTS_VERSION) \
 		libobjects.so.$(OBJECTS_MAJOR_VERSION)
+	ln -s libobjects.so.$(OBJECTS_MAJOR_VERSION) \
+		libobjects.so
 
 libobjects.a: objects/stdobjects.h $(OBJS_INSTALL) 
 	$(AR) $(ARFLAGS) libobjects.a $(OBJS_INSTALL)
@@ -445,6 +448,8 @@ install: installdirs all
 	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
 	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) \
 		$(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
+	  ln -s $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) \
+		$(libdir)/libobjects.so ; \
 	fi
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
