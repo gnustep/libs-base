@@ -2,6 +2,8 @@
 
 	* Tools/xmlparse.m: new utility to parse/validate xml, for testing
 	gsdoc and new style property lists etc.
+	* Source/NSBundle.m: ([+allBundles]) Make sure the main bundle is
+	present.  Add some documentation.
 
 2003-05-07  Richard Frith-Macdonald <rfm@gnu.org>
 
