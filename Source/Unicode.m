@@ -40,6 +40,7 @@ struct _ucc_ {unichar from; char to;};
 #include "unicode/caseconv.h"
 #include "unicode/cop.h"
 #include "unicode/decomp.h"
+#include "unicode/gsm0338.h"
 
 #ifdef HAVE_ICONV
 #ifdef HAVE_GICONV_H
@@ -101,6 +102,7 @@ static NSStringEncoding _availableEncodings[] = {
     NSISOGreekStringEncoding,
     NSISOHebrewStringEncoding,
     NSGB2312StringEncoding,
+    NSGSM0338StringEncoding,
     0
 };
 #else
@@ -133,6 +135,7 @@ static NSStringEncoding _availableEncodings[] = {
 //    NSISOGreekStringEncoding,
 //    NSISOHebrewStringEncoding,
 //    NSGB2312StringEncoding,
+    NSGSM0338StringEncoding,
     0
 };
 #endif 
@@ -174,6 +177,7 @@ const struct _strenc_ str_encoding_table[]=
   {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding"},
   {NSUTF7StringEncoding, "NSUTF7StringEncoding"},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding"},
+  {NSGSM0338StringEncoding, "NSGSM0338StringEncoding"},
 
   {0, "Unknown encoding"}
 };
@@ -457,6 +461,9 @@ encode_chartouni(char c, NSStringEncoding enc)
 	else
 	  return(Latin2_char_to_uni_table[(unc)c - Latin2_conv_base]);
 
+      case NSGSM0338StringEncoding:
+	return(GSM0338_char_to_uni_table[(unc)c]);
+
 #if 0
       case NSSymbolStringEncoding:
 	if ((unc)c < Symbol_conv_base)
@@ -538,6 +545,12 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 	    return res ? '*' : Latin2_uni_to_char_table[--i].to;
 	  }
 
+      case NSGSM0338StringEncoding:
+	{
+	  while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
+	    && (i < GSM0338_uni_to_char_table_size));
+	  return res ? '*' : GSM0338_uni_to_char_table[--i].to;
+	}
 #if 0
       case NSSymbolStringEncoding:
 	if (u < (unichar)Symbol_conv_base)
@@ -625,6 +638,13 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 	      && (i < Latin2_uni_to_char_table_size));
 	    return res ? 0 : Latin2_uni_to_char_table[--i].to;
 	  }
+
+      case NSGSM0338StringEncoding:
+	{
+	  while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
+	    && (i < GSM0338_uni_to_char_table_size));
+	  return res ? 0 : GSM0338_uni_to_char_table[--i].to;
+	}
 
 #if 0
       case NSSymbolStringEncoding:
@@ -923,6 +943,25 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 	      return 0;		// Not all characters converted.
 	    return count;
 
+	  case NSGSM0338StringEncoding:
+	    for (count = 0; count < sl && count < dl; count++)
+	      {
+		int res;
+		int i = 0;
+
+		u = src[count];
+
+		while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
+		  && (i < GSM0338_uni_to_char_table_size));
+		if (!res)
+		  dst[count] = GSM0338_uni_to_char_table[--i].to;
+		else
+		  return 0;
+	      }
+	    if (count < sl)
+	      return 0;		// Not all characters converted.
+	    return count;
+
 #if 0
 	  case NSSymbolStringEncoding:
 	    for (count = 0; count < sl && count < dl; count++)
@@ -1063,6 +1102,22 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 	      return 0;		// Not all characters converted.
 	    return count;
 
+	  case NSGSM0338StringEncoding:
+	    for (count = 0; count < sl && count < dl; count++)
+	      {
+		int res;
+		int i = 0;
+
+		u = src[count];
+
+		while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
+		  && (i < GSM0338_uni_to_char_table_size));
+		dst[count] = res ? '*' : GSM0338_uni_to_char_table[--i].to;
+	      }
+	    if (count < sl)
+	      return 0;		// Not all characters converted.
+	    return count;
+
 #if 0
 	  case NSSymbolStringEncoding:
 	    for (count = 0; count < sl && count < dl; count++)
@@ -1157,6 +1212,17 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
 	  return 0;		// Not all characters converted.
 	return count;
 	    
+      case NSGSM0338StringEncoding:
+	for (count = 0; count < sl && count < dl; count++)
+	  {
+	    unc c = (unc)src[count];
+
+	    dst[count] = GSM0338_char_to_uni_table[c];
+	  }
+	if (count < sl)
+	  return 0;		// Not all characters converted.
+	return count;    
+
 #if 0
       case NSSymbolStringEncoding:
 	for (count = 0; count < sl && count < dl; count++)

@@ -91,7 +91,8 @@ typedef enum _NSStringEncoding
   NSISOLatin8StringEncoding = 62,	// ISO-8859-14
   NSISOLatin9StringEncoding = 63,	// ISO-8859-15; Replaces ISOLatin1
   NSGB2312StringEncoding = 56,
-  NSUTF7StringEncoding = 64		// RFC 2152
+  NSUTF7StringEncoding = 64,		// RFC 2152
+  NSGSM0338StringEncoding		// GSM (mobile phone) default alphabet
 } NSStringEncoding;
 
 enum {
