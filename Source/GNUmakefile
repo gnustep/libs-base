@@ -411,9 +411,9 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
 DOCUMENT_NAME = Base
 
+Base_HEADER_FILES_DIR = $(HEADER_DIR)
 Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
 Base_AGSDOC_FLAGS = \
-	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
 	-Standards YES \
 	-Up Base
@@ -424,6 +424,10 @@ Base_AGSDOC_FLAGS = \
 
 include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/bundle.make
+
+# Only build the doc if doc=yes was passed on the command line
+ifeq ($(doc),yes)
 include $(GNUSTEP_MAKEFILES)/documentation.make
+endif
 
 -include Makefile.postamble
