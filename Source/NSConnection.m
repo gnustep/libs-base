@@ -3209,6 +3209,7 @@ static void callEncoder (DOContext *ctxt)
   if (node != 0)
     {
       proxy = node->value.obj;
+      M_UNLOCK(global_proxies_gate);
     }
   else
     {
@@ -3217,17 +3218,24 @@ static void callEncoder (DOContext *ctxt)
       counter = NSMapGet (targetToCounter, (void*)target);
       if (counter == nil)
 	{
+	  CachedLocalObject *cached;
+
 	  /*
 	   * If the target doesn't exist for any connection, but still
 	   * persists in the cache (ie it was recently released) then
 	   * we move it back from the cache to the main maps so we can
 	   * retain it on this connection.
 	   */
-	  counter = NSMapGet (targetToCached, (void*)target);
-	  if (counter != nil)
+	  cached = NSMapGet (targetToCached, (void*)target);
+	  if (cached != nil)
 	    {
-	      unsigned	t = counter->target;
-	      id		o = counter->object;
+	      unsigned	t;
+	      id		o;
+
+	      counter = [cached obj];
+
+	      t = counter->target;
+	      o = counter->object;
 
 	      NSMapInsert(objectToCounter, (void*)o, counter);
 	      NSMapInsert(targetToCounter, (void*)t, counter);
@@ -3237,6 +3245,7 @@ static void callEncoder (DOContext *ctxt)
 	    }
 	}
       RETAIN(counter);
+      M_UNLOCK(global_proxies_gate);
       if (counter == nil)
 	{
 	  if(debug_connection > 3)
@@ -3244,6 +3253,8 @@ static void callEncoder (DOContext *ctxt)
 	}
       else
 	{
+	  NSAssert([counter isKindOfClass: [GSLocalCounter class]],
+		   @"Local counter is wrong kind of class.");
 	  proxy = [distantObjectClass proxyWithLocal: counter->object
 					  connection: self];
 	  if (debug_connection > 3)
@@ -3252,7 +3263,6 @@ static void callEncoder (DOContext *ctxt)
 	  RELEASE(counter);
 	}
     }
-  M_UNLOCK(global_proxies_gate);
   return proxy;
 }
 
