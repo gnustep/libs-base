@@ -151,10 +151,26 @@ NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
 
 GS_EXPORT BOOL
 NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
+
+/**
+ * Return the extra reference count of anObject.  The reference count
+ * for an object is this value plus one.
+ */
 GS_EXPORT unsigned
 NSExtraRefCount(id anObject);
+
+/**
+ * Increment the extra reference count for anObject.  This is used
+ * by the -retain method.
+ */
 GS_EXPORT void
 NSIncrementExtraRefCount(id anObject);
+
+/**
+ * Examines the extra reference count for the object and, if non-zero
+ * decrements it.  Returns a flag to say whether the count was zero
+ * (and hence whether the extra refrence count was decremented).
+ */
 GS_EXPORT BOOL
 NSDecrementExtraRefCountWasZero(id anObject);
 

@@ -1,3 +1,10 @@
+2002-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Change NSDecrementExtraRefCountWasZero() to
+	refrain from decrementing when the count is zero.  Documented
+	the retain/release/retainCopunt methods.
+	* headers/Foundation/NSObject.h: Documented extra ref count functions.
+
 2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Change order of zombie initialisation for
