@@ -19,6 +19,8 @@ ifeq ($(shared),yes)
   CONFIG_SYSTEM_LIBS += @LIBS@
 endif
 
+GNUSTEP_BASE_HAVE_LIBXML=@HAVE_LIBXML@
+
 # Default to building only -baseadd
 # on non *-gnu-* library combos
 ifneq ($(FOUNDATION_LIB),gnu)

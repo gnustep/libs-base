@@ -62,6 +62,7 @@ into another language, under the above conditions for modified versions.
 * Error Handling::              
 * Variable Declaration::        
 * Object Persistance::          
+* Before You Commit::           
 * Contributing::                
 @end menu
 
@@ -348,7 +349,7 @@ commonly used compilers.
 
 
 @c ******************************************************************
-@node Object Persistance, Contributing, Variable Declaration, Top
+@node Object Persistance, Before You Commit, Variable Declaration, Top
 @section Object Persistance
 
 The standard method of saving and restoring object information in GNUstep
@@ -360,8 +361,23 @@ stored archives (for instance, those created by Gorm). The easiest way to do
 this is to use class version numbers to indicate which archive configuration
 should be read.
 
+@c ******************************************************************
+@node Before You Commit, Contributing, Object Persistance, Top
+@section Before You Commit
 
-@node Contributing,  , Object Persistance, Top
+@itemize @bullet
+@item Make sure you have a ChangeLog entry
+@item Make sure everything still compiles
+@item Make sure you've tested the change as much as is reasonable.
+@item If you have added a class, add the class to @file{Foudation/Foundation.h}
+or @file{Appkit/Appkit.h} if appropriate.
+@item If you have updated and configure checks, be sure to run both
+autoconf and autoheader.
+@end itemize
+
+
+@c ******************************************************************
+@node Contributing,  , Before You Commit, Top
 @section Contributing
 
 Contributing code is not difficult. Here are

@@ -25,6 +25,7 @@
 MAKEFILE_NAME = DocMakefile
 
 include $(GNUSTEP_MAKEFILES)/common.make
+include ../config.mak
 
 DOCUMENT_NAME = Base BaseAdditions
 
@@ -122,6 +123,7 @@ GCObject.h \
 # directory.
 #
 Base_AGSDOC_FLAGS = \
+	-MakeFrames YES \
 	-DocumentationDirectory ../Documentation/Base \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
@@ -142,6 +144,7 @@ Base_AGSDOC_FLAGS = \
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
+	-MakeFrames YES \
 	-DocumentationDirectory ../Documentation/BaseAdditions \
 	-HeaderDirectory ../Headers/Additions/GNUstepBase \
 	-Declared GNUstepBase \
@@ -162,6 +165,9 @@ BaseAdditions_AGSDOC_FLAGS = \
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../Tools/obj/autogsdoc
+
+# Fool make into thinking we are installed even if we are not
+BASE_MAKE_LOADED=yes
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 
