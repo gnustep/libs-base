@@ -112,12 +112,6 @@ static NSString* platform =
 #else
   nil;
 #endif
-static NSString* gnustep_libdir =
-#ifdef GNUSTEP_INSTALL_LIBDIR
-  @GNUSTEP_INSTALL_LIBDIR;
-#else
-  nil;
-#endif
 
 /* Declaration from find_exec.c */
 extern char *objc_find_executable(const char *name);
@@ -501,17 +495,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
     [array addObject: _bundle_resource_path(primary, bundlePath, language)];
-
-  if (gnustep_libdir)
-    {
-      primary = [NSString stringWithCString: [gnustep_libdir cString]];
-      [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
-      enumerate = [languages objectEnumerator];
-      while ((language = [enumerate nextObject]))
-	[array addObject: 
-	       _bundle_resource_path(primary, bundlePath, language)];
-    }
-
 
   return array;
 }
