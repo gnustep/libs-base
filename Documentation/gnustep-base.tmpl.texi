@@ -26,10 +26,8 @@
 This file documents the GNUstep BASE Library.
 
 @ifclear NO-TEXI2HTML
-@subtitle DRAFT Edition for GNUstep BASE Library @value{GNUSTEP-BASE-VERSION}
-@subtitle Last revision Jan 1998
 @c @subtitle For GCC Version @value{GNUSTEP-BASE-GCC}
-@author Andrew McCallum and Adam Fedor
+@c @author Andrew McCallum and Adam Fedor
 @sp 1
 @end ifclear
 Copyright @copyright{} 1998 Free Software Foundation

@@ -172,7 +172,6 @@ Currently you have to remove, change, add, for some classes.
 @end itemize
 
 
-
 @section Albin's To Do List
 
 I'm sure that there're other things to do, but these are the ones I know now:
