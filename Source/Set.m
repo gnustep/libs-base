@@ -291,6 +291,7 @@
 
 - freeEnumState: (void**)enumState
 {
+  /* Yipes, this interface is ugly.  collhash:coll_hash_next malloc'ed this */
   if (*enumState)
     OBJC_FREE(*enumState);
   return self;
