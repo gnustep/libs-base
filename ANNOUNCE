@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.7.3, is now available.
+The GNUstep Base Library, version 1.7.4, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -23,22 +23,17 @@ portion of the OpenStep standard (the Foundation library).
 number, y, in x.y.z) are unstable releases (like 1.5.2), while even
 minor release numbers (1.4.1) are stable releases.
 
-Noteworthy changes in version `1.7.3'
+Noteworthy changes in version `1.7.4'
 =====================================
 
-   Note in this version there have been large changes to the location of
-header files (both in the package and when installed). It's possible
-(though unlikely) that certain applications that rely on GNUstep
-specific headers may not compile because of this.
+   * Added Korean encoding
 
-   * A number of Protocol and DO fixes.
-
-   * New TraditionalChinese language.
+   * Updated use of ObjCRuntime functions.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.7.3.tar.gz distribution file has been placed on
+   The gnustep-base-1.7.4.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    Please log bug reports on the GNUstep project page

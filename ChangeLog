@@ -1,5 +1,9 @@
 2003-09-15  Adam Fedor  <fedor@gnu.org>
 
+	* Version 1.7.4
+
+2003-09-15  Adam Fedor  <fedor@gnu.org>
+
 	* Source/NSBundle.m (+_addFrameworkFromClass:): Check
 	_loadingBundle != bundle when removing classes.
 

@@ -9,6 +9,15 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.7.4}
+
+@itemize @bullet
+@item Added Korean encoding
+@item Updated use of ObjCRuntime functions.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.7.3}
 
 Note in this version there have been large changes to the location of
@@ -20,8 +29,6 @@ headers may not compile because of this.
 @item A number of Protocol and DO fixes.
 @item New TraditionalChinese language.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.7.2}
 

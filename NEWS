@@ -1,7 +1,14 @@
 News
 ****
 
-The currently released version of the library is `1.7.3'.
+The currently released version of the library is `1.7.4'.
+
+Noteworthy changes in version `1.7.4'
+=====================================
+
+   * Added Korean encoding
+
+   * Updated use of ObjCRuntime functions.
 
 Noteworthy changes in version `1.7.3'
 =====================================
