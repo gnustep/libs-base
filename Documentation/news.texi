@@ -17,7 +17,7 @@ the way various other names were changed.
 @item The library now requires a patch to gcc-2.7.2.  The patch adds
 thread-safe features to the GNU Objective C runtime.  Each thread has
 its own exception handler and assertion handler, thanks to Yoo C. Chung
-<wacko@power1.snu.ac.kr>.
+<wacko@@power1.snu.ac.kr>.
 
 @item Distributed Objects is much improved.  Exceptions in the server
 are sent back to the client.  Ungracefully closed connections are

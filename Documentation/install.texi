@@ -83,7 +83,7 @@ make
 make install
 @end example
 
-If you don't have @samp{libieee.a} on your system, @prog{configure} will
+If you don't have @samp{libieee.a} on your system, @file{configure} will
 say 
 @example
 configure: error: installation or configuration problem: 
