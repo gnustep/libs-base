@@ -1,4 +1,4 @@
-/* NSConcreteValue.h - Object encapsulation for C types.
+/* NSConcreteValue - Object encapsulation for C types.
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
