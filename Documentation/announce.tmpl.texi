@@ -1,7 +1,9 @@
 @chapter Announcement
 
 @c set the vars GNUSTEP-BASE-VERSION and GNUSTEP-BASE-GCC-VERSION
+@ifclear GSTEP-BASE-MAIN
 @include version.tmpl.texi
+@end ifclear
 
 The GNUstep Base Library, version @value{GNUSTEP-BASE-VERSION}, is now
 available.
